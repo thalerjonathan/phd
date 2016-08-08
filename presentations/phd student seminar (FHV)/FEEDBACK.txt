@@ -1,0 +1,4 @@
+- insgesamt sehr interessant aber zu lang
+- mein thema zu wenig gut verkauft (thomas schwarz)
+- mit dem abstrakten Pi-calculus beispiel aufhören ist verwirrend: dieses etwas konkreter gestalten
+- 3-4 abschließende folien was ich nun wirklcih machen will z.b. anwendung im pi-calculus wären noch gut gewesen

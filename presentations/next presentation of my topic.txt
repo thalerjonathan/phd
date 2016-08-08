@@ -1,0 +1,24 @@
+nächster vortrag der mein thema vorstellt, AUSGEHEND VON DOKTORANDENSEMINARVORTRAG
+	- grundlagen verkürzen: ABM/S und Agenten nicht so ausführlich
+	
+	- CDA & ZI beibehalten, ist absolut zentral für mein thema, evtl noch ausführlicher
+		-> diagramm beschriften, besser erklären
+		
+	- Actor Model einschränken
+		-> ich bin mir nichtmehr so sicher ob es wirklich eine große rolle spielt in meiner arbeit
+		-> falls doch behalten:
+			-> SAL & Erlang code weglassen
+			-> auf grundsätzliche definition und model konzentrieren
+			-> deontational (will clinger) & operational (irene greif) semantics
+		
+	- prozess-calküle so belassen (evtl etwas kürzen)
+	
+	- pi calculus beispiel konkreter anstatt mit abstrakten x/y/z variablen
+		-> evtl die semantik regeln vorzeigen
+		
+	- mein konkreter anwendungsfall erklären
+		-> formal language für ZI-CDA: an pi-calculus angelehnt
+		-> domain-specific language in haskell implementieren um computations in ZI-CDA durchzuführen
+		-> bi-similarity von specification language und haskell implementation zeigen
+		-> deadlock und termination check of formal language
+		-> dynamics of the ZI-CDA process

@@ -57,8 +57,9 @@ Co-Supersvisor: Thorsten Altenkirch
 
 % If you wish to include an abstract, uncomment the lines below
 \begin{abstract}
-We ask the question of how to do agent-based simulation in a purely functional environmen and what does one gain from doing it purely functional. \linebreak
-The solution is to follow a formal approach to both modelling and implementation because purely functional programming and formal methods are very closely related. The formal specification can directly be translated to a purely functional framework for running the simulation. Due to the nature of purely functional programming languages like Haskell and Agda (which can also be seen as a proof-assistant), proofs about the correctness – formal specification and implementation match – of both the framework and the translation from the specification can be performed. Also reasoning about total or partial correctness becomes possible.
+Agent-Based Modeling and Simulation (ABM/S) is still a young discipline and the dominant approach to it is object oriented computation. This thesis goes into the opposite direction and asks how ABM/S can be mapped to and implemented using pure functional computation and what one gains from doing so. To the best knowledge of the author, so far no proper treatment of ABM/S in pure functional computation exists but only a few papers which only scratch the surface. The author argues that approaching ABM/S from a pure functional direction  offers a wealth of new powerful tools and methods. The most obvious one is that when using pure functional computation (equational) resoning about the correctness and about total and partial correctness of the simulation becomes possible. The ultimate benefit is that Agda becomes applicable which is both a pure functional programming language and a proof assistant allowing both to compute the dynamics of the simulation and to look at meta-level properties of the simulation - termination, convergence, equilibria, domain specific properties - by constructing proofs utilizing computer aided verification. \\
+To map ABM/S to pure functional computation the idea is to apply both Robin Milner's PI-calculus and category theory. The PI-calculus will be used for a formal modelling of the problem and allows already a basic form of algebraic reasoning. Then the agents and the process of the agent-simulation will be mapped to category theory because pure functional programming approaches complex problems from the direction of category theory in the form of monadic programming. \\
+The application will be in the field of agent-based computational economics where the approach will be to take an established model/theory and then apply the above mentioned methods to it and to show that using them will lead to the same results. 
 \end{abstract}
 
 %----------------------------------------------------------------------------------------
@@ -122,33 +123,6 @@ TODO: it is still unclear how i will model the agents and implement them. Either
 %----------------------------------------------------------------------------------------
 %	SECTION 5
 %----------------------------------------------------------------------------------------
-
-\section{PhD Roadmap}
-1st semester: Literature research \& research questions
-Topics: 1. functional computation \& programming: Haskell \& monads, category theory, type-systems, 2. formal ABM/S: pi-calculus, various formal agent-types, 3. auction theory \& auction types
-2nd semester: First publication
-Mapping auction types and ABM/S to category theory
-3rd semester: Second publication
-formalization of ABM/S and auction types in pi-calculus 
-4th semester: Simulation Framework
-Finished Simulation framework implementation: basic framework with correctness \& proofs 
-5th semester: Third publication
-Dynamics of agent-based auction-simulations
-6th semester: Finalizing PhD
-Writing final thesis combining all research \& results.
-
-\section{Tasks}
-1.	Define ZI-Agents for all Auction-Types
-2.	Map ZI-Agents to Category Theory (why?)
-3.	Map Auction-Types to Category Theory (why?)
-4.	Write specification of ZI-Agents for all Auction-Types in Pi-Calculus (
-5.	Write specification of all Auction-Types in Pi-Calculus
-6.	Implement agent-based simulation in Haskell using Monads
-7.	Implement correctness and total / partial correctness proofs in Agda
-8.	Find approach to compact representation and visualization of auction-process
-9.	Publish Paper 1: ZI-Agents and auction-types in category theory
-10.	Publish Paper 2: ZI-Agents and auction-types in pi-calculus
-11.	Publish Paper 3: agent-based auction-simulation in Haskell
 
 \section{Research Questions}
 TODO

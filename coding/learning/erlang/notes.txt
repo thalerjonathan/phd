@@ -1,0 +1,83 @@
+Notes on erlang in erlang-book-part1.pdf
+	"Many of the Erlang primitives provide solutions to problems which are commonly 
+	encountered when programming large concurrent real-time systems."
+	
+	"Erlang has a process-based model of concurrency. Concurrency is explicit
+	and the user can precisely control which computations are performed sequentially
+	and which are performed in parallel. Message passing between processes is asynchronous,
+	that is, the sending process continues as soon as a message has been
+	sent."
+	
+	"Variables in Erlang have the property of single assignment
+	 (Also called write-once variables or non-destructive assignment)"
+	 
+	 "Programs are written entirely in terms of functions { function selection is made
+	by pattern matching which leads to highly succinct programs."
+	
+	"The Erlang system has an inbuilt notion of time { the programmer can specify
+	how long a process should wait for a message before taking some action. This
+	allows the programming of real-time applications. Erlang is suitable for most
+	soft real-time applications where response times are in the order of milliseconds."
+	
+	"The Erlang programmer explicitly specifies which activities are to be
+	represented as parallel processes. This view of concurrency is similar to that found
+	in Occam, CSP, Concurrent Pascal, etc., but dissimilar to concurrent languages
+	where the prime motivation for introducing concurrency is not for modelling real
+	world concurrency, but for obtaining higher performance by compiling programs
+	for execution on a parallel processor."
+	
+	"Thus, for reasons of efficiency, we have avoided many features commonly found in modern functional
+	or logic programming languages. Currying, higher-order functions, lazy evaluation,
+	ZF comprehension, logical variables, deep guards, etc., add to the expressive
+	power of a declarative programming language, but their absence is not a signifficant
+	detriment to the programming of typical industrial control applications. The use
+	of a pattern matching syntax, and the `single assignment' property of Erlang
+	variables, leads to clear, short and reliable programs."
+	
+	"If the evaluation of f(a), g(b) and h(k) has no side-effects (i.e. no messages
+	are sent, processes spawned, etc.) then the value of [f(a), g(b), h(k)] will be
+	the same no matter what evaluation order(Provided that all functions terminate) 
+	is used. This property is known as referential transparency(Which means that 
+	the value of a function does not depend upon the context in which it is
+	called)."
+	
+	"A process is a self-contained, separate unit of computation which exists concurrently
+	with other processes in the system. There is no inherent hierarchy among
+	processes; the designer of an application may explicitly create such a hierarchy."
+	
+	"Each process has a mailbox and all messages which are sent to the process are
+	stored in the mailbox in the same order as they arrive."
+	"Any messages which are in the mailbox and are
+	not selected by receive will remain in the mailbox in the same order as they were
+	stored and will be matched against in the next receive. The process evaluating
+	receive will be suspended until a message is matched."
+
+	"Erlang has a selective receive mechanism, thus no message arriving unexpectedly
+	at a process can block other messages to that process. However, as any
+	messages not matched by receive are left in the mailbox, it is the programmer’s
+	responsibility to make sure that the system does not fill up with such messages."
+
+	"The last clause in the receive has the unbound variable Other as its message
+	pattern; this will match any message which is not matched by the other clauses.
+	Here we ignore the message and continue by waiting for the next message. This is
+	the standard technique for dealing with unknown messages: receive them to get
+	them out of the mailbox."
+
+	"Processes can monitor each other’s behaviour. This can be described in terms
+	of two concepts, process links and EXIT signals. During execution, processes
+	can establish links to other processes (and ports, see Section ??). If a process
+	terminates (normally or abnormally), a special EXIT signal is sent to all processes
+	(and ports) which are currently linked to the terminating process."
+
+	current page: 84
+
+Books to read
+	- Lambda Calculus
+	- Functional Programming
+	
+Papers
+	Frabjous: A Declarative Domain-Specific Language for Agent-Based Modeling	
+	Towards Frabjous: A two-level system for functional reactive agent-based epidemic simulation
+	A Framework for Multi-agent-Based Stock Market Simulation on Parallel Environment 
+	http://link.springer.com/chapter/10.1007%2F978-3-642-34447-3_50
+	https://en.wikibooks.org/wiki/Erlang_Programming/Autonomous_Agents

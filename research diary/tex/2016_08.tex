@@ -98,3 +98,56 @@ Note that the goal is not to establish new economic theories but to provide meth
 \item Does it even make sense to study these auction-types with these types of agents? To look only at the dynamics? Is computational economics interested in these dynamics of the equilibrium processes? I really need to look into theoretical work on the various auction-types AND the computational economics approach to them.
 \item Do we really need the pi-calculus when we have category-theory and vice versa? Does not just one method suffice? Or is there a mapping between both methods / a connection?
 \end{itemize}
+
+\section*{August 2016 11th}
+\subsection*{Paper: Dependently-typed programming in scientific computing \cite{Ionescu2013}}
+The authors give a short and nice introduction into the very basics of what economics is and what it tries to achieve: exchange of goods. They then go on and explain allocation and endowment and explain walrasian equilibrium and then use Agda for constructing fundamental economic proofs about Pareto Efficiency, Walrasian Equilibrium. Remarkable is their criticism of the equilibrium models:
+
+\begin{quote}
+A general criticism of all these models is that they neglect the dynamical
+aspect of reaching the equilibrium situation. There is no known plausible mechanism
+which explains exactly how equilibrium prices can arise in practice. Walras'
+own proposal for such a price-formation mechanism involved an auctioneer. This
+is a central entity who can see all supply-demand imbalances and adjust prices
+accordingly, raising the prices of goods for which there is too great demand, and
+lowering those for which there is too little, in an iterative process. Even if one
+accepts that in some situations one could have an authority that might act as
+auctioneer, there is no general proof that the iterative process will eventually
+converge.
+\end{quote}
+
+This is insofar remarkable as this is exactly the direction I want to head to and which was also the work of the Leverage-Cycle project in which I've written my Masterthesis: \textbf{compute (by simulation) and understand the dynamics of an equilibrium process}. One of the goals of this PhD thesis is to develop a tool in which such equilibrium processes can be modelled and simulated but it is still not clear in which economical context / which theory exactly - this is still an open question I have to deal with. \\
+
+Another interesting point they make in the paper is that:
+
+\begin{quote}
+The bad news is that most of these concepts are not constructive. Specifications of programs that take as input agents characterized by preference relations and initial endowments and return a Walrasian (or Nash, or correlated, ...) equilibrium can in general not be fulfilled. Even the so-called computable general equilibrium models are not, in fact, computable.
+\end{quote}
+
+I can't yet tell the implication for my thesis but it will be interesting to see whether it has one or not.
+
+\subsection*{Paper: Engineering Proof by Reflection in Agda \cite{vanderWalt2013}}
+The authors explain the reflection-mechanics of Agda and discuss how they can be put to use.
+In general reflection allows for a kind of meta-programming during both compile- and run-time by accessing and modifying the abstract syntax tree (AST) thus changing the structure and behaviour of the program during compile- and run-time. According to the authors, Proof by Reflection
+\begin{quote}
+is the method of mechanically constructing a proof of a theorem by inspecting its shape.
+\end{quote}
+
+Unfortunately this is paper comes too early as I don't know enough about Agda, intuitionistic logic, type theory and computer aided formal verification. I have to come back to this paper at a later point again.
+
+\subsection*{Paper: Dependent Types at Work \cite{Bove2009}}
+According to the authors
+
+\begin{quote}
+The aim of these notes is to give a gentle introduction to dependently typed programming for a reader who is familiar with ordinary functional programming, and who has basic knowledge of logic and type systems.
+\end{quote}
+
+A few things to clarify:
+
+\begin{itemize}
+\item Dependent Types: TODO
+\item The Curry-Howard correspondence: TODO
+\item The connection of Dependent Types to the Curry-Howard correspondence: TODO
+\item normalisation: types must be normal otherwise the type-checking algorithm may not terminate
+\item Totality of Agda programs: TODO
+\end{itemize}

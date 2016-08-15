@@ -1,0 +1,1 @@
+-- Solutions for the exercises of the SLIDES "Programming In Haskell" by Graham Hutton: CHAPTER 8 (Functional Parsers)

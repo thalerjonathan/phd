@@ -1,0 +1,7 @@
+[ ] 1. askrequest an empfäbger
+[ ] 2. empfänger empfängt askrequest
+[ ] 3. empfänger prüft ob möglich. wenn nein antwort mit askrequestreply empty sonst askrequest accept und wartet bloclierend auf antwort 
+[ ] 4. sender empfängt askrequest reply
+[ ] 5. wenn accept prüft er ob 3r noch den ask wahrnehmen kann. wenn nicht dann antwort mit askrequestaccept empty ansonst generiert er einen ask und schickt ihn an den receiver:
+[ ] der receiver generiert nun einen bid und prüft auf match. wenn match repky mit match und führt transaktion durch
+[ ] der empfänger des bids führt im falle des match ebenfalls eine transaktion durch 

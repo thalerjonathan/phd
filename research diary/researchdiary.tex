@@ -25,6 +25,8 @@
 \usepackage{graphicx} % Required for the inclusion of images
 %\usepackage{natbib} % Required to change bibliography style to APA
 \usepackage{amsmath} % Required for some math elements 
+\usepackage{glossaries}
+\usepackage[toc,page]{appendix}
 
 \setlength\parindent{0pt} % Removes all indentation from paragraphs
 
@@ -57,8 +59,14 @@ In this diary I try to keep track of the process of my PhD studies by recording 
 
 \input{./tex/2016_08.tex}
 
-\bibliographystyle{acm}
+\newpage
+\appendix
 
+\input{./tex/Appendix_HowToGetStudentship.tex}
+
+\newpage
+
+\bibliographystyle{acm}
 \bibliography{./bib/researchdiary}
 
 \end{document}

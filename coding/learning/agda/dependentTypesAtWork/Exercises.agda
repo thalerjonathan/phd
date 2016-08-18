@@ -71,4 +71,8 @@ pred' : Nat → Nat
 pred' n = natrec zero (\step acc -> step) n
 
 subCut' : Nat → Nat → Nat
-subCut' n m = natrec m (\step acc -> step) n
+subCut' n m = natrec n (\step acc -> pred acc) m
+
+-- NOTE: skippin Exercises of subsection 2.6
+
+-- Exercise: Write the functions head, tail and map for the recursive vectors

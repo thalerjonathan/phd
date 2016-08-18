@@ -78,13 +78,13 @@ According to the authors
 The aim of these notes is to give a gentle introduction to dependently typed programming for a reader who is familiar with ordinary functional programming, and who has basic knowledge of logic and type systems.
 \end{quote}
 
-A few things I will going to clarify after having worked through the paper
+A few important topics I will going to clarify deeper after having worked through the paper and learned more about Agda and the theory behind it:
 
 \begin{itemize}
-\item Dependent Types
-\item The Curry-Howard correspondence
-\item Totality of Agda programs and Type-normalisation (types must be normal otherwise the type-checking algorithm may not terminate)
-\item The connection of Dependent Types to the Curry-Howard correspondence
+\item \textit{Dependent Types} where the type depends on another one e.g. a Vector of length n or a tuple (a,b) where a is less than b are dependent types.
+\item \textit{The Curry-Howard correspondence} says basically that programming and proving will be the same.
+\item \textit{Totality of Agda programs and Type-normalisation} Types must be normal otherwise the type-checking algorithm may not terminate
+\item \textit{The connection of Dependent Types to the Curry-Howard correspondence} Still a VERY IMPORTANT open question.
 \end{itemize}
 
 \section*{August 2016 16th}
@@ -103,4 +103,10 @@ While working on \cite{Bove2009} (Dependent Types at Work) where the natural num
 What is clear now is that the computation over the natural peano numbers has the alphabet of {zero, succ} where the operations are implemented in the systems mentioned above: The Turing Machine performs the computations in imperative steps by changing a global (infinite) memory and Church and Gödel follow a functional mathematical style using so called primitive recursion.
 
 \section*{August 2016 17th}
-As already mentioned in the entry of August 2016 11th, the authors of \cite{Ionescu2013} tell bad news because \enquote{most of the concepts are not constructive}. After thinking about this I have the feeling that this implies that I have to approach my agent-based simulation from a constructive direction: both the agents and the simulation itself have to be \textit{constructive}. It is still not very clear to me what that means but I guess that one can draw parallels to the peano numbers: I think the peano numbers are an inductive \textit{constructive} way of, well... \textit{constructing} the natural numbers and not just postulating their existence - each number has to be computed! We will see whether my intuition is right and how this will apply to ABM/S.
+As already mentioned in the entry of August 2016 11th, the authors of \cite{Ionescu2013} tell bad news because \enquote{most of the concepts are not constructive}. After thinking about this I have the feeling that this implies that I have to approach my agent-based simulation from a constructive direction: both the agents and the simulation itself have to be \textit{constructive}. It is still not very clear to me what that means but I guess that one can draw parallels to the peano numbers: I think the peano numbers are an inductive \textit{constructive} way of, well... \textit{constructing} the natural numbers and not just postulating their existence - each number has to be computed! We will see whether my intuition is right and how this will apply to ABM/S. 
+\bigskip
+After having read the entry on Constructivism (Mathematics) on Wiki it is now a bit clearer. To quote Wiki \enquote{Thus the proof of the existence of a mathematical object is tied to the possibility of its construction.}. This is exactly what happens with the pano numbers: they are constructed and thus they exist - they are computable! \\
+\bigskip
+I am now in Section 3 of \cite{Bove2009} (Dependent Types at Work) and have decided to first read through some more introductions to Agda and dependent types before continuing as I first have to understand more basic things about this theory. \\
+\bigskip
+Found a very nice lecture about \textit{Interactive Theorem Proving for Agda Users} at \url{http://www.cs.swan.ac.uk/~csetzer/lectures/intertheo/07/interactiveTheoremProvingForAgdaUsers.html}. 

@@ -110,3 +110,135 @@ After having read the entry on Constructivism (Mathematics) on Wiki it is now a 
 I am now in Section 3 of \cite{Bove2009} (Dependent Types at Work) and have decided to first read through some more introductions to Agda and dependent types before continuing as I first have to understand more basic things about this theory. \\
 \bigskip
 Found a very nice lecture about \textit{Interactive Theorem Proving for Agda Users} at \url{http://www.cs.swan.ac.uk/~csetzer/lectures/intertheo/07/interactiveTheoremProvingForAgdaUsers.html}. 
+
+
+\section*{August 2016 22nd}
+I am currently on holidays with my lovely girlfriend Sarah. We started on the 20th towards Denmark and are now in Sweden (camping at Stocken) and I will return on the 7th of September. Due to lots of free time I brought a bit of things to read:
+
+\begin{enumerate}
+\item Paper by Per-Martin Löf
+\item Yellow Paper of Ethereum (TODO: cite)
+\item White Paper of Ethereum (TODO: cite)
+\item Handbook of Market Design (TODO: cite)
+\end{enumerate}
+
+\subsection{Ethereum}
+Based upon a hint by a good friend on (2016 August 17th) I started exploring the idea behind Ethereum which immediately fascinated me. This is a topic I will definitely pursue as a private interest during my PhD Studies. I hope to be able to participate in a project or have the idea for one myself and maybe it can be combined with my PhD Studies (agents running in Ethereum?). \\
+After having read the White Paper (TODO: cite) and the Yellow Paper (TODO: cite) of Ethereum, I am even more determined to participate in this huge new thing of the internet. I am very excited to get my hands on it as I feel its a very interesting playground allowing for a huge variety of opportunities both in learning and earning money. \bigskip
+
+To sum up what fascinates me is that Ethereum
+
+\begin{quote}
+... provide a massive boost to other peer-to-peer protocols by adding for the first time an economic layer.
+\end{quote}
+
+This allows 
+
+\begin{quote}
+... anyone to build what is essentially a command line application run on a virtual machine that is executed by consensus across the entire network, allowing it to modify a globally accessible state as its "hard drive".
+\end{quote}
+
+This immediately spawned the following ideas in my mind:
+
+\begin{enumerate}
+\item Implement an Ethereum client in Haskell. This is an amazing way to improve my Haskell and finally apply it in a real-world Application which touches on a huge range of computer-science topics. I've seen that attempts to implement an Ethereum client in Haskell have been already made, I will look at them when I return from my holidays but I want to attempt it nonetheless as it will hugely improve my Haskell skills. It will be a huge challenge because its a very complicated protocol including the implementation of a Virtual Machine (Ethereum Virtual Machine, EVM) but fortunately everything is described formally and very precise in the Yellow Paper (TODO: cite). Things to implement:
+
+	\begin{itemize}
+	\item Ethereum Virtual Machine
+	\item Proof-Of-Work Hashing Algorithm - should be done on GPU otherwise too slow
+	\item Communication with Network
+	\item ?
+	\end{itemize}
+ 
+\item Learn and play around with Serpent the programming language of the EVM to implement contracts. I want to try to implement various types of auctions (batch, continuous, simultaneous ascending, sealed second price,...) and voting-systems.
+
+\item Set up a private account in the public Ethereum Network.
+\item Set up a public Node for participating in Ethereum and mining Ether.
+\item Thinking about an interesting DAO (Decentralized Autonomous Organization) to implement in Ethereum
+\end{enumerate}
+
+Also Ethereum could be the perfect Use-Case for applying my ABM/S to computational Economics: 
+
+\begin{itemize}
+\item Simulate Ethereum: dynamics of ether or gas? Ethereum is a very itnersting agent-based system (peer-2-peer with an ecoinomic layer
+\item Simulating dynamics of DAOs in Etherum?
+\end{itemize}
+
+\section*{August 2016 23rd}
+After meditation and after looking through "Handbook of Marketdesign" (TODO: cite) it struck me: Why don't do I just use the model and simulation of my Masterthesis instead of keep looking for an awesome model which I still coulnd't find? The vorteile are
+
+\begin{itemize}
+\item I am already very familiar with the model, simulation and results.
+\item I am already familiar with the theory behind it by Geanakoplos (TODO: cite Leverage-Cycle by Genakoplos)
+\item It is complicated but simple enough to serve as a starting point to apply and proof my methods.
+\item It includes a few interesting aspects which can be proofed using my methods e.g. under which circumstances does trading stop?
+\item It can then be extended to a full-fledged framework as originally intended.
+\end{itemize}
+
+\subsection*{TODOs}
+Starting from now on I will include TODO-subsections which include well... things to do so that I have a small roadmap ahead. When a bullet-point in the TODOs is done then I will write an entry with the updated TODO list. \bigskip
+
+\begin{itemize}
+\item Read the following chapters of "Handbook of Market-Design" in the given order: 2,3,12,10,13,16,17
+\item Read my Masterthesis again.
+\item Rework my Reseach-Proposal and include the approach of my masterthesis and think about how I can apply the formal methods to it - this will then be the basics of the initial meeting with my supervisors unless I will find a kick-ass idea regarding ABM/S of Ethereum
+\item Get basic understanding in Agda 
+	\begin{itemize}
+	\item Work through "Dependent Types at Work"
+	\item Look at Thorsten Altenkirchs Lecture "Computer Aided Formal Verification
+	\item Read online Lectures about Dependent Types: TODO
+	\end{itemize}
+\item Haskell Learning: Implement the core of my Masterthesis in Haskell as I know it at the moment (no Monads): the core is the replicated auction-mechanism where every Agent knows all others.
+\item Haskell Learning: Start implementing Ethereum Client.
+\item Alternative Topic of my PhD: ABM/S of Ethereum as a decentralized marketplace. Maybe these questions help a little bit (TODO: explain, see Handbook of Market-Design Introduction to Chapter 1) but unfortunately I know not enough about it but hope that I can get deeper into it soon.
+	\begin{itemize}
+	\item How well does it provide thickness? 
+	\item How does it deal with congestion?
+	\item How does it make the market safe and simple to participate in? 
+	\end{itemize}
+\end{itemize}
+
+\section*{August 2016 24th}
+Yesterday night I had some (self-)doubts about the direction of my PhD, more specific the application of ABM/S to agent-based computational economics. \\
+Doubts came up that I can properly understand and get into this field but after thinking about it a while, it became clear that ABM/S is - unless one does fundamental theoretical work of ABM/S itself - always applied in the context of another domain e.g. Physics, Computer Science, Economics,... I plan to do fundamental theoretical work in ABM/S itself (formal methods) but I will apply it in the field of agent-basec computational economics thus I definitely have to learn the basics of this field and become an expert in the specific subfield I plan to work in (equilibrium in trading-processes). \\
+I chose the field of agent-based computational economics as I have already a bit of experience in it due to my Masterthesis and because I think it is a fascinating field and is of very importance to Economists to better understand dynamics of static postulates (e.g. equilibria). \\
+The main question is, what exactly I want to research in this field of agent-based computational economics (ABCE)? The answer 
+
+\begin{quote}
+There exist Equilibrium Theorems in trading but no description of processes reaching them. I want to look at simulating such processes which may or may reach some steady state which may or may not be an equilibrium.
+\end{quote}
+
+Also while thinking about this fact I came up with the thought: 
+
+\begin{quote}
+The Economists focus completely on their equilibria. Maybe this is the wrong way to go and we should abandon to try verzweifelt reaching equilibria but should only look at the dynamics of the processes and how they unfold - I believe the dynamics are of most importance as they really affect the world and not equilibria.
+\end{quote}
+
+Nonetheless to abandon equilibria in favour of dynamic processes I must start with the very basics of equilibria to understand them, to follow the road of the economists why they are so obsessed with them and to know to talk about them and to encounter economists in discussions - I REALLY have to know the equilibrium theory (to be found in Microeconomics, which I should study in a basic form like the book I own: TODO cite). Also I should really know Market Microstructure because it focuses more on the dynamics of prices and of trading and I already got a nice book for this (TODO: cite) \bigskip
+
+Thus the plan is to start from my masterthesis. Take the model and simulation (continuous double-auction with Zero-Intelligence Traders) as they are without any change and develop and apply the methods to it and also do formal verification and proofing of various properties like convergence (termination) and deadlock free trading and buyer optimism >= seller optimism. The used methods will be as already mentioned Category Theory, Pi-Calculus, Haskell and Agda.
+
+\bigskip
+
+Then after having developed the methods and seen them in action then I can work towards a more general application of them to research and study the dynamics of trading-processes and abandoning the focus on equilibria. Until then I have to have studied severely ABCE, equilibrium and auction theory, have an overall basic understanding of Microeconomics, have a very good understanding of Market-Microstructure (the key properties e.g. volatility,...) and have studied basics of Market-Design.
+
+\bigskip
+
+I know that this seems extremely ambitious but I think it is a very good point from which to start my PhD adventure - we will see what the outcome will be in the end.
+
+\subsection*{TODOs}
+I think I should abandon the idea to do something with Ethereum as a decrentralized marketplace in my PhD, thus abandoning it from my TODOs. Also I think I should attempt to use Monads in reimplementing my Masterthesis. \\ Thus the updated todos are:
+
+\begin{itemize}
+\item Read my Masterthesis again.
+\item Rework my Reseach-Proposal and include the approach of my masterthesis and think about how I can apply the formal methods to it - this will then be the basics of the initial meeting with my supervisors. Also include the thoughts of the entry to the diary of 2016 August 24th.
+\item Read the following chapters of "Handbook of Market-Design" in the given order: 2,3,12,10,13,16,17
+\item Get basic understanding in Agda 
+	\begin{itemize}
+	\item Work through "Dependent Types at Work"
+	\item Look at Thorsten Altenkirchs Lecture "Computer Aided Formal Verification
+	\item Read online Lectures about Dependent Types: TODO
+	\end{itemize}
+\item Haskell Learning: Implement the core of my Masterthesis in Haskell as I know it at the moment and trying to incorporate Monads: the core is the replicated auction-mechanism where every Agent knows all others.
+\item Haskell Learning: Start implementing Ethereum Client.
+\end{itemize}

@@ -163,3 +163,13 @@ This will then be the basics of the initial meeting with my supervisors. Also in
 
 \subsection*{SF-ASM and equilibrium}
 I couldn't stop thinking about that the SF-ASM challenged the idea that financial markets are in equilibrium. Why did research stop there? Is equilibrium a too holy grail to put it down even if it is misguiding? Is there new research going on in this direction? Maybe I can start from this point?
+
+\subsection*{An idea for a model \& simulation}
+After thinking about the whole thing while driving home from Germany I came up with the simple idea that the real problem may be the one that every trader just wants to make a profit instead of really owning a share of a company. Also I asked myself electronic trading has changed how the markets behave, whether they exhibit now different dynamics in volatility as shown by Mandelbrot. When boiled down to the very basics of how profits are made then there should be no difference: one buys at low and sells at high. Thus the idea is the following:
+
+\begin{quote}
+A considerable amount of the traders don't do long term trading, they are not interested in owning shares for a long period (say months, years) but are only interested in the quick profits when selling at a higher price than bought and also all trading algorithms (should) work the same. My hypothesis is that this quick trading creates those unpredictable dynamics and fat tail variance of the prices (does this also imply that markets are never in equilibrium?). Also because trading algorithms work basically the same way the same dynamics should be dominant also despite the massive use of electronic and automated trading. \\
+To validate the hypothesis the goal is to develop a suitable model and simulate it. The approach which comes to my mind is to model zero intelligence agents in continuous double auctions with time explicitly modelled. The agents are divide into long- and short-term traders where short-term traders jump on price-changes very quickly where long-term traders don't. Of interest are then the price-dynamics and equilibrium under different parametrisation: different distribution of short- and long-term traders (also changing over time), "quickness" of short-term traders,...
+\end{quote}
+
+The approach would then be to 1. develop model, 2. transform the model to a formal representation (pi calcumus/category theory/actor model), 3. implement the simulation in Haskell \& Agda and 4. do computer aided formal verification in Agda.

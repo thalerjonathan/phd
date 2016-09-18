@@ -173,3 +173,66 @@ To validate the hypothesis the goal is to develop a suitable model and simulate 
 \end{quote}
 
 The approach would then be to 1. develop model, 2. transform the model to a formal representation (pi calcumus/category theory/actor model), 3. implement the simulation in Haskell \& Agda and 4. do computer aided formal verification in Agda.
+
+\section*{2016 September 18th}
+Currently in Glastonbury (lots of strange people). Here a sum up of the last days in which I was too busy to write down anything. \\
+
+Martin has replied in email. He didn't read the Black Swan book but did note it as it caused some stir in the economics field but he does not like the style of it as he says it fishes for sensation - I partly agree but Taleb seems to bring in real evidence that economics models are just wrong (something Mandelbrot confirms in his book). Martin did send me a few interesting papers as I asked him for ideas:
+
+\begin{itemize}
+\item Hot and Cold Seasons in the Housing Market - L. Rachel Ngai Silvana Tenreyro
+\item GETTING AT SYSTEMIC RISK VIA AN AGENT-BASED MODEL OF THE HOUSING MARKET - John Geanakoplos et al
+\item LEVERAGE CAUSES FAT TAILS AND CLUSTERED VOLATILITY - Stefan Thurner, J. Doyne Farmer and John Geanakopolos
+\item Contagion in Financial Networks - Paul Glasserman and H. Peyton Young*
+\item When Bitcoin Grows Up - John Lanchester
+\item HIGHER-DIMENSIONAL MODELS OF NETWORKS - DAVID I. SPIVAK
+\item Housing and Macroeconomics - Monika Piazzesi, Martin Schneider
+\end{itemize}
+
+I will read through these papers as soon as possible and I think if not the Mandelbrot Book Idea (see below) will do, then something out of those papers will be interesting enough.
+
+\bigskip
+
+My former Professor Mr. Vollbrecht did provide me with an interesting hint, that I should look at the Journal of Artificial Societies and Social Simulation as they seem to have an "alternative" way of looking into things and have a very broad interest. It is to be found at \url{http://jasss.soc.surrey.ac.uk/JASSS.html}
+
+\bigskip
+
+I continued reading the Mandelbrot Book and got a few good quotations.
+
+\begin{quote}
+The fastest way to simplify things is to spot the symmetries, or invariances - the fundamental properties that do not change from one object under study to another. (Position 1957)
+\end{quote}
+
+\begin{quote}
+A lesson arises from this: never hurry and never publish any result based on a single tool. (Position 2830)
+\end{quote}
+
+\begin{quote}
+Many a grand theory has died under the onslaught of real data. (Position 2840)
+\end{quote}
+
+He also makes it very clear that economics is making wrong assumptions, which are:
+
+\begin{enumerate}
+\item Homo economicus is rational and self-interested - wrong, see the bubbles and bursts of the 90s.
+\item Price variations follow the bell curve - wrong, see widely accepted by Mandelbrot and many others since the 1960s
+\item Price variations are i.i.d. - evidence for short-term dependence has already been mounting and also evidence of long-term dependence.
+\end{enumerate}
+
+Because the book is from 2004 I have a few questions regarding the up-to-date state of it:
+
+\begin{itemize}
+\item Is there research going on at the moment investigating fractal price changes today (opposed to changes mandelbrot looked at in the 60s)?
+\item How are fractal prices showing up today in stock markets and do they differ? is there a change detectable due to electronic trading? if no then why? what has stayed the same (buy low and sell high?)?
+\item Are the price changes also present on a millisecond scale?
+\end{itemize}
+
+\bigskip
+
+Mandelbrot talks in his book about a model which he developed an which was tested by his students Laurent Calvet and Adlai Fisher in their doctoral thesis and proofed to be true. Thus my dream would an agent based simulation which is able to mimic the price dynamics of the model as an endogenous property of agent behaviour. The key would be to use use multifractal time to create busy and smooth market activity (see mandelbrot diagram starting from pos 3099).
+\\ The question is: is it not too complicated? Is it possible? Hasn't it already been done?
+
+\bigskip
+
+After a quick googling I found out that the model is called Markov switching multifractal \url{https://en.wikipedia.org/wiki/Markov_switching_multifractal} 
+It looks mathematically VERY difficult.

@@ -230,9 +230,57 @@ Because the book is from 2004 I have a few questions regarding the up-to-date st
 \bigskip
 
 Mandelbrot talks in his book about a model which he developed an which was tested by his students Laurent Calvet and Adlai Fisher in their doctoral thesis and proofed to be true. Thus my dream would an agent based simulation which is able to mimic the price dynamics of the model as an endogenous property of agent behaviour. The key would be to use use multifractal time to create busy and smooth market activity (see mandelbrot diagram starting from pos 3099).
-\\ The question is: is it not too complicated? Is it possible? Hasn't it already been done?
+\\ The question is: is it not too complicated? Is it possible? Hasn't it already been done? \\
+After a quick googling I found out that the most recent model Calvet and Fisher have developed is called Markov switching multifractal \url{https://en.wikipedia.org/wiki/Markov_switching_multifractal} 
+
+\section*{2016 September 19th}
+
+Finally finished with the Mandelbrot Book and got a few more quotes
+
+\begin{quote}
+Economics has no intrinsic time scales. in fractal analysis time is flexible - expanding and contracting.
+\end{quote}
+
+Maybe this is interesting for modelling agent actions: many in dense times, few in stretched times.
+
+\begin{quote}
+When examining price charts we should guard against jumping to conclusions that the invisible hand of Adam smith is somehow guiding them.
+\end{quote}
+
+\begin{quote}
+Forecasting process may be perilous but you can estimate the odds of future volatility
+\end{quote}
+
+\begin{quote}
+If there is one message I would wish to survive this book, it is this: finance must abandon its bad habits and adopt a scientific method (pos 3648)
+\end{quote}
+
+Also Mandelbrot last chapter talks about a trader who looks at a heterogeneous market consisting of traders with different time scales coming together at various points in transactions which creates the multi-fractal behaviour of the market. This was also something i had in mind but of course not so articulated.
 
 \bigskip
 
-After a quick googling I found out that the model is called Markov switching multifractal \url{https://en.wikipedia.org/wiki/Markov_switching_multifractal} 
-It looks mathematically VERY difficult.
+So the book was VERY interesting, and very fruitful and inspiring and giving a good hint at some workings in economics, finance and trading. Mandelbrot himself said that we are still very very far from REALLY understanding how markets work and that lot of research needs to go into that and that finance needs to change. \\
+So what I take out of this book is the critic of the orthodox models of economics and finance and the inspiration that markets follow a multifractal nature. As already said in the last entry it would be interesting to have an agent-based simulation which generates prices which follow such a multi-fractal volatiliy - the question is how, if it is possible/or not too complicated (which I fear it is), if it hasn't been already done and what model to follow (e.g. Markov switching multifractal).
+
+\bigskip
+
+Thomas Schwarz (a former Student- and Working-colleague) told me about Zotero, which is an open-source reference management software to manage bibilographic data and related search materials (wiki). I definitely should manage all my papers in this one for a better search and find and management.
+
+\subsection*{Updated TODOs}
+Finished Mandelbrot, combined all paper-entries into one, added Zotero entry.
+
+\begin{itemize}
+\item Read interesting papers in my folder - need to enumerate them in a following entry.
+\item Put ALL printed papers of my folders into Zotero. 
+\item Read my Masterthesis again.
+\item Read the following chapters of "Handbook of Market-Design" (TODO: cite) in the given order: 2,3,12,10,13,16,17
+\item Rework my Reseach-Proposal and reformulate it to cover the above idea. 
+This will then be the basics of the initial meeting with my supervisors. Also include the thoughts of the entry to the diary of 2016 August 24th. And include essence of entry to diary of 2016 August 30th. Read through ALL the research-diary entries and incorporate the essence of them.
+\item Get basic understanding in Agda 
+	\begin{itemize}
+	\item Work through "Dependent Types at Work"
+	\item Look at Thorsten Altenkirchs Lecture "Computer Aided Formal Verification
+	\item Read online Lectures about Dependent Types: TODO
+	\end{itemize}
+\item Haskell Learning: Implement the core of my Masterthesis in Haskell as I know it at the moment and trying to incorporate Monads: the core is the replicated auction-mechanism where every Agent knows all others.
+\end{itemize}

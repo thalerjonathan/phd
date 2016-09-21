@@ -275,7 +275,7 @@ Finished Mandelbrot, combined all paper-entries into one, added Zotero entry.
 \item Read my Masterthesis again.
 \item Read the following chapters of "Handbook of Market-Design" (TODO: cite) in the given order: 2,3,12,10,13,16,17
 \item Rework my Reseach-Proposal and reformulate it to cover the above idea. 
-This will then be the basics of the initial meeting with my supervisors. Also include the thoughts of the entry to the diary of 2016 August 24th. And include essence of entry to diary of 2016 August 30th. Read through ALL the research-diary entries and incorporate the essence of them.
+This will then be the basics of the initial meeting with my supervisors. Read through ALL the research-diary entries and incorporate the essence of them and make a list of the research-ideas found so far in my diary.
 \item Get basic understanding in Agda 
 	\begin{itemize}
 	\item Work through "Dependent Types at Work"
@@ -286,8 +286,8 @@ This will then be the basics of the initial meeting with my supervisors. Also in
 \end{itemize}
 
 \section*{2016 September 21st}
-I've read the paper "Contagion in Financial Networks" (TODO: Cite) yesterday. \\
 
+\subsection*{A paper: Contagion in Financial Networks (TODO: Cite)}
 It is more or less an overview of current research and models in this field and reviews it and emphasises weaknesses of the models and proposes extensions. It gives also an overview of Open Problems where the two I would be interested in are 1. How the links between institution are formed (dynamic network formation) and 2. how to deal with network opacity:
 
 \begin{quote}
@@ -308,3 +308,22 @@ The topic of contagion in financial networks is a very suitable one because
 \item Surely I can get very good support by martin summer throughout the Ph.D. as he also has written a paper on this topic.
 \item It feels much better than the Mandelbrot topic
 \end{itemize}
+
+\subsection*{A paper: The emergence of a price system from decentralized bilateral exchange}
+
+I've been curious about this paper since a few weeks but haven't had time to read it yet. I came across it when reading the paper "Dependently typed programming in scientific computing". The authors of that paper mentioned that people trying to reproduce Gintis paper - which made a lot of fuss due to its claims of having found a mechanism leading to equilibrium without central authorities - found that the simulation had some fundamental programming error, leading to the (wrong) results (which could be prevented by using computer aided verification, but then the results would have been different and probably not being worth the publication). So I was curious about the initial idea of this Gintis guy and wanted to read the original paper. \\
+
+After googling for Herbert Gintis (I didn't know anything about how that guy was) I found a very interesting customer review by him on amazon.com for the book "Emergent Macroeconomics: An Agent-Based Approach to Business Fluctuations" (TODO: cite). Here is what he says about it
+
+\begin{quote}
+The theory of macroeconomic fluctuations has been a pathetic mess for a long time. Indeed, forever. The central model of the economy, the Walrasian general equilibrium model, is a purely equilibrium model, and no one has been able to derive an out-of-equilibrium mechanism of price and quantity adjustment that renders market equilibria dynamically stable, despite more than a half century of trying (see my paper, "The Dynamics of General Equilibrium", Economic Journal 117 (2007):1289-1309 for details and a proposed solution), and despite blistering attacks from within the economic establishment. See, for instance, Alan P. Kirman, "Whom or What does the Representative Individual Represent?" Journal of Economic Perspectives 6 (1992):117-136, and Franklin M. Fisher, Disequilibrium Foundations of Equilibrium Economics (Cambridge, UK: Cambridge University Press, 1983). In a recent paper (Herbert Gintis, "The Dynamics of General Equilibrium", Economic Journal 117 (2007):1289-1309) I showed using agent-based modeling techniques that the problem with the Walrasian model lies in the assumption that agents never interact, but rather that each makes decisions independently from a given system of prices. I also showed that the assumption that there exists a price structure accepted by all agents in the economy ("public prices") accounts for the chaotic nature of disequilibrium in the standard Walrasian disequilibrium models. Instead, when each agent has his own set of "private prices," even though market competition leads to a very low standard deviation of private prices (I call this situation "quasi-public prices"), such prices tend strongly to equilibrate the market system in the long run. Finally, I showed that plausible learning processes in the economy lead the system sporadically to make large excursions from equilibrium even in the absence of any global stochastic shocks (I called these "local resonances").
+
+Because of the lack of dynamics in the standard Walrasian model, macroeconomic theories that depend on this model must perform massive simplifications in order to investigate out-of-equilibrium behaviour. The reason these models are such a mess is that they take it for granted that public prices exist (they do not) and that we can analyse the market economy as if individuals never interact, but rather interaction only with private prices. This, of course, is completely incorrect, as I explain above. However, with this assumption, it is clearly permissible simply to aggregate all economic actors of the same type into a "representative agent" having the average characteristics of that type of agent. From this is born the Keynesian consumption, investment, and government sectors, from which the standard Keynesian models flow. For the rational expectations macro models, we have a similar aggregation, with the completely crazy assumption that an aggregate "representative agent" will satisfy the condition of "rational expectations" theory, as though the aggregation of "rational agents" is prima facie an aggregate rational agent. The intellectual value of these assumptions is rather meager.
+
+This fine book, which was in preparation at the time of appearance of my Economic Journal paper, is quite in agreement with my findings, laying blame on the "representative agent" assumption, and using agent-based modeling (abm) to investigate macroeconomic dynamics. However, whereas I took individuals as the unit of analysis, the authors allow firms to fill this role. They use empirical data on within-industry firm heterogeneity to model the population of firms, and assume asymmetric information among firms. This leads them to a financial accelerator model of financial fragility with great similarity to a model proposed by Greenwald and Stiglitz in 1993 (Bruce Greenwald and Joseph E. Stiglitz, "Financial Market Imperfections and Business Cycles", Quarterly Journal of Economics (1993):77-114). Finance is central in their model because the absence of forward markets forces firms to rely on credit to finance investment that matures only across time periods.
+
+Based on careful industry research, the authors' abm is populated with firms whose size distribution take the form of a power law density (Zipf's Law), and firm growth rates follow a Laplace (double exponential) rather than a normal distribution. Such a distribution has `fat tails' that imply more instability than in a system with normally distributed growth densities. Indeed, they show that normally distributed shocks give rise to power law distributions and a Pareto shaped firm size distribution. This is a quite nice finding, and surprising given the degree of aggregation of their agent-based economy (they assume only two sectors, firms and banks, and no individual agents). Clearly individual interactions underlie the power law assumptions concerning firm size and the Laplace distribution of growth rates.
+\end{quote}
+
+So he is a massive critic of equilibrium theory and classical economics - this sounds intriguing. \\
+

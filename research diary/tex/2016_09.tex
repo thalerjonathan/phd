@@ -346,8 +346,8 @@ I should finally read the book "Debt: the first 5.000 years" by David Graeber, I
 It is now clear to me that when doing computational economics I could follow down one of two roads:
 
 \begin{enumerate}
-\item Orthodox Economics: complicated but unrealistic models, continuous functions nice behaving functions, nice-behaved mathematics, static equilibrium models with centralized institutions, Gaussian-distributions,...
-\item Progressive Economics: sceptic about equilibrium, looking for equilibrium dynamics, fractal nature of reality instead of mediocrity, 
+\item Orthodox Economics: complicated but unrealistic models, continuous functions nice behaving functions, nice-behaved mathematics, static equilibrium models with centralized institutions, Gaussian-distributions, individuals act rational but are egoists
+\item Progressive Economics: sceptic about equilibrium, looking for equilibrium dynamics, fractal nature of reality instead of mediocrity, individuals act irrationals but are much more willing to cooperate
 \end{enumerate}
 
 As I am very sceptic about the nice-behaved mathematics, complicated models, continuous nice behaving functions - the world does not work like that - I think that I should follow the road of progressive economics.
@@ -372,3 +372,17 @@ This will then be the basics of the initial meeting with my supervisors. Read th
 	\end{itemize}
 \item Haskell Learning: Implement the core of my Masterthesis in Haskell as I know it at the moment and trying to incorporate Monads: the core is the replicated auction-mechanism where every Agent knows all others.
 \end{itemize}
+
+\subsection*{Re-read Gode \& Sunders classical paper}
+It is interesting to re-read a paper after about 1.5 years when one has learned so much since then. I remember struggling with the paper back then mainly because of the unfamiliar vocabulary but now it was a very nice read. 
+
+\bigskip
+
+Still I find their results very interesting and convincing but I have to object...
+
+\begin{quote}
+In the first version, ZI traders were subject to the budget constraint: if they generated a bid (to buy) above their redemption value or an offer (to sell) below their cost, such actions were considered invalid and were ignored by the market. In other words, the market forbade traders to buy or sell at a loss because then they would not have been able to settle their accounts.
+\end{quote}
+
+Gode \& Sunder showed that using ZI with constraints is enough to raise the allocative efficiency to nearly 100\% and performing nearly as good as human traders. They argue then that imposing market-constraints on the agents which are irrational (zero-intelligent) is enough to let equilibrium be reached. \\
+The problem is (as far as I understood markets) that to impose such constraints on traders is unrealistic in reality as neither the redemption value (utility) of an agent is publicly known nor does the central trading authority (stock exchange?) does not have access to account balances. Thus this result is theoretically very interesting but in my opinion too far from reality. We must find mechanics how agents adopt and change thus being non-zero intelligent. I believe that very simple adoption/mutation/changing rules are enough (buy low, sell high?) for equilibrium prices to emerge - thus following the direction of Gintis.

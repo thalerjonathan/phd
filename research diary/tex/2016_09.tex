@@ -386,3 +386,26 @@ In the first version, ZI traders were subject to the budget constraint: if they 
 
 Gode \& Sunder showed that using ZI with constraints is enough to raise the allocative efficiency to nearly 100\% and performing nearly as good as human traders. They argue then that imposing market-constraints on the agents which are irrational (zero-intelligent) is enough to let equilibrium be reached. \\
 The problem is (as far as I understood markets) that to impose such constraints on traders is unrealistic in reality as neither the redemption value (utility) of an agent is publicly known nor does the central trading authority (stock exchange?) does not have access to account balances. Thus this result is theoretically very interesting but in my opinion too far from reality. We must find mechanics how agents adopt and change thus being non-zero intelligent. I believe that very simple adoption/mutation/changing rules are enough (buy low, sell high?) for equilibrium prices to emerge - thus following the direction of Gintis.
+
+\section*{2016 September 27th}
+Moved in at Melton Hall in Nottingham and got accustomed to the University Campus. Yesterday I had a short and formal chat with my supervisor (Peer-Olaf and Thorsten). It was very nice seeing them finally in person - both are very relaxed and I think they will make very very good supervisors. Peer-Olaf told me to calm down, to relax, to take the first month easy, that I don't have to finish my PhD within one month. So I try to do that ;) \\ Today is the first day at the office, the AgentLab (C50) where I will be in office with 3 other guys from Russia, India and China. \\
+
+\subsection*{Reflections on an extension of Gintis Model}
+I have been constantly thinking about an extension to the Gintis Model of decentralized barter. Here are the thoughts 
+
+\begin{itemize}
+\item The approach should be more empirical: looking how agents trade and act in reality, in real markets. instead of relying on artificial unrealistic models
+\item I also want to compare continuous double auctions (CDA) and continuous batch auctions (CBA) because i think the latter one is more fair and a remedy to HFT
+\item Also look at how the system behaves when introducing disturbances or shocks to the stable prices. thus the prices are in some kind equilibrium prices but can change when the system us shocked
+\item Also add the notion of fractal time derived from mandelbrot, this could give rise to interesting phenomena
+\item No global adaption of behaviour but only from local information: if a seller trades with a buyer the will both adjust their future prices after the trade towards the half-way between the their matching prices. => only infer information which is indeed available, no global prices and utilityinformation is available
+\item Also incorporate the case when supply is NOT equals demand
+\item Look at real trading strategies used by stock exchange traders
+\item Starting from ZI agents which mutate their selling-/buying utility limits
+\item Also of importance: cost of production
+\end{itemize}
+
+A possible working-title could be: "Price formation in decentralized trading in CDA and CBA" 1. design an empirical agent-based model using evolutionary strategies and real world assumptions and hypotheses (buy low, sell high). apply pi calculus and category theory for formal specification 2. develop hypotheses and test them using the formal specifications as far as possible 3. implement and verify the simulation using haskell and agda 4. test the hypotheses against the results of the executing simulation. \\ Possible papers could be: 1. the model itself and results 2. formal specification of models in ACE 3. pure functional ACE simulation implementation 4. ACE verification.
+
+\subsection*{Another direction to look for: Cezar Ionescu}
+Thorsten Altenkirch told me about a researcher called Cezar Ionescu which does Functional programming, dependently-typed programming in the context of economics. He teaches at Oxford and is to be found at \url{https://www.conted.ox.ac.uk/profiles/cezar-ionescu}. I've already read a paper by him a few weeks ago: \textit{Dependently-typed programming in scientific computing: Examples from economic modelling} which mentioned Gintis error and from where I got interest in Gintis stuff. This would be a perfect match to combine both: Gintis \& Ionescu.

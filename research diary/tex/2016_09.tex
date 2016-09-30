@@ -419,3 +419,18 @@ This could be the starting point of my research as the paper seems to be exactly
 \bigskip
 
 This paper (\cite{Botta20114025}) corrects the original claim in \cite{Ionescu2013} (or my misinterpretation) that Gintis Model in \cite{Gintis2006} was wrong - the authors which tried to reimplement the model made a mistake due to a poor interpretation of the original model. Thus it seems the model of \cite{Gintis2006} is a good way to go. 
+
+\section*{2016 September 30th}
+Having read the paper \cite{Botta20114025}. I did not understand all the details but the overall goal was clear: provide a \textit{functional} framework for agent-based models of exchange exactly what I wanted to do/what I am interested in, where the most striking section was:
+
+\begin{quote}
+In theoretical and computational economics, the relationship between the notion of equilibrium and models of exchange is a subject of ongoing research [19,20,36,40]. In this context, a natural question is whether it is possible to identify economically sound trading policies – agent-specific offer and demand policies and agent-independent trade-resolving policies – which realize equilibrium allocations through sequences of elementary bilateral trades. The question is interesting because attempts at explaining equilibrium allocations and prices as stationary states of sequences of bilateral interactions between agents have not, so far, been convincing. In particular, we do not know economically plausible bilateral trade mechanisms which provably lead (arbitrarily near) to equilibrium prices and allocations in a finite number of interactions and for all initial allocations and utility profiles that guarantee existence of Walrasian equilibria.
+The question of whether it is possible to identify economically sound trading policies which realize equilibrium allocations through sequences of elementary bilateral trades can only be studied in a well-defined context. This has to specify the offer and demand policies of the agents, the trade-resolving policy and the trading sequences that is, which agent pairs are interacting and the order of interaction. In the following sections we introduce the elementary notions which are needed to formulate such context.
+\end{quote}
+
+Thus having now a framework AND a model, the best thing would go now straight into implementation, which hasn't yet been done and would be the perfect starting point for my PhD:
+
+\begin{quote}
+Some of the specifications introduced in Section 3 can be directly translated into Haskell data types or type classes. A translation of the whole framework into an executable programming language, however, would require a dependently typed language and go well beyond the scope of this article. \\
+Some of the specifications introduced in Section 3 can be directly translated into Haskell data types or type classes. \textbf{A translation of the whole framework into an executable programming language, however, would require a dependently typed language and go well beyond the scope of this article.}
+\end{quote}

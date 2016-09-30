@@ -5,7 +5,7 @@ name:                cdamonadic
 version:             0.1.0.0
 -- synopsis:            
 -- description:         
-license:             GPL-3
+-- license:
 license-file:        LICENSE
 author:              Jonathan Thaler
 maintainer:          thaler.jonathan@gmail.com
@@ -15,10 +15,11 @@ build-type:          Simple
 -- extra-source-files:  
 cabal-version:       >=1.10
 
-library
-  -- exposed-modules:     
+executable cdamonadic
+  main-is:             Main.hs
   -- other-modules:       
   -- other-extensions:    
-  build-depends:       base >=4.8 && <4.9
+  build-depends:       base >=4.8 && <4.9, wx >=0.92.2.0
   hs-source-dirs:      src
   default-language:    Haskell2010
+

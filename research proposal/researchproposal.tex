@@ -108,6 +108,7 @@ The resulting simulation framework allows computational economists to specify pr
 \item Designing and implementing the software for the functional framework of the paper \cite{Botta20114025} in Haskell \& Agda
 \item Apply it to the model of Gintis as presented in \cite{Gintis2006} and specified in the paper "Mathematical specifications for agent-based
 models of exchange: a case study" by N. Botta, A. Mandel, M. Hofmann, S. Schupp.
+\item Extend framework in the way that agents only learn from agents they have traded with instead from the whole agent-population as it seems unrealistic that a single agent is able to look at the whole agent-population and its performance - instead mutation should occur on local decisions.
 \item Extend the framework to model time explicitly to allow the simulation of continuous time.
 \item Implement FBA as proposed by Budish et al. in the paper \cite{Budish2015} and look at the results.
 \end{enumerate}
@@ -147,7 +148,10 @@ Publish paper with results
 	\item How can the framework be implemented to be open to other models of exchange?
 	\end{itemize}
 \item How can continuous time be explicitly modelled in the functional framework and be incorporated in the implementation?
-\item In which way does the use of a continuous batch auction instead of a continuous double-auction influence the dynamics of equilibrium?
+\item Is the equilibrium-dynamic of the prices reproduce-able when using the private price mechanisms as claimed by Gintis?
+\item Is the chaotic price-dynamic reproduce-able when using public price mechanisms as claimed by Gintis?
+\item In which way does the model of Gintis change when agents learn only locally when trading with each other instead from the whole population?
+\item In which way does the use of a frequent batch auction instead of a continuous double-auction influence the dynamics of equilibrium?
 \end{itemize}
 
 %----------------------------------------------------------------------------------------

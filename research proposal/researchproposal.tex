@@ -27,15 +27,13 @@
 
 \setlength\parindent{0pt} % Removes all indentation from paragraphs
 
-\renewcommand{\labelenumi}{\alph{enumi}.} % Make numbering in the enumerate environment by letter rather than number (e.g. section 6)
-
 %\usepackage{times} % Uncomment to use the Times New Roman font
 
 %----------------------------------------------------------------------------------------
 %	DOCUMENT INFORMATION
 %----------------------------------------------------------------------------------------
 
-\title{Research Proposal \\ Formal methods and pure functional computation in agent-based computational economics.} % Title
+\title{Research Proposal \\ An agent-based functional framework for the research of equilibrium-dynamics in bilateral trading and bartering.} % Title
 
 \author{Jonathan \textsc{Thaler}} % Author name
 
@@ -50,62 +48,54 @@
 Institution: University of Nottingham \\
 Department: School of Computer Science \\
 Project: PhD Programme 2016-2019 \\
-Supervisor: Peer-Olaf Siebers \\
-Co-Supersvisor: Thorsten Altenkirch 
+Supervisor: Dr. Peer-Olaf Siebers \\
+Co-Supersvisor: Dr. Thorsten Altenkirch 
 \end{tabular}
 \end{center}
 
 % If you wish to include an abstract, uncomment the lines below
 \begin{abstract}
 Agent-Based Modeling and Simulation (ABM/S) is still a young discipline and the dominant approach to it is object oriented computation. This thesis goes into the opposite direction and asks how ABM/S can be mapped to and implemented using pure functional computation and what one gains from doing so. To the best knowledge of the author, so far no proper treatment of ABM/S in pure functional computation exists but only a few papers which only scratch the surface. The author argues that approaching ABM/S from a pure functional direction  offers a wealth of new powerful tools and methods. The most obvious one is that when using pure functional computation (equational) resoning about the correctness and about total and partial correctness of the simulation becomes possible. The ultimate benefit is that Agda becomes applicable which is - according to the Curry-Howard isomorphism - both a pure functional programming language and a proof assistant for intuitionistic logic allowing both to compute the dynamics of the simulation and to look at meta-level properties of the simulation - termination, convergence, equilibria, domain specific properties - by constructing proofs utilizing computer aided verification. \\
-To map ABM/S to pure functional computation the idea is to apply both Robin Milner's PI-calculus and category theory. The PI-calculus will be used for a formal modelling of the problem and allows already a basic form of algebraic reasoning. Then the agents and the process of the agent-simulation will be mapped to category theory because pure functional programming approaches complex problems from the direction of category theory in the form of monadic programming. \\
-The application will be in the field of agent-based computational economics where the approach will be to take an established model/theory and then apply the above mentioned methods to it and to show that using them will lead to the same results. The main focus will be on the dynamics of equilibrium processes as this is a new and ongoing research in economics and very strongly driven by simulative approaches and still a very open question among economists. There is the static equilibrium definition on the one hand which does not say anything about the dynamics of how it is achieved. To neglect the dynamics of how the equilibrium is reached has led to much criticism on the various equilibrium-theories and spawned a new area of research which try to find models of the dynamics of such a process.
+The application will be in the field of agent-based computational economics where the main focus will be on simulating the dynamics of equilibrium in bilateral trading. This is a quite new and ongoing research in economics and very strongly driven by simulative approaches and still a very open question among economists how prices reach equilibrium over time.
+
 \end{abstract}
 
 %----------------------------------------------------------------------------------------
 %	SECTION 1
 %----------------------------------------------------------------------------------------
 
-\section{Application}
-Question: It is still open how exactly and to what exactly I want to apply my research. Answer: I take an established theory and then apply my method to it and show that it is useful.
-Question: Which theory to take? Answer: best would be an experimental one which is agent-based so I won’t be stuck in modeling agents but can directly apply my method to it.
+\section{Ideas, Influences \& Applications}
+In the paper \cite{Gintis2006} Herbert Gintis proposed a model of decentralized barter between agents in which he could show that the prices approach an equilibrium. His results made quite a fuzz in the field of economics because so far how prices in bilateral trading approach the walrasian equilibrium was (and is still) an open question as Walrasian Equilibrium definition just states the static properties when equilibrium is reached but says nothing about how it is reached. \\
+Cezar Ionescu et al. tried to reimplement the findings of Gintis but were unable to correctly reproduce the results due to a misunderstanding and misinterpretation of the model in \cite{Gintis2006} which was given in natural language with very few formalisms. \\
+Ionescu et al. went then on to build upon these findings, that specifications of such models should be much more formal and proposed a functional framework in their paper \cite{Botta20114025}. This framework allows to specify a model of agent-based exchange like the one of Gintis in \cite{Gintis2006}, where Ionescu et al. gave in an companion-paper a case study by "implementing" Gintis model in their functional framework. The according paper is "N. Botta, A. Mandel, M. Hofmann, S. Schupp, Mathematical specifications for agent-based models of exchange: a case study" which can be found on the internet but was ultimately rejected in the review process and is thus not published. \\
+Ionescu et al. state in \cite{Botta20114025} that a real implementation of their functional framework would need a dependently typed programming language and is by far out of the scope of this paper, leaving it for further research \\
+Also in this framework time is not modelled explicitly which is a further extension point.
+\bigskip
+In the paper \cite{Budish2015}, Budish et al. proposed a new kind of auction on the stock market, which they termed "Frequent Batch Auctions" (FBA) as a remedy against the High-Frequency arms race. 
 
-Topics Barter Economics
-- The emergence of a price system from decentralized bilateral exchange
-- An extensible and scalable agent-based simulation of barter economics
-Topic: Market Design / Auction Design
- - ?
-
-Various auction types will be simulated using an agent-based approach where the following auction types are of interest:
-- Continuous Double-Auctions (CDA)
-- (Continuous) Batch Auctions ((C)BA)
-- Sealed-Bid Auction (SBA)
-- Simultaneous Ascending Auction (SAA)
-In this research the price-formation during such auctions are of no direct interest e.g. this research tries not to research best bidding strategies but is only interested in investigating the dynamics of the simulation-process as the auction-process unfolds. Thus so called Zero-Intelligence (ZI) Agents are used in the simulation.
-ZI-Agents are a concept from computational economics (Gode and Sunders) and model traders which bid (buy) and ask (sell) randomly within constraints to increase their utility (the expected earnings from goods hold by the agent). Constraints may vary but always depend on the auction design and always include the avoidance of bankruptcy and negative holdings to conserve the wealth in the system. ZI-Agents do not learn or adapt over time and are completely deterministic in their behaviour as one always know what the agent will do next depending on its current state.
-Both ZI-Agents and the mentioned auction-types are very well researched topics in economics and are used as a tool for studying properties and behaviours of market institutions and designs in computational economics. To emphasise this, it is worth mentioning that Experimental Economists believe that the final state of a CDA comes close to what theoretical equilibrium predicts, thus linking the dynamic process of a CDA to the static description of the equilibrium theory. Besides it was shown that ZI-Agents raise allocative efficiency to nearly 100\% (all products match the consumer’s preferences – if allocative efficiency is at 100\% then there is no pair of two traders which can still increase BOTH their utilities when trading with each other).
-So far ZI-Agents have been investigated in CDA only and lack the adoption to other auction-types. One of the challenges of this research will be to develop ZI-Agents for the other auction-types – if possible.
-To my best knowledge, no research on formally specifying the auction-types and the ZI-Agents exists yet and no formal method has been developed yet which supports this goal. So far the mechanics and specifications are provided in natural language, thus leaving much room for error and missing details which was experienced by me in my master thesis where I implemented a simulation of a CDA with ZI-Agents. Formal methods mentioned in "Motivation" can be used as a remedy for this problem. 
-Note: it is not in the interest of the researcher to proof the match of the outcome of the various auction types with established equilibrium-theorems (which conditions must be satisfied that the dynamic process reaches the static equilibrium?) because this would touch too deep on economics and complex equilibrium theory which is not the focus of this PhD. The focus is much more on the research of a specification tool and then on the dynamics of such an auction- process (e.g. market \& agent activities over time) in the context of the field of Agent-Based Modelling/Simulation.
-
- 
 %----------------------------------------------------------------------------------------
 %	SECTION 2
 %----------------------------------------------------------------------------------------
 
 \section{Goals and Outcome}
-The goal is to develop a formal language for formally specifying simulation processes of the given auction-types with ZI-Agents and an accompanying simulation framework implemented in a pure functional language. It should be possible to translate a concrete specification directly without (important) loss of expressiveness to the simulation framework and be executed as a simulation-process to reveal its dynamics over time when actual computation is carried out over the formal language.
+The goal is to develop an implementation of a functional framework for specifying and simulating bilateral exchange \& barter between modelled agents. It should be possible to translate a concrete specification directly without (important) loss of expressiveness to the simulation framework and be executed as a simulation-process to reveal its dynamics over time when actual computation is carried out over the formal language.
+
+\bigskip
+
 An important emphasis will be put on the verification of correctness, whether the implementation matches the formal specification or not, of both the simulation framework and translated auction-type programs.
 Research will also go into proofs of termination / convergence-possibility: proving whether a specified auction can ever terminate / converge, ignoring the time-space constraint and the quality of the convergence. Another focus of research will focus on formal testing of an auction specification / implementation for deadlock-free as such auction-processes can get stuck when specifications exhibit configurations which can result in deadlock-situations between traders which are still willing to trade but cannot because of circular dependencies.
 Of special interest is also the visualization and the support to investigate the dynamics of such simulation-processes. Part of the research will be how to describe and visualize dynamics of such an auction-process in a meaningful and comprehensive way so to detect patterns in the dynamics and to provide a new way at looking at such dynamics. With the use of a pure functional approach it may be possible to develop a new way of looking at such dynamics which can then also be visualized in a new way.
+
+\bigskip
+
+Note: it is not in the interest of the researcher to proof the match of the outcome of the various auction types with established equilibrium-theorems (which conditions must be satisfied that the dynamic process reaches the static equilibrium?) because this would touch too deep on economics and complex equilibrium theory which is not the focus of this PhD. The focus is much more on the research of a specification tool and then on the dynamics of such an auction- process (e.g. market \& agent activities over time) in the context of the field of Agent-Based Modelling/Simulation.
 
 %----------------------------------------------------------------------------------------
 %	SECTION 3
 %----------------------------------------------------------------------------------------
 
 \section{Impact}
-The resulting auction simulation tool (formal language and simulation framework) allows computational economists to specify problems in this field in a precise and concise formal language thus they can refrain from having to share and explain all painstaking details in natural language. The simulation framework allows them to run formal specifications of auction-processes and investigate the dynamics of them. Also they will be able to proof if their specification is able to converge / terminate or not and that it is deadlock-free or not.
-Another advantage of a formal specification is that two specifications can be proofed for bisimilarity where one matches the other which is quite difficult in natural language.
+The resulting simulation framework allows computational economists to specify problems in this field in a precise and concise formal language thus they can refrain from having to share and explain all painstaking details in natural language. The simulation framework allows them to run formal specifications of trading-processes and investigate the dynamics of them. Also they will be able to proof if their specification is able to converge / terminate or not and that it is deadlock-free or not.
 
 
 %----------------------------------------------------------------------------------------
@@ -113,19 +103,52 @@ Another advantage of a formal specification is that two specifications can be pr
 %----------------------------------------------------------------------------------------
 
 \section{Approach}
-Formal specification is done both through pi-calculus and due to the pure functional approach a mapping of ABM/S to category theory is required. Both approaches are quite novel and not much research has been undertaken in both areas. This work tries to approach both to  TODO
-[ ] as current pure functional programming is based upon category theory a suitable representation of the agents and the simulation in category theory must be found/developed
-[ ] 1. formal ABM/S allgemein untersuchen, 2. dann auf process-calculi focussieren, 3. dort im konkreten fall pi-calculus ansehen, 4. daraus folgt nur bestimmte arten von ABM/S vernünftig mit pi calculus umsetzbar/spezifizierbar: keine komplexen verhaltensregeln sondern mathematische, funktionale, stetige verhalten wie eben zero-intelligence agents. 5. konkreter anwendungsfall dann auf breuer et al CDA und continuous batch auction und weitere market designs
 
-TODO: it is still unclear how i will model the agents and implement them. Either follow agent-model if provided in theory or have to model myself. Implementing: heavily depends on agent-model but question if we can follow actor model? Would actor model make sense? Then formalize it into pi-calculus?
+\begin{enumerate}
+\item Designing and implementing the software for the functional framework of the paper \cite{Botta20114025} in Haskell \& Agda
+\item Apply it to the model of Gintis as presented in \cite{Gintis2006} and specified in the paper "Mathematical specifications for agent-based
+models of exchange: a case study" by N. Botta, A. Mandel, M. Hofmann, S. Schupp.
+\item Extend the framework to model time explicitly to allow the simulation of continuous time.
+\item Implement FBA as proposed by Budish et al. in the paper \cite{Budish2015} and look at the results.
+\end{enumerate}
 
+\subsection{1st year}
+
+\begin{itemize}
+\item Understand Equilibrium Models
+\item Understand Market Micro-structure
+\item Do literature research on dynamics of equilibrium 
+\item Learn dependent-type programming in Agda
+\item Learn monadic programming in Haskell
+\item Fully understand the framework in \cite{Botta20114025}
+\item Design software of the framework: lay out modules, define interfaces, define functions, specify agents
+\item Implement the framework
+\item Publish first paper about the implementation of the framework
+\end{itemize}
+
+\subsection{2nd year}
+Explicitly model continuous time
+Implement continuous batch auction
+Publish paper with results
+
+\subsection{3rd year}
+?
 
 %----------------------------------------------------------------------------------------
 %	SECTION 5
 %----------------------------------------------------------------------------------------
 
 \section{Research Questions}
-TODO
+\begin{itemize}
+\item How can the functional framework of Ionescu et al. be implemented in a dependently typed programming language?
+	\begin{itemize}
+	\item How can agents be represented?
+	\item How can the framework be implemented to be extensible?
+	\item How can the framework be implemented to be open to other models of exchange?
+	\end{itemize}
+\item How can continuous time be explicitly modelled in the functional framework and be incorporated in the implementation?
+\item In which way does the use of a continuous batch auction instead of a continuous double-auction influence the dynamics of equilibrium?
+\end{itemize}
 
 %----------------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
@@ -133,7 +156,7 @@ TODO
 
 \bibliographystyle{apalike}
 
-\bibliography{researchproposal}
+\bibliography{./bib/researchproposal.bib}
 
 %----------------------------------------------------------------------------------------
 

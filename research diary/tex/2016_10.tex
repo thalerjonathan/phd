@@ -1,31 +1,34 @@
 \section*{2016 October 1st}
 \subsection*{Aim of my PhD}
-After reflecting on the whole thing a bit the following milestones are of interest:
+After reflecting on the whole thing a bit I've started to rewrite my research-proposal to cover the topic from the direction of Gintis models \cite{Gintis2006} and \cite{Botta20114025}.
 
-\begin{enumerate}
-\item Implementing the functional framework of the paper \cite{Botta20114025} in Haskell \& Agda
-\item Apply it to the model of Gintis as presented in \cite{Gintis2006} and specified in the paper "Mathematical specifications for agent-based
-models of exchange: a case study" by N. Botta, A. Mandel, M. Hofmann, S. Schupp. Possibly the implementation and this application should go hand in hand to test the implementation and to preventing myself of heading into "nowhere".
-\item Extend the framework to model time explicitly to allow the simulation of continuous time.
-\item Implement Continuous Batch Auctions as proposed by Budish et al. in the paper "The High-Frequency Trading Arms Race: Frequent Batch Auctions as a Market Design Response".
-\item Maybe present my own empirical model of agents
-\item Use framework to test hypotheses and verify them
-\end{enumerate}
-
-In the first year the following should be done:
-
-\begin{itemize}
-\item Understand Equilibrium Models
-\item Understand Market Micro-structure
-\item Do literature research on dynamics of equilibrium 
-\item Learn dependent-type programming in Agda
-\item Learn monadic programming in Haskell
-\item Fully understand the framework in \cite{Botta20114025}
-\item Design software of the framework: lay out modules, define interfaces, define functions,
-\item Implement the framework
-\item Publish first paper about the implementation of the framework
-\end{itemize}
-
-\bigskip
+\section*{2016 October 3rd}
 
 \subsection*{A paper: "The dynamics of general equilibrium" by Herbert Gintis \cite{gintis_dynamics_2007}}
+This paper is a more complicated and comprehensive model of \cite{Gintis2006} which can be considered to be a kind of complete economy with firms producing goods, agents being employed by the firms,... According to Gintis:
+
+\begin{quote}
+The article presents the first general, highly decentralized, agent-based model of the dynamics of general equilibrium.
+\end{quote}
+
+\begin{quote}
+Moreover, for the first time, we know something substantive about the dynamic properties of the Walrasian system. \textbf{They are nothing like tatonnement.}
+\end{quote}
+
+Gintis also shows that when using public prices called out by a central authority leads to highly chaotic prices with extreme volatility. He claims that
+
+\begin{quote}
+Economic theory assumes public prices without justification. Public prices do not generally exist and equilibrium public prices cannot even be calculated in an economy of any appreciable size.
+\end{quote}
+
+This is a fundamental critique of the equilibrium theory of modern economics and inherently of many models built upon this notion of Walrasian tatonnement using public prices. \\
+I have the feeling that I have now arrived at the right direction, the right paper, the right model. This is what I was looking for - and thank god, it has already been done by highly competent men (e.g. Gintis) and I can start following that road now.
+
+\subsection*{An interesting article of Gintis on Traditional Economics and new approaches to it}
+In his article, to be found at \url{http://evonomics.com/new-economics-with-tradtional-economics/}, Gintis argues for a new way of economics, where Behaviour \& Evolutionary Sciences combine with Traditional Economics to form a new understanding of economics which tries to understand the dynamics of economic processes e.g. equilibrium. \\
+
+A remarkable quote is the following:
+
+\begin{quote}
+At least since the end of World War II economists have analyzed market failures in the terms described above. The recommended solution to market failure has always been the same: government intervention to replace markets or to regulate markets in the public interest. \textbf{But why would anyone seriously believe that the government would actually do what is in the best interest of efficiency and justice?} This belief, many years ago when I was a graduate student, was simply a precondition for admission to the inner sanctum of professional economics. I, on the other hand, found it about as reasonable as belief in reincarnation or flying saucers.
+\end{quote}

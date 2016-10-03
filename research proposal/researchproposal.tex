@@ -33,7 +33,7 @@
 %	DOCUMENT INFORMATION
 %----------------------------------------------------------------------------------------
 
-\title{Research Proposal \\ An agent-based functional framework for the research of equilibrium-dynamics in bilateral trading and bartering.} % Title
+\title{Research Proposal \\ A dependently typed functional framework for the research of equilibrium-dynamics in agent-based bilateral trading and bartering.} % Title
 
 \author{Jonathan \textsc{Thaler}} % Author name
 
@@ -70,7 +70,27 @@ Cezar Ionescu et al. tried to reimplement the findings of Gintis but were unable
 Ionescu et al. went then on to build upon these findings, that specifications of such models should be much more formal and proposed a functional framework in their paper \cite{Botta20114025}. This framework allows to specify a model of agent-based exchange like the one of Gintis in \cite{Gintis2006}, where Ionescu et al. gave in an companion-paper a case study by "implementing" Gintis model in their functional framework. The according paper is "N. Botta, A. Mandel, M. Hofmann, S. Schupp, Mathematical specifications for agent-based models of exchange: a case study" which can be found on the internet but was ultimately rejected in the review process and is thus not published. \\
 Ionescu et al. state in \cite{Botta20114025} that a real implementation of their functional framework would need a dependently typed programming language and is by far out of the scope of this paper, leaving it for further research \\
 Also in this framework time is not modelled explicitly which is a further extension point.
+
 \bigskip
+
+The paper \cite{gintis_dynamics_2007} by Gintis goes one step further than \cite{Gintis2006} and presents a more complicated and comprehensive model which can be considered to be a kind of complete economy with firms producing goods, agents being employed by the firms. This is too complicated to be implemented but is considered for further research.
+
+\bigskip
+
+TODO: evolutionary model of agents: imitation, copying the behaviour of successful ones / mutating prices. maybe could go further into evolutionary strategies
+
+\bigskip
+
+TODO: BUT not only theoretical approach. Also include empirical and practical knowledge of market microstructure: how markets behave and how agents behave in these markets. The following books will be of importance: \cite{LehalleLaruelle2013}
+
+\cite{baker_market_2013} Part II: Chapter 8-12
+
+\cite{aldridge_high_frequency_2009}
+
+\bigskip
+
+TODO: Include HFT
+
 In the paper \cite{Budish2015}, Budish et al. proposed a new kind of auction on the stock market, which they termed "Frequent Batch Auctions" (FBA) as a remedy against the High-Frequency arms race. 
 
 %----------------------------------------------------------------------------------------
@@ -106,9 +126,8 @@ The resulting simulation framework allows computational economists to specify pr
 
 \begin{enumerate}
 \item Designing and implementing the software for the functional framework of the paper \cite{Botta20114025} in Haskell \& Agda
-\item Apply it to the model of Gintis as presented in \cite{Gintis2006} and specified in the paper "Mathematical specifications for agent-based
-models of exchange: a case study" by N. Botta, A. Mandel, M. Hofmann, S. Schupp.
-\item Extend framework in the way that agents only learn from agents they have traded with instead from the whole agent-population as it seems unrealistic that a single agent is able to look at the whole agent-population and its performance - instead mutation should occur on local decisions.
+\item Apply it to the model of Gintis as presented in \cite{Gintis2006} and specified in the paper "Mathematical specifications for agent-based models of exchange: a case study" by N. Botta, A. Mandel, M. Hofmann, S. Schupp.
+\item Extend framework to the whole model as presented in \cite{gintis_dynamics_2007}
 \item Extend the framework to model time explicitly to allow the simulation of continuous time.
 \item Implement FBA as proposed by Budish et al. in the paper \cite{Budish2015} and look at the results.
 \end{enumerate}
@@ -148,9 +167,6 @@ Publish paper with results
 	\item How can the framework be implemented to be open to other models of exchange?
 	\end{itemize}
 \item How can continuous time be explicitly modelled in the functional framework and be incorporated in the implementation?
-\item Is the equilibrium-dynamic of the prices reproduce-able when using the private price mechanisms as claimed by Gintis?
-\item Is the chaotic price-dynamic reproduce-able when using public price mechanisms as claimed by Gintis?
-\item In which way does the model of Gintis change when agents learn only locally when trading with each other instead from the whole population?
 \item In which way does the use of a frequent batch auction instead of a continuous double-auction influence the dynamics of equilibrium?
 \end{itemize}
 

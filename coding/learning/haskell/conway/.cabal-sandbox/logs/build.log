@@ -1,0 +1,10 @@
+
+package: random-1.1
+os: linux
+arch: x86_64
+compiler: ghc-7.10.2
+client: cabal-install-1.22.6.0
+dependencies: time-1.5.0.1 base-4.8.1.0
+install-outcome: InstallOk
+docs-outcome: NotTried
+tests-outcome: NotTried

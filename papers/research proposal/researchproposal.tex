@@ -33,7 +33,7 @@
 %	DOCUMENT INFORMATION
 %----------------------------------------------------------------------------------------
 
-\title{Research Proposal \\ A dependently typed functional framework for the research of equilibrium-dynamics in agent-based bilateral trading and bartering.} % Title
+\title{ {\normalsize Research Proposal} \\ A dependently typed functional framework for the research of equilibrium-dynamics in agent-based bilateral trading and bartering.} % Title
 
 \author{Jonathan \textsc{Thaler}} % Author name
 
@@ -57,7 +57,6 @@ Co-Supersvisor: Dr. Thorsten Altenkirch
 \begin{abstract}
 Agent-Based Modeling and Simulation (ABM/S) is still a young discipline and the dominant approach to it is object oriented computation. This thesis goes into the opposite direction and asks how ABM/S can be mapped to and implemented using pure functional computation and what one gains from doing so. To the best knowledge of the author, so far no proper treatment of ABM/S in pure functional computation exists but only a few papers which only scratch the surface. The author argues that approaching ABM/S from a pure functional direction  offers a wealth of new powerful tools and methods. The most obvious one is that when using pure functional computation (equational) resoning about the correctness and about total and partial correctness of the simulation becomes possible. The ultimate benefit is that Agda becomes applicable which is - according to the Curry-Howard isomorphism - both a pure functional programming language and a proof assistant for intuitionistic logic allowing both to compute the dynamics of the simulation and to look at meta-level properties of the simulation - termination, convergence, equilibria, domain specific properties - by constructing proofs utilizing computer aided verification. \\
 The application will be in the field of agent-based computational economics where the main focus will be on simulating the dynamics of equilibrium in bilateral trading. This is a quite new and ongoing research in economics and very strongly driven by simulative approaches and still a very open question among economists how prices reach equilibrium over time.
-
 \end{abstract}
 
 %----------------------------------------------------------------------------------------
@@ -65,19 +64,26 @@ The application will be in the field of agent-based computational economics wher
 %----------------------------------------------------------------------------------------
 
 \section{Ideas, Influences \& Applications}
+
+TODO: include a short overview of agent-based computational economics 
+
 In the paper \cite{Gintis2006} Herbert Gintis proposed a model of decentralized barter between agents in which he could show that the prices approach an equilibrium. His results made quite a fuzz in the field of economics because so far how prices in bilateral trading approach the walrasian equilibrium was (and is still) an open question as Walrasian Equilibrium definition just states the static properties when equilibrium is reached but says nothing about how it is reached. \\
 Cezar Ionescu et al. tried to reimplement the findings of Gintis but were unable to correctly reproduce the results due to a misunderstanding and misinterpretation of the model in \cite{Gintis2006} which was given in natural language with very few formalisms. \\
 Ionescu et al. went then on to build upon these findings, that specifications of such models should be much more formal and proposed a functional framework in their paper \cite{Botta20114025}. This framework allows to specify a model of agent-based exchange like the one of Gintis in \cite{Gintis2006}, where Ionescu et al. gave in an companion-paper a case study by "implementing" Gintis model in their functional framework. The according paper is "N. Botta, A. Mandel, M. Hofmann, S. Schupp, Mathematical specifications for agent-based models of exchange: a case study" which can be found on the internet but was ultimately rejected in the review process and is thus not published. \\
 Ionescu et al. state in \cite{Botta20114025} that a real implementation of their functional framework would need a dependently typed programming language and is by far out of the scope of this paper, leaving it for further research \\
-Also in this framework time is not modelled explicitly which is a further extension point.
+The paper \cite{gintis_dynamics_2007} by Gintis goes one step further than \cite{Gintis2006} and presents a more complicated and comprehensive model which can be considered to be a kind of complete economy with firms producing goods, agents being employed by the firms. This is too complicated to be implemented but is considered for further research.\\
 
 \bigskip
 
-The paper \cite{gintis_dynamics_2007} by Gintis goes one step further than \cite{Gintis2006} and presents a more complicated and comprehensive model which can be considered to be a kind of complete economy with firms producing goods, agents being employed by the firms. This is too complicated to be implemented but is considered for further research.
+This framework should also be so flexible to be applicable to other works of exchange, e.g. the Leverage-Cycle work of Breuer et al. which looked at leveraged trading and the master-thesis of Thaler which looked at trading restricted to various kinds of networks in the work of Breuer et al.
 
 \bigskip
 
-TODO: evolutionary model of agents: imitation, copying the behaviour of successful ones / mutating prices. maybe could go further into evolutionary strategies
+Include networks between agents: static networks and network formation
+
+\bigskip
+
+TODO:  evolutionary model of agents: imitation, copying the behaviour of successful ones / mutating prices. maybe could go further into evolutionary strategies
 
 \bigskip
 
@@ -85,13 +91,24 @@ TODO: BUT not only theoretical approach. Also include empirical and practical kn
 
 \cite{baker_market_2013} Part II: Chapter 8-12
 
-\cite{aldridge_high_frequency_2009}
-
 \bigskip
 
-TODO: Include HFT
+Future research: Include HFT
+
 
 In the paper \cite{Budish2015}, Budish et al. proposed a new kind of auction on the stock market, which they termed "Frequent Batch Auctions" (FBA) as a remedy against the High-Frequency arms race. 
+\\
+For that one needs to model time explicitly and extend the framework and implementation accordingly. This is currently out of focus of this PhD but if there is time this could move back into focus.
+
+\cite{aldridge_high_frequency_2009}
+
+Thus the following topics are included
+
+\begin{itemize}
+\item Various goods/markets should be possible where also complex products are traded
+\item Various models of agent-behaviour should be possible: imitation, mutation, zero-intelligence, deep-learning,... 
+\item Static networks and network-formation between agents
+\end{itemize}
 
 %----------------------------------------------------------------------------------------
 %	SECTION 2

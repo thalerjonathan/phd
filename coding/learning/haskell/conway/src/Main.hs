@@ -38,6 +38,23 @@ randomBool p g = (b, g')
         g' = snd r
         b = value > p
 
+{-
+randomBools' :: Int -> Float -> [Bool]
+randomBools' n p = bs
+  where g = mkStdGen 42
+        rs = randomR (0.0, 1.0) g
+        bs = map (\r -> True) [rs]
+-}
+
+diffSelect :: Int -> IO [Float]
+diffSelect n = do
+  gen <- getStdGen
+  return . take n $ randomRs (0.0, 1.0) gen
+
+floatToBool :: IO [Float] -> Float -> IO [Bool]
+floatToBool fs p =  map (\f -> True) 
+
+
 getCurrentMillis :: Int
 getCurrentMillis = fromIntegral (unsafePerformIO timeInMillis) -- NOTE: will only result in an update after recompilation...
 

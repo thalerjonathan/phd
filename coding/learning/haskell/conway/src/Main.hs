@@ -13,6 +13,9 @@ yCells = 10
 cellProb :: Float
 cellProb = 0.5
 
+ones = 1 : ones
+fib             = 1 : 1 : [ a+b | (a,b) <- zip fib (tail fib) ]
+
 conway = initRandomField
 
 initRandomField :: [Bool]
@@ -51,9 +54,10 @@ diffSelect n = do
   gen <- getStdGen
   return . take n $ randomRs (0.0, 1.0) gen
 
+{-
 floatToBool :: IO [Float] -> Float -> IO [Bool]
 floatToBool fs p =  map (\f -> True) 
-
+-}
 
 getCurrentMillis :: Int
 getCurrentMillis = fromIntegral (unsafePerformIO timeInMillis) -- NOTE: will only result in an update after recompilation...

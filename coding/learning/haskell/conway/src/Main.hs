@@ -13,14 +13,59 @@ yCells = 10
 cellProb :: Float
 cellProb = 0.5
 
-ones = 1 : ones
-fib             = 1 : 1 : [ a+b | (a,b) <- zip fib (tail fib) ]
+neighbourhood :: [(Int, Int)]
+neighbourhood = [(-1,-1), (0, -1), (1, -1), (-1,0), (1, 0), (-1, 1), (0, 1), (1, 1)]
 
-conway = initRandomField
+main :: IO ()
+main = do field <- initField xCells yCells cellProb
+          resultField <- performSimSteps field 10
+          return ()
 
-initRandomField :: [Bool]
-initRandomField = fst (randomBools (xCells * yCells) cellProb (mkStdGen getCurrentMillis))
 
+initField :: Int -> Int -> Float -> IO [Int]
+initField x y p = randFloats (x * y) >>= (\fs -> return (map (\f -> if f <= p then 1 else 0) fs))
+
+initField' :: Int -> Int -> Float -> IO [Int]
+initField' x y p = do fs <- randFloats (x * y)
+                      return (map (\f -> if f <= p then 1 else 0) fs)
+
+randFloats :: Int -> IO [Float]
+randFloats 0 = return []
+randFloats n = (randFloats (n-1)) >>= (\fs -> (getStdRandom (random) :: IO Float) >>= (\f -> return (f : fs)))
+
+randFloats' :: Int -> IO [Float]
+randFloats' 0 = return []
+randFloats' n = do fs <- randFloats (n-1)
+                   f <- (getStdRandom (random) :: IO Float)
+                   return (f: fs)
+                   
+performSimSteps :: [Int] -> Int -> IO [[Int]]
+performSimSteps field 0 = return [field]
+performSimSteps field n = return [field]
+
+simStep :: [Int] -> [Int]
+simStep field = field
+
+
+
+genCoords :: [(Int, Int)]
+genCoords  = [ (x, y) | x <- [1..xCells], y <- [1..yCells] ]
+
+coordsToIndex :: (Int, Int) -> Int
+coordsToIndex (x, y) = ((x-1) * xCells) + y
+
+neighbours :: (Int, Int) -> [(Int, Int)]
+neighbours (x, y) = map (\(nx, ny) -> (x+nx, y+ny)) neighbourhood
+
+
+
+calcFieldRatio :: IO [Int] -> IO Float
+calcFieldRatio field = do fs <- field
+                          s <- return (sum fs)
+                          l <- return (length fs)
+                          return (((fromIntegral s) / (fromIntegral l)) :: Float)
+
+{- THIS IS FOR TESTING PURPOSES ONLY -}
 randomBools :: (RandomGen g) => Int -> Float -> g -> ([Bool], g)
 randomBools 0 p g = ([b], g)
   where rb = randomBool p g
@@ -40,36 +85,3 @@ randomBool p g = (b, g')
         value = fst r
         g' = snd r
         b = value > p
-
-{-
-randomBools' :: Int -> Float -> [Bool]
-randomBools' n p = bs
-  where g = mkStdGen 42
-        rs = randomR (0.0, 1.0) g
-        bs = map (\r -> True) [rs]
--}
-
-diffSelect :: Int -> IO [Float]
-diffSelect n = do
-  gen <- getStdGen
-  return . take n $ randomRs (0.0, 1.0) gen
-
-{-
-floatToBool :: IO [Float] -> Float -> IO [Bool]
-floatToBool fs p =  map (\f -> True) 
--}
-
-getCurrentMillis :: Int
-getCurrentMillis = fromIntegral (unsafePerformIO timeInMillis) -- NOTE: will only result in an update after recompilation...
-
-timeInMicros :: IO Integer
-timeInMicros = numerator . toRational . (* 1000000) <$> getPOSIXTime
-
-timeInMillis :: IO Integer
-timeInMillis = (`div` 1000) <$> timeInMicros
-
-timeInSeconds :: IO Integer
-timeInSeconds = (`div` 1000) <$> timeInMillis
-
-timeInSeconds' :: IO Double
-timeInSeconds' = (/ 1000000) . fromIntegral <$> timeInMicros

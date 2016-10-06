@@ -1,1 +1,46 @@
-\section{First Supervision-Meeting}
+\section*{2016 October 6th}
+
+\subsection*{First official supervision-meeting}
+Had a nice and relaxed first official supervision meeting with Peer-Olaf today. We talked about two things: organisational and research topic related stuff.
+
+\subsubsection*{Organisational stuff}
+
+\begin{itemize}
+\item I should contact Nadine Holmes \url{https://www.nottingham.ac.uk/computerscience/people/nadine.holmes} for both my office key and for a website presence of me on the IMA page.
+\item Peer-Olaf does not care much about which kind of courses I attend for my Ph.D. but he suggests that I should go to "Thesiswriting" not in the last year.
+\item Regarding publishing papers: the computer-science Ph.D. here at Nottingham is organized in the way that officially no published papers are required and only the final thesis is sufficient to become a Ph.D. (if everything is OK). BUT it would be nice to have at least 1-2 journal papers (2 would be good and are suitable for my topic) because that is a very strong backup of the thesis against the neutral reviewer and also because one should have the aim to publish something in a Ph.D. (I really want to publish something).
+\item Conference-Papers are mandatory: the first should conference (with paper of course) should be at the end of the first year, with more conferences and papers to come.
+\item Peer-Olaf suggests that I may attend courses/lecture in economics in the 2nd year when required (e.g. Market Microstructure or Equilibrium Theory).
+\item I should visit Simon Gächter for a quick chat and to build relationship to the economic guys.
+\item Sometimes there are interesting Summer-Schools and Workshops and I may attend some if the topics are interesting for me.
+\item I am now member of the IMA and will thus attend seminars held by IMA over the next 3 years.
+\item I will have 2 supervision-meetings a month with Peer-Olaf.
+\end{itemize}
+
+\subsubsection*{Research topic related stuff}
+We discussed intensely what I really want to do and what Peer-Olaf has in mind.
+
+\begin{itemize}
+\item His students go in the direction of developing some method and then showing that it can be applied to various fields e.g. agent-based computational economics (ACE), social simulation, epidemiology. This is also the way I will work: develop a framework which allows implementing and reasoning in one of the various fields - thus the framework should be domain-agnostic as much as possible.
+\item Peer-Olaf mentioned Akka to me, that I should take a look at it.
+\item I clearly stated (and Peer-Olaf told me to write that down) that: I don't want to force OO-concepts to pure functional programming but want to approach the agent-based modelling/simulation methodology from a pure functional way (which I guess will be then category theory).
+\end{itemize}
+
+\subsection*{First work-package}
+Peer-Olaf suggested to start with something very small but highly abstract and then extend it more and more. Thus my starting points will be
+
+\begin{itemize}
+\item How can an Agent be represented in a functional way?
+\item How can an Agent be implemented in a pure functional language?
+\end{itemize}
+
+I need to start with a general agent-model of interaction, concurrency and pro-activity and then map these to functional concepts and then translate these concepts to a pure functional language. Thus first I have to look at various agent-models like the Actor-Model, select the one which fits best (what are the criteria?). Then I have to find a pure functional representation and finally implement this in Haskell. Note that it is highly desirable that the mapping from functional specification to pure functional implementation should be straight forward without loosing much expressiveness thus category theory would be the first way to go for the functional specification. To test the ideas and implementations I should apply it to a simple epidemic model e.g. the SIR model as it is very well known and researched and the results can easily be compared. After all has been implemented then I should use Agda to implement the whole application in a pure functional language with dependent types and then do reasoning about this model e.g. termination checking.
+
+\begin{enumerate}
+\item Find agent-model of interaction, concurrency and pro-activity: \textit{Actor-Model, still open to research}.
+\item Create functional representation/specification of agent-model: \textit{Category Theory, still open to research}.
+\item Create functional representation/specification of application: SIR-model.
+\item Implementation in pure functional language: \textit{Haskell}
+\item Implement in dependently typed pure functional language: \textit{Agda}
+\item Do formal verification and reasoning about the model.
+\end{enumerate}

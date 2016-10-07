@@ -16,9 +16,14 @@ import Control.Concurrent.STM.TChan
 - want to broadcast to all agents
 - want to broadcast to all neighbours
 
+- QUESTION: is it possible to send lambdas with data enclosed in the STD?
+
 - need some kind of environment: is a central agent with whom all can interact: can be queried about other agents, infrastructure,... note: it is NOT another domain-specific agent, which is known to ALL existing agents, this has to be implemented in the domain-specific model if sucha thing is required
 
 - want to have proactivity, but how? e.g. calling regularly a function after having polled the message-box?
+
+- WANT TO RETAIN ABILITY TO REASON ABOUT PROGRAMM DESPITE USING PARALLELISM AND CONCURRENCY
+- ALL HAS TO BE TYPESAFE (but this is ensured by Haskell anyway)
 -}
 
 data MessageType d = AgentStart | AgentStop | AgentNeighbours | AgentDomain d
@@ -33,7 +38,7 @@ data Agent s d = Agent
   {
     agentInfra :: AgentInfrastructure d,
     agentNeighbours :: [AgentInfrastructure d],
-    agentEnvironment :: AgentInfraStructure d,
+    agentEnvironment :: AgentInfrastructure d,
     agentState :: s            
   }
 

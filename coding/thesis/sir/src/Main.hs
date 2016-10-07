@@ -6,15 +6,19 @@ import Control.Monad.STM
 import Control.Concurrent.STM.TChan
 
 {- TODO agent-model
-- need a mechanism to receive / send generic messages: define protocoll
-- need a mechanism to "connect" two actors: make the id of the actors known to each other through a specific message
 - need neighbouring of agents (network)
+
 - pattern match on Agent s: sender
 - pattern match on Message m: message
+
 - want to send to single random agent
 - want to send to single agent
 - want to broadcast to all agents
 - want to broadcast to all neighbours
+
+- need some kind of environment: is a central agent with whom all can interact: can be queried about other agents, infrastructure,... note: it is NOT another domain-specific agent, which is known to ALL existing agents, this has to be implemented in the domain-specific model if sucha thing is required
+
+- want to have proactivity, but how? e.g. calling regularly a function after having polled the message-box?
 -}
 
 data MessageType d = AgentStart | AgentStop | AgentNeighbours | AgentDomain d
@@ -29,6 +33,7 @@ data Agent s d = Agent
   {
     agentInfra :: AgentInfrastructure d,
     agentNeighbours :: [AgentInfrastructure d],
+    agentEnvironment :: AgentInfraStructure d,
     agentState :: s            
   }
 
@@ -61,7 +66,17 @@ populationCount = 1
 main :: IO()
 main = do
   let agents = populateSIR populationCount
+  {- TODO: start all agents
+     startAgents agents
+     waitAgents
+  -}
   return ()
+
+{- TODO
+- when receiving start an agent gets ALL neighbourhood and send first random contact
+- when receiving contact, then get infected with specific probability
+- after a given global time the agent proactively recovers and becomes immune
+-}
 
 populateSIR :: Int -> IO [SIRAgent]
 populateSIR 0 = return []

@@ -19,9 +19,9 @@ executable sir
   main-is:             Main.hs
   -- other-modules:       
   -- other-extensions:    
-  build-depends:       
-      base              >=4.8 && <4.9
-    , hactor            >=1.2
+  build-depends: 
+      base          >=4.8 && <4.9
+    , stm           >= 2.4.4.1
     
   hs-source-dirs:      src
   default-language:    Haskell2010

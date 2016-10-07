@@ -47,6 +47,8 @@ I need to start with a general agent-model of interaction, concurrency and pro-a
 
 
 \section*{2016 October 7th}
+
+\subsection*{Start of implementation}
 Maybe I still went too formal yesterday but should be more practical thus I should go right into implementation of the SIR model using agents in Haskell. As the underlying model for agents I will use the actor-model as it is very well defined, researched and proven to be useful (Erlang) and I am already familiar with it (Gul Aghas Book) and have experimented with it in Erlang. So the starting point will be to bring the actor-model to Haskell. Fortunately there are exist already a number of libraries which either directly implement the actor-model or provide mechanisms to implement them directly. Here is an overview, loosely based on \url{https://wiki.haskell.org/Applications_and_libraries/Concurrency_and_parallelism} and on searching for 'actor' on hackage - note that the ordering reflects the order of interest in the library:
 
 \begin{enumerate}
@@ -60,3 +62,6 @@ Maybe I still went too formal yesterday but should be more practical thus I shou
 \end{enumerate}
 
 Note that all of these libraries build upon the very low-level parallel \& concurrency frameworks available in Haskell in the Concurrency package. Thus I also have to understand the basics of parallel (non-interacting, parallel computation) and concurrent (indeterministic-interacting, parallel computation) programming in Haskell. Using this low level actor-model an agent-model must be implemented. Then using the agent-model the actual simulation-model can be implemented: SIR.
+
+\subsection*{Revision}
+I won't use an existing actor-model implementation as it is too tedious to get into their usage and I need to build an agent-protocol on top of it anyway. Thus I will implement it on my own using threads (forkIO) and software-transactional memory (STD).

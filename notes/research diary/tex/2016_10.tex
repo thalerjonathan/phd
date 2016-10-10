@@ -66,7 +66,9 @@ Note that all of these libraries build upon the very low-level parallel \& concu
 \section*{2016 October 10th}
 I have reflected on my first steps implementing the agent-model in Haskell and I've come to the conclusion that I won't use an existing actor-model implementation as it is too tedious to get into their usage and I need to build an agent-protocol on top of it anyway. Thus I will implement it on my own - the question is how? There needs to be given quite a few thoughts:
 
-look at formal/functional definition of agents in wooldridge: online library. 2 approaches: 1. formal and 2. implementation
+look at formal/functional definition of agents in wooldridge chatper 2.6 Abstract Architectures for Intelligent Agents. 
+
+2 approaches: 1. formal and 2. implementation
 
 3 approaches: 1. no parallelism/concurrency, 2. deterministic parallelism, 3. indeterministic concurrency
 
@@ -84,4 +86,5 @@ instead of function to forkIO: use lambda which accesses data from outside forki
 
 \item It is yet not real functional, need to approach it from a different perspective
 \item Can we keep determinism? Real concurrency \& random-variables kill determinism. Are there workarounds? Wooldrige defines the environment in which an agent is situated as inherently non-deterministic, thus an agent-based simulation will be always indeterministic. But can we reduce it?
-\item How to do communication? Look at Wooldriges fundamental book chapter communication
+
+\item How to do communication? Look at Wooldriges fundamental book chapter 8 communication

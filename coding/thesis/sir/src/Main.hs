@@ -38,6 +38,9 @@ instead of function to forkIO: use lambda which accesses data from outside forki
 - ALL HAS TO BE TYPESAFE (but this is ensured by Haskell anyway)
 -}
 
+------------------------------------------------------------------------------------------------------
+-- CONCURRENCY-APPROACH
+{-
 data MessageType d = AgentStart | AgentStop | AgentNeighbours | AgentDomain d
 
 data AgentInfrastructure d = AgentInfrastructure
@@ -70,7 +73,31 @@ createAgent initState = do
   let a = Agent { agentInfra = is,  agentState = initState, agentNeighbours = [] }
   t <- forkIO $ _agentThreadFunc a
   return a { agentInfra = is { agentProcess = t } }
+-}
+------------------------------------------------------------------------------------------------------
 
+
+------------------------------------------------------------------------------------------------------
+-- SEQUENTIAL APPROACH
+
+------------------------------------------------------------------------------------------------------
+
+data MessageType d = AgentStart | AgentStop | AgentDomain d
+                        
+data Agent s d = Agent
+  {
+    agentMBox :: [MessageType d],
+    agentState :: s         
+  }
+
+createAgent :: s -> Agent s d
+createAgent initState = Agent { agentMBox = [], agentState = initState }
+
+processAgents :: [Agent s d] -> [Agent s d]
+processAgents as = as
+
+startAgents :: [Agent s d] -> [Agent s d]
+startAgents as = map (\a -> a) as
 ------------------------------------------------------------------------------------------------------
 -- IMPLEMENTATION OF THE SIR-MODEL
 data SIRStates = Susceptible | Infected | Recovered
@@ -83,11 +110,15 @@ populationCount = 1
 main :: IO()
 main = do
   let agents = populateSIR populationCount
+  let startedAgents = startAgents agents
+  
   {- TODO: start all agents
      startAgents agents
      waitAgents
   -}
   return ()
+
+
 
 {- TODO
 - when receiving start an agent gets ALL neighbourhood and send first random contact
@@ -95,7 +126,12 @@ main = do
 - after a given global time the agent proactively recovers and becomes immune
 -}
 
+populateSIR :: Int -> [SIRAgent]
+populateSIR 0 = []
+populateSIR n = createAgent Susceptible : populateSIR (n-1)
+{-
 populateSIR :: Int -> IO [SIRAgent]
 populateSIR 0 = return []
 populateSIR n = createAgent Susceptible >>= (\a -> populateSIR (n-1) >>= (\as -> return (a:as)))
+-}
 ------------------------------------------------------------------------------------------------------

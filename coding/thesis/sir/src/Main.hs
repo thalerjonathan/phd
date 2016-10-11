@@ -151,10 +151,10 @@ populationCount :: Int
 populationCount = 100
 
 simStepsCount :: Int
-simStepsCount = 3000
+simStepsCount = 2
 
 infectionProb :: Float
-infectionProb = 0.5
+infectionProb = 0.1
 
 daysInfectous :: Int
 daysInfectous = 3
@@ -172,15 +172,18 @@ executeSimSteps n initAs = foldr (\i acc -> simStep (head acc) : acc) [initAs] [
 simStep :: [SIRAgent] -> [SIRAgent]
 simStep as = map updateAgent $ map processMessages as
 
-processMessages :: SIRAgent -> SIRAgent
-processMessages initA = agentClearMBox
+{-
+randomContacts :: [SIRAgent] -> [SIRAgent]
+randomContacts as = map ()
   where
-    messages = agentMBox initA
-    agentAfterProc = foldr (\msg a -> matchMessageType msg a) initA messages
-    agentClearMBox = agentAfterProc{agentMBox=[]} 
-
-updateAgent :: SIRAgent -> SIRAgent
-updateAgent a = contactRandomAgent $ recoverAgent a
+    as = [a]
+    agentCount = length as
+    randIdx = unsafePerformIO (getStdRandom (randomR (0, agentCount-1)))
+    randAgent = as !! randIdx
+    msg = Message{msgType=AgentContent, sender=(-1), receiver=(-1), content=msgContent}
+    msgContent = if infectionState==Infected then (Just ContactInfected) else Nothing
+    infectionState = sirState $ agentState a
+-}
 
 contactRandomAgent :: SIRAgent -> SIRAgent
 contactRandomAgent a = sendMessage msg randAgent
@@ -192,6 +195,16 @@ contactRandomAgent a = sendMessage msg randAgent
     msg = Message{msgType=AgentContent, sender=(-1), receiver=(-1), content=msgContent}
     msgContent = if infectionState==Infected then (Just ContactInfected) else Nothing
     infectionState = sirState $ agentState a
+    
+processMessages :: SIRAgent -> SIRAgent
+processMessages initA = agentClearMBox
+  where
+    messages = agentMBox initA
+    agentAfterProc = foldr (\msg a -> matchMessageType msg a) initA messages
+    agentClearMBox = agentAfterProc{agentMBox=[]} 
+
+updateAgent :: SIRAgent -> SIRAgent
+updateAgent a = contactRandomAgent $ recoverAgent a
       
 recoverAgent :: SIRAgent -> SIRAgent
 recoverAgent a
@@ -214,7 +227,9 @@ messageReceived (Just ContactRecovered) a = a
 messageReceived Nothing a = a
 
 contactWithInfected :: SIRAgent -> SIRAgent
-contactWithInfected a = if randInfection then a {agentState=SIRAgentState{sirState=Infected, daysInfected=daysInfectous}} else a
+contactWithInfected a
+  | oldSirState == Susceptible = if randInfection then a {agentState=SIRAgentState{sirState=Infected, daysInfected=daysInfectous}} else a
+  | otherwise = a                                                                                                           
   where
     oldAgentState = agentState a
     oldSirState = sirState $ agentState a

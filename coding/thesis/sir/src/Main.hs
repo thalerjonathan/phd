@@ -4,6 +4,9 @@ import Control.Monad
 import Control.Concurrent
 import Control.Monad.STM
 import Control.Concurrent.STM.TChan
+import System.IO.Unsafe
+import System.Random
+import System.IO.Unsafe
 
 {- TODO agent-model
 - need neighbouring of agents (network)
@@ -79,59 +82,161 @@ createAgent initState = do
 
 ------------------------------------------------------------------------------------------------------
 -- SEQUENTIAL APPROACH
+type AgentId = Int
 
-------------------------------------------------------------------------------------------------------
-
-data MessageType d = AgentStart | AgentStop | AgentDomain d
-                        
-data Agent s d = Agent
+data MessageType = AgentStart | AgentStop | AgentContent deriving (Show)
+data Message p = Message {
+  sender :: AgentId,
+  receiver :: AgentId,
+  msgType :: MessageType,
+  content :: Maybe p
+} deriving (Show)
+              
+data Agent s p = Agent
   {
-    agentMBox :: [MessageType d],
+    agentId :: AgentId,
+    agentMBox :: [Message p],
     agentState :: s         
   }
 
-createAgent :: s -> Agent s d
-createAgent initState = Agent { agentMBox = [], agentState = initState }
+createAgent :: Int -> s -> Agent s p
+createAgent i initState = Agent { agentId = i, agentMBox = [], agentState = initState }
 
-processAgents :: [Agent s d] -> [Agent s d]
+processAgents :: [Agent s p] -> [Agent s p]
 processAgents as = as
 
-startAgents :: [Agent s d] -> [Agent s d]
-startAgents as = map (\a -> a) as
-------------------------------------------------------------------------------------------------------
--- IMPLEMENTATION OF THE SIR-MODEL
-data SIRStates = Susceptible | Infected | Recovered
-data SIRDomain = Infection
-type SIRAgent = Agent SIRStates SIRDomain
+emptyMessage :: MessageType -> Message p
+emptyMessage t = Message{msgType=t, sender=(-1), receiver=(-1), content=Nothing}
+
+startAgents :: [Agent s p] -> [Agent s p]
+startAgents as = map (sendMessage $ emptyMessage AgentStart) as
+
+stopAgents :: [Agent s p] -> [Agent s p]
+stopAgents as = map (sendMessage $ emptyMessage AgentStop) as
+
+sendMessage :: Message p -> Agent s p -> Agent s p
+sendMessage msg a = a { agentMBox = newMBox }
+  where
+    mbox = agentMBox a
+    newMBox = mbox ++ [msg]
+
+showAgent :: (Show s, Show p) => Agent s p-> String
+showAgent a = "Agent " ++ show id ++ " state: " ++ show state ++ ", mbox: " ++ show mbox
+  where
+    id = agentId a
+    state = agentState a
+    mbox = agentMBox a
+
+printAgents :: (Show s, Show p) => [Agent s p] -> IO ()
+printAgents [] = return ()
+printAgents (a:as) = do
+  putStr (showAgent a)
+  putStr "\n"
+  printAgents as
+
+-- SIR-specific stuff -------------------------------------------------------------------------
+
+data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
+
+data SIRProtocoll = ContactSusceptible | ContactInfected | ContactRecovered deriving (Show)
+data SIRAgentState = SIRAgentState
+  {
+    sirState :: SIRState,
+    daysInfected :: Int
+  } deriving (Show)
+                     
+type SIRAgent = Agent SIRAgentState SIRProtocoll
 
 populationCount :: Int
-populationCount = 1
+populationCount = 100
+
+simStepsCount :: Int
+simStepsCount = 3000
+
+infectionProb :: Float
+infectionProb = 0.5
+
+daysInfectous :: Int
+daysInfectous = 3
 
 main :: IO()
 main = do
   let agents = populateSIR populationCount
   let startedAgents = startAgents agents
+  let finalAgents = executeSimSteps simStepsCount startedAgents
+  printAgents (head finalAgents)
   
-  {- TODO: start all agents
-     startAgents agents
-     waitAgents
-  -}
-  return ()
+executeSimSteps :: Int -> [SIRAgent] -> [[SIRAgent]]
+executeSimSteps n initAs = foldr (\i acc -> simStep (head acc) : acc) [initAs] [1..n]
 
+simStep :: [SIRAgent] -> [SIRAgent]
+simStep as = map updateAgent $ map processMessages as
 
+processMessages :: SIRAgent -> SIRAgent
+processMessages initA = agentClearMBox
+  where
+    messages = agentMBox initA
+    agentAfterProc = foldr (\msg a -> matchMessageType msg a) initA messages
+    agentClearMBox = agentAfterProc{agentMBox=[]} 
 
-{- TODO
-- when receiving start an agent gets ALL neighbourhood and send first random contact
-- when receiving contact, then get infected with specific probability
-- after a given global time the agent proactively recovers and becomes immune
--}
+updateAgent :: SIRAgent -> SIRAgent
+updateAgent a = contactRandomAgent $ recoverAgent a
 
+contactRandomAgent :: SIRAgent -> SIRAgent
+contactRandomAgent a = sendMessage msg randAgent
+  where
+    as = [a]
+    agentCount = length as
+    randIdx = unsafePerformIO (getStdRandom (randomR (0, agentCount-1)))
+    randAgent = as !! randIdx
+    msg = Message{msgType=AgentContent, sender=(-1), receiver=(-1), content=msgContent}
+    msgContent = if infectionState==Infected then (Just ContactInfected) else Nothing
+    infectionState = sirState $ agentState a
+      
+recoverAgent :: SIRAgent -> SIRAgent
+recoverAgent a
+  | infectionState == Infected = if (remainingDays - 1) == 0 then a {agentState=SIRAgentState{sirState=Recovered, daysInfected=0}} else a {agentState=SIRAgentState{sirState=Infected, daysInfected=remainingDays-1}}
+  | otherwise = a
+  where
+    as = agentState a
+    infectionState = sirState as
+    remainingDays = daysInfected as
+
+matchMessageType :: Message SIRProtocoll -> SIRAgent -> SIRAgent
+matchMessageType (Message {msgType=AgentContent, content=c}) a = messageReceived c a
+matchMessageType Message {msgType=AgentStart} a = agentStarted a
+matchMessageType Message {msgType=AgentStop} a = agentStoped a
+
+messageReceived :: Maybe SIRProtocoll -> SIRAgent -> SIRAgent
+messageReceived (Just ContactSusceptible) a = a
+messageReceived (Just ContactInfected) a = contactWithInfected a
+messageReceived (Just ContactRecovered) a = a
+messageReceived Nothing a = a
+
+contactWithInfected :: SIRAgent -> SIRAgent
+contactWithInfected a = if randInfection then a {agentState=SIRAgentState{sirState=Infected, daysInfected=daysInfectous}} else a
+  where
+    oldAgentState = agentState a
+    oldSirState = sirState $ agentState a
+    randInfection = randomBool infectionProb
+
+agentStarted :: SIRAgent -> SIRAgent
+agentStarted a = a
+
+agentStoped :: SIRAgent -> SIRAgent
+agentStoped a = a
+
+createSIRAgent :: Int -> SIRAgent
+createSIRAgent i = createAgent i randState
+  where
+     randInfection = randomBool infectionProb
+     randState = if randInfection then SIRAgentState{sirState=Infected, daysInfected=daysInfectous} else SIRAgentState{sirState=Susceptible, daysInfected=0}
+                                               
 populateSIR :: Int -> [SIRAgent]
-populateSIR 0 = []
-populateSIR n = createAgent Susceptible : populateSIR (n-1)
-{-
-populateSIR :: Int -> IO [SIRAgent]
-populateSIR 0 = return []
-populateSIR n = createAgent Susceptible >>= (\a -> populateSIR (n-1) >>= (\as -> return (a:as)))
--}
+populateSIR n = foldr (\i acc -> (createSIRAgent i) : acc) [] [1..n]
+
+randomBool :: Float -> Bool
+randomBool p = p >= rand
+  where
+    rand = unsafePerformIO (getStdRandom (randomR (0.0, 1.0))) 
 ------------------------------------------------------------------------------------------------------

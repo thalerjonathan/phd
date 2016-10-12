@@ -79,6 +79,29 @@ createAgent initState = do
 -}
 ------------------------------------------------------------------------------------------------------
 
+------------------------------------------------------------------------------------------------------
+-- TEST
+data MsgType d = Start | Stop | Domain d deriving (Show)
+data MsgDomain = A | B | C deriving (Show, Eq)
+
+matchMsgTypeNum :: (Num d, Eq d, Show d) => MsgType d -> IO ()
+matchMsgTypeNum Start = putStr "matchMsgTypeNum: Start"
+matchMsgTypeNum Stop = putStr "matchMsgTypeNum: Stop"
+matchMsgTypeNum (Domain x) = putStr ("matchMsgTypeNum: Domain " ++ show x)
+
+matchMsgTypeBool :: (Bool d) => MsgType d -> IO ()
+matchMsgTypeBool Start = putStr "matchMsgTypeBool: Start"
+matchMsgTypeBool Stop = putStr "matchMsgTypeBool: Stop"
+matchMsgTypeBool (Domain True) = putStr ("matchMsgTypeBool: Domain True")
+matchMsgTypeBool (Domain False) = putStr ("matchMsgTypeBool: Domain False")
+
+matchMsgTypeDom :: (MsgDomain d) => MsgType d -> IO ()
+matchMsgTypeDom Start = putStr "matchMsgTypeDom: Start"
+matchMsgTypeDom Stop = putStr "matchMsgTypeDom: Stop"
+matchMsgTypeDom (Domain A) = putStr ("matchMsgTypeDom: Domain A")
+matchMsgTypeDom (Domain B) = putStr ("matchMsgTypeDom: Domain B")
+matchMsgTypeDom (Domain C) = putStr ("matchMsgTypeDom: Domain C")
+------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------
 -- SEQUENTIAL APPROACH
@@ -120,7 +143,7 @@ sendMessage msg a = a { agentMBox = newMBox }
     mbox = agentMBox a
     newMBox = mbox ++ [msg]
 
-showAgent :: (Show s, Show p) => Agent s p-> String
+showAgent :: (Show s, Show p) => Agent s p -> String
 showAgent a = "Agent " ++ show id ++ " state: " ++ show state ++ ", mbox: " ++ show mbox
   where
     id = agentId a

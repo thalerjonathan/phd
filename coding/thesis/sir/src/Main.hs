@@ -89,13 +89,13 @@ matchMsgTypeNum Start = putStr "matchMsgTypeNum: Start"
 matchMsgTypeNum Stop = putStr "matchMsgTypeNum: Stop"
 matchMsgTypeNum (Domain x) = putStr ("matchMsgTypeNum: Domain " ++ show x)
 
-matchMsgTypeBool :: (Bool d) => MsgType d -> IO ()
+matchMsgTypeBool :: MsgType Bool -> IO ()
 matchMsgTypeBool Start = putStr "matchMsgTypeBool: Start"
 matchMsgTypeBool Stop = putStr "matchMsgTypeBool: Stop"
 matchMsgTypeBool (Domain True) = putStr ("matchMsgTypeBool: Domain True")
 matchMsgTypeBool (Domain False) = putStr ("matchMsgTypeBool: Domain False")
 
-matchMsgTypeDom :: (MsgDomain d) => MsgType d -> IO ()
+matchMsgTypeDom ::  MsgType MsgDomain -> IO ()
 matchMsgTypeDom Start = putStr "matchMsgTypeDom: Start"
 matchMsgTypeDom Stop = putStr "matchMsgTypeDom: Stop"
 matchMsgTypeDom (Domain A) = putStr ("matchMsgTypeDom: Domain A")
@@ -171,13 +171,13 @@ data SIRAgentState = SIRAgentState
 type SIRAgent = Agent SIRAgentState SIRProtocoll
 
 populationCount :: Int
-populationCount = 100
+populationCount = 10
 
 simStepsCount :: Int
-simStepsCount = 2
+simStepsCount = 10
 
 infectionProb :: Float
-infectionProb = 0.1
+infectionProb = 0.5
 
 daysInfectous :: Int
 daysInfectous = 3
@@ -185,40 +185,62 @@ daysInfectous = 3
 main :: IO()
 main = do
   let agents = populateSIR populationCount
-  let startedAgents = startAgents agents
-  let finalAgents = executeSimSteps simStepsCount startedAgents
-  printAgents (head finalAgents)
+  --let startedAgents = startAgents agents
+  let allAgents = executeSimSteps simStepsCount agents
+  --printAgents (last allAgents)
+  stepThrough 0 allAgents
+
+stepThrough :: Int -> [[SIRAgent]] -> IO ()
+stepThrough i ass = do
+  putStr "\nPress Enter to advance one step\n"
+  c <- getChar
+  putStr ("t = " ++ (show i) ++ "\n" )
+  printAgents $ ass !! i
+  stepThrough (i+1) ass
   
 executeSimSteps :: Int -> [SIRAgent] -> [[SIRAgent]]
-executeSimSteps n initAs = foldr (\i acc -> simStep (head acc) : acc) [initAs] [1..n]
+executeSimSteps n initAs = foldr (\i acc -> acc ++ [(simStep'' $ last acc)] ) [initAs] [1..n]
 
 simStep :: [SIRAgent] -> [SIRAgent]
-simStep as = map updateAgent $ map processMessages as
+simStep as = map recoverAgent $ map processMessages as
 
-{-
-randomContacts :: [SIRAgent] -> [SIRAgent]
-randomContacts as = map ()
-  where
-    as = [a]
-    agentCount = length as
-    randIdx = unsafePerformIO (getStdRandom (randomR (0, agentCount-1)))
-    randAgent = as !! randIdx
-    msg = Message{msgType=AgentContent, sender=(-1), receiver=(-1), content=msgContent}
-    msgContent = if infectionState==Infected then (Just ContactInfected) else Nothing
-    infectionState = sirState $ agentState a
--}
+simStep' :: [SIRAgent] -> [SIRAgent]
+simStep' as = foldr (\a acc -> randomContacts a acc) initialAcc asAfterRecover
+ where
+    asAfterMsgProc = map processMessages as
+    asAfterRecover = map recoverAgent asAfterMsgProc
+    initialAcc = asAfterRecover
 
-contactRandomAgent :: SIRAgent -> SIRAgent
-contactRandomAgent a = sendMessage msg randAgent
-  where
-    as = [a]
-    agentCount = length as
-    randIdx = unsafePerformIO (getStdRandom (randomR (0, agentCount-1)))
-    randAgent = as !! randIdx
-    msg = Message{msgType=AgentContent, sender=(-1), receiver=(-1), content=msgContent}
-    msgContent = if infectionState==Infected then (Just ContactInfected) else Nothing
-    infectionState = sirState $ agentState a
+simStep'' :: [SIRAgent] -> [SIRAgent]
+simStep'' as = newAs
+ where
+    asAfterMsgProc = map processMessages as
+    asAfterRecover = map recoverAgent asAfterMsgProc
+    (randAgent, randIdx) = getRandAgent as
+    newAs = randomContacts randAgent asAfterRecover
     
+getRandAgent :: [SIRAgent] -> (SIRAgent, Int)
+getRandAgent as = (as !! randIdx, randIdx)
+  where
+    agentCount = length as
+    randIdx = unsafePerformIO (getStdRandom (randomR (0, agentCount-1)))
+    
+randomContacts :: SIRAgent -> [SIRAgent] -> [SIRAgent]
+randomContacts a as = replaceAgent newRandAgent randIdx as
+  where
+    (randAgent, randIdx) = getRandAgent as
+    infectionState = sirState $ agentState a
+    msgContent = if infectionState==Infected then (Just ContactInfected) else Nothing
+    msg = Message{msgType=AgentContent, sender=(-1), receiver=(-1), content=msgContent}
+    newRandAgent = sendMessage msg randAgent
+
+replaceAgent :: SIRAgent -> Int -> [SIRAgent] -> [SIRAgent]
+replaceAgent newAgent idx as = frontAs ++ [newAgent] ++ tailAs
+  where
+    splitTup = splitAt idx as
+    frontAs = fst splitTup
+    tailAs = tail (snd splitTup)
+
 processMessages :: SIRAgent -> SIRAgent
 processMessages initA = agentClearMBox
   where
@@ -226,9 +248,6 @@ processMessages initA = agentClearMBox
     agentAfterProc = foldr (\msg a -> matchMessageType msg a) initA messages
     agentClearMBox = agentAfterProc{agentMBox=[]} 
 
-updateAgent :: SIRAgent -> SIRAgent
-updateAgent a = contactRandomAgent $ recoverAgent a
-      
 recoverAgent :: SIRAgent -> SIRAgent
 recoverAgent a
   | infectionState == Infected = if (remainingDays - 1) == 0 then a {agentState=SIRAgentState{sirState=Recovered, daysInfected=0}} else a {agentState=SIRAgentState{sirState=Infected, daysInfected=remainingDays-1}}

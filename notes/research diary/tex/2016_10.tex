@@ -63,15 +63,28 @@ Maybe I still went too formal yesterday but should be more practical thus I shou
 
 Note that all of these libraries build upon the very low-level parallel \& concurrency frameworks available in Haskell in the Concurrency package. Thus I also have to understand the basics of parallel (non-interacting, parallel computation) and concurrent (indeterministic-interacting, parallel computation) programming in Haskell. Using this low level actor-model an agent-model must be implemented. Then using the agent-model the actual simulation-model can be implemented: SIR.
 
-\section*{2016 October 10th}
-I have reflected on my first steps implementing the agent-model in Haskell and I've come to the conclusion that I won't use an existing actor-model implementation as it is too tedious to get into their usage and I need to build an agent-protocol on top of it anyway. Thus I will implement it on my own - the question is how? There needs to be given quite a few thoughts:
+\section*{2016 October 12th}
 
-look at formal/functional definition of agents in wooldridge chatper 2.6 Abstract Architectures for Intelligent Agents. 
+\subsection*{Implementation so far}
+I rejected all the Actor-Model libraries as they either couldn't be installed using cabal/manual install or were tiresome to get into. The point is that I would have had to build on top of one of them my agent implementation which would have complicated things. So instead I chose to start from nothing and build up experience. The following points became clear
 
-more fundamental question: how can agents send messages in pure functional languages?
+\begin{itemize}
+\item My implementation technique so far is pretty straight-forward: all state is carried around, everything works deterministic.
+\item I tried experimenting with Concurrency-Mechanisms built into Haskell2010: forkIO, TChan, MVar but the problem is that they are inherently INDETERMINISTIC and thus one looses the ability to reason.
+\item Haskell also supports deterministic parallelism, which could be the solution to the dilemma of wanting to have parallel execution paths but still keeping the determinism.
+\item In the end the questions will be: 1. how can agents send messages in pure functional languages? 2. is deterministic parallelism possible?
+\end{itemize}
 
+\subsection*{Meeting with Paolo}
+In the morning I had an interesting meeting with Paolo, a post-doc, who is very experienced in Haskell \& Agda. I showed him my current implementation and we discussed a bit about it, especially the problem of how state can be represented and handed around in the simulation using Haskell. He proposed \textit{Coalgebras} and also explained it a bit to me but it was too complicated to understand it with the quick tutorial - I should contact Venanzio for this. Also he suggests to get into Category Theory, which will be a big task which will take months but will pay of in the long run. He also mentioned that a guy called Ivan is working on Functional Reactive Programming, a paradigm which can be used to program games in Haskell - this struck me as games can be understood as a continuous agent-based simulation, so maybe this is one way to go.
 
-\item It is yet not real functional, need to approach it from a different perspective
-\item Can we keep determinism? Real concurrency \& random-variables kill determinism. Are there workarounds? Wooldrige defines the environment in which an agent is situated as inherently non-deterministic, thus an agent-based simulation will be always indeterministic. But can we reduce it?
+\subsection*{Sum-up}
+\begin{itemize}
+\item Start learning \textit{Category Theory}
+\item Start looking at \textit{Coalgebras}
+\item Look at \textit{Functional Reactive Programming (FRP)}
+\item Look at formal/functional definition of agent architecture in Wooldridges Book Chatper 2.6 Abstract Architectures for Intelligent Agents. 
+\item How to do communication? Look at Wooldriges fundamental book chapter 7 communication.
+\end{itemize}
 
-\item How to do communication? Look at Wooldriges fundamental book chapter 8 communication
+\subsection*{Presentation of aim \& impact}

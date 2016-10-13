@@ -6,19 +6,24 @@ import System.IO
 import System.IO.Unsafe
 import System.Random
 
-data MessageType d = AgentStart | AgentStop | AgentNeighbours | AgentDomain d
+{-
+NOTE: STM can be used in deterministic, non parallel way: only atomically introduces IO. this could be a remedy for pulling arround all the mailboxes
+-}
+
+data MessageType d = AgentStart | AgentStop | AgentNeighbours | AgentDomain d deriving (Show, Eq)
 
 data Message d = Message
   {
     msgType :: MessageType d,
-    neighbours :: Maybe [TChan (Message d)],
-    content :: Maybe String
+    msgNeighbours :: Maybe [TChan (Message d)],
+    msgContent :: Maybe String
   }
     
 data AgentInfrastructure d = AgentInfrastructure
   {
     agentProcess :: ThreadId,
-    agentMBox :: TChan (Message d)
+    agentMBox :: TChan (Message d),
+    agentMsgQueue :: [(Message d, TChan (Message d))]
   }
 
 type MessageHandler s d = (Message d -> Agent s d -> Agent s d)
@@ -27,7 +32,7 @@ type ActivityHandler s d = (Agent s d -> Agent s d)
 data Agent s d = Agent
   {
     agentInfra :: AgentInfrastructure d,
-    agentNeighbours :: [AgentInfrastructure d],
+    agentNeighbours :: [TChan (Message d)],
     agentState :: s,
     agentMsgHandler :: MessageHandler s d,
     agentActivityHandler :: ActivityHandler s d
@@ -35,18 +40,17 @@ data Agent s d = Agent
 
 _agentThreadFunc :: Agent s d -> IO ()
 _agentThreadFunc aInit = do
+  hSetBuffering stdin LineBuffering
   t <- myThreadId
   let is = agentInfra aInit
   let fullAgent = aInit { agentInfra = is { agentProcess = t } }
   putStrLn $ "Created Agent with " ++ show t ++ ", listening to incoming messages"
   listenToMBox fullAgent
-  --forever $ atomically (readTChan $ agentMBox fullAgent) >>= f
-  --return ()
   
 createAgent :: s -> ActivityHandler s d -> MessageHandler s d -> IO (Agent s d)
 createAgent initState actHandler msgHandler = do
   m <- newTChanIO
-  let is = AgentInfrastructure { agentMBox = m }
+  let is = AgentInfrastructure { agentMBox = m, agentMsgQueue = [] }
   let a = Agent { agentInfra = is,  agentState = initState, agentNeighbours = [], agentMsgHandler = msgHandler, agentActivityHandler = actHandler }
   t <- forkIO $ _agentThreadFunc a
   return a { agentInfra = is { agentProcess = t } }
@@ -54,60 +58,171 @@ createAgent initState actHandler msgHandler = do
 listenToMBox :: Agent s d -> IO ()
 listenToMBox a = do
   let mbox = agentMBox (agentInfra a)
+  let actHdl = agentActivityHandler a
+  let a' = actHdl a
   ret <- atomically $ tryReadTChan mbox
-  matchSTM a ret
+  matchSTM a' ret
   return ()
 
 matchSTM :: Agent s d -> Maybe (Message d) -> IO ()
-matchSTM a Nothing = listenToMBox a
+matchSTM a Nothing = do
+  a' <- processQueuedMessages a
+  listenToMBox a'
 matchSTM a (Just d) = do
+  putStrLn $ "Received message"
   let handler = agentMsgHandler a
   let newA = handler d a
-  listenToMBox newA
+  a' <- processQueuedMessages newA
+  listenToMBox a'
+
+sendMessage :: Message d -> TChan (Message d) -> IO ()
+sendMessage  msg targetBox = do
+  atomically $ writeTChan targetBox msg
+
+processQueuedMessages :: Agent s d -> IO (Agent s d)
+processQueuedMessages a = do
+  let oldAgentInfra = agentInfra a
+  let  oldAgentMsgQueue = agentMsgQueue oldAgentInfra
+  foldr (\(msg, box) acc -> do
+            ret <- sendMessage msg box
+            acc) (return a) oldAgentMsgQueue
+  return a { agentInfra = oldAgentInfra { agentMsgQueue = [] } }
+
+queueMessage :: Agent s d -> Message d -> TChan (Message d) -> Agent s d
+queueMessage a msg receiver = a { agentInfra = oldAgentInfra { agentMsgQueue = newAgentMsgQueue } }
+  where
+    oldAgentInfra = agentInfra a
+    oldAgentMsgQueue = agentMsgQueue oldAgentInfra
+    newAgentMsgQueue = oldAgentMsgQueue ++ [(msg, receiver)]
+
+allMailboxes :: [Agent s d] -> [TChan (Message d)]
+allMailboxes as = map (\a -> (agentMBox (agentInfra a))) as
 
 randomBool :: Float -> Bool
 randomBool p = p >= rand
   where
     rand = unsafePerformIO (getStdRandom (randomR (0.0, 1.0)))
+
+sendToAgents :: Message d -> [Agent s d] -> IO ()
+sendToAgents msg as = foldr (\a acc -> sendMessage msg (agentMBox (agentInfra a))) (return ()) as
     
------------------------------------------------------------------------------------------------
--- SIR-Implementation
+--------------------------------------------------------------------------------------------------------------------
+-- SIR-Specific 
 
 populationCount :: Int
-populationCount = 2
-
-simStepsCount :: Int
-simStepsCount = 10
+populationCount = 1
 
 infectionProb :: Float
 infectionProb = 0.5
 
+initInfectProb :: Float
+initInfectProb = 0.1
+
 daysInfectous :: Int
 daysInfectous = 3
 
-initInfected :: Float
-initInfected = 0.1
+data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
+data SIRDomain = Contact deriving (Show, Eq)
 
-data SIRState = Susceptible | Infected | Recovered 
-data SIRDomain = Contact
+data SIRAgentState = SIRAgentState
+  {
+    sirState :: SIRState,
+    daysInfected :: Int
+  } deriving (Show)
 
-type SIRMessageType = MessageType SIRDomain
-type SIRMessage = Message SIRMessageType
-type SIRAgent = Agent SIRState SIRMessageType
+type SIRMessage = Message SIRDomain
+type SIRAgent = Agent SIRAgentState SIRDomain
+
+type SIRMessageHandler = SIRMessage -> SIRAgent -> SIRAgent
+type SIRActivityHandler = SIRAgent -> SIRAgent
 
 main :: IO ()
 main = do
   hSetBuffering stdin LineBuffering
   as <- populateSIR populationCount
+  sendToAgents startMsg as
+  sendToAgents (neighboursMsg $ allMailboxes as) as 
+  waitMs 5000 
   return ()
 
-sirMsgHandler :: SIRMessage -> SIRAgent -> SIRAgent
-sirMsgHandler msg a = a
+infectionMsg :: SIRMessage
+infectionMsg = Message { msgType = AgentDomain Contact, msgNeighbours = Nothing, msgContent = Just "Infected" }
 
-{- TODO: it would be useful to pass in some continuous time at this point, but need to have wall-clock instead of thread-iterations! -}
-sirAgentActivity :: SIRAgent -> SIRAgent
-sirAgentActivity a = a
+startMsg :: SIRMessage
+startMsg = Message { msgType = AgentStart, msgNeighbours = Nothing, msgContent = Nothing }
 
+neighboursMsg :: [TChan (Message SIRDomain)] -> SIRMessage
+neighboursMsg ns = Message { msgType = AgentNeighbours, msgNeighbours = (Just ns), msgContent = Nothing }
+
+waitMs :: Int -> IO ()
+waitMs ms = threadDelay (1000 * ms)
+
+sirMsgHandler :: SIRMessageHandler
+sirMsgHandler msg a
+  | t == AgentStart = handleStart a
+  | t == AgentStop = handleStop a
+  | t == AgentNeighbours = handleNeighbours a ns
+  | t == (AgentDomain Contact) = handleContact a c
+   where
+     t = msgType msg
+     c = msgContent msg
+     ns = msgNeighbours msg
+
+sirAgentActivity :: SIRActivityHandler
+sirAgentActivity a
+  | isInfected a = makeRandContact $ cureInfectedAgent a
+  | otherwise = a
+  
+handleStart :: SIRAgent -> SIRAgent
+handleStart a = selfInfectRand initInfectProb a
+
+handleStop :: SIRAgent -> SIRAgent
+handleStop a = a -- NOTE: nothing to do
+
+handleNeighbours :: SIRAgent -> Maybe [TChan (Message SIRDomain)] -> SIRAgent
+handleNeighbours a (Just ns) = a { agentNeighbours = (agentNeighbours a) ++ ns}
+handleNeighbours a _ = a -- NOTE: should not occur, as when sending Neighbours-Message then it should contain neighbours in the according list
+
+handleContact :: SIRAgent -> Maybe String -> SIRAgent
+handleContact a (Just "Infected") = selfInfectRand infectionProb a
+handleContact a _ = a -- NOTE: should not occur, as when sending Contact-Message then it should contain a content-string
+
+cureInfectedAgent :: SIRAgent -> SIRAgent
+cureInfectedAgent a
+  | hasRecovered = a{ agentState=oldAgentState{sirState=Susceptible,daysInfected=0} }
+  | otherwise = a{ agentState=oldAgentState {daysInfected=newDaysInfected} }
+  where
+    oldAgentState = agentState a
+    oldDaysInfected = daysInfected oldAgentState
+    newDaysInfected = oldDaysInfected - 1
+    hasRecovered = newDaysInfected == 0
+    
+isInfected :: SIRAgent -> Bool
+isInfected a = (sirState (agentState a)) == Infected
+            
+makeRandContact :: SIRAgent -> SIRAgent
+makeRandContact a = queueMessage a infectionMsg neighbour
+  where
+    neighbour = getRandomNeighbour a
+
+-- TODO: ommit self
+-- handle case of no neighbours
+getRandomNeighbour :: SIRAgent -> TChan (Message SIRDomain)
+getRandomNeighbour a = neighbours !! randIdx
+  where
+    neighbours = agentNeighbours a
+    neighboursCount = length neighbours
+    randIdx = unsafePerformIO (getStdRandom (randomR (0, neighboursCount-1)))
+
+-- TODO: only infect if not already infected
+selfInfectRand :: Float -> SIRAgent -> SIRAgent
+selfInfectRand p a
+  | infected = a { agentState=oldAgentState { sirState=Infected, daysInfected=daysInfectous } }
+  | otherwise = a
+    where
+      infected = randomBool p
+      oldAgentState = agentState a
+      
 populateSIR :: Int -> IO [SIRAgent]
 populateSIR n = foldr (\i acc ->
                         do
@@ -116,10 +231,4 @@ populateSIR n = foldr (\i acc ->
                           return (a:as)) (return []) [1..n]
 
 createSIRAgent :: IO SIRAgent
-createSIRAgent 
-  | infected == True = createAgent Infected sirAgentActivity sirMsgHandler
-  | otherwise = createAgent Susceptible sirAgentActivity sirMsgHandler
-    where
-      infected = randomBool initInfected
-
-
+createSIRAgent = createAgent SIRAgentState{sirState=Susceptible,daysInfected=0} sirAgentActivity sirMsgHandler

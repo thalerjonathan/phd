@@ -5,9 +5,12 @@ import Control.Concurrent.STM.TChan
 import System.IO
 import System.IO.Unsafe
 import System.Random
+import Debug.Trace
 
 {-
-NOTE: STM can be used in deterministic, non parallel way: only atomically introduces IO. this could be a remedy for pulling arround all the mailboxes
+NOTE: STM can be used in deterministic, non parallel way: only atomically introduces IO. this could be a remedy for pulling arround all the mailboxes.
+
+this concurrent implementation is only needed when real continuous time is needed, but in which model is this the case?
 -}
 
 data MessageType d = AgentStart | AgentStop | AgentNeighbours | AgentDomain d deriving (Show, Eq)
@@ -31,6 +34,7 @@ type ActivityHandler s d = (Agent s d -> Agent s d)
 
 data Agent s d = Agent
   {
+    agentId :: Int,
     agentInfra :: AgentInfrastructure d,
     agentNeighbours :: [TChan (Message d)],
     agentState :: s,
@@ -38,20 +42,23 @@ data Agent s d = Agent
     agentActivityHandler :: ActivityHandler s d
   }
 
+instance Eq (Agent s d) where
+  a1 == a2 = (agentId a1) == (agentId a2)
+
 _agentThreadFunc :: Agent s d -> IO ()
 _agentThreadFunc aInit = do
   hSetBuffering stdin LineBuffering
   t <- myThreadId
   let is = agentInfra aInit
   let fullAgent = aInit { agentInfra = is { agentProcess = t } }
-  putStrLn $ "Created Agent with " ++ show t ++ ", listening to incoming messages"
+  --putStrLn $ "Created Agent with " ++ show t ++ ", listening to incoming messages"
   listenToMBox fullAgent
   
-createAgent :: s -> ActivityHandler s d -> MessageHandler s d -> IO (Agent s d)
-createAgent initState actHandler msgHandler = do
+createAgent :: Int -> s -> ActivityHandler s d -> MessageHandler s d -> IO (Agent s d)
+createAgent id initState actHandler msgHandler = do
   m <- newTChanIO
   let is = AgentInfrastructure { agentMBox = m, agentMsgQueue = [] }
-  let a = Agent { agentInfra = is,  agentState = initState, agentNeighbours = [], agentMsgHandler = msgHandler, agentActivityHandler = actHandler }
+  let a = Agent { agentId = id, agentInfra = is, agentState = initState, agentNeighbours = [], agentMsgHandler = msgHandler, agentActivityHandler = actHandler }
   t <- forkIO $ _agentThreadFunc a
   return a { agentInfra = is { agentProcess = t } }
 
@@ -69,7 +76,7 @@ matchSTM a Nothing = do
   a' <- processQueuedMessages a
   listenToMBox a'
 matchSTM a (Just d) = do
-  putStrLn $ "Received message"
+  putStrLn $ "Received message in " ++ show (agentId a)
   let handler = agentMsgHandler a
   let newA = handler d a
   a' <- processQueuedMessages newA
@@ -110,7 +117,7 @@ sendToAgents msg as = foldr (\a acc -> sendMessage msg (agentMBox (agentInfra a)
 -- SIR-Specific 
 
 populationCount :: Int
-populationCount = 1
+populationCount = 10
 
 infectionProb :: Float
 infectionProb = 0.5
@@ -142,7 +149,8 @@ main = do
   as <- populateSIR populationCount
   sendToAgents startMsg as
   sendToAgents (neighboursMsg $ allMailboxes as) as 
-  waitMs 5000 
+  waitMs 5000
+  -- in SIR the running of each agent in its separate thread is really a problem as there is then no common sense of the time-flow which is important for this simulation
   return ()
 
 infectionMsg :: SIRMessage
@@ -208,27 +216,27 @@ makeRandContact a = queueMessage a infectionMsg neighbour
 -- TODO: ommit self
 -- handle case of no neighbours
 getRandomNeighbour :: SIRAgent -> TChan (Message SIRDomain)
-getRandomNeighbour a = neighbours !! randIdx
+getRandomNeighbour a = randNeighbour
   where
     neighbours = agentNeighbours a
     neighboursCount = length neighbours
     randIdx = unsafePerformIO (getStdRandom (randomR (0, neighboursCount-1)))
-
--- TODO: only infect if not already infected
+    randNeighbour = neighbours !! randIdx
+    
 selfInfectRand :: Float -> SIRAgent -> SIRAgent
 selfInfectRand p a
-  | infected = a { agentState=oldAgentState { sirState=Infected, daysInfected=daysInfectous } }
+  | doInfection && (not $ isInfected a) = a { agentState=oldAgentState { sirState=Infected, daysInfected=daysInfectous } }
   | otherwise = a
     where
-      infected = randomBool p
+      doInfection = randomBool p
       oldAgentState = agentState a
       
 populateSIR :: Int -> IO [SIRAgent]
 populateSIR n = foldr (\i acc ->
                         do
-                          a <- createSIRAgent
+                          a <- createSIRAgent i
                           as <- acc
                           return (a:as)) (return []) [1..n]
 
-createSIRAgent :: IO SIRAgent
-createSIRAgent = createAgent SIRAgentState{sirState=Susceptible,daysInfected=0} sirAgentActivity sirMsgHandler
+createSIRAgent :: Int -> IO SIRAgent
+createSIRAgent id = createAgent id SIRAgentState{sirState=Susceptible,daysInfected=0} sirAgentActivity sirMsgHandler

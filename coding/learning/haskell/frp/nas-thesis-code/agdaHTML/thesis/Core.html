@@ -1,0 +1,6636 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >Core</title
+    ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta http-equiv="Content-Style-Type" content="text/css"
+     /><link href="Agda.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><pre
+    ><a name="1" class="Symbol"
+      >{-#</a
+      ><a name="4"
+      > </a
+      ><a name="5" class="Keyword"
+      >OPTIONS</a
+      ><a name="12"
+      > --type-in-type </a
+      ><a name="28" class="Symbol"
+      >#-}</a
+      ><a name="31"
+      >
+
+</a
+      ><a name="33" class="Keyword"
+      >open</a
+      ><a name="37"
+      > </a
+      ><a name="38" class="Keyword"
+      >import</a
+      ><a name="44"
+      > </a
+      ><a name="45" href="NeilPrelude.html#77" class="Module"
+      >NeilPrelude</a
+      ><a name="56"
+      >
+
+</a
+      ><a name="58" class="Keyword"
+      >module</a
+      ><a name="64"
+      > </a
+      ><a name="65" href="Core.html#65" class="Module"
+      >Core</a
+      ><a name="69"
+      > </a
+      ><a name="70" class="Keyword"
+      >where</a
+      ><a name="75"
+      >
+
+</a
+      ><a name="77" class="Keyword"
+      >import</a
+      ><a name="83"
+      > </a
+      ><a name="84" href="RealTime.html#66" class="Module"
+      >RealTime</a
+      ><a name="92"
+      >
+</a
+      ><a name="93" class="Keyword"
+      >open</a
+      ><a name="97"
+      > </a
+      ><a name="98" href="RealTime.html#66" class="Module"
+      >RealTime</a
+      ><a name="106"
+      > </a
+      ><a name="107" class="Keyword"
+      >public</a
+      ><a name="113"
+      >
+
+</a
+      ><a name="115" class="Keyword"
+      >import</a
+      ><a name="121"
+      > </a
+      ><a name="122" href="SVDesc.html#40" class="Module"
+      >SVDesc</a
+      ><a name="128"
+      >
+</a
+      ><a name="129" class="Keyword"
+      >open</a
+      ><a name="133"
+      > </a
+      ><a name="134" href="SVDesc.html#40" class="Module"
+      >SVDesc</a
+      ><a name="140"
+      > </a
+      ><a name="141" class="Keyword"
+      >public</a
+      ><a name="147"
+      >
+
+</a
+      ><a name="149" class="Comment"
+      >---------------------------------------------------------</a
+      ><a name="206"
+      >
+
+</a
+      ><a name="208" class="Keyword"
+      >data</a
+      ><a name="212"
+      > </a
+      ><a name="213" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="217"
+      > </a
+      ><a name="218" class="Symbol"
+      >(</a
+      ><a name="219" href="Core.html#219" class="Bound"
+      >as</a
+      ><a name="221"
+      > </a
+      ><a name="222" href="Core.html#222" class="Bound"
+      >bs</a
+      ><a name="224"
+      > </a
+      ><a name="225" class="Symbol"
+      >:</a
+      ><a name="226"
+      > </a
+      ><a name="227" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="233" class="Symbol"
+      >)</a
+      ><a name="234"
+      > </a
+      ><a name="235" class="Symbol"
+      >:</a
+      ><a name="236"
+      > </a
+      ><a name="237" class="PrimitiveType"
+      >Set</a
+      ><a name="240"
+      > </a
+      ><a name="241" class="Keyword"
+      >where</a
+      ><a name="246"
+      >
+  </a
+      ><a name="249" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="253"
+      > </a
+      ><a name="254" class="Symbol"
+      >:</a
+      ><a name="255"
+      > </a
+      ><a name="256" class="Symbol"
+      >&#8704;</a
+      ><a name="257"
+      > </a
+      ><a name="258" class="Symbol"
+      >{</a
+      ><a name="259" href="Core.html#259" class="Bound"
+      >Q</a
+      ><a name="260" class="Symbol"
+      >}</a
+      ><a name="261"
+      > </a
+      ><a name="262" class="Symbol"
+      >&#8594;</a
+      ><a name="263"
+      > </a
+      ><a name="264" class="Symbol"
+      >(</a
+      ><a name="265" href="RealTime.html#205" class="Function"
+      >&#916;t</a
+      ><a name="267"
+      > </a
+      ><a name="268" class="Symbol"
+      >&#8594;</a
+      ><a name="269"
+      > </a
+      ><a name="270" href="Core.html#259" class="Bound"
+      >Q</a
+      ><a name="271"
+      > </a
+      ><a name="272" class="Symbol"
+      >&#8594;</a
+      ><a name="273"
+      > </a
+      ><a name="274" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="280"
+      > </a
+      ><a name="281" href="Core.html#219" class="Bound"
+      >as</a
+      ><a name="283"
+      > </a
+      ><a name="284" class="Symbol"
+      >&#8594;</a
+      ><a name="285"
+      > </a
+      ><a name="286" href="Core.html#259" class="Bound"
+      >Q</a
+      ><a name="287"
+      > </a
+      ><a name="288" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="289"
+      > </a
+      ><a name="290" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="296"
+      > </a
+      ><a name="297" href="Core.html#222" class="Bound"
+      >bs</a
+      ><a name="299" class="Symbol"
+      >)</a
+      ><a name="300"
+      > </a
+      ><a name="301" class="Symbol"
+      >&#8594;</a
+      ><a name="302"
+      > </a
+      ><a name="303" href="Core.html#259" class="Bound"
+      >Q</a
+      ><a name="304"
+      > </a
+      ><a name="305" class="Symbol"
+      >&#8594;</a
+      ><a name="306"
+      > </a
+      ><a name="307" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="311"
+      > </a
+      ><a name="312" href="Core.html#219" class="Bound"
+      >as</a
+      ><a name="314"
+      > </a
+      ><a name="315" href="Core.html#222" class="Bound"
+      >bs</a
+      ><a name="317"
+      >
+
+</a
+      ><a name="319" href="Core.html#319" class="Function"
+      >stepNode</a
+      ><a name="327"
+      > </a
+      ><a name="328" class="Symbol"
+      >:</a
+      ><a name="329"
+      > </a
+      ><a name="330" class="Symbol"
+      >&#8704;</a
+      ><a name="331"
+      > </a
+      ><a name="332" class="Symbol"
+      >{</a
+      ><a name="333" href="Core.html#333" class="Bound"
+      >as</a
+      ><a name="335"
+      > </a
+      ><a name="336" href="Core.html#336" class="Bound"
+      >bs</a
+      ><a name="338" class="Symbol"
+      >}</a
+      ><a name="339"
+      > </a
+      ><a name="340" class="Symbol"
+      >&#8594;</a
+      ><a name="341"
+      > </a
+      ><a name="342" href="RealTime.html#205" class="Function"
+      >&#916;t</a
+      ><a name="344"
+      > </a
+      ><a name="345" class="Symbol"
+      >&#8594;</a
+      ><a name="346"
+      > </a
+      ><a name="347" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="351"
+      > </a
+      ><a name="352" href="Core.html#333" class="Bound"
+      >as</a
+      ><a name="354"
+      > </a
+      ><a name="355" href="Core.html#336" class="Bound"
+      >bs</a
+      ><a name="357"
+      > </a
+      ><a name="358" class="Symbol"
+      >&#8594;</a
+      ><a name="359"
+      > </a
+      ><a name="360" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="366"
+      > </a
+      ><a name="367" href="Core.html#333" class="Bound"
+      >as</a
+      ><a name="369"
+      > </a
+      ><a name="370" class="Symbol"
+      >&#8594;</a
+      ><a name="371"
+      > </a
+      ><a name="372" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="376"
+      > </a
+      ><a name="377" href="Core.html#333" class="Bound"
+      >as</a
+      ><a name="379"
+      > </a
+      ><a name="380" href="Core.html#336" class="Bound"
+      >bs</a
+      ><a name="382"
+      > </a
+      ><a name="383" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="384"
+      > </a
+      ><a name="385" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="391"
+      > </a
+      ><a name="392" href="Core.html#336" class="Bound"
+      >bs</a
+      ><a name="394"
+      >
+</a
+      ><a name="395" href="Core.html#319" class="Function"
+      >stepNode</a
+      ><a name="403"
+      > </a
+      ><a name="404" href="Core.html#404" class="Bound"
+      >&#948;</a
+      ><a name="405"
+      > </a
+      ><a name="406" class="Symbol"
+      >(</a
+      ><a name="407" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="411"
+      > </a
+      ><a name="412" href="Core.html#412" class="Bound"
+      >f</a
+      ><a name="413"
+      > </a
+      ><a name="414" href="Core.html#414" class="Bound"
+      >q</a
+      ><a name="415" class="Symbol"
+      >)</a
+      ><a name="416"
+      > </a
+      ><a name="417" href="Core.html#417" class="Bound"
+      >sa</a
+      ><a name="419"
+      > </a
+      ><a name="420" class="Symbol"
+      >=</a
+      ><a name="421"
+      > </a
+      ><a name="422" href="NeilPrelude.html#14177" class="Function"
+      >first</a
+      ><a name="427"
+      > </a
+      ><a name="428" class="Symbol"
+      >(</a
+      ><a name="429" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="433"
+      > </a
+      ><a name="434" href="Core.html#412" class="Bound"
+      >f</a
+      ><a name="435" class="Symbol"
+      >)</a
+      ><a name="436"
+      > </a
+      ><a name="437" class="Symbol"
+      >(</a
+      ><a name="438" href="Core.html#412" class="Bound"
+      >f</a
+      ><a name="439"
+      > </a
+      ><a name="440" href="Core.html#404" class="Bound"
+      >&#948;</a
+      ><a name="441"
+      > </a
+      ><a name="442" href="Core.html#414" class="Bound"
+      >q</a
+      ><a name="443"
+      > </a
+      ><a name="444" href="Core.html#417" class="Bound"
+      >sa</a
+      ><a name="446" class="Symbol"
+      >)</a
+      ><a name="447"
+      >
+
+</a
+      ><a name="449" class="Comment"
+      >---------------------------------------------------------</a
+      ><a name="506"
+      >
+
+</a
+      ><a name="508" class="Comment"
+      >-- Shallow Embedding</a
+      ><a name="528"
+      >
+
+</a
+      ><a name="530" class="Keyword"
+      >module</a
+      ><a name="536"
+      > </a
+      ><a name="537" href="Core.html#537" class="Module"
+      >Shallow</a
+      ><a name="544"
+      > </a
+      ><a name="545" class="Keyword"
+      >where</a
+      ><a name="550"
+      >
+
+  </a
+      ><a name="554" href="Core.html#554" class="Function"
+      >shallowId</a
+      ><a name="563"
+      > </a
+      ><a name="564" class="Symbol"
+      >:</a
+      ><a name="565"
+      > </a
+      ><a name="566" class="Symbol"
+      >&#8704;</a
+      ><a name="567"
+      > </a
+      ><a name="568" class="Symbol"
+      >{</a
+      ><a name="569" href="Core.html#569" class="Bound"
+      >as</a
+      ><a name="571" class="Symbol"
+      >}</a
+      ><a name="572"
+      > </a
+      ><a name="573" class="Symbol"
+      >&#8594;</a
+      ><a name="574"
+      > </a
+      ><a name="575" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="579"
+      > </a
+      ><a name="580" href="Core.html#569" class="Bound"
+      >as</a
+      ><a name="582"
+      > </a
+      ><a name="583" href="Core.html#569" class="Bound"
+      >as</a
+      ><a name="585"
+      >
+  </a
+      ><a name="588" href="Core.html#554" class="Function"
+      >shallowId</a
+      ><a name="597"
+      > </a
+      ><a name="598" class="Symbol"
+      >=</a
+      ><a name="599"
+      > </a
+      ><a name="600" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="604"
+      > </a
+      ><a name="605" class="Symbol"
+      >(&#955;</a
+      ><a name="607"
+      > </a
+      ><a name="608" href="Core.html#608" class="Bound"
+      >_</a
+      ><a name="609"
+      > </a
+      ><a name="610" href="Core.html#610" class="Bound"
+      >_</a
+      ><a name="611"
+      > </a
+      ><a name="612" href="Core.html#612" class="Bound"
+      >sa</a
+      ><a name="614"
+      > </a
+      ><a name="615" class="Symbol"
+      >&#8594;</a
+      ><a name="616"
+      > </a
+      ><a name="617" class="Symbol"
+      >(</a
+      ><a name="618" href="NeilPrelude.html#708" class="InductiveConstructor"
+      >unit</a
+      ><a name="622"
+      > </a
+      ><a name="623" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="624"
+      > </a
+      ><a name="625" href="Core.html#612" class="Bound"
+      >sa</a
+      ><a name="627" class="Symbol"
+      >))</a
+      ><a name="629"
+      > </a
+      ><a name="630" href="NeilPrelude.html#708" class="InductiveConstructor"
+      >unit</a
+      ><a name="634"
+      >
+
+  </a
+      ><a name="638" href="Core.html#638" class="Function"
+      >shallowFst</a
+      ><a name="648"
+      > </a
+      ><a name="649" class="Symbol"
+      >:</a
+      ><a name="650"
+      > </a
+      ><a name="651" class="Symbol"
+      >&#8704;</a
+      ><a name="652"
+      > </a
+      ><a name="653" class="Symbol"
+      >{</a
+      ><a name="654" href="Core.html#654" class="Bound"
+      >as</a
+      ><a name="656"
+      > </a
+      ><a name="657" href="Core.html#657" class="Bound"
+      >bs</a
+      ><a name="659" class="Symbol"
+      >}</a
+      ><a name="660"
+      > </a
+      ><a name="661" class="Symbol"
+      >&#8594;</a
+      ><a name="662"
+      > </a
+      ><a name="663" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="667"
+      > </a
+      ><a name="668" class="Symbol"
+      >(</a
+      ><a name="669" href="Core.html#654" class="Bound"
+      >as</a
+      ><a name="671"
+      > </a
+      ><a name="672" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="673"
+      > </a
+      ><a name="674" href="Core.html#657" class="Bound"
+      >bs</a
+      ><a name="676" class="Symbol"
+      >)</a
+      ><a name="677"
+      > </a
+      ><a name="678" href="Core.html#654" class="Bound"
+      >as</a
+      ><a name="680"
+      >
+  </a
+      ><a name="683" href="Core.html#638" class="Function"
+      >shallowFst</a
+      ><a name="693"
+      > </a
+      ><a name="694" class="Symbol"
+      >=</a
+      ><a name="695"
+      > </a
+      ><a name="696" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="700"
+      > </a
+      ><a name="701" class="Symbol"
+      >(&#955;</a
+      ><a name="703"
+      > </a
+      ><a name="704" href="Core.html#704" class="Bound"
+      >_</a
+      ><a name="705"
+      > </a
+      ><a name="706" href="Core.html#706" class="Bound"
+      >_</a
+      ><a name="707"
+      > </a
+      ><a name="708" href="Core.html#708" class="Bound"
+      >sa</a
+      ><a name="710"
+      > </a
+      ><a name="711" class="Symbol"
+      >&#8594;</a
+      ><a name="712"
+      > </a
+      ><a name="713" class="Symbol"
+      >(</a
+      ><a name="714" href="NeilPrelude.html#708" class="InductiveConstructor"
+      >unit</a
+      ><a name="718"
+      > </a
+      ><a name="719" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="720"
+      > </a
+      ><a name="721" href="NeilPrelude.html#12566" class="Function"
+      >fst</a
+      ><a name="724"
+      > </a
+      ><a name="725" href="Core.html#708" class="Bound"
+      >sa</a
+      ><a name="727" class="Symbol"
+      >))</a
+      ><a name="729"
+      > </a
+      ><a name="730" href="NeilPrelude.html#708" class="InductiveConstructor"
+      >unit</a
+      ><a name="734"
+      >
+
+  </a
+      ><a name="738" href="Core.html#738" class="Function"
+      >shallowSnd</a
+      ><a name="748"
+      > </a
+      ><a name="749" class="Symbol"
+      >:</a
+      ><a name="750"
+      > </a
+      ><a name="751" class="Symbol"
+      >&#8704;</a
+      ><a name="752"
+      > </a
+      ><a name="753" class="Symbol"
+      >{</a
+      ><a name="754" href="Core.html#754" class="Bound"
+      >as</a
+      ><a name="756"
+      > </a
+      ><a name="757" href="Core.html#757" class="Bound"
+      >bs</a
+      ><a name="759" class="Symbol"
+      >}</a
+      ><a name="760"
+      > </a
+      ><a name="761" class="Symbol"
+      >&#8594;</a
+      ><a name="762"
+      > </a
+      ><a name="763" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="767"
+      > </a
+      ><a name="768" class="Symbol"
+      >(</a
+      ><a name="769" href="Core.html#754" class="Bound"
+      >as</a
+      ><a name="771"
+      > </a
+      ><a name="772" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="773"
+      > </a
+      ><a name="774" href="Core.html#757" class="Bound"
+      >bs</a
+      ><a name="776" class="Symbol"
+      >)</a
+      ><a name="777"
+      > </a
+      ><a name="778" href="Core.html#757" class="Bound"
+      >bs</a
+      ><a name="780"
+      >
+  </a
+      ><a name="783" href="Core.html#738" class="Function"
+      >shallowSnd</a
+      ><a name="793"
+      > </a
+      ><a name="794" class="Symbol"
+      >=</a
+      ><a name="795"
+      > </a
+      ><a name="796" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="800"
+      > </a
+      ><a name="801" class="Symbol"
+      >(&#955;</a
+      ><a name="803"
+      > </a
+      ><a name="804" href="Core.html#804" class="Bound"
+      >_</a
+      ><a name="805"
+      > </a
+      ><a name="806" href="Core.html#806" class="Bound"
+      >_</a
+      ><a name="807"
+      > </a
+      ><a name="808" href="Core.html#808" class="Bound"
+      >sa</a
+      ><a name="810"
+      > </a
+      ><a name="811" class="Symbol"
+      >&#8594;</a
+      ><a name="812"
+      > </a
+      ><a name="813" class="Symbol"
+      >(</a
+      ><a name="814" href="NeilPrelude.html#708" class="InductiveConstructor"
+      >unit</a
+      ><a name="818"
+      > </a
+      ><a name="819" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="820"
+      > </a
+      ><a name="821" href="NeilPrelude.html#12626" class="Function"
+      >snd</a
+      ><a name="824"
+      > </a
+      ><a name="825" href="Core.html#808" class="Bound"
+      >sa</a
+      ><a name="827" class="Symbol"
+      >))</a
+      ><a name="829"
+      > </a
+      ><a name="830" href="NeilPrelude.html#708" class="InductiveConstructor"
+      >unit</a
+      ><a name="834"
+      >
+
+  </a
+      ><a name="838" href="Core.html#838" class="Function"
+      >shallowSeq</a
+      ><a name="848"
+      > </a
+      ><a name="849" class="Symbol"
+      >:</a
+      ><a name="850"
+      > </a
+      ><a name="851" class="Symbol"
+      >&#8704;</a
+      ><a name="852"
+      > </a
+      ><a name="853" class="Symbol"
+      >{</a
+      ><a name="854" href="Core.html#854" class="Bound"
+      >as</a
+      ><a name="856"
+      > </a
+      ><a name="857" href="Core.html#857" class="Bound"
+      >bs</a
+      ><a name="859"
+      > </a
+      ><a name="860" href="Core.html#860" class="Bound"
+      >cs</a
+      ><a name="862" class="Symbol"
+      >}</a
+      ><a name="863"
+      > </a
+      ><a name="864" class="Symbol"
+      >&#8594;</a
+      ><a name="865"
+      > </a
+      ><a name="866" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="870"
+      > </a
+      ><a name="871" href="Core.html#854" class="Bound"
+      >as</a
+      ><a name="873"
+      > </a
+      ><a name="874" href="Core.html#857" class="Bound"
+      >bs</a
+      ><a name="876"
+      > </a
+      ><a name="877" class="Symbol"
+      >&#8594;</a
+      ><a name="878"
+      > </a
+      ><a name="879" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="883"
+      > </a
+      ><a name="884" href="Core.html#857" class="Bound"
+      >bs</a
+      ><a name="886"
+      > </a
+      ><a name="887" href="Core.html#860" class="Bound"
+      >cs</a
+      ><a name="889"
+      > </a
+      ><a name="890" class="Symbol"
+      >&#8594;</a
+      ><a name="891"
+      > </a
+      ><a name="892" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="896"
+      > </a
+      ><a name="897" href="Core.html#854" class="Bound"
+      >as</a
+      ><a name="899"
+      > </a
+      ><a name="900" href="Core.html#860" class="Bound"
+      >cs</a
+      ><a name="902"
+      >
+  </a
+      ><a name="905" href="Core.html#838" class="Function"
+      >shallowSeq</a
+      ><a name="915"
+      > </a
+      ><a name="916" class="Symbol"
+      >{</a
+      ><a name="917" href="Core.html#917" class="Bound"
+      >as</a
+      ><a name="919" class="Symbol"
+      >}</a
+      ><a name="920"
+      > </a
+      ><a name="921" class="Symbol"
+      >{_}</a
+      ><a name="924"
+      > </a
+      ><a name="925" class="Symbol"
+      >{</a
+      ><a name="926" href="Core.html#926" class="Bound"
+      >cs</a
+      ><a name="928" class="Symbol"
+      >}</a
+      ><a name="929"
+      > </a
+      ><a name="930" class="Symbol"
+      >(</a
+      ><a name="931" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="935"
+      > </a
+      ><a name="936" class="Symbol"
+      >{</a
+      ><a name="937" href="Core.html#937" class="Bound"
+      >Q&#8321;</a
+      ><a name="939" class="Symbol"
+      >}</a
+      ><a name="940"
+      > </a
+      ><a name="941" href="Core.html#941" class="Bound"
+      >f&#8321;</a
+      ><a name="943"
+      > </a
+      ><a name="944" href="Core.html#944" class="Bound"
+      >q&#8321;</a
+      ><a name="946" class="Symbol"
+      >)</a
+      ><a name="947"
+      > </a
+      ><a name="948" class="Symbol"
+      >(</a
+      ><a name="949" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="953"
+      > </a
+      ><a name="954" class="Symbol"
+      >{</a
+      ><a name="955" href="Core.html#955" class="Bound"
+      >Q&#8322;</a
+      ><a name="957" class="Symbol"
+      >}</a
+      ><a name="958"
+      > </a
+      ><a name="959" href="Core.html#959" class="Bound"
+      >f&#8322;</a
+      ><a name="961"
+      > </a
+      ><a name="962" href="Core.html#962" class="Bound"
+      >q&#8322;</a
+      ><a name="964" class="Symbol"
+      >)</a
+      ><a name="965"
+      > </a
+      ><a name="966" class="Symbol"
+      >=</a
+      ><a name="967"
+      > </a
+      ><a name="968" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="972"
+      > </a
+      ><a name="973" href="Core.html#1006" class="Function"
+      >seqAux</a
+      ><a name="979"
+      > </a
+      ><a name="980" class="Symbol"
+      >(</a
+      ><a name="981" href="Core.html#944" class="Bound"
+      >q&#8321;</a
+      ><a name="983"
+      > </a
+      ><a name="984" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="985"
+      > </a
+      ><a name="986" href="Core.html#962" class="Bound"
+      >q&#8322;</a
+      ><a name="988" class="Symbol"
+      >)</a
+      ><a name="989"
+      >
+    </a
+      ><a name="994" class="Keyword"
+      >where</a
+      ><a name="999"
+      >
+      </a
+      ><a name="1006" href="Core.html#1006" class="Function"
+      >seqAux</a
+      ><a name="1012"
+      > </a
+      ><a name="1013" class="Symbol"
+      >:</a
+      ><a name="1014"
+      > </a
+      ><a name="1015" href="RealTime.html#205" class="Function"
+      >&#916;t</a
+      ><a name="1017"
+      > </a
+      ><a name="1018" class="Symbol"
+      >&#8594;</a
+      ><a name="1019"
+      > </a
+      ><a name="1020" href="Core.html#937" class="Bound"
+      >Q&#8321;</a
+      ><a name="1022"
+      > </a
+      ><a name="1023" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1024"
+      > </a
+      ><a name="1025" href="Core.html#955" class="Bound"
+      >Q&#8322;</a
+      ><a name="1027"
+      > </a
+      ><a name="1028" class="Symbol"
+      >&#8594;</a
+      ><a name="1029"
+      > </a
+      ><a name="1030" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="1036"
+      > </a
+      ><a name="1037" href="Core.html#917" class="Bound"
+      >as</a
+      ><a name="1039"
+      > </a
+      ><a name="1040" class="Symbol"
+      >&#8594;</a
+      ><a name="1041"
+      > </a
+      ><a name="1042" class="Symbol"
+      >(</a
+      ><a name="1043" href="Core.html#937" class="Bound"
+      >Q&#8321;</a
+      ><a name="1045"
+      > </a
+      ><a name="1046" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1047"
+      > </a
+      ><a name="1048" href="Core.html#955" class="Bound"
+      >Q&#8322;</a
+      ><a name="1050" class="Symbol"
+      >)</a
+      ><a name="1051"
+      > </a
+      ><a name="1052" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1053"
+      > </a
+      ><a name="1054" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="1060"
+      > </a
+      ><a name="1061" href="Core.html#926" class="Bound"
+      >cs</a
+      ><a name="1063"
+      >
+      </a
+      ><a name="1070" href="Core.html#1006" class="Function"
+      >seqAux</a
+      ><a name="1076"
+      > </a
+      ><a name="1077" href="Core.html#1077" class="Bound"
+      >&#948;</a
+      ><a name="1078"
+      > </a
+      ><a name="1079" class="Symbol"
+      >(</a
+      ><a name="1080" href="Core.html#1080" class="Bound"
+      >q&#8321;</a
+      ><a name="1082"
+      > </a
+      ><a name="1083" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1084"
+      > </a
+      ><a name="1085" href="Core.html#1085" class="Bound"
+      >q&#8322;</a
+      ><a name="1087" class="Symbol"
+      >)</a
+      ><a name="1088"
+      > </a
+      ><a name="1089" href="Core.html#1089" class="Bound"
+      >sa</a
+      ><a name="1091"
+      > </a
+      ><a name="1092" class="Keyword"
+      >with</a
+      ><a name="1096"
+      > </a
+      ><a name="1097" href="Core.html#941" class="Bound"
+      >f&#8321;</a
+      ><a name="1099"
+      > </a
+      ><a name="1100" href="Core.html#1077" class="Bound"
+      >&#948;</a
+      ><a name="1101"
+      > </a
+      ><a name="1102" href="Core.html#1080" class="Bound"
+      >q&#8321;</a
+      ><a name="1104"
+      > </a
+      ><a name="1105" href="Core.html#1089" class="Bound"
+      >sa</a
+      ><a name="1107"
+      >
+      </a
+      ><a name="1114" class="Symbol"
+      >...</a
+      ><a name="1117"
+      > </a
+      ><a name="1118" class="Symbol"
+      >|</a
+      ><a name="1119"
+      > </a
+      ><a name="1120" class="Symbol"
+      >(</a
+      ><a name="1121" href="Core.html#1121" class="Bound"
+      >q&#8321;'</a
+      ><a name="1124"
+      > </a
+      ><a name="1125" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1126"
+      > </a
+      ><a name="1127" href="Core.html#1127" class="Bound"
+      >sb</a
+      ><a name="1129" class="Symbol"
+      >)</a
+      ><a name="1130"
+      > </a
+      ><a name="1131" class="Keyword"
+      >with</a
+      ><a name="1135"
+      > </a
+      ><a name="1136" href="Core.html#959" class="Bound"
+      >f&#8322;</a
+      ><a name="1138"
+      > </a
+      ><a name="1139" href="Core.html#1077" class="Bound"
+      >&#948;</a
+      ><a name="1140"
+      > </a
+      ><a name="1141" href="Core.html#1085" class="Bound"
+      >q&#8322;</a
+      ><a name="1143"
+      > </a
+      ><a name="1144" href="Core.html#1127" class="Bound"
+      >sb</a
+      ><a name="1146"
+      >
+      </a
+      ><a name="1153" class="Symbol"
+      >...</a
+      ><a name="1156"
+      >    </a
+      ><a name="1160" class="Symbol"
+      >|</a
+      ><a name="1161"
+      > </a
+      ><a name="1162" class="Symbol"
+      >(</a
+      ><a name="1163" href="Core.html#1163" class="Bound"
+      >q&#8322;'</a
+      ><a name="1166"
+      > </a
+      ><a name="1167" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1168"
+      > </a
+      ><a name="1169" href="Core.html#1169" class="Bound"
+      >sc</a
+      ><a name="1171" class="Symbol"
+      >)</a
+      ><a name="1172"
+      > </a
+      ><a name="1173" class="Symbol"
+      >=</a
+      ><a name="1174"
+      > </a
+      ><a name="1175" class="Symbol"
+      >(</a
+      ><a name="1176" href="Core.html#1121" class="Bound"
+      >q&#8321;'</a
+      ><a name="1179"
+      > </a
+      ><a name="1180" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1181"
+      > </a
+      ><a name="1182" href="Core.html#1163" class="Bound"
+      >q&#8322;'</a
+      ><a name="1185" class="Symbol"
+      >)</a
+      ><a name="1186"
+      > </a
+      ><a name="1187" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1188"
+      > </a
+      ><a name="1189" href="Core.html#1169" class="Bound"
+      >sc</a
+      ><a name="1191"
+      >
+
+  </a
+      ><a name="1195" href="Core.html#1195" class="Function"
+      >shallowFan</a
+      ><a name="1205"
+      > </a
+      ><a name="1206" class="Symbol"
+      >:</a
+      ><a name="1207"
+      > </a
+      ><a name="1208" class="Symbol"
+      >&#8704;</a
+      ><a name="1209"
+      > </a
+      ><a name="1210" class="Symbol"
+      >{</a
+      ><a name="1211" href="Core.html#1211" class="Bound"
+      >as</a
+      ><a name="1213"
+      > </a
+      ><a name="1214" href="Core.html#1214" class="Bound"
+      >bs</a
+      ><a name="1216"
+      > </a
+      ><a name="1217" href="Core.html#1217" class="Bound"
+      >cs</a
+      ><a name="1219" class="Symbol"
+      >}</a
+      ><a name="1220"
+      > </a
+      ><a name="1221" class="Symbol"
+      >&#8594;</a
+      ><a name="1222"
+      > </a
+      ><a name="1223" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="1227"
+      > </a
+      ><a name="1228" href="Core.html#1211" class="Bound"
+      >as</a
+      ><a name="1230"
+      > </a
+      ><a name="1231" href="Core.html#1214" class="Bound"
+      >bs</a
+      ><a name="1233"
+      > </a
+      ><a name="1234" class="Symbol"
+      >&#8594;</a
+      ><a name="1235"
+      > </a
+      ><a name="1236" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="1240"
+      > </a
+      ><a name="1241" href="Core.html#1211" class="Bound"
+      >as</a
+      ><a name="1243"
+      > </a
+      ><a name="1244" href="Core.html#1217" class="Bound"
+      >cs</a
+      ><a name="1246"
+      > </a
+      ><a name="1247" class="Symbol"
+      >&#8594;</a
+      ><a name="1248"
+      > </a
+      ><a name="1249" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="1253"
+      > </a
+      ><a name="1254" href="Core.html#1211" class="Bound"
+      >as</a
+      ><a name="1256"
+      > </a
+      ><a name="1257" class="Symbol"
+      >(</a
+      ><a name="1258" href="Core.html#1214" class="Bound"
+      >bs</a
+      ><a name="1260"
+      > </a
+      ><a name="1261" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1262"
+      > </a
+      ><a name="1263" href="Core.html#1217" class="Bound"
+      >cs</a
+      ><a name="1265" class="Symbol"
+      >)</a
+      ><a name="1266"
+      >
+  </a
+      ><a name="1269" href="Core.html#1195" class="Function"
+      >shallowFan</a
+      ><a name="1279"
+      > </a
+      ><a name="1280" class="Symbol"
+      >{</a
+      ><a name="1281" href="Core.html#1281" class="Bound"
+      >as</a
+      ><a name="1283" class="Symbol"
+      >}</a
+      ><a name="1284"
+      > </a
+      ><a name="1285" class="Symbol"
+      >{</a
+      ><a name="1286" href="Core.html#1286" class="Bound"
+      >bs</a
+      ><a name="1288" class="Symbol"
+      >}</a
+      ><a name="1289"
+      > </a
+      ><a name="1290" class="Symbol"
+      >{</a
+      ><a name="1291" href="Core.html#1291" class="Bound"
+      >cs</a
+      ><a name="1293" class="Symbol"
+      >}</a
+      ><a name="1294"
+      > </a
+      ><a name="1295" class="Symbol"
+      >(</a
+      ><a name="1296" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="1300"
+      > </a
+      ><a name="1301" class="Symbol"
+      >{</a
+      ><a name="1302" href="Core.html#1302" class="Bound"
+      >Q&#8321;</a
+      ><a name="1304" class="Symbol"
+      >}</a
+      ><a name="1305"
+      > </a
+      ><a name="1306" href="Core.html#1306" class="Bound"
+      >f&#8321;</a
+      ><a name="1308"
+      > </a
+      ><a name="1309" href="Core.html#1309" class="Bound"
+      >q&#8321;</a
+      ><a name="1311" class="Symbol"
+      >)</a
+      ><a name="1312"
+      > </a
+      ><a name="1313" class="Symbol"
+      >(</a
+      ><a name="1314" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="1318"
+      > </a
+      ><a name="1319" class="Symbol"
+      >{</a
+      ><a name="1320" href="Core.html#1320" class="Bound"
+      >Q&#8322;</a
+      ><a name="1322" class="Symbol"
+      >}</a
+      ><a name="1323"
+      > </a
+      ><a name="1324" href="Core.html#1324" class="Bound"
+      >f&#8322;</a
+      ><a name="1326"
+      > </a
+      ><a name="1327" href="Core.html#1327" class="Bound"
+      >q&#8322;</a
+      ><a name="1329" class="Symbol"
+      >)</a
+      ><a name="1330"
+      > </a
+      ><a name="1331" class="Symbol"
+      >=</a
+      ><a name="1332"
+      > </a
+      ><a name="1333" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="1337"
+      > </a
+      ><a name="1338" href="Core.html#1371" class="Function"
+      >fanAux</a
+      ><a name="1344"
+      > </a
+      ><a name="1345" class="Symbol"
+      >(</a
+      ><a name="1346" href="Core.html#1309" class="Bound"
+      >q&#8321;</a
+      ><a name="1348"
+      > </a
+      ><a name="1349" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1350"
+      > </a
+      ><a name="1351" href="Core.html#1327" class="Bound"
+      >q&#8322;</a
+      ><a name="1353" class="Symbol"
+      >)</a
+      ><a name="1354"
+      >
+    </a
+      ><a name="1359" class="Keyword"
+      >where</a
+      ><a name="1364"
+      >
+      </a
+      ><a name="1371" href="Core.html#1371" class="Function"
+      >fanAux</a
+      ><a name="1377"
+      > </a
+      ><a name="1378" class="Symbol"
+      >:</a
+      ><a name="1379"
+      > </a
+      ><a name="1380" href="RealTime.html#205" class="Function"
+      >&#916;t</a
+      ><a name="1382"
+      > </a
+      ><a name="1383" class="Symbol"
+      >&#8594;</a
+      ><a name="1384"
+      > </a
+      ><a name="1385" href="Core.html#1302" class="Bound"
+      >Q&#8321;</a
+      ><a name="1387"
+      > </a
+      ><a name="1388" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1389"
+      > </a
+      ><a name="1390" href="Core.html#1320" class="Bound"
+      >Q&#8322;</a
+      ><a name="1392"
+      > </a
+      ><a name="1393" class="Symbol"
+      >&#8594;</a
+      ><a name="1394"
+      > </a
+      ><a name="1395" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="1401"
+      > </a
+      ><a name="1402" href="Core.html#1281" class="Bound"
+      >as</a
+      ><a name="1404"
+      > </a
+      ><a name="1405" class="Symbol"
+      >&#8594;</a
+      ><a name="1406"
+      > </a
+      ><a name="1407" class="Symbol"
+      >(</a
+      ><a name="1408" href="Core.html#1302" class="Bound"
+      >Q&#8321;</a
+      ><a name="1410"
+      > </a
+      ><a name="1411" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1412"
+      > </a
+      ><a name="1413" href="Core.html#1320" class="Bound"
+      >Q&#8322;</a
+      ><a name="1415" class="Symbol"
+      >)</a
+      ><a name="1416"
+      > </a
+      ><a name="1417" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1418"
+      > </a
+      ><a name="1419" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="1425"
+      > </a
+      ><a name="1426" class="Symbol"
+      >(</a
+      ><a name="1427" href="Core.html#1286" class="Bound"
+      >bs</a
+      ><a name="1429"
+      > </a
+      ><a name="1430" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1431"
+      > </a
+      ><a name="1432" href="Core.html#1291" class="Bound"
+      >cs</a
+      ><a name="1434" class="Symbol"
+      >)</a
+      ><a name="1435"
+      >
+      </a
+      ><a name="1442" href="Core.html#1371" class="Function"
+      >fanAux</a
+      ><a name="1448"
+      > </a
+      ><a name="1449" href="Core.html#1449" class="Bound"
+      >&#948;</a
+      ><a name="1450"
+      > </a
+      ><a name="1451" class="Symbol"
+      >(</a
+      ><a name="1452" href="Core.html#1452" class="Bound"
+      >q&#8321;</a
+      ><a name="1454"
+      > </a
+      ><a name="1455" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1456"
+      > </a
+      ><a name="1457" href="Core.html#1457" class="Bound"
+      >q&#8322;</a
+      ><a name="1459" class="Symbol"
+      >)</a
+      ><a name="1460"
+      > </a
+      ><a name="1461" href="Core.html#1461" class="Bound"
+      >sa</a
+      ><a name="1463"
+      > </a
+      ><a name="1464" class="Keyword"
+      >with</a
+      ><a name="1468"
+      > </a
+      ><a name="1469" href="Core.html#1306" class="Bound"
+      >f&#8321;</a
+      ><a name="1471"
+      > </a
+      ><a name="1472" href="Core.html#1449" class="Bound"
+      >&#948;</a
+      ><a name="1473"
+      > </a
+      ><a name="1474" href="Core.html#1452" class="Bound"
+      >q&#8321;</a
+      ><a name="1476"
+      > </a
+      ><a name="1477" href="Core.html#1461" class="Bound"
+      >sa</a
+      ><a name="1479"
+      > </a
+      ><a name="1480" class="Symbol"
+      >|</a
+      ><a name="1481"
+      > </a
+      ><a name="1482" href="Core.html#1324" class="Bound"
+      >f&#8322;</a
+      ><a name="1484"
+      > </a
+      ><a name="1485" href="Core.html#1449" class="Bound"
+      >&#948;</a
+      ><a name="1486"
+      > </a
+      ><a name="1487" href="Core.html#1457" class="Bound"
+      >q&#8322;</a
+      ><a name="1489"
+      > </a
+      ><a name="1490" href="Core.html#1461" class="Bound"
+      >sa</a
+      ><a name="1492"
+      >
+      </a
+      ><a name="1499" class="Symbol"
+      >...</a
+      ><a name="1502"
+      > </a
+      ><a name="1503" class="Symbol"
+      >|</a
+      ><a name="1504"
+      > </a
+      ><a name="1505" class="Symbol"
+      >(</a
+      ><a name="1506" href="Core.html#1506" class="Bound"
+      >q&#8321;'</a
+      ><a name="1509"
+      > </a
+      ><a name="1510" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1511"
+      > </a
+      ><a name="1512" href="Core.html#1512" class="Bound"
+      >sb</a
+      ><a name="1514" class="Symbol"
+      >)</a
+      ><a name="1515"
+      > </a
+      ><a name="1516" class="Symbol"
+      >|</a
+      ><a name="1517"
+      > </a
+      ><a name="1518" class="Symbol"
+      >(</a
+      ><a name="1519" href="Core.html#1519" class="Bound"
+      >q&#8322;'</a
+      ><a name="1522"
+      > </a
+      ><a name="1523" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1524"
+      > </a
+      ><a name="1525" href="Core.html#1525" class="Bound"
+      >sc</a
+      ><a name="1527" class="Symbol"
+      >)</a
+      ><a name="1528"
+      > </a
+      ><a name="1529" class="Symbol"
+      >=</a
+      ><a name="1530"
+      > </a
+      ><a name="1531" class="Symbol"
+      >((</a
+      ><a name="1533" href="Core.html#1506" class="Bound"
+      >q&#8321;'</a
+      ><a name="1536"
+      > </a
+      ><a name="1537" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1538"
+      > </a
+      ><a name="1539" href="Core.html#1519" class="Bound"
+      >q&#8322;'</a
+      ><a name="1542" class="Symbol"
+      >)</a
+      ><a name="1543"
+      > </a
+      ><a name="1544" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1545"
+      > </a
+      ><a name="1546" class="Symbol"
+      >(</a
+      ><a name="1547" href="Core.html#1512" class="Bound"
+      >sb</a
+      ><a name="1549"
+      > </a
+      ><a name="1550" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1551"
+      > </a
+      ><a name="1552" href="Core.html#1525" class="Bound"
+      >sc</a
+      ><a name="1554" class="Symbol"
+      >))</a
+      ><a name="1556"
+      >
+
+  </a
+      ><a name="1560" href="Core.html#1560" class="Function"
+      >shallowFreeze</a
+      ><a name="1573"
+      > </a
+      ><a name="1574" class="Symbol"
+      >:</a
+      ><a name="1575"
+      > </a
+      ><a name="1576" class="Symbol"
+      >&#8704;</a
+      ><a name="1577"
+      > </a
+      ><a name="1578" class="Symbol"
+      >{</a
+      ><a name="1579" href="Core.html#1579" class="Bound"
+      >as</a
+      ><a name="1581"
+      > </a
+      ><a name="1582" href="Core.html#1582" class="Bound"
+      >bs</a
+      ><a name="1584" class="Symbol"
+      >}</a
+      ><a name="1585"
+      > </a
+      ><a name="1586" class="Symbol"
+      >&#8594;</a
+      ><a name="1587"
+      > </a
+      ><a name="1588" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="1592"
+      > </a
+      ><a name="1593" href="Core.html#1579" class="Bound"
+      >as</a
+      ><a name="1595"
+      > </a
+      ><a name="1596" href="Core.html#1582" class="Bound"
+      >bs</a
+      ><a name="1598"
+      > </a
+      ><a name="1599" class="Symbol"
+      >&#8594;</a
+      ><a name="1600"
+      > </a
+      ><a name="1601" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="1605"
+      > </a
+      ><a name="1606" href="Core.html#1579" class="Bound"
+      >as</a
+      ><a name="1608"
+      > </a
+      ><a name="1609" class="Symbol"
+      >(</a
+      ><a name="1610" href="Core.html#1582" class="Bound"
+      >bs</a
+      ><a name="1612"
+      > </a
+      ><a name="1613" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1614"
+      > </a
+      ><a name="1615" href="SVDesc.html#178" class="InductiveConstructor"
+      >C</a
+      ><a name="1616"
+      > </a
+      ><a name="1617" class="Symbol"
+      >(</a
+      ><a name="1618" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="1622"
+      > </a
+      ><a name="1623" href="Core.html#1579" class="Bound"
+      >as</a
+      ><a name="1625"
+      > </a
+      ><a name="1626" href="Core.html#1582" class="Bound"
+      >bs</a
+      ><a name="1628" class="Symbol"
+      >))</a
+      ><a name="1630"
+      >
+  </a
+      ><a name="1633" href="Core.html#1560" class="Function"
+      >shallowFreeze</a
+      ><a name="1646"
+      > </a
+      ><a name="1647" class="Symbol"
+      >{</a
+      ><a name="1648" href="Core.html#1648" class="Bound"
+      >as</a
+      ><a name="1650" class="Symbol"
+      >}</a
+      ><a name="1651"
+      > </a
+      ><a name="1652" class="Symbol"
+      >{</a
+      ><a name="1653" href="Core.html#1653" class="Bound"
+      >bs</a
+      ><a name="1655" class="Symbol"
+      >}</a
+      ><a name="1656"
+      > </a
+      ><a name="1657" class="Symbol"
+      >(</a
+      ><a name="1658" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="1662"
+      > </a
+      ><a name="1663" class="Symbol"
+      >{</a
+      ><a name="1664" href="Core.html#1664" class="Bound"
+      >Q</a
+      ><a name="1665" class="Symbol"
+      >}</a
+      ><a name="1666"
+      > </a
+      ><a name="1667" href="Core.html#1667" class="Bound"
+      >f</a
+      ><a name="1668"
+      > </a
+      ><a name="1669" href="Core.html#1669" class="Bound"
+      >q</a
+      ><a name="1670" class="Symbol"
+      >)</a
+      ><a name="1671"
+      > </a
+      ><a name="1672" class="Symbol"
+      >=</a
+      ><a name="1673"
+      > </a
+      ><a name="1674" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="1678"
+      > </a
+      ><a name="1679" href="Core.html#1707" class="Function"
+      >freezeAux</a
+      ><a name="1688"
+      > </a
+      ><a name="1689" href="Core.html#1669" class="Bound"
+      >q</a
+      ><a name="1690"
+      >
+    </a
+      ><a name="1695" class="Keyword"
+      >where</a
+      ><a name="1700"
+      >
+      </a
+      ><a name="1707" href="Core.html#1707" class="Function"
+      >freezeAux</a
+      ><a name="1716"
+      > </a
+      ><a name="1717" class="Symbol"
+      >:</a
+      ><a name="1718"
+      > </a
+      ><a name="1719" href="RealTime.html#205" class="Function"
+      >&#916;t</a
+      ><a name="1721"
+      > </a
+      ><a name="1722" class="Symbol"
+      >&#8594;</a
+      ><a name="1723"
+      > </a
+      ><a name="1724" href="Core.html#1664" class="Bound"
+      >Q</a
+      ><a name="1725"
+      > </a
+      ><a name="1726" class="Symbol"
+      >&#8594;</a
+      ><a name="1727"
+      > </a
+      ><a name="1728" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="1734"
+      > </a
+      ><a name="1735" href="Core.html#1648" class="Bound"
+      >as</a
+      ><a name="1737"
+      > </a
+      ><a name="1738" class="Symbol"
+      >&#8594;</a
+      ><a name="1739"
+      > </a
+      ><a name="1740" href="Core.html#1664" class="Bound"
+      >Q</a
+      ><a name="1741"
+      > </a
+      ><a name="1742" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1743"
+      > </a
+      ><a name="1744" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="1750"
+      > </a
+      ><a name="1751" class="Symbol"
+      >(</a
+      ><a name="1752" href="Core.html#1653" class="Bound"
+      >bs</a
+      ><a name="1754"
+      > </a
+      ><a name="1755" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1756"
+      > </a
+      ><a name="1757" href="SVDesc.html#178" class="InductiveConstructor"
+      >C</a
+      ><a name="1758"
+      > </a
+      ><a name="1759" class="Symbol"
+      >(</a
+      ><a name="1760" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="1764"
+      > </a
+      ><a name="1765" href="Core.html#1648" class="Bound"
+      >as</a
+      ><a name="1767"
+      > </a
+      ><a name="1768" href="Core.html#1653" class="Bound"
+      >bs</a
+      ><a name="1770" class="Symbol"
+      >))</a
+      ><a name="1772"
+      >
+      </a
+      ><a name="1779" href="Core.html#1707" class="Function"
+      >freezeAux</a
+      ><a name="1788"
+      > </a
+      ><a name="1789" href="Core.html#1789" class="Bound"
+      >&#948;</a
+      ><a name="1790"
+      > </a
+      ><a name="1791" href="Core.html#1791" class="Bound"
+      >q&#8321;</a
+      ><a name="1793"
+      > </a
+      ><a name="1794" href="Core.html#1794" class="Bound"
+      >sa</a
+      ><a name="1796"
+      > </a
+      ><a name="1797" class="Keyword"
+      >with</a
+      ><a name="1801"
+      > </a
+      ><a name="1802" href="Core.html#1667" class="Bound"
+      >f</a
+      ><a name="1803"
+      > </a
+      ><a name="1804" href="Core.html#1789" class="Bound"
+      >&#948;</a
+      ><a name="1805"
+      > </a
+      ><a name="1806" href="Core.html#1791" class="Bound"
+      >q&#8321;</a
+      ><a name="1808"
+      > </a
+      ><a name="1809" href="Core.html#1794" class="Bound"
+      >sa</a
+      ><a name="1811"
+      >
+      </a
+      ><a name="1818" class="Symbol"
+      >...</a
+      ><a name="1821"
+      > </a
+      ><a name="1822" class="Symbol"
+      >|</a
+      ><a name="1823"
+      > </a
+      ><a name="1824" class="Symbol"
+      >(</a
+      ><a name="1825" href="Core.html#1825" class="Bound"
+      >q&#8322;</a
+      ><a name="1827"
+      > </a
+      ><a name="1828" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1829"
+      > </a
+      ><a name="1830" href="Core.html#1830" class="Bound"
+      >sb</a
+      ><a name="1832" class="Symbol"
+      >)</a
+      ><a name="1833"
+      > </a
+      ><a name="1834" class="Symbol"
+      >=</a
+      ><a name="1835"
+      > </a
+      ><a name="1836" class="Symbol"
+      >(</a
+      ><a name="1837" href="Core.html#1825" class="Bound"
+      >q&#8322;</a
+      ><a name="1839"
+      > </a
+      ><a name="1840" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1841"
+      > </a
+      ><a name="1842" class="Symbol"
+      >(</a
+      ><a name="1843" href="Core.html#1830" class="Bound"
+      >sb</a
+      ><a name="1845"
+      > </a
+      ><a name="1846" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1847"
+      > </a
+      ><a name="1848" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="1852"
+      > </a
+      ><a name="1853" href="Core.html#1667" class="Bound"
+      >f</a
+      ><a name="1854"
+      > </a
+      ><a name="1855" href="Core.html#1791" class="Bound"
+      >q&#8321;</a
+      ><a name="1857" class="Symbol"
+      >))</a
+      ><a name="1859"
+      >
+
+  </a
+      ><a name="1863" href="Core.html#1863" class="Function"
+      >shallowSwitch</a
+      ><a name="1876"
+      > </a
+      ><a name="1877" class="Symbol"
+      >:</a
+      ><a name="1878"
+      > </a
+      ><a name="1879" class="Symbol"
+      >{</a
+      ><a name="1880" href="Core.html#1880" class="Bound"
+      >as</a
+      ><a name="1882"
+      > </a
+      ><a name="1883" href="Core.html#1883" class="Bound"
+      >bs</a
+      ><a name="1885"
+      > </a
+      ><a name="1886" class="Symbol"
+      >:</a
+      ><a name="1887"
+      > </a
+      ><a name="1888" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="1894" class="Symbol"
+      >}</a
+      ><a name="1895"
+      > </a
+      ><a name="1896" class="Symbol"
+      >&#8594;</a
+      ><a name="1897"
+      > </a
+      ><a name="1898" class="Symbol"
+      >{</a
+      ><a name="1899" href="Core.html#1899" class="Bound"
+      >A</a
+      ><a name="1900"
+      > </a
+      ><a name="1901" class="Symbol"
+      >:</a
+      ><a name="1902"
+      > </a
+      ><a name="1903" class="PrimitiveType"
+      >Set</a
+      ><a name="1906" class="Symbol"
+      >}</a
+      ><a name="1907"
+      > </a
+      ><a name="1908" class="Symbol"
+      >&#8594;</a
+      ><a name="1909"
+      > </a
+      ><a name="1910" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="1914"
+      > </a
+      ><a name="1915" href="Core.html#1880" class="Bound"
+      >as</a
+      ><a name="1917"
+      > </a
+      ><a name="1918" class="Symbol"
+      >(</a
+      ><a name="1919" href="Core.html#1883" class="Bound"
+      >bs</a
+      ><a name="1921"
+      > </a
+      ><a name="1922" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1923"
+      > </a
+      ><a name="1924" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="1925"
+      > </a
+      ><a name="1926" href="Core.html#1899" class="Bound"
+      >A</a
+      ><a name="1927" class="Symbol"
+      >)</a
+      ><a name="1928"
+      > </a
+      ><a name="1929" class="Symbol"
+      >&#8594;</a
+      ><a name="1930"
+      > </a
+      ><a name="1931" class="Symbol"
+      >(</a
+      ><a name="1932" href="Core.html#1899" class="Bound"
+      >A</a
+      ><a name="1933"
+      > </a
+      ><a name="1934" class="Symbol"
+      >&#8594;</a
+      ><a name="1935"
+      > </a
+      ><a name="1936" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="1940"
+      > </a
+      ><a name="1941" href="Core.html#1880" class="Bound"
+      >as</a
+      ><a name="1943"
+      > </a
+      ><a name="1944" href="Core.html#1883" class="Bound"
+      >bs</a
+      ><a name="1946" class="Symbol"
+      >)</a
+      ><a name="1947"
+      > </a
+      ><a name="1948" class="Symbol"
+      >&#8594;</a
+      ><a name="1949"
+      > </a
+      ><a name="1950" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="1954"
+      > </a
+      ><a name="1955" href="Core.html#1880" class="Bound"
+      >as</a
+      ><a name="1957"
+      > </a
+      ><a name="1958" href="Core.html#1883" class="Bound"
+      >bs</a
+      ><a name="1960"
+      >
+  </a
+      ><a name="1963" href="Core.html#1863" class="Function"
+      >shallowSwitch</a
+      ><a name="1976"
+      > </a
+      ><a name="1977" class="Symbol"
+      >{</a
+      ><a name="1978" href="Core.html#1978" class="Bound"
+      >as</a
+      ><a name="1980" class="Symbol"
+      >}</a
+      ><a name="1981"
+      > </a
+      ><a name="1982" class="Symbol"
+      >{</a
+      ><a name="1983" href="Core.html#1983" class="Bound"
+      >bs</a
+      ><a name="1985" class="Symbol"
+      >}</a
+      ><a name="1986"
+      > </a
+      ><a name="1987" class="Symbol"
+      >(</a
+      ><a name="1988" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="1992"
+      > </a
+      ><a name="1993" class="Symbol"
+      >{</a
+      ><a name="1994" href="Core.html#1994" class="Bound"
+      >Q</a
+      ><a name="1995" class="Symbol"
+      >}</a
+      ><a name="1996"
+      > </a
+      ><a name="1997" href="Core.html#1997" class="Bound"
+      >f</a
+      ><a name="1998"
+      > </a
+      ><a name="1999" href="Core.html#1999" class="Bound"
+      >q</a
+      ><a name="2000" class="Symbol"
+      >)</a
+      ><a name="2001"
+      > </a
+      ><a name="2002" href="Core.html#2002" class="Bound"
+      >r</a
+      ><a name="2003"
+      > </a
+      ><a name="2004" class="Symbol"
+      >=</a
+      ><a name="2005"
+      > </a
+      ><a name="2006" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="2010"
+      > </a
+      ><a name="2011" href="Core.html#2227" class="Function"
+      >switchAux</a
+      ><a name="2020"
+      > </a
+      ><a name="2021" class="Symbol"
+      >(</a
+      ><a name="2022" href="NeilPrelude.html#1186" class="InductiveConstructor"
+      >inl</a
+      ><a name="2025"
+      > </a
+      ><a name="2026" href="Core.html#1999" class="Bound"
+      >q</a
+      ><a name="2027" class="Symbol"
+      >)</a
+      ><a name="2028"
+      >
+    </a
+      ><a name="2033" class="Keyword"
+      >where</a
+      ><a name="2038"
+      >
+      </a
+      ><a name="2045" href="Core.html#2045" class="Function"
+      >stepResidual</a
+      ><a name="2057"
+      > </a
+      ><a name="2058" class="Symbol"
+      >:</a
+      ><a name="2059"
+      > </a
+      ><a name="2060" href="RealTime.html#205" class="Function"
+      >&#916;t</a
+      ><a name="2062"
+      > </a
+      ><a name="2063" class="Symbol"
+      >&#8594;</a
+      ><a name="2064"
+      > </a
+      ><a name="2065" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="2069"
+      > </a
+      ><a name="2070" href="Core.html#1978" class="Bound"
+      >as</a
+      ><a name="2072"
+      > </a
+      ><a name="2073" href="Core.html#1983" class="Bound"
+      >bs</a
+      ><a name="2075"
+      > </a
+      ><a name="2076" class="Symbol"
+      >&#8594;</a
+      ><a name="2077"
+      > </a
+      ><a name="2078" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="2084"
+      > </a
+      ><a name="2085" href="Core.html#1978" class="Bound"
+      >as</a
+      ><a name="2087"
+      > </a
+      ><a name="2088" class="Symbol"
+      >&#8594;</a
+      ><a name="2089"
+      > </a
+      ><a name="2090" class="Symbol"
+      >(</a
+      ><a name="2091" href="Core.html#1994" class="Bound"
+      >Q</a
+      ><a name="2092"
+      > </a
+      ><a name="2093" href="NeilPrelude.html#1156" class="Datatype Operator"
+      >&#8846;</a
+      ><a name="2094"
+      > </a
+      ><a name="2095" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="2099"
+      > </a
+      ><a name="2100" href="Core.html#1978" class="Bound"
+      >as</a
+      ><a name="2102"
+      > </a
+      ><a name="2103" href="Core.html#1983" class="Bound"
+      >bs</a
+      ><a name="2105" class="Symbol"
+      >)</a
+      ><a name="2106"
+      > </a
+      ><a name="2107" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="2108"
+      > </a
+      ><a name="2109" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="2115"
+      > </a
+      ><a name="2116" href="Core.html#1983" class="Bound"
+      >bs</a
+      ><a name="2118"
+      >
+      </a
+      ><a name="2125" href="Core.html#2045" class="Function"
+      >stepResidual</a
+      ><a name="2137"
+      > </a
+      ><a name="2138" href="Core.html#2138" class="Bound"
+      >&#948;</a
+      ><a name="2139"
+      > </a
+      ><a name="2140" class="Symbol"
+      >(</a
+      ><a name="2141" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="2145"
+      > </a
+      ><a name="2146" href="Core.html#2146" class="Bound"
+      >f&#8322;</a
+      ><a name="2148"
+      > </a
+      ><a name="2149" href="Core.html#2149" class="Bound"
+      >q&#8322;</a
+      ><a name="2151" class="Symbol"
+      >)</a
+      ><a name="2152"
+      > </a
+      ><a name="2153" href="Core.html#2153" class="Bound"
+      >sa</a
+      ><a name="2155"
+      > </a
+      ><a name="2156" class="Keyword"
+      >with</a
+      ><a name="2160"
+      > </a
+      ><a name="2161" href="Core.html#2146" class="Bound"
+      >f&#8322;</a
+      ><a name="2163"
+      > </a
+      ><a name="2164" href="Core.html#2138" class="Bound"
+      >&#948;</a
+      ><a name="2165"
+      > </a
+      ><a name="2166" href="Core.html#2149" class="Bound"
+      >q&#8322;</a
+      ><a name="2168"
+      > </a
+      ><a name="2169" href="Core.html#2153" class="Bound"
+      >sa</a
+      ><a name="2171"
+      >
+      </a
+      ><a name="2178" class="Symbol"
+      >...</a
+      ><a name="2181"
+      > </a
+      ><a name="2182" class="Symbol"
+      >|</a
+      ><a name="2183"
+      > </a
+      ><a name="2184" class="Symbol"
+      >(</a
+      ><a name="2185" href="Core.html#2185" class="Bound"
+      >q&#8322;'</a
+      ><a name="2188"
+      > </a
+      ><a name="2189" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2190"
+      > </a
+      ><a name="2191" href="Core.html#2191" class="Bound"
+      >sb</a
+      ><a name="2193" class="Symbol"
+      >)</a
+      ><a name="2194"
+      > </a
+      ><a name="2195" class="Symbol"
+      >=</a
+      ><a name="2196"
+      > </a
+      ><a name="2197" href="NeilPrelude.html#1204" class="InductiveConstructor"
+      >inr</a
+      ><a name="2200"
+      > </a
+      ><a name="2201" class="Symbol"
+      >(</a
+      ><a name="2202" href="Core.html#249" class="InductiveConstructor"
+      >node</a
+      ><a name="2206"
+      > </a
+      ><a name="2207" href="Core.html#2146" class="Bound"
+      >f&#8322;</a
+      ><a name="2209"
+      > </a
+      ><a name="2210" href="Core.html#2185" class="Bound"
+      >q&#8322;'</a
+      ><a name="2213" class="Symbol"
+      >)</a
+      ><a name="2214"
+      > </a
+      ><a name="2215" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2216"
+      > </a
+      ><a name="2217" href="Core.html#2191" class="Bound"
+      >sb</a
+      ><a name="2219"
+      >
+
+      </a
+      ><a name="2227" href="Core.html#2227" class="Function"
+      >switchAux</a
+      ><a name="2236"
+      > </a
+      ><a name="2237" class="Symbol"
+      >:</a
+      ><a name="2238"
+      > </a
+      ><a name="2239" href="RealTime.html#205" class="Function"
+      >&#916;t</a
+      ><a name="2241"
+      > </a
+      ><a name="2242" class="Symbol"
+      >&#8594;</a
+      ><a name="2243"
+      > </a
+      ><a name="2244" class="Symbol"
+      >(</a
+      ><a name="2245" href="Core.html#1994" class="Bound"
+      >Q</a
+      ><a name="2246"
+      > </a
+      ><a name="2247" href="NeilPrelude.html#1156" class="Datatype Operator"
+      >&#8846;</a
+      ><a name="2248"
+      > </a
+      ><a name="2249" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="2253"
+      > </a
+      ><a name="2254" href="Core.html#1978" class="Bound"
+      >as</a
+      ><a name="2256"
+      > </a
+      ><a name="2257" href="Core.html#1983" class="Bound"
+      >bs</a
+      ><a name="2259" class="Symbol"
+      >)</a
+      ><a name="2260"
+      > </a
+      ><a name="2261" class="Symbol"
+      >&#8594;</a
+      ><a name="2262"
+      > </a
+      ><a name="2263" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="2269"
+      > </a
+      ><a name="2270" href="Core.html#1978" class="Bound"
+      >as</a
+      ><a name="2272"
+      > </a
+      ><a name="2273" class="Symbol"
+      >&#8594;</a
+      ><a name="2274"
+      > </a
+      ><a name="2275" class="Symbol"
+      >(</a
+      ><a name="2276" href="Core.html#1994" class="Bound"
+      >Q</a
+      ><a name="2277"
+      > </a
+      ><a name="2278" href="NeilPrelude.html#1156" class="Datatype Operator"
+      >&#8846;</a
+      ><a name="2279"
+      > </a
+      ><a name="2280" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="2284"
+      > </a
+      ><a name="2285" href="Core.html#1978" class="Bound"
+      >as</a
+      ><a name="2287"
+      > </a
+      ><a name="2288" href="Core.html#1983" class="Bound"
+      >bs</a
+      ><a name="2290" class="Symbol"
+      >)</a
+      ><a name="2291"
+      > </a
+      ><a name="2292" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="2293"
+      > </a
+      ><a name="2294" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="2300"
+      > </a
+      ><a name="2301" href="Core.html#1983" class="Bound"
+      >bs</a
+      ><a name="2303"
+      >
+      </a
+      ><a name="2310" href="Core.html#2227" class="Function"
+      >switchAux</a
+      ><a name="2319"
+      > </a
+      ><a name="2320" href="Core.html#2320" class="Bound"
+      >&#948;</a
+      ><a name="2321"
+      > </a
+      ><a name="2322" class="Symbol"
+      >(</a
+      ><a name="2323" href="NeilPrelude.html#1186" class="InductiveConstructor"
+      >inl</a
+      ><a name="2326"
+      > </a
+      ><a name="2327" href="Core.html#2327" class="Bound"
+      >q&#8321;</a
+      ><a name="2329" class="Symbol"
+      >)</a
+      ><a name="2330"
+      > </a
+      ><a name="2331" href="Core.html#2331" class="Bound"
+      >sa</a
+      ><a name="2333"
+      > </a
+      ><a name="2334" class="Keyword"
+      >with</a
+      ><a name="2338"
+      > </a
+      ><a name="2339" href="Core.html#1997" class="Bound"
+      >f</a
+      ><a name="2340"
+      > </a
+      ><a name="2341" href="Core.html#2320" class="Bound"
+      >&#948;</a
+      ><a name="2342"
+      > </a
+      ><a name="2343" href="Core.html#2327" class="Bound"
+      >q&#8321;</a
+      ><a name="2345"
+      > </a
+      ><a name="2346" href="Core.html#2331" class="Bound"
+      >sa</a
+      ><a name="2348"
+      >
+      </a
+      ><a name="2355" class="Symbol"
+      >...</a
+      ><a name="2358"
+      > </a
+      ><a name="2359" class="Symbol"
+      >|</a
+      ><a name="2360"
+      > </a
+      ><a name="2361" class="Symbol"
+      >(</a
+      ><a name="2362" href="Core.html#2362" class="Bound"
+      >q&#8321;'</a
+      ><a name="2365"
+      > </a
+      ><a name="2366" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2367"
+      > </a
+      ><a name="2368" class="Symbol"
+      >(</a
+      ><a name="2369" href="Core.html#2369" class="Bound"
+      >sb</a
+      ><a name="2371"
+      > </a
+      ><a name="2372" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2373"
+      > </a
+      ><a name="2374" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="2381" class="Symbol"
+      >))</a
+      ><a name="2383"
+      > </a
+      ><a name="2384" class="Symbol"
+      >=</a
+      ><a name="2385"
+      > </a
+      ><a name="2386" class="Symbol"
+      >(</a
+      ><a name="2387" href="NeilPrelude.html#1186" class="InductiveConstructor"
+      >inl</a
+      ><a name="2390"
+      > </a
+      ><a name="2391" href="Core.html#2362" class="Bound"
+      >q&#8321;'</a
+      ><a name="2394"
+      > </a
+      ><a name="2395" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2396"
+      > </a
+      ><a name="2397" href="Core.html#2369" class="Bound"
+      >sb</a
+      ><a name="2399" class="Symbol"
+      >)</a
+      ><a name="2400"
+      >
+      </a
+      ><a name="2407" class="Symbol"
+      >...</a
+      ><a name="2410"
+      > </a
+      ><a name="2411" class="Symbol"
+      >|</a
+      ><a name="2412"
+      > </a
+      ><a name="2413" class="Symbol"
+      >(</a
+      ><a name="2414" href="Core.html#2414" class="Bound"
+      >q&#8321;'</a
+      ><a name="2417"
+      > </a
+      ><a name="2418" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2419"
+      > </a
+      ><a name="2420" class="Symbol"
+      >(</a
+      ><a name="2421" href="Core.html#2421" class="Bound"
+      >sb</a
+      ><a name="2423"
+      > </a
+      ><a name="2424" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2425"
+      > </a
+      ><a name="2426" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="2430"
+      > </a
+      ><a name="2431" href="Core.html#2431" class="Bound"
+      >e</a
+      ><a name="2432" class="Symbol"
+      >))</a
+      ><a name="2434"
+      >  </a
+      ><a name="2436" class="Symbol"
+      >=</a
+      ><a name="2437"
+      > </a
+      ><a name="2438" href="Core.html#2045" class="Function"
+      >stepResidual</a
+      ><a name="2450"
+      > </a
+      ><a name="2451" href="Core.html#2320" class="Bound"
+      >&#948;</a
+      ><a name="2452"
+      > </a
+      ><a name="2453" class="Symbol"
+      >(</a
+      ><a name="2454" href="Core.html#2002" class="Bound"
+      >r</a
+      ><a name="2455"
+      > </a
+      ><a name="2456" href="Core.html#2431" class="Bound"
+      >e</a
+      ><a name="2457" class="Symbol"
+      >)</a
+      ><a name="2458"
+      > </a
+      ><a name="2459" href="Core.html#2331" class="Bound"
+      >sa</a
+      ><a name="2461"
+      > 
+      </a
+      ><a name="2469" href="Core.html#2227" class="Function"
+      >switchAux</a
+      ><a name="2478"
+      > </a
+      ><a name="2479" href="Core.html#2479" class="Bound"
+      >&#948;</a
+      ><a name="2480"
+      > </a
+      ><a name="2481" class="Symbol"
+      >(</a
+      ><a name="2482" href="NeilPrelude.html#1204" class="InductiveConstructor"
+      >inr</a
+      ><a name="2485"
+      > </a
+      ><a name="2486" href="Core.html#2486" class="Bound"
+      >n</a
+      ><a name="2487" class="Symbol"
+      >)</a
+      ><a name="2488"
+      > </a
+      ><a name="2489" href="Core.html#2489" class="Bound"
+      >sa</a
+      ><a name="2491"
+      > </a
+      ><a name="2492" class="Symbol"
+      >=</a
+      ><a name="2493"
+      > </a
+      ><a name="2494" href="Core.html#2045" class="Function"
+      >stepResidual</a
+      ><a name="2506"
+      > </a
+      ><a name="2507" href="Core.html#2479" class="Bound"
+      >&#948;</a
+      ><a name="2508"
+      > </a
+      ><a name="2509" href="Core.html#2486" class="Bound"
+      >n</a
+      ><a name="2510"
+      > </a
+      ><a name="2511" href="Core.html#2489" class="Bound"
+      >sa</a
+      ><a name="2513"
+      >
+
+</a
+      ><a name="2515" class="Comment"
+      >---------------------------------------------------------</a
+      ><a name="2572"
+      >
+
+</a
+      ><a name="2574" class="Keyword"
+      >data</a
+      ><a name="2578"
+      > </a
+      ><a name="2579" href="Core.html#2579" class="Datatype"
+      >AtomicRouter</a
+      ><a name="2591"
+      > </a
+      ><a name="2592" class="Symbol"
+      >:</a
+      ><a name="2593"
+      > </a
+      ><a name="2594" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="2600"
+      > </a
+      ><a name="2601" class="Symbol"
+      >&#8594;</a
+      ><a name="2602"
+      > </a
+      ><a name="2603" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="2609"
+      > </a
+      ><a name="2610" class="Symbol"
+      >&#8594;</a
+      ><a name="2611"
+      > </a
+      ><a name="2612" class="PrimitiveType"
+      >Set</a
+      ><a name="2615"
+      > </a
+      ><a name="2616" class="Keyword"
+      >where</a
+      ><a name="2621"
+      >
+  </a
+      ><a name="2624" href="Core.html#2624" class="InductiveConstructor"
+      >sfId</a
+      ><a name="2628"
+      >      </a
+      ><a name="2634" class="Symbol"
+      >:</a
+      ><a name="2635"
+      > </a
+      ><a name="2636" class="Symbol"
+      >&#8704;</a
+      ><a name="2637"
+      > </a
+      ><a name="2638" class="Symbol"
+      >{</a
+      ><a name="2639" href="Core.html#2639" class="Bound"
+      >as</a
+      ><a name="2641" class="Symbol"
+      >}</a
+      ><a name="2642"
+      >     </a
+      ><a name="2647" class="Symbol"
+      >&#8594;</a
+      ><a name="2648"
+      > </a
+      ><a name="2649" href="Core.html#2579" class="Datatype"
+      >AtomicRouter</a
+      ><a name="2661"
+      > </a
+      ><a name="2662" href="Core.html#2639" class="Bound"
+      >as</a
+      ><a name="2664"
+      > </a
+      ><a name="2665" href="Core.html#2639" class="Bound"
+      >as</a
+      ><a name="2667"
+      >
+  </a
+      ><a name="2670" href="Core.html#2670" class="InductiveConstructor"
+      >fstProj</a
+      ><a name="2677"
+      >   </a
+      ><a name="2680" class="Symbol"
+      >:</a
+      ><a name="2681"
+      > </a
+      ><a name="2682" class="Symbol"
+      >&#8704;</a
+      ><a name="2683"
+      > </a
+      ><a name="2684" class="Symbol"
+      >{</a
+      ><a name="2685" href="Core.html#2685" class="Bound"
+      >as</a
+      ><a name="2687"
+      > </a
+      ><a name="2688" href="Core.html#2688" class="Bound"
+      >bs</a
+      ><a name="2690" class="Symbol"
+      >}</a
+      ><a name="2691"
+      >  </a
+      ><a name="2693" class="Symbol"
+      >&#8594;</a
+      ><a name="2694"
+      > </a
+      ><a name="2695" href="Core.html#2579" class="Datatype"
+      >AtomicRouter</a
+      ><a name="2707"
+      > </a
+      ><a name="2708" class="Symbol"
+      >(</a
+      ><a name="2709" href="Core.html#2685" class="Bound"
+      >as</a
+      ><a name="2711"
+      > </a
+      ><a name="2712" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2713"
+      > </a
+      ><a name="2714" href="Core.html#2688" class="Bound"
+      >bs</a
+      ><a name="2716" class="Symbol"
+      >)</a
+      ><a name="2717"
+      > </a
+      ><a name="2718" href="Core.html#2685" class="Bound"
+      >as</a
+      ><a name="2720"
+      >
+  </a
+      ><a name="2723" href="Core.html#2723" class="InductiveConstructor"
+      >sndProj</a
+      ><a name="2730"
+      >   </a
+      ><a name="2733" class="Symbol"
+      >:</a
+      ><a name="2734"
+      > </a
+      ><a name="2735" class="Symbol"
+      >&#8704;</a
+      ><a name="2736"
+      > </a
+      ><a name="2737" class="Symbol"
+      >{</a
+      ><a name="2738" href="Core.html#2738" class="Bound"
+      >as</a
+      ><a name="2740"
+      > </a
+      ><a name="2741" href="Core.html#2741" class="Bound"
+      >bs</a
+      ><a name="2743" class="Symbol"
+      >}</a
+      ><a name="2744"
+      >  </a
+      ><a name="2746" class="Symbol"
+      >&#8594;</a
+      ><a name="2747"
+      > </a
+      ><a name="2748" href="Core.html#2579" class="Datatype"
+      >AtomicRouter</a
+      ><a name="2760"
+      > </a
+      ><a name="2761" class="Symbol"
+      >(</a
+      ><a name="2762" href="Core.html#2738" class="Bound"
+      >as</a
+      ><a name="2764"
+      > </a
+      ><a name="2765" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2766"
+      > </a
+      ><a name="2767" href="Core.html#2741" class="Bound"
+      >bs</a
+      ><a name="2769" class="Symbol"
+      >)</a
+      ><a name="2770"
+      > </a
+      ><a name="2771" href="Core.html#2741" class="Bound"
+      >bs</a
+      ><a name="2773"
+      >
+
+</a
+      ><a name="2775" href="Core.html#2775" class="Function"
+      >stepARouter</a
+      ><a name="2786"
+      > </a
+      ><a name="2787" class="Symbol"
+      >:</a
+      ><a name="2788"
+      > </a
+      ><a name="2789" class="Symbol"
+      >&#8704;</a
+      ><a name="2790"
+      > </a
+      ><a name="2791" class="Symbol"
+      >{</a
+      ><a name="2792" href="Core.html#2792" class="Bound"
+      >as</a
+      ><a name="2794"
+      > </a
+      ><a name="2795" href="Core.html#2795" class="Bound"
+      >bs</a
+      ><a name="2797" class="Symbol"
+      >}</a
+      ><a name="2798"
+      > </a
+      ><a name="2799" class="Symbol"
+      >&#8594;</a
+      ><a name="2800"
+      > </a
+      ><a name="2801" href="Core.html#2579" class="Datatype"
+      >AtomicRouter</a
+      ><a name="2813"
+      > </a
+      ><a name="2814" href="Core.html#2792" class="Bound"
+      >as</a
+      ><a name="2816"
+      > </a
+      ><a name="2817" href="Core.html#2795" class="Bound"
+      >bs</a
+      ><a name="2819"
+      > </a
+      ><a name="2820" class="Symbol"
+      >&#8594;</a
+      ><a name="2821"
+      > </a
+      ><a name="2822" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="2828"
+      > </a
+      ><a name="2829" href="Core.html#2792" class="Bound"
+      >as</a
+      ><a name="2831"
+      > </a
+      ><a name="2832" class="Symbol"
+      >&#8594;</a
+      ><a name="2833"
+      > </a
+      ><a name="2834" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="2840"
+      > </a
+      ><a name="2841" href="Core.html#2795" class="Bound"
+      >bs</a
+      ><a name="2843"
+      >
+</a
+      ><a name="2844" href="Core.html#2775" class="Function"
+      >stepARouter</a
+      ><a name="2855"
+      > </a
+      ><a name="2856" href="Core.html#2624" class="InductiveConstructor"
+      >sfId</a
+      ><a name="2860"
+      >     </a
+      ><a name="2865" href="Core.html#2865" class="Bound"
+      >sa</a
+      ><a name="2867"
+      >         </a
+      ><a name="2876" class="Symbol"
+      >=</a
+      ><a name="2877"
+      > </a
+      ><a name="2878" href="Core.html#2865" class="Bound"
+      >sa</a
+      ><a name="2880"
+      >
+</a
+      ><a name="2881" href="Core.html#2775" class="Function"
+      >stepARouter</a
+      ><a name="2892"
+      > </a
+      ><a name="2893" href="Core.html#2670" class="InductiveConstructor"
+      >fstProj</a
+      ><a name="2900"
+      >  </a
+      ><a name="2902" class="Symbol"
+      >(</a
+      ><a name="2903" href="Core.html#2903" class="Bound"
+      >sa&#8321;</a
+      ><a name="2906"
+      > </a
+      ><a name="2907" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2908"
+      > </a
+      ><a name="2909" class="Symbol"
+      >_)</a
+      ><a name="2911"
+      >  </a
+      ><a name="2913" class="Symbol"
+      >=</a
+      ><a name="2914"
+      > </a
+      ><a name="2915" href="Core.html#2903" class="Bound"
+      >sa&#8321;</a
+      ><a name="2918"
+      >
+</a
+      ><a name="2919" href="Core.html#2775" class="Function"
+      >stepARouter</a
+      ><a name="2930"
+      > </a
+      ><a name="2931" href="Core.html#2723" class="InductiveConstructor"
+      >sndProj</a
+      ><a name="2938"
+      >  </a
+      ><a name="2940" class="Symbol"
+      >(_</a
+      ><a name="2942"
+      > </a
+      ><a name="2943" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2944"
+      > </a
+      ><a name="2945" href="Core.html#2945" class="Bound"
+      >sa&#8322;</a
+      ><a name="2948" class="Symbol"
+      >)</a
+      ><a name="2949"
+      >  </a
+      ><a name="2951" class="Symbol"
+      >=</a
+      ><a name="2952"
+      > </a
+      ><a name="2953" href="Core.html#2945" class="Bound"
+      >sa&#8322;</a
+      ><a name="2956"
+      >
+
+</a
+      ><a name="2958" class="Comment"
+      >---------------------------------------------------------</a
+      ><a name="3015"
+      >
+
+</a
+      ><a name="3017" class="Keyword"
+      >module</a
+      ><a name="3023"
+      > </a
+      ><a name="3024" href="Core.html#3024" class="Module"
+      >Deep</a
+      ><a name="3028"
+      > </a
+      ><a name="3029" class="Keyword"
+      >where</a
+      ><a name="3034"
+      >
+
+  </a
+      ><a name="3038" class="Keyword"
+      >data</a
+      ><a name="3042"
+      > </a
+      ><a name="3043" href="Core.html#3043" class="Datatype"
+      >SF</a
+      ><a name="3045"
+      > </a
+      ><a name="3046" class="Symbol"
+      >:</a
+      ><a name="3047"
+      > </a
+      ><a name="3048" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="3054"
+      > </a
+      ><a name="3055" class="Symbol"
+      >&#8594;</a
+      ><a name="3056"
+      > </a
+      ><a name="3057" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="3063"
+      > </a
+      ><a name="3064" class="Symbol"
+      >&#8594;</a
+      ><a name="3065"
+      > </a
+      ><a name="3066" class="PrimitiveType"
+      >Set</a
+      ><a name="3069"
+      > </a
+      ><a name="3070" class="Keyword"
+      >where</a
+      ><a name="3075"
+      >
+    </a
+      ><a name="3080" href="Core.html#3080" class="InductiveConstructor"
+      >prim</a
+      ><a name="3084"
+      >       </a
+      ><a name="3091" class="Symbol"
+      >:</a
+      ><a name="3092"
+      > </a
+      ><a name="3093" class="Symbol"
+      >&#8704;</a
+      ><a name="3094"
+      > </a
+      ><a name="3095" class="Symbol"
+      >{</a
+      ><a name="3096" href="Core.html#3096" class="Bound"
+      >as</a
+      ><a name="3098"
+      > </a
+      ><a name="3099" href="Core.html#3099" class="Bound"
+      >bs</a
+      ><a name="3101" class="Symbol"
+      >}</a
+      ><a name="3102"
+      >     </a
+      ><a name="3107" class="Symbol"
+      >&#8594;</a
+      ><a name="3108"
+      > </a
+      ><a name="3109" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="3113"
+      > </a
+      ><a name="3114" href="Core.html#3096" class="Bound"
+      >as</a
+      ><a name="3116"
+      > </a
+      ><a name="3117" href="Core.html#3099" class="Bound"
+      >bs</a
+      ><a name="3119"
+      >                         </a
+      ><a name="3144" class="Symbol"
+      >&#8594;</a
+      ><a name="3145"
+      > </a
+      ><a name="3146" href="Core.html#3043" class="Datatype"
+      >SF</a
+      ><a name="3148"
+      > </a
+      ><a name="3149" href="Core.html#3096" class="Bound"
+      >as</a
+      ><a name="3151"
+      > </a
+      ><a name="3152" href="Core.html#3099" class="Bound"
+      >bs</a
+      ><a name="3154"
+      >
+    </a
+      ><a name="3159" href="Core.html#3159" class="InductiveConstructor"
+      >arouter</a
+      ><a name="3166"
+      >    </a
+      ><a name="3170" class="Symbol"
+      >:</a
+      ><a name="3171"
+      > </a
+      ><a name="3172" class="Symbol"
+      >&#8704;</a
+      ><a name="3173"
+      > </a
+      ><a name="3174" class="Symbol"
+      >{</a
+      ><a name="3175" href="Core.html#3175" class="Bound"
+      >as</a
+      ><a name="3177"
+      > </a
+      ><a name="3178" href="Core.html#3178" class="Bound"
+      >bs</a
+      ><a name="3180" class="Symbol"
+      >}</a
+      ><a name="3181"
+      >     </a
+      ><a name="3186" class="Symbol"
+      >&#8594;</a
+      ><a name="3187"
+      > </a
+      ><a name="3188" href="Core.html#2579" class="Datatype"
+      >AtomicRouter</a
+      ><a name="3200"
+      > </a
+      ><a name="3201" href="Core.html#3175" class="Bound"
+      >as</a
+      ><a name="3203"
+      > </a
+      ><a name="3204" href="Core.html#3178" class="Bound"
+      >bs</a
+      ><a name="3206"
+      >                 </a
+      ><a name="3223" class="Symbol"
+      >&#8594;</a
+      ><a name="3224"
+      > </a
+      ><a name="3225" href="Core.html#3043" class="Datatype"
+      >SF</a
+      ><a name="3227"
+      > </a
+      ><a name="3228" href="Core.html#3175" class="Bound"
+      >as</a
+      ><a name="3230"
+      > </a
+      ><a name="3231" href="Core.html#3178" class="Bound"
+      >bs</a
+      ><a name="3233"
+      >    
+    </a
+      ><a name="3242" href="Core.html#3242" class="InductiveConstructor"
+      >seq</a
+      ><a name="3245"
+      >        </a
+      ><a name="3253" class="Symbol"
+      >:</a
+      ><a name="3254"
+      > </a
+      ><a name="3255" class="Symbol"
+      >&#8704;</a
+      ><a name="3256"
+      > </a
+      ><a name="3257" class="Symbol"
+      >{</a
+      ><a name="3258" href="Core.html#3258" class="Bound"
+      >as</a
+      ><a name="3260"
+      > </a
+      ><a name="3261" href="Core.html#3261" class="Bound"
+      >bs</a
+      ><a name="3263"
+      > </a
+      ><a name="3264" href="Core.html#3264" class="Bound"
+      >cs</a
+      ><a name="3266" class="Symbol"
+      >}</a
+      ><a name="3267"
+      >  </a
+      ><a name="3269" class="Symbol"
+      >&#8594;</a
+      ><a name="3270"
+      > </a
+      ><a name="3271" href="Core.html#3043" class="Datatype"
+      >SF</a
+      ><a name="3273"
+      > </a
+      ><a name="3274" href="Core.html#3258" class="Bound"
+      >as</a
+      ><a name="3276"
+      > </a
+      ><a name="3277" href="Core.html#3261" class="Bound"
+      >bs</a
+      ><a name="3279"
+      > </a
+      ><a name="3280" class="Symbol"
+      >&#8594;</a
+      ><a name="3281"
+      > </a
+      ><a name="3282" href="Core.html#3043" class="Datatype"
+      >SF</a
+      ><a name="3284"
+      > </a
+      ><a name="3285" href="Core.html#3261" class="Bound"
+      >bs</a
+      ><a name="3287"
+      > </a
+      ><a name="3288" href="Core.html#3264" class="Bound"
+      >cs</a
+      ><a name="3290"
+      >                </a
+      ><a name="3306" class="Symbol"
+      >&#8594;</a
+      ><a name="3307"
+      > </a
+      ><a name="3308" href="Core.html#3043" class="Datatype"
+      >SF</a
+      ><a name="3310"
+      > </a
+      ><a name="3311" href="Core.html#3258" class="Bound"
+      >as</a
+      ><a name="3313"
+      > </a
+      ><a name="3314" href="Core.html#3264" class="Bound"
+      >cs</a
+      ><a name="3316"
+      >
+    </a
+      ><a name="3321" href="Core.html#3321" class="InductiveConstructor"
+      >fan</a
+      ><a name="3324"
+      >        </a
+      ><a name="3332" class="Symbol"
+      >:</a
+      ><a name="3333"
+      > </a
+      ><a name="3334" class="Symbol"
+      >&#8704;</a
+      ><a name="3335"
+      > </a
+      ><a name="3336" class="Symbol"
+      >{</a
+      ><a name="3337" href="Core.html#3337" class="Bound"
+      >as</a
+      ><a name="3339"
+      > </a
+      ><a name="3340" href="Core.html#3340" class="Bound"
+      >bs</a
+      ><a name="3342"
+      > </a
+      ><a name="3343" href="Core.html#3343" class="Bound"
+      >cs</a
+      ><a name="3345" class="Symbol"
+      >}</a
+      ><a name="3346"
+      >  </a
+      ><a name="3348" class="Symbol"
+      >&#8594;</a
+      ><a name="3349"
+      > </a
+      ><a name="3350" href="Core.html#3043" class="Datatype"
+      >SF</a
+      ><a name="3352"
+      > </a
+      ><a name="3353" href="Core.html#3337" class="Bound"
+      >as</a
+      ><a name="3355"
+      > </a
+      ><a name="3356" href="Core.html#3340" class="Bound"
+      >bs</a
+      ><a name="3358"
+      > </a
+      ><a name="3359" class="Symbol"
+      >&#8594;</a
+      ><a name="3360"
+      > </a
+      ><a name="3361" href="Core.html#3043" class="Datatype"
+      >SF</a
+      ><a name="3363"
+      > </a
+      ><a name="3364" href="Core.html#3337" class="Bound"
+      >as</a
+      ><a name="3366"
+      > </a
+      ><a name="3367" href="Core.html#3343" class="Bound"
+      >cs</a
+      ><a name="3369"
+      >                </a
+      ><a name="3385" class="Symbol"
+      >&#8594;</a
+      ><a name="3386"
+      > </a
+      ><a name="3387" href="Core.html#3043" class="Datatype"
+      >SF</a
+      ><a name="3389"
+      > </a
+      ><a name="3390" href="Core.html#3337" class="Bound"
+      >as</a
+      ><a name="3392"
+      > </a
+      ><a name="3393" class="Symbol"
+      >(</a
+      ><a name="3394" href="Core.html#3340" class="Bound"
+      >bs</a
+      ><a name="3396"
+      > </a
+      ><a name="3397" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="3398"
+      > </a
+      ><a name="3399" href="Core.html#3343" class="Bound"
+      >cs</a
+      ><a name="3401" class="Symbol"
+      >)</a
+      ><a name="3402"
+      >
+    </a
+      ><a name="3407" href="Core.html#3407" class="InductiveConstructor"
+      >switcher</a
+      ><a name="3415"
+      >   </a
+      ><a name="3418" class="Symbol"
+      >:</a
+      ><a name="3419"
+      > </a
+      ><a name="3420" class="Symbol"
+      >&#8704;</a
+      ><a name="3421"
+      > </a
+      ><a name="3422" class="Symbol"
+      >{</a
+      ><a name="3423" href="Core.html#3423" class="Bound"
+      >as</a
+      ><a name="3425"
+      > </a
+      ><a name="3426" href="Core.html#3426" class="Bound"
+      >bs</a
+      ><a name="3428"
+      > </a
+      ><a name="3429" href="Core.html#3429" class="Bound"
+      >A</a
+      ><a name="3430" class="Symbol"
+      >}</a
+      ><a name="3431"
+      >   </a
+      ><a name="3434" class="Symbol"
+      >&#8594;</a
+      ><a name="3435"
+      > </a
+      ><a name="3436" href="Core.html#3043" class="Datatype"
+      >SF</a
+      ><a name="3438"
+      > </a
+      ><a name="3439" href="Core.html#3423" class="Bound"
+      >as</a
+      ><a name="3441"
+      > </a
+      ><a name="3442" class="Symbol"
+      >(</a
+      ><a name="3443" href="Core.html#3426" class="Bound"
+      >bs</a
+      ><a name="3445"
+      > </a
+      ><a name="3446" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="3447"
+      > </a
+      ><a name="3448" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="3449"
+      > </a
+      ><a name="3450" href="Core.html#3429" class="Bound"
+      >A</a
+      ><a name="3451" class="Symbol"
+      >)</a
+      ><a name="3452"
+      > </a
+      ><a name="3453" class="Symbol"
+      >&#8594;</a
+      ><a name="3454"
+      > </a
+      ><a name="3455" class="Symbol"
+      >(</a
+      ><a name="3456" href="Core.html#3429" class="Bound"
+      >A</a
+      ><a name="3457"
+      > </a
+      ><a name="3458" class="Symbol"
+      >&#8594;</a
+      ><a name="3459"
+      > </a
+      ><a name="3460" href="Core.html#3043" class="Datatype"
+      >SF</a
+      ><a name="3462"
+      > </a
+      ><a name="3463" href="Core.html#3423" class="Bound"
+      >as</a
+      ><a name="3465"
+      > </a
+      ><a name="3466" href="Core.html#3426" class="Bound"
+      >bs</a
+      ><a name="3468" class="Symbol"
+      >)</a
+      ><a name="3469"
+      >  </a
+      ><a name="3471" class="Symbol"
+      >&#8594;</a
+      ><a name="3472"
+      > </a
+      ><a name="3473" href="Core.html#3043" class="Datatype"
+      >SF</a
+      ><a name="3475"
+      > </a
+      ><a name="3476" href="Core.html#3423" class="Bound"
+      >as</a
+      ><a name="3478"
+      > </a
+      ><a name="3479" href="Core.html#3426" class="Bound"
+      >bs</a
+      ><a name="3481"
+      >
+    </a
+      ><a name="3486" href="Core.html#3486" class="InductiveConstructor"
+      >freezer</a
+      ><a name="3493"
+      >    </a
+      ><a name="3497" class="Symbol"
+      >:</a
+      ><a name="3498"
+      > </a
+      ><a name="3499" class="Symbol"
+      >&#8704;</a
+      ><a name="3500"
+      > </a
+      ><a name="3501" class="Symbol"
+      >{</a
+      ><a name="3502" href="Core.html#3502" class="Bound"
+      >as</a
+      ><a name="3504"
+      > </a
+      ><a name="3505" href="Core.html#3505" class="Bound"
+      >bs</a
+      ><a name="3507" class="Symbol"
+      >}</a
+      ><a name="3508"
+      >     </a
+      ><a name="3513" class="Symbol"
+      >&#8594;</a
+      ><a name="3514"
+      > </a
+      ><a name="3515" href="Core.html#3043" class="Datatype"
+      >SF</a
+      ><a name="3517"
+      > </a
+      ><a name="3518" href="Core.html#3502" class="Bound"
+      >as</a
+      ><a name="3520"
+      > </a
+      ><a name="3521" href="Core.html#3505" class="Bound"
+      >bs</a
+      ><a name="3523"
+      >                           </a
+      ><a name="3550" class="Symbol"
+      >&#8594;</a
+      ><a name="3551"
+      > </a
+      ><a name="3552" href="Core.html#3043" class="Datatype"
+      >SF</a
+      ><a name="3554"
+      > </a
+      ><a name="3555" href="Core.html#3502" class="Bound"
+      >as</a
+      ><a name="3557"
+      > </a
+      ><a name="3558" class="Symbol"
+      >(</a
+      ><a name="3559" href="Core.html#3505" class="Bound"
+      >bs</a
+      ><a name="3561"
+      > </a
+      ><a name="3562" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="3563"
+      > </a
+      ><a name="3564" href="SVDesc.html#178" class="InductiveConstructor"
+      >C</a
+      ><a name="3565"
+      > </a
+      ><a name="3566" class="Symbol"
+      >(</a
+      ><a name="3567" href="Core.html#3043" class="Datatype"
+      >SF</a
+      ><a name="3569"
+      > </a
+      ><a name="3570" href="Core.html#3502" class="Bound"
+      >as</a
+      ><a name="3572"
+      > </a
+      ><a name="3573" href="Core.html#3505" class="Bound"
+      >bs</a
+      ><a name="3575" class="Symbol"
+      >))</a
+      ><a name="3577"
+      >
+
+  </a
+      ><a name="3581" class="Comment"
+      >-- step : &#8704; {as bs} &#8594; &#916;t &#8594; SF as bs &#8594; Sample as &#8594; SF as bs &#215; Sample bs</a
+      ><a name="3651"
+      >
+  </a
+      ><a name="3654" class="Comment"
+      >-- step &#948; (prim n) sa = first prim (stepNode &#948; n sa)</a
+      ><a name="3706"
+      >
+  </a
+      ><a name="3709" class="Comment"
+      >-- step &#948; (arouter r) sa = (arouter r , stepARouter r sa)</a
+      ><a name="3766"
+      >
+  </a
+      ><a name="3769" class="Comment"
+      >-- step &#948; (seq sf&#8321; sf&#8322;) sa with step &#948; sf&#8321; sa</a
+      ><a name="3814"
+      >
+  </a
+      ><a name="3817" class="Comment"
+      >-- ... | (sf&#8321;' , sb) with step &#948; sf&#8322; sb</a
+      ><a name="3856"
+      >
+  </a
+      ><a name="3859" class="Comment"
+      >-- ...    | (sf&#8322;' , sc) = (seq sf&#8321;' sf&#8322;' , sc)</a
+      ><a name="3905"
+      >
+  </a
+      ><a name="3908" class="Comment"
+      >-- step &#948; (fan sf&#8321; sf&#8322;) sa with step &#948; sf&#8321; sa | step &#948; sf&#8322; sa</a
+      ><a name="3969"
+      >
+  </a
+      ><a name="3972" class="Comment"
+      >-- ... | (sf&#8321;' , sb) | (sf&#8322;' , sc) = (fan sf&#8321;' sf&#8322;' , (sb , sc))</a
+      ><a name="4036"
+      >
+  </a
+      ><a name="4039" class="Comment"
+      >-- step &#948; (switcher sf f) sa with step &#948; sf sa -- note that rswitcher is used below instead</a
+      ><a name="4130"
+      >
+  </a
+      ><a name="4133" class="Comment"
+      >-- ... | (sf' , (sb , nothing)) = (switcher sf' f , sb)</a
+      ><a name="4188"
+      >
+  </a
+      ><a name="4191" class="Comment"
+      >-- ... | (_   , (_  , just e))  = step {!O!} (f e) sa</a
+      ><a name="4244"
+      >
+  </a
+      ><a name="4247" class="Comment"
+      >-- step &#948; (freezer sf) sa with step &#948; sf sa</a
+      ><a name="4290"
+      >
+  </a
+      ><a name="4293" class="Comment"
+      >-- ... | (sf' , sb) = (freezer sf' , (sb , sf))</a
+      ><a name="4340"
+      >
+
+</a
+      ><a name="4342" class="Comment"
+      >---------------------------------------------------------</a
+      ><a name="4399"
+      >
+
+</a
+      ><a name="4401" class="Keyword"
+      >data</a
+      ><a name="4405"
+      > </a
+      ><a name="4406" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="4408"
+      > </a
+      ><a name="4409" class="Symbol"
+      >:</a
+      ><a name="4410"
+      > </a
+      ><a name="4411" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="4417"
+      > </a
+      ><a name="4418" class="Symbol"
+      >&#8594;</a
+      ><a name="4419"
+      > </a
+      ><a name="4420" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="4426"
+      > </a
+      ><a name="4427" class="Symbol"
+      >&#8594;</a
+      ><a name="4428"
+      > </a
+      ><a name="4429" class="PrimitiveType"
+      >Set</a
+      ><a name="4432"
+      > </a
+      ><a name="4433" class="Keyword"
+      >where</a
+      ><a name="4438"
+      >
+  </a
+      ><a name="4441" href="Core.html#4441" class="InductiveConstructor"
+      >prim</a
+      ><a name="4445"
+      >       </a
+      ><a name="4452" class="Symbol"
+      >:</a
+      ><a name="4453"
+      > </a
+      ><a name="4454" class="Symbol"
+      >&#8704;</a
+      ><a name="4455"
+      > </a
+      ><a name="4456" class="Symbol"
+      >{</a
+      ><a name="4457" href="Core.html#4457" class="Bound"
+      >as</a
+      ><a name="4459"
+      > </a
+      ><a name="4460" href="Core.html#4460" class="Bound"
+      >bs</a
+      ><a name="4462" class="Symbol"
+      >}</a
+      ><a name="4463"
+      >     </a
+      ><a name="4468" class="Symbol"
+      >&#8594;</a
+      ><a name="4469"
+      > </a
+      ><a name="4470" class="Symbol"
+      >(</a
+      ><a name="4471" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="4477"
+      > </a
+      ><a name="4478" href="Core.html#4457" class="Bound"
+      >as</a
+      ><a name="4480"
+      > </a
+      ><a name="4481" class="Symbol"
+      >&#8594;</a
+      ><a name="4482"
+      > </a
+      ><a name="4483" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="4487"
+      > </a
+      ><a name="4488" href="Core.html#4457" class="Bound"
+      >as</a
+      ><a name="4490"
+      > </a
+      ><a name="4491" href="Core.html#4460" class="Bound"
+      >bs</a
+      ><a name="4493"
+      > </a
+      ><a name="4494" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="4495"
+      > </a
+      ><a name="4496" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="4502"
+      > </a
+      ><a name="4503" href="Core.html#4460" class="Bound"
+      >bs</a
+      ><a name="4505" class="Symbol"
+      >)</a
+      ><a name="4506"
+      >       </a
+      ><a name="4513" class="Symbol"
+      >&#8594;</a
+      ><a name="4514"
+      > </a
+      ><a name="4515" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="4517"
+      > </a
+      ><a name="4518" href="Core.html#4457" class="Bound"
+      >as</a
+      ><a name="4520"
+      > </a
+      ><a name="4521" href="Core.html#4460" class="Bound"
+      >bs</a
+      ><a name="4523"
+      >
+  </a
+      ><a name="4526" href="Core.html#4526" class="InductiveConstructor"
+      >arouter</a
+      ><a name="4533"
+      >    </a
+      ><a name="4537" class="Symbol"
+      >:</a
+      ><a name="4538"
+      > </a
+      ><a name="4539" class="Symbol"
+      >&#8704;</a
+      ><a name="4540"
+      > </a
+      ><a name="4541" class="Symbol"
+      >{</a
+      ><a name="4542" href="Core.html#4542" class="Bound"
+      >as</a
+      ><a name="4544"
+      > </a
+      ><a name="4545" href="Core.html#4545" class="Bound"
+      >bs</a
+      ><a name="4547" class="Symbol"
+      >}</a
+      ><a name="4548"
+      >     </a
+      ><a name="4553" class="Symbol"
+      >&#8594;</a
+      ><a name="4554"
+      > </a
+      ><a name="4555" href="Core.html#2579" class="Datatype"
+      >AtomicRouter</a
+      ><a name="4567"
+      > </a
+      ><a name="4568" href="Core.html#4542" class="Bound"
+      >as</a
+      ><a name="4570"
+      > </a
+      ><a name="4571" href="Core.html#4545" class="Bound"
+      >bs</a
+      ><a name="4573"
+      >                         </a
+      ><a name="4598" class="Symbol"
+      >&#8594;</a
+      ><a name="4599"
+      > </a
+      ><a name="4600" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="4602"
+      > </a
+      ><a name="4603" href="Core.html#4542" class="Bound"
+      >as</a
+      ><a name="4605"
+      > </a
+      ><a name="4606" href="Core.html#4545" class="Bound"
+      >bs</a
+      ><a name="4608"
+      >
+  </a
+      ><a name="4611" href="Core.html#4611" class="InductiveConstructor"
+      >seq</a
+      ><a name="4614"
+      >        </a
+      ><a name="4622" class="Symbol"
+      >:</a
+      ><a name="4623"
+      > </a
+      ><a name="4624" class="Symbol"
+      >&#8704;</a
+      ><a name="4625"
+      > </a
+      ><a name="4626" class="Symbol"
+      >{</a
+      ><a name="4627" href="Core.html#4627" class="Bound"
+      >as</a
+      ><a name="4629"
+      > </a
+      ><a name="4630" href="Core.html#4630" class="Bound"
+      >bs</a
+      ><a name="4632"
+      > </a
+      ><a name="4633" href="Core.html#4633" class="Bound"
+      >cs</a
+      ><a name="4635" class="Symbol"
+      >}</a
+      ><a name="4636"
+      >  </a
+      ><a name="4638" class="Symbol"
+      >&#8594;</a
+      ><a name="4639"
+      > </a
+      ><a name="4640" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="4642"
+      > </a
+      ><a name="4643" href="Core.html#4627" class="Bound"
+      >as</a
+      ><a name="4645"
+      > </a
+      ><a name="4646" href="Core.html#4630" class="Bound"
+      >bs</a
+      ><a name="4648"
+      > </a
+      ><a name="4649" class="Symbol"
+      >&#8594;</a
+      ><a name="4650"
+      > </a
+      ><a name="4651" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="4653"
+      > </a
+      ><a name="4654" href="Core.html#4630" class="Bound"
+      >bs</a
+      ><a name="4656"
+      > </a
+      ><a name="4657" href="Core.html#4633" class="Bound"
+      >cs</a
+      ><a name="4659"
+      >                        </a
+      ><a name="4683" class="Symbol"
+      >&#8594;</a
+      ><a name="4684"
+      > </a
+      ><a name="4685" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="4687"
+      > </a
+      ><a name="4688" href="Core.html#4627" class="Bound"
+      >as</a
+      ><a name="4690"
+      > </a
+      ><a name="4691" href="Core.html#4633" class="Bound"
+      >cs</a
+      ><a name="4693"
+      >
+  </a
+      ><a name="4696" href="Core.html#4696" class="InductiveConstructor"
+      >fan</a
+      ><a name="4699"
+      >        </a
+      ><a name="4707" class="Symbol"
+      >:</a
+      ><a name="4708"
+      > </a
+      ><a name="4709" class="Symbol"
+      >&#8704;</a
+      ><a name="4710"
+      > </a
+      ><a name="4711" class="Symbol"
+      >{</a
+      ><a name="4712" href="Core.html#4712" class="Bound"
+      >as</a
+      ><a name="4714"
+      > </a
+      ><a name="4715" href="Core.html#4715" class="Bound"
+      >bs</a
+      ><a name="4717"
+      > </a
+      ><a name="4718" href="Core.html#4718" class="Bound"
+      >cs</a
+      ><a name="4720" class="Symbol"
+      >}</a
+      ><a name="4721"
+      >  </a
+      ><a name="4723" class="Symbol"
+      >&#8594;</a
+      ><a name="4724"
+      > </a
+      ><a name="4725" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="4727"
+      > </a
+      ><a name="4728" href="Core.html#4712" class="Bound"
+      >as</a
+      ><a name="4730"
+      > </a
+      ><a name="4731" href="Core.html#4715" class="Bound"
+      >bs</a
+      ><a name="4733"
+      > </a
+      ><a name="4734" class="Symbol"
+      >&#8594;</a
+      ><a name="4735"
+      > </a
+      ><a name="4736" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="4738"
+      > </a
+      ><a name="4739" href="Core.html#4712" class="Bound"
+      >as</a
+      ><a name="4741"
+      > </a
+      ><a name="4742" href="Core.html#4718" class="Bound"
+      >cs</a
+      ><a name="4744"
+      >                        </a
+      ><a name="4768" class="Symbol"
+      >&#8594;</a
+      ><a name="4769"
+      > </a
+      ><a name="4770" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="4772"
+      > </a
+      ><a name="4773" href="Core.html#4712" class="Bound"
+      >as</a
+      ><a name="4775"
+      > </a
+      ><a name="4776" class="Symbol"
+      >(</a
+      ><a name="4777" href="Core.html#4715" class="Bound"
+      >bs</a
+      ><a name="4779"
+      > </a
+      ><a name="4780" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="4781"
+      > </a
+      ><a name="4782" href="Core.html#4718" class="Bound"
+      >cs</a
+      ><a name="4784" class="Symbol"
+      >)</a
+      ><a name="4785"
+      >
+  </a
+      ><a name="4788" href="Core.html#4788" class="InductiveConstructor"
+      >rswitcher</a
+      ><a name="4797"
+      >  </a
+      ><a name="4799" class="Symbol"
+      >:</a
+      ><a name="4800"
+      > </a
+      ><a name="4801" class="Symbol"
+      >&#8704;</a
+      ><a name="4802"
+      > </a
+      ><a name="4803" class="Symbol"
+      >{</a
+      ><a name="4804" href="Core.html#4804" class="Bound"
+      >as</a
+      ><a name="4806"
+      > </a
+      ><a name="4807" href="Core.html#4807" class="Bound"
+      >bs</a
+      ><a name="4809"
+      > </a
+      ><a name="4810" href="Core.html#4810" class="Bound"
+      >A</a
+      ><a name="4811" class="Symbol"
+      >}</a
+      ><a name="4812"
+      >   </a
+      ><a name="4815" class="Symbol"
+      >&#8594;</a
+      ><a name="4816"
+      > </a
+      ><a name="4817" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="4819"
+      > </a
+      ><a name="4820" href="Core.html#4804" class="Bound"
+      >as</a
+      ><a name="4822"
+      > </a
+      ><a name="4823" class="Symbol"
+      >(</a
+      ><a name="4824" href="Core.html#4807" class="Bound"
+      >bs</a
+      ><a name="4826"
+      > </a
+      ><a name="4827" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="4828"
+      > </a
+      ><a name="4829" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="4830"
+      > </a
+      ><a name="4831" href="Core.html#4810" class="Bound"
+      >A</a
+      ><a name="4832" class="Symbol"
+      >)</a
+      ><a name="4833"
+      > </a
+      ><a name="4834" class="Symbol"
+      >&#8594;</a
+      ><a name="4835"
+      > </a
+      ><a name="4836" class="Symbol"
+      >(</a
+      ><a name="4837" href="Core.html#4810" class="Bound"
+      >A</a
+      ><a name="4838"
+      > </a
+      ><a name="4839" class="Symbol"
+      >&#8594;</a
+      ><a name="4840"
+      > </a
+      ><a name="4841" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="4843"
+      > </a
+      ><a name="4844" href="Core.html#4804" class="Bound"
+      >as</a
+      ><a name="4846"
+      > </a
+      ><a name="4847" class="Symbol"
+      >(</a
+      ><a name="4848" href="Core.html#4807" class="Bound"
+      >bs</a
+      ><a name="4850"
+      > </a
+      ><a name="4851" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="4852"
+      > </a
+      ><a name="4853" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="4854"
+      > </a
+      ><a name="4855" href="Core.html#4810" class="Bound"
+      >A</a
+      ><a name="4856" class="Symbol"
+      >))</a
+      ><a name="4858"
+      >  </a
+      ><a name="4860" class="Symbol"
+      >&#8594;</a
+      ><a name="4861"
+      > </a
+      ><a name="4862" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="4864"
+      > </a
+      ><a name="4865" href="Core.html#4804" class="Bound"
+      >as</a
+      ><a name="4867"
+      > </a
+      ><a name="4868" href="Core.html#4807" class="Bound"
+      >bs</a
+      ><a name="4870"
+      >
+  </a
+      ><a name="4873" href="Core.html#4873" class="InductiveConstructor"
+      >freezer</a
+      ><a name="4880"
+      >    </a
+      ><a name="4884" class="Symbol"
+      >:</a
+      ><a name="4885"
+      > </a
+      ><a name="4886" class="Symbol"
+      >&#8704;</a
+      ><a name="4887"
+      > </a
+      ><a name="4888" class="Symbol"
+      >{</a
+      ><a name="4889" href="Core.html#4889" class="Bound"
+      >as</a
+      ><a name="4891"
+      > </a
+      ><a name="4892" href="Core.html#4892" class="Bound"
+      >bs</a
+      ><a name="4894" class="Symbol"
+      >}</a
+      ><a name="4895"
+      >     </a
+      ><a name="4900" class="Symbol"
+      >&#8594;</a
+      ><a name="4901"
+      > </a
+      ><a name="4902" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="4904"
+      > </a
+      ><a name="4905" href="Core.html#4889" class="Bound"
+      >as</a
+      ><a name="4907"
+      > </a
+      ><a name="4908" href="Core.html#4892" class="Bound"
+      >bs</a
+      ><a name="4910"
+      >                                   </a
+      ><a name="4945" class="Symbol"
+      >&#8594;</a
+      ><a name="4946"
+      > </a
+      ><a name="4947" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="4949"
+      > </a
+      ><a name="4950" href="Core.html#4889" class="Bound"
+      >as</a
+      ><a name="4952"
+      > </a
+      ><a name="4953" class="Symbol"
+      >(</a
+      ><a name="4954" href="Core.html#4892" class="Bound"
+      >bs</a
+      ><a name="4956"
+      > </a
+      ><a name="4957" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="4958"
+      > </a
+      ><a name="4959" href="SVDesc.html#178" class="InductiveConstructor"
+      >C</a
+      ><a name="4960"
+      > </a
+      ><a name="4961" class="Symbol"
+      >(</a
+      ><a name="4962" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="4964"
+      > </a
+      ><a name="4965" href="Core.html#4889" class="Bound"
+      >as</a
+      ><a name="4967"
+      > </a
+      ><a name="4968" href="Core.html#4892" class="Bound"
+      >bs</a
+      ><a name="4970" class="Symbol"
+      >))</a
+      ><a name="4972"
+      >
+
+</a
+      ><a name="4974" class="Keyword"
+      >data</a
+      ><a name="4978"
+      > </a
+      ><a name="4979" href="Core.html#4979" class="Datatype"
+      >SF'</a
+      ><a name="4982"
+      > </a
+      ><a name="4983" class="Symbol"
+      >:</a
+      ><a name="4984"
+      > </a
+      ><a name="4985" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="4991"
+      > </a
+      ><a name="4992" class="Symbol"
+      >&#8594;</a
+      ><a name="4993"
+      > </a
+      ><a name="4994" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="5000"
+      > </a
+      ><a name="5001" class="Symbol"
+      >&#8594;</a
+      ><a name="5002"
+      > </a
+      ><a name="5003" class="PrimitiveType"
+      >Set</a
+      ><a name="5006"
+      > </a
+      ><a name="5007" class="Keyword"
+      >where</a
+      ><a name="5012"
+      >
+  </a
+      ><a name="5015" href="Core.html#5015" class="InductiveConstructor"
+      >prim</a
+      ><a name="5019"
+      >       </a
+      ><a name="5026" class="Symbol"
+      >:</a
+      ><a name="5027"
+      > </a
+      ><a name="5028" class="Symbol"
+      >&#8704;</a
+      ><a name="5029"
+      > </a
+      ><a name="5030" class="Symbol"
+      >{</a
+      ><a name="5031" href="Core.html#5031" class="Bound"
+      >as</a
+      ><a name="5033"
+      > </a
+      ><a name="5034" href="Core.html#5034" class="Bound"
+      >bs</a
+      ><a name="5036" class="Symbol"
+      >}</a
+      ><a name="5037"
+      >     </a
+      ><a name="5042" class="Symbol"
+      >&#8594;</a
+      ><a name="5043"
+      > </a
+      ><a name="5044" href="Core.html#213" class="Datatype"
+      >Node</a
+      ><a name="5048"
+      > </a
+      ><a name="5049" href="Core.html#5031" class="Bound"
+      >as</a
+      ><a name="5051"
+      > </a
+      ><a name="5052" href="Core.html#5034" class="Bound"
+      >bs</a
+      ><a name="5054"
+      >                                  </a
+      ><a name="5088" class="Symbol"
+      >&#8594;</a
+      ><a name="5089"
+      > </a
+      ><a name="5090" href="Core.html#4979" class="Datatype"
+      >SF'</a
+      ><a name="5093"
+      > </a
+      ><a name="5094" href="Core.html#5031" class="Bound"
+      >as</a
+      ><a name="5096"
+      > </a
+      ><a name="5097" href="Core.html#5034" class="Bound"
+      >bs</a
+      ><a name="5099"
+      >
+  </a
+      ><a name="5102" href="Core.html#5102" class="InductiveConstructor"
+      >arouter</a
+      ><a name="5109"
+      >    </a
+      ><a name="5113" class="Symbol"
+      >:</a
+      ><a name="5114"
+      > </a
+      ><a name="5115" class="Symbol"
+      >&#8704;</a
+      ><a name="5116"
+      > </a
+      ><a name="5117" class="Symbol"
+      >{</a
+      ><a name="5118" href="Core.html#5118" class="Bound"
+      >as</a
+      ><a name="5120"
+      > </a
+      ><a name="5121" href="Core.html#5121" class="Bound"
+      >bs</a
+      ><a name="5123" class="Symbol"
+      >}</a
+      ><a name="5124"
+      >     </a
+      ><a name="5129" class="Symbol"
+      >&#8594;</a
+      ><a name="5130"
+      > </a
+      ><a name="5131" href="Core.html#2579" class="Datatype"
+      >AtomicRouter</a
+      ><a name="5143"
+      > </a
+      ><a name="5144" href="Core.html#5118" class="Bound"
+      >as</a
+      ><a name="5146"
+      > </a
+      ><a name="5147" href="Core.html#5121" class="Bound"
+      >bs</a
+      ><a name="5149"
+      >                          </a
+      ><a name="5175" class="Symbol"
+      >&#8594;</a
+      ><a name="5176"
+      > </a
+      ><a name="5177" href="Core.html#4979" class="Datatype"
+      >SF'</a
+      ><a name="5180"
+      > </a
+      ><a name="5181" href="Core.html#5118" class="Bound"
+      >as</a
+      ><a name="5183"
+      > </a
+      ><a name="5184" href="Core.html#5121" class="Bound"
+      >bs</a
+      ><a name="5186"
+      >
+  </a
+      ><a name="5189" href="Core.html#5189" class="InductiveConstructor"
+      >seq</a
+      ><a name="5192"
+      >        </a
+      ><a name="5200" class="Symbol"
+      >:</a
+      ><a name="5201"
+      > </a
+      ><a name="5202" class="Symbol"
+      >&#8704;</a
+      ><a name="5203"
+      > </a
+      ><a name="5204" class="Symbol"
+      >{</a
+      ><a name="5205" href="Core.html#5205" class="Bound"
+      >as</a
+      ><a name="5207"
+      > </a
+      ><a name="5208" href="Core.html#5208" class="Bound"
+      >bs</a
+      ><a name="5210"
+      > </a
+      ><a name="5211" href="Core.html#5211" class="Bound"
+      >cs</a
+      ><a name="5213" class="Symbol"
+      >}</a
+      ><a name="5214"
+      >  </a
+      ><a name="5216" class="Symbol"
+      >&#8594;</a
+      ><a name="5217"
+      > </a
+      ><a name="5218" href="Core.html#4979" class="Datatype"
+      >SF'</a
+      ><a name="5221"
+      > </a
+      ><a name="5222" href="Core.html#5205" class="Bound"
+      >as</a
+      ><a name="5224"
+      > </a
+      ><a name="5225" href="Core.html#5208" class="Bound"
+      >bs</a
+      ><a name="5227"
+      > </a
+      ><a name="5228" class="Symbol"
+      >&#8594;</a
+      ><a name="5229"
+      > </a
+      ><a name="5230" href="Core.html#4979" class="Datatype"
+      >SF'</a
+      ><a name="5233"
+      > </a
+      ><a name="5234" href="Core.html#5208" class="Bound"
+      >bs</a
+      ><a name="5236"
+      > </a
+      ><a name="5237" href="Core.html#5211" class="Bound"
+      >cs</a
+      ><a name="5239"
+      >                       </a
+      ><a name="5262" class="Symbol"
+      >&#8594;</a
+      ><a name="5263"
+      > </a
+      ><a name="5264" href="Core.html#4979" class="Datatype"
+      >SF'</a
+      ><a name="5267"
+      > </a
+      ><a name="5268" href="Core.html#5205" class="Bound"
+      >as</a
+      ><a name="5270"
+      > </a
+      ><a name="5271" href="Core.html#5211" class="Bound"
+      >cs</a
+      ><a name="5273"
+      >
+  </a
+      ><a name="5276" href="Core.html#5276" class="InductiveConstructor"
+      >fan</a
+      ><a name="5279"
+      >        </a
+      ><a name="5287" class="Symbol"
+      >:</a
+      ><a name="5288"
+      > </a
+      ><a name="5289" class="Symbol"
+      >&#8704;</a
+      ><a name="5290"
+      > </a
+      ><a name="5291" class="Symbol"
+      >{</a
+      ><a name="5292" href="Core.html#5292" class="Bound"
+      >as</a
+      ><a name="5294"
+      > </a
+      ><a name="5295" href="Core.html#5295" class="Bound"
+      >bs</a
+      ><a name="5297"
+      > </a
+      ><a name="5298" href="Core.html#5298" class="Bound"
+      >cs</a
+      ><a name="5300" class="Symbol"
+      >}</a
+      ><a name="5301"
+      >  </a
+      ><a name="5303" class="Symbol"
+      >&#8594;</a
+      ><a name="5304"
+      > </a
+      ><a name="5305" href="Core.html#4979" class="Datatype"
+      >SF'</a
+      ><a name="5308"
+      > </a
+      ><a name="5309" href="Core.html#5292" class="Bound"
+      >as</a
+      ><a name="5311"
+      > </a
+      ><a name="5312" href="Core.html#5295" class="Bound"
+      >bs</a
+      ><a name="5314"
+      > </a
+      ><a name="5315" class="Symbol"
+      >&#8594;</a
+      ><a name="5316"
+      > </a
+      ><a name="5317" href="Core.html#4979" class="Datatype"
+      >SF'</a
+      ><a name="5320"
+      > </a
+      ><a name="5321" href="Core.html#5292" class="Bound"
+      >as</a
+      ><a name="5323"
+      > </a
+      ><a name="5324" href="Core.html#5298" class="Bound"
+      >cs</a
+      ><a name="5326"
+      >                       </a
+      ><a name="5349" class="Symbol"
+      >&#8594;</a
+      ><a name="5350"
+      > </a
+      ><a name="5351" href="Core.html#4979" class="Datatype"
+      >SF'</a
+      ><a name="5354"
+      > </a
+      ><a name="5355" href="Core.html#5292" class="Bound"
+      >as</a
+      ><a name="5357"
+      > </a
+      ><a name="5358" class="Symbol"
+      >(</a
+      ><a name="5359" href="Core.html#5295" class="Bound"
+      >bs</a
+      ><a name="5361"
+      > </a
+      ><a name="5362" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="5363"
+      > </a
+      ><a name="5364" href="Core.html#5298" class="Bound"
+      >cs</a
+      ><a name="5366" class="Symbol"
+      >)</a
+      ><a name="5367"
+      >
+  </a
+      ><a name="5370" href="Core.html#5370" class="InductiveConstructor"
+      >rswitcher</a
+      ><a name="5379"
+      >  </a
+      ><a name="5381" class="Symbol"
+      >:</a
+      ><a name="5382"
+      > </a
+      ><a name="5383" class="Symbol"
+      >&#8704;</a
+      ><a name="5384"
+      > </a
+      ><a name="5385" class="Symbol"
+      >{</a
+      ><a name="5386" href="Core.html#5386" class="Bound"
+      >as</a
+      ><a name="5388"
+      > </a
+      ><a name="5389" href="Core.html#5389" class="Bound"
+      >bs</a
+      ><a name="5391"
+      > </a
+      ><a name="5392" href="Core.html#5392" class="Bound"
+      >A</a
+      ><a name="5393" class="Symbol"
+      >}</a
+      ><a name="5394"
+      >   </a
+      ><a name="5397" class="Symbol"
+      >&#8594;</a
+      ><a name="5398"
+      > </a
+      ><a name="5399" href="Core.html#4979" class="Datatype"
+      >SF'</a
+      ><a name="5402"
+      > </a
+      ><a name="5403" href="Core.html#5386" class="Bound"
+      >as</a
+      ><a name="5405"
+      > </a
+      ><a name="5406" class="Symbol"
+      >(</a
+      ><a name="5407" href="Core.html#5389" class="Bound"
+      >bs</a
+      ><a name="5409"
+      > </a
+      ><a name="5410" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="5411"
+      > </a
+      ><a name="5412" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="5413"
+      > </a
+      ><a name="5414" href="Core.html#5392" class="Bound"
+      >A</a
+      ><a name="5415" class="Symbol"
+      >)</a
+      ><a name="5416"
+      > </a
+      ><a name="5417" class="Symbol"
+      >&#8594;</a
+      ><a name="5418"
+      > </a
+      ><a name="5419" class="Symbol"
+      >(</a
+      ><a name="5420" href="Core.html#5392" class="Bound"
+      >A</a
+      ><a name="5421"
+      > </a
+      ><a name="5422" class="Symbol"
+      >&#8594;</a
+      ><a name="5423"
+      > </a
+      ><a name="5424" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="5426"
+      > </a
+      ><a name="5427" href="Core.html#5386" class="Bound"
+      >as</a
+      ><a name="5429"
+      > </a
+      ><a name="5430" class="Symbol"
+      >(</a
+      ><a name="5431" href="Core.html#5389" class="Bound"
+      >bs</a
+      ><a name="5433"
+      > </a
+      ><a name="5434" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="5435"
+      > </a
+      ><a name="5436" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="5437"
+      > </a
+      ><a name="5438" href="Core.html#5392" class="Bound"
+      >A</a
+      ><a name="5439" class="Symbol"
+      >))</a
+      ><a name="5441"
+      >  </a
+      ><a name="5443" class="Symbol"
+      >&#8594;</a
+      ><a name="5444"
+      > </a
+      ><a name="5445" href="Core.html#4979" class="Datatype"
+      >SF'</a
+      ><a name="5448"
+      > </a
+      ><a name="5449" href="Core.html#5386" class="Bound"
+      >as</a
+      ><a name="5451"
+      > </a
+      ><a name="5452" href="Core.html#5389" class="Bound"
+      >bs</a
+      ><a name="5454"
+      >
+  </a
+      ><a name="5457" href="Core.html#5457" class="InductiveConstructor"
+      >freezer</a
+      ><a name="5464"
+      >    </a
+      ><a name="5468" class="Symbol"
+      >:</a
+      ><a name="5469"
+      > </a
+      ><a name="5470" class="Symbol"
+      >&#8704;</a
+      ><a name="5471"
+      > </a
+      ><a name="5472" class="Symbol"
+      >{</a
+      ><a name="5473" href="Core.html#5473" class="Bound"
+      >as</a
+      ><a name="5475"
+      > </a
+      ><a name="5476" href="Core.html#5476" class="Bound"
+      >bs</a
+      ><a name="5478" class="Symbol"
+      >}</a
+      ><a name="5479"
+      >     </a
+      ><a name="5484" class="Symbol"
+      >&#8594;</a
+      ><a name="5485"
+      > </a
+      ><a name="5486" href="Core.html#4979" class="Datatype"
+      >SF'</a
+      ><a name="5489"
+      > </a
+      ><a name="5490" href="Core.html#5473" class="Bound"
+      >as</a
+      ><a name="5492"
+      > </a
+      ><a name="5493" href="Core.html#5476" class="Bound"
+      >bs</a
+      ><a name="5495"
+      >                                   </a
+      ><a name="5530" class="Symbol"
+      >&#8594;</a
+      ><a name="5531"
+      > </a
+      ><a name="5532" href="Core.html#4979" class="Datatype"
+      >SF'</a
+      ><a name="5535"
+      > </a
+      ><a name="5536" href="Core.html#5473" class="Bound"
+      >as</a
+      ><a name="5538"
+      > </a
+      ><a name="5539" class="Symbol"
+      >(</a
+      ><a name="5540" href="Core.html#5476" class="Bound"
+      >bs</a
+      ><a name="5542"
+      > </a
+      ><a name="5543" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="5544"
+      > </a
+      ><a name="5545" href="SVDesc.html#178" class="InductiveConstructor"
+      >C</a
+      ><a name="5546"
+      > </a
+      ><a name="5547" class="Symbol"
+      >(</a
+      ><a name="5548" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="5550"
+      > </a
+      ><a name="5551" href="Core.html#5473" class="Bound"
+      >as</a
+      ><a name="5553"
+      > </a
+      ><a name="5554" href="Core.html#5476" class="Bound"
+      >bs</a
+      ><a name="5556" class="Symbol"
+      >))</a
+      ><a name="5558"
+      >
+
+</a
+      ><a name="5560" class="Comment"
+      >---------------------------------------------------------</a
+      ><a name="5617"
+      >
+
+</a
+      ><a name="5619" href="Core.html#5619" class="Function"
+      >step&#8320;</a
+      ><a name="5624"
+      > </a
+      ><a name="5625" class="Symbol"
+      >:</a
+      ><a name="5626"
+      > </a
+      ><a name="5627" class="Symbol"
+      >&#8704;</a
+      ><a name="5628"
+      > </a
+      ><a name="5629" class="Symbol"
+      >{</a
+      ><a name="5630" href="Core.html#5630" class="Bound"
+      >as</a
+      ><a name="5632"
+      > </a
+      ><a name="5633" href="Core.html#5633" class="Bound"
+      >bs</a
+      ><a name="5635" class="Symbol"
+      >}</a
+      ><a name="5636"
+      > </a
+      ><a name="5637" class="Symbol"
+      >&#8594;</a
+      ><a name="5638"
+      > </a
+      ><a name="5639" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="5641"
+      > </a
+      ><a name="5642" href="Core.html#5630" class="Bound"
+      >as</a
+      ><a name="5644"
+      > </a
+      ><a name="5645" href="Core.html#5633" class="Bound"
+      >bs</a
+      ><a name="5647"
+      > </a
+      ><a name="5648" class="Symbol"
+      >&#8594;</a
+      ><a name="5649"
+      > </a
+      ><a name="5650" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="5656"
+      > </a
+      ><a name="5657" href="Core.html#5630" class="Bound"
+      >as</a
+      ><a name="5659"
+      > </a
+      ><a name="5660" class="Symbol"
+      >&#8594;</a
+      ><a name="5661"
+      > </a
+      ><a name="5662" href="Core.html#4979" class="Datatype"
+      >SF'</a
+      ><a name="5665"
+      > </a
+      ><a name="5666" href="Core.html#5630" class="Bound"
+      >as</a
+      ><a name="5668"
+      > </a
+      ><a name="5669" href="Core.html#5633" class="Bound"
+      >bs</a
+      ><a name="5671"
+      > </a
+      ><a name="5672" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="5673"
+      > </a
+      ><a name="5674" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="5680"
+      > </a
+      ><a name="5681" href="Core.html#5633" class="Bound"
+      >bs</a
+      ><a name="5683"
+      >
+</a
+      ><a name="5684" href="Core.html#5619" class="Function"
+      >step&#8320;</a
+      ><a name="5689"
+      > </a
+      ><a name="5690" class="Symbol"
+      >(</a
+      ><a name="5691" href="Core.html#4441" class="InductiveConstructor"
+      >prim</a
+      ><a name="5695"
+      > </a
+      ><a name="5696" href="Core.html#5696" class="Bound"
+      >f</a
+      ><a name="5697" class="Symbol"
+      >)</a
+      ><a name="5698"
+      > </a
+      ><a name="5699" href="Core.html#5699" class="Bound"
+      >sa</a
+      ><a name="5701"
+      > </a
+      ><a name="5702" class="Symbol"
+      >=</a
+      ><a name="5703"
+      > </a
+      ><a name="5704" href="NeilPrelude.html#14177" class="Function"
+      >first</a
+      ><a name="5709"
+      > </a
+      ><a name="5710" class="InductiveConstructor"
+      >prim</a
+      ><a name="5714"
+      > </a
+      ><a name="5715" class="Symbol"
+      >(</a
+      ><a name="5716" href="Core.html#5696" class="Bound"
+      >f</a
+      ><a name="5717"
+      > </a
+      ><a name="5718" href="Core.html#5699" class="Bound"
+      >sa</a
+      ><a name="5720" class="Symbol"
+      >)</a
+      ><a name="5721"
+      >
+</a
+      ><a name="5722" href="Core.html#5619" class="Function"
+      >step&#8320;</a
+      ><a name="5727"
+      > </a
+      ><a name="5728" class="Symbol"
+      >(</a
+      ><a name="5729" href="Core.html#4526" class="InductiveConstructor"
+      >arouter</a
+      ><a name="5736"
+      > </a
+      ><a name="5737" href="Core.html#5737" class="Bound"
+      >r</a
+      ><a name="5738" class="Symbol"
+      >)</a
+      ><a name="5739"
+      > </a
+      ><a name="5740" href="Core.html#5740" class="Bound"
+      >sa</a
+      ><a name="5742"
+      > </a
+      ><a name="5743" class="Symbol"
+      >=</a
+      ><a name="5744"
+      > </a
+      ><a name="5745" class="Symbol"
+      >(</a
+      ><a name="5746" class="InductiveConstructor"
+      >arouter</a
+      ><a name="5753"
+      > </a
+      ><a name="5754" href="Core.html#5737" class="Bound"
+      >r</a
+      ><a name="5755"
+      > </a
+      ><a name="5756" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="5757"
+      > </a
+      ><a name="5758" href="Core.html#2775" class="Function"
+      >stepARouter</a
+      ><a name="5769"
+      > </a
+      ><a name="5770" href="Core.html#5737" class="Bound"
+      >r</a
+      ><a name="5771"
+      > </a
+      ><a name="5772" href="Core.html#5740" class="Bound"
+      >sa</a
+      ><a name="5774" class="Symbol"
+      >)</a
+      ><a name="5775"
+      >
+</a
+      ><a name="5776" href="Core.html#5619" class="Function"
+      >step&#8320;</a
+      ><a name="5781"
+      > </a
+      ><a name="5782" class="Symbol"
+      >(</a
+      ><a name="5783" href="Core.html#4611" class="InductiveConstructor"
+      >seq</a
+      ><a name="5786"
+      > </a
+      ><a name="5787" href="Core.html#5787" class="Bound"
+      >sf&#8321;</a
+      ><a name="5790"
+      > </a
+      ><a name="5791" href="Core.html#5791" class="Bound"
+      >sf&#8322;</a
+      ><a name="5794" class="Symbol"
+      >)</a
+      ><a name="5795"
+      > </a
+      ><a name="5796" href="Core.html#5796" class="Bound"
+      >sa</a
+      ><a name="5798"
+      > </a
+      ><a name="5799" class="Keyword"
+      >with</a
+      ><a name="5803"
+      > </a
+      ><a name="5804" href="Core.html#5619" class="Function"
+      >step&#8320;</a
+      ><a name="5809"
+      > </a
+      ><a name="5810" href="Core.html#5787" class="Bound"
+      >sf&#8321;</a
+      ><a name="5813"
+      > </a
+      ><a name="5814" href="Core.html#5796" class="Bound"
+      >sa</a
+      ><a name="5816"
+      >
+</a
+      ><a name="5817" class="Symbol"
+      >...</a
+      ><a name="5820"
+      > </a
+      ><a name="5821" class="Symbol"
+      >|</a
+      ><a name="5822"
+      > </a
+      ><a name="5823" class="Symbol"
+      >(</a
+      ><a name="5824" href="Core.html#5824" class="Bound"
+      >sf&#8321;'</a
+      ><a name="5828"
+      > </a
+      ><a name="5829" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="5830"
+      > </a
+      ><a name="5831" href="Core.html#5831" class="Bound"
+      >sb</a
+      ><a name="5833" class="Symbol"
+      >)</a
+      ><a name="5834"
+      > </a
+      ><a name="5835" class="Keyword"
+      >with</a
+      ><a name="5839"
+      > </a
+      ><a name="5840" href="Core.html#5619" class="Function"
+      >step&#8320;</a
+      ><a name="5845"
+      > </a
+      ><a name="5846" href="Core.html#5791" class="Bound"
+      >sf&#8322;</a
+      ><a name="5849"
+      > </a
+      ><a name="5850" href="Core.html#5831" class="Bound"
+      >sb</a
+      ><a name="5852"
+      >
+</a
+      ><a name="5853" class="Symbol"
+      >...</a
+      ><a name="5856"
+      >    </a
+      ><a name="5860" class="Symbol"
+      >|</a
+      ><a name="5861"
+      > </a
+      ><a name="5862" class="Symbol"
+      >(</a
+      ><a name="5863" href="Core.html#5863" class="Bound"
+      >sf&#8322;'</a
+      ><a name="5867"
+      > </a
+      ><a name="5868" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="5869"
+      > </a
+      ><a name="5870" href="Core.html#5870" class="Bound"
+      >sc</a
+      ><a name="5872" class="Symbol"
+      >)</a
+      ><a name="5873"
+      > </a
+      ><a name="5874" class="Symbol"
+      >=</a
+      ><a name="5875"
+      > </a
+      ><a name="5876" class="Symbol"
+      >(</a
+      ><a name="5877" class="InductiveConstructor"
+      >seq</a
+      ><a name="5880"
+      > </a
+      ><a name="5881" href="Core.html#5824" class="Bound"
+      >sf&#8321;'</a
+      ><a name="5885"
+      > </a
+      ><a name="5886" href="Core.html#5863" class="Bound"
+      >sf&#8322;'</a
+      ><a name="5890"
+      > </a
+      ><a name="5891" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="5892"
+      > </a
+      ><a name="5893" href="Core.html#5870" class="Bound"
+      >sc</a
+      ><a name="5895" class="Symbol"
+      >)</a
+      ><a name="5896"
+      >
+</a
+      ><a name="5897" href="Core.html#5619" class="Function"
+      >step&#8320;</a
+      ><a name="5902"
+      > </a
+      ><a name="5903" class="Symbol"
+      >(</a
+      ><a name="5904" href="Core.html#4696" class="InductiveConstructor"
+      >fan</a
+      ><a name="5907"
+      > </a
+      ><a name="5908" href="Core.html#5908" class="Bound"
+      >sf&#8321;</a
+      ><a name="5911"
+      > </a
+      ><a name="5912" href="Core.html#5912" class="Bound"
+      >sf&#8322;</a
+      ><a name="5915" class="Symbol"
+      >)</a
+      ><a name="5916"
+      > </a
+      ><a name="5917" href="Core.html#5917" class="Bound"
+      >sa</a
+      ><a name="5919"
+      > </a
+      ><a name="5920" class="Keyword"
+      >with</a
+      ><a name="5924"
+      > </a
+      ><a name="5925" href="Core.html#5619" class="Function"
+      >step&#8320;</a
+      ><a name="5930"
+      > </a
+      ><a name="5931" href="Core.html#5908" class="Bound"
+      >sf&#8321;</a
+      ><a name="5934"
+      > </a
+      ><a name="5935" href="Core.html#5917" class="Bound"
+      >sa</a
+      ><a name="5937"
+      > </a
+      ><a name="5938" class="Symbol"
+      >|</a
+      ><a name="5939"
+      > </a
+      ><a name="5940" href="Core.html#5619" class="Function"
+      >step&#8320;</a
+      ><a name="5945"
+      > </a
+      ><a name="5946" href="Core.html#5912" class="Bound"
+      >sf&#8322;</a
+      ><a name="5949"
+      > </a
+      ><a name="5950" href="Core.html#5917" class="Bound"
+      >sa</a
+      ><a name="5952"
+      >
+</a
+      ><a name="5953" class="Symbol"
+      >...</a
+      ><a name="5956"
+      > </a
+      ><a name="5957" class="Symbol"
+      >|</a
+      ><a name="5958"
+      > </a
+      ><a name="5959" class="Symbol"
+      >(</a
+      ><a name="5960" href="Core.html#5960" class="Bound"
+      >sf&#8321;'</a
+      ><a name="5964"
+      > </a
+      ><a name="5965" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="5966"
+      > </a
+      ><a name="5967" href="Core.html#5967" class="Bound"
+      >sb</a
+      ><a name="5969" class="Symbol"
+      >)</a
+      ><a name="5970"
+      > </a
+      ><a name="5971" class="Symbol"
+      >|</a
+      ><a name="5972"
+      > </a
+      ><a name="5973" class="Symbol"
+      >(</a
+      ><a name="5974" href="Core.html#5974" class="Bound"
+      >sf&#8322;'</a
+      ><a name="5978"
+      > </a
+      ><a name="5979" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="5980"
+      > </a
+      ><a name="5981" href="Core.html#5981" class="Bound"
+      >sc</a
+      ><a name="5983" class="Symbol"
+      >)</a
+      ><a name="5984"
+      > </a
+      ><a name="5985" class="Symbol"
+      >=</a
+      ><a name="5986"
+      > </a
+      ><a name="5987" class="Symbol"
+      >(</a
+      ><a name="5988" class="InductiveConstructor"
+      >fan</a
+      ><a name="5991"
+      > </a
+      ><a name="5992" href="Core.html#5960" class="Bound"
+      >sf&#8321;'</a
+      ><a name="5996"
+      > </a
+      ><a name="5997" href="Core.html#5974" class="Bound"
+      >sf&#8322;'</a
+      ><a name="6001"
+      > </a
+      ><a name="6002" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6003"
+      > </a
+      ><a name="6004" class="Symbol"
+      >(</a
+      ><a name="6005" href="Core.html#5967" class="Bound"
+      >sb</a
+      ><a name="6007"
+      > </a
+      ><a name="6008" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6009"
+      > </a
+      ><a name="6010" href="Core.html#5981" class="Bound"
+      >sc</a
+      ><a name="6012" class="Symbol"
+      >))</a
+      ><a name="6014"
+      >
+</a
+      ><a name="6015" href="Core.html#5619" class="Function"
+      >step&#8320;</a
+      ><a name="6020"
+      > </a
+      ><a name="6021" class="Symbol"
+      >(</a
+      ><a name="6022" href="Core.html#4788" class="InductiveConstructor"
+      >rswitcher</a
+      ><a name="6031"
+      > </a
+      ><a name="6032" href="Core.html#6032" class="Bound"
+      >sf</a
+      ><a name="6034"
+      > </a
+      ><a name="6035" href="Core.html#6035" class="Bound"
+      >f</a
+      ><a name="6036" class="Symbol"
+      >)</a
+      ><a name="6037"
+      > </a
+      ><a name="6038" href="Core.html#6038" class="Bound"
+      >sa</a
+      ><a name="6040"
+      > </a
+      ><a name="6041" class="Keyword"
+      >with</a
+      ><a name="6045"
+      > </a
+      ><a name="6046" href="Core.html#5619" class="Function"
+      >step&#8320;</a
+      ><a name="6051"
+      > </a
+      ><a name="6052" href="Core.html#6032" class="Bound"
+      >sf</a
+      ><a name="6054"
+      > </a
+      ><a name="6055" href="Core.html#6038" class="Bound"
+      >sa</a
+      ><a name="6057"
+      >
+</a
+      ><a name="6058" class="Symbol"
+      >...</a
+      ><a name="6061"
+      > </a
+      ><a name="6062" class="Symbol"
+      >|</a
+      ><a name="6063"
+      > </a
+      ><a name="6064" class="Symbol"
+      >(</a
+      ><a name="6065" href="Core.html#6065" class="Bound"
+      >sf'</a
+      ><a name="6068"
+      > </a
+      ><a name="6069" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6070"
+      > </a
+      ><a name="6071" class="Symbol"
+      >(</a
+      ><a name="6072" href="Core.html#6072" class="Bound"
+      >sb</a
+      ><a name="6074"
+      > </a
+      ><a name="6075" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6076"
+      > </a
+      ><a name="6077" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="6084" class="Symbol"
+      >))</a
+      ><a name="6086"
+      > </a
+      ><a name="6087" class="Symbol"
+      >=</a
+      ><a name="6088"
+      > </a
+      ><a name="6089" class="Symbol"
+      >(</a
+      ><a name="6090" class="InductiveConstructor"
+      >rswitcher</a
+      ><a name="6099"
+      > </a
+      ><a name="6100" href="Core.html#6065" class="Bound"
+      >sf'</a
+      ><a name="6103"
+      > </a
+      ><a name="6104" href="Core.html#6035" class="Bound"
+      >f</a
+      ><a name="6105"
+      > </a
+      ><a name="6106" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6107"
+      > </a
+      ><a name="6108" href="Core.html#6072" class="Bound"
+      >sb</a
+      ><a name="6110" class="Symbol"
+      >)</a
+      ><a name="6111"
+      >
+</a
+      ><a name="6112" class="Symbol"
+      >...</a
+      ><a name="6115"
+      > </a
+      ><a name="6116" class="Symbol"
+      >|</a
+      ><a name="6117"
+      > </a
+      ><a name="6118" class="Symbol"
+      >(_</a
+      ><a name="6120"
+      >   </a
+      ><a name="6123" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6124"
+      > </a
+      ><a name="6125" class="Symbol"
+      >(_</a
+      ><a name="6127"
+      >  </a
+      ><a name="6129" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6130"
+      > </a
+      ><a name="6131" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="6135"
+      > </a
+      ><a name="6136" href="Core.html#6136" class="Bound"
+      >e</a
+      ><a name="6137" class="Symbol"
+      >))</a
+      ><a name="6139"
+      > </a
+      ><a name="6140" class="Keyword"
+      >with</a
+      ><a name="6144"
+      > </a
+      ><a name="6145" href="Core.html#5619" class="Function"
+      >step&#8320;</a
+      ><a name="6150"
+      > </a
+      ><a name="6151" class="Symbol"
+      >(</a
+      ><a name="6152" href="Core.html#6035" class="Bound"
+      >f</a
+      ><a name="6153"
+      > </a
+      ><a name="6154" href="Core.html#6136" class="Bound"
+      >e</a
+      ><a name="6155" class="Symbol"
+      >)</a
+      ><a name="6156"
+      > </a
+      ><a name="6157" href="Core.html#6038" class="Bound"
+      >sa</a
+      ><a name="6159"
+      >
+</a
+      ><a name="6160" class="Symbol"
+      >...</a
+      ><a name="6163"
+      >    </a
+      ><a name="6167" class="Symbol"
+      >|</a
+      ><a name="6168"
+      > </a
+      ><a name="6169" class="Symbol"
+      >(</a
+      ><a name="6170" href="Core.html#6170" class="Bound"
+      >sf'</a
+      ><a name="6173"
+      > </a
+      ><a name="6174" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6175"
+      > </a
+      ><a name="6176" class="Symbol"
+      >(</a
+      ><a name="6177" href="Core.html#6177" class="Bound"
+      >sb</a
+      ><a name="6179"
+      > </a
+      ><a name="6180" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6181"
+      > </a
+      ><a name="6182" class="Symbol"
+      >_))</a
+      ><a name="6185"
+      > </a
+      ><a name="6186" class="Symbol"
+      >=</a
+      ><a name="6187"
+      > </a
+      ><a name="6188" class="Symbol"
+      >(</a
+      ><a name="6189" class="InductiveConstructor"
+      >rswitcher</a
+      ><a name="6198"
+      > </a
+      ><a name="6199" href="Core.html#6170" class="Bound"
+      >sf'</a
+      ><a name="6202"
+      > </a
+      ><a name="6203" href="Core.html#6035" class="Bound"
+      >f</a
+      ><a name="6204"
+      > </a
+      ><a name="6205" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6206"
+      > </a
+      ><a name="6207" href="Core.html#6177" class="Bound"
+      >sb</a
+      ><a name="6209" class="Symbol"
+      >)</a
+      ><a name="6210"
+      >
+</a
+      ><a name="6211" href="Core.html#5619" class="Function"
+      >step&#8320;</a
+      ><a name="6216"
+      > </a
+      ><a name="6217" class="Symbol"
+      >(</a
+      ><a name="6218" href="Core.html#4873" class="InductiveConstructor"
+      >freezer</a
+      ><a name="6225"
+      > </a
+      ><a name="6226" href="Core.html#6226" class="Bound"
+      >sf</a
+      ><a name="6228" class="Symbol"
+      >)</a
+      ><a name="6229"
+      > </a
+      ><a name="6230" href="Core.html#6230" class="Bound"
+      >sa</a
+      ><a name="6232"
+      > </a
+      ><a name="6233" class="Keyword"
+      >with</a
+      ><a name="6237"
+      > </a
+      ><a name="6238" href="Core.html#5619" class="Function"
+      >step&#8320;</a
+      ><a name="6243"
+      > </a
+      ><a name="6244" href="Core.html#6226" class="Bound"
+      >sf</a
+      ><a name="6246"
+      > </a
+      ><a name="6247" href="Core.html#6230" class="Bound"
+      >sa</a
+      ><a name="6249"
+      >
+</a
+      ><a name="6250" class="Symbol"
+      >...</a
+      ><a name="6253"
+      > </a
+      ><a name="6254" class="Symbol"
+      >|</a
+      ><a name="6255"
+      > </a
+      ><a name="6256" class="Symbol"
+      >(</a
+      ><a name="6257" href="Core.html#6257" class="Bound"
+      >sf'</a
+      ><a name="6260"
+      > </a
+      ><a name="6261" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6262"
+      > </a
+      ><a name="6263" href="Core.html#6263" class="Bound"
+      >sb</a
+      ><a name="6265" class="Symbol"
+      >)</a
+      ><a name="6266"
+      > </a
+      ><a name="6267" class="Symbol"
+      >=</a
+      ><a name="6268"
+      > </a
+      ><a name="6269" class="Symbol"
+      >(</a
+      ><a name="6270" class="InductiveConstructor"
+      >freezer</a
+      ><a name="6277"
+      > </a
+      ><a name="6278" href="Core.html#6257" class="Bound"
+      >sf'</a
+      ><a name="6281"
+      > </a
+      ><a name="6282" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6283"
+      > </a
+      ><a name="6284" class="Symbol"
+      >(</a
+      ><a name="6285" href="Core.html#6263" class="Bound"
+      >sb</a
+      ><a name="6287"
+      > </a
+      ><a name="6288" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6289"
+      > </a
+      ><a name="6290" href="Core.html#6226" class="Bound"
+      >sf</a
+      ><a name="6292" class="Symbol"
+      >))</a
+      ><a name="6294"
+      >
+
+</a
+      ><a name="6296" class="Comment"
+      >---------------------------------------------------------</a
+      ><a name="6353"
+      >
+
+</a
+      ><a name="6355" href="Core.html#6355" class="Function"
+      >step'</a
+      ><a name="6360"
+      > </a
+      ><a name="6361" class="Symbol"
+      >:</a
+      ><a name="6362"
+      > </a
+      ><a name="6363" class="Symbol"
+      >&#8704;</a
+      ><a name="6364"
+      > </a
+      ><a name="6365" class="Symbol"
+      >{</a
+      ><a name="6366" href="Core.html#6366" class="Bound"
+      >as</a
+      ><a name="6368"
+      > </a
+      ><a name="6369" href="Core.html#6369" class="Bound"
+      >bs</a
+      ><a name="6371" class="Symbol"
+      >}</a
+      ><a name="6372"
+      > </a
+      ><a name="6373" class="Symbol"
+      >&#8594;</a
+      ><a name="6374"
+      > </a
+      ><a name="6375" href="RealTime.html#205" class="Function"
+      >&#916;t</a
+      ><a name="6377"
+      > </a
+      ><a name="6378" class="Symbol"
+      >&#8594;</a
+      ><a name="6379"
+      > </a
+      ><a name="6380" href="Core.html#4979" class="Datatype"
+      >SF'</a
+      ><a name="6383"
+      > </a
+      ><a name="6384" href="Core.html#6366" class="Bound"
+      >as</a
+      ><a name="6386"
+      > </a
+      ><a name="6387" href="Core.html#6369" class="Bound"
+      >bs</a
+      ><a name="6389"
+      > </a
+      ><a name="6390" class="Symbol"
+      >&#8594;</a
+      ><a name="6391"
+      > </a
+      ><a name="6392" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="6398"
+      > </a
+      ><a name="6399" href="Core.html#6366" class="Bound"
+      >as</a
+      ><a name="6401"
+      > </a
+      ><a name="6402" class="Symbol"
+      >&#8594;</a
+      ><a name="6403"
+      > </a
+      ><a name="6404" href="Core.html#4979" class="Datatype"
+      >SF'</a
+      ><a name="6407"
+      > </a
+      ><a name="6408" href="Core.html#6366" class="Bound"
+      >as</a
+      ><a name="6410"
+      > </a
+      ><a name="6411" href="Core.html#6369" class="Bound"
+      >bs</a
+      ><a name="6413"
+      > </a
+      ><a name="6414" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="6415"
+      > </a
+      ><a name="6416" href="SVDesc.html#332" class="Function"
+      >Sample</a
+      ><a name="6422"
+      > </a
+      ><a name="6423" href="Core.html#6369" class="Bound"
+      >bs</a
+      ><a name="6425"
+      >
+</a
+      ><a name="6426" href="Core.html#6355" class="Function"
+      >step'</a
+      ><a name="6431"
+      > </a
+      ><a name="6432" href="Core.html#6432" class="Bound"
+      >&#948;</a
+      ><a name="6433"
+      > </a
+      ><a name="6434" class="Symbol"
+      >(</a
+      ><a name="6435" href="Core.html#5015" class="InductiveConstructor"
+      >prim</a
+      ><a name="6439"
+      > </a
+      ><a name="6440" href="Core.html#6440" class="Bound"
+      >n</a
+      ><a name="6441" class="Symbol"
+      >)</a
+      ><a name="6442"
+      > </a
+      ><a name="6443" href="Core.html#6443" class="Bound"
+      >sa</a
+      ><a name="6445"
+      > </a
+      ><a name="6446" class="Symbol"
+      >=</a
+      ><a name="6447"
+      > </a
+      ><a name="6448" href="NeilPrelude.html#14177" class="Function"
+      >first</a
+      ><a name="6453"
+      > </a
+      ><a name="6454" class="InductiveConstructor"
+      >prim</a
+      ><a name="6458"
+      > </a
+      ><a name="6459" class="Symbol"
+      >(</a
+      ><a name="6460" href="Core.html#319" class="Function"
+      >stepNode</a
+      ><a name="6468"
+      > </a
+      ><a name="6469" href="Core.html#6432" class="Bound"
+      >&#948;</a
+      ><a name="6470"
+      > </a
+      ><a name="6471" href="Core.html#6440" class="Bound"
+      >n</a
+      ><a name="6472"
+      > </a
+      ><a name="6473" href="Core.html#6443" class="Bound"
+      >sa</a
+      ><a name="6475" class="Symbol"
+      >)</a
+      ><a name="6476"
+      >
+</a
+      ><a name="6477" href="Core.html#6355" class="Function"
+      >step'</a
+      ><a name="6482"
+      > </a
+      ><a name="6483" href="Core.html#6483" class="Bound"
+      >&#948;</a
+      ><a name="6484"
+      > </a
+      ><a name="6485" class="Symbol"
+      >(</a
+      ><a name="6486" href="Core.html#5102" class="InductiveConstructor"
+      >arouter</a
+      ><a name="6493"
+      > </a
+      ><a name="6494" href="Core.html#6494" class="Bound"
+      >r</a
+      ><a name="6495" class="Symbol"
+      >)</a
+      ><a name="6496"
+      > </a
+      ><a name="6497" href="Core.html#6497" class="Bound"
+      >sa</a
+      ><a name="6499"
+      > </a
+      ><a name="6500" class="Symbol"
+      >=</a
+      ><a name="6501"
+      > </a
+      ><a name="6502" class="Symbol"
+      >(</a
+      ><a name="6503" class="InductiveConstructor"
+      >arouter</a
+      ><a name="6510"
+      > </a
+      ><a name="6511" href="Core.html#6494" class="Bound"
+      >r</a
+      ><a name="6512"
+      > </a
+      ><a name="6513" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6514"
+      > </a
+      ><a name="6515" href="Core.html#2775" class="Function"
+      >stepARouter</a
+      ><a name="6526"
+      > </a
+      ><a name="6527" href="Core.html#6494" class="Bound"
+      >r</a
+      ><a name="6528"
+      > </a
+      ><a name="6529" href="Core.html#6497" class="Bound"
+      >sa</a
+      ><a name="6531" class="Symbol"
+      >)</a
+      ><a name="6532"
+      >
+</a
+      ><a name="6533" href="Core.html#6355" class="Function"
+      >step'</a
+      ><a name="6538"
+      > </a
+      ><a name="6539" href="Core.html#6539" class="Bound"
+      >&#948;</a
+      ><a name="6540"
+      > </a
+      ><a name="6541" class="Symbol"
+      >(</a
+      ><a name="6542" href="Core.html#5189" class="InductiveConstructor"
+      >seq</a
+      ><a name="6545"
+      > </a
+      ><a name="6546" href="Core.html#6546" class="Bound"
+      >sf&#8321;</a
+      ><a name="6549"
+      > </a
+      ><a name="6550" href="Core.html#6550" class="Bound"
+      >sf&#8322;</a
+      ><a name="6553" class="Symbol"
+      >)</a
+      ><a name="6554"
+      > </a
+      ><a name="6555" href="Core.html#6555" class="Bound"
+      >sa</a
+      ><a name="6557"
+      > </a
+      ><a name="6558" class="Keyword"
+      >with</a
+      ><a name="6562"
+      > </a
+      ><a name="6563" href="Core.html#6355" class="Function"
+      >step'</a
+      ><a name="6568"
+      > </a
+      ><a name="6569" href="Core.html#6539" class="Bound"
+      >&#948;</a
+      ><a name="6570"
+      > </a
+      ><a name="6571" href="Core.html#6546" class="Bound"
+      >sf&#8321;</a
+      ><a name="6574"
+      > </a
+      ><a name="6575" href="Core.html#6555" class="Bound"
+      >sa</a
+      ><a name="6577"
+      >
+</a
+      ><a name="6578" class="Symbol"
+      >...</a
+      ><a name="6581"
+      > </a
+      ><a name="6582" class="Symbol"
+      >|</a
+      ><a name="6583"
+      > </a
+      ><a name="6584" class="Symbol"
+      >(</a
+      ><a name="6585" href="Core.html#6585" class="Bound"
+      >sf&#8321;'</a
+      ><a name="6589"
+      > </a
+      ><a name="6590" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6591"
+      > </a
+      ><a name="6592" href="Core.html#6592" class="Bound"
+      >sb</a
+      ><a name="6594" class="Symbol"
+      >)</a
+      ><a name="6595"
+      > </a
+      ><a name="6596" class="Keyword"
+      >with</a
+      ><a name="6600"
+      > </a
+      ><a name="6601" href="Core.html#6355" class="Function"
+      >step'</a
+      ><a name="6606"
+      > </a
+      ><a name="6607" href="Core.html#6539" class="Bound"
+      >&#948;</a
+      ><a name="6608"
+      > </a
+      ><a name="6609" href="Core.html#6550" class="Bound"
+      >sf&#8322;</a
+      ><a name="6612"
+      > </a
+      ><a name="6613" href="Core.html#6592" class="Bound"
+      >sb</a
+      ><a name="6615"
+      >
+</a
+      ><a name="6616" class="Symbol"
+      >...</a
+      ><a name="6619"
+      >    </a
+      ><a name="6623" class="Symbol"
+      >|</a
+      ><a name="6624"
+      > </a
+      ><a name="6625" class="Symbol"
+      >(</a
+      ><a name="6626" href="Core.html#6626" class="Bound"
+      >sf&#8322;'</a
+      ><a name="6630"
+      > </a
+      ><a name="6631" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6632"
+      > </a
+      ><a name="6633" href="Core.html#6633" class="Bound"
+      >sc</a
+      ><a name="6635" class="Symbol"
+      >)</a
+      ><a name="6636"
+      > </a
+      ><a name="6637" class="Symbol"
+      >=</a
+      ><a name="6638"
+      > </a
+      ><a name="6639" class="Symbol"
+      >(</a
+      ><a name="6640" class="InductiveConstructor"
+      >seq</a
+      ><a name="6643"
+      > </a
+      ><a name="6644" href="Core.html#6585" class="Bound"
+      >sf&#8321;'</a
+      ><a name="6648"
+      > </a
+      ><a name="6649" href="Core.html#6626" class="Bound"
+      >sf&#8322;'</a
+      ><a name="6653"
+      > </a
+      ><a name="6654" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6655"
+      > </a
+      ><a name="6656" href="Core.html#6633" class="Bound"
+      >sc</a
+      ><a name="6658" class="Symbol"
+      >)</a
+      ><a name="6659"
+      >
+</a
+      ><a name="6660" href="Core.html#6355" class="Function"
+      >step'</a
+      ><a name="6665"
+      > </a
+      ><a name="6666" href="Core.html#6666" class="Bound"
+      >&#948;</a
+      ><a name="6667"
+      > </a
+      ><a name="6668" class="Symbol"
+      >(</a
+      ><a name="6669" href="Core.html#5276" class="InductiveConstructor"
+      >fan</a
+      ><a name="6672"
+      > </a
+      ><a name="6673" href="Core.html#6673" class="Bound"
+      >sf&#8321;</a
+      ><a name="6676"
+      > </a
+      ><a name="6677" href="Core.html#6677" class="Bound"
+      >sf&#8322;</a
+      ><a name="6680" class="Symbol"
+      >)</a
+      ><a name="6681"
+      > </a
+      ><a name="6682" href="Core.html#6682" class="Bound"
+      >sa</a
+      ><a name="6684"
+      > </a
+      ><a name="6685" class="Keyword"
+      >with</a
+      ><a name="6689"
+      > </a
+      ><a name="6690" href="Core.html#6355" class="Function"
+      >step'</a
+      ><a name="6695"
+      > </a
+      ><a name="6696" href="Core.html#6666" class="Bound"
+      >&#948;</a
+      ><a name="6697"
+      > </a
+      ><a name="6698" href="Core.html#6673" class="Bound"
+      >sf&#8321;</a
+      ><a name="6701"
+      > </a
+      ><a name="6702" href="Core.html#6682" class="Bound"
+      >sa</a
+      ><a name="6704"
+      > </a
+      ><a name="6705" class="Symbol"
+      >|</a
+      ><a name="6706"
+      > </a
+      ><a name="6707" href="Core.html#6355" class="Function"
+      >step'</a
+      ><a name="6712"
+      > </a
+      ><a name="6713" href="Core.html#6666" class="Bound"
+      >&#948;</a
+      ><a name="6714"
+      > </a
+      ><a name="6715" href="Core.html#6677" class="Bound"
+      >sf&#8322;</a
+      ><a name="6718"
+      > </a
+      ><a name="6719" href="Core.html#6682" class="Bound"
+      >sa</a
+      ><a name="6721"
+      >
+</a
+      ><a name="6722" class="Symbol"
+      >...</a
+      ><a name="6725"
+      > </a
+      ><a name="6726" class="Symbol"
+      >|</a
+      ><a name="6727"
+      > </a
+      ><a name="6728" class="Symbol"
+      >(</a
+      ><a name="6729" href="Core.html#6729" class="Bound"
+      >sf&#8321;'</a
+      ><a name="6733"
+      > </a
+      ><a name="6734" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6735"
+      > </a
+      ><a name="6736" href="Core.html#6736" class="Bound"
+      >sb</a
+      ><a name="6738" class="Symbol"
+      >)</a
+      ><a name="6739"
+      > </a
+      ><a name="6740" class="Symbol"
+      >|</a
+      ><a name="6741"
+      > </a
+      ><a name="6742" class="Symbol"
+      >(</a
+      ><a name="6743" href="Core.html#6743" class="Bound"
+      >sf&#8322;'</a
+      ><a name="6747"
+      > </a
+      ><a name="6748" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6749"
+      > </a
+      ><a name="6750" href="Core.html#6750" class="Bound"
+      >sc</a
+      ><a name="6752" class="Symbol"
+      >)</a
+      ><a name="6753"
+      > </a
+      ><a name="6754" class="Symbol"
+      >=</a
+      ><a name="6755"
+      > </a
+      ><a name="6756" class="Symbol"
+      >(</a
+      ><a name="6757" class="InductiveConstructor"
+      >fan</a
+      ><a name="6760"
+      > </a
+      ><a name="6761" href="Core.html#6729" class="Bound"
+      >sf&#8321;'</a
+      ><a name="6765"
+      > </a
+      ><a name="6766" href="Core.html#6743" class="Bound"
+      >sf&#8322;'</a
+      ><a name="6770"
+      > </a
+      ><a name="6771" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6772"
+      > </a
+      ><a name="6773" class="Symbol"
+      >(</a
+      ><a name="6774" href="Core.html#6736" class="Bound"
+      >sb</a
+      ><a name="6776"
+      > </a
+      ><a name="6777" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6778"
+      > </a
+      ><a name="6779" href="Core.html#6750" class="Bound"
+      >sc</a
+      ><a name="6781" class="Symbol"
+      >))</a
+      ><a name="6783"
+      >
+</a
+      ><a name="6784" href="Core.html#6355" class="Function"
+      >step'</a
+      ><a name="6789"
+      > </a
+      ><a name="6790" href="Core.html#6790" class="Bound"
+      >&#948;</a
+      ><a name="6791"
+      > </a
+      ><a name="6792" class="Symbol"
+      >(</a
+      ><a name="6793" href="Core.html#5370" class="InductiveConstructor"
+      >rswitcher</a
+      ><a name="6802"
+      > </a
+      ><a name="6803" href="Core.html#6803" class="Bound"
+      >sf</a
+      ><a name="6805"
+      > </a
+      ><a name="6806" href="Core.html#6806" class="Bound"
+      >f</a
+      ><a name="6807" class="Symbol"
+      >)</a
+      ><a name="6808"
+      > </a
+      ><a name="6809" href="Core.html#6809" class="Bound"
+      >sa</a
+      ><a name="6811"
+      > </a
+      ><a name="6812" class="Keyword"
+      >with</a
+      ><a name="6816"
+      > </a
+      ><a name="6817" href="Core.html#6355" class="Function"
+      >step'</a
+      ><a name="6822"
+      > </a
+      ><a name="6823" href="Core.html#6790" class="Bound"
+      >&#948;</a
+      ><a name="6824"
+      > </a
+      ><a name="6825" href="Core.html#6803" class="Bound"
+      >sf</a
+      ><a name="6827"
+      > </a
+      ><a name="6828" href="Core.html#6809" class="Bound"
+      >sa</a
+      ><a name="6830"
+      >
+</a
+      ><a name="6831" class="Symbol"
+      >...</a
+      ><a name="6834"
+      > </a
+      ><a name="6835" class="Symbol"
+      >|</a
+      ><a name="6836"
+      > </a
+      ><a name="6837" class="Symbol"
+      >(</a
+      ><a name="6838" href="Core.html#6838" class="Bound"
+      >sf'</a
+      ><a name="6841"
+      > </a
+      ><a name="6842" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6843"
+      > </a
+      ><a name="6844" class="Symbol"
+      >(</a
+      ><a name="6845" href="Core.html#6845" class="Bound"
+      >sb</a
+      ><a name="6847"
+      > </a
+      ><a name="6848" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6849"
+      > </a
+      ><a name="6850" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="6857" class="Symbol"
+      >))</a
+      ><a name="6859"
+      > </a
+      ><a name="6860" class="Symbol"
+      >=</a
+      ><a name="6861"
+      > </a
+      ><a name="6862" class="Symbol"
+      >(</a
+      ><a name="6863" class="InductiveConstructor"
+      >rswitcher</a
+      ><a name="6872"
+      > </a
+      ><a name="6873" href="Core.html#6838" class="Bound"
+      >sf'</a
+      ><a name="6876"
+      > </a
+      ><a name="6877" href="Core.html#6806" class="Bound"
+      >f</a
+      ><a name="6878"
+      > </a
+      ><a name="6879" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6880"
+      > </a
+      ><a name="6881" href="Core.html#6845" class="Bound"
+      >sb</a
+      ><a name="6883" class="Symbol"
+      >)</a
+      ><a name="6884"
+      >
+</a
+      ><a name="6885" class="Symbol"
+      >...</a
+      ><a name="6888"
+      > </a
+      ><a name="6889" class="Symbol"
+      >|</a
+      ><a name="6890"
+      > </a
+      ><a name="6891" class="Symbol"
+      >(_</a
+      ><a name="6893"
+      >   </a
+      ><a name="6896" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6897"
+      > </a
+      ><a name="6898" class="Symbol"
+      >(_</a
+      ><a name="6900"
+      >  </a
+      ><a name="6902" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6903"
+      > </a
+      ><a name="6904" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="6908"
+      > </a
+      ><a name="6909" href="Core.html#6909" class="Bound"
+      >e</a
+      ><a name="6910" class="Symbol"
+      >))</a
+      ><a name="6912"
+      > </a
+      ><a name="6913" class="Keyword"
+      >with</a
+      ><a name="6917"
+      > </a
+      ><a name="6918" href="Core.html#5619" class="Function"
+      >step&#8320;</a
+      ><a name="6923"
+      > </a
+      ><a name="6924" class="Symbol"
+      >(</a
+      ><a name="6925" href="Core.html#6806" class="Bound"
+      >f</a
+      ><a name="6926"
+      > </a
+      ><a name="6927" href="Core.html#6909" class="Bound"
+      >e</a
+      ><a name="6928" class="Symbol"
+      >)</a
+      ><a name="6929"
+      > </a
+      ><a name="6930" href="Core.html#6809" class="Bound"
+      >sa</a
+      ><a name="6932"
+      >
+</a
+      ><a name="6933" class="Symbol"
+      >...</a
+      ><a name="6936"
+      >    </a
+      ><a name="6940" class="Symbol"
+      >|</a
+      ><a name="6941"
+      > </a
+      ><a name="6942" class="Symbol"
+      >(</a
+      ><a name="6943" href="Core.html#6943" class="Bound"
+      >sf'</a
+      ><a name="6946"
+      > </a
+      ><a name="6947" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6948"
+      > </a
+      ><a name="6949" class="Symbol"
+      >(</a
+      ><a name="6950" href="Core.html#6950" class="Bound"
+      >sb</a
+      ><a name="6952"
+      > </a
+      ><a name="6953" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6954"
+      > </a
+      ><a name="6955" class="Symbol"
+      >_))</a
+      ><a name="6958"
+      > </a
+      ><a name="6959" class="Symbol"
+      >=</a
+      ><a name="6960"
+      > </a
+      ><a name="6961" class="Symbol"
+      >(</a
+      ><a name="6962" class="InductiveConstructor"
+      >rswitcher</a
+      ><a name="6971"
+      > </a
+      ><a name="6972" href="Core.html#6943" class="Bound"
+      >sf'</a
+      ><a name="6975"
+      > </a
+      ><a name="6976" href="Core.html#6806" class="Bound"
+      >f</a
+      ><a name="6977"
+      > </a
+      ><a name="6978" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="6979"
+      > </a
+      ><a name="6980" href="Core.html#6950" class="Bound"
+      >sb</a
+      ><a name="6982" class="Symbol"
+      >)</a
+      ><a name="6983"
+      >
+</a
+      ><a name="6984" href="Core.html#6355" class="Function"
+      >step'</a
+      ><a name="6989"
+      > </a
+      ><a name="6990" href="Core.html#6990" class="Bound"
+      >&#948;</a
+      ><a name="6991"
+      > </a
+      ><a name="6992" class="Symbol"
+      >(</a
+      ><a name="6993" href="Core.html#5457" class="InductiveConstructor"
+      >freezer</a
+      ><a name="7000"
+      > </a
+      ><a name="7001" href="Core.html#7001" class="Bound"
+      >sf</a
+      ><a name="7003" class="Symbol"
+      >)</a
+      ><a name="7004"
+      > </a
+      ><a name="7005" href="Core.html#7005" class="Bound"
+      >sa</a
+      ><a name="7007"
+      > </a
+      ><a name="7008" class="Keyword"
+      >with</a
+      ><a name="7012"
+      > </a
+      ><a name="7013" href="Core.html#6355" class="Function"
+      >step'</a
+      ><a name="7018"
+      > </a
+      ><a name="7019" href="Core.html#6990" class="Bound"
+      >&#948;</a
+      ><a name="7020"
+      > </a
+      ><a name="7021" href="Core.html#7001" class="Bound"
+      >sf</a
+      ><a name="7023"
+      > </a
+      ><a name="7024" href="Core.html#7005" class="Bound"
+      >sa</a
+      ><a name="7026"
+      >
+</a
+      ><a name="7027" class="Symbol"
+      >...</a
+      ><a name="7030"
+      > </a
+      ><a name="7031" class="Symbol"
+      >|</a
+      ><a name="7032"
+      > </a
+      ><a name="7033" class="Symbol"
+      >(</a
+      ><a name="7034" href="Core.html#7034" class="Bound"
+      >sf'</a
+      ><a name="7037"
+      > </a
+      ><a name="7038" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="7039"
+      > </a
+      ><a name="7040" href="Core.html#7040" class="Bound"
+      >sb</a
+      ><a name="7042" class="Symbol"
+      >)</a
+      ><a name="7043"
+      > </a
+      ><a name="7044" class="Symbol"
+      >=</a
+      ><a name="7045"
+      > </a
+      ><a name="7046" class="Symbol"
+      >(</a
+      ><a name="7047" class="InductiveConstructor"
+      >freezer</a
+      ><a name="7054"
+      > </a
+      ><a name="7055" href="Core.html#7034" class="Bound"
+      >sf'</a
+      ><a name="7058"
+      > </a
+      ><a name="7059" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="7060"
+      > </a
+      ><a name="7061" class="Symbol"
+      >(</a
+      ><a name="7062" href="Core.html#7040" class="Bound"
+      >sb</a
+      ><a name="7064"
+      > </a
+      ><a name="7065" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="7066"
+      > </a
+      ><a name="7067" href="Core.html#7095" class="Function"
+      >freezeSF</a
+      ><a name="7075"
+      > </a
+      ><a name="7076" href="Core.html#6990" class="Bound"
+      >&#948;</a
+      ><a name="7077"
+      > </a
+      ><a name="7078" href="Core.html#7001" class="Bound"
+      >sf</a
+      ><a name="7080" class="Symbol"
+      >))</a
+      ><a name="7082"
+      >
+  </a
+      ><a name="7085" class="Keyword"
+      >where</a
+      ><a name="7090"
+      >
+    </a
+      ><a name="7095" href="Core.html#7095" class="Function"
+      >freezeSF</a
+      ><a name="7103"
+      > </a
+      ><a name="7104" class="Symbol"
+      >:</a
+      ><a name="7105"
+      > </a
+      ><a name="7106" class="Symbol"
+      >&#8704;</a
+      ><a name="7107"
+      > </a
+      ><a name="7108" class="Symbol"
+      >{</a
+      ><a name="7109" href="Core.html#7109" class="Bound"
+      >as</a
+      ><a name="7111"
+      > </a
+      ><a name="7112" href="Core.html#7112" class="Bound"
+      >bs</a
+      ><a name="7114" class="Symbol"
+      >}</a
+      ><a name="7115"
+      > </a
+      ><a name="7116" class="Symbol"
+      >&#8594;</a
+      ><a name="7117"
+      > </a
+      ><a name="7118" href="RealTime.html#205" class="Function"
+      >&#916;t</a
+      ><a name="7120"
+      > </a
+      ><a name="7121" class="Symbol"
+      >&#8594;</a
+      ><a name="7122"
+      > </a
+      ><a name="7123" href="Core.html#4979" class="Datatype"
+      >SF'</a
+      ><a name="7126"
+      > </a
+      ><a name="7127" href="Core.html#7109" class="Bound"
+      >as</a
+      ><a name="7129"
+      > </a
+      ><a name="7130" href="Core.html#7112" class="Bound"
+      >bs</a
+      ><a name="7132"
+      > </a
+      ><a name="7133" class="Symbol"
+      >&#8594;</a
+      ><a name="7134"
+      > </a
+      ><a name="7135" href="Core.html#4406" class="Datatype"
+      >SF</a
+      ><a name="7137"
+      > </a
+      ><a name="7138" href="Core.html#7109" class="Bound"
+      >as</a
+      ><a name="7140"
+      > </a
+      ><a name="7141" href="Core.html#7112" class="Bound"
+      >bs</a
+      ><a name="7143"
+      >
+    </a
+      ><a name="7148" href="Core.html#7095" class="Function"
+      >freezeSF</a
+      ><a name="7156"
+      > </a
+      ><a name="7157" href="Core.html#7157" class="Bound"
+      >&#948;</a
+      ><a name="7158"
+      > </a
+      ><a name="7159" class="Symbol"
+      >(</a
+      ><a name="7160" href="Core.html#5015" class="InductiveConstructor"
+      >prim</a
+      ><a name="7164"
+      > </a
+      ><a name="7165" href="Core.html#7165" class="Bound"
+      >n</a
+      ><a name="7166" class="Symbol"
+      >)</a
+      ><a name="7167"
+      >          </a
+      ><a name="7177" class="Symbol"
+      >=</a
+      ><a name="7178"
+      > </a
+      ><a name="7179" href="Core.html#4441" class="InductiveConstructor"
+      >prim</a
+      ><a name="7183"
+      > </a
+      ><a name="7184" class="Symbol"
+      >(</a
+      ><a name="7185" href="Core.html#319" class="Function"
+      >stepNode</a
+      ><a name="7193"
+      > </a
+      ><a name="7194" href="Core.html#7157" class="Bound"
+      >&#948;</a
+      ><a name="7195"
+      > </a
+      ><a name="7196" href="Core.html#7165" class="Bound"
+      >n</a
+      ><a name="7197" class="Symbol"
+      >)</a
+      ><a name="7198"
+      >
+    </a
+      ><a name="7203" href="Core.html#7095" class="Function"
+      >freezeSF</a
+      ><a name="7211"
+      > </a
+      ><a name="7212" href="Core.html#7212" class="Bound"
+      >&#948;</a
+      ><a name="7213"
+      > </a
+      ><a name="7214" class="Symbol"
+      >(</a
+      ><a name="7215" href="Core.html#5102" class="InductiveConstructor"
+      >arouter</a
+      ><a name="7222"
+      > </a
+      ><a name="7223" href="Core.html#7223" class="Bound"
+      >r</a
+      ><a name="7224" class="Symbol"
+      >)</a
+      ><a name="7225"
+      >       </a
+      ><a name="7232" class="Symbol"
+      >=</a
+      ><a name="7233"
+      > </a
+      ><a name="7234" href="Core.html#4526" class="InductiveConstructor"
+      >arouter</a
+      ><a name="7241"
+      > </a
+      ><a name="7242" href="Core.html#7223" class="Bound"
+      >r</a
+      ><a name="7243"
+      >
+    </a
+      ><a name="7248" href="Core.html#7095" class="Function"
+      >freezeSF</a
+      ><a name="7256"
+      > </a
+      ><a name="7257" href="Core.html#7257" class="Bound"
+      >&#948;</a
+      ><a name="7258"
+      > </a
+      ><a name="7259" class="Symbol"
+      >(</a
+      ><a name="7260" href="Core.html#5189" class="InductiveConstructor"
+      >seq</a
+      ><a name="7263"
+      > </a
+      ><a name="7264" href="Core.html#7264" class="Bound"
+      >sf&#8321;</a
+      ><a name="7267"
+      > </a
+      ><a name="7268" href="Core.html#7268" class="Bound"
+      >sf&#8322;</a
+      ><a name="7271" class="Symbol"
+      >)</a
+      ><a name="7272"
+      >     </a
+      ><a name="7277" class="Symbol"
+      >=</a
+      ><a name="7278"
+      > </a
+      ><a name="7279" href="Core.html#4611" class="InductiveConstructor"
+      >seq</a
+      ><a name="7282"
+      > </a
+      ><a name="7283" class="Symbol"
+      >(</a
+      ><a name="7284" href="Core.html#7095" class="Function"
+      >freezeSF</a
+      ><a name="7292"
+      > </a
+      ><a name="7293" href="Core.html#7257" class="Bound"
+      >&#948;</a
+      ><a name="7294"
+      > </a
+      ><a name="7295" href="Core.html#7264" class="Bound"
+      >sf&#8321;</a
+      ><a name="7298" class="Symbol"
+      >)</a
+      ><a name="7299"
+      > </a
+      ><a name="7300" class="Symbol"
+      >(</a
+      ><a name="7301" href="Core.html#7095" class="Function"
+      >freezeSF</a
+      ><a name="7309"
+      > </a
+      ><a name="7310" href="Core.html#7257" class="Bound"
+      >&#948;</a
+      ><a name="7311"
+      > </a
+      ><a name="7312" href="Core.html#7268" class="Bound"
+      >sf&#8322;</a
+      ><a name="7315" class="Symbol"
+      >)</a
+      ><a name="7316"
+      >
+    </a
+      ><a name="7321" href="Core.html#7095" class="Function"
+      >freezeSF</a
+      ><a name="7329"
+      > </a
+      ><a name="7330" href="Core.html#7330" class="Bound"
+      >&#948;</a
+      ><a name="7331"
+      > </a
+      ><a name="7332" class="Symbol"
+      >(</a
+      ><a name="7333" href="Core.html#5276" class="InductiveConstructor"
+      >fan</a
+      ><a name="7336"
+      > </a
+      ><a name="7337" href="Core.html#7337" class="Bound"
+      >sf&#8321;</a
+      ><a name="7340"
+      > </a
+      ><a name="7341" href="Core.html#7341" class="Bound"
+      >sf&#8322;</a
+      ><a name="7344" class="Symbol"
+      >)</a
+      ><a name="7345"
+      >     </a
+      ><a name="7350" class="Symbol"
+      >=</a
+      ><a name="7351"
+      > </a
+      ><a name="7352" href="Core.html#4696" class="InductiveConstructor"
+      >fan</a
+      ><a name="7355"
+      > </a
+      ><a name="7356" class="Symbol"
+      >(</a
+      ><a name="7357" href="Core.html#7095" class="Function"
+      >freezeSF</a
+      ><a name="7365"
+      > </a
+      ><a name="7366" href="Core.html#7330" class="Bound"
+      >&#948;</a
+      ><a name="7367"
+      > </a
+      ><a name="7368" href="Core.html#7337" class="Bound"
+      >sf&#8321;</a
+      ><a name="7371" class="Symbol"
+      >)</a
+      ><a name="7372"
+      > </a
+      ><a name="7373" class="Symbol"
+      >(</a
+      ><a name="7374" href="Core.html#7095" class="Function"
+      >freezeSF</a
+      ><a name="7382"
+      > </a
+      ><a name="7383" href="Core.html#7330" class="Bound"
+      >&#948;</a
+      ><a name="7384"
+      > </a
+      ><a name="7385" href="Core.html#7341" class="Bound"
+      >sf&#8322;</a
+      ><a name="7388" class="Symbol"
+      >)</a
+      ><a name="7389"
+      >
+    </a
+      ><a name="7394" href="Core.html#7095" class="Function"
+      >freezeSF</a
+      ><a name="7402"
+      > </a
+      ><a name="7403" href="Core.html#7403" class="Bound"
+      >&#948;</a
+      ><a name="7404"
+      > </a
+      ><a name="7405" class="Symbol"
+      >(</a
+      ><a name="7406" href="Core.html#5370" class="InductiveConstructor"
+      >rswitcher</a
+      ><a name="7415"
+      > </a
+      ><a name="7416" href="Core.html#7416" class="Bound"
+      >sf</a
+      ><a name="7418"
+      > </a
+      ><a name="7419" href="Core.html#7419" class="Bound"
+      >f</a
+      ><a name="7420" class="Symbol"
+      >)</a
+      ><a name="7421"
+      >  </a
+      ><a name="7423" class="Symbol"
+      >=</a
+      ><a name="7424"
+      > </a
+      ><a name="7425" href="Core.html#4788" class="InductiveConstructor"
+      >rswitcher</a
+      ><a name="7434"
+      > </a
+      ><a name="7435" class="Symbol"
+      >(</a
+      ><a name="7436" href="Core.html#7095" class="Function"
+      >freezeSF</a
+      ><a name="7444"
+      > </a
+      ><a name="7445" href="Core.html#7403" class="Bound"
+      >&#948;</a
+      ><a name="7446"
+      > </a
+      ><a name="7447" href="Core.html#7416" class="Bound"
+      >sf</a
+      ><a name="7449" class="Symbol"
+      >)</a
+      ><a name="7450"
+      > </a
+      ><a name="7451" href="Core.html#7419" class="Bound"
+      >f</a
+      ><a name="7452"
+      >
+    </a
+      ><a name="7457" href="Core.html#7095" class="Function"
+      >freezeSF</a
+      ><a name="7465"
+      > </a
+      ><a name="7466" href="Core.html#7466" class="Bound"
+      >&#948;</a
+      ><a name="7467"
+      > </a
+      ><a name="7468" class="Symbol"
+      >(</a
+      ><a name="7469" href="Core.html#5457" class="InductiveConstructor"
+      >freezer</a
+      ><a name="7476"
+      > </a
+      ><a name="7477" href="Core.html#7477" class="Bound"
+      >sf</a
+      ><a name="7479" class="Symbol"
+      >)</a
+      ><a name="7480"
+      >      </a
+      ><a name="7486" class="Symbol"
+      >=</a
+      ><a name="7487"
+      > </a
+      ><a name="7488" href="Core.html#4873" class="InductiveConstructor"
+      >freezer</a
+      ><a name="7495"
+      > </a
+      ><a name="7496" class="Symbol"
+      >(</a
+      ><a name="7497" href="Core.html#7095" class="Function"
+      >freezeSF</a
+      ><a name="7505"
+      > </a
+      ><a name="7506" href="Core.html#7466" class="Bound"
+      >&#948;</a
+      ><a name="7507"
+      > </a
+      ><a name="7508" href="Core.html#7477" class="Bound"
+      >sf</a
+      ><a name="7510" class="Symbol"
+      >)</a
+      ><a name="7511"
+      >
+
+</a
+      ><a name="7513" class="Comment"
+      >---------------------------------------------------------</a
+      ><a name="7570"
+      >
+</a
+      ></pre
+    ></body
+  ></html
+>

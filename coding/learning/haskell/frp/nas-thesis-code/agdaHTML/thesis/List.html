@@ -1,0 +1,4374 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >List</title
+    ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta http-equiv="Content-Style-Type" content="text/css"
+     /><link href="Agda.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><pre
+    ><a name="1" class="Symbol"
+      >{-#</a
+      ><a name="4"
+      > </a
+      ><a name="5" class="Keyword"
+      >OPTIONS</a
+      ><a name="12"
+      > --type-in-type </a
+      ><a name="28" class="Symbol"
+      >#-}</a
+      ><a name="31"
+      >
+
+</a
+      ><a name="33" class="Keyword"
+      >open</a
+      ><a name="37"
+      > </a
+      ><a name="38" class="Keyword"
+      >import</a
+      ><a name="44"
+      > </a
+      ><a name="45" href="NeilPrelude.html#77" class="Module"
+      >NeilPrelude</a
+      ><a name="56"
+      >
+</a
+      ><a name="57" class="Keyword"
+      >open</a
+      ><a name="61"
+      > </a
+      ><a name="62" class="Keyword"
+      >import</a
+      ><a name="68"
+      > </a
+      ><a name="69" href="Bool.html#69" class="Module"
+      >Bool</a
+      ><a name="73"
+      >
+
+</a
+      ><a name="75" class="Keyword"
+      >module</a
+      ><a name="81"
+      > </a
+      ><a name="82" href="List.html#82" class="Module"
+      >List</a
+      ><a name="86"
+      > </a
+      ><a name="87" class="Keyword"
+      >where</a
+      ><a name="92"
+      >
+
+</a
+      ><a name="94" class="Keyword"
+      >infixr</a
+      ><a name="100"
+      > </a
+      ><a name="101" class="Number"
+      >16</a
+      ><a name="103"
+      > _&#8759;_
+</a
+      ><a name="108" class="Keyword"
+      >infixr</a
+      ><a name="114"
+      > </a
+      ><a name="115" class="Number"
+      >15</a
+      ><a name="117"
+      > _++_
+
+</a
+      ><a name="124" class="Keyword"
+      >data</a
+      ><a name="128"
+      > </a
+      ><a name="129" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="133"
+      > </a
+      ><a name="134" class="Symbol"
+      >(</a
+      ><a name="135" href="List.html#135" class="Bound"
+      >A</a
+      ><a name="136"
+      > </a
+      ><a name="137" class="Symbol"
+      >:</a
+      ><a name="138"
+      > </a
+      ><a name="139" class="PrimitiveType"
+      >Set</a
+      ><a name="142" class="Symbol"
+      >)</a
+      ><a name="143"
+      > </a
+      ><a name="144" class="Symbol"
+      >:</a
+      ><a name="145"
+      > </a
+      ><a name="146" class="PrimitiveType"
+      >Set</a
+      ><a name="149"
+      > </a
+      ><a name="150" class="Keyword"
+      >where</a
+      ><a name="155"
+      >
+  </a
+      ><a name="158" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="160"
+      >   </a
+      ><a name="163" class="Symbol"
+      >:</a
+      ><a name="164"
+      > </a
+      ><a name="165" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="169"
+      > </a
+      ><a name="170" href="List.html#135" class="Bound"
+      >A</a
+      ><a name="171"
+      >
+  </a
+      ><a name="174" href="List.html#174" class="InductiveConstructor Operator"
+      >_&#8759;_</a
+      ><a name="177"
+      >  </a
+      ><a name="179" class="Symbol"
+      >:</a
+      ><a name="180"
+      > </a
+      ><a name="181" href="List.html#135" class="Bound"
+      >A</a
+      ><a name="182"
+      > </a
+      ><a name="183" class="Symbol"
+      >&#8594;</a
+      ><a name="184"
+      > </a
+      ><a name="185" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="189"
+      > </a
+      ><a name="190" href="List.html#135" class="Bound"
+      >A</a
+      ><a name="191"
+      > </a
+      ><a name="192" class="Symbol"
+      >&#8594;</a
+      ><a name="193"
+      > </a
+      ><a name="194" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="198"
+      > </a
+      ><a name="199" href="List.html#135" class="Bound"
+      >A</a
+      ><a name="200"
+      >
+
+</a
+      ><a name="202" class="Symbol"
+      >{-#</a
+      ><a name="205"
+      > </a
+      ><a name="206" class="Keyword"
+      >BUILTIN</a
+      ><a name="213"
+      > LIST </a
+      ><a name="219" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="223"
+      > </a
+      ><a name="224" class="Symbol"
+      >#-}</a
+      ><a name="227"
+      >
+</a
+      ><a name="228" class="Symbol"
+      >{-#</a
+      ><a name="231"
+      > </a
+      ><a name="232" class="Keyword"
+      >BUILTIN</a
+      ><a name="239"
+      > NIL  </a
+      ><a name="245" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="247"
+      >  </a
+      ><a name="249" class="Symbol"
+      >#-}</a
+      ><a name="252"
+      >
+</a
+      ><a name="253" class="Symbol"
+      >{-#</a
+      ><a name="256"
+      > </a
+      ><a name="257" class="Keyword"
+      >BUILTIN</a
+      ><a name="264"
+      > CONS </a
+      ><a name="270" href="List.html#174" class="InductiveConstructor Operator"
+      >_&#8759;_</a
+      ><a name="273"
+      > </a
+      ><a name="274" class="Symbol"
+      >#-}</a
+      ><a name="277"
+      >
+
+</a
+      ><a name="279" href="List.html#279" class="Function Operator"
+      >[_]</a
+      ><a name="282"
+      > </a
+      ><a name="283" class="Symbol"
+      >:</a
+      ><a name="284"
+      > </a
+      ><a name="285" class="Symbol"
+      >{</a
+      ><a name="286" href="List.html#286" class="Bound"
+      >A</a
+      ><a name="287"
+      > </a
+      ><a name="288" class="Symbol"
+      >:</a
+      ><a name="289"
+      > </a
+      ><a name="290" class="PrimitiveType"
+      >Set</a
+      ><a name="293" class="Symbol"
+      >}</a
+      ><a name="294"
+      > </a
+      ><a name="295" class="Symbol"
+      >&#8594;</a
+      ><a name="296"
+      > </a
+      ><a name="297" class="Symbol"
+      >(</a
+      ><a name="298" href="List.html#298" class="Bound"
+      >a</a
+      ><a name="299"
+      > </a
+      ><a name="300" class="Symbol"
+      >:</a
+      ><a name="301"
+      > </a
+      ><a name="302" href="List.html#286" class="Bound"
+      >A</a
+      ><a name="303" class="Symbol"
+      >)</a
+      ><a name="304"
+      > </a
+      ><a name="305" class="Symbol"
+      >&#8594;</a
+      ><a name="306"
+      > </a
+      ><a name="307" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="311"
+      > </a
+      ><a name="312" href="List.html#286" class="Bound"
+      >A</a
+      ><a name="313"
+      >
+</a
+      ><a name="314" href="List.html#279" class="Function Operator"
+      >[</a
+      ><a name="315"
+      > </a
+      ><a name="316" href="List.html#316" class="Bound"
+      >a</a
+      ><a name="317"
+      > </a
+      ><a name="318" href="List.html#279" class="Function Operator"
+      >]</a
+      ><a name="319"
+      > </a
+      ><a name="320" class="Symbol"
+      >=</a
+      ><a name="321"
+      > </a
+      ><a name="322" href="List.html#316" class="Bound"
+      >a</a
+      ><a name="323"
+      > </a
+      ><a name="324" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="325"
+      > </a
+      ><a name="326" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="328"
+      >
+
+</a
+      ><a name="330" class="Comment"
+      >--- Non-Empty Lists ----------------------</a
+      ><a name="372"
+      >
+
+</a
+      ><a name="374" class="Comment"
+      >-- data NonEmptyList (A : Set) : Set where</a
+      ><a name="416"
+      >
+</a
+      ><a name="417" class="Comment"
+      >--   _&#8759;_ : A &#8594; List A &#8594; NonEmptyList A</a
+      ><a name="455"
+      >
+
+</a
+      ><a name="457" class="Comment"
+      >--- List Functions -----------------------</a
+      ><a name="499"
+      >
+
+</a
+      ><a name="501" href="List.html#501" class="Function"
+      >wrap</a
+      ><a name="505"
+      > </a
+      ><a name="506" class="Symbol"
+      >:</a
+      ><a name="507"
+      > </a
+      ><a name="508" class="Symbol"
+      >{</a
+      ><a name="509" href="List.html#509" class="Bound"
+      >A</a
+      ><a name="510"
+      > </a
+      ><a name="511" class="Symbol"
+      >:</a
+      ><a name="512"
+      > </a
+      ><a name="513" class="PrimitiveType"
+      >Set</a
+      ><a name="516" class="Symbol"
+      >}</a
+      ><a name="517"
+      > </a
+      ><a name="518" class="Symbol"
+      >&#8594;</a
+      ><a name="519"
+      > </a
+      ><a name="520" class="Symbol"
+      >(</a
+      ><a name="521" href="List.html#521" class="Bound"
+      >a</a
+      ><a name="522"
+      > </a
+      ><a name="523" class="Symbol"
+      >:</a
+      ><a name="524"
+      > </a
+      ><a name="525" href="List.html#509" class="Bound"
+      >A</a
+      ><a name="526" class="Symbol"
+      >)</a
+      ><a name="527"
+      > </a
+      ><a name="528" class="Symbol"
+      >&#8594;</a
+      ><a name="529"
+      > </a
+      ><a name="530" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="534"
+      > </a
+      ><a name="535" href="List.html#509" class="Bound"
+      >A</a
+      ><a name="536"
+      >
+</a
+      ><a name="537" href="List.html#501" class="Function"
+      >wrap</a
+      ><a name="541"
+      > </a
+      ><a name="542" href="List.html#542" class="Bound"
+      >a</a
+      ><a name="543"
+      > </a
+      ><a name="544" class="Symbol"
+      >=</a
+      ><a name="545"
+      > </a
+      ><a name="546" href="List.html#542" class="Bound"
+      >a</a
+      ><a name="547"
+      > </a
+      ><a name="548" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="549"
+      > </a
+      ><a name="550" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="552"
+      >
+
+
+</a
+      ><a name="555" href="List.html#555" class="Function"
+      >listcases</a
+      ><a name="564"
+      > </a
+      ><a name="565" class="Symbol"
+      >:</a
+      ><a name="566"
+      > </a
+      ><a name="567" class="Symbol"
+      >{</a
+      ><a name="568" href="List.html#568" class="Bound"
+      >A</a
+      ><a name="569"
+      > </a
+      ><a name="570" class="Symbol"
+      >:</a
+      ><a name="571"
+      > </a
+      ><a name="572" class="PrimitiveType"
+      >Set</a
+      ><a name="575" class="Symbol"
+      >}</a
+      ><a name="576"
+      > </a
+      ><a name="577" class="Symbol"
+      >&#8594;</a
+      ><a name="578"
+      > </a
+      ><a name="579" class="Symbol"
+      >{</a
+      ><a name="580" href="List.html#580" class="Bound"
+      >P</a
+      ><a name="581"
+      > </a
+      ><a name="582" class="Symbol"
+      >:</a
+      ><a name="583"
+      > </a
+      ><a name="584" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="588"
+      > </a
+      ><a name="589" href="List.html#568" class="Bound"
+      >A</a
+      ><a name="590"
+      > </a
+      ><a name="591" class="Symbol"
+      >&#8594;</a
+      ><a name="592"
+      > </a
+      ><a name="593" class="PrimitiveType"
+      >Set</a
+      ><a name="596" class="Symbol"
+      >}</a
+      ><a name="597"
+      > </a
+      ><a name="598" class="Symbol"
+      >&#8594;</a
+      ><a name="599"
+      > </a
+      ><a name="600" href="List.html#580" class="Bound"
+      >P</a
+      ><a name="601"
+      > </a
+      ><a name="602" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="604"
+      > </a
+      ><a name="605" class="Symbol"
+      >&#8594;</a
+      ><a name="606"
+      > </a
+      ><a name="607" class="Symbol"
+      >((</a
+      ><a name="609" href="List.html#609" class="Bound"
+      >a</a
+      ><a name="610"
+      > </a
+      ><a name="611" class="Symbol"
+      >:</a
+      ><a name="612"
+      > </a
+      ><a name="613" href="List.html#568" class="Bound"
+      >A</a
+      ><a name="614" class="Symbol"
+      >)</a
+      ><a name="615"
+      > </a
+      ><a name="616" class="Symbol"
+      >&#8594;</a
+      ><a name="617"
+      > </a
+      ><a name="618" class="Symbol"
+      >(</a
+      ><a name="619" href="List.html#619" class="Bound"
+      >as</a
+      ><a name="621"
+      > </a
+      ><a name="622" class="Symbol"
+      >:</a
+      ><a name="623"
+      > </a
+      ><a name="624" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="628"
+      > </a
+      ><a name="629" href="List.html#568" class="Bound"
+      >A</a
+      ><a name="630" class="Symbol"
+      >)</a
+      ><a name="631"
+      > </a
+      ><a name="632" class="Symbol"
+      >&#8594;</a
+      ><a name="633"
+      > </a
+      ><a name="634" href="List.html#580" class="Bound"
+      >P</a
+      ><a name="635"
+      > </a
+      ><a name="636" class="Symbol"
+      >(</a
+      ><a name="637" href="List.html#609" class="Bound"
+      >a</a
+      ><a name="638"
+      > </a
+      ><a name="639" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="640"
+      > </a
+      ><a name="641" href="List.html#619" class="Bound"
+      >as</a
+      ><a name="643" class="Symbol"
+      >))</a
+      ><a name="645"
+      > </a
+      ><a name="646" class="Symbol"
+      >&#8594;</a
+      ><a name="647"
+      > </a
+      ><a name="648" class="Symbol"
+      >(</a
+      ><a name="649" href="List.html#649" class="Bound"
+      >as</a
+      ><a name="651"
+      > </a
+      ><a name="652" class="Symbol"
+      >:</a
+      ><a name="653"
+      > </a
+      ><a name="654" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="658"
+      > </a
+      ><a name="659" href="List.html#568" class="Bound"
+      >A</a
+      ><a name="660" class="Symbol"
+      >)</a
+      ><a name="661"
+      > </a
+      ><a name="662" class="Symbol"
+      >&#8594;</a
+      ><a name="663"
+      > </a
+      ><a name="664" href="List.html#580" class="Bound"
+      >P</a
+      ><a name="665"
+      > </a
+      ><a name="666" href="List.html#649" class="Bound"
+      >as</a
+      ><a name="668"
+      >
+</a
+      ><a name="669" href="List.html#555" class="Function"
+      >listcases</a
+      ><a name="678"
+      > </a
+      ><a name="679" href="List.html#679" class="Bound"
+      >b</a
+      ><a name="680"
+      > </a
+      ><a name="681" class="Symbol"
+      >_</a
+      ><a name="682"
+      > </a
+      ><a name="683" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="685"
+      > </a
+      ><a name="686" class="Symbol"
+      >=</a
+      ><a name="687"
+      > </a
+      ><a name="688" href="List.html#679" class="Bound"
+      >b</a
+      ><a name="689"
+      >
+</a
+      ><a name="690" href="List.html#555" class="Function"
+      >listcases</a
+      ><a name="699"
+      > </a
+      ><a name="700" class="Symbol"
+      >_</a
+      ><a name="701"
+      > </a
+      ><a name="702" href="List.html#702" class="Bound"
+      >f</a
+      ><a name="703"
+      > </a
+      ><a name="704" class="Symbol"
+      >(</a
+      ><a name="705" href="List.html#705" class="Bound"
+      >a</a
+      ><a name="706"
+      > </a
+      ><a name="707" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="708"
+      > </a
+      ><a name="709" href="List.html#709" class="Bound"
+      >as</a
+      ><a name="711" class="Symbol"
+      >)</a
+      ><a name="712"
+      > </a
+      ><a name="713" class="Symbol"
+      >=</a
+      ><a name="714"
+      > </a
+      ><a name="715" href="List.html#702" class="Bound"
+      >f</a
+      ><a name="716"
+      > </a
+      ><a name="717" href="List.html#705" class="Bound"
+      >a</a
+      ><a name="718"
+      > </a
+      ><a name="719" href="List.html#709" class="Bound"
+      >as</a
+      ><a name="721"
+      >
+
+</a
+      ><a name="723" class="Comment"
+      >-- foldr is the non-dependent version of listrec</a
+      ><a name="771"
+      >
+
+</a
+      ><a name="773" href="List.html#773" class="Function"
+      >foldr</a
+      ><a name="778"
+      > </a
+      ><a name="779" class="Symbol"
+      >:</a
+      ><a name="780"
+      > </a
+      ><a name="781" class="Symbol"
+      >{</a
+      ><a name="782" href="List.html#782" class="Bound"
+      >A</a
+      ><a name="783"
+      > </a
+      ><a name="784" href="List.html#784" class="Bound"
+      >B</a
+      ><a name="785"
+      > </a
+      ><a name="786" class="Symbol"
+      >:</a
+      ><a name="787"
+      > </a
+      ><a name="788" class="PrimitiveType"
+      >Set</a
+      ><a name="791" class="Symbol"
+      >}</a
+      ><a name="792"
+      > </a
+      ><a name="793" class="Symbol"
+      >&#8594;</a
+      ><a name="794"
+      > </a
+      ><a name="795" class="Symbol"
+      >(</a
+      ><a name="796" href="List.html#784" class="Bound"
+      >B</a
+      ><a name="797"
+      > </a
+      ><a name="798" class="Symbol"
+      >&#8594;</a
+      ><a name="799"
+      > </a
+      ><a name="800" href="List.html#782" class="Bound"
+      >A</a
+      ><a name="801"
+      > </a
+      ><a name="802" class="Symbol"
+      >&#8594;</a
+      ><a name="803"
+      > </a
+      ><a name="804" href="List.html#782" class="Bound"
+      >A</a
+      ><a name="805" class="Symbol"
+      >)</a
+      ><a name="806"
+      > </a
+      ><a name="807" class="Symbol"
+      >&#8594;</a
+      ><a name="808"
+      > </a
+      ><a name="809" href="List.html#782" class="Bound"
+      >A</a
+      ><a name="810"
+      > </a
+      ><a name="811" class="Symbol"
+      >&#8594;</a
+      ><a name="812"
+      > </a
+      ><a name="813" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="817"
+      > </a
+      ><a name="818" href="List.html#784" class="Bound"
+      >B</a
+      ><a name="819"
+      > </a
+      ><a name="820" class="Symbol"
+      >&#8594;</a
+      ><a name="821"
+      > </a
+      ><a name="822" href="List.html#782" class="Bound"
+      >A</a
+      ><a name="823"
+      >
+</a
+      ><a name="824" href="List.html#773" class="Function"
+      >foldr</a
+      ><a name="829"
+      > </a
+      ><a name="830" href="List.html#830" class="Bound"
+      >f</a
+      ><a name="831"
+      > </a
+      ><a name="832" href="List.html#832" class="Bound"
+      >a</a
+      ><a name="833"
+      > </a
+      ><a name="834" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="836"
+      >       </a
+      ><a name="843" class="Symbol"
+      >=</a
+      ><a name="844"
+      > </a
+      ><a name="845" href="List.html#832" class="Bound"
+      >a</a
+      ><a name="846"
+      >
+</a
+      ><a name="847" href="List.html#773" class="Function"
+      >foldr</a
+      ><a name="852"
+      > </a
+      ><a name="853" href="List.html#853" class="Bound"
+      >f</a
+      ><a name="854"
+      > </a
+      ><a name="855" href="List.html#855" class="Bound"
+      >a</a
+      ><a name="856"
+      > </a
+      ><a name="857" class="Symbol"
+      >(</a
+      ><a name="858" href="List.html#858" class="Bound"
+      >b</a
+      ><a name="859"
+      > </a
+      ><a name="860" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="861"
+      > </a
+      ><a name="862" href="List.html#862" class="Bound"
+      >bs</a
+      ><a name="864" class="Symbol"
+      >)</a
+      ><a name="865"
+      > </a
+      ><a name="866" class="Symbol"
+      >=</a
+      ><a name="867"
+      > </a
+      ><a name="868" href="List.html#853" class="Bound"
+      >f</a
+      ><a name="869"
+      > </a
+      ><a name="870" href="List.html#858" class="Bound"
+      >b</a
+      ><a name="871"
+      > </a
+      ><a name="872" class="Symbol"
+      >(</a
+      ><a name="873" href="List.html#773" class="Function"
+      >foldr</a
+      ><a name="878"
+      > </a
+      ><a name="879" href="List.html#853" class="Bound"
+      >f</a
+      ><a name="880"
+      > </a
+      ><a name="881" href="List.html#855" class="Bound"
+      >a</a
+      ><a name="882"
+      > </a
+      ><a name="883" href="List.html#862" class="Bound"
+      >bs</a
+      ><a name="885" class="Symbol"
+      >)</a
+      ><a name="886"
+      >
+
+</a
+      ><a name="888" href="List.html#888" class="Function"
+      >foldl</a
+      ><a name="893"
+      > </a
+      ><a name="894" class="Symbol"
+      >:</a
+      ><a name="895"
+      > </a
+      ><a name="896" class="Symbol"
+      >{</a
+      ><a name="897" href="List.html#897" class="Bound"
+      >A</a
+      ><a name="898"
+      > </a
+      ><a name="899" href="List.html#899" class="Bound"
+      >B</a
+      ><a name="900"
+      > </a
+      ><a name="901" class="Symbol"
+      >:</a
+      ><a name="902"
+      > </a
+      ><a name="903" class="PrimitiveType"
+      >Set</a
+      ><a name="906" class="Symbol"
+      >}</a
+      ><a name="907"
+      > </a
+      ><a name="908" class="Symbol"
+      >&#8594;</a
+      ><a name="909"
+      > </a
+      ><a name="910" class="Symbol"
+      >(</a
+      ><a name="911" href="List.html#897" class="Bound"
+      >A</a
+      ><a name="912"
+      > </a
+      ><a name="913" class="Symbol"
+      >&#8594;</a
+      ><a name="914"
+      > </a
+      ><a name="915" href="List.html#899" class="Bound"
+      >B</a
+      ><a name="916"
+      > </a
+      ><a name="917" class="Symbol"
+      >&#8594;</a
+      ><a name="918"
+      > </a
+      ><a name="919" href="List.html#897" class="Bound"
+      >A</a
+      ><a name="920" class="Symbol"
+      >)</a
+      ><a name="921"
+      > </a
+      ><a name="922" class="Symbol"
+      >&#8594;</a
+      ><a name="923"
+      > </a
+      ><a name="924" href="List.html#897" class="Bound"
+      >A</a
+      ><a name="925"
+      > </a
+      ><a name="926" class="Symbol"
+      >&#8594;</a
+      ><a name="927"
+      > </a
+      ><a name="928" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="932"
+      > </a
+      ><a name="933" href="List.html#899" class="Bound"
+      >B</a
+      ><a name="934"
+      > </a
+      ><a name="935" class="Symbol"
+      >&#8594;</a
+      ><a name="936"
+      > </a
+      ><a name="937" href="List.html#897" class="Bound"
+      >A</a
+      ><a name="938"
+      >
+</a
+      ><a name="939" href="List.html#888" class="Function"
+      >foldl</a
+      ><a name="944"
+      > </a
+      ><a name="945" href="List.html#945" class="Bound"
+      >f</a
+      ><a name="946"
+      > </a
+      ><a name="947" href="List.html#947" class="Bound"
+      >a</a
+      ><a name="948"
+      > </a
+      ><a name="949" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="951"
+      >       </a
+      ><a name="958" class="Symbol"
+      >=</a
+      ><a name="959"
+      > </a
+      ><a name="960" href="List.html#947" class="Bound"
+      >a</a
+      ><a name="961"
+      >
+</a
+      ><a name="962" href="List.html#888" class="Function"
+      >foldl</a
+      ><a name="967"
+      > </a
+      ><a name="968" href="List.html#968" class="Bound"
+      >f</a
+      ><a name="969"
+      > </a
+      ><a name="970" href="List.html#970" class="Bound"
+      >a</a
+      ><a name="971"
+      > </a
+      ><a name="972" class="Symbol"
+      >(</a
+      ><a name="973" href="List.html#973" class="Bound"
+      >b</a
+      ><a name="974"
+      > </a
+      ><a name="975" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="976"
+      > </a
+      ><a name="977" href="List.html#977" class="Bound"
+      >bs</a
+      ><a name="979" class="Symbol"
+      >)</a
+      ><a name="980"
+      > </a
+      ><a name="981" class="Symbol"
+      >=</a
+      ><a name="982"
+      > </a
+      ><a name="983" href="List.html#888" class="Function"
+      >foldl</a
+      ><a name="988"
+      > </a
+      ><a name="989" href="List.html#968" class="Bound"
+      >f</a
+      ><a name="990"
+      > </a
+      ><a name="991" class="Symbol"
+      >(</a
+      ><a name="992" href="List.html#968" class="Bound"
+      >f</a
+      ><a name="993"
+      > </a
+      ><a name="994" href="List.html#970" class="Bound"
+      >a</a
+      ><a name="995"
+      > </a
+      ><a name="996" href="List.html#973" class="Bound"
+      >b</a
+      ><a name="997" class="Symbol"
+      >)</a
+      ><a name="998"
+      > </a
+      ><a name="999" href="List.html#977" class="Bound"
+      >bs</a
+      ><a name="1001"
+      >
+
+</a
+      ><a name="1003" href="List.html#1003" class="Function Operator"
+      >_++_</a
+      ><a name="1007"
+      > </a
+      ><a name="1008" class="Symbol"
+      >:</a
+      ><a name="1009"
+      > </a
+      ><a name="1010" class="Symbol"
+      >{</a
+      ><a name="1011" href="List.html#1011" class="Bound"
+      >A</a
+      ><a name="1012"
+      > </a
+      ><a name="1013" class="Symbol"
+      >:</a
+      ><a name="1014"
+      > </a
+      ><a name="1015" class="PrimitiveType"
+      >Set</a
+      ><a name="1018" class="Symbol"
+      >}</a
+      ><a name="1019"
+      > </a
+      ><a name="1020" class="Symbol"
+      >&#8594;</a
+      ><a name="1021"
+      > </a
+      ><a name="1022" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1026"
+      > </a
+      ><a name="1027" href="List.html#1011" class="Bound"
+      >A</a
+      ><a name="1028"
+      > </a
+      ><a name="1029" class="Symbol"
+      >&#8594;</a
+      ><a name="1030"
+      > </a
+      ><a name="1031" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1035"
+      > </a
+      ><a name="1036" href="List.html#1011" class="Bound"
+      >A</a
+      ><a name="1037"
+      > </a
+      ><a name="1038" class="Symbol"
+      >&#8594;</a
+      ><a name="1039"
+      > </a
+      ><a name="1040" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1044"
+      > </a
+      ><a name="1045" href="List.html#1011" class="Bound"
+      >A</a
+      ><a name="1046"
+      >
+</a
+      ><a name="1047" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="1049"
+      > </a
+      ><a name="1050" href="List.html#1003" class="Function Operator"
+      >++</a
+      ><a name="1052"
+      > </a
+      ><a name="1053" href="List.html#1053" class="Bound"
+      >bs</a
+      ><a name="1055"
+      > </a
+      ><a name="1056" class="Symbol"
+      >=</a
+      ><a name="1057"
+      > </a
+      ><a name="1058" href="List.html#1053" class="Bound"
+      >bs</a
+      ><a name="1060"
+      >
+</a
+      ><a name="1061" class="Symbol"
+      >(</a
+      ><a name="1062" href="List.html#1062" class="Bound"
+      >a</a
+      ><a name="1063"
+      > </a
+      ><a name="1064" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="1065"
+      > </a
+      ><a name="1066" href="List.html#1066" class="Bound"
+      >as</a
+      ><a name="1068" class="Symbol"
+      >)</a
+      ><a name="1069"
+      > </a
+      ><a name="1070" href="List.html#1003" class="Function Operator"
+      >++</a
+      ><a name="1072"
+      > </a
+      ><a name="1073" href="List.html#1073" class="Bound"
+      >bs</a
+      ><a name="1075"
+      > </a
+      ><a name="1076" class="Symbol"
+      >=</a
+      ><a name="1077"
+      > </a
+      ><a name="1078" href="List.html#1062" class="Bound"
+      >a</a
+      ><a name="1079"
+      > </a
+      ><a name="1080" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="1081"
+      > </a
+      ><a name="1082" class="Symbol"
+      >(</a
+      ><a name="1083" href="List.html#1066" class="Bound"
+      >as</a
+      ><a name="1085"
+      > </a
+      ><a name="1086" href="List.html#1003" class="Function Operator"
+      >++</a
+      ><a name="1088"
+      > </a
+      ><a name="1089" href="List.html#1073" class="Bound"
+      >bs</a
+      ><a name="1091" class="Symbol"
+      >)</a
+      ><a name="1092"
+      >
+
+</a
+      ><a name="1094" href="List.html#1094" class="Function"
+      >map</a
+      ><a name="1097"
+      > </a
+      ><a name="1098" class="Symbol"
+      >:</a
+      ><a name="1099"
+      > </a
+      ><a name="1100" class="Symbol"
+      >{</a
+      ><a name="1101" href="List.html#1101" class="Bound"
+      >A</a
+      ><a name="1102"
+      > </a
+      ><a name="1103" href="List.html#1103" class="Bound"
+      >B</a
+      ><a name="1104"
+      > </a
+      ><a name="1105" class="Symbol"
+      >:</a
+      ><a name="1106"
+      > </a
+      ><a name="1107" class="PrimitiveType"
+      >Set</a
+      ><a name="1110" class="Symbol"
+      >}</a
+      ><a name="1111"
+      > </a
+      ><a name="1112" class="Symbol"
+      >&#8594;</a
+      ><a name="1113"
+      > </a
+      ><a name="1114" class="Symbol"
+      >(</a
+      ><a name="1115" href="List.html#1101" class="Bound"
+      >A</a
+      ><a name="1116"
+      > </a
+      ><a name="1117" class="Symbol"
+      >&#8594;</a
+      ><a name="1118"
+      > </a
+      ><a name="1119" href="List.html#1103" class="Bound"
+      >B</a
+      ><a name="1120" class="Symbol"
+      >)</a
+      ><a name="1121"
+      > </a
+      ><a name="1122" class="Symbol"
+      >&#8594;</a
+      ><a name="1123"
+      > </a
+      ><a name="1124" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1128"
+      > </a
+      ><a name="1129" href="List.html#1101" class="Bound"
+      >A</a
+      ><a name="1130"
+      > </a
+      ><a name="1131" class="Symbol"
+      >&#8594;</a
+      ><a name="1132"
+      > </a
+      ><a name="1133" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1137"
+      > </a
+      ><a name="1138" href="List.html#1103" class="Bound"
+      >B</a
+      ><a name="1139"
+      >
+</a
+      ><a name="1140" href="List.html#1094" class="Function"
+      >map</a
+      ><a name="1143"
+      > </a
+      ><a name="1144" href="List.html#1144" class="Bound"
+      >f</a
+      ><a name="1145"
+      > </a
+      ><a name="1146" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="1148"
+      > </a
+      ><a name="1149" class="Symbol"
+      >=</a
+      ><a name="1150"
+      > </a
+      ><a name="1151" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="1153"
+      >
+</a
+      ><a name="1154" href="List.html#1094" class="Function"
+      >map</a
+      ><a name="1157"
+      > </a
+      ><a name="1158" href="List.html#1158" class="Bound"
+      >f</a
+      ><a name="1159"
+      > </a
+      ><a name="1160" class="Symbol"
+      >(</a
+      ><a name="1161" href="List.html#1161" class="Bound"
+      >a</a
+      ><a name="1162"
+      > </a
+      ><a name="1163" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="1164"
+      > </a
+      ><a name="1165" href="List.html#1165" class="Bound"
+      >as</a
+      ><a name="1167" class="Symbol"
+      >)</a
+      ><a name="1168"
+      > </a
+      ><a name="1169" class="Symbol"
+      >=</a
+      ><a name="1170"
+      > </a
+      ><a name="1171" href="List.html#1158" class="Bound"
+      >f</a
+      ><a name="1172"
+      > </a
+      ><a name="1173" href="List.html#1161" class="Bound"
+      >a</a
+      ><a name="1174"
+      > </a
+      ><a name="1175" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="1176"
+      > </a
+      ><a name="1177" href="List.html#1094" class="Function"
+      >map</a
+      ><a name="1180"
+      > </a
+      ><a name="1181" href="List.html#1158" class="Bound"
+      >f</a
+      ><a name="1182"
+      > </a
+      ><a name="1183" href="List.html#1165" class="Bound"
+      >as</a
+      ><a name="1185"
+      >
+
+</a
+      ><a name="1187" class="Comment"
+      >{-
+_++_ : {A : Set} &#8594; List A &#8594; List A &#8594; List A
+as ++ bs = foldr _&#8759;_ bs as
+
+map : {A B : Set} &#8594; (A &#8594; B) &#8594; List A &#8594; List B
+map f = foldr (\a &#8594; _&#8759;_ (f a)) []
+-}</a
+      ><a name="1344"
+      >
+
+</a
+      ><a name="1346" class="Keyword"
+      >open</a
+      ><a name="1350"
+      > </a
+      ><a name="1351" class="Keyword"
+      >import</a
+      ><a name="1357"
+      > </a
+      ><a name="1358" href="Maybe.html#65" class="Module"
+      >Maybe</a
+      ><a name="1363"
+      >
+
+</a
+      ><a name="1365" href="List.html#1365" class="Function"
+      >head</a
+      ><a name="1369"
+      > </a
+      ><a name="1370" class="Symbol"
+      >:</a
+      ><a name="1371"
+      > </a
+      ><a name="1372" class="Symbol"
+      >{</a
+      ><a name="1373" href="List.html#1373" class="Bound"
+      >A</a
+      ><a name="1374"
+      > </a
+      ><a name="1375" class="Symbol"
+      >:</a
+      ><a name="1376"
+      > </a
+      ><a name="1377" class="PrimitiveType"
+      >Set</a
+      ><a name="1380" class="Symbol"
+      >}</a
+      ><a name="1381"
+      > </a
+      ><a name="1382" class="Symbol"
+      >&#8594;</a
+      ><a name="1383"
+      > </a
+      ><a name="1384" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1388"
+      > </a
+      ><a name="1389" href="List.html#1373" class="Bound"
+      >A</a
+      ><a name="1390"
+      > </a
+      ><a name="1391" class="Symbol"
+      >&#8594;</a
+      ><a name="1392"
+      > </a
+      ><a name="1393" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="1398"
+      > </a
+      ><a name="1399" href="List.html#1373" class="Bound"
+      >A</a
+      ><a name="1400"
+      >
+</a
+      ><a name="1401" href="List.html#1365" class="Function"
+      >head</a
+      ><a name="1405"
+      > </a
+      ><a name="1406" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="1408"
+      >       </a
+      ><a name="1415" class="Symbol"
+      >=</a
+      ><a name="1416"
+      >  </a
+      ><a name="1418" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="1425"
+      >
+</a
+      ><a name="1426" href="List.html#1365" class="Function"
+      >head</a
+      ><a name="1430"
+      > </a
+      ><a name="1431" class="Symbol"
+      >(</a
+      ><a name="1432" href="List.html#1432" class="Bound"
+      >a</a
+      ><a name="1433"
+      > </a
+      ><a name="1434" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="1435"
+      > </a
+      ><a name="1436" class="Symbol"
+      >_)</a
+      ><a name="1438"
+      >  </a
+      ><a name="1440" class="Symbol"
+      >=</a
+      ><a name="1441"
+      >  </a
+      ><a name="1443" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="1447"
+      > </a
+      ><a name="1448" href="List.html#1432" class="Bound"
+      >a</a
+      ><a name="1449"
+      >
+
+</a
+      ><a name="1451" href="List.html#1451" class="Function"
+      >safehead</a
+      ><a name="1459"
+      > </a
+      ><a name="1460" class="Symbol"
+      >:</a
+      ><a name="1461"
+      > </a
+      ><a name="1462" class="Symbol"
+      >{</a
+      ><a name="1463" href="List.html#1463" class="Bound"
+      >A</a
+      ><a name="1464"
+      > </a
+      ><a name="1465" class="Symbol"
+      >:</a
+      ><a name="1466"
+      > </a
+      ><a name="1467" class="PrimitiveType"
+      >Set</a
+      ><a name="1470" class="Symbol"
+      >}</a
+      ><a name="1471"
+      > </a
+      ><a name="1472" class="Symbol"
+      >&#8594;</a
+      ><a name="1473"
+      > </a
+      ><a name="1474" href="List.html#1463" class="Bound"
+      >A</a
+      ><a name="1475"
+      > </a
+      ><a name="1476" class="Symbol"
+      >&#8594;</a
+      ><a name="1477"
+      > </a
+      ><a name="1478" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1482"
+      > </a
+      ><a name="1483" href="List.html#1463" class="Bound"
+      >A</a
+      ><a name="1484"
+      > </a
+      ><a name="1485" class="Symbol"
+      >&#8594;</a
+      ><a name="1486"
+      > </a
+      ><a name="1487" href="List.html#1463" class="Bound"
+      >A</a
+      ><a name="1488"
+      >
+</a
+      ><a name="1489" href="List.html#1451" class="Function"
+      >safehead</a
+      ><a name="1497"
+      > </a
+      ><a name="1498" href="List.html#1498" class="Bound"
+      >a</a
+      ><a name="1499"
+      > </a
+      ><a name="1500" class="Symbol"
+      >=</a
+      ><a name="1501"
+      > </a
+      ><a name="1502" href="Maybe.html#175" class="Function"
+      >fromMaybe</a
+      ><a name="1511"
+      > </a
+      ><a name="1512" href="List.html#1498" class="Bound"
+      >a</a
+      ><a name="1513"
+      > </a
+      ><a name="1514" href="NeilPrelude.html#8326" class="Function Operator"
+      >&#8728;</a
+      ><a name="1515"
+      > </a
+      ><a name="1516" href="List.html#1365" class="Function"
+      >head</a
+      ><a name="1520"
+      >
+
+</a
+      ><a name="1522" href="List.html#1522" class="Function"
+      >concat</a
+      ><a name="1528"
+      > </a
+      ><a name="1529" class="Symbol"
+      >:</a
+      ><a name="1530"
+      > </a
+      ><a name="1531" class="Symbol"
+      >{</a
+      ><a name="1532" href="List.html#1532" class="Bound"
+      >A</a
+      ><a name="1533"
+      > </a
+      ><a name="1534" class="Symbol"
+      >:</a
+      ><a name="1535"
+      > </a
+      ><a name="1536" class="PrimitiveType"
+      >Set</a
+      ><a name="1539" class="Symbol"
+      >}</a
+      ><a name="1540"
+      > </a
+      ><a name="1541" class="Symbol"
+      >&#8594;</a
+      ><a name="1542"
+      > </a
+      ><a name="1543" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1547"
+      > </a
+      ><a name="1548" class="Symbol"
+      >(</a
+      ><a name="1549" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1553"
+      > </a
+      ><a name="1554" href="List.html#1532" class="Bound"
+      >A</a
+      ><a name="1555" class="Symbol"
+      >)</a
+      ><a name="1556"
+      > </a
+      ><a name="1557" class="Symbol"
+      >&#8594;</a
+      ><a name="1558"
+      > </a
+      ><a name="1559" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1563"
+      > </a
+      ><a name="1564" href="List.html#1532" class="Bound"
+      >A</a
+      ><a name="1565"
+      >
+</a
+      ><a name="1566" href="List.html#1522" class="Function"
+      >concat</a
+      ><a name="1572"
+      > </a
+      ><a name="1573" class="Symbol"
+      >=</a
+      ><a name="1574"
+      > </a
+      ><a name="1575" href="List.html#773" class="Function"
+      >foldr</a
+      ><a name="1580"
+      > </a
+      ><a name="1581" href="List.html#1003" class="Function Operator"
+      >_++_</a
+      ><a name="1585"
+      > </a
+      ><a name="1586" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="1588"
+      >
+
+</a
+      ><a name="1590" href="List.html#1590" class="Function"
+      >rev</a
+      ><a name="1593"
+      > </a
+      ><a name="1594" class="Symbol"
+      >:</a
+      ><a name="1595"
+      > </a
+      ><a name="1596" class="Symbol"
+      >{</a
+      ><a name="1597" href="List.html#1597" class="Bound"
+      >A</a
+      ><a name="1598"
+      > </a
+      ><a name="1599" class="Symbol"
+      >:</a
+      ><a name="1600"
+      > </a
+      ><a name="1601" class="PrimitiveType"
+      >Set</a
+      ><a name="1604" class="Symbol"
+      >}</a
+      ><a name="1605"
+      > </a
+      ><a name="1606" class="Symbol"
+      >&#8594;</a
+      ><a name="1607"
+      > </a
+      ><a name="1608" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1612"
+      > </a
+      ><a name="1613" href="List.html#1597" class="Bound"
+      >A</a
+      ><a name="1614"
+      > </a
+      ><a name="1615" class="Symbol"
+      >&#8594;</a
+      ><a name="1616"
+      > </a
+      ><a name="1617" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1621"
+      > </a
+      ><a name="1622" href="List.html#1597" class="Bound"
+      >A</a
+      ><a name="1623"
+      > </a
+      ><a name="1624" class="Symbol"
+      >&#8594;</a
+      ><a name="1625"
+      > </a
+      ><a name="1626" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1630"
+      > </a
+      ><a name="1631" href="List.html#1597" class="Bound"
+      >A</a
+      ><a name="1632"
+      >
+</a
+      ><a name="1633" href="List.html#1590" class="Function"
+      >rev</a
+      ><a name="1636"
+      > </a
+      ><a name="1637" href="List.html#1637" class="Bound"
+      >ac</a
+      ><a name="1639"
+      > </a
+      ><a name="1640" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="1642"
+      >       </a
+      ><a name="1649" class="Symbol"
+      >=</a
+      ><a name="1650"
+      > </a
+      ><a name="1651" href="List.html#1637" class="Bound"
+      >ac</a
+      ><a name="1653"
+      >
+</a
+      ><a name="1654" href="List.html#1590" class="Function"
+      >rev</a
+      ><a name="1657"
+      > </a
+      ><a name="1658" href="List.html#1658" class="Bound"
+      >ac</a
+      ><a name="1660"
+      > </a
+      ><a name="1661" class="Symbol"
+      >(</a
+      ><a name="1662" href="List.html#1662" class="Bound"
+      >a</a
+      ><a name="1663"
+      > </a
+      ><a name="1664" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="1665"
+      > </a
+      ><a name="1666" href="List.html#1666" class="Bound"
+      >as</a
+      ><a name="1668" class="Symbol"
+      >)</a
+      ><a name="1669"
+      > </a
+      ><a name="1670" class="Symbol"
+      >=</a
+      ><a name="1671"
+      > </a
+      ><a name="1672" href="List.html#1590" class="Function"
+      >rev</a
+      ><a name="1675"
+      > </a
+      ><a name="1676" class="Symbol"
+      >(</a
+      ><a name="1677" href="List.html#1662" class="Bound"
+      >a</a
+      ><a name="1678"
+      > </a
+      ><a name="1679" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="1680"
+      > </a
+      ><a name="1681" href="List.html#1658" class="Bound"
+      >ac</a
+      ><a name="1683" class="Symbol"
+      >)</a
+      ><a name="1684"
+      > </a
+      ><a name="1685" href="List.html#1666" class="Bound"
+      >as</a
+      ><a name="1687"
+      >
+
+</a
+      ><a name="1689" href="List.html#1689" class="Function"
+      >reverse</a
+      ><a name="1696"
+      > </a
+      ><a name="1697" class="Symbol"
+      >:</a
+      ><a name="1698"
+      > </a
+      ><a name="1699" class="Symbol"
+      >{</a
+      ><a name="1700" href="List.html#1700" class="Bound"
+      >A</a
+      ><a name="1701"
+      > </a
+      ><a name="1702" class="Symbol"
+      >:</a
+      ><a name="1703"
+      > </a
+      ><a name="1704" class="PrimitiveType"
+      >Set</a
+      ><a name="1707" class="Symbol"
+      >}</a
+      ><a name="1708"
+      > </a
+      ><a name="1709" class="Symbol"
+      >&#8594;</a
+      ><a name="1710"
+      > </a
+      ><a name="1711" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1715"
+      > </a
+      ><a name="1716" href="List.html#1700" class="Bound"
+      >A</a
+      ><a name="1717"
+      > </a
+      ><a name="1718" class="Symbol"
+      >&#8594;</a
+      ><a name="1719"
+      > </a
+      ><a name="1720" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1724"
+      > </a
+      ><a name="1725" href="List.html#1700" class="Bound"
+      >A</a
+      ><a name="1726"
+      >
+</a
+      ><a name="1727" href="List.html#1689" class="Function"
+      >reverse</a
+      ><a name="1734"
+      > </a
+      ><a name="1735" href="List.html#1735" class="Bound"
+      >as</a
+      ><a name="1737"
+      > </a
+      ><a name="1738" class="Symbol"
+      >=</a
+      ><a name="1739"
+      > </a
+      ><a name="1740" href="List.html#1590" class="Function"
+      >rev</a
+      ><a name="1743"
+      > </a
+      ><a name="1744" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="1746"
+      > </a
+      ><a name="1747" href="List.html#1735" class="Bound"
+      >as</a
+      ><a name="1749"
+      >
+
+</a
+      ><a name="1751" href="List.html#1751" class="Function"
+      >slowreverse</a
+      ><a name="1762"
+      > </a
+      ><a name="1763" class="Symbol"
+      >:</a
+      ><a name="1764"
+      > </a
+      ><a name="1765" class="Symbol"
+      >{</a
+      ><a name="1766" href="List.html#1766" class="Bound"
+      >A</a
+      ><a name="1767"
+      > </a
+      ><a name="1768" class="Symbol"
+      >:</a
+      ><a name="1769"
+      > </a
+      ><a name="1770" class="PrimitiveType"
+      >Set</a
+      ><a name="1773" class="Symbol"
+      >}</a
+      ><a name="1774"
+      > </a
+      ><a name="1775" class="Symbol"
+      >&#8594;</a
+      ><a name="1776"
+      > </a
+      ><a name="1777" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1781"
+      > </a
+      ><a name="1782" href="List.html#1766" class="Bound"
+      >A</a
+      ><a name="1783"
+      > </a
+      ><a name="1784" class="Symbol"
+      >&#8594;</a
+      ><a name="1785"
+      > </a
+      ><a name="1786" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1790"
+      > </a
+      ><a name="1791" href="List.html#1766" class="Bound"
+      >A</a
+      ><a name="1792"
+      >
+</a
+      ><a name="1793" href="List.html#1751" class="Function"
+      >slowreverse</a
+      ><a name="1804"
+      > </a
+      ><a name="1805" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="1807"
+      >        </a
+      ><a name="1815" class="Symbol"
+      >=</a
+      ><a name="1816"
+      > </a
+      ><a name="1817" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="1819"
+      >
+</a
+      ><a name="1820" href="List.html#1751" class="Function"
+      >slowreverse</a
+      ><a name="1831"
+      > </a
+      ><a name="1832" class="Symbol"
+      >(</a
+      ><a name="1833" href="List.html#1833" class="Bound"
+      >a</a
+      ><a name="1834"
+      > </a
+      ><a name="1835" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="1836"
+      > </a
+      ><a name="1837" href="List.html#1837" class="Bound"
+      >as</a
+      ><a name="1839" class="Symbol"
+      >)</a
+      ><a name="1840"
+      >  </a
+      ><a name="1842" class="Symbol"
+      >=</a
+      ><a name="1843"
+      > </a
+      ><a name="1844" href="List.html#1751" class="Function"
+      >slowreverse</a
+      ><a name="1855"
+      > </a
+      ><a name="1856" href="List.html#1837" class="Bound"
+      >as</a
+      ><a name="1858"
+      > </a
+      ><a name="1859" href="List.html#1003" class="Function Operator"
+      >++</a
+      ><a name="1861"
+      > </a
+      ><a name="1862" href="List.html#1833" class="Bound"
+      >a</a
+      ><a name="1863"
+      > </a
+      ><a name="1864" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="1865"
+      > </a
+      ><a name="1866" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="1868"
+      >
+
+</a
+      ><a name="1870" href="List.html#1870" class="Function"
+      >partition</a
+      ><a name="1879"
+      > </a
+      ><a name="1880" class="Symbol"
+      >:</a
+      ><a name="1881"
+      > </a
+      ><a name="1882" class="Symbol"
+      >{</a
+      ><a name="1883" href="List.html#1883" class="Bound"
+      >A</a
+      ><a name="1884"
+      > </a
+      ><a name="1885" class="Symbol"
+      >:</a
+      ><a name="1886"
+      > </a
+      ><a name="1887" class="PrimitiveType"
+      >Set</a
+      ><a name="1890" class="Symbol"
+      >}</a
+      ><a name="1891"
+      > </a
+      ><a name="1892" class="Symbol"
+      >&#8594;</a
+      ><a name="1893"
+      > </a
+      ><a name="1894" class="Symbol"
+      >(</a
+      ><a name="1895" href="List.html#1883" class="Bound"
+      >A</a
+      ><a name="1896"
+      > </a
+      ><a name="1897" class="Symbol"
+      >&#8594;</a
+      ><a name="1898"
+      > </a
+      ><a name="1899" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="1903" class="Symbol"
+      >)</a
+      ><a name="1904"
+      > </a
+      ><a name="1905" class="Symbol"
+      >&#8594;</a
+      ><a name="1906"
+      > </a
+      ><a name="1907" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1911"
+      > </a
+      ><a name="1912" href="List.html#1883" class="Bound"
+      >A</a
+      ><a name="1913"
+      > </a
+      ><a name="1914" class="Symbol"
+      >&#8594;</a
+      ><a name="1915"
+      > </a
+      ><a name="1916" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1920"
+      > </a
+      ><a name="1921" href="List.html#1883" class="Bound"
+      >A</a
+      ><a name="1922"
+      > </a
+      ><a name="1923" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1924"
+      > </a
+      ><a name="1925" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="1929"
+      > </a
+      ><a name="1930" href="List.html#1883" class="Bound"
+      >A</a
+      ><a name="1931"
+      >
+</a
+      ><a name="1932" href="List.html#1870" class="Function"
+      >partition</a
+      ><a name="1941"
+      > </a
+      ><a name="1942" href="List.html#1942" class="Bound"
+      >p</a
+      ><a name="1943"
+      > </a
+      ><a name="1944" class="Symbol"
+      >=</a
+      ><a name="1945"
+      > </a
+      ><a name="1946" href="List.html#773" class="Function"
+      >foldr</a
+      ><a name="1951"
+      > </a
+      ><a name="1952" class="Symbol"
+      >(\</a
+      ><a name="1954" href="List.html#1954" class="Bound"
+      >a</a
+      ><a name="1955"
+      > </a
+      ><a name="1956" class="Symbol"
+      >&#8594;</a
+      ><a name="1957"
+      > </a
+      ><a name="1958" href="Bool.html#237" class="Function Operator"
+      >if</a
+      ><a name="1960"
+      > </a
+      ><a name="1961" href="List.html#1942" class="Bound"
+      >p</a
+      ><a name="1962"
+      > </a
+      ><a name="1963" href="List.html#1954" class="Bound"
+      >a</a
+      ><a name="1964"
+      > </a
+      ><a name="1965" href="Bool.html#237" class="Function Operator"
+      >then</a
+      ><a name="1969"
+      > </a
+      ><a name="1970" href="NeilPrelude.html#14177" class="Function"
+      >first</a
+      ><a name="1975"
+      > </a
+      ><a name="1976" class="Symbol"
+      >(</a
+      ><a name="1977" href="List.html#174" class="InductiveConstructor Operator"
+      >_&#8759;_</a
+      ><a name="1980"
+      > </a
+      ><a name="1981" href="List.html#1954" class="Bound"
+      >a</a
+      ><a name="1982" class="Symbol"
+      >)</a
+      ><a name="1983"
+      > </a
+      ><a name="1984" href="Bool.html#237" class="Function Operator"
+      >else</a
+      ><a name="1988"
+      > </a
+      ><a name="1989" href="NeilPrelude.html#14289" class="Function"
+      >second</a
+      ><a name="1995"
+      > </a
+      ><a name="1996" class="Symbol"
+      >(</a
+      ><a name="1997" href="List.html#174" class="InductiveConstructor Operator"
+      >_&#8759;_</a
+      ><a name="2000"
+      > </a
+      ><a name="2001" href="List.html#1954" class="Bound"
+      >a</a
+      ><a name="2002" class="Symbol"
+      >))</a
+      ><a name="2004"
+      > </a
+      ><a name="2005" class="Symbol"
+      >(</a
+      ><a name="2006" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="2008"
+      > </a
+      ><a name="2009" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2010"
+      > </a
+      ><a name="2011" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="2013" class="Symbol"
+      >)</a
+      ><a name="2014"
+      >
+
+</a
+      ><a name="2016" href="List.html#2016" class="Function"
+      >filter</a
+      ><a name="2022"
+      > </a
+      ><a name="2023" class="Symbol"
+      >:</a
+      ><a name="2024"
+      > </a
+      ><a name="2025" class="Symbol"
+      >{</a
+      ><a name="2026" href="List.html#2026" class="Bound"
+      >A</a
+      ><a name="2027"
+      > </a
+      ><a name="2028" class="Symbol"
+      >:</a
+      ><a name="2029"
+      > </a
+      ><a name="2030" class="PrimitiveType"
+      >Set</a
+      ><a name="2033" class="Symbol"
+      >}</a
+      ><a name="2034"
+      > </a
+      ><a name="2035" class="Symbol"
+      >&#8594;</a
+      ><a name="2036"
+      > </a
+      ><a name="2037" class="Symbol"
+      >(</a
+      ><a name="2038" href="List.html#2026" class="Bound"
+      >A</a
+      ><a name="2039"
+      > </a
+      ><a name="2040" class="Symbol"
+      >&#8594;</a
+      ><a name="2041"
+      > </a
+      ><a name="2042" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="2046" class="Symbol"
+      >)</a
+      ><a name="2047"
+      > </a
+      ><a name="2048" class="Symbol"
+      >&#8594;</a
+      ><a name="2049"
+      > </a
+      ><a name="2050" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2054"
+      > </a
+      ><a name="2055" href="List.html#2026" class="Bound"
+      >A</a
+      ><a name="2056"
+      > </a
+      ><a name="2057" class="Symbol"
+      >&#8594;</a
+      ><a name="2058"
+      > </a
+      ><a name="2059" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2063"
+      > </a
+      ><a name="2064" href="List.html#2026" class="Bound"
+      >A</a
+      ><a name="2065"
+      >
+</a
+      ><a name="2066" href="List.html#2016" class="Function"
+      >filter</a
+      ><a name="2072"
+      > </a
+      ><a name="2073" href="List.html#2073" class="Bound"
+      >p</a
+      ><a name="2074"
+      > </a
+      ><a name="2075" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="2077"
+      > </a
+      ><a name="2078" class="Symbol"
+      >=</a
+      ><a name="2079"
+      > </a
+      ><a name="2080" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="2082"
+      >
+</a
+      ><a name="2083" href="List.html#2016" class="Function"
+      >filter</a
+      ><a name="2089"
+      > </a
+      ><a name="2090" href="List.html#2090" class="Bound"
+      >p</a
+      ><a name="2091"
+      > </a
+      ><a name="2092" class="Symbol"
+      >(</a
+      ><a name="2093" href="List.html#2093" class="Bound"
+      >a</a
+      ><a name="2094"
+      > </a
+      ><a name="2095" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="2096"
+      > </a
+      ><a name="2097" href="List.html#2097" class="Bound"
+      >as</a
+      ><a name="2099" class="Symbol"
+      >)</a
+      ><a name="2100"
+      > </a
+      ><a name="2101" class="Symbol"
+      >=</a
+      ><a name="2102"
+      > </a
+      ><a name="2103" class="Symbol"
+      >(</a
+      ><a name="2104" href="Bool.html#237" class="Function Operator"
+      >if</a
+      ><a name="2106"
+      > </a
+      ><a name="2107" href="List.html#2090" class="Bound"
+      >p</a
+      ><a name="2108"
+      > </a
+      ><a name="2109" href="List.html#2093" class="Bound"
+      >a</a
+      ><a name="2110"
+      > </a
+      ><a name="2111" href="Bool.html#237" class="Function Operator"
+      >then</a
+      ><a name="2115"
+      > </a
+      ><a name="2116" class="Symbol"
+      >(</a
+      ><a name="2117" href="List.html#174" class="InductiveConstructor Operator"
+      >_&#8759;_</a
+      ><a name="2120"
+      > </a
+      ><a name="2121" href="List.html#2093" class="Bound"
+      >a</a
+      ><a name="2122" class="Symbol"
+      >)</a
+      ><a name="2123"
+      > </a
+      ><a name="2124" href="Bool.html#237" class="Function Operator"
+      >else</a
+      ><a name="2128"
+      > </a
+      ><a name="2129" href="NeilPrelude.html#9250" class="Function"
+      >id</a
+      ><a name="2131" class="Symbol"
+      >)</a
+      ><a name="2132"
+      > </a
+      ><a name="2133" class="Symbol"
+      >(</a
+      ><a name="2134" href="List.html#2016" class="Function"
+      >filter</a
+      ><a name="2140"
+      > </a
+      ><a name="2141" href="List.html#2090" class="Bound"
+      >p</a
+      ><a name="2142"
+      > </a
+      ><a name="2143" href="List.html#2097" class="Bound"
+      >as</a
+      ><a name="2145" class="Symbol"
+      >)</a
+      ><a name="2146"
+      >
+
+</a
+      ><a name="2148" href="List.html#2148" class="Function"
+      >null</a
+      ><a name="2152"
+      > </a
+      ><a name="2153" class="Symbol"
+      >:</a
+      ><a name="2154"
+      > </a
+      ><a name="2155" class="Symbol"
+      >{</a
+      ><a name="2156" href="List.html#2156" class="Bound"
+      >A</a
+      ><a name="2157"
+      > </a
+      ><a name="2158" class="Symbol"
+      >:</a
+      ><a name="2159"
+      > </a
+      ><a name="2160" class="PrimitiveType"
+      >Set</a
+      ><a name="2163" class="Symbol"
+      >}</a
+      ><a name="2164"
+      > </a
+      ><a name="2165" class="Symbol"
+      >&#8594;</a
+      ><a name="2166"
+      > </a
+      ><a name="2167" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2171"
+      > </a
+      ><a name="2172" href="List.html#2156" class="Bound"
+      >A</a
+      ><a name="2173"
+      > </a
+      ><a name="2174" class="Symbol"
+      >&#8594;</a
+      ><a name="2175"
+      > </a
+      ><a name="2176" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="2180"
+      >
+</a
+      ><a name="2181" href="List.html#2148" class="Function"
+      >null</a
+      ><a name="2185"
+      > </a
+      ><a name="2186" class="Symbol"
+      >=</a
+      ><a name="2187"
+      > </a
+      ><a name="2188" href="List.html#555" class="Function"
+      >listcases</a
+      ><a name="2197"
+      > </a
+      ><a name="2198" href="NeilPrelude.html#760" class="InductiveConstructor"
+      >true</a
+      ><a name="2202"
+      > </a
+      ><a name="2203" class="Symbol"
+      >(&#955;</a
+      ><a name="2205"
+      > </a
+      ><a name="2206" href="List.html#2206" class="Bound"
+      >_</a
+      ><a name="2207"
+      > </a
+      ><a name="2208" href="List.html#2208" class="Bound"
+      >_</a
+      ><a name="2209"
+      > </a
+      ><a name="2210" class="Symbol"
+      >&#8594;</a
+      ><a name="2211"
+      > </a
+      ><a name="2212" href="NeilPrelude.html#745" class="InductiveConstructor"
+      >false</a
+      ><a name="2217" class="Symbol"
+      >)</a
+      ><a name="2218"
+      >
+
+</a
+      ><a name="2220" href="List.html#2220" class="Function"
+      >nonEmpty</a
+      ><a name="2228"
+      > </a
+      ><a name="2229" class="Symbol"
+      >:</a
+      ><a name="2230"
+      > </a
+      ><a name="2231" class="Symbol"
+      >{</a
+      ><a name="2232" href="List.html#2232" class="Bound"
+      >A</a
+      ><a name="2233"
+      > </a
+      ><a name="2234" class="Symbol"
+      >:</a
+      ><a name="2235"
+      > </a
+      ><a name="2236" class="PrimitiveType"
+      >Set</a
+      ><a name="2239" class="Symbol"
+      >}</a
+      ><a name="2240"
+      > </a
+      ><a name="2241" class="Symbol"
+      >&#8594;</a
+      ><a name="2242"
+      > </a
+      ><a name="2243" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2247"
+      > </a
+      ><a name="2248" href="List.html#2232" class="Bound"
+      >A</a
+      ><a name="2249"
+      > </a
+      ><a name="2250" class="Symbol"
+      >&#8594;</a
+      ><a name="2251"
+      > </a
+      ><a name="2252" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="2256"
+      >
+</a
+      ><a name="2257" href="List.html#2220" class="Function"
+      >nonEmpty</a
+      ><a name="2265"
+      > </a
+      ><a name="2266" class="Symbol"
+      >=</a
+      ><a name="2267"
+      > </a
+      ><a name="2268" href="Bool.html#183" class="Function"
+      >not</a
+      ><a name="2271"
+      > </a
+      ><a name="2272" href="NeilPrelude.html#8326" class="Function Operator"
+      >&#8728;</a
+      ><a name="2273"
+      > </a
+      ><a name="2274" href="List.html#2148" class="Function"
+      >null</a
+      ><a name="2278"
+      >
+
+</a
+      ><a name="2280" href="List.html#2280" class="Function"
+      >zipWith</a
+      ><a name="2287"
+      > </a
+      ><a name="2288" class="Symbol"
+      >:</a
+      ><a name="2289"
+      > </a
+      ><a name="2290" class="Symbol"
+      >{</a
+      ><a name="2291" href="List.html#2291" class="Bound"
+      >A</a
+      ><a name="2292"
+      > </a
+      ><a name="2293" href="List.html#2293" class="Bound"
+      >B</a
+      ><a name="2294"
+      > </a
+      ><a name="2295" href="List.html#2295" class="Bound"
+      >C</a
+      ><a name="2296"
+      > </a
+      ><a name="2297" class="Symbol"
+      >:</a
+      ><a name="2298"
+      > </a
+      ><a name="2299" class="PrimitiveType"
+      >Set</a
+      ><a name="2302" class="Symbol"
+      >}</a
+      ><a name="2303"
+      > </a
+      ><a name="2304" class="Symbol"
+      >&#8594;</a
+      ><a name="2305"
+      > </a
+      ><a name="2306" class="Symbol"
+      >(</a
+      ><a name="2307" href="List.html#2291" class="Bound"
+      >A</a
+      ><a name="2308"
+      > </a
+      ><a name="2309" class="Symbol"
+      >&#8594;</a
+      ><a name="2310"
+      > </a
+      ><a name="2311" href="List.html#2293" class="Bound"
+      >B</a
+      ><a name="2312"
+      > </a
+      ><a name="2313" class="Symbol"
+      >&#8594;</a
+      ><a name="2314"
+      > </a
+      ><a name="2315" href="List.html#2295" class="Bound"
+      >C</a
+      ><a name="2316" class="Symbol"
+      >)</a
+      ><a name="2317"
+      > </a
+      ><a name="2318" class="Symbol"
+      >&#8594;</a
+      ><a name="2319"
+      > </a
+      ><a name="2320" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2324"
+      > </a
+      ><a name="2325" href="List.html#2291" class="Bound"
+      >A</a
+      ><a name="2326"
+      > </a
+      ><a name="2327" class="Symbol"
+      >&#8594;</a
+      ><a name="2328"
+      > </a
+      ><a name="2329" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2333"
+      > </a
+      ><a name="2334" href="List.html#2293" class="Bound"
+      >B</a
+      ><a name="2335"
+      > </a
+      ><a name="2336" class="Symbol"
+      >&#8594;</a
+      ><a name="2337"
+      > </a
+      ><a name="2338" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2342"
+      > </a
+      ><a name="2343" href="List.html#2295" class="Bound"
+      >C</a
+      ><a name="2344"
+      >
+</a
+      ><a name="2345" href="List.html#2280" class="Function"
+      >zipWith</a
+      ><a name="2352"
+      > </a
+      ><a name="2353" href="List.html#2353" class="Bound"
+      >f</a
+      ><a name="2354"
+      > </a
+      ><a name="2355" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="2357"
+      > </a
+      ><a name="2358" href="List.html#2358" class="Bound"
+      >bs</a
+      ><a name="2360"
+      > </a
+      ><a name="2361" class="Symbol"
+      >=</a
+      ><a name="2362"
+      > </a
+      ><a name="2363" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="2365"
+      >
+</a
+      ><a name="2366" href="List.html#2280" class="Function"
+      >zipWith</a
+      ><a name="2373"
+      > </a
+      ><a name="2374" href="List.html#2374" class="Bound"
+      >f</a
+      ><a name="2375"
+      > </a
+      ><a name="2376" href="List.html#2376" class="Bound"
+      >as</a
+      ><a name="2378"
+      > </a
+      ><a name="2379" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="2381"
+      > </a
+      ><a name="2382" class="Symbol"
+      >=</a
+      ><a name="2383"
+      > </a
+      ><a name="2384" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="2386"
+      >
+</a
+      ><a name="2387" href="List.html#2280" class="Function"
+      >zipWith</a
+      ><a name="2394"
+      > </a
+      ><a name="2395" href="List.html#2395" class="Bound"
+      >f</a
+      ><a name="2396"
+      > </a
+      ><a name="2397" class="Symbol"
+      >(</a
+      ><a name="2398" href="List.html#2398" class="Bound"
+      >a</a
+      ><a name="2399"
+      > </a
+      ><a name="2400" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="2401"
+      > </a
+      ><a name="2402" href="List.html#2402" class="Bound"
+      >as</a
+      ><a name="2404" class="Symbol"
+      >)</a
+      ><a name="2405"
+      > </a
+      ><a name="2406" class="Symbol"
+      >(</a
+      ><a name="2407" href="List.html#2407" class="Bound"
+      >b</a
+      ><a name="2408"
+      > </a
+      ><a name="2409" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="2410"
+      > </a
+      ><a name="2411" href="List.html#2411" class="Bound"
+      >bs</a
+      ><a name="2413" class="Symbol"
+      >)</a
+      ><a name="2414"
+      > </a
+      ><a name="2415" class="Symbol"
+      >=</a
+      ><a name="2416"
+      > </a
+      ><a name="2417" href="List.html#2395" class="Bound"
+      >f</a
+      ><a name="2418"
+      > </a
+      ><a name="2419" href="List.html#2398" class="Bound"
+      >a</a
+      ><a name="2420"
+      > </a
+      ><a name="2421" href="List.html#2407" class="Bound"
+      >b</a
+      ><a name="2422"
+      > </a
+      ><a name="2423" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="2424"
+      > </a
+      ><a name="2425" href="List.html#2280" class="Function"
+      >zipWith</a
+      ><a name="2432"
+      > </a
+      ><a name="2433" href="List.html#2395" class="Bound"
+      >f</a
+      ><a name="2434"
+      > </a
+      ><a name="2435" href="List.html#2402" class="Bound"
+      >as</a
+      ><a name="2437"
+      > </a
+      ><a name="2438" href="List.html#2411" class="Bound"
+      >bs</a
+      ><a name="2440"
+      >
+
+</a
+      ><a name="2442" href="List.html#2442" class="Function"
+      >zip</a
+      ><a name="2445"
+      > </a
+      ><a name="2446" class="Symbol"
+      >:</a
+      ><a name="2447"
+      > </a
+      ><a name="2448" class="Symbol"
+      >{</a
+      ><a name="2449" href="List.html#2449" class="Bound"
+      >A</a
+      ><a name="2450"
+      > </a
+      ><a name="2451" href="List.html#2451" class="Bound"
+      >B</a
+      ><a name="2452"
+      > </a
+      ><a name="2453" class="Symbol"
+      >:</a
+      ><a name="2454"
+      > </a
+      ><a name="2455" class="PrimitiveType"
+      >Set</a
+      ><a name="2458" class="Symbol"
+      >}</a
+      ><a name="2459"
+      > </a
+      ><a name="2460" class="Symbol"
+      >&#8594;</a
+      ><a name="2461"
+      > </a
+      ><a name="2462" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2466"
+      > </a
+      ><a name="2467" href="List.html#2449" class="Bound"
+      >A</a
+      ><a name="2468"
+      > </a
+      ><a name="2469" class="Symbol"
+      >&#8594;</a
+      ><a name="2470"
+      > </a
+      ><a name="2471" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2475"
+      > </a
+      ><a name="2476" href="List.html#2451" class="Bound"
+      >B</a
+      ><a name="2477"
+      > </a
+      ><a name="2478" class="Symbol"
+      >&#8594;</a
+      ><a name="2479"
+      > </a
+      ><a name="2480" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2484"
+      > </a
+      ><a name="2485" class="Symbol"
+      >(</a
+      ><a name="2486" href="List.html#2449" class="Bound"
+      >A</a
+      ><a name="2487"
+      > </a
+      ><a name="2488" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="2489"
+      > </a
+      ><a name="2490" href="List.html#2451" class="Bound"
+      >B</a
+      ><a name="2491" class="Symbol"
+      >)</a
+      ><a name="2492"
+      >
+</a
+      ><a name="2493" href="List.html#2442" class="Function"
+      >zip</a
+      ><a name="2496"
+      > </a
+      ><a name="2497" class="Symbol"
+      >=</a
+      ><a name="2498"
+      > </a
+      ><a name="2499" href="List.html#2280" class="Function"
+      >zipWith</a
+      ><a name="2506"
+      > </a
+      ><a name="2507" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >_,_</a
+      ><a name="2510"
+      >
+
+</a
+      ><a name="2512" href="List.html#2512" class="Function"
+      >unzip</a
+      ><a name="2517"
+      > </a
+      ><a name="2518" class="Symbol"
+      >:</a
+      ><a name="2519"
+      > </a
+      ><a name="2520" class="Symbol"
+      >{</a
+      ><a name="2521" href="List.html#2521" class="Bound"
+      >A</a
+      ><a name="2522"
+      > </a
+      ><a name="2523" href="List.html#2523" class="Bound"
+      >B</a
+      ><a name="2524"
+      > </a
+      ><a name="2525" class="Symbol"
+      >:</a
+      ><a name="2526"
+      > </a
+      ><a name="2527" class="PrimitiveType"
+      >Set</a
+      ><a name="2530" class="Symbol"
+      >}</a
+      ><a name="2531"
+      > </a
+      ><a name="2532" class="Symbol"
+      >&#8594;</a
+      ><a name="2533"
+      > </a
+      ><a name="2534" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2538"
+      > </a
+      ><a name="2539" class="Symbol"
+      >(</a
+      ><a name="2540" href="List.html#2521" class="Bound"
+      >A</a
+      ><a name="2541"
+      > </a
+      ><a name="2542" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="2543"
+      > </a
+      ><a name="2544" href="List.html#2523" class="Bound"
+      >B</a
+      ><a name="2545" class="Symbol"
+      >)</a
+      ><a name="2546"
+      > </a
+      ><a name="2547" class="Symbol"
+      >&#8594;</a
+      ><a name="2548"
+      > </a
+      ><a name="2549" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2553"
+      > </a
+      ><a name="2554" href="List.html#2521" class="Bound"
+      >A</a
+      ><a name="2555"
+      > </a
+      ><a name="2556" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="2557"
+      > </a
+      ><a name="2558" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2562"
+      > </a
+      ><a name="2563" href="List.html#2523" class="Bound"
+      >B</a
+      ><a name="2564"
+      >
+</a
+      ><a name="2565" href="List.html#2512" class="Function"
+      >unzip</a
+      ><a name="2570"
+      > </a
+      ><a name="2571" class="Symbol"
+      >=</a
+      ><a name="2572"
+      > </a
+      ><a name="2573" href="List.html#773" class="Function"
+      >foldr</a
+      ><a name="2578"
+      > </a
+      ><a name="2579" class="Symbol"
+      >(</a
+      ><a name="2580" href="NeilPrelude.html#18040" class="Function"
+      >&#215;-map2</a
+      ><a name="2586"
+      > </a
+      ><a name="2587" href="List.html#174" class="InductiveConstructor Operator"
+      >_&#8759;_</a
+      ><a name="2590"
+      > </a
+      ><a name="2591" href="List.html#174" class="InductiveConstructor Operator"
+      >_&#8759;_</a
+      ><a name="2594" class="Symbol"
+      >)</a
+      ><a name="2595"
+      > </a
+      ><a name="2596" class="Symbol"
+      >(</a
+      ><a name="2597" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="2599"
+      > </a
+      ><a name="2600" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2601"
+      > </a
+      ><a name="2602" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="2604" class="Symbol"
+      >)</a
+      ><a name="2605"
+      >
+
+</a
+      ><a name="2607" href="List.html#2607" class="Function"
+      >&#8897;</a
+      ><a name="2608"
+      > </a
+      ><a name="2609" class="Symbol"
+      >:</a
+      ><a name="2610"
+      > </a
+      ><a name="2611" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2615"
+      > </a
+      ><a name="2616" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="2620"
+      > </a
+      ><a name="2621" class="Symbol"
+      >&#8594;</a
+      ><a name="2622"
+      > </a
+      ><a name="2623" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="2627"
+      >
+</a
+      ><a name="2628" href="List.html#2607" class="Function"
+      >&#8897;</a
+      ><a name="2629"
+      > </a
+      ><a name="2630" class="Symbol"
+      >=</a
+      ><a name="2631"
+      > </a
+      ><a name="2632" href="List.html#773" class="Function"
+      >foldr</a
+      ><a name="2637"
+      > </a
+      ><a name="2638" href="Bool.html#471" class="Function Operator"
+      >_&#8744;_</a
+      ><a name="2641"
+      > </a
+      ><a name="2642" href="NeilPrelude.html#745" class="InductiveConstructor"
+      >false</a
+      ><a name="2647"
+      >
+
+</a
+      ><a name="2649" href="List.html#2649" class="Function"
+      >&#8896;</a
+      ><a name="2650"
+      > </a
+      ><a name="2651" class="Symbol"
+      >:</a
+      ><a name="2652"
+      > </a
+      ><a name="2653" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2657"
+      > </a
+      ><a name="2658" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="2662"
+      > </a
+      ><a name="2663" class="Symbol"
+      >&#8594;</a
+      ><a name="2664"
+      > </a
+      ><a name="2665" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="2669"
+      >
+</a
+      ><a name="2670" href="List.html#2649" class="Function"
+      >&#8896;</a
+      ><a name="2671"
+      > </a
+      ><a name="2672" class="Symbol"
+      >=</a
+      ><a name="2673"
+      > </a
+      ><a name="2674" href="List.html#773" class="Function"
+      >foldr</a
+      ><a name="2679"
+      > </a
+      ><a name="2680" href="Bool.html#413" class="Function Operator"
+      >_&#8743;_</a
+      ><a name="2683"
+      > </a
+      ><a name="2684" href="NeilPrelude.html#760" class="InductiveConstructor"
+      >true</a
+      ><a name="2688"
+      >
+
+</a
+      ><a name="2690" href="List.html#2690" class="Function"
+      >all</a
+      ><a name="2693"
+      > </a
+      ><a name="2694" class="Symbol"
+      >:</a
+      ><a name="2695"
+      > </a
+      ><a name="2696" class="Symbol"
+      >{</a
+      ><a name="2697" href="List.html#2697" class="Bound"
+      >A</a
+      ><a name="2698"
+      > </a
+      ><a name="2699" class="Symbol"
+      >:</a
+      ><a name="2700"
+      > </a
+      ><a name="2701" class="PrimitiveType"
+      >Set</a
+      ><a name="2704" class="Symbol"
+      >}</a
+      ><a name="2705"
+      > </a
+      ><a name="2706" class="Symbol"
+      >&#8594;</a
+      ><a name="2707"
+      > </a
+      ><a name="2708" class="Symbol"
+      >(</a
+      ><a name="2709" href="List.html#2697" class="Bound"
+      >A</a
+      ><a name="2710"
+      > </a
+      ><a name="2711" class="Symbol"
+      >&#8594;</a
+      ><a name="2712"
+      > </a
+      ><a name="2713" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="2717" class="Symbol"
+      >)</a
+      ><a name="2718"
+      > </a
+      ><a name="2719" class="Symbol"
+      >&#8594;</a
+      ><a name="2720"
+      > </a
+      ><a name="2721" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2725"
+      > </a
+      ><a name="2726" href="List.html#2697" class="Bound"
+      >A</a
+      ><a name="2727"
+      > </a
+      ><a name="2728" class="Symbol"
+      >&#8594;</a
+      ><a name="2729"
+      > </a
+      ><a name="2730" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="2734"
+      >
+</a
+      ><a name="2735" href="List.html#2690" class="Function"
+      >all</a
+      ><a name="2738"
+      > </a
+      ><a name="2739" href="List.html#2739" class="Bound"
+      >p</a
+      ><a name="2740"
+      > </a
+      ><a name="2741" class="Symbol"
+      >=</a
+      ><a name="2742"
+      > </a
+      ><a name="2743" href="List.html#2649" class="Function"
+      >&#8896;</a
+      ><a name="2744"
+      > </a
+      ><a name="2745" href="NeilPrelude.html#8326" class="Function Operator"
+      >&#8728;</a
+      ><a name="2746"
+      > </a
+      ><a name="2747" href="List.html#1094" class="Function"
+      >map</a
+      ><a name="2750"
+      > </a
+      ><a name="2751" href="List.html#2739" class="Bound"
+      >p</a
+      ><a name="2752"
+      >
+
+</a
+      ><a name="2754" href="List.html#2754" class="Function"
+      >any</a
+      ><a name="2757"
+      > </a
+      ><a name="2758" class="Symbol"
+      >:</a
+      ><a name="2759"
+      > </a
+      ><a name="2760" class="Symbol"
+      >{</a
+      ><a name="2761" href="List.html#2761" class="Bound"
+      >A</a
+      ><a name="2762"
+      > </a
+      ><a name="2763" class="Symbol"
+      >:</a
+      ><a name="2764"
+      > </a
+      ><a name="2765" class="PrimitiveType"
+      >Set</a
+      ><a name="2768" class="Symbol"
+      >}</a
+      ><a name="2769"
+      > </a
+      ><a name="2770" class="Symbol"
+      >&#8594;</a
+      ><a name="2771"
+      > </a
+      ><a name="2772" class="Symbol"
+      >(</a
+      ><a name="2773" href="List.html#2761" class="Bound"
+      >A</a
+      ><a name="2774"
+      > </a
+      ><a name="2775" class="Symbol"
+      >&#8594;</a
+      ><a name="2776"
+      > </a
+      ><a name="2777" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="2781" class="Symbol"
+      >)</a
+      ><a name="2782"
+      > </a
+      ><a name="2783" class="Symbol"
+      >&#8594;</a
+      ><a name="2784"
+      > </a
+      ><a name="2785" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2789"
+      > </a
+      ><a name="2790" href="List.html#2761" class="Bound"
+      >A</a
+      ><a name="2791"
+      > </a
+      ><a name="2792" class="Symbol"
+      >&#8594;</a
+      ><a name="2793"
+      > </a
+      ><a name="2794" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="2798"
+      >
+</a
+      ><a name="2799" href="List.html#2754" class="Function"
+      >any</a
+      ><a name="2802"
+      > </a
+      ><a name="2803" href="List.html#2803" class="Bound"
+      >p</a
+      ><a name="2804"
+      > </a
+      ><a name="2805" class="Symbol"
+      >=</a
+      ><a name="2806"
+      > </a
+      ><a name="2807" href="List.html#2607" class="Function"
+      >&#8897;</a
+      ><a name="2808"
+      > </a
+      ><a name="2809" href="NeilPrelude.html#8326" class="Function Operator"
+      >&#8728;</a
+      ><a name="2810"
+      > </a
+      ><a name="2811" href="List.html#1094" class="Function"
+      >map</a
+      ><a name="2814"
+      > </a
+      ><a name="2815" href="List.html#2803" class="Bound"
+      >p</a
+      ><a name="2816"
+      >
+
+</a
+      ><a name="2818" href="List.html#2818" class="Function"
+      >safeinit</a
+      ><a name="2826"
+      > </a
+      ><a name="2827" class="Symbol"
+      >:</a
+      ><a name="2828"
+      > </a
+      ><a name="2829" class="Symbol"
+      >{</a
+      ><a name="2830" href="List.html#2830" class="Bound"
+      >A</a
+      ><a name="2831"
+      > </a
+      ><a name="2832" class="Symbol"
+      >:</a
+      ><a name="2833"
+      > </a
+      ><a name="2834" class="PrimitiveType"
+      >Set</a
+      ><a name="2837" class="Symbol"
+      >}</a
+      ><a name="2838"
+      > </a
+      ><a name="2839" class="Symbol"
+      >&#8594;</a
+      ><a name="2840"
+      > </a
+      ><a name="2841" href="List.html#2830" class="Bound"
+      >A</a
+      ><a name="2842"
+      > </a
+      ><a name="2843" class="Symbol"
+      >&#8594;</a
+      ><a name="2844"
+      > </a
+      ><a name="2845" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2849"
+      > </a
+      ><a name="2850" href="List.html#2830" class="Bound"
+      >A</a
+      ><a name="2851"
+      > </a
+      ><a name="2852" class="Symbol"
+      >&#8594;</a
+      ><a name="2853"
+      > </a
+      ><a name="2854" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2858"
+      > </a
+      ><a name="2859" href="List.html#2830" class="Bound"
+      >A</a
+      ><a name="2860"
+      >
+</a
+      ><a name="2861" href="List.html#2818" class="Function"
+      >safeinit</a
+      ><a name="2869"
+      > </a
+      ><a name="2870" class="Symbol"
+      >_</a
+      ><a name="2871"
+      > </a
+      ><a name="2872" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="2874"
+      > </a
+      ><a name="2875" class="Symbol"
+      >=</a
+      ><a name="2876"
+      > </a
+      ><a name="2877" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="2879"
+      >
+</a
+      ><a name="2880" href="List.html#2818" class="Function"
+      >safeinit</a
+      ><a name="2888"
+      > </a
+      ><a name="2889" href="List.html#2889" class="Bound"
+      >a</a
+      ><a name="2890"
+      > </a
+      ><a name="2891" class="Symbol"
+      >(</a
+      ><a name="2892" href="List.html#2892" class="Bound"
+      >b</a
+      ><a name="2893"
+      > </a
+      ><a name="2894" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="2895"
+      > </a
+      ><a name="2896" href="List.html#2896" class="Bound"
+      >as</a
+      ><a name="2898" class="Symbol"
+      >)</a
+      ><a name="2899"
+      > </a
+      ><a name="2900" class="Symbol"
+      >=</a
+      ><a name="2901"
+      > </a
+      ><a name="2902" href="List.html#2889" class="Bound"
+      >a</a
+      ><a name="2903"
+      > </a
+      ><a name="2904" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="2905"
+      > </a
+      ><a name="2906" href="List.html#2818" class="Function"
+      >safeinit</a
+      ><a name="2914"
+      > </a
+      ><a name="2915" href="List.html#2892" class="Bound"
+      >b</a
+      ><a name="2916"
+      > </a
+      ><a name="2917" href="List.html#2896" class="Bound"
+      >as</a
+      ><a name="2919"
+      >
+
+</a
+      ><a name="2921" href="List.html#2921" class="Function"
+      >init</a
+      ><a name="2925"
+      > </a
+      ><a name="2926" class="Symbol"
+      >:</a
+      ><a name="2927"
+      > </a
+      ><a name="2928" class="Symbol"
+      >{</a
+      ><a name="2929" href="List.html#2929" class="Bound"
+      >A</a
+      ><a name="2930"
+      > </a
+      ><a name="2931" class="Symbol"
+      >:</a
+      ><a name="2932"
+      > </a
+      ><a name="2933" class="PrimitiveType"
+      >Set</a
+      ><a name="2936" class="Symbol"
+      >}</a
+      ><a name="2937"
+      > </a
+      ><a name="2938" class="Symbol"
+      >&#8594;</a
+      ><a name="2939"
+      > </a
+      ><a name="2940" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2944"
+      > </a
+      ><a name="2945" href="List.html#2929" class="Bound"
+      >A</a
+      ><a name="2946"
+      > </a
+      ><a name="2947" class="Symbol"
+      >&#8594;</a
+      ><a name="2948"
+      > </a
+      ><a name="2949" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="2953"
+      > </a
+      ><a name="2954" href="List.html#2929" class="Bound"
+      >A</a
+      ><a name="2955"
+      >
+</a
+      ><a name="2956" href="List.html#2921" class="Function"
+      >init</a
+      ><a name="2960"
+      > </a
+      ><a name="2961" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="2963"
+      > </a
+      ><a name="2964" class="Symbol"
+      >=</a
+      ><a name="2965"
+      > </a
+      ><a name="2966" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="2968"
+      >
+</a
+      ><a name="2969" href="List.html#2921" class="Function"
+      >init</a
+      ><a name="2973"
+      > </a
+      ><a name="2974" class="Symbol"
+      >(</a
+      ><a name="2975" href="List.html#2975" class="Bound"
+      >a</a
+      ><a name="2976"
+      > </a
+      ><a name="2977" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="2978"
+      > </a
+      ><a name="2979" href="List.html#2979" class="Bound"
+      >as</a
+      ><a name="2981" class="Symbol"
+      >)</a
+      ><a name="2982"
+      > </a
+      ><a name="2983" class="Symbol"
+      >=</a
+      ><a name="2984"
+      > </a
+      ><a name="2985" href="List.html#2818" class="Function"
+      >safeinit</a
+      ><a name="2993"
+      > </a
+      ><a name="2994" href="List.html#2975" class="Bound"
+      >a</a
+      ><a name="2995"
+      > </a
+      ><a name="2996" href="List.html#2979" class="Bound"
+      >as</a
+      ><a name="2998"
+      >
+
+</a
+      ><a name="3000" href="List.html#3000" class="Function"
+      >safelast</a
+      ><a name="3008"
+      > </a
+      ><a name="3009" class="Symbol"
+      >:</a
+      ><a name="3010"
+      > </a
+      ><a name="3011" class="Symbol"
+      >{</a
+      ><a name="3012" href="List.html#3012" class="Bound"
+      >A</a
+      ><a name="3013"
+      > </a
+      ><a name="3014" class="Symbol"
+      >:</a
+      ><a name="3015"
+      > </a
+      ><a name="3016" class="PrimitiveType"
+      >Set</a
+      ><a name="3019" class="Symbol"
+      >}</a
+      ><a name="3020"
+      > </a
+      ><a name="3021" class="Symbol"
+      >&#8594;</a
+      ><a name="3022"
+      > </a
+      ><a name="3023" href="List.html#3012" class="Bound"
+      >A</a
+      ><a name="3024"
+      > </a
+      ><a name="3025" class="Symbol"
+      >&#8594;</a
+      ><a name="3026"
+      > </a
+      ><a name="3027" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="3031"
+      > </a
+      ><a name="3032" href="List.html#3012" class="Bound"
+      >A</a
+      ><a name="3033"
+      > </a
+      ><a name="3034" class="Symbol"
+      >&#8594;</a
+      ><a name="3035"
+      > </a
+      ><a name="3036" href="List.html#3012" class="Bound"
+      >A</a
+      ><a name="3037"
+      >
+</a
+      ><a name="3038" href="List.html#3000" class="Function"
+      >safelast</a
+      ><a name="3046"
+      > </a
+      ><a name="3047" href="List.html#3047" class="Bound"
+      >a</a
+      ><a name="3048"
+      > </a
+      ><a name="3049" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="3051"
+      >       </a
+      ><a name="3058" class="Symbol"
+      >=</a
+      ><a name="3059"
+      > </a
+      ><a name="3060" href="List.html#3047" class="Bound"
+      >a</a
+      ><a name="3061"
+      >
+</a
+      ><a name="3062" href="List.html#3000" class="Function"
+      >safelast</a
+      ><a name="3070"
+      > </a
+      ><a name="3071" class="Symbol"
+      >_</a
+      ><a name="3072"
+      > </a
+      ><a name="3073" class="Symbol"
+      >(</a
+      ><a name="3074" href="List.html#3074" class="Bound"
+      >b</a
+      ><a name="3075"
+      > </a
+      ><a name="3076" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="3077"
+      > </a
+      ><a name="3078" href="List.html#3078" class="Bound"
+      >as</a
+      ><a name="3080" class="Symbol"
+      >)</a
+      ><a name="3081"
+      > </a
+      ><a name="3082" class="Symbol"
+      >=</a
+      ><a name="3083"
+      > </a
+      ><a name="3084" href="List.html#3000" class="Function"
+      >safelast</a
+      ><a name="3092"
+      > </a
+      ><a name="3093" href="List.html#3074" class="Bound"
+      >b</a
+      ><a name="3094"
+      > </a
+      ><a name="3095" href="List.html#3078" class="Bound"
+      >as</a
+      ><a name="3097"
+      >
+
+</a
+      ><a name="3099" href="List.html#3099" class="Function"
+      >last</a
+      ><a name="3103"
+      > </a
+      ><a name="3104" class="Symbol"
+      >:</a
+      ><a name="3105"
+      > </a
+      ><a name="3106" class="Symbol"
+      >{</a
+      ><a name="3107" href="List.html#3107" class="Bound"
+      >A</a
+      ><a name="3108"
+      > </a
+      ><a name="3109" class="Symbol"
+      >:</a
+      ><a name="3110"
+      > </a
+      ><a name="3111" class="PrimitiveType"
+      >Set</a
+      ><a name="3114" class="Symbol"
+      >}</a
+      ><a name="3115"
+      > </a
+      ><a name="3116" class="Symbol"
+      >&#8594;</a
+      ><a name="3117"
+      > </a
+      ><a name="3118" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="3122"
+      > </a
+      ><a name="3123" href="List.html#3107" class="Bound"
+      >A</a
+      ><a name="3124"
+      > </a
+      ><a name="3125" class="Symbol"
+      >&#8594;</a
+      ><a name="3126"
+      > </a
+      ><a name="3127" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="3132"
+      > </a
+      ><a name="3133" href="List.html#3107" class="Bound"
+      >A</a
+      ><a name="3134"
+      >
+</a
+      ><a name="3135" href="List.html#3099" class="Function"
+      >last</a
+      ><a name="3139"
+      > </a
+      ><a name="3140" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="3142"
+      >       </a
+      ><a name="3149" class="Symbol"
+      >=</a
+      ><a name="3150"
+      > </a
+      ><a name="3151" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="3158"
+      >
+</a
+      ><a name="3159" href="List.html#3099" class="Function"
+      >last</a
+      ><a name="3163"
+      > </a
+      ><a name="3164" class="Symbol"
+      >(</a
+      ><a name="3165" href="List.html#3165" class="Bound"
+      >a</a
+      ><a name="3166"
+      > </a
+      ><a name="3167" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="3168"
+      > </a
+      ><a name="3169" href="List.html#3169" class="Bound"
+      >as</a
+      ><a name="3171" class="Symbol"
+      >)</a
+      ><a name="3172"
+      > </a
+      ><a name="3173" class="Symbol"
+      >=</a
+      ><a name="3174"
+      > </a
+      ><a name="3175" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="3179"
+      > </a
+      ><a name="3180" class="Symbol"
+      >(</a
+      ><a name="3181" href="List.html#3000" class="Function"
+      >safelast</a
+      ><a name="3189"
+      > </a
+      ><a name="3190" href="List.html#3165" class="Bound"
+      >a</a
+      ><a name="3191"
+      > </a
+      ><a name="3192" href="List.html#3169" class="Bound"
+      >as</a
+      ><a name="3194" class="Symbol"
+      >)</a
+      ><a name="3195"
+      >
+
+</a
+      ><a name="3197" href="List.html#3197" class="Function"
+      >span</a
+      ><a name="3201"
+      > </a
+      ><a name="3202" class="Symbol"
+      >:</a
+      ><a name="3203"
+      > </a
+      ><a name="3204" class="Symbol"
+      >{</a
+      ><a name="3205" href="List.html#3205" class="Bound"
+      >A</a
+      ><a name="3206"
+      > </a
+      ><a name="3207" class="Symbol"
+      >:</a
+      ><a name="3208"
+      > </a
+      ><a name="3209" class="PrimitiveType"
+      >Set</a
+      ><a name="3212" class="Symbol"
+      >}</a
+      ><a name="3213"
+      > </a
+      ><a name="3214" class="Symbol"
+      >&#8594;</a
+      ><a name="3215"
+      > </a
+      ><a name="3216" class="Symbol"
+      >(</a
+      ><a name="3217" href="List.html#3205" class="Bound"
+      >A</a
+      ><a name="3218"
+      > </a
+      ><a name="3219" class="Symbol"
+      >&#8594;</a
+      ><a name="3220"
+      > </a
+      ><a name="3221" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="3225" class="Symbol"
+      >)</a
+      ><a name="3226"
+      > </a
+      ><a name="3227" class="Symbol"
+      >&#8594;</a
+      ><a name="3228"
+      > </a
+      ><a name="3229" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="3233"
+      > </a
+      ><a name="3234" href="List.html#3205" class="Bound"
+      >A</a
+      ><a name="3235"
+      > </a
+      ><a name="3236" class="Symbol"
+      >&#8594;</a
+      ><a name="3237"
+      > </a
+      ><a name="3238" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="3242"
+      > </a
+      ><a name="3243" href="List.html#3205" class="Bound"
+      >A</a
+      ><a name="3244"
+      > </a
+      ><a name="3245" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="3246"
+      > </a
+      ><a name="3247" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="3251"
+      > </a
+      ><a name="3252" href="List.html#3205" class="Bound"
+      >A</a
+      ><a name="3253"
+      >
+</a
+      ><a name="3254" href="List.html#3197" class="Function"
+      >span</a
+      ><a name="3258"
+      > </a
+      ><a name="3259" href="List.html#3259" class="Bound"
+      >p</a
+      ><a name="3260"
+      > </a
+      ><a name="3261" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="3263"
+      > </a
+      ><a name="3264" class="Symbol"
+      >=</a
+      ><a name="3265"
+      > </a
+      ><a name="3266" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="3268"
+      > </a
+      ><a name="3269" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="3270"
+      > </a
+      ><a name="3271" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="3273"
+      >
+</a
+      ><a name="3274" href="List.html#3197" class="Function"
+      >span</a
+      ><a name="3278"
+      > </a
+      ><a name="3279" href="List.html#3279" class="Bound"
+      >p</a
+      ><a name="3280"
+      > </a
+      ><a name="3281" class="Symbol"
+      >(</a
+      ><a name="3282" href="List.html#3282" class="Bound"
+      >a</a
+      ><a name="3283"
+      > </a
+      ><a name="3284" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="3285"
+      > </a
+      ><a name="3286" href="List.html#3286" class="Bound"
+      >as</a
+      ><a name="3288" class="Symbol"
+      >)</a
+      ><a name="3289"
+      > </a
+      ><a name="3290" class="Symbol"
+      >=</a
+      ><a name="3291"
+      > </a
+      ><a name="3292" href="Bool.html#237" class="Function Operator"
+      >if</a
+      ><a name="3294"
+      > </a
+      ><a name="3295" href="List.html#3279" class="Bound"
+      >p</a
+      ><a name="3296"
+      > </a
+      ><a name="3297" href="List.html#3282" class="Bound"
+      >a</a
+      ><a name="3298"
+      >
+                   </a
+      ><a name="3318" href="Bool.html#237" class="Function Operator"
+      >then</a
+      ><a name="3322"
+      > </a
+      ><a name="3323" href="NeilPrelude.html#14177" class="Function"
+      >first</a
+      ><a name="3328"
+      > </a
+      ><a name="3329" class="Symbol"
+      >(</a
+      ><a name="3330" href="List.html#174" class="InductiveConstructor Operator"
+      >_&#8759;_</a
+      ><a name="3333"
+      > </a
+      ><a name="3334" href="List.html#3282" class="Bound"
+      >a</a
+      ><a name="3335" class="Symbol"
+      >)</a
+      ><a name="3336"
+      > </a
+      ><a name="3337" class="Symbol"
+      >(</a
+      ><a name="3338" href="List.html#3197" class="Function"
+      >span</a
+      ><a name="3342"
+      > </a
+      ><a name="3343" href="List.html#3279" class="Bound"
+      >p</a
+      ><a name="3344"
+      > </a
+      ><a name="3345" href="List.html#3286" class="Bound"
+      >as</a
+      ><a name="3347" class="Symbol"
+      >)</a
+      ><a name="3348"
+      >
+                   </a
+      ><a name="3368" href="Bool.html#237" class="Function Operator"
+      >else</a
+      ><a name="3372"
+      > </a
+      ><a name="3373" class="Symbol"
+      >(</a
+      ><a name="3374" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="3376"
+      > </a
+      ><a name="3377" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="3378"
+      > </a
+      ><a name="3379" href="List.html#3282" class="Bound"
+      >a</a
+      ><a name="3380"
+      > </a
+      ><a name="3381" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="3382"
+      > </a
+      ><a name="3383" href="List.html#3286" class="Bound"
+      >as</a
+      ><a name="3385" class="Symbol"
+      >)</a
+      ><a name="3386"
+      >
+
+</a
+      ><a name="3388" href="List.html#3388" class="Function"
+      >takeWhile</a
+      ><a name="3397"
+      > </a
+      ><a name="3398" class="Symbol"
+      >:</a
+      ><a name="3399"
+      > </a
+      ><a name="3400" class="Symbol"
+      >{</a
+      ><a name="3401" href="List.html#3401" class="Bound"
+      >A</a
+      ><a name="3402"
+      > </a
+      ><a name="3403" class="Symbol"
+      >:</a
+      ><a name="3404"
+      > </a
+      ><a name="3405" class="PrimitiveType"
+      >Set</a
+      ><a name="3408" class="Symbol"
+      >}</a
+      ><a name="3409"
+      > </a
+      ><a name="3410" class="Symbol"
+      >&#8594;</a
+      ><a name="3411"
+      > </a
+      ><a name="3412" class="Symbol"
+      >(</a
+      ><a name="3413" href="List.html#3401" class="Bound"
+      >A</a
+      ><a name="3414"
+      > </a
+      ><a name="3415" class="Symbol"
+      >&#8594;</a
+      ><a name="3416"
+      > </a
+      ><a name="3417" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="3421" class="Symbol"
+      >)</a
+      ><a name="3422"
+      > </a
+      ><a name="3423" class="Symbol"
+      >&#8594;</a
+      ><a name="3424"
+      > </a
+      ><a name="3425" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="3429"
+      > </a
+      ><a name="3430" href="List.html#3401" class="Bound"
+      >A</a
+      ><a name="3431"
+      > </a
+      ><a name="3432" class="Symbol"
+      >&#8594;</a
+      ><a name="3433"
+      > </a
+      ><a name="3434" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="3438"
+      > </a
+      ><a name="3439" href="List.html#3401" class="Bound"
+      >A</a
+      ><a name="3440"
+      >
+</a
+      ><a name="3441" href="List.html#3388" class="Function"
+      >takeWhile</a
+      ><a name="3450"
+      > </a
+      ><a name="3451" href="List.html#3451" class="Bound"
+      >p</a
+      ><a name="3452"
+      > </a
+      ><a name="3453" class="Symbol"
+      >=</a
+      ><a name="3454"
+      > </a
+      ><a name="3455" href="NeilPrelude.html#12566" class="Function"
+      >fst</a
+      ><a name="3458"
+      > </a
+      ><a name="3459" href="NeilPrelude.html#8326" class="Function Operator"
+      >&#8728;</a
+      ><a name="3460"
+      > </a
+      ><a name="3461" href="List.html#3197" class="Function"
+      >span</a
+      ><a name="3465"
+      > </a
+      ><a name="3466" href="List.html#3451" class="Bound"
+      >p</a
+      ><a name="3467"
+      >
+
+</a
+      ><a name="3469" href="List.html#3469" class="Function"
+      >dropWhile</a
+      ><a name="3478"
+      > </a
+      ><a name="3479" class="Symbol"
+      >:</a
+      ><a name="3480"
+      > </a
+      ><a name="3481" class="Symbol"
+      >{</a
+      ><a name="3482" href="List.html#3482" class="Bound"
+      >A</a
+      ><a name="3483"
+      > </a
+      ><a name="3484" class="Symbol"
+      >:</a
+      ><a name="3485"
+      > </a
+      ><a name="3486" class="PrimitiveType"
+      >Set</a
+      ><a name="3489" class="Symbol"
+      >}</a
+      ><a name="3490"
+      > </a
+      ><a name="3491" class="Symbol"
+      >&#8594;</a
+      ><a name="3492"
+      > </a
+      ><a name="3493" class="Symbol"
+      >(</a
+      ><a name="3494" href="List.html#3482" class="Bound"
+      >A</a
+      ><a name="3495"
+      > </a
+      ><a name="3496" class="Symbol"
+      >&#8594;</a
+      ><a name="3497"
+      > </a
+      ><a name="3498" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="3502" class="Symbol"
+      >)</a
+      ><a name="3503"
+      > </a
+      ><a name="3504" class="Symbol"
+      >&#8594;</a
+      ><a name="3505"
+      > </a
+      ><a name="3506" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="3510"
+      > </a
+      ><a name="3511" href="List.html#3482" class="Bound"
+      >A</a
+      ><a name="3512"
+      > </a
+      ><a name="3513" class="Symbol"
+      >&#8594;</a
+      ><a name="3514"
+      > </a
+      ><a name="3515" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="3519"
+      > </a
+      ><a name="3520" href="List.html#3482" class="Bound"
+      >A</a
+      ><a name="3521"
+      >
+</a
+      ><a name="3522" href="List.html#3469" class="Function"
+      >dropWhile</a
+      ><a name="3531"
+      > </a
+      ><a name="3532" href="List.html#3532" class="Bound"
+      >p</a
+      ><a name="3533"
+      > </a
+      ><a name="3534" class="Symbol"
+      >=</a
+      ><a name="3535"
+      > </a
+      ><a name="3536" href="NeilPrelude.html#12626" class="Function"
+      >snd</a
+      ><a name="3539"
+      > </a
+      ><a name="3540" href="NeilPrelude.html#8326" class="Function Operator"
+      >&#8728;</a
+      ><a name="3541"
+      > </a
+      ><a name="3542" href="List.html#3197" class="Function"
+      >span</a
+      ><a name="3546"
+      > </a
+      ><a name="3547" href="List.html#3532" class="Bound"
+      >p</a
+      ><a name="3548"
+      >
+
+</a
+      ><a name="3550" class="Comment"
+      >-- The accumulator is a sort of state passed along the computation</a
+      ><a name="3616"
+      >
+
+</a
+      ><a name="3618" href="List.html#3618" class="Function"
+      >mapAccumL</a
+      ><a name="3627"
+      > </a
+      ><a name="3628" class="Symbol"
+      >:</a
+      ><a name="3629"
+      > </a
+      ><a name="3630" class="Symbol"
+      >{</a
+      ><a name="3631" href="List.html#3631" class="Bound"
+      >B</a
+      ><a name="3632"
+      > </a
+      ><a name="3633" href="List.html#3633" class="Bound"
+      >C</a
+      ><a name="3634"
+      > </a
+      ><a name="3635" class="Symbol"
+      >:</a
+      ><a name="3636"
+      > </a
+      ><a name="3637" class="PrimitiveType"
+      >Set</a
+      ><a name="3640" class="Symbol"
+      >}</a
+      ><a name="3641"
+      > </a
+      ><a name="3642" class="Symbol"
+      >&#8594;</a
+      ><a name="3643"
+      > </a
+      ><a name="3644" class="Symbol"
+      >{</a
+      ><a name="3645" href="List.html#3645" class="Bound"
+      >Acc</a
+      ><a name="3648"
+      > </a
+      ><a name="3649" class="Symbol"
+      >:</a
+      ><a name="3650"
+      > </a
+      ><a name="3651" class="PrimitiveType"
+      >Set</a
+      ><a name="3654" class="Symbol"
+      >}</a
+      ><a name="3655"
+      > </a
+      ><a name="3656" class="Symbol"
+      >&#8594;</a
+      ><a name="3657"
+      > </a
+      ><a name="3658" class="Symbol"
+      >(</a
+      ><a name="3659" href="List.html#3645" class="Bound"
+      >Acc</a
+      ><a name="3662"
+      > </a
+      ><a name="3663" class="Symbol"
+      >&#8594;</a
+      ><a name="3664"
+      > </a
+      ><a name="3665" href="List.html#3631" class="Bound"
+      >B</a
+      ><a name="3666"
+      > </a
+      ><a name="3667" class="Symbol"
+      >&#8594;</a
+      ><a name="3668"
+      > </a
+      ><a name="3669" href="List.html#3645" class="Bound"
+      >Acc</a
+      ><a name="3672"
+      > </a
+      ><a name="3673" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="3674"
+      > </a
+      ><a name="3675" href="List.html#3633" class="Bound"
+      >C</a
+      ><a name="3676" class="Symbol"
+      >)</a
+      ><a name="3677"
+      > </a
+      ><a name="3678" class="Symbol"
+      >&#8594;</a
+      ><a name="3679"
+      > </a
+      ><a name="3680" href="List.html#3645" class="Bound"
+      >Acc</a
+      ><a name="3683"
+      > </a
+      ><a name="3684" class="Symbol"
+      >&#8594;</a
+      ><a name="3685"
+      > </a
+      ><a name="3686" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="3690"
+      > </a
+      ><a name="3691" href="List.html#3631" class="Bound"
+      >B</a
+      ><a name="3692"
+      > </a
+      ><a name="3693" class="Symbol"
+      >&#8594;</a
+      ><a name="3694"
+      > </a
+      ><a name="3695" href="List.html#3645" class="Bound"
+      >Acc</a
+      ><a name="3698"
+      > </a
+      ><a name="3699" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="3700"
+      > </a
+      ><a name="3701" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="3705"
+      > </a
+      ><a name="3706" href="List.html#3633" class="Bound"
+      >C</a
+      ><a name="3707"
+      >
+</a
+      ><a name="3708" href="List.html#3618" class="Function"
+      >mapAccumL</a
+      ><a name="3717"
+      > </a
+      ><a name="3718" href="List.html#3718" class="Bound"
+      >f</a
+      ><a name="3719"
+      > </a
+      ><a name="3720" href="List.html#3720" class="Bound"
+      >ac</a
+      ><a name="3722"
+      > </a
+      ><a name="3723" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="3725"
+      > </a
+      ><a name="3726" class="Symbol"
+      >=</a
+      ><a name="3727"
+      >  </a
+      ><a name="3729" href="List.html#3720" class="Bound"
+      >ac</a
+      ><a name="3731"
+      > </a
+      ><a name="3732" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="3733"
+      > </a
+      ><a name="3734" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="3736"
+      >
+</a
+      ><a name="3737" href="List.html#3618" class="Function"
+      >mapAccumL</a
+      ><a name="3746"
+      > </a
+      ><a name="3747" href="List.html#3747" class="Bound"
+      >f</a
+      ><a name="3748"
+      > </a
+      ><a name="3749" href="List.html#3749" class="Bound"
+      >ac</a
+      ><a name="3751"
+      > </a
+      ><a name="3752" class="Symbol"
+      >(</a
+      ><a name="3753" href="List.html#3753" class="Bound"
+      >b</a
+      ><a name="3754"
+      > </a
+      ><a name="3755" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="3756"
+      > </a
+      ><a name="3757" href="List.html#3757" class="Bound"
+      >bs</a
+      ><a name="3759" class="Symbol"
+      >)</a
+      ><a name="3760"
+      > </a
+      ><a name="3761" class="Keyword"
+      >with</a
+      ><a name="3765"
+      > </a
+      ><a name="3766" href="List.html#3747" class="Bound"
+      >f</a
+      ><a name="3767"
+      > </a
+      ><a name="3768" href="List.html#3749" class="Bound"
+      >ac</a
+      ><a name="3770"
+      > </a
+      ><a name="3771" href="List.html#3753" class="Bound"
+      >b</a
+      ><a name="3772"
+      >
+</a
+      ><a name="3773" class="Symbol"
+      >...</a
+      ><a name="3776"
+      > </a
+      ><a name="3777" class="Symbol"
+      >|</a
+      ><a name="3778"
+      > </a
+      ><a name="3779" href="List.html#3779" class="Bound"
+      >ac'</a
+      ><a name="3782"
+      > </a
+      ><a name="3783" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="3784"
+      > </a
+      ><a name="3785" href="List.html#3785" class="Bound"
+      >c</a
+      ><a name="3786"
+      >  </a
+      ><a name="3788" class="Symbol"
+      >=</a
+      ><a name="3789"
+      >  </a
+      ><a name="3791" href="NeilPrelude.html#14289" class="Function"
+      >second</a
+      ><a name="3797"
+      > </a
+      ><a name="3798" class="Symbol"
+      >(</a
+      ><a name="3799" href="List.html#174" class="InductiveConstructor Operator"
+      >_&#8759;_</a
+      ><a name="3802"
+      > </a
+      ><a name="3803" href="List.html#3785" class="Bound"
+      >c</a
+      ><a name="3804" class="Symbol"
+      >)</a
+      ><a name="3805"
+      > </a
+      ><a name="3806" class="Symbol"
+      >(</a
+      ><a name="3807" href="List.html#3618" class="Function"
+      >mapAccumL</a
+      ><a name="3816"
+      > </a
+      ><a name="3817" href="List.html#3747" class="Bound"
+      >f</a
+      ><a name="3818"
+      > </a
+      ><a name="3819" href="List.html#3779" class="Bound"
+      >ac'</a
+      ><a name="3822"
+      > </a
+      ><a name="3823" href="List.html#3757" class="Bound"
+      >bs</a
+      ><a name="3825" class="Symbol"
+      >)</a
+      ><a name="3826"
+      >
+
+</a
+      ><a name="3828" class="Keyword"
+      >open</a
+      ><a name="3832"
+      > </a
+      ><a name="3833" class="Keyword"
+      >import</a
+      ><a name="3839"
+      > </a
+      ><a name="3840" href="Logic.html#86" class="Module"
+      >Logic</a
+      ><a name="3845"
+      >
+
+</a
+      ><a name="3847" href="List.html#3847" class="Function"
+      >Null</a
+      ><a name="3851"
+      > </a
+      ><a name="3852" class="Symbol"
+      >:</a
+      ><a name="3853"
+      > </a
+      ><a name="3854" class="Symbol"
+      >{</a
+      ><a name="3855" href="List.html#3855" class="Bound"
+      >A</a
+      ><a name="3856"
+      > </a
+      ><a name="3857" class="Symbol"
+      >:</a
+      ><a name="3858"
+      > </a
+      ><a name="3859" class="PrimitiveType"
+      >Set</a
+      ><a name="3862" class="Symbol"
+      >}</a
+      ><a name="3863"
+      > </a
+      ><a name="3864" class="Symbol"
+      >&#8594;</a
+      ><a name="3865"
+      > </a
+      ><a name="3866" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="3870"
+      > </a
+      ><a name="3871" href="List.html#3855" class="Bound"
+      >A</a
+      ><a name="3872"
+      > </a
+      ><a name="3873" class="Symbol"
+      >&#8594;</a
+      ><a name="3874"
+      > </a
+      ><a name="3875" class="PrimitiveType"
+      >Set</a
+      ><a name="3878"
+      >
+</a
+      ><a name="3879" href="List.html#3847" class="Function"
+      >Null</a
+      ><a name="3883"
+      > </a
+      ><a name="3884" class="Symbol"
+      >=</a
+      ><a name="3885"
+      > </a
+      ><a name="3886" href="Logic.html#409" class="Function"
+      >Sat</a
+      ><a name="3889"
+      > </a
+      ><a name="3890" href="List.html#2148" class="Function"
+      >null</a
+      ><a name="3894"
+      >
+
+</a
+      ></pre
+    ></body
+  ></html
+>

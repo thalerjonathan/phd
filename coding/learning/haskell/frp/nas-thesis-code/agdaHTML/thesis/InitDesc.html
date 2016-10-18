@@ -1,0 +1,2510 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >InitDesc</title
+    ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta http-equiv="Content-Style-Type" content="text/css"
+     /><link href="Agda.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><pre
+    ><a name="1" class="Symbol"
+      >{-#</a
+      ><a name="4"
+      > </a
+      ><a name="5" class="Keyword"
+      >OPTIONS</a
+      ><a name="12"
+      > --type-in-type </a
+      ><a name="28" class="Symbol"
+      >#-}</a
+      ><a name="31"
+      >
+
+</a
+      ><a name="33" class="Keyword"
+      >module</a
+      ><a name="39"
+      > </a
+      ><a name="40" href="InitDesc.html#40" class="Module"
+      >InitDesc</a
+      ><a name="48"
+      > </a
+      ><a name="49" class="Keyword"
+      >where</a
+      ><a name="54"
+      >
+
+</a
+      ><a name="56" class="Keyword"
+      >open</a
+      ><a name="60"
+      > </a
+      ><a name="61" class="Keyword"
+      >import</a
+      ><a name="67"
+      > </a
+      ><a name="68" href="NeilPrelude.html#77" class="Module"
+      >NeilPrelude</a
+      ><a name="79"
+      >
+</a
+      ><a name="80" class="Keyword"
+      >open</a
+      ><a name="84"
+      > </a
+      ><a name="85" class="Keyword"
+      >import</a
+      ><a name="91"
+      > </a
+      ><a name="92" href="Logic.html#86" class="Module"
+      >Logic</a
+      ><a name="97"
+      >
+
+</a
+      ><a name="99" class="Comment"
+      >------------------------------------------------------------------------</a
+      ><a name="171"
+      >
+
+</a
+      ><a name="173" class="Keyword"
+      >data</a
+      ><a name="177"
+      > </a
+      ><a name="178" href="InitDesc.html#178" class="Datatype"
+      >Init</a
+      ><a name="182"
+      > </a
+      ><a name="183" class="Symbol"
+      >:</a
+      ><a name="184"
+      > </a
+      ><a name="185" class="PrimitiveType"
+      >Set</a
+      ><a name="188"
+      > </a
+      ><a name="189" class="Keyword"
+      >where</a
+      ><a name="194"
+      >
+  </a
+      ><a name="197" href="InitDesc.html#197" class="InductiveConstructor"
+      >ini</a
+      ><a name="200"
+      >  </a
+      ><a name="202" class="Symbol"
+      >:</a
+      ><a name="203"
+      > </a
+      ><a name="204" href="InitDesc.html#178" class="Datatype"
+      >Init</a
+      ><a name="208"
+      >  </a
+      ><a name="210" class="Comment"
+      >-- initialised signal</a
+      ><a name="231"
+      >
+  </a
+      ><a name="234" href="InitDesc.html#234" class="InductiveConstructor"
+      >uni</a
+      ><a name="237"
+      >  </a
+      ><a name="239" class="Symbol"
+      >:</a
+      ><a name="240"
+      > </a
+      ><a name="241" href="InitDesc.html#178" class="Datatype"
+      >Init</a
+      ><a name="245"
+      >  </a
+      ><a name="247" class="Comment"
+      >-- uninitialised signal</a
+      ><a name="270"
+      >
+
+</a
+      ><a name="272" href="InitDesc.html#272" class="Function Operator"
+      >_&#8851;_</a
+      ><a name="275"
+      > </a
+      ><a name="276" class="Symbol"
+      >:</a
+      ><a name="277"
+      > </a
+      ><a name="278" href="InitDesc.html#178" class="Datatype"
+      >Init</a
+      ><a name="282"
+      > </a
+      ><a name="283" class="Symbol"
+      >&#8594;</a
+      ><a name="284"
+      > </a
+      ><a name="285" href="InitDesc.html#178" class="Datatype"
+      >Init</a
+      ><a name="289"
+      > </a
+      ><a name="290" class="Symbol"
+      >&#8594;</a
+      ><a name="291"
+      > </a
+      ><a name="292" href="InitDesc.html#178" class="Datatype"
+      >Init</a
+      ><a name="296"
+      >
+</a
+      ><a name="297" href="InitDesc.html#197" class="InductiveConstructor"
+      >ini</a
+      ><a name="300"
+      >  </a
+      ><a name="302" href="InitDesc.html#272" class="Function Operator"
+      >&#8851;</a
+      ><a name="303"
+      > </a
+      ><a name="304" href="InitDesc.html#197" class="InductiveConstructor"
+      >ini</a
+      ><a name="307"
+      >  </a
+      ><a name="309" class="Symbol"
+      >=</a
+      ><a name="310"
+      > </a
+      ><a name="311" href="InitDesc.html#197" class="InductiveConstructor"
+      >ini</a
+      ><a name="314"
+      >
+</a
+      ><a name="315" class="Symbol"
+      >_</a
+      ><a name="316"
+      >    </a
+      ><a name="320" href="InitDesc.html#272" class="Function Operator"
+      >&#8851;</a
+      ><a name="321"
+      > </a
+      ><a name="322" class="Symbol"
+      >_</a
+      ><a name="323"
+      >    </a
+      ><a name="327" class="Symbol"
+      >=</a
+      ><a name="328"
+      > </a
+      ><a name="329" href="InitDesc.html#234" class="InductiveConstructor"
+      >uni</a
+      ><a name="332"
+      >
+
+</a
+      ><a name="334" href="InitDesc.html#334" class="Function Operator"
+      >_&#10216;:_</a
+      ><a name="338"
+      > </a
+      ><a name="339" class="Symbol"
+      >:</a
+      ><a name="340"
+      > </a
+      ><a name="341" href="InitDesc.html#178" class="Datatype"
+      >Init</a
+      ><a name="345"
+      > </a
+      ><a name="346" class="Symbol"
+      >&#8594;</a
+      ><a name="347"
+      > </a
+      ><a name="348" href="InitDesc.html#178" class="Datatype"
+      >Init</a
+      ><a name="352"
+      > </a
+      ><a name="353" class="Symbol"
+      >&#8594;</a
+      ><a name="354"
+      > </a
+      ><a name="355" class="PrimitiveType"
+      >Set</a
+      ><a name="358"
+      >
+</a
+      ><a name="359" href="InitDesc.html#234" class="InductiveConstructor"
+      >uni</a
+      ><a name="362"
+      >  </a
+      ><a name="364" href="InitDesc.html#334" class="Function Operator"
+      >&#10216;:</a
+      ><a name="366"
+      > </a
+      ><a name="367" href="InitDesc.html#197" class="InductiveConstructor"
+      >ini</a
+      ><a name="370"
+      >  </a
+      ><a name="372" class="Symbol"
+      >=</a
+      ><a name="373"
+      > </a
+      ><a name="374" href="NeilPrelude.html#1254" class="Datatype"
+      >False</a
+      ><a name="379"
+      >
+</a
+      ><a name="380" class="Symbol"
+      >_</a
+      ><a name="381"
+      >    </a
+      ><a name="385" href="InitDesc.html#334" class="Function Operator"
+      >&#10216;:</a
+      ><a name="387"
+      > </a
+      ><a name="388" class="Symbol"
+      >_</a
+      ><a name="389"
+      >    </a
+      ><a name="393" class="Symbol"
+      >=</a
+      ><a name="394"
+      > </a
+      ><a name="395" href="Logic.html#171" class="Record"
+      >True</a
+      ><a name="399"
+      >
+
+</a
+      ><a name="401" class="Comment"
+      >------------------------------------------------------------------------</a
+      ><a name="473"
+      >
+
+</a
+      ><a name="475" href="InitDesc.html#475" class="Function"
+      >&#10216;:-refl</a
+      ><a name="482"
+      > </a
+      ><a name="483" class="Symbol"
+      >:</a
+      ><a name="484"
+      > </a
+      ><a name="485" class="Symbol"
+      >{</a
+      ><a name="486" href="InitDesc.html#486" class="Bound"
+      >i</a
+      ><a name="487"
+      > </a
+      ><a name="488" class="Symbol"
+      >:</a
+      ><a name="489"
+      > </a
+      ><a name="490" href="InitDesc.html#178" class="Datatype"
+      >Init</a
+      ><a name="494" class="Symbol"
+      >}</a
+      ><a name="495"
+      > </a
+      ><a name="496" class="Symbol"
+      >&#8594;</a
+      ><a name="497"
+      > </a
+      ><a name="498" href="InitDesc.html#486" class="Bound"
+      >i</a
+      ><a name="499"
+      > </a
+      ><a name="500" href="InitDesc.html#334" class="Function Operator"
+      >&#10216;:</a
+      ><a name="502"
+      > </a
+      ><a name="503" href="InitDesc.html#486" class="Bound"
+      >i</a
+      ><a name="504"
+      >
+</a
+      ><a name="505" href="InitDesc.html#475" class="Function"
+      >&#10216;:-refl</a
+      ><a name="512"
+      > </a
+      ><a name="513" class="Symbol"
+      >{</a
+      ><a name="514" href="InitDesc.html#197" class="InductiveConstructor"
+      >ini</a
+      ><a name="517" class="Symbol"
+      >}</a
+      ><a name="518"
+      > </a
+      ><a name="519" class="Symbol"
+      >=</a
+      ><a name="520"
+      > </a
+      ><a name="521" class="Symbol"
+      >_</a
+      ><a name="522"
+      >
+</a
+      ><a name="523" href="InitDesc.html#475" class="Function"
+      >&#10216;:-refl</a
+      ><a name="530"
+      > </a
+      ><a name="531" class="Symbol"
+      >{</a
+      ><a name="532" href="InitDesc.html#234" class="InductiveConstructor"
+      >uni</a
+      ><a name="535" class="Symbol"
+      >}</a
+      ><a name="536"
+      > </a
+      ><a name="537" class="Symbol"
+      >=</a
+      ><a name="538"
+      > </a
+      ><a name="539" class="Symbol"
+      >_</a
+      ><a name="540"
+      >
+
+</a
+      ><a name="542" class="Comment"
+      >------------------------------------------------------------------------</a
+      ><a name="614"
+      >
+
+</a
+      ><a name="616" class="Keyword"
+      >data</a
+      ><a name="620"
+      > </a
+      ><a name="621" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="627"
+      > </a
+      ><a name="628" class="Symbol"
+      >:</a
+      ><a name="629"
+      > </a
+      ><a name="630" class="PrimitiveType"
+      >Set</a
+      ><a name="633"
+      > </a
+      ><a name="634" class="Keyword"
+      >where</a
+      ><a name="639"
+      >
+  </a
+      ><a name="642" href="InitDesc.html#642" class="InductiveConstructor"
+      >C</a
+      ><a name="643"
+      >   </a
+      ><a name="646" class="Symbol"
+      >:</a
+      ><a name="647"
+      > </a
+      ><a name="648" href="InitDesc.html#178" class="Datatype"
+      >Init</a
+      ><a name="652"
+      > </a
+      ><a name="653" class="Symbol"
+      >&#8594;</a
+      ><a name="654"
+      > </a
+      ><a name="655" class="PrimitiveType"
+      >Set</a
+      ><a name="658"
+      > </a
+      ><a name="659" class="Symbol"
+      >&#8594;</a
+      ><a name="660"
+      > </a
+      ><a name="661" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="667"
+      >
+  </a
+      ><a name="670" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="671"
+      >   </a
+      ><a name="674" class="Symbol"
+      >:</a
+      ><a name="675"
+      > </a
+      ><a name="676" class="PrimitiveType"
+      >Set</a
+      ><a name="679"
+      > </a
+      ><a name="680" class="Symbol"
+      >&#8594;</a
+      ><a name="681"
+      > </a
+      ><a name="682" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="688"
+      >
+  </a
+      ><a name="691" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="692"
+      >   </a
+      ><a name="695" class="Symbol"
+      >:</a
+      ><a name="696"
+      > </a
+      ><a name="697" class="PrimitiveType"
+      >Set</a
+      ><a name="700"
+      > </a
+      ><a name="701" class="Symbol"
+      >&#8594;</a
+      ><a name="702"
+      > </a
+      ><a name="703" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="709"
+      >
+  </a
+      ><a name="712" href="InitDesc.html#712" class="InductiveConstructor Operator"
+      >_,_</a
+      ><a name="715"
+      > </a
+      ><a name="716" class="Symbol"
+      >:</a
+      ><a name="717"
+      > </a
+      ><a name="718" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="724"
+      > </a
+      ><a name="725" class="Symbol"
+      >&#8594;</a
+      ><a name="726"
+      > </a
+      ><a name="727" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="733"
+      > </a
+      ><a name="734" class="Symbol"
+      >&#8594;</a
+      ><a name="735"
+      > </a
+      ><a name="736" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="742"
+      >
+
+</a
+      ><a name="744" class="Comment"
+      >------------------------------------------------------</a
+      ><a name="798"
+      >
+
+</a
+      ><a name="800" href="InitDesc.html#800" class="Function"
+      >iniSV</a
+      ><a name="805"
+      > </a
+      ><a name="806" class="Symbol"
+      >:</a
+      ><a name="807"
+      > </a
+      ><a name="808" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="814"
+      > </a
+      ><a name="815" class="Symbol"
+      >&#8594;</a
+      ><a name="816"
+      > </a
+      ><a name="817" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="823"
+      >
+</a
+      ><a name="824" href="InitDesc.html#800" class="Function"
+      >iniSV</a
+      ><a name="829"
+      > </a
+      ><a name="830" class="Symbol"
+      >(</a
+      ><a name="831" href="InitDesc.html#642" class="InductiveConstructor"
+      >C</a
+      ><a name="832"
+      > </a
+      ><a name="833" class="Symbol"
+      >_</a
+      ><a name="834"
+      > </a
+      ><a name="835" href="InitDesc.html#835" class="Bound"
+      >A</a
+      ><a name="836" class="Symbol"
+      >)</a
+      ><a name="837"
+      >   </a
+      ><a name="840" class="Symbol"
+      >=</a
+      ><a name="841"
+      > </a
+      ><a name="842" href="InitDesc.html#642" class="InductiveConstructor"
+      >C</a
+      ><a name="843"
+      > </a
+      ><a name="844" href="InitDesc.html#197" class="InductiveConstructor"
+      >ini</a
+      ><a name="847"
+      > </a
+      ><a name="848" href="InitDesc.html#835" class="Bound"
+      >A</a
+      ><a name="849"
+      >
+</a
+      ><a name="850" href="InitDesc.html#800" class="Function"
+      >iniSV</a
+      ><a name="855"
+      > </a
+      ><a name="856" class="Symbol"
+      >(</a
+      ><a name="857" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="858"
+      > </a
+      ><a name="859" href="InitDesc.html#859" class="Bound"
+      >A</a
+      ><a name="860" class="Symbol"
+      >)</a
+      ><a name="861"
+      >     </a
+      ><a name="866" class="Symbol"
+      >=</a
+      ><a name="867"
+      > </a
+      ><a name="868" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="869"
+      > </a
+      ><a name="870" href="InitDesc.html#859" class="Bound"
+      >A</a
+      ><a name="871"
+      >
+</a
+      ><a name="872" href="InitDesc.html#800" class="Function"
+      >iniSV</a
+      ><a name="877"
+      > </a
+      ><a name="878" class="Symbol"
+      >(</a
+      ><a name="879" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="880"
+      > </a
+      ><a name="881" href="InitDesc.html#881" class="Bound"
+      >A</a
+      ><a name="882" class="Symbol"
+      >)</a
+      ><a name="883"
+      >     </a
+      ><a name="888" class="Symbol"
+      >=</a
+      ><a name="889"
+      > </a
+      ><a name="890" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="891"
+      > </a
+      ><a name="892" href="InitDesc.html#881" class="Bound"
+      >A</a
+      ><a name="893"
+      >
+</a
+      ><a name="894" href="InitDesc.html#800" class="Function"
+      >iniSV</a
+      ><a name="899"
+      > </a
+      ><a name="900" class="Symbol"
+      >(</a
+      ><a name="901" href="InitDesc.html#901" class="Bound"
+      >as</a
+      ><a name="903"
+      > </a
+      ><a name="904" href="InitDesc.html#712" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="905"
+      > </a
+      ><a name="906" href="InitDesc.html#906" class="Bound"
+      >bs</a
+      ><a name="908" class="Symbol"
+      >)</a
+      ><a name="909"
+      > </a
+      ><a name="910" class="Symbol"
+      >=</a
+      ><a name="911"
+      > </a
+      ><a name="912" class="Symbol"
+      >(</a
+      ><a name="913" href="InitDesc.html#800" class="Function"
+      >iniSV</a
+      ><a name="918"
+      > </a
+      ><a name="919" href="InitDesc.html#901" class="Bound"
+      >as</a
+      ><a name="921"
+      > </a
+      ><a name="922" href="InitDesc.html#712" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="923"
+      > </a
+      ><a name="924" href="InitDesc.html#800" class="Function"
+      >iniSV</a
+      ><a name="929"
+      > </a
+      ><a name="930" href="InitDesc.html#906" class="Bound"
+      >bs</a
+      ><a name="932" class="Symbol"
+      >)</a
+      ><a name="933"
+      >
+
+</a
+      ><a name="935" href="InitDesc.html#935" class="Function"
+      >uniSV</a
+      ><a name="940"
+      > </a
+      ><a name="941" class="Symbol"
+      >:</a
+      ><a name="942"
+      > </a
+      ><a name="943" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="949"
+      > </a
+      ><a name="950" class="Symbol"
+      >&#8594;</a
+      ><a name="951"
+      > </a
+      ><a name="952" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="958"
+      >
+</a
+      ><a name="959" href="InitDesc.html#935" class="Function"
+      >uniSV</a
+      ><a name="964"
+      > </a
+      ><a name="965" class="Symbol"
+      >(</a
+      ><a name="966" href="InitDesc.html#642" class="InductiveConstructor"
+      >C</a
+      ><a name="967"
+      > </a
+      ><a name="968" class="Symbol"
+      >_</a
+      ><a name="969"
+      > </a
+      ><a name="970" href="InitDesc.html#970" class="Bound"
+      >A</a
+      ><a name="971" class="Symbol"
+      >)</a
+      ><a name="972"
+      >   </a
+      ><a name="975" class="Symbol"
+      >=</a
+      ><a name="976"
+      > </a
+      ><a name="977" href="InitDesc.html#642" class="InductiveConstructor"
+      >C</a
+      ><a name="978"
+      > </a
+      ><a name="979" href="InitDesc.html#234" class="InductiveConstructor"
+      >uni</a
+      ><a name="982"
+      > </a
+      ><a name="983" href="InitDesc.html#970" class="Bound"
+      >A</a
+      ><a name="984"
+      >
+</a
+      ><a name="985" href="InitDesc.html#935" class="Function"
+      >uniSV</a
+      ><a name="990"
+      > </a
+      ><a name="991" class="Symbol"
+      >(</a
+      ><a name="992" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="993"
+      > </a
+      ><a name="994" href="InitDesc.html#994" class="Bound"
+      >A</a
+      ><a name="995" class="Symbol"
+      >)</a
+      ><a name="996"
+      >     </a
+      ><a name="1001" class="Symbol"
+      >=</a
+      ><a name="1002"
+      > </a
+      ><a name="1003" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="1004"
+      > </a
+      ><a name="1005" href="InitDesc.html#994" class="Bound"
+      >A</a
+      ><a name="1006"
+      >
+</a
+      ><a name="1007" href="InitDesc.html#935" class="Function"
+      >uniSV</a
+      ><a name="1012"
+      > </a
+      ><a name="1013" class="Symbol"
+      >(</a
+      ><a name="1014" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="1015"
+      > </a
+      ><a name="1016" href="InitDesc.html#1016" class="Bound"
+      >A</a
+      ><a name="1017" class="Symbol"
+      >)</a
+      ><a name="1018"
+      >     </a
+      ><a name="1023" class="Symbol"
+      >=</a
+      ><a name="1024"
+      > </a
+      ><a name="1025" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="1026"
+      > </a
+      ><a name="1027" href="InitDesc.html#1016" class="Bound"
+      >A</a
+      ><a name="1028"
+      >
+</a
+      ><a name="1029" href="InitDesc.html#935" class="Function"
+      >uniSV</a
+      ><a name="1034"
+      > </a
+      ><a name="1035" class="Symbol"
+      >(</a
+      ><a name="1036" href="InitDesc.html#1036" class="Bound"
+      >as</a
+      ><a name="1038"
+      > </a
+      ><a name="1039" href="InitDesc.html#712" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1040"
+      > </a
+      ><a name="1041" href="InitDesc.html#1041" class="Bound"
+      >bs</a
+      ><a name="1043" class="Symbol"
+      >)</a
+      ><a name="1044"
+      > </a
+      ><a name="1045" class="Symbol"
+      >=</a
+      ><a name="1046"
+      > </a
+      ><a name="1047" class="Symbol"
+      >(</a
+      ><a name="1048" href="InitDesc.html#935" class="Function"
+      >uniSV</a
+      ><a name="1053"
+      > </a
+      ><a name="1054" href="InitDesc.html#1036" class="Bound"
+      >as</a
+      ><a name="1056"
+      > </a
+      ><a name="1057" href="InitDesc.html#712" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1058"
+      > </a
+      ><a name="1059" href="InitDesc.html#935" class="Function"
+      >uniSV</a
+      ><a name="1064"
+      > </a
+      ><a name="1065" href="InitDesc.html#1041" class="Bound"
+      >bs</a
+      ><a name="1067" class="Symbol"
+      >)</a
+      ><a name="1068"
+      >
+
+</a
+      ><a name="1070" class="Comment"
+      >------------------------------------------------------</a
+      ><a name="1124"
+      >
+
+</a
+      ><a name="1126" href="InitDesc.html#1126" class="Function Operator"
+      >_&lt;:_</a
+      ><a name="1130"
+      > </a
+      ><a name="1131" class="Symbol"
+      >:</a
+      ><a name="1132"
+      > </a
+      ><a name="1133" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="1139"
+      > </a
+      ><a name="1140" class="Symbol"
+      >&#8594;</a
+      ><a name="1141"
+      > </a
+      ><a name="1142" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="1148"
+      > </a
+      ><a name="1149" class="Symbol"
+      >&#8594;</a
+      ><a name="1150"
+      > </a
+      ><a name="1151" class="PrimitiveType"
+      >Set</a
+      ><a name="1154"
+      >
+</a
+      ><a name="1155" href="InitDesc.html#642" class="InductiveConstructor"
+      >C</a
+      ><a name="1156"
+      > </a
+      ><a name="1157" href="InitDesc.html#1157" class="Bound"
+      >i&#8321;</a
+      ><a name="1159"
+      > </a
+      ><a name="1160" href="InitDesc.html#1160" class="Bound"
+      >A</a
+      ><a name="1161"
+      >      </a
+      ><a name="1167" href="InitDesc.html#1126" class="Function Operator"
+      >&lt;:</a
+      ><a name="1169"
+      > </a
+      ><a name="1170" href="InitDesc.html#642" class="InductiveConstructor"
+      >C</a
+      ><a name="1171"
+      > </a
+      ><a name="1172" href="InitDesc.html#1172" class="Bound"
+      >i&#8322;</a
+      ><a name="1174"
+      > </a
+      ><a name="1175" href="InitDesc.html#1175" class="Bound"
+      >B</a
+      ><a name="1176"
+      >      </a
+      ><a name="1182" class="Symbol"
+      >=</a
+      ><a name="1183"
+      > </a
+      ><a name="1184" class="Symbol"
+      >(</a
+      ><a name="1185" href="InitDesc.html#1157" class="Bound"
+      >i&#8321;</a
+      ><a name="1187"
+      > </a
+      ><a name="1188" href="InitDesc.html#334" class="Function Operator"
+      >&#10216;:</a
+      ><a name="1190"
+      > </a
+      ><a name="1191" href="InitDesc.html#1172" class="Bound"
+      >i&#8322;</a
+      ><a name="1193" class="Symbol"
+      >)</a
+      ><a name="1194"
+      > </a
+      ><a name="1195" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1196"
+      > </a
+      ><a name="1197" class="Symbol"
+      >(</a
+      ><a name="1198" href="InitDesc.html#1160" class="Bound"
+      >A</a
+      ><a name="1199"
+      > </a
+      ><a name="1200" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="1201"
+      > </a
+      ><a name="1202" href="InitDesc.html#1175" class="Bound"
+      >B</a
+      ><a name="1203" class="Symbol"
+      >)</a
+      ><a name="1204"
+      >
+</a
+      ><a name="1205" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="1206"
+      > </a
+      ><a name="1207" href="InitDesc.html#1207" class="Bound"
+      >A</a
+      ><a name="1208"
+      >         </a
+      ><a name="1217" href="InitDesc.html#1126" class="Function Operator"
+      >&lt;:</a
+      ><a name="1219"
+      > </a
+      ><a name="1220" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="1221"
+      > </a
+      ><a name="1222" href="InitDesc.html#1222" class="Bound"
+      >B</a
+      ><a name="1223"
+      >         </a
+      ><a name="1232" class="Symbol"
+      >=</a
+      ><a name="1233"
+      > </a
+      ><a name="1234" href="InitDesc.html#1207" class="Bound"
+      >A</a
+      ><a name="1235"
+      > </a
+      ><a name="1236" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="1237"
+      > </a
+      ><a name="1238" href="InitDesc.html#1222" class="Bound"
+      >B</a
+      ><a name="1239"
+      >
+</a
+      ><a name="1240" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="1241"
+      > </a
+      ><a name="1242" href="InitDesc.html#1242" class="Bound"
+      >A</a
+      ><a name="1243"
+      >         </a
+      ><a name="1252" href="InitDesc.html#1126" class="Function Operator"
+      >&lt;:</a
+      ><a name="1254"
+      > </a
+      ><a name="1255" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="1256"
+      > </a
+      ><a name="1257" href="InitDesc.html#1257" class="Bound"
+      >B</a
+      ><a name="1258"
+      >         </a
+      ><a name="1267" class="Symbol"
+      >=</a
+      ><a name="1268"
+      > </a
+      ><a name="1269" href="InitDesc.html#1242" class="Bound"
+      >A</a
+      ><a name="1270"
+      > </a
+      ><a name="1271" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="1272"
+      > </a
+      ><a name="1273" href="InitDesc.html#1257" class="Bound"
+      >B</a
+      ><a name="1274"
+      >
+</a
+      ><a name="1275" class="Symbol"
+      >(</a
+      ><a name="1276" href="InitDesc.html#1276" class="Bound"
+      >as&#8321;</a
+      ><a name="1279"
+      > </a
+      ><a name="1280" href="InitDesc.html#712" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1281"
+      > </a
+      ><a name="1282" href="InitDesc.html#1282" class="Bound"
+      >bs&#8321;</a
+      ><a name="1285" class="Symbol"
+      >)</a
+      ><a name="1286"
+      > </a
+      ><a name="1287" href="InitDesc.html#1126" class="Function Operator"
+      >&lt;:</a
+      ><a name="1289"
+      > </a
+      ><a name="1290" class="Symbol"
+      >(</a
+      ><a name="1291" href="InitDesc.html#1291" class="Bound"
+      >as&#8322;</a
+      ><a name="1294"
+      > </a
+      ><a name="1295" href="InitDesc.html#712" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1296"
+      > </a
+      ><a name="1297" href="InitDesc.html#1297" class="Bound"
+      >bs&#8322;</a
+      ><a name="1300" class="Symbol"
+      >)</a
+      ><a name="1301"
+      > </a
+      ><a name="1302" class="Symbol"
+      >=</a
+      ><a name="1303"
+      > </a
+      ><a name="1304" class="Symbol"
+      >(</a
+      ><a name="1305" href="InitDesc.html#1276" class="Bound"
+      >as&#8321;</a
+      ><a name="1308"
+      > </a
+      ><a name="1309" href="InitDesc.html#1126" class="Function Operator"
+      >&lt;:</a
+      ><a name="1311"
+      > </a
+      ><a name="1312" href="InitDesc.html#1291" class="Bound"
+      >as&#8322;</a
+      ><a name="1315" class="Symbol"
+      >)</a
+      ><a name="1316"
+      > </a
+      ><a name="1317" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1318"
+      > </a
+      ><a name="1319" class="Symbol"
+      >(</a
+      ><a name="1320" href="InitDesc.html#1282" class="Bound"
+      >bs&#8321;</a
+      ><a name="1323"
+      > </a
+      ><a name="1324" href="InitDesc.html#1126" class="Function Operator"
+      >&lt;:</a
+      ><a name="1326"
+      > </a
+      ><a name="1327" href="InitDesc.html#1297" class="Bound"
+      >bs&#8322;</a
+      ><a name="1330" class="Symbol"
+      >)</a
+      ><a name="1331"
+      >
+</a
+      ><a name="1332" class="Symbol"
+      >_</a
+      ><a name="1333"
+      >           </a
+      ><a name="1344" href="InitDesc.html#1126" class="Function Operator"
+      >&lt;:</a
+      ><a name="1346"
+      > </a
+      ><a name="1347" class="Symbol"
+      >_</a
+      ><a name="1348"
+      >           </a
+      ><a name="1359" class="Symbol"
+      >=</a
+      ><a name="1360"
+      > </a
+      ><a name="1361" href="NeilPrelude.html#1254" class="Datatype"
+      >False</a
+      ><a name="1366"
+      >
+
+</a
+      ><a name="1368" class="Comment"
+      >------------------------------------------------------------------------</a
+      ><a name="1440"
+      >
+
+</a
+      ><a name="1442" href="InitDesc.html#1442" class="Function"
+      >&lt;:-refl</a
+      ><a name="1449"
+      > </a
+      ><a name="1450" class="Symbol"
+      >:</a
+      ><a name="1451"
+      > </a
+      ><a name="1452" class="Symbol"
+      >{</a
+      ><a name="1453" href="InitDesc.html#1453" class="Bound"
+      >as</a
+      ><a name="1455"
+      > </a
+      ><a name="1456" class="Symbol"
+      >:</a
+      ><a name="1457"
+      > </a
+      ><a name="1458" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="1464" class="Symbol"
+      >}</a
+      ><a name="1465"
+      > </a
+      ><a name="1466" class="Symbol"
+      >&#8594;</a
+      ><a name="1467"
+      > </a
+      ><a name="1468" href="InitDesc.html#1453" class="Bound"
+      >as</a
+      ><a name="1470"
+      > </a
+      ><a name="1471" href="InitDesc.html#1126" class="Function Operator"
+      >&lt;:</a
+      ><a name="1473"
+      > </a
+      ><a name="1474" href="InitDesc.html#1453" class="Bound"
+      >as</a
+      ><a name="1476"
+      >
+</a
+      ><a name="1477" href="InitDesc.html#1442" class="Function"
+      >&lt;:-refl</a
+      ><a name="1484"
+      > </a
+      ><a name="1485" class="Symbol"
+      >{</a
+      ><a name="1486" href="InitDesc.html#642" class="InductiveConstructor"
+      >C</a
+      ><a name="1487"
+      > </a
+      ><a name="1488" href="InitDesc.html#1488" class="Bound"
+      >i</a
+      ><a name="1489"
+      > </a
+      ><a name="1490" class="Symbol"
+      >_}</a
+      ><a name="1492"
+      > </a
+      ><a name="1493" class="Symbol"
+      >=</a
+      ><a name="1494"
+      > </a
+      ><a name="1495" class="Symbol"
+      >(</a
+      ><a name="1496" href="InitDesc.html#475" class="Function"
+      >&#10216;:-refl</a
+      ><a name="1503"
+      > </a
+      ><a name="1504" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1505"
+      > </a
+      ><a name="1506" class="InductiveConstructor"
+      >refl</a
+      ><a name="1510" class="Symbol"
+      >)</a
+      ><a name="1511"
+      >
+</a
+      ><a name="1512" href="InitDesc.html#1442" class="Function"
+      >&lt;:-refl</a
+      ><a name="1519"
+      > </a
+      ><a name="1520" class="Symbol"
+      >{</a
+      ><a name="1521" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="1522"
+      > </a
+      ><a name="1523" class="Symbol"
+      >_}</a
+      ><a name="1525"
+      > </a
+      ><a name="1526" class="Symbol"
+      >=</a
+      ><a name="1527"
+      > </a
+      ><a name="1528" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="1532"
+      >
+</a
+      ><a name="1533" href="InitDesc.html#1442" class="Function"
+      >&lt;:-refl</a
+      ><a name="1540"
+      > </a
+      ><a name="1541" class="Symbol"
+      >{</a
+      ><a name="1542" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="1543"
+      > </a
+      ><a name="1544" class="Symbol"
+      >_}</a
+      ><a name="1546"
+      > </a
+      ><a name="1547" class="Symbol"
+      >=</a
+      ><a name="1548"
+      > </a
+      ><a name="1549" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="1553"
+      >
+</a
+      ><a name="1554" href="InitDesc.html#1442" class="Function"
+      >&lt;:-refl</a
+      ><a name="1561"
+      > </a
+      ><a name="1562" class="Symbol"
+      >{</a
+      ><a name="1563" href="InitDesc.html#1563" class="Bound"
+      >as</a
+      ><a name="1565"
+      > </a
+      ><a name="1566" href="InitDesc.html#712" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1567"
+      > </a
+      ><a name="1568" href="InitDesc.html#1568" class="Bound"
+      >bs</a
+      ><a name="1570" class="Symbol"
+      >}</a
+      ><a name="1571"
+      > </a
+      ><a name="1572" class="Symbol"
+      >=</a
+      ><a name="1573"
+      > </a
+      ><a name="1574" class="Symbol"
+      >(</a
+      ><a name="1575" href="InitDesc.html#1442" class="Function"
+      >&lt;:-refl</a
+      ><a name="1582"
+      > </a
+      ><a name="1583" class="Symbol"
+      >{</a
+      ><a name="1584" href="InitDesc.html#1563" class="Bound"
+      >as</a
+      ><a name="1586" class="Symbol"
+      >}</a
+      ><a name="1587"
+      > </a
+      ><a name="1588" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1589"
+      > </a
+      ><a name="1590" href="InitDesc.html#1442" class="Function"
+      >&lt;:-refl</a
+      ><a name="1597"
+      > </a
+      ><a name="1598" class="Symbol"
+      >{</a
+      ><a name="1599" href="InitDesc.html#1568" class="Bound"
+      >bs</a
+      ><a name="1601" class="Symbol"
+      >})</a
+      ><a name="1603"
+      >
+
+</a
+      ><a name="1605" href="InitDesc.html#1605" class="Function"
+      >&lt;:-refl'</a
+      ><a name="1613"
+      > </a
+      ><a name="1614" class="Symbol"
+      >:</a
+      ><a name="1615"
+      > </a
+      ><a name="1616" class="Symbol"
+      >{</a
+      ><a name="1617" href="InitDesc.html#1617" class="Bound"
+      >as</a
+      ><a name="1619"
+      > </a
+      ><a name="1620" href="InitDesc.html#1620" class="Bound"
+      >bs</a
+      ><a name="1622"
+      > </a
+      ><a name="1623" class="Symbol"
+      >:</a
+      ><a name="1624"
+      > </a
+      ><a name="1625" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="1631" class="Symbol"
+      >}</a
+      ><a name="1632"
+      > </a
+      ><a name="1633" class="Symbol"
+      >&#8594;</a
+      ><a name="1634"
+      > </a
+      ><a name="1635" href="InitDesc.html#1617" class="Bound"
+      >as</a
+      ><a name="1637"
+      > </a
+      ><a name="1638" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="1639"
+      > </a
+      ><a name="1640" href="InitDesc.html#1620" class="Bound"
+      >bs</a
+      ><a name="1642"
+      > </a
+      ><a name="1643" class="Symbol"
+      >&#8594;</a
+      ><a name="1644"
+      > </a
+      ><a name="1645" href="InitDesc.html#1617" class="Bound"
+      >as</a
+      ><a name="1647"
+      > </a
+      ><a name="1648" href="InitDesc.html#1126" class="Function Operator"
+      >&lt;:</a
+      ><a name="1650"
+      > </a
+      ><a name="1651" href="InitDesc.html#1620" class="Bound"
+      >bs</a
+      ><a name="1653"
+      >
+</a
+      ><a name="1654" href="InitDesc.html#1605" class="Function"
+      >&lt;:-refl'</a
+      ><a name="1662"
+      > </a
+      ><a name="1663" class="Symbol"
+      >{</a
+      ><a name="1664" href="InitDesc.html#1664" class="Bound"
+      >as</a
+      ><a name="1666" class="Symbol"
+      >}</a
+      ><a name="1667"
+      > </a
+      ><a name="1668" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="1672"
+      > </a
+      ><a name="1673" class="Symbol"
+      >=</a
+      ><a name="1674"
+      > </a
+      ><a name="1675" href="InitDesc.html#1442" class="Function"
+      >&lt;:-refl</a
+      ><a name="1682"
+      > </a
+      ><a name="1683" class="Symbol"
+      >{</a
+      ><a name="1684" href="InitDesc.html#1664" class="Bound"
+      >as</a
+      ><a name="1686" class="Symbol"
+      >}</a
+      ><a name="1687"
+      >
+
+</a
+      ><a name="1689" href="InitDesc.html#1689" class="Function"
+      >lem-iniSub</a
+      ><a name="1699"
+      > </a
+      ><a name="1700" class="Symbol"
+      >:</a
+      ><a name="1701"
+      > </a
+      ><a name="1702" class="Symbol"
+      >{</a
+      ><a name="1703" href="InitDesc.html#1703" class="Bound"
+      >as</a
+      ><a name="1705"
+      > </a
+      ><a name="1706" class="Symbol"
+      >:</a
+      ><a name="1707"
+      > </a
+      ><a name="1708" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="1714" class="Symbol"
+      >}</a
+      ><a name="1715"
+      > </a
+      ><a name="1716" class="Symbol"
+      >&#8594;</a
+      ><a name="1717"
+      > </a
+      ><a name="1718" class="Symbol"
+      >(</a
+      ><a name="1719" href="InitDesc.html#800" class="Function"
+      >iniSV</a
+      ><a name="1724"
+      > </a
+      ><a name="1725" href="InitDesc.html#1703" class="Bound"
+      >as</a
+      ><a name="1727"
+      > </a
+      ><a name="1728" href="InitDesc.html#1126" class="Function Operator"
+      >&lt;:</a
+      ><a name="1730"
+      > </a
+      ><a name="1731" href="InitDesc.html#1703" class="Bound"
+      >as</a
+      ><a name="1733" class="Symbol"
+      >)</a
+      ><a name="1734"
+      >
+</a
+      ><a name="1735" href="InitDesc.html#1689" class="Function"
+      >lem-iniSub</a
+      ><a name="1745"
+      > </a
+      ><a name="1746" class="Symbol"
+      >{</a
+      ><a name="1747" href="InitDesc.html#642" class="InductiveConstructor"
+      >C</a
+      ><a name="1748"
+      > </a
+      ><a name="1749" class="Symbol"
+      >_</a
+      ><a name="1750"
+      > </a
+      ><a name="1751" class="Symbol"
+      >_}</a
+      ><a name="1753"
+      > </a
+      ><a name="1754" class="Symbol"
+      >=</a
+      ><a name="1755"
+      > </a
+      ><a name="1756" class="Symbol"
+      >(_</a
+      ><a name="1758"
+      > </a
+      ><a name="1759" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1760"
+      > </a
+      ><a name="1761" class="InductiveConstructor"
+      >refl</a
+      ><a name="1765" class="Symbol"
+      >)</a
+      ><a name="1766"
+      >
+</a
+      ><a name="1767" href="InitDesc.html#1689" class="Function"
+      >lem-iniSub</a
+      ><a name="1777"
+      > </a
+      ><a name="1778" class="Symbol"
+      >{</a
+      ><a name="1779" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="1780"
+      > </a
+      ><a name="1781" class="Symbol"
+      >_}</a
+      ><a name="1783"
+      > </a
+      ><a name="1784" class="Symbol"
+      >=</a
+      ><a name="1785"
+      > </a
+      ><a name="1786" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="1790"
+      >
+</a
+      ><a name="1791" href="InitDesc.html#1689" class="Function"
+      >lem-iniSub</a
+      ><a name="1801"
+      > </a
+      ><a name="1802" class="Symbol"
+      >{</a
+      ><a name="1803" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="1804"
+      > </a
+      ><a name="1805" class="Symbol"
+      >_}</a
+      ><a name="1807"
+      > </a
+      ><a name="1808" class="Symbol"
+      >=</a
+      ><a name="1809"
+      > </a
+      ><a name="1810" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="1814"
+      >
+</a
+      ><a name="1815" href="InitDesc.html#1689" class="Function"
+      >lem-iniSub</a
+      ><a name="1825"
+      > </a
+      ><a name="1826" class="Symbol"
+      >{</a
+      ><a name="1827" href="InitDesc.html#1827" class="Bound"
+      >as</a
+      ><a name="1829"
+      > </a
+      ><a name="1830" href="InitDesc.html#712" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1831"
+      > </a
+      ><a name="1832" href="InitDesc.html#1832" class="Bound"
+      >bs</a
+      ><a name="1834" class="Symbol"
+      >}</a
+      ><a name="1835"
+      > </a
+      ><a name="1836" class="Symbol"
+      >=</a
+      ><a name="1837"
+      > </a
+      ><a name="1838" href="InitDesc.html#1689" class="Function"
+      >lem-iniSub</a
+      ><a name="1848"
+      > </a
+      ><a name="1849" class="Symbol"
+      >{</a
+      ><a name="1850" href="InitDesc.html#1827" class="Bound"
+      >as</a
+      ><a name="1852" class="Symbol"
+      >}</a
+      ><a name="1853"
+      > </a
+      ><a name="1854" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1855"
+      > </a
+      ><a name="1856" href="InitDesc.html#1689" class="Function"
+      >lem-iniSub</a
+      ><a name="1866"
+      > </a
+      ><a name="1867" class="Symbol"
+      >{</a
+      ><a name="1868" href="InitDesc.html#1832" class="Bound"
+      >bs</a
+      ><a name="1870" class="Symbol"
+      >}</a
+      ><a name="1871"
+      >
+
+</a
+      ><a name="1873" href="InitDesc.html#1873" class="Function"
+      >lem-uniSub</a
+      ><a name="1883"
+      > </a
+      ><a name="1884" class="Symbol"
+      >:</a
+      ><a name="1885"
+      > </a
+      ><a name="1886" class="Symbol"
+      >{</a
+      ><a name="1887" href="InitDesc.html#1887" class="Bound"
+      >as</a
+      ><a name="1889"
+      > </a
+      ><a name="1890" class="Symbol"
+      >:</a
+      ><a name="1891"
+      > </a
+      ><a name="1892" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="1898" class="Symbol"
+      >}</a
+      ><a name="1899"
+      > </a
+      ><a name="1900" class="Symbol"
+      >&#8594;</a
+      ><a name="1901"
+      > </a
+      ><a name="1902" class="Symbol"
+      >(</a
+      ><a name="1903" href="InitDesc.html#1887" class="Bound"
+      >as</a
+      ><a name="1905"
+      > </a
+      ><a name="1906" href="InitDesc.html#1126" class="Function Operator"
+      >&lt;:</a
+      ><a name="1908"
+      > </a
+      ><a name="1909" href="InitDesc.html#935" class="Function"
+      >uniSV</a
+      ><a name="1914"
+      > </a
+      ><a name="1915" href="InitDesc.html#1887" class="Bound"
+      >as</a
+      ><a name="1917" class="Symbol"
+      >)</a
+      ><a name="1918"
+      >
+</a
+      ><a name="1919" href="InitDesc.html#1873" class="Function"
+      >lem-uniSub</a
+      ><a name="1929"
+      > </a
+      ><a name="1930" class="Symbol"
+      >{</a
+      ><a name="1931" href="InitDesc.html#642" class="InductiveConstructor"
+      >C</a
+      ><a name="1932"
+      > </a
+      ><a name="1933" href="InitDesc.html#197" class="InductiveConstructor"
+      >ini</a
+      ><a name="1936"
+      > </a
+      ><a name="1937" class="Symbol"
+      >_}</a
+      ><a name="1939"
+      > </a
+      ><a name="1940" class="Symbol"
+      >=</a
+      ><a name="1941"
+      > </a
+      ><a name="1942" class="Symbol"
+      >(_</a
+      ><a name="1944"
+      > </a
+      ><a name="1945" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1946"
+      > </a
+      ><a name="1947" class="InductiveConstructor"
+      >refl</a
+      ><a name="1951" class="Symbol"
+      >)</a
+      ><a name="1952"
+      >
+</a
+      ><a name="1953" href="InitDesc.html#1873" class="Function"
+      >lem-uniSub</a
+      ><a name="1963"
+      > </a
+      ><a name="1964" class="Symbol"
+      >{</a
+      ><a name="1965" href="InitDesc.html#642" class="InductiveConstructor"
+      >C</a
+      ><a name="1966"
+      > </a
+      ><a name="1967" href="InitDesc.html#234" class="InductiveConstructor"
+      >uni</a
+      ><a name="1970"
+      > </a
+      ><a name="1971" class="Symbol"
+      >_}</a
+      ><a name="1973"
+      > </a
+      ><a name="1974" class="Symbol"
+      >=</a
+      ><a name="1975"
+      > </a
+      ><a name="1976" class="Symbol"
+      >(_</a
+      ><a name="1978"
+      > </a
+      ><a name="1979" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1980"
+      > </a
+      ><a name="1981" class="InductiveConstructor"
+      >refl</a
+      ><a name="1985" class="Symbol"
+      >)</a
+      ><a name="1986"
+      >
+</a
+      ><a name="1987" href="InitDesc.html#1873" class="Function"
+      >lem-uniSub</a
+      ><a name="1997"
+      > </a
+      ><a name="1998" class="Symbol"
+      >{</a
+      ><a name="1999" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="2000"
+      > </a
+      ><a name="2001" class="Symbol"
+      >_}</a
+      ><a name="2003"
+      > </a
+      ><a name="2004" class="Symbol"
+      >=</a
+      ><a name="2005"
+      > </a
+      ><a name="2006" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="2010"
+      >
+</a
+      ><a name="2011" href="InitDesc.html#1873" class="Function"
+      >lem-uniSub</a
+      ><a name="2021"
+      > </a
+      ><a name="2022" class="Symbol"
+      >{</a
+      ><a name="2023" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="2024"
+      > </a
+      ><a name="2025" class="Symbol"
+      >_}</a
+      ><a name="2027"
+      > </a
+      ><a name="2028" class="Symbol"
+      >=</a
+      ><a name="2029"
+      > </a
+      ><a name="2030" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="2034"
+      >
+</a
+      ><a name="2035" href="InitDesc.html#1873" class="Function"
+      >lem-uniSub</a
+      ><a name="2045"
+      > </a
+      ><a name="2046" class="Symbol"
+      >{</a
+      ><a name="2047" href="InitDesc.html#2047" class="Bound"
+      >as</a
+      ><a name="2049"
+      > </a
+      ><a name="2050" href="InitDesc.html#712" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2051"
+      > </a
+      ><a name="2052" href="InitDesc.html#2052" class="Bound"
+      >bs</a
+      ><a name="2054" class="Symbol"
+      >}</a
+      ><a name="2055"
+      > </a
+      ><a name="2056" class="Symbol"
+      >=</a
+      ><a name="2057"
+      > </a
+      ><a name="2058" href="InitDesc.html#1873" class="Function"
+      >lem-uniSub</a
+      ><a name="2068"
+      > </a
+      ><a name="2069" class="Symbol"
+      >{</a
+      ><a name="2070" href="InitDesc.html#2047" class="Bound"
+      >as</a
+      ><a name="2072" class="Symbol"
+      >}</a
+      ><a name="2073"
+      > </a
+      ><a name="2074" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2075"
+      > </a
+      ><a name="2076" href="InitDesc.html#1873" class="Function"
+      >lem-uniSub</a
+      ><a name="2086"
+      > </a
+      ><a name="2087" class="Symbol"
+      >{</a
+      ><a name="2088" href="InitDesc.html#2052" class="Bound"
+      >bs</a
+      ><a name="2090" class="Symbol"
+      >}</a
+      ><a name="2091"
+      >
+
+</a
+      ><a name="2093" href="InitDesc.html#2093" class="Function"
+      >lemE-subL</a
+      ><a name="2102"
+      > </a
+      ><a name="2103" class="Symbol"
+      >:</a
+      ><a name="2104"
+      > </a
+      ><a name="2105" class="Symbol"
+      >{</a
+      ><a name="2106" href="InitDesc.html#2106" class="Bound"
+      >as</a
+      ><a name="2108"
+      > </a
+      ><a name="2109" class="Symbol"
+      >:</a
+      ><a name="2110"
+      > </a
+      ><a name="2111" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="2117" class="Symbol"
+      >}</a
+      ><a name="2118"
+      > </a
+      ><a name="2119" class="Symbol"
+      >&#8594;</a
+      ><a name="2120"
+      > </a
+      ><a name="2121" class="Symbol"
+      >{</a
+      ><a name="2122" href="InitDesc.html#2122" class="Bound"
+      >A</a
+      ><a name="2123"
+      > </a
+      ><a name="2124" class="Symbol"
+      >:</a
+      ><a name="2125"
+      > </a
+      ><a name="2126" class="PrimitiveType"
+      >Set</a
+      ><a name="2129" class="Symbol"
+      >}</a
+      ><a name="2130"
+      > </a
+      ><a name="2131" class="Symbol"
+      >&#8594;</a
+      ><a name="2132"
+      > </a
+      ><a name="2133" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="2134"
+      > </a
+      ><a name="2135" href="InitDesc.html#2122" class="Bound"
+      >A</a
+      ><a name="2136"
+      > </a
+      ><a name="2137" href="InitDesc.html#1126" class="Function Operator"
+      >&lt;:</a
+      ><a name="2139"
+      > </a
+      ><a name="2140" href="InitDesc.html#2106" class="Bound"
+      >as</a
+      ><a name="2142"
+      > </a
+      ><a name="2143" class="Symbol"
+      >&#8594;</a
+      ><a name="2144"
+      > </a
+      ><a name="2145" href="InitDesc.html#2106" class="Bound"
+      >as</a
+      ><a name="2147"
+      > </a
+      ><a name="2148" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="2149"
+      > </a
+      ><a name="2150" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="2151"
+      > </a
+      ><a name="2152" href="InitDesc.html#2122" class="Bound"
+      >A</a
+      ><a name="2153"
+      >
+</a
+      ><a name="2154" href="InitDesc.html#2093" class="Function"
+      >lemE-subL</a
+      ><a name="2163"
+      > </a
+      ><a name="2164" class="Symbol"
+      >{</a
+      ><a name="2165" href="InitDesc.html#642" class="InductiveConstructor"
+      >C</a
+      ><a name="2166"
+      > </a
+      ><a name="2167" class="Symbol"
+      >_</a
+      ><a name="2168"
+      > </a
+      ><a name="2169" class="Symbol"
+      >_}</a
+      ><a name="2171"
+      > </a
+      ><a name="2172" class="Symbol"
+      >()</a
+      ><a name="2174"
+      >
+</a
+      ><a name="2175" href="InitDesc.html#2093" class="Function"
+      >lemE-subL</a
+      ><a name="2184"
+      > </a
+      ><a name="2185" class="Symbol"
+      >{</a
+      ><a name="2186" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="2187"
+      > </a
+      ><a name="2188" class="Symbol"
+      >_}</a
+      ><a name="2190"
+      > </a
+      ><a name="2191" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="2195"
+      > </a
+      ><a name="2196" class="Symbol"
+      >=</a
+      ><a name="2197"
+      > </a
+      ><a name="2198" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="2202"
+      >
+</a
+      ><a name="2203" href="InitDesc.html#2093" class="Function"
+      >lemE-subL</a
+      ><a name="2212"
+      > </a
+      ><a name="2213" class="Symbol"
+      >{</a
+      ><a name="2214" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="2215"
+      > </a
+      ><a name="2216" class="Symbol"
+      >_}</a
+      ><a name="2218"
+      > </a
+      ><a name="2219" class="Symbol"
+      >()</a
+      ><a name="2221"
+      >
+</a
+      ><a name="2222" href="InitDesc.html#2093" class="Function"
+      >lemE-subL</a
+      ><a name="2231"
+      > </a
+      ><a name="2232" class="Symbol"
+      >{_</a
+      ><a name="2234"
+      > </a
+      ><a name="2235" href="InitDesc.html#712" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2236"
+      > </a
+      ><a name="2237" class="Symbol"
+      >_}</a
+      ><a name="2239"
+      > </a
+      ><a name="2240" class="Symbol"
+      >()</a
+      ><a name="2242"
+      >
+
+</a
+      ><a name="2244" href="InitDesc.html#2244" class="Function"
+      >lemS-subL</a
+      ><a name="2253"
+      > </a
+      ><a name="2254" class="Symbol"
+      >:</a
+      ><a name="2255"
+      > </a
+      ><a name="2256" class="Symbol"
+      >{</a
+      ><a name="2257" href="InitDesc.html#2257" class="Bound"
+      >as</a
+      ><a name="2259"
+      > </a
+      ><a name="2260" class="Symbol"
+      >:</a
+      ><a name="2261"
+      > </a
+      ><a name="2262" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="2268" class="Symbol"
+      >}</a
+      ><a name="2269"
+      > </a
+      ><a name="2270" class="Symbol"
+      >&#8594;</a
+      ><a name="2271"
+      > </a
+      ><a name="2272" class="Symbol"
+      >{</a
+      ><a name="2273" href="InitDesc.html#2273" class="Bound"
+      >A</a
+      ><a name="2274"
+      > </a
+      ><a name="2275" class="Symbol"
+      >:</a
+      ><a name="2276"
+      > </a
+      ><a name="2277" class="PrimitiveType"
+      >Set</a
+      ><a name="2280" class="Symbol"
+      >}</a
+      ><a name="2281"
+      > </a
+      ><a name="2282" class="Symbol"
+      >&#8594;</a
+      ><a name="2283"
+      > </a
+      ><a name="2284" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="2285"
+      > </a
+      ><a name="2286" href="InitDesc.html#2273" class="Bound"
+      >A</a
+      ><a name="2287"
+      > </a
+      ><a name="2288" href="InitDesc.html#1126" class="Function Operator"
+      >&lt;:</a
+      ><a name="2290"
+      > </a
+      ><a name="2291" href="InitDesc.html#2257" class="Bound"
+      >as</a
+      ><a name="2293"
+      > </a
+      ><a name="2294" class="Symbol"
+      >&#8594;</a
+      ><a name="2295"
+      > </a
+      ><a name="2296" href="InitDesc.html#2257" class="Bound"
+      >as</a
+      ><a name="2298"
+      > </a
+      ><a name="2299" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="2300"
+      > </a
+      ><a name="2301" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="2302"
+      > </a
+      ><a name="2303" href="InitDesc.html#2273" class="Bound"
+      >A</a
+      ><a name="2304"
+      >
+</a
+      ><a name="2305" href="InitDesc.html#2244" class="Function"
+      >lemS-subL</a
+      ><a name="2314"
+      > </a
+      ><a name="2315" class="Symbol"
+      >{</a
+      ><a name="2316" href="InitDesc.html#642" class="InductiveConstructor"
+      >C</a
+      ><a name="2317"
+      > </a
+      ><a name="2318" class="Symbol"
+      >_</a
+      ><a name="2319"
+      > </a
+      ><a name="2320" class="Symbol"
+      >_}</a
+      ><a name="2322"
+      > </a
+      ><a name="2323" class="Symbol"
+      >()</a
+      ><a name="2325"
+      >
+</a
+      ><a name="2326" href="InitDesc.html#2244" class="Function"
+      >lemS-subL</a
+      ><a name="2335"
+      > </a
+      ><a name="2336" class="Symbol"
+      >{</a
+      ><a name="2337" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="2338"
+      > </a
+      ><a name="2339" class="Symbol"
+      >_}</a
+      ><a name="2341"
+      > </a
+      ><a name="2342" class="Symbol"
+      >()</a
+      ><a name="2344"
+      >
+</a
+      ><a name="2345" href="InitDesc.html#2244" class="Function"
+      >lemS-subL</a
+      ><a name="2354"
+      > </a
+      ><a name="2355" class="Symbol"
+      >{</a
+      ><a name="2356" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="2357"
+      > </a
+      ><a name="2358" class="Symbol"
+      >_}</a
+      ><a name="2360"
+      > </a
+      ><a name="2361" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="2365"
+      > </a
+      ><a name="2366" class="Symbol"
+      >=</a
+      ><a name="2367"
+      > </a
+      ><a name="2368" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="2372"
+      >
+</a
+      ><a name="2373" href="InitDesc.html#2244" class="Function"
+      >lemS-subL</a
+      ><a name="2382"
+      > </a
+      ><a name="2383" class="Symbol"
+      >{_</a
+      ><a name="2385"
+      > </a
+      ><a name="2386" href="InitDesc.html#712" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2387"
+      > </a
+      ><a name="2388" class="Symbol"
+      >_}</a
+      ><a name="2390"
+      > </a
+      ><a name="2391" class="Symbol"
+      >()</a
+      ><a name="2393"
+      >
+
+</a
+      ><a name="2395" href="InitDesc.html#2395" class="Function"
+      >lemE-subR</a
+      ><a name="2404"
+      > </a
+      ><a name="2405" class="Symbol"
+      >:</a
+      ><a name="2406"
+      > </a
+      ><a name="2407" class="Symbol"
+      >{</a
+      ><a name="2408" href="InitDesc.html#2408" class="Bound"
+      >as</a
+      ><a name="2410"
+      > </a
+      ><a name="2411" class="Symbol"
+      >:</a
+      ><a name="2412"
+      > </a
+      ><a name="2413" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="2419" class="Symbol"
+      >}</a
+      ><a name="2420"
+      > </a
+      ><a name="2421" class="Symbol"
+      >&#8594;</a
+      ><a name="2422"
+      > </a
+      ><a name="2423" class="Symbol"
+      >{</a
+      ><a name="2424" href="InitDesc.html#2424" class="Bound"
+      >A</a
+      ><a name="2425"
+      > </a
+      ><a name="2426" class="Symbol"
+      >:</a
+      ><a name="2427"
+      > </a
+      ><a name="2428" class="PrimitiveType"
+      >Set</a
+      ><a name="2431" class="Symbol"
+      >}</a
+      ><a name="2432"
+      > </a
+      ><a name="2433" class="Symbol"
+      >&#8594;</a
+      ><a name="2434"
+      > </a
+      ><a name="2435" href="InitDesc.html#2408" class="Bound"
+      >as</a
+      ><a name="2437"
+      > </a
+      ><a name="2438" href="InitDesc.html#1126" class="Function Operator"
+      >&lt;:</a
+      ><a name="2440"
+      > </a
+      ><a name="2441" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="2442"
+      > </a
+      ><a name="2443" href="InitDesc.html#2424" class="Bound"
+      >A</a
+      ><a name="2444"
+      > </a
+      ><a name="2445" class="Symbol"
+      >&#8594;</a
+      ><a name="2446"
+      > </a
+      ><a name="2447" href="InitDesc.html#2408" class="Bound"
+      >as</a
+      ><a name="2449"
+      > </a
+      ><a name="2450" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="2451"
+      > </a
+      ><a name="2452" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="2453"
+      > </a
+      ><a name="2454" href="InitDesc.html#2424" class="Bound"
+      >A</a
+      ><a name="2455"
+      >
+</a
+      ><a name="2456" href="InitDesc.html#2395" class="Function"
+      >lemE-subR</a
+      ><a name="2465"
+      > </a
+      ><a name="2466" class="Symbol"
+      >{</a
+      ><a name="2467" href="InitDesc.html#642" class="InductiveConstructor"
+      >C</a
+      ><a name="2468"
+      > </a
+      ><a name="2469" class="Symbol"
+      >_</a
+      ><a name="2470"
+      > </a
+      ><a name="2471" class="Symbol"
+      >_}</a
+      ><a name="2473"
+      > </a
+      ><a name="2474" class="Symbol"
+      >()</a
+      ><a name="2476"
+      >
+</a
+      ><a name="2477" href="InitDesc.html#2395" class="Function"
+      >lemE-subR</a
+      ><a name="2486"
+      > </a
+      ><a name="2487" class="Symbol"
+      >{</a
+      ><a name="2488" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="2489"
+      > </a
+      ><a name="2490" class="Symbol"
+      >_}</a
+      ><a name="2492"
+      > </a
+      ><a name="2493" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="2497"
+      > </a
+      ><a name="2498" class="Symbol"
+      >=</a
+      ><a name="2499"
+      > </a
+      ><a name="2500" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="2504"
+      >
+</a
+      ><a name="2505" href="InitDesc.html#2395" class="Function"
+      >lemE-subR</a
+      ><a name="2514"
+      > </a
+      ><a name="2515" class="Symbol"
+      >{</a
+      ><a name="2516" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="2517"
+      > </a
+      ><a name="2518" class="Symbol"
+      >_}</a
+      ><a name="2520"
+      > </a
+      ><a name="2521" class="Symbol"
+      >()</a
+      ><a name="2523"
+      >
+</a
+      ><a name="2524" href="InitDesc.html#2395" class="Function"
+      >lemE-subR</a
+      ><a name="2533"
+      > </a
+      ><a name="2534" class="Symbol"
+      >{_</a
+      ><a name="2536"
+      > </a
+      ><a name="2537" href="InitDesc.html#712" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2538"
+      > </a
+      ><a name="2539" class="Symbol"
+      >_}</a
+      ><a name="2541"
+      > </a
+      ><a name="2542" class="Symbol"
+      >()</a
+      ><a name="2544"
+      >
+
+</a
+      ><a name="2546" href="InitDesc.html#2546" class="Function"
+      >lemS-subR</a
+      ><a name="2555"
+      > </a
+      ><a name="2556" class="Symbol"
+      >:</a
+      ><a name="2557"
+      > </a
+      ><a name="2558" class="Symbol"
+      >{</a
+      ><a name="2559" href="InitDesc.html#2559" class="Bound"
+      >as</a
+      ><a name="2561"
+      > </a
+      ><a name="2562" class="Symbol"
+      >:</a
+      ><a name="2563"
+      > </a
+      ><a name="2564" href="InitDesc.html#621" class="Datatype"
+      >SVDesc</a
+      ><a name="2570" class="Symbol"
+      >}</a
+      ><a name="2571"
+      > </a
+      ><a name="2572" class="Symbol"
+      >&#8594;</a
+      ><a name="2573"
+      > </a
+      ><a name="2574" class="Symbol"
+      >{</a
+      ><a name="2575" href="InitDesc.html#2575" class="Bound"
+      >A</a
+      ><a name="2576"
+      > </a
+      ><a name="2577" class="Symbol"
+      >:</a
+      ><a name="2578"
+      > </a
+      ><a name="2579" class="PrimitiveType"
+      >Set</a
+      ><a name="2582" class="Symbol"
+      >}</a
+      ><a name="2583"
+      > </a
+      ><a name="2584" class="Symbol"
+      >&#8594;</a
+      ><a name="2585"
+      > </a
+      ><a name="2586" href="InitDesc.html#2559" class="Bound"
+      >as</a
+      ><a name="2588"
+      > </a
+      ><a name="2589" href="InitDesc.html#1126" class="Function Operator"
+      >&lt;:</a
+      ><a name="2591"
+      > </a
+      ><a name="2592" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="2593"
+      > </a
+      ><a name="2594" href="InitDesc.html#2575" class="Bound"
+      >A</a
+      ><a name="2595"
+      > </a
+      ><a name="2596" class="Symbol"
+      >&#8594;</a
+      ><a name="2597"
+      > </a
+      ><a name="2598" href="InitDesc.html#2559" class="Bound"
+      >as</a
+      ><a name="2600"
+      > </a
+      ><a name="2601" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="2602"
+      > </a
+      ><a name="2603" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="2604"
+      > </a
+      ><a name="2605" href="InitDesc.html#2575" class="Bound"
+      >A</a
+      ><a name="2606"
+      >
+</a
+      ><a name="2607" href="InitDesc.html#2546" class="Function"
+      >lemS-subR</a
+      ><a name="2616"
+      > </a
+      ><a name="2617" class="Symbol"
+      >{</a
+      ><a name="2618" href="InitDesc.html#642" class="InductiveConstructor"
+      >C</a
+      ><a name="2619"
+      > </a
+      ><a name="2620" class="Symbol"
+      >_</a
+      ><a name="2621"
+      > </a
+      ><a name="2622" class="Symbol"
+      >_}</a
+      ><a name="2624"
+      > </a
+      ><a name="2625" class="Symbol"
+      >()</a
+      ><a name="2627"
+      >
+</a
+      ><a name="2628" href="InitDesc.html#2546" class="Function"
+      >lemS-subR</a
+      ><a name="2637"
+      > </a
+      ><a name="2638" class="Symbol"
+      >{</a
+      ><a name="2639" href="InitDesc.html#670" class="InductiveConstructor"
+      >E</a
+      ><a name="2640"
+      > </a
+      ><a name="2641" class="Symbol"
+      >_}</a
+      ><a name="2643"
+      > </a
+      ><a name="2644" class="Symbol"
+      >()</a
+      ><a name="2646"
+      >
+</a
+      ><a name="2647" href="InitDesc.html#2546" class="Function"
+      >lemS-subR</a
+      ><a name="2656"
+      > </a
+      ><a name="2657" class="Symbol"
+      >{</a
+      ><a name="2658" href="InitDesc.html#691" class="InductiveConstructor"
+      >S</a
+      ><a name="2659"
+      > </a
+      ><a name="2660" class="Symbol"
+      >_}</a
+      ><a name="2662"
+      > </a
+      ><a name="2663" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="2667"
+      > </a
+      ><a name="2668" class="Symbol"
+      >=</a
+      ><a name="2669"
+      > </a
+      ><a name="2670" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="2674"
+      >
+</a
+      ><a name="2675" href="InitDesc.html#2546" class="Function"
+      >lemS-subR</a
+      ><a name="2684"
+      > </a
+      ><a name="2685" class="Symbol"
+      >{_</a
+      ><a name="2687"
+      > </a
+      ><a name="2688" href="InitDesc.html#712" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2689"
+      > </a
+      ><a name="2690" class="Symbol"
+      >_}</a
+      ><a name="2692"
+      > </a
+      ><a name="2693" class="Symbol"
+      >()</a
+      ><a name="2695"
+      >
+
+</a
+      ><a name="2697" class="Comment"
+      >------------------------------------------------------------------------</a
+      ><a name="2769"
+      >
+</a
+      ></pre
+    ></body
+  ></html
+>

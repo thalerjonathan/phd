@@ -105,8 +105,7 @@ ppTrace d tas = mapM_ ppTA tas
 ------------------------------------------------------------------------------
 
 time :: B Time
-time = undefined
-
+time = B (\ts -> ts)
 
 ($*) :: B (a -> b) -> B a -> B b
 (B ff) $* (B fa) = B $ \ts -> zipWith ($) (ff ts) (fa ts)

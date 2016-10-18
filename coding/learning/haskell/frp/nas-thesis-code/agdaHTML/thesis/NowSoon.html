@@ -1,0 +1,1252 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >NowSoon</title
+    ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta http-equiv="Content-Style-Type" content="text/css"
+     /><link href="Agda.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><pre
+    ><a name="1" class="Symbol"
+      >{-#</a
+      ><a name="4"
+      > </a
+      ><a name="5" class="Keyword"
+      >OPTIONS</a
+      ><a name="12"
+      > --type-in-type </a
+      ><a name="28" class="Symbol"
+      >#-}</a
+      ><a name="31"
+      >
+
+</a
+      ><a name="33" class="Keyword"
+      >module</a
+      ><a name="39"
+      > </a
+      ><a name="40" href="NowSoon.html#40" class="Module"
+      >NowSoon</a
+      ><a name="47"
+      > </a
+      ><a name="48" class="Keyword"
+      >where</a
+      ><a name="53"
+      >
+
+</a
+      ><a name="55" class="Keyword"
+      >open</a
+      ><a name="59"
+      > </a
+      ><a name="60" class="Keyword"
+      >import</a
+      ><a name="66"
+      > </a
+      ><a name="67" href="NeilPrelude.html#77" class="Module"
+      >NeilPrelude</a
+      ><a name="78"
+      >
+</a
+      ><a name="79" class="Keyword"
+      >open</a
+      ><a name="83"
+      > </a
+      ><a name="84" class="Keyword"
+      >import</a
+      ><a name="90"
+      > </a
+      ><a name="91" href="RealTime.html#66" class="Module"
+      >RealTime</a
+      ><a name="99"
+      >
+</a
+      ><a name="100" class="Keyword"
+      >open</a
+      ><a name="104"
+      > </a
+      ><a name="105" class="Keyword"
+      >import</a
+      ><a name="111"
+      > </a
+      ><a name="112" href="TimeDeltaList.html#168" class="Module"
+      >TimeDeltaList</a
+      ><a name="125"
+      >
+</a
+      ><a name="126" class="Keyword"
+      >open</a
+      ><a name="130"
+      > </a
+      ><a name="131" class="Keyword"
+      >import</a
+      ><a name="137"
+      > </a
+      ><a name="138" href="SVDesc.html#40" class="Module"
+      >SVDesc</a
+      ><a name="144"
+      >
+
+</a
+      ><a name="146" class="Comment"
+      >-----------------------------------------------------</a
+      ><a name="199"
+      >
+
+</a
+      ><a name="201" class="Keyword"
+      >module</a
+      ><a name="207"
+      > </a
+      ><a name="208" href="NowSoon.html#208" class="Module"
+      >NowSoon1</a
+      ><a name="216"
+      > </a
+      ><a name="217" class="Keyword"
+      >where</a
+      ><a name="222"
+      >
+
+  </a
+      ><a name="226" class="Keyword"
+      >data</a
+      ><a name="230"
+      > </a
+      ><a name="231" href="NowSoon.html#231" class="Datatype"
+      >When</a
+      ><a name="235"
+      > </a
+      ><a name="236" class="Symbol"
+      >(</a
+      ><a name="237" href="NowSoon.html#237" class="Bound"
+      >A</a
+      ><a name="238"
+      > </a
+      ><a name="239" class="Symbol"
+      >:</a
+      ><a name="240"
+      > </a
+      ><a name="241" class="PrimitiveType"
+      >Set</a
+      ><a name="244" class="Symbol"
+      >)</a
+      ><a name="245"
+      > </a
+      ><a name="246" class="Symbol"
+      >:</a
+      ><a name="247"
+      > </a
+      ><a name="248" class="PrimitiveType"
+      >Set</a
+      ><a name="251"
+      > </a
+      ><a name="252" class="Keyword"
+      >where</a
+      ><a name="257"
+      >
+    </a
+      ><a name="262" href="NowSoon.html#262" class="InductiveConstructor"
+      >now</a
+      ><a name="265"
+      >   </a
+      ><a name="268" class="Symbol"
+      >:</a
+      ><a name="269"
+      > </a
+      ><a name="270" href="NowSoon.html#237" class="Bound"
+      >A</a
+      ><a name="271"
+      > </a
+      ><a name="272" class="Symbol"
+      >&#8594;</a
+      ><a name="273"
+      > </a
+      ><a name="274" href="NowSoon.html#231" class="Datatype"
+      >When</a
+      ><a name="278"
+      > </a
+      ><a name="279" href="NowSoon.html#237" class="Bound"
+      >A</a
+      ><a name="280"
+      >
+    </a
+      ><a name="285" href="NowSoon.html#285" class="InductiveConstructor"
+      >soon</a
+      ><a name="289"
+      >  </a
+      ><a name="291" class="Symbol"
+      >:</a
+      ><a name="292"
+      > </a
+      ><a name="293" href="NowSoon.html#237" class="Bound"
+      >A</a
+      ><a name="294"
+      > </a
+      ><a name="295" class="Symbol"
+      >&#8594;</a
+      ><a name="296"
+      > </a
+      ><a name="297" href="NowSoon.html#231" class="Datatype"
+      >When</a
+      ><a name="301"
+      > </a
+      ><a name="302" href="NowSoon.html#237" class="Bound"
+      >A</a
+      ><a name="303"
+      >
+
+  </a
+      ><a name="307" href="NowSoon.html#307" class="Function"
+      >ChangeList</a
+      ><a name="317"
+      > </a
+      ><a name="318" class="Symbol"
+      >:</a
+      ><a name="319"
+      > </a
+      ><a name="320" class="PrimitiveType"
+      >Set</a
+      ><a name="323"
+      > </a
+      ><a name="324" class="Symbol"
+      >&#8594;</a
+      ><a name="325"
+      > </a
+      ><a name="326" class="PrimitiveType"
+      >Set</a
+      ><a name="329"
+      >
+  </a
+      ><a name="332" href="NowSoon.html#307" class="Function"
+      >ChangeList</a
+      ><a name="342"
+      > </a
+      ><a name="343" class="Symbol"
+      >=</a
+      ><a name="344"
+      > </a
+      ><a name="345" href="TimeDeltaList.html#244" class="Function"
+      >TimeDeltaList</a
+      ><a name="358"
+      >
+
+  </a
+      ><a name="362" href="NowSoon.html#362" class="Function"
+      >ChangePrefix</a
+      ><a name="374"
+      > </a
+      ><a name="375" class="Symbol"
+      >:</a
+      ><a name="376"
+      > </a
+      ><a name="377" class="PrimitiveType"
+      >Set</a
+      ><a name="380"
+      > </a
+      ><a name="381" class="Symbol"
+      >&#8594;</a
+      ><a name="382"
+      > </a
+      ><a name="383" class="PrimitiveType"
+      >Set</a
+      ><a name="386"
+      >
+  </a
+      ><a name="389" href="NowSoon.html#362" class="Function"
+      >ChangePrefix</a
+      ><a name="401"
+      > </a
+      ><a name="402" href="NowSoon.html#402" class="Bound"
+      >A</a
+      ><a name="403"
+      > </a
+      ><a name="404" class="Symbol"
+      >=</a
+      ><a name="405"
+      > </a
+      ><a name="406" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="410"
+      > </a
+      ><a name="411" class="Symbol"
+      >&#8594;</a
+      ><a name="412"
+      > </a
+      ><a name="413" href="NowSoon.html#307" class="Function"
+      >ChangeList</a
+      ><a name="423"
+      > </a
+      ><a name="424" class="Symbol"
+      >(</a
+      ><a name="425" href="NowSoon.html#231" class="Datatype"
+      >When</a
+      ><a name="429"
+      > </a
+      ><a name="430" href="NowSoon.html#402" class="Bound"
+      >A</a
+      ><a name="431" class="Symbol"
+      >)</a
+      ><a name="432"
+      >
+
+  </a
+      ><a name="436" href="NowSoon.html#436" class="Function"
+      >SigVec</a
+      ><a name="442"
+      > </a
+      ><a name="443" class="Symbol"
+      >:</a
+      ><a name="444"
+      > </a
+      ><a name="445" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="451"
+      > </a
+      ><a name="452" class="Symbol"
+      >&#8594;</a
+      ><a name="453"
+      > </a
+      ><a name="454" class="PrimitiveType"
+      >Set</a
+      ><a name="457"
+      >
+  </a
+      ><a name="460" href="NowSoon.html#436" class="Function"
+      >SigVec</a
+      ><a name="466"
+      > </a
+      ><a name="467" class="Symbol"
+      >(</a
+      ><a name="468" href="SVDesc.html#178" class="InductiveConstructor"
+      >C</a
+      ><a name="469"
+      > </a
+      ><a name="470" href="NowSoon.html#470" class="Bound"
+      >A</a
+      ><a name="471" class="Symbol"
+      >)</a
+      ><a name="472"
+      >      </a
+      ><a name="478" class="Symbol"
+      >=</a
+      ><a name="479"
+      > </a
+      ><a name="480" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="484"
+      > </a
+      ><a name="485" class="Symbol"
+      >&#8594;</a
+      ><a name="486"
+      > </a
+      ><a name="487" href="NowSoon.html#470" class="Bound"
+      >A</a
+      ><a name="488"
+      >
+  </a
+      ><a name="491" href="NowSoon.html#436" class="Function"
+      >SigVec</a
+      ><a name="497"
+      > </a
+      ><a name="498" class="Symbol"
+      >(</a
+      ><a name="499" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="500"
+      > </a
+      ><a name="501" href="NowSoon.html#501" class="Bound"
+      >A</a
+      ><a name="502" class="Symbol"
+      >)</a
+      ><a name="503"
+      >      </a
+      ><a name="509" class="Symbol"
+      >=</a
+      ><a name="510"
+      > </a
+      ><a name="511" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="516"
+      > </a
+      ><a name="517" class="Symbol"
+      >(</a
+      ><a name="518" href="NowSoon.html#231" class="Datatype"
+      >When</a
+      ><a name="522"
+      > </a
+      ><a name="523" href="NowSoon.html#501" class="Bound"
+      >A</a
+      ><a name="524" class="Symbol"
+      >)</a
+      ><a name="525"
+      > </a
+      ><a name="526" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="527"
+      > </a
+      ><a name="528" href="NowSoon.html#362" class="Function"
+      >ChangePrefix</a
+      ><a name="540"
+      > </a
+      ><a name="541" href="NowSoon.html#501" class="Bound"
+      >A</a
+      ><a name="542"
+      >
+  </a
+      ><a name="545" href="NowSoon.html#436" class="Function"
+      >SigVec</a
+      ><a name="551"
+      > </a
+      ><a name="552" class="Symbol"
+      >(</a
+      ><a name="553" href="SVDesc.html#220" class="InductiveConstructor"
+      >S</a
+      ><a name="554"
+      > </a
+      ><a name="555" href="NowSoon.html#555" class="Bound"
+      >A</a
+      ><a name="556" class="Symbol"
+      >)</a
+      ><a name="557"
+      >      </a
+      ><a name="563" class="Symbol"
+      >=</a
+      ><a name="564"
+      > </a
+      ><a name="565" href="NowSoon.html#555" class="Bound"
+      >A</a
+      ><a name="566"
+      > </a
+      ><a name="567" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="568"
+      > </a
+      ><a name="569" href="NowSoon.html#362" class="Function"
+      >ChangePrefix</a
+      ><a name="581"
+      > </a
+      ><a name="582" href="NowSoon.html#555" class="Bound"
+      >A</a
+      ><a name="583"
+      >
+  </a
+      ><a name="586" href="NowSoon.html#436" class="Function"
+      >SigVec</a
+      ><a name="592"
+      > </a
+      ><a name="593" class="Symbol"
+      >(</a
+      ><a name="594" href="NowSoon.html#594" class="Bound"
+      >as</a
+      ><a name="596"
+      > </a
+      ><a name="597" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="598"
+      > </a
+      ><a name="599" href="NowSoon.html#599" class="Bound"
+      >bs</a
+      ><a name="601" class="Symbol"
+      >)</a
+      ><a name="602"
+      >  </a
+      ><a name="604" class="Symbol"
+      >=</a
+      ><a name="605"
+      > </a
+      ><a name="606" href="NowSoon.html#436" class="Function"
+      >SigVec</a
+      ><a name="612"
+      > </a
+      ><a name="613" href="NowSoon.html#594" class="Bound"
+      >as</a
+      ><a name="615"
+      > </a
+      ><a name="616" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="617"
+      > </a
+      ><a name="618" href="NowSoon.html#436" class="Function"
+      >SigVec</a
+      ><a name="624"
+      > </a
+      ><a name="625" href="NowSoon.html#599" class="Bound"
+      >bs</a
+      ><a name="627"
+      >
+
+</a
+      ><a name="629" class="Comment"
+      >-----------------------------------------------------</a
+      ><a name="682"
+      >
+
+</a
+      ><a name="684" class="Keyword"
+      >module</a
+      ><a name="690"
+      > </a
+      ><a name="691" href="NowSoon.html#691" class="Module"
+      >NowSoon2</a
+      ><a name="699"
+      > </a
+      ><a name="700" class="Keyword"
+      >where</a
+      ><a name="705"
+      >
+
+  </a
+      ><a name="709" class="Keyword"
+      >data</a
+      ><a name="713"
+      > </a
+      ><a name="714" href="NowSoon.html#714" class="Datatype"
+      >When</a
+      ><a name="718"
+      > </a
+      ><a name="719" class="Symbol"
+      >(</a
+      ><a name="720" href="NowSoon.html#720" class="Bound"
+      >A</a
+      ><a name="721"
+      > </a
+      ><a name="722" class="Symbol"
+      >:</a
+      ><a name="723"
+      > </a
+      ><a name="724" class="PrimitiveType"
+      >Set</a
+      ><a name="727" class="Symbol"
+      >)</a
+      ><a name="728"
+      > </a
+      ><a name="729" class="Symbol"
+      >:</a
+      ><a name="730"
+      > </a
+      ><a name="731" class="PrimitiveType"
+      >Set</a
+      ><a name="734"
+      > </a
+      ><a name="735" class="Keyword"
+      >where</a
+      ><a name="740"
+      >
+    </a
+      ><a name="745" href="NowSoon.html#745" class="InductiveConstructor"
+      >now</a
+      ><a name="748"
+      >      </a
+      ><a name="754" class="Symbol"
+      >:</a
+      ><a name="755"
+      > </a
+      ><a name="756" href="NowSoon.html#720" class="Bound"
+      >A</a
+      ><a name="757"
+      >      </a
+      ><a name="763" class="Symbol"
+      >&#8594;</a
+      ><a name="764"
+      > </a
+      ><a name="765" href="NowSoon.html#714" class="Datatype"
+      >When</a
+      ><a name="769"
+      > </a
+      ><a name="770" href="NowSoon.html#720" class="Bound"
+      >A</a
+      ><a name="771"
+      >
+    </a
+      ><a name="776" href="NowSoon.html#776" class="InductiveConstructor"
+      >soon</a
+      ><a name="780"
+      >     </a
+      ><a name="785" class="Symbol"
+      >:</a
+      ><a name="786"
+      > </a
+      ><a name="787" href="NowSoon.html#720" class="Bound"
+      >A</a
+      ><a name="788"
+      >      </a
+      ><a name="794" class="Symbol"
+      >&#8594;</a
+      ><a name="795"
+      > </a
+      ><a name="796" href="NowSoon.html#714" class="Datatype"
+      >When</a
+      ><a name="800"
+      > </a
+      ><a name="801" href="NowSoon.html#720" class="Bound"
+      >A</a
+      ><a name="802"
+      >
+    </a
+      ><a name="807" href="NowSoon.html#807" class="InductiveConstructor"
+      >nowSoon</a
+      ><a name="814"
+      >  </a
+      ><a name="816" class="Symbol"
+      >:</a
+      ><a name="817"
+      > </a
+      ><a name="818" href="NowSoon.html#720" class="Bound"
+      >A</a
+      ><a name="819"
+      > </a
+      ><a name="820" class="Symbol"
+      >&#8594;</a
+      ><a name="821"
+      > </a
+      ><a name="822" href="NowSoon.html#720" class="Bound"
+      >A</a
+      ><a name="823"
+      >  </a
+      ><a name="825" class="Symbol"
+      >&#8594;</a
+      ><a name="826"
+      > </a
+      ><a name="827" href="NowSoon.html#714" class="Datatype"
+      >When</a
+      ><a name="831"
+      > </a
+      ><a name="832" href="NowSoon.html#720" class="Bound"
+      >A</a
+      ><a name="833"
+      >
+
+  </a
+      ><a name="837" href="NowSoon.html#837" class="Function"
+      >ChangeList</a
+      ><a name="847"
+      > </a
+      ><a name="848" class="Symbol"
+      >:</a
+      ><a name="849"
+      > </a
+      ><a name="850" class="PrimitiveType"
+      >Set</a
+      ><a name="853"
+      > </a
+      ><a name="854" class="Symbol"
+      >&#8594;</a
+      ><a name="855"
+      > </a
+      ><a name="856" class="PrimitiveType"
+      >Set</a
+      ><a name="859"
+      >
+  </a
+      ><a name="862" href="NowSoon.html#837" class="Function"
+      >ChangeList</a
+      ><a name="872"
+      > </a
+      ><a name="873" class="Symbol"
+      >=</a
+      ><a name="874"
+      > </a
+      ><a name="875" href="TimeDeltaList.html#244" class="Function"
+      >TimeDeltaList</a
+      ><a name="888"
+      >
+
+  </a
+      ><a name="892" href="NowSoon.html#892" class="Function"
+      >ChangePrefix</a
+      ><a name="904"
+      > </a
+      ><a name="905" class="Symbol"
+      >:</a
+      ><a name="906"
+      > </a
+      ><a name="907" class="PrimitiveType"
+      >Set</a
+      ><a name="910"
+      > </a
+      ><a name="911" class="Symbol"
+      >&#8594;</a
+      ><a name="912"
+      > </a
+      ><a name="913" class="PrimitiveType"
+      >Set</a
+      ><a name="916"
+      >
+  </a
+      ><a name="919" href="NowSoon.html#892" class="Function"
+      >ChangePrefix</a
+      ><a name="931"
+      > </a
+      ><a name="932" href="NowSoon.html#932" class="Bound"
+      >A</a
+      ><a name="933"
+      > </a
+      ><a name="934" class="Symbol"
+      >=</a
+      ><a name="935"
+      > </a
+      ><a name="936" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="940"
+      > </a
+      ><a name="941" class="Symbol"
+      >&#8594;</a
+      ><a name="942"
+      > </a
+      ><a name="943" href="NowSoon.html#837" class="Function"
+      >ChangeList</a
+      ><a name="953"
+      > </a
+      ><a name="954" class="Symbol"
+      >(</a
+      ><a name="955" href="NowSoon.html#714" class="Datatype"
+      >When</a
+      ><a name="959"
+      > </a
+      ><a name="960" href="NowSoon.html#932" class="Bound"
+      >A</a
+      ><a name="961" class="Symbol"
+      >)</a
+      ><a name="962"
+      >
+
+  </a
+      ><a name="966" href="NowSoon.html#966" class="Function"
+      >SigVec</a
+      ><a name="972"
+      > </a
+      ><a name="973" class="Symbol"
+      >:</a
+      ><a name="974"
+      > </a
+      ><a name="975" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="981"
+      > </a
+      ><a name="982" class="Symbol"
+      >&#8594;</a
+      ><a name="983"
+      > </a
+      ><a name="984" class="PrimitiveType"
+      >Set</a
+      ><a name="987"
+      >
+  </a
+      ><a name="990" href="NowSoon.html#966" class="Function"
+      >SigVec</a
+      ><a name="996"
+      > </a
+      ><a name="997" class="Symbol"
+      >(</a
+      ><a name="998" href="SVDesc.html#178" class="InductiveConstructor"
+      >C</a
+      ><a name="999"
+      > </a
+      ><a name="1000" href="NowSoon.html#1000" class="Bound"
+      >A</a
+      ><a name="1001" class="Symbol"
+      >)</a
+      ><a name="1002"
+      >      </a
+      ><a name="1008" class="Symbol"
+      >=</a
+      ><a name="1009"
+      > </a
+      ><a name="1010" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="1014"
+      > </a
+      ><a name="1015" class="Symbol"
+      >&#8594;</a
+      ><a name="1016"
+      > </a
+      ><a name="1017" href="NowSoon.html#1000" class="Bound"
+      >A</a
+      ><a name="1018"
+      >
+  </a
+      ><a name="1021" href="NowSoon.html#966" class="Function"
+      >SigVec</a
+      ><a name="1027"
+      > </a
+      ><a name="1028" class="Symbol"
+      >(</a
+      ><a name="1029" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="1030"
+      > </a
+      ><a name="1031" href="NowSoon.html#1031" class="Bound"
+      >A</a
+      ><a name="1032" class="Symbol"
+      >)</a
+      ><a name="1033"
+      >      </a
+      ><a name="1039" class="Symbol"
+      >=</a
+      ><a name="1040"
+      > </a
+      ><a name="1041" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="1046"
+      > </a
+      ><a name="1047" class="Symbol"
+      >(</a
+      ><a name="1048" href="NowSoon.html#714" class="Datatype"
+      >When</a
+      ><a name="1052"
+      > </a
+      ><a name="1053" href="NowSoon.html#1031" class="Bound"
+      >A</a
+      ><a name="1054" class="Symbol"
+      >)</a
+      ><a name="1055"
+      > </a
+      ><a name="1056" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1057"
+      > </a
+      ><a name="1058" href="NowSoon.html#892" class="Function"
+      >ChangePrefix</a
+      ><a name="1070"
+      > </a
+      ><a name="1071" href="NowSoon.html#1031" class="Bound"
+      >A</a
+      ><a name="1072"
+      >
+  </a
+      ><a name="1075" href="NowSoon.html#966" class="Function"
+      >SigVec</a
+      ><a name="1081"
+      > </a
+      ><a name="1082" class="Symbol"
+      >(</a
+      ><a name="1083" href="SVDesc.html#220" class="InductiveConstructor"
+      >S</a
+      ><a name="1084"
+      > </a
+      ><a name="1085" href="NowSoon.html#1085" class="Bound"
+      >A</a
+      ><a name="1086" class="Symbol"
+      >)</a
+      ><a name="1087"
+      >      </a
+      ><a name="1093" class="Symbol"
+      >=</a
+      ><a name="1094"
+      > </a
+      ><a name="1095" href="NowSoon.html#1085" class="Bound"
+      >A</a
+      ><a name="1096"
+      > </a
+      ><a name="1097" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1098"
+      > </a
+      ><a name="1099" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="1104"
+      > </a
+      ><a name="1105" href="NowSoon.html#1085" class="Bound"
+      >A</a
+      ><a name="1106"
+      > </a
+      ><a name="1107" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1108"
+      > </a
+      ><a name="1109" href="NowSoon.html#892" class="Function"
+      >ChangePrefix</a
+      ><a name="1121"
+      > </a
+      ><a name="1122" href="NowSoon.html#1085" class="Bound"
+      >A</a
+      ><a name="1123"
+      >
+  </a
+      ><a name="1126" href="NowSoon.html#966" class="Function"
+      >SigVec</a
+      ><a name="1132"
+      > </a
+      ><a name="1133" class="Symbol"
+      >(</a
+      ><a name="1134" href="NowSoon.html#1134" class="Bound"
+      >as</a
+      ><a name="1136"
+      > </a
+      ><a name="1137" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1138"
+      > </a
+      ><a name="1139" href="NowSoon.html#1139" class="Bound"
+      >bs</a
+      ><a name="1141" class="Symbol"
+      >)</a
+      ><a name="1142"
+      >  </a
+      ><a name="1144" class="Symbol"
+      >=</a
+      ><a name="1145"
+      > </a
+      ><a name="1146" href="NowSoon.html#966" class="Function"
+      >SigVec</a
+      ><a name="1152"
+      > </a
+      ><a name="1153" href="NowSoon.html#1134" class="Bound"
+      >as</a
+      ><a name="1155"
+      > </a
+      ><a name="1156" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1157"
+      > </a
+      ><a name="1158" href="NowSoon.html#966" class="Function"
+      >SigVec</a
+      ><a name="1164"
+      > </a
+      ><a name="1165" href="NowSoon.html#1139" class="Bound"
+      >bs</a
+      ><a name="1167"
+      >
+
+</a
+      ><a name="1169" class="Comment"
+      >-----------------------------------------------------</a
+      ><a name="1222"
+      >
+
+</a
+      ><a name="1224" class="Keyword"
+      >module</a
+      ><a name="1230"
+      > </a
+      ><a name="1231" href="NowSoon.html#1231" class="Module"
+      >SuperDenseTime</a
+      ><a name="1245"
+      > </a
+      ><a name="1246" class="Keyword"
+      >where</a
+      ><a name="1251"
+      >
+
+  </a
+      ><a name="1255" class="Keyword"
+      >open</a
+      ><a name="1259"
+      > </a
+      ><a name="1260" class="Keyword"
+      >import</a
+      ><a name="1266"
+      > </a
+      ><a name="1267" href="Nat.html#65" class="Module"
+      >Nat</a
+      ><a name="1270"
+      >
+
+  </a
+      ><a name="1274" href="NowSoon.html#1274" class="Function"
+      >ChangeList</a
+      ><a name="1284"
+      > </a
+      ><a name="1285" class="Symbol"
+      >:</a
+      ><a name="1286"
+      > </a
+      ><a name="1287" class="PrimitiveType"
+      >Set</a
+      ><a name="1290"
+      > </a
+      ><a name="1291" class="Symbol"
+      >&#8594;</a
+      ><a name="1292"
+      > </a
+      ><a name="1293" class="PrimitiveType"
+      >Set</a
+      ><a name="1296"
+      >
+  </a
+      ><a name="1299" href="NowSoon.html#1274" class="Function"
+      >ChangeList</a
+      ><a name="1309"
+      > </a
+      ><a name="1310" class="Symbol"
+      >=</a
+      ><a name="1311"
+      > </a
+      ><a name="1312" href="TimeDeltaList.html#303" class="Function"
+      >TDList</a
+      ><a name="1318"
+      >
+
+  </a
+      ><a name="1322" href="NowSoon.html#1322" class="Function"
+      >ChangePrefix</a
+      ><a name="1334"
+      > </a
+      ><a name="1335" class="Symbol"
+      >:</a
+      ><a name="1336"
+      > </a
+      ><a name="1337" class="PrimitiveType"
+      >Set</a
+      ><a name="1340"
+      > </a
+      ><a name="1341" class="Symbol"
+      >&#8594;</a
+      ><a name="1342"
+      > </a
+      ><a name="1343" class="PrimitiveType"
+      >Set</a
+      ><a name="1346"
+      >
+  </a
+      ><a name="1349" href="NowSoon.html#1322" class="Function"
+      >ChangePrefix</a
+      ><a name="1361"
+      > </a
+      ><a name="1362" href="NowSoon.html#1362" class="Bound"
+      >A</a
+      ><a name="1363"
+      > </a
+      ><a name="1364" class="Symbol"
+      >=</a
+      ><a name="1365"
+      > </a
+      ><a name="1366" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="1370"
+      > </a
+      ><a name="1371" class="Symbol"
+      >&#8594;</a
+      ><a name="1372"
+      > </a
+      ><a name="1373" href="NowSoon.html#1274" class="Function"
+      >ChangeList</a
+      ><a name="1383"
+      > </a
+      ><a name="1384" class="Symbol"
+      >(((</a
+      ><a name="1387" href="RealTime.html#205" class="Function"
+      >&#916;t</a
+      ><a name="1389"
+      > </a
+      ><a name="1390" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1391"
+      > </a
+      ><a name="1392" href="Nat.html#129" class="Datatype"
+      >&#8469;</a
+      ><a name="1393" class="Symbol"
+      >)</a
+      ><a name="1394"
+      > </a
+      ><a name="1395" href="NeilPrelude.html#1156" class="Datatype Operator"
+      >&#8846;</a
+      ><a name="1396"
+      > </a
+      ><a name="1397" href="Nat.html#703" class="Datatype"
+      >&#8469;&#8314;</a
+      ><a name="1399" class="Symbol"
+      >)</a
+      ><a name="1400"
+      > </a
+      ><a name="1401" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1402"
+      > </a
+      ><a name="1403" href="NowSoon.html#1362" class="Bound"
+      >A</a
+      ><a name="1404" class="Symbol"
+      >)</a
+      ><a name="1405"
+      >
+
+  </a
+      ><a name="1409" href="NowSoon.html#1409" class="Function"
+      >SigVec</a
+      ><a name="1415"
+      > </a
+      ><a name="1416" class="Symbol"
+      >:</a
+      ><a name="1417"
+      > </a
+      ><a name="1418" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="1424"
+      > </a
+      ><a name="1425" class="Symbol"
+      >&#8594;</a
+      ><a name="1426"
+      > </a
+      ><a name="1427" class="PrimitiveType"
+      >Set</a
+      ><a name="1430"
+      >
+  </a
+      ><a name="1433" href="NowSoon.html#1409" class="Function"
+      >SigVec</a
+      ><a name="1439"
+      > </a
+      ><a name="1440" class="Symbol"
+      >(</a
+      ><a name="1441" href="SVDesc.html#178" class="InductiveConstructor"
+      >C</a
+      ><a name="1442"
+      > </a
+      ><a name="1443" href="NowSoon.html#1443" class="Bound"
+      >A</a
+      ><a name="1444" class="Symbol"
+      >)</a
+      ><a name="1445"
+      >      </a
+      ><a name="1451" class="Symbol"
+      >=</a
+      ><a name="1452"
+      > </a
+      ><a name="1453" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="1457"
+      > </a
+      ><a name="1458" class="Symbol"
+      >&#8594;</a
+      ><a name="1459"
+      > </a
+      ><a name="1460" href="NowSoon.html#1443" class="Bound"
+      >A</a
+      ><a name="1461"
+      >
+  </a
+      ><a name="1464" href="NowSoon.html#1409" class="Function"
+      >SigVec</a
+      ><a name="1470"
+      > </a
+      ><a name="1471" class="Symbol"
+      >(</a
+      ><a name="1472" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="1473"
+      > </a
+      ><a name="1474" href="NowSoon.html#1474" class="Bound"
+      >A</a
+      ><a name="1475" class="Symbol"
+      >)</a
+      ><a name="1476"
+      >      </a
+      ><a name="1482" class="Symbol"
+      >=</a
+      ><a name="1483"
+      > </a
+      ><a name="1484" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="1489"
+      > </a
+      ><a name="1490" href="NowSoon.html#1474" class="Bound"
+      >A</a
+      ><a name="1491"
+      > </a
+      ><a name="1492" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1493"
+      > </a
+      ><a name="1494" href="NowSoon.html#1322" class="Function"
+      >ChangePrefix</a
+      ><a name="1506"
+      > </a
+      ><a name="1507" href="NowSoon.html#1474" class="Bound"
+      >A</a
+      ><a name="1508"
+      >
+  </a
+      ><a name="1511" href="NowSoon.html#1409" class="Function"
+      >SigVec</a
+      ><a name="1517"
+      > </a
+      ><a name="1518" class="Symbol"
+      >(</a
+      ><a name="1519" href="SVDesc.html#220" class="InductiveConstructor"
+      >S</a
+      ><a name="1520"
+      > </a
+      ><a name="1521" href="NowSoon.html#1521" class="Bound"
+      >A</a
+      ><a name="1522" class="Symbol"
+      >)</a
+      ><a name="1523"
+      >      </a
+      ><a name="1529" class="Symbol"
+      >=</a
+      ><a name="1530"
+      > </a
+      ><a name="1531" href="NowSoon.html#1521" class="Bound"
+      >A</a
+      ><a name="1532"
+      > </a
+      ><a name="1533" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1534"
+      > </a
+      ><a name="1535" href="NowSoon.html#1322" class="Function"
+      >ChangePrefix</a
+      ><a name="1547"
+      > </a
+      ><a name="1548" href="NowSoon.html#1521" class="Bound"
+      >A</a
+      ><a name="1549"
+      >
+  </a
+      ><a name="1552" href="NowSoon.html#1409" class="Function"
+      >SigVec</a
+      ><a name="1558"
+      > </a
+      ><a name="1559" class="Symbol"
+      >(</a
+      ><a name="1560" href="NowSoon.html#1560" class="Bound"
+      >as</a
+      ><a name="1562"
+      > </a
+      ><a name="1563" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1564"
+      > </a
+      ><a name="1565" href="NowSoon.html#1565" class="Bound"
+      >bs</a
+      ><a name="1567" class="Symbol"
+      >)</a
+      ><a name="1568"
+      >  </a
+      ><a name="1570" class="Symbol"
+      >=</a
+      ><a name="1571"
+      > </a
+      ><a name="1572" href="NowSoon.html#1409" class="Function"
+      >SigVec</a
+      ><a name="1578"
+      > </a
+      ><a name="1579" href="NowSoon.html#1560" class="Bound"
+      >as</a
+      ><a name="1581"
+      > </a
+      ><a name="1582" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="1583"
+      > </a
+      ><a name="1584" href="NowSoon.html#1409" class="Function"
+      >SigVec</a
+      ><a name="1590"
+      > </a
+      ><a name="1591" href="NowSoon.html#1565" class="Bound"
+      >bs</a
+      ><a name="1593"
+      >
+
+</a
+      ><a name="1595" class="Comment"
+      >-----------------------------------------------------</a
+      ><a name="1648"
+      >
+</a
+      ></pre
+    ></body
+  ></html
+>

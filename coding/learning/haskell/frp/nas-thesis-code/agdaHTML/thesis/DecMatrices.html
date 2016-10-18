@@ -1,0 +1,3647 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >DecMatrices</title
+    ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta http-equiv="Content-Style-Type" content="text/css"
+     /><link href="Agda.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><pre
+    ><a name="1" class="Symbol"
+      >{-#</a
+      ><a name="4"
+      > </a
+      ><a name="5" class="Keyword"
+      >OPTIONS</a
+      ><a name="12"
+      > --type-in-type </a
+      ><a name="28" class="Symbol"
+      >#-}</a
+      ><a name="31"
+      >
+
+</a
+      ><a name="33" class="Keyword"
+      >module</a
+      ><a name="39"
+      > </a
+      ><a name="40" href="DecMatrices.html#40" class="Module"
+      >DecMatrices</a
+      ><a name="51"
+      > </a
+      ><a name="52" class="Keyword"
+      >where</a
+      ><a name="57"
+      >
+
+</a
+      ><a name="59" class="Keyword"
+      >open</a
+      ><a name="63"
+      > </a
+      ><a name="64" class="Keyword"
+      >import</a
+      ><a name="70"
+      > </a
+      ><a name="71" href="NeilPrelude.html#77" class="Module"
+      >NeilPrelude</a
+      ><a name="82"
+      >
+</a
+      ><a name="83" class="Keyword"
+      >open</a
+      ><a name="87"
+      > </a
+      ><a name="88" class="Keyword"
+      >import</a
+      ><a name="94"
+      > </a
+      ><a name="95" href="RealTime.html#66" class="Module"
+      >RealTime</a
+      ><a name="103"
+      >
+</a
+      ><a name="104" class="Keyword"
+      >open</a
+      ><a name="108"
+      > </a
+      ><a name="109" class="Keyword"
+      >import</a
+      ><a name="115"
+      > </a
+      ><a name="116" href="Decoupled.html#65" class="Module"
+      >Decoupled</a
+      ><a name="125"
+      >
+</a
+      ><a name="126" class="Keyword"
+      >open</a
+      ><a name="130"
+      > </a
+      ><a name="131" class="Keyword"
+      >import</a
+      ><a name="137"
+      > </a
+      ><a name="138" href="SVDesc.html#40" class="Module"
+      >SVDesc</a
+      ><a name="144"
+      >
+</a
+      ><a name="145" class="Keyword"
+      >open</a
+      ><a name="149"
+      > </a
+      ><a name="150" class="Keyword"
+      >import</a
+      ><a name="156"
+      > </a
+      ><a name="157" href="Nat.html#65" class="Module"
+      >Nat</a
+      ><a name="160"
+      > </a
+      ><a name="161" class="Keyword"
+      >hiding</a
+      ><a name="167"
+      > </a
+      ><a name="168" class="Symbol"
+      >(</a
+      ><a name="169"
+      >_*_</a
+      ><a name="172" class="Symbol"
+      >)</a
+      ><a name="173"
+      >
+</a
+      ><a name="174" class="Keyword"
+      >open</a
+      ><a name="178"
+      > </a
+      ><a name="179" class="Keyword"
+      >import</a
+      ><a name="185"
+      > </a
+      ><a name="186" href="Vector.html#136" class="Module"
+      >Vector</a
+      ><a name="192"
+      >
+
+</a
+      ><a name="194" class="Comment"
+      >---------------------------------------------------------------------------------------</a
+      ><a name="281"
+      >
+
+</a
+      ><a name="283" class="Keyword"
+      >import</a
+      ><a name="289"
+      > </a
+      ><a name="290" href="VectorMaths.html#100" class="Module"
+      >VectorMaths</a
+      ><a name="301"
+      >
+</a
+      ><a name="302" class="Keyword"
+      >open</a
+      ><a name="306"
+      > </a
+      ><a name="307" href="VectorMaths.html#100" class="Module"
+      >VectorMaths</a
+      ><a name="318"
+      > </a
+      ><a name="319" href="Decoupled.html#189" class="Datatype"
+      >Dec</a
+      ><a name="322"
+      > </a
+      ><a name="323" href="Decoupled.html#219" class="InductiveConstructor"
+      >dec</a
+      ><a name="326"
+      > </a
+      ><a name="327" href="Decoupled.html#207" class="InductiveConstructor"
+      >cau</a
+      ><a name="330"
+      > </a
+      ><a name="331" href="Decoupled.html#382" class="Function Operator"
+      >_&#8743;_</a
+      ><a name="334"
+      > </a
+      ><a name="335" href="Decoupled.html#331" class="Function Operator"
+      >_&#8744;_</a
+      ><a name="338"
+      > </a
+      ><a name="339" class="Keyword"
+      >renaming</a
+      ><a name="347"
+      > </a
+      ><a name="348" class="Symbol"
+      >(</a
+      ><a name="349"
+      >mat*mat </a
+      ><a name="357" class="Symbol"
+      >to</a
+      ><a name="359"
+      > _*_ </a
+      ><a name="364" class="Symbol"
+      >;</a
+      ><a name="365"
+      > mat+mat </a
+      ><a name="374" class="Symbol"
+      >to</a
+      ><a name="376"
+      > _+m_</a
+      ><a name="381" class="Symbol"
+      >)</a
+      ><a name="382"
+      >
+
+</a
+      ><a name="384" class="Comment"
+      >-- Note: we choose dec to be 0 so as to allow the identity matrix to match &quot;identity&quot;</a
+      ><a name="469"
+      >
+</a
+      ><a name="470" class="Comment"
+      >-- Note: multiplication has to match sequential composition of two basic dec values</a
+      ><a name="553"
+      >
+
+</a
+      ><a name="555" class="Comment"
+      >-- dec = 0</a
+      ><a name="565"
+      >
+</a
+      ><a name="566" class="Comment"
+      >-- cau = 1</a
+      ><a name="576"
+      >
+</a
+      ><a name="577" class="Comment"
+      >-- &#8743; = +</a
+      ><a name="585"
+      >
+</a
+      ><a name="586" class="Comment"
+      >-- &#8744; = *</a
+      ><a name="594"
+      >
+
+</a
+      ><a name="596" class="Comment"
+      >-- An m &#215; n matrix has m rows and n columns</a
+      ><a name="639"
+      >
+
+</a
+      ><a name="641" class="Comment"
+      >-- m is the number of input signals</a
+      ><a name="676"
+      >
+</a
+      ><a name="677" class="Comment"
+      >-- n is the number of output signals</a
+      ><a name="713"
+      >
+
+</a
+      ><a name="715" class="Comment"
+      >-- each row corresponds to one input signal</a
+      ><a name="758"
+      >
+</a
+      ><a name="759" class="Comment"
+      >-- each column corresponds to one output signal</a
+      ><a name="806"
+      >
+
+</a
+      ><a name="808" class="Comment"
+      >-- A matrix built of vectors is a vector of columns</a
+      ><a name="859"
+      >
+</a
+      ><a name="860" class="Comment"
+      >--  _ _</a
+      ><a name="867"
+      >
+</a
+      ><a name="868" class="Comment"
+      >-- |1|4|</a
+      ><a name="876"
+      >
+</a
+      ><a name="877" class="Comment"
+      >-- |2|5|</a
+      ><a name="885"
+      >
+</a
+      ><a name="886" class="Comment"
+      >-- |3|6|</a
+      ><a name="894"
+      >
+</a
+      ><a name="895" class="Comment"
+      >--  - -</a
+      ><a name="902"
+      >
+</a
+      ><a name="903" class="Comment"
+      >-- Thus, +v+ appends two matrices horizontally.</a
+      ><a name="950"
+      >
+
+</a
+      ><a name="952" class="Comment"
+      >---------------------------------------------------------------------------------------</a
+      ><a name="1039"
+      >
+
+</a
+      ><a name="1041" href="DecMatrices.html#1041" class="Function Operator"
+      >_++v_</a
+      ><a name="1046"
+      > </a
+      ><a name="1047" class="Symbol"
+      >:</a
+      ><a name="1048"
+      > </a
+      ><a name="1049" class="Symbol"
+      >{</a
+      ><a name="1050" href="DecMatrices.html#1050" class="Bound"
+      >l</a
+      ><a name="1051"
+      > </a
+      ><a name="1052" href="DecMatrices.html#1052" class="Bound"
+      >m</a
+      ><a name="1053"
+      > </a
+      ><a name="1054" href="DecMatrices.html#1054" class="Bound"
+      >n</a
+      ><a name="1055"
+      > </a
+      ><a name="1056" class="Symbol"
+      >:</a
+      ><a name="1057"
+      > </a
+      ><a name="1058" href="Nat.html#129" class="Datatype"
+      >&#8469;</a
+      ><a name="1059" class="Symbol"
+      >}</a
+      ><a name="1060"
+      > </a
+      ><a name="1061" class="Symbol"
+      >&#8594;</a
+      ><a name="1062"
+      > </a
+      ><a name="1063" href="VectorMaths.html#503" class="Function"
+      >matrix</a
+      ><a name="1069"
+      > </a
+      ><a name="1070" href="DecMatrices.html#1050" class="Bound"
+      >l</a
+      ><a name="1071"
+      > </a
+      ><a name="1072" href="DecMatrices.html#1054" class="Bound"
+      >n</a
+      ><a name="1073"
+      > </a
+      ><a name="1074" class="Symbol"
+      >&#8594;</a
+      ><a name="1075"
+      > </a
+      ><a name="1076" href="VectorMaths.html#503" class="Function"
+      >matrix</a
+      ><a name="1082"
+      > </a
+      ><a name="1083" href="DecMatrices.html#1052" class="Bound"
+      >m</a
+      ><a name="1084"
+      > </a
+      ><a name="1085" href="DecMatrices.html#1054" class="Bound"
+      >n</a
+      ><a name="1086"
+      > </a
+      ><a name="1087" class="Symbol"
+      >&#8594;</a
+      ><a name="1088"
+      > </a
+      ><a name="1089" href="VectorMaths.html#503" class="Function"
+      >matrix</a
+      ><a name="1095"
+      > </a
+      ><a name="1096" class="Symbol"
+      >(</a
+      ><a name="1097" href="DecMatrices.html#1050" class="Bound"
+      >l</a
+      ><a name="1098"
+      > </a
+      ><a name="1099" href="Nat.html#402" class="Primitive Operator"
+      >+</a
+      ><a name="1100"
+      > </a
+      ><a name="1101" href="DecMatrices.html#1052" class="Bound"
+      >m</a
+      ><a name="1102" class="Symbol"
+      >)</a
+      ><a name="1103"
+      > </a
+      ><a name="1104" href="DecMatrices.html#1054" class="Bound"
+      >n</a
+      ><a name="1105"
+      > 
+</a
+      ><a name="1107" href="DecMatrices.html#1041" class="Function Operator"
+      >_++v_</a
+      ><a name="1112"
+      > </a
+      ><a name="1113" class="Symbol"
+      >=</a
+      ><a name="1114"
+      > </a
+      ><a name="1115" href="Vector.html#6050" class="Function Operator"
+      >_+m+_</a
+      ><a name="1120"
+      >
+
+</a
+      ><a name="1122" href="DecMatrices.html#1122" class="Function Operator"
+      >_++h_</a
+      ><a name="1127"
+      > </a
+      ><a name="1128" class="Symbol"
+      >:</a
+      ><a name="1129"
+      > </a
+      ><a name="1130" class="Symbol"
+      >{</a
+      ><a name="1131" href="DecMatrices.html#1131" class="Bound"
+      >l</a
+      ><a name="1132"
+      > </a
+      ><a name="1133" href="DecMatrices.html#1133" class="Bound"
+      >m</a
+      ><a name="1134"
+      > </a
+      ><a name="1135" href="DecMatrices.html#1135" class="Bound"
+      >n</a
+      ><a name="1136"
+      > </a
+      ><a name="1137" class="Symbol"
+      >:</a
+      ><a name="1138"
+      > </a
+      ><a name="1139" href="Nat.html#129" class="Datatype"
+      >&#8469;</a
+      ><a name="1140" class="Symbol"
+      >}</a
+      ><a name="1141"
+      > </a
+      ><a name="1142" class="Symbol"
+      >&#8594;</a
+      ><a name="1143"
+      > </a
+      ><a name="1144" href="VectorMaths.html#503" class="Function"
+      >matrix</a
+      ><a name="1150"
+      > </a
+      ><a name="1151" href="DecMatrices.html#1131" class="Bound"
+      >l</a
+      ><a name="1152"
+      > </a
+      ><a name="1153" href="DecMatrices.html#1133" class="Bound"
+      >m</a
+      ><a name="1154"
+      > </a
+      ><a name="1155" class="Symbol"
+      >&#8594;</a
+      ><a name="1156"
+      > </a
+      ><a name="1157" href="VectorMaths.html#503" class="Function"
+      >matrix</a
+      ><a name="1163"
+      > </a
+      ><a name="1164" href="DecMatrices.html#1131" class="Bound"
+      >l</a
+      ><a name="1165"
+      > </a
+      ><a name="1166" href="DecMatrices.html#1135" class="Bound"
+      >n</a
+      ><a name="1167"
+      > </a
+      ><a name="1168" class="Symbol"
+      >&#8594;</a
+      ><a name="1169"
+      > </a
+      ><a name="1170" href="VectorMaths.html#503" class="Function"
+      >matrix</a
+      ><a name="1176"
+      > </a
+      ><a name="1177" href="DecMatrices.html#1131" class="Bound"
+      >l</a
+      ><a name="1178"
+      > </a
+      ><a name="1179" class="Symbol"
+      >(</a
+      ><a name="1180" href="DecMatrices.html#1133" class="Bound"
+      >m</a
+      ><a name="1181"
+      > </a
+      ><a name="1182" href="Nat.html#402" class="Primitive Operator"
+      >+</a
+      ><a name="1183"
+      > </a
+      ><a name="1184" href="DecMatrices.html#1135" class="Bound"
+      >n</a
+      ><a name="1185" class="Symbol"
+      >)</a
+      ><a name="1186"
+      >
+</a
+      ><a name="1187" href="DecMatrices.html#1122" class="Function Operator"
+      >_++h_</a
+      ><a name="1192"
+      > </a
+      ><a name="1193" class="Symbol"
+      >=</a
+      ><a name="1194"
+      > </a
+      ><a name="1195" href="Vector.html#2795" class="Function Operator"
+      >_+v+_</a
+      ><a name="1200"
+      >
+
+</a
+      ><a name="1202" class="Keyword"
+      >postulate</a
+      ><a name="1211"
+      > </a
+      ><a name="1212" href="DecMatrices.html#1212" class="Postulate"
+      >extend</a
+      ><a name="1218"
+      > </a
+      ><a name="1219" class="Symbol"
+      >:</a
+      ><a name="1220"
+      > </a
+      ><a name="1221" class="Symbol"
+      >{</a
+      ><a name="1222" href="DecMatrices.html#1222" class="Bound"
+      >m</a
+      ><a name="1223"
+      > </a
+      ><a name="1224" href="DecMatrices.html#1224" class="Bound"
+      >n</a
+      ><a name="1225"
+      > </a
+      ><a name="1226" class="Symbol"
+      >:</a
+      ><a name="1227"
+      > </a
+      ><a name="1228" href="Nat.html#129" class="Datatype"
+      >&#8469;</a
+      ><a name="1229" class="Symbol"
+      >}</a
+      ><a name="1230"
+      > </a
+      ><a name="1231" class="Symbol"
+      >&#8594;</a
+      ><a name="1232"
+      > </a
+      ><a name="1233" href="VectorMaths.html#503" class="Function"
+      >matrix</a
+      ><a name="1239"
+      > </a
+      ><a name="1240" href="DecMatrices.html#1222" class="Bound"
+      >m</a
+      ><a name="1241"
+      > </a
+      ><a name="1242" class="Number"
+      >1</a
+      ><a name="1243"
+      > </a
+      ><a name="1244" class="Symbol"
+      >&#8594;</a
+      ><a name="1245"
+      > </a
+      ><a name="1246" href="VectorMaths.html#503" class="Function"
+      >matrix</a
+      ><a name="1252"
+      > </a
+      ><a name="1253" href="DecMatrices.html#1222" class="Bound"
+      >m</a
+      ><a name="1254"
+      > </a
+      ><a name="1255" href="DecMatrices.html#1224" class="Bound"
+      >n</a
+      ><a name="1256"
+      >
+
+</a
+      ><a name="1258" class="Comment"
+      >---------------------------------------------------------------------------------------</a
+      ><a name="1345"
+      >
+
+</a
+      ><a name="1347" href="DecMatrices.html#1347" class="Function"
+      >svlength</a
+      ><a name="1355"
+      > </a
+      ><a name="1356" class="Symbol"
+      >:</a
+      ><a name="1357"
+      > </a
+      ><a name="1358" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="1364"
+      > </a
+      ><a name="1365" class="Symbol"
+      >&#8594;</a
+      ><a name="1366"
+      > </a
+      ><a name="1367" href="Nat.html#129" class="Datatype"
+      >&#8469;</a
+      ><a name="1368"
+      >
+</a
+      ><a name="1369" href="DecMatrices.html#1347" class="Function"
+      >svlength</a
+      ><a name="1377"
+      > </a
+      ><a name="1378" class="Symbol"
+      >(</a
+      ><a name="1379" href="SVDesc.html#178" class="InductiveConstructor"
+      >C</a
+      ><a name="1380"
+      > </a
+      ><a name="1381" href="DecMatrices.html#1381" class="Bound"
+      >A</a
+      ><a name="1382" class="Symbol"
+      >)</a
+      ><a name="1383"
+      >     </a
+      ><a name="1388" class="Symbol"
+      >=</a
+      ><a name="1389"
+      > </a
+      ><a name="1390" class="Number"
+      >1</a
+      ><a name="1391"
+      >
+</a
+      ><a name="1392" href="DecMatrices.html#1347" class="Function"
+      >svlength</a
+      ><a name="1400"
+      > </a
+      ><a name="1401" class="Symbol"
+      >(</a
+      ><a name="1402" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="1403"
+      > </a
+      ><a name="1404" href="DecMatrices.html#1404" class="Bound"
+      >A</a
+      ><a name="1405" class="Symbol"
+      >)</a
+      ><a name="1406"
+      >     </a
+      ><a name="1411" class="Symbol"
+      >=</a
+      ><a name="1412"
+      > </a
+      ><a name="1413" class="Number"
+      >1</a
+      ><a name="1414"
+      >
+</a
+      ><a name="1415" href="DecMatrices.html#1347" class="Function"
+      >svlength</a
+      ><a name="1423"
+      > </a
+      ><a name="1424" class="Symbol"
+      >(</a
+      ><a name="1425" href="SVDesc.html#220" class="InductiveConstructor"
+      >S</a
+      ><a name="1426"
+      > </a
+      ><a name="1427" href="DecMatrices.html#1427" class="Bound"
+      >A</a
+      ><a name="1428" class="Symbol"
+      >)</a
+      ><a name="1429"
+      >     </a
+      ><a name="1434" class="Symbol"
+      >=</a
+      ><a name="1435"
+      > </a
+      ><a name="1436" class="Number"
+      >1</a
+      ><a name="1437"
+      >
+</a
+      ><a name="1438" href="DecMatrices.html#1347" class="Function"
+      >svlength</a
+      ><a name="1446"
+      > </a
+      ><a name="1447" class="Symbol"
+      >(</a
+      ><a name="1448" href="DecMatrices.html#1448" class="Bound"
+      >as</a
+      ><a name="1450"
+      > </a
+      ><a name="1451" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1452"
+      > </a
+      ><a name="1453" href="DecMatrices.html#1453" class="Bound"
+      >bs</a
+      ><a name="1455" class="Symbol"
+      >)</a
+      ><a name="1456"
+      > </a
+      ><a name="1457" class="Symbol"
+      >=</a
+      ><a name="1458"
+      > </a
+      ><a name="1459" href="DecMatrices.html#1347" class="Function"
+      >svlength</a
+      ><a name="1467"
+      > </a
+      ><a name="1468" href="DecMatrices.html#1448" class="Bound"
+      >as</a
+      ><a name="1470"
+      > </a
+      ><a name="1471" href="Nat.html#402" class="Primitive Operator"
+      >+</a
+      ><a name="1472"
+      > </a
+      ><a name="1473" href="DecMatrices.html#1347" class="Function"
+      >svlength</a
+      ><a name="1481"
+      > </a
+      ><a name="1482" href="DecMatrices.html#1453" class="Bound"
+      >bs</a
+      ><a name="1484"
+      >
+
+</a
+      ><a name="1486" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="1494"
+      > </a
+      ><a name="1495" class="Symbol"
+      >:</a
+      ><a name="1496"
+      > </a
+      ><a name="1497" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="1503"
+      > </a
+      ><a name="1504" class="Symbol"
+      >&#8594;</a
+      ><a name="1505"
+      > </a
+      ><a name="1506" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="1512"
+      > </a
+      ><a name="1513" class="Symbol"
+      >&#8594;</a
+      ><a name="1514"
+      > </a
+      ><a name="1515" class="PrimitiveType"
+      >Set</a
+      ><a name="1518"
+      >
+</a
+      ><a name="1519" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="1527"
+      > </a
+      ><a name="1528" href="DecMatrices.html#1528" class="Bound"
+      >as</a
+      ><a name="1530"
+      > </a
+      ><a name="1531" href="DecMatrices.html#1531" class="Bound"
+      >bs</a
+      ><a name="1533"
+      > </a
+      ><a name="1534" class="Symbol"
+      >=</a
+      ><a name="1535"
+      > </a
+      ><a name="1536" href="VectorMaths.html#503" class="Function"
+      >matrix</a
+      ><a name="1542"
+      > </a
+      ><a name="1543" class="Symbol"
+      >(</a
+      ><a name="1544" href="DecMatrices.html#1347" class="Function"
+      >svlength</a
+      ><a name="1552"
+      > </a
+      ><a name="1553" href="DecMatrices.html#1528" class="Bound"
+      >as</a
+      ><a name="1555" class="Symbol"
+      >)</a
+      ><a name="1556"
+      > </a
+      ><a name="1557" class="Symbol"
+      >(</a
+      ><a name="1558" href="DecMatrices.html#1347" class="Function"
+      >svlength</a
+      ><a name="1566"
+      > </a
+      ><a name="1567" href="DecMatrices.html#1531" class="Bound"
+      >bs</a
+      ><a name="1569" class="Symbol"
+      >)</a
+      ><a name="1570"
+      >
+
+</a
+      ><a name="1572" href="DecMatrices.html#1572" class="Function"
+      >Mdec</a
+      ><a name="1576"
+      > </a
+      ><a name="1577" class="Symbol"
+      >:</a
+      ><a name="1578"
+      > </a
+      ><a name="1579" class="Symbol"
+      >{</a
+      ><a name="1580" href="DecMatrices.html#1580" class="Bound"
+      >m</a
+      ><a name="1581"
+      > </a
+      ><a name="1582" href="DecMatrices.html#1582" class="Bound"
+      >n</a
+      ><a name="1583"
+      > </a
+      ><a name="1584" class="Symbol"
+      >:</a
+      ><a name="1585"
+      > </a
+      ><a name="1586" href="Nat.html#129" class="Datatype"
+      >&#8469;</a
+      ><a name="1587" class="Symbol"
+      >}</a
+      ><a name="1588"
+      > </a
+      ><a name="1589" class="Symbol"
+      >&#8594;</a
+      ><a name="1590"
+      > </a
+      ><a name="1591" href="VectorMaths.html#503" class="Function"
+      >matrix</a
+      ><a name="1597"
+      > </a
+      ><a name="1598" href="DecMatrices.html#1580" class="Bound"
+      >m</a
+      ><a name="1599"
+      > </a
+      ><a name="1600" href="DecMatrices.html#1582" class="Bound"
+      >n</a
+      ><a name="1601"
+      >
+</a
+      ><a name="1602" href="DecMatrices.html#1572" class="Function"
+      >Mdec</a
+      ><a name="1606"
+      > </a
+      ><a name="1607" class="Symbol"
+      >=</a
+      ><a name="1608"
+      > </a
+      ><a name="1609" href="Vector.html#5644" class="Function"
+      >mat</a
+      ><a name="1612"
+      > </a
+      ><a name="1613" href="Decoupled.html#219" class="InductiveConstructor"
+      >dec</a
+      ><a name="1616"
+      >
+
+</a
+      ><a name="1618" href="DecMatrices.html#1618" class="Function"
+      >Mcau</a
+      ><a name="1622"
+      > </a
+      ><a name="1623" class="Symbol"
+      >:</a
+      ><a name="1624"
+      > </a
+      ><a name="1625" class="Symbol"
+      >{</a
+      ><a name="1626" href="DecMatrices.html#1626" class="Bound"
+      >m</a
+      ><a name="1627"
+      > </a
+      ><a name="1628" href="DecMatrices.html#1628" class="Bound"
+      >n</a
+      ><a name="1629"
+      > </a
+      ><a name="1630" class="Symbol"
+      >:</a
+      ><a name="1631"
+      > </a
+      ><a name="1632" href="Nat.html#129" class="Datatype"
+      >&#8469;</a
+      ><a name="1633" class="Symbol"
+      >}</a
+      ><a name="1634"
+      > </a
+      ><a name="1635" class="Symbol"
+      >&#8594;</a
+      ><a name="1636"
+      > </a
+      ><a name="1637" href="VectorMaths.html#503" class="Function"
+      >matrix</a
+      ><a name="1643"
+      > </a
+      ><a name="1644" href="DecMatrices.html#1626" class="Bound"
+      >m</a
+      ><a name="1645"
+      > </a
+      ><a name="1646" href="DecMatrices.html#1628" class="Bound"
+      >n</a
+      ><a name="1647"
+      >
+</a
+      ><a name="1648" href="DecMatrices.html#1618" class="Function"
+      >Mcau</a
+      ><a name="1652"
+      > </a
+      ><a name="1653" class="Symbol"
+      >=</a
+      ><a name="1654"
+      > </a
+      ><a name="1655" href="Vector.html#5644" class="Function"
+      >mat</a
+      ><a name="1658"
+      > </a
+      ><a name="1659" href="Decoupled.html#207" class="InductiveConstructor"
+      >cau</a
+      ><a name="1662"
+      >
+
+</a
+      ><a name="1664" href="DecMatrices.html#1664" class="Function"
+      >I</a
+      ><a name="1665"
+      > </a
+      ><a name="1666" class="Symbol"
+      >:</a
+      ><a name="1667"
+      > </a
+      ><a name="1668" class="Symbol"
+      >{</a
+      ><a name="1669" href="DecMatrices.html#1669" class="Bound"
+      >n</a
+      ><a name="1670"
+      > </a
+      ><a name="1671" class="Symbol"
+      >:</a
+      ><a name="1672"
+      > </a
+      ><a name="1673" href="Nat.html#129" class="Datatype"
+      >&#8469;</a
+      ><a name="1674" class="Symbol"
+      >}</a
+      ><a name="1675"
+      > </a
+      ><a name="1676" class="Symbol"
+      >&#8594;</a
+      ><a name="1677"
+      > </a
+      ><a name="1678" href="VectorMaths.html#503" class="Function"
+      >matrix</a
+      ><a name="1684"
+      > </a
+      ><a name="1685" href="DecMatrices.html#1669" class="Bound"
+      >n</a
+      ><a name="1686"
+      > </a
+      ><a name="1687" href="DecMatrices.html#1669" class="Bound"
+      >n</a
+      ><a name="1688"
+      >
+</a
+      ><a name="1689" href="DecMatrices.html#1664" class="Function"
+      >I</a
+      ><a name="1690"
+      > </a
+      ><a name="1691" class="Symbol"
+      >=</a
+      ><a name="1692"
+      > </a
+      ><a name="1693" href="VectorMaths.html#646" class="Function"
+      >matId</a
+      ><a name="1698"
+      >
+
+</a
+      ><a name="1700" class="Keyword"
+      >postulate</a
+      ><a name="1709"
+      > </a
+      ><a name="1710" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="1712"
+      > </a
+      ><a name="1713" class="Symbol"
+      >:</a
+      ><a name="1714"
+      > </a
+      ><a name="1715" class="Symbol"
+      >(</a
+      ><a name="1716" href="DecMatrices.html#1716" class="Bound"
+      >as</a
+      ><a name="1718"
+      > </a
+      ><a name="1719" href="DecMatrices.html#1719" class="Bound"
+      >bs</a
+      ><a name="1721"
+      > </a
+      ><a name="1722" class="Symbol"
+      >:</a
+      ><a name="1723"
+      > </a
+      ><a name="1724" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="1730" class="Symbol"
+      >)</a
+      ><a name="1731"
+      > </a
+      ><a name="1732" class="Symbol"
+      >&#8594;</a
+      ><a name="1733"
+      > </a
+      ><a name="1734" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="1742"
+      > </a
+      ><a name="1743" href="DecMatrices.html#1716" class="Bound"
+      >as</a
+      ><a name="1745"
+      > </a
+      ><a name="1746" href="DecMatrices.html#1719" class="Bound"
+      >bs</a
+      ><a name="1748"
+      > </a
+      ><a name="1749" class="Symbol"
+      >&#8594;</a
+      ><a name="1750"
+      > </a
+      ><a name="1751" class="PrimitiveType"
+      >Set</a
+      ><a name="1754"
+      >
+
+</a
+      ><a name="1756" class="Comment"
+      >---------------------------------------------------------------------------------------</a
+      ><a name="1843"
+      >
+
+</a
+      ><a name="1845" class="Keyword"
+      >postulate</a
+      ><a name="1854"
+      > </a
+      ><a name="1855" href="DecMatrices.html#1855" class="Postulate"
+      >identity</a
+      ><a name="1863"
+      > </a
+      ><a name="1864" class="Symbol"
+      >:</a
+      ><a name="1865"
+      > </a
+      ><a name="1866" class="Symbol"
+      >{</a
+      ><a name="1867" href="DecMatrices.html#1867" class="Bound"
+      >as</a
+      ><a name="1869"
+      > </a
+      ><a name="1870" class="Symbol"
+      >:</a
+      ><a name="1871"
+      > </a
+      ><a name="1872" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="1878" class="Symbol"
+      >}</a
+      ><a name="1879"
+      > </a
+      ><a name="1880" class="Symbol"
+      >&#8594;</a
+      ><a name="1881"
+      > </a
+      ><a name="1882" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="1884"
+      > </a
+      ><a name="1885" href="DecMatrices.html#1867" class="Bound"
+      >as</a
+      ><a name="1887"
+      > </a
+      ><a name="1888" href="DecMatrices.html#1867" class="Bound"
+      >as</a
+      ><a name="1890"
+      > </a
+      ><a name="1891" href="DecMatrices.html#1664" class="Function"
+      >I</a
+      ><a name="1892"
+      >
+
+</a
+      ><a name="1894" class="Keyword"
+      >postulate</a
+      ><a name="1903"
+      > </a
+      ><a name="1904" href="DecMatrices.html#1904" class="Postulate"
+      >sfFst</a
+      ><a name="1909"
+      > </a
+      ><a name="1910" class="Symbol"
+      >:</a
+      ><a name="1911"
+      > </a
+      ><a name="1912" class="Symbol"
+      >{</a
+      ><a name="1913" href="DecMatrices.html#1913" class="Bound"
+      >as</a
+      ><a name="1915"
+      > </a
+      ><a name="1916" href="DecMatrices.html#1916" class="Bound"
+      >bs</a
+      ><a name="1918"
+      > </a
+      ><a name="1919" class="Symbol"
+      >:</a
+      ><a name="1920"
+      > </a
+      ><a name="1921" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="1927" class="Symbol"
+      >}</a
+      ><a name="1928"
+      > </a
+      ><a name="1929" class="Symbol"
+      >&#8594;</a
+      ><a name="1930"
+      > </a
+      ><a name="1931" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="1933"
+      > </a
+      ><a name="1934" class="Symbol"
+      >(</a
+      ><a name="1935" href="DecMatrices.html#1913" class="Bound"
+      >as</a
+      ><a name="1937"
+      > </a
+      ><a name="1938" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1939"
+      > </a
+      ><a name="1940" href="DecMatrices.html#1916" class="Bound"
+      >bs</a
+      ><a name="1942" class="Symbol"
+      >)</a
+      ><a name="1943"
+      > </a
+      ><a name="1944" href="DecMatrices.html#1913" class="Bound"
+      >as</a
+      ><a name="1946"
+      > </a
+      ><a name="1947" class="Symbol"
+      >(</a
+      ><a name="1948" href="DecMatrices.html#1664" class="Function"
+      >I</a
+      ><a name="1949"
+      > </a
+      ><a name="1950" href="DecMatrices.html#1041" class="Function Operator"
+      >++v</a
+      ><a name="1953"
+      > </a
+      ><a name="1954" href="DecMatrices.html#1572" class="Function"
+      >Mdec</a
+      ><a name="1958" class="Symbol"
+      >)</a
+      ><a name="1959"
+      >
+
+</a
+      ><a name="1961" class="Keyword"
+      >postulate</a
+      ><a name="1970"
+      > </a
+      ><a name="1971" href="DecMatrices.html#1971" class="Postulate"
+      >sfSnd</a
+      ><a name="1976"
+      > </a
+      ><a name="1977" class="Symbol"
+      >:</a
+      ><a name="1978"
+      > </a
+      ><a name="1979" class="Symbol"
+      >{</a
+      ><a name="1980" href="DecMatrices.html#1980" class="Bound"
+      >as</a
+      ><a name="1982"
+      > </a
+      ><a name="1983" href="DecMatrices.html#1983" class="Bound"
+      >bs</a
+      ><a name="1985"
+      > </a
+      ><a name="1986" class="Symbol"
+      >:</a
+      ><a name="1987"
+      > </a
+      ><a name="1988" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="1994" class="Symbol"
+      >}</a
+      ><a name="1995"
+      > </a
+      ><a name="1996" class="Symbol"
+      >&#8594;</a
+      ><a name="1997"
+      > </a
+      ><a name="1998" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="2000"
+      > </a
+      ><a name="2001" class="Symbol"
+      >(</a
+      ><a name="2002" href="DecMatrices.html#1980" class="Bound"
+      >as</a
+      ><a name="2004"
+      > </a
+      ><a name="2005" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2006"
+      > </a
+      ><a name="2007" href="DecMatrices.html#1983" class="Bound"
+      >bs</a
+      ><a name="2009" class="Symbol"
+      >)</a
+      ><a name="2010"
+      > </a
+      ><a name="2011" href="DecMatrices.html#1983" class="Bound"
+      >bs</a
+      ><a name="2013"
+      > </a
+      ><a name="2014" class="Symbol"
+      >(</a
+      ><a name="2015" href="DecMatrices.html#1572" class="Function"
+      >Mdec</a
+      ><a name="2019"
+      > </a
+      ><a name="2020" class="Symbol"
+      >{</a
+      ><a name="2021" href="DecMatrices.html#1347" class="Function"
+      >svlength</a
+      ><a name="2029"
+      > </a
+      ><a name="2030" href="DecMatrices.html#1980" class="Bound"
+      >as</a
+      ><a name="2032" class="Symbol"
+      >}</a
+      ><a name="2033"
+      > </a
+      ><a name="2034" class="Symbol"
+      >{</a
+      ><a name="2035" href="DecMatrices.html#1347" class="Function"
+      >svlength</a
+      ><a name="2043"
+      > </a
+      ><a name="2044" href="DecMatrices.html#1983" class="Bound"
+      >bs</a
+      ><a name="2046" class="Symbol"
+      >}</a
+      ><a name="2047"
+      > </a
+      ><a name="2048" href="DecMatrices.html#1041" class="Function Operator"
+      >++v</a
+      ><a name="2051"
+      > </a
+      ><a name="2052" href="DecMatrices.html#1664" class="Function"
+      >I</a
+      ><a name="2053" class="Symbol"
+      >)</a
+      ><a name="2054"
+      >
+
+</a
+      ><a name="2056" class="Keyword"
+      >postulate</a
+      ><a name="2065"
+      > </a
+      ><a name="2066" href="DecMatrices.html#2066" class="Postulate Operator"
+      >_&gt;&gt;&gt;_</a
+      ><a name="2071"
+      > </a
+      ><a name="2072" class="Symbol"
+      >:</a
+      ><a name="2073"
+      > </a
+      ><a name="2074" class="Symbol"
+      >{</a
+      ><a name="2075" href="DecMatrices.html#2075" class="Bound"
+      >as</a
+      ><a name="2077"
+      > </a
+      ><a name="2078" href="DecMatrices.html#2078" class="Bound"
+      >bs</a
+      ><a name="2080"
+      > </a
+      ><a name="2081" href="DecMatrices.html#2081" class="Bound"
+      >cs</a
+      ><a name="2083"
+      > </a
+      ><a name="2084" class="Symbol"
+      >:</a
+      ><a name="2085"
+      > </a
+      ><a name="2086" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="2092" class="Symbol"
+      >}</a
+      ><a name="2093"
+      > </a
+      ><a name="2094" class="Symbol"
+      >&#8594;</a
+      ><a name="2095"
+      > </a
+      ><a name="2096" class="Symbol"
+      >{</a
+      ><a name="2097" href="DecMatrices.html#2097" class="Bound"
+      >m&#8321;</a
+      ><a name="2099"
+      > </a
+      ><a name="2100" class="Symbol"
+      >:</a
+      ><a name="2101"
+      > </a
+      ><a name="2102" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="2110"
+      > </a
+      ><a name="2111" href="DecMatrices.html#2075" class="Bound"
+      >as</a
+      ><a name="2113"
+      > </a
+      ><a name="2114" href="DecMatrices.html#2078" class="Bound"
+      >bs</a
+      ><a name="2116" class="Symbol"
+      >}</a
+      ><a name="2117"
+      > </a
+      ><a name="2118" class="Symbol"
+      >&#8594;</a
+      ><a name="2119"
+      > </a
+      ><a name="2120" class="Symbol"
+      >{</a
+      ><a name="2121" href="DecMatrices.html#2121" class="Bound"
+      >m&#8322;</a
+      ><a name="2123"
+      > </a
+      ><a name="2124" class="Symbol"
+      >:</a
+      ><a name="2125"
+      > </a
+      ><a name="2126" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="2134"
+      > </a
+      ><a name="2135" href="DecMatrices.html#2078" class="Bound"
+      >bs</a
+      ><a name="2137"
+      > </a
+      ><a name="2138" href="DecMatrices.html#2081" class="Bound"
+      >cs</a
+      ><a name="2140" class="Symbol"
+      >}</a
+      ><a name="2141"
+      >
+                </a
+      ><a name="2158" class="Symbol"
+      >&#8594;</a
+      ><a name="2159"
+      > </a
+      ><a name="2160" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="2162"
+      > </a
+      ><a name="2163" href="DecMatrices.html#2075" class="Bound"
+      >as</a
+      ><a name="2165"
+      > </a
+      ><a name="2166" href="DecMatrices.html#2078" class="Bound"
+      >bs</a
+      ><a name="2168"
+      > </a
+      ><a name="2169" href="DecMatrices.html#2097" class="Bound"
+      >m&#8321;</a
+      ><a name="2171"
+      > </a
+      ><a name="2172" class="Symbol"
+      >&#8594;</a
+      ><a name="2173"
+      > </a
+      ><a name="2174" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="2176"
+      > </a
+      ><a name="2177" href="DecMatrices.html#2078" class="Bound"
+      >bs</a
+      ><a name="2179"
+      > </a
+      ><a name="2180" href="DecMatrices.html#2081" class="Bound"
+      >cs</a
+      ><a name="2182"
+      > </a
+      ><a name="2183" href="DecMatrices.html#2121" class="Bound"
+      >m&#8322;</a
+      ><a name="2185"
+      > </a
+      ><a name="2186" class="Symbol"
+      >&#8594;</a
+      ><a name="2187"
+      > </a
+      ><a name="2188" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="2190"
+      > </a
+      ><a name="2191" href="DecMatrices.html#2075" class="Bound"
+      >as</a
+      ><a name="2193"
+      > </a
+      ><a name="2194" href="DecMatrices.html#2081" class="Bound"
+      >cs</a
+      ><a name="2196"
+      > </a
+      ><a name="2197" class="Symbol"
+      >(</a
+      ><a name="2198" href="DecMatrices.html#2097" class="Bound"
+      >m&#8321;</a
+      ><a name="2200"
+      > </a
+      ><a name="2201" href="VectorMaths.html#938" class="Function Operator"
+      >*</a
+      ><a name="2202"
+      > </a
+      ><a name="2203" href="DecMatrices.html#2121" class="Bound"
+      >m&#8322;</a
+      ><a name="2205" class="Symbol"
+      >)</a
+      ><a name="2206"
+      >
+
+</a
+      ><a name="2208" class="Keyword"
+      >postulate</a
+      ><a name="2217"
+      > </a
+      ><a name="2218" href="DecMatrices.html#2218" class="Postulate Operator"
+      >_&amp;&amp;&amp;_</a
+      ><a name="2223"
+      > </a
+      ><a name="2224" class="Symbol"
+      >:</a
+      ><a name="2225"
+      > </a
+      ><a name="2226" class="Symbol"
+      >{</a
+      ><a name="2227" href="DecMatrices.html#2227" class="Bound"
+      >as</a
+      ><a name="2229"
+      > </a
+      ><a name="2230" href="DecMatrices.html#2230" class="Bound"
+      >bs</a
+      ><a name="2232"
+      > </a
+      ><a name="2233" href="DecMatrices.html#2233" class="Bound"
+      >cs</a
+      ><a name="2235"
+      > </a
+      ><a name="2236" class="Symbol"
+      >:</a
+      ><a name="2237"
+      > </a
+      ><a name="2238" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="2244" class="Symbol"
+      >}</a
+      ><a name="2245"
+      > </a
+      ><a name="2246" class="Symbol"
+      >&#8594;</a
+      ><a name="2247"
+      > </a
+      ><a name="2248" class="Symbol"
+      >{</a
+      ><a name="2249" href="DecMatrices.html#2249" class="Bound"
+      >m&#8321;</a
+      ><a name="2251"
+      > </a
+      ><a name="2252" class="Symbol"
+      >:</a
+      ><a name="2253"
+      > </a
+      ><a name="2254" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="2262"
+      > </a
+      ><a name="2263" href="DecMatrices.html#2227" class="Bound"
+      >as</a
+      ><a name="2265"
+      > </a
+      ><a name="2266" href="DecMatrices.html#2230" class="Bound"
+      >bs</a
+      ><a name="2268" class="Symbol"
+      >}</a
+      ><a name="2269"
+      > </a
+      ><a name="2270" class="Symbol"
+      >&#8594;</a
+      ><a name="2271"
+      > </a
+      ><a name="2272" class="Symbol"
+      >{</a
+      ><a name="2273" href="DecMatrices.html#2273" class="Bound"
+      >m&#8322;</a
+      ><a name="2275"
+      > </a
+      ><a name="2276" class="Symbol"
+      >:</a
+      ><a name="2277"
+      > </a
+      ><a name="2278" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="2286"
+      > </a
+      ><a name="2287" href="DecMatrices.html#2227" class="Bound"
+      >as</a
+      ><a name="2289"
+      > </a
+      ><a name="2290" href="DecMatrices.html#2233" class="Bound"
+      >cs</a
+      ><a name="2292" class="Symbol"
+      >}</a
+      ><a name="2293"
+      >
+                </a
+      ><a name="2310" class="Symbol"
+      >&#8594;</a
+      ><a name="2311"
+      > </a
+      ><a name="2312" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="2314"
+      > </a
+      ><a name="2315" href="DecMatrices.html#2227" class="Bound"
+      >as</a
+      ><a name="2317"
+      > </a
+      ><a name="2318" href="DecMatrices.html#2230" class="Bound"
+      >bs</a
+      ><a name="2320"
+      > </a
+      ><a name="2321" href="DecMatrices.html#2249" class="Bound"
+      >m&#8321;</a
+      ><a name="2323"
+      > </a
+      ><a name="2324" class="Symbol"
+      >&#8594;</a
+      ><a name="2325"
+      > </a
+      ><a name="2326" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="2328"
+      > </a
+      ><a name="2329" href="DecMatrices.html#2227" class="Bound"
+      >as</a
+      ><a name="2331"
+      > </a
+      ><a name="2332" href="DecMatrices.html#2233" class="Bound"
+      >cs</a
+      ><a name="2334"
+      > </a
+      ><a name="2335" href="DecMatrices.html#2273" class="Bound"
+      >m&#8322;</a
+      ><a name="2337"
+      > </a
+      ><a name="2338" class="Symbol"
+      >&#8594;</a
+      ><a name="2339"
+      > </a
+      ><a name="2340" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="2342"
+      > </a
+      ><a name="2343" href="DecMatrices.html#2227" class="Bound"
+      >as</a
+      ><a name="2345"
+      > </a
+      ><a name="2346" class="Symbol"
+      >(</a
+      ><a name="2347" href="DecMatrices.html#2230" class="Bound"
+      >bs</a
+      ><a name="2349"
+      > </a
+      ><a name="2350" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2351"
+      > </a
+      ><a name="2352" href="DecMatrices.html#2233" class="Bound"
+      >cs</a
+      ><a name="2354" class="Symbol"
+      >)</a
+      ><a name="2355"
+      > </a
+      ><a name="2356" class="Symbol"
+      >(</a
+      ><a name="2357" href="DecMatrices.html#2249" class="Bound"
+      >m&#8321;</a
+      ><a name="2359"
+      > </a
+      ><a name="2360" href="DecMatrices.html#1122" class="Function Operator"
+      >++h</a
+      ><a name="2363"
+      > </a
+      ><a name="2364" href="DecMatrices.html#2273" class="Bound"
+      >m&#8322;</a
+      ><a name="2366" class="Symbol"
+      >)</a
+      ><a name="2367"
+      >
+
+</a
+      ><a name="2369" class="Keyword"
+      >postulate</a
+      ><a name="2378"
+      > </a
+      ><a name="2379" href="DecMatrices.html#2379" class="Postulate"
+      >freeze</a
+      ><a name="2385"
+      > </a
+      ><a name="2386" class="Symbol"
+      >:</a
+      ><a name="2387"
+      > </a
+      ><a name="2388" class="Symbol"
+      >{</a
+      ><a name="2389" href="DecMatrices.html#2389" class="Bound"
+      >as</a
+      ><a name="2391"
+      > </a
+      ><a name="2392" href="DecMatrices.html#2392" class="Bound"
+      >bs</a
+      ><a name="2394"
+      > </a
+      ><a name="2395" class="Symbol"
+      >:</a
+      ><a name="2396"
+      > </a
+      ><a name="2397" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="2403" class="Symbol"
+      >}</a
+      ><a name="2404"
+      > </a
+      ><a name="2405" class="Symbol"
+      >&#8594;</a
+      ><a name="2406"
+      > </a
+      ><a name="2407" class="Symbol"
+      >{</a
+      ><a name="2408" href="DecMatrices.html#2408" class="Bound"
+      >m</a
+      ><a name="2409"
+      > </a
+      ><a name="2410" class="Symbol"
+      >:</a
+      ><a name="2411"
+      > </a
+      ><a name="2412" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="2420"
+      > </a
+      ><a name="2421" href="DecMatrices.html#2389" class="Bound"
+      >as</a
+      ><a name="2423"
+      > </a
+      ><a name="2424" href="DecMatrices.html#2392" class="Bound"
+      >bs</a
+      ><a name="2426" class="Symbol"
+      >}</a
+      ><a name="2427"
+      >
+                 </a
+      ><a name="2445" class="Symbol"
+      >&#8594;</a
+      ><a name="2446"
+      > </a
+      ><a name="2447" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="2449"
+      > </a
+      ><a name="2450" href="DecMatrices.html#2389" class="Bound"
+      >as</a
+      ><a name="2452"
+      > </a
+      ><a name="2453" href="DecMatrices.html#2392" class="Bound"
+      >bs</a
+      ><a name="2455"
+      > </a
+      ><a name="2456" href="DecMatrices.html#2408" class="Bound"
+      >m</a
+      ><a name="2457"
+      > </a
+      ><a name="2458" class="Symbol"
+      >&#8594;</a
+      ><a name="2459"
+      > </a
+      ><a name="2460" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="2462"
+      > </a
+      ><a name="2463" href="DecMatrices.html#2389" class="Bound"
+      >as</a
+      ><a name="2465"
+      > </a
+      ><a name="2466" class="Symbol"
+      >(</a
+      ><a name="2467" href="DecMatrices.html#2392" class="Bound"
+      >bs</a
+      ><a name="2469"
+      > </a
+      ><a name="2470" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2471"
+      > </a
+      ><a name="2472" href="SVDesc.html#178" class="InductiveConstructor"
+      >C</a
+      ><a name="2473"
+      > </a
+      ><a name="2474" class="Symbol"
+      >(</a
+      ><a name="2475" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="2477"
+      > </a
+      ><a name="2478" href="DecMatrices.html#2389" class="Bound"
+      >as</a
+      ><a name="2480"
+      > </a
+      ><a name="2481" href="DecMatrices.html#2392" class="Bound"
+      >bs</a
+      ><a name="2483"
+      > </a
+      ><a name="2484" href="DecMatrices.html#2408" class="Bound"
+      >m</a
+      ><a name="2485" class="Symbol"
+      >))</a
+      ><a name="2487"
+      > </a
+      ><a name="2488" class="Symbol"
+      >(</a
+      ><a name="2489" href="DecMatrices.html#2408" class="Bound"
+      >m</a
+      ><a name="2490"
+      > </a
+      ><a name="2491" href="DecMatrices.html#1122" class="Function Operator"
+      >++h</a
+      ><a name="2494"
+      > </a
+      ><a name="2495" href="DecMatrices.html#1572" class="Function"
+      >Mdec</a
+      ><a name="2499" class="Symbol"
+      >)</a
+      ><a name="2500"
+      >
+
+</a
+      ><a name="2502" class="Keyword"
+      >postulate</a
+      ><a name="2511"
+      > </a
+      ><a name="2512" href="DecMatrices.html#2512" class="Postulate"
+      >switch</a
+      ><a name="2518"
+      > </a
+      ><a name="2519" class="Symbol"
+      >:</a
+      ><a name="2520"
+      > </a
+      ><a name="2521" class="Symbol"
+      >{</a
+      ><a name="2522" href="DecMatrices.html#2522" class="Bound"
+      >as</a
+      ><a name="2524"
+      > </a
+      ><a name="2525" href="DecMatrices.html#2525" class="Bound"
+      >bs</a
+      ><a name="2527"
+      > </a
+      ><a name="2528" class="Symbol"
+      >:</a
+      ><a name="2529"
+      > </a
+      ><a name="2530" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="2536" class="Symbol"
+      >}</a
+      ><a name="2537"
+      > </a
+      ><a name="2538" class="Symbol"
+      >&#8594;</a
+      ><a name="2539"
+      > </a
+      ><a name="2540" class="Symbol"
+      >{</a
+      ><a name="2541" href="DecMatrices.html#2541" class="Bound"
+      >A</a
+      ><a name="2542"
+      > </a
+      ><a name="2543" class="Symbol"
+      >:</a
+      ><a name="2544"
+      > </a
+      ><a name="2545" class="PrimitiveType"
+      >Set</a
+      ><a name="2548" class="Symbol"
+      >}</a
+      ><a name="2549"
+      > </a
+      ><a name="2550" class="Symbol"
+      >&#8594;</a
+      ><a name="2551"
+      > </a
+      ><a name="2552" class="Symbol"
+      >{</a
+      ><a name="2553" href="DecMatrices.html#2553" class="Bound"
+      >m&#8321;</a
+      ><a name="2555"
+      > </a
+      ><a name="2556" href="DecMatrices.html#2556" class="Bound"
+      >m&#8322;</a
+      ><a name="2558"
+      > </a
+      ><a name="2559" class="Symbol"
+      >:</a
+      ><a name="2560"
+      > </a
+      ><a name="2561" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="2569"
+      > </a
+      ><a name="2570" href="DecMatrices.html#2522" class="Bound"
+      >as</a
+      ><a name="2572"
+      > </a
+      ><a name="2573" href="DecMatrices.html#2525" class="Bound"
+      >bs</a
+      ><a name="2575" class="Symbol"
+      >}</a
+      ><a name="2576"
+      > </a
+      ><a name="2577" class="Symbol"
+      >&#8594;</a
+      ><a name="2578"
+      > </a
+      ><a name="2579" class="Symbol"
+      >(</a
+      ><a name="2580" href="DecMatrices.html#2580" class="Bound"
+      >me</a
+      ><a name="2582"
+      > </a
+      ><a name="2583" class="Symbol"
+      >:</a
+      ><a name="2584"
+      > </a
+      ><a name="2585" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="2593"
+      > </a
+      ><a name="2594" href="DecMatrices.html#2522" class="Bound"
+      >as</a
+      ><a name="2596"
+      > </a
+      ><a name="2597" class="Symbol"
+      >(</a
+      ><a name="2598" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="2599"
+      > </a
+      ><a name="2600" href="DecMatrices.html#2541" class="Bound"
+      >A</a
+      ><a name="2601" class="Symbol"
+      >))</a
+      ><a name="2603"
+      >
+                 </a
+      ><a name="2621" class="Symbol"
+      >&#8594;</a
+      ><a name="2622"
+      > </a
+      ><a name="2623" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="2625"
+      > </a
+      ><a name="2626" href="DecMatrices.html#2522" class="Bound"
+      >as</a
+      ><a name="2628"
+      > </a
+      ><a name="2629" class="Symbol"
+      >(</a
+      ><a name="2630" href="DecMatrices.html#2525" class="Bound"
+      >bs</a
+      ><a name="2632"
+      > </a
+      ><a name="2633" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2634"
+      > </a
+      ><a name="2635" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="2636"
+      > </a
+      ><a name="2637" href="DecMatrices.html#2541" class="Bound"
+      >A</a
+      ><a name="2638" class="Symbol"
+      >)</a
+      ><a name="2639"
+      > </a
+      ><a name="2640" class="Symbol"
+      >(</a
+      ><a name="2641" href="DecMatrices.html#2553" class="Bound"
+      >m&#8321;</a
+      ><a name="2643"
+      > </a
+      ><a name="2644" href="DecMatrices.html#1122" class="Function Operator"
+      >++h</a
+      ><a name="2647"
+      > </a
+      ><a name="2648" href="DecMatrices.html#2580" class="Bound"
+      >me</a
+      ><a name="2650" class="Symbol"
+      >)</a
+      ><a name="2651"
+      > </a
+      ><a name="2652" class="Symbol"
+      >&#8594;</a
+      ><a name="2653"
+      > </a
+      ><a name="2654" class="Symbol"
+      >(</a
+      ><a name="2655" href="DecMatrices.html#2541" class="Bound"
+      >A</a
+      ><a name="2656"
+      > </a
+      ><a name="2657" class="Symbol"
+      >&#8594;</a
+      ><a name="2658"
+      > </a
+      ><a name="2659" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="2661"
+      > </a
+      ><a name="2662" href="DecMatrices.html#2522" class="Bound"
+      >as</a
+      ><a name="2664"
+      > </a
+      ><a name="2665" href="DecMatrices.html#2525" class="Bound"
+      >bs</a
+      ><a name="2667"
+      > </a
+      ><a name="2668" href="DecMatrices.html#2556" class="Bound"
+      >m&#8322;</a
+      ><a name="2670" class="Symbol"
+      >)</a
+      ><a name="2671"
+      > </a
+      ><a name="2672" class="Symbol"
+      >&#8594;</a
+      ><a name="2673"
+      > </a
+      ><a name="2674" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="2676"
+      > </a
+      ><a name="2677" href="DecMatrices.html#2522" class="Bound"
+      >as</a
+      ><a name="2679"
+      > </a
+      ><a name="2680" href="DecMatrices.html#2525" class="Bound"
+      >bs</a
+      ><a name="2682"
+      > </a
+      ><a name="2683" class="Symbol"
+      >((</a
+      ><a name="2685" href="DecMatrices.html#2553" class="Bound"
+      >m&#8321;</a
+      ><a name="2687"
+      > </a
+      ><a name="2688" href="VectorMaths.html#1037" class="Function Operator"
+      >+m</a
+      ><a name="2690"
+      > </a
+      ><a name="2691" href="DecMatrices.html#2556" class="Bound"
+      >m&#8322;</a
+      ><a name="2693" class="Symbol"
+      >)</a
+      ><a name="2694"
+      > </a
+      ><a name="2695" href="VectorMaths.html#1037" class="Function Operator"
+      >+m</a
+      ><a name="2697"
+      > </a
+      ><a name="2698" href="DecMatrices.html#1212" class="Postulate"
+      >extend</a
+      ><a name="2704"
+      > </a
+      ><a name="2705" href="DecMatrices.html#2580" class="Bound"
+      >me</a
+      ><a name="2707" class="Symbol"
+      >)</a
+      ><a name="2708"
+      >
+
+</a
+      ><a name="2710" class="Keyword"
+      >postulate</a
+      ><a name="2719"
+      > </a
+      ><a name="2720" href="DecMatrices.html#2720" class="Postulate"
+      >dswitch</a
+      ><a name="2727"
+      > </a
+      ><a name="2728" class="Symbol"
+      >:</a
+      ><a name="2729"
+      > </a
+      ><a name="2730" class="Symbol"
+      >{</a
+      ><a name="2731" href="DecMatrices.html#2731" class="Bound"
+      >as</a
+      ><a name="2733"
+      > </a
+      ><a name="2734" href="DecMatrices.html#2734" class="Bound"
+      >bs</a
+      ><a name="2736"
+      > </a
+      ><a name="2737" class="Symbol"
+      >:</a
+      ><a name="2738"
+      > </a
+      ><a name="2739" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="2745" class="Symbol"
+      >}</a
+      ><a name="2746"
+      > </a
+      ><a name="2747" class="Symbol"
+      >&#8594;</a
+      ><a name="2748"
+      > </a
+      ><a name="2749" class="Symbol"
+      >{</a
+      ><a name="2750" href="DecMatrices.html#2750" class="Bound"
+      >A</a
+      ><a name="2751"
+      > </a
+      ><a name="2752" class="Symbol"
+      >:</a
+      ><a name="2753"
+      > </a
+      ><a name="2754" class="PrimitiveType"
+      >Set</a
+      ><a name="2757" class="Symbol"
+      >}</a
+      ><a name="2758"
+      > </a
+      ><a name="2759" class="Symbol"
+      >&#8594;</a
+      ><a name="2760"
+      > </a
+      ><a name="2761" class="Symbol"
+      >{</a
+      ><a name="2762" href="DecMatrices.html#2762" class="Bound"
+      >m&#8321;</a
+      ><a name="2764"
+      > </a
+      ><a name="2765" href="DecMatrices.html#2765" class="Bound"
+      >m&#8322;</a
+      ><a name="2767"
+      > </a
+      ><a name="2768" class="Symbol"
+      >:</a
+      ><a name="2769"
+      > </a
+      ><a name="2770" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="2778"
+      > </a
+      ><a name="2779" href="DecMatrices.html#2731" class="Bound"
+      >as</a
+      ><a name="2781"
+      > </a
+      ><a name="2782" href="DecMatrices.html#2734" class="Bound"
+      >bs</a
+      ><a name="2784" class="Symbol"
+      >}</a
+      ><a name="2785"
+      > </a
+      ><a name="2786" class="Symbol"
+      >&#8594;</a
+      ><a name="2787"
+      > </a
+      ><a name="2788" class="Symbol"
+      >(</a
+      ><a name="2789" href="DecMatrices.html#2789" class="Bound"
+      >me</a
+      ><a name="2791"
+      > </a
+      ><a name="2792" class="Symbol"
+      >:</a
+      ><a name="2793"
+      > </a
+      ><a name="2794" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="2802"
+      > </a
+      ><a name="2803" href="DecMatrices.html#2731" class="Bound"
+      >as</a
+      ><a name="2805"
+      > </a
+      ><a name="2806" class="Symbol"
+      >(</a
+      ><a name="2807" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="2808"
+      > </a
+      ><a name="2809" href="DecMatrices.html#2750" class="Bound"
+      >A</a
+      ><a name="2810" class="Symbol"
+      >))</a
+      ><a name="2812"
+      >
+                  </a
+      ><a name="2831" class="Symbol"
+      >&#8594;</a
+      ><a name="2832"
+      > </a
+      ><a name="2833" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="2835"
+      > </a
+      ><a name="2836" href="DecMatrices.html#2731" class="Bound"
+      >as</a
+      ><a name="2838"
+      > </a
+      ><a name="2839" class="Symbol"
+      >(</a
+      ><a name="2840" href="DecMatrices.html#2734" class="Bound"
+      >bs</a
+      ><a name="2842"
+      > </a
+      ><a name="2843" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2844"
+      > </a
+      ><a name="2845" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="2846"
+      > </a
+      ><a name="2847" href="DecMatrices.html#2750" class="Bound"
+      >A</a
+      ><a name="2848" class="Symbol"
+      >)</a
+      ><a name="2849"
+      > </a
+      ><a name="2850" class="Symbol"
+      >(</a
+      ><a name="2851" href="DecMatrices.html#2762" class="Bound"
+      >m&#8321;</a
+      ><a name="2853"
+      > </a
+      ><a name="2854" href="DecMatrices.html#1122" class="Function Operator"
+      >++h</a
+      ><a name="2857"
+      > </a
+      ><a name="2858" href="DecMatrices.html#2789" class="Bound"
+      >me</a
+      ><a name="2860" class="Symbol"
+      >)</a
+      ><a name="2861"
+      > </a
+      ><a name="2862" class="Symbol"
+      >&#8594;</a
+      ><a name="2863"
+      > </a
+      ><a name="2864" class="Symbol"
+      >(</a
+      ><a name="2865" href="DecMatrices.html#2750" class="Bound"
+      >A</a
+      ><a name="2866"
+      > </a
+      ><a name="2867" class="Symbol"
+      >&#8594;</a
+      ><a name="2868"
+      > </a
+      ><a name="2869" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="2871"
+      > </a
+      ><a name="2872" href="DecMatrices.html#2731" class="Bound"
+      >as</a
+      ><a name="2874"
+      > </a
+      ><a name="2875" href="DecMatrices.html#2734" class="Bound"
+      >bs</a
+      ><a name="2877"
+      > </a
+      ><a name="2878" href="DecMatrices.html#2765" class="Bound"
+      >m&#8322;</a
+      ><a name="2880" class="Symbol"
+      >)</a
+      ><a name="2881"
+      > </a
+      ><a name="2882" class="Symbol"
+      >&#8594;</a
+      ><a name="2883"
+      > </a
+      ><a name="2884" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="2886"
+      > </a
+      ><a name="2887" href="DecMatrices.html#2731" class="Bound"
+      >as</a
+      ><a name="2889"
+      > </a
+      ><a name="2890" href="DecMatrices.html#2734" class="Bound"
+      >bs</a
+      ><a name="2892"
+      > </a
+      ><a name="2893" class="Symbol"
+      >(</a
+      ><a name="2894" href="DecMatrices.html#2762" class="Bound"
+      >m&#8321;</a
+      ><a name="2896"
+      > </a
+      ><a name="2897" href="VectorMaths.html#1037" class="Function Operator"
+      >+m</a
+      ><a name="2899"
+      > </a
+      ><a name="2900" href="DecMatrices.html#2765" class="Bound"
+      >m&#8322;</a
+      ><a name="2902" class="Symbol"
+      >)</a
+      ><a name="2903"
+      >
+
+</a
+      ><a name="2905" class="Keyword"
+      >postulate</a
+      ><a name="2914"
+      > </a
+      ><a name="2915" href="DecMatrices.html#2915" class="Postulate"
+      >loop</a
+      ><a name="2919"
+      > </a
+      ><a name="2920" class="Symbol"
+      >:</a
+      ><a name="2921"
+      > </a
+      ><a name="2922" class="Symbol"
+      >{</a
+      ><a name="2923" href="DecMatrices.html#2923" class="Bound"
+      >as</a
+      ><a name="2925"
+      > </a
+      ><a name="2926" href="DecMatrices.html#2926" class="Bound"
+      >bs</a
+      ><a name="2928"
+      > </a
+      ><a name="2929" href="DecMatrices.html#2929" class="Bound"
+      >cs</a
+      ><a name="2931"
+      > </a
+      ><a name="2932" class="Symbol"
+      >:</a
+      ><a name="2933"
+      > </a
+      ><a name="2934" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="2940" class="Symbol"
+      >}</a
+      ><a name="2941"
+      > </a
+      ><a name="2942" class="Symbol"
+      >&#8594;</a
+      ><a name="2943"
+      > </a
+      ><a name="2944" class="Symbol"
+      >{</a
+      ><a name="2945" href="DecMatrices.html#2945" class="Bound"
+      >m&#8321;</a
+      ><a name="2947"
+      > </a
+      ><a name="2948" class="Symbol"
+      >:</a
+      ><a name="2949"
+      > </a
+      ><a name="2950" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="2958"
+      > </a
+      ><a name="2959" href="DecMatrices.html#2923" class="Bound"
+      >as</a
+      ><a name="2961"
+      > </a
+      ><a name="2962" href="DecMatrices.html#2926" class="Bound"
+      >bs</a
+      ><a name="2964" class="Symbol"
+      >}</a
+      ><a name="2965"
+      > </a
+      ><a name="2966" class="Symbol"
+      >&#8594;</a
+      ><a name="2967"
+      > </a
+      ><a name="2968" class="Symbol"
+      >{</a
+      ><a name="2969" href="DecMatrices.html#2969" class="Bound"
+      >m&#8322;</a
+      ><a name="2971"
+      > </a
+      ><a name="2972" class="Symbol"
+      >:</a
+      ><a name="2973"
+      > </a
+      ><a name="2974" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="2982"
+      > </a
+      ><a name="2983" href="DecMatrices.html#2929" class="Bound"
+      >cs</a
+      ><a name="2985"
+      > </a
+      ><a name="2986" href="DecMatrices.html#2926" class="Bound"
+      >bs</a
+      ><a name="2988" class="Symbol"
+      >}</a
+      ><a name="2989"
+      >
+                  </a
+      ><a name="3008" class="Symbol"
+      >&#8594;</a
+      ><a name="3009"
+      > </a
+      ><a name="3010" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="3012"
+      > </a
+      ><a name="3013" class="Symbol"
+      >(</a
+      ><a name="3014" href="DecMatrices.html#2923" class="Bound"
+      >as</a
+      ><a name="3016"
+      > </a
+      ><a name="3017" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="3018"
+      > </a
+      ><a name="3019" href="DecMatrices.html#2929" class="Bound"
+      >cs</a
+      ><a name="3021" class="Symbol"
+      >)</a
+      ><a name="3022"
+      > </a
+      ><a name="3023" href="DecMatrices.html#2926" class="Bound"
+      >bs</a
+      ><a name="3025"
+      > </a
+      ><a name="3026" class="Symbol"
+      >(</a
+      ><a name="3027" href="DecMatrices.html#2945" class="Bound"
+      >m&#8321;</a
+      ><a name="3029"
+      > </a
+      ><a name="3030" href="DecMatrices.html#1041" class="Function Operator"
+      >++v</a
+      ><a name="3033"
+      > </a
+      ><a name="3034" href="DecMatrices.html#2969" class="Bound"
+      >m&#8322;</a
+      ><a name="3036" class="Symbol"
+      >)</a
+      ><a name="3037"
+      > </a
+      ><a name="3038" class="Symbol"
+      >&#8594;</a
+      ><a name="3039"
+      > </a
+      ><a name="3040" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="3042"
+      > </a
+      ><a name="3043" href="DecMatrices.html#2929" class="Bound"
+      >cs</a
+      ><a name="3045"
+      > </a
+      ><a name="3046" href="DecMatrices.html#2926" class="Bound"
+      >bs</a
+      ><a name="3048"
+      > </a
+      ><a name="3049" href="DecMatrices.html#1572" class="Function"
+      >Mdec</a
+      ><a name="3053"
+      > </a
+      ><a name="3054" class="Symbol"
+      >&#8594;</a
+      ><a name="3055"
+      > </a
+      ><a name="3056" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="3058"
+      > </a
+      ><a name="3059" href="DecMatrices.html#2923" class="Bound"
+      >as</a
+      ><a name="3061"
+      > </a
+      ><a name="3062" href="DecMatrices.html#2926" class="Bound"
+      >bs</a
+      ><a name="3064"
+      > </a
+      ><a name="3065" href="DecMatrices.html#2945" class="Bound"
+      >m&#8321;</a
+      ><a name="3067"
+      >
+
+</a
+      ><a name="3069" class="Keyword"
+      >postulate</a
+      ><a name="3078"
+      > </a
+      ><a name="3079" href="DecMatrices.html#3079" class="Postulate"
+      >arrowLoop</a
+      ><a name="3088"
+      > </a
+      ><a name="3089" class="Symbol"
+      >:</a
+      ><a name="3090"
+      > </a
+      ><a name="3091" class="Symbol"
+      >{</a
+      ><a name="3092" href="DecMatrices.html#3092" class="Bound"
+      >as</a
+      ><a name="3094"
+      > </a
+      ><a name="3095" href="DecMatrices.html#3095" class="Bound"
+      >bs</a
+      ><a name="3097"
+      > </a
+      ><a name="3098" href="DecMatrices.html#3098" class="Bound"
+      >cs</a
+      ><a name="3100"
+      > </a
+      ><a name="3101" class="Symbol"
+      >:</a
+      ><a name="3102"
+      > </a
+      ><a name="3103" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="3109" class="Symbol"
+      >}</a
+      ><a name="3110"
+      > </a
+      ><a name="3111" class="Symbol"
+      >&#8594;</a
+      ><a name="3112"
+      > </a
+      ><a name="3113" class="Symbol"
+      >{</a
+      ><a name="3114" href="DecMatrices.html#3114" class="Bound"
+      >m&#8321;&#8321;</a
+      ><a name="3117"
+      > </a
+      ><a name="3118" class="Symbol"
+      >:</a
+      ><a name="3119"
+      > </a
+      ><a name="3120" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="3128"
+      > </a
+      ><a name="3129" href="DecMatrices.html#3092" class="Bound"
+      >as</a
+      ><a name="3131"
+      > </a
+      ><a name="3132" href="DecMatrices.html#3095" class="Bound"
+      >bs</a
+      ><a name="3134" class="Symbol"
+      >}</a
+      ><a name="3135"
+      > </a
+      ><a name="3136" class="Symbol"
+      >&#8594;</a
+      ><a name="3137"
+      > </a
+      ><a name="3138" class="Symbol"
+      >{</a
+      ><a name="3139" href="DecMatrices.html#3139" class="Bound"
+      >m&#8321;&#8322;</a
+      ><a name="3142"
+      > </a
+      ><a name="3143" class="Symbol"
+      >:</a
+      ><a name="3144"
+      > </a
+      ><a name="3145" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="3153"
+      > </a
+      ><a name="3154" href="DecMatrices.html#3092" class="Bound"
+      >as</a
+      ><a name="3156"
+      > </a
+      ><a name="3157" href="DecMatrices.html#3098" class="Bound"
+      >cs</a
+      ><a name="3159" class="Symbol"
+      >}</a
+      ><a name="3160"
+      > </a
+      ><a name="3161" class="Symbol"
+      >&#8594;</a
+      ><a name="3162"
+      > </a
+      ><a name="3163" class="Symbol"
+      >{</a
+      ><a name="3164" href="DecMatrices.html#3164" class="Bound"
+      >m&#8322;&#8321;</a
+      ><a name="3167"
+      > </a
+      ><a name="3168" class="Symbol"
+      >:</a
+      ><a name="3169"
+      > </a
+      ><a name="3170" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="3178"
+      > </a
+      ><a name="3179" href="DecMatrices.html#3098" class="Bound"
+      >cs</a
+      ><a name="3181"
+      > </a
+      ><a name="3182" href="DecMatrices.html#3095" class="Bound"
+      >bs</a
+      ><a name="3184" class="Symbol"
+      >}</a
+      ><a name="3185"
+      >
+                    </a
+      ><a name="3206" class="Symbol"
+      >&#8594;</a
+      ><a name="3207"
+      > </a
+      ><a name="3208" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="3210"
+      > </a
+      ><a name="3211" class="Symbol"
+      >(</a
+      ><a name="3212" href="DecMatrices.html#3092" class="Bound"
+      >as</a
+      ><a name="3214"
+      > </a
+      ><a name="3215" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="3216"
+      > </a
+      ><a name="3217" href="DecMatrices.html#3098" class="Bound"
+      >cs</a
+      ><a name="3219" class="Symbol"
+      >)</a
+      ><a name="3220"
+      > </a
+      ><a name="3221" class="Symbol"
+      >(</a
+      ><a name="3222" href="DecMatrices.html#3095" class="Bound"
+      >bs</a
+      ><a name="3224"
+      > </a
+      ><a name="3225" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="3226"
+      > </a
+      ><a name="3227" href="DecMatrices.html#3098" class="Bound"
+      >cs</a
+      ><a name="3229" class="Symbol"
+      >)</a
+      ><a name="3230"
+      > </a
+      ><a name="3231" class="Symbol"
+      >((</a
+      ><a name="3233" href="DecMatrices.html#3114" class="Bound"
+      >m&#8321;&#8321;</a
+      ><a name="3236"
+      > </a
+      ><a name="3237" href="DecMatrices.html#1041" class="Function Operator"
+      >++v</a
+      ><a name="3240"
+      > </a
+      ><a name="3241" href="DecMatrices.html#3164" class="Bound"
+      >m&#8322;&#8321;</a
+      ><a name="3244" class="Symbol"
+      >)</a
+      ><a name="3245"
+      > </a
+      ><a name="3246" href="DecMatrices.html#1122" class="Function Operator"
+      >++h</a
+      ><a name="3249"
+      > </a
+      ><a name="3250" class="Symbol"
+      >(</a
+      ><a name="3251" href="DecMatrices.html#3139" class="Bound"
+      >m&#8321;&#8322;</a
+      ><a name="3254"
+      > </a
+      ><a name="3255" href="DecMatrices.html#1041" class="Function Operator"
+      >++v</a
+      ><a name="3258"
+      > </a
+      ><a name="3259" href="DecMatrices.html#1572" class="Function"
+      >Mdec</a
+      ><a name="3263" class="Symbol"
+      >))</a
+      ><a name="3265"
+      > </a
+      ><a name="3266" class="Symbol"
+      >&#8594;</a
+      ><a name="3267"
+      > </a
+      ><a name="3268" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="3270"
+      > </a
+      ><a name="3271" href="DecMatrices.html#3092" class="Bound"
+      >as</a
+      ><a name="3273"
+      > </a
+      ><a name="3274" href="DecMatrices.html#3095" class="Bound"
+      >bs</a
+      ><a name="3276"
+      > </a
+      ><a name="3277" class="Symbol"
+      >(</a
+      ><a name="3278" href="DecMatrices.html#3114" class="Bound"
+      >m&#8321;&#8321;</a
+      ><a name="3281"
+      > </a
+      ><a name="3282" href="VectorMaths.html#1037" class="Function Operator"
+      >+m</a
+      ><a name="3284"
+      > </a
+      ><a name="3285" class="Symbol"
+      >(</a
+      ><a name="3286" href="DecMatrices.html#3139" class="Bound"
+      >m&#8321;&#8322;</a
+      ><a name="3289"
+      > </a
+      ><a name="3290" href="VectorMaths.html#938" class="Function Operator"
+      >*</a
+      ><a name="3291"
+      > </a
+      ><a name="3292" href="DecMatrices.html#3164" class="Bound"
+      >m&#8322;&#8321;</a
+      ><a name="3295" class="Symbol"
+      >))</a
+      ><a name="3297"
+      >
+
+</a
+      ><a name="3299" class="Keyword"
+      >postulate</a
+      ><a name="3308"
+      > </a
+      ><a name="3309" href="DecMatrices.html#3309" class="Postulate"
+      >loop'</a
+      ><a name="3314"
+      > </a
+      ><a name="3315" class="Symbol"
+      >:</a
+      ><a name="3316"
+      > </a
+      ><a name="3317" class="Symbol"
+      >{</a
+      ><a name="3318" href="DecMatrices.html#3318" class="Bound"
+      >as</a
+      ><a name="3320"
+      > </a
+      ><a name="3321" href="DecMatrices.html#3321" class="Bound"
+      >bs</a
+      ><a name="3323"
+      > </a
+      ><a name="3324" href="DecMatrices.html#3324" class="Bound"
+      >cs</a
+      ><a name="3326"
+      > </a
+      ><a name="3327" class="Symbol"
+      >:</a
+      ><a name="3328"
+      > </a
+      ><a name="3329" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="3335" class="Symbol"
+      >}</a
+      ><a name="3336"
+      > </a
+      ><a name="3337" class="Symbol"
+      >&#8594;</a
+      ><a name="3338"
+      > </a
+      ><a name="3339" class="Symbol"
+      >{</a
+      ><a name="3340" href="DecMatrices.html#3340" class="Bound"
+      >m</a
+      ><a name="3341"
+      > </a
+      ><a name="3342" class="Symbol"
+      >:</a
+      ><a name="3343"
+      > </a
+      ><a name="3344" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="3352"
+      > </a
+      ><a name="3353" href="DecMatrices.html#3321" class="Bound"
+      >bs</a
+      ><a name="3355"
+      > </a
+      ><a name="3356" href="DecMatrices.html#3324" class="Bound"
+      >cs</a
+      ><a name="3358" class="Symbol"
+      >}</a
+      ><a name="3359"
+      > </a
+      ><a name="3360" class="Symbol"
+      >&#8594;</a
+      ><a name="3361"
+      > </a
+      ><a name="3362" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="3364"
+      > </a
+      ><a name="3365" class="Symbol"
+      >(</a
+      ><a name="3366" href="DecMatrices.html#3318" class="Bound"
+      >as</a
+      ><a name="3368"
+      > </a
+      ><a name="3369" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="3370"
+      > </a
+      ><a name="3371" href="DecMatrices.html#3324" class="Bound"
+      >cs</a
+      ><a name="3373" class="Symbol"
+      >)</a
+      ><a name="3374"
+      > </a
+      ><a name="3375" href="DecMatrices.html#3321" class="Bound"
+      >bs</a
+      ><a name="3377"
+      > </a
+      ><a name="3378" href="DecMatrices.html#1572" class="Function"
+      >Mdec</a
+      ><a name="3382"
+      > </a
+      ><a name="3383" class="Symbol"
+      >&#8594;</a
+      ><a name="3384"
+      > </a
+      ><a name="3385" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="3387"
+      > </a
+      ><a name="3388" href="DecMatrices.html#3321" class="Bound"
+      >bs</a
+      ><a name="3390"
+      > </a
+      ><a name="3391" href="DecMatrices.html#3324" class="Bound"
+      >cs</a
+      ><a name="3393"
+      > </a
+      ><a name="3394" href="DecMatrices.html#3340" class="Bound"
+      >m</a
+      ><a name="3395"
+      > </a
+      ><a name="3396" class="Symbol"
+      >&#8594;</a
+      ><a name="3397"
+      > </a
+      ><a name="3398" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="3400"
+      > </a
+      ><a name="3401" href="DecMatrices.html#3318" class="Bound"
+      >as</a
+      ><a name="3403"
+      > </a
+      ><a name="3404" href="DecMatrices.html#3321" class="Bound"
+      >bs</a
+      ><a name="3406"
+      > </a
+      ><a name="3407" href="DecMatrices.html#1572" class="Function"
+      >Mdec</a
+      ><a name="3411"
+      >
+</a
+      ><a name="3412" class="Comment"
+      >-- loop' sff sfb = loop (sfSecond (forkFirst sfb) &gt;&gt;&gt; sfAssocL) (sfFst &gt;&gt;&gt; sff) &gt;&gt;&gt; {!sfSnd!}</a
+      ><a name="3505"
+      >
+
+</a
+      ><a name="3507" class="Comment"
+      >---------------------------------------------------------------------------------------</a
+      ><a name="3594"
+      >
+
+</a
+      ><a name="3596" class="Keyword"
+      >postulate</a
+      ><a name="3605"
+      > </a
+      ><a name="3606" href="DecMatrices.html#3606" class="Postulate"
+      >now</a
+      ><a name="3609"
+      > </a
+      ><a name="3610" class="Symbol"
+      >:</a
+      ><a name="3611"
+      > </a
+      ><a name="3612" class="Symbol"
+      >{</a
+      ><a name="3613" href="DecMatrices.html#3613" class="Bound"
+      >as</a
+      ><a name="3615"
+      > </a
+      ><a name="3616" class="Symbol"
+      >:</a
+      ><a name="3617"
+      > </a
+      ><a name="3618" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="3624" class="Symbol"
+      >}</a
+      ><a name="3625"
+      > </a
+      ><a name="3626" class="Symbol"
+      >&#8594;</a
+      ><a name="3627"
+      > </a
+      ><a name="3628" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="3630"
+      > </a
+      ><a name="3631" href="DecMatrices.html#3613" class="Bound"
+      >as</a
+      ><a name="3633"
+      > </a
+      ><a name="3634" class="Symbol"
+      >(</a
+      ><a name="3635" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="3636"
+      > </a
+      ><a name="3637" href="NeilPrelude.html#689" class="Datatype"
+      >Unit</a
+      ><a name="3641" class="Symbol"
+      >)</a
+      ><a name="3642"
+      > </a
+      ><a name="3643" href="DecMatrices.html#1572" class="Function"
+      >Mdec</a
+      ><a name="3647"
+      >
+</a
+      ><a name="3648" class="Keyword"
+      >postulate</a
+      ><a name="3657"
+      > </a
+      ><a name="3658" href="DecMatrices.html#3658" class="Postulate"
+      >delayE</a
+      ><a name="3664"
+      > </a
+      ><a name="3665" class="Symbol"
+      >:</a
+      ><a name="3666"
+      > </a
+      ><a name="3667" class="Symbol"
+      >{</a
+      ><a name="3668" href="DecMatrices.html#3668" class="Bound"
+      >A</a
+      ><a name="3669"
+      > </a
+      ><a name="3670" class="Symbol"
+      >:</a
+      ><a name="3671"
+      > </a
+      ><a name="3672" class="PrimitiveType"
+      >Set</a
+      ><a name="3675" class="Symbol"
+      >}</a
+      ><a name="3676"
+      > </a
+      ><a name="3677" class="Symbol"
+      >&#8594;</a
+      ><a name="3678"
+      > </a
+      ><a name="3679" href="RealTime.html#180" class="Function"
+      >Time&#8314;</a
+      ><a name="3684"
+      > </a
+      ><a name="3685" class="Symbol"
+      >&#8594;</a
+      ><a name="3686"
+      > </a
+      ><a name="3687" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="3689"
+      > </a
+      ><a name="3690" class="Symbol"
+      >(</a
+      ><a name="3691" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="3692"
+      > </a
+      ><a name="3693" href="DecMatrices.html#3668" class="Bound"
+      >A</a
+      ><a name="3694" class="Symbol"
+      >)</a
+      ><a name="3695"
+      > </a
+      ><a name="3696" class="Symbol"
+      >(</a
+      ><a name="3697" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="3698"
+      > </a
+      ><a name="3699" href="DecMatrices.html#3668" class="Bound"
+      >A</a
+      ><a name="3700" class="Symbol"
+      >)</a
+      ><a name="3701"
+      > </a
+      ><a name="3702" href="DecMatrices.html#1572" class="Function"
+      >Mdec</a
+      ><a name="3706"
+      >
+
+</a
+      ><a name="3708" class="Keyword"
+      >postulate</a
+      ><a name="3717"
+      > </a
+      ><a name="3718" href="DecMatrices.html#3718" class="Postulate"
+      >toFst</a
+      ><a name="3723"
+      > </a
+      ><a name="3724" class="Symbol"
+      >:</a
+      ><a name="3725"
+      > </a
+      ><a name="3726" class="Symbol"
+      >{</a
+      ><a name="3727" href="DecMatrices.html#3727" class="Bound"
+      >as</a
+      ><a name="3729"
+      > </a
+      ><a name="3730" href="DecMatrices.html#3730" class="Bound"
+      >bs</a
+      ><a name="3732"
+      > </a
+      ><a name="3733" href="DecMatrices.html#3733" class="Bound"
+      >cs</a
+      ><a name="3735"
+      > </a
+      ><a name="3736" class="Symbol"
+      >:</a
+      ><a name="3737"
+      > </a
+      ><a name="3738" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="3744" class="Symbol"
+      >}</a
+      ><a name="3745"
+      > </a
+      ><a name="3746" class="Symbol"
+      >&#8594;</a
+      ><a name="3747"
+      > </a
+      ><a name="3748" class="Symbol"
+      >{</a
+      ><a name="3749" href="DecMatrices.html#3749" class="Bound"
+      >m</a
+      ><a name="3750"
+      > </a
+      ><a name="3751" class="Symbol"
+      >:</a
+      ><a name="3752"
+      > </a
+      ><a name="3753" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="3761"
+      > </a
+      ><a name="3762" href="DecMatrices.html#3727" class="Bound"
+      >as</a
+      ><a name="3764"
+      > </a
+      ><a name="3765" href="DecMatrices.html#3733" class="Bound"
+      >cs</a
+      ><a name="3767" class="Symbol"
+      >}</a
+      ><a name="3768"
+      > </a
+      ><a name="3769" class="Symbol"
+      >&#8594;</a
+      ><a name="3770"
+      > </a
+      ><a name="3771" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="3773"
+      > </a
+      ><a name="3774" href="DecMatrices.html#3727" class="Bound"
+      >as</a
+      ><a name="3776"
+      > </a
+      ><a name="3777" href="DecMatrices.html#3733" class="Bound"
+      >cs</a
+      ><a name="3779"
+      > </a
+      ><a name="3780" href="DecMatrices.html#3749" class="Bound"
+      >m</a
+      ><a name="3781"
+      > </a
+      ><a name="3782" class="Symbol"
+      >&#8594;</a
+      ><a name="3783"
+      > </a
+      ><a name="3784" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="3786"
+      > </a
+      ><a name="3787" class="Symbol"
+      >(</a
+      ><a name="3788" href="DecMatrices.html#3727" class="Bound"
+      >as</a
+      ><a name="3790"
+      > </a
+      ><a name="3791" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="3792"
+      > </a
+      ><a name="3793" href="DecMatrices.html#3730" class="Bound"
+      >bs</a
+      ><a name="3795" class="Symbol"
+      >)</a
+      ><a name="3796"
+      > </a
+      ><a name="3797" href="DecMatrices.html#3733" class="Bound"
+      >cs</a
+      ><a name="3799"
+      > </a
+      ><a name="3800" class="Symbol"
+      >(</a
+      ><a name="3801" href="DecMatrices.html#3749" class="Bound"
+      >m</a
+      ><a name="3802"
+      > </a
+      ><a name="3803" href="DecMatrices.html#1041" class="Function Operator"
+      >++v</a
+      ><a name="3806"
+      > </a
+      ><a name="3807" href="DecMatrices.html#1572" class="Function"
+      >Mdec</a
+      ><a name="3811" class="Symbol"
+      >)</a
+      ><a name="3812"
+      > 
+</a
+      ><a name="3814" class="Comment"
+      >-- toFst sf = sfFst &gt;&gt;&gt; sf</a
+      ><a name="3840"
+      >
+
+</a
+      ><a name="3842" class="Keyword"
+      >postulate</a
+      ><a name="3851"
+      > </a
+      ><a name="3852" href="DecMatrices.html#3852" class="Postulate"
+      >toSnd</a
+      ><a name="3857"
+      > </a
+      ><a name="3858" class="Symbol"
+      >:</a
+      ><a name="3859"
+      > </a
+      ><a name="3860" class="Symbol"
+      >{</a
+      ><a name="3861" href="DecMatrices.html#3861" class="Bound"
+      >as</a
+      ><a name="3863"
+      > </a
+      ><a name="3864" href="DecMatrices.html#3864" class="Bound"
+      >bs</a
+      ><a name="3866"
+      > </a
+      ><a name="3867" href="DecMatrices.html#3867" class="Bound"
+      >cs</a
+      ><a name="3869"
+      > </a
+      ><a name="3870" class="Symbol"
+      >:</a
+      ><a name="3871"
+      > </a
+      ><a name="3872" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="3878" class="Symbol"
+      >}</a
+      ><a name="3879"
+      > </a
+      ><a name="3880" class="Symbol"
+      >&#8594;</a
+      ><a name="3881"
+      > </a
+      ><a name="3882" class="Symbol"
+      >{</a
+      ><a name="3883" href="DecMatrices.html#3883" class="Bound"
+      >m</a
+      ><a name="3884"
+      > </a
+      ><a name="3885" class="Symbol"
+      >:</a
+      ><a name="3886"
+      > </a
+      ><a name="3887" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="3895"
+      > </a
+      ><a name="3896" href="DecMatrices.html#3864" class="Bound"
+      >bs</a
+      ><a name="3898"
+      > </a
+      ><a name="3899" href="DecMatrices.html#3867" class="Bound"
+      >cs</a
+      ><a name="3901" class="Symbol"
+      >}</a
+      ><a name="3902"
+      > </a
+      ><a name="3903" class="Symbol"
+      >&#8594;</a
+      ><a name="3904"
+      > </a
+      ><a name="3905" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="3907"
+      > </a
+      ><a name="3908" href="DecMatrices.html#3864" class="Bound"
+      >bs</a
+      ><a name="3910"
+      > </a
+      ><a name="3911" href="DecMatrices.html#3867" class="Bound"
+      >cs</a
+      ><a name="3913"
+      > </a
+      ><a name="3914" href="DecMatrices.html#3883" class="Bound"
+      >m</a
+      ><a name="3915"
+      > </a
+      ><a name="3916" class="Symbol"
+      >&#8594;</a
+      ><a name="3917"
+      >  </a
+      ><a name="3919" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="3921"
+      > </a
+      ><a name="3922" class="Symbol"
+      >(</a
+      ><a name="3923" href="DecMatrices.html#3861" class="Bound"
+      >as</a
+      ><a name="3925"
+      > </a
+      ><a name="3926" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="3927"
+      > </a
+      ><a name="3928" href="DecMatrices.html#3864" class="Bound"
+      >bs</a
+      ><a name="3930" class="Symbol"
+      >)</a
+      ><a name="3931"
+      > </a
+      ><a name="3932" href="DecMatrices.html#3867" class="Bound"
+      >cs</a
+      ><a name="3934"
+      > </a
+      ><a name="3935" class="Symbol"
+      >(</a
+      ><a name="3936" href="DecMatrices.html#1572" class="Function"
+      >Mdec</a
+      ><a name="3940"
+      > </a
+      ><a name="3941" class="Symbol"
+      >{</a
+      ><a name="3942" href="DecMatrices.html#1347" class="Function"
+      >svlength</a
+      ><a name="3950"
+      > </a
+      ><a name="3951" href="DecMatrices.html#3861" class="Bound"
+      >as</a
+      ><a name="3953" class="Symbol"
+      >}</a
+      ><a name="3954"
+      > </a
+      ><a name="3955" class="Symbol"
+      >{</a
+      ><a name="3956" href="DecMatrices.html#1347" class="Function"
+      >svlength</a
+      ><a name="3964"
+      > </a
+      ><a name="3965" href="DecMatrices.html#3867" class="Bound"
+      >cs</a
+      ><a name="3967" class="Symbol"
+      >}</a
+      ><a name="3968"
+      > </a
+      ><a name="3969" href="DecMatrices.html#1041" class="Function Operator"
+      >++v</a
+      ><a name="3972"
+      > </a
+      ><a name="3973" href="DecMatrices.html#3883" class="Bound"
+      >m</a
+      ><a name="3974" class="Symbol"
+      >)</a
+      ><a name="3975"
+      >
+</a
+      ><a name="3976" class="Comment"
+      >-- toSnd sf = sfSnd &gt;&gt;&gt; sf</a
+      ><a name="4002"
+      >
+
+</a
+      ><a name="4004" href="DecMatrices.html#4004" class="Function Operator"
+      >_***_</a
+      ><a name="4009"
+      > </a
+      ><a name="4010" class="Symbol"
+      >:</a
+      ><a name="4011"
+      > </a
+      ><a name="4012" class="Symbol"
+      >{</a
+      ><a name="4013" href="DecMatrices.html#4013" class="Bound"
+      >as</a
+      ><a name="4015"
+      > </a
+      ><a name="4016" href="DecMatrices.html#4016" class="Bound"
+      >bs</a
+      ><a name="4018"
+      > </a
+      ><a name="4019" href="DecMatrices.html#4019" class="Bound"
+      >cs</a
+      ><a name="4021"
+      > </a
+      ><a name="4022" href="DecMatrices.html#4022" class="Bound"
+      >ds</a
+      ><a name="4024"
+      > </a
+      ><a name="4025" class="Symbol"
+      >:</a
+      ><a name="4026"
+      > </a
+      ><a name="4027" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="4033" class="Symbol"
+      >}</a
+      ><a name="4034"
+      > </a
+      ><a name="4035" class="Symbol"
+      >&#8594;</a
+      ><a name="4036"
+      > </a
+      ><a name="4037" class="Symbol"
+      >{</a
+      ><a name="4038" href="DecMatrices.html#4038" class="Bound"
+      >m&#8321;</a
+      ><a name="4040"
+      > </a
+      ><a name="4041" class="Symbol"
+      >:</a
+      ><a name="4042"
+      > </a
+      ><a name="4043" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="4051"
+      > </a
+      ><a name="4052" href="DecMatrices.html#4013" class="Bound"
+      >as</a
+      ><a name="4054"
+      > </a
+      ><a name="4055" href="DecMatrices.html#4016" class="Bound"
+      >bs</a
+      ><a name="4057" class="Symbol"
+      >}</a
+      ><a name="4058"
+      > </a
+      ><a name="4059" class="Symbol"
+      >&#8594;</a
+      ><a name="4060"
+      > </a
+      ><a name="4061" class="Symbol"
+      >{</a
+      ><a name="4062" href="DecMatrices.html#4062" class="Bound"
+      >m&#8322;</a
+      ><a name="4064"
+      > </a
+      ><a name="4065" class="Symbol"
+      >:</a
+      ><a name="4066"
+      > </a
+      ><a name="4067" href="DecMatrices.html#1486" class="Function"
+      >SVMatrix</a
+      ><a name="4075"
+      > </a
+      ><a name="4076" href="DecMatrices.html#4019" class="Bound"
+      >cs</a
+      ><a name="4078"
+      > </a
+      ><a name="4079" href="DecMatrices.html#4022" class="Bound"
+      >ds</a
+      ><a name="4081" class="Symbol"
+      >}</a
+      ><a name="4082"
+      > </a
+      ><a name="4083" class="Symbol"
+      >&#8594;</a
+      ><a name="4084"
+      > </a
+      ><a name="4085" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="4087"
+      > </a
+      ><a name="4088" href="DecMatrices.html#4013" class="Bound"
+      >as</a
+      ><a name="4090"
+      > </a
+      ><a name="4091" href="DecMatrices.html#4016" class="Bound"
+      >bs</a
+      ><a name="4093"
+      > </a
+      ><a name="4094" href="DecMatrices.html#4038" class="Bound"
+      >m&#8321;</a
+      ><a name="4096"
+      > </a
+      ><a name="4097" class="Symbol"
+      >&#8594;</a
+      ><a name="4098"
+      > </a
+      ><a name="4099" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="4101"
+      > </a
+      ><a name="4102" href="DecMatrices.html#4019" class="Bound"
+      >cs</a
+      ><a name="4104"
+      > </a
+      ><a name="4105" href="DecMatrices.html#4022" class="Bound"
+      >ds</a
+      ><a name="4107"
+      > </a
+      ><a name="4108" href="DecMatrices.html#4062" class="Bound"
+      >m&#8322;</a
+      ><a name="4110"
+      > </a
+      ><a name="4111" class="Symbol"
+      >&#8594;</a
+      ><a name="4112"
+      > </a
+      ><a name="4113" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="4115"
+      > </a
+      ><a name="4116" class="Symbol"
+      >(</a
+      ><a name="4117" href="DecMatrices.html#4013" class="Bound"
+      >as</a
+      ><a name="4119"
+      > </a
+      ><a name="4120" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="4121"
+      > </a
+      ><a name="4122" href="DecMatrices.html#4019" class="Bound"
+      >cs</a
+      ><a name="4124" class="Symbol"
+      >)</a
+      ><a name="4125"
+      > </a
+      ><a name="4126" class="Symbol"
+      >(</a
+      ><a name="4127" href="DecMatrices.html#4016" class="Bound"
+      >bs</a
+      ><a name="4129"
+      > </a
+      ><a name="4130" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="4131"
+      > </a
+      ><a name="4132" href="DecMatrices.html#4022" class="Bound"
+      >ds</a
+      ><a name="4134" class="Symbol"
+      >)</a
+      ><a name="4135"
+      > </a
+      ><a name="4136" class="Symbol"
+      >((</a
+      ><a name="4138" href="DecMatrices.html#4038" class="Bound"
+      >m&#8321;</a
+      ><a name="4140"
+      > </a
+      ><a name="4141" href="DecMatrices.html#1041" class="Function Operator"
+      >++v</a
+      ><a name="4144"
+      > </a
+      ><a name="4145" href="DecMatrices.html#1572" class="Function"
+      >Mdec</a
+      ><a name="4149" class="Symbol"
+      >)</a
+      ><a name="4150"
+      > </a
+      ><a name="4151" href="DecMatrices.html#1122" class="Function Operator"
+      >++h</a
+      ><a name="4154"
+      > </a
+      ><a name="4155" class="Symbol"
+      >(</a
+      ><a name="4156" href="DecMatrices.html#1572" class="Function"
+      >Mdec</a
+      ><a name="4160"
+      > </a
+      ><a name="4161" class="Symbol"
+      >{</a
+      ><a name="4162" href="DecMatrices.html#1347" class="Function"
+      >svlength</a
+      ><a name="4170"
+      > </a
+      ><a name="4171" href="DecMatrices.html#4013" class="Bound"
+      >as</a
+      ><a name="4173" class="Symbol"
+      >}</a
+      ><a name="4174"
+      > </a
+      ><a name="4175" class="Symbol"
+      >{</a
+      ><a name="4176" href="DecMatrices.html#1347" class="Function"
+      >svlength</a
+      ><a name="4184"
+      > </a
+      ><a name="4185" href="DecMatrices.html#4022" class="Bound"
+      >ds</a
+      ><a name="4187" class="Symbol"
+      >}</a
+      ><a name="4188"
+      > </a
+      ><a name="4189" href="DecMatrices.html#1041" class="Function Operator"
+      >++v</a
+      ><a name="4192"
+      > </a
+      ><a name="4193" href="DecMatrices.html#4062" class="Bound"
+      >m&#8322;</a
+      ><a name="4195" class="Symbol"
+      >))</a
+      ><a name="4197"
+      >
+</a
+      ><a name="4198" href="DecMatrices.html#4198" class="Bound"
+      >sf&#8321;</a
+      ><a name="4201"
+      > </a
+      ><a name="4202" href="DecMatrices.html#4004" class="Function Operator"
+      >***</a
+      ><a name="4205"
+      > </a
+      ><a name="4206" href="DecMatrices.html#4206" class="Bound"
+      >sf&#8322;</a
+      ><a name="4209"
+      > </a
+      ><a name="4210" class="Symbol"
+      >=</a
+      ><a name="4211"
+      > </a
+      ><a name="4212" href="DecMatrices.html#3718" class="Postulate"
+      >toFst</a
+      ><a name="4217"
+      > </a
+      ><a name="4218" href="DecMatrices.html#4198" class="Bound"
+      >sf&#8321;</a
+      ><a name="4221"
+      > </a
+      ><a name="4222" href="DecMatrices.html#2218" class="Postulate Operator"
+      >&amp;&amp;&amp;</a
+      ><a name="4225"
+      > </a
+      ><a name="4226" href="DecMatrices.html#3852" class="Postulate"
+      >toSnd</a
+      ><a name="4231"
+      > </a
+      ><a name="4232" href="DecMatrices.html#4206" class="Bound"
+      >sf&#8322;</a
+      ><a name="4235"
+      >
+
+</a
+      ><a name="4237" href="DecMatrices.html#4237" class="Function"
+      >inaccurate</a
+      ><a name="4247"
+      > </a
+      ><a name="4248" class="Symbol"
+      >:</a
+      ><a name="4249"
+      > </a
+      ><a name="4250" class="Symbol"
+      >{</a
+      ><a name="4251" href="DecMatrices.html#4251" class="Bound"
+      >A</a
+      ><a name="4252"
+      > </a
+      ><a name="4253" class="Symbol"
+      >:</a
+      ><a name="4254"
+      > </a
+      ><a name="4255" class="PrimitiveType"
+      >Set</a
+      ><a name="4258" class="Symbol"
+      >}</a
+      ><a name="4259"
+      > </a
+      ><a name="4260" class="Symbol"
+      >&#8594;</a
+      ><a name="4261"
+      > </a
+      ><a name="4262" href="DecMatrices.html#1710" class="Postulate"
+      >SF</a
+      ><a name="4264"
+      > </a
+      ><a name="4265" class="Symbol"
+      >(</a
+      ><a name="4266" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="4267"
+      > </a
+      ><a name="4268" href="DecMatrices.html#4251" class="Bound"
+      >A</a
+      ><a name="4269" class="Symbol"
+      >)</a
+      ><a name="4270"
+      > </a
+      ><a name="4271" class="Symbol"
+      >(</a
+      ><a name="4272" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="4273"
+      > </a
+      ><a name="4274" href="DecMatrices.html#4251" class="Bound"
+      >A</a
+      ><a name="4275"
+      > </a
+      ><a name="4276" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="4277"
+      > </a
+      ><a name="4278" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="4279"
+      > </a
+      ><a name="4280" href="NeilPrelude.html#689" class="Datatype"
+      >Unit</a
+      ><a name="4284" class="Symbol"
+      >)</a
+      ><a name="4285"
+      > </a
+      ><a name="4286" href="DecMatrices.html#1572" class="Function"
+      >Mdec</a
+      ><a name="4290"
+      >
+</a
+      ><a name="4291" href="DecMatrices.html#4237" class="Function"
+      >inaccurate</a
+      ><a name="4301"
+      > </a
+      ><a name="4302" class="Symbol"
+      >=</a
+      ><a name="4303"
+      > </a
+      ><a name="4304" class="Symbol"
+      >(</a
+      ><a name="4305" href="DecMatrices.html#1855" class="Postulate"
+      >identity</a
+      ><a name="4313"
+      > </a
+      ><a name="4314" href="DecMatrices.html#2218" class="Postulate Operator"
+      >&amp;&amp;&amp;</a
+      ><a name="4317"
+      > </a
+      ><a name="4318" href="DecMatrices.html#3606" class="Postulate"
+      >now</a
+      ><a name="4321" class="Symbol"
+      >)</a
+      ><a name="4322"
+      > </a
+      ><a name="4323" href="DecMatrices.html#2066" class="Postulate Operator"
+      >&gt;&gt;&gt;</a
+      ><a name="4326"
+      > </a
+      ><a name="4327" class="Symbol"
+      >(</a
+      ><a name="4328" href="DecMatrices.html#3658" class="Postulate"
+      >delayE</a
+      ><a name="4334"
+      > </a
+      ><a name="4335" href="StrictPosReal.html#211" class="Postulate"
+      >&#305;&#8314;</a
+      ><a name="4337"
+      > </a
+      ><a name="4338" href="DecMatrices.html#4004" class="Function Operator"
+      >***</a
+      ><a name="4341"
+      > </a
+      ><a name="4342" href="DecMatrices.html#1855" class="Postulate"
+      >identity</a
+      ><a name="4350" class="Symbol"
+      >)</a
+      ><a name="4351"
+      >
+
+</a
+      ><a name="4353" class="Comment"
+      >---------------------------------------------------------------------------------------</a
+      ><a name="4440"
+      >
+</a
+      ></pre
+    ></body
+  ></html
+>

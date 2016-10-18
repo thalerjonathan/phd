@@ -1,0 +1,1088 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >Monad</title
+    ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta http-equiv="Content-Style-Type" content="text/css"
+     /><link href="Agda.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><pre
+    ><a name="1" class="Symbol"
+      >{-#</a
+      ><a name="4"
+      > </a
+      ><a name="5" class="Keyword"
+      >OPTIONS</a
+      ><a name="12"
+      > --type-in-type </a
+      ><a name="28" class="Symbol"
+      >#-}</a
+      ><a name="31"
+      >
+
+</a
+      ><a name="33" class="Keyword"
+      >open</a
+      ><a name="37"
+      > </a
+      ><a name="38" class="Keyword"
+      >import</a
+      ><a name="44"
+      > </a
+      ><a name="45" href="NeilPrelude.html#77" class="Module"
+      >NeilPrelude</a
+      ><a name="56"
+      >
+
+</a
+      ><a name="58" class="Keyword"
+      >module</a
+      ><a name="64"
+      > </a
+      ><a name="65" href="Monad.html#65" class="Module"
+      >Monad</a
+      ><a name="70"
+      > </a
+      ><a name="71" class="Symbol"
+      >(</a
+      ><a name="72" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="73"
+      > </a
+      ><a name="74" class="Symbol"
+      >:</a
+      ><a name="75"
+      > </a
+      ><a name="76" class="PrimitiveType"
+      >Set</a
+      ><a name="79"
+      > </a
+      ><a name="80" class="Symbol"
+      >&#8594;</a
+      ><a name="81"
+      > </a
+      ><a name="82" class="PrimitiveType"
+      >Set</a
+      ><a name="85" class="Symbol"
+      >)</a
+      ><a name="86"
+      >
+
+       </a
+      ><a name="95" class="Symbol"
+      >(</a
+      ><a name="96" href="Monad.html#96" class="Bound Operator"
+      >_&gt;&gt;='_</a
+      ><a name="102"
+      > </a
+      ><a name="103" class="Symbol"
+      >:</a
+      ><a name="104"
+      > </a
+      ><a name="105" class="Symbol"
+      >{</a
+      ><a name="106" href="Monad.html#106" class="Bound"
+      >A</a
+      ><a name="107"
+      > </a
+      ><a name="108" href="Monad.html#108" class="Bound"
+      >B</a
+      ><a name="109"
+      > </a
+      ><a name="110" class="Symbol"
+      >:</a
+      ><a name="111"
+      > </a
+      ><a name="112" class="PrimitiveType"
+      >Set</a
+      ><a name="115" class="Symbol"
+      >}</a
+      ><a name="116"
+      > </a
+      ><a name="117" class="Symbol"
+      >&#8594;</a
+      ><a name="118"
+      > </a
+      ><a name="119" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="120"
+      > </a
+      ><a name="121" href="Monad.html#106" class="Bound"
+      >A</a
+      ><a name="122"
+      > </a
+      ><a name="123" class="Symbol"
+      >&#8594;</a
+      ><a name="124"
+      > </a
+      ><a name="125" class="Symbol"
+      >(</a
+      ><a name="126" href="Monad.html#106" class="Bound"
+      >A</a
+      ><a name="127"
+      > </a
+      ><a name="128" class="Symbol"
+      >&#8594;</a
+      ><a name="129"
+      > </a
+      ><a name="130" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="131"
+      > </a
+      ><a name="132" href="Monad.html#108" class="Bound"
+      >B</a
+      ><a name="133" class="Symbol"
+      >)</a
+      ><a name="134"
+      > </a
+      ><a name="135" class="Symbol"
+      >&#8594;</a
+      ><a name="136"
+      > </a
+      ><a name="137" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="138"
+      > </a
+      ><a name="139" href="Monad.html#108" class="Bound"
+      >B</a
+      ><a name="140" class="Symbol"
+      >)</a
+      ><a name="141"
+      >
+       </a
+      ><a name="149" class="Symbol"
+      >(</a
+      ><a name="150" href="Monad.html#150" class="Bound"
+      >ret</a
+      ><a name="153"
+      >    </a
+      ><a name="157" class="Symbol"
+      >:</a
+      ><a name="158"
+      > </a
+      ><a name="159" class="Symbol"
+      >{</a
+      ><a name="160" href="Monad.html#160" class="Bound"
+      >A</a
+      ><a name="161"
+      > </a
+      ><a name="162" class="Symbol"
+      >:</a
+      ><a name="163"
+      > </a
+      ><a name="164" class="PrimitiveType"
+      >Set</a
+      ><a name="167" class="Symbol"
+      >}</a
+      ><a name="168"
+      > </a
+      ><a name="169" class="Symbol"
+      >&#8594;</a
+      ><a name="170"
+      > </a
+      ><a name="171" href="Monad.html#160" class="Bound"
+      >A</a
+      ><a name="172"
+      > </a
+      ><a name="173" class="Symbol"
+      >&#8594;</a
+      ><a name="174"
+      > </a
+      ><a name="175" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="176"
+      > </a
+      ><a name="177" href="Monad.html#160" class="Bound"
+      >A</a
+      ><a name="178" class="Symbol"
+      >)</a
+      ><a name="179"
+      >
+
+</a
+      ><a name="181" class="Keyword"
+      >where</a
+      ><a name="186"
+      >
+
+</a
+      ><a name="188" class="Keyword"
+      >infixl</a
+      ><a name="194"
+      > </a
+      ><a name="195" class="Number"
+      >4</a
+      ><a name="196"
+      > _&gt;&gt;=_ _&gt;&gt;_
+
+</a
+      ><a name="209" href="Monad.html#209" class="Function Operator"
+      >_&gt;&gt;=_</a
+      ><a name="214"
+      > </a
+      ><a name="215" class="Symbol"
+      >:</a
+      ><a name="216"
+      > </a
+      ><a name="217" class="Symbol"
+      >{</a
+      ><a name="218" href="Monad.html#218" class="Bound"
+      >A</a
+      ><a name="219"
+      > </a
+      ><a name="220" href="Monad.html#220" class="Bound"
+      >B</a
+      ><a name="221"
+      > </a
+      ><a name="222" class="Symbol"
+      >:</a
+      ><a name="223"
+      > </a
+      ><a name="224" class="PrimitiveType"
+      >Set</a
+      ><a name="227" class="Symbol"
+      >}</a
+      ><a name="228"
+      > </a
+      ><a name="229" class="Symbol"
+      >&#8594;</a
+      ><a name="230"
+      > </a
+      ><a name="231" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="232"
+      > </a
+      ><a name="233" href="Monad.html#218" class="Bound"
+      >A</a
+      ><a name="234"
+      > </a
+      ><a name="235" class="Symbol"
+      >&#8594;</a
+      ><a name="236"
+      > </a
+      ><a name="237" class="Symbol"
+      >(</a
+      ><a name="238" href="Monad.html#218" class="Bound"
+      >A</a
+      ><a name="239"
+      > </a
+      ><a name="240" class="Symbol"
+      >&#8594;</a
+      ><a name="241"
+      > </a
+      ><a name="242" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="243"
+      > </a
+      ><a name="244" href="Monad.html#220" class="Bound"
+      >B</a
+      ><a name="245" class="Symbol"
+      >)</a
+      ><a name="246"
+      > </a
+      ><a name="247" class="Symbol"
+      >&#8594;</a
+      ><a name="248"
+      > </a
+      ><a name="249" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="250"
+      > </a
+      ><a name="251" href="Monad.html#220" class="Bound"
+      >B</a
+      ><a name="252"
+      >
+</a
+      ><a name="253" href="Monad.html#209" class="Function Operator"
+      >_&gt;&gt;=_</a
+      ><a name="258"
+      > </a
+      ><a name="259" class="Symbol"
+      >=</a
+      ><a name="260"
+      > </a
+      ><a name="261" href="Monad.html#96" class="Bound Operator"
+      >_&gt;&gt;='_</a
+      ><a name="267"
+      >
+
+</a
+      ><a name="269" href="Monad.html#269" class="Function Operator"
+      >_=&lt;&lt;_</a
+      ><a name="274"
+      > </a
+      ><a name="275" class="Symbol"
+      >:</a
+      ><a name="276"
+      > </a
+      ><a name="277" class="Symbol"
+      >{</a
+      ><a name="278" href="Monad.html#278" class="Bound"
+      >A</a
+      ><a name="279"
+      > </a
+      ><a name="280" href="Monad.html#280" class="Bound"
+      >B</a
+      ><a name="281"
+      > </a
+      ><a name="282" class="Symbol"
+      >:</a
+      ><a name="283"
+      > </a
+      ><a name="284" class="PrimitiveType"
+      >Set</a
+      ><a name="287" class="Symbol"
+      >}</a
+      ><a name="288"
+      > </a
+      ><a name="289" class="Symbol"
+      >&#8594;</a
+      ><a name="290"
+      > </a
+      ><a name="291" class="Symbol"
+      >(</a
+      ><a name="292" href="Monad.html#278" class="Bound"
+      >A</a
+      ><a name="293"
+      > </a
+      ><a name="294" class="Symbol"
+      >&#8594;</a
+      ><a name="295"
+      > </a
+      ><a name="296" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="297"
+      > </a
+      ><a name="298" href="Monad.html#280" class="Bound"
+      >B</a
+      ><a name="299" class="Symbol"
+      >)</a
+      ><a name="300"
+      > </a
+      ><a name="301" class="Symbol"
+      >&#8594;</a
+      ><a name="302"
+      > </a
+      ><a name="303" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="304"
+      > </a
+      ><a name="305" href="Monad.html#278" class="Bound"
+      >A</a
+      ><a name="306"
+      > </a
+      ><a name="307" class="Symbol"
+      >&#8594;</a
+      ><a name="308"
+      > </a
+      ><a name="309" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="310"
+      > </a
+      ><a name="311" href="Monad.html#280" class="Bound"
+      >B</a
+      ><a name="312"
+      >
+</a
+      ><a name="313" href="Monad.html#269" class="Function Operator"
+      >_=&lt;&lt;_</a
+      ><a name="318"
+      > </a
+      ><a name="319" class="Symbol"
+      >=</a
+      ><a name="320"
+      > </a
+      ><a name="321" href="NeilPrelude.html#9288" class="Function"
+      >flip</a
+      ><a name="325"
+      > </a
+      ><a name="326" href="Monad.html#209" class="Function Operator"
+      >_&gt;&gt;=_</a
+      ><a name="331"
+      >
+
+</a
+      ><a name="333" href="Monad.html#333" class="Function"
+      >return</a
+      ><a name="339"
+      > </a
+      ><a name="340" class="Symbol"
+      >:</a
+      ><a name="341"
+      > </a
+      ><a name="342" class="Symbol"
+      >{</a
+      ><a name="343" href="Monad.html#343" class="Bound"
+      >A</a
+      ><a name="344"
+      > </a
+      ><a name="345" class="Symbol"
+      >:</a
+      ><a name="346"
+      > </a
+      ><a name="347" class="PrimitiveType"
+      >Set</a
+      ><a name="350" class="Symbol"
+      >}</a
+      ><a name="351"
+      > </a
+      ><a name="352" class="Symbol"
+      >&#8594;</a
+      ><a name="353"
+      > </a
+      ><a name="354" href="Monad.html#343" class="Bound"
+      >A</a
+      ><a name="355"
+      > </a
+      ><a name="356" class="Symbol"
+      >&#8594;</a
+      ><a name="357"
+      > </a
+      ><a name="358" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="359"
+      > </a
+      ><a name="360" href="Monad.html#343" class="Bound"
+      >A</a
+      ><a name="361"
+      >
+</a
+      ><a name="362" href="Monad.html#333" class="Function"
+      >return</a
+      ><a name="368"
+      > </a
+      ><a name="369" class="Symbol"
+      >=</a
+      ><a name="370"
+      > </a
+      ><a name="371" href="Monad.html#150" class="Bound"
+      >ret</a
+      ><a name="374"
+      >
+
+</a
+      ><a name="376" href="Monad.html#376" class="Function"
+      >ap</a
+      ><a name="378"
+      > </a
+      ><a name="379" class="Symbol"
+      >:</a
+      ><a name="380"
+      > </a
+      ><a name="381" class="Symbol"
+      >{</a
+      ><a name="382" href="Monad.html#382" class="Bound"
+      >A</a
+      ><a name="383"
+      > </a
+      ><a name="384" href="Monad.html#384" class="Bound"
+      >B</a
+      ><a name="385"
+      > </a
+      ><a name="386" class="Symbol"
+      >:</a
+      ><a name="387"
+      > </a
+      ><a name="388" class="PrimitiveType"
+      >Set</a
+      ><a name="391" class="Symbol"
+      >}</a
+      ><a name="392"
+      > </a
+      ><a name="393" class="Symbol"
+      >&#8594;</a
+      ><a name="394"
+      > </a
+      ><a name="395" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="396"
+      > </a
+      ><a name="397" class="Symbol"
+      >(</a
+      ><a name="398" href="Monad.html#382" class="Bound"
+      >A</a
+      ><a name="399"
+      > </a
+      ><a name="400" class="Symbol"
+      >&#8594;</a
+      ><a name="401"
+      > </a
+      ><a name="402" href="Monad.html#384" class="Bound"
+      >B</a
+      ><a name="403" class="Symbol"
+      >)</a
+      ><a name="404"
+      > </a
+      ><a name="405" class="Symbol"
+      >&#8594;</a
+      ><a name="406"
+      > </a
+      ><a name="407" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="408"
+      > </a
+      ><a name="409" href="Monad.html#382" class="Bound"
+      >A</a
+      ><a name="410"
+      > </a
+      ><a name="411" class="Symbol"
+      >&#8594;</a
+      ><a name="412"
+      > </a
+      ><a name="413" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="414"
+      > </a
+      ><a name="415" href="Monad.html#384" class="Bound"
+      >B</a
+      ><a name="416"
+      >
+</a
+      ><a name="417" href="Monad.html#376" class="Function"
+      >ap</a
+      ><a name="419"
+      > </a
+      ><a name="420" href="Monad.html#420" class="Bound"
+      >mf</a
+      ><a name="422"
+      > </a
+      ><a name="423" href="Monad.html#423" class="Bound"
+      >ma</a
+      ><a name="425"
+      > </a
+      ><a name="426" class="Symbol"
+      >=</a
+      ><a name="427"
+      > </a
+      ><a name="428" href="Monad.html#420" class="Bound"
+      >mf</a
+      ><a name="430"
+      > </a
+      ><a name="431" href="Monad.html#209" class="Function Operator"
+      >&gt;&gt;=</a
+      ><a name="434"
+      > </a
+      ><a name="435" class="Symbol"
+      >&#955;</a
+      ><a name="436"
+      > </a
+      ><a name="437" href="Monad.html#437" class="Bound"
+      >f</a
+      ><a name="438"
+      > </a
+      ><a name="439" class="Symbol"
+      >&#8594;</a
+      ><a name="440"
+      > </a
+      ><a name="441" href="Monad.html#423" class="Bound"
+      >ma</a
+      ><a name="443"
+      > </a
+      ><a name="444" href="Monad.html#209" class="Function Operator"
+      >&gt;&gt;=</a
+      ><a name="447"
+      > </a
+      ><a name="448" href="Monad.html#333" class="Function"
+      >return</a
+      ><a name="454"
+      > </a
+      ><a name="455" href="NeilPrelude.html#8326" class="Function Operator"
+      >&#8728;</a
+      ><a name="456"
+      > </a
+      ><a name="457" href="Monad.html#437" class="Bound"
+      >f</a
+      ><a name="458"
+      >
+
+</a
+      ><a name="460" href="Monad.html#460" class="Function"
+      >liftM</a
+      ><a name="465"
+      > </a
+      ><a name="466" class="Symbol"
+      >:</a
+      ><a name="467"
+      > </a
+      ><a name="468" class="Symbol"
+      >{</a
+      ><a name="469" href="Monad.html#469" class="Bound"
+      >A</a
+      ><a name="470"
+      > </a
+      ><a name="471" href="Monad.html#471" class="Bound"
+      >B</a
+      ><a name="472"
+      > </a
+      ><a name="473" class="Symbol"
+      >:</a
+      ><a name="474"
+      > </a
+      ><a name="475" class="PrimitiveType"
+      >Set</a
+      ><a name="478" class="Symbol"
+      >}</a
+      ><a name="479"
+      > </a
+      ><a name="480" class="Symbol"
+      >&#8594;</a
+      ><a name="481"
+      > </a
+      ><a name="482" class="Symbol"
+      >(</a
+      ><a name="483" href="Monad.html#469" class="Bound"
+      >A</a
+      ><a name="484"
+      > </a
+      ><a name="485" class="Symbol"
+      >&#8594;</a
+      ><a name="486"
+      > </a
+      ><a name="487" href="Monad.html#471" class="Bound"
+      >B</a
+      ><a name="488" class="Symbol"
+      >)</a
+      ><a name="489"
+      > </a
+      ><a name="490" class="Symbol"
+      >&#8594;</a
+      ><a name="491"
+      > </a
+      ><a name="492" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="493"
+      > </a
+      ><a name="494" href="Monad.html#469" class="Bound"
+      >A</a
+      ><a name="495"
+      > </a
+      ><a name="496" class="Symbol"
+      >&#8594;</a
+      ><a name="497"
+      > </a
+      ><a name="498" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="499"
+      > </a
+      ><a name="500" href="Monad.html#471" class="Bound"
+      >B</a
+      ><a name="501"
+      >
+</a
+      ><a name="502" href="Monad.html#460" class="Function"
+      >liftM</a
+      ><a name="507"
+      > </a
+      ><a name="508" href="Monad.html#508" class="Bound"
+      >f</a
+      ><a name="509"
+      > </a
+      ><a name="510" class="Symbol"
+      >=</a
+      ><a name="511"
+      > </a
+      ><a name="512" href="Monad.html#376" class="Function"
+      >ap</a
+      ><a name="514"
+      > </a
+      ><a name="515" class="Symbol"
+      >(</a
+      ><a name="516" href="Monad.html#333" class="Function"
+      >return</a
+      ><a name="522"
+      > </a
+      ><a name="523" href="Monad.html#508" class="Bound"
+      >f</a
+      ><a name="524" class="Symbol"
+      >)</a
+      ><a name="525"
+      >
+
+</a
+      ><a name="527" href="Monad.html#527" class="Function"
+      >join</a
+      ><a name="531"
+      > </a
+      ><a name="532" class="Symbol"
+      >:</a
+      ><a name="533"
+      > </a
+      ><a name="534" class="Symbol"
+      >{</a
+      ><a name="535" href="Monad.html#535" class="Bound"
+      >A</a
+      ><a name="536"
+      > </a
+      ><a name="537" class="Symbol"
+      >:</a
+      ><a name="538"
+      > </a
+      ><a name="539" class="PrimitiveType"
+      >Set</a
+      ><a name="542" class="Symbol"
+      >}</a
+      ><a name="543"
+      > </a
+      ><a name="544" class="Symbol"
+      >&#8594;</a
+      ><a name="545"
+      > </a
+      ><a name="546" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="547"
+      > </a
+      ><a name="548" class="Symbol"
+      >(</a
+      ><a name="549" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="550"
+      > </a
+      ><a name="551" href="Monad.html#535" class="Bound"
+      >A</a
+      ><a name="552" class="Symbol"
+      >)</a
+      ><a name="553"
+      > </a
+      ><a name="554" class="Symbol"
+      >&#8594;</a
+      ><a name="555"
+      > </a
+      ><a name="556" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="557"
+      > </a
+      ><a name="558" href="Monad.html#535" class="Bound"
+      >A</a
+      ><a name="559"
+      >
+</a
+      ><a name="560" href="Monad.html#527" class="Function"
+      >join</a
+      ><a name="564"
+      > </a
+      ><a name="565" href="Monad.html#565" class="Bound"
+      >ma</a
+      ><a name="567"
+      > </a
+      ><a name="568" class="Symbol"
+      >=</a
+      ><a name="569"
+      > </a
+      ><a name="570" href="Monad.html#565" class="Bound"
+      >ma</a
+      ><a name="572"
+      > </a
+      ><a name="573" href="Monad.html#209" class="Function Operator"
+      >&gt;&gt;=</a
+      ><a name="576"
+      > </a
+      ><a name="577" href="NeilPrelude.html#9250" class="Function"
+      >id</a
+      ><a name="579"
+      >
+
+</a
+      ><a name="581" href="Monad.html#581" class="Function Operator"
+      >_&gt;&gt;_</a
+      ><a name="585"
+      > </a
+      ><a name="586" class="Symbol"
+      >:</a
+      ><a name="587"
+      > </a
+      ><a name="588" class="Symbol"
+      >{</a
+      ><a name="589" href="Monad.html#589" class="Bound"
+      >A</a
+      ><a name="590"
+      > </a
+      ><a name="591" href="Monad.html#591" class="Bound"
+      >B</a
+      ><a name="592"
+      > </a
+      ><a name="593" class="Symbol"
+      >:</a
+      ><a name="594"
+      > </a
+      ><a name="595" class="PrimitiveType"
+      >Set</a
+      ><a name="598" class="Symbol"
+      >}</a
+      ><a name="599"
+      > </a
+      ><a name="600" class="Symbol"
+      >&#8594;</a
+      ><a name="601"
+      > </a
+      ><a name="602" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="603"
+      > </a
+      ><a name="604" href="Monad.html#589" class="Bound"
+      >A</a
+      ><a name="605"
+      > </a
+      ><a name="606" class="Symbol"
+      >&#8594;</a
+      ><a name="607"
+      > </a
+      ><a name="608" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="609"
+      > </a
+      ><a name="610" href="Monad.html#591" class="Bound"
+      >B</a
+      ><a name="611"
+      > </a
+      ><a name="612" class="Symbol"
+      >&#8594;</a
+      ><a name="613"
+      > </a
+      ><a name="614" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="615"
+      > </a
+      ><a name="616" href="Monad.html#591" class="Bound"
+      >B</a
+      ><a name="617"
+      >
+</a
+      ><a name="618" href="Monad.html#618" class="Bound"
+      >ma</a
+      ><a name="620"
+      > </a
+      ><a name="621" href="Monad.html#581" class="Function Operator"
+      >&gt;&gt;</a
+      ><a name="623"
+      > </a
+      ><a name="624" href="Monad.html#624" class="Bound"
+      >mb</a
+      ><a name="626"
+      > </a
+      ><a name="627" class="Symbol"
+      >=</a
+      ><a name="628"
+      > </a
+      ><a name="629" href="Monad.html#618" class="Bound"
+      >ma</a
+      ><a name="631"
+      > </a
+      ><a name="632" href="Monad.html#209" class="Function Operator"
+      >&gt;&gt;=</a
+      ><a name="635"
+      > </a
+      ><a name="636" href="NeilPrelude.html#9678" class="Function"
+      >const</a
+      ><a name="641"
+      > </a
+      ><a name="642" href="Monad.html#624" class="Bound"
+      >mb</a
+      ><a name="644"
+      >
+
+</a
+      ><a name="646" href="Monad.html#646" class="Function Operator"
+      >_&lt;&lt;_</a
+      ><a name="650"
+      > </a
+      ><a name="651" class="Symbol"
+      >:</a
+      ><a name="652"
+      > </a
+      ><a name="653" class="Symbol"
+      >{</a
+      ><a name="654" href="Monad.html#654" class="Bound"
+      >A</a
+      ><a name="655"
+      > </a
+      ><a name="656" href="Monad.html#656" class="Bound"
+      >B</a
+      ><a name="657"
+      > </a
+      ><a name="658" class="Symbol"
+      >:</a
+      ><a name="659"
+      > </a
+      ><a name="660" class="PrimitiveType"
+      >Set</a
+      ><a name="663" class="Symbol"
+      >}</a
+      ><a name="664"
+      > </a
+      ><a name="665" class="Symbol"
+      >&#8594;</a
+      ><a name="666"
+      > </a
+      ><a name="667" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="668"
+      > </a
+      ><a name="669" href="Monad.html#656" class="Bound"
+      >B</a
+      ><a name="670"
+      > </a
+      ><a name="671" class="Symbol"
+      >&#8594;</a
+      ><a name="672"
+      > </a
+      ><a name="673" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="674"
+      > </a
+      ><a name="675" href="Monad.html#654" class="Bound"
+      >A</a
+      ><a name="676"
+      > </a
+      ><a name="677" class="Symbol"
+      >&#8594;</a
+      ><a name="678"
+      > </a
+      ><a name="679" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="680"
+      > </a
+      ><a name="681" href="Monad.html#656" class="Bound"
+      >B</a
+      ><a name="682"
+      >
+</a
+      ><a name="683" href="Monad.html#646" class="Function Operator"
+      >_&lt;&lt;_</a
+      ><a name="687"
+      > </a
+      ><a name="688" class="Symbol"
+      >=</a
+      ><a name="689"
+      > </a
+      ><a name="690" href="NeilPrelude.html#9288" class="Function"
+      >flip</a
+      ><a name="694"
+      > </a
+      ><a name="695" href="Monad.html#581" class="Function Operator"
+      >_&gt;&gt;_</a
+      ><a name="699"
+      >
+
+</a
+      ><a name="701" class="Keyword"
+      >import</a
+      ><a name="707"
+      > </a
+      ><a name="708" href="Applicative.html#65" class="Module"
+      >Applicative</a
+      ><a name="719"
+      >
+</a
+      ><a name="720" class="Keyword"
+      >open</a
+      ><a name="724"
+      > </a
+      ><a name="725" href="Applicative.html#65" class="Module"
+      >Applicative</a
+      ><a name="736"
+      > </a
+      ><a name="737" href="Monad.html#72" class="Bound"
+      >M</a
+      ><a name="738"
+      > </a
+      ><a name="739" href="Monad.html#460" class="Function"
+      >liftM</a
+      ><a name="744"
+      > </a
+      ><a name="745" href="Monad.html#333" class="Function"
+      >return</a
+      ><a name="751"
+      > </a
+      ><a name="752" href="Monad.html#376" class="Function"
+      >ap</a
+      ><a name="754"
+      > </a
+      ><a name="755" class="Keyword"
+      >public</a
+      ><a name="761"
+      >
+
+</a
+      ><a name="763" class="Comment"
+      >------------------------------------------------------</a
+      ><a name="817"
+      >
+
+</a
+      ><a name="819" class="Comment"
+      >-- Monads are Higher Order Arrows</a
+      ><a name="852"
+      >
+
+</a
+      ><a name="854" class="Comment"
+      >-- Arr : Set &#8594; Set &#8594; Set</a
+      ><a name="878"
+      >
+</a
+      ><a name="879" class="Comment"
+      >-- Arr A B = A &#8594; M B</a
+      ><a name="899"
+      >
+
+</a
+      ><a name="901" class="Comment"
+      >-- marr : {A B : Set} &#8594; (A &#8594; B) &#8594; A &#8594; M B</a
+      ><a name="942"
+      >
+</a
+      ><a name="943" class="Comment"
+      >-- marr f a = return (f a)</a
+      ><a name="969"
+      >
+
+</a
+      ><a name="971" class="Comment"
+      >-- mseq : {A B C : Set} &#8594; (A &#8594; M B) &#8594; (B &#8594; M C) &#8594; A &#8594; M C</a
+      ><a name="1028"
+      >
+</a
+      ><a name="1029" class="Comment"
+      >-- mseq f g a = f a &gt;&gt;= g</a
+      ><a name="1054"
+      >
+
+</a
+      ><a name="1056" class="Comment"
+      >-- mfirst : {A B C : Set} &#8594; (A &#8594; M B) &#8594; A &#215; C &#8594; M (B &#215; C)</a
+      ><a name="1113"
+      >
+</a
+      ><a name="1114" class="Comment"
+      >-- mfirst f (a , c) = liftM (&#955; b &#8594; b , c) (f a)</a
+      ><a name="1161"
+      >
+
+</a
+      ><a name="1163" class="Comment"
+      >-- mapply : {A B : Set} &#8594; (A &#8594; M B) &#215; A &#8594; M B</a
+      ><a name="1208"
+      >
+</a
+      ><a name="1209" class="Comment"
+      >-- mapply = &#215;-apply</a
+      ><a name="1228"
+      >
+
+</a
+      ><a name="1230" class="Comment"
+      >-- import HigherOrderArrow</a
+      ><a name="1256"
+      >
+</a
+      ><a name="1257" class="Comment"
+      >-- open HigherOrderArrow Arr marr mseq mfirst mapply</a
+      ><a name="1309"
+      >
+</a
+      ></pre
+    ></body
+  ></html
+>

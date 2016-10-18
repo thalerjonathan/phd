@@ -1,0 +1,590 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >Bool</title
+    ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta http-equiv="Content-Style-Type" content="text/css"
+     /><link href="Agda.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><pre
+    ><a name="1" class="Symbol"
+      >{-#</a
+      ><a name="4"
+      > </a
+      ><a name="5" class="Keyword"
+      >OPTIONS</a
+      ><a name="12"
+      > --type-in-type
+    </a
+      ><a name="32" class="Symbol"
+      >#-}</a
+      ><a name="35"
+      >
+
+</a
+      ><a name="37" class="Keyword"
+      >open</a
+      ><a name="41"
+      > </a
+      ><a name="42" class="Keyword"
+      >import</a
+      ><a name="48"
+      > </a
+      ><a name="49" href="NeilPrelude.html#77" class="Module"
+      >NeilPrelude</a
+      ><a name="60"
+      >
+
+</a
+      ><a name="62" class="Keyword"
+      >module</a
+      ><a name="68"
+      > </a
+      ><a name="69" href="Bool.html#69" class="Module"
+      >Bool</a
+      ><a name="73"
+      > </a
+      ><a name="74" class="Keyword"
+      >where</a
+      ><a name="79"
+      >
+
+</a
+      ><a name="81" class="Keyword"
+      >infix</a
+      ><a name="86"
+      >  </a
+      ><a name="88" class="Number"
+      >0</a
+      ><a name="89"
+      >  if_then_else_
+
+</a
+      ><a name="106" class="Keyword"
+      >infixr</a
+      ><a name="112"
+      > </a
+      ><a name="113" class="Number"
+      >5</a
+      ><a name="114"
+      >  _&#8744;_ _xor_
+</a
+      ><a name="126" class="Keyword"
+      >infixr</a
+      ><a name="132"
+      > </a
+      ><a name="133" class="Number"
+      >6</a
+      ><a name="134"
+      >  _&#8743;_
+
+</a
+      ><a name="141" class="Comment"
+      >----------------------------------------</a
+      ><a name="181"
+      >
+
+</a
+      ><a name="183" href="Bool.html#183" class="Function"
+      >not</a
+      ><a name="186"
+      > </a
+      ><a name="187" class="Symbol"
+      >:</a
+      ><a name="188"
+      > </a
+      ><a name="189" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="193"
+      > </a
+      ><a name="194" class="Symbol"
+      >&#8594;</a
+      ><a name="195"
+      > </a
+      ><a name="196" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="200"
+      >
+</a
+      ><a name="201" href="Bool.html#183" class="Function"
+      >not</a
+      ><a name="204"
+      > </a
+      ><a name="205" href="NeilPrelude.html#745" class="InductiveConstructor"
+      >false</a
+      ><a name="210"
+      > </a
+      ><a name="211" class="Symbol"
+      >=</a
+      ><a name="212"
+      > </a
+      ><a name="213" href="NeilPrelude.html#760" class="InductiveConstructor"
+      >true</a
+      ><a name="217"
+      >
+</a
+      ><a name="218" href="Bool.html#183" class="Function"
+      >not</a
+      ><a name="221"
+      > </a
+      ><a name="222" href="NeilPrelude.html#760" class="InductiveConstructor"
+      >true</a
+      ><a name="226"
+      >  </a
+      ><a name="228" class="Symbol"
+      >=</a
+      ><a name="229"
+      > </a
+      ><a name="230" href="NeilPrelude.html#745" class="InductiveConstructor"
+      >false</a
+      ><a name="235"
+      >
+
+</a
+      ><a name="237" href="Bool.html#237" class="Function Operator"
+      >if_then_else_</a
+      ><a name="250"
+      > </a
+      ><a name="251" class="Symbol"
+      >:</a
+      ><a name="252"
+      > </a
+      ><a name="253" class="Symbol"
+      >{</a
+      ><a name="254" href="Bool.html#254" class="Bound"
+      >A</a
+      ><a name="255"
+      > </a
+      ><a name="256" class="Symbol"
+      >:</a
+      ><a name="257"
+      > </a
+      ><a name="258" class="PrimitiveType"
+      >Set</a
+      ><a name="261" class="Symbol"
+      >}</a
+      ><a name="262"
+      > </a
+      ><a name="263" class="Symbol"
+      >&#8594;</a
+      ><a name="264"
+      > </a
+      ><a name="265" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="269"
+      > </a
+      ><a name="270" class="Symbol"
+      >&#8594;</a
+      ><a name="271"
+      > </a
+      ><a name="272" href="Bool.html#254" class="Bound"
+      >A</a
+      ><a name="273"
+      > </a
+      ><a name="274" class="Symbol"
+      >&#8594;</a
+      ><a name="275"
+      > </a
+      ><a name="276" href="Bool.html#254" class="Bound"
+      >A</a
+      ><a name="277"
+      > </a
+      ><a name="278" class="Symbol"
+      >&#8594;</a
+      ><a name="279"
+      > </a
+      ><a name="280" href="Bool.html#254" class="Bound"
+      >A</a
+      ><a name="281"
+      >
+</a
+      ><a name="282" href="Bool.html#237" class="Function Operator"
+      >if_then_else_</a
+      ><a name="295"
+      > </a
+      ><a name="296" href="NeilPrelude.html#745" class="InductiveConstructor"
+      >false</a
+      ><a name="301"
+      > </a
+      ><a name="302" href="Bool.html#302" class="Bound"
+      >t</a
+      ><a name="303"
+      > </a
+      ><a name="304" href="Bool.html#304" class="Bound"
+      >e</a
+      ><a name="305"
+      > </a
+      ><a name="306" class="Symbol"
+      >=</a
+      ><a name="307"
+      > </a
+      ><a name="308" href="Bool.html#304" class="Bound"
+      >e</a
+      ><a name="309"
+      >
+</a
+      ><a name="310" href="Bool.html#237" class="Function Operator"
+      >if_then_else_</a
+      ><a name="323"
+      > </a
+      ><a name="324" href="NeilPrelude.html#760" class="InductiveConstructor"
+      >true</a
+      ><a name="328"
+      > </a
+      ><a name="329" href="Bool.html#329" class="Bound"
+      >t</a
+      ><a name="330"
+      > </a
+      ><a name="331" href="Bool.html#331" class="Bound"
+      >e</a
+      ><a name="332"
+      > </a
+      ><a name="333" class="Symbol"
+      >=</a
+      ><a name="334"
+      > </a
+      ><a name="335" href="Bool.html#329" class="Bound"
+      >t</a
+      ><a name="336"
+      >
+
+</a
+      ><a name="338" href="Bool.html#338" class="Function"
+      >ifte</a
+      ><a name="342"
+      > </a
+      ><a name="343" class="Symbol"
+      >:</a
+      ><a name="344"
+      > </a
+      ><a name="345" class="Symbol"
+      >{</a
+      ><a name="346" href="Bool.html#346" class="Bound"
+      >A</a
+      ><a name="347"
+      > </a
+      ><a name="348" class="Symbol"
+      >:</a
+      ><a name="349"
+      > </a
+      ><a name="350" class="PrimitiveType"
+      >Set</a
+      ><a name="353" class="Symbol"
+      >}</a
+      ><a name="354"
+      > </a
+      ><a name="355" class="Symbol"
+      >&#8594;</a
+      ><a name="356"
+      > </a
+      ><a name="357" href="Bool.html#346" class="Bound"
+      >A</a
+      ><a name="358"
+      > </a
+      ><a name="359" class="Symbol"
+      >&#8594;</a
+      ><a name="360"
+      > </a
+      ><a name="361" href="Bool.html#346" class="Bound"
+      >A</a
+      ><a name="362"
+      > </a
+      ><a name="363" class="Symbol"
+      >&#8594;</a
+      ><a name="364"
+      > </a
+      ><a name="365" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="369"
+      > </a
+      ><a name="370" class="Symbol"
+      >&#8594;</a
+      ><a name="371"
+      > </a
+      ><a name="372" href="Bool.html#346" class="Bound"
+      >A</a
+      ><a name="373"
+      >
+</a
+      ><a name="374" href="Bool.html#338" class="Function"
+      >ifte</a
+      ><a name="378"
+      > </a
+      ><a name="379" href="Bool.html#379" class="Bound"
+      >t</a
+      ><a name="380"
+      > </a
+      ><a name="381" href="Bool.html#381" class="Bound"
+      >e</a
+      ><a name="382"
+      > </a
+      ><a name="383" href="NeilPrelude.html#745" class="InductiveConstructor"
+      >false</a
+      ><a name="388"
+      > </a
+      ><a name="389" class="Symbol"
+      >=</a
+      ><a name="390"
+      > </a
+      ><a name="391" href="Bool.html#381" class="Bound"
+      >e</a
+      ><a name="392"
+      >
+</a
+      ><a name="393" href="Bool.html#338" class="Function"
+      >ifte</a
+      ><a name="397"
+      > </a
+      ><a name="398" href="Bool.html#398" class="Bound"
+      >t</a
+      ><a name="399"
+      > </a
+      ><a name="400" href="Bool.html#400" class="Bound"
+      >e</a
+      ><a name="401"
+      > </a
+      ><a name="402" href="NeilPrelude.html#760" class="InductiveConstructor"
+      >true</a
+      ><a name="406"
+      >  </a
+      ><a name="408" class="Symbol"
+      >=</a
+      ><a name="409"
+      > </a
+      ><a name="410" href="Bool.html#398" class="Bound"
+      >t</a
+      ><a name="411"
+      >
+
+</a
+      ><a name="413" href="Bool.html#413" class="Function Operator"
+      >_&#8743;_</a
+      ><a name="416"
+      > </a
+      ><a name="417" class="Symbol"
+      >:</a
+      ><a name="418"
+      > </a
+      ><a name="419" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="423"
+      > </a
+      ><a name="424" class="Symbol"
+      >&#8594;</a
+      ><a name="425"
+      > </a
+      ><a name="426" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="430"
+      > </a
+      ><a name="431" class="Symbol"
+      >&#8594;</a
+      ><a name="432"
+      > </a
+      ><a name="433" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="437"
+      >
+</a
+      ><a name="438" href="NeilPrelude.html#760" class="InductiveConstructor"
+      >true</a
+      ><a name="442"
+      >  </a
+      ><a name="444" href="Bool.html#413" class="Function Operator"
+      >&#8743;</a
+      ><a name="445"
+      > </a
+      ><a name="446" href="Bool.html#446" class="Bound"
+      >b</a
+      ><a name="447"
+      > </a
+      ><a name="448" class="Symbol"
+      >=</a
+      ><a name="449"
+      > </a
+      ><a name="450" href="Bool.html#446" class="Bound"
+      >b</a
+      ><a name="451"
+      >
+</a
+      ><a name="452" href="NeilPrelude.html#745" class="InductiveConstructor"
+      >false</a
+      ><a name="457"
+      > </a
+      ><a name="458" href="Bool.html#413" class="Function Operator"
+      >&#8743;</a
+      ><a name="459"
+      > </a
+      ><a name="460" href="Bool.html#460" class="Bound"
+      >b</a
+      ><a name="461"
+      > </a
+      ><a name="462" class="Symbol"
+      >=</a
+      ><a name="463"
+      > </a
+      ><a name="464" href="NeilPrelude.html#745" class="InductiveConstructor"
+      >false</a
+      ><a name="469"
+      >
+
+</a
+      ><a name="471" href="Bool.html#471" class="Function Operator"
+      >_&#8744;_</a
+      ><a name="474"
+      > </a
+      ><a name="475" class="Symbol"
+      >:</a
+      ><a name="476"
+      > </a
+      ><a name="477" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="481"
+      > </a
+      ><a name="482" class="Symbol"
+      >&#8594;</a
+      ><a name="483"
+      > </a
+      ><a name="484" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="488"
+      > </a
+      ><a name="489" class="Symbol"
+      >&#8594;</a
+      ><a name="490"
+      > </a
+      ><a name="491" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="495"
+      >
+</a
+      ><a name="496" href="NeilPrelude.html#760" class="InductiveConstructor"
+      >true</a
+      ><a name="500"
+      >  </a
+      ><a name="502" href="Bool.html#471" class="Function Operator"
+      >&#8744;</a
+      ><a name="503"
+      > </a
+      ><a name="504" href="Bool.html#504" class="Bound"
+      >b</a
+      ><a name="505"
+      > </a
+      ><a name="506" class="Symbol"
+      >=</a
+      ><a name="507"
+      > </a
+      ><a name="508" href="NeilPrelude.html#760" class="InductiveConstructor"
+      >true</a
+      ><a name="512"
+      >
+</a
+      ><a name="513" href="NeilPrelude.html#745" class="InductiveConstructor"
+      >false</a
+      ><a name="518"
+      > </a
+      ><a name="519" href="Bool.html#471" class="Function Operator"
+      >&#8744;</a
+      ><a name="520"
+      > </a
+      ><a name="521" href="Bool.html#521" class="Bound"
+      >b</a
+      ><a name="522"
+      > </a
+      ><a name="523" class="Symbol"
+      >=</a
+      ><a name="524"
+      > </a
+      ><a name="525" href="Bool.html#521" class="Bound"
+      >b</a
+      ><a name="526"
+      >
+
+</a
+      ><a name="528" href="Bool.html#528" class="Function Operator"
+      >_xor_</a
+      ><a name="533"
+      > </a
+      ><a name="534" class="Symbol"
+      >:</a
+      ><a name="535"
+      > </a
+      ><a name="536" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="540"
+      > </a
+      ><a name="541" class="Symbol"
+      >&#8594;</a
+      ><a name="542"
+      > </a
+      ><a name="543" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="547"
+      > </a
+      ><a name="548" class="Symbol"
+      >&#8594;</a
+      ><a name="549"
+      > </a
+      ><a name="550" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="554"
+      >
+</a
+      ><a name="555" href="NeilPrelude.html#760" class="InductiveConstructor"
+      >true</a
+      ><a name="559"
+      >  </a
+      ><a name="561" href="Bool.html#528" class="Function Operator"
+      >xor</a
+      ><a name="564"
+      > </a
+      ><a name="565" href="Bool.html#565" class="Bound"
+      >b</a
+      ><a name="566"
+      > </a
+      ><a name="567" class="Symbol"
+      >=</a
+      ><a name="568"
+      > </a
+      ><a name="569" href="Bool.html#183" class="Function"
+      >not</a
+      ><a name="572"
+      > </a
+      ><a name="573" href="Bool.html#565" class="Bound"
+      >b</a
+      ><a name="574"
+      >
+</a
+      ><a name="575" href="NeilPrelude.html#745" class="InductiveConstructor"
+      >false</a
+      ><a name="580"
+      > </a
+      ><a name="581" href="Bool.html#528" class="Function Operator"
+      >xor</a
+      ><a name="584"
+      > </a
+      ><a name="585" href="Bool.html#585" class="Bound"
+      >b</a
+      ><a name="586"
+      > </a
+      ><a name="587" class="Symbol"
+      >=</a
+      ><a name="588"
+      > </a
+      ><a name="589" href="Bool.html#585" class="Bound"
+      >b</a
+      ><a name="590"
+      >
+
+</a
+      ><a name="592" class="Comment"
+      >----------------------------------------</a
+      ><a name="632"
+      >
+</a
+      ></pre
+    ></body
+  ></html
+>

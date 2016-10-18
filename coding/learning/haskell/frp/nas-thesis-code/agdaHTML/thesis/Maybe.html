@@ -1,0 +1,1352 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >Maybe</title
+    ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta http-equiv="Content-Style-Type" content="text/css"
+     /><link href="Agda.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><pre
+    ><a name="1" class="Symbol"
+      >{-#</a
+      ><a name="4"
+      > </a
+      ><a name="5" class="Keyword"
+      >OPTIONS</a
+      ><a name="12"
+      > --type-in-type </a
+      ><a name="28" class="Symbol"
+      >#-}</a
+      ><a name="31"
+      >
+
+</a
+      ><a name="33" class="Keyword"
+      >open</a
+      ><a name="37"
+      > </a
+      ><a name="38" class="Keyword"
+      >import</a
+      ><a name="44"
+      > </a
+      ><a name="45" href="NeilPrelude.html#77" class="Module"
+      >NeilPrelude</a
+      ><a name="56"
+      >
+
+</a
+      ><a name="58" class="Keyword"
+      >module</a
+      ><a name="64"
+      > </a
+      ><a name="65" href="Maybe.html#65" class="Module"
+      >Maybe</a
+      ><a name="70"
+      > </a
+      ><a name="71" class="Keyword"
+      >where</a
+      ><a name="76"
+      >
+
+</a
+      ><a name="78" href="Maybe.html#78" class="Function"
+      >maybe</a
+      ><a name="83"
+      > </a
+      ><a name="84" class="Symbol"
+      >:</a
+      ><a name="85"
+      > </a
+      ><a name="86" class="Symbol"
+      >{</a
+      ><a name="87" href="Maybe.html#87" class="Bound"
+      >A</a
+      ><a name="88"
+      > </a
+      ><a name="89" href="Maybe.html#89" class="Bound"
+      >B</a
+      ><a name="90"
+      > </a
+      ><a name="91" class="Symbol"
+      >:</a
+      ><a name="92"
+      > </a
+      ><a name="93" class="PrimitiveType"
+      >Set</a
+      ><a name="96" class="Symbol"
+      >}</a
+      ><a name="97"
+      > </a
+      ><a name="98" class="Symbol"
+      >&#8594;</a
+      ><a name="99"
+      > </a
+      ><a name="100" href="Maybe.html#89" class="Bound"
+      >B</a
+      ><a name="101"
+      > </a
+      ><a name="102" class="Symbol"
+      >&#8594;</a
+      ><a name="103"
+      > </a
+      ><a name="104" class="Symbol"
+      >(</a
+      ><a name="105" href="Maybe.html#87" class="Bound"
+      >A</a
+      ><a name="106"
+      > </a
+      ><a name="107" class="Symbol"
+      >&#8594;</a
+      ><a name="108"
+      > </a
+      ><a name="109" href="Maybe.html#89" class="Bound"
+      >B</a
+      ><a name="110" class="Symbol"
+      >)</a
+      ><a name="111"
+      > </a
+      ><a name="112" class="Symbol"
+      >&#8594;</a
+      ><a name="113"
+      > </a
+      ><a name="114" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="119"
+      > </a
+      ><a name="120" href="Maybe.html#87" class="Bound"
+      >A</a
+      ><a name="121"
+      > </a
+      ><a name="122" class="Symbol"
+      >&#8594;</a
+      ><a name="123"
+      > </a
+      ><a name="124" href="Maybe.html#89" class="Bound"
+      >B</a
+      ><a name="125"
+      > 
+</a
+      ><a name="127" href="Maybe.html#78" class="Function"
+      >maybe</a
+      ><a name="132"
+      > </a
+      ><a name="133" href="Maybe.html#133" class="Bound"
+      >b</a
+      ><a name="134"
+      > </a
+      ><a name="135" class="Symbol"
+      >_</a
+      ><a name="136"
+      > </a
+      ><a name="137" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="144"
+      > </a
+      ><a name="145" class="Symbol"
+      >=</a
+      ><a name="146"
+      > </a
+      ><a name="147" href="Maybe.html#133" class="Bound"
+      >b</a
+      ><a name="148"
+      >
+</a
+      ><a name="149" href="Maybe.html#78" class="Function"
+      >maybe</a
+      ><a name="154"
+      > </a
+      ><a name="155" class="Symbol"
+      >_</a
+      ><a name="156"
+      > </a
+      ><a name="157" href="Maybe.html#157" class="Bound"
+      >f</a
+      ><a name="158"
+      > </a
+      ><a name="159" class="Symbol"
+      >(</a
+      ><a name="160" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="164"
+      > </a
+      ><a name="165" href="Maybe.html#165" class="Bound"
+      >a</a
+      ><a name="166" class="Symbol"
+      >)</a
+      ><a name="167"
+      > </a
+      ><a name="168" class="Symbol"
+      >=</a
+      ><a name="169"
+      > </a
+      ><a name="170" href="Maybe.html#157" class="Bound"
+      >f</a
+      ><a name="171"
+      > </a
+      ><a name="172" href="Maybe.html#165" class="Bound"
+      >a</a
+      ><a name="173"
+      >
+
+</a
+      ><a name="175" href="Maybe.html#175" class="Function"
+      >fromMaybe</a
+      ><a name="184"
+      > </a
+      ><a name="185" class="Symbol"
+      >:</a
+      ><a name="186"
+      > </a
+      ><a name="187" class="Symbol"
+      >{</a
+      ><a name="188" href="Maybe.html#188" class="Bound"
+      >A</a
+      ><a name="189"
+      > </a
+      ><a name="190" class="Symbol"
+      >:</a
+      ><a name="191"
+      > </a
+      ><a name="192" class="PrimitiveType"
+      >Set</a
+      ><a name="195" class="Symbol"
+      >}</a
+      ><a name="196"
+      > </a
+      ><a name="197" class="Symbol"
+      >&#8594;</a
+      ><a name="198"
+      > </a
+      ><a name="199" href="Maybe.html#188" class="Bound"
+      >A</a
+      ><a name="200"
+      > </a
+      ><a name="201" class="Symbol"
+      >&#8594;</a
+      ><a name="202"
+      > </a
+      ><a name="203" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="208"
+      > </a
+      ><a name="209" href="Maybe.html#188" class="Bound"
+      >A</a
+      ><a name="210"
+      > </a
+      ><a name="211" class="Symbol"
+      >&#8594;</a
+      ><a name="212"
+      > </a
+      ><a name="213" href="Maybe.html#188" class="Bound"
+      >A</a
+      ><a name="214"
+      >
+</a
+      ><a name="215" href="Maybe.html#175" class="Function"
+      >fromMaybe</a
+      ><a name="224"
+      > </a
+      ><a name="225" href="Maybe.html#225" class="Bound"
+      >a</a
+      ><a name="226"
+      > </a
+      ><a name="227" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="234"
+      >  </a
+      ><a name="236" class="Symbol"
+      >=</a
+      ><a name="237"
+      > </a
+      ><a name="238" href="Maybe.html#225" class="Bound"
+      >a</a
+      ><a name="239"
+      >
+</a
+      ><a name="240" href="Maybe.html#175" class="Function"
+      >fromMaybe</a
+      ><a name="249"
+      > </a
+      ><a name="250" href="Maybe.html#250" class="Bound"
+      >a</a
+      ><a name="251"
+      > </a
+      ><a name="252" class="Symbol"
+      >(</a
+      ><a name="253" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="257"
+      > </a
+      ><a name="258" href="Maybe.html#258" class="Bound"
+      >b</a
+      ><a name="259" class="Symbol"
+      >)</a
+      ><a name="260"
+      > </a
+      ><a name="261" class="Symbol"
+      >=</a
+      ><a name="262"
+      > </a
+      ><a name="263" href="Maybe.html#258" class="Bound"
+      >b</a
+      ><a name="264"
+      >
+
+</a
+      ><a name="266" href="Maybe.html#266" class="Function"
+      >maybeMerge</a
+      ><a name="276"
+      > </a
+      ><a name="277" class="Symbol"
+      >:</a
+      ><a name="278"
+      > </a
+      ><a name="279" class="Symbol"
+      >{</a
+      ><a name="280" href="Maybe.html#280" class="Bound"
+      >A</a
+      ><a name="281"
+      > </a
+      ><a name="282" href="Maybe.html#282" class="Bound"
+      >B</a
+      ><a name="283"
+      > </a
+      ><a name="284" href="Maybe.html#284" class="Bound"
+      >C</a
+      ><a name="285"
+      > </a
+      ><a name="286" class="Symbol"
+      >:</a
+      ><a name="287"
+      > </a
+      ><a name="288" class="PrimitiveType"
+      >Set</a
+      ><a name="291" class="Symbol"
+      >}</a
+      ><a name="292"
+      > </a
+      ><a name="293" class="Symbol"
+      >&#8594;</a
+      ><a name="294"
+      > </a
+      ><a name="295" class="Symbol"
+      >(</a
+      ><a name="296" href="Maybe.html#280" class="Bound"
+      >A</a
+      ><a name="297"
+      > </a
+      ><a name="298" class="Symbol"
+      >&#8594;</a
+      ><a name="299"
+      > </a
+      ><a name="300" href="Maybe.html#284" class="Bound"
+      >C</a
+      ><a name="301" class="Symbol"
+      >)</a
+      ><a name="302"
+      > </a
+      ><a name="303" class="Symbol"
+      >&#8594;</a
+      ><a name="304"
+      > </a
+      ><a name="305" class="Symbol"
+      >(</a
+      ><a name="306" href="Maybe.html#282" class="Bound"
+      >B</a
+      ><a name="307"
+      > </a
+      ><a name="308" class="Symbol"
+      >&#8594;</a
+      ><a name="309"
+      > </a
+      ><a name="310" href="Maybe.html#284" class="Bound"
+      >C</a
+      ><a name="311" class="Symbol"
+      >)</a
+      ><a name="312"
+      > </a
+      ><a name="313" class="Symbol"
+      >&#8594;</a
+      ><a name="314"
+      > </a
+      ><a name="315" class="Symbol"
+      >(</a
+      ><a name="316" href="Maybe.html#280" class="Bound"
+      >A</a
+      ><a name="317"
+      > </a
+      ><a name="318" class="Symbol"
+      >&#8594;</a
+      ><a name="319"
+      > </a
+      ><a name="320" href="Maybe.html#282" class="Bound"
+      >B</a
+      ><a name="321"
+      > </a
+      ><a name="322" class="Symbol"
+      >&#8594;</a
+      ><a name="323"
+      > </a
+      ><a name="324" href="Maybe.html#284" class="Bound"
+      >C</a
+      ><a name="325" class="Symbol"
+      >)</a
+      ><a name="326"
+      > </a
+      ><a name="327" class="Symbol"
+      >&#8594;</a
+      ><a name="328"
+      > </a
+      ><a name="329" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="334"
+      > </a
+      ><a name="335" href="Maybe.html#280" class="Bound"
+      >A</a
+      ><a name="336"
+      > </a
+      ><a name="337" class="Symbol"
+      >&#8594;</a
+      ><a name="338"
+      > </a
+      ><a name="339" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="344"
+      > </a
+      ><a name="345" href="Maybe.html#282" class="Bound"
+      >B</a
+      ><a name="346"
+      > </a
+      ><a name="347" class="Symbol"
+      >&#8594;</a
+      ><a name="348"
+      > </a
+      ><a name="349" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="354"
+      > </a
+      ><a name="355" href="Maybe.html#284" class="Bound"
+      >C</a
+      ><a name="356"
+      >
+</a
+      ><a name="357" href="Maybe.html#266" class="Function"
+      >maybeMerge</a
+      ><a name="367"
+      > </a
+      ><a name="368" href="Maybe.html#368" class="Bound"
+      >fa</a
+      ><a name="370"
+      > </a
+      ><a name="371" href="Maybe.html#371" class="Bound"
+      >fb</a
+      ><a name="373"
+      > </a
+      ><a name="374" href="Maybe.html#374" class="Bound"
+      >fab</a
+      ><a name="377"
+      > </a
+      ><a name="378" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="385"
+      > </a
+      ><a name="386" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="393"
+      >   </a
+      ><a name="396" class="Symbol"
+      >=</a
+      ><a name="397"
+      > </a
+      ><a name="398" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="405"
+      >
+</a
+      ><a name="406" href="Maybe.html#266" class="Function"
+      >maybeMerge</a
+      ><a name="416"
+      > </a
+      ><a name="417" href="Maybe.html#417" class="Bound"
+      >fa</a
+      ><a name="419"
+      > </a
+      ><a name="420" href="Maybe.html#420" class="Bound"
+      >fb</a
+      ><a name="422"
+      > </a
+      ><a name="423" href="Maybe.html#423" class="Bound"
+      >fab</a
+      ><a name="426"
+      > </a
+      ><a name="427" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="434"
+      > </a
+      ><a name="435" class="Symbol"
+      >(</a
+      ><a name="436" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="440"
+      > </a
+      ><a name="441" href="Maybe.html#441" class="Bound"
+      >b</a
+      ><a name="442" class="Symbol"
+      >)</a
+      ><a name="443"
+      >  </a
+      ><a name="445" class="Symbol"
+      >=</a
+      ><a name="446"
+      > </a
+      ><a name="447" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="451"
+      > </a
+      ><a name="452" class="Symbol"
+      >(</a
+      ><a name="453" href="Maybe.html#420" class="Bound"
+      >fb</a
+      ><a name="455"
+      > </a
+      ><a name="456" href="Maybe.html#441" class="Bound"
+      >b</a
+      ><a name="457" class="Symbol"
+      >)</a
+      ><a name="458"
+      >
+</a
+      ><a name="459" href="Maybe.html#266" class="Function"
+      >maybeMerge</a
+      ><a name="469"
+      > </a
+      ><a name="470" href="Maybe.html#470" class="Bound"
+      >fa</a
+      ><a name="472"
+      > </a
+      ><a name="473" href="Maybe.html#473" class="Bound"
+      >fb</a
+      ><a name="475"
+      > </a
+      ><a name="476" href="Maybe.html#476" class="Bound"
+      >fab</a
+      ><a name="479"
+      > </a
+      ><a name="480" class="Symbol"
+      >(</a
+      ><a name="481" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="485"
+      > </a
+      ><a name="486" href="Maybe.html#486" class="Bound"
+      >a</a
+      ><a name="487" class="Symbol"
+      >)</a
+      ><a name="488"
+      > </a
+      ><a name="489" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="496"
+      >  </a
+      ><a name="498" class="Symbol"
+      >=</a
+      ><a name="499"
+      > </a
+      ><a name="500" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="504"
+      > </a
+      ><a name="505" class="Symbol"
+      >(</a
+      ><a name="506" href="Maybe.html#470" class="Bound"
+      >fa</a
+      ><a name="508"
+      > </a
+      ><a name="509" href="Maybe.html#486" class="Bound"
+      >a</a
+      ><a name="510" class="Symbol"
+      >)</a
+      ><a name="511"
+      >
+</a
+      ><a name="512" href="Maybe.html#266" class="Function"
+      >maybeMerge</a
+      ><a name="522"
+      > </a
+      ><a name="523" href="Maybe.html#523" class="Bound"
+      >fa</a
+      ><a name="525"
+      > </a
+      ><a name="526" href="Maybe.html#526" class="Bound"
+      >fb</a
+      ><a name="528"
+      > </a
+      ><a name="529" href="Maybe.html#529" class="Bound"
+      >fab</a
+      ><a name="532"
+      > </a
+      ><a name="533" class="Symbol"
+      >(</a
+      ><a name="534" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="538"
+      > </a
+      ><a name="539" href="Maybe.html#539" class="Bound"
+      >a</a
+      ><a name="540" class="Symbol"
+      >)</a
+      ><a name="541"
+      > </a
+      ><a name="542" class="Symbol"
+      >(</a
+      ><a name="543" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="547"
+      > </a
+      ><a name="548" href="Maybe.html#548" class="Bound"
+      >b</a
+      ><a name="549" class="Symbol"
+      >)</a
+      ><a name="550"
+      > </a
+      ><a name="551" class="Symbol"
+      >=</a
+      ><a name="552"
+      > </a
+      ><a name="553" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="557"
+      > </a
+      ><a name="558" class="Symbol"
+      >(</a
+      ><a name="559" href="Maybe.html#529" class="Bound"
+      >fab</a
+      ><a name="562"
+      > </a
+      ><a name="563" href="Maybe.html#539" class="Bound"
+      >a</a
+      ><a name="564"
+      > </a
+      ><a name="565" href="Maybe.html#548" class="Bound"
+      >b</a
+      ><a name="566" class="Symbol"
+      >)</a
+      ><a name="567"
+      >
+
+</a
+      ><a name="569" href="Maybe.html#569" class="Function"
+      >maybeMergeWith</a
+      ><a name="583"
+      > </a
+      ><a name="584" class="Symbol"
+      >:</a
+      ><a name="585"
+      > </a
+      ><a name="586" class="Symbol"
+      >{</a
+      ><a name="587" href="Maybe.html#587" class="Bound"
+      >A</a
+      ><a name="588"
+      > </a
+      ><a name="589" class="Symbol"
+      >:</a
+      ><a name="590"
+      > </a
+      ><a name="591" class="PrimitiveType"
+      >Set</a
+      ><a name="594" class="Symbol"
+      >}</a
+      ><a name="595"
+      > </a
+      ><a name="596" class="Symbol"
+      >&#8594;</a
+      ><a name="597"
+      > </a
+      ><a name="598" class="Symbol"
+      >(</a
+      ><a name="599" href="Maybe.html#587" class="Bound"
+      >A</a
+      ><a name="600"
+      > </a
+      ><a name="601" class="Symbol"
+      >&#8594;</a
+      ><a name="602"
+      > </a
+      ><a name="603" href="Maybe.html#587" class="Bound"
+      >A</a
+      ><a name="604"
+      > </a
+      ><a name="605" class="Symbol"
+      >&#8594;</a
+      ><a name="606"
+      > </a
+      ><a name="607" href="Maybe.html#587" class="Bound"
+      >A</a
+      ><a name="608" class="Symbol"
+      >)</a
+      ><a name="609"
+      > </a
+      ><a name="610" class="Symbol"
+      >&#8594;</a
+      ><a name="611"
+      > </a
+      ><a name="612" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="617"
+      > </a
+      ><a name="618" href="Maybe.html#587" class="Bound"
+      >A</a
+      ><a name="619"
+      > </a
+      ><a name="620" class="Symbol"
+      >&#8594;</a
+      ><a name="621"
+      > </a
+      ><a name="622" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="627"
+      > </a
+      ><a name="628" href="Maybe.html#587" class="Bound"
+      >A</a
+      ><a name="629"
+      > </a
+      ><a name="630" class="Symbol"
+      >&#8594;</a
+      ><a name="631"
+      > </a
+      ><a name="632" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="637"
+      > </a
+      ><a name="638" href="Maybe.html#587" class="Bound"
+      >A</a
+      ><a name="639"
+      >
+</a
+      ><a name="640" href="Maybe.html#569" class="Function"
+      >maybeMergeWith</a
+      ><a name="654"
+      > </a
+      ><a name="655" href="Maybe.html#655" class="Bound"
+      >f</a
+      ><a name="656"
+      > </a
+      ><a name="657" class="Symbol"
+      >(</a
+      ><a name="658" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="662"
+      > </a
+      ><a name="663" href="Maybe.html#663" class="Bound"
+      >a</a
+      ><a name="664" class="Symbol"
+      >)</a
+      ><a name="665"
+      > </a
+      ><a name="666" class="Symbol"
+      >(</a
+      ><a name="667" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="671"
+      > </a
+      ><a name="672" href="Maybe.html#672" class="Bound"
+      >b</a
+      ><a name="673" class="Symbol"
+      >)</a
+      ><a name="674"
+      > </a
+      ><a name="675" class="Symbol"
+      >=</a
+      ><a name="676"
+      > </a
+      ><a name="677" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="681"
+      > </a
+      ><a name="682" class="Symbol"
+      >(</a
+      ><a name="683" href="Maybe.html#655" class="Bound"
+      >f</a
+      ><a name="684"
+      > </a
+      ><a name="685" href="Maybe.html#663" class="Bound"
+      >a</a
+      ><a name="686"
+      > </a
+      ><a name="687" href="Maybe.html#672" class="Bound"
+      >b</a
+      ><a name="688" class="Symbol"
+      >)</a
+      ><a name="689"
+      >
+</a
+      ><a name="690" href="Maybe.html#569" class="Function"
+      >maybeMergeWith</a
+      ><a name="704"
+      > </a
+      ><a name="705" href="Maybe.html#705" class="Bound"
+      >f</a
+      ><a name="706"
+      > </a
+      ><a name="707" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="714"
+      > </a
+      ><a name="715" href="Maybe.html#715" class="Bound"
+      >mb</a
+      ><a name="717"
+      > </a
+      ><a name="718" class="Symbol"
+      >=</a
+      ><a name="719"
+      > </a
+      ><a name="720" href="Maybe.html#715" class="Bound"
+      >mb</a
+      ><a name="722"
+      >
+</a
+      ><a name="723" href="Maybe.html#569" class="Function"
+      >maybeMergeWith</a
+      ><a name="737"
+      > </a
+      ><a name="738" href="Maybe.html#738" class="Bound"
+      >f</a
+      ><a name="739"
+      > </a
+      ><a name="740" href="Maybe.html#740" class="Bound"
+      >ma</a
+      ><a name="742"
+      > </a
+      ><a name="743" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="750"
+      > </a
+      ><a name="751" class="Symbol"
+      >=</a
+      ><a name="752"
+      > </a
+      ><a name="753" href="Maybe.html#740" class="Bound"
+      >ma</a
+      ><a name="755"
+      >
+
+</a
+      ><a name="757" href="Maybe.html#757" class="Function"
+      >maybeMap</a
+      ><a name="765"
+      > </a
+      ><a name="766" class="Symbol"
+      >:</a
+      ><a name="767"
+      > </a
+      ><a name="768" class="Symbol"
+      >{</a
+      ><a name="769" href="Maybe.html#769" class="Bound"
+      >A</a
+      ><a name="770"
+      > </a
+      ><a name="771" href="Maybe.html#771" class="Bound"
+      >B</a
+      ><a name="772"
+      > </a
+      ><a name="773" class="Symbol"
+      >:</a
+      ><a name="774"
+      > </a
+      ><a name="775" class="PrimitiveType"
+      >Set</a
+      ><a name="778" class="Symbol"
+      >}</a
+      ><a name="779"
+      > </a
+      ><a name="780" class="Symbol"
+      >&#8594;</a
+      ><a name="781"
+      > </a
+      ><a name="782" class="Symbol"
+      >(</a
+      ><a name="783" href="Maybe.html#769" class="Bound"
+      >A</a
+      ><a name="784"
+      > </a
+      ><a name="785" class="Symbol"
+      >&#8594;</a
+      ><a name="786"
+      > </a
+      ><a name="787" href="Maybe.html#771" class="Bound"
+      >B</a
+      ><a name="788" class="Symbol"
+      >)</a
+      ><a name="789"
+      > </a
+      ><a name="790" class="Symbol"
+      >&#8594;</a
+      ><a name="791"
+      > </a
+      ><a name="792" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="797"
+      > </a
+      ><a name="798" href="Maybe.html#769" class="Bound"
+      >A</a
+      ><a name="799"
+      > </a
+      ><a name="800" class="Symbol"
+      >&#8594;</a
+      ><a name="801"
+      > </a
+      ><a name="802" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="807"
+      > </a
+      ><a name="808" href="Maybe.html#771" class="Bound"
+      >B</a
+      ><a name="809"
+      >
+</a
+      ><a name="810" href="Maybe.html#757" class="Function"
+      >maybeMap</a
+      ><a name="818"
+      > </a
+      ><a name="819" href="Maybe.html#819" class="Bound"
+      >f</a
+      ><a name="820"
+      > </a
+      ><a name="821" class="Symbol"
+      >=</a
+      ><a name="822"
+      > </a
+      ><a name="823" href="Maybe.html#78" class="Function"
+      >maybe</a
+      ><a name="828"
+      > </a
+      ><a name="829" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="836"
+      > </a
+      ><a name="837" class="Symbol"
+      >(</a
+      ><a name="838" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="842"
+      > </a
+      ><a name="843" href="NeilPrelude.html#8326" class="Function Operator"
+      >&#8728;</a
+      ><a name="844"
+      > </a
+      ><a name="845" href="Maybe.html#819" class="Bound"
+      >f</a
+      ><a name="846" class="Symbol"
+      >)</a
+      ><a name="847"
+      >
+
+</a
+      ><a name="849" href="Maybe.html#849" class="Function"
+      >maybeMap2</a
+      ><a name="858"
+      > </a
+      ><a name="859" class="Symbol"
+      >:</a
+      ><a name="860"
+      > </a
+      ><a name="861" class="Symbol"
+      >{</a
+      ><a name="862" href="Maybe.html#862" class="Bound"
+      >A</a
+      ><a name="863"
+      > </a
+      ><a name="864" href="Maybe.html#864" class="Bound"
+      >B</a
+      ><a name="865"
+      > </a
+      ><a name="866" href="Maybe.html#866" class="Bound"
+      >Z</a
+      ><a name="867"
+      > </a
+      ><a name="868" class="Symbol"
+      >:</a
+      ><a name="869"
+      > </a
+      ><a name="870" class="PrimitiveType"
+      >Set</a
+      ><a name="873" class="Symbol"
+      >}</a
+      ><a name="874"
+      > </a
+      ><a name="875" class="Symbol"
+      >&#8594;</a
+      ><a name="876"
+      > </a
+      ><a name="877" class="Symbol"
+      >(</a
+      ><a name="878" href="Maybe.html#862" class="Bound"
+      >A</a
+      ><a name="879"
+      > </a
+      ><a name="880" class="Symbol"
+      >&#8594;</a
+      ><a name="881"
+      > </a
+      ><a name="882" href="Maybe.html#864" class="Bound"
+      >B</a
+      ><a name="883"
+      > </a
+      ><a name="884" class="Symbol"
+      >&#8594;</a
+      ><a name="885"
+      > </a
+      ><a name="886" href="Maybe.html#866" class="Bound"
+      >Z</a
+      ><a name="887" class="Symbol"
+      >)</a
+      ><a name="888"
+      > </a
+      ><a name="889" class="Symbol"
+      >&#8594;</a
+      ><a name="890"
+      > </a
+      ><a name="891" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="896"
+      > </a
+      ><a name="897" href="Maybe.html#862" class="Bound"
+      >A</a
+      ><a name="898"
+      > </a
+      ><a name="899" class="Symbol"
+      >&#8594;</a
+      ><a name="900"
+      > </a
+      ><a name="901" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="906"
+      > </a
+      ><a name="907" href="Maybe.html#864" class="Bound"
+      >B</a
+      ><a name="908"
+      > </a
+      ><a name="909" class="Symbol"
+      >&#8594;</a
+      ><a name="910"
+      > </a
+      ><a name="911" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="916"
+      > </a
+      ><a name="917" href="Maybe.html#866" class="Bound"
+      >Z</a
+      ><a name="918"
+      >
+</a
+      ><a name="919" href="Maybe.html#849" class="Function"
+      >maybeMap2</a
+      ><a name="928"
+      > </a
+      ><a name="929" href="Maybe.html#929" class="Bound"
+      >f</a
+      ><a name="930"
+      > </a
+      ><a name="931" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="938"
+      >   </a
+      ><a name="941" href="Maybe.html#941" class="Bound"
+      >mb</a
+      ><a name="943"
+      >  </a
+      ><a name="945" class="Symbol"
+      >=</a
+      ><a name="946"
+      > </a
+      ><a name="947" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="954"
+      >
+</a
+      ><a name="955" href="Maybe.html#849" class="Function"
+      >maybeMap2</a
+      ><a name="964"
+      > </a
+      ><a name="965" href="Maybe.html#965" class="Bound"
+      >f</a
+      ><a name="966"
+      > </a
+      ><a name="967" class="Symbol"
+      >(</a
+      ><a name="968" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="972"
+      > </a
+      ><a name="973" href="Maybe.html#973" class="Bound"
+      >a</a
+      ><a name="974" class="Symbol"
+      >)</a
+      ><a name="975"
+      >  </a
+      ><a name="977" href="Maybe.html#977" class="Bound"
+      >mb</a
+      ><a name="979"
+      >  </a
+      ><a name="981" class="Symbol"
+      >=</a
+      ><a name="982"
+      > </a
+      ><a name="983" href="Maybe.html#757" class="Function"
+      >maybeMap</a
+      ><a name="991"
+      > </a
+      ><a name="992" class="Symbol"
+      >(</a
+      ><a name="993" href="Maybe.html#965" class="Bound"
+      >f</a
+      ><a name="994"
+      > </a
+      ><a name="995" href="Maybe.html#973" class="Bound"
+      >a</a
+      ><a name="996" class="Symbol"
+      >)</a
+      ><a name="997"
+      > </a
+      ><a name="998" href="Maybe.html#977" class="Bound"
+      >mb</a
+      ><a name="1000"
+      >
+
+</a
+      ><a name="1002" href="Maybe.html#1002" class="Function"
+      >maybeFilter</a
+      ><a name="1013"
+      > </a
+      ><a name="1014" class="Symbol"
+      >:</a
+      ><a name="1015"
+      > </a
+      ><a name="1016" class="Symbol"
+      >{</a
+      ><a name="1017" href="Maybe.html#1017" class="Bound"
+      >A</a
+      ><a name="1018"
+      > </a
+      ><a name="1019" class="Symbol"
+      >:</a
+      ><a name="1020"
+      > </a
+      ><a name="1021" class="PrimitiveType"
+      >Set</a
+      ><a name="1024" class="Symbol"
+      >}</a
+      ><a name="1025"
+      > </a
+      ><a name="1026" class="Symbol"
+      >&#8594;</a
+      ><a name="1027"
+      > </a
+      ><a name="1028" class="Symbol"
+      >(</a
+      ><a name="1029" href="Maybe.html#1017" class="Bound"
+      >A</a
+      ><a name="1030"
+      > </a
+      ><a name="1031" class="Symbol"
+      >&#8594;</a
+      ><a name="1032"
+      > </a
+      ><a name="1033" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="1037" class="Symbol"
+      >)</a
+      ><a name="1038"
+      > </a
+      ><a name="1039" class="Symbol"
+      >&#8594;</a
+      ><a name="1040"
+      > </a
+      ><a name="1041" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="1046"
+      > </a
+      ><a name="1047" href="Maybe.html#1017" class="Bound"
+      >A</a
+      ><a name="1048"
+      > </a
+      ><a name="1049" class="Symbol"
+      >&#8594;</a
+      ><a name="1050"
+      > </a
+      ><a name="1051" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="1056"
+      > </a
+      ><a name="1057" href="Maybe.html#1017" class="Bound"
+      >A</a
+      ><a name="1058"
+      >
+</a
+      ><a name="1059" href="Maybe.html#1002" class="Function"
+      >maybeFilter</a
+      ><a name="1070"
+      > </a
+      ><a name="1071" href="Maybe.html#1071" class="Bound"
+      >p</a
+      ><a name="1072"
+      > </a
+      ><a name="1073" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="1080"
+      >  </a
+      ><a name="1082" class="Symbol"
+      >=</a
+      ><a name="1083"
+      > </a
+      ><a name="1084" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="1091"
+      >
+</a
+      ><a name="1092" href="Maybe.html#1002" class="Function"
+      >maybeFilter</a
+      ><a name="1103"
+      > </a
+      ><a name="1104" href="Maybe.html#1104" class="Bound"
+      >p</a
+      ><a name="1105"
+      > </a
+      ><a name="1106" class="Symbol"
+      >(</a
+      ><a name="1107" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="1111"
+      > </a
+      ><a name="1112" href="Maybe.html#1112" class="Bound"
+      >a</a
+      ><a name="1113" class="Symbol"
+      >)</a
+      ><a name="1114"
+      > </a
+      ><a name="1115" class="Keyword"
+      >with</a
+      ><a name="1119"
+      > </a
+      ><a name="1120" href="Maybe.html#1104" class="Bound"
+      >p</a
+      ><a name="1121"
+      > </a
+      ><a name="1122" href="Maybe.html#1112" class="Bound"
+      >a</a
+      ><a name="1123"
+      >
+</a
+      ><a name="1124" class="Symbol"
+      >...</a
+      ><a name="1127"
+      > </a
+      ><a name="1128" class="Symbol"
+      >|</a
+      ><a name="1129"
+      > </a
+      ><a name="1130" href="NeilPrelude.html#760" class="InductiveConstructor"
+      >true</a
+      ><a name="1134"
+      >  </a
+      ><a name="1136" class="Symbol"
+      >=</a
+      ><a name="1137"
+      > </a
+      ><a name="1138" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="1142"
+      > </a
+      ><a name="1143" href="Maybe.html#1112" class="Bound"
+      >a</a
+      ><a name="1144"
+      >
+</a
+      ><a name="1145" class="Symbol"
+      >...</a
+      ><a name="1148"
+      > </a
+      ><a name="1149" class="Symbol"
+      >|</a
+      ><a name="1150"
+      > </a
+      ><a name="1151" href="NeilPrelude.html#745" class="InductiveConstructor"
+      >false</a
+      ><a name="1156"
+      > </a
+      ><a name="1157" class="Symbol"
+      >=</a
+      ><a name="1158"
+      > </a
+      ><a name="1159" href="NeilPrelude.html#894" class="InductiveConstructor"
+      >nothing</a
+      ><a name="1166"
+      >
+
+</a
+      ><a name="1168" href="Maybe.html#1168" class="Function"
+      >just-inj</a
+      ><a name="1176"
+      > </a
+      ><a name="1177" class="Symbol"
+      >:</a
+      ><a name="1178"
+      > </a
+      ><a name="1179" class="Symbol"
+      >{</a
+      ><a name="1180" href="Maybe.html#1180" class="Bound"
+      >A</a
+      ><a name="1181"
+      > </a
+      ><a name="1182" class="Symbol"
+      >:</a
+      ><a name="1183"
+      > </a
+      ><a name="1184" class="PrimitiveType"
+      >Set</a
+      ><a name="1187" class="Symbol"
+      >}</a
+      ><a name="1188"
+      > </a
+      ><a name="1189" class="Symbol"
+      >&#8594;</a
+      ><a name="1190"
+      > </a
+      ><a name="1191" href="NeilPrelude.html#3937" class="Function"
+      >Injective</a
+      ><a name="1200"
+      > </a
+      ><a name="1201" class="Symbol"
+      >{</a
+      ><a name="1202" href="Maybe.html#1180" class="Bound"
+      >A</a
+      ><a name="1203" class="Symbol"
+      >}</a
+      ><a name="1204"
+      > </a
+      ><a name="1205" href="NeilPrelude.html#914" class="InductiveConstructor"
+      >just</a
+      ><a name="1209"
+      >
+</a
+      ><a name="1210" href="Maybe.html#1168" class="Function"
+      >just-inj</a
+      ><a name="1218"
+      > </a
+      ><a name="1219" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="1223"
+      > </a
+      ><a name="1224" class="Symbol"
+      >=</a
+      ><a name="1225"
+      > </a
+      ><a name="1226" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ></pre
+    ></body
+  ></html
+>

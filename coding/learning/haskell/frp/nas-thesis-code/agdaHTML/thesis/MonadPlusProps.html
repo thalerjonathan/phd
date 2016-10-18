@@ -1,0 +1,1151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >MonadPlusProps</title
+    ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta http-equiv="Content-Style-Type" content="text/css"
+     /><link href="Agda.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><pre
+    ><a name="1" class="Symbol"
+      >{-#</a
+      ><a name="4"
+      > </a
+      ><a name="5" class="Keyword"
+      >OPTIONS</a
+      ><a name="12"
+      > --type-in-type </a
+      ><a name="28" class="Symbol"
+      >#-}</a
+      ><a name="31"
+      >
+
+</a
+      ><a name="33" class="Keyword"
+      >open</a
+      ><a name="37"
+      > </a
+      ><a name="38" class="Keyword"
+      >import</a
+      ><a name="44"
+      > </a
+      ><a name="45" href="NeilPrelude.html#77" class="Module"
+      >NeilPrelude</a
+      ><a name="56"
+      >
+
+</a
+      ><a name="58" class="Keyword"
+      >module</a
+      ><a name="64"
+      > </a
+      ><a name="65" href="MonadPlusProps.html#65" class="Module"
+      >MonadPlusProps</a
+      ><a name="79"
+      > </a
+      ><a name="80" class="Symbol"
+      >(</a
+      ><a name="81" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="82"
+      > </a
+      ><a name="83" class="Symbol"
+      >:</a
+      ><a name="84"
+      > </a
+      ><a name="85" class="PrimitiveType"
+      >Set</a
+      ><a name="88"
+      > </a
+      ><a name="89" class="Symbol"
+      >&#8594;</a
+      ><a name="90"
+      > </a
+      ><a name="91" class="PrimitiveType"
+      >Set</a
+      ><a name="94" class="Symbol"
+      >)</a
+      ><a name="95"
+      >
+
+       </a
+      ><a name="104" class="Symbol"
+      >(</a
+      ><a name="105" href="MonadPlusProps.html#105" class="Bound Operator"
+      >_&gt;&gt;=_</a
+      ><a name="110"
+      >  </a
+      ><a name="112" class="Symbol"
+      >:</a
+      ><a name="113"
+      > </a
+      ><a name="114" class="Symbol"
+      >{</a
+      ><a name="115" href="MonadPlusProps.html#115" class="Bound"
+      >A</a
+      ><a name="116"
+      > </a
+      ><a name="117" href="MonadPlusProps.html#117" class="Bound"
+      >B</a
+      ><a name="118"
+      > </a
+      ><a name="119" class="Symbol"
+      >:</a
+      ><a name="120"
+      > </a
+      ><a name="121" class="PrimitiveType"
+      >Set</a
+      ><a name="124" class="Symbol"
+      >}</a
+      ><a name="125"
+      > </a
+      ><a name="126" class="Symbol"
+      >&#8594;</a
+      ><a name="127"
+      > </a
+      ><a name="128" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="129"
+      > </a
+      ><a name="130" href="MonadPlusProps.html#115" class="Bound"
+      >A</a
+      ><a name="131"
+      > </a
+      ><a name="132" class="Symbol"
+      >&#8594;</a
+      ><a name="133"
+      > </a
+      ><a name="134" class="Symbol"
+      >(</a
+      ><a name="135" href="MonadPlusProps.html#115" class="Bound"
+      >A</a
+      ><a name="136"
+      > </a
+      ><a name="137" class="Symbol"
+      >&#8594;</a
+      ><a name="138"
+      > </a
+      ><a name="139" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="140"
+      > </a
+      ><a name="141" href="MonadPlusProps.html#117" class="Bound"
+      >B</a
+      ><a name="142" class="Symbol"
+      >)</a
+      ><a name="143"
+      > </a
+      ><a name="144" class="Symbol"
+      >&#8594;</a
+      ><a name="145"
+      > </a
+      ><a name="146" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="147"
+      > </a
+      ><a name="148" href="MonadPlusProps.html#117" class="Bound"
+      >B</a
+      ><a name="149" class="Symbol"
+      >)</a
+      ><a name="150"
+      >
+       </a
+      ><a name="158" class="Symbol"
+      >(</a
+      ><a name="159" href="MonadPlusProps.html#159" class="Bound"
+      >return</a
+      ><a name="165"
+      > </a
+      ><a name="166" class="Symbol"
+      >:</a
+      ><a name="167"
+      > </a
+      ><a name="168" class="Symbol"
+      >{</a
+      ><a name="169" href="MonadPlusProps.html#169" class="Bound"
+      >A</a
+      ><a name="170"
+      > </a
+      ><a name="171" class="Symbol"
+      >:</a
+      ><a name="172"
+      > </a
+      ><a name="173" class="PrimitiveType"
+      >Set</a
+      ><a name="176" class="Symbol"
+      >}</a
+      ><a name="177"
+      > </a
+      ><a name="178" class="Symbol"
+      >&#8594;</a
+      ><a name="179"
+      > </a
+      ><a name="180" href="MonadPlusProps.html#169" class="Bound"
+      >A</a
+      ><a name="181"
+      > </a
+      ><a name="182" class="Symbol"
+      >&#8594;</a
+      ><a name="183"
+      > </a
+      ><a name="184" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="185"
+      > </a
+      ><a name="186" href="MonadPlusProps.html#169" class="Bound"
+      >A</a
+      ><a name="187" class="Symbol"
+      >)</a
+      ><a name="188"
+      >
+       </a
+      ><a name="196" class="Symbol"
+      >(</a
+      ><a name="197" href="MonadPlusProps.html#197" class="Bound"
+      >plus</a
+      ><a name="201"
+      >   </a
+      ><a name="204" class="Symbol"
+      >:</a
+      ><a name="205"
+      > </a
+      ><a name="206" class="Symbol"
+      >{</a
+      ><a name="207" href="MonadPlusProps.html#207" class="Bound"
+      >A</a
+      ><a name="208"
+      > </a
+      ><a name="209" class="Symbol"
+      >:</a
+      ><a name="210"
+      > </a
+      ><a name="211" class="PrimitiveType"
+      >Set</a
+      ><a name="214" class="Symbol"
+      >}</a
+      ><a name="215"
+      > </a
+      ><a name="216" class="Symbol"
+      >&#8594;</a
+      ><a name="217"
+      > </a
+      ><a name="218" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="219"
+      > </a
+      ><a name="220" href="MonadPlusProps.html#207" class="Bound"
+      >A</a
+      ><a name="221"
+      > </a
+      ><a name="222" class="Symbol"
+      >&#8594;</a
+      ><a name="223"
+      > </a
+      ><a name="224" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="225"
+      > </a
+      ><a name="226" href="MonadPlusProps.html#207" class="Bound"
+      >A</a
+      ><a name="227"
+      > </a
+      ><a name="228" class="Symbol"
+      >&#8594;</a
+      ><a name="229"
+      > </a
+      ><a name="230" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="231"
+      > </a
+      ><a name="232" href="MonadPlusProps.html#207" class="Bound"
+      >A</a
+      ><a name="233" class="Symbol"
+      >)</a
+      ><a name="234"
+      >
+       </a
+      ><a name="242" class="Symbol"
+      >(</a
+      ><a name="243" href="MonadPlusProps.html#243" class="Bound"
+      >zero</a
+      ><a name="247"
+      >   </a
+      ><a name="250" class="Symbol"
+      >:</a
+      ><a name="251"
+      > </a
+      ><a name="252" class="Symbol"
+      >{</a
+      ><a name="253" href="MonadPlusProps.html#253" class="Bound"
+      >A</a
+      ><a name="254"
+      > </a
+      ><a name="255" class="Symbol"
+      >:</a
+      ><a name="256"
+      > </a
+      ><a name="257" class="PrimitiveType"
+      >Set</a
+      ><a name="260" class="Symbol"
+      >}</a
+      ><a name="261"
+      > </a
+      ><a name="262" class="Symbol"
+      >&#8594;</a
+      ><a name="263"
+      > </a
+      ><a name="264" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="265"
+      > </a
+      ><a name="266" href="MonadPlusProps.html#253" class="Bound"
+      >A</a
+      ><a name="267" class="Symbol"
+      >)</a
+      ><a name="268"
+      >
+
+</a
+      ><a name="270" class="Comment"
+      >-- monad laws</a
+      ><a name="283"
+      >
+
+       </a
+      ><a name="292" class="Symbol"
+      >(</a
+      ><a name="293" href="MonadPlusProps.html#293" class="Bound"
+      >1stLaw</a
+      ><a name="299"
+      > </a
+      ><a name="300" class="Symbol"
+      >:</a
+      ><a name="301"
+      > </a
+      ><a name="302" class="Symbol"
+      >{</a
+      ><a name="303" href="MonadPlusProps.html#303" class="Bound"
+      >A</a
+      ><a name="304"
+      > </a
+      ><a name="305" href="MonadPlusProps.html#305" class="Bound"
+      >B</a
+      ><a name="306"
+      > </a
+      ><a name="307" class="Symbol"
+      >:</a
+      ><a name="308"
+      > </a
+      ><a name="309" class="PrimitiveType"
+      >Set</a
+      ><a name="312" class="Symbol"
+      >}</a
+      ><a name="313"
+      > </a
+      ><a name="314" class="Symbol"
+      >&#8594;</a
+      ><a name="315"
+      > </a
+      ><a name="316" class="Symbol"
+      >{</a
+      ><a name="317" href="MonadPlusProps.html#317" class="Bound"
+      >a</a
+      ><a name="318"
+      > </a
+      ><a name="319" class="Symbol"
+      >:</a
+      ><a name="320"
+      > </a
+      ><a name="321" href="MonadPlusProps.html#303" class="Bound"
+      >A</a
+      ><a name="322" class="Symbol"
+      >}</a
+      ><a name="323"
+      > </a
+      ><a name="324" class="Symbol"
+      >&#8594;</a
+      ><a name="325"
+      > </a
+      ><a name="326" class="Symbol"
+      >{</a
+      ><a name="327" href="MonadPlusProps.html#327" class="Bound"
+      >f</a
+      ><a name="328"
+      > </a
+      ><a name="329" class="Symbol"
+      >:</a
+      ><a name="330"
+      > </a
+      ><a name="331" href="MonadPlusProps.html#303" class="Bound"
+      >A</a
+      ><a name="332"
+      > </a
+      ><a name="333" class="Symbol"
+      >&#8594;</a
+      ><a name="334"
+      > </a
+      ><a name="335" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="336"
+      > </a
+      ><a name="337" href="MonadPlusProps.html#305" class="Bound"
+      >B</a
+      ><a name="338" class="Symbol"
+      >}</a
+      ><a name="339"
+      > </a
+      ><a name="340" class="Symbol"
+      >&#8594;</a
+      ><a name="341"
+      > </a
+      ><a name="342" href="MonadPlusProps.html#159" class="Bound"
+      >return</a
+      ><a name="348"
+      > </a
+      ><a name="349" href="MonadPlusProps.html#317" class="Bound"
+      >a</a
+      ><a name="350"
+      > </a
+      ><a name="351" href="MonadPlusProps.html#105" class="Bound Operator"
+      >&gt;&gt;=</a
+      ><a name="354"
+      > </a
+      ><a name="355" href="MonadPlusProps.html#327" class="Bound"
+      >f</a
+      ><a name="356"
+      > </a
+      ><a name="357" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="358"
+      > </a
+      ><a name="359" href="MonadPlusProps.html#327" class="Bound"
+      >f</a
+      ><a name="360"
+      > </a
+      ><a name="361" href="MonadPlusProps.html#317" class="Bound"
+      >a</a
+      ><a name="362" class="Symbol"
+      >)</a
+      ><a name="363"
+      >
+       </a
+      ><a name="371" class="Symbol"
+      >(</a
+      ><a name="372" href="MonadPlusProps.html#372" class="Bound"
+      >2ndLaw</a
+      ><a name="378"
+      > </a
+      ><a name="379" class="Symbol"
+      >:</a
+      ><a name="380"
+      > </a
+      ><a name="381" class="Symbol"
+      >{</a
+      ><a name="382" href="MonadPlusProps.html#382" class="Bound"
+      >A</a
+      ><a name="383"
+      > </a
+      ><a name="384" class="Symbol"
+      >:</a
+      ><a name="385"
+      > </a
+      ><a name="386" class="PrimitiveType"
+      >Set</a
+      ><a name="389" class="Symbol"
+      >}</a
+      ><a name="390"
+      > </a
+      ><a name="391" class="Symbol"
+      >&#8594;</a
+      ><a name="392"
+      > </a
+      ><a name="393" class="Symbol"
+      >{</a
+      ><a name="394" href="MonadPlusProps.html#394" class="Bound"
+      >ma</a
+      ><a name="396"
+      > </a
+      ><a name="397" class="Symbol"
+      >:</a
+      ><a name="398"
+      > </a
+      ><a name="399" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="400"
+      > </a
+      ><a name="401" href="MonadPlusProps.html#382" class="Bound"
+      >A</a
+      ><a name="402" class="Symbol"
+      >}</a
+      ><a name="403"
+      > </a
+      ><a name="404" class="Symbol"
+      >&#8594;</a
+      ><a name="405"
+      > </a
+      ><a name="406" href="MonadPlusProps.html#394" class="Bound"
+      >ma</a
+      ><a name="408"
+      > </a
+      ><a name="409" href="MonadPlusProps.html#105" class="Bound Operator"
+      >&gt;&gt;=</a
+      ><a name="412"
+      > </a
+      ><a name="413" href="MonadPlusProps.html#159" class="Bound"
+      >return</a
+      ><a name="419"
+      > </a
+      ><a name="420" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="421"
+      > </a
+      ><a name="422" href="MonadPlusProps.html#394" class="Bound"
+      >ma</a
+      ><a name="424" class="Symbol"
+      >)</a
+      ><a name="425"
+      >
+       </a
+      ><a name="433" class="Symbol"
+      >(</a
+      ><a name="434" href="MonadPlusProps.html#434" class="Bound"
+      >3rdLaw</a
+      ><a name="440"
+      > </a
+      ><a name="441" class="Symbol"
+      >:</a
+      ><a name="442"
+      > </a
+      ><a name="443" class="Symbol"
+      >{</a
+      ><a name="444" href="MonadPlusProps.html#444" class="Bound"
+      >A</a
+      ><a name="445"
+      > </a
+      ><a name="446" href="MonadPlusProps.html#446" class="Bound"
+      >B</a
+      ><a name="447"
+      > </a
+      ><a name="448" href="MonadPlusProps.html#448" class="Bound"
+      >C</a
+      ><a name="449"
+      > </a
+      ><a name="450" class="Symbol"
+      >:</a
+      ><a name="451"
+      > </a
+      ><a name="452" class="PrimitiveType"
+      >Set</a
+      ><a name="455" class="Symbol"
+      >}</a
+      ><a name="456"
+      > </a
+      ><a name="457" class="Symbol"
+      >&#8594;</a
+      ><a name="458"
+      > </a
+      ><a name="459" class="Symbol"
+      >{</a
+      ><a name="460" href="MonadPlusProps.html#460" class="Bound"
+      >f</a
+      ><a name="461"
+      > </a
+      ><a name="462" class="Symbol"
+      >:</a
+      ><a name="463"
+      > </a
+      ><a name="464" href="MonadPlusProps.html#444" class="Bound"
+      >A</a
+      ><a name="465"
+      > </a
+      ><a name="466" class="Symbol"
+      >&#8594;</a
+      ><a name="467"
+      > </a
+      ><a name="468" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="469"
+      > </a
+      ><a name="470" href="MonadPlusProps.html#446" class="Bound"
+      >B</a
+      ><a name="471" class="Symbol"
+      >}</a
+      ><a name="472"
+      > </a
+      ><a name="473" class="Symbol"
+      >&#8594;</a
+      ><a name="474"
+      > </a
+      ><a name="475" class="Symbol"
+      >{</a
+      ><a name="476" href="MonadPlusProps.html#476" class="Bound"
+      >g</a
+      ><a name="477"
+      > </a
+      ><a name="478" class="Symbol"
+      >:</a
+      ><a name="479"
+      > </a
+      ><a name="480" href="MonadPlusProps.html#446" class="Bound"
+      >B</a
+      ><a name="481"
+      > </a
+      ><a name="482" class="Symbol"
+      >&#8594;</a
+      ><a name="483"
+      > </a
+      ><a name="484" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="485"
+      > </a
+      ><a name="486" href="MonadPlusProps.html#448" class="Bound"
+      >C</a
+      ><a name="487" class="Symbol"
+      >}</a
+      ><a name="488"
+      > </a
+      ><a name="489" class="Symbol"
+      >&#8594;</a
+      ><a name="490"
+      > </a
+      ><a name="491" class="Symbol"
+      >(</a
+      ><a name="492" href="MonadPlusProps.html#492" class="Bound"
+      >ma</a
+      ><a name="494"
+      > </a
+      ><a name="495" class="Symbol"
+      >:</a
+      ><a name="496"
+      > </a
+      ><a name="497" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="498"
+      > </a
+      ><a name="499" href="MonadPlusProps.html#444" class="Bound"
+      >A</a
+      ><a name="500" class="Symbol"
+      >)</a
+      ><a name="501"
+      > </a
+      ><a name="502" class="Symbol"
+      >&#8594;</a
+      ><a name="503"
+      > </a
+      ><a name="504" class="Symbol"
+      >(</a
+      ><a name="505" href="MonadPlusProps.html#492" class="Bound"
+      >ma</a
+      ><a name="507"
+      > </a
+      ><a name="508" href="MonadPlusProps.html#105" class="Bound Operator"
+      >&gt;&gt;=</a
+      ><a name="511"
+      > </a
+      ><a name="512" href="MonadPlusProps.html#460" class="Bound"
+      >f</a
+      ><a name="513" class="Symbol"
+      >)</a
+      ><a name="514"
+      > </a
+      ><a name="515" href="MonadPlusProps.html#105" class="Bound Operator"
+      >&gt;&gt;=</a
+      ><a name="518"
+      > </a
+      ><a name="519" href="MonadPlusProps.html#476" class="Bound"
+      >g</a
+      ><a name="520"
+      > </a
+      ><a name="521" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="522"
+      > </a
+      ><a name="523" href="MonadPlusProps.html#492" class="Bound"
+      >ma</a
+      ><a name="525"
+      > </a
+      ><a name="526" href="MonadPlusProps.html#105" class="Bound Operator"
+      >&gt;&gt;=</a
+      ><a name="529"
+      > </a
+      ><a name="530" class="Symbol"
+      >(&#955;</a
+      ><a name="532"
+      > </a
+      ><a name="533" href="MonadPlusProps.html#533" class="Bound"
+      >b</a
+      ><a name="534"
+      > </a
+      ><a name="535" class="Symbol"
+      >&#8594;</a
+      ><a name="536"
+      > </a
+      ><a name="537" href="MonadPlusProps.html#460" class="Bound"
+      >f</a
+      ><a name="538"
+      > </a
+      ><a name="539" href="MonadPlusProps.html#533" class="Bound"
+      >b</a
+      ><a name="540"
+      > </a
+      ><a name="541" href="MonadPlusProps.html#105" class="Bound Operator"
+      >&gt;&gt;=</a
+      ><a name="544"
+      > </a
+      ><a name="545" href="MonadPlusProps.html#476" class="Bound"
+      >g</a
+      ><a name="546" class="Symbol"
+      >))</a
+      ><a name="548"
+      >
+
+       </a
+      ><a name="557" class="Symbol"
+      >(</a
+      ><a name="558" href="MonadPlusProps.html#558" class="Bound"
+      >4thLaw</a
+      ><a name="564"
+      > </a
+      ><a name="565" class="Symbol"
+      >:</a
+      ><a name="566"
+      > </a
+      ><a name="567" class="Symbol"
+      >{</a
+      ><a name="568" href="MonadPlusProps.html#568" class="Bound"
+      >A</a
+      ><a name="569"
+      > </a
+      ><a name="570" href="MonadPlusProps.html#570" class="Bound"
+      >B</a
+      ><a name="571"
+      > </a
+      ><a name="572" class="Symbol"
+      >:</a
+      ><a name="573"
+      > </a
+      ><a name="574" class="PrimitiveType"
+      >Set</a
+      ><a name="577" class="Symbol"
+      >}</a
+      ><a name="578"
+      > </a
+      ><a name="579" class="Symbol"
+      >&#8594;</a
+      ><a name="580"
+      > </a
+      ><a name="581" class="Symbol"
+      >{</a
+      ><a name="582" href="MonadPlusProps.html#582" class="Bound"
+      >f</a
+      ><a name="583"
+      > </a
+      ><a name="584" class="Symbol"
+      >:</a
+      ><a name="585"
+      > </a
+      ><a name="586" href="MonadPlusProps.html#568" class="Bound"
+      >A</a
+      ><a name="587"
+      > </a
+      ><a name="588" class="Symbol"
+      >&#8594;</a
+      ><a name="589"
+      > </a
+      ><a name="590" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="591"
+      > </a
+      ><a name="592" href="MonadPlusProps.html#570" class="Bound"
+      >B</a
+      ><a name="593" class="Symbol"
+      >}</a
+      ><a name="594"
+      > </a
+      ><a name="595" class="Symbol"
+      >&#8594;</a
+      ><a name="596"
+      > </a
+      ><a name="597" href="MonadPlusProps.html#243" class="Bound"
+      >zero</a
+      ><a name="601"
+      > </a
+      ><a name="602" href="MonadPlusProps.html#105" class="Bound Operator"
+      >&gt;&gt;=</a
+      ><a name="605"
+      > </a
+      ><a name="606" href="MonadPlusProps.html#582" class="Bound"
+      >f</a
+      ><a name="607"
+      > </a
+      ><a name="608" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="609"
+      > </a
+      ><a name="610" href="MonadPlusProps.html#243" class="Bound"
+      >zero</a
+      ><a name="614" class="Symbol"
+      >)</a
+      ><a name="615"
+      >
+       </a
+      ><a name="623" class="Symbol"
+      >(</a
+      ><a name="624" href="MonadPlusProps.html#624" class="Bound"
+      >5thLaw</a
+      ><a name="630"
+      > </a
+      ><a name="631" class="Symbol"
+      >:</a
+      ><a name="632"
+      > </a
+      ><a name="633" class="Symbol"
+      >{</a
+      ><a name="634" href="MonadPlusProps.html#634" class="Bound"
+      >A</a
+      ><a name="635"
+      > </a
+      ><a name="636" href="MonadPlusProps.html#636" class="Bound"
+      >B</a
+      ><a name="637"
+      > </a
+      ><a name="638" class="Symbol"
+      >:</a
+      ><a name="639"
+      > </a
+      ><a name="640" class="PrimitiveType"
+      >Set</a
+      ><a name="643" class="Symbol"
+      >}</a
+      ><a name="644"
+      > </a
+      ><a name="645" class="Symbol"
+      >&#8594;</a
+      ><a name="646"
+      > </a
+      ><a name="647" class="Symbol"
+      >(</a
+      ><a name="648" href="MonadPlusProps.html#648" class="Bound"
+      >ma</a
+      ><a name="650"
+      > </a
+      ><a name="651" class="Symbol"
+      >:</a
+      ><a name="652"
+      > </a
+      ><a name="653" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="654"
+      > </a
+      ><a name="655" href="MonadPlusProps.html#634" class="Bound"
+      >A</a
+      ><a name="656" class="Symbol"
+      >)</a
+      ><a name="657"
+      > </a
+      ><a name="658" class="Symbol"
+      >&#8594;</a
+      ><a name="659"
+      > </a
+      ><a name="660" href="MonadPlusProps.html#648" class="Bound"
+      >ma</a
+      ><a name="662"
+      > </a
+      ><a name="663" href="MonadPlusProps.html#105" class="Bound Operator"
+      >&gt;&gt;=</a
+      ><a name="666"
+      > </a
+      ><a name="667" class="Symbol"
+      >(&#955;</a
+      ><a name="669"
+      > </a
+      ><a name="670" href="MonadPlusProps.html#670" class="Bound"
+      >a</a
+      ><a name="671"
+      > </a
+      ><a name="672" class="Symbol"
+      >&#8594;</a
+      ><a name="673"
+      > </a
+      ><a name="674" href="MonadPlusProps.html#243" class="Bound"
+      >zero</a
+      ><a name="678"
+      > </a
+      ><a name="679" class="Symbol"
+      >{</a
+      ><a name="680" href="MonadPlusProps.html#636" class="Bound"
+      >B</a
+      ><a name="681" class="Symbol"
+      >})</a
+      ><a name="683"
+      > </a
+      ><a name="684" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="685"
+      > </a
+      ><a name="686" href="MonadPlusProps.html#243" class="Bound"
+      >zero</a
+      ><a name="690"
+      > </a
+      ><a name="691" class="Symbol"
+      >{</a
+      ><a name="692" href="MonadPlusProps.html#636" class="Bound"
+      >B</a
+      ><a name="693" class="Symbol"
+      >})</a
+      ><a name="695"
+      >
+
+       </a
+      ><a name="704" class="Symbol"
+      >(</a
+      ><a name="705" href="MonadPlusProps.html#705" class="Bound"
+      >6thLaw</a
+      ><a name="711"
+      > </a
+      ><a name="712" class="Symbol"
+      >:</a
+      ><a name="713"
+      > </a
+      ><a name="714" class="Symbol"
+      >{</a
+      ><a name="715" href="MonadPlusProps.html#715" class="Bound"
+      >A</a
+      ><a name="716"
+      > </a
+      ><a name="717" class="Symbol"
+      >:</a
+      ><a name="718"
+      > </a
+      ><a name="719" class="PrimitiveType"
+      >Set</a
+      ><a name="722" class="Symbol"
+      >}</a
+      ><a name="723"
+      > </a
+      ><a name="724" class="Symbol"
+      >&#8594;</a
+      ><a name="725"
+      > </a
+      ><a name="726" class="Symbol"
+      >{</a
+      ><a name="727" href="MonadPlusProps.html#727" class="Bound"
+      >ma</a
+      ><a name="729"
+      > </a
+      ><a name="730" class="Symbol"
+      >:</a
+      ><a name="731"
+      > </a
+      ><a name="732" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="733"
+      > </a
+      ><a name="734" href="MonadPlusProps.html#715" class="Bound"
+      >A</a
+      ><a name="735" class="Symbol"
+      >}</a
+      ><a name="736"
+      > </a
+      ><a name="737" class="Symbol"
+      >&#8594;</a
+      ><a name="738"
+      > </a
+      ><a name="739" href="MonadPlusProps.html#197" class="Bound"
+      >plus</a
+      ><a name="743"
+      > </a
+      ><a name="744" href="MonadPlusProps.html#243" class="Bound"
+      >zero</a
+      ><a name="748"
+      > </a
+      ><a name="749" href="MonadPlusProps.html#727" class="Bound"
+      >ma</a
+      ><a name="751"
+      > </a
+      ><a name="752" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="753"
+      > </a
+      ><a name="754" href="MonadPlusProps.html#727" class="Bound"
+      >ma</a
+      ><a name="756" class="Symbol"
+      >)</a
+      ><a name="757"
+      >
+       </a
+      ><a name="765" class="Symbol"
+      >(</a
+      ><a name="766" href="MonadPlusProps.html#766" class="Bound"
+      >7thLaw</a
+      ><a name="772"
+      > </a
+      ><a name="773" class="Symbol"
+      >:</a
+      ><a name="774"
+      > </a
+      ><a name="775" class="Symbol"
+      >{</a
+      ><a name="776" href="MonadPlusProps.html#776" class="Bound"
+      >A</a
+      ><a name="777"
+      > </a
+      ><a name="778" class="Symbol"
+      >:</a
+      ><a name="779"
+      > </a
+      ><a name="780" class="PrimitiveType"
+      >Set</a
+      ><a name="783" class="Symbol"
+      >}</a
+      ><a name="784"
+      > </a
+      ><a name="785" class="Symbol"
+      >&#8594;</a
+      ><a name="786"
+      > </a
+      ><a name="787" class="Symbol"
+      >{</a
+      ><a name="788" href="MonadPlusProps.html#788" class="Bound"
+      >ma</a
+      ><a name="790"
+      > </a
+      ><a name="791" class="Symbol"
+      >:</a
+      ><a name="792"
+      > </a
+      ><a name="793" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="794"
+      > </a
+      ><a name="795" href="MonadPlusProps.html#776" class="Bound"
+      >A</a
+      ><a name="796" class="Symbol"
+      >}</a
+      ><a name="797"
+      > </a
+      ><a name="798" class="Symbol"
+      >&#8594;</a
+      ><a name="799"
+      > </a
+      ><a name="800" href="MonadPlusProps.html#197" class="Bound"
+      >plus</a
+      ><a name="804"
+      > </a
+      ><a name="805" href="MonadPlusProps.html#788" class="Bound"
+      >ma</a
+      ><a name="807"
+      > </a
+      ><a name="808" href="MonadPlusProps.html#243" class="Bound"
+      >zero</a
+      ><a name="812"
+      > </a
+      ><a name="813" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="814"
+      > </a
+      ><a name="815" href="MonadPlusProps.html#788" class="Bound"
+      >ma</a
+      ><a name="817" class="Symbol"
+      >)</a
+      ><a name="818"
+      >
+
+</a
+      ><a name="820" class="Keyword"
+      >where</a
+      ><a name="825"
+      >
+
+</a
+      ><a name="827" class="Keyword"
+      >import</a
+      ><a name="833"
+      > </a
+      ><a name="834" href="MonadPlus.html#99" class="Module"
+      >MonadPlus</a
+      ><a name="843"
+      >
+</a
+      ><a name="844" class="Keyword"
+      >open</a
+      ><a name="848"
+      > </a
+      ><a name="849" href="MonadPlus.html#99" class="Module"
+      >MonadPlus</a
+      ><a name="858"
+      > </a
+      ><a name="859" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="860"
+      > </a
+      ><a name="861" href="MonadPlusProps.html#105" class="Bound Operator"
+      >_&gt;&gt;=_</a
+      ><a name="866"
+      > </a
+      ><a name="867" href="MonadPlusProps.html#159" class="Bound"
+      >return</a
+      ><a name="873"
+      > </a
+      ><a name="874" href="MonadPlusProps.html#197" class="Bound"
+      >plus</a
+      ><a name="878"
+      > </a
+      ><a name="879" href="MonadPlusProps.html#243" class="Bound"
+      >zero</a
+      ><a name="883"
+      >
+
+</a
+      ><a name="885" class="Keyword"
+      >import</a
+      ><a name="891"
+      > </a
+      ><a name="892" href="MonadProps.html#88" class="Module"
+      >MonadProps</a
+      ><a name="902"
+      >
+</a
+      ><a name="903" class="Keyword"
+      >open</a
+      ><a name="907"
+      > </a
+      ><a name="908" href="MonadProps.html#88" class="Module"
+      >MonadProps</a
+      ><a name="918"
+      > </a
+      ><a name="919" href="MonadPlusProps.html#81" class="Bound"
+      >M</a
+      ><a name="920"
+      > </a
+      ><a name="921" href="MonadPlusProps.html#105" class="Bound Operator"
+      >_&gt;&gt;=_</a
+      ><a name="926"
+      > </a
+      ><a name="927" href="MonadPlusProps.html#159" class="Bound"
+      >return</a
+      ><a name="933"
+      > </a
+      ><a name="934" href="MonadPlusProps.html#293" class="Bound"
+      >1stLaw</a
+      ><a name="940"
+      > </a
+      ><a name="941" href="MonadPlusProps.html#372" class="Bound"
+      >2ndLaw</a
+      ><a name="947"
+      > </a
+      ><a name="948" href="MonadPlusProps.html#434" class="Bound"
+      >3rdLaw</a
+      ><a name="954"
+      > </a
+      ><a name="955" class="Keyword"
+      >public</a
+      ><a name="961"
+      >
+</a
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,548 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >Equational</title
+    ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta http-equiv="Content-Style-Type" content="text/css"
+     /><link href="Agda.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><pre
+    ><a name="1" class="Symbol"
+      >{-#</a
+      ><a name="4"
+      > </a
+      ><a name="5" class="Keyword"
+      >OPTIONS</a
+      ><a name="12"
+      > --type-in-type
+    </a
+      ><a name="32" class="Symbol"
+      >#-}</a
+      ><a name="35"
+      >
+
+</a
+      ><a name="37" class="Keyword"
+      >open</a
+      ><a name="41"
+      > </a
+      ><a name="42" class="Keyword"
+      >import</a
+      ><a name="48"
+      > </a
+      ><a name="49" href="NeilPrelude.html#77" class="Module"
+      >NeilPrelude</a
+      ><a name="60"
+      >
+
+</a
+      ><a name="62" class="Keyword"
+      >module</a
+      ><a name="68"
+      > </a
+      ><a name="69" href="Equational.html#69" class="Module"
+      >Equational</a
+      ><a name="79"
+      > </a
+      ><a name="80" class="Keyword"
+      >where</a
+      ><a name="85"
+      >
+
+
+</a
+      ><a name="88" class="Keyword"
+      >infixr</a
+      ><a name="94"
+      > </a
+      ><a name="95" class="Number"
+      >1</a
+      ><a name="96"
+      > _&#8801;&#10216;_&#10217;_
+</a
+      ><a name="104" class="Keyword"
+      >infix</a
+      ><a name="109"
+      >  </a
+      ><a name="111" class="Number"
+      >2</a
+      ><a name="112"
+      > _QED
+
+</a
+      ><a name="119" href="Equational.html#119" class="Function Operator"
+      >_&#8801;&#10216;_&#10217;_</a
+      ><a name="125"
+      > </a
+      ><a name="126" class="Symbol"
+      >:</a
+      ><a name="127"
+      > </a
+      ><a name="128" class="Symbol"
+      >{</a
+      ><a name="129" href="Equational.html#129" class="Bound"
+      >A</a
+      ><a name="130"
+      > </a
+      ><a name="131" class="Symbol"
+      >:</a
+      ><a name="132"
+      > </a
+      ><a name="133" class="PrimitiveType"
+      >Set</a
+      ><a name="136" class="Symbol"
+      >}</a
+      ><a name="137"
+      > </a
+      ><a name="138" class="Symbol"
+      >&#8594;</a
+      ><a name="139"
+      > </a
+      ><a name="140" class="Symbol"
+      >{</a
+      ><a name="141" href="Equational.html#141" class="Bound"
+      >b</a
+      ><a name="142"
+      > </a
+      ><a name="143" href="Equational.html#143" class="Bound"
+      >c</a
+      ><a name="144"
+      > </a
+      ><a name="145" class="Symbol"
+      >:</a
+      ><a name="146"
+      > </a
+      ><a name="147" href="Equational.html#129" class="Bound"
+      >A</a
+      ><a name="148" class="Symbol"
+      >}</a
+      ><a name="149"
+      > </a
+      ><a name="150" class="Symbol"
+      >&#8594;</a
+      ><a name="151"
+      > </a
+      ><a name="152" class="Symbol"
+      >(</a
+      ><a name="153" href="Equational.html#153" class="Bound"
+      >a</a
+      ><a name="154"
+      > </a
+      ><a name="155" class="Symbol"
+      >:</a
+      ><a name="156"
+      > </a
+      ><a name="157" href="Equational.html#129" class="Bound"
+      >A</a
+      ><a name="158" class="Symbol"
+      >)</a
+      ><a name="159"
+      > </a
+      ><a name="160" class="Symbol"
+      >&#8594;</a
+      ><a name="161"
+      > </a
+      ><a name="162" href="Equational.html#153" class="Bound"
+      >a</a
+      ><a name="163"
+      > </a
+      ><a name="164" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="165"
+      > </a
+      ><a name="166" href="Equational.html#141" class="Bound"
+      >b</a
+      ><a name="167"
+      > </a
+      ><a name="168" class="Symbol"
+      >&#8594;</a
+      ><a name="169"
+      > </a
+      ><a name="170" href="Equational.html#141" class="Bound"
+      >b</a
+      ><a name="171"
+      > </a
+      ><a name="172" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="173"
+      > </a
+      ><a name="174" href="Equational.html#143" class="Bound"
+      >c</a
+      ><a name="175"
+      > </a
+      ><a name="176" class="Symbol"
+      >&#8594;</a
+      ><a name="177"
+      > </a
+      ><a name="178" href="Equational.html#153" class="Bound"
+      >a</a
+      ><a name="179"
+      > </a
+      ><a name="180" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="181"
+      > </a
+      ><a name="182" href="Equational.html#143" class="Bound"
+      >c</a
+      ><a name="183"
+      >
+</a
+      ><a name="184" class="Symbol"
+      >_</a
+      ><a name="185"
+      > </a
+      ><a name="186" href="Equational.html#119" class="Function Operator"
+      >&#8801;&#10216;</a
+      ><a name="188"
+      > </a
+      ><a name="189" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="193"
+      > </a
+      ><a name="194" href="Equational.html#119" class="Function Operator"
+      >&#10217;</a
+      ><a name="195"
+      > </a
+      ><a name="196" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="200"
+      > </a
+      ><a name="201" class="Symbol"
+      >=</a
+      ><a name="202"
+      > </a
+      ><a name="203" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="207"
+      >
+
+</a
+      ><a name="209" href="Equational.html#209" class="Function Operator"
+      >_QED</a
+      ><a name="213"
+      > </a
+      ><a name="214" class="Symbol"
+      >:</a
+      ><a name="215"
+      > </a
+      ><a name="216" class="Symbol"
+      >{</a
+      ><a name="217" href="Equational.html#217" class="Bound"
+      >A</a
+      ><a name="218"
+      > </a
+      ><a name="219" class="Symbol"
+      >:</a
+      ><a name="220"
+      > </a
+      ><a name="221" class="PrimitiveType"
+      >Set</a
+      ><a name="224" class="Symbol"
+      >}</a
+      ><a name="225"
+      > </a
+      ><a name="226" class="Symbol"
+      >&#8594;</a
+      ><a name="227"
+      > </a
+      ><a name="228" class="Symbol"
+      >(</a
+      ><a name="229" href="Equational.html#229" class="Bound"
+      >a</a
+      ><a name="230"
+      > </a
+      ><a name="231" class="Symbol"
+      >:</a
+      ><a name="232"
+      > </a
+      ><a name="233" href="Equational.html#217" class="Bound"
+      >A</a
+      ><a name="234" class="Symbol"
+      >)</a
+      ><a name="235"
+      > </a
+      ><a name="236" class="Symbol"
+      >&#8594;</a
+      ><a name="237"
+      > </a
+      ><a name="238" href="Equational.html#229" class="Bound"
+      >a</a
+      ><a name="239"
+      > </a
+      ><a name="240" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="241"
+      > </a
+      ><a name="242" href="Equational.html#229" class="Bound"
+      >a</a
+      ><a name="243"
+      >
+</a
+      ><a name="244" class="Symbol"
+      >_</a
+      ><a name="245"
+      > </a
+      ><a name="246" href="Equational.html#209" class="Function Operator"
+      >QED</a
+      ><a name="249"
+      > </a
+      ><a name="250" class="Symbol"
+      >=</a
+      ><a name="251"
+      > </a
+      ><a name="252" href="NeilPrelude.html#1432" class="InductiveConstructor"
+      >refl</a
+      ><a name="256"
+      >
+
+</a
+      ><a name="258" class="Keyword"
+      >open</a
+      ><a name="262"
+      > </a
+      ><a name="263" class="Keyword"
+      >import</a
+      ><a name="269"
+      > </a
+      ><a name="270" href="NatProps.html#107" class="Module"
+      >NatProps</a
+      ><a name="278"
+      >
+</a
+      ><a name="279" class="Keyword"
+      >open</a
+      ><a name="283"
+      > </a
+      ><a name="284" class="Keyword"
+      >import</a
+      ><a name="290"
+      > </a
+      ><a name="291" href="Nat.html#65" class="Module"
+      >Nat</a
+      ><a name="294"
+      >
+
+</a
+      ><a name="296" href="Equational.html#296" class="Function"
+      >exampleLem1</a
+      ><a name="307"
+      > </a
+      ><a name="308" class="Symbol"
+      >:</a
+      ><a name="309"
+      > </a
+      ><a name="310" class="Symbol"
+      >(</a
+      ><a name="311" href="Equational.html#311" class="Bound"
+      >n</a
+      ><a name="312"
+      > </a
+      ><a name="313" class="Symbol"
+      >:</a
+      ><a name="314"
+      > </a
+      ><a name="315" href="Nat.html#129" class="Datatype"
+      >&#8469;</a
+      ><a name="316" class="Symbol"
+      >)</a
+      ><a name="317"
+      > </a
+      ><a name="318" class="Symbol"
+      >&#8594;</a
+      ><a name="319"
+      > </a
+      ><a name="320" class="Symbol"
+      >(</a
+      ><a name="321" href="Equational.html#311" class="Bound"
+      >n</a
+      ><a name="322"
+      > </a
+      ><a name="323" href="Nat.html#402" class="Primitive Operator"
+      >+</a
+      ><a name="324"
+      > </a
+      ><a name="325" href="Nat.html#145" class="InductiveConstructor"
+      >O</a
+      ><a name="326" class="Symbol"
+      >)</a
+      ><a name="327"
+      > </a
+      ><a name="328" href="Nat.html#402" class="Primitive Operator"
+      >+</a
+      ><a name="329"
+      > </a
+      ><a name="330" href="Equational.html#311" class="Bound"
+      >n</a
+      ><a name="331"
+      > </a
+      ><a name="332" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="333"
+      > </a
+      ><a name="334" class="Symbol"
+      >(</a
+      ><a name="335" href="Equational.html#311" class="Bound"
+      >n</a
+      ><a name="336"
+      > </a
+      ><a name="337" href="Nat.html#402" class="Primitive Operator"
+      >+</a
+      ><a name="338"
+      > </a
+      ><a name="339" href="Equational.html#311" class="Bound"
+      >n</a
+      ><a name="340" class="Symbol"
+      >)</a
+      ><a name="341"
+      > </a
+      ><a name="342" href="Nat.html#402" class="Primitive Operator"
+      >+</a
+      ><a name="343"
+      > </a
+      ><a name="344" href="Nat.html#145" class="InductiveConstructor"
+      >O</a
+      ><a name="345"
+      >
+</a
+      ><a name="346" href="Equational.html#296" class="Function"
+      >exampleLem1</a
+      ><a name="357"
+      > </a
+      ><a name="358" href="Equational.html#358" class="Bound"
+      >n</a
+      ><a name="359"
+      > </a
+      ><a name="360" class="Symbol"
+      >=</a
+      ><a name="361"
+      >  </a
+      ><a name="363" href="Equational.html#358" class="Bound"
+      >n</a
+      ><a name="364"
+      > </a
+      ><a name="365" href="Nat.html#402" class="Primitive Operator"
+      >+</a
+      ><a name="366"
+      > </a
+      ><a name="367" href="Nat.html#145" class="InductiveConstructor"
+      >O</a
+      ><a name="368"
+      > </a
+      ><a name="369" href="Nat.html#402" class="Primitive Operator"
+      >+</a
+      ><a name="370"
+      > </a
+      ><a name="371" href="Equational.html#358" class="Bound"
+      >n</a
+      ><a name="372"
+      >
+                    </a
+      ><a name="393" href="Equational.html#119" class="Function Operator"
+      >&#8801;&#10216;</a
+      ><a name="395"
+      > </a
+      ><a name="396" href="CommSemiGroup.html#240" class="Function"
+      >comm</a
+      ><a name="400"
+      > </a
+      ><a name="401" class="Symbol"
+      >{</a
+      ><a name="402" href="Equational.html#358" class="Bound"
+      >n</a
+      ><a name="403"
+      > </a
+      ><a name="404" href="Nat.html#402" class="Primitive Operator"
+      >+</a
+      ><a name="405"
+      > </a
+      ><a name="406" href="Nat.html#145" class="InductiveConstructor"
+      >O</a
+      ><a name="407" class="Symbol"
+      >}</a
+      ><a name="408" href="Equational.html#119" class="Function Operator"
+      >&#10217;</a
+      ><a name="409"
+      >
+                 </a
+      ><a name="427" href="Equational.html#358" class="Bound"
+      >n</a
+      ><a name="428"
+      > </a
+      ><a name="429" href="Nat.html#402" class="Primitive Operator"
+      >+</a
+      ><a name="430"
+      > </a
+      ><a name="431" class="Symbol"
+      >(</a
+      ><a name="432" href="Equational.html#358" class="Bound"
+      >n</a
+      ><a name="433"
+      > </a
+      ><a name="434" href="Nat.html#402" class="Primitive Operator"
+      >+</a
+      ><a name="435"
+      > </a
+      ><a name="436" href="Nat.html#145" class="InductiveConstructor"
+      >O</a
+      ><a name="437" class="Symbol"
+      >)</a
+      ><a name="438"
+      >
+                    </a
+      ><a name="459" href="Equational.html#119" class="Function Operator"
+      >&#8801;&#10216;</a
+      ><a name="461"
+      > </a
+      ><a name="462" href="SemiGroup.html#218" class="Function"
+      >assocR</a
+      ><a name="468"
+      > </a
+      ><a name="469" class="Symbol"
+      >{</a
+      ><a name="470" href="Equational.html#358" class="Bound"
+      >n</a
+      ><a name="471" class="Symbol"
+      >}</a
+      ><a name="472"
+      > </a
+      ><a name="473" href="Equational.html#119" class="Function Operator"
+      >&#10217;</a
+      ><a name="474"
+      >
+                 </a
+      ><a name="492" class="Symbol"
+      >(</a
+      ><a name="493" href="Equational.html#358" class="Bound"
+      >n</a
+      ><a name="494"
+      > </a
+      ><a name="495" href="Nat.html#402" class="Primitive Operator"
+      >+</a
+      ><a name="496"
+      > </a
+      ><a name="497" href="Equational.html#358" class="Bound"
+      >n</a
+      ><a name="498" class="Symbol"
+      >)</a
+      ><a name="499"
+      > </a
+      ><a name="500" href="Nat.html#402" class="Primitive Operator"
+      >+</a
+      ><a name="501"
+      > </a
+      ><a name="502" href="Nat.html#145" class="InductiveConstructor"
+      >O</a
+      ><a name="503"
+      > 
+               </a
+      ><a name="520" href="Equational.html#209" class="Function Operator"
+      >QED</a
+      ><a name="523"
+      >
+</a
+      ></pre
+    ></body
+  ></html
+>

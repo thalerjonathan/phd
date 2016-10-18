@@ -1,0 +1,2832 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >CFRP</title
+    ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta http-equiv="Content-Style-Type" content="text/css"
+     /><link href="Agda.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><pre
+    ><a name="1" class="Symbol"
+      >{-#</a
+      ><a name="4"
+      > </a
+      ><a name="5" class="Keyword"
+      >OPTIONS</a
+      ><a name="12"
+      > --type-in-type --no-termination-check </a
+      ><a name="51" class="Symbol"
+      >#-}</a
+      ><a name="54"
+      >
+
+</a
+      ><a name="56" class="Keyword"
+      >module</a
+      ><a name="62"
+      > </a
+      ><a name="63" href="CFRP.html#63" class="Module"
+      >CFRP</a
+      ><a name="67"
+      > </a
+      ><a name="68" class="Keyword"
+      >where</a
+      ><a name="73"
+      >
+
+</a
+      ><a name="75" class="Keyword"
+      >open</a
+      ><a name="79"
+      > </a
+      ><a name="80" class="Keyword"
+      >import</a
+      ><a name="86"
+      > </a
+      ><a name="87" href="NeilPrelude.html#77" class="Module"
+      >NeilPrelude</a
+      ><a name="98"
+      >
+</a
+      ><a name="99" class="Keyword"
+      >open</a
+      ><a name="103"
+      > </a
+      ><a name="104" class="Keyword"
+      >import</a
+      ><a name="110"
+      > </a
+      ><a name="111" href="List.html#82" class="Module"
+      >List</a
+      ><a name="115"
+      >
+</a
+      ><a name="116" class="Keyword"
+      >open</a
+      ><a name="120"
+      > </a
+      ><a name="121" class="Keyword"
+      >import</a
+      ><a name="127"
+      > </a
+      ><a name="128" href="RealTime.html#66" class="Module"
+      >RealTime</a
+      ><a name="136"
+      > </a
+      ><a name="137" class="Keyword"
+      >renaming</a
+      ><a name="145"
+      > </a
+      ><a name="146" class="Symbol"
+      >(</a
+      ><a name="147"
+      >_&#8320;&gt;=&#8320;_ </a
+      ><a name="154" class="Symbol"
+      >to</a
+      ><a name="156"
+      > _&gt;=_ </a
+      ><a name="162" class="Symbol"
+      >;</a
+      ><a name="163"
+      > _&#8320;&gt;&#8320;_ </a
+      ><a name="170" class="Symbol"
+      >to</a
+      ><a name="172"
+      > _&gt;_</a
+      ><a name="176" class="Symbol"
+      >)</a
+      ><a name="177"
+      >
+</a
+      ><a name="178" class="Keyword"
+      >open</a
+      ><a name="182"
+      > </a
+      ><a name="183" class="Keyword"
+      >import</a
+      ><a name="189"
+      > </a
+      ><a name="190" href="Real.html#86" class="Module"
+      >Real</a
+      ><a name="194"
+      > </a
+      ><a name="195" class="Keyword"
+      >hiding</a
+      ><a name="201"
+      > </a
+      ><a name="202" class="Symbol"
+      >(</a
+      ><a name="203"
+      >_&gt;=_</a
+      ><a name="207" class="Symbol"
+      >)</a
+      ><a name="208"
+      >
+
+</a
+      ><a name="210" class="Comment"
+      >------------------------------------------</a
+      ><a name="252"
+      >
+
+</a
+      ><a name="254" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="263"
+      > </a
+      ><a name="264" class="Symbol"
+      >:</a
+      ><a name="265"
+      > </a
+      ><a name="266" class="PrimitiveType"
+      >Set</a
+      ><a name="269"
+      > </a
+      ><a name="270" class="Symbol"
+      >&#8594;</a
+      ><a name="271"
+      > </a
+      ><a name="272" class="PrimitiveType"
+      >Set</a
+      ><a name="275"
+      >
+</a
+      ><a name="276" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="285"
+      > </a
+      ><a name="286" href="CFRP.html#286" class="Bound"
+      >A</a
+      ><a name="287"
+      > </a
+      ><a name="288" class="Symbol"
+      >=</a
+      ><a name="289"
+      > </a
+      ><a name="290" href="RealTime.html#309" class="Function"
+      >StartTime</a
+      ><a name="299"
+      > </a
+      ><a name="300" class="Symbol"
+      >&#8594;</a
+      ><a name="301"
+      > </a
+      ><a name="302" href="RealTime.html#286" class="Function"
+      >SampleTime</a
+      ><a name="312"
+      > </a
+      ><a name="313" class="Symbol"
+      >&#8594;</a
+      ><a name="314"
+      > </a
+      ><a name="315" href="CFRP.html#286" class="Bound"
+      >A</a
+      ><a name="316"
+      >
+
+</a
+      ><a name="318" href="CFRP.html#318" class="Function"
+      >Event</a
+      ><a name="323"
+      > </a
+      ><a name="324" class="Symbol"
+      >:</a
+      ><a name="325"
+      > </a
+      ><a name="326" class="PrimitiveType"
+      >Set</a
+      ><a name="329"
+      > </a
+      ><a name="330" class="Symbol"
+      >&#8594;</a
+      ><a name="331"
+      > </a
+      ><a name="332" class="PrimitiveType"
+      >Set</a
+      ><a name="335"
+      >
+</a
+      ><a name="336" href="CFRP.html#318" class="Function"
+      >Event</a
+      ><a name="341"
+      > </a
+      ><a name="342" href="CFRP.html#342" class="Bound"
+      >A</a
+      ><a name="343"
+      > </a
+      ><a name="344" class="Symbol"
+      >=</a
+      ><a name="345"
+      > </a
+      ><a name="346" href="RealTime.html#309" class="Function"
+      >StartTime</a
+      ><a name="355"
+      > </a
+      ><a name="356" class="Symbol"
+      >&#8594;</a
+      ><a name="357"
+      > </a
+      ><a name="358" href="RealTime.html#286" class="Function"
+      >SampleTime</a
+      ><a name="368"
+      > </a
+      ><a name="369" class="Symbol"
+      >&#8594;</a
+      ><a name="370"
+      > </a
+      ><a name="371" href="List.html#129" class="Datatype"
+      >List</a
+      ><a name="375"
+      > </a
+      ><a name="376" class="Symbol"
+      >(</a
+      ><a name="377" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="381"
+      > </a
+      ><a name="382" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="383"
+      > </a
+      ><a name="384" href="CFRP.html#342" class="Bound"
+      >A</a
+      ><a name="385" class="Symbol"
+      >)</a
+      ><a name="386"
+      >
+
+</a
+      ><a name="388" class="Comment"
+      >------------------------------------------</a
+      ><a name="430"
+      >
+
+</a
+      ><a name="432" href="CFRP.html#432" class="Function"
+      >constant</a
+      ><a name="440"
+      > </a
+      ><a name="441" class="Symbol"
+      >:</a
+      ><a name="442"
+      > </a
+      ><a name="443" class="Symbol"
+      >{</a
+      ><a name="444" href="CFRP.html#444" class="Bound"
+      >A</a
+      ><a name="445"
+      > </a
+      ><a name="446" class="Symbol"
+      >:</a
+      ><a name="447"
+      > </a
+      ><a name="448" class="PrimitiveType"
+      >Set</a
+      ><a name="451" class="Symbol"
+      >}</a
+      ><a name="452"
+      > </a
+      ><a name="453" class="Symbol"
+      >&#8594;</a
+      ><a name="454"
+      > </a
+      ><a name="455" href="CFRP.html#444" class="Bound"
+      >A</a
+      ><a name="456"
+      > </a
+      ><a name="457" class="Symbol"
+      >&#8594;</a
+      ><a name="458"
+      > </a
+      ><a name="459" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="468"
+      > </a
+      ><a name="469" href="CFRP.html#444" class="Bound"
+      >A</a
+      ><a name="470"
+      >
+</a
+      ><a name="471" href="CFRP.html#432" class="Function"
+      >constant</a
+      ><a name="479"
+      > </a
+      ><a name="480" href="CFRP.html#480" class="Bound"
+      >a</a
+      ><a name="481"
+      > </a
+      ><a name="482" class="Symbol"
+      >=</a
+      ><a name="483"
+      > </a
+      ><a name="484" class="Symbol"
+      >&#955;</a
+      ><a name="485"
+      > </a
+      ><a name="486" href="CFRP.html#486" class="Bound"
+      >t&#8320;</a
+      ><a name="488"
+      > </a
+      ><a name="489" href="CFRP.html#489" class="Bound"
+      >t&#8321;</a
+      ><a name="491"
+      > </a
+      ><a name="492" class="Symbol"
+      >&#8594;</a
+      ><a name="493"
+      > </a
+      ><a name="494" href="CFRP.html#480" class="Bound"
+      >a</a
+      ><a name="495"
+      >  
+
+</a
+      ><a name="499" class="Comment"
+      >-- liftE : {A B : Set} &#8594; (A &#8594; B) &#8594; Event A &#8594; Event B</a
+      ><a name="551"
+      >
+</a
+      ><a name="552" class="Comment"
+      >-- liftE f ev = (result2 &#8728; map &#8728; second) f ev </a
+      ><a name="598"
+      >
+
+</a
+      ><a name="600" href="CFRP.html#600" class="Function"
+      >liftB</a
+      ><a name="605"
+      > </a
+      ><a name="606" class="Symbol"
+      >:</a
+      ><a name="607"
+      > </a
+      ><a name="608" class="Symbol"
+      >{</a
+      ><a name="609" href="CFRP.html#609" class="Bound"
+      >A</a
+      ><a name="610"
+      > </a
+      ><a name="611" href="CFRP.html#611" class="Bound"
+      >B</a
+      ><a name="612"
+      > </a
+      ><a name="613" class="Symbol"
+      >:</a
+      ><a name="614"
+      > </a
+      ><a name="615" class="PrimitiveType"
+      >Set</a
+      ><a name="618" class="Symbol"
+      >}</a
+      ><a name="619"
+      > </a
+      ><a name="620" class="Symbol"
+      >&#8594;</a
+      ><a name="621"
+      > </a
+      ><a name="622" class="Symbol"
+      >(</a
+      ><a name="623" href="CFRP.html#609" class="Bound"
+      >A</a
+      ><a name="624"
+      > </a
+      ><a name="625" class="Symbol"
+      >&#8594;</a
+      ><a name="626"
+      > </a
+      ><a name="627" href="CFRP.html#611" class="Bound"
+      >B</a
+      ><a name="628" class="Symbol"
+      >)</a
+      ><a name="629"
+      > </a
+      ><a name="630" class="Symbol"
+      >&#8594;</a
+      ><a name="631"
+      > </a
+      ><a name="632" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="641"
+      > </a
+      ><a name="642" href="CFRP.html#609" class="Bound"
+      >A</a
+      ><a name="643"
+      > </a
+      ><a name="644" class="Symbol"
+      >&#8594;</a
+      ><a name="645"
+      > </a
+      ><a name="646" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="655"
+      > </a
+      ><a name="656" href="CFRP.html#611" class="Bound"
+      >B</a
+      ><a name="657"
+      >
+</a
+      ><a name="658" href="CFRP.html#600" class="Function"
+      >liftB</a
+      ><a name="663"
+      > </a
+      ><a name="664" href="CFRP.html#664" class="Bound"
+      >f</a
+      ><a name="665"
+      > </a
+      ><a name="666" href="CFRP.html#666" class="Bound"
+      >beh</a
+      ><a name="669"
+      > </a
+      ><a name="670" class="Symbol"
+      >=</a
+      ><a name="671"
+      > </a
+      ><a name="672" class="Symbol"
+      >&#955;</a
+      ><a name="673"
+      > </a
+      ><a name="674" href="CFRP.html#674" class="Bound"
+      >t&#8320;</a
+      ><a name="676"
+      > </a
+      ><a name="677" href="CFRP.html#677" class="Bound"
+      >t&#8321;</a
+      ><a name="679"
+      > </a
+      ><a name="680" class="Symbol"
+      >&#8594;</a
+      ><a name="681"
+      > </a
+      ><a name="682" href="CFRP.html#664" class="Bound"
+      >f</a
+      ><a name="683"
+      > </a
+      ><a name="684" class="Symbol"
+      >(</a
+      ><a name="685" href="CFRP.html#666" class="Bound"
+      >beh</a
+      ><a name="688"
+      > </a
+      ><a name="689" href="CFRP.html#674" class="Bound"
+      >t&#8320;</a
+      ><a name="691"
+      > </a
+      ><a name="692" href="CFRP.html#677" class="Bound"
+      >t&#8321;</a
+      ><a name="694" class="Symbol"
+      >)</a
+      ><a name="695"
+      >
+
+</a
+      ><a name="697" href="CFRP.html#697" class="Function"
+      >liftB2</a
+      ><a name="703"
+      > </a
+      ><a name="704" class="Symbol"
+      >:</a
+      ><a name="705"
+      > </a
+      ><a name="706" class="Symbol"
+      >{</a
+      ><a name="707" href="CFRP.html#707" class="Bound"
+      >A</a
+      ><a name="708"
+      > </a
+      ><a name="709" href="CFRP.html#709" class="Bound"
+      >B</a
+      ><a name="710"
+      > </a
+      ><a name="711" href="CFRP.html#711" class="Bound"
+      >C</a
+      ><a name="712"
+      > </a
+      ><a name="713" class="Symbol"
+      >:</a
+      ><a name="714"
+      > </a
+      ><a name="715" class="PrimitiveType"
+      >Set</a
+      ><a name="718" class="Symbol"
+      >}</a
+      ><a name="719"
+      > </a
+      ><a name="720" class="Symbol"
+      >&#8594;</a
+      ><a name="721"
+      > </a
+      ><a name="722" class="Symbol"
+      >(</a
+      ><a name="723" href="CFRP.html#707" class="Bound"
+      >A</a
+      ><a name="724"
+      > </a
+      ><a name="725" class="Symbol"
+      >&#8594;</a
+      ><a name="726"
+      > </a
+      ><a name="727" href="CFRP.html#709" class="Bound"
+      >B</a
+      ><a name="728"
+      > </a
+      ><a name="729" class="Symbol"
+      >&#8594;</a
+      ><a name="730"
+      > </a
+      ><a name="731" href="CFRP.html#711" class="Bound"
+      >C</a
+      ><a name="732" class="Symbol"
+      >)</a
+      ><a name="733"
+      > </a
+      ><a name="734" class="Symbol"
+      >&#8594;</a
+      ><a name="735"
+      > </a
+      ><a name="736" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="745"
+      > </a
+      ><a name="746" href="CFRP.html#707" class="Bound"
+      >A</a
+      ><a name="747"
+      > </a
+      ><a name="748" class="Symbol"
+      >&#8594;</a
+      ><a name="749"
+      > </a
+      ><a name="750" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="759"
+      > </a
+      ><a name="760" href="CFRP.html#709" class="Bound"
+      >B</a
+      ><a name="761"
+      > </a
+      ><a name="762" class="Symbol"
+      >&#8594;</a
+      ><a name="763"
+      > </a
+      ><a name="764" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="773"
+      > </a
+      ><a name="774" href="CFRP.html#711" class="Bound"
+      >C</a
+      ><a name="775"
+      >
+</a
+      ><a name="776" href="CFRP.html#697" class="Function"
+      >liftB2</a
+      ><a name="782"
+      > </a
+      ><a name="783" href="CFRP.html#783" class="Bound"
+      >f</a
+      ><a name="784"
+      > </a
+      ><a name="785" href="CFRP.html#785" class="Bound"
+      >beh&#8321;</a
+      ><a name="789"
+      > </a
+      ><a name="790" href="CFRP.html#790" class="Bound"
+      >beh&#8322;</a
+      ><a name="794"
+      > </a
+      ><a name="795" class="Symbol"
+      >=</a
+      ><a name="796"
+      > </a
+      ><a name="797" class="Symbol"
+      >&#955;</a
+      ><a name="798"
+      > </a
+      ><a name="799" href="CFRP.html#799" class="Bound"
+      >t&#8320;</a
+      ><a name="801"
+      > </a
+      ><a name="802" href="CFRP.html#802" class="Bound"
+      >t&#8321;</a
+      ><a name="804"
+      > </a
+      ><a name="805" class="Symbol"
+      >&#8594;</a
+      ><a name="806"
+      > </a
+      ><a name="807" href="CFRP.html#783" class="Bound"
+      >f</a
+      ><a name="808"
+      > </a
+      ><a name="809" class="Symbol"
+      >(</a
+      ><a name="810" href="CFRP.html#785" class="Bound"
+      >beh&#8321;</a
+      ><a name="814"
+      > </a
+      ><a name="815" href="CFRP.html#799" class="Bound"
+      >t&#8320;</a
+      ><a name="817"
+      > </a
+      ><a name="818" href="CFRP.html#802" class="Bound"
+      >t&#8321;</a
+      ><a name="820" class="Symbol"
+      >)</a
+      ><a name="821"
+      > </a
+      ><a name="822" class="Symbol"
+      >(</a
+      ><a name="823" href="CFRP.html#790" class="Bound"
+      >beh&#8322;</a
+      ><a name="827"
+      > </a
+      ><a name="828" href="CFRP.html#799" class="Bound"
+      >t&#8320;</a
+      ><a name="830"
+      > </a
+      ><a name="831" href="CFRP.html#802" class="Bound"
+      >t&#8321;</a
+      ><a name="833" class="Symbol"
+      >)</a
+      ><a name="834"
+      >
+
+</a
+      ><a name="836" href="CFRP.html#836" class="Function"
+      >notYet</a
+      ><a name="842"
+      > </a
+      ><a name="843" class="Symbol"
+      >:</a
+      ><a name="844"
+      > </a
+      ><a name="845" class="Symbol"
+      >{</a
+      ><a name="846" href="CFRP.html#846" class="Bound"
+      >A</a
+      ><a name="847"
+      > </a
+      ><a name="848" class="Symbol"
+      >:</a
+      ><a name="849"
+      > </a
+      ><a name="850" class="PrimitiveType"
+      >Set</a
+      ><a name="853" class="Symbol"
+      >}</a
+      ><a name="854"
+      > </a
+      ><a name="855" class="Symbol"
+      >&#8594;</a
+      ><a name="856"
+      > </a
+      ><a name="857" href="CFRP.html#318" class="Function"
+      >Event</a
+      ><a name="862"
+      > </a
+      ><a name="863" href="CFRP.html#846" class="Bound"
+      >A</a
+      ><a name="864"
+      > </a
+      ><a name="865" class="Symbol"
+      >&#8594;</a
+      ><a name="866"
+      > </a
+      ><a name="867" href="CFRP.html#318" class="Function"
+      >Event</a
+      ><a name="872"
+      > </a
+      ><a name="873" href="CFRP.html#846" class="Bound"
+      >A</a
+      ><a name="874"
+      >
+</a
+      ><a name="875" href="CFRP.html#836" class="Function"
+      >notYet</a
+      ><a name="881"
+      > </a
+      ><a name="882" href="CFRP.html#882" class="Bound"
+      >ev</a
+      ><a name="884"
+      > </a
+      ><a name="885" class="Symbol"
+      >=</a
+      ><a name="886"
+      > </a
+      ><a name="887" class="Symbol"
+      >&#955;</a
+      ><a name="888"
+      > </a
+      ><a name="889" href="CFRP.html#889" class="Bound"
+      >t&#8320;</a
+      ><a name="891"
+      > </a
+      ><a name="892" href="CFRP.html#892" class="Bound"
+      >t&#8321;</a
+      ><a name="894"
+      > </a
+      ><a name="895" class="Symbol"
+      >&#8594;</a
+      ><a name="896"
+      > </a
+      ><a name="897" href="List.html#3469" class="Function"
+      >dropWhile</a
+      ><a name="906"
+      > </a
+      ><a name="907" class="Symbol"
+      >(</a
+      ><a name="908" href="PosReal.html#12417" class="Function Operator"
+      >_&gt;=_</a
+      ><a name="912"
+      > </a
+      ><a name="913" href="CFRP.html#889" class="Bound"
+      >t&#8320;</a
+      ><a name="915"
+      > </a
+      ><a name="916" href="NeilPrelude.html#8326" class="Function Operator"
+      >&#8728;</a
+      ><a name="917"
+      > </a
+      ><a name="918" href="NeilPrelude.html#12566" class="Function"
+      >fst</a
+      ><a name="921" class="Symbol"
+      >)</a
+      ><a name="922"
+      > </a
+      ><a name="923" class="Symbol"
+      >(</a
+      ><a name="924" href="CFRP.html#882" class="Bound"
+      >ev</a
+      ><a name="926"
+      > </a
+      ><a name="927" href="CFRP.html#889" class="Bound"
+      >t&#8320;</a
+      ><a name="929"
+      > </a
+      ><a name="930" href="CFRP.html#892" class="Bound"
+      >t&#8321;</a
+      ><a name="932" class="Symbol"
+      >)</a
+      ><a name="933"
+      >
+
+</a
+      ><a name="935" class="Comment"
+      >------------------------------------------</a
+      ><a name="977"
+      >
+
+</a
+      ><a name="979" class="Keyword"
+      >postulate</a
+      ><a name="988"
+      > </a
+      ><a name="989" href="CFRP.html#989" class="Postulate"
+      >when</a
+      ><a name="993"
+      > </a
+      ><a name="994" class="Symbol"
+      >:</a
+      ><a name="995"
+      > </a
+      ><a name="996" class="Symbol"
+      >{</a
+      ><a name="997" href="CFRP.html#997" class="Bound"
+      >A</a
+      ><a name="998"
+      > </a
+      ><a name="999" class="Symbol"
+      >:</a
+      ><a name="1000"
+      > </a
+      ><a name="1001" class="PrimitiveType"
+      >Set</a
+      ><a name="1004" class="Symbol"
+      >}</a
+      ><a name="1005"
+      > </a
+      ><a name="1006" class="Symbol"
+      >&#8594;</a
+      ><a name="1007"
+      > </a
+      ><a name="1008" class="Symbol"
+      >(</a
+      ><a name="1009" href="CFRP.html#997" class="Bound"
+      >A</a
+      ><a name="1010"
+      > </a
+      ><a name="1011" class="Symbol"
+      >&#8594;</a
+      ><a name="1012"
+      > </a
+      ><a name="1013" href="NeilPrelude.html#726" class="Datatype"
+      >Bool</a
+      ><a name="1017" class="Symbol"
+      >)</a
+      ><a name="1018"
+      > </a
+      ><a name="1019" class="Symbol"
+      >&#8594;</a
+      ><a name="1020"
+      > </a
+      ><a name="1021" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1030"
+      > </a
+      ><a name="1031" href="CFRP.html#997" class="Bound"
+      >A</a
+      ><a name="1032"
+      > </a
+      ><a name="1033" class="Symbol"
+      >&#8594;</a
+      ><a name="1034"
+      > </a
+      ><a name="1035" href="CFRP.html#318" class="Function"
+      >Event</a
+      ><a name="1040"
+      > </a
+      ><a name="1041" href="CFRP.html#997" class="Bound"
+      >A</a
+      ><a name="1042"
+      >
+</a
+      ><a name="1043" class="Keyword"
+      >postulate</a
+      ><a name="1052"
+      > </a
+      ><a name="1053" href="CFRP.html#1053" class="Postulate"
+      >integral</a
+      ><a name="1061"
+      > </a
+      ><a name="1062" class="Symbol"
+      >:</a
+      ><a name="1063"
+      > </a
+      ><a name="1064" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1073"
+      > </a
+      ><a name="1074" href="Real.html#226" class="Datatype"
+      >&#8476;</a
+      ><a name="1075"
+      > </a
+      ><a name="1076" class="Symbol"
+      >&#8594;</a
+      ><a name="1077"
+      > </a
+      ><a name="1078" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1087"
+      > </a
+      ><a name="1088" href="Real.html#226" class="Datatype"
+      >&#8476;</a
+      ><a name="1089"
+      >
+
+</a
+      ><a name="1091" href="CFRP.html#1091" class="Function"
+      >iIntegral</a
+      ><a name="1100"
+      > </a
+      ><a name="1101" class="Symbol"
+      >:</a
+      ><a name="1102"
+      > </a
+      ><a name="1103" href="Real.html#226" class="Datatype"
+      >&#8476;</a
+      ><a name="1104"
+      > </a
+      ><a name="1105" class="Symbol"
+      >&#8594;</a
+      ><a name="1106"
+      > </a
+      ><a name="1107" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1116"
+      > </a
+      ><a name="1117" href="Real.html#226" class="Datatype"
+      >&#8476;</a
+      ><a name="1118"
+      > </a
+      ><a name="1119" class="Symbol"
+      >&#8594;</a
+      ><a name="1120"
+      > </a
+      ><a name="1121" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1130"
+      > </a
+      ><a name="1131" href="Real.html#226" class="Datatype"
+      >&#8476;</a
+      ><a name="1132"
+      >
+</a
+      ><a name="1133" href="CFRP.html#1091" class="Function"
+      >iIntegral</a
+      ><a name="1142"
+      > </a
+      ><a name="1143" href="CFRP.html#1143" class="Bound"
+      >x</a
+      ><a name="1144"
+      > </a
+      ><a name="1145" class="Symbol"
+      >=</a
+      ><a name="1146"
+      > </a
+      ><a name="1147" href="CFRP.html#600" class="Function"
+      >liftB</a
+      ><a name="1152"
+      > </a
+      ><a name="1153" class="Symbol"
+      >(</a
+      ><a name="1154" href="Real.html#5106" class="Function Operator"
+      >_+_</a
+      ><a name="1157"
+      > </a
+      ><a name="1158" href="CFRP.html#1143" class="Bound"
+      >x</a
+      ><a name="1159" class="Symbol"
+      >)</a
+      ><a name="1160"
+      > </a
+      ><a name="1161" href="NeilPrelude.html#8326" class="Function Operator"
+      >&#8728;</a
+      ><a name="1162"
+      > </a
+      ><a name="1163" href="CFRP.html#1053" class="Postulate"
+      >integral</a
+      ><a name="1171"
+      >
+
+</a
+      ><a name="1173" class="Comment"
+      >------------------------------------------</a
+      ><a name="1215"
+      >
+
+</a
+      ><a name="1217" href="CFRP.html#1217" class="Function"
+      >untilB</a
+      ><a name="1223"
+      > </a
+      ><a name="1224" class="Symbol"
+      >:</a
+      ><a name="1225"
+      > </a
+      ><a name="1226" class="Symbol"
+      >{</a
+      ><a name="1227" href="CFRP.html#1227" class="Bound"
+      >A</a
+      ><a name="1228"
+      > </a
+      ><a name="1229" href="CFRP.html#1229" class="Bound"
+      >E</a
+      ><a name="1230"
+      > </a
+      ><a name="1231" class="Symbol"
+      >:</a
+      ><a name="1232"
+      > </a
+      ><a name="1233" class="PrimitiveType"
+      >Set</a
+      ><a name="1236" class="Symbol"
+      >}</a
+      ><a name="1237"
+      > </a
+      ><a name="1238" class="Symbol"
+      >&#8594;</a
+      ><a name="1239"
+      > </a
+      ><a name="1240" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1249"
+      > </a
+      ><a name="1250" href="CFRP.html#1227" class="Bound"
+      >A</a
+      ><a name="1251"
+      > </a
+      ><a name="1252" class="Symbol"
+      >&#8594;</a
+      ><a name="1253"
+      > </a
+      ><a name="1254" href="CFRP.html#318" class="Function"
+      >Event</a
+      ><a name="1259"
+      > </a
+      ><a name="1260" href="CFRP.html#1229" class="Bound"
+      >E</a
+      ><a name="1261"
+      > </a
+      ><a name="1262" class="Symbol"
+      >&#8594;</a
+      ><a name="1263"
+      > </a
+      ><a name="1264" class="Symbol"
+      >(</a
+      ><a name="1265" href="CFRP.html#1229" class="Bound"
+      >E</a
+      ><a name="1266"
+      > </a
+      ><a name="1267" class="Symbol"
+      >&#8594;</a
+      ><a name="1268"
+      > </a
+      ><a name="1269" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1278"
+      > </a
+      ><a name="1279" href="CFRP.html#1227" class="Bound"
+      >A</a
+      ><a name="1280" class="Symbol"
+      >)</a
+      ><a name="1281"
+      > </a
+      ><a name="1282" class="Symbol"
+      >&#8594;</a
+      ><a name="1283"
+      > </a
+      ><a name="1284" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1293"
+      > </a
+      ><a name="1294" href="CFRP.html#1227" class="Bound"
+      >A</a
+      ><a name="1295"
+      >
+</a
+      ><a name="1296" href="CFRP.html#1217" class="Function"
+      >untilB</a
+      ><a name="1302"
+      > </a
+      ><a name="1303" href="CFRP.html#1303" class="Bound"
+      >beh</a
+      ><a name="1306"
+      > </a
+      ><a name="1307" href="CFRP.html#1307" class="Bound"
+      >ev</a
+      ><a name="1309"
+      > </a
+      ><a name="1310" href="CFRP.html#1310" class="Bound"
+      >f</a
+      ><a name="1311"
+      > </a
+      ><a name="1312" href="CFRP.html#1312" class="Bound"
+      >t&#8320;</a
+      ><a name="1314"
+      > </a
+      ><a name="1315" href="CFRP.html#1315" class="Bound"
+      >t&#8321;</a
+      ><a name="1317"
+      > </a
+      ><a name="1318" class="Keyword"
+      >with</a
+      ><a name="1322"
+      > </a
+      ><a name="1323" href="CFRP.html#1307" class="Bound"
+      >ev</a
+      ><a name="1325"
+      > </a
+      ><a name="1326" href="CFRP.html#1312" class="Bound"
+      >t&#8320;</a
+      ><a name="1328"
+      > </a
+      ><a name="1329" href="CFRP.html#1315" class="Bound"
+      >t&#8321;</a
+      ><a name="1331"
+      >
+</a
+      ><a name="1332" class="Symbol"
+      >...</a
+      ><a name="1335"
+      > </a
+      ><a name="1336" class="Symbol"
+      >|</a
+      ><a name="1337"
+      > </a
+      ><a name="1338" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="1340"
+      >            </a
+      ><a name="1352" class="Symbol"
+      >=</a
+      ><a name="1353"
+      > </a
+      ><a name="1354" href="CFRP.html#1303" class="Bound"
+      >beh</a
+      ><a name="1357"
+      > </a
+      ><a name="1358" href="CFRP.html#1312" class="Bound"
+      >t&#8320;</a
+      ><a name="1360"
+      > </a
+      ><a name="1361" href="CFRP.html#1315" class="Bound"
+      >t&#8321;</a
+      ><a name="1363"
+      >
+</a
+      ><a name="1364" class="Symbol"
+      >...</a
+      ><a name="1367"
+      > </a
+      ><a name="1368" class="Symbol"
+      >|</a
+      ><a name="1369"
+      > </a
+      ><a name="1370" class="Symbol"
+      >(</a
+      ><a name="1371" href="CFRP.html#1371" class="Bound"
+      >te</a
+      ><a name="1373"
+      > </a
+      ><a name="1374" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1375"
+      > </a
+      ><a name="1376" href="CFRP.html#1376" class="Bound"
+      >e</a
+      ><a name="1377" class="Symbol"
+      >)</a
+      ><a name="1378"
+      > </a
+      ><a name="1379" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="1380"
+      > </a
+      ><a name="1381" class="Symbol"
+      >_</a
+      ><a name="1382"
+      >  </a
+      ><a name="1384" class="Symbol"
+      >=</a
+      ><a name="1385"
+      > </a
+      ><a name="1386" class="Symbol"
+      >(</a
+      ><a name="1387" href="CFRP.html#1310" class="Bound"
+      >f</a
+      ><a name="1388"
+      > </a
+      ><a name="1389" href="CFRP.html#1376" class="Bound"
+      >e</a
+      ><a name="1390" class="Symbol"
+      >)</a
+      ><a name="1391"
+      > </a
+      ><a name="1392" href="CFRP.html#1371" class="Bound"
+      >te</a
+      ><a name="1394"
+      > </a
+      ><a name="1395" href="CFRP.html#1315" class="Bound"
+      >t&#8321;</a
+      ><a name="1397"
+      >
+
+</a
+      ><a name="1399" href="CFRP.html#1399" class="Function"
+      >untilB'</a
+      ><a name="1406"
+      > </a
+      ><a name="1407" class="Symbol"
+      >:</a
+      ><a name="1408"
+      > </a
+      ><a name="1409" class="Symbol"
+      >{</a
+      ><a name="1410" href="CFRP.html#1410" class="Bound"
+      >A</a
+      ><a name="1411"
+      > </a
+      ><a name="1412" href="CFRP.html#1412" class="Bound"
+      >E</a
+      ><a name="1413"
+      > </a
+      ><a name="1414" class="Symbol"
+      >:</a
+      ><a name="1415"
+      > </a
+      ><a name="1416" class="PrimitiveType"
+      >Set</a
+      ><a name="1419" class="Symbol"
+      >}</a
+      ><a name="1420"
+      > </a
+      ><a name="1421" class="Symbol"
+      >&#8594;</a
+      ><a name="1422"
+      > </a
+      ><a name="1423" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1432"
+      > </a
+      ><a name="1433" href="CFRP.html#1410" class="Bound"
+      >A</a
+      ><a name="1434"
+      > </a
+      ><a name="1435" class="Symbol"
+      >&#8594;</a
+      ><a name="1436"
+      > </a
+      ><a name="1437" href="CFRP.html#318" class="Function"
+      >Event</a
+      ><a name="1442"
+      > </a
+      ><a name="1443" href="CFRP.html#1412" class="Bound"
+      >E</a
+      ><a name="1444"
+      > </a
+      ><a name="1445" class="Symbol"
+      >&#8594;</a
+      ><a name="1446"
+      > </a
+      ><a name="1447" class="Symbol"
+      >(</a
+      ><a name="1448" href="CFRP.html#1412" class="Bound"
+      >E</a
+      ><a name="1449"
+      > </a
+      ><a name="1450" class="Symbol"
+      >&#8594;</a
+      ><a name="1451"
+      > </a
+      ><a name="1452" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1461"
+      > </a
+      ><a name="1462" href="CFRP.html#1410" class="Bound"
+      >A</a
+      ><a name="1463" class="Symbol"
+      >)</a
+      ><a name="1464"
+      > </a
+      ><a name="1465" class="Symbol"
+      >&#8594;</a
+      ><a name="1466"
+      > </a
+      ><a name="1467" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1476"
+      > </a
+      ><a name="1477" href="CFRP.html#1410" class="Bound"
+      >A</a
+      ><a name="1478"
+      >
+</a
+      ><a name="1479" href="CFRP.html#1399" class="Function"
+      >untilB'</a
+      ><a name="1486"
+      > </a
+      ><a name="1487" href="CFRP.html#1487" class="Bound"
+      >beh</a
+      ><a name="1490"
+      > </a
+      ><a name="1491" href="CFRP.html#1491" class="Bound"
+      >ev</a
+      ><a name="1493"
+      > </a
+      ><a name="1494" href="CFRP.html#1494" class="Bound"
+      >f</a
+      ><a name="1495"
+      > </a
+      ><a name="1496" href="CFRP.html#1496" class="Bound"
+      >t&#8320;</a
+      ><a name="1498"
+      > </a
+      ><a name="1499" href="CFRP.html#1499" class="Bound"
+      >t&#8321;</a
+      ><a name="1501"
+      > </a
+      ><a name="1502" class="Keyword"
+      >with</a
+      ><a name="1506"
+      > </a
+      ><a name="1507" href="CFRP.html#1491" class="Bound"
+      >ev</a
+      ><a name="1509"
+      > </a
+      ><a name="1510" href="CFRP.html#1496" class="Bound"
+      >t&#8320;</a
+      ><a name="1512"
+      > </a
+      ><a name="1513" href="CFRP.html#1499" class="Bound"
+      >t&#8321;</a
+      ><a name="1515"
+      >
+</a
+      ><a name="1516" class="Symbol"
+      >...</a
+      ><a name="1519"
+      > </a
+      ><a name="1520" class="Symbol"
+      >|</a
+      ><a name="1521"
+      > </a
+      ><a name="1522" href="List.html#158" class="InductiveConstructor"
+      >[]</a
+      ><a name="1524"
+      >            </a
+      ><a name="1536" class="Symbol"
+      >=</a
+      ><a name="1537"
+      > </a
+      ><a name="1538" href="CFRP.html#1487" class="Bound"
+      >beh</a
+      ><a name="1541"
+      > </a
+      ><a name="1542" href="CFRP.html#1496" class="Bound"
+      >t&#8320;</a
+      ><a name="1544"
+      > </a
+      ><a name="1545" href="CFRP.html#1499" class="Bound"
+      >t&#8321;</a
+      ><a name="1547"
+      >
+</a
+      ><a name="1548" class="Symbol"
+      >...</a
+      ><a name="1551"
+      > </a
+      ><a name="1552" class="Symbol"
+      >|</a
+      ><a name="1553"
+      > </a
+      ><a name="1554" class="Symbol"
+      >(</a
+      ><a name="1555" href="CFRP.html#1555" class="Bound"
+      >te</a
+      ><a name="1557"
+      > </a
+      ><a name="1558" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1559"
+      > </a
+      ><a name="1560" href="CFRP.html#1560" class="Bound"
+      >e</a
+      ><a name="1561" class="Symbol"
+      >)</a
+      ><a name="1562"
+      > </a
+      ><a name="1563" href="List.html#174" class="InductiveConstructor Operator"
+      >&#8759;</a
+      ><a name="1564"
+      > </a
+      ><a name="1565" class="Symbol"
+      >_</a
+      ><a name="1566"
+      >  </a
+      ><a name="1568" class="Symbol"
+      >=</a
+      ><a name="1569"
+      > </a
+      ><a name="1570" class="Symbol"
+      >(</a
+      ><a name="1571" href="CFRP.html#1494" class="Bound"
+      >f</a
+      ><a name="1572"
+      > </a
+      ><a name="1573" href="CFRP.html#1560" class="Bound"
+      >e</a
+      ><a name="1574" class="Symbol"
+      >)</a
+      ><a name="1575"
+      > </a
+      ><a name="1576" href="CFRP.html#1496" class="Bound"
+      >t&#8320;</a
+      ><a name="1578"
+      > </a
+      ><a name="1579" href="CFRP.html#1499" class="Bound"
+      >t&#8321;</a
+      ><a name="1581"
+      >
+
+</a
+      ><a name="1583" class="Comment"
+      >------------------------------------------</a
+      ><a name="1625"
+      >
+
+</a
+      ><a name="1627" href="CFRP.html#1627" class="Function"
+      >replaceBeh&#8320;</a
+      ><a name="1638"
+      > </a
+      ><a name="1639" class="Symbol"
+      >:</a
+      ><a name="1640"
+      > </a
+      ><a name="1641" class="Symbol"
+      >{</a
+      ><a name="1642" href="CFRP.html#1642" class="Bound"
+      >A</a
+      ><a name="1643"
+      > </a
+      ><a name="1644" href="CFRP.html#1644" class="Bound"
+      >E</a
+      ><a name="1645"
+      > </a
+      ><a name="1646" class="Symbol"
+      >:</a
+      ><a name="1647"
+      > </a
+      ><a name="1648" class="PrimitiveType"
+      >Set</a
+      ><a name="1651" class="Symbol"
+      >}</a
+      ><a name="1652"
+      > </a
+      ><a name="1653" class="Symbol"
+      >&#8594;</a
+      ><a name="1654"
+      > </a
+      ><a name="1655" href="CFRP.html#318" class="Function"
+      >Event</a
+      ><a name="1660"
+      > </a
+      ><a name="1661" href="CFRP.html#1644" class="Bound"
+      >E</a
+      ><a name="1662"
+      > </a
+      ><a name="1663" class="Symbol"
+      >&#8594;</a
+      ><a name="1664"
+      > </a
+      ><a name="1665" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1674"
+      > </a
+      ><a name="1675" href="CFRP.html#1642" class="Bound"
+      >A</a
+      ><a name="1676"
+      > </a
+      ><a name="1677" class="Symbol"
+      >&#8594;</a
+      ><a name="1678"
+      > </a
+      ><a name="1679" class="Symbol"
+      >(</a
+      ><a name="1680" href="CFRP.html#1644" class="Bound"
+      >E</a
+      ><a name="1681"
+      > </a
+      ><a name="1682" class="Symbol"
+      >&#8594;</a
+      ><a name="1683"
+      > </a
+      ><a name="1684" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1693"
+      > </a
+      ><a name="1694" href="CFRP.html#1642" class="Bound"
+      >A</a
+      ><a name="1695" class="Symbol"
+      >)</a
+      ><a name="1696"
+      > </a
+      ><a name="1697" class="Symbol"
+      >&#8594;</a
+      ><a name="1698"
+      > </a
+      ><a name="1699" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1708"
+      > </a
+      ><a name="1709" href="CFRP.html#1642" class="Bound"
+      >A</a
+      ><a name="1710"
+      >
+</a
+      ><a name="1711" href="CFRP.html#1627" class="Function"
+      >replaceBeh&#8320;</a
+      ><a name="1722"
+      > </a
+      ><a name="1723" href="CFRP.html#1723" class="Bound"
+      >ev</a
+      ><a name="1725"
+      > </a
+      ><a name="1726" href="CFRP.html#1726" class="Bound"
+      >beh</a
+      ><a name="1729"
+      > </a
+      ><a name="1730" href="CFRP.html#1730" class="Bound"
+      >f</a
+      ><a name="1731"
+      > </a
+      ><a name="1732" class="Symbol"
+      >=</a
+      ><a name="1733"
+      > </a
+      ><a name="1734" href="CFRP.html#1217" class="Function"
+      >untilB</a
+      ><a name="1740"
+      > </a
+      ><a name="1741" href="CFRP.html#1726" class="Bound"
+      >beh</a
+      ><a name="1744"
+      > </a
+      ><a name="1745" href="CFRP.html#1723" class="Bound"
+      >ev</a
+      ><a name="1747"
+      > </a
+      ><a name="1748" class="Symbol"
+      >(&#955;</a
+      ><a name="1750"
+      > </a
+      ><a name="1751" href="CFRP.html#1751" class="Bound"
+      >e</a
+      ><a name="1752"
+      > </a
+      ><a name="1753" class="Symbol"
+      >&#8594;</a
+      ><a name="1754"
+      > </a
+      ><a name="1755" href="CFRP.html#1627" class="Function"
+      >replaceBeh&#8320;</a
+      ><a name="1766"
+      > </a
+      ><a name="1767" href="CFRP.html#1723" class="Bound"
+      >ev</a
+      ><a name="1769"
+      > </a
+      ><a name="1770" class="Symbol"
+      >(</a
+      ><a name="1771" href="CFRP.html#1730" class="Bound"
+      >f</a
+      ><a name="1772"
+      > </a
+      ><a name="1773" href="CFRP.html#1751" class="Bound"
+      >e</a
+      ><a name="1774" class="Symbol"
+      >)</a
+      ><a name="1775"
+      > </a
+      ><a name="1776" href="CFRP.html#1730" class="Bound"
+      >f</a
+      ><a name="1777" class="Symbol"
+      >)</a
+      ><a name="1778"
+      >
+
+</a
+      ><a name="1780" class="Comment"
+      >------------------------------------------</a
+      ><a name="1822"
+      >
+
+</a
+      ><a name="1824" href="CFRP.html#1824" class="Function"
+      >runningInBB</a
+      ><a name="1835"
+      > </a
+      ><a name="1836" class="Symbol"
+      >:</a
+      ><a name="1837"
+      > </a
+      ><a name="1838" class="Symbol"
+      >{</a
+      ><a name="1839" href="CFRP.html#1839" class="Bound"
+      >A</a
+      ><a name="1840"
+      > </a
+      ><a name="1841" href="CFRP.html#1841" class="Bound"
+      >B</a
+      ><a name="1842"
+      > </a
+      ><a name="1843" class="Symbol"
+      >:</a
+      ><a name="1844"
+      > </a
+      ><a name="1845" class="PrimitiveType"
+      >Set</a
+      ><a name="1848" class="Symbol"
+      >}</a
+      ><a name="1849"
+      > </a
+      ><a name="1850" class="Symbol"
+      >&#8594;</a
+      ><a name="1851"
+      > </a
+      ><a name="1852" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1861"
+      > </a
+      ><a name="1862" href="CFRP.html#1839" class="Bound"
+      >A</a
+      ><a name="1863"
+      > </a
+      ><a name="1864" class="Symbol"
+      >&#8594;</a
+      ><a name="1865"
+      > </a
+      ><a name="1866" class="Symbol"
+      >(</a
+      ><a name="1867" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1876"
+      > </a
+      ><a name="1877" href="CFRP.html#1839" class="Bound"
+      >A</a
+      ><a name="1878"
+      > </a
+      ><a name="1879" class="Symbol"
+      >&#8594;</a
+      ><a name="1880"
+      > </a
+      ><a name="1881" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1890"
+      > </a
+      ><a name="1891" href="CFRP.html#1841" class="Bound"
+      >B</a
+      ><a name="1892" class="Symbol"
+      >)</a
+      ><a name="1893"
+      > </a
+      ><a name="1894" class="Symbol"
+      >&#8594;</a
+      ><a name="1895"
+      > </a
+      ><a name="1896" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="1905"
+      > </a
+      ><a name="1906" href="CFRP.html#1841" class="Bound"
+      >B</a
+      ><a name="1907"
+      >
+</a
+      ><a name="1908" href="CFRP.html#1824" class="Function"
+      >runningInBB</a
+      ><a name="1919"
+      > </a
+      ><a name="1920" href="CFRP.html#1920" class="Bound"
+      >beh</a
+      ><a name="1923"
+      > </a
+      ><a name="1924" href="CFRP.html#1924" class="Bound"
+      >f</a
+      ><a name="1925"
+      > </a
+      ><a name="1926" class="Symbol"
+      >=</a
+      ><a name="1927"
+      > </a
+      ><a name="1928" class="Symbol"
+      >&#955;</a
+      ><a name="1929"
+      > </a
+      ><a name="1930" href="CFRP.html#1930" class="Bound"
+      >t&#8320;</a
+      ><a name="1932"
+      > </a
+      ><a name="1933" class="Symbol"
+      >&#8594;</a
+      ><a name="1934"
+      > </a
+      ><a name="1935" href="CFRP.html#1924" class="Bound"
+      >f</a
+      ><a name="1936"
+      > </a
+      ><a name="1937" class="Symbol"
+      >(&#955;</a
+      ><a name="1939"
+      > </a
+      ><a name="1940" href="CFRP.html#1940" class="Bound"
+      >_</a
+      ><a name="1941"
+      > </a
+      ><a name="1942" class="Symbol"
+      >&#8594;</a
+      ><a name="1943"
+      > </a
+      ><a name="1944" href="CFRP.html#1920" class="Bound"
+      >beh</a
+      ><a name="1947"
+      > </a
+      ><a name="1948" href="CFRP.html#1930" class="Bound"
+      >t&#8320;</a
+      ><a name="1950" class="Symbol"
+      >)</a
+      ><a name="1951"
+      > </a
+      ><a name="1952" href="CFRP.html#1930" class="Bound"
+      >t&#8320;</a
+      ><a name="1954"
+      >
+
+</a
+      ><a name="1956" href="CFRP.html#1956" class="Function"
+      >runningInEB</a
+      ><a name="1967"
+      > </a
+      ><a name="1968" class="Symbol"
+      >:</a
+      ><a name="1969"
+      > </a
+      ><a name="1970" class="Symbol"
+      >{</a
+      ><a name="1971" href="CFRP.html#1971" class="Bound"
+      >A</a
+      ><a name="1972"
+      > </a
+      ><a name="1973" href="CFRP.html#1973" class="Bound"
+      >B</a
+      ><a name="1974"
+      > </a
+      ><a name="1975" class="Symbol"
+      >:</a
+      ><a name="1976"
+      > </a
+      ><a name="1977" class="PrimitiveType"
+      >Set</a
+      ><a name="1980" class="Symbol"
+      >}</a
+      ><a name="1981"
+      > </a
+      ><a name="1982" class="Symbol"
+      >&#8594;</a
+      ><a name="1983"
+      > </a
+      ><a name="1984" href="CFRP.html#318" class="Function"
+      >Event</a
+      ><a name="1989"
+      > </a
+      ><a name="1990" href="CFRP.html#1971" class="Bound"
+      >A</a
+      ><a name="1991"
+      > </a
+      ><a name="1992" class="Symbol"
+      >&#8594;</a
+      ><a name="1993"
+      > </a
+      ><a name="1994" class="Symbol"
+      >(</a
+      ><a name="1995" href="CFRP.html#318" class="Function"
+      >Event</a
+      ><a name="2000"
+      > </a
+      ><a name="2001" href="CFRP.html#1971" class="Bound"
+      >A</a
+      ><a name="2002"
+      > </a
+      ><a name="2003" class="Symbol"
+      >&#8594;</a
+      ><a name="2004"
+      > </a
+      ><a name="2005" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="2014"
+      > </a
+      ><a name="2015" href="CFRP.html#1973" class="Bound"
+      >B</a
+      ><a name="2016" class="Symbol"
+      >)</a
+      ><a name="2017"
+      > </a
+      ><a name="2018" class="Symbol"
+      >&#8594;</a
+      ><a name="2019"
+      > </a
+      ><a name="2020" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="2029"
+      > </a
+      ><a name="2030" href="CFRP.html#1973" class="Bound"
+      >B</a
+      ><a name="2031"
+      >
+</a
+      ><a name="2032" href="CFRP.html#1956" class="Function"
+      >runningInEB</a
+      ><a name="2043"
+      > </a
+      ><a name="2044" href="CFRP.html#2044" class="Bound"
+      >ev</a
+      ><a name="2046"
+      > </a
+      ><a name="2047" href="CFRP.html#2047" class="Bound"
+      >f</a
+      ><a name="2048"
+      > </a
+      ><a name="2049" class="Symbol"
+      >=</a
+      ><a name="2050"
+      > </a
+      ><a name="2051" class="Symbol"
+      >&#955;</a
+      ><a name="2052"
+      > </a
+      ><a name="2053" href="CFRP.html#2053" class="Bound"
+      >t&#8320;</a
+      ><a name="2055"
+      > </a
+      ><a name="2056" class="Symbol"
+      >&#8594;</a
+      ><a name="2057"
+      > </a
+      ><a name="2058" href="CFRP.html#2047" class="Bound"
+      >f</a
+      ><a name="2059"
+      > </a
+      ><a name="2060" class="Symbol"
+      >(&#955;</a
+      ><a name="2062"
+      > </a
+      ><a name="2063" href="CFRP.html#2063" class="Bound"
+      >te</a
+      ><a name="2065"
+      > </a
+      ><a name="2066" class="Symbol"
+      >&#8594;</a
+      ><a name="2067"
+      > </a
+      ><a name="2068" href="List.html#3469" class="Function"
+      >dropWhile</a
+      ><a name="2077"
+      > </a
+      ><a name="2078" class="Symbol"
+      >((</a
+      ><a name="2080" href="PosReal.html#12494" class="Function Operator"
+      >_&gt;_</a
+      ><a name="2083"
+      > </a
+      ><a name="2084" href="CFRP.html#2063" class="Bound"
+      >te</a
+      ><a name="2086" class="Symbol"
+      >)</a
+      ><a name="2087"
+      > </a
+      ><a name="2088" href="NeilPrelude.html#8326" class="Function Operator"
+      >&#8728;</a
+      ><a name="2089"
+      > </a
+      ><a name="2090" href="NeilPrelude.html#12566" class="Function"
+      >fst</a
+      ><a name="2093" class="Symbol"
+      >)</a
+      ><a name="2094"
+      > </a
+      ><a name="2095" href="NeilPrelude.html#8326" class="Function Operator"
+      >&#8728;</a
+      ><a name="2096"
+      > </a
+      ><a name="2097" href="CFRP.html#2044" class="Bound"
+      >ev</a
+      ><a name="2099"
+      > </a
+      ><a name="2100" href="CFRP.html#2053" class="Bound"
+      >t&#8320;</a
+      ><a name="2102" class="Symbol"
+      >)</a
+      ><a name="2103"
+      > </a
+      ><a name="2104" href="CFRP.html#2053" class="Bound"
+      >t&#8320;</a
+      ><a name="2106"
+      >
+
+</a
+      ><a name="2108" class="Comment"
+      >------------------------------------------</a
+      ><a name="2150"
+      >
+
+</a
+      ><a name="2152" href="CFRP.html#2152" class="Function"
+      >replaceBeh</a
+      ><a name="2162"
+      > </a
+      ><a name="2163" class="Symbol"
+      >:</a
+      ><a name="2164"
+      > </a
+      ><a name="2165" class="Symbol"
+      >{</a
+      ><a name="2166" href="CFRP.html#2166" class="Bound"
+      >A</a
+      ><a name="2167"
+      > </a
+      ><a name="2168" href="CFRP.html#2168" class="Bound"
+      >E</a
+      ><a name="2169"
+      > </a
+      ><a name="2170" class="Symbol"
+      >:</a
+      ><a name="2171"
+      > </a
+      ><a name="2172" class="PrimitiveType"
+      >Set</a
+      ><a name="2175" class="Symbol"
+      >}</a
+      ><a name="2176"
+      > </a
+      ><a name="2177" class="Symbol"
+      >&#8594;</a
+      ><a name="2178"
+      > </a
+      ><a name="2179" href="CFRP.html#318" class="Function"
+      >Event</a
+      ><a name="2184"
+      > </a
+      ><a name="2185" href="CFRP.html#2168" class="Bound"
+      >E</a
+      ><a name="2186"
+      > </a
+      ><a name="2187" class="Symbol"
+      >&#8594;</a
+      ><a name="2188"
+      > </a
+      ><a name="2189" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="2198"
+      > </a
+      ><a name="2199" href="CFRP.html#2166" class="Bound"
+      >A</a
+      ><a name="2200"
+      > </a
+      ><a name="2201" class="Symbol"
+      >&#8594;</a
+      ><a name="2202"
+      > </a
+      ><a name="2203" class="Symbol"
+      >(</a
+      ><a name="2204" href="CFRP.html#2168" class="Bound"
+      >E</a
+      ><a name="2205"
+      > </a
+      ><a name="2206" class="Symbol"
+      >&#8594;</a
+      ><a name="2207"
+      > </a
+      ><a name="2208" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="2217"
+      > </a
+      ><a name="2218" href="CFRP.html#2166" class="Bound"
+      >A</a
+      ><a name="2219" class="Symbol"
+      >)</a
+      ><a name="2220"
+      > </a
+      ><a name="2221" class="Symbol"
+      >&#8594;</a
+      ><a name="2222"
+      > </a
+      ><a name="2223" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="2232"
+      > </a
+      ><a name="2233" href="CFRP.html#2166" class="Bound"
+      >A</a
+      ><a name="2234"
+      >
+</a
+      ><a name="2235" href="CFRP.html#2152" class="Function"
+      >replaceBeh</a
+      ><a name="2245"
+      > </a
+      ><a name="2246" class="Symbol"
+      >{</a
+      ><a name="2247" href="CFRP.html#2247" class="Bound"
+      >A</a
+      ><a name="2248" class="Symbol"
+      >}</a
+      ><a name="2249"
+      > </a
+      ><a name="2250" class="Symbol"
+      >{</a
+      ><a name="2251" href="CFRP.html#2251" class="Bound"
+      >E</a
+      ><a name="2252" class="Symbol"
+      >}</a
+      ><a name="2253"
+      > </a
+      ><a name="2254" href="CFRP.html#2254" class="Bound"
+      >ev</a
+      ><a name="2256"
+      > </a
+      ><a name="2257" href="CFRP.html#2257" class="Bound"
+      >beh</a
+      ><a name="2260"
+      > </a
+      ><a name="2261" href="CFRP.html#2261" class="Bound"
+      >f</a
+      ><a name="2262"
+      > </a
+      ><a name="2263" class="Symbol"
+      >=</a
+      ><a name="2264"
+      > </a
+      ><a name="2265" href="CFRP.html#1956" class="Function"
+      >runningInEB</a
+      ><a name="2276"
+      > </a
+      ><a name="2277" href="CFRP.html#2254" class="Bound"
+      >ev</a
+      ><a name="2279"
+      > </a
+      ><a name="2280" class="Symbol"
+      >(&#955;</a
+      ><a name="2282"
+      > </a
+      ><a name="2283" href="CFRP.html#2283" class="Bound"
+      >rev</a
+      ><a name="2286"
+      > </a
+      ><a name="2287" class="Symbol"
+      >&#8594;</a
+      ><a name="2288"
+      > </a
+      ><a name="2289" href="CFRP.html#2383" class="Function"
+      >replaceBehAux</a
+      ><a name="2302"
+      > </a
+      ><a name="2303" href="CFRP.html#2283" class="Bound"
+      >rev</a
+      ><a name="2306"
+      > </a
+      ><a name="2307" href="CFRP.html#2257" class="Bound"
+      >beh</a
+      ><a name="2310" class="Symbol"
+      >)</a
+      ><a name="2311"
+      >
+                              </a
+      ><a name="2342" class="Keyword"
+      >where</a
+      ><a name="2347"
+      >
+                                   </a
+      ><a name="2383" href="CFRP.html#2383" class="Function"
+      >replaceBehAux</a
+      ><a name="2396"
+      > </a
+      ><a name="2397" class="Symbol"
+      >:</a
+      ><a name="2398"
+      > </a
+      ><a name="2399" href="CFRP.html#318" class="Function"
+      >Event</a
+      ><a name="2404"
+      > </a
+      ><a name="2405" href="CFRP.html#2251" class="Bound"
+      >E</a
+      ><a name="2406"
+      > </a
+      ><a name="2407" class="Symbol"
+      >&#8594;</a
+      ><a name="2408"
+      > </a
+      ><a name="2409" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="2418"
+      > </a
+      ><a name="2419" href="CFRP.html#2247" class="Bound"
+      >A</a
+      ><a name="2420"
+      > </a
+      ><a name="2421" class="Symbol"
+      >&#8594;</a
+      ><a name="2422"
+      > </a
+      ><a name="2423" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="2432"
+      > </a
+      ><a name="2433" href="CFRP.html#2247" class="Bound"
+      >A</a
+      ><a name="2434"
+      >
+                                   </a
+      ><a name="2470" href="CFRP.html#2383" class="Function"
+      >replaceBehAux</a
+      ><a name="2483"
+      > </a
+      ><a name="2484" href="CFRP.html#2484" class="Bound"
+      >rev</a
+      ><a name="2487"
+      > </a
+      ><a name="2488" href="CFRP.html#2488" class="Bound"
+      >beh'</a
+      ><a name="2492"
+      > </a
+      ><a name="2493" class="Symbol"
+      >=</a
+      ><a name="2494"
+      > </a
+      ><a name="2495" href="CFRP.html#1217" class="Function"
+      >untilB</a
+      ><a name="2501"
+      > </a
+      ><a name="2502" href="CFRP.html#2488" class="Bound"
+      >beh'</a
+      ><a name="2506"
+      > </a
+      ><a name="2507" href="CFRP.html#2484" class="Bound"
+      >rev</a
+      ><a name="2510"
+      > </a
+      ><a name="2511" class="Symbol"
+      >(&#955;</a
+      ><a name="2513"
+      > </a
+      ><a name="2514" href="CFRP.html#2514" class="Bound"
+      >e</a
+      ><a name="2515"
+      > </a
+      ><a name="2516" class="Symbol"
+      >&#8594;</a
+      ><a name="2517"
+      > </a
+      ><a name="2518" href="CFRP.html#2383" class="Function"
+      >replaceBehAux</a
+      ><a name="2531"
+      > </a
+      ><a name="2532" class="Symbol"
+      >(</a
+      ><a name="2533" href="CFRP.html#836" class="Function"
+      >notYet</a
+      ><a name="2539"
+      > </a
+      ><a name="2540" href="CFRP.html#2484" class="Bound"
+      >rev</a
+      ><a name="2543" class="Symbol"
+      >)</a
+      ><a name="2544"
+      > </a
+      ><a name="2545" class="Symbol"
+      >(</a
+      ><a name="2546" href="CFRP.html#2261" class="Bound"
+      >f</a
+      ><a name="2547"
+      > </a
+      ><a name="2548" href="CFRP.html#2514" class="Bound"
+      >e</a
+      ><a name="2549" class="Symbol"
+      >))</a
+      ><a name="2551"
+      >
+
+</a
+      ><a name="2553" class="Comment"
+      >------------------------------------------</a
+      ><a name="2595"
+      >
+
+</a
+      ><a name="2597" class="Keyword"
+      >open</a
+      ><a name="2601"
+      > </a
+      ><a name="2602" class="Keyword"
+      >import</a
+      ><a name="2608"
+      > </a
+      ><a name="2609" href="BouncingBall.html#40" class="Module"
+      >BouncingBall</a
+      ><a name="2621"
+      >
+
+</a
+      ><a name="2623" href="CFRP.html#2623" class="Function"
+      >fallingBall</a
+      ><a name="2634"
+      > </a
+      ><a name="2635" class="Symbol"
+      >:</a
+      ><a name="2636"
+      > </a
+      ><a name="2637" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="2641"
+      > </a
+      ><a name="2642" class="Symbol"
+      >&#8594;</a
+      ><a name="2643"
+      > </a
+      ><a name="2644" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="2653"
+      > </a
+      ><a name="2654" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="2658"
+      >
+</a
+      ><a name="2659" href="CFRP.html#2623" class="Function"
+      >fallingBall</a
+      ><a name="2670"
+      > </a
+      ><a name="2671" class="Symbol"
+      >(</a
+      ><a name="2672" href="CFRP.html#2672" class="Bound"
+      >h&#8320;</a
+      ><a name="2674"
+      > </a
+      ><a name="2675" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="2676"
+      > </a
+      ><a name="2677" href="CFRP.html#2677" class="Bound"
+      >v&#8320;</a
+      ><a name="2679" class="Symbol"
+      >)</a
+      ><a name="2680"
+      > </a
+      ><a name="2681" class="Symbol"
+      >=</a
+      ><a name="2682"
+      >  </a
+      ><a name="2684" class="Keyword"
+      >let</a
+      ><a name="2687"
+      >  </a
+      ><a name="2689" href="CFRP.html#2689" class="Bound"
+      >a</a
+      ><a name="2690"
+      > </a
+      ><a name="2691" class="Symbol"
+      >=</a
+      ><a name="2692"
+      > </a
+      ><a name="2693" href="CFRP.html#432" class="Function"
+      >constant</a
+      ><a name="2701"
+      > </a
+      ><a name="2702" class="Symbol"
+      >(</a
+      ><a name="2703" href="Real.html#5425" class="Function"
+      >negate</a
+      ><a name="2709"
+      > </a
+      ><a name="2710" href="BouncingBall.html#287" class="Postulate"
+      >g</a
+      ><a name="2711" class="Symbol"
+      >)</a
+      ><a name="2712"
+      >
+                              </a
+      ><a name="2743" href="CFRP.html#2743" class="Bound"
+      >v</a
+      ><a name="2744"
+      > </a
+      ><a name="2745" class="Symbol"
+      >=</a
+      ><a name="2746"
+      > </a
+      ><a name="2747" href="CFRP.html#1091" class="Function"
+      >iIntegral</a
+      ><a name="2756"
+      > </a
+      ><a name="2757" href="CFRP.html#2677" class="Bound"
+      >v&#8320;</a
+      ><a name="2759"
+      > </a
+      ><a name="2760" href="CFRP.html#2689" class="Bound"
+      >a</a
+      ><a name="2761"
+      >
+                              </a
+      ><a name="2792" href="CFRP.html#2792" class="Bound"
+      >h</a
+      ><a name="2793"
+      > </a
+      ><a name="2794" class="Symbol"
+      >=</a
+      ><a name="2795"
+      > </a
+      ><a name="2796" href="CFRP.html#1091" class="Function"
+      >iIntegral</a
+      ><a name="2805"
+      > </a
+      ><a name="2806" href="CFRP.html#2672" class="Bound"
+      >h&#8320;</a
+      ><a name="2808"
+      > </a
+      ><a name="2809" href="CFRP.html#2743" class="Bound"
+      >v</a
+      ><a name="2810"
+      >
+                         </a
+      ><a name="2836" class="Keyword"
+      >in</a
+      ><a name="2838"
+      > </a
+      ><a name="2839" href="CFRP.html#697" class="Function"
+      >liftB2</a
+      ><a name="2845"
+      > </a
+      ><a name="2846" class="Symbol"
+      >(</a
+      ><a name="2847" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >_,_</a
+      ><a name="2850" class="Symbol"
+      >)</a
+      ><a name="2851"
+      > </a
+      ><a name="2852" href="CFRP.html#2792" class="Bound"
+      >h</a
+      ><a name="2853"
+      > </a
+      ><a name="2854" href="CFRP.html#2743" class="Bound"
+      >v</a
+      ><a name="2855"
+      >
+
+</a
+      ><a name="2857" href="CFRP.html#2857" class="Function"
+      >detectBounce</a
+      ><a name="2869"
+      > </a
+      ><a name="2870" class="Symbol"
+      >:</a
+      ><a name="2871"
+      > </a
+      ><a name="2872" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="2881"
+      > </a
+      ><a name="2882" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="2886"
+      > </a
+      ><a name="2887" class="Symbol"
+      >&#8594;</a
+      ><a name="2888"
+      > </a
+      ><a name="2889" href="CFRP.html#318" class="Function"
+      >Event</a
+      ><a name="2894"
+      > </a
+      ><a name="2895" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="2899"
+      >
+</a
+      ><a name="2900" href="CFRP.html#2857" class="Function"
+      >detectBounce</a
+      ><a name="2912"
+      > </a
+      ><a name="2913" class="Symbol"
+      >=</a
+      ><a name="2914"
+      > </a
+      ><a name="2915" href="CFRP.html#989" class="Postulate"
+      >when</a
+      ><a name="2919"
+      > </a
+      ><a name="2920" href="BouncingBall.html#349" class="Function"
+      >detectImpact</a
+      ><a name="2932"
+      >
+
+</a
+      ><a name="2934" href="CFRP.html#2934" class="Function"
+      >elasticBall</a
+      ><a name="2945"
+      > </a
+      ><a name="2946" class="Symbol"
+      >:</a
+      ><a name="2947"
+      > </a
+      ><a name="2948" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="2952"
+      > </a
+      ><a name="2953" class="Symbol"
+      >&#8594;</a
+      ><a name="2954"
+      > </a
+      ><a name="2955" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="2964"
+      > </a
+      ><a name="2965" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="2969"
+      >
+</a
+      ><a name="2970" href="CFRP.html#2934" class="Function"
+      >elasticBall</a
+      ><a name="2981"
+      > </a
+      ><a name="2982" href="CFRP.html#2982" class="Bound"
+      >b</a
+      ><a name="2983"
+      > </a
+      ><a name="2984" class="Symbol"
+      >=</a
+      ><a name="2985"
+      >  </a
+      ><a name="2987" class="Keyword"
+      >let</a
+      ><a name="2990"
+      > </a
+      ><a name="2991" href="CFRP.html#2991" class="Bound"
+      >beh</a
+      ><a name="2994"
+      > </a
+      ><a name="2995" class="Symbol"
+      >=</a
+      ><a name="2996"
+      > </a
+      ><a name="2997" href="CFRP.html#2623" class="Function"
+      >fallingBall</a
+      ><a name="3008"
+      > </a
+      ><a name="3009" href="CFRP.html#2982" class="Bound"
+      >b</a
+      ><a name="3010"
+      >
+                 </a
+      ><a name="3028" class="Keyword"
+      >in</a
+      ><a name="3030"
+      > </a
+      ><a name="3031" href="CFRP.html#1217" class="Function"
+      >untilB</a
+      ><a name="3037"
+      > </a
+      ><a name="3038" href="CFRP.html#2991" class="Bound"
+      >beh</a
+      ><a name="3041"
+      > </a
+      ><a name="3042" class="Symbol"
+      >(</a
+      ><a name="3043" href="CFRP.html#2857" class="Function"
+      >detectBounce</a
+      ><a name="3055"
+      > </a
+      ><a name="3056" href="CFRP.html#2991" class="Bound"
+      >beh</a
+      ><a name="3059" class="Symbol"
+      >)</a
+      ><a name="3060"
+      > </a
+      ><a name="3061" class="Symbol"
+      >(</a
+      ><a name="3062" href="CFRP.html#2934" class="Function"
+      >elasticBall</a
+      ><a name="3073"
+      > </a
+      ><a name="3074" href="NeilPrelude.html#8326" class="Function Operator"
+      >&#8728;</a
+      ><a name="3075"
+      > </a
+      ><a name="3076" href="BouncingBall.html#407" class="Function"
+      >negateVel</a
+      ><a name="3085" class="Symbol"
+      >)</a
+      ><a name="3086"
+      >
+
+</a
+      ><a name="3088" href="CFRP.html#3088" class="Function"
+      >inelasticBall</a
+      ><a name="3101"
+      > </a
+      ><a name="3102" class="Symbol"
+      >:</a
+      ><a name="3103"
+      > </a
+      ><a name="3104" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="3108"
+      > </a
+      ><a name="3109" class="Symbol"
+      >&#8594;</a
+      ><a name="3110"
+      > </a
+      ><a name="3111" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="3120"
+      > </a
+      ><a name="3121" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="3125"
+      >
+</a
+      ><a name="3126" href="CFRP.html#3088" class="Function"
+      >inelasticBall</a
+      ><a name="3139"
+      > </a
+      ><a name="3140" href="CFRP.html#3140" class="Bound"
+      >b</a
+      ><a name="3141"
+      > </a
+      ><a name="3142" class="Symbol"
+      >=</a
+      ><a name="3143"
+      >  </a
+      ><a name="3145" class="Keyword"
+      >let</a
+      ><a name="3148"
+      > </a
+      ><a name="3149" href="CFRP.html#3149" class="Bound"
+      >beh</a
+      ><a name="3152"
+      > </a
+      ><a name="3153" class="Symbol"
+      >=</a
+      ><a name="3154"
+      > </a
+      ><a name="3155" href="CFRP.html#2623" class="Function"
+      >fallingBall</a
+      ><a name="3166"
+      > </a
+      ><a name="3167" href="CFRP.html#3140" class="Bound"
+      >b</a
+      ><a name="3168"
+      >
+                   </a
+      ><a name="3188" class="Keyword"
+      >in</a
+      ><a name="3190"
+      > </a
+      ><a name="3191" href="CFRP.html#1217" class="Function"
+      >untilB</a
+      ><a name="3197"
+      > </a
+      ><a name="3198" href="CFRP.html#3149" class="Bound"
+      >beh</a
+      ><a name="3201"
+      > </a
+      ><a name="3202" class="Symbol"
+      >(</a
+      ><a name="3203" href="CFRP.html#2857" class="Function"
+      >detectBounce</a
+      ><a name="3215"
+      > </a
+      ><a name="3216" href="CFRP.html#3149" class="Bound"
+      >beh</a
+      ><a name="3219" class="Symbol"
+      >)</a
+      ><a name="3220"
+      > </a
+      ><a name="3221" class="Symbol"
+      >(&#955;</a
+      ><a name="3223"
+      > </a
+      ><a name="3224" href="CFRP.html#3224" class="Bound"
+      >_</a
+      ><a name="3225"
+      > </a
+      ><a name="3226" class="Symbol"
+      >&#8594;</a
+      ><a name="3227"
+      > </a
+      ><a name="3228" href="CFRP.html#432" class="Function"
+      >constant</a
+      ><a name="3236"
+      > </a
+      ><a name="3237" class="Symbol"
+      >(</a
+      ><a name="3238" class="InductiveConstructor"
+      >O</a
+      ><a name="3239"
+      > </a
+      ><a name="3240" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="3241"
+      > </a
+      ><a name="3242" class="InductiveConstructor"
+      >O</a
+      ><a name="3243" class="Symbol"
+      >))</a
+      ><a name="3245"
+      >
+
+</a
+      ><a name="3247" href="CFRP.html#3247" class="Function"
+      >resetBall&#8320;</a
+      ><a name="3257"
+      > </a
+      ><a name="3258" class="Symbol"
+      >:</a
+      ><a name="3259"
+      > </a
+      ><a name="3260" href="CFRP.html#318" class="Function"
+      >Event</a
+      ><a name="3265"
+      > </a
+      ><a name="3266" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="3270"
+      > </a
+      ><a name="3271" class="Symbol"
+      >&#8594;</a
+      ><a name="3272"
+      > </a
+      ><a name="3273" class="Symbol"
+      >(</a
+      ><a name="3274" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="3278"
+      > </a
+      ><a name="3279" class="Symbol"
+      >&#8594;</a
+      ><a name="3280"
+      > </a
+      ><a name="3281" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="3290"
+      > </a
+      ><a name="3291" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="3295" class="Symbol"
+      >)</a
+      ><a name="3296"
+      > </a
+      ><a name="3297" class="Symbol"
+      >&#8594;</a
+      ><a name="3298"
+      > </a
+      ><a name="3299" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="3303"
+      > </a
+      ><a name="3304" class="Symbol"
+      >&#8594;</a
+      ><a name="3305"
+      > </a
+      ><a name="3306" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="3315"
+      > </a
+      ><a name="3316" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="3320"
+      >
+</a
+      ><a name="3321" href="CFRP.html#3247" class="Function"
+      >resetBall&#8320;</a
+      ><a name="3331"
+      > </a
+      ><a name="3332" href="CFRP.html#3332" class="Bound"
+      >ev</a
+      ><a name="3334"
+      > </a
+      ><a name="3335" href="CFRP.html#3335" class="Bound"
+      >f</a
+      ><a name="3336"
+      > </a
+      ><a name="3337" href="CFRP.html#3337" class="Bound"
+      >b</a
+      ><a name="3338"
+      > </a
+      ><a name="3339" class="Symbol"
+      >=</a
+      ><a name="3340"
+      > </a
+      ><a name="3341" href="CFRP.html#1217" class="Function"
+      >untilB</a
+      ><a name="3347"
+      > </a
+      ><a name="3348" class="Symbol"
+      >(</a
+      ><a name="3349" href="CFRP.html#3335" class="Bound"
+      >f</a
+      ><a name="3350"
+      > </a
+      ><a name="3351" href="CFRP.html#3337" class="Bound"
+      >b</a
+      ><a name="3352" class="Symbol"
+      >)</a
+      ><a name="3353"
+      > </a
+      ><a name="3354" href="CFRP.html#3332" class="Bound"
+      >ev</a
+      ><a name="3356"
+      > </a
+      ><a name="3357" class="Symbol"
+      >(</a
+      ><a name="3358" href="CFRP.html#3247" class="Function"
+      >resetBall&#8320;</a
+      ><a name="3368"
+      > </a
+      ><a name="3369" href="CFRP.html#3332" class="Bound"
+      >ev</a
+      ><a name="3371"
+      > </a
+      ><a name="3372" href="CFRP.html#3335" class="Bound"
+      >f</a
+      ><a name="3373" class="Symbol"
+      >)</a
+      ><a name="3374"
+      >
+
+</a
+      ><a name="3376" href="CFRP.html#3376" class="Function"
+      >resetBall</a
+      ><a name="3385"
+      > </a
+      ><a name="3386" class="Symbol"
+      >:</a
+      ><a name="3387"
+      > </a
+      ><a name="3388" href="CFRP.html#318" class="Function"
+      >Event</a
+      ><a name="3393"
+      > </a
+      ><a name="3394" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="3398"
+      > </a
+      ><a name="3399" class="Symbol"
+      >&#8594;</a
+      ><a name="3400"
+      > </a
+      ><a name="3401" class="Symbol"
+      >(</a
+      ><a name="3402" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="3406"
+      > </a
+      ><a name="3407" class="Symbol"
+      >&#8594;</a
+      ><a name="3408"
+      > </a
+      ><a name="3409" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="3418"
+      > </a
+      ><a name="3419" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="3423" class="Symbol"
+      >)</a
+      ><a name="3424"
+      > </a
+      ><a name="3425" class="Symbol"
+      >&#8594;</a
+      ><a name="3426"
+      > </a
+      ><a name="3427" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="3431"
+      > </a
+      ><a name="3432" class="Symbol"
+      >&#8594;</a
+      ><a name="3433"
+      > </a
+      ><a name="3434" href="CFRP.html#254" class="Function"
+      >Behaviour</a
+      ><a name="3443"
+      > </a
+      ><a name="3444" href="BouncingBall.html#251" class="Function"
+      >Ball</a
+      ><a name="3448"
+      >
+</a
+      ><a name="3449" href="CFRP.html#3376" class="Function"
+      >resetBall</a
+      ><a name="3458"
+      > </a
+      ><a name="3459" href="CFRP.html#3459" class="Bound"
+      >ev</a
+      ><a name="3461"
+      > </a
+      ><a name="3462" href="CFRP.html#3462" class="Bound"
+      >f</a
+      ><a name="3463"
+      > </a
+      ><a name="3464" href="CFRP.html#3464" class="Bound"
+      >b</a
+      ><a name="3465"
+      > </a
+      ><a name="3466" class="Symbol"
+      >=</a
+      ><a name="3467"
+      > </a
+      ><a name="3468" href="CFRP.html#2152" class="Function"
+      >replaceBeh</a
+      ><a name="3478"
+      > </a
+      ><a name="3479" href="CFRP.html#3459" class="Bound"
+      >ev</a
+      ><a name="3481"
+      > </a
+      ><a name="3482" class="Symbol"
+      >(</a
+      ><a name="3483" href="CFRP.html#3462" class="Bound"
+      >f</a
+      ><a name="3484"
+      > </a
+      ><a name="3485" href="CFRP.html#3464" class="Bound"
+      >b</a
+      ><a name="3486" class="Symbol"
+      >)</a
+      ><a name="3487"
+      > </a
+      ><a name="3488" href="CFRP.html#3462" class="Bound"
+      >f</a
+      ><a name="3489"
+      >
+
+</a
+      ><a name="3491" class="Comment"
+      >------------------------------------------</a
+      ><a name="3533"
+      >
+</a
+      ></pre
+    ></body
+  ></html
+>

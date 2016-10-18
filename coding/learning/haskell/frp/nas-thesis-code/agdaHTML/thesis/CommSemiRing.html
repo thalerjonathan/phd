@@ -1,0 +1,895 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >CommSemiRing</title
+    ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta http-equiv="Content-Style-Type" content="text/css"
+     /><link href="Agda.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><pre
+    ><a name="1" class="Symbol"
+      >{-#</a
+      ><a name="4"
+      > </a
+      ><a name="5" class="Keyword"
+      >OPTIONS</a
+      ><a name="12"
+      > --type-in-type
+    </a
+      ><a name="32" class="Symbol"
+      >#-}</a
+      ><a name="35"
+      >
+
+</a
+      ><a name="37" class="Keyword"
+      >open</a
+      ><a name="41"
+      > </a
+      ><a name="42" class="Keyword"
+      >import</a
+      ><a name="48"
+      > </a
+      ><a name="49" href="NeilPrelude.html#77" class="Module"
+      >NeilPrelude</a
+      ><a name="60"
+      >
+
+
+</a
+      ><a name="63" class="Keyword"
+      >module</a
+      ><a name="69"
+      > </a
+      ><a name="70" href="CommSemiRing.html#70" class="Module"
+      >CommSemiRing</a
+      ><a name="82"
+      > </a
+      ><a name="83" class="Symbol"
+      >{</a
+      ><a name="84" href="CommSemiRing.html#84" class="Bound"
+      >A</a
+      ><a name="85"
+      > </a
+      ><a name="86" class="Symbol"
+      >:</a
+      ><a name="87"
+      > </a
+      ><a name="88" class="PrimitiveType"
+      >Set</a
+      ><a name="91" class="Symbol"
+      >}</a
+      ><a name="92"
+      >
+
+
+       </a
+      ><a name="102" class="Symbol"
+      >(</a
+      ><a name="103" href="CommSemiRing.html#103" class="Bound Operator"
+      >_&#8853;_</a
+      ><a name="106"
+      > </a
+      ><a name="107" class="Symbol"
+      >:</a
+      ><a name="108"
+      > </a
+      ><a name="109" href="NeilPrelude.html#3104" class="Function"
+      >Op</a
+      ><a name="111"
+      > </a
+      ><a name="112" href="CommSemiRing.html#84" class="Bound"
+      >A</a
+      ><a name="113" class="Symbol"
+      >)</a
+      ><a name="114"
+      >
+       </a
+      ><a name="122" class="Symbol"
+      >(</a
+      ><a name="123" href="CommSemiRing.html#123" class="Bound"
+      >&#8853;assoc</a
+      ><a name="129"
+      > </a
+      ><a name="130" class="Symbol"
+      >:</a
+      ><a name="131"
+      > </a
+      ><a name="132" href="NeilPrelude.html#3137" class="Function"
+      >Associative</a
+      ><a name="143"
+      > </a
+      ><a name="144" href="CommSemiRing.html#103" class="Bound Operator"
+      >_&#8853;_</a
+      ><a name="147" class="Symbol"
+      >)</a
+      ><a name="148"
+      >
+       </a
+      ><a name="156" class="Symbol"
+      >(</a
+      ><a name="157" href="CommSemiRing.html#157" class="Bound"
+      >&#8853;comm</a
+      ><a name="162"
+      > </a
+      ><a name="163" class="Symbol"
+      >:</a
+      ><a name="164"
+      > </a
+      ><a name="165" href="NeilPrelude.html#3420" class="Function"
+      >Commutative</a
+      ><a name="176"
+      > </a
+      ><a name="177" href="CommSemiRing.html#103" class="Bound Operator"
+      >_&#8853;_</a
+      ><a name="180" class="Symbol"
+      >)</a
+      ><a name="181"
+      >
+       </a
+      ><a name="189" class="Symbol"
+      >(</a
+      ><a name="190" href="CommSemiRing.html#190" class="Bound"
+      >zero</a
+      ><a name="194"
+      > </a
+      ><a name="195" class="Symbol"
+      >:</a
+      ><a name="196"
+      > </a
+      ><a name="197" href="CommSemiRing.html#84" class="Bound"
+      >A</a
+      ><a name="198" class="Symbol"
+      >)</a
+      ><a name="199"
+      > </a
+      ><a name="200" class="Symbol"
+      >(</a
+      ><a name="201" href="CommSemiRing.html#201" class="Bound"
+      >unit&#8853;</a
+      ><a name="206"
+      > </a
+      ><a name="207" class="Symbol"
+      >:</a
+      ><a name="208"
+      > </a
+      ><a name="209" class="Symbol"
+      >{</a
+      ><a name="210" href="CommSemiRing.html#210" class="Bound"
+      >a</a
+      ><a name="211"
+      > </a
+      ><a name="212" class="Symbol"
+      >:</a
+      ><a name="213"
+      > </a
+      ><a name="214" href="CommSemiRing.html#84" class="Bound"
+      >A</a
+      ><a name="215" class="Symbol"
+      >}</a
+      ><a name="216"
+      > </a
+      ><a name="217" class="Symbol"
+      >&#8594;</a
+      ><a name="218"
+      > </a
+      ><a name="219" href="CommSemiRing.html#190" class="Bound"
+      >zero</a
+      ><a name="223"
+      > </a
+      ><a name="224" href="CommSemiRing.html#103" class="Bound Operator"
+      >&#8853;</a
+      ><a name="225"
+      > </a
+      ><a name="226" href="CommSemiRing.html#210" class="Bound"
+      >a</a
+      ><a name="227"
+      > </a
+      ><a name="228" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="229"
+      > </a
+      ><a name="230" href="CommSemiRing.html#210" class="Bound"
+      >a</a
+      ><a name="231" class="Symbol"
+      >)</a
+      ><a name="232"
+      >
+
+       </a
+      ><a name="241" class="Symbol"
+      >(</a
+      ><a name="242" href="CommSemiRing.html#242" class="Bound Operator"
+      >_&#8855;_</a
+      ><a name="245"
+      > </a
+      ><a name="246" class="Symbol"
+      >:</a
+      ><a name="247"
+      > </a
+      ><a name="248" href="NeilPrelude.html#3104" class="Function"
+      >Op</a
+      ><a name="250"
+      > </a
+      ><a name="251" href="CommSemiRing.html#84" class="Bound"
+      >A</a
+      ><a name="252" class="Symbol"
+      >)</a
+      ><a name="253"
+      >
+       </a
+      ><a name="261" class="Symbol"
+      >(</a
+      ><a name="262" href="CommSemiRing.html#262" class="Bound"
+      >&#8855;assoc</a
+      ><a name="268"
+      > </a
+      ><a name="269" class="Symbol"
+      >:</a
+      ><a name="270"
+      > </a
+      ><a name="271" href="NeilPrelude.html#3137" class="Function"
+      >Associative</a
+      ><a name="282"
+      > </a
+      ><a name="283" href="CommSemiRing.html#242" class="Bound Operator"
+      >_&#8855;_</a
+      ><a name="286" class="Symbol"
+      >)</a
+      ><a name="287"
+      >
+       </a
+      ><a name="295" class="Symbol"
+      >(</a
+      ><a name="296" href="CommSemiRing.html#296" class="Bound"
+      >&#8855;comm</a
+      ><a name="301"
+      > </a
+      ><a name="302" class="Symbol"
+      >:</a
+      ><a name="303"
+      > </a
+      ><a name="304" href="NeilPrelude.html#3420" class="Function"
+      >Commutative</a
+      ><a name="315"
+      > </a
+      ><a name="316" href="CommSemiRing.html#242" class="Bound Operator"
+      >_&#8855;_</a
+      ><a name="319" class="Symbol"
+      >)</a
+      ><a name="320"
+      >
+       </a
+      ><a name="328" class="Symbol"
+      >(</a
+      ><a name="329" href="CommSemiRing.html#329" class="Bound"
+      >zero&#8855;</a
+      ><a name="334"
+      > </a
+      ><a name="335" class="Symbol"
+      >:</a
+      ><a name="336"
+      > </a
+      ><a name="337" class="Symbol"
+      >{</a
+      ><a name="338" href="CommSemiRing.html#338" class="Bound"
+      >a</a
+      ><a name="339"
+      > </a
+      ><a name="340" class="Symbol"
+      >:</a
+      ><a name="341"
+      > </a
+      ><a name="342" href="CommSemiRing.html#84" class="Bound"
+      >A</a
+      ><a name="343" class="Symbol"
+      >}</a
+      ><a name="344"
+      > </a
+      ><a name="345" class="Symbol"
+      >&#8594;</a
+      ><a name="346"
+      > </a
+      ><a name="347" href="CommSemiRing.html#190" class="Bound"
+      >zero</a
+      ><a name="351"
+      > </a
+      ><a name="352" href="CommSemiRing.html#242" class="Bound Operator"
+      >&#8855;</a
+      ><a name="353"
+      > </a
+      ><a name="354" href="CommSemiRing.html#338" class="Bound"
+      >a</a
+      ><a name="355"
+      > </a
+      ><a name="356" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="357"
+      > </a
+      ><a name="358" href="CommSemiRing.html#190" class="Bound"
+      >zero</a
+      ><a name="362" class="Symbol"
+      >)</a
+      ><a name="363"
+      >
+       </a
+      ><a name="371" class="Symbol"
+      >(</a
+      ><a name="372" href="CommSemiRing.html#372" class="Bound"
+      >one</a
+      ><a name="375"
+      > </a
+      ><a name="376" class="Symbol"
+      >:</a
+      ><a name="377"
+      > </a
+      ><a name="378" href="CommSemiRing.html#84" class="Bound"
+      >A</a
+      ><a name="379" class="Symbol"
+      >)</a
+      ><a name="380"
+      > </a
+      ><a name="381" class="Symbol"
+      >(</a
+      ><a name="382" href="CommSemiRing.html#382" class="Bound"
+      >unit&#8855;</a
+      ><a name="387"
+      > </a
+      ><a name="388" class="Symbol"
+      >:</a
+      ><a name="389"
+      > </a
+      ><a name="390" class="Symbol"
+      >{</a
+      ><a name="391" href="CommSemiRing.html#391" class="Bound"
+      >a</a
+      ><a name="392"
+      > </a
+      ><a name="393" class="Symbol"
+      >:</a
+      ><a name="394"
+      > </a
+      ><a name="395" href="CommSemiRing.html#84" class="Bound"
+      >A</a
+      ><a name="396" class="Symbol"
+      >}</a
+      ><a name="397"
+      > </a
+      ><a name="398" class="Symbol"
+      >&#8594;</a
+      ><a name="399"
+      > </a
+      ><a name="400" href="CommSemiRing.html#372" class="Bound"
+      >one</a
+      ><a name="403"
+      > </a
+      ><a name="404" href="CommSemiRing.html#242" class="Bound Operator"
+      >&#8855;</a
+      ><a name="405"
+      > </a
+      ><a name="406" href="CommSemiRing.html#391" class="Bound"
+      >a</a
+      ><a name="407"
+      > </a
+      ><a name="408" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="409"
+      > </a
+      ><a name="410" href="CommSemiRing.html#391" class="Bound"
+      >a</a
+      ><a name="411" class="Symbol"
+      >)</a
+      ><a name="412"
+      >
+
+       </a
+      ><a name="421" class="Symbol"
+      >(</a
+      ><a name="422" href="CommSemiRing.html#422" class="Bound"
+      >distrL</a
+      ><a name="428"
+      > </a
+      ><a name="429" class="Symbol"
+      >:</a
+      ><a name="430"
+      > </a
+      ><a name="431" class="Symbol"
+      >{</a
+      ><a name="432" href="CommSemiRing.html#432" class="Bound"
+      >a</a
+      ><a name="433"
+      > </a
+      ><a name="434" href="CommSemiRing.html#434" class="Bound"
+      >b</a
+      ><a name="435"
+      > </a
+      ><a name="436" href="CommSemiRing.html#436" class="Bound"
+      >c</a
+      ><a name="437"
+      > </a
+      ><a name="438" class="Symbol"
+      >:</a
+      ><a name="439"
+      > </a
+      ><a name="440" href="CommSemiRing.html#84" class="Bound"
+      >A</a
+      ><a name="441" class="Symbol"
+      >}</a
+      ><a name="442"
+      > </a
+      ><a name="443" class="Symbol"
+      >&#8594;</a
+      ><a name="444"
+      > </a
+      ><a name="445" href="CommSemiRing.html#432" class="Bound"
+      >a</a
+      ><a name="446"
+      > </a
+      ><a name="447" href="CommSemiRing.html#242" class="Bound Operator"
+      >&#8855;</a
+      ><a name="448"
+      > </a
+      ><a name="449" class="Symbol"
+      >(</a
+      ><a name="450" href="CommSemiRing.html#434" class="Bound"
+      >b</a
+      ><a name="451"
+      > </a
+      ><a name="452" href="CommSemiRing.html#103" class="Bound Operator"
+      >&#8853;</a
+      ><a name="453"
+      > </a
+      ><a name="454" href="CommSemiRing.html#436" class="Bound"
+      >c</a
+      ><a name="455" class="Symbol"
+      >)</a
+      ><a name="456"
+      > </a
+      ><a name="457" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="458"
+      > </a
+      ><a name="459" class="Symbol"
+      >(</a
+      ><a name="460" href="CommSemiRing.html#432" class="Bound"
+      >a</a
+      ><a name="461"
+      > </a
+      ><a name="462" href="CommSemiRing.html#242" class="Bound Operator"
+      >&#8855;</a
+      ><a name="463"
+      > </a
+      ><a name="464" href="CommSemiRing.html#434" class="Bound"
+      >b</a
+      ><a name="465" class="Symbol"
+      >)</a
+      ><a name="466"
+      > </a
+      ><a name="467" href="CommSemiRing.html#103" class="Bound Operator"
+      >&#8853;</a
+      ><a name="468"
+      > </a
+      ><a name="469" class="Symbol"
+      >(</a
+      ><a name="470" href="CommSemiRing.html#432" class="Bound"
+      >a</a
+      ><a name="471"
+      > </a
+      ><a name="472" href="CommSemiRing.html#242" class="Bound Operator"
+      >&#8855;</a
+      ><a name="473"
+      > </a
+      ><a name="474" href="CommSemiRing.html#436" class="Bound"
+      >c</a
+      ><a name="475" class="Symbol"
+      >))</a
+      ><a name="477"
+      >
+  </a
+      ><a name="480" class="Keyword"
+      >where</a
+      ><a name="485"
+      >
+
+</a
+      ><a name="487" class="Keyword"
+      >import</a
+      ><a name="493"
+      > </a
+      ><a name="494" href="CommMonoid.html#69" class="Module"
+      >CommMonoid</a
+      ><a name="504"
+      >
+</a
+      ><a name="505" class="Keyword"
+      >open</a
+      ><a name="509"
+      > </a
+      ><a name="510" href="CommMonoid.html#69" class="Module"
+      >CommMonoid</a
+      ><a name="520"
+      > </a
+      ><a name="521" href="CommSemiRing.html#242" class="Bound Operator"
+      >_&#8855;_</a
+      ><a name="524"
+      > </a
+      ><a name="525" href="CommSemiRing.html#262" class="Bound"
+      >&#8855;assoc</a
+      ><a name="531"
+      > </a
+      ><a name="532" href="CommSemiRing.html#296" class="Bound"
+      >&#8855;comm</a
+      ><a name="537"
+      > </a
+      ><a name="538" href="CommSemiRing.html#372" class="Bound"
+      >one</a
+      ><a name="541"
+      >
+
+</a
+      ><a name="543" href="CommSemiRing.html#543" class="Function"
+      >&#8855;zero</a
+      ><a name="548"
+      > </a
+      ><a name="549" class="Symbol"
+      >:</a
+      ><a name="550"
+      > </a
+      ><a name="551" class="Symbol"
+      >{</a
+      ><a name="552" href="CommSemiRing.html#552" class="Bound"
+      >a</a
+      ><a name="553"
+      > </a
+      ><a name="554" class="Symbol"
+      >:</a
+      ><a name="555"
+      > </a
+      ><a name="556" href="CommSemiRing.html#84" class="Bound"
+      >A</a
+      ><a name="557" class="Symbol"
+      >}</a
+      ><a name="558"
+      > </a
+      ><a name="559" class="Symbol"
+      >&#8594;</a
+      ><a name="560"
+      > </a
+      ><a name="561" href="CommSemiRing.html#552" class="Bound"
+      >a</a
+      ><a name="562"
+      > </a
+      ><a name="563" href="CommSemiRing.html#242" class="Bound Operator"
+      >&#8855;</a
+      ><a name="564"
+      > </a
+      ><a name="565" href="CommSemiRing.html#190" class="Bound"
+      >zero</a
+      ><a name="569"
+      > </a
+      ><a name="570" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="571"
+      > </a
+      ><a name="572" href="CommSemiRing.html#190" class="Bound"
+      >zero</a
+      ><a name="576"
+      >
+</a
+      ><a name="577" href="CommSemiRing.html#543" class="Function"
+      >&#8855;zero</a
+      ><a name="582"
+      > </a
+      ><a name="583" class="Symbol"
+      >=</a
+      ><a name="584"
+      > </a
+      ><a name="585" href="NeilPrelude.html#5877" class="Function"
+      >trans</a
+      ><a name="590"
+      > </a
+      ><a name="591" href="CommSemiRing.html#296" class="Bound"
+      >&#8855;comm</a
+      ><a name="596"
+      > </a
+      ><a name="597" href="CommSemiRing.html#329" class="Bound"
+      >zero&#8855;</a
+      ><a name="602"
+      >
+
+</a
+      ><a name="604" href="CommSemiRing.html#604" class="Function"
+      >&#8855;unit</a
+      ><a name="609"
+      > </a
+      ><a name="610" class="Symbol"
+      >:</a
+      ><a name="611"
+      > </a
+      ><a name="612" class="Symbol"
+      >{</a
+      ><a name="613" href="CommSemiRing.html#613" class="Bound"
+      >a</a
+      ><a name="614"
+      > </a
+      ><a name="615" class="Symbol"
+      >:</a
+      ><a name="616"
+      > </a
+      ><a name="617" href="CommSemiRing.html#84" class="Bound"
+      >A</a
+      ><a name="618" class="Symbol"
+      >}</a
+      ><a name="619"
+      > </a
+      ><a name="620" class="Symbol"
+      >&#8594;</a
+      ><a name="621"
+      > </a
+      ><a name="622" href="CommSemiRing.html#613" class="Bound"
+      >a</a
+      ><a name="623"
+      > </a
+      ><a name="624" href="CommSemiRing.html#242" class="Bound Operator"
+      >&#8855;</a
+      ><a name="625"
+      > </a
+      ><a name="626" href="CommSemiRing.html#372" class="Bound"
+      >one</a
+      ><a name="629"
+      > </a
+      ><a name="630" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="631"
+      > </a
+      ><a name="632" href="CommSemiRing.html#613" class="Bound"
+      >a</a
+      ><a name="633"
+      >
+</a
+      ><a name="634" href="CommSemiRing.html#604" class="Function"
+      >&#8855;unit</a
+      ><a name="639"
+      > </a
+      ><a name="640" class="Symbol"
+      >=</a
+      ><a name="641"
+      > </a
+      ><a name="642" href="Monoid.html#358" class="Function"
+      >&#8853;unit</a
+      ><a name="647"
+      > </a
+      ><a name="648" href="CommSemiRing.html#382" class="Bound"
+      >unit&#8855;</a
+      ><a name="653"
+      >
+
+</a
+      ><a name="655" href="CommSemiRing.html#655" class="Function"
+      >distrR</a
+      ><a name="661"
+      > </a
+      ><a name="662" class="Symbol"
+      >:</a
+      ><a name="663"
+      > </a
+      ><a name="664" class="Symbol"
+      >{</a
+      ><a name="665" href="CommSemiRing.html#665" class="Bound"
+      >a</a
+      ><a name="666"
+      > </a
+      ><a name="667" href="CommSemiRing.html#667" class="Bound"
+      >b</a
+      ><a name="668"
+      > </a
+      ><a name="669" href="CommSemiRing.html#669" class="Bound"
+      >c</a
+      ><a name="670"
+      > </a
+      ><a name="671" class="Symbol"
+      >:</a
+      ><a name="672"
+      > </a
+      ><a name="673" href="CommSemiRing.html#84" class="Bound"
+      >A</a
+      ><a name="674" class="Symbol"
+      >}</a
+      ><a name="675"
+      > </a
+      ><a name="676" class="Symbol"
+      >&#8594;</a
+      ><a name="677"
+      > </a
+      ><a name="678" class="Symbol"
+      >(</a
+      ><a name="679" href="CommSemiRing.html#665" class="Bound"
+      >a</a
+      ><a name="680"
+      > </a
+      ><a name="681" href="CommSemiRing.html#103" class="Bound Operator"
+      >&#8853;</a
+      ><a name="682"
+      > </a
+      ><a name="683" href="CommSemiRing.html#667" class="Bound"
+      >b</a
+      ><a name="684" class="Symbol"
+      >)</a
+      ><a name="685"
+      > </a
+      ><a name="686" href="CommSemiRing.html#242" class="Bound Operator"
+      >&#8855;</a
+      ><a name="687"
+      > </a
+      ><a name="688" href="CommSemiRing.html#669" class="Bound"
+      >c</a
+      ><a name="689"
+      > </a
+      ><a name="690" href="NeilPrelude.html#1392" class="Datatype Operator"
+      >&#8801;</a
+      ><a name="691"
+      > </a
+      ><a name="692" class="Symbol"
+      >(</a
+      ><a name="693" href="CommSemiRing.html#665" class="Bound"
+      >a</a
+      ><a name="694"
+      > </a
+      ><a name="695" href="CommSemiRing.html#242" class="Bound Operator"
+      >&#8855;</a
+      ><a name="696"
+      > </a
+      ><a name="697" href="CommSemiRing.html#669" class="Bound"
+      >c</a
+      ><a name="698" class="Symbol"
+      >)</a
+      ><a name="699"
+      > </a
+      ><a name="700" href="CommSemiRing.html#103" class="Bound Operator"
+      >&#8853;</a
+      ><a name="701"
+      > </a
+      ><a name="702" class="Symbol"
+      >(</a
+      ><a name="703" href="CommSemiRing.html#667" class="Bound"
+      >b</a
+      ><a name="704"
+      > </a
+      ><a name="705" href="CommSemiRing.html#242" class="Bound Operator"
+      >&#8855;</a
+      ><a name="706"
+      > </a
+      ><a name="707" href="CommSemiRing.html#669" class="Bound"
+      >c</a
+      ><a name="708" class="Symbol"
+      >)</a
+      ><a name="709"
+      >
+</a
+      ><a name="710" href="CommSemiRing.html#655" class="Function"
+      >distrR</a
+      ><a name="716"
+      > </a
+      ><a name="717" class="Symbol"
+      >=</a
+      ><a name="718"
+      > </a
+      ><a name="719" href="NeilPrelude.html#5939" class="Function"
+      >trans2</a
+      ><a name="725"
+      > </a
+      ><a name="726" href="CommSemiRing.html#296" class="Bound"
+      >&#8855;comm</a
+      ><a name="731"
+      > </a
+      ><a name="732" href="CommSemiRing.html#422" class="Bound"
+      >distrL</a
+      ><a name="738"
+      > </a
+      ><a name="739" class="Symbol"
+      >(</a
+      ><a name="740" href="NeilPrelude.html#5322" class="Function"
+      >cong2</a
+      ><a name="745"
+      > </a
+      ><a name="746" href="CommSemiRing.html#103" class="Bound Operator"
+      >_&#8853;_</a
+      ><a name="749"
+      > </a
+      ><a name="750" href="CommSemiRing.html#296" class="Bound"
+      >&#8855;comm</a
+      ><a name="755"
+      > </a
+      ><a name="756" href="CommSemiRing.html#296" class="Bound"
+      >&#8855;comm</a
+      ><a name="761" class="Symbol"
+      >)</a
+      ><a name="762"
+      >
+
+</a
+      ><a name="764" class="Keyword"
+      >import</a
+      ><a name="770"
+      > </a
+      ><a name="771" href="SemiRingUnity.html#70" class="Module"
+      >SemiRingUnity</a
+      ><a name="784"
+      >
+</a
+      ><a name="785" class="Keyword"
+      >open</a
+      ><a name="789"
+      > </a
+      ><a name="790" href="SemiRingUnity.html#70" class="Module"
+      >SemiRingUnity</a
+      ><a name="803"
+      > </a
+      ><a name="804" href="CommSemiRing.html#103" class="Bound Operator"
+      >_&#8853;_</a
+      ><a name="807"
+      > </a
+      ><a name="808" href="CommSemiRing.html#123" class="Bound"
+      >&#8853;assoc</a
+      ><a name="814"
+      > </a
+      ><a name="815" href="CommSemiRing.html#157" class="Bound"
+      >&#8853;comm</a
+      ><a name="820"
+      > </a
+      ><a name="821" href="CommSemiRing.html#190" class="Bound"
+      >zero</a
+      ><a name="825"
+      > </a
+      ><a name="826" href="CommSemiRing.html#201" class="Bound"
+      >unit&#8853;</a
+      ><a name="831"
+      > </a
+      ><a name="832" href="CommSemiRing.html#242" class="Bound Operator"
+      >_&#8855;_</a
+      ><a name="835"
+      > </a
+      ><a name="836" href="CommSemiRing.html#262" class="Bound"
+      >&#8855;assoc</a
+      ><a name="842"
+      > </a
+      ><a name="843" href="CommSemiRing.html#329" class="Bound"
+      >zero&#8855;</a
+      ><a name="848"
+      > </a
+      ><a name="849" href="CommSemiRing.html#543" class="Function"
+      >&#8855;zero</a
+      ><a name="854"
+      > </a
+      ><a name="855" href="CommSemiRing.html#372" class="Bound"
+      >one</a
+      ><a name="858"
+      > </a
+      ><a name="859" href="CommSemiRing.html#382" class="Bound"
+      >unit&#8855;</a
+      ><a name="864"
+      > </a
+      ><a name="865" href="CommSemiRing.html#604" class="Function"
+      >&#8855;unit</a
+      ><a name="870"
+      > </a
+      ><a name="871" href="CommSemiRing.html#422" class="Bound"
+      >distrL</a
+      ><a name="877"
+      > </a
+      ><a name="878" href="CommSemiRing.html#655" class="Function"
+      >distrR</a
+      ><a name="884"
+      > </a
+      ><a name="885" class="Keyword"
+      >public</a
+      ><a name="891"
+      >
+
+</a
+      ></pre
+    ></body
+  ></html
+>

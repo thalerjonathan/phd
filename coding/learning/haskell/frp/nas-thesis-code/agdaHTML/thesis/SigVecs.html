@@ -1,0 +1,919 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >SigVecs</title
+    ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta http-equiv="Content-Style-Type" content="text/css"
+     /><link href="Agda.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><pre
+    ><a name="1" class="Symbol"
+      >{-#</a
+      ><a name="4"
+      > </a
+      ><a name="5" class="Keyword"
+      >OPTIONS</a
+      ><a name="12"
+      > --type-in-type
+   </a
+      ><a name="31" class="Symbol"
+      >#-}</a
+      ><a name="34"
+      >
+
+</a
+      ><a name="36" class="Keyword"
+      >module</a
+      ><a name="42"
+      > </a
+      ><a name="43" href="SigVecs.html#43" class="Module"
+      >SigVecs</a
+      ><a name="50"
+      > </a
+      ><a name="51" class="Keyword"
+      >where</a
+      ><a name="56"
+      >
+
+</a
+      ><a name="58" class="Keyword"
+      >open</a
+      ><a name="62"
+      > </a
+      ><a name="63" class="Keyword"
+      >import</a
+      ><a name="69"
+      > </a
+      ><a name="70" href="NeilPrelude.html#77" class="Module"
+      >NeilPrelude</a
+      ><a name="81"
+      >
+</a
+      ><a name="82" class="Keyword"
+      >open</a
+      ><a name="86"
+      > </a
+      ><a name="87" class="Keyword"
+      >import</a
+      ><a name="93"
+      > </a
+      ><a name="94" href="RealTime.html#66" class="Module"
+      >RealTime</a
+      ><a name="102"
+      >
+</a
+      ><a name="103" class="Keyword"
+      >open</a
+      ><a name="107"
+      > </a
+      ><a name="108" class="Keyword"
+      >import</a
+      ><a name="114"
+      > </a
+      ><a name="115" href="TimeDeltaList.html#168" class="Module"
+      >TimeDeltaList</a
+      ><a name="128"
+      >
+
+</a
+      ><a name="130" class="Keyword"
+      >import</a
+      ><a name="136"
+      > </a
+      ><a name="137" href="SVDesc.html#40" class="Module"
+      >SVDesc</a
+      ><a name="143"
+      >
+</a
+      ><a name="144" class="Keyword"
+      >open</a
+      ><a name="148"
+      > </a
+      ><a name="149" href="SVDesc.html#40" class="Module"
+      >SVDesc</a
+      ><a name="155"
+      > </a
+      ><a name="156" class="Keyword"
+      >public</a
+      ><a name="162"
+      >
+
+</a
+      ><a name="164" class="Comment"
+      >------------------------------------------------------</a
+      ><a name="218"
+      >
+
+</a
+      ><a name="220" class="Comment"
+      >-- The change prefixes are inclusive of the time argument</a
+      ><a name="277"
+      >
+</a
+      ><a name="278" class="Comment"
+      >-- (i.e. any changes at that point in time will appear in the list)</a
+      ><a name="345"
+      >
+
+</a
+      ><a name="347" href="SigVecs.html#347" class="Function"
+      >ChangeList</a
+      ><a name="357"
+      > </a
+      ><a name="358" class="Symbol"
+      >=</a
+      ><a name="359"
+      > </a
+      ><a name="360" href="TimeDeltaList.html#244" class="Function"
+      >TimeDeltaList</a
+      ><a name="373"
+      >
+
+</a
+      ><a name="375" href="SigVecs.html#375" class="Function"
+      >ChangePrefix</a
+      ><a name="387"
+      > </a
+      ><a name="388" class="Symbol"
+      >:</a
+      ><a name="389"
+      > </a
+      ><a name="390" class="PrimitiveType"
+      >Set</a
+      ><a name="393"
+      > </a
+      ><a name="394" class="Symbol"
+      >&#8594;</a
+      ><a name="395"
+      > </a
+      ><a name="396" class="PrimitiveType"
+      >Set</a
+      ><a name="399"
+      >
+</a
+      ><a name="400" href="SigVecs.html#375" class="Function"
+      >ChangePrefix</a
+      ><a name="412"
+      > </a
+      ><a name="413" href="SigVecs.html#413" class="Bound"
+      >A</a
+      ><a name="414"
+      > </a
+      ><a name="415" class="Symbol"
+      >=</a
+      ><a name="416"
+      > </a
+      ><a name="417" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="421"
+      > </a
+      ><a name="422" class="Symbol"
+      >&#8594;</a
+      ><a name="423"
+      > </a
+      ><a name="424" href="SigVecs.html#347" class="Function"
+      >ChangeList</a
+      ><a name="434"
+      > </a
+      ><a name="435" href="SigVecs.html#413" class="Bound"
+      >A</a
+      ><a name="436"
+      >
+
+</a
+      ><a name="438" href="SigVecs.html#438" class="Function"
+      >SigVec</a
+      ><a name="444"
+      > </a
+      ><a name="445" class="Symbol"
+      >:</a
+      ><a name="446"
+      > </a
+      ><a name="447" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="453"
+      > </a
+      ><a name="454" class="Symbol"
+      >&#8594;</a
+      ><a name="455"
+      > </a
+      ><a name="456" class="PrimitiveType"
+      >Set</a
+      ><a name="459"
+      >
+</a
+      ><a name="460" href="SigVecs.html#438" class="Function"
+      >SigVec</a
+      ><a name="466"
+      > </a
+      ><a name="467" class="Symbol"
+      >(</a
+      ><a name="468" href="SVDesc.html#178" class="InductiveConstructor"
+      >C</a
+      ><a name="469"
+      > </a
+      ><a name="470" href="SigVecs.html#470" class="Bound"
+      >A</a
+      ><a name="471" class="Symbol"
+      >)</a
+      ><a name="472"
+      >      </a
+      ><a name="478" class="Symbol"
+      >=</a
+      ><a name="479"
+      >  </a
+      ><a name="481" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="485"
+      > </a
+      ><a name="486" class="Symbol"
+      >&#8594;</a
+      ><a name="487"
+      > </a
+      ><a name="488" href="SigVecs.html#470" class="Bound"
+      >A</a
+      ><a name="489"
+      >
+</a
+      ><a name="490" href="SigVecs.html#438" class="Function"
+      >SigVec</a
+      ><a name="496"
+      > </a
+      ><a name="497" class="Symbol"
+      >(</a
+      ><a name="498" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="499"
+      > </a
+      ><a name="500" href="SigVecs.html#500" class="Bound"
+      >A</a
+      ><a name="501" class="Symbol"
+      >)</a
+      ><a name="502"
+      >      </a
+      ><a name="508" class="Symbol"
+      >=</a
+      ><a name="509"
+      >  </a
+      ><a name="511" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="516"
+      > </a
+      ><a name="517" href="SigVecs.html#500" class="Bound"
+      >A</a
+      ><a name="518"
+      > </a
+      ><a name="519" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="520"
+      > </a
+      ><a name="521" href="SigVecs.html#375" class="Function"
+      >ChangePrefix</a
+      ><a name="533"
+      > </a
+      ><a name="534" href="SigVecs.html#500" class="Bound"
+      >A</a
+      ><a name="535"
+      >
+</a
+      ><a name="536" href="SigVecs.html#438" class="Function"
+      >SigVec</a
+      ><a name="542"
+      > </a
+      ><a name="543" class="Symbol"
+      >(</a
+      ><a name="544" href="SVDesc.html#220" class="InductiveConstructor"
+      >S</a
+      ><a name="545"
+      > </a
+      ><a name="546" href="SigVecs.html#546" class="Bound"
+      >A</a
+      ><a name="547" class="Symbol"
+      >)</a
+      ><a name="548"
+      >      </a
+      ><a name="554" class="Symbol"
+      >=</a
+      ><a name="555"
+      >  </a
+      ><a name="557" href="SigVecs.html#546" class="Bound"
+      >A</a
+      ><a name="558"
+      > </a
+      ><a name="559" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="560"
+      > </a
+      ><a name="561" href="SigVecs.html#375" class="Function"
+      >ChangePrefix</a
+      ><a name="573"
+      > </a
+      ><a name="574" href="SigVecs.html#546" class="Bound"
+      >A</a
+      ><a name="575"
+      >
+</a
+      ><a name="576" href="SigVecs.html#438" class="Function"
+      >SigVec</a
+      ><a name="582"
+      > </a
+      ><a name="583" class="Symbol"
+      >(</a
+      ><a name="584" href="SigVecs.html#584" class="Bound"
+      >as</a
+      ><a name="586"
+      > </a
+      ><a name="587" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="588"
+      > </a
+      ><a name="589" href="SigVecs.html#589" class="Bound"
+      >bs</a
+      ><a name="591" class="Symbol"
+      >)</a
+      ><a name="592"
+      >  </a
+      ><a name="594" class="Symbol"
+      >=</a
+      ><a name="595"
+      >  </a
+      ><a name="597" href="SigVecs.html#438" class="Function"
+      >SigVec</a
+      ><a name="603"
+      > </a
+      ><a name="604" href="SigVecs.html#584" class="Bound"
+      >as</a
+      ><a name="606"
+      > </a
+      ><a name="607" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="608"
+      > </a
+      ><a name="609" href="SigVecs.html#438" class="Function"
+      >SigVec</a
+      ><a name="615"
+      > </a
+      ><a name="616" href="SigVecs.html#589" class="Bound"
+      >bs</a
+      ><a name="618"
+      >
+
+</a
+      ><a name="620" href="SigVecs.html#620" class="Function"
+      >SF</a
+      ><a name="622"
+      > </a
+      ><a name="623" class="Symbol"
+      >:</a
+      ><a name="624"
+      > </a
+      ><a name="625" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="631"
+      > </a
+      ><a name="632" class="Symbol"
+      >&#8594;</a
+      ><a name="633"
+      > </a
+      ><a name="634" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="640"
+      > </a
+      ><a name="641" class="Symbol"
+      >&#8594;</a
+      ><a name="642"
+      > </a
+      ><a name="643" class="PrimitiveType"
+      >Set</a
+      ><a name="646"
+      >
+</a
+      ><a name="647" href="SigVecs.html#620" class="Function"
+      >SF</a
+      ><a name="649"
+      > </a
+      ><a name="650" href="SigVecs.html#650" class="Bound"
+      >as</a
+      ><a name="652"
+      > </a
+      ><a name="653" href="SigVecs.html#653" class="Bound"
+      >bs</a
+      ><a name="655"
+      > </a
+      ><a name="656" class="Symbol"
+      >=</a
+      ><a name="657"
+      > </a
+      ><a name="658" href="SigVecs.html#438" class="Function"
+      >SigVec</a
+      ><a name="664"
+      > </a
+      ><a name="665" href="SigVecs.html#650" class="Bound"
+      >as</a
+      ><a name="667"
+      > </a
+      ><a name="668" class="Symbol"
+      >&#8594;</a
+      ><a name="669"
+      > </a
+      ><a name="670" href="SigVecs.html#438" class="Function"
+      >SigVec</a
+      ><a name="676"
+      > </a
+      ><a name="677" href="SigVecs.html#653" class="Bound"
+      >bs</a
+      ><a name="679"
+      >
+
+</a
+      ><a name="681" class="Comment"
+      >------------------------------------------------------</a
+      ><a name="735"
+      >
+
+</a
+      ><a name="737" href="SigVecs.html#737" class="Function"
+      >SVRep</a
+      ><a name="742"
+      > </a
+      ><a name="743" class="Symbol"
+      >:</a
+      ><a name="744"
+      > </a
+      ><a name="745" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="751"
+      > </a
+      ><a name="752" class="Symbol"
+      >&#8594;</a
+      ><a name="753"
+      > </a
+      ><a name="754" class="PrimitiveType"
+      >Set</a
+      ><a name="757"
+      >
+</a
+      ><a name="758" href="SigVecs.html#737" class="Function"
+      >SVRep</a
+      ><a name="763"
+      > </a
+      ><a name="764" class="Symbol"
+      >(</a
+      ><a name="765" href="SVDesc.html#178" class="InductiveConstructor"
+      >C</a
+      ><a name="766"
+      > </a
+      ><a name="767" href="SigVecs.html#767" class="Bound"
+      >A</a
+      ><a name="768" class="Symbol"
+      >)</a
+      ><a name="769"
+      > </a
+      ><a name="770" class="Symbol"
+      >=</a
+      ><a name="771"
+      > </a
+      ><a name="772" href="SigVecs.html#767" class="Bound"
+      >A</a
+      ><a name="773"
+      >
+</a
+      ><a name="774" href="SigVecs.html#737" class="Function"
+      >SVRep</a
+      ><a name="779"
+      > </a
+      ><a name="780" class="Symbol"
+      >(</a
+      ><a name="781" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="782"
+      > </a
+      ><a name="783" href="SigVecs.html#783" class="Bound"
+      >A</a
+      ><a name="784" class="Symbol"
+      >)</a
+      ><a name="785"
+      > </a
+      ><a name="786" class="Symbol"
+      >=</a
+      ><a name="787"
+      > </a
+      ><a name="788" href="NeilPrelude.html#864" class="Datatype"
+      >Maybe</a
+      ><a name="793"
+      > </a
+      ><a name="794" href="SigVecs.html#783" class="Bound"
+      >A</a
+      ><a name="795"
+      > </a
+      ><a name="796" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="797"
+      > </a
+      ><a name="798" href="SigVecs.html#347" class="Function"
+      >ChangeList</a
+      ><a name="808"
+      > </a
+      ><a name="809" href="SigVecs.html#783" class="Bound"
+      >A</a
+      ><a name="810"
+      >
+</a
+      ><a name="811" href="SigVecs.html#737" class="Function"
+      >SVRep</a
+      ><a name="816"
+      > </a
+      ><a name="817" class="Symbol"
+      >(</a
+      ><a name="818" href="SVDesc.html#220" class="InductiveConstructor"
+      >S</a
+      ><a name="819"
+      > </a
+      ><a name="820" href="SigVecs.html#820" class="Bound"
+      >A</a
+      ><a name="821" class="Symbol"
+      >)</a
+      ><a name="822"
+      > </a
+      ><a name="823" class="Symbol"
+      >=</a
+      ><a name="824"
+      > </a
+      ><a name="825" href="SigVecs.html#820" class="Bound"
+      >A</a
+      ><a name="826"
+      > </a
+      ><a name="827" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="828"
+      > </a
+      ><a name="829" href="SigVecs.html#347" class="Function"
+      >ChangeList</a
+      ><a name="839"
+      > </a
+      ><a name="840" href="SigVecs.html#820" class="Bound"
+      >A</a
+      ><a name="841"
+      >
+</a
+      ><a name="842" href="SigVecs.html#737" class="Function"
+      >SVRep</a
+      ><a name="847"
+      > </a
+      ><a name="848" class="Symbol"
+      >(</a
+      ><a name="849" href="SigVecs.html#849" class="Bound"
+      >as</a
+      ><a name="851"
+      > </a
+      ><a name="852" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="853"
+      > </a
+      ><a name="854" href="SigVecs.html#854" class="Bound"
+      >bs</a
+      ><a name="856" class="Symbol"
+      >)</a
+      ><a name="857"
+      > </a
+      ><a name="858" class="Symbol"
+      >=</a
+      ><a name="859"
+      > </a
+      ><a name="860" href="SigVecs.html#737" class="Function"
+      >SVRep</a
+      ><a name="865"
+      > </a
+      ><a name="866" href="SigVecs.html#849" class="Bound"
+      >as</a
+      ><a name="868"
+      > </a
+      ><a name="869" href="NeilPrelude.html#1066" class="Function Operator"
+      >&#215;</a
+      ><a name="870"
+      > </a
+      ><a name="871" href="SigVecs.html#737" class="Function"
+      >SVRep</a
+      ><a name="876"
+      > </a
+      ><a name="877" href="SigVecs.html#854" class="Bound"
+      >bs</a
+      ><a name="879"
+      >
+
+</a
+      ><a name="881" href="SigVecs.html#881" class="Function"
+      >rep</a
+      ><a name="884"
+      > </a
+      ><a name="885" class="Symbol"
+      >:</a
+      ><a name="886"
+      > </a
+      ><a name="887" class="Symbol"
+      >{</a
+      ><a name="888" href="SigVecs.html#888" class="Bound"
+      >as</a
+      ><a name="890"
+      > </a
+      ><a name="891" class="Symbol"
+      >:</a
+      ><a name="892"
+      > </a
+      ><a name="893" href="SVDesc.html#157" class="Datatype"
+      >SVDesc</a
+      ><a name="899" class="Symbol"
+      >}</a
+      ><a name="900"
+      > </a
+      ><a name="901" class="Symbol"
+      >&#8594;</a
+      ><a name="902"
+      > </a
+      ><a name="903" href="SigVecs.html#438" class="Function"
+      >SigVec</a
+      ><a name="909"
+      > </a
+      ><a name="910" href="SigVecs.html#888" class="Bound"
+      >as</a
+      ><a name="912"
+      > </a
+      ><a name="913" class="Symbol"
+      >&#8594;</a
+      ><a name="914"
+      > </a
+      ><a name="915" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="919"
+      > </a
+      ><a name="920" class="Symbol"
+      >&#8594;</a
+      ><a name="921"
+      > </a
+      ><a name="922" href="SigVecs.html#737" class="Function"
+      >SVRep</a
+      ><a name="927"
+      > </a
+      ><a name="928" href="SigVecs.html#888" class="Bound"
+      >as</a
+      ><a name="930"
+      >
+</a
+      ><a name="931" href="SigVecs.html#881" class="Function"
+      >rep</a
+      ><a name="934"
+      > </a
+      ><a name="935" class="Symbol"
+      >{</a
+      ><a name="936" href="SVDesc.html#178" class="InductiveConstructor"
+      >C</a
+      ><a name="937"
+      > </a
+      ><a name="938" class="Symbol"
+      >_}</a
+      ><a name="940"
+      > </a
+      ><a name="941" href="SigVecs.html#941" class="Bound"
+      >s</a
+      ><a name="942"
+      > </a
+      ><a name="943" href="SigVecs.html#943" class="Bound"
+      >t</a
+      ><a name="944"
+      >             </a
+      ><a name="957" class="Symbol"
+      >=</a
+      ><a name="958"
+      > </a
+      ><a name="959" href="SigVecs.html#941" class="Bound"
+      >s</a
+      ><a name="960"
+      > </a
+      ><a name="961" href="SigVecs.html#943" class="Bound"
+      >t</a
+      ><a name="962"
+      >
+</a
+      ><a name="963" href="SigVecs.html#881" class="Function"
+      >rep</a
+      ><a name="966"
+      > </a
+      ><a name="967" class="Symbol"
+      >{</a
+      ><a name="968" href="SVDesc.html#199" class="InductiveConstructor"
+      >E</a
+      ><a name="969"
+      > </a
+      ><a name="970" class="Symbol"
+      >_}</a
+      ><a name="972"
+      > </a
+      ><a name="973" class="Symbol"
+      >(</a
+      ><a name="974" href="SigVecs.html#974" class="Bound"
+      >ma</a
+      ><a name="976"
+      > </a
+      ><a name="977" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="978"
+      > </a
+      ><a name="979" href="SigVecs.html#979" class="Bound"
+      >cp</a
+      ><a name="981" class="Symbol"
+      >)</a
+      ><a name="982"
+      > </a
+      ><a name="983" href="SigVecs.html#983" class="Bound"
+      >t</a
+      ><a name="984"
+      >     </a
+      ><a name="989" class="Symbol"
+      >=</a
+      ><a name="990"
+      > </a
+      ><a name="991" class="Symbol"
+      >(</a
+      ><a name="992" href="SigVecs.html#974" class="Bound"
+      >ma</a
+      ><a name="994"
+      > </a
+      ><a name="995" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="996"
+      > </a
+      ><a name="997" href="SigVecs.html#979" class="Bound"
+      >cp</a
+      ><a name="999"
+      > </a
+      ><a name="1000" href="SigVecs.html#983" class="Bound"
+      >t</a
+      ><a name="1001" class="Symbol"
+      >)</a
+      ><a name="1002"
+      >
+</a
+      ><a name="1003" href="SigVecs.html#881" class="Function"
+      >rep</a
+      ><a name="1006"
+      > </a
+      ><a name="1007" class="Symbol"
+      >{</a
+      ><a name="1008" href="SVDesc.html#220" class="InductiveConstructor"
+      >S</a
+      ><a name="1009"
+      > </a
+      ><a name="1010" class="Symbol"
+      >_}</a
+      ><a name="1012"
+      > </a
+      ><a name="1013" class="Symbol"
+      >(</a
+      ><a name="1014" href="SigVecs.html#1014" class="Bound"
+      >a</a
+      ><a name="1015"
+      > </a
+      ><a name="1016" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1017"
+      > </a
+      ><a name="1018" href="SigVecs.html#1018" class="Bound"
+      >cp</a
+      ><a name="1020" class="Symbol"
+      >)</a
+      ><a name="1021"
+      > </a
+      ><a name="1022" href="SigVecs.html#1022" class="Bound"
+      >t</a
+      ><a name="1023"
+      >      </a
+      ><a name="1029" class="Symbol"
+      >=</a
+      ><a name="1030"
+      > </a
+      ><a name="1031" class="Symbol"
+      >(</a
+      ><a name="1032" href="SigVecs.html#1014" class="Bound"
+      >a</a
+      ><a name="1033"
+      > </a
+      ><a name="1034" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1035"
+      > </a
+      ><a name="1036" href="SigVecs.html#1018" class="Bound"
+      >cp</a
+      ><a name="1038"
+      > </a
+      ><a name="1039" href="SigVecs.html#1022" class="Bound"
+      >t</a
+      ><a name="1040" class="Symbol"
+      >)</a
+      ><a name="1041"
+      >
+</a
+      ><a name="1042" href="SigVecs.html#881" class="Function"
+      >rep</a
+      ><a name="1045"
+      > </a
+      ><a name="1046" class="Symbol"
+      >{</a
+      ><a name="1047" href="SigVecs.html#1047" class="Bound"
+      >as</a
+      ><a name="1049"
+      > </a
+      ><a name="1050" href="SVDesc.html#241" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1051"
+      > </a
+      ><a name="1052" href="SigVecs.html#1052" class="Bound"
+      >bs</a
+      ><a name="1054" class="Symbol"
+      >}</a
+      ><a name="1055"
+      > </a
+      ><a name="1056" class="Symbol"
+      >(</a
+      ><a name="1057" href="SigVecs.html#1057" class="Bound"
+      >sa</a
+      ><a name="1059"
+      > </a
+      ><a name="1060" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1061"
+      > </a
+      ><a name="1062" href="SigVecs.html#1062" class="Bound"
+      >sb</a
+      ><a name="1064" class="Symbol"
+      >)</a
+      ><a name="1065"
+      > </a
+      ><a name="1066" href="SigVecs.html#1066" class="Bound"
+      >t</a
+      ><a name="1067"
+      > </a
+      ><a name="1068" class="Symbol"
+      >=</a
+      ><a name="1069"
+      > </a
+      ><a name="1070" class="Symbol"
+      >(</a
+      ><a name="1071" href="SigVecs.html#881" class="Function"
+      >rep</a
+      ><a name="1074"
+      > </a
+      ><a name="1075" class="Symbol"
+      >{</a
+      ><a name="1076" href="SigVecs.html#1047" class="Bound"
+      >as</a
+      ><a name="1078" class="Symbol"
+      >}</a
+      ><a name="1079"
+      > </a
+      ><a name="1080" href="SigVecs.html#1057" class="Bound"
+      >sa</a
+      ><a name="1082"
+      > </a
+      ><a name="1083" href="SigVecs.html#1066" class="Bound"
+      >t</a
+      ><a name="1084"
+      > </a
+      ><a name="1085" href="NeilPrelude.html#1015" class="InductiveConstructor Operator"
+      >,</a
+      ><a name="1086"
+      > </a
+      ><a name="1087" href="SigVecs.html#881" class="Function"
+      >rep</a
+      ><a name="1090"
+      > </a
+      ><a name="1091" class="Symbol"
+      >{</a
+      ><a name="1092" href="SigVecs.html#1052" class="Bound"
+      >bs</a
+      ><a name="1094" class="Symbol"
+      >}</a
+      ><a name="1095"
+      > </a
+      ><a name="1096" href="SigVecs.html#1062" class="Bound"
+      >sb</a
+      ><a name="1098"
+      > </a
+      ><a name="1099" href="SigVecs.html#1066" class="Bound"
+      >t</a
+      ><a name="1100" class="Symbol"
+      >)</a
+      ><a name="1101"
+      >
+
+</a
+      ><a name="1103" class="Comment"
+      >------------------------------------------------------</a
+      ><a name="1157"
+      >
+</a
+      ></pre
+    ></body
+  ></html
+>

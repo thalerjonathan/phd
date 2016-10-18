@@ -1,0 +1,300 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >RealTime</title
+    ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta http-equiv="Content-Style-Type" content="text/css"
+     /><link href="Agda.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><pre
+    ><a name="1" class="Symbol"
+      >{-#</a
+      ><a name="4"
+      > </a
+      ><a name="5" class="Keyword"
+      >OPTIONS</a
+      ><a name="12"
+      > --type-in-type  </a
+      ><a name="29" class="Symbol"
+      >#-}</a
+      ><a name="32"
+      >
+
+</a
+      ><a name="34" class="Keyword"
+      >open</a
+      ><a name="38"
+      > </a
+      ><a name="39" class="Keyword"
+      >import</a
+      ><a name="45"
+      > </a
+      ><a name="46" href="NeilPrelude.html#77" class="Module"
+      >NeilPrelude</a
+      ><a name="57"
+      >
+
+</a
+      ><a name="59" class="Keyword"
+      >module</a
+      ><a name="65"
+      > </a
+      ><a name="66" href="RealTime.html#66" class="Module"
+      >RealTime</a
+      ><a name="74"
+      > </a
+      ><a name="75" class="Keyword"
+      >where</a
+      ><a name="80"
+      >
+
+</a
+      ><a name="82" class="Keyword"
+      >open</a
+      ><a name="86"
+      > </a
+      ><a name="87" class="Keyword"
+      >import</a
+      ><a name="93"
+      > </a
+      ><a name="94" href="PosReal.html#83" class="Module"
+      >PosReal</a
+      ><a name="101"
+      > </a
+      ><a name="102" class="Keyword"
+      >public</a
+      ><a name="108"
+      >
+
+</a
+      ><a name="110" class="Comment"
+      >----------------------------------------------</a
+      ><a name="156"
+      >
+
+</a
+      ><a name="158" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="162"
+      > </a
+      ><a name="163" class="Symbol"
+      >:</a
+      ><a name="164"
+      > </a
+      ><a name="165" class="PrimitiveType"
+      >Set</a
+      ><a name="168"
+      >
+</a
+      ><a name="169" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="173"
+      > </a
+      ><a name="174" class="Symbol"
+      >=</a
+      ><a name="175"
+      > </a
+      ><a name="176" href="PosReal.html#230" class="Datatype"
+      >&#8476;&#8320;</a
+      ><a name="178"
+      >
+
+</a
+      ><a name="180" href="RealTime.html#180" class="Function"
+      >Time&#8314;</a
+      ><a name="185"
+      > </a
+      ><a name="186" class="Symbol"
+      >:</a
+      ><a name="187"
+      > </a
+      ><a name="188" class="PrimitiveType"
+      >Set</a
+      ><a name="191"
+      >
+</a
+      ><a name="192" href="RealTime.html#180" class="Function"
+      >Time&#8314;</a
+      ><a name="197"
+      > </a
+      ><a name="198" class="Symbol"
+      >=</a
+      ><a name="199"
+      > </a
+      ><a name="200" href="StrictPosReal.html#192" class="Postulate"
+      >&#8476;&#8314;</a
+      ><a name="202"
+      > 
+
+</a
+      ><a name="205" href="RealTime.html#205" class="Function"
+      >&#916;t</a
+      ><a name="207"
+      > </a
+      ><a name="208" class="Symbol"
+      >=</a
+      ><a name="209"
+      > </a
+      ><a name="210" href="RealTime.html#180" class="Function"
+      >Time&#8314;</a
+      ><a name="215"
+      >
+
+</a
+      ><a name="217" href="RealTime.html#217" class="Function"
+      >CurrentTime</a
+      ><a name="228"
+      >     </a
+      ><a name="233" class="Symbol"
+      >=</a
+      ><a name="234"
+      > </a
+      ><a name="235" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="239"
+      >
+</a
+      ><a name="240" href="RealTime.html#240" class="Function"
+      >EventTime</a
+      ><a name="249"
+      >       </a
+      ><a name="256" class="Symbol"
+      >=</a
+      ><a name="257"
+      > </a
+      ><a name="258" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="262"
+      >
+</a
+      ><a name="263" href="RealTime.html#263" class="Function"
+      >ReleaseTime</a
+      ><a name="274"
+      >     </a
+      ><a name="279" class="Symbol"
+      >=</a
+      ><a name="280"
+      > </a
+      ><a name="281" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="285"
+      >
+</a
+      ><a name="286" href="RealTime.html#286" class="Function"
+      >SampleTime</a
+      ><a name="296"
+      >      </a
+      ><a name="302" class="Symbol"
+      >=</a
+      ><a name="303"
+      > </a
+      ><a name="304" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="308"
+      >
+</a
+      ><a name="309" href="RealTime.html#309" class="Function"
+      >StartTime</a
+      ><a name="318"
+      >       </a
+      ><a name="325" class="Symbol"
+      >=</a
+      ><a name="326"
+      > </a
+      ><a name="327" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="331"
+      >
+</a
+      ><a name="332" href="RealTime.html#332" class="Function"
+      >TimeAfterEvent</a
+      ><a name="346"
+      >  </a
+      ><a name="348" class="Symbol"
+      >=</a
+      ><a name="349"
+      > </a
+      ><a name="350" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="354"
+      >
+</a
+      ><a name="355" href="RealTime.html#355" class="Function"
+      >TimeBeforeEvent</a
+      ><a name="370"
+      > </a
+      ><a name="371" class="Symbol"
+      >=</a
+      ><a name="372"
+      > </a
+      ><a name="373" href="RealTime.html#158" class="Function"
+      >Time</a
+      ><a name="377"
+      >
+
+</a
+      ><a name="379" href="RealTime.html#379" class="Function"
+      >CurrentTime&#8314;</a
+      ><a name="391"
+      >    </a
+      ><a name="395" class="Symbol"
+      >=</a
+      ><a name="396"
+      > </a
+      ><a name="397" href="RealTime.html#180" class="Function"
+      >Time&#8314;</a
+      ><a name="402"
+      >
+</a
+      ><a name="403" href="RealTime.html#403" class="Function"
+      >ReleaseTime&#8314;</a
+      ><a name="415"
+      >    </a
+      ><a name="419" class="Symbol"
+      >=</a
+      ><a name="420"
+      > </a
+      ><a name="421" href="RealTime.html#180" class="Function"
+      >Time&#8314;</a
+      ><a name="426"
+      >
+</a
+      ><a name="427" href="RealTime.html#427" class="Function"
+      >SampleTime&#8314;</a
+      ><a name="438"
+      >     </a
+      ><a name="443" class="Symbol"
+      >=</a
+      ><a name="444"
+      > </a
+      ><a name="445" href="RealTime.html#180" class="Function"
+      >Time&#8314;</a
+      ><a name="450"
+      >
+</a
+      ><a name="451" href="RealTime.html#451" class="Function"
+      >EventTime&#8314;</a
+      ><a name="461"
+      >      </a
+      ><a name="467" class="Symbol"
+      >=</a
+      ><a name="468"
+      > </a
+      ><a name="469" href="RealTime.html#180" class="Function"
+      >Time&#8314;</a
+      ><a name="474"
+      >
+
+</a
+      ><a name="476" class="Comment"
+      >---------------------------------------------</a
+      ><a name="521"
+      >
+
+</a
+      ></pre
+    ></body
+  ></html
+>

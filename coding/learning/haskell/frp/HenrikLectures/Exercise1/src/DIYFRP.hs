@@ -112,7 +112,7 @@ time = B (\ts -> ts)
 
 
 lift0 :: a -> B a
-lift0 a = undefined
+lift0 a = B (\ts -> [a])
 
 
 -- One could also have defined lift0:

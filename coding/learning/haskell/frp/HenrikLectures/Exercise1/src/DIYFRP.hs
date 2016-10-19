@@ -110,16 +110,13 @@ time = B (\ts -> ts)
 ($*) :: B (a -> b) -> B a -> B b
 (B ff) $* (B fa) = B $ \ts -> zipWith ($) (ff ts) (fa ts)
 
-
 lift0 :: a -> B a
 lift0 a = B (\ts -> [a])
-
 
 -- One could also have defined lift0:
 -- lift0 a = B (const (repeat a))
 -- This would be lazier as the input is completely ignored and an
 -- infinite result sream is generated no matter what.
-
 
 lift1 :: (a -> b) -> (B a -> B b)
 lift1 f ba = undefined

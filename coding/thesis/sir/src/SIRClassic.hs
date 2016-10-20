@@ -13,7 +13,6 @@ data Message d = Message
   {
     msgType :: MessageType d,
     msgNeighbours :: Maybe [AgentID],
-    msgSender :: AgentID,
     msgReceiver :: AgentID,
     msgContent :: Maybe String
   } deriving (Show)
@@ -33,11 +32,13 @@ data Agent s d = Agent
   }
  
 showAgent :: (Show s, Show p) => Agent s p -> String
-showAgent a = "Agent " ++ show id ++ " state: " ++ show state ++ ", mbox: " ++ show mbox
+showAgent a = "Agent " ++ show id ++ " state: " ++ show state -- ++ " , in-box: " ++ show inbox ++ ", out-box: " ++ show outbox ++ ", neighbours = " ++ show neighbours
   where
     id = agentId a
     state = agentState a
-    mbox = agentInBox a
+    inbox = agentInBox a
+    outbox = agentOutBox a
+    neighbours = agentNeighbours a
     
 printAgents :: (Show s, Show p) => [Agent s p] -> IO ()
 printAgents [] = return ()
@@ -70,7 +71,12 @@ processMsg msg a = handler msg a
     handler = agentMsgHandler a
 
 queueMsgToAll :: Message d -> [Agent s d] -> [Agent s d]
-queueMsgToAll msg as = map (\a -> queueMsg msg a ) as
+queueMsgToAll msg as = map (\a -> queueMsg (fillMessageReceiver msg a) a) as
+
+fillMessageReceiver :: Message d -> Agent s d -> Message d
+fillMessageReceiver msg a = msg'
+  where
+    msg' = msg { msgReceiver = agentId a }
 
 type SimStepClbk s d = (Int -> [Agent s d] -> Bool)
 
@@ -89,11 +95,11 @@ simStep as = map (\a -> agentSimStep a) $ processOutMessages as -- TODO: impleme
 processOutMessages :: [Agent s d] -> [Agent s d]
 processOutMessages as = as''
   where
-    as' = map (\a -> foldr (\msg a' -> deliverMsg msg a) a (gatherMessagesFor a as) ) as
+    as' = map (\a -> foldr (\msg a' -> deliverMsg msg a') a (gatherMessagesFor a as) ) as
     as'' = map (\a -> a { agentOutBox = [] } ) as'
 
 gatherMessagesFor :: Agent s d -> [Agent s d] -> [Message d]
-gatherMessagesFor a as = foldr (\a' acc -> (messagesFor a a') ++ acc) [] as
+gatherMessagesFor a as = foldr (\a' acc -> acc ++ (messagesFor a a')) [] as
   where
     receiverId = agentId a
 
@@ -112,20 +118,20 @@ processAllInMsg :: Agent s d -> Agent s d
 processAllInMsg a = a''
   where
     inMsgs = agentInBox a
-    a' = foldr (\msg acc -> processMsg msg a ) a inMsgs
-    a'' = a { agentInBox = [] }
+    a' = foldr (\msg acc -> processMsg msg acc) a inMsgs
+    a'' = a' { agentInBox = [] }
 
 --------------------------------------------------------------------------------------------------------------------
 -- SIR-Specific 
 
 populationCount :: Int
-populationCount = 10
+populationCount = 1000
 
 infectionProb :: Float
-infectionProb = 0.5
+infectionProb = 0.1
 
 initInfectProb :: Float
-initInfectProb = 0.1
+initInfectProb = 0.5
 
 daysInfectous :: Int
 daysInfectous = 3
@@ -149,19 +155,34 @@ type SIRMessageHandler = (SIRMessage -> SIRAgent -> SIRAgent)
 type SIRActivityHandler = (SIRAgent -> SIRAgent)
 type SIRStepClbk = (Int -> [SIRAgent] -> Bool)
 
-{-
+
 main :: IO ()
 main = do
   hSetBuffering stdin LineBuffering
-  as <- populateSIR populationCount
-  queueMsgToAll startMsg as
-  queueMsgToAll (neighboursMsg $ allIds as) as 
-  allAgents <- runSimulation simSteps as sirStepClbk
+  let initAgents = initSir
+  as <- sirStep 0 initAgents
   return ()
--}
 
-testSIR :: [[SIRAgent]]
-testSIR = runSimulation simSteps neighboursPop sirStepClbk
+sirStep :: Int -> [SIRAgent] -> IO [SIRAgent]
+sirStep n as = do
+  putStrLn ("Simulation step " ++ show n)
+  --printAgents as
+  --c <- getChar
+  let as' = simStep as
+  let cont = sirStepClbk n as'
+  if cont == True then
+    sirStep (n+1) as'
+    else
+    exitSir n as'
+    
+exitSir :: Int -> [SIRAgent] -> IO [SIRAgent]
+exitSir n as = do
+  putStrLn ("Simulation stops after " ++ show n ++ " steps. \n Final Agents:")
+  printAgents as
+  return as
+
+initSir :: [SIRAgent]
+initSir = neighboursPop
   where
     population = populateSIR populationCount
     startedPop = queueMsgToAll startMsg population
@@ -171,19 +192,22 @@ allIds :: [Agent s d] -> [AgentID]
 allIds as = map (\a -> agentId a ) as
 
 sirStepClbk :: SIRStepClbk
-sirStepClbk t as = not $ isAnyInfected as
+sirStepClbk t as = isAnyInfected as
 
 isAnyInfected :: [SIRAgent] -> Bool
 isAnyInfected as = any (\a -> isInfected a) as
 
+isNoneInfected :: [SIRAgent] -> Bool 
+isNoneInfected as = not $ isAnyInfected as
+
 infectionMsg :: AgentID -> SIRMessage
-infectionMsg receiver = Message { msgType = AgentDomain Contact, msgNeighbours = Nothing, msgReceiver = receiver, msgSender = -1, msgContent = Just "Infected" }
+infectionMsg receiver = Message { msgType = AgentDomain Contact, msgNeighbours = Nothing, msgReceiver = receiver, msgContent = Just "Infected" }
 
 startMsg :: SIRMessage
-startMsg = Message { msgType = AgentStart, msgNeighbours = Nothing, msgReceiver = -1, msgSender = -1, msgContent = Nothing }
+startMsg = Message { msgType = AgentStart, msgNeighbours = Nothing, msgReceiver = -1, msgContent = Nothing }
 
 neighboursMsg :: [AgentID] -> SIRMessage
-neighboursMsg ns = Message { msgType = AgentNeighbours, msgReceiver = -1, msgSender = -1, msgNeighbours = (Just ns), msgContent = Nothing }
+neighboursMsg ns = Message { msgType = AgentNeighbours, msgReceiver = -1, msgNeighbours = (Just ns), msgContent = Nothing }
 
 sirMsgHandler :: SIRMessageHandler
 sirMsgHandler msg a
@@ -208,7 +232,7 @@ handleStop :: SIRAgent -> SIRAgent
 handleStop a = a -- NOTE: nothing to do
 
 handleNeighbours :: SIRAgent -> Maybe [AgentID] -> SIRAgent
-handleNeighbours a (Just ns) = a { agentNeighbours = (agentNeighbours a) ++ ns}
+handleNeighbours a (Just ns) =  a { agentNeighbours = (agentNeighbours a) ++ ns}
 handleNeighbours a _ = a -- NOTE: should not occur, as when sending Neighbours-Message then it should contain neighbours in the according list
 
 handleContact :: SIRAgent -> Maybe String -> SIRAgent
@@ -217,24 +241,27 @@ handleContact a _ = a -- NOTE: should not occur, as when sending Contact-Message
 
 cureInfectedAgent :: SIRAgent -> SIRAgent
 cureInfectedAgent a
-  | hasRecovered = a{ agentState=oldAgentState{sirState=Susceptible,daysInfected=0} }
-  | otherwise = a{ agentState=oldAgentState {daysInfected=newDaysInfected} }
+  | hasRecovered = a { agentState = oldAgentState { sirState=Recovered, daysInfected=0 } }
+  | otherwise = a { agentState = oldAgentState { daysInfected = newDaysInfected } }
   where
     oldAgentState = agentState a
     oldDaysInfected = daysInfected oldAgentState
     newDaysInfected = oldDaysInfected - 1
     hasRecovered = newDaysInfected == 0
     
+isSusceptible :: SIRAgent -> Bool
+isSusceptible a = (sirState (agentState a)) == Susceptible
+
 isInfected :: SIRAgent -> Bool
 isInfected a = (sirState (agentState a)) == Infected
-            
+
 makeRandContact :: SIRAgent -> SIRAgent
 makeRandContact a = queueMsg (infectionMsg neighbour) a
   where
     neighbour = getRandomNeighbour a
 
 getRandomNeighbour :: SIRAgent -> AgentID
-getRandomNeighbour a = if ( randNeighbour == (agentId a) ) then getRandomNeighbour a else randIdx
+getRandomNeighbour a = if ( randNeighbour == (agentId a) ) then getRandomNeighbour a else randNeighbour
   where
     neighbours = agentNeighbours a
     neighboursCount = length neighbours
@@ -243,9 +270,10 @@ getRandomNeighbour a = if ( randNeighbour == (agentId a) ) then getRandomNeighbo
     
 selfInfectRand :: Float -> SIRAgent -> SIRAgent
 selfInfectRand p a
-  | doInfection && (not $ isInfected a) = a { agentState=oldAgentState { sirState=Infected, daysInfected=daysInfectous } }
+  | doInfection && susceptible = a { agentState=oldAgentState { sirState=Infected, daysInfected=daysInfectous } }
   | otherwise = a
     where
+      susceptible = isSusceptible a
       doInfection = randomBool p
       oldAgentState = agentState a
       

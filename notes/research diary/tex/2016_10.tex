@@ -152,18 +152,20 @@ I had a meeting with Henrik Nilsson, the inventor/maintainer of Yampa, a FRP fra
  \end{itemize}
  
 \section*{2016 October 20th}
-I finally got the SIR implementation in classic Haskell running - with classic I refer to the kind of programming: no Monads, no FRP, no other fancy stuff just pure Haskell with maybe IO for text-output/files writing. I am pretty proud of it: it performs replications, detects when a replication has finished (no more infected people) and exports the dynamics as JSON to a file which can be then visualized using a Matlab/Octave script. There are a few problems though:
+I finally got the SIR implementation in classic Haskell running - with classic I refer to the kind of programming: no Monads, no FRP, no other fancy stuff just pure Haskell with maybe IO for text-output/files writing. I am pretty proud of it: it performs replications, detects when a replication has finished (no more infected people) and exports the dynamics as JSON to a file which can be then visualized using a Matlab/Octave script. There were/are a few problems though:
 
 \begin{itemize}
-\item Only the first replication actually does calculations, the remaining ones are just copies of the first one. My guess is that because the compiler / runtime-system infers due to referential transparency that the call to calculating one replication is the same for all. I am using a RNG but that is hidden from Haskell as I am using unsafePerformIO thus Haskell has no chance to infer that the calculation in replication will return always a different result. To run multiple replications properly I guess I would have to introduce pure use of RNG.
-\item The program is about 350 loc which I find not to be very much but the problem is that it is cumbersome to extend and adopt (e.g. to a SEIS or SIRS) model as the logic is scattered all over the functions. It would be nice to encapsulate the whole logic in Monads and build a EDSL around it so that it becomes more clear to read. Thats my next goal.
+\item After having implemented replications only the first replication actually did calculate, the remaining ones were just copies of the first one. My guess was that because the compiler / runtime-system infers due to referential transparency that the call to calculating one replication is the same for all. Initially I thought that to run multiple replications properly I would have to introduce pure use of RNG - which I did - but that was not the origin of the problem. The problem was that replications had \textit{no input}, which of course led Haskell to believe that it is constant after having been calculated. So after having added an input - the index of the replication - all replications were calculated properly.
+\item Still there are problems with replications: there seems to be always the same output although initializing the random-number generators with unique numbers. This needs more investigation.
+\item The program is about 400 loc which I find not to be very much but the problem is that it is cumbersome to extend and adopt (e.g. to a SEIS or SIRS) model as the logic is scattered all over the functions. It would be nice to encapsulate the whole logic in Monads and build a EDSL around it so that it becomes more clear to read. Thats my next goal.
 \end{itemize}
 
 \subsection*{TODO}
 Again I have to reduce my TODOs to the really essential parts I wanna work on the next weeks. Thus removed Category Theory and Wooldrige Book stuff as it is too early. First: do lots of implementation and get used to Haskell!
 
 \begin{itemize}
-\item Make replications work properly.
+\item Fix problem that repeated runnings with same number of replications always seem to end up with the same dynamics.
+\item Make use of data-parallelism using Par-Monad and IVars.
 \item Extend classic Haskell solution to using Monad.
 \item Implementing SIR in Yampa.
 \item Implement SIR using AKKA.

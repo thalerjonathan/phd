@@ -1,5 +1,7 @@
 module Main where
 
+import qualified SIRClassic
+
 {- TODO agent-model
 - need neighbouring of agents (network)
 
@@ -34,3 +36,6 @@ instead of function to forkIO: use lambda which accesses data from outside forki
 -}
 
 ----------------------------------------------------------------------------------------------------
+
+main :: IO ()
+main = SIRClassic.main

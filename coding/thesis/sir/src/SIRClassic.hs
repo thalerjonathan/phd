@@ -1,10 +1,12 @@
-module SIRParallel where
+module SIRClassic where
  
 import System.IO
 import System.IO.Unsafe
 import System.Random
 import Debug.Trace
 import Text.JSON
+import Data.Time.Clock.POSIX
+import Data.Ratio
 
 data MessageType d = AgentStart | AgentStop | AgentNeighbours | AgentDomain d deriving (Show, Eq)
 
@@ -29,11 +31,12 @@ data Agent s d = Agent
     agentNeighbours :: [AgentID],
     agentState :: s,
     agentMsgHandler :: MessageHandler s d,
-    agentActivityHandler :: ActivityHandler s d
+    agentActivityHandler :: ActivityHandler s d,
+    agentRng :: StdGen
   }
  
 showAgent :: (Show s, Show p) => Agent s p -> String
-showAgent a = "Agent " ++ show id ++ " state: " ++ show state -- ++ " , in-box: " ++ show inbox ++ ", out-box: " ++ show outbox ++ ", neighbours = " ++ show neighbours
+showAgent a = "Agent " ++ show id ++ " state: " ++ show state -- ++ ", in-box: " ++ show inbox ++ ", out-box: " ++ show outbox ++ ", neighbours = " ++ show neighbours
   where
     id = agentId a
     state = agentState a
@@ -52,8 +55,10 @@ instance Eq (Agent s d) where
   a1 == a2 = (agentId a1) == (agentId a2)
   
 createAgent :: Int -> s -> ActivityHandler s d -> MessageHandler s d -> Agent s d
-createAgent id initState actHandler msgHandler = Agent { agentId = id, agentInBox = [], agentOutBox = [], agentNeighbours = [], agentState = initState, agentMsgHandler = msgHandler, agentActivityHandler = actHandler }
-
+createAgent id initState actHandler msgHandler = Agent { agentId = id, agentInBox = [], agentOutBox = [], agentNeighbours = [], agentState = initState, agentMsgHandler = msgHandler, agentActivityHandler = actHandler, agentRng = rng }
+  where
+    rng = mkStdGen (id + fromIntegral (unsafePerformIO timeInMicros))
+    
 deliverMsg :: Message d -> Agent s d ->  Agent s d
 deliverMsg msg a = a { agentInBox = newInBox }
   where
@@ -121,11 +126,62 @@ processAllInMsg a = a''
     a' = foldr (\msg acc -> processMsg msg acc) a inMsgs
     a'' = a' { agentInBox = [] }
 
+ 
+timeInMicros :: IO Integer
+timeInMicros = numerator . toRational . (* 1000000) <$> getPOSIXTime
+
+timeInMillis :: IO Integer
+timeInMillis = (`div` 1000) <$> timeInMicros
+
+timeInSeconds :: IO Integer
+timeInSeconds = (`div` 1000) <$> timeInMillis
+
+timeInSeconds' :: IO Double
+timeInSeconds' = (/ 1000000) . fromIntegral <$> timeInMicros
+
+
+randBoolFromAgent :: Agent s d -> Float -> (Bool, Agent s d)
+randBoolFromAgent a p = (rb, a)
+  where
+    rf = unsafePerformIO (getStdRandom (randomR (0.0, 1.0)))
+    rb = p >= rf
+
+randIntFromAgent :: Agent s d -> (Int, Int) -> (Int, Agent s d)
+randIntFromAgent a ip = (ri, a)
+  where
+    ri = unsafePerformIO (getStdRandom (randomR ip))
+ 
+{-
+-- RNG-Stuff
+randBoolFromAgent :: Agent s d -> Float -> (Bool, Agent s d)
+randBoolFromAgent a p = (rb, a')
+  where
+    rng = agentRng a
+    (rb, rng') = randBool rng p
+    a' = a { agentRng = rng' }
+
+randIntFromAgent :: Agent s d -> (Int, Int) -> (Int, Agent s d)
+randIntFromAgent a ip = (ri, a')
+  where
+    rng = agentRng a
+    (ri, rng') = randomR ip rng
+    a' = a { agentRng = rng' }
+    
+-- PURE functional RNG bool
+randBool :: RandomGen g => g -> Float -> (Bool, g)
+randBool rng p = (rndBool, rng')
+  where
+    (rndFloat, rng') = randomR (0.0, 1.0) rng
+    rndBool = p >= rndFloat
+ -}
 --------------------------------------------------------------------------------------------------------------------
 -- SIR-Specific 
 
 filePath :: String
-filePath = "matlab/dynamics.json"
+filePath = "visualization/dynamics.json"
+
+replicationCount :: Int
+replicationCount = 50
 
 populationCount :: Int
 populationCount = 1000
@@ -134,13 +190,10 @@ infectionProb :: Float
 infectionProb = 0.5
 
 initInfectProb :: Float
-initInfectProb = 0.5
+initInfectProb = 0.1
 
 daysInfectous :: Int
-daysInfectous = 5
-
-simSteps :: Int
-simSteps = 1000
+daysInfectous = 10
 
 data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
 data SIRDomain = Contact deriving (Show, Eq)
@@ -162,7 +215,7 @@ type SIRStepClbk = (Int -> [SIRAgent] -> Bool)
 main :: IO ()
 main = do
   hSetBuffering stdin LineBuffering
-  repls <- runReplications 2 []
+  repls <- runReplications replicationCount []
   let dyns = combineDynamics repls
   --putStrLn ("Dynamics: " ++ show dyns)
   exportSIRDynamics dyns
@@ -172,25 +225,28 @@ main = do
 runReplications :: Int -> [[(Int, Int, Int)]] -> IO [[(Int, Int, Int)]]
 runReplications 0 repls = return repls
 runReplications n repls = do
-  putStrLn ("Replication " ++ show n ++ "...")
-  repl <- replication
+  putStrLn ("Replications remaining " ++ show n ++ "...")
+  repl <- replication n
   putStrLn ""
   let repls' = repls ++ [repl]
   runReplications (n-1) repls'
 
-replication :: IO [(Int, Int, Int)]
-replication = do
-  let initAgents = initSir
+replication :: Int -> IO [(Int, Int, Int)]
+replication idx = do
+  let initAgents = initSir idx
   putStr "Simulation steps ... "
   ass <- sirStep 0 [initAgents]
+  --printAgents (last ass)
   let dyns = simDynamics ass
   return dyns
   
 sirStep :: Int -> [[SIRAgent]] -> IO [[SIRAgent]]
 sirStep n ass = do
   putStr $ (show n ++ " ")
+  --c <- getChar
   let as = last ass
   let as' = simStep as
+  --printAgents as'
   let cont = sirStepClbk n as'
   let ass' = ass ++ [as']
   if cont == True then
@@ -217,26 +273,15 @@ combineDynamics rss = floatDyns
 sumDynamic :: [(Int, Int, Int)] -> [(Int, Int, Int)] -> [(Int, Int, Int)]
 sumDynamic as bs = map (\((s,i,r), (s',i',r')) -> (s+s', i+i', r+r') ) zipedDyns
   where
-    zipedDyns = sirZip as bs
+    zipedDyns = zip as bs -- replace with sirZip when don't want to be truncated by short runs (but then the dynamics don't add up anymore at the tail, which looks strange and is counter-intuitive!)
       
--- this zip includes the longer list instead of truncating to the short
+{- this zip includes the longer list instead of truncating to the short
 sirZip :: [(Int, Int, Int)] -> [(Int, Int, Int)] -> [((Int, Int, Int), (Int, Int, Int))]
 sirZip [] [] = []
 sirZip [] (b:bs) = ((0,0,0), b) : sirZip [] bs
 sirZip (a:as) []  = (a, (0,0,0)) : sirZip as []
 sirZip (a:as) (b:bs) = (a,b) : sirZip as bs
-
-testSum :: [(Int, Int, Int)]
-testSum = sumDynamic as bs
-  where
-    as = take 10 $ repeat (2,2,2)
-    bs = take 7 $ repeat (1,1,1)
-
-testZip :: [((Int, Int, Int), (Int, Int, Int))]
-testZip = sirZip as bs
-  where
-    as = take 10 $ repeat (2,2,2)
-    bs = take 7 $ repeat (1,1,1)
+-}
 
 simDynamics :: [[SIRAgent]] -> [(Int, Int, Int)]
 simDynamics ass = map (\as -> simStepToDynamic as ) ass
@@ -248,12 +293,21 @@ simStepToDynamic as = (susceptibleCount, infectedCount, recoveredCount)
     infectedCount = length $ filter isInfected as
     recoveredCount = length $ filter isRecovered as
 
-initSir :: [SIRAgent]
-initSir = neighboursPop
+initSir :: Int -> [SIRAgent]
+initSir replIdx = neighboursPop
   where
-    population = populateSIR populationCount
+    population = populateSIR replIdx populationCount
     startedPop = queueMsgToAll startMsg population
     neighboursPop = queueMsgToAll (neighboursMsg $ allIds startedPop) startedPop 
+
+populateSIR :: Int -> Int -> [SIRAgent]
+populateSIR replIdx n = foldr (\i acc -> (createSIRAgent i) : acc ) [] [idxStart..idxEnd]
+  where
+    idxStart = n * (replIdx - 1) + 1
+    idxEnd =   n * replIdx
+
+createSIRAgent :: Int -> SIRAgent
+createSIRAgent id = createAgent id SIRAgentState { sirState = Susceptible, daysInfected = 0 } sirAgentActivity sirMsgHandler
 
 allIds :: [Agent s d] -> [AgentID]
 allIds as = map (\a -> agentId a ) as
@@ -308,7 +362,7 @@ handleContact a _ = a -- NOTE: should not occur, as when sending Contact-Message
 
 cureInfectedAgent :: SIRAgent -> SIRAgent
 cureInfectedAgent a
-  | hasRecovered = a { agentState = oldAgentState { sirState=Recovered, daysInfected=0 } }
+  | hasRecovered = a { agentState = oldAgentState { sirState = Recovered, daysInfected = 0 } }
   | otherwise = a { agentState = oldAgentState { daysInfected = newDaysInfected } }
   where
     oldAgentState = agentState a
@@ -326,34 +380,23 @@ isRecovered :: SIRAgent -> Bool
 isRecovered a = (sirState (agentState a)) == Recovered
 
 makeRandContact :: SIRAgent -> SIRAgent
-makeRandContact a = queueMsg (infectionMsg neighbour) a
+makeRandContact a = queueMsg (infectionMsg neighbour) a'
   where
-    neighbour = getRandomNeighbour a
+    (neighbour, a') = getRandomNeighbour a
 
-getRandomNeighbour :: SIRAgent -> AgentID
-getRandomNeighbour a = if ( randNeighbour == (agentId a) ) then getRandomNeighbour a else randNeighbour
+getRandomNeighbour :: SIRAgent -> (AgentID, SIRAgent)
+getRandomNeighbour a = if ( randNeighbour == (agentId a) ) then getRandomNeighbour a' else (randNeighbour, a')
   where
     neighbours = agentNeighbours a
     neighboursCount = length neighbours
-    randIdx = unsafePerformIO (getStdRandom (randomR (0, neighboursCount-1)))
+    (randIdx, a') = randIntFromAgent a (0, neighboursCount-1)
     randNeighbour = neighbours !! randIdx
-    
+
 selfInfectRand :: Float -> SIRAgent -> SIRAgent
-selfInfectRand p a
-  | doInfection && susceptible = a { agentState=oldAgentState { sirState=Infected, daysInfected=daysInfectous } }
+selfInfectRand p a 
+  | doInfection && susceptible = a' { agentState = oldAgentState { sirState = Infected, daysInfected = daysInfectous } }
   | otherwise = a
     where
       susceptible = isSusceptible a
-      doInfection = randomBool p
-      oldAgentState = agentState a
-      
-populateSIR :: Int -> [SIRAgent]
-populateSIR n = foldr (\i acc -> acc ++ [(createSIRAgent i)]) [] [1..n]
-
-createSIRAgent :: Int -> SIRAgent
-createSIRAgent id = createAgent id SIRAgentState{sirState=Susceptible,daysInfected=0} sirAgentActivity sirMsgHandler
-
-randomBool :: Float -> Bool
-randomBool p = p >= rand
-  where
-    rand = unsafePerformIO (getStdRandom (randomR (0.0, 1.0)))
+      (doInfection, a') = randBoolFromAgent a p
+      oldAgentState = agentState a'

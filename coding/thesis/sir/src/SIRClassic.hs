@@ -4,6 +4,7 @@ import System.IO
 import System.IO.Unsafe
 import System.Random
 import Debug.Trace
+import Text.JSON
 
 data MessageType d = AgentStart | AgentStop | AgentNeighbours | AgentDomain d deriving (Show, Eq)
 
@@ -83,7 +84,6 @@ type SimStepClbk s d = (Int -> [Agent s d] -> Bool)
 runSimulation :: Int -> [Agent s d] -> SimStepClbk s d -> [[Agent s d]]
 runSimulation 0 as stepClbk = []
 runSimulation steps as stepClbk = runSimulation steps as stepClbk
-
 runSimulation' t as stepClbk = if cont then (runSimulation (t-1) as stepClbk) ++ [as'] else []
   where
     as' = simStep as
@@ -124,17 +124,20 @@ processAllInMsg a = a''
 --------------------------------------------------------------------------------------------------------------------
 -- SIR-Specific 
 
+filePath :: String
+filePath = "matlab/dynamics.json"
+
 populationCount :: Int
 populationCount = 1000
 
 infectionProb :: Float
-infectionProb = 0.1
+infectionProb = 0.5
 
 initInfectProb :: Float
 initInfectProb = 0.5
 
 daysInfectous :: Int
-daysInfectous = 3
+daysInfectous = 5
 
 simSteps :: Int
 simSteps = 1000
@@ -155,31 +158,95 @@ type SIRMessageHandler = (SIRMessage -> SIRAgent -> SIRAgent)
 type SIRActivityHandler = (SIRAgent -> SIRAgent)
 type SIRStepClbk = (Int -> [SIRAgent] -> Bool)
 
-
+-- MAIN-LOOP
 main :: IO ()
 main = do
   hSetBuffering stdin LineBuffering
-  let initAgents = initSir
-  as <- sirStep 0 initAgents
+  repls <- runReplications 2 []
+  let dyns = combineDynamics repls
+  --putStrLn ("Dynamics: " ++ show dyns)
+  exportSIRDynamics dyns
+  putStrLn ("Finished")
   return ()
 
-sirStep :: Int -> [SIRAgent] -> IO [SIRAgent]
-sirStep n as = do
-  putStrLn ("Simulation step " ++ show n)
-  --printAgents as
-  --c <- getChar
+runReplications :: Int -> [[(Int, Int, Int)]] -> IO [[(Int, Int, Int)]]
+runReplications 0 repls = return repls
+runReplications n repls = do
+  putStrLn ("Replication " ++ show n ++ "...")
+  repl <- replication
+  putStrLn ""
+  let repls' = repls ++ [repl]
+  runReplications (n-1) repls'
+
+replication :: IO [(Int, Int, Int)]
+replication = do
+  let initAgents = initSir
+  putStr "Simulation steps ... "
+  ass <- sirStep 0 [initAgents]
+  let dyns = simDynamics ass
+  return dyns
+  
+sirStep :: Int -> [[SIRAgent]] -> IO [[SIRAgent]]
+sirStep n ass = do
+  putStr $ (show n ++ " ")
+  let as = last ass
   let as' = simStep as
   let cont = sirStepClbk n as'
+  let ass' = ass ++ [as']
   if cont == True then
-    sirStep (n+1) as'
-    else
-    exitSir n as'
-    
-exitSir :: Int -> [SIRAgent] -> IO [SIRAgent]
-exitSir n as = do
-  putStrLn ("Simulation stops after " ++ show n ++ " steps. \n Final Agents:")
-  printAgents as
-  return as
+    sirStep (n+1) ass'
+  else
+    return ass'
+
+-- EXPORTING DYNAMICS
+exportSIRDynamics :: [(Float, Float, Float)] -> IO ()
+exportSIRDynamics d = do
+  h <- openFile filePath WriteMode
+  hPutStr h (encode d)
+  hClose h
+  return ()
+--
+
+combineDynamics :: [[(Int, Int, Int)]] -> [(Float, Float, Float)]
+combineDynamics rss = floatDyns
+  where
+    replCount = fromIntegral $ length rss
+    intDyns = foldr (\dyn acc -> sumDynamic acc dyn ) (head rss) (tail rss) 
+    floatDyns = map (\(s,i,r) -> ( fromIntegral s / replCount, fromIntegral i / replCount, fromIntegral r / replCount )) intDyns
+
+sumDynamic :: [(Int, Int, Int)] -> [(Int, Int, Int)] -> [(Int, Int, Int)]
+sumDynamic as bs = map (\((s,i,r), (s',i',r')) -> (s+s', i+i', r+r') ) zipedDyns
+  where
+    zipedDyns = sirZip as bs
+      
+-- this zip includes the longer list instead of truncating to the short
+sirZip :: [(Int, Int, Int)] -> [(Int, Int, Int)] -> [((Int, Int, Int), (Int, Int, Int))]
+sirZip [] [] = []
+sirZip [] (b:bs) = ((0,0,0), b) : sirZip [] bs
+sirZip (a:as) []  = (a, (0,0,0)) : sirZip as []
+sirZip (a:as) (b:bs) = (a,b) : sirZip as bs
+
+testSum :: [(Int, Int, Int)]
+testSum = sumDynamic as bs
+  where
+    as = take 10 $ repeat (2,2,2)
+    bs = take 7 $ repeat (1,1,1)
+
+testZip :: [((Int, Int, Int), (Int, Int, Int))]
+testZip = sirZip as bs
+  where
+    as = take 10 $ repeat (2,2,2)
+    bs = take 7 $ repeat (1,1,1)
+
+simDynamics :: [[SIRAgent]] -> [(Int, Int, Int)]
+simDynamics ass = map (\as -> simStepToDynamic as ) ass
+
+simStepToDynamic :: [SIRAgent] -> (Int, Int, Int)
+simStepToDynamic as = (susceptibleCount, infectedCount, recoveredCount)
+  where
+    susceptibleCount = length $ filter isSusceptible as
+    infectedCount = length $ filter isInfected as
+    recoveredCount = length $ filter isRecovered as
 
 initSir :: [SIRAgent]
 initSir = neighboursPop
@@ -254,6 +321,9 @@ isSusceptible a = (sirState (agentState a)) == Susceptible
 
 isInfected :: SIRAgent -> Bool
 isInfected a = (sirState (agentState a)) == Infected
+
+isRecovered :: SIRAgent -> Bool
+isRecovered a = (sirState (agentState a)) == Recovered
 
 makeRandContact :: SIRAgent -> SIRAgent
 makeRandContact a = queueMsg (infectionMsg neighbour) a

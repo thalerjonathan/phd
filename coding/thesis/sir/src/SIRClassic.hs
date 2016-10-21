@@ -57,7 +57,9 @@ instance Eq (Agent s d) where
 createAgent :: Int -> s -> ActivityHandler s d -> MessageHandler s d -> Agent s d
 createAgent id initState actHandler msgHandler = Agent { agentId = id, agentInBox = [], agentOutBox = [], agentNeighbours = [], agentState = initState, agentMsgHandler = msgHandler, agentActivityHandler = actHandler, agentRng = rng }
   where
-    rng = mkStdGen (id + fromIntegral (unsafePerformIO timeInMicros))
+    seed = getUniqueSeed id
+    --rng = trace ("Seed: " ++ show seed) (mkStdGen seed)
+    rng = mkStdGen seed
     
 deliverMsg :: Message d -> Agent s d ->  Agent s d
 deliverMsg msg a = a { agentInBox = newInBox }
@@ -85,14 +87,6 @@ fillMessageReceiver msg a = msg'
     msg' = msg { msgReceiver = agentId a }
 
 type SimStepClbk s d = (Int -> [Agent s d] -> Bool)
-
-runSimulation :: Int -> [Agent s d] -> SimStepClbk s d -> [[Agent s d]]
-runSimulation 0 as stepClbk = []
-runSimulation steps as stepClbk = runSimulation steps as stepClbk
-runSimulation' t as stepClbk = if cont then (runSimulation (t-1) as stepClbk) ++ [as'] else []
-  where
-    as' = simStep as
-    cont = stepClbk t as
 
 simStep :: [Agent s d] -> [Agent s d] 
 simStep as = map (\a -> agentSimStep a) $ processOutMessages as -- TODO: implement data-parallelism here with Par-Monad and IVars
@@ -126,7 +120,9 @@ processAllInMsg a = a''
     a' = foldr (\msg acc -> processMsg msg acc) a inMsgs
     a'' = a' { agentInBox = [] }
 
- 
+getUniqueSeed :: Int -> Int
+getUniqueSeed offset = (offset + fromIntegral (unsafePerformIO timeInMicros))
+    
 timeInMicros :: IO Integer
 timeInMicros = numerator . toRational . (* 1000000) <$> getPOSIXTime
 
@@ -139,7 +135,7 @@ timeInSeconds = (`div` 1000) <$> timeInMillis
 timeInSeconds' :: IO Double
 timeInSeconds' = (/ 1000000) . fromIntegral <$> timeInMicros
 
-
+{-
 randBoolFromAgent :: Agent s d -> Float -> (Bool, Agent s d)
 randBoolFromAgent a p = (rb, a)
   where
@@ -150,8 +146,8 @@ randIntFromAgent :: Agent s d -> (Int, Int) -> (Int, Agent s d)
 randIntFromAgent a ip = (ri, a)
   where
     ri = unsafePerformIO (getStdRandom (randomR ip))
- 
-{-
+ -}
+
 -- RNG-Stuff
 randBoolFromAgent :: Agent s d -> Float -> (Bool, Agent s d)
 randBoolFromAgent a p = (rb, a')
@@ -173,18 +169,20 @@ randBool rng p = (rndBool, rng')
   where
     (rndFloat, rng') = randomR (0.0, 1.0) rng
     rndBool = p >= rndFloat
- -}
+
 --------------------------------------------------------------------------------------------------------------------
 -- SIR-Specific 
 
 filePath :: String
 filePath = "visualization/dynamics.json"
 
+{-
 replicationCount :: Int
 replicationCount = 50
 
 populationCount :: Int
-populationCount = 1000
+populationCount = 100
+-}
 
 infectionProb :: Float
 infectionProb = 0.5
@@ -212,41 +210,36 @@ type SIRActivityHandler = (SIRAgent -> SIRAgent)
 type SIRStepClbk = (Int -> [SIRAgent] -> Bool)
 
 -- MAIN-LOOP
-main :: IO ()
-main = do
-  hSetBuffering stdin LineBuffering
-  repls <- runReplications replicationCount []
+runSimulation :: Int -> Int -> IO ()
+runSimulation  popCount replCount = do
+  repls <- runReplications popCount replCount []
   let dyns = combineDynamics repls
-  --putStrLn ("Dynamics: " ++ show dyns)
   exportSIRDynamics dyns
   putStrLn ("Finished")
   return ()
 
-runReplications :: Int -> [[(Int, Int, Int)]] -> IO [[(Int, Int, Int)]]
-runReplications 0 repls = return repls
-runReplications n repls = do
+runReplications :: Int -> Int -> [[(Int, Int, Int)]] -> IO [[(Int, Int, Int)]]
+runReplications popCount 0 repls = return repls
+runReplications popCount n repls = do
   putStrLn ("Replications remaining " ++ show n ++ "...")
-  repl <- replication n
+  repl <- replication popCount n
   putStrLn ""
   let repls' = repls ++ [repl]
-  runReplications (n-1) repls'
+  runReplications popCount (n-1) repls'
 
-replication :: Int -> IO [(Int, Int, Int)]
-replication idx = do
-  let initAgents = initSir idx
+replication :: Int -> Int -> IO [(Int, Int, Int)]
+replication popCount idx = do
+  let initAgents = initSir popCount idx
   putStr "Simulation steps ... "
   ass <- sirStep 0 [initAgents]
-  --printAgents (last ass)
   let dyns = simDynamics ass
   return dyns
   
 sirStep :: Int -> [[SIRAgent]] -> IO [[SIRAgent]]
 sirStep n ass = do
   putStr $ (show n ++ " ")
-  --c <- getChar
   let as = last ass
   let as' = simStep as
-  --printAgents as'
   let cont = sirStepClbk n as'
   let ass' = ass ++ [as']
   if cont == True then
@@ -293,8 +286,8 @@ simStepToDynamic as = (susceptibleCount, infectedCount, recoveredCount)
     infectedCount = length $ filter isInfected as
     recoveredCount = length $ filter isRecovered as
 
-initSir :: Int -> [SIRAgent]
-initSir replIdx = neighboursPop
+initSir :: Int -> Int -> [SIRAgent]
+initSir populationCount replIdx = neighboursPop
   where
     population = populateSIR replIdx populationCount
     startedPop = queueMsgToAll startMsg population

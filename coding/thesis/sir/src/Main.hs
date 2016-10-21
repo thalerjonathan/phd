@@ -1,5 +1,6 @@
 module Main where
 
+import System.Environment
 import qualified SIRClassic
 
 {- TODO agent-model
@@ -38,4 +39,9 @@ instead of function to forkIO: use lambda which accesses data from outside forki
 ----------------------------------------------------------------------------------------------------
 
 main :: IO ()
-main = SIRClassic.main
+main = do
+  args <- getArgs
+  let popCount = read (args !! 0) :: Int
+  let replCount = read (args !! 1) :: Int
+  SIRClassic.runSimulation popCount replCount
+  

@@ -43,5 +43,6 @@ main = do
   args <- getArgs
   let popCount = read (args !! 0) :: Int
   let replCount = read (args !! 1) :: Int
-  SIRClassic.runSimulation popCount replCount
+  let maxSteps = read (args !! 2) :: Int
+  SIRClassic.runSimulation popCount replCount maxSteps
   

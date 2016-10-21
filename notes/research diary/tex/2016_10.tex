@@ -151,23 +151,26 @@ I had a meeting with Henrik Nilsson, the inventor/maintainer of Yampa, a FRP fra
 \item Look at formal/functional definition of agent architecture in Wooldridges Book Chatper 2.6 Abstract Architectures for Intelligent Agents and how to do communication (chapter 7).
  \end{itemize}
  
-\section*{2016 October 20th}
-I finally got the SIR implementation in classic Haskell running - with classic I refer to the kind of programming: no Monads, no FRP, no other fancy stuff just pure Haskell with maybe IO for text-output/files writing. I am pretty proud of it: it performs replications, detects when a replication has finished (no more infected people) and exports the dynamics as JSON to a file which can be then visualized using a Matlab/Octave script. There were/are a few problems though:
+\section*{2016 October 20-21th}
+\subsection*{Experiences with \textit{classic} SIR/SIRS model-implementation}
+I finally got the SIR implementation in classic Haskell running - with classic I refer to the kind of programming: no Monads, no FRP, no other fancy stuff just pure Haskell with maybe IO for text-output/files writing. I am pretty proud of it: it performs replications, detects when a replication has finished (no more infected people) and exports the dynamics as JSON to a file which can be then visualized using a Matlab/Octave script.
 
 \begin{itemize}
 \item After having implemented replications only the first replication actually did calculate, the remaining ones were just copies of the first one. My guess was that because the compiler / runtime-system infers due to referential transparency that the call to calculating one replication is the same for all. Initially I thought that to run multiple replications properly I would have to introduce pure use of RNG - which I did - but that was not the origin of the problem. The problem was that replications had \textit{no input}, which of course led Haskell to believe that it is constant after having been calculated. So after having added an input - the index of the replication - all replications were calculated properly. This is also known as constant applicative form (CAF): \url{https://wiki.haskell.org/Constant_applicative_form} \\
 It is important that one is careful detecting CAF throughout all the program in which RNG are used: they will lead to the same results when repeatedly called - this also applies to the main-function!!! This was a major point of confusion but works now: population-count and replication-count are now passed in from outside (command-line args/function arguments).
-\item The program is about 400 loc which I find not to be very much but the problem is that it is cumbersome to extend and adopt (e.g. to a SEIS or SIRS) model as the logic is scattered all over the functions. It would be nice to encapsulate the whole logic in Monads and build a EDSL around it so that it becomes more clear to read. Thats my next goal.
+\item It was very easy to extend the model to SIRS, which is more interesting.
+\item It was not so easy to debug due to confusing call-hierarchies. Maybe unit tests are a remedy for this.
+\item To a non-programmer / unfamiliar with Haskell this implementation is probably a horror to work on due to scattering of functions all over the place, unclear call-hierarchy, implementation details showing up.
+\item In my opinion this solution is too near to the OO-thinking: agents are a structure of data, have message-handler and in all functions the agent-instance is passed in. This is clearly oo-technique disguised as functional. Just because all is implemented in (pure) functions where all the state is threaded in and out through parameters/return values doesn't make it functional yet. The next approach should be one using Monads where the goal will be to encapsulate the whole thing and provide a small EDSL for this SIRS model.
 \end{itemize}
 
 \subsection*{TODO}
 Again I have to reduce my TODOs to the really essential parts I wanna work on the next weeks. Thus removed Category Theory and Wooldrige Book stuff as it is too early. First: do lots of implementation and get used to Haskell!
 
 \begin{itemize}
-\item Extend to SIRS model: recovered people can become susceptible again after a given number of days.
 \item Write unit-tests.
-\item Make use of data-parallelism using Par-Monad and IVars.
 \item Extend classic Haskell solution to using Monad.
+\item Maybe explore data-parallelism using Par-Monad and IVars.
 \item Implementing SIR in Yampa.
 \item Implement SIR using AKKA.
 \end{itemize}

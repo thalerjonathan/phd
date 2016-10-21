@@ -8,6 +8,8 @@ import Text.JSON
 import Data.Time.Clock.POSIX
 import Data.Ratio
 
+import Test.HUnit
+
 data MessageType d = AgentStart | AgentStop | AgentNeighbours | AgentDomain d deriving (Show, Eq)
 
 type AgentID = Int
@@ -126,28 +128,6 @@ getUniqueSeed offset = (offset + fromIntegral (unsafePerformIO timeInMicros))
 timeInMicros :: IO Integer
 timeInMicros = numerator . toRational . (* 1000000) <$> getPOSIXTime
 
-timeInMillis :: IO Integer
-timeInMillis = (`div` 1000) <$> timeInMicros
-
-timeInSeconds :: IO Integer
-timeInSeconds = (`div` 1000) <$> timeInMillis
-
-timeInSeconds' :: IO Double
-timeInSeconds' = (/ 1000000) . fromIntegral <$> timeInMicros
-
-{-
-randBoolFromAgent :: Agent s d -> Float -> (Bool, Agent s d)
-randBoolFromAgent a p = (rb, a)
-  where
-    rf = unsafePerformIO (getStdRandom (randomR (0.0, 1.0)))
-    rb = p >= rf
-
-randIntFromAgent :: Agent s d -> (Int, Int) -> (Int, Agent s d)
-randIntFromAgent a ip = (ri, a)
-  where
-    ri = unsafePerformIO (getStdRandom (randomR ip))
- -}
-
 -- RNG-Stuff
 randBoolFromAgent :: Agent s d -> Float -> (Bool, Agent s d)
 randBoolFromAgent a p = (rb, a')
@@ -176,22 +156,25 @@ randBool rng p = (rndBool, rng')
 filePath :: String
 filePath = "visualization/dynamics.json"
 
-{-
-replicationCount :: Int
-replicationCount = 50
+-- the ratio of neighbours the infected agents contacts
+infectionRate :: Float
+infectionRate = 0.05
 
-populationCount :: Int
-populationCount = 100
--}
-
+-- the probability of getting infected when having contact with an infected agent
 infectionProb :: Float
 infectionProb = 0.5
 
+-- the probability of becoming infected initially in the simulation
 initInfectProb :: Float
 initInfectProb = 0.1
 
-daysInfectous :: Int
-daysInfectous = 10
+-- the number of days an agent stays infected
+daysInfected :: Int
+daysInfected = 30
+
+-- the number of days an agent stays immune
+daysImmune :: Int
+daysImmune = 2
 
 data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
 data SIRDomain = Contact deriving (Show, Eq)
@@ -199,7 +182,7 @@ data SIRDomain = Contact deriving (Show, Eq)
 data SIRAgentState = SIRAgentState
   {
     sirState :: SIRState,
-    daysInfected :: Int
+    daysInState :: Int
   } deriving (Show)
 
 type SIRMessage = Message SIRDomain
@@ -210,42 +193,47 @@ type SIRActivityHandler = (SIRAgent -> SIRAgent)
 type SIRStepClbk = (Int -> [SIRAgent] -> Bool)
 
 -- MAIN-LOOP
-runSimulation :: Int -> Int -> IO ()
-runSimulation  popCount replCount = do
-  repls <- runReplications popCount replCount []
+runSimulation :: Int -> Int -> Int -> IO ()
+runSimulation  popCount replCount maxSteps = do
+  repls <- runReplications popCount replCount maxSteps []
   let dyns = combineDynamics repls
   exportSIRDynamics dyns
   putStrLn ("Finished")
   return ()
 
-runReplications :: Int -> Int -> [[(Int, Int, Int)]] -> IO [[(Int, Int, Int)]]
-runReplications popCount 0 repls = return repls
-runReplications popCount n repls = do
+runReplications :: Int -> Int -> Int -> [[(Int, Int, Int)]] -> IO [[(Int, Int, Int)]]
+runReplications popCount 0 maxSteps repls = return repls
+runReplications popCount n maxSteps repls = do
   putStrLn ("Replications remaining " ++ show n ++ "...")
-  repl <- replication popCount n
+  repl <- replication popCount n maxSteps
   putStrLn ""
   let repls' = repls ++ [repl]
-  runReplications popCount (n-1) repls'
+  runReplications popCount (n-1) maxSteps repls'
 
-replication :: Int -> Int -> IO [(Int, Int, Int)]
-replication popCount idx = do
+replication :: Int -> Int -> Int -> IO [(Int, Int, Int)]
+replication popCount idx maxSteps = do
   let initAgents = initSir popCount idx
   putStr "Simulation steps ... "
-  ass <- sirStep 0 [initAgents]
+  ass <- sirStep 0 maxSteps [initAgents]
   let dyns = simDynamics ass
   return dyns
   
-sirStep :: Int -> [[SIRAgent]] -> IO [[SIRAgent]]
-sirStep n ass = do
-  putStr $ (show n ++ " ")
-  let as = last ass
-  let as' = simStep as
-  let cont = sirStepClbk n as'
-  let ass' = ass ++ [as']
-  if cont == True then
-    sirStep (n+1) ass'
-  else
-    return ass'
+sirStep :: Int -> Int -> [[SIRAgent]] -> IO [[SIRAgent]]
+sirStep n maxSteps ass
+  | n == maxSteps = do
+      putStr $ (show n ++ " ")
+      return ass
+  | otherwise = do
+      --putStr $ (show n ++ " ")
+      let as = last ass
+      let as' = simStep as
+      let cont = sirStepClbk n as'
+      let ass' = ass ++ [as']
+      if cont == True then
+        sirStep (n+1) maxSteps ass'
+        else do
+          putStr $ (show n ++ " ")
+          return ass'
 
 -- EXPORTING DYNAMICS
 exportSIRDynamics :: [(Float, Float, Float)] -> IO ()
@@ -300,7 +288,7 @@ populateSIR replIdx n = foldr (\i acc -> (createSIRAgent i) : acc ) [] [idxStart
     idxEnd =   n * replIdx
 
 createSIRAgent :: Int -> SIRAgent
-createSIRAgent id = createAgent id SIRAgentState { sirState = Susceptible, daysInfected = 0 } sirAgentActivity sirMsgHandler
+createSIRAgent id = createAgent id SIRAgentState { sirState = Susceptible, daysInState = 0 } sirAgentActivity sirMsgHandler
 
 allIds :: [Agent s d] -> [AgentID]
 allIds as = map (\a -> agentId a ) as
@@ -336,9 +324,20 @@ sirMsgHandler msg a
 
 sirAgentActivity :: SIRActivityHandler
 sirAgentActivity a
-  | isInfected a = makeRandContact $ cureInfectedAgent a
+  | isInfected a = makeContacts $ cureInfectedAgent a
+  | isRecovered a = deimmunizeAgent a
   | otherwise = a
-  
+
+deimmunizeAgent :: SIRAgent -> SIRAgent
+deimmunizeAgent a
+  | stillImmune = a { agentState = oldAgentState { daysInState = newDaysImmune } }
+  | otherwise = a { agentState = oldAgentState { sirState = Susceptible, daysInState = 0 } }
+  where
+    oldAgentState = agentState a
+    oldDaysImmune = daysInState oldAgentState
+    newDaysImmune = oldDaysImmune - 1
+    stillImmune = newDaysImmune > 0
+
 handleStart :: SIRAgent -> SIRAgent
 handleStart a = selfInfectRand initInfectProb a
 
@@ -355,11 +354,11 @@ handleContact a _ = a -- NOTE: should not occur, as when sending Contact-Message
 
 cureInfectedAgent :: SIRAgent -> SIRAgent
 cureInfectedAgent a
-  | hasRecovered = a { agentState = oldAgentState { sirState = Recovered, daysInfected = 0 } }
-  | otherwise = a { agentState = oldAgentState { daysInfected = newDaysInfected } }
+  | hasRecovered = a { agentState = oldAgentState { sirState = Recovered, daysInState = daysImmune } }
+  | otherwise = a { agentState = oldAgentState { daysInState = newDaysInfected } }
   where
     oldAgentState = agentState a
-    oldDaysInfected = daysInfected oldAgentState
+    oldDaysInfected = daysInState oldAgentState
     newDaysInfected = oldDaysInfected - 1
     hasRecovered = newDaysInfected == 0
     
@@ -371,6 +370,12 @@ isInfected a = (sirState (agentState a)) == Infected
 
 isRecovered :: SIRAgent -> Bool
 isRecovered a = (sirState (agentState a)) == Recovered
+
+makeContacts :: SIRAgent -> SIRAgent
+makeContacts a = foldr (\i a' -> makeRandContact a') a [1..numContacts]
+  where
+    agentsNeighbourCount = length $ agentNeighbours a
+    numContacts = floor ((fromIntegral agentsNeighbourCount) * infectionRate)
 
 makeRandContact :: SIRAgent -> SIRAgent
 makeRandContact a = queueMsg (infectionMsg neighbour) a'
@@ -387,9 +392,33 @@ getRandomNeighbour a = if ( randNeighbour == (agentId a) ) then getRandomNeighbo
 
 selfInfectRand :: Float -> SIRAgent -> SIRAgent
 selfInfectRand p a 
-  | doInfection && susceptible = a' { agentState = oldAgentState { sirState = Infected, daysInfected = daysInfectous } }
+  | doInfection && susceptible = a' { agentState = oldAgentState { sirState = Infected, daysInState = daysInfected } }
   | otherwise = a
     where
       susceptible = isSusceptible a
       (doInfection, a') = randBoolFromAgent a p
       oldAgentState = agentState a'
+
+--------------------------------------------------------------------------------------------------------------------
+-- UNIT TESTS 
+
+testDeimmunization = TestCase ( do
+                                let a = Agent { agentState = SIRAgentState{ sirState = Recovered, daysInState = 2 } }
+                                let a' = deimmunizeAgent a
+                                assertEqual "agent still recovered" (sirState (agentState a')) Recovered
+                                assertEqual "agent one day less immune" (daysInState (agentState a')) 1
+                                let a'' = deimmunizeAgent a'
+                                assertEqual "agent no more immune" (sirState (agentState a'')) Susceptible
+                                assertEqual "agent susceptible with 0 days" (daysInState (agentState a'')) 0 )
+
+testCuring = TestCase ( do
+                        let a = Agent { agentState = SIRAgentState{ sirState = Infected, daysInState = 2 } }
+                        let a' = cureInfectedAgent a
+                        assertEqual "agent still infected" (sirState (agentState a')) Infected
+                        assertEqual "agent one day less infected" (daysInState (agentState a')) 1
+                        let a'' = cureInfectedAgent a'
+                        assertEqual "agent has recovered" (sirState (agentState a'')) Recovered
+                        assertEqual "agent will stay immune for given days" (daysInState (agentState a'')) daysImmune )
+
+tests = TestList [ TestLabel "deimmunization" testDeimmunization,
+                   TestLabel "curing" testCuring  ]

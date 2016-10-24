@@ -24,6 +24,7 @@
 \usepackage{graphicx} % Required for the inclusion of images
 \usepackage{natbib} % Required to change bibliography style to APA
 \usepackage{amsmath} % Required for some math elements 
+\usepackage{hyperref}
 
 \setlength\parindent{0pt} % Removes all indentation from paragraphs
 
@@ -55,7 +56,13 @@ Co-Supersvisor: Dr. Thorsten Altenkirch
 
 % If you wish to include an abstract, uncomment the lines below
 \begin{abstract}
-Agent-Based Modeling and Simulation (ABM/S) is still a young discipline and the dominant approach to it is object oriented computation. This thesis goes into the opposite direction and asks how ABM/S can be mapped to and implemented using pure functional computation and what one gains from doing so. To the best knowledge of the author, so far no proper treatment of ABM/S in pure functional computation exists but only a few papers which only scratch the surface. The author argues that approaching ABM/S from a pure functional direction  offers a wealth of new powerful tools and methods. The most obvious one is that when using pure functional computation (equational) resoning about the correctness and about total and partial correctness of the simulation becomes possible. The ultimate benefit is that Agda becomes applicable which is - according to the Curry-Howard isomorphism - both a pure functional programming language and a proof assistant for intuitionistic logic allowing both to compute the dynamics of the simulation and to look at meta-level properties of the simulation - termination, convergence, equilibria, domain specific properties - by constructing proofs utilizing computer aided verification. \\
+
+Agent-Based Modelling and Simulation (ABM/S) is still a young discipline and the dominant approach to it is object-oriented computation. This thesis goes into the opposite direction and asks how ABM/S can be mapped to and implemented using pure functional computation and what one gains from doing so. To the best knowledge of the author, so far no proper treatment of ABM/S in this field exists but a few papers which only scratch the surface. The author argues that approaching ABM/S from a pure functional direction offers a wealth of new powerful tools and methods. The most obvious one is that when using pure functional computation reasoning about the correctness and about total and partial correctness of the simulation becomes possible. Also pure functional approaches allow the design of an embedded domain specific language (EDSL) in which then the models can be formulated by domain-experts. The strongest point in using EDSL is that ideally the distinction between specification and implementation disappears: the model specification is then already the code of the simulation-program. This allows to rule out a serious class of errors where specification and implementation does not match, which is especially a big problem in scientific computing. The application will be in the field of agent-based computational economics (ACE) where the primary goal will be to implement a pure functional framework with a suitable EDSL in Haskell. This will give computational economists a tool to formulate their models  in this EDSL and run them directly in Haskell. \\
+
+NOTE: this is the old abstract: \\
+Agent-Based Modeling and Simulation (ABM/S) is still a young discipline and the dominant approach to it is object oriented computation. This thesis goes into the opposite direction and asks how ABM/S can be mapped to and implemented using pure functional computation and what one gains from doing so. To the best knowledge of the author, so far no proper treatment of ABM/S in pure functional computation exists but only a few papers which only scratch the surface. The author argues that approaching ABM/S from a pure functional direction  offers a wealth of new powerful tools and methods. The most obvious one is that when using pure functional computation (equational) resoning about the correctness and about total and partial correctness of the simulation becomes possible. \\
+Also pure functional approaches allow the design of a embedded domain specific language (EDSL) in which then the models can be formulated by domain-experts. The strongest point in using EDSL is that ideally the distinction between specification and implementation disappears: the model specification is then already the code of the simulation-program. \\
+The ultimate benefit is that Agda becomes applicable which is - according to the Curry-Howard isomorphism - both a pure functional programming language and a proof assistant for intuitionistic logic allowing both to compute the dynamics of the simulation and to look at meta-level properties of the simulation - termination, convergence, equilibria, domain specific properties - by constructing proofs utilizing computer aided verification. \\
 The application will be in the field of agent-based computational economics where the primary goal will be to implement a framework which allows the simulation of decentralized bilateral bartering and trading between agents. This gives computational economists a framework to research dynamics of equilibrium which is an ongoing research and still an open question how prices reach equilibrium.
 \end{abstract}
 
@@ -204,6 +211,8 @@ As one can see this is clearly a novel approach in the field of agent-based mode
 \item Actor model Agha. TODO cite
 \item A computable universe. TODO cite
 \item The nature of computation. TODO cite
+\item Economics and Computation by Parkes and Seuken \url{http://economicsandcomputation.org/}
+\item Functional Compiler Design and Internals.
 \end{itemize}
 
 \subsection{Studying}

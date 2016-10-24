@@ -128,28 +128,10 @@ We also discussed the structure of how to build up a presentation:
 \item Refine the aim with objectives to be solved for the aim to be reached.
 \end{enumerate}
 
-\subsection*{TODO}
-Again there is a new list with TODOs - I try to keep it short - no more than 5 entires.
-\begin{itemize}
-\item Look at \textit{Functional Reactive Programming (FRP)}
-\item Look into Akka: implement SIR using AKKA.
-\item Look into DEVS.
-\item Start learning \textit{Category Theory}
-\item Look at formal/functional definition of agent architecture in Wooldridges Book Chatper 2.6 Abstract Architectures for Intelligent Agents and how to do communication (chapter 7).
-\end{itemize}
-
 \section*{2016 October 18th}
 \subsection*{Meeting with Henrik Nilsson}
 I had a meeting with Henrik Nilsson, the inventor/maintainer of Yampa, a FRP framework for Haskell. We talked about FRP being suitable to be used for ABM/S and he was pretty confident that Yampa could handle the things I described (Agent-Model, agent-based economics). The main point when following this road will be developing a \textbf{EDSL for ACE} on top of Haskell and Yampa. This sound awesome as this would give a domain-expert a tool for developing his models and then reason about them. Henrik said I should play around with Yampa a few days and see if it is suitable for what I want to do - thats what I'm going to do: implement SIR in Yampa!
 
-\subsection*{TODO}
-\begin{itemize}
-\item Implementing SIR in Yampa.
-\item Look into Akka: implement SIR using AKKA.
-\item Look into DEVS.
-\item Start learning \textit{Category Theory}
-\item Look at formal/functional definition of agent architecture in Wooldridges Book Chatper 2.6 Abstract Architectures for Intelligent Agents and how to do communication (chapter 7).
- \end{itemize}
  
 \section*{2016 October 20-21th}
 \subsection*{Experiences with \textit{classic} SIR/SIRS model-implementation}
@@ -164,18 +146,11 @@ It is important that one is careful detecting CAF throughout all the program in 
 \item In my opinion this solution is too near to the OO-thinking: agents are a structure of data, have message-handler and in all functions the agent-instance is passed in. This is clearly oo-technique disguised as functional. Just because all is implemented in (pure) functions where all the state is threaded in and out through parameters/return values doesn't make it functional yet. The next approach should be one using Monads where the goal will be to encapsulate the whole thing and provide a small EDSL for this SIRS model.
 \end{itemize}
 
-\subsection*{TODO}
-Again I have to reduce my TODOs to the really essential parts I wanna work on the next weeks. Thus removed Category Theory and Wooldrige Book stuff as it is too early. First: do lots of implementation and get used to Haskell!
+\section*{2016 October 24th}
+I noticed that I have lot of hidden beliefs about science/computers. I need to detect them and write them down, so they don't take me by surprise
 
-\begin{itemize}
-\item Write unit-tests.
-\item Extend classic Haskell solution to using Monad.
-\item Maybe explore data-parallelism using Par-Monad and IVars.
-\item Implementing SIR in Yampa.
-\item Implement SIR using AKKA.
-\end{itemize}
+I removed all the todos, as they are terrible repetitive and I've put a todo/goals list in research proposal for 1st year.
 
-\section*{2016 October 22nd}
 \subsection*{STM with lambdas and data-closures}
 I tested STM with lambdas and data-closures. It is possible to send a lambda with data-closure using STM. This would allow to send a computation which encloses e.g. Agent a to another Agent b which then executes this computation.
 
@@ -186,14 +161,34 @@ To put it another way: real concurrency (with threads) makes time implicit which
 \\
 In the end what I want to achieve is a simulation-framework with explicit notion of time where discrete and continuous time is possible, which has an elegant EDSL included to write simulations/models (which will be then the same: model=simulation), allowing for reasoning about the model and the agent-based model itself implemented in a pure functional way.
 
+
+real concurrency is not needed: simultaneous events can be modeled through explicit time but calculated sequential - when we reduce agents to process only one message after another and not multiple concurrently. thus true parallelism is only a technical detail for performance enhancement.
+
+AKKA/PURE FUNCTIONAL: What if time is of no importance and only the continuous dynamics are of interest?
+
+The real problem seems to be concurrency but i feel we can simulate concurrency by synchronizing to continuous time. computations are carried out after another but because time is explicitly modelled they happen logically at the same time. these rules hold: an agent cannot be in two conversations at the same time, the agent can be in only one or none conversation at a given time t.
+
+new concept: not single, async messages, but syncronous conversations which (can) take time = multiple synchronous messages between agents which (can) change the state of an agent in the end.
+
+AKKA: thus my prediction is: akka/actor model is very well suited to simulations which 1. dont rely on global time 2. dont have multi-step conversations: interactions among agents which are only question-answer. TODO: find some classical simulation model which satisfies these criterias.
+
+AKKA: how can we simulate global time? how can we implement multistep conversations (by futures)?
+
+AKKA upside: extreme huge number of agnts possible due to distributed and parallel technology 
+
+AKKA downside: depends on system \& hardware: scheduler, system time, systime resolution (not very nice for scientific computation), much more complicated, debugging difficult due to concurrency, no global notion of time appart from systemtime, thus always runs in real-time, but there is no global notion of time in the actor model anyway, no EDSL full of technical details, no determinism, no reasoning
+
 \subsection*{What is my contribution?}
 In the PGR seminar today the lecturer made it VERY clear that when we defend our research and present it to others we have to show very clearly what our contribution is. This is what many PhD students fail to show, especially in the beginning. He made it clear that original work is not enough, there must be new knowledge in the research. Also I have still difficulties and to be honest at the moment I don't know it yet but my hope is that I can develop a \textit{pure functional model of ABM/S} - this is what I am currently very deeply thinking about, how such a pure functional model could look like and what it actually is. The problem is that I fall into the thinking about implementation details too fast, I must refrain from that and keep it purely in the abstract domain without going into Haskell details.
- 
-\subsection*{TODO}
-Updated Todos: Unit-Tests are written (very few), ignore data-parallelism and stuff for now - will be an implementation detail later, removed AKKA for now. What I want to look into is how to test functions which use RNG: the RNG must be made deterministic.
 
-\begin{itemize}
-\item 
-\item Extend classic Haskell solution to using Monad.
-\item Implementing SIR in Yampa.
-\end{itemize}
+WHY FUNCTIONAL? "because its the ultimate approach to scientific computing": fewer bugs due to mutable state (why? is thos shown obkectively by someone?), shorter (again as above, productivity), more expressive and closer to math, EDSL, EDSL=model=simulation, better parallelising due to referental transparency, reasoning
+
+scientific results need to be reproduced, especially when they have high impact. a more formal approach of specifying the model and the simulation (model=simulation) could lead to easier sharing and easier reporduction without ambigouites
+
+pure functional agent-model \& theory, EDSL framework in Haskell for ACE
+
+\subsection*{Unit-Tests}
+Updated Todos: Unit-Tests are written (very few), ignore data-parallelism and stuff for now - will be an implementation detail later, removed AKKA for now. What I want to look into is how to test functions which use RNG: the RNG must be made deterministic.
+unit tests: also test invariants: specific data of an agent hasnt changend
+
+

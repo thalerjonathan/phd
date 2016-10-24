@@ -74,6 +74,12 @@ TODO:
 \item What the impact one expects (hypothesis) and what it is (after results).
 \end{enumerate}
 
+WHY FUNCTIONAL? "because its the ultimate approach to scientific computing": fewer bugs due to mutable state (why? is thos shown obkectively by someone?), shorter (again as above, productivity), more expressive and closer to math, EDSL, EDSL=model=simulation, better parallelising due to referental transparency, reasoning
+
+scientific results need to be reproduced, especially when they have high impact. a more formal approach of specifying the model and the simulation (model=simulation) could lead to easier sharing and easier reporduction without ambigouites
+
+pure functional agent-model \& theory, EDSL framework in Haskell for ACE
+
 In the papers \cite{Gintis2006} and \cite{gintis_dynamics_2007} H. Gintis proposed a model of decentralized barter between agents in which he could show that the prices approach an equilibrium. His results made quite a fuzz in the field of economics because so far how prices in bilateral trading approach the walrasian equilibrium was (and is still) an open question as Walrasian Equilibrium definition just states the static properties of equilibrium but says nothing about how it is reached and what the dynamics are. \\
 Cezar Ionescu et al. tried to reimplement the findings of Gintis but were unable to correctly reproduce the results due to a misunderstanding and misinterpretation of the model in \cite{Gintis2006} which was given in natural language with very few formalisms. \\
 Ionescu et al. went then on to build upon these findings, that specifications of such models should be much more formal and proposed a functional framework in their paper \cite{Botta20114025}. This framework allows to specify a model of agent-based exchange like the one of Gintis in \cite{Gintis2006}, where Ionescu et al. gave in an companion-paper ("N. Botta, A. Mandel, M. Hofmann, S. Schupp, Mathematical specifications for agent-based models of exchange: a case study" which can be found on the internet but was ultimately rejected in the review process and is thus not published) a case study by "implementing" Gintis model in their functional framework. \\
@@ -176,6 +182,42 @@ As one can see this is clearly a novel approach in the field of agent-based mode
 
 {\tiny Note: It is not in the interest of the researcher to develop new equilibrium models or proof the match of the outcome of the various auction types with established equilibrium-theorems (which conditions must be satisfied that the dynamic process reaches the static equilibrium?). This would touch too deep on economics and complex equilibrium theory which is not the focus of this Ph.D.. The focus is much more on the research of a specification tool and then on the dynamics of such an auction- process (e.g. market \& agent activities over time) in the context of the field of Agent-Based Modelling/Simulation.}
 
+\pagebreak
+
+\section{Goals/TODOs 1st Year}
+\subsection{Practical}
+\begin{itemize}
+\item Implement SIRS in AnyLogic using SD.
+\item Implement SIRS in Akka.
+\item Implement SIRS using Monads.
+\item Implement discrete and continuous SIRS in Yampa.
+\item Implement the ACE model of interest (e.g. H.Gintis decentralized bartering) in Haskell and Akka at the end of the year with all the knowledge acquired so far.
+\item Explore data-parallelism in Haskell to speed-up.
+\end{itemize}
+
+\subsection{Reading}
+\begin{itemize}
+\item Understanding Capitalism. TODO cite
+\item Debt . TODO cite
+\item Multiagent Systems Wooldridge. TODO cite
+\item Multiagent Systems Weiss. TODO cite
+\item Actor model Agha. TODO cite
+\item A computable universe. TODO cite
+\item The nature of computation. TODO cite
+\end{itemize}
+
+\subsection{Studying}
+\begin{itemize}
+\item Get into basics of economics and equilibrium theory. Why: because i need to understand basics to understand the models better and to talk and sell my models better to economists.
+\item Get into category theory. Why: deeper understanding of Haskell type theory and computation.
+\item Get into theoretical basics of agent-based simulation and get to know more types of agent-based models. Why: To know the requirements my EDSL/framework has to cover.
+\end{itemize}
+
+\subsection{Research}
+\begin{itemize}
+\item Start developing pure functional agent-model. Start from wooldridge 2.6 (look at the original papers which inspired the 2.6 chapter) and weiss book and the original papers those chapter is based upon. Look into denotational semantics of actor model. Look also in functional models of czesar ionescu. why: this is the major contribution of my thesis and is new knowledge. Must find intuitive, original and creative approach.
+\item Sketch EDSL for ACE model of interest or maybe more general ACE models.
+\end{itemize}
 %----------------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
 %----------------------------------------------------------------------------------------

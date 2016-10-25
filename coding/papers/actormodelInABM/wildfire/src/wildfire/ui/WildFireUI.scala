@@ -1,5 +1,6 @@
 package wildfire.ui
 
+import wildfire.actors.CellState
 import scala.swing._
 import java.awt.{Graphics2D,Color}
 
@@ -74,10 +75,14 @@ class WildFireCanvas(val fireCells: FireCells) extends Component {
     for (x <- 0 until xDim - 1 ) {
       for (y <- 0 until yDim - 1) {
         val fuel = fireCells.getFuel(x, y);
-        val isBurning = fireCells.isBurning(x, y);
+        val cellState = fireCells.getCellState(x, y);
         var c = Color.RED;
-        if ( false == isBurning )
+        if ( CellState.LIVING == cellState )
           c = new Color( 0.0f, 1.0f - fuel.toFloat, 0.0f );
+        else if ( CellState.BURNING == cellState )
+          c = Color.RED;
+        else if ( CellState.DEAD == cellState )
+          c = Color.WHITE;
         
 	      g.setColor(c);
 	      g.fillRect(x0 + x * wid, y0 + y * wid, wid, wid)
@@ -86,24 +91,27 @@ class WildFireCanvas(val fireCells: FireCells) extends Component {
   }
 }
 
+
+
 class FireCells(xDim : Int, yDim : Int) {
   private val fuelCells = Array.ofDim[Double](xDim, yDim)
-  private val burningCells = Array.ofDim[Boolean](xDim, yDim)
+  private val cellState = Array.ofDim[CellState.Value](xDim, yDim)
   
   def startBurning(coords: Tuple2[Int, Int]) = {
-    burningCells(coords._1)(coords._2) = true;
+    cellState(coords._1)(coords._2) = CellState.BURNING;
   }
   
   def stopBurning(coords: Tuple2[Int, Int]) = {
-    burningCells(coords._1)(coords._2) = false;
+    cellState(coords._1)(coords._2) = CellState.DEAD;
   }
   
   def updateFuel(coords: Tuple2[Int, Int], fuel: Double) = {
     fuelCells(coords._1)(coords._2) = fuel;
+    cellState(coords._1)(coords._2) = CellState.LIVING;
   }
   
-  def isBurning(x: Int, y: Int) = {
-    burningCells(x)(y)
+  def getCellState(x: Int, y: Int) = {
+    cellState(x)(y)
   }
   
   def getFuel(x: Int, y: Int) = {

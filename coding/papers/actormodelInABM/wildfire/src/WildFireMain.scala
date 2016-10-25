@@ -4,15 +4,16 @@ import akka.actor.actorRef2Scala
 import wildfire.actors.FireCell
 import wildfire.actors.WildFireVisualizer
 import wildfire.actors.Wind
+import wildfire.actors.WindDirection
 
 object WildFireMain {
   def main(args: Array[String]): Unit = {
-    val xDim = 100;
-    val yDim = 100;
+    val xDim = 500;
+    val yDim = 500;
     
     val system = ActorSystem("HelloSystem");
     val visualizer = system.actorOf( WildFireVisualizer.props(xDim, yDim), name = "WildFireVisualizer" );
-    val wind = system.actorOf( Wind.props(), name = "Wind" );
+    val wind = system.actorOf( Wind.props( WindDirection.Z ), name = "Wind" );
     
     val neighbourhood = new Array[Tuple2[Int, Int]]( 8 );
     neighbourhood(0) = new Tuple2(-1,-1);
@@ -47,11 +48,28 @@ object WildFireMain {
             cells(xCoord)(yCoord);
         }
         
-        c ! ns.filter { n => n != null };
+        c ! ns;
       }
     }
 
-    cells(0)(0) ! FireCell.Ignite
-    wind ! cells.flatMap { x => x };
+    wind ! cells.flatMap { x => x }; 
+    
+    Thread.sleep(1000);
+    
+    val centerX = xDim / 2;
+    val centerY = yDim / 2;
+    
+    cells(centerX)(centerY) ! FireCell.Ignite
+    
+    /*
+    Thread.sleep(1000);
+    wind ! Wind.ChangeDirection(WindDirection.N);
+    Thread.sleep(1000);
+    wind ! Wind.ChangeDirection(WindDirection.S);
+    Thread.sleep(1000);
+    wind ! Wind.ChangeDirection(WindDirection.W);
+    Thread.sleep(1000);
+    wind ! Wind.ChangeDirection(WindDirection.E);
+    * */
   }
 }

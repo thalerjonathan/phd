@@ -184,7 +184,7 @@
 						<NumericType><![CDATA[double]]></NumericType>
 						<SdArray>false</SdArray>
 						<DefaultValue Class="CodeUnitValue">
-							<Code><![CDATA[30]]></Code>
+							<Code><![CDATA[15]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[DAY]]></Unit>
 						</DefaultValue>
 						<ParameterEditor>
@@ -211,7 +211,7 @@
 						<NumericType><![CDATA[double]]></NumericType>
 						<SdArray>false</SdArray>
 						<DefaultValue Class="CodeUnitValue">
-							<Code><![CDATA[2]]></Code>
+							<Code><![CDATA[10]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[DAY]]></Unit>
 						</DefaultValue>
 						<ParameterEditor>
@@ -263,7 +263,7 @@
 						<NumericType><![CDATA[double]]></NumericType>
 						<SdArray>false</SdArray>
 						<DefaultValue Class="CodeValue">
-							<Code><![CDATA[0.5]]></Code>
+							<Code><![CDATA[0.1]]></Code>
 						</DefaultValue>
 						<ParameterEditor>
 							<Id>1477314129745</Id>
@@ -803,7 +803,7 @@
 						</Timeout>
 						<Condition><![CDATA[true]]></Condition>
 						<Rate Class="CodeUnitValue">
-							<Code><![CDATA[main.populationCount * main.contactRate]]></Code>
+							<Code><![CDATA[1 //main.populationCount * main.contactRate]]></Code>
 							<Unit Class="RateUnits"><![CDATA[PER_DAY]]></Unit>
 						</Rate>
 						<MessageType><![CDATA[Object]]></MessageType>

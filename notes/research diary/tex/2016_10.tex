@@ -154,30 +154,6 @@ I removed all the todos, as they are terrible repetitive and I've put a todo/goa
 \subsection*{STM with lambdas and data-closures}
 I tested STM with lambdas and data-closures. It is possible to send a lambda with data-closure using STM. This would allow to send a computation which encloses e.g. Agent a to another Agent b which then executes this computation.
 
-\subsection*{Reflections on AKKA}
-AKKA is nice but I think the actor model is not very well suited for simulations  due to inherent concurrency where time is implicit. This makes simulations very difficult and also due to concurrency implementing a sync conversation among agents is very cumbersome. I have already experience with the Actor Model when implementing a small version of my Master-Thesis Simulation in Erlang which uses the Actor Model as well. For a continuous simulation it was actually not that bad but the problem there was that between a round-trip between 2 agents other messages could have already interfered - this was a problem when agents trade with each other, so one has to implement synchronized trading where only messages from the current agent one trades with are allowed otherwise budget constraints could be violated. Thus I think Erlang/Akka/Actor Model is better suited for distributed high-tolerance concurrent/parallel systems instead for simulations. Note: this is definitely a major point I have to argue in my thesis: why I am rejecting the actor model.
-\\
-To put it another way: real concurrency (with threads) makes time implicit which is what one does NOT want in simulation. Maybe FRP is the way to go because it allows to explicitly model continuous and discrete time, but I have to get into FRP first to make a proper judgement about its suitability.
-\\
-In the end what I want to achieve is a simulation-framework with explicit notion of time where discrete and continuous time is possible, which has an elegant EDSL included to write simulations/models (which will be then the same: model=simulation), allowing for reasoning about the model and the agent-based model itself implemented in a pure functional way.
-
-
-real concurrency is not needed: simultaneous events can be modeled through explicit time but calculated sequential - when we reduce agents to process only one message after another and not multiple concurrently. thus true parallelism is only a technical detail for performance enhancement.
-
-AKKA/PURE FUNCTIONAL: What if time is of no importance and only the continuous dynamics are of interest?
-
-The real problem seems to be concurrency but i feel we can simulate concurrency by synchronizing to continuous time. computations are carried out after another but because time is explicitly modelled they happen logically at the same time. these rules hold: an agent cannot be in two conversations at the same time, the agent can be in only one or none conversation at a given time t.
-
-new concept: not single, async messages, but syncronous conversations which (can) take time = multiple synchronous messages between agents which (can) change the state of an agent in the end.
-
-AKKA: thus my prediction is: akka/actor model is very well suited to simulations which 1. dont rely on global time 2. dont have multi-step conversations: interactions among agents which are only question-answer. TODO: find some classical simulation model which satisfies these criterias.
-
-AKKA: how can we simulate global time? how can we implement multistep conversations (by futures)?
-
-AKKA upside: extreme huge number of agnts possible due to distributed and parallel technology 
-
-AKKA downside: depends on system \& hardware: scheduler, system time, systime resolution (not very nice for scientific computation), much more complicated, debugging difficult due to concurrency, no global notion of time appart from systemtime, thus always runs in real-time, but there is no global notion of time in the actor model anyway, no EDSL full of technical details, no determinism, no reasoning
-
 \subsection*{What is my contribution?}
 In the PGR seminar today the lecturer made it VERY clear that when we defend our research and present it to others we have to show very clearly what our contribution is. This is what many PhD students fail to show, especially in the beginning. He made it clear that original work is not enough, there must be new knowledge in the research. Also I have still difficulties and to be honest at the moment I don't know it yet but my hope is that I can develop a \textit{pure functional model of ABM/S} - this is what I am currently very deeply thinking about, how such a pure functional model could look like and what it actually is. The problem is that I fall into the thinking about implementation details too fast, I must refrain from that and keep it purely in the abstract domain without going into Haskell details.
 
@@ -186,6 +162,8 @@ WHY FUNCTIONAL? "because its the ultimate approach to scientific computing": few
 scientific results need to be reproduced, especially when they have high impact. a more formal approach of specifying the model and the simulation (model=simulation) could lead to easier sharing and easier reporduction without ambigouites
 
 pure functional agent-model \& theory, EDSL framework in Haskell for ACE
+
+\subsection*{A paper on Akka: using the actor-model in ABM}
 
 \subsection*{Unit-Tests}
 Updated Todos: Unit-Tests are written (very few), ignore data-parallelism and stuff for now - will be an implementation detail later, removed AKKA for now. What I want to look into is how to test functions which use RNG: the RNG must be made deterministic.

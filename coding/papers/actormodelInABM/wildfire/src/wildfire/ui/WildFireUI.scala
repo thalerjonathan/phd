@@ -24,7 +24,7 @@ object TestUI {
       var randX = Math.random() * xDim.toDouble;
       var randY = Math.random() * yDim.toDouble;
       
-      ui.fuelChanged(Tuple2(randX.toInt, randY.toInt), Math.random() );
+      ui.cellBecomesAlive(Tuple2(randX.toInt, randY.toInt), Math.random() );
       
       Thread.sleep( 1 );
     }
@@ -35,34 +35,29 @@ class WildFireUI(xDim : Int, yDim : Int) extends MainFrame {
   title = "WildFire"
   preferredSize = new Dimension(640, 480)
  
-  val fireCells = new FireCells(xDim, yDim)
-  val fireCanvas = new WildFireCanvas( fireCells )
+  val cells = new Cells(xDim, yDim)
+  val cellsCanvas = new CellsCanvas( cells )
   
   contents = new BorderPanel {
     border = Swing.MatteBorder(8, 8, 8, 8, Color.white)
-    add(fireCanvas, BorderPanel.Position.Center)
+    add(cellsCanvas, BorderPanel.Position.Center)
   }
   
-  def fuelChanged(coords: Tuple2[Int, Int], fuel: Double) = {
-    fireCells.updateFuel(coords, fuel);
-    fireCanvas.repaint();
+  def cellChangedState(coords: Tuple2[Int, Int], state: CellState.Value) = {
+    cells.cellChangedState(coords, state);
+    cellsCanvas.repaint();
   }
   
-  def cellStartBurning(coords: Tuple2[Int, Int]) = {
-    fireCells.startBurning(coords);
-    fireCanvas.repaint();
-  }
-  
-  def cellStopBurning(coords: Tuple2[Int, Int]) = {
-    fireCells.stopBurning(coords);
-    fireCanvas.repaint();
+  def cellBecomesAlive(coords: Tuple2[Int, Int], fuel: Double) = {
+    cells.cellBecomesAlive(coords, fuel);
+    cellsCanvas.repaint();
   }
 }
 
-class WildFireCanvas(val fireCells: FireCells) extends Component {
+class CellsCanvas(val cells: Cells) extends Component {
   override def paintComponent(g : Graphics2D) {
-    val xDim = fireCells.getXDim();
-    val yDim = fireCells.getYDim();
+    val xDim = cells.getXDim();
+    val yDim = cells.getYDim();
     
     val d = size
     g.setColor(Color.white);
@@ -74,8 +69,8 @@ class WildFireCanvas(val fireCells: FireCells) extends Component {
     val y0 = (d.height - yDim * wid)/2
     for (x <- 0 until xDim - 1 ) {
       for (y <- 0 until yDim - 1) {
-        val fuel = fireCells.getFuel(x, y);
-        val cellState = fireCells.getCellState(x, y);
+        val fuel = cells.getFuel(x, y);
+        val cellState = cells.getCellState(x, y);
         var c = Color.RED;
         if ( CellState.LIVING == cellState )
           c = new Color( 0.0f, 1.0f - fuel.toFloat, 0.0f );
@@ -91,22 +86,16 @@ class WildFireCanvas(val fireCells: FireCells) extends Component {
   }
 }
 
-
-
-class FireCells(xDim : Int, yDim : Int) {
-  private val fuelCells = Array.ofDim[Double](xDim, yDim)
+class Cells(xDim : Int, yDim : Int) {
+  private val cellFuel = Array.ofDim[Double](xDim, yDim)
   private val cellState = Array.ofDim[CellState.Value](xDim, yDim)
   
-  def startBurning(coords: Tuple2[Int, Int]) = {
-    cellState(coords._1)(coords._2) = CellState.BURNING;
+  def cellChangedState(coords: Tuple2[Int, Int], state: CellState.Value) = {
+    cellState(coords._1)(coords._2) = state;
   }
   
-  def stopBurning(coords: Tuple2[Int, Int]) = {
-    cellState(coords._1)(coords._2) = CellState.DEAD;
-  }
-  
-  def updateFuel(coords: Tuple2[Int, Int], fuel: Double) = {
-    fuelCells(coords._1)(coords._2) = fuel;
+  def cellBecomesAlive(coords: Tuple2[Int, Int], fuel: Double) = {
+    cellFuel(coords._1)(coords._2) = fuel;
     cellState(coords._1)(coords._2) = CellState.LIVING;
   }
   
@@ -115,7 +104,7 @@ class FireCells(xDim : Int, yDim : Int) {
   }
   
   def getFuel(x: Int, y: Int) = {
-    fuelCells(x)(y)
+    cellFuel(x)(y)
   }
   
   def getXDim() = {

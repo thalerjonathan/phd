@@ -14,8 +14,7 @@ class WildFireVisualizer(xDim : Int, yDim : Int) extends Actor {
   ui.visible = true
   
   def receive = {
-    case FireCell.StartBurning(coords) => ui.cellStartBurning(coords);
-    case FireCell.StopBurning(coords) => ui.cellStopBurning(coords);
-    case FireCell.UpdateFurel(coords, fuel) => ui.fuelChanged(coords, fuel);
+    case Cell.ChangedState(coords, state) => ui.cellChangedState(coords, state);
+    case Cell.BecomesAlive(coords, fuel) => ui.cellBecomesAlive(coords, fuel);
   }
 }

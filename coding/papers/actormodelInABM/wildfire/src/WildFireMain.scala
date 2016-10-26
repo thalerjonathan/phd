@@ -1,15 +1,15 @@
 import akka.actor.ActorRef
 import akka.actor.ActorSystem
 import akka.actor.actorRef2Scala
-import wildfire.actors.FireCell
+import wildfire.actors.Cell
 import wildfire.actors.WildFireVisualizer
 import wildfire.actors.Wind
 import wildfire.actors.WindDirection
 
 object WildFireMain {
   def main(args: Array[String]): Unit = {
-    val xDim = 500;
-    val yDim = 500;
+    val xDim = 200;
+    val yDim = 200;
     
     val system = ActorSystem("HelloSystem");
     val visualizer = system.actorOf( WildFireVisualizer.props(xDim, yDim), name = "WildFireVisualizer" );
@@ -31,7 +31,7 @@ object WildFireMain {
       cells(x) = new Array[ActorRef]( xDim );
         
       for ( y <- 0 to yDim - 1 ) {
-         cells(x)(y) = system.actorOf( FireCell.props( new Tuple2(x, y), Math.random(), visualizer ), name = "fireCell_" + x + "_" + y + "_" );
+         cells(x)(y) = system.actorOf( Cell.props( new Tuple2(x, y), Math.random(), visualizer ), name = "fireCell_" + x + "_" + y + "_" );
       }
     }
     
@@ -59,7 +59,7 @@ object WildFireMain {
     val centerX = xDim / 2;
     val centerY = yDim / 2;
     
-    cells(centerX)(centerY) ! FireCell.Ignite
+    cells(centerX)(centerY) ! Cell.Ignite
     
     /*
     Thread.sleep(1000);

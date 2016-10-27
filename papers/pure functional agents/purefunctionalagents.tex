@@ -51,6 +51,15 @@ I want to develop a powerful pure functional agent-model which allows convenient
 
 \section{Introduction}
 Start from wooldridge 2.6 (look at the original papers which inspired the 2.6 chapter) and weiss book and the original papers those chapter is based upon. Look into denotational semantics of actor model. Look also in functional models of czesar ionescu. why: this is the major contribution of my thesis and is new knowledge. Must find intuitive, original and creative approach. \\
+
+no concurrent execution: deterministic
+
+deterministic: can use random-numbers but to be reproducible/deterministic one has to specify the same seed or even provide an own RNG-implementation (which is easily possible using the RNG in haskell)
+
+could use STM for state-propagation to other agents
+
+read Improving Performance of Simulation Software Using Haskell’s Concurrency \& Parallelism
+
 Sketch EDSL for ACE model of interest or maybe more general ACE models.
 
 %----------------------------------------------------------------------------------------

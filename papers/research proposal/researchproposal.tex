@@ -79,29 +79,14 @@ pure functional agent-model \& theory, EDSL framework in Haskell for ACE
 
 Note: It is not in the interest of the researcher to develop new economic theories but to research the use of functional methods (programming and specification) in agent-based computational economics (ACE).
 
-%----------------------------------------------------------------------------------------
-%	SECTION 2
-%----------------------------------------------------------------------------------------
+\subsection{Methods}
+Methods need to be selected to implement the simulations. Special emphasis will be put on functional ones which will then be compared to established methods in the field of ABM/S and ACE. 
 
-\section{Methods}
-The following methods were selected because they are either functional ones or very well established methods in the field of ABM/S and ACE. 
+\subsection{Scenarios}
+To apply and test functional methods in ACE, four scenarios of ACE are selected and then the methods applied and compared with each other to see how each of them perform in comparison. The 4 selected scenarios represent a selection of the challenges posed in ACE: from very abstract ones to very operational ones.
 
-\subsection{Method 1: Haskell}
-This is the main functional method this thesis wants to investigate as it is the purest functional programming language of all the methods.
-
-\subsection{Method 2: Scala \& Actors (Akka)}
-This method was selected because Scala is an object-oriented functional programming language and has a powerful library included which implements the actor-model. Because actors and agents are closely related this is an obvious method to follow.
-
-\subsection{Method 3: AnyLogic / NetLogo / Repast}
-These tools are state-of-the-art in ABM/S and ACE and are included to show how one can perform scenarios (see below) with these tools.
-
-\subsection{Method 4: Java}
-Java is the state-of-the-art programming language in ABM/S and ACE and is thus included as well as a benchmark against such a state-of-the-art.
-
-
-
-\section{Scenarios}
-To apply and test functional methods in ACE, four scenarios of ACE are selected and then the methods applied and compared with each other to see how each of them perform in comparison. The 4 selected scenarios represent a selection of the challenges posed in ACE: from very abstract ones to very operational ones. Each solution is then compared against the following criterias: 
+\subsection{Comparison}
+Each of the selected scenarios is then implemented using the selected methods where each solution is then compared against the following criteria: 
 
 \begin{enumerate}
 \item suitability for scientific computation
@@ -118,34 +103,110 @@ To apply and test functional methods in ACE, four scenarios of ACE are selected 
 \item EDSL
 \end{enumerate}
 
-\subsection{Scenario 1: Equilibrium \& out-of-equilibrium models}
-Continuous (decentralized) bartering / trading
+This will then allow to compare the different methods against each other and to show under which circumstances functional methods shine and when they should not be used.
 
-\cite{Botta20114025}, models of H. Gintis \cite{Gintis2006} and \cite{gintis_dynamics_2007} , Gode \& Sunder Zero-Intelligence
-explicit time needed
+%----------------------------------------------------------------------------------------
+%	SECTION 2
+%----------------------------------------------------------------------------------------
 
-\subsection{Scenario 2: ?}
-Something in between 1 and 4 but closer to 1
+%----------------
+%	2 a
+%----------------
 
-\subsection{Scenario 3: ?}
-Something in between 1 and 4 but closer to 4
+\section{Literature Research}
 
-\subsection{Scenario 4: ?}
-Many parallel, concurrently interacting objects with non-continuous, complex behaviour.
-explicit time needed
-dynamic networks
+\subsection{Methods in ACE \& ABM}
+TODO: the reading should look which of the given methods and how they are used in ACE/ABM. Here a pre-selection of methods was done because the thesis is interested in researching the - novel - functional approach and thus has its special focus on this approach and needs other classical/state-of-the-art approaches for comparison.
 
-\cite{Budish2015}
-\cite{aldridge_high_frequency_2009}
+\subsubsection{Object-Oriented Languages}
+Java \\
+
+\subsubsection{Functional Languages}
+Haskell \\
+Scala \\
+
+\subsubsection{Agent-Models}
+Actor-Model
+
+\subsubsection{Simulation Tools}
+AnyLogic
+Repast
+NetLogo
+
+
+%----------------
+%	2 b
+%----------------
+
+\subsection{Agent-based Economics}
+TODO: the reading should pull out the essence of what types of ACE there are and what features each type has (continuous/discrete time, complex agent communication, equilibriua, networks amongst agents,...)
+
+Agent-based modeling and economic theory: where do we stand? - Ballot, Mandel, Vignes \\
+Agent-based Computational Economics. A Short Introduction - Richiardi \\
+Agent-based computational economics: a constructive approach to economic theory - tesfatsion \\
+Introduction to computer science and economic theory - blume, easley, kleinberg \\
+agent-based computational economics - tesfatsion 
+
+\subsubsection{Equilibrium \& Out-Of-Equilibrium Models}
+\cite{Botta20114025} \\
+\cite{Gintis2006} \\
+TODO: Zero-Intelligence Models - Gode And Sunder \\
+
+\subsubsection{Public Goods Game}
+Continuous time and communication in a public-goods experiment - oprea, charness, friedman: showing how continuous time can be applied to public-goods game. using continuous and discrete time and free-form communication between persons where the actions which influenced the outcome were very limited and one-way: just sending a message how much they contribute.
+
+\subsubsection{Artifical Economies}
+\cite{gintis_dynamics_2007} \\
+Emergent Macroeconomics An Agent-Based Approach to Business Fluctuations - Gatti, D., Gaffeo, E., Gallegati, M., Giulioni, G., Palestrini, A.\\
+
+\subsubsection{Networks}
+Contagion in Financial Networks - Paul Glasserman and H. Peyton Young\\
+
+\subsubsection{Market Microstructure}
+\cite{Budish2015} \\
+\cite{aldridge_high_frequency_2009} \\
+
 
 %----------------------------------------------------------------------------------------
 %	SECTION 3
 %----------------------------------------------------------------------------------------
+\section{Scenarios}
+\subsection{Scenario 1: Public goods games}
+This scenario should be very well suited for functional methods
 
-% TODO: hypotheses
+\subsection{Scenario 2: Decentralized bartering \& trading}
+Something in between 1 and 4 but closer to 1
+
+\subsection{Scenario 3: Auctions}
+Something in between 1 and 4 but closer to 4
+
+\subsection{Scenario 4: Artificial economies}
+This scenario should be NOT well suited for functional methods
+
+Many parallel, concurrently interacting objects with non-continuous, complex behaviour.
+explicit time needed
+dynamic networks
+
 
 %----------------------------------------------------------------------------------------
 %	SECTION 4
+%----------------------------------------------------------------------------------------
+
+\section{Methods}
+\subsection{Method 1: Haskell}
+This is the main functional method this thesis wants to investigate as it is the purest functional programming language of all the methods.
+
+\subsection{Method 2: Scala \& Actors (Akka)}
+This method was selected because Scala is an object-oriented functional programming language and has a powerful library included which implements the actor-model. Because actors and agents are closely related this is an obvious method to follow.
+
+\subsection{Method 3: AnyLogic / NetLogo / Repast}
+These tools are state-of-the-art in ABM/S and ACE and are included to show how one can perform scenarios (see below) with these tools.
+
+\subsection{Method 4: Java}
+Java is the state-of-the-art programming language in ABM/S and ACE and is thus included as well as a benchmark against such a state-of-the-art.
+
+%----------------------------------------------------------------------------------------
+%	SECTION 5
 %----------------------------------------------------------------------------------------
 
 \pagebreak

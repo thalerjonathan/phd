@@ -34,7 +34,7 @@
 %	DOCUMENT INFORMATION
 %----------------------------------------------------------------------------------------
 
-\title{ {\normalsize Research Proposal} \\ A dependently-typed functional framework for agent-based simulation of bilateral trading and bartering.} % Title
+\title{ {\normalsize Research Proposal} \\ Functional methods in agent-based modelling \& simulation.} % Title
 
 \author{Jonathan \textsc{Thaler}} % Author name
 
@@ -56,24 +56,20 @@ Co-Supersvisor: Dr. Thorsten Altenkirch
 
 % If you wish to include an abstract, uncomment the lines below
 \begin{abstract}
-
-Agent-Based Modelling and Simulation (ABM/S) is still a young discipline and the dominant approach to it is object-oriented computation. This thesis goes into the opposite direction and asks how ABM/S can be mapped to and implemented using pure functional computation and what one gains from doing so. To the best knowledge of the author, so far no proper treatment of ABM/S in this field exists but a few papers which only scratch the surface. The author argues that approaching ABM/S from a pure functional direction offers a wealth of new powerful tools and methods. The most obvious one is that when using pure functional computation reasoning about the correctness and about total and partial correctness of the simulation becomes possible. Also pure functional approaches allow the design of an embedded domain specific language (EDSL) in which then the models can be formulated by domain-experts. The strongest point in using EDSL is that ideally the distinction between specification and implementation disappears: the model specification is then already the code of the simulation-program. This allows to rule out a serious class of errors where specification and implementation does not match, which is especially a big problem in scientific computing. The application will be in the field of agent-based computational economics (ACE) where the primary goal will be to implement a pure functional framework with a suitable EDSL in Haskell. This will give computational economists a tool to formulate their models  in this EDSL and run them directly in Haskell. \\
-
-NOTE: this is the old abstract: \\
-Agent-Based Modeling and Simulation (ABM/S) is still a young discipline and the dominant approach to it is object oriented computation. This thesis goes into the opposite direction and asks how ABM/S can be mapped to and implemented using pure functional computation and what one gains from doing so. To the best knowledge of the author, so far no proper treatment of ABM/S in pure functional computation exists but only a few papers which only scratch the surface. The author argues that approaching ABM/S from a pure functional direction  offers a wealth of new powerful tools and methods. The most obvious one is that when using pure functional computation (equational) resoning about the correctness and about total and partial correctness of the simulation becomes possible. \\
-Also pure functional approaches allow the design of a embedded domain specific language (EDSL) in which then the models can be formulated by domain-experts. The strongest point in using EDSL is that ideally the distinction between specification and implementation disappears: the model specification is then already the code of the simulation-program. \\
-The ultimate benefit is that Agda becomes applicable which is - according to the Curry-Howard isomorphism - both a pure functional programming language and a proof assistant for intuitionistic logic allowing both to compute the dynamics of the simulation and to look at meta-level properties of the simulation - termination, convergence, equilibria, domain specific properties - by constructing proofs utilizing computer aided verification. \\
-The application will be in the field of agent-based computational economics where the primary goal will be to implement a framework which allows the simulation of decentralized bilateral bartering and trading between agents. This gives computational economists a framework to research dynamics of equilibrium which is an ongoing research and still an open question how prices reach equilibrium.
+Agent-Based Modelling and Simulation (ABM/S) is still a young discipline and the dominant approach to it is using object-oriented methods. This thesis goes into the opposite direction and asks how ABM/S can be mapped to and implemented using functional methods and what one gains from doing so. To the best knowledge of the author, so far no proper treatment of ABM/S in this field exists but a few papers which only scratch the surface. The author argues that approaching ABM/S using functional methods offers a wealth of new powerful tools and methods. The most obvious one is that when using pure functional computation reasoning about the correctness and about total and partial correctness of the simulation becomes possible. Also pure functional approaches allow the design of an embedded domain specific language (EDSL) in which then the models can be formulated by domain-experts. The strongest point in using EDSL is that ideally the distinction between specification and implementation disappears: the model specification is then already the code of the simulation-program. This allows to rule out a serious class of errors where specification and implementation does not match, which is especially a big problem in scientific computing thus making functional methods in ABM/S especially suitable for scientific computing. The application will be in the field of agent-based computational economics (ACE) where the primary goal will be to compare functional and non-functional methods for developing ACE simulations and to identify in which scenarios pure functional methods shine and where their limits are.
 \end{abstract}
 
 %----------------------------------------------------------------------------------------
 %	SECTION 1
 %----------------------------------------------------------------------------------------
 
-
 \section{Introduction}
+WHY FUNCTIONAL? "because its the ultimate approach to scientific computing": fewer bugs due to mutable state (why? is thos shown obkectively by someone?), shorter (again as above, productivity), more expressive and closer to math, EDSL, EDSL=model=simulation, better parallelising due to referental transparency, reasoning
 
-TODO:
+scientific results need to be reproduced, especially when they have high impact. a more formal approach of specifying the model and the simulation (model=simulation) could lead to easier sharing and easier reporduction without ambigouites
+
+pure functional agent-model \& theory, EDSL framework in Haskell for ACE
+
 \begin{enumerate}
 \item Which kind of problem do we have?
 \item What aim is there? Solving the problem? 
@@ -81,113 +77,76 @@ TODO:
 \item What the impact one expects (hypothesis) and what it is (after results).
 \end{enumerate}
 
-WHY FUNCTIONAL? "because its the ultimate approach to scientific computing": fewer bugs due to mutable state (why? is thos shown obkectively by someone?), shorter (again as above, productivity), more expressive and closer to math, EDSL, EDSL=model=simulation, better parallelising due to referental transparency, reasoning
+Note: It is not in the interest of the researcher to develop new economic theories but to research the use of functional methods (programming and specification) in agent-based computational economics (ACE).
 
-scientific results need to be reproduced, especially when they have high impact. a more formal approach of specifying the model and the simulation (model=simulation) could lead to easier sharing and easier reporduction without ambigouites
-
-pure functional agent-model \& theory, EDSL framework in Haskell for ACE
-
-In the papers \cite{Gintis2006} and \cite{gintis_dynamics_2007} H. Gintis proposed a model of decentralized barter between agents in which he could show that the prices approach an equilibrium. His results made quite a fuzz in the field of economics because so far how prices in bilateral trading approach the walrasian equilibrium was (and is still) an open question as Walrasian Equilibrium definition just states the static properties of equilibrium but says nothing about how it is reached and what the dynamics are. \\
-Cezar Ionescu et al. tried to reimplement the findings of Gintis but were unable to correctly reproduce the results due to a misunderstanding and misinterpretation of the model in \cite{Gintis2006} which was given in natural language with very few formalisms. \\
-Ionescu et al. went then on to build upon these findings, that specifications of such models should be much more formal and proposed a functional framework in their paper \cite{Botta20114025}. This framework allows to specify a model of agent-based exchange like the one of Gintis in \cite{Gintis2006}, where Ionescu et al. gave in an companion-paper ("N. Botta, A. Mandel, M. Hofmann, S. Schupp, Mathematical specifications for agent-based models of exchange: a case study" which can be found on the internet but was ultimately rejected in the review process and is thus not published) a case study by "implementing" Gintis model in their functional framework. \\
-Ionescu et al. state in \cite{Botta20114025} that a real implementation of their functional framework would need a dependently typed programming language and is by far out of the scope of this paper, leaving it for further research. This will be the starting point of this thesis as pointed out below.\\
 %----------------------------------------------------------------------------------------
 %	SECTION 2
 %----------------------------------------------------------------------------------------
 
-\section{Goals and Outcome}
-The primary aim of this thesis is to implement an agent-based framework in a combination of Haskell and Agda (a dependently typed programming language and proof assistant) for decentralized bilateral trading and bartering between agents. The functional framework proposed by Ionsecu et al. in \cite{Botta20114025} will serve as a starting point but the thesis will extend on the framework on various points. The models proposed by Gintis in \cite{Gintis2006} and \cite{gintis_dynamics_2007}  should then be possible to be implemented in this framework. Also the master-thesis of the author of this thesis should be possible to be implemented in this framework.
+\section{Methods}
+The following methods were selected because they are either functional ones or very well established methods in the field of ABM/S and ACE. 
 
-\subsection{Behaviour of agents}
-Gintis models his agents in the way that they imitate behaviour of successful ones and also by mutating prices. This is but only one of the possible agent-behaviours. Other behaviours could be pure rule-based, zero-intelligence (Gode \& Sunder), deep-learning,...
+\subsection{Method 1: Haskell}
+This is the main functional method this thesis wants to investigate as it is the purest functional programming language of all the methods.
 
-\subsection{Networks of agents}
-The framework should be able to represent restrictions of trading between agents imposing all kind of network-topologies on the agent-neighbourhood. If there is time also network-formation models should be included.
+\subsection{Method 2: Scala \& Actors (Akka)}
+This method was selected because Scala is an object-oriented functional programming language and has a powerful library included which implements the actor-model. Because actors and agents are closely related this is an obvious method to follow.
 
-\subsection{Markets and design}
-This framework should also be so flexible to be applicable to other works of exchange, e.g. the Leverage-Cycle work of Breuer et al. which looked at leveraged trading and the master-thesis of Thaler which looked at trading restricted to various kinds of networks in the work of Breuer et al.. Various goods/markets should be possible where also complex products are traded
+\subsection{Method 3: AnyLogic / NetLogo / Repast}
+These tools are state-of-the-art in ABM/S and ACE and are included to show how one can perform scenarios (see below) with these tools.
 
-This thesis should not be an overtly theoretical approach but also should include empirical and practical knowledge of market micro-structure: how markets are implemented and designed and how agents behave within them. The following books will be of importance: \cite{LehalleLaruelle2013}, \cite{baker_market_2013} Part II: Chapter 8-12.
+\subsection{Method 4: Java}
+Java is the state-of-the-art programming language in ABM/S and ACE and is thus included as well as a benchmark against such a state-of-the-art.
 
-\subsection{Continuous time}
-So far the model only incorporates discrete time-steps but should be extended to continuous time which will allow research on HFT where timings in a continuous time-flow are of most importance. In the paper \cite{Budish2015}, Budish et al. proposed a new kind of auction on the stock market, which they termed "Frequent Batch Auctions" (FBA) as a remedy against the High-Frequency arms race. For that one needs to model time explicitly and extend the framework and implementation accordingly. Also the following book will be of imporance \cite{aldridge_high_frequency_2009}
 
-\subsection{Replications \& Parallelism}
-When introducing randomness in a simulation (as is the case in most of the models e.g. in both of Gintis) then running replications of simulations is necessary to average out individual runs to get a general conclusion on the results. This should be supported directly by the framework. Also due to the pure functional approach parallelism should be easily achieved which should be fully exploited to run many replications in parallel thus speeding up the simulation.
 
-\subsection{Verification \& correctness}
-An important emphasis will be put on the verification of correctness, whether the implementation matches the formal specification or not, of both the simulation framework and translated auction-type programs. Research will also go into proofs of termination / convergence-possibility: proving whether a specified auction can ever terminate / converge, ignoring the time-space constraint and the quality of the convergence. Another focus of research will focus on formal testing of an auction specification / implementation for deadlock-free as such auction-processes can get stuck when specifications exhibit configurations which can result in deadlock-situations between traders which are still willing to trade but cannot because of circular dependencies.
+\section{Scenarios}
+To apply and test functional methods in ACE, four scenarios of ACE are selected and then the methods applied and compared with each other to see how each of them perform in comparison. The 4 selected scenarios represent a selection of the challenges posed in ACE: from very abstract ones to very operational ones. Each solution is then compared against the following criterias: 
 
-\subsection{Visualisation}
-Of special interest is also the visualization and the support to investigate the dynamics of such simulation-processes. Part of the research will be how to describe and visualize dynamics of such an auction-process in a meaningful and comprehensive way so to detect patterns in the dynamics and to provide a new way at looking at such dynamics. With the use of a pure functional approach it may be possible to develop a new way of looking at such dynamics which can then also be visualized in a new way.
+\begin{enumerate}
+\item suitability for scientific computation
+\item robustness
+\item error-sources
+\item testability
+\item stability
+\item extendability
+\item size of code
+\item maintainability
+\item time taken for development
+\item verification \& correctness
+\item replications \& parallelism
+\item EDSL
+\end{enumerate}
+
+\subsection{Scenario 1: Equilibrium \& out-of-equilibrium models}
+Continuous (decentralized) bartering / trading
+
+\cite{Botta20114025}, models of H. Gintis \cite{Gintis2006} and \cite{gintis_dynamics_2007} , Gode \& Sunder Zero-Intelligence
+explicit time needed
+
+\subsection{Scenario 2: ?}
+Something in between 1 and 4 but closer to 1
+
+\subsection{Scenario 3: ?}
+Something in between 1 and 4 but closer to 4
+
+\subsection{Scenario 4: ?}
+Many parallel, concurrently interacting objects with non-continuous, complex behaviour.
+explicit time needed
+dynamic networks
+
+\cite{Budish2015}
+\cite{aldridge_high_frequency_2009}
 
 %----------------------------------------------------------------------------------------
 %	SECTION 3
 %----------------------------------------------------------------------------------------
 
-\section{Impact}
-The resulting simulation framework allows computational economists to specify problems in this field in a precise and concise formal language thus they can refrain from having to share and explain all painstaking details in natural language. The simulation framework allows them to run formal specifications of trading-processes and investigate the dynamics of them. Also they will be able to proof if their specification is able to converge / terminate or not and that it is deadlock-free or not.
-
+% TODO: hypotheses
 
 %----------------------------------------------------------------------------------------
 %	SECTION 4
 %----------------------------------------------------------------------------------------
-
-\section{Approach}
-
-\subsection{Understanding the economics}
-\begin{itemize}
-\item Fully understand the framework in \cite{Botta20114025}
-\item Understand theory of classical equilibrium models: TODO
-\item Understand theory of out-of-equilibrium / non-walrasian models: TODO (various Gintis \& Mandel Papers)
-\item Understand Market Micro-structure: \cite{LehalleLaruelle2013}, \cite{baker_market_2013} Part II: Chapter 8-12.
-\item Do literature research on dynamics of equilibrium: \cite{emergent_2008}
-\item Get basic understanding of economics: \cite{bowles_understanding_2005}
-\end{itemize}
-
-\subsection{Understanding the computer-science}
-\begin{itemize}
-\item Learn and master  dependent-type programming in Agda
-\item Master monadic programming in Haskell
-\item Learn how to do parallel-programming in Haskell
-\item Design software of the framework: lay out modules, define interfaces, define functions, specify agents
-\item Implement the framework
-\end{itemize}
-
-\subsection{Papers}
-\begin{itemize}
-\item 2 papers about applying functional programming and dependent types to computational economics.
-\item 1 paper About verification and correctness: deadlock-free and termination. 
-\end{itemize}
-
-%----------------------------------------------------------------------------------------
-%	SECTION 5
-%----------------------------------------------------------------------------------------
-
-\section{Hypothesis \& Research Questions}
-As one can see this is clearly a novel approach in the field of agent-based modelling \& simulation (ABM/S) and also agent-based computational economics (ACE). The thesis will thus contribute novel research in this field by addressing the following hypothesis \& research-questions 
-
-\subsection{Hypothesis}
-\begin{itemize}
-\item It is possible using the above framework to proof a specific bartering-/trading-model to terminate.
-\item It is possible using the above framework to proof a specific bartering-/trading-model to be deadlock-free.
-\end{itemize}
-
-\subsection{Research Questions}
-\begin{itemize}
-\item How can the functional framework of Ionescu et al. be implemented in a dependently typed programming language?
-	\begin{itemize}
-	\item How can agents be represented?
-	\item How can networks among agents be represented?
-	\item How can interaction between the agents be implemented?
-	\item How can continuous time be implemented?
-	\item How can markets be represented?
-	\item How can the behaviour of agents be represented?
-	\item How can the equilibrium dynamics best be represented?
-	\end{itemize}
-\end{itemize}
-
-{\tiny Note: It is not in the interest of the researcher to develop new equilibrium models or proof the match of the outcome of the various auction types with established equilibrium-theorems (which conditions must be satisfied that the dynamic process reaches the static equilibrium?). This would touch too deep on economics and complex equilibrium theory which is not the focus of this Ph.D.. The focus is much more on the research of a specification tool and then on the dynamics of such an auction- process (e.g. market \& agent activities over time) in the context of the field of Agent-Based Modelling/Simulation.}
 
 \pagebreak
 
@@ -206,7 +165,7 @@ As one can see this is clearly a novel approach in the field of agent-based mode
 
 \subsection{Reading}
 \begin{itemize}
-\item Understanding Capitalism. TODO cite
+\item Understanding Capitalism. \cite{bowles_understanding_2005}
 \item Debt . TODO cite
 \item Multiagent Systems Wooldridge. TODO cite
 \item Multiagent Systems Weiss. TODO cite
@@ -222,11 +181,14 @@ As one can see this is clearly a novel approach in the field of agent-based mode
 \item Get into basics of economics and equilibrium theory. Why: because i need to understand basics to understand the models better and to talk and sell my models better to economists.
 \item Get into category theory. Why: deeper understanding of Haskell type theory and computation.
 \item Get into theoretical basics of agent-based simulation and get to know more types of agent-based models. Why: To know the requirements my EDSL/framework has to cover.
+\item Understand theory of out-of-equilibrium / non-walrasian models: TODO (various Gintis \& Mandel Papers)
+\item Understand Market Micro-structure: \cite{LehalleLaruelle2013}, \cite{baker_market_2013} Part II: Chapter 8-12.
+\item Do literature research on dynamics of equilibrium: \cite{emergent_2008}
 \end{itemize}
 
 \subsection{Research}
 \begin{itemize}
-\item Paper (Conference) about Actor Model in ABM/S.
+\item Paper (Conference) about Actor-Model in ABM/S.
 \item Start developing pure functional agent-model. Start from wooldridge 2.6 (look at the original papers which inspired the 2.6 chapter) and weiss book and the original papers those chapter is based upon. Look into denotational semantics of actor model. Look also in functional models of czesar ionescu. why: this is the major contribution of my thesis and is new knowledge. Must find intuitive, original and creative approach.
 \item Sketch EDSL for ACE model of interest or maybe more general ACE models.
 \end{itemize}

@@ -53,18 +53,27 @@ The Actor-Model, a model of concurrency, has been around since the paper \cite{H
 \url{http://www.grids.ac.uk/Complex/ABMS/}
 
 \subsection{The Actor Model}
-TODO: explain the actor model according to agha
+Read in the following order
 
-TODO: read \cite{Hewitt_1973}
-TODO: read \cite{Greif_1975}
-TODO: read \cite{Clinger_1981}
-TODO: read \cite{Agha_1986}
+
+\begin{enumerate}
+\item \cite{Hewitt_1973}
+\item \cite{Greif_1975}
+\item \cite{Clinger_1981}
+\item \cite{Agha_1986}
+\item \cite{Agha_1997}
+\item \cite{Hewitt_2007}
+\item \cite{Hewitt_2010}
+\item \cite{Agha_2004}
+\end{enumerate}
 
 upside: extreme huge number of agnts possible due to distributed and parallel technology 
 downside: depends on system \& hardware: scheduler, system time, systime resolution (not very nice for scientific computation), much more complicated, debugging difficult due to concurrency, no global notion of time appart from systemtime, thus always runs in real-time, but there is no global notion of time in the actor model anyway, no EDSL full of technical details, no determinism, no reasoning
 
 \subsection{Agents vs. Actors}
 Agents more a high-level concept, Actors low level, technical concurrency primitives
+
+\subsection{Actors are pure functional!}
 
 \subsection{Hypothesis}
 This makes simulations very difficult and also due to concurrency implementing a sync conversation among agents is very cumbersome. I have already experience with the Actor Model when implementing a small version of my Master-Thesis Simulation in Erlang which uses the Actor Model as well. For a continuous simulation it was actually not that bad but the problem there was that between a round-trip between 2 agents other messages could have already interfered - this was a problem when agents trade with each other, so one has to implement synchronized trading where only messages from the current agent one trades with are allowed otherwise budget constraints could be violated. Thus I think Erlang/Akka/Actor Model is better suited for distributed high-tolerance concurrent/parallel systems instead for simulations. Note: this is definitely a major point I have to argue in my thesis: why I am rejecting the actor model.

@@ -8,8 +8,8 @@ import wildfire.actors.WindDirection
 
 object WildFireMain {
   def main(args: Array[String]): Unit = {
-    val xDim = 200;
-    val yDim = 200;
+    val xDim = 500;
+    val yDim = 500;
     
     val system = ActorSystem("HelloSystem");
     val visualizer = system.actorOf( WildFireVisualizer.props(xDim, yDim), name = "WildFireVisualizer" );

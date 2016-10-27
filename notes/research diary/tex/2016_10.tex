@@ -168,3 +168,26 @@ pure functional agent-model \& theory, EDSL framework in Haskell for ACE
 \subsection*{Unit-Tests}
 Updated Todos: Unit-Tests are written (very few), ignore data-parallelism and stuff for now - will be an implementation detail later, removed AKKA for now. What I want to look into is how to test functions which use RNG: the RNG must be made deterministic.
 unit tests: also test invariants: specific data of an agent hasnt changend
+
+
+\section*{2016 October 26th}
+
+\subsection*{Supversision-Meeting with Peer-Olaf}
+Peer-Olaf told me what he thought about should the direction of my PhD be: \\
+I should think about 4 scenarios from economics (e.g. Auctions, Supply-Chain, Public-Goods Games,...) in which 1 is supposed to be VERY suitable for functional approaches, one is supposed to be absolutely not and the other 2 are somewhere in between. My contribution would be to show "What are the upsides and the limits using functional approach in ABM". Also I should apply 3-4 different technologies for implementing them: AnyLogic/Repast/Netlogo (very high level), Scala with Actors: Akka (concurrent object-oriented functional), Haskell (pure functional), Java (object-oriented, non-functional) and show what the differences are between them implementing the 4 scenarios. In the end I need to come up with criteria for deciding which is "better" suited than the other. Mainly it is all about robustness: making less errors. This is influenced by:
+
+\begin{itemize}
+\item Testability: how and how easily can it be tested, Unit-Tests?
+\item Size of Code: how many lines of code have to be written?
+\item How is state treated?
+\item Is it suited for scientific computing?
+\item Parallelism: how difficult is it?
+\end{itemize}
+
+My Scenarios are so far
+\begin{enumerate}
+\item (Decentralized) bartering/trading: H.Gintis, Gode \& Sunder Zero-Intelligence, Ionescu functional framework
+\item ?
+\item ?
+\item ?
+\end{enumerate}

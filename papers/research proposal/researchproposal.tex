@@ -56,12 +56,17 @@ Co-Supersvisor: Dr. Thorsten Altenkirch
 
 % If you wish to include an abstract, uncomment the lines below
 \begin{abstract}
+TODO: Consider a provocative abstract and an interesting title
+
 Agent-Based Modelling and Simulation (ABM/S) is still a young discipline and the dominant approach to it is using object-oriented methods. This thesis goes into the opposite direction and asks how ABM/S can be mapped to and implemented using functional methods and what one gains from doing so. To the best knowledge of the author, so far no proper treatment of ABM/S in this field exists but a few papers which only scratch the surface. The author argues that approaching ABM/S using functional methods offers a wealth of new powerful tools and methods. The most obvious one is that when using pure functional computation reasoning about the correctness and about total and partial correctness of the simulation becomes possible. Also pure functional approaches allow the design of an embedded domain specific language (EDSL) in which then the models can be formulated by domain-experts. The strongest point in using EDSL is that ideally the distinction between specification and implementation disappears: the model specification is then already the code of the simulation-program. This allows to rule out a serious class of errors where specification and implementation does not match, which is especially a big problem in scientific computing thus making functional methods in ABM/S especially suitable for scientific computing. The application will be in the field of agent-based computational economics (ACE) where the primary goal will be to compare functional and non-functional methods for developing ACE simulations and to identify in which scenarios pure functional methods shine and where their limits are.
 \end{abstract}
 
 %----------------------------------------------------------------------------------------
 %	SECTION 1
 %----------------------------------------------------------------------------------------
+
+TODO: Contributions should appear in the conclusion, introduction and abstract
+
 
 \section{Introduction}
 WHY FUNCTIONAL? "because its the ultimate approach to scientific computing": fewer bugs due to mutable state (why? is thos shown obkectively by someone?), shorter (again as above, productivity), more expressive and closer to math, EDSL, EDSL=model=simulation, better parallelising due to referental transparency, reasoning
@@ -78,6 +83,8 @@ pure functional agent-model \& theory, EDSL framework in Haskell for ACE
 \end{enumerate}
 
 Note: It is not in the interest of the researcher to develop new economic theories but to research the use of functional methods (programming and specification) in agent-based computational economics (ACE).
+
+NOTE: Get the reader’s attention early in the introduction: motivation, significance, originality and novelty.
 
 \subsection{Methods}
 Methods need to be selected to implement the simulations. Special emphasis will be put on functional ones which will then be compared to established methods in the field of ABM/S and ACE. 
@@ -112,60 +119,104 @@ This will then allow to compare the different methods against each other and to 
 %----------------
 %	2 a
 %----------------
+\section{Literature Research: Agent-based Economics (ACE)}
 
-\section{Literature Research}
+\subsection{Foundations}
+TODO: the reading should pull out the essence of what types of ACE there are and what features each type has (continuous/discrete time, complex agent communication, equilibriua, networks amongst agents,...)
 
-\subsection{Methods in ACE \& ABM}
-TODO: the reading should look which of the given methods and how they are used in ACE/ABM. Here a pre-selection of methods was done because the thesis is interested in researching the - novel - functional approach and thus has its special focus on this approach and needs other classical/state-of-the-art approaches for comparison.
+\url{http://www2.econ.iastate.edu/tesfatsi/ace.htm}
 
-\subsubsection{Object-Oriented Languages}
-Java \\
+\cite{mandel_2015} Agent-based modeling and economic theory: where do we stand? - Ballot, Mandel, Vignes \\
+\cite{richiardi_2007} Agent-based Computational Economics. A Short Introduction - Richiardi \\
+\cite{tesfatsion_2006} Agent-based computational economics: a constructive approach to economic theory - tesfatsion \\
+\cite{kleinberg_easley_2015} Introduction to computer science and economic theory - blume, easley, kleinberg \\
+\cite{tesfatsion_2002} agent-based computational economics - tesfatsion 
 
-\subsubsection{Functional Languages}
-Haskell \\
-Scala \\
+TODO: need to find the major fields of ACE and then select them
 
-\subsubsection{Agent-Models}
-Actor-Model
+\subsubsection{Equilibrium \& Out-Of-Equilibrium Models}
+\cite{Botta20114025} \\
+\cite{Gintis2006} \\
+\cite{gode_sunder_1991} Zero-Intelligence Models - Gode And Sunder \\
 
-\subsubsection{Simulation Tools}
-AnyLogic
-Repast
-NetLogo
+\subsubsection{Public Goods Game}
+TODO: look for ACE in Public Goods Game
+
+Continuous time and communication in a public-goods experiment - oprea, charness, friedman \cite{friedman_2012}: showing how continuous time can be applied to public-goods game. using continuous and discrete time and free-form communication between persons where the actions which influenced the outcome were very limited and one-way: just sending a message how much they contribute.
+
+\subsubsection{Artifical Economies}
+\cite{gintis_dynamics_2007} \\
+\cite{emergent_gaffeo_gatti_2008} \\
+\cite{adaptive_gaffeo_gatti_2008} \\
+
+\subsubsection{Networks}
+TODO: look for ACE in networks
+\cite{glasserman_2015} Contagion in Financial Networks - Paul Glasserman and H. Peyton Young\\
+\url{http://www2.econ.iastate.edu/tesfatsi/anetwork.htm}
+\url{http://www2.econ.iastate.edu/tesfatsi/tnghome.htm}
+
+\subsubsection{Auction Theory}
+TODO: look for ACE in auction theory
+
+\subsubsection{Market Microstructure}
+TODO: look for ACE in market microstructure
+
+\cite{Budish2015} \\
+\cite{aldridge_high_frequency_2009} \\
 
 
 %----------------
 %	2 b
 %----------------
+\section{Literature Research: Methods in ACE \& ABM}
+TODO: the reading should look which of the given methods and how they are used in ACE/ABM. Here a pre-selection of methods was done because the thesis is interested in researching the - novel - functional approach and thus has its special focus on this approach and needs other classical/state-of-the-art approaches for comparison.
 
-\subsection{Agent-based Economics}
-TODO: the reading should pull out the essence of what types of ACE there are and what features each type has (continuous/discrete time, complex agent communication, equilibriua, networks amongst agents,...)
+\subsection{Object-Oriented Languages}
+Java \\
 
-Agent-based modeling and economic theory: where do we stand? - Ballot, Mandel, Vignes \\
-Agent-based Computational Economics. A Short Introduction - Richiardi \\
-Agent-based computational economics: a constructive approach to economic theory - tesfatsion \\
-Introduction to computer science and economic theory - blume, easley, kleinberg \\
-agent-based computational economics - tesfatsion 
+\subsection{Functional Languages}
+\subsubsection{Haskell}
+\url{https://github.com/ivendrov/frabjous2}
+\cite{Schneider_2012}
+\url{http://oliverschneider.ca/frabjous/}
+\cite{Vendrov_2014}
 
-\subsubsection{Equilibrium \& Out-Of-Equilibrium Models}
-\cite{Botta20114025} \\
-\cite{Gintis2006} \\
-TODO: Zero-Intelligence Models - Gode And Sunder \\
+\cite{Nilsson_2014}
+\cite{Nilsson_2003}
 
-\subsubsection{Public Goods Game}
-Continuous time and communication in a public-goods experiment - oprea, charness, friedman: showing how continuous time can be applied to public-goods game. using continuous and discrete time and free-form communication between persons where the actions which influenced the outcome were very limited and one-way: just sending a message how much they contribute.
+\cite{Sulzmann_2007}
 
-\subsubsection{Artifical Economies}
-\cite{gintis_dynamics_2007} \\
-Emergent Macroeconomics An Agent-Based Approach to Business Fluctuations - Gatti, D., Gaffeo, E., Gallegati, M., Giulioni, G., Palestrini, A.\\
+\cite{bauer_adaptation_2011}
 
-\subsubsection{Networks}
-Contagion in Financial Networks - Paul Glasserman and H. Peyton Young\\
+\cite{Jankovic_2007}
 
-\subsubsection{Market Microstructure}
-\cite{Budish2015} \\
-\cite{aldridge_high_frequency_2009} \\
 
+aivika paper
+
+games in haskell
+
+\subsubsection{Scala}
+
+\subsection{Agent-Models}
+\subsubsection{Actor Model}
+\cite{Poggi_2015}
+\cite{Parker_2011}
+\cite{DiStefano_2007}
+\cite{Varela_2004}
+\cite{DiStefano_2005}
+
+\cite{Hewitt_1973}
+ \cite{Greif_1975}
+ \cite{Clinger_1981}
+ \cite{Agha_1986}
+ \cite{Agha_1997}
+ \cite{Hewitt_2007}
+ \cite{Hewitt_2010}
+ \cite{Agha_2004}
+\subsection{Simulation Tools}
+AnyLogic
+Repast
+NetLogo
 
 %----------------------------------------------------------------------------------------
 %	SECTION 3

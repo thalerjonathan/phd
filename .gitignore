@@ -6,3 +6,6 @@
 *.blg
 *.cache-main
 dist/
+.idea/
+out/
+.dist-buildwrapper/

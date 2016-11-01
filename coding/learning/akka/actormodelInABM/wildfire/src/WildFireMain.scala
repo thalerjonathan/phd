@@ -1,6 +1,5 @@
 import akka.actor.ActorRef
 import akka.actor.ActorSystem
-import akka.actor.actorRef2Scala
 import wildfire.actors.Cell
 import wildfire.actors.WildFireVisualizer
 import wildfire.actors.Wind

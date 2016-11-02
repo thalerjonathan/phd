@@ -12,8 +12,67 @@ reactimate :: IO a                          -- init
            -> (Bool -> b -> IO Bool)        -- output/actuate
            -> SF a b                        -- process/signal function
            -> IO ()
+
+1. call to initialize
+2. return of initialize is fed to process
+3. return of process is fed to output
+4. input is called which produces the next sample / time or returns Nothing when no change occured
+5. the return-value of input is fed to process
+6. jump to 3
+
+
+-- initializes the system: returns data which is then sent to process
+initialize :: IO String
+initialize  = return "Hello Yampa"
+
+-- receives a Bool which is unused
+-- return Tuple with DTime: (time elapsed since last input, Maybe input-data)
+input :: Bool -> IO (DTime, Maybe String)
+input _ = return (0.0, Nothing)
+
+-- 1st argument: a Bool which is unused
+-- 2nd argument: the output from process
+-- return True when terminating programm
+output :: Bool -> String -> IO Bool
+output _  x = putStrLn x >> return True
+
+-- the process-function: maps input-data to output-data
+process :: SF String String
+process = identity
 -}
 
+main :: IO ()
+main = do
+    hdl <- reactInit
+        initialize
+        output
+        process
+    inputLoop hdl
+    return ()
+
+initialize :: IO Double
+initialize = return 1.0
+
+output :: (ReactHandle Double Double) -> Bool -> Double -> IO Bool
+output hdl changed sfOut = do
+                    putStrLn (show changed)
+                    putStrLn (show sfOut)
+                    return True
+
+inputLoop :: ReactHandle Double Double -> IO ()
+inputLoop hdl = do
+    ret <- react hdl (1.0, Just 1.0)
+    if ret == True
+        then
+            return ()
+        else
+            inputLoop hdl
+
+process :: SF Double Double
+process = proc input -> do
+                t0' <- time -< input
+                returnA -< t0'
+                
 {------------------------------------------------------------------------------------------------------------
 -- FRP hello-world example
 
@@ -71,13 +130,3 @@ main = reactimate (return ())
               (\_ b -> (putStrLn $ show b) >> return (b <= 18))
               (coolingWithFloor 25.0)
 -}
-
-cooling :: SF (Double) (Double)
-cooling = proc input -> do
-               returnA -< input
-
-main :: IO ()
-main = reactimate (return (1.0))
-              (\_ -> return (0.2, Nothing))
-              (\_ b -> (putStrLn $ show b) >> return (b <= 0.0))
-              cooling

@@ -1,10 +1,21 @@
 module Main where
 
+import Data.IORef
 import FRP.Yampa
 import System.Environment (getArgs, getProgName)
 
 import WildFireFrontend as Front
 import WildFireBackend as Back
+
+main :: IO ()
+main = do
+    Front.initialize
+    ref <- newIORef True
+    let cell = Cell { cellCoord = center, cellFuel = 1.0, cellState = LIVING } -- Back.createCells dimensions
+    let input' = input ref
+    let process' = (Back.process cell)
+    reactimate Main.initialize input' output process'
+    Front.shutdown
 
 dimensions :: (Int, Int)
 dimensions = (10, 10)
@@ -16,29 +27,26 @@ center = (centerX, centerY)
         centerX = floor( fromIntegral dimX / 2.0 )
         centerY = floor( fromIntegral dimY / 2.0 )
 
--- NOTE: reactimate version
-main :: IO ()
-main = do
-    Front.initialize
-    let cell = Cell { cellCoord = center, cellFuel = 0.5, cellState = LIVING }
-    reactimate (return cell) input output (Back.process cell)
-    Front.shutdown
+initialize :: IO SimulationIn
+initialize = do
+    return SimulationIn { ignitionIn = Nothing }
 
-input :: Bool -> IO (DTime, Maybe Cell)
-input _ = return (0.2, Nothing)
+input :: IORef Bool -> Bool -> IO (DTime, Maybe SimulationIn)
+input ref _ = do
+    coords <- Front.checkMousePressed ref
+    case coords of
+      Just c -> do
+          let cellCoord = Front.pixelCoordToCellCoord c dimensions
+          return (1.0, Just SimulationIn { ignitionIn = Just cellCoord } )
+      Nothing -> do
+          return (1.0, Just SimulationIn { ignitionIn = Nothing } )
 
-output :: Bool -> Cell -> IO Bool
-output _ newCell = do
-    Front.renderFrame [newCell] dimensions
+output :: Bool -> SimulationOut -> IO Bool
+output _ out = do
+    let cells = cellsOut out
+    Front.renderFrame cells dimensions
     return False
 
-{-
-initialize :: IO IgniteCellAction
-initialize = return IgniteCellAction{ cellIdx = 50, cells = Back.createCells dimensions }
-
-input :: Bool -> IO (DTime, Maybe IgniteCellAction)
-input _ = return (1.0, Nothing)
--}
 
 {-
 input :: [Cell] -> Bool -> IO (DTime, Maybe [Cell])

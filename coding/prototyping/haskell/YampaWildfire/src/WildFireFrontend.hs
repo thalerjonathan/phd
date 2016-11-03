@@ -104,25 +104,29 @@ cellDimensions (dimX, dimY) = (cellWidth, cellHeight)
             cellWidth = ( fromIntegral (winDimXInt winSize) / fromIntegral dimX ) :: GLdouble
             cellHeight = ( fromIntegral (winDimYInt winSize) / fromIntegral dimY ) :: GLdouble
 
-checkMousePress :: IO (Maybe (Int, Int))
-checkMousePress = do
+checkMousePressed :: IORef Bool -> IO (Maybe (Int, Int))
+checkMousePressed ref = do
     b <- GLFW.getMouseButton GLFW.ButtonLeft
     case b of
+        GLFW.Release -> do
+            writeIORef ref True
+            return Nothing
         GLFW.Press -> do
-            (GL.Position x y) <- GL.get GLFW.mousePos
-            return (Just (fromIntegral x, fromIntegral y))
-        otherwise -> return Nothing
+            previouslyReleased <- readIORef ref
+            writeIORef ref False
+            case previouslyReleased of
+                True -> do
+                    putStrLn "---- falling ----"
+                    (GL.Position x y) <- GL.get GLFW.mousePos
+                    return (Just (fromIntegral x, fromIntegral y))
+                otherwise -> do
+                    return Nothing
 
-pixelCoordToCellIdx :: (Int, Int) -> (Int, Int) -> IO Int
-pixelCoordToCellIdx (xDim, yDim) (xCoord, yCoord) = do
-    putStrLn ("coords = " ++ show x ++ "/" ++ show y)
-    putStrLn ("indices = " ++ show xIdx ++ "/" ++ show yIdx)
-    putStrLn ("idx = " ++ show idx)
-    return idx
+pixelCoordToCellCoord :: (Int, Int) -> (Int, Int) -> CellCoord
+pixelCoordToCellCoord (xCoord, yCoord) (xDim, yDim) = (xIdx, yIdx)
     where
         x = fromIntegral xCoord
         y = fromIntegral yCoord
         xIdx = floor (x / cellWidth)
         yIdx = floor (y / cellHeight)
         (cellWidth, cellHeight) = cellDimensions (xDim, yDim)
-        idx = (yIdx * xDim) + xIdx

@@ -23,7 +23,19 @@ winDimXInt (Size x y) = fromIntegral x
 winDimYInt :: GL.Size -> Int
 winDimYInt (Size x y) = fromIntegral y
 
-init = do
+green :: GL.Color3 GLdouble
+green = GL.Color3 0.0 1.0 0.0
+
+black :: GL.Color3 GLdouble
+black = GL.Color3 0.0 0.0 0.0
+
+greenShade :: GLdouble -> GL.Color3 GLdouble
+greenShade s = GL.Color3 0.0 s 0.0
+
+redShade :: GLdouble -> GL.Color3 GLdouble
+redShade s = GL.Color3 s 0.0 0.0
+
+initialize = do
   GLFW.initialize
   -- open window
   GLFW.openWindow winSize [GLFW.DisplayAlphaBits 8] GLFW.Window
@@ -35,7 +47,7 @@ init = do
   GL.blendFunc  $= (GL.SrcAlpha, GL.OneMinusSrcAlpha)
   GL.lineWidth  $= 1.5
   -- set the color to clear background
-  GL.clearColor $= Color4 0 0 0 0
+  GL.clearColor $= Color4 1 1 1 0
 
   -- set 2D orthogonal view inside windowSizeCallback because
   -- any change to the Window size should result in different
@@ -78,7 +90,10 @@ renderCell cell (cellWidth, cellHeight) = do
             color = cellColor cell
 
 cellColor :: Back.Cell -> GL.Color3 GLdouble
-cellColor cell = if ( state == LIVING ) then GL.Color3 0.0 fuel 0.0 else GL.Color3 fuel 0.0 0.0
+cellColor cell
+    | state == LIVING = greenShade fuel
+    | state == BURNING = redShade fuel
+    | state == DEAD = black
     where
         state = cellState cell
         fuel = cellFuel cell
@@ -98,11 +113,16 @@ checkMousePress = do
             return (Just (fromIntegral x, fromIntegral y))
         otherwise -> return Nothing
 
-pixelCoordToCellIdx :: (Int, Int) -> (Int, Int) -> Int
-pixelCoordToCellIdx (xDim, yDim) (xCoord, yCoord) = (xIdx * yDim) + yIdx
+pixelCoordToCellIdx :: (Int, Int) -> (Int, Int) -> IO Int
+pixelCoordToCellIdx (xDim, yDim) (xCoord, yCoord) = do
+    putStrLn ("coords = " ++ show x ++ "/" ++ show y)
+    putStrLn ("indices = " ++ show xIdx ++ "/" ++ show yIdx)
+    putStrLn ("idx = " ++ show idx)
+    return idx
     where
         x = fromIntegral xCoord
         y = fromIntegral yCoord
         xIdx = floor (x / cellWidth)
         yIdx = floor (y / cellHeight)
         (cellWidth, cellHeight) = cellDimensions (xDim, yDim)
+        idx = (yIdx * xDim) + xIdx

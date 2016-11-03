@@ -62,6 +62,8 @@ read Improving Performance of Simulation Software Using Haskell’s Concurrency 
 
 Sketch EDSL for ACE model of interest or maybe more general ACE models.
 
+In the end it all boils down to 1. the agent-model and 2. how the agent-model is implemented in the according language. Of course both points influence each other: functional languages will come up with a different agent-model (e.g. hybrid like yampa) than object-oriented ones (e.g. actors).
+
 \section{Model}
 use yampa as basic framework for "mainloop" with continuous time where each agent has a signalfunction which is triggered when he receives a message or conversation request. in a conversation all other agents are then halted and only the 2 are communing, then time continues. all is running in sync and messages are transfered via non-concurrent STM so no rollback/retry/... stuff is needed. also need to deal with how new agents are created and inserted into the system and how existing ones can be removed when died
 

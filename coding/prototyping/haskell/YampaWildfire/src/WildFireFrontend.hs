@@ -116,7 +116,6 @@ checkMousePressed ref = do
             writeIORef ref False
             case previouslyReleased of
                 True -> do
-                    putStrLn "---- falling ----"
                     (GL.Position x y) <- GL.get GLFW.mousePos
                     return (Just (fromIntegral x, fromIntegral y))
                 otherwise -> do

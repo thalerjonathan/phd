@@ -31,11 +31,12 @@ data SimulationOut = SimulationOut
 idxOfCoord :: CellCoord -> (Int, Int) -> Int
 idxOfCoord (xIdx, yIdx) (xDim, yDim) = (yIdx * xDim) + xIdx
 
-process :: Cell -> SF SimulationIn SimulationOut
-process initCell = proc simIn ->
+process :: Cell -> Cell -> SF SimulationIn SimulationOut
+process initCell1 initCell2 = proc simIn ->
     do
-        cell' <- switch (cellLiving initCell) cellBurningSwitch -< simIn
-        returnA -< SimulationOut { cellsOut = [cell'] }
+        cell1' <- switch (cellLiving initCell1) cellBurningSwitch -< simIn
+        cell2' <- switch (cellLiving initCell2) cellBurningSwitch -< simIn
+        returnA -< SimulationOut { cellsOut = [cell1', cell2'] }
 
 cellLiving :: Cell -> SF SimulationIn (Cell, Event Cell)
 cellLiving cell = proc simIn ->

@@ -11,10 +11,10 @@ main :: IO ()
 main = do
     Front.initialize
     ref <- newIORef True
-    let cell = Cell { cellCoord = center, cellFuel = 1.0, cellState = LIVING } -- Back.createCells dimensions
-    let input' = input ref
-    let process' = (Back.process cell)
-    reactimate Main.initialize input' output process'
+    let cell1 = Cell { cellCoord = (5, 5), cellFuel = 1.0, cellState = LIVING } -- Back.createCells dimensions
+    let cell2 = Cell { cellCoord = (6, 5), cellFuel = 1.0, cellState = LIVING } -- Back.createCells dimensions
+    let process' = (Back.process cell1 cell2)
+    reactimate Main.initialize (input ref) output process'
     Front.shutdown
 
 dimensions :: (Int, Int)

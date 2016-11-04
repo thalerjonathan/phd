@@ -69,6 +69,12 @@ TODO: Contributions should appear in the conclusion, introduction and abstract
 
 
 \section{Introduction}
+TODO: maybe i should really focus only on market models? otherwise too much?
+
+central novelty of my PhD: model specification = runnable code. possible through EDSL. but only in specific subfield of ACE: market-models. need a functional description of the model, then translate it to model specification in EDSL and then run it to see dynamics. But: model specification moves closer to functional programming languages.
+
+another novelty approach: model specification through qualitative instead of quantiative approaches. is this possible?
+
 WHY FUNCTIONAL? "because its the ultimate approach to scientific computing": fewer bugs due to mutable state (why? is thos shown obkectively by someone?), shorter (again as above, productivity), more expressive and closer to math, EDSL, EDSL=model=simulation, better parallelising due to referental transparency, reasoning
 
 scientific results need to be reproduced, especially when they have high impact. a more formal approach of specifying the model and the simulation (model=simulation) could lead to easier sharing and easier reporduction without ambigouites
@@ -119,14 +125,19 @@ This will then allow to compare the different methods against each other and to 
 %----------------
 %	2 a
 %----------------
-\section{Literature Research: Agent-based Economics (ACE)}
+\section{Literature Research}
 
-\subsection{Foundations}
+\subsection{TODO: Yampa}
+read papers of yampa and games and summarize in paper for "pure functional agents"
+
+\subsection{TODO: ACE}
+read ACE introduction papers, summarize in this research-proposal
+
+look into computable economics book: \url{http://www.e-elgar.com/shop/computable-economics}
+
 TODO: the reading should pull out the essence of what types of ACE there are and what features each type has (continuous/discrete time, complex agent communication, equilibriua, networks amongst agents,...)
 
 NOTE: I REALLY need to work out what is special in ACE? what is the unique property of ACE AS compared to other ABM/S? Conjecture: equilibrium of dynamics is the central aspect.
-
-
 \url{http://www2.econ.iastate.edu/tesfatsi/ace.htm}
 
 \cite{mandel_2015} Agent-based modeling and economic theory: where do we stand? - Ballot, Mandel, Vignes \\
@@ -135,115 +146,14 @@ NOTE: I REALLY need to work out what is special in ACE? what is the unique prope
 \cite{kleinberg_easley_2015} Introduction to computer science and economic theory - blume, easley, kleinberg \\
 \cite{tesfatsion_2002} agent-based computational economics - tesfatsion 
 
-TODO: need to find the major fields of ACE and then select them
+\subsection{TODO: functional agent-models}
+look into functional agents in wooldridge 2.5/6 and find primary papers and read them
 
-\subsubsection{Equilibrium \& Out-Of-Equilibrium Models}
-\cite{Botta20114025} \\
-\cite{Gintis2006} \\
-\cite{gode_sunder_1991} Zero-Intelligence Models - Gode And Sunder \\
+\subsection{TODO: market-models}
+find all agent-based market models (gintis, gode and sunder,...), read gintis equilibrium stuff and summarize in the paper: EDSL for agent-based market-simulations
 
-\subsubsection{Public Goods Game}
-TODO: look for ACE in Public Goods Game
-
-Continuous time and communication in a public-goods experiment - oprea, charness, friedman \cite{friedman_2012}: showing how continuous time can be applied to public-goods game. using continuous and discrete time and free-form communication between persons where the actions which influenced the outcome were very limited and one-way: just sending a message how much they contribute.
-
-\subsubsection{Artifical Economies}
-\cite{gintis_dynamics_2007} \\
-\cite{emergent_gaffeo_gatti_2008} \\
-\cite{adaptive_gaffeo_gatti_2008} \\
-
-\subsubsection{Networks}
-TODO: look for ACE in networks
-\cite{glasserman_2015} Contagion in Financial Networks - Paul Glasserman and H. Peyton Young\\
-\url{http://www2.econ.iastate.edu/tesfatsi/anetwork.htm}
-\url{http://www2.econ.iastate.edu/tesfatsi/tnghome.htm}
-
-\subsubsection{Auction Theory}
-TODO: look for ACE in auction theory
-
-\subsubsection{Market Microstructure}
-TODO: look for ACE in market microstructure
-
-\cite{Budish2015} \\
-\cite{aldridge_high_frequency_2009} \\
-
-
-%----------------
-%	2 b
-%----------------
-\section{Literature Research: Methods in ACE \& ABM}
-TODO: the reading should look which of the given methods and how they are used in ACE/ABM. Here a pre-selection of methods was done because the thesis is interested in researching the - novel - functional approach and thus has its special focus on this approach and needs other classical/state-of-the-art approaches for comparison.
-
-\subsection{Object-Oriented Languages}
-Java \\
-
-\subsection{Functional Languages}
-\subsubsection{Haskell}
-\url{https://github.com/ivendrov/frabjous2}
-\cite{Schneider_2012}
-\url{http://oliverschneider.ca/frabjous/}
-\cite{Vendrov_2014}
-
-\cite{Nilsson2002}
-\cite{Nilsson_2014}
-\cite{Nilsson_2003}
-\cite{Hudak2003}
-\cite{Courtney2003}
-
-\cite{Sulzmann_2007}
-
-\cite{bauer_adaptation_2011}
-
-\cite{Jankovic_2007}
-
-
-aivika paper
-
-games in haskell
-
-\subsubsection{Scala}
-
-\subsection{Agent-Models}
-\subsubsection{Actor Model}
-\cite{Poggi_2015}
-\cite{Parker_2011}
-\cite{DiStefano_2007}
-\cite{Varela_2004}
-\cite{DiStefano_2005}
-
-\cite{Hewitt_1973}
- \cite{Greif_1975}
- \cite{Clinger_1981}
- \cite{Agha_1986}
- \cite{Agha_1997}
- \cite{Hewitt_2007}
- \cite{Hewitt_2010}
- \cite{Agha_2004}
-\subsection{Simulation Tools}
-AnyLogic
-Repast
-NetLogo
-
-%----------------------------------------------------------------------------------------
-%	SECTION 3
-%----------------------------------------------------------------------------------------
-\section{Scenarios}
-\subsection{Scenario 1: Public goods games}
-This scenario should be very well suited for functional methods
-
-\subsection{Scenario 2: Decentralized bartering \& trading}
-Something in between 1 and 4 but closer to 1
-
-\subsection{Scenario 3: Auctions}
-Something in between 1 and 4 but closer to 4
-
-\subsection{Scenario 4: Artificial economies}
-This scenario should be NOT well suited for functional methods
-
-Many parallel, concurrently interacting objects with non-continuous, complex behaviour.
-explicit time needed
-dynamic networks
-
+\subsection{TODO: actor- \& agent-models}
+read all of the actor-related stuff and summarize in the paper: actor model in ABM/S
 
 %----------------------------------------------------------------------------------------
 %	SECTION 4
@@ -271,14 +181,10 @@ Java is the state-of-the-art programming language in ABM/S and ACE and is thus i
 \section{Goals/TODOs 1st Year}
 \subsection{Practical}
 \begin{itemize}
-\item Implement SIRS in AnyLogic - DONE.
-\item Implement Wildfire in Akka.
-\item Implement discrete SIRS in Akka.
-\item Implement decentralized bartering in Akka.
-\item Implement SIRS using Monads.
-\item Implement discrete and continuous SIRS in Yampa.
-\item Implement the ACE model of interest (e.g. H.Gintis decentralized bartering) in Haskell and Akka at the end of the year with all the knowledge acquired so far.
-\item Explore data-parallelism in Haskell to speed-up.
+\item Implement SIRS in AnyLogic - DONE
+\item Implement Wildfire in Akka - DONE
+\item Implement Wildfire in Yampa.
+\item Implement Market-models in Yampa, Akka, Java and AnyLogic.
 \end{itemize}
 
 \subsection{Reading}
@@ -307,7 +213,8 @@ Java is the state-of-the-art programming language in ABM/S and ACE and is thus i
 \subsection{Research on Papers (see the papers pdf)}
 \begin{itemize}
 \item The use of Actor-Model in ABM/S.
-\item A model for pure functional agents.
+\item Implementing pure functional agents.
+\item An EDSL for agent-based market simulations.
 \end{itemize}
 %----------------------------------------------------------------------------------------
 %	BIBLIOGRAPHY

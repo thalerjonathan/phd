@@ -46,49 +46,60 @@
 \maketitle 
 
 \begin{abstract}
-I want to develop a powerful pure functional agent-model which allows convenient multi-step conversations in continuous time as i feel yampa is not the perfect match
+So far the literature on agent-based modelling \& simulation (ABM/S) hasn't focused much on models for functional agents and is lacking a proper treatment of implementing agents in pure-functional languages like Haskell. This paper looks into how agents can be specified functionally and then be implemented properly in the pure functional language Haskell. The functional agent-model is inspired by wooldridge 2.6. The programming paradigm used to implement the agents in Haskell is functional reactive programming (FRP) where the Yampa framework will be used. The paper will show that specifying and implementing agents in a pure functional language like Haskell has many advantages over classical object-oriented, concurrent ones but needs also more careful considerations to work properly.
 \end{abstract}
 
 \section{Introduction}
-Start from wooldridge 2.6 (look at the original papers which inspired the 2.6 chapter) and weiss book and the original papers those chapter is based upon. Look into denotational semantics of actor model. Look also in functional models of czesar ionescu. why: this is the major contribution of my thesis and is new knowledge. Must find intuitive, original and creative approach. \\
-
-no concurrent execution: deterministic
-
-deterministic: can use random-numbers but to be reproducible/deterministic one has to specify the same seed or even provide an own RNG-implementation (which is easily possible using the RNG in haskell)
-
-could use STM for state-propagation to other agents
-
-read Improving Performance of Simulation Software Using Haskell’s Concurrency \& Parallelism
-
-Sketch EDSL for ACE model of interest or maybe more general ACE models.
-
 In the end it all boils down to 1. the agent-model and 2. how the agent-model is implemented in the according language. Of course both points influence each other: functional languages will come up with a different agent-model (e.g. hybrid like yampa) than object-oriented ones (e.g. actors).
 
-\section{Functional Agents}
+\section{Agents}
 
 \section{Functional reactive programming (FRP)}
 FRP is a paradigm for programming hybrid systems which combine continuous and discrete components. Time is explicitly modelled: there is a continuous and synchronous time flow.  \\
 
 there have been many attempts to implement FRP in frameworks which each has its own pro and contra. all started with fran, a domain specific language for graphics and animation and at yale FAL, Frob, Fvision and Fruit were developed. The ideas of them all have then culminated in Yampa which is the reason why it was chosen as the FRP framework. Also, compared to other frameworks it does not distinguish between discrete and synchronous time but leaves that to the user of the framework how the time flow should be sampled (e.g. if the sampling is discrete or continuous - of course sampling always happens at discrete times but when we speak about discrete sampling we mean that time advances in natural numbers: 1,2,3,4,... and when speaking of continuous sampling then time advances in fractions of the natural numbers where the difference between each step is a real number in the range of [0..1]) \\
 
-time- and space-leak: when a time-dependent computation falls behind the current time. TODO: give reason why and how this is solved through Yampa. \cite{Wan2000} \\
+time- and space-leak: when a time-dependent computation falls behind the current time. TODO: give reason why and how this is solved through Yampa. TODO: look into \cite{Wan2000} \\
 Yampa solves this by not allowing signals as first-class values but only allowing signal functions which are signal transformers which can be viewed as a function that maps signals to signals. A signal function is of type SF which is abstract, thus it is not possible to build arbitrary signal functions. Yampa provides primitive signal functions to define more complex ones and utilizes arrows \cite{Hughes2004} to structure them where Yampa itself is built upon the arrows: SF is an instance of the Arrow class. \\
 
 Fran, Frob and FAL made a significant distinction between continuous values and discrete signals. Yampas distinction between them is not as great. Yampas signalfunctions can return an Event which makes them then to a signal-stream - the event is then similar to the Maybe type of Haskell: if the event does not signal then it is NoEvent but if it Signals it is Event with the given data. Thus the signal function always outputs something and thus care must be taken that the frequency of events should not exceed the sampling rate of the system (sampling the continuous time-flow). TODO: why? what happens if events occur more often than the sampling interval? will they disappear or will the show up every time? \\
 
 switches allow to change behaviour of signal functions when an event occurs. there are multiple types of switches: immediate or delayed, once-only and recurring - all of them can be combined thus making 4 types. It is important to note that time starts with 0 and does not continue the global time when a switch occurs. TODO: why was this decided? \\
 
-\cite{Nilsson2002} give a good overview of Yampa and FRP. TODO: continuations \\
+\cite{Nilsson2002} give a good overview of Yampa and FRP. Quote: "The essential abstraction that our system captures is time flow". Two \textit{semantic} domains for progress of time: continuous and discrete. \\
+Continuations can be used to freeze running signal functions and then continue them. TODO: explain better and deeper and in more detail \\
+TODO: subsystems with different time-flow control \\
 
 One may be initially want to reject Yampa as being suitable for ABM/S because one is tempted to believe that due to its focus on continuous, time-changing signals, Yampa is only suitable for physical simulations modelled explicitly using mathematical formulas (integrals, differential equations,...) but that is not the case. Yampa has been used in multiple agent-based applications: \cite{Hudak2003} uses Yampa for implementing a robot-simulation, \cite{Courtney2003} implement the classical Space Invaders game using Yampa, the thesis of \cite{Meisinger2010} shows how Yampa can be used for implementing a Game-Engine, \cite{Frag2005} implemented a 3D first-person shooter game with the style of Quake 3 in Yampa. Note that although all these applications don't focus explicitly on agents and agent-based modelling / simulation all of them inherently deal with kinds of agents which share properties of classical agents: game-entities, robots,... Other fields in which Yampa was successfully used were programming of synthesizers (TODO: cite), Network Routers, Computer Music Development and various other computer-games. This leads to the conclusion that Yampa is mature, stable and suitable to be used in functional ABM/S.
 
+\section{Time and Semantics}
 
-\section{Model}
+\section{Determinism}
+no concurrent execution: deterministic
+
+deterministic: can use random-numbers but to be reproducible/deterministic one has to specify the same seed or even provide an own RNG-implementation (which is easily possible using the RNG in haskell)
+
+\section{Functional Model}
+Start from wooldridge 2.6 (look at the original papers which inspired the 2.6 chapter) and weiss book and the original papers those chapter is based upon. Look into denotational semantics of actor model. Look also in functional models of czesar ionescu. why: this is the major contribution of my thesis and is new knowledge. Must find intuitive, original and creative approach. \\
 
 \section{Implementation}
+idea: can we implement a message between two agents through events? thus two states: waiting for messages, processing messages. BUT: then sending a message \textit{will take some time}
+
 use yampa as basic framework for "mainloop" with continuous time where each agent has a signalfunction which is triggered when he receives a message or conversation request. in a conversation all other agents are then halted and only the 2 are communing, then time continues. all is running in sync and messages are transfered via non-concurrent STM so no rollback/retry/... stuff is needed. also need to deal with how new agents are created and inserted into the system and how existing ones can be removed when died
 
 the main idea is to combine yampa with STM
+
+could use STM for state-propagation to other agents
+
+read Improving Performance of Simulation Software Using Haskell’s Concurrency \& Parallelism
+
+\subsection{Performance}
+
+signalfunctions add up, multiple chains of events add up, need to remove inactive agents or exclude them somehow from computation chain: use freezing?
+
+\section{EDSL}
+Sketch EDSL for ACE model of interest or maybe more general ACE models.
+
 
 %----------------------------------------------------------------------------------------
 %	BIBLIOGRAPHY

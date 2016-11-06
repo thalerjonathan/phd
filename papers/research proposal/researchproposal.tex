@@ -70,13 +70,15 @@ TODO: Contributions should appear in the conclusion, introduction and abstract
 
 \section{Introduction}
 
-I noticed that it is pretty hard to convince an agent-based economics specialist who is not a computer scientist about a pure functional approach. My conjecture is that the implementation technique and method does not matter much to them because they have very little knowledge about programming and are almost always self-taught - they don't know about software-engineering, nothing about proper software-design and architecture, nothing about software-maintenance, nothing about unit-testing,... In the end they just "hack" the simulation in whatever language they are able to: C++, Visual Basic, Java or toolboxes like Netlogo. Thus I REALLY need to come up with convincing arguments why to use pure functional approaches in ACE THEY can understand, otherwise I will be lost and not heard (not published,...). \\
+I noticed that it is pretty hard to convince an agent-based economics specialist who is not a computer scientist about a pure functional approach. My conjecture is that the implementation technique and method does not matter much to them because they have very little knowledge about programming and are almost always self-taught - they don't know about software-engineering, nothing about proper software-design and architecture, nothing about software-maintenance, nothing about unit-testing,... In the end they just "hack" the simulation in whatever language they are able to: C++, Visual Basic, Java or toolboxes like Netlogo. For them it is all about to \textit{get things done somehow} and not to get things done the right way or in a beautiful way - the way and the method doesn't matter, its just a necessary evil which needs to be done. Thus if functional programming could make their lives easier, then they will definitely welcome it. But functional programming is, i think, harder to learn and harder to understand - so one needs to provide an abstraction through EDSL. So I REALLY need to come up with convincing arguments why to use pure functional approaches in ACE THEY can understand, otherwise I will be lost and not heard (not published,...). \\
+
+What ACE economists care for:
 
 \begin{itemize}
-\item Easy reproducibility
-\item Reasoning about convergence
-\item EDSL
-\item Qualitative modelling with quantitative results
+\item Very: Qualitative modelling with quantitative results
+\item Yes: Easy reproducibility
+\item Likely: Reasoning about convergence?
+\item Likely: EDSL
 \end{itemize}
 
 My contributions are: pure functional framework, functional agent-model for market-simulations, EDSL for market-simulations, qualitative / implicit modelling with quanitative results, reasoning in my framework about convergence \\
@@ -202,24 +204,18 @@ Java is the state-of-the-art programming language in ABM/S and ACE and is thus i
 \subsection{Reading}
 \begin{itemize}
 \item Understanding Capitalism. \cite{bowles_understanding_2005}
-\item Debt . TODO cite
-\item Multiagent Systems Wooldridge. TODO cite
-\item Multiagent Systems Weiss. TODO cite
-\item Actor model Agha. TODO cite
+\item Microeconomic Theory. TODO cite
+\item Market Microstructure. TODO cite
 \item A computable universe. TODO cite
 \item The nature of computation. TODO cite
 \item Economics and Computation by Parkes and Seuken \url{http://economicsandcomputation.org/}
-\item Functional Compiler Design and Internals.
 \end{itemize}
 
 \subsection{Studying}
 \begin{itemize}
 \item Get into basics of economics and equilibrium theory. Why: because i need to understand basics to understand the models better and to talk and sell my models better to economists.
-\item Get into category theory. Why: deeper understanding of Haskell type theory and computation.
-\item Get into theoretical basics of agent-based simulation and get to know more types of agent-based models. Why: To know the requirements my EDSL/framework has to cover.
 \item Understand theory of out-of-equilibrium / non-walrasian models: TODO (various Gintis \& Mandel Papers)
 \item Understand Market Micro-structure: \cite{LehalleLaruelle2013}, \cite{baker_market_2013} Part II: Chapter 8-12.
-\item Do literature research on dynamics of equilibrium: \cite{emergent_2008}
 \end{itemize}
 
 \subsection{Research on Papers (see the papers pdf)}

@@ -31,14 +31,46 @@ instance Eq CellState where
 type Cell = SF CellInput CellOutput
 
 data SimulationIn = SimulationIn {
-    ignitionIn :: Maybe CellCoord
+    simInIgnitions :: [CellCoord]
 }
 
 data SimulationOut = SimulationOut {
-    cellsOut :: [CellState]
+    simOutCellStates :: [CellState]
 }
 
-{-
+process' :: [CellState] -> SF SimulationIn SimulationOut
+process' initCells = proc simIn ->
+    do
+        cellOutputs' <- dpSwitch
+            route'
+            (cellStatesToCell initCells)
+            (noEvent --> arr burnOrDie)
+            continuation
+                -< (simIn, initCells)
+        returnA -< SimulationOut{ simOutCellStates = cellOutputs' }
+
+route' :: (SimulationIn, [CellState]) -> [sf] -> [(CellInput, sf)]
+route' (simIn, cellStates) cellSFs = map (\(cs, sf) -> (routeHelper cs, sf)) (zip cellStates cellSFs)
+    where
+        routeHelper :: CellState -> CellInput
+        routeHelper cs = CellInput{ ciIgnite = ignite }
+            where
+                coord = csCoord cs
+                ignite = markedForIgnition cs simIn
+
+cellStatesToCell :: [CellState] -> [Cell]
+cellStatesToCell cells = map (\cs -> cell cs) cells
+
+burnOrDie :: SF (SimulationIn, [CellOutput]) (Event ())
+burnOrDie = proc (simIn, cellOuts) ->
+    do
+        returnA -< NoEvent
+
+continuation :: [Cell] -> () -> SF SimulationIn [CellOutput]
+continuation = proc cellSFs e ->
+    do
+        returnA -<
+
 cell :: CellState -> Cell
 cell cs = proc ci ->
     do
@@ -49,20 +81,18 @@ cell cs = proc ci ->
         returnA -< CellOutput {
             coBurning = burning,
             coDead = dead,
-            coState = cs }
+            coState = cs,
+            coIgniteNeighbours = [] }
 
-process' :: [CellState] -> SF SimulationIn SimulationOut
-process' cells = dpSwitch route cells
 
-route :: (SimulationIn, CellState) -> [sf] -> [(CellInput, sf)]
-route (si, cs) cells = [] -- TODO: if ignition-coord == cell-coord then send cell the ignition event
--}
+---------------------------------------------------------------------------------------------------------------------
+
 
 process :: [CellState] -> SF SimulationIn SimulationOut
 process initCells = proc simIn ->
     do
         simOut <- par route (cellStatesToSF initCells) -< simIn
-        returnA -< SimulationOut { cellsOut = simOut }
+        returnA -< SimulationOut { simOutCellStates = simOut }
 
 cellStatesToSF :: [CellState] -> [SF SimulationIn CellState]
 cellStatesToSF cells = map (\c -> switch (cellLiving c) cellBurningSwitch) cells
@@ -73,11 +103,15 @@ route simIn cells = map (\c -> (simIn, c) ) cells
 cellLiving :: CellState -> SF SimulationIn (CellState, Event CellState)
 cellLiving cell = proc simIn ->
     do
-        let coord = csCoord cell
-        let ignitionCoord = ignitionIn simIn
         let cell' = cell { csStatus = LIVING }
-        e <- edge -< ignitionCoord == return coord
+        e <- edge -< markedForIgnition cell simIn
         returnA -< (cell', e `tag` cell')
+
+markedForIgnition :: CellState -> SimulationIn -> Bool
+markedForIgnition cell simIn = any (\c -> c == cellCoord) ignitions
+    where
+        cellCoord = csCoord cell
+        ignitions = simInIgnitions simIn
 
 cellBurningSwitch :: CellState -> SF SimulationIn CellState
 cellBurningSwitch cell = switch (cellBurning cell) cellDead

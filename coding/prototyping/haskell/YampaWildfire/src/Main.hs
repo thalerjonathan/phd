@@ -11,14 +11,13 @@ main :: IO ()
 main = do
     Front.initialize
     ref <- newIORef True
-    let cell1 = Cell { cellCoord = (5, 5), cellFuel = 1.0, cellState = LIVING } -- Back.createCells dimensions
-    let cell2 = Cell { cellCoord = (6, 5), cellFuel = 1.0, cellState = LIVING } -- Back.createCells dimensions
-    let process' = (Back.process cell1 cell2)
+    let cells = Back.createCells dimensions
+    let process' = Back.process cells
     reactimate Main.initialize (input ref) output process'
     Front.shutdown
 
 dimensions :: (Int, Int)
-dimensions = (10, 10)
+dimensions = (100, 100)
 
 center :: (Int, Int)
 center = (centerX, centerY)
@@ -46,23 +45,6 @@ output _ out = do
     let cells = cellsOut out
     Front.renderFrame cells dimensions
     return False
-
-
-{-
-input :: [Cell] -> Bool -> IO (DTime, Maybe [Cell])
-input cells _ = do
-    coords <- Front.checkMousePress
-    case coords of
-        Just c -> do
-            cellIdx <- Front.pixelCoordToCellIdx dimensions c
-            let cell = cells !! cellIdx
-            let cell' = cell { cellState = BURNING }
-            let (frontList, backList) = splitAt cellIdx cells
-            let newCells = (init frontList) ++ [cell'] ++ backList
-            return (1.0, Just newCells)
-        Nothing -> do
-            return (1.0, Nothing)
--}
 
 -- NOTE: reactInit/ract version
 {-

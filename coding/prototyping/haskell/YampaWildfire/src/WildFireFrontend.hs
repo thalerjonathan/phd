@@ -9,10 +9,10 @@ import Control.Monad
 import WildFireBackend as Back
 
 winSizeX :: GLsizei
-winSizeX = 400
+winSizeX = 800
 
 winSizeY :: GLsizei
-winSizeY = 400
+winSizeY = 800
 
 winSize :: GL.Size
 winSize = (GL.Size winSizeX winSizeY)
@@ -64,7 +64,7 @@ shutdown = do
   GLFW.closeWindow
   GLFW.terminate
 
-renderFrame :: [Back.Cell] -> (Int, Int) -> IO ()
+renderFrame :: [Back.CellState] -> (Int, Int) -> IO ()
 renderFrame cells (dimX, dimY) = do
     GL.clear [GL.ColorBuffer]
     GL.renderPrimitive GL.Quads $ mapM_ (\c -> renderCell c cellDimPixels ) cells
@@ -72,7 +72,7 @@ renderFrame cells (dimX, dimY) = do
     where
         cellDimPixels = cellDimensions (dimX, dimY)
 
-renderCell :: Back.Cell -> (GLdouble, GLdouble) -> IO ()
+renderCell :: Back.CellState -> (GLdouble, GLdouble) -> IO ()
 renderCell cell (cellWidth, cellHeight) = do
     GL.color $ color
     GL.vertex topLeft
@@ -80,7 +80,7 @@ renderCell cell (cellWidth, cellHeight) = do
     GL.vertex bottomRight
     GL.vertex bottomLeft
     where
-            (xIdx, yIdx) = cellCoord cell
+            (xIdx, yIdx) = csCoord cell
             xCoord = (cellWidth * fromIntegral xIdx) :: GLdouble
             yCoord = (cellHeight * fromIntegral yIdx) :: GLdouble
             topLeft = GL.Vertex3 xCoord yCoord 0.0
@@ -89,14 +89,14 @@ renderCell cell (cellWidth, cellHeight) = do
             bottomRight = GL.Vertex3 (xCoord + cellWidth) (yCoord + cellHeight) 0.0
             color = cellColor cell
 
-cellColor :: Back.Cell -> GL.Color3 GLdouble
+cellColor :: Back.CellState -> GL.Color3 GLdouble
 cellColor cell
     | state == LIVING = greenShade fuel
     | state == BURNING = redShade fuel
     | state == DEAD = black
     where
-        state = cellState cell
-        fuel = cellFuel cell
+        state = csStatus cell
+        fuel = csFuel cell
 
 cellDimensions :: (Int, Int) -> (GLdouble, GLdouble)
 cellDimensions (dimX, dimY) = (cellWidth, cellHeight)

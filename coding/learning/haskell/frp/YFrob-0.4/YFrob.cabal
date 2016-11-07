@@ -1,0 +1,59 @@
+Name:		YFrob
+Version:	0.4
+Cabal-Version:	>= 1.2
+License:	BSD3
+License-File:	LICENSE
+Copyright:	(c) 2002-2009 Hanrik Nilsson and Yale University
+Author:		Henrik Nilsson
+Maintainer:	Henrik Nilsson (nhn@cs.nott.ac.uk)
+Homepage:	http://www.haskell.org/yampa/
+Category:	Reactivity, FRP, Yampa 
+Synopsis:	Yampa-based library for programming robots
+Description:
+  Yampa-based, domain-specific language embedded in Haskell for programming
+  robots. At present, only simulated robots. However, the infrastructure is
+  separated into generic and robot-specific parts, and set up so as to make
+  it possible to write robot code that depends only on specific features, as
+  opposed to specific platforms or versions of those platforms. Thus, it is
+  in principle possible to write quite generic robot code. (Once upon a time,
+  the Pioneer platform, a real robot, was supported.)
+Tested-With:	GHC
+Build-Type:	Simple
+Extra-Source-Files:
+  robotsim-test/Makefile
+  robotsim-test/Setup.hs
+  robotsim-test/YFrobRobotSimTest.cabal
+  robotsim-test/Main.hs
+  afp-demos/Makefile
+  afp-demos/Setup.hs
+  afp-demos/YFrobAFPDemos.cabal
+  afp-demos/Main.hs
+  afp-demos/AFPDemos.hs
+  afp-demos/ITest.hs
+
+Library
+  Hs-Source-Dirs:  src
+  GHC-Options : -O2 -Wall -fno-warn-name-shadowing
+  Build-Depends: base >= 3 && < 5, array, HGL, Yampa >= 0.9
+  Exposed-Modules:
+    FRP.YFrob.Common
+    FRP.YFrob.RobotSim
+  Other-Modules:
+    FRP.YFrob.Common.Diagnostics
+    FRP.YFrob.Common.PhysicalDimensions
+    FRP.YFrob.Common.RobotIO
+    FRP.YFrob.RobotSim.Animate
+    FRP.YFrob.RobotSim.ColorBindings
+    FRP.YFrob.RobotSim.Colors
+    FRP.YFrob.RobotSim.Command
+    FRP.YFrob.RobotSim.IdentityList
+    FRP.YFrob.RobotSim.IO
+    FRP.YFrob.RobotSim.Object
+    FRP.YFrob.RobotSim.ObjectPhysics
+    FRP.YFrob.RobotSim.ObjectTemplate
+    FRP.YFrob.RobotSim.Parser
+    FRP.YFrob.RobotSim.RenderFixedWalls
+    FRP.YFrob.RobotSim.RenderObject
+    FRP.YFrob.RobotSim.Simulator
+    FRP.YFrob.RobotSim.WorldGeometry
+    FRP.YFrob.RobotSim.World

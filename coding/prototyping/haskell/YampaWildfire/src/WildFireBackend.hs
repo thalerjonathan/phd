@@ -15,6 +15,18 @@ center = (centerX, centerY)
         centerX = floor( fromIntegral dimX / 2.0 )
         centerY = floor( fromIntegral dimY / 2.0 )
 
+neighbourhood :: [CellCoord]
+neighbourhood = [topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight]
+    where
+        topLeft = (-1, -1)
+        top = (0, -1)
+        topRight = (1, -1)
+        left = (-1, 0)
+        right = (1, 0)
+        bottomLeft = (-1, 1)
+        bottom = (0, 1)
+        bottomRight = (1, 1)
+
 data CellStatus = LIVING | BURNING | DEAD deriving (Eq)
 type CellCoord = (Int, Int)
 
@@ -36,7 +48,7 @@ data CellOutput = CellOutput {
 instance Eq CellState where
     c1 == c2 = csCoord c1 == csCoord c2
 
-type Cell = SF CellInput CellOutput
+type BurningCell = SF CellInput CellOutput
 
 data SimulationIn = SimulationIn {
     simInIgnitions :: [CellCoord]
@@ -57,11 +69,11 @@ process' allCellStates = proc simIn ->
         returnA -< SimulationOut{ simOutCellStates = outputStates }
 
 procHelper :: [CellState] -> SF (SimulationIn, [CellState]) [CellOutput]
-procHelper runningCellStates = proc (simIn, allCellStates) ->
+procHelper burningCellStates = proc (simIn, allCellStates) ->
     do
         cellOutputs' <- dpSwitch
             route'                                  -- Routing function
-            (cellStatesToCell runningCellStates)    -- collection of signal functions.
+            (cellStatesToCell burningCellStates)    -- collection of signal functions.
             (noEvent --> arr burnOrDie)              -- Signal function that observes the external input signal and the output signals from the collection in order to produce a switching event.
             continuation                            -- Continuation to be invoked once event occurs.
                 -< (simIn, allCellStates)
@@ -84,8 +96,8 @@ route' (simIn, allCellStates) cellSFs = map (\(cs, sf) -> (routeHelper cs, sf)) 
 -}
 
 -- creates the initial collection of signal functions.
-cellStatesToCell :: [CellState] -> [Cell]
-cellStatesToCell cellStates = map cell cellStates
+cellStatesToCell :: [CellState] -> [BurningCell]
+cellStatesToCell cellStates = map burningCell cellStates
 
 {- Signal function that observes the external input signal and
 the output signals from the collection in order to produce a switching event.
@@ -104,14 +116,14 @@ yielding a new signal function to switch into based on the collection of signal 
 previously running and the value carried by the switching event. This allows the collection
  to be updated and then switched back in, typically by employing dpSwitch again.
 -}
-continuation :: [Cell] -> [CellState] -> SF (SimulationIn, [CellState]) [CellOutput]
-continuation cellSFs runningCellStates = proc (simIn, allCellStates) ->
+continuation :: [BurningCell] -> [CellState] -> SF (SimulationIn, [CellState]) [CellOutput]
+continuation cellSFs burningCellStates = proc (simIn, allCellStates) ->
     do
-        cellOutputs <- (procHelper runningCellStates) -< (simIn, allCellStates)
+        cellOutputs <- (procHelper burningCellStates) -< (simIn, allCellStates)
         returnA -< cellOutputs
 
-cell :: CellState -> Cell
-cell cs = proc ci ->
+burningCell :: CellState -> BurningCell
+burningCell cs = proc ci ->
     do
         fuel <- integral >>^ (+ csFuel cs) -< -0.01
         dead <- edge -< fuel <= 0.0
@@ -119,18 +131,6 @@ cell cs = proc ci ->
             coDead = dead,
             coState = cs { csStatus = BURNING, csFuel = fuel },
             coIgniteNeighbours = neighbours (csCoord cs) }
-
-neighbourhood :: [CellCoord]
-neighbourhood = [topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight]
-    where
-        topLeft = (-1, -1)
-        top = (0, -1)
-        topRight = (1, -1)
-        left = (-1, 0)
-        right = (1, 0)
-        bottomLeft = (-1, 1)
-        bottom = (0, 1)
-        bottomRight = (1, 1)
 
 neighbours :: CellCoord -> [CellCoord]
 neighbours cc = filter (not . clip) $ map (addCoord cc) neighbourhood

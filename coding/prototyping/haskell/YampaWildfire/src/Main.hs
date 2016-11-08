@@ -12,7 +12,7 @@ main = do
     Front.initialize
     ref <- newIORef True
     let cells = Back.createCells dimensions
-    let process' = Back.process cells
+    let process' = Back.process' cells
     reactimate Main.initialize (input ref) output process'
     Front.shutdown
 
@@ -28,7 +28,7 @@ center = (centerX, centerY)
 
 initialize :: IO SimulationIn
 initialize = do
-    return SimulationIn { ignitionIn = Nothing }
+    return SimulationIn { simInIgnitions = [] }
 
 input :: IORef Bool -> Bool -> IO (DTime, Maybe SimulationIn)
 input ref _ = do
@@ -36,13 +36,13 @@ input ref _ = do
     case coords of
       Just c -> do
           let cellCoord = Front.pixelCoordToCellCoord c dimensions
-          return (1.0, Just SimulationIn { ignitionIn = Just cellCoord } )
+          return (1.0, Just SimulationIn { simInIgnitions = [cellCoord] } )
       Nothing -> do
-          return (1.0, Just SimulationIn { ignitionIn = Nothing } )
+          return (1.0, Just SimulationIn { simInIgnitions = [] } )
 
 output :: Bool -> SimulationOut -> IO Bool
 output _ out = do
-    let cells = cellsOut out
+    let cells = simOutCellStates out
     Front.renderFrame cells dimensions
     return False
 

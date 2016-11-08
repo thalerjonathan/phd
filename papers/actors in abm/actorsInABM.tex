@@ -81,11 +81,17 @@ This makes simulations very difficult and also due to concurrency implementing a
 AKKA: thus my prediction is: akka/actor model is very well suited to simulations which 1. dont rely on global time 2. dont have multi-step conversations: interactions among agents which are only question-answer. TODO: find some classical simulation model which satisfies these criterias.
 
 \section{Actor Model implementations}
+It is important to note that the actor-model is not tied to any particular programming language and could be (and is) implemented in different types of languages like Java (Object-Oriented), Haskell (pure functional) and Scala (mix of functional and Object-Oriented).
+
 \subsection{Erlang}
 TODO: erlang is an old implementation of the actor model
 
 \subsection{Akka}
 TODO: akka is a modern implementation of the actor model
+
+\subsection{Haskell}
+TODO: can implement actor-model using forkIO and STM
+
 
 \section{Theoretical reflections}
 

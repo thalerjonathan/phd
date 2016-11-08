@@ -15,12 +15,10 @@ data CellState = CellState {
 }
 
 data CellInput = CellInput {
-    ciIgnite :: Bool
 }
 
 data CellOutput = CellOutput {
     coState :: CellState,
-    coBurning :: Event (),
     coDead :: Event (),
     coIgniteNeighbours :: [CellCoord]
 }
@@ -38,95 +36,101 @@ data SimulationOut = SimulationOut {
     simOutCellStates :: [CellState]
 }
 
+-- NOTE: problem with performance: when having 1000x1000 grid then its extremely slow. Speed-up: need only running SF
+-- in case of BURNING, otherwise behaviour is constant. SF will start on ignition through neighbour and stop when
+-- all fuel has burned
 process' :: [CellState] -> SF SimulationIn SimulationOut
-process' initCells = proc simIn ->
+process' allCellStates = proc simIn ->
+    do
+        cellOutputs <- (procHelper []) -< (simIn, allCellStates)
+        let outputStates = map coState cellOutputs
+        returnA -< SimulationOut{ simOutCellStates = outputStates }
+
+procHelper :: [CellState] -> SF (SimulationIn, [CellState]) [CellOutput]
+procHelper runningCellStates = proc (simIn, allCellStates) ->
     do
         cellOutputs' <- dpSwitch
-            route'
-            (cellStatesToCell initCells)
-            (noEvent --> arr burnOrDie)
-            continuation
-                -< (simIn, initCells)
-        returnA -< SimulationOut{ simOutCellStates = cellOutputs' }
+            route'                                  -- Routing function
+            (cellStatesToCell runningCellStates)    -- collection of signal functions.
+            (noEvent --> arr burnOrDie)              -- Signal function that observes the external input signal and the output signals from the collection in order to produce a switching event.
+            continuation                            -- Continuation to be invoked once event occurs.
+                -< (simIn, allCellStates)
+        returnA -< cellOutputs'
 
+{- Routing function. Its purpose is to pair up each running signal function
+in the collection maintained by dpSwitch with the input it is going to see
+at each point in time. All the routing function can do is specify how the input is distributed.
+-}
 route' :: (SimulationIn, [CellState]) -> [sf] -> [(CellInput, sf)]
-route' (simIn, cellStates) cellSFs = map (\(cs, sf) -> (routeHelper cs, sf)) (zip cellStates cellSFs)
+route' (simIn, allCellStates) cellSFs = map (\sf -> (CellInput, sf)) cellSFs
+{-
+route' (simIn, allCellStates) cellSFs = map (\(cs, sf) -> (routeHelper cs, sf)) (zip allCellStates cellSFs)
     where
         routeHelper :: CellState -> CellInput
         routeHelper cs = CellInput{ ciIgnite = ignite }
             where
                 coord = csCoord cs
-                ignite = markedForIgnition cs simIn
+                ignite = markedForIgnition simIn cs
+-}
 
+-- creates the initial collection of signal functions.
 cellStatesToCell :: [CellState] -> [Cell]
-cellStatesToCell cells = map (\cs -> cell cs) cells
+cellStatesToCell cellStates = map cell cellStates
 
-burnOrDie :: SF (SimulationIn, [CellOutput]) (Event ())
-burnOrDie = proc (simIn, cellOuts) ->
-    do
-        returnA -< NoEvent
+{- Signal function that observes the external input signal and
+the output signals from the collection in order to produce a switching event.
+-}
+burnOrDie :: ((SimulationIn, [CellState]), [CellOutput]) -> (Event [CellState])
+burnOrDie ((simIn, allCellStates), cellOuts)
+    | (null inputIgnitedCells) && (null ignitedCells) && (null diedCells) = noEvent
+    | otherwise = Event (removeDuplicates (inputIgnitedCells ++ ignitedCells)) -- important: if dead-event then an event must be emited even if list is empty then
+    where
+        inputIgnitedCells = filter (markedForIgnition simIn) $ filter isLiving allCellStates
+        ignitedCells = filter (ignitedByNeighbour cellOuts) $ filter isLiving allCellStates
+        diedCells = filter died cellOuts
 
-continuation :: [Cell] -> () -> SF SimulationIn [CellOutput]
-continuation = proc cellSFs e ->
+{- The fourth argument is a function that is invoked when the switching event occurs,
+yielding a new signal function to switch into based on the collection of signal functions
+previously running and the value carried by the switching event. This allows the collection
+ to be updated and then switched back in, typically by employing dpSwitch again.
+-}
+continuation :: [Cell] -> [CellState] -> SF (SimulationIn, [CellState]) [CellOutput]
+continuation cellSFs runningCellStates = proc (simIn, allCellStates) ->
     do
-        returnA -<
+        cellOutputs <- (procHelper runningCellStates) -< (simIn, allCellStates)
+        returnA -< cellOutputs
 
 cell :: CellState -> Cell
 cell cs = proc ci ->
     do
-        let igniteCell = ciIgnite ci
-        let fuel = csFuel cs
-        burning <- edge -< igniteCell
+        fuel <- integral >>^ (+ csFuel cs) -< -0.01
         dead <- edge -< fuel <= 0.0
         returnA -< CellOutput {
-            coBurning = burning,
             coDead = dead,
-            coState = cs,
+            coState = cs { csStatus = BURNING, csFuel = fuel },
             coIgniteNeighbours = [] }
 
+removeDuplicates :: (Eq a) => [a] -> [a]
+removeDuplicates as = foldl (\acc a -> if elem a acc then acc else acc ++ [a] ) [] as
 
----------------------------------------------------------------------------------------------------------------------
+died :: CellOutput -> Bool
+died co = coDead co /= NoEvent
 
+isLiving :: CellState -> Bool
+isLiving cs = csStatus cs == LIVING
 
-process :: [CellState] -> SF SimulationIn SimulationOut
-process initCells = proc simIn ->
-    do
-        simOut <- par route (cellStatesToSF initCells) -< simIn
-        returnA -< SimulationOut { simOutCellStates = simOut }
+ignitedByNeighbour :: [CellOutput] -> CellState -> Bool
+ignitedByNeighbour cellOuts cs = any (\co -> ignite (coIgniteNeighbours co) cs ) cellOuts
 
-cellStatesToSF :: [CellState] -> [SF SimulationIn CellState]
-cellStatesToSF cells = map (\c -> switch (cellLiving c) cellBurningSwitch) cells
-
-route :: SimulationIn -> [sf] -> [(SimulationIn, sf)]
-route simIn cells = map (\c -> (simIn, c) ) cells
-
-cellLiving :: CellState -> SF SimulationIn (CellState, Event CellState)
-cellLiving cell = proc simIn ->
-    do
-        let cell' = cell { csStatus = LIVING }
-        e <- edge -< markedForIgnition cell simIn
-        returnA -< (cell', e `tag` cell')
-
-markedForIgnition :: CellState -> SimulationIn -> Bool
-markedForIgnition cell simIn = any (\c -> c == cellCoord) ignitions
+ignite :: [CellCoord] -> CellState -> Bool
+ignite ignitionCoords cs = any (\c -> c == cellCoord) ignitionCoords
     where
-        cellCoord = csCoord cell
+        cellCoord = csCoord cs
+
+markedForIgnition :: SimulationIn -> CellState -> Bool
+markedForIgnition simIn cs = ignite ignitions cs
+    where
         ignitions = simInIgnitions simIn
-
-cellBurningSwitch :: CellState -> SF SimulationIn CellState
-cellBurningSwitch cell = switch (cellBurning cell) cellDead
-
-cellBurning :: CellState -> SF SimulationIn (CellState, Event CellState)
-cellBurning cell = proc simIn ->
-    do
-        fuel <- integral >>^ (+ csFuel cell) -< -0.01
-        e <- edge -< fuel <= 0.0
-        let cell' = cell { csFuel = fuel, csStatus = BURNING }
-        returnA -< (cell', e `tag` cell')
-
-cellDead :: CellState -> SF SimulationIn CellState
-cellDead cell = (constant cell { csStatus = DEAD })
-
 
 createCells :: (Int, Int) -> [CellState]
 createCells (xDim, yDim) = [ CellState {

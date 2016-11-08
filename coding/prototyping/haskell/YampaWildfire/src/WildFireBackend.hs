@@ -5,6 +5,16 @@ module WildFireBackend where
 import FRP.Yampa
 import FRP.Yampa.Switches
 
+dimensions :: (Int, Int)
+dimensions = (10, 10)
+
+center :: (Int, Int)
+center = (centerX, centerY)
+    where
+        (dimX, dimY) = dimensions
+        centerX = floor( fromIntegral dimX / 2.0 )
+        centerY = floor( fromIntegral dimY / 2.0 )
+
 data CellStatus = LIVING | BURNING | DEAD deriving (Eq)
 type CellCoord = (Int, Int)
 
@@ -108,7 +118,32 @@ cell cs = proc ci ->
         returnA -< CellOutput {
             coDead = dead,
             coState = cs { csStatus = BURNING, csFuel = fuel },
-            coIgniteNeighbours = [] }
+            coIgniteNeighbours = neighbours (csCoord cs) }
+
+neighbourhood :: [CellCoord]
+neighbourhood = [topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight]
+    where
+        topLeft = (-1, -1)
+        top = (0, -1)
+        topRight = (1, -1)
+        left = (-1, 0)
+        right = (1, 0)
+        bottomLeft = (-1, 1)
+        bottom = (0, 1)
+        bottomRight = (1, 1)
+
+neighbours :: CellCoord -> [CellCoord]
+neighbours cc = filter (not . clip) $ map (addCoord cc) neighbourhood
+
+addCoord :: CellCoord -> CellCoord -> CellCoord
+addCoord (cX, cY) (cX', cY') = (cX + cX', cY + cY')
+
+clip :: CellCoord -> Bool
+clip (cx, cy)
+    | cx < 0 || cy < 0 = True
+    | cx >= (fst dimensions) = True
+    | cy >= (snd dimensions) = True
+    | otherwise = False
 
 removeDuplicates :: (Eq a) => [a] -> [a]
 removeDuplicates as = foldl (\acc a -> if elem a acc then acc else acc ++ [a] ) [] as

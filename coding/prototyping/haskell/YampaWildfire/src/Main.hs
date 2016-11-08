@@ -11,20 +11,10 @@ main :: IO ()
 main = do
     Front.initialize
     ref <- newIORef True
-    let cells = Back.createCells dimensions
+    let cells = Back.createCells Back.dimensions
     let process' = Back.process' cells
     reactimate Main.initialize (input ref) output process'
     Front.shutdown
-
-dimensions :: (Int, Int)
-dimensions = (100, 100)
-
-center :: (Int, Int)
-center = (centerX, centerY)
-    where
-        (dimX, dimY) = dimensions
-        centerX = floor( fromIntegral dimX / 2.0 )
-        centerY = floor( fromIntegral dimY / 2.0 )
 
 initialize :: IO SimulationIn
 initialize = do
@@ -35,7 +25,7 @@ input ref _ = do
     coords <- Front.checkMousePressed ref
     case coords of
       Just c -> do
-          let cellCoord = Front.pixelCoordToCellCoord c dimensions
+          let cellCoord = Front.pixelCoordToCellCoord c Back.dimensions
           return (1.0, Just SimulationIn { simInIgnitions = [cellCoord] } )
       Nothing -> do
           return (1.0, Just SimulationIn { simInIgnitions = [] } )
@@ -43,7 +33,7 @@ input ref _ = do
 output :: Bool -> SimulationOut -> IO Bool
 output _ out = do
     let cells = simOutCellStates out
-    Front.renderFrame cells dimensions
+    Front.renderFrame cells Back.dimensions
     return False
 
 -- NOTE: reactInit/ract version

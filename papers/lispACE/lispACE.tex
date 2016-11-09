@@ -25,7 +25,10 @@
 \usepackage{graphicx} % Required for the inclusion of images
 \usepackage{natbib} % Required to change bibliography style to APA
 \usepackage{amsmath} % Required for some math elements 
-
+\usepackage{hyperref}
+\usepackage{listings}
+ 
+\lstset{language=Haskell}
 \setlength\parindent{0pt} % Removes all indentation from paragraphs
 
 %\usepackage{times} % Uncomment to use the Times New Roman font
@@ -34,21 +37,39 @@
 %	DOCUMENT INFORMATION
 %----------------------------------------------------------------------------------------
 
-\title{An EDSL for simulating qualitative agent-based market-models.} % Title
+\title{Implementing functional ACE in LISP} % Title
 
-\author{Jonathan \textsc{Thaler}} % Author name
+\author{Jonathan \textsc{Thaler}} 
 
-\date{\today} % Date for the report
+\date{\today}
 
 \begin{document}
 
-\maketitle % Insert the title, author and date
+\maketitle 
 
-% If you wish to include an abstract, uncomment the lines below
 \begin{abstract}
-In this paper I present an EDSL which allows to formulate models for agent-based market-simulations which can be directly run in a Haskell framework implemented for this. Thus the distinction between model specification and programming vanishes - the model specification becomes the actual code. The major novelty of this EDSL is that it allows to model the system in a qualitative way: relations among formulas are expressed which can be understood as a kind of non-causal modelling. TODO: better understand what qualitative modelling/simulation in ACE is.
+Why LISP: the oldest language and functional. Has extremely powerful properties: . We ask how those can be utilized to implement agent-based simulations in economics.
 \end{abstract}
 
 \section{Introduction}
+In the end it all boils down to 1. the agent-model and 2. how the agent-model is implemented in the according language. Of course both points influence each other: functional languages will come up with a different agent-model (e.g. hybrid like yampa) than object-oriented ones (e.g. actors).
+
+\section{Agents}
+
+\section{Functional Model}
+
+\section{Implementation}
+
+\subsection{Performance}
+
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+
+\bibliographystyle{apalike}
+
+\bibliography{./bib/lispACE.bib}
+
 
 \end{document}

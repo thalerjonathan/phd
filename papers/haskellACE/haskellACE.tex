@@ -113,7 +113,7 @@ In this paper I present an EDSL which allows to formulate models for agent-based
 \section{Implementation}
 idea: can we implement a message between two agents through events? thus two states: waiting for messages, processing messages. BUT: then sending a message \textit{will take some time}
 
-NOTE: it is important to make a difference about whether the simulation will dynamically \textit{add} or \textit{remove} agents during execution. If this is not the case, a simple par-switch is possible to run ALL agent SF in parallel. If dynamically changes to the agent-population should be part of the simulation, then the dpSwitch or dpSwitchB should be used. \\
+NOTE: it is important to make a difference about whether the simulation will dynamically \textit{add} or \textit{remove} agents during execution. If this is not the case, a simple par-switch is possible to run ALL agent SF in parallel. If dynamically changes to the agent-population should be part of the simulation, then the dpSwitch or dpSwitchB should be used. Also it should be possible to start/stop agents: if they are inactive then they should have no running SF because would use up resources. Inactive means: doing nothing, also not awaiting something/"doing nothing in the sense that DOING something which is nothing - the best criteria to decide if an agent can be set inactive is when the event which decides if the agents SF should be started comes from outside e.g. if the agent is just statically "living" but not changing and then another agent will "ignite" the "living" agent then this is a clear criterion for being static without a running SF. \\
 
 TODO: design general input/output data-structures \\
 

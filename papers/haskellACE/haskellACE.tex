@@ -115,9 +115,17 @@ idea: can we implement a message between two agents through events? thus two sta
 
 NOTE: it is important to make a difference about whether the simulation will dynamically \textit{add} or \textit{remove} agents during execution. If this is not the case, a simple par-switch is possible to run ALL agent SF in parallel. If dynamically changes to the agent-population should be part of the simulation, then the dpSwitch or dpSwitchB should be used. Also it should be possible to start/stop agents: if they are inactive then they should have no running SF because would use up resources. Inactive means: doing nothing, also not awaiting something/"doing nothing in the sense that DOING something which is nothing - the best criteria to decide if an agent can be set inactive is when the event which decides if the agents SF should be started comes from outside e.g. if the agent is just statically "living" but not changing and then another agent will "ignite" the "living" agent then this is a clear criterion for being static without a running SF. \\
 
+NOTE: the route-function will be used to distribute "messages" to the agents when they are communicating with each other \\
+
+NOTE: \cite{Meisinger2010} argues that in Game-Engines (it is paraphrased in english, as the thesis was written in german): "communication among Game-Objects is always computer-game specific and must be implemented always new but the functionality of Game-objects can be built by combining independent functions and signal-functions which are fully reuse-able". Game-Objects can be understood as agents thus maybe this also holds true for agent-based simulation. \cite{Meisinger2010} thus distinguishes between normal functions e.g. mathematical functions, signal functions which depend on output since its creation in localtime and game-object functions which output depends on inputs AND time (which is but another input). \\
+
+TODO: need a mechanism to address agents: if agent A wants to send a message to agent B and agent B wants to react by answering with a message to agent A then they must have a mechanism to address each other \\
+
 TODO: design general input/output data-structures \\
 
 TODO: design general agent SF \\
+
+TODO: don't loose STM out of sight!
 
 \subsection{Performance}
 signalfunctions add up, multiple chains of events add up, need to remove inactive agents or exclude them somehow from computation chain: use freezing? \\

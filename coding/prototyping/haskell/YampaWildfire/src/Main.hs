@@ -12,8 +12,7 @@ main = do
     Front.initialize
     ref <- newIORef True
     let cells = Back.createCells Back.dimensions
-    let process' = Back.process' cells
-    reactimate Main.initialize (input ref) output process'
+    reactimate Main.initialize (input ref) output (Back.process cells)
     Front.shutdown
 
 initialize :: IO SimulationIn

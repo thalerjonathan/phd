@@ -16,7 +16,7 @@ center = (centerX, centerY)
         centerY = floor( fromIntegral dimY / 2.0 )
 
 neighbourhood :: [CellCoord]
-neighbourhood = [topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight]
+neighbourhood = [top] -- [topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight]
     where
         topLeft = (-1, -1)
         top = (0, -1)
@@ -61,39 +61,28 @@ data SimulationOut = SimulationOut {
 -- NOTE: problem with performance: when having 1000x1000 grid then its extremely slow. Speed-up: need only running SF
 -- in case of BURNING, otherwise behaviour is constant. SF will start on ignition through neighbour and stop when
 -- all fuel has burned
-process' :: [CellState] -> SF SimulationIn SimulationOut
-process' allCellStates = proc simIn ->
+process :: [CellState] -> SF SimulationIn SimulationOut
+process allCellStates = proc simIn ->
     do
-        cellOutputs <- (procHelper []) -< (simIn, allCellStates)
-        let outputStates = map coState cellOutputs
+        rec
+            cellOutputs <- (procHelper []) -< (simIn, outputStates)
+            let outputStates = map coState cellOutputs
         returnA -< SimulationOut{ simOutCellStates = outputStates }
 
 procHelper :: [CellState] -> SF (SimulationIn, [CellState]) [CellOutput]
-procHelper burningCellStates = proc (simIn, allCellStates) ->
-    do
-        cellOutputs' <- dpSwitch
-            route'                                  -- Routing function
-            (cellStatesToCell burningCellStates)    -- collection of signal functions.
-            (noEvent --> arr burnOrDie)              -- Signal function that observes the external input signal and the output signals from the collection in order to produce a switching event.
-            continuation                            -- Continuation to be invoked once event occurs.
-                -< (simIn, allCellStates)
-        returnA -< cellOutputs'
+procHelper burningCellStates = dpSwitch
+                                    route                                   -- Routing function
+                                    (cellStatesToCell burningCellStates)    -- collection of signal functions.
+                                    (arr burnOrDie >>> notYet)              -- Signal function that observes the external input signal and the output signals from the collection in order to produce a switching event.
+                                    continuation                            -- Continuation to be invoked once event occurs.
+
 
 {- Routing function. Its purpose is to pair up each running signal function
 in the collection maintained by dpSwitch with the input it is going to see
 at each point in time. All the routing function can do is specify how the input is distributed.
 -}
-route' :: (SimulationIn, [CellState]) -> [sf] -> [(CellInput, sf)]
-route' (simIn, allCellStates) cellSFs = map (\sf -> (CellInput, sf)) cellSFs
-{-
-route' (simIn, allCellStates) cellSFs = map (\(cs, sf) -> (routeHelper cs, sf)) (zip allCellStates cellSFs)
-    where
-        routeHelper :: CellState -> CellInput
-        routeHelper cs = CellInput{ ciIgnite = ignite }
-            where
-                coord = csCoord cs
-                ignite = markedForIgnition simIn cs
--}
+route :: (SimulationIn, [CellState]) -> [sf] -> [(CellInput, sf)]
+route (simIn, allCellStates) cellSFs = map (\sf -> (CellInput, sf)) cellSFs
 
 -- creates the initial collection of signal functions.
 cellStatesToCell :: [CellState] -> [BurningCell]
@@ -117,10 +106,8 @@ previously running and the value carried by the switching event. This allows the
  to be updated and then switched back in, typically by employing dpSwitch again.
 -}
 continuation :: [BurningCell] -> [CellState] -> SF (SimulationIn, [CellState]) [CellOutput]
-continuation cellSFs burningCellStates = proc (simIn, allCellStates) ->
-    do
-        cellOutputs <- (procHelper burningCellStates) -< (simIn, allCellStates)
-        returnA -< cellOutputs
+continuation cellSFs burningCellStates = procHelper burningCellStates
+
 
 burningCell :: CellState -> BurningCell
 burningCell cs = proc ci ->
@@ -130,7 +117,7 @@ burningCell cs = proc ci ->
         returnA -< CellOutput {
             coDead = dead,
             coState = cs { csStatus = BURNING, csFuel = fuel },
-            coIgniteNeighbours = neighbours (csCoord cs) }
+            coIgniteNeighbours = [] } --neighbours (csCoord cs) }
 
 neighbours :: CellCoord -> [CellCoord]
 neighbours cc = filter (not . clip) $ map (addCoord cc) neighbourhood

@@ -52,6 +52,8 @@ The Actor-Model, a model of concurrency, has been around since the paper \cite{H
 \section{Introduction}
 \url{http://www.grids.ac.uk/Complex/ABMS/}
 
+\cite{Bezirgiannis2013} describes in chapter 3.3 a naive clone of NetLogo in the Erlang programming language where each agent was represented as an Erlang process. The author claims the 1:1 mapping between agent and process to "be inherently wrong" because when recursively sending messages (e.g. A to B to A) it will deadlock as A is already awaiting Bs answer. Of course this is one of the problems when adopting Erlang/Scala with Akka/the Actor Model for implementing agents \textit{but it is inherently short-sighted to discharge the actor-model approach just because recursive messaging leads to a deadlock}. It is not a problem of the actor-model but merely a very problem with the communication protocol which needs to be more sophisticated than \cite{Bezirgiannis2013} described. The hypothesis is that the communication protocol will be in fact \textit{very highly application-specific} thus leading to non-reusable agents (across domains, they should but be re-usable within domains e.g. market-simulations) as they only understand the domain-specific protocol. This is definitely NOT a drawback but can't be solved otherwise as in the end (the content of the) communication can be understand to be the very domain of the simulation and is thus not generalizable. Of course specific patterns will show up like "multi-step handshakes" but they are again then specifically applied to the concrete domain.
+
 \subsection{The Actor Model}
 Read in the following order
 

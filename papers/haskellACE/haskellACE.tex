@@ -49,10 +49,25 @@
 
 \begin{abstract}
 So far the literature on agent-based modelling \& simulation (ABM/S) hasn't focused much on models for functional agents and is lacking a proper treatment of implementing agents in pure-functional languages like Haskell. This paper looks into how agents can be specified functionally and then be implemented properly in the pure functional language Haskell. The functional agent-model is inspired by wooldridge 2.6. The programming paradigm used to implement the agents in Haskell is functional reactive programming (FRP) where the Yampa framework will be used. The paper will show that specifying and implementing agents in a pure functional language like Haskell has many advantages over classical object-oriented, concurrent ones but needs also more careful considerations to work properly.
+
+
 \end{abstract}
 
 \section{Introduction}
 In the end it all boils down to 1. the agent-model and 2. how the agent-model is implemented in the according language. Of course both points influence each other: functional languages will come up with a different agent-model (e.g. hybrid like yampa) than object-oriented ones (e.g. actors).
+
+Tim Sweeney, CTO of Epic Games gave an invited talk about how "future programming languages could help us write better code" by "supplying stronger typing, reduce run-time failures;  and the need for pervasive concurrency support, both implicit and explicit, to effectively exploit the several forms of parallelism present in games and graphics." \cite{Sweeney2006}. Although the fields of games and agent-based simulations seem to be very different in the end, they have also very important similarities: both are simulations which perform numerical computations and update objects - in games they are called "game-objects" and in abm they are called agents but they are in fact the same thing - in a loop either concurrently or sequential. His key-points were:
+
+\begin{itemize}
+\item Dependent types as the remedy of most of the run-time failures.
+\item Parallelism for numerical computation: these are pure functional algorithms, operate locally on mutable state. Haskell ST, STRef solution enables encapsulating local heaps and mutability within referentially transparent code.
+\item Updating game-objects (agents) concurrently using STM: update all objects concurrently in arbitrary order, with each update wrapped in atomic block - depends on collisions if performance goes up.
+\end{itemize}
+
+\cite{Hughes1989} shows that functional programming (still) matters \\
+
+\section{Related Research}
+\cite{Bezirgiannis2013} constructs two frameworks: an agent-modelling framework and a DES framework, both written in Haskell. They put special emphasis on parallel and concurrency in their work. The author develops two programs: HLogo which is a clone of the NetLogo agent-modelling framework and HDES, a framework for discrete event simulation - where in both implementations is the very strong emphasis on parallelism.  Here only the HLogo implementation is of interest as it is directly related to agent-based simulation. In this implementation the author claims to have implemented an EDSL which tries to be close to the language used for modelling in NetLogo (Logo) "which lifts certain restrictions of the original NetLogo implementation". Also the aim was to be "faster in most circumstances than NetLogo" and "utilizes many processor cores to speedup the execution of Agent Based Models". The author implements a primitive model of concurrent agents which implements a non-blocking concurrent execution of agents which report their results back to the calling agent in a non-blocking manner. The author mentions that a big issue of the implementation is that repeated runs with same inputs could lead to different results due to random event-orderings happening because of synchronization. The problem is that the author does not give a remedy for that and just accepts it as a fact. Of course it would be very difficult, if not impossible, to introduce determinism in an inherently concurrent execution model of agents which may be the reason the author does not even try. Unfortunately the example implementation the author uses for benchmarking is a very simplistic model: the basic pattern is that agent A sends to agent B and thats it - no complex interactions. Of course this lends itself very good to parallel/concurrent execution and does not need a sophisticated communication protocol. The work lacks a proper treatment of the agent-model presented with its advantages and disadvantages and is too sketchy although the author admits that is is just a proof of concept.
 
 \section{ACE}
 
@@ -98,9 +113,11 @@ To conclude: when programming systems in Haskell and Yampa one describes the sys
 \cite{Wan2000} discuss the semantic framework of FRP. Very difficult to understand and full of corollaries and theorems and proofs, have to study in depth at another time.
 
 \section{Determinism}
-no concurrent execution: deterministic
+no concurrent execution: deterministic \\
 
-deterministic: can use random-numbers but to be reproducible/deterministic one has to specify the same seed or even provide an own RNG-implementation (which is easily possible using the RNG in haskell)
+deterministic: can use random-numbers but to be reproducible/deterministic one has to specify the same seed or even provide an own RNG-implementation (which is easily possible using the RNG in haskell) \\
+
+it is of most importance in simulations to be reproducible under given conditions: two runs with the same input (e.g. time, agent-count, parameters, RNG seeds) should result in the exact same results otherwise the simulation-software is of very little benefit.
 
 \section{Functional Model}
 Start from wooldridge 2.6 (look at the original papers which inspired the 2.6 chapter) and weiss book and the original papers those chapter is based upon. Look into denotational semantics of actor model. Look also in functional models of czesar ionescu. why: this is the major contribution of my thesis and is new knowledge. Must find intuitive, original and creative approach. \\
@@ -127,9 +144,19 @@ TODO: design general agent SF \\
 
 TODO: don't loose STM out of sight!
 
-\subsection{Performance}
+\section{Performance}
+
+\subsection{Active vs inactive Agents}
 signalfunctions add up, multiple chains of events add up, need to remove inactive agents or exclude them somehow from computation chain: use freezing? \\
-read Improving Performance of Simulation Software Using Haskell’s Concurrency \& Parallelism \\
+
+\subsection{Parallelism and Concurrency}
+
+
+
+\cite{Bezirgiannis2013} puts special emphasis on concurrency and parallelism in implementing simulation framework in Haskell. TODO: explain deeper \\
+
+Due to the pure-functional property of a agents SF (which fully describes the agents behaviour over time) all signal-functions of all agents should be able to run in parallel in each iteration as they are pure functional: they don't touch global/shared state. Also the routing and switching functions could be sped up using par. But Question: how is this possible in Yampa? \\
+
 
 
 %----------------------------------------------------------------------------------------

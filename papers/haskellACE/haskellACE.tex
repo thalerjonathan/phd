@@ -49,8 +49,6 @@
 
 \begin{abstract}
 So far the literature on agent-based modelling \& simulation (ABM/S) hasn't focused much on models for functional agents and is lacking a proper treatment of implementing agents in pure-functional languages like Haskell. This paper looks into how agents can be specified functionally and then be implemented properly in the pure functional language Haskell. The functional agent-model is inspired by wooldridge 2.6. The programming paradigm used to implement the agents in Haskell is functional reactive programming (FRP) where the Yampa framework will be used. The paper will show that specifying and implementing agents in a pure functional language like Haskell has many advantages over classical object-oriented, concurrent ones but needs also more careful considerations to work properly.
-
-
 \end{abstract}
 
 \section{Introduction}
@@ -70,6 +68,13 @@ Tim Sweeney, CTO of Epic Games gave an invited talk about how "future programmin
 \cite{Bezirgiannis2013} constructs two frameworks: an agent-modelling framework and a DES framework, both written in Haskell. They put special emphasis on parallel and concurrency in their work. The author develops two programs: HLogo which is a clone of the NetLogo agent-modelling framework and HDES, a framework for discrete event simulation - where in both implementations is the very strong emphasis on parallelism.  Here only the HLogo implementation is of interest as it is directly related to agent-based simulation. In this implementation the author claims to have implemented an EDSL which tries to be close to the language used for modelling in NetLogo (Logo) "which lifts certain restrictions of the original NetLogo implementation". Also the aim was to be "faster in most circumstances than NetLogo" and "utilizes many processor cores to speedup the execution of Agent Based Models". The author implements a primitive model of concurrent agents which implements a non-blocking concurrent execution of agents which report their results back to the calling agent in a non-blocking manner. The author mentions that a big issue of the implementation is that repeated runs with same inputs could lead to different results due to random event-orderings happening because of synchronization. The problem is that the author does not give a remedy for that and just accepts it as a fact. Of course it would be very difficult, if not impossible, to introduce determinism in an inherently concurrent execution model of agents which may be the reason the author does not even try. Unfortunately the example implementation the author uses for benchmarking is a very simplistic model: the basic pattern is that agent A sends to agent B and thats it - no complex interactions. Of course this lends itself very good to parallel/concurrent execution and does not need a sophisticated communication protocol. The work lacks a proper treatment of the agent-model presented with its advantages and disadvantages and is too sketchy although the author admits that is is just a proof of concept.
 
 \section{ACE}
+The book \cite{KirmanComplex2010} is a critique of classic economics with the triple of rational agents, "average" inidividuum, equilibrium theory. Although it does not mention ACE it  can be seen as an important introduction to the approach of ACE as it introduces many important concepts and views dominant in ACE. Also ACE can be seen as an approach of tackling the problems introduced in this book: \\
+
+page 6: "the view of economy is much closer to that of social insects than to the traditional view of how economies function." \\
+page 7: "... main argument that it is the interaction between individuals that is at the heart of the explanation of many macroeconomic phenomena..." \\
+page 15: "problem of equilibrium is information" \\
+page 21: "the theme of this book will be that the very fact individuals interact with each other causes aggregate behaviour to be different from that of individuals" \\
+
 
 \section{Functional reactive programming (FRP)}
 FRP is a paradigm for programming hybrid systems which combine continuous and discrete components. Time is explicitly modelled: there is a continuous and synchronous time flow.  \\

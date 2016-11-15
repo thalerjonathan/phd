@@ -1,75 +1,8 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% University/School Laboratory Report
-% LaTeX Template
-% Version 3.1 (25/3/14)
-%
-% This template has been downloaded from:
-% http://www.LaTeXTemplates.com
-%
-% Original author:
-% Linux and Unix Users Group at Virginia Tech Wiki 
-% (https://vtluug.org/wiki/Example_LaTeX_chem_lab_report)
-%
-% License:
-% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%*******************************************************************************
+%*********************************** First Chapter *****************************
+%*******************************************************************************
 
-%----------------------------------------------------------------------------------------
-%	PACKAGES AND DOCUMENT CONFIGURATIONS
-%----------------------------------------------------------------------------------------
-
-\documentclass{article}
-
-\usepackage{graphicx} % Required for the inclusion of images
-\usepackage{natbib} % Required to change bibliography style to APA
-\usepackage{amsmath} % Required for some math elements 
-\usepackage{hyperref}
-
-\setlength\parindent{0pt} % Removes all indentation from paragraphs
-
-%\usepackage{times} % Uncomment to use the Times New Roman font
-
-%----------------------------------------------------------------------------------------
-%	DOCUMENT INFORMATION
-%----------------------------------------------------------------------------------------
-
-\title{ {\normalsize Research Proposal} \\ Functional methods in agent-based modelling \& simulation.} % Title
-
-\author{Jonathan \textsc{Thaler}} % Author name
-
-\date{\today} % Date for the report
-
-\begin{document}
-
-\maketitle % Insert the title, author and date
-
-\begin{center}
-\begin{tabular}{l r}
-Institution: University of Nottingham \\
-Department: School of Computer Science \\
-Project: PhD Programme 2016-2019 \\
-Supervisor: Dr. Peer-Olaf Siebers \\
-Co-Supersvisor: Dr. Thorsten Altenkirch 
-\end{tabular}
-\end{center}
-
-% If you wish to include an abstract, uncomment the lines below
-\begin{abstract}
-TODO: Consider a provocative abstract and an interesting title
-
-Agent-Based Modelling and Simulation (ABM/S) is still a young discipline and the dominant approach to it is using object-oriented methods. This thesis goes into the opposite direction and asks how ABM/S can be mapped to and implemented using functional methods and what one gains from doing so. To the best knowledge of the author, so far no proper treatment of ABM/S in this field exists but a few papers which only scratch the surface. The author argues that approaching ABM/S using functional methods offers a wealth of new powerful tools and methods. The most obvious one is that when using pure functional computation reasoning about the correctness and about total and partial correctness of the simulation becomes possible. Also pure functional approaches allow the design of an embedded domain specific language (EDSL) in which then the models can be formulated by domain-experts. The strongest point in using EDSL is that ideally the distinction between specification and implementation disappears: the model specification is then already the code of the simulation-program. This allows to rule out a serious class of errors where specification and implementation does not match, which is especially a big problem in scientific computing thus making functional methods in ABM/S especially suitable for scientific computing. The application will be in the field of agent-based computational economics (ACE) where the primary goal will be to compare functional and non-functional methods for developing ACE simulations and to identify in which scenarios pure functional methods shine and where their limits are.
-\end{abstract}
-
-%----------------------------------------------------------------------------------------
-%	SECTION 1
-%----------------------------------------------------------------------------------------
-
-TODO: Contributions should appear in the conclusion, introduction and abstract
-
-
-\section{Introduction}
-
+\chapter{Introduction}  %Title of the First Chapter
 I noticed that it is pretty hard to convince an agent-based economics specialist who is not a computer scientist about a pure functional approach. My conjecture is that the implementation technique and method does not matter much to them because they have very little knowledge about programming and are almost always self-taught - they don't know about software-engineering, nothing about proper software-design and architecture, nothing about software-maintenance, nothing about unit-testing,... In the end they just "hack" the simulation in whatever language they are able to: C++, Visual Basic, Java or toolboxes like Netlogo. For them it is all about to \textit{get things done somehow} and not to get things done the right way or in a beautiful way - the way and the method doesn't matter, its just a necessary evil which needs to be done. Thus if functional programming could make their lives easier, then they will definitely welcome it. But functional programming is, i think, harder to learn and harder to understand - so one needs to provide an abstraction through EDSL. So I REALLY need to come up with convincing arguments why to use pure functional approaches in ACE THEY can understand, otherwise I will be lost and not heard (not published,...). \\
 
 What ACE economists care for:
@@ -108,15 +41,17 @@ Note: It is not in the interest of the researcher to develop new economic theori
 
 NOTE: Get the reader’s attention early in the introduction: motivation, significance, originality and novelty.
 
-\subsection{Methods}
+\section{Related Research}
+
+\section{Methods}
 Methods need to be selected to implement the simulations. Special emphasis will be put on functional ones which will then be compared to established methods in the field of ABM/S and ACE. \\
 
 Claim: non-programming environments are considered to be not powerful enough to capture the complexity of ACE implementations thus a programming approach to ACE will be always required.
 
-\subsection{Scenarios}
+\section{Scenarios}
 To apply and test functional methods in ACE, four scenarios of ACE are selected and then the methods applied and compared with each other to see how each of them perform in comparison. The 4 selected scenarios represent a selection of the challenges posed in ACE: from very abstract ones to very operational ones.
 
-\subsection{Comparison}
+\section{Comparison}
 Each of the selected scenarios is then implemented using the selected methods where each solution is then compared against the following criteria: 
 
 \begin{enumerate}
@@ -232,14 +167,3 @@ Java is the state-of-the-art programming language in ABM/S and ACE and is thus i
 \item Implementing pure functional agents.
 \item An EDSL for simulating qualitative agent-based market-models.
 \end{itemize}
-%----------------------------------------------------------------------------------------
-%	BIBLIOGRAPHY
-%----------------------------------------------------------------------------------------
-
-\bibliographystyle{apalike}
-
-\bibliography{./bib/researchproposal.bib}
-
-%----------------------------------------------------------------------------------------
-
-\end{document}

@@ -5,6 +5,13 @@
 *.bbl
 *.blg
 *.cache-main
+*.idx
+*.ilg
+*.ind
+*.lof
+*.lot
+*.nlo
+*.toc
 dist/
 .idea/
 out/

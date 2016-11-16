@@ -41,8 +41,6 @@ Note: It is not in the interest of the researcher to develop new economic theori
 
 NOTE: Get the reader’s attention early in the introduction: motivation, significance, originality and novelty.
 
-\section{Related Research}
-
 \section{Methods}
 Methods need to be selected to implement the simulations. Special emphasis will be put on functional ones which will then be compared to established methods in the field of ABM/S and ACE. \\
 
@@ -71,99 +69,39 @@ Each of the selected scenarios is then implemented using the selected methods wh
 
 This will then allow to compare the different methods against each other and to show under which circumstances functional methods shine and when they should not be used.
 
-%----------------------------------------------------------------------------------------
-%	SECTION 2
-%----------------------------------------------------------------------------------------
-
-%----------------
-%	2 a
-%----------------
-\section{Literature Research}
-
-\subsection{TODO: Yampa}
-read papers of yampa and games and summarize in paper for "pure functional agents"
-
-\subsection{TODO: ACE}
-read ACE introduction papers, summarize in this research-proposal
-
-look into computable economics book: \url{http://www.e-elgar.com/shop/computable-economics}
-
-TODO: the reading should pull out the essence of what types of ACE there are and what features each type has (continuous/discrete time, complex agent communication, equilibriua, networks amongst agents,...)
-
-NOTE: I REALLY need to work out what is special in ACE? what is the unique property of ACE AS compared to other ABM/S? Conjecture: equilibrium of dynamics is the central aspect.
-\url{http://www2.econ.iastate.edu/tesfatsi/ace.htm}
-
-\cite{mandel_2015} Agent-based modeling and economic theory: where do we stand? - Ballot, Mandel, Vignes \\
-\cite{richiardi_2007} Agent-based Computational Economics. A Short Introduction - Richiardi \\
-\cite{tesfatsion_2006} Agent-based computational economics: a constructive approach to economic theory - tesfatsion \\
-\cite{kleinberg_easley_2015} Introduction to computer science and economic theory - blume, easley, kleinberg \\
-\cite{tesfatsion_2002} agent-based computational economics - tesfatsion 
-
-\subsection{TODO: functional agent-models}
-look into functional agents in wooldridge 2.5/6 and find primary papers and read them
-
-\subsection{TODO: market-models}
-find all agent-based market models (gintis, gode and sunder,...), read gintis equilibrium stuff and summarize in the paper: EDSL for agent-based market-simulations
-
-\subsection{TODO: actor- \& agent-models}
-read all of the actor-related stuff and summarize in the paper: actor model in ABM/S
-
-%----------------------------------------------------------------------------------------
-%	SECTION 4
-%----------------------------------------------------------------------------------------
-
-\section{Methods}
-\subsection{Method 1a: Haskell}
-This is the main functional method this thesis wants to investigate as it is the purest functional programming language of all the methods.
-
-\subsection{Method 1b: LISP}
-QUESTION: What is about the most influential and oldest (functional) programming language: LISP??
-
-\subsection{Method 2: Scala \& Actors (Akka)}
-This method was selected because Scala is an object-oriented functional programming language and has a powerful library included which implements the actor-model. Because actors and agents are closely related this is an obvious method to follow.
-
-
-\subsection{Method 3: AnyLogic / NetLogo / Repast}
-These tools are state-of-the-art in ABM/S and ACE and are included to show how one can perform scenarios (see below) with these tools.
-
-\subsection{Method 4: Java}
-Java is the state-of-the-art programming language in ABM/S and ACE and is thus included as well as a benchmark against such a state-of-the-art.
-
-%----------------------------------------------------------------------------------------
-%	SECTION 5
-%----------------------------------------------------------------------------------------
-
-\pagebreak
-
-\section{Goals/TODOs 1st Year}
-\subsection{Practical}
+\section{Functional programming}
+Functional languages can best be characterized by their way computation works: instead of \textit{how} something is computed, \textit{what} is computed is described. Thus functional programming follows a declarative instead of an imperative style of programming. The key points are:
 \begin{itemize}
-\item Implement SIRS in AnyLogic - DONE
-\item Implement Wildfire in Akka - DONE
-\item Implement Wildfire in Yampa.
-\item Implement Market-models in Yampa, Akka, Java and AnyLogic.
+\item No assignment statements - variables values can never change once given a value.
+\item Function calls have no side-effect and will only compute the results - this makes order of execution irrelevant, as due to the lack of side-effects the logical point in \textit{time} when the function is calculated within the program-execution does not matter.
+\item higher-order functions
+\item lazy evaluation
+\item Looping is achieved using recursion, mostly through the use of the general fold or the more specific map.
+\item Pattern-matching
 \end{itemize}
 
-\subsection{Reading}
+This alone does not really explain the \textit{real} advantages of functional programming and one must look for better motivations using functional programming languages. One motivation is given in \cite{Hughes1989} which is a great paper explaining to non-functional programmers what the significance of functional programming is and helping functional programmers putting functional languages to maximum use by showing the real power and advantages of functional languages. The main conclusion is that \textit{modularity}, which is the key to successful programming, can be achieved best using higher-order functions and lazy evaluation provided in functional languages like Haskell. \cite{Hughes1989} argues that the ability to divide problems into sub-problems depends on the ability to glue the sub-problems together which depends strongly on the programming-language and \cite{Hughes1989} argues that in this ability functional languages are superior to structured programming.
+
+TODO: comparison of functional and object-oriented programming. My points are:
 \begin{itemize}
-\item Understanding Capitalism. \cite{bowles_understanding_2005}
-\item Microeconomic Theory. TODO cite
-\item Market Microstructure. TODO cite
-\item A computable universe. TODO cite
-\item The nature of computation. TODO cite
-\item Economics and Computation by Parkes and Seuken \url{http://economicsandcomputation.org/}
+\item The way state can be changed and treated - distributed over multiple objects - is often very difficult to understand.
+\item Inheritance is a dangerous thing if not used with care because inheritance introduces very strong dependencies which cannot be changed during runtime anymore.
+\item Objects don't compose very well: \url{http://zeroturnaround.com/rebellabs/why-the-debate-on-object-oriented-vs-functional-programming-is-all-about-composition/}
+\item (Nearly) impossible to reason about programs
 \end{itemize}
 
-\subsection{Studying}
+In conclusion the upsides of functional programming as opposed to OO are:
 \begin{itemize}
-\item Get into basics of economics and equilibrium theory. Why: because i need to understand basics to understand the models better and to talk and sell my models better to economists.
-\item Understand theory of out-of-equilibrium / non-walrasian models: TODO (various Gintis \& Mandel Papers)
-\item Understand Market Micro-structure: \cite{LehalleLaruelle2013}, \cite{baker_market_2013} Part II: Chapter 8-12.
+\item Much more explicit flow of data \& control
+\item Much better compose-able
+\item Much better parallelism
 \end{itemize}
 
-\subsection{Research on Papers (see the papers pdf)}
+\section{Related Research}
+Tim Sweeney, CTO of Epic Games gave an invited talk about how "future programming languages could help us write better code" by "supplying stronger typing, reduce run-time failures;  and the need for pervasive concurrency support, both implicit and explicit, to effectively exploit the several forms of parallelism present in games and graphics." \cite{Sweeney2006}. Although the fields of games and agent-based simulations seem to be very different in the end, they have also very important similarities: both are simulations which perform numerical computations and update objects - in games they are called "game-objects" and in abm they are called agents but they are in fact the same thing - in a loop either concurrently or sequential. His key-points were:
+
 \begin{itemize}
-\item The use of Actor-Model in ABM/S.
-\item Implementing pure functional agents.
-\item An EDSL for simulating qualitative agent-based market-models.
+\item Dependent types as the remedy of most of the run-time failures.
+\item Parallelism for numerical computation: these are pure functional algorithms, operate locally on mutable state. Haskell ST, STRef solution enables encapsulating local heaps and mutability within referentially transparent code.
+\item Updating game-objects (agents) concurrently using STM: update all objects concurrently in arbitrary order, with each update wrapped in atomic block - depends on collisions if performance goes up.
 \end{itemize}

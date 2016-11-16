@@ -2,60 +2,39 @@
 %*********************************** Agent-based computational Economics *****************************
 %*******************************************************************************
 
-\chapter{Pure functional: Haskell} 
+\chapter{Haskell} 
+NOTE: this chapter should be the very first implementation chapter as the approach of Haskell lays the very foundations for the functional approach by introducing the basic functional concepts
+
 So far the literature on agent-based modelling \& simulation (ABM/S) hasn't focused much on models for functional agents and is lacking a proper treatment of implementing agents in pure-functional languages like Haskell. This paper looks into how agents can be specified functionally and then be implemented properly in the pure functional language Haskell. The functional agent-model is inspired by wooldridge 2.6. The programming paradigm used to implement the agents in Haskell is functional reactive programming (FRP) where the Yampa framework will be used. The paper will show that specifying and implementing agents in a pure functional language like Haskell has many advantages over classical object-oriented, concurrent ones but needs also more careful considerations to work properly.
 \end{abstract}
-
-\section{Introduction}
-In the end it all boils down to 1. the agent-model and 2. how the agent-model is implemented in the according language. Of course both points influence each other: functional languages will come up with a different agent-model (e.g. hybrid like yampa) than object-oriented ones (e.g. actors).
-
-\subsection{Functional programming}
-Functional languages can best be characterized by their way computation works: instead of \textit{how} something is computed, \textit{what} is computed is described. Thus functional programming follows a declarative instead of an imperative style of programming. The key points are:
-\begin{itemize}
-\item No assignment statements - variables values can never change once given a value.
-\item Function calls have no side-effect and will only compute the results - this makes order of execution irrelevant, as due to the lack of side-effects the logical point in \textit{time} when the function is calculated within the program-execution does not matter.
-\item higher-order functions
-\item lazy evaluation
-\item Looping is achieved using recursion, mostly through the use of the general fold or the more specific map.
-\item Pattern-matching
-\end{itemize}
-
-This alone does not really explain the \textit{real} advantages of functional programming and one must look for better motivations using functional programming languages. One motivation is given in \cite{Hughes1989} which is a great paper explaining to non-functional programmers what the significance of functional programming is and helping functional programmers putting functional languages to maximum use by showing the real power and advantages of functional languages. The main conclusion is that \textit{modularity}, which is the key to successful programming, can be achieved best using higher-order functions and lazy evaluation provided in functional languages like Haskell. \cite{Hughes1989} argues that the ability to divide problems into sub-problems depends on the ability to glue the sub-problems together which depends strongly on the programming-language and \cite{Hughes1989} argues that in this ability functional languages are superior to structured programming.
-
-TODO: comparison of functional and object-oriented programming. My points are:
-\begin{itemize}
-\item The way state can be changed and treated - distributed over multiple objects - is often very difficult to understand.
-\item Inheritance is a dangerous thing if not used with care because inheritance introduces very strong dependencies which cannot be changed during runtime anymore.
-\item Objects don't compose very well: \url{http://zeroturnaround.com/rebellabs/why-the-debate-on-object-oriented-vs-functional-programming-is-all-about-composition/}
-\item (Nearly) impossible to reason about programs
-\end{itemize}
-
-In conclusion the upsides of functional programming as opposed to OO are:
-\begin{itemize}
-\item Much more explicit flow of data \& control
-\item Much better compose-able
-\item Much better parallelism
-\end{itemize}
 
 
 \section{Related Research}
 \cite{Bezirgiannis2013} constructs two frameworks: an agent-modelling framework and a DES framework, both written in Haskell. They put special emphasis on parallel and concurrency in their work. The author develops two programs: HLogo which is a clone of the NetLogo agent-modelling framework and HDES, a framework for discrete event simulation - where in both implementations is the very strong emphasis on parallelism.  Here only the HLogo implementation is of interest as it is directly related to agent-based simulation. In this implementation the author claims to have implemented an EDSL which tries to be close to the language used for modelling in NetLogo (Logo) "which lifts certain restrictions of the original NetLogo implementation". Also the aim was to be "faster in most circumstances than NetLogo" and "utilizes many processor cores to speedup the execution of Agent Based Models". The author implements a primitive model of concurrent agents which implements a non-blocking concurrent execution of agents which report their results back to the calling agent in a non-blocking manner. The author mentions that a big issue of the implementation is that repeated runs with same inputs could lead to different results due to random event-orderings happening because of synchronization. The problem is that the author does not give a remedy for that and just accepts it as a fact. Of course it would be very difficult, if not impossible, to introduce determinism in an inherently concurrent execution model of agents which may be the reason the author does not even try. Unfortunately the example implementation the author uses for benchmarking is a very simplistic model: the basic pattern is that agent A sends to agent B and thats it - no complex interactions. Of course this lends itself very good to parallel/concurrent execution and does not need a sophisticated communication protocol. The work lacks a proper treatment of the agent-model presented with its advantages and disadvantages and is too sketchy although the author admits that is is just a proof of concept. \\
 
-Tim Sweeney, CTO of Epic Games gave an invited talk about how "future programming languages could help us write better code" by "supplying stronger typing, reduce run-time failures;  and the need for pervasive concurrency support, both implicit and explicit, to effectively exploit the several forms of parallelism present in games and graphics." \cite{Sweeney2006}. Although the fields of games and agent-based simulations seem to be very different in the end, they have also very important similarities: both are simulations which perform numerical computations and update objects - in games they are called "game-objects" and in abm they are called agents but they are in fact the same thing - in a loop either concurrently or sequential. His key-points were:
+\section{Structuring pure functional programs}
+Of course the basic pure functional primitives alone do not make a well structured functional program by themselves as the usage of classes, interfaces, objects and inheritance alone does not make a well structured object-oriented program. What is needed are \textit{patterns} how to use the primitives available in pure functional programs to arrive at well structure programs. In object-orientation much work has been done in the 90s by the highly influential book \cite{gamma_design_1994} whereas in functional programming the major inventions were also done in the 90s by the invention of Monads through \cite{Moggi1989}, \cite{Wadler1990} and \cite{Wadler1995} and beginning of the 2000s by the invention of Arrows through \cite{Hughes2000}.
 
-\begin{itemize}
-\item Dependent types as the remedy of most of the run-time failures.
-\item Parallelism for numerical computation: these are pure functional algorithms, operate locally on mutable state. Haskell ST, STRef solution enables encapsulating local heaps and mutability within referentially transparent code.
-\item Updating game-objects (agents) concurrently using STM: update all objects concurrently in arbitrary order, with each update wrapped in atomic block - depends on collisions if performance goes up.
-\end{itemize}
-
-\section{Structuring Functional Programs}
-
-\subsection{Higher Order Functions}
+\subsection{Higher Order Functions \& Monads}
 map \& fmap, foldl, applicatives
-\cite{hutton_programming_2007} gives a great overview and motivation for using fmap, applicatives and Monads 
+\cite{hutton_programming_2007} gives a great overview and motivation for using fmap, applicatives and Monads. TODO: explain Monads
 
-\subsection{Monads}
+\subsection{Arrows}
+\cite{Hughes2004} is a great tutorial about \textit{Arrows} which are very well suited for structuring functional programs with effects.
+
+\begin{quote}
+Just like monads, arrow types are useful for the additional operations they support, over and above those that every arrow provides.
+\end{quote}
+
+The main difference between Monads and Arrows are that where monadic computations are parameterized only over their output-type, Arrows computations are parameterised both over their input- and output-type thus making Arrows more general.
+
+\begin{quote}
+In real applications an arrow often represents some kind of a process, with an input channel of type a, and an output channel of type b.
+\end{quote}
+
+In the work \cite{Hughes2004} an example for the usage for Arrows is given in the field of circuit simulation. They use previously introduced streams to advance the simulation in discrete steps to calculate values of circuits thus the implementation is a form of \textit{discrete event simulation} - which is in the direction we are heading already with ABM/S. Also the paper mentions Yampa which is introduced in the section (TODO: reference) on functional reactive programming.
+
+\section{Frameworks}
 
 \subsection{Functional reactive programming (FRP)}
 FRP is a paradigm for programming hybrid systems which combine continuous and discrete components. Time is explicitly modelled: there is a continuous and synchronous time flow.  \\
@@ -109,16 +88,10 @@ deterministic: can use random-numbers but to be reproducible/deterministic one h
 
 it is of most importance in simulations to be reproducible under given conditions: two runs with the same input (e.g. time, agent-count, parameters, RNG seeds) should result in the exact same results otherwise the simulation-software is of very little benefit.
 
-\section{Functional Model}
-Start from wooldridge 2.6 (look at the original papers which inspired the 2.6 chapter) and weiss book and the original papers those chapter is based upon. Look into denotational semantics of actor model. Look also in functional models of czesar ionescu. why: this is the major contribution of my thesis and is new knowledge. Must find intuitive, original and creative approach. \\
-From functional agent models (e.g. Wooldridge) to implementation of ACE in Haskell (this should go into research-proposal introduction)
-
-\section{Example: TODO some market model}
-
 \subsection{EDSL}
 In this paper I present an EDSL which allows to formulate models for agent-based market-simulations which can be directly run in a Haskell framework implemented for this. Thus the distinction between model specification and programming vanishes - the model specification becomes the actual code. The major novelty of this EDSL is that it allows to model the system in a qualitative way: relations among formulas are expressed which can be understood as a kind of non-causal modelling. TODO: better understand what qualitative modelling/simulation in ACE is.
 
-\section{Implementation}
+\section{Implementations}
 idea: can we implement a message between two agents through events? thus two states: waiting for messages, processing messages. BUT: then sending a message \textit{will take some time}
 
 NOTE: it is important to make a difference about whether the simulation will dynamically \textit{add} or \textit{remove} agents during execution. If this is not the case, a simple par-switch is possible to run ALL agent SF in parallel. If dynamically changes to the agent-population should be part of the simulation, then the dpSwitch or dpSwitchB should be used. Also it should be possible to start/stop agents: if they are inactive then they should have no running SF because would use up resources. Inactive means: doing nothing, also not awaiting something/"doing nothing in the sense that DOING something which is nothing - the best criteria to decide if an agent can be set inactive is when the event which decides if the agents SF should be started comes from outside e.g. if the agent is just statically "living" but not changing and then another agent will "ignite" the "living" agent then this is a clear criterion for being static without a running SF. \\
@@ -136,6 +109,10 @@ TODO: design general agent SF \\
 TODO: don't loose STM out of sight!
 
 Wormholes in FRP? \\
+
+
+\subsection{Testing}
+TODO: look into \cite{Claessen2000}
 
 \section{Performance}
 

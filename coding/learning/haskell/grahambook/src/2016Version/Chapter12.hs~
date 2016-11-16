@@ -1,0 +1,13 @@
+{- 1. Define an instance of the Functor class for the following type of binary trees that have data in their nodes: -}
+data Tree a = Leaf | Node (Tree a) a (Tree a) deriving Show
+
+tree :: (Show a) => Tree a
+tree = Node (Leaf) 1 (Leaf)
+
+func :: (Show a) => a -> b
+func a = show a
+
+instance Functor Tree where
+    -- fmap :: (a -> b) -> Tree a -> Tree b
+   fmap f Leaf = Leaf
+   fmap f (Node l a r) = Node (fmap f l) (f a) (fmap f r)

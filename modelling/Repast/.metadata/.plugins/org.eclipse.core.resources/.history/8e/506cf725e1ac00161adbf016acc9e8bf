@@ -1,0 +1,26 @@
+package herosandcowards.relogo
+
+import static repast.simphony.relogo.Utility.*
+import static repast.simphony.relogo.UtilityG.*
+
+import herosandcowards.ReLogoTurtle
+import repast.simphony.relogo.Plural
+import repast.simphony.relogo.Stop
+import repast.simphony.relogo.Utility
+import repast.simphony.relogo.UtilityG
+import repast.simphony.relogo.schedule.Go
+import repast.simphony.relogo.schedule.Setup
+
+class HeroOrCoward extends ReLogoTurtle {
+
+	private boolean hero;
+	private HeroOrCoward friend;
+	private HeroOrCoward enemy;
+	
+	def step() {
+	}
+	
+	private void initialize() {
+		
+	}
+}

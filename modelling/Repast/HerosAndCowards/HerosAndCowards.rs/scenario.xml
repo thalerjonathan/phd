@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Scenario>
+<repast.simphony.dataLoader.engine.ClassNameDataLoaderAction context="HerosAndCowards" file="repast.simphony.dataLoader.engine.ClassNameDataLoaderAction_0.xml" />
+<repast.simphony.userpanel.ui.DefaultUserPanelDescriptorAction context="HerosAndCowards" file="repast.simphony.userpanel.ui.DefaultUserPanelDescriptorAction_1.xml" />
+<repast.simphony.action.display context="default_observer_context" file="repast.simphony.action.display_relogoDefault.xml" />
+<model.initializer class="repast.simphony.relogo.ReLogoInitializer" />
+</Scenario>

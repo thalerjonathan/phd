@@ -1,0 +1,82 @@
+package herosandcowards.relogo
+
+import static repast.simphony.relogo.Utility.*
+import static repast.simphony.relogo.UtilityG.*
+
+import herosandcowards.ReLogoTurtle
+import repast.simphony.relogo.Plural
+import repast.simphony.relogo.Stop
+import repast.simphony.relogo.Utility
+import repast.simphony.relogo.UtilityG
+import repast.simphony.relogo.schedule.Go
+import repast.simphony.relogo.schedule.Setup
+
+class HeroOrCoward extends ReLogoTurtle {
+
+	private boolean hero;
+	private HeroOrCoward friend;
+	private HeroOrCoward enemy;
+	
+	def initialize() {
+		setxy( randomXcor(), randomYcor() );
+		
+		friend = getRandomIgnoring( this );
+		
+		HeroOrCoward[] ignore = new HeroOrCoward[ 2 ];
+		
+		enemy = getRandomIgnoring( ignore );
+		
+		/*
+		Set<Agent> except = new HashSet<Agent>();
+		except.add( this );
+		
+		
+		friend = main.heroOrCowards.get( friendRandIdx );
+		except.add( friend );
+		
+		enemy = main.heroOrCowards.randomExcept( except );
+		*/
+		
+		hero = Math.random() <= heroesDistribution
+	}
+	
+	def HeroOrCoward getRandomIgnoring( HeroOrCoward[] ignore ) {
+		int randIdx = Math.random() * heroOrCowards().size;
+		
+		return heroOrCowards().get( randIdx );
+	}
+	
+	def step() {
+		/*
+		double fX = friend.getX();
+		double fY = friend.getY();
+		
+		double eX = enemy.getX();
+		double eY = enemy.getY();
+		
+		double friendToEnemyX = eX - fX;
+		double friendToEnemyY = eY - fY;
+		
+		double myMoveX = 0.0;
+		double myMoveY = 0.0;
+		
+		if ( isHero ) {
+			double protectionPointX = fX + friendToEnemyX * 0.5;
+			double protectionPointY = fY + friendToEnemyY * 0.5;
+			
+			myMoveX = protectionPointX;
+			myMoveY = protectionPointY;
+			
+		} else {
+			double hidingPointX = fX - friendToEnemyX * 0.5;
+			double hidingPointY = fY - friendToEnemyY * 0.5;
+		
+			myMoveX = hidingPointX;
+			myMoveY = hidingPointY;
+		}
+		
+		this.moveTo(myMoveX, myMoveY, 0);
+		*/
+	}
+	
+}

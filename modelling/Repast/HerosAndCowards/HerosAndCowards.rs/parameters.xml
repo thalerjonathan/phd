@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<parameters>
+
+	<parameter name="randomSeed" displayName="Default Random Seed" type="int" defaultValue="__NULL__" />
+	<parameter name="default_observer_minPxcor" displayName="default_observer_minPxcor" type="int" defaultValue="-16"/>
+	<parameter name="default_observer_maxPxcor" displayName="default_observer_maxPxcor" type="int" defaultValue="16"/>
+	<parameter name="default_observer_minPycor" displayName="default_observer_minPycor" type="int" defaultValue="-16"/>
+	<parameter name="default_observer_maxPycor" displayName="default_observer_maxPycor" type="int" defaultValue="16"/>
+
+</parameters>

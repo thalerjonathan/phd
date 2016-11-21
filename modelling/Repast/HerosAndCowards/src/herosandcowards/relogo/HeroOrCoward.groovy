@@ -3,6 +3,7 @@ package herosandcowards.relogo
 import static repast.simphony.relogo.Utility.*
 import static repast.simphony.relogo.UtilityG.*
 
+import bsh.This
 import herosandcowards.ReLogoTurtle
 import repast.simphony.relogo.Plural
 import repast.simphony.relogo.Stop
@@ -36,7 +37,7 @@ class HeroOrCoward extends ReLogoTurtle {
 		
 		outerLoop:
 		while( true ) {
-			int randIdx = Math.random() * heroOrCowards().size;
+			int randIdx = Math.random() * heroOrCowards().size();
 			r = heroOrCowards().get( randIdx );
 			
 			for ( HeroOrCoward c : ignore ) {
@@ -50,23 +51,28 @@ class HeroOrCoward extends ReLogoTurtle {
 			
 			break; 
 		}
+		
+		return r;
 	}
 	
 	def step() {
-		/*
-		double fX = friend.getX();
-		double fY = friend.getY();
+		double fX = friend.getXcor();
+		double fY = friend.getYcor();
 		
-		double eX = enemy.getX();
-		double eY = enemy.getY();
+		double eX = enemy.getXcor();
+		double eY = enemy.getYcor();
 		
 		double friendToEnemyX = eX - fX;
 		double friendToEnemyY = eY - fY;
+		double friendToEnemyLength = Math.sqrt( friendToEnemyX * friendToEnemyX + friendToEnemyY * friendToEnemyY );
+		
+		double directionX = friendToEnemyX / friendToEnemyLength;
+		double directionY = friendToEnemyY / friendToEnemyLength;
 		
 		double myMoveX = 0.0;
 		double myMoveY = 0.0;
 		
-		if ( isHero ) {
+		if ( hero ) {
 			double protectionPointX = fX + friendToEnemyX * 0.5;
 			double protectionPointY = fY + friendToEnemyY * 0.5;
 			
@@ -81,8 +87,7 @@ class HeroOrCoward extends ReLogoTurtle {
 			myMoveY = hidingPointY;
 		}
 		
-		this.moveTo(myMoveX, myMoveY, 0);
-		*/
+		this.facexy(myMoveX, myMoveY);
+		this.move(0.1);
 	}
-	
 }

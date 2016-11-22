@@ -58,9 +58,45 @@ agentsToSF agents = map activeAgent agents
 activeAgent :: AgentState -> ActiveAgent
 activeAgent as = proc agentIn ->
     do
+        let friendPos = agentInAgents agentIn !! friend as
+        let enemyPos = agentInAgents agentIn !! enemy as
+        let enemyFriendDir = vecNorm $ posDir friendPos enemyPos
+        let newPos = if ishero as then coverPosition friendPos enemyPos else hidePosition friendPos enemyPos
         newXCoord <- integral >>^ (+ (fst $ agentPos as)) -< -1.0
         newYCoord <- integral >>^ (+ (snd $ agentPos as)) -< -1.0
         returnA -< AgentOut{ agentOutState = as { agentPos = (newXCoord, newYCoord) } }
+
+coverPosition :: AgentPosition -> AgentPosition -> AgentPosition
+coverPosition friendPos enemyPos = newPos
+    where
+        enemyFriendDir = vecNorm $ posDir friendPos enemyPos
+        newPos = addPos friendPos (multPos enemyFriendDir 10)
+
+hidePosition :: AgentPosition -> AgentPosition -> AgentPosition
+hidePosition friendPos enemyPos = newPos
+    where
+        enemyFriendDir = vecNorm $ posDir friendPos enemyPos
+        newPos = subPos friendPos (multPos enemyFriendDir 10)
+
+multPos :: AgentPosition -> Double -> AgentPosition
+multPos (x, y) s = (x*s, y*s)
+
+addPos :: AgentPosition -> AgentPosition -> AgentPosition
+addPos (x1, y1) (x2, y2) = (x1+x2, y1+y2)
+
+subPos :: AgentPosition -> AgentPosition -> AgentPosition
+subPos (x1, y1) (x2, y2) = (x1-x2, y1-y2)
+
+posDir :: AgentPosition -> AgentPosition -> AgentPosition
+posDir (v1x, v1y) (v2x, v2y) = (v2x - v1x, v2y - v1y)
+
+vecLen :: AgentPosition -> Double
+vecLen (vx, vy) = sqrt( vx * vx + vy * vy )
+
+vecNorm :: AgentPosition -> AgentPosition
+vecNorm (vx, vy) = (vx / len, vy / len)
+    where
+        len = vecLen (vx, vy)
 
 createAgents :: Int -> IO [AgentState]
 createAgents n = mapM (\id -> randomAgent id n ) [0..n-1]

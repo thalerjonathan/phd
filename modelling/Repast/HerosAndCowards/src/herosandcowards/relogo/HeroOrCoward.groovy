@@ -72,16 +72,24 @@ class HeroOrCoward extends ReLogoTurtle {
 		double myMoveX = 0.0;
 		double myMoveY = 0.0;
 		
+		double distance = 5;
+		
 		if ( hero ) {
-			double protectionPointX = fX + friendToEnemyX * 0.5;
-			double protectionPointY = fY + friendToEnemyY * 0.5;
+			double protectionPointX = fX + directionX * distance;
+			double protectionPointY = fY + directionY * distance;
+			
+			//protectionPointX = fX + friendToEnemyX * 0.5;
+			//protectionPointY = fY + friendToEnemyY * 0.5;
 			
 			myMoveX = protectionPointX;
 			myMoveY = protectionPointY;
 			
 		} else {
-			double hidingPointX = fX - friendToEnemyX * 0.5;
-			double hidingPointY = fY - friendToEnemyY * 0.5;
+			double hidingPointX = fX - directionX * distance;
+			double hidingPointY = fY - directionY * distance;
+		
+			//hidingPointX = fX - friendToEnemyX * 0.5;
+			//hidingPointY = fY - friendToEnemyY * 0.5;
 		
 			myMoveX = hidingPointX;
 			myMoveY = hidingPointY;

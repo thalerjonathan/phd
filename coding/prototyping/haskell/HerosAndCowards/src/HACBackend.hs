@@ -35,36 +35,38 @@ data AgentOut = AgentOut {
 type ActiveAgent = SF AgentIn AgentOut
 
 process :: [AgentState] -> SF SimulationIn SimulationOut
-process initAgents = proc simIn ->
+process agents = proc simIn ->
     do
-        agents <- (procHelper initAgents) -< simIn
+        agents <- (procHelper agents) -< (simIn, agents)
         let agentPositions = map (agentPos . agentOutState) agents
         returnA -< SimulationOut{ simOutAllAgents = agentPositions }
 
-procHelper :: [AgentState] -> SF SimulationIn [AgentOut]
-procHelper agents = par route (agentsToSF agents)
+procHelper :: [AgentState] -> SF (SimulationIn, [AgentState]) [AgentOut]
+procHelper allAgents = par route (agentsToSF allAgents)
 
 {- Routing function. Its purpose is to pair up each running signal function
-in the collection maintained by dpSwitch with the input it is going to see
+in the collection maintained by par with the input it is going to see
 at each point in time. All the routing function can do is specify how the input is distributed.
 -}
-route :: SimulationIn -> [sf] -> [(AgentIn, sf)]
-route simIn activeAgents = map (\sf -> (AgentIn { agentInAgents = [] }, sf)) activeAgents
+route :: (SimulationIn, [AgentState]) -> [sf] -> [(AgentIn, sf)]
+route (simIn, allAgents) agentSFs = map (\sf -> (AgentIn { agentInAgents = agentPositions }, sf)) agentSFs
+    where
+        agentPositions = map agentPos allAgents
 
 -- creates the initial collection of signal functions.
 agentsToSF :: [AgentState] -> [ActiveAgent]
 agentsToSF agents = map activeAgent agents
 
 activeAgent :: AgentState -> ActiveAgent
-activeAgent as = proc agentIn ->
+activeAgent a = proc agentIn ->
     do
-        let friendPos = agentInAgents agentIn !! friend as
-        let enemyPos = agentInAgents agentIn !! enemy as
+        let friendPos = agentInAgents agentIn !! friend a
+        let enemyPos = agentInAgents agentIn !! enemy a
         let enemyFriendDir = vecNorm $ posDir friendPos enemyPos
-        let newPos = if ishero as then coverPosition friendPos enemyPos else hidePosition friendPos enemyPos
-        newXCoord <- integral >>^ (+ (fst $ agentPos as)) -< -1.0
-        newYCoord <- integral >>^ (+ (snd $ agentPos as)) -< -1.0
-        returnA -< AgentOut{ agentOutState = as { agentPos = (newXCoord, newYCoord) } }
+        let newPos = if ishero a then coverPosition friendPos enemyPos else hidePosition friendPos enemyPos
+        newXCoord <- integral >>^ (+ (fst $ agentPos a)) -< -1.0
+        newYCoord <- integral >>^ (+ (snd $ agentPos a)) -< -1.0
+        returnA -< AgentOut{ agentOutState = a { agentPos = (newXCoord, newYCoord) } }
 
 coverPosition :: AgentPosition -> AgentPosition -> AgentPosition
 coverPosition friendPos enemyPos = newPos

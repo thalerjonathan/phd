@@ -120,6 +120,28 @@
 						</ParameterEditor>
 					</Properties>                 
 				</Variable>
+				<Variable Class="Parameter">
+					<Id>1479835261536</Id>
+					<Name><![CDATA[agentCount]]></Name>
+					<X>310</X><Y>-20</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
+						<Type><![CDATA[int]]></Type>
+						<UnitType><![CDATA[NONE]]></UnitType>
+						<NumericType><![CDATA[double]]></NumericType>
+						<SdArray>false</SdArray>
+						<ParameterEditor>
+							<Id>1479835261534</Id>
+							<EditorContolType>TEXT_BOX</EditorContolType>
+							<MinSliderValue><![CDATA[0]]></MinSliderValue>
+							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
+							<DelimeterType>NO_DELIMETER</DelimeterType>
+						</ParameterEditor>
+					</Properties>                 
+				</Variable>
 			</Variables>
 			<AgentLinks>
 				<AgentLink>
@@ -168,7 +190,7 @@
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[100]]></Code>
+						<Code><![CDATA[agentCount]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>	
@@ -667,6 +689,21 @@ this.moveTo(myMoveX, myMoveY, 0);
 						</InitialValue>
 					</Properties>
 				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1479835221788</Id>
+					<Name><![CDATA[agentCountInit]]></Name>
+					<X>230</X><Y>-30</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[int]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[50]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
 			</Variables>
 
 			<Shapes>
@@ -754,6 +791,75 @@ this.moveTo(myMoveX, myMoveY, 0);
 					<Color>-16777216</Color>
 					<Text><![CDATA[value]]></Text>
 					<TextCode><![CDATA[heroDistributionSlider.getValue()]]></TextCode>
+					<Font>
+						<Name>SansSerif</Name>
+						<Size>10</Size>
+						<Style>0</Style>
+					</Font>
+					<Alignment>CENTER</Alignment>
+				</Text>
+				<Text>
+					<Id>1479835310097</Id>
+					<Name><![CDATA[text4]]></Name>
+					<X>310</X><Y>200</Y>
+					<Label><X>0</X><Y>-10</Y></Label>
+					<PublicFlag>true</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>false</ShowLabel>
+					<DrawMode>SHAPE_DRAW_2D</DrawMode>
+					<AsObject>true</AsObject>
+					<EmbeddedIcon>false</EmbeddedIcon>
+					<Z>0</Z>
+					<Rotation>0.0</Rotation>
+					<Color>-16777216</Color>
+					<Text><![CDATA[min]]></Text>
+					<TextCode><![CDATA[agentCountSlider.getMin()]]></TextCode>
+					<Font>
+						<Name>SansSerif</Name>
+						<Size>10</Size>
+						<Style>0</Style>
+					</Font>
+					<Alignment>LEFT</Alignment>
+				</Text>
+				<Text>
+					<Id>1479835310098</Id>
+					<Name><![CDATA[text5]]></Name>
+					<X>540</X><Y>200</Y>
+					<Label><X>0</X><Y>-10</Y></Label>
+					<PublicFlag>true</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>false</ShowLabel>
+					<DrawMode>SHAPE_DRAW_2D</DrawMode>
+					<AsObject>true</AsObject>
+					<EmbeddedIcon>false</EmbeddedIcon>
+					<Z>0</Z>
+					<Rotation>0.0</Rotation>
+					<Color>-16777216</Color>
+					<Text><![CDATA[max]]></Text>
+					<TextCode><![CDATA[agentCountSlider.getMax()]]></TextCode>
+					<Font>
+						<Name>SansSerif</Name>
+						<Size>10</Size>
+						<Style>0</Style>
+					</Font>
+					<Alignment>RIGHT</Alignment>
+				</Text>
+				<Text>
+					<Id>1479835310099</Id>
+					<Name><![CDATA[text6]]></Name>
+					<X>425</X><Y>200</Y>
+					<Label><X>0</X><Y>-10</Y></Label>
+					<PublicFlag>true</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>false</ShowLabel>
+					<DrawMode>SHAPE_DRAW_2D</DrawMode>
+					<AsObject>true</AsObject>
+					<EmbeddedIcon>false</EmbeddedIcon>
+					<Z>0</Z>
+					<Rotation>0.0</Rotation>
+					<Color>-16777216</Color>
+					<Text><![CDATA[value]]></Text>
+					<TextCode><![CDATA[agentCountSlider.getValue()]]></TextCode>
 					<Font>
 						<Name>SansSerif</Name>
 						<Size>10</Size>
@@ -849,6 +955,30 @@ heroDistributionSlider.setValue(heroDistributionInit);
 						<Link>heroDistributionInit</Link>
 					</ExtendedProperties>
 				</Control>
+				<Control Type="Slider">
+				 	<EmbeddedIcon>false</EmbeddedIcon>				
+					<Id>1479835190044</Id>
+					<Name><![CDATA[agentCountSlider]]></Name>
+					<X>310</X><Y>170</Y>
+					<Label><X>0</X><Y>-10</Y></Label>
+					<PublicFlag>true</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>false</ShowLabel>
+					<BasicProperties Width="230" Height="30" 
+				AsObject="true">
+                        <EmbeddedIcon>false</EmbeddedIcon>				
+						<FillColor/>
+						<Enabled>true</Enabled>
+					</BasicProperties>
+					<ExtendedProperties>
+						<DefaultValueCode><![CDATA[50]]></DefaultValueCode>
+						<Orientation>HORIZONTAL</Orientation>
+						<MinValue><![CDATA[3]]></MinValue>
+						<MaxValue><![CDATA[100]]></MaxValue>
+						<LinkTo>true</LinkTo>
+						<Link>agentCountInit</Link>
+					</ExtendedProperties>
+				</Control>
 			</Controls>
 
 			<Parameters>			
@@ -856,6 +986,12 @@ heroDistributionSlider.setValue(heroDistributionInit);
 					<ParameterName><![CDATA[heroDistribution]]></ParameterName>
 					<ParameterValue Class="CodeValue">
 						<Code><![CDATA[heroDistributionInit]]></Code>
+					</ParameterValue>
+				</Parameter>
+				<Parameter>
+					<ParameterName><![CDATA[agentCount]]></ParameterName>
+					<ParameterValue Class="CodeValue">
+						<Code><![CDATA[agentCountInit]]></Code>
 					</ParameterValue>
 				</Parameter>
 			</Parameters>			

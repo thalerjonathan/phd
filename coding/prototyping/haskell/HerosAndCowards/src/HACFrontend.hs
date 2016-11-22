@@ -48,6 +48,11 @@ initialize = do
   -- set the color to clear background
   GL.clearColor $= Color4 1 1 1 0
 
+  GLFW.windowCloseCallback $= \flag ->
+    do
+        GLFW.terminate
+        return True
+
   -- set 2D orthogonal view inside windowSizeCallback because
   -- any change to the Window size should result in different
   -- OpenGL Viewport.

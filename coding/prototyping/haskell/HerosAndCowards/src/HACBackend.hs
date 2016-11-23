@@ -35,14 +35,16 @@ data AgentOut = AgentOut {
 type ActiveAgent = SF AgentIn AgentOut
 
 process :: [AgentState] -> SF SimulationIn SimulationOut
-process agents = proc simIn ->
+process initAgents = proc simIn ->
     do
-        agents <- (procHelper agents) -< (simIn, agents)
-        let agentPositions = map (agentPos . agentOutState) agents
+        rec
+            agentOuts <- (procHelper initAgents) -< (simIn, agents)
+            let agents = map agentOutState agentOuts
+        let agentPositions = map agentPos agents
         returnA -< SimulationOut{ simOutAllAgents = agentPositions }
 
 procHelper :: [AgentState] -> SF (SimulationIn, [AgentState]) [AgentOut]
-procHelper allAgents = par route (agentsToSF allAgents)
+procHelper initAgents = par route (agentsToSF initAgents)
 
 {- Routing function. Its purpose is to pair up each running signal function
 in the collection maintained by par with the input it is going to see
@@ -64,8 +66,8 @@ activeAgent a = proc agentIn ->
         let enemyPos = agentInAgents agentIn !! enemy a
         let enemyFriendDir = vecNorm $ posDir friendPos enemyPos
         let newPos = if ishero a then coverPosition friendPos enemyPos else hidePosition friendPos enemyPos
-        newXCoord <- integral >>^ (+ (fst $ agentPos a)) -< -1.0
-        newYCoord <- integral >>^ (+ (snd $ agentPos a)) -< -1.0
+        newXCoord <- integral -< (fst newPos)
+        newYCoord <- integral -< (snd newPos)
         returnA -< AgentOut{ agentOutState = a { agentPos = (newXCoord, newYCoord) } }
 
 coverPosition :: AgentPosition -> AgentPosition -> AgentPosition

@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
 <fullyQualifiedTypeName name="bsh.This"/>
+<fullyQualifiedTypeName name="FleetManagement.Fluid"/>
+<fullyQualifiedTypeName name="FleetManagement.Lorry"/>
+<fullyQualifiedTypeName name="FleetManagement.Pallet"/>
+<fullyQualifiedTypeName name="FleetManagement.Visitor.TrackableVisitor"/>
+<fullyQualifiedTypeName name="FleetManagement.Visitor.ITrackableVisitor"/>
 </qualifiedTypeNameHistroy>

@@ -4,6 +4,7 @@ Build-Type:        Simple
 cabal-version:     >= 1.2
 
 executable HerosAndCowards
-  main-is:         Main.hs
-  hs-source-dirs:  src
-  build-depends:   base, Yampa, GLFW, OpenGL, random
+  main-is:          Main.hs
+  hs-source-dirs:   src
+  build-depends:    base, Yampa, GLFW, OpenGL, random, monad-par, deepseq, parallel
+  ghc-options:      -threaded -rtsopts

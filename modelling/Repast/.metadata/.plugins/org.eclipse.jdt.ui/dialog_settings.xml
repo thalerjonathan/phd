@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<item value="/mnt/data/Dropbox/UoN/SWM/Workshop 8/FleetManagementLec6-SourceCode/lib" key="org.eclipse.jdt.ui.lastextjar"/>
-	<item value="/mnt/data/Dropbox/UoN/SWM/Workshop 8/FleetManagementLab6-SolutionSourceCode" key="org.eclipse.jdt.ui.last.external.project"/>
+	<item value="/mnt/data/Dropbox/UoN/SWM/Workshop 8/FleetManagementExtended" key="org.eclipse.jdt.ui.last.external.project"/>
+	<section name="org.eclipse.ltk.ui.refactoring.settings">
+		<item value="false" key="renameSubpackages"/>
+		<item value="false" key="updateQualifiedNames"/>
+		<item value="*" key="patterns"/>
+		<item value="false" key="updateSimilarElements"/>
+		<item value="1" key="updateSimilarElementsMatchStrategy"/>
+		<item value="false" key="updateTextualMatches"/>
+	</section>
 	<section name="ProblemSeveritiesConfigurationBlock">
 		<item value="false" key="expanded2"/>
 		<item value="false" key="expanded1"/>
@@ -19,17 +27,47 @@
 		<item value="1" key="rootMode"/>
 		<item value="false" key="linkWithEditor"/>
 	</section>
-	<section name="JavaBuildConfigurationBlock">
-		<item value="false" key="expanded2"/>
-		<item value="false" key="expanded1"/>
-		<item value="true" key="expanded0"/>
-	</section>
 	<section name="NewClassWizardPage">
 		<item value="false" key="create_constructor"/>
 		<item value="false" key="create_unimplemented"/>
 	</section>
 	<section name="OptionalMessageDialog.hide.">
 		<item value="true" key="org.eclipse.jdt.ui.typecomment.deprecated"/>
+	</section>
+	<section name="DialogBounds_GetterSetterTreeSelectionDialog">
+		<item value="550" key="DIALOG_WIDTH"/>
+		<item value="1|Noto Sans|10.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
+		<item value="704" key="DIALOG_HEIGHT"/>
+		<item value="689" key="DIALOG_X_ORIGIN"/>
+		<item value="59" key="DIALOG_Y_ORIGIN"/>
+	</section>
+	<section name="DialogBounds_GenerateToStringDialog">
+		<item value="507" key="DIALOG_WIDTH"/>
+		<item value="1|Noto Sans|10.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
+		<item value="711" key="DIALOG_HEIGHT"/>
+		<item value="711" key="DIALOG_X_ORIGIN"/>
+		<item value="54" key="DIALOG_Y_ORIGIN"/>
+	</section>
+	<section name="RefactoringWizard.preview">
+		<item value="600" key="width"/>
+		<item value="400" key="height"/>
+	</section>
+	<section name="JavaBuildConfigurationBlock">
+		<item value="false" key="expanded2"/>
+		<item value="false" key="expanded1"/>
+		<item value="true" key="expanded0"/>
+	</section>
+	<section name="SourceActionDialog.methods">
+		<item value="true" key="IgnoreDefault"/>
+		<item value="false" key="SynchronizedModifier"/>
+		<item value="false" key="Comments"/>
+		<item value="1" key="VisibilityModifier"/>
+		<item value="0" key="StringStyle"/>
+		<item value="0" key="ToStringTemplateSelected"/>
+		<item value="false" key="LimitElements"/>
+		<item value="false" key="SkipNull"/>
+		<item value="false" key="FinalModifier"/>
+		<item value="10" key="LimitValue"/>
 	</section>
 	<section name="BuildPathsPropertyPage">
 		<item value="2" key="pageIndex"/>
@@ -40,6 +78,10 @@
 		<item value="false" key="create_package_info_java"/>
 	</section>
 	<section name="completion_proposal_size">
+	</section>
+	<section name="AddGetterSetterDialog">
+		<item value="false" key="SortOrdering"/>
+		<item value="false" key="RemoveFinal"/>
 	</section>
 	<section name="JavaElementSearchActions">
 	</section>

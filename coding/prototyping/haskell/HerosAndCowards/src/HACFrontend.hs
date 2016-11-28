@@ -5,7 +5,7 @@ import Graphics.UI.GLFW as GLFW
 import Graphics.Rendering.OpenGL (($=))
 import Control.Monad
 
-import HACBackend as Back
+import HACAgent as Agent
 
 winSizeX :: GLsizei
 winSizeX = 800
@@ -70,16 +70,17 @@ shutdown = do
   GLFW.closeWindow
   GLFW.terminate
 
-renderFrame :: [Back.AgentPosition] -> IO ()
+renderFrame :: [Agent.AgentPosition] -> IO Bool
 renderFrame agents = do
     GL.clear [GL.ColorBuffer]
     GL.renderPrimitive GL.Triangles $ mapM_ (\a -> renderAgent a ) agents
     GLFW.swapBuffers
+    getParam Opened
 
 agentSizeHalf :: Double
 agentSizeHalf = 10.0
 
-renderAgent :: Back.AgentPosition -> IO ()
+renderAgent :: Agent.AgentPosition -> IO ()
 renderAgent agent = do
     GL.color $ color
     GL.vertex top

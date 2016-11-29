@@ -1,5 +1,7 @@
 module HACFrontend where
 
+import Debug.Trace
+
 import Graphics.Rendering.OpenGL as GL
 import Graphics.UI.GLFW as GLFW
 import Graphics.Rendering.OpenGL (($=))
@@ -16,24 +18,13 @@ winSizeY = 800
 winSize :: GL.Size
 winSize = (GL.Size winSizeX winSizeY)
 
-winDimXInt :: GL.Size -> Int
-winDimXInt (Size x y) = fromIntegral x
-
-winDimYInt :: GL.Size -> Int
-winDimYInt (Size x y) = fromIntegral y
-
 green :: GL.Color3 GLdouble
-green = GL.Color3 0.0 1.0 0.0
-
-black :: GL.Color3 GLdouble
-black = GL.Color3 0.0 0.0 0.0
+green = greenShade 1.0
 
 greenShade :: GLdouble -> GL.Color3 GLdouble
 greenShade s = GL.Color3 0.0 s 0.0
 
-redShade :: GLdouble -> GL.Color3 GLdouble
-redShade s = GL.Color3 s 0.0 0.0
-
+initialize :: IO ()
 initialize = do
   GLFW.initialize
   -- open window
@@ -47,14 +38,6 @@ initialize = do
   GL.lineWidth  $= 1.5
   -- set the color to clear background
   GL.clearColor $= Color4 1 1 1 0
-
-{-
-  GLFW.windowCloseCallback $= \flag ->
-    do
-        GLFW.terminate
-        return True
--}
-
   -- set 2D orthogonal view inside windowSizeCallback because
   -- any change to the Window size should result in different
   -- OpenGL Viewport.
@@ -70,30 +53,50 @@ shutdown = do
   GLFW.closeWindow
   GLFW.terminate
 
-renderFrame :: [Agent.AgentPosition] -> IO Bool
-renderFrame agents = do
+renderFrame :: [Agent.AgentOut] -> IO Bool
+renderFrame aos = do
     GL.clear [GL.ColorBuffer]
-    GL.renderPrimitive GL.Triangles $ mapM_ (\a -> renderAgent a ) agents
+    GL.matrixMode $= GL.Modelview 0
+    GL.loadIdentity
+    --GL.translate $ Vector3 100 100 (0.0 :: GLdouble)
+    --GL.rotate (-30.0 :: GLdouble) $ Vector3 0.0 0.0 (1.0 :: GLdouble)
+    mapM_ (\ao -> renderAgent ao ) aos
     GLFW.swapBuffers
     getParam Opened
 
 agentSizeHalf :: Double
 agentSizeHalf = 10.0
 
-renderAgent :: Agent.AgentPosition -> IO ()
-renderAgent agent = do
+renderAgent :: Agent.AgentOut -> IO ()
+renderAgent ao = preservingMatrix $ do
+    GL.translate $ Vector3 xCoord yCoord 0
+    GL.rotate angleDeg $ Vector3 0.0 0.0 1.0
+    GL.renderPrimitive GL.Triangles agentTriangle
+        where
+            dir = agentOutDir ao
+            angleRad = acos $ dotProd dir (1.0, 0.0)    -- NOTE: both vectors are of unit-length => must be the cos of the angle => acos for inverted results in radians,
+            angleDeg = angleRad * radToDegFact          -- NOTE: transform radians to degree
+            aState = agentOutState ao
+            (relXCoord, relYCoord) = agentPos aState
+            xCoord = relXCoord * fromIntegral winSizeX
+            yCoord = relYCoord * fromIntegral winSizeY
+            radToDegFact = (180.0/pi)
+
+dotProd :: (Double, Double) -> (Double, Double) -> Double
+dotProd (x1, y1) (x2, y2) = x1*x2 + y1*y2
+
+agentTriangle :: IO ()
+agentTriangle = do
     GL.color $ color
     GL.vertex top
     GL.vertex bottomRight
     GL.vertex bottomLeft
-    where
-            xCoord = fst agent
-            yCoord = snd agent
-            xRight = xCoord + agentSizeHalf
-            xLeft = xCoord - agentSizeHalf
-            yTop = yCoord + agentSizeHalf
-            yBottom = yCoord - agentSizeHalf
-            top = GL.Vertex3 xCoord yTop 0.0
+        where
+            xRight = agentSizeHalf
+            xLeft = -agentSizeHalf
+            yTop = -agentSizeHalf
+            yBottom = agentSizeHalf
+            top = GL.Vertex3 0.0 yTop 0.0
             bottomRight = GL.Vertex3 xRight yBottom 0.0
             bottomLeft = GL.Vertex3 xLeft yBottom 0.0
             color = greenShade 0.5

@@ -4,10 +4,10 @@ module HACAgent (
     AgentState (..),
     AgentIn (..),
     AgentOut (..),
-    cover,
-    hide,
-    decidePosition,
-    createAgents
+    agentSpeedPerTimeUnit,
+    agentStep,
+    createRandAgentStates,
+    agentInFromAgents
   ) where
 
 import System.Random
@@ -18,6 +18,9 @@ import Control.DeepSeq
 ----------------------------------------------------------------------------------------------------------------------
 type AgentId = Int
 type AgentPosition = (Double, Double)
+
+agentSpeedPerTimeUnit :: Double
+agentSpeedPerTimeUnit = 0.005
 
 data AgentState = AgentState {
     agentId :: AgentId,
@@ -39,40 +42,20 @@ data AgentIn = AgentIn {
 }
 
 data AgentOut = AgentOut {
-    agentOutState :: AgentState
+    agentOutState :: AgentState,
+    agentOutDir :: AgentPosition
 }
 
 -- NOTE: need to provide an instance-implementation for NFData when using Par-Monad as it reduces to normal-form
 instance NFData AgentState where
     rnf (AgentState id p e f h) = rnf id `seq` rnf p `seq` rnf e `seq` rnf f `seq` rnf h
 
-data Agent a = Agent a
+-- NOTE: need to provide an instance-implementation for NFData when using Par-Monad as it reduces to normal-form
+instance NFData AgentOut where
+    rnf (AgentOut os od) = rnf os `seq` rnf od
 
-instance Functor Agent where
-    fmap f (Agent a) = Agent (f a)
-
-instance Applicative Agent where
-    pure a = Agent a
-    (Agent f) <*> a = fmap f a
-
-instance Monad Agent where
-    return = pure
-    Agent a >>= f = f a
-
-createRandAgents :: RandomGen g => g -> Int -> Double -> [Agent AgentState]
-createRandAgents g n p = createRandAgents' g 0 n p
-    where
-        createRandAgents' g id n p
-            | id == n = []
-            | otherwise = randAgent : createRandAgents' g'' (id+1) n p
-                where
-                    randState = randomAgentState g' id n p
-                    randAgent = (return randState) :: Agent AgentState
-                    (g', g'') = split g
-
-
-createAgents :: RandomGen g => g -> Int -> Double -> [AgentState]
-createAgents g n p = createAgents' g 0 n p
+createRandAgentStates :: RandomGen g => g -> Int -> Double -> [AgentState]
+createRandAgentStates g n p = createAgents' g 0 n p
     where
         createAgents' g id n p
             | id == n = []
@@ -81,28 +64,38 @@ createAgents g n p = createAgents' g 0 n p
                     randState = randomAgentState g' id n p
                     (g', g'') = split g
 
-decidePosition :: AgentPosition -> AgentPosition -> AgentState -> AgentPosition
-decidePosition friendPos enemyPos a = if hero a then cover friendPos enemyPos else hide friendPos enemyPos
+agentStep :: AgentIn -> Double -> AgentState -> AgentOut
+agentStep aIn stepWidth a = AgentOut { agentOutState = a { agentPos = newPos }, agentOutDir = targetDir }
     where
-        enemyFriendDir = vecNorm $ posDir friendPos enemyPos
+        friendPos = agentInAgents aIn !! friend a
+        enemyPos = agentInAgents aIn !! enemy a
+        oldPos = agentPos a
+        targetPos = decidePosition friendPos enemyPos a
+        targetDir = vecNorm $ posDir oldPos targetPos
+        newPos = addPos oldPos (multPos targetDir stepWidth)
 
-cover :: AgentPosition -> AgentPosition -> AgentPosition
-cover friendPos enemyPos = newPos
+agentInFromAgents :: [AgentState] -> AgentIn
+agentInFromAgents as = AgentIn { agentInAgents = agentPositions }
     where
-        enemyFriendDir = vecNorm $ posDir friendPos enemyPos
-        newPos = addPos friendPos (multPos enemyFriendDir distance)
-
-hide :: AgentPosition -> AgentPosition -> AgentPosition
-hide friendPos enemyPos = newPos
-    where
-        enemyFriendDir = vecNorm $ posDir friendPos enemyPos
-        newPos = subPos friendPos (multPos enemyFriendDir distance)
+        agentPositions = map agentPos as
 
 ----------------------------------------------------------------------------------------------------------------------
 -- PRIVATES
 ----------------------------------------------------------------------------------------------------------------------
-distance :: Double
-distance = 10.0
+hideDistance :: Double
+hideDistance = 0.1
+
+coverDistance :: Double
+coverDistance = 0.1
+
+decidePosition :: AgentPosition -> AgentPosition -> AgentState -> AgentPosition
+decidePosition friendPos enemyPos a
+    | hero a = coverPosition
+    | otherwise = hidePosition
+    where
+        enemyFriendDir = vecNorm $ posDir friendPos enemyPos
+        coverPosition = addPos friendPos (multPos enemyFriendDir coverDistance)
+        hidePosition = subPos friendPos (multPos enemyFriendDir hideDistance)
 
 multPos :: AgentPosition -> Double -> AgentPosition
 multPos (x, y) s = (x*s, y*s)
@@ -127,8 +120,8 @@ vecNorm (vx, vy) = (vx / len, vy / len)
 randomAgentState :: RandomGen g => g -> Int -> Int -> Double -> AgentState
 randomAgentState g id maxAgents p = a
     where
-        (randX, g') = randomR(1.0, 800.0) g
-        (randY, g'') = randomR(1.0, 800.0) g'
+        (randX, g') = randomR(0.0, 1.0) g
+        (randY, g'') = randomR(0.0, 1.0) g'
         (randEnemy, g''') = drawRandomIgnoring g'' 0 (maxAgents-1) [id]
         (randFriend, g4) = drawRandomIgnoring g''' 0 (maxAgents-1) [id, randEnemy]
         (randHero, g5) = randomThresh g4 p

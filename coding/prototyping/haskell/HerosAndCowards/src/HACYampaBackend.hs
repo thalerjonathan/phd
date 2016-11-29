@@ -11,7 +11,6 @@ import HACSimulation as Sim
 
 type ActiveAgent = SF AgentIn AgentOut
 
-
 {-
 NOTE: I think i have to split the whole process and procHelper thing:
 the first call to process uses initialAgents as input without arror-rec!
@@ -20,11 +19,8 @@ then subsequent recursions are using the previously output-states as the input f
 process :: [AgentState] -> SF Sim.SimIn Sim.SimOut
 process initAgentStates = proc simIn ->
     do
-        rec
-            agentOuts <- (procHelper initAgentStates) -< simIn
-            let agentStates = map agentOutState agentOuts
-        let agentPositions = map agentPos agentStates
-        returnA -< Sim.SimOut{ simOutAllAgents = agentPositions }
+        agentOuts <- (procHelper initAgentStates) -< simIn
+        returnA -< Sim.SimOut{ simOutAllAgents = agentOuts }
 
 
 procHelper :: [AgentState] -> SF (Sim.SimIn) [AgentOut]
@@ -46,13 +42,13 @@ returns:        a list of tuples where:
                     2nd item is the signal-function
 -}
 route :: [AgentState] -> (Sim.SimIn) -> [sf] -> [(AgentIn, sf)]
-route agentStates (simIn) agentSFs = map (\sf -> (AgentIn { agentInAgents = agentPositions }, sf)) agentSFs
+route as (simIn) agentSFs = map (\sf -> (aIn, sf)) agentSFs
     where
-        agentPositions = map agentPos agentStates
+        aIn = agentInFromAgents as
 
 -- creates the initial collection of signal functions.
 agentsToSF :: [AgentState] -> [ActiveAgent]
-agentsToSF agents = map activeAgent agents
+agentsToSF as = map activeAgent as
 
 {- Signal function that observes the external input signal and
 the output signals from the collection in order to produce a switching event.
@@ -71,12 +67,10 @@ previously running and the value carried by the switching event. This allows the
 continuation :: [ActiveAgent] -> [AgentState] -> SF (Sim.SimIn) [AgentOut]
 continuation agentSFs newAgentStates = procHelper newAgentStates
 
--- TODO: need a step-with per time-unit, would require the time expired since last iteration => explicitly modelling
---       time but this would then be real-time!
+-- TODO: problem integral / derivative does not work as imagined because for every iteration a new SF is created which begins with its time at 0 :(
 activeAgent :: AgentState -> ActiveAgent
 activeAgent a = proc agentIn ->
     do
-        let friendPos = agentInAgents agentIn !! friend a
-        let enemyPos = agentInAgents agentIn !! enemy a
-        let newPos = decidePosition friendPos enemyPos a
-        returnA -< AgentOut{ agentOutState = a { agentPos = newPos } }
+        stepWidth <- integral -< Agent.agentSpeedPerTimeUnit
+        let out = Agent.agentStep agentIn stepWidth a
+        returnA -< out

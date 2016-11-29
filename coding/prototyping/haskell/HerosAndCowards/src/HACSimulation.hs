@@ -6,5 +6,5 @@ data SimIn = SimIn {
 }
 
 data SimOut = SimOut {
-    simOutAllAgents :: [Agent.AgentPosition]
+    simOutAllAgents :: [Agent.AgentOut]
 }

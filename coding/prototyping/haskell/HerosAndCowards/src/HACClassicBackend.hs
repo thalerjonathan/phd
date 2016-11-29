@@ -3,6 +3,8 @@ module HACClassicBackend (
     process_
   )where
 
+import System.Random
+
 import HACAgent as Agent
 
 import Control.DeepSeq
@@ -11,40 +13,65 @@ import Control.Monad.Par
 ----------------------------------------------------------------------------------------------------------------------
 -- EXPORTS
 ----------------------------------------------------------------------------------------------------------------------
-process :: [AgentState] -> ([AgentState] -> IO Bool) -> IO [AgentState]
-process as outFunc = do
-    let as' = processAgentsPar as
-    continue <- outFunc as'
-    if continue then
-        process as' outFunc
-            else
-                return as'
+process :: [AgentState] -> ([AgentOut] -> IO (Bool, Double)) -> IO [AgentOut]
+process as outFunc = process' as outFunc 0.0
+    where
+        process' :: [AgentState] -> ([AgentOut] -> IO (Bool, Double)) -> Double -> IO [AgentOut]
+        process' as outFunc dt = do
+                                     let distance = Agent.agentSpeedPerTimeUnit * dt
+                                     let aos = allAgentSteps as distance
+                                     let as' = map agentOutState aos
+                                     (continue, dt) <- outFunc aos
+                                     if continue then
+                                         process' as' outFunc dt
+                                             else
+                                                 return aos
 
-process_ :: [AgentState] -> Int -> [AgentState]
+process_ :: [AgentState] -> Int -> [AgentOut]
 process_ as iterCount
     | iterCount > 0 = process_ as' (iterCount - 1)
-    | otherwise = as'
+    | otherwise = aos
         where
-            as' = processAgentsPar as
+            stepWidth = Agent.agentSpeedPerTimeUnit
+            aos = allAgentSteps as stepWidth
+            as' = map agentOutState aos
+
+------------------------------------------------------------------------------------------------------------------------
+-- MONADIC Agent implementation
+------------------------------------------------------------------------------------------------------------------------
+data Agent a = Agent a
+
+instance Functor Agent where
+    fmap f (Agent a) = Agent (f a)
+
+instance Applicative Agent where
+    pure a = Agent a
+    (Agent f) <*> a = fmap f a
+
+instance Monad Agent where
+    return = pure
+    Agent a >>= f = f a
+
+createRandAgents :: RandomGen g => g -> Int -> Double -> Agent [AgentState]
+createRandAgents g n p = mapM return randAgentStates
+    where
+        randAgentStates = Agent.createRandAgentStates g n p
+------------------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------------------------------------------------------------------------------------
 -- PRIVATES
 ----------------------------------------------------------------------------------------------------------------------
-processAgentsPar :: [AgentState] -> [AgentState]
-processAgentsPar as = runPar p
-    where
-        p = parMap (processAgent as) as
+allAgentSteps :: [AgentState] -> Double -> [AgentOut]
+allAgentSteps = allAgentStepsPar -- NOTE: can be replaced by par-version
 
-processAgentsSeq :: [AgentState] -> [AgentState]
-processAgentsSeq as = p
+allAgentStepsPar :: [AgentState] -> Double -> [AgentOut]
+allAgentStepsPar as stepWidth = runPar p
     where
-        p = map (processAgent as) as
+        agentIn = agentInFromAgents as
+        p = parMap (Agent.agentStep agentIn stepWidth) as
 
--- TODO: need a step-with per time-unit, would require the time expired since last iteration => explicitly modelling
---       time but this would then be real-time!
-processAgent :: [AgentState] -> AgentState -> AgentState
-processAgent allAgents a = a { agentPos = newPos }
+allAgentStepsSeq :: [AgentState] -> Double -> [AgentOut]
+allAgentStepsSeq as stepWidth = p
     where
-        friendPos = agentPos $ allAgents !! friend a
-        enemyPos = agentPos $ allAgents !! enemy a
-        newPos = decidePosition friendPos enemyPos a
+        agentIn = agentInFromAgents as
+        p = map (Agent.agentStep agentIn stepWidth) as

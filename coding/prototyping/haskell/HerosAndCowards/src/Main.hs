@@ -1,7 +1,9 @@
 module Main where
 
-import FRP.Yampa
+import System.Random
 import System.Environment (getArgs, getProgName)
+
+import FRP.Yampa
 
 import HACAgent as Agent
 import HACSimulation as Sim
@@ -18,11 +20,13 @@ dimensions = (800, 800)
 
 main :: IO ()
 main = do
+    -- g <- getStdGen
+    let g = mkStdGen 42 -- NOTE: if we want to reproduce then we need to onitialize RNG ourselves
     Front.initialize
-    as <- Agent.createAgents 100 heroDistribution
-    -- ClassicBack.process as (\as -> Front.renderFrame (map agentPos as))
-    let as' = ClassicBack.process_ as 100000
-    Front.renderFrame (map agentPos as')
+    let as = Agent.createAgents g 100 heroDistribution
+    ClassicBack.process as (\as -> Front.renderFrame (map agentPos as))
+    --let as' = ClassicBack.process_ as 100000
+    --Front.renderFrame (map agentPos as')
     Front.shutdown
 
 
@@ -31,9 +35,11 @@ main = do
 -----------------------------------------------------------------------------------------------------------------------
 yampaRun :: IO ()
 yampaRun = do
+    -- g <- getStdGen
+    let g = mkStdGen 42 -- NOTE: if we want to reproduce then we need to onitialize RNG ourselves
     Front.initialize
-    agents <- Agent.createAgents 100 heroDistribution
-    reactimate Main.initialize input output (YampaBack.process agents)
+    let as = Agent.createAgents g 100 heroDistribution
+    reactimate Main.initialize input output (YampaBack.process as)
     Front.shutdown
 
 initialize :: IO Sim.SimIn

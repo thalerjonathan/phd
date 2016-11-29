@@ -16,7 +16,6 @@ import Control.DeepSeq
 ----------------------------------------------------------------------------------------------------------------------
 -- EXPORTS
 ----------------------------------------------------------------------------------------------------------------------
-
 type AgentId = Int
 type AgentPosition = (Double, Double)
 
@@ -39,8 +38,40 @@ data AgentOut = AgentOut {
 instance NFData AgentState where
     rnf (AgentState p e f h) = rnf p `seq` rnf e `seq` rnf f `seq` rnf h
 
-createAgents :: Int -> Double -> IO [AgentState]
-createAgents n p = mapM (\id -> randomAgent id n p ) [0..n-1]
+data Agent a = Agent a
+
+instance Functor Agent where
+    fmap f (Agent a) = Agent (f a)
+
+instance Applicative Agent where
+    pure a = Agent a
+    (Agent f) <*> a = fmap f a
+
+instance Monad Agent where
+    return = pure
+    Agent a >>= f = f a
+
+createRandAgents :: RandomGen g => g -> Int -> Double -> [Agent AgentState]
+createRandAgents g n p = createRandAgents' g 0 n p
+    where
+        createRandAgents' g id n p
+            | id == n = []
+            | otherwise = randAgent : createRandAgents' g'' (id+1) n p
+                where
+                    randState = randomAgentState g' id n p
+                    randAgent = (return randState) :: Agent AgentState
+                    (g', g'') = split g
+
+
+createAgents :: RandomGen g => g -> Int -> Double -> [AgentState]
+createAgents g n p = createAgents' g 0 n p
+    where
+        createAgents' g id n p
+            | id == n = []
+            | otherwise = randState : createAgents' g'' (id+1) n p
+                where
+                    randState = randomAgentState g' id n p
+                    (g', g'') = split g
 
 decidePosition :: AgentPosition -> AgentPosition -> AgentState -> AgentPosition
 decidePosition friendPos enemyPos a = if hero a then cover friendPos enemyPos else hide friendPos enemyPos
@@ -62,7 +93,6 @@ hide friendPos enemyPos = newPos
 ----------------------------------------------------------------------------------------------------------------------
 -- PRIVATES
 ----------------------------------------------------------------------------------------------------------------------
-
 distance :: Double
 distance = 10.0
 
@@ -86,30 +116,28 @@ vecNorm (vx, vy) = (vx / len, vy / len)
     where
         len = vecLen (vx, vy)
 
-randomAgent :: Int -> Int -> Double -> IO AgentState
-randomAgent id maxAgents p =
-    do
-        randX <- getStdRandom( randomR(1.0, 800.0) )
-        randY <- getStdRandom( randomR(1.0, 800.0) )
-        randEnemy <- drawRandomIgnoring 0 (maxAgents-1) [id]
-        randFriend <- drawRandomIgnoring 0 (maxAgents-1) [id, randEnemy]
-        randHero <- randomThresh p
-        return AgentState { agentPos = (randX, randY),
-            enemy = randEnemy,
-            friend = randFriend,
-            hero = randHero}
+randomAgentState :: RandomGen g => g -> Int -> Int -> Double -> AgentState
+randomAgentState g id maxAgents p = a
+    where
+        (randX, g') = randomR(1.0, 800.0) g
+        (randY, g'') = randomR(1.0, 800.0) g'
+        (randEnemy, g''') = drawRandomIgnoring g'' 0 (maxAgents-1) [id]
+        (randFriend, g4) = drawRandomIgnoring g''' 0 (maxAgents-1) [id, randEnemy]
+        (randHero, g5) = randomThresh g4 p
+        a = AgentState { agentPos = (randX, randY),
+                        enemy = randEnemy,
+                        friend = randFriend,
+                        hero = randHero}
 
-drawRandomIgnoring :: Int -> Int -> [Int] -> IO Int
-drawRandomIgnoring lowerRange upperRange ignore =
-    do
-        randInt <- getStdRandom(randomR(lowerRange, upperRange - 1))
-        if any (==randInt) ignore then
-            drawRandomIgnoring lowerRange upperRange ignore
-                else
-                    return randInt
+drawRandomIgnoring :: (RandomGen g) => g -> Int -> Int -> [Int] -> (Int, g)
+drawRandomIgnoring g lowerRange upperRange ignore
+    | any (==randInt) ignore = drawRandomIgnoring g' lowerRange upperRange ignore
+    | otherwise = (randInt, g')
+        where
+            (randInt, g') = randomR(lowerRange, upperRange - 1) g
 
-randomThresh :: Double -> IO Bool
-randomThresh p =
-    do
-        thresh <- getStdRandom( randomR(0.0, 1.0) )
-        return (thresh <= p)
+randomThresh :: (RandomGen g) => g -> Double -> (Bool, g)
+randomThresh g p = (flag, g')
+    where
+        (thresh, g') = randomR(0.0, 1.0) g
+        flag = thresh <= p

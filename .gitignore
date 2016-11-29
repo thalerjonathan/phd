@@ -16,3 +16,6 @@ dist/
 .idea/
 out/
 .dist-buildwrapper/
+.metadata/
+.recommenders/
+src-gen/

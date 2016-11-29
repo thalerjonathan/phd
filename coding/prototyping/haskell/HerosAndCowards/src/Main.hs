@@ -18,6 +18,10 @@ heroDistribution = 1.0
 dimensions :: (Int, Int)
 dimensions = (800, 800)
 
+-----------------------------------------------------------------------------------------------------------------------
+-- CLASSIC --
+-----------------------------------------------------------------------------------------------------------------------
+{-
 main :: IO ()
 main = do
     -- g <- getStdGen
@@ -28,13 +32,13 @@ main = do
     --let as' = ClassicBack.process_ as 100000
     --Front.renderFrame (map agentPos as')
     Front.shutdown
-
+-}
 
 -----------------------------------------------------------------------------------------------------------------------
 -- YAMPA --
 -----------------------------------------------------------------------------------------------------------------------
-yampaRun :: IO ()
-yampaRun = do
+main :: IO ()
+main = do
     -- g <- getStdGen
     let g = mkStdGen 42 -- NOTE: if we want to reproduce then we need to onitialize RNG ourselves
     Front.initialize

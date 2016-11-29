@@ -71,9 +71,15 @@ continuation agentSFs newAgentStates = procHelper newAgentStates
 activeAgent :: AgentState -> ActiveAgent
 activeAgent a = proc agentIn ->
     do
+        {-
         let friendPos = agentInAgents agentIn !! friend a
         let enemyPos = agentInAgents agentIn !! enemy a
         let newPos = decidePosition friendPos enemyPos a
         newXCoord <- integral -< (fst newPos)
         newYCoord <- integral -< (snd newPos)
+        -}
+        --let (fxCoord, fyCoord) = agentInAgents agentIn !! friend a
+        let (xCoord, yCoord) = agentPos a
+        let newXCoord = xCoord + 1
+        let newYCoord = yCoord + 1
         returnA -< AgentOut{ agentOutState = a { agentPos = (newXCoord, newYCoord) } }

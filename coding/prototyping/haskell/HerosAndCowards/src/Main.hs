@@ -13,7 +13,7 @@ import HACYampaBackend as YampaBack
 import HACClassicBackend as ClassicBack
 
 heroDistribution :: Double
-heroDistribution = 1.0
+heroDistribution = 0.0
 
 dimensions :: (Int, Int)
 dimensions = (800, 800)
@@ -27,7 +27,7 @@ main = do
     -- g <- getStdGen
     let g = mkStdGen 42 -- NOTE: if we want to reproduce then we need to onitialize RNG ourselves
     Front.initialize
-    let as = Agent.createAgents g 100 heroDistribution
+    let as = Agent.createAgents g 3 heroDistribution
     ClassicBack.process as (\as -> Front.renderFrame (map agentPos as))
     --let as' = ClassicBack.process_ as 100000
     --Front.renderFrame (map agentPos as')

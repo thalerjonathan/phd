@@ -20,11 +20,19 @@ type AgentId = Int
 type AgentPosition = (Double, Double)
 
 data AgentState = AgentState {
+    agentId :: AgentId,
     agentPos :: AgentPosition,
     enemy :: AgentId,
     friend :: AgentId,
     hero :: Bool
 }
+
+instance Show AgentState where
+    show (AgentState agentId agentPos enemy friend hero) =
+        "Agent " ++ (show agentId) ++
+        " has friend " ++ (show friend) ++
+        ", has enemy " ++ (show enemy) ++
+        ", is on " ++ (show agentPos)
 
 data AgentIn = AgentIn {
     agentInAgents :: [AgentPosition]
@@ -36,7 +44,7 @@ data AgentOut = AgentOut {
 
 -- NOTE: need to provide an instance-implementation for NFData when using Par-Monad as it reduces to normal-form
 instance NFData AgentState where
-    rnf (AgentState p e f h) = rnf p `seq` rnf e `seq` rnf f `seq` rnf h
+    rnf (AgentState id p e f h) = rnf id `seq` rnf p `seq` rnf e `seq` rnf f `seq` rnf h
 
 data Agent a = Agent a
 
@@ -124,7 +132,8 @@ randomAgentState g id maxAgents p = a
         (randEnemy, g''') = drawRandomIgnoring g'' 0 (maxAgents-1) [id]
         (randFriend, g4) = drawRandomIgnoring g''' 0 (maxAgents-1) [id, randEnemy]
         (randHero, g5) = randomThresh g4 p
-        a = AgentState { agentPos = (randX, randY),
+        a = AgentState { agentId = id,
+                        agentPos = (randX, randY),
                         enemy = randEnemy,
                         friend = randFriend,
                         hero = randHero}

@@ -67,11 +67,11 @@ allAgentSteps = allAgentStepsPar -- NOTE: can be replaced by par-version
 allAgentStepsPar :: [AgentState] -> Double -> [AgentOut]
 allAgentStepsPar as stepWidth = runPar p
     where
-        agentIn = agentInFromAgents as
-        p = parMap (Agent.agentStep agentIn stepWidth) as
+        ains = agentInFromAgents as
+        p = parMap (Agent.agentStep stepWidth) ains
 
 allAgentStepsSeq :: [AgentState] -> Double -> [AgentOut]
 allAgentStepsSeq as stepWidth = p
     where
-        agentIn = agentInFromAgents as
-        p = map (Agent.agentStep agentIn stepWidth) as
+        ains = agentInFromAgents as
+        p = map (Agent.agentStep stepWidth) ains

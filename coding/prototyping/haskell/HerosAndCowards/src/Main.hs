@@ -1,5 +1,6 @@
 module Main where
 
+import Data.IORef
 import System.Random
 import System.Environment (getArgs, getProgName)
 
@@ -14,6 +15,59 @@ import HACClassicBackend as ClassicBack
 
 heroDistribution :: Double
 heroDistribution = 1.0
+
+-----------------------------------------------------------------------------------------------------------------------
+-- CLASSIC/MONADIC --
+-----------------------------------------------------------------------------------------------------------------------
+main :: IO ()
+{-
+main = do
+    -- g <- getStdGen
+    let g = mkStdGen 42 -- NOTE: if we want to reproduce then we need to onitialize RNG ourselves
+    Front.initialize
+    let as = Agent.createRandAgentStates g 5 heroDistribution
+    ClassicBack.process as output
+    --let as' = ClassicBack.process_ as 100000
+    --Front.renderFrame (map agentPos as')
+    Front.shutdown
+
+output :: [AgentOut] -> IO (Bool, Double)
+output aos = do
+    winClosed <- Front.renderFrame aos
+    return (winClosed, 0.5)
+    -}
+-----------------------------------------------------------------------------------------------------------------------
+
+
+-----------------------------------------------------------------------------------------------------------------------
+-- YAMPA --
+-----------------------------------------------------------------------------------------------------------------------
+main :: IO ()
+main = do
+    let g = mkStdGen 42 -- NOTE: if we want to reproduce then we need to onitialize RNG ourselves
+    Front.initialize
+    let as = Agent.createRandAgentStates g 5 heroDistribution
+    agentsRef <- newIORef as
+    reactimate (Main.init as) (input agentsRef) (output agentsRef) (YampaBack.process as)
+    Front.shutdown
+
+init :: [Agent.AgentState] -> IO [Agent.AgentState]
+init initAs = do
+    return initAs
+
+input :: IORef [Agent.AgentState] -> Bool -> IO (DTime, Maybe [Agent.AgentState])
+input ref _ = do
+    as <- readIORef ref
+    return (0.5, Just as)
+
+output :: IORef [Agent.AgentState] -> Bool -> [Agent.AgentOut] -> IO Bool
+output ref _ aos = do
+    let as = map agentOutState aos
+    writeIORef ref as
+    winOpened <- Front.renderFrame aos
+    return $ not winOpened
+----------------------------------------------------------------------------------------------------------------------
+
 
 -----------------------------------------------------------------------------------------------------------------------
 -- Testing Rendering --
@@ -58,53 +112,3 @@ testRender aos = do
         else
             return ()
 -}
------------------------------------------------------------------------------------------------------------------------
--- CLASSIC/MONADIC --
------------------------------------------------------------------------------------------------------------------------
-
-main :: IO ()
-main = do
-    -- g <- getStdGen
-    let g = mkStdGen 42 -- NOTE: if we want to reproduce then we need to onitialize RNG ourselves
-    Front.initialize
-    let as = Agent.createRandAgentStates g 5 heroDistribution
-    ClassicBack.process as output
-    --let as' = ClassicBack.process_ as 100000
-    --Front.renderFrame (map agentPos as')
-    Front.shutdown
-
-output :: [AgentOut] -> IO (Bool, Double)
-output aos = do
-    winClosed <- Front.renderFrame aos
-    return (winClosed, 0.5)
-
------------------------------------------------------------------------------------------------------------------------
-
-
------------------------------------------------------------------------------------------------------------------------
--- YAMPA --
------------------------------------------------------------------------------------------------------------------------
-{-
-main :: IO ()
-main = do
-    -- g <- getStdGen
-    let g = mkStdGen 42 -- NOTE: if we want to reproduce then we need to onitialize RNG ourselves
-    Front.initialize
-    let as = Agent.createRandAgentStates g 5 heroDistribution
-    reactimate Main.initialize input output (YampaBack.process as)
-    Front.shutdown
-
-initialize :: IO Sim.SimIn
-initialize = do
-    return Sim.SimIn {}
-
-input :: Bool -> IO (DTime, Maybe Sim.SimIn)
-input _ = return (0.5, Nothing)
-
-output :: Bool -> Sim.SimOut -> IO Bool
-output _ out = do
-    let as = Sim.simOutAllAgents out
-    winOpened <- Front.renderFrame as
-    return $ not winOpened
--}
------------------------------------------------------------------------------------------------------------------------

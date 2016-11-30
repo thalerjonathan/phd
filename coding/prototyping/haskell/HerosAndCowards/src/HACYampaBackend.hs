@@ -6,71 +6,36 @@ import Debug.Trace
 import FRP.Yampa
 import FRP.Yampa.Switches
 
-import HACAgent as Agent
-import HACSimulation as Sim
+import qualified HACAgent as Agent
 
-type ActiveAgent = SF AgentIn AgentOut
+type ActiveAgent = SF Agent.AgentIn Agent.AgentOut
 
-{-
-NOTE: I think i have to split the whole process and procHelper thing:
-the first call to process uses initialAgents as input without arror-rec!
-then subsequent recursions are using the previously output-states as the input for the next recursion
--}
-process :: [AgentState] -> SF Sim.SimIn Sim.SimOut
-process initAgentStates = proc simIn ->
+{- NOTE: problem is we have 3 versions of the agents at this point:
+         1. initial agents in initAs
+         2. input agents to SF in as
+         3. output agents of SF in aos
+    We cannot use rec in this case to feed the output back into the input because the output BECOMES the input and not
+    a calculuation in it - this needs to be done outside
+ -}
+process :: [Agent.AgentState] -> SF [Agent.AgentState] [Agent.AgentOut]
+process initAs = proc as ->
     do
-        agentOuts <- (procHelper initAgentStates) -< simIn
-        returnA -< Sim.SimOut{ simOutAllAgents = agentOuts }
+        aos <- par route initialSFs -< as
+        returnA -< aos
+        where
+            initialSFs = map activeAgent initAs
 
-
-procHelper :: [AgentState] -> SF (Sim.SimIn) [AgentOut]
-procHelper agentStates = dpSwitch
-                            (route agentStates)
-                            (agentsToSF agentStates)
-                            (arr collectOutput >>> notYet)              -- Signal function that observes the external input signal and the output signals from the collection in order to produce a switching event.
-                            continuation
-
-{- Routing function. Its purpose is to pair up each running signal function
-in the collection maintained by par with the input it is going to see
-at each point in time. All the routing function can do is specify how the input is distributed.
-
-1st argument:   the input
-2nd argument:   the collection of signal-functions
-
-returns:        a list of tuples where:
-                    1st item of the tuple is the input to the signal-function a
-                    2nd item is the signal-function
--}
-route :: [AgentState] -> (Sim.SimIn) -> [sf] -> [(AgentIn, sf)]
-route as (simIn) agentSFs = map (\sf -> (aIn, sf)) agentSFs
+route :: [Agent.AgentState] -> [sf] -> [(Agent.AgentIn, sf)]
+route as sfs = zip ains sfs
     where
-        aIn = agentInFromAgents as
+        ains = Agent.agentInFromAgents as
 
--- creates the initial collection of signal functions.
-agentsToSF :: [AgentState] -> [ActiveAgent]
-agentsToSF as = map activeAgent as
-
-{- Signal function that observes the external input signal and
-the output signals from the collection in order to produce a switching event.
-
-1st argument:   tuple where the first is the input to the process SF and the second is the output of the running SFs
-return:         an event with arbitrary data
--}
-collectOutput :: ((Sim.SimIn), [AgentOut]) -> (Event [AgentState])
-collectOutput ((simIn), newAgentOuts) = Event (map agentOutState newAgentOuts)
-
-{- The fourth argument is a function that is invoked when the switching event occurs,
-yielding a new signal function to switch into based on the collection of signal functions
-previously running and the value carried by the switching event. This allows the collection
- to be updated and then switched back in, typically by employing dpSwitch again.
--}
-continuation :: [ActiveAgent] -> [AgentState] -> SF (Sim.SimIn) [AgentOut]
-continuation agentSFs newAgentStates = procHelper newAgentStates
-
--- TODO: problem integral / derivative does not work as imagined because for every iteration a new SF is created which begins with its time at 0 :(
-activeAgent :: AgentState -> ActiveAgent
+activeAgent :: Agent.AgentState -> ActiveAgent
 activeAgent a = proc agentIn ->
     do
-        stepWidth <- integral -< Agent.agentSpeedPerTimeUnit
-        let out = Agent.agentStep agentIn stepWidth a
-        returnA -< out
+        t <- time -< ()
+        d <- derivative -< t :: Double
+        stepWidth <- (* Agent.agentSpeedPerTimeUnit) ^<< derivative -< t
+        --let ao = trace ("time=" ++ (show t) ++ ", derivative=" ++ (show d) ++ "stepwidth=" ++ (show stepWidth)) Agent.agentStep agentIn stepWidth a
+        returnA -< Agent.agentStep stepWidth agentIn
+

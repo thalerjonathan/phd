@@ -37,8 +37,13 @@ instance Show AgentState where
         ", has enemy " ++ (show enemy) ++
         ", is on " ++ (show agentPos)
 
+showAgents :: [AgentState] -> IO [()]
+showAgents as =  mapM (putStrLn . show) as
+
 data AgentIn = AgentIn {
-    agentInAgents :: [AgentPosition]
+    agentInState :: AgentState,
+    agentInEnemyPos :: AgentPosition,
+    agentInFriendPos :: AgentPosition
 }
 
 data AgentOut = AgentOut {
@@ -64,20 +69,25 @@ createRandAgentStates g n p = createAgents' g 0 n p
                     randState = randomAgentState g' id n p
                     (g', g'') = split g
 
-agentStep :: AgentIn -> Double -> AgentState -> AgentOut
-agentStep aIn stepWidth a = AgentOut { agentOutState = a { agentPos = newPos }, agentOutDir = targetDir }
+agentStep :: Double -> AgentIn -> AgentOut
+agentStep stepWidth aIn = AgentOut { agentOutState = a { agentPos = newPos }, agentOutDir = targetDir }
     where
-        friendPos = agentInAgents aIn !! friend a
-        enemyPos = agentInAgents aIn !! enemy a
+        a = agentInState aIn
+        friendPos = agentInFriendPos aIn
+        enemyPos = agentInEnemyPos aIn
         oldPos = agentPos a
         targetPos = decidePosition friendPos enemyPos a
         targetDir = vecNorm $ posDir oldPos targetPos
         newPos = addPos oldPos (multPos targetDir stepWidth)
 
-agentInFromAgents :: [AgentState] -> AgentIn
-agentInFromAgents as = AgentIn { agentInAgents = agentPositions }
+agentInFromAgents :: [AgentState] -> [AgentIn]
+agentInFromAgents as = map agentInFromAgents' as
     where
-        agentPositions = map agentPos as
+        agentInFromAgents' :: AgentState -> AgentIn
+        agentInFromAgents' a = AgentIn { agentInState = a, agentInEnemyPos = enemyPos, agentInFriendPos = friendPos }
+            where
+                friendPos = agentPos (as !! friend a)
+                enemyPos = agentPos (as !! enemy a)
 
 ----------------------------------------------------------------------------------------------------------------------
 -- PRIVATES

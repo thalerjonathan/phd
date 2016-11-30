@@ -10,10 +10,10 @@ import Control.Monad
 import HACAgent as Agent
 
 winSizeX :: GLsizei
-winSizeX = 800
+winSizeX = 1920
 
 winSizeY :: GLsizei
-winSizeY = 800
+winSizeY = 1000
 
 winSize :: GL.Size
 winSize = (GL.Size winSizeX winSizeY)

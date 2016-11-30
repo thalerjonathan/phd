@@ -62,7 +62,7 @@ createRandAgents g n p = mapM return randAgentStates
 -- PRIVATES
 ----------------------------------------------------------------------------------------------------------------------
 allAgentSteps :: [AgentState] -> Double -> [AgentOut]
-allAgentSteps = allAgentStepsPar -- NOTE: can be replaced by par-version
+allAgentSteps = allAgentStepsSeq -- NOTE: can be replaced by allAgentStepsPar / allAgentStepsSeq
 
 allAgentStepsPar :: [AgentState] -> Double -> [AgentOut]
 allAgentStepsPar as stepWidth = runPar p

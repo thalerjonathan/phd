@@ -78,7 +78,7 @@ agentStep stepWidth aIn = AgentOut { agentOutState = a { agentPos = newPos }, ag
         oldPos = agentPos a
         targetPos = decidePosition friendPos enemyPos a
         targetDir = vecNorm $ posDir oldPos targetPos
-        newPos = addPos oldPos (multPos targetDir stepWidth)
+        newPos = clip $ addPos oldPos (multPos targetDir stepWidth)
 
 agentInFromAgents :: [AgentState] -> [AgentIn]
 agentInFromAgents as = map agentInFromAgents' as
@@ -126,6 +126,12 @@ vecNorm :: AgentPosition -> AgentPosition
 vecNorm (vx, vy) = (vx / len, vy / len)
     where
         len = vecLen (vx, vy)
+
+clip :: AgentPosition -> AgentPosition
+clip (x, y) = (clippedX, clippedY)
+    where
+        clippedX = max 0.0 (min x 1.0)
+        clippedY = max 0.0 (min y 1.0)
 
 randomAgentState :: RandomGen g => g -> Int -> Int -> Double -> AgentState
 randomAgentState g id maxAgents p = a

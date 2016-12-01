@@ -86,6 +86,9 @@ agentInFromAgents as = map agentInFromAgents' as
         agentInFromAgents' :: AgentState -> AgentIn
         agentInFromAgents' a = AgentIn { agentInState = a, agentInEnemyPos = enemyPos, agentInFriendPos = friendPos }
             where
+                -- NOTE: the more agents (as) there are, the more time the next two lines consume. In case of 3000 Agents
+                --       on my working machine in the office, each of them consumes between 39-44% of the runtime thus
+                --       making up of roughly 80% of the time
                 friendPos = agentPos (as !! friend a)
                 enemyPos = agentPos (as !! enemy a)
 
@@ -138,8 +141,8 @@ randomAgentState g id maxAgents p = a
     where
         (randX, g') = randomR(0.0, 1.0) g
         (randY, g'') = randomR(0.0, 1.0) g'
-        (randEnemy, g''') = drawRandomIgnoring g'' 0 (maxAgents-1) [id]
-        (randFriend, g4) = drawRandomIgnoring g''' 0 (maxAgents-1) [id, randEnemy]
+        (randEnemy, g''') = drawRandomIgnoring g'' 0 (maxAgents) [id]
+        (randFriend, g4) = drawRandomIgnoring g''' 0 (maxAgents) [id, randEnemy]
         (randHero, g5) = randomThresh g4 p
         a = AgentState { agentId = id,
                         agentPos = (randX, randY),

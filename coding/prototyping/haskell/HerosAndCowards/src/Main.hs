@@ -14,10 +14,10 @@ import HACYampaBackend as YampaBack
 import HACClassicBackend as ClassicBack
 
 heroDistribution :: Double
-heroDistribution = 0.0
+heroDistribution = 0.5
 
 agentCount :: Int
-agentCount = 4000
+agentCount = 3000
 
 rngSeed :: Int
 rngSeed = 42
@@ -28,7 +28,6 @@ timeStep = 1.0
 -----------------------------------------------------------------------------------------------------------------------
 -- CLASSIC/MONADIC --
 -----------------------------------------------------------------------------------------------------------------------
-
 main :: IO ()
 main = do
     -- g <- getStdGen
@@ -72,7 +71,7 @@ output :: Bool -> [Agent.AgentOut] -> IO Bool
 output _ aos = do
     winOpened <- Front.renderFrame aos
     return $ not winOpened
-    -}
+    -}    
 ----------------------------------------------------------------------------------------------------------------------
 
 

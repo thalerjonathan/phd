@@ -17,7 +17,7 @@ heroDistribution :: Double
 heroDistribution = 0.5
 
 agentCount :: Int
-agentCount = 3000
+agentCount = 2000
 
 rngSeed :: Int
 rngSeed = 42
@@ -28,6 +28,7 @@ timeStep = 1.0
 -----------------------------------------------------------------------------------------------------------------------
 -- CLASSIC/MONADIC --
 -----------------------------------------------------------------------------------------------------------------------
+
 main :: IO ()
 main = do
     -- g <- getStdGen
@@ -41,6 +42,7 @@ main = do
 
 output :: [AgentOut] -> IO (Bool, Double)
 output aos = do
+    -- Agent.showAgents (map agentOutState aos)
     winClosed <- Front.renderFrame aos
     return (winClosed, timeStep)
 
@@ -82,15 +84,40 @@ output _ aos = do
 main :: IO ()
 main = do
     Front.initialize
-    let aos = createTestAos
-    testRender aos
+    let as = createTestAgents
+    let aos' = createTestAgentOuts
+    let aos = ClassicBack.process_ as 1
+    --testRender aos
+    ClassicBack.process as output
     Front.shutdown
+-}
 
-createTestAos :: [AgentOut]
-createTestAos = [ao1, ao2, ao3]
+createTestAgents :: [AgentState]
+createTestAgents = [a1, a2, a3]
+    where
+        a1 = AgentState { agentId = 0,
+                             agentPos = (0.5, 0.25),
+                             enemy = 2,
+                             friend = 1,
+                             hero = True }
+
+        a2 = AgentState { agentId = 1,
+                            agentPos = (0.75, 0.75),
+                            enemy = 2,
+                            friend = 0,
+                            hero = True }
+
+        a3 = AgentState { agentId = 2,
+                            agentPos = (0.25, 0.75),
+                            enemy = 1,
+                            friend = 0,
+                            hero = True }
+
+createTestAgentOuts :: [AgentOut]
+createTestAgentOuts = [ao1, ao2, ao3]
     where
         ao1 = AgentOut{ agentOutState = AgentState { agentId = 0,
-                                                     agentPos = (0.1, 0.1),
+                                                     agentPos = (0.25, 0.5),
                                                      enemy = 1,
                                                      friend = 2,
                                                      hero = True},
@@ -110,6 +137,7 @@ createTestAos = [ao1, ao2, ao3]
                                                       hero = True},
                           agentOutDir = (1.0, 0.0) }
 
+-- NOTE: used to freeze a given output: render it until the window is closed
 testRender :: [AgentOut] -> IO ()
 testRender aos = do
     continue <- Front.renderFrame aos
@@ -117,4 +145,3 @@ testRender aos = do
         testRender aos
         else
             return ()
--}

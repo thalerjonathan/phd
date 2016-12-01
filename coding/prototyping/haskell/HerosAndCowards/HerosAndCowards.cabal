@@ -8,8 +8,6 @@ executable HerosAndCowards
   hs-source-dirs:   src
   build-depends:    base, Yampa, GLFW, OpenGL, random, monad-par, deepseq, parallel
   ghc-options:      -threaded
-                    -auto-all
-                    -fforce-recomp
                     -fprof-auto
                     -prof
                     "-with-rtsopts=-N -p -s -h -i0.1"

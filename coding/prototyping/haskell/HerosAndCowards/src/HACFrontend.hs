@@ -24,6 +24,15 @@ green = greenShade 1.0
 greenShade :: GLdouble -> GL.Color3 GLdouble
 greenShade s = GL.Color3 0.0 s 0.0
 
+redShade :: GLdouble -> GL.Color3 GLdouble
+redShade s = GL.Color3 s 0.0 0.0
+
+agentSizeHalf :: Double
+agentSizeHalf = 10.0
+
+agentTailSize :: Double
+agentTailSize = 10.0
+
 initialize :: IO ()
 initialize = do
   GLFW.initialize
@@ -38,6 +47,9 @@ initialize = do
   GL.lineWidth  $= 1.5
   -- set the color to clear background
   GL.clearColor $= Color4 1 1 1 0
+  -- set the point-size
+  GL.pointSize  $= realToFrac agentTailSize
+  GL.pointSmooth $= Enabled
   -- set 2D orthogonal view inside windowSizeCallback because
   -- any change to the Window size should result in different
   -- OpenGL Viewport.
@@ -58,36 +70,53 @@ renderFrame aos = do
     GL.clear [GL.ColorBuffer]
     GL.matrixMode $= GL.Modelview 0
     GL.loadIdentity
-    --GL.translate $ Vector3 100 100 (0.0 :: GLdouble)
-    --GL.rotate (-30.0 :: GLdouble) $ Vector3 0.0 0.0 (1.0 :: GLdouble)
     mapM_ (\ao -> renderAgent ao ) aos
     GLFW.swapBuffers
     getParam Opened
 
-agentSizeHalf :: Double
-agentSizeHalf = 10.0
-
 renderAgent :: Agent.AgentOut -> IO ()
 renderAgent ao = preservingMatrix $ do
+    --putStrLn ("Agent: " ++ (show $ agentId aState) ++ " has pos: " ++ (show  (relXCoord, relYCoord)))
+    GL.color $ color
     GL.translate $ Vector3 xCoord yCoord 0
     GL.rotate angleDeg $ Vector3 0.0 0.0 1.0
     GL.renderPrimitive GL.Triangles agentTriangle
+    GL.renderPrimitive GL.Points agentPoint
         where
-            dir = agentOutDir ao
-            angleRad = acos $ dotProd dir (1.0, 0.0)    -- NOTE: both vectors are of unit-length => must be the cos of the angle => acos for inverted results in radians,
-            angleDeg = angleRad * radToDegFact          -- NOTE: transform radians to degree
+            (dirX, dirY) = agentOutDir ao
+            angleRad = atan2 dirX dirY                    -- NOTE: to get the angle of a 2D-vector in radians, use atan2
+            angleDeg = (pi - angleRad) * radToDegFact     -- NOTE: because the coordinate-systems y-achsis is pointing downwards, we need to adjust the angle
             aState = agentOutState ao
-            (relXCoord, relYCoord) = agentPos aState
+            (relXCoord, relYCoord) = truncateToWorld $ agentPos aState
             xCoord = relXCoord * fromIntegral winSizeX
             yCoord = relYCoord * fromIntegral winSizeY
             radToDegFact = (180.0/pi)
+            color = agentColor aState
 
-dotProd :: (Double, Double) -> (Double, Double) -> Double
-dotProd (x1, y1) (x2, y2) = x1*x2 + y1*y2
+truncateToWorld :: AgentPosition -> AgentPosition
+truncateToWorld (x, y) = (xFract, yFract)
+    where
+        xFract = abs $ fractionalPart x
+        yFract = abs $ fractionalPart y
+
+fractionalPart :: Double -> Double
+fractionalPart x = fractPart
+    where
+        (intPart, fractPart) = properFraction x
+
+agentColor :: Agent.AgentState -> GL.Color3 GLdouble
+agentColor a
+    | hero a = greenShade 0.5
+    | otherwise = redShade 0.75
+
+agentPoint :: IO ()
+agentPoint = do
+    GL.vertex $ GL.Vertex3 0.0 distance 0.0
+        where
+            distance = agentSizeHalf + (agentTailSize / 2.0)
 
 agentTriangle :: IO ()
 agentTriangle = do
-    GL.color $ color
     GL.vertex top
     GL.vertex bottomRight
     GL.vertex bottomLeft
@@ -99,4 +128,3 @@ agentTriangle = do
             top = GL.Vertex3 0.0 yTop 0.0
             bottomRight = GL.Vertex3 xRight yBottom 0.0
             bottomLeft = GL.Vertex3 xLeft yBottom 0.0
-            color = greenShade 0.5

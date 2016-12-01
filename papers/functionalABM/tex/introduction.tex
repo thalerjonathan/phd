@@ -1,6 +1,6 @@
-\section{Introduction}
+\chapter{Introduction}
 
-\subsection{Reasoning}
+\section{Reasoning}
 Allowing to reason about a program is one of the most interesting and powerful features of a Haskell-program. Just by looking at the types one can show that there is no randomness in the simulation \textit{after} the random initialization, which is not slightest possible in the case of a Java, Scala, ReLogo or NetLogo solution. Things we can reason about just by looking at types:
 
 \begin{itemize}
@@ -11,5 +11,18 @@ Allowing to reason about a program is one of the most interesting and powerful f
 
 This all boils down to the question of whether there are \textit{side-effects} included in the simulation or not.
 
-\subsubsection{Reasoning about termination}
-What about reasoning about the termination? Is this possible in Haskell? Is it possible by types alone? My hypothesis is that the types are an important hint but are not able to give a clear hint about termination and thus we we need a closer look at the implementation. In dependently-typed programming languages like Agda this should be then possible and the program is then also a proof that the program itself terminates.
+\subsection{Reasoning about termination}
+What about reasoning about the termination? Is this possible in Haskell? Is it possible by types alone? My hypothesis is that the types are an important hint but are not able to give a clear hint about termination and thus we we need a closer look at the implementation. In dependently-typed programming languages like Agda this should be then possible and the program is then also a 
+proof that the program itself terminates.
+
+\subsection{Debugging}
+Because functions compose easier than classes \& objects (TODO: we need hard claims here, look for literature supporting this thesis or proof it by myself) it is also much easier to debug \textit{parts} of the implementation e.g. the rendering of the agents without any changes to the system as a whole - just the main-loop has do be adopted. Then it is very easy to calculate e.g. only one iteration and to freeze the result or to manually create agents instead of randomly create initial ones.
+
+\section{World}
+The coordinates calculated by the agents are \textit{virtual} ones ranging between 0.0 and 1.0. This prevents us from knowing the rendering-resolution and polluting code which has nothing to do with rendering with these implementation-details. Also this simulation could run without rendering-output or any rendering-frontend thus sticking to virtual coordinates is also very useful regarding this (but then again: what is the use of this simulation without any visual output=
+
+\begin{itemize}
+\item Clipping: \textit{calculated} coordinates are clipped at 0.0 and 1.0 
+\item Wraparound: \textit{calculated} coordinates are wrapped around to 0.0 when reaching 1.0. Will lead pursuing friends to change direction apruptly when wrapping around.
+\item Remainder: \textit{calculated} coordinates are never clipped but in rendering only the remainder after the comma is taken. Of course this then always requires a visual output to observe the effects. This will result in an effect like the classic asteroid game where agents their friends but wont change direction when they seem to clamp around like in the wraparound version. Problem: we need to adjust the orientation as well otherwise it would look strange!
+\end{itemize}

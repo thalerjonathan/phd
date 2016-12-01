@@ -4,6 +4,7 @@ module HACAgent (
     AgentState (..),
     AgentIn (..),
     AgentOut (..),
+    showAgents,
     agentSpeedPerTimeUnit,
     agentStep,
     createRandAgentStates,
@@ -78,7 +79,9 @@ agentStep stepWidth aIn = AgentOut { agentOutState = a { agentPos = newPos }, ag
         oldPos = agentPos a
         targetPos = decidePosition friendPos enemyPos a
         targetDir = vecNorm $ posDir oldPos targetPos
-        newPos = clip $ addPos oldPos (multPos targetDir stepWidth)
+        --newPos = clip $ addPos oldPos (multPos targetDir stepWidth)
+        newPos = wrap $ addPos oldPos (multPos targetDir stepWidth)
+        --newPos = addPos oldPos (multPos targetDir stepWidth)
 
 agentInFromAgents :: [AgentState] -> [AgentIn]
 agentInFromAgents as = map agentInFromAgents' as
@@ -106,9 +109,13 @@ decidePosition friendPos enemyPos a
     | hero a = coverPosition
     | otherwise = hidePosition
     where
-        enemyFriendDir = vecNorm $ posDir friendPos enemyPos
-        coverPosition = addPos friendPos (multPos enemyFriendDir coverDistance)
-        hidePosition = subPos friendPos (multPos enemyFriendDir hideDistance)
+        --enemyFriendDir = vecNorm $ posDir friendPos enemyPos
+        --coverPosition = addPos friendPos (multPos enemyFriendDir coverDistance)
+        --hidePosition = subPos friendPos (multPos enemyFriendDir hideDistance)
+        enemyFriendDir = posDir friendPos enemyPos
+        coverPosition = addPos friendPos (multPos enemyFriendDir 0.5)
+        hidePosition = subPos friendPos (multPos enemyFriendDir 0.5)
+
 
 multPos :: AgentPosition -> Double -> AgentPosition
 multPos (x, y) s = (x*s, y*s)
@@ -120,7 +127,7 @@ subPos :: AgentPosition -> AgentPosition -> AgentPosition
 subPos (x1, y1) (x2, y2) = (x1-x2, y1-y2)
 
 posDir :: AgentPosition -> AgentPosition -> AgentPosition
-posDir (v1x, v1y) (v2x, v2y) = (v2x - v1x, v2y - v1y)
+posDir (v1x, v1y) (v2x, v2y) = (v2x-v1x, v2y-v1y)
 
 vecLen :: AgentPosition -> Double
 vecLen (vx, vy) = sqrt( vx * vx + vy * vy )
@@ -135,6 +142,18 @@ clip (x, y) = (clippedX, clippedY)
     where
         clippedX = max 0.0 (min x 1.0)
         clippedY = max 0.0 (min y 1.0)
+
+wrap :: AgentPosition -> AgentPosition
+wrap (x, y) = (wrappedX, wrappedY)
+    where
+        wrappedX = wrapValue x
+        wrappedY = wrapValue y
+
+wrapValue :: Double -> Double
+wrapValue v
+    | v > 1.0 = 0.0
+    | v < 0.0 = 1.0
+    | otherwise = v
 
 randomAgentState :: RandomGen g => g -> Int -> Int -> Double -> AgentState
 randomAgentState g id maxAgents p = a

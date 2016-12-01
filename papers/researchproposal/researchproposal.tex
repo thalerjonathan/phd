@@ -1,0 +1,84 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% University/School Laboratory Report
+% LaTeX Template
+% Version 3.1 (25/3/14)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Linux and Unix Users Group at Virginia Tech Wiki 
+% (https://vtluug.org/wiki/Example_LaTeX_chem_lab_report)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} % Required for the inclusion of images
+%\usepackage{natbib} % Required to change bibliography style to APA
+\usepackage{amsmath} % Required for some math elements 
+\usepackage{glossaries}
+\usepackage[toc,page]{appendix}
+\usepackage[autostyle=true]{csquotes}
+\usepackage{hyperref}
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+%\usepackage{times} % Uncomment to use the Times New Roman font
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\title{Research Diary \\ PhD Studies} % Title
+
+\author{Jonathan \textsc{Thaler}} % Author name
+
+\date{\today} % Date for the report
+
+\begin{document}
+
+\maketitle % Insert the title, author and date
+
+\begin{center}
+\begin{tabular}{l r}
+Started: 8th August 2016
+\end{tabular}
+\end{center}
+
+% If you wish to include an abstract, uncomment the lines below
+\begin{abstract}
+In this diary I try to keep track of the process of my PhD studies by recording my thoughts, my reflections, my (self) doubts and my philosophical ideas in connection with my research output. I did some upfront literature research and reflecting ideas until the beginning of my Ph.D. in Nottingham. The notes are all put in the appendices where the real diary starts on the day of my first official supervision meeting which was on the 6th October 2016.
+\end{abstract}
+
+\input{./tex/2016_10.tex}
+
+\input{./tex/2016_11.tex}
+
+\newpage
+
+\bibliographystyle{acm}
+\bibliography{./bib/researchdiary.bib}
+
+\newpage
+
+\appendix
+
+\newpage
+\input{./tex/appendices/Appendix_PreparingForPhD.tex}
+
+\newpage
+\input{./tex/appendices/Appendix_HowToGetStudentship.tex}
+
+\newpage
+\input{./tex/appendices/Appendix_EvolutionOfMyComputerScienceInterests.tex}
+
+\end{document}

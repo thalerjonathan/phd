@@ -38,7 +38,7 @@
 %	DOCUMENT INFORMATION
 %----------------------------------------------------------------------------------------
 
-\title{Research Diary \\ PhD Studies} % Title
+\title{Functional programming in Agent-Based Simulation and Modelling} % Title
 
 \author{Jonathan \textsc{Thaler}} % Author name
 
@@ -48,37 +48,18 @@
 
 \maketitle % Insert the title, author and date
 
-\begin{center}
-\begin{tabular}{l r}
-Started: 8th August 2016
-\end{tabular}
-\end{center}
-
 % If you wish to include an abstract, uncomment the lines below
 \begin{abstract}
-In this diary I try to keep track of the process of my PhD studies by recording my thoughts, my reflections, my (self) doubts and my philosophical ideas in connection with my research output. I did some upfront literature research and reflecting ideas until the beginning of my Ph.D. in Nottingham. The notes are all put in the appendices where the real diary starts on the day of my first official supervision meeting which was on the 6th October 2016.
+Agent-Based Modelling and Simulation (ABM/S) is still a young discipline and the dominant approach to it is object-oriented computation. This thesis goes into the opposite direction and asks how ABM/S can be mapped to and implemented using pure functional computation and what one gains from doing so. To the best knowledge of the author, so far no proper treatment of ABM/S in this field exists but a few papers which only scratch the surface. The author argues that approaching ABM/S from a pure functional direction offers a wealth of new powerful tools and methods. The most obvious one is that when using pure functional computation reasoning about the correctness and about total and partial correctness of the simulation becomes possible. Also pure functional approaches allow the design of an embedded domain specific language (EDSL) in which then the models can be formulated by domain-experts. The strongest point in using EDSL is that ideally the distinction between specification and implementation disappears: the model specification is then already the code of the simulation-program. This allows to rule out a serious class of errors where specification and implementation does not match, which is especially a big problem in scientific computing. \\
+In this paper we look at the very simple social-simulation of \textit{Heroes \& Cowards} invented by TODO: cite to study the new methods mentioned above and to highlight its potential use and its limitations as opposed to object-oriented methods.
 \end{abstract}
 
-\input{./tex/2016_10.tex}
-
-\input{./tex/2016_11.tex}
+\input{./tex/introduction.tex}
 
 \newpage
 
 \bibliographystyle{acm}
-\bibliography{./bib/researchdiary.bib}
+\bibliography{./bib/functionalABM.bib}
 
-\newpage
-
-\appendix
-
-\newpage
-\input{./tex/appendices/Appendix_PreparingForPhD.tex}
-
-\newpage
-\input{./tex/appendices/Appendix_HowToGetStudentship.tex}
-
-\newpage
-\input{./tex/appendices/Appendix_EvolutionOfMyComputerScienceInterests.tex}
 
 \end{document}

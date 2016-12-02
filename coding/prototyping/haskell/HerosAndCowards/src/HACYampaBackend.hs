@@ -1,5 +1,8 @@
 {-# LANGUAGE Arrows #-}
-module HACYampaBackend where
+module HACYampaBackend (
+    processIO,
+    processSteps
+  ) where
 
 import Debug.Trace
 
@@ -7,15 +10,103 @@ import FRP.Yampa
 import FRP.Yampa.Switches
 
 import qualified HACAgent as Agent
+import qualified HACSimulation as Sim
 
 type ActiveAgent = SF Agent.AgentIn Agent.AgentOut
 
+{-
+main :: IO ()
+main = do
+    let g = mkStdGen rngSeed -- NOTE: if we want to reproduce then we need to onitialize RNG ourselves
+    Front.initialize
+    let as = Agent.createRandAgentStates g agentCount heroDistribution
+    reactimate (Main.init as) input output (YampaBack.process as)
+    Front.shutdown
+-- TODO: can remove passing initAs as they are ignored anyway
+init :: [Agent.AgentState] -> IO [Agent.AgentState]
+init initAs = do
+    return initAs
+
+input :: Double -> Bool -> IO (DTime, Maybe [Agent.AgentState])
+input dt _ = do
+    return (dt, Nothing)
+
+output :: Bool -> [Agent.AgentOut] -> IO Bool
+output _ aos = do
+    winOpened <- Front.renderFrame aos
+    return $ not winOpened
+-}
+
+{-
+processIO :: [Agent.AgentState] -> (Sim.SimOut -> IO (Bool, Double)) -> IO Sim.SimOut
+processIO as outFunc = do -- reactimate (init as) (input  output (YampaBack.process as)
+            handle <- reactInit
+                        (return as)
+                        (iter outFunc)
+                        (process as)
+            cont <- react handle (0.0, Nothing) -- TODO: need to get this dt correct
+            return Sim.SimOut { Sim.simOutAllAgents = [] }
+
+iter :: (Sim.SimOut -> IO (Bool, Double)) -> ReactHandle a b -> Bool -> b -> IO Bool
+iter outFunc hdl _ out = do
+                    (cont, dt) <- outFunc out
+                    return cont
+-}
+
+----------------------------------------------------------------------------------------------------------------------
+-- EXPORTS
+----------------------------------------------------------------------------------------------------------------------
+processIO :: Sim.SimulationIO
+processIO as outFunc = do -- reactimate (init as) (input  output (YampaBack.process as)
+                hdl <- reactInit
+                            (return as)
+                            (iter outFunc)
+                            (process as)
+                HACYampaBackend.iterate hdl (0.5, Nothing) -- TODO: need to get this dt correct
+                return ()
+
+iterate :: ReactHandle a b -> (DTime, Maybe a) -> IO Bool
+iterate hdl (dt, input) = do
+    cont <- react hdl (0.5, Nothing)  -- TODO: need to get this dt correct
+    if cont then
+        HACYampaBackend.iterate hdl (dt, input)
+            else
+                return False
+
+-- NOTE: don't care about a, we don't use it anyway
+iter :: (Sim.SimOut -> IO (Bool, Double)) -> ReactHandle a Sim.SimOut -> Bool -> Sim.SimOut -> IO Bool
+iter outFunc hdl _ out = do
+                    (cont, dt) <- outFunc out
+                    return cont
+
+{- NOTE: to run Yampa in a pure-functional way use embed -}
+processSteps :: Sim.SimulationStep
+processSteps as dt steps = embed
+                            (process as)
+                            (as, sts)
+    where
+        -- NOTE: again haskells laziness put to use: take steps items from the infinite list of sampling-times
+        sts = take steps $ samplingTimes 0 dt
+
+-- NOTE: this creates an infinite list of sampling-times with starting time t and sampling-interval dt
+samplingTimes :: Double -> Double -> [(DTime, Maybe a)]
+samplingTimes t dt = (t', Nothing) : (samplingTimes t' dt)
+    where
+        t' = t + dt
+
+----------------------------------------------------------------------------------------------------------------------
+-- PRIVATES
+----------------------------------------------------------------------------------------------------------------------
 {- NOTE: This is just the initial signal-function which will be use ONCE to kick-off the whole simulation:
          it just creates the signal-functions (one for each agent) and then passes them and the initial agent-states
-         to the process' -}
-process :: [Agent.AgentState] -> SF [Agent.AgentState] [Agent.AgentOut]
-process initAs = process' initASFs initAs
-     where
+         to the process'.
+         SimOut is only used as an impostor for now, no real use but introduced for further usages when really necessary -}
+process :: [Agent.AgentState] -> SF [Agent.AgentState] Sim.SimOut
+process initAs = proc _ ->
+    do
+        aos <- process' initASFs initAs -< []
+        returnA -< Sim.SimOut{ Sim.simOutAllAgents = aos }
+    where
         initASFs = replicate (length initAs) activeAgent
 
 {- NOTE: This is the real process-function where the real work happens. The point is that this simulation requires

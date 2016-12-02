@@ -87,17 +87,29 @@ renderAgent ao = preservingMatrix $ do
             angleRad = atan2 dirX dirY                    -- NOTE: to get the angle of a 2D-vector in radians, use atan2
             angleDeg = (pi - angleRad) * radToDegFact     -- NOTE: because the coordinate-systems y-achsis is pointing downwards, we need to adjust the angle
             aState = agentOutState ao
-            (relXCoord, relYCoord) = truncateToWorld $ agentPos aState
+            -- (relXCoord, relYCoord) = truncateToWorld $ agentPos aState
+            (relXCoord, relYCoord) = agentPos aState
             xCoord = relXCoord * fromIntegral winSizeX
             yCoord = relYCoord * fromIntegral winSizeY
             radToDegFact = (180.0/pi)
             color = agentColor aState
 
-truncateToWorld :: AgentPosition -> AgentPosition
-truncateToWorld (x, y) = (xFract, yFract)
+wrap :: AgentPosition -> AgentPosition
+wrap (x, y) = (wrappedX, wrappedY)
     where
-        xFract = abs $ fractionalPart x
-        yFract = abs $ fractionalPart y
+        wrappedX = wrapValue x
+        wrappedY = wrapValue y
+
+wrapValue :: Double -> Double
+wrapValue v
+    | v < 0.0 = v + 1.0
+    | otherwise = v
+
+truncateToWorld :: AgentPosition -> AgentPosition
+truncateToWorld (x, y) = wrap (xFract, yFract)
+    where
+        xFract = fractionalPart x
+        yFract = fractionalPart y
 
 fractionalPart :: Double -> Double
 fractionalPart x = fractPart

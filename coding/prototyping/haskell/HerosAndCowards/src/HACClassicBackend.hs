@@ -1,11 +1,12 @@
 module HACClassicBackend (
-    process,
-    process_
+    processIO,
+    processSteps
   )where
 
 import System.Random
 
-import HACAgent as Agent
+import qualified HACAgent as Agent
+import qualified HACSimulation as Sim
 
 import Control.DeepSeq
 import Control.Monad.Par
@@ -13,28 +14,32 @@ import Control.Monad.Par
 ----------------------------------------------------------------------------------------------------------------------
 -- EXPORTS
 ----------------------------------------------------------------------------------------------------------------------
-process :: [AgentState] -> ([AgentOut] -> IO (Bool, Double)) -> IO [AgentOut]
-process as outFunc = process' as outFunc 0.0
+processIO :: [Agent.AgentState] -> (Sim.SimOut -> IO (Bool, Double)) -> IO ()
+processIO as outFunc = do
+        simOut <- process' as outFunc 0.0
+        return ()
     where
-        process' :: [AgentState] -> ([AgentOut] -> IO (Bool, Double)) -> Double -> IO [AgentOut]
+        process' :: [Agent.AgentState] -> (Sim.SimOut -> IO (Bool, Double)) -> Double -> IO Sim.SimOut
         process' as outFunc dt = do
-                                     let distance = Agent.agentSpeedPerTimeUnit * dt
-                                     let aos = allAgentSteps as distance
-                                     let as' = map agentOutState aos
-                                     (continue, dt) <- outFunc aos
-                                     if continue then
-                                         process' as' outFunc dt
-                                             else
-                                                 return aos
+                             let stepWidth = Agent.agentSpeedPerTimeUnit * dt
+                             let aos = allAgentSteps as stepWidth
+                             let as' = map Agent.agentOutState aos
+                             let simOut = Sim.SimOut { Sim.simOutAllAgents = aos }
+                             (continue, dt) <- outFunc simOut
+                             if continue then
+                                 process' as' outFunc dt
+                                     else
+                                         return simOut
 
-process_ :: [AgentState] -> Int -> [AgentOut]
-process_ as iterCount
-    | iterCount > 0 = process_ as' (iterCount - 1)
-    | otherwise = aos
+processSteps :: [Agent.AgentState] -> Double -> Int -> [Sim.SimOut]
+processSteps as dt steps
+    | steps > 0 = [simOut] ++ processSteps as' dt (steps - 1)
+    | otherwise = [simOut]
         where
-            stepWidth = Agent.agentSpeedPerTimeUnit
+            stepWidth = Agent.agentSpeedPerTimeUnit * dt
             aos = allAgentSteps as stepWidth
-            as' = map agentOutState aos
+            as' = map Agent.agentOutState aos
+            simOut = Sim.SimOut { Sim.simOutAllAgents = aos }
 
 ------------------------------------------------------------------------------------------------------------------------
 -- MONADIC Agent implementation
@@ -52,7 +57,7 @@ instance Monad Agent where
     return = pure
     Agent a >>= f = f a
 
-createRandAgents :: RandomGen g => g -> Int -> Double -> Agent [AgentState]
+createRandAgents :: RandomGen g => g -> Int -> Double -> Agent [Agent.AgentState]
 createRandAgents g n p = mapM return randAgentStates
     where
         randAgentStates = Agent.createRandAgentStates g n p
@@ -61,17 +66,17 @@ createRandAgents g n p = mapM return randAgentStates
 ----------------------------------------------------------------------------------------------------------------------
 -- PRIVATES
 ----------------------------------------------------------------------------------------------------------------------
-allAgentSteps :: [AgentState] -> Double -> [AgentOut]
+allAgentSteps :: [Agent.AgentState] -> Double -> [Agent.AgentOut]
 allAgentSteps = allAgentStepsSeq -- NOTE: can be replaced by allAgentStepsPar / allAgentStepsSeq
 
-allAgentStepsPar :: [AgentState] -> Double -> [AgentOut]
+allAgentStepsPar :: [Agent.AgentState] -> Double -> [Agent.AgentOut]
 allAgentStepsPar as stepWidth = runPar p
     where
-        ains = agentInFromAgents as
+        ains = Agent.agentInFromAgents as
         p = parMap (Agent.agentStep stepWidth) ains
 
-allAgentStepsSeq :: [AgentState] -> Double -> [AgentOut]
+allAgentStepsSeq :: [Agent.AgentState] -> Double -> [Agent.AgentOut]
 allAgentStepsSeq as stepWidth = p
     where
-        ains = agentInFromAgents as
+        ains = Agent.agentInFromAgents as
         p = map (Agent.agentStep stepWidth) ains

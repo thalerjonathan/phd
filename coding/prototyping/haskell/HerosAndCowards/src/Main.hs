@@ -1,81 +1,71 @@
 module Main where
 
-import Data.IORef
 import System.Random
 import System.Environment (getArgs, getProgName)
 
-import FRP.Yampa
-
 import HACAgent as Agent
-import HACSimulation as Sim
-import HACFrontend as Front
-
-import HACYampaBackend as YampaBack
-import HACClassicBackend as ClassicBack
-
-heroDistribution :: Double
-heroDistribution = 0.5
-
-agentCount :: Int
-agentCount = 2000
-
-rngSeed :: Int
-rngSeed = 42
-
-timeStep :: Double
-timeStep = 1.0
+import qualified HACFrontend as Front
+import qualified HACSimulation as Sim
+import qualified HACSimulationImpl as SimImpl
 
 -----------------------------------------------------------------------------------------------------------------------
--- CLASSIC/MONADIC --
+-- IO-Driven Simulation
 -----------------------------------------------------------------------------------------------------------------------
-
 main :: IO ()
 main = do
-    -- g <- getStdGen
-    let g = mkStdGen rngSeed -- NOTE: if we want to reproduce then we need to onitialize RNG ourselves
+    let agentCount = 300
+    let heroDist = 0.5
+    let dt = 1.0
+    let rngSeed = 42
+    let rng = mkStdGen rngSeed
+    let agents = Agent.createRandAgentStates rng agentCount heroDist
     Front.initialize
-    let as = Agent.createRandAgentStates g agentCount heroDistribution
-    ClassicBack.process as output
-    --let as' = ClassicBack.process_ as 100000
-    --Front.renderFrame (map agentPos as')
+    SimImpl.simulationIO agents (output dt)
     Front.shutdown
-
-output :: [AgentOut] -> IO (Bool, Double)
-output aos = do
-    -- Agent.showAgents (map agentOutState aos)
-    winClosed <- Front.renderFrame aos
-    return (winClosed, timeStep)
-
 -----------------------------------------------------------------------------------------------------------------------
 
-
 -----------------------------------------------------------------------------------------------------------------------
--- YAMPA --
+-- Step-Driven Simulation
 -----------------------------------------------------------------------------------------------------------------------
 {-
 main :: IO ()
 main = do
-    let g = mkStdGen rngSeed -- NOTE: if we want to reproduce then we need to onitialize RNG ourselves
+    let agentCount = 60
+    let heroDist = 0.5
+    let dt = 1.0
+    let rngSeed = 42
+    let rng = mkStdGen rngSeed
+    let stepCount = 100
+    let agents = Agent.createRandAgentStates rng agentCount heroDist
     Front.initialize
-    let as = Agent.createRandAgentStates g agentCount heroDistribution
-    reactimate (Main.init as) input output (YampaBack.process as)
+    -- NOTE: this won't lead to "long numbercrunching" when stepCount is high because of haskells lazyness. Just an
+    --       unevaluated array will be returned and then when rendering the steps the required list-element will be
+    --       calculated by the simulation.
+    let outs = SimImpl.simulationStep agents dt stepCount
+    renderSteps outs
     Front.shutdown
 
-init :: [Agent.AgentState] -> IO [Agent.AgentState]
-init initAs = do
-    return initAs
+renderSteps :: [Sim.SimOut] -> IO (Bool, Double)
+renderSteps (s:xs)
+    | null xs = return (True, 0.0)
+    | otherwise = do
+        (cont, dt) <- output 0.0 s
+        if cont then
+            renderSteps xs
+                else
+                    return (True, 0.0)
+-}
+-----------------------------------------------------------------------------------------------------------------------
 
-input :: Bool -> IO (DTime, Maybe [Agent.AgentState])
-input _ = do
-    return (timeStep, Nothing)
+parseArgs :: IO Sim.SimIn
+parseArgs = do
+    return Sim.SimIn { Sim.simInAllAgents = [] }
 
-output :: Bool -> [Agent.AgentOut] -> IO Bool
-output _ aos = do
-    winOpened <- Front.renderFrame aos
-    return $ not winOpened
-    -}    
-----------------------------------------------------------------------------------------------------------------------
-
+output :: Double -> Sim.SimOut -> IO (Bool, Double)
+output dt simOut = do
+    let aos = Sim.simOutAllAgents simOut
+    winOpen <- Front.renderFrame aos
+    return (winOpen, dt)
 
 -----------------------------------------------------------------------------------------------------------------------
 -- Testing Rendering --
@@ -84,53 +74,54 @@ output _ aos = do
 main :: IO ()
 main = do
     Front.initialize
+    let dt = 0.5
     let as = createTestAgents
     let aos' = createTestAgentOuts
-    let aos = ClassicBack.process_ as 1
+    let aos = Sim.simulationStep as dt 1
     --testRender aos
-    ClassicBack.process as output
+    Sim.simulationIO as (output dt)
     Front.shutdown
 -}
 
-createTestAgents :: [AgentState]
+createTestAgents :: [Agent.AgentState]
 createTestAgents = [a1, a2, a3]
     where
-        a1 = AgentState { agentId = 0,
+        a1 = Agent.AgentState { agentId = 0,
                              agentPos = (0.5, 0.25),
                              enemy = 2,
                              friend = 1,
                              hero = True }
 
-        a2 = AgentState { agentId = 1,
+        a2 = Agent.AgentState { agentId = 1,
                             agentPos = (0.75, 0.75),
                             enemy = 2,
                             friend = 0,
                             hero = True }
 
-        a3 = AgentState { agentId = 2,
+        a3 = Agent.AgentState { agentId = 2,
                             agentPos = (0.25, 0.75),
                             enemy = 1,
                             friend = 0,
                             hero = True }
 
-createTestAgentOuts :: [AgentOut]
+createTestAgentOuts :: [Agent.AgentOut]
 createTestAgentOuts = [ao1, ao2, ao3]
     where
-        ao1 = AgentOut{ agentOutState = AgentState { agentId = 0,
+        ao1 = Agent.AgentOut{ agentOutState = Agent.AgentState { agentId = 0,
                                                      agentPos = (0.25, 0.5),
                                                      enemy = 1,
                                                      friend = 2,
                                                      hero = True},
                          agentOutDir = (-1.0, 0.0) }
 
-        ao2 = AgentOut{ agentOutState = AgentState { agentId = 1,
+        ao2 = Agent.AgentOut{ agentOutState = Agent.AgentState { agentId = 1,
                                                       agentPos = (0.2, 0.2),
                                                       enemy = 0,
                                                       friend = 2,
                                                       hero = True},
                           agentOutDir = (1.0, 0.0) }
 
-        ao3 = AgentOut{ agentOutState = AgentState { agentId = 2,
+        ao3 = Agent.AgentOut{ agentOutState = Agent.AgentState { agentId = 2,
                                                       agentPos = (0.3, 0.3),
                                                       enemy = 0,
                                                       friend = 1,
@@ -138,7 +129,7 @@ createTestAgentOuts = [ao1, ao2, ao3]
                           agentOutDir = (1.0, 0.0) }
 
 -- NOTE: used to freeze a given output: render it until the window is closed
-testRender :: [AgentOut] -> IO ()
+testRender :: [Agent.AgentOut] -> IO ()
 testRender aos = do
     continue <- Front.renderFrame aos
     if continue then

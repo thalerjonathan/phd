@@ -65,18 +65,17 @@ shutdown = do
   GLFW.closeWindow
   GLFW.terminate
 
-renderFrame :: [Agent.AgentOut] -> IO Bool
-renderFrame aos = do
+renderFrame :: [Agent.AgentOut] -> Agent.WorldType -> IO Bool
+renderFrame aos wt = do
     GL.clear [GL.ColorBuffer]
     GL.matrixMode $= GL.Modelview 0
     GL.loadIdentity
-    mapM_ (\ao -> renderAgent ao ) aos
+    mapM (renderAgent wt) aos
     GLFW.swapBuffers
     getParam Opened
 
-renderAgent :: Agent.AgentOut -> IO ()
-renderAgent ao = preservingMatrix $ do
-    --putStrLn ("Agent: " ++ (show $ agentId aState) ++ " has pos: " ++ (show  (relXCoord, relYCoord)))
+renderAgent :: Agent.WorldType -> Agent.AgentOut -> IO ()
+renderAgent wt ao = preservingMatrix $ do
     GL.color $ color
     GL.translate $ Vector3 xCoord yCoord 0
     GL.rotate angleDeg $ Vector3 0.0 0.0 1.0
@@ -87,12 +86,23 @@ renderAgent ao = preservingMatrix $ do
             angleRad = atan2 dirX dirY                    -- NOTE: to get the angle of a 2D-vector in radians, use atan2
             angleDeg = (pi - angleRad) * radToDegFact     -- NOTE: because the coordinate-systems y-achsis is pointing downwards, we need to adjust the angle
             aState = agentOutState ao
-            -- (relXCoord, relYCoord) = truncateToWorld $ agentPos aState
-            (relXCoord, relYCoord) = agentPos aState
+            (relXCoord, relYCoord) = wtf $ agentPos aState
             xCoord = relXCoord * fromIntegral winSizeX
             yCoord = relYCoord * fromIntegral winSizeY
             radToDegFact = (180.0/pi)
             color = agentColor aState
+            wtf = worldTypeFunc wt
+
+worldTypeFunc :: Agent.WorldType -> (AgentPosition -> AgentPosition)
+worldTypeFunc wt
+    | wt == InfiniteWraping = truncateToWorld
+    | otherwise = id
+
+truncateToWorld :: AgentPosition -> AgentPosition
+truncateToWorld (x, y) = wrap (xFract, yFract)
+    where
+        xFract = fractionalPart x
+        yFract = fractionalPart y
 
 wrap :: AgentPosition -> AgentPosition
 wrap (x, y) = (wrappedX, wrappedY)
@@ -104,12 +114,6 @@ wrapValue :: Double -> Double
 wrapValue v
     | v < 0.0 = v + 1.0
     | otherwise = v
-
-truncateToWorld :: AgentPosition -> AgentPosition
-truncateToWorld (x, y) = wrap (xFract, yFract)
-    where
-        xFract = fractionalPart x
-        yFract = fractionalPart y
 
 fractionalPart :: Double -> Double
 fractionalPart x = fractPart

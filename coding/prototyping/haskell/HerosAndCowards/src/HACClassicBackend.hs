@@ -14,32 +14,35 @@ import Control.Monad.Par
 ----------------------------------------------------------------------------------------------------------------------
 -- EXPORTS
 ----------------------------------------------------------------------------------------------------------------------
-processIO :: [Agent.AgentState] -> (Sim.SimOut -> IO (Bool, Double)) -> IO ()
-processIO as outFunc = do
-        simOut <- process' as outFunc 0.0
+processIO :: Sim.SimIn -> (Sim.SimOut -> IO (Bool, Double)) -> IO ()
+processIO simIn outFunc = do
+        simOut <- process' asInit outFunc 0.0
         return ()
     where
+        asInit = Sim.simInInitAgents simIn
+        wt = Sim.simInWorldType simIn
+
         process' :: [Agent.AgentState] -> (Sim.SimOut -> IO (Bool, Double)) -> Double -> IO Sim.SimOut
         process' as outFunc dt = do
-                             let stepWidth = Agent.agentSpeedPerTimeUnit * dt
-                             let aos = allAgentSteps as stepWidth
-                             let as' = map Agent.agentOutState aos
-                             let simOut = Sim.SimOut { Sim.simOutAllAgents = aos }
-                             (continue, dt) <- outFunc simOut
-                             if continue then
-                                 process' as' outFunc dt
-                                     else
-                                         return simOut
+                let (simOut, as') = nextStep as dt wt
+                (continue, dt) <- outFunc simOut
+                if continue then
+                 process' as' outFunc dt
+                     else
+                         return simOut
 
-processSteps :: [Agent.AgentState] -> Double -> Int -> [Sim.SimOut]
-processSteps as dt steps
-    | steps > 0 = [simOut] ++ processSteps as' dt (steps - 1)
-    | otherwise = [simOut]
-        where
-            stepWidth = Agent.agentSpeedPerTimeUnit * dt
-            aos = allAgentSteps as stepWidth
-            as' = map Agent.agentOutState aos
-            simOut = Sim.SimOut { Sim.simOutAllAgents = aos }
+processSteps :: Sim.SimIn -> Double -> Int -> [Sim.SimOut]
+processSteps simIn dt steps = processSteps' asInit dt steps
+    where
+        asInit = Sim.simInInitAgents simIn
+        wt = Sim.simInWorldType simIn
+
+        processSteps' :: [Agent.AgentState] -> Double -> Int -> [Sim.SimOut]
+        processSteps' as dt steps
+            | steps > 0 = [simOut] ++ processSteps' as' dt (steps - 1)
+            | otherwise = [simOut]
+                where
+                    (simOut, as') = nextStep as dt wt
 
 ------------------------------------------------------------------------------------------------------------------------
 -- MONADIC Agent implementation
@@ -66,17 +69,25 @@ createRandAgents g n p = mapM return randAgentStates
 ----------------------------------------------------------------------------------------------------------------------
 -- PRIVATES
 ----------------------------------------------------------------------------------------------------------------------
-allAgentSteps :: [Agent.AgentState] -> Double -> [Agent.AgentOut]
+nextStep :: [Agent.AgentState] -> Double -> Agent.WorldType -> (Sim.SimOut, [Agent.AgentState])
+nextStep as dt wt = (simOut, as')
+    where
+        stepWidth = Agent.agentSpeedPerTimeUnit * dt
+        aos = allAgentSteps as stepWidth wt
+        as' = map Agent.agentOutState aos
+        simOut = Sim.SimOut { Sim.simOutAgents = aos }
+
+allAgentSteps :: [Agent.AgentState] -> Double -> Agent.WorldType -> [Agent.AgentOut]
 allAgentSteps = allAgentStepsSeq -- NOTE: can be replaced by allAgentStepsPar / allAgentStepsSeq
 
-allAgentStepsPar :: [Agent.AgentState] -> Double -> [Agent.AgentOut]
-allAgentStepsPar as stepWidth = runPar p
+allAgentStepsPar :: [Agent.AgentState] -> Double -> Agent.WorldType -> [Agent.AgentOut]
+allAgentStepsPar as stepWidth wt = runPar p
     where
         ains = Agent.agentInFromAgents as
-        p = parMap (Agent.agentStep stepWidth) ains
+        p = parMap (Agent.agentStep wt stepWidth) ains
 
-allAgentStepsSeq :: [Agent.AgentState] -> Double -> [Agent.AgentOut]
-allAgentStepsSeq as stepWidth = p
+allAgentStepsSeq :: [Agent.AgentState] -> Double -> Agent.WorldType -> [Agent.AgentOut]
+allAgentStepsSeq as stepWidth wt = p
     where
         ains = Agent.agentInFromAgents as
-        p = map (Agent.agentStep stepWidth) ains
+        p = map (Agent.agentStep wt stepWidth) ains

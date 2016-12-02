@@ -13,14 +13,11 @@ import qualified HACSimulationImpl as SimImpl
 -----------------------------------------------------------------------------------------------------------------------
 main :: IO ()
 main = do
-    let agentCount = 300
-    let heroDist = 0.5
     let dt = 1.0
-    let rngSeed = 42
-    let rng = mkStdGen rngSeed
-    let agents = Agent.createRandAgentStates rng agentCount heroDist
+    let wt = Wraping -- Infinite | Border | Wraping | InfiniteWraping
+    simIn <- getSimIn dt wt
     Front.initialize
-    SimImpl.simulationIO agents (output dt)
+    SimImpl.simulationIO simIn (render dt wt)
     Front.shutdown
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -30,42 +27,54 @@ main = do
 {-
 main :: IO ()
 main = do
-    let agentCount = 60
-    let heroDist = 0.5
     let dt = 1.0
-    let rngSeed = 42
-    let rng = mkStdGen rngSeed
+    let wt = Wraping -- Infinite | Border | Wraping | InfiniteWraping
     let stepCount = 100
-    let agents = Agent.createRandAgentStates rng agentCount heroDist
+    simIn <- getSimIn dt wt
     Front.initialize
     -- NOTE: this won't lead to "long numbercrunching" when stepCount is high because of haskells lazyness. Just an
     --       unevaluated array will be returned and then when rendering the steps the required list-element will be
     --       calculated by the simulation.
-    let outs = SimImpl.simulationStep agents dt stepCount
-    renderSteps outs
+    let outs = SimImpl.simulationStep simIn dt stepCount
+    renderOutputs outs wt
     Front.shutdown
-
-renderSteps :: [Sim.SimOut] -> IO (Bool, Double)
-renderSteps (s:xs)
-    | null xs = return (True, 0.0)
-    | otherwise = do
-        (cont, dt) <- output 0.0 s
-        if cont then
-            renderSteps xs
-                else
-                    return (True, 0.0)
 -}
 -----------------------------------------------------------------------------------------------------------------------
 
-parseArgs :: IO Sim.SimIn
-parseArgs = do
-    return Sim.SimIn { Sim.simInAllAgents = [] }
+getSimIn :: Double -> Agent.WorldType -> IO Sim.SimIn
+getSimIn dt wt = do
+    let agentCount = 300
+    let heroDist = 0.5
+    let rngSeed = 42
+    let rng = mkStdGen rngSeed
+    let agents = Agent.createRandAgentStates rng agentCount heroDist
+    let simIn = Sim.SimIn { Sim.simInInitAgents = agents, Sim.simInWorldType = wt }
+    return simIn
 
-output :: Double -> Sim.SimOut -> IO (Bool, Double)
-output dt simOut = do
-    let aos = Sim.simOutAllAgents simOut
-    winOpen <- Front.renderFrame aos
+render :: Double -> Agent.WorldType -> Sim.SimOut -> IO (Bool, Double)
+render dt wt simOut = do
+    let aos = Sim.simOutAgents simOut
+    winOpen <- Front.renderFrame aos wt
     return (winOpen, dt)
+
+-- NOTE: used to freeze a given output: render it until the window is closed
+freezeRender :: Agent.WorldType -> Sim.SimOut -> IO (Bool, Double)
+freezeRender wt simOut = do
+    (cont, _) <- render 0.0 wt simOut
+    if cont then
+        freezeRender wt simOut
+        else
+            return (False, 0.0)
+
+renderOutputs :: [Sim.SimOut] -> Agent.WorldType -> IO (Bool, Double)
+renderOutputs (s:xs) wt
+    | null xs = return (True, 0.0)
+    | otherwise = do
+        (cont, dt) <- render 0.0 wt s
+        if cont then
+            renderOutputs xs wt
+                else
+                    return (True, 0.0)
 
 -----------------------------------------------------------------------------------------------------------------------
 -- Testing Rendering --
@@ -73,16 +82,16 @@ output dt simOut = do
 {-
 main :: IO ()
 main = do
-    Front.initialize
     let dt = 0.5
     let as = createTestAgents
     let aos' = createTestAgentOuts
-    let aos = Sim.simulationStep as dt 1
-    --testRender aos
-    Sim.simulationIO as (output dt)
+    Front.initialize
+    let wt = Border
+    let simIn = Sim.SimIn { Sim.simInInitAgents = as, Sim.simInWorldType = wt }
+    let outs = SimImpl.simulationStep simIn dt 1
+    freezeRender wt (head outs)
     Front.shutdown
 -}
-
 createTestAgents :: [Agent.AgentState]
 createTestAgents = [a1, a2, a3]
     where
@@ -127,12 +136,3 @@ createTestAgentOuts = [ao1, ao2, ao3]
                                                       friend = 1,
                                                       hero = True},
                           agentOutDir = (1.0, 0.0) }
-
--- NOTE: used to freeze a given output: render it until the window is closed
-testRender :: [Agent.AgentOut] -> IO ()
-testRender aos = do
-    continue <- Front.renderFrame aos
-    if continue then
-        testRender aos
-        else
-            return ()

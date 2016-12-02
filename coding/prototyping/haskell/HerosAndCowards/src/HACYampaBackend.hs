@@ -57,13 +57,16 @@ iter outFunc hdl _ out = do
 -- EXPORTS
 ----------------------------------------------------------------------------------------------------------------------
 processIO :: Sim.SimulationIO
-processIO as outFunc = do -- reactimate (init as) (input  output (YampaBack.process as)
-                hdl <- reactInit
-                            (return as)
-                            (iter outFunc)
-                            (process as)
-                HACYampaBackend.iterate hdl (0.5, Nothing) -- TODO: need to get this dt correct
-                return ()
+processIO simIn outFunc = do -- reactimate (init as) (input  output (YampaBack.process as)
+                    hdl <- reactInit
+                                (return as)
+                                (iter outFunc)
+                                (process as wt)
+                    HACYampaBackend.iterate hdl (0.5, Nothing) -- TODO: need to get this dt correct
+                    return ()
+                where
+                    as = Sim.simInInitAgents simIn
+                    wt = Sim.simInWorldType simIn
 
 iterate :: ReactHandle a b -> (DTime, Maybe a) -> IO Bool
 iterate hdl (dt, input) = do
@@ -81,10 +84,12 @@ iter outFunc hdl _ out = do
 
 {- NOTE: to run Yampa in a pure-functional way use embed -}
 processSteps :: Sim.SimulationStep
-processSteps as dt steps = embed
-                            (process as)
+processSteps simIn dt steps = embed
+                            (process as wt)
                             (as, sts)
     where
+        as = Sim.simInInitAgents simIn
+        wt = Sim.simInWorldType simIn
         -- NOTE: again haskells laziness put to use: take steps items from the infinite list of sampling-times
         sts = take steps $ samplingTimes 0 dt
 
@@ -101,13 +106,13 @@ samplingTimes t dt = (t', Nothing) : (samplingTimes t' dt)
          it just creates the signal-functions (one for each agent) and then passes them and the initial agent-states
          to the process'.
          SimOut is only used as an impostor for now, no real use but introduced for further usages when really necessary -}
-process :: [Agent.AgentState] -> SF [Agent.AgentState] Sim.SimOut
-process initAs = proc _ ->
+process :: [Agent.AgentState] -> Agent.WorldType -> SF [Agent.AgentState] Sim.SimOut
+process initAs wt = proc _ ->
     do
         aos <- process' initASFs initAs -< []
-        returnA -< Sim.SimOut{ Sim.simOutAllAgents = aos }
+        returnA -< Sim.SimOut{ Sim.simOutAgents = aos }
     where
-        initASFs = replicate (length initAs) activeAgent
+        initASFs = replicate (length initAs) (activeAgent wt)
 
 {- NOTE: This is the real process-function where the real work happens. The point is that this simulation requires
          to feed-back the output back as input which can be done in multiple ways (see other implementations) but
@@ -157,15 +162,17 @@ feedBack asfs newAs = process' asfs newAs
          input because it changes in each iteration: the output of the previous call to SF becomes the input for the
          next call to the SF. If we would pass an initial agent we would need to create SFs always new which would
          result in a restart of time thus making the proper use of time-related functions  like derivative/integral
-         impossible / useless. -}
-activeAgent :: ActiveAgent
-activeAgent = proc agentIn ->
+         impossible / useless.
+         The world-type is constant for all agents and also constant during the whole simulation, thus can be pased
+         in as a "static" argument using currying. -}
+activeAgent :: Agent.WorldType -> ActiveAgent
+activeAgent wt = proc agentIn ->
     do
         t <- time -< ()
         -- NOTE: calculating the step-width based on the time which has passed since the last call. This can be achieved
         --       by using derivative which returns the difference between the current and the last value
-        dt <- derivative -< t :: Double
+        dt <- derivative -< t :: Double -- TODO fix bug: goint too fast, actually it is not dt but 2*dt!
         let stepWidth = Agent.agentSpeedPerTimeUnit * dt
-        let ao = Agent.agentStep stepWidth agentIn
+        let ao = Agent.agentStep wt stepWidth agentIn
         -- let ao = trace ("time=" ++ (show t) ++ ", derivative=" ++ (show d) ++ "stepwidth=" ++ (show stepWidth)) Agent.agentStep stepWidth agentIn
         returnA -< ao

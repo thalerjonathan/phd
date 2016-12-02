@@ -4,6 +4,7 @@ module HACAgent (
     AgentState (..),
     AgentIn (..),
     AgentOut (..),
+    WorldType (..),
     showAgents,
     agentSpeedPerTimeUnit,
     agentStep,
@@ -20,8 +21,7 @@ import Control.DeepSeq
 type AgentId = Int
 type AgentPosition = (Double, Double)
 
-agentSpeedPerTimeUnit :: Double
-agentSpeedPerTimeUnit = 0.005
+data WorldType = Infinite | Border | Wraping | InfiniteWraping deriving (Eq)
 
 data AgentState = AgentState {
     agentId :: AgentId,
@@ -37,9 +37,6 @@ instance Show AgentState where
         " has friend " ++ (show friend) ++
         ", has enemy " ++ (show enemy) ++
         ", is on " ++ (show agentPos)
-
-showAgents :: [AgentState] -> IO [()]
-showAgents as =  mapM (putStrLn . show) as
 
 data AgentIn = AgentIn {
     agentInState :: AgentState,
@@ -60,6 +57,12 @@ instance NFData AgentState where
 instance NFData AgentOut where
     rnf (AgentOut os od) = rnf os `seq` rnf od
 
+agentSpeedPerTimeUnit :: Double
+agentSpeedPerTimeUnit = 0.005
+
+showAgents :: [AgentState] -> IO [()]
+showAgents as =  mapM (putStrLn . show) as
+
 createRandAgentStates :: RandomGen g => g -> Int -> Double -> [AgentState]
 createRandAgentStates g n p = createAgents' g 0 n p
     where
@@ -70,8 +73,8 @@ createRandAgentStates g n p = createAgents' g 0 n p
                     randState = randomAgentState g' id n p
                     (g', g'') = split g
 
-agentStep :: Double -> AgentIn -> AgentOut
-agentStep stepWidth aIn = AgentOut { agentOutState = a { agentPos = newPos }, agentOutDir = targetDir }
+agentStep :: WorldType -> Double -> AgentIn -> AgentOut
+agentStep wt stepWidth aIn = AgentOut { agentOutState = a { agentPos = newPos }, agentOutDir = targetDir }
     where
         a = agentInState aIn
         friendPos = agentInFriendPos aIn
@@ -79,9 +82,8 @@ agentStep stepWidth aIn = AgentOut { agentOutState = a { agentPos = newPos }, ag
         oldPos = agentPos a
         targetPos = decidePosition friendPos enemyPos a
         targetDir = vecNorm $ posDir oldPos targetPos
-        --newPos = clip $ addPos oldPos (multPos targetDir stepWidth)
-        newPos = wrap $ addPos oldPos (multPos targetDir stepWidth)
-        --newPos = addPos oldPos (multPos targetDir stepWidth)
+        wtFunc = worldTransform wt
+        newPos = wtFunc $ addPos oldPos (multPos targetDir stepWidth)
 
 agentInFromAgents :: [AgentState] -> [AgentIn]
 agentInFromAgents as = map agentInFromAgents' as
@@ -154,6 +156,12 @@ wrapValue v
     | v > 1.0 = 0.0
     | v < 0.0 = 1.0
     | otherwise = v
+
+worldTransform :: WorldType -> (AgentPosition -> AgentPosition)
+worldTransform wt
+    | wt == Border = clip
+    | wt == Wraping = wrap
+    | otherwise = id
 
 randomAgentState :: RandomGen g => g -> Int -> Int -> Double -> AgentState
 randomAgentState g id maxAgents p = a

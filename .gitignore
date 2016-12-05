@@ -13,9 +13,10 @@
 *.nlo
 *.toc
 dist/
-.idea/
 out/
 .dist-buildwrapper/
 .metadata/
 .recommenders/
 src-gen/
+*.hp
+*.prof

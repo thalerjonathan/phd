@@ -62,7 +62,7 @@ processIO simIn outFunc = do -- reactimate (init as) (input  output (YampaBack.p
                                 (return as)
                                 (iter outFunc)
                                 (process as wt)
-                    HACYampaBackend.iterate hdl (0.5, Nothing) -- TODO: need to get this dt correct
+                    HACYampaBackend.iterate hdl (0.5, Nothing) -- TODO: need to get this dt correct, should depend on rendering-performance
                     return ()
                 where
                     as = Sim.simInInitAgents simIn
@@ -172,7 +172,7 @@ activeAgent wt = proc agentIn ->
         -- NOTE: calculating the step-width based on the time which has passed since the last call. This can be achieved
         --       by using derivative which returns the difference between the current and the last value
         dt <- derivative -< t :: Double -- TODO fix bug: goint too fast, actually it is not dt but 2*dt!
-        let stepWidth = Agent.agentSpeedPerTimeUnit * dt
+        let stepWidth = dt
         let ao = Agent.agentStep wt stepWidth agentIn
         -- let ao = trace ("time=" ++ (show t) ++ ", derivative=" ++ (show d) ++ "stepwidth=" ++ (show stepWidth)) Agent.agentStep stepWidth agentIn
         returnA -< ao

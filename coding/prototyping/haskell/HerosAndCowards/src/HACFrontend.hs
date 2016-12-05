@@ -30,6 +30,9 @@ redShade s = GL.Color3 s 0.0 0.0
 agentSizeHalf :: Double
 agentSizeHalf = 10.0
 
+agentQuadSizeHalf :: Double
+agentQuadSizeHalf = 2.5
+
 agentTailSize :: Double
 agentTailSize = 10.0
 
@@ -75,7 +78,23 @@ renderFrame aos wt = do
     getParam Opened
 
 renderAgent :: Agent.WorldType -> Agent.AgentOut -> IO ()
-renderAgent wt ao = preservingMatrix $ do
+renderAgent = renderAgentQuad
+
+renderAgentQuad :: Agent.WorldType -> Agent.AgentOut -> IO ()
+renderAgentQuad wt ao = preservingMatrix $ do
+    GL.color $ color
+    GL.translate $ Vector3 xCoord yCoord 0
+    GL.renderPrimitive GL.Quads agentQuad
+        where
+            aState = agentOutState ao
+            (relXCoord, relYCoord) = wtf $ agentPos aState
+            xCoord = relXCoord * fromIntegral winSizeX
+            yCoord = relYCoord * fromIntegral winSizeY
+            color = agentColor aState
+            wtf = worldTypeFunc wt
+
+renderAgentWithOrientation :: Agent.WorldType -> Agent.AgentOut -> IO ()
+renderAgentWithOrientation wt ao = preservingMatrix $ do
     GL.color $ color
     GL.translate $ Vector3 xCoord yCoord 0
     GL.rotate angleDeg $ Vector3 0.0 0.0 1.0
@@ -130,6 +149,22 @@ agentPoint = do
     GL.vertex $ GL.Vertex3 0.0 distance 0.0
         where
             distance = agentSizeHalf + (agentTailSize / 2.0)
+
+agentQuad :: IO ()
+agentQuad = do
+    GL.vertex topLeft
+    GL.vertex topRight
+    GL.vertex bottomRight
+    GL.vertex bottomLeft
+        where
+            xRight = agentQuadSizeHalf
+            xLeft = -agentQuadSizeHalf
+            yTop = -agentQuadSizeHalf
+            yBottom = agentQuadSizeHalf
+            topLeft = GL.Vertex3 xLeft yTop 0.0
+            topRight = GL.Vertex3 xRight yTop 0.0
+            bottomRight = GL.Vertex3 xRight yBottom 0.0
+            bottomLeft = GL.Vertex3 xLeft yBottom 0.0
 
 agentTriangle :: IO ()
 agentTriangle = do

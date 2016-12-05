@@ -72,8 +72,7 @@ createRandAgents g n p = mapM return randAgentStates
 nextStep :: [Agent.AgentState] -> Double -> Agent.WorldType -> (Sim.SimOut, [Agent.AgentState])
 nextStep as dt wt = (simOut, as')
     where
-        stepWidth = Agent.agentSpeedPerTimeUnit * dt
-        aos = allAgentSteps as stepWidth wt
+        aos = allAgentSteps as dt wt
         as' = map Agent.agentOutState aos
         simOut = Sim.SimOut { Sim.simOutAgents = aos }
 

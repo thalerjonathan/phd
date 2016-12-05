@@ -3,6 +3,7 @@ module Main where
 import System.Random
 import System.Environment (getArgs, getProgName)
 
+import Utils
 import HACAgent as Agent
 import qualified HACFrontend as Front
 import qualified HACSimulation as Sim

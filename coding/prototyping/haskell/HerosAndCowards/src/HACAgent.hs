@@ -6,7 +6,6 @@ module HACAgent (
     AgentOut (..),
     WorldType (..),
     showAgents,
-    agentSpeedPerTimeUnit,
     agentStep,
     createRandAgentStates,
     agentInFromAgents
@@ -15,6 +14,7 @@ module HACAgent (
 import System.Random
 import Control.DeepSeq
 
+import Utils
 ----------------------------------------------------------------------------------------------------------------------
 -- EXPORTS
 ----------------------------------------------------------------------------------------------------------------------
@@ -49,6 +49,9 @@ data AgentOut = AgentOut {
     agentOutDir :: AgentPosition
 }
 
+instance Eq AgentState where
+    a1 == a2 = (agentId a1) == (agentId a2)
+
 -- NOTE: need to provide an instance-implementation for NFData when using Par-Monad as it reduces to normal-form
 instance NFData AgentState where
     rnf (AgentState id p e f h) = rnf id `seq` rnf p `seq` rnf e `seq` rnf f `seq` rnf h
@@ -58,7 +61,7 @@ instance NFData AgentOut where
     rnf (AgentOut os od) = rnf os `seq` rnf od
 
 agentSpeedPerTimeUnit :: Double
-agentSpeedPerTimeUnit = 0.005
+agentSpeedPerTimeUnit = 0.1
 
 showAgents :: [AgentState] -> IO [()]
 showAgents as =  mapM (putStrLn . show) as
@@ -74,7 +77,7 @@ createRandAgentStates g n p = createAgents' g 0 n p
                     (g', g'') = split g
 
 agentStep :: WorldType -> Double -> AgentIn -> AgentOut
-agentStep wt stepWidth aIn = AgentOut { agentOutState = a { agentPos = newPos }, agentOutDir = targetDir }
+agentStep wt dt aIn = AgentOut { agentOutState = a { agentPos = newPos }, agentOutDir = targetDir }
     where
         a = agentInState aIn
         friendPos = agentInFriendPos aIn
@@ -83,6 +86,7 @@ agentStep wt stepWidth aIn = AgentOut { agentOutState = a { agentPos = newPos },
         targetPos = decidePosition friendPos enemyPos a
         targetDir = vecNorm $ posDir oldPos targetPos
         wtFunc = worldTransform wt
+        stepWidth = agentSpeedPerTimeUnit * dt
         newPos = wtFunc $ addPos oldPos (multPos targetDir stepWidth)
 
 agentInFromAgents :: [AgentState] -> [AgentIn]
@@ -100,20 +104,11 @@ agentInFromAgents as = map agentInFromAgents' as
 ----------------------------------------------------------------------------------------------------------------------
 -- PRIVATES
 ----------------------------------------------------------------------------------------------------------------------
-hideDistance :: Double
-hideDistance = 0.1
-
-coverDistance :: Double
-coverDistance = 0.1
-
 decidePosition :: AgentPosition -> AgentPosition -> AgentState -> AgentPosition
 decidePosition friendPos enemyPos a
     | hero a = coverPosition
     | otherwise = hidePosition
     where
-        --enemyFriendDir = vecNorm $ posDir friendPos enemyPos
-        --coverPosition = addPos friendPos (multPos enemyFriendDir coverDistance)
-        --hidePosition = subPos friendPos (multPos enemyFriendDir hideDistance)
         enemyFriendDir = posDir friendPos enemyPos
         coverPosition = addPos friendPos (multPos enemyFriendDir 0.5)
         hidePosition = subPos friendPos (multPos enemyFriendDir 0.5)
@@ -135,7 +130,9 @@ vecLen :: AgentPosition -> Double
 vecLen (vx, vy) = sqrt( vx * vx + vy * vy )
 
 vecNorm :: AgentPosition -> AgentPosition
-vecNorm (vx, vy) = (vx / len, vy / len)
+vecNorm (vx, vy)
+    | len == 0 = (0, 0)
+    | otherwise = (vx / len, vy / len)
     where
         len = vecLen (vx, vy)
 
@@ -163,26 +160,21 @@ worldTransform wt
     | wt == Wraping = wrap
     | otherwise = id
 
+
 randomAgentState :: RandomGen g => g -> Int -> Int -> Double -> AgentState
 randomAgentState g id maxAgents p = a
     where
+        allAgentIds = [0..maxAgents-1]
         (randX, g') = randomR(0.0, 1.0) g
         (randY, g'') = randomR(0.0, 1.0) g'
-        (randEnemy, g''') = drawRandomIgnoring g'' 0 (maxAgents) [id]
-        (randFriend, g4) = drawRandomIgnoring g''' 0 (maxAgents) [id, randEnemy]
-        (randHero, g5) = randomThresh g4 p
+        (randEnemy, g3) = Utils.drawRandomIgnoring g'' allAgentIds [id]
+        (randFriend, g4) = Utils.drawRandomIgnoring g3 allAgentIds [id, randEnemy]
+        (randHero, _) = randomThresh g4 p
         a = AgentState { agentId = id,
                         agentPos = (randX, randY),
                         enemy = randEnemy,
                         friend = randFriend,
                         hero = randHero}
-
-drawRandomIgnoring :: (RandomGen g) => g -> Int -> Int -> [Int] -> (Int, g)
-drawRandomIgnoring g lowerRange upperRange ignore
-    | any (==randInt) ignore = drawRandomIgnoring g' lowerRange upperRange ignore
-    | otherwise = (randInt, g')
-        where
-            (randInt, g') = randomR(lowerRange, upperRange - 1) g
 
 randomThresh :: (RandomGen g) => g -> Double -> (Bool, g)
 randomThresh g p = (flag, g')

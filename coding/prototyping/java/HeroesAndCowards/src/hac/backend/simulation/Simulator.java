@@ -11,7 +11,10 @@ import java.util.*;
  */
 public class Simulator {
 
-    public Simulator() {
+    private Random r;
+
+    public Simulator(long seed) {
+        this.r = new Random(seed);
     }
 
     public List<Agent> createRandomAgents(int count, double heroDistribution) {
@@ -19,11 +22,12 @@ public class Simulator {
 
         // NOTE: need to create them first and then set their enemies and friends because only then all available
         for (int i = 0; i < count; ++i) {
-            double x = Math.random();
-            double y = Math.random();
+            double x = this.r.nextDouble();
+            double y = this.r.nextDouble();
+
             Agent a = new Agent( i );
-            a.setHero( Math.random() <= heroDistribution );
-            a.setPos( new Vector(x,y));
+            a.setHero( this.r.nextDouble() <= heroDistribution );
+            a.setPos(new Vector(x,y));
 
             as.add(a);
         }
@@ -31,8 +35,8 @@ public class Simulator {
         for (int i = 0; i < count; ++i) {
             Agent a = as.get( i );
 
-            Agent friend = Utils.drawRandomIgnoring(as, new Agent[] { a });
-            Agent enemy = Utils.drawRandomIgnoring(as, new Agent[] { a, friend });
+            Agent friend = Utils.drawRandomIgnoring(as, new Agent[] { a }, this.r);
+            Agent enemy = Utils.drawRandomIgnoring(as, new Agent[] { a, friend }, this.r);
 
             a.setFriend( friend );
             a.setEnemy( enemy );
@@ -42,7 +46,7 @@ public class Simulator {
     }
 
     public List<List<Agent>> simulate(boolean randomTraversal,
-                                      boolean newStateVisible,
+                                      boolean simultaneousUpdates,
                                       WorldType wt,
                                       List<Agent> as,
                                       int steps,
@@ -51,14 +55,7 @@ public class Simulator {
         allAgentSteps.add( as );
 
         for (int i = 0; i < steps; ++i) {
-            if (randomTraversal)
-                Collections.shuffle( as );
-
-            if (newStateVisible)
-                as = this.nextStep(as, dt, wt);
-            else
-                as = this.nextStepCopy(as, dt, wt);
-
+            as = this.internalIteration(randomTraversal, simultaneousUpdates, wt, as, dt);
             allAgentSteps.add( as );
         }
 
@@ -66,29 +63,38 @@ public class Simulator {
     }
 
     public List<Agent> simulateWithObserver(boolean randomTraversal,
-                                            boolean newStateVisible,
+                                            boolean simultaneousUpdates,
                                             WorldType wt,
                                             List<Agent> as,
                                             ISimulationObserver o) {
         double dt = o.startSimulation();
 
         while(o.simulationStep(as, wt)) {
-            if (randomTraversal)
-                Collections.shuffle( as );
-
-            if (newStateVisible)
-                as = this.nextStep(as, dt, wt);
-            else
-                as = this.nextStepCopy(as, dt, wt);
-
+            as = this.internalIteration(randomTraversal, simultaneousUpdates, wt, as, dt);
             dt = o.getDt();
         }
 
         return as;
     }
 
+    private List<Agent> internalIteration(boolean randomTraversal,
+                                          boolean simultaneousUpdates,
+                                          WorldType wt,
+                                          List<Agent> as,
+                                          double dt) {
+        if (randomTraversal)
+            Collections.shuffle( as, this.r );
+
+        if (simultaneousUpdates)
+            as = this.nextStepSimultaneous(as, dt, wt);
+        else
+            as = this.nextStepConsecutive(as, dt, wt);
+
+        return as;
+    }
+
     // NOTE: this creates updates without freezing
-    private List<Agent> nextStep(List<Agent> as, double dt, WorldType wt) {
+    private List<Agent> nextStepConsecutive(List<Agent> as, double dt, WorldType wt) {
         for (Agent a : as) {
             a.step(dt, wt);
         }
@@ -96,12 +102,11 @@ public class Simulator {
         return as;
     }
 
-    // NOTE: all agents update on 'frozen' (old) states and result will be the updated one
-    private List<Agent> nextStepCopy(List<Agent> as, double dt, WorldType wt) {
+    // NOTE: all agents update simultaneous by 'freezing' the state and working on the frozen states thus looking like
+    //       all agents moved at the same time.
+    private List<Agent> nextStepSimultaneous(List<Agent> as, double dt, WorldType wt) {
         List<Agent> nextAgents = new ArrayList<>();
         Map<Integer, Agent> agentIdMapping = new HashMap<>();
-
-        //Collections.shuffle( as );
 
         for (Agent a : as) {
             // NOTE: to 'freeze' the states we work on copies of agents which will prevent the referenced friends and enemies to be updated indirectly in this step

@@ -25,7 +25,9 @@ drawRandomTest steps g = do
 
 -- NOTE: when passing in the RandomGen then split it before to obtain a unique RandomGen, to achieve unique shufflings,
 --       because changed RandomGen will not be returned.
---       Returns undefined when no solution can be found
+--       Returns undefined when no solution can be found.
+--       Problem: when too many elements it becomes too slow because shuffle has n^2 complexity
+{-
 drawRandomIgnoring :: (RandomGen g, Eq a) => g -> [a] -> [a] -> (a, g)
 drawRandomIgnoring g xs is
     | null validXs = undefined
@@ -44,13 +46,13 @@ shuffle xs g = if length xs < 2 then
     where
         (i, g') = randomR(0, length xs - 1) g
         (r, g'') = shuffle (take i xs ++ drop (i+1) xs) g'
-
--- NOTE: this solution will recur forever if there are no possible solutions
-{-
-drawRandomIgnoring' :: (RandomGen g) => g -> Int -> Int -> [Int] -> (Int, g)
-drawRandomIgnoring' g lowerRange upperRange ignore
-    | any (==randInt) ignore = drawRandomIgnoring g' lowerRange upperRange ignore
-    | otherwise = (randInt, g')
-        where
-            (randInt, g') = randomR(lowerRange, upperRange - 1) g
 -}
+
+-- NOTE: this solution will recur forever if there are no possible solutions but will be MUCH faster for large xs and if xs is much larger than is and one knows there are solutions
+drawRandomIgnoring :: (RandomGen g, Eq a) => g -> [a] -> [a] -> (a, g)
+drawRandomIgnoring g xs is
+    | any (==randElem) is = drawRandomIgnoring g' xs is
+    | otherwise = (randElem, g')
+        where
+            (randIdx, g') = randomR(0, length xs - 1) g
+            randElem = xs !! randIdx

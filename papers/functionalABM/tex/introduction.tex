@@ -37,41 +37,44 @@ Java outperforms Haskell implementation easily with 100.000 Agents - at first no
 The agents in the Java-implementation collapsed after a given number of iterations into a single point as during normalization of the direction-vector the length was calculated to be 0. This could be possible if agents come close enough to each other e.g. in the border-worldtype it was highly probable after some iterations when enough agents have assembled at the borders whereas in the Wrapping-WorldType it didn't occur in any run done so far. \\
 In the case of a 0-length vector a division by 0  resulting in NaN which \textit{spread} through the network of neighbourhood as every agent calculated its new position it got \textit{infected} by the NaN of a neighbour at some point. The solution was to simply return a 0-vector instead of the normalized which resulted in no movement at all for the current iteration step of the agent. 
 
+TODO: check if this occurs in the haskell-version as well when having enough agents.
+
 \section{Visualization}
 Render all
 Render cowards only
 Render heroes only
 
-\section{Emergent patterns in Border-World}
-only with 0.1 heroes
 
-Are the patterns visible both with frozen and non-frozen states?
+\section{Update-Strategies}
+\begin{enumerate}
+\item All states are copied/frozen which has the effect that all agents update their positions \textit{simultaneously}
+\item Updating one agent after another utilizing aliasing (sharing of references) to allow agents updated \textit{after} agents before to see the agents updated before them. Here we have also two strategies: deterministic- and random-traversal
+\end{enumerate}
 
-non-frozen: yes
-frozen: completely different patterns
 
-hypothesis: patterns depend on iteration-order, what about random-iteration?
+\subsection{Different Behaviour with different Update-Strategies}
+Experienced the emergency of patterns in border-world: heroes form a cross in the center and cowards 4 crosses in each subdividing area.
+
+window-size:	300x300
+agent-size:		2pix
+heroes: 		20%
+random-seed: 	42
+agents:			10000
+
 
 BORDER-WORLD
-	non-frozen with random agent-traversal: 				linear patterns emerge
-	non-frozen with deterministic agent-traversal: 			linear patterns emerge
+	consecutive, random-traversal: 					patterns emerge
+	consecutive, deterministic-traversal: 			patterns emerge
 
-	frozen with random agent-traversal: 					collapse to ecliptic point-cloud with size depending on number of agents
-	frozen with deterministic agent-traversal: 				linear patterns emerge but bit different from non-frozen state
-	in both cases seems to have initial "waves"
-
-	hypothesis satisfied: with random-iteration this changes but only in the case of frozen state
-
+	simultaneous, random-traversal:					collapse into ecliptic point-cloud
+	simultaneous, deterministic-traversal: 			patterns emerge
+													in both cases seems to have initial "waves"
 WRAPPING-WORLD
-	non-frozen with random agent-traversal: 				linear patterns emerge	
-	non-frozen with deterministic agent-traversal: 			linear patterns emerge
+	consecutive, random-traversal: 					different patterns: multiple rows of cowards
+	consecutive, deterministic-traversal: 			same as above
 
-	frozen with random agent-traversal: 					collapse to ecliptic point-cloud with size depending on number of agents
-	frozen with deterministic agent-traversal: 				linear patterns emerge
-
-INFINITE-WRAPPING-WORLD
-	non-frozen with random agent-traversal: 				
-	non-frozen with deterministic agent-traversal: 			
-
-	frozen with random agent-traversal: 					
-	frozen with deterministic agent-traversal: 				
+	simultaneous, random-traversal:					collapse into ecliptic point-cloud
+	simultaneous, deterministic-traversal: 			same patterns as in consecutive version
+	
+The relevant observation here is not the shape of the pattern but that in the case of simultaneous, random updates the whole model collapses into an elliptic point-cloud. This proofs that at least in this simulation the difference in update-strategies is of importance. Why is that so? Can this be generalized to other models/simulations as well? \\
+It does not make a sense to me that especially in the simultaneous version this should make a difference - maybe its a bug?

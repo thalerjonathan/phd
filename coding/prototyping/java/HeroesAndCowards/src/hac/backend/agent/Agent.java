@@ -13,7 +13,7 @@ public class Agent implements Comparable<Agent> {
     private Agent enemy;
     private boolean hero;
 
-    public final static double STEP_WIDTH = 0.5;
+    public final static double STEP_WIDTH = 1.5;
 
     public Agent(int id) {
         this.id = id;
@@ -63,7 +63,7 @@ public class Agent implements Comparable<Agent> {
         this.enemy = enemy;
     }
 
-    public void step(double dt, WorldType wt ) {
+    public void step(double dt, WorldType wt) {
         Vector friendPos = this.friend.getPos();
         Vector enemyPos = this.enemy.getPos();
         Vector friendEnemyDirection = friendPos.delta(enemyPos);

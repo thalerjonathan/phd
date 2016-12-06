@@ -18,9 +18,10 @@ public class HACRenderer extends JPanel {
     private final static int BORDER_X = 10;
     private final static int BORDER_Y = 10;
 
-    private final static int AGENT_SIZE = 2;
+    private int agentSize;
 
-    public HACRenderer() {
+    public HACRenderer( int agentSize ) {
+        this.agentSize = agentSize;
         this.as = new ArrayList<>();
     }
 
@@ -47,7 +48,7 @@ public class HACRenderer extends JPanel {
                 g2.setColor(Color.RED);
             }
 
-            g2.fillRect((int) x, (int)y, AGENT_SIZE, AGENT_SIZE);
+            g2.fillRect((int) x, (int)y, agentSize, agentSize);
         }
     }
 

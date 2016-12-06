@@ -15,11 +15,12 @@ import qualified HACSimulationImpl as SimImpl
 main :: IO ()
 main = do
     let dt = 1.0
-    let wt = Wraping -- Infinite | Border | Wraping | InfiniteWraping
+    let wt = Border -- Infinite | Border | Wraping | InfiniteWraping
     simIn <- getSimIn dt wt
     Front.initialize
     SimImpl.simulationIO simIn (render dt wt)
     Front.shutdown
+
 -----------------------------------------------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -29,23 +30,23 @@ main = do
 main :: IO ()
 main = do
     let dt = 1.0
-    let wt = Wraping -- Infinite | Border | Wraping | InfiniteWraping
-    let stepCount = 100
+    let wt = Border -- Infinite | Border | Wraping | InfiniteWraping
+    let stepCount = 10
     simIn <- getSimIn dt wt
     Front.initialize
     -- NOTE: this won't lead to "long numbercrunching" when stepCount is high because of haskells lazyness. Just an
     --       unevaluated array will be returned and then when rendering the steps the required list-element will be
     --       calculated by the simulation.
     let outs = SimImpl.simulationStep simIn dt stepCount
-    renderOutputs outs wt
+    freezeRender wt (last outs)
     Front.shutdown
 -}
 -----------------------------------------------------------------------------------------------------------------------
 
 getSimIn :: Double -> Agent.WorldType -> IO Sim.SimIn
 getSimIn dt wt = do
-    let agentCount = 300
-    let heroDist = 0.5
+    let agentCount = 10000
+    let heroDist = 0.2
     let rngSeed = 42
     let rng = mkStdGen rngSeed
     let agents = Agent.createRandAgentStates rng agentCount heroDist

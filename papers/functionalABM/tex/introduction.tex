@@ -37,8 +37,6 @@ Java outperforms Haskell implementation easily with 100.000 Agents - at first no
 The agents in the Java-implementation collapsed after a given number of iterations into a single point as during normalization of the direction-vector the length was calculated to be 0. This could be possible if agents come close enough to each other e.g. in the border-worldtype it was highly probable after some iterations when enough agents have assembled at the borders whereas in the Wrapping-WorldType it didn't occur in any run done so far. \\
 In the case of a 0-length vector a division by 0  resulting in NaN which \textit{spread} through the network of neighbourhood as every agent calculated its new position it got \textit{infected} by the NaN of a neighbour at some point. The solution was to simply return a 0-vector instead of the normalized which resulted in no movement at all for the current iteration step of the agent. 
 
-TODO: check if this occurs in the haskell-version as well when having enough agents.
-
 \section{Visualization}
 Render all
 Render cowards only
@@ -50,7 +48,6 @@ Render heroes only
 \item All states are copied/frozen which has the effect that all agents update their positions \textit{simultaneously}
 \item Updating one agent after another utilizing aliasing (sharing of references) to allow agents updated \textit{after} agents before to see the agents updated before them. Here we have also two strategies: deterministic- and random-traversal
 \end{enumerate}
-
 
 \subsection{Different Behaviour with different Update-Strategies}
 Experienced the emergency of patterns in border-world: heroes form a cross in the center and cowards 4 crosses in each subdividing area.
@@ -78,3 +75,7 @@ WRAPPING-WORLD
 	
 The relevant observation here is not the shape of the pattern but that in the case of simultaneous, random updates the whole model collapses into an elliptic point-cloud. This proofs that at least in this simulation the difference in update-strategies is of importance. Why is that so? Can this be generalized to other models/simulations as well? \\
 It does not make a sense to me that especially in the simultaneous version this should make a difference - maybe its a bug?
+
+In Java: clearly visible
+In Scala&Actors: clearly visible
+In Haskell: not as clearly but it is there, problem: performance

@@ -20,7 +20,7 @@ public class HACFrontend extends JFrame implements ISimulationObserver, WindowLi
     private boolean continueSimulation;
     private long lastUpdate;
 
-    public HACFrontend(int agentSize) {
+    public HACFrontend(int agentSize, boolean visible) {
         super("Heroes & Cowards");
 
         this.renderer = new HACRenderer(agentSize);
@@ -30,8 +30,8 @@ public class HACFrontend extends JFrame implements ISimulationObserver, WindowLi
         this.setDefaultCloseOperation( EXIT_ON_CLOSE );
         this.addWindowListener( this );
         this.setContentPane( renderer );
-        this.setSize( new Dimension( 300, 300 ));
-        this.setVisible(true);
+        this.setSize( new Dimension( 500, 500 ));
+        this.setVisible(visible);
     }
 
     @Override
@@ -56,7 +56,6 @@ public class HACFrontend extends JFrame implements ISimulationObserver, WindowLi
 
     @Override
     public void windowOpened(WindowEvent e) {
-
     }
 
     @Override
@@ -70,21 +69,17 @@ public class HACFrontend extends JFrame implements ISimulationObserver, WindowLi
 
     @Override
     public void windowIconified(WindowEvent e) {
-
     }
 
     @Override
     public void windowDeiconified(WindowEvent e) {
-
     }
 
     @Override
     public void windowActivated(WindowEvent e) {
-
     }
 
     @Override
     public void windowDeactivated(WindowEvent e) {
-
     }
 }

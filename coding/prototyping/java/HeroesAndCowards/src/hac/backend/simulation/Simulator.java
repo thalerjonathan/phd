@@ -51,11 +51,16 @@ public class Simulator {
                                       List<Agent> as,
                                       int steps,
                                       double dt) {
+        List<Integer> iterationIndices = new ArrayList<>();
+        for (int i = 0; i < as.size(); ++i) {
+            iterationIndices.add( i );
+        }
+
         List<List<Agent>> allAgentSteps = new ArrayList<>();
         allAgentSteps.add( as );
 
         for (int i = 0; i < steps; ++i) {
-            as = this.internalIteration(randomTraversal, simultaneousUpdates, wt, as, dt);
+            as = this.internalIteration(randomTraversal, simultaneousUpdates, wt, as, iterationIndices, dt);
             allAgentSteps.add( as );
         }
 
@@ -67,10 +72,15 @@ public class Simulator {
                                             WorldType wt,
                                             List<Agent> as,
                                             ISimulationObserver o) {
+        List<Integer> iterationIndices = new ArrayList<>();
+        for (int i = 0; i < as.size(); ++i) {
+            iterationIndices.add( i );
+        }
+
         double dt = o.startSimulation();
 
         while(o.simulationStep(as, wt)) {
-            as = this.internalIteration(randomTraversal, simultaneousUpdates, wt, as, dt);
+            as = this.internalIteration(randomTraversal, simultaneousUpdates, wt, as, iterationIndices, dt);
             dt = o.getDt();
         }
 
@@ -81,21 +91,23 @@ public class Simulator {
                                           boolean simultaneousUpdates,
                                           WorldType wt,
                                           List<Agent> as,
+                                          List<Integer> iterationIndices,
                                           double dt) {
         if (randomTraversal)
-            Collections.shuffle( as, this.r );
+            Collections.shuffle( iterationIndices, this.r );
 
         if (simultaneousUpdates)
-            as = this.nextStepSimultaneous(as, dt, wt);
+            as = this.nextStepSimultaneous(as, iterationIndices, dt, wt);
         else
-            as = this.nextStepConsecutive(as, dt, wt);
+            as = this.nextStepConsecutive(as, iterationIndices, dt, wt);
 
         return as;
     }
 
     // NOTE: this creates updates without freezing
-    private List<Agent> nextStepConsecutive(List<Agent> as, double dt, WorldType wt) {
-        for (Agent a : as) {
+    private List<Agent> nextStepConsecutive(List<Agent> as, List<Integer> iterationIndices, double dt, WorldType wt) {
+        for (Integer i : iterationIndices) {
+            Agent a = as.get( i );
             a.step(dt, wt);
         }
 
@@ -104,25 +116,27 @@ public class Simulator {
 
     // NOTE: all agents update simultaneous by 'freezing' the state and working on the frozen states thus looking like
     //       all agents moved at the same time.
-    private List<Agent> nextStepSimultaneous(List<Agent> as, double dt, WorldType wt) {
-        List<Agent> nextAgents = new ArrayList<>();
+    private List<Agent> nextStepSimultaneous(List<Agent> as, List<Integer> iterationIndices, double dt, WorldType wt) {
+        List<Agent> nextAgents = new ArrayList<>( as );
         Map<Integer, Agent> agentIdMapping = new HashMap<>();
 
-        for (Agent a : as) {
+        for (Integer i : iterationIndices) {
+            Agent a = as.get( i );
             // NOTE: to 'freeze' the states we work on copies of agents which will prevent the referenced friends and enemies to be updated indirectly in this step
             // NOTE: this is both the strength and the weakness of java and using references (aliasing). We can never
             // guarantee that no update to a reference happens
             Agent an = new Agent( a );
             an.step( dt, wt );
 
-            nextAgents.add( an );
+            nextAgents.set( i, an );
             agentIdMapping.put(an.getId(), an);
         }
 
         // NOTE: replace the old instances of enemy/friend with new ones - id stays the same
-        for (Agent a : nextAgents) {
-            Agent enemy = nextAgents.get( a.getEnemy().getId() );
-            Agent friend = nextAgents.get( a.getFriend().getId() );
+        for (Integer i : iterationIndices) {
+            Agent a = nextAgents.get( i );
+            Agent enemy = agentIdMapping.get( a.getEnemy().getId() );
+            Agent friend = agentIdMapping.get( a.getFriend().getId() );
 
             a.setEnemy( enemy );
             a.setFriend( friend );

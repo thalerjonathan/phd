@@ -1,5 +1,7 @@
 package hac.backend.agent;
 
+import hac.backend.Utils;
+
 /**
  * Created by jonathan on 05/12/16.
  */
@@ -41,8 +43,12 @@ public class Vector {
         return new Vector(this.x - p.x, this.y - p.y);
     }
 
+    public double length() {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+    }
+
     public Vector norm() {
-        double len = Math.sqrt(this.x * this.x + this.y * this.y);
+        double len = this.length();
         if (len == 0) {
             return new Vector(0, 0);
         }

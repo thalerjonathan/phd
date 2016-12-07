@@ -13,7 +13,7 @@ public class Agent implements Comparable<Agent> {
     private Agent enemy;
     private boolean hero;
 
-    public final static double STEP_WIDTH = 1.5;
+    public final static double SPEED = 0.1;
 
     public Agent(int id) {
         this.id = id;
@@ -76,7 +76,7 @@ public class Agent implements Comparable<Agent> {
         }
 
         Vector targetDir = this.pos.delta( targetPos ).norm();
-        Vector newPos = this.pos.add( targetDir.multiply( STEP_WIDTH * dt ) );
+        Vector newPos = this.pos.add( targetDir.multiply( Agent.SPEED * dt ) );
 
         Vector newWtPos;
 
@@ -93,10 +93,6 @@ public class Agent implements Comparable<Agent> {
 
     @Override
     public int compareTo(Agent o) {
-        if ( this == o ) {
-            return 0;
-        }
-
         return this.id - o.id;
     }
 }

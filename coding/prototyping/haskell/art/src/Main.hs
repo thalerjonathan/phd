@@ -1,48 +1,50 @@
 module Main where
 
+import qualified ARTRendering as Render
 import qualified Graphics.Gloss as GLO
 
+-- NOTE: order is x, y, r
+data Circle = Circle Float Float Float
+
+data Point = Point Float Float
+
 main :: IO ()
-main = GLO.display (GLO.InWindow "Haskell Art: Functional Islamic Design" (800, 800) (10, 10)) GLO.black (GLO.color GLO.white constructPicture)
+main = render generateDescription
 
-constructPicture :: GLO.Picture
-constructPicture = GLO.Pictures pic
+render :: [Circle] -> IO()
+render cs = GLO.display
+                (GLO.InWindow "Haskell Art: Functional Islamic Design" (800, 800) (10, 10))
+                GLO.black
+                (GLO.color GLO.white $ GLO.Pictures $ map toGlossPicture cs)
+
+toGlossPicture :: Circle -> GLO.Picture
+toGlossPicture (Circle x y r) = Render.drawCircleAt x y r
+
+generateDescription :: [Circle]
+generateDescription = [initC, c1, c2, c3, c4]
     where
-        r = 80
-        x = r / 2
-        y = sqrt((3 * r * r) / 4)
-        line1 = drawCircleLine 0 0 r
-        line2 = drawCircleLine x y r
-        line3 = drawCircleLine 0 (2*y) r
-        pic = line1 ++ line2 ++ line3
+        initC = Circle 0 0 80
+        c1 = left initC
+        c2 = right initC
+        c3 = top initC
+        c4 = bottom initC
+        c5 = centerOfTwo c1 c2
 
-drawCircleLine :: Float -> Float -> Float -> [GLO.Picture]
-drawCircleLine x y r  = map (\i -> drawCircleAt (x + (r * i)) y r) [-3..3]
+left :: Circle -> Circle
+left (Circle x y r) = Circle (x - r) y r
 
-constructPicture'' :: GLO.Picture
-constructPicture'' = GLO.Pictures [center, c1, c2, c3]
+right :: Circle -> Circle
+right (Circle x y r) = Circle (x + r) y r
+
+top :: Circle -> Circle
+top (Circle x y r) = Circle x (y + r) r
+
+bottom :: Circle -> Circle
+bottom (Circle x y r) = Circle x (y - r) r
+
+
+centerOfTwo :: Circle -> Circle -> Circle
+centerOfTwo (Circle x1 y1 r1) (Circle x2 y2 r2) = Circle xHalf y r1
     where
-        r = 80
-        x = r / 2
-        y = sqrt( (3 * r * r)/4)
-        center = drawCircleAt 0 0 2
-        c1 = drawCircleAt 0 0 r
-        c2 = drawCircleAt r 0 r
-        c3 = drawCircleAt x (-y) r
-
-constructPicture' :: GLO.Picture
-constructPicture' = GLO.Pictures [center, c1, c2, c3, c4, c5, c6, c7]
-    where
-        r = 80
-        rHalf = r / 2
-        center = drawCircleAt 0 0 2
-        c1 = drawCircleAt 0 0 r
-        c2 = drawCircleAt r 0 r
-        c3 = drawCircleAt rHalf (-r) r
-        c4 = drawCircleAt (r + rHalf) (-r) r
-        c5 = drawCircleAt (2*r) 0 r
-        c6 = drawCircleAt rHalf (r) r
-        c7 = drawCircleAt (r + rHalf) (r) r
-
-drawCircleAt :: Float -> Float -> Float -> GLO.Picture
-drawCircleAt x y r = GLO.translate x y $ GLO.Circle r
+        xHalf = (x2 - x1) / 2
+        y = sqrt((3 * r1 * r1) / 4)

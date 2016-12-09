@@ -13,7 +13,7 @@ public class Agent implements Comparable<Agent> {
     private Agent enemy;
     private boolean hero;
 
-    public final static double SPEED = 0.1;
+    public final static double SPEED = 1.0;
 
     public Agent(int id) {
         this.id = id;

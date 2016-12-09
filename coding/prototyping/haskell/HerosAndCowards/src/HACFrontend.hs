@@ -10,10 +10,10 @@ import Control.Monad
 import HACAgent as Agent
 
 winSizeX :: GLsizei
-winSizeX = 300
+winSizeX = 500
 
 winSizeY :: GLsizei
-winSizeY = 300
+winSizeY = 500
 
 winSize :: GL.Size
 winSize = (GL.Size winSizeX winSizeY)
@@ -31,7 +31,7 @@ agentSizeHalf :: Double
 agentSizeHalf = 10.0
 
 agentQuadSizeHalf :: Double
-agentQuadSizeHalf = 1
+agentQuadSizeHalf = 2.5
 
 agentTailSize :: Double
 agentTailSize = 10.0
@@ -141,8 +141,8 @@ fractionalPart x = fractPart
 
 agentColor :: Agent.AgentState -> GL.Color3 GLdouble
 agentColor a
-    | hero a = greenShade 0.5
-    | otherwise = redShade 0.75
+    | hero a = greenShade 1.0
+    | otherwise = redShade 1.0
 
 agentPoint :: IO ()
 agentPoint = do

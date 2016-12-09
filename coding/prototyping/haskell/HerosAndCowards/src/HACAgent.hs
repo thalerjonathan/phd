@@ -61,20 +61,22 @@ instance NFData AgentOut where
     rnf (AgentOut os od) = rnf os `seq` rnf od
 
 agentSpeedPerTimeUnit :: Double
-agentSpeedPerTimeUnit = 0.1
+agentSpeedPerTimeUnit = 1.0
 
 showAgents :: [AgentState] -> IO [()]
 showAgents as =  mapM (putStrLn . show) as
 
-createRandAgentStates :: RandomGen g => g -> Int -> Double -> [AgentState]
-createRandAgentStates g n p = createAgents' g 0 n p
+createRandAgentStates :: RandomGen g => g -> Int -> Double -> ([AgentState], g)
+createRandAgentStates gInit n p = createAgents' gInit 0 n p
     where
+        createAgents' :: RandomGen g => g -> Int -> Int -> Double -> ([AgentState], g)
         createAgents' g id n p
-            | id == n = []
-            | otherwise = randState : createAgents' g'' (id+1) n p
+            | id == n = ([], g)
+            | otherwise = (rands, g'')
                 where
-                    randState = randomAgentState g' id n p
-                    (g', g'') = split g
+                    (randState, g') = randomAgentState g id n p
+                    (ras, g'') = createAgents' g' (id+1) n p
+                    rands = randState : ras
 
 agentStep :: WorldType -> Double -> AgentIn -> AgentOut
 agentStep wt dt aIn = AgentOut { agentOutState = a { agentPos = newPos }, agentOutDir = targetDir }
@@ -110,9 +112,9 @@ decidePosition friendPos enemyPos a
     | otherwise = hidePosition
     where
         enemyFriendDir = posDir friendPos enemyPos
-        coverPosition = addPos friendPos (multPos enemyFriendDir 0.5)
-        hidePosition = subPos friendPos (multPos enemyFriendDir 0.5)
-
+        halfPos = multPos enemyFriendDir 0.5
+        coverPosition = addPos friendPos halfPos
+        hidePosition = subPos friendPos halfPos
 
 multPos :: AgentPosition -> Double -> AgentPosition
 multPos (x, y) s = (x*s, y*s)
@@ -124,17 +126,17 @@ subPos :: AgentPosition -> AgentPosition -> AgentPosition
 subPos (x1, y1) (x2, y2) = (x1-x2, y1-y2)
 
 posDir :: AgentPosition -> AgentPosition -> AgentPosition
-posDir (v1x, v1y) (v2x, v2y) = (v2x-v1x, v2y-v1y)
+posDir (x1, y1) (x2, y2) = (x2-x1, y2-y1)
 
 vecLen :: AgentPosition -> Double
-vecLen (vx, vy) = sqrt( vx * vx + vy * vy )
+vecLen (x, y) = sqrt( x * x + y * y )
 
 vecNorm :: AgentPosition -> AgentPosition
-vecNorm (vx, vy)
+vecNorm (x, y)
     | len == 0 = (0, 0)
-    | otherwise = (vx / len, vy / len)
+    | otherwise = (x / len, y / len)
     where
-        len = vecLen (vx, vy)
+        len = vecLen (x, y)
 
 clip :: AgentPosition -> AgentPosition
 clip (x, y) = (clippedX, clippedY)
@@ -161,15 +163,15 @@ worldTransform wt
     | otherwise = id
 
 
-randomAgentState :: RandomGen g => g -> Int -> Int -> Double -> AgentState
-randomAgentState g id maxAgents p = a
+randomAgentState :: RandomGen g => g -> Int -> Int -> Double -> (AgentState, g)
+randomAgentState g id maxAgents p = (a, g5)
     where
         allAgentIds = [0..maxAgents-1]
         (randX, g') = randomR(0.0, 1.0) g
         (randY, g'') = randomR(0.0, 1.0) g'
         (randEnemy, g3) = Utils.drawRandomIgnoring g'' allAgentIds [id]
         (randFriend, g4) = Utils.drawRandomIgnoring g3 allAgentIds [id, randEnemy]
-        (randHero, _) = randomThresh g4 p
+        (randHero, g5) = randomThresh g4 p
         a = AgentState { agentId = id,
                         agentPos = (randX, randY),
                         enemy = randEnemy,

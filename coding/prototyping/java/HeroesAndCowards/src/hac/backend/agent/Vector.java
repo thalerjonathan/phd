@@ -53,7 +53,7 @@ public class Vector {
             return new Vector(0, 0);
         }
 
-        return new Vector( x / len, y / len);
+        return new Vector( this.x / len, this.y / len);
     }
 
     public Vector clip() {

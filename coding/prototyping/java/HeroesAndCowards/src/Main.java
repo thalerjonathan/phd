@@ -1,5 +1,6 @@
 import hac.backend.Utils;
 import hac.backend.agent.Agent;
+import hac.backend.agent.Vector;
 import hac.backend.simulation.ISimulationObserver;
 import hac.backend.simulation.SimulationConfig;
 import hac.backend.simulation.Simulator;
@@ -7,6 +8,7 @@ import hac.backend.simulation.WorldType;
 import hac.gui.HACFrontend;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -20,29 +22,98 @@ public class Main {
         double epsilon = 0.1;
 
         SimulationConfig simCfg1 = new SimulationConfig();
-        simCfg1.agentCount = 6000;
-        simCfg1.simulationRandomSeed = 42;
+        simCfg1.agentCount = 600;
+        simCfg1.simulationRandomSeed = 40;
         simCfg1.heroesDistribution = 0.25;
         simCfg1.dt = 0.01;
         simCfg1.randomTraversal = false;
-        simCfg1.simultaneousUpdates = false;
+        simCfg1.simultaneousUpdates = true;
         simCfg1.worldType = WorldType.BORDER;
-        simCfg1.steps = 0; //1000_000;
+        simCfg1.steps = 20;
 
         SimulationConfig simCfg2 = new SimulationConfig( simCfg1 );
         simCfg2.randomTraversal = true;
+
+        observeFinalStepWithTestAgents( simCfg1, createTestAgents( simCfg1.agentCount ), agentSize );
 
         //observeInfiniteSimulation( simCfg1, agentSize );
         //observeAllSteps( simCfg1, agentSize );
         //observeFinalStep( simCfg1, agentSize );
         //observeDualLockstepSimulation( simCfg1, simCfg2, epsilon, agentSize );
-
+        /*
         int differenceAfterSteps = compareDualLockstepSimulation( simCfg1, simCfg2, epsilon, agentSize );
         if ( differenceAfterSteps > 0 ) {
             System.out.println("Found differences in Simulations after " + differenceAfterSteps + " steps using epsilon of " + epsilon );
         } else {
             System.out.println("No differences in Simulations found using epsilon of " + epsilon);
+        */
+    }
+
+    /*
+    public static List<Agent> createTestAgents(int agentCount) {
+        List<Agent> as = new ArrayList<>();
+
+        for (int i = 0; i < agentCount; ++i) {
+            Agent a = new Agent(i);
+
+            double x = (double) i / (double) agentCount;
+            double y = (double) i / (double) agentCount;
+            boolean isHero = (i % 3) == 0;
+
+            a.setPos(new Vector(x, y));
+
+            a.setHero(isHero);
+
+            as.add(a);
         }
+
+        for (int i = 0; i < agentCount; ++i) {
+            Agent a = as.get( i );
+            int enemyIdx = i + 4;
+            int friendIdx = i + 6;
+
+            if ( enemyIdx >= agentCount )
+                enemyIdx -= agentCount;
+
+            if ( friendIdx >= agentCount )
+                friendIdx -= agentCount;
+
+            a.setEnemy( as.get( enemyIdx ) );
+            a.setFriend( as.get( friendIdx ) );
+        }
+
+        return as;
+    }
+    */
+
+    public static List<Agent> createTestAgents(int agentCount) {
+        List<Agent> as = new ArrayList<>();
+
+        Agent a0 = new Agent( 0 );
+        Agent a1 = new Agent( 1 );
+        Agent a2 = new Agent( 2);
+
+        a0.setPos( new Vector( 0.5, 0.25));
+        a1.setPos( new Vector( 0.75, 0.75));
+        a2.setPos( new Vector( 0.25, 0.75));
+
+        a0.setHero( true );
+        a1.setHero( true );
+        a2.setHero( false );
+
+        a0.setEnemy( a2 );
+        a1.setEnemy( a2 );
+        a2.setEnemy( a1 );
+
+        a0.setFriend( a1 );
+        a1.setFriend( a0 );
+        a2.setFriend( a0 );
+
+        as.add( a0 );
+        as.add( a1 );
+        as.add( a2 );
+
+        return as;
     }
 
     public static void observeInfiniteSimulation( SimulationConfig simCfg, int agentSize ) {
@@ -78,6 +149,38 @@ public class Main {
         fe.dispose();
     }
 
+    public static void observeInfiniteSimulationTestAgents( SimulationConfig simCfg, List<Agent> asInit, int agentSize ) {
+        Simulator hac = new Simulator( simCfg.simulationRandomSeed );
+        HACFrontend fe = new HACFrontend( agentSize, true );
+
+        /* NOTE: use this code to view simulation interactively.
+           NOTE: to have REPRODUCEABLE runs we MUST NOT ALLOW the GUI/RENDERING to drive our dt because GUI/RENDERING
+                 depends strongly on OS and scheduling and could and IS subject to non-deterministic changes and will
+                 NEVER be constant although the scenery may be of constant complexity!
+                 Thus introduce indirection and return constant dt and feed output to rendering => result in reproducible runs
+        */
+        hac.simulateWithObserver( simCfg.randomTraversal,
+                simCfg.simultaneousUpdates,
+                simCfg.worldType, asInit, new ISimulationObserver() {
+                    @Override
+                    public double startSimulation() {
+                        return 0.0;
+                    }
+
+                    @Override
+                    public double getDt() {
+                        return simCfg.dt;
+                    }
+
+                    @Override
+                    public boolean simulationStep(List<Agent> as, WorldType wt) {
+                        return fe.simulationStep(as, wt);
+                    }
+                });
+
+        fe.dispose();
+    }
+
     public static void observeAllSteps( SimulationConfig simCfg, int agentSize ) {
         Simulator hac = new Simulator( simCfg.simulationRandomSeed );
         HACFrontend fe = new HACFrontend( agentSize, true );
@@ -97,6 +200,18 @@ public class Main {
         Simulator hac = new Simulator( simCfg.simulationRandomSeed );
         HACFrontend fe = new HACFrontend( agentSize, true );
         List<Agent> asInit = hac.createRandomAgents( simCfg.agentCount, simCfg.heroesDistribution );
+
+        // NOTE: use this code to calculate a number of steps and then display the final result
+        List<List<Agent>> allAsSteps = hac.simulate( simCfg.randomTraversal,
+                simCfg.simultaneousUpdates, simCfg.worldType, asInit, simCfg.steps, simCfg.dt );
+        List<Agent> finalIteration = allAsSteps.get(allAsSteps.size() -1);
+
+        fe.simulationStep(finalIteration, simCfg.worldType);
+    }
+
+    public static void observeFinalStepWithTestAgents( SimulationConfig simCfg, List<Agent> asInit, int agentSize ) {
+        Simulator hac = new Simulator( simCfg.simulationRandomSeed );
+        HACFrontend fe = new HACFrontend( agentSize, true );
 
         // NOTE: use this code to calculate a number of steps and then display the final result
         List<List<Agent>> allAsSteps = hac.simulate( simCfg.randomTraversal,

@@ -47,6 +47,7 @@ processSteps simIn dt steps = processSteps' asInit dt steps
 ------------------------------------------------------------------------------------------------------------------------
 -- MONADIC Agent implementation
 ------------------------------------------------------------------------------------------------------------------------
+{-
 data Agent a = Agent a
 
 instance Functor Agent where
@@ -64,6 +65,7 @@ createRandAgents :: RandomGen g => g -> Int -> Double -> Agent [Agent.AgentState
 createRandAgents g n p = mapM return randAgentStates
     where
         randAgentStates = Agent.createRandAgentStates g n p
+        -}
 ------------------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------------------------------------------------------------------------------------

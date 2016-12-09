@@ -1,13 +1,13 @@
 name:              HerosAndCowards
 version:           1.0
 Build-Type:        Simple
-cabal-version:     >= 1.2
+cabal-version:     >= 1.24
 
 executable HerosAndCowards
   main-is:          Main.hs
   hs-source-dirs:   src
   build-depends:    base, Yampa, GLFW, OpenGL, random, monad-par, deepseq, parallel
+  default-language: Haskell2010
   ghc-options:      -threaded
                     -fprof-auto
-                    -prof
-                    "-with-rtsopts=-N -p -s -h -i0.1"
+                    "-with-rtsopts=-N -s -h -i0.1"

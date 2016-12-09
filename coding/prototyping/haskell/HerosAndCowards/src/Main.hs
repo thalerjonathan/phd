@@ -4,6 +4,7 @@ import System.Random
 import System.Environment (getArgs, getProgName)
 
 import Utils
+import JavaRandomGen
 import HACAgent as Agent
 import qualified HACFrontend as Front
 import qualified HACSimulation as Sim
@@ -33,7 +34,7 @@ main = do
 -----------------------------------------------------------------------------------------------------------------------
 -- Step-Driven Simulation
 -----------------------------------------------------------------------------------------------------------------------
-{-
+
 main :: IO ()
 main = do
     let dt = 0.01
@@ -41,7 +42,7 @@ main = do
     let agentCount = 60
     let heroDist = 0.25
     let rngSeed = 42
-    let rng = mkStdGen rngSeed
+    let rng = mkDetGen
     let (agents, rng') = Agent.createRandAgentStates rng agentCount heroDist
     let simIn = Sim.SimIn { Sim.simInInitAgents = agents, Sim.simInWorldType = wt }
     let steps = 1000
@@ -52,8 +53,8 @@ main = do
     let outs = SimImpl.simulationStep simIn dt steps
     freezeRender wt (last outs)
     Front.shutdown
--}
 
+{-
 main :: IO ()
 main = do
     let dt = 0.01
@@ -68,7 +69,7 @@ main = do
     let outs = SimImpl.simulationStep simIn dt steps
     freezeRender wt (last outs)
     Front.shutdown
-
+-}
 -----------------------------------------------------------------------------------------------------------------------
 
 render :: Double -> Agent.WorldType -> Sim.SimOut -> IO (Bool, Double)

@@ -19,8 +19,8 @@ detRange g = (1, maxBound :: Int)
 detSplit :: DeterministicGen -> (DeterministicGen, DeterministicGen)
 detSplit g = (g, g)
 
-mkDetGen :: Int -> DeterministicGen
-mkDetGen seed = DeterministicGen seed
+mkDetGen :: DeterministicGen
+mkDetGen = DeterministicGen 1
 
 genDetRands :: (RandomGen g) => Int -> g -> (Int, Int) -> ([Int], g)
 genDetRands 0 rng ip = ([], rng)

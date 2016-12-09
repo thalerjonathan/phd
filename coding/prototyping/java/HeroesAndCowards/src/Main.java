@@ -34,11 +34,11 @@ public class Main {
         SimulationConfig simCfg2 = new SimulationConfig( simCfg1 );
         simCfg2.randomTraversal = true;
 
-        observeFinalStepWithTestAgents( simCfg1, createTestAgents( simCfg1.agentCount ), agentSize );
+        //observeFinalStepWithTestAgents( simCfg1, createTestAgents( simCfg1.agentCount ), agentSize );
 
         //observeInfiniteSimulation( simCfg1, agentSize );
         //observeAllSteps( simCfg1, agentSize );
-        //observeFinalStep( simCfg1, agentSize );
+        observeFinalStep( simCfg1, agentSize );
         //observeDualLockstepSimulation( simCfg1, simCfg2, epsilon, agentSize );
         /*
         int differenceAfterSteps = compareDualLockstepSimulation( simCfg1, simCfg2, epsilon, agentSize );

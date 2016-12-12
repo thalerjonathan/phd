@@ -1,117 +1,49 @@
 module HACFrontend where
 
-import Graphics.Rendering.OpenGL as GL
-import Graphics.UI.GLFW as GLFW
-import Graphics.Rendering.OpenGL (($=))
-import Control.Monad
 import Data.IORef
+import qualified Graphics.Gloss as GLO
 
+import HACSimulation as Sim
 import HACAgent as Agent
 
-winSizeX :: GLsizei
+winSizeX :: Int
 winSizeX = 500
 
-winSizeY :: GLsizei
+winSizeY :: Int
 winSizeY = 500
 
-winSize :: GL.Size
-winSize = (GL.Size winSizeX winSizeY)
+agentSize :: Float
+agentSize = 2
 
-green :: GL.Color3 GLdouble
-green = greenShade 1.0
+display :: GLO.Display
+display = (GLO.InWindow "Heroes & Cowards IO (Gloss)" (winSizeX, winSizeY) (0, 0))
 
-greenShade :: GLdouble -> GL.Color3 GLdouble
-greenShade s = GL.Color3 0.0 s 0.0
-
-redShade :: GLdouble -> GL.Color3 GLdouble
-redShade s = GL.Color3 s 0.0 0.0
-
-agentSizeHalf :: Double
-agentSizeHalf = 10.0
-
-agentQuadSizeHalf :: Double
-agentQuadSizeHalf = 2.5
-
-agentTailSize :: Double
-agentTailSize = 10.0
-
-initialize :: IO ()
-initialize = do
-  GLFW.initialize
-  -- open window
-  GLFW.openWindow winSize [GLFW.DisplayAlphaBits 8] GLFW.Window
-  GLFW.windowTitle $= "Heros & Cowards"
-  GL.shadeModel    $= GL.Smooth
-  -- enable antialiasing
-  GL.lineSmooth $= GL.Enabled
-  GL.blend      $= GL.Enabled
-  GL.blendFunc  $= (GL.SrcAlpha, GL.OneMinusSrcAlpha)
-  GL.lineWidth  $= 1.5
-  -- set the color to clear background
-  GL.clearColor $= Color4 1 1 1 0
-  -- set the point-size
-  GL.pointSize  $= realToFrac agentTailSize
-  GL.pointSmooth $= Enabled
-  -- set 2D orthogonal view inside windowSizeCallback because
-  -- any change to the Window size should result in different
-  -- OpenGL Viewport.
-  GLFW.windowSizeCallback $= \ size@(GL.Size w h) ->
-    do
-      GL.viewport   $= (GL.Position 0 0, size)
-      GL.matrixMode $= GL.Projection
-      GL.loadIdentity
-      GL.ortho2D 0 (realToFrac w) (realToFrac h) 0
-
-shutdown :: IO ()
-shutdown = do
-  GLFW.closeWindow
-  GLFW.terminate
-
-renderFrame :: [Agent.AgentOut] -> Agent.WorldType -> IO Bool
-renderFrame aos wt = do
-    GL.clear [GL.ColorBuffer]
-    GL.matrixMode $= GL.Modelview 0
-    GL.loadIdentity
-    mapM (renderAgent wt) aos
-    GLFW.swapBuffers
-    getParam Opened
-
-renderAgent :: Agent.WorldType -> Agent.AgentOut -> IO ()
-renderAgent = renderAgentQuad
-
-renderAgentQuad :: Agent.WorldType -> Agent.AgentOut -> IO ()
-renderAgentQuad wt ao = preservingMatrix $ do
-    pos <- readIORef $ agentPos aState
-    let (relXCoord, relYCoord) = wtf pos
-    let xCoord = relXCoord * fromIntegral winSizeX
-    let yCoord = relYCoord * fromIntegral winSizeY
-    GL.color $ color
-    GL.translate $ Vector3 xCoord yCoord 0
-    GL.renderPrimitive GL.Quads agentQuad
+renderFrame :: Sim.SimIn -> IO GLO.Picture
+renderFrame simIn = do
+    pics <- mapM (renderAgent wt) as
+    let p = GLO.Pictures $ pics
+    return p
         where
-            aState = agentOutState ao
-            color = agentColor aState
+            wt = Sim.simInWorldType simIn
+            as = Sim.simInInitAgents simIn
+
+renderAgent :: Agent.WorldType -> Agent.AgentState -> IO GLO.Picture
+renderAgent wt as = do
+    pos <- readIORef $ agentPos as
+    let (relXCoord, relYCoord) = agentToGlossCoordinates $ wtf pos
+    let x = fromRational (toRational relXCoord * ((fromIntegral winSizeX) / 2.0))
+    let y = fromRational (toRational relYCoord * ((fromIntegral winSizeY) / 2.0))
+    let pic = GLO.color color $ GLO.translate x y $ GLO.ThickCircle agentSize (2*agentSize)
+    return pic
+        where
+            color = agentColor as
             wtf = worldTypeFunc wt
 
-renderAgentWithOrientation :: Agent.WorldType -> Agent.AgentOut -> IO ()
-renderAgentWithOrientation wt ao = preservingMatrix $ do
-    pos <- readIORef $ agentPos aState
-    let (relXCoord, relYCoord) = wtf pos
-    let xCoord = relXCoord * fromIntegral winSizeX
-    let yCoord = relYCoord * fromIntegral winSizeY
-    GL.color $ color
-    GL.translate $ Vector3 xCoord yCoord 0
-    GL.rotate angleDeg $ Vector3 0.0 0.0 1.0
-    GL.renderPrimitive GL.Triangles agentTriangle
-    GL.renderPrimitive GL.Points agentPoint
-        where
-            (dirX, dirY) = agentOutDir ao
-            angleRad = atan2 dirX dirY                    -- NOTE: to get the angle of a 2D-vector in radians, use atan2
-            angleDeg = (pi - angleRad) * radToDegFact     -- NOTE: because the coordinate-systems y-achsis is pointing downwards, we need to adjust the angle
-            aState = agentOutState ao
-            radToDegFact = (180.0/pi)
-            color = agentColor aState
-            wtf = worldTypeFunc wt
+agentToGlossCoordinates :: AgentPosition -> AgentPosition
+agentToGlossCoordinates (x, y) = (x', y')
+    where
+        x' = 2*x - 1.0
+        y' = 2*y - 1.0
 
 worldTypeFunc :: Agent.WorldType -> (AgentPosition -> AgentPosition)
 worldTypeFunc wt
@@ -140,43 +72,7 @@ fractionalPart x = fractPart
     where
         (intPart, fractPart) = properFraction x
 
-agentColor :: Agent.AgentState -> GL.Color3 GLdouble
+agentColor :: Agent.AgentState -> GLO.Color
 agentColor a
-    | hero a = greenShade 1.0
-    | otherwise = redShade 1.0
-
-agentPoint :: IO ()
-agentPoint = do
-    GL.vertex $ GL.Vertex3 0.0 distance 0.0
-        where
-            distance = agentSizeHalf + (agentTailSize / 2.0)
-
-agentQuad :: IO ()
-agentQuad = do
-    GL.vertex topLeft
-    GL.vertex topRight
-    GL.vertex bottomRight
-    GL.vertex bottomLeft
-        where
-            xRight = agentQuadSizeHalf
-            xLeft = -agentQuadSizeHalf
-            yTop = -agentQuadSizeHalf
-            yBottom = agentQuadSizeHalf
-            topLeft = GL.Vertex3 xLeft yTop 0.0
-            topRight = GL.Vertex3 xRight yTop 0.0
-            bottomRight = GL.Vertex3 xRight yBottom 0.0
-            bottomLeft = GL.Vertex3 xLeft yBottom 0.0
-
-agentTriangle :: IO ()
-agentTriangle = do
-    GL.vertex top
-    GL.vertex bottomRight
-    GL.vertex bottomLeft
-        where
-            xRight = agentSizeHalf
-            xLeft = -agentSizeHalf
-            yTop = -agentSizeHalf
-            yBottom = agentSizeHalf
-            top = GL.Vertex3 0.0 yTop 0.0
-            bottomRight = GL.Vertex3 xRight yBottom 0.0
-            bottomLeft = GL.Vertex3 xLeft yBottom 0.0
+    | hero a = GLO.green
+    | otherwise = GLO.red

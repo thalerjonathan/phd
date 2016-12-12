@@ -11,6 +11,7 @@ module HACAgent (
     agentInFromAgents
   ) where
 
+import Data.IORef
 import System.Random
 import Control.DeepSeq
 
@@ -40,8 +41,9 @@ instance Show AgentState where
 
 data AgentIn = AgentIn {
     agentInState :: AgentState,
-    agentInEnemyPos :: AgentPosition,
-    agentInFriendPos :: AgentPosition
+    agentInAllAgents :: [AgentState]
+    --agentInEnemyPos :: AgentPosition,
+    --agentInFriendPos :: AgentPosition
 }
 
 data AgentOut = AgentOut {
@@ -82,8 +84,9 @@ agentStep :: WorldType -> Double -> AgentIn -> AgentOut
 agentStep wt dt aIn = AgentOut { agentOutState = a { agentPos = newPos }, agentOutDir = targetDir }
     where
         a = agentInState aIn
-        friendPos = agentInFriendPos aIn
-        enemyPos = agentInEnemyPos aIn
+        as = agentInAllAgents aIn
+        friendPos = agentPos (as !! friend a)
+        enemyPos = agentPos (as !! enemy a)
         oldPos = agentPos a
         targetPos = decidePosition friendPos enemyPos a
         targetDir = vecNorm $ posDir oldPos targetPos
@@ -95,14 +98,7 @@ agentInFromAgents :: [AgentState] -> [AgentIn]
 agentInFromAgents as = map agentInFromAgents' as
     where
         agentInFromAgents' :: AgentState -> AgentIn
-        agentInFromAgents' a = AgentIn { agentInState = a, agentInEnemyPos = enemyPos, agentInFriendPos = friendPos }
-            where
-                -- NOTE: the more agents (as) there are, the more time the next two lines consume. In case of 3000 Agents
-                --       on my working machine in the office, each of them consumes between 39-44% of the runtime thus
-                --       making up of roughly 80% of the time
-                friendPos = agentPos (as !! friend a)
-                enemyPos = agentPos (as !! enemy a)
-
+        agentInFromAgents' a = AgentIn { agentInState = a, agentInAllAgents = as }
 ----------------------------------------------------------------------------------------------------------------------
 -- PRIVATES
 ----------------------------------------------------------------------------------------------------------------------
@@ -161,7 +157,6 @@ worldTransform wt
     | wt == Border = clip
     | wt == Wraping = wrap
     | otherwise = id
-
 
 randomAgentState :: RandomGen g => g -> Int -> Int -> Double -> (AgentState, g)
 randomAgentState g id maxAgents p = (a, g5)

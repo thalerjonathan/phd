@@ -1,4 +1,4 @@
-module JavaRandomGen where
+module HACDetRNG where
 
 import System.Random
 

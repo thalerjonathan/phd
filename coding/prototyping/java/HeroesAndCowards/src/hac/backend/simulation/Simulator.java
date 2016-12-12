@@ -125,8 +125,7 @@ public class Simulator {
             // NOTE: to 'freeze' the states we work on copies of agents which will prevent the referenced friends and enemies to be updated indirectly in this step
             // NOTE: this is both the strength and the weakness of java and using references (aliasing). We can never
             // guarantee that no update to a reference happens
-            Agent an = new Agent( a );
-            an.step( dt, wt );
+            Agent an = a.stepImmutable( dt, wt );
 
             nextAgents.set( i, an );
             agentIdMapping.put(an.getId(), an);

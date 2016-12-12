@@ -63,6 +63,12 @@ public class Agent implements Comparable<Agent> {
         this.enemy = enemy;
     }
 
+    public Agent stepImmutable(double dt, WorldType wt) {
+        Agent a = new Agent( this );
+        a.step(dt, wt);
+        return a;
+    }
+
     public void step(double dt, WorldType wt) {
         Vector friendPos = this.friend.getPos();
         Vector enemyPos = this.enemy.getPos();

@@ -76,3 +76,6 @@ The 3rd hypothesis is that the number of agents should also lead to increased sp
 \subsection{Problem of RNG}
  Have to behave EXACTLY The same: VERY difficult because of differing interfaces e.g. compare java to haskell RNGs.
  Solution: create a deterministic RNG generating a number-stream starting from 1 and just counting up. The program should work also in this case, if not, something should be flawed!
+ 
+\section{Reasoning}
+Compare the pure-version (both Yampa and classic) with the IO-version of haskell: we loose basically all power to reason by just looking at the types as all kind of side-effects are possible when running in the IO-Monad.

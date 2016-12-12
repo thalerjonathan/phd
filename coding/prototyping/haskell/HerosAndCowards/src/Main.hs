@@ -13,11 +13,12 @@ import qualified HACSimulationImpl as SimImpl
 -----------------------------------------------------------------------------------------------------------------------
 -- IO-Driven Simulation
 -----------------------------------------------------------------------------------------------------------------------
+{-
 main :: IO ()
 main = do
     let dt = 0.01
     let wt = Border -- Infinite | Border | Wraping | InfiniteWraping
-    let agentCount = 600
+    let agentCount = 1000
     let heroDist = 0.25
     let rngSeed = 42
     let rng = mkStdGen rngSeed
@@ -26,17 +27,17 @@ main = do
     Front.initialize
     SimImpl.simulationIO simIn (render dt wt)
     Front.shutdown
+-}
 -----------------------------------------------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------------------------------------------------
 -- Step-Driven Simulation
 -----------------------------------------------------------------------------------------------------------------------
-{-
 main :: IO ()
 main = do
     let dt = 0.01
     let wt = Border -- Infinite | Border | Wraping | InfiniteWraping
-    let agentCount = 6000
+    let agentCount = 1000
     let heroDist = 0.25
     let rngSeed = 42
     let rng = mkStdGen rngSeed
@@ -50,7 +51,6 @@ main = do
     let outs = SimImpl.simulationStep simIn dt steps
     freezeRender wt (last outs)
     Front.shutdown
--}
 -----------------------------------------------------------------------------------------------------------------------
 
 render :: Double -> Agent.WorldType -> Sim.SimOut -> IO (Bool, Double)

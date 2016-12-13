@@ -1,11 +1,30 @@
 \chapter{Introduction}
 still untouched: how to implement bidirectional multistep conversations? this will be of interest in ACE
 
+\graphicspath{{./fig/}}	%specifying the folder for the figures
+
+Important: The strength of simulations is to put hypotheses to tests: The hypothesis-simulation-refinement cycle: 
+
+\section{Agent-definition}
+An Agent is a metaphor for a pro-active unit, able to spawn new Agents, and interacting with other Agents in a network of neighbours by exchange of messages. The implementation of Agents can vary and strongly depends on the programming language and the kind of domain the simulation and model is situated in. This paper looks at how Agents can be implemented in various languages using the simple Heroes \& Cowards model (see below). The following implementations are discussed:
+
+\begin{enumerate}
+\item Java, Object-Oriented
+\item Haskell, Pure Functional
+\item Akka, Mixed Functional with Actors
+\end{enumerate}
+
+\section{Heroes and Cowards}
+One starts with a crowd of Agents where each Agents is positioned \textit{randomly} in a continuous 2D-space. Each of the Agents then selects \textit{randomly} one friend and one enemy (except itself in both cases) and decided with a given probability whether the Agent acts in the role of a "Hero" or a "Coward" - friend, enemy and role don't change after the initial set-up. Now the simulation can start: in each step the Agent will move a given distance towards a given point. If the Agent is in the role of a "Hero" this point will be the half-way distance between the Agents friend and enemy - the Agent tries to protect the friend from the enemy. If the Agent is acting like a "Coward" it will try to hide behind the friend also the half-way distance between the Agents friend and enemy, just in the opposite direction. \\
+Note that this simulation is determined by the random starting positions, random friend \& enemy selection, random role selection and number of agents. Note also that during the simulation-stepping no randomness is mentioned in the model and given the initial random set-up, the simulation-\textit{model} is completely deterministic - whether this is the case for the implementations is another question, not relevant to the model.
+
+TODO: add random-noise with a configurable strength to direction: is closer to reality and also agents will never stop completely - may result in completely different pattern
+
 \section{Related Research}
 TODO: read papers for haskell abm, see also folders. postpone ACE for later
 
-
-
+\section{Run-Time Complexity}
+what if the number of agents grows? how does the run-time complexity of the simulation increases? Does it differ from implementation to implementation? The model is O(n) but is this true for the implementation?
 
 \section{Reasoning}
 Allowing to reason about a program is one of the most interesting and powerful features of a Haskell-program. Just by looking at the types one can show that there is no randomness in the simulation \textit{after} the random initialization, which is not slightest possible in the case of a Java, Scala, ReLogo or NetLogo solution. Things we can reason about just by looking at types:
@@ -93,11 +112,27 @@ The 3rd hypothesis is that the number of agents should also lead to increased sp
 \section{Reproducing Results in different Implementations}
 actors: time is always local and thus information as well. if we fall back to a global time like system time we would also fall back to real-time. anyway in distributed systems clock sync is a very non-trivial problem and inherently not possible (really?). thus using some global clock on a metalevel above/outside the simulation will only buy us more problems than it would solve us. 
 
-TODO: compare results of java and haskell with same rng algorithm
+qualitative comparison: print pucture with patterns. all implementations are able to reproduce these patterns independent from the update strategy
+
+no need to compare individual runs and waste time in implementing RNGs, what is more interesting is whether the qualitative results are the same: does the system show the same emergent behaviour? Of course if we can show that the system will behave exactly the same then it will also exhibit the same emergent behaviour but that is not possible under some circumstances e.g. the simulation-runs of Akka are always unique and never comparable due to random event-ordering produced by concurrency \& scheduling. Also we don't have to proof the obvious: given the same algorithm, the same random-data, the same treatment of numbers and the same ordering of events, the outcome \textit{must} be the same, otherwise there are bugs in the program. Thus when comparing results given all the above mentioned properties are the same one in effect tests only if the programs contain no bugs - or the same bugs, if they \textit{are the same}. \\
+
+Thus we can say: the systems behave qualitatively the same under different event-orderings.
+
+Thus the essence of this boils down to the question: "Is the emergent behaviour of the system is stable under random/different/varying event-ordering?". In this case it seems to be so as proofed by the Akka implementation. In fact this is a very desirable property of a system showing emergent behaviour but we need to get much more precise here: what is an event? what is an emergent behaviour of a system? what is random-ordering of events? (Note: obviously we are speaking about repeated runs of a system where the initial conditions may be the same but due to implementation details like concurrency we get a different event-ordering in each simulation-run, thus the event-orderings vary between runs, they can be in fact be regarded as random).
+
+\begin{figure}[H]
+	\centering
+  \includegraphics[width=1.0\textwidth, angle=0]{EMERGENT_PATTERN.png}
+  	\caption{The emergent pattern used as criteria for qualitative comparison of implementations. Note the big green cross in the center and the smaller red crosses in each sub-sector. World-type is \textit{border} with 100.000 Agents where 25\% are Heroes.}
+	\label{fig:EMERGENT_PATTERN}
+\end{figure}
+
 
 \subsection{Problem of RNG}
 Have to behave EXACTLY The same: VERY difficult because of differing interfaces e.g. compare java to haskell RNGs.
 Solution: create a deterministic RNG generating a number-stream starting from 1 and just counting up. The program should work also in this case, if not, something should be flawed!
+
+Peer told me to implement a RNG-Trace: generate a list of 1000.0000 pre-calculated random-numbers in range of [0..1], store them in a file and read the trace in all implementations. Needs lots of implementation.
 
 \section{Simulation-Loops}
 There are at least 2 parts to implementing a simulation: 1. implementing the logic of an agent and 2. implementing the iteration/recursion which drives the whole simulation

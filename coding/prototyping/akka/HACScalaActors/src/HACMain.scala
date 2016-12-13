@@ -10,7 +10,7 @@ import hac.ui.wildfire.actors.HACVisualizer
 object HACMain {
   def main(args: Array[String]): Unit = {
     val heroesDistribution = 0.25;
-    val agentCount = 500000;
+    val agentCount = 100000;
 
     val system = ActorSystem("HACActorSystem");
     val visualizer = system.actorOf( HACVisualizer.props(agentCount), name = "HACVisualizer" );

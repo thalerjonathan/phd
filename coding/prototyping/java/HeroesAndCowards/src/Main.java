@@ -22,10 +22,10 @@ public class Main {
         double epsilon = 0.1;
 
         SimulationConfig simCfg1 = new SimulationConfig();
-        simCfg1.agentCount = 600;
+        simCfg1.agentCount = 2000;
         simCfg1.simulationRandomSeed = 40;
         simCfg1.heroesDistribution = 0.25;
-        simCfg1.dt = 0.01;
+        simCfg1.dt = 0.00001;
         simCfg1.randomTraversal = false;
         simCfg1.simultaneousUpdates = true;
         simCfg1.worldType = WorldType.BORDER;
@@ -36,9 +36,9 @@ public class Main {
 
         //observeFinalStepWithTestAgents( simCfg1, createTestAgents( simCfg1.agentCount ), agentSize );
 
-        //observeInfiniteSimulation( simCfg1, agentSize );
+        observeInfiniteSimulation( simCfg1, agentSize );
         //observeAllSteps( simCfg1, agentSize );
-        observeFinalStep( simCfg1, agentSize );
+        //observeFinalStep( simCfg1, agentSize );
         //observeDualLockstepSimulation( simCfg1, simCfg2, epsilon, agentSize );
         /*
         int differenceAfterSteps = compareDualLockstepSimulation( simCfg1, simCfg2, epsilon, agentSize );

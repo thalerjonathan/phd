@@ -30,7 +30,7 @@ public class HACFrontend extends JFrame implements ISimulationObserver, WindowLi
         this.setDefaultCloseOperation( EXIT_ON_CLOSE );
         this.addWindowListener( this );
         this.setContentPane( renderer );
-        this.setSize( new Dimension( 500, 500 ));
+        this.setSize( new Dimension( 1000, 1000 ));
         this.setVisible(visible);
     }
 

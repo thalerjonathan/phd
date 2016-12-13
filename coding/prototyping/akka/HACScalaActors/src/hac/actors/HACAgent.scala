@@ -40,7 +40,7 @@ class HACAgent( id: Int,
 
   private var lastUpdate: Long = 0;
 
-  private val SPEED = 0.5;
+  private val SPEED = 0.05;
 
   def getId() : Int = {
     id
@@ -80,7 +80,7 @@ class HACAgent( id: Int,
     this.lastUpdate = System.currentTimeMillis();
 
     context.become( running );
-    context.setReceiveTimeout(100 milliseconds)
+    context.setReceiveTimeout(50 milliseconds)
   }
 
   def handleRunStep(): Unit = {

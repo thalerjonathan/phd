@@ -4,7 +4,7 @@ still untouched: how to implement bidirectional multistep conversations? this wi
 \section{Related Research}
 TODO: read papers for haskell abm, see also folders. postpone ACE for later
 
-\section{Agent-Communication}
+
 
 
 \section{Reasoning}
@@ -37,13 +37,13 @@ TODO: quickcheck
 The coordinates calculated by the agents are \textit{virtual} ones ranging between 0.0 and 1.0. This prevents us from knowing the rendering-resolution and polluting code which has nothing to do with rendering with these implementation-details. Also this simulation could run without rendering-output or any rendering-frontend thus sticking to virtual coordinates is also very useful regarding this (but then again: what is the use of this simulation without any visual output=
 
 \begin{itemize}
-\item Clipping: \textit{calculated} coordinates are clipped at 0.0 and 1.0 
-\item Wraparound: \textit{calculated} coordinates are wrapped around to 0.0 when reaching 1.0. Will lead pursuing friends to change direction apruptly when wrapping around.
-\item Remainder: \textit{calculated} coordinates are never clipped but in rendering only the remainder after the comma is taken. Of course this then always requires a visual output to observe the effects. This will result in an effect like the classic asteroid game where agents their friends but wont change direction when they seem to clamp around like in the wraparound version.
+\item Infinite: movement is unrestricted.
+\item Clipping: coordinates are clipped at 0.0 and 1.0 
+\item Wraparound: coordinates are wrapped around to 0.0 when reaching 1.0. Will lead pursuing friends to change direction apruptly when wrapping around.
 \end{itemize}
 
 \section{Lazy Evaluation}
-can run a simulation for a given number of steps but 
+can specify to run the simulation for an unlimited number of steps but only the ones which are required so far are calculated.
 
 \section{Performance}
 Java outperforms Haskell implementation easily with 100.000 Agents - at first not surprising because of in-place updates of friend and enemies and no massive copy-overhead as in haskell. But look WHERE exactly we loose / where the hotspots are in both solutions. 1000.000 seems to be too much even for the Java-implementation.
@@ -60,12 +60,16 @@ Render heroes only
 \section{Update-Strategies}
 \begin{enumerate}
 \item All states are copied/frozen which has the effect that all agents update their positions \textit{simultaneously}
-\item Updating one agent after another utilizing aliasing (sharing of references) to allow agents updated \textit{after} agents before to see the agents updated before them. Here we have also two strategies: deterministic- and random-traversal
-\item Local observations in Scala \& Actors
+\item Updating one agent after another utilizing aliasing (sharing of references) to allow agents updated \textit{after} agents before to see the agents updated before them. Here we have also two strategies: deterministic- and random-traversal.
+\item Local observations: Akka
 \end{enumerate}
 
 \subsection{Different results with different Update-Strategies?}
-Problem: need to be \textit{exactly} the same calculations => same Random-Number-Generators, same floating-point arithmetic, same ordering of events: IMPOSSIBLE using Scala \& Actors 
+Problem: the following properties have to be the same to reproduce the same results in different implementations: \\
+
+Same initial data: Random-Number-Generators
+Same numerical-computation: floating-point arithmetic
+Same ordering of events: update-strategy, traversal, parallelism, concurrency
 
 \begin{itemize}
 \item Same Random-Number Generator (RNG) algorithm which must produce the same sequence given the same initial seed.
@@ -102,6 +106,13 @@ Classic \\
 Yampa \\ TODO: use par to parallelize
 Gloss \\
 gloss provides means for simple simulation using simulate method. But: are all ABM systems like that?
+
+\section{Agent-Representation}
+Java: (immutable) Object
+Haskell Classic: a struct
+Haskell Yampa: a Signal-Function
+Gloss: same as haskell classic
+Akka: Actors
 
 \section{EDSL}
 simplify simulation into concise EDSL: distinguish between different kind if sims: continuous/discrete iteration on: fixed set, growing set, shrinking set, dynamic set. 

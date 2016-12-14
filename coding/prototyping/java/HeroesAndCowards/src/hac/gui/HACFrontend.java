@@ -6,6 +6,8 @@ import hac.backend.simulation.WorldType;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.BufferedInputStream;
@@ -32,6 +34,23 @@ public class HACFrontend extends JFrame implements ISimulationObserver, WindowLi
         this.setContentPane( renderer );
         this.setSize( new Dimension( 1000, 1000 ));
         this.setVisible(visible);
+
+        this.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                HACFrontend.this.renderer.toggleRenderMode();
+            }
+        });
     }
 
     @Override
@@ -47,8 +66,8 @@ public class HACFrontend extends JFrame implements ISimulationObserver, WindowLi
     }
 
     @Override
-    public boolean simulationStep(List<Agent> as, WorldType wt) {
-        this.renderer.render(as, wt);
+    public boolean simulationStep(List<Agent> as) {
+        this.renderer.render(as);
         this.lastUpdate = System.currentTimeMillis();
 
         return this.continueSimulation;

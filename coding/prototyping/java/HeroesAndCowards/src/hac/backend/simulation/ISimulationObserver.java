@@ -10,5 +10,5 @@ import java.util.List;
 public interface ISimulationObserver {
     double startSimulation();
     double getDt();
-    boolean simulationStep(List<Agent> as, WorldType wt);
+    boolean simulationStep(List<Agent> as);
 }

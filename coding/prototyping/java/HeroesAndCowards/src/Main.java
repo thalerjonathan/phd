@@ -18,17 +18,17 @@ import java.util.List;
  */
 public class Main {
     public static void main(String[] args) throws InterruptedException, IOException {
-        int agentSize = 5;
+        int agentSize = 3;
         double epsilon = 0.1;
 
         SimulationConfig simCfg1 = new SimulationConfig();
-        simCfg1.agentCount = 2000;
+        simCfg1.agentCount = 100_000;
         simCfg1.simulationRandomSeed = 40;
-        simCfg1.heroesDistribution = 0.25;
-        simCfg1.dt = 0.00001;
+        simCfg1.heroesDistribution = 0.99;
+        simCfg1.dt = 0.01;
         simCfg1.randomTraversal = false;
         simCfg1.simultaneousUpdates = true;
-        simCfg1.worldType = WorldType.BORDER;
+        simCfg1.worldType = WorldType.WRAPPING;
         simCfg1.steps = 20;
 
         SimulationConfig simCfg2 = new SimulationConfig( simCfg1 );
@@ -141,8 +141,8 @@ public class Main {
             }
 
             @Override
-            public boolean simulationStep(List<Agent> as, WorldType wt) {
-                return fe.simulationStep(as, wt);
+            public boolean simulationStep(List<Agent> as) {
+                return fe.simulationStep(as);
             }
         });
 
@@ -173,8 +173,8 @@ public class Main {
                     }
 
                     @Override
-                    public boolean simulationStep(List<Agent> as, WorldType wt) {
-                        return fe.simulationStep(as, wt);
+                    public boolean simulationStep(List<Agent> as) {
+                        return fe.simulationStep(as);
                     }
                 });
 
@@ -192,7 +192,7 @@ public class Main {
                     simCfg.simultaneousUpdates, simCfg.worldType, as, 1, simCfg.dt);
             as = allAsSteps.get(1);
 
-            fe.simulationStep(as, simCfg.worldType);
+            fe.simulationStep(as);
         }
     }
 
@@ -206,7 +206,7 @@ public class Main {
                 simCfg.simultaneousUpdates, simCfg.worldType, asInit, simCfg.steps, simCfg.dt );
         List<Agent> finalIteration = allAsSteps.get(allAsSteps.size() -1);
 
-        fe.simulationStep(finalIteration, simCfg.worldType);
+        fe.simulationStep(finalIteration);
     }
 
     public static void observeFinalStepWithTestAgents( SimulationConfig simCfg, List<Agent> asInit, int agentSize ) {
@@ -218,7 +218,7 @@ public class Main {
                 simCfg.simultaneousUpdates, simCfg.worldType, asInit, simCfg.steps, simCfg.dt );
         List<Agent> finalIteration = allAsSteps.get(allAsSteps.size() -1);
 
-        fe.simulationStep(finalIteration, simCfg.worldType);
+        fe.simulationStep(finalIteration);
     }
 
     public static void observeDualLockstepSimulation( SimulationConfig simCfg1, SimulationConfig simCfg2, double eps, int agentSize ) {
@@ -243,8 +243,8 @@ public class Main {
             as1 = allAsSteps1.get(1);
             as2 = allAsSteps2.get(1);
 
-            cont1 = fe1.simulationStep(as1, simCfg1.worldType);
-            cont2 = fe2.simulationStep(as2, simCfg2.worldType);
+            cont1 = fe1.simulationStep(as1);
+            cont2 = fe2.simulationStep(as2);
         }
     }
 
@@ -298,8 +298,8 @@ public class Main {
                     fe1.setVisible( true );
                     fe2.setVisible( true );
 
-                    fe1.simulationStep( as1, simCfg1.worldType );
-                    fe2.simulationStep( as2, simCfg2.worldType );
+                    fe1.simulationStep( as1 );
+                    fe2.simulationStep( as2 );
 
                     return s;
                 }

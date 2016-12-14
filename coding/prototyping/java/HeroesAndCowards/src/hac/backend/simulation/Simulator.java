@@ -79,7 +79,7 @@ public class Simulator {
 
         double dt = o.startSimulation();
 
-        while(o.simulationStep(as, wt)) {
+        while(o.simulationStep(as)) {
             as = this.internalIteration(randomTraversal, simultaneousUpdates, wt, as, iterationIndices, dt);
             dt = o.getDt();
         }
@@ -108,7 +108,7 @@ public class Simulator {
     private List<Agent> nextStepConsecutive(List<Agent> as, List<Integer> iterationIndices, double dt, WorldType wt) {
         for (Integer i : iterationIndices) {
             Agent a = as.get( i );
-            a.step(dt, wt);
+            a.step(dt, wt, this.r);
         }
 
         return as;
@@ -125,7 +125,7 @@ public class Simulator {
             // NOTE: to 'freeze' the states we work on copies of agents which will prevent the referenced friends and enemies to be updated indirectly in this step
             // NOTE: this is both the strength and the weakness of java and using references (aliasing). We can never
             // guarantee that no update to a reference happens
-            Agent an = a.stepImmutable( dt, wt );
+            Agent an = a.stepImmutable( dt, wt, this.r );
 
             nextAgents.set( i, an );
             agentIdMapping.put(an.getId(), an);

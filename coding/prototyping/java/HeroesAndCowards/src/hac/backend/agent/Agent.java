@@ -2,6 +2,8 @@ package hac.backend.agent;
 
 import hac.backend.simulation.WorldType;
 
+import java.util.Random;
+
 /**
  * Created by jonathan on 05/12/16.
  */
@@ -63,13 +65,13 @@ public class Agent implements Comparable<Agent> {
         this.enemy = enemy;
     }
 
-    public Agent stepImmutable(double dt, WorldType wt) {
+    public Agent stepImmutable(double dt, WorldType wt, Random r) {
         Agent a = new Agent( this );
-        a.step(dt, wt);
+        a.step(dt, wt, r);
         return a;
     }
 
-    public void step(double dt, WorldType wt) {
+    public void step(double dt, WorldType wt, Random r) {
         Vector friendPos = this.friend.getPos();
         Vector enemyPos = this.enemy.getPos();
         Vector friendEnemyDirection = friendPos.delta(enemyPos);
@@ -82,7 +84,8 @@ public class Agent implements Comparable<Agent> {
         }
 
         Vector targetDir = this.pos.delta( targetPos ).norm();
-        Vector newPos = this.pos.add( targetDir.multiply( Agent.SPEED * dt ) );
+        double noise = r.nextDouble();
+        Vector newPos = this.pos.add( targetDir.multiply( Agent.SPEED * dt * noise ) );
 
         Vector newWtPos;
 

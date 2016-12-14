@@ -5,6 +5,8 @@ import hac.backend.simulation.WorldType;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.*;
 import java.util.List;
 
@@ -13,16 +15,23 @@ import java.util.List;
  */
 public class HACRenderer extends JPanel {
     private List<Agent> as;
-    private WorldType wt;
 
     private final static int BORDER_X = 10;
     private final static int BORDER_Y = 10;
 
     private int agentSize;
 
+    private RenderMode rm;
+
     public HACRenderer( int agentSize ) {
         this.agentSize = agentSize;
         this.as = new ArrayList<>();
+        this.rm = RenderMode.ALL;
+    }
+
+    public void toggleRenderMode() {
+        int nextRmIdx = (HACRenderer.this.rm.ordinal() + 1) % RenderMode.values().length;
+        HACRenderer.this.rm = RenderMode.values()[ nextRmIdx ];
     }
 
     @Override
@@ -42,20 +51,19 @@ public class HACRenderer extends JPanel {
             x = BORDER_X + a.getPos().getX() * width;
             y = BORDER_Y + a.getPos().getY() * height;
 
-            if (a.isHero()) {
+            if (a.isHero() && (RenderMode.ALL == this.rm || RenderMode.HEROES == this.rm)) {
+                g2.fillRect((int) x, (int) y, agentSize, agentSize);
                 g2.setColor(Color.GREEN);
-            } else {
+
+            } else if ( ! a.isHero() && (RenderMode.ALL == this.rm || RenderMode.COWARDS == this.rm) ) {
+                g2.fillRect((int) x, (int) y, agentSize, agentSize);
                 g2.setColor(Color.RED);
             }
-
-            g2.fillRect((int) x, (int)y, agentSize, agentSize);
         }
     }
 
-    public void render(List<Agent> as, WorldType wt) {
+    public void render(List<Agent> as) {
         this.as = as;
-        this.wt = wt;
-
         this.repaint();
     }
 }

@@ -50,11 +50,18 @@
 
 % If you wish to include an abstract, uncomment the lines below
 \begin{abstract}
-Agent-Based Modelling and Simulation (ABM/S) is still a young discipline and the dominant approach to it is object-oriented computation. This thesis goes into the opposite direction and asks how ABM/S can be mapped to and implemented using pure functional computation and what one gains from doing so. To the best knowledge of the author, so far no proper treatment of ABM/S in this field exists but a few papers which only scratch the surface. The author argues that approaching ABM/S from a pure functional direction offers a wealth of new powerful tools and methods. The most obvious one is that when using pure functional computation reasoning about the correctness and about total and partial correctness of the simulation becomes possible. Also pure functional approaches allow the design of an embedded domain specific language (EDSL) in which then the models can be formulated by domain-experts. The strongest point in using EDSL is that ideally the distinction between specification and implementation disappears: the model specification is then already the code of the simulation-program. This allows to rule out a serious class of errors where specification and implementation does not match, which is especially a big problem in scientific computing. \\
-In this paper we look at the very simple social-simulation of \textit{Heroes \& Cowards} invented by TODO: cite to study the new methods mentioned above and to highlight its potential use and its limitations as opposed to object-oriented methods.
+In this paper we look at the very simple social-simulation of \textit{Heroes \& Cowards} invented by (TODO: cite) to study new methods in Agent-Based Modelling and Simulation (ABM/S) and to highlight their potentials and limitations as opposed to the object-oriented methods which are dominant in this field. We go into the opposite direction and ask how ABM/S can be done using functional programming, a method which has so far not been considered very deeply in this field. Obviously this method requires to look at ABM/S from a different perspective which this paper tries to provide. Although it might me strange in the beginning the author argues that approaching ABM/S from a functional direction offers a wealth of new powerful tools and methods, depending on the functional language and framework one is using. In this paper we look into two approaches: \textit{pure} functional using Haskell and \textit{multi-paradigm} functional using Scala, where both offer different benefits. The most obvious benefits of using a pure functional approach are that it allows to reason about various properties of the program and implementation of an EDSL where ideally the distinction between specification and implementation disappears. Thus with these two benefits this approach is especially suited to scientific computing where correctness and reasoning about properties of a program is of very importance. The multi-paradigm functional approach in Scala renders the benefits of the pure functional useless as it allows side-effects thus care must be taken when using mixed-paradigm approaches so not to loose the powerful methods functional programming is so well known for. Also Scala is known for its use in the Framework Akka which is a distributed programming environment built upon the Actors-Model which is gaining popularity in recent years. Thus we chose an actor-model approach to implementing the simulation thus investigating how the Actors-Model can be used in ABM/S and what the benefits are. For comparison with state-of-the-art methods we also implement the model in AnyLogic and ReLogo and look into an object-oriented implementation in Java without using any ABM/S framework.
 \end{abstract}
 
 \input{./tex/introduction.tex}
+
+\input{./tex/relatedResearch.tex}
+
+\input{./tex/results.tex}
+
+\input{./tex/conclusion.tex}
+
+\input{./tex/furtherResearach.tex}
 
 \newpage
 

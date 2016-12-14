@@ -1,2 +1,51 @@
 \section{Related Research}
 TODO: read papers for haskell abm, see also folders. postpone ACE for later
+
+% correctness and verification of software, scientific computation
+\subsection{Scientific Computation}
+TODO: discuss \cite{Kaminski2013}
+TODO: discuss \cite{Ionescu2013}
+TODO: discuss \cite{Botta20114025}
+
+% haskell / functional programming and simulation
+\subsection{Haskell}
+\cite{Bezirgiannis2013} constructs two frameworks: an agent-modelling framework and a DES framework, both written in Haskell. They put special emphasis on parallel and concurrency in their work. The author develops two programs: HLogo which is a clone of the NetLogo agent-modelling framework and HDES, a framework for discrete event simulation - where in both implementations is the very strong emphasis on parallelism.  Here only the HLogo implementation is of interest as it is directly related to agent-based simulation. In this implementation the author claims to have implemented an EDSL which tries to be close to the language used for modelling in NetLogo (Logo) "which lifts certain restrictions of the original NetLogo implementation". Also the aim was to be "faster in most circumstances than NetLogo" and "utilizes many processor cores to speedup the execution of Agent Based Models". The author implements a primitive model of concurrent agents which implements a non-blocking concurrent execution of agents which report their results back to the calling agent in a non-blocking manner. The author mentions that a big issue of the implementation is that repeated runs with same inputs could lead to different results due to random event-orderings happening because of synchronization. The problem is that the author does not give a remedy for that and just accepts it as a fact. Of course it would be very difficult, if not impossible, to introduce determinism in an inherently concurrent execution model of agents which may be the reason the author does not even try. Unfortunately the example implementation the author uses for benchmarking is a very simplistic model: the basic pattern is that agent A sends to agent B and thats it - no complex interactions. Of course this lends itself very good to parallel/concurrent execution and does not need a sophisticated communication protocol. The work lacks a proper treatment of the agent-model presented with its advantages and disadvantages and is too sketchy although the author admits that is is just a proof of concept. \\
+
+Tim Sweeney, CTO of Epic Games gave an invited talk about how "future programming languages could help us write better code" by "supplying stronger typing, reduce run-time failures;  and the need for pervasive concurrency support, both implicit and explicit, to effectively exploit the several forms of parallelism present in games and graphics." \cite{Sweeney2006}. Although the fields of games and agent-based simulations seem to be very different in the end, they have also very important similarities: both are simulations which perform numerical computations and update objects - in games they are called "game-objects" and in abm they are called agents but they are in fact the same thing - in a loop either concurrently or sequential. His key-points were:
+
+\begin{itemize}
+\item Dependent types as the remedy of most of the run-time failures.
+\item Parallelism for numerical computation: these are pure functional algorithms, operate locally on mutable state. Haskell ST, STRef solution enables encapsulating local heaps and mutability within referentially transparent code.
+\item Updating game-objects (agents) concurrently using STM: update all objects concurrently in arbitrary order, with each update wrapped in atomic block - depends on collisions if performance goes up.
+\end{itemize}
+
+TODO: discuss \cite{Schneider_2012}
+TODO: discuss \cite{Vendrov_2014}
+TODO: discuss \cite{Sulzmann_2007}
+TODO: discuss \cite{Jankovic_2007}
+TODO: discuss \cite{DeJong_2014}
+TODO: discuss \cite{sorokin_aivika_2015}
+
+% ERLANG in simulation
+\subsection{Erlang}
+TODO: discuss \cite{DiStefano_2007}
+TODO: discuss \cite{DiStefano_2005}
+TODO: discuss \cite{Varela_2004}
+
+% Actors
+\subsection{Actors}
+The Actor-Model, a model of concurrency, has been around since the paper \cite{Hewitt_1973} in 1973. It was a major influence in designing the concept of Agents and although there are important differences between Actors and Agents there are huge similarities thus the idea to use actors to build agent-based simulations comes quite natural. Although there are papers around using the actor model as basis for their ABMS unfortunately no proper theoretical treatment of using the actor-model in implementing agent-based simulations has been done so far. This paper looks into how the more theoretical foundations of the suitability of actor-model to ABMS and what the upsides and downsides of using it are.
+
+\url{http://www.grids.ac.uk/Complex/ABMS/}
+
+\cite{Bezirgiannis2013} describes in chapter 3.3 a naive clone of NetLogo in the Erlang programming language where each agent was represented as an Erlang process. The author claims the 1:1 mapping between agent and process to "be inherently wrong" because when recursively sending messages (e.g. A to B to A) it will deadlock as A is already awaiting Bs answer. Of course this is one of the problems when adopting Erlang/Scala with Akka/the Actor Model for implementing agents \textit{but it is inherently short-sighted to discharge the actor-model approach just because recursive messaging leads to a deadlock}. It is not a problem of the actor-model but merely a very problem with the communication protocol which needs to be more sophisticated than \cite{Bezirgiannis2013} described. The hypothesis is that the communication protocol will be in fact \textit{very highly application-specific} thus leading to non-reusable agents (across domains, they should but be re-usable within domains e.g. market-simulations) as they only understand the domain-specific protocol. This is definitely NOT a drawback but can't be solved otherwise as in the end (the content of the) communication can be understand to be the very domain of the simulation and is thus not generalizable. Of course specific patterns will show up like "multi-step handshakes" but they are again then specifically applied to the concrete domain.
+
+
+TODO: discuss \cite{Hewitt_1973}
+TODO: discuss \cite{Greif_1975}
+TODO: discuss \cite{Clinger_1981}
+TODO: discuss \cite{Agha_1986}
+TODO: discuss \cite{Agha_1997}
+TODO: discuss \cite{Agha_2004}
+TODO: discuss \cite{Hewitt_2007}
+TODO: discuss \cite{Hewitt_2010}

@@ -56,7 +56,7 @@ TODO: can implement actor-model using forkIO and STM
 \section{Theoretical reflections}
 
 \subsection{The problem of time}
- how can we simulate global time? how can we implement multistep conversations (by futures)?
+how can we simulate global time? how can we implement multistep conversations (by futures)?
 
 The real problem seems to be concurrency but i feel we can simulate concurrency by synchronizing to continuous time. computations are carried out after another but because time is explicitly modelled they happen logically at the same time. these rules hold: an agent cannot be in two conversations at the same time, the agent can be in only one or none conversation at a given time t.
 

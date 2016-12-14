@@ -2,6 +2,7 @@
 
 \graphicspath{{./fig/}}	%specifying the folder for the figures
 
+
 \subsection{Reasoning}
 Allowing to reason about a program is one of the most interesting and powerful features of a Haskell-program. Just by looking at the types one can show that there is no randomness in the simulation \textit{after} the random initialization, which is not slightest possible in the case of a Java, Scala, ReLogo or NetLogo solution. Things we can reason about just by looking at types:
 
@@ -23,10 +24,13 @@ Compare the pure-version (both Yampa and classic) with the IO-version of haskell
 
 in haskell pure version i can guarantee by reasoning and looking at the types that the update strategy will be simultaneous deterministic. i cant do that in java
 
+\subsubsection{The type of a Simulation}
+the type of a simulation: try to define the most general types of a simulation and then do reasoning about it
+
 \subsection{Debugging \& Testing}
 Because functions compose easier than classes \& objects (TODO: we need hard claims here, look for literature supporting this thesis or proof it by myself) it is also much easier to debug \textit{parts} of the implementation e.g. the rendering of the agents without any changes to the system as a whole - just the main-loop has do be adopted. Then it is very easy to calculate e.g. only one iteration and to freeze the result or to manually create agents instead of randomly create initial ones.
 
-TODO: quickcheck
+TODO: quickcheck \cite{Claessen2000}
 
 
 \subsection{Lazy Evaluation}
@@ -74,7 +78,7 @@ Simulations show that the selection of \textit{dt} is crucial in how fast the si
 The 3rd hypothesis is that the number of agents should also lead to increased speed of divergence when having different traversal-strategies. This could be shown when going from 60 agents with a dt of 0.01 which never exceeded a global error of 0.02 to 6000 agents which after 3239 steps exceeded the absolute error of 0.1.
 
 \subsection{Reproducing Results in different Implementations}
-actors: time is always local and thus information as well. if we fall back to a global time like system time we would also fall back to real-time. anyway in distributed systems clock sync is a very non-trivial problem and inherently not possible (really?). thus using some global clock on a metalevel above/outside the simulation will only buy us more problems than it would solve us. 
+actors: time is always local and thus information as well. if we fall back to a global time like system time we would also fall back to real-time. anyway in distributed systems clock sync is a very non-trivial problem and inherently not possible (really?). thus using some global clock on a metalevel above/outside the simulation will only buy us more problems than it would solve us. real-time does not help either as it is never hard real time and thus also unpredictable: if one tells the actor to send itself a message after 100ms then one relies on the capability of the OS-timer and scheduler to schedule exactly after 100ms: something which is always possible thus 100ms are never hard 100ms but soft with variations.
 
 qualitative comparison: print pucture with patterns. all implementations are able to reproduce these patterns independent from the update strategy
 

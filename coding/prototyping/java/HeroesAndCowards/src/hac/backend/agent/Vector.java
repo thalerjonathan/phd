@@ -56,9 +56,9 @@ public class Vector {
         return new Vector( this.x / len, this.y / len);
     }
 
-    public Vector clip() {
-        double x = Math.max( 0.0, Math.min( this.x, 1.0 ) );
-        double y = Math.max( 0.0, Math.min( this.y, 1.0 ) );
+    public Vector clip(double min, double max) {
+        double x = Math.max( min, Math.min( this.x, max ) );
+        double y = Math.max( min, Math.min( this.y, max ) );
 
         return new Vector(x, y);
     }

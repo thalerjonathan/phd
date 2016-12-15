@@ -2,6 +2,8 @@
 
 \graphicspath{{./fig/}}	%specifying the folder for the figures
 
+The coordinates calculated by the agents are \textit{virtual} ones ranging between 0.0 and 1.0. This prevents us from knowing the rendering-resolution and polluting code which has nothing to do with rendering with these implementation-details. Also this simulation could run without rendering-output or any rendering-frontend thus sticking to virtual coordinates is also very useful regarding this (but then again: what is the use of this simulation without any visual output=
+
 
 \subsection{Reasoning}
 Allowing to reason about a program is one of the most interesting and powerful features of a Haskell-program. Just by looking at the types one can show that there is no randomness in the simulation \textit{after} the random initialization, which is not slightest possible in the case of a Java, Scala, ReLogo or NetLogo solution. Things we can reason about just by looking at types:
@@ -24,8 +26,18 @@ Compare the pure-version (both Yampa and classic) with the IO-version of haskell
 
 in haskell pure version i can guarantee by reasoning and looking at the types that the update strategy will be simultaneous deterministic. i cant do that in java
 
+TODO: implement haskell-version with shared-state (STM primitives) without using IO
+TODO: implement haskell-version which defines abstract types for the simulation
+
+
 \subsubsection{The type of a Simulation}
 the type of a simulation: try to define the most general types of a simulation and then do reasoning about it
+
+simulation :: Model -> Double -> Int -> [Model]
+
+step :: Model -> Double -> Model
+
+TODO: can we say something about the methods Model can/must/should support?
 
 \subsection{Debugging \& Testing}
 Because functions compose easier than classes \& objects (TODO: we need hard claims here, look for literature supporting this thesis or proof it by myself) it is also much easier to debug \textit{parts} of the implementation e.g. the rendering of the agents without any changes to the system as a whole - just the main-loop has do be adopted. Then it is very easy to calculate e.g. only one iteration and to freeze the result or to manually create agents instead of randomly create initial ones.

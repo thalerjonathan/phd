@@ -6,6 +6,5 @@ package hac.backend.simulation;
 public enum WorldType {
     INFINITE,
     BORDER,
-    WRAPPING,
-    INFINITEWRAPPING
+    WRAPPING
 }

@@ -24,11 +24,11 @@ public class Main {
         SimulationConfig simCfg1 = new SimulationConfig();
         simCfg1.agentCount = 100_000;
         simCfg1.simulationRandomSeed = 40;
-        simCfg1.heroesDistribution = 0.99;
+        simCfg1.heroesDistribution = 0.25;
         simCfg1.dt = 0.01;
         simCfg1.randomTraversal = false;
         simCfg1.simultaneousUpdates = true;
-        simCfg1.worldType = WorldType.WRAPPING;
+        simCfg1.worldType = WorldType.BORDER;
         simCfg1.steps = 20;
 
         SimulationConfig simCfg2 = new SimulationConfig( simCfg1 );

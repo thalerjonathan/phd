@@ -87,17 +87,19 @@ public class Agent implements Comparable<Agent> {
         double noise = r.nextDouble();
         Vector newPos = this.pos.add( targetDir.multiply( Agent.SPEED * dt * noise ) );
 
-        Vector newWtPos;
+        this.pos = worldTransform( newPos, wt );
+    }
+
+    private static Vector worldTransform( Vector newPos, WorldType wt ) {
+        Vector newWtPos = null;
 
         if ( WorldType.BORDER == wt ) {
-            newWtPos = newPos.clip();
+            newWtPos = newPos.clip( 0.0, 1.0 );
         } else if ( WorldType.WRAPPING == wt ) {
             newWtPos = newPos.wrap();
-        } else {
-            newWtPos = newPos;
         }
 
-        this.pos = newWtPos;
+        return newWtPos;
     }
 
     @Override

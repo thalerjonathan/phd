@@ -16,6 +16,8 @@ public class SimulationConfig {
         this.simultaneousUpdates = cpy.simultaneousUpdates;
         this.steps = cpy.steps;
         this.worldType = cpy.worldType;
+        this.noisyDirection = cpy.noisyDirection;
+        this.noisyStepWidth = cpy.noisyStepWidth;
     }
 
     public int agentCount;
@@ -26,4 +28,6 @@ public class SimulationConfig {
     public boolean simultaneousUpdates;
     public int steps;
     public WorldType worldType;
+    public double noisyDirection;
+    public double noisyStepWidth;
 }

@@ -45,12 +45,8 @@ public class Simulator {
         return as;
     }
 
-    public List<List<Agent>> simulate(boolean randomTraversal,
-                                      boolean simultaneousUpdates,
-                                      WorldType wt,
-                                      List<Agent> as,
-                                      int steps,
-                                      double dt) {
+    public List<List<Agent>> simulate(SimulationConfig cfg,
+                                      List<Agent> as) {
         List<Integer> iterationIndices = new ArrayList<>();
         for (int i = 0; i < as.size(); ++i) {
             iterationIndices.add( i );
@@ -59,17 +55,15 @@ public class Simulator {
         List<List<Agent>> allAgentSteps = new ArrayList<>();
         allAgentSteps.add( as );
 
-        for (int i = 0; i < steps; ++i) {
-            as = this.internalIteration(randomTraversal, simultaneousUpdates, wt, as, iterationIndices, dt);
+        for (int i = 0; i < cfg.steps; ++i) {
+            as = this.internalIteration(cfg, iterationIndices, as);
             allAgentSteps.add( as );
         }
 
         return allAgentSteps;
     }
 
-    public List<Agent> simulateWithObserver(boolean randomTraversal,
-                                            boolean simultaneousUpdates,
-                                            WorldType wt,
+    public List<Agent> simulateWithObserver(SimulationConfig cfg,
                                             List<Agent> as,
                                             ISimulationObserver o) {
         List<Integer> iterationIndices = new ArrayList<>();
@@ -80,35 +74,32 @@ public class Simulator {
         double dt = o.startSimulation();
 
         while(o.simulationStep(as)) {
-            as = this.internalIteration(randomTraversal, simultaneousUpdates, wt, as, iterationIndices, dt);
+            as = this.internalIteration(cfg, iterationIndices, as);
             dt = o.getDt();
         }
 
         return as;
     }
 
-    private List<Agent> internalIteration(boolean randomTraversal,
-                                          boolean simultaneousUpdates,
-                                          WorldType wt,
-                                          List<Agent> as,
+    private List<Agent> internalIteration(SimulationConfig cfg,
                                           List<Integer> iterationIndices,
-                                          double dt) {
-        if (randomTraversal)
+                                          List<Agent> as) {
+        if (cfg.randomTraversal)
             Collections.shuffle( iterationIndices, this.r );
 
-        if (simultaneousUpdates)
-            as = this.nextStepSimultaneous(as, iterationIndices, dt, wt);
+        if (cfg.simultaneousUpdates)
+            as = this.nextStepSimultaneous(as, iterationIndices, cfg);
         else
-            as = this.nextStepConsecutive(as, iterationIndices, dt, wt);
+            as = this.nextStepConsecutive(as, iterationIndices, cfg);
 
         return as;
     }
 
     // NOTE: this creates updates without freezing
-    private List<Agent> nextStepConsecutive(List<Agent> as, List<Integer> iterationIndices, double dt, WorldType wt) {
+    private List<Agent> nextStepConsecutive(List<Agent> as, List<Integer> iterationIndices, SimulationConfig cfg) {
         for (Integer i : iterationIndices) {
             Agent a = as.get( i );
-            a.step(dt, wt, this.r);
+            a.step(cfg.dt, cfg.worldType, cfg.noisyDirection, cfg.noisyStepWidth, this.r);
         }
 
         return as;
@@ -116,7 +107,7 @@ public class Simulator {
 
     // NOTE: all agents update simultaneous by 'freezing' the state and working on the frozen states thus looking like
     //       all agents moved at the same time.
-    private List<Agent> nextStepSimultaneous(List<Agent> as, List<Integer> iterationIndices, double dt, WorldType wt) {
+    private List<Agent> nextStepSimultaneous(List<Agent> as, List<Integer> iterationIndices, SimulationConfig cfg) {
         List<Agent> nextAgents = new ArrayList<>( as );
         Map<Integer, Agent> agentIdMapping = new HashMap<>();
 
@@ -125,7 +116,7 @@ public class Simulator {
             // NOTE: to 'freeze' the states we work on copies of agents which will prevent the referenced friends and enemies to be updated indirectly in this step
             // NOTE: this is both the strength and the weakness of java and using references (aliasing). We can never
             // guarantee that no update to a reference happens
-            Agent an = a.stepImmutable( dt, wt, this.r );
+            Agent an = a.stepImmutable( cfg.dt, cfg.worldType, cfg.noisyDirection, cfg.noisyStepWidth, this.r );
 
             nextAgents.set( i, an );
             agentIdMapping.put(an.getId(), an);

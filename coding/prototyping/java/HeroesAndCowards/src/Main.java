@@ -25,11 +25,13 @@ public class Main {
         simCfg1.agentCount = 100_000;
         simCfg1.simulationRandomSeed = 40;
         simCfg1.heroesDistribution = 0.25;
-        simCfg1.dt = 0.01;
+        simCfg1.dt = 0.1;
         simCfg1.randomTraversal = false;
         simCfg1.simultaneousUpdates = true;
         simCfg1.worldType = WorldType.BORDER;
         simCfg1.steps = 20;
+        simCfg1.noisyDirection = 0.0;
+        simCfg1.noisyStepWidth = 0.0;
 
         SimulationConfig simCfg2 = new SimulationConfig( simCfg1 );
         simCfg2.randomTraversal = true;
@@ -127,9 +129,7 @@ public class Main {
                  NEVER be constant although the scenery may be of constant complexity!
                  Thus introduce indirection and return constant dt and feed output to rendering => result in reproducible runs
         */
-        hac.simulateWithObserver( simCfg.randomTraversal,
-                simCfg.simultaneousUpdates,
-                simCfg.worldType, asInit, new ISimulationObserver() {
+        hac.simulateWithObserver( simCfg, asInit, new ISimulationObserver() {
             @Override
             public double startSimulation() {
                 return 0.0;
@@ -159,9 +159,7 @@ public class Main {
                  NEVER be constant although the scenery may be of constant complexity!
                  Thus introduce indirection and return constant dt and feed output to rendering => result in reproducible runs
         */
-        hac.simulateWithObserver( simCfg.randomTraversal,
-                simCfg.simultaneousUpdates,
-                simCfg.worldType, asInit, new ISimulationObserver() {
+        hac.simulateWithObserver( simCfg, asInit, new ISimulationObserver() {
                     @Override
                     public double startSimulation() {
                         return 0.0;
@@ -188,8 +186,7 @@ public class Main {
 
         for (int i = 0; i < simCfg.steps; ++i) {
             // NOTE: use this code to calculate a number of steps and then display the final result
-            List<List<Agent>> allAsSteps = hac.simulate(simCfg.randomTraversal,
-                    simCfg.simultaneousUpdates, simCfg.worldType, as, 1, simCfg.dt);
+            List<List<Agent>> allAsSteps = hac.simulate(simCfg, as);
             as = allAsSteps.get(1);
 
             fe.simulationStep(as);
@@ -202,8 +199,7 @@ public class Main {
         List<Agent> asInit = hac.createRandomAgents( simCfg.agentCount, simCfg.heroesDistribution );
 
         // NOTE: use this code to calculate a number of steps and then display the final result
-        List<List<Agent>> allAsSteps = hac.simulate( simCfg.randomTraversal,
-                simCfg.simultaneousUpdates, simCfg.worldType, asInit, simCfg.steps, simCfg.dt );
+        List<List<Agent>> allAsSteps = hac.simulate( simCfg, asInit );
         List<Agent> finalIteration = allAsSteps.get(allAsSteps.size() -1);
 
         fe.simulationStep(finalIteration);
@@ -214,8 +210,7 @@ public class Main {
         HACFrontend fe = new HACFrontend( agentSize, true );
 
         // NOTE: use this code to calculate a number of steps and then display the final result
-        List<List<Agent>> allAsSteps = hac.simulate( simCfg.randomTraversal,
-                simCfg.simultaneousUpdates, simCfg.worldType, asInit, simCfg.steps, simCfg.dt );
+        List<List<Agent>> allAsSteps = hac.simulate( simCfg, asInit );
         List<Agent> finalIteration = allAsSteps.get(allAsSteps.size() -1);
 
         fe.simulationStep(finalIteration);
@@ -234,11 +229,9 @@ public class Main {
         boolean cont2 = true;
 
         while ( cont1 && cont2 ) {
-            List<List<Agent>> allAsSteps1 = hac1.simulate( simCfg1.randomTraversal,
-                    simCfg1.simultaneousUpdates, simCfg1.worldType, as1, 1, simCfg1.dt);
+            List<List<Agent>> allAsSteps1 = hac1.simulate( simCfg1, as1);
 
-            List<List<Agent>> allAsSteps2 = hac2.simulate( simCfg2.randomTraversal,
-                    simCfg2.simultaneousUpdates, simCfg2.worldType, as2, 1, simCfg2.dt);
+            List<List<Agent>> allAsSteps2 = hac2.simulate( simCfg2, as2);
 
             as1 = allAsSteps1.get(1);
             as2 = allAsSteps2.get(1);
@@ -268,11 +261,9 @@ public class Main {
         // NOTE: infinite loop when both are configured to 0
         int s = 1;
         while( true ) {
-            List<List<Agent>> allAsSteps1 = hac1.simulate( simCfg1.randomTraversal,
-                    simCfg1.simultaneousUpdates, simCfg1.worldType, as1, 1, simCfg1.dt);
+            List<List<Agent>> allAsSteps1 = hac1.simulate( simCfg1, as1);
 
-            List<List<Agent>> allAsSteps2 = hac2.simulate( simCfg2.randomTraversal,
-                    simCfg2.simultaneousUpdates, simCfg2.worldType, as2, 1, simCfg2.dt);
+            List<List<Agent>> allAsSteps2 = hac2.simulate( simCfg2, as2);
 
             as1 = allAsSteps1.get(1);
             as2 = allAsSteps2.get(1);

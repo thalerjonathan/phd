@@ -65,27 +65,30 @@ public class Agent implements Comparable<Agent> {
         this.enemy = enemy;
     }
 
-    public Agent stepImmutable(double dt, WorldType wt, Random r) {
+    public Agent stepImmutable(double dt, WorldType wt, double noisyDistance, double noisyStepWidth, Random r) {
         Agent a = new Agent( this );
-        a.step(dt, wt, r);
+        a.step(dt, wt, noisyDistance, noisyStepWidth, r);
         return a;
     }
 
-    public void step(double dt, WorldType wt, Random r) {
+    public void step(double dt, WorldType wt, double noisyDistance, double noisyStepWidth, Random r) {
         Vector friendPos = this.friend.getPos();
         Vector enemyPos = this.enemy.getPos();
         Vector friendEnemyDirection = friendPos.delta(enemyPos);
         Vector targetPos;
 
+        double distanceNoise = 0.5 + (r.nextDouble() * noisyDistance);  // TODO: not additive
+        Vector noisyDirection = friendEnemyDirection.multiply( distanceNoise );
+
         if (this.hero) {
-            targetPos = friendPos.add( friendEnemyDirection.multiply( 0.5 ) );
+            targetPos = friendPos.add( noisyDirection );
         } else {
-            targetPos = friendPos.sub( friendEnemyDirection.multiply( 0.5 ) );
+            targetPos = friendPos.sub( noisyDirection );
         }
 
         Vector targetDir = this.pos.delta( targetPos ).norm();
-        double noise = r.nextDouble();
-        Vector newPos = this.pos.add( targetDir.multiply( Agent.SPEED * dt * noise ) );
+        double stepWidthNoise = r.nextDouble() + noisyStepWidth;   // TODO: not additive
+        Vector newPos = this.pos.add( targetDir.multiply( Agent.SPEED * dt * stepWidthNoise ) );
 
         this.pos = worldTransform( newPos, wt );
     }

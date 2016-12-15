@@ -14,55 +14,16 @@ import qualified HACSimulation as Sim
 
 type ActiveAgent = SF Agent.AgentIn Agent.AgentOut
 
-{-
-main :: IO ()
-main = do
-    let g = mkStdGen rngSeed -- NOTE: if we want to reproduce then we need to onitialize RNG ourselves
-    Front.initialize
-    let as = Agent.createRandAgentStates g agentCount heroDistribution
-    reactimate (Main.init as) input output (YampaBack.process as)
-    Front.shutdown
--- TODO: can remove passing initAs as they are ignored anyway
-init :: [Agent.AgentState] -> IO [Agent.AgentState]
-init initAs = do
-    return initAs
-
-input :: Double -> Bool -> IO (DTime, Maybe [Agent.AgentState])
-input dt _ = do
-    return (dt, Nothing)
-
-output :: Bool -> [Agent.AgentOut] -> IO Bool
-output _ aos = do
-    winOpened <- Front.renderFrame aos
-    return $ not winOpened
--}
-
-{-
-processIO :: [Agent.AgentState] -> (Sim.SimOut -> IO (Bool, Double)) -> IO Sim.SimOut
-processIO as outFunc = do -- reactimate (init as) (input  output (YampaBack.process as)
-            handle <- reactInit
-                        (return as)
-                        (iter outFunc)
-                        (process as)
-            cont <- react handle (0.0, Nothing) -- TODO: need to get this dt correct
-            return Sim.SimOut { Sim.simOutAllAgents = [] }
-
-iter :: (Sim.SimOut -> IO (Bool, Double)) -> ReactHandle a b -> Bool -> b -> IO Bool
-iter outFunc hdl _ out = do
-                    (cont, dt) <- outFunc out
-                    return cont
--}
-
 ----------------------------------------------------------------------------------------------------------------------
 -- EXPORTS
 ----------------------------------------------------------------------------------------------------------------------
 processIO :: Sim.SimulationIO
-processIO simIn outFunc = do -- reactimate (init as) (input  output (YampaBack.process as)
+processIO simIn outFunc = do
                     hdl <- reactInit
                                 (return as)
                                 (iter outFunc)
                                 (process as wt)
-                    HACYampaBackend.iterate hdl (0.5, Nothing) -- TODO: need to get this dt correct, should depend on rendering-performance
+                    HACYampaBackend.iterate hdl (0.5, Nothing) -- TODO: need to get this dt correct instead of 0.5, should come from input/output
                     return ()
                 where
                     as = Sim.simInInitAgents simIn
@@ -70,7 +31,7 @@ processIO simIn outFunc = do -- reactimate (init as) (input  output (YampaBack.p
 
 iterate :: ReactHandle a b -> (DTime, Maybe a) -> IO Bool
 iterate hdl (dt, input) = do
-    cont <- react hdl (0.5, Nothing)  -- TODO: need to get this dt correct
+    cont <- react hdl (0.5, Nothing)  -- TODO: need to get this dt correct instead of 0.5, should come from input/output
     if cont then
         HACYampaBackend.iterate hdl (dt, input)
             else
@@ -171,8 +132,8 @@ activeAgent wt = proc agentIn ->
         t <- time -< ()
         -- NOTE: calculating the step-width based on the time which has passed since the last call. This can be achieved
         --       by using derivative which returns the difference between the current and the last value
-        dt <- derivative -< t :: Double -- TODO fix bug: goint too fast, actually it is not dt but 2*dt!
-        let stepWidth = dt
+        dt <- derivative -< t :: Double
+        let stepWidth = 0.005 -- Agent.agentSpeedPerTimeUnit * dt -- TODO fix bug: goint too fast, actually it is not dt but 2*dt!
         let ao = Agent.agentStep wt stepWidth agentIn
         -- let ao = trace ("time=" ++ (show t) ++ ", derivative=" ++ (show d) ++ "stepwidth=" ++ (show stepWidth)) Agent.agentStep stepWidth agentIn
         returnA -< ao

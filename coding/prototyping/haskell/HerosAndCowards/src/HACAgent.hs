@@ -11,7 +11,6 @@ module HACAgent (
     agentInFromAgents
   ) where
 
-import Data.IORef
 import System.Random
 import Control.DeepSeq
 
@@ -22,7 +21,7 @@ import Utils
 type AgentId = Int
 type AgentPosition = (Double, Double)
 
-data WorldType = Infinite | Border | Wraping | InfiniteWraping deriving (Eq)
+data WorldType = Infinite | Border | Wraping deriving (Eq)
 
 data AgentState = AgentState {
     agentId :: AgentId,
@@ -42,8 +41,6 @@ instance Show AgentState where
 data AgentIn = AgentIn {
     agentInState :: AgentState,
     agentInAllAgents :: [AgentState]
-    --agentInEnemyPos :: AgentPosition,
-    --agentInFriendPos :: AgentPosition
 }
 
 data AgentOut = AgentOut {

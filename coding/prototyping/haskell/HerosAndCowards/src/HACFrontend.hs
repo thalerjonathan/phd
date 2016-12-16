@@ -78,7 +78,7 @@ renderFrame aos wt = do
     getParam Opened
 
 renderAgent :: Agent.WorldType -> Agent.AgentOut -> IO ()
-renderAgent = renderAgentWithOrientation
+renderAgent = renderAgentQuad
 
 renderAgentQuad :: Agent.WorldType -> Agent.AgentOut -> IO ()
 renderAgentQuad wt ao = preservingMatrix $ do

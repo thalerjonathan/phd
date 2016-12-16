@@ -16,9 +16,9 @@ import qualified HACSimulationImpl as SimImpl
 
 main :: IO ()
 main = do
-    let dt = 0.001
-    let wt = Wraping -- Infinite | Border | Wraping
-    let agentCount = 1000
+    let dt = 0.025
+    let wt = Border -- Infinite | Border | Wraping
+    let agentCount = 500
     let heroDist = 0.25
     let rngSeed = 42
     let rng = mkStdGen rngSeed

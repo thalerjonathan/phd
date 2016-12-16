@@ -7,7 +7,7 @@ main = do
     putStrLn (show r)
         where
             bid = Bid 42
-            ask = Ask 43
+            ask = Ask 41
 
 data Offering a = Bid a | Ask a | Accept | Refuse deriving (Show)
 

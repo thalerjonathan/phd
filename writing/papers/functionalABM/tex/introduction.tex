@@ -19,9 +19,9 @@ TODO: formal specification in declarative pseudo-code
 We extend the model by introducing 2 additional world-types: Infinite and Wrapping thus ending up with 3 World-Types:
 
 \begin{enumerate}
-\item Border - Agents cannot move out of the restricted rectangle and are clipped at the border. Same as in the original model.
+\item Border - Agents cannot move out of the restricted rectangle and are clipped at the border. This is the world-type of the original model.
 \item Infinite - Agents can move unrestricted.
-\item Wrapping - Same as Border but when crossing border the Agents "teleport" to the opposite side of the world thus the world folds back unto itself.
+\item Wrapping - Same as Border but when crossing border the Agents "teleport" to the opposite side of the world thus the world folds back unto itself in 2D.
 \end{enumerate}
 
 \subsubsection{Extension 2: Random-Noise}
@@ -55,14 +55,24 @@ TODO: show a formal representation in a declarative way of the Heroes \& Cowards
 All implementations of ABM/S models must solve two problems:
 
 \begin{enumerate}
-\item Agent-Implementation: how can the Agent in the model specification be implemented?
+\item Agent-Implementation: how can the Agent in the model-specification be implemented?
 \item Simulation-Stepping: which kind of stepping is required or best suited for the given model?
 \end{enumerate}
 
 Of course both problems influence each other and cannot be considered separated from each other.
 
 \subsubsection{Agent-Implementation}
-This is the process of implementing the behaviour of the Agent as specified in the model. There are various kinds of Agent-Models like BDI (or the more up-to-date one TODO: find name) but the basic principle is always the same: sense the environment, process messages, execute actions: change environment, send messages. TODO: more general, formal
+This is the process of implementing the behaviour of the Agent as specified in the model. Although there are various kinds of Agent-Models like BDI but the basic principle is always the same: sense the environment, process messages, execute actions: change environment, send messages. According to \cite{wooldridge_introduction_2009} and also influenced by Actors from \cite{agha_actors:_1986} one can abstract the abilities in each step of an Agent to be the following:
+
+\begin{enumerate}
+\item Process received messages
+\item Create new Agents
+\item Send messages to other Agents
+\item Sense (read) the environment
+\item Influence (write) the environment
+\end{enumerate}
+
+The difference between communicating with the environment and other agents is that the communication with the former one is synchronized, persists and is visible immediately (at least by the agent performing the action) whereas the communication with other agents is asynchronous.
 
 \subsubsection{Simulation-Stepping}
 When one has implemented the model of behaviour of an Agent one needs to bring the whole simulation to life by enabling the Agents to execute their behaviour in a recurring fashion. This allows an Agent to change the environment by actions and react to changes in the environment, either by other Agents or the environment itself thus resulting in a feedback-loop. There are two ways of looking and implementing such feedback-loops. 

@@ -11,8 +11,8 @@ import qualified Graphics.Gloss.Interface.IO.Simulate as GLO
 main :: IO ()
 main = do
         let dt = 0.01
-        let agentCount = 100
-        let heroDistribution = 0.25
+        let agentCount = 500
+        let heroDistribution = 0.5
         let simStepsPerSecond = 30
         let rngSeed = 42
         let g = mkStdGen rngSeed

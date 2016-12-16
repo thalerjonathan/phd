@@ -12,6 +12,48 @@ import qualified Data.HashMap as Map
 
 -- TODO: fix parameters which won't change anymore after an Agent has started by using currying
 
+{- TODO: experiment with 'active' messages which represent a conversation between two agents but will be executed only by
+         the receiving agent and will result in a final result which is then local to the receiving agent. This allows
+          to encapsulate data in a more general way through closures and to have some logic working upon the data. -}
+
+{-
+main :: IO ()
+main = do
+    let b = makeOffer bid
+    let r = executeOffer ask b
+    putStrLn (show r)
+        where
+            bid = Bid 42
+            ask = Ask 41
+
+data Offering a = Bid a | Ask a | Accept | Refuse deriving (Show)
+
+data Conversation m = Msg m | Conv (m -> Conversation m)
+
+{- NOTE: this part sends an offer enclosed in the lambda and will compare it to a passed in offer where a reply is then made
+         TODO: introduce additional step> send o along with an additional reply and wait
+-}
+makeOffer :: Offering Int -> Conversation (Offering Int)
+makeOffer o = Conv (\o' -> if compareOffer o o' then
+                                Msg Accept
+                                    else
+                                        Msg Refuse )
+
+{- NOTE: this part is the counterpart which allows to execute a given offering-conversation with a given offering
+         problem: we loose track were we are like in makeOffer
+         TODO: must always terminate and finally return Message
+
+-}
+executeOffer :: Offering Int -> Conversation (Offering Int) -> Offering Int
+executeOffer o (Conv f) = executeOffer o (f o)
+executeOffer o (Msg o') = o'
+
+compareOffer :: Offering Int -> Offering Int -> Bool
+compareOffer (Bid a) (Ask a') = a >= a'
+compareOffer (Ask a) (Bid a') = a <= a'
+compareOffer _ _ = False
+-}
+
 type AgentId = Int
 type MsgHandler m s = (Agent m s -> m -> AgentId -> STM (Agent m s))        -- NOTE: need STM to be able to send messages
 type UpdateHandler m s = (Agent m s -> Double -> STM (Agent m s))           -- NOTE: need STM to be able to send messages

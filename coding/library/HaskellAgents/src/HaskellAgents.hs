@@ -15,69 +15,23 @@ import Control.Concurrent.STM.TChan
 import Data.Maybe
 import qualified Data.HashMap as Map
 
--- NOTE: this is what I want to do with this library:
--- take haskell, add yampa and dunai and implement ActorModel on top using STM => have an ABM library in Haskell, put on hackage. NO IO!
-
--- TODO: is getting rid of STM an option?
-
--- TODO: provide implementations for all kinds of sim-teppings but hidden behind a message interface common to all but different semantics with different steppings
+-- TODO: add generic way of read/write to an environment e
 
 -- TODO: how can we implement true parallelism? can we use STM somehow or do we need local mailboxes?
 
--- TODO: add generic way of read/write to an environment e
-
 -- TODO: exploit parallelism and concurrency using par monad? problem: STM may rollback and need retry
-
--- TODO: let the whole thing run in Yampa/Dunai so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai. But because running in STM must use Dunai
-
--- TODO: shortcoming: cannot wait blocking for a message so far. utilize yampas event mechanism?
 
 -- TODO: fix parameters which won't change anymore after an Agent has started by using currying
 
 
 
------------------------------------------------------------------------------------------------------------------------------
-{- TODO: experiment with 'active' messages which represent a conversation between two agents but will be executed only by
-         the receiving agent and will result in a final result which is then local to the receiving agent. This allows
-          to encapsulate data in a more general way through closures and to have some logic working upon the data. -}
-{-
-main :: IO ()
-main = do
-    let b = makeOffer bid
-    let r = executeOffer ask b
-    putStrLn (show r)
-        where
-            bid = Bid 42
-            ask = Ask 41
+-- TODO: is getting rid of STM an option?
 
-data Offering a = Bid a | Ask a | Accept | Refuse deriving (Show)
+-- TODO: provide implementations for all kinds of sim-teppings but hidden behind a message interface common to all but different semantics with different steppings
 
-data Conversation m = Msg m | Conv (m -> Conversation m)
+-- TODO: let the whole thing run in Yampa/Dunai so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai. But because running in STM must use Dunai
 
-{- NOTE: this part sends an offer enclosed in the lambda and will compare it to a passed in offer where a reply is then made
-         TODO: introduce additional step> send o along with an additional reply and wait
--}
-makeOffer :: Offering Int -> Conversation (Offering Int)
-makeOffer o = Conv (\o' -> if compareOffer o o' then
-                                Msg Accept
-                                    else
-                                        Msg Refuse )
-
-{- NOTE: this part is the counterpart which allows to execute a given offering-conversation with a given offering
-         problem: we loose track were we are like in makeOffer
-         TODO: must always terminate and finally return Message
-
--}
-executeOffer :: Offering Int -> Conversation (Offering Int) -> Offering Int
-executeOffer o (Conv f) = executeOffer o (f o)
-executeOffer o (Msg o') = o'
-
-compareOffer :: Offering Int -> Offering Int -> Bool
-compareOffer (Bid a) (Ask a') = a >= a'
-compareOffer (Ask a) (Bid a') = a <= a'
-compareOffer _ _ = False
--}
------------------------------------------------------------------------------------------------------------------------------
+-- TODO: shortcoming: cannot wait blocking for a message so far. utilize yampas event mechanism?
 
 ------------------------------------------------------------------------------------------------------------------------
 -- PUBLIC, exported
@@ -162,3 +116,47 @@ stepAgent dt a = do
                 a'' <- upHdl a' dt
                 return a''
 ------------------------------------------------------------------------------------------------------------------------
+
+
+-----------------------------------------------------------------------------------------------------------------------------
+{- TODO: experiment with 'active' messages which represent a conversation between two agents but will be executed only by
+         the receiving agent and will result in a final result which is then local to the receiving agent. This allows
+          to encapsulate data in a more general way through closures and to have some logic working upon the data. -}
+{-
+main :: IO ()
+main = do
+    let b = makeOffer bid
+    let r = executeOffer ask b
+    putStrLn (show r)
+        where
+            bid = Bid 42
+            ask = Ask 41
+
+data Offering a = Bid a | Ask a | Accept | Refuse deriving (Show)
+
+data Conversation m = Msg m | Conv (m -> Conversation m)
+
+{- NOTE: this part sends an offer enclosed in the lambda and will compare it to a passed in offer where a reply is then made
+         TODO: introduce additional step> send o along with an additional reply and wait
+-}
+makeOffer :: Offering Int -> Conversation (Offering Int)
+makeOffer o = Conv (\o' -> if compareOffer o o' then
+                                Msg Accept
+                                    else
+                                        Msg Refuse )
+
+{- NOTE: this part is the counterpart which allows to execute a given offering-conversation with a given offering
+         problem: we loose track were we are like in makeOffer
+         TODO: must always terminate and finally return Message
+
+-}
+executeOffer :: Offering Int -> Conversation (Offering Int) -> Offering Int
+executeOffer o (Conv f) = executeOffer o (f o)
+executeOffer o (Msg o') = o'
+
+compareOffer :: Offering Int -> Offering Int -> Bool
+compareOffer (Bid a) (Ask a') = a >= a'
+compareOffer (Ask a) (Bid a') = a <= a'
+compareOffer _ _ = False
+-}
+-----------------------------------------------------------------------------------------------------------------------------

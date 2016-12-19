@@ -19,15 +19,29 @@ main = do
         let heroDistribution = 0.5
         let simStepsPerSecond = 30
         let rngSeed = 42
+        let steps = 1000
         let g = mkStdGen rngSeed
         -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
         (initAs, g') <- atomically $ createRandomHACAgents g agentCount heroDistribution
-        GLO.simulateIO Front.display
-            GLO.white
-            simStepsPerSecond
-            initAs
-            modelToPicture
-            (stepIteration dt)
+        as <- calculateSteps steps initAs dt
+        outs <- mapM (putStrLn . show . state) as
+        return ()
+
+calculateSteps :: Int -> [HACAgent] -> Double -> IO [HACAgent]
+calculateSteps n as dt = do
+                            as' <- atomically $ HaskellAgents.stepSimulation as dt
+                            if ( n == 0 ) then
+                                return as'
+                                    else
+                                        calculateSteps (n-1) as' dt
+
+stepWithRendering :: [HACAgent] -> Double -> IO ()
+stepWithRendering initAs dt = GLO.simulateIO Front.display
+                                GLO.white
+                                30
+                                initAs
+                                modelToPicture
+                                (stepIteration dt)
 
 -- A function to convert the model to a picture.
 modelToPicture :: [HACAgent] -> IO GLO.Picture

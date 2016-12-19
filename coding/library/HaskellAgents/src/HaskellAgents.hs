@@ -1,4 +1,14 @@
-module HaskellAgents where
+module HaskellAgents (
+    Agent(..),
+    AgentId,
+    MsgHandler,
+    UpdateHandler,
+    sendMsg,
+    agentsToNeighbourPair,
+    addNeighbours,
+    stepSimulation,
+    createAgent,
+  ) where
 
 import Control.Monad.STM
 import Control.Concurrent.STM.TChan
@@ -24,6 +34,9 @@ import qualified Data.HashMap as Map
 
 -- TODO: fix parameters which won't change anymore after an Agent has started by using currying
 
+
+
+-----------------------------------------------------------------------------------------------------------------------------
 {- TODO: experiment with 'active' messages which represent a conversation between two agents but will be executed only by
          the receiving agent and will result in a final result which is then local to the receiving agent. This allows
           to encapsulate data in a more general way through closures and to have some logic working upon the data. -}
@@ -64,7 +77,11 @@ compareOffer (Bid a) (Ask a') = a >= a'
 compareOffer (Ask a) (Bid a') = a <= a'
 compareOffer _ _ = False
 -}
+-----------------------------------------------------------------------------------------------------------------------------
 
+------------------------------------------------------------------------------------------------------------------------
+-- PUBLIC, exported
+------------------------------------------------------------------------------------------------------------------------
 type AgentId = Int
 type MsgHandler m s = (Agent m s -> m -> AgentId -> STM (Agent m s))        -- NOTE: need STM to be able to send messages
 type UpdateHandler m s = (Agent m s -> Double -> STM (Agent m s))           -- NOTE: need STM to be able to send messages
@@ -85,32 +102,12 @@ data Agent m s = Agent {
 
 sendMsg :: Agent m s -> m -> AgentId -> STM ()
 sendMsg a msg targetId
-    | isNothing targetMbox = return ()                          -- NOTE: receiver not found
+    | isNothing targetMbox = return ()                          -- NOTE: receiver not found in the neighbours
     | otherwise = writeTChan (fromJust targetMbox) (senderId, msg)
     where
         ns = neighbours a
         senderId = agentId a
         targetMbox = Map.lookup targetId ns
-
-receiveMsg :: Agent m s -> STM (Maybe (AgentId, m))
-receiveMsg a = tryReadTChan mb
-    where
-        mb = mbox a
-
-processMsg :: Agent m s -> (AgentId, m) -> STM (Agent m s)
-processMsg a (senderId, msg) = handler a msg senderId
-    where
-        handler = msgHandler a
-
-processAllMessages :: Agent m s -> STM (Agent m s)
-processAllMessages a = do
-                        msg <- receiveMsg a
-                        if ( isNothing msg ) then
-                            return a
-                                else
-                                    do
-                                        a' <- processMsg a (fromJust msg)
-                                        processAllMessages a'
 
 createAgent :: AgentId -> s -> MsgHandler m s -> UpdateHandler m s -> STM (Agent m s)
 createAgent i s mhdl uhdl = do
@@ -134,9 +131,34 @@ addNeighbours a nsPairs = a { neighbours = ns' }
 stepSimulation :: [Agent m s] -> Double -> STM [Agent m s]
 stepSimulation as dt = mapM (stepAgent dt) as
 
+
+------------------------------------------------------------------------------------------------------------------------
+-- PRIVATE, non exports
+------------------------------------------------------------------------------------------------------------------------
+receiveMsg :: Agent m s -> STM (Maybe (AgentId, m))
+receiveMsg a = tryReadTChan mb
+    where
+        mb = mbox a
+
+processMsg :: Agent m s -> (AgentId, m) -> STM (Agent m s)
+processMsg a (senderId, msg) = handler a msg senderId
+    where
+        handler = msgHandler a
+
+processAllMessages :: Agent m s -> STM (Agent m s)
+processAllMessages a = do
+                        msg <- receiveMsg a
+                        if ( isNothing msg ) then
+                            return a
+                                else
+                                    do
+                                        a' <- processMsg a (fromJust msg)
+                                        processAllMessages a'
+
 stepAgent :: Double -> Agent m s -> STM (Agent m s)
 stepAgent dt a = do
                 a' <- processAllMessages a
                 let upHdl = updateHandler a'
                 a'' <- upHdl a' dt
                 return a''
+------------------------------------------------------------------------------------------------------------------------

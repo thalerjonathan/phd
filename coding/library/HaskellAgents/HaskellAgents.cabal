@@ -7,3 +7,7 @@ executable HaskellAgents
   main-is:         Main.hs
   hs-source-dirs:  src
   build-depends:   base, stm, hashmap, gloss, random
+  ghc-options:      -threaded
+                    -fprof-auto
+                    -prof
+                    "-with-rtsopts=-N -p -s -h -i0.1"

@@ -9,7 +9,7 @@ import qualified HaskellAgents as Agent
 
 type HACAgentPosition = (Double, Double)
 data HACMsg = PositionRequest | PositionUpdate HACAgentPosition
-data HACWorldType = Infinite | Border | Wraping deriving (Eq)
+data HACWorldType = Infinite | Border | Wraping deriving (Eq, Show)
 
 data HACAgentState = HACAgentState {
     pos :: HACAgentPosition,
@@ -19,7 +19,7 @@ data HACAgentState = HACAgentState {
     enemy :: Agent.AgentId,
     friendPos :: Maybe HACAgentPosition,
     enemyPos :: Maybe HACAgentPosition
-}
+} deriving (Show)
 
 type HACAgent = Agent.Agent HACMsg HACAgentState
 
@@ -114,7 +114,7 @@ hacUpdtHandler :: HACAgent -> Double -> STM HACAgent
 hacUpdtHandler a dt = do
                         requestPosition a (friend s)
                         requestPosition a (enemy s)
-                        if ( (isJust fPos) && (isJust ePos) ) then
+                        if ((isJust fPos) && (isJust ePos)) then
                             return a { Agent.state = s' }
                                 else
                                     return a

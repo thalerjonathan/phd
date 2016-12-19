@@ -42,7 +42,7 @@
 %	DOCUMENT INFORMATION
 %----------------------------------------------------------------------------------------
 
-\title{Functional programming in Agent-Based Simulation and Modelling} % Title
+\title{Pure by Nature:\\A Library for Agent-Based Simulation \& Modelling in Haskell} % Title
 
 \author{Jonathan \textsc{Thaler}} % Author name
 
@@ -54,12 +54,21 @@
 
 % If you wish to include an abstract, uncomment the lines below
 \begin{abstract}
-In this paper we look at the very simple social-simulation of \textit{Heroes \& Cowards} invented by \cite{wilensky_introduction_2015} to study new methods in Agent-Based Modelling and Simulation (ABM/S) and to highlight their potentials and limitations as opposed to object-oriented ones which are dominant in this field. We go into the opposite direction and ask how ABM/S can be done using functional programming, a method which has so far not been considered very deeply in this field. Obviously this method requires to look at ABM/S from a different perspective which this paper tries to provide. Although it might be strange in the beginning the author argues that approaching ABM/S from a functional direction offers a wealth of new powerful tools and methods, depending on the functional language and framework one is using. In this paper we look into two approaches where both offer different benefits: \textit{pure} functional using Haskell and \textit{multi-paradigm} functional using Scala. The most obvious benefits of using a pure functional approach are that it allows to reason about various properties of the program and implementation of an embedded domain-specific language (EDSL) where ideally the distinction between specification and implementation disappears. Thus with these two benefits this approach is especially suited to scientific computing where correctness and reasoning about properties of a program is of very importance. Scala, as already outlined, is a multi-paradigm approach to functional programming and allows to incorporate objects and side-effects. Thus one must take care and be disciplined to stick to a functional style in Scala. Also this language is known for its use in the framework \textit{Akka} which is a distributed programming environment built upon the \textit{Actor-Model} which has been gaining popularity in recent years (TODO: cite some claim?). Thus for Scala we chose an actor-model approach and functional paradigm to implement the simulation. For comparison with state-of-the-art methods we also implement the model in AnyLogic and ReLogo and look into an object-oriented implementation in Java without using any ABM/S framework.
+In this paper we look at the very simple social-simulation of \textit{Heroes \& Cowards} invented by \cite{wilensky_introduction_2015} to study new methods in Agent-Based Modelling and Simulation (ABM/S) and to highlight their potentials and limitations as opposed to object-oriented (OO) ones which are dominant in this field. We go into the opposite direction and ask how ABM/S can be done using the Actor-Model as defined by \cite{agha_actors:_1986} and pure functional programming in Haskell. Both are methods which have unfortunately not been considered very deeply in this field and requires to look at ABM/S from a different perspective which this paper tries to provide. The Actor-Model was a major influence in the development of Agents and has proven its use in Erlang for building industry-strength applications but the question whether it is well suited for ABM/S is still open to question. A functional direction offers a wealth of new powerful tools and methods where the most obvious benefits of using a pure functional approach is that it allows to reason about various properties of the program and implementation of an embedded domain-specific language (EDSL), where ideally the distinction between specification and implementation disappears. \\
+Thus we implemented a new library in Haskell for ABM/S called \textit{PureAgents}, available on Hackage, making maximum use of the functional paradigm and utilizing the Actor-Model as the underlying paradigm for thinking, representing, modelling and implementing Agents. We compare the implementation of \textit{Heroes \& Cowards} in \textit{PureAgents} with a variety of implementations in other existing methods. For comparison with state-of-the-art methods we look at the classic implementation in NetLogo, implement the model in AnyLogic and ReLogo and also look into an object-oriented implementation in Java without using any ABM/S framework. To have a comparison with a method which is close to our new developed library we look into Scala which is a multi-paradigm approach to functional programming and allows to incorporate objects and side-effects and comes already with an Actor-Library. \\
+The main contributions of this paper are twofold. First, we describe how to approach and implement ABM/S in the pure functional language Haskell resulting in a library for ABM/S called \textit{PureAgents} available on Hackage. Second, the library is based on the Actor-Model defined by  which so far hasn't got much attention for systematic research in the field of ABM/S and functional programming - a drawback we want to repair.
+
 \end{abstract}
 
 \input{./tex/introduction.tex}
 
 \input{./tex/relatedResearch.tex}
+
+\input{./tex/generalImpl.tex}
+
+\input{./tex/haskellImpl.tex}
+
+\input{./tex/prototyping.tex}
 
 \input{./tex/results.tex}
 

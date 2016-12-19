@@ -1,0 +1,21 @@
+\section{Implementation in Haskell}
+It is important to prevent oneself to implement an object-oriented approach in Haskell because then we would loose the power of pure functional programming. Thus the main design-considerations were:
+
+\begin{enumerate}
+\item Implement all 4 approaches mentioned in General Implementation for maximum flexibility for users of the library so they can choose which semantics of the simulation they want.
+\item Pure simulation to keep up the ability to reason about it. This means to avoid running in IO Monad at all costs (except for the main-loop).
+\item Utilizing STM which allows very flexible handling of state and allows running.
+\item Run inside Yampa/Dunai to leverage the EDSL and continuous/discrete time-implementation.
+\end{enumerate}
+
+take haskell, add yampa and dunai and implement ActorModel on top using STM => have an ABM library in Haskell, put on hackage. NO IO!
+
+\subsection{Utilizing STM}
+with stm one can determine when everything is visible: at the end of the step or after each agent update. but this applies only to parallelism! if running agents in parallel they must execute atomically, otherwise the probability for concurrent read/writes goes to 100\% also as the number of agents goes up. if no parallelism then one final atomically at the end of each step enough. but in any case: using STM leads to the effect that agents see later updates. so really 2 cases where STM is of use in haskell: global, sequential and global concurrent
+
+how can we implement true parallelism? can we use STM somehow or do we need local mailboxes?
+\subsection{Yampa}
+
+\subsection{Dunai}
+
+\subsection{Putting it all together}

@@ -8,6 +8,10 @@ import System.Random
 import qualified HACFrontend as Front
 import qualified Graphics.Gloss.Interface.IO.Simulate as GLO
 
+-- TODO: implement wildfire (read/write environment to create new agents)
+-- TODO: implement SIRS model
+-- TODO: implement schelling segregation
+
 main :: IO ()
 main = do
         let dt = 0.025
@@ -33,6 +37,8 @@ modelToPicture as = return (Front.renderFrame observableAgentStates)
 
 -- A function to step the model one iteration. It is passed the current viewport and the amount of time for this simulation step (in seconds)
 -- NOTE: atomically is VERY important, if it is not there there then the STM-transactions would not occur!
+--       NOTE: this is actually wrong, we can avoid atomically as long as we are running always on the same thread.
+--             atomically would commit the changes and make them visible to other threads
 stepIteration :: Double -> GLO.ViewPort -> Float -> [HACAgent] -> IO [HACAgent]
 stepIteration fixedDt viewport dtRendering as = atomically $ HaskellAgents.stepSimulation as fixedDt
 

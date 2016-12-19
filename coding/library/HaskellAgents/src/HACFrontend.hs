@@ -30,6 +30,5 @@ renderAgent (x, y, hero) = GLO.color color $ GLO.translate xPix yPix $ GLO.Thick
         halfYSize = toRational winSizeY / 2.0
 
 agentColor :: Bool -> GLO.Color
-agentColor hero
-    | hero == True = GLO.green
-    | hero == False = GLO.red
+agentColor True = GLO.green
+agentColor False = GLO.red

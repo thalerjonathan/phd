@@ -1,19 +1,27 @@
 \section{Introduction}
 Today simulations are at the very heart of many sciences. They allow to put hypotheses to test by building a model which abstracts from reality, keeping only the important and relevant details, and then bringing this model to life in simulation. Based on the results shown by the dynamics, previously formulated hypotheses can be verified or falsified resulting in a formulate-simulate-refine cycle. \\
-What is the exact meaning of simulating a model? It can be understood as calculating the dynamics of a (model of a) system over time thus the state of the system at time t depends on the state of the system at time t - epsilon. Here we only consider simulations in a computer-system (TODO: are there simulations NOT in a computer?), which is an inherently discrete system which poses us with the question of how to represent time which seems linear and continuously flowing to us in reality (NOTE: this may not be physically the case but for our considerations this should be a good approximation). Being in a discrete system, of course implies that time has to be discretized as well and there are two ways of doing it: discrete and continuous where in discrete case time advances in steps of the natural numbers and where in the continuous case time advances in steps of real-numbers. Note that in both cases the system is iterated in steps where only the \textit{numerical type} of the input to the time-dependent functions differs. Thus a simulation in a computer can be understood as an iteration over a model for a given number of steps where each step advances time by dt (either discrete or continuous) and, based on the previous model-state, producing and updated model-state which again becomes the input for the next step. Thus in each simulation we have three inputs: 1. the model, 2. number of steps, 3. time dt. \\
-There are of course different models and types of simulations and in this paper we will focus on one particular one: agent-based, which will be described next.
+The meaning of simulating a model can be understood as calculating the dynamics of a (model of a) system over time thus the state of the system at time t depends on the state of the system at time t - epsilon. Here we only consider simulations in a computer-system (TODO: are there simulations NOT in a computer?), which is an inherently discrete system which poses us with the question of how to represent time which seems linear and continuously flowing to us in reality (NOTE: this may not be physically the case but for our considerations this should be a good approximation). Being in a discrete system, of course implies that time has to be discretised as well and there are two ways of doing it: discrete and continuous where in discrete case time advances in steps of the natural numbers and where in the continuous case time advances in steps of real-numbers. Note that in both cases the system is iterated in steps where only the \textit{numerical type} of the input to the time-dependent functions differs. Thus a simulation in a computer can be understood as an iteration over a model for a given number of steps where each step advances time by dt (either discrete or continuous) and, based on the previous model-state, producing an updated model-state which again becomes the input for the next step. Thus in each simulation we have three inputs: 1. the model, 2. number of steps, 3. time dt. There are of course different models and types of simulations and in this paper we will focus on one particular one: agent-based, which will be described next.
 
 \subsection{Agent-Based Modelling and Simulation (ABM/S)}
-ABM/S is a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is of knowledge \cite{wooldridge_introduction_2009}. Those parts, called agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. Thus the central aspect of ABM/S is the concept of an Agent which can be understood as a metaphor for a pro-active unit, able to spawn new Agents, and interacting with other Agents in a network of neighbours by exchange of messages. The implementation of Agents can vary and strongly depends on the programming language and the kind of domain the simulation and model is situated in. Whereas the majority of ABM/S are implemented in object-oriented languages e.g. Java, C++, this paper focuses on functional ones.
+ABM/S is a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is of knowledge \cite{wooldridge_introduction_2009}. Those parts, called Agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. Thus the central aspect of ABM/S is the concept of an Agent which can be understood as a metaphor for a pro-active unit, able to spawn new Agents, and interacting with other Agents in a network of neighbours by exchange of messages. The implementation of Agents can vary and strongly depends on the programming language and the kind of domain the simulation and model is situated in. Whereas the majority of ABM/S are implemented in object-oriented (OO) languages e.g. Java, C++, this paper focuses on functional ones.
 
-\subsection{The Model: Heroes and Cowards}
+\subsection{Why Functional programming?}
+Object-oriented (OO) programming is the current state-of-the-art method used in implementing ABM/S due to the natural way of mapping concepts and models of ABM/S to an OO-language. Although this dominance in the field we claim that OO has also its serious drawbacks:
+
+\begin{itemize}
+\item Mutable State is distributed over multiple objects which is often very difficult to understand, track and control.
+\item Inheritance is a dangerous thing if not used properly and with care because it introduces very strong dependencies which cannot be changed during runtime any-more.
+\item Objects don't compose very well due to their internal (mutable) state (note that we are aware that there is the concept of immutable objects which are becoming more and more popular but that does not solve the fundamental problem.
+\item It is (nearly) impossible to reason about programs.
+\end{itemize}
+
+We claim that these drawbacks are non-existent in pure functional programming like Haskell due to the nature of the functional approach. To give an introduction into functional programming is out of scope of this paper but we refer to the classical paper of \cite{hughes_why_1989} which is a great paper explaining to non-functional programmers what the significance of functional programming is and helping functional programmers putting functional languages to maximum use by showing the real power and advantages of functional languages. The main conclusion of this classical paper is that \textit{modularity}, which is the key to successful programming, can be achieved best using higher-order functions and lazy evaluation provided in functional languages like Haskell. \cite{hughes_why_1989} argues that the ability to divide problems into sub-problems depends on the ability to glue the sub-problems together which depends strongly on the programming-language and \cite{hughes_why_1989} argues that in this ability functional languages are superior to structured programming.
+
+\subsection{The Model: Heroes \& Cowards}
 To study various properties of implementations of ABM/S we select the very simple model \textit{Heroes \& Cowards} from social-simulation invented by \cite{wilensky_introduction_2015}. Although it is very simple, it will prevent the research of the methods to be cluttered with too many subtle details of the model thus focusing on the methods and implementation than rather on the model itself. \\
-One starts with a crowd of Agents where each Agents is positioned \textit{randomly} in a continuous 2D-space. Each of the Agents then selects \textit{randomly} one friend and one enemy (except itself in both cases) and decides with a given probability whether the Agent acts in the role of a "Hero" or a "Coward" - friend, enemy and role don't change after the initial set-up. Now the simulation can start: in each step the Agent will move a given distance towards a given point. If the Agent is in the role of a "Hero" this point will be the half-way distance between the Agents friend and enemy - the Agent tries to protect the friend from the enemy. If the Agent is acting like a "Coward" it will try to hide behind the friend also the half-way distance between the Agents friend and enemy, just in the opposite direction. \\
+One starts with a crowd of Agents where each Agent is positioned \textit{randomly} in a continuous 2D-space. Each of the Agents then selects \textit{randomly} one friend and one enemy (except itself in both cases) and decides with a given probability whether the Agent acts in the role of a "Hero" or a "Coward" - friend, enemy and role don't change after the initial set-up. Now the simulation can start: in each step the Agent will move a given distance towards a given point. If the Agent is in the role of a "Hero" this point will be the half-way distance between the Agents friend and enemy - the Agent tries to protect the friend from the enemy. If the Agent is acting like a "Coward" it will try to hide behind the friend also the half-way distance between the Agents friend and enemy, just in the opposite direction. \\
 The world this model is situated in is restricted by borders in the form of a rectangle: the agents cannot move out of it and will be clipped against the border if the calculation would end them up outside. \\
 Note that this simulation is determined by the random starting positions, random friend \& enemy selection, random role selection and number of agents. Note also that during the simulation-stepping no randomness is mentioned in the model and given the initial random set-up, the simulation-\textit{model} is completely deterministic - whether this is the case for the implementations is another question, not relevant to the model. 
-
-TODO: formal specification in imperative pseudo-code
-TODO: formal specification in declarative pseudo-code 
 
 \subsubsection{Extension 1: World-Types}
 We extend the model by introducing 2 additional world-types: Infinite and Wrapping thus ending up with 3 World-Types:
@@ -27,106 +35,19 @@ We extend the model by introducing 2 additional world-types: Infinite and Wrappi
 \subsubsection{Extension 2: Random-Noise}
 The original model is completely deterministic after the initial set-up. We add the possibility for optional random noise at two points: the distance / position when hiding/protecting can be made subject to random noise in a given range as well as the width of the step the agent makes when moving towards the hiding/protecting position.
 
-\subsection{Why Functional programming}
-This alone does not really explain the \textit{real} advantages of functional programming and one must look for better motivations using functional programming languages. One motivation is given in \cite{hughes_why_1989} which is a great paper explaining to non-functional programmers what the significance of functional programming is and helping functional programmers putting functional languages to maximum use by showing the real power and advantages of functional languages. The main conclusion is that \textit{modularity}, which is the key to successful programming, can be achieved best using higher-order functions and lazy evaluation provided in functional languages like Haskell. \cite{hughes_why_1989} argues that the ability to divide problems into sub-problems depends on the ability to glue the sub-problems together which depends strongly on the programming-language and \cite{hughes_why_1989} argues that in this ability functional languages are superior to structured programming.
+\subsection{Other Models: SIRS, Wildfire and Schelling Segregation}
+We will also look into other classic Models of ABM/S but not with the same focus as \textit{Heroes \& Cowards} and just to show that it is very easy to implement them using our ABM/S library in Haskell.
 
-TODO: comparison of functional and object-oriented programming. My points are:
-\begin{itemize}
-\item The way state can be changed and treated - distributed over multiple objects - is often very difficult to understand.
-\item Inheritance is a dangerous thing if not used with care because inheritance introduces very strong dependencies which cannot be changed during runtime anymore.
-\item Objects don't compose very well: \url{http://zeroturnaround.com/rebellabs/why-the-debate-on-object-oriented-vs-functional-programming-is-all-about-composition/}
-\item (Nearly) impossible to reason about programs
-\end{itemize}
+\subsubsection{SIRS}
+Simulates the spreading of a disease throughout a population.
 
-In conclusion the upsides of functional programming as opposed to OO are:
-\begin{itemize}
-\item Much more explicit flow of data \& control
-\item Much better compose-able
-\item Much better parallelism
-\end{itemize}
+\subsubsection{Wildfire}
+Simulates a Wildfire on a discrete 2D-Grid where each cell corresponds to a part of a forest with varying amount of burnable wood. The wildfire is then ignited at some random cell and spreads over the whole 2D-Grid by igniting neighbouring cells which burn for a duration proportional to the amount of burnable woods in this cell.
 
-\paragraph{EDSL}
-Ideally we would some kind of formal specification which can be translated more or less directly into code representing the Agent and simulation. Unfortunately this is not always the case or possible and models are often specified in non-formal ways using natural language. The problem of this is that definitions in natural, non-formal language tends to be ambiguous and thus verification becomes difficult. Another issue is that due to the ambiguous nature of natural-language it also becomes difficult for independent researches to reproduce results when the model is specified in a non-formal way. This was an issue when a group tried to reproduce the high-impact results in \cite{gintis_emergence_2006} which they weren't until they discovered after contacting the author that there was indeed a bug in the original implementation. So there are two problems here: 1st the specification of the model was informal and thus ambiguous to the group and 2nd the original implementation in C++ was erroneous (no details given). This resulted in two works of the group focusing on how such problems can be prevented: \cite{ionescu_dependently-typed_2012} and \cite{botta_functional_2011}. \\
-When programming in Haskell one tries to implement an EDSL in which one can formulate a problem in a declarative way which looks natural to the problem. A program written in this EDSL then looks like a formal specification but is in fact Haskell-Code which should be directly executable.
+\subsubsection{Schelling Segregation}
+TODO: describe
 
-TODO: show a formal representation in a declarative way of the Heroes \& Cowards Model which could be translated directly to Haskell
-
-\subsection{Implementation: General Considerations}
-All implementations of ABM/S models must solve two problems:
-
-\begin{enumerate}
-\item Agent-Implementation: how can the Agent in the model-specification be implemented?
-\item Simulation-Stepping: which kind of stepping is required or best suited for the given model?
-\end{enumerate}
-
-Of course both problems influence each other and cannot be considered separated from each other.
-
-\subsubsection{Agent-Implementation}
-This is the process of implementing the behaviour of the Agent as specified in the model. Although there are various kinds of Agent-Models like BDI but the basic principle is always the same: sense the environment, process messages, execute actions: change environment, send messages. According to \cite{wooldridge_introduction_2009} and also influenced by Actors from \cite{agha_actors:_1986} one can abstract the abilities in each step of an Agent to be the following:
-
-\begin{enumerate}
-\item Process received messages
-\item Create new Agents
-\item Send messages to other Agents
-\item Sense (read) the environment
-\item Influence (write) the environment
-\end{enumerate}
-
-The difference between communicating with the environment and other agents is that the communication with the former one is synchronized, persists and is visible immediately (at least by the agent performing the action) whereas the communication with other agents is asynchronous.
-
-\subsubsection{Simulation-Stepping}
-When one has implemented the model of behaviour of an Agent one needs to bring the whole simulation to life by enabling the Agents to execute their behaviour in a recurring fashion. This allows an Agent to change the environment by actions and react to changes in the environment, either by other Agents or the environment itself thus resulting in a feedback-loop. There are two ways of looking and implementing such feedback-loops. 
-
-\paragraph{Global Stepping}
-In this case the simulation is iterated in global steps where in each step each Agent is updated by running its behaviour.
-
-\begin{enumerate}
-\item \textbf{Sequential} - update one Agent after another. We assume that, given the updates are done in order of the index $i 1 to n$, then Agents $a_{n>i}$ see the updated agent-state / influence on the environment of agent $a_i$. Note that if this is not the case we would end up in the parallel-case (see next) \textit{independent} whether it is in fact running in parallel or not. For breaking deterministic ordering which could result in giving an Agent an advantage (e.g. having more information towards the end of the step) one could implement a random-walk in each step but this does not fundamentally change this approach. Also if one thinks the simulation continuously, where each step is just a very small update like in Heroes \& Cowards, then the random ordering should not change anything fundamental as no agent has real information-benefit over others as there is continuous iteration thus the agent once ahead is then behind. TODO: maybe need to make more formal
-
-\item \textbf{Parallel} - update all Agents in parallel. This case is obviously only possible if the agents cannot interfere with each other or the environment through shared state. In this case it will make no difference how we iterate over the agents, the outcome \textit{has to be} the same - it is event-ordering invariant as all events/updates happen \textit{virtually} at the \textit{same time}. Haskell is a strong proponent of this implementation-technique.
-
-\item \textbf{Concurrent} - update all Agents concurrently. In this case the agents run in parallel but share some state which access has to be synchronized thus introducing real random event-orderings which may or may not be desirable in the given simulation model. Can be implemented in both Java and Haskell.
-\end{enumerate}
-
-\paragraph{Local Stepping}
-In this case there is no global iteration over steps but all the Agents run in parallel, doing local stepping and communicate with each other either through shared state or messages. Note that this does not impose any specific ordering of the update and can thus regarded to be real random due to its concurrent nature. It is possible to simulate the global-stepping methods from above by introducing some global locking forcing the agents into lock-step. This is the approach chosen for Scala \& Actors.
-
-\bigskip 
-
-The following table gives an overview of the methods presented above. Real Randomness identifies methods which produce a random ordering of their events due to their implicit workings (e.g.  concurrency) as opposed to explicit implementation (e.g random-walk of agents using a random-number generator).
-
-\begin{table}[H]
-	\center
-	\begin{tabular}{ c | c | c  }
-		\textit{Scale} & \textit{Order} & \textit{Real Randomness} \\
-		\hhline{=|=|=}
-	    Global & Sequential & No \\ 
-	    \hline
-	    Global & Parallel & No \\ 
-	    \hline
-	    Global & Concurrent & Yes \\ 
-	    \hline
-	    Local & Random & Yes \\ 
-	\end{tabular}
-	\caption{Summary of simulation-stepping methods.}
-\end{table}
-
-Each of the above presented methods imposes a different kind of event-ordering and thus all will obviously result in different \textit{absolute} simulation results. The point here is that when using ABM/S to study a system one is not interested in individual runs but in replications due to randomness and whether the system shows some emergent behaviour or not. Thus one can ask the question whether the emergent behaviour of a simulation is stable under event-ordering or not. TODO: I have no clue how to show that other than by simulations, this is also a limitation of simulations: just because it does not show up in a run it does not mean that it isn't there, just that it is unlikely - also the reverse is true: just because the emergent behaviour was there in the last n runs, does not mean it is ALWAYS there. For this we need different, more formal methods. But then again, if the level of complexity is too high we cannot solve such systems in closed form and must again fall back to simulation.
-
-
-\subsection{Implementation: Methods}
-
-\subsubsection{ABM/S Frameworks}
-NetLogo
-AnyLogic
-ReLogo
-
-All follow the global, sequential approach. TODO: question if random-iteration or not? I don't think so.
-
-\subsubsection{Object-Oriented in Java}
-Global, Sequential, in-order / random traversal
-
-\subsubsection{Pure Functional in Haskell}
-
-
-\subsubsection{Multi-Paradigm Functional in Scala}
+\subsection{Contributions}
+When using pure functional instead of the state-of-the-art OO programming we need to find other ways of representing Agents and implement an ABS. This is the main contributions of this paper in form of an implementation of a library for ABM/S implemented in pure Haskell as so far no proper library which meets the requirements for ABM/S exists in Haskell (see Related Research). Also the paper compares the library to implementations with state-of-the-art ABM/S Frameworks: NetLogo, AnyLogic and ReLogo. Also comparisons are drawn with an OO solution in Java. Of special interest is the comparison to the multi-paradigm functional solution in Scala \& Actors as this is the method closest to the Haskell-Library implemented. \\
+We claim that our library is well suited for ABM/S in the field of scientific computing as it provides an array of benefits over the methods compared with: explicit data-flow, EDSL, higher order functions, avoidance of true randomness, reasoning, pattern matching,... TODO: mention ABM/S Frameworks, TODO: mention OO solutions. Although the Scala \& Actors version might be a competitor in this field, it is not as its strength lies in the development of highly distributed high-availability applications e.g. Twitter and not in simulation where we need fine-control over (global) time and interactions.
+The other main contribution is to systematically look at the Actor-Model in implementing ABM/S.

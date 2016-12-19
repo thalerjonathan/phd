@@ -1,0 +1,63 @@
+\section{Implementation: General Considerations}
+All implementations of ABM/S models must solve two problems:
+
+\begin{enumerate}
+\item Agent-Implementation: how can the Agent in the model-specification be implemented?
+\item Simulation-Stepping: which kind of stepping is required or best suited for the given model?
+\end{enumerate}
+
+Of course both problems influence each other and cannot be considered separated from each other.
+
+\subsubsection{Agent-Implementation}
+This is the process of implementing the behaviour of the Agent as specified in the model. Although there are various kinds of Agent-Models like BDI but the basic principle is always the same: sense the environment, process messages, execute actions: change environment, send messages. According to \cite{wooldridge_introduction_2009} and also influenced by Actors from \cite{agha_actors:_1986} one can abstract the abilities in each step of an Agent to be the following:
+
+\begin{enumerate}
+\item Process received messages
+\item Create new Agents
+\item Send messages to other Agents
+\item Sense (read) the environment
+\item Influence (write) the environment
+\end{enumerate}
+
+The difference between communicating with the environment and other agents is that the communication with the former one is synchronized, persists and is visible immediately (at least by the agent performing the action) whereas the communication with other agents is asynchronous.
+
+\subsubsection{Semantics of a Simulation}
+When one has implemented the model of behaviour of an Agent one needs to bring the whole simulation to life by enabling the Agents to execute their behaviour in a recurring fashion. This allows an Agent to change the environment by actions and react to changes in the environment, either by other Agents or the environment itself thus resulting in a feedback-loop. There are two ways of looking and implementing such feedback-loops. 
+
+\paragraph{Global Stepping}
+In this case the simulation is iterated in global steps where in each step each Agent is updated by running its behaviour.
+
+\begin{enumerate}
+\item \textbf{Sequential} - update one Agent after another. We assume that, given the updates are done in order of the index $i 1 to n$, then Agents $a_{n>i}$ see the updated agent-state / influence on the environment of agent $a_i$. Note that if this is not the case we would end up in the parallel-case (see next) \textit{independent} whether it is in fact running in parallel or not. For breaking deterministic ordering which could result in giving an Agent an advantage (e.g. having more information towards the end of the step) one could implement a random-walk in each step but this does not fundamentally change this approach. Also if one thinks the simulation continuously, where each step is just a very small update like in Heroes \& Cowards, then the random ordering should not change anything fundamental as no agent has real information-benefit over others as there is continuous iteration thus the agent once ahead is then behind. TODO: maybe need to make more formal
+
+\item \textbf{Parallel} - update all Agents in parallel. This case is obviously only possible if the agents cannot interfere with each other or the environment through shared state. In this case it will make no difference how we iterate over the agents, the outcome \textit{has to be} the same - it is event-ordering invariant as all events/updates happen \textit{virtually} at the \textit{same time}. Haskell is a strong proponent of this implementation-technique.
+
+\item \textbf{Concurrent} - update all Agents concurrently. In this case the agents run in parallel but share some state which access has to be synchronized thus introducing real random event-orderings which may or may not be desirable in the given simulation model. Can be implemented in both Java and Haskell.
+\end{enumerate}
+
+\paragraph{Local Stepping}
+In this case there is no global iteration over steps but all the Agents run in parallel, doing local stepping and communicate with each other either through shared state or messages. Note that this does not impose any specific ordering of the update and can thus regarded to be real random due to its concurrent nature. It is possible to simulate the global-stepping methods from above by introducing some global locking forcing the agents into lock-step. This is the approach chosen for Scala \& Actors.
+
+\bigskip 
+
+The following table gives an overview of the methods presented above. Real Randomness identifies methods which produce a random ordering of their events due to their implicit workings (e.g.  concurrency) as opposed to explicit implementation (e.g random-walk of agents using a random-number generator).
+
+\begin{table}[H]
+	\center
+	\begin{tabular}{ c | c | c  }
+		\textit{Scale} & \textit{Order} & \textit{Real Randomness} \\
+		\hhline{=|=|=}
+	    Global & Sequential & No \\ 
+	    \hline
+	    Global & Parallel & No \\ 
+	    \hline
+	    Global & Concurrent & Yes \\ 
+	    \hline
+	    Local & Random & Yes \\ 
+	\end{tabular}
+	\caption{Summary of simulation-stepping methods.}
+\end{table}
+
+global, concurrent = parallel with iterative updates where the following agents see updates. but random ordering introduced due to sync and scheduling
+
+Each of the above presented methods imposes a different kind of event-ordering and thus all will obviously result in different \textit{absolute} simulation results. The point here is that when using ABM/S to study a system one is not interested in individual runs but in replications due to randomness and whether the system shows some emergent behaviour or not. Thus one can ask the question whether the emergent behaviour of a simulation is stable under event-ordering or not. TODO: I have no clue how to show that other than by simulations, this is also a limitation of simulations: just because it does not show up in a run it does not mean that it isn't there, just that it is unlikely - also the reverse is true: just because the emergent behaviour was there in the last n runs, does not mean it is ALWAYS there. For this we need different, more formal methods. But then again, if the level of complexity is too high we cannot solve such systems in closed form and must again fall back to simulation.

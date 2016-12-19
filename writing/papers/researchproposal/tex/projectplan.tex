@@ -4,16 +4,17 @@
 The whole PhD lasts for 3 years and thus I will structure it according to 3 years where each year will be a major milestone - which is also intended by the Computer School.
 
 \subsubsection{1st Year: Basics}
-In this year I will learn basics and develop and research the methodology I will use for the main work in the 2nd year. Also I want to write 2 papers, see below. The time-frame will be defined by the date of the 1st year annual oral report which at latest should happen in September thus there are about 8 Months time (counting including January '17 and leaving out September '17). These are the things I want / need to achieve this year:
+In this year I will learn basics and develop and research the methodology I will use for the main work in the 2nd year. Also I want to write a paper of how to apply functional programming to ABM/S. The time-frame will be set by the date of the 1st year annual oral report which will happen beginning of July thus there are about 6 Months time (counting including January '17 and leaving out July '17). These are the things I want / need to achieve this year:
 
 \begin{itemize}
 \item Prototyping in Haskell, Scala and Java
 \item Study Actor-Model theory: Hewitt, Greif, Clinger, Agha
 \item Get into reasoning about programs
-\item Basics of Economics \cite{bowles_understanding_2005}, \cite{LehalleLaruelle2013}, \cite{baker_market_2013}
+\item Basics of Economics \cite{bowles_understanding_2005}, 
 \item Basics of ACE: \cite{KirmanComplex2010}, \cite{Darley2007}
-\item Prototype Auction/Fishmarket using Akka and describe results in 1st year report. 
-\item Write 1 paper
+\item Implement HaskellAgents Library
+\item Write the paper
+\item Prototype Auction/Fishmarket using Akka and Haskell and describe results in 1st year report.
 \item Write 1st year report
 \end{itemize}
 
@@ -21,7 +22,7 @@ Important and mile-stone dates:
 
 \begin{center}
 \begin{tabular}{ c|c } 
-	June (End) & Finished Paper 1: functional ABM \\ 
+	April (End) & Finished Paper: functional ABM \\ 
 	\hline
 	June (Mid) & Finished writing 1st year report  \\ 
 	\hline
@@ -37,6 +38,7 @@ Applying 1st year results, methods and experiences to develop and write main pap
 \item Generalize implementation to market models
 \item Learn Agda and dependent types
 \item Dig deeper into equilibrium theory 
+\item Get into market-microstructure: \cite{LehalleLaruelle2013}, \cite{baker_market_2013}
 \item Dig into \textit{emergent properties} of systems. Can they be formalized?
 \item Get into basics of Category-Theory \cite{Pierce1991} \cite{spivak_category_2014}
 \item Get into basics of Type-Theory (found good lectures on Youtube)
@@ -58,17 +60,19 @@ This is the list of papers I want to work on. The goals of publishing I set for 
 
 \begin{enumerate}
 \item \textit{Pure by Nature: Agent-Based Simulation \& Modelling in Haskell} - Conference paper
-\item \textit{Actors: The Future in Agent-Based Simulation \& Modelling?} - Conference paper
 \item \textit{Pure Functional ACE (Catchy title yet to be defined)} - Journal paper
+\item \textit{Time in Games: a Tron Light-Cycle Game in Dunai} - Journal/Conference paper
 \item \textit{The Genesis According to Computer-Science: Reality as Simulation of Free Will} - Optional publishing
 \item \textit{Pure Functional Islamic Design} - Optional publishing
 \end{enumerate}
 
 \subsubsection{Pure by Nature: Agent-Based Simulation \& Modelling in Haskell}
-The first paper which describes how one can implement ABM/S in Haskell and compares the implementation and results to Java and Akka. A major focus are update-strategies, parallelism, reproducibility, reasoning and comparability between the various implementations. Multiple approaches are shown in Haskell: no framework, Yampa-based, gloss-based, ?-based. This paper will establish my methodology in using Haskell / pure functional programming in the 2nd year main work.
+The first paper which describes how one can implement ABM/S in Haskell and compares the implementation and results to Java and Akka. A major focus are update-strategies, parallelism, reproducibility, reasoning and comparability between the various implementations. 
 
-\subsubsection{Actors: The Future in Agent-Based Simulation \& Modelling?}
+Actors: The Future in Agent-Based Simulation \& Modelling?
 Although the actor-model is quite old (beginning of the 70s) it seems to have a revival both in Erlang in the 90s and now in the Framework Akka (based on Scala). It is one way of organizing highly parallel (and optionally distributed) applications. Also the actor-model is very close to the agent-metaphor where the latter one was strongly inspired by the former one. Thus It would be very interesting to look closer into how the Actor-Model can be utilized to ABM/S as it seems that this has not been properly done yet.
+
+This paper will establish my methodology in using Haskell / pure functional programming in the 2nd year main work.
 
 \subsubsection{Pure Functional ACE (Catchy title yet to be defined)}
 Is the main work of the PhD and targeted at publication in a Journal. The exact topic and content will be clarified at the beginning of the 2nd year. Mainly it will describe how to implement Ionescus Framework of Gintis trading model and extend it to a more general Market-Model. It will also give an outlook on implementing it using dependent types.

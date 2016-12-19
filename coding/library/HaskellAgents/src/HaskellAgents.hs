@@ -5,17 +5,28 @@ import Control.Concurrent.STM.TChan
 import Data.Maybe
 import qualified Data.HashMap as Map
 
--- TODO: implement reading / writing the environment
+-- NOTE: this is what I want to do with this library:
+-- take haskell, add yampa and dunai and implement ActorModel on top using STM => have an ABM library in Haskell, put on hackage. NO IO!
 
--- TODO: why not use SF of Yampa as the callback functions? Then we can run all the stuff in Yampa / Dunai
--- TODO: we are running in STM, thats why we cannot run in Yampa, so I need to get into Dunai!
+-- TODO: is getting rid of STM an option?
+
+-- TODO: provide implementations for all kinds of sim-teppings but hidden behind a message interface common to all but different semantics with different steppings
+
+-- TODO: how can we implement true parallelism? can we use STM somehow or do we need local mailboxes?
+
+-- TODO: add generic way of read/write to an environment e
+
+-- TODO: exploit parallelism and concurrency using par monad? problem: STM may rollback and need retry
+
+-- TODO: let the whole thing run in Yampa/Dunai so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai. But because running in STM must use Dunai
+
+-- TODO: shortcoming: cannot wait blocking for a message so far. utilize yampas event mechanism?
 
 -- TODO: fix parameters which won't change anymore after an Agent has started by using currying
 
 {- TODO: experiment with 'active' messages which represent a conversation between two agents but will be executed only by
          the receiving agent and will result in a final result which is then local to the receiving agent. This allows
           to encapsulate data in a more general way through closures and to have some logic working upon the data. -}
-
 {-
 main :: IO ()
 main = do

@@ -1,8 +1,12 @@
 module HACModel where
 
 import Control.Monad.STM
+import Control.Concurrent.STM.TVar
+
 import System.Random
+
 import Data.Maybe
+
 import qualified HaskellAgents as Agent
 
 -- TODO: fix parameters which won't change anymore after an Agent has started by using currying. e.g. World-Type
@@ -10,6 +14,8 @@ import qualified HaskellAgents as Agent
 type HACAgentPosition = (Double, Double)
 data HACMsg = PositionRequest | PositionUpdate HACAgentPosition
 data HACWorldType = Infinite | Border | Wraping deriving (Eq, Show)
+
+type HACEnvironment = Int
 
 data HACAgentState = HACAgentState {
     pos :: HACAgentPosition,
@@ -21,10 +27,52 @@ data HACAgentState = HACAgentState {
     enemyPos :: Maybe HACAgentPosition
 } deriving (Show)
 
-type HACAgent = Agent.Agent HACMsg HACAgentState
+type HACAgent = Agent.Agent HACMsg HACAgentState HACEnvironment
 
 hacMovementPerTimeUnit :: Double
 hacMovementPerTimeUnit = 1.0
+
+hacMsgHandler :: HACAgent -> HACMsg -> Agent.AgentId -> STM HACAgent
+-- MESSAGE-CASE: PositionUpdate
+hacMsgHandler a (PositionUpdate (x, y)) senderId
+    | senderId == friendId = return a { Agent.state = s { friendPos = newPos } }
+    | senderId == enemyId = return a { Agent.state = s { enemyPos = newPos } }
+        where
+            s = Agent.state a
+            friendId = friend s
+            enemyId = enemy s
+            newPos = Just (x,y)
+-- MESSAGE-CASE: PositionRequest
+hacMsgHandler a PositionRequest senderId = do
+                                                Agent.sendMsg a (PositionUpdate currPos) senderId
+                                                return a
+    where
+        s = Agent.state a
+        currPos = pos s
+
+hacUpdtHandler :: HACAgent -> Double -> STM HACAgent
+hacUpdtHandler a dt = do
+                        Agent.txEnv a (\e -> e + 1)
+                        requestPosition a (friend s)
+                        requestPosition a (enemy s)
+                        if ((isJust fPos) && (isJust ePos)) then
+                            return a { Agent.state = s' }
+                                else
+                                    return a
+    where
+        s = Agent.state a
+        fPos = friendPos s
+        ePos = enemyPos s
+        oldPos = pos s
+        targetPos = decidePosition (fromJust fPos) (fromJust ePos) (hero s)
+        targetDir = vecNorm $ posDir oldPos targetPos
+        wtFunc = worldTransform (wt s)
+        stepWidth = hacMovementPerTimeUnit * dt
+        newPos = wtFunc $ addPos oldPos (multPos targetDir stepWidth)
+        s' = s{ pos = newPos }
+
+requestPosition :: HACAgent -> Agent.AgentId -> STM ()
+requestPosition a receiverId = Agent.sendMsg a PositionRequest receiverId
 
 createHACTestAgents :: STM [HACAgent]
 createHACTestAgents = do
@@ -58,7 +106,9 @@ createRandomHACAgents gInit n p = do
                                                   (ras, g'') = createRandomStates g' (id+1) n p
                                                   rands = randState : ras
 
-
+----------------------------------------------------------------------------------------------------------------------
+-- PRIVATES
+----------------------------------------------------------------------------------------------------------------------
 randomAgentState :: (RandomGen g) => g -> Int -> Int -> Double -> (HACAgentState, g)
 randomAgentState g id maxAgents p = (s, g5)
     where
@@ -91,51 +141,6 @@ drawRandomIgnoring g xs is
             (randIdx, g') = randomR(0, length xs - 1) g
             randElem = xs !! randIdx
 
-
-hacMsgHandler :: HACAgent -> HACMsg -> Agent.AgentId -> STM HACAgent
--- MESSAGE-CASE: PositionUpdate
-hacMsgHandler a (PositionUpdate (x, y)) senderId
-    | senderId == friendId = return a { Agent.state = s { friendPos = newPos } }
-    | senderId == enemyId = return a { Agent.state = s { enemyPos = newPos } }
-        where
-            s = Agent.state a
-            friendId = friend s
-            enemyId = enemy s
-            newPos = Just (x,y)
--- MESSAGE-CASE: PositionRequest
-hacMsgHandler a PositionRequest senderId = do
-                                                Agent.sendMsg a (PositionUpdate currPos) senderId
-                                                return a
-    where
-        s = Agent.state a
-        currPos = pos s
-
-hacUpdtHandler :: HACAgent -> Double -> STM HACAgent
-hacUpdtHandler a dt = do
-                        requestPosition a (friend s)
-                        requestPosition a (enemy s)
-                        if ((isJust fPos) && (isJust ePos)) then
-                            return a { Agent.state = s' }
-                                else
-                                    return a
-    where
-        s = Agent.state a
-        fPos = friendPos s
-        ePos = enemyPos s
-        oldPos = pos s
-        targetPos = decidePosition (fromJust fPos) (fromJust ePos) (hero s)
-        targetDir = vecNorm $ posDir oldPos targetPos
-        wtFunc = worldTransform (wt s)
-        stepWidth = hacMovementPerTimeUnit * dt
-        newPos = wtFunc $ addPos oldPos (multPos targetDir stepWidth)
-        s' = s{ pos = newPos }
-
-requestPosition :: HACAgent -> Agent.AgentId -> STM ()
-requestPosition a receiverId = Agent.sendMsg a PositionRequest receiverId
-
-----------------------------------------------------------------------------------------------------------------------
--- PRIVATES
-----------------------------------------------------------------------------------------------------------------------
 decidePosition :: HACAgentPosition -> HACAgentPosition -> Bool -> HACAgentPosition
 decidePosition friendPos enemyPos hero
     | hero = coverPosition

@@ -4,6 +4,7 @@ import HaskellAgents
 import HACModel
 import Control.Monad.STM
 import System.Random
+import Data.Maybe
 
 import qualified HACFrontend as Front
 import qualified Graphics.Gloss.Interface.IO.Simulate as GLO
@@ -19,21 +20,26 @@ main = do
         let heroDistribution = 0.5
         let simStepsPerSecond = 30
         let rngSeed = 42
-        let steps = 1000
+        let steps = 10
         let g = mkStdGen rngSeed
+        let e = (Just 42) :: (Maybe HACEnvironment)
         -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
-        (initAs, g') <- atomically $ createRandomHACAgents g agentCount heroDistribution
-        as <- calculateSteps steps initAs dt
+        (as, g') <- atomically $ createRandomHACAgents g agentCount heroDistribution
+        -- NOTE: this works for now when NOT using parallelism
+        (as, e') <- atomically $ HaskellAgents.stepSimulation as e dt steps
         outs <- mapM (putStrLn . show . state) as
+        putStrLn (show e')
         return ()
 
+{-
 calculateSteps :: Int -> [HACAgent] -> Double -> IO [HACAgent]
 calculateSteps n as dt = do
-                            as' <- atomically $ HaskellAgents.stepSimulation as dt
+                            as' <- atomically $ HaskellAgents.stepSimulation as dt 1
                             if ( n == 0 ) then
                                 return as'
                                     else
                                         calculateSteps (n-1) as' dt
+-}
 
 stepWithRendering :: [HACAgent] -> Double -> IO ()
 stepWithRendering initAs dt = GLO.simulateIO Front.display
@@ -54,7 +60,9 @@ modelToPicture as = return (Front.renderFrame observableAgentStates)
 --       NOTE: this is actually wrong, we can avoid atomically as long as we are running always on the same thread.
 --             atomically would commit the changes and make them visible to other threads
 stepIteration :: Double -> GLO.ViewPort -> Float -> [HACAgent] -> IO [HACAgent]
-stepIteration fixedDt viewport dtRendering as = atomically $ HaskellAgents.stepSimulation as fixedDt
+stepIteration fixedDt viewport dtRendering as = do
+                                                    (as', e') <- atomically $ HaskellAgents.stepSimulation as Nothing fixedDt 1
+                                                    return as'
 
 hacAgentToObservableState :: HACAgent -> (Double, Double, Bool)
 hacAgentToObservableState a = (x, y, h)

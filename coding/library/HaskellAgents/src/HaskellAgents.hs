@@ -1,14 +1,24 @@
 module HaskellAgents (
+    module Control.Monad.STM,
+    module Control.Concurrent.STM.TChan,
+    module Control.Concurrent.STM.TVar,
+    module Data.Maybe,
     Agent(..),
     AgentId,
     MsgHandler,
     UpdateHandler,
     sendMsg,
+    sendMsgToRandomNeighbour,
+    broadcastMsg,
+    updateState,
     agentsToNeighbourPair,
     addNeighbours,
     stepSimulation,
+    initStepSimulation,
+    advanceSimulation,
+    runSimulation,
     createAgent,
-    txEnv,
+    changeEnv,
     readEnv,
     writeEnv
   ) where
@@ -16,8 +26,11 @@ module HaskellAgents (
 import Control.Monad.STM
 import Control.Concurrent.STM.TChan
 import Control.Concurrent.STM.TVar
-
 import Data.Maybe
+
+import System.Random
+
+import Debug.Trace
 
 import qualified Data.HashMap as Map
 
@@ -40,8 +53,9 @@ import qualified Data.HashMap as Map
 -- PUBLIC, exported
 ------------------------------------------------------------------------------------------------------------------------
 type AgentId = Int
-type MsgHandler m s e = (Agent m s e -> m -> AgentId -> STM (Agent m s e))        -- NOTE: need STM to be able to send messages
-type UpdateHandler m s e = (Agent m s e -> Double -> STM (Agent m s e))           -- NOTE: need STM to be able to send messages
+type MsgHandler m s e = (Agent m s e -> m -> AgentId -> STM (Agent m s e))          -- NOTE: need STM to be able to send messages
+type UpdateHandler m s e = (Agent m s e -> Double -> STM (Agent m s e))             -- NOTE: need STM to be able to send messages
+type OutFunc m s e = (([Agent m s e], Maybe e) -> IO (Bool, Double))
 
 {- NOTE:    m is the type of messages the agent understands
             s is the type of a generic state of the agent e.g. any data
@@ -50,7 +64,8 @@ type UpdateHandler m s e = (Agent m s e -> Double -> STM (Agent m s e))         
 data Agent m s e = Agent {
     agentId :: AgentId,
     mbox :: (TChan (AgentId, m)),
-    neighbours :: Map.Map AgentId (TChan (AgentId, m)),        -- NOTE: strength of haskell: ensure by static typing that only neighbours with same message-protocoll
+    neighbourIds :: [AgentId],
+    neighbourMbox :: Map.Map AgentId (TChan (AgentId, m)),        -- NOTE: strength of haskell: ensure by static typing that only neighbours with same message-protocoll
     msgHandler :: MsgHandler m s e,
     updateHandler :: UpdateHandler m s e,
     state :: s,
@@ -62,9 +77,45 @@ sendMsg a msg targetId
     | isNothing targetMbox = return ()                          -- NOTE: receiver not found in the neighbours
     | otherwise = writeTChan (fromJust targetMbox) (senderId, msg)
     where
-        ns = neighbours a
+        nsBox = neighbourMbox a
         senderId = agentId a
-        targetMbox = Map.lookup targetId ns
+        targetMbox = Map.lookup targetId nsBox
+
+broadcastMsg :: Agent m s e -> m -> STM ()
+broadcastMsg a msg = do
+                        actions <- (trace "broadcast1 " mapM (sendMsg a msg) nsIds)
+                        trace "broadcast" return ()
+
+    where
+        nsIds = neighbourIds a
+
+{-
+broadcastMsg :: Agent m s e -> m -> STM ()
+broadcastMsg a msg = do
+                        actions <- mapM (\mbox -> writeTChan mbox (senderId, msg)) nsBox
+                        trace "broadcast" return ()
+
+    where
+        nsBox = neighbourMbox a
+        senderId = agentId a
+-}
+
+sendMsgToRandomNeighbour :: (RandomGen g) => Agent m s e -> m -> g -> STM g
+sendMsgToRandomNeighbour a msg g = do
+                                    sendMsg a msg randAgentId
+                                    return g'
+                                        where
+                                            s = state a
+                                            nIds = neighbourIds a
+                                            nsCount = length nIds
+                                            (randIdx, g') = randomR(0, nsCount-1) g
+                                            randAgentId = nIds !! randIdx
+
+updateState :: Agent m s e -> (s -> s) -> Agent m s e
+updateState a sf = a { state = s' }
+    where
+        s = state a
+        s' = sf s
 
 createAgent :: AgentId -> s -> MsgHandler m s e -> UpdateHandler m s e -> STM (Agent m s e)
 createAgent i s mhdl uhdl = do
@@ -72,62 +123,98 @@ createAgent i s mhdl uhdl = do
                                 return Agent{ agentId = i,
                                                 state = s,
                                                 mbox = mb,
-                                                neighbours = Map.empty,
+                                                neighbourMbox = Map.empty,
+                                                neighbourIds = [],
                                                 msgHandler = mhdl,
                                                 updateHandler = uhdl,
                                                 env = Nothing }
 
 agentsToNeighbourPair :: [Agent m s e] -> [(AgentId, (TChan (AgentId, m)))]
-agentsToNeighbourPair as = map (\a -> (agentId a, mbox a)) as
+agentsToNeighbourPair as = Prelude.map (\a -> (agentId a, mbox a)) as
 
 addNeighbours :: Agent m s e -> [(AgentId, (TChan (AgentId, m)))] -> Agent m s e
-addNeighbours a nsPairs = a { neighbours = ns' }
+addNeighbours a nsPairs = a { neighbourMbox = nsMbox', neighbourIds = nsIds' }
     where
-        ns = neighbours a
-        ns' = foldl (\acc (k, v) -> Map.insert k v acc ) ns nsPairs
+        nsMbox = neighbourMbox a
+        nsMbox' = foldl (\acc (k, v) -> Map.insert k v acc ) nsMbox nsPairs
+        nsIds = neighbourIds a
+        nsIds' = foldl (\acc (k, v) -> nsIds ++ [k] ) nsIds nsPairs
 
+changeEnv :: Agent m s e -> (e -> e) -> STM ()
+changeEnv a tx = do
+                    let maybeEnv = env a
+                    if (isNothing maybeEnv) then
+                        return ()                               -- NOTE: no environment, do nothing
+                        else
+                            modifyTVar (fromJust maybeEnv) tx
+
+readEnv :: Agent m s e -> STM e
+readEnv a = readTVar (fromJust (env a))
+
+writeEnv :: Agent m s e -> e -> STM ()
+writeEnv a e = changeEnv a (\_ -> e)
+
+-- TODO: return all steps of agents and environment
 stepSimulation :: [Agent m s e] -> Maybe e -> Double -> Int -> STM ([Agent m s e], Maybe e)
 stepSimulation as e dt n = do
                                 (asWithEnv, mayEnvVar) <- setEnv as e
                                 asFinal <- stepSimulation' asWithEnv dt n
-                                if (isNothing mayEnvVar) then
-                                    return (asFinal, Nothing)
-                                    else
-                                        do
-                                            e' <- readTVar (fromJust mayEnvVar)
-                                            return (asFinal, Just e')
-
+                                finalEnv <- maybeEnvVarToMaybeEnv mayEnvVar
+                                return (asFinal, finalEnv)
     where
-        setEnv :: [Agent m s e] -> Maybe e -> STM ([Agent m s e], Maybe (TVar e))
-        setEnv as Nothing = return (as, Nothing)
-        setEnv as (Just env) = do
-                                envVar <- newTVar env
-                                let as' = map (\a -> a { env = Just envVar } ) as
-                                return (as', Just envVar)
-
         stepSimulation' :: [Agent m s e] -> Double -> Int -> STM [Agent m s e]
         stepSimulation' as dt 0 = return as
         stepSimulation' as dt n = do
                                     as' <- mapM (stepAgent dt) as       -- TODO: if running in parallel, then we need to commit at some point using atomically
                                     stepSimulation' as' dt (n-1)
 
-txEnv :: Agent m s e -> (e -> e) -> STM ()
-txEnv a tx = do
-                let maybeEnv = env a
-                if (isNothing maybeEnv) then
-                    return ()                               -- NOTE: no environment, do nothing
-                    else
-                        modifyTVar (fromJust maybeEnv) tx
 
-readEnv :: Agent m s e -> STM e
-readEnv a = readTVar (fromJust (env a))
+initStepSimulation :: [Agent m s e] -> Maybe e -> STM [Agent m s e]
+initStepSimulation as e = do
+                            (asWithEnv, mayEnvVar) <- setEnv as e
+                            return asWithEnv
 
-writeEnv :: Agent m s e -> e -> STM ()
-writeEnv a e = txEnv a (\_ -> e)
+advanceSimulation :: [Agent m s e] -> Double -> STM ([Agent m s e], Maybe e)
+advanceSimulation as dt = do
+                            as' <- mapM (stepAgent dt) as
+                            let a' = head as'                           -- TODO: this is a dirty hack, replace by original TVar when having some SimulationHandle
+                            let mayEnvVar = env a'
+                            env' <- maybeEnvVarToMaybeEnv mayEnvVar
+                            return (as', env')
+
+runSimulation :: [Agent m s e] -> Maybe e -> OutFunc m s e -> IO ()
+runSimulation as e out = do
+                            (asWithEnv, mayEnvVar) <- atomically $ setEnv as e
+                            runSimulation' asWithEnv 0.0 mayEnvVar out
+
+        where
+            runSimulation' :: [Agent m s e] -> Double -> Maybe (TVar e) -> OutFunc m s e -> IO ()
+            runSimulation' as dt mayEnvVar out = do
+                                        as' <- atomically $ mapM (stepAgent dt) as
+                                        finalEnv <- atomically $ maybeEnvVarToMaybeEnv mayEnvVar
+                                        (cont, dt') <- out (as', finalEnv)
+                                        if cont == True then
+                                            runSimulation' as' dt' mayEnvVar out
+                                            else
+                                                return ()
 
 ------------------------------------------------------------------------------------------------------------------------
 -- PRIVATE, non exports
 ------------------------------------------------------------------------------------------------------------------------
+maybeEnvVarToMaybeEnv :: Maybe (TVar e) -> STM (Maybe e)
+maybeEnvVarToMaybeEnv Nothing = return Nothing
+maybeEnvVarToMaybeEnv (Just var) = do
+                                    e <- readTVar var
+                                    return (Just e)
+
+setEnv :: [Agent m s e] -> Maybe e -> STM ([Agent m s e], Maybe (TVar e))
+setEnv as Nothing = return (as, Nothing)
+setEnv as (Just env) = do
+                        envVar <- newTVar env
+                        let as' = Prelude.map (\a -> a { env = Just envVar } ) as
+                        return (as', Just envVar)
+
+
 receiveMsg :: Agent m s e -> STM (Maybe (AgentId, m))
 receiveMsg a = tryReadTChan mb
     where
@@ -149,6 +236,7 @@ processAllMessages a = do
                                         processAllMessages a'
 
 -- TODO: need to add atomically when in parallel
+-- TODO: process messages first or update first? this has different semantics when messages are seen immediately
 stepAgent :: Double -> Agent m s e -> STM (Agent m s e)
 stepAgent dt a = do
                 a' <- processAllMessages a

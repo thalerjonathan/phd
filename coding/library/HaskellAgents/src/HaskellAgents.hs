@@ -7,6 +7,8 @@ module HaskellAgents (
     AgentId,
     MsgHandler,
     UpdateHandler,
+    kill,
+    newAgent,
     sendMsg,
     sendMsgToRandomNeighbour,
     broadcastMsg,
@@ -62,6 +64,7 @@ type OutFunc m s e = (([Agent m s e], Maybe e) -> IO (Bool, Double))
 -}
 data Agent m s e = Agent {
     agentId :: AgentId,
+    killFlag :: Bool,
     queuedMs :: [(AgentId, m)],
     mbox :: (TChan (AgentId, m)),
     neighbourIds :: [AgentId],
@@ -69,8 +72,18 @@ data Agent m s e = Agent {
     msgHandler :: MsgHandler m s e,
     updateHandler :: UpdateHandler m s e,
     state :: s,
+    newAgents :: [Agent m s e],
     env :: Maybe (TVar e)                                      -- NOTE: environment is optional
 }
+
+newAgent :: Agent m s e -> Agent m s e -> Agent m s e
+newAgent aParent aNew = aParent { newAgents = nas ++ [aNew'] }
+    where
+        aNew' = aNew { env = (env aParent)} -- NOTE: set to same environment
+        nas = newAgents aParent
+
+kill :: Agent m s e -> Agent m s e
+kill a = a { killFlag = True }
 
 queueMsg :: Agent m s e -> m -> AgentId -> Agent m s e
 queueMsg a m targetId = a { queuedMs = qms' }
@@ -120,9 +133,11 @@ createAgent i s mhdl uhdl = do
                                 return Agent{ agentId = i,
                                                 state = s,
                                                 mbox = mb,
+                                                killFlag = False,
                                                 queuedMs = [],
                                                 neighbourMbox = Map.empty,
                                                 neighbourIds = [],
+                                                newAgents = [],
                                                 msgHandler = mhdl,
                                                 updateHandler = uhdl,
                                                 env = Nothing }
@@ -160,7 +175,7 @@ stepSimulation as e dt n = do
         stepSimulation' :: [Agent m s e] -> Double -> Int -> STM [Agent m s e]
         stepSimulation' as dt 0 = return as
         stepSimulation' as dt n = do
-                                    as' <- mapM (stepAgent dt) as       -- TODO: if running in parallel, then we need to commit at some point using atomically
+                                    as' <- stepAllAgents as dt       -- TODO: if running in parallel, then we need to commit at some point using atomically
                                     stepSimulation' as' dt (n-1)
 
 
@@ -171,7 +186,7 @@ initStepSimulation as e = do
 
 advanceSimulation :: [Agent m s e] -> Double -> STM ([Agent m s e], Maybe e)
 advanceSimulation as dt = do
-                            as' <- mapM (stepAgent dt) as
+                            as' <- stepAllAgents as dt
                             let a' = head as'                           -- TODO: this is a dirty hack, replace by original TVar when having some SimulationHandle
                             let mayEnvVar = env a'
                             env' <- maybeEnvVarToMaybeEnv mayEnvVar
@@ -185,7 +200,7 @@ runSimulation as e out = do
         where
             runSimulation' :: [Agent m s e] -> Double -> Maybe (TVar e) -> OutFunc m s e -> IO ()
             runSimulation' as dt mayEnvVar out = do
-                                        as' <- atomically $ mapM (stepAgent dt) as
+                                        as' <- atomically $ stepAllAgents as dt
                                         finalEnv <- atomically $ maybeEnvVarToMaybeEnv mayEnvVar
                                         (cont, dt') <- out (as', finalEnv)
                                         if cont == True then
@@ -196,6 +211,19 @@ runSimulation as e out = do
 ------------------------------------------------------------------------------------------------------------------------
 -- PRIVATE, non exports
 ------------------------------------------------------------------------------------------------------------------------
+stepAllAgents :: [Agent m s e] -> Double -> STM [Agent m s e]
+stepAllAgents as dt = foldl (\acc a -> do
+                                        aAfterStep <- stepAgent dt a
+                                        acc' <- acc
+                                        if ( killFlag aAfterStep ) then   -- NOTE: won't notify other agents about the death, this can be implemented by domain-specific messages if required
+                                            return (acc' ++ (newAgents aAfterStep)) -- NOTE: no need to clear the list because this agent will be deleted anyway
+                                            else
+                                                do
+                                                    let nas = newAgents aAfterStep
+                                                    let a' = aAfterStep { newAgents = [] }
+                                                    return (acc' ++ [a'] ++ nas)
+                                        ) (return []) as
+
 maybeEnvVarToMaybeEnv :: Maybe (TVar e) -> STM (Maybe e)
 maybeEnvVarToMaybeEnv Nothing = return Nothing
 maybeEnvVarToMaybeEnv (Just var) = do

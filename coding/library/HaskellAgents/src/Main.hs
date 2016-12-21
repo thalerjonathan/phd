@@ -2,6 +2,7 @@ module Main where
 
 import WildfireModelDynamic
 
+import qualified Data.HashMap as Map
 import qualified WildFireFrontend as Front
 
 import Control.Monad.STM
@@ -17,30 +18,32 @@ import qualified HaskellAgents as Agent
 main :: IO ()
 main = do
             let dt = 1.0
-            let xCells = 50
-            let yCells = 50
+            let xCells = 100
+            let yCells = 100
             let rngSeed = 42
             let cells = (xCells, yCells)
             let g = mkStdGen rngSeed
             let env = createEnvironment cells
-            let c = fromJust (cellByCoord env (10, 10))
+            let c = fromJust (cellByCoord env (50, 50))
             (a, g') <- atomically $ igniteCell g c
             as <- atomically $ Agent.initStepSimulation [a] (Just env)
-            stepWithRendering as dt cells
+            stepWithRendering as dt
 
-stepWithRendering :: [WFAgent] -> Double -> (Int, Int) -> IO ()
-stepWithRendering as dt cells = simulateIO Front.display
+stepWithRendering :: [WFAgent] -> Double -> IO ()
+stepWithRendering as dt = simulateIO Front.display
                                 GLO.white
                                 10
                                 as
-                                (modelToPicture cells)
+                                modelToPicture
                                 (stepIteration dt)
 
 -- A function to convert the model to a picture.
-modelToPicture :: (Int, Int) -> [WFAgent] -> IO GLO.Picture
-modelToPicture cells as = do
-                            env <- atomically $ Agent.readEnv (head as)     -- NOTE: dirty hack, but gloss is very restrictive!
-                            return (Front.renderFrame env cells)
+modelToPicture :: [WFAgent] -> IO GLO.Picture
+modelToPicture as = do
+                        env <- atomically $ Agent.readEnv (head as)     -- NOTE: dirty hack, but gloss is very restrictive!
+                        let cs = cells env
+                        let limits = cellLimits env
+                        return (Front.renderFrame (Map.elems cs) limits)
 
 
 -- A function to step the model one iteration. It is passed the current viewport and the amount of time for this simulation step (in seconds)

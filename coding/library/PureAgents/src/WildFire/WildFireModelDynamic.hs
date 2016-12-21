@@ -8,7 +8,7 @@ import Data.List
 import Data.Maybe
 
 import qualified Data.HashMap as Map
-import qualified HaskellAgents as Agent
+import qualified PureAgents as PA
 
 type WFCellCoord = (Int, Int)
 data WFCellState = Living | Burning | Dead deriving (Eq, Show)
@@ -33,10 +33,10 @@ data WFEnvironment = WFEnvironment {
     cellLimits :: WFCellCoord
 }
 
-type WFAgent = Agent.Agent WFMsg WFAgentState WFEnvironment
-type WFMsgHandler = Agent.MsgHandler WFMsg WFAgentState WFEnvironment
-type WFUpdtHandler = Agent.UpdateHandler WFMsg WFAgentState WFEnvironment
-type WFSimHandle = Agent.SimHandle WFMsg WFAgentState WFEnvironment
+type WFAgent = PA.Agent WFMsg WFAgentState WFEnvironment
+type WFMsgHandler = PA.MsgHandler WFMsg WFAgentState WFEnvironment
+type WFUpdtHandler = PA.UpdateHandler WFMsg WFAgentState WFEnvironment
+type WFSimHandle = PA.SimHandle WFMsg WFAgentState WFEnvironment
 
 burnPerTimeUnit :: Double
 burnPerTimeUnit = 0.4
@@ -56,8 +56,8 @@ wfUpdtHandler a dt = if burnableLeft <= 0.0 then
 
                                 -- TODO: gosh is this ugly code, refactor it to something more readable!
                                 -- TODO: the following must run in one transaction because we search the env and then change it, it could be changed in the mean-time when running in parallel
-                                env <- Agent.readEnv a
-                                let g = (rng (Agent.state a))
+                                env <- PA.readEnv a
+                                let g = (rng (PA.state a))
                                 let (randCoord, g') = randomNeighbourCoord g (coord burningCell)
                                 let randCellMaybe = cellByCoord env randCoord
                                 if isJust randCellMaybe then
@@ -66,15 +66,15 @@ wfUpdtHandler a dt = if burnableLeft <= 0.0 then
                                         if ( (cellState randCell) == Living) then
                                             do
                                                 (aNew, g'') <- igniteCell g' randCell
-                                                let a' = Agent.newAgent a aNew
-                                                return (Agent.updateState a' (\sOld -> sOld { rng = g'', cell = burningCell } ))
+                                                let a' = PA.newAgent a aNew
+                                                return (PA.updateState a' (\sOld -> sOld { rng = g'', cell = burningCell } ))
                                             else
-                                                return (Agent.updateState a (\sOld -> sOld { rng = g', cell = burningCell } ))
+                                                return (PA.updateState a (\sOld -> sOld { rng = g', cell = burningCell } ))
                                         else
-                                            return (Agent.updateState a (\sOld -> sOld { rng = g', cell = burningCell } ))
+                                            return (PA.updateState a (\sOld -> sOld { rng = g', cell = burningCell } ))
 
                         where
-                            c = (cell (Agent.state a))
+                            c = (cell (PA.state a))
                             b = (burnable c)
                             burnableLeft = b - (burnPerTimeUnit * dt)
                             -- NOTE: always set cell to ignite because can't do that initially
@@ -82,13 +82,13 @@ wfUpdtHandler a dt = if burnableLeft <= 0.0 then
 
 
 burnCell :: WFAgent -> WFCell -> STM ()
-burnCell a c = Agent.changeEnv a (\e -> replaceCell e c )
+burnCell a c = PA.changeEnv a (\e -> replaceCell e c )
 
 killCellAndAgent :: WFAgent -> WFCell -> STM WFAgent
 killCellAndAgent a c = do
                         let c' = c { burnable = 0.0, cellState = Dead }
-                        Agent.changeEnv a (\e -> replaceCell e c' )
-                        return (Agent.kill a)
+                        PA.changeEnv a (\e -> replaceCell e c' )
+                        return (PA.kill a)
 
 neighbourhood :: [WFCellCoord]
 neighbourhood = [topLeft, top, topRight,
@@ -117,7 +117,7 @@ igniteCell g c = do
                     let (g', g'') = split g
                     let aState = WFAgentState { cell = c, rng = g' }
                     let id = (cellIdx c)
-                    a <- Agent.createAgent id aState wfMsgHandler wfUpdtHandler
+                    a <- PA.createAgent id aState wfMsgHandler wfUpdtHandler
                     -- NOTE: don't need any neighbours because no messaging!
                     return (a, g'')
 

@@ -2,7 +2,7 @@ module SIRS.RunSIRS where
 
 import SIRS.SIRSModel
 
-import qualified HaskellAgents as Agent
+import qualified PureAgents as PA
 
 import Control.Monad.STM
 import System.Random
@@ -26,14 +26,14 @@ runSIRS = do
         -- NOTE: this works for now when NOT using parallelism
         --  (as', e') <- atomically $ Agents.stepSimulation as Nothing dt steps
         --Agents.runSimulation as Nothing (outputStep dt)
-        (as', hdl) <- atomically $ Agent.initStepSimulation as Nothing
+        (as', hdl) <- atomically $ PA.initStepSimulation as Nothing
         runSteps hdl 6 dt
         return ()
 
 runSteps :: SIRSSimHandle -> Int -> Double -> IO SIRSSimHandle
 runSteps hdl 0 dt = return hdl
 runSteps hdl n dt = do
-                    (as', _, hdl') <- atomically $ Agent.advanceSimulation hdl dt
+                    (as', _, hdl') <- atomically $ PA.advanceSimulation hdl dt
                     putStrLn ("Step " ++ (show n) ++ ":")
                     printAgents as'
                     runSteps hdl' (n-1) dt
@@ -48,7 +48,7 @@ outputStep dt (as, e) = do
 
 printAgents :: [SIRSAgent] -> IO ()
 printAgents as = do
-                    mapM (putStrLn . show . Agent.state) as
+                    mapM (putStrLn . show . PA.state) as
                     return ()
 
 --------------------------------------------------------------------------------------------------------------------------------------------------

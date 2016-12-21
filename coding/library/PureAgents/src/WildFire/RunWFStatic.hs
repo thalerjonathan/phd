@@ -13,7 +13,7 @@ import Data.Maybe
 import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.IO.Simulate
 
-import qualified HaskellAgents as Agent
+import qualified PureAgents as PA
 
 runWFStatic :: IO ()
 runWFStatic = do
@@ -25,8 +25,8 @@ runWFStatic = do
                let g = mkStdGen rngSeed
                -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
                (as, g') <- atomically $ createRandomWFAgents g cells
-               (as', hdl) <- atomically $ Agent.initStepSimulation as Nothing
-               atomically $ Agent.sendMsg (head as') Ignite 1
+               (as', hdl) <- atomically $ PA.initStepSimulation as Nothing
+               atomically $ PA.sendMsg (head as') Ignite 1
                stepWithRendering hdl dt cells
 
 stepWithRendering :: WFSimHandle -> Double -> (Int, Int) -> IO ()
@@ -41,7 +41,7 @@ stepWithRendering hdl dt cells = simulateIO Front.display
 modelToPicture :: (Int, Int) -> WFSimHandle -> IO GLO.Picture
 modelToPicture cells hdl = return (Front.renderFrame observableAgentStates cells)
     where
-        as = Agent.extractAgents hdl
+        as = PA.extractAgents hdl
         observableAgentStates = map (wfAgentToObservableState cells) as
 
 -- A function to step the model one iteration. It is passed the current viewport and the amount of time for this simulation step (in seconds)
@@ -50,7 +50,7 @@ modelToPicture cells hdl = return (Front.renderFrame observableAgentStates cells
 --             atomically would commit the changes and make them visible to other threads
 stepIteration :: Double -> ViewPort -> Float -> WFSimHandle -> IO WFSimHandle
 stepIteration fixedDt viewport dtRendering hdl = do
-                                                    (as', e', hdl') <- atomically $ Agent.advanceSimulation hdl fixedDt
+                                                    (as', e', hdl') <- atomically $ PA.advanceSimulation hdl fixedDt
                                                     return hdl'
 
 wfAgentToObservableState :: (Int, Int) -> WFAgent -> Front.RenderCell
@@ -58,8 +58,8 @@ wfAgentToObservableState (xCells, yCells) a = Front.RenderCell { Front.renderCel
                                                                     Front.renderCellShade = (burnable s),
                                                                     Front.renderCellState = cellState }
     where
-        aid = Agent.agentId a
-        s = Agent.state a
+        aid = PA.agentId a
+        s = PA.state a
         y = floor((fromIntegral aid) / (fromIntegral xCells))
         x = mod aid yCells
         cellState = case (wfState s) of

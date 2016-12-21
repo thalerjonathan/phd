@@ -1,4 +1,4 @@
-module HaskellAgents (
+module PureAgents (
     module Control.Monad.STM,
     module Control.Concurrent.STM.TChan,
     module Control.Concurrent.STM.TVar,
@@ -44,7 +44,7 @@ import qualified Data.HashMap as Map
     -- TODO: is getting rid of STM an option?
 
 -- TODO: Features
-    -- TODO: provide implementations for all kinds of sim-teppings but hidden behind a message interface common to all but different semantics with different steppings
+    -- TODO: provide implementations for all kinds of sim-semantics but hidden behind a message interface common to all but different semantics with different steppings
     -- TODO: shortcoming: cannot wait blocking for a message so far. utilize yampas event mechanism?
 
 -- TODO: Refactorings

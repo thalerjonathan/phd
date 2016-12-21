@@ -6,7 +6,7 @@ import Control.Concurrent.STM.TVar
 import System.Random
 import Data.Maybe
 
-import qualified HaskellAgents as Agent
+import qualified PureAgents as PA
 
 -- TODO: fix parameters which won't change anymore after an Agent has started by using currying. e.g. World-Type
 
@@ -20,47 +20,47 @@ data HACAgentState = HACAgentState {
     pos :: HACAgentPosition,
     hero :: Bool,
     wt :: HACWorldType,
-    friend :: Agent.AgentId,
-    enemy :: Agent.AgentId,
+    friend :: PA.AgentId,
+    enemy :: PA.AgentId,
     friendPos :: Maybe HACAgentPosition,
     enemyPos :: Maybe HACAgentPosition
 } deriving (Show)
 
-type HACAgent = Agent.Agent HACMsg HACAgentState HACEnvironment
-type HACSimHandle = Agent.SimHandle HACMsg HACAgentState HACEnvironment
+type HACAgent = PA.Agent HACMsg HACAgentState HACEnvironment
+type HACSimHandle = PA.SimHandle HACMsg HACAgentState HACEnvironment
 
 hacMovementPerTimeUnit :: Double
 hacMovementPerTimeUnit = 1.0
 
-hacMsgHandler :: HACAgent -> HACMsg -> Agent.AgentId -> STM HACAgent
+hacMsgHandler :: HACAgent -> HACMsg -> PA.AgentId -> STM HACAgent
 -- MESSAGE-CASE: PositionUpdate
 hacMsgHandler a (PositionUpdate (x, y)) senderId
-    | senderId == friendId = return a { Agent.state = s { friendPos = newPos } }
-    | senderId == enemyId = return a { Agent.state = s { enemyPos = newPos } }
+    | senderId == friendId = return a { PA.state = s { friendPos = newPos } }
+    | senderId == enemyId = return a { PA.state = s { enemyPos = newPos } }
         where
-            s = Agent.state a
+            s = PA.state a
             friendId = friend s
             enemyId = enemy s
             newPos = Just (x,y)
 -- MESSAGE-CASE: PositionRequest
 hacMsgHandler a PositionRequest senderId = do
-                                                Agent.sendMsg a (PositionUpdate currPos) senderId
+                                                PA.sendMsg a (PositionUpdate currPos) senderId
                                                 return a
     where
-        s = Agent.state a
+        s = PA.state a
         currPos = pos s
 
 hacUpdtHandler :: HACAgent -> Double -> STM HACAgent
 hacUpdtHandler a dt = do
-                        Agent.changeEnv a (\e -> e + 1)
+                        PA.changeEnv a (\e -> e + 1)
                         requestPosition a (friend s)
                         requestPosition a (enemy s)
                         if ((isJust fPos) && (isJust ePos)) then
-                            return a { Agent.state = s' }
+                            return a { PA.state = s' }
                                 else
                                     return a
     where
-        s = Agent.state a
+        s = PA.state a
         fPos = friendPos s
         ePos = enemyPos s
         oldPos = pos s
@@ -71,28 +71,28 @@ hacUpdtHandler a dt = do
         newPos = wtFunc $ addPos oldPos (multPos targetDir stepWidth)
         s' = s{ pos = newPos }
 
-requestPosition :: HACAgent -> Agent.AgentId -> STM ()
-requestPosition a receiverId = Agent.sendMsg a PositionRequest receiverId
+requestPosition :: HACAgent -> PA.AgentId -> STM ()
+requestPosition a receiverId = PA.sendMsg a PositionRequest receiverId
 
 createHACTestAgents :: STM [HACAgent]
 createHACTestAgents = do
                     let a0State = HACAgentState{ pos = (0.0, -0.5), hero = False, friend = 1, enemy = 2, wt = Border, friendPos = Nothing, enemyPos = Nothing }
                     let a1State = HACAgentState{ pos = (0.5, 0.5), hero = False, friend = 0, enemy = 2, wt = Border, friendPos = Nothing, enemyPos = Nothing }
                     let a2State = HACAgentState{ pos = (-0.5, 0.5), hero = False, friend = 0, enemy = 1, wt = Border, friendPos = Nothing, enemyPos = Nothing }
-                    a0 <- Agent.createAgent 0 a0State hacMsgHandler hacUpdtHandler
-                    a1 <- Agent.createAgent 1 a1State hacMsgHandler hacUpdtHandler
-                    a2 <- Agent.createAgent 2 a2State hacMsgHandler hacUpdtHandler
-                    let a0' = Agent.addNeighbours a0 [a1, a2]
-                    let a1' = Agent.addNeighbours a1 [a0, a2]
-                    let a2' = Agent.addNeighbours a2 [a0, a1]
+                    a0 <- PA.createAgent 0 a0State hacMsgHandler hacUpdtHandler
+                    a1 <- PA.createAgent 1 a1State hacMsgHandler hacUpdtHandler
+                    a2 <- PA.createAgent 2 a2State hacMsgHandler hacUpdtHandler
+                    let a0' = PA.addNeighbours a0 [a1, a2]
+                    let a1' = PA.addNeighbours a1 [a0, a2]
+                    let a2' = PA.addNeighbours a2 [a0, a1]
                     return [a0', a1', a2']
 
 
 createRandomHACAgents :: RandomGen g => g -> Int -> Double -> STM ([HACAgent], g)
 createRandomHACAgents gInit n p = do
-                                    as <- mapM (\idx -> Agent.createAgent idx (randStates !! idx) hacMsgHandler hacUpdtHandler) [0..n-1]
+                                    as <- mapM (\idx -> PA.createAgent idx (randStates !! idx) hacMsgHandler hacUpdtHandler) [0..n-1]
                                     -- NOTE: this means that the agents could send messages to all other agents and not only to their friend and enemy
-                                    let as' = map (\a -> Agent.addNeighbours a as) as
+                                    let as' = map (\a -> PA.addNeighbours a as) as
                                     return (as', g')
 
                                       where

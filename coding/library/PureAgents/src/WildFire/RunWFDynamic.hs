@@ -13,7 +13,7 @@ import Data.Maybe
 import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.IO.Simulate
 
-import qualified HaskellAgents as Agent
+import qualified PureAgents as PA
 
 runWFDynamic :: IO ()
 runWFDynamic = do
@@ -26,7 +26,7 @@ runWFDynamic = do
                 let env = createEnvironment cells
                 let c = fromJust (cellByCoord env (50, 50))
                 (a, g') <- atomically $ igniteCell g c
-                (as, hdl) <- atomically $ Agent.initStepSimulation [a] (Just env)
+                (as, hdl) <- atomically $ PA.initStepSimulation [a] (Just env)
                 stepWithRendering hdl dt
 
 stepWithRendering :: WFSimHandle -> Double -> IO ()
@@ -40,7 +40,7 @@ stepWithRendering hdl dt = simulateIO Front.display
 -- A function to convert the model to a picture.
 modelToPicture :: WFSimHandle -> IO GLO.Picture
 modelToPicture hdl = do
-                        mayEnv <- atomically $ Agent.extractEnv hdl
+                        mayEnv <- atomically $ PA.extractEnv hdl
                         let env = (fromJust mayEnv)
                         let cs = cells env
                         let limits = cellLimits env
@@ -63,6 +63,6 @@ wfCellToRenderCell c = Front.RenderCell { Front.renderCellCoord = (coord c),
 --             atomically would commit the changes and make them visible to other threads
 stepIteration :: Double -> ViewPort -> Float -> WFSimHandle -> IO WFSimHandle
 stepIteration fixedDt viewport dtRendering hdl = do
-                                                    (as, e, hdl') <- atomically $ Agent.advanceSimulation hdl fixedDt
+                                                    (as, e, hdl') <- atomically $ PA.advanceSimulation hdl fixedDt
                                                     return hdl'
 --------------------------------------------------------------------------------------------------------------------------------------------------

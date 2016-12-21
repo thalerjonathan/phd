@@ -1,17 +1,12 @@
-module HACModel where
+module HeroesAndCowards.HACModel where
 
 import Control.Monad.STM
 import Control.Concurrent.STM.TVar
 
 import System.Random
-
-import HACModel
 import Data.Maybe
 
-import HaskellAgents
-
-import qualified HACFrontend as Front
-import qualified Graphics.Gloss.Interface.IO.Simulate as GLO
+import qualified HaskellAgents as Agent
 
 -- TODO: fix parameters which won't change anymore after an Agent has started by using currying. e.g. World-Type
 
@@ -32,78 +27,7 @@ data HACAgentState = HACAgentState {
 } deriving (Show)
 
 type HACAgent = Agent.Agent HACMsg HACAgentState HACEnvironment
-
---------------------------------------------------------------------------------------------------------------------------------------------------
--- EXECUTE MODEL
---------------------------------------------------------------------------------------------------------------------------------------------------
-stepHAC :: IO ()
-stepHAC = do
-        let dt = 0.025
-        let agentCount = 500
-        let heroDistribution = 0.5
-        let simStepsPerSecond = 30
-        let rngSeed = 42
-        let steps = 10
-        let g = mkStdGen rngSeed
-        let e = (Just 42) :: (Maybe HACEnvironment)
-        -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
-        (as, g') <- atomically $ createRandomHACAgents g agentCount heroDistribution
-        -- NOTE: this works for now when NOT using parallelism
-        (as, e') <- atomically $ Agent.stepSimulation as e dt steps
-        outs <- mapM (putStrLn . show . state) as
-        putStrLn (show e')
-        return ()
-
-runHAC :: IO ()
-runHAC = do
-        let dt = 0.025
-        let agentCount = 500
-        let heroDistribution = 0.5
-        let simStepsPerSecond = 30
-        let rngSeed = 42
-        let steps = 10
-        let g = mkStdGen rngSeed
-        let e = (Just 42) :: (Maybe HACEnvironment)
-        -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
-        (as, g') <- atomically $ createRandomHACAgents g agentCount heroDistribution
-        as' <- atomically $ HaskellAgents.initStepSimulation as e
-        stepWithRendering as' dt
-        -- HaskellAgents.runSimulation as e (renderStep dt)
-
-renderStep :: Double -> (([HACAgent], Maybe HACEnvironment) -> IO (Bool, Double))
-renderStep dt (as, e) = return (True, dt)
-
-
-stepWithRendering :: [HACAgent] -> Double -> IO ()
-stepWithRendering as dt = GLO.simulateIO Front.display
-                                GLO.white
-                                5
-                                as
-                                modelToPicture
-                                (stepIteration dt)
-
--- A function to convert the model to a picture.
-modelToPicture :: [HACAgent] -> IO GLO.Picture
-modelToPicture as = return (Front.renderFrame observableAgentStates)
-    where
-        observableAgentStates = map hacAgentToObservableState as
-
--- A function to step the model one iteration. It is passed the current viewport and the amount of time for this simulation step (in seconds)
--- NOTE: atomically is VERY important, if it is not there there then the STM-transactions would not occur!
---       NOTE: this is actually wrong, we can avoid atomically as long as we are running always on the same thread.
---             atomically would commit the changes and make them visible to other threads
-stepIteration :: Double -> GLO.ViewPort -> Float -> [HACAgent] -> IO [HACAgent]
-stepIteration fixedDt viewport dtRendering as = do
-                                                    (as', e') <- atomically $ HaskellAgents.advanceSimulation as fixedDt
-                                                    return as'
-
-hacAgentToObservableState :: HACAgent -> (Double, Double, Bool)
-hacAgentToObservableState a = (x, y, h)
-    where
-        s = state a
-        (x, y) = pos s
-        h = hero s
---------------------------------------------------------------------------------------------------------------------------------------------------
+type HACSimHandle = Agent.SimHandle HACMsg HACAgentState HACEnvironment
 
 hacMovementPerTimeUnit :: Double
 hacMovementPerTimeUnit = 1.0
@@ -158,16 +82,17 @@ createHACTestAgents = do
                     a0 <- Agent.createAgent 0 a0State hacMsgHandler hacUpdtHandler
                     a1 <- Agent.createAgent 1 a1State hacMsgHandler hacUpdtHandler
                     a2 <- Agent.createAgent 2 a2State hacMsgHandler hacUpdtHandler
-                    let a0' = Agent.addNeighbours a0 (Agent.agentsToNeighbourPair [a1, a2])
-                    let a1' = Agent.addNeighbours a1 (Agent.agentsToNeighbourPair [a0, a2])
-                    let a2' = Agent.addNeighbours a2 (Agent.agentsToNeighbourPair [a0, a1])
+                    let a0' = Agent.addNeighbours a0 [a1, a2]
+                    let a1' = Agent.addNeighbours a1 [a0, a2]
+                    let a2' = Agent.addNeighbours a2 [a0, a1]
                     return [a0', a1', a2']
 
 
 createRandomHACAgents :: RandomGen g => g -> Int -> Double -> STM ([HACAgent], g)
 createRandomHACAgents gInit n p = do
                                     as <- mapM (\idx -> Agent.createAgent idx (randStates !! idx) hacMsgHandler hacUpdtHandler) [0..n-1]
-                                    let as' = map (\a -> Agent.addNeighbours a (Agent.agentsToNeighbourPair as)) as     -- NOTE: this means that the agents could send messages to all other agents and not only to their friend and enemy
+                                    -- NOTE: this means that the agents could send messages to all other agents and not only to their friend and enemy
+                                    let as' = map (\a -> Agent.addNeighbours a as) as
                                     return (as', g')
 
                                       where

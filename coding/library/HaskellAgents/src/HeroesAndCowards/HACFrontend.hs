@@ -1,4 +1,4 @@
-module HACFrontend where
+module HeroesAndCowards.HACFrontend where
 
 import Data.IORef
 import qualified Graphics.Gloss as GLO

@@ -1,4 +1,4 @@
-module SIRSModel where
+module SIRS.SIRSModel where
 
 import Control.Monad.STM
 
@@ -19,6 +19,7 @@ type SIRSEnvironment = ()
 type SIRSAgent = Agent.Agent SIRSMsg SIRSAgentState SIRSEnvironment
 type SIRSMsgHandler = Agent.MsgHandler SIRSMsg SIRSAgentState SIRSEnvironment
 type SIRSUpdtHandler = Agent.UpdateHandler SIRSMsg SIRSAgentState SIRSEnvironment
+type SIRSSimHandle = Agent.SimHandle SIRSMsg SIRSAgentState SIRSEnvironment
 
 infectedDuration :: Double
 infectedDuration = 3.0
@@ -98,9 +99,8 @@ createRandomSIRSAgents :: StdGen -> Int -> Double -> STM ([SIRSAgent], StdGen)
 createRandomSIRSAgents gInit n p = do
                                     let (randStates, g') = createRandomStates gInit n p
                                     as <- mapM (\idx -> Agent.createAgent idx (randStates !! idx) sirsMsgHandler sirsUpdtHandler) [0..n-1]
-                                    let anp = Agent.agentsToNeighbourPair as
-                                    -- NOTE: filter self
-                                    let as' = map (\a -> Agent.addNeighbours a (filter (\(aid, _) -> aid /= (Agent.agentId a)) anp)) as
+                                          -- NOTE: filter self
+                                    let as' = map (\a -> Agent.addNeighbours a (filter (\a' -> (Agent.agentId a') /= (Agent.agentId a)) as) ) as
                                     return (as', g')
                                       where
                                         createRandomStates :: StdGen -> Int -> Double -> ([SIRSAgentState], StdGen)
@@ -125,51 +125,3 @@ randomThresh g p = (flag, g')
     where
         (thresh, g') = randomR(0.0, 1.0) g
         flag = thresh <= p
-
-
-
---------------------------------------------------------------------------------------------------------------------------------------------------
--- EXECUTE MODEL
---------------------------------------------------------------------------------------------------------------------------------------------------
-stepSIRS :: IO ()
-stepSIRS = do
-        --hSetBuffering stdin NoBuffering
-        let dt = 1.0
-        let agentCount = 10
-        let initInfectionProb = 0.2
-        let rngSeed = 42
-        let steps = 10
-        let g = mkStdGen rngSeed
-        -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
-        (as, g') <- atomically $ createRandomSIRSAgents g agentCount initInfectionProb
-        putStrLn "Initial:"
-        printAgents as
-        -- NOTE: this works for now when NOT using parallelism
-        --  (as', e') <- atomically $ Agents.stepSimulation as Nothing dt steps
-        --Agents.runSimulation as Nothing (outputStep dt)
-        as' <- atomically $ Agent.initStepSimulation as Nothing
-        runSteps as' 6 dt
-        return ()
-
-runSteps :: [SIRSAgent] -> Int -> Double -> IO [SIRSAgent]
-runSteps as 0 dt = return as
-runSteps as n dt = do
-                    (as', _) <- atomically $ Agent.advanceSimulation as dt
-                    putStrLn ("Step " ++ (show n) ++ ":")
-                    printAgents as'
-                    runSteps as' (n-1) dt
-
-outputStep :: (Show e) => Double -> (([SIRSAgent], Maybe e) -> IO (Bool, Double))
-outputStep dt (as, e) = do
-                            c <- getLine
-                            putStrLn c
-                            putStrLn (show e)
-                            printAgents as
-                            return (True, dt)
-
-printAgents :: [SIRSAgent] -> IO ()
-printAgents as = do
-                    mapM (putStrLn . show . Agent.state) as
-                    return ()
-
---------------------------------------------------------------------------------------------------------------------------------------------------

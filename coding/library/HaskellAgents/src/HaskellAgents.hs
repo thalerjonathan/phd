@@ -24,6 +24,7 @@ module HaskellAgents (
     readEnv,
     writeEnv,
     extractEnv,
+    extractAgents
   ) where
 
 import Control.Monad.STM
@@ -176,6 +177,9 @@ extractEnv hdl = do
                      let mayEnvVar = simHdlEnv hdl
                      env <- maybeEnvVarToMaybeEnv mayEnvVar
                      return env
+
+extractAgents :: SimHandle m s e -> [Agent m s e]
+extractAgents = simHdlAgents
 
 -- TODO: return all steps of agents and environment
 stepSimulation :: [Agent m s e] -> Maybe e -> Double -> Int -> STM ([Agent m s e], Maybe e)

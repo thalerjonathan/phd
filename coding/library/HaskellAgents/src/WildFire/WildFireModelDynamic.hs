@@ -1,4 +1,4 @@
-module WildfireModelDynamic where
+module WildFire.WildFireModelDynamic where
 
 import Control.Monad.STM
 

@@ -36,9 +36,10 @@ data WFEnvironment = WFEnvironment {
 type WFAgent = Agent.Agent WFMsg WFAgentState WFEnvironment
 type WFMsgHandler = Agent.MsgHandler WFMsg WFAgentState WFEnvironment
 type WFUpdtHandler = Agent.UpdateHandler WFMsg WFAgentState WFEnvironment
+type WFSimHandle = Agent.SimHandle WFMsg WFAgentState WFEnvironment
 
 burnPerTimeUnit :: Double
-burnPerTimeUnit = 0.3
+burnPerTimeUnit = 0.4
 
 -- NOTE: in this case no messages are sent between agents
 wfMsgHandler :: WFMsgHandler
@@ -53,6 +54,7 @@ wfUpdtHandler a dt = if burnableLeft <= 0.0 then
                             do
                                 burnCell a burningCell
 
+                                -- TODO: gosh is this ugly code, refactor it to something more readable!
                                 -- TODO: the following must run in one transaction because we search the env and then change it, it could be changed in the mean-time when running in parallel
                                 env <- Agent.readEnv a
                                 let g = (rng (Agent.state a))

@@ -4,6 +4,7 @@ module HaskellAgents (
     module Control.Concurrent.STM.TVar,
     module Data.Maybe,
     Agent(..),
+    SimHandle(..),
     AgentId,
     MsgHandler,
     UpdateHandler,
@@ -21,7 +22,8 @@ module HaskellAgents (
     createAgent,
     changeEnv,
     readEnv,
-    writeEnv
+    writeEnv,
+    extractEnv,
   ) where
 
 import Control.Monad.STM
@@ -74,6 +76,11 @@ data Agent m s e = Agent {
     state :: s,
     newAgents :: [Agent m s e],
     env :: Maybe (TVar e)                                      -- NOTE: environment is optional
+}
+
+data SimHandle m s e = SimHandle {
+    simHdlAgents :: [Agent m s e],
+    simHdlEnv :: Maybe (TVar e)
 }
 
 newAgent :: Agent m s e -> Agent m s e -> Agent m s e
@@ -164,6 +171,12 @@ readEnv a = readTVar (fromJust (env a))
 writeEnv :: Agent m s e -> e -> STM ()
 writeEnv a e = changeEnv a (\_ -> e)
 
+extractEnv :: SimHandle m s e -> STM (Maybe e)
+extractEnv hdl = do
+                     let mayEnvVar = simHdlEnv hdl
+                     env <- maybeEnvVarToMaybeEnv mayEnvVar
+                     return env
+
 -- TODO: return all steps of agents and environment
 stepSimulation :: [Agent m s e] -> Maybe e -> Double -> Int -> STM ([Agent m s e], Maybe e)
 stepSimulation as e dt n = do
@@ -178,19 +191,19 @@ stepSimulation as e dt n = do
                                     as' <- stepAllAgents as dt       -- TODO: if running in parallel, then we need to commit at some point using atomically
                                     stepSimulation' as' dt (n-1)
 
-
-initStepSimulation :: [Agent m s e] -> Maybe e -> STM [Agent m s e]
+initStepSimulation :: [Agent m s e] -> Maybe e -> STM ([Agent m s e], SimHandle m s e)
 initStepSimulation as e = do
                             (asWithEnv, mayEnvVar) <- setEnv as e
-                            return asWithEnv
+                            let hdl = SimHandle { simHdlAgents = asWithEnv, simHdlEnv = mayEnvVar }
+                            return (asWithEnv, hdl)
 
-advanceSimulation :: [Agent m s e] -> Double -> STM ([Agent m s e], Maybe e)
-advanceSimulation as dt = do
-                            as' <- stepAllAgents as dt
-                            let a' = head as'                           -- TODO: this is a dirty hack, replace by original TVar when having some SimulationHandle
-                            let mayEnvVar = env a'
-                            env' <- maybeEnvVarToMaybeEnv mayEnvVar
-                            return (as', env')
+advanceSimulation :: SimHandle m s e -> Double -> STM ([Agent m s e], Maybe e, SimHandle m s e)
+advanceSimulation hdl dt = do
+                                let as = simHdlAgents hdl
+                                as' <- stepAllAgents as dt
+                                env' <- extractEnv hdl
+                                let hdl' = hdl { simHdlAgents = as' }         -- NOTE: environment never changes after initial
+                                return (as', env', hdl')
 
 runSimulation :: [Agent m s e] -> Maybe e -> OutFunc m s e -> IO ()
 runSimulation as e out = do

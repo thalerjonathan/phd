@@ -5,10 +5,10 @@ import WildfireModelDynamic
 import qualified Graphics.Gloss as GLO
 
 winSizeX :: Int
-winSizeX = 500
+winSizeX = 800
 
 winSizeY :: Int
-winSizeY = 500
+winSizeY = 800
 
 display :: GLO.Display
 display = (GLO.InWindow "Wildfire Dynamic (Gloss)" (winSizeX, winSizeY) (0, 0))

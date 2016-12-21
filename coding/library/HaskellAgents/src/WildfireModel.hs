@@ -7,6 +7,7 @@ import Debug.Trace
 
 import qualified HaskellAgents as Agent
 
+type WFCell = (Int, Int)
 data WFState = Living | Burning | Dead deriving (Eq, Show)
 data WFMsg = Ignite
 
@@ -22,7 +23,7 @@ type WFMsgHandler = Agent.MsgHandler WFMsg WFAgentState WFEnvironment
 type WFUpdtHandler = Agent.UpdateHandler WFMsg WFAgentState WFEnvironment
 
 burnPerTimeUnit :: Double
-burnPerTimeUnit = 0.1
+burnPerTimeUnit = 0.2
 
 is :: WFAgent -> WFState -> Bool
 is a wfs = (wfState s) == wfs
@@ -31,8 +32,8 @@ is a wfs = (wfState s) == wfs
 
 wfMsgHandler :: WFMsgHandler
 wfMsgHandler a Ignite senderId
-    | is a Living = trace ("received Living Ignite in " ++ (show (Agent.agentId a)) ++ " from " ++ (show senderId) ) (return (igniteAgent a))
-    | otherwise = trace ("received Non-Living Ignite in " ++ (show (Agent.agentId a)) ++ " from " ++ (show senderId) ) (return a)
+    | is a Living = return (igniteAgent a)
+    | otherwise = return a
 
 wfUpdtHandler :: WFUpdtHandler
 wfUpdtHandler a dt
@@ -48,13 +49,9 @@ handleBurningAgent a dt = if burnableLeft <= 0.0 then
                             return deadAgent
                             else
                                 do
-                                    Agent.broadcastMsg burningAgent Ignite
-                                    return burningAgent
-                            {-
-                                do
                                     g' <- Agent.sendMsgToRandomNeighbour burningAgent Ignite (rng (Agent.state a))
                                     return (Agent.updateState burningAgent (\sOld -> sOld { rng = g' } ))
-                                    -}
+
     where
         b = (burnable (Agent.state a))
         burnableLeft = b - (burnPerTimeUnit * dt)
@@ -62,15 +59,25 @@ handleBurningAgent a dt = if burnableLeft <= 0.0 then
         burningAgent = Agent.updateState a (\sOld -> sOld { burnable = burnableLeft } )
 
 createRandomWFAgents :: StdGen -> (Int, Int) -> STM ([WFAgent], StdGen)
-createRandomWFAgents gInit (x, y) = do
+createRandomWFAgents gInit cells@(x, y) = do
                                         let agentCount = x*y
                                         let (randStates, g') = createRandomStates gInit agentCount
                                         as <- mapM (\idx -> Agent.createAgent idx (randStates !! idx) wfMsgHandler wfUpdtHandler) [0..agentCount-1]
-                                        let anp = Agent.agentsToNeighbourPair as
-                                        -- NOTE: filter neighbours
-                                        -- let as' = map (\a -> Agent.addNeighbours a (filter (\(aid, _) -> isNeighbour (Agent.agentId a) aid (x,y)) anp)) as
-                                        let as' = map (\a -> Agent.addNeighbours a anp) as
+                                        let as' = map (\a -> Agent.addNeighbours a (agentNeighbours a as cells) ) as
                                         return (as', g')
+
+agentNeighbours :: WFAgent -> [WFAgent] -> (Int, Int) -> [WFAgent]
+agentNeighbours a as cells = filter (\a' -> any (==(agentToCell a' cells)) neighbourCells ) as
+    where
+        aCell = agentToCell a cells
+        neighbourCells = neighbours aCell
+
+agentToCell :: WFAgent -> (Int, Int) -> (Int, Int)
+agentToCell a (xCells, yCells) = (ax, ay)
+     where
+        aid = Agent.agentId a
+        ax = mod aid yCells
+        ay = floor((fromIntegral aid) / (fromIntegral xCells))
 
 neighbourhood :: [(Int, Int)]
 neighbourhood = [topLeft, top, topRight,
@@ -86,17 +93,8 @@ neighbourhood = [topLeft, top, topRight,
         bottom = (0, 1)
         bottomRight = (1, 1)
 
-calculateNeighbours :: (Int, Int) -> [(Int, Int)]
-calculateNeighbours (x,y) = map (\(x', y') -> (x+x', y+y')) neighbourhood
-
-isNeighbour :: Agent.AgentId -> Agent.AgentId -> (Int, Int) -> Bool
-isNeighbour a1Id a2Id (xCells, yCells) = True -- any (==(a2x, a2y)) a1NeighbourFields
-    where
-        a1y = floor((fromIntegral a1Id) / (fromIntegral xCells))
-        a1x = mod a1Id yCells
-        a2y = floor((fromIntegral a2Id) / (fromIntegral xCells))
-        a2x = mod a2Id yCells
-        a1NeighbourFields = calculateNeighbours (a1x, a1y)
+neighbours :: (Int, Int) -> [(Int, Int)]
+neighbours (x,y) = map (\(x', y') -> (x+x', y+y')) neighbourhood
 
 createRandomStates :: StdGen -> Int -> ([WFAgentState], StdGen)
 createRandomStates g 0 = ([], g)

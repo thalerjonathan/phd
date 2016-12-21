@@ -11,7 +11,6 @@ module HaskellAgents (
     sendMsgToRandomNeighbour,
     broadcastMsg,
     updateState,
-    agentsToNeighbourPair,
     addNeighbours,
     stepSimulation,
     initStepSimulation,
@@ -63,6 +62,7 @@ type OutFunc m s e = (([Agent m s e], Maybe e) -> IO (Bool, Double))
 -}
 data Agent m s e = Agent {
     agentId :: AgentId,
+    queuedMs :: [(AgentId, m)],
     mbox :: (TChan (AgentId, m)),
     neighbourIds :: [AgentId],
     neighbourMbox :: Map.Map AgentId (TChan (AgentId, m)),        -- NOTE: strength of haskell: ensure by static typing that only neighbours with same message-protocoll
@@ -72,10 +72,16 @@ data Agent m s e = Agent {
     env :: Maybe (TVar e)                                      -- NOTE: environment is optional
 }
 
+queueMsg :: Agent m s e -> m -> AgentId -> Agent m s e
+queueMsg a m targetId = a { queuedMs = qms' }
+    where
+        qms = queuedMs a
+        qms' = qms ++ [(targetId, m)]
+
 sendMsg :: Agent m s e -> m -> AgentId -> STM ()
-sendMsg a msg targetId
+sendMsg a m targetId
     | isNothing targetMbox = return ()                          -- NOTE: receiver not found in the neighbours
-    | otherwise = writeTChan (fromJust targetMbox) (senderId, msg)
+    | otherwise = writeTChan (fromJust targetMbox) (senderId, m)
     where
         nsBox = neighbourMbox a
         senderId = agentId a
@@ -83,22 +89,13 @@ sendMsg a msg targetId
 
 broadcastMsg :: Agent m s e -> m -> STM ()
 broadcastMsg a msg = do
-                        actions <- (trace "broadcast1 " mapM (sendMsg a msg) nsIds)
-                        trace "broadcast" return ()
-
-    where
-        nsIds = neighbourIds a
-
-{-
-broadcastMsg :: Agent m s e -> m -> STM ()
-broadcastMsg a msg = do
                         actions <- mapM (\mbox -> writeTChan mbox (senderId, msg)) nsBox
-                        trace "broadcast" return ()
+                        return ()
 
     where
         nsBox = neighbourMbox a
         senderId = agentId a
--}
+
 
 sendMsgToRandomNeighbour :: (RandomGen g) => Agent m s e -> m -> g -> STM g
 sendMsgToRandomNeighbour a msg g = do
@@ -123,22 +120,20 @@ createAgent i s mhdl uhdl = do
                                 return Agent{ agentId = i,
                                                 state = s,
                                                 mbox = mb,
+                                                queuedMs = [],
                                                 neighbourMbox = Map.empty,
                                                 neighbourIds = [],
                                                 msgHandler = mhdl,
                                                 updateHandler = uhdl,
                                                 env = Nothing }
 
-agentsToNeighbourPair :: [Agent m s e] -> [(AgentId, (TChan (AgentId, m)))]
-agentsToNeighbourPair as = Prelude.map (\a -> (agentId a, mbox a)) as
-
-addNeighbours :: Agent m s e -> [(AgentId, (TChan (AgentId, m)))] -> Agent m s e
-addNeighbours a nsPairs = a { neighbourMbox = nsMbox', neighbourIds = nsIds' }
+addNeighbours :: Agent m s e -> [Agent m s e] -> Agent m s e
+addNeighbours a ns = a { neighbourMbox = nsMbox', neighbourIds = nsIds' }
     where
         nsMbox = neighbourMbox a
-        nsMbox' = foldl (\acc (k, v) -> Map.insert k v acc ) nsMbox nsPairs
+        nsMbox' = foldl (\acc a -> Map.insert (agentId a) (mbox a) acc ) nsMbox ns
         nsIds = neighbourIds a
-        nsIds' = foldl (\acc (k, v) -> nsIds ++ [k] ) nsIds nsPairs
+        nsIds' = nsIds ++ (map agentId ns)
 
 changeEnv :: Agent m s e -> (e -> e) -> STM ()
 changeEnv a tx = do
@@ -220,6 +215,13 @@ receiveMsg a = tryReadTChan mb
     where
         mb = mbox a
 
+deliverQueuedMsgs :: Agent m s e -> STM (Agent m s e)
+deliverQueuedMsgs a = do
+                        let qms = queuedMs a
+                        mapM (\(target, m) -> sendMsg a m target ) qms
+                        let a' = a { queuedMs = [] }
+                        return a
+
 processMsg :: Agent m s e -> (AgentId, m) -> STM (Agent m s e)
 processMsg a (senderId, msg) = handler a msg senderId
     where
@@ -239,10 +241,11 @@ processAllMessages a = do
 -- TODO: process messages first or update first? this has different semantics when messages are seen immediately
 stepAgent :: Double -> Agent m s e -> STM (Agent m s e)
 stepAgent dt a = do
-                a' <- processAllMessages a
-                let upHdl = updateHandler a'
-                a'' <- upHdl a' dt
-                return a''
+                    aAfterMsgProc <- processAllMessages a
+                    let upHdl = updateHandler aAfterMsgProc             -- NOTE: updateHandler could have changed!
+                    aAfterUpdt <- upHdl aAfterMsgProc dt
+                    aAfterDelivery <- deliverQueuedMsgs aAfterUpdt
+                    return aAfterDelivery
 ------------------------------------------------------------------------------------------------------------------------
 
 

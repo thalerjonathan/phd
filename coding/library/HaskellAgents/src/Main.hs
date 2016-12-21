@@ -20,10 +20,10 @@ import qualified HaskellAgents as Agents
 
 main :: IO ()
 main = do
-           let dt = 0.1
-           let xCells = 50
-           let yCells = 50
-           let rngSeed = 40
+           let dt = 1.0
+           let xCells = 70
+           let yCells = 70
+           let rngSeed = 42
            let cells = (xCells, yCells)
            let g = mkStdGen rngSeed
            -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad

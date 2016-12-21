@@ -44,19 +44,25 @@ The following table gives an overview of the methods presented above. Real Rando
 
 \begin{table}[H]
 	\center
-	\begin{tabular}{ c | c | c  }
-		\textit{Scale} & \textit{Order} & \textit{Real Randomness} \\
+	\begin{tabular}{ c | c | c | c }
+		\textit{Scale} & \textit{Order} & \textit{Real Randomness} & \textit{Type}\\
 		\hhline{=|=|=}
-	    Global & Sequential & No \\ 
+	    Global & Sequential & No & Continuous \\ 
 	    \hline
-	    Global & Parallel & No \\ 
+	    Global & Parallel & No & Discrete \\ 
 	    \hline
-	    Global & Concurrent & Yes \\ 
+	    Global & Concurrent & Yes & Continuous \\ 
 	    \hline
-	    Local & Random & Yes \\ 
+	    Local & Random & Yes & Continuous \\ 
 	\end{tabular}
 	\caption{Summary of simulation-stepping methods.}
 \end{table}
+
+note that different types of update-strategies amount to different types of simulation . all can be used in continuous but discrete is in parallel only
+
+semantics in interface: if the simultion is discrete, use queueMsg, if it is continuous, use sendMsg
+
+central question is: should we hide the semantics from the sgent by providing a single interface e.g. sendMsg and make the semantic explicit only when executing the simulation or should we have different interfaces for explicit semantics e.g. sendMsg and queueMsg? the point is: when we want parallel semantics where all updates happen at once we can also run them technically in parallel. i feel we should make this explicit thus providing a queueMsg which will deliver it at the end of the iteration
 
 global, concurrent = parallel with iterative updates where the following agents see updates. but random ordering introduced due to sync and scheduling
 

@@ -8,6 +8,11 @@ All implementations of ABM/S models must solve two problems:
 
 Of course both problems influence each other and cannot be considered separated from each other.
 
+-> Java: supports global data => suitable to implement global decisions: implementing global-time, sequential iteration with global decisions
+	-> Haskell: has no global data => local decisions (has support for global data through STM/IO but then looses very power?) => implementing global-time, parallel iteration with local-decisions. 
+		-> Haskell STM solution => implementing concurrent version using STM? but this is very complicated in its own right but utilizing STM it will be much more easier than in java
+	-> Scala: mixed, can do both => implementing local time with random iteration and local decisions
+	
 \subsubsection{Agent-Implementation}
 This is the process of implementing the behaviour of the Agent as specified in the model. Although there are various kinds of Agent-Models like BDI but the basic principle is always the same: sense the environment, process messages, execute actions: change environment, send messages. According to \cite{wooldridge_introduction_2009} and also influenced by Actors from \cite{agha_actors:_1986} one can abstract the abilities in each step of an Agent to be the following:
 
@@ -44,9 +49,9 @@ The following table gives an overview of the methods presented above. Real Rando
 
 \begin{table}[H]
 	\center
-	\begin{tabular}{ c | c | c | c }
+	\begin{tabular}{ c | c | c | c | c }
 		\textit{Time} & \textit{Order} & \textit{Decisions} & \textit{Non-Deterministic} & \textit{Type}\\
-		\hhline{=|=|=}
+		\hhline{=|=|=|=|=}
 	    Global & Sequential & Global & No & Continuous \\ 
 	    \hline
 	    Global & Parallel & Local & No & Discrete \\ 

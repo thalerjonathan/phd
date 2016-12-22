@@ -43,7 +43,7 @@
 %	DOCUMENT INFORMATION
 %----------------------------------------------------------------------------------------
 
-\title{Dynamics of Agent-Based Simulation \& Modelling under different Simulation-Semantics.} % Title
+\title{Influence of Simulation-Semantics on \\ Dynamics of an Agent-Based Simulation} % Title
  
 \author{Jonathan \textsc{Thaler}} % Author name
 
@@ -55,35 +55,9 @@
 
 % If you wish to include an abstract, uncomment the lines below
 \begin{abstract}
-TODO: the title is not very well suited towards research: it just describes the implementation of a library which is just of a software-engineering problem and not a research topic.
-
-
-
-The central research of this paper is
-- establishing a terminology for speaking about Simulation-Semantics
-- how do emergent properties behave under varying simulation semantics?
-	-> for this we implemented same model in different languages: Java, Haskell and Scala & Actors with different Simulation-Semantics: Java & Haskell all Global, Scala & Actors Local only.
-	-> Java: supports global data => suitable to implement global decisions: implementing global-time, sequential iteration with global decisions
-	-> Haskell: has no global data => local decisions (has support for global data through STM/IO but then looses very power?) => implementing global-time, parallel iteration with local-decisions. 
-		-> Haskell STM solution => implementing concurrent version using STM? but this is very complicated in its own right but utilizing STM it will be much more easier than in java
-	-> Scala: mixed, can do both => implementing local time with random iteration and local decisions
-- can we reason about emergent properties / dynamics of a simulation just by looking at the code/model or is it impossible?
-	-> hypothesis: it all depends on the way we formulate our problem: we might be able to tell from the model-specification but code could become too complicated
-		=> if we write code that looks same as the model-specification (using an EDSL) we could potentially be able to identify:
-			-> positive & negative feedback-loops 
-			-> other mechanisms of feedback/sources of emergent properties?
-				-> what are sources of emergent properties?
-					-> what are emergent properties anyway? can we deliver a very precise definition?
-
-novel approach using pure functional programming where the major strengths are the declarative style of programming which allows to build a powerful EDSL where ideally the distinction between model-specification and implementation disappears and due to the pure functional way and strong static type-system one can reason about the program. The combination is extremely powerful and should allow us to reason about various properties of our simulation: which parts include random-numbers, which generate side-effects, and we ask whether we can reason about the dynamics of our simulation.
-
-
-
-
-In this paper we look at the very simple social-simulation of \textit{Heroes \& Cowards} invented by \cite{wilensky_introduction_2015} to study new methods in Agent-Based Modelling and Simulation (ABM/S) and to highlight their potentials and limitations as opposed to object-oriented (OO) ones which are dominant in this field. We go into the opposite direction and ask how ABM/S can be done using the Actor-Model as defined by \cite{agha_actors:_1986} and pure functional programming in Haskell. Both are methods which have unfortunately not been considered very deeply in this field and requires to look at ABM/S from a different perspective which this paper tries to provide. The Actor-Model was a major influence in the development of Agents and has proven its use in Erlang for building industry-strength applications but the question whether it is well suited for ABM/S is still open to question. A functional direction offers a wealth of new powerful tools and methods where the most obvious benefits of using a pure functional approach is that it allows to reason about various properties of the program and implementation of an embedded domain-specific language (EDSL), where ideally the distinction between specification and implementation disappears. \\
-Thus we implemented a new library in Haskell for ABM/S called \textit{PureAgents}, available on Hackage, making maximum use of the functional paradigm and utilizing the Actor-Model as the underlying paradigm for thinking, representing, modelling and implementing Agents. We compare the implementation of \textit{Heroes \& Cowards} in \textit{PureAgents} with a variety of implementations in other existing methods. For comparison with state-of-the-art methods we look at the classic implementation in NetLogo, implement the model in AnyLogic and ReLogo and also look into an object-oriented implementation in Java without using any ABM/S framework. To have a comparison with a method which is close to our new developed library we look into Scala which is a multi-paradigm approach to functional programming and allows to incorporate objects and side-effects and comes already with an Actor-Library. \\
-The main contributions of this paper are twofold. First, we describe how to approach and implement ABM/S in the pure functional language Haskell resulting in a library for ABM/S called \textit{PureAgents} available on Hackage. Second, the library is based on the Actor-Model defined by  which so far hasn't got much attention for systematic research in the field of ABM/S and functional programming - a drawback we want to repair.
-
+In this paper we look at the very simple social-simulation of \textit{Heroes \& Cowards} invented by \cite{wilensky_introduction_2015} to study the impact of different simulation-semantics on the dynamics of the simulation. By simulation-semantics we understand the different approaches of how to step a simulation and we ask whether the dynamics are somewhat stable, change or completely break down under different semantics. We develop a classification of all potential simulation-semantics and discuss general implementation-considerations independent of the programming language. We then give implementations of each simulation-semantic in varying programming languages and compare the resulting dynamics. Depending on the given semantics we choose out of three languages: Java, Haskell and Scala with Actors where each of them has their strengths and limitations implementing simulation-semantics. We implement only the semantics for which the given language is suited for without abusing it. Thus in Java we focus on object-oriented programming, side-effects and global data, where in Haskell we focus on pure functional programming without side-effects or global data and in Scala with Actors we put emphasis on a mixed-paradigm approach and the usage of Actors as defined by \cite{agha_actors:_1986}. \\
+It is important to note that the implementations in Haskell present a novel, pure functional approach to ABM/S which strengths are the declarative style of programming and the strong static type-system. This allows to reason about a program and implement embedded domain-specific languages (EDSL) where ideally the distinction between a formal specification and the implementation disappears. We present the EDSL implemented for this Model and investigate what and how we can reason about properties and dynamics of our simulation and of ABM/S in general having the EDSL, the types and our program at hand. \\
+Thus the main contributions of this paper are fourfold. First it establishes a terminology for speaking about and classifying simulation-semantics, second it gives a general framework to discuss dynamics of an ABM/S under different simulation-semantics, third it discusses the suitability of three very different programming-languages to implement the various simulation-semantics and fourth it looks into the possibility and power of reasoning about properties and dynamics of an ABM/S with specific simulation-semantics implemented in the pure functional language Haskell.
 \end{abstract}
 
 \input{./tex/introduction.tex}

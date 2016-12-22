@@ -1,6 +1,8 @@
 \section{Implementation in Haskell}
 It is important to prevent oneself to implement an object-oriented approach in Haskell because then we would loose the power of pure functional programming. Thus the main design-considerations were:
 
+=> it seems that par-version is slower than sequential ??? maybe because of evaluating all data?
+
 \begin{enumerate}
 \item Implement all 4 approaches mentioned in General Implementation for maximum flexibility for users of the library so they can choose which semantics of the simulation they want.
 \item Pure simulation to keep up the ability to reason about it. This means to avoid running in IO Monad at all costs (except for the main-loop).
@@ -14,6 +16,8 @@ take haskell, add yampa and dunai and implement ActorModel on top using STM => h
 with stm one can determine when everything is visible: at the end of the step or after each agent update. but this applies only to parallelism! if running agents in parallel they must execute atomically, otherwise the probability for concurrent read/writes goes to 100\% also as the number of agents goes up. if no parallelism then one final atomically at the end of each step enough. but in any case: using STM leads to the effect that agents see later updates. so really 2 cases where STM is of use in haskell: global, sequential and global concurrent
 
 how can we implement true parallelism? can we use STM somehow or do we need local mailboxes?
+
+=> STM solution is much slower than the par-version without yet using parallel-execution!
 
 \subsection{Structuring the Program}
 Of course the basic pure functional primitives alone do not make a well structured functional program by themselves as the usage of classes, interfaces, objects and inheritance alone does not make a well structured object-oriented program. What is needed are \textit{patterns} how to use the primitives available in pure functional programs to arrive at well structure programs. In object-orientation much work has been done in the 90s by the highly influential book \cite{gamma_design_1994} whereas in functional programming the major inventions were also done in the 90s by the invention of Monads through \cite{Moggi1989}, \cite{Wadler1990} and \cite{Wadler1995} and beginning of the 2000s by the invention of Arrows through \cite{Hughes2000}.

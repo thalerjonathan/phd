@@ -31,21 +31,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="HerosAndCowards.cabal" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/HerosAndCowards.cabal">
+      <file leaf-file-name="HACAgent.hs" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/HACAgent.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="162">
-              <caret line="9" column="0" lean-forward="false" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="31" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="HACClassicBackend.hs" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/HACClassicBackend.hs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1512">
-              <caret line="84" column="41" lean-forward="false" selection-start-line="84" selection-start-column="35" selection-end-line="84" selection-end-column="41" />
+            <state relative-caret-position="648">
+              <caret line="60" column="0" lean-forward="true" selection-start-line="53" selection-start-column="0" selection-end-line="60" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -103,8 +93,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="PackagesPane" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -715,13 +705,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/HACAgent.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3096">
-          <caret line="172" column="0" lean-forward="false" selection-start-line="172" selection-start-column="0" selection-end-line="177" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/HACSimulationImpl.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="432">
@@ -736,10 +719,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/HerosAndCowards.cabal">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="162">
+          <caret line="9" column="0" lean-forward="false" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="31" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/HACClassicBackend.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1512">
-          <caret line="84" column="41" lean-forward="false" selection-start-line="84" selection-start-column="35" selection-end-line="84" selection-end-column="41" />
+        <state relative-caret-position="-36">
+          <caret line="10" column="0" lean-forward="false" selection-start-line="10" selection-start-column="0" selection-end-line="12" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -752,10 +743,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/HerosAndCowards.cabal">
+    <entry file="file://$PROJECT_DIR$/src/HACAgent.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="162">
-          <caret line="9" column="0" lean-forward="false" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="31" />
+        <state relative-caret-position="648">
+          <caret line="60" column="0" lean-forward="true" selection-start-line="53" selection-start-column="0" selection-end-line="60" selection-end-column="0" />
           <folding />
         </state>
       </provider>

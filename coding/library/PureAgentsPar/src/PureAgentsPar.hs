@@ -1,7 +1,6 @@
-module PureAgentsSTM (
-    module Control.Monad.STM,
-    module Control.Concurrent.STM.TChan,
-    module Control.Concurrent.STM.TVar,
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
+
+module PureAgentsPar (
     module Data.Maybe,
     Agent(..),
     SimHandle(..),
@@ -12,144 +11,112 @@ module PureAgentsSTM (
     newAgent,
     sendMsg,
     sendMsgToRandomNeighbour,
-    broadcastMsg,
+    broadcastMsgToNeighbours,
     updateState,
+    writeState,
     addNeighbours,
     stepSimulation,
     initStepSimulation,
     advanceSimulation,
     runSimulation,
     createAgent,
-    changeEnv,
+    updateEnv,
     readEnv,
     writeEnv,
     extractEnv,
     extractAgents
   ) where
 
-import Control.Monad.STM
-import Control.Concurrent.STM.TChan
-import Control.Concurrent.STM.TVar
 import Data.Maybe
-
 import System.Random
 
-import Debug.Trace
+import Control.DeepSeq
+import GHC.Generics (Generic)
+import Control.Monad.Par
 
 import qualified Data.HashMap as Map
 
--- TODO: parallelism & concurency
-    -- TODO: how can we implement true parallelism? can we use STM somehow or do we need local mailboxes?
-    -- TODO: exploit parallelism and concurrency using par monad? problem: STM may rollback and need retry
-    -- TODO: is getting rid of STM an option?
+-- TODO: BIG problem: how do we treat the environment now as every agent has it's local copy => only local updates
+    -- TODO: this would allow us the easily calculate all possible solutions e.g. in a discrete case (but infeasible if big)
 
--- TODO: Features
-    -- TODO: implement become: simply changes the message- & update-handler
-    -- TODO: provide implementations for all kinds of sim-semantics but hidden behind a message interface common to all but different semantics with different steppings
-
--- TODO: Refactorings
-    -- TODO: fix parameters which won't change anymore after an Agent has started by using currying
+-- TODO: parallelism using par-monad
 
 -- TODO: Yampa/Dunai
     -- TODO: let the whole thing run in Yampa/Dunai so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai. But because running in STM must use Dunai
     -- TODO: implement wait blocking for a message so far. utilize yampas event mechanism?
 
+-- TODO: build a monad to chain actions of the agent and always run inside an agent-monad
+    -- TODO: then we again need dunai
+
 ------------------------------------------------------------------------------------------------------------------------
 -- PUBLIC, exported
 ------------------------------------------------------------------------------------------------------------------------
-type AgentId = Int
-type MsgHandler m s e = (Agent m s e -> m -> AgentId -> STM (Agent m s e))          -- NOTE: need STM to be able to send messages
-type UpdateHandler m s e = (Agent m s e -> Double -> STM (Agent m s e))             -- NOTE: need STM to be able to send messages
+
+type MsgHandler m s e = (Agent m s e -> m -> AgentId -> Agent m s e)
+type UpdateHandler m s e = (Agent m s e -> Double -> Agent m s e)
 type OutFunc m s e = (([Agent m s e], Maybe e) -> IO (Bool, Double))
 
 {- NOTE:    m is the type of messages the agent understands
             s is the type of a generic state of the agent e.g. any data
             e is the type of a generic environment the agent can act upon
 -}
+type AgentId = Int
+
 data Agent m s e = Agent {
     agentId :: AgentId,
     killFlag :: Bool,
-    queuedMs :: [(AgentId, m)],
-    mbox :: (TChan (AgentId, m)),
-    neighbourIds :: [AgentId],
-    neighbourMbox :: Map.Map AgentId (TChan (AgentId, m)),        -- NOTE: strength of haskell: ensure by static typing that only neighbours with same message-protocoll
+    outBox :: [(AgentId, AgentId, m)],              -- NOTE: 1st AgentId contains the senderId, 2nd AgentId contains the targetId (redundancy saves us processing time)
+    inBox :: [(AgentId, m)],                        -- NOTE: AgentId contains the senderId
+    neighbours :: Map.Map AgentId AgentId,
     msgHandler :: MsgHandler m s e,
     updateHandler :: UpdateHandler m s e,
     state :: s,
     newAgents :: [Agent m s e],
-    env :: Maybe (TVar e)                                      -- NOTE: environment is optional
-}
+    env :: Maybe e                                      -- NOTE: environment is optional
+} deriving (Generic, NFData)
 
 data SimHandle m s e = SimHandle {
     simHdlAgents :: [Agent m s e],
-    simHdlEnv :: Maybe (TVar e)
+    simHdlEnv :: Maybe e
 }
 
--- NOTE: almost all functions want an Agent and return an Agent: this is how we communicate changes to the simulation-system: by changing the agent
-
-{-|
-    The 'newAgent' function takes a parent Agent and a new Agent to be added to the Simulation
-    It will be running on the next global-step of the Simulation.
-
-    Returns the parent Agent
+-- NOTE: need to provide an instance-implementation for NFData when using Par-Monad as it reduces to normal-form
+{-
+instance NFData (Agent m s e) where
+    rnf (Agent id k o i ns _ _ s news e) = rnf id `seq` rnf k `seq` rnf o `seq` rnf i `seq` rnf ns `seq` rnf s `seq` rnf news `seq` rnf e
 -}
+
 newAgent :: Agent m s e -> Agent m s e -> Agent m s e
 newAgent aParent aNew = aParent { newAgents = nas ++ [aNew'] }
     where
         aNew' = aNew { env = (env aParent)} -- NOTE: set to same environment
         nas = newAgents aParent
 
-{-|
-    Marks an Agent as to be killed at the end of the global-step of the simulation
--}
 kill :: Agent m s e -> Agent m s e
 kill a = a { killFlag = True }
 
-{-|
-    Queues a message to be send to the target. It will be sent to the target at the end of the global-step using sendMsg.
-    Note that this results in the target to see the message in the next global-step and not the current one
-        NOTE: this is a function which allows to have different simulation-semantics and makes this explicit through
-                exposing this interface and not hiding it in the execution-model of the simulation
--}
-queueMsg :: Agent m s e -> m -> AgentId -> Agent m s e
-queueMsg a m targetId = a { queuedMs = qms' }
-    where
-        qms = queuedMs a
-        qms' = qms ++ [(targetId, m)]
-
-{-|
-    SEnds a message to the target. Note that the message will be seen immediately by the target which could be in
-    the same global-step of the simulation if the target-Agent runs AFTER the message has been sent (either because of parallel- or sequential-update)
--}
-sendMsg :: Agent m s e -> m -> AgentId -> STM ()
+sendMsg :: Agent m s e -> m -> AgentId -> Agent m s e
 sendMsg a m targetId
-    | isNothing targetMbox = return ()                          -- NOTE: receiver not found in the neighbours
-    | otherwise = writeTChan (fromJust targetMbox) (senderId, m)        -- NOTE: we commit the message immediately
+    | targetNotFound = a                                     -- NOTE: receiver not found in the neighbours
+    | otherwise = a { outBox = newOutBox }
     where
-        nsBox = neighbourMbox a
         senderId = agentId a
-        targetMbox = Map.lookup targetId nsBox
+        targetNotFound = isNothing (Map.lookup targetId (neighbours a))       -- NOTE: do we really need to look-up the neighbours?
+        newOutBox = (senderId, targetId, m) : (outBox a) -- TODO: is order irrelevant? could use ++ as well but more expensive (or not?)
 
-broadcastMsg :: Agent m s e -> m -> STM ()
-broadcastMsg a msg = do
-                        actions <- mapM (\mbox -> writeTChan mbox (senderId, msg)) nsBox
-                        return ()
-
+broadcastMsgToNeighbours :: Agent m s e -> m -> Agent m s e
+broadcastMsgToNeighbours a m = foldl (\a' nId -> sendMsg a' m nId ) a nsIds
     where
-        nsBox = neighbourMbox a
-        senderId = agentId a
+        nsIds = Map.elems (neighbours a)
 
-
-sendMsgToRandomNeighbour :: (RandomGen g) => Agent m s e -> m -> g -> STM g
-sendMsgToRandomNeighbour a msg g = do
-                                    sendMsg a msg randAgentId
-                                    return g'
-                                        where
-                                            s = state a
-                                            nIds = neighbourIds a
-                                            nsCount = length nIds
-                                            (randIdx, g') = randomR(0, nsCount-1) g
-                                            randAgentId = nIds !! randIdx
+sendMsgToRandomNeighbour :: (RandomGen g) => Agent m s e -> m -> g -> (Agent m s e, g)
+sendMsgToRandomNeighbour a m g = (a', g')
+    where
+        ns = (neighbours a)
+        nsCount = Map.size ns
+        (randIdx, g') = randomR(0, nsCount-1) g
+        randAgentId = (Map.elems ns) !! randIdx     -- TODO: do we really need to map to elements?
+        a' = sendMsg a m randAgentId
 
 updateState :: Agent m s e -> (s -> s) -> Agent m s e
 updateState a sf = a { state = s' }
@@ -157,162 +124,160 @@ updateState a sf = a { state = s' }
         s = state a
         s' = sf s
 
-createAgent :: AgentId -> s -> MsgHandler m s e -> UpdateHandler m s e -> STM (Agent m s e)
-createAgent i s mhdl uhdl = do
-                                mb <- newTChan
-                                return Agent{ agentId = i,
-                                                state = s,
-                                                mbox = mb,
-                                                killFlag = False,
-                                                queuedMs = [],
-                                                neighbourMbox = Map.empty,
-                                                neighbourIds = [],
-                                                newAgents = [],
-                                                msgHandler = mhdl,
-                                                updateHandler = uhdl,
-                                                env = Nothing }
+writeState :: Agent m s e -> s -> Agent m s e
+writeState a s = updateState a (\_ -> s)
+
+createAgent :: AgentId -> s -> MsgHandler m s e -> UpdateHandler m s e -> Agent m s e
+createAgent i s mhdl uhdl = Agent{ agentId = i,
+                                    state = s,
+                                    outBox = [],
+                                    inBox = [],
+                                    killFlag = False,
+                                    neighbours = Map.empty,
+                                    newAgents = [],
+                                    msgHandler = mhdl,
+                                    updateHandler = uhdl,
+                                    env = Nothing }
 
 addNeighbours :: Agent m s e -> [Agent m s e] -> Agent m s e
-addNeighbours a ns = a { neighbourMbox = nsMbox', neighbourIds = nsIds' }
+addNeighbours a ns = a { neighbours = newNeighbours }
     where
-        nsMbox = neighbourMbox a
-        nsMbox' = foldl (\acc a -> Map.insert (agentId a) (mbox a) acc ) nsMbox ns
-        nsIds = neighbourIds a
-        nsIds' = nsIds ++ (map agentId ns)
+        newNeighbours = foldl (\acc a -> Map.insert (agentId a) (agentId a) acc) (neighbours a) ns
 
-changeEnv :: Agent m s e -> (e -> e) -> STM ()
-changeEnv a tx = do
-                    let maybeEnv = env a
-                    if (isNothing maybeEnv) then
-                        return ()                               -- NOTE: no environment, do nothing
-                        else
-                            modifyTVar (fromJust maybeEnv) tx
+updateEnv :: Agent m s e -> (e -> e) -> Agent m s e
+updateEnv a tx
+    | isNothing maybeEnv = a
+    | otherwise = a { env = modifiedEnv }
+        where
+            maybeEnv = env a
+            modifiedEnv = Just (tx (fromJust maybeEnv))
 
-readEnv :: Agent m s e -> STM e
-readEnv a = readTVar (fromJust (env a))
+readEnv :: Agent m s e -> e
+readEnv = fromJust . env
 
-writeEnv :: Agent m s e -> e -> STM ()
-writeEnv a e = changeEnv a (\_ -> e)
+writeEnv :: Agent m s e -> e -> Agent m s e
+writeEnv a e = updateEnv a (\_ -> e)
 
-extractEnv :: SimHandle m s e -> STM (Maybe e)
-extractEnv hdl = do
-                     let mayEnvVar = simHdlEnv hdl
-                     env <- maybeEnvVarToMaybeEnv mayEnvVar
-                     return env
+extractEnv :: SimHandle m s e -> Maybe e
+extractEnv = simHdlEnv
 
 extractAgents :: SimHandle m s e -> [Agent m s e]
 extractAgents = simHdlAgents
 
 -- TODO: return all steps of agents and environment
-stepSimulation :: [Agent m s e] -> Maybe e -> Double -> Int -> STM ([Agent m s e], Maybe e)
-stepSimulation as e dt n = do
-                                (asWithEnv, mayEnvVar) <- setEnv as e
-                                asFinal <- stepSimulation' asWithEnv dt n
-                                finalEnv <- maybeEnvVarToMaybeEnv mayEnvVar
-                                return (asFinal, finalEnv)
+stepSimulation :: [Agent m s e] -> Maybe e -> Double -> Int -> ([Agent m s e], Maybe e)
+stepSimulation as e dt n = (asFinal, finalEnv)
     where
-        stepSimulation' :: [Agent m s e] -> Double -> Int -> STM [Agent m s e]
-        stepSimulation' as dt 0 = return as
-        stepSimulation' as dt n = do
-                                    as' <- stepAllAgents as dt       -- TODO: if running in parallel, then we need to commit at some point using atomically
-                                    stepSimulation' as' dt (n-1)
+        (asWithEnv, mayEnvVar) = setEnv as e
+        asFinal = stepSimulation' asWithEnv dt n
+        finalEnv = mayEnvVar        -- TODO: handle env-problem: it should be global but is always agent-local
 
-initStepSimulation :: [Agent m s e] -> Maybe e -> STM ([Agent m s e], SimHandle m s e)
-initStepSimulation as e = do
-                            (asWithEnv, mayEnvVar) <- setEnv as e
-                            let hdl = SimHandle { simHdlAgents = asWithEnv, simHdlEnv = mayEnvVar }
-                            return (asWithEnv, hdl)
+        stepSimulation' :: [Agent m s e] -> Double -> Int -> [Agent m s e]
+        stepSimulation' as dt 0 = as
+        stepSimulation' as dt n = stepSimulation' as' dt (n-1)
+            where
+                as' = stepAllAgents as dt
 
-advanceSimulation :: SimHandle m s e -> Double -> STM ([Agent m s e], Maybe e, SimHandle m s e)
-advanceSimulation hdl dt = do
-                                let as = simHdlAgents hdl
-                                as' <- stepAllAgents as dt
-                                env' <- extractEnv hdl
-                                let hdl' = hdl { simHdlAgents = as' }         -- NOTE: environment never changes after initial
-                                return (as', env', hdl')
+initStepSimulation :: [Agent m s e] -> Maybe e -> ([Agent m s e], SimHandle m s e)
+initStepSimulation as e = (asWithEnv, hdl)
+    where
+        (asWithEnv, mayEnvVar) = setEnv as e
+        hdl = SimHandle { simHdlAgents = asWithEnv, simHdlEnv = mayEnvVar }
+
+advanceSimulation :: SimHandle m s e -> Double -> ([Agent m s e], Maybe e, SimHandle m s e)
+advanceSimulation hdl dt = (as', env', hdl')
+    where
+        as = simHdlAgents hdl
+        as' = stepAllAgents as dt
+        env' = extractEnv hdl
+        hdl' = hdl { simHdlAgents = as' }         -- TODO: handle env-problem: it should be global but is always agent-local
 
 runSimulation :: [Agent m s e] -> Maybe e -> OutFunc m s e -> IO ()
-runSimulation as e out = do
-                            (asWithEnv, mayEnvVar) <- atomically $ setEnv as e
-                            runSimulation' asWithEnv 0.0 mayEnvVar out
+runSimulation as e out = runSimulation' asWithEnv 0.0 mayEnvVar out
+    where
+        (asWithEnv, mayEnvVar) = setEnv as e
 
-        where
-            runSimulation' :: [Agent m s e] -> Double -> Maybe (TVar e) -> OutFunc m s e -> IO ()
-            runSimulation' as dt mayEnvVar out = do
-                                        as' <- atomically $ stepAllAgents as dt
-                                        finalEnv <- atomically $ maybeEnvVarToMaybeEnv mayEnvVar
-                                        (cont, dt') <- out (as', finalEnv)
-                                        if cont == True then
-                                            runSimulation' as' dt' mayEnvVar out
-                                            else
-                                                return ()
+        runSimulation' :: [Agent m s e] -> Double -> Maybe e -> OutFunc m s e -> IO ()
+        runSimulation' as dt mayEnvVar out = do
+                                                let as' = stepAllAgents as dt
+                                                let finalEnv = mayEnvVar    -- TODO: handle env-problem: it should be global but is always agent-local
+                                                (cont, dt') <- out (as', finalEnv)
+                                                if cont == True then
+                                                    runSimulation' as' dt' mayEnvVar out
+                                                    else
+                                                        return ()
 
 ------------------------------------------------------------------------------------------------------------------------
 -- PRIVATE, non exports
 ------------------------------------------------------------------------------------------------------------------------
-stepAllAgents :: [Agent m s e] -> Double -> STM [Agent m s e]
-stepAllAgents as dt = foldl (\acc a -> do
+-- TODO: handle env-problem: it should be global but is always agent-local
+setEnv :: [Agent m s e] -> Maybe e -> ([Agent m s e], Maybe e)
+setEnv as Nothing = (as, Nothing)
+setEnv as (Just env) = (as', Just env)
+    where
+        as' = Prelude.map (\a -> a { env = Just env } ) as   -- TODO: handle env-problem: it should be global but is always agent-local
+
+stepAllAgents :: [Agent m s e] -> Double -> [Agent m s e]
+stepAllAgents as dt = deliverOutMsgs steppedAs
+    where
+        steppedAs = map (stepAgent dt) as -- TODO: add newAgent- and kill-handling. think about how best parallelize
+
+{-
+stepAllAgents :: [Agent m s e] -> Double -> [Agent m s e]
+stepAllAgents as dt = deliverOutMsgs steppedAs
+    where
+        steppedAsPar = parMap (stepAgent dt) as -- TODO: add newAgent- and kill-handling. think about how best parallelize
+        steppedAs = runPar steppedAsPar
+-}
+{-
+foldl (\acc a -> do
                                         aAfterStep <- stepAgent dt a
                                         acc' <- acc
                                         if ( killFlag aAfterStep ) then   -- NOTE: won't notify other agents about the death, this can be implemented by domain-specific messages if required
-                                            return (acc' ++ (newAgents aAfterStep)) -- NOTE: no need to clear the list because this agent will be deleted anyway
+                                            return (acc' ++ (newAgents aAfterStep)) -- NOTE: no need to clear the list of newAgents because this agent will be deleted anyway
                                             else
                                                 do
                                                     let nas = newAgents aAfterStep
                                                     let a' = aAfterStep { newAgents = [] }
                                                     return (acc' ++ [a'] ++ nas)
                                         ) (return []) as
+-}
 
-maybeEnvVarToMaybeEnv :: Maybe (TVar e) -> STM (Maybe e)
-maybeEnvVarToMaybeEnv Nothing = return Nothing
-maybeEnvVarToMaybeEnv (Just var) = do
-                                    e <- readTVar var
-                                    return (Just e)
-
-setEnv :: [Agent m s e] -> Maybe e -> STM ([Agent m s e], Maybe (TVar e))
-setEnv as Nothing = return (as, Nothing)
-setEnv as (Just env) = do
-                        envVar <- newTVar env
-                        let as' = Prelude.map (\a -> a { env = Just envVar } ) as
-                        return (as', Just envVar)
-
-
-receiveMsg :: Agent m s e -> STM (Maybe (AgentId, m))
-receiveMsg a = tryReadTChan mb
+-- TODO: this is a bit more complicated as we need all agents at this point, but this can't be done here, we need to do that at a global point? but this will consume lots of time, can we parallelize it?
+deliverOutMsgs :: [Agent m s e] -> [Agent m s e]
+deliverOutMsgs as = Map.elems agentsWithMsgs
     where
-        mb = mbox a
+        (allOutMsgs, as') = collectOutMsgs as
+        agentMap = foldl (\acc a -> Map.insert (agentId a) a acc ) Map.empty as'        -- TODO: hashmap will change the order, is this alright? should be when working in parallel
+        agentsWithMsgs = foldl (\agentMap' outMsgTup -> deliverMsg agentMap' outMsgTup ) agentMap allOutMsgs
 
-deliverQueuedMsgs :: Agent m s e -> STM (Agent m s e)
-deliverQueuedMsgs a = do
-                        let qms = queuedMs a
-                        mapM (\(target, m) -> sendMsg a m target ) qms
-                        let a' = a { queuedMs = [] }
-                        return a
-
-processMsg :: Agent m s e -> (AgentId, m) -> STM (Agent m s e)
-processMsg a (senderId, msg) = handler a msg senderId
+deliverMsg :: Map.Map AgentId (Agent m s e) -> (AgentId, AgentId, m) -> Map.Map AgentId (Agent m s e)
+deliverMsg agentMap (senderId, targetId, m) = Map.insert targetId a' agentMap
     where
-        handler = msgHandler a
+        a = fromJust (Map.lookup targetId agentMap)    -- NOTE: must be in the map
+        ib = inBox a
+        ibM = (senderId, m)
+        a' = a { inBox = ib ++ [ibM] }     -- TODO: is ordering important??? what is the meaning of ordering in this case?
 
-processAllMessages :: Agent m s e -> STM (Agent m s e)
-processAllMessages a = do
-                        msg <- receiveMsg a
-                        if ( isNothing msg ) then
-                            return a
-                                else
-                                    do
-                                        a' <- processMsg a (fromJust msg)
-                                        processAllMessages a'
+-- NOTE: first AgentId: senderId, second AgentId: targetId
+collectOutMsgs :: [Agent m s e] -> ([(AgentId, AgentId, m)], [Agent m s e])
+collectOutMsgs as = foldl (\(accMsgs, accAs) a -> ((outBox a) ++ accMsgs, (a { outBox = [] }) : accAs) ) ([], []) as
 
--- TODO: need to add atomically when in parallel
--- TODO: process messages first or update first? this has different semantics when messages are seen immediately
-stepAgent :: Double -> Agent m s e -> STM (Agent m s e)
-stepAgent dt a = do
-                    aAfterMsgProc <- processAllMessages a
-                    let upHdl = updateHandler aAfterMsgProc             -- NOTE: updateHandler could have changed!
-                    aAfterUpdt <- upHdl aAfterMsgProc dt
-                    aAfterDelivery <- deliverQueuedMsgs aAfterUpdt
-                    return aAfterDelivery
+-- TODO: run parallel
+stepAgent :: Double -> Agent m s e -> Agent m s e
+stepAgent dt a = aAfterUpdt
+    where
+        aAfterMsgProc = processAllMessages a
+        aAfterUpdt = (updateHandler aAfterMsgProc) aAfterMsgProc dt
+        -- aAfterDelivery = deliverQueuedMsgs aAfterUpdt
+
+processMsg :: Agent m s e -> (AgentId, m) -> Agent m s e
+processMsg a (senderId, m) = (msgHandler a) a m senderId
+
+processAllMessages :: Agent m s e -> Agent m s e
+processAllMessages a = aAfterMsgs { inBox = [] }
+    where
+        aAfterMsgs = foldl (\a' senderMsgPair -> processMsg a' senderMsgPair) a (inBox a)
 ------------------------------------------------------------------------------------------------------------------------
 
 

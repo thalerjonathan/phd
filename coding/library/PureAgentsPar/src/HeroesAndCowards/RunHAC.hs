@@ -2,9 +2,8 @@ module HeroesAndCowards.RunHAC where
 
 import HeroesAndCowards.HACModel
 
-import qualified PureAgentsSTM as PA
+import qualified PureAgentsPar as PA
 
-import Control.Monad.STM
 import System.Random
 
 import qualified HeroesAndCowards.HACFrontend as Front
@@ -19,14 +18,12 @@ stepHAC = do
         let agentCount = 500
         let heroDistribution = 0.5
         let rngSeed = 42
-        let steps = 10
+        let steps = 1
         let g = mkStdGen rngSeed
         let e = (Just 42) :: (Maybe HACEnvironment)
-        -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
-        (as, g') <- atomically $ createRandomHACAgents g agentCount heroDistribution
-        -- NOTE: this works for now when NOT using parallelism
-        (as, e') <- atomically $ PA.stepSimulation as e dt steps
-        outs <- mapM (putStrLn . show . PA.state) as
+        let (as, g') = createRandomHACAgents g agentCount heroDistribution
+        let (as', e') = PA.stepSimulation as e dt steps
+        outs <- mapM (putStrLn . show . PA.state) as'
         putStrLn (show e')
         return ()
 
@@ -38,9 +35,9 @@ runHAC = do
         let rngSeed = 42
         let g = mkStdGen rngSeed
         let e = (Just 42) :: (Maybe HACEnvironment)
-        -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
-        (as, g') <- atomically $ createRandomHACAgents g agentCount heroDistribution
-        (as', hdl) <- atomically $ PA.initStepSimulation as e
+        let (as, g') = createRandomHACAgents g agentCount heroDistribution
+        --let as = createHACTestAgents
+        let (as', hdl) = PA.initStepSimulation as e
         stepWithRendering hdl dt
 
 
@@ -65,7 +62,7 @@ modelToPicture hdl = return (Front.renderFrame observableAgentStates)
 --             atomically would commit the changes and make them visible to other threads
 stepIteration :: Double -> GLO.ViewPort -> Float -> HACSimHandle -> IO HACSimHandle
 stepIteration fixedDt viewport dtRendering hdl = do
-                                                    (as', e', hdl') <- atomically $ PA.advanceSimulation hdl fixedDt
+                                                    let (as', e', hdl') = PA.advanceSimulation hdl fixedDt
                                                     return hdl'
 
 hacAgentToObservableState :: HACAgent -> (Double, Double, Bool)

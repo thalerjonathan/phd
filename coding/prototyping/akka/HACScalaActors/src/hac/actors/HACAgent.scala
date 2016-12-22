@@ -40,7 +40,7 @@ class HACAgent( id: Int,
 
   private var lastUpdate: Long = 0;
 
-  private val SPEED = 0.05;
+  private val SPEED = 0.5;
 
   def getId() : Int = {
     id

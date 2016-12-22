@@ -1,0 +1,14 @@
+name:               PureAgentsPar
+version:            1.0
+Build-Type:         Simple
+cabal-version:      >= 1.2
+
+executable PureAgentsPar
+  main-is:          Main.hs
+  hs-source-dirs:   src
+  build-depends:    base, hashmap, gloss, random, monad-par, deepseq, parallel
+  default-language: Haskell2010
+  ghc-options:      -threaded
+                    -fprof-auto
+                    -prof
+                    "-with-rtsopts=-N -p -s -h -i0.1"

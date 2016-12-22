@@ -15,10 +15,10 @@ import qualified Graphics.Gloss.Interface.IO.Simulate as GLO
 stepHAC :: IO ()
 stepHAC = do
         let dt = 0.025
-        let agentCount = 500
+        let agentCount = 1000
         let heroDistribution = 0.5
         let rngSeed = 42
-        let steps = 1
+        let steps = 1000
         let g = mkStdGen rngSeed
         let e = (Just 42) :: (Maybe HACEnvironment)
         let (as, g') = createRandomHACAgents g agentCount heroDistribution

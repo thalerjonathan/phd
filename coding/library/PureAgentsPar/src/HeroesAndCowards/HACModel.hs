@@ -1,13 +1,17 @@
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
+
 module HeroesAndCowards.HACModel where
 
 import System.Random
 import Data.Maybe
+import Control.DeepSeq
+import GHC.Generics (Generic)
 
 import qualified PureAgentsPar as PA
 
 type HACAgentPosition = (Double, Double)
-data HACMsg = PositionRequest | PositionUpdate HACAgentPosition
-data HACWorldType = Infinite | Border | Wraping deriving (Eq, Show)
+data HACMsg = PositionRequest | PositionUpdate HACAgentPosition deriving (Generic, NFData)
+data HACWorldType = Infinite | Border | Wraping deriving (Eq, Show, Generic, NFData)
 
 type HACEnvironment = Int
 
@@ -19,7 +23,7 @@ data HACAgentState = HACAgentState {
     enemy :: PA.AgentId,
     friendPos :: Maybe HACAgentPosition,
     enemyPos :: Maybe HACAgentPosition
-} deriving (Show)
+} deriving (Show, Generic, NFData)
 
 type HACAgent = PA.Agent HACMsg HACAgentState HACEnvironment
 type HACSimHandle = PA.SimHandle HACMsg HACAgentState HACEnvironment

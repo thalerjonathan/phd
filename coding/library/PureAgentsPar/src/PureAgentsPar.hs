@@ -39,8 +39,6 @@ import qualified Data.HashMap as Map
 -- TODO: BIG problem: how do we treat the environment now as every agent has it's local copy => only local updates
     -- TODO: this would allow us the easily calculate all possible solutions e.g. in a discrete case (but infeasible if big)
 
--- TODO: parallelism using par-monad
-
 -- TODO: Yampa/Dunai
     -- TODO: let the whole thing run in Yampa/Dunai so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai. But because running in STM must use Dunai
     -- TODO: implement wait blocking for a message so far. utilize yampas event mechanism?
@@ -79,12 +77,6 @@ data SimHandle m s e = SimHandle {
     simHdlAgents :: [Agent m s e],
     simHdlEnv :: Maybe e
 }
-
--- NOTE: need to provide an instance-implementation for NFData when using Par-Monad as it reduces to normal-form
-{-
-instance NFData (Agent m s e) where
-    rnf (Agent id k o i ns _ _ s news e) = rnf id `seq` rnf k `seq` rnf o `seq` rnf i `seq` rnf ns `seq` rnf s `seq` rnf news `seq` rnf e
--}
 
 newAgent :: Agent m s e -> Agent m s e -> Agent m s e
 newAgent aParent aNew = aParent { newAgents = nas ++ [aNew'] }
@@ -165,26 +157,26 @@ extractAgents :: SimHandle m s e -> [Agent m s e]
 extractAgents = simHdlAgents
 
 -- TODO: return all steps of agents and environment
-stepSimulation :: [Agent m s e] -> Maybe e -> Double -> Int -> ([Agent m s e], Maybe e)
+stepSimulation :: (NFData m, NFData s, NFData e) => [Agent m s e] -> Maybe e -> Double -> Int -> ([Agent m s e], Maybe e)
 stepSimulation as e dt n = (asFinal, finalEnv)
     where
         (asWithEnv, mayEnvVar) = setEnv as e
         asFinal = stepSimulation' asWithEnv dt n
         finalEnv = mayEnvVar        -- TODO: handle env-problem: it should be global but is always agent-local
 
-        stepSimulation' :: [Agent m s e] -> Double -> Int -> [Agent m s e]
+        stepSimulation' :: (NFData m, NFData s, NFData e) => [Agent m s e] -> Double -> Int -> [Agent m s e]
         stepSimulation' as dt 0 = as
         stepSimulation' as dt n = stepSimulation' as' dt (n-1)
             where
                 as' = stepAllAgents as dt
 
-initStepSimulation :: [Agent m s e] -> Maybe e -> ([Agent m s e], SimHandle m s e)
+initStepSimulation :: (NFData m, NFData s, NFData e) => [Agent m s e] -> Maybe e -> ([Agent m s e], SimHandle m s e)
 initStepSimulation as e = (asWithEnv, hdl)
     where
         (asWithEnv, mayEnvVar) = setEnv as e
         hdl = SimHandle { simHdlAgents = asWithEnv, simHdlEnv = mayEnvVar }
 
-advanceSimulation :: SimHandle m s e -> Double -> ([Agent m s e], Maybe e, SimHandle m s e)
+advanceSimulation :: (NFData m, NFData s, NFData e) => SimHandle m s e -> Double -> ([Agent m s e], Maybe e, SimHandle m s e)
 advanceSimulation hdl dt = (as', env', hdl')
     where
         as = simHdlAgents hdl
@@ -192,12 +184,12 @@ advanceSimulation hdl dt = (as', env', hdl')
         env' = extractEnv hdl
         hdl' = hdl { simHdlAgents = as' }         -- TODO: handle env-problem: it should be global but is always agent-local
 
-runSimulation :: [Agent m s e] -> Maybe e -> OutFunc m s e -> IO ()
+runSimulation :: (NFData m, NFData s, NFData e) => [Agent m s e] -> Maybe e -> OutFunc m s e -> IO ()
 runSimulation as e out = runSimulation' asWithEnv 0.0 mayEnvVar out
     where
         (asWithEnv, mayEnvVar) = setEnv as e
 
-        runSimulation' :: [Agent m s e] -> Double -> Maybe e -> OutFunc m s e -> IO ()
+        runSimulation' :: (NFData m, NFData s, NFData e) => [Agent m s e] -> Double -> Maybe e -> OutFunc m s e -> IO ()
         runSimulation' as dt mayEnvVar out = do
                                                 let as' = stepAllAgents as dt
                                                 let finalEnv = mayEnvVar    -- TODO: handle env-problem: it should be global but is always agent-local
@@ -217,33 +209,23 @@ setEnv as (Just env) = (as', Just env)
     where
         as' = Prelude.map (\a -> a { env = Just env } ) as   -- TODO: handle env-problem: it should be global but is always agent-local
 
+-- TODO: can we parallelize this?
 stepAllAgents :: [Agent m s e] -> Double -> [Agent m s e]
 stepAllAgents as dt = deliverOutMsgs steppedAs
     where
-        steppedAs = map (stepAgent dt) as -- TODO: add newAgent- and kill-handling. think about how best parallelize
+        steppedAs = foldl (stepAllAgentsFold dt) [] as
 
-{-
-stepAllAgents :: [Agent m s e] -> Double -> [Agent m s e]
-stepAllAgents as dt = deliverOutMsgs steppedAs
-    where
-        steppedAsPar = parMap (stepAgent dt) as -- TODO: add newAgent- and kill-handling. think about how best parallelize
-        steppedAs = runPar steppedAsPar
--}
-{-
-foldl (\acc a -> do
-                                        aAfterStep <- stepAgent dt a
-                                        acc' <- acc
-                                        if ( killFlag aAfterStep ) then   -- NOTE: won't notify other agents about the death, this can be implemented by domain-specific messages if required
-                                            return (acc' ++ (newAgents aAfterStep)) -- NOTE: no need to clear the list of newAgents because this agent will be deleted anyway
-                                            else
-                                                do
-                                                    let nas = newAgents aAfterStep
-                                                    let a' = aAfterStep { newAgents = [] }
-                                                    return (acc' ++ [a'] ++ nas)
-                                        ) (return []) as
--}
+        stepAllAgentsFold :: Double -> [Agent m s e] -> Agent m s e -> [Agent m s e]
+        stepAllAgentsFold dt as a
+            | killAgent = (as ++ nas)
+            | otherwise = (as ++ [aNewAgentsRemoved] ++ nas)
+            where
+                aAfterStep = stepAgent dt a
+                nas = newAgents aAfterStep
+                killAgent = (killFlag aAfterStep)
+                aNewAgentsRemoved = aAfterStep { newAgents = [] }
 
--- TODO: this is a bit more complicated as we need all agents at this point, but this can't be done here, we need to do that at a global point? but this will consume lots of time, can we parallelize it?
+-- TODO: can we parallelize this?
 deliverOutMsgs :: [Agent m s e] -> [Agent m s e]
 deliverOutMsgs as = Map.elems agentsWithMsgs
     where
@@ -269,7 +251,6 @@ stepAgent dt a = aAfterUpdt
     where
         aAfterMsgProc = processAllMessages a
         aAfterUpdt = (updateHandler aAfterMsgProc) aAfterMsgProc dt
-        -- aAfterDelivery = deliverQueuedMsgs aAfterUpdt
 
 processMsg :: Agent m s e -> (AgentId, m) -> Agent m s e
 processMsg a (senderId, m) = (msgHandler a) a m senderId

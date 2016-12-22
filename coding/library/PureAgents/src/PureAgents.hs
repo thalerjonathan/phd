@@ -44,14 +44,15 @@ import qualified Data.HashMap as Map
     -- TODO: is getting rid of STM an option?
 
 -- TODO: Features
+    -- TODO: implement become: simply changes the message- & update-handler
     -- TODO: provide implementations for all kinds of sim-semantics but hidden behind a message interface common to all but different semantics with different steppings
-    -- TODO: shortcoming: cannot wait blocking for a message so far. utilize yampas event mechanism?
 
 -- TODO: Refactorings
     -- TODO: fix parameters which won't change anymore after an Agent has started by using currying
 
 -- TODO: Yampa/Dunai
     -- TODO: let the whole thing run in Yampa/Dunai so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai. But because running in STM must use Dunai
+    -- TODO: implement wait blocking for a message so far. utilize yampas event mechanism?
 
 ------------------------------------------------------------------------------------------------------------------------
 -- PUBLIC, exported
@@ -84,25 +85,46 @@ data SimHandle m s e = SimHandle {
     simHdlEnv :: Maybe (TVar e)
 }
 
+-- NOTE: almost all functions want an Agent and return an Agent: this is how we communicate changes to the simulation-system: by changing the agent
+
+{-|
+    The 'newAgent' function takes a parent Agent and a new Agent to be added to the Simulation
+    It will be running on the next global-step of the Simulation.
+
+    Returns the parent Agent
+-}
 newAgent :: Agent m s e -> Agent m s e -> Agent m s e
 newAgent aParent aNew = aParent { newAgents = nas ++ [aNew'] }
     where
         aNew' = aNew { env = (env aParent)} -- NOTE: set to same environment
         nas = newAgents aParent
 
+{-|
+    Marks an Agent as to be killed at the end of the global-step of the simulation
+-}
 kill :: Agent m s e -> Agent m s e
 kill a = a { killFlag = True }
 
+{-|
+    Queues a message to be send to the target. It will be sent to the target at the end of the global-step using sendMsg.
+    Note that this results in the target to see the message in the next global-step and not the current one
+        NOTE: this is a function which allows to have different simulation-semantics and makes this explicit through
+                exposing this interface and not hiding it in the execution-model of the simulation
+-}
 queueMsg :: Agent m s e -> m -> AgentId -> Agent m s e
 queueMsg a m targetId = a { queuedMs = qms' }
     where
         qms = queuedMs a
         qms' = qms ++ [(targetId, m)]
 
+{-|
+    SEnds a message to the target. Note that the message will be seen immediately by the target which could be in
+    the same global-step of the simulation if the target-Agent runs AFTER the message has been sent (either because of parallel- or sequential-update)
+-}
 sendMsg :: Agent m s e -> m -> AgentId -> STM ()
 sendMsg a m targetId
     | isNothing targetMbox = return ()                          -- NOTE: receiver not found in the neighbours
-    | otherwise = writeTChan (fromJust targetMbox) (senderId, m)
+    | otherwise = writeTChan (fromJust targetMbox) (senderId, m)        -- NOTE: we commit the message immediately
     where
         nsBox = neighbourMbox a
         senderId = agentId a

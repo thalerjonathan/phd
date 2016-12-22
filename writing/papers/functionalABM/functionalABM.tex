@@ -57,10 +57,22 @@
 \begin{abstract}
 TODO: the title is not very well suited towards research: it just describes the implementation of a library which is just of a software-engineering problem and not a research topic.
 
+Stability of emergent properties of ABM/S under different Simulation-Semantics.
+
 The central research of this paper is
+- establishing a terminology for speaking about Simulation-Semantics
 - how do emergent properties behave under varying simulation semantics?
-- how varying simulation-semantics can be implemented in a pure functional way.
-- what do we get from implementing them in a pure functional way?
+	-> for this we implemented same model in different languages: Java, Haskell and Scala & Actors with different Simulation-Semantics: Java & Haskell all Global, Scala & Actors Local only.
+	-> Java: supports global data => suitable to implement global decisions.
+	-> Haskell: has no global data => local decisions (has support for global data through STM/IO)
+	-> Scala: mixed, can do both 
+- can we reason about emergent properties / dynamics of a simulation just by looking at the code/model or is it impossible?
+	-> hypothesis: it all depends on the way we formulate our problem: we might be able to tell from the model-specification but code could become too complicated
+		=> if we write code that looks same as the model-specification (using an EDSL) we could potentially be able to identify:
+			-> positive & negative feedback-loops 
+			-> other mechanisms of feedback/sources of emergent properties?
+				-> what are sources of emergent properties?
+					-> what are emergent properties anyway? can we deliver a very precise definition?
 
 In this paper we look at the very simple social-simulation of \textit{Heroes \& Cowards} invented by \cite{wilensky_introduction_2015} to study new methods in Agent-Based Modelling and Simulation (ABM/S) and to highlight their potentials and limitations as opposed to object-oriented (OO) ones which are dominant in this field. We go into the opposite direction and ask how ABM/S can be done using the Actor-Model as defined by \cite{agha_actors:_1986} and pure functional programming in Haskell. Both are methods which have unfortunately not been considered very deeply in this field and requires to look at ABM/S from a different perspective which this paper tries to provide. The Actor-Model was a major influence in the development of Agents and has proven its use in Erlang for building industry-strength applications but the question whether it is well suited for ABM/S is still open to question. A functional direction offers a wealth of new powerful tools and methods where the most obvious benefits of using a pure functional approach is that it allows to reason about various properties of the program and implementation of an embedded domain-specific language (EDSL), where ideally the distinction between specification and implementation disappears. \\
 Thus we implemented a new library in Haskell for ABM/S called \textit{PureAgents}, available on Hackage, making maximum use of the functional paradigm and utilizing the Actor-Model as the underlying paradigm for thinking, representing, modelling and implementing Agents. We compare the implementation of \textit{Heroes \& Cowards} in \textit{PureAgents} with a variety of implementations in other existing methods. For comparison with state-of-the-art methods we look at the classic implementation in NetLogo, implement the model in AnyLogic and ReLogo and also look into an object-oriented implementation in Java without using any ABM/S framework. To have a comparison with a method which is close to our new developed library we look into Scala which is a multi-paradigm approach to functional programming and allows to incorporate objects and side-effects and comes already with an Actor-Library. \\

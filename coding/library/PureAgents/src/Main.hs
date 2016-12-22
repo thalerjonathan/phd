@@ -9,4 +9,4 @@ import HeroesAndCowards.RunHAC
 
 main :: IO ()
 main = do
-        runHAC
+        stepHAC

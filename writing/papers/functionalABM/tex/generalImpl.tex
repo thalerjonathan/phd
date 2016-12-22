@@ -45,15 +45,15 @@ The following table gives an overview of the methods presented above. Real Rando
 \begin{table}[H]
 	\center
 	\begin{tabular}{ c | c | c | c }
-		\textit{Scale} & \textit{Order} & \textit{Real Randomness} & \textit{Type}\\
+		\textit{Time} & \textit{Order} & \textit{Decisions} & \textit{Real Randomness} & \textit{Type}\\
 		\hhline{=|=|=}
-	    Global & Sequential & No & Continuous \\ 
+	    Global & Sequential & Global & No & Continuous \\ 
 	    \hline
-	    Global & Parallel & No & Discrete \\ 
+	    Global & Parallel & Local & No & Discrete \\ 
 	    \hline
-	    Global & Concurrent & Yes & Continuous \\ 
+	    Global & Concurrent & Global & Yes & Continuous \\ 
 	    \hline
-	    Local & Random & Yes & Continuous \\ 
+	    Local & Random & Yes & Local & Continuous \\ 
 	\end{tabular}
 	\caption{Summary of simulation-stepping methods.}
 \end{table}

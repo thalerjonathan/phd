@@ -20,3 +20,6 @@ out/
 src-gen/
 *.hp
 *.prof
+cabal-sandbox/
+.cabal-sandbox/
+cabal.sandbox.config

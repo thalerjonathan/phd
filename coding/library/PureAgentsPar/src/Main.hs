@@ -2,5 +2,7 @@ module Main where
 
 import HeroesAndCowards.RunHAC
 
+import SIRS.RunSIRS
+
 main :: IO ()
-main = runHAC
+main = runSIRS

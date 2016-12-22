@@ -2,7 +2,7 @@ module SIRS.RunSIRS where
 
 import SIRS.SIRSModel
 
-import qualified PureAgents as PA
+import qualified PureAgentsSTM as PA
 
 import Control.Monad.STM
 import System.Random

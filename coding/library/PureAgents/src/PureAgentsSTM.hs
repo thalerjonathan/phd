@@ -1,4 +1,4 @@
-module PureAgents (
+module PureAgentsSTM (
     module Control.Monad.STM,
     module Control.Concurrent.STM.TChan,
     module Control.Concurrent.STM.TVar,
@@ -34,21 +34,20 @@ import Data.Maybe
 
 import System.Random
 
-import Debug.Trace
-
 import qualified Data.HashMap as Map
 
--- TODO: parallelism & concurency
-    -- TODO: how can we implement true parallelism? can we use STM somehow or do we need local mailboxes?
-    -- TODO: exploit parallelism and concurrency using par monad? problem: STM may rollback and need retry
-    -- TODO: is getting rid of STM an option?
+{-|
+    This is an attempt on implementing a global-decision semantics ABM/S using STM but not running in parallel!
+    For running in parallel we would need to carefully redesign the whole atomically stuff and in the end run in the IO-Monad, something we don't want here
 
--- TODO: Features
-    -- TODO: implement become: simply changes the message- & update-handler
-    -- TODO: provide implementations for all kinds of sim-semantics but hidden behind a message interface common to all but different semantics with different steppings
+    AGAIN: THIS IS NOT INTENDED TO RUN IN PARALLEL AS IT WILL NOT WORK CORRECTLY (OR AT ALL) WHEN EXECUTING CONCURRENTLY!
+    AGAIN: THIS IS NOT INTENDED TO RUN IN PARALLEL AS IT WILL NOT WORK CORRECTLY (OR AT ALL) WHEN EXECUTING CONCURRENTLY!
+    AGAIN: THIS IS NOT INTENDED TO RUN IN PARALLEL AS IT WILL NOT WORK CORRECTLY (OR AT ALL) WHEN EXECUTING CONCURRENTLY!
+    AGAIN: THIS IS NOT INTENDED TO RUN IN PARALLEL AS IT WILL NOT WORK CORRECTLY (OR AT ALL) WHEN EXECUTING CONCURRENTLY!
+    AGAIN: THIS IS NOT INTENDED TO RUN IN PARALLEL AS IT WILL NOT WORK CORRECTLY (OR AT ALL) WHEN EXECUTING CONCURRENTLY!
 
--- TODO: Refactorings
-    -- TODO: fix parameters which won't change anymore after an Agent has started by using currying
+    NOTE: almost all functions want an Agent and return an Agent: this is how we communicate changes to the simulation-system: by changing the agent
+-}
 
 -- TODO: Yampa/Dunai
     -- TODO: let the whole thing run in Yampa/Dunai so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai. But because running in STM must use Dunai
@@ -69,7 +68,6 @@ type OutFunc m s e = (([Agent m s e], Maybe e) -> IO (Bool, Double))
 data Agent m s e = Agent {
     agentId :: AgentId,
     killFlag :: Bool,
-    queuedMs :: [(AgentId, m)],
     mbox :: (TChan (AgentId, m)),
     neighbourIds :: [AgentId],
     neighbourMbox :: Map.Map AgentId (TChan (AgentId, m)),        -- NOTE: strength of haskell: ensure by static typing that only neighbours with same message-protocoll
@@ -84,8 +82,6 @@ data SimHandle m s e = SimHandle {
     simHdlAgents :: [Agent m s e],
     simHdlEnv :: Maybe (TVar e)
 }
-
--- NOTE: almost all functions want an Agent and return an Agent: this is how we communicate changes to the simulation-system: by changing the agent
 
 {-|
     The 'newAgent' function takes a parent Agent and a new Agent to be added to the Simulation
@@ -104,18 +100,6 @@ newAgent aParent aNew = aParent { newAgents = nas ++ [aNew'] }
 -}
 kill :: Agent m s e -> Agent m s e
 kill a = a { killFlag = True }
-
-{-|
-    Queues a message to be send to the target. It will be sent to the target at the end of the global-step using sendMsg.
-    Note that this results in the target to see the message in the next global-step and not the current one
-        NOTE: this is a function which allows to have different simulation-semantics and makes this explicit through
-                exposing this interface and not hiding it in the execution-model of the simulation
--}
-queueMsg :: Agent m s e -> m -> AgentId -> Agent m s e
-queueMsg a m targetId = a { queuedMs = qms' }
-    where
-        qms = queuedMs a
-        qms' = qms ++ [(targetId, m)]
 
 {-|
     SEnds a message to the target. Note that the message will be seen immediately by the target which could be in
@@ -164,7 +148,6 @@ createAgent i s mhdl uhdl = do
                                                 state = s,
                                                 mbox = mb,
                                                 killFlag = False,
-                                                queuedMs = [],
                                                 neighbourMbox = Map.empty,
                                                 neighbourIds = [],
                                                 newAgents = [],
@@ -214,7 +197,7 @@ stepSimulation as e dt n = do
         stepSimulation' :: [Agent m s e] -> Double -> Int -> STM [Agent m s e]
         stepSimulation' as dt 0 = return as
         stepSimulation' as dt n = do
-                                    as' <- stepAllAgents as dt       -- TODO: if running in parallel, then we need to commit at some point using atomically
+                                    as' <- stepAllAgents as dt
                                     stepSimulation' as' dt (n-1)
 
 initStepSimulation :: [Agent m s e] -> Maybe e -> STM ([Agent m s e], SimHandle m s e)
@@ -282,13 +265,6 @@ receiveMsg a = tryReadTChan mb
     where
         mb = mbox a
 
-deliverQueuedMsgs :: Agent m s e -> STM (Agent m s e)
-deliverQueuedMsgs a = do
-                        let qms = queuedMs a
-                        mapM (\(target, m) -> sendMsg a m target ) qms
-                        let a' = a { queuedMs = [] }
-                        return a
-
 processMsg :: Agent m s e -> (AgentId, m) -> STM (Agent m s e)
 processMsg a (senderId, msg) = handler a msg senderId
     where
@@ -304,15 +280,12 @@ processAllMessages a = do
                                         a' <- processMsg a (fromJust msg)
                                         processAllMessages a'
 
--- TODO: need to add atomically when in parallel
--- TODO: process messages first or update first? this has different semantics when messages are seen immediately
 stepAgent :: Double -> Agent m s e -> STM (Agent m s e)
 stepAgent dt a = do
                     aAfterMsgProc <- processAllMessages a
                     let upHdl = updateHandler aAfterMsgProc             -- NOTE: updateHandler could have changed!
                     aAfterUpdt <- upHdl aAfterMsgProc dt
-                    aAfterDelivery <- deliverQueuedMsgs aAfterUpdt
-                    return aAfterDelivery
+                    return aAfterUpdt
 ------------------------------------------------------------------------------------------------------------------------
 
 

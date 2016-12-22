@@ -63,9 +63,10 @@ The central research of this paper is
 - establishing a terminology for speaking about Simulation-Semantics
 - how do emergent properties behave under varying simulation semantics?
 	-> for this we implemented same model in different languages: Java, Haskell and Scala & Actors with different Simulation-Semantics: Java & Haskell all Global, Scala & Actors Local only.
-	-> Java: supports global data => suitable to implement global decisions.
-	-> Haskell: has no global data => local decisions (has support for global data through STM/IO)
-	-> Scala: mixed, can do both 
+	-> Java: supports global data => suitable to implement global decisions: implementing global-time, sequential iteration with global decisions
+	-> Haskell: has no global data => local decisions (has support for global data through STM/IO but then looses very power?) => implementing global-time, parallel iteration with local-decisions. 
+		-> Haskell STM solution => implementing concurrent version using STM? but this is very complicated in its own right
+	-> Scala: mixed, can do both => implementing local time with random iteration and local decisions
 - can we reason about emergent properties / dynamics of a simulation just by looking at the code/model or is it impossible?
 	-> hypothesis: it all depends on the way we formulate our problem: we might be able to tell from the model-specification but code could become too complicated
 		=> if we write code that looks same as the model-specification (using an EDSL) we could potentially be able to identify:

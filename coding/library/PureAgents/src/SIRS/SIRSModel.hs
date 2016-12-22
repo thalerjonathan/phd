@@ -4,7 +4,7 @@ import Control.Monad.STM
 
 import System.Random
 
-import qualified PureAgents as PA
+import qualified PureAgentsSTM as PA
 
 data SIRSState = Susceptible | Infected | Recovered deriving (Eq, Show)
 data SIRSMsg = Contact SIRSState

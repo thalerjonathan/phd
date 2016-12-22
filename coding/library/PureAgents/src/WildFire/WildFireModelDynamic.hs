@@ -8,7 +8,7 @@ import Data.List
 import Data.Maybe
 
 import qualified Data.HashMap as Map
-import qualified PureAgents as PA
+import qualified PureAgentsSTM as PA
 
 type WFCellCoord = (Int, Int)
 data WFCellState = Living | Burning | Dead deriving (Eq, Show)

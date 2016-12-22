@@ -6,7 +6,7 @@ import Control.Concurrent.STM.TVar
 import System.Random
 import Data.Maybe
 
-import qualified PureAgents as PA
+import qualified PureAgentsSTM as PA
 
 -- TODO: fix parameters which won't change anymore after an Agent has started by using currying. e.g. World-Type
 

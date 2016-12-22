@@ -5,7 +5,7 @@ import Control.Monad.STM
 import System.Random
 import Debug.Trace
 
-import qualified PureAgents as PA
+import qualified PureAgentsSTM as PA
 
 type WFCell = (Int, Int)
 data WFState = Living | Burning | Dead deriving (Eq, Show)

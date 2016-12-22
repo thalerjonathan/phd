@@ -13,7 +13,7 @@ import Data.Maybe
 import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.IO.Simulate
 
-import qualified PureAgents as PA
+import qualified PureAgentsSTM as PA
 
 runWFDynamic :: IO ()
 runWFDynamic = do

@@ -4,5 +4,7 @@ import HeroesAndCowards.RunHAC
 
 import SIRS.RunSIRS
 
+import WildFire.RunWFStatic
+
 main :: IO ()
-main = runSIRS
+main = runWFStatic

@@ -1,21 +1,27 @@
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
+
 module WildFire.WildFireModelStatic where
 
-import Control.Monad.STM
-
 import System.Random
-import Debug.Trace
+import Control.DeepSeq
+import GHC.Generics (Generic)
 
-import qualified PureAgentsSTM as PA
+import qualified PureAgentsPar as PA
 
 type WFCell = (Int, Int)
-data WFState = Living | Burning | Dead deriving (Eq, Show)
-data WFMsg = Ignite
+data WFState = Living | Burning | Dead deriving (Eq, Show, Generic, NFData)
+data WFMsg = Ignite deriving (Generic, NFData)
 
 data WFAgentState = WFAgentState {
     wfState :: WFState,
     burnable :: Double,
     rng :: StdGen
 } deriving (Show)
+
+-- NOTE: need to provide an instance-implementation for NFData when using Par-Monad as it reduces to normal-form
+-- NOTE: use separate implementation because ommiting StdGen
+instance NFData WFAgentState where
+    rnf (WFAgentState w b r) = rnf w `seq` rnf b
 
 type WFEnvironment = ()
 type WFAgent = PA.Agent WFMsg WFAgentState WFEnvironment
@@ -33,39 +39,39 @@ is a wfs = (wfState s) == wfs
 
 wfMsgHandler :: WFMsgHandler
 wfMsgHandler a Ignite senderId
-    | is a Living = return (igniteAgent a)
-    | otherwise = return a
+    | is a Living = igniteAgent a
+    | otherwise = a
 
 wfUpdtHandler :: WFUpdtHandler
 wfUpdtHandler a dt
-    | is a Living = return a
-    | is a Dead = return a
+    | is a Living = a
+    | is a Dead = a
     | is a Burning = handleBurningAgent a dt
 
 igniteAgent :: WFAgent -> WFAgent
 igniteAgent a = PA.updateState a (\sOld -> sOld { wfState = Burning } )
 
-handleBurningAgent :: WFAgent -> Double -> STM WFAgent
+handleBurningAgent :: WFAgent -> Double -> WFAgent
 handleBurningAgent a dt = if burnableLeft <= 0.0 then
-                            return deadAgent
+                            deadAgent
                             else
-                                do
-                                    g' <- PA.sendMsgToRandomNeighbour burningAgent Ignite (rng (PA.state a))
-                                    return (PA.updateState burningAgent (\sOld -> sOld { rng = g' } ))
+                                PA.updateState aAfterRandIgnite (\sOld -> sOld { rng = g' } )
 
     where
         b = (burnable (PA.state a))
         burnableLeft = b - (burnPerTimeUnit * dt)
         deadAgent = PA.updateState a (\sOld -> sOld { wfState = Dead, burnable = 0.0 } )
         burningAgent = PA.updateState a (\sOld -> sOld { burnable = burnableLeft } )
+        (aAfterRandIgnite, g') = PA.sendMsgToRandomNeighbour burningAgent Ignite (rng (PA.state a))
 
-createRandomWFAgents :: StdGen -> (Int, Int) -> STM ([WFAgent], StdGen)
-createRandomWFAgents gInit cells@(x, y) = do
-                                        let agentCount = x*y
-                                        let (randStates, g') = createRandomStates gInit agentCount
-                                        as <- mapM (\idx -> PA.createAgent idx (randStates !! idx) wfMsgHandler wfUpdtHandler) [0..agentCount-1]
-                                        let as' = map (\a -> PA.addNeighbours a (agentNeighbours a as cells) ) as
-                                        return (as', g')
+createRandomWFAgents :: StdGen -> (Int, Int) -> ([WFAgent], StdGen)
+createRandomWFAgents gInit cells@(x, y) = (as', g')
+    where
+        agentCount = x*y
+        (randStates, g') = createRandomStates gInit agentCount
+        as = map (\idx -> PA.createAgent idx (randStates !! idx) wfMsgHandler wfUpdtHandler) [0..agentCount-1]
+        as' = map (\a -> PA.addNeighbours a (agentNeighbours a as cells) ) as
+
 
 agentNeighbours :: WFAgent -> [WFAgent] -> (Int, Int) -> [WFAgent]
 agentNeighbours a as cells = filter (\a' -> any (==(agentToCell a' cells)) neighbourCells ) as

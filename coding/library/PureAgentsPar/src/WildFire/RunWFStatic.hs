@@ -5,29 +5,41 @@ import WildFire.WildFireModelStatic
 import qualified Data.HashMap as Map
 import qualified WildFire.WildFireFrontend as Front
 
-import Control.Monad.STM
 import System.Random
 import System.IO
 import Data.Maybe
+import Data.List
+import Debug.Trace
 
 import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.IO.Simulate
 
-import qualified PureAgentsSTM as PA
+import qualified PureAgentsPar as PA
 
 runWFStatic :: IO ()
 runWFStatic = do
-               let dt = 1.0
-               let xCells = 20
-               let yCells = 20
-               let rngSeed = 42
-               let cells = (xCells, yCells)
-               let g = mkStdGen rngSeed
-               -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
-               (as, g') <- atomically $ createRandomWFAgents g cells
-               (as', hdl) <- atomically $ PA.initStepSimulation as Nothing
-               atomically $ PA.sendMsg (head as') Ignite 1
-               stepWithRendering hdl dt cells
+                let dt = 1.0
+                let xCells = 50
+                let yCells = 50
+                let rngSeed = 42
+                let cells = (xCells, yCells)
+                let g = mkStdGen rngSeed
+                -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
+                let (as, g') = createRandomWFAgents g cells
+                let ignitedAs = initialIgnition as (25, 25) cells
+                let (as', hdl) = PA.initStepSimulation ignitedAs Nothing
+                stepWithRendering hdl dt cells
+
+initialIgnition :: [WFAgent] -> (Int, Int) -> (Int, Int) -> [WFAgent]
+initialIgnition as pos cells
+    | isNothing mayAgentAtPos = as
+    | otherwise = infront ++ [ignitedAgentAtPos] ++ (tail behind)
+    where
+        mayAgentAtPos = find (\a -> pos == (agentToCell a cells)) as
+        agentAtPos = (fromJust mayAgentAtPos)
+        agentAtPosId = PA.agentId agentAtPos
+        ignitedAgentAtPos = agentAtPos{ PA.inBox = [(agentAtPosId, Ignite)]}
+        (infront, behind) = splitAt agentAtPosId as
 
 stepWithRendering :: WFSimHandle -> Double -> (Int, Int) -> IO ()
 stepWithRendering hdl dt cells = simulateIO Front.display
@@ -50,7 +62,7 @@ modelToPicture cells hdl = return (Front.renderFrame observableAgentStates cells
 --             atomically would commit the changes and make them visible to other threads
 stepIteration :: Double -> ViewPort -> Float -> WFSimHandle -> IO WFSimHandle
 stepIteration fixedDt viewport dtRendering hdl = do
-                                                    (as', e', hdl') <- atomically $ PA.advanceSimulation hdl fixedDt
+                                                    let (as', e', hdl') = PA.advanceSimulation hdl fixedDt
                                                     return hdl'
 
 wfAgentToObservableState :: (Int, Int) -> WFAgent -> Front.RenderCell

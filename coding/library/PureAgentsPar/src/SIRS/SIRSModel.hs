@@ -18,6 +18,7 @@ data SIRSAgentState = SIRSAgentState {
 } deriving (Show, Generic)
 
 -- NOTE: need to provide an instance-implementation for NFData when using Par-Monad as it reduces to normal-form
+-- NOTE: use separate implementation because ommiting StdGen
 instance NFData SIRSAgentState where
     rnf (SIRSAgentState s t r) = rnf s `seq` rnf t
 

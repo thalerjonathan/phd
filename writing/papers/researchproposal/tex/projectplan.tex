@@ -12,7 +12,7 @@ In this year I will learn basics and develop and research the methodology I will
 \item Get into reasoning about programs
 \item Basics of Economics \cite{bowles_understanding_2005}, 
 \item Basics of ACE: \cite{KirmanComplex2010}, \cite{Darley2007}
-\item Implement HaskellAgents Library
+\item Implement PureAgents Library
 \item Write the paper
 \item Prototype Auction/Fishmarket using Akka and Haskell and describe results in 1st year report.
 \item Write 1st year report
@@ -59,20 +59,24 @@ I plan to be finished - or nearly finished - at the end of the 3rd year. In this
 This is the list of papers I want to work on. The goals of publishing I set for myself are given beside the paper.
 
 \begin{enumerate}
-\item \textit{Pure by Nature: Agent-Based Simulation \& Modelling in Haskell} - Conference paper
+\item \textit{Dynamics of Agent-Based Simulation \& Modelling under different Simulation-Semantics.} - Conference paper
 \item \textit{Pure Functional ACE (Catchy title yet to be defined)} - Journal paper
+\item \textit{Pure by Nature: A Library for pure Agent-Based Simulation \& Modelling in Haskell} - Journal paper ?
 \item \textit{Time in Games: a Tron Light-Cycle Game in Dunai} - Journal/Conference paper
 \item \textit{The Genesis According to Computer-Science: Reality as Simulation of Free Will} - Optional publishing
 \item \textit{Pure Functional Islamic Design} - Optional publishing
 \end{enumerate}
 
-\subsubsection{Pure by Nature: Agent-Based Simulation \& Modelling in Haskell}
+\subsubsection{Dynamics of Agent-Based Simulation \& Modelling under different Simulation-Semantics.}
 The first paper which describes how one can implement ABM/S in Haskell and compares the implementation and results to Java and Akka. A major focus are update-strategies, parallelism, reproducibility, reasoning and comparability between the various implementations. 
 
 Actors: The Future in Agent-Based Simulation \& Modelling?
 Although the actor-model is quite old (beginning of the 70s) it seems to have a revival both in Erlang in the 90s and now in the Framework Akka (based on Scala). It is one way of organizing highly parallel (and optionally distributed) applications. Also the actor-model is very close to the agent-metaphor where the latter one was strongly inspired by the former one. Thus It would be very interesting to look closer into how the Actor-Model can be utilized to ABM/S as it seems that this has not been properly done yet.
 
 This paper will establish my methodology in using Haskell / pure functional programming in the 2nd year main work.
+
+\subsubsection{Pure by Nature: A Library for pure Agent-Based Simulation \& Modelling in Haskell}
+This paper describes the ideas and theory behind the implementation of my ABM/S library "PureAgents" in Haskell.
 
 \subsubsection{Pure Functional ACE (Catchy title yet to be defined)}
 Is the main work of the PhD and targeted at publication in a Journal. The exact topic and content will be clarified at the beginning of the 2nd year. Mainly it will describe how to implement Ionescus Framework of Gintis trading model and extend it to a more general Market-Model. It will also give an outlook on implementing it using dependent types.

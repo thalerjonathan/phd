@@ -13,13 +13,12 @@ runSIRS :: IO ()
 runSIRS = do
             --hSetBuffering stdin NoBuffering
             let dt = 1.0
-            let agentCount = 900
-            let dims = (30, 30)
+            let dims = (40, 40)
             let initInfectionProb = 0.2
             let rngSeed = 42
             let steps = 10
             let g = mkStdGen rngSeed
-            let (as, g') = createRandomSIRSAgents g agentCount initInfectionProb
+            let (as, g') = createRandomSIRSAgents g dims initInfectionProb
             let (as', hdl) = PA.initStepSimulation as Nothing
             stepWithRendering dims hdl dt
 
@@ -69,13 +68,13 @@ stepSIRS :: IO ()
 stepSIRS = do
             --hSetBuffering stdin NoBuffering
             let dt = 1.0
-            let agentCount = 100
+            let dims = (30, 30)
             let initInfectionProb = 0.2
             let rngSeed = 42
             let steps = 10
             let g = mkStdGen rngSeed
             -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
-            let (as, g') = createRandomSIRSAgents g agentCount initInfectionProb
+            let (as, g') = createRandomSIRSAgents g dims initInfectionProb
             putStrLn "Initial:"
             printAgents as
             -- NOTE: this works for now when NOT using parallelism

@@ -34,7 +34,7 @@ immuneDuration :: Double
 immuneDuration = 3.0
 
 infectionProbability :: Double
-infectionProbability = 0.2
+infectionProbability = 0.3
 
 is :: SIRSAgent -> SIRSState -> Bool
 is a ss = (sirState s) == ss
@@ -97,12 +97,14 @@ randomContact a = PA.updateState a' (\sOld -> sOld { rng = g' } )
         s = PA.state a
         (a', g') = PA.sendMsgToRandomNeighbour a (Contact Infected) (rng s)
 
-createRandomSIRSAgents :: StdGen -> Int -> Double -> ([SIRSAgent], StdGen)
-createRandomSIRSAgents gInit n p = (as', g')
+createRandomSIRSAgents :: StdGen -> (Int, Int) -> Double -> ([SIRSAgent], StdGen)
+createRandomSIRSAgents gInit cells@(x,y) p = (as', g')
     where
+        n = x * y
         (randStates, g') = createRandomStates gInit n p
         as = map (\idx -> PA.createAgent idx (randStates !! idx) sirsTransformer) [0..n-1]
-        as' = map (\a -> PA.addNeighbours a (filter (\a' -> (PA.agentId a') /= (PA.agentId a)) as) ) as
+        --as' = map (\a -> PA.addNeighbours a (filter (\a' -> (PA.agentId a') /= (PA.agentId a)) as) ) as
+        as' = map (\a -> PA.addNeighbours a (agentNeighbours a as cells) ) as
 
         createRandomStates :: StdGen -> Int -> Double -> ([SIRSAgentState], StdGen)
         createRandomStates g 0 p = ([], g)
@@ -127,3 +129,35 @@ randomThresh g p = (flag, g')
     where
         (thresh, g') = randomR(0.0, 1.0) g
         flag = thresh <= p
+
+
+agentNeighbours :: SIRSAgent -> [SIRSAgent] -> (Int, Int) -> [SIRSAgent]
+agentNeighbours a as cells = filter (\a' -> any (==(agentToCell a' cells)) neighbourCells ) as
+    where
+        aCell = agentToCell a cells
+        neighbourCells = neighbours aCell
+
+agentToCell :: SIRSAgent -> (Int, Int) -> (Int, Int)
+agentToCell a (xCells, yCells) = (ax, ay)
+     where
+        aid = PA.agentId a
+        ax = mod aid yCells
+        ay = floor((fromIntegral aid) / (fromIntegral xCells))
+
+
+neighbourhood :: [(Int, Int)]
+neighbourhood = [topLeft, top, topRight,
+                 left, right,
+                 bottomLeft, bottom, bottomRight]
+    where
+        topLeft = (-1, -1)
+        top = (0, -1)
+        topRight = (1, -1)
+        left = (-1, 0)
+        right = (1, 0)
+        bottomLeft = (-1, 1)
+        bottom = (0, 1)
+        bottomRight = (1, 1)
+
+neighbours :: (Int, Int) -> [(Int, Int)]
+neighbours (x,y) = map (\(x', y') -> (x+x', y+y')) neighbourhood

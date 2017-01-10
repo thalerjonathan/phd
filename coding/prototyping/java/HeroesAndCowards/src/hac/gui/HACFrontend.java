@@ -48,7 +48,15 @@ public class HACFrontend extends JFrame implements ISimulationObserver, WindowLi
 
             @Override
             public void keyReleased(KeyEvent e) {
-                HACFrontend.this.renderer.toggleRenderMode();
+                if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+                    HACFrontend.this.renderer.toggleRenderMode();
+                } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    HACFrontend.this.renderer.resetAgentSelection();
+                } else if (e.getKeyCode() == KeyEvent.VK_F) {
+                    HACFrontend.this.renderer.switchAgentSelection(false);
+                } else if (e.getKeyCode() == KeyEvent.VK_E) {
+                    HACFrontend.this.renderer.switchAgentSelection(true);
+                }
             }
         });
     }

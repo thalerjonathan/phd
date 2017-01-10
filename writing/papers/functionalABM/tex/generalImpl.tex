@@ -49,16 +49,18 @@ The following table gives an overview of the methods presented above. Real Rando
 
 \begin{table}[H]
 	\center
-	\begin{tabular}{ c | c | c | c | c }
-		\textit{Time} & \textit{Order} & \textit{Decisions} & \textit{Non-Deterministic} & \textit{Type}\\
-		\hhline{=|=|=|=|=}
-	    Global & Sequential & Global & No & Continuous \\ 
+	\begin{tabular}{ c | c | c | c | c | c }
+		\textbf{Name} & \textit{Time} & \textit{Order} & \textit{Decisions} & \textit{Non-Deterministic} & \textit{Type}\\
+		\hhline{=|=|=|=|=|=}
+	    SEQ & Global & Sequential & Global & No & Continuous \\ 
 	    \hline
-	    Global & Parallel & Local & No & Discrete \\ 
+	    PAR & Global & Parallel & Local & No & Discrete \\ 
 	    \hline
-	    Global & Concurrent & Global & Yes & Continuous \\ 
+	    CONC & Global & Concurrent & Global & Yes & Continuous \\ 
 	    \hline
-	    Local & Random & Local & Yes & Continuous \\ 
+	    Actors ST & Global & Random & Local & Yes & Continuous \\ 
+	    \hline
+	    Actors RT & Local & Random & Local & Yes & Continuous \\ 
 	\end{tabular}
 	\caption{Summary of simulation-stepping methods.}
 \end{table}

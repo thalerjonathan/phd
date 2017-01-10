@@ -22,16 +22,16 @@ public class Main {
         double epsilon = 0.1;
 
         SimulationConfig simCfg1 = new SimulationConfig();
-        simCfg1.agentCount = 50000;
+        simCfg1.agentCount = 500;
         simCfg1.simulationRandomSeed = 40;
-        simCfg1.heroesDistribution = 0.5;
-        simCfg1.dt = 0.01;
+        simCfg1.heroesDistribution = 0.25;
+        simCfg1.dt = 0.00001;
         simCfg1.randomTraversal = false;
         simCfg1.simultaneousUpdates = true;
         simCfg1.worldType = WorldType.BORDER;
         simCfg1.steps = 20;
-        simCfg1.noisyDirection = 0.5;
-        simCfg1.noisyStepWidth = 1.0;
+        simCfg1.noisyDirection = 0.0;
+        simCfg1.noisyStepWidth = 0.0;
 
         SimulationConfig simCfg2 = new SimulationConfig( simCfg1 );
         simCfg2.randomTraversal = true;

@@ -10,10 +10,11 @@ In this year I will learn basics and develop and research the methodology I will
 \item Prototyping in Haskell, Scala and Java
 \item Study Actor-Model theory: Hewitt, Greif, Clinger, Agha
 \item Get into reasoning about programs
-\item Basics of Economics \cite{bowles_understanding_2005}, 
-\item Basics of ACE: \cite{KirmanComplex2010}, \cite{Darley2007}
+\item Basics of Economics \cite{bowles_understanding_2005}, \cite{kirman_complex_2010}
+\item Basics of ACE: Tesfatsion
 \item Implement PureAgents Library
 \item Write the paper
+\item Write 
 \item Prototype Auction/Fishmarket using Akka and Haskell and describe results in 1st year report.
 \item Write 1st year report
 \end{itemize}
@@ -29,6 +30,76 @@ Important and mile-stone dates:
 	July & Oral annual report \\
 \end{tabular}
 \end{center}
+
+TODO-List as of \today
+
+\begin{itemize}
+\item send abstract
+\item investigate speed of divergence of simulation runs using the terminology of gleichzeitige ungleichzeitigkeiten
+\item 2 complex system can lead to a total different outcome when initial settings differ only by fractions. thus it may also be the case for specific ABM/S?
+\item todo: render paths of the agents in heroes and cowards
+\item todo: abm/s of a go game
+\item IDEA: what about an ABM/S of karma and rebirth? add to genesis paper
+\item IDEA: what about ABM/S generating sound? could be a perfect example for Yampa due to its signal functions. the sound is the result of interactions of agents which try to generate harmonies and agents trying to create dissonance
+\item IDEA: what about abm/s creating drawings/art? 2d continuous and each agents path is drawn
+\item haskell: dont have objects with methods which can call between each other but we need some way of representing agents. this is done using a struct type with a behaviour function and messaging mechanisms. important: agents are not carried arround but messages are sent to a receiver identified by an id. 
+\item messaging mechanisms have up- and downsides, elaborate on it.
+\item reason for patterns: heroes try to stay 50 \% in between and have selected 2 cowards which themselves are at the borders opposite. need much more cowards than heroes 75/25. TODO: investigate pair-wise movement.
+\item hypothesis: individual runs diverge from the first step on but the global behaviour stays the same.
+\item question: do emergent patterns break down / global dynamics change completely in some ABM/S when changing sim-semantic? which kind of ABM could show this behaviour? which properties are responsible for it?
+\item parallel more natural in haskell
+\item sequential more natural in java
+\item concurrent difficult in both, using stm in haskell it becomes very natural, STM available in java too. actors are an even better approach but is having problems with time in simulation
+\item implement conways game of life: parallel discrete: read global environment, write local
+\item implement schelling segregation
+\item generalize 2d grid-renderer: agentToCell maps agent to color and discrete 2d - coord
+\item generalize 2d continuous renderer: color, position and direction
+\item implement simtime Actors
+\item only one function: agenttransformer. replace update by call to agenttransformer with message "DT" and parameter dt. add mechanism to add sys messages
+\item implement sequential version: PureAgentsSeq. should be easy starting from par version. implement environment accesslike STM: each agent can read/write complete env
+\item implement environment for parallel
+\item performance unacceptable: 1000 in haskell vs 100.000 in java is a shame on haskell, more should be possible
+\item implement SIRS on a 8neighbourhood grid (nearly the same as wildfire). difference only in neighbourhood filter, rest of code should be same (sendrandomagent)
+\item send abstract to peer and thorsten in 1st week of january. try to submit paper on SIMPAT with deadline of 30th april
+\item embed PureAgentsPar in Yampa: PureAgentsYampa
+\item implement agent monad: PureAgentsMonadic. but what is an Agent-Monad?
+\item when having agent monad, run in dunai
+\item look into QuickCheck and HPC
+\item problem: so far only agents with same static messagetypes, environment and states, can communicate: the agents are homogenous. how can we implement hetereogenous agents in this library?
+\item run PureAgents inside Dunai/Yampa
+\item where does 1st and 2nd year research meet: reasoning about emergent properties of the simulation. in case of HAC the crosspattern, in case of ACE the convergence to stable prices
+
+\item Continue investigations regarding the heroes and cowards game
+\item Explore the literature on complex systems to find an explanation for the emergence of the macro level patterns in the Heroes \& Cowards game
+\item Consider the next step: Implementing an economics example at different levels of complexity 
+\item Continue writing conference paper and looking out for an appropriate conference
+
+\item paper abstract: local-only immutable data, explicit dataflow, higher order functions and recursion
+\item paper: we also present a novel approach to implementing ABM/S by implementing 3 of the semantics in pure functional Haskell and comparing them to OO Java and examine for which semantics boths methods are well suited an which not.
+\item paper: contribution: 1. development of terminology of simulation semantics 2. pure functional approach and comparison to state-of-the-art oo 3. influence of semantics on dynamics 4. reasoning about dynamics
+\end{itemize}
+
+\paragraph{January}
+TODO
+
+\paragraph{February}
+TODO
+
+\paragraph{March}
+TODO
+
+\paragraph{April}
+TODO
+
+\paragraph{May}
+TODO
+
+\paragraph{June}
+TODO
+
+\paragraph{July}
+TODO
+
 
 \subsubsection{2nd Year: Main Work}
 Applying 1st year results, methods and experiences to develop and write main paper to be published in a journal in 3rd year thus in 2nd year the main  work and implementation will be done. The idea is to start from Ionescus Framework \cite{Botta20114025} and build on his paper.
@@ -75,11 +146,14 @@ Although the actor-model is quite old (beginning of the 70s) it seems to have a 
 
 This paper will establish my methodology in using Haskell / pure functional programming in the 2nd year main work.
 
+\subsubsection{Pure Functional ACE (Catchy title yet to be defined)}
+Is the main work of the PhD and targeted at publication in a Journal. The exact topic and content will be clarified at the beginning of the 2nd year. Mainly it will describe how to implement Ionescus Framework of Gintis trading model and extend it to a more general Market-Model. It will also give an outlook on implementing it using dependent types.
+
 \subsubsection{Pure by Nature: A Library for pure Agent-Based Simulation \& Modelling in Haskell}
 This paper describes the ideas and theory behind the implementation of my ABM/S library "PureAgents" in Haskell.
 
-\subsubsection{Pure Functional ACE (Catchy title yet to be defined)}
-Is the main work of the PhD and targeted at publication in a Journal. The exact topic and content will be clarified at the beginning of the 2nd year. Mainly it will describe how to implement Ionescus Framework of Gintis trading model and extend it to a more general Market-Model. It will also give an outlook on implementing it using dependent types.
+\subsubsection{Time in Games: a Tron Light-Cycle Game in Dunai}
+This paper describes the 2D light-cycle game inspired by the movie Tron implemented in Dunai. It allows to turn back time.
 
 \subsubsection{The Genesis According to Computer-Science: Reality as Simulation of Free Will}
 I've always been interested in a deeper meaning behind things so I want to look into the philosophy and future of simulation: why do we simulate, what can we derive from simulations, what does it say that we humans simulate, what will the future of simulation be? \\
@@ -89,3 +163,4 @@ This is fun paper 1.
 \subsubsection{Pure Functional Islamic Design}
 Inspired by the paper "Functional Geometry" by Peter Henderson I had the idea to come up with a  EDSL for declaratively describing pictures of islamic design which are then rendered using the gloss-library. \\
 This is fun paper 2 - from its focus totally unrelated to the PhD topic but still a great opportunity to learn Haskell, to learn to think functional, to learn to design my own EDSL - thus it may be a great paper to pursue even if I won't finish or produce something publishable.
+

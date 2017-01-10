@@ -34,7 +34,28 @@ Important and mile-stone dates:
 TODO-List as of \today
 
 \begin{itemize}
-\item send abstract
+\item implement SIRS on a 8neighbourhood grid (nearly the same as wildfire). difference only in neighbourhood filter, rest of code should be same (sendrandomagent)
+\item generalize 2d grid-renderer: agentToCell maps agent to color and discrete 2d - coord
+
+\item implement sequential version: PureAgentsSeq. should be easy starting from par version. implement environment accesslike STM: each agent can read/write complete env
+\item implement environment for parallel
+
+\item implement conways game of life: parallel discrete: read global environment, write local
+\item implement schelling segregation
+
+\item implement simtime Actors
+
+\item generalize 2d continuous renderer: color, position and direction
+
+\item performance unacceptable: 1000 in haskell vs 100.000 in java is a shame on haskell, more should be possible
+\item send abstract to peer and thorsten in 1st week of january. try to submit paper on SIMPAT with deadline of 30th april
+\item embed PureAgentsPar in Yampa: PureAgentsYampa
+\item implement agent monad: PureAgentsMonadic. but what is an Agent-Monad?
+\item when having agent monad, run in dunai
+\item look into QuickCheck and HPC
+\item problem: so far only agents with same static messagetypes, environment and states, can communicate: the agents are homogenous. how can we implement hetereogenous agents in this library?
+\item run PureAgents inside Dunai/Yampa
+
 \item investigate speed of divergence of simulation runs using the terminology of gleichzeitige ungleichzeitigkeiten
 \item 2 complex system can lead to a total different outcome when initial settings differ only by fractions. thus it may also be the case for specific ABM/S?
 \item todo: render paths of the agents in heroes and cowards
@@ -50,23 +71,6 @@ TODO-List as of \today
 \item parallel more natural in haskell
 \item sequential more natural in java
 \item concurrent difficult in both, using stm in haskell it becomes very natural, STM available in java too. actors are an even better approach but is having problems with time in simulation
-\item implement conways game of life: parallel discrete: read global environment, write local
-\item implement schelling segregation
-\item generalize 2d grid-renderer: agentToCell maps agent to color and discrete 2d - coord
-\item generalize 2d continuous renderer: color, position and direction
-\item implement simtime Actors
-\item only one function: agenttransformer. replace update by call to agenttransformer with message "DT" and parameter dt. add mechanism to add sys messages
-\item implement sequential version: PureAgentsSeq. should be easy starting from par version. implement environment accesslike STM: each agent can read/write complete env
-\item implement environment for parallel
-\item performance unacceptable: 1000 in haskell vs 100.000 in java is a shame on haskell, more should be possible
-\item implement SIRS on a 8neighbourhood grid (nearly the same as wildfire). difference only in neighbourhood filter, rest of code should be same (sendrandomagent)
-\item send abstract to peer and thorsten in 1st week of january. try to submit paper on SIMPAT with deadline of 30th april
-\item embed PureAgentsPar in Yampa: PureAgentsYampa
-\item implement agent monad: PureAgentsMonadic. but what is an Agent-Monad?
-\item when having agent monad, run in dunai
-\item look into QuickCheck and HPC
-\item problem: so far only agents with same static messagetypes, environment and states, can communicate: the agents are homogenous. how can we implement hetereogenous agents in this library?
-\item run PureAgents inside Dunai/Yampa
 \item where does 1st and 2nd year research meet: reasoning about emergent properties of the simulation. in case of HAC the crosspattern, in case of ACE the convergence to stable prices
 
 \item Continue investigations regarding the heroes and cowards game

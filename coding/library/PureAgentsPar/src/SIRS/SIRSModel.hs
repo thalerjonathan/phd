@@ -24,8 +24,7 @@ instance NFData SIRSAgentState where
 
 type SIRSEnvironment = ()
 type SIRSAgent = PA.Agent SIRSMsg SIRSAgentState SIRSEnvironment
-type SIRSMsgHandler = PA.MsgHandler SIRSMsg SIRSAgentState SIRSEnvironment
-type SIRSUpdtHandler = PA.UpdateHandler SIRSMsg SIRSAgentState SIRSEnvironment
+type SIRSTransformer = PA.AgentTransformer SIRSMsg SIRSAgentState SIRSEnvironment
 type SIRSSimHandle = PA.SimHandle SIRSMsg SIRSAgentState SIRSEnvironment
 
 infectedDuration :: Double
@@ -42,18 +41,20 @@ is a ss = (sirState s) == ss
     where
         s = PA.state a
 
+sirsTransformer :: SIRSTransformer
+sirsTransformer a (_, PA.Dt dt) = sirsDt a dt
+sirsTransformer a (_, PA.Domain m) = sirsMsg a m
 
-sirsMsgHandler :: SIRSMsgHandler
+sirsMsg :: SIRSAgent -> SIRSMsg -> SIRSAgent
 -- MESSAGE-CASE: Contact with Infected -> infect with given probability if agent is susceptibel
-sirsMsgHandler a (Contact Infected) _               -- NOTE: ignore sender
+sirsMsg a (Contact Infected)               -- NOTE: ignore sender
     | is a Susceptible = infectAgent a
     | otherwise = a
-
 -- MESSAGE-CASE: Contact with Recovered or Susceptible -> nothing happens
-sirsMsgHandler a (Contact _) _ = a           -- NOTE: ignore sender
+sirsMsg a (Contact _) = a           -- NOTE: ignore sender
 
-sirsUpdtHandler :: SIRSUpdtHandler
-sirsUpdtHandler a dt
+sirsDt :: SIRSAgent -> Double -> SIRSAgent
+sirsDt a dt
     | is a Susceptible = a
     | is a Infected = handleInfectedAgent a dt
     | is a Recovered = handleRecoveredAgent a dt
@@ -100,7 +101,7 @@ createRandomSIRSAgents :: StdGen -> Int -> Double -> ([SIRSAgent], StdGen)
 createRandomSIRSAgents gInit n p = (as', g')
     where
         (randStates, g') = createRandomStates gInit n p
-        as = map (\idx -> PA.createAgent idx (randStates !! idx) sirsMsgHandler sirsUpdtHandler) [0..n-1]
+        as = map (\idx -> PA.createAgent idx (randStates !! idx) sirsTransformer) [0..n-1]
         as' = map (\a -> PA.addNeighbours a (filter (\a' -> (PA.agentId a') /= (PA.agentId a)) as) ) as
 
         createRandomStates :: StdGen -> Int -> Double -> ([SIRSAgentState], StdGen)

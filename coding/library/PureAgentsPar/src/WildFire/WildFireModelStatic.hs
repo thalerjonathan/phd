@@ -25,8 +25,7 @@ instance NFData WFAgentState where
 
 type WFEnvironment = ()
 type WFAgent = PA.Agent WFMsg WFAgentState WFEnvironment
-type WFMsgHandler = PA.MsgHandler WFMsg WFAgentState WFEnvironment
-type WFUpdtHandler = PA.UpdateHandler WFMsg WFAgentState WFEnvironment
+type WFTransformer = PA.AgentTransformer WFMsg WFAgentState WFEnvironment
 type WFSimHandle = PA.SimHandle WFMsg WFAgentState WFEnvironment
 
 burnPerTimeUnit :: Double
@@ -37,16 +36,20 @@ is a wfs = (wfState s) == wfs
     where
         s = PA.state a
 
-wfMsgHandler :: WFMsgHandler
-wfMsgHandler a Ignite senderId
-    | is a Living = igniteAgent a
-    | otherwise = a
+wfTransformer :: WFTransformer
+wfTransformer a (_, PA.Dt dt) = wfDt a dt
+wfTransformer a (_, PA.Domain m) = wfMsg a m
 
-wfUpdtHandler :: WFUpdtHandler
-wfUpdtHandler a dt
+wfDt :: WFAgent -> Double -> WFAgent
+wfDt a dt
     | is a Living = a
     | is a Dead = a
     | is a Burning = handleBurningAgent a dt
+
+wfMsg :: WFAgent -> WFMsg -> WFAgent
+wfMsg a Ignite
+    | is a Living = igniteAgent a
+    | otherwise = a
 
 igniteAgent :: WFAgent -> WFAgent
 igniteAgent a = PA.updateState a (\sOld -> sOld { wfState = Burning } )
@@ -69,7 +72,7 @@ createRandomWFAgents gInit cells@(x, y) = (as', g')
     where
         agentCount = x*y
         (randStates, g') = createRandomStates gInit agentCount
-        as = map (\idx -> PA.createAgent idx (randStates !! idx) wfMsgHandler wfUpdtHandler) [0..agentCount-1]
+        as = map (\idx -> PA.createAgent idx (randStates !! idx) wfTransformer) [0..agentCount-1]
         as' = map (\a -> PA.addNeighbours a (agentNeighbours a as cells) ) as
 
 

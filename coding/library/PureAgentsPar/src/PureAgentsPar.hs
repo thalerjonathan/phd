@@ -5,8 +5,9 @@ module PureAgentsPar (
     Agent(..),
     SimHandle(..),
     AgentId,
-    MsgHandler,
-    UpdateHandler,
+    AgentTransformer,
+    AgentMessage,
+    Msg(..),
     kill,
     newAgent,
     sendMsg,
@@ -49,9 +50,12 @@ import qualified Data.HashMap as Map
 ------------------------------------------------------------------------------------------------------------------------
 -- PUBLIC, exported
 ------------------------------------------------------------------------------------------------------------------------
+-- The super-set of all Agent-Messages
+data Msg m = Dt Double | Domain m
+-- An agent-message is always a tuple of a message with the sender-id
+type AgentMessage m = (AgentId, Msg m)
 
-type MsgHandler m s e = (Agent m s e -> m -> AgentId -> Agent m s e)
-type UpdateHandler m s e = (Agent m s e -> Double -> Agent m s e)
+type AgentTransformer m s e = (Agent m s e -> AgentMessage m -> Agent m s e)
 type OutFunc m s e = (([Agent m s e], Maybe e) -> IO (Bool, Double))
 
 {- NOTE:    m is the type of messages the agent understands
@@ -66,8 +70,7 @@ data Agent m s e = Agent {
     outBox :: [(AgentId, AgentId, m)],              -- NOTE: 1st AgentId contains the senderId, 2nd AgentId contains the targetId (redundancy saves us processing time)
     inBox :: [(AgentId, m)],                        -- NOTE: AgentId contains the senderId
     neighbours :: Map.Map AgentId AgentId,
-    msgHandler :: MsgHandler m s e,
-    updateHandler :: UpdateHandler m s e,
+    trans :: AgentTransformer m s e,
     state :: s,
     newAgents :: [Agent m s e],
     env :: Maybe e                                      -- NOTE: environment is optional
@@ -119,16 +122,15 @@ updateState a sf = a { state = s' }
 writeState :: Agent m s e -> s -> Agent m s e
 writeState a s = updateState a (\_ -> s)
 
-createAgent :: AgentId -> s -> MsgHandler m s e -> UpdateHandler m s e -> Agent m s e
-createAgent i s mhdl uhdl = Agent{ agentId = i,
+createAgent :: AgentId -> s -> AgentTransformer m s e -> Agent m s e
+createAgent i s t = Agent{ agentId = i,
                                     state = s,
                                     outBox = [],
                                     inBox = [],
                                     killFlag = False,
                                     neighbours = Map.empty,
                                     newAgents = [],
-                                    msgHandler = mhdl,
-                                    updateHandler = uhdl,
+                                    trans = t,
                                     env = Nothing }
 
 addNeighbours :: Agent m s e -> [Agent m s e] -> Agent m s e
@@ -250,10 +252,10 @@ stepAgent :: Double -> Agent m s e -> Agent m s e
 stepAgent dt a = aAfterUpdt
     where
         aAfterMsgProc = processAllMessages a
-        aAfterUpdt = (updateHandler aAfterMsgProc) aAfterMsgProc dt
+        aAfterUpdt = (trans aAfterMsgProc) aAfterMsgProc (-1, Dt dt)
 
 processMsg :: Agent m s e -> (AgentId, m) -> Agent m s e
-processMsg a (senderId, m) = (msgHandler a) a m senderId
+processMsg a (senderId, m) = (trans a) a (senderId, Domain m)
 
 processAllMessages :: Agent m s e -> Agent m s e
 processAllMessages a = aAfterMsgs { inBox = [] }

@@ -1,7 +1,5 @@
 module WildFire.WildFireModelDynamic where
 
-import Control.Monad.STM
-
 import System.Random
 import Debug.Trace
 import Data.List

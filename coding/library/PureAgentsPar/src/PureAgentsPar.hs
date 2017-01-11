@@ -37,16 +37,6 @@ import Control.Monad.Par
 
 import qualified Data.HashMap as Map
 
--- TODO: BIG problem: how do we treat the environment now as every agent has it's local copy => only local updates
-    -- TODO: this would allow us the easily calculate all possible solutions e.g. in a discrete case (but infeasible if big)
-
--- TODO: Yampa/Dunai
-    -- TODO: let the whole thing run in Yampa/Dunai so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai. But because running in STM must use Dunai
-    -- TODO: implement wait blocking for a message so far. utilize yampas event mechanism?
-
--- TODO: build a monad to chain actions of the agent and always run inside an agent-monad
-    -- TODO: then we again need dunai
-
 ------------------------------------------------------------------------------------------------------------------------
 -- PUBLIC, exported
 ------------------------------------------------------------------------------------------------------------------------

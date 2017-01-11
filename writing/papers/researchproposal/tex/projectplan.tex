@@ -34,27 +34,25 @@ Important and mile-stone dates:
 TODO-List as of \today
 
 \begin{itemize}
-\item implement SIRS on a 8neighbourhood grid (nearly the same as wildfire). difference only in neighbourhood filter, rest of code should be same (sendrandomagent)
-\item generalize 2d grid-renderer: agentToCell maps agent to color and discrete 2d - coord
+\item implement sequential version: PureAgentsSeq. should be easy starting from Par/STM version. implement environment accesslike STM: each agent can read/write complete env
 
-\item implement sequential version: PureAgentsSeq. should be easy starting from par version. implement environment accesslike STM: each agent can read/write complete env
-\item implement environment for parallel
-
+\item implement environment for parallel: global read, local write
 \item implement conways game of life: parallel discrete: read global environment, write local
 \item implement schelling segregation
 
+\item embed PureAgentsPar and Seq in Yampa: PureAgentsYampa so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai.
+\item implement agent monad: PureAgentsMonadic. but what is an Agent-Monad? build a monad to chain actions of the agent and always run inside an agent-monad
+\item embed PureAgentsMonadic in Dunai
+
+\item implement wait blocking for a message so far. utilize yampas event mechanism?
+
 \item implement simtime Actors
 
-\item generalize 2d continuous renderer: color, position and direction
-
 \item performance unacceptable: 1000 in haskell vs 100.000 in java is a shame on haskell, more should be possible
-\item send abstract to peer and thorsten in 1st week of january. try to submit paper on SIMPAT with deadline of 30th april
-\item embed PureAgentsPar in Yampa: PureAgentsYampa
-\item implement agent monad: PureAgentsMonadic. but what is an Agent-Monad?
-\item when having agent monad, run in dunai
 \item look into QuickCheck and HPC
 \item problem: so far only agents with same static messagetypes, environment and states, can communicate: the agents are homogenous. how can we implement hetereogenous agents in this library?
-\item run PureAgents inside Dunai/Yampa
+\item implement a general-purpose rendering-frontend with gloss but let the simulation be driven by Yampa/SimulationBackend instead of frontend (not real-time)
+
 
 \item investigate speed of divergence of simulation runs using the terminology of gleichzeitige ungleichzeitigkeiten
 \item 2 complex system can lead to a total different outcome when initial settings differ only by fractions. thus it may also be the case for specific ABM/S?

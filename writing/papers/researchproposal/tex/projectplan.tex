@@ -34,10 +34,11 @@ Important and mile-stone dates:
 TODO-List as of \today
 
 \begin{itemize}
-\item implement sequential version: PureAgentsSeq. should be easy starting from Par/STM version. implement environment accesslike STM: each agent can read/write complete env
+\item performance unacceptable: 1000 in haskell vs 100.000 in java is a shame on haskell, more should be possible. investigate using profiling both of CPU and memory: \url{http://keera.co.uk/blog/2014/10/15/from-60-fps-to-500/}. strictness & tail-recursion!
+	Par-Version seems to be working ok compared to Seq. Seq consumes hundreds of MB of memory!
+
 
 \item implement environment for parallel: global read, local write
-
 
 \item embed PureAgentsPar and Seq in Yampa: PureAgentsYampa so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai.
 \item implement agent monad: PureAgentsMonadic. but what is an Agent-Monad? build a monad to chain actions of the agent and always run inside an agent-monad
@@ -49,7 +50,7 @@ TODO-List as of \today
 \item implement schelling segregation
 \item implement sugarscape ?
 
-\item performance unacceptable: 1000 in haskell vs 100.000 in java is a shame on haskell, more should be possible. investigate using profiling both of CPU and memory: \url{http://keera.co.uk/blog/2014/10/15/from-60-fps-to-500/}
+
 \item look into QuickCheck and HPC
 \item problem: so far only agents with same static messagetypes, environment and states, can communicate: the agents are homogenous. how can we implement hetereogenous agents in this library?
 \item implement a general-purpose rendering-frontend with gloss but let the simulation be driven by Yampa/SimulationBackend instead of frontend (not real-time)

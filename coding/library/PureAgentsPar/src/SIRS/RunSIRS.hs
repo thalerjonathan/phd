@@ -81,7 +81,7 @@ stepSIRS = do
             --  (as', e') <- atomically $ Agents.stepSimulation as Nothing dt steps
             --Agents.runSimulation as Nothing (outputStep dt)
             let (as', hdl) = PA.initStepSimulation as Nothing
-            runSteps hdl 6 dt
+            runSteps hdl 100 dt
             return ()
 
 runSteps :: SIRSSimHandle -> Int -> Double -> IO SIRSSimHandle

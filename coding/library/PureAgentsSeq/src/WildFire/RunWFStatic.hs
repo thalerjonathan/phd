@@ -16,19 +16,35 @@ import Graphics.Gloss.Interface.IO.Simulate
 
 import qualified PureAgentsSeq as PA
 
-runWFStatic :: IO ()
-runWFStatic = do
-                let dt = 1.0
-                let xCells = 50
-                let yCells = 50
-                let rngSeed = 42
-                let cells = (xCells, yCells)
-                let g = mkStdGen rngSeed
-                -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
-                let (as, g') = createRandomWFAgents g cells
-                let ignitedAs = initialIgnition as (25, 25) cells
-                let (as', hdl) = PA.initStepSimulation ignitedAs ()
-                stepWithRendering hdl dt cells
+runWFStaticRendering :: IO ()
+runWFStaticRendering = do
+                        let dt = 1.0
+                        let xCells = 50
+                        let yCells = 50
+                        let rngSeed = 42
+                        let cells = (xCells, yCells)
+                        let g = mkStdGen rngSeed
+                        -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
+                        let (as, g') = createRandomWFAgents g cells
+                        let ignitedAs = initialIgnition as (25, 25) cells
+                        let (as', hdl) = PA.initStepSimulation ignitedAs ()
+                        stepWithRendering hdl dt cells
+
+runWFStaticSteps :: IO ()
+runWFStaticSteps = do
+                    let dt = 1.0
+                    let xCells = 50
+                    let yCells = 50
+                    let rngSeed = 42
+                    let cells = (xCells, yCells)
+                    let g = mkStdGen rngSeed
+                    -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
+                    let (as, g') = createRandomWFAgents g cells
+                    let ignitedAs = initialIgnition as (25, 25) cells
+                    let stepCount = 2000
+                    let (as', _) = PA.stepSimulation ignitedAs () dt stepCount
+                    mapM (putStrLn . show . PA.state) as'
+                    return ()
 
 initialIgnition :: [WFAgent] -> (Int, Int) -> (Int, Int) -> [WFAgent]
 initialIgnition as pos cells

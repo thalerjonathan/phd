@@ -37,8 +37,7 @@ TODO-List as of \today
 \item implement sequential version: PureAgentsSeq. should be easy starting from Par/STM version. implement environment accesslike STM: each agent can read/write complete env
 
 \item implement environment for parallel: global read, local write
-\item implement conways game of life: parallel discrete: read global environment, write local
-\item implement schelling segregation
+
 
 \item embed PureAgentsPar and Seq in Yampa: PureAgentsYampa so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai.
 \item implement agent monad: PureAgentsMonadic. but what is an Agent-Monad? build a monad to chain actions of the agent and always run inside an agent-monad
@@ -46,9 +45,11 @@ TODO-List as of \today
 
 \item implement wait blocking for a message so far. utilize yampas event mechanism?
 
-\item implement simtime Actors
+\item implement conways game of life: parallel discrete: read global environment, write local
+\item implement schelling segregation
+\item implement sugarscape ?
 
-\item performance unacceptable: 1000 in haskell vs 100.000 in java is a shame on haskell, more should be possible
+\item performance unacceptable: 1000 in haskell vs 100.000 in java is a shame on haskell, more should be possible. investigate using profiling both of CPU and memory: \url{http://keera.co.uk/blog/2014/10/15/from-60-fps-to-500/}
 \item look into QuickCheck and HPC
 \item problem: so far only agents with same static messagetypes, environment and states, can communicate: the agents are homogenous. how can we implement hetereogenous agents in this library?
 \item implement a general-purpose rendering-frontend with gloss but let the simulation be driven by Yampa/SimulationBackend instead of frontend (not real-time)
@@ -61,7 +62,7 @@ TODO-List as of \today
 \item IDEA: what about an ABM/S of karma and rebirth? add to genesis paper
 \item IDEA: what about ABM/S generating sound? could be a perfect example for Yampa due to its signal functions. the sound is the result of interactions of agents which try to generate harmonies and agents trying to create dissonance
 \item IDEA: what about abm/s creating drawings/art? 2d continuous and each agents path is drawn
-\item haskell: dont have objects with methods which can call between each other but we need some way of representing agents. this is done using a struct type with a behaviour function and messaging mechanisms. important: agents are not carried arround but messages are sent to a receiver identified by an id. 
+\item haskell: dont have objects with methods which can call between each other but we need some way of representing agents. this is done using a struct type with a behaviour function and messaging mechanisms. important: agents are not carried arround but messages are sent to a receiver identified by an id. This is also a big difference to java where don't really need this kind of abstraction due to the use of objects and their 'messaging'. 
 \item messaging mechanisms have up- and downsides, elaborate on it.
 \item reason for patterns: heroes try to stay 50 \% in between and have selected 2 cowards which themselves are at the borders opposite. need much more cowards than heroes 75/25. TODO: investigate pair-wise movement.
 \item hypothesis: individual runs diverge from the first step on but the global behaviour stays the same.
@@ -78,27 +79,87 @@ TODO-List as of \today
 \end{itemize}
 
 \paragraph{January}
-TODO
-
+Haskell
+	investigate and increase low performance of implementations
+	
+	finish Seq & Par: environment access
+	implement Concurrent semantic
+	
+Paper
+	Rework abstract
+	30min presentation of content
+	
+Reading
+	Gleichzeitige Ungleichzeitigkeiten
+	Complex Systems Stuff
+	TODO: genauer alle papers aufzählen
+	
 \paragraph{February}
-TODO
+Haskell
+	embed Seq & Par in Yampa
+	implement monadic version of Seq & Par
+	embed monadic Version in Dunai
 
+Paper
+	first very basic draft
+	
+Reading
+	Semantics of Actors (Greif & Clinger)
+	TODO: genauer alle papers aufzählen
+	
 \paragraph{March}
-TODO
+Java
+	implement version with messaging
+	implement concurrent semantic
+	
+Scala \& Actors
+	implement SimTime Actors: have global simulation-time instead of local real-time
 
+Paper
+	second refined draft
+	
+Reading
+	Functional programming and simulations
+	TODO: genauer alle papers aufzählen
+	
 \paragraph{April}
-TODO
+No programming: code-freeze
 
+Paper
+	refinement
+	
+Reading
+	TODO: genauer alle papers aufzählen
+	
 \paragraph{May}
-TODO
+Paper
+	submitting
 
+Reading
+	Functional programming and simulations
+	TODO: genauer alle papers aufzählen
+	
 \paragraph{June}
-TODO
+1st Year Report
+	Writing
 
-\paragraph{July}
-TODO
+1st Year oral Exam
 
-
+Reading
+	final stuff for 1st year report
+	
+\paragraph{July to September}
+Prototyping ACE using my Haskell-Library
+	bilateral trading
+	EDSL
+	qualitative modelling
+	reasoning 
+	
+Reading
+	ACE models for trading/bartering
+	ACE papers
+	TODO: genauer alle papers aufzählen
+	
 \subsubsection{2nd Year: Main Work}
 Applying 1st year results, methods and experiences to develop and write main paper to be published in a journal in 3rd year thus in 2nd year the main  work and implementation will be done. The idea is to start from Ionescus Framework \cite{Botta20114025} and build on his paper.
 

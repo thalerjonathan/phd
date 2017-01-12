@@ -158,36 +158,49 @@ runSimulation as e out = runSimulation' as 0.0 e out
 ------------------------------------------------------------------------------------------------------------------------
 -- PRIVATE, non exports
 ------------------------------------------------------------------------------------------------------------------------
--- TODO: messages of a killed agent are not delivered anymore
+-- TODO: does the map change the order? if yes, does it make a difference?
 stepAllAgents :: [Agent m s e] -> Double -> e -> ([Agent m s e], e)
-stepAllAgents allAs dt e = foldl (stepAllAgentsFold dt) ([], e) allAs
+stepAllAgents as dt e = (Map.elems am', e')
     where
-        stepAllAgentsFold :: Double -> ([Agent m s e], e) -> Agent m s e -> ([Agent m s e], e)
-        stepAllAgentsFold dt (accAs, accE) a
-            | killAgent = (accAs ++ nas, eAfterStep)
-            | otherwise = (deliverOutMsgs (accAs ++ [aNewAgentsRemoved] ++ nas), eAfterStep)
+        am = insertAgents Map.empty as
+        (am', e') = foldl (stepAllAgentsFold dt) (am, e) (Map.keys am)
+
+        -- NOTE: we will iterate only over the keys, this allows us to update the whole map
+        stepAllAgentsFold :: Double -> (Map.Map AgentId (Agent m s e), e) -> AgentId -> (Map.Map AgentId (Agent m s e), e)
+        stepAllAgentsFold dt (am, e) aid = (amFinal, e')
             where
-                (aAfterStep, eAfterStep) = stepAgent dt (a, e)
-                nas = newAgents aAfterStep
-                killAgent = (killFlag aAfterStep)
-                aNewAgentsRemoved = aAfterStep { newAgents = [] }
+                a = fromJust (Map.lookup aid am)  -- NOTE: it is guaranteed that this key is in the map
+                (a', e') = stepAgent dt (a, e)
+                am' = deliverOutMsgs a' (insertAgents am (newAgents a'))
+                aFinal = a' { newAgents = [], outBox = [] }
+                amFinal = case (killFlag aFinal) of
+                                    True -> Map.delete (agentId aFinal) am'
+                                    otherwise -> Map.insert (agentId aFinal) aFinal am'
 
-deliverOutMsgs :: [Agent m s e] -> [Agent m s e]
-deliverOutMsgs as = Map.elems agentsWithMsgs
+insertAgents :: Map.Map AgentId (Agent m s e) -> [Agent m s e] -> Map.Map AgentId (Agent m s e)
+insertAgents am as = foldl (\accMap a -> Map.insert (agentId a) a accMap ) am as
+
+-- NOTE: this places the messages in the out-box of of the first argument agent at their corresponding receivers in the map
+deliverOutMsgs :: Agent m s e -> Map.Map AgentId (Agent m s e) -> Map.Map AgentId (Agent m s e)
+deliverOutMsgs a am = am'
     where
-        (allOutMsgs, as') = collectOutMsgs as
-        agentMap = foldl (\acc a -> Map.insert (agentId a) a acc ) Map.empty as'        -- TODO: hashmap will change the order, is this alright? should be when working in parallel
-        agentsWithMsgs = foldl (\agentMap' outMsgTup -> deliverMsg agentMap' outMsgTup ) agentMap allOutMsgs
+        (allOutMsgs, _) = collectOutMsgs [a]
+        am' = foldl (\agentMap' outMsgTup -> deliverMsg agentMap' outMsgTup ) am allOutMsgs
 
+-- NOTE: could be the case that the receiver is no more in the map because it has been killed
 deliverMsg :: Map.Map AgentId (Agent m s e) -> (AgentId, AgentId, m) -> Map.Map AgentId (Agent m s e)
-deliverMsg agentMap (senderId, targetId, m) = Map.insert targetId a' agentMap
+deliverMsg am (senderId, receiverId, m)
+    | receiverNotFound = am
+    | otherwise = Map.insert receiverId a' am
     where
-        a = fromJust (Map.lookup targetId agentMap)    -- NOTE: must be in the map
+        mayReceiver = Map.lookup receiverId am
+        receiverNotFound = isNothing mayReceiver
+        a = (fromJust mayReceiver)
         ib = inBox a
         ibM = (senderId, m)
         a' = a { inBox = ib ++ [ibM] }
 
--- NOTE: first AgentId: senderId, second AgentId: targetId
+-- NOTE: first AgentId: senderId, second AgentId: receiverId
 collectOutMsgs :: [Agent m s e] -> ([(AgentId, AgentId, m)], [Agent m s e])
 collectOutMsgs as = foldl (\(accMsgs, accAs) a -> ((outBox a) ++ accMsgs, (a { outBox = [] }) : accAs) ) ([], []) as
 

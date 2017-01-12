@@ -19,14 +19,14 @@ import qualified PureAgentsSeq as PA
 runWFStatic :: IO ()
 runWFStatic = do
                 let dt = 1.0
-                let xCells = 10
-                let yCells = 10
+                let xCells = 50
+                let yCells = 50
                 let rngSeed = 42
                 let cells = (xCells, yCells)
                 let g = mkStdGen rngSeed
                 -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
                 let (as, g') = createRandomWFAgents g cells
-                let ignitedAs = initialIgnition as (5, 5) cells
+                let ignitedAs = initialIgnition as (25, 25) cells
                 let (as', hdl) = PA.initStepSimulation ignitedAs ()
                 stepWithRendering hdl dt cells
 
@@ -44,7 +44,7 @@ initialIgnition as pos cells
 stepWithRendering :: WFSimHandle -> Double -> (Int, Int) -> IO ()
 stepWithRendering hdl dt cells = simulateIO Front.display
                                 GLO.white
-                                2
+                                5
                                 hdl
                                 (modelToPicture cells)
                                 (stepIteration dt)

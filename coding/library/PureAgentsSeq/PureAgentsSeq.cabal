@@ -10,6 +10,6 @@ executable PureAgentsSeq
   ghc-options:      -prof
                     -auto-all
                     -caf-all
-                    "-with-rtsopts=-s -hd -p -i0.1 -K256M"
+                    "-with-rtsopts=-s -hy -p -i0.1 -K256M"
                     -- use hd or hy
 -- NOTE: wont't add -threaded because no parallelisation

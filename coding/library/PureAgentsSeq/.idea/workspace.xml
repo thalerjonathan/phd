@@ -19,8 +19,8 @@
       <file leaf-file-name="Main.hs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Main.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="108">
-              <caret line="6" column="23" lean-forward="false" selection-start-line="6" selection-start-column="23" selection-end-line="6" selection-end-column="23" />
+            <state relative-caret-position="180">
+              <caret line="10" column="13" lean-forward="true" selection-start-line="10" selection-start-column="13" selection-end-line="10" selection-end-column="13" />
               <folding />
             </state>
           </provider>
@@ -58,11 +58,15 @@
         <option value="$PROJECT_DIR$/src/PureAgents2DDiscrete.hs" />
         <option value="$PROJECT_DIR$/src/WildFire/WildFireModelDynamic.hs" />
         <option value="$PROJECT_DIR$/src/WildFire/WildFireModelStatic.hs" />
-        <option value="$PROJECT_DIR$/PureAgentsSeq.cabal" />
         <option value="$PROJECT_DIR$/src/PureAgentsSeq.hs" />
+        <option value="$PROJECT_DIR$/src/SIRS/SIRSModel.hs" />
+        <option value="$PROJECT_DIR$/src/HeroesAndCowards/HACModel.hs" />
+        <option value="$PROJECT_DIR$/src/HeroesAndCowards/RunHAC.hs" />
+        <option value="$PROJECT_DIR$/src/SIRS/RunSIRS.hs" />
         <option value="$PROJECT_DIR$/src/WildFire/RunWFStatic.hs" />
         <option value="$PROJECT_DIR$/src/WildFire/RunWFDynamic.hs" />
         <option value="$PROJECT_DIR$/src/Main.hs" />
+        <option value="$PROJECT_DIR$/PureAgentsSeq.cabal" />
       </list>
     </option>
   </component>
@@ -112,10 +116,28 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="PureAgentsSeq" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="PureAgentsSeq" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="HeroesAndCowards" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
       <pane id="Scope" />
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -426,7 +448,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1920" height="1053" extended-state="6" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -437,14 +459,14 @@
       <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3291536" sideWeight="0.50416666" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3291536" sideWeight="0.49583334" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3291536" sideWeight="0.49583334" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Properties" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="GhcMod" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Cabal" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -472,6 +494,14 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/src/Main.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/PureAgentsSeq.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -533,13 +563,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/PureAgentsSeq.cabal">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="14" column="56" lean-forward="true" selection-start-line="9" selection-start-column="20" selection-end-line="14" selection-end-column="56" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/PureAgentsSeq.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="834">
@@ -556,17 +579,35 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/WildFire/RunWFDynamic.hs">
+    <entry file="file://$PROJECT_DIR$/src/SIRS/SIRSModel.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="810">
-          <caret line="45" column="0" lean-forward="true" selection-start-line="45" selection-start-column="0" selection-end-line="45" selection-end-column="0" />
+        <state relative-caret-position="270">
+          <caret line="15" column="25" lean-forward="true" selection-start-line="15" selection-start-column="25" selection-end-line="15" selection-end-column="25" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/HeroesAndCowards/HACFrontend.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-88">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/SIRS/SIRSFronend.hs" />
+    <entry file="file://$PROJECT_DIR$/src/WildFire/WildFireFrontend.hs" />
+    <entry file="file://$PROJECT_DIR$/src/SIRS/RunSIRS.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="312">
+          <caret line="37" column="76" lean-forward="true" selection-start-line="37" selection-start-column="76" selection-end-line="37" selection-end-column="76" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/WildFire/WildFireModelStatic.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1278">
+        <state relative-caret-position="1226">
           <caret line="71" column="15" lean-forward="false" selection-start-line="71" selection-start-column="0" selection-end-line="71" selection-end-column="15" />
           <folding />
         </state>
@@ -574,16 +615,48 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/WildFire/RunWFStatic.hs">
       <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="324">
+          <caret line="18" column="20" lean-forward="false" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/WildFire/RunWFDynamic.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="83">
+          <caret line="39" column="56" lean-forward="false" selection-start-line="39" selection-start-column="56" selection-end-line="39" selection-end-column="56" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PureAgentsSeq.cabal">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="252">
+          <caret line="14" column="32" lean-forward="false" selection-start-line="14" selection-start-column="32" selection-end-line="14" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/HeroesAndCowards/RunHAC.hs">
+      <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="306">
-          <caret line="32" column="16" lean-forward="false" selection-start-line="32" selection-start-column="0" selection-end-line="32" selection-end-column="16" />
+          <caret line="29" column="6" lean-forward="false" selection-start-line="29" selection-start-column="0" selection-end-line="29" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/HeroesAndCowards/HACModel.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-288">
+          <caret line="11" column="0" lean-forward="true" selection-start-line="11" selection-start-column="0" selection-end-line="11" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Main.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="108">
-          <caret line="6" column="23" lean-forward="false" selection-start-line="6" selection-start-column="23" selection-end-line="6" selection-end-column="23" />
+        <state relative-caret-position="180">
+          <caret line="10" column="13" lean-forward="true" selection-start-line="10" selection-start-column="13" selection-end-line="10" selection-end-column="13" />
           <folding />
         </state>
       </provider>

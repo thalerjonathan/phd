@@ -3,7 +3,7 @@ module WildFire.RunWFStatic where
 import WildFire.WildFireModelStatic
 
 import qualified Data.Map as Map
-import qualified WildFire.WildFireFrontend as Front
+import qualified PureAgents2DDiscrete as Front
 
 import System.Random
 import System.IO
@@ -58,7 +58,7 @@ initialIgnition as pos cells
         (infront, behind) = splitAt agentAtPosId as
 
 stepWithRendering :: WFSimHandle -> Double -> (Int, Int) -> IO ()
-stepWithRendering hdl dt cells = simulateIO Front.display
+stepWithRendering hdl dt cells = simulateIO (Front.display "WildFire Static" (800, 800))
                                 GLO.white
                                 5
                                 hdl
@@ -67,7 +67,7 @@ stepWithRendering hdl dt cells = simulateIO Front.display
 
 -- A function to convert the model to a picture.
 modelToPicture :: (Int, Int) -> WFSimHandle -> IO GLO.Picture
-modelToPicture cells hdl = return (Front.renderFrame observableAgentStates cells)
+modelToPicture cells hdl = return (Front.renderFrame observableAgentStates (800, 800) cells)
     where
         as = PA.extractHdlAgents hdl
         observableAgentStates = map (wfAgentToObservableState cells) as
@@ -81,14 +81,14 @@ stepIteration fixedDt viewport dtRendering hdl = return (PA.advanceSimulation hd
 
 wfAgentToObservableState :: (Int, Int) -> WFAgent -> Front.RenderCell
 wfAgentToObservableState (xCells, yCells) a = Front.RenderCell { Front.renderCellCoord = (x, y),
-                                                                    Front.renderCellShade = (burnable s),
-                                                                    Front.renderCellState = cellState }
+                                                                    Front.renderCellColor = cs }
     where
         aid = PA.agentId a
         s = PA.state a
         y = floor((fromIntegral aid) / (fromIntegral xCells))
         x = mod aid yCells
-        cellState = case (wfState s) of
-                        Living -> Front.ShadeGreen
-                        Burning -> Front.ShadeRed
-                        Dead -> Front.ShadeGray
+        shade = burnable s
+        cs = case (wfState s) of
+                            Living -> (0.0, shade, 0.0)
+                            Burning -> (shade, 0.0, 0.0)
+                            Dead -> (0.5, 0.5, 0.5)

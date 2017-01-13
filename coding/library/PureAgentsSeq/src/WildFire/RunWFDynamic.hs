@@ -14,19 +14,35 @@ import Graphics.Gloss.Interface.IO.Simulate
 
 import qualified PureAgentsSeq as PA
 
-runWFDynamic :: IO ()
-runWFDynamic = do
-                let dt = 1.0
-                let xCells = 200
-                let yCells = 200
-                let rngSeed = 42
-                let cells = (xCells, yCells)
-                let g = mkStdGen rngSeed
-                let env = createEnvironment cells
-                let c = fromJust (cellByCoord env (100, 100))
-                let (a, env', g') = igniteCell g c env
-                let (as, hdl) = PA.initStepSimulation [a] env'
-                stepWithRendering hdl dt
+runWFDynamicRendering :: IO ()
+runWFDynamicRendering = do
+                            let dt = 1.0
+                            let xCells = 300
+                            let yCells = 300
+                            let rngSeed = 42
+                            let cells = (xCells, yCells)
+                            let g = mkStdGen rngSeed
+                            let env = createEnvironment cells
+                            let c = fromJust (cellByCoord env (100, 100))
+                            let (a, env', g') = igniteCell g c env
+                            let hdl = PA.initStepSimulation [a] env'
+                            stepWithRendering hdl dt
+
+runWFDynamicSteps :: IO ()
+runWFDynamicSteps = do
+                        let dt = 1.0
+                        let xCells = 300
+                        let yCells = 300
+                        let rngSeed = 42
+                        let cells = (xCells, yCells)
+                        let g = mkStdGen rngSeed
+                        let env = createEnvironment cells
+                        let c = fromJust (cellByCoord env (100, 100))
+                        let (a, env', g') = igniteCell g c env
+                        let stepCount = 1000
+                        let (as', _) = PA.stepSimulation [a] env dt stepCount
+                        mapM (putStrLn . show . PA.state) as'
+                        return ()
 
 stepWithRendering :: WFSimHandle -> Double -> IO ()
 stepWithRendering hdl dt = simulateIO (Front.display "WildFire Dynamic" (800, 800))
@@ -60,7 +76,5 @@ wfCellToRenderCell c = Front.RenderCell { Front.renderCellCoord = (coord c),
 --       NOTE: this is actually wrong, we can avoid atomically as long as we are running always on the same thread.
 --             atomically would commit the changes and make them visible to other threads
 stepIteration :: Double -> ViewPort -> Float -> WFSimHandle -> IO WFSimHandle
-stepIteration fixedDt viewport dtRendering hdl = do
-                                                    let (as, e, hdl') = PA.advanceSimulation hdl fixedDt
-                                                    return hdl'
+stepIteration fixedDt viewport dtRendering hdl = return (PA.advanceSimulation hdl fixedDt)
 --------------------------------------------------------------------------------------------------------------------------------------------------

@@ -38,7 +38,7 @@ type AgentMessage m = (AgentId, Msg m)
 
 -- NOTE: the central agent-behaviour-function: transforms an agent using a message and an environment to a new agent
 type AgentTransformer m s e = ((Agent m s e, e) -> AgentMessage m -> (Agent m s e, e))
-type OutFunc m s e = (([Agent m s e], e) -> IO (Bool, Double))
+type OutFunc m s e = ((Map.Map AgentId (Agent m s e), e) -> IO (Bool, Double))
 
 {- NOTE:    m is the type of messages the agent understands
             s is the type of a generic state of the agent e.g. any data
@@ -58,7 +58,7 @@ data Agent m s e = Agent {
 }
 
 data SimHandle m s e = SimHandle {
-    simHdlAgents :: [Agent m s e],
+    simHdlAgents :: Map.Map AgentId (Agent m s e),
     simHdlEnv :: e
 }
 
@@ -121,48 +121,55 @@ extractHdlEnv :: SimHandle m s e -> e
 extractHdlEnv = simHdlEnv
 
 extractHdlAgents :: SimHandle m s e -> [Agent m s e]
-extractHdlAgents = simHdlAgents
+extractHdlAgents = Map.elems . simHdlAgents
 
 -- TODO: return all steps of agents and environment
 stepSimulation :: [Agent m s e] -> e -> Double -> Int -> ([Agent m s e], e)
-stepSimulation as e dt 0 = (as, e)
-stepSimulation as e dt n = stepSimulation as' e' dt (n-1)
+stepSimulation as e dt n = (Map.elems am', e')
     where
-        (as', e') = stepAllAgents as dt e
+        am = insertAgents Map.empty as
+        (am', e') = stepSimulation' am e dt n
 
-initStepSimulation :: [Agent m s e] -> e -> ([Agent m s e], SimHandle m s e)
-initStepSimulation as e = (as, hdl)
+        stepSimulation' :: Map.Map AgentId (Agent m s e) -> e -> Double -> Int -> (Map.Map AgentId (Agent m s e), e)
+        stepSimulation' am e dt 0 = (am, e)
+        stepSimulation' am e dt n = stepSimulation' am' e' dt (n-1)
+            where
+                (am', e') = stepAllAgents am dt e
+
+initStepSimulation :: [Agent m s e] -> e -> SimHandle m s e
+initStepSimulation as e = hdl
     where
-        hdl = SimHandle { simHdlAgents = as, simHdlEnv = e }
+        am = insertAgents Map.empty as
+        hdl = SimHandle { simHdlAgents = am, simHdlEnv = e }
 
-advanceSimulation :: SimHandle m s e -> Double -> ([Agent m s e], e, SimHandle m s e)
-advanceSimulation hdl dt = (as', e', hdl')
+advanceSimulation :: SimHandle m s e -> Double -> SimHandle m s e
+advanceSimulation hdl dt = hdl { simHdlAgents = am', simHdlEnv = e' }
     where
         e = extractHdlEnv hdl
-        as = extractHdlAgents hdl
-        (as', e') = stepAllAgents as dt e
-        hdl' = hdl { simHdlAgents = as', simHdlEnv = e' }
+        am = simHdlAgents hdl
+        (am', e') = stepAllAgents am dt e
 
 runSimulation :: [Agent m s e] -> e -> OutFunc m s e -> IO ()
-runSimulation as e out = runSimulation' as 0.0 e out
+runSimulation as e out = runSimulation' am 0.0 e out
     where
-        runSimulation' :: [Agent m s e] -> Double -> e -> OutFunc m s e -> IO ()
+        am = insertAgents Map.empty as
+
+        runSimulation' :: Map.Map AgentId (Agent m s e) -> Double -> e -> OutFunc m s e -> IO ()
         runSimulation' as dt e out = do
-                                        let (as', e') = stepAllAgents as dt e
-                                        (cont, dt') <- out (as', e')
+                                        let (am', e') = stepAllAgents as dt e
+                                        (cont, dt') <- out (am', e')
                                         if cont == True then
-                                            runSimulation' as' dt' e' out
+                                            runSimulation' am' dt' e' out
                                             else
                                                 return ()
 
 ------------------------------------------------------------------------------------------------------------------------
 -- PRIVATE, non exports
 ------------------------------------------------------------------------------------------------------------------------
--- TODO: does the map change the order? if yes, does it make a difference?
-stepAllAgents :: [Agent m s e] -> Double -> e -> ([Agent m s e], e)
-stepAllAgents as dt e = (Map.elems am', e')
+-- TODO: does the map change the order? if yes, does it make a difference? it does only make a difference if the sequential traversal MUST BE ALWAYS the same
+stepAllAgents :: Map.Map AgentId (Agent m s e) -> Double -> e -> (Map.Map AgentId (Agent m s e), e)
+stepAllAgents am dt e = (am', e')
     where
-        am = insertAgents Map.empty as
         (am', e') = foldl (stepAllAgentsFold dt) (am, e) (Map.keys am)
 
         -- NOTE: we will iterate only over the keys, this allows us to update the whole map

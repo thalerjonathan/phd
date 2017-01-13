@@ -27,7 +27,7 @@ runWFStaticRendering = do
                         -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
                         let (as, g') = createRandomWFAgents g cells
                         let ignitedAs = initialIgnition as (25, 25) cells
-                        let (as', hdl) = PA.initStepSimulation ignitedAs ()
+                        let hdl = PA.initStepSimulation ignitedAs ()
                         stepWithRendering hdl dt cells
 
 runWFStaticSteps :: IO ()
@@ -41,7 +41,7 @@ runWFStaticSteps = do
                     -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
                     let (as, g') = createRandomWFAgents g cells
                     let ignitedAs = initialIgnition as (25, 25) cells
-                    let stepCount = 2000
+                    let stepCount = 1000
                     let (as', _) = PA.stepSimulation ignitedAs () dt stepCount
                     mapM (putStrLn . show . PA.state) as'
                     return ()
@@ -77,9 +77,7 @@ modelToPicture cells hdl = return (Front.renderFrame observableAgentStates cells
 --       NOTE: this is actually wrong, we can avoid atomically as long as we are running always on the same thread.
 --             atomically would commit the changes and make them visible to other threads
 stepIteration :: Double -> ViewPort -> Float -> WFSimHandle -> IO WFSimHandle
-stepIteration fixedDt viewport dtRendering hdl = do
-                                                    let (as', e', hdl') = PA.advanceSimulation hdl fixedDt
-                                                    return hdl'
+stepIteration fixedDt viewport dtRendering hdl = return (PA.advanceSimulation hdl fixedDt)
 
 wfAgentToObservableState :: (Int, Int) -> WFAgent -> Front.RenderCell
 wfAgentToObservableState (xCells, yCells) a = Front.RenderCell { Front.renderCellCoord = (x, y),

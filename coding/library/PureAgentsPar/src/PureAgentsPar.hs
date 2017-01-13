@@ -229,5 +229,4 @@ processAllMessages (a, e) = aAfterMsgs'
         msgs = inBox a
         aAfterMsgs = foldl (\a' senderMsgPair -> processMsg (a', e) senderMsgPair) a msgs
         aAfterMsgs' = aAfterMsgs { inBox = [] }
-
 ------------------------------------------------------------------------------------------------------------------------

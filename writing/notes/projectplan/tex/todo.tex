@@ -1,0 +1,47 @@
+\section{TODO-List as of \today}
+
+\begin{itemize}
+\item performance unacceptable: 1000 in haskell vs 100.000 in java is a shame on haskell, more should be possible. investigate using profiling both of CPU and memory: \url{http://keera.co.uk/blog/2014/10/15/from-60-fps-to-500/}. strictness \& tail-recursion!
+	Par-Version seems to be working ok compared to Seq. Seq consumes hundreds of MB of memory!
+
+
+\item implement environment for parallel: global read, local write
+
+\item embed PureAgentsPar and Seq in Yampa: PureAgentsYampa so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai.
+\item implement agent monad: PureAgentsMonadic. but what is an Agent-Monad? build a monad to chain actions of the agent and always run inside an agent-monad
+\item embed PureAgentsMonadic in Dunai
+
+\item implement wait blocking for a message so far. utilize yampas event mechanism?
+
+\item implement conways game of life: parallel discrete: read global environment, write local
+\item implement schelling segregation
+\item implement sugarscape ?
+
+
+\item look into QuickCheck and HPC
+\item problem: so far only agents with same static messagetypes, environment and states, can communicate: the agents are homogenous. how can we implement hetereogenous agents in this library?
+\item implement a general-purpose rendering-frontend with gloss but let the simulation be driven by Yampa/SimulationBackend instead of frontend (not real-time)
+
+
+\item investigate speed of divergence of simulation runs using the terminology of gleichzeitige ungleichzeitigkeiten
+\item 2 complex system can lead to a total different outcome when initial settings differ only by fractions. thus it may also be the case for specific ABM/S?
+\item todo: render paths of the agents in heroes and cowards
+\item todo: abm/s of a go game
+\item IDEA: what about an ABM/S of karma and rebirth? add to genesis paper
+\item IDEA: what about ABM/S generating sound? could be a perfect example for Yampa due to its signal functions. the sound is the result of interactions of agents which try to generate harmonies and agents trying to create dissonance
+\item IDEA: what about abm/s creating drawings/art? 2d continuous and each agents path is drawn
+\item haskell: dont have objects with methods which can call between each other but we need some way of representing agents. this is done using a struct type with a behaviour function and messaging mechanisms. important: agents are not carried arround but messages are sent to a receiver identified by an id. This is also a big difference to java where don't really need this kind of abstraction due to the use of objects and their 'messaging'. 
+\item messaging mechanisms have up- and downsides, elaborate on it.
+\item reason for patterns: heroes try to stay 50 \% in between and have selected 2 cowards which themselves are at the borders opposite. need much more cowards than heroes 75/25. TODO: investigate pair-wise movement.
+\item hypothesis: individual runs diverge from the first step on but the global behaviour stays the same.
+\item question: do emergent patterns break down / global dynamics change completely in some ABM/S when changing sim-semantic? which kind of ABM could show this behaviour? which properties are responsible for it?
+\item parallel more natural in haskell
+\item sequential more natural in java
+\item concurrent difficult in both, using stm in haskell it becomes very natural, STM available in java too. actors are an even better approach but is having problems with time in simulation
+\item where does 1st and 2nd year research meet: reasoning about emergent properties of the simulation. in case of HAC the crosspattern, in case of ACE the convergence to stable prices
+
+\item Continue investigations regarding the heroes and cowards game
+\item Explore the literature on complex systems to find an explanation for the emergence of the macro level patterns in the Heroes \& Cowards game
+\item Consider the next step: Implementing an economics example at different levels of complexity 
+\item Continue writing conference paper and looking out for an appropriate conference
+\end{itemize} 

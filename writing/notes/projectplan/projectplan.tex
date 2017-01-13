@@ -23,8 +23,17 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx} % Required for the inclusion of images
-\usepackage{natbib} % Required to change bibliography style to APA
+%\usepackage{natbib} % Required to change bibliography style to APA
 \usepackage{amsmath} % Required for some math elements 
+\usepackage{glossaries}
+\usepackage[toc,page]{appendix}
+\usepackage[autostyle=true]{csquotes}
+\usepackage{hyperref}
+\usepackage{amssymb}
+\usepackage{caption} 
+\usepackage{hhline}
+\usepackage{float}
+\usepackage{listings}
 
 \setlength\parindent{0pt} % Removes all indentation from paragraphs
 
@@ -34,7 +43,7 @@
 %	DOCUMENT INFORMATION
 %----------------------------------------------------------------------------------------
 
-\title{The quest for Darkness: existence beyond the Light} % Title
+\title{PhD Project-Plan} % Title
 
 \author{Jonathan \textsc{Thaler}} % Author name
 
@@ -45,19 +54,21 @@
 \maketitle % Insert the title, author and date
 
 % If you wish to include an abstract, uncomment the lines below
-\begin{abstract}
+This document gives detailed information about the structuring of the research undertaken in this PhD.
 
-\end{abstract}
+\input{./tex/years.tex}
 
-\section{Introduction}
+\newpage
 
+\input{./tex/papers.tex}
 
-%----------------------------------------------------------------------------------------
-%	BIBLIOGRAPHY
-%----------------------------------------------------------------------------------------
+\newpage
 
-\bibliographystyle{apalike}
+%\input{./tex/todo.tex}
 
-\bibliography{./darkness.bib}
+\newpage
+
+\bibliographystyle{acm}
+\bibliography{../../references/phdReferences.bib}
 
 \end{document}

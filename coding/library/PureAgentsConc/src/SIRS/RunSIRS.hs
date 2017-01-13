@@ -8,24 +8,39 @@ import Graphics.Gloss.Interface.IO.Simulate
 import qualified PureAgentsConc as PA
 
 import System.Random
+import Control.Monad.STM
 
-runSIRS :: IO ()
-runSIRS = do
-            --hSetBuffering stdin NoBuffering
-            let dt = 1.0
-            let dims = (50, 50)
-            let initInfectionProb = 0.2
-            let rngSeed = 42
-            let steps = 10
-            let g = mkStdGen rngSeed
-            let (as, g') = createRandomSIRSAgents g dims initInfectionProb
-            let hdl = PA.initStepSimulation as ()
-            stepWithRendering dims hdl dt
+runSIRSRendering :: IO ()
+runSIRSRendering = do
+                    --hSetBuffering stdin NoBuffering
+                    let dt = 1.0
+                    let dims = (50, 50)
+                    let initInfectionProb = 0.2
+                    let rngSeed = 42
+                    let g = mkStdGen rngSeed
+                    (as, g') <- atomically $ createRandomSIRSAgents g dims initInfectionProb
+                    hdl <- atomically $ PA.initStepSimulation as ()
+                    stepWithRendering dims hdl dt
+
+runSIRSSteps :: IO ()
+runSIRSSteps = do
+                --hSetBuffering stdin NoBuffering
+                let dt = 1.0
+                let dims = (50, 50)
+                let initInfectionProb = 0.2
+                let rngSeed = 42
+                let steps = 1000
+                let g = mkStdGen rngSeed
+                (as, g') <- atomically $ createRandomSIRSAgents g dims initInfectionProb
+                let stepCount = 10
+                (as', _) <- PA.stepSimulation as () dt stepCount
+                mapM (putStrLn . show . PA.state) as'
+                return ()
 
 stepWithRendering :: (Int, Int) -> SIRSSimHandle -> Double -> IO ()
 stepWithRendering dims hdl dt = simulateIO (Front.display "SIRS" (800, 800))
                                 GLO.white
-                                20
+                                30
                                 hdl
                                 (modelToPicture dims)
                                 (stepIteration dt)
@@ -55,7 +70,7 @@ sirsAgentToRenderCell (xDim, yDim) a = Front.RenderCell { Front.renderCellCoord 
 --       NOTE: this is actually wrong, we can avoid atomically as long as we are running always on the same thread.
 --             atomically would commit the changes and make them visible to other threads
 stepIteration :: Double -> ViewPort -> Float -> SIRSSimHandle -> IO SIRSSimHandle
-stepIteration fixedDt viewport dtRendering hdl = return (PA.advanceSimulation hdl fixedDt)
+stepIteration fixedDt viewport dtRendering hdl = PA.advanceSimulation hdl fixedDt
 --------------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -66,26 +81,26 @@ stepSIRS :: IO ()
 stepSIRS = do
             --hSetBuffering stdin NoBuffering
             let dt = 1.0
-            let dims = (30, 30)
+            let dims = (100, 100)
             let initInfectionProb = 0.2
             let rngSeed = 42
-            let steps = 10
+            let steps = 100
             let g = mkStdGen rngSeed
             -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
-            let (as, g') = createRandomSIRSAgents g dims initInfectionProb
+            (as, g') <- atomically $ createRandomSIRSAgents g dims initInfectionProb
             putStrLn "Initial:"
             printAgents as
             -- NOTE: this works for now when NOT using parallelism
             --  (as', e') <- atomically $ Agents.stepSimulation as Nothing dt steps
             --Agents.runSimulation as Nothing (outputStep dt)
-            let hdl = PA.initStepSimulation as ()
+            hdl <- atomically $ PA.initStepSimulation as ()
             runSteps hdl 100 dt
             return ()
 
 runSteps :: SIRSSimHandle -> Int -> Double -> IO SIRSSimHandle
 runSteps hdl 0 dt = return hdl
 runSteps hdl n dt = do
-                    let hdl' = PA.advanceSimulation hdl dt
+                    hdl' <- PA.advanceSimulation hdl dt
                     let as = PA.extractHdlAgents hdl'
                     putStrLn ("Step " ++ (show n) ++ ":")
                     printAgents as

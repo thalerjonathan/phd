@@ -13,6 +13,9 @@ module PureAgentsConc (
     broadcastMsgToNeighbours,
     updateState,
     writeState,
+    readEnv,
+    writeEnv,
+    changeEnv,
     addNeighbours,
     stepSimulation,
     initStepSimulation,
@@ -26,6 +29,12 @@ module PureAgentsConc (
 import Data.Maybe
 import System.Random
 
+import Control.Monad.Par
+
+import Control.Monad.STM
+import Control.Concurrent.STM.TVar
+import Control.Concurrent.STM.TQueue
+
 import qualified Data.Map as Map
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -37,7 +46,7 @@ data Msg m = Dt Double | Domain m
 type AgentMessage m = (AgentId, Msg m)
 
 -- NOTE: the central agent-behaviour-function: transforms an agent using a message and an environment to a new agent
-type AgentTransformer m s e = ((Agent m s e, e) -> AgentMessage m -> (Agent m s e, e))
+type AgentTransformer m s e = ((Agent m s e, TVar e) -> AgentMessage m -> STM (Agent m s e))
 type OutFunc m s e = ((Map.Map AgentId (Agent m s e), e) -> IO (Bool, Double))
 
 {- NOTE:    m is the type of messages the agent understands
@@ -49,9 +58,8 @@ type AgentId = Int
 data Agent m s e = Agent {
     agentId :: AgentId,
     killFlag :: Bool,
-    outBox :: [(AgentId, AgentId, m)],              -- NOTE: 1st AgentId contains the senderId, 2nd AgentId contains the targetId (redundancy saves us processing time)
-    inBox :: [(AgentId, m)],                        -- NOTE: AgentId contains the senderId
-    neighbours :: Map.Map AgentId AgentId,
+    msgBox :: TQueue (AgentId, m),
+    neighbours :: Map.Map AgentId (TQueue (AgentId, m)),
     trans :: AgentTransformer m s e,
     state :: s,
     newAgents :: [Agent m s e]
@@ -59,7 +67,7 @@ data Agent m s e = Agent {
 
 data SimHandle m s e = SimHandle {
     simHdlAgents :: Map.Map AgentId (Agent m s e),
-    simHdlEnv :: e
+    simHdlEnv :: TVar e
 }
 
 newAgent :: Agent m s e -> Agent m s e -> Agent m s e
@@ -70,28 +78,37 @@ newAgent aParent aNew = aParent { newAgents = nas ++ [aNew] }
 kill :: Agent m s e -> Agent m s e
 kill a = a { killFlag = True }
 
-sendMsg :: Agent m s e -> m -> AgentId -> Agent m s e
-sendMsg a m targetId
-    | targetNotFound = a                                     -- NOTE: receiver not found in the neighbours
-    | otherwise = a { outBox = newOutBox }
+sendMsg :: Agent m s e -> m -> AgentId -> STM ()
+sendMsg a m receiverId
+    | receiverNotFound = return ()
+    | otherwise = putMessage receiverQueue senderId m
     where
         senderId = agentId a
-        targetNotFound = isNothing (Map.lookup targetId (neighbours a))       -- NOTE: do we really need to look-up the neighbours?
-        newOutBox = (senderId, targetId, m) : (outBox a) -- TODO: is order irrelevant? could use ++ as well but more expensive (or not?)
+        mayReceiverQueue = Map.lookup receiverId (neighbours a)
+        receiverNotFound = isNothing mayReceiverQueue
+        receiverQueue = fromJust mayReceiverQueue
 
-broadcastMsgToNeighbours :: Agent m s e -> m -> Agent m s e
-broadcastMsgToNeighbours a m = foldl (\a' nId -> sendMsg a' m nId ) a nsIds
+-- TODO: implement
+broadcastMsgToNeighbours :: Agent m s e -> m -> STM ()
+broadcastMsgToNeighbours a m = return () {-do
+                                m <- Map.map (\neighbourBox -> putMessage neighbourBox senderId m) (neighbours a)
+                                return ()-}
     where
-        nsIds = Map.elems (neighbours a)
+        senderId = agentId a
 
-sendMsgToRandomNeighbour :: (RandomGen g) => Agent m s e -> m -> g -> (Agent m s e, g)
-sendMsgToRandomNeighbour a m g = (a', g')
+sendMsgToRandomNeighbour :: (RandomGen g) => Agent m s e -> m -> g -> STM g
+sendMsgToRandomNeighbour a m g = do
+                                    putMessage neighbourBox senderId m
+                                    return g'
     where
-        ns = (neighbours a)
+        senderId = agentId a
+        ns = neighbours a
         nsCount = Map.size ns
-        (randIdx, g') = randomR(0, nsCount-1) g
-        randAgentId = (Map.elems ns) !! randIdx     -- TODO: do we really need to map to elements?
-        a' = sendMsg a m randAgentId
+        (randIdx, g') = randomR(0, nsCount - 1) g
+        neighbourBox = (Map.elems ns) !! randIdx     -- TODO: can we optimize this?
+
+putMessage :: TQueue (AgentId, m) -> AgentId -> m -> STM ()
+putMessage q senderId m = writeTQueue q (senderId, m)
 
 updateState :: Agent m s e -> (s -> s) -> Agent m s e
 updateState a sf = a { state = s' }
@@ -102,11 +119,12 @@ updateState a sf = a { state = s' }
 writeState :: Agent m s e -> s -> Agent m s e
 writeState a s = updateState a (\_ -> s)
 
-createAgent :: AgentId -> s -> AgentTransformer m s e -> Agent m s e
-createAgent i s t = Agent{ agentId = i,
+createAgent :: AgentId -> s -> AgentTransformer m s e -> STM (Agent m s e)
+createAgent i s t = do
+                        tq <- newTQueue
+                        return Agent{ agentId = i,
                                     state = s,
-                                    outBox = [],
-                                    inBox = [],
+                                    msgBox = tq,
                                     killFlag = False,
                                     neighbours = Map.empty,
                                     newAgents = [],
@@ -115,119 +133,118 @@ createAgent i s t = Agent{ agentId = i,
 addNeighbours :: Agent m s e -> [Agent m s e] -> Agent m s e
 addNeighbours a ns = a { neighbours = newNeighbours }
     where
-        newNeighbours = foldl (\acc a -> Map.insert (agentId a) (agentId a) acc) (neighbours a) ns
+        newNeighbours = foldl (\acc a -> Map.insert (agentId a) (msgBox a) acc) (neighbours a) ns
 
-extractHdlEnv :: SimHandle m s e -> e
+readEnv :: TVar e -> STM e
+readEnv eVar = readTVar eVar
+
+writeEnv :: TVar e -> e -> STM ()
+writeEnv eVar e = changeEnv eVar (\_ -> e)
+
+changeEnv :: TVar e -> (e -> e) -> STM ()
+changeEnv eVar tx = modifyTVar eVar tx
+
+extractHdlEnv :: SimHandle m s e -> TVar e
 extractHdlEnv = simHdlEnv
 
 extractHdlAgents :: SimHandle m s e -> [Agent m s e]
 extractHdlAgents = Map.elems . simHdlAgents
 
 -- TODO: return all steps of agents and environment
-stepSimulation :: [Agent m s e] -> e -> Double -> Int -> ([Agent m s e], e)
-stepSimulation as e dt n = (Map.elems am', e')
+stepSimulation :: [Agent m s e] -> e -> Double -> Int -> IO ([Agent m s e], e)
+stepSimulation as e dt n = do
+                            eVar <- atomically $ newTVar e
+                            let am = insertAgents Map.empty as
+                            am' <- stepSimulation' am eVar dt n
+                            e' <- atomically $ readTVar eVar
+                            return (Map.elems am', e')
     where
-        am = insertAgents Map.empty as
-        (am', e') = stepSimulation' am e dt n
+        stepSimulation' :: Map.Map AgentId (Agent m s e) -> TVar e -> Double -> Int -> IO (Map.Map AgentId (Agent m s e))
+        stepSimulation' am eVar dt 0 = return am
+        stepSimulation' am eVar dt n = do
+                                        am' <- stepAllAgents am dt eVar
+                                        stepSimulation' am' eVar dt (n-1)
 
-        stepSimulation' :: Map.Map AgentId (Agent m s e) -> e -> Double -> Int -> (Map.Map AgentId (Agent m s e), e)
-        stepSimulation' am e dt 0 = (am, e)
-        stepSimulation' am e dt n = stepSimulation' am' e' dt (n-1)
-            where
-                (am', e') = stepAllAgents am dt e
+initStepSimulation :: [Agent m s e] -> e -> STM (SimHandle m s e)
+initStepSimulation as e = do
+                            eVar <- newTVar e
+                            let am = insertAgents Map.empty as
+                            return SimHandle { simHdlAgents = am, simHdlEnv = eVar }
 
-initStepSimulation :: [Agent m s e] -> e -> SimHandle m s e
-initStepSimulation as e = hdl
-    where
-        am = insertAgents Map.empty as
-        hdl = SimHandle { simHdlAgents = am, simHdlEnv = e }
-
-advanceSimulation :: SimHandle m s e -> Double -> SimHandle m s e
-advanceSimulation hdl dt = hdl { simHdlAgents = am', simHdlEnv = e' }
-    where
-        e = extractHdlEnv hdl
-        am = simHdlAgents hdl
-        (am', e') = stepAllAgents am dt e
+advanceSimulation :: SimHandle m s e -> Double -> IO (SimHandle m s e)
+advanceSimulation hdl dt = do
+                            let eVar = extractHdlEnv hdl
+                            let am = simHdlAgents hdl
+                            am' <- stepAllAgents am dt eVar
+                            return hdl { simHdlAgents = am' } -- NOTE: no need to update e' because implicitly done
 
 runSimulation :: [Agent m s e] -> e -> OutFunc m s e -> IO ()
-runSimulation as e out = runSimulation' am 0.0 e out
-    where
-        am = insertAgents Map.empty as
+runSimulation as e out = do
+                            eVar <- atomically $ newTVar e
+                            let am = insertAgents Map.empty as
+                            runSimulation' am 0.0 eVar out
 
-        runSimulation' :: Map.Map AgentId (Agent m s e) -> Double -> e -> OutFunc m s e -> IO ()
-        runSimulation' as dt e out = do
-                                        let (am', e') = stepAllAgents as dt e
-                                        (cont, dt') <- out (am', e')
-                                        if cont == True then
-                                            runSimulation' am' dt' e' out
-                                            else
-                                                return ()
+    where
+        runSimulation' :: Map.Map AgentId (Agent m s e) -> Double -> TVar e -> OutFunc m s e -> IO ()
+        runSimulation' as dt eVar out = do
+                                            am' <- stepAllAgents as dt eVar
+                                            e <- atomically $ readTVar eVar
+                                            (cont, dt') <- out (am', e)
+                                            if cont == True then
+                                                runSimulation' am' dt' eVar out
+                                                else
+                                                    return ()
 
 ------------------------------------------------------------------------------------------------------------------------
 -- PRIVATE, non exports
 ------------------------------------------------------------------------------------------------------------------------
--- TODO: does the map change the order? if yes, does it make a difference? it does only make a difference if the sequential traversal MUST BE ALWAYS the same
-stepAllAgents :: Map.Map AgentId (Agent m s e) -> Double -> e -> (Map.Map AgentId (Agent m s e), e)
-stepAllAgents am dt e = (am', e')
-    where
-        (am', e') = foldl (stepAllAgentsFold dt) (am, e) (Map.keys am)
-
-        -- NOTE: we will iterate only over the keys, this allows us to update the whole map
-        stepAllAgentsFold :: Double -> (Map.Map AgentId (Agent m s e), e) -> AgentId -> (Map.Map AgentId (Agent m s e), e)
-        stepAllAgentsFold dt (am, e) aid = (amFinal, e')
-            where
-                a = fromJust (Map.lookup aid am)  -- NOTE: it is guaranteed that this key is in the map
-                (a', e') = stepAgent dt (a, e)
-                am' = deliverOutMsgs a' (insertAgents am (newAgents a'))
-                aFinal = a' { newAgents = [], outBox = [] }
-                amFinal = case (killFlag aFinal) of
-                                    True -> Map.delete (agentId aFinal) am'
-                                    otherwise -> Map.insert (agentId aFinal) aFinal am'
-
 insertAgents :: Map.Map AgentId (Agent m s e) -> [Agent m s e] -> Map.Map AgentId (Agent m s e)
 insertAgents am as = foldl (\accMap a -> Map.insert (agentId a) a accMap ) am as
 
--- NOTE: this places the messages in the out-box of of the first argument agent at their corresponding receivers in the map
-deliverOutMsgs :: Agent m s e -> Map.Map AgentId (Agent m s e) -> Map.Map AgentId (Agent m s e)
-deliverOutMsgs a am = am'
-    where
-        (allOutMsgs, _) = collectOutMsgs [a]
-        am' = foldl (\agentMap' outMsgTup -> deliverMsg agentMap' outMsgTup ) am allOutMsgs
+-- NOTE: iteration order makes no difference as they are in fact 'parallel': no agent can see the update of others, all happens at the same time
+stepAllAgents :: Map.Map AgentId (Agent m s e) -> Double -> TVar e -> IO (Map.Map AgentId (Agent m s e))
+stepAllAgents am dt eVar = do
+                            as <- mapM (runAgent dt eVar) (Map.elems am)
+                            let am' = insertAgents Map.empty as
+                            let (newAgents, amClearedNewAgents) = collectAndClearNewAgents am'
+                            let amWithNewAgents = insertAgents amClearedNewAgents newAgents
+                            let amRemovedKilled = Map.foldl killAgentFold Map.empty amWithNewAgents
+                            return amRemovedKilled
 
--- NOTE: could be the case that the receiver is no more in the map because it has been killed
-deliverMsg :: Map.Map AgentId (Agent m s e) -> (AgentId, AgentId, m) -> Map.Map AgentId (Agent m s e)
-deliverMsg am (senderId, receiverId, m)
-    | receiverNotFound = am
-    | otherwise = Map.insert receiverId a' am
-    where
-        mayReceiver = Map.lookup receiverId am
-        receiverNotFound = isNothing mayReceiver
-        a = (fromJust mayReceiver)
-        ib = inBox a
-        ibM = (senderId, m)
-        a' = a { inBox = ib ++ [ibM] }
+killAgentFold :: Map.Map AgentId (Agent m s e) -> Agent m s e -> Map.Map AgentId (Agent m s e)
+killAgentFold am a
+    | killFlag a = am
+    | otherwise = Map.insert (agentId a) a am
 
--- NOTE: first AgentId: senderId, second AgentId: receiverId
-collectOutMsgs :: [Agent m s e] -> ([(AgentId, AgentId, m)], [Agent m s e])
-collectOutMsgs as = foldl (\(accMsgs, accAs) a -> ((outBox a) ++ accMsgs, (a { outBox = [] }) : accAs) ) ([], []) as
+collectAndClearNewAgents :: Map.Map AgentId (Agent m s e) -> ([(Agent m s e)], Map.Map AgentId (Agent m s e))
+collectAndClearNewAgents am = Map.foldl (\(newAsAcc, amAcc) a -> (newAsAcc ++ (newAgents a), Map.insert (agentId a) a { newAgents = [] } amAcc)) ([], am) am
 
-stepAgent :: Double -> (Agent m s e, e) -> (Agent m s e, e)
-stepAgent dt (a, e) = (aAfterUpdt, eAfterUpdt)
-    where
-        (aAfterMsgProc, eAfterMsgProc) = processAllMessages (a, e)
-        agentTransformer = trans aAfterMsgProc
-        (aAfterUpdt, eAfterUpdt) = agentTransformer (aAfterMsgProc, eAfterMsgProc) (-1, Dt dt)
+-- PROCESSING THE AGENT
+-- NOTE: every agent must be run inside an atomic-block to 'commit' its actions. We don't want to run the agent in the IO but pull this out
+-- TODO: parallelize
+runAgent :: Double -> TVar e -> Agent m s e -> IO (Agent m s e)
+runAgent dt eVar a = atomically $ (stepAgent dt eVar a)
 
-processMsg :: (Agent m s e, e) -> (AgentId, m) -> (Agent m s e, e)
-processMsg (a, e) (senderId, m) = agentTransformer (a, e) (senderId, Domain m)
+stepAgent :: Double -> TVar e -> Agent m s e -> STM (Agent m s e)
+stepAgent dt eVar a = do
+                        aAfterMsgProc <- processAllMessages (a, eVar)
+                        let agentTransformer = trans aAfterMsgProc
+                        aAfterUpdt <- agentTransformer (aAfterMsgProc, eVar) (-1, Dt dt)
+                        return aAfterUpdt
+
+processAllMessages :: (Agent m s e, TVar e) -> STM (Agent m s e)
+processAllMessages (a, eVar) = do
+                                mayMsg <- tryReadTQueue (msgBox a)
+                                if (isNothing mayMsg) then
+                                    return a
+                                    else
+                                        do
+                                            let msg = fromJust mayMsg
+                                            a' <- processMsg (a, eVar) msg
+                                            processAllMessages (a', eVar)
+
+processMsg :: (Agent m s e, TVar e) -> (AgentId, m) -> STM (Agent m s e)
+processMsg (a, eVar) (senderId, m) = agentTransformer (a, eVar) (senderId, Domain m)
     where
         agentTransformer = trans a
-
-processAllMessages :: (Agent m s e, e) -> (Agent m s e, e)
-processAllMessages (a, e) = (aAfterMsgs', eAfterMsgs)
-    where
-        msgs = inBox a
-        (aAfterMsgs, eAfterMsgs) = foldl (\(a', e') senderMsgPair -> processMsg (a', e') senderMsgPair) (a, e) msgs
-        aAfterMsgs' = aAfterMsgs { inBox = [] }
-
 ------------------------------------------------------------------------------------------------------------------------

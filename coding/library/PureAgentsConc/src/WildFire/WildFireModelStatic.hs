@@ -1,8 +1,7 @@
-{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
-
 module WildFire.WildFireModelStatic where
 
 import System.Random
+import Control.Monad.STM
 
 import qualified PureAgentsConc as PA
 
@@ -30,28 +29,28 @@ is a wfs = (wfState s) == wfs
         s = PA.state a
 
 wfTransformer :: WFTransformer
-wfTransformer (a, e) (_, PA.Dt dt) = (wfDt a dt, e)
-wfTransformer (a, e) (_, PA.Domain m) = (wfMsg a m, e)
+wfTransformer (a, e) (_, PA.Dt dt) = wfDt a dt
+wfTransformer (a, e) (_, PA.Domain m) = wfMsg a m
 
-wfDt :: WFAgent -> Double -> WFAgent
+wfDt :: WFAgent -> Double -> STM WFAgent
 wfDt a dt
-    | is a Living = a
-    | is a Dead = a
+    | is a Living = return a
+    | is a Dead = return a
     | is a Burning = handleBurningAgent a dt
 
-wfMsg :: WFAgent -> WFMsg -> WFAgent
+wfMsg :: WFAgent -> WFMsg -> STM WFAgent
 wfMsg a Ignite
     | is a Living = igniteAgent a
-    | otherwise = a
+    | otherwise = return a
 
-igniteAgent :: WFAgent -> WFAgent
-igniteAgent a = PA.updateState a (\sOld -> sOld { wfState = Burning } )
+igniteAgent :: WFAgent -> STM WFAgent
+igniteAgent a = return (PA.updateState a (\sOld -> sOld { wfState = Burning } ))
 
-handleBurningAgent :: WFAgent -> Double -> WFAgent
+handleBurningAgent :: WFAgent -> Double -> STM WFAgent
 handleBurningAgent a dt = if burnableLeft <= 0.0 then
-                            deadAgent
+                            return deadAgent
                             else
-                                PA.updateState aAfterRandIgnite (\sOld -> sOld { rng = g' } )
+                                return (PA.updateState aAfterRandIgnite (\sOld -> sOld { rng = g' } ))
     where
         b = (burnable (PA.state a))
         burnableLeft = b - (burnPerTimeUnit * dt)

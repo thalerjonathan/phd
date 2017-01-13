@@ -5,6 +5,9 @@ import Debug.Trace
 import Data.List
 import Data.Maybe
 
+import Control.Monad.STM
+import Control.Concurrent.STM.TVar
+
 import qualified Data.Map as Map
 import qualified PureAgentsConc as PA
 
@@ -41,10 +44,10 @@ burnPerTimeUnit = 0.3
 
 wfTransformer :: WFTransformer
 wfTransformer ae (_, PA.Dt dt) = wfUpdtHandler ae dt
-wfTransformer ae (_, PA.Domain m) = ae                            -- NOTE: in this case no messages are sent between agents
+wfTransformer (a, eVar) (_, PA.Domain m) = return a                            -- NOTE: in this case no messages are sent between agents
 
 -- NOTE: an active agent is always burning: it can be understood as the process of a burning cell
-wfUpdtHandler :: (WFAgent, WFEnvironment) -> Double -> (WFAgent, WFEnvironment)
+wfUpdtHandler :: (WFAgent, TVar WFEnvironment) -> Double -> STM WFAgent
 wfUpdtHandler ae@(a, _) dt = if hasBurnedDown ae' then
                                 killCellAndAgent ae'
                                 else
@@ -53,7 +56,7 @@ wfUpdtHandler ae@(a, _) dt = if hasBurnedDown ae' then
         e' = burnDown ae dt
         ae' = (a, e')
 
-igniteRandomNeighbour :: (WFAgent, WFEnvironment) -> (WFAgent, WFEnvironment)
+igniteRandomNeighbour :: (WFAgent, TVar WFEnvironment) -> STM WFAgent
 igniteRandomNeighbour ae@(a, e) = if isJust randCellMaybe then
                                     if ((cellState randCell) == Living) then
                                         (PA.newAgent a'' aNew, e')
@@ -75,7 +78,7 @@ igniteRandomNeighbour ae@(a, e) = if isJust randCellMaybe then
 
         a'' = PA.updateState a' (\sOld -> sOld { rng = g'' } )
 
-hasBurnedDown :: (WFAgent, WFEnvironment) -> Bool
+hasBurnedDown :: (WFAgent, TVar WFEnvironment) -> Bool
 hasBurnedDown ae = (burnable c) <= 0.0
     where
         c = cellOfAgent ae
@@ -89,7 +92,7 @@ burnDown ae@(a, e) dt = e'
         c' = c { burnable = burnableLeft }
         e' = replaceCell e c'
 
-cellOfAgent :: (WFAgent, WFEnvironment) -> WFCell
+cellOfAgent :: (WFAgent, TVar WFEnvironment) -> WFCell
 cellOfAgent (a, e) = fromJust maybeCell
     where
         maybeCell = Map.lookup (cidx (PA.state a)) (cells e)

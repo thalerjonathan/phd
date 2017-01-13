@@ -6,10 +6,11 @@ cabal-version:     >= 1.2
 executable PureAgentsConc
   main-is:         Main.hs
   hs-source-dirs:  src
-  build-depends:   base, containers, gloss, random, stm
+  build-depends:   base, containers, gloss, random, stm, monad-par
   ghc-options:      -threaded
                     -prof
                     -auto-all
                     -caf-all
-                    "-with-rtsopts=-s -hy -p -i0.1 -K256M"
+                    -O2
+                    "-with-rtsopts=-N -s -hy -p -i0.1 -K256M"
                     -- use hd or hy

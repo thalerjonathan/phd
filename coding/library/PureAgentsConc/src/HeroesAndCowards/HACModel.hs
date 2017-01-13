@@ -2,7 +2,7 @@ module HeroesAndCowards.HACModel where
 
 import System.Random
 import Data.Maybe
-import GHC.Generics (Generic)
+import Control.Monad.STM
 
 import qualified PureAgentsConc as PA
 
@@ -29,26 +29,28 @@ hacMovementPerTimeUnit :: Double
 hacMovementPerTimeUnit = 1.0
 
 hacTransformer :: HACTransformer
-hacTransformer (a, e) (_, PA.Dt dt) = (hacDt a dt, e)
-hacTransformer (a, e) (senderId, PA.Domain m) = (hacMsg a m senderId, e)
+hacTransformer (a, eVar) (_, PA.Dt dt) = hacDt a dt
+hacTransformer (a, eVar) (senderId, PA.Domain m) = hacMsg a m senderId
 
-hacMsg :: HACAgent -> HACMsg -> PA.AgentId -> HACAgent
+hacMsg :: HACAgent -> HACMsg -> PA.AgentId -> STM HACAgent
 -- MESSAGE-CASE: PositionUpdate
 hacMsg a (PositionUpdate (x, y)) senderId
-    | senderId == friendId = PA.updateState a (\sOld -> sOld { friendPos = newPos })
-    | senderId == enemyId = PA.updateState a (\sOld -> sOld { enemyPos = newPos })
+    | senderId == friendId = return (PA.updateState a (\sOld -> sOld { friendPos = newPos }))
+    | senderId == enemyId = return (PA.updateState a (\sOld -> sOld { enemyPos = newPos }))
         where
             s = PA.state a
             friendId = friend s
             enemyId = enemy s
             newPos = Just (x,y)
 -- MESSAGE-CASE: PositionRequest
-hacMsg a PositionRequest senderId = PA.sendMsg a (PositionUpdate currPos) senderId
+hacMsg a PositionRequest senderId = do
+                                        PA.sendMsg a (PositionUpdate currPos) senderId
+                                        return a
     where
         s = PA.state a
         currPos = pos s
 
-hacDt :: HACAgent -> Double -> HACAgent
+hacDt :: HACAgent -> Double -> STM HACAgent
 hacDt a dt = if ((isJust fPos) && (isJust ePos)) then
                         PA.writeState a'' s'    -- NOTE: no new position/state will be calculated due to Haskells Laziness
                             else
@@ -67,7 +69,7 @@ hacDt a dt = if ((isJust fPos) && (isJust ePos)) then
         a' = requestPosition a (friend s)
         a'' = requestPosition a' (enemy s) -- TODO: replace by broadcast to neighbours
 
-requestPosition :: HACAgent -> PA.AgentId -> HACAgent
+requestPosition :: HACAgent -> PA.AgentId -> STM ()
 requestPosition a receiverId = PA.sendMsg a PositionRequest receiverId
 
 createHACTestAgents :: [HACAgent]

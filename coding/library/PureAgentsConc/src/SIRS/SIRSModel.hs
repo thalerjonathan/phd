@@ -1,6 +1,7 @@
 module SIRS.SIRSModel where
 
 import System.Random
+import Control.Monad.STM
 
 import qualified PureAgentsConc as PA
 
@@ -33,34 +34,34 @@ is a ss = (sirState s) == ss
         s = PA.state a
 
 sirsTransformer :: SIRSTransformer
-sirsTransformer (a, e) (_, PA.Dt dt) = (sirsDt a dt, e)
-sirsTransformer (a, e) (_, PA.Domain m) = (sirsMsg a m, e)
+sirsTransformer (a, eVar) (_, PA.Dt dt) = sirsDt a dt
+sirsTransformer (a, eVar) (_, PA.Domain m) = sirsMsg a m
 
-sirsMsg :: SIRSAgent -> SIRSMsg -> SIRSAgent
+sirsMsg :: SIRSAgent -> SIRSMsg -> STM SIRSAgent
 -- MESSAGE-CASE: Contact with Infected -> infect with given probability if agent is susceptibel
 sirsMsg a (Contact Infected)               -- NOTE: ignore sender
     | is a Susceptible = infectAgent a
-    | otherwise = a
+    | otherwise = return a
 -- MESSAGE-CASE: Contact with Recovered or Susceptible -> nothing happens
-sirsMsg a (Contact _) = a           -- NOTE: ignore sender
+sirsMsg a (Contact _) = return a           -- NOTE: ignore sender
 
-sirsDt :: SIRSAgent -> Double -> SIRSAgent
+sirsDt :: SIRSAgent -> Double -> STM SIRSAgent
 sirsDt a dt
-    | is a Susceptible = a
+    | is a Susceptible = return a
     | is a Infected = handleInfectedAgent a dt
     | is a Recovered = handleRecoveredAgent a dt
 
-infectAgent :: SIRSAgent -> SIRSAgent
+infectAgent :: SIRSAgent -> STM SIRSAgent
 infectAgent a
-    | infect = PA.updateState a (\sOld -> sOld { sirState = Infected, timeInState = 0.0, rng = g' } )
-    | otherwise = PA.updateState a (\sOld -> sOld { rng = g' } )
+    | infect = return (PA.updateState a (\sOld -> sOld { sirState = Infected, timeInState = 0.0, rng = g' } ))
+    | otherwise = return (PA.updateState a (\sOld -> sOld { rng = g' } ))
     where
         g = (rng (PA.state a))
         (infect, g') = randomThresh g infectionProbability
 
-handleInfectedAgent :: SIRSAgent -> Double -> SIRSAgent
+handleInfectedAgent :: SIRSAgent -> Double -> STM SIRSAgent
 handleInfectedAgent a dt = if t' >= infectedDuration then
-                                recoveredAgent           -- NOTE: agent has just recovered, don't send infection-contact to others
+                                return recoveredAgent           -- NOTE: agent has just recovered, don't send infection-contact to others
                                 else
                                     randomContact gettingBetterAgent
 
@@ -70,11 +71,11 @@ handleInfectedAgent a dt = if t' >= infectedDuration then
         recoveredAgent = PA.updateState a (\sOld -> sOld { sirState = Recovered, timeInState = 0.0 } )
         gettingBetterAgent = PA.updateState a (\sOld -> sOld { timeInState = t' } )
 
-handleRecoveredAgent :: SIRSAgent -> Double -> SIRSAgent
+handleRecoveredAgent :: SIRSAgent -> Double -> STM SIRSAgent
 handleRecoveredAgent a dt = if t' >= immuneDuration then
-                                susceptibleAgent
+                                return susceptibleAgent
                                 else
-                                    immuneReducedAgent
+                                    return immuneReducedAgent
     where
         t = (timeInState (PA.state a))
         t' = t + dt
@@ -82,20 +83,22 @@ handleRecoveredAgent a dt = if t' >= immuneDuration then
         immuneReducedAgent = PA.updateState a (\sOld -> sOld { timeInState = t' } )
 
 
-randomContact :: SIRSAgent -> SIRSAgent
-randomContact a = PA.updateState a' (\sOld -> sOld { rng = g' } )
+randomContact :: SIRSAgent -> STM SIRSAgent
+randomContact a = do
+                    g' <- PA.sendMsgToRandomNeighbour a (Contact Infected) (rng s)
+                    return (PA.updateState a (\sOld -> sOld { rng = g' } ))
     where
         s = PA.state a
-        (a', g') = PA.sendMsgToRandomNeighbour a (Contact Infected) (rng s)
 
-createRandomSIRSAgents :: StdGen -> (Int, Int) -> Double -> ([SIRSAgent], StdGen)
-createRandomSIRSAgents gInit cells@(x,y) p = (as', g')
+createRandomSIRSAgents :: StdGen -> (Int, Int) -> Double -> STM ([SIRSAgent], StdGen)
+createRandomSIRSAgents gInit cells@(x,y) p = do
+                                                as <- mapM (\idx -> PA.createAgent idx (randStates !! idx) sirsTransformer) [0..n-1]
+                                                 --as' = mapM (\a -> PA.addNeighbours a (filter (\a' -> (PA.agentId a') /= (PA.agentId a)) as) ) as
+                                                let as' = map (\a -> PA.addNeighbours a (agentNeighbours a as cells) ) as
+                                                return (as', g')
     where
         n = x * y
         (randStates, g') = createRandomStates gInit n p
-        as = map (\idx -> PA.createAgent idx (randStates !! idx) sirsTransformer) [0..n-1]
-        --as' = map (\a -> PA.addNeighbours a (filter (\a' -> (PA.agentId a') /= (PA.agentId a)) as) ) as
-        as' = map (\a -> PA.addNeighbours a (agentNeighbours a as cells) ) as
 
         createRandomStates :: StdGen -> Int -> Double -> ([SIRSAgentState], StdGen)
         createRandomStates g 0 p = ([], g)

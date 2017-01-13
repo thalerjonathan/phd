@@ -30,7 +30,7 @@ stepHAC = do
 runHAC :: IO ()
 runHAC = do
         let dt = 0.025
-        let agentCount = 500
+        let agentCount = 2000
         let heroDistribution = 0.5
         let rngSeed = 42
         let g = mkStdGen rngSeed

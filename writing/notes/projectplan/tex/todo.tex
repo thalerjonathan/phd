@@ -1,12 +1,11 @@
 \section{TODO-List as of \today}
 
 \begin{itemize}
+\item implement CONC version of haskell
+
 \item note that the difference between SEQ and PAR in Haskell is in the end a 'fold' over the agents in the case of SEQ and a 'map' in the case of PAR
 \item performance unacceptable: 1000 in haskell vs 100.000 in java is a shame on haskell, more should be possible. investigate using profiling both of CPU and memory: \url{http://keera.co.uk/blog/2014/10/15/from-60-fps-to-500/}. strictness \& tail-recursion!
 	Par-Version seems to be working ok compared to Seq. Seq consumes hundreds of MB of memory!
-
-
-\item implement environment for parallel: global read, local write. 
 
 \item If one wants to write global in case of parallel this is regarded as a systematic error as this is not logical as it would imply an ordering thus we requiring different semantics: SEQ or CONCURRENT. Thus we would have to make the Environment in case of Par local to an agent which is the same as moving it into the agents state => we choose another approach: pass in an environment which cant be changed by the agents (no environment in return type) but only by the simulation-iterator after an iteration.  => dynamic WildFire-Model does not work with PAR
 

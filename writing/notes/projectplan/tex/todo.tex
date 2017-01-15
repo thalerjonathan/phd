@@ -16,6 +16,15 @@
 
 \item If one wants to write global in case of parallel this is regarded as a systematic error as this is not logical as it would imply an ordering thus we requiring different semantics: SEQ or CONCURRENT. Thus we would have to make the Environment in case of Par local to an agent which is the same as moving it into the agents state => we choose another approach: pass in an environment which cant be changed by the agents (no environment in return type) but only by the simulation-iterator after an iteration.  => dynamic WildFire-Model does not work with PAR
 
+\item Define the literature I use for my paper (see next items READ): its all on my desk
+\item READ: Gleichzeitige Ungleichzeitigkeiten
+\item READ: Complex Systems 'Cellular Automata' \& 'Turing Machines'
+\item READ: Functional programming \& Simulation papers (on desk)
+\item READ: Semantics of Actors (Hewitt, Greif \& Clinger)
+\item READ: philosophical papers of simulation
+\item READ: functional programming papers
+\item SEARCH: for further papers looking into my direction (when the difference between SEQ and PAR matters / matters not)
+
 \item embed PureAgentsPar and Seq in Yampa: PureAgentsYampa so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai.
 \item implement agent monad: PureAgentsMonadic. but what is an Agent-Monad? build a monad to chain actions of the agent and always run inside an agent-monad
 \item embed PureAgentsMonadic in Dunai

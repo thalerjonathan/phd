@@ -51,3 +51,9 @@ TODO: describe
 When using pure functional instead of the state-of-the-art OO programming we need to find other ways of representing Agents and implement an ABS. This is the main contributions of this paper in form of an implementation of a library for ABM/S implemented in pure Haskell as so far no proper library which meets the requirements for ABM/S exists in Haskell (see Related Research). Also the paper compares the library to implementations with state-of-the-art ABM/S Frameworks: NetLogo, AnyLogic and ReLogo. Also comparisons are drawn with an OO solution in Java. Of special interest is the comparison to the multi-paradigm functional solution in Scala \& Actors as this is the method closest to the Haskell-Library implemented. \\
 We claim that our library is well suited for ABM/S in the field of scientific computing as it provides an array of benefits over the methods compared with: explicit data-flow, EDSL, higher order functions, avoidance of true randomness, reasoning, pattern matching,... TODO: mention ABM/S Frameworks, TODO: mention OO solutions. Although the Scala \& Actors version might be a competitor in this field, it is not as its strength lies in the development of highly distributed high-availability applications e.g. Twitter and not in simulation where we need fine-control over (global) time and interactions.
 The other main contribution is to systematically look at the Actor-Model in implementing ABM/S.
+
+\subsection{Emergent properties}
+a simulatiom imitates one process by another process
+a process: an object or system which state changes over time
+
+what is required for emergent behaviour is that the system is built out of correlating elements, without correlation, emergent behaviour is impossible. We see this in all the above mentioned models where the behaviour of all elements depends on the behaviour of all or parts of others. 

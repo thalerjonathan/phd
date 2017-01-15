@@ -3,6 +3,12 @@
 \begin{itemize}
 \item implement CONC version of haskell
 
+\item remove TVar from environment: just pass in like in par version but environment can be build out of TVars. if one single TVar then probability is very high of continuous comcurrent modifications and thus continuous restarts
+
+\item SEQ: two possibilities: time stays constant or time advances with every agent
+
+\item reproduce results of paper: with PAR there are emergent properties with SEQ not
+
 \item note that the difference between SEQ and PAR in Haskell is in the end a 'fold' over the agents in the case of SEQ and a 'map' in the case of PAR
 \item performance unacceptable: 1000 in haskell vs 100.000 in java is a shame on haskell, more should be possible. investigate using profiling both of CPU and memory: \url{http://keera.co.uk/blog/2014/10/15/from-60-fps-to-500/}. strictness \& tail-recursion!
 	Par-Version seems to be working ok compared to Seq. Seq consumes hundreds of MB of memory!

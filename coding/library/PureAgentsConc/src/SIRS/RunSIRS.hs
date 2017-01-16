@@ -37,10 +37,27 @@ runSIRSSteps = do
                 mapM (putStrLn . show . PA.state) as'
                 return ()
 
+runSIRSStepsAndRender :: IO ()
+runSIRSStepsAndRender = do
+                            --hSetBuffering stdin NoBuffering
+                            let dt = 1.0
+                            let dims = (50, 50)
+                            let initInfectionProb = 0.2
+                            let rngSeed = 42
+                            let steps = 1000
+                            let g = mkStdGen rngSeed
+                            (as, g') <- atomically $ createRandomSIRSAgents g dims initInfectionProb
+                            let stepCount = 10
+                            (as', _) <- PA.stepSimulation as () dt stepCount
+                            let cells = map (sirsAgentToRenderCell dims) as'
+                            let frameRender = (Front.renderFrame cells (800, 800) dims)
+                            GLO.display (Front.display "SIRS" (800, 800)) GLO.white frameRender
+                            return ()
+
 stepWithRendering :: (Int, Int) -> SIRSSimHandle -> Double -> IO ()
 stepWithRendering dims hdl dt = simulateIO (Front.display "SIRS" (800, 800))
                                 GLO.white
-                                30
+                                1
                                 hdl
                                 (modelToPicture dims)
                                 (stepIteration dt)

@@ -29,7 +29,7 @@ module PureAgentsConc (
 import Data.Maybe
 import System.Random
 
-import Control.Monad.Par
+import Control.Concurrent.Async
 
 import Control.Monad.STM
 import Control.Concurrent.STM.TVar
@@ -204,7 +204,7 @@ insertAgents am as = foldl (\accMap a -> Map.insert (agentId a) a accMap ) am as
 -- NOTE: iteration order makes no difference as they are in fact 'parallel': no agent can see the update of others, all happens at the same time
 stepAllAgents :: Map.Map AgentId (Agent m s e) -> Double -> TVar e -> IO (Map.Map AgentId (Agent m s e))
 stepAllAgents am dt eVar = do
-                            as <- mapM (runAgent dt eVar) (Map.elems am)
+                            as <- runAgentsParallel dt eVar (Map.elems am)
                             let am' = insertAgents Map.empty as
                             let (newAgents, amClearedNewAgents) = collectAndClearNewAgents am'
                             let amWithNewAgents = insertAgents amClearedNewAgents newAgents
@@ -219,9 +219,16 @@ killAgentFold am a
 collectAndClearNewAgents :: Map.Map AgentId (Agent m s e) -> ([(Agent m s e)], Map.Map AgentId (Agent m s e))
 collectAndClearNewAgents am = Map.foldl (\(newAsAcc, amAcc) a -> (newAsAcc ++ (newAgents a), Map.insert (agentId a) a { newAgents = [] } amAcc)) ([], am) am
 
+runAgentsParallel :: Double -> TVar e -> [Agent m s e] -> IO [(Agent m s e)]
+runAgentsParallel dt eVar as = do
+                                asyncAs <- mapM (async . runFunc) as
+                                syncedAs <- mapM wait asyncAs
+                                return syncedAs
+                                    where
+                                        runFunc = runAgent dt eVar
 -- PROCESSING THE AGENT
 -- NOTE: every agent must be run inside an atomic-block to 'commit' its actions. We don't want to run the agent in the IO but pull this out
--- TODO: parallelize
+-- NOTE: here we see that due to atomically ALL will have to run in IO! => use of ParIO
 runAgent :: Double -> TVar e -> Agent m s e -> IO (Agent m s e)
 runAgent dt eVar a = atomically $ (stepAgent dt eVar a)
 

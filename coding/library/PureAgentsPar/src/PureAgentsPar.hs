@@ -173,7 +173,7 @@ insertAgents am as = foldl (\accMap a -> Map.insert (agentId a) a accMap ) am as
 stepAllAgents :: Map.Map AgentId (Agent m s e) -> Double -> e -> (Map.Map AgentId (Agent m s e), e)
 stepAllAgents am dt e = (amDeliveredMsgs, e)
     where
-        am' = Map.map (stepAgent dt e) am  -- NOTE: this can be parallelized
+        am' = Map.map (stepAgent dt e) am  -- TODO: this can be parallelized, using data-parallelism
         (newAgents, amClearedNewAgents) = collectAndClearNewAgents am'
         amWithNewAgents = insertAgents amClearedNewAgents newAgents
         amDeliveredMsgs = deliverOutMsgs amWithNewAgents

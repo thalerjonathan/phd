@@ -10,4 +10,4 @@ import HeroesAndCowards.RunHAC
 import SIRS.RunSIRS
 
 main :: IO ()
-main = runSIRSSteps
+main = runSIRSStepsAndRender

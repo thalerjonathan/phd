@@ -6,7 +6,7 @@ cabal-version:     >= 1.2
 executable PureAgentsConc
   main-is:         Main.hs
   hs-source-dirs:  src
-  build-depends:   base, containers, gloss, random, stm, monad-par
+  build-depends:   base, containers, gloss, random, stm, async
   ghc-options:      -threaded
                     -prof
                     -auto-all

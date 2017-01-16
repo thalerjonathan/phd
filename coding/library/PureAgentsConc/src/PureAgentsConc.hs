@@ -190,18 +190,19 @@ insertAgents am as = foldl (\accMap a -> Map.insert (agentId a) a accMap ) am as
 -- NOTE: iteration order makes no difference as they are in fact 'parallel': no agent can see the update of others, all happens at the same time
 stepAllAgents :: Map.Map AgentId (Agent m s e) -> Double -> e -> IO (Map.Map AgentId (Agent m s e))
 stepAllAgents am dt e = do
-                            as <- runAgentsParallel dt e (Map.elems am)
-                            let am' = insertAgents Map.empty as
+                            am' <- runAgentsParallel dt e am
                             let (newAgents, amClearedNewAgents) = collectAndClearNewAgents am'
                             let amWithNewAgents = insertAgents amClearedNewAgents newAgents
                             let amRemovedKilled = Map.foldl killAgentFold Map.empty amWithNewAgents
                             return amRemovedKilled
 
-runAgentsParallel :: Double -> e -> [Agent m s e] -> IO [(Agent m s e)]
-runAgentsParallel dt e as = do
+runAgentsParallel :: Double -> e -> Map.Map AgentId (Agent m s e) -> IO (Map.Map AgentId (Agent m s e))
+runAgentsParallel dt e am = do
+                                let as = Map.elems am
                                 asyncAs <- mapM (async . runFunc) as
                                 syncedAs <- mapM wait asyncAs
-                                return syncedAs
+                                let am' = insertAgents Map.empty syncedAs
+                                return am'
                                     where
                                         runFunc = transactAgent dt e
 

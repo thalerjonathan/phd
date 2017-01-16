@@ -26,6 +26,8 @@ module PureAgentsPar (
 import Data.Maybe
 import System.Random
 
+import Control.Parallel.Strategies
+
 import qualified Data.Map as Map
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -173,11 +175,17 @@ insertAgents am as = foldl (\accMap a -> Map.insert (agentId a) a accMap ) am as
 stepAllAgents :: Map.Map AgentId (Agent m s e) -> Double -> e -> (Map.Map AgentId (Agent m s e), e)
 stepAllAgents am dt e = (amDeliveredMsgs, e)
     where
-        am' = Map.map (stepAgent dt e) am  -- TODO: this can be parallelized, using data-parallelism
+        am' = Map.map (stepAgent dt e) am
         (newAgents, amClearedNewAgents) = collectAndClearNewAgents am'
         amWithNewAgents = insertAgents amClearedNewAgents newAgents
         amDeliveredMsgs = deliverOutMsgs amWithNewAgents
         amRemovedKilled = Map.foldl killAgentFold Map.empty amDeliveredMsgs
+
+runAgentsParallel :: Double -> e -> Map.Map AgentId (Agent m s e) -> (Map.Map AgentId (Agent m s e))
+runAgentsParallel dt e am = insertAgents Map.empty parAs
+    where
+        as = Map.elems am
+        parAs = parMap rpar (stepAgent dt e) as -- NOTE: replace by rseq if not hardware-parallelism should be exploited
 
 killAgentFold :: Map.Map AgentId (Agent m s e) -> Agent m s e -> Map.Map AgentId (Agent m s e)
 killAgentFold am a

@@ -89,9 +89,9 @@ sendMsg a m receiverId
 
 -- TODO: implement
 broadcastMsgToNeighbours :: Agent m s e -> m -> STM ()
-broadcastMsgToNeighbours a m = return () {-do
-                                m <- Map.map (\neighbourBox -> putMessage neighbourBox senderId m) (neighbours a)
-                                return ()-}
+broadcastMsgToNeighbours a m = do
+                                mapM (\neighbourBox -> putMessage neighbourBox senderId m) (Map.elems (neighbours a))
+                                return ()
     where
         senderId = agentId a
 

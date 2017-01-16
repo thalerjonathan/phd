@@ -7,5 +7,8 @@ import SIRS.RunSIRS
 
 import HeroesAndCowards.RunHAC
 
+import SpacialGameMsg.RunSGMsg
+import SpacialGameEnv.RunSGEnv
+
 main :: IO ()
-main = runHAC
+main = runSGMsgWithRendering

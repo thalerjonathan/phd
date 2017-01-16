@@ -185,7 +185,7 @@ runAgentsParallel :: Double -> e -> Map.Map AgentId (Agent m s e) -> (Map.Map Ag
 runAgentsParallel dt e am = insertAgents Map.empty parAs
     where
         as = Map.elems am
-        parAs = parMap rseq (stepAgent dt e) as -- NOTE: replace by rseq if not hardware-parallelism should be exploited
+        parAs = parMap rpar (stepAgent dt e) as -- NOTE: replace by rseq if not hardware-parallelism should be exploited
 
 killAgentFold :: Map.Map AgentId (Agent m s e) -> Agent m s e -> Map.Map AgentId (Agent m s e)
 killAgentFold am a

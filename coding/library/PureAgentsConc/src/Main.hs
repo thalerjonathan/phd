@@ -1,13 +1,11 @@
 module Main where
 
-{-
-import WildFire.RunWFDynamic
-import WildFire.RunWFStatic
-
 import HeroesAndCowards.RunHAC
--}
+
+import WildFire.RunWFStatic
+import WildFire.RunWFDynamic
 
 import SIRS.RunSIRS
 
 main :: IO ()
-main = runSIRSStepsAndRender
+main = runHAC

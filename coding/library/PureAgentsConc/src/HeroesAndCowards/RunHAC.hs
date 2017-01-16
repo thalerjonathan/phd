@@ -2,6 +2,8 @@ module HeroesAndCowards.RunHAC where
 
 import HeroesAndCowards.HACModel
 
+import Control.Concurrent.STM.TVar
+
 import qualified PureAgentsConc as PA
 
 import System.Random
@@ -15,27 +17,28 @@ import qualified Graphics.Gloss.Interface.IO.Simulate as GLO
 stepHAC :: IO ()
 stepHAC = do
         let dt = 0.025
-        let agentCount = 1000
+        let agentCount = 100
         let heroDistribution = 0.5
         let rngSeed = 42
         let steps = 1000
         let g = mkStdGen rngSeed
-        let e = 42
-        let (as, g') = createRandomHACAgents g agentCount heroDistribution
-        let (as', e') = PA.stepSimulation as e dt steps
+        e <- PA.atomically $ newTVar 42
+        (as, g') <- PA.atomically $ createRandomHACAgents g agentCount heroDistribution
+        as' <- PA.stepSimulation as e dt steps
         outs <- mapM (putStrLn . show . PA.state) as'
+        e' <- PA.atomically $ readTVar e
         putStrLn (show e')
         return ()
 
 runHAC :: IO ()
 runHAC = do
         let dt = 0.025
-        let agentCount = 2000
+        let agentCount = 500
         let heroDistribution = 0.5
         let rngSeed = 42
         let g = mkStdGen rngSeed
-        let e = 42
-        let (as, g') = createRandomHACAgents g agentCount heroDistribution
+        e <- PA.atomically $ newTVar 42
+        (as, g') <- PA.atomically $ createRandomHACAgents g agentCount heroDistribution
         --let as = createHACTestAgents
         let hdl = PA.initStepSimulation as e
         stepWithRendering hdl dt
@@ -61,7 +64,7 @@ modelToPicture hdl = return (Front.renderFrame observableAgentStates)
 --       NOTE: this is actually wrong, we can avoid atomically as long as we are running always on the same thread.
 --             atomically would commit the changes and make them visible to other threads
 stepIteration :: Double -> GLO.ViewPort -> Float -> HACSimHandle -> IO HACSimHandle
-stepIteration fixedDt viewport dtRendering hdl = return (PA.advanceSimulation hdl fixedDt)
+stepIteration fixedDt viewport dtRendering hdl = (PA.advanceSimulation hdl fixedDt)
 
 hacAgentToObservableState :: HACAgent -> (Double, Double, Bool)
 hacAgentToObservableState a = (x, y, h)

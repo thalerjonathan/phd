@@ -3,6 +3,7 @@ module HeroesAndCowards.HACModel where
 import System.Random
 import Data.Maybe
 import Control.Monad.STM
+import Control.Concurrent.STM.TVar
 
 import qualified PureAgentsConc as PA
 
@@ -20,7 +21,7 @@ data HACAgentState = HACAgentState {
     enemyPos :: Maybe HACAgentPosition
 } deriving (Show)
 
-type HACEnvironment = Int
+type HACEnvironment = TVar Int
 type HACAgent = PA.Agent HACMsg HACAgentState HACEnvironment
 type HACTransformer = PA.AgentTransformer HACMsg HACAgentState HACEnvironment
 type HACSimHandle = PA.SimHandle HACMsg HACAgentState HACEnvironment
@@ -29,8 +30,10 @@ hacMovementPerTimeUnit :: Double
 hacMovementPerTimeUnit = 1.0
 
 hacTransformer :: HACTransformer
-hacTransformer (a, eVar) (_, PA.Dt dt) = hacDt a dt
-hacTransformer (a, eVar) (senderId, PA.Domain m) = hacMsg a m senderId
+hacTransformer (a, e) (_, PA.Dt dt) = do
+                                        modifyTVar e (\v -> v + 1)
+                                        hacDt a dt
+hacTransformer (a, e) (senderId, PA.Domain m) = hacMsg a m senderId
 
 hacMsg :: HACAgent -> HACMsg -> PA.AgentId -> STM HACAgent
 -- MESSAGE-CASE: PositionUpdate
@@ -51,46 +54,67 @@ hacMsg a PositionRequest senderId = do
         currPos = pos s
 
 hacDt :: HACAgent -> Double -> STM HACAgent
-hacDt a dt = if ((isJust fPos) && (isJust ePos)) then
-                        PA.writeState a'' s'    -- NOTE: no new position/state will be calculated due to Haskells Laziness
-                            else
-                                a''
+hacDt a dt = if hasValidPositions a then
+                do
+                    let a' = calculateNewPosition a dt
+                    requestNewPositions a'
+                    return a'
+                else
+                    do
+                        requestNewPositions a
+                        return a
+
+calculateNewPosition :: HACAgent -> Double -> HACAgent
+calculateNewPosition a dt = PA.updateState a (\s' -> s' { pos = newPos } )
     where
         s = PA.state a
-        fPos = friendPos s
-        ePos = enemyPos s
+        fPos = fromJust (friendPos s)
+        ePos = fromJust (enemyPos s)
         oldPos = pos s
-        targetPos = decidePosition (fromJust fPos) (fromJust ePos) (hero s)
+        targetPos = decidePosition fPos ePos (hero s)
         targetDir = vecNorm $ posDir oldPos targetPos
         wtFunc = worldTransform (wt s)
         stepWidth = hacMovementPerTimeUnit * dt
         newPos = wtFunc $ addPos oldPos (multPos targetDir stepWidth)
-        s' = s{ pos = newPos }
-        a' = requestPosition a (friend s)
-        a'' = requestPosition a' (enemy s) -- TODO: replace by broadcast to neighbours
+
+requestNewPositions :: HACAgent -> STM ()
+requestNewPositions a = do
+                            requestPosition a (friend s)
+                            requestPosition a (enemy s) -- TODO: replace by broadcast to neighbours
+                                where
+                                     s = PA.state a
+
+hasValidPositions :: HACAgent -> Bool
+hasValidPositions a = ((isJust fPos) && (isJust ePos))
+    where
+        s = PA.state a
+        fPos = friendPos s
+        ePos = enemyPos s
 
 requestPosition :: HACAgent -> PA.AgentId -> STM ()
 requestPosition a receiverId = PA.sendMsg a PositionRequest receiverId
 
-createHACTestAgents :: [HACAgent]
-createHACTestAgents = [a0', a1', a2']
+createHACTestAgents :: STM [HACAgent]
+createHACTestAgents = do
+                        a0 <- PA.createAgent 0 a0State hacTransformer
+                        a1 <- PA.createAgent 1 a1State hacTransformer
+                        a2 <- PA.createAgent 2 a2State hacTransformer
+                        let a0' = PA.addNeighbours a0 [a1, a2]
+                        let a1' = PA.addNeighbours a1 [a0, a2]
+                        let a2' = PA.addNeighbours a2 [a0, a1]
+                        return [a0', a1', a2']
     where
         a0State = HACAgentState{ pos = (0.0, -0.5), hero = False, friend = 1, enemy = 2, wt = Border, friendPos = Nothing, enemyPos = Nothing }
         a1State = HACAgentState{ pos = (0.5, 0.5), hero = False, friend = 0, enemy = 2, wt = Border, friendPos = Nothing, enemyPos = Nothing }
         a2State = HACAgentState{ pos = (-0.5, 0.5), hero = False, friend = 0, enemy = 1, wt = Border, friendPos = Nothing, enemyPos = Nothing }
-        a0 = PA.createAgent 0 a0State hacTransformer
-        a1 = PA.createAgent 1 a1State hacTransformer
-        a2 = PA.createAgent 2 a2State hacTransformer
-        a0' = PA.addNeighbours a0 [a1, a2]
-        a1' = PA.addNeighbours a1 [a0, a2]
-        a2' = PA.addNeighbours a2 [a0, a1]
 
-createRandomHACAgents :: RandomGen g => g -> Int -> Double -> ([HACAgent], g)
-createRandomHACAgents gInit n p = (as', g')
+createRandomHACAgents :: RandomGen g => g -> Int -> Double -> STM ([HACAgent], g)
+createRandomHACAgents gInit n p = do
+                                    as <- mapM (\idx -> PA.createAgent idx (randStates !! idx) hacTransformer) [0..n-1]
+                                    let as' = map (\a -> PA.addNeighbours a as) as  -- TODO: filter for friend and enemy
+                                    return (as', g')
     where
         (randStates, g') = createRandomStates gInit 0 n p
-        as = map (\idx -> PA.createAgent idx (randStates !! idx) hacTransformer) [0..n-1]
-        as' = map (\a -> PA.addNeighbours a as) as  -- TODO: filter for friend and enemy
 
         createRandomStates :: RandomGen g => g -> Int -> Int -> Double -> ([HACAgentState], g)
         createRandomStates g id n p

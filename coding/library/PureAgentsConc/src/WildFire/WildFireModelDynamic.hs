@@ -1,8 +1,6 @@
 module WildFire.WildFireModelDynamic where
 
 import System.Random
-import Debug.Trace
-import Data.List
 import Data.Maybe
 
 import Control.Monad.STM
@@ -28,11 +26,12 @@ data WFAgentState = WFAgentState {
     rng :: StdGen
 } deriving (Show)
 
-type WFCellContainer = Map.Map WFCellIdx WFCell
+type WFCellContainer = Map.Map WFCellIdx (TVar WFCell)
 
 data WFEnvironment = WFEnvironment {
     cells :: WFCellContainer,
-    cellLimits :: WFCellCoord
+    cellLimits :: WFCellCoord           -- NOTE: this will stay constant
+    -- TODO: add wind-direction
 }
 
 type WFAgent = PA.Agent WFMsg WFAgentState WFEnvironment
@@ -44,65 +43,77 @@ burnPerTimeUnit = 0.3
 
 wfTransformer :: WFTransformer
 wfTransformer ae (_, PA.Dt dt) = wfUpdtHandler ae dt
-wfTransformer (a, eVar) (_, PA.Domain m) = return a                            -- NOTE: in this case no messages are sent between agents
+wfTransformer (a, e) (_, PA.Domain m) = return a                            -- NOTE: in this case no messages are sent between agents
 
 -- NOTE: an active agent is always burning: it can be understood as the process of a burning cell
-wfUpdtHandler :: (WFAgent, TVar WFEnvironment) -> Double -> STM WFAgent
-wfUpdtHandler ae@(a, _) dt = if hasBurnedDown ae' then
-                                killCellAndAgent ae'
-                                else
-                                    igniteRandomNeighbour ae'
-    where
-        e' = burnDown ae dt
-        ae' = (a, e')
-
-igniteRandomNeighbour :: (WFAgent, TVar WFEnvironment) -> STM WFAgent
-igniteRandomNeighbour ae@(a, e) = if isJust randCellMaybe then
-                                    if ((cellState randCell) == Living) then
-                                        (PA.newAgent a'' aNew, e')
-                                        else
-                                            (a', e)
+wfUpdtHandler :: (WFAgent, WFEnvironment) -> Double -> STM WFAgent
+wfUpdtHandler ae@(a, _) dt = do
+                                hasBurnedDown <- burnDown ae dt
+                                if hasBurnedDown then
+                                    killCellAndAgent ae
                                     else
-                                        (a', e)
+                                        igniteRandomNeighbour ae
+
+
+igniteRandomNeighbour :: (WFAgent, WFEnvironment) -> STM WFAgent
+igniteRandomNeighbour ae@(a, e) = do
+                                    cell <- readTVar cVar
+                                    let (randCoord, g') = randomNeighbourCoord g (coord cell)
+                                    let a' = PA.updateState a (\sOld -> sOld { rng = g' } )
+
+                                    let randCellVarMaybe = cellByCoord e randCoord
+
+                                    maybe (return a') (igniteValidCell a) randCellVarMaybe
+
     where
-        c = cellOfAgent ae
+        cVar = cellOfAgent ae
         g = (rng (PA.state a))
 
-        (randCoord, g') = randomNeighbourCoord g (coord c)
-        a' = PA.updateState a (\sOld -> sOld { rng = g' } )
+        igniteValidCell :: WFAgent -> TVar WFCell -> STM WFAgent
+        igniteValidCell a cVar = do
+                                    isLiving <- isLiving cVar
+                                    if isLiving then
+                                        igniteLivingCell a cVar
+                                        else
+                                            return a
 
-        randCellMaybe = cellByCoord e randCoord
-        randCell = fromJust randCellMaybe
+        igniteLivingCell :: WFAgent -> TVar WFCell -> STM WFAgent
+        igniteLivingCell a cVar = do
+                                    let g = (rng (PA.state a))
+                                    (aNew, g') <- igniteCell g cVar
+                                    let a' = PA.updateState a (\sOld -> sOld { rng = g' } )
+                                    return (PA.newAgent a' aNew)
 
-        (aNew, e', g'') = igniteCell g' randCell e
+isLiving :: TVar WFCell -> STM Bool
+isLiving cVar = do
+                    cell <- readTVar cVar
+                    return ((cellState cell) == Living)
 
-        a'' = PA.updateState a' (\sOld -> sOld { rng = g'' } )
-
-hasBurnedDown :: (WFAgent, TVar WFEnvironment) -> Bool
-hasBurnedDown ae = (burnable c) <= 0.0
+burnDown :: (WFAgent, WFEnvironment) -> Double -> STM Bool
+burnDown ae dt = do
+                    cell <- readTVar cVar
+                    let b = burnable cell
+                    let burnableLeft = max (b - (burnPerTimeUnit * dt)) 0.0
+                    modifyTVar cVar (\c -> c { burnable = burnableLeft })
+                    return (burnableLeft <= 0.0)
     where
-        c = cellOfAgent ae
+        cVar = cellOfAgent ae
 
-burnDown :: (WFAgent, WFEnvironment) -> Double -> WFEnvironment
-burnDown ae@(a, e) dt = e'
+killCellAndAgent :: (WFAgent, WFEnvironment) -> STM WFAgent
+killCellAndAgent ae@(a, e) = do
+                                changeCell cVar (\c -> c { burnable = 0.0, cellState = Dead } )
+                                return (PA.kill a)
     where
-        c = cellOfAgent ae
-        b = (burnable c)
-        burnableLeft = max (b - (burnPerTimeUnit * dt)) 0.0
-        c' = c { burnable = burnableLeft }
-        e' = replaceCell e c'
+        cVar = cellOfAgent ae
 
-cellOfAgent :: (WFAgent, TVar WFEnvironment) -> WFCell
+
+changeCell :: TVar WFCell -> (WFCell -> WFCell) -> STM ()
+changeCell cVar tx = modifyTVar cVar tx
+
+cellOfAgent :: (WFAgent, WFEnvironment) -> TVar WFCell
 cellOfAgent (a, e) = fromJust maybeCell
     where
         maybeCell = Map.lookup (cidx (PA.state a)) (cells e)
-
-killCellAndAgent :: (WFAgent, WFEnvironment) -> (WFAgent, WFEnvironment)
-killCellAndAgent ae@(a, e) = (PA.kill a, e')
-    where
-        c = cellOfAgent ae
-        c' = c { burnable = 0.0, cellState = Dead }
-        e' = replaceCell e c'
 
 neighbourhood :: [WFCellCoord]
 neighbourhood = [topLeft, top, topRight,
@@ -126,37 +137,39 @@ randomNeighbourCoord g (cx, cy) = (randC, g')
         (randIdx, g') = randomR (0, (length nsCells) - 1) g
         randC = nsCells !! randIdx
 
-igniteCell :: StdGen -> WFCell -> WFEnvironment -> (WFAgent, WFEnvironment, StdGen)
-igniteCell g c e = (a, e', g'')
+igniteCell :: StdGen -> TVar WFCell -> STM (WFAgent, StdGen)
+igniteCell g cVar = do
+                        cell <- readTVar cVar
+                        let aState = WFAgentState { cidx = (cellIdx cell), rng = g' }
+                        let id = (cellIdx cell)
+                        a <- PA.createAgent id aState wfTransformer
+                        changeCell cVar (\c -> c { cellState = Burning } ) -- NOTE: don't need any neighbours because no messaging!
+                        return (a, g'')
     where
         (g', g'') = split g
-        aState = WFAgentState { cidx = (cellIdx c), rng = g' }
-        id = (cellIdx c)
-        c' = c { cellState = Burning }
-        e' = replaceCell e c'
-        a = PA.createAgent id aState wfTransformer -- NOTE: don't need any neighbours because no messaging!
 
-replaceCell :: WFEnvironment -> WFCell -> WFEnvironment
-replaceCell e c = e { cells = Map.insert idx c cs }
-    where
-        idx = cellIdx c
-        cs = cells e
-
-cellByCoord :: WFEnvironment -> WFCellCoord -> Maybe WFCell
+cellByCoord :: WFEnvironment -> WFCellCoord -> Maybe (TVar WFCell)
 cellByCoord env co = Map.lookup idx cs
     where
         limits = cellLimits env
         cs = cells env
         idx = idxByCoord co limits
 
-createEnvironment :: (Int, Int) -> WFEnvironment
-createEnvironment mcs@(maxX, maxY) = WFEnvironment { cells = csMaped, cellLimits = mcs }
-    where
-        cs = [ WFCell { cellIdx = (y*maxX) + x,
-                            coord = (x, y),
-                            burnable = 1.0,
-                            cellState = Living } | y <- [0..maxY-1], x <- [0..maxX-1] ]
-        csMaped = foldl (\acc c -> Map.insert (cellIdx c) c acc ) Map.empty cs
+createEnvironment :: (Int, Int) -> STM WFEnvironment
+createEnvironment mcs@(maxX, maxY) = do
+                                        let cs = [ WFCell { cellIdx = (y*maxX) + x,
+                                                                    coord = (x, y),
+                                                                    burnable = 1.0,
+                                                                    cellState = Living } | y <- [0..maxY-1], x <- [0..maxX-1] ]
+                                        csVars <- mapM newTVar cs
+                                        csVarsMaped <- foldl insertCell (return Map.empty) cs
+                                        return WFEnvironment { cells = csVarsMaped, cellLimits = mcs }
+
+insertCell :: STM (Map.Map WFCellIdx (TVar WFCell)) -> WFCell -> STM (Map.Map WFCellIdx (TVar WFCell))
+insertCell m c = do
+                    cVar <- newTVar c
+                    m' <- m
+                    return (Map.insert (cellIdx c) cVar m')
 
 idxByCoord :: WFCellCoord -> (Int, Int) -> Int
 idxByCoord (x, y) (maxX, maxY) = (y*maxX) + x

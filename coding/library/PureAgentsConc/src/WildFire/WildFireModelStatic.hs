@@ -40,32 +40,34 @@ wfDt a dt
 
 wfMsg :: WFAgent -> WFMsg -> STM WFAgent
 wfMsg a Ignite
-    | is a Living = igniteAgent a
+    | is a Living = return (igniteAgent a)
     | otherwise = return a
 
-igniteAgent :: WFAgent -> STM WFAgent
-igniteAgent a = return (PA.updateState a (\sOld -> sOld { wfState = Burning } ))
+igniteAgent :: WFAgent -> WFAgent
+igniteAgent a = PA.updateState a (\sOld -> sOld { wfState = Burning } )
 
 handleBurningAgent :: WFAgent -> Double -> STM WFAgent
 handleBurningAgent a dt = if burnableLeft <= 0.0 then
                             return deadAgent
                             else
-                                return (PA.updateState aAfterRandIgnite (\sOld -> sOld { rng = g' } ))
+                                do
+                                    let burningAgent = PA.updateState a (\sOld -> sOld { burnable = burnableLeft } )
+                                    let g = rng (PA.state burningAgent)
+                                    g' <- PA.sendMsgToRandomNeighbour burningAgent Ignite g
+                                    return (PA.updateState burningAgent (\sOld -> sOld { rng = g' } ))
     where
         b = (burnable (PA.state a))
         burnableLeft = b - (burnPerTimeUnit * dt)
         deadAgent = PA.updateState a (\sOld -> sOld { wfState = Dead, burnable = 0.0 } )
-        burningAgent = PA.updateState a (\sOld -> sOld { burnable = burnableLeft } )
-        (aAfterRandIgnite, g') = PA.sendMsgToRandomNeighbour burningAgent Ignite (rng (PA.state a))
 
-createRandomWFAgents :: StdGen -> (Int, Int) -> ([WFAgent], StdGen)
-createRandomWFAgents gInit cells@(x, y) = (as', g')
+createRandomWFAgents :: StdGen -> (Int, Int) -> STM ([WFAgent], StdGen)
+createRandomWFAgents gInit cells@(x, y) = do
+                                            as <- mapM (\idx -> PA.createAgent idx (randStates !! idx) wfTransformer) [0..agentCount-1]
+                                            let as' = map (\a -> PA.addNeighbours a (agentNeighbours a as cells) ) as
+                                            return (as', g')
     where
         agentCount = x*y
         (randStates, g') = createRandomStates gInit agentCount
-        as = map (\idx -> PA.createAgent idx (randStates !! idx) wfTransformer) [0..agentCount-1]
-        as' = map (\a -> PA.addNeighbours a (agentNeighbours a as cells) ) as
-
 
 agentNeighbours :: WFAgent -> [WFAgent] -> (Int, Int) -> [WFAgent]
 agentNeighbours a as cells = filter (\a' -> any (==(agentToCell a' cells)) neighbourCells ) as

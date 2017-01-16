@@ -19,7 +19,7 @@ runSIRSRendering = do
                     let rngSeed = 42
                     let g = mkStdGen rngSeed
                     (as, g') <- atomically $ createRandomSIRSAgents g dims initInfectionProb
-                    hdl <- atomically $ PA.initStepSimulation as ()
+                    let hdl = PA.initStepSimulation as ()
                     stepWithRendering dims hdl dt
 
 runSIRSSteps :: IO ()
@@ -33,7 +33,7 @@ runSIRSSteps = do
                 let g = mkStdGen rngSeed
                 (as, g') <- atomically $ createRandomSIRSAgents g dims initInfectionProb
                 let stepCount = 10
-                (as', _) <- PA.stepSimulation as () dt stepCount
+                as' <- PA.stepSimulation as () dt stepCount
                 mapM (putStrLn . show . PA.state) as'
                 return ()
 
@@ -48,7 +48,7 @@ runSIRSStepsAndRender = do
                             let g = mkStdGen rngSeed
                             (as, g') <- atomically $ createRandomSIRSAgents g dims initInfectionProb
                             let stepCount = 10
-                            (as', _) <- PA.stepSimulation as () dt stepCount
+                            as' <- PA.stepSimulation as () dt stepCount
                             let cells = map (sirsAgentToRenderCell dims) as'
                             let frameRender = (Front.renderFrame cells (800, 800) dims)
                             GLO.display (Front.display "SIRS" (800, 800)) GLO.white frameRender
@@ -110,7 +110,7 @@ stepSIRS = do
             -- NOTE: this works for now when NOT using parallelism
             --  (as', e') <- atomically $ Agents.stepSimulation as Nothing dt steps
             --Agents.runSimulation as Nothing (outputStep dt)
-            hdl <- atomically $ PA.initStepSimulation as ()
+            let hdl = PA.initStepSimulation as ()
             runSteps hdl 100 dt
             return ()
 

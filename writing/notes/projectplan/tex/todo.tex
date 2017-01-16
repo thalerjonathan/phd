@@ -1,6 +1,17 @@
 \section{TODO-List as of \today}
 
 \begin{itemize}
+\item do data-parallelism in PAR-version! : can we do it using Par-Monad: parMap and runPar withouth the usage of NFData?
+
+\item need after step function ((Agents, Environment) -> Dt -> (Agents, Environment)). allows to change the wind-direction or reduce the pheromons : can act globally on environment withouth the need for agents running on it
+
+\item implement PheroTrails
+
+\item reproduce results of paper: with PAR there are emergent properties with SEQ not
+
+\item SEQ: two possibilities: time stays constant or time advances with every agent
+
+
 \item FINALIZE AND FREEZE the literature I use for my paper (see next items READ): its all on my desk plus some prints to do (organize papers i need to read: ACE & Economics, complex systems & simulation, functional programming, abm \& actor model)
 \item READ: Gleichzeitige Ungleichzeitigkeiten
 \item READ: Complex Systems 'Cellular Automata' \& 'Turing Machines'
@@ -9,16 +20,6 @@
 \item READ: philosophical papers of simulation
 \item READ: functional programming papers
 \item SEARCH: for further papers looking into my direction (when the difference between SEQ and PAR matters / matters not)
-
-\item remove TVar from environment: just pass in like in par version but environment can be build out of TVars. if one single TVar then probability is very high of continuous comcurrent modifications and thus continuous restarts
-
-\item do data-parallelism in PAR-version!
-
-\item reproduce results of paper: with PAR there are emergent properties with SEQ not
-
-\item need after step function ((Agents, Environment) -> Dt -> (Agents, Environment))
-
-\item SEQ: two possibilities: time stays constant or time advances with every agent
 
 \item economics should follow a constructive approach as it is closer to reality. also simulations should reflect this. constructive approaches can be implemented. i will follow the road of constructive ACE and look into it can be done in a functional way starting from ionescous framework: A new constructive approach for  ACE bartering and trading
 

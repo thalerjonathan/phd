@@ -1,5 +1,8 @@
+-- TODO: re-export other modules?
+
 module PureAgentsConc (
     module Data.Maybe,
+    module Control.Monad.STM,
     Agent(..),
     SimHandle(..),
     AgentId,
@@ -13,9 +16,6 @@ module PureAgentsConc (
     broadcastMsgToNeighbours,
     updateState,
     writeState,
-    readEnv,
-    writeEnv,
-    changeEnv,
     addNeighbours,
     stepSimulation,
     initStepSimulation,
@@ -26,16 +26,15 @@ module PureAgentsConc (
     extractHdlAgents
   ) where
 
-import Data.Maybe
 import System.Random
 
-import Control.Concurrent.Async
+import Data.Maybe
+import qualified Data.Map as Map
 
 import Control.Monad.STM
-import Control.Concurrent.STM.TVar
-import Control.Concurrent.STM.TQueue
 
-import qualified Data.Map as Map
+import Control.Concurrent.Async
+import Control.Concurrent.STM.TQueue
 
 ------------------------------------------------------------------------------------------------------------------------
 -- PUBLIC, exported
@@ -46,7 +45,7 @@ data Msg m = Dt Double | Domain m
 type AgentMessage m = (AgentId, Msg m)
 
 -- NOTE: the central agent-behaviour-function: transforms an agent using a message and an environment to a new agent
-type AgentTransformer m s e = ((Agent m s e, TVar e) -> AgentMessage m -> STM (Agent m s e))
+type AgentTransformer m s e = ((Agent m s e, e) -> AgentMessage m -> STM (Agent m s e))
 type OutFunc m s e = ((Map.Map AgentId (Agent m s e), e) -> IO (Bool, Double))
 
 {- NOTE:    m is the type of messages the agent understands
@@ -67,7 +66,7 @@ data Agent m s e = Agent {
 
 data SimHandle m s e = SimHandle {
     simHdlAgents :: Map.Map AgentId (Agent m s e),
-    simHdlEnv :: TVar e
+    simHdlEnv :: e
 }
 
 newAgent :: Agent m s e -> Agent m s e -> Agent m s e
@@ -135,65 +134,52 @@ addNeighbours a ns = a { neighbours = newNeighbours }
     where
         newNeighbours = foldl (\acc a -> Map.insert (agentId a) (msgBox a) acc) (neighbours a) ns
 
-readEnv :: TVar e -> STM e
-readEnv eVar = readTVar eVar
-
-writeEnv :: TVar e -> e -> STM ()
-writeEnv eVar e = changeEnv eVar (\_ -> e)
-
-changeEnv :: TVar e -> (e -> e) -> STM ()
-changeEnv eVar tx = modifyTVar eVar tx
-
-extractHdlEnv :: SimHandle m s e -> TVar e
+extractHdlEnv :: SimHandle m s e -> e
 extractHdlEnv = simHdlEnv
 
 extractHdlAgents :: SimHandle m s e -> [Agent m s e]
 extractHdlAgents = Map.elems . simHdlAgents
 
 -- TODO: return all steps of agents and environment
-stepSimulation :: [Agent m s e] -> e -> Double -> Int -> IO ([Agent m s e], e)
+stepSimulation :: [Agent m s e] -> e -> Double -> Int -> IO ([Agent m s e])
 stepSimulation as e dt n = do
-                            eVar <- atomically $ newTVar e
                             let am = insertAgents Map.empty as
-                            am' <- stepSimulation' am eVar dt n
-                            e' <- atomically $ readTVar eVar
-                            return (Map.elems am', e')
+                            am' <- stepSimulation' am e dt n
+                            return (Map.elems am')
     where
-        stepSimulation' :: Map.Map AgentId (Agent m s e) -> TVar e -> Double -> Int -> IO (Map.Map AgentId (Agent m s e))
-        stepSimulation' am eVar dt 0 = return am
-        stepSimulation' am eVar dt n = do
-                                        am' <- stepAllAgents am dt eVar
-                                        stepSimulation' am' eVar dt (n-1)
+        stepSimulation' :: Map.Map AgentId (Agent m s e) -> e -> Double -> Int -> IO (Map.Map AgentId (Agent m s e))
+        stepSimulation' am e dt 0 = return am
+        stepSimulation' am e dt n = do
+                                        am' <- stepAllAgents am dt e
+                                        stepSimulation' am' e dt (n-1)
 
-initStepSimulation :: [Agent m s e] -> e -> STM (SimHandle m s e)
-initStepSimulation as e = do
-                            eVar <- newTVar e
-                            let am = insertAgents Map.empty as
-                            return SimHandle { simHdlAgents = am, simHdlEnv = eVar }
+initStepSimulation :: [Agent m s e] -> e -> (SimHandle m s e)
+initStepSimulation as e = SimHandle { simHdlAgents = am, simHdlEnv = e }
+    where
+        am = insertAgents Map.empty as
+
 
 advanceSimulation :: SimHandle m s e -> Double -> IO (SimHandle m s e)
 advanceSimulation hdl dt = do
-                            let eVar = extractHdlEnv hdl
+                            let e = extractHdlEnv hdl
                             let am = simHdlAgents hdl
-                            am' <- stepAllAgents am dt eVar
+                            am' <- stepAllAgents am dt e
                             return hdl { simHdlAgents = am' } -- NOTE: no need to update e' because implicitly done
 
 runSimulation :: [Agent m s e] -> e -> OutFunc m s e -> IO ()
 runSimulation as e out = do
-                            eVar <- atomically $ newTVar e
                             let am = insertAgents Map.empty as
-                            runSimulation' am 0.0 eVar out
+                            runSimulation' am 0.0 e out
 
     where
-        runSimulation' :: Map.Map AgentId (Agent m s e) -> Double -> TVar e -> OutFunc m s e -> IO ()
-        runSimulation' as dt eVar out = do
-                                            am' <- stepAllAgents as dt eVar
-                                            e <- atomically $ readTVar eVar
-                                            (cont, dt') <- out (am', e)
-                                            if cont == True then
-                                                runSimulation' am' dt' eVar out
-                                                else
-                                                    return ()
+        runSimulation' :: Map.Map AgentId (Agent m s e) -> Double -> e -> OutFunc m s e -> IO ()
+        runSimulation' as dt e out = do
+                                        am' <- stepAllAgents as dt e
+                                        (cont, dt') <- out (am', e)
+                                        if cont == True then
+                                            runSimulation' am' dt' e out
+                                            else
+                                                return ()
 
 ------------------------------------------------------------------------------------------------------------------------
 -- PRIVATE, non exports
@@ -202,14 +188,51 @@ insertAgents :: Map.Map AgentId (Agent m s e) -> [Agent m s e] -> Map.Map AgentI
 insertAgents am as = foldl (\accMap a -> Map.insert (agentId a) a accMap ) am as
 
 -- NOTE: iteration order makes no difference as they are in fact 'parallel': no agent can see the update of others, all happens at the same time
-stepAllAgents :: Map.Map AgentId (Agent m s e) -> Double -> TVar e -> IO (Map.Map AgentId (Agent m s e))
-stepAllAgents am dt eVar = do
-                            as <- runAgentsParallel dt eVar (Map.elems am)
+stepAllAgents :: Map.Map AgentId (Agent m s e) -> Double -> e -> IO (Map.Map AgentId (Agent m s e))
+stepAllAgents am dt e = do
+                            as <- runAgentsParallel dt e (Map.elems am)
                             let am' = insertAgents Map.empty as
                             let (newAgents, amClearedNewAgents) = collectAndClearNewAgents am'
                             let amWithNewAgents = insertAgents amClearedNewAgents newAgents
                             let amRemovedKilled = Map.foldl killAgentFold Map.empty amWithNewAgents
                             return amRemovedKilled
+
+runAgentsParallel :: Double -> e -> [Agent m s e] -> IO [(Agent m s e)]
+runAgentsParallel dt e as = do
+                                asyncAs <- mapM (async . runFunc) as
+                                syncedAs <- mapM wait asyncAs
+                                return syncedAs
+                                    where
+                                        runFunc = transactAgent dt e
+
+-- NOTE: every agent must be run inside an atomic-block to 'commit' its actions. We don't want to run the agent in the IO but pull this out
+-- NOTE: here we see that due to atomically ALL will have to run in IO! => use of ParIO
+transactAgent :: Double -> e -> Agent m s e -> IO (Agent m s e)
+transactAgent dt e a = atomically $ (stepAgent dt e a)
+
+stepAgent :: Double -> e -> Agent m s e -> STM (Agent m s e)
+stepAgent dt e a = do
+                    aAfterMsgProc <- processAllMessages (a, e)
+                    let agentTransformer = trans aAfterMsgProc
+                    aAfterUpdt <- agentTransformer (aAfterMsgProc, e) (-1, Dt dt)
+                    return aAfterUpdt
+
+processAllMessages :: (Agent m s e, e) -> STM (Agent m s e)
+processAllMessages (a, e) = do
+                                mayMsg <- tryReadTQueue (msgBox a)
+                                if (isNothing mayMsg) then
+                                    return a
+                                    else
+                                        do
+                                            let msg = fromJust mayMsg
+                                            a' <- processMsg (a, e) msg
+                                            processAllMessages (a', e)
+
+processMsg :: (Agent m s e, e) -> (AgentId, m) -> STM (Agent m s e)
+processMsg (a, e) (senderId, m) = agentTransformer (a, e) (senderId, Domain m)
+    where
+        agentTransformer = trans a
+------------------------------------------------------------------------------------------------------------------------
 
 killAgentFold :: Map.Map AgentId (Agent m s e) -> Agent m s e -> Map.Map AgentId (Agent m s e)
 killAgentFold am a
@@ -219,39 +242,4 @@ killAgentFold am a
 collectAndClearNewAgents :: Map.Map AgentId (Agent m s e) -> ([(Agent m s e)], Map.Map AgentId (Agent m s e))
 collectAndClearNewAgents am = Map.foldl (\(newAsAcc, amAcc) a -> (newAsAcc ++ (newAgents a), Map.insert (agentId a) a { newAgents = [] } amAcc)) ([], am) am
 
-runAgentsParallel :: Double -> TVar e -> [Agent m s e] -> IO [(Agent m s e)]
-runAgentsParallel dt eVar as = do
-                                asyncAs <- mapM (async . runFunc) as
-                                syncedAs <- mapM wait asyncAs
-                                return syncedAs
-                                    where
-                                        runFunc = runAgent dt eVar
--- PROCESSING THE AGENT
--- NOTE: every agent must be run inside an atomic-block to 'commit' its actions. We don't want to run the agent in the IO but pull this out
--- NOTE: here we see that due to atomically ALL will have to run in IO! => use of ParIO
-runAgent :: Double -> TVar e -> Agent m s e -> IO (Agent m s e)
-runAgent dt eVar a = atomically $ (stepAgent dt eVar a)
 
-stepAgent :: Double -> TVar e -> Agent m s e -> STM (Agent m s e)
-stepAgent dt eVar a = do
-                        aAfterMsgProc <- processAllMessages (a, eVar)
-                        let agentTransformer = trans aAfterMsgProc
-                        aAfterUpdt <- agentTransformer (aAfterMsgProc, eVar) (-1, Dt dt)
-                        return aAfterUpdt
-
-processAllMessages :: (Agent m s e, TVar e) -> STM (Agent m s e)
-processAllMessages (a, eVar) = do
-                                mayMsg <- tryReadTQueue (msgBox a)
-                                if (isNothing mayMsg) then
-                                    return a
-                                    else
-                                        do
-                                            let msg = fromJust mayMsg
-                                            a' <- processMsg (a, eVar) msg
-                                            processAllMessages (a', eVar)
-
-processMsg :: (Agent m s e, TVar e) -> (AgentId, m) -> STM (Agent m s e)
-processMsg (a, eVar) (senderId, m) = agentTransformer (a, eVar) (senderId, Domain m)
-    where
-        agentTransformer = trans a
-------------------------------------------------------------------------------------------------------------------------

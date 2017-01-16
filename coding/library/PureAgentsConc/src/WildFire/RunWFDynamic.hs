@@ -5,6 +5,9 @@ import WildFire.WildFireModelDynamic
 import qualified Data.Map as Map
 import qualified PureAgents2DDiscrete as Front
 
+import Control.Monad.STM
+import Control.Concurrent.STM.TVar
+
 import System.Random
 import System.IO
 import Data.Maybe
@@ -17,15 +20,15 @@ import qualified PureAgentsConc as PA
 runWFDynamicRendering :: IO ()
 runWFDynamicRendering = do
                             let dt = 1.0
-                            let xCells = 300
-                            let yCells = 300
+                            let xCells = 75
+                            let yCells = 75
                             let rngSeed = 42
                             let cells = (xCells, yCells)
                             let g = mkStdGen rngSeed
-                            let env = createEnvironment cells
-                            let c = fromJust (cellByCoord env (100, 100))
-                            let (a, env', g') = igniteCell g c env
-                            let hdl = PA.initStepSimulation [a] env'
+                            env <- PA.atomically $ createEnvironment cells
+                            let c = fromJust (cellByCoord env (35, 35))
+                            (a, g') <- PA.atomically $ igniteCell g c
+                            let hdl = PA.initStepSimulation [a] env
                             stepWithRendering hdl dt
 
 runWFDynamicSteps :: IO ()
@@ -36,11 +39,11 @@ runWFDynamicSteps = do
                         let rngSeed = 42
                         let cells = (xCells, yCells)
                         let g = mkStdGen rngSeed
-                        let env = createEnvironment cells
+                        env <- PA.atomically $ createEnvironment cells
                         let c = fromJust (cellByCoord env (100, 100))
-                        let (a, env', g') = igniteCell g c env
+                        (a, g') <- PA.atomically $ igniteCell g c
                         let stepCount = 1000
-                        let (as', _) = PA.stepSimulation [a] env dt stepCount
+                        as' <- PA.stepSimulation [a] env dt stepCount
                         mapM (putStrLn . show . PA.state) as'
                         return ()
 
@@ -58,17 +61,19 @@ modelToPicture hdl = do
                         let env = PA.extractHdlEnv hdl
                         let cs = cells env
                         let limits = cellLimits env
-                        return (Front.renderFrame (map wfCellToRenderCell (Map.elems cs)) (800, 800) limits)
+                        renderCells <- atomically $ mapM wfCellToRenderCell (Map.elems cs)
+                        return (Front.renderFrame renderCells (800, 800) limits)
 
-wfCellToRenderCell :: WFCell -> Front.RenderCell
-wfCellToRenderCell c = Front.RenderCell { Front.renderCellCoord = (coord c),
+wfCellToRenderCell :: TVar WFCell -> STM Front.RenderCell
+wfCellToRenderCell cVar = do
+                            c <- readTVar cVar
+                            let shade = burnable c
+                            let cs = case (cellState c) of
+                                        Living -> (0.0, shade, 0.0)
+                                        Burning -> (shade, 0.0, 0.0)
+                                        Dead -> (0.5, 0.5, 0.5)
+                            return Front.RenderCell { Front.renderCellCoord = (coord c),
                                                 Front.renderCellColor = cs}
-    where
-        shade = burnable c
-        cs = case (cellState c) of
-                    Living -> (0.0, shade, 0.0)
-                    Burning -> (shade, 0.0, 0.0)
-                    Dead -> (0.5, 0.5, 0.5)
 
 
 -- A function to step the model one iteration. It is passed the current viewport and the amount of time for this simulation step (in seconds)
@@ -76,5 +81,5 @@ wfCellToRenderCell c = Front.RenderCell { Front.renderCellCoord = (coord c),
 --       NOTE: this is actually wrong, we can avoid atomically as long as we are running always on the same thread.
 --             atomically would commit the changes and make them visible to other threads
 stepIteration :: Double -> ViewPort -> Float -> WFSimHandle -> IO WFSimHandle
-stepIteration fixedDt viewport dtRendering hdl = return (PA.advanceSimulation hdl fixedDt)
+stepIteration fixedDt viewport dtRendering hdl = PA.advanceSimulation hdl fixedDt
 --------------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,11 +1,13 @@
 \section{TODO-List as of \today}
 
 \begin{itemize}
-\item need after step function ((Agents, Environment) -> Dt -> (Agents, Environment)). allows to change the wind-direction or reduce the pheromons : can act globally on environment withouth the need for agents running on it
-
-\item implement PheroTrails
+\item introduce Environment-access in Par: read global, write local
 
 \item reproduce results of paper: with PAR there are emergent properties with SEQ not
+
+\item need after step function ((Agents, Environment) -> Dt -> (Agents, Environment)). allows to change the wind-direction or reduce the pheromons : can act globally on environment withouth the need for agents running on it
+
+
 
 \item SEQ: two possibilities: time stays constant or time advances with every agent
 
@@ -28,6 +30,7 @@
 
 \item If one wants to write global in case of parallel this is regarded as a systematic error as this is not logical as it would imply an ordering thus we requiring different semantics: SEQ or CONCURRENT. Thus we would have to make the Environment in case of Par local to an agent which is the same as moving it into the agents state => we choose another approach: pass in an environment which cant be changed by the agents (no environment in return type) but only by the simulation-iterator after an iteration.  => dynamic WildFire-Model does not work with PAR
 
+\item implement PheroTrails: agents move on a 2d grid in a 8-neighbourhood and leave pheromone-trails which decay over time. the agents select the neighbourhood cell they move in the next step randomly according to the amount of pheromones present: the more pheromones are present the more likely they will move to that cell - note that this is relative: the pheromones of all neighbour cells are added up and normalized!
 
 
 \item embed PureAgentsPar and Seq in Yampa: PureAgentsYampa so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai.
@@ -35,11 +38,6 @@
 \item embed PureAgentsMonadic in Dunai
 
 \item implement wait blocking for a message so far. utilize yampas event mechanism?
-
-\item implement conways game of life: parallel discrete: read global environment, write local
-\item implement schelling segregation
-\item implement sugarscape ?
-
 
 \item look into QuickCheck and HPC
 \item problem: so far only agents with same static messagetypes, environment and states, can communicate: the agents are homogenous. how can we implement hetereogenous agents in this library?

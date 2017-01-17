@@ -1,11 +1,9 @@
 \section{TODO-List as of \today}
 
 \begin{itemize}
-\item introduce Environment-access in Par: read global, write local
-
-\item need after step function ((Agents, Environment) -> Dt -> (Agents, Environment)). allows to change the wind-direction or reduce the pheromons : can act globally on environment without the need for agents running on it. Implement a different version of Spatial Game then
-
-\item SEQ: two possibilities: time stays constant or time advances with every agent
+\item performance unacceptable: 1000 in haskell vs 100.000 in java is a shame on haskell, more should be possible. investigate using profiling both of CPU and memory: \url{http://keera.co.uk/blog/2014/10/15/from-60-fps-to-500/}. strictness \& tail-recursion!
+	Par-Version seems to be working ok compared to Seq. Seq consumes hundreds of MB of memory!
+	Note: performance is by some orders of magnitude lower when profiling!
 
 \item FINALIZE AND FREEZE the literature I use for my paper (see next items READ): its all on my desk plus some prints to do (organize papers i need to read: ACE & Economics, complex systems & simulation, functional programming, abm \& actor model)
 \item READ: Gleichzeitige Ungleichzeitigkeiten
@@ -16,17 +14,7 @@
 \item READ: functional programming papers
 \item SEARCH: for further papers looking into my direction (when the difference between SEQ and PAR matters / matters not)
 
-\item economics should follow a constructive approach as it is closer to reality. also simulations should reflect this. constructive approaches can be implemented. i will follow the road of constructive ACE and look into it can be done in a functional way starting from ionescous framework: A new constructive approach for  ACE bartering and trading
-
-\item note that the difference between SEQ and PAR in Haskell is in the end a 'fold' over the agents in the case of SEQ and a 'map' in the case of PAR
-\item performance unacceptable: 1000 in haskell vs 100.000 in java is a shame on haskell, more should be possible. investigate using profiling both of CPU and memory: \url{http://keera.co.uk/blog/2014/10/15/from-60-fps-to-500/}. strictness \& tail-recursion!
-	Par-Version seems to be working ok compared to Seq. Seq consumes hundreds of MB of memory!
-	Note: performance is by some orders of magnitude lower when profiling!
-
-\item If one wants to write global in case of parallel this is regarded as a systematic error as this is not logical as it would imply an ordering thus we requiring different semantics: SEQ or CONCURRENT. Thus we would have to make the Environment in case of Par local to an agent which is the same as moving it into the agents state => we choose another approach: pass in an environment which cant be changed by the agents (no environment in return type) but only by the simulation-iterator after an iteration.  => dynamic WildFire-Model does not work with PAR
-
-\item implement PheroTrails: agents move on a 2d grid in a 8-neighbourhood and leave pheromone-trails which decay over time. the agents select the neighbourhood cell they move in the next step randomly according to the amount of pheromones present: the more pheromones are present the more likely they will move to that cell - note that this is relative: the pheromones of all neighbour cells are added up and normalized!
-
+\item SEQ: two possibilities: time stays constant or time advances with every agent
 
 \item embed PureAgentsPar and Seq in Yampa: PureAgentsYampa so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai.
 \item implement agent monad: PureAgentsMonadic. but what is an Agent-Monad? build a monad to chain actions of the agent and always run inside an agent-monad
@@ -38,6 +26,15 @@
 \item problem: so far only agents with same static messagetypes, environment and states, can communicate: the agents are homogenous. how can we implement hetereogenous agents in this library?
 \item implement a general-purpose rendering-frontend with gloss but let the simulation be driven by Yampa/SimulationBackend instead of frontend (not real-time)
 
+\item implement PheroTrails: agents move on a 2d grid in a 8-neighbourhood and leave pheromone-trails which decay over time. the agents select the neighbourhood cell they move in the next step randomly according to the amount of pheromones present: the more pheromones are present the more likely they will move to that cell - note that this is relative: the pheromones of all neighbour cells are added up and normalized!
+
+
+\item If one wants to write global in case of parallel this is regarded as a systematic error as this is not logical as it would imply an ordering thus we requiring different semantics: SEQ or CONCURRENT. Thus we would have to make the Environment in case of Par local to an agent which is the same as moving it into the agents state => we choose another approach: pass in an environment which cant be changed by the agents (no environment in return type) but only by the simulation-iterator after an iteration.  => dynamic WildFire-Model does not work with PAR
+
+
+\item economics should follow a constructive approach as it is closer to reality. also simulations should reflect this. constructive approaches can be implemented. i will follow the road of constructive ACE and look into it can be done in a functional way starting from ionescous framework: A new constructive approach for  ACE bartering and trading
+
+\item note that the difference between SEQ and PAR in Haskell is in the end a 'fold' over the agents in the case of SEQ and a 'map' in the case of PAR
 
 \item investigate speed of divergence of simulation runs using the terminology of gleichzeitige ungleichzeitigkeiten
 \item 2 complex system can lead to a total different outcome when initial settings differ only by fractions. thus it may also be the case for specific ABM/S?

@@ -3,6 +3,7 @@ module WildFire.WildFireModelStatic where
 import System.Random
 
 import qualified PureAgentsPar as PA
+import qualified Data.Map as Map
 
 type WFCell = (Int, Int)
 data WFState = Living | Burning | Dead deriving (Eq, Show)
@@ -19,6 +20,10 @@ type WFAgent = PA.Agent WFMsg WFAgentState WFEnvironment
 type WFTransformer = PA.AgentTransformer WFMsg WFAgentState WFEnvironment
 type WFSimHandle = PA.SimHandle WFMsg WFAgentState WFEnvironment
 
+-- NOTE: the dynamic-version of this model is not possible to implement using PAR as it would introduce
+--      ordering-semantics, which are explicitly forbidden in this case utilizing types thus it can be only implemented
+--      in SEQ or CONC where one is alllowed to change the global environment
+
 burnPerTimeUnit :: Double
 burnPerTimeUnit = 0.2
 
@@ -28,8 +33,8 @@ is a wfs = (wfState s) == wfs
         s = PA.state a
 
 wfTransformer :: WFTransformer
-wfTransformer (a, e) (_, PA.Dt dt) = wfDt a dt
-wfTransformer (a, e) (_, PA.Domain m) = wfMsg a m
+wfTransformer (a, ge, le) (_, PA.Dt dt) = (wfDt a dt, le)
+wfTransformer (a, ge, le) (_, PA.Domain m) = (wfMsg a m, le)
 
 wfDt :: WFAgent -> Double -> WFAgent
 wfDt a dt
@@ -56,6 +61,9 @@ handleBurningAgent a dt = if burnableLeft <= 0.0 then
         deadAgent = PA.updateState a (\sOld -> sOld { wfState = Dead, burnable = 0.0 } )
         burningAgent = PA.updateState a (\sOld -> sOld { burnable = burnableLeft } )
         (aAfterRandIgnite, g') = PA.sendMsgToRandomNeighbour burningAgent Ignite (rng (PA.state a))
+
+wfEnvironmentFromAgents :: [WFAgent] -> PA.GlobalEnvironment WFEnvironment
+wfEnvironmentFromAgents as = foldl (\accMap a -> (Map.insert (PA.agentId a) () accMap) ) Map.empty as
 
 createRandomWFAgents :: StdGen -> (Int, Int) -> ([WFAgent], StdGen)
 createRandomWFAgents gInit cells@(x, y) = (as', g')

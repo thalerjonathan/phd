@@ -1,6 +1,6 @@
-module SpacialGame.RunSG where
+module SpacialGameMsg.RunSGMsg where
 
-import SpacialGame.SGModel
+import SpacialGameMsg.SGModelMsg
 import qualified PureAgents2DDiscrete as Front
 import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.IO.Simulate
@@ -11,20 +11,21 @@ import System.Random
 import Data.Maybe
 import Data.List
 
-runSGWithRendering :: IO ()
-runSGWithRendering = do
-                        let dt = 1.0
-                        let dims = (50, 50)
-                        let rngSeed = 42
-                        let defectorsRatio = 0.0
-                        let g = mkStdGen rngSeed
-                        let (as, g') = createRandomSGAgents g dims defectorsRatio
-                        let asWithDefector = setDefector as (25, 25) dims
-                        let hdl = PA.initStepSimulation asWithDefector ()
-                        stepWithRendering dims hdl dt
+runSGMsgWithRendering :: IO ()
+runSGMsgWithRendering = do
+                            let dt = 1.0
+                            let dims = (50, 50)
+                            let rngSeed = 42
+                            let defectorsRatio = 0.0
+                            let g = mkStdGen rngSeed
+                            let (as, g') = createRandomSGAgents g dims defectorsRatio
+                            let asWithDefector = setDefector as (25, 25) dims
+                            let env = sgEnvironmentFromAgents asWithDefector
+                            let hdl = PA.initStepSimulation asWithDefector env
+                            stepWithRendering dims hdl dt
 
-runSGStepsAndRender :: IO ()
-runSGStepsAndRender = do
+runSGMsgStepsAndRender :: IO ()
+runSGMsgStepsAndRender = do
                             let dt = 1.0
                             let dims = (50, 50)
                             let rngSeed = 42
@@ -33,10 +34,13 @@ runSGStepsAndRender = do
                             let (as, g') = createRandomSGAgents g dims defectorsRatio
                             let asWithDefector = setDefector as (25, 25) dims
                             let stepCount = 200
-                            let (as', _) = PA.stepSimulation asWithDefector () dt stepCount
+                            let asWithDefector = setDefector as (25, 25) dims
+                            let env = sgEnvironmentFromAgents asWithDefector
+                            let (as', _) = PA.stepSimulation asWithDefector env dt stepCount
+
                             let cells = map (sgAgentToRenderCell dims) as'
                             let frameRender = (Front.renderFrame cells (800, 800) dims)
-                            GLO.display (Front.display "Spacial Game" (800, 800)) GLO.white frameRender
+                            GLO.display (Front.display "Spacial Game Msg PAR" (800, 800)) GLO.white frameRender
                             return ()
 
 setDefector :: [SGAgent] -> (Int, Int) -> (Int, Int) -> [SGAgent]
@@ -51,9 +55,9 @@ setDefector as pos cells
         (infront, behind) = splitAt agentAtPosId as
 
 stepWithRendering :: (Int, Int) -> SGSimHandle -> Double -> IO ()
-stepWithRendering dims hdl dt = simulateIO (Front.display "Spacial Game" (800, 800))
+stepWithRendering dims hdl dt = simulateIO (Front.display "Spacial Game Msg PAR" (800, 800))
                                 GLO.white
-                                1
+                                5
                                 hdl
                                 (modelToPicture dims)
                                 (stepIteration dt)

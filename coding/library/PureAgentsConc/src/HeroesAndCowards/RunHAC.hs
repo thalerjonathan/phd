@@ -16,8 +16,8 @@ import qualified Graphics.Gloss.Interface.IO.Simulate as GLO
 --------------------------------------------------------------------------------------------------------------------------------------------------
 runHAC :: IO ()
 runHAC = do
-        let dt = 0.1
-        let agentCount = 2000
+        let dt = 0.05
+        let agentCount = 3000
         let heroDistribution = 0.25
         let rngSeed = 42
         let g = mkStdGen rngSeed
@@ -46,7 +46,7 @@ stepHAC = do
 stepWithRendering :: HACSimHandle -> Double -> IO ()
 stepWithRendering hdl dt = GLO.simulateIO Front.display
                                 GLO.white
-                                2
+                                1
                                 hdl
                                 modelToPicture
                                 (stepIteration dt)

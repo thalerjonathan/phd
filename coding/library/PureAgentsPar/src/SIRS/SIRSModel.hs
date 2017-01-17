@@ -3,6 +3,7 @@ module SIRS.SIRSModel where
 import System.Random
 
 import qualified PureAgentsPar as PA
+import qualified Data.Map as Map
 
 data SIRSState = Susceptible | Infected | Recovered deriving (Eq, Show)
 data SIRSMsg = Contact SIRSState
@@ -33,8 +34,8 @@ is a ss = (sirState s) == ss
         s = PA.state a
 
 sirsTransformer :: SIRSTransformer
-sirsTransformer (a, e) (_, PA.Dt dt) = sirsDt a dt
-sirsTransformer (a, e) (_, PA.Domain m) = sirsMsg a m
+sirsTransformer (a, ge, le) (_, PA.Dt dt) = (sirsDt a dt, le)
+sirsTransformer (a, ge, le) (_, PA.Domain m) = (sirsMsg a m, le)
 
 sirsMsg :: SIRSAgent -> SIRSMsg -> SIRSAgent
 -- MESSAGE-CASE: Contact with Infected -> infect with given probability if agent is susceptibel
@@ -104,6 +105,9 @@ createRandomSIRSAgents gInit cells@(x,y) p = (as', g')
               (randState, g') = randomAgentState g p
               (ras, g'') = createRandomStates g' (n-1) p
               rands = randState : ras
+
+sirsEnvironmentFromAgents :: [SIRSAgent] -> PA.GlobalEnvironment SIRSEnvironment
+sirsEnvironmentFromAgents as = foldl (\accMap a -> (Map.insert (PA.agentId a) () accMap) ) Map.empty as
 
 randomAgentState :: StdGen -> Double -> (SIRSAgentState, StdGen)
 randomAgentState g p = (SIRSAgentState{ sirState = s, timeInState = 0.0, rng = g'' }, g')

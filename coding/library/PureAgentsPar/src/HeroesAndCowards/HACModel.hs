@@ -2,8 +2,8 @@ module HeroesAndCowards.HACModel where
 
 import System.Random
 import Data.Maybe
-import GHC.Generics (Generic)
 
+import qualified Data.Map as Map
 import qualified PureAgentsPar as PA
 
 type HACAgentPosition = (Double, Double)
@@ -29,8 +29,8 @@ hacMovementPerTimeUnit :: Double
 hacMovementPerTimeUnit = 1.0
 
 hacTransformer :: HACTransformer
-hacTransformer (a, e) (_, PA.Dt dt) = hacDt a dt
-hacTransformer (a, e) (senderId, PA.Domain m) = hacMsg a m senderId
+hacTransformer (a, ge, le) (_, PA.Dt dt) = (hacDt a dt, le)
+hacTransformer (a, ge, le) (senderId, PA.Domain m) = (hacMsg a m senderId, le)
 
 hacMsg :: HACAgent -> HACMsg -> PA.AgentId -> HACAgent
 -- MESSAGE-CASE: PositionUpdate
@@ -98,6 +98,9 @@ createRandomHACAgents gInit n p = (as', g')
                   (randState, g') = randomAgentState g id n p
                   (ras, g'') = createRandomStates g' (id+1) n p
                   rands = randState : ras
+
+hacEnvironmentFromAgents :: [HACAgent] -> PA.GlobalEnvironment HACEnvironment
+hacEnvironmentFromAgents as = foldl (\accMap a -> (Map.insert (PA.agentId a) 0 accMap) ) Map.empty as
 
 ----------------------------------------------------------------------------------------------------------------------
 -- PRIVATES

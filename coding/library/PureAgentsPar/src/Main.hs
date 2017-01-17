@@ -4,10 +4,10 @@ import HeroesAndCowards.RunHAC
 
 import SIRS.RunSIRS
 
-import WildFire.RunWFDynamic
 import WildFire.RunWFStatic
 
-import SpacialGame.RunSG
+import SpacialGameMsg.RunSGMsg
+import SpacialGameEnv.RunSGEnv
 
 main :: IO ()
-main = runHAC
+main = runSGEnvWithRendering

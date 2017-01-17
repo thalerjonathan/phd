@@ -26,8 +26,9 @@ runWFStaticRendering = do
                         let g = mkStdGen rngSeed
                         -- NOTE: need atomically as well, although nothing has been written yet. primarily to change into the IO - Monad
                         let (as, g') = createRandomWFAgents g cells
+                        let env = wfEnvironmentFromAgents as
                         let ignitedAs = initialIgnition as (50, 50) cells
-                        let hdl = PA.initStepSimulation ignitedAs ()
+                        let hdl = PA.initStepSimulation ignitedAs env
                         stepWithRendering hdl dt cells
 
 runWFStaticSteps :: IO ()
@@ -42,7 +43,8 @@ runWFStaticSteps = do
                     let (as, g') = createRandomWFAgents g cells
                     let ignitedAs = initialIgnition as (25, 25) cells
                     let stepCount = 1000
-                    let (as', _) = PA.stepSimulation ignitedAs () dt stepCount
+                    let env = wfEnvironmentFromAgents ignitedAs
+                    let (as', _) = PA.stepSimulation ignitedAs env dt stepCount
                     mapM (putStrLn . show . PA.state) as'
                     return ()
 

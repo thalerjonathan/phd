@@ -20,10 +20,9 @@ runHAC = do
         let heroDistribution = 0.25
         let rngSeed = 42
         let g = mkStdGen rngSeed
-        let e = 42
         let (as, g') = createRandomHACAgents g agentCount heroDistribution
-        --let as = createHACTestAgents
-        let hdl = PA.initStepSimulation as e
+        let env = hacEnvironmentFromAgents as
+        let hdl = PA.initStepSimulation as env
         stepWithRendering hdl dt
 
 stepHAC :: IO ()
@@ -34,9 +33,9 @@ stepHAC = do
         let rngSeed = 42
         let steps = 10
         let g = mkStdGen rngSeed
-        let e = 42
         let (as, g') = createRandomHACAgents g agentCount heroDistribution
-        let (as', e') = PA.stepSimulation as e dt steps
+        let env = hacEnvironmentFromAgents as
+        let (as', e') = PA.stepSimulation as env dt steps
         let observableAgentStates = map hacAgentToObservableState as'
         GLO.display (Front.display) GLO.white (Front.renderFrame observableAgentStates)
         return ()

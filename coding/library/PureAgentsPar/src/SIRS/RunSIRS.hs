@@ -19,7 +19,8 @@ runSIRS = do
             let steps = 10
             let g = mkStdGen rngSeed
             let (as, g') = createRandomSIRSAgents g dims initInfectionProb
-            let hdl = PA.initStepSimulation as ()
+            let env = sirsEnvironmentFromAgents as
+            let hdl = PA.initStepSimulation as env
             stepWithRendering dims hdl dt
 
 stepWithRendering :: (Int, Int) -> SIRSSimHandle -> Double -> IO ()
@@ -78,7 +79,8 @@ stepSIRS = do
             -- NOTE: this works for now when NOT using parallelism
             --  (as', e') <- atomically $ Agents.stepSimulation as Nothing dt steps
             --Agents.runSimulation as Nothing (outputStep dt)
-            let hdl = PA.initStepSimulation as ()
+            let env = sirsEnvironmentFromAgents as
+            let hdl = PA.initStepSimulation as env
             runSteps hdl 100 dt
             return ()
 

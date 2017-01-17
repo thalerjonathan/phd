@@ -1,21 +1,20 @@
-module SpacialGame.SGModel where
+module SpacialGameEnv.SGModelEnv where
 
 import System.Random
 
 import qualified PureAgentsPar as PA
+import qualified Data.Map as Map
+import Data.Maybe
 
 data SGState = Defector | Cooperator deriving (Eq, Show)
-data SGMsg = NeighbourPayoff SGState Double | NeighbourAction SGState deriving (Eq, Show)
+data SGMsg = NoMsg deriving (Eq, Show)
 
 data SGAgentState = SIRSAgentState {
     sgCurrState :: SGState,
-    sgPrevState :: SGState,
-    sgSumPayoff :: Double,
-    sgMaxPayoffValue :: Double,
-    sgMaxPayoffState :: SGState
+    sgPrevState :: SGState
 } deriving (Show)
 
-type SGEnvironment = ()
+type SGEnvironment = (Double, SGState)
 type SGAgent = PA.Agent SGMsg SGAgentState SGEnvironment
 type SGTransformer = PA.AgentTransformer SGMsg SGAgentState SGEnvironment
 type SGSimHandle = PA.SimHandle SGMsg SGAgentState SGEnvironment
@@ -33,33 +32,33 @@ rParam :: Double
 rParam = 1.0
 
 sgTransformer :: SGTransformer
-sgTransformer (a, e) (_, PA.Dt dt) = sgDt a dt
-sgTransformer (a, e) (_, PA.Domain m) = sgMsg a m
+sgTransformer ae (_, PA.Dt dt) = sgDt ae dt
+sgTransformer (a, ge, le) (_, PA.Domain m) = (a, le)
 
-sgMsg :: SGAgent -> SGMsg -> SGAgent
-sgMsg a (NeighbourAction s) = sgActionMsg a s
-sgMsg a (NeighbourPayoff s p) = sgPayoffMsg a s p
-
-sgActionMsg :: SGAgent -> SGState -> SGAgent
-sgActionMsg a s = PA.updateState a (\s -> s { sgSumPayoff = newPo })
+-- TODO: is this really correct?
+sgDt :: (SGAgent, PA.GlobalEnvironment SGEnvironment, PA.LocalEnvironment SGEnvironment) -> Double -> (SGAgent, PA.LocalEnvironment SGEnvironment)
+sgDt (a, ge, _) dt = (a', le)
     where
-        po = sgSumPayoff (PA.state a)
-        poIncrease = payoffWith a s
-        newPo = po + poIncrease
+        aid = PA.agentId a
+        aSg = sgCurrState (PA.state a)
+        neighbourIds = Map.keys (PA.neighbours a)
+        localPayoff = foldl (\payoffSum nId -> payoffSum  + (payoffWithEnv aSg nId ge)) 0.0 neighbourIds
+        (bestPayoff, bestState) = foldl (\best nId -> compareWithEnv best nId ge) (localPayoff, aSg) neighbourIds
+        a' = PA.updateState a (\s -> s { sgCurrState = bestState, sgPrevState = aSg })
+        le = (localPayoff, bestState)
 
-sgPayoffMsg :: SGAgent -> SGState -> Double -> SGAgent
-sgPayoffMsg a sg p
-    | p > poMaxVal = PA.updateState a (\s -> s { sgMaxPayoffValue = p, sgMaxPayoffState = sg } )
-    | otherwise = a
+payoffWithEnv :: SGState -> PA.AgentId -> PA.GlobalEnvironment SGEnvironment -> Double
+payoffWithEnv aSg eId ge = payoff aSg eSg
     where
-        poMaxVal = sgMaxPayoffValue (PA.state a)
-        poMaxSt = sgMaxPayoffState (PA.state a)
+        (ePo, eSg) = fromJust (Map.lookup eId ge)
 
--- NOTE: the first state is always the owning agent
-payoffWith :: SGAgent -> SGState -> Double
-payoffWith a s = payoff as s
+compareWithEnv :: (Double, SGState) -> PA.AgentId -> PA.GlobalEnvironment SGEnvironment -> (Double, SGState)
+compareWithEnv bestPoSg@(bestPo, _) eId ge = if (ePo > bestPo) then
+                                                envPoSg
+                                                else
+                                                    bestPoSg
     where
-        as = sgCurrState (PA.state a)
+        envPoSg@(ePo, _)  = fromJust (Map.lookup eId ge)
 
 payoff :: SGState -> SGState -> Double
 payoff Defector Defector = pParam
@@ -67,20 +66,9 @@ payoff Cooperator Defector = sParam
 payoff Defector Cooperator = bParam
 payoff Cooperator Cooperator = rParam
 
--- TODO: is this really correct?
-sgDt :: SGAgent -> Double -> SGAgent
-sgDt a dt = aAfterBroad
-    where
-        localState = sgCurrState (PA.state a)
-        localPayoff = sgSumPayoff (PA.state a)
 
-        bestPayoff = sgMaxPayoffValue (PA.state a)
-        bestState = sgMaxPayoffState (PA.state a)
-
-        aAfterPayoff = PA.updateState a (\s -> s { sgCurrState = bestState, sgPrevState = localState } )
-
-        aAfterAction = PA.broadcastMsgToNeighbours aAfterPayoff (NeighbourAction bestState)
-        aAfterBroad = PA.broadcastMsgToNeighbours aAfterAction (NeighbourPayoff localState localPayoff)
+sgEnvironmentFromAgents :: [SGAgent] -> PA.GlobalEnvironment SGEnvironment
+sgEnvironmentFromAgents as = foldl (\accMap a -> (Map.insert (PA.agentId a) (0.0, (sgCurrState (PA.state a))) accMap) ) Map.empty as
 
 createRandomSGAgents :: StdGen -> (Int, Int) -> Double -> ([SGAgent], StdGen)
 createRandomSGAgents gInit cells@(x,y) p = (as', g')
@@ -99,7 +87,7 @@ createRandomSGAgents gInit cells@(x,y) p = (as', g')
               rands = randState : ras
 
 randomAgentState :: StdGen -> Double -> (SGAgentState, StdGen)
-randomAgentState g p = (SIRSAgentState{ sgCurrState = s, sgPrevState = s, sgSumPayoff = 0.0, sgMaxPayoffState = s, sgMaxPayoffValue = 0.0 }, g')
+randomAgentState g p = (SIRSAgentState{ sgCurrState = s, sgPrevState = s }, g')
     where
         (isDefector, g') = randomThresh g p
         (g'', _) = split g'

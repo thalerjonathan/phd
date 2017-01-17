@@ -69,7 +69,7 @@ payoff Cooperator Cooperator = rParam
 
 -- TODO: is this really correct?
 sgDt :: SGAgent -> Double -> SGAgent
-sgDt a dt = aAfterAction
+sgDt a dt = aAfterBroad
     where
         localState = sgCurrState (PA.state a)
         localPayoff = sgSumPayoff (PA.state a)
@@ -78,8 +78,9 @@ sgDt a dt = aAfterAction
         bestState = sgMaxPayoffState (PA.state a)
 
         aAfterPayoff = PA.updateState a (\s -> s { sgCurrState = bestState, sgPrevState = localState } )
-        aAfterBroad = PA.broadcastMsgToNeighbours aAfterPayoff (NeighbourPayoff localState localPayoff)
-        aAfterAction = PA.broadcastMsgToNeighbours aAfterBroad (NeighbourAction bestState)
+
+        aAfterAction = PA.broadcastMsgToNeighbours aAfterPayoff (NeighbourAction bestState)
+        aAfterBroad = PA.broadcastMsgToNeighbours aAfterAction (NeighbourPayoff localState localPayoff)
 
 createRandomSGAgents :: StdGen -> (Int, Int) -> Double -> ([SGAgent], StdGen)
 createRandomSGAgents gInit cells@(x,y) p = (as', g')

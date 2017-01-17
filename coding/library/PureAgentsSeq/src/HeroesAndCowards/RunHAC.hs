@@ -12,21 +12,6 @@ import qualified Graphics.Gloss.Interface.IO.Simulate as GLO
 --------------------------------------------------------------------------------------------------------------------------------------------------
 -- EXECUTE MODEL
 --------------------------------------------------------------------------------------------------------------------------------------------------
-stepHAC :: IO ()
-stepHAC = do
-        let dt = 0.025
-        let agentCount = 1000
-        let heroDistribution = 0.5
-        let rngSeed = 42
-        let steps = 1000
-        let g = mkStdGen rngSeed
-        let e = 42
-        let (as, g') = createRandomHACAgents g agentCount heroDistribution
-        let (as', e') = PA.stepSimulation as e dt steps
-        outs <- mapM (putStrLn . show . PA.state) as'
-        putStrLn (show e')
-        return ()
-
 runHAC :: IO ()
 runHAC = do
         let dt = 0.025
@@ -40,11 +25,25 @@ runHAC = do
         let hdl = PA.initStepSimulation as e
         stepWithRendering hdl dt
 
+stepHAC :: IO ()
+stepHAC = do
+        let dt = 0.1
+        let agentCount = 2000
+        let heroDistribution = 0.25
+        let rngSeed = 42
+        let steps = 1000
+        let g = mkStdGen rngSeed
+        let e = 42
+        let (as, g') = createRandomHACAgents g agentCount heroDistribution
+        let (as', e') = PA.stepSimulation as e dt steps
+        outs <- mapM (putStrLn . show . PA.state) as'
+        putStrLn (show e')
+        return ()
 
 stepWithRendering :: HACSimHandle -> Double -> IO ()
 stepWithRendering hdl dt = GLO.simulateIO Front.display
                                 GLO.white
-                                25
+                                2
                                 hdl
                                 modelToPicture
                                 (stepIteration dt)

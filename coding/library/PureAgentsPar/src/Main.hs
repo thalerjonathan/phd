@@ -10,4 +10,4 @@ import WildFire.RunWFStatic
 import SpacialGame.RunSG
 
 main :: IO ()
-main = runSGWithRendering
+main = runHAC

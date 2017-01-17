@@ -13,7 +13,7 @@ agentSize :: Float
 agentSize = 1
 
 display :: GLO.Display
-display = (GLO.InWindow "Heroes & Cowards Par (Gloss)" (winSizeX, winSizeY) (0, 0))
+display = (GLO.InWindow "Heroes & Cowards PAR (Gloss)" (winSizeX, winSizeY) (0, 0))
 
 renderFrame :: [(Double, Double, Bool)] -> GLO.Picture
 renderFrame as = GLO.Pictures $ agentPics

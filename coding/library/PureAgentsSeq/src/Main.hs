@@ -11,4 +11,4 @@ import SpacialGameMsg.RunSGMsg
 import SpacialGameEnv.RunSGEnv
 
 main :: IO ()
-main = runSGMsgWithRendering
+main = runHAC

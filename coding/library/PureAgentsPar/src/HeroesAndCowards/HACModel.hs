@@ -50,9 +50,9 @@ hacMsg a PositionRequest senderId = PA.sendMsg a (PositionUpdate currPos) sender
 
 hacDt :: HACAgent -> Double -> HACAgent
 hacDt a dt = if ((isJust fPos) && (isJust ePos)) then
-                        PA.writeState a'' s'    -- NOTE: no new position/state will be calculated due to Haskells Laziness
+                        PA.writeState a' s'    -- NOTE: no new position/state will be calculated due to Haskells Laziness
                             else
-                                a''
+                                a'
     where
         s = PA.state a
         fPos = friendPos s
@@ -64,11 +64,10 @@ hacDt a dt = if ((isJust fPos) && (isJust ePos)) then
         stepWidth = hacMovementPerTimeUnit * dt
         newPos = wtFunc $ addPos oldPos (multPos targetDir stepWidth)
         s' = s{ pos = newPos }
-        a' = requestPosition a (friend s)
-        a'' = requestPosition a' (enemy s) -- TODO: replace by broadcast to neighbours
+        a' = requestPositions a
 
-requestPosition :: HACAgent -> PA.AgentId -> HACAgent
-requestPosition a receiverId = PA.sendMsg a PositionRequest receiverId
+requestPositions :: HACAgent -> HACAgent
+requestPositions a = PA.broadcastMsgToNeighbours a PositionRequest
 
 createHACTestAgents :: [HACAgent]
 createHACTestAgents = [a0', a1', a2']
@@ -88,7 +87,7 @@ createRandomHACAgents gInit n p = (as', g')
     where
         (randStates, g') = createRandomStates gInit 0 n p
         as = map (\idx -> PA.createAgent idx (randStates !! idx) hacTransformer) [0..n-1]
-        as' = map (\a -> PA.addNeighbours a as) as  -- TODO: filter for friend and enemy
+        as' = map (\a -> PA.addNeighbours a (filterFriendAndEnemy a as)) as
 
         createRandomStates :: RandomGen g => g -> Int -> Int -> Double -> ([HACAgentState], g)
         createRandomStates g id n p
@@ -98,6 +97,14 @@ createRandomHACAgents gInit n p = (as', g')
                   (randState, g') = randomAgentState g id n p
                   (ras, g'') = createRandomStates g' (id+1) n p
                   rands = randState : ras
+
+filterFriendAndEnemy :: HACAgent -> [HACAgent] -> [HACAgent]
+filterFriendAndEnemy a as = [e, f]
+    where
+        enemyId = enemy (PA.state a)
+        friendId = friend (PA.state a)
+        e = head (filter (\e -> (PA.agentId e) == enemyId) as)
+        f = head (filter (\f -> (PA.agentId f) == friendId) as)
 
 hacEnvironmentFromAgents :: [HACAgent] -> PA.GlobalEnvironment HACEnvironment
 hacEnvironmentFromAgents as = foldl (\accMap a -> (Map.insert (PA.agentId a) 0 accMap) ) Map.empty as
@@ -116,8 +123,8 @@ randomAgentState g id maxAgents p = (s, g5)
         (randHero, g5) = randomThresh g4 p
         s = HACAgentState{ pos = (randX, randY),
                             hero = randHero,
-                            friend = randEnemy,
-                            enemy = randFriend,
+                            friend = randFriend,
+                            enemy = randEnemy,
                             wt = Border,
                             friendPos = Nothing,
                             enemyPos = Nothing }

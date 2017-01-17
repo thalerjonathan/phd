@@ -25,25 +25,40 @@ runHAC = do
         let hdl = PA.initStepSimulation as env
         stepWithRendering hdl dt
 
+stepHACWithRendering :: IO ()
+stepHACWithRendering = do
+                        let dt = 0.025
+                        let agentCount = 1000
+                        let heroDistribution = 0.25
+                        let rngSeed = 42
+                        let steps = 10
+                        let g = mkStdGen rngSeed
+                        let (as, g') = createRandomHACAgents g agentCount heroDistribution
+                        let env = hacEnvironmentFromAgents as
+                        let (as', e') = PA.stepSimulation as env dt steps
+                        let observableAgentStates = map hacAgentToObservableState as'
+                        GLO.display (Front.display) GLO.white (Front.renderFrame observableAgentStates)
+                        return ()
+
 stepHAC :: IO ()
 stepHAC = do
-        let dt = 0.025
-        let agentCount = 5000
-        let heroDistribution = 0.25
-        let rngSeed = 42
-        let steps = 10
-        let g = mkStdGen rngSeed
-        let (as, g') = createRandomHACAgents g agentCount heroDistribution
-        let env = hacEnvironmentFromAgents as
-        let (as', e') = PA.stepSimulation as env dt steps
-        let observableAgentStates = map hacAgentToObservableState as'
-        GLO.display (Front.display) GLO.white (Front.renderFrame observableAgentStates)
-        return ()
+            let dt = 0.025
+            let agentCount = 1000
+            let heroDistribution = 0.25
+            let rngSeed = 42
+            let steps = 500
+            let g = mkStdGen rngSeed
+            let (as, g') = createRandomHACAgents g agentCount heroDistribution
+            let env = hacEnvironmentFromAgents as
+            let (as', e') = PA.stepSimulation as env dt steps
+            let observableAgentStates = map hacAgentToObservableState as'
+            mapM (putStrLn . show) observableAgentStates
+            return ()
 
 stepWithRendering :: HACSimHandle -> Double -> IO ()
 stepWithRendering hdl dt = GLO.simulateIO Front.display
                                 GLO.white
-                                2
+                                10
                                 hdl
                                 modelToPicture
                                 (stepIteration dt)

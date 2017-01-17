@@ -73,20 +73,18 @@ data SimHandle m s e = SimHandle {
 }
 
 newAgent :: Agent m s e -> Agent m s e -> Agent m s e
-newAgent aParent aNew = aParent { newAgents = nas ++ [aNew] }
+newAgent aParent aNew = aParent { newAgents = aNew : nas }
     where
         nas = newAgents aParent
 
 kill :: Agent m s e -> Agent m s e
 kill a = a { killFlag = True }
 
+-- NOTE: we are not checking if the receiver is actually in the neighbours
 sendMsg :: Agent m s e -> m -> AgentId -> Agent m s e
-sendMsg a m targetId
-    | targetNotFound = a                                     -- NOTE: receiver not found in the neighbours
-    | otherwise = a { outBox = newOutBox }
+sendMsg a m targetId = a { outBox = newOutBox }
     where
         senderId = agentId a
-        targetNotFound = isNothing (Map.lookup targetId (neighbours a))       -- NOTE: do we really need to look-up the neighbours?
         newOutBox = (senderId, targetId, m) : (outBox a) -- TODO: is order irrelevant? could use ++ as well but more expensive (or not?)
 
 broadcastMsgToNeighbours :: Agent m s e -> m -> Agent m s e
@@ -215,8 +213,9 @@ runAgentsParallel dt ge am = (am', ge')
         (as', ge') = splitAgentLocalEnvPairs parAEPairs ge
         am' = insertAgents Map.empty as'
 
+-- NOTE: adding agents in front instead of ++: reduces runtime- and memory-overhead extremely
 splitAgentLocalEnvPairs :: [(Agent m s e, LocalEnvironment e)] -> GlobalEnvironment e -> ([Agent m s e], GlobalEnvironment e)
-splitAgentLocalEnvPairs aeps ge = foldl (\(as, ge') (a, le) -> (as ++ [a], Map.insert (agentId a) le ge') ) ([], ge) aeps
+splitAgentLocalEnvPairs aeps ge = foldl (\(as, ge') (a, le) -> (a : as, Map.insert (agentId a) le ge') ) ([], ge) aeps
 
 -- TODO: killed agents need to be removed from the environment
 killAgentFold :: Map.Map AgentId (Agent m s e) -> Agent m s e -> Map.Map AgentId (Agent m s e)
@@ -227,7 +226,6 @@ killAgentFold am a
 -- TODO: new agents need to be added to the environment
 collectAndClearNewAgents :: Map.Map AgentId (Agent m s e) -> ([(Agent m s e)], Map.Map AgentId (Agent m s e))
 collectAndClearNewAgents am = Map.foldl (\(newAsAcc, amAcc) a -> (newAsAcc ++ (newAgents a), Map.insert (agentId a) a { newAgents = [] } amAcc)) ([], am) am
-
 
 
 -- NOTE: this places the messages in the out-box of of the first argument agent at their corresponding receivers in the map
@@ -247,6 +245,7 @@ deliverMsg am (senderId, receiverId, m)
         a = (fromJust mayReceiver)
         ib = inBox a
         ibM = (senderId, m)
+        -- NOTE: need to deliver messages in the received order => append at the end: ib ++ [ibM]
         a' = a { inBox = ib ++ [ibM] }
 
 -- NOTE: first AgentId: senderId, second AgentId: receiverId

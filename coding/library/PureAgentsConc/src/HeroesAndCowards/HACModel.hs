@@ -108,10 +108,11 @@ createHACTestAgents = do
         a1State = HACAgentState{ pos = (0.5, 0.5), hero = False, friend = 0, enemy = 2, wt = Border, friendPos = Nothing, enemyPos = Nothing }
         a2State = HACAgentState{ pos = (-0.5, 0.5), hero = False, friend = 0, enemy = 1, wt = Border, friendPos = Nothing, enemyPos = Nothing }
 
+-- NOTE: can't filter enemy and friend as we need to reply to position requests of other agents which are not our enemy & friend but have selected us as friend or enemy
 createRandomHACAgents :: RandomGen g => g -> Int -> Double -> STM ([HACAgent], g)
 createRandomHACAgents gInit n p = do
                                     as <- mapM (\idx -> PA.createAgent idx (randStates !! idx) hacTransformer) [0..n-1]
-                                    let as' = map (\a -> PA.addNeighbours a as) as  -- TODO: filter for friend and enemy
+                                    let as' = map (\a -> PA.addNeighbours a as) as
                                     return (as', g')
     where
         (randStates, g') = createRandomStates gInit 0 n p
@@ -124,6 +125,8 @@ createRandomHACAgents gInit n p = do
                   (randState, g') = randomAgentState g id n p
                   (ras, g'') = createRandomStates g' (id+1) n p
                   rands = randState : ras
+
+
 
 ----------------------------------------------------------------------------------------------------------------------
 -- PRIVATES
@@ -139,8 +142,8 @@ randomAgentState g id maxAgents p = (s, g5)
         (randHero, g5) = randomThresh g4 p
         s = HACAgentState{ pos = (randX, randY),
                             hero = randHero,
-                            friend = randEnemy,
-                            enemy = randFriend,
+                            friend = randFriend,
+                            enemy = randEnemy,
                             wt = Border,
                             friendPos = Nothing,
                             enemyPos = Nothing }

@@ -26,11 +26,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="RunHAC.hs" pinned="false" current-in-tab="true">
+      <file leaf-file-name="RunHAC.hs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/HeroesAndCowards/RunHAC.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="137">
-              <caret line="15" column="6" lean-forward="false" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="6" />
+            <state relative-caret-position="36">
+              <caret line="20" column="24" lean-forward="true" selection-start-line="20" selection-start-column="24" selection-end-line="20" selection-end-column="24" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="PureAgentsPar.hs" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/PureAgentsPar.hs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-2512">
+              <caret line="89" column="24" lean-forward="false" selection-start-line="89" selection-start-column="0" selection-end-line="89" selection-end-column="24" />
               <folding />
             </state>
           </provider>
@@ -47,6 +57,13 @@
       <find>runAgentsParallel</find>
       <find>getLocalEnv</find>
       <find>updateLocalEnv</find>
+      <find>newNeighbours</find>
+      <find>addNeighbours</find>
+      <find>splitAgentLocalEnvPairs</find>
+      <find>++</find>
+      <find>targetNotFound</find>
+      <find>sendMsg</find>
+      <find>requestPosition</find>
     </findStrings>
   </component>
   <component name="GradleLocalSettings">
@@ -62,18 +79,18 @@
         <option value="$PROJECT_DIR$/src/SpacialGame/RunSG.hs" />
         <option value="$PROJECT_DIR$/src/SpacialGame/SGModel.hs" />
         <option value="$PROJECT_DIR$/src/HeroesAndCowards/HACFrontend.hs" />
-        <option value="$PROJECT_DIR$/src/PureAgentsPar.hs" />
         <option value="$PROJECT_DIR$/src/SIRS/SIRSModel.hs" />
-        <option value="$PROJECT_DIR$/src/HeroesAndCowards/HACModel.hs" />
         <option value="$PROJECT_DIR$/src/WildFire/WildFireModelDynamic.hs" />
         <option value="$PROJECT_DIR$/src/WildFire/WildFireModelStatic.hs" />
         <option value="$PROJECT_DIR$/src/SpacialGameMsg/SGModelMsg.hs" />
         <option value="$PROJECT_DIR$/src/SpacialGameMsg/RunSGMsg.hs" />
         <option value="$PROJECT_DIR$/src/WildFire/RunWFStatic.hs" />
         <option value="$PROJECT_DIR$/src/SIRS/RunSIRS.hs" />
-        <option value="$PROJECT_DIR$/src/HeroesAndCowards/RunHAC.hs" />
         <option value="$PROJECT_DIR$/src/SpacialGameEnv/RunSGEnv.hs" />
         <option value="$PROJECT_DIR$/src/SpacialGameEnv/SGModelEnv.hs" />
+        <option value="$PROJECT_DIR$/src/PureAgentsPar.hs" />
+        <option value="$PROJECT_DIR$/src/HeroesAndCowards/RunHAC.hs" />
+        <option value="$PROJECT_DIR$/src/HeroesAndCowards/HACModel.hs" />
         <option value="$PROJECT_DIR$/src/Main.hs" />
       </list>
     </option>
@@ -98,8 +115,6 @@
     </navigator>
     <panes>
       <pane id="PackagesPane" />
-      <pane id="Scope" />
-      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -146,11 +161,12 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="settings.editor.selected.configurable" value="org.jetbrains.plugins.scala.settings.ScalaProjectSettingsConfigurable" />
-    <property name="settings.editor.splitter.proportion" value="0.2" />
+    <property name="settings.editor.selected.configurable" value="preferences.general" />
     <property name="project.structure.last.edited" value="Project" />
     <property name="project.structure.proportion" value="0.0" />
     <property name="project.structure.side.proportion" value="0.2" />
@@ -442,6 +458,13 @@
       <projects_view />
     </option>
   </component>
+  <component name="ScalaProjectSettings">
+    <option name="intInjectionMapping">
+      <map>
+        <entry key="xml" value="XML" />
+      </map>
+    </option>
+  </component>
   <component name="ShelveChangesManager" show_recycled="false">
     <option name="remove_strategy" value="false" />
   </component>
@@ -457,7 +480,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1920" height="1053" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -505,6 +528,54 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/src/Main.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="216">
+          <caret line="12" column="14" lean-forward="false" selection-start-line="12" selection-start-column="14" selection-end-line="12" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/HeroesAndCowards/RunHAC.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="162">
+          <caret line="9" column="60" lean-forward="true" selection-start-line="9" selection-start-column="60" selection-end-line="9" selection-end-column="60" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/HeroesAndCowards/HACModel.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/PureAgentsPar.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1476">
+          <caret line="82" column="7" lean-forward="false" selection-start-line="82" selection-start-column="0" selection-end-line="82" selection-end-column="7" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Main.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="216">
+          <caret line="12" column="13" lean-forward="false" selection-start-line="12" selection-start-column="13" selection-end-line="12" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/HeroesAndCowards/RunHAC.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/Main.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -634,33 +705,17 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/PureAgentsPar.cabal">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="144">
-          <caret line="8" column="61" lean-forward="false" selection-start-line="8" selection-start-column="61" selection-end-line="8" selection-end-column="61" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/SpacialGame/SGModel.hs" />
     <entry file="file://$PROJECT_DIR$/src/HeroesAndCowards/HACFrontend.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="147">
           <caret line="12" column="1" lean-forward="false" selection-start-line="12" selection-start-column="1" selection-end-line="12" selection-end-column="1" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/SpacialGame/RunSG.hs" />
     <entry file="file://$PROJECT_DIR$/src/SpacialGameMsg/RunSG.hs" />
     <entry file="file://$PROJECT_DIR$/src/WildFire/RunWFDynamic.hs" />
-    <entry file="file://$PROJECT_DIR$/src/PureAgentsPar.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="72">
-          <caret line="31" column="20" lean-forward="true" selection-start-line="31" selection-start-column="20" selection-end-line="31" selection-end-column="20" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/WildFire/WildFireModelStatic.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="432">
@@ -669,14 +724,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/WildFire/WildFireModelDynamic.hs" />
-    <entry file="file://$PROJECT_DIR$/src/HeroesAndCowards/HACModel.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="72">
-          <caret line="4" column="0" lean-forward="true" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/SpacialGameMsg/SGModelMsg.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="108">
@@ -727,6 +774,13 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="90">
           <caret line="5" column="0" lean-forward="false" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PureAgentsPar.cabal">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="144">
+          <caret line="8" column="61" lean-forward="false" selection-start-line="8" selection-start-column="61" selection-end-line="8" selection-end-column="61" />
           <folding />
         </state>
       </provider>
@@ -739,10 +793,26 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/HeroesAndCowards/HACModel.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="612">
+          <caret line="90" column="0" lean-forward="true" selection-start-line="90" selection-start-column="0" selection-end-line="90" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/HeroesAndCowards/RunHAC.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="137">
-          <caret line="15" column="6" lean-forward="false" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="6" />
+        <state relative-caret-position="36">
+          <caret line="20" column="24" lean-forward="true" selection-start-line="20" selection-start-column="24" selection-end-line="20" selection-end-column="24" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/PureAgentsPar.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2512">
+          <caret line="89" column="24" lean-forward="false" selection-start-line="89" selection-start-column="0" selection-end-line="89" selection-end-column="24" />
           <folding />
         </state>
       </provider>

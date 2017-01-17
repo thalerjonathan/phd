@@ -87,7 +87,6 @@ sendMsg a m receiverId
         receiverNotFound = isNothing mayReceiverQueue
         receiverQueue = fromJust mayReceiverQueue
 
--- TODO: implement
 broadcastMsgToNeighbours :: Agent m s e -> m -> STM ()
 broadcastMsgToNeighbours a m = do
                                 mapM (\neighbourBox -> putMessage neighbourBox senderId m) (Map.elems (neighbours a))

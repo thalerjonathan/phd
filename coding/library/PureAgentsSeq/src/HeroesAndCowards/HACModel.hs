@@ -113,8 +113,8 @@ randomAgentState g id maxAgents p = (s, g5)
         (randHero, g5) = randomThresh g4 p
         s = HACAgentState{ pos = (randX, randY),
                             hero = randHero,
-                            friend = randEnemy,
-                            enemy = randFriend,
+                            friend = randFriend,
+                            enemy = randEnemy,
                             wt = Border,
                             friendPos = Nothing,
                             enemyPos = Nothing }

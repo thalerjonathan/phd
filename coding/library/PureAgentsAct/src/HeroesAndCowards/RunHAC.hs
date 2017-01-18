@@ -17,7 +17,7 @@ import qualified Graphics.Gloss.Interface.IO.Simulate as GLO
 runHAC :: IO ()
 runHAC = do
         let dt = 0.05
-        let agentCount = 10
+        let agentCount = 3
         let heroDistribution = 0.25
         let rngSeed = 42
         let g = mkStdGen rngSeed

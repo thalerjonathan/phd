@@ -135,7 +135,10 @@ extractHdlEnv :: SimHandle m s e -> e
 extractHdlEnv = simHdlEnv
 
 observeAgentStates :: SimHandle m s e -> IO [s]
-observeAgentStates hdl =  undefined -- TODO: implement
+observeAgentStates hdl =  do
+                            let am = simHdlAgents hdl
+                            ss <- mapM (\(_, sVar, _) -> readTVarIO sVar) (Map.elems am)
+                            return ss
 
 awaitAgentsTermination :: SimHandle m s e -> IO [Agent m s e]
 awaitAgentsTermination hdl = undefined -- TODO: implement

@@ -4,10 +4,10 @@ import Data.IORef
 import qualified Graphics.Gloss as GLO
 
 winSizeX :: Int
-winSizeX = 500
+winSizeX = 400
 
 winSizeY :: Int
-winSizeY = 500
+winSizeY = 400
 
 agentSize :: Float
 agentSize = 1

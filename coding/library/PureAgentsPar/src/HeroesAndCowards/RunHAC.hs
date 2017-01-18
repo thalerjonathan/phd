@@ -15,10 +15,10 @@ import qualified Graphics.Gloss as GLO
 --------------------------------------------------------------------------------------------------------------------------------------------------
 runHAC :: IO ()
 runHAC = do
-        let dt = 0.1
-        let agentCount = 2000
-        let heroDistribution = 0.25
-        let rngSeed = 42
+        let dt = 0.04
+        let agentCount = 75
+        let heroDistribution = 0.5
+        let rngSeed = 123
         let g = mkStdGen rngSeed
         let (as, g') = createRandomHACAgents g agentCount heroDistribution
         let env = hacEnvironmentFromAgents as
@@ -58,7 +58,7 @@ stepHAC = do
 stepWithRendering :: HACSimHandle -> Double -> IO ()
 stepWithRendering hdl dt = GLO.simulateIO Front.display
                                 GLO.white
-                                10
+                                30
                                 hdl
                                 modelToPicture
                                 (stepIteration dt)

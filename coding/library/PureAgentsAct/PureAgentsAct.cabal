@@ -1,0 +1,16 @@
+name:              PureAgentsAct
+version:           1.0
+Build-Type:        Simple
+cabal-version:     >= 1.2
+
+executable PureAgentsAct
+  main-is:         Main.hs
+  hs-source-dirs:  src
+  build-depends:   base, containers, gloss, random, stm, async
+  ghc-options:     -threaded
+                   -prof
+                   -auto-all
+                   -caf-all
+                   -O2
+                   "-with-rtsopts=-N -s -hy -p -i0.1 -K256M"
+                   -- use hd or hy

@@ -4,16 +4,16 @@ import Data.IORef
 import qualified Graphics.Gloss as GLO
 
 winSizeX :: Int
-winSizeX = 400
+winSizeX = 300
 
 winSizeY :: Int
-winSizeY = 400
+winSizeY = 300
 
 agentSize :: Float
 agentSize = 1
 
 display :: GLO.Display
-display = (GLO.InWindow "Heroes & Cowards PAR (Gloss)" (winSizeX, winSizeY) (0, 0))
+display = (GLO.InWindow "Heroes & Cowards CONC (Gloss)" (winSizeX, winSizeY) (0, 0))
 
 renderFrame :: [(Double, Double, Bool)] -> GLO.Picture
 renderFrame as = GLO.Pictures $ agentPics

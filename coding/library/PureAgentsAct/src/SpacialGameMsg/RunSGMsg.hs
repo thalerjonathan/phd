@@ -5,7 +5,7 @@ import qualified PureAgents2DDiscrete as Front
 import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.IO.Simulate
 
-import qualified PureAgentsConc as PA
+import qualified PureAgentsAct as PA
 
 import System.Random
 import Data.Maybe
@@ -21,7 +21,7 @@ runSGMsgWithRendering = do
                             let g = mkStdGen rngSeed
                             (as, g') <- PA.atomically $ createRandomSGAgents g dims defectorsRatio
                             let asWithDefector = setDefector as (25, 25) dims
-                            let hdl = PA.initStepSimulation asWithDefector ()
+                            hdl <- PA.startSimulation asWithDefector dt ()
                             stepWithRendering dims hdl dt
 
 setDefector :: [SGAgent] -> (Int, Int) -> (Int, Int) -> [SGAgent]
@@ -36,9 +36,9 @@ setDefector as pos cells
         (infront, behind) = splitAt agentAtPosId as
 
 stepWithRendering :: (Int, Int) -> SGSimHandle -> Double -> IO ()
-stepWithRendering dims hdl dt = simulateIO (Front.display "Spacial Game" (800, 800))
+stepWithRendering dims hdl dt = simulateIO (Front.display "Spacial Game Msg ACT" (800, 800))
                                 GLO.white
-                                2
+                                30
                                 hdl
                                 (modelToPicture dims)
                                 (stepIteration dt)
@@ -46,18 +46,16 @@ stepWithRendering dims hdl dt = simulateIO (Front.display "Spacial Game" (800, 8
 -- A function to convert the model to a picture.
 modelToPicture :: (Int, Int) -> SGSimHandle -> IO GLO.Picture
 modelToPicture dims hdl = do
-                            let as = PA.extractHdlAgents hdl
+                            as <- PA.observeAgentStates hdl
                             let cells = map (sgAgentToRenderCell dims) as
                             return (Front.renderFrame cells (800, 800) dims)
 
-sgAgentToRenderCell :: (Int, Int) -> SGAgent -> Front.RenderCell
-sgAgentToRenderCell (xDim, yDim) a = Front.RenderCell { Front.renderCellCoord = (ax, ay),
+sgAgentToRenderCell :: (Int, Int) -> (PA.AgentId, Double, SGAgentState) -> Front.RenderCell
+sgAgentToRenderCell (xDim, yDim) (aid, _, s) = Front.RenderCell { Front.renderCellCoord = (ax, ay),
                                                         Front.renderCellColor = ss }
     where
-        id = PA.agentId a
-        s = PA.state a
-        ax = mod id yDim
-        ay = floor((fromIntegral id) / (fromIntegral xDim))
+        ax = mod aid yDim
+        ay = floor((fromIntegral aid) / (fromIntegral xDim))
         curr = sgCurrState s
         prev = sgPrevState s
         ss = sgAgentStateToColor prev curr
@@ -86,5 +84,5 @@ yellowC = (1.0, 1.0, 0.0)
 --       NOTE: this is actually wrong, we can avoid atomically as long as we are running always on the same thread.
 --             atomically would commit the changes and make them visible to other threads
 stepIteration :: Double -> ViewPort -> Float -> SGSimHandle -> IO SGSimHandle
-stepIteration fixedDt viewport dtRendering hdl = (PA.advanceSimulation hdl fixedDt)
+stepIteration fixedDt viewport dtRendering hdl = return hdl
 --------------------------------------------------------------------------------------------------------------------------------------------------

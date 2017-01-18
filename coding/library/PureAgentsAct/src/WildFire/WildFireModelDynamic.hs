@@ -7,7 +7,7 @@ import Control.Monad.STM
 import Control.Concurrent.STM.TVar
 
 import qualified Data.Map as Map
-import qualified PureAgentsConc as PA
+import qualified PureAgentsAct as PA
 
 type WFCellIdx = Int
 type WFCellCoord = (Int, Int)
@@ -42,7 +42,7 @@ burnPerTimeUnit :: Double
 burnPerTimeUnit = 0.3
 
 wfTransformer :: WFTransformer
-wfTransformer ae (_, PA.Dt dt) = wfUpdtHandler ae dt
+wfTransformer ae (_, PA.Dt (t, dt)) = wfUpdtHandler ae dt
 wfTransformer (a, e) (_, PA.Domain m) = return a                            -- NOTE: in this case no messages are sent between agents
 
 -- NOTE: an active agent is always burning: it can be understood as the process of a burning cell

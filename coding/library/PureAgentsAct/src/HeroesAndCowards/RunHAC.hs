@@ -39,13 +39,8 @@ stepWithRendering hdl = GLO.simulateIO Front.display
 
 -- A function to convert the model to a picture.
 modelToPicture :: HACSimHandle -> IO GLO.Picture
-modelToPicture hdl = {-do
-                        putStrLn $ "modelToPicture"
-                        return $ GLO.color GLO.black $ GLO.translate 100 100 $ GLO.ThickCircle 2 4-}
-                    do
-                        --putStrLn $ "modelToPicture"
+modelToPicture hdl = do
                         as <- PA.observeAgentStates hdl
-                        --mapM (putStrLn . show) as
                         let observableAgentStates = map hacAgentToObservableState as
                         return (Front.renderFrame observableAgentStates)
 
@@ -53,8 +48,8 @@ modelToPicture hdl = {-do
 stepIteration :: GLO.ViewPort -> Float -> HACSimHandle -> IO HACSimHandle
 stepIteration viewport dtRendering hdl = return hdl
 
-hacAgentToObservableState :: (Double, HACAgentState) -> (Double, Double, Bool)
-hacAgentToObservableState (t, s) = (x, y, h)
+hacAgentToObservableState :: (PA.AgentId, Double, HACAgentState) -> (Double, Double, Bool)
+hacAgentToObservableState (_, t, s) = (x, y, h)
     where
         (x, y) = pos s
         h = hero s

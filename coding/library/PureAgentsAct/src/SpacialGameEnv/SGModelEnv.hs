@@ -6,7 +6,7 @@ import qualified Data.Map as Map
 import Control.Concurrent.STM.TVar
 import Control.Monad.STM
 
-import qualified PureAgentsConc as PA
+import qualified PureAgentsAct as PA
 
 data SGState = Defector | Cooperator deriving (Eq, Show)
 data SGMsg = NoMsg deriving (Eq, Show)
@@ -34,7 +34,7 @@ rParam :: Double
 rParam = 1.0
 
 sgTransformer :: SGTransformer
-sgTransformer ae (_, PA.Dt dt) = sgDt ae dt
+sgTransformer ae (_, PA.Dt (t, dt)) = sgDt ae dt
 sgTransformer (a, _) (_, PA.Domain m) = return a
 
 payoffWithEnv :: SGState -> PA.AgentId -> SGEnvironment -> STM Double

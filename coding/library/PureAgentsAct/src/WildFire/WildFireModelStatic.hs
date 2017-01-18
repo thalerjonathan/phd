@@ -3,7 +3,7 @@ module WildFire.WildFireModelStatic where
 import System.Random
 import Control.Monad.STM
 
-import qualified PureAgentsConc as PA
+import qualified PureAgentsAct as PA
 
 type WFCell = (Int, Int)
 data WFState = Living | Burning | Dead deriving (Eq, Show)
@@ -29,7 +29,7 @@ is a wfs = (wfState s) == wfs
         s = PA.state a
 
 wfTransformer :: WFTransformer
-wfTransformer (a, e) (_, PA.Dt dt) = wfDt a dt
+wfTransformer (a, e) (_, PA.Dt (t, dt)) = wfDt a dt
 wfTransformer (a, e) (_, PA.Domain m) = wfMsg a m
 
 wfDt :: WFAgent -> Double -> STM WFAgent

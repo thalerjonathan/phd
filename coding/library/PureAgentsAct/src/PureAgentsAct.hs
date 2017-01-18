@@ -62,8 +62,11 @@ data Agent m s e = Agent {
     newAgents :: [Agent m s e]
 }
 
+type GlobalAgentInfo m s e = (Async (Agent m s e), TVar (Double, s), TQueue (AgentMessage m))
+type GlobalAgentCollection m s e = TVar (Map.Map AgentId (GlobalAgentInfo m s e))
+
 data SimHandle m s e = SimHandle {
-    simHdlAgents :: Map.Map AgentId (Async (Agent m s e), TVar (Double, s), TQueue (AgentMessage m)),
+    simHdlAgents :: GlobalAgentCollection m s e,
     simHdlEnv :: e
 }
 
@@ -134,10 +137,13 @@ addNeighbours a ns = a { neighbours = newNeighbours }
 extractHdlEnv :: SimHandle m s e -> e
 extractHdlEnv = simHdlEnv
 
-observeAgentStates :: SimHandle m s e -> IO [(Double, s)]
+observeAgentStates :: SimHandle m s e -> IO [(AgentId, Double, s)]
 observeAgentStates hdl =  do
-                            let am = simHdlAgents hdl
-                            ss <- mapM (\(_, sVar, _) -> readTVarIO sVar) (Map.elems am)
+                            let amVar = simHdlAgents hdl
+                            am <- readTVarIO amVar
+                            ss <- mapM (\(aid, (_, sVar, _)) -> do
+                                                            (t, s) <- readTVarIO sVar
+                                                            return (aid, t, s)) (Map.assocs am)
                             return ss
 
 awaitAgentsTermination :: SimHandle m s e -> IO [Agent m s e]
@@ -148,71 +154,101 @@ terminateAgents hdl = undefined -- TODO: implement by sending Terminate to all a
 
 startSimulation :: [Agent m s e] -> Double -> e -> IO (SimHandle m s e)
 startSimulation as dt e = do
-                            sas <- mapM (startAgent dt e) as
-                            let am = foldl (\accM (aid, asyncHdl, sVar, chan) -> Map.insert aid (asyncHdl, sVar, chan) accM) Map.empty sas
-                            let hdl = SimHandle { simHdlAgents = am, simHdlEnv = e }
+                            gacVar <- newTVarIO Map.empty
+                            startAndAddAgents dt e gacVar as
+                            let hdl = SimHandle { simHdlAgents = gacVar, simHdlEnv = e }
                             return hdl
-
-    where
-        -- allows to observe the state of an agent
-        startAgent :: Double -> e -> Agent m s e -> IO (AgentId, Async (Agent m s e), TVar (Double, s), TQueue (AgentMessage m))
-        startAgent dt e a = do
-                                let s = state a
-                                let aid = agentId a
-                                let chan = msgBox a
-                                sVar <- newTVarIO (0.0, s)
-                                asyncHdl <- async (asyncRunAgent dt e sVar a)
-                                return (aid, asyncHdl, sVar, chan)
 
 ------------------------------------------------------------------------------------------------------------------------
 -- PRIVATE, non exports
 ------------------------------------------------------------------------------------------------------------------------
-asyncRunAgent :: Double -> e -> TVar (Double, s) -> Agent m s e -> IO (Agent m s e)
-asyncRunAgent dt e sVar a = asyncRunAgent' (0, dt) e sVar a
+startAndAddAgents :: Double -> e -> GlobalAgentCollection m s e -> [Agent m s e] -> IO ()
+startAndAddAgents dt e gacVar as = do
+                                    sas <- mapM (startAgent dt e gacVar) as
+                                    gacMap <- readTVarIO gacVar
+                                    let gacMap' = foldl (\accM (aid, (asyncHdl, sVar, chan)) -> Map.insert aid (asyncHdl, sVar, chan) accM) gacMap sas
+                                    atomically $ writeTVar gacVar gacMap'
+
+startAgent :: Double -> e -> GlobalAgentCollection m s e -> Agent m s e -> IO (AgentId, GlobalAgentInfo m s e)
+startAgent dt e gac a = do
+                            let s = state a
+                            let aid = agentId a
+                            let chan = msgBox a
+                            sVar <- newTVarIO (0.0, s)
+                            asyncHdl <- async (asyncRunAgent dt e sVar gac a)
+                            return (aid, (asyncHdl, sVar, chan))
+
+asyncRunAgent :: Double -> e -> TVar (Double, s) -> GlobalAgentCollection m s e -> Agent m s e -> IO (Agent m s e)
+asyncRunAgent dt e sVar gac a = asyncRunAgent' (0, dt) e sVar gac a
     where
-        asyncRunAgent' :: (Double, Double) -> e ->  TVar (Double, s) -> Agent m s e -> IO (Agent m s e)
-        asyncRunAgent' tdt@(t, dt) e sVar a = do
-                                        --putStrLn $ "before transactAgent " ++ (show aid)
-                                        a' <- transactAgent tdt e a
-                                        --putStrLn $ "after transactAgent " ++ (show aid)
-                                        let s = state a'
-                                        atomically $ writeTVar sVar (t, s)
-                                        let nas = newAgents a'
-                                        let kill = killFlag a'
-                                        -- TODO: handle new agents
-                                        -- TODO: handle killing of this agent
-                                        -- NOTE: need SOME delay, otherwise system would grind (1000 seems to be enough)
-                                        threadDelay 10000
-                                        asyncRunAgent' (t+dt, dt) e sVar a'
-                                            where
-                                                aid = agentId a
+        asyncRunAgent' :: (Double, Double) -> e ->  TVar (Double, s) -> GlobalAgentCollection m s e -> Agent m s e -> IO (Agent m s e)
+        asyncRunAgent' tdt@(t, dt) e sVar gac a = do
+                                                    (a', continue) <- transactAgent tdt e a
+
+                                                    atomically $ writeTVar sVar (t, (state a'))
+
+                                                    a'' <- handleNewAgents a' dt e gac
+
+                                                    kill <- handleAgentKill a'' gac
+
+                                                    threadDelay 1000   -- NOTE: need SOME delay, otherwise system would grind to a halt (1000 seems to be enough)
+
+                                                    if (continue && not kill) then
+                                                        asyncRunAgent' (t+dt, dt) e sVar gac a''
+                                                        else
+                                                            return a''
+
+        handleNewAgents :: Agent m s e -> Double -> e -> GlobalAgentCollection m s e -> IO (Agent m s e)
+        handleNewAgents a dt e gac = do
+                                        startAndAddAgents dt e gac nas
+                                        return $ a { newAgents = [] }
+            where
+                nas = newAgents a
+
+        handleAgentKill :: Agent m s e -> GlobalAgentCollection m s e -> IO (Bool)
+        handleAgentKill a gacVar
+            | kill = do
+                        gac <- readTVarIO gacVar
+                        let gac' = Map.delete aid gac
+                        atomically $ writeTVar gacVar gac'
+                        return True
+
+            | otherwise = return False
+            where
+                kill = killFlag a
+                aid = agentId a
+
 
 -- NOTE: every agent must be run inside an atomic-block to 'commit' its actions. We don't want to run the agent in the IO but pull this out
 -- NOTE: here we see that due to atomically ALL will have to run in IO! => use of ParIO
-transactAgent :: (Double, Double) -> e -> Agent m s e -> IO (Agent m s e)
+transactAgent :: (Double, Double) -> e -> Agent m s e -> IO (Agent m s e, Bool)
 transactAgent tdt e a = atomically $ (stepAgent tdt e a)
 
-stepAgent :: (Double, Double) -> e -> Agent m s e -> STM (Agent m s e)
+stepAgent :: (Double, Double) -> e -> Agent m s e -> STM (Agent m s e, Bool)
 stepAgent tdt e a = do
-                    aAfterMsgProc <- processAllMessages (a, e)
-                    let agentTransformer = trans aAfterMsgProc
-                    aAfterUpdt <- agentTransformer (aAfterMsgProc, e) (-1, Dt tdt)
-                    return aAfterUpdt
+                        (aAfterMsgProc, cont) <- processAllMessages (a, e)
+                        let agentTransformer = trans aAfterMsgProc
+                        aAfterUpdt <- agentTransformer (aAfterMsgProc, e) (-1, Dt tdt)
+                        return (aAfterUpdt, cont)
 
-processAllMessages :: (Agent m s e, e) -> STM (Agent m s e)
+processAllMessages :: (Agent m s e, e) -> STM (Agent m s e, Bool)
 processAllMessages ae@(a, e) = do
                                 mayMsg <- tryReadTQueue (msgBox a)
-                                if (isNothing mayMsg) then
-                                    return a
-                                    else
-                                        do
-                                            let msg = fromJust mayMsg
-                                            a' <- processMsg ae msg
-                                            processAllMessages (a', e)
+                                maybe (return (a, True)) (processJustMessage ae) mayMsg
+    where
+        processJustMessage :: (Agent m s e, e) -> (AgentMessage m) -> STM (Agent m s e, Bool)
+        processJustMessage ae@(a, e) msg = do
+                                                (a', cont) <- processMsg ae msg
+                                                if (cont) then
+                                                    processAllMessages (a', e)
+                                                    else
+                                                        return (a', False)
 
--- TODO: catch Terminate-Message here and communicate back
-processMsg :: (Agent m s e, e) -> (AgentMessage m) -> STM (Agent m s e)
-processMsg ae@(a, e) msg = agentTransformer ae msg
+processMsg :: (Agent m s e, e) -> (AgentMessage m) -> STM (Agent m s e, Bool)
+processMsg ae@(a, e) msg@(senderId, Terminate) = return (a, False)
+processMsg ae@(a, e) msg = do
+                            a' <- agentTransformer ae msg
+                            return (a', True)
     where
         agentTransformer = trans a
 ------------------------------------------------------------------------------------------------------------------------

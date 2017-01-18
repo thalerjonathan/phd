@@ -15,42 +15,26 @@ import Data.Maybe
 import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.IO.Simulate
 
-import qualified PureAgentsConc as PA
+import qualified PureAgentsAct as PA
 
 runWFDynamicRendering :: IO ()
 runWFDynamicRendering = do
                             let dt = 1.0
-                            let xCells = 75
-                            let yCells = 75
+                            let xCells = 100
+                            let yCells = 100
                             let rngSeed = 42
                             let cells = (xCells, yCells)
                             let g = mkStdGen rngSeed
                             env <- PA.atomically $ createEnvironment cells
-                            let c = fromJust (cellByCoord env (35, 35))
+                            let c = fromJust (cellByCoord env (50, 50))
                             (a, g') <- PA.atomically $ igniteCell g c
-                            let hdl = PA.initStepSimulation [a] env
+                            hdl <- PA.startSimulation [a] dt env
                             stepWithRendering hdl dt
 
-runWFDynamicSteps :: IO ()
-runWFDynamicSteps = do
-                        let dt = 1.0
-                        let xCells = 300
-                        let yCells = 300
-                        let rngSeed = 42
-                        let cells = (xCells, yCells)
-                        let g = mkStdGen rngSeed
-                        env <- PA.atomically $ createEnvironment cells
-                        let c = fromJust (cellByCoord env (100, 100))
-                        (a, g') <- PA.atomically $ igniteCell g c
-                        let stepCount = 1000
-                        as' <- PA.stepSimulation [a] env dt stepCount
-                        mapM (putStrLn . show . PA.state) as'
-                        return ()
-
 stepWithRendering :: WFSimHandle -> Double -> IO ()
-stepWithRendering hdl dt = simulateIO (Front.display "WildFire Dynamic" (800, 800))
+stepWithRendering hdl dt = simulateIO (Front.display "WildFire Dynamic ACT" (800, 800))
                                 GLO.white
-                                10
+                                30
                                 hdl
                                 modelToPicture
                                 (stepIteration dt)
@@ -81,5 +65,5 @@ wfCellToRenderCell cVar = do
 --       NOTE: this is actually wrong, we can avoid atomically as long as we are running always on the same thread.
 --             atomically would commit the changes and make them visible to other threads
 stepIteration :: Double -> ViewPort -> Float -> WFSimHandle -> IO WFSimHandle
-stepIteration fixedDt viewport dtRendering hdl = PA.advanceSimulation hdl fixedDt
+stepIteration fixedDt viewport dtRendering hdl = return hdl
 --------------------------------------------------------------------------------------------------------------------------------------------------

@@ -3,7 +3,7 @@ module SpacialGameMsg.SGModelMsg where
 import System.Random
 import Control.Monad.STM
 
-import qualified PureAgentsConc as PA
+import qualified PureAgentsAct as PA
 
 data SGState = Defector | Cooperator deriving (Eq, Show)
 data SGMsg = NeighbourPayoff SGState Double | NeighbourAction SGState deriving (Eq, Show)
@@ -34,7 +34,7 @@ rParam :: Double
 rParam = 1.0
 
 sgTransformer :: SGTransformer
-sgTransformer (a, e) (_, PA.Dt dt) = sgDt a dt
+sgTransformer (a, e) (_, PA.Dt (t, dt)) = sgDt a dt
 sgTransformer (a, e) (_, PA.Domain m) = sgMsg a m
 
 sgMsg :: SGAgent -> SGMsg -> STM SGAgent

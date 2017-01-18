@@ -3,7 +3,7 @@ module SIRS.SIRSModel where
 import System.Random
 import Control.Monad.STM
 
-import qualified PureAgentsConc as PA
+import qualified PureAgentsAct as PA
 
 data SIRSState = Susceptible | Infected | Recovered deriving (Eq, Show)
 data SIRSMsg = Contact SIRSState
@@ -34,7 +34,7 @@ is a ss = (sirState s) == ss
         s = PA.state a
 
 sirsTransformer :: SIRSTransformer
-sirsTransformer (a, eVar) (_, PA.Dt dt) = sirsDt a dt
+sirsTransformer (a, eVar) (_, PA.Dt (t, dt)) = sirsDt a dt
 sirsTransformer (a, eVar) (_, PA.Domain m) = sirsMsg a m
 
 sirsMsg :: SIRSAgent -> SIRSMsg -> STM SIRSAgent

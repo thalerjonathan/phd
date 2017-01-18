@@ -21,7 +21,7 @@ data HACAgentState = HACAgentState {
     enemyPos :: Maybe HACAgentPosition
 } deriving (Show)
 
-type HACEnvironment = TVar Int
+type HACEnvironment = ()
 type HACAgent = PA.Agent HACMsg HACAgentState HACEnvironment
 type HACTransformer = PA.AgentTransformer HACMsg HACAgentState HACEnvironment
 type HACSimHandle = PA.SimHandle HACMsg HACAgentState HACEnvironment
@@ -30,9 +30,7 @@ hacMovementPerTimeUnit :: Double
 hacMovementPerTimeUnit = 1.0
 
 hacTransformer :: HACTransformer
-hacTransformer (a, e) (_, PA.Dt dt) = do
-                                        modifyTVar e (\v -> v + 1)
-                                        hacDt a dt
+hacTransformer (a, e) (_, PA.Dt (t, dt)) = hacDt a dt
 hacTransformer (a, e) (senderId, PA.Domain m) = hacMsg a m senderId
 
 hacMsg :: HACAgent -> HACMsg -> PA.AgentId -> STM HACAgent

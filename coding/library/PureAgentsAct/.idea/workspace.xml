@@ -16,31 +16,11 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="RunHAC.hs" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/HeroesAndCowards/RunHAC.hs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="137">
-              <caret line="28" column="0" lean-forward="true" selection-start-line="28" selection-start-column="0" selection-end-line="28" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="HACModel.hs" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/HeroesAndCowards/HACModel.hs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-684">
-              <caret line="7" column="30" lean-forward="false" selection-start-line="7" selection-start-column="30" selection-end-line="7" selection-end-column="30" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="PureAgentsAct.hs" pinned="false" current-in-tab="false">
+      <file leaf-file-name="PureAgentsAct.hs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/PureAgentsAct.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="200">
-              <caret line="139" column="88" lean-forward="false" selection-start-line="139" selection-start-column="88" selection-end-line="139" selection-end-column="88" />
+            <state relative-caret-position="398">
+              <caret line="194" column="9" lean-forward="false" selection-start-line="194" selection-start-column="0" selection-end-line="194" selection-end-column="9" />
               <folding />
             </state>
           </provider>
@@ -52,6 +32,8 @@
     <findStrings>
       <find>start</find>
       <find>observeAgentStates</find>
+      <find>readTVarIO</find>
+      <find>startSimulation</find>
     </findStrings>
   </component>
   <component name="GradleLocalSettings">
@@ -65,9 +47,10 @@
         <option value="$PROJECT_DIR$/PureAgentsAct.cabal" />
         <option value="$PROJECT_DIR$/src/PureAgentsConc.hs" />
         <option value="$PROJECT_DIR$/src/Main.hs" />
+        <option value="$PROJECT_DIR$/src/HeroesAndCowards/HACFrontend.hs" />
         <option value="$PROJECT_DIR$/src/HeroesAndCowards/HACModel.hs" />
-        <option value="$PROJECT_DIR$/src/PureAgentsAct.hs" />
         <option value="$PROJECT_DIR$/src/HeroesAndCowards/RunHAC.hs" />
+        <option value="$PROJECT_DIR$/src/PureAgentsAct.hs" />
       </list>
     </option>
   </component>
@@ -113,24 +96,6 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="PureAgentsAct" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="PureAgentsAct" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="HeroesAndCowards" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -512,22 +477,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/PureAgentsConc.hs" />
-    <entry file="file://$PROJECT_DIR$/src/HeroesAndCowards/HACModel.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-684">
-          <caret line="7" column="30" lean-forward="false" selection-start-line="7" selection-start-column="30" selection-end-line="7" selection-end-column="30" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/PureAgentsAct.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="200">
-          <caret line="139" column="88" lean-forward="false" selection-start-line="139" selection-start-column="88" selection-end-line="139" selection-end-column="88" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Main.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="234">
@@ -536,10 +485,42 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/SIRS/RunSIRS.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="252">
+          <caret line="14" column="53" lean-forward="true" selection-start-line="14" selection-start-column="20" selection-end-line="14" selection-end-column="53" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/HeroesAndCowards/HACFrontend.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="162">
+          <caret line="9" column="12" lean-forward="false" selection-start-line="9" selection-start-column="12" selection-end-line="9" selection-end-column="12" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/HeroesAndCowards/HACModel.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="276">
+          <caret line="32" column="39" lean-forward="false" selection-start-line="32" selection-start-column="39" selection-end-line="32" selection-end-column="39" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/HeroesAndCowards/RunHAC.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="137">
-          <caret line="28" column="0" lean-forward="true" selection-start-line="28" selection-start-column="0" selection-end-line="28" selection-end-column="0" />
+        <state relative-caret-position="371">
+          <caret line="21" column="31" lean-forward="false" selection-start-line="21" selection-start-column="31" selection-end-line="21" selection-end-column="31" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/PureAgentsAct.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="398">
+          <caret line="194" column="9" lean-forward="false" selection-start-line="194" selection-start-column="0" selection-end-line="194" selection-end-column="9" />
           <folding />
         </state>
       </provider>

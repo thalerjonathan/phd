@@ -28,8 +28,8 @@ import System.Random
 import Data.Maybe
 import qualified Data.Map as Map
 
+import GHC.Conc
 import Control.Monad.STM
-
 import Control.Concurrent.Async
 import Control.Concurrent.STM.TVar
 import Control.Concurrent.STM.TQueue
@@ -38,7 +38,7 @@ import Control.Concurrent.STM.TQueue
 -- PUBLIC, exported
 ------------------------------------------------------------------------------------------------------------------------
 -- The super-set of all Agent-Messages
-data Msg m = Dt Double | Terminate | Domain m
+data Msg m = Dt (Double, Double) | Terminate | Domain m
 -- An agent-message is always a tuple of a message with the sender-id
 type AgentMessage m = (AgentId, Msg m)
 
@@ -63,7 +63,7 @@ data Agent m s e = Agent {
 }
 
 data SimHandle m s e = SimHandle {
-    simHdlAgents :: Map.Map AgentId (Async (Agent m s e), TVar s, TQueue (AgentMessage m)),
+    simHdlAgents :: Map.Map AgentId (Async (Agent m s e), TVar (Double, s), TQueue (AgentMessage m)),
     simHdlEnv :: e
 }
 
@@ -134,17 +134,17 @@ addNeighbours a ns = a { neighbours = newNeighbours }
 extractHdlEnv :: SimHandle m s e -> e
 extractHdlEnv = simHdlEnv
 
-observeAgentStates :: SimHandle m s e -> IO [s]
+observeAgentStates :: SimHandle m s e -> IO [(Double, s)]
 observeAgentStates hdl =  do
                             let am = simHdlAgents hdl
                             ss <- mapM (\(_, sVar, _) -> readTVarIO sVar) (Map.elems am)
                             return ss
 
 awaitAgentsTermination :: SimHandle m s e -> IO [Agent m s e]
-awaitAgentsTermination hdl = undefined -- TODO: implement
+awaitAgentsTermination hdl = undefined -- TODO: implement by calling await on all agents
 
 terminateAgents :: SimHandle m s e -> IO [Agent m s e]
-terminateAgents hdl = undefined -- TODO: implement
+terminateAgents hdl = undefined -- TODO: implement by sending Terminate to all agents
 
 startSimulation :: [Agent m s e] -> Double -> e -> IO (SimHandle m s e)
 startSimulation as dt e = do
@@ -155,42 +155,48 @@ startSimulation as dt e = do
 
     where
         -- allows to observe the state of an agent
-        startAgent :: Double -> e -> Agent m s e -> IO (AgentId, Async (Agent m s e), TVar s, TQueue (AgentMessage m))
+        startAgent :: Double -> e -> Agent m s e -> IO (AgentId, Async (Agent m s e), TVar (Double, s), TQueue (AgentMessage m))
         startAgent dt e a = do
                                 let s = state a
                                 let aid = agentId a
                                 let chan = msgBox a
-                                sVar <- newTVarIO s
+                                sVar <- newTVarIO (0.0, s)
                                 asyncHdl <- async (asyncRunAgent dt e sVar a)
                                 return (aid, asyncHdl, sVar, chan)
 
 ------------------------------------------------------------------------------------------------------------------------
 -- PRIVATE, non exports
 ------------------------------------------------------------------------------------------------------------------------
-asyncRunAgent :: Double -> e -> TVar s -> Agent m s e -> IO (Agent m s e)
-asyncRunAgent dt e sVar a = asyncRunAgent' 0 dt e sVar a
+asyncRunAgent :: Double -> e -> TVar (Double, s) -> Agent m s e -> IO (Agent m s e)
+asyncRunAgent dt e sVar a = asyncRunAgent' (0, dt) e sVar a
     where
-        asyncRunAgent' :: Double -> Double -> e ->  TVar s -> Agent m s e -> IO (Agent m s e)
-        asyncRunAgent' t dt e sVar a = do
-                                        a' <- transactAgent t e a
+        asyncRunAgent' :: (Double, Double) -> e ->  TVar (Double, s) -> Agent m s e -> IO (Agent m s e)
+        asyncRunAgent' tdt@(t, dt) e sVar a = do
+                                        --putStrLn $ "before transactAgent " ++ (show aid)
+                                        a' <- transactAgent tdt e a
+                                        --putStrLn $ "after transactAgent " ++ (show aid)
                                         let s = state a'
-                                        atomically $ writeTVar sVar s
+                                        atomically $ writeTVar sVar (t, s)
                                         let nas = newAgents a'
                                         let kill = killFlag a'
                                         -- TODO: handle new agents
                                         -- TODO: handle killing of this agent
-                                        asyncRunAgent' (t+dt) dt e sVar a'
+                                        -- NOTE: need SOME delay, otherwise system would grind (1000 seems to be enough)
+                                        threadDelay 10000
+                                        asyncRunAgent' (t+dt, dt) e sVar a'
+                                            where
+                                                aid = agentId a
 
 -- NOTE: every agent must be run inside an atomic-block to 'commit' its actions. We don't want to run the agent in the IO but pull this out
 -- NOTE: here we see that due to atomically ALL will have to run in IO! => use of ParIO
-transactAgent :: Double -> e -> Agent m s e -> IO (Agent m s e)
-transactAgent t e a = atomically $ (stepAgent t e a)
+transactAgent :: (Double, Double) -> e -> Agent m s e -> IO (Agent m s e)
+transactAgent tdt e a = atomically $ (stepAgent tdt e a)
 
-stepAgent :: Double -> e -> Agent m s e -> STM (Agent m s e)
-stepAgent t e a = do
+stepAgent :: (Double, Double) -> e -> Agent m s e -> STM (Agent m s e)
+stepAgent tdt e a = do
                     aAfterMsgProc <- processAllMessages (a, e)
                     let agentTransformer = trans aAfterMsgProc
-                    aAfterUpdt <- agentTransformer (aAfterMsgProc, e) (-1, Dt t)
+                    aAfterUpdt <- agentTransformer (aAfterMsgProc, e) (-1, Dt tdt)
                     return aAfterUpdt
 
 processAllMessages :: (Agent m s e, e) -> STM (Agent m s e)
@@ -204,6 +210,7 @@ processAllMessages ae@(a, e) = do
                                             a' <- processMsg ae msg
                                             processAllMessages (a', e)
 
+-- TODO: catch Terminate-Message here and communicate back
 processMsg :: (Agent m s e, e) -> (AgentMessage m) -> STM (Agent m s e)
 processMsg ae@(a, e) msg = agentTransformer ae msg
     where

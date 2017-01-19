@@ -1,0 +1,80 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% University/School Laboratory Report
+% LaTeX Template
+% Version 3.1 (25/3/14)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Linux and Unix Users Group at Virginia Tech Wiki 
+% (https://vtluug.org/wiki/Example_LaTeX_chem_lab_report)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} % Required for the inclusion of images
+%\usepackage{natbib} % Required to change bibliography style to APA
+\usepackage{amsmath} % Required for some math elements 
+\usepackage{glossaries}
+\usepackage[toc,page]{appendix}
+\usepackage[autostyle=true]{csquotes}
+\usepackage{hyperref}
+\usepackage{amssymb}
+\usepackage{caption} 
+\usepackage{hhline}
+\usepackage{float}
+\usepackage{listings}
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+%\usepackage{times} % Uncomment to use the Times New Roman font
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\title{The Art of Iterating:\\Update-Strategies in Agent-Based Simulations} % Title
+ 
+\author{Jonathan \textsc{Thaler}} % Author name
+
+\date{\today} % Date for the report
+
+\begin{document}
+
+\maketitle % Insert the title, author and date
+
+% If you wish to include an abstract, uncomment the lines below
+\begin{abstract}
+When developing a model for an Agent-Based Simulation (ABS) it is of very importance to select the right update-strategy for the agents to produce the desired results. In this paper we develop a systematic treatment of all general update-strategies in ABS and discuss their philosophical interpretation and meaning. Further we discuss the suitability of the very three different programming languages Java, Scala with Actors and Haskell to implement each of the update-strategies. Thus this papers contribution is the development of a general terminology of update-strategies and their implementation issues in various kinds of programming languages.
+\end{abstract}
+
+\input{./tex/introduction.tex}
+
+\input{./tex/problem.tex}
+
+\input{./tex/updateStrategies.tex}
+
+\input{./tex/implementation.tex}
+
+\input{./tex/relatedResearch.tex}
+
+\input{./tex/conclusion.tex}
+
+\input{./tex/furtherResearch.tex}
+
+\newpage
+
+\bibliographystyle{acm}
+\bibliography{../../references/phdReferences.bib}
+
+\end{document}

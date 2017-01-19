@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>
+	<classpathentry kind="lib" path="/home/jonathan/lib/akka-2.4.11/lib/akka/akka-actor_2.11-2.4.11.jar"/>
+	<classpathentry kind="lib" path="/home/jonathan/lib/akka-2.4.11/lib/akka/akka-agent_2.11-2.4.11.jar"/>
+	<classpathentry kind="lib" path="/home/jonathan/lib/akka-2.4.11/lib/akka/config-1.3.0.jar"/>
+	<classpathentry kind="lib" path="/home/jonathan/lib/scala-2.11.8/lib/scala-swing_2.11-1.0.2.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

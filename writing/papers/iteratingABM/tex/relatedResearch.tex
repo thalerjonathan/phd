@@ -2,7 +2,6 @@
 \begin{itemize}
 	\item \cite{huberman_evolutionary_1993}
 	\item \cite{a_framework_2008}
-	\item \cite{botta_time_2010}
 \end{itemize} 
 
-\cite{botta_time_2010}
+\cite{botta_time_2010} sketch an agent-framework in Haskell which is very similar also utilizing an agent-transforming function which consumes incoming messages and produces outgoing ones. Thus this approach, very well developed in ABM/S, seems to be a very natural one also to apply to Haskell. Instead of iterating a simulation with a global time, their focus is on how to synchronize agents which have internal, local transition times. They introduce a time-keeper agent which synchronizes the actions of all of the agents thus we argue that our framework is able to capture it faithfully using the \textit{Actor-Strategy}.

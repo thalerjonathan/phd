@@ -1,32 +1,13 @@
 \section{TODO-List as of \today}
 
 \begin{enumerate}
+\item implement SEQ: two possibilities: time stays constant or time advances with every agent
+
 \item Write John Garibaldi a Request for the School in April: Supervisors are OK with it but how can we finance it?
 
 \item Arrange Meeting with Thorsten
 
 \item Start Writing the paper
-	\begin{itemize}
-		\item Watch Youtube-Video
-		\item 1 core message:
-		\item not too complex (Peer-Olaf)
-		\item Define Structure of Paper \& send to Peer: Headings with each having 2 bullet-points
-		\item Consider Splitting the paper: influence of semantics / reasoning in functional ABM/S
-		\item Real Abstract
-		\item Title which sparks interest
-		\item Aim of Paper
-		\item what is the message of the paper?
-		\item what is the novelty of the paper? comparison with pure functional approaches
-		\item what is the contribution of the paper? 
-		\item 
-	\end{itemize}
-	
-	zuerst paper zur idee schreiben, dann forschung dazu. 2 zentrale aspekte
-	
-one clear sharp idea
-
-if it has lots of ideas, write lots of papers!
-
 the main idea of this paper is:...
 in this section we present the main contributions of the paper:...
 
@@ -65,30 +46,7 @@ Structure (Conf paper)
 		giving credit to other papers doesnt diminish your paper
 	conclusion and further work
 
-\item Ideas to capture in the paper
-	\begin{itemize}
-		\item If one wants to write global in case of parallel this is regarded as a systematic error as this is not logical as it would imply an ordering thus we requiring different semantics: SEQ or CONCURRENT. Thus we would have to make the Environment in case of Par local to an agent which is the same as moving it into the agents state => we choose another approach: pass in an environment which cant be changed by the agents (no environment in return type) but only by the simulation-iterator after an iteration.  => dynamic WildFire-Model does not work with PAR
-		\item note that the difference between SEQ and PAR in Haskell is in the end a 'fold' over the agents in the case of SEQ and a 'map' in the case of PAR
-		\item haskell: dont have objects with methods which can call between each other but we need some way of representing agents. this is done using a struct type with a behaviour function and messaging mechanisms. important: agents are not carried arround but messages are sent to a receiver identified by an id. This is also a big difference to java where don't really need this kind of abstraction due to the use of objects and their 'messaging'. messaging mechanisms have up- and downsides, elaborate on it.
-
-		\item reason for patterns: heroes try to stay 50 \% in between and have selected 2 cowards which themselves are at the borders opposite. need much more cowards than heroes 75/25.
-		
-		\item parallel more natural in haskell
-		\item sequential more natural in java
-		\item concurrent difficult in both, using stm in haskell it becomes very natural, STM available in java too. actors are an even better approach but is having problems with time in simulation
-		
-		\item question: do emergent patterns break down / global dynamics change completely in some ABM/S when changing sim-semantic? which kind of ABM could show this behaviour? which properties are responsible for it? Answer: Yes they do but only under given circumstances: discrete simulations with dependence on each other. continuous not so easy. 
-		
-		\item do we find a continuous simulation in which it breaks down under given circumstances? Yes: Heroes \& Cowards can lead to specific patterns as shown by the creators
-	
-		\item the conc-version and the act-version of the agent-implementations look EXACTLY the same	 BUT we lost the ability to step the simulation!!!
-		
-		\item in the Act-version we need to observe the agents: we need to sample them regularly => we have all the issues with sampling 
-	\end{itemize}
-	
 \item try algebraic reasoning using my framework
-
-\item SEQ: two possibilities: time stays constant or time advances with every agent
 
 \item FINALIZE AND FREEZE the literature I use for my paper (see next items READ): its all on my desk plus some prints to do (organize papers i need to read: ACE \& Economics, complex systems \& simulation, functional programming, abm \& actor model)
 	\begin{itemize}
@@ -101,7 +59,6 @@ Structure (Conf paper)
 		\item SEARCH: for further papers looking into my direction (when the difference between SEQ and PAR matters / matters not)
 	\end{itemize}
 
-\item Conference: ESSA (checkout website), Informs Proceedings Winter Simulation
 
 \item Bring PureAgents to Yampa
 	\begin{itemize}
@@ -115,7 +72,6 @@ Structure (Conf paper)
 
 \item Always ask the question: what is the difference to the OO approach? 
 \end{enumerate} 
-
 
 \section{Future-List as of \today}
 \begin{enumerate}

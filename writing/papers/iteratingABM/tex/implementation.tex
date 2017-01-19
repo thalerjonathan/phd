@@ -8,3 +8,36 @@ This is now very programming-language specific
 	\item Comparing the programming languages in regard of their suitability to implement each of these strategies
 	\item Screen-shots of results of the same simulation-model with all the strategies
 \end{itemize}
+
+\subsection{Selection of the Languages}
+-> Java: supports global data => suitable to implement global decisions: implementing global-time, sequential iteration with global decisions
+	-> Haskell: has no global data => local decisions (has support for global data through STM/IO but then looses very power?) => implementing global-time, parallel iteration with local-decisions. 
+		-> Haskell STM solution => implementing concurrent version using STM? but this is very complicated in its own right but utilizing STM it will be much more easier than in java
+	-> Scala: mixed, can do both => implementing local time with random iteration and local decisions
+
+
+\subsection{Java}
+sequential more natural in java,
+parallel needs to "think functional" in java
+concurrency and actors always difficult in java despite java provides very good synchronization primitives
+
+\subsection{Scala with Actors}
+direct support for actors
+
+\subsection{Haskell}
+note that the difference between SEQ and PAR in Haskell is in the end a 'fold' over the agents in the case of SEQ and a 'map' in the case of PAR
+dont have objects with methods which can call between each other but we need some way of representing agents. this is done using a struct type with a behaviour function and messaging mechanisms. important: agents are not carried arround but messages are sent to a receiver identified by an id. This is also a big difference to java where don't really need this kind of abstraction due to the use of objects and their 'messaging'. messaging mechanisms have up- and downsides, elaborate on it.
+
+concurrency and actors extremely elegant possible through: STM which only possible in languages without side-effect	
+
+the conc-version and the act-version of the agent-implementations look EXACTLY the same	 BUT we lost the ability to step the simulation!!!
+
+This is the process of implementing the behaviour of the Agent as specified in the model. Although there are various kinds of Agent-Models like BDI but the basic principle is always the same: sense the environment, process messages, execute actions: change environment, send messages. According to \cite{wooldridge_introduction_2009} and also influenced by Actors from \cite{agha_actors:_1986} one can abstract the abilities in each step of an Agent to be the following:
+
+\begin{enumerate}
+\item Process received messages
+\item Create new Agents
+\item Send messages to other Agents
+\item Sense (read) the environment
+\item Influence (write) the environment
+\end{enumerate}

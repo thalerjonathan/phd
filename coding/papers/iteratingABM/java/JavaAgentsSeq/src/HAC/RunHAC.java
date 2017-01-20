@@ -3,7 +3,7 @@ package HAC;
 import HAC.agent.HACAgent;
 import HAC.agent.Vector;
 import HAC.gui.HACFrontend;
-import agent.AgentSimulation;
+import agent.AgentSimulator;
 import agent.ISimulationObserver;
 
 import java.util.ArrayList;
@@ -24,14 +24,14 @@ public class RunHAC {
     }
 
     public void run() {
-        int agentCount = 50_000;
+        int agentCount = 100_000;
         double herosDist = 0.25;
         double dt = 0.01;
 
         HACFrontend fe = new HACFrontend( 3, true );
 
         List<HACAgent> hacAgents = this.createRandomAgents(agentCount, herosDist);
-        AgentSimulation simulator = new AgentSimulation();
+        AgentSimulator simulator = new AgentSimulator();
 
         simulator.simulateWithObserver( hacAgents,
                 rng,

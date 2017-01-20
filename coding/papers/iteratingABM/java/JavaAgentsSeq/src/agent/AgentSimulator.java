@@ -8,7 +8,7 @@ import java.util.Random;
 /**
  * Created by jonathan on 20/01/17.
  */
-public class AgentSimulation<A extends Agent> {
+public class AgentSimulator<A extends Agent> {
 
     private double time;
 

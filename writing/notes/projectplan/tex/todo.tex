@@ -1,7 +1,19 @@
 \section{TODO-List as of \today}
 
 \begin{enumerate}
-\item implement SEQ: two possibilities: time stays constant or time advances with every agent
+\item implement all the strategies in Java to REALLY have a comparison with Haskell
+
+\item Bring PureAgents to Yampa
+	\begin{itemize}
+		\item embed PureAgentsPar and Seq in Yampa: PureAgentsYampa so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai.
+		\item implement agent monad: PureAgentsMonadic. but what is an Agent-Monad? build a monad to chain actions of the agent and always run inside an agent-monad
+		\item embed PureAgentsMonadic in Dunai
+		\item implement wait blocking for a message so far. utilize yampas event mechanism?
+	\end{itemize}
+	
+\item Push PureAgentsYampa by considering the next step: implementing an economics example at different levels of complexity e.g. Ionescus implementation of Gintis
+
+\item try algebraic reasoning using my framework
 
 \item Write John Garibaldi a Request for the School in April: Supervisors are OK with it but how can we finance it?
 
@@ -46,7 +58,6 @@ Structure (Conf paper)
 		giving credit to other papers doesnt diminish your paper
 	conclusion and further work
 
-\item try algebraic reasoning using my framework
 
 \item FINALIZE AND FREEZE the literature I use for my paper (see next items READ): its all on my desk plus some prints to do (organize papers i need to read: ACE \& Economics, complex systems \& simulation, functional programming, abm \& actor model)
 	\begin{itemize}
@@ -58,17 +69,6 @@ Structure (Conf paper)
 		\item READ: functional programming papers
 		\item SEARCH: for further papers looking into my direction (when the difference between SEQ and PAR matters / matters not)
 	\end{itemize}
-
-
-\item Bring PureAgents to Yampa
-	\begin{itemize}
-		\item embed PureAgentsPar and Seq in Yampa: PureAgentsYampa so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai.
-		\item implement agent monad: PureAgentsMonadic. but what is an Agent-Monad? build a monad to chain actions of the agent and always run inside an agent-monad
-		\item embed PureAgentsMonadic in Dunai
-		\item implement wait blocking for a message so far. utilize yampas event mechanism?
-	\end{itemize}
-	
-\item Push PureAgentsYampa by considering the next step: implementing an economics example at different levels of complexity e.g. Ionescus implementation of Gintis
 
 \item Always ask the question: what is the difference to the OO approach? 
 \end{enumerate} 

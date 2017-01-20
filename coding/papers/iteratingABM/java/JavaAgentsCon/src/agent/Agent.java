@@ -36,12 +36,7 @@ public abstract class Agent<M extends Comparable<M>> implements Comparable<Agent
     }
 
     public void step(double time, double delta) {
-        //synchronized (msgBox) {
-            this.consumeMessages();
-
-        synchronized (msgBox) {
-            this.msgBox.clear();
-        }
+        this.consumeMessages();
 
         this.dt(time, delta);
     }

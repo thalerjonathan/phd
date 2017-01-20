@@ -23,8 +23,13 @@ concurrency and actors always difficult in java despite java provides very good 
 
 IMPORTANT: no need to explicitly add the environment, as this can be individually implemented by the agents on a shared basis (references)
 
-sequential is able to work completely without messages and only by accesing references to neighbours but we explicitly don't want to follow this obvious way and stick to the send/receive message paradigm
+sequential is able to work completely without messages and only by accesing references to neighbours but we explicitly don't want to follow this obvious way and stick to the send/receive message paradigm. we keep Agent-instance references
+
 parallel then needs to utilize messages because would violate the parallel implementation. TODO: split state from agent and only update agent-state
+problem: can send references through messages: share data
+although the interfaces encourage it we cannot prevent the agents to use agent-references and directly accessing. a workaround would be to create new agent-instances in every iteration-step which would make old references useless but this doesn't protect us from concurrency issues with a current iteration (the copying must take place within a synchronized block, thus implicitly assuming ordering, something we don't want) and besides, can always work around and update the references.
+thats the toll of side-effects: faster execution but less control over abuse
+tried to clone agents in each step and let them collect their messages => extremely slow
 
 \subsection{Scala with Actors}
 direct support for actors

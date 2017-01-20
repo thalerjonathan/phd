@@ -196,6 +196,7 @@ insertAgents am as = foldl (\accMap a -> Map.insert (agentId a) a accMap ) am as
 
 -- NOTE: iteration order makes no difference as they are in fact 'parallel': no agent can see the update of others, all happens at the same time
 
+-- TODO: we could let each agent let collect its own messages by providing the (copy) of all agents
 stepAllAgents :: Map.Map AgentId (Agent m s e) -> Double -> GlobalEnvironment e -> (Map.Map AgentId (Agent m s e), GlobalEnvironment e)
 stepAllAgents am dt ge = (amDeliveredMsgs, ge')
     where

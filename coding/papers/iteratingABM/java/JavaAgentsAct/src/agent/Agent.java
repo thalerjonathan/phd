@@ -35,26 +35,38 @@ public abstract class Agent<M extends Comparable<M>> implements Comparable<Agent
         return this.id;
     }
 
-    public void step(double time, double delta) {
-        this.consumeMessages();
+    public void run(double delta) {
+        double time = 0.0;
 
-        this.dt(time, delta);
+        // TODO: need some mechanism of how to stop agents
+        while (true) {
+            this.step(time, delta);
+            time = time + delta;
+/*
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            */
+        }
     }
 
-    private void consumeMessages() {
-        MsgPair p;
+    private void step(double time, double delta) {
+        List<MsgPair> localMsgBox;
 
-        synchronized (this.msgBox) {
-            if ( this.msgBox.size() > 0 ) {
-                p = this.msgBox.remove(0);
-            } else {
-                return;
-            }
+        synchronized (msgBox) {
+            localMsgBox = new LinkedList<>(msgBox);
+            msgBox.clear();
         }
 
-        this.receivedMessage(p.sender, p.msg);
+        // TODO: replace by old consume-version (see Conc) when its running
 
-        consumeMessages();
+        for (MsgPair p : localMsgBox) {
+            this.receivedMessage(p.sender, p.msg);
+        }
+
+        this.dt(time, delta);
     }
 
     public void sendMessage(Message<M> msg, Agent<M> receiver) {

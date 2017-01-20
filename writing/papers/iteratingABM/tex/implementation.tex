@@ -31,7 +31,9 @@ although the interfaces encourage it we cannot prevent the agents to use agent-r
 thats the toll of side-effects: faster execution but less control over abuse
 tried to clone agents in each step and let them collect their messages => extremely slow
 
-conc: expect it to be a pain in the ass with java
+conc: expect it to be a pain in the ass with java. it is not: its the same interface as in SEQ with updates running parallel like in PAR but 
+
+act: need to copy messages, otherwise could stuck in an endless loop
 
 \subsection{Scala with Actors}
 direct support for actors

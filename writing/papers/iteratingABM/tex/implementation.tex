@@ -21,7 +21,9 @@ sequential more natural in java,
 parallel needs to "think functional" in java
 concurrency and actors always difficult in java despite java provides very good synchronization primitives
 
-sequential is able to work completely without messages and only by accesing references to neighbours
+IMPORTANT: no need to explicitly add the environment, as this can be individually implemented by the agents on a shared basis (references)
+
+sequential is able to work completely without messages and only by accesing references to neighbours but we explicitly don't want to follow this obvious way and stick to the send/receive message paradigm
 parallel then needs to utilize messages because would violate the parallel implementation. TODO: split state from agent and only update agent-state
 
 \subsection{Scala with Actors}

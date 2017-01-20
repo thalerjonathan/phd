@@ -47,12 +47,6 @@ public class HACFrontend extends JFrame implements ISimulationObserver<HACAgent>
             public void keyReleased(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_SPACE) {
                     HACFrontend.this.renderer.toggleRenderMode();
-                } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    HACFrontend.this.renderer.resetAgentSelection();
-                } else if (e.getKeyCode() == KeyEvent.VK_F) {
-                    HACFrontend.this.renderer.switchAgentSelection(false);
-                } else if (e.getKeyCode() == KeyEvent.VK_E) {
-                    HACFrontend.this.renderer.switchAgentSelection(true);
                 }
             }
         });

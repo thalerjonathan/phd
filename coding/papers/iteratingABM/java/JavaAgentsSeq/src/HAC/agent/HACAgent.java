@@ -8,14 +8,20 @@ import agent.Message;
  */
 public class HACAgent extends Agent<HACMsgType> {
 
-    private HACAgent friend;
-    private HACAgent enemy;
+    private Agent friend;
+    private Agent enemy;
+
+    private Vector friendPos;
+    private Vector enemyPos;
 
     private Vector pos;
 
     private boolean hero;
 
     private final static double DISTANCE_PER_TIMEUNIT = 1.0;
+
+    private final static String POSITIONUPDATE_POS_KEY = "POS";
+    private final static Message<HACMsgType> MSG_REQUESTPOSITION = new Message<>(HACMsgType.RequestPosition);
 
     public HACAgent(Vector pos,
                     boolean hero) {
@@ -31,14 +37,6 @@ public class HACAgent extends Agent<HACMsgType> {
         this.enemy = enemy;
     }
 
-    public HACAgent getFriend() {
-        return friend;
-    }
-
-    public HACAgent getEnemy() {
-        return enemy;
-    }
-
     public Vector getPos() {
         return pos;
     }
@@ -49,16 +47,27 @@ public class HACAgent extends Agent<HACMsgType> {
 
     @Override
     public void receivedMessage(Agent<HACMsgType> sender, Message<HACMsgType> msg) {
+        if (msg.isOfType(HACMsgType.RequestPosition)) {
+            this.handleRequestPosition(sender);
+        } else if (msg.isOfType( HACMsgType.PositionUpdate)) {
+            this.handlePositionUpdate(sender, msg);
+        }
     }
 
     @Override
     public void dt(Double time, Double delta) {
         this.updatePosition(delta);
+
+        // JAVA IS MORE CONVENIENT: no need for annoying imperative-style fakings
+        this.sendMessage(MSG_REQUESTPOSITION, this.friend);
+        this.sendMessage(MSG_REQUESTPOSITION, this.enemy);
     }
 
     private void updatePosition(Double delta) {
-        Vector friendPos = this.friend.getPos();
-        Vector enemyPos = this.enemy.getPos();
+        // JAVA IS MORE CONVENIENT: because we have nullable aliases, we can check them for being null and no need to utilize a specific type like Maybe
+        if ( null == this.friendPos || null == this.enemyPos )
+            return;
+
         Vector targetPos;
         Vector friendEnemyDirection = friendPos.delta(enemyPos).multiply(0.5);
 
@@ -72,5 +81,23 @@ public class HACAgent extends Agent<HACMsgType> {
         Vector newPos = this.pos.add(targetDir.multiply(HACAgent.DISTANCE_PER_TIMEUNIT * delta));
 
         this.pos = newPos.clip( 0.0, 1.0 );
+    }
+
+    private void handlePositionUpdate(Agent sender, Message<HACMsgType> msg) {
+        // HASKELL IS BETTER HERE: this is not type-safe in Java and not even possible. We can't build statically typed data-constructors like in Haskell
+        Vector newPosition = (Vector) msg.getValue(POSITIONUPDATE_POS_KEY);
+
+        if ( sender.equals(this.enemy) ) {
+            this.enemyPos = newPosition;
+        } else if ( sender.equals(this.friend)) {
+            this.friendPos = newPosition;
+        }
+    }
+
+    private void handleRequestPosition(Agent sender) {
+        Message<HACMsgType> posMsg = new Message<>(HACMsgType.PositionUpdate);
+        posMsg.addValue(POSITIONUPDATE_POS_KEY, this.pos);
+
+        this.sendMessage(posMsg, sender);
     }
 }

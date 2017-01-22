@@ -1,0 +1,22 @@
+\section{The specification Language}
+An Agent A is a 5-tuple <Aid, s, m, e, [tf]>
+Aid is the id of the agent
+s is the generic state of the agent
+m is the message-protocoll the agent understands including the messages (Dt d) and (Terminate)
+e is the generic environment the agent acts upon
+tf is a transformer-function for every message in the protocol (if an agent wants to ignore the message, it is just the identify function id)
+
+the type of a tf depends on the semantics of the model and there are 4 of them
+
+SEQ: tf :: (A, e) -> (Aid, m) -> (A, e)
+PAR: tf :: (A, Global e) -> (Aid, m) -> (A, Local e)
+CON: tf :: (A, e) -> (Aid, m) -> STM A
+ACT: tf :: (A, e) -> (Aid, m) -> STM A
+
+Local e = e
+Global e = Map Aid (Local e)
+
+further the agent has the following functions at its hands
+sendMessage :: A -> Aid -> m -> A
+
+

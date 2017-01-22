@@ -16,3 +16,5 @@ STM: implementing concurrency is a piece-of-cake
 
 extremely powerful static typesystem: in combination with side-effect free this results in the semantics of an update-strategy to be reflected in the Agent-Transformer function and the messaging-interface. This means a user of this approach can be guided by the types and can't abuse them. Thus the lesson learned here is that \textit{if one tries to abuse the types of the agent-transformer or work around, then this is an indication that the update-strategy one has selected does not match the semantics of the model one wants to implement}. If this happens in Java, it is much more easier to work around by introducing global variables or side-effects but this is not possible in Haskell. \\
 Thus our conclusion in using Haskell is that it is an extremely underestimated language in ABM/S which should be explored much more as we have shown that it really shines in this context and we believe that it could be pushed further even more.
+
+but still it is not suitable for big models with heterogeneous agents, there things are lacking: see further research

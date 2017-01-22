@@ -1,0 +1,80 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% University/School Laboratory Report
+% LaTeX Template
+% Version 3.1 (25/3/14)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Linux and Unix Users Group at Virginia Tech Wiki 
+% (https://vtluug.org/wiki/Example_LaTeX_chem_lab_report)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} % Required for the inclusion of images
+%\usepackage{natbib} % Required to change bibliography style to APA
+\usepackage{amsmath} % Required for some math elements 
+\usepackage{glossaries}
+\usepackage[toc,page]{appendix}
+\usepackage[autostyle=true]{csquotes}
+\usepackage{hyperref}
+\usepackage{amssymb}
+\usepackage{caption} 
+\usepackage{hhline}
+\usepackage{float}
+\usepackage{listings}
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+%\usepackage{times} % Uncomment to use the Times New Roman font
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\title{Reactive Agents:\\Functional Reactive Programming and ABM/S} % Title
+ 
+\author{Jonathan \textsc{Thaler}} % Author name
+
+\date{\today} % Date for the report
+
+\begin{document}
+
+\maketitle % Insert the title, author and date
+
+% If you wish to include an abstract, uncomment the lines below
+\begin{abstract}
+In our previous work on update-strategies in Agent-Based Modelling \& Simulation (ABM/S) we showed that Haskell is a very attractive alternative to existing object-oriented approaches but our presented approach was too limited and we hypothesized that embedding it within a functional reactive framework like Yampa would leverage it to be able to build much more complex models. In this paper we investigate whether this hypothesis is true by testing if our approach can easily be transferred to Yampa, what we really gain from it and if more complex models can become reality.
+\end{abstract}
+
+\input{./tex/introduction.tex}
+
+\input{./tex/relatedResearch.tex}
+
+\input{./tex/problem.tex}
+
+\input{./tex/frpAndYampa.tex}
+
+\input{./tex/results.tex}
+
+\input{./tex/conclusion.tex}
+
+\input{./tex/furtherResearch.tex}
+
+\newpage
+
+\bibliographystyle{acm}
+\bibliography{../../references/phdReferences.bib}
+
+\end{document}

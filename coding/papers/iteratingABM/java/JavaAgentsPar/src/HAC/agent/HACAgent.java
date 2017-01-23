@@ -8,8 +8,8 @@ import agent.Message;
  */
 public class HACAgent extends Agent<HACMsgType> implements Cloneable {
 
-    private int friendId;
-    private int enemyId;
+    private Agent friend;
+    private Agent enemy;
 
     private Vector friendPos;
     private Vector enemyPos;
@@ -37,20 +37,20 @@ public class HACAgent extends Agent<HACMsgType> implements Cloneable {
         return hero;
     }
 
-    public void setFriendId(int friendId) {
-        this.friendId = friendId;
+    public void setFriend(Agent friend) {
+        this.friend = friend;
     }
 
-    public void setEnemyId(int enemyId) {
-        this.enemyId = enemyId;
+    public void setEnemy(Agent enemy) {
+        this.enemy = enemy;
     }
 
     @Override
-    public void receivedMessage(int senderId, Message<HACMsgType> msg) {
+    public void receivedMessage(Agent sender, Message<HACMsgType> msg) {
         if (msg.isOfType(HACMsgType.RequestPosition)) {
-            this.handleRequestPosition(senderId);
+            this.handleRequestPosition(sender);
         } else if (msg.isOfType( HACMsgType.PositionUpdate)) {
-            this.handlePositionUpdate(senderId, msg);
+            this.handlePositionUpdate(sender, msg);
         }
     }
 
@@ -59,8 +59,8 @@ public class HACAgent extends Agent<HACMsgType> implements Cloneable {
         this.updatePosition(delta);
 
         // JAVA IS MORE CONVENIENT: no need for annoying imperative-style fakings
-        this.sendMessage(MSG_REQUESTPOSITION, this.friendId);
-        this.sendMessage(MSG_REQUESTPOSITION, this.enemyId);
+        this.sendMessage(MSG_REQUESTPOSITION, this.friend);
+        this.sendMessage(MSG_REQUESTPOSITION, this.enemy);
     }
 
     @Override
@@ -92,21 +92,21 @@ public class HACAgent extends Agent<HACMsgType> implements Cloneable {
         this.pos = newPos.clip( 0.0, 1.0 );
     }
 
-    private void handlePositionUpdate(int senderId, Message<HACMsgType> msg) {
+    private void handlePositionUpdate(Agent sender, Message<HACMsgType> msg) {
         // HASKELL IS BETTER HERE: this is not type-safe in Java and not even possible. We can't build statically typed data-constructors like in Haskell
         Vector newPosition = (Vector) msg.getValue(POSITIONUPDATE_POS_KEY);
 
-        if (senderId == this.enemyId) {
+        if (sender == this.enemy) {
             this.enemyPos = newPosition;
-        } else if (senderId == this.friendId) {
+        } else if (sender == this.friend) {
             this.friendPos = newPosition;
         }
     }
 
-    private void handleRequestPosition(int senderId) {
+    private void handleRequestPosition(Agent sender) {
         Message<HACMsgType> posMsg = new Message<>(HACMsgType.PositionUpdate);
         posMsg.addValue(POSITIONUPDATE_POS_KEY, new Vector(this.pos)); // NOTE: send a new instance!!
 
-        this.sendMessage(posMsg, senderId);
+        this.sendMessage(posMsg, sender);
     }
 }

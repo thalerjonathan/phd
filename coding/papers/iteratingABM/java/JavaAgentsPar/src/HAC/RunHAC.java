@@ -77,8 +77,8 @@ public class RunHAC {
             HACAgent friend = RunHAC.drawRandomIgnoring(hacAgents, new HACAgent[] { a }, this.rng);
             HACAgent enemy = RunHAC.drawRandomIgnoring(hacAgents, new HACAgent[] { a, friend }, this.rng);
 
-            a.setFriendId( friend.getId() );
-            a.setEnemyId( enemy.getId() );
+            a.setFriend( friend );
+            a.setEnemy( enemy );
         }
 
         return hacAgents;

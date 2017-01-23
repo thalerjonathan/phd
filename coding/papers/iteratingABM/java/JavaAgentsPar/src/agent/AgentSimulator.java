@@ -16,20 +16,19 @@ public class AgentSimulator<A extends Agent> {
     }
 
     public List<A> simulateWithObserver(List<A> as,
-                                        ISimulationObserver<A> o) throws InterruptedException, CloneNotSupportedException, ExecutionException {
-        double dt = o.startSimulation();
+                                        double dt,
+                                        ISimulationObserver<A> o) throws InterruptedException, ExecutionException {
         LinkedHashMap<Integer, A> om = createOrderedMap(as);
 
         while(o.simulationStep(om)) {
             om = this.nextStepSimultaneous(om, dt);
-            dt = o.getDt();
         }
 
         return as;
     }
 
     private LinkedHashMap<Integer, A> nextStepSimultaneous(LinkedHashMap<Integer, A> om,
-                                                           double delta) throws CloneNotSupportedException, ExecutionException, InterruptedException {
+                                                           double delta) throws ExecutionException, InterruptedException {
         this.time = this.time + delta;
 
         List<Future<Void>> agentFutures = new ArrayList<>( om.size() );

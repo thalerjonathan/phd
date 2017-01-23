@@ -5,7 +5,7 @@ import agent.ISimulationObserver;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
+import java.util.LinkedHashMap;
 
 /**
  * Created by jonathan on 05/12/16.
@@ -14,7 +14,7 @@ public class SIRSFrontend extends JFrame implements ISimulationObserver<SIRSAgen
     private SIRSRenderer renderer;
 
     public SIRSFrontend(int cols, int rows) {
-        super("SIRS Seq");
+        super("SIRS Par");
 
         this.renderer = new SIRSRenderer(cols, rows);
 
@@ -25,7 +25,7 @@ public class SIRSFrontend extends JFrame implements ISimulationObserver<SIRSAgen
     }
 
     @Override
-    public boolean simulationStep(List<SIRSAgent> as) {
+    public boolean simulationStep(LinkedHashMap<Integer, SIRSAgent> as) {
         this.renderer.render(as);
 
         try {

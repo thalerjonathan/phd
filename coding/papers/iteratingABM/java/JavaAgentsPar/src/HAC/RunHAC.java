@@ -30,28 +30,14 @@ public class RunHAC {
         double herosDist = 0.25;
         double dt = 0.01;
 
-        HACFrontend fe = new HACFrontend( 3, true );
+        HACFrontend fe = new HACFrontend( 3 );
 
         List<HACAgent> hacAgents = this.createRandomAgents(agentCount, herosDist);
         AgentSimulator simulator = new AgentSimulator();
 
         simulator.simulateWithObserver( hacAgents,
-                new ISimulationObserver<HACAgent>() {
-                    @Override
-                    public double startSimulation() {
-                        return 0.0;
-                    }
-
-                    @Override
-                    public double getDt() {
-                        return dt;
-                    }
-
-                    @Override
-                    public boolean simulationStep(LinkedHashMap<Integer, HACAgent> as) {
-                        return fe.simulationStep(as);
-                    }
-                });
+                dt,
+                fe);
 
     }
 

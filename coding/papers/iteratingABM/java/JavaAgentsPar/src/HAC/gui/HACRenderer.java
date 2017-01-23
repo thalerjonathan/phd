@@ -1,14 +1,12 @@
 package HAC.gui;
 
 import HAC.agent.HACAgent;
-import agent.Agent;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.util.*;
-import java.util.List;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Created by jonathan on 05/12/16.

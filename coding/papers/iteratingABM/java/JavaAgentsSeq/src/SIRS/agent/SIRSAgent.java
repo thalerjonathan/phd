@@ -2,6 +2,7 @@ package SIRS.agent;
 
 import agent.Agent;
 import agent.Message;
+import utils.Cell;
 
 import java.util.concurrent.ThreadLocalRandom;
 

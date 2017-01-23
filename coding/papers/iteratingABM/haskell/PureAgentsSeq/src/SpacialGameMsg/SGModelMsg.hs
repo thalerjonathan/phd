@@ -53,7 +53,6 @@ sgPayoffMsg a sg p
     | otherwise = a
     where
         poMaxVal = sgMaxPayoffValue (PA.state a)
-        poMaxSt = sgMaxPayoffState (PA.state a)
 
 -- NOTE: the first state is always the owning agent
 payoffWith :: SGAgent -> SGState -> Double
@@ -74,7 +73,6 @@ sgDt a dt = aAfterAction
         localState = sgCurrState (PA.state a)
         localPayoff = sgSumPayoff (PA.state a)
 
-        bestPayoff = sgMaxPayoffValue (PA.state a)
         bestState = sgMaxPayoffState (PA.state a)
 
         aAfterPayoff = PA.updateState a (\s -> s { sgCurrState = bestState, sgPrevState = localState } )

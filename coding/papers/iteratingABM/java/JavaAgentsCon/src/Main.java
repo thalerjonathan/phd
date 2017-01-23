@@ -1,4 +1,5 @@
 import HAC.RunHAC;
+import SGMsg.RunSG;
 import SIRS.RunSIRS;
 
 import java.util.concurrent.ExecutionException;
@@ -8,14 +9,18 @@ import java.util.concurrent.ExecutionException;
  */
 public class Main {
 
-    public static void main(String[] args) throws InterruptedException, CloneNotSupportedException, ExecutionException {
-/*
+    public static void main(String[] args) throws ExecutionException, InterruptedException, CloneNotSupportedException {
+        /*
         RunHAC hac = new RunHAC();
         hac.run();
-*/
+        */
 
+        /*
         RunSIRS sirs = new RunSIRS();
         sirs.run();
+        */
 
+        RunSG sg = new RunSG();
+        sg.run();
     }
 }

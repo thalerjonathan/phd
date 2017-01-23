@@ -1,4 +1,5 @@
 import HAC.RunHAC;
+import SGMsg.RunSG;
 import SIRS.RunSIRS;
 
 /**
@@ -12,7 +13,12 @@ public class Main {
         hac.run();
         */
 
+        /*
         RunSIRS sirs = new RunSIRS();
         sirs.run();
+        */
+
+        RunSG sg = new RunSG();
+        sg.run();
     }
 }

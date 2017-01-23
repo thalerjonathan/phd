@@ -1,4 +1,4 @@
-package SIRS.agent;
+package utils;
 
 /**
  * Created by jonathan on 23/01/17.
@@ -17,8 +17,8 @@ public class Cell {
     }
 
     public int getY() {
-            return y;
-        }
+        return y;
+    }
 
     @Override
     public boolean equals(Object o) {

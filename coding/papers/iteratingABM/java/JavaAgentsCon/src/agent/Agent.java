@@ -70,6 +70,15 @@ public abstract class Agent<M extends Comparable<M>> implements Comparable<Agent
         consumeMessages();
     }
 
+    public void broadCastToNeighbours(Message<M> msg) {
+        if ( null == this.neighbours )
+            return;
+
+        for (Agent<M> n : this.neighbours ) {
+            this.sendMessage(msg, n);
+        }
+    }
+
     public void sendMessageToRandomNeighbour(Message<M> msg) {
         if ( null == this.neighbours )
             return;

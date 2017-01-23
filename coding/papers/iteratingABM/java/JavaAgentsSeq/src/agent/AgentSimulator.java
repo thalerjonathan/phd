@@ -29,15 +29,13 @@ public class AgentSimulator<A extends Agent> {
     }
 
     public List<A> simulateWithObserver(List<A> as,
+                                        double dt,
                                         Random rng,
                                         ISimulationObserver<A> o) {
         List<Integer> iterationIndices = createIterationIndices(as.size());
 
-        double dt = o.startSimulation();
-
         while(o.simulationStep(as)) {
             as = this.internalIteration(as, iterationIndices, rng, dt);
-            dt = o.getDt();
         }
 
         return as;

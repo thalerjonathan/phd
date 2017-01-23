@@ -14,23 +14,18 @@ import java.util.List;
 /**
  * Created by jonathan on 05/12/16.
  */
-public class HACFrontend extends JFrame implements ISimulationObserver<HACAgent>, WindowListener {
+public class HACFrontend extends JFrame implements ISimulationObserver<HACAgent> {
     private HACRenderer renderer;
-    private boolean continueSimulation;
-    private long lastUpdate;
 
-    public HACFrontend(int agentSize, boolean visible) {
+    public HACFrontend(int agentSize) {
         super("Heroes & Cowards Seq");
 
         this.renderer = new HACRenderer(agentSize);
-        this.continueSimulation = true;
-        this.lastUpdate = System.currentTimeMillis();
 
         this.setDefaultCloseOperation( EXIT_ON_CLOSE );
-        this.addWindowListener( this );
         this.setContentPane( renderer );
         this.setSize( new Dimension( 1000, 1000 ));
-        this.setVisible(visible);
+        this.setVisible(true);
 
         this.addKeyListener(new KeyListener() {
             @Override
@@ -53,51 +48,8 @@ public class HACFrontend extends JFrame implements ISimulationObserver<HACAgent>
     }
 
     @Override
-    public double startSimulation() {
-        this.lastUpdate = System.currentTimeMillis();
-        return 0;
-    }
-
-    @Override
-    public double getDt() {
-        long curr = System.currentTimeMillis();
-        return (double) (curr - this.lastUpdate) / 1000.0;
-    }
-
-    @Override
     public boolean simulationStep(List<HACAgent> as) {
         this.renderer.render(as);
-        this.lastUpdate = System.currentTimeMillis();
-
-        return this.continueSimulation;
-    }
-
-    @Override
-    public void windowOpened(WindowEvent e) {
-    }
-
-    @Override
-    public void windowClosing(WindowEvent e) {
-        this.continueSimulation = false;
-    }
-
-    @Override
-    public void windowClosed(WindowEvent e) {
-    }
-
-    @Override
-    public void windowIconified(WindowEvent e) {
-    }
-
-    @Override
-    public void windowDeiconified(WindowEvent e) {
-    }
-
-    @Override
-    public void windowActivated(WindowEvent e) {
-    }
-
-    @Override
-    public void windowDeactivated(WindowEvent e) {
+        return true;
     }
 }

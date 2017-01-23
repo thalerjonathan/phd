@@ -6,12 +6,14 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * Created by jonathan on 20/01/17.
  */
-public abstract class Agent<M extends Comparable<M>> implements Comparable<Agent<M>> {
+public abstract class Agent<M extends Comparable<M>, E> implements Comparable<Agent<M, E>> {
 
     private int id;
     private List<MsgPair> inBox;
     private List<MsgPair> outBox;
-    private List<Agent<M>> neighbours;
+    private List<Agent<M, E>> neighbours;
+
+    protected E localEnv;
 
     private static int NEXT_ID = 0;
 
@@ -37,35 +39,43 @@ public abstract class Agent<M extends Comparable<M>> implements Comparable<Agent
         return outBox;
     }
 
-    public void addNeighbour(Agent<M> n) {
+    public void addNeighbour(Agent<M, E> n) {
         if ( null == this.neighbours )
             this.neighbours = new ArrayList<>();
 
         this.neighbours.add(n);
     }
 
-    public void setNeighbours(List<Agent<M>> ns) {
+    public void setNeighbours(List<Agent<M, E>> ns) {
         this.neighbours = ns;
     }
 
-    public void step(Double time, Double delta) {
+    public List<Agent<M, E>> getNeighbours() {
+        return this.neighbours;
+    }
+
+    E getLocalEnv() {
+        return this.localEnv;
+    }
+
+    public void step(Double time, Double delta, Map<Integer, E> globalEnv) {
         Iterator<MsgPair> iter = this.inBox.iterator();
         while (iter.hasNext()) {
             MsgPair p = iter.next();
 
-            this.receivedMessage(p.agent, p.msg);
+            this.receivedMessage(p.agent, p.msg, globalEnv);
         }
 
         this.inBox.clear();
 
-        this.dt(time, delta);
+        this.dt(time, delta, globalEnv);
     }
 
     public void broadCastToNeighbours(Message<M> msg) {
         if ( null == this.neighbours )
             return;
 
-        for (Agent<M> n : this.neighbours ) {
+        for (Agent<M, E> n : this.neighbours ) {
             this.sendMessage(msg, n);
         }
     }
@@ -80,17 +90,17 @@ public abstract class Agent<M extends Comparable<M>> implements Comparable<Agent
         this.sendMessage(msg, randNeigh);
     }
 
-    public void sendMessage(Message<M> msg, Agent<M> receiver) {
+    public void sendMessage(Message<M> msg, Agent<M, E> receiver) {
         this.outBox.add(new MsgPair(receiver, msg));
     }
 
-    public abstract void receivedMessage(Agent<M> sender, Message<M> msg);
+    public abstract void receivedMessage(Agent<M, E> sender, Message<M> msg, Map<Integer, E> globalEnv);
 
     // HASKELL IS BETTER HERE: cannot include the Dt in the Message-Type M in Java, thus need to split it up into separate functions
-    public abstract void dt(Double time, Double delta);
+    public abstract void dt(Double time, Double delta, Map<Integer, E> globalEnv);
 
     @Override
-    public int compareTo(Agent<M> o) {
+    public int compareTo(Agent<M, E> o) {
         return o.id - this.id;
     }
 
@@ -99,7 +109,7 @@ public abstract class Agent<M extends Comparable<M>> implements Comparable<Agent
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Agent<?> agent = (Agent<?>) o;
+        Agent<?,?> agent = (Agent<?,?>) o;
 
         return id == agent.id;
     }

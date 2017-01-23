@@ -6,7 +6,7 @@ import agent.Message;
 /**
  * Created by jonathan on 20/01/17.
  */
-public class HACAgent extends Agent<HACMsgType> {
+public class HACAgent extends Agent<HACMsgType, Void> {
 
     private Agent friend;
     private Agent enemy;
@@ -46,7 +46,7 @@ public class HACAgent extends Agent<HACMsgType> {
     }
 
     @Override
-    public void receivedMessage(Agent<HACMsgType> sender, Message<HACMsgType> msg) {
+    public void receivedMessage(Agent<HACMsgType, Void> sender, Message<HACMsgType> msg, Void env) {
         if (msg.isOfType(HACMsgType.RequestPosition)) {
             this.handleRequestPosition(sender);
         } else if (msg.isOfType( HACMsgType.PositionUpdate)) {
@@ -55,7 +55,7 @@ public class HACAgent extends Agent<HACMsgType> {
     }
 
     @Override
-    public void dt(Double time, Double delta) {
+    public void dt(Double time, Double delta, Void env) {
         this.updatePosition(delta);
 
         // JAVA IS MORE CONVENIENT: no need for annoying imperative-style fakings

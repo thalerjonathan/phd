@@ -9,7 +9,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * Created by jonathan on 23/01/17.
  */
-public class SIRSAgent extends Agent<SIRSMsgType> {
+public class SIRSAgent extends Agent<SIRSMsgType, Void> {
 
     private double durationInState;
     private SIRSState state;
@@ -44,13 +44,15 @@ public class SIRSAgent extends Agent<SIRSMsgType> {
     }
 
     @Override
-    public void receivedMessage(Agent<SIRSMsgType> sender, Message<SIRSMsgType> msg) {
+    public void receivedMessage(Agent<SIRSMsgType, Void> sender,
+                                Message<SIRSMsgType> msg,
+                                Void env) {
         if (msg.equals( MSG_CONTACT ) )
             this.contactWithInfected();
     }
 
     @Override
-    public void dt(Double time, Double delta) {
+    public void dt(Double time, Double delta, Void env) {
         this.durationInState += delta;
 
         if (SIRSState.Recovered == this.state)

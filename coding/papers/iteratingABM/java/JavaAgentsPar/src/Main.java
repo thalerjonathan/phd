@@ -1,4 +1,5 @@
 import HAC.RunHAC;
+import SGEnv.RunSGEnv;
 import SGMsg.RunSG;
 import SIRS.RunSIRS;
 
@@ -20,7 +21,13 @@ public class Main {
         sirs.run();
         */
 
+        /*
         RunSG sg = new RunSG();
         sg.run();
+        */
+
+        RunSGEnv sgEnv = new RunSGEnv();
+        sgEnv.run();
+
     }
 }

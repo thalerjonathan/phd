@@ -34,6 +34,7 @@ public class RunHAC {
         AgentSimulator simulator = new AgentSimulator();
 
         simulator.simulateWithObserver( hacAgents,
+                null,
                 dt,
                 rng,
                 fe);

@@ -3,10 +3,13 @@ package HAC.agent;
 import agent.Agent;
 import agent.Message;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by jonathan on 20/01/17.
  */
-public class HACAgent extends Agent<HACMsgType> implements Cloneable {
+public class HACAgent extends Agent<HACMsgType, Void> implements Cloneable {
 
     private Agent friend;
     private Agent enemy;
@@ -46,7 +49,7 @@ public class HACAgent extends Agent<HACMsgType> implements Cloneable {
     }
 
     @Override
-    public void receivedMessage(Agent<HACMsgType> sender, Message<HACMsgType> msg) {
+    public void receivedMessage(Agent<HACMsgType, Void> sender, Message<HACMsgType> msg, Map<Integer, Void> globalEnv) {
         if (msg.isOfType(HACMsgType.RequestPosition)) {
             this.handleRequestPosition(sender);
         } else if (msg.isOfType( HACMsgType.PositionUpdate)) {
@@ -55,7 +58,7 @@ public class HACAgent extends Agent<HACMsgType> implements Cloneable {
     }
 
     @Override
-    public void dt(Double time, Double delta) {
+    public void dt(Double time, Double delta, Map<Integer, Void> globalEnv) {
         this.updatePosition(delta);
 
         // JAVA IS MORE CONVENIENT: no need for annoying imperative-style fakings

@@ -1,14 +1,15 @@
-package SGMsg;
+package SGEnv;
 
-import SGMsg.agent.SGAgent;
-import SGMsg.agent.SGMsgType;
-import SGMsg.gui.SGFrontend;
-import SIRS.gui.SIRSFrontend;
+import SGEnv.agent.SGAgent;
+import SGEnv.gui.SGFrontend;
 import agent.Agent;
 import agent.AgentSimulator;
+import agent.Message;
 import utils.Cell;
+import utils.Pair;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
@@ -16,12 +17,12 @@ import java.util.concurrent.ExecutionException;
 /**
  * Created by jonathan on 23/01/17.
  */
-public class RunSG {
+public class RunSGEnv {
     private Random rng;
 
     private final static long RNGSEED = 42;
 
-    public RunSG() {
+    public RunSGEnv() {
         this.rng = new Random(RNGSEED);
     }
 
@@ -32,14 +33,26 @@ public class RunSG {
 
         SGFrontend fe = new SGFrontend( cols, rows );
 
-        List<SGAgent> hacAgents = this.createCoopsWithOneDefectorAgents(cols, rows);
+        List<SGAgent> sgAgents = this.createCoopsWithOneDefectorAgents(cols, rows);
+        HashMap<Integer, Pair<Double, SGAgent.SGState>> env = this.createEnvironmentFromAgents(sgAgents);
 
         AgentSimulator simulator = new AgentSimulator();
 
-        simulator.simulateWithObserver( hacAgents, null,
+        simulator.simulateWithObserver( sgAgents,
+                env,
                 dt,
                 fe);
 
+    }
+
+    private HashMap<Integer, Pair<Double, SGAgent.SGState>> createEnvironmentFromAgents(List<SGAgent> sgAgents) {
+        HashMap<Integer, Pair<Double, SGAgent.SGState>> env = new HashMap<>();
+
+        for (SGAgent a : sgAgents ) {
+            env.put(a.getId(), new Pair<>(0.0, a.getCurrState()));
+        }
+
+        return env;
     }
 
     private List<SGAgent> createCoopsWithOneDefectorAgents(int cols, int rows) {
@@ -64,7 +77,7 @@ public class RunSG {
 
         for (int i = 0; i < sgAgents.size(); ++i) {
             SGAgent a = sgAgents.get( i );
-            List<Agent<SGMsgType, Void>> ns = getNeighbours(a, sgAgents);
+            List<Agent<Message.NoMsg, Pair<Double, SGAgent.SGState>>> ns = getNeighbours(a, sgAgents);
 
             a.setNeighbours( ns );
         }
@@ -72,8 +85,8 @@ public class RunSG {
         return sgAgents;
     }
 
-    private List<Agent<SGMsgType, Void>> getNeighbours(SGAgent a, List<SGAgent> all) {
-        List<Agent<SGMsgType, Void>> neighbours = new ArrayList<>();
+    private List<Agent<Message.NoMsg, Pair<Double, SGAgent.SGState>>> getNeighbours(SGAgent a, List<SGAgent> all) {
+        List<Agent<Message.NoMsg, Pair<Double, SGAgent.SGState>>> neighbours = new ArrayList<>();
         List<Cell> nCells = calculateNeighbourhood(a);
 
         for (SGAgent n : all) {

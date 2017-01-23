@@ -7,7 +7,7 @@ import utils.Cell;
 /**
  * Created by jonathan on 23/01/17.
  */
-public class SGAgent extends Agent<SGMsgType> {
+public class SGAgent extends Agent<SGMsgType, Void> {
 
     private final static double B = 1.9;
     private final static double S = 0.0;
@@ -58,7 +58,9 @@ public class SGAgent extends Agent<SGMsgType> {
     }
 
     @Override
-    public void receivedMessage(Agent<SGMsgType> sender, Message<SGMsgType> msg) {
+    public void receivedMessage(Agent<SGMsgType, Void> sender,
+                                Message<SGMsgType> msg,
+                                Void env) {
         if ( msg.isOfType(SGMsgType.NeighbourAction)) {
             SGState neighbourAction = (SGState) msg.getValue( NEIGHBOURACTION_KEY );
             double po = calculatePayoff( this.currState, neighbourAction );
@@ -76,7 +78,7 @@ public class SGAgent extends Agent<SGMsgType> {
     }
 
     @Override
-    public void dt(Double time, Double delta) {
+    public void dt(Double time, Double delta, Void env) {
         Message<SGMsgType> myPayoff = new Message<>(SGMsgType.NeighbourPayoff);
         myPayoff.addValue( NEIGHBOURPAYOFF_VALUE_KEY, this.sumPayoff );
         myPayoff.addValue( NEIGHBOURPAYOFF_STATE_KEY, this.currState );

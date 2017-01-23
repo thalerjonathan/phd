@@ -34,7 +34,7 @@ public class RunSIRS {
         List<SIRSAgent> hacAgents = this.createRandomAgents(cols, rows, initialInfection);
         AgentSimulator simulator = new AgentSimulator();
 
-        simulator.simulateWithObserver( hacAgents,
+        simulator.simulateWithObserver( hacAgents, null,
                 dt,
                 rng,
                 fe);
@@ -60,7 +60,7 @@ public class RunSIRS {
 
         for (int i = 0; i < sirsAgents.size(); ++i) {
             SIRSAgent a = sirsAgents.get( i );
-            List<Agent<SIRSMsgType>> ns = getNeighbours(a, sirsAgents);
+            List<Agent<SIRSMsgType, Void>> ns = getNeighbours(a, sirsAgents);
 
             a.setNeighbours( ns );
         }
@@ -68,8 +68,8 @@ public class RunSIRS {
         return sirsAgents;
     }
 
-    private List<Agent<SIRSMsgType>> getNeighbours(SIRSAgent a, List<SIRSAgent> all) {
-        List<Agent<SIRSMsgType>> neighbours = new ArrayList<>();
+    private List<Agent<SIRSMsgType, Void>> getNeighbours(SIRSAgent a, List<SIRSAgent> all) {
+        List<Agent<SIRSMsgType, Void>> neighbours = new ArrayList<>();
         List<Cell> nCells = calculateNeighbourhood(a);
 
         for (SIRSAgent n : all) {

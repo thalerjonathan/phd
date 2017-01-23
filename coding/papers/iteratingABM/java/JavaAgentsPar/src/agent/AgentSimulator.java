@@ -6,7 +6,7 @@ import java.util.concurrent.*;
 /**
  * Created by jonathan on 20/01/17.
  */
-public class AgentSimulator<A extends Agent> {
+public class AgentSimulator<A extends Agent, E> {
 
     private double time;
     private ExecutorService executor;
@@ -16,18 +16,25 @@ public class AgentSimulator<A extends Agent> {
     }
 
     public List<A> simulateWithObserver(List<A> as,
+                                        Map<Integer, E> globalEnv,
                                         double dt,
                                         ISimulationObserver<A> o) throws InterruptedException, ExecutionException {
         LinkedHashMap<Integer, A> om = createOrderedMap(as);
 
+        Map<Integer, E> unmodifieableGlobalEnv = null;
+        if ( null != globalEnv )
+            unmodifieableGlobalEnv = Collections.unmodifiableMap( globalEnv );
+
         while(o.simulationStep(om)) {
-            om = this.nextStepSimultaneous(om, dt);
+            om = this.nextStepSimultaneous(om, globalEnv, unmodifieableGlobalEnv, dt);
         }
 
         return as;
     }
 
     private LinkedHashMap<Integer, A> nextStepSimultaneous(LinkedHashMap<Integer, A> om,
+                                                           Map<Integer, E> globalEnv,
+                                                           Map<Integer, E> unmodifieableGlobalEnv,
                                                            double delta) throws ExecutionException, InterruptedException {
         this.time = this.time + delta;
 
@@ -58,8 +65,7 @@ public class AgentSimulator<A extends Agent> {
             Future<Void> af = executor.submit(new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
-                    a.step(time, delta);
-
+                    a.step(time, delta, unmodifieableGlobalEnv);
                     return null;
                 }
             });
@@ -70,6 +76,16 @@ public class AgentSimulator<A extends Agent> {
         // wait for the results
         for (Future<Void> f : agentFutures ) {
             f.get();
+        }
+
+        if ( null != globalEnv ) {
+            iter = om.entrySet().iterator();
+            while (iter.hasNext()) {
+                Map.Entry<Integer, A> e = iter.next();
+                A a = e.getValue();
+
+                globalEnv.put(a.getId(), (E) a.getLocalEnv());
+            }
         }
 
         return om;

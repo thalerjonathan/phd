@@ -8,11 +8,12 @@ import java.util.Random;
 /**
  * Created by jonathan on 20/01/17.
  */
-public class AgentSimulator<A extends Agent> {
+public class AgentSimulator<A extends Agent, E> {
 
     private double time;
 
     public List<List<A>> simulate(List<A> as,
+                                  E env,
                                   int stepCount,
                                   double dt,
                                   Random rng) {
@@ -21,7 +22,7 @@ public class AgentSimulator<A extends Agent> {
         allAgentSteps.add( as );
 
         for (int i = 0; i < stepCount; ++i) {
-            as = this.internalIteration(as, iterationIndices, rng, dt);
+            as = this.internalIteration(as, env, iterationIndices, rng, dt);
             allAgentSteps.add( as );
         }
 
@@ -29,19 +30,21 @@ public class AgentSimulator<A extends Agent> {
     }
 
     public List<A> simulateWithObserver(List<A> as,
+                                        E env,
                                         double dt,
                                         Random rng,
                                         ISimulationObserver<A> o) {
         List<Integer> iterationIndices = createIterationIndices(as.size());
 
         while(o.simulationStep(as)) {
-            as = this.internalIteration(as, iterationIndices, rng, dt);
+            as = this.internalIteration(as, env, iterationIndices, rng, dt);
         }
 
         return as;
     }
 
     private List<A> internalIteration(List<A> as,
+                                      E env,
                                       List<Integer> iterationIndices,
                                       Random rng,
                                       double delta) {
@@ -52,7 +55,7 @@ public class AgentSimulator<A extends Agent> {
 
         for (Integer i : iterationIndices) {
             A a = as.get( i );
-            a.step(this.time, delta);
+            a.step(this.time, delta, env);
         }
 
         return as;

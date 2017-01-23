@@ -34,7 +34,7 @@ public class RunSG {
 
         AgentSimulator simulator = new AgentSimulator();
 
-        simulator.simulateWithObserver( hacAgents,
+        simulator.simulateWithObserver( hacAgents, null,
                 dt,
                 rng,
                 fe);
@@ -63,7 +63,7 @@ public class RunSG {
 
         for (int i = 0; i < sgAgents.size(); ++i) {
             SGAgent a = sgAgents.get( i );
-            List<Agent<SGMsgType>> ns = getNeighbours(a, sgAgents);
+            List<Agent<SGMsgType, Void>> ns = getNeighbours(a, sgAgents);
 
             a.setNeighbours( ns );
         }
@@ -71,8 +71,8 @@ public class RunSG {
         return sgAgents;
     }
 
-    private List<Agent<SGMsgType>> getNeighbours(SGAgent a, List<SGAgent> all) {
-        List<Agent<SGMsgType>> neighbours = new ArrayList<>();
+    private List<Agent<SGMsgType, Void>> getNeighbours(SGAgent a, List<SGAgent> all) {
+        List<Agent<SGMsgType, Void>> neighbours = new ArrayList<>();
         List<Cell> nCells = calculateNeighbourhood(a);
 
         for (SGAgent n : all) {

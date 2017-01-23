@@ -1,18 +1,31 @@
-\section{Problem}
-1 Page
+\section{The Problem}
+
+ABM/S is a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is of knowledge \cite{wooldridge_introduction_2009}. Those parts, called Agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. Thus the central aspect of ABM/S is the concept of an Agent which can be understood as a metaphor for a unique pro-active unit, able to spawn new Agents, interacting with other Agents in a network of neighbours by exchange of messages which are situated in a generic environment. Thus we informally assume the following about our Agents:
 
 \begin{itemize}
-	\item describe in more technical detail what the introduction tells.
-	\item \cite{huberman_evolutionary_1993} and \url{https://www.openabm.org/book/33102/54-importance-sequence-updating} only mentions synchronous and asynchronous updates but this is not precise enough and lacks subcategories
-\end{itemize}
+	\item They have a unique identifier
+	\item They can initiate actions on their own e.g. change their own state, send messages, create new agents, kill themselves,...
+	\item They can react to messages they receive with actions (see above)
+	\item They can interact with a generic environment they are situated in
+\end{itemize} 
 
-question: do emergent patterns break down / global dynamics change completely in some ABM/S when changing sim-semantic? which kind of ABM could show this behaviour? which properties are responsible for it? Answer: Yes they do but only under given circumstances: discrete simulations with dependence on each other. continuous not so easy. 
-		
-do we find a continuous simulation in which it breaks down under given circumstances? Yes: Heroes \& Cowards can lead to specific patterns as shown by the creators
+An implementation of an ABS must solve thus solve three fundamental problems:
+\begin{enumerate}
+	\item Source of pro-activity \\ How can an Agent initiate actions without external stimuli?
+	\item Message-Processing \\ When is a message \textit{m}, visible to Agent \textit{B}, processed by it?
+	\item Semantics of Message-Delivery \\ When is a message \textit{m}, sent by Agent \textit{A} to Agent \textit{B}, visible to \textit{B}?
+\end{enumerate}
 
-\subsection{Simulations}
-Today simulations are at the very heart of many sciences. They allow to put hypotheses to test by building a model which abstracts from reality, keeping only the important and relevant details, and then bringing this model to life in simulation. Based on the results shown by the dynamics, previously formulated hypotheses can be verified or falsified resulting in a formulate-simulate-refine cycle. \\
-The meaning of simulating a model can be understood as calculating the dynamics of a (model of a) system over time thus the state of the system at time t depends on the state of the system at time t - epsilon. Here we only consider simulations in a computer-system (TODO: are there simulations NOT in a computer?), which is an inherently discrete system which poses us with the question of how to represent time which seems linear and continuously flowing to us in reality (NOTE: this may not be physically the case but for our considerations this should be a good approximation). Being in a discrete system, of course implies that time has to be discretised as well and there are two ways of doing it: discrete and continuous where in discrete case time advances in steps of the natural numbers and where in the continuous case time advances in steps of real-numbers. Note that in both cases the system is iterated in steps where only the \textit{numerical type} of the input to the time-dependent functions differs. Thus a simulation in a computer can be understood as an iteration over a model for a given number of steps where each step advances time by dt (either discrete or continuous) and, based on the previous model-state, producing an updated model-state which again becomes the input for the next step. Thus in each simulation we have three inputs: 1. the model, 2. number of steps, 3. time dt. There are of course different models and types of simulations and in this paper we will focus on one particular one: agent-based, which will be described next.
+In computer systems, pro-activity, the ability to initiate actions on its own without external stimuli, is only possible when there is some internal stimuli, most naturally represented by some generic notion of monotonic increasing time-flow. This can either be some physical real-time system-clock which counts the milliseconds since 1970 (thus binding the time-flow of the system to the one of the 'real-world') or a virtual simulation-clock which is just a monotonic increasing natural number. As we are in a discrete computer-system, this time-flow must be discretized as well in discrete steps and each step must be made available to the Agent, acting as one internal stimuli. This allows the Agent then to perceive time and become pro-active depending on time (NOTE: we could argue that this is not really pro-activity because it depends always on time, but there is really now other way of doing this in our current implementation of computer-systems.). Independent of the representation of the time-flow we have the two fundamental choices whether the time-flow is local to the Agent or whether it is a system-global time-flow.
 
-\subsection{Agent-Based Modelling and Simulation (ABM/S)}
-ABM/S is a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is of knowledge \cite{wooldridge_introduction_2009}. Those parts, called Agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. Thus the central aspect of ABM/S is the concept of an Agent which can be understood as a metaphor for a pro-active unit, able to spawn new Agents, and interacting with other Agents in a network of neighbours by exchange of messages. The implementation of Agents can vary and strongly depends on the programming language and the kind of domain the simulation and model is situated in. Whereas the majority of ABM/S are implemented in object-oriented (OO) languages e.g. Java, C++, this paper focuses on functional ones.
+\medskip 
+
+The semantics of message-delivery define when sent messages are visible to the receivers so they can process them and react to them. The only two ways of implementing them are that messages are visible either \textit{immediately} or after a synchronization point between the sender and receiver. Such a synchronization point can be a local one, just between the two or a global one between all Agents in the system.
+
+\medskip 
+
+Basically we can say that we want to process a message as soon as it is visible to us but this is not how real computer-systems can work. In a real system each Agent would have a message-box into which the messages are posted so the Agent can then check its mail-box for new messages. The question is then when the Agent is going to poll for new messages? Clearly what we need is a recurring, regular trigger which allows the Agent to poll the mail-box and process all queued messages. We argue that the most natural approach is to bind this trigger to the time-flow step which provides pro-activity.
+
+\medskip 
+
+To solve these problems an update-strategy is implemented which will iterate through the Agents in \textit{some} way and allow the Agents to perform these steps. It is immediately clear that different choices in the specific problems will lead to different system behaviour. To discuss this we will first present all possible update-strategies and their details in the next section and then outline how they influence the system behaviour.

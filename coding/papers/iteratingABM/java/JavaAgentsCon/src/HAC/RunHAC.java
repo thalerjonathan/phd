@@ -35,7 +35,7 @@ public class RunHAC {
         List<HACAgent> hacAgents = this.createRandomAgents(agentCount, herosDist);
         AgentSimulator simulator = new AgentSimulator();
 
-        simulator.simulateWithObserver( hacAgents, dt, fe);
+        simulator.simulateWithObserver( hacAgents, null, dt, fe);
 
     }
 

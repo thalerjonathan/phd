@@ -36,4 +36,8 @@ public class Message<T extends Comparable<T>> implements Comparable<Message<T>> 
     public boolean isOfType(T t) {
         return this.type.compareTo(t) == 0;
     }
+
+    public enum NoMsg {
+
+    }
 }

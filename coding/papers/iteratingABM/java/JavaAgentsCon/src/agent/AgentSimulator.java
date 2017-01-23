@@ -6,7 +6,7 @@ import java.util.concurrent.*;
 /**
  * Created by jonathan on 20/01/17.
  */
-public class AgentSimulator<A extends Agent> {
+public class AgentSimulator<A extends Agent, E> {
 
     private double time;
     private ExecutorService executor;
@@ -16,18 +16,20 @@ public class AgentSimulator<A extends Agent> {
     }
 
     public List<A> simulateWithObserver(List<A> as,
+                                        E env,
                                         double dt,
                                         ISimulationObserver<A> o) throws InterruptedException, CloneNotSupportedException, ExecutionException {
         LinkedHashMap<Integer, A> om = createOrderedMap(as);
 
         while(o.simulationStep(om)) {
-            om = this.nextStepConcurrent(om, dt);
+            om = this.nextStepConcurrent(om, env, dt);
         }
 
         return as;
     }
 
     private LinkedHashMap<Integer, A> nextStepConcurrent(LinkedHashMap<Integer, A> om,
+                                                         E env,
                                                          double delta) throws CloneNotSupportedException, ExecutionException, InterruptedException {
         this.time = this.time + delta;
 
@@ -42,7 +44,7 @@ public class AgentSimulator<A extends Agent> {
             Future<Void> af = executor.submit(new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
-                    a.step(time, delta);
+                    a.step(time, delta, env);
 
                     return null;
                 }

@@ -16,13 +16,12 @@ public class AgentSimulator<A extends Agent> {
     }
 
     public List<A> simulateWithObserver(List<A> as,
+                                        double dt,
                                         ISimulationObserver<A> o) throws InterruptedException, CloneNotSupportedException, ExecutionException {
-        double dt = o.startSimulation();
         LinkedHashMap<Integer, A> om = createOrderedMap(as);
 
         while(o.simulationStep(om)) {
             om = this.nextStepConcurrent(om, dt);
-            dt = o.getDt();
         }
 
         return as;

@@ -1,6 +1,7 @@
 package agent;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by jonathan on 20/01/17.
@@ -9,6 +10,7 @@ public abstract class Agent<M extends Comparable<M>> implements Comparable<Agent
 
     private int id;
     private List<MsgPair> msgBox;
+    private List<Agent<M>> neighbours;
 
     private static int NEXT_ID = 0;
 
@@ -35,6 +37,17 @@ public abstract class Agent<M extends Comparable<M>> implements Comparable<Agent
         return this.id;
     }
 
+    public void addNeighbour(Agent<M> n) {
+        if ( null == this.neighbours )
+            this.neighbours = new ArrayList<>();
+
+        this.neighbours.add(n);
+    }
+
+    public void setNeighbours(List<Agent<M>> ns) {
+        this.neighbours = ns;
+    }
+
     public void step(double time, double delta) {
         this.consumeMessages();
 
@@ -55,6 +68,16 @@ public abstract class Agent<M extends Comparable<M>> implements Comparable<Agent
         this.receivedMessage(p.sender, p.msg);
 
         consumeMessages();
+    }
+
+    public void sendMessageToRandomNeighbour(Message<M> msg) {
+        if ( null == this.neighbours )
+            return;
+
+        int randIdx = (int) (ThreadLocalRandom.current().nextDouble() * this.neighbours.size());
+        Agent randNeigh = this.neighbours.get(randIdx);
+
+        this.sendMessage(msg, randNeigh);
     }
 
     public void sendMessage(Message<M> msg, Agent<M> receiver) {

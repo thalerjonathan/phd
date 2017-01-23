@@ -36,7 +36,7 @@ setDefector as pos cells
         (infront, behind) = splitAt agentAtPosId as
 
 stepWithRendering :: (Int, Int) -> SGSimHandle -> Double -> IO ()
-stepWithRendering dims hdl dt = simulateIO (Front.display "Spacial Game" (800, 800))
+stepWithRendering dims hdl dt = simulateIO (Front.display "Spacial Game Seq" (800, 800))
                                 GLO.white
                                 2
                                 hdl

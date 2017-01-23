@@ -3,7 +3,6 @@ package SGMsg;
 import SGMsg.agent.SGAgent;
 import SGMsg.agent.SGMsgType;
 import SGMsg.gui.SGFrontend;
-import SIRS.gui.SIRSFrontend;
 import agent.Agent;
 import agent.AgentSimulator;
 import utils.Cell;

@@ -1,10 +1,9 @@
-\section{The Problem}
-
+\section{Background}
 ABM/S is a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is of knowledge \cite{wooldridge_introduction_2009}. Those parts, called Agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. Thus the central aspect of ABM/S is the concept of an Agent which can be understood as a metaphor for a unique pro-active unit, able to spawn new Agents, interacting with other Agents in a network of neighbours by exchange of messages which are situated in a generic environment. Thus we informally assume the following about our Agents:
 
 \begin{itemize}
-	\item They have a unique identifier
-	\item They can initiate actions on their own e.g. change their own state, send messages, create new agents, kill themselves,...
+	\item They have a unique identifier and some internal state
+	\item They can initiate actions on their own e.g. change their internal state, send messages, create new agents, kill themselves,...
 	\item They can react to messages they receive with actions (see above)
 	\item They can interact with a generic environment they are situated in
 \end{itemize} 

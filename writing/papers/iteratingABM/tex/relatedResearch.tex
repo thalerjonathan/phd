@@ -1,10 +1,22 @@
 \section{Related Research}
-TODO: \cite{huberman_evolutionary_1993} where the first to discuss the differences update-strategies can make
+Already noted in the introduction, \cite{huberman_evolutionary_1993} where the first to discuss the differences update-strategies can make and introduced the terms of synchronous and asynchronous updates.
+
+\medskip
 
 TODO: \cite{a_framework_2008} give an approach for ABM/S on GPUs. a seemingly completely different form but which, we hypothesize, can be roughly mapped to our PAR-Strategy. 
 	
-\cite{botta_time_2010} sketch a minimal agent-framework in Haskell which is very similar in the basic structure of ours, also utilizing an agent-transforming function which consumes incoming messages and produces outgoing ones. This proofs that this approach, very well developed in ABM/S, seems to be a very natural one also to apply to Haskell. Their focus is more on economic simulations and instead of iterating a simulation with a global time, their focus is on how to synchronize agents which have internal, local transition times. They introduce a time-keeper agent which synchronizes the actions of all of the agents thus we argue that our framework is able to capture it faithfully using the \textit{Actor-Strategy} utilizing either a timer-keeper as they do or through the access of the global shared-environment. Although their work uses Haskell as well, this does not diminish the novelty of our approach using Haskell because our focus is very different from them.
+\medskip
+	
+\cite{botta_time_2010} sketch a minimal agent-framework in Haskell which is very similar in the basic structure of ours. This proofs that this approach, very well developed in ABM/S, seems to be a very natural one also to apply to Haskell. Their focus is more on economic simulations and instead of iterating a simulation with a global time, their focus is on how to synchronize agents which have internal, local transition times. Although their work uses Haskell as well, this does not diminish the novelty of our approach using Haskell because our focus is a very different from them and approaches ABM/S in a more general sense.
 
-TODO: \cite{yuxuan_agent-based_2016}: Master-Thesis "The Agent-based Simulation Environment in Java" by Yuxuan Jin under supervision of Peer-Olaf
+\medskip
 
-TODO: \cite{dawson_opening_2014}: comparison of c++ and java for ABM/S
+\cite{dawson_opening_2014} describe basic inner workings of ABS environments and compare their implementation in C++ to the existing ABS Environment AnyLogic which is programmed in Java. They explicitly mention asynchronous and synchronous time models and compare them in theory but unfortunately couldn't report the results of asynchronous updates due to limited space.
+
+\medskip
+
+\cite{yuxuan_agent-based_2016} presents in his Master-Thesis a comprehensive discussion on how to implement an ABS for state-charts in Java and also mentions synchronous and asynchronous time-model.
+
+\medskip
+
+There seems to be a variety of meanings attributed to the terminology of asynchronous vs. synchronous updates but the very semantic and technical details are unclear and not described very precisely. In the section about a general terminology we will address this issue and will put forward a proposal of how to fit these differences into our update-strategies and speak in a consistent way about update-strategies.

@@ -1,37 +1,33 @@
-\section{Results}
+\section{Implementation Issues}
 5 Pages
+In this section we give a brief overview of implementation issues in three languages which fundamentally differ among each other. We discuss how to map the strategies to the given languages, discuss programming-language technical details and compare the languages in regard of their suitability to implement each of these strategies. 
 
-This is now very programming-language specific
+\subsection{Languages}
+These are all the languages we included in this comparison. We wanted to cover a wide range of different types of languages. Note that we didn't select a language where the memory-management falls in the hands of the developer. This would be the case e.g. in C++. This was looked into partially by \cite{dawson_opening_2014} but the focus of this paper is not on this issue as it would complicated things dramatically. All used languages are garbage-collected / the developer does not need to care how memory is cleared up.
 
-\begin{itemize}
-	\item Mapping the strategies to 3 programming-languages: Java, Scala with Actors, Haskell
-	\item Comparing the programming languages in regard of their suitability to implement each of these strategies
-	\item Screen-shots of results of the same simulation-model with all the strategies
-\end{itemize}
+\subsubsection{Java}
+This language is included as the benchmark of object-oriented (OO) imperative languages as it is extremely popular in the ABM/S community and widely used in implementing ABM/S. It comes with a comprehensive programming library, has powerful object-oriented features built in and is easy to learn although the OO concepts can be difficult to master.
+	
+\subsubsection{Haskell}
+This language is included to put to test whether such a pure functional declarative programming language is suitable for full-blown ABM/S. What distinguishes it is its complete lack of implicit side-effects, global data, mutable variables and objects. The central concept is the function into which all data has to be passed in and out explicitly through statically typed arguments and return values: data-flow is completely explicit.
 
-\subsection{Selection of the Languages}
--> Java: supports global data => suitable to implement global decisions: implementing global-time, sequential iteration with global decisions
-	-> Haskell: has no global data => local decisions (has support for global data through STM/IO but then looses very power?) => implementing global-time, parallel iteration with local-decisions. 
-		-> Haskell STM solution => implementing concurrent version using STM? but this is very complicated in its own right but utilizing STM it will be much more easier than in java
-	-> Scala: mixed, can do both => implementing local time with random iteration and local decisions
+\subsubsection{Scala with Actors}
+This multi-paradigm functional language is included to test the usefulness of the \textit{Act} strategy for implementing ABM/S. The language comes with an Actor-library inspired by \cite{agha_actors:_1986} and resembles the approach of Erlang which allows a very natural implementation of the strategy.
 
 
-Note that we didn't select a language where the memory-management falls in the hands of the developer. This would be the case e.g. in C++. This was looked into partially by \cite{dawson_opening_2014} but the focus of this paper is not on this issue as it would complicated things dramatically. All used languages are garbage-collected / the developer does not need to care how memory is cleared up.
+
 
 \subsection{Selected Models}
+For testing the suitability we selected a variety of simple models we implemented in each language with mostly all strategies. The selected models are \textit{Heroes \& Cowards}, \textit{SIRS}, \textit{Wildfire} and the \textit{Spatial Game} mentioned in \cite{huberman_evolutionary_1993}. We lack the space to explain all models but all are well known and can be easily found, looked up and understood on the Internet. They span different challenges to the ABM/S implementation: sending messages, accessing the environment, spawning new Agents, killing existing ones, discrete and continuous model.
 
-\subsubsection{Heroes \& Cowards}
-\subsubsection{SIRS}
-\subsubsection{Wildfire}
-\subsubsection{Spatial Game}
+\subsection[Results]{Results\footnote{Code available under\\ \url{https://github.com/thalerjonathan/phd/tree/master/coding/papers/iteratingABM/}}}
 
+\subsubsection{Java}
+parallelism and concurrency very easy due to elegant and powerful built-in synchronization primitives, high-performance and large number of agents possible due to aliasing and side-effects
 
-\subsection{Java}
 sequential more natural in java,
 parallel needs to "think functional" in java
 concurrency and actors always difficult in java despite java provides very good synchronization primitives
-
-IMPORTANT: no need to explicitly add the environment, as this can be individually implemented by the agents on a shared basis (references)
 
 sequential is able to work completely without messages and only by accesing references to neighbours but we explicitly don't want to follow this obvious way and stick to the send/receive message paradigm. we keep Agent-instance references
 
@@ -45,40 +41,23 @@ conc: expect it to be a pain in the ass with java. it is not: its the same inter
 
 act: need to copy messages, otherwise could stuck in an endless loop
 
-\subsection[Haskell]{Haskell\footnote{Code available under\\ \url{https://github.com/thalerjonathan/phd/tree/master/coding/papers/iteratingABM/haskell}}}
-
-We initially thought that Haskell would be suitable best for just implementing the Par-Strategy after implementing all the strategies in it we found out that Haskell is extremely well suited to implement all the strategies. 
-
-We think this stems from the following facts: 
-no side-effects (unless reflected in the types): is a must-have for STM, although it makes things more difficult in the beginning, in the end it turns out to be a blessing because one can guarantee that side-effects won't occur. We have taken care that the agents all run in side-effect free code.
+\subsection{Haskell}
+We initially thought that Haskell would be suitable best for just implementing the Par-Strategy after implementing all the strategies in it we found out that Haskell is extremely well suited to implement all the strategies. We think this stems from the following facts that it has no implicit side-effects which reduces bugs considerably and reveals the data-flow very explicitly.
  
-STM: implementing concurrency is a piece-of-cake
+dont have objects with methods which can call between each other but we need some way of representing agents. this is done using a struct type with a behaviour function and messaging mechanisms. important: agents are not carried arround but messages are sent to a receiver identified by an id. This is also a big difference to java where don't really need this kind of abstraction due to the use of objects and their 'messaging'. messaging mechanisms have up- and downsides, elaborate on it.
 
 extremely powerful static typesystem: in combination with side-effect free this results in the semantics of an update-strategy to be reflected in the Agent-Transformer function and the messaging-interface. This means a user of this approach can be guided by the types and can't abuse them. Thus the lesson learned here is that \textit{if one tries to abuse the types of the agent-transformer or work around, then this is an indication that the update-strategy one has selected does not match the semantics of the model one wants to implement}. If this happens in Java, it is much more easier to work around by introducing global variables or side-effects but this is not possible in Haskell. \\
 Thus our conclusion in using Haskell is that it is an extremely underestimated language in ABM/S which should be explored much more as we have shown that it really shines in this context and we believe that it could be pushed further even more.
 
-but still it is not suitable for big models with heterogeneous agents, there things are lacking: see further research
-
-
-
-
 note that the difference between SEQ and PAR in Haskell is in the end a 'fold' over the agents in the case of SEQ and a 'map' in the case of PAR
-dont have objects with methods which can call between each other but we need some way of representing agents. this is done using a struct type with a behaviour function and messaging mechanisms. important: agents are not carried arround but messages are sent to a receiver identified by an id. This is also a big difference to java where don't really need this kind of abstraction due to the use of objects and their 'messaging'. messaging mechanisms have up- and downsides, elaborate on it.
 
+Also it is a must-have for STM, although it makes things more difficult in the beginning, in the end it turns out to be a blessing because one can guarantee that side-effects won't occur. We have taken care that the agents all run in side-effect free code.
 concurrency and actors extremely elegant possible through: STM which only possible in languages without side-effect	
-
+STM: implementing concurrency is a piece-of-cake
 the conc-version and the act-version of the agent-implementations look EXACTLY the same	 BUT we lost the ability to step the simulation!!!
 
-This is the process of implementing the behaviour of the Agent as specified in the model. Although there are various kinds of Agent-Models like BDI but the basic principle is always the same: sense the environment, process messages, execute actions: change environment, send messages. According to \cite{wooldridge_introduction_2009} and also influenced by Actors from \cite{agha_actors:_1986} one can abstract the abilities in each step of an Agent to be the following:
-
-\begin{enumerate}
-\item Process received messages
-\item Create new Agents
-\item Send messages to other Agents
-\item Sense (read) the environment
-\item Influence (write) the environment
-\end{enumerate}
-
+but still it is not suitable for big models with heterogeneous agents, there things are lacking: see further research
+But: still much work to do to capture large and complex models (see further research), performance is a big issue but this has not been about performance (2000 Agents are enough)
 
 \subsection{Scala with Actors}
 direct support for actors

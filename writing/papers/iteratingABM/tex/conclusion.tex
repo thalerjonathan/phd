@@ -1,10 +1,4 @@
 \section{Conclusion}
-\begin{itemize}
-	\item Selecting the correct Iteration-Strategy is of most importance and must match the model semantics
-	
-	\item Java: parallelism and concurrency very easy due to elegant and powerful built-in synchronization primitives, high-performance and large number of agents possible due to aliasing and side-effects
-	
-	\item Surprise: Haskell can faithfully implement all strategies equally well, something not anticipated in the beginning. But: still much work to do to capture large and complex models (see further research), performance is a big issue but this has not been about performance (2000 Agents are enough)
-	
-	\item Scala with Actors: extremely elegant solutions possible
-\end{itemize} 
+In this paper we presented all possible general update-strategies for an ABM/S and discussed their implications. Again we cannot stress enough that selecting the correct update-strategy is of most importance and must match the semantics of the model one wants to implement. \\
+We also argued that the ABM/S community needs a unified terminology of speaking about update-strategies otherwise confusions arise and reproduceablility suffers. We proposed such a unified terminology on the basis of the general update-strategies and hope it will get adopted. \\
+To put our theoretical considerations to a practical test we implemented them in three very different kind of languages to see how each of them performed in comparison with each other in implementing the update-strategies. To summarize, we can say that Java is the gold-standard due to convenient synchronization primitives built in the language. Haskell really surprised us as it allowed us to faithfully implement all strategies equally well, something we didn't anticipate in the beginning of our research. Finally we can say that the usage of Scala with Actors: extremely elegant solutions possible when one is willing to sacrifice reproduceability due to non-determinism.

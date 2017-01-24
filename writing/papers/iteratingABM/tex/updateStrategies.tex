@@ -43,7 +43,7 @@ In this section we will present all the update-strategies which are available in
 \textbf{Semantics:} It is important to realize that, when running Agents in parallel which are able to see actions by others immediately, this is the very definition of concurrency: parallel execution with mutual read/write access to shared data. Of course this shared data-access needs to be synchronized which in turn will introduce event-orderings in the execution of the Agents. Thus at this point we have a source of inherent non-determinism: although we would ignore any hardware-model of concurrency at some point we need arbitration to decide which Agent gets access first to a shared resource thus arriving at non-deterministic solutions - this will become much clearer in the results-section. This has the very important influence that repeated runs with the same configuration of the Agents and the Model may lead to different results each time.
 
 
-\subsection{Actors - Strategy}
+\subsection{Act}
 TODO: discuss how local-time can be handled: real-time or simulation-time - its always local and not synchronized globally because then we would end up in Concurrent Strategy
 
 in the Act-version we need to observe the agents: we need to sample them regularly => we have all the issues with sampling 

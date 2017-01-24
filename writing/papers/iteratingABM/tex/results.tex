@@ -1,4 +1,4 @@
-\section{Implementation Approaches}
+\section{Results}
 5 Pages
 
 This is now very programming-language specific
@@ -14,6 +14,16 @@ This is now very programming-language specific
 	-> Haskell: has no global data => local decisions (has support for global data through STM/IO but then looses very power?) => implementing global-time, parallel iteration with local-decisions. 
 		-> Haskell STM solution => implementing concurrent version using STM? but this is very complicated in its own right but utilizing STM it will be much more easier than in java
 	-> Scala: mixed, can do both => implementing local time with random iteration and local decisions
+
+
+Note that we didn't select a language where the memory-management falls in the hands of the developer. This would be the case e.g. in C++. This was looked into partially by \cite{dawson_opening_2014} but the focus of this paper is not on this issue as it would complicated things dramatically. All used languages are garbage-collected / the developer does not need to care how memory is cleared up.
+
+\subsection{Selected Models}
+
+\subsubsection{Heroes \& Cowards}
+\subsubsection{SIRS}
+\subsubsection{Wildfire}
+\subsubsection{Spatial Game}
 
 
 \subsection{Java}
@@ -35,10 +45,23 @@ conc: expect it to be a pain in the ass with java. it is not: its the same inter
 
 act: need to copy messages, otherwise could stuck in an endless loop
 
-\subsection{Scala with Actors}
-direct support for actors
-
 \subsection[Haskell]{Haskell\footnote{Code available under\\ \url{https://github.com/thalerjonathan/phd/tree/master/coding/papers/iteratingABM/haskell}}}
+
+We initially thought that Haskell would be suitable best for just implementing the Par-Strategy after implementing all the strategies in it we found out that Haskell is extremely well suited to implement all the strategies. 
+
+We think this stems from the following facts: 
+no side-effects (unless reflected in the types): is a must-have for STM, although it makes things more difficult in the beginning, in the end it turns out to be a blessing because one can guarantee that side-effects won't occur. We have taken care that the agents all run in side-effect free code.
+ 
+STM: implementing concurrency is a piece-of-cake
+
+extremely powerful static typesystem: in combination with side-effect free this results in the semantics of an update-strategy to be reflected in the Agent-Transformer function and the messaging-interface. This means a user of this approach can be guided by the types and can't abuse them. Thus the lesson learned here is that \textit{if one tries to abuse the types of the agent-transformer or work around, then this is an indication that the update-strategy one has selected does not match the semantics of the model one wants to implement}. If this happens in Java, it is much more easier to work around by introducing global variables or side-effects but this is not possible in Haskell. \\
+Thus our conclusion in using Haskell is that it is an extremely underestimated language in ABM/S which should be explored much more as we have shown that it really shines in this context and we believe that it could be pushed further even more.
+
+but still it is not suitable for big models with heterogeneous agents, there things are lacking: see further research
+
+
+
+
 note that the difference between SEQ and PAR in Haskell is in the end a 'fold' over the agents in the case of SEQ and a 'map' in the case of PAR
 dont have objects with methods which can call between each other but we need some way of representing agents. this is done using a struct type with a behaviour function and messaging mechanisms. important: agents are not carried arround but messages are sent to a receiver identified by an id. This is also a big difference to java where don't really need this kind of abstraction due to the use of objects and their 'messaging'. messaging mechanisms have up- and downsides, elaborate on it.
 
@@ -55,3 +78,7 @@ This is the process of implementing the behaviour of the Agent as specified in t
 \item Sense (read) the environment
 \item Influence (write) the environment
 \end{enumerate}
+
+
+\subsection{Scala with Actors}
+direct support for actors

@@ -1,55 +1,46 @@
 \section{Update-Strategies}
 2 Pages
 
-This is all programming-language agnostic
-
-\begin{itemize}
-	\item A terminology and classification of all the possible iteration-strategies presented as a list 
-	\item short discussion separate paragraph for each
-		\begin{itemize}
-			\item Abstract implementation of the strategies
-			\item Philosophical meaning and interpretation
-			\item Advice for selecting it
-		\end{itemize}
-\end{itemize} 
-
-
-\subsection{Classification}
+In this section we will present all the update-strategies which are available in ABM/S in a general form, discuss abstract details independent from programming languages, give philosophical meaning and interpretation of them and advices for selecting them for which model.
 
 \begin{table}[H]
 	\center
-	\begin{tabular}{ c | c | c | c | c | c }
-		\textbf{Name} & \textit{Time} & \textit{Order} & \textit{Decisions} & \textit{Non-Deterministic} & \textit{Type}\\
-		\hhline{=|=|=|=|=|=}
-	    Sequential & Global & Sequential & Global & No & Sync \\ 
+	\begin{tabular}{ c | c | c | c  }
+		\textit{Name} & \textit{Time-Flow} & \textit{Iteration-Order} & \textit{Deterministic} \\
+		\hhline{=|=|=|=}
+	    \textbf{Seq} & Global & Sequential & Yes \\
 	    \hline
-	    Parallel & Global & Parallel & Local & No & Sync \\ 
+	    \textbf{Par} & Global & Parallel & Yes \\
 	    \hline
-	    Concurrent & Global & Concurrent & Global & Yes & Async \\ 
+	    \textbf{Con} & Global & Concurrent & No \\
 	    \hline
-	    Actors & Local & Random & Local & Yes & Async \\ 
+	    \textbf{Act} & Local & Actor & No \\
 	\end{tabular}
-	\caption{Summary of simulation-stepping methods.}
+	\caption{List of all general update-strategies in ABM/S.}
 \end{table}
 
-\subsection{Sequential - Strategy}
-TODO: deterministic iteration, random-iteration with uniform distribution
-TODO: keep time constant for each agent in one iteration OR 
-		advance for every agent by fraction of dt: agent-time = t + (ai * dt/n) where t is the current simulation time, ai the agents index, dt the amount of time the simulation will be advanced by and n the number of agents. In the end the new current time will be then tnext = tcurr + dt
-		other possibilities of advancing is agent-time = t + ai * dt. in the end the new current time will be then tnext = tcurr + n * dt
+\subsection{Seq}
+\textbf{Description:} This strategy has a global time-flow and in each time-step iterates through all the agents and updates one Agent after another. Messages sent and changes to the environment made by Agents are visible immediately. More formally, we assume that, given the updates are done in order of the index $i = [1..n]$, then Agents $a_{n>i}$ see the changes to environment and messages sent to them by Agent $a_i$. Note that there is no source of randomness and non-determinism thus rendering this strategy to be completely deterministic in each step. 
+
+\textbf{Time-Updates:} The most straight-forward approach is to keep the time constant for each agent in one iteration. This though may seem non-logic as the actions of preceding Agents are visible to later ones but time has not changed since then. Thus if the model semantics require that time changes with every Agent we could advance for every agent by fraction of dt: agent-time = t + (ai * dt/n) where t is the current simulation time, ai the agents index, dt the amount of time the simulation will be advanced by and n the number of agents. In the end the new current time will be then tnext = tcurr + dt. Other possibilities of advancing is agent-time = t + ai * dt. in the end the new current time will be then tnext = tcurr + n * dt
+
+\textbf{Extensions}: If the sequential iteration from 1..n imposes an advantage over the Agents further ahead or behind in the queue (e.g. if it is of benefit when making choices earlier than others in auctions or later when more information is available) then one could use random-walk iteration where in each time-step the agents are shuffled before iterated. Note that although this would introduce randomness in the model the source is a random-number generator thus reproduce-able.
+
+
+\subsection{Par}
+\textbf{Description:} This strategy has a global time-flow and in each time-step iterates through all the agents and updates all Agents in parallel. Messages sent and changes to the environment made by Agents are visible in the next global step. We can think about this strategy that all Agents make their moves at the same time. 
+
+\textbf{Environment:} If one wants to change the environment in a way that it would be visible to other Agents this is regarded as a systematic error in this strategy. First it is not logical because all actions are meant to happen at the same time and also it would implicitly induce an ordering thus violating the \textit{happens at the same time} idea. Thus we require different semantics for accessing the environment in this strategy. We introduce thus a \textit{global} environment which is made up of the set of \textit{local} environments. Each local environment is owned by an Agent thus there are as many local environments as there are Agents. The semantics are then as follows: in each step all Agents can \textit{read} the global environment and \textit{read/write} their local environment. The changes to a local environment are only visible \textit{after} the local step and can be fed back into the global environment after the parallel processing of the Agents.
+
+\textbf{Time-Updates:} Time really stays constant in this case for all Agents in one step as all updates happen really at the same \textit{virtual} time. It would make no sense to advance the time between Agents as all actions are meant to happen at the same time, without imposing any ordering amongst them.
+
+\textbf{Semantics:} It does not make a difference if the Agents are really computed in parallel or just sequentially, due to the semantics of changes, this has the same effect. In this case it will make no difference how we iterate over the agents (sequentially, randomly), the outcome \textit{has to be} the same - it is event-ordering invariant as all events/updates happen \textit{virtually} at the \textit{same time}. Thus if one needs to have the semantics of writes on the whole (global) environment in ones model, then this strategy is not the right one and one should resort to one of the other strategies.
+
 		
+\subsection{Con}
+\textbf{Description:} This strategy has a global time-flow and in each time-step iterates through all the agents and updates all Agents in parallel but all messages sent and changes to the environment are immediately visible. Thus this strategy can be understood as a mix of Seq and Par: all Agents run at the same time with actions becoming immediately visible.
 
-update one Agent after another. We assume that, given the updates are done in order of the index $i 1 to n$, then Agents $a_{n>i}$ see the updated agent-state / influence on the environment of agent $a_i$. Note that if this is not the case we would end up in the parallel-case (see next) \textit{independent} whether it is in fact running in parallel or not. For breaking deterministic ordering which could result in giving an Agent an advantage (e.g. having more information towards the end of the step) one could implement a random-walk in each step but this does not fundamentally change this approach. Also if one thinks the simulation continuously, where each step is just a very small update like in Heroes \& Cowards, then the random ordering should not change anything fundamental as no agent has real information-benefit over others as there is continuous iteration thus the agent once ahead is then behind. TODO: maybe need to make more formal
-
-
-\subsection{Parallel - Strategy}
-update all Agents in parallel. This case is obviously only possible if the agents cannot interfere with each other or the environment through shared state. In this case it will make no difference how we iterate over the agents, the outcome \textit{has to be} the same - it is event-ordering invariant as all events/updates happen \textit{virtually} at the \textit{same time}. Haskell is a strong proponent of this implementation-technique.
-
-If one wants to write global in case of parallel this is regarded as a systematic error as this is not logical as it would imply an ordering thus we requiring different semantics: SEQ or CONCURRENT. Thus we would have to make the Environment in case of Par local to an agent which is the same as moving it into the agents state => we choose another approach: pass in an environment which cant be changed by the agents (no environment in return type) but only by the simulation-iterator after an iteration.  => dynamic WildFire-Model does not work with PAR
-		
-		
-\subsection{Concurrent - Strategy}
-update all Agents concurrently. In this case the agents run in parallel but share some state which access has to be synchronized thus introducing real random event-orderings which may or may not be desirable in the given simulation model. Can be implemented in both Java and Haskell.
+\textbf{Semantics:} It is important to realize that, when running Agents in parallel which are able to see actions by others immediately, this is the very definition of concurrency: parallel execution with mutual read/write access to shared data. Of course this shared data-access needs to be synchronized which in turn will introduce event-orderings in the execution of the Agents. Thus at this point we have a source of inherent non-determinism: although we would ignore any hardware-model of concurrency at some point we need arbitration to decide which Agent gets access first to a shared resource thus arriving at non-deterministic solutions - this will become much clearer in the results-section. This has the very important influence that repeated runs with the same configuration of the Agents and the Model may lead to different results each time.
 
 
 \subsection{Actors - Strategy}
@@ -60,11 +51,10 @@ in the Act-version we need to observe the agents: we need to sample them regular
 In this case there is no global iteration over steps but all the Agents run in parallel, doing local stepping and communicate with each other either through shared state or messages. Note that this does not impose any specific ordering of the update and can thus regarded to be real random due to its concurrent nature. It is possible to simulate the global-stepping methods from above by introducing some global locking forcing the agents into lock-step. This is the approach chosen for Scala \& Actors.
 
 
+\cite{clinger_foundations_1981}
+\cite{grief_semantics_1975}
 
-
-
-
-
+\textbf{Semantics:} This is the most general one of all the strategies as it can emulate all the others by introducing the necessary synchronization mechanisms and Agents.
 
 
 \subsection{Update-Strategies}

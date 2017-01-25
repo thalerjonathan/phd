@@ -3,39 +3,11 @@
 \subsection{Mapping to our terminology}
 Although all definitions mentioned in the related research section have different semantics and implications, our framework faithfully captures all of them:
 
+TODO: rework: don't cite the works but recap what they mean with sync and async
+
 When following \cite{yuxuan_agent-based_2016} we use \textit{Seq}, \textit{Par} or \textit{Con} and the synchronous updates will happen in the pro-active internal stimulus and the asynchronous by reacting to and sending messages.
 
 when following \cite{dawson_opening_2014} we use \textit{Seq}, \textit{Par} or \textit{Con} and the synchronous updates happen by providing the same global time-delta to all agents, which means all agents have global time and advance at the same speed. The asynchronous version would be to provide each agent with a different, random time-delta, rendering the time of the agent local instead of globally synchronized. When taking this into account we can argue that \textit{Seq}, \textit{Par} and \textit{Con} are, as described above, synchronous update-strategies and only \textit{Act} is truly asynchronous due to the locality of time and information. We can though make \textit{Seq}, \textit{Par} and \textit{Con} asynchronous too if we iterate globally as specified but instead of feeding each Agent the global time which advanced by some constant delta since the previous step, we feed each Agent a local time by introducing random time-deltas drawn individually in a given range for each Agent. This would resemble the locality of the Act strategy without introducing the non-determinism.
 
 When following \cite{huberman_evolutionary_1993} we use the \textit{Seq} for an asynchronous-time model and \textit{Par} for the synchronous one. This was demonstrated by our implementations: when running this model with \textit{Par} the beautiful patterns emerge as reported but when following the \textit{Seq} approach they wont and all Agents defect after a given number of generations.
 
-\subsection{Our proposal}
-We propose to abandon the notion of synchronous and asynchronous updates as there is no consistent use and understanding of it in the literature of ABM/S. Also it is imprecise and lacking important details which are of importance for the semantics of a Model. 
-
-TODO: extend table what we can do and how it works
-
-message based
-stimulus of pro-activity: global/local
-iteration-order
-
-\begin{table}[H]
-	\center
-	\begin{tabular}{ c | c | c | c  }
-		\textit{Name} & \textit{Time-Flow} & \textit{Iteration-Order} & \textit{Deterministic} \\
-		\hhline{=|=|=|=}
-	    \textbf{Seq} & Global & Sequential & Yes \\
-	    \hline
-	    \textbf{Par} & Global & Parallel & Yes \\
-	    \hline
-	    \textbf{Con} & Global & Concurrent & No \\
-	    \hline
-	    \textbf{Act} & Local & Actor & No \\
-	\end{tabular}
-	\caption{List of all general update-strategies in ABM/S.}
-\end{table}
-
-synchronous to be the immediate execution of a message upon arrival.
-asynchronous to be the post-poned execution of a message 
-TODO: this is not so easy because it would change everything
-
-also 

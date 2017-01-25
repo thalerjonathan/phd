@@ -10,10 +10,13 @@ ABM/S is a method of modelling and simulating a system where the global behaviou
 
 An implementation of an ABS must solve thus solve three fundamental problems:
 \begin{enumerate}
-	\item Source of pro-activity \\ How can an Agent initiate actions without external stimuli?
-	\item Message-Processing \\ When is a message \textit{m}, visible to Agent \textit{B}, processed by it?
+	\item Source of pro-activity \\ How can an Agent initiate actions without the external stimuli of messages?
+	\item Message-Visibility \\ When is a message \textit{m}, visible to Agent \textit{B}, processed by it?
 	\item Semantics of Message-Delivery \\ When is a message \textit{m}, sent by Agent \textit{A} to Agent \textit{B}, visible to \textit{B}?
 \end{enumerate}
+
+TODO: add "own thread of execution" or "shared thread of execution". still this does not allow us to generalize the notion of global time because in PAR and CON we have own threads of execution but global time. this brings us to:
+TODO: synchronized vs asynchronous iteration. 
 
 In computer systems, pro-activity, the ability to initiate actions on its own without external stimuli, is only possible when there is some internal stimuli, most naturally represented by some generic notion of monotonic increasing time-flow. This can either be some physical real-time system-clock which counts the milliseconds since 1970 (thus binding the time-flow of the system to the one of the 'real-world') or a virtual simulation-clock which is just a monotonic increasing natural number. As we are in a discrete computer-system, this time-flow must be discretized as well in discrete steps and each step must be made available to the Agent, acting as one internal stimuli. This allows the Agent then to perceive time and become pro-active depending on time (NOTE: we could argue that this is not really pro-activity because it depends always on time, but there is really now other way of doing this in our current implementation of computer-systems.). Independent of the representation of the time-flow we have the two fundamental choices whether the time-flow is local to the Agent or whether it is a system-global time-flow.
 

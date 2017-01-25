@@ -23,6 +23,9 @@ For testing the suitability we selected a variety of simple models we implemente
 \subsection[Results]{Results\footnote{Code available under\\ \url{https://github.com/thalerjonathan/phd/tree/master/coding/papers/iteratingABM/}}}
 
 \subsubsection{Java}
+TODO: create simple diagrams for java, they are very specific to the language sind doch zu spezifisch.
+ give UML Sequence-Diagrams for better understanding of the flow of control. Although we wanted to keep this section programming-language agnostic, the Diagrams will be provided in the context of object-orientation because its semantics are widely understood and accepted.
+
 parallelism and concurrency very easy due to elegant and powerful built-in synchronization primitives, high-performance and large number of agents possible due to aliasing and side-effects
 
 sequential more natural in java,
@@ -42,6 +45,9 @@ conc: expect it to be a pain in the ass with java. it is not: its the same inter
 act: need to copy messages, otherwise could stuck in an endless loop
 
 \subsection{Haskell}
+to implement immediate message-handling in haskell would be very cumbersome: 
+drag all agents around, could run into recursion, state-handling becomes cumbersome, => leads to re-building an OO kind-of system in a pure functional language => don't do that! The conclusion is that for now this is left as the single drawback, which is not appropriately implementable using Haskell. Thats really where Java shines with its mutable Objects and Side-Effects.
+
 TODO: could we really implement synchronous message-handling in Haskell? we would need to pass always ALL agents around and return them in every call
 
 We initially thought that Haskell would be suitable best for just implementing the Par-Strategy after implementing all the strategies in it we found out that Haskell is extremely well suited to implement all the strategies. We think this stems from the following facts that it has no implicit side-effects which reduces bugs considerably and reveals the data-flow very explicitly.

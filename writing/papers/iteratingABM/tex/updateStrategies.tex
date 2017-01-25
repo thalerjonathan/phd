@@ -1,21 +1,7 @@
 \section{Update-Strategies}
-In this section we will present all the update-strategies which are available in ABM/S in a general form, discuss abstract details independent from programming languages, give philosophical meaning and interpretation of them and advices for selecting them for which model.
+TODO: UML Sequence-Diagrams
 
-\begin{table}[H]
-	\center
-	\begin{tabular}{ c | c | c | c  }
-		\textit{Name} & \textit{Time-Flow} & \textit{Iteration-Order} & \textit{Deterministic} \\
-		\hhline{=|=|=|=}
-	    \textbf{Seq} & Global & Sequential & Yes \\
-	    \hline
-	    \textbf{Par} & Global & Parallel & Yes \\
-	    \hline
-	    \textbf{Con} & Global & Concurrent & No \\
-	    \hline
-	    \textbf{Act} & Local & Actor & No \\
-	\end{tabular}
-	\caption{List of all general update-strategies in ABM/S.}
-\end{table}
+In this section we will present all the four update-strategies which are available in ABM/S in a general form, discuss abstract details independent from programming languages, give semantic meaning and interpretation of them, implications for selecting them for a model and give UML Sequence-Diagrams for better understanding of the flow of control.
 
 \subsection{Seq}
 \textbf{Description:} This strategy has a global time-flow and in each time-step iterates through all the agents and updates one Agent after another. Messages sent and changes to the environment made by Agents are visible immediately. More formally, we assume that, given the updates are done in order of the index $i = [1..n]$, then Agents $a_{n>i}$ see the changes to environment and messages sent to them by Agent $a_i$. Note that there is no source of randomness and non-determinism thus rendering this strategy to be completely deterministic in each step. 

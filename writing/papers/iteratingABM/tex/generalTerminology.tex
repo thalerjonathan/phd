@@ -1,12 +1,7 @@
 \section{A general terminology}
 
-\subsection{Synchronous vs. Asynchronous}
-As initially noted, the ABM/S literature talks about synchronous and asynchronous time-models but it is often not clear what is meant and some definitions contradict each other. \\ \cite{yuxuan_agent-based_2016} identify the asynchronous time-model to be one in which updates are triggered by the exchange of messages and the synchronous ones which trigger changes immediately without the indirection of messages. \\
-\cite{dawson_opening_2014} interpret asynchronous time-models to be the ones in which an Agent acts at random time intervals and synchronous time-models where agents ? IT IS UNCLEAR TO ME \\
-\cite{huberman_evolutionary_1993} define to be synchronous as Agents being updated in unison and asynchronous where one Agent is updated and the others are held constant.
-
 \subsection{Mapping to our terminology}
-Although all definitions have different semantics and implications, our framework faithfully captures all of them:
+Although all definitions mentioned in the related research section have different semantics and implications, our framework faithfully captures all of them:
 
 When following \cite{yuxuan_agent-based_2016} we use \textit{Seq}, \textit{Par} or \textit{Con} and the synchronous updates will happen in the pro-active internal stimulus and the asynchronous by reacting to and sending messages.
 
@@ -17,4 +12,25 @@ When following \cite{huberman_evolutionary_1993} we use the \textit{Seq} for an 
 \subsection{Our proposal}
 We propose to abandon the notion of synchronous and asynchronous updates as there is no consistent use and understanding of it in the literature of ABM/S. Also it is imprecise and lacking important details which are of importance for the semantics of a Model. 
 
-TODO
+TODO: extend table what we can do and how it works
+
+message based
+stimulus of pro-activity: global/local
+iteration-order
+
+\begin{table}[H]
+	\center
+	\begin{tabular}{ c | c | c | c  }
+		\textit{Name} & \textit{Time-Flow} & \textit{Iteration-Order} & \textit{Deterministic} \\
+		\hhline{=|=|=|=}
+	    \textbf{Seq} & Global & Sequential & Yes \\
+	    \hline
+	    \textbf{Par} & Global & Parallel & Yes \\
+	    \hline
+	    \textbf{Con} & Global & Concurrent & No \\
+	    \hline
+	    \textbf{Act} & Local & Actor & No \\
+	\end{tabular}
+	\caption{List of all general update-strategies in ABM/S.}
+\end{table}
+

@@ -2,15 +2,6 @@
 In this section we will present all the four update-strategies which are available in ABM/S in a general form, discuss abstract details independent from programming languages, give semantic meaning and interpretation of them, implications for selecting them for a model. \\
 We propose to abandon the notion of synchronous and asynchronous updates as there is no consistent use and understanding of it in the literature of ABM/S. Also it is imprecise and lacking important details which are of importance for the semantics of a Model. For this we put forward the following properties for characterization: 
 
-\begin{itemize}
-	\item Iteration-Order
-	\item Iteration-Synchronization 	TODO: find better name for it
-	\item Thread of Execution
- 	\item Message-Handling	
- 	\item Visibility of Changes 		TODO: find better name for it
-	\item Repeatability
-\end{itemize}
-
 \paragraph{Iteration-Order}
 Sequential, Parallel, Concurrent.
 
@@ -37,7 +28,7 @@ Although there are much more possible combinations than four, we arrive in the e
 
 \subsection{Update-Strategies}
 
-\subsection{Sequential}
+\subsubsection{Sequential Strategy}
 \textbf{Description:} This strategy has a global time-flow and in each time-step iterates through all the agents and updates one Agent after another. Messages sent and changes to the environment made by Agents are visible immediately. 
 
 \textbf{Semantics:} More formally, we assume that, given the updates are done in order of the index $i = [1..n]$, then Agents $a_{n>i}$ see the changes to environment and messages sent to them by Agent $a_i$. Note that there is no source of randomness and non-determinism thus rendering this strategy to be completely deterministic in each step. 
@@ -53,7 +44,7 @@ Although there are much more possible combinations than four, we arrive in the e
 	Deterministic:				Yes
 	
 
-\subsection{Parallel}
+\subsubsection{Parallel Strategy}
 \textbf{Description:} This strategy has a global time-flow and in each time-step iterates through all the agents and updates all Agents in parallel. Messages sent and changes to the environment made by Agents are visible in the next global step. We can think about this strategy that all Agents make their moves at the same time. 
 
 \textbf{Environment:} If one wants to change the environment in a way that it would be visible to other Agents this is regarded as a systematic error in this strategy. First it is not logical because all actions are meant to happen at the same time and also it would implicitly induce an ordering thus violating the \textit{happens at the same time} idea. Thus we require different semantics for accessing the environment in this strategy. We introduce thus a \textit{global} environment which is made up of the set of \textit{local} environments. Each local environment is owned by an Agent thus there are as many local environments as there are Agents. The semantics are then as follows: in each step all Agents can \textit{read} the global environment and \textit{read/write} their local environment. The changes to a local environment are only visible \textit{after} the local step and can be fed back into the global environment after the parallel processing of the Agents.
@@ -68,7 +59,7 @@ Although there are much more possible combinations than four, we arrive in the e
  	Environment-Change Visibility:		Post-Iteration
  	Deterministic:				Yes
  	
-\subsection{Concurrent}
+\subsubsection{Concurrent Strategy}
 \textbf{Description:} This strategy has a global time-flow and in each time-step iterates through all the agents and updates all Agents in parallel but all messages sent and changes to the environment are immediately visible. Thus this strategy can be understood as a mix of Seq and Par: all Agents run at the same time with actions becoming immediately visible.
 
 \textbf{Semantics:} It is important to realize that, when running Agents in parallel which are able to see actions by others immediately, this is the very definition of concurrency: parallel execution with mutual read/write access to shared data. Of course this shared data-access needs to be synchronized which in turn will introduce event-orderings in the execution of the Agents. Thus at this point we have a source of inherent non-determinism: although we would ignore any hardware-model of concurrency at some point we need arbitration to decide which Agent gets access first to a shared resource thus arriving at non-deterministic solutions - this will become much clearer in the results-section. This has the very important influence that repeated runs with the same configuration of the Agents and the Model may lead to different results each time.
@@ -81,7 +72,7 @@ Although there are much more possible combinations than four, we arrive in the e
  	Environment-Change Visibility:		In-Iteration
  	Deterministic:				Yes
 
-\subsection{Actor}
+\subsubsection{Actor Strategy}
 \textbf{Description:} This strategy has no global time-flow but all the Agents run concurrently in parallel, with their own local time-flow. The messages and changes to the environment are visible as soon as the data arrive at the local Agents - this can be immediately when running locally on a multi-processor or with a significant delay when running in a cluster over a network. Obviously this is also a non-deterministic strategy and repeated runs with the same Agent and Model-configuration may (and will) lead to different results.
 
 \textbf{Locality of Information:} It is of most importance to note that information and thus also time in this strategy is always local to an Agent as each Agent progresses in its own speed through the simulation. Thus in this case one needs to explicitly \textit{observe} an Agent when one wants to e.g. visualize it. This observation is then only valid for this current point in time, local to the observer but not to the Agent itself, which may have changed immediately after the observation. This implies that we need to sample our Agents with observations when wanting to visualize them, which would inherently lead to well known sampling issues. A solution would be to invert the problem and create an Observer-Agent which is known to all Agents where each Agent sends a \textit{'I have changed'} message with the necessary information to the observer if it has changed its internal state. This also does not guarantee that the observations will really reflect the actual state the Agent is in but is a remedy against the notorious sampling. 

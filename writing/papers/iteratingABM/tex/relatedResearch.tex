@@ -3,11 +3,11 @@ Already noted in the introduction, \cite{huberman_evolutionary_1993} where the f
 
 \medskip
 
-TODO: \cite{a_framework_2008} give an approach for ABM/S on GPUs. a seemingly completely different form but which, we hypothesize, can be roughly mapped to our PAR-Strategy. 
+TODO: \cite{a_framework_2008} give an approach for ABS on GPUs. a seemingly completely different form but which, we hypothesize, can be roughly mapped to our PAR-Strategy. 
 	
 \medskip
 	
-\cite{botta_time_2010} sketch a minimal agent-framework in Haskell which is very similar in the basic structure of ours. This proofs that this approach, very well developed in ABM/S, seems to be a very natural one also to apply to Haskell. Their focus is more on economic simulations and instead of iterating a simulation with a global time, their focus is on how to synchronize agents which have internal, local transition times. Although their work uses Haskell as well, this does not diminish the novelty of our approach using Haskell because our focus is a very different from them and approaches ABM/S in a more general sense.
+\cite{botta_time_2010} sketch a minimal agent-framework in Haskell which is very similar in the basic structure of ours. This proofs that this approach, very well developed in ABS, seems to be a very natural one also to apply to Haskell. Their focus is more on economic simulations and instead of iterating a simulation with a global time, their focus is on how to synchronize agents which have internal, local transition times. Although their work uses Haskell as well, this does not diminish the novelty of our approach using Haskell because our focus is a very different from them and approaches ABS in a more general and comprehensive sense.
 
 \medskip
 
@@ -15,8 +15,8 @@ TODO: \cite{a_framework_2008} give an approach for ABM/S on GPUs. a seemingly co
 
 \medskip
 
-\cite{yuxuan_agent-based_2016} presents in his Master-Thesis a comprehensive discussion on how to implement an ABS for state-charts in Java and also mentions synchronous and asynchronous time-model. He identify the asynchronous time-model to be one in which updates are triggered by the exchange of messages and the synchronous ones which trigger changes immediately without the indirection of messages.
+\cite{yuxuan_agent-based_2016} presents in his Master-Thesis a comprehensive discussion on how to implement an ABS for state-charts in Java and also mentions synchronous and asynchronous time-model. He identifies the asynchronous time-model to be one in which updates are triggered by the exchange of messages and the synchronous ones which trigger changes immediately without the indirection of messages.
 
 \medskip
 
-There seems to be a variety of meanings attributed to the terminology of asynchronous vs. synchronous updates but the very semantic and technical details are unclear and not described very precisely. In the section about a general terminology we will address this issue and will put forward a proposal of how to fit these differences into our update-strategies and speak in a consistent way about update-strategies.
+We observe that there seems to be a variety of meanings attributed to the terminology of asynchronous vs. synchronous updates but the very semantic and technical details are unclear and not described very precisely. In the section about a new terminology we will address this issue and will put forward a proposal of how to fit these differences into our update-strategies and speak in a consistent way about them.

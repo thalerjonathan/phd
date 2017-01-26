@@ -12,7 +12,7 @@ Is a full Iteration over the collection of Agents happening at \textit{synchrono
 Does each Agent has a \textit{separate} thread of execution or does it \textit{share} it with all the others? Note that it seems to have a constraint on the Iteration-Order, namely that \textit{parallel} execution forces separate threads of execution for all Agents. We will show that this is not the case, when looking at the Parallel - Strategy.
 
 \paragraph{Message-Handling}
-Are messages handled \textit{immediately} by an Agent when sent to them or are they \textit{queued} and processed later? Here we have the constraint, that an immediate reaction to messages is only possible when the Agents share a common thread of execution.
+Are messages handled \textit{immediately} by an Agent when sent to them or are they \textit{queued} and processed later? Here we have the constraint, that an immediate reaction to messages is only possible when the Agents share a common thread of execution. TODO: elaborate on this: when doing parallel processing we really must enforce this constraint otherwise Agents could act concurrently, something which we want explicitly forbid
 
 \paragraph{Visibility of Changes}
 Are the changes made (messages sent, environment modified) by an Agent which is updated during an Iteration visible (during) \textit{In-Iteration} or only \textit{Post-Iteration} at the next Iteration? More formally: do all the Agents $a_{n>i}$ which are updated after Agent $a_i$ see the changes to the environment and messages sent to them by Agent $a_i$?
@@ -25,66 +25,66 @@ May repeated runs lead to different results with the same configuration? If this
 \subsection{Update-Strategies}
 
 \subsubsection{Sequential Strategy}
+\textbf{Iteration-Order:} Sequential \\
+\textbf{Iteration-Synchronization:}	Synchronous \\
+\textbf{Thread of Execution:} Shared \\
+\textbf{Message-Handling:} Immediate or Queued \\
+\textbf{Visibility of Changes:}	In-Iteration \\
+\textbf{Repeatability:}	Deterministic \\
+	
 \textbf{Description:} This strategy has a global time-flow and in each time-step iterates through all the agents and updates one Agent after another. Messages sent and changes to the environment made by Agents are visible immediately. 
 
 \textbf{Semantics:} More formally, we assume that, given the updates are done in order of the index $i = [1..n]$, then Agents $a_{n>i}$ see the changes to environment and messages sent to them by Agent $a_i$. Note that there is no source of randomness and non-determinism thus rendering this strategy to be completely deterministic in each step. 
 
 \textbf{Extensions}: If the sequential iteration from 1..n imposes an advantage over the Agents further ahead or behind in the queue (e.g. if it is of benefit when making choices earlier than others in auctions or later when more information is available) then one could use random-walk iteration where in each time-step the agents are shuffled before iterated. Note that although this would introduce randomness in the model the source is a random-number generator thus reproduce-able.
-
-	Iteration-Order:			Sequential
-	Iteration-Synchronization: 	Synchronous
-	Execution Thread:			Shared
- 	Message-Handling:			Immediate / Queued
- 	Message-Visibility:			In-Iteration
- 	Environment-Change Visibility:		In-Iteration
-	Deterministic:				Yes
 	
 TODO: what if we want to introduce a specific ordering? this can be easily implemented with comparators e.g. in java. but how is this in haskell?
 
 \subsubsection{Parallel Strategy}
+\textbf{Iteration-Order:} Parallel \\
+\textbf{Iteration-Synchronization:}	Synchronous \\
+\textbf{Thread of Execution:} Separate \\
+\textbf{Message-Handling:} Queued \\
+\textbf{Visibility of Changes:}	Post-Iteration \\
+\textbf{Repeatability:}	Deterministic \\
+
 \textbf{Description:} This strategy has a global time-flow and in each time-step iterates through all the agents and updates all Agents in parallel. Messages sent and changes to the environment made by Agents are visible in the next global step. We can think about this strategy that all Agents make their moves at the same time. 
 
 \textbf{Environment:} If one wants to change the environment in a way that it would be visible to other Agents this is regarded as a systematic error in this strategy. First it is not logical because all actions are meant to happen at the same time and also it would implicitly induce an ordering thus violating the \textit{happens at the same time} idea. Thus we require different semantics for accessing the environment in this strategy. We introduce thus a \textit{global} environment which is made up of the set of \textit{local} environments. Each local environment is owned by an Agent thus there are as many local environments as there are Agents. The semantics are then as follows: in each step all Agents can \textit{read} the global environment and \textit{read/write} their local environment. The changes to a local environment are only visible \textit{after} the local step and can be fed back into the global environment after the parallel processing of the Agents.
 
 \textbf{Semantics:} It does not make a difference if the Agents are really computed in parallel or just sequentially, due to the semantics of changes, this has the same effect. In this case it will make no difference how we iterate over the agents (sequentially, randomly), the outcome \textit{has to be} the same - it is event-ordering invariant as all events/updates happen \textit{virtually} at the \textit{same time}. Thus if one needs to have the semantics of writes on the whole (global) environment in ones model, then this strategy is not the right one and one should resort to one of the other strategies.
 
-	Iteration-Order:			Parallel
-	Iteration-Synchronization: 	Synchronous
-	Execution Thread:			Separate
- 	Message-Handling:			Queued
- 	Message-Visibility:			Post-Iteration
- 	Environment-Change Visibility:		Post-Iteration
- 	Deterministic:				Yes
- 	
 \subsubsection{Concurrent Strategy}
+\textbf{Iteration-Order:} Parallel \\
+\textbf{Iteration-Synchronization:}	Synchronous \\
+\textbf{Thread of Execution:} Separate \\
+\textbf{Message-Handling:} Queued \\
+\textbf{Visibility of Changes:}	In-Iteration \\
+\textbf{Repeatability:}	Non-Deterministic \\
+
 \textbf{Description:} This strategy has a global time-flow and in each time-step iterates through all the agents and updates all Agents in parallel but all messages sent and changes to the environment are immediately visible. Thus this strategy can be understood as a mix of Seq and Par: all Agents run at the same time with actions becoming immediately visible.
 
 \textbf{Semantics:} It is important to realize that, when running Agents in parallel which are able to see actions by others immediately, this is the very definition of concurrency: parallel execution with mutual read/write access to shared data. Of course this shared data-access needs to be synchronized which in turn will introduce event-orderings in the execution of the Agents. Thus at this point we have a source of inherent non-determinism: although we would ignore any hardware-model of concurrency at some point we need arbitration to decide which Agent gets access first to a shared resource thus arriving at non-deterministic solutions - this will become much clearer in the results-section. This has the very important influence that repeated runs with the same configuration of the Agents and the Model may lead to different results each time.
 
-	Iteration-Order:			Parallel
-	Iteration-Synchronization: 	Synchronous
-	Execution Thread:			Separate
- 	Message-Handling:			Queued
- 	Message-Visibility:			In-Iteration
- 	Environment-Change Visibility:		In-Iteration
- 	Deterministic:				Yes
-
 \subsubsection{Actor Strategy}
+\textbf{Iteration-Order:} Parallel \\
+\textbf{Iteration-Synchronization:}	Asynchronous \\
+\textbf{Thread of Execution:} Separate \\
+\textbf{Message-Handling:} Queued \\
+\textbf{Visibility of Changes:}	In-Iteration \\
+\textbf{Repeatability:}	Non-Deterministic \\
+
 \textbf{Description:} This strategy has no global time-flow but all the Agents run concurrently in parallel, with their own local time-flow. The messages and changes to the environment are visible as soon as the data arrive at the local Agents - this can be immediately when running locally on a multi-processor or with a significant delay when running in a cluster over a network. Obviously this is also a non-deterministic strategy and repeated runs with the same Agent and Model-configuration may (and will) lead to different results.
 
 \textbf{Locality of Information:} It is of most importance to note that information and thus also time in this strategy is always local to an Agent as each Agent progresses in its own speed through the simulation. Thus in this case one needs to explicitly \textit{observe} an Agent when one wants to e.g. visualize it. This observation is then only valid for this current point in time, local to the observer but not to the Agent itself, which may have changed immediately after the observation. This implies that we need to sample our Agents with observations when wanting to visualize them, which would inherently lead to well known sampling issues. A solution would be to invert the problem and create an Observer-Agent which is known to all Agents where each Agent sends a \textit{'I have changed'} message with the necessary information to the observer if it has changed its internal state. This also does not guarantee that the observations will really reflect the actual state the Agent is in but is a remedy against the notorious sampling. 
 
 \textbf{Semantics:} This is the most general one of all the strategies as it can emulate all the others by introducing the necessary synchronization mechanisms and Agents. Also this concept was proposed by C. Hewitt in 1973 in his work \cite{hewitt_universal_1973} where upon I. Grief in \cite{grief_semantics_1975} and W. Clinger in \cite{clinger_foundations_1981} developed semantics of different kinds. These works were very influential in the development of the Agent-Term and concept and can be regarded as foundational basics for ABM/S.
 
-	Iteration-Order:			Concurrent
-	Iteration-Synchronization: 	Asynchronous
-	Execution Thread:			Separate
- 	Message-Handling:			Queued
- 	Message-Visibility:			In-Iteration
- 	Environment-Change Visibility:		In-Iteration
- 	Deterministic:				No
  	
 \subsection{Mapping existing terminology}
+TODO: should be check for reference-models and look if all can be implemented: \cite{isaac_abm_2011} and StupidModel 1-16
+
+
 Although all definitions mentioned in the related research section have different semantics and implications, our framework faithfully captures all of them:
 
 TODO: rework: don't cite the works but recap what they mean with sync and async

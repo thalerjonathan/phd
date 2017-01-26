@@ -1,12 +1,30 @@
 \section{Papers}
 This is the list of papers I have in my mind and includes both work mandatory for the PhD and optional ones. The latter ones are just fun/philosophical-papers, not directly related to my PhD but somehow tangential with the very basic direction - they are intended to be worked on in my free-time and to free my head when wrestling too hard with my PhDs main work.
 
-\subsection{Influence of Simulation-Semantics on Dynamics of Agent-Based Simulations.}
+\subsection{The Art of Iterating: Update-Strategies in Agent-Based Simulations}
 \textbf{Type:} Groundwork \\
 \textbf{Target:} Conference/Journal \\
 \textbf{Requirement:} Mandatory \\
 
-The first paper which describes how one can implement ABM/S in Haskell and compares the implementation and results to Java and Akka. A major focus are update-strategies, parallelism, reproducibility, reasoning and comparability between the various implementations. Actors: The Future in Agent-Based Simulation \& Modelling? Although the actor-model is quite old (beginning of the 70s) it seems to have a revival both in Erlang in the 90s and now in the Framework Akka (based on Scala). It is one way of organizing highly parallel (and optionally distributed) applications. Also the actor-model is very close to the agent-metaphor where the latter one was strongly inspired by the former one. Thus It would be very interesting to look closer into how the Actor-Model can be utilized to ABM/S as it seems that this has not been properly done yet. This paper will establish my methodology in using Haskell / pure functional programming in the 2nd year main work.
+When developing a model for an Agent-Based Simulation (ABS) it is of very importance to select the right update-strategy for the agents to produce the desired results. In this paper we develop a systematic treatment of all general properties, derive the possible update-strategies in ABS and discuss their interpretation and semantics something which is still lacking in the literature on ABS. Further we investigate the suitability of the three very different programming languages Java, Haskell and  Scala with Actors to implement each of the update-strategies. Thus this papers contribution is the development of a new, general terminology of update-strategies and their implementation comparison in various kinds of programming languages.
+
+\subsection{Specification equals Code: An EDSL for pure functional Agent-Based Modelling \& Simulation}
+\textbf{Type:} Groundwork \\
+\textbf{Target:} Conference/Journal \\
+\textbf{Requirement:} Mandatory \\
+
+Building upon our previous work on update-strategies in Agent-Based Modelling \& Simulation (ABM/S) where we showed that Haskell is a very attractive alternative to existing object-oriented approaches we ask in this paper if the declarative power of the pure functional language can be utilized to write specifications for simple ABM/S models which can be directly translated to our Haskell implementation.
+
+\subsection{Reactive Agents:\\Functional Reactive Programming and ABM/S}
+\textbf{Type:} Groundwork \\
+\textbf{Target:} Conference/Journal \\
+\textbf{Requirement:} Mandatory \\
+
+In our previous work on update-strategies in Agent-Based Modelling \& Simulation (ABM/S) we showed that Haskell is a very attractive alternative to existing object-oriented approaches but our presented approach was too limited and we hypothesized that embedding it within a functional reactive framework like Yampa would leverage it to be able to build much more complex models. In this paper we investigate whether this hypothesis is true by testing if our approach can easily be transferred to Yampa, what we really gain from it and if more complex models can become reality. As a proof-of-concept we build a large, complex model from Agent-Based Computational Economics (ACE) which simulates a whole economy.
+
+
+
+
 
 \subsection{Pure Functional ACE (Catchy title yet to be defined)}
 \textbf{Type:} Main PhD Work \\

@@ -3,7 +3,7 @@ In this section we will present all the four update-strategies which are availab
 We propose to abandon the notion of synchronous and asynchronous updates as there is no consistent use and understanding of it in the literature of ABM/S. Also it is imprecise and lacking important details which are of importance for the semantics of a Model. For this we put forward the following properties for characterization: 
 
 \paragraph{Iteration-Order}
-Sequential, Parallel, Concurrent.
+Sequential or Parallel
 
 \paragraph{Iteration-Synchronization}
 Synchronous or Asynchronous
@@ -43,6 +43,7 @@ Although there are much more possible combinations than four, we arrive in the e
  	Environment-Change Visibility:		In-Iteration
 	Deterministic:				Yes
 	
+TODO: what if we want to introduce a specific ordering? this can be easily implemented with comparators e.g. in java. but how is this in haskell?
 
 \subsubsection{Parallel Strategy}
 \textbf{Description:} This strategy has a global time-flow and in each time-step iterates through all the agents and updates all Agents in parallel. Messages sent and changes to the environment made by Agents are visible in the next global step. We can think about this strategy that all Agents make their moves at the same time. 
@@ -64,7 +65,7 @@ Although there are much more possible combinations than four, we arrive in the e
 
 \textbf{Semantics:} It is important to realize that, when running Agents in parallel which are able to see actions by others immediately, this is the very definition of concurrency: parallel execution with mutual read/write access to shared data. Of course this shared data-access needs to be synchronized which in turn will introduce event-orderings in the execution of the Agents. Thus at this point we have a source of inherent non-determinism: although we would ignore any hardware-model of concurrency at some point we need arbitration to decide which Agent gets access first to a shared resource thus arriving at non-deterministic solutions - this will become much clearer in the results-section. This has the very important influence that repeated runs with the same configuration of the Agents and the Model may lead to different results each time.
 
-	Iteration-Order:			Concurrent
+	Iteration-Order:			Parallel
 	Iteration-Synchronization: 	Synchronous
 	Execution Thread:			Separate
  	Message-Handling:			Queued

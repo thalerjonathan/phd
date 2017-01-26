@@ -1,75 +1,77 @@
-\section{Implementation Comparisons}
-5 Pages
-In this section we give a brief overview of implementation issues in three languages which fundamentally differ among each other. We discuss how to map the strategies to the given languages, discuss programming-language technical details and compare the languages in regard of their suitability to implement each of these strategies. 
+\section[Implementation]{Implementation \footnote{Code available under\\ \url{https://github.com/thalerjonathan/phd/tree/master/coding/papers/iteratingABM/}}}
+In this section we give a brief overview of comparing implementing the update-strategies in three languages which fundamentally differ among each other. We wanted to cover a wide range of different types of languages but didn't include a language where the memory-management falls in the hands of the developer. This would be the case e.g. in C++. This was looked into partially by \cite{dawson_opening_2014} but the focus of this paper is not on this issue as it would complicated things dramatically. All used languages are garbage-collected / the developer does not need to care how memory is cleared up.
 
-\subsection{Languages}
-These are all the languages we included in this comparison. We wanted to cover a wide range of different types of languages. Note that we didn't select a language where the memory-management falls in the hands of the developer. This would be the case e.g. in C++. This was looked into partially by \cite{dawson_opening_2014} but the focus of this paper is not on this issue as it would complicated things dramatically. All used languages are garbage-collected / the developer does not need to care how memory is cleared up.
-
-\subsubsection{Java}
-This language is included as the benchmark of object-oriented (OO) imperative languages as it is extremely popular in the ABM/S community and widely used in implementing ABM/S. It comes with a comprehensive programming library, has powerful object-oriented features built in and is easy to learn although the OO concepts can be difficult to master.
-	
-\subsubsection{Haskell}
-This language is included to put to test whether such a pure functional declarative programming language is suitable for full-blown ABM/S. What distinguishes it is its complete lack of implicit side-effects, global data, mutable variables and objects. The central concept is the function into which all data has to be passed in and out explicitly through statically typed arguments and return values: data-flow is completely explicit.
-
-\subsubsection{Scala with Actors}
-This multi-paradigm functional language is included to test the usefulness of the \textit{Act} strategy for implementing ABM/S. The language comes with an Actor-library inspired by \cite{agha_actors:_1986} and resembles the approach of Erlang which allows a very natural implementation of the strategy.
+For testing the suitability we selected a variety of simple models we implemented in each language with mostly all strategies. The selected models are \textit{Heroes \& Cowards}, \textit{SIRS}, \textit{Wildfire} and the \textit{Spatial Game} mentioned in \cite{huberman_evolutionary_1993}. We lack the space to explain all models but all are well known and can be easily found, looked up and understood on the Internet. They span different challenges to the ABS implementation: sending messages, accessing the environment, spawning new Agents, killing existing ones, discrete and continuous model. We also can confirm that all the reference-models proposed in \cite{isaac_abm_2011} and the StupidModel 1-16 by Railsback (TODO: cite) can be faithfully capture using our new terminology. Also we could show that the  Parallel-Strategy is the only strategy able to reproduce the pattern of the \textit{Spatial Game} due to the semantics of the model which require that all the Agents play the game at virtually the same time - which is only possible in the Parallel-Strategy.
 
 
 
+\subsection{Java}
+This language is included as the benchmark of object-oriented (OO) imperative languages as it is extremely popular in the ABS community and widely used in implementing their models and Environments. It comes with a comprehensive programming library, has nice object-oriented features built in and powerful synchronization primitives at built in at language-level. \\
 
-\subsection{Selected Models}
-For testing the suitability we selected a variety of simple models we implemented in each language with mostly all strategies. The selected models are \textit{Heroes \& Cowards}, \textit{SIRS}, \textit{Wildfire} and the \textit{Spatial Game} mentioned in \cite{huberman_evolutionary_1993}. We lack the space to explain all models but all are well known and can be easily found, looked up and understood on the Internet. They span different challenges to the ABM/S implementation: sending messages, accessing the environment, spawning new Agents, killing existing ones, discrete and continuous model.
+\paragraph{Ease of Use}
+Being experienced Java-Programmers we found that implementing all the strategies was straight-forward and easy thanks to the languages features. Especially parallelism and concurrency is quite very easy due to elegant and powerful built-in synchronization primitives so high-performance and large number of agents possible due to aliasing and side-effects.
 
-TODO: check for reference-models and look if all can be implemented: \cite{isaac_abm_2011} and StupidModel 1-16
+\paragraph{Benefits}
+high-performance and large number of agents possible due to aliasing and side-effects.
 
-\subsection[Results]{Results\footnote{Code available under\\ \url{https://github.com/thalerjonathan/phd/tree/master/coding/papers/iteratingABM/}}}
+\paragraph{Deficits}
+We couldn't identify something which absolutely didn't work, that's also why Java can be regarded as a very safe decision when opting which language to use for implementing ABS.
+A downside is that one must take care when accessing memory in case of parallel or concurrent strategy. Due to the availability of aliasing and side-effects in the language and the type-system, it can't be guaranteed that access to memory happens only when its safe - something which is possible in Haskell (see below).
+Care must be taken when references are sent by messages to other agents in case of parallel or concurrency
 
-\subsubsection{Java}
-TODO: create simple diagrams for java, they are very specific to the language sind doch zu spezifisch.
- give UML Sequence-Diagrams for better understanding of the flow of control. Although we wanted to keep this section programming-language agnostic, the Diagrams will be provided in the context of object-orientation because its semantics are widely understood and accepted.
-
-parallelism and concurrency very easy due to elegant and powerful built-in synchronization primitives, high-performance and large number of agents possible due to aliasing and side-effects
-
-sequential more natural in java,
-parallel needs to "think functional" in java
-concurrency and actors always difficult in java despite java provides very good synchronization primitives
-
-sequential is able to work completely without messages and only by accesing references to neighbours but we explicitly don't want to follow this obvious way and stick to the send/receive message paradigm. we keep Agent-instance references
-
-parallel then needs to utilize messages because would violate the parallel implementation. TODO: split state from agent and only update agent-state
-problem: can send references through messages: share data
 although the interfaces encourage it we cannot prevent the agents to use agent-references and directly accessing. a workaround would be to create new agent-instances in every iteration-step which would make old references useless but this doesn't protect us from concurrency issues with a current iteration (the copying must take place within a synchronized block, thus implicitly assuming ordering, something we don't want) and besides, can always work around and update the references.
-thats the toll of side-effects: faster execution but less control over abuse
+that's the toll of side-effects: faster execution but less control over abuse
 tried to clone agents in each step and let them collect their messages => extremely slow
 
-conc: expect it to be a pain in the ass with java. it is not: its the same interface as in SEQ with updates running parallel like in PAR but 
+\paragraph{Natural Strategy}
+We think that the Sequential Strategy with Immediate Message-Handling is the most natural Strategy to express in Java due to its heavy reliance on side-effects through references (aliases) and shared thread of execution. Also most of the models work this way and its thus a save decision to start with Java.
 
-act: need to copy messages, otherwise could stuck in an endless loop
 
-\subsection{Haskell}
-to implement immediate message-handling in haskell would be very cumbersome: 
-drag all agents around, could run into recursion, state-handling becomes cumbersome, => leads to re-building an OO kind-of system in a pure functional language => don't do that! The conclusion is that for now this is left as the single drawback, which is not appropriately implementable using Haskell. Thats really where Java shines with its mutable Objects and Side-Effects.
 
-TODO: could we really implement synchronous message-handling in Haskell? we would need to pass always ALL agents around and return them in every call
 
-We initially thought that Haskell would be suitable best for just implementing the Par-Strategy after implementing all the strategies in it we found out that Haskell is extremely well suited to implement all the strategies. We think this stems from the following facts that it has no implicit side-effects which reduces bugs considerably and reveals the data-flow very explicitly.
+
  
+\subsection{Haskell}
+This language is included to put to test whether such a pure functional declarative programming language is suitable for full-blown ABS. What distinguishes it is its complete lack of implicit side-effects, global data, mutable variables and objects. The central concept is the function into which all data has to be passed in and out explicitly through statically typed arguments and return values: data-flow is completely explicit.
+
+\paragraph{Ease of Use}
+Being Haskell-Beginners we initially thought that it would be suitable at best for just implementing the Parallel-Strategy but after implementing all the strategies in it we found out that Haskell is extremely well suited to implement all of them. We think this stems from the following facts that it has no implicit side-effects which reduces bugs considerably and reveals the data-flow very explicitly.
+
 dont have objects with methods which can call between each other but we need some way of representing agents. this is done using a struct type with a behaviour function and messaging mechanisms. important: agents are not carried arround but messages are sent to a receiver identified by an id. This is also a big difference to java where don't really need this kind of abstraction due to the use of objects and their 'messaging'. messaging mechanisms have up- and downsides, elaborate on it.
 
-extremely powerful static typesystem: in combination with side-effect free this results in the semantics of an update-strategy to be reflected in the Agent-Transformer function and the messaging-interface. This means a user of this approach can be guided by the types and can't abuse them. Thus the lesson learned here is that \textit{if one tries to abuse the types of the agent-transformer or work around, then this is an indication that the update-strategy one has selected does not match the semantics of the model one wants to implement}. If this happens in Java, it is much more easier to work around by introducing global variables or side-effects but this is not possible in Haskell. \\
-Thus our conclusion in using Haskell is that it is an extremely underestimated language in ABM/S which should be explored much more as we have shown that it really shines in this context and we believe that it could be pushed further even more.
-
-it is not possible to send a message directly to an agent
-
-note that the difference between SEQ and PAR in Haskell is in the end a 'fold' over the agents in the case of SEQ and a 'map' in the case of PAR
-
+\paragraph{Benefits}
+the type-system prevents us from introducing implicit side-effects, global references are only possible in code marked in its types as producing side-effects, something we explicitly avoided and were able to throughout the whole implementation. Thus arriving at a much safer version in the parallel iteration-strategies with separate threads of execution.
 Also it is a must-have for STM, although it makes things more difficult in the beginning, in the end it turns out to be a blessing because one can guarantee that side-effects won't occur. We have taken care that the agents all run in side-effect free code.
 concurrency and actors extremely elegant possible through: STM which only possible in languages without side-effect	
 STM: implementing concurrency is a piece-of-cake
 the conc-version and the act-version of the agent-implementations look EXACTLY the same	 BUT we lost the ability to step the simulation!!!
 
+extremely powerful static typesystem: in combination with side-effect free this results in the semantics of an update-strategy to be reflected in the Agent-Transformer function and the messaging-interface. This means a user of this approach can be guided by the types and can't abuse them. Thus the lesson learned here is that \textit{if one tries to abuse the types of the agent-transformer or work around, then this is an indication that the update-strategy one has selected does not match the semantics of the model one wants to implement}. If this happens in Java, it is much more easier to work around by introducing global variables or side-effects but this is not possible in Haskell. \\
+Thus our conclusion in using Haskell is that it is an extremely underestimated language in ABM/S which should be explored much more as we have shown that it really shines in this context and we believe that it could be pushed further even more.
+
+\paragraph{Deficits}
+still much work to do to capture large and complex models (see further research), performance is a big issue but this has not been about performance (2000 Agents are enough)
 but still it is not suitable for big models with heterogeneous agents, there things are lacking: see further research
-But: still much work to do to capture large and complex models (see further research), performance is a big issue but this has not been about performance (2000 Agents are enough)
+
+to implement immediate message-handling in haskell would be very cumbersome: 
+drag all agents around, could run into recursion, state-handling becomes cumbersome, => leads to re-building an OO kind-of system in a pure functional language => don't do that! The conclusion is that for now this is left as the single drawback, which is not appropriately implementable using Haskell. Thats really where Java shines with its mutable Objects and Side-Effects.
+TODO: could we really implement synchronous message-handling in Haskell? we would need to pass always ALL agents around and return them in every call
+it is not possible to send a message directly to an agent
+This is the single main drawback of the Haskell implementation and although it only shows up in the Seq Strategy it would be of interest if there is an elegant, pure functional software-architecture which allows messages sent from Agent A to Agent B be immediately - as in: the same execution thread - handled by Agent B. 
+
+\paragraph{Natural Strategy}
+note that the difference between SEQ and PAR in Haskell is in the end a 'fold' over the agents in the case of SEQ and a 'map' in the case of PAR
+
+
+
 
 \subsection{Scala with Actors}
-direct support for actors
+This multi-paradigm functional language is included to test the usefulness of the \textit{Act} strategy for implementing ABM/S. The language comes with an Actor-library inspired by \cite{agha_actors:_1986} and resembles the approach of Erlang which allows a very natural implementation of the strategy.
+
+\paragraph{Ease of Use}
+
+\paragraph{Benefits}
+
+\paragraph{Deficits}
+
+\paragraph{Natural Strategy}

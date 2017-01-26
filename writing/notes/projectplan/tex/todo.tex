@@ -6,8 +6,17 @@
 
 \item look into 'standard-models' in ABM and check if and how they can be implemented using my terminology
 
+\item Thorsten Meeting preparation
+\begin{itemize}
+	\item Meinen derzeitigen Stand (Paper und Code) aus Haskell Sicht
+	\item Idee für ein Paper: eine Spezifikationssprache für Agent-Based Modelling & Simulation, die quasi Haskell-Code ist - die Idee ist, der Frage nachgehen inwieweit der Spezifikation-Implementations Gap (mehr oder weniger) geschlossen werden kann, wenn wir das ganze in Haskell mit meinem Ansatz machen. Auch sind reasoning-Techniken hier sicher auch von Interesse.
+	\item Idee für ein weiteres Paper: meine derzeitige ABM/S Implementierung in Haskell mit FRP (Yampa) zu verbinden, was dem ganzen sicherlich ordentlich leverage gibt. Die Hypothese: die Richtung die ich eingeschlagen habe, würde sich sowieso nach FRP entwickeln, ausserdem erlaubt es wesentlich komplexere und größere Modelle zu implementieren.
+	\item FP Lunch Präsentation: steht immer noch aus, ist aber noch zu früh und das Thema war bisher nicht entsprechend, könnte aber mit dem ersten Paper eine passende Richtung vorgeben.
+\end{itemize}
+
 \item Implementation Work:
 	\begin{itemize}
+		\item try out immediate message-handling in java
 		\item implement wildfire dynamic in java for creating new agents and deleting old ones
 		\item make act run ok in java
 		\item implement sirs and spatialgame in scala with actors

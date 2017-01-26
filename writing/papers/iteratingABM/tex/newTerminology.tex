@@ -1,30 +1,26 @@
-\section{A new Terminology and Classification}
-In this section we will present all the four update-strategies which are available in ABM/S in a general form, discuss abstract details independent from programming languages, give semantic meaning and interpretation of them, implications for selecting them for a model. \\
-We propose to abandon the notion of synchronous and asynchronous updates as there is no consistent use and understanding of it in the literature of ABM/S. Also it is imprecise and lacking important details which are of importance for the semantics of a Model. For this we put forward the following properties for characterization: 
+\section{A new terminology}
+In this section we will present a new terminology to speak about update-strategies in ABS by presenting the properties characterizing the dimensions and details of update-strategies and then derive all possible forms of update-strategies in a general form. We will discuss all details programming-language agnostic, give semantic meanings and interpreations of them and the implications selecting update-strategies for a model. \\
+To develop a new terminology, we propose to abandon the notion of synchronous and asynchronous updates and put forward the following properties for characterizing the dimensions of update-strategies:
 
 \paragraph{Iteration-Order}
-Sequential or Parallel
+Is the collection of Agents updated \textit{sequential} with one Agent updated after the other or are all agents updated in \textit{parallel}?
 
 \paragraph{Iteration-Synchronization}
-Synchronous or Asynchronous
-TODO: find better name for it
+Is a full Iteration over the collection of Agents happening at \textit{synchronous} points in time or does it happen \textit{asynchronous}?
 
 \paragraph{Thread of Execution}
-Shared or Owned
+Does each Agent has a \textit{separate} thread of execution or does it \textit{share} it with all the others? Note that it seems to have a constraint on the Iteration-Order, namely that \textit{parallel} execution forces separate threads of execution for all Agents. We will show that this is not the case, when looking at the Parallel - Strategy.
 
 \paragraph{Message-Handling}
-Immediate or Queued
+Are messages handled \textit{immediately} by an Agent when sent to them or are they \textit{queued} and processed later? Here we have the constraint, that an immediate reaction to messages is only possible when the Agents share a common thread of execution.
 
 \paragraph{Visibility of Changes}
-In- or Post-Iteration
-(messages \& environment)
-TODO: find better name for it
+Are the changes made (messages sent, environment modified) by an Agent which is updated during an Iteration visible (during) \textit{In-Iteration} or only \textit{Post-Iteration} at the next Iteration? More formally: do all the Agents $a_{n>i}$ which are updated after Agent $a_i$ see the changes to the environment and messages sent to them by Agent $a_i$?
 
 \paragraph{Repeatability}
-Deterministic or Non-Deterministic
+May repeated runs lead to different results with the same configuration? If this is the case then the update-strategy is regarded as \textit{non-deterministic} and \textit{deterministic} otherwise.
 
 
-Although there are much more possible combinations than four, we arrive in the end at four feasible update-strategies, which are now explained in detail.
 
 \subsection{Update-Strategies}
 

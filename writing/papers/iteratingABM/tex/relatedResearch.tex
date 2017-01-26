@@ -3,7 +3,7 @@ Already noted in the introduction, \cite{huberman_evolutionary_1993} where the f
 
 \medskip
 
-TODO: \cite{a_framework_2008} give an approach for ABS on GPUs. a seemingly completely different form but which, we hypothesize, can be roughly mapped to our PAR-Strategy. 
+\cite{a_framework_2008} give an approach for ABS on GPUs a very different approach to updating and iterating Agents in ABS. They discuss execution order at length, highlight the problem of inducing a specific execution-order in a Model which is problematic for parallel execution and give solutions how to circumvent these shortcomings. Although we havn't mapped our ideas to GPUs we explicitly include an approach for data-parallelism which, we hypothesize, can be utilized to roughly mapped their approach into our terminology. 
 	
 \medskip
 	
@@ -20,3 +20,4 @@ TODO: \cite{a_framework_2008} give an approach for ABS on GPUs. a seemingly comp
 \medskip
 
 We observe that there seems to be a variety of meanings attributed to the terminology of asynchronous vs. synchronous updates but the very semantic and technical details are unclear and not described very precisely. In the section about a new terminology we will address this issue and will put forward a proposal of how to fit these differences into our update-strategies and speak in a consistent way about them.
+there is no consistent use and understanding of it in the literature of ABS. Also it is imprecise and lacking important details which are of importance for the semantics of a Model. Thus we argue that there is still a lack of awareness about the influence of results due to the lack of important properties.

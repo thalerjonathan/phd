@@ -7,9 +7,13 @@ executable PureAgentsPar
   main-is:         Main.hs
   hs-source-dirs:  src
   build-depends:    base, containers, gloss, random, parallel
-  ghc-options:      -prof
-                    -threaded
-                    -auto-all
-                    -caf-all
-                    "-with-rtsopts=-N -s -hy -p -i0.1 -K256M"
-                      -- use hd or hy
+  ghc-options:      -threaded
+                    -O2
+                    -eventlog
+                    -rtsopts
+
+                    -- prof
+                    -- -auto-all
+                    -- -caf-all
+                    -- "-with-rtsopts=-N -s -hy -p -i0.1 -K256M"
+                    -- use hd or hy

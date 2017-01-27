@@ -1,2 +1,5 @@
 \section{Introduction}
  the specification language should not be too technical, its focus should be on non-technical expressiveness. The question is: can we abstract away the technicalities and still translate it directly to haskell (more or less)? If not, can be adjust our Haskell implementation to come closer to our specification language? Thus it is a two-fold approach: both languages need to come closer to each other if we want to close the gap
+ 
+ note that the difference between SEQ and PAR in Haskell is in the end a 'fold' over the agents in the case of SEQ and a 'map' in the case of PAR
+ the conc-version and the act-version of the agent-implementations look EXACTLY the same	 BUT we lost the ability to step the simulation!!!

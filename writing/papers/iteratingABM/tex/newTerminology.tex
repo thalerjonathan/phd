@@ -6,7 +6,7 @@ To develop a new terminology, we propose to abandon the notion of synchronous an
 Is the collection of Agents updated \textit{sequential} with one Agent updated after the other or are all agents updated in \textit{parallel}?
 
 \paragraph{Iteration-Synchronization}
-Is a full Iteration over the collection of Agents happening at \textit{synchronous} points in time or does it happen \textit{asynchronous}?
+Is a full Iteration over the collection of Agents happening in lock-step at \textit{synchronous} points in time or does it happen for each agent individually \textit{asynchronous}?
 
 \paragraph{Thread of Execution}
 Does each Agent has a \textit{separate} thread of execution or does it \textit{share} it with all the others? Note that it seems to have a constraint on the Iteration-Order, namely that \textit{parallel} execution forces separate threads of execution for all Agents. We will show that this is not the case, when looking at the Parallel - Strategy.

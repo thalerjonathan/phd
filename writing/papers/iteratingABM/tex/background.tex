@@ -1,5 +1,7 @@
 \section{Background}
-ABM/S is a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is of knowledge. Those parts, called Agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. Thus the central aspect of ABS is the concept of an Agent which can be understood as a metaphor for a unique pro-active unit, able to spawn new Agents, interacting with other Agents in a network of neighbours by exchange of messages which are situated in a generic environment \cite{wooldridge_introduction_2009}. Thus we informally assume the following about our Agents:
+
+\subsection{Agent-Based Simulation}
+ABS is a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is of knowledge. Those parts, called Agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. Thus the central aspect of ABS is the concept of an Agent which can be understood as a metaphor for a unique pro-active unit, able to spawn new Agents, interacting with other Agents in a network of neighbours by exchange of messages which are situated in a generic environment \cite{wooldridge_introduction_2009}. Thus we informally assume the following about our Agents:
 
 \begin{itemize}
 	\item They have a unique identifier and some internal state
@@ -8,28 +10,38 @@ ABM/S is a method of modelling and simulating a system where the global behaviou
 	\item They can interact with a generic environment they are situated in
 \end{itemize} 
 
-An implementation of an ABS must thus solve three fundamental problems:
+An implementation of an ABS must thus solve two fundamental problems:
+
 \begin{enumerate}
 	\item Source of pro-activity \\ How can an Agent initiate actions without the external stimuli of messages?
-	\item Message-Visibility \\ When is a message \textit{m}, visible to Agent \textit{B}, processed by it?
-	\item Semantics of Message-Delivery \\ When is a message \textit{m}, sent by Agent \textit{A} to Agent \textit{B}, visible to \textit{B}?
+	\item Semantics of Messaging \\ When is a message \textit{m}, sent by Agent \textit{A} to Agent \textit{B}, visible and processed by \textit{B}?
 \end{enumerate}
 
-TODO: add "own thread of execution" or "shared thread of execution". still this does not allow us to generalize the notion of global time because in PAR and CON we have own threads of execution but global time. this brings us to:
-TODO: synchronized vs asynchronous iteration. 
-
-In computer systems, pro-activity, the ability to initiate actions on its own without external stimuli, is only possible when there is some internal stimuli, most naturally represented by some generic notion of monotonic increasing time-flow. This can either be some physical real-time system-clock which counts the milliseconds since 1970 (thus binding the time-flow of the system to the one of the 'real time') or a virtual simulation-clock which is just a monotonic increasing natural number. As we are in a discrete computer-system, this time-flow must be discretized as well in discrete steps and each step must be made available to the Agent, acting as the internal stimuli. This allows the Agent then to perceive time and become pro-active depending on time (NOTE: we could argue that this is not really pro-activity because it depends always on time, but there is really no other way of doing this in our current implementation of computer-systems.). Independent of the representation of the time-flow we have the two fundamental choices whether the time-flow is local to the Agent or whether it is a system-global time-flow.
+In computer systems, pro-activity, the ability to initiate actions on its own without external stimuli, is only possible when there is some internal stimuli, most naturally represented by some generic notion of monotonic increasing time-flow. Du to the discrete nature of computer-system, this time-flow must be discretized in steps as well and each step must be made available to the Agent, acting as the internal stimuli. This allows the Agent then to perceive time and become pro-active depending on time. Independent of the representation of the time-flow we have the two fundamental choices whether the time-flow is local to the Agent or whether it is a system-global time-flow. Time-flows in computer-systems can only be created through threads of execution thus there are two of ways of feeding time-flow into an Agent. Either it has its own thread-of-execution or the system creates the illusions of their own thread-of-execution by sharing the global thread-of-execution sequentially among the Agents where an Agent has to yield the execution back after it has executed its step. Note the parallels to an operating system with cooperative multitasking in the latter case and real multi-processing in the former.
 
 \medskip 
 
-The semantics of message-delivery define when sent messages are visible to the receivers so they can process them and react to them. The only two ways of implementing them are that messages are visible either \textit{immediately} or after a synchronization point between the sender and receiver. Such a synchronization point can be a local one, just between the two or a global one between all Agents in the system.
+The semantics of messaging define when sent messages are visible to the receivers and when the receivers process them. Message-processing could be either immediately or delayed, depending on how message-delivery works. There are two ways of message-delivery: queued or immediate. In the case of immediate message-deliver the message is sent directly to the Agent without any queuing in between e.g. a direct method-call. This would allow an Agent to immediately react to this message as this call of the method transfers the thread-of-execution to the Agent. This is not the case in the queued message-delivery where messages are posted to the message-box of an Agent and the Agent pro-actively processes the message-box at regular points in time.
 
-\medskip 
+\subsection{ABS Properties}
+To develop a new terminology, we propose to abandon the notion of synchronous and asynchronous updates and, based on the discussion above we derived six properties characterizing the dimensions and details of the internals of an ABS:
 
-Basically we can say that we want to process a message as soon as it is visible to us but this is not how real computer-systems can work. In a real system each Agent would have a message-box into which the messages are posted so the Agent can then check its mail-box for new messages. The question is then when the Agent is going to poll for new messages? Clearly what we need is a recurring, regular trigger which allows the Agent to poll the mail-box and process all queued messages. We argue that the most natural approach is to bind this trigger to the time-flow step which provides pro-activity. Note that all explicit communication between Agents (there could be implicit communication through the environment) is message-based where messages are only processed at specified times in execution which is the time-step of an Agent. Thus a message sent to another Agent is not executed by the Agent at the sending time but queued and executed at the next internal stimulus: the next time-step. This prevents recursive calls due to an agent could never know who initiated the message-chain, something an agent does not want to care for.
-TODO: maybe this is the difference between sync and async meant by some: sync is if messages are executed immediately, async is if message-execution is postponed 
+\paragraph{Iteration-Order}
+Is the collection of Agents updated \textit{sequential} with one Agent updated after the other or are all Agents updated in \textit{parallel}, at virtually the same time?
 
-\medskip 
+\paragraph{Iteration-Synchronization}
+Is a full Iteration over the collection of Agents happening in lock-step at \textit{synchronous} points in time or does it happen for each agent individually \textit{asynchronous}?
 
-To solve these problems an update-strategy is implemented which will iterate through the Agents in \textit{some} way and allow the Agents to perform these steps. It is immediately clear that different choices in the specific problems will lead to different system behaviour. To discuss this we will first present all possible update-strategies and their details in the next section and then outline how they influence the system behaviour.
+\paragraph{Thread of Execution}
+Does each Agent has a \textit{separate} thread-of-execution or does it \textit{share} it with all the others? Note that it seems to have a constraint on the Iteration-Order, namely that \textit{parallel} execution forces separate threads of execution for all Agents. We will show that this is not the case, when looking at the Parallel Strategy in the next section.
 
+\paragraph{Message-Handling}
+Are messages handled \textit{immediately} by an Agent when sent to them or are they \textit{queued} and processed later? Here we have the constraint, that an immediate reaction to messages is only possible when the Agents share a common thread of execution. Note that we must enforce this constraint as otherwise Agents could end up having more than one threads-of-execution which could result in them acting concurrently by making simultaneous actions. This is something we explicitly forbid as it runs against our definition of Agents which allows them only one thread-of-execution at a time.
+
+\paragraph{Visibility of Changes}
+Are the changes made (messages sent, environment modified) by an Agent which is updated during an Iteration-Order visible (during) \textit{In-Iteration} or only \textit{Post-Iteration} at the next Iteration-Order? More formally: do all the Agents $a_{n>i}$ which are updated after Agent $a_i$ see the changes to the environment and messages sent to them by Agent $a_i$?
+
+\paragraph{Repeatability}
+May repeated runs lead to different results with the same configuration? If this is the case then the update-strategy is regarded as \textit{non-deterministic} and \textit{deterministic} otherwise.
+
+Having these properties identified we can now move on to derive all meaningful and reasonable update-strategies which are possible in a general form in ABS. These update-strategies together with the properties will form the new terminology we propose to speak about update-strategies in ABS in general.

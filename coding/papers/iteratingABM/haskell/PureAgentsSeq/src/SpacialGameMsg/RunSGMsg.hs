@@ -24,6 +24,29 @@ runSGMsgWithRendering = do
                             let hdl = PA.initStepSimulation asWithDefector ()
                             stepWithRendering dims hdl dt
 
+runSGMsgStepsAndRender :: IO ()
+runSGMsgStepsAndRender = do
+                            --hSetBuffering stdin NoBuffering
+                            let dt = 1.0
+                            let dims = (50, 50)
+                            let winSize = (800, 800)
+                            let steps = 45
+                            let rngSeed = 42
+                            let defectorsRatio = 0.0
+                            let g = mkStdGen rngSeed
+
+                            let (as, g') = createRandomSGAgents g dims defectorsRatio
+                            let asWithDefector = setDefector as (25, 25) dims
+
+                            let (as', _) = PA.stepSimulation asWithDefector () dt steps
+
+                            let observableAgentStates =  map (sgAgentToRenderCell dims) as'
+                            let frameRender = (Front.renderFrame observableAgentStates winSize dims)
+                            GLO.display (Front.display "Spacial Game MSG Seq" winSize) GLO.white frameRender
+                            return ()
+
+
+
 setDefector :: [SGAgent] -> (Int, Int) -> (Int, Int) -> [SGAgent]
 setDefector as pos cells
     | isNothing mayAgentAtPos = as
@@ -38,7 +61,7 @@ setDefector as pos cells
 stepWithRendering :: (Int, Int) -> SGSimHandle -> Double -> IO ()
 stepWithRendering dims hdl dt = simulateIO (Front.display "Spacial Game Seq" (800, 800))
                                 GLO.white
-                                2
+                                1
                                 hdl
                                 (modelToPicture dims)
                                 (stepIteration dt)

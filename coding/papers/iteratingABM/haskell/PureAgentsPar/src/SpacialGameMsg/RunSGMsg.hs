@@ -28,19 +28,21 @@ runSGMsgStepsAndRender :: IO ()
 runSGMsgStepsAndRender = do
                             let dt = 1.0
                             let dims = (50, 50)
+                            let winSize = (800, 800)
                             let rngSeed = 42
+                            let steps = 45
                             let defectorsRatio = 0.0
                             let g = mkStdGen rngSeed
+
                             let (as, g') = createRandomSGAgents g dims defectorsRatio
                             let asWithDefector = setDefector as (25, 25) dims
-                            let stepCount = 200
-                            let asWithDefector = setDefector as (25, 25) dims
                             let env = sgEnvironmentFromAgents asWithDefector
-                            let (as', _) = PA.stepSimulation asWithDefector env dt stepCount
 
-                            let cells = map (sgAgentToRenderCell dims) as'
-                            let frameRender = (Front.renderFrame cells (800, 800) dims)
-                            GLO.display (Front.display "Spacial Game Msg PAR" (800, 800)) GLO.white frameRender
+                            let (as', _) = PA.stepSimulation asWithDefector env dt steps
+
+                            let observableAgentStates = map (sgAgentToRenderCell dims) as'
+                            let frameRender = (Front.renderFrame observableAgentStates winSize dims)
+                            GLO.display (Front.display "Spacial Game Msg PAR" winSize) GLO.white frameRender
                             return ()
 
 setDefector :: [SGAgent] -> (Int, Int) -> (Int, Int) -> [SGAgent]

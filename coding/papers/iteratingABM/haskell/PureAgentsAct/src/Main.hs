@@ -11,7 +11,7 @@ import WildFire.RunWFStatic
 import WildFire.RunWFDynamic
 
 main :: IO ()
-main = runHAC
+main = runSGMsgStepsAndRender
         -- runHAC
 
         -- runWFDynamicRendering

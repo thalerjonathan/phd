@@ -8,6 +8,7 @@ import Graphics.Gloss.Interface.IO.Simulate
 import qualified PureAgentsAct as PA
 
 import System.Random
+import Control.Concurrent
 import Data.Maybe
 import Data.List
 
@@ -23,6 +24,37 @@ runSGMsgWithRendering = do
                             let asWithDefector = setDefector as (25, 25) dims
                             hdl <- PA.startSimulation asWithDefector dt ()
                             stepWithRendering dims hdl dt
+
+runSGMsgStepsAndRender :: IO ()
+runSGMsgStepsAndRender = do
+                            --hSetBuffering stdin NoBuffering
+                            let dt = 1.0
+                            let dims = (50, 50)
+                            let winSize = (800, 800)
+                            let rngSeed = 42
+                            let steps = 45.0
+                            let defectorsRatio = 0.0
+                            let g = mkStdGen rngSeed
+                            (as, g') <- PA.atomically $ createRandomSGAgents g dims defectorsRatio
+                            let asWithDefector = setDefector as (25, 25) dims
+
+                            hdl <- PA.startSimulation asWithDefector dt ()
+                            as' <- awaitFirstAgentTime hdl steps
+
+                            let observableAgentStates = map (sgAgentToRenderCell dims) as'
+                            let frameRender = (Front.renderFrame observableAgentStates winSize dims)
+                            GLO.display (Front.display "Spacial Game Msg ACT" winSize) GLO.white frameRender
+                            return ()
+
+awaitFirstAgentTime :: SGSimHandle -> Double -> IO [(PA.AgentId, Double, SGAgentState)]
+awaitFirstAgentTime hdl t = do
+                                threadDelay 100
+                                as <- PA.observeAgentStates hdl
+                                let reachedTime = any (\(_, localTime, _) -> localTime >= t) as
+                                if (reachedTime) then
+                                    return as
+                                    else
+                                        awaitFirstAgentTime hdl t
 
 setDefector :: [SGAgent] -> (Int, Int) -> (Int, Int) -> [SGAgent]
 setDefector as pos cells

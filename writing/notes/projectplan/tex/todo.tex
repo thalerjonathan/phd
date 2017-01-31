@@ -2,26 +2,19 @@
 
 \begin{enumerate}
 
+\item read papers about functional programming in ABM and put them into the bibliography of my paper. also about erlang
+
 \item look into 'standard-models' in ABM and check if and how they can be implemented using my terminology
+
+\item try algebraic reasoning using my framework
 
 \item Thorsten Meeting preparation
 \begin{itemize}
 	\item Meinen derzeitigen Stand (Paper und Code) aus Haskell Sicht
-	\item Idee für ein Paper: eine Spezifikationssprache für Agent-Based Modelling & Simulation, die quasi Haskell-Code ist - die Idee ist, der Frage nachgehen inwieweit der Spezifikation-Implementations Gap (mehr oder weniger) geschlossen werden kann, wenn wir das ganze in Haskell mit meinem Ansatz machen. Auch sind reasoning-Techniken hier sicher auch von Interesse.
+	\item Idee für ein Paper: eine Spezifikationssprache für Agent-Based Modelling \& Simulation, die quasi Haskell-Code ist - die Idee ist, der Frage nachgehen inwieweit der Spezifikation-Implementations Gap (mehr oder weniger) geschlossen werden kann, wenn wir das ganze in Haskell mit meinem Ansatz machen. Auch sind reasoning-Techniken hier sicher auch von Interesse.
 	\item Idee für ein weiteres Paper: meine derzeitige ABM/S Implementierung in Haskell mit FRP (Yampa) zu verbinden, was dem ganzen sicherlich ordentlich leverage gibt. Die Hypothese: die Richtung die ich eingeschlagen habe, würde sich sowieso nach FRP entwickeln, ausserdem erlaubt es wesentlich komplexere und größere Modelle zu implementieren.
 	\item FP Lunch Präsentation: steht immer noch aus, ist aber noch zu früh und das Thema war bisher nicht entsprechend, könnte aber mit dem ersten Paper eine passende Richtung vorgeben.
 \end{itemize}
-
-\item Implementation Work:
-	\begin{itemize}
-		\item try out immediate message-handling in java
-		\item implement wildfire dynamic in java for creating new agents and deleting old ones
-		\item make act run ok in java
-		\item implement sirs and spatialgame in scala with actors
-		\item act versions should send state updates to a visualizer agent: in haskell very difficult due to static typing of messages and not running in IO. can we do that in java?
-		
-		\item look into statistics of retries in STM \url{https://hackage.haskell.org/package/stm-stats-0.2.0.0/docs/Control-Concurrent-STM-Stats.html}: nothing revealing, all is running in parallel (although very inefficiently)
-	\end{itemize}
 
 \item find interesting and large, complex ACE model simulating an economy
 
@@ -31,62 +24,10 @@
 		\item implement agent monad: PureAgentsMonadic. but what is an Agent-Monad? build a monad to chain actions of the agent and always run inside an agent-monad
 		\item embed PureAgentsMonadic in Dunai
 		\item implement wait blocking for a message so far. utilize yampas event mechanism?
+		\item look into statistics of retries in STM \url{https://hackage.haskell.org/package/stm-stats-0.2.0.0/docs/Control-Concurrent-STM-Stats.html}: nothing revealing, all is running in parallel (although very inefficiently)
 	\end{itemize}
 	
 \item Push PureAgentsYampa by considering the next step: implementing an economics example at different levels of complexity e.g. Ionescus implementation of Gintis
-
-\item try algebraic reasoning using my framework
-
-\item Start Writing the paper
-the main idea of this paper is:...
-in this section we present the main contributions of the paper:...
-
-write a story:
-	1. the problem
-	2. its an interesting problem
-	3. its an unsolved problem
-	4. my idea
-	5. my idea works (see implementations)
-	6. my idea compares to other peoples approaches
-	
-Structure (Conf paper)
-	Title
-	Abstract (4 sentences)
-		descibe the problem & state your contributions
-	Introduction 1 page
-		write list of contributions first,
-		this list drives the entire paper,
-		the paper substantiates the claims you have made
-		
-		Dont tell what happens in which section,
-		instead use forward-references from the
-		narrative in the introduction
-	The problem 1 page
-	My idea 2 pages
-	The details 5 pages
-		convey the intuitino is primary, not secondary
-		once your reader has the intuitive, she can follow the details
-		
-		give examples and how your idea solves it
-		choose the most direct route to the idea
-			dont explain all paths which didn't work
-			but mention if an obvious route does not work
-	related work 1-2 pages
-		do at the very end because only expert readers will understand it upfront
-		giving credit to other papers doesnt diminish your paper
-	conclusion and further work
-
-
-\item FINALIZE AND FREEZE the literature I use for my paper (see next items READ): its all on my desk plus some prints to do (organize papers i need to read: ACE \& Economics, complex systems \& simulation, functional programming, abm \& actor model)
-	\begin{itemize}
-		\item READ: Gleichzeitige Ungleichzeitigkeiten
-		\item READ: Complex Systems 'Cellular Automata' \& 'Turing Machines'
-		\item READ: Functional programming \& Simulation papers (on desk)
-		\item READ: Semantics of Actors (Hewitt, Greif \& Clinger)
-		\item READ: philosophical papers of simulation
-		\item READ: functional programming papers
-		\item SEARCH: for further papers looking into my direction (when the difference between SEQ and PAR matters / matters not)
-	\end{itemize}
 
 \item Always ask the question: what is the difference to the OO approach? 
 \end{enumerate} 

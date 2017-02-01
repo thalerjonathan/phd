@@ -42,6 +42,7 @@ Are messages handled \textit{immediately} by an Agent when sent to them or are t
 Are the changes made (messages sent, environment modified) by an Agent which is updated during an Iteration-Order visible (during) \textit{In-Iteration} or only \textit{Post-Iteration} at the next Iteration-Order? More formally: do all the Agents $a_{n>i}$ which are updated after Agent $a_i$ see the changes to the environment and messages sent to them by Agent $a_i$?
 
 \paragraph{Repeatability}
+TODO: clarify on this: is there a source of non-deterministic included which is exogenous to the ABS? race-conditions due to concurrency.
 May repeated runs lead to different results with the same configuration? If this is the case then the update-strategy is regarded as \textit{non-deterministic} and \textit{deterministic} otherwise.
 
 \medskip

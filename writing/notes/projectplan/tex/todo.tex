@@ -14,20 +14,27 @@
 	\item FP Lunch Präsentation: steht immer noch aus, ist aber noch zu früh und das Thema war bisher nicht entsprechend, könnte aber mit dem ersten Paper eine passende Richtung vorgeben.
 \end{itemize}
 
-\item find interesting and large, complex ACE model simulating an economy
+\item got hint for publishing paper in: ppsm parallel problem solving in nature OR natural computation
 
 \item Bring PureAgents to Yampa
 	\begin{itemize}
 		\item embed PureAgentsPar and Seq in Yampa: PureAgentsYampa so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai.
 		\item implement agent monad: PureAgentsMonadic. but what is an Agent-Monad? build a monad to chain actions of the agent and always run inside an agent-monad
 		\item embed PureAgentsMonadic in Dunai
+		\item problem: so far only agents with same static messagetypes, environment and states, can communicate: the agents are homogenous. how can we implement hetereogenous agents in this library?
 		\item implement wait blocking for a message so far. utilize yampas event mechanism?
 		\item look into statistics of retries in STM \url{https://hackage.haskell.org/package/stm-stats-0.2.0.0/docs/Control-Concurrent-STM-Stats.html}: nothing revealing, all is running in parallel (although very inefficiently)
 	\end{itemize}
 	
-\item Push PureAgentsYampa by considering the next step: implementing an economics example at different levels of complexity e.g. Ionescus implementation of Gintis
+\item my change my focus from ACE to a different focus - why? because i am not sure if this community is open to the ideas of mine
 
-\item Always ask the question: what is the difference to the OO approach? 
+\item find 1-3 interesting and large model/simulation to implement using the methods developed in Iteration- \& Yampa Paper. don't focus only on ACE but try different fields
+	\begin{itemize}
+		\item ACE: simulate an economy or markets (e.g. Ionescus implementation of Gintis, simulating the stock-market,...)
+		\item Social Simulation e.g. Axelrod
+		\item Religious studies: find some model or theory which could lend itself to ABS
+	\end{itemize}
+
 \end{enumerate} 
 
 \section{Future-List as of \today}
@@ -36,18 +43,19 @@
 	\begin{itemize}
 		\item performance unacceptable: 1000 in haskell vs 100.000 in java is a shame on haskell, more should be possible. investigate using profiling both of CPU and memory: \url{http://keera.co.uk/blog/2014/10/15/from-60-fps-to-500/}. strictness \& tail-recursion!	
 		\item look into QuickCheck and HPC
-		\item problem: so far only agents with same static messagetypes, environment and states, can communicate: the agents are homogenous. how can we implement hetereogenous agents in this library?
 		\item implement a general-purpose rendering-frontend with gloss but let the simulation be driven by Yampa/SimulationBackend instead of frontend (not real-time)
-		\item implement PheroTrails: agents move on a 2d grid in a 8-neighbourhood and leave pheromone-trails which decay over time. the agents select the neighbourhood cell they move in the next step randomly according to the amount of pheromones present: the more pheromones are present the more likely they will move to that cell - note that this is relative: the pheromones of all neighbour cells are added up and normalized!
-
 	\end{itemize}
 	
-\item Simulation Model Ideas
+\item Religious studies in ABS
 	\begin{itemize}
-		\item IDEA: abm/s of a go game
-		\item IDEA: what about an ABM/S of karma and rebirth? add to genesis paper
-		\item IDEA: what about ABM/S generating sound? could be a perfect example for Yampa due to its signal functions. the sound is the result of interactions of agents which try to generate harmonies and agents trying to create dissonance
-		\item IDEA: what about abm/s creating drawings/art? 2d continuous and each agents path is drawn
-
+		\item God From The Machine
+		\item God as an emergent Property of a believer-Crowd: god is a reflection of their beliefs e.g. it is a demiurge or a loving entity,...
+		\item Dynamics of Karma and Rebirth
+		\item Emergence of a Religion: God experiences and missionaries
 	\end{itemize}
+	
+	\item Religious studies in ABS
+	\begin{itemize}
+			\item IDEA: what about ABM/S generating sound? could be a perfect example for Yampa due to its signal functions. the sound is the result of interactions of agents which try to generate harmonies and agents trying to create dissonance
+		\item IDEA: what about abm/s creating drawings/art? 2d continuous and each agents path is drawn
 \end{enumerate} 

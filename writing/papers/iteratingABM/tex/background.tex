@@ -13,12 +13,11 @@ ABS is a method of modelling and simulating a system where the global behaviour 
 An implementation of an ABS must thus solve two fundamental problems:
 
 \begin{enumerate}
-	\item Source of pro-activity: How can an Agent initiate actions without the external stimuli of messages?
-	\item Semantics of Messaging: When is a message \textit{m}, sent by Agent \textit{A} to Agent \textit{B}, visible and processed by \textit{B}?
+	\item \textbf{Source of pro-activity} How can an Agent initiate actions without the external stimuli of messages?
+	\item \textbf{Semantics of Messaging} When is a message \textit{m}, sent by Agent \textit{A} to Agent \textit{B}, visible and processed by \textit{B}?
 \end{enumerate}
 
-TODO: mention that thus an agent-based simulation is a discrete time-simulation where time is broken down into continuous (REAL-Valued) or Discrete (Natural-valued) time-steps
-In computer systems, pro-activity, the ability to initiate actions on its own without external stimuli, is only possible when there is some internal stimuli, most naturally represented by some generic notion of monotonic increasing time-flow. Due to the discrete nature of computer-system, this time-flow must be discretized in steps as well and each step must be made available to the Agent, acting as the internal stimuli. This allows the Agent then to perceive time and become pro-active depending on time. Independent of the representation of the time-flow we have the two fundamental choices whether the time-flow is local to the Agent or whether it is a system-global time-flow. Time-flows in computer-systems can only be created through threads of execution thus there are two of ways of feeding time-flow into an Agent. Either it has its own thread-of-execution or the system creates the illusions of their own thread-of-execution by sharing the global one sequentially among the Agents where an Agent has to yield the execution back after it has executed its step. Note the parallels to an operating system with cooperative multitasking in the latter case and real multi-processing in the former.
+In computer systems, pro-activity, the ability to initiate actions on its own without external stimuli, is only possible when there is some internal stimuli, most naturally represented by some generic notion of monotonic increasing time-flow. Due to the discrete nature of computer-system, this time-flow must be discretized in steps as well and each step must be made available to the Agent, acting as the internal stimuli. This allows the Agent then to perceive time and become pro-active depending on time. Thus we can understand an ABS as a discrete time-simulation where time is broken down into continuous, real-valued or discrete natural-valued time-steps. Independent of the representation of the time-flow we have the two fundamental choices whether the time-flow is local to the Agent or whether it is a system-global time-flow. Time-flows in computer-systems can only be created through threads of execution thus there are two of ways of feeding time-flow into an Agent. Either it has its own thread-of-execution or the system creates the illusions of their own thread-of-execution by sharing the global one sequentially among the Agents where an Agent has to yield the execution back after it has executed its step. Note the parallels to an operating system with cooperative multitasking in the latter case and real multi-processing in the former.
 
 \medskip 
 
@@ -43,8 +42,7 @@ Are messages handled \textit{immediately} by an Agent when sent to them or are t
 Are the changes made (messages sent, environment modified) by an Agent which is updated during an Iteration-Order visible (during) \textit{In-Iteration} or only \textit{Post-Iteration} at the next Iteration-Order? More formally: do all the Agents $a_{n>i}$ which are updated after Agent $a_i$ see the changes to the environment and messages sent to them by Agent $a_i$?
 
 \paragraph{Repeatability}
-TODO: clarify on this: is there a source of non-deterministic included which is exogenous to the ABS? race-conditions due to concurrency.
-May repeated runs lead to different results with the same configuration? If this is the case then the update-strategy is regarded as \textit{non-deterministic} and \textit{deterministic} otherwise.
+Does the ABS has an external source of non-determinism which it cannot influence? If this is the case then we regard an update-strategy as \textit{non-deterministic} and \textit{deterministic} otherwise. It is important to distinguish between \textit{external} and \textit{internal} sources of non-determinism. The latter, coming from random-number generators, can be controlled using the same starting-seed thus leading to repeatability and deemed deterministic in this context. The former one are race-conditions due to concurrency, creating non-deterministic orderings of events which has the consequence that repeated runs may lead to different results with the same configuration thus rendering a ABS non-deterministic.
 
 \medskip
 

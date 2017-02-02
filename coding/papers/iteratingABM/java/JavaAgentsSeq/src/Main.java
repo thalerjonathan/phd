@@ -9,10 +9,9 @@ import SIRS.RunSIRS;
 public class Main {
 
     public static void main(String[] args) {
-        /*
+
         RunHAC hac = new RunHAC();
-        hac.run();
-        */
+        hac.runStepsAndRender();
 
         /*
         RunSIRS sirs = new RunSIRS();
@@ -23,8 +22,10 @@ public class Main {
         RunSG sg = new RunSG();
         sg.run();
 */
-
+        /*
         RunSGEnv sgEnv = new RunSGEnv();
         sgEnv.run();
+                */
+
     }
 }

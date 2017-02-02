@@ -21,7 +21,7 @@ public class HACFrontend extends JFrame implements ISimulationObserver<HACAgent>
 
 
     public HACFrontend(int agentSize) {
-        super("Heroes & Cowards Seq");
+        super("Heroes & Cowards Con");
 
         this.renderer = new HACRenderer(agentSize);
 
@@ -50,9 +50,13 @@ public class HACFrontend extends JFrame implements ISimulationObserver<HACAgent>
         });
     }
 
+    public void render(LinkedHashMap<Integer, HACAgent> am) {
+        this.renderer.render(am);
+    }
+
     @Override
     public boolean simulationStep(LinkedHashMap<Integer, HACAgent> am) {
-        this.renderer.render(am);
+        this.render(am);
         return true;
     }
 }

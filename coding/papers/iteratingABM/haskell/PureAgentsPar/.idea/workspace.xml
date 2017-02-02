@@ -30,7 +30,7 @@
         <entry file="file://$PROJECT_DIR$/src/SpacialGameMsg/RunSGMsg.hs">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="306">
-              <caret line="32" column="42" lean-forward="true" selection-start-line="32" selection-start-column="28" selection-end-line="32" selection-end-column="42" />
+              <caret line="32" column="42" lean-forward="false" selection-start-line="32" selection-start-column="28" selection-end-line="32" selection-end-column="42" />
               <folding />
             </state>
           </provider>
@@ -106,8 +106,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
-      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -154,6 +152,8 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scratches" />
+      <pane id="Scope" />
       <pane id="PackagesPane" />
     </panes>
   </component>
@@ -472,7 +472,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="1920" y="0" width="1920" height="1080" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -806,7 +806,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="571">
           <caret line="101" column="23" lean-forward="false" selection-start-line="101" selection-start-column="0" selection-end-line="101" selection-end-column="23" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -821,7 +820,7 @@
     <entry file="file://$PROJECT_DIR$/src/SpacialGameMsg/RunSGMsg.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="306">
-          <caret line="32" column="42" lean-forward="true" selection-start-line="32" selection-start-column="28" selection-end-line="32" selection-end-column="42" />
+          <caret line="32" column="42" lean-forward="false" selection-start-line="32" selection-start-column="28" selection-end-line="32" selection-end-column="42" />
           <folding />
         </state>
       </provider>

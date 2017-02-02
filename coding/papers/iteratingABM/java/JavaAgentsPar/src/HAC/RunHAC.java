@@ -41,6 +41,36 @@ public class RunHAC {
 
     }
 
+    public void runStepsAndRender() throws ExecutionException, InterruptedException {
+        int agentCount = 100_000;
+        double herosDist = 0.25;
+        double dt = 0.01;
+        int steps = 500;
+
+        HACFrontend fe = new HACFrontend( 3 );
+
+        List<HACAgent> hacAgents = this.createRandomAgents(agentCount, herosDist);
+        AgentSimulator simulator = new AgentSimulator();
+
+        ISimulationObserver stepObserver = new ISimulationObserver() {
+            private int stepCounter;
+
+            @Override
+            public boolean simulationStep(LinkedHashMap dontCare) {
+                stepCounter++;
+                System.out.println(stepCounter);
+                return stepCounter < steps;
+            }
+        };
+
+        LinkedHashMap<Integer, HACAgent> agentMap = simulator.simulateWithObserver(hacAgents,
+                null,
+                dt,
+                stepObserver );
+
+        fe.render( agentMap );
+    }
+
     private List<HACAgent> createRandomAgents(int count, double herosDist) {
         List<HACAgent> hacAgents = new ArrayList<>();
 

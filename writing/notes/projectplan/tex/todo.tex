@@ -2,19 +2,13 @@
 
 \begin{enumerate}
 
+\item implement Heroes \& Cowards in Java for all strategies and show that all lead to the same emergent pattern, include only one figure
+
 \item look into 'standard-models' in ABM and check if and how they can be implemented using my terminology
 
 \item try algebraic reasoning using my framework
 
-\item Thorsten Meeting preparation
-\begin{itemize}
-	\item Meinen derzeitigen Stand (Paper und Code) aus Haskell Sicht
-	\item Idee für ein Paper: eine Spezifikationssprache für Agent-Based Modelling \& Simulation, die quasi Haskell-Code ist - die Idee ist, der Frage nachgehen inwieweit der Spezifikation-Implementations Gap (mehr oder weniger) geschlossen werden kann, wenn wir das ganze in Haskell mit meinem Ansatz machen. Auch sind reasoning-Techniken hier sicher auch von Interesse.
-	\item Idee für ein weiteres Paper: meine derzeitige ABM/S Implementierung in Haskell mit FRP (Yampa) zu verbinden, was dem ganzen sicherlich ordentlich leverage gibt. Die Hypothese: die Richtung die ich eingeschlagen habe, würde sich sowieso nach FRP entwickeln, ausserdem erlaubt es wesentlich komplexere und größere Modelle zu implementieren.
-	\item FP Lunch Präsentation: steht immer noch aus, ist aber noch zu früh und das Thema war bisher nicht entsprechend, könnte aber mit dem ersten Paper eine passende Richtung vorgeben.
-\end{itemize}
-
-\item got hint for publishing paper in: ppsm parallel problem solving in nature OR natural computation
+\item READ NASDAQ MARKET SIMULATION: seems extremely interesting as it builds an ABM for simulating the stock market. My approach could be to reimplement this in Yampa, extend it to todays specification of NASDAQ and connect it to the Batch-Auction Paper.
 
 \item Bring PureAgents to Yampa
 	\begin{itemize}
@@ -25,14 +19,23 @@
 		\item implement wait blocking for a message so far. utilize yampas event mechanism?
 		\item look into statistics of retries in STM \url{https://hackage.haskell.org/package/stm-stats-0.2.0.0/docs/Control-Concurrent-STM-Stats.html}: nothing revealing, all is running in parallel (although very inefficiently)
 	\end{itemize}
+
+\item Thorsten Meeting preparation
+\begin{itemize}
+	\item Meinen derzeitigen Stand (Paper und Code) aus Haskell Sicht
+	\item Idee für ein Paper: eine Spezifikationssprache für Agent-Based Modelling \& Simulation, die quasi Haskell-Code ist - die Idee ist, der Frage nachgehen inwieweit der Spezifikation-Implementations Gap (mehr oder weniger) geschlossen werden kann, wenn wir das ganze in Haskell mit meinem Ansatz machen. Auch sind reasoning-Techniken hier sicher auch von Interesse.
+	\item Idee für ein weiteres Paper: meine derzeitige ABM/S Implementierung in Haskell mit FRP (Yampa) zu verbinden, was dem ganzen sicherlich ordentlich leverage gibt. Die Hypothese: die Richtung die ich eingeschlagen habe, würde sich sowieso nach FRP entwickeln, ausserdem erlaubt es wesentlich komplexere und größere Modelle zu implementieren.
+	\item FP Lunch Präsentation: steht immer noch aus, ist aber noch zu früh und das Thema war bisher nicht entsprechend, könnte aber mit dem ersten Paper eine passende Richtung vorgeben.
+\end{itemize}
+
+\item got hint for publishing paper in: ppsm parallel problem solving in nature OR natural computation
 	
 \item my change my focus from ACE to a different focus - why? because i am not sure if this community is open to the ideas of mine
-
 \item find 1-3 interesting and large model/simulation to implement using the methods developed in Iteration- \& Yampa Paper. don't focus only on ACE but try different fields
 	\begin{itemize}
 		\item ACE: simulate an economy or markets (e.g. Ionescus implementation of Gintis, simulating the stock-market,...)
-		\item Social Simulation e.g. Axelrod
-		\item Religious studies: find some model or theory which could lend itself to ABS
+		\item Social Simulation e.g. Axelrod Sugarscape? But not very interesting, only 2D Discrete 
+		\item Religious studies: so far only altruistic behaviour and population behavioural change but I would be interested in things like: "God as an emergent property of the population, with Gods attributes (e.g. loving/hating, punishing/forgiving) reflecting the attitudes of the population. I think this was the case of Yahweh created by the Israelitic tribes from local influences."
 	\end{itemize}
 
 \end{enumerate} 

@@ -16,6 +16,7 @@ import java.util.List;
  */
 public class HACFrontend extends JFrame implements ISimulationObserver<HACAgent> {
     private HACRenderer renderer;
+    private int stepCounter;
 
     public HACFrontend(int agentSize) {
         super("Heroes & Cowards Seq");
@@ -47,9 +48,14 @@ public class HACFrontend extends JFrame implements ISimulationObserver<HACAgent>
         });
     }
 
+    public void render(List<HACAgent> as) {
+        this.renderer.render(as);
+    }
+
     @Override
     public boolean simulationStep(List<HACAgent> as) {
         this.renderer.render(as);
+        System.out.println(++stepCounter);
         return true;
     }
 }

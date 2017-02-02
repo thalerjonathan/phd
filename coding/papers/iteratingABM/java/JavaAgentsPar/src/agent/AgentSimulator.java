@@ -15,7 +15,7 @@ public class AgentSimulator<A extends Agent, E> {
         executor = Executors.newFixedThreadPool(3);
     }
 
-    public List<A> simulateWithObserver(List<A> as,
+    public LinkedHashMap<Integer, A> simulateWithObserver(List<A> as,
                                         Map<Integer, E> globalEnv,
                                         double dt,
                                         ISimulationObserver<A> o) throws InterruptedException, ExecutionException {
@@ -29,7 +29,7 @@ public class AgentSimulator<A extends Agent, E> {
             om = this.nextStepSimultaneous(om, globalEnv, unmodifieableGlobalEnv, dt);
         }
 
-        return as;
+        return om;
     }
 
     private LinkedHashMap<Integer, A> nextStepSimultaneous(LinkedHashMap<Integer, A> om,

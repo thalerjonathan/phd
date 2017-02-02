@@ -27,7 +27,7 @@ public class RunHAC {
     }
 
     public void run() throws InterruptedException, CloneNotSupportedException, ExecutionException {
-        int agentCount = 5;
+        int agentCount = 50_000;
         double herosDist = 0.25;
         double dt = 0.1;
 
@@ -36,7 +36,7 @@ public class RunHAC {
         List<HACAgent> hacAgents = this.createRandomAgents(agentCount, herosDist);
         AgentSimulator simulator = new AgentSimulator();
 
-        List<Future<Void>> agentFutures = simulator.simulateWithObserver(hacAgents,
+        List<Future<Void>> agentThreads = simulator.simulateWithObserver(hacAgents,
                 dt,
                 new ISimulationObserver<HACAgent>() {
 
@@ -53,8 +53,8 @@ public class RunHAC {
                     }
                 });
 
-        for (Future<Void> f : agentFutures) {
-            f.get();
+        for (Future<Void> af : agentThreads) {
+            af.get();
         }
     }
 

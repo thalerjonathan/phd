@@ -38,7 +38,37 @@ public class RunHAC {
                 dt,
                 rng,
                 fe);
+    }
 
+    public void runStepsAndRender() {
+        int agentCount = 100_000;
+        double herosDist = 0.25;
+        double dt = 0.01;
+        int steps = 500;
+
+        HACFrontend fe = new HACFrontend( 3 );
+
+        List<HACAgent> hacAgents = this.createRandomAgents(agentCount, herosDist);
+        AgentSimulator simulator = new AgentSimulator();
+
+        ISimulationObserver stepObserver = new ISimulationObserver() {
+            private int stepCounter;
+
+            @Override
+            public boolean simulationStep(List list) {
+                stepCounter++;
+                System.out.println(stepCounter);
+                return stepCounter < steps;
+            }
+        };
+
+        hacAgents = simulator.simulateWithObserver(hacAgents,
+                null,
+                dt,
+                rng,
+                stepObserver );
+
+        fe.render( hacAgents );
     }
 
     private List<HACAgent> createRandomAgents(int count, double herosDist) {

@@ -15,7 +15,7 @@ public class AgentSimulator<A extends Agent, E> {
         executor = Executors.newFixedThreadPool(3);
     }
 
-    public List<A> simulateWithObserver(List<A> as,
+    public LinkedHashMap<Integer, A> simulateWithObserver(List<A> as,
                                         E env,
                                         double dt,
                                         ISimulationObserver<A> o) throws InterruptedException, CloneNotSupportedException, ExecutionException {
@@ -25,7 +25,7 @@ public class AgentSimulator<A extends Agent, E> {
             om = this.nextStepConcurrent(om, env, dt);
         }
 
-        return as;
+        return om;
     }
 
     private LinkedHashMap<Integer, A> nextStepConcurrent(LinkedHashMap<Integer, A> om,

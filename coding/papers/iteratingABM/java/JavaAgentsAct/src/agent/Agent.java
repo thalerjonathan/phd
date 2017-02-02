@@ -42,13 +42,13 @@ public abstract class Agent<M extends Comparable<M>> implements Comparable<Agent
         while (true) {
             this.step(time, delta);
             time = time + delta;
-/*
+
             try {
-                Thread.sleep(100);
+                Thread.sleep(10);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            */
+
         }
     }
 
@@ -57,7 +57,7 @@ public abstract class Agent<M extends Comparable<M>> implements Comparable<Agent
 
         synchronized (msgBox) {
             localMsgBox = new LinkedList<>(msgBox);
-            msgBox.clear();
+            //msgBox.clear();
         }
 
         // TODO: replace by old consume-version (see Conc) when its running

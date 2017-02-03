@@ -52,18 +52,18 @@ The most natural strategy is the Parallel Strategy as it lends itself so well to
 
 
 \subsection{Scala with Actors}
-This multi-paradigm functional language is included to test the usefulness of the Actor Strategy for implementing ABS. The language comes with an Actor-library inspired by \cite{agha_actors:_1986} and resembles the approach of Erlang which allows a very natural implementation of the strategy.
+This multi-paradigm functional language which sits in-between Java and Haskell and is included to test the usefulness of the Actor Strategy for implementing ABS. The language comes with an Actor-library inspired by \cite{agha_actors:_1986} and resembles the approach of Erlang which allows a very natural implementation of the strategy.
 
 \paragraph{Ease of Use}
-We were completely new to Scala with Actors although we have some experience using Erlang. We found that the language has some very nice mixed-paradigm features which allow to program in a very flexible way without inducing too much restrictions on one.
+We were completely new to Scala with Actors although we have some experience using Erlang which was of great use. We found that the language has some very nice mixed-paradigm features which allow to program in a very flexible way without inducing too much restrictions on one.
 
 \paragraph{Benefits}
-Implementing Agent-behaviour is extremely convenient, especially for simple state-chart Agents. The Actor-language has a built-in feature which allows to change the behaviour of an Agent on message reception where the Agent then simply switches to a different message-handler, allowing elegant implementation of state-charts. \\
+Implementing Agent-behaviour is extremely convenient, especially for simple state-driven Agents. The Actor-language has a built-in feature which allows to change the behaviour of an Agent on message-reception where the Agent then simply switches to a different message-handler, allowing elegant implementation of state-dependent behaviour. \\
 
-Performance is very high. We could run simulations in real-time with about 200.000 Agents concurrently, something the run-time system easily manages. Also it is very important to note that one can use the framework Akka to build real distributed systems using Scala with Actors so there are potentially no limits on the size and complexity of the models and number of agents one wants to run with it.
+Performance is very high. We could run simulations in real-time with about 200.000 Agents concurrently, thanks to the transparent handling in the run-time system. Also it is very important to note that one can use the framework Akka to build real distributed systems using Scala with Actors so there are potentially no limits to the size and complexity of the models and number of Agents one wants to run with it.
 
 \paragraph{Deficits}
 Care must be taken not to send references and mutable data, which is still possible in this mixed-paradigm language.
 
 \paragraph{Natural Strategy}
-The most natural strategy would be of course the Actor Strategy and we only used this Strategy in this language to implement our Models. Note that the Actor Strategy is the most general one and would allow to capture all the other strategies using the appropriate synchronization mechanisms.
+The most natural strategy would be of course the Actor Strategy and we only used this Strategy in this language to implement our models. Note that the Actor Strategy is the most general one and would allow to capture all the other strategies using the appropriate synchronization mechanisms.

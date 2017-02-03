@@ -1,5 +1,5 @@
 \section{Introduction}
-In the paper \cite{huberman_evolutionary_1993} the authors showed that the results of simulating the classic prisoners-dilemma game on a 2D-grid as reported in \cite{nowak_evolutionary_1992} depends on a a very specific strategy of iterating this simulation and show that the beautiful patterns seen in figure \ref{fig:sync_patterns} will not form when selecting a different iteration-strategy.
+In \cite{huberman_evolutionary_1993} the authors showed that the results of simulating the classic prisoners-dilemma game on a 2D-grid as reported in \cite{nowak_evolutionary_1992} depends on a a very specific strategy of iterating the simulation and show that the beautiful patterns seen in figure \ref{fig:sync_patterns} will not form when selecting a different update-strategy.
 
 \begin{figure}[H]
 	\centering
@@ -8,14 +8,12 @@ In the paper \cite{huberman_evolutionary_1993} the authors showed that the resul
 	\label{fig:sync_patterns}
 \end{figure}
 
-Although the authors differentiated between two strategies, their description still lacks precision which we will try to give in this paper. They also discussed philosophical aspects of choosing one strategy over the other, but lacked to generalize their observation. We will do so in the central message of our paper by stressing that when doing ABS \textit{it is of most importance to select the right iteration-strategy which reflects and supports the corresponding semantics of the model}. We find that this awareness is yet still under-represented in the literature of ABS and lacking a systematic treatment. Thus our contribution in this paper is to provide a such by
+Although the authors differentiated between two strategies, their description still lacks precision and detail. They also discussed philosophical aspects of choosing one strategy over the other, but lacked to generalize their observation. Thus we generalize their observation in our main message of this paper that \textit{when developing a model for an ABS it is of most importance to select the right update-strategy which reflects and supports the corresponding semantics of the model}. As we will show in the section on Related Research, we find that due to conflicting ideas about update-strategies this awareness is yet still under-represented in the field of ABS and is lacking a systematic treatment. Thus our contribution in this paper is to
 \begin{itemize}
-	\item Presenting general properties of ABS and deriving update-strategies.
-	\item Developing a new, general terminology of talking about the update-strategies.
-	\item Giving the semantic interpretation and meaning of each of them.
-	\item Comparing the three programming languages Java, Haskell and Scala with Actors in regard of their suitability to implement each of these strategies.
+	\item Present general properties of ABS.
+	\item Derive update-strategies from these properties.
+	\item Establish a general terminology of talking about these update-strategies.
+	\item Compare the three programming languages Java, Haskell and Scala with Actors in regard of their suitability to implement each of these strategies.
 \end{itemize}
 
-It is important to note that the amount of research of using Haskell in the field of ABS has so far been moderate. Though there exist a few papers which look into Haskell and ABS \cite{de_jong_suitability_2014}, \cite{sulzmann_specifying_2007}, \cite{jankovic_functional_2007} all treat Haskell in this context very generally and focus primarily on how to specify Agents. This papers is looking at fundamental technical details of Haskell's suitability in implementing update-strategies in ABS, something not looked at in the ABS community thus presenting an original novelty.
-
-TODO \cite{sorokin_aivika_2015}
+It is important to note that the amount of research on using Haskell in the field of ABS has so far been moderate. Though there exist a few papers which look into Haskell and ABS \cite{de_jong_suitability_2014}, \cite{sulzmann_specifying_2007}, \cite{jankovic_functional_2007} all treat Haskell in this context very generally and focus primarily on how to specify Agents. An interesting library for Discrete Event Simulation (DES) and System Dynamics (SD) in Haskell called \textit{Aivika 3} is described in \cite{sorokin_aivika_2015}. It also comes with very basic features for ABS but only allows to specify simple state-based Agents with timed transitions. Thus this papers is investigating Haskell in a more fundamental way by looking into its suitability in implementing update-strategies in ABS, something not looked at in the ABS community thus presenting an original novelty as well.

@@ -1,13 +1,13 @@
 \section{Related Research}
-Already noted in the introduction, \cite{huberman_evolutionary_1993} where the first to discuss the differences update-strategies can make and introduced the terms of synchronous and asynchronous updates. They define to be synchronous as Agents being updated in unison and asynchronous where one Agent is updated and the others are held constant.
+Already noted in the Introduction, \cite{huberman_evolutionary_1993} where the first to discuss the differences update-strategies can make and introduced the terms of synchronous and asynchronous updates. They define to be synchronous as Agents being updated in unison and asynchronous where one Agent is updated and the others are held constant.
 
 \medskip
 
-\cite{a_framework_2008} give an approach for ABS on GPUs which is a very different approach to updating and iterating Agents in ABS. They discuss execution order at length, highlight the problem of inducing a specific execution-order in a model which is problematic for parallel execution and give solutions how to circumvent these shortcomings. Although we havn't mapped our ideas to GPUs we explicitly include an approach for data-parallelism which, we hypothesize, can be utilized to roughly mapped their approach onto our terminology. 
+\cite{a_framework_2008} give an approach for ABS on GPUs which is a very different approach to updating and iterating Agents in ABS. They discuss execution order at length, highlight the problem of inducing a specific execution-order in a model which is problematic for parallel execution and give solutions how to circumvent these shortcomings. Although we haven't mapped our ideas to GPUs we explicitly include an approach for data-parallelism which, we hypothesize, can be utilized to roughly map their approach onto our terminology. 
 	
 \medskip
 	
-\cite{botta_time_2010} sketch a minimal agent implementation in Haskell which is very similar in the basic structure of ours. This proves that our approach seems to be a very natural one also to apply to Haskell. Their focus is primarily on economic simulations and instead of iterating a simulation with a global time, their focus is on how to synchronize Agents which have internal, local transition times. Although their work uses Haskell as well, this does not diminish the novelty of our approach using Haskell as our focus is very different from theirs and approaches ABS in a more general and comprehensive way.
+\cite{botta_time_2010} sketch a minimal ABS implementation in Haskell which is very similar in the basic structure of ours. This proves that our approach seems to be a very natural one to apply to Haskell. Their focus is primarily on economic simulations and instead of iterating a simulation with a global time, their focus is on how to synchronize Agents which have internal, local transition times. Although their work uses Haskell as well, our focus is very different from theirs and approaches ABS in a more general and comprehensive way.
 
 \medskip
 
@@ -19,4 +19,4 @@ Already noted in the introduction, \cite{huberman_evolutionary_1993} where the f
 
 \medskip
 
-We observe that there seems to be a variety of meanings attributed to the terminology of asynchronous and synchronous updates but the very semantic and technical details are unclear and not described very precisely. In the next we will address this issue by presenting the basic background and propose properties for a new terminology from which we can drive common update-strategies.
+We observe that there seems to be a variety of meanings attributed to the terminology of asynchronous and synchronous updates but the very semantic and technical details are unclear and not described very precisely. In the next section we will address this issue by presenting the basic background and propose properties for a new terminology from which we can derive common update-strategies.

@@ -43,7 +43,7 @@
 %	DOCUMENT INFORMATION
 %----------------------------------------------------------------------------------------
 
-\title{Specification equals Code:\\An EDSL for pure functional Agent-Based Modelling \& Simulation} % Title
+\title{Spec == Code:\\Pure functional Agent-Based Modelling} % Title
  
 \author{Jonathan \textsc{Thaler}} % Author name
 
@@ -55,18 +55,22 @@
 
 % If you wish to include an abstract, uncomment the lines below
 \begin{abstract}
-Building upon our previous work on update-strategies in Agent-Based Modelling \& Simulation (ABM/S) where we showed that Haskell is a very attractive alternative to existing object-oriented approaches we ask in this paper if the declarative power of the pure functional language can be utilized to write specifications for simple ABM/S models which can be directly translated to our Haskell implementation.
+Building upon our previous work on update-strategies in Agent-Based Simulation ABS where we showed that Haskell is a very attractive alternative to existing object-oriented approaches we ask in this paper if the declarative power of the pure functional language can be utilized to write specifications for simple models of ABS which can be directly translated to our Haskell implementation. We take two well known examples: the SIR and Prisoners Dilemma and express them in our model-specification language and show that they are in fact equals to haskell-code. Thus the novelty of this paper is a formalization of the specification of the latter one, which has been so far neglected.
 \end{abstract}
 
 \input{./tex/introduction.tex}
 
 \input{./tex/relatedResearch.tex}
 
-\input{./tex/problem.tex}
+\input{./tex/background.tex}
 
 \input{./tex/specificationLanguage.tex}
 
-% TODO: the approach
+\input{./tex/sirs.tex}
+
+\input{./tex/prisoners.tex}
+
+\input{./tex/results.tex}
 
 \input{./tex/conclusion.tex}
 

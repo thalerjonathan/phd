@@ -1,1 +1,65 @@
 \section{SIRS Specification}
+This section provides the specification of the SIR model.
+
+\subsection{SIRS Model}
+TODO: explanation of it in natural language 
+ 
+\subsection{Formal Specification}
+TODO: first the formal 'mathematical' specification, then the translation to haskell-code
+
+First we declare the 5 tuples of our SirAgent. It has a domain-specific state, message-protocol and transformer-function as can be seen in the types
+SirAgent = <Aid, sirState, sirMsg, mbox, sirTf>
+
+We define the domain-specific state to be the following. Each Agent is in one of the 3 SIR states and knows its duration it has been in this state.
+SIR = { Susceptible , Infected, Recovered }
+sirState = (state element of SIR, durInState :: Double )
+
+We define the domain-specific message-protocol to cover the possibilities of making contact.
+sirMsg = { ContactSusceptible, ContactInfected, ContactRecovered }
+
+Next we declare our transformer-function and handle all types of messages here. Note that in the case of domain-specific messages we only handle ContactInfected as in the other cases the model-specification in natural language does not cover these cases: the agent is not affected or changed in these contacts.
+sirTf :: SirAgent -> (Aid, Msg sirMsg ) -> SirAgent
+sirTf a (_, Dt d) 				= sirTimeStep a 
+sirTf a (_, ContactInfected) 	= infectedContact a
+sirTf a _ 						= a 
+
+In each discrete time-step which happens in the sir-model as specified in the natural-language description an agent first recovers and then makes contact with neighbours
+sirTimeStep :: SirAgent -> SirAgent
+sirTimeStep = makeContact . recover
+
+Making contact with other neighbours is straight-forward, using send 
+makeContact :: SirAgent -> SirAgent
+makeContact a 
+	| is a Susceptible 	= send a (receiver, ContactSusceptible)
+	| is a Infected 	= send a (receiver, ContactInfected)
+	| is a Recovered 	= send a (receiver, ContactRecovered)
+		where
+			receiver = randomNeighbour
+			
+We introduced the is function which returns true if the SirAgent is in the given state
+is :: SirAgent -> SIR -> Boolean
+is a s = (sirState a) == s 
+
+Now we define how an Agent recovers. An Agent can only recover if it is actually infected, otherwise there is no need to recover
+recover :: SirAgent -> SirAgent
+recover a 
+	| is a Infected = recoverInfected a
+	| otherwise 	= a
+	
+If an agent is indeed infected, it has recovered when it has spent the given time-steps in the infection-state
+recoverInfected :: SirAgent -> SirAgent
+recoverInfected a = if (durInState a >= I) then
+						a { state = Recovered, durInState = 0.0 }
+						else
+							a { durInState = durInState' }
+	where
+		durInState' = (durInState a) + 1.0
+		
+	
+Finally we need to describe how an agent is infected when having contact with an other agent which is infected
+infect :: SirAgent -> SirAgent
+infect a
+	| yes = a {state = Infected, durInState = 0.0}
+	| otherwise = a
+		where
+			yes = p >= uniformRandom [0.0, 1.0]

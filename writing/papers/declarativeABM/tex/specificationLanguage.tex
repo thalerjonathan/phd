@@ -1,21 +1,58 @@
 \section{The specification Language}
 
-An Agent A is a 5-tuple <Aid, s, m, e, [tf]>
+TODO: always provide mathematical description first and then haskell-code
+
+An Agent A is a 5-tuple <Aid, s, m, mbox, tf>
 Aid is the id of the agent
 s is the generic state of the agent
-m is the message-protocoll the agent understands including the messages (Dt d) and (Terminate)
-e is the generic environment the agent acts upon
-tf is a transformer-function for every message in the protocol (if an agent wants to ignore the message, it is just the identify function id)
+m is the message-protocoll the agent understands including the messages (Dt d)
+mbox is the messagebox of the agent containing all outgoing messages. it is of type [(Aid, m)]
+tf is the transformer-function with the following type tf :: Agent -> (Aid, m') -> Agent
 
-the type of a tf depends on the semantics of the model and there are 4 of them
+the type of m' = Dt d | m
 
-SEQ: tf :: (A, e) -> (Aid, m) -> (A, e)
-PAR: tf :: (A, Global e) -> (Aid, m) -> (A, Local e)
-CON: tf :: (A, e) -> (Aid, m) -> STM A
-ACT: tf :: (A, e) -> (Aid, m) -> STM A
+further there is a function for sending a message to other agents, excluding the message Dt d
+send :: Agent -> (Aid, m) -> Agent
 
-Local e = e
-Global e = Map Aid (Local e)
+For calculating one iteration of the system we first pair up all agents with the messages they receive in this iteration and then we step every agent
+iteration :: [Agent] -> [Agent]
+iteration as = stepAll . collectAll
 
-further the agent has the following functions at its hands
-sendMessage :: A -> Aid -> m -> A
+To pair up every agent with all its receiving messages we collect all messages for each single agent
+collectAll :: [Agent] -> [(Agent, [(Aid, m)])]
+collectAll as = map (\a -> (a, collectFor a as)) as
+
+To pair up a single Agent with its receiving messages, we go over all agents and collect all messages for this current agent
+collectFor :: Agent -> [Agent] -> [(Aid, m)]
+collectFor a as = foldl (\acc a' -> acc : collectFrom a' aid) [] as
+	where
+		aid = Aid a
+
+To collect all messages from an agent for a given receiver we simply filter all messages in the outgoing messagebox for the receiving id and then we map the resulting list by replacing the receiving id with the sending id
+collectFrom :: Agent -> Aid -> [(Aid, m)]
+collectFrom a rid = map (\ (_, m) -> (sid, m)) ms
+	where
+		sid = Aid a
+		ms = filter (\ (rid', m) -> rid == rid') (mbox a)
+
+To step all agents we simply apply step to all agents-message pairs by using map
+stepAll :: [(Agent, [(Aid, m)])] -> [Agent]
+stepAll = map step
+
+To step an agent we first clear the message-box of the agent, then let consume it its messages and then advance the time 
+step :: (Agent, [(Aid, m)]) -> Agent
+step = advanceTime . consumeMessages 
+
+TODO: need to clear the message-box but then the elegant function.composition breaks down but this is probably the most elegant play where to do it
+
+Consuming th messages means starting with the initial agent applying the transformation-function for each message resulting in a new agent in every message
+consumeMessages :: (Agent, [(Aid, m)]) -> Agent
+consumeMessages (a, ms) = foldl tf a ms
+	where
+		tf = (tf a)
+
+To advance time we simply send the Dt message with the time-step delta to the tranformer-function
+advanceTime :: Agent -> Agent
+advanceTime a = tf a (-1, Dt 1.0)
+	where
+		tf = (tf a)

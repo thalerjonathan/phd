@@ -22,6 +22,12 @@ public class SGRenderer extends JPanel {
     private int columns;
     private int rows;
 
+    private final static Color BLUE = new Color(0.0f,0.0f, 0.7f);
+    private final static Color GREEN = new Color(0.0f,0.4f, 0.0f);
+    private final static Color YELLOW = new Color(1.0f,0.7f, 0.0f);
+    private final static Color RED = new Color(0.7f,0.0f, 0.0f);
+
+
     public SGRenderer(int columns, int rows) {
         this.columns = columns;
         this.rows = rows;
@@ -48,16 +54,16 @@ public class SGRenderer extends JPanel {
             double y = BORDER_Y + (a.getCell().getY() * cellHeight);
 
             if ( SGAgent.SGState.Cooperator == a.getPrevState() && SGAgent.SGState.Cooperator == a.getCurrState() ) {
-                g2.setColor(Color.blue);
+                g2.setColor( BLUE );
 
             } else if ( SGAgent.SGState.Defector == a.getPrevState() && SGAgent.SGState.Defector == a.getCurrState() ) {
-                g2.setColor(Color.red);
+                g2.setColor( RED );
 
             } else if ( SGAgent.SGState.Defector == a.getPrevState() && SGAgent.SGState.Cooperator == a.getCurrState() ) {
-                g2.setColor(Color.yellow);
+                g2.setColor( GREEN );
 
             } else if ( SGAgent.SGState.Cooperator == a.getPrevState() && SGAgent.SGState.Defector == a.getCurrState() ) {
-                g2.setColor(Color.green);
+                g2.setColor( YELLOW );
 
             }
 

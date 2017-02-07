@@ -11,10 +11,10 @@ import java.util.concurrent.ExecutionException;
 public class Main {
 
     public static void main(String[] args) throws InterruptedException, CloneNotSupportedException, ExecutionException {
-
+        /*
         RunHAC hac = new RunHAC();
         hac.runStepsAndRender();
-
+*/
 
         /*
         RunSIRS sirs = new RunSIRS();
@@ -24,10 +24,10 @@ public class Main {
         /*
         RunSG sg = new RunSG();
         sg.run();
-*/
-        /*
+              */
+
         RunSGEnv sgEnv = new RunSGEnv();
         sgEnv.run();
-                */
+
     }
 }

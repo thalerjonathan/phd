@@ -34,6 +34,8 @@ public class SGAgent extends Agent<Message.NoMsg, Pair<Double, SGAgent.SGState>>
         this.prevState  = state;
 
         this.c = c;
+
+        this.localEnv = new Pair<>(0.0, this.currState);
     }
 
     public SGState getCurrState() {
@@ -57,26 +59,14 @@ public class SGAgent extends Agent<Message.NoMsg, Pair<Double, SGAgent.SGState>>
 
     @Override
     public void dt(Double time, Double delta, Map<Integer, Pair<Double, SGAgent.SGState>> globalEnv) {
-        if ( this.currState == SGState.Defector) {
-            System.out.println("Defector!");
-        }
-
         List<Agent<Message.NoMsg, Pair<Double, SGAgent.SGState>>> ns = this.getNeighbours();
 
-        double localPayoff = 0.0;
+        SGAgent.SGState bestPayoffState = this.localEnv.r;
+        double bestPayoffValue = this.localEnv.l;
 
         for ( Agent<Message.NoMsg, Pair<Double, SGAgent.SGState>> a : ns ) {
             Pair<Double, SGAgent.SGState> np = globalEnv.get(a.getId());
-            localPayoff += SGAgent.calculatePayoff( this.currState, np.r );
-        }
-
-
-        SGAgent.SGState bestPayoffState = this.currState;
-        double bestPayoffValue = localPayoff;
-
-        for ( Agent<Message.NoMsg, Pair<Double, SGAgent.SGState>> a : ns ) {
-            Pair<Double, SGAgent.SGState> np = globalEnv.get(a.getId());
-            if (np.l >= bestPayoffValue) {
+            if (np.l > bestPayoffValue) {
                 bestPayoffState = np.r;
                 bestPayoffValue = np.l;
             }
@@ -84,6 +74,13 @@ public class SGAgent extends Agent<Message.NoMsg, Pair<Double, SGAgent.SGState>>
 
         this.prevState = this.currState;
         this.currState = bestPayoffState;
+
+        double localPayoff = 0.0;
+
+        for ( Agent<Message.NoMsg, Pair<Double, SGAgent.SGState>> a : ns ) {
+            Pair<Double, SGAgent.SGState> np = globalEnv.get(a.getId());
+            localPayoff += SGAgent.calculatePayoff( this.currState, np.r );
+        }
 
         // NOTE: must not modify global environment, change the local one
         this.localEnv = new Pair<>(localPayoff, this.currState);

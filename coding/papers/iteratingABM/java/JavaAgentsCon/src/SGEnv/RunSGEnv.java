@@ -109,6 +109,7 @@ public class RunSGEnv {
         n.add( new Cell( x + 1, y - 1) );
 
         n.add( new Cell( x - 1, y ) );
+        n.add( new Cell( x, y ) );
         n.add( new Cell( x + 1, y ) );
 
         n.add( new Cell( x - 1, y + 1 ) );

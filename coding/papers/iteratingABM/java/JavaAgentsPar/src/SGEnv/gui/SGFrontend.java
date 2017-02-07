@@ -30,7 +30,7 @@ public class SGFrontend extends JFrame implements ISimulationObserver<SGAgent> {
         this.renderer.render(as);
 
         try {
-            Thread.sleep( 30 );
+            Thread.sleep( 100 );
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

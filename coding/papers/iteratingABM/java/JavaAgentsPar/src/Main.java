@@ -11,23 +11,23 @@ import java.util.concurrent.ExecutionException;
 public class Main {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-
+        /*
         RunHAC hac = new RunHAC();
         hac.runStepsAndRender();
-
+        */
 
         /*
         RunSIRS sirs = new RunSIRS();
         sirs.run();
         */
 
-        /*
+/*
         RunSG sg = new RunSG();
         sg.run();
-        */
-        /*
+*/
+
         RunSGEnv sgEnv = new RunSGEnv();
         sgEnv.run();
-*/
+
     }
 }

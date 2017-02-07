@@ -22,10 +22,11 @@ public class AgentSimulator<A extends Agent, E> {
         LinkedHashMap<Integer, A> om = createOrderedMap(as);
 
         Map<Integer, E> unmodifieableGlobalEnv = null;
-        if ( null != globalEnv )
-            unmodifieableGlobalEnv = Collections.unmodifiableMap( globalEnv );
 
         while(o.simulationStep(om)) {
+            if ( null != globalEnv )
+                unmodifieableGlobalEnv = Collections.unmodifiableMap( globalEnv );
+
             om = this.nextStepSimultaneous(om, globalEnv, unmodifieableGlobalEnv, dt);
         }
 

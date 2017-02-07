@@ -10,4 +10,6 @@ import SpacialGameMsg.RunSGMsg
 import SpacialGameEnv.RunSGEnv
 
 main :: IO ()
-main = runSGMsgStepsAndRender
+main = runSGMsgWithRendering
+
+-- runSGEnvWithRendering

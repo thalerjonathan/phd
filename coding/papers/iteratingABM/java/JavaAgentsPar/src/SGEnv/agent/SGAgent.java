@@ -57,6 +57,10 @@ public class SGAgent extends Agent<Message.NoMsg, Pair<Double, SGAgent.SGState>>
 
     @Override
     public void dt(Double time, Double delta, Map<Integer, Pair<Double, SGAgent.SGState>> globalEnv) {
+        if ( this.currState == SGState.Defector) {
+            System.out.println("Defector!");
+        }
+
         List<Agent<Message.NoMsg, Pair<Double, SGAgent.SGState>>> ns = this.getNeighbours();
 
         double localPayoff = 0.0;
@@ -66,12 +70,13 @@ public class SGAgent extends Agent<Message.NoMsg, Pair<Double, SGAgent.SGState>>
             localPayoff += SGAgent.calculatePayoff( this.currState, np.r );
         }
 
+
         SGAgent.SGState bestPayoffState = this.currState;
         double bestPayoffValue = localPayoff;
 
         for ( Agent<Message.NoMsg, Pair<Double, SGAgent.SGState>> a : ns ) {
             Pair<Double, SGAgent.SGState> np = globalEnv.get(a.getId());
-            if (np.l > bestPayoffValue) {
+            if (np.l >= bestPayoffValue) {
                 bestPayoffState = np.r;
                 bestPayoffValue = np.l;
             }

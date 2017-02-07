@@ -59,7 +59,7 @@ setDefector as pos cells
 stepWithRendering :: (Int, Int) -> SGSimHandle -> Double -> IO ()
 stepWithRendering dims hdl dt = simulateIO (Front.display "Spacial Game Msg PAR" (800, 800))
                                 GLO.white
-                                1
+                                5
                                 hdl
                                 (modelToPicture dims)
                                 (stepIteration dt)

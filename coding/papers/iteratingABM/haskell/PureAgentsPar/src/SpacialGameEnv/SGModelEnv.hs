@@ -45,7 +45,7 @@ sgDt (a, ge, _) dt = (a', le)
         localPayoff = foldl (\payoffSum nId -> payoffSum  + (payoffWithEnv aSg nId ge)) 0.0 neighbourIds
         (bestPayoff, bestState) = foldl (\best nId -> compareWithEnv best nId ge) (localPayoff, aSg) neighbourIds
         a' = PA.updateState a (\s -> s { sgCurrState = bestState, sgPrevState = aSg })
-        le = (localPayoff, bestState)
+        le = (bestPayoff, bestState)
 
 payoffWithEnv :: SGState -> PA.AgentId -> PA.GlobalEnvironment SGEnvironment -> Double
 payoffWithEnv aSg eId ge = payoff aSg eSg
@@ -90,7 +90,6 @@ randomAgentState :: StdGen -> Double -> (SGAgentState, StdGen)
 randomAgentState g p = (SIRSAgentState{ sgCurrState = s, sgPrevState = s }, g')
     where
         (isDefector, g') = randomThresh g p
-        (g'', _) = split g'
         s = if isDefector then
                 Defector
                 else

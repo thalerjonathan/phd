@@ -42,6 +42,7 @@ public class SGRenderer extends JPanel {
         Iterator<Map.Entry<Integer, SGAgent>> iter = this.as.entrySet().iterator();
         while (iter.hasNext()) {
             SGAgent a = iter.next().getValue();
+
             double x = BORDER_X + (a.getCell().getX() * cellWidth);
             double y = BORDER_Y + (a.getCell().getY() * cellHeight);
 

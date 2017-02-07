@@ -22,7 +22,7 @@ type SGTransformer = PA.AgentTransformer SGMsg SGAgentState SGEnvironment
 type SGSimHandle = PA.SimHandle SGMsg SGAgentState SGEnvironment
 
 bParam :: Double
-bParam = 1.9
+bParam = 1.95
 
 sParam :: Double
 sParam = 0.0
@@ -106,7 +106,6 @@ randomAgentState :: StdGen -> Double -> (SGAgentState, StdGen)
 randomAgentState g p = (SIRSAgentState{ sgCurrState = s, sgPrevState = s, sgSumPayoff = 0.0, sgMaxPayoffState = s, sgMaxPayoffValue = 0.0 }, g')
     where
         (isDefector, g') = randomThresh g p
-        (g'', _) = split g'
         s = if isDefector then
                 Defector
                 else

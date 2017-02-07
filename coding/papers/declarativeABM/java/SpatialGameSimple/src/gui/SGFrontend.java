@@ -27,7 +27,7 @@ public class SGFrontend extends JFrame {
         this.renderer.render(cells);
 
         try {
-            Thread.sleep( 30 );
+            Thread.sleep( 1000 );
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

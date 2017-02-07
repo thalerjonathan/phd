@@ -25,17 +25,26 @@ public class RunSGEnv {
     }
 
     public void run() throws ExecutionException, InterruptedException {
-        int rows = 100;
-        int cols = 100;
+        int rows = 99;
+        int cols = 99;
+        int steps = 221;
 
         SGFrontend fe = new SGFrontend( cols, rows );
 
         List<SGCell> cells = this.createCoopsWithOneDefectorAgents(cols, rows);
 
+        for (int i = 0; i < steps; ++i)
+            this.calculateNextStep(cells);
+
+        fe.renderCells(cells);
+
+        /*
         while ( true ) {
             this.calculateNextStep(cells);
-            fe.renderCells(cells);
+            steps++;
+            System.out.println(steps);
         }
+        */
     }
 
     private void calculateNextStep(List<SGCell> cells) {
@@ -62,11 +71,12 @@ public class RunSGEnv {
         for (int y = 0; y < rows; ++y) {
             for (int x = 0; x < cols; ++x) {
                 SGCell c;
+                SGCell.SGState state = SGCell.SGState.Cooperator;
 
                 if ( x == halfCols && y == halfRows)
-                    c = new SGCell(SGCell.SGState.Defector, x, y);
-                else
-                    c = new SGCell(SGCell.SGState.Cooperator, x, y);
+                    state = SGCell.SGState.Defector;
+
+                c = new SGCell(state, x, y);
 
                 cells.add(c);
             }
@@ -140,16 +150,17 @@ public class RunSGEnv {
         int x = c.getX();
         int y = c.getY();
 
-        //n.add( new Cell( x - 1, y - 1 ) );
+        n.add( new Cell( x - 1, y - 1 ) );
         n.add( new Cell( x, y - 1) );
-        //n.add( new Cell( x + 1, y - 1) );
+        n.add( new Cell( x + 1, y - 1) );
 
         n.add( new Cell( x - 1, y ) );
+        n.add( new Cell( x, y ) );
         n.add( new Cell( x + 1, y ) );
 
-        //n.add( new Cell( x - 1, y + 1 ) );
+        n.add( new Cell( x - 1, y + 1 ) );
         n.add( new Cell( x, y + 1) );
-        //n.add( new Cell( x + 1, y + 1) );
+        n.add( new Cell( x + 1, y + 1) );
 
         return n;
     }

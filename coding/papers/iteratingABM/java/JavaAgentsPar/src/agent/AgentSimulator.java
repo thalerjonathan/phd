@@ -23,11 +23,14 @@ public class AgentSimulator<A extends Agent, E> {
 
         Map<Integer, E> unmodifieableGlobalEnv = null;
 
-        while(o.simulationStep(om)) {
+        boolean flag = true;
+
+        while(flag) {
             if ( null != globalEnv )
                 unmodifieableGlobalEnv = Collections.unmodifiableMap( globalEnv );
 
             om = this.nextStepSimultaneous(om, globalEnv, unmodifieableGlobalEnv, dt);
+            flag = o.simulationStep(om);
         }
 
         return om;

@@ -4,14 +4,12 @@ import SGEnv.agent.SGAgent;
 import SGEnv.gui.SGFrontend;
 import agent.Agent;
 import agent.AgentSimulator;
+import agent.ISimulationObserver;
 import agent.Message;
 import utils.Cell;
 import utils.Pair;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -38,10 +36,10 @@ public class RunSGEnv {
 
         AgentSimulator simulator = new AgentSimulator();
 
-        simulator.simulateWithObserver( sgAgents,
+        simulator.simulateWithObserver(sgAgents,
                 env,
                 dt,
-                fe);
+               fe);
 
     }
 

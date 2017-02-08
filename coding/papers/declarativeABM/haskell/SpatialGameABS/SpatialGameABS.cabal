@@ -1,0 +1,19 @@
+name:              SpatialGameABS
+version:           1.0
+Build-Type:        Simple
+cabal-version:     >= 1.2
+
+executable SpatialGameABS
+  main-is:         Main.hs
+  hs-source-dirs:  src
+  build-depends:    base, containers, gloss, random, parallel
+  ghc-options:      -threaded
+                    -O2
+                    -eventlog
+                    -rtsopts
+
+                    -- prof
+                    -- -auto-all
+                    -- -caf-all
+                    -- "-with-rtsopts=-N -s -hy -p -i0.1 -K256M"
+                    -- use hd or hy

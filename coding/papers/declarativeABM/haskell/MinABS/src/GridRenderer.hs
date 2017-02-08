@@ -1,4 +1,4 @@
-module PureAgents2DDiscrete (
+module GridRenderer (
     RenderCellCoord,
     RenderCellColor,
     RenderCell(..),

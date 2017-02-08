@@ -4,7 +4,7 @@ import System.Random
 import Data.Maybe
 import Data.List
 
-import qualified PureAgentsPar as PA
+import qualified MinABS as ABS
 import qualified Data.Map as Map
 
 
@@ -22,10 +22,8 @@ data SGAgentState = SIRSAgentState {
     sgNeighbourFlag :: Int
 } deriving (Show)
 
-type SGEnvironment = ()
-type SGAgent = PA.Agent SGMsg SGAgentState SGEnvironment
-type SGTransformer = PA.AgentTransformer SGMsg SGAgentState SGEnvironment
-type SGSimHandle = PA.SimHandle SGMsg SGAgentState SGEnvironment
+type SGAgent = ABS.Agent SGAgentState SGMsg
+type SGTransformer = ABS.AgentTransformer SGAgentState SGMsg
 
 bParam :: Double
 bParam = 1.95
@@ -40,17 +38,9 @@ rParam :: Double
 rParam = 1.0
 
 sgTransformer :: SGTransformer
-sgTransformer (a, ge, le) (_, PA.Domain m) = (sgMsg a m, le)
-sgTransformer (a, ge, le) (_, PA.Dt dt) = (initialDt a, le)
-    where
-        initialDt :: SGAgent -> SGAgent
-        initialDt a = a' { PA.trans = sgTransformer' }
-            where
-                a' = broadCastLocalState a
-
-        sgTransformer' :: SGTransformer
-        sgTransformer' (a, ge, le) (_, PA.Dt dt) = (a, le)
-        sgTransformer' (a, ge, le) (_, PA.Domain m) = (sgMsg a m, le)
+sgTransformer a ABS.Start = broadCastLocalState a
+sgTransformer a (ABS.Dt dt) = a                       -- NOTE: no action on time-advance
+sgTransformer a (ABS.Message (_, m)) = sgMsg a m        -- NOTE: ignore sender
 
 sgMsg :: SGAgent -> SGMsg -> SGAgent
 sgMsg a (NeighbourState s) = sgStateMsg a s
@@ -62,18 +52,18 @@ sgStateMsg a s = if ( allNeighboursTicked a'' ) then
                     else
                         a''
     where
-        lp = sgLocalPayoff (PA.state a)
+        lp = sgLocalPayoff (ABS.s a)
         poIncrease = payoffWith a s
         newLp = lp + poIncrease
-        a' = PA.updateState a (\s -> s { sgLocalPayoff = newLp })
+        a' = ABS.updateState a (\s -> s { sgLocalPayoff = newLp })
         a'' = tickNeighbourFlag a'
 
 broadCastLocalPayoff :: SGAgent -> SGAgent
 broadCastLocalPayoff a = resetNeighbourFlag a'
     where
-        ls = sgCurrState (PA.state a)
-        lp = sgLocalPayoff (PA.state a)
-        a' = PA.broadcastMsgToNeighbours a (NeighbourPayoff (ls, lp))
+        ls = sgCurrState (ABS.s a)
+        lp = sgLocalPayoff (ABS.s a)
+        a' = ABS.sendToNeighbours a (NeighbourPayoff (ls, lp))
 
 
 sgPayoffMsg :: SGAgent -> (SGState, Double) -> SGAgent
@@ -87,31 +77,31 @@ sgPayoffMsg a p = if ( allNeighboursTicked a'' ) then
 
         comparePayoff :: SGAgent -> (SGState, Double) -> SGAgent
         comparePayoff a p@(_, v)
-            | v > localV = PA.updateState a (\s -> s { sgBestPayoff = p } )
+            | v > localV = ABS.updateState a (\s -> s { sgBestPayoff = p } )
             | otherwise = a
             where
-                (_, localV) = sgBestPayoff (PA.state a)
+                (_, localV) = sgBestPayoff (ABS.s a)
 
 switchToBestPayoff :: SGAgent -> SGAgent
-switchToBestPayoff a = PA.updateState a (\s -> s { sgCurrState = bestState,
+switchToBestPayoff a = ABS.updateState a (\s -> s { sgCurrState = bestState,
                                                     sgPrevState = oldState,
                                                     sgLocalPayoff = 0.0,
                                                      sgBestPayoff = (bestState, 0.0)} )
     where
-        (bestState, _) = sgBestPayoff (PA.state a)
-        oldState = sgCurrState (PA.state a)
+        (bestState, _) = sgBestPayoff (ABS.s a)
+        oldState = sgCurrState (ABS.s a)
 
 broadCastLocalState :: SGAgent -> SGAgent
 broadCastLocalState a = resetNeighbourFlag a'
     where
-        ls = sgCurrState (PA.state a)
-        a' = PA.broadcastMsgToNeighbours a (NeighbourState ls)
+        ls = sgCurrState (ABS.s a)
+        a' = ABS.sendToNeighbours a (NeighbourState ls)
 
 -- NOTE: the first state is always the owning agent
 payoffWith :: SGAgent -> SGState -> Double
 payoffWith a s = payoff as s
     where
-        as = sgCurrState (PA.state a)
+        as = sgCurrState (ABS.s a)
 
 payoff :: SGState -> SGState -> Double
 payoff Defector Defector = pParam
@@ -123,24 +113,34 @@ payoff Cooperator Cooperator = rParam
 allNeighboursTicked :: SGAgent -> Bool
 allNeighboursTicked a = nf == 0
     where
-        nf = (sgNeighbourFlag (PA.state a))
+        nf = (sgNeighbourFlag (ABS.s a))
 
 tickNeighbourFlag :: SGAgent -> SGAgent
-tickNeighbourFlag a = PA.updateState a (\s -> s { sgNeighbourFlag = nf - 1 })
+tickNeighbourFlag a = ABS.updateState a (\s -> s { sgNeighbourFlag = nf - 1 })
     where
-        nf = (sgNeighbourFlag (PA.state a))
+        nf = (sgNeighbourFlag (ABS.s a))
 
 resetNeighbourFlag :: SGAgent -> SGAgent
-resetNeighbourFlag a = PA.updateState a (\s -> s { sgNeighbourFlag = neighbourCount })
+resetNeighbourFlag a = ABS.updateState a (\s -> s { sgNeighbourFlag = neighbourCount })
     where
-        neighbourCount = Map.size (PA.neighbours a)
+        neighbourCount = length (ABS.ns a)
+
+
+
+
+
+
+
+
+
+
 
 createRandomSGAgents :: StdGen -> (Int, Int) -> Double -> ([SGAgent], StdGen)
 createRandomSGAgents gInit cells@(x,y) p = (as', g')
     where
         n = x * y
         (randStates, g') = createRandomStates gInit n p
-        as = map (\idx -> PA.createAgent idx (randStates !! idx) sgTransformer) [0..n-1]
+        as = map (\idx -> ABS.createAgent idx (randStates !! idx) sgTransformer) [0..n-1]
         as' = map (addNeighbours as cells) as
 
         createRandomStates :: StdGen -> Int -> Double -> ([SGAgentState], StdGen)
@@ -154,7 +154,8 @@ createRandomSGAgents gInit cells@(x,y) p = (as', g')
         addNeighbours :: [SGAgent] -> (Int, Int) -> SGAgent -> SGAgent
         addNeighbours as cells a = resetNeighbourFlag a'
             where
-                a' = PA.addNeighbours a (agentNeighbours a as cells)
+                ns = agentNeighbours a as cells
+                a' = foldl ABS.addNeighbour a ns
 
 setDefector :: [SGAgent] -> (Int, Int) -> (Int, Int) -> [SGAgent]
 setDefector as pos cells
@@ -163,15 +164,11 @@ setDefector as pos cells
     where
         mayAgentAtPos = find (\a -> pos == (agentToCell a cells)) as
         agentAtPos = (fromJust mayAgentAtPos)
-        agentAtPosId = PA.agentId agentAtPos
-        defectedAgentAtPos = PA.updateState agentAtPos (\s -> s { sgCurrState = Defector,
+        agentAtPosId = ABS.aid agentAtPos
+        defectedAgentAtPos = ABS.updateState agentAtPos (\s -> s { sgCurrState = Defector,
                                                                     sgPrevState = Defector,
                                                                     sgBestPayoff = (Defector, 0.0) } )
         (infront, behind) = splitAt agentAtPosId as
-
-sgEnvironmentFromAgents :: [SGAgent] -> PA.GlobalEnvironment SGEnvironment
-sgEnvironmentFromAgents as = foldl (\accMap a -> (Map.insert (PA.agentId a) () accMap) ) Map.empty as
-
 
 randomAgentState :: StdGen -> Double -> (SGAgentState, StdGen)
 randomAgentState g p = (SIRSAgentState{ sgCurrState = s,
@@ -202,7 +199,7 @@ agentNeighbours a as cells = filter (\a' -> any (==(agentToCell a' cells)) neigh
 agentToCell :: SGAgent -> (Int, Int) -> (Int, Int)
 agentToCell a (xCells, yCells) = (ax, ay)
      where
-        aid = PA.agentId a
+        aid = ABS.aid a
         ax = mod aid yCells
         ay = floor((fromIntegral aid) / (fromIntegral xCells))
 

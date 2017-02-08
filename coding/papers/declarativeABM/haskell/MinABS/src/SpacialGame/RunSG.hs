@@ -1,33 +1,32 @@
 module SpacialGame.RunSG where
 
 import SpacialGame.SGModel
-import qualified PureAgents2DDiscrete as Front
+import qualified GridRenderer as Front
 import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.IO.Simulate
 
-import qualified PureAgentsPar as PA
+import qualified MinABS as ABS
 
 import System.Random
 import Data.Maybe
 import Data.List
 
 winSize = (1000, 1000)
+winTitle = "Spatial Game MinABS"
 
 runSGWithRendering :: IO ()
 runSGWithRendering = do
                             let dt = 1.0
-                            let dims = (99, 99)
+                            let dims = (9, 9)
                             let rngSeed = 42
                             let defectorsRatio = 0.0
                             let g = mkStdGen rngSeed
 
                             let (as, g') = createRandomSGAgents g dims defectorsRatio
-                            let asWithDefector = setDefector as (49, 49) dims
+                            let asWithDefector = setDefector as (4, 4) dims
 
-                            let env = sgEnvironmentFromAgents asWithDefector
-
-                            let hdl = PA.initStepSimulation asWithDefector env
-                            stepWithRendering dims hdl dt
+                            let as' = ABS.startIteration asWithDefector
+                            stepWithRendering dims as' dt
 
 runSGStepsAndRender :: IO ()
 runSGStepsAndRender = do
@@ -40,29 +39,27 @@ runSGStepsAndRender = do
 
                             let (as, g') = createRandomSGAgents g dims defectorsRatio
                             let asWithDefector = setDefector as (49, 49) dims
-                            let env = sgEnvironmentFromAgents asWithDefector
 
-                            let (as', _) = PA.stepSimulation asWithDefector env dt steps
+                            let as' = ABS.iterationSteps asWithDefector steps
 
                             let observableAgentStates = map (sgAgentToRenderCell dims) as'
                             let frameRender = (Front.renderFrame observableAgentStates winSize dims)
-                            GLO.display (Front.display "Spacial Game Msg PAR" winSize) GLO.white frameRender
+                            GLO.display (Front.display winTitle winSize) GLO.white frameRender
                             return ()
 
 
 
-stepWithRendering :: (Int, Int) -> SGSimHandle -> Double -> IO ()
-stepWithRendering dims hdl dt = simulateIO (Front.display "Spacial Game Msg PAR" winSize)
+stepWithRendering :: (Int, Int) -> [SGAgent] -> Double -> IO ()
+stepWithRendering dims as dt = simulateIO (Front.display winTitle winSize)
                                 GLO.white
-                                2
-                                hdl
+                                1
+                                as
                                 (modelToPicture dims)
                                 (stepIteration dt)
 
 -- A function to convert the model to a picture.
-modelToPicture :: (Int, Int) -> SGSimHandle -> IO GLO.Picture
-modelToPicture dims hdl = do
-                            let as = PA.extractHdlAgents hdl
+modelToPicture :: (Int, Int) -> [SGAgent] -> IO GLO.Picture
+modelToPicture dims as = do
                             let cells = map (sgAgentToRenderCell dims) as
                             return (Front.renderFrame cells winSize dims)
 
@@ -70,8 +67,8 @@ sgAgentToRenderCell :: (Int, Int) -> SGAgent -> Front.RenderCell
 sgAgentToRenderCell (xDim, yDim) a = Front.RenderCell { Front.renderCellCoord = (ax, ay),
                                                         Front.renderCellColor = ss }
     where
-        id = PA.agentId a
-        s = PA.state a
+        id = ABS.aid a
+        s = ABS.s a
         ax = mod id yDim
         ay = floor((fromIntegral id) / (fromIntegral xDim))
         curr = sgCurrState s
@@ -101,6 +98,6 @@ yellowC = (1.0, 0.9, 0.0)
 -- NOTE: atomically is VERY important, if it is not there there then the STM-transactions would not occur!
 --       NOTE: this is actually wrong, we can avoid atomically as long as we are running always on the same thread.
 --             atomically would commit the changes and make them visible to other threads
-stepIteration :: Double -> ViewPort -> Float -> SGSimHandle -> IO SGSimHandle
-stepIteration fixedDt viewport dtRendering hdl = return (PA.advanceSimulation hdl fixedDt)
+stepIteration :: Double -> ViewPort -> Float -> [SGAgent] -> IO [SGAgent]
+stepIteration fixedDt viewport dtRendering as = return (ABS.iteration as)
 --------------------------------------------------------------------------------------------------------------------------------------------------

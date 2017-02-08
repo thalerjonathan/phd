@@ -2,7 +2,7 @@ module SIRS.SIRSModel where
 
 import System.Random
 
-import qualified PureAgentsPar as PA
+import qualified MinABS as ABS
 import qualified Data.Map as Map
 
 data SIRSState = Susceptible | Infected | Recovered deriving (Eq, Show)
@@ -14,10 +14,8 @@ data SIRSAgentState = SIRSAgentState {
     rng :: StdGen
 } deriving (Show)
 
-type SIRSEnvironment = ()
-type SIRSAgent = PA.Agent SIRSMsg SIRSAgentState SIRSEnvironment
-type SIRSTransformer = PA.AgentTransformer SIRSMsg SIRSAgentState SIRSEnvironment
-type SIRSSimHandle = PA.SimHandle SIRSMsg SIRSAgentState SIRSEnvironment
+type SIRSAgent = ABS.Agent SIRSAgentState SIRSMsg
+type SIRSTransformer = ABS.AgentTransformer SIRSAgentState SIRSMsg
 
 infectedDuration :: Double
 infectedDuration = 7.0
@@ -31,19 +29,18 @@ infectionProbability = 0.3
 is :: SIRSAgent -> SIRSState -> Bool
 is a ss = (sirState s) == ss
     where
-        s = PA.state a
+        s = ABS.s a
 
 sirsTransformer :: SIRSTransformer
-sirsTransformer (a, ge, le) (_, PA.Dt dt) = (sirsDt a dt, le)
-sirsTransformer (a, ge, le) (_, PA.Domain m) = (sirsMsg a m, le)
+sirsTransformer a ABS.Start = a
+sirsTransformer a (ABS.Dt dt) = sirsDt a dt
+sirsTransformer a (ABS.Message (_, m)) = sirsMsg a m       -- NOTE: ignore sender
 
 sirsMsg :: SIRSAgent -> SIRSMsg -> SIRSAgent
--- MESSAGE-CASE: Contact with Infected -> infect with given probability if agent is susceptibel
-sirsMsg a (Contact Infected)               -- NOTE: ignore sender
+sirsMsg a (Contact Infected)
     | is a Susceptible = infectAgent a
     | otherwise = a
--- MESSAGE-CASE: Contact with Recovered or Susceptible -> nothing happens
-sirsMsg a (Contact _) = a           -- NOTE: ignore sender
+sirsMsg a (Contact _) = a
 
 sirsDt :: SIRSAgent -> Double -> SIRSAgent
 sirsDt a dt
@@ -53,10 +50,10 @@ sirsDt a dt
 
 infectAgent :: SIRSAgent -> SIRSAgent
 infectAgent a
-    | infect = PA.updateState a (\sOld -> sOld { sirState = Infected, timeInState = 0.0, rng = g' } )
-    | otherwise = PA.updateState a (\sOld -> sOld { rng = g' } )
+    | infect = ABS.updateState a (\s -> s { sirState = Infected, timeInState = 0.0, rng = g' } )
+    | otherwise = ABS.updateState a (\s -> s { rng = g' } )
     where
-        g = (rng (PA.state a))
+        g = (rng (ABS.s a))
         (infect, g') = randomThresh g infectionProbability
 
 handleInfectedAgent :: SIRSAgent -> Double -> SIRSAgent
@@ -66,10 +63,10 @@ handleInfectedAgent a dt = if t' >= infectedDuration then
                                     randomContact gettingBetterAgent
 
     where
-        t = (timeInState (PA.state a))
+        t = (timeInState (ABS.s a))
         t' = t + dt
-        recoveredAgent = PA.updateState a (\sOld -> sOld { sirState = Recovered, timeInState = 0.0 } )
-        gettingBetterAgent = PA.updateState a (\sOld -> sOld { timeInState = t' } )
+        recoveredAgent = ABS.updateState a (\s -> s { sirState = Recovered, timeInState = 0.0 } )
+        gettingBetterAgent = ABS.updateState a (\s -> s { timeInState = t' } )
 
 handleRecoveredAgent :: SIRSAgent -> Double -> SIRSAgent
 handleRecoveredAgent a dt = if t' >= immuneDuration then
@@ -77,26 +74,34 @@ handleRecoveredAgent a dt = if t' >= immuneDuration then
                                 else
                                     immuneReducedAgent
     where
-        t = (timeInState (PA.state a))
+        t = (timeInState (ABS.s a))
         t' = t + dt
-        susceptibleAgent = PA.updateState a (\sOld -> sOld { sirState = Susceptible, timeInState = 0.0 } )
-        immuneReducedAgent = PA.updateState a (\sOld -> sOld { timeInState = t' } )
+        susceptibleAgent = ABS.updateState a (\s -> s { sirState = Susceptible, timeInState = 0.0 } )
+        immuneReducedAgent = ABS.updateState a (\s -> s { timeInState = t' } )
 
 
 randomContact :: SIRSAgent -> SIRSAgent
-randomContact a = PA.updateState a' (\sOld -> sOld { rng = g' } )
+randomContact a = ABS.send a' (randNeigh, (Contact Infected))
     where
-        s = PA.state a
-        (a', g') = PA.sendMsgToRandomNeighbour a (Contact Infected) (rng s)
+        nsCount = length (ABS.ns a)
+        g = (rng (ABS.s a))
+        (randIdx, g') = randomR(0, nsCount-1) g
+        randNeigh = (ABS.ns a) !! randIdx
+        a' = ABS.updateState a (\s -> s { rng = g' } )
 
 createRandomSIRSAgents :: StdGen -> (Int, Int) -> Double -> ([SIRSAgent], StdGen)
 createRandomSIRSAgents gInit cells@(x,y) p = (as', g')
     where
         n = x * y
         (randStates, g') = createRandomStates gInit n p
-        as = map (\idx -> PA.createAgent idx (randStates !! idx) sirsTransformer) [0..n-1]
+        as = map (\idx -> ABS.createAgent idx (randStates !! idx) sirsTransformer) [0..n-1]
         --as' = map (\a -> PA.addNeighbours a (filter (\a' -> (PA.agentId a') /= (PA.agentId a)) as) ) as
-        as' = map (\a -> PA.addNeighbours a (agentNeighbours a as cells) ) as
+        as' = map (addNeighbours as) as
+
+        addNeighbours :: [SIRSAgent] -> SIRSAgent -> SIRSAgent
+        addNeighbours as a = foldl ABS.addNeighbour a ns
+            where
+                ns = (agentNeighbours a as cells)
 
         createRandomStates :: StdGen -> Int -> Double -> ([SIRSAgentState], StdGen)
         createRandomStates g 0 p = ([], g)
@@ -106,11 +111,10 @@ createRandomSIRSAgents gInit cells@(x,y) p = (as', g')
               (ras, g'') = createRandomStates g' (n-1) p
               rands = randState : ras
 
-sirsEnvironmentFromAgents :: [SIRSAgent] -> PA.GlobalEnvironment SIRSEnvironment
-sirsEnvironmentFromAgents as = foldl (\accMap a -> (Map.insert (PA.agentId a) () accMap) ) Map.empty as
-
 randomAgentState :: StdGen -> Double -> (SIRSAgentState, StdGen)
-randomAgentState g p = (SIRSAgentState{ sirState = s, timeInState = 0.0, rng = g'' }, g')
+randomAgentState g p = (SIRSAgentState{ sirState = s,
+                                        timeInState = 0.0,
+                                        rng = g'' }, g')
     where
         (isInfected, g') = randomThresh g p
         (g'', _) = split g'
@@ -125,7 +129,6 @@ randomThresh g p = (flag, g')
         (thresh, g') = randomR(0.0, 1.0) g
         flag = thresh <= p
 
-
 agentNeighbours :: SIRSAgent -> [SIRSAgent] -> (Int, Int) -> [SIRSAgent]
 agentNeighbours a as cells = filter (\a' -> any (==(agentToCell a' cells)) neighbourCells ) as
     where
@@ -135,7 +138,7 @@ agentNeighbours a as cells = filter (\a' -> any (==(agentToCell a' cells)) neigh
 agentToCell :: SIRSAgent -> (Int, Int) -> (Int, Int)
 agentToCell a (xCells, yCells) = (ax, ay)
      where
-        aid = PA.agentId a
+        aid = ABS.aid a
         ax = mod aid yCells
         ay = floor((fromIntegral aid) / (fromIntegral xCells))
 

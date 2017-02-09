@@ -14,7 +14,6 @@ import Data.List
 winSize = (1000, 1000)
 winTitle = "Spacial Game MSG Par"
 
-
 runSGMsgWithRendering :: IO ()
 runSGMsgWithRendering = do
                             let dt = 1.0

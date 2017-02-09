@@ -6,13 +6,15 @@ cabal-version:     >= 1.2
 executable MinABS
   main-is:         Main.hs
   hs-source-dirs:  src
-  build-depends:    base, containers, gloss, random
+  build-depends:    base, containers, gloss, random, parallel
   ghc-options:      -O2
-                    -threaded
+                    -- -threaded
                     -- -eventlog
                     -- -rtsopts
-                    -prof
-                    -auto-all
-                    -caf-all
-                    "-with-rtsopts=-N -s -hy -p -i0.1 -K256M"
-                      -- use hd or hy
+                    -- -prof
+                    -- -auto-all
+                    -- -caf-all
+                    -- -fforce-recomp
+                    -- "-with-rtsopts=-N -s -hy -p -i0.1 -K256M"
+                    -- "-with-rtsopts=-N"
+                      -- use hc, hd or hy

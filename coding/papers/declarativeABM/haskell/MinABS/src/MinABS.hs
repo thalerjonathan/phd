@@ -1,5 +1,8 @@
 module MinABS where
 
+import Data.List
+import Control.Parallel.Strategies
+
 type Aid = Int
 
 data Event m = Start | Dt Double | Message (Aid, m) deriving(Show)
@@ -60,7 +63,7 @@ collectFrom a rid = map (\(_, m) -> ((aid a), m)) ms
         ms = filter (\(rid', _) -> rid == rid') (m a)
 
 stepAll :: [(Agent s m, [(Aid, m)])] -> [Agent s m]
-stepAll asMsgPairs = map step asMsgPairs
+stepAll = map step
 
 step :: (Agent s m, [(Aid, m)]) -> Agent s m
 step (a, msgs) = advanceTime $ consumeMessages (a', msgs)

@@ -12,6 +12,7 @@ import System.IO
 import qualified Data.Map as Map
 
 winSize = (1000, 1000)
+winTitle = "Spatial Game Simple"
 
 runSGWithRendering :: IO ()
 runSGWithRendering = do
@@ -23,19 +24,19 @@ runSGWithRendering = do
 runSGStepsAndRender :: IO ()
 runSGStepsAndRender = do
                             hSetBuffering stdout NoBuffering
-                            let steps = 217
+                            let steps = 30
                             let dims = (99, 99)
                             let cs = createSGCells dims
                             let csWithDefector = setDefector cs (49, 49) dims
 
                             cs' <- stepMulti csWithDefector steps
-
+{-
                             let cells = map sgSGCellToRenderCell (Map.elems cs')
                             let frameRender = (Front.renderFrame cells winSize dims)
-                            GLO.display (Front.display "Spacial Game Simple" winSize) GLO.white frameRender
+                            GLO.display (Front.display winTitle winSize) GLO.white frameRender
+-}
+                            mapM (putStrLn . show) cs'
                             return ()
-                            --mapM (putStrLn . show) cs'
-                            --return ()
 
 stepMulti :: CellContainer -> Int -> IO CellContainer
 stepMulti cs 0 = return cs
@@ -44,7 +45,7 @@ stepMulti cs n = stepMulti cs' (n-1)
         cs' = stepSingle cs
 
 stepWithRendering :: (Int, Int) -> CellContainer -> IO ()
-stepWithRendering dims cs = simulateIO (Front.display "Spacial Game Simple" winSize)
+stepWithRendering dims cs = simulateIO (Front.display winTitle winSize)
                                 GLO.white
                                 1
                                 cs

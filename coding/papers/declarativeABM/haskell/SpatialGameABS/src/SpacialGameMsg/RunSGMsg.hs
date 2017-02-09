@@ -12,17 +12,18 @@ import Data.Maybe
 import Data.List
 
 winSize = (1000, 1000)
+winTitle = "Spatial Game ABS"
 
 runSGMsgWithRendering :: IO ()
 runSGMsgWithRendering = do
                             let dt = 1.0
-                            let dims = (99, 99)
+                            let dims = (9, 9)
                             let rngSeed = 42
                             let defectorsRatio = 0.0
                             let g = mkStdGen rngSeed
 
                             let (as, g') = createRandomSGAgents g dims defectorsRatio
-                            let asWithDefector = setDefector as (49, 49) dims
+                            let asWithDefector = setDefector as (4, 4) dims
 
                             let env = sgEnvironmentFromAgents asWithDefector
 
@@ -46,13 +47,13 @@ runSGMsgStepsAndRender = do
 
                             let observableAgentStates = map (sgAgentToRenderCell dims) as'
                             let frameRender = (Front.renderFrame observableAgentStates winSize dims)
-                            GLO.display (Front.display "Spacial Game Msg PAR" winSize) GLO.white frameRender
+                            GLO.display (Front.display winTitle winSize) GLO.white frameRender
                             return ()
 
 
 
 stepWithRendering :: (Int, Int) -> SGSimHandle -> Double -> IO ()
-stepWithRendering dims hdl dt = simulateIO (Front.display "Spacial Game Msg PAR" winSize)
+stepWithRendering dims hdl dt = simulateIO (Front.display winTitle winSize)
                                 GLO.white
                                 2
                                 hdl

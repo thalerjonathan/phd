@@ -8,3 +8,11 @@ executable MinABS
   hs-source-dirs:  src
   build-depends:    base, containers, gloss, random
   ghc-options:      -O2
+                    -threaded
+                    -- -eventlog
+                    -- -rtsopts
+                    -prof
+                    -auto-all
+                    -caf-all
+                    "-with-rtsopts=-N -s -hy -p -i0.1 -K256M"
+                      -- use hd or hy

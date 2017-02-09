@@ -7,11 +7,11 @@ import Data.List
 import qualified MinABS as ABS
 import qualified Data.Map as Map
 
-
 data SGState = Defector | Cooperator deriving (Eq, Show)
 data SGMsg = NeighbourPayoff (SGState, Double) | NeighbourState SGState deriving (Eq, Show)
 
 data SGAgentState = SIRSAgentState {
+    sgCoords :: (Int, Int),
     sgCurrState :: SGState,
     sgPrevState :: SGState,
 
@@ -39,7 +39,7 @@ rParam = 1.0
 
 sgTransformer :: SGTransformer
 sgTransformer a ABS.Start = broadCastLocalState a
-sgTransformer a (ABS.Dt dt) = a                       -- NOTE: no action on time-advance
+sgTransformer a (ABS.Dt dt) = a                         -- NOTE: no action on time-advance
 sgTransformer a (ABS.Message (_, m)) = sgMsg a m        -- NOTE: ignore sender
 
 sgMsg :: SGAgent -> SGMsg -> SGAgent
@@ -125,32 +125,14 @@ resetNeighbourFlag a = ABS.updateState a (\s -> s { sgNeighbourFlag = neighbourC
     where
         neighbourCount = length (ABS.ns a)
 
-
-
-
-
-
-
-
-
-
-
-createRandomSGAgents :: StdGen -> (Int, Int) -> Double -> ([SGAgent], StdGen)
-createRandomSGAgents gInit cells@(x,y) p = (as', g')
+createRandomSGAgents :: (Int, Int) -> Double -> IO [SGAgent]
+createRandomSGAgents cells@(x,y) p = do
+                                        let ssIO = [ randomAgentState p (xCoord, yCoord) | xCoord <- [0..x-1], yCoord <- [0..y-1] ]
+                                        ss <- mapM id ssIO
+                                        let as = map (\s -> ABS.createAgent (stateToAid s cells) s sgTransformer) ss
+                                        let as' = map (addNeighbours as cells) as
+                                        return as'
     where
-        n = x * y
-        (randStates, g') = createRandomStates gInit n p
-        as = map (\idx -> ABS.createAgent idx (randStates !! idx) sgTransformer) [0..n-1]
-        as' = map (addNeighbours as cells) as
-
-        createRandomStates :: StdGen -> Int -> Double -> ([SGAgentState], StdGen)
-        createRandomStates g 0 p = ([], g)
-        createRandomStates g n p = (rands, g'')
-            where
-              (randState, g') = randomAgentState g p
-              (ras, g'') = createRandomStates g' (n-1) p
-              rands = randState : ras
-
         addNeighbours :: [SGAgent] -> (Int, Int) -> SGAgent -> SGAgent
         addNeighbours as cells a = resetNeighbourFlag a'
             where
@@ -170,24 +152,29 @@ setDefector as pos cells
                                                                     sgBestPayoff = (Defector, 0.0) } )
         (infront, behind) = splitAt agentAtPosId as
 
-randomAgentState :: StdGen -> Double -> (SGAgentState, StdGen)
-randomAgentState g p = (SIRSAgentState{ sgCurrState = s,
+stateToAid :: SGAgentState -> (Int, Int) -> ABS.Aid
+stateToAid s (x, y) = (yCoord * x) + xCoord
+    where
+        (xCoord, yCoord) = sgCoords s
+
+randomAgentState :: Double -> (Int, Int) -> IO SGAgentState
+randomAgentState p coords = do
+                                isDefector <- randomThresh p
+                                let s = if isDefector then
+                                            Defector
+                                            else
+                                                Cooperator
+                                return SIRSAgentState{ sgCurrState = s,
                                         sgPrevState = s,
                                         sgLocalPayoff = 0.0,
                                         sgBestPayoff = (s, 0.0),
-                                        sgNeighbourFlag = -1 }, g')
-    where
-        (isDefector, g') = randomThresh g p
-        s = if isDefector then
-                Defector
-                else
-                    Cooperator
+                                        sgNeighbourFlag = -1,
+                                        sgCoords = coords }
 
-randomThresh :: StdGen -> Double -> (Bool, StdGen)
-randomThresh g p = (flag, g')
-    where
-        (thresh, g') = randomR(0.0, 1.0) g
-        flag = thresh <= p
+randomThresh :: Double -> IO Bool
+randomThresh p = do
+                    thresh <- getStdRandom (randomR(0.0, 1.0))
+                    return (thresh <= p)
 
 
 agentNeighbours :: SGAgent -> [SGAgent] -> (Int, Int) -> [SGAgent]

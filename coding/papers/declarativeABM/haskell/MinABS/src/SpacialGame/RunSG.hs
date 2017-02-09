@@ -8,54 +8,62 @@ import Graphics.Gloss.Interface.IO.Simulate
 import qualified MinABS as ABS
 
 import System.Random
+import System.IO
 import Data.Maybe
 import Data.List
 
 winSize = (1000, 1000)
 winTitle = "Spatial Game MinABS"
+rngSeed = 42
 
 runSGWithRendering :: IO ()
 runSGWithRendering = do
-                            let dt = 1.0
-                            let dims = (9, 9)
-                            let rngSeed = 42
+                            let dims = (49, 49)
                             let defectorsRatio = 0.0
-                            let g = mkStdGen rngSeed
 
-                            let (as, g') = createRandomSGAgents g dims defectorsRatio
-                            let asWithDefector = setDefector as (4, 4) dims
+                            initRng rngSeed
+
+                            as <- createRandomSGAgents dims defectorsRatio
+                            let asWithDefector = setDefector as (24, 24) dims
 
                             let as' = ABS.startIteration asWithDefector
-                            stepWithRendering dims as' dt
+                            stepWithRendering dims as'
 
 runSGStepsAndRender :: IO ()
 runSGStepsAndRender = do
-                            let dt = 1.0
-                            let dims = (99, 99)
-                            let rngSeed = 42
-                            let steps = 60
+                            hSetBuffering stdin NoBuffering
+                            let dims = (49, 49)
+                            let steps = 30
                             let defectorsRatio = 0.0
-                            let g = mkStdGen rngSeed
 
-                            let (as, g') = createRandomSGAgents g dims defectorsRatio
-                            let asWithDefector = setDefector as (49, 49) dims
+                            initRng rngSeed
+
+                            as <- createRandomSGAgents dims defectorsRatio
+                            let asWithDefector = setDefector as (24, 24) dims
 
                             let as' = ABS.iterationSteps asWithDefector steps
 
+                            mapM (putStrLn . show) as'
+{-
                             let observableAgentStates = map (sgAgentToRenderCell dims) as'
                             let frameRender = (Front.renderFrame observableAgentStates winSize dims)
                             GLO.display (Front.display winTitle winSize) GLO.white frameRender
+                            -}
                             return ()
 
+initRng :: Int -> IO StdGen
+initRng seed = do
+                let g = mkStdGen seed
+                setStdGen g
+                return g
 
-
-stepWithRendering :: (Int, Int) -> [SGAgent] -> Double -> IO ()
-stepWithRendering dims as dt = simulateIO (Front.display winTitle winSize)
+stepWithRendering :: (Int, Int) -> [SGAgent] -> IO ()
+stepWithRendering dims as = simulateIO (Front.display winTitle winSize)
                                 GLO.white
                                 1
                                 as
                                 (modelToPicture dims)
-                                (stepIteration dt)
+                                stepIteration
 
 -- A function to convert the model to a picture.
 modelToPicture :: (Int, Int) -> [SGAgent] -> IO GLO.Picture
@@ -98,6 +106,6 @@ yellowC = (1.0, 0.9, 0.0)
 -- NOTE: atomically is VERY important, if it is not there there then the STM-transactions would not occur!
 --       NOTE: this is actually wrong, we can avoid atomically as long as we are running always on the same thread.
 --             atomically would commit the changes and make them visible to other threads
-stepIteration :: Double -> ViewPort -> Float -> [SGAgent] -> IO [SGAgent]
-stepIteration fixedDt viewport dtRendering as = return (ABS.iteration as)
+stepIteration :: ViewPort -> Float -> [SGAgent] -> IO [SGAgent]
+stepIteration viewport dtRendering as = return (ABS.iteration as)
 --------------------------------------------------------------------------------------------------------------------------------------------------

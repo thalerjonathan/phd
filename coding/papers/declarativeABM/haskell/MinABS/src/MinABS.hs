@@ -2,7 +2,7 @@ module MinABS where
 
 type Aid = Int
 
-data Event m = Start | Dt Double | Message (Aid, m)
+data Event m = Start | Dt Double | Message (Aid, m) deriving(Show)
 
 data Agent s m = Agent {
     aid :: Aid,
@@ -14,6 +14,8 @@ data Agent s m = Agent {
 
 type AgentTransformer s m = (Agent s m -> Event m -> Agent s m )
 
+instance (Show s, Show m) => Show (Agent s m) where
+    show (Agent aid s m ns _) = "Agent " ++ (show aid) ++ ": state = " ++ (show s) ++ " mbox = " ++ (show m) ++ " neighbours: " ++ (show ns)
 
 sendEvent :: [Agent s m] -> Event m -> [Agent s m]
 sendEvent as e = map (\a -> (f a) a e ) as
@@ -53,15 +55,17 @@ collectFor :: Agent s m -> [Agent s m] -> [(Aid, m)]
 collectFor a as = foldl (\acc a' -> acc ++ collectFrom a' (aid a)) [] as
 
 collectFrom :: Agent s m -> Aid -> [(Aid, m)]
-collectFrom a rid = map (\ (_, m) -> ((aid a), m)) ms
+collectFrom a rid = map (\(_, m) -> ((aid a), m)) ms
     where
-        ms = filter (\ (rid', m) -> rid == rid') (m a)
+        ms = filter (\(rid', _) -> rid == rid') (m a)
 
 stepAll :: [(Agent s m, [(Aid, m)])] -> [Agent s m]
 stepAll asMsgPairs = map step asMsgPairs
 
 step :: (Agent s m, [(Aid, m)]) -> Agent s m
-step = advanceTime . consumeMessages
+step (a, msgs) = advanceTime $ consumeMessages (a', msgs)
+    where
+        a' = a { m = [] }
 
 consumeMessages :: (Agent s m, [(Aid, m)]) -> Agent s m
 consumeMessages (a, ms) = foldl processMessage a ms
@@ -73,7 +77,7 @@ advanceTime :: Agent s m -> Agent s m
 advanceTime a = (f a) a (Dt 1.0)
 
 createAgent :: Aid -> s -> AgentTransformer s m -> Agent s m
-createAgent aid s f = Agent { aid = aid, s = s, m = [], ns = [], f = f }
+createAgent id state trans = Agent { aid = id, s = state, m = [], ns = [], f = trans }
 
 addNeighbour :: Agent s m -> Agent s m -> Agent s m
 addNeighbour a n = a { ns = (aid n) : (ns a)}

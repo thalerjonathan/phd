@@ -73,7 +73,7 @@ data SimHandle m s e = SimHandle {
 }
 
 newAgent :: Agent m s e -> Agent m s e -> Agent m s e
-newAgent aParent aNew = aParent { newAgents = aNew : nas }
+newAgent aParent aNew= aParent { newAgents = aNew : nas }
     where
         nas = newAgents aParent
 

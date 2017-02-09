@@ -33,7 +33,7 @@ runSGMsgStepsAndRender = do
                             let dt = 1.0
                             let dims = (99, 99)
                             let rngSeed = 42
-                            let steps = 217
+                            let steps = 62
                             let defectorsRatio = 0.0
                             let g = mkStdGen rngSeed
 

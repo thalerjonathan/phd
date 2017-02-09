@@ -16,21 +16,21 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Main.hs" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Main.hs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Main.hs">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="234">
-              <caret line="13" column="28" lean-forward="false" selection-start-line="13" selection-start-column="28" selection-end-line="13" selection-end-column="28" />
+              <caret line="13" column="29" lean-forward="false" selection-start-line="13" selection-start-column="29" selection-end-line="13" selection-end-column="29" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SGModelEnv.hs" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/SpacialGameEnv/SGModelEnv.hs">
+      <file leaf-file-name="RunSGMsg.hs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/SpacialGameMsg/RunSGMsg.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="596">
-              <caret line="145" column="31" lean-forward="false" selection-start-line="145" selection-start-column="31" selection-end-line="145" selection-end-column="31" />
+            <state relative-caret-position="216">
+              <caret line="30" column="22" lean-forward="false" selection-start-line="30" selection-start-column="0" selection-end-line="30" selection-end-column="22" />
               <folding />
             </state>
           </provider>
@@ -88,10 +88,10 @@
         <option value="$PROJECT_DIR$/src/SIRS/RunSIRS.hs" />
         <option value="$PROJECT_DIR$/src/WildFire/RunWFDynamic.hs" />
         <option value="$PROJECT_DIR$/src/WildFire/RunWFStatic.hs" />
-        <option value="$PROJECT_DIR$/src/SpacialGameMsg/RunSGMsg.hs" />
-        <option value="$PROJECT_DIR$/src/Main.hs" />
         <option value="$PROJECT_DIR$/src/SpacialGameEnv/SGModelEnv.hs" />
         <option value="$PROJECT_DIR$/src/SpacialGameEnv/RunSGEnv.hs" />
+        <option value="$PROJECT_DIR$/src/SpacialGameMsg/RunSGMsg.hs" />
+        <option value="$PROJECT_DIR$/src/Main.hs" />
       </list>
     </option>
   </component>
@@ -115,8 +115,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
       <pane id="Scope" />
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -157,7 +157,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="SpacialGameEnv" />
+              <option name="myItemId" value="SpacialGameMsg" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -874,10 +874,26 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/SpacialGameEnv/SGModelEnv.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="596">
+          <caret line="145" column="31" lean-forward="false" selection-start-line="145" selection-start-column="31" selection-end-line="145" selection-end-column="31" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/SpacialGameEnv/RunSGEnv.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1170">
+          <caret line="65" column="24" lean-forward="true" selection-start-line="65" selection-start-column="24" selection-end-line="65" selection-end-column="24" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/SpacialGameMsg/RunSGMsg.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="396">
-          <caret line="22" column="44" lean-forward="false" selection-start-line="22" selection-start-column="44" selection-end-line="22" selection-end-column="44" />
+        <state relative-caret-position="216">
+          <caret line="30" column="22" lean-forward="false" selection-start-line="30" selection-start-column="0" selection-end-line="30" selection-end-column="22" />
           <folding />
         </state>
       </provider>
@@ -885,23 +901,7 @@
     <entry file="file://$PROJECT_DIR$/src/Main.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="234">
-          <caret line="13" column="28" lean-forward="false" selection-start-line="13" selection-start-column="28" selection-end-line="13" selection-end-column="28" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/SpacialGameEnv/RunSGEnv.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="147">
-          <caret line="65" column="24" lean-forward="true" selection-start-line="65" selection-start-column="24" selection-end-line="65" selection-end-column="24" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/SpacialGameEnv/SGModelEnv.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="596">
-          <caret line="145" column="31" lean-forward="false" selection-start-line="145" selection-start-column="31" selection-end-line="145" selection-end-column="31" />
+          <caret line="13" column="29" lean-forward="false" selection-start-line="13" selection-start-column="29" selection-end-line="13" selection-end-column="29" />
           <folding />
         </state>
       </provider>

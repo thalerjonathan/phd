@@ -1,17 +1,16 @@
 \section{The specification Language}
 
-TODO: always provide mathematical description first and then haskell-code
-
-An Agent A is a 5-tuple <Aid, s, m, mbox, tf>
-Aid is the id of the agent
+An Agent A is a 5-tuple <aid, s, m, n, tf>
+aid is the id of the agent
 s is the generic state of the agent
-m is the message-protocoll the agent understands including the messages (Dt d)
-mbox is the messagebox of the agent containing all outgoing messages. it is of type [(Aid, m)]
-tf is the transformer-function with the following type tf :: Agent -> (Aid, m') -> Agent
+m is the message-protocoll the agent understands 
 
-the type of m' = Dt d | m
 
-further there is a function for sending a message to other agents, excluding the message Dt d
+tf is the transformer-function with the following type Agent -> Event m -> Agent
+
+
+
+further there is a function for sending a message to other agents
 send :: Agent -> (Aid, m) -> Agent
 
 For calculating one iteration of the system we first pair up all agents with the messages they receive in this iteration and then we step every agent

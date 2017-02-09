@@ -27,7 +27,7 @@ runSGWithRendering = do
                             as <- createRandomSGAgents dims defectorsRatio
                             let asWithDefector = setDefector as (19, 19) dims
 
-                            let as' = ABS.startIteration asWithDefector
+                            let as' = ABS.iterationStart asWithDefector
                             asRef <- newIORef as'
                             stepWithRendering dims asRef
 
@@ -67,7 +67,7 @@ stepWithRendering dims asRef = animateIO (Front.display winTitle winSize)
 nextFrame :: IORef [SGAgent] -> (Int, Int) -> Float -> IO Picture
 nextFrame asRef dims _ = do
                             as <- readIORef asRef
-                            let as' = (ABS.iteration as)
+                            let as' = (ABS.iterationNext as)
                             writeIORef asRef as'
                             renderFrame as' dims
 

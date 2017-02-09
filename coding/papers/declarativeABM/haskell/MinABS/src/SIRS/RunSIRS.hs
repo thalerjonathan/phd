@@ -22,7 +22,7 @@ runSIRSWithRendering = do
                         let steps = 10
                         let g = mkStdGen rngSeed
                         let (as, g') = createRandomSIRSAgents g dims initInfectionProb
-                        let as' = ABS.startIteration as
+                        let as' = ABS.iterationStart as
                         stepWithRendering dims as' dt
 
 runSIRSStepsAndRender :: IO ()
@@ -76,5 +76,5 @@ sirsAgentToRenderCell (xDim, yDim) a = Front.RenderCell { Front.renderCellCoord 
 --       NOTE: this is actually wrong, we can avoid atomically as long as we are running always on the same thread.
 --             atomically would commit the changes and make them visible to other threads
 stepIteration :: Double -> ViewPort -> Float -> [SIRSAgent] -> IO [SIRSAgent]
-stepIteration fixedDt viewport dtRendering as = return (ABS.iteration as)
+stepIteration fixedDt viewport dtRendering as = return (ABS.iterationNext as)
 --------------------------------------------------------------------------------------------------------------------------------------------------

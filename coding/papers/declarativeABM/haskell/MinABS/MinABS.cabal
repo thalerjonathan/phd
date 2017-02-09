@@ -15,6 +15,6 @@ executable MinABS
                     -- -auto-all
                     -- -caf-all
                     -- -fforce-recomp
-                    -- "-with-rtsopts=-N -s -hy -p -i0.1 -K256M"
+                    -- "-with-rtsopts= -s -hy -p -i0.1 -K256M"
                     -- "-with-rtsopts=-N"
                       -- use hc, hd or hy

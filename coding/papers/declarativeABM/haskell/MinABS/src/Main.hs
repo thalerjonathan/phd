@@ -4,4 +4,4 @@ import SIRS.RunSIRS
 import SpacialGame.RunSG
 
 main :: IO ()
-main = runSGWithRendering
+main = runSGStepsAndRender

@@ -1,18 +1,23 @@
 module SpacialGameMsg.SGModelMsg where
 
-import System.Random
-
 import qualified PureAgentsSeq as PA
 
+import qualified Data.Map as Map
+
+import System.Random
+
 data SGState = Defector | Cooperator deriving (Eq, Show)
-data SGMsg = NeighbourPayoff SGState Double | NeighbourAction SGState deriving (Eq, Show)
+data SGMsg = NeighbourPayoff (SGState, Double) | NeighbourState SGState deriving (Eq, Show)
 
 data SGAgentState = SIRSAgentState {
     sgCurrState :: SGState,
     sgPrevState :: SGState,
-    sgSumPayoff :: Double,
-    sgMaxPayoffValue :: Double,
-    sgMaxPayoffState :: SGState
+
+    sgLocalPayoff :: Double,
+
+    sgBestPayoff :: (SGState, Double),
+
+    sgNeighbourFlag :: Int
 } deriving (Show)
 
 type SGEnvironment = ()
@@ -21,7 +26,7 @@ type SGTransformer = PA.AgentTransformer SGMsg SGAgentState SGEnvironment
 type SGSimHandle = PA.SimHandle SGMsg SGAgentState SGEnvironment
 
 bParam :: Double
-bParam = 1.9
+bParam = 1.95
 
 sParam :: Double
 sParam = 0.0
@@ -33,26 +38,64 @@ rParam :: Double
 rParam = 1.0
 
 sgTransformer :: SGTransformer
-sgTransformer (a, e) (_, PA.Dt dt) = (sgDt a dt, e)
-sgTransformer (a, e) (_, PA.Domain m) = (sgMsg a m, e)
+sgTransformer (a, e) PA.Start = (broadCastLocalState a, e)
+sgTransformer ae (PA.Dt dt) = ae                                    -- NOTE: no action on time-advance
+sgTransformer (a, e) (PA.Message (_, m)) = (sgMsg a m, e)           -- NOTE: ignore sender
 
 sgMsg :: SGAgent -> SGMsg -> SGAgent
-sgMsg a (NeighbourAction s) = sgActionMsg a s
-sgMsg a (NeighbourPayoff s p) = sgPayoffMsg a s p
+sgMsg a (NeighbourState s) = sgStateMsg a s
+sgMsg a (NeighbourPayoff p) = sgPayoffMsg a p
 
-sgActionMsg :: SGAgent -> SGState -> SGAgent
-sgActionMsg a s = PA.updateState a (\s -> s { sgSumPayoff = newPo })
+sgStateMsg :: SGAgent -> SGState -> SGAgent
+sgStateMsg a s = if ( allNeighboursTicked a'' ) then
+                    broadCastLocalPayoff a''
+                    else
+                        a''
     where
-        po = sgSumPayoff (PA.state a)
+        lp = sgLocalPayoff (PA.state a)
         poIncrease = payoffWith a s
-        newPo = po + poIncrease
+        newLp = lp + poIncrease
+        a' = PA.updateState a (\s -> s { sgLocalPayoff = newLp })
+        a'' = tickNeighbourFlag a'
 
-sgPayoffMsg :: SGAgent -> SGState -> Double -> SGAgent
-sgPayoffMsg a sg p
-    | p > poMaxVal = PA.updateState a (\s -> s { sgMaxPayoffValue = p, sgMaxPayoffState = sg } )
-    | otherwise = a
+broadCastLocalPayoff :: SGAgent -> SGAgent
+broadCastLocalPayoff a = resetNeighbourFlag a'
     where
-        poMaxVal = sgMaxPayoffValue (PA.state a)
+        ls = sgCurrState (PA.state a)
+        lp = sgLocalPayoff (PA.state a)
+        a' = PA.broadcastMsgToNeighbours a (NeighbourPayoff (ls, lp))
+
+
+sgPayoffMsg :: SGAgent -> (SGState, Double) -> SGAgent
+sgPayoffMsg a p = if ( allNeighboursTicked a'' ) then
+                      broadCastLocalState $ switchToBestPayoff a''
+                      else
+                          a''
+    where
+        a' = comparePayoff a p
+        a'' = tickNeighbourFlag a'
+
+        comparePayoff :: SGAgent -> (SGState, Double) -> SGAgent
+        comparePayoff a p@(_, v)
+            | v > localV = PA.updateState a (\s -> s { sgBestPayoff = p } )
+            | otherwise = a
+            where
+                (_, localV) = sgBestPayoff (PA.state a)
+
+switchToBestPayoff :: SGAgent -> SGAgent
+switchToBestPayoff a = PA.updateState a (\s -> s { sgCurrState = bestState,
+                                                    sgPrevState = oldState,
+                                                    sgLocalPayoff = 0.0,
+                                                     sgBestPayoff = (bestState, 0.0)} )
+    where
+        (bestState, _) = sgBestPayoff (PA.state a)
+        oldState = sgCurrState (PA.state a)
+
+broadCastLocalState :: SGAgent -> SGAgent
+broadCastLocalState a = resetNeighbourFlag a'
+    where
+        ls = sgCurrState (PA.state a)
+        a' = PA.broadcastMsgToNeighbours a (NeighbourState ls)
 
 -- NOTE: the first state is always the owning agent
 payoffWith :: SGAgent -> SGState -> Double
@@ -66,18 +109,22 @@ payoff Cooperator Defector = sParam
 payoff Defector Cooperator = bParam
 payoff Cooperator Cooperator = rParam
 
--- TODO: is this really correct?
-sgDt :: SGAgent -> Double -> SGAgent
-sgDt a dt = aAfterAction
+
+allNeighboursTicked :: SGAgent -> Bool
+allNeighboursTicked a = nf == 0
     where
-        localState = sgCurrState (PA.state a)
-        localPayoff = sgSumPayoff (PA.state a)
+        nf = (sgNeighbourFlag (PA.state a))
 
-        bestState = sgMaxPayoffState (PA.state a)
+tickNeighbourFlag :: SGAgent -> SGAgent
+tickNeighbourFlag a = PA.updateState a (\s -> s { sgNeighbourFlag = nf - 1 })
+    where
+        nf = (sgNeighbourFlag (PA.state a))
 
-        aAfterPayoff = PA.updateState a (\s -> s { sgCurrState = bestState, sgPrevState = localState } )
-        aAfterBroad = PA.broadcastMsgToNeighbours aAfterPayoff (NeighbourPayoff localState localPayoff)
-        aAfterAction = PA.broadcastMsgToNeighbours aAfterBroad (NeighbourAction bestState)
+resetNeighbourFlag :: SGAgent -> SGAgent
+resetNeighbourFlag a = PA.updateState a (\s -> s { sgNeighbourFlag = neighbourCount })
+    where
+        neighbourCount = Map.size (PA.neighbours a)
+
 
 createRandomSGAgents :: StdGen -> (Int, Int) -> Double -> ([SGAgent], StdGen)
 createRandomSGAgents gInit cells@(x,y) p = (as', g')
@@ -96,7 +143,11 @@ createRandomSGAgents gInit cells@(x,y) p = (as', g')
               rands = randState : ras
 
 randomAgentState :: StdGen -> Double -> (SGAgentState, StdGen)
-randomAgentState g p = (SIRSAgentState{ sgCurrState = s, sgPrevState = s, sgSumPayoff = 0.0, sgMaxPayoffState = s, sgMaxPayoffValue = 0.0 }, g')
+randomAgentState g p = (SIRSAgentState{ sgCurrState = s,
+                                        sgPrevState = s,
+                                        sgLocalPayoff = 0.0,
+                                        sgBestPayoff = (s, 0.0),
+                                        sgNeighbourFlag = 0}, g')
     where
         (isDefector, g') = randomThresh g p
         (g'', _) = split g'

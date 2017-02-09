@@ -32,8 +32,9 @@ rParam :: Double
 rParam = 1.0
 
 sgTransformer :: SGTransformer
-sgTransformer ae (_, PA.Dt dt) = sgDt ae dt
-sgTransformer ae (_, PA.Domain m) = ae
+sgTransformer ae (PA.Dt dt) = sgDt ae dt
+sgTransformer ae (PA.Start) = ae
+sgTransformer ae (PA.Message m) = ae
 
 -- NOTE: the first state is always the owning agent
 payoffWithEnv :: SGState -> PA.AgentId -> SGEnvironment -> Double

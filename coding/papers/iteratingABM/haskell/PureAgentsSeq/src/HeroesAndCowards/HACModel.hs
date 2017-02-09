@@ -29,8 +29,10 @@ hacMovementPerTimeUnit :: Double
 hacMovementPerTimeUnit = 1.0
 
 hacTransformer :: HACTransformer
-hacTransformer (a, e) (_, PA.Dt dt) = (hacDt a dt, e)
-hacTransformer (a, e) (senderId, PA.Domain m) = (hacMsg a m senderId, e)
+hacTransformer ae (PA.Start) = ae
+hacTransformer (a, e) (PA.Dt dt) = (hacDt a dt, e)
+hacTransformer (a, e) (PA.Message (senderId, m)) = (hacMsg a m senderId, e)
+
 
 hacMsg :: HACAgent -> HACMsg -> PA.AgentId -> HACAgent
 -- MESSAGE-CASE: PositionUpdate

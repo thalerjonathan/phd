@@ -14,6 +14,9 @@ import Graphics.Gloss.Interface.IO.Simulate
 
 import qualified PureAgentsSeq as PA
 
+winTitle = "WildFire Dynamic SEQ"
+winSize = (800, 800)
+
 runWFDynamicRendering :: IO ()
 runWFDynamicRendering = do
                             let dt = 1.0
@@ -45,20 +48,22 @@ runWFDynamicSteps = do
                         return ()
 
 stepWithRendering :: WFSimHandle -> Double -> IO ()
-stepWithRendering hdl dt = simulateIO (Front.display "WildFire Dynamic" (800, 800))
+stepWithRendering hdl dt = simulateIO (Front.display winTitle winSize)
                                 GLO.white
                                 10
                                 hdl
                                 modelToPicture
                                 (stepIteration dt)
 
--- A function to convert the model to a picture.
 modelToPicture :: WFSimHandle -> IO GLO.Picture
 modelToPicture hdl = do
                         let env = PA.extractHdlEnv hdl
                         let cs = cells env
                         let limits = cellLimits env
-                        return (Front.renderFrame (map wfCellToRenderCell (Map.elems cs)) (800, 800) limits)
+                        return (Front.renderFrame (map wfCellToRenderCell (Map.elems cs)) winSize limits)
+
+stepIteration :: Double -> ViewPort -> Float -> WFSimHandle -> IO WFSimHandle
+stepIteration fixedDt viewport dtRendering hdl = return (PA.advanceSimulation hdl fixedDt)
 
 wfCellToRenderCell :: WFCell -> Front.RenderCell
 wfCellToRenderCell c = Front.RenderCell { Front.renderCellCoord = (coord c),
@@ -69,12 +74,3 @@ wfCellToRenderCell c = Front.RenderCell { Front.renderCellCoord = (coord c),
                     Living -> (0.0, shade, 0.0)
                     Burning -> (shade, 0.0, 0.0)
                     Dead -> (0.5, 0.5, 0.5)
-
-
--- A function to step the model one iteration. It is passed the current viewport and the amount of time for this simulation step (in seconds)
--- NOTE: atomically is VERY important, if it is not there there then the STM-transactions would not occur!
---       NOTE: this is actually wrong, we can avoid atomically as long as we are running always on the same thread.
---             atomically would commit the changes and make them visible to other threads
-stepIteration :: Double -> ViewPort -> Float -> WFSimHandle -> IO WFSimHandle
-stepIteration fixedDt viewport dtRendering hdl = return (PA.advanceSimulation hdl fixedDt)
---------------------------------------------------------------------------------------------------------------------------------------------------

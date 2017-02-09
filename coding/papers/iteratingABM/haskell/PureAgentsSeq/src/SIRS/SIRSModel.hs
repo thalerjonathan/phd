@@ -33,8 +33,9 @@ is a ss = (sirState s) == ss
         s = PA.state a
 
 sirsTransformer :: SIRSTransformer
-sirsTransformer (a, e) (_, PA.Dt dt) = (sirsDt a dt, e)
-sirsTransformer (a, e) (_, PA.Domain m) = (sirsMsg a m, e)
+sirsTransformer ae (PA.Start) = ae
+sirsTransformer (a, e) (PA.Dt dt) = (sirsDt a dt, e)
+sirsTransformer (a, e) (PA.Message (_, m)) = (sirsMsg a m, e)
 
 sirsMsg :: SIRSAgent -> SIRSMsg -> SIRSAgent
 -- MESSAGE-CASE: Contact with Infected -> infect with given probability if agent is susceptibel

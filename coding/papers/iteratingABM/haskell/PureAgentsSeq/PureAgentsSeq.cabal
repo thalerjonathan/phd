@@ -7,9 +7,9 @@ executable PureAgentsSeq
   main-is:         Main.hs
   hs-source-dirs:  src
   build-depends:    base, containers, gloss, random
-  ghc-options:      -prof
-                    -auto-all
-                    -caf-all
-                    "-with-rtsopts=-s -hy -p -i0.1 -K256M"
+  --ghc-options:      ---prof
+                    ---auto-all
+                    ---caf-all
+                    --"-with-rtsopts=-s -hy -p -i0.1 -K256M"
                     -- use hd or hy
 -- NOTE: wont't add -threaded because no parallelisation

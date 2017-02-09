@@ -1,11 +1,10 @@
 module PureAgentsSeq (
-    module Data.Maybe,
     Agent(..),
     SimHandle(..),
     AgentId,
     AgentTransformer,
     AgentMessage,
-    Msg(..),
+    Event(..),
     kill,
     newAgent,
     sendMsg,
@@ -32,12 +31,12 @@ import qualified Data.Map as Map
 -- PUBLIC, exported
 ------------------------------------------------------------------------------------------------------------------------
 -- The super-set of all Agent-Messages
-data Msg m = Dt Double | Domain m
+data Event m = Start | Dt Double | Message (AgentId, m)
 -- An agent-message is always a tuple of a message with the sender-id
-type AgentMessage m = (AgentId, Msg m)
+type AgentMessage m = (AgentId, m)
 
 -- NOTE: the central agent-behaviour-function: transforms an agent using a message and an environment to a new agent
-type AgentTransformer m s e = ((Agent m s e, e) -> AgentMessage m -> (Agent m s e, e))
+type AgentTransformer m s e = ((Agent m s e, e) -> Event m -> (Agent m s e, e))
 type OutFunc m s e = ((Map.Map AgentId (Agent m s e), e) -> IO (Bool, Double))
 
 {- NOTE:    m is the type of messages the agent understands
@@ -125,10 +124,11 @@ extractHdlAgents = Map.elems . simHdlAgents
 
 -- TODO: return all steps of agents and environment
 stepSimulation :: [Agent m s e] -> e -> Double -> Int -> ([Agent m s e], e)
-stepSimulation as e dt n = (Map.elems am', e')
+stepSimulation as e dt n = (Map.elems am'', e'')
     where
         am = insertAgents Map.empty as
-        (am', e') = stepSimulation' am e dt n
+        (am', e') = sendEvent am e Start
+        (am'', e'') = stepSimulation' am' e' dt n
 
         stepSimulation' :: Map.Map AgentId (Agent m s e) -> e -> Double -> Int -> (Map.Map AgentId (Agent m s e), e)
         stepSimulation' am e dt 0 = (am, e)
@@ -140,7 +140,8 @@ initStepSimulation :: [Agent m s e] -> e -> SimHandle m s e
 initStepSimulation as e = hdl
     where
         am = insertAgents Map.empty as
-        hdl = SimHandle { simHdlAgents = am, simHdlEnv = e }
+        (am', e') = sendEvent am e Start
+        hdl = SimHandle { simHdlAgents = am', simHdlEnv = e' }
 
 advanceSimulation :: SimHandle m s e -> Double -> SimHandle m s e
 advanceSimulation hdl dt = hdl { simHdlAgents = am', simHdlEnv = e' }
@@ -150,9 +151,10 @@ advanceSimulation hdl dt = hdl { simHdlAgents = am', simHdlEnv = e' }
         (am', e') = stepAllAgents am dt e
 
 runSimulation :: [Agent m s e] -> e -> OutFunc m s e -> IO ()
-runSimulation as e out = runSimulation' am 0.0 e out
+runSimulation as e out = runSimulation' am' 0.0 e' out
     where
         am = insertAgents Map.empty as
+        (am', e') = sendEvent am e Start
 
         runSimulation' :: Map.Map AgentId (Agent m s e) -> Double -> e -> OutFunc m s e -> IO ()
         runSimulation' as dt e out = do
@@ -166,6 +168,17 @@ runSimulation as e out = runSimulation' am 0.0 e out
 ------------------------------------------------------------------------------------------------------------------------
 -- PRIVATE, non exports
 ------------------------------------------------------------------------------------------------------------------------
+sendEvent :: Map.Map AgentId (Agent m s e) -> e -> Event m -> (Map.Map AgentId (Agent m s e), e)
+sendEvent am e event = foldl (sendEventFold event) (am, e) (Map.keys am)
+    where
+        sendEventFold :: Event m -> (Map.Map AgentId (Agent m s e), e) -> AgentId -> (Map.Map AgentId (Agent m s e), e)
+        sendEventFold event (am, e) aid = (am', e')
+            where
+                a = fromJust (Map.lookup aid am)
+                agentTransformer = (trans a)
+                (a', e') = agentTransformer (a, e) event
+                am' = Map.insert aid a' am
+
 -- TODO: does the map change the order? if yes, does it make a difference? it does only make a difference if the sequential traversal MUST BE ALWAYS the same
 stepAllAgents :: Map.Map AgentId (Agent m s e) -> Double -> e -> (Map.Map AgentId (Agent m s e), e)
 stepAllAgents am dt e = (am', e')
@@ -216,10 +229,10 @@ stepAgent dt (a, e) = (aAfterUpdt, eAfterUpdt)
     where
         (aAfterMsgProc, eAfterMsgProc) = processAllMessages (a, e)
         agentTransformer = trans aAfterMsgProc
-        (aAfterUpdt, eAfterUpdt) = agentTransformer (aAfterMsgProc, eAfterMsgProc) (-1, Dt dt)
+        (aAfterUpdt, eAfterUpdt) = agentTransformer (aAfterMsgProc, eAfterMsgProc) (Dt dt)
 
 processMsg :: (Agent m s e, e) -> (AgentId, m) -> (Agent m s e, e)
-processMsg (a, e) (senderId, m) = agentTransformer (a, e) (senderId, Domain m)
+processMsg (a, e) (senderId, m) = agentTransformer (a, e) (Message (senderId, m))
     where
         agentTransformer = trans a
 

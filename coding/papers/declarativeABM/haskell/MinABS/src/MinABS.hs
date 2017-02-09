@@ -41,11 +41,8 @@ iterationStart as = sendEvent as Start
 iterationNext :: [Agent s m] -> [Agent s m]
 iterationNext as = map (step as) as
 
-
-\begin{code}
 send :: Agent s m -> (Aid, m) -> Agent s m
 send a msg = a { m = (m a) ++ [msg]}
-\end{code}
 
 sendToNeighbours :: Agent s m -> m -> Agent s m
 sendToNeighbours a msg = foldl (\a' n -> send a' (n, msg)) a (ns a)

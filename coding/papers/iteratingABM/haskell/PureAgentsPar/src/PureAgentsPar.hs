@@ -152,7 +152,7 @@ stepSimulation as ge dt n = (Map.elems am'', ge'')
     where
         am = insertAgents Map.empty as
         (am', ge') = sendEvent am ge Start
-        (am'', ge'') = stepSimulation' am ge dt n
+        (am'', ge'') = stepSimulation' am' ge' dt n
 
         stepSimulation' :: Map.Map AgentId (Agent m s e) -> GlobalEnvironment e -> Double -> Int -> (Map.Map AgentId (Agent m s e), GlobalEnvironment e)
         stepSimulation' am ge dt 0 = (am, ge)

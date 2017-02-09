@@ -17,12 +17,12 @@ winTitle = "Spacial Game MSG Par"
 runSGMsgWithRendering :: IO ()
 runSGMsgWithRendering = do
                             let dt = 1.0
-                            let dims = (99, 99)
+                            let dims = (49, 49)
                             let rngSeed = 42
                             let defectorsRatio = 0.0
                             let g = mkStdGen rngSeed
                             let (as, g') = createRandomSGAgents g dims defectorsRatio
-                            let asWithDefector = setDefector as (49, 49) dims
+                            let asWithDefector = setDefector as (24, 24) dims
                             let env = sgEnvironmentFromAgents asWithDefector
                             let hdl = PA.initStepSimulation asWithDefector env
                             stepWithRendering dims hdl dt
@@ -32,7 +32,7 @@ runSGMsgStepsAndRender = do
                             let dt = 1.0
                             let dims = (99, 99)
                             let rngSeed = 42
-                            let steps = 45
+                            let steps = 60
                             let defectorsRatio = 0.0
                             let g = mkStdGen rngSeed
 

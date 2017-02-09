@@ -42,8 +42,9 @@ burnPerTimeUnit :: Double
 burnPerTimeUnit = 0.3
 
 wfTransformer :: WFTransformer
-wfTransformer ae (_, PA.Dt dt) = wfUpdtHandler ae dt
-wfTransformer (a, e) (_, PA.Domain m) = return a                            -- NOTE: in this case no messages are sent between agents
+wfTransformer (a, _) PA.Start = return a
+wfTransformer ae (PA.Dt dt) = wfUpdtHandler ae dt
+wfTransformer (a, e) (PA.Message m) = return a                            -- NOTE: in this case no messages are sent between agents
 
 -- NOTE: an active agent is always burning: it can be understood as the process of a burning cell
 wfUpdtHandler :: (WFAgent, WFEnvironment) -> Double -> STM WFAgent

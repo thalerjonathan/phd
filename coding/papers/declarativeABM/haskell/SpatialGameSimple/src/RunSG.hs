@@ -24,18 +24,18 @@ runSGWithRendering = do
 runSGStepsAndRender :: IO ()
 runSGStepsAndRender = do
                             hSetBuffering stdout NoBuffering
-                            let steps = 30
+                            let steps = 217
                             let dims = (99, 99)
                             let cs = createSGCells dims
                             let csWithDefector = setDefector cs (49, 49) dims
 
                             cs' <- stepMulti csWithDefector steps
-{-
+
                             let cells = map sgSGCellToRenderCell (Map.elems cs')
                             let frameRender = (Front.renderFrame cells winSize dims)
                             GLO.display (Front.display winTitle winSize) GLO.white frameRender
--}
-                            mapM (putStrLn . show) cs'
+
+                            -- mapM (putStrLn . show) cs'
                             return ()
 
 stepMulti :: CellContainer -> Int -> IO CellContainer

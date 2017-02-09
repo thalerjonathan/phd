@@ -29,8 +29,9 @@ is a wfs = (wfState s) == wfs
         s = PA.state a
 
 wfTransformer :: WFTransformer
-wfTransformer (a, e) (_, PA.Dt (t, dt)) = wfDt a dt
-wfTransformer (a, e) (_, PA.Domain m) = wfMsg a m
+wfTransformer (a, e) PA.Start = return a
+wfTransformer (a, e) (PA.Dt (t, dt)) = wfDt a dt
+wfTransformer (a, e) (PA.Message (_, m)) = wfMsg a m
 
 wfDt :: WFAgent -> Double -> STM WFAgent
 wfDt a dt

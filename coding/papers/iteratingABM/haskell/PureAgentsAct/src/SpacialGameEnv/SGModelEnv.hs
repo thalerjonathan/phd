@@ -34,8 +34,9 @@ rParam :: Double
 rParam = 1.0
 
 sgTransformer :: SGTransformer
-sgTransformer ae (_, PA.Dt (t, dt)) = sgDt ae dt
-sgTransformer (a, _) (_, PA.Domain m) = return a
+sgTransformer (a, e) PA.Start = return a
+sgTransformer ae (PA.Dt (t, dt)) = sgDt ae dt
+sgTransformer (a, _) (PA.Message m) = return a
 
 payoffWithEnv :: SGState -> PA.AgentId -> SGEnvironment -> STM Double
 payoffWithEnv aSg eId e = do
@@ -142,13 +143,14 @@ agentToCell a (xCells, yCells) = (ax, ay)
 
 neighbourhood :: [(Int, Int)]
 neighbourhood = [topLeft, top, topRight,
-                 left, right,
+                 left, center, right,
                  bottomLeft, bottom, bottomRight]
     where
         topLeft = (-1, -1)
         top = (0, -1)
         topRight = (1, -1)
         left = (-1, 0)
+        center = (0, 0)
         right = (1, 0)
         bottomLeft = (-1, 1)
         bottom = (0, 1)

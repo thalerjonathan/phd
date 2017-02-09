@@ -32,7 +32,7 @@ runSGEnvStepsAndRender = do
                             let dt = 1.0
                             let dims = (50, 50)
                             let rngSeed = 42
-                            let stepCount = 30
+                            let stepCount = 217
                             let defectorsRatio = 0.0
                             let g = mkStdGen rngSeed
 

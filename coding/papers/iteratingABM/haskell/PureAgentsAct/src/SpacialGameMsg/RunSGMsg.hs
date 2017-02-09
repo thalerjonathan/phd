@@ -11,17 +11,21 @@ import System.Random
 import Control.Concurrent
 import Data.Maybe
 import Data.List
+import Control.Monad.STM
+
+winTitle = "Spacial Game Msg ACT"
+winSize = (1000, 1000)
 
 runSGMsgWithRendering :: IO ()
 runSGMsgWithRendering = do
                             --hSetBuffering stdin NoBuffering
                             let dt = 1.0
-                            let dims = (50, 50)
+                            let dims = (99, 99)
                             let rngSeed = 42
                             let defectorsRatio = 0.0
                             let g = mkStdGen rngSeed
-                            (as, g') <- PA.atomically $ createRandomSGAgents g dims defectorsRatio
-                            let asWithDefector = setDefector as (25, 25) dims
+                            (as, g') <- atomically $ createRandomSGAgents g dims defectorsRatio
+                            let asWithDefector = setDefector as (49, 49) dims
                             hdl <- PA.startSimulation asWithDefector dt ()
                             stepWithRendering dims hdl dt
 
@@ -29,21 +33,20 @@ runSGMsgStepsAndRender :: IO ()
 runSGMsgStepsAndRender = do
                             --hSetBuffering stdin NoBuffering
                             let dt = 1.0
-                            let dims = (50, 50)
-                            let winSize = (800, 800)
+                            let dims = (99, 99)
                             let rngSeed = 42
-                            let steps = 45.0
+                            let steps = 217.0
                             let defectorsRatio = 0.0
                             let g = mkStdGen rngSeed
-                            (as, g') <- PA.atomically $ createRandomSGAgents g dims defectorsRatio
-                            let asWithDefector = setDefector as (25, 25) dims
+                            (as, g') <- atomically $ createRandomSGAgents g dims defectorsRatio
+                            let asWithDefector = setDefector as (49, 49) dims
 
                             hdl <- PA.startSimulation asWithDefector dt ()
                             as' <- awaitFirstAgentTime hdl steps
 
                             let observableAgentStates = map (sgAgentToRenderCell dims) as'
                             let frameRender = (Front.renderFrame observableAgentStates winSize dims)
-                            GLO.display (Front.display "Spacial Game Msg ACT" winSize) GLO.white frameRender
+                            GLO.display (Front.display winTitle winSize) GLO.white frameRender
                             return ()
 
 awaitFirstAgentTime :: SGSimHandle -> Double -> IO [(PA.AgentId, Double, SGAgentState)]
@@ -68,7 +71,7 @@ setDefector as pos cells
         (infront, behind) = splitAt agentAtPosId as
 
 stepWithRendering :: (Int, Int) -> SGSimHandle -> Double -> IO ()
-stepWithRendering dims hdl dt = simulateIO (Front.display "Spacial Game Msg ACT" (800, 800))
+stepWithRendering dims hdl dt = simulateIO (Front.display winTitle winSize)
                                 GLO.white
                                 30
                                 hdl
@@ -80,7 +83,10 @@ modelToPicture :: (Int, Int) -> SGSimHandle -> IO GLO.Picture
 modelToPicture dims hdl = do
                             as <- PA.observeAgentStates hdl
                             let cells = map (sgAgentToRenderCell dims) as
-                            return (Front.renderFrame cells (800, 800) dims)
+                            return (Front.renderFrame cells winSize dims)
+
+stepIteration :: Double -> ViewPort -> Float -> SGSimHandle -> IO SGSimHandle
+stepIteration fixedDt viewport dtRendering hdl = return hdl
 
 sgAgentToRenderCell :: (Int, Int) -> (PA.AgentId, Double, SGAgentState) -> Front.RenderCell
 sgAgentToRenderCell (xDim, yDim) (aid, _, s) = Front.RenderCell { Front.renderCellCoord = (ax, ay),
@@ -92,29 +98,20 @@ sgAgentToRenderCell (xDim, yDim) (aid, _, s) = Front.RenderCell { Front.renderCe
         prev = sgPrevState s
         ss = sgAgentStateToColor prev curr
 
--- NOTE: read it the following way: "the agent was in state X following another one Y" => first parameter is prev, second is curr
 sgAgentStateToColor :: SGState -> SGState -> (Double, Double, Double)
 sgAgentStateToColor Cooperator Cooperator = blueC
 sgAgentStateToColor Defector Defector = redC
-sgAgentStateToColor Defector Cooperator = yellowC
-sgAgentStateToColor Cooperator Defector = greenC
+sgAgentStateToColor Defector Cooperator = greenC
+sgAgentStateToColor Cooperator Defector = yellowC
 
 blueC :: (Double, Double, Double)
-blueC = (0.0, 0.0, 1.0)
+blueC = (0.0, 0.0, 0.7)
 
 greenC :: (Double, Double, Double)
-greenC = (0.0, 1.0, 0.0)
+greenC = (0.0, 0.4, 0.0)
 
 redC :: (Double, Double, Double)
-redC = (1.0, 0.0, 0.0)
+redC = (0.7, 0.0, 0.0)
 
 yellowC :: (Double, Double, Double)
-yellowC = (1.0, 1.0, 0.0)
-
--- A function to step the model one iteration. It is passed the current viewport and the amount of time for this simulation step (in seconds)
--- NOTE: atomically is VERY important, if it is not there there then the STM-transactions would not occur!
---       NOTE: this is actually wrong, we can avoid atomically as long as we are running always on the same thread.
---             atomically would commit the changes and make them visible to other threads
-stepIteration :: Double -> ViewPort -> Float -> SGSimHandle -> IO SGSimHandle
-stepIteration fixedDt viewport dtRendering hdl = return hdl
---------------------------------------------------------------------------------------------------------------------------------------------------
+yellowC = (1.0, 0.9, 0.0)

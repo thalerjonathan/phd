@@ -1,14 +1,10 @@
--- TODO: re-export other modules?
-
 module PureAgentsConc (
-    module Data.Maybe,
-    module Control.Monad.STM,
     Agent(..),
     SimHandle(..),
     AgentId,
     AgentTransformer,
     AgentMessage,
-    Msg(..),
+    Event(..),
     kill,
     newAgent,
     sendMsg,
@@ -39,13 +35,12 @@ import Control.Concurrent.STM.TQueue
 ------------------------------------------------------------------------------------------------------------------------
 -- PUBLIC, exported
 ------------------------------------------------------------------------------------------------------------------------
--- The super-set of all Agent-Messages
-data Msg m = Dt Double | Domain m
+data Event m = Start | Dt Double | Message (AgentId, m)
 -- An agent-message is always a tuple of a message with the sender-id
-type AgentMessage m = (AgentId, Msg m)
+type AgentMessage m = (AgentId, m)
 
 -- NOTE: the central agent-behaviour-function: transforms an agent using a message and an environment to a new agent
-type AgentTransformer m s e = ((Agent m s e, e) -> AgentMessage m -> STM (Agent m s e))
+type AgentTransformer m s e = ((Agent m s e, e) -> Event m -> STM (Agent m s e))
 type OutFunc m s e = ((Map.Map AgentId (Agent m s e), e) -> IO (Bool, Double))
 
 {- NOTE:    m is the type of messages the agent understands
@@ -143,8 +138,9 @@ extractHdlAgents = Map.elems . simHdlAgents
 stepSimulation :: [Agent m s e] -> e -> Double -> Int -> IO ([Agent m s e])
 stepSimulation as e dt n = do
                             let am = insertAgents Map.empty as
-                            am' <- stepSimulation' am e dt n
-                            return (Map.elems am')
+                            am' <- sendEvent am e Start
+                            am'' <- stepSimulation' am' e dt n
+                            return (Map.elems am'')
     where
         stepSimulation' :: Map.Map AgentId (Agent m s e) -> e -> Double -> Int -> IO (Map.Map AgentId (Agent m s e))
         stepSimulation' am e dt 0 = return am
@@ -152,11 +148,12 @@ stepSimulation as e dt n = do
                                         am' <- stepAllAgents am dt e
                                         stepSimulation' am' e dt (n-1)
 
-initStepSimulation :: [Agent m s e] -> e -> (SimHandle m s e)
-initStepSimulation as e = SimHandle { simHdlAgents = am, simHdlEnv = e }
+initStepSimulation :: [Agent m s e] -> e -> IO (SimHandle m s e)
+initStepSimulation as e = do
+                            am' <- sendEvent am e Start
+                            return SimHandle { simHdlAgents = am', simHdlEnv = e }
     where
         am = insertAgents Map.empty as
-
 
 advanceSimulation :: SimHandle m s e -> Double -> IO (SimHandle m s e)
 advanceSimulation hdl dt = do
@@ -168,7 +165,8 @@ advanceSimulation hdl dt = do
 runSimulation :: [Agent m s e] -> e -> OutFunc m s e -> IO ()
 runSimulation as e out = do
                             let am = insertAgents Map.empty as
-                            runSimulation' am 0.0 e out
+                            am' <- sendEvent am e Start
+                            runSimulation' am' 0.0 e out
 
     where
         runSimulation' :: Map.Map AgentId (Agent m s e) -> Double -> e -> OutFunc m s e -> IO ()
@@ -183,6 +181,20 @@ runSimulation as e out = do
 ------------------------------------------------------------------------------------------------------------------------
 -- PRIVATE, non exports
 ------------------------------------------------------------------------------------------------------------------------
+sendEvent :: Map.Map AgentId (Agent m s e) -> e -> Event m -> IO (Map.Map AgentId (Agent m s e))
+sendEvent am e event = do
+                        let as = Map.elems am
+                        asyncAs <- mapM (async . (sendEventMap event e)) as
+                        syncedAs <- mapM wait asyncAs
+                        let am' = insertAgents Map.empty syncedAs
+                        return am'
+
+    where
+        sendEventMap :: Event m -> e -> (Agent m s e) -> IO (Agent m s e)
+        sendEventMap event e a = atomically $ agentTransformer (a, e) event
+            where
+                agentTransformer = (trans a)
+
 insertAgents :: Map.Map AgentId (Agent m s e) -> [Agent m s e] -> Map.Map AgentId (Agent m s e)
 insertAgents am as = foldl (\accMap a -> Map.insert (agentId a) a accMap ) am as
 
@@ -214,7 +226,7 @@ stepAgent :: Double -> e -> Agent m s e -> STM (Agent m s e)
 stepAgent dt e a = do
                     aAfterMsgProc <- processAllMessages (a, e)
                     let agentTransformer = trans aAfterMsgProc
-                    aAfterUpdt <- agentTransformer (aAfterMsgProc, e) (-1, Dt dt)
+                    aAfterUpdt <- agentTransformer (aAfterMsgProc, e) (Dt dt)
                     return aAfterUpdt
 
 processAllMessages :: (Agent m s e, e) -> STM (Agent m s e)
@@ -229,7 +241,7 @@ processAllMessages (a, e) = do
                                             processAllMessages (a', e)
 
 processMsg :: (Agent m s e, e) -> (AgentId, m) -> STM (Agent m s e)
-processMsg (a, e) (senderId, m) = agentTransformer (a, e) (senderId, Domain m)
+processMsg (a, e) (senderId, m) = agentTransformer (a, e) (Message (senderId, m))
     where
         agentTransformer = trans a
 ------------------------------------------------------------------------------------------------------------------------

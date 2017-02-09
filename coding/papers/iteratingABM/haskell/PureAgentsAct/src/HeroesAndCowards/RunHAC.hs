@@ -8,13 +8,11 @@ import qualified PureAgentsAct as PA
 
 import System.Random
 import System.IO
+import Control.Monad.STM
 
 import qualified HeroesAndCowards.HACFrontend as Front
 import qualified Graphics.Gloss.Interface.IO.Simulate as GLO
 
---------------------------------------------------------------------------------------------------------------------------------------------------
--- EXECUTE MODEL
---------------------------------------------------------------------------------------------------------------------------------------------------
 runHAC :: IO ()
 runHAC = do
             hSetBuffering stdout NoBuffering
@@ -23,8 +21,7 @@ runHAC = do
             let heroDistribution = 0.25
             let rngSeed = 42
             let g = mkStdGen rngSeed
-            (as, g') <- PA.atomically $ createRandomHACAgents g agentCount heroDistribution
-            --let as = createHACTestAgents
+            (as, g') <- atomically $ createRandomHACAgents g agentCount heroDistribution
             hdl <- PA.startSimulation as dt ()
             stepWithRendering hdl
 
@@ -53,4 +50,3 @@ hacAgentToObservableState (_, t, s) = (x, y, h)
     where
         (x, y) = pos s
         h = hero s
---------------------------------------------------------------------------------------------------------------------------------------------------

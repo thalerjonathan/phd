@@ -1,14 +1,9 @@
--- TODO: re-export other modules?
-
 module PureAgentsAct (
-    module Data.Maybe,
-    module Control.Monad.STM,
     Agent(..),
     SimHandle(..),
     AgentId,
     AgentTransformer,
-    AgentMessage,
-    Msg(..),
+    Event(..),
     kill,
     newAgent,
     sendMsg,
@@ -37,13 +32,10 @@ import Control.Concurrent.STM.TQueue
 ------------------------------------------------------------------------------------------------------------------------
 -- PUBLIC, exported
 ------------------------------------------------------------------------------------------------------------------------
--- The super-set of all Agent-Messages
-data Msg m = Dt (Double, Double) | Terminate | Domain m
--- An agent-message is always a tuple of a message with the sender-id
-type AgentMessage m = (AgentId, Msg m)
+data Event m = Start | Terminate | Dt (Double, Double) | Message (AgentId, m)
 
 -- NOTE: the central agent-behaviour-function: transforms an agent using a message and an environment to a new agent
-type AgentTransformer m s e = ((Agent m s e, e) -> AgentMessage m -> STM (Agent m s e))
+type AgentTransformer m s e = ((Agent m s e, e) -> Event m -> STM (Agent m s e))
 type OutFunc m s e = ((Map.Map AgentId (Agent m s e), e) -> IO (Bool, Double))
 
 {- NOTE:    m is the type of messages the agent understands
@@ -55,14 +47,14 @@ type AgentId = Int
 data Agent m s e = Agent {
     agentId :: AgentId,
     killFlag :: Bool,
-    msgBox :: TQueue (AgentMessage m),
-    neighbours :: Map.Map AgentId (TQueue (AgentMessage m)),
+    msgBox :: TQueue (Event m),
+    neighbours :: Map.Map AgentId (TQueue (Event m)),
     trans :: AgentTransformer m s e,
     state :: s,
     newAgents :: [Agent m s e]
 }
 
-type GlobalAgentInfo m s e = (Async (Agent m s e), TVar (Double, s), TQueue (AgentMessage m))
+type GlobalAgentInfo m s e = (Async (Agent m s e), TVar (Double, s), TQueue (Event m))
 type GlobalAgentCollection m s e = TVar (Map.Map AgentId (GlobalAgentInfo m s e))
 
 data SimHandle m s e = SimHandle {
@@ -81,7 +73,7 @@ kill a = a { killFlag = True }
 sendMsg :: Agent m s e -> m -> AgentId -> STM ()
 sendMsg a m receiverId
     | receiverNotFound = return ()
-    | otherwise = putMessage receiverQueue senderId (Domain m)
+    | otherwise = putMessage receiverQueue senderId m
     where
         senderId = agentId a
         mayReceiverQueue = Map.lookup receiverId (neighbours a)
@@ -90,14 +82,14 @@ sendMsg a m receiverId
 
 broadcastMsgToNeighbours :: Agent m s e -> m -> STM ()
 broadcastMsgToNeighbours a m = do
-                                mapM (\neighbourBox -> putMessage neighbourBox senderId (Domain m)) (Map.elems (neighbours a))
+                                mapM (\neighbourBox -> putMessage neighbourBox senderId m) (Map.elems (neighbours a))
                                 return ()
     where
         senderId = agentId a
 
 sendMsgToRandomNeighbour :: (RandomGen g) => Agent m s e -> m -> g -> STM g
 sendMsgToRandomNeighbour a m g = do
-                                    putMessage neighbourBox senderId (Domain m)
+                                    putMessage neighbourBox senderId m
                                     return g'
     where
         senderId = agentId a
@@ -106,8 +98,8 @@ sendMsgToRandomNeighbour a m g = do
         (randIdx, g') = randomR(0, nsCount - 1) g
         neighbourBox = (Map.elems ns) !! randIdx
 
-putMessage :: TQueue (AgentId, m) -> AgentId -> m -> STM ()
-putMessage q senderId m = writeTQueue q (senderId, m)
+putMessage :: TQueue (Event m) -> AgentId -> m -> STM ()
+putMessage q senderId m = writeTQueue q (Message (senderId, m))
 
 updateState :: Agent m s e -> (s -> s) -> Agent m s e
 updateState a sf = a { state = s' }
@@ -175,6 +167,7 @@ startAgent dt e gac a = do
                             let aid = agentId a
                             let chan = msgBox a
                             sVar <- newTVarIO (0.0, s)
+                            atomically $ writeTQueue chan Start
                             asyncHdl <- async (asyncRunAgent dt e sVar gac a)
                             return (aid, (asyncHdl, sVar, chan))
 
@@ -228,7 +221,7 @@ stepAgent :: (Double, Double) -> e -> Agent m s e -> STM (Agent m s e, Bool)
 stepAgent tdt e a = do
                         (aAfterMsgProc, cont) <- processAllMessages (a, e)
                         let agentTransformer = trans aAfterMsgProc
-                        aAfterUpdt <- agentTransformer (aAfterMsgProc, e) (-1, Dt tdt)
+                        aAfterUpdt <- agentTransformer (aAfterMsgProc, e) (Dt tdt)
                         return (aAfterUpdt, cont)
 
 processAllMessages :: (Agent m s e, e) -> STM (Agent m s e, Bool)
@@ -236,7 +229,7 @@ processAllMessages ae@(a, e) = do
                                 mayMsg <- tryReadTQueue (msgBox a)
                                 maybe (return (a, True)) (processJustMessage ae) mayMsg
     where
-        processJustMessage :: (Agent m s e, e) -> (AgentMessage m) -> STM (Agent m s e, Bool)
+        processJustMessage :: (Agent m s e, e) -> (Event m) -> STM (Agent m s e, Bool)
         processJustMessage ae@(a, e) msg = do
                                                 (a', cont) <- processMsg ae msg
                                                 if (cont) then
@@ -244,8 +237,8 @@ processAllMessages ae@(a, e) = do
                                                     else
                                                         return (a', False)
 
-processMsg :: (Agent m s e, e) -> (AgentMessage m) -> STM (Agent m s e, Bool)
-processMsg ae@(a, e) msg@(senderId, Terminate) = return (a, False)
+processMsg :: (Agent m s e, e) -> (Event m) -> STM (Agent m s e, Bool)
+processMsg ae@(a, e) Terminate = return (a, False)
 processMsg ae@(a, e) msg = do
                             a' <- agentTransformer ae msg
                             return (a', True)

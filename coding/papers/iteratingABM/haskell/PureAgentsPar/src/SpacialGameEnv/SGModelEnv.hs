@@ -32,8 +32,9 @@ rParam :: Double
 rParam = 1.0
 
 sgTransformer :: SGTransformer
-sgTransformer ae (_, PA.Dt dt) = sgDt ae dt
-sgTransformer (a, ge, le) (_, PA.Domain m) = (a, le)
+sgTransformer (a, _, le) PA.Start = (a, le)
+sgTransformer ae (PA.Dt dt) = sgDt ae dt
+sgTransformer (a, _, le) (PA.Message m) = (a, le)
 
 -- TODO: is this really correct?
 sgDt :: (SGAgent, PA.GlobalEnvironment SGEnvironment, PA.LocalEnvironment SGEnvironment) -> Double -> (SGAgent, PA.LocalEnvironment SGEnvironment)

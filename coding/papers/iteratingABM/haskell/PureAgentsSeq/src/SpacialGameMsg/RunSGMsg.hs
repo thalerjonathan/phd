@@ -57,7 +57,9 @@ setDefector as pos cells
         mayAgentAtPos = find (\a -> pos == (agentToCell a cells)) as
         agentAtPos = (fromJust mayAgentAtPos)
         agentAtPosId = PA.agentId agentAtPos
-        defectedAgentAtPos = PA.updateState agentAtPos (\s -> s { sgCurrState = Defector, sgPrevState = Defector } )
+        defectedAgentAtPos = PA.updateState agentAtPos (\s -> s { sgCurrState = Defector,
+                                                                   sgPrevState = Defector,
+                                                                    sgBestPayoff = (Defector, 0.0) } )
         (infront, behind) = splitAt agentAtPosId as
 
 stepWithRendering :: (Int, Int) -> SGSimHandle -> Double -> IO ()
@@ -92,17 +94,17 @@ sgAgentToRenderCell (xDim, yDim) a = Front.RenderCell { Front.renderCellCoord = 
 sgAgentStateToColor :: SGState -> SGState -> (Double, Double, Double)
 sgAgentStateToColor Cooperator Cooperator = blueC
 sgAgentStateToColor Defector Defector = redC
-sgAgentStateToColor Defector Cooperator = yellowC
-sgAgentStateToColor Cooperator Defector = greenC
+sgAgentStateToColor Defector Cooperator = greenC
+sgAgentStateToColor Cooperator Defector = yellowC
 
 blueC :: (Double, Double, Double)
-blueC = (0.0, 0.0, 1.0)
+blueC = (0.0, 0.0, 0.7)
 
 greenC :: (Double, Double, Double)
-greenC = (0.0, 1.0, 0.0)
+greenC = (0.0, 0.4, 0.0)
 
 redC :: (Double, Double, Double)
-redC = (1.0, 0.0, 0.0)
+redC = (0.7, 0.0, 0.0)
 
 yellowC :: (Double, Double, Double)
-yellowC = (1.0, 1.0, 0.0)
+yellowC = (1.0, 0.9, 0.0)

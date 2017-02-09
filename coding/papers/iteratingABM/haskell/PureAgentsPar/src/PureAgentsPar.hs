@@ -1,5 +1,4 @@
 module PureAgentsPar (
-    module Data.Maybe,
     Agent(..),
     SimHandle(..),
     AgentId,
@@ -7,7 +6,7 @@ module PureAgentsPar (
     LocalEnvironment,
     AgentTransformer,
     AgentMessage,
-    Msg(..),
+    Event(..),
     kill,
     newAgent,
     sendMsg,
@@ -38,16 +37,15 @@ import qualified Data.Map as Map
 ------------------------------------------------------------------------------------------------------------------------
 -- PUBLIC, exported
 ------------------------------------------------------------------------------------------------------------------------
--- The super-set of all Agent-Messages
-data Msg m = Dt Double | Domain m
+data Event m = Start | Dt Double | Message (AgentId, m)
 -- An agent-message is always a tuple of a message with the sender-id
-type AgentMessage m = (AgentId, Msg m)
+type AgentMessage m = (AgentId, m)
 
 type LocalEnvironment e = e
 type GlobalEnvironment e = Map.Map AgentId (LocalEnvironment e)
 
 -- NOTE: the central agent-behaviour-function: transforms an agent using a message and an environment to a new agent
-type AgentTransformer m s e = ((Agent m s e, GlobalEnvironment e, LocalEnvironment e) -> AgentMessage m -> (Agent m s e, LocalEnvironment e))
+type AgentTransformer m s e = ((Agent m s e, GlobalEnvironment e, LocalEnvironment e) -> Event m -> (Agent m s e, LocalEnvironment e))
 type OutFunc m s e = ((Map.Map AgentId (Agent m s e), GlobalEnvironment e) -> IO (Bool, Double))
 
 {- NOTE:    m is the type of messages the agent understands
@@ -150,10 +148,11 @@ extractHdlAgents = Map.elems . simHdlAgents
 
 -- TODO: return all steps of agents and environment
 stepSimulation :: [Agent m s e] -> GlobalEnvironment e -> Double -> Int -> ([Agent m s e], GlobalEnvironment e)
-stepSimulation as ge dt n = (Map.elems am', ge')
+stepSimulation as ge dt n = (Map.elems am'', ge'')
     where
         am = insertAgents Map.empty as
-        (am', ge') = stepSimulation' am ge dt n
+        (am', ge') = sendEvent am ge Start
+        (am'', ge'') = stepSimulation' am ge dt n
 
         stepSimulation' :: Map.Map AgentId (Agent m s e) -> GlobalEnvironment e -> Double -> Int -> (Map.Map AgentId (Agent m s e), GlobalEnvironment e)
         stepSimulation' am ge dt 0 = (am, ge)
@@ -165,7 +164,8 @@ initStepSimulation :: [Agent m s e] -> GlobalEnvironment e -> SimHandle m s e
 initStepSimulation as ge = hdl
     where
         am = insertAgents Map.empty as
-        hdl = SimHandle { simHdlAgents = am, simHdlEnv = ge }
+        (am', ge') = sendEvent am ge Start
+        hdl = SimHandle { simHdlAgents = am', simHdlEnv = ge' }
 
 advanceSimulation :: SimHandle m s e -> Double -> SimHandle m s e
 advanceSimulation hdl dt = hdl { simHdlAgents = am', simHdlEnv = ge' }
@@ -175,9 +175,10 @@ advanceSimulation hdl dt = hdl { simHdlAgents = am', simHdlEnv = ge' }
         (am', ge') = stepAllAgents am dt ge
 
 runSimulation :: [Agent m s e] -> GlobalEnvironment e -> OutFunc m s e -> IO ()
-runSimulation as ge out = runSimulation' am 0.0 ge out
+runSimulation as ge out = runSimulation' am' 0.0 ge' out
     where
         am = insertAgents Map.empty as
+        (am', ge') = sendEvent am ge Start
 
         runSimulation' :: Map.Map AgentId (Agent m s e) -> Double -> GlobalEnvironment e -> OutFunc m s e -> IO ()
         runSimulation' as dt ge out = do
@@ -191,6 +192,19 @@ runSimulation as ge out = runSimulation' am 0.0 ge out
 ------------------------------------------------------------------------------------------------------------------------
 -- PRIVATE, non exports
 ------------------------------------------------------------------------------------------------------------------------
+sendEvent :: Map.Map AgentId (Agent m s e) -> GlobalEnvironment e -> Event m -> (Map.Map AgentId (Agent m s e), GlobalEnvironment e)
+sendEvent am ge event = (am', ge')
+    where
+        asLe = map (sendEventMap event ge) (Map.elems am)
+        (as, ge') = splitAgentLocalEnvPairs asLe ge
+        am' = insertAgents am as
+
+        sendEventMap :: Event m -> GlobalEnvironment e -> (Agent m s e) -> (Agent m s e, LocalEnvironment e)
+        sendEventMap event ge a = agentTransformer (a, ge, le) event
+            where
+                agentTransformer = (trans a)
+                le = getLocalEnv a ge
+
 insertAgents :: Map.Map AgentId (Agent m s e) -> [Agent m s e] -> Map.Map AgentId (Agent m s e)
 insertAgents am as = foldl (\accMap a -> Map.insert (agentId a) a accMap ) am as
 
@@ -262,7 +276,7 @@ stepAgent dt ge a = (aAfterUpdt, leAfterUpdt)
         le = getLocalEnv a ge
         (aAfterMsgProc, leAfterMsgProc) = processAllMessages (a, ge, le)
         agentTransformer = trans aAfterMsgProc
-        (aAfterUpdt, leAfterUpdt) = agentTransformer (aAfterMsgProc, ge, leAfterMsgProc) (-1, Dt dt)
+        (aAfterUpdt, leAfterUpdt) = agentTransformer (aAfterMsgProc, ge, leAfterMsgProc) (Dt dt)
 
 processAllMessages :: (Agent m s e, GlobalEnvironment e, LocalEnvironment e) -> (Agent m s e, LocalEnvironment e)
 processAllMessages (a, ge, le) = (aAfterMsgs', leAfterMsgs)
@@ -272,7 +286,7 @@ processAllMessages (a, ge, le) = (aAfterMsgs', leAfterMsgs)
         aAfterMsgs' = aAfterMsgs { inBox = [] }
 
 processMsg :: (Agent m s e, GlobalEnvironment e, LocalEnvironment e) -> (AgentId, m) -> (Agent m s e, LocalEnvironment e)
-processMsg (a, ge, le) (senderId, m) = agentTransformer (a, ge, le) (senderId, Domain m)
+processMsg (a, ge, le) (senderId, m) = agentTransformer (a, ge, le) (Message (senderId, m))
     where
         agentTransformer = trans a
 ------------------------------------------------------------------------------------------------------------------------

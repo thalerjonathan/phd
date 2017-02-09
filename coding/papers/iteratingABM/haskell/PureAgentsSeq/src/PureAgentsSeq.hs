@@ -30,7 +30,6 @@ import qualified Data.Map as Map
 ------------------------------------------------------------------------------------------------------------------------
 -- PUBLIC, exported
 ------------------------------------------------------------------------------------------------------------------------
--- The super-set of all Agent-Messages
 data Event m = Start | Dt Double | Message (AgentId, m)
 -- An agent-message is always a tuple of a message with the sender-id
 type AgentMessage m = (AgentId, m)

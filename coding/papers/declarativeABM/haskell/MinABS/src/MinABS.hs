@@ -1,7 +1,18 @@
-module MinABS where
+module MinABS (
+    Aid,
+    Event(..),
+    Agent(..),
+    AgentTransformer,
+    iterationSteps,
+    iterationStart,
+    iterationNext,
+    send,
+    broadcast,
+    updateState,
+    createAgent
+  ) where
 
 import Data.List
-import Control.Parallel.Strategies
 
 type Aid = Int
 
@@ -11,17 +22,18 @@ data Agent s m = Agent {
     aid :: Aid,
     s :: s,
     m :: [(Aid, m)],
-    ns :: [Aid],
     f :: AgentTransformer s m
 }
 
 type AgentTransformer s m = (Agent s m -> Event m -> Agent s m )
 
 instance (Show s, Show m) => Show (Agent s m) where
-    show (Agent aid s m ns _) = "Agent " ++ (show aid) ++ ": state = " ++ (show s) ++ " mbox = " ++ (show m) ++ " neighbours: " ++ (show ns)
+    show (Agent aid s m _) = "Agent " ++ (show aid) ++ ": state = " ++ (show s) ++ " mbox = " ++ (show m)
 
-sendEvent :: [Agent s m] -> Event m -> [Agent s m]
-sendEvent as e = map (\a -> (f a) a e ) as
+------------------------------------------------------------------------------------------------------------------------
+-- PUBLIC
+createAgent :: Aid -> s -> AgentTransformer s m -> Agent s m
+createAgent id state trans = Agent { aid = id, s = state, m = [], f = trans }
 
 
 iterationSteps :: [Agent s m] -> Int -> [Agent s m]
@@ -44,13 +56,19 @@ iterationNext as = map (step as) as
 send :: Agent s m -> (Aid, m) -> Agent s m
 send a msg = a { m = (m a) ++ [msg]}
 
-sendToNeighbours :: Agent s m -> m -> Agent s m
-sendToNeighbours a msg = foldl (\a' n -> send a' (n, msg)) a (ns a)
+broadcast :: Agent s m -> ([Aid], m) -> Agent s m
+broadcast a (rs, msg) = foldl (\a' rid -> send a' (rid, msg)) a rs
 
 updateState :: Agent s m -> (s -> s) -> Agent s m
 updateState a sf = a { s = s' }
     where
         s' = sf (s a)
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- PRIVATE
+sendEvent :: [Agent s m] -> Event m -> [Agent s m]
+sendEvent as e = map (\a -> (f a) a e ) as
 
 step :: [Agent s m] -> Agent s m ->  Agent s m
 step as a = advanceTime $ consumeMessages (a', msgs)
@@ -74,9 +92,4 @@ consumeMessages (a, ms) = foldl processMessage a ms
 
 advanceTime :: Agent s m -> Agent s m
 advanceTime a = (f a) a (Dt 1.0)
-
-createAgent :: Aid -> s -> AgentTransformer s m -> Agent s m
-createAgent id state trans = Agent { aid = id, s = state, m = [], ns = [], f = trans }
-
-addNeighbour :: Agent s m -> Agent s m -> Agent s m
-addNeighbour a n = a { ns = (aid n) : (ns a)}
+------------------------------------------------------------------------------------------------------------------------

@@ -7,11 +7,15 @@ import Data.List
 import qualified MinABS as ABS
 import qualified Data.Map as Map
 
+------------------------------------------------------------------------------------------------------------------------
+-- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 data SGState = Defector | Cooperator deriving (Eq, Show)
 data SGMsg = NeighbourPayoff (SGState, Double) | NeighbourState SGState deriving (Eq, Show)
 
+type SGCoord = (Int, Int)
+
 data SGAgentState = SIRSAgentState {
-    sgCoords :: (Int, Int),
+    sgCoord :: SGCoord,
     sgCurrState :: SGState,
     sgPrevState :: SGState,
 
@@ -19,12 +23,16 @@ data SGAgentState = SIRSAgentState {
 
     sgBestPayoff :: (SGState, Double),
 
-    sgNeighbourFlag :: Int
+    sgNeighbourFlag :: Int,
+    sgNeighbours :: [ABS.Aid]
 } deriving (Show)
 
 type SGAgent = ABS.Agent SGAgentState SGMsg
 type SGTransformer = ABS.AgentTransformer SGAgentState SGMsg
+------------------------------------------------------------------------------------------------------------------------
 
+------------------------------------------------------------------------------------------------------------------------
+-- MODEL-PARAMETERS
 bParam :: Double
 bParam = 1.95
 
@@ -36,7 +44,11 @@ pParam = 0.0
 
 rParam :: Double
 rParam = 1.0
+------------------------------------------------------------------------------------------------------------------------
 
+
+------------------------------------------------------------------------------------------------------------------------
+-- AGENT-BEHAVIOUR
 sgTransformer :: SGTransformer
 sgTransformer a ABS.Start = broadCastLocalState a
 sgTransformer a (ABS.Dt dt) = a                         -- NOTE: no action on time-advance
@@ -46,6 +58,7 @@ sgMsg :: SGAgent -> SGMsg -> SGAgent
 sgMsg a (NeighbourState s) = sgStateMsg a s
 sgMsg a (NeighbourPayoff p) = sgPayoffMsg a p
 
+-- TODO: need much more clarity here
 sgStateMsg :: SGAgent -> SGState -> SGAgent
 sgStateMsg a s = if ( allNeighboursTicked a'' ) then
                     broadCastLocalPayoff a''
@@ -63,9 +76,10 @@ broadCastLocalPayoff a = resetNeighbourFlag a'
     where
         ls = sgCurrState (ABS.s a)
         lp = sgLocalPayoff (ABS.s a)
-        a' = ABS.sendToNeighbours a (NeighbourPayoff (ls, lp))
+        ns = sgNeighbours (ABS.s a)
+        a' = ABS.broadcast a (ns, NeighbourPayoff (ls, lp))
 
-
+-- TODO: need much more clarity here
 sgPayoffMsg :: SGAgent -> (SGState, Double) -> SGAgent
 sgPayoffMsg a p = if ( allNeighboursTicked a'' ) then
                       broadCastLocalState $ switchToBestPayoff a''
@@ -95,7 +109,8 @@ broadCastLocalState :: SGAgent -> SGAgent
 broadCastLocalState a = resetNeighbourFlag a'
     where
         ls = sgCurrState (ABS.s a)
-        a' = ABS.sendToNeighbours a (NeighbourState ls)
+        ns = sgNeighbours (ABS.s a)
+        a' = ABS.broadcast a (ns, NeighbourState ls)
 
 -- NOTE: the first state is always the owning agent
 payoffWith :: SGAgent -> SGState -> Double
@@ -123,88 +138,91 @@ tickNeighbourFlag a = ABS.updateState a (\s -> s { sgNeighbourFlag = nf - 1 })
 resetNeighbourFlag :: SGAgent -> SGAgent
 resetNeighbourFlag a = ABS.updateState a (\s -> s { sgNeighbourFlag = neighbourCount })
     where
-        neighbourCount = length (ABS.ns a)
+        ns = sgNeighbours (ABS.s a)
+        neighbourCount = length ns
+------------------------------------------------------------------------------------------------------------------------
 
+
+------------------------------------------------------------------------------------------------------------------------
+-- BOILER-PLATE CODE
 createRandomSGAgents :: (Int, Int) -> Double -> IO [SGAgent]
-createRandomSGAgents cells@(x,y) p = do
-                                        let ssIO = [ randomAgentState p (xCoord, yCoord) | xCoord <- [0..x-1], yCoord <- [0..y-1] ]
+createRandomSGAgents max@(x,y) p = do
+                                        let ssIO = [ randomAgentState p max (xCoord, yCoord) | xCoord <- [0..x-1], yCoord <- [0..y-1] ]
                                         ss <- mapM id ssIO
-                                        let as = map (\s -> ABS.createAgent (stateToAid s cells) s sgTransformer) ss
-                                        let as' = map (addNeighbours as cells) as
-                                        return as'
+                                        let as = map (\s -> ABS.createAgent (stateToAid s max) s sgTransformer) ss
+                                        return as
     where
-        addNeighbours :: [SGAgent] -> (Int, Int) -> SGAgent -> SGAgent
-        addNeighbours as cells a = resetNeighbourFlag a'
+        stateToAid :: SGAgentState -> (Int, Int) -> ABS.Aid
+        stateToAid s max = coordToAid max c
             where
-                ns = agentNeighbours a as cells
-                a' = foldl ABS.addNeighbour a ns
+                c = sgCoord s
 
-setDefector :: [SGAgent] -> (Int, Int) -> (Int, Int) -> [SGAgent]
-setDefector as pos cells
+randomAgentState :: Double -> (Int, Int)  -> SGCoord -> IO SGAgentState
+randomAgentState p max coord = do
+                                    r <- getStdRandom (randomR(0.0, 1.0))
+                                    let isDefector = r <= p
+
+                                    let s = if isDefector then
+                                                Defector
+                                                else
+                                                    Cooperator
+
+                                    let nCoords = neighbours coord max
+                                    let nIds = map (coordToAid max) nCoords
+
+                                    return SIRSAgentState{
+                                            sgCoord = coord,
+                                            sgCurrState = s,
+                                            sgPrevState = s,
+                                            sgLocalPayoff = 0.0,
+                                            sgBestPayoff = (s, 0.0),
+                                            sgNeighbourFlag = 0,
+                                            sgNeighbours = nIds }
+
+coordToAid :: (Int, Int) -> SGCoord -> ABS.Aid
+coordToAid (xMax, yMax) (x, y) = (y * xMax) + x
+
+neighbours :: SGCoord -> (Int, Int) -> [SGCoord]
+neighbours (x,y) max = clipCoords allCoords max
+    where
+        allCoords = map (\(x', y') -> (x+x', y+y')) neighbourhood
+
+clipCoords :: [SGCoord] -> (Int, Int) -> [SGCoord]
+clipCoords cs max = filter (\c -> validCoord c max ) cs
+    where
+        validCoord :: SGCoord -> (Int, Int) -> Bool
+        validCoord (x, y) (xMax, yMax)
+            | x < 0 = False
+            | y < 0 = False
+            | x >= xMax = False
+            | y >= yMax = False
+            | otherwise = True
+
+neighbourhood :: [SGCoord]
+neighbourhood = [topLeft, top, topRight,
+                 left, center, right,
+                 bottomLeft, bottom, bottomRight]
+    where
+        topLeft =       (-1, -1)
+        top =           ( 0, -1)
+        topRight =      ( 1, -1)
+        left =          (-1,  0)
+        center =        ( 0,  0)
+        right =         ( 1,  0)
+        bottomLeft =    (-1,  1)
+        bottom =        ( 0,  1)
+        bottomRight =   ( 1,  1)
+
+setDefector :: [SGAgent] -> SGCoord -> (Int, Int) -> [SGAgent]
+setDefector as coord cells
     | isNothing mayAgentAtPos = as
     | otherwise = infront ++ [defectedAgentAtPos] ++ (tail behind)
     where
-        mayAgentAtPos = find (\a -> pos == (agentToCell a cells)) as
+        mayAgentAtPos = find (\a -> coord == (sgCoord (ABS.s a))) as
         agentAtPos = (fromJust mayAgentAtPos)
         agentAtPosId = ABS.aid agentAtPos
         defectedAgentAtPos = ABS.updateState agentAtPos (\s -> s { sgCurrState = Defector,
                                                                     sgPrevState = Defector,
                                                                     sgBestPayoff = (Defector, 0.0) } )
         (infront, behind) = splitAt agentAtPosId as
-
-stateToAid :: SGAgentState -> (Int, Int) -> ABS.Aid
-stateToAid s (x, y) = (yCoord * x) + xCoord
-    where
-        (xCoord, yCoord) = sgCoords s
-
-randomAgentState :: Double -> (Int, Int) -> IO SGAgentState
-randomAgentState p coords = do
-                                isDefector <- randomThresh p
-                                let s = if isDefector then
-                                            Defector
-                                            else
-                                                Cooperator
-                                return SIRSAgentState{ sgCurrState = s,
-                                        sgPrevState = s,
-                                        sgLocalPayoff = 0.0,
-                                        sgBestPayoff = (s, 0.0),
-                                        sgNeighbourFlag = -1,
-                                        sgCoords = coords }
-
-randomThresh :: Double -> IO Bool
-randomThresh p = do
-                    thresh <- getStdRandom (randomR(0.0, 1.0))
-                    return (thresh <= p)
-
-
-agentNeighbours :: SGAgent -> [SGAgent] -> (Int, Int) -> [SGAgent]
-agentNeighbours a as cells = filter (\a' -> any (==(agentToCell a' cells)) neighbourCells ) as
-    where
-        aCell = agentToCell a cells
-        neighbourCells = neighbours aCell
-
-agentToCell :: SGAgent -> (Int, Int) -> (Int, Int)
-agentToCell a (xCells, yCells) = (ax, ay)
-     where
-        aid = ABS.aid a
-        ax = mod aid yCells
-        ay = floor((fromIntegral aid) / (fromIntegral xCells))
-
-
-neighbourhood :: [(Int, Int)]
-neighbourhood = [topLeft, top, topRight,
-                 left, center, right,
-                 bottomLeft, bottom, bottomRight]
-    where
-        topLeft = (-1, -1)
-        top = (0, -1)
-        topRight = (1, -1)
-        left = (-1, 0)
-        center = (0, 0)
-        right = (1, 0)
-        bottomLeft = (-1, 1)
-        bottom = (0, 1)
-        bottomRight = (1, 1)
-
-neighbours :: (Int, Int) -> [(Int, Int)]
-neighbours (x,y) = map (\(x', y') -> (x+x', y+y')) neighbourhood
+------------------------------------------------------------------------------------------------------------------------

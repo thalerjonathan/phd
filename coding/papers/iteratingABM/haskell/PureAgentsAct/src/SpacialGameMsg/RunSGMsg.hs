@@ -35,7 +35,7 @@ runSGMsgStepsAndRender = do
                             let dt = 1.0
                             let dims = (99, 99)
                             let rngSeed = 42
-                            let steps = 62.0
+                            let steps = 2 * 218
                             let defectorsRatio = 0.0
                             let g = mkStdGen rngSeed
                             (as, g') <- atomically $ createRandomSGAgents g dims defectorsRatio

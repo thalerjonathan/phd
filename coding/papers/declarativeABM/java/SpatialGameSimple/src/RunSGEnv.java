@@ -27,7 +27,7 @@ public class RunSGEnv {
     public void run() throws ExecutionException, InterruptedException {
         int rows = 99;
         int cols = 99;
-        int steps = 30;
+        int steps = 217;
 
         SGFrontend fe = new SGFrontend( cols, rows );
 

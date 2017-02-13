@@ -18,6 +18,21 @@ type Aid = Int
 
 data Event m = Start | Dt Double | Message (Aid, m) deriving(Show)
 
+data Neighbourhood = Moore | Euclid | Graph
+
+data Environment s m d  = Environment {
+    spatiality :: d,
+    neighbourhood :: Neighbourhood,
+    agentPos :: (Agent s m -> (Environment s m d) -> d),
+    agentNeighs :: (Agent s m -> (Environment s m d) -> [Aid])
+}
+
+type Discrete2D = Environment (Int, Int)
+type Discrete3D = Environment (Int, Int, Int)
+
+type Continuous2D = Environment (Double, Double)
+type Continuous3D = Environment (Double, Double, Double)
+
 data Agent s m = Agent {
     aid :: Aid,
     s :: s,

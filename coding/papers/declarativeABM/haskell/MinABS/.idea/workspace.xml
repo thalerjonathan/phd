@@ -16,11 +16,31 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Main.hs" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Main.hs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Main.hs">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="72">
               <caret line="4" column="0" lean-forward="false" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="MinABS.hs" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/MinABS.hs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="180">
+              <caret line="25" column="56" lean-forward="true" selection-start-line="25" selection-start-column="56" selection-end-line="25" selection-end-column="56" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="SIRSModel.hs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/SIRS/SIRSModel.hs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="587">
+              <caret line="178" column="13" lean-forward="false" selection-start-line="178" selection-start-column="0" selection-end-line="178" selection-end-column="13" />
               <folding />
             </state>
           </provider>
@@ -79,7 +99,6 @@
     </navigator>
     <panes>
       <pane id="PackagesPane" />
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -145,6 +164,7 @@
         </subPane>
       </pane>
       <pane id="Scratches" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -512,6 +532,14 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/Main.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/SpacialGame/RunSG.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -695,20 +723,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/SIRS/SIRSModel.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="173">
-          <caret line="17" column="23" lean-forward="true" selection-start-line="17" selection-start-column="23" selection-end-line="17" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/MinABS.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1152">
-          <caret line="64" column="21" lean-forward="true" selection-start-line="64" selection-start-column="21" selection-end-line="64" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/SpacialGame/SGModel.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="54">
@@ -720,6 +734,22 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="72">
           <caret line="4" column="0" lean-forward="false" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/SIRS/SIRSModel.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="587">
+          <caret line="178" column="13" lean-forward="false" selection-start-line="178" selection-start-column="0" selection-end-line="178" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/MinABS.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="25" column="56" lean-forward="true" selection-start-line="25" selection-start-column="56" selection-end-line="25" selection-end-column="56" />
           <folding />
         </state>
       </provider>

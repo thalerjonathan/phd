@@ -6,6 +6,19 @@
 
 \item READ NASDAQ MARKET SIMULATION: seems extremely interesting as it builds an ABM for simulating the stock market. My approach could be to reimplement this in Yampa, extend it to todays specification of NASDAQ and connect it to the Batch-Auction Paper.
 
+\item 1. find an interesting theory or non-abm model 2. develop an agent-based model but from a pure functional view 3. formulate hypotheses based on reasoning about the model 4. implement it using the developed methods for haskell with yampa 5. formulate hypotheses based on reasoning about the simulation 6. verify hypotheses by running the simulations
+
+\item find interesting and large, complex ACE model simulating an economy
+
+\item Phd Thesis Title: Foundations of functional ABM/S
+	\begin{itemize}
+		\item functional specification language
+		\item theory of computation in ABM/S: type theoretic and category theoreric foundations of ABM/S
+		\item implementing pure functional ABS/M: fusion with FRP
+		\item reasoning in functional abm/s
+		\item a case study: pure functional ABM/S in ACE
+	\end{itemize}
+
 \item Bring PureAgents to Yampa
 	\begin{itemize}
 		\item embed PureAgentsPar and Seq in Yampa: PureAgentsYampa so we can leverage the power of the EDSL, SFs, continuations,... of Yampa/Dunai.
@@ -17,12 +30,12 @@
 	\end{itemize}
 
 \item Thorsten Meeting preparation
-\begin{itemize}
-	\item Meinen derzeitigen Stand (Paper und Code) aus Haskell Sicht
-	\item Idee für ein Paper: eine Spezifikationssprache für Agent-Based Modelling \& Simulation, die quasi Haskell-Code ist - die Idee ist, der Frage nachgehen inwieweit der Spezifikation-Implementations Gap (mehr oder weniger) geschlossen werden kann, wenn wir das ganze in Haskell mit meinem Ansatz machen. Auch sind reasoning-Techniken hier sicher auch von Interesse.
-	\item Idee für ein weiteres Paper: meine derzeitige ABM/S Implementierung in Haskell mit FRP (Yampa) zu verbinden, was dem ganzen sicherlich ordentlich leverage gibt. Die Hypothese: die Richtung die ich eingeschlagen habe, würde sich sowieso nach FRP entwickeln, ausserdem erlaubt es wesentlich komplexere und größere Modelle zu implementieren.
-	\item FP Lunch Präsentation: steht immer noch aus, ist aber noch zu früh und das Thema war bisher nicht entsprechend, könnte aber mit dem ersten Paper eine passende Richtung vorgeben.
-\end{itemize}
+	\begin{itemize}
+		\item Meinen derzeitigen Stand (Paper und Code) aus Haskell Sicht
+		\item Idee für ein Paper: eine Spezifikationssprache für Agent-Based Modelling \& Simulation, die quasi Haskell-Code ist - die Idee ist, der Frage nachgehen inwieweit der Spezifikation-Implementations Gap (mehr oder weniger) geschlossen werden kann, wenn wir das ganze in Haskell mit meinem Ansatz machen. Auch sind reasoning-Techniken hier sicher auch von Interesse.
+		\item Idee für ein weiteres Paper: meine derzeitige ABM/S Implementierung in Haskell mit FRP (Yampa) zu verbinden, was dem ganzen sicherlich ordentlich leverage gibt. Die Hypothese: die Richtung die ich eingeschlagen habe, würde sich sowieso nach FRP entwickeln, ausserdem erlaubt es wesentlich komplexere und größere Modelle zu implementieren.
+		\item FP Lunch Präsentation: steht immer noch aus, ist aber noch zu früh und das Thema war bisher nicht entsprechend, könnte aber mit dem ersten Paper eine passende Richtung vorgeben.
+	\end{itemize}
 
 \item got hint for publishing paper in: ppsm parallel problem solving in nature OR natural computation
 	
@@ -57,4 +70,5 @@
 	\begin{itemize}
 			\item IDEA: what about ABM/S generating sound? could be a perfect example for Yampa due to its signal functions. the sound is the result of interactions of agents which try to generate harmonies and agents trying to create dissonance
 		\item IDEA: what about abm/s creating drawings/art? 2d continuous and each agents path is drawn
+	\end{itemize}
 \end{enumerate} 

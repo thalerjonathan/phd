@@ -14,7 +14,6 @@ import org.jfree.data.xy.XYSeriesCollection;
 import javax.swing.*;
 import java.awt.*;
 import java.text.DecimalFormat;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 /**

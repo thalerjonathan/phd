@@ -13,14 +13,15 @@ public class Main {
         RunHAC hac = new RunHAC();
         hac.runStepsAndRender();
    */
-        /*
+
         RunSIRS sirs = new RunSIRS();
         sirs.run();
-        */
 
 
+/*
         RunSG sg = new RunSG();
         sg.run();
+        */
        /*
         RunSGEnv sgEnv = new RunSGEnv();
         sgEnv.run();

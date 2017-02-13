@@ -12,24 +12,32 @@ import java.util.LinkedHashMap;
  */
 public class SIRSFrontend extends JFrame implements ISimulationObserver<SIRSAgent> {
     private SIRSRenderer renderer;
+    private SIRSChart chart;
 
     public SIRSFrontend(int cols, int rows) {
         super("SIRS Conc");
 
         this.renderer = new SIRSRenderer(cols, rows);
+        this.chart = new SIRSChart();
+
+        JPanel contentPane = new JPanel();
+        contentPane.setLayout(new BorderLayout());
+        contentPane.add( renderer, BorderLayout.CENTER);
+        contentPane.add( chart, BorderLayout.SOUTH);
 
         this.setDefaultCloseOperation( EXIT_ON_CLOSE );
-        this.setContentPane( renderer );
-        this.setSize( new Dimension( 1000, 1000 ));
+        this.setContentPane( contentPane );
+        this.setSize( new Dimension( 1920, 1080 ));
         this.setVisible(true);
     }
 
     @Override
     public boolean simulationStep(LinkedHashMap<Integer,SIRSAgent> as) {
         this.renderer.render(as);
+        this.chart.update(as);
 
         try {
-            Thread.sleep( 30 );
+            Thread.sleep( 10 );
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

@@ -6,10 +6,9 @@ import SIRS.agent.SIRSMsgType;
 import SIRS.gui.SIRSFrontend;
 import agent.Agent;
 import agent.AgentSimulator;
+import agent.ISimulationObserver;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -25,24 +24,34 @@ public class RunSIRS {
     }
 
     public void run() throws InterruptedException, CloneNotSupportedException, ExecutionException {
-        int rows = 100;
-        int cols = 100;
-        double initialInfection = 0.1;
+        int rows = 200;
+        int cols = 200;
+        double initialInfection = 0.2;
         double dt = 1.0;
+        int maxSteps = 500;
 
         SIRSFrontend fe = new SIRSFrontend( cols, rows );
 
         List<SIRSAgent> hacAgents = this.createRandomAgents(cols, rows, initialInfection);
         AgentSimulator simulator = new AgentSimulator();
 
-        simulator.simulateWithObserver( hacAgents, null,
+        simulator.simulateWithObserver(hacAgents, null,
                 dt,
-                fe);
+                new ISimulationObserver() {
+                    private int stepCount = 0;
+
+                    @Override
+                    public boolean simulationStep(LinkedHashMap as) {
+                        fe.simulationStep(as);
+                        return stepCount++ < maxSteps;
+                    }
+                });
 
     }
 
     private List<SIRSAgent> createRandomAgents(int cols, int rows, double initialInfection) {
         List<SIRSAgent> sirsAgents = new ArrayList<>();
+        HashMap<Cell, SIRSAgent> agentsByCell = new HashMap<>();
 
         // NOTE: need to create them first and then set their enemies and friends because only then all available
         for (int y = 0; y < rows; ++y) {
@@ -55,34 +64,29 @@ public class RunSIRS {
                 SIRSAgent a = new SIRSAgent(state, new Cell(x, y));
 
                 sirsAgents.add(a);
+                agentsByCell.put( a.getCell(), a);
             }
         }
 
-        for (int i = 0; i < sirsAgents.size(); ++i) {
-            SIRSAgent a = sirsAgents.get( i );
-            List<Agent<SIRSMsgType, Void>> ns = getNeighbours(a, sirsAgents);
-
-            a.setNeighbours( ns );
+        for (SIRSAgent a : sirsAgents ) {
+            getNeighbours(a, agentsByCell);
         }
 
         return sirsAgents;
     }
 
-    private List<Agent<SIRSMsgType, Void>> getNeighbours(SIRSAgent a, List<SIRSAgent> all) {
-        List<Agent<SIRSMsgType, Void>> neighbours = new ArrayList<>();
-        List<Cell> nCells = calculateNeighbourhood(a);
+    private void getNeighbours(SIRSAgent a, HashMap<Cell, SIRSAgent> all) {
+        List<Agent<SIRSMsgType, Void>> ns = new ArrayList<>();
+        List<Cell> neighbourCells = calculateNeighbourhood(a);
 
-        for (SIRSAgent n : all) {
-            if ( nCells.contains( n.getCell() ) ) {
-                neighbours.add(n);
-
-                if (neighbours.size() == nCells.size()) {
-                    break;
-                }
+        for (Cell nc : neighbourCells) {
+            SIRSAgent neighbour = all.get( nc );
+            if ( null != neighbour ) {
+                ns.add( neighbour );
             }
         }
 
-        return neighbours;
+        a.setNeighbours( ns );
     }
 
     private List<Cell> calculateNeighbourhood(SIRSAgent a) {

@@ -21,9 +21,9 @@ public class SIRSAgent extends Agent<SIRSMsgType, Void> {
     }
 
     private final static int DURATION_INFECTED = 7;
-    private final static int DURATION_IMMUNE = 3;
+    private final static int DURATION_IMMUNE = 14;
 
-    private final static double INFECTION_PROBABILITY = 0.2;
+    private final static double INFECTION_PROBABILITY = 0.3;
 
     private final static Message<SIRSMsgType> MSG_CONTACT = new Message<>(SIRSMsgType.ContactInfected);
 

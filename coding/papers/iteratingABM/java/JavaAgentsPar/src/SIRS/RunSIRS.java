@@ -28,7 +28,7 @@ public class RunSIRS {
         int cols = 200;
         double initialInfection = 0.2;
         double dt = 1.0;
-        int maxSteps = 500;
+        int maxSteps = 100;
 
         SIRSFrontend fe = new SIRSFrontend( cols, rows );
 

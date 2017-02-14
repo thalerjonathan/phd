@@ -67,3 +67,20 @@ Care must be taken not to send references and mutable data, which is still possi
 
 \paragraph{Natural Strategy}
 The most natural strategy would be of course the Actor Strategy and we only used this Strategy in this language to implement our models. Note that the Actor Strategy is the most general one and would allow to capture all the other strategies using the appropriate synchronization mechanisms.
+
+
+
+\begin{table*}[t]
+\centering
+\caption{Language Comparisons}
+\label{tab:language_comparisons}
+\begin{tabular}{l || l | l | l  }
+	 			& Java 	& Haskell 	& Scala	\\ \hline \hline
+
+Sequential		& ++	& --		& ?		\\  
+Parallel		& +		& ++		& ?		\\  
+Concurrent		& +		& ++		& ?		\\  
+Actor			& --	& +			& ++	\\  
+
+\end{tabular}
+\end{table*}

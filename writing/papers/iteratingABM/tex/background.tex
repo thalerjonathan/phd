@@ -1,23 +1,23 @@
 \section{Background}
 
 \subsection{Agent-Based Simulation}
-ABS is a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is of knowledge. Those parts, called agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. Thus the central aspect of ABS is the concept of an agent which can be understood as a metaphor for a pro-active unit, situated in a generic environment, able to spawn new agents and interacting with other agents in a network of neighbours by exchange of messages \cite{wooldridge_introduction_2009}. Thus we informally assume the following about our agents:
+ABS is a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is of knowledge. Those parts, called agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. So the central aspect of ABS is the concept of an agent which can be understood as a metaphor for a pro-active unit, situated in a generic environment, able to spawn new agents and interacting with other agents in a network of neighbours by exchange of messages \cite{wooldridge_introduction_2009}. We informally assume the following about our agents:
 
 \begin{itemize}
-	\item They have a unique identifier and some internal state
+	\item They are uniquely addressable entities with some internal state
 	\item They can initiate actions on their own e.g. change their internal state, send messages, create new agents, kill themselves,...
 	\item They can react to messages they receive with actions (see above)
 	\item They can interact with a generic environment they are situated in
 \end{itemize} 
 
-An implementation of an ABS must thus solve two fundamental problems:
+An implementation of an ABS must solve two fundamental problems:
 
 \begin{enumerate}
 	\item \textbf{Source of pro-activity} How can an agent initiate actions without the external stimuli of messages?
 	\item \textbf{Semantics of Messaging} When is a message \textit{m}, sent by agent \textit{A} to agent \textit{B}, visible and processed by \textit{B}?
 \end{enumerate}
 
-In computer systems, pro-activity, the ability to initiate actions on its own without external stimuli, is only possible when there is some internal stimulus, most naturally represented by some generic notion of monotonic increasing time-flow. Due to the discrete nature of computer-system, this time-flow must be discretized in steps as well and each step must be made available to the agent, acting as the internal stimulus. This allows the agent then to perceive time and become pro-active depending on time. Thus we can understand an ABS as a discrete time-simulation where time is broken down into continuous, real-valued or discrete natural-valued time-steps. Independent of the representation of the time-flow we have the two fundamental choices whether the time-flow is local to the agent or whether it is a system-global time-flow. Time-flows in computer-systems can only be created through threads of execution thus there are two ways of feeding time-flow into an agent. Either it has its own thread-of-execution or the system creates the illusions of its own thread-of-execution by sharing the global one sequentially among the agents where an agent has to yield the execution back after it has executed its step. Note the similarity to an operating system with cooperative multitasking in the latter case and real multi-processing in the former.
+In computer systems, pro-activity, the ability to initiate actions on its own without external stimuli, is only possible when there is some internal stimulus, most naturally represented by some generic notion of monotonic increasing time-flow. Due to the discrete nature of computer-system, this time-flow must be discretized in steps as well and each step must be made available to the agent, acting as the internal stimulus. This allows the agent then to perceive time and become pro-active depending on time. So we can understand an ABS as a discrete time-simulation where time is broken down into continuous, real-valued or discrete natural-valued time-steps. Independent of the representation of the time-flow we have the two fundamental choices whether the time-flow is local to the agent or whether it is a system-global time-flow. Time-flows in computer-systems can only be created through threads of execution where there are two ways of feeding time-flow into an agent. Either it has its own thread-of-execution or the system creates the illusions of its own thread-of-execution by sharing the global one sequentially among the agents where an agent has to yield the execution back after it has executed its step. Note the similarity to an operating system with cooperative multitasking in the latter case and real multi-processing in the former.
 
 \medskip 
 
@@ -42,7 +42,7 @@ Are messages handled \textit{immediately} by an agent when sent to them or are t
 Are the changes made (messages sent, environment modified) by an agent which is updated during an Iteration-Order visible (during) \textit{In-Iteration} or only \textit{Post-Iteration} at the next Iteration-Order? More formally: do all the agents $a_{n>i}$ which are updated after agent $a_i$ see the changes to the environment and messages sent to them by agent $a_i$?
 
 \paragraph{Repeatability}
-Does the ABS has an external source of non-determinism which it cannot influence? If this is the case then we regard an update-strategy as \textit{non-deterministic} and \textit{deterministic} otherwise. It is important to distinguish between \textit{external} and \textit{internal} sources of non-determinism. The latter, coming from random-number generators, can be controlled using the same starting-seed thus leading to repeatability and deemed deterministic in this context. The former one are race-conditions due to concurrency, creating non-deterministic orderings of events which has the consequence that repeated runs may lead to different results with the same configuration thus rendering a ABS non-deterministic.
+Does the ABS has an external source of non-determinism which it cannot influence? If this is the case then we regard an update-strategy as \textit{non-deterministic} and \textit{deterministic} otherwise. It is important to distinguish between \textit{external} and \textit{internal} sources of non-determinism. The latter, coming from random-number generators, can be controlled using the same starting-seed leading to repeatability and deemed deterministic in this context. The former one are race-conditions due to concurrency, creating non-deterministic orderings of events which has the consequence that repeated runs may lead to different results with the same configuration, rendering a ABS non-deterministic.
 
 \medskip
 

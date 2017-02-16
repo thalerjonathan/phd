@@ -1,10 +1,9 @@
-\section{Update-Strategies in ABS}
+\section{A new terminology}
 TODO: each strategy may have the same length
 
-In this section we present the four general update-strategies which are possible in ABS. We give the list of all properties presented in the previous section, give a short description of the strategy and discuss their semantics and variations. We will discuss all details programming-language agnostic, give semantic meanings and interpretations of them and the implications selecting update-strategies for a model.
+To develop a new terminology, we propose to abandon the notion of synchronous and asynchronous updates and, based on the discussion above we propose six properties characterizing the dimensions and details of the internals of an ABS. Having these properties identified we then derive all meaningful and reasonable update-strategies which are possible in a general form in ABS. These update-strategies together with the properties will form the new terminology we propose to speak about update-strategies in ABS in general. For each we strategy we give the list of all properties, a short description of the strategy and discuss their semantics and variations. We will discuss all details programming-language agnostic, give semantic meanings and interpretations of them and the implications selecting update-strategies for a model.
 
 \subsection{ABS Properties}
-To develop a new terminology, we propose to abandon the notion of synchronous and asynchronous updates and, based on the discussion above we propose six properties characterizing the dimensions and details of the internals of an ABS:
 
 \paragraph{Iteration-Order}
 Is the collection of agents updated \textit{sequential} with one agent updated after the other or are all agents updated in \textit{parallel}, at virtually the same time?
@@ -24,11 +23,9 @@ Are the changes made (messages sent, environment modified) by an agent which is 
 \paragraph{Repeatability}
 Does the ABS has an external source of non-determinism which it cannot influence? If this is the case then we regard an update-strategy as \textit{non-deterministic} and \textit{deterministic} otherwise. It is important to distinguish between \textit{external} and \textit{internal} sources of non-determinism. The latter, coming from random-number generators, can be controlled using the same starting-seed leading to repeatability and deemed deterministic in this context. The former one are race-conditions due to concurrency, creating non-deterministic orderings of events which has the consequence that repeated runs may lead to different results with the same configuration, rendering a ABS non-deterministic.
 
-\medskip
+\subsection{ABS Update-Strategies}
 
-Having these properties identified we can now derive all meaningful and reasonable update-strategies which are possible in a general form in ABS. These update-strategies together with the properties will form the new terminology we propose to speak about update-strategies in ABS in general.
-
-\subsection{Sequential Strategy}
+\subsubsection{Sequential Strategy}
 This strategy has a globally synchronized time-flow and in each time-step iterates through all the agents and updates one agent after another. Messages sent and changes to the environment made by agents are visible immediately. \\
 
 \textbf{Iteration-Order:} Sequential \\
@@ -40,11 +37,9 @@ This strategy has a globally synchronized time-flow and in each time-step iterat
 	
 \paragraph{Semantics:} There is no source of randomness and non-determinism, rendering this strategy to be completely deterministic in each step. Messages can be processed either immediately or queued depending on the semantics of the model. If the model requires to process the messages immediately the model must be free of potential recursions.
 
-\paragraph{Variation:} If the sequential iteration from agent [1..n] imposes an advantage over the agents further ahead or behind in the queue (e.g. if it is of benefit when making choices earlier than others in auctions or later when more information is available) then one could use random-walk iteration where in each time-step the agents are shuffled before iterated. Note that although this would introduce randomness in the model the source is a random-number generator implying it is still deterministic. \\
-Using this strategy it is very easy to create the illusion of a local-time for each agent by adding a random-offset to the global time for every agent. \\
-If one wants to have a very specific ordering, e.g. 'better performing' agents first, then this can be easily implemented too by exposing some sorting-criterion and sorting the collection of agents after each Iteration.
+\paragraph{Variation:} If the sequential iteration from agent [1..n] imposes an advantage over the agents further ahead or behind in the queue (e.g. if it is of benefit when making choices earlier than others in auctions or later when more information is available) then one could use random-walk iteration where in each time-step the agents are shuffled before iterated. Note that although this would introduce randomness in the model the source is a random-number generator implying it is still deterministic. Using this strategy it is very easy to create the illusion of a local-time for each agent by adding a random-offset to the global time for every agent. If one wants to have a very specific ordering, e.g. 'better performing' agents first, then this can be easily implemented too by exposing some sorting-criterion and sorting the collection of agents after each Iteration.
 
-\subsection{Parallel Strategy}
+\subsubsection{Parallel Strategy}
 This strategy has a globally synchronized time-flow and in each time-step iterates through all the agents and updates all agents in parallel. Messages sent and changes to the environment made by agents are visible in the next global step. We can think about this strategy that all agents make their moves at the same time. \\
 
 \textbf{Iteration-Order:} Parallel \\
@@ -54,13 +49,13 @@ This strategy has a globally synchronized time-flow and in each time-step iterat
 \textbf{Visibility of Changes:}	Post-Iteration \\
 \textbf{Repeatability:}	Deterministic 
 
-\paragraph{Semantics:} If one wants to change the environment in a way that it would be visible to other agents this is regarded as a systematic error in this strategy. First it is not logical because all actions are meant to happen at the same time and also it would implicitly induce an ordering, violating the \textit{happens at the same time} idea. To solve this, we require different semantics for accessing the environment in this strategy. We introduce a \textit{global} environment which is made up of the set of \textit{local} environments. Each local environment is owned by an agent so there are as many local environments as there are agents. The semantics are then as follows: in each step all agents can \textit{read} the global environment and \textit{read/write} their local environment. The changes to a local environment are only visible \textit{after} the local step and can be fed back into the global environment after the parallel processing of the agents. \\
+\paragraph{Semantics:} If one wants to change the environment in a way that it would be visible to other agents this is regarded as a systematic error in this strategy. First it is not logical because all actions are meant to happen at the same time and also it would implicitly induce an ordering, violating the \textit{happens at the same time} idea. To solve this, we require different semantics for accessing the environment in this strategy. We introduce a \textit{global} environment which is made up of the set of \textit{local} environments. Each local environment is owned by an agent so there are as many local environments as there are agents. The semantics are then as follows: in each step all agents can \textit{read} the global environment and \textit{read/write} their local environment. The changes to a local environment are only visible \textit{after} the local step and can be fed back into the global environment after the parallel processing of the agents. 
 It does not make a difference if the agents are really computed in parallel or just sequentially, due to the isolation of actions, this has the same effect. Also it will make no difference if we iterate over the agents sequentially or randomly, the outcome \textit{has to be} the same: the strategy is event-ordering invariant as all events/updates happen \textit{virtually} at the \textit{same time}. If one needs to have the semantics of writes on the whole (global) environment in ones model, then this strategy is not the right one and one should resort to one of the other strategies. A workaround would be to implement the global environment as an agent with which the non-environment agents can communicate via messages introducing an ordering but which is then sorted in a controlled way by an agent, something which is not possible in the case of a passive, non-agent environment.
 
 \paragraph{Variation:} Using this strategy it is very easy to create the illusion of a local-time for each agent by adding a random-offset to the global time for every agent.
 
-\subsection{Concurrent Strategy}
-This strategy has a globally synchronized time-flow and in each time-step iterates through all the agents and updates all agents in parallel but all messages sent and changes to the environment are immediately visible. So this strategy can be understood as a more general form of the Parallel Strategy: all agents run at the same time but acting concurrently. \\
+\subsubsection{Concurrent Strategy}
+This strategy has a globally synchronized time-flow and in each time-step iterates through all the agents and updates all agents in parallel but all messages sent and changes to the environment are immediately visible. So this strategy can be understood as a more general form of the \textit{parallel strategy}: all agents run at the same time but acting concurrently. \\
 
 \textbf{Iteration-Order:} Parallel \\
 \textbf{Global Synchronization:} Yes \\
@@ -75,7 +70,7 @@ This strategy has a globally synchronized time-flow and in each time-step iterat
 
 
 
-\subsection{Actor Strategy}
+\subsubsection{Actor Strategy}
 This strategy has no globally synchronized time-flow but all the agents run concurrently in parallel, with their own local time-flow. The messages and changes to the environment are visible as soon as the data arrive at the local agents - this can be immediately when running locally on a multi-processor or with a significant delay when running in a cluster over a network. Obviously this is also a non-deterministic strategy and repeated runs with the same agent and model-configuration may (and will) lead to different results. \\
 
 \textbf{Iteration-Order:} Parallel \\
@@ -85,7 +80,7 @@ This strategy has no globally synchronized time-flow but all the agents run conc
 \textbf{Visibility of Changes:}	In-Iteration \\
 \textbf{Repeatability:}	Non-Deterministic 
 
-\paragraph{Semantics:} It is of most importance to note that information and also time in this strategy is always local to an agent as each agent progresses in its own speed through the simulation. In this case one needs to explicitly \textit{observe} an agent when one wants to e.g. visualize it. This observation is then only valid for this current point in time, local to the observer but not to the agent itself, which may have changed immediately after the observation. This implies that we need to sample our agents with observations when wanting to visualize them, which would inherently lead to well known sampling issues. A solution would be to invert the problem and create an observer-agent which is known to all agents where each agent sends a \textit{'I have changed'} message with the necessary information to the observer if it has changed its internal state. This also does not guarantee that the observations will really reflect the actual state the agent is in but is a remedy against the notorious sampling. Problems can occur though if the observer-agent can't process the update-messages fast enough, resulting in a congestion of its message-queue. \\
+\paragraph{Semantics:} It is of most importance to note that information and also time in this strategy is always local to an agent as each agent progresses in its own speed through the simulation. In this case one needs to explicitly \textit{observe} an agent when one wants to e.g. visualize it. This observation is then only valid for this current point in time, local to the observer but not to the agent itself, which may have changed immediately after the observation. This implies that we need to sample our agents with observations when wanting to visualize them, which would inherently lead to well known sampling issues. A solution would be to invert the problem and create an observer-agent which is known to all agents where each agent sends a \textit{'I have changed'} message with the necessary information to the observer if it has changed its internal state. This also does not guarantee that the observations will really reflect the actual state the agent is in but is a remedy against the notorious sampling. Problems can occur though if the observer-agent can't process the update-messages fast enough, resulting in a congestion of its message-queue. 
 The concept of Actors was proposed by C. Hewitt in 1973 in his work \cite{hewitt_universal_1973} for which I. Grief in \cite{grief_semantics_1975} and W. Clinger in \cite{clinger_foundations_1981} developed semantics of different kinds. These works were very influential in the development of the concepts of Agents and and can be regarded as foundational basics for ABS.
 
 \paragraph{Variation:} This is the most general one of all the strategies as it can emulate all the others by introducing the necessary synchronization mechanisms and agents.

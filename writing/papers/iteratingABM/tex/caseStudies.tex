@@ -1,17 +1,7 @@
 \section{Case-Studies}
-TODO: emphasise different types of games/simulations: need to be very clear of the difference between the 2 games
-TODO: experimentation description: which language, with which model, with which configuration, number of agents, number of replications,...
-TODO: what about language-differences, which language did we use?
+In this section we briefly discuss the effect of using different update-strategies for simulating the \textit{Prisoners Dilemma} and \textit{Heroes \& Cowards}. As already emphasised both are of different nature. The first one is a discrete game, played at discrete time-steps. The second one is a continuous game where each agent is continuously playing. This has profound implications on the simulation results as will is shown below. The results show that depending on the type of model the results can be very different when using different update-strategies as happening in the case of \textit{Prisoners Dilemma}. Results of other models seem to be stable under varying update-strategies as is the case with \textit{Heroes \& Cowards}.
 
-In this section we revisit the Prisoners Dilemma model of \cite{nowak_evolutionary_1992} and present the Heroes \& Cowards model of \cite{wilensky_introduction_2015} and show results simulating both with the four update-strategies. 
-
-TODO: why 25\% heroes, why this big number of agents 100.000?
-
-TODO: what do I want to achieve with this test? it is basically to show 1st: that only the parallel-strategy produces the results which match the ones of the original paper in the prisoners dilemma, 2nd: that the other update-strategies create completely different results, 3rd: the heroes \& cowards game seems to be unaffected by different update-strategies.
-
-\subsection{Effect of using different Update-Strategies}
-
-\begin{table*}[t]
+\begin{table*}
 	\begin{tabular}{c c c}
 		& Prisoners Dilemma & Heroes \& Cowards \\ 
 
@@ -82,10 +72,10 @@ TODO: what do I want to achieve with this test? it is basically to show 1st: tha
 			\caption{}
 			\label{fig:hac_act}
 		\end{subfigure}
-    	\\ \hline
+
 	\end{tabular}
 	
-	\caption{\small Results of Prisoners Dilemma and Heroes \& Cowards with all four update-strategies.} 
+	\caption{\small Effect on results simulating the Prisoners Dilemma and Heroes \& Cowards with all four update-strategies.} 
 	\label{fig:results}
 \end{table*}
 
@@ -158,9 +148,8 @@ TODO: what do I want to achieve with this test? it is basically to show 1st: tha
 %	\label{fig:results}
 %\end{figure*}
 
-When looking at figure \ref{fig:results} the update-strategy which reflects the semantics of the model is the Parallel Strategy as all others clearly fail to reproduce the pattern as shown by the results in the original paper TODO: in figure \ref{fig:sync_patterns}. We can imply that only the Parallel Strategy is suitable to simulate this model because only that strategy is the one which renders the results of the original paper, meaning it is the 'correct' strategy. \\
-The reason why the others fail to reproduce the pattern is due to the non-parallel and unsynchronized way that information spreads through the grid. In the Sequential Strategy the agents further ahead in the queue play the game earlier and influence the neighbourhood so agents in the neighbourhood which play the game later experience an already changed environment and  messages in their queue and act differently based upon these informations. This is not the case in the Parallel version where all agents play the game on the frozen state of the previous step and the outcome of each agents game will only be visible in the next step. In the Concurrent and Actor Strategy the agents run in parallel but changes are visible immediately and concurrently, leading to the same non-structural patterns as in the Sequential Strategy. \\
-Note that the Concurrent and Actor Strategy produce different results on every run due to the inherent non-deterministic event-ordering introduce by concurrency. Also note that it is not possible to calculate 45 steps for the Actor Strategy as it lacks the Global Synchronization property. To arrive at a relative comparative result we just waited until the first agent arrives at a local time of 45 and then rendered the result. 
+\subsection{Prisoners Dilemma}
+The results as seen in the left column of figure \ref{fig:results} were created using the Haskell implementation using the same configuration as reported in the original paper: a 99x99 grid with all cooperators except one defector at the center, running for 217 steps. When comparing the pictures with the one from the original paper seen in figure \ref{fig:sync_patterns} the only update-strategy which is able to reproduce the matching result is the \textit{parallel strategy} - all the other clearly fail to reproduce the pattern. From this we can deduce that only the \textit{parallel strategy} is suitable to simulate this model because only that strategy is the one which renders the results of the original paper, meaning it is the 'correct' strategy for this model. The reason why the other strategies fail to reproduce the pattern is due to the non-parallel and unsynchronized way that information spreads through the grid. In the \textit{sequential strategy} the agents further ahead in the queue play the game earlier and influence the neighbourhood so agents which play the game later find already messages from earlier agents in their queue thus acting differently based upon these informations. In the \textit{concurrent} and \textit{actor strategy} the agents run in parallel but changes are visible immediately and concurrently, leading to the same non-structural patterns as in the \textit{sequential} one. This is not the case in the \textit{parallel strategy}  where, in every step, all agents play the game at the same time based on the frozen state of the previous step, leading to a synchronized update as required by the model. Note that the \textit{concurrent} and \textit{actor strategy} produce different results on every run due to the inherent non-deterministic event-ordering introduce by concurrency. As there are no global time-steps in the \textit{actor strategy}, to calculate 45 steps we just waited until the first agent arrives at a local time of 45 and then rendered the result.
 
 \subsection{Heroes \& Cowards}
-Although the individual agent-positions of runs with the same configuration differ between update-strategies we experienced the forming of the emergent cross-pattern as seen in figure \ref{fig:results} in all four update-strategies. We can conclude that the Heroes \& Cowards model seems to be more robust to the selection of its update-strategy and that its emergent property - the formation of the cross - is stable under differing update-strategies. One would not see a difference between the different strategies so only one picture was included. Note that to test the Actor Strategy with a this high number of agents we used our implementation in Scala with Actors as Java is not able to have this high number of threads and our Haskell implementation suffers from performance issues, resorting to Scala with Actors. The results were nearly the same there, showing the big green emergent cross-pattern in the center but lacking the smaller red crosses in each section, something we attribute to the local-time of each agent and the relativity of observing the simulation.
+The results as seen in the right column of figure \ref{fig:results} were created using the Java and Scala implementations with 100.000 agents where 25\% of them were heroes. Although the individual agent-positions of runs with the same configuration differ between update-strategies the cross-patterns are forming in all four update-strategies. For the patterns to emerge it is important to have significant more cowards than heroes and to have more than 75.000 agents - we went for 100.000 because then the patterns are really prominent. We can conclude that the \textit{Heroes \& Cowards} model seems to be robust to the selection of its update-strategy and that its emergent property - the formation of the cross - is stable under differing strategies. To test the \textit{actor strategy} with this high number of agents we used our implementation in Scala with the Actor-library as Java is not able to have this high number of threads and our Haskell implementation suffers from performance issues.

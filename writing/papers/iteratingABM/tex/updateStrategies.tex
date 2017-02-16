@@ -1,5 +1,32 @@
 \section{Update-Strategies in ABS}
+TODO: each strategy may have the same length
+
 In this section we present the four general update-strategies which are possible in ABS. We give the list of all properties presented in the previous section, give a short description of the strategy and discuss their semantics and variations. We will discuss all details programming-language agnostic, give semantic meanings and interpretations of them and the implications selecting update-strategies for a model.
+
+\subsection{ABS Properties}
+To develop a new terminology, we propose to abandon the notion of synchronous and asynchronous updates and, based on the discussion above we propose six properties characterizing the dimensions and details of the internals of an ABS:
+
+\paragraph{Iteration-Order}
+Is the collection of agents updated \textit{sequential} with one agent updated after the other or are all agents updated in \textit{parallel}, at virtually the same time?
+
+\paragraph{Global Synchronization}
+Is a full Iteration over the collection of agents happening in lock-step at global points in time or not (\textit{yes/no})?
+
+\paragraph{Thread of Execution}
+Does each agent has a \textit{separate} thread-of-execution or does it \textit{share} it with all the others? Note that it seems to have a constraint on the Iteration-Order, namely that \textit{parallel} execution forces separate threads of execution for all agents. We will show that this is not the case, when looking at the Parallel Strategy in the next section.
+
+\paragraph{Message-Handling}
+Are messages handled \textit{immediately} by an agent when sent to them or are they \textit{queued} and processed later? Here we have the constraint, that an immediate reaction to messages is only possible when the agents share a common thread of execution. Note that we must enforce this constraint as otherwise agents could end up having more than one thread-of-execution which could result in them acting concurrently by making simultaneous actions. This is something we explicitly forbid as it runs against our definition of agents which allows them only one thread-of-execution at a time.
+
+\paragraph{Visibility of Changes}
+Are the changes made (messages sent, environment modified) by an agent which is updated during an Iteration-Order visible (during) \textit{In-Iteration} or only \textit{Post-Iteration} at the next Iteration-Order? More formally: do all the agents $a_{n>i}$ which are updated after agent $a_i$ see the changes to the environment and messages sent to them by agent $a_i$?
+
+\paragraph{Repeatability}
+Does the ABS has an external source of non-determinism which it cannot influence? If this is the case then we regard an update-strategy as \textit{non-deterministic} and \textit{deterministic} otherwise. It is important to distinguish between \textit{external} and \textit{internal} sources of non-determinism. The latter, coming from random-number generators, can be controlled using the same starting-seed leading to repeatability and deemed deterministic in this context. The former one are race-conditions due to concurrency, creating non-deterministic orderings of events which has the consequence that repeated runs may lead to different results with the same configuration, rendering a ABS non-deterministic.
+
+\medskip
+
+Having these properties identified we can now derive all meaningful and reasonable update-strategies which are possible in a general form in ABS. These update-strategies together with the properties will form the new terminology we propose to speak about update-strategies in ABS in general.
 
 \subsection{Sequential Strategy}
 This strategy has a globally synchronized time-flow and in each time-step iterates through all the agents and updates one agent after another. Messages sent and changes to the environment made by agents are visible immediately. \\

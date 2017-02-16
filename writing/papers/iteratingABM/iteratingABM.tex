@@ -61,7 +61,11 @@
 
 % If you wish to include an abstract, uncomment the lines below
 \begin{abstract}
-When developing a model for an Agent-Based Simulation (ABS) it is of very importance to select the update-strategy which reflects the semantics of the model to produce the correct results. This awareness, we claim, is still lacking in the field of ABS. In this paper we present a novel terminology by systematic treatment of all general properties of ABS and deriving the general update-strategies. This will allow implementers and researchers in this field to use a general terminology, removing ambiguities when discussing ABS and their models. Further we present a novel investigation into the suitability of three very different programming languages Java, Haskell and Scala with Actors to implement ABS in generality by implementing each of the update-strategies we derived.
+When developing a model for an Agent-Based Simulation (ABS) it is very important to select the update-strategy which reflects the semantics of the model because simulation results can vary vastly across different update-strategies. This awareness, we claim, is still lacking in the field of ABS. In this paper we derive general properties of ABS and use them to classify all update-strategies possible in ABS. This will allow implementers and researchers in this field to use a general terminology, removing ambiguities when discussing ABS and their models. We prove that our classification works by providing case studies in implementing two different kind of games in three very different programming languages Java, Haskell and Scala and compare their suitability to implement the strategies. The major finding is that depending on the kind of game one can expect very different results when selecting different update-strategies.
+
+TODO: read 2 or 3 papers of target conference to get a feeling on the content/style. "how do people communicate?"
+
+TODO: think about if the strategies should be italic e.g. \textit{parallel} strategy
 \end{abstract}
 
 \subsection*{Keywords}
@@ -69,12 +73,11 @@ Agent-Based Simulation, Parallelism, Concurrency, Haskell, Actors, Prisoners Dil
 
 \input{./tex/introduction.tex}
 
-\input{./tex/relatedResearch.tex}
-
 \input{./tex/background.tex}
 
 \input{./tex/updateStrategies.tex}
 
+% TODO: for conference-paper maybe skip language-comparison?
 \input{./tex/languageComparison.tex}
 
 \input{./tex/caseStudies.tex}

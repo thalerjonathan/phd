@@ -1,9 +1,7 @@
-\section{Language Comparison}
-In this section we give a brief overview of comparing the suitability of three fundamentally different languages to implement the different update-strategies. We wanted to cover a wide range of different types of languages and putting emphasis on each languages strengths without abusing language constructs to recreate features it might seem to lack. An example would be to rebuild OO constructs in pure functional languages which would be a abuse of the language, something we explicitly avoided although it resulted in a few limitations as noted below. We implemented both the \textit{Prisoners Dilemma} game on a 2D grid and the \textit{Heroes \& Cowards} game in all three languages with all four update-strategies. 
+\section{Programming paradigms and ABS}
+In this section we give a brief overview of comparing the suitability of three fundamentally different languages to implement the different update-strategies. We wanted to cover a wide range of different types of languages and putting emphasis on each languages strengths without abusing language constructs to recreate features it might seem to lack. An example would be to rebuild OO constructs in pure functional languages which would be a abuse of the language, something we explicitly avoided although it resulted in a few limitations as noted below. We implemented both the \textit{Prisoners Dilemma} game on a 2D grid and the \textit{Heroes \& Cowards} game in all three languages with all four update-strategies. \footnote{Code available under\\ \url{https://github.com/thalerjonathan/phd/tree/master/coding/papers/iteratingABM/}}
 
-\footnote{Code available under\\ \url{https://github.com/thalerjonathan/phd/tree/master/coding/papers/iteratingABM/}}\\
-
-\subsection{Java}
+\subsection{OO: Java}
 This language is included as the benchmark of object-oriented (OO) imperative languages as it is extremely popular in the ABS community and widely used in implementing their models and frameworks. It comes with a comprehensive programming library and powerful synchronization primitives built in at language-level.
 
 \paragraph{Ease of Use}
@@ -23,7 +21,7 @@ We found that the \textit{sequential strategy} with immediate message-handling i
 
 
  
-\subsection{Haskell}
+\subsection{Pure functional: Haskell}
 This language is included to put to test whether a pure functional, declarative programming language is suitable for full-blown ABS. What distinguishes it is its complete lack of implicit side-effects, global data, mutable variables and objects. The central concept is the function into which all data has to be passed in and out explicitly through statically typed arguments and return values: data-flow is completely explicit. For a nice overview on the features and strengths of pure functional programming see the classical paper  \cite{hughes_why_1989}.
 
 \paragraph{Ease of Use}
@@ -48,7 +46,7 @@ The most natural strategy is the \textit{parallel strategy} as it lends itself s
 
 
 
-\subsection{Scala with Actors}
+\subsection{Multi-paradigm: Scala}
 TODO: implement other strategies
 TODO: much shorter than the other two, because not implemented all and not so much to say
 

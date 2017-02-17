@@ -6,9 +6,11 @@ import SGMsg.gui.SGFrontend;
 import SIRS.gui.SIRSFrontend;
 import agent.Agent;
 import agent.AgentSimulator;
+import agent.ISimulationObserver;
 import utils.Cell;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
@@ -26,19 +28,29 @@ public class RunSG {
     }
 
     public void run() throws ExecutionException, InterruptedException {
-        int rows = 100;
-        int cols = 100;
+        int rows = 99;
+        int cols = 99;
+        int sleep = 0;
         double dt = 1.0;
+        int steps = 2 * 217;
 
-        SGFrontend fe = new SGFrontend( cols, rows );
+        SGFrontend fe = new SGFrontend( cols, rows, sleep );
 
         List<SGAgent> hacAgents = this.createCoopsWithOneDefectorAgents(cols, rows);
 
         AgentSimulator simulator = new AgentSimulator();
 
-        simulator.simulateWithObserver( hacAgents, null,
+        simulator.simulateWithObserver(hacAgents, null,
                 dt,
-                fe);
+                new ISimulationObserver() {
+                    private int stepCounter = 0;
+
+                    @Override
+                    public boolean simulationStep(LinkedHashMap as) {
+                        fe.simulationStep(as);
+                        return stepCounter++ < steps;
+                    }
+                });
 
     }
 

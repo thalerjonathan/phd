@@ -61,6 +61,11 @@ public class SIRSAgent extends Agent<SIRSMsgType, Void> {
             this.handleInfectedAgent();
     }
 
+    @Override
+    public void start() {
+
+    }
+
     private void contactWithInfected() {
         if ( SIRSState.Infected == this.state)
             return;

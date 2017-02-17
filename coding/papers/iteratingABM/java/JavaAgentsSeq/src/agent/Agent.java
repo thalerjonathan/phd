@@ -72,26 +72,31 @@ public abstract class Agent<M extends Comparable<M>, E> implements Comparable<Ag
     }
 
     public void step(Double time, Double delta, E env) {
-        Iterator<MsgPair> iter = this.msgBox.iterator();
+        // NOTE: need a copy of the message-box otherwise will have ConcurrentModificationException when sending message to self
+        List<MsgPair> msgBoxCpy = new LinkedList<>(this.msgBox);
+        this.msgBox.clear();
+
+        Iterator<MsgPair> iter = msgBoxCpy.iterator();
         while (iter.hasNext()) {
             MsgPair p = iter.next();
 
             this.receivedMessage(p.sender, p.msg, env);
         }
 
-        this.msgBox.clear();
-
         this.dt(time, delta, env);
     }
 
     public void sendMessage(Message<M> msg, Agent<M, E> receiver) {
-        receiver.msgBox.add(new MsgPair(this, msg));
+        receiver.receivedMessage(this, msg, null);
+        //receiver.msgBox.add(new MsgPair(this, msg));
     }
 
     public abstract void receivedMessage(Agent<M, E> sender, Message<M> msg, E env);
 
     // HASKELL IS BETTER HERE: cannot include the Dt in the Message-Type M in Java, thus need to split it up into separate functions
     public abstract void dt(Double time, Double delta, E env);
+
+    public abstract void start();
 
     @Override
     public int compareTo(Agent<M, E> o) {

@@ -51,6 +51,11 @@ public class SGAgent extends Agent<Message.NoMsg, Pair<Double, SGAgent.SGState>>
     }
 
     @Override
+    public void start() {
+
+    }
+
+    @Override
     public void receivedMessage(Agent<Message.NoMsg, Pair<Double, SGAgent.SGState>> sender,
                                 Message<Message.NoMsg> msg,
                                 Map<Integer, Pair<Double, SGState>> globalEnv) {

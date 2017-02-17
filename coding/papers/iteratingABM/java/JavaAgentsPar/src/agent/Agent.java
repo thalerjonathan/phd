@@ -94,6 +94,8 @@ public abstract class Agent<M extends Comparable<M>, E> implements Comparable<Ag
         this.outBox.add(new MsgPair(receiver, msg));
     }
 
+    public abstract void start();
+
     public abstract void receivedMessage(Agent<M, E> sender, Message<M> msg, Map<Integer, E> globalEnv);
 
     // HASKELL IS BETTER HERE: cannot include the Dt in the Message-Type M in Java, thus need to split it up into separate functions

@@ -5,5 +5,5 @@ package SGMsg.agent;
  */
 public enum SGMsgType {
     NeighbourPayoff,
-    NeighbourAction
+    NeighbourState
 }

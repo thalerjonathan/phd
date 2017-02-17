@@ -82,6 +82,11 @@ public class SGAgent extends Agent<Message.NoMsg, HashMap<Integer, Pair<Double, 
         env.put( this.getId(), new Pair<>(localPayoff, this.currState));
     }
 
+    @Override
+    public void start() {
+
+    }
+
     private static double calculatePayoff(SGState ref, SGState other) {
         if ( SGState.Defector == ref && SGState.Defector == other ) {
             return P;

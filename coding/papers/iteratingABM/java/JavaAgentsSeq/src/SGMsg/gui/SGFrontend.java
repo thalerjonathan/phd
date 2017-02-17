@@ -12,11 +12,14 @@ import java.util.List;
  */
 public class SGFrontend extends JFrame implements ISimulationObserver<SGAgent> {
     private SGRenderer renderer;
+    private int sleepMs;
 
-    public SGFrontend(int cols, int rows) {
+    public SGFrontend(int cols, int rows, int sleepMs) {
         super("Spatial Game Seq");
 
         this.renderer = new SGRenderer(cols, rows);
+
+        this.sleepMs = sleepMs;
 
         this.setDefaultCloseOperation( EXIT_ON_CLOSE );
         this.setContentPane( renderer );
@@ -29,7 +32,7 @@ public class SGFrontend extends JFrame implements ISimulationObserver<SGAgent> {
         this.renderer.render(as);
 
         try {
-            Thread.sleep( 30 );
+            Thread.sleep( this.sleepMs );
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

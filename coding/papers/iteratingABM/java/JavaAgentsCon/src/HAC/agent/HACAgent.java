@@ -63,6 +63,11 @@ public class HACAgent extends Agent<HACMsgType, Void> {
         this.sendMessage(MSG_REQUESTPOSITION, this.enemy);
     }
 
+    @Override
+    public void start() {
+
+    }
+
     private void updatePosition(Double delta) {
         // JAVA IS MORE CONVENIENT: because we have nullable aliases, we can check them for being null and no need to utilize a specific type like Maybe
         if ( null == this.friendPos || null == this.enemyPos )

@@ -45,6 +45,11 @@ public class SIRSAgent extends Agent<SIRSMsgType, Void> {
     }
 
     @Override
+    public void start() {
+
+    }
+
+    @Override
     public void receivedMessage(Agent<SIRSMsgType, Void> sender, Message<SIRSMsgType> msg, Map<Integer, Void> globalEnv) {
         if (msg.equals( MSG_CONTACT ) )
             this.contactWithInfected();

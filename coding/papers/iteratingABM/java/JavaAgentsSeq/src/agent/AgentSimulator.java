@@ -21,6 +21,8 @@ public class AgentSimulator<A extends Agent, E> {
         List<List<A>> allAgentSteps = new ArrayList<>();
         allAgentSteps.add( as );
 
+        this.startAgents(as, iterationIndices);
+
         for (int i = 0; i < stepCount; ++i) {
             as = this.internalIteration(as, env, iterationIndices, rng, dt);
             allAgentSteps.add( as );
@@ -36,11 +38,20 @@ public class AgentSimulator<A extends Agent, E> {
                                         ISimulationObserver<A> o) {
         List<Integer> iterationIndices = createIterationIndices(as.size());
 
+        this.startAgents(as, iterationIndices);
+
         while(o.simulationStep(as)) {
             as = this.internalIteration(as, env, iterationIndices, rng, dt);
         }
 
         return as;
+    }
+
+    private void startAgents(List<A> as, List<Integer> iterationIndices) {
+        for (Integer i : iterationIndices) {
+            A a = as.get( i );
+            a.start();
+        }
     }
 
     private List<A> internalIteration(List<A> as,

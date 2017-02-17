@@ -19,7 +19,7 @@ public class AgentSimulator<A extends Agent, E> {
                                         E env,
                                         double dt,
                                         ISimulationObserver<A> o) throws InterruptedException, CloneNotSupportedException, ExecutionException {
-        LinkedHashMap<Integer, A> om = createOrderedMap(as);
+        LinkedHashMap<Integer, A> om = startAgents(as);
 
         while(o.simulationStep(om)) {
             om = this.nextStepConcurrent(om, env, dt);
@@ -61,10 +61,11 @@ public class AgentSimulator<A extends Agent, E> {
         return om;
     }
 
-    private LinkedHashMap<Integer, A> createOrderedMap(List<A> as) {
+    private LinkedHashMap<Integer, A> startAgents(List<A> as) {
         LinkedHashMap<Integer, A> om = new LinkedHashMap<>();
 
         for (A a : as) {
+            a.start();
             om.put(a.getId(), a);
         }
 

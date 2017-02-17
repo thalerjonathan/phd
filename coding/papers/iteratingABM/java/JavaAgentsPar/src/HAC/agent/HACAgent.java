@@ -49,6 +49,11 @@ public class HACAgent extends Agent<HACMsgType, Void> implements Cloneable {
     }
 
     @Override
+    public void start() {
+
+    }
+
+    @Override
     public void receivedMessage(Agent<HACMsgType, Void> sender, Message<HACMsgType> msg, Map<Integer, Void> globalEnv) {
         if (msg.isOfType(HACMsgType.RequestPosition)) {
             this.handleRequestPosition(sender);

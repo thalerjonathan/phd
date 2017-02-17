@@ -104,6 +104,8 @@ public abstract class Agent<M extends Comparable<M>, E> implements Comparable<Ag
     // HASKELL IS BETTER HERE: cannot include the Dt in the Message-Type M in Java, thus need to split it up into separate functions
     public abstract void dt(Double time, Double delta, E env);
 
+    public abstract void start();
+
     @Override
     public int compareTo(Agent<M, E> o) {
         return o.id - this.id;

@@ -30,7 +30,7 @@ public class RunSG {
         int cols = 99;
         int sleep = 0;
         double dt = 1.0;
-        int steps = 2 * 217;
+        int steps = 217;
 
         SGFrontend fe = new SGFrontend( cols, rows, sleep );
 

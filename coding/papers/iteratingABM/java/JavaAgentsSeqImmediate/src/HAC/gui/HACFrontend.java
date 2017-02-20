@@ -19,7 +19,7 @@ public class HACFrontend extends JFrame implements ISimulationObserver<HACAgent>
     private int stepCounter;
 
     public HACFrontend(int agentSize) {
-        super("Heroes & Cowards Seq");
+        super("Heroes & Cowards Seq Immediate");
 
         this.renderer = new HACRenderer(agentSize);
 

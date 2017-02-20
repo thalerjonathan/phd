@@ -15,7 +15,7 @@ public class SIRSFrontend extends JFrame implements ISimulationObserver<SIRSAgen
     private SIRSChart chart;
 
     public SIRSFrontend(int cols, int rows) {
-        super("SIRS Seq");
+        super("SIRS Seq Immediate");
 
         this.renderer = new SIRSRenderer(cols, rows);
         this.chart = new SIRSChart();

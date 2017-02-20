@@ -15,7 +15,7 @@ public class SGFrontend extends JFrame implements ISimulationObserver<SGAgent> {
     private int sleepMs;
 
     public SGFrontend(int cols, int rows, int sleepMs) {
-        super("Spatial Game Seq");
+        super("Spatial Game Seq Immediate");
 
         this.renderer = new SGRenderer(cols, rows);
 

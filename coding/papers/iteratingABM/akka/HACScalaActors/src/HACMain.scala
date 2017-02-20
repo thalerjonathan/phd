@@ -13,7 +13,6 @@ object HACMain {
     val agentCount = 100000;
 
     val system = ActorSystem("HACActorSystem");
-    val visualizer = system.actorOf( HACVisualizer.props(agentCount), name = "HACVisualizer" );
 
     val agents = Array.ofDim[ActorRef]( agentCount );
 
@@ -22,7 +21,7 @@ object HACMain {
       val pos = new Tuple2[Double, Double](Math.random(), Math.random());
       val hero = Math.random() <= heroesDistribution;
 
-      agents(i) = system.actorOf( HACAgent.props( idx, pos, hero, visualizer ) );
+      agents(i) = system.actorOf( HACAgent.props( idx, pos, hero ) );
     }
 
     for( i <- 0 to agentCount - 1 ) {
@@ -41,6 +40,11 @@ object HACMain {
       val a = agents( i );
       a ! HACAgent.Start
     }
+
+    Thread.sleep(1000);
+
+    val visualizer = system.actorOf( HACVisualizer.props(agents), name = "HACVisualizer" );
+    visualizer ! HACVisualizer.Start
   }
 
   def drawRandomIgnoring(as : Array[ActorRef], is : Array[ActorRef]) : ActorRef = {

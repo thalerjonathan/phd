@@ -10,11 +10,13 @@ import java.awt.{Color, Graphics2D}
 
 import hac.actors.HACAgent
 
+class AgentInfo(val pos: (Double, Double), val hero : Boolean)
+
 class HACFrontend(agentCount : Int) extends MainFrame {
   title = "Heroes & Cowards"
-  preferredSize = new Dimension(700, 700)
+  preferredSize = new Dimension(1000, 1000)
 
-  val agents = new Array[HACAgent](agentCount);
+  val agents = new Array[AgentInfo](agentCount);
   val agentsCanvas = new AgentsCanvas( agents )
 
   contents = new BorderPanel {
@@ -22,19 +24,17 @@ class HACFrontend(agentCount : Int) extends MainFrame {
     add(agentsCanvas, BorderPanel.Position.Center)
   }
 
-  def agentUpdate(a: HACAgent) = {
-    val idx = a.getId();
-
-    agents( idx ) = a;
+  def agentUpdate(id : Int, pos: (Double, Double), hero : Boolean) = {
+    agents( id ) = new AgentInfo(pos, hero);
     agentsCanvas.repaint();
   }
 }
 
-class AgentsCanvas(val agents: Array[HACAgent]) extends Component {
+class AgentsCanvas(val agents: Array[AgentInfo]) extends Component {
   val BORDER_X = 10;
   val BORDER_Y = 10;
 
-  val AGENTSIZE = 2;
+  val AGENTSIZE = 3;
 
   override def paintComponent(g : Graphics2D) {
     val d = size
@@ -49,10 +49,11 @@ class AgentsCanvas(val agents: Array[HACAgent]) extends Component {
 
     for (a <- agents) {
       if (a != null) {
-        x = BORDER_X + a.getPosition()._1 * width
-        y = BORDER_Y + a.getPosition()._2 * height
 
-        if (a.isHero)
+        x = BORDER_X + a.pos._1 * width
+        y = BORDER_Y + a.pos._2 * height
+
+        if (a.hero)
           g.setColor(Color.GREEN)
         else
           g.setColor(Color.RED)

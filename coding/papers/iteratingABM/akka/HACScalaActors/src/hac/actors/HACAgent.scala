@@ -9,27 +9,26 @@ import akka.actor.Props
 import akka.actor.ActorRef
 import akka.actor.actorRef2Scala
 import akka.actor.ReceiveTimeout
-import hac.actors.HACAgent.{PositionReply, RequestPosition}
+import hac.actors.HACAgent.{PositionReply, RequestPosition, RequestAgentInfo}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
 object HACAgent {
   def props( id: Int,
              pos: (Double, Double),
-             hero: Boolean,
-             visualizer: ActorRef): Props = Props( new HACAgent(id, pos, hero, visualizer) )
+             hero: Boolean): Props = Props( new HACAgent(id, pos, hero) )
 
   case object Start
   case object RequestPosition
+  case object RequestAgentInfo
 
   case class PositionReply(pos: (Double, Double))
-  case class AgentChanged(a: HACAgent)
+  case class AgentInfo(id : Int, pos: (Double, Double), hero : Boolean, localTime : Int)
 }
 
 class HACAgent( id: Int,
                 initPos: (Double, Double),
-                hero: Boolean,
-                visualizer: ActorRef) extends Actor {
+                hero: Boolean) extends Actor {
 
   private var friend: ActorRef = null;
   private var enemy: ActorRef = null;
@@ -38,7 +37,7 @@ class HACAgent( id: Int,
   private var currentFriendPos: (Double, Double) = null;
   private var currentEnemyPos: (Double, Double) = null;
 
-  private var lastUpdate: Long = 0;
+  private var localTime = 0;
 
   private val SPEED = 1.0;
 
@@ -66,6 +65,7 @@ class HACAgent( id: Int,
     case ReceiveTimeout => handleRunStep();
     case PositionReply(pos: (Double, Double)) => handleReceivedPosition(sender(), pos);
     case RequestPosition => sender() ! HACAgent.PositionReply( this.pos );
+    case RequestAgentInfo => sender() ! new HACAgent.AgentInfo( this.id, this.pos, this.hero, this.localTime );
   }
 
   def handleFriendEnemy( fe: (ActorRef, ActorRef)): Unit = {
@@ -76,9 +76,6 @@ class HACAgent( id: Int,
   }
 
   def handleStart(): Unit = {
-    visualizer ! new HACAgent.AgentChanged(this);
-    this.lastUpdate = System.currentTimeMillis();
-
     context.become( running );
     context.setReceiveTimeout(10 milliseconds)
   }
@@ -91,7 +88,9 @@ class HACAgent( id: Int,
       return;
     }
 
-    val dt = (System.currentTimeMillis() - this.lastUpdate).toDouble / 1000.0;
+    val dt = 0.01;
+    this.localTime += 1;
+
     val stepWidth = SPEED.toDouble * dt.toDouble;
 
     val friendPos = this.currentFriendPos;
@@ -111,9 +110,6 @@ class HACAgent( id: Int,
     val newPosition = new (Double, Double)(pos._1 + step._1, pos._2 + step._2);
 
     this.pos = this.clipPosition( newPosition );
-    this.lastUpdate = System.currentTimeMillis();
-
-    visualizer ! new HACAgent.AgentChanged(this);
   }
 
   def normalize(dir : (Double, Double)) : (Double, Double) = {

@@ -9,7 +9,6 @@ import java.util.concurrent.ThreadLocalRandom;
 public abstract class Agent<M extends Comparable<M>, E> implements Comparable<Agent<M, E>> {
 
     private int id;
-    private List<MsgPair> msgBox;
     private List<Agent<M, E>> neighbours;
 
     private static int NEXT_ID = 0;
@@ -30,7 +29,6 @@ public abstract class Agent<M extends Comparable<M>, E> implements Comparable<Ag
 
     public Agent(int id) {
         this.id = id;
-        this.msgBox = new LinkedList<>();
     }
 
     public int getId() {
@@ -52,45 +50,34 @@ public abstract class Agent<M extends Comparable<M>, E> implements Comparable<Ag
         this.neighbours = ns;
     }
 
-    public void broadCastToNeighbours(Message<M> msg) {
+    public void broadCastToNeighbours(Message<M> msg, E env) {
         if ( null == this.neighbours )
             return;
 
         for (Agent<M, E> n : this.neighbours ) {
-            this.sendMessage(msg, n);
+            this.sendMessage(msg, n, env);
         }
     }
 
-    public void sendMessageToRandomNeighbour(Message<M> msg) {
+    public void sendMessageToRandomNeighbour(Message<M> msg, E env) {
         if ( null == this.neighbours )
             return;
 
         int randIdx = (int) (ThreadLocalRandom.current().nextDouble() * this.neighbours.size());
         Agent randNeigh = this.neighbours.get(randIdx);
 
-        this.sendMessage(msg, randNeigh);
+        this.sendMessage(msg, randNeigh, env);
     }
 
     public void step(Double time, Double delta, E env) {
-        // NOTE: need a copy of the message-box otherwise will have ConcurrentModificationException when sending message to self
-        List<MsgPair> msgBoxCpy = new LinkedList<>(this.msgBox);
-        this.msgBox.clear();
-
-        Iterator<MsgPair> iter = msgBoxCpy.iterator();
-        while (iter.hasNext()) {
-            MsgPair p = iter.next();
-
-            this.receivedMessage(p.sender, p.msg, env);
-        }
-
         this.dt(time, delta, env);
     }
 
-    public void sendMessage(Message<M> msg, Agent<M, E> receiver) {
-        receiver.msgBox.add(new MsgPair(this, msg));
+    public void sendMessage(Message<M> msg, Agent<M, E> receiver, E env) {
+        receiver.receivedMessage(this, msg, env);
     }
 
-    public abstract void receivedMessage(Agent<M, E> sender, Message<M> msg, E env);
+    abstract void receivedMessage(Agent<M, E> sender, Message<M> msg, E env);
 
     // HASKELL IS BETTER HERE: cannot include the Dt in the Message-Type M in Java, thus need to split it up into separate functions
     public abstract void dt(Double time, Double delta, E env);

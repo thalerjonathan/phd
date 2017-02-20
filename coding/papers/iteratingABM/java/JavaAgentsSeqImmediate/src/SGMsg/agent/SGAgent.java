@@ -121,7 +121,7 @@ public class SGAgent extends Agent<SGMsgType, Void> {
         Message<SGMsgType> myPayoff = new Message<>(SGMsgType.NeighbourPayoff);
         myPayoff.addValue( NEIGHBOURPAYOFF_VALUE_KEY, this.localPayoff );
         myPayoff.addValue( NEIGHBOURPAYOFF_STATE_KEY, this.currState );
-        this.broadCastToNeighbours(myPayoff);
+        this.broadCastToNeighbours(myPayoff, null);
     }
 
     private void broadcastLocalState() {
@@ -129,7 +129,7 @@ public class SGAgent extends Agent<SGMsgType, Void> {
 
         Message<SGMsgType> myState = new Message<>(SGMsgType.NeighbourState);
         myState.addValue( NEIGHBOURSTATE_KEY, this.currState );
-        this.broadCastToNeighbours(myState);
+        this.broadCastToNeighbours(myState, null);
     }
 
     private double calculatePayoff(SGState ref, SGState other) {

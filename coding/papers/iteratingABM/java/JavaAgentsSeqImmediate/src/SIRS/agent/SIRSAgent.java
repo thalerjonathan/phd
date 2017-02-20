@@ -58,7 +58,7 @@ public class SIRSAgent extends Agent<SIRSMsgType, Void> {
         if (SIRSState.Recovered == this.state)
             this.handleRecoveredAgent();
         else if ( SIRSState.Infected == this.state)
-            this.handleInfectedAgent();
+            this.handleInfectedAgent(env);
     }
 
     @Override
@@ -78,12 +78,12 @@ public class SIRSAgent extends Agent<SIRSMsgType, Void> {
         }
     }
 
-    private void handleInfectedAgent() {
+    private void handleInfectedAgent(Void env) {
         if ( this.durationInState >= SIRSAgent.DURATION_INFECTED ) {
             this.durationInState = 0;
             this.state = SIRSState.Recovered;
         } else {
-            this.sendMessageToRandomNeighbour( MSG_CONTACT );
+            this.sendMessageToRandomNeighbour( MSG_CONTACT, env );
         }
     }
 

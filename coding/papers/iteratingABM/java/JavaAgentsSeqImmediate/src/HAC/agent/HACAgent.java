@@ -48,7 +48,7 @@ public class HACAgent extends Agent<HACMsgType, Void> {
     @Override
     public void receivedMessage(Agent<HACMsgType, Void> sender, Message<HACMsgType> msg, Void env) {
         if (msg.isOfType(HACMsgType.RequestPosition)) {
-            this.handleRequestPosition(sender);
+            this.handleRequestPosition(sender, env);
         } else if (msg.isOfType( HACMsgType.PositionUpdate)) {
             this.handlePositionUpdate(sender, msg);
         }
@@ -59,8 +59,8 @@ public class HACAgent extends Agent<HACMsgType, Void> {
         this.updatePosition(delta);
 
         // JAVA IS MORE CONVENIENT: no need for annoying imperative-style fakings
-        this.sendMessage(MSG_REQUESTPOSITION, this.friend);
-        this.sendMessage(MSG_REQUESTPOSITION, this.enemy);
+        this.sendMessage(MSG_REQUESTPOSITION, this.friend, env);
+        this.sendMessage(MSG_REQUESTPOSITION, this.enemy, env);
     }
 
     @Override
@@ -99,10 +99,10 @@ public class HACAgent extends Agent<HACMsgType, Void> {
         }
     }
 
-    private void handleRequestPosition(Agent sender) {
+    private void handleRequestPosition(Agent sender, Void env) {
         Message<HACMsgType> posMsg = new Message<>(HACMsgType.PositionUpdate);
         posMsg.addValue(POSITIONUPDATE_POS_KEY, this.pos);
 
-        this.sendMessage(posMsg, sender);
+        this.sendMessage(posMsg, sender, env);
     }
 }

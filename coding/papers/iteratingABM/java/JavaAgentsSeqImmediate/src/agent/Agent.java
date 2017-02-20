@@ -13,16 +13,6 @@ public abstract class Agent<M extends Comparable<M>, E> implements Comparable<Ag
 
     private static int NEXT_ID = 0;
 
-    private class MsgPair {
-        public MsgPair(Agent<M, E> s, Message<M> m) {
-            this.sender = s;
-            this.msg = m;
-        }
-
-        public Agent<M, E> sender;
-        public Message<M> msg;
-    }
-
     public Agent() {
         this(NEXT_ID++);
     }
@@ -77,7 +67,7 @@ public abstract class Agent<M extends Comparable<M>, E> implements Comparable<Ag
         receiver.receivedMessage(this, msg, env);
     }
 
-    abstract void receivedMessage(Agent<M, E> sender, Message<M> msg, E env);
+    public abstract void receivedMessage(Agent<M, E> sender, Message<M> msg, E env);
 
     // HASKELL IS BETTER HERE: cannot include the Dt in the Message-Type M in Java, thus need to split it up into separate functions
     public abstract void dt(Double time, Double delta, E env);

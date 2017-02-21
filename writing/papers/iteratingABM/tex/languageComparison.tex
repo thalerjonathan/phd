@@ -1,6 +1,5 @@
 \section{Programming paradigms and ABS}
-In this section we give a brief overview of comparing the suitability of three fundamentally different languages to implement the different update-strategies. We wanted to cover a wide range of different types of languages and putting emphasis on each languages strengths without abusing language constructs to recreate features it might seem to lack. An example would be to rebuild OO constructs in pure functional languages which would be a abuse of the language, something we explicitly avoided although it resulted in a few limitations as noted below. We implemented both the \textit{Prisoners Dilemma} game on a 2D grid and the \textit{Heroes \& Cowards} game in all three languages with all four update-strategies. \footnote{Code available under\\ \url{https://github.com/thalerjonathan/phd/tree/master/coding/papers/iteratingABM/}}
-TODO: reference table:
+In this section we give a brief overview of comparing the suitability of three languages with fundamentally different paradigms to implement the different update-strategies. We wanted to cover a wide range of different types of languages and putting emphasis on each languages strengths without abusing language constructs to recreate features it might seem to lack. An example would be to rebuild OO constructs in pure functional languages which would be a abuse of the language, something we explicitly avoided although it resulted in a few limitations as noted below. We implemented both the \textit{Prisoners Dilemma} game on a 2D grid and the \textit{Heroes \& Cowards} game in all three languages with all four update-strategies. See table \ref{tab:language_comparisons} for an overview which language and paradigm is suited for implementing which strategy. \footnote{Code available under\\ \url{https://github.com/thalerjonathan/phd/tree/master/coding/papers/iteratingABM/}}
 
 \subsection{OO: Java}
 This language is included as the benchmark of object-oriented (OO) imperative languages as it is extremely popular in the ABS community and widely used in implementing their models and frameworks. It comes with a comprehensive programming library and powerful synchronization primitives built in at language-level.
@@ -71,15 +70,16 @@ The most natural strategy would be of course the \textit{actor strategy} and we 
 
 \begin{table*}[t]
 \centering
-\caption{Language Comparisons}
+
 \label{tab:language_comparisons}
 \begin{tabular}{l || l | l | l  }
 	 			& Java 	& Haskell 	& Scala	\\ \hline \hline
 
-Sequential		& ++	& --		& ? (+)		\\  
-Parallel		& +		& ++		& ?	(+)	\\  
-Concurrent		& +		& +			& ?	(+)	\\  
-Actor			& --	& +			& ++	\\  
+Sequential		& +				& --			& ? ($ \circ $)		\\  
+Parallel		& $ \circ $		& +				& ?	($ \circ $)		\\  
+Concurrent		& $ \circ $		& $ \circ $		& ?	($ \circ $)		\\  
+Actor			& --			& $ \circ $		& +			\\  
 
 \end{tabular}
+\caption{Suitability of the languages for implementing each update-strategy: (+) \textit{natural mapping of strategy to paradigm}, ($ \circ $) \textit{paradigm can capture strategy but takes more effort}, (--) \textit{paradigm not well suited to implement strategy}}
 \end{table*}

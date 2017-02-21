@@ -65,7 +65,7 @@ setDefector as pos cells
 stepWithRendering :: (Int, Int) -> SGSimHandle -> Double -> IO ()
 stepWithRendering dims hdl dt = simulateIO (Front.display winTitle winSize)
                                 GLO.white
-                                2
+                                1
                                 hdl
                                 (modelToPicture dims)
                                 (stepIteration dt)

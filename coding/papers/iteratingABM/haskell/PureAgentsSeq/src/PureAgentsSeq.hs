@@ -190,11 +190,14 @@ stepAllAgents am dt e = (am', e')
             where
                 a = fromJust (Map.lookup aid am)  -- NOTE: it is guaranteed that this key is in the map
                 (a', e') = stepAgent dt (a, e)
-                am' = deliverOutMsgs a' (insertAgents am (newAgents a'))
-                aFinal = a' { newAgents = [], outBox = [] }
+                am' = Map.insert aid a' am                                  -- NOTE: need to insert self, to get correct out after
+                am'' = deliverOutMsgs a' (insertAgents am' (newAgents a'))
+                a'' = fromJust (Map.lookup aid am'')                        -- NOTE: could have sent messages to itself, need to look self up to get up-to-date version
+                aFinal = a'' { newAgents = [], outBox = [] }
                 amFinal = case (killFlag aFinal) of
-                                    True -> Map.delete (agentId aFinal) am'
-                                    otherwise -> Map.insert (agentId aFinal) aFinal am'
+                                    True -> Map.delete aid am''
+                                    otherwise -> Map.insert aid aFinal am''
+
 
 insertAgents :: Map.Map AgentId (Agent m s e) -> [Agent m s e] -> Map.Map AgentId (Agent m s e)
 insertAgents am as = foldl (\accMap a -> Map.insert (agentId a) a accMap ) am as

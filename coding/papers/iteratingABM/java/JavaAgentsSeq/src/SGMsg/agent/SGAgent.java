@@ -63,9 +63,6 @@ public class SGAgent extends Agent<SGMsgType, Void> {
     public void receivedMessage(Agent<SGMsgType, Void> sender,
                                 Message<SGMsgType> msg,
                                 Void env) {
-        if ( sender == this )
-            return;
-
         if ( msg.isOfType(SGMsgType.NeighbourState)) {
             this.receivedStateMessage(msg);
 

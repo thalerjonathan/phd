@@ -212,8 +212,6 @@ asyncRunAgent dt e sVar gac a = asyncRunAgent' (0, dt) e sVar gac a
                 aid = agentId a
 
 
--- NOTE: every agent must be run inside an atomic-block to 'commit' its actions. We don't want to run the agent in the IO but pull this out
--- NOTE: here we see that due to atomically ALL will have to run in IO! => use of ParIO
 transactAgent :: (Double, Double) -> e -> Agent m s e -> IO (Agent m s e, Bool)
 transactAgent tdt e a = atomically $ (stepAgent tdt e a)
 

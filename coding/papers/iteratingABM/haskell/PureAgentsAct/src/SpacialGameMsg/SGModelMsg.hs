@@ -2,6 +2,7 @@ module SpacialGameMsg.SGModelMsg where
 
 import System.Random
 import Control.Monad.STM
+import Debug.Trace
 
 import qualified PureAgentsAct as PA
 import qualified Data.Map as Map
@@ -17,7 +18,8 @@ data SGAgentState = SIRSAgentState {
 
     sgBestPayoff :: (SGState, Double),
 
-    sgNeighbourFlag :: Int
+    sgNeighbourPayoffCount :: Int,
+    sgNeighbourStateCount :: Int
 } deriving (Show)
 
 type SGEnvironment = ()
@@ -38,9 +40,15 @@ rParam :: Double
 rParam = 1.0
 
 sgTransformer :: SGTransformer
-sgTransformer (a, _) PA.Start = broadCastLocalState a
+sgTransformer (a, _) PA.Start = sgStart a
 sgTransformer (a, e) (PA.Dt dt) = return a
 sgTransformer (a, e) (PA.Message (_,m)) = sgMsg a m
+
+sgStart :: SGAgent -> STM SGAgent
+sgStart a = (broadCastLocalState a'')
+    where
+        a' = resetNeighbourPayoffCount a
+        a'' = resetNeighbourStateCount a'
 
 sgMsg :: SGAgent -> SGMsg -> STM SGAgent
 sgMsg a (NeighbourState s) = sgStateMsg a s
@@ -48,12 +56,12 @@ sgMsg a (NeighbourPayoff p) = sgPayoffMsg a p
 
 sgStateMsg :: SGAgent -> SGState -> STM SGAgent
 sgStateMsg a s = do
-                    if ( allNeighboursTicked a' ) then
-                        broadCastLocalPayoff a'
+                    if ( allNeighboursStateCountTicked a' ) then
+                        broadCastLocalPayoff $ resetNeighbourStateCount a'
                         else
                             return a'
     where
-        a' = tickNeighbourFlag $ playGame a s
+        a' = tickNeighbourStateCount $ playGame a s
 
         playGame :: SGAgent -> SGState -> SGAgent
         playGame a s  = a'
@@ -66,19 +74,18 @@ sgStateMsg a s = do
 broadCastLocalPayoff :: SGAgent -> STM SGAgent
 broadCastLocalPayoff a = do
                             PA.broadcastMsgToNeighbours a (NeighbourPayoff (ls, lp))
-                            return $ resetNeighbourFlag a
+                            return a
     where
         ls = sgCurrState (PA.state a)
         lp = sgLocalPayoff (PA.state a)
 
 sgPayoffMsg :: SGAgent -> (SGState, Double) -> STM SGAgent
-sgPayoffMsg a p = if ( allNeighboursTicked a'' ) then
-                      broadCastLocalState $ switchToBestPayoff a''
+sgPayoffMsg a p = if ( allNeighboursPayoffCountTicked a' ) then
+                      broadCastLocalState $ resetNeighbourPayoffCount $ switchToBestPayoff a'
                       else
-                          return a''
+                          return a'
     where
-        a' = comparePayoff a p
-        a'' = tickNeighbourFlag a'
+        a' = tickNeighbourPayoffCount $ comparePayoff a p
 
         comparePayoff :: SGAgent -> (SGState, Double) -> SGAgent
         comparePayoff a p@(_, v)
@@ -99,7 +106,7 @@ switchToBestPayoff a = PA.updateState a (\s -> s { sgCurrState = bestState,
 broadCastLocalState :: SGAgent -> STM SGAgent
 broadCastLocalState a = do
                             PA.broadcastMsgToNeighbours a (NeighbourState ls)
-                            return $ resetNeighbourFlag a
+                            return a
     where
         ls = sgCurrState (PA.state a)
 
@@ -116,21 +123,35 @@ payoff Defector Cooperator = bParam
 payoff Cooperator Cooperator = rParam
 
 
-allNeighboursTicked :: SGAgent -> Bool
-allNeighboursTicked a = nf == 0
+allNeighboursPayoffCountTicked :: SGAgent -> Bool
+allNeighboursPayoffCountTicked a = nf == 0
     where
-        nf = (sgNeighbourFlag (PA.state a))
+        nf = (sgNeighbourPayoffCount (PA.state a))
 
-tickNeighbourFlag :: SGAgent -> SGAgent
-tickNeighbourFlag a = PA.updateState a (\s -> s { sgNeighbourFlag = nf - 1 })
+allNeighboursStateCountTicked :: SGAgent -> Bool
+allNeighboursStateCountTicked a = nf == 0
     where
-        nf = (sgNeighbourFlag (PA.state a))
+        nf = (sgNeighbourStateCount (PA.state a))
 
-resetNeighbourFlag :: SGAgent -> SGAgent
-resetNeighbourFlag a = PA.updateState a (\s -> s { sgNeighbourFlag = neighbourCount })
+tickNeighbourPayoffCount :: SGAgent -> SGAgent
+tickNeighbourPayoffCount a = PA.updateState a (\s -> s { sgNeighbourPayoffCount = nf - 1 })
+    where
+        nf = (sgNeighbourPayoffCount (PA.state a))
+
+tickNeighbourStateCount :: SGAgent -> SGAgent
+tickNeighbourStateCount a = PA.updateState a (\s -> s { sgNeighbourStateCount = nf - 1 })
+    where
+        nf = (sgNeighbourStateCount (PA.state a))
+
+resetNeighbourPayoffCount :: SGAgent -> SGAgent
+resetNeighbourPayoffCount a = PA.updateState a (\s -> s { sgNeighbourPayoffCount = neighbourCount })
     where
         neighbourCount = Map.size (PA.neighbours a)
 
+resetNeighbourStateCount :: SGAgent -> SGAgent
+resetNeighbourStateCount a = PA.updateState a (\s -> s { sgNeighbourStateCount = neighbourCount })
+    where
+        neighbourCount = Map.size (PA.neighbours a)
 
 
 createRandomSGAgents :: StdGen -> (Int, Int) -> Double -> STM ([SGAgent], StdGen)
@@ -155,7 +176,8 @@ randomAgentState g p = (SIRSAgentState{ sgCurrState = s,
                                                                sgPrevState = s,
                                                                sgLocalPayoff = 0.0,
                                                                sgBestPayoff = (s, 0.0),
-                                                               sgNeighbourFlag = 0}, g')
+                                                               sgNeighbourPayoffCount = 0,
+                                                               sgNeighbourStateCount = 0}, g')
     where
         (isDefector, g') = randomThresh g p
         (g'', _) = split g'

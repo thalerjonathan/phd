@@ -20,12 +20,12 @@ runSGMsgWithRendering :: IO ()
 runSGMsgWithRendering = do
                             --hSetBuffering stdin NoBuffering
                             let dt = 1.0
-                            let dims = (99, 99)
+                            let dims = (49, 49)
                             let rngSeed = 42
                             let defectorsRatio = 0.0
                             let g = mkStdGen rngSeed
                             (as, g') <- atomically $ createRandomSGAgents g dims defectorsRatio
-                            let asWithDefector = setDefector as (49, 49) dims
+                            let asWithDefector = setDefector as (24, 24) dims
                             hdl <- PA.startSimulation asWithDefector dt ()
                             stepWithRendering dims hdl dt
 

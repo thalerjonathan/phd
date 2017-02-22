@@ -18,7 +18,7 @@ public class SGRenderer extends JPanel {
     private final static int BORDER_Y = 10;
 
     private final static Color BLUE = new Color(0.0f,0.0f, 0.7f);
-    private final static Color GREEN = new Color(0.0f,0.4f, 0.0f);
+    private final static Color GREEN = new Color(0.0f,0.55f, 0.0f);
     private final static Color YELLOW = new Color(1.0f,0.7f, 0.0f);
     private final static Color RED = new Color(0.7f,0.0f, 0.0f);
 

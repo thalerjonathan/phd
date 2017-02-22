@@ -11,8 +11,8 @@ In this section we present two case-studies in simulating the \textit{Prisoners 
 		
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
-			\includegraphics[width=.7\textwidth, angle=0]{./fig/seq_99x99_217steps_MSG_java.png}
-			\caption{sequential}
+			\includegraphics[width=.7\textwidth, angle=0]{./fig/seq_QUEUED_SG_436steps_java.png}
+			\caption{sequential queued}
 			\label{fig:pd_seq}
 		\end{subfigure}
     	&
@@ -28,7 +28,7 @@ In this section we present two case-studies in simulating the \textit{Prisoners 
 		
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
-			\includegraphics[width=.7\textwidth, angle=0]{./fig/par_99x99_436steps_MSG_haskell.png}
+			\includegraphics[width=.7\textwidth, angle=0]{./fig/par_SG_436steps_java.png}
 			\caption{parallel}
 			\label{fig:pd_par}
 		\end{subfigure}
@@ -45,7 +45,7 @@ In this section we present two case-studies in simulating the \textit{Prisoners 
 		
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
-			\includegraphics[width=.7\textwidth, angle=0]{./fig/con_99x99_436steps_MSG_haskell.png}
+			\includegraphics[width=.7\textwidth, angle=0]{./fig/con_SG_436steps_java.png}
 			\caption{concurrent}
 			\label{fig:pd_con}
 		\end{subfigure}
@@ -62,7 +62,7 @@ In this section we present two case-studies in simulating the \textit{Prisoners 
 		
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
-			\includegraphics[width=.7\textwidth, angle=0]{./fig/act_99x99_436steps_MSG_haskell.png}
+			\includegraphics[width=.7\textwidth, angle=0]{./fig/act_SG_436steps_java.png}
 			\caption{actor}
 			\label{fig:pd_act}
 		\end{subfigure}
@@ -86,7 +86,7 @@ In this section we present two case-studies in simulating the \textit{Prisoners 
 %	
 %    \begin{subfigure}[b]{0.4\textwidth}
 %			\centering
-%       	\includegraphics[width=.7\textwidth, angle=0]{./fig/seq_99x99_217steps_MSG_java.png}
+%       	\includegraphics[width=.7\textwidth, angle=0]{./fig/seq_QUEUED_SG_436steps_java.png}
 %        \caption{\textit{sequential} Prisoners Dilemma}
 %        \label{fig:pd_seq}
 %    \end{subfigure}
@@ -100,7 +100,7 @@ In this section we present two case-studies in simulating the \textit{Prisoners 
 %
 %    \begin{subfigure}[b]{0.4\textwidth}
 %		\centering
-%       	\includegraphics[width=.7\textwidth, angle=0]{./fig/par_99x99_436steps_MSG_haskell.png}
+%       	\includegraphics[width=.7\textwidth, angle=0]{./fig/par_SG_436steps_java.png}
 %        \caption{\textit{parallel} Prisoners Dilemma}
 %        \label{fig:pd_par}
 %    \end{subfigure}
@@ -114,7 +114,7 @@ In this section we present two case-studies in simulating the \textit{Prisoners 
 %
 %    \begin{subfigure}[b]{0.4\textwidth}
 %		\centering
-%       	\includegraphics[width=.7\textwidth, angle=0]{./fig/con_99x99_436steps_MSG_haskell.png}
+%       	\includegraphics[width=.7\textwidth, angle=0]{./fig/con_SG_436steps_java.png}
 %        \caption{\textit{concurrent} Prisoners Dilemma}
 %        \label{fig:pd_con}
 %    \end{subfigure}
@@ -128,7 +128,7 @@ In this section we present two case-studies in simulating the \textit{Prisoners 
 %
 %    \begin{subfigure}[b]{0.4\textwidth}
 %		\centering
-%       	\includegraphics[width=.7\textwidth, angle=0]{./fig/act_99x99_436steps_MSG_haskell.png}
+%       	\includegraphics[width=.7\textwidth, angle=0]{./fig/act_SG_436steps_java.png}
 %        \caption{\textit{actor} Prisoners Dilemma}
 %        \label{fig:pd_act}
 %    \end{subfigure}  
@@ -145,17 +145,25 @@ In this section we present two case-studies in simulating the \textit{Prisoners 
 
 \subsection{Prisoners Dilemma}
 \subsubsection{The agent-based model}
-The agent-based model of this game works as follows: an agent sends its state to all its neighbours which allows to incrementally calculate the local payoff. If all neighbours have sent their state then the agent will send its local payoff to all neighbours which allows to compare all payoffs in its neighbourhood and calculate the best. When all neighbours have sent their local payoff the agent will adopt the role of the highest payoff.
+Our agent-based model of this game works as follows: at the start of the simulation each agent sends its state to all its neighbours which allows to incrementally calculate the local payoff. If all neighbours have sent their state then the agent will send its local payoff to all neighbours which allows to compare all payoffs in its neighbourhood and calculate the best. When all neighbours have sent their local payoff the agent will adopt the role of the highest payoff and sends its new state to all its neighbours, creating a circle. 
+
+Care must be taken how different update-strategies can be compare because when implementing a model in an update-strategy it is necessary to both map the model to the strategy and try to stick to the same specification - if the implementation of the model differs fundamentally across the update-strategies it is not possible to compare the solutions. For example the the synchronous and asynchronous implementations of \cite{huberman_evolutionary_1993} did \textit{not} implement their asynchronous updates in the two-step way as the synchronous implementation did, so it is obvious that their asynchronous approach failed and their solutions are difficult to compare. So we put great emphasis and care keeping all four implementations of the model the same just with a different update-strategy running behind the scenes which allows a real comparison.
 
 \subsubsection{Results}
-The results as seen in the left column of figure \ref{fig:results} were created with the same configuration as reported in the original paper: a 99x99 grid with all cooperators except one defector at the center, running for 217 steps. When comparing the pictures with the one from the original paper seen in figure \ref{fig:sync_patterns} the only update-strategy which is able to reproduce the matching result is the \textit{parallel strategy} - all the others clearly fail to reproduce the pattern. From this we can deduce that only the \textit{parallel strategy} is suitable to simulate this model because only that strategy is the one which renders the results of the original paper, meaning it is the 'correct' strategy for this model. The reason why the other strategies fail to reproduce the pattern is due to the non-parallel and unsynchronized way that information spreads through the grid. In the \textit{sequential strategy} the agents further ahead in the queue play the game earlier and influence the neighbourhood so agents which play the game later find already messages from earlier agents in their queue thus acting differently based upon these informations. In the \textit{concurrent} and \textit{actor strategy} the agents run in parallel but changes are visible immediately and concurrently, leading to the same non-structural patterns as in the \textit{sequential} one. This is not the case in the \textit{parallel strategy}  where, in every step, all agents play the game at the same time based on the frozen state of the previous step, leading to a synchronized update as required by the model. Note that the \textit{concurrent} and \textit{actor strategy} produce different results on every run due to the inherent non-deterministic event-ordering introduce by concurrency. As there are no global time-steps in the \textit{actor strategy}, to calculate 217 steps we just waited until the first agent arrived at a local time of 217 and then rendered the result.
-Note that when having queued messages instead of immediate messaging in the \textit{sequential strategy} we will end up with the same results as in the \textit{parallel} version. TODO: WHY? TODO: the real difference between SEQ and PAR is that SEQ with immediate messaging changes agents while iterating over the collection, and although the agents don't change unless all their neighbours have answered, this does not guarantee a synchronized update of all agents but only the one because every agent has a different neighbourhood: neighbourhood is reflexive but not transitive: if agent A is in agents B neighbour and agent c is agent bs neighbour this does not imply that agent a is agent c neighbour as well. as agent b receives the final payoff message from agent A and changes its state, 
+The results as seen in the left column of figure \ref{fig:results} were created with the same configuration as reported in the original paper. When comparing the pictures with the one from the original paper seen in figure \ref{fig:sync_patterns} the only update-strategy which is able to reproduce the matching result is the \textit{parallel strategy} - all the others clearly fail to reproduce the pattern. From this we can deduce that only the \textit{parallel strategy} is suitable to simulate this model because only that strategy is the one which renders the results of the original paper, meaning it is the 'correct' strategy for this model. 
 
-Also note that in the \textit{parallel strategy} an agent cannot reply to a message within the same step which requires twice as many steps to achieve the same results as in the original paper as seen in figure \ref{fig:sync_patterns}.
+To reproduce the pattern of figure \ref{fig:sync_patterns} the simulation needs to be split into two global steps which must happen after each other: first calculating the sum of all payoffs for every agent and then selecting the role of the highest payoff within the neighbourhood. This two-step approach results in the need for twice as many steps to arrive at the matching pattern when using \textit{queued} messaging as is the case in the \textit{parallel, concurrent} and \textit{actor strategy}.
+
+For the \textit{sequential strategy} one must further differentiate between \textit{immediate} and \textit{queued} messaging. The \textit{immediate} version is able to arrive at the pattern after 217 steps with a slightly different model-implementation: because immediate messaging transfers the thread of control to the receiving agent that agent can reply within this same step. This implies that we can calculate all within one single step by a slight change in the model: an agent sends its current state only in every time-step update to all its neighbours.  
+
+The reason why the other strategies fail to reproduce the pattern is due to the non-parallel and unsynchronized way that information spreads through the grid. In the \textit{sequential strategy} the agents further ahead in the queue play the game earlier and influence the neighbourhood so agents which play the game later find already messages from earlier agents in their queue thus acting differently based upon these informations. In the \textit{concurrent} and \textit{actor strategy} the agents run in parallel but changes are visible immediately and concurrently, leading to the same non-structural patterns as in the \textit{sequential} one. Although agents don't change unless all their neighbours have answered, this does not guarantee a synchronized update of all agents because every agent has a different neighbourhood which is reflexive but not transitive. If agent \textit{a} is agents \textit{b} neighbour and agent \textit{c} is agent \textit{b} neighbour this does not imply that agent \textit{c} is agent \textit{a} neighbour as well. This allows the spreading of changes throughout the neighbourhood, resulting in a breaking down of the pattern.
+
+This is not the case in the \textit{parallel strategy}  where all agents play the game at the same time based on the frozen state of the previous step, leading to a synchronized update as required by the model. Note that the \textit{concurrent} and \textit{actor strategy} produce different results on every run due to the inherent non-deterministic event-ordering introduce by concurrency. As there are no global time-steps in the \textit{actor strategy}, to calculate the required number of steps we just waited until the first agent arrived at a local time of this steps and then rendered the result.
+
 
 \subsection{Heroes \& Cowards}
 \subsubsection{The agent-based model}
-The agent-based model of this game works as follows: in each time-step an agent asks its friend and enemy for their positions which will answer with a corresponding message containing their current positions. The agent will then have its own local information about the position of its friend and enemy and will calculate its step based on this local information.
+Our agent-based model of this game works as follows: in each time-step an agent asks its friend and enemy for their positions which will answer with a corresponding message containing their current positions. The agent will have its own local information about the position of its friend and enemy and will calculate its move in every step based on this local information.
 
 \subsubsection{Results}
-The results as seen in the right column of figure \ref{fig:results} were created with 100.000 agents where 25\% of them are heroes running for 500 steps. Although the individual agent-positions of runs with the same configuration differ between update-strategies the cross-patterns are forming in all four update-strategies. For the patterns to emerge it is important to have significant more cowards than heroes and to have agents in the tens of thousands - we went for 100.000 because then the patterns are really prominent. We can conclude that the \textit{Heroes \& Cowards} model seems to be robust to the selection of its update-strategy and that its emergent property - the formation of the cross - is stable under differing strategies.
+The results as seen in the right column of figure \ref{fig:results} were created with 100.000 agents where 25\% of them are heroes running for 500 steps. Although the individual agent-positions of runs with the same configuration differ between update-strategies the cross-patterns are forming in all four update-strategies. For the patterns to emerge it is important to have significant more cowards than heroes and to have agents in the tens of thousands - we went for 100.000 because then the patterns are really prominent. The patterns form because the heroes try to stay halfway between their friend and enemy: with this high number of cowards it is very likely that heroes end up with two cowards - the cowards will push towards the border as they try to escape leaving the hero in between. We can conclude that the \textit{Heroes \& Cowards} model seems to be robust to the selection of its update-strategy and that its emergent property - the formation of the cross - is stable under differing strategies.

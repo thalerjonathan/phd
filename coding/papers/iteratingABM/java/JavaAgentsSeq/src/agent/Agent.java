@@ -71,7 +71,21 @@ public abstract class Agent<M extends Comparable<M>, E> implements Comparable<Ag
         this.sendMessage(msg, randNeigh);
     }
 
-    public void step(Double time, Double delta, E env) {
+    private void consumeMessagesRecursive(E env) {
+        MsgPair p;
+
+        if ( this.msgBox.size() > 0 ) {
+            p = this.msgBox.remove(0);
+        } else {
+            return;
+        }
+
+        this.receivedMessage(p.sender, p.msg, env);
+
+        this.consumeMessagesRecursive(env);
+    }
+
+    private void consumeMessagesIterative(E env) {
         // NOTE: need a copy of the message-box otherwise will have ConcurrentModificationException when sending message to self
         List<MsgPair> msgBoxCpy = new LinkedList<>(this.msgBox);
         this.msgBox.clear();
@@ -82,6 +96,10 @@ public abstract class Agent<M extends Comparable<M>, E> implements Comparable<Ag
 
             this.receivedMessage(p.sender, p.msg, env);
         }
+    }
+
+    public void step(Double time, Double delta, E env) {
+        this.consumeMessagesRecursive(env);
 
         this.dt(time, delta, env);
     }

@@ -33,7 +33,8 @@ public class SGAgent extends Agent<SGMsgType, Void> {
     private double bestPayoffValue;
     private SGState bestPayoffState;
 
-    private int neighbourFlags;
+    private int neighbourPayoffCount;
+    private int neighbourStateCount;
 
     public SGAgent(SGState state, Cell c) {
         this.currState = state;
@@ -72,12 +73,14 @@ public class SGAgent extends Agent<SGMsgType, Void> {
     }
 
     @Override
-    public void dt(Double time, Double delta, Void env) {
-        this.broadcastLocalState(env);
+    public void start() {
+        this.neighbourPayoffCount = this.getNeighbours().size();
+        this.neighbourStateCount = this.getNeighbours().size();
     }
 
     @Override
-    public void start() {
+    public void dt(Double time, Double delta, Void env) {
+        this.broadcastLocalState( env );
     }
 
     private void receivedPayoffMessage(Message<SGMsgType> msg) {
@@ -89,13 +92,15 @@ public class SGAgent extends Agent<SGMsgType, Void> {
             this.bestPayoffState = payoffState;
         }
 
-        this.neighbourFlags--;
+        this.neighbourPayoffCount--;
 
-        if (0 == this.neighbourFlags) {
+        if (0 == this.neighbourPayoffCount) {
             this.prevState = this.currState;
             this.currState = this.bestPayoffState;
             this.localPayoff = 0.0;
             this.bestPayoffValue = 0.0;
+
+            this.neighbourPayoffCount = this.getNeighbours().size();
         }
     }
 
@@ -104,15 +109,15 @@ public class SGAgent extends Agent<SGMsgType, Void> {
         double po = calculatePayoff( this.currState, neighbourState );
         this.localPayoff += po;
 
-        this.neighbourFlags--;
+        this.neighbourStateCount--;
 
-        if (0 == this.neighbourFlags)
+        if (0 == this.neighbourStateCount) {
+            this.neighbourStateCount = this.getNeighbours().size();
             this.broadcastLocalPayoff(env);
+        }
     }
 
     private void broadcastLocalPayoff(Void env) {
-        this.neighbourFlags = this.getNeighbours().size();
-
         Message<SGMsgType> myPayoff = new Message<>(SGMsgType.NeighbourPayoff);
         myPayoff.addValue( NEIGHBOURPAYOFF_VALUE_KEY, this.localPayoff );
         myPayoff.addValue( NEIGHBOURPAYOFF_STATE_KEY, this.currState );
@@ -120,8 +125,6 @@ public class SGAgent extends Agent<SGMsgType, Void> {
     }
 
     private void broadcastLocalState(Void env) {
-        this.neighbourFlags = this.getNeighbours().size();
-
         Message<SGMsgType> myState = new Message<>(SGMsgType.NeighbourState);
         myState.addValue( NEIGHBOURSTATE_KEY, this.currState );
         this.broadCastToNeighbours(myState, env);

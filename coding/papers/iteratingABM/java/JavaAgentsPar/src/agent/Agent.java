@@ -59,6 +59,12 @@ public abstract class Agent<M extends Comparable<M>, E> implements Comparable<Ag
     }
 
     public void step(Double time, Double delta, Map<Integer, E> globalEnv) {
+        this.consumeMessagesRecursive(globalEnv);
+
+        this.dt(time, delta, globalEnv);
+    }
+
+    private void consumeMessagesIterative(Map<Integer, E> globalEnv) {
         Iterator<MsgPair> iter = this.inBox.iterator();
         while (iter.hasNext()) {
             MsgPair p = iter.next();
@@ -67,8 +73,20 @@ public abstract class Agent<M extends Comparable<M>, E> implements Comparable<Ag
         }
 
         this.inBox.clear();
+    }
 
-        this.dt(time, delta, globalEnv);
+    private void consumeMessagesRecursive(Map<Integer, E> globalEnv) {
+        MsgPair p;
+
+        if ( this.inBox.size() > 0 ) {
+            p = this.inBox.remove(0);
+        } else {
+            return;
+        }
+
+        this.receivedMessage(p.agent, p.msg, globalEnv);
+
+        this.consumeMessagesRecursive(globalEnv);
     }
 
     public void broadCastToNeighbours(Message<M> msg) {

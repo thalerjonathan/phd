@@ -40,7 +40,7 @@ public class RunSG {
 
         simulator.simulateWithObserver(hacAgents, null,
                 dt,
-                rng,
+                null,
                 new ISimulationObserver() {
                     private int stepCounter = 0;
 

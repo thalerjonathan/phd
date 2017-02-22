@@ -28,19 +28,23 @@ public class RunSG {
     public void run() {
         int rows = 99;
         int cols = 99;
+        //int rows = 1;
+        //int cols = 3;
+
         int sleep = 0;
         double dt = 1.0;
         int steps = 217;
 
         SGFrontend fe = new SGFrontend( cols, rows, sleep );
 
-        List<SGAgent> hacAgents = this.createCoopsWithOneDefectorAgents(cols, rows);
+        List<SGAgent> sgAgents = this.createCoopsWithOneDefectorAgents(cols, rows);
+        //List<SGAgent> sgAgents = this.createThreeAgents();
 
         AgentSimulator simulator = new AgentSimulator();
 
-        simulator.simulateWithObserver(hacAgents, null,
+        simulator.simulateWithObserver(sgAgents, null,
                 dt,
-                rng,
+                null,
                 new ISimulationObserver() {
                     private int stepCounter = 0;
 
@@ -51,6 +55,30 @@ public class RunSG {
                     }
                 });
 
+    }
+
+    private List<SGAgent> createThreeAgents() {
+        List<SGAgent> sgAgents = new ArrayList<>();
+
+        SGAgent a = new SGAgent(SGAgent.SGState.Cooperator, new Cell(0, 0));
+        SGAgent b = new SGAgent(SGAgent.SGState.Defector, new Cell(1, 0));
+        SGAgent c = new SGAgent(SGAgent.SGState.Cooperator, new Cell(2, 0));
+
+        a.addNeighbour(a);
+        a.addNeighbour(b);
+
+        b.addNeighbour(a);
+        b.addNeighbour(b);
+        b.addNeighbour(c);
+
+        c.addNeighbour(b);
+        c.addNeighbour(c);
+
+        sgAgents.add(a);
+        sgAgents.add(b);
+        sgAgents.add(c);
+
+        return sgAgents;
     }
 
     private List<SGAgent> createCoopsWithOneDefectorAgents(int cols, int rows) {

@@ -62,20 +62,18 @@
 
 % If you wish to include an abstract, uncomment the lines below
 \begin{abstract}
-When developing a model for an Agent-Based Simulation (ABS) it is very important to select the update-strategy which reflects the semantics of the model because simulation results can vary vastly across different update-strategies. This awareness, we claim, is still lacking in the field of ABS. In this paper we derive general properties of ABS and use them to classify all update-strategies possible in ABS. This will allow implementers and researchers in this field to use a general terminology, removing ambiguities when discussing ABS and their models. We prove that our classification works by providing case studies in implementing two different kind of games in three very different programming languages Java, Haskell and Scala and compare their suitability to implement the strategies. The major finding is that depending on the kind of game one can expect very different results when selecting different update-strategies and that the language for implementing the ABS should be considered as well, reflecting its suitability to implement the update-strategy.
+When developing a model for an Agent-Based Simulation (ABS) it is very important to select the update-strategy which reflects the semantics of the model because simulation results can vary vastly across different update-strategies. This awareness, we claim, is still lacking in the field of ABS. In this paper our contribution is to derive general properties of ABS and use them to classify all update-strategies possible in ABS. This will allow implementers and researchers in this field to use a general terminology, removing ambiguities when discussing ABS and their models. We will give results of simulating a discrete and a continuous game using our update-strategies and show that in the case of the discrete game only one specific strategy seems to be able to produce its emergent patterns whereas the pattern of the continuous game seems to be robust under varying update-strategies.
 %TODO: read 2 or 3 papers of target conference to get a feeling on the content/style. "how do people communicate?"
 \end{abstract}
 
 \subsection*{Keywords}
-Agent-Based Simulation, Parallelism, Concurrency, Haskell, Actors, Prisoners Dilemma, Heroes and Cowards
+Agent-Based Simulation, Parallelism, Concurrency, Actors, Emergence, Prisoners Dilemma, Heroes and Cowards
 
 \input{./tex/introduction.tex}
 
 \input{./tex/background.tex}
 
 \input{./tex/newTerminology.tex}
-
-\input{./tex/languageComparison.tex}
 
 \input{./tex/caseStudies.tex}
 

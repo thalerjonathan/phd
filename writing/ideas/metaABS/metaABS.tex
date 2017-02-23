@@ -1,0 +1,57 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% University/School Laboratory Report
+% LaTeX Template
+% Version 3.1 (25/3/14)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Linux and Unix Users Group at Virginia Tech Wiki 
+% (https://vtluug.org/wiki/Example_LaTeX_chem_lab_report)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} % Required for the inclusion of images
+\usepackage{natbib} % Required to change bibliography style to APA
+\usepackage{amsmath} % Required for some math elements 
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+%\usepackage{times} % Uncomment to use the Times New Roman font
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\title{Meta Agent-Based Simulation \\ A new approach to free will in computation} % Title
+
+\author{Jonathan \textsc{Thaler}} % Author name
+
+\date{\today} % Date for the report
+
+\begin{document}
+
+\maketitle % Insert the title, author and date
+
+% If you wish to include an abstract, uncomment the lines below
+\begin{abstract}
+Meta Agent-Based Simulation (MetaABS) is an attempt of modelling free will on a computational basis. We focus on free will which we define as having the ability to anticipate results from one actions thus creating a feedback on the actions. Here we follow the interpretation that anticipation means 'to simulate' in the context of ABS. We follow the concept of irreducibility of computation which, due to undecidability - requires to run (=simulate) a program to actually know its output. The idea is in each step of the simulation let agents simulate the same simulation they are situated in from their point of view for a given number of steps before they take their next step. Thus the simulation is defined in terms of recursion, a novelty and something we will describe in depth in this paper. We claim that functional programming is especially well suited to implement MetaABS due to its lack of implicit side-effects, natural parallelism and declarative way of describing WHAT systems are instead of HOW they compute. Obviously this new approach has a problem: an agent would need to have complete information about the whole simulation, an assumption which is completely unrealistic. We introduce the term of 'reduced-recursive' which assumes that the next recursive level is a reduced version of the original, very local to the agent, thus solving the problem of complete information.
+We don't know yet in which field to apply this research, but we could follow economics, social sciences and artificial life.
+\end{abstract}
+
+
+\bibliographystyle{apalike}
+\bibliography{../../references/phdReferences.bib}
+
+\end{document}

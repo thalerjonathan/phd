@@ -5,129 +5,137 @@ package sg.actors
   */
 
 import akka.actor.{Actor, ActorRef, Props}
+import sg.actors.SGAgent.{PayoffChanged, RequestAgentInfo, RoleChanged, SGRole}
 
-import scala.concurrent.duration._
 import scala.language.postfixOps
 
 object SGAgent {
-  def props( id: Int,
-             pos: (Double, Double),
-             hero: Boolean): Props = Props( new SGAgent(id, pos, hero) )
+  object SGRole extends Enumeration {
+    val Cooperator, Defector = Value;
+  }
+
+  def props( role: SGAgent.SGRole.Value,
+             pos: (Int, Int)): Props = Props( new SGAgent(role, pos) )
 
   case object Start
-  case object RequestPosition
   case object RequestAgentInfo
 
-  case class PositionReply(pos: (Double, Double))
-  case class AgentInfo(id : Int, pos: (Double, Double), hero : Boolean, localTime : Int)
+  case class PayoffChanged(payoffValue : Double, payoffRole : SGAgent.SGRole.Value);
+  case class RoleChanged(role : SGAgent.SGRole.Value);
+
+  case class AgentInfo(currRole : SGAgent.SGRole.Value, prevRole : SGAgent.SGRole.Value, pos: (Int, Int), localTime : Int)
 }
 
-class SGAgent( id: Int,
-                initPos: (Double, Double),
-                hero: Boolean) extends Actor {
+class SGAgent( initRole: SGAgent.SGRole.Value,
+                initPos: (Int, Int)) extends Actor {
 
-  private var friend: ActorRef = null;
-  private var enemy: ActorRef = null;
+  private val B = 1.9
+  private val S = 0.0
+  private val P = 0.0
+  private val R = 1.0
+
+  private var neighbours : Array[ActorRef] = null;
   private var pos = initPos;
-
-  private var currentFriendPos: (Double, Double) = null;
-  private var currentEnemyPos: (Double, Double) = null;
-
   private var localTime = 0;
 
-  private val SPEED = 1.0;
+  private var currRole = initRole;
+  private var prevRole = initRole;
 
-  def getId() : Int = {
-    id
-  }
+  private var localPayoff = .0
 
-  def isHero() : Boolean = {
-    hero
-  }
+  private var bestPayoffValue = .0
+  private var bestPayoffState: SGAgent.SGRole.Value = null;
 
-  def getPosition(): (Double, Double) = {
+  private var neighbourPayoffCount : Int = 0;
+  private var neighbourStateCount : Int = 0;
+
+  def getPos(): (Int, Int) = {
     pos;
   }
 
   def receive = {
-    case fe : (ActorRef, ActorRef) => handleFriendEnemy( fe );
+    case ns : Array[ActorRef] => handleNeighbours( ns );
   }
 
   def awaitStart: Receive = {
-    case HACAgent.Start => handleStart();
+    case SGAgent.Start => handleStart();
   }
 
   def running: Receive = {
-    case ReceiveTimeout => handleRunStep();
-    case PositionReply(pos: (Double, Double)) => handleReceivedPosition(sender(), pos);
-    case RequestPosition => sender() ! HACAgent.PositionReply( this.pos );
-    case RequestAgentInfo => sender() ! new HACAgent.AgentInfo( this.id, this.pos, this.hero, this.localTime );
+    case PayoffChanged(payoffValue : Double, payoffRole : SGAgent.SGRole.Value) => handlePayoff(payoffValue, payoffRole);
+    case RoleChanged(role : SGAgent.SGRole.Value) => handleRole(role);
+    case RequestAgentInfo => sender() ! new SGAgent.AgentInfo( this.currRole, this.prevRole, this.pos, this.localTime );
   }
 
-  def handleFriendEnemy( fe: (ActorRef, ActorRef)): Unit = {
-    friend = fe._1;
-    enemy = fe._2;
-
+  def handleNeighbours(ns: Array[ActorRef]): Unit = {
+    neighbours = ns;
     context.become( awaitStart );
   }
 
   def handleStart(): Unit = {
+    this.neighbourPayoffCount = this.neighbours.length;
+    this.neighbourStateCount = this.neighbours.length;
+    this.broadcastLocalState();
+
     context.become( running );
-    context.setReceiveTimeout(10 milliseconds)
   }
 
-  def handleRunStep(): Unit = {
-    this.friend ! HACAgent.RequestPosition;
-    this.enemy ! HACAgent.RequestPosition;
+  def broadcastLocalState(): Unit = {
+    val msg = RoleChanged(this.currRole);
 
-    if (null == this.currentFriendPos || null == this.currentEnemyPos) {
-      return;
-    }
-
-    val dt = 0.01;
-    this.localTime += 1;
-
-    val stepWidth = SPEED.toDouble * dt.toDouble;
-
-    val friendPos = this.currentFriendPos;
-    val enemyPos = this.currentEnemyPos;
-    val halfFriendEnemyDir = new (Double, Double)((enemyPos._1 - friendPos._1) * 0.5, (enemyPos._2 - friendPos._2) * 0.5);
-    var targetPos: (Double, Double) = null;
-
-    if (this.hero)
-      targetPos = new (Double, Double)(friendPos._1 + halfFriendEnemyDir._1, friendPos._2 + halfFriendEnemyDir._2);
-    else
-      targetPos = new (Double, Double)(friendPos._1 - halfFriendEnemyDir._1, friendPos._2 - halfFriendEnemyDir._2);
-
-    val targetDir = new (Double, Double)(targetPos._1 - pos._1, targetPos._2 - pos._2);
-    val targetDirNorm = this.normalize(targetDir);
-    val step = new (Double, Double)(targetDirNorm._1 * stepWidth, targetDirNorm._2 * stepWidth);
-
-    val newPosition = new (Double, Double)(pos._1 + step._1, pos._2 + step._2);
-
-    this.pos = this.clipPosition( newPosition );
-  }
-
-  def normalize(dir : (Double, Double)) : (Double, Double) = {
-    val len = Math.sqrt(dir._1*dir._1 + dir._2*dir._2);
-    if ( len == 0.0)
-      new (Double, Double)(0, 0);
-    else
-      new (Double, Double)(dir._1 / len, dir._2 / len);
-  }
-
-  def clipPosition(pos : (Double, Double)) : (Double, Double) = {
-    val x: Double = Math.max( 0.0, Math.min( pos._1, 1.0 ) );
-    val y: Double = Math.max( 0.0, Math.min( pos._2, 1.0 ) );
-
-    new (Double, Double)(x, y);
-  }
-
-  def handleReceivedPosition(ref: ActorRef, pos: (Double, Double)): Unit = {
-    if ( ref == this.friend ) {
-      this.currentFriendPos = new (Double, Double)(pos._1, pos._2);
-    } else if ( ref == this.enemy ) {
-      this.currentEnemyPos = new (Double, Double)(pos._1, pos._2);
+    for (n <- this.neighbours) {
+      if ( n != null)
+        n ! msg;
     }
   }
+
+  def broadcastLocalPayoff(): Unit = {
+    val msg = PayoffChanged(this.localPayoff, this.currRole);
+
+    for (n <- this.neighbours) {
+      if ( n != null)
+        n ! msg;
+    }
+  }
+
+  def handlePayoff(payoffValue: Double, payoffRole: _root_.sg.actors.SGAgent.SGRole.Value): Unit = {
+    if ( payoffValue > this.bestPayoffValue ) {
+      this.bestPayoffValue = payoffValue;
+      this.bestPayoffState = payoffRole;
+    }
+
+    this.neighbourPayoffCount = this.neighbourPayoffCount - 1;
+
+    if ( 0 == this.neighbourPayoffCount ) {
+      this.prevRole = this.currRole;
+      this.currRole = this.bestPayoffState;
+
+      this.localPayoff = 0.0;
+      this.bestPayoffValue = 0.0;
+
+      this.neighbourPayoffCount = this.neighbours.length;
+      this.broadcastLocalState();
+    }
+  }
+
+  def handleRole(role: _root_.sg.actors.SGAgent.SGRole.Value): Unit = {
+    val po = calculatePayoff( this.currRole, role);
+    this.localPayoff += po;
+
+    this.neighbourStateCount = this.neighbourStateCount - 1;
+
+    if ( 0 == this.neighbourStateCount ) {
+      this.neighbourStateCount = this.neighbours.size;
+      this.broadcastLocalPayoff();
+    }
+  }
+
+  def calculatePayoff(ref: _root_.sg.actors.SGAgent.SGRole.Value, other: _root_.sg.actors.SGAgent.SGRole.Value): Double = {
+    if ((SGRole.Defector eq ref) && (SGRole.Defector eq other)) return P
+    else if ((SGRole.Cooperator eq ref) && (SGRole.Defector eq other)) return S
+    else if ((SGRole.Defector eq ref) && (SGRole.Cooperator eq other)) return B
+    // NOTE: SGState.Cooperator == ref && SGState.Cooperator == other
+    return R
+  }
+
 }

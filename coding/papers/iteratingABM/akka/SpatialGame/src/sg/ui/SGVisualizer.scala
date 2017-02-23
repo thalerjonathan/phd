@@ -3,24 +3,24 @@ package sg.ui
 /**
   * Created by jonathan on 06/12/16.
   */
-import akka.actor.{Actor, ActorRef, Props}
-import sg.actors.HACAgent
+import akka.actor.{Actor, ActorRef, Props, ReceiveTimeout}
+import sg.actors.SGAgent
 
 import scala.concurrent.duration._
 
 object SGVisualizer {
-  def props(agents : Array[ActorRef]): Props = Props( new HACVisualizer(agents) )
+  def props(agents : Array[ActorRef], cols : Int, rows : Int): Props = Props( new SGVisualizer(agents, cols, rows) )
 
   case object Start
 }
 
-class SGVisualizer(agents : Array[ActorRef]) extends Actor {
-  val ui = new HACFrontend(agents.length)
+class SGVisualizer(agents : Array[ActorRef], cols : Int, rows : Int) extends Actor {
+  val ui = new SGFrontend(cols, rows)
 
   ui.visible = true
 
   def receive = {
-    case HACVisualizer.Start => handleStart();
+    case SGVisualizer.Start => handleStart();
   }
 
   def handleStart(): Unit = {
@@ -29,21 +29,21 @@ class SGVisualizer(agents : Array[ActorRef]) extends Actor {
   }
 
   def run: Receive = {
-    case HACAgent.AgentInfo(id, pos, hero, localTime) => handleInfo(id, pos, hero, localTime);
+    case SGAgent.AgentInfo(currRole, prevRole, pos, localTime) => handleInfo(currRole, prevRole, pos, localTime);
     case ReceiveTimeout => requestAllInfos();
   }
 
-  def handleInfo(id : Int, pos: (Double, Double), hero : Boolean, localTime : Int): Unit = {
-    if ( localTime >= 500 )
+  def handleInfo(currRole : SGAgent.SGRole.Value, prevRole : SGAgent.SGRole.Value, pos: (Int, Int), localTime : Int): Unit = {
+    if ( localTime >= (2*217) )
       context.stop(self)
 
-    ui.agentUpdate(id, pos, hero);
+    ui.agentUpdate(currRole, prevRole, pos);
   }
 
   def requestAllInfos() : Unit = {
     for( i <- 0 to agents.length - 1 ) {
       val a = agents( i );
-      a ! HACAgent.RequestAgentInfo
+      a ! SGAgent.RequestAgentInfo
     }
   }
 }

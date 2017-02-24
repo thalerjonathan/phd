@@ -70,6 +70,6 @@ sirsAgentToRenderCell (xDim, yDim) a = Front.RenderCell { Front.renderCellCoord 
         s = ABS.s a
         (ax, ay) = (sirsCoord s)
         ss = case (sirsState s) of
-                        Susceptible -> (0.0, 0.4, 0.0)
+                        Susceptible -> (0.0, 0.55, 0.0)
                         Infected -> (0.7, 0.0, 0.0)
                         Recovered -> (0.0, 0.0, 0.7)

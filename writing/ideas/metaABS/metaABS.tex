@@ -48,11 +48,20 @@
 % If you wish to include an abstract, uncomment the lines below
 \begin{abstract}
 Meta Agent-Based Simulation (MetaABS) is an attempt of modelling free will on a computational basis. We focus on free will which we define as having the ability to anticipate results from one actions thus creating a feedback on the actions. Here we follow the interpretation that anticipation means 'to simulate' in the context of ABS. We follow the concept of irreducibility of computation which, due to undecidability - requires to run (=simulate) a program to actually know its output. The idea is in each step of the simulation let agents simulate the same simulation they are situated in from their point of view for a given number of steps before they take their next step. Thus the simulation is defined in terms of recursion, a novelty and something we will describe in depth in this paper. We claim that functional programming is especially well suited to implement MetaABS due to its lack of implicit side-effects, natural parallelism and declarative way of describing WHAT systems are instead of HOW they compute. Obviously this new approach has a problem: an agent would need to have complete information about the whole simulation, an assumption which is completely unrealistic. We introduce the term of 'reduced-recursive' which assumes that the next recursive level is a reduced version of the original, very local to the agent, thus solving the problem of complete information.
-We don't know yet in which field to apply this research, but we could follow economics, social sciences and artificial life.
+Our method may look like another optimization method but we will show that this is not the case. Also our motivation and intention is completely different and our intended area of application are the social sciences, artificial life, philosophy and maybe religious studies. Thus we must be very careful to not confuse it with e.g. game-theory where one makes assumptions about the other players - this may seem to be the same but we are not interested in this approach and we argue it is very different: we simulate instead of rational calculation. 
 \end{abstract}
 
-\section{Introduction}
-- We ask how existence can be understood from the perspective of computer science and follow in our ideas the simulation hypothesis as of \cite{bostrom_are_2003} which states that existence is a simulation. 
+\section{Motivation}
+\cite{bostrom_are_2003} came up with the initial simulation argument.
+
+\cite{steinhart_theological_2010} discusses theological implications of the simulation argument and looks into reasons why we are simulated. He mentions 'evolution of complexity' and gaining of knowledge. We argue that this comes only out of free will. We are aware that by touching on the subject of 'why' we are being simulated we touch on ideological ground but this is intentional so.
+
+\cite{irtem_simulation_1978} defines artificial free will of a machine to be: TODO
+
+
+TODO: 'the quantum system develops according to a wave-function with superposed states, and something, that isn't microphysics, causes the wave to collapse into one of the superposed states. This something might very well be mental states'. Thus we draw the parallels to our ABS: the description, of the simulation is its unrealized state of superpositions. when we run the simulation we realize superposed states. 
+
+- We ask how existence can be understood from the perspective of computer science and follow in our ideas the simulation hypothesis as of \cite{bostrom_are_2003} which states that existence is a simulation (TODO: bostrom does not state this!)
 - We differ from the simulation hypothesis which does not state any deeper meaning or reason for existence by hypothesizing that existence is a simulation which allows conciousness to express free will.
 - We will show that granting free will outside of a simulation is too dangerous as we claim that it will always leads to ideologies which result in separation, inequality, suffering and ultimately in death, something this simulation clearly exhibits.
 
@@ -69,12 +78,28 @@ We don't know yet in which field to apply this research, but we could follow eco
 - question: how could abs be capable of simulating conciousness and free will? hypothesis: we need a meta-level in our simulation which allows us to simulate the simulation
 - question: can we develop a model and a simulation of the simulation hypothesis?
 
-\section{The Meta-Model}
-Ideas
-- agents try to find out if they are in a simulation or not
-- agents are ordered on a scale in their beliefs about argument 1-3 of the simulation hypothesis 
-- agents exhibit a range of primal fear between 0 and 1 where 0 means they are enlightened and 1 means they are completely stuck in the simulation
-- some agents have free will (can run a meta-simulation) and some don't but the free-will agents don't know which the others are. it is the goal of the free-will agents to find out the non-free will ones. BUT HOW? free-will agents can go on a meta-level and compare their result with the actual result, if there is a mismatch then they know the other agent has free will and otherwise not.
+\section{Research Questions}
+
+\subsection{What is Free Will in ABS?}
+\paragraph{Hypothesis} It is the ability of an agent to simulate on a meta-level and adjust itself based on these insights.
+
+-> problem: how big/complex can the meta-level be? does the agent has a perfect model in its mind?
+
+\subsection{How can we model Free Will in ABS?}
+\paragraph{Hypothesis} we need a meta-model: a recursive, declarative description of the simulation.
+
+\subsection{How can we implement free will in ABS?}
+\paragraph{Hypothesis} pure functional programming is suitable due to the recursive, declarative nature of the meta-model.
+
+\subsection{Can we build a model of the simulation hypothesis / argument to test the difference between free will and the lack thereof? }
+\begin{itemize}
+	\item does free will lead to ideologies (what are ideologies?)? if yes, how many agents are sufficient?
+	\item are there differences between having free will and using it AND of having free and not using it?
+	\item agents try to find out if they are in a simulation or not
+	\item agents are ordered on a scale in their beliefs about argument 1-3 of the simulation hypothesis 
+	\item agents exhibit a range of primal fear between 0 and 1 where 0 means they are enlightened and 1 means they are completely stuck in the simulation
+	\item some agents have free will (can run a meta-simulation) and some don't but the free-will agents don't know which the others are. it is the goal of the free-will agents to find out the non-free will ones. BUT HOW? free-will agents can go on a meta-level and compare their result with the actual result, if there is a mismatch then they know the other agent has free will and otherwise not.
+\end{itemize}
 
 \bibliographystyle{acm}
 \bibliography{../../references/phdReferences.bib}

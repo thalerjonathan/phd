@@ -25,7 +25,6 @@ Object-oriented (OO) programming is the current state-of-the-art method used in 
 
 We claim that these drawbacks are non-existent in pure functional programming like Haskell due to the nature of the functional approach. To give an introduction into functional programming is out of scope of this paper but we refer to the classical paper of \cite{hughes_why_1989} which is a great paper explaining to non-functional programmers what the significance of functional programming is and helping functional programmers putting functional languages to maximum use by showing the real power and advantages of functional languages. The main conclusion of this classical paper is that \textit{modularity}, which is the key to successful programming, can be achieved best using higher-order functions and lazy evaluation provided in functional languages like Haskell. \cite{hughes_why_1989} argues that the ability to divide problems into sub-problems depends on the ability to glue the sub-problems together which depends strongly on the programming-language and \cite{hughes_why_1989} argues that in this ability functional languages are superior to structured programming.
 
-
 \subsection{Naive implementation}
 TODO: shortcomings
 Of course the basic pure functional primitives alone do not make a well structured functional program by themselves as the usage of classes, interfaces, objects and inheritance alone does not make a well structured object-oriented program. What is needed are \textit{patterns} how to use the primitives available in pure functional programs to arrive at well structure programs. In object-orientation much work has been done in the 90s by the highly influential book \cite{gamma_design_1994} whereas in functional programming the major inventions were also done in the 90s by the invention of Monads through \cite{Moggi1989}, \cite{Wadler1990} and \cite{Wadler1995} and beginning of the 2000s by the invention of Arrows through \cite{Hughes2000}.
@@ -48,7 +47,6 @@ In real applications an arrow often represents some kind of a process, with an i
 \end{quote}
 
 In the work \cite{Hughes2004} an example for the usage for Arrows is given in the field of circuit simulation. They use previously introduced streams to advance the simulation in discrete steps to calculate values of circuits thus the implementation is a form of \textit{discrete event simulation} - which is in the direction we are heading already with ABM/S. Also the paper mentions Yampa which is introduced in the section (TODO: reference) on functional reactive programming.
-
 
 \subsection{FRP}
 FRP is a paradigm for programming hybrid systems which combine continuous and discrete components. Time is explicitly modelled: there is a continuous and synchronous time flow.  \\
@@ -91,6 +89,9 @@ To conclude: when programming systems in Haskell and Yampa one describes the sys
 
 TODO: short description what FRP is, cite the necessary papers
 TODO: hypothesis that FRP is a remedy for the shortcomings
+
+\subsection{The sugarscape model}
+TODO \cite{epstein_growing_1996} 
 
 \subsection{Related Research}
 The amount of research on using the pure functional paradigm using Haskell in the field of ABS has been moderate so far.

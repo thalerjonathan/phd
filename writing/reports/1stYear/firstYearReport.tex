@@ -20,20 +20,16 @@
 %----------------------------------------------------------------------------------------
 
 
-\documentclass[twocolumn]{article}
+\documentclass{article}
 
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx} % Required for the inclusion of images
 \usepackage{amsmath} % Required for some math elements 
-\usepackage{glossaries}
-\usepackage[toc,page]{appendix}
-\usepackage[autostyle=true]{csquotes}
-\usepackage{hyperref}
-\usepackage{amssymb}
-\usepackage{caption} 
-\usepackage{hhline}
-\usepackage{float}
-\usepackage{listings}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
 
 \setlength\parindent{0pt} % Removes all indentation from paragraphs
 
@@ -43,7 +39,7 @@
 %	DOCUMENT INFORMATION
 %----------------------------------------------------------------------------------------
 
-\title{Spec equals Code \\ Functional reactive ABS} % Title
+\title{1st Year Report} % Title
 
 \author{Jonathan \textsc{Thaler}} % Author name
 
@@ -55,18 +51,12 @@
 
 % If you wish to include an abstract, uncomment the lines below
 \begin{abstract}
-The pure functional paradigm has so far got not very much attention in ABS where the dominant programming paradigm is object-orientation, realized by Java. In preliminary research of ours, we came to the insight that pure functional programming using Haskell without any additional libraries is very well suited to implement ABS but that in order to build more complex, reald-world models it would be necessary to leverage the basic concepts with functional reactive programming (FRP). In this paper we show how ABS can be fused with FRP to design an embedded domain specific language (EDSL) which allows to write specifications which (nearly) match pure functional code - the specification becomes Haskell code. For a proof of concept, we chose to implement the famous and well known \textit{Sugarscape} model from the social sciences and the \textit{ACE Trading World} from agent-based computational economics (ACE).
+
 \end{abstract}
 
-\input{./tex/introduction.tex}
+\input{./tex/functionalACE.tex}
 
-\input{./tex/background.tex}
-
-\input{./tex/formalAgentModel.tex}
-
-\input{./tex/functionalReactiveABS.tex}
-
-\input{./tex/conclusion.tex}
+\input{./tex/functionalSocialSimulation.tex}
 
 \bibliographystyle{acm}
 \bibliography{../../references/phdReferences.bib}

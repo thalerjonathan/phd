@@ -1,0 +1,33 @@
+\subsection{Pure functional paradigm}
+TODO: short description what pure functional paradigm is
+Object-oriented (OO) programming is the current state-of-the-art method used in implementing ABM/S due to the natural way of mapping concepts and models of ABM/S to an OO-language. Although this dominance in the field we claim that OO has also its serious drawbacks:
+
+\begin{itemize}
+\item Mutable State is distributed over multiple objects which is often very difficult to understand, track and control.
+\item Inheritance is a dangerous thing if not used properly and with care because it introduces very strong dependencies which cannot be changed during runtime any-more.
+\item Objects don't compose very well due to their internal (mutable) state (note that we are aware that there is the concept of immutable objects which are becoming more and more popular but that does not solve the fundamental problem.
+\item It is (nearly) impossible to reason about programs.
+\end{itemize}
+
+We claim that these drawbacks are non-existent in pure functional programming like Haskell due to the nature of the functional approach. To give an introduction into functional programming is out of scope of this paper but we refer to the classical paper of \cite{hughes_why_1989} which is a great paper explaining to non-functional programmers what the significance of functional programming is and helping functional programmers putting functional languages to maximum use by showing the real power and advantages of functional languages. The main conclusion of this classical paper is that \textit{modularity}, which is the key to successful programming, can be achieved best using higher-order functions and lazy evaluation provided in functional languages like Haskell. \cite{hughes_why_1989} argues that the ability to divide problems into sub-problems depends on the ability to glue the sub-problems together which depends strongly on the programming-language and \cite{hughes_why_1989} argues that in this ability functional languages are superior to structured programming.
+
+\subsubsection{Naive ABS implementation}
+TODO: shortcomings
+Of course the basic pure functional primitives alone do not make a well structured functional program by themselves as the usage of classes, interfaces, objects and inheritance alone does not make a well structured object-oriented program. What is needed are \textit{patterns} how to use the primitives available in pure functional programs to arrive at well structure programs. In object-orientation much work has been done in the 90s by the highly influential book \cite{gamma_design_1994} whereas in functional programming the major inventions were also done in the 90s by the invention of Monads through \cite{Moggi1989}, \cite{Wadler1990} and \cite{Wadler1995} and beginning of the 2000s by the invention of Arrows through \cite{Hughes2000}.
+
+\paragraph{Higher Order Functions \& Monads} map \& fmap, foldl, applicatives, \cite{hutton_programming_2007} gives a great overview and motivation for using fmap, applicatives and Monads. TODO: explain Monads
+
+\paragraph{Arrows}
+\cite{Hughes2004} is a great tutorial about \textit{Arrows} which are very well suited for structuring functional programs with effects.
+
+\begin{quote}
+Just like monads, arrow types are useful for the additional operations they support, over and above those that every arrow provides.
+\end{quote}
+
+The main difference between Monads and Arrows are that where monadic computations are parameterized only over their output-type, Arrows computations are parameterised both over their input- and output-type thus making Arrows more general.
+
+\begin{quote}
+In real applications an arrow often represents some kind of a process, with an input channel of type a, and an output channel of type b.
+\end{quote}
+
+In the work \cite{Hughes2004} an example for the usage for Arrows is given in the field of circuit simulation. They use previously introduced streams to advance the simulation in discrete steps to calculate values of circuits thus the implementation is a form of \textit{discrete event simulation} - which is in the direction we are heading already with ABM/S. Also the paper mentions Yampa which is introduced in the section (TODO: reference) on functional reactive programming.

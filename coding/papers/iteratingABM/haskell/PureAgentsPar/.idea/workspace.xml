@@ -29,7 +29,7 @@
       <file leaf-file-name="RunSGMsg.hs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/SpacialGameMsg/RunSGMsg.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="236">
+            <state relative-caret-position="612">
               <caret line="34" column="47" lean-forward="false" selection-start-line="34" selection-start-column="40" selection-end-line="34" selection-end-column="47" />
               <folding />
             </state>
@@ -39,7 +39,7 @@
       <file leaf-file-name="PureAgentsPar.hs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/PureAgentsPar.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="920">
+            <state relative-caret-position="2286">
               <caret line="154" column="46" lean-forward="false" selection-start-line="154" selection-start-column="46" selection-end-line="154" selection-end-column="46" />
               <folding />
             </state>
@@ -119,6 +119,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="PackagesPane" />
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -147,8 +149,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
-      <pane id="Scratches" />
       <pane id="Scope" />
     </panes>
   </component>
@@ -720,13 +720,6 @@
     <entry file="file://$PROJECT_DIR$/src/SpacialGameMsg/RunSG.hs" />
     <entry file="file://$PROJECT_DIR$/src/WildFire/RunWFDynamic.hs" />
     <entry file="file://$PROJECT_DIR$/src/WildFire/WildFireModelDynamic.hs" />
-    <entry file="file://$PROJECT_DIR$/PureAgentsPar.cabal">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="144">
-          <caret line="8" column="61" lean-forward="false" selection-start-line="8" selection-start-column="53" selection-end-line="8" selection-end-column="61" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/WildFire/WildFireModelStatic.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="205">
@@ -807,15 +800,23 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/SpacialGameMsg/RunSGMsg.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="236">
+        <state relative-caret-position="612">
           <caret line="34" column="47" lean-forward="false" selection-start-line="34" selection-start-column="40" selection-end-line="34" selection-end-column="47" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PureAgentsPar.cabal">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="144">
+          <caret line="8" column="61" lean-forward="true" selection-start-line="8" selection-start-column="20" selection-end-line="8" selection-end-column="61" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/PureAgentsPar.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="920">
+        <state relative-caret-position="2286">
           <caret line="154" column="46" lean-forward="false" selection-start-line="154" selection-start-column="46" selection-end-line="154" selection-end-column="46" />
           <folding />
         </state>

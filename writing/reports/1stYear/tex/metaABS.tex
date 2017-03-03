@@ -1,15 +1,26 @@
 \section{Meta Agent-Based Simulation}
 
-\subsection{Introduction}
-Meta Agent-Based Simulation (MetaABS) is an attempt of modelling free will on a computational basis. We focus on free will which we define as having the ability to anticipate results from one actions thus creating a feedback on the actions. Here we follow the interpretation that anticipation means 'to simulate' in the context of ABS. We follow the concept of irreducibility of computation which, due to undecidability - requires to run (=simulate) a program to actually know its output. The idea is in each step of the simulation let agents simulate the same simulation they are situated in from their point of view for a given number of steps before they take their next step. Thus the simulation is defined in terms of recursion, a novelty and something we will describe in depth in this paper. We claim that functional programming is especially well suited to implement MetaABS due to its lack of implicit side-effects, natural parallelism and declarative way of describing WHAT systems are instead of HOW they compute. Obviously this new approach has a problem: an agent would need to have complete information about the whole simulation, an assumption which is completely unrealistic. We introduce the term of 'reduced-recursive' which assumes that the next recursive level is a reduced version of the original, very local to the agent, thus solving the problem of complete information.
-Our method may look like another optimization method but we will show that this is not the case. Also our motivation and intention is completely different and our intended area of application are the social sciences, artificial life, philosophy and maybe religious studies. Thus we must be very careful to not confuse it with e.g. game-theory where one makes assumptions about the other players - this may seem to be the same but we are not interested in this approach and we argue it is very different: we simulate instead of rational calculation. We test our method using the famous \textit{Sugarscape} model.
+\subsection{Overview}
+\subsubsection{Idea} Give each  Agent the ability to run the simulation locally from its point of view do anticipate its actions and change them in the future thus introducing a meta-level in the simulation, from which the method derives its name.
+\subsubsection{Problems} 
+\begin{itemize}
+	\item Definition of a recursive, declarative description of the Model.
+	\item Perfect information about other agents is not realistic and runs counter to agent-based simulation (especially in social sciences) thus an Agent needs to be able to have local, noisy representations of the other agents.
+	\item Local representation of other agents could be captured by Hidden Markov Models: observe what other agents do but have hidden interpretation of their internal state - these internal state-representations can be different between the local and the global version whereas the agent learns to represent the global version as best as possible locally.
+	\item Infinite regress is theoretically possible but not on computers, we need to terminate at some point
+\end{itemize}
 
-\subsection{Computer Science Motivation}
-\cite{irtem_simulation_1978} defines artificial free will of a machine to be:
-TODO: We follow the concept of irreducibility of computation which, due to undecidability - requires to run (=simulate) a program to actually know its output.
-TODO: 'the quantum system develops according to a wave-function with superposed states, and something, that isn't micro-physics, causes the wave to collapse into one of the superposed states. This something might very well be mental states'. Thus we draw the parallels to our ABS: the description, of the simulation is its unrealized state of superposition. when we run the simulation we realize superposed states. 
+\subsubsection{Interpretation} It can be regarded as a Model of Free Will in ABS, which allows learning in an ABS environment in a new way - look on the section of interpretation.
+\subsubsection{Application} Mostly in social sciences, maybe also in economics. Investigate SugarScape, PrisonersDilemma and ACE Trading World
+\subsubsection{Research Questions} 
+\begin{enumerate}
+	\item How does deep regression influence the dynamics of a system? Hypothesis: TODO
+	\item How do the dynamics of a system change when using perfect information or learning local information? Hypothesis: TODO
+	\item Is a hidden markov model suitable for the local learning? Hypothesis: TODO
+	\item How can MetaABS best be implemented? Hypothesis: implementing a MetaABS EDSL in a pure functional language like Haskell, should be best suited due to its inherent recursive, declarative nature, which should allow a direct mapping of features of this paradigm to the specification of the meta-model
+\end{enumerate}
 
-\subsection{Philosophical Motivation}
+\subsection{Motivation \& Interpretation of the Method}
 We build on the discussion of the \textit{simulation argument} proposed by \cite{bostrom_are_2003} which states that we \textit{may} live in a simulation, created by transhumans (TODO: explain). Although we neither can proof or disproof the \textit{simulation argument}, we find the idea of existence being a simulation highly intriguing as it finally allows us to \textit{investigate how existence can be understood from the perspective of computer science in a scientific way}. This was so far not possible due to the lack of a scientific context, which is now given through the \textit{simulation argument}. The obvious question which raises, is then \textit{why are we simulated?}. Bostrom does not give any reason for it in his paper as this obviously touches on ideological and religious ground. We try to develop hypothesis for why we are being simulated and approach it scientifically by drawing parallels to agent-based social simulation.
 \cite{steinhart_theological_2010} discusses theological implications of the simulation argument and looks into reasons why we are simulated. He mentions 'evolution of complexity' and gaining of knowledge for the transhumans as the reasons why theses simulations are enacted. We agree with Steinhart but our central point is that we hypothesize that these reasons are not first-order and that there is a first-order reason of this simulation. Our reasoning is as follows:
 
@@ -39,19 +50,12 @@ This existence is a simulation which allows conciousness to express Free Will. T
 
 NOTE:  I don't believe we are in a simulation but that we are separated from something which is beyond our existence. The simulation argument only serves as a metaphor to be able to address metaphysical issues with scientific tools and language from computer science, physics and ultimately mathematics.
 
-\subsection{Research Questions}
+\cite{irtem_simulation_1978} defines artificial free will of a machine to be:
+TODO: We follow the concept of irreducibility of computation which, due to undecidability - requires to run (=simulate) a program to actually know its output.
+TODO: 'the quantum system develops according to a wave-function with superposed states, and something, that isn't micro-physics, causes the wave to collapse into one of the superposed states. This something might very well be mental states'. Thus we draw the parallels to our ABS: the description, of the simulation is its unrealized state of superposition. when we run the simulation we realize superposed states. 
 
-\subsubsection{How can Free Will be defined in ABS?}
-\paragraph{Hypothesis} It is the ability of an agent to simulate on a meta-level and adjust itself based on these insights.
-
-\subsubsection{How can we model Free Will in ABS?}
-\paragraph{Hypothesis} we need a meta-model: a recursive, declarative description of the simulation.
-
-\subsubsection{How can we implement Free Will in ABS?}
-\paragraph{Hypothesis} pure functional programming is suitable due to its inherent recursive, declarative nature, which should allow a direct mapping of features of this paradigm to the specification of the meta-model.
-
-\subsubsection{What happens if this kind of Free Will is applied to existing models in social simulation?}
-\paragraph{Hypothesis} Chaos, separation, destruction
+Meta Agent-Based Simulation (MetaABS) is an attempt of modelling free will on a computational basis. We focus on free will which we define as having the ability to anticipate results from one actions thus creating a feedback on the actions. Thus Free Will can be regarded as the very basic form of learning and IS learning and can be identified with learning. Here we follow the interpretation that anticipation means 'to simulate' in the context of ABS. We follow the concept of irreducibility of computation which, due to undecidability - requires to run (=simulate) a program to actually know its output. The idea is in each step of the simulation let agents simulate the same simulation they are situated in from their point of view for a given number of steps before they take their next step. Thus the simulation is defined in terms of recursion, a novelty and something we will describe in depth in this paper. We claim that functional programming is especially well suited to implement MetaABS due to its lack of implicit side-effects, natural parallelism and declarative way of describing WHAT systems are instead of HOW they compute. Obviously this new approach has a problem: an agent would need to have complete information about the whole simulation, an assumption which is completely unrealistic. We introduce the term of 'reduced-recursive' which assumes that the next recursive level is a reduced version of the original, very local to the agent, thus solving the problem of complete information.
+Our method may look like another optimization method but we will show that this is not the case. Also our motivation and intention is completely different and our intended area of application are the social sciences, artificial life, philosophy and maybe religious studies. Thus we must be very careful to not confuse it with e.g. game-theory where one makes assumptions about the other players - this may seem to be the same but we are not interested in this approach and we argue it is very different: we simulate instead of rational calculation. We test our method using the famous \textit{Sugarscape} model.
 
 \cite{epstein_growing_1996} introduced the famous \textit{Sugarscape} model which is widely researched in the social sciences, can it be applied?
 

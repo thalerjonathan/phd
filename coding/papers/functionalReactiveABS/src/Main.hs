@@ -3,6 +3,7 @@
 module Main where
 
 import FRP.Yampa
+import System.IO
 import Debug.Trace
 import Agent.Agent
 
@@ -13,18 +14,29 @@ type TestAgentBehaviour = AgentBehaviour TestAgentState TestAgentMsg
 
 main :: IO ()
 main = do
+        hSetBuffering stdout NoBuffering
+        hSetBuffering stderr NoBuffering
         let as = createAgents
-        let as' = processSteps as 1.0 10
-        let lastAs' = last as'
-        putStrLn $ show (length lastAs')
-        mapM printAgentOut lastAs'
-        return ()
+        processIO as ioFun
 
+runSteps :: [TestAgent] -> IO ()
+runSteps as = do
+                let aos = processSteps as 1.0 10
+                let finalAos = last aos
+                printAgentOuts finalAos
 
-printAgentOut :: (Show s) => AgentOut s m -> IO ()
-printAgentOut ao = do
-                    let s = aoState ao
-                    putStrLn $ "AgentOut: " ++ (show s)
+ioFun :: (Show s) => [AgentOut s m] -> IO (Bool, Double)
+ioFun aos = do
+                printAgentOuts aos
+                return (True, 1.0)
+
+printAgentOuts :: (Show s) => [AgentOut s m] -> IO ()
+printAgentOuts aos = do
+                        mapM printAgentOuts' aos
+                        return ()
+    where
+        printAgentOuts' :: (Show s) => AgentOut s m -> IO ()
+        printAgentOuts' ao = putStrLn $ "AgentOut: " ++ (show (aoState ao))
 
 createAgents :: [TestAgent]
 createAgents = [a0, a1, a2]

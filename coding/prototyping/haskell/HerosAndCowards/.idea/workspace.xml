@@ -44,8 +44,8 @@
       <file leaf-file-name="HACYampaBackend.hs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/HACYampaBackend.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1424">
-              <caret line="111" column="64" lean-forward="false" selection-start-line="111" selection-start-column="51" selection-end-line="111" selection-end-column="64" />
+            <state relative-caret-position="-196">
+              <caret line="60" column="19" lean-forward="false" selection-start-line="60" selection-start-column="19" selection-end-line="60" selection-end-column="19" />
               <folding />
             </state>
           </provider>
@@ -113,6 +113,9 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scratches" />
+      <pane id="PackagesPane" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -141,9 +144,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scratches" />
-      <pane id="PackagesPane" />
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -152,7 +152,7 @@
     <property name="project.structure.last.edited" value="Project" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../learning/haskell/frp/SpaceInvaders-0.4.2" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -771,8 +771,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/HACYampaBackend.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1424">
-          <caret line="111" column="64" lean-forward="false" selection-start-line="111" selection-start-column="51" selection-end-line="111" selection-end-column="64" />
+        <state relative-caret-position="-196">
+          <caret line="60" column="19" lean-forward="false" selection-start-line="60" selection-start-column="19" selection-end-line="60" selection-end-column="19" />
           <folding />
         </state>
       </provider>

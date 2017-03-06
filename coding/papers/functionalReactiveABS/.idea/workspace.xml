@@ -19,8 +19,8 @@
       <file leaf-file-name="Main.hs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Main.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="308">
-              <caret line="60" column="22" lean-forward="false" selection-start-line="60" selection-start-column="22" selection-end-line="60" selection-end-column="22" />
+            <state relative-caret-position="504">
+              <caret line="70" column="22" lean-forward="true" selection-start-line="70" selection-start-column="22" selection-end-line="70" selection-end-column="22" />
               <folding />
             </state>
           </provider>
@@ -29,8 +29,8 @@
       <file leaf-file-name="Agent.hs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Agent/Agent.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="452">
-              <caret line="129" column="0" lean-forward="true" selection-start-line="129" selection-start-column="0" selection-end-line="129" selection-end-column="0" />
+            <state relative-caret-position="360">
+              <caret line="122" column="31" lean-forward="true" selection-start-line="122" selection-start-column="31" selection-end-line="122" selection-end-column="31" />
               <folding />
             </state>
           </provider>
@@ -47,9 +47,10 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/src/agent/Agent.hs" />
+        <option value="$PROJECT_DIR$/functionalReactiveABS.cabal" />
+        <option value="$PROJECT_DIR$/src/Agent/AgentTest.hs" />
         <option value="$PROJECT_DIR$/src/Main.hs" />
         <option value="$PROJECT_DIR$/src/Agent/Agent.hs" />
-        <option value="$PROJECT_DIR$/functionalReactiveABS.cabal" />
       </list>
     </option>
   </component>
@@ -551,14 +552,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/agent/Agent.hs" />
-    <entry file="file://$PROJECT_DIR$/src/Main.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="308">
-          <caret line="60" column="22" lean-forward="false" selection-start-line="60" selection-start-column="22" selection-end-line="60" selection-end-column="22" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/functionalReactiveABS.cabal">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="144">
@@ -567,10 +560,26 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/Agent/AgentTest.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="5" column="20" lean-forward="false" selection-start-line="5" selection-start-column="20" selection-end-line="5" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Main.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="504">
+          <caret line="70" column="22" lean-forward="true" selection-start-line="70" selection-start-column="22" selection-end-line="70" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/Agent/Agent.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="452">
-          <caret line="129" column="0" lean-forward="true" selection-start-line="129" selection-start-column="0" selection-end-line="129" selection-end-column="0" />
+        <state relative-caret-position="360">
+          <caret line="122" column="31" lean-forward="true" selection-start-line="122" selection-start-column="31" selection-end-line="122" selection-end-column="31" />
           <folding />
         </state>
       </provider>

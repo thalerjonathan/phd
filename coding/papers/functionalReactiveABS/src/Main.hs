@@ -18,7 +18,7 @@ main = do
         hSetBuffering stderr NoBuffering
         let as = createAgents
         -- processIO as ioFun
-        runSteps as 1
+        runSteps as 2
 
 runSteps :: [TestAgent] -> Int -> IO ()
 runSteps as steps = do
@@ -55,19 +55,35 @@ createAgents = [a0, a1, a2]
                         adBehaviour = testAgentBehaviour a2 }
 
 testAgentBehaviour :: TestAgent -> TestAgentBehaviour
-testAgentBehaviour aInit = proc agentIn ->
+testAgentBehaviour aInit = proc ain ->
     do
-        let s = aiState agentIn
+        let ao = agentOutFromIn ain
+
+        let msgs = [(0, Increment), (1, Increment), (2, Increment)]
+        let ao' = sendMessages ao msgs
+
+        let ao2 = onStart ain (\aoTemp -> trace ("Start-Event in " ++ (show (aiId ain))) aoTemp ) ao'
+
+        let ao3 = onAnyMessage ain (\aoTemp (senderId, m) ->
+                                        trace ("Received Message in " ++
+                                            (show (aiId ain)) ++ " from " ++ (show senderId) ++ ": " ++ (show m)) aoTemp ) ao2
+
+        returnA -< ao3
+
+{-
+testAgentBehaviour :: TestAgent -> TestAgentBehaviour
+testAgentBehaviour aInit = proc ain ->
+    do
+        let s = aiState ain
         let s' = s + 1
-        let test = if (isEvent (aiStart agentIn) ) then
+        let test = if (isEvent (aiStart ain) ) then
                         trace ("Start-Event in " ++ (show (aiId agentIn))) " Start"
                         else
                             " NoStart"
 
         let msgs = [(0, Increment), (1, Increment), (2, Increment)]
+        let ao = agentOutFromIn ain
+        let ao' = sendMessages ao msgs
 
-        returnA -< trace ("testAgentBehaviour in " ++ (show (aiId agentIn)) ++ (show test))
-                            (AgentOut{ aoKill = NoEvent,
-                                         aoCreate = [],
-                                         aoMessages = msgs,
-                                         aoState = s' })
+        returnA -< trace ("testAgentBehaviour in " ++ (show (aiId agentIn)) ++ (show test)) ao'
+        -}

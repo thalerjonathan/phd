@@ -42,13 +42,87 @@ infectionProbability = 0.3
 
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR
+------------------------------------------------------------------------------------------------------------------------
+
+contactInfected :: AgentMessage SIRSMsg -> Bool
+contactInfected (_, Contact Infected) = True
+contactInfected otherwise = False
+
+is :: SIRSAgentOut -> SIRSState -> Bool
+is ao ss = (sirsState s) == ss
+    where
+        s = aoState ao
+
+sirsDt :: SIRSAgentOut -> Double -> SIRSAgentOut
+sirsDt ao dt
+    | is ao Susceptible = ao
+    | is ao Infected = handleInfectedAgent ao dt
+    | is ao Recovered = handleRecoveredAgent ao dt
+
+infectAgent :: SIRSAgentOut -> SIRSAgentOut
+infectAgent ao
+    | yes = updateState ao (\s -> s { sirsState = Infected,
+                                      sirsTime = 0.0} )
+    | otherwise = ao'
+    where
+         (ao', yes) = drawInfectionWithProb ao infectionProbability
+
+drawInfectionWithProb :: SIRSAgentOut -> Double -> (SIRSAgentOut, Bool)
+drawInfectionWithProb ao p = (ao', infect)
+    where
+        (ao', r) = drawRandom ao
+        infect = r <= p
+
+drawRandom :: SIRSAgentOut -> (SIRSAgentOut, Double)
+drawRandom ao = (ao', r)
+    where
+        g = (sirsRng (aoState ao))
+        (r, g') = randomR (0.0, 1.0) g
+        ao' = updateState ao (\s -> s { sirsRng = g' } )
+
+handleInfectedAgent :: SIRSAgentOut -> Double -> SIRSAgentOut
+handleInfectedAgent ao dt = if t' >= infectedDuration then
+                                recoveredAgent           -- NOTE: agent has just recovered, don't send infection-contact to others
+                                else
+                                    randomContact gettingBetterAgent
+
+    where
+        t = (sirsTime (aoState ao))
+        t' = t + dt
+        recoveredAgent = updateState ao (\s -> s { sirsState = Recovered,
+                                                        sirsTime = 0.0 } )
+        gettingBetterAgent = updateState ao (\s -> s { sirsTime = t' } )
+
+
+handleRecoveredAgent :: SIRSAgentOut -> Double -> SIRSAgentOut
+handleRecoveredAgent ao dt = if t' >= immuneDuration then
+                                susceptibleAgent
+                                else
+                                    immuneReducedAgent
+    where
+        t = (sirsTime (aoState ao))
+        t' = t + dt
+        susceptibleAgent = updateState ao (\s -> s { sirsState = Susceptible,
+                                                        sirsTime = 0.0 } )
+        immuneReducedAgent = updateState ao (\s -> s { sirsTime = t' } )
+
+
+randomContact :: SIRSAgentOut -> SIRSAgentOut
+randomContact ao = sendMessage ao' (randNeigh, (Contact Infected))
+    where
+        nsCount = length (sirsNeighbours (aoState ao))
+        g = (sirsRng (aoState ao))
+        (randIdx, g') = randomR(0, nsCount-1) g
+        randNeigh = (sirsNeighbours (aoState ao)) !! randIdx
+        ao' = updateState ao (\s -> s { sirsRng = g' } )
 
 sirsAgentBehaviour :: SIRSAgentBehaviour
 sirsAgentBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
-        -- TODO: implement
-        returnA -< ao
+        let aoAfterMsg = onMessage ain contactInfected (\ao' _ -> infectAgent ao') ao
+        let aoAfterTime = sirsDt aoAfterMsg 1.0
+        returnA -< aoAfterTime
 
 ------------------------------------------------------------------------------------------------------------------------
 -- BOILER-PLATE CODE

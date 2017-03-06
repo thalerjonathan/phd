@@ -3,7 +3,7 @@ module Main where
 import SIRS.RunSIRS
 
 main :: IO ()
-main = runSIRSStepsAndRender
+main = runSIRSWithRendering
 
 {-
 import FRP.Yampa

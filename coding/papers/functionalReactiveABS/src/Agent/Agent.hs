@@ -32,6 +32,9 @@ data AgentOut s m = AgentOut {
     aoState :: s
 }
 
+----------------------------------------------------------------------------------------------------------------------
+-- RUNNING SIMULATION WITH ITS OWN LOOP
+----------------------------------------------------------------------------------------------------------------------
 processIO :: [AgentDef s m] -> ([AgentOut s m] -> IO (Bool, Double)) -> IO ()
 processIO as outFunc = do
                             hdl <- reactInit
@@ -56,7 +59,23 @@ iter :: ([AgentOut s m] -> IO (Bool, Double)) -> ReactHandle a [AgentOut s m] ->
 iter outFunc hdl _ out = do
                             (cont, dt) <- outFunc out
                             return cont
+----------------------------------------------------------------------------------------------------------------------
 
+----------------------------------------------------------------------------------------------------------------------
+-- RUNNING SIMULATION WITHIN AN OUTER LOOP
+----------------------------------------------------------------------------------------------------------------------
+-- NOTE: don't care about a, we don't use it anyway
+processIOInit :: [AgentDef s m] -> (ReactHandle [AgentIn s m] [AgentOut s m] -> Bool -> [AgentOut s m] -> IO Bool) -> IO (ReactHandle [AgentIn s m] [AgentOut s m])
+processIOInit as iterFunc = reactInit
+                                (return ains)
+                                iterFunc
+                                (process as)
+    where
+        ains = createStartingAgentIn as
+
+----------------------------------------------------------------------------------------------------------------------
+-- CALCULATING A FIXED NUMBER OF STEPS OF THE SIMULATION
+----------------------------------------------------------------------------------------------------------------------
 {- NOTE: to run Yampa in a pure-functional way use embed -}
 processSteps :: [AgentDef s m] -> Double -> Int -> [[AgentOut s m]]
 processSteps as dt steps = embed
@@ -73,7 +92,7 @@ samplingTimes :: Double -> Double -> [(DTime, Maybe a)]
 samplingTimes t dt = (t', Nothing) : (samplingTimes t' dt)
     where
         t' = t + dt
-
+----------------------------------------------------------------------------------------------------------------------
 
 
 ----------------------------------------------------------------------------------------------------------------------

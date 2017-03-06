@@ -100,28 +100,50 @@ sendMessages :: AgentOut s m -> [AgentMessage m] -> AgentOut s m
 sendMessages ao msgs = foldl (\ao' msg -> sendMessage ao' msg ) ao msgs
 
 onStart :: AgentIn s m -> (AgentOut s m -> AgentOut s m) -> AgentOut s m -> AgentOut s m
-onStart ai evtHdl ao = if isEvent startEvt then
-                            evtHdl ao
-                            else
-                                ao
+onStart ai evtHdl ao = onEvent startEvt evtHdl ao
     where
         startEvt = aiStart ai
 
-onAnyMessage :: AgentIn s m -> (AgentOut s m -> AgentMessage m -> AgentOut s m) -> AgentOut s m -> AgentOut s m
-onAnyMessage ai evtHdl ao
+onEvent :: Event () -> (AgentOut s m -> AgentOut s m) -> AgentOut s m -> AgentOut s m
+onEvent evt evtHdl ao = if isEvent evt then
+                            evtHdl ao
+                            else
+                                ao
+
+type MessageFilter m = (AgentMessage m -> Bool)
+
+noMsgFilter :: MessageFilter m
+noMsgFilter _ = True
+
+onMessage :: AgentIn s m -> MessageFilter m -> (AgentOut s m -> AgentMessage m -> AgentOut s m) -> AgentOut s m -> AgentOut s m
+onMessage ai msgFilter evtHdl ao
     | not hasMessages = ao
-    | otherwise = foldl (\ao' msg -> evtHdl ao' msg ) ao (fromEvent msgsEvt)
+    | otherwise = foldl (\ao' msg -> evtHdl ao' msg ) ao filteredMsgs
     where
         msgsEvt = aiMessages ai
         hasMessages = isEvent msgsEvt
+        msgs = fromEvent msgsEvt
+        filteredMsgs = filter msgFilter msgs
+
+onAnyMessage :: AgentIn s m -> (AgentOut s m -> AgentMessage m -> AgentOut s m) -> AgentOut s m -> AgentOut s m
+onAnyMessage ai evtHdl ao = onMessage ai noMsgFilter evtHdl ao
 
 onMessageFrom :: AgentId -> AgentIn s m -> (AgentOut s m -> AgentMessage m -> AgentOut s m) -> AgentOut s m -> AgentOut s m
-onMessageFrom senderId ai evtHdl ao
-    | not hasMessages = ao
-    | otherwise = foldl (\ao' msg -> evtHdl ao' msg ) ao (fromEvent msgsEvt)
+onMessageFrom senderId ai evtHdl ao = onMessage ai noMsgFilter evtHdl ao
     where
-        msgsEvt = aiMessages ai
-        hasMessages = isEvent msgsEvt
+        filterBySender = (\(senderId', _) -> senderId == senderId' )
+
+onMessageType :: (Eq m) => m -> AgentIn s m -> (AgentOut s m -> AgentMessage m -> AgentOut s m) -> AgentOut s m -> AgentOut s m
+onMessageType m ai evtHdl ao = onMessage ai filterByMsgType evtHdl ao
+    where
+        filterByMsgType = (\(_, m') -> m == m' )
+
+updateState :: AgentOut s m -> (s -> s) -> AgentOut s m
+updateState ao sfunc = ao { aoState = s' }
+    where
+        s = aoState ao
+        s' = sfunc s
+
 ----------------------------------------------------------------------------------------------------------------------
 -- PRIVATES
 ----------------------------------------------------------------------------------------------------------------------

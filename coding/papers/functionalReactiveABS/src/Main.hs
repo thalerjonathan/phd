@@ -1,13 +1,17 @@
-{-# LANGUAGE Arrows #-}
-
 module Main where
 
+import SIRS.RunSIRS
+
+main :: IO ()
+main = runSIRSStepsAndRender
+
+{-
 import FRP.Yampa
 import System.IO
 import Debug.Trace
 import Agent.Agent
 
-data TestAgentMsg = Increment | Decrement deriving (Show)
+data TestAgentMsg = Increment | Decrement deriving (Show, Eq)
 type TestAgentState = Int
 type TestAgent = AgentDef TestAgentState TestAgentMsg
 type TestAgentBehaviour = AgentBehaviour TestAgentState TestAgentMsg
@@ -54,6 +58,14 @@ createAgents = [a0, a1, a2]
                         adState = 2,
                         adBehaviour = testAgentBehaviour a2 }
 
+incrementFilter :: AgentMessage TestAgentMsg -> Bool
+incrementFilter (_, Increment) = True
+incrementFilter otherwise = False
+
+decrementFilter :: AgentMessage TestAgentMsg -> Bool
+decrementFilter (_, Decrement) = True
+decrementFilter otherwise = False
+
 testAgentBehaviour :: TestAgent -> TestAgentBehaviour
 testAgentBehaviour aInit = proc ain ->
     do
@@ -65,25 +77,23 @@ testAgentBehaviour aInit = proc ain ->
         let ao2 = onStart ain (\aoTemp -> trace ("Start-Event in " ++ (show (aiId ain))) aoTemp ) ao'
 
         let ao3 = onAnyMessage ain (\aoTemp (senderId, m) ->
-                                        trace ("Received Message in " ++
+                                        trace ("onAnyMessage in " ++
                                             (show (aiId ain)) ++ " from " ++ (show senderId) ++ ": " ++ (show m)) aoTemp ) ao2
 
-        returnA -< ao3
+        let ao4 = onMessageFrom 0 ain (\aoTemp (senderId, m) ->
+                                        trace ("onMessageFrom in " ++
+                                            (show (aiId ain)) ++ " from " ++ (show senderId) ++ ": " ++ (show m)) aoTemp ) ao3
 
-{-
-testAgentBehaviour :: TestAgent -> TestAgentBehaviour
-testAgentBehaviour aInit = proc ain ->
-    do
-        let s = aiState ain
-        let s' = s + 1
-        let test = if (isEvent (aiStart ain) ) then
-                        trace ("Start-Event in " ++ (show (aiId agentIn))) " Start"
-                        else
-                            " NoStart"
+        let ao4 = onMessageType Increment ain (\aoTemp (senderId, m) ->
+                                        trace ("onMessageType in " ++
+                                            (show (aiId ain)) ++ " from " ++ (show senderId) ++ ": " ++ (show m)) aoTemp ) ao3
 
-        let msgs = [(0, Increment), (1, Increment), (2, Increment)]
-        let ao = agentOutFromIn ain
-        let ao' = sendMessages ao msgs
 
-        returnA -< trace ("testAgentBehaviour in " ++ (show (aiId agentIn)) ++ (show test)) ao'
-        -}
+        let ao5 = onMessage ain incrementFilter (\aoTemp (senderId, m) ->
+                                        trace ("onMessage in " ++
+                                            (show (aiId ain)) ++ " from " ++ (show senderId) ++ ": " ++ (show m)) aoTemp ) ao4
+
+        let ao6 = updateState ao5 (\s -> s + 1)
+
+        returnA -< ao6
+-}

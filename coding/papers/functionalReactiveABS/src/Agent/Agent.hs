@@ -21,8 +21,7 @@ data AgentIn s m = AgentIn {
     aiStart :: Event (),
     aiStop :: Event (),
     aiTerminate :: Event(),
-    aiState :: s,
-    aiBehaviour :: AgentBehaviour s m
+    aiState :: s
 }
 
 data AgentOut s m = AgentOut {
@@ -34,12 +33,14 @@ data AgentOut s m = AgentOut {
 
 processIO :: [AgentDef s m] -> ([AgentOut s m] -> IO (Bool, Double)) -> IO ()
 processIO as outFunc = do
-                        hdl <- reactInit
-                                    (return [])
-                                    (iter outFunc)
-                                    (process as)
-                        Agent.Agent.iterate hdl (1.0, Nothing) -- TODO: need to get this dt correct instead of 0.5, should come from input/output
-                        return ()
+                            hdl <- reactInit
+                                        (return ains)
+                                        (iter outFunc)
+                                        (process as)
+                            Agent.Agent.iterate hdl (1.0, Nothing) -- TODO: need to get this dt correct instead of 0.5, should come from input/output
+                            return ()
+                        where
+                            ains = createStartingAgentIn as
 
 iterate :: ReactHandle a b -> (DTime, Maybe a) -> IO Bool
 iterate hdl (dt, input) = do
@@ -59,11 +60,12 @@ iter outFunc hdl _ out = do
 processSteps :: [AgentDef s m] -> Double -> Int -> [[AgentOut s m]]
 processSteps as dt steps = embed
                             (process as)
-                            ([], sts)
+                            (ains, sts)
     where
 
         -- NOTE: again haskells laziness put to use: take steps items from the infinite list of sampling-times
         sts = take steps $ samplingTimes 0 dt
+        ains = createStartingAgentIn as
 
 -- NOTE: this creates an infinite list of sampling-times with starting time t and sampling-interval dt
 samplingTimes :: Double -> Double -> [(DTime, Maybe a)]
@@ -74,12 +76,6 @@ samplingTimes t dt = (t', Nothing) : (samplingTimes t' dt)
 ----------------------------------------------------------------------------------------------------------------------
 -- PRIVATES
 ----------------------------------------------------------------------------------------------------------------------
-process :: [AgentDef s m] -> SF [AgentIn s m] [AgentOut s m]
-process initAds = process' asfs ains
-    where
-        ains = createStartingAgentIn initAds
-        asfs = map aiBehaviour ains
-
 createStartingAgentIn :: [AgentDef s m] -> [AgentIn s m]
 createStartingAgentIn as = map startingAgentInFromAgent as
     where
@@ -89,16 +85,20 @@ createStartingAgentIn as = map startingAgentInFromAgent as
                                                 aiStart = Event (),
                                                 aiStop = NoEvent,
                                                 aiTerminate = NoEvent,
-                                                aiState = (adState a),
-                                                aiBehaviour = (adBehaviour a)}
+                                                aiState = (adState a)}
 
-process' :: [AgentBehaviour s m] -> [AgentIn s m] -> SF [AgentIn s m] [AgentOut s m]
-process' asfs ains = proc _ ->
+process :: [AgentDef s m] -> SF [AgentIn s m] [AgentOut s m]
+process as = process' asfs
+    where
+        asfs = map adBehaviour as
+
+process' :: [AgentBehaviour s m] -> SF [AgentIn s m] [AgentOut s m]
+process' asfs  = proc ains ->
     do
         aos <- dpSwitch
                    route
                    asfs
-                   (arr collectOutput >>> notYet)  -- NOTE: in the first iteration we don't fire yet >>> notYet
+                   (arr collectOutput >>> notYet)  -- TODO: WHY??? in the first iteration we don't fire yet >>> notYet
                    feedBack -< ains
         returnA -< aos
 
@@ -117,4 +117,7 @@ collectOutput (oldAgentIn, newAgentOuts) = Event (newAgentOuts, newAgentIns)
 
 -- TODO: add/remove signal-functions on agent creation/destruction
 feedBack :: [AgentBehaviour s m] -> ([AgentOut s m], [AgentIn s m]) -> SF [AgentIn s m] [AgentOut s m]
-feedBack asfs (newAgentOuts, newAgentIns) = process' asfs newAgentIns
+feedBack asfs (newAgentOuts, newAgentIns) = proc _ ->
+                                                do
+                                                    aos <- (process' asfs) -<  newAgentIns
+                                                    returnA -< aos

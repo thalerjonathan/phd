@@ -17,13 +17,14 @@ main = do
         hSetBuffering stdout NoBuffering
         hSetBuffering stderr NoBuffering
         let as = createAgents
-        processIO as ioFun
+        -- processIO as ioFun
+        runSteps as 1000
 
-runSteps :: [TestAgent] -> IO ()
-runSteps as = do
-                let aos = processSteps as 1.0 10
-                let finalAos = last aos
-                printAgentOuts finalAos
+runSteps :: [TestAgent] -> Int -> IO ()
+runSteps as steps = do
+                        let aos = processSteps as 1.0 steps
+                        let finalAos = last aos
+                        printAgentOuts finalAos
 
 ioFun :: (Show s) => [AgentOut s m] -> IO (Bool, Double)
 ioFun aos = do

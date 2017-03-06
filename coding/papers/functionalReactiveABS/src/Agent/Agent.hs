@@ -105,15 +105,28 @@ process' asfs  = proc ains ->
 route :: [AgentIn s m] -> [sf] -> [(AgentIn s m, sf)]
 route ains sfs = zip ains sfs
 
--- TODO: distribute messages here
 collectOutput :: ([AgentIn s m], [AgentOut s m]) -> (Event ([AgentOut s m], [AgentIn s m]))
 collectOutput (oldAgentIn, newAgentOuts) = Event (newAgentOuts, newAgentIns)
     where
-        newAgentIns = map (agentOutToAgentIn) (zip oldAgentIn newAgentOuts)
+        newAgentIns = map (agentOutToAgentIn newAgentOuts) (zip oldAgentIn newAgentOuts)
 
-        agentOutToAgentIn :: (AgentIn s m, AgentOut s m) -> AgentIn s m
-        agentOutToAgentIn (oldIn, newOut) = oldIn { aiStart = NoEvent,
-                                                    aiState = (aoState newOut) }
+        agentOutToAgentIn :: [AgentOut s m] -> (AgentIn s m, AgentOut s m) -> AgentIn s m
+        agentOutToAgentIn allOuts (oldIn, newOut) = oldIn { aiStart = NoEvent,
+                                                            aiState = (aoState newOut),
+                                                            aiMessages = msgs }
+            where
+                msgs = collectMessages (aiId oldIn) allOuts
+
+        collectMessages :: AgentId -> [AgentOut s m] -> [AgentMessage m]
+        collectMessages aid aos = foldl (\acc ao -> acc ++ collectMessages' aid ao ) [] aos
+            where
+                collectMessages' :: AgentId -> AgentOut s m -> [AgentMessage m]
+                collectMessages' aid ao = foldl (\acc (receiverId, m) -> if receiverId == aid then
+                                                                                acc ++ [(senderId, m)]
+                                                                                else
+                                                                                    acc ) [] (aoMessages ao)
+                    where
+                        senderId = aid -- TODO: use correct senderId, for now its the receiverId
 
 -- TODO: add/remove signal-functions on agent creation/destruction
 feedBack :: [AgentBehaviour s m] -> ([AgentOut s m], [AgentIn s m]) -> SF [AgentIn s m] [AgentOut s m]

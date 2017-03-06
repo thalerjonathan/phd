@@ -18,7 +18,7 @@ main = do
         hSetBuffering stderr NoBuffering
         let as = createAgents
         -- processIO as ioFun
-        runSteps as 1000
+        runSteps as 1
 
 runSteps :: [TestAgent] -> Int -> IO ()
 runSteps as steps = do
@@ -64,8 +64,10 @@ testAgentBehaviour aInit = proc agentIn ->
                         else
                             " NoStart"
 
+        let msgs = [(0, Increment), (1, Increment), (2, Increment)]
+
         returnA -< trace ("testAgentBehaviour in " ++ (show (aiId agentIn)) ++ (show test))
                             (AgentOut{ aoKill = NoEvent,
                                          aoCreate = [],
-                                         aoMessages = [],
+                                         aoMessages = msgs,
                                          aoState = s' })

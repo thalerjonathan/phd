@@ -10,6 +10,7 @@ import Agent.Agent
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
+------------------------------------------------------------------------------------------------------------------------
 data SIRSState = Susceptible | Infected | Recovered deriving (Eq, Show)
 data SIRSMsg = Contact SIRSState
 
@@ -28,6 +29,7 @@ type SIRSAgentBehaviour = AgentBehaviour SIRSAgentState SIRSMsg
 type SIRSAgentOut = AgentOut SIRSAgentState SIRSMsg
 ------------------------------------------------------------------------------------------------------------------------
 
+
 ------------------------------------------------------------------------------------------------------------------------
 -- MODEL-PARAMETERS
 infectedDuration :: Double
@@ -40,10 +42,10 @@ infectionProbability :: Double
 infectionProbability = 0.3
 ------------------------------------------------------------------------------------------------------------------------
 
+
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR
 ------------------------------------------------------------------------------------------------------------------------
-
 contactInfected :: AgentMessage SIRSMsg -> Bool
 contactInfected (_, Contact Infected) = True
 contactInfected otherwise = False
@@ -120,12 +122,15 @@ sirsAgentBehaviour :: SIRSAgentBehaviour
 sirsAgentBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
-        let aoAfterMsg = onMessage ain contactInfected (\ao' _ -> infectAgent ao') ao
+        let aoAfterMsg = onMessage contactInfected ain (\ao' _ -> infectAgent ao') ao
         let aoAfterTime = sirsDt aoAfterMsg 1.0
         returnA -< aoAfterTime
+------------------------------------------------------------------------------------------------------------------------
+
 
 ------------------------------------------------------------------------------------------------------------------------
 -- BOILER-PLATE CODE
+------------------------------------------------------------------------------------------------------------------------
 createRandomSIRSAgents :: (Int, Int) -> Double -> IO [SIRSAgentDef]
 createRandomSIRSAgents max@(x,y) p =  do
                                            let ssIO = [ randomAgentState p max (xCoord, yCoord) | xCoord <- [0..x-1], yCoord <- [0..y-1] ]

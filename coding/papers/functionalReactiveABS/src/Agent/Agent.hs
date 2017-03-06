@@ -8,6 +8,7 @@ import FRP.Yampa.Switches
 type AgentId = Int
 type AgentMessage m = (AgentId, m)
 type AgentBehaviour s m = SF (AgentIn s m) (AgentOut s m)
+type MessageFilter m = (AgentMessage m -> Bool)
 
 data AgentDef s m = AgentDef {
     adId :: AgentId,
@@ -112,9 +113,6 @@ sendMessage ao msg = ao { aoMessages = mergedMsgs }
         existingMsgEvent = aoMessages ao
         mergedMsgs = mergeMessages existingMsgEvent newMsgEvent
 
-mergeMessages :: Event [AgentMessage m] -> Event [AgentMessage m] -> Event [AgentMessage m]
-mergeMessages l r = mergeBy (\msgsLeft msgsRight -> msgsLeft ++ msgsRight) l r
-
 sendMessages :: AgentOut s m -> [AgentMessage m] -> AgentOut s m
 sendMessages ao msgs = foldl (\ao' msg -> sendMessage ao' msg ) ao msgs
 
@@ -129,13 +127,8 @@ onEvent evt evtHdl ao = if isEvent evt then
                             else
                                 ao
 
-type MessageFilter m = (AgentMessage m -> Bool)
-
-noMsgFilter :: MessageFilter m
-noMsgFilter _ = True
-
-onMessage :: AgentIn s m -> MessageFilter m -> (AgentOut s m -> AgentMessage m -> AgentOut s m) -> AgentOut s m -> AgentOut s m
-onMessage ai msgFilter evtHdl ao
+onMessage :: MessageFilter m -> AgentIn s m -> (AgentOut s m -> AgentMessage m -> AgentOut s m) -> AgentOut s m -> AgentOut s m
+onMessage msgFilter ai evtHdl ao
     | not hasMessages = ao
     | otherwise = foldl (\ao' msg -> evtHdl ao' msg ) ao filteredMsgs
     where
@@ -145,15 +138,17 @@ onMessage ai msgFilter evtHdl ao
         filteredMsgs = filter msgFilter msgs
 
 onAnyMessage :: AgentIn s m -> (AgentOut s m -> AgentMessage m -> AgentOut s m) -> AgentOut s m -> AgentOut s m
-onAnyMessage ai evtHdl ao = onMessage ai noMsgFilter evtHdl ao
+onAnyMessage ai evtHdl ao = onMessage noMsgFilter ai evtHdl ao
+    where
+        noMsgFilter = (\_ -> True)
 
 onMessageFrom :: AgentId -> AgentIn s m -> (AgentOut s m -> AgentMessage m -> AgentOut s m) -> AgentOut s m -> AgentOut s m
-onMessageFrom senderId ai evtHdl ao = onMessage ai noMsgFilter evtHdl ao
+onMessageFrom senderId ai evtHdl ao = onMessage filterBySender ai evtHdl ao
     where
         filterBySender = (\(senderId', _) -> senderId == senderId' )
 
 onMessageType :: (Eq m) => m -> AgentIn s m -> (AgentOut s m -> AgentMessage m -> AgentOut s m) -> AgentOut s m -> AgentOut s m
-onMessageType m ai evtHdl ao = onMessage ai filterByMsgType evtHdl ao
+onMessageType m ai evtHdl ao = onMessage filterByMsgType ai evtHdl ao
     where
         filterByMsgType = (\(_, m') -> m == m' )
 
@@ -162,6 +157,8 @@ updateState ao sfunc = ao { aoState = s' }
     where
         s = aoState ao
         s' = sfunc s
+----------------------------------------------------------------------------------------------------------------------
+
 
 ----------------------------------------------------------------------------------------------------------------------
 -- PRIVATES
@@ -230,3 +227,6 @@ feedBack asfs (newAgentOuts, newAgentIns) = proc _ ->
                                                 do
                                                     aos <- (process' asfs) -<  newAgentIns
                                                     returnA -< aos
+
+mergeMessages :: Event [AgentMessage m] -> Event [AgentMessage m] -> Event [AgentMessage m]
+mergeMessages l r = mergeBy (\msgsLeft msgsRight -> msgsLeft ++ msgsRight) l r

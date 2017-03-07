@@ -41,12 +41,13 @@ runSIRSStepsAndRender = do
                             initRng rngSeed
                             as <- createRandomSIRSAgents cells initInfectionProb
 
-                            let steps = 1
+                            let steps = 10
                             let ass = processSteps as 1.0 steps
                             let as' = last ass
 
                             pic <- modelToPicture as'
                             GLO.display (Front.display winTitle winSize) GLO.white pic
+                            --mapM (putStrLn . show . aoState) as'
 
                             return ()
 

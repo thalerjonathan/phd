@@ -207,7 +207,7 @@ collectOutput (oldAgentIn, newAgentOuts) = Event (newAgentOuts, newAgentIns)
 
         collectMessagesFor :: AgentId -> [AgentOut s m] -> Event [AgentMessage m]
         collectMessagesFor aid aos = foldl (\accMsgs ao -> mergeMessages (collectMessagesFrom aid ao) accMsgs ) NoEvent aos
-            where
+            where -- NOTE: this consumes 96% of alloc and 27.2% of the CPU time (most of it)
                 collectMessagesFrom :: AgentId -> AgentOut s m -> Event [AgentMessage m]
                 collectMessagesFrom aid ao = foldl (\accMsgs (receiverId, m) -> if receiverId == aid then
                                                                                 mergeMessages (Event [(senderId, m)]) accMsgs

@@ -22,7 +22,7 @@ data SIRSAgentState = SIRSAgentState {
     sirsTime :: Double,
     sirsNeighbours :: [AgentId],
     sirsRng :: StdGen
-}
+} deriving (Show)
 
 type SIRSAgentDef = AgentDef SIRSAgentState SIRSMsg
 type SIRSAgentBehaviour = AgentBehaviour SIRSAgentState SIRSMsg
@@ -36,7 +36,7 @@ infectedDuration :: Double
 infectedDuration = 7.0
 
 immuneDuration :: Double
-immuneDuration = 3.0
+immuneDuration = 3000.0
 
 infectionProbability :: Double
 infectionProbability = 0.3
@@ -63,7 +63,7 @@ sirsDt ao dt
 
 infectAgent :: SIRSAgentOut -> SIRSAgentOut
 infectAgent ao
-    | yes = updateState ao (\s -> s { sirsState = Infected,
+    | yes = updateState ao' (\s -> s { sirsState = Infected,
                                       sirsTime = 0.0} )
     | otherwise = ao'
     where
@@ -122,7 +122,7 @@ sirsAgentBehaviour :: SIRSAgentBehaviour
 sirsAgentBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
-        let aoAfterMsg = onMessage contactInfected ain (\ao' _ -> infectAgent ao') ao
+        let aoAfterMsg = onMessage contactInfected ain (\ao' _ -> if is ao Susceptible then infectAgent ao' else ao' ) ao
         let aoAfterTime = sirsDt aoAfterMsg 1.0
         returnA -< aoAfterTime
 ------------------------------------------------------------------------------------------------------------------------
@@ -156,6 +156,13 @@ randomAgentState p max coord = do
                                                 else
                                                     Susceptible
 
+                                    randTime <- getStdRandom (randomR(1.0, infectedDuration))
+
+                                    let t = if isInfected then
+                                                randTime
+                                                else
+                                                    0.0
+
                                     let nCoords = neighbours coord max
                                     let nIds = map (coordToAid max) nCoords
                                     rng <- newStdGen
@@ -163,7 +170,7 @@ randomAgentState p max coord = do
                                     return SIRSAgentState{
                                             sirsState = s,
                                             sirsCoord = coord,
-                                            sirsTime = 0.0,
+                                            sirsTime = t,
                                             sirsNeighbours = nIds,
                                             sirsRng = rng }
 

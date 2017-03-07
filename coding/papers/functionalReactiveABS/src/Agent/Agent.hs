@@ -198,6 +198,7 @@ collectOutput (oldAgentIn, newAgentOuts) = Event (newAgentOuts, newAgentIns)
     where
         newAgentIns = map (agentOutToAgentIn newAgentOuts) (zip oldAgentIn newAgentOuts)
 
+        -- TODO: optimize by using a Map (would it help?) so we need to go over the agents once?
         agentOutToAgentIn :: [AgentOut s m] -> (AgentIn s m, AgentOut s m) -> AgentIn s m
         agentOutToAgentIn allOuts (oldIn, newOut) = oldIn { aiStart = NoEvent,
                                                             aiState = (aoState newOut),
@@ -208,6 +209,7 @@ collectOutput (oldAgentIn, newAgentOuts) = Event (newAgentOuts, newAgentIns)
         collectMessagesFor :: AgentId -> [AgentOut s m] -> Event [AgentMessage m]
         collectMessagesFor aid aos = foldl (\accMsgs ao -> mergeMessages (collectMessagesFrom aid ao) accMsgs ) NoEvent aos
             where -- NOTE: this consumes 96% of alloc and 27.2% of the CPU time (most of it)
+
                 collectMessagesFrom :: AgentId -> AgentOut s m -> Event [AgentMessage m]
                 collectMessagesFrom aid ao = foldl (\accMsgs (receiverId, m) -> if receiverId == aid then
                                                                                 mergeMessages (Event [(senderId, m)]) accMsgs

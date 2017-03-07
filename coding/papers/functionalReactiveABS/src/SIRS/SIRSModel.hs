@@ -118,6 +118,7 @@ randomContact ao = sendMessage ao' (randNeigh, (Contact Infected))
         randNeigh = (sirsNeighbours (aoState ao)) !! randIdx
         ao' = updateState ao (\s -> s { sirsRng = g' } )
 
+-- TODO: switch SF when in different states as behaviour changes
 sirsAgentBehaviour :: SIRSAgentBehaviour
 sirsAgentBehaviour = proc ain ->
     do

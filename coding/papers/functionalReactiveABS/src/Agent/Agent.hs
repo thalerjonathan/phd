@@ -36,18 +36,23 @@ data AgentOut s m = AgentOut {
 ----------------------------------------------------------------------------------------------------------------------
 -- RUNNING SIMULATION WITH ITS OWN LOOP
 ----------------------------------------------------------------------------------------------------------------------
-processIO :: [AgentDef s m] -> ([AgentOut s m] -> IO (Bool, Double)) -> IO ()
-processIO as outFunc = do
-                            hdl <- reactInit
-                                        (return ains)
-                                        (iter outFunc)
-                                        (process as)
-                            Agent.Agent.iterate hdl (1.0, Nothing) -- TODO: need to get this dt correct instead of 0.5, should come from input/output
-                            return ()
-                        where
-                            ains = createStartingAgentIn as
+processIO :: [AgentDef s m]
+                -> Bool
+                -> ([AgentOut s m] -> IO (Bool, Double))
+                -> IO ()
+processIO as parStrategy outFunc = do
+                                    hdl <- reactInit
+                                                (return ains)
+                                                (iter outFunc)
+                                                (process as parStrategy)
+                                    Agent.Agent.iterate hdl (1.0, Nothing) -- TODO: need to get this dt correct instead of 0.5, should come from input/output
+                                    return ()
+                                        where
+                                            ains = createStartingAgentIn as
 
-iterate :: ReactHandle a b -> (DTime, Maybe a) -> IO Bool
+iterate :: ReactHandle a b
+            -> (DTime, Maybe a)
+            -> IO Bool
 iterate hdl (dt, input) = do
                             cont <- react hdl (1.0, Nothing)  -- TODO: need to get this dt correct instead of 0.5, should come from input/output
                             if cont then
@@ -56,7 +61,12 @@ iterate hdl (dt, input) = do
                                         return False
 
 -- NOTE: don't care about a, we don't use it anyway
-iter :: ([AgentOut s m] -> IO (Bool, Double)) -> ReactHandle a [AgentOut s m] -> Bool -> [AgentOut s m] -> IO Bool
+iter :: ([AgentOut s m]
+            -> IO (Bool, Double))
+            -> ReactHandle a [AgentOut s m]
+            -> Bool
+            -> [AgentOut s m]
+            -> IO Bool
 iter outFunc hdl _ out = do
                             (cont, dt) <- outFunc out
                             return cont
@@ -66,11 +76,14 @@ iter outFunc hdl _ out = do
 -- RUNNING SIMULATION WITHIN AN OUTER LOOP
 ----------------------------------------------------------------------------------------------------------------------
 -- NOTE: don't care about a, we don't use it anyway
-processIOInit :: [AgentDef s m] -> (ReactHandle [AgentIn s m] [AgentOut s m] -> Bool -> [AgentOut s m] -> IO Bool) -> IO (ReactHandle [AgentIn s m] [AgentOut s m])
-processIOInit as iterFunc = reactInit
-                                (return ains)
-                                iterFunc
-                                (process as)
+processIOInit :: [AgentDef s m]
+                    -> Bool
+                    -> (ReactHandle [AgentIn s m] [AgentOut s m] -> Bool -> [AgentOut s m] -> IO Bool)
+                    -> IO (ReactHandle [AgentIn s m] [AgentOut s m])
+processIOInit as parStrategy iterFunc = reactInit
+                                            (return ains)
+                                            iterFunc
+                                            (process as parStrategy)
     where
         ains = createStartingAgentIn as
 
@@ -78,10 +91,10 @@ processIOInit as iterFunc = reactInit
 -- CALCULATING A FIXED NUMBER OF STEPS OF THE SIMULATION
 ----------------------------------------------------------------------------------------------------------------------
 {- NOTE: to run Yampa in a pure-functional way use embed -}
-processSteps :: [AgentDef s m] -> Double -> Int -> [[AgentOut s m]]
-processSteps as dt steps = embed
-                            (process as)
-                            (ains, sts)
+processSteps :: [AgentDef s m] -> Bool -> Double -> Int -> [[AgentOut s m]]
+processSteps as parStrategy dt steps = embed
+                                        (process as parStrategy)
+                                        (ains, sts)
     where
 
         -- NOTE: again haskells laziness put to use: take steps items from the infinite list of sampling-times
@@ -174,20 +187,44 @@ createStartingAgentIn as = map startingAgentInFromAgent as
                                                 aiTerminate = NoEvent,
                                                 aiState = (adState a)}
 
-process :: [AgentDef s m] -> SF [AgentIn s m] [AgentOut s m]
-process as = process' asfs
+-- TODO: implement sequential iteration!
+process :: [AgentDef s m] -> Bool -> SF [AgentIn s m] [AgentOut s m]
+process as parStrategy
+    | parStrategy = processPar asfs
+    | otherwise = processSeq asfs
     where
         asfs = map adBehaviour as
 
-process' :: [AgentBehaviour s m] -> SF [AgentIn s m] [AgentOut s m]
-process' asfs  = proc ains ->
+----------------------------------------------------------------------------------------------------------------------
+-- SEQUENTIAL STRATEGY
+----------------------------------------------------------------------------------------------------------------------
+processSeq :: [AgentBehaviour s m] -> SF [AgentIn s m] [AgentOut s m]
+processSeq asfs = proc ains ->
+        do
+            aos <- seqSwitch                -- NOTE: based on pSwitch
+                        route               -- NOTE: Routing function
+                        asfs                -- NOTE: Initial collection of signal functions
+                        collectOutput       -- Signal function that observes the external input signal and the output signals from the collection in order to produce a switching event.
+                        feedBackSeq -< ains
+
+feedBackSeq :: [AgentBehaviour s m] -> ([AgentOut s m], [AgentIn s m]) -> SF [AgentIn s m] [AgentOut s m]
+feedBackSeq asfs (newAgentOuts, newAgentIns) = proc _ ->
+                                                do
+                                                    aos <- (processSeq asfs) -<  newAgentIns
+                                                    returnA -< aos
+----------------------------------------------------------------------------------------------------------------------
+-- PARALLEL STRATEGY
+----------------------------------------------------------------------------------------------------------------------
+processPar:: [AgentBehaviour s m] -> SF [AgentIn s m] [AgentOut s m]
+processPar asfs  = proc ains ->
     do
         aos <- dpSwitch
                    route
                    asfs
                    (arr collectOutput >>> notYet)  -- TODO: WHY??? in the first iteration we don't fire yet >>> notYet
-                   feedBack -< ains
+                   feedBackPar -< ains
         returnA -< aos
+
 
 route :: [AgentIn s m] -> [sf] -> [(AgentIn s m, sf)]
 route ains sfs = zip ains sfs
@@ -224,11 +261,12 @@ collectOutput (oldAgentIn, newAgentOuts) = Event (newAgentOuts, newAgentIns)
                                         []
 
 -- TODO: add/remove signal-functions on agent creation/destruction
-feedBack :: [AgentBehaviour s m] -> ([AgentOut s m], [AgentIn s m]) -> SF [AgentIn s m] [AgentOut s m]
-feedBack asfs (newAgentOuts, newAgentIns) = proc _ ->
+feedBackPar :: [AgentBehaviour s m] -> ([AgentOut s m], [AgentIn s m]) -> SF [AgentIn s m] [AgentOut s m]
+feedBackPar asfs (newAgentOuts, newAgentIns) = proc _ ->
                                                 do
-                                                    aos <- (process' asfs) -<  newAgentIns
+                                                    aos <- (processPar asfs) -<  newAgentIns
                                                     returnA -< aos
+----------------------------------------------------------------------------------------------------------------------
 
 mergeMessages :: Event [AgentMessage m] -> Event [AgentMessage m] -> Event [AgentMessage m]
 mergeMessages l r = mergeBy (\msgsLeft msgsRight -> msgsLeft ++ msgsRight) l r

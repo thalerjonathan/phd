@@ -227,7 +227,7 @@ processSeq asfs  = proc ains ->
 ----------------------------------------------------------------------------------------------------------------------
 -- PARALLEL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
-processPar:: [AgentBehaviour s m] -> SF [AgentIn s m] [AgentOut s m]
+processPar :: [AgentBehaviour s m] -> SF [AgentIn s m] [AgentOut s m]
 processPar asfs  = proc ains ->
     do
         aos <- dpSwitch

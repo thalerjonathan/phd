@@ -6,7 +6,7 @@ cabal-version:     >= 1.2
 executable functionalReactiveABS
   main-is:         Main.hs
   hs-source-dirs:  src
-  build-depends:   base, Yampa, gloss, QuickCheck, random
+  build-depends:   base, Yampa, gloss, QuickCheck, random, containers
   ghc-options:      -O2
                     -- -eventlog
                     -- -rtsopts

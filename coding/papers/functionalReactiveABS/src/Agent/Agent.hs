@@ -198,6 +198,7 @@ process as parStrategy
 ----------------------------------------------------------------------------------------------------------------------
 -- SEQUENTIAL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
+{-
 processSeq :: [AgentBehaviour s m] -> SF [AgentIn s m] [AgentOut s m]
 processSeq asfs = proc ains ->
         do
@@ -212,6 +213,17 @@ feedBackSeq asfs (newAgentOuts, newAgentIns) = proc _ ->
                                                 do
                                                     aos <- (processSeq asfs) -<  newAgentIns
                                                     returnA -< aos
+                                                    -}
+processSeq:: [AgentBehaviour s m] -> SF [AgentIn s m] [AgentOut s m]
+processSeq asfs  = proc ains ->
+    do
+        aos <- dpSwitch
+                   route
+                   asfs
+                   (arr collectOutput >>> notYet)  -- TODO: WHY??? in the first iteration we don't fire yet >>> notYet
+                   feedBackPar -< ains
+        returnA -< aos
+
 ----------------------------------------------------------------------------------------------------------------------
 -- PARALLEL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
@@ -221,7 +233,7 @@ processPar asfs  = proc ains ->
         aos <- dpSwitch
                    route
                    asfs
-                   (arr collectOutput >>> notYet)  -- TODO: WHY??? in the first iteration we don't fire yet >>> notYet
+                   (arr collectOutput >>> notYet)  -- TODO: WHY??? BECAUSE OTHERWISE WE WOULD END UP IN A RECURSION SWITCHING ?  in the first iteration we don't fire yet >>> notYet
                    feedBackPar -< ains
         returnA -< aos
 

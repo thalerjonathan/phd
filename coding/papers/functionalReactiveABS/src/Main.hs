@@ -37,7 +37,8 @@ simpleSF = proc i ->
 ------------------------------------------------------------------------------------------------------------------------
 -- d/SWITCH
 ------------------------------------------------------------------------------------------------------------------------
--- NOTE: a dSwitch does not prevent one from recurring when using initial SF as function to switch into
+-- NOTE: a d/ does not prevent one from recurring when using initial SF as function to switch into
+-- NOTE: to be able to switch back into the same original SF use >>> notYet
 switchTest :: SF TestInput TestOutput
 switchTest = dSwitch
                 switchTrigger
@@ -50,7 +51,6 @@ switchTrigger = proc i ->
                             let o = show t
                             returnA -< (o, Event "Event Occured")
 
--- NOTE: a dSwitch does not prevent one from recurring when using initial SF as function to switch into
 switchContinuation :: String -> SF TestInput TestOutput
 switchContinuation evtData = proc i ->
                                   do
@@ -61,6 +61,7 @@ switchContinuation evtData = proc i ->
 ------------------------------------------------------------------------------------------------------------------------
 -- d/rSwitch
 ------------------------------------------------------------------------------------------------------------------------
+-- NOTE: to be able to switch back into the same original SF use >>> notYet
 rSwitchTest :: SF TestInput TestOutput
 rSwitchTest = proc i ->
                 do
@@ -72,13 +73,14 @@ rSwitchTest = proc i ->
 ------------------------------------------------------------------------------------------------------------------------
 -- d/kSwitch
 ------------------------------------------------------------------------------------------------------------------------
+-- NOTE: to be able to switch back into the same original SF use >>> notYet
 kSwitchTest :: SF TestInput TestOutput
 kSwitchTest = proc i ->
                 do
                     let i' = i + 1
                     kSwitch
                         simpleSF
-                        kSwitchTrigger
+                        (kSwitchTrigger >>> notYet)
                         kSwitchContinuation -< i'
 
 kSwitchTrigger :: SF (TestInput, TestOutput) (Event String)
@@ -88,4 +90,4 @@ kSwitchTrigger = proc (i, o) ->
                             returnA -< e
 
 kSwitchContinuation :: SF TestInput TestOutput -> String -> SF TestInput TestOutput
-kSwitchContinuation oldSf evtData = oldSf -- simpleSF
+kSwitchContinuation oldSf evtData = kSwitchTest

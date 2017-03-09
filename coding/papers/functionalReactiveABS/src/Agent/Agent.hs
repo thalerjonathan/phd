@@ -129,6 +129,15 @@ sendMessage ao msg = ao { aoMessages = mergedMsgs }
 sendMessages :: AgentOut s m -> [AgentMessage m] -> AgentOut s m
 sendMessages ao msgs = foldr (\msg ao' -> sendMessage ao' msg ) ao msgs
 
+createAgent :: AgentOut s m -> AgentDef s m -> AgentOut s m
+createAgent ao newDef = ao { aoCreate = createEvt }
+    where
+        oldCreateEvt = aoCreate ao
+        createEvt = mergeBy (\leftCreate rightCreate -> leftCreate ++ rightCreate) (Event [newDef]) oldCreateEvt
+
+kill :: AgentOut s m -> AgentOut s m
+kill ao = ao { aoKill = Event () }
+
 onStart :: AgentIn s m -> (AgentOut s m -> AgentOut s m) -> AgentOut s m -> AgentOut s m
 onStart ai evtHdl ao = onEvent startEvt evtHdl ao
     where

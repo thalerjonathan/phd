@@ -22,10 +22,8 @@ testSF_col = map simpleSF [0..10]
 ------------------------------------------------------------------------------------------------------------------------
 seqTest :: IO ()
 seqTest = do
-            -- PROBLEM: to iterate N SFs sequentially we need N time-steps - we can conveniently decide whether time moves on between all updates or not
-            let sts = take 10 $ samplingTimes 0.0 0.0
-            let finalMap = embed (seqRunSfs sfs) (0, sts)
-            mapM putStrLn finalMap
+            let (sfs', os) = seqRunSfs sfs is
+            mapM putStrLn os
             return ()
 
         where
@@ -33,8 +31,33 @@ seqTest = do
             n = length sfs
             is = map (+1) [0..n-1]
 
-seqRunSfs :: [SF TestInput TestOutput] -> SF TestInput TestOutput
-seqRunSfs (sf:sfs) = proc i ->
+seqRunSfs :: [SF TestInput TestOutput] -> [TestInput] -> ([SF TestInput TestOutput], [TestOutput])
+seqRunSfs sfs is = embed (seqRunSfs' sfs) (is, sts)
+    where
+        n = length sfs
+        sts = take n $ samplingTimes 0.0 0.0 -- NOTE: to iterate N SFs sequentially we need N time-steps - we can conveniently decide whether time moves on between all updates or not
+
+
+
+seqRunSingleSf :: SF TestInput TestOutput -> SF TestInput TestOutput
+seqRunSingleSf sf = proc i ->
+                        do
+                            kSwitch
+                                sf
+                                (seqRunSingleSfTrigger >>> notYet)
+                                seqRunSingleSfContinuation -< i
+
+seqRunSingleSfTrigger :: SF (TestInput, TestOutput) (Event TestOutput)
+seqRunSingleSfTrigger = proc (i, o) ->
+                        do
+                            returnA -< Event o
+
+seqRunSingleSfContinuation :: SF TestInput TestOutput -> TestOutput -> SF TestInput TestOutput
+seqRunSingleSfContinuation executedSf evtData = executedSf
+
+{-
+seqRunSfs' :: [SF TestInput TestOutput] -> SF TestInput TestOutput
+seqRunSfs' (sf:sfs) = proc i ->
                         do
                             kSwitch
                                 sf
@@ -48,7 +71,8 @@ seqRunSfsTrigger = proc (i, o) ->
                             returnA -< Event o
 
 seqRunSfsContinuation :: [SF TestInput TestOutput] -> SF TestInput TestOutput -> TestOutput -> SF TestInput TestOutput
-seqRunSfsContinuation remainingSfs executedSf evtData = seqRunSfs remainingSfs
+seqRunSfsContinuation remainingSfs executedSf evtData = seqRunSfs' remainingSfs
+-}
 
 {-
 seqRunSfs :: SF Int SFDataSeqMap

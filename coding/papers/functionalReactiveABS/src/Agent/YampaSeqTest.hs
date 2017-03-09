@@ -2,7 +2,7 @@
 
 module Agent.YampaSeqTest where
 
-import FRP.Yampa
+import qualified FRP.Yampa as Yampa
 import FRP.Yampa.Switches
 import FRP.Yampa.InternalCore
 
@@ -14,7 +14,7 @@ type TestOutput = Double
 ------------------------------------------------------------------------------------------------------------------------
 testSeq:: IO ()
 testSeq = do
-            let os = embed (runSeq sfs is) (is, sts)
+            let os = Yampa.embed (runSeq sfs is) (is, sts)
             mapM (putStrLn . show) (head os)
             return ()
 
@@ -34,24 +34,35 @@ simpleSF :: Int -> SF TestInput TestOutput
 simpleSF off = proc i ->
                 do
                     let i' = i + off
-                    t <- time -< 0
+                    t <- Yampa.time -< 0
                     returnA -< t
 
-runSeq :: [SF TestInput TestOutput] -> [TestInput] -> SF [TestInput] [TestOutput]
-runSeq sfs is = proc is ->
-                    do
-                        returnA -< []
-------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Running a Signal-Function
 ------------------------------------------------------------------------------------------------------------------------
-{-
 -- This will run the given SF with the given input a and returns the continuation SF with the output b
-runSF :: SF a b -> a -> (SF' a b, b)
-runSF sf0 a0 = (sf0, b0)
-    where
-        -- tf0 :: SF' a b, b0 :: b
-        (tf0, b0) = (sfTF sf0) a0
-        -}
+runSFInit :: SF a b -> a -> (SF' a b, b)
+runSFInit sf0 a0 = (sfTF sf0) a0
+
+runSFCont :: SF' a b -> a -> DTime -> (SF' a b, b)
+runSFCont sf0 a0 dt0 = (sfTF' sf0 dt0) a0
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+runSeq :: [SF TestInput TestOutput]
+            -> [TestInput]
+            -> [TestInput] -> (TestInput, TestOutput) -> (Maybe (SF TestInput TestOutput), [TestInput])
+            -> SF [TestInput] [TestOutput]
+runSeq sfs is clbk = proc is ->
+                        do
+                            returnA -< []
+
+-- NOTE: this callback feeds in all the inputs and the current working triple: SF, Inpout and Output
+-- It allows to change the inputs of future SFs and may return the SF. if it doesnt return a SF this means it is deleted from the system
+--
+runSeqCallback :: [TestInput]   -- the existing inputs
+                    -> (SF TestInput TestOutput, TestInput, TestOutput) -- the current working triple
+                    -> (Maybe (SF TestInput TestOutput), [SF TestInput TestOutput], [TestInput])    -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
+runSeqCallback allInputs (currentSF, currentInput, currentOutput) = (Just currentSF, allInputs)
 ------------------------------------------------------------------------------------------------------------------------

@@ -1,13 +1,18 @@
 {-# LANGUAGE Arrows #-}
 module Agent.YampaSwitchTest where
 
-import FRP.Yampa
-import FRP.Yampa.Switches
 import qualified Data.Map as Map
 import Data.List
+import Data.Maybe
+
+import FRP.Yampa
+import FRP.Yampa.Switches
+
+
 
 type TestInput = Int
 type TestOutput = String
+type SFDataSeqMap = Map.Map Int (SF TestInput TestOutput, TestInput, TestOutput)
 
 testSF_0 = simpleSF 0
 testSF_col = map simpleSF [0..10]
@@ -17,12 +22,36 @@ testSF_col = map simpleSF [0..10]
 ------------------------------------------------------------------------------------------------------------------------
 seqTest :: IO ()
 seqTest = do
-            let sts = take 10 $ samplingTimes 0.0 1.0
-            let finalMap = embed seqRunSfs (0, sts)
-            mapM putStrLn []
+            -- PROBLEM: to iterate N SFs sequentially we need N time-steps - we can conveniently decide whether time moves on between all updates or not
+            let sts = take 10 $ samplingTimes 0.0 0.0
+            let finalMap = embed (seqRunSfs sfs) (0, sts)
+            mapM putStrLn finalMap
             return ()
 
-seqRunSfs :: SF Int (Map.Map Int (SF TestInput TestOutput, TestInput, TestOutput))
+        where
+            sfs = testSF_col
+            n = length sfs
+            is = map (+1) [0..n-1]
+
+seqRunSfs :: [SF TestInput TestOutput] -> SF TestInput TestOutput
+seqRunSfs (sf:sfs) = proc i ->
+                        do
+                            kSwitch
+                                sf
+                                (seqRunSfsTrigger >>> notYet)
+                                (seqRunSfsContinuation sfs) -< i
+
+
+seqRunSfsTrigger :: SF (TestInput, TestOutput) (Event TestOutput)
+seqRunSfsTrigger = proc (i, o) ->
+                        do
+                            returnA -< Event o
+
+seqRunSfsContinuation :: [SF TestInput TestOutput] -> SF TestInput TestOutput -> TestOutput -> SF TestInput TestOutput
+seqRunSfsContinuation remainingSfs executedSf evtData = seqRunSfs remainingSfs
+
+{-
+seqRunSfs :: SF Int SFDataSeqMap
 seqRunSfs = seqRunSfs' seqMap
     where
         n = length testSF_col
@@ -32,23 +61,31 @@ seqRunSfs = seqRunSfs' seqMap
         zipQuadruple = zip4 indices testSF_col initInputs initOutputs
         seqMap = foldl (\accMap (idx, sf, i, o) -> Map.insert idx (sf, i, o) accMap) Map.empty zipQuadruple
 
-seqRunSfs' :: Map.Map Int (SF TestInput TestOutput, TestInput, TestOutput) -> SF Int (Map.Map Int (SF TestInput TestOutput, TestInput, TestOutput))
+
+seqRunSfs' :: SFDataSeqMap -> SF Int SFDataSeqMap
 seqRunSfs' seqMap = proc idx ->
                         do
+                            let (sf, i, _) = fromJust $ Map.lookup idx seqMap
                             kSwitch
-                                (sfs !! idx)
-                                (seqRunSfsTrigger seqMap idx >>> notYet)
-                                (seqRunSfsContinuation seqMap idx) -< (is !! idx)
+                                sf
+                                (seqRunSfsTrigger seqMap >>> notYet)
+                                (seqRunSfsContinuation idx) -< i
 
-seqRunSfsTrigger :: Map.Map Int (SF TestInput TestOutput, TestInput, TestOutput) -> Int -> SF (TestInput, TestOutput) (Event [TestOutput])
-seqRunSfsTrigger seqMap idx = proc (i, o) ->
+
+seqRunSfsTrigger :: SFDataSeqMap -> SF (TestInput, TestOutput) (Event (SFDataSeqMap, TestOutput))
+seqRunSfsTrigger seqMap = proc (i, o) ->
                                 do
-                                    let e = Event (o : osAcc)
+                                    let e = Event (seqMap, o)
                                     returnA -< e
 
 -- TODO: replace executedSf at
-seqRunSfsContinuation :: Map.Map Int (SF TestInput TestOutput, TestInput, TestOutput) -> Int -> SF TestInput TestOutput -> [TestOutput] -> SF [TestInput] [TestOutput]
-seqRunSfsContinuation seqMap idx executedSf evtData = seqRunSfs' allSfs
+seqRunSfsContinuation :: Int -> SF TestInput TestOutput -> SFDataSeqMap -> SF Int SFDataSeqMap
+seqRunSfsContinuation idx executedSf evtData = proc idx' ->
+                                                do
+                                                    let (executedSf, _, _) = fromJust $ Map.lookup idx seqMap
+                                                    let seqMap' = Map.insert idx (sf, i, o)
+                                                    seqRunSfs' evtData -< (idx' + 1)
+                                                    -}
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

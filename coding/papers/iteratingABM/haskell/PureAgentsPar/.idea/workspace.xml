@@ -69,7 +69,7 @@
       <file leaf-file-name="SGModelMsg.hs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/SpacialGameMsg/SGModelMsg.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="920">
+            <state relative-caret-position="2628">
               <caret line="146" column="0" lean-forward="false" selection-start-line="146" selection-start-column="0" selection-end-line="150" selection-end-column="88" />
               <folding />
             </state>
@@ -149,6 +149,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="PackagesPane" />
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -178,8 +180,6 @@
         </subPane>
       </pane>
       <pane id="Scope" />
-      <pane id="Scratches" />
-      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -840,7 +840,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/SpacialGameMsg/SGModelMsg.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="920">
+        <state relative-caret-position="2628">
           <caret line="146" column="0" lean-forward="false" selection-start-line="146" selection-start-column="0" selection-end-line="150" selection-end-column="88" />
           <folding />
         </state>

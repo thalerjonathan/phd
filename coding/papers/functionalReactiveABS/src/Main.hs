@@ -1,8 +1,8 @@
 module Main where
 
 import SIRS.RunSIRS
-import Agent.YampaSwitchTest
+import Agent.YampaSeqTest
 
 main :: IO ()
-main = seqTest -- runSIRSWithRendering
+main = runSIRSWithRendering
 

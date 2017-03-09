@@ -28,7 +28,7 @@ data AgentIn s m = AgentIn {
 data AgentOut s m = AgentOut {
     aoId :: AgentId,
     aoKill :: Event (),
-    aoCreate :: [AgentDef s m],
+    aoCreate :: Event [AgentDef s m],
     aoMessages :: Event [AgentMessage m],     -- AgentId identifies receiver
     aoState :: s
 }
@@ -115,7 +115,7 @@ samplingTimes t dt = (t', Nothing) : (samplingTimes t' dt)
 agentOutFromIn :: AgentIn s m -> AgentOut s m
 agentOutFromIn ai = AgentOut{ aoId = (aiId ai),
                               aoKill = NoEvent,
-                              aoCreate = [],
+                              aoCreate = NoEvent,
                               aoMessages = NoEvent,
                               aoState = (aiState ai) }
 
@@ -127,7 +127,7 @@ sendMessage ao msg = ao { aoMessages = mergedMsgs }
         mergedMsgs = mergeMessages existingMsgEvent newMsgEvent
 
 sendMessages :: AgentOut s m -> [AgentMessage m] -> AgentOut s m
-sendMessages ao msgs = foldl (\ao' msg -> sendMessage ao' msg ) ao msgs
+sendMessages ao msgs = foldr (\msg ao' -> sendMessage ao' msg ) ao msgs
 
 onStart :: AgentIn s m -> (AgentOut s m -> AgentOut s m) -> AgentOut s m -> AgentOut s m
 onStart ai evtHdl ao = onEvent startEvt evtHdl ao
@@ -143,7 +143,7 @@ onEvent evt evtHdl ao = if isEvent evt then
 onMessage :: MessageFilter m -> AgentIn s m -> (AgentOut s m -> AgentMessage m -> AgentOut s m) -> AgentOut s m -> AgentOut s m
 onMessage msgFilter ai evtHdl ao
     | not hasMessages = ao
-    | otherwise = foldl (\ao' msg -> evtHdl ao' msg ) ao filteredMsgs
+    | otherwise = foldr (\msg ao'-> evtHdl ao' msg ) ao filteredMsgs
     where
         msgsEvt = aiMessages ai
         hasMessages = isEvent msgsEvt
@@ -177,15 +177,15 @@ updateState ao sfunc = ao { aoState = s' }
 -- PRIVATES
 ----------------------------------------------------------------------------------------------------------------------
 createStartingAgentIn :: [AgentDef s m] -> [AgentIn s m]
-createStartingAgentIn as = map startingAgentInFromAgent as
-    where
-        startingAgentInFromAgent :: AgentDef s m -> AgentIn s m
-        startingAgentInFromAgent a = AgentIn { aiId = (adId a),
-                                                aiMessages = NoEvent,
-                                                aiStart = Event (),
-                                                aiStop = NoEvent,
-                                                aiTerminate = NoEvent,
-                                                aiState = (adState a)}
+createStartingAgentIn as = map startingAgentInFromAgentDef as
+
+startingAgentInFromAgentDef :: AgentDef s m -> AgentIn s m
+startingAgentInFromAgentDef a = AgentIn { aiId = (adId a),
+                                        aiMessages = NoEvent,
+                                        aiStart = Event (),
+                                        aiStop = NoEvent,
+                                        aiTerminate = NoEvent,
+                                        aiState = (adState a)}
 
 -- TODO: implement sequential iteration!
 process :: [AgentDef s m] -> Bool -> SF [AgentIn s m] [AgentOut s m]
@@ -198,22 +198,7 @@ process as parStrategy
 ----------------------------------------------------------------------------------------------------------------------
 -- SEQUENTIAL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
-{-
-processSeq :: [AgentBehaviour s m] -> SF [AgentIn s m] [AgentOut s m]
-processSeq asfs = proc ains ->
-        do
-            aos <- seqSwitch                -- NOTE: based on pSwitch
-                        route               -- NOTE: Routing function
-                        asfs                -- NOTE: Initial collection of signal functions
-                        collectOutput       -- Signal function that observes the external input signal and the output signals from the collection in order to produce a switching event.
-                        feedBackSeq -< ains
 
-feedBackSeq :: [AgentBehaviour s m] -> ([AgentOut s m], [AgentIn s m]) -> SF [AgentIn s m] [AgentOut s m]
-feedBackSeq asfs (newAgentOuts, newAgentIns) = proc _ ->
-                                                do
-                                                    aos <- (processSeq asfs) -<  newAgentIns
-                                                    returnA -< aos
-                                                    -}
 processSeq:: [AgentBehaviour s m] -> SF [AgentIn s m] [AgentOut s m]
 processSeq asfs  = proc ains ->
     do
@@ -241,26 +226,70 @@ processPar asfs  = proc ains ->
 route :: [AgentIn s m] -> [sf] -> [(AgentIn s m, sf)]
 route ains sfs = zip ains sfs
 
+collectOutput :: ([AgentIn s m], [AgentOut s m]) -> (Event ([AgentIn s m], [AgentOut s m]))
+collectOutput (oldAgentIn, newAgentOuts) = Event (oldAgentIn, newAgentOuts)
 
-collectOutput :: ([AgentIn s m], [AgentOut s m]) -> (Event ([AgentOut s m], [AgentIn s m]))
-collectOutput (oldAgentIn, newAgentOuts) = Event (newAgentOuts, newAgentIns)
+feedBackPar :: [AgentBehaviour s m] -> ([AgentIn s m], [AgentOut s m]) -> SF [AgentIn s m] [AgentOut s m]
+feedBackPar asfs (oldAgentIns, newAgentOuts) = proc _ ->
+                                                do
+                                                    aos <- (processPar asfs') -< newAgentIns'
+                                                    returnA -< aos
     where
-        newAgentIns = map (agentOutToAgentIn newAgentOuts) (zip oldAgentIn newAgentOuts)
+        (asfs', newAgentIns) = processAgents asfs oldAgentIns newAgentOuts
+        newAgentIns' = distributeMessages newAgentIns newAgentOuts
 
-        -- TODO: optimize by using a Map (would it help?) so we need to go over the agents once?
-        agentOutToAgentIn :: [AgentOut s m] -> (AgentIn s m, AgentOut s m) -> AgentIn s m
-        agentOutToAgentIn allOuts (oldIn, newOut) = oldIn { aiStart = NoEvent,
-                                                            aiState = (aoState newOut),
-                                                            aiMessages = msgEvt }
+        processAgents :: [AgentBehaviour s m]
+                            -> [AgentIn s m]
+                            -> [AgentOut s m]
+                            -> ([AgentBehaviour s m], [AgentIn s m])
+        processAgents asfs oldIs newOs = foldr (\a acc -> handleAgent acc a ) ([], []) asfsWithIsOs
             where
-                msgEvt = collectMessagesFor (aiId oldIn) allOuts
+                asfsWithIsOs = zip3 asfs oldIs newOs
 
-        collectMessagesFor :: AgentId -> [AgentOut s m] -> Event [AgentMessage m]
-        collectMessagesFor aid aos = foldl (\accMsgs ao -> mergeMessages (collectMessagesFrom aid ao) accMsgs ) NoEvent aos
-            where -- NOTE: this consumes 96% of alloc and 27.2% of the CPU time (most of it)
+                handleAgent :: ([AgentBehaviour s m], [AgentIn s m])
+                                -> (AgentBehaviour s m, AgentIn s m, AgentOut s m)
+                                -> ([AgentBehaviour s m], [AgentIn s m])
+                handleAgent acc a@(sf, oldIn, newOut) = handleKillOrLiveAgent acc' a
+                    where
+                        acc' = handleCreateAgents acc newOut
+
+                handleCreateAgents :: ([AgentBehaviour s m], [AgentIn s m])
+                                        -> AgentOut s m
+                                        -> ([AgentBehaviour s m], [AgentIn s m])
+                handleCreateAgents acc@(asfsAcc, ainsAcc) o
+                    | hasCreateAgents = (asfsAcc ++ newSfs, ainsAcc ++ newAis)
+                    | otherwise = acc
+                    where
+                        newAgentDefsEvt = aoCreate o
+                        hasCreateAgents = isEvent newAgentDefsEvt
+                        newAgentDefs = fromEvent newAgentDefsEvt
+                        newSfs = map adBehaviour newAgentDefs
+                        newAis = map startingAgentInFromAgentDef newAgentDefs
+
+                handleKillOrLiveAgent :: ([AgentBehaviour s m], [AgentIn s m])
+                                            -> (AgentBehaviour s m, AgentIn s m, AgentOut s m)
+                                            -> ([AgentBehaviour s m], [AgentIn s m])
+                handleKillOrLiveAgent acc@(asfsAcc, ainsAcc) (sf, oldIn, newOut)
+                    | kill = acc
+                    | live = (asfsAcc ++ [sf], ainsAcc ++ [newIn])
+                    where
+                        kill = isEvent $ aoKill newOut
+                        live = not kill
+                        newIn = oldIn { aiStart = NoEvent,
+                                        aiState = (aoState newOut),
+                                        aiMessages = NoEvent }
+
+        distributeMessages :: [AgentIn s m] -> [AgentOut s m] -> [AgentIn s m]
+        distributeMessages ais aos = map (collectMessagesFor aos) ais
+
+        collectMessagesFor :: [AgentOut s m] -> AgentIn s m -> AgentIn s m
+        collectMessagesFor aos ai = ai { aiMessages = msgsEvt }
+            where
+                aid = aiId ai
+                msgsEvt = foldr (\ao accMsgs -> mergeMessages (collectMessagesFrom aid ao) accMsgs ) NoEvent aos
 
                 collectMessagesFrom :: AgentId -> AgentOut s m -> Event [AgentMessage m]
-                collectMessagesFrom aid ao = foldl (\accMsgs (receiverId, m) -> if receiverId == aid then
+                collectMessagesFrom aid ao = foldr (\(receiverId, m) accMsgs-> if receiverId == aid then
                                                                                 mergeMessages (Event [(senderId, m)]) accMsgs
                                                                                 else
                                                                                     accMsgs) NoEvent msgs
@@ -271,13 +300,6 @@ collectOutput (oldAgentIn, newAgentOuts) = Event (newAgentOuts, newAgentIns)
                                     fromEvent msgsEvt
                                     else
                                         []
-
--- TODO: add/remove signal-functions on agent creation/destruction
-feedBackPar :: [AgentBehaviour s m] -> ([AgentOut s m], [AgentIn s m]) -> SF [AgentIn s m] [AgentOut s m]
-feedBackPar asfs (newAgentOuts, newAgentIns) = proc _ ->
-                                                do
-                                                    aos <- (processPar asfs) -<  newAgentIns
-                                                    returnA -< aos
 ----------------------------------------------------------------------------------------------------------------------
 
 mergeMessages :: Event [AgentMessage m] -> Event [AgentMessage m] -> Event [AgentMessage m]

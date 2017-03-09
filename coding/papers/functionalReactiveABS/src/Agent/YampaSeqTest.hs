@@ -4,7 +4,7 @@ module Agent.YampaSeqTest where
 
 import FRP.Yampa
 import FRP.Yampa.Switches
--- import FRP.Yampa.InternalCore
+import FRP.Yampa.InternalCore
 
 type TestInput = Int
 type TestOutput = Double

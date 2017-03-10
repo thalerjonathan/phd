@@ -10,7 +10,9 @@ EDSL steht für Embedded Domain Specific Language d.h. man implementiert in Hask
 \subsection{Verification \& reasoning}
 Verification/Reasoning ist einer der größten Pluspunkte von rein funktionaler Programmierung, da durch den deklarativen Stil und das Fehlen von Sideeffects und Globalen Daten equational/algebraic/inductive Reasoning betrieben werden kann. Hier habe ich noch garnichts dazu gemacht, aber sollte mit den oben genannten Ideen sicherlich interessant werden - ein interessantes Paper von Graham Hutton (für den ich übrigens dieses Semester ein Tutor in seiner Haskell-Laborübung bin) gibt interessante Richtungen für Reasoning vor: http://dl.acm.org/citation.cfm?id=968579
 
-TODO: more
+[ ] deadlock: when messages need to be exchanged but mutual waiting
+[ ] silence: no more message exchange
+[ ] protocoll: ensure happens before / sequences (like necessary for 2D prisoner dilemma)
 
 \subsection{Recursive simulations: Meta Agent-Based Simulation}
 Give each  Agent the ability to run the simulation locally from its point of view do anticipate its actions and change them in the future thus introducing a meta-level in the simulation, from which the method derives its name.

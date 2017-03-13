@@ -1,6 +1,9 @@
 \section{Part III: Phd Research} 
 The central aspect of my PhD is the question of \textit{How can Agent-Based Simulation be done using pure functional programming and what are the benefits and disadvantages of it?}.
 
+[ ] reason about dynamics of a simulation: equilibrium, chaos, fluctuation
+[ ] verification: implementation matches specification. if specification equals code then its satisfied anyway
+
 [ ] apply to bilateral trading
 [ ] apply to artificial economies (probably too complicated?)
 [ ] todo: implement functional reactive abs (FrABS)
@@ -20,6 +23,8 @@ The central aspect of my PhD is the question of \textit{How can Agent-Based Simu
 \paragraph{Main} 
 
 \subsection{Main contributions to knowledge}
+the idea is to build an edsl for abs/m built on functional reactive programming yampa. this should be designed in a way so that it is specification / modelling language and implementation at the same time. then we want to put the language on firm theoretical grounds to allow reasoning about models. also we implement primitives which allow do define recursive simulations
+
 [ ] ABS/M is possible in functional programming by development of FrABS
 [ ] An EDSL and its semantics for model specification in FrABS where spec = code,  no need for explicit verification
 [ ] Novel concept which is very natural enabled through FrABS: MetaABS, running locally-recursive simulations

@@ -18,7 +18,7 @@ type TestOutput = Double
 testSeq:: IO ()
 testSeq = do
             -- let (sfs', os) = Yampa.embed (runSeq sfs is testSeqCallback) (is, sts)
-            let steps = 50
+            let steps = 50000
             let dt = 1.0
             let oss = runStepsPar sfs is steps dt
             let os = (last oss)
@@ -30,6 +30,25 @@ testSeq = do
             sfs = map simpleSF [0..n-1]
             is = [0..n-1]
 
+
+testSeqEmbed:: IO ()
+testSeqEmbed = do
+                    let dt = 1.0
+                    let oss = Yampa.embed (runParSF sfs is testParCallback) (is, sts)
+                    let os = (last oss)
+                    mapM (putStrLn . show) os
+                    return ()
+        where
+            n = 10
+            sfs = map simpleSF [0..n-1]
+            is = [0..n-1]
+            steps = 100
+            sts = take n $ samplingTimes 0.0 1.0
+
+samplingTimes :: Double -> Double -> [(DTime, Maybe a)]
+samplingTimes t dt = (t', Nothing) : (samplingTimes t' dt)
+    where
+        t' = t + dt
 
 
 runStepsPar :: [SF TestInput TestOutput] -> [TestInput] -> Int -> DTime -> [[TestOutput]]
@@ -99,6 +118,33 @@ simpleSF off = proc i ->
 ------------------------------------------------------------------------------------------------------------------------
 -- PAR implementation
 ------------------------------------------------------------------------------------------------------------------------
+-- data SF a b = SF {sfTF :: a -> Transition a b}
+-- => SF {sfTF :: a -> (SF' a b, b)}
+
+-- type Transition a b = (SF' a b, b)
+-- SF' :: !(DTime -> a -> Transition a b) -> SF' a b
+-- sfTF' :: SF' a b -> (DTime -> a -> Transition a b)
+
+runParSF :: [SF TestInput TestOutput]
+            -> [TestInput]
+            -> ([TestInput] -> [TestOutput] -> [SF' TestInput TestOutput] -> ([TestInput], [SF' TestInput TestOutput]))
+            -> SF [TestInput] ([TestOutput], [TestInput])
+runParSF initSfs initInput clbk = SF {sfTF = tf0}
+    where
+        -- NOTE: here we are at time 0 thus using initial inputs and no dt => runPar
+        (nextSfs, initOs, nextIns) = runPar initSfs initInput clbk
+
+        tf0 = (\_ -> (tf', (initOs, nextIns)))
+        tf' = runParSFAux nextSfs
+
+        -- NOTE: here we create recursively a new continuation
+        runParSFAux sfs clbk = SF' tf
+            where
+                tf dt ins = (tf', (os, ins'))
+                    where
+                        (sfs', os, ins') = runPar' sfs ins clbk dt
+                        tf' = runParSFAux sfs' clbk
+
 runPar :: [SF TestInput TestOutput]
             -> [TestInput]
             -> ([TestInput] -> [TestOutput] -> [SF' TestInput TestOutput] -> ([TestInput], [SF' TestInput TestOutput]))
@@ -200,6 +246,7 @@ runSeq' sfs is clbk dt = runSeqRec' sfs is [] 0 clbk dt
 runSFInit :: SF a b -> a -> (SF' a b, b)
 runSFInit sf0 a0 = (sfTF sf0) a0
 
+-- sfTF' :: SF' a b -> (DTime -> a -> Transition a b)
 runSFCont :: SF' a b -> a -> DTime -> (SF' a b, b)
 runSFCont sf0 a0 dt0 = (sfTF' sf0 dt0) a0
 ------------------------------------------------------------------------------------------------------------------------

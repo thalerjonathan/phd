@@ -1,36 +1,45 @@
 \section{Part III: Phd Research} 
 The central aspect of my PhD is the question of \textit{How can Agent-Based Simulation be done using pure functional programming and what are the benefits and disadvantages of it?}.
 
-[ ] reason about dynamics of a simulation: equilibrium, chaos, fluctuation
-[ ] verification: implementation matches specification. if specification equals code then its satisfied anyway
-
-[ ] apply to bilateral trading
-[ ] apply to artificial economies (probably too complicated?)
-[ ] todo: implement functional reactive abs (FrABS)
-[ ] todo: define an EDSL for FrABS which is at the same time model specification- and implementation-language
-[ ] todo: define semantics of FrABS based on semantics of FRP and Actors
-[ ] what is emergence and can we reason about it? 
-[ ] identify emergent properties: equilibrium, behaviour on macroscale not defined on micro, chaos,...
-[ ] if yes can we reason about it in advance or only after having run the simulation and identified emergent properties?
-[ ] in other words: can emergence be formalized? if yes how far?
-[ ] what is the relation between emergence and computation? we need change over time (=computation) for emergence
-[ ] baas 1994: emergence, hierarchies and hyperstructures
-[ ] introduce MetaABS (also implement it in the EDSL), try to reason about its application to SugarScape and compare results
-[ ] until 1st year report (july): basic implementation of FrABS, literature research about emergence, basic study of MetaABS, reasoning about H&C cross patterns, writing 1st year report
-[ ] until end of 1st year (sept): fully implement FrABS with EDSL, completely implement sugarscape
-
 \subsection{Research Questions}
-\paragraph{Main} 
+
+Define 5 general research questions for each Research-Context
+	\begin{itemize}
+    \item 2 related to FP
+    \item 1 related to integration of FP to ABM/S
+    \item 2 related to ABM/S
+    \end{itemize}
+
+
+\paragraph{Main}
+Reasoning about ABS in pure functional programming
+	- dynamics
+	- emergent properties
+	- deadlocks
+	- silence (no messages/agent-agent communication and interaction)
+	- define semantics of FrABS based on semantics of FRP and Actors
+	- what is emergence in ABS and how can we reason about it? 
+		- identify emergent properties: equilibrium, behaviour on macroscale not defined on micro, chaos,...
+		- can we anticipate emergent properties / dynamics just by looking at the code and reason about it?
+		- can emergence in ABS be formalized?
+			- hypothesis: it may be possible through functional programming because of its dual nature of declarative EDSL which awakens to a process during computation
+				- what is the relation between emergence and computation? we need change over time (=computation) for emergence
+				
+	- apply to decentralized bilateral trading / bartering
+	
+- how can we incorporate MetaABS in this direction?
 
 \subsection{Main contributions to knowledge}
+The hypothesis is that one can build an EDSL for model specificiation which is at the same time already the implementation. Having such an EDSL at hand this will allow us to reason about the programs. This will be applied to specify and reason about the dynamics and emergent properties of decentralized bilateral trading and bartering in agent-based computational economics (ACE) and social simulations like SugarScape.
+
 the idea is to build an edsl for abs/m built on functional reactive programming yampa. this should be designed in a way so that it is specification / modelling language and implementation at the same time. then we want to put the language on firm theoretical grounds to allow reasoning about models. also we implement primitives which allow do define recursive simulations
 
 [ ] ABS/M is possible in functional programming by development of FrABS
 [ ] An EDSL and its semantics for model specification in FrABS where spec = code,  no need for explicit verification
 [ ] Novel concept which is very natural enabled through FrABS: MetaABS, running locally-recursive simulations
-[ ] Reasoning about  dynamics and emergent properties of ABS based on EDSL and its semantics in the context of decentralized bartering
+[ ] Reasoning about  dynamics and emergent properties of ABS based on FrABS EDSL and its semantics in the context of decentralized bilateral bartering
 
 \subsection{Planned Papers}
 [ ] paper A: FrABS - an EDSL and its semantics for ABS where the EDSL = spec = code
 [ ] paper B: MetaABS using FrABS
-[ ] paper C: reasoning about dynamics and emergent properties of ABS usibg FrABS
+[ ] paper C: reasoning about dynamics and emergent properties of ABS using FrABS in the context of decentralized bilateral trading / bartering

@@ -1,0 +1,59 @@
+\section{Part III: Phd Research} 
+The central aspect of my PhD is the question of \textit{How can Agent-Based Simulation be done using pure functional programming and what are the benefits and disadvantages of it?}.
+
+[ ] reason about dynamics of a simulation: equilibrium, chaos, fluctuation
+[ ] verification: implementation matches specification. if specification equals code then its satisfied anyway
+
+
+\subsection{How?}
+FRP with Yampa
+
+\subsection{EDSL}
+EDSL steht für Embedded Domain Specific Language d.h. man implementiert in Haskell eine Art von 'Spezifikations-Sprache' für eine spezielle Domain (z.b. ABM/S), die - dank der rein funktionalen, deklarativen Natur von Haskell - auch gleichzeitig Haskell Code ist - der Unterschied zwischen Spezifikation und Implementierung verschwindet dann (idealserweise). In diese Richtung arbeite ich erst seit kurzem, durch die Umsetzung von ABS/M mit Yampa. Yampa ist ebenfalls eine EDSL um funktional-reaktive Systeme zu beschreiben/implementieren, ich werde auf dieser EDSL aufsetzen und sie um ABS/M erweitern - so zumindest der Plan. Dann habe ich die theoretische Grundlage von FRP, auf die ich dann auch theorie von ABS/M (z.b. Actor Semantics) setzen kann und somit zum nächsten Punkt komme:
+
+\subsection{Verification \& reasoning}
+Verification/Reasoning ist einer der größten Pluspunkte von rein funktionaler Programmierung, da durch den deklarativen Stil und das Fehlen von Sideeffects und Globalen Daten equational/algebraic/inductive Reasoning betrieben werden kann. Hier habe ich noch garnichts dazu gemacht, aber sollte mit den oben genannten Ideen sicherlich interessant werden - ein interessantes Paper von Graham Hutton (für den ich übrigens dieses Semester ein Tutor in seiner Haskell-Laborübung bin) gibt interessante Richtungen für Reasoning vor: http://dl.acm.org/citation.cfm?id=968579
+
+[ ] deadlock: when messages need to be exchanged but mutual waiting
+[ ] silence: no more message exchange
+[ ] protocoll: ensure happens before / sequences (like necessary for 2D prisoner dilemma)
+
+\subsection{Recursive simulations: Meta Agent-Based Simulation}
+Give each  Agent the ability to run the simulation locally from its point of view do anticipate its actions and change them in the future thus introducing a meta-level in the simulation, from which the method derives its name.
+
+- TODO:  i have only the idea but am lacking a theory or hypothesis for its use
+
+- meta need a kind of decision error measure to distinguish between various meta-simulations. also we need a mechanism to sample the decision space => it can be considered to be an optimization technique.
+
+Problems
+\begin{itemize}
+	\item Definition of a recursive, declarative description of the Model.
+	\item Perfect information about other agents is not realistic and runs counter to agent-based simulation (especially in social sciences) thus an Agent needs to be able to have local, noisy representations of the other agents.
+	\item Local representation of other agents could be captured by Hidden Markov Models: observe what other agents do but have hidden interpretation of their internal state - these internal state-representations can be different between the local and the global version whereas the agent learns to represent the global version as best as possible locally.
+	\item Infinite regress is theoretically possible but not on computers, we need to terminate at some point
+\end{itemize}
+
+Interpretation: It can be regarded as a Model of Free Will in ABS, which allows learning in an ABS environment in a new way - look on the section of interpretation.
+Application: hypothesis: allows to model social and psychological phenomena like free will. Mostly in social sciences, maybe also in economics. Investigate SugarScape, PrisonersDilemma and ACE Trading World
+
+TODO: question: what is the meaning of an entity running simulations? it strongly depends on the context: in ACE it may be search for optimization behaviour, in Social Simulation it may be interpreted as a kind of free will
+
+Research Questions
+\begin{enumerate}
+	\item How does deep regression influence the dynamics of a system? Hypothesis: TODO
+	\item How do the dynamics of a system change when using perfect information or learning local information? Hypothesis: TODO
+	\item Is a hidden markov model suitable for the local learning? Hypothesis: TODO
+	\item How can MetaABS best be implemented? Hypothesis: implementing a MetaABS EDSL in a pure functional language like Haskell, should be best suited due to its inherent recursive, declarative nature, which should allow a direct mapping of features of this paradigm to the specification of the meta-model
+\end{enumerate}
+
+- functional programming perfect. standard toolkits (anylogic, netlogo, repast) are not capable of doing this
+- extend my existing EDSL for functional reactive agent-based simulation \& modelling (FrABS/M) with recursive functionality
+ 
+Related Research:
+TODO: \cite{gilmer_recursive_2000} cite paper of recursive simulation: [ ] military simulation, [ ] not explicitly abs, [ ] implemented in c++, [ ] deterministic models seem to benefit significantly from using recursions of the simulation for the decision making process. when using stochastic models this benefit seems to be lost
+
+\subsection{Putting It all Together}
+the idea is to build an edsl for abs/m built on functional reactive programming yampa. this should be designed in a way so that it is specification / modelling language and implementation at the same time. then we want to put the language on firm theoretical grounds to allow reasoning about models. also we implement primitives which allow do define recursive simulations
+
+\subsection{Research Questions}
+\paragraph{Main} 

@@ -1,27 +1,25 @@
-\section{Part II: Fields of Application}
-Applying the methods to ACE and / or Social Simulation. Need a short description of the fields and the usage of ABS/M there.
+\section{Part II: Literature}
 
-- section on ACE with special emphasis on simulated economies (ACE Trading World): gowdo equlibrium prices form?
-- section on Social Simulations with special emphasis on SugarScape: how do societies form? Also includes markets and trading - maybe this model is enough
-- my new idea: extend SugarScape with a metaphysical  model of death and rebirth with karma
-
-
-\section{ACE}
+\subsection{Economics and Agent-Based Computational Economics}
 \cite{tesfatsion_agent-based_2006} gives a broad overview of agent-based computational economics (ACE), gives the four primary objectives of it and discusses advantages and disadvantages. She introduces a model called \textit{ACE Trading World} in which she shows how an artificial economy can be implemented without the \textit{Walrasian Auctioneer} but just by agents and their interactions. She gives a detailed mathematical specification in the appendix of the paper which should allow others to implement the simulation.
 
-MY INTERESTS:
 - Artificial agent-based economies: \cite{tesfatsion_agent-based_2006}, \cite{gintis_emergence_2006}, \cite{gintis_dynamics_2007}, \cite{gaffeo_adaptive_2008}, \cite{botta_functional_2011}
 - Artificial agent-based markets: \cite{mackie-mason_chapter_2006}, \cite{darley_nasdaq_2007}
 - Agent-Based Market Design: \cite{marks_chapter_2006}, \cite{budish_editors_2015}
 
-negotiation: cant call methods on each other but how can we implement negotiation in a pure functional way?
 
-- Qualitative Modelling
-	- EDSL for qualitative, descriptive modelling instead of quantitative
+\subsection{Social Simulation}
+The SugarScape model \cite{epstein_growing_1996} is one of the most influential models of agent-based simulation in the social sciences. The book heavily promotes object-oriented programming (note that in 1996 oop was still in its infancy and not yet very well understood by the mainstream software-engineering industry). We ask how it can be done using pure functional programming paradigm and what the benefits and limits are. We hypothesize that our solution will be shorter (original reported 20.000 LOC), can make use of EDSL thus making it much more expressive, can utilize QuickCheck for a completely new dimension of model-checking and debugging and allows a very natural implementation of MetaABS (see Part III) due to its recursive and declarative nature.
 
-\section{Social Simulation}
+TODO \cite{huberman_evolutionary_1993} 
+TODO \cite{nowak_evolutionary_1992}
 
-The SugarScape model \cite{epstein_growing_1996} is one of the most influential models of agent-based simulation in the social sciences
+\subsection{Functional Programming, Computation and Category Theory}
+all FRP, quickcheck, arrows, monads, wadler, hughes
 
-\subsection{SugarScape}
-The book heavily promotes object-oriented programming (note that in 1996 oop was still in its infancy and not yet very well understood by the mainstream software-engineering industry). We ask how it can be done using pure functional programming paradigm and what the benefits and limits are. We hypothesize that our solution will be shorter (original reported 20.000 LOC), can make use of EDSL thus making it much more expressive, can utilize QuickCheck for a completely new dimension of model-checking and debugging and allows a very natural implementation of MetaABS (see Part III) due to its recursive and declarative nature.
+\subsection{Agent-Based Modelling \& Simulation and Actors}
+ wooldridge,  will clinger, hewitt
+ 
+\subsection{Complex Systems}
+TODO: baas: emergence, hierarchies and hyperstructures
+TODO: \cite{baas_emergence_1997}

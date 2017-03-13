@@ -29,8 +29,8 @@
       <file leaf-file-name="Agent.hs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Agent/Agent.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4554">
-              <caret line="253" column="46" lean-forward="false" selection-start-line="253" selection-start-column="41" selection-end-line="253" selection-end-column="46" />
+            <state relative-caret-position="216">
+              <caret line="36" column="8" lean-forward="false" selection-start-line="36" selection-start-column="8" selection-end-line="36" selection-end-column="8" />
               <folding />
             </state>
           </provider>
@@ -63,12 +63,12 @@
         <option value="$PROJECT_DIR$/src/Yampa/YampaSeqTest.hs" />
         <option value="$PROJECT_DIR$/functionalReactiveABS.cabal" />
         <option value="$PROJECT_DIR$/src/Agent/YampaSwitchTest.hs" />
-        <option value="$PROJECT_DIR$/src/Agent/Agent.hs" />
         <option value="$PROJECT_DIR$/src/SIRS/SIRSModel.hs" />
         <option value="$PROJECT_DIR$/Yampa/src/FRP/Yampa.hs" />
         <option value="$PROJECT_DIR$/Yampa/Yampa.cabal" />
         <option value="$PROJECT_DIR$/src/Main.hs" />
         <option value="$PROJECT_DIR$/src/Agent/YampaSeqTest.hs" />
+        <option value="$PROJECT_DIR$/src/Agent/Agent.hs" />
       </list>
     </option>
   </component>
@@ -880,8 +880,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Agent/Agent.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4554">
-          <caret line="253" column="46" lean-forward="false" selection-start-line="253" selection-start-column="41" selection-end-line="253" selection-end-column="46" />
+        <state relative-caret-position="216">
+          <caret line="36" column="8" lean-forward="false" selection-start-line="36" selection-start-column="8" selection-end-line="36" selection-end-column="8" />
           <folding />
         </state>
       </provider>

@@ -6,6 +6,7 @@ import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.IO.Animate
 import Data.IORef
 import Agent.Agent
+import Agent.Simulation
 import FRP.Yampa
 import System.IO
 import System.Random

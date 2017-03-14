@@ -2,10 +2,12 @@
 
 module Agent.YampaSeqTest where
 
-import qualified FRP.Yampa as Yampa
-import FRP.Yampa.Switches
-import FRP.Yampa.InternalCore
+import Agent.Utils
+import Agent.SeqIteration
+import Agent.ParIteration
 
+import FRP.Yampa
+import FRP.Yampa.InternalCore
 import Data.Maybe
 import Debug.Trace
 
@@ -31,7 +33,7 @@ testPar = do
 
 testParEmbed:: IO ()
 testParEmbed = do
-                    let oos = Yampa.embed (runParSF sfs is testParCallback) (is, sts)
+                    let oos = embed (runParSF sfs is testParCallback) (is, sts)
                     -- putStrLn $ show (length oos)
                     let os = (last oos)
                     mapM (putStrLn . show) os
@@ -92,7 +94,7 @@ testSeq = do
 
 testSeqEmbed:: IO ()
 testSeqEmbed = do
-                    let oos = Yampa.embed (runSeqSF sfs is testSeqCallback) (is, sts)
+                    let oos = embed (runSeqSF sfs is testSeqCallback) (is, sts)
                     -- putStrLn $ show (length oos)
                     let os = (last oos)
                     mapM (putStrLn . show) os
@@ -146,168 +148,4 @@ simpleSF off = proc i ->
                     let i' = i + off
                     returnA -< fromInteger $ toInteger i'
 
-------------------------------------------------------------------------------------------------------------------------
--- PAR implementation
-------------------------------------------------------------------------------------------------------------------------
--- data SF a b = SF {sfTF :: a -> Transition a b}
--- => SF {sfTF :: a -> (SF' a b, b)}
 
--- type Transition a b = (SF' a b, b)
--- SF' :: !(DTime -> a -> Transition a b) -> SF' a b
--- sfTF' :: SF' a b -> (DTime -> a -> Transition a b)
-
--- TODO: hide SF'
-runParSF :: [SF TestInput TestOutput]
-            -> [TestInput]
-            -> ([TestInput] -> [TestOutput] -> [SF' TestInput TestOutput] -> ([TestInput], [SF' TestInput TestOutput]))
-            -> SF [TestInput] [TestOutput]
-runParSF initSfs initInput clbk = SF {sfTF = tf0}
-    where
-        -- NOTE: here we are at time 0 thus using initial inputs and no dt => runPar
-        (nextSfs, initOs) = runPar initSfs initInput
-
-        tf0 = (\_ -> (tf', initOs))
-        tf' = runParSFAux nextSfs initInput initOs
-
-        -- NOTE: here we create recursively a new continuation
-        -- ins are the old inputs from which outs resulted, together with their sfs
-        runParSFAux sfs ins outs = SF' tf
-            where
-                -- NOTE: this is a function defition
-                tf :: DTime -> [TestInput] -> Transition [TestInput] [TestOutput]
-                tf dt _ = (tf', outs')
-                    where
-                        -- using the callback to create the next inputs and allow changing of the SF-collection
-                        (ins', sfs') = clbk ins outs sfs
-                        -- run the next step with the new sfs and inputs to get the sf-contintuations and their outputs
-                        (sfs'', outs') = runPar' sfs' ins' dt
-                        -- create a continuation of this SF
-                        tf' = runParSFAux sfs'' ins' outs'
-
-runPar :: [SF TestInput TestOutput]
-            -> [TestInput]
-            -> ([SF' TestInput TestOutput], [TestOutput])
-runPar sfs oldIns = (sfs', newOuts)
-    where
-        sfInPairs = zip sfs oldIns
-        (sfs', newOuts) = foldr runSFHelper ([], []) sfInPairs
-
-        runSFHelper :: (SF TestInput TestOutput, TestInput)
-                        -> ([SF' TestInput TestOutput], [TestOutput])
-                        -> ([SF' TestInput TestOutput], [TestOutput])
-        runSFHelper (sf, i) (accSfs, accOs) = (sf' : accSfs, o : accOs)
-            where
-                (sf', o) = runSFInit sf i
-
-runPar' :: [SF' TestInput TestOutput]
-            -> [TestInput]
-            -> DTime
-            -> ([SF' TestInput TestOutput], [TestOutput])
-runPar' sfs oldIns dt = (sfs', newOuts)
-    where
-        sfInPairs = zip sfs oldIns
-        (sfs', newOuts) = foldr (runSFHelper dt) ([], []) sfInPairs
-
-        runSFHelper ::  DTime
-                        -> (SF' TestInput TestOutput, TestInput)
-                        -> ([SF' TestInput TestOutput], [TestOutput])
-                        -> ([SF' TestInput TestOutput], [TestOutput])
-        runSFHelper dt (sf, i) (accSfs, accOs) = (sf' : accSfs, o : accOs)
-            where
-                (sf', o) = runSFCont sf i dt
-
-------------------------------------------------------------------------------------------------------------------------
--- SEQ implementation
-------------------------------------------------------------------------------------------------------------------------
--- TODO: hide SF'
-runSeqSF :: [SF TestInput TestOutput]
-            -> [TestInput]
-            -> ([TestInput] -> (SF' TestInput TestOutput, TestInput, TestOutput) -> ([TestInput], TestInput, Maybe (SF' TestInput TestOutput)))
-            -> SF [TestInput] [TestOutput]
-runSeqSF initSfs initInput clbk = SF {sfTF = tf0}
-    where
-        -- NOTE: here we are at time 0 thus using initial inputs and no dt => runPar
-        (nextSfs, initOs, nextIns) = runSeq initSfs initInput clbk
-
-        tf0 = (\_ -> (tf', initOs))
-        tf' = runSeqSFAux nextSfs nextIns
-
-        -- NOTE: here we create recursively a new continuation
-        -- ins are the old inputs from which outs resulted, together with their sfs
-        runSeqSFAux sfs ins = SF' tf
-            where
-                -- NOTE: this is a function defition
-                tf :: DTime -> [TestInput] -> Transition [TestInput] [TestOutput]
-                tf dt _ = (tf', outs)
-                    where
-                        -- run the next step with the new sfs and inputs to get the sf-contintuations and their outputs
-                        (sfs', outs, ins') = runSeq' sfs ins clbk dt
-                        -- create a continuation of this SF
-                        tf' = runSeqSFAux sfs' ins'
-
-runSeq :: [SF TestInput TestOutput]
-            -> [TestInput]
-            -> ([TestInput] -> (SF' TestInput TestOutput, TestInput, TestOutput) -> ([TestInput], TestInput, Maybe (SF' TestInput TestOutput)))
-            -> ([SF' TestInput TestOutput], [TestOutput], [TestInput])
-runSeq sfs is clbk = runSeqRec sfs is [] 0 clbk
-    where
-        runSeqRec :: [SF TestInput TestOutput]
-                    -> [TestInput]
-                    -> [TestInput]
-                    -> Int
-                    -> ([TestInput] -> (SF' TestInput TestOutput, TestInput, TestOutput) -> ([TestInput], TestInput, Maybe (SF' TestInput TestOutput)))
-                    -> ([SF' TestInput TestOutput], [TestOutput], [TestInput])
-        runSeqRec [] [] accIs _ _ = ([], [], accIs)
-        runSeqRec (sf:sfs) (oldIn:is) accIs idx clbk
-            | isJust mayCont = (sf' : recSfs, newOut : recOs, recIs)
-            | otherwise = runSeqRec sfs is' accIs' (idx + 1) clbk                 -- NOTE: only include newInput if  isJust mayCont
-            where
-                (sf', newOut) = runSFInit sf oldIn
-
-                allIs = accIs ++ is -- NOTE: current input is not included because it is thrown away anyway
-                (allIs', newIn, mayCont) = clbk allIs (sf', oldIn, newOut)
-                (accIs', is') = splitAt idx allIs'
-                accIsWithNewInput = newIn : accIs'
-                (recSfs, recOs, recIs) = runSeqRec sfs is' accIsWithNewInput (idx + 1) clbk
-
-runSeq' :: [SF' TestInput TestOutput]
-            -> [TestInput]
-            -> ([TestInput] -> (SF' TestInput TestOutput, TestInput, TestOutput) -> ([TestInput], TestInput, Maybe (SF' TestInput TestOutput)))
-            -> DTime
-            -> ([SF' TestInput TestOutput], [TestOutput], [TestInput])
-runSeq' sfs is clbk dt = runSeqRec' sfs is [] 0 clbk dt
-    where
-        runSeqRec' :: [SF' TestInput TestOutput]
-                    -> [TestInput]
-                    -> [TestInput]
-                    -> Int
-                    -> ([TestInput] -> (SF' TestInput TestOutput, TestInput, TestOutput) -> ([TestInput], TestInput, Maybe (SF' TestInput TestOutput)))
-                    -> DTime
-                    -> ([SF' TestInput TestOutput], [TestOutput], [TestInput])
-        runSeqRec' [] [] accIs _ _ _ = ([], [], accIs)
-        runSeqRec' (sf:sfs) (i:is) accIs idx clbk dt
-            | isJust mayCont = (sf' : recSfs, newOut : recOs, recIs)
-            | otherwise = runSeqRec' sfs is' accIs' (idx + 1) clbk dt              -- NOTE: only include newInput if  isJust mayCont
-            where
-                (sf', newOut) = runSFCont sf i dt
-
-                allIs = accIs ++ is -- NOTE: current input is not included because it is thrown away anyway
-                (allIs', newInput, mayCont) = clbk allIs (sf', i, newOut)
-                (accIs', is') = splitAt idx allIs'
-
-                accIsWithNewInput = newInput : accIs'
-                (recSfs, recOs, recIs) = runSeqRec' sfs is' accIsWithNewInput (idx + 1) clbk dt
-------------------------------------------------------------------------------------------------------------------------
-
-
-------------------------------------------------------------------------------------------------------------------------
--- Running a Signal-Function
-------------------------------------------------------------------------------------------------------------------------
--- This will run the given SF with the given input a and returns the continuation SF with the output b
-runSFInit :: SF a b -> a -> (SF' a b, b)
-runSFInit sf0 a0 = (sfTF sf0) a0
-
--- sfTF' :: SF' a b -> (DTime -> a -> Transition a b)
-runSFCont :: SF' a b -> a -> DTime -> (SF' a b, b)
-runSFCont sf0 a0 dt0 = (sfTF' sf0 dt0) a0
-------------------------------------------------------------------------------------------------------------------------

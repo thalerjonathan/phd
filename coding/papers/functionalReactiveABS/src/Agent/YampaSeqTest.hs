@@ -32,16 +32,16 @@ testSeq = do
 
 testSeqEmbed:: IO ()
 testSeqEmbed = do
-                    let insOutsPairs = Yampa.embed (runParSF sfs is testParCallback) (is, sts)
-                    -- putStrLn $ show (length insOutsPairs)
-                    let (ins, outs) = (last insOutsPairs)
-                    mapM (putStrLn . show) outs
+                    let oos = Yampa.embed (runParSF sfs is testParCallback) (is, sts)
+                    -- putStrLn $ show (length oos)
+                    let os = (last oos)
+                    mapM (putStrLn . show) os
                     return ()
         where
             n = 10
             sfs = map simpleSF [0..n-1]
             is = [0..n-1]
-            steps = 100
+            steps = 0
             dt = 1.0
             sts = take steps $ samplingTimes 0.0 dt
 
@@ -50,19 +50,23 @@ samplingTimes t dt = (t', Nothing) : (samplingTimes t' dt)
     where
         t' = t + dt
 
+
+
 runStepsPar :: [SF TestInput TestOutput] -> [TestInput] -> Int -> DTime -> [[TestOutput]]
 runStepsPar sfs initInput 0 dt = []
 runStepsPar sfs initInput steps dt = os : oss
     where
-        (sfs', os, newInputs) = runPar sfs initInput testParCallback
-        (_, oss) = (runStepsPar' sfs' newInputs (steps - 1) dt)
+        (sfs', os) = runPar sfs initInput
+        (newInputs, sfs'') = testParCallback initInput os sfs'
+        (_, oss) = (runStepsPar' sfs'' newInputs (steps - 1) dt)
 
         runStepsPar' :: [SF' TestInput TestOutput] -> [TestInput] -> Int -> DTime -> ([SF' TestInput TestOutput], [[TestOutput]])
         runStepsPar' sfs is 0 dt = ([], [])
-        runStepsPar' sfs is steps dt = (sfs'', os : oss)
+        runStepsPar' sfs is steps dt = (sfs3, os : oss)
             where
-                (sfs', os, newInputs) = runPar' sfs is testParCallback dt
-                (sfs'', oss) = runStepsPar' sfs' newInputs (steps - 1) dt
+                (sfs', os) = runPar' sfs is dt
+                (newInputs, sfs'') = testParCallback is os sfs'
+                (sfs3, oss) = runStepsPar' sfs'' newInputs (steps - 1) dt
 
 
 
@@ -124,37 +128,41 @@ simpleSF off = proc i ->
 -- SF' :: !(DTime -> a -> Transition a b) -> SF' a b
 -- sfTF' :: SF' a b -> (DTime -> a -> Transition a b)
 
+-- TODO: hide SF'
 runParSF :: [SF TestInput TestOutput]
             -> [TestInput]
             -> ([TestInput] -> [TestOutput] -> [SF' TestInput TestOutput] -> ([TestInput], [SF' TestInput TestOutput]))
-            -> SF [TestInput] ([TestOutput], [TestInput])
+            -> SF [TestInput] [TestOutput]
 runParSF initSfs initInput clbk = SF {sfTF = tf0}
     where
         -- NOTE: here we are at time 0 thus using initial inputs and no dt => runPar
-        (nextSfs, initOs, nextIns) = runPar initSfs initInput clbk
+        (nextSfs, initOs) = runPar initSfs initInput
 
-        tf0 = (\_ -> (tf', (initOs, nextIns)))
-        tf' = runParSFAux nextSfs nextIns clbk
+        tf0 = (\_ -> (tf', initOs))
+        tf' = runParSFAux nextSfs initInput initOs
 
         -- NOTE: here we create recursively a new continuation
-        runParSFAux sfs ins clbk = SF' tf
+        -- ins are the old inputs from which outs resulted, together with their sfs
+        runParSFAux sfs ins outs = SF' tf
             where
                 -- NOTE: this is a function defition
-                tf :: DTime -> [TestInput] -> Transition [TestInput] ([TestOutput], [TestInput])
-                tf dt _ = (tf', (os, ins'))
+                tf :: DTime -> [TestInput] -> Transition [TestInput] [TestOutput]
+                tf dt _ = (tf', outs')
                     where
-                        (sfs', os, ins') = runPar' sfs ins clbk dt
-                        tf' = runParSFAux sfs' ins' clbk
+                        -- using the callback to create the next inputs and allow changing of the SF-collection
+                        (ins', sfs') = clbk ins outs sfs
+                        -- run the next step with the new sfs and inputs to get the sf-contintuations and their outputs
+                        (sfs'', outs') = runPar' sfs' ins' dt
+                        -- create a continuation of this SF
+                        tf' = runParSFAux sfs'' ins' outs'
 
 runPar :: [SF TestInput TestOutput]
             -> [TestInput]
-            -> ([TestInput] -> [TestOutput] -> [SF' TestInput TestOutput] -> ([TestInput], [SF' TestInput TestOutput]))
-            -> ([SF' TestInput TestOutput], [TestOutput], [TestInput])
-runPar sfs oldIns clbk = (sfs'', newOuts, newIns)
+            -> ([SF' TestInput TestOutput], [TestOutput])
+runPar sfs oldIns = (sfs', newOuts)
     where
         sfInPairs = zip sfs oldIns
         (sfs', newOuts) = foldr runSFHelper ([], []) sfInPairs
-        (newIns, sfs'') = clbk oldIns newOuts sfs'
 
         runSFHelper :: (SF TestInput TestOutput, TestInput)
                         -> ([SF' TestInput TestOutput], [TestOutput])
@@ -165,14 +173,12 @@ runPar sfs oldIns clbk = (sfs'', newOuts, newIns)
 
 runPar' :: [SF' TestInput TestOutput]
             -> [TestInput]
-            -> ([TestInput] -> [TestOutput] -> [SF' TestInput TestOutput] -> ([TestInput], [SF' TestInput TestOutput]))
             -> DTime
-            -> ([SF' TestInput TestOutput], [TestOutput], [TestInput])
-runPar' sfs oldIns clbk dt = (sfs'', newOuts, newIns)
+            -> ([SF' TestInput TestOutput], [TestOutput])
+runPar' sfs oldIns dt = (sfs', newOuts)
     where
         sfInPairs = zip sfs oldIns
         (sfs', newOuts) = foldr (runSFHelper dt) ([], []) sfInPairs
-        (newIns, sfs'') = clbk oldIns newOuts sfs'
 
         runSFHelper ::  DTime
                         -> (SF' TestInput TestOutput, TestInput)

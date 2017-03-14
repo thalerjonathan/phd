@@ -1,7 +1,9 @@
 \section{Part III: Phd Research} 
-The central aspect of my PhD is centred around the main question of \textit{How can Agent-Based Simulation be done using pure functional programming and what are the benefits and disadvantages of it?}. So far functional programming has not got much attention in the field of ABS and implementations always focus on the object-oriented approach. We claim, based upon the research of the first year that functional programming is very well suited for ABS and that it offers methods which are not directly possible and only very difficult to achieve with object-oriented programming.
+The central aspect of my PhD is centred around the main question of \textit{How can Agent-Based Simulation be done using pure functional programming and what are the benefits and disadvantages of it?}. So far functional programming has not got much attention in the field of ABS and implementations always focus on the object-oriented approach. We claim, based upon the research of the first year that functional programming is very well suited for ABS and that it offers methods which are not directly possible and only very difficult to achieve with object-oriented programming. 
 
-We claim that to build large and complex agent-based simulations in functional programming is possible using the functional reactive programming (FRP) paradigm. We applied FRP to implementing ABS and developed a library in Haskell called FrABS. We implemented the quite complex model SugarScape from social simulation using FrABS and proofed by that. that applying FRP to ABS enables ABS to happen in pure functional programming.
+We claim that to build large and complex agent-based simulations in functional programming is possible using the functional reactive programming (FRP) paradigm. We applied FRP to implementing ABS and developed a library in Haskell called FrABS. We implemented the quite complex model SugarScape from social simulation using FrABS and proofed by that, that applying FRP to ABS enables ABS to happen in pure functional programming.
+
+After having shown how agent-based simulation can be done in functional programming we claim that the major benefit of using it enabled a new way of \textit{verification \& validation} in agent-based simulation. 
 
 Due to the declarative nature of pure functional programming it is an established method of implementing an EDSL to solve a given problem in a specific domain. We followed this approach in FrABS and developed an EDSL for ABS in pure functional programming. Our intention was to develop an EDSL which can be used both as specification- and implementation-language. We show this by specifying all the rules of SugarScape in our EDSL.
 
@@ -18,6 +20,8 @@ Disadvantages
 	- when you don't need to reason about your program
 
 \subsection{Main contributions to knowledge}
+A new framework for validating and verification of agent-based simulation.
+
 \begin{enumerate}
 	\item Functional reactive ABS: ABS/M is possible in functional programming by development of FrABS
 	\item EDSL for ABS: An EDSL and its semantics for model specification in FrABS where spec = code, no need for explicit verification
@@ -25,10 +29,30 @@ Disadvantages
 	\item Reasoning about ABS: dynamics and emergent properties in ABS based on FrABS EDSL and its semantics in the context of decentralized bilateral bartering
 \end{enumerate}
 
+\subsubsection{Verification}
+An EDSL in FrABS which is both specification- and implementation-language 
+
+\subsubsection{Validation}
+Semantics for FrABS and our EDSL to reason about the results: are they reasonable? do they match the theory? if yes why? if not why not?
+	- Can we define semantics for the EDSL to do reasoning about ABS in general?
+	- How can we reason about ABS in general in pure functional programming?
+		- dynamics
+		- emergent properties
+		- deadlocks
+		- silence (no messages/agent-agent communication and interaction)
+		- define semantics of FrABS based on semantics of FRP and Actors
+		- what is emergence in ABS and how can we reason about it? 
+			- identify emergent properties: equilibrium, behaviour on macroscale not defined on micro, chaos,...
+			- can we anticipate emergent properties / dynamics just by looking at the code and reason about it?
+			- can emergence in ABS be formalized?
+				- hypothesis: it may be possible through functional programming because of its dual nature of declarative EDSL which awakens to a process during computation
+					- what is the relation between emergence and computation? we need change over time (=computation) for emergence
+					
+		- Can we reason about the dynamics and equilibria of agent-based models of decentralized bilateral trading \& bartering?
 
 \subsection{Planned/Published Papers}
 \begin{itemize}
-	\item Art of Iterating: 
+	\item Art of Iterating: The underlying update-strategy must match the semantics of the model.
 	\item FrABS: an EDSL and its semantics for ABS where the EDSL = spec = code
 	\item MetaABS: recursive agent-based simulation
 	\item reasoning about dynamics and emergent properties of ABS using FrABS in the context of decentralized bilateral trading / bartering
@@ -44,28 +68,3 @@ Define 5 general research questions for each Research-Context
     \end{itemize}
 
 \paragraph{Main} 
-How can Agent-Based Simulation be done using pure functional programming?
-	What are the benefits of doing so?
-	What are the deficits of doing so?
-
-Can we build an EDSL for ABS which is both specification- and implementation-language? 
-	- Can we define semantics for the EDSL to do reasoning about ABS in general?
-
-MetaABS which allows to do recursive simulation
-
-How can we reason about ABS in general in pure functional programming?
-	- dynamics
-	- emergent properties
-	- deadlocks
-	- silence (no messages/agent-agent communication and interaction)
-	- define semantics of FrABS based on semantics of FRP and Actors
-	- what is emergence in ABS and how can we reason about it? 
-		- identify emergent properties: equilibrium, behaviour on macroscale not defined on micro, chaos,...
-		- can we anticipate emergent properties / dynamics just by looking at the code and reason about it?
-		- can emergence in ABS be formalized?
-			- hypothesis: it may be possible through functional programming because of its dual nature of declarative EDSL which awakens to a process during computation
-				- what is the relation between emergence and computation? we need change over time (=computation) for emergence
-				
-Can we reason about the dynamics and equilibria of agent-based models of decentralized bilateral trading \& bartering?
-
-How we incorporate MetaABS in this direction?

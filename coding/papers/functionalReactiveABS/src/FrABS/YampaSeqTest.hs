@@ -14,10 +14,20 @@ import Debug.Trace
 type TestInput = Int
 type TestOutput = Double
 
+testRunSF :: IO ()
+testRunSF = do
+                let sf = simpleSF 42
+                let i = 1 :: TestInput
+                let (sf', o) = runSF sf i
+                putStrLn $ show o
+                let i' = outputToNewInput i o
+                let (sf'', o') = runSF sf i'
+                putStrLn $ show o'
+                return ()
 ------------------------------------------------------------------------------------------------------------------------
 -- PAR Test
 ------------------------------------------------------------------------------------------------------------------------
-testPar:: IO ()
+testPar :: IO ()
 testPar = do
             let steps = 1
             let dt = 1.0

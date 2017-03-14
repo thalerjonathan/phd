@@ -18,7 +18,7 @@ type TestOutput = Double
 testSeq:: IO ()
 testSeq = do
             -- let (sfs', os) = Yampa.embed (runSeq sfs is testSeqCallback) (is, sts)
-            let steps = 50000
+            let steps = 1
             let dt = 1.0
             let oss = runStepsPar sfs is steps dt
             let os = (last oss)
@@ -30,26 +30,25 @@ testSeq = do
             sfs = map simpleSF [0..n-1]
             is = [0..n-1]
 
-
 testSeqEmbed:: IO ()
 testSeqEmbed = do
-                    let dt = 1.0
-                    let oss = Yampa.embed (runParSF sfs is testParCallback) (is, sts)
-                    let os = (last oss)
-                    mapM (putStrLn . show) os
+                    let insOutsPairs = Yampa.embed (runParSF sfs is testParCallback) (is, sts)
+                    -- putStrLn $ show (length insOutsPairs)
+                    let (ins, outs) = (last insOutsPairs)
+                    mapM (putStrLn . show) outs
                     return ()
         where
             n = 10
             sfs = map simpleSF [0..n-1]
             is = [0..n-1]
             steps = 100
-            sts = take n $ samplingTimes 0.0 1.0
+            dt = 1.0
+            sts = take steps $ samplingTimes 0.0 dt
 
 samplingTimes :: Double -> Double -> [(DTime, Maybe a)]
 samplingTimes t dt = (t', Nothing) : (samplingTimes t' dt)
     where
         t' = t + dt
-
 
 runStepsPar :: [SF TestInput TestOutput] -> [TestInput] -> Int -> DTime -> [[TestOutput]]
 runStepsPar sfs initInput 0 dt = []
@@ -135,15 +134,17 @@ runParSF initSfs initInput clbk = SF {sfTF = tf0}
         (nextSfs, initOs, nextIns) = runPar initSfs initInput clbk
 
         tf0 = (\_ -> (tf', (initOs, nextIns)))
-        tf' = runParSFAux nextSfs
+        tf' = runParSFAux nextSfs nextIns clbk
 
         -- NOTE: here we create recursively a new continuation
-        runParSFAux sfs clbk = SF' tf
+        runParSFAux sfs ins clbk = SF' tf
             where
-                tf dt ins = (tf', (os, ins'))
+                -- NOTE: this is a function defition
+                tf :: DTime -> [TestInput] -> Transition [TestInput] ([TestOutput], [TestInput])
+                tf dt _ = (tf', (os, ins'))
                     where
                         (sfs', os, ins') = runPar' sfs ins clbk dt
-                        tf' = runParSFAux sfs' clbk
+                        tf' = runParSFAux sfs' ins' clbk
 
 runPar :: [SF TestInput TestOutput]
             -> [TestInput]

@@ -17,7 +17,7 @@ winTitle = "SIRS FrABS"
 rngSeed = 42
 cells = (70, 70)
 initInfectionProb = 0.2
-parallelStrategyFlag = False
+parallelStrategyFlag = True
 
 runSIRSWithRendering :: IO ()
 runSIRSWithRendering = do

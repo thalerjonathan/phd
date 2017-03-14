@@ -12,6 +12,7 @@ import qualified FRP.Yampa.InternalCore as YC
 ----------------------------------------------------------------------------------------------------------------------
 -- TODOs
 -- TODO remove SF'
+-- TODO feed in the initial inputs through the SF instead of currying
 -- TODO implement sequential iteration
 -- TODO implement parallel iteration
 -- TODO random iteration in sequential
@@ -70,7 +71,7 @@ iter outFunc hdl _ out = do
 ----------------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------------------------------------------------------------------------------------
--- RUNNING SIMULATION WITHIN AN OUTER LOOP
+-- RUNNING SIMULATION FROM AN OUTER LOOP
 ----------------------------------------------------------------------------------------------------------------------
 -- NOTE: don't care about a, we don't use it anyway
 processIOInit :: [AgentDef s m]
@@ -83,6 +84,8 @@ processIOInit as parStrategy iterFunc = reactInit
                                             (process as parStrategy)
     where
         ains = createStartingAgentIn as
+----------------------------------------------------------------------------------------------------------------------
+
 
 ----------------------------------------------------------------------------------------------------------------------
 -- CALCULATING A FIXED NUMBER OF STEPS OF THE SIMULATION
@@ -107,47 +110,20 @@ samplingTimes t dt = (t', Nothing) : (samplingTimes t' dt)
 
 process :: [AgentDef s m] -> Bool -> SF [AgentIn s m] [AgentOut s m]
 process as parStrategy
-    | parStrategy = processPar asfs
-    | otherwise = processSeq asfs
+    | parStrategy = runParSF asfs ains parCallback
+    | otherwise = runSeqSF asfs ains seqCallback
     where
         asfs = map adBehaviour as
+        ains = createStartingAgentIn as
 
 ----------------------------------------------------------------------------------------------------------------------
 -- SEQUENTIAL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
-processPar:: [AgentBehaviour s m] -> SF [AgentIn s m] [AgentOut s m]
-processPar asfs = proc ains ->
-    do
-        runParSF asfs [] parCallback -< []
-
 parCallback :: [AgentIn s m]
                 -> [AgentOut s m]
                 -> [YC.SF' (AgentIn s m) (AgentOut s m)]
                 -> ([AgentIn s m], [YC.SF' (AgentIn s m) (AgentOut s m)])
-parCallback oldIns newOuts allSfs = undefined
-----------------------------------------------------------------------------------------------------------------------
-
-----------------------------------------------------------------------------------------------------------------------
--- SEQUENTIAL STRATEGY
-----------------------------------------------------------------------------------------------------------------------
-processSeq :: [AgentBehaviour s m] -> SF [AgentIn s m] [AgentOut s m]
-processSeq asfs = proc ains ->
-    do
-        runSeqSF asfs [] seqCallback -< []
-
--- NOTE: this callback feeds in all the inputs and the current working triple: SF, Inpout and Output
--- It allows to change the inputs of future SFs and may return the SF. if it doesnt return a SF this means it is deleted from the system
-seqCallback :: [AgentIn s m] -- the existing inputs
-                -> (YC.SF' (AgentIn s m) (AgentOut s m), AgentIn s m, AgentOut s m) -- the current working triple
-                -> ([AgentIn s m], AgentIn s m, Maybe (YC.SF' (AgentIn s m) (AgentOut s m))) -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
-seqCallback allIs (sf, oldIn, newOut) = undefined
-
-
-feedBackPar :: [AgentBehaviour s m] -> ([AgentIn s m], [AgentOut s m]) -> SF [AgentIn s m] [AgentOut s m]
-feedBackPar asfs (oldAgentIns, newAgentOuts) = proc _ ->
-                                                do
-                                                    aos <- (processPar asfs') -< newAgentIns'
-                                                    returnA -< aos
+parCallback oldAgentIns newAgentOuts asfs = (newAgentIns', asfs')
     where
         (asfs', newAgentIns) = processAgents asfs oldAgentIns newAgentOuts
         newAgentIns' = distributeMessages newAgentIns newAgentOuts
@@ -214,4 +190,15 @@ feedBackPar asfs (oldAgentIns, newAgentOuts) = proc _ ->
                                     fromEvent msgsEvt
                                     else
                                         []
+----------------------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------------------------
+-- SEQUENTIAL STRATEGY
+----------------------------------------------------------------------------------------------------------------------
+-- NOTE: this callback feeds in all the inputs and the current working triple: SF, Inpout and Output
+-- It allows to change the inputs of future SFs and may return the SF. if it doesnt return a SF this means it is deleted from the system
+seqCallback :: [AgentIn s m] -- the existing inputs
+                -> (YC.SF' (AgentIn s m) (AgentOut s m), AgentIn s m, AgentOut s m) -- the current working triple
+                -> ([AgentIn s m], AgentIn s m, Maybe (YC.SF' (AgentIn s m) (AgentOut s m))) -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
+seqCallback allIs (sf, oldIn, newOut) = undefined
 ----------------------------------------------------------------------------------------------------------------------

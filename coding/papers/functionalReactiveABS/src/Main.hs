@@ -4,4 +4,3 @@ import SIRS.RunSIRS
 
 main :: IO ()
 main = runSIRSWithRendering
-

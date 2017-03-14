@@ -5,8 +5,8 @@ import FRP.Yampa.InternalCore
 ------------------------------------------------------------------------------------------------------------------------
 -- Running a Signal-Function
 ------------------------------------------------------------------------------------------------------------------------
-runSF :: SF a b -> a -> (SF a b, b)
-runSF sf0 a0 = (SF {sfTF = tf0}, b0)
+runSF :: SF a b -> a -> DTime -> (SF a b, b)
+runSF sf0 a0 dt = (SF {sfTF = tf0}, b0)
     where
         (sf', b0) = runSFInit sf0 a0
 
@@ -15,7 +15,7 @@ runSF sf0 a0 = (SF {sfTF = tf0}, b0)
 
         runSFAux sfCont  = SF' tf
             where
-                tf dt i = (sf', b0)
+                tf _ i = (sf', b0)
                     where
                         (sf', b0) = runSFCont sfCont i dt
 

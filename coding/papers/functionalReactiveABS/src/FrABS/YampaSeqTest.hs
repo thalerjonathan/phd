@@ -18,10 +18,10 @@ testRunSF :: IO ()
 testRunSF = do
                 let sf = simpleSF 42
                 let i = 1 :: TestInput
-                let (sf', o) = runSF sf i
+                let (sf', o) = runSF sf i 0.0
                 putStrLn $ show o
                 let i' = outputToNewInput i o
-                let (sf'', o') = runSF sf i'
+                let (sf'', o') = runSF sf i' 1.0
                 putStrLn $ show o'
                 return ()
 ------------------------------------------------------------------------------------------------------------------------
@@ -64,7 +64,7 @@ runStepsPar sfs initInput steps dt = os : oss
         (newInputs, sfs'') = testParCallback initInput os sfs'
         (_, oss) = (runStepsPar' sfs'' newInputs (steps - 1) dt)
 
-        runStepsPar' :: [SF' TestInput TestOutput] -> [TestInput] -> Int -> DTime -> ([SF' TestInput TestOutput], [[TestOutput]])
+        runStepsPar' :: [SF TestInput TestOutput] -> [TestInput] -> Int -> DTime -> ([SF TestInput TestOutput], [[TestOutput]])
         runStepsPar' sfs is 0 dt = ([], [])
         runStepsPar' sfs is steps dt = (sfs3, os : oss)
             where
@@ -72,7 +72,7 @@ runStepsPar sfs initInput steps dt = os : oss
                 (newInputs, sfs'') = testParCallback is os sfs'
                 (sfs3, oss) = runStepsPar' sfs'' newInputs (steps - 1) dt
 
-testParCallback :: [TestInput] -> [TestOutput] -> [SF' TestInput TestOutput] -> ([TestInput], [SF' TestInput TestOutput])
+testParCallback :: [TestInput] -> [TestOutput] -> [SF TestInput TestOutput] -> ([TestInput], [SF TestInput TestOutput])
 testParCallback oldIns newOuts allSfs = (newIns, allSfs)
     where
         newIns = testParCallback' oldIns newOuts
@@ -124,7 +124,7 @@ runStepsSeq sfs initInput steps dt = os : oss
         (sfs', os, newInputs) = runSeq sfs initInput testSeqCallback
         (_, oss) = (runStepsSeq' sfs' newInputs (steps - 1) dt)
 
-        runStepsSeq' :: [SF' TestInput TestOutput] -> [TestInput] -> Int -> DTime -> ([SF' TestInput TestOutput], [[TestOutput]])
+        runStepsSeq' :: [SF TestInput TestOutput] -> [TestInput] -> Int -> DTime -> ([SF TestInput TestOutput], [[TestOutput]])
         runStepsSeq' sfs is 0 dt = ([], [])
         runStepsSeq' sfs is steps dt = (sfs'', os : oss)
             where
@@ -134,8 +134,8 @@ runStepsSeq sfs initInput steps dt = os : oss
 -- NOTE: this callback feeds in all the inputs and the current working triple: SF, Inpout and Output
 -- It allows to change the inputs of future SFs and may return the SF. if it doesnt return a SF this means it is deleted from the system
 testSeqCallback :: [TestInput] -- the existing inputs
-                    -> (SF' TestInput TestOutput, TestInput, TestOutput) -- the current working triple
-                    -> ([TestInput], TestInput, Maybe (SF' TestInput TestOutput)) -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
+                    -> (SF TestInput TestOutput, TestInput, TestOutput) -- the current working triple
+                    -> ([TestInput], TestInput, Maybe (SF TestInput TestOutput)) -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
 testSeqCallback allIs (sf, oldIn, newOut) = (allIs', newIn, maySf)
     where
         allIs' = map (\i' -> i' + (truncate $ realToFrac newOut)) allIs  -- distribute the current output to the new inputs

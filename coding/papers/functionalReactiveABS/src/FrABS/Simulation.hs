@@ -7,27 +7,23 @@ import FrABS.SeqIteration
 import FrABS.ParIteration
 
 import FRP.Yampa
-import qualified FRP.Yampa.InternalCore as YC
 
 ----------------------------------------------------------------------------------------------------------------------
 -- TODOs
--- TODO remove SF'
+----------------------------------------------------------------------------------------------------------------------
 -- TODO feed in the initial inputs through the SF instead of currying
 -- TODO implement sequential iteration
 -- TODO implement parallel iteration
 -- TODO random iteration in sequential
--- TODO create project structure according to put it on Hackage in september: tests, comments,...
--- TODO write unit-tests
--- TODO write QuickCheck tests
+
 -- TODO need a way to specify the environment: spatial (2d/3d continuous/discrete) or graph. includes global neighbourhood information
 -- TODO  environment also needs a signalfunction which runs once per simulation-step: environmentIn/out
 -- TODO agents need to be able to access the environment and update it: sequential vs parallel
--- TODO implement segregation
--- TODO implement recursive simulations: MetaABS: test it using the segregation model. run recursive simulation for local neighbourhood only
--- TODO implement SugarScape all chapters
-    -- TODO implement rules as SF which can be turned on or off
-    -- TODO formalize rules in my EDSL
-    -- TODO problem of sugarscape trading in our functional approach: cannot reply immediately thus potentially violating budget constraints. need to solve this e.g. by having a temporary reserved amount "open for transaction"
+
+-- TODO create project structure according to put it on Hackage in september: tests, comments,...
+-- TODO write unit-tests
+-- TODO write QuickCheck tests
+
 -- TODO STM FrABS using Dunai?
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -121,8 +117,8 @@ process as parStrategy
 ----------------------------------------------------------------------------------------------------------------------
 parCallback :: [AgentIn s m]
                 -> [AgentOut s m]
-                -> [YC.SF' (AgentIn s m) (AgentOut s m)]
-                -> ([AgentIn s m], [YC.SF' (AgentIn s m) (AgentOut s m)])
+                -> [SF (AgentIn s m) (AgentOut s m)]
+                -> ([AgentIn s m], [SF (AgentIn s m) (AgentOut s m)])
 parCallback oldAgentIns newAgentOuts asfs = (newAgentIns', asfs')
     where
         (asfs', newAgentIns) = processAgents asfs oldAgentIns newAgentOuts
@@ -198,7 +194,7 @@ parCallback oldAgentIns newAgentOuts asfs = (newAgentIns', asfs')
 -- NOTE: this callback feeds in all the inputs and the current working triple: SF, Inpout and Output
 -- It allows to change the inputs of future SFs and may return the SF. if it doesnt return a SF this means it is deleted from the system
 seqCallback :: [AgentIn s m] -- the existing inputs
-                -> (YC.SF' (AgentIn s m) (AgentOut s m), AgentIn s m, AgentOut s m) -- the current working triple
-                -> ([AgentIn s m], AgentIn s m, Maybe (YC.SF' (AgentIn s m) (AgentOut s m))) -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
+                -> (SF (AgentIn s m) (AgentOut s m), AgentIn s m, AgentOut s m) -- the current working triple
+                -> ([AgentIn s m], AgentIn s m, Maybe (SF (AgentIn s m) (AgentOut s m))) -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
 seqCallback allIs (sf, oldIn, newOut) = undefined
 ----------------------------------------------------------------------------------------------------------------------

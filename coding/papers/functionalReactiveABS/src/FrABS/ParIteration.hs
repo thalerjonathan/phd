@@ -1,9 +1,7 @@
 {-# LANGUAGE GADTs, Rank2Types, CPP #-}
-
 module FrABS.ParIteration where
 
-import FRP.Yampa
-import qualified FRP.Yampa.InternalCore as YC
+import FRP.Yampa.InternalCore
 
 import FrABS.Utils
 
@@ -12,12 +10,11 @@ import Data.Maybe
 ------------------------------------------------------------------------------------------------------------------------
 -- PAR implementation
 ------------------------------------------------------------------------------------------------------------------------
--- TODO: hide SF'
 runParSF :: [SF i o]
             -> [i]
-            -> ([i] -> [o] -> [YC.SF' i o] -> ([i], [YC.SF' i o]))
+            -> ([i] -> [o] -> [SF i o] -> ([i], [SF i o]))
             -> SF [i] [o]
-runParSF initSfs initInput clbk = YC.SF {YC.sfTF = tf0}
+runParSF initSfs initInput clbk = SF {sfTF = tf0}
     where
         -- NOTE: here we are at time 0 thus using initial inputs and no dt => runPar
         (nextSfs, initOs) = runPar initSfs initInput
@@ -27,7 +24,7 @@ runParSF initSfs initInput clbk = YC.SF {YC.sfTF = tf0}
 
         -- NOTE: here we create recursively a new continuation
         -- ins are the old inputs from which outs resulted, together with their sfs
-        runParSFAux sfs ins outs = YC.SF' tf
+        runParSFAux sfs ins outs = SF' tf
             where
                 -- NOTE: this is a function defition
                 -- tf :: DTime -> [i] -> YC.Transition [i] [o]
@@ -42,33 +39,33 @@ runParSF initSfs initInput clbk = YC.SF {YC.sfTF = tf0}
 
 runPar :: [SF i o]
             -> [i]
-            -> ([YC.SF' i o], [o])
+            -> ([SF i o], [o])
 runPar sfs oldIns = (sfs', newOuts)
     where
         sfInPairs = zip sfs oldIns
         (sfs', newOuts) = foldr runSFHelper ([], []) sfInPairs
 
         runSFHelper :: (SF i o, i)
-                        -> ([YC.SF' i o], [o])
-                        -> ([YC.SF' i o], [o])
+                        -> ([SF i o], [o])
+                        -> ([SF i o], [o])
         runSFHelper (sf, i) (accSfs, accOs) = (sf' : accSfs, o : accOs)
             where
-                (sf', o) = runSFInit sf i
+                (sf', o) = runSF sf i 0
 
-runPar' :: [YC.SF' i o]
+runPar' :: [SF i o]
             -> [i]
             -> DTime
-            -> ([YC.SF' i o], [o])
+            -> ([SF i o], [o])
 runPar' sfs oldIns dt = (sfs', newOuts)
     where
         sfInPairs = zip sfs oldIns
         (sfs', newOuts) = foldr (runSFHelper dt) ([], []) sfInPairs
 
         runSFHelper ::  DTime
-                        -> (YC.SF' i o, i)
-                        -> ([YC.SF' i o], [o])
-                        -> ([YC.SF' i o], [o])
+                        -> (SF i o, i)
+                        -> ([SF i o], [o])
+                        -> ([SF i o], [o])
         runSFHelper dt (sf, i) (accSfs, accOs) = (sf' : accSfs, o : accOs)
             where
-                (sf', o) = runSFCont sf i dt
+                (sf', o) = runSF sf i dt
 ------------------------------------------------------------------------------------------------------------------------

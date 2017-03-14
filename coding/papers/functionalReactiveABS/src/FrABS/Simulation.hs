@@ -196,5 +196,5 @@ parCallback oldAgentIns newAgentOuts asfs = (newAgentIns', asfs')
 seqCallback :: [AgentIn s m] -- the existing inputs
                 -> (SF (AgentIn s m) (AgentOut s m), AgentIn s m, AgentOut s m) -- the current working triple
                 -> ([AgentIn s m], AgentIn s m, Maybe (SF (AgentIn s m) (AgentOut s m))) -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
-seqCallback allIs (sf, oldIn, newOut) = undefined
+seqCallback allIs (sf, oldIn, newOut) = (allIs, oldIn, Just sf)
 ----------------------------------------------------------------------------------------------------------------------

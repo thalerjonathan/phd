@@ -13,11 +13,10 @@ type TestInput = Int
 type TestOutput = Double
 
 ------------------------------------------------------------------------------------------------------------------------
--- SEQ Test
+-- PAR Test
 ------------------------------------------------------------------------------------------------------------------------
-testSeq:: IO ()
-testSeq = do
-            -- let (sfs', os) = Yampa.embed (runSeq sfs is testSeqCallback) (is, sts)
+testPar:: IO ()
+testPar = do
             let steps = 1
             let dt = 1.0
             let oss = runStepsPar sfs is steps dt
@@ -30,8 +29,8 @@ testSeq = do
             sfs = map simpleSF [0..n-1]
             is = [0..n-1]
 
-testSeqEmbed:: IO ()
-testSeqEmbed = do
+testParEmbed:: IO ()
+testParEmbed = do
                     let oos = Yampa.embed (runParSF sfs is testParCallback) (is, sts)
                     -- putStrLn $ show (length oos)
                     let os = (last oos)
@@ -44,13 +43,6 @@ testSeqEmbed = do
             steps = 0
             dt = 1.0
             sts = take steps $ samplingTimes 0.0 dt
-
-samplingTimes :: Double -> Double -> [(DTime, Maybe a)]
-samplingTimes t dt = (t', Nothing) : (samplingTimes t' dt)
-    where
-        t' = t + dt
-
-
 
 runStepsPar :: [SF TestInput TestOutput] -> [TestInput] -> Int -> DTime -> [[TestOutput]]
 runStepsPar sfs initInput 0 dt = []
@@ -68,8 +60,50 @@ runStepsPar sfs initInput steps dt = os : oss
                 (newInputs, sfs'') = testParCallback is os sfs'
                 (sfs3, oss) = runStepsPar' sfs'' newInputs (steps - 1) dt
 
+testParCallback :: [TestInput] -> [TestOutput] -> [SF' TestInput TestOutput] -> ([TestInput], [SF' TestInput TestOutput])
+testParCallback oldIns newOuts allSfs = (newIns, allSfs)
+    where
+        newIns = testParCallback' oldIns newOuts
+
+        testParCallback' :: [TestInput] -> [TestOutput] -> [TestInput]
+        testParCallback' [] [] = []
+        testParCallback' (i:is) (o:os) = newIn : testParCallback' is os
+            where
+                newIn = outputToNewInput i o
+------------------------------------------------------------------------------------------------------------------------
 
 
+------------------------------------------------------------------------------------------------------------------------
+-- SEQ Test
+------------------------------------------------------------------------------------------------------------------------
+testSeq:: IO ()
+testSeq = do
+            let steps = 3
+            let dt = 1.0
+            let oss = runStepsSeq sfs is steps dt
+            let os = (last oss)
+            mapM (putStrLn . show) os
+            return ()
+
+        where
+            n = 10
+            sfs = map simpleSF [0..n-1]
+            is = [0..n-1]
+
+testSeqEmbed:: IO ()
+testSeqEmbed = do
+                    let oos = Yampa.embed (runSeqSF sfs is testSeqCallback) (is, sts)
+                    -- putStrLn $ show (length oos)
+                    let os = (last oos)
+                    mapM (putStrLn . show) os
+                    return ()
+        where
+            n = 10
+            sfs = map simpleSF [0..n-1]
+            is = [0..n-1]
+            steps = 2
+            dt = 1.0
+            sts = take steps $ samplingTimes 0.0 dt
 
 runStepsSeq :: [SF TestInput TestOutput] -> [TestInput] -> Int -> DTime -> [[TestOutput]]
 runStepsSeq sfs initInput 0 dt = []
@@ -85,19 +119,6 @@ runStepsSeq sfs initInput steps dt = os : oss
                 (sfs', os, newInputs) = runSeq' sfs is testSeqCallback dt
                 (sfs'', oss) = runStepsSeq' sfs' newInputs (steps - 1) dt
 
-
-
-testParCallback :: [TestInput] -> [TestOutput] -> [SF' TestInput TestOutput] -> ([TestInput], [SF' TestInput TestOutput])
-testParCallback oldIns newOuts allSfs = (newIns, allSfs)
-    where
-        newIns = testParCallback' oldIns newOuts
-
-        testParCallback' :: [TestInput] -> [TestOutput] -> [TestInput]
-        testParCallback' [] [] = []
-        testParCallback' (i:is) (o:os) = newIn : testParCallback' is os
-            where
-                newIn = outputToNewInput i o
-
 -- NOTE: this callback feeds in all the inputs and the current working triple: SF, Inpout and Output
 -- It allows to change the inputs of future SFs and may return the SF. if it doesnt return a SF this means it is deleted from the system
 testSeqCallback :: [TestInput] -- the existing inputs
@@ -108,6 +129,13 @@ testSeqCallback allIs (sf, oldIn, newOut) = (allIs', newIn, maySf)
         allIs' = map (\i' -> i' + (truncate $ realToFrac newOut)) allIs  -- distribute the current output to the new inputs
         newIn = outputToNewInput oldIn newOut
         maySf = Just sf
+------------------------------------------------------------------------------------------------------------------------
+
+
+samplingTimes :: Double -> Double -> [(DTime, Maybe a)]
+samplingTimes t dt = (t', Nothing) : (samplingTimes t' dt)
+    where
+        t' = t + dt
 
 outputToNewInput :: TestInput -> TestOutput -> TestInput
 outputToNewInput oldIn newOut = truncate $ realToFrac newOut
@@ -191,6 +219,32 @@ runPar' sfs oldIns dt = (sfs', newOuts)
 ------------------------------------------------------------------------------------------------------------------------
 -- SEQ implementation
 ------------------------------------------------------------------------------------------------------------------------
+-- TODO: hide SF'
+runSeqSF :: [SF TestInput TestOutput]
+            -> [TestInput]
+            -> ([TestInput] -> (SF' TestInput TestOutput, TestInput, TestOutput) -> ([TestInput], TestInput, Maybe (SF' TestInput TestOutput)))
+            -> SF [TestInput] [TestOutput]
+runSeqSF initSfs initInput clbk = SF {sfTF = tf0}
+    where
+        -- NOTE: here we are at time 0 thus using initial inputs and no dt => runPar
+        (nextSfs, initOs, nextIns) = runSeq initSfs initInput clbk
+
+        tf0 = (\_ -> (tf', initOs))
+        tf' = runSeqSFAux nextSfs nextIns
+
+        -- NOTE: here we create recursively a new continuation
+        -- ins are the old inputs from which outs resulted, together with their sfs
+        runSeqSFAux sfs ins = SF' tf
+            where
+                -- NOTE: this is a function defition
+                tf :: DTime -> [TestInput] -> Transition [TestInput] [TestOutput]
+                tf dt _ = (tf', outs)
+                    where
+                        -- run the next step with the new sfs and inputs to get the sf-contintuations and their outputs
+                        (sfs', outs, ins') = runSeq' sfs ins clbk dt
+                        -- create a continuation of this SF
+                        tf' = runSeqSFAux sfs' ins'
+
 runSeq :: [SF TestInput TestOutput]
             -> [TestInput]
             -> ([TestInput] -> (SF' TestInput TestOutput, TestInput, TestOutput) -> ([TestInput], TestInput, Maybe (SF' TestInput TestOutput)))

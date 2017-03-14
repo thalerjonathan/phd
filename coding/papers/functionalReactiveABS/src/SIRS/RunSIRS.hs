@@ -1,12 +1,12 @@
 module SIRS.RunSIRS where
 
 import SIRS.SIRSModel
-import qualified Agent.Agents2DDiscrete as Front
+import qualified FrABS.Agents2DDiscrete as Front
 import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.IO.Animate
 import Data.IORef
-import Agent.Agent
-import Agent.Simulation
+import FrABS.Agent
+import FrABS.Simulation
 import FRP.Yampa
 import System.IO
 import System.Random

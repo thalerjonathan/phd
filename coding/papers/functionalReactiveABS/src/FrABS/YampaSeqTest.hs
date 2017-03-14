@@ -1,10 +1,10 @@
 {-# LANGUAGE Arrows #-}
 
-module Agent.YampaSeqTest where
+module FrABS.YampaSeqTest where
 
-import Agent.Utils
-import Agent.SeqIteration
-import Agent.ParIteration
+import FrABS.Utils
+import FrABS.SeqIteration
+import FrABS.ParIteration
 
 import FRP.Yampa
 import FRP.Yampa.InternalCore

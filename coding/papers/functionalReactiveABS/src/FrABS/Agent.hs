@@ -1,6 +1,6 @@
 {-# LANGUAGE Arrows #-}
 
-module Agent.Agent where
+module FrABS.Agent where
 
 import FRP.Yampa
 import FRP.Yampa.Switches

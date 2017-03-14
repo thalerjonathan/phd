@@ -1,11 +1,11 @@
 {-# LANGUAGE GADTs, Rank2Types, CPP #-}
 
-module Agent.SeqIteration where
+module FrABS.SeqIteration where
 
 import FRP.Yampa
 import qualified FRP.Yampa.InternalCore as YC
 
-import Agent.Utils
+import FrABS.Utils
 
 import Data.Maybe
 

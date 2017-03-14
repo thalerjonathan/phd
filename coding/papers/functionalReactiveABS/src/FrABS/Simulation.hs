@@ -1,10 +1,10 @@
 {-# LANGUAGE Arrows #-}
 
-module Agent.Simulation where
+module FrABS.Simulation where
 
-import Agent.Agent
-import Agent.SeqIteration
-import Agent.ParIteration
+import FrABS.Agent
+import FrABS.SeqIteration
+import FrABS.ParIteration
 
 import FRP.Yampa
 import qualified FRP.Yampa.InternalCore as YC
@@ -42,7 +42,7 @@ processIO as parStrategy outFunc = do
                                                 (return ains)
                                                 (iter outFunc)
                                                 (process as parStrategy)
-                                    Agent.Simulation.iterate hdl (1.0, Nothing)
+                                    FrABS.Simulation.iterate hdl (1.0, Nothing)
                                     return ()
                                         where
                                             ains = createStartingAgentIn as
@@ -53,7 +53,7 @@ iterate :: ReactHandle a b
 iterate hdl (dt, input) = do
                             cont <- react hdl (1.0, Nothing)
                             if cont then
-                                Agent.Simulation.iterate hdl (dt, input)
+                                FrABS.Simulation.iterate hdl (dt, input)
                                     else
                                         return False
 

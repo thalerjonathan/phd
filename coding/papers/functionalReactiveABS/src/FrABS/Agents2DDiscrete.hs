@@ -1,4 +1,4 @@
-module Agent.Agents2DDiscrete (
+module FrABS.Agents2DDiscrete (
     RenderCellCoord,
     RenderCellColor,
     RenderCell(..),

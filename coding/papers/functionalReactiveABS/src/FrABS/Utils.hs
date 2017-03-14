@@ -1,4 +1,4 @@
-module Agent.Utils where
+module FrABS.Utils where
 
 import FRP.Yampa.InternalCore
 

@@ -7,7 +7,7 @@ import FrABS.SeqIteration
 import FrABS.ParIteration
 
 import FRP.Yampa
-
+import FRP.Yampa.InternalCore
 ----------------------------------------------------------------------------------------------------------------------
 -- TODOs
 ----------------------------------------------------------------------------------------------------------------------
@@ -106,7 +106,7 @@ samplingTimes t dt = (t', Nothing) : (samplingTimes t' dt)
 
 process :: [AgentDef s m] -> Bool -> SF [AgentIn s m] [AgentOut s m]
 process as parStrategy
-    | parStrategy = runParSF asfs ains parCallback
+    | parStrategy = runParSF asfs parCallback
     | otherwise = runSeqSF asfs ains seqCallback
     where
         asfs = map adBehaviour as
@@ -117,31 +117,31 @@ process as parStrategy
 ----------------------------------------------------------------------------------------------------------------------
 parCallback :: [AgentIn s m]
                 -> [AgentOut s m]
-                -> [SF (AgentIn s m) (AgentOut s m)]
-                -> ([AgentIn s m], [SF (AgentIn s m) (AgentOut s m)])
-parCallback oldAgentIns newAgentOuts asfs = (newAgentIns', asfs')
+                -> [sf] -- -> [SF' (AgentIn s m) (AgentOut s m)]
+                -> ([sf], [AgentIn s m])
+parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
     where
         (asfs', newAgentIns) = processAgents asfs oldAgentIns newAgentOuts
         newAgentIns' = distributeMessages newAgentIns newAgentOuts
 
-        processAgents :: [AgentBehaviour s m]
+        processAgents :: [sf]
                             -> [AgentIn s m]
                             -> [AgentOut s m]
-                            -> ([AgentBehaviour s m], [AgentIn s m])
+                            -> ([sf], [AgentIn s m])
         processAgents asfs oldIs newOs = foldr (\a acc -> handleAgent acc a ) ([], []) asfsWithIsOs
             where
                 asfsWithIsOs = zip3 asfs oldIs newOs
 
-                handleAgent :: ([AgentBehaviour s m], [AgentIn s m])
-                                -> (AgentBehaviour s m, AgentIn s m, AgentOut s m)
-                                -> ([AgentBehaviour s m], [AgentIn s m])
+                handleAgent :: ([sf], [AgentIn s m])
+                                -> (sf, AgentIn s m, AgentOut s m)
+                                -> ([sf], [AgentIn s m])
                 handleAgent acc a@(sf, oldIn, newOut) = handleKillOrLiveAgent acc' a
                     where
                         acc' = handleCreateAgents acc newOut
 
-                handleCreateAgents :: ([AgentBehaviour s m], [AgentIn s m])
+                handleCreateAgents :: ([sf], [AgentIn s m])
                                         -> AgentOut s m
-                                        -> ([AgentBehaviour s m], [AgentIn s m])
+                                        -> ([sf], [AgentIn s m])
                 handleCreateAgents acc@(asfsAcc, ainsAcc) o
                     | hasCreateAgents = (asfsAcc ++ newSfs, ainsAcc ++ newAis)
                     | otherwise = acc
@@ -152,9 +152,9 @@ parCallback oldAgentIns newAgentOuts asfs = (newAgentIns', asfs')
                         newSfs = map adBehaviour newAgentDefs
                         newAis = map startingAgentInFromAgentDef newAgentDefs
 
-                handleKillOrLiveAgent :: ([AgentBehaviour s m], [AgentIn s m])
-                                            -> (AgentBehaviour s m, AgentIn s m, AgentOut s m)
-                                            -> ([AgentBehaviour s m], [AgentIn s m])
+                handleKillOrLiveAgent :: ([sf], [AgentIn s m])
+                                            -> (sf, AgentIn s m, AgentOut s m)
+                                            -> ([sf], [AgentIn s m])
                 handleKillOrLiveAgent acc@(asfsAcc, ainsAcc) (sf, oldIn, newOut)
                     | kill = acc
                     | live = (asfsAcc ++ [sf], ainsAcc ++ [newIn])

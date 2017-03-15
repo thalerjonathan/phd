@@ -2,13 +2,15 @@ module FrABS.Utils where
 
 import FRP.Yampa.InternalCore
 
+import Debug.Trace
+
 ------------------------------------------------------------------------------------------------------------------------
 -- Running a Signal-Function
 ------------------------------------------------------------------------------------------------------------------------
 runSF :: SF a b -> a -> DTime -> (SF a b, b)
 runSF sf0 a0 dt = (SF {sfTF = tf0}, b0)
     where
-        (sf', b0) = runSFInit sf0 a0
+        (sf', b0) = trace "runSFInit" (runSFInit sf0 a0)
 
         tf0 = (\_ -> (tf', b0))
         tf' = runSFAux sf'
@@ -17,7 +19,7 @@ runSF sf0 a0 dt = (SF {sfTF = tf0}, b0)
             where
                 tf _ i = (sf', b0)
                     where
-                        (sf', b0) = runSFCont sfCont i dt
+                        (sf', b0) = trace "runSFCont" runSFCont sfCont i dt
 
 -- This will run the given SF with the given input a and returns the continuation SF with the output b
 runSFInit :: SF a b -> a -> (SF' a b, b)

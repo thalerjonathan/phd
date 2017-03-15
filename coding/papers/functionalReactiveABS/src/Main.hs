@@ -1,7 +1,12 @@
 module Main where
 
+import System.IO
+
 import SIRS.RunSIRS
-import FrABS.YampaSeqTest
+-- import FrABS.YampaSeqTest
 
 main :: IO ()
-main = runSIRSWithRendering
+main = do
+            hSetBuffering stdin NoBuffering
+            hSetBuffering stderr NoBuffering
+            runSIRSWithRendering -- testParEmbed -- runSIRSWithRendering --testRunSF

@@ -43,7 +43,7 @@ testPar = do
 
 testParEmbed:: IO ()
 testParEmbed = do
-                    let oos = embed (runParSF sfs is testParCallback) (is, sts)
+                    let oos = embed (runParSF sfs testParCallback) (is, sts)
                     -- putStrLn $ show (length oos)
                     let os = (last oos)
                     mapM (putStrLn . show) os
@@ -52,9 +52,9 @@ testParEmbed = do
             n = 10
             sfs = map simpleSF [0..n-1]
             is = [0..n-1]
-            steps = 0
+            steps = 3
             dt = 1.0
-            sts = take steps $ samplingTimes 0.0 dt
+            sts = replicate steps (dt, Nothing)
 
 runStepsPar :: [SF TestInput TestOutput] -> [TestInput] -> Int -> DTime -> [[TestOutput]]
 runStepsPar sfs initInput 0 dt = []
@@ -64,7 +64,7 @@ runStepsPar sfs initInput steps dt = os : oss
         (newInputs, sfs'') = testParCallback initInput os sfs'
         (_, oss) = (runStepsPar' sfs'' newInputs (steps - 1) dt)
 
-        runStepsPar' :: [SF TestInput TestOutput] -> [TestInput] -> Int -> DTime -> ([SF TestInput TestOutput], [[TestOutput]])
+        runStepsPar' :: [SF' TestInput TestOutput] -> [TestInput] -> Int -> DTime -> ([SF' TestInput TestOutput], [[TestOutput]])
         runStepsPar' sfs is 0 dt = ([], [])
         runStepsPar' sfs is steps dt = (sfs3, os : oss)
             where
@@ -72,7 +72,7 @@ runStepsPar sfs initInput steps dt = os : oss
                 (newInputs, sfs'') = testParCallback is os sfs'
                 (sfs3, oss) = runStepsPar' sfs'' newInputs (steps - 1) dt
 
-testParCallback :: [TestInput] -> [TestOutput] -> [SF TestInput TestOutput] -> ([TestInput], [SF TestInput TestOutput])
+testParCallback :: [TestInput] -> [TestOutput] -> [SF' TestInput TestOutput] -> ([TestInput], [SF' TestInput TestOutput])
 testParCallback oldIns newOuts allSfs = (newIns, allSfs)
     where
         newIns = testParCallback' oldIns newOuts
@@ -115,7 +115,7 @@ testSeqEmbed = do
             is = [0..n-1]
             steps = 2
             dt = 1.0
-            sts = take steps $ samplingTimes 0.0 dt
+            sts = replicate steps (dt, Nothing)
 
 runStepsSeq :: [SF TestInput TestOutput] -> [TestInput] -> Int -> DTime -> [[TestOutput]]
 runStepsSeq sfs initInput 0 dt = []
@@ -142,12 +142,6 @@ testSeqCallback allIs (sf, oldIn, newOut) = (allIs', newIn, maySf)
         newIn = outputToNewInput oldIn newOut
         maySf = Just sf
 ------------------------------------------------------------------------------------------------------------------------
-
-
-samplingTimes :: Double -> Double -> [(DTime, Maybe a)]
-samplingTimes t dt = (t', Nothing) : (samplingTimes t' dt)
-    where
-        t' = t + dt
 
 outputToNewInput :: TestInput -> TestOutput -> TestInput
 outputToNewInput oldIn newOut = truncate $ realToFrac newOut

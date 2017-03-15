@@ -15,7 +15,7 @@ winSize = (800, 800)
 winTitle = "SIRS FrABS"
 
 rngSeed = 42
-cells = (70, 70)
+cells = (3, 3)
 initInfectionProb = 0.2
 parallelStrategyFlag = True
 

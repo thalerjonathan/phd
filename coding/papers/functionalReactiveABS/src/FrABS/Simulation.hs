@@ -112,7 +112,7 @@ process as parStrategy
         asfs = map adBehaviour as
 
 ----------------------------------------------------------------------------------------------------------------------
--- SEQUENTIAL STRATEGY
+-- PARALLEL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
 parCallback :: [AgentIn s m]
                 -> [AgentOut s m]
@@ -163,28 +163,6 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
                         newIn = oldIn { aiStart = NoEvent,
                                         aiState = (aoState newOut),
                                         aiMessages = NoEvent }
-
-        distributeMessages :: [AgentIn s m] -> [AgentOut s m] -> [AgentIn s m]
-        distributeMessages ais aos = map (collectMessagesFor aos) ais
-
-        collectMessagesFor :: [AgentOut s m] -> AgentIn s m -> AgentIn s m
-        collectMessagesFor aos ai = ai { aiMessages = msgsEvt }
-            where
-                aid = aiId ai
-                msgsEvt = foldr (\ao accMsgs -> mergeMessages (collectMessagesFrom aid ao) accMsgs ) NoEvent aos
-
-                collectMessagesFrom :: AgentId -> AgentOut s m -> Event [AgentMessage m]
-                collectMessagesFrom aid ao = foldr (\(receiverId, m) accMsgs-> if receiverId == aid then
-                                                                                mergeMessages (Event [(senderId, m)]) accMsgs
-                                                                                else
-                                                                                    accMsgs) NoEvent msgs
-                    where
-                        senderId = aoId ao
-                        msgsEvt = aoMessages ao
-                        msgs = if isEvent msgsEvt then
-                                    fromEvent msgsEvt
-                                    else
-                                        []
 ----------------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------------------------------------------------------------------------------------
@@ -194,6 +172,69 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
 -- It allows to change the inputs of future SFs and may return the SF. if it doesnt return a SF this means it is deleted from the system
 seqCallback :: [AgentIn s m] -- the existing inputs
                 -> (SF (AgentIn s m) (AgentOut s m), AgentIn s m, AgentOut s m) -- the current working triple
-                -> ([AgentIn s m], AgentIn s m, Maybe (SF (AgentIn s m) (AgentOut s m))) -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
-seqCallback allIs (sf, oldIn, newOut) = (allIs, oldIn, Just sf)
+                -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
+                -> ([AgentIn s m],
+                    Maybe (SF (AgentIn s m) (AgentOut s m), AgentIn s m),
+                    [SF (AgentIn s m) (AgentOut s m)],
+                    [AgentIn s m])
+seqCallback allIns a@(sf, oldIn, newOut) = (allIns', maySfIn, newSfs, newIns')
+    where
+        maySfIn = handleKillOrLiveAgent a
+        -- NOTE: messages of this agent are ALWAYS distributed, whether it is killed or not
+        (newSfs, newIns) = handleCreateAgents newOut
+        -- NOTE: distribute messages to newly created agents as well
+        newIns' = distributeMessages newIns [newOut]
+        -- NOTE: distribute messages to all other agents
+        allIns' = distributeMessages allIns [newOut]
+
+        handleCreateAgents :: AgentOut s m -> ([SF (AgentIn s m) (AgentOut s m)], [AgentIn s m])
+        handleCreateAgents out
+            | hasCreateAgents = (newSfs, newAis)
+            | otherwise = ([], [])
+            where
+                newAgentDefsEvt = aoCreate out
+                hasCreateAgents = isEvent newAgentDefsEvt
+                newAgentDefs = fromEvent newAgentDefsEvt
+                newSfs = map adBehaviour newAgentDefs
+                newAis = map startingAgentInFromAgentDef newAgentDefs
+
+        handleKillOrLiveAgent :: (SF (AgentIn s m) (AgentOut s m), AgentIn s m, AgentOut s m)
+                                    -> Maybe (SF (AgentIn s m) (AgentOut s m), AgentIn s m)
+        handleKillOrLiveAgent (sf, oldIn, newOut)
+            | kill = Nothing
+            | live = Just (sf, newIn')
+            where
+                kill = isEvent $ aoKill newOut
+                live = not kill
+                newIn = oldIn { aiStart = NoEvent,
+                                aiState = (aoState newOut),
+                                aiMessages = NoEvent }
+                -- NOTE: need to handle sending messages to itself because the input of this agent is not in the list of all inputs because it will be replaced anyway by newIn
+                newIn' = collectMessagesFor [newOut] newIn
+----------------------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------------------------
+-- Internal: Message collecting & distributing
+----------------------------------------------------------------------------------------------------------------------
+distributeMessages :: [AgentIn s m] -> [AgentOut s m] -> [AgentIn s m]
+distributeMessages ais aos = map (collectMessagesFor aos) ais
+
+collectMessagesFor :: [AgentOut s m] -> AgentIn s m -> AgentIn s m
+collectMessagesFor aos ai = ai { aiMessages = msgsEvt }
+    where
+        aid = aiId ai
+        msgsEvt = foldr (\ao accMsgs -> mergeMessages (collectMessagesFrom aid ao) accMsgs ) NoEvent aos
+
+collectMessagesFrom :: AgentId -> AgentOut s m -> Event [AgentMessage m]
+collectMessagesFrom aid ao = foldr (\(receiverId, m) accMsgs-> if receiverId == aid then
+                                                                mergeMessages (Event [(senderId, m)]) accMsgs
+                                                                else
+                                                                    accMsgs) NoEvent msgs
+    where
+        senderId = aoId ao
+        msgsEvt = aoMessages ao
+        msgs = if isEvent msgsEvt then
+                    fromEvent msgsEvt
+                    else
+                        []
 ----------------------------------------------------------------------------------------------------------------------

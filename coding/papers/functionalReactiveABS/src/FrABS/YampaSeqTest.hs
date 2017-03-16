@@ -80,12 +80,15 @@ testSeqEmbed = do
 -- It allows to change the inputs of future SFs and may return the SF. if it doesnt return a SF this means it is deleted from the system
 testSeqCallback :: [TestInput] -- the existing inputs
                     -> (SF TestInput TestOutput, TestInput, TestOutput) -- the current working triple
-                    -> ([TestInput], TestInput, Maybe (SF TestInput TestOutput)) -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
-testSeqCallback allIs (sf, oldIn, newOut) = (allIs', newIn, maySf)
+                    -> ([TestInput],
+                        Maybe (SF TestInput TestOutput, TestInput),
+                        [SF TestInput TestOutput],
+                        [TestInput]) -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
+testSeqCallback allIs (sf, oldIn, newOut) = (allIs', maySfIn, [], [])
     where
         allIs' = map (\i' -> i' + (truncate $ realToFrac newOut)) allIs  -- distribute the current output to the new inputs
         newIn = outputToNewInput oldIn newOut
-        maySf = Just sf
+        maySfIn = Just (sf, newIn)
 ------------------------------------------------------------------------------------------------------------------------
 
 outputToNewInput :: TestInput -> TestOutput -> TestInput

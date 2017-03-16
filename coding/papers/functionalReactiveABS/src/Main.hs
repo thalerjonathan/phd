@@ -9,4 +9,4 @@ main :: IO ()
 main = do
             hSetBuffering stdin NoBuffering
             hSetBuffering stderr NoBuffering
-            runSIRSWithRendering -- testParEmbed -- runSIRSWithRendering --testRunSF
+            testSeqEmbed -- testParEmbed -- testSeqEmbed -- testParEmbed --testRunSF -- runSIRSWithRendering

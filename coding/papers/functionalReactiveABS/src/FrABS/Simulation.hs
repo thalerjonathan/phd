@@ -107,10 +107,9 @@ samplingTimes t dt = (t', Nothing) : (samplingTimes t' dt)
 process :: [AgentDef s m] -> Bool -> SF [AgentIn s m] [AgentOut s m]
 process as parStrategy
     | parStrategy = runParSF asfs parCallback
-    | otherwise = runSeqSF asfs ains seqCallback
+    | otherwise = runSeqSF asfs seqCallback
     where
         asfs = map adBehaviour as
-        ains = createStartingAgentIn as
 
 ----------------------------------------------------------------------------------------------------------------------
 -- SEQUENTIAL STRATEGY

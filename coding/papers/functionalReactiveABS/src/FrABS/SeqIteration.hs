@@ -12,35 +12,34 @@ import Data.Maybe
 -- SEQ implementation
 ------------------------------------------------------------------------------------------------------------------------
 runSeqSF :: [SF i o]
-            -> [i]
             -> ([i] -> (SF i o, i, o) -> ([i], i, Maybe (SF i o)))
             -> SF [i] [o]
-runSeqSF initSfs initInput clbk = SF {sfTF = tf0}
+runSeqSF initSfs clbk = SF {sfTF = tf0}
     where
-        -- NOTE: here we are at time 0 thus using initial inputs and no dt => runPar
-        (nextSfs, initOs, nextIns) = runSeq initSfs initInput clbk
-
-        tf0 = (\_ -> (tf', initOs))
-        tf' = runSeqSFAux nextSfs nextIns
+        tf0 initInput = (tfCont, [])
+            where
+                --(nextSfs, initOs, nextIns) = runSeqInternal initSfs initInput clbk
+                -- NOTE: in SEQ we need already to know the dt for the NEXT step because we are iterating in sequence => ommit first output => need 1 step more
+                tfCont = runSeqSFAux initSfs initInput
 
         -- NOTE: here we create recursively a new continuation
         -- ins are the old inputs from which outs resulted, together with their sfs
         runSeqSFAux sfs ins = SF' tf
             where
-                -- NOTE: this is a function defition
-                -- tf :: DTime -> [i] -> YC.Transition [i] [o]
+                -- NOTE: this is a function definition
+                -- tf :: DTime -> [i] -> Transition [i] [o]
                 tf dt _ = (tf', outs)
                     where
                         -- run the next step with the new sfs and inputs to get the sf-contintuations and their outputs
-                        (sfs', outs, ins') = runSeq' sfs ins clbk dt
+                        (sfs', outs, ins') = runSeqInternal' sfs ins clbk dt
                         -- create a continuation of this SF
                         tf' = runSeqSFAux sfs' ins'
 
-runSeq :: [SF i o]
-            -> [i]
-            -> ([i] -> (SF i o, i, o) -> ([i], i, Maybe (SF i o)))
-            -> ([SF i o], [o], [i])
-runSeq sfs is clbk = runSeqRec sfs is [] 0 clbk
+runSeqInternal :: [SF i o]
+                    -> [i]
+                    -> ([i] -> (SF i o, i, o) -> ([i], i, Maybe (SF i o)))
+                    -> ([SF i o], [o], [i])
+runSeqInternal sfs is clbk = runSeqRec sfs is [] 0 clbk
     where
         runSeqRec :: [SF i o]
                     -> [i]
@@ -53,7 +52,7 @@ runSeq sfs is clbk = runSeqRec sfs is [] 0 clbk
             | isJust mayCont = (sf' : recSfs, newOut : recOs, recIs)
             | otherwise = runSeqRec sfs is' accIs' (idx + 1) clbk                 -- NOTE: only include newInput if  isJust mayCont
             where
-                (sf', newOut) = runSF sf oldIn 0
+                (sf', newOut) = runAndFreezeSF sf oldIn 0.0 -- NOTE: need the next dt at this point already
 
                 allIs = accIs ++ is -- NOTE: current input is not included because it is thrown away anyway
                 (allIs', newIn, mayCont) = clbk allIs (sf', oldIn, newOut)
@@ -61,12 +60,12 @@ runSeq sfs is clbk = runSeqRec sfs is [] 0 clbk
                 accIsWithNewInput = newIn : accIs'
                 (recSfs, recOs, recIs) = runSeqRec sfs is' accIsWithNewInput (idx + 1) clbk
 
-runSeq' :: [SF i o]
-            -> [i]
-            -> ([i] -> (SF i o, i, o) -> ([i], i, Maybe (SF i o)))
-            -> DTime
-            -> ([SF i o], [o], [i])
-runSeq' sfs is clbk dt = runSeqRec' sfs is [] 0 clbk dt
+runSeqInternal' :: [SF i o]
+                -> [i]
+                -> ([i] -> (SF i o, i, o) -> ([i], i, Maybe (SF i o)))
+                -> DTime
+                -> ([SF i o], [o], [i])
+runSeqInternal' sfs is clbk dt = runSeqRec' sfs is [] 0 clbk dt
     where
         runSeqRec' :: [SF i o]
                     -> [i]
@@ -80,7 +79,7 @@ runSeq' sfs is clbk dt = runSeqRec' sfs is [] 0 clbk dt
             | isJust mayCont = (sf' : recSfs, newOut : recOs, recIs)
             | otherwise = runSeqRec' sfs is' accIs' (idx + 1) clbk dt              -- NOTE: only include newInput if  isJust mayCont
             where
-                (sf', newOut) = runSF sf i dt
+                (sf', newOut) = runAndFreezeSF sf i dt
 
                 allIs = accIs ++ is -- NOTE: current input is not included because it is thrown away anyway
                 (allIs', newInput, mayCont) = clbk allIs (sf', i, newOut)

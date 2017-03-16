@@ -18,10 +18,10 @@ testRunSF :: IO ()
 testRunSF = do
                 let sf = simpleSF 42
                 let i = 1 :: TestInput
-                let (sf', o) = runSF sf i 0.0
+                let (sf', o) = runAndFreezeSF sf i 2.0
                 putStrLn $ show o
                 let i' = outputToNewInput i o
-                let (sf'', o') = runSF sf i' 1.0
+                let (sf'', o') = runAndFreezeSF sf i' 2.0
                 putStrLn $ show o'
                 return ()
 ------------------------------------------------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ testParEmbed = do
                     mapM (putStrLn . show) os
                     return ()
         where
-            n = 10
+            n = 3
             sfs = map simpleSF [0..n-1]
             is = [0..n-1]
             steps = 3
@@ -61,48 +61,20 @@ testParCallback oldIns newOuts allSfs = (allSfs, newIns)
 ------------------------------------------------------------------------------------------------------------------------
 -- SEQ Test
 ------------------------------------------------------------------------------------------------------------------------
-testSeq:: IO ()
-testSeq = do
-            let steps = 3
-            let dt = 1.0
-            let oss = runStepsSeq sfs is steps dt
-            let os = (last oss)
-            mapM (putStrLn . show) os
-            return ()
-
-        where
-            n = 10
-            sfs = map simpleSF [0..n-1]
-            is = [0..n-1]
-
 testSeqEmbed:: IO ()
 testSeqEmbed = do
-                    let oos = embed (runSeqSF sfs is testSeqCallback) (is, sts)
+                    let oos = embed (runSeqSF sfs testSeqCallback) (is, sts)
                     -- putStrLn $ show (length oos)
                     let os = (last oos)
                     mapM (putStrLn . show) os
                     return ()
         where
-            n = 10
+            n = 3
             sfs = map simpleSF [0..n-1]
             is = [0..n-1]
-            steps = 2
+            steps = 3
             dt = 1.0
             sts = replicate steps (dt, Nothing)
-
-runStepsSeq :: [SF TestInput TestOutput] -> [TestInput] -> Int -> DTime -> [[TestOutput]]
-runStepsSeq sfs initInput 0 dt = []
-runStepsSeq sfs initInput steps dt = os : oss
-    where
-        (sfs', os, newInputs) = runSeq sfs initInput testSeqCallback
-        (_, oss) = (runStepsSeq' sfs' newInputs (steps - 1) dt)
-
-        runStepsSeq' :: [SF TestInput TestOutput] -> [TestInput] -> Int -> DTime -> ([SF TestInput TestOutput], [[TestOutput]])
-        runStepsSeq' sfs is 0 dt = ([], [])
-        runStepsSeq' sfs is steps dt = (sfs'', os : oss)
-            where
-                (sfs', os, newInputs) = runSeq' sfs is testSeqCallback dt
-                (sfs'', oss) = runStepsSeq' sfs' newInputs (steps - 1) dt
 
 -- NOTE: this callback feeds in all the inputs and the current working triple: SF, Inpout and Output
 -- It allows to change the inputs of future SFs and may return the SF. if it doesnt return a SF this means it is deleted from the system

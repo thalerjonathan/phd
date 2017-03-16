@@ -7,31 +7,17 @@ import Debug.Trace
 ------------------------------------------------------------------------------------------------------------------------
 -- Running a Signal-Function
 ------------------------------------------------------------------------------------------------------------------------
-runSF :: SF a b -> a -> DTime -> (SF a b, b)
-runSF sf0 a0 dt = (SF {sfTF = tf0}, b0)
+runAndFreezeSF :: SF a b -> a -> DTime -> (SF a b, b)
+runAndFreezeSF sf0 a0 dt = (sfFrozen, b0)
     where
-        (sf', b0) = trace "runSFInit" (runSFInit sf0 a0)
+        (sf', b0) = (sfTF sf0) a0
+        sfFrozen = freeze sf' dt
 
-        tf0 = (\_ -> (tf', b0))
-        tf' = runSFAux sf'
-
-        runSFAux sfCont  = SF' tf
-            where
-                tf _ i = (sf', b0)
-                    where
-                        (sf', b0) = trace "runSFCont" runSFCont sfCont i dt
-
--- This will run the given SF with the given input a and returns the continuation SF with the output b
-runSFInit :: SF a b -> a -> (SF' a b, b)
-runSFInit sf0 a0 = (sfTF sf0) a0
-
--- sfTF' :: SF' a b -> (DTime -> a -> Transition a b)
-runSFCont :: SF' a b -> a -> DTime -> (SF' a b, b)
-runSFCont sf0 a0 dt0 = (sfTF' sf0 dt0) a0
-
+-- NOTE: this was taken from Yampa
 freeze :: SF' a b -> DTime -> SF a b
 freeze sf dt = SF {sfTF = (sfTF' sf) dt}
 
+-- NOTE: this was taken from Yampa
 freezeCol :: Functor col => col (SF' a b) -> DTime -> col (SF a b)
 freezeCol sfs dt = fmap (`freeze` dt) sfs
 ------------------------------------------------------------------------------------------------------------------------

@@ -27,20 +27,6 @@ testRunSF = do
 ------------------------------------------------------------------------------------------------------------------------
 -- PAR Test
 ------------------------------------------------------------------------------------------------------------------------
-testPar :: IO ()
-testPar = do
-            let steps = 1
-            let dt = 1.0
-            let oss = runStepsPar sfs is steps dt
-            let os = (last oss)
-            mapM (putStrLn . show) os
-            return ()
-
-        where
-            n = 10
-            sfs = map simpleSF [0..n-1]
-            is = [0..n-1]
-
 testParEmbed:: IO ()
 testParEmbed = do
                     let oos = embed (runParSF sfs testParCallback) (is, sts)
@@ -56,24 +42,11 @@ testParEmbed = do
             dt = 1.0
             sts = replicate steps (dt, Nothing)
 
-runStepsPar :: [SF TestInput TestOutput] -> [TestInput] -> Int -> DTime -> [[TestOutput]]
-runStepsPar sfs initInput 0 dt = []
-runStepsPar sfs initInput steps dt = os : oss
-    where
-        (sfs', os) = runPar sfs initInput
-        (newInputs, sfs'') = testParCallback initInput os sfs'
-        (_, oss) = (runStepsPar' sfs'' newInputs (steps - 1) dt)
-
-        runStepsPar' :: [SF' TestInput TestOutput] -> [TestInput] -> Int -> DTime -> ([SF' TestInput TestOutput], [[TestOutput]])
-        runStepsPar' sfs is 0 dt = ([], [])
-        runStepsPar' sfs is steps dt = (sfs3, os : oss)
-            where
-                (sfs', os) = runPar' sfs is dt
-                (newInputs, sfs'') = testParCallback is os sfs'
-                (sfs3, oss) = runStepsPar' sfs'' newInputs (steps - 1) dt
-
-testParCallback :: [TestInput] -> [TestOutput] -> [SF' TestInput TestOutput] -> ([TestInput], [SF' TestInput TestOutput])
-testParCallback oldIns newOuts allSfs = (newIns, allSfs)
+testParCallback :: [TestInput]
+                    -> [TestOutput]
+                    -> [SF TestInput TestOutput]
+                    -> ([SF TestInput TestOutput], [TestInput])
+testParCallback oldIns newOuts allSfs = (allSfs, newIns)
     where
         newIns = testParCallback' oldIns newOuts
 
@@ -149,7 +122,6 @@ outputToNewInput oldIn newOut = truncate $ realToFrac newOut
 simpleSF :: Int -> SF TestInput TestOutput
 simpleSF off = proc i ->
                 do
-                    let i' = i + off
+                    t <- time -< 0
+                    let i' = trace ("time = " ++ (show t)) (i + off)
                     returnA -< fromInteger $ toInteger i'
-
-

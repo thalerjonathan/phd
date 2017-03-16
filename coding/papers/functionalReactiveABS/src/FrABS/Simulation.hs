@@ -117,31 +117,31 @@ process as parStrategy
 ----------------------------------------------------------------------------------------------------------------------
 parCallback :: [AgentIn s m]
                 -> [AgentOut s m]
-                -> [sf] -- -> [SF' (AgentIn s m) (AgentOut s m)]
-                -> ([sf], [AgentIn s m])
+                -> [SF (AgentIn s m) (AgentOut s m)]
+                -> ([SF (AgentIn s m) (AgentOut s m)], [AgentIn s m])
 parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
     where
         (asfs', newAgentIns) = processAgents asfs oldAgentIns newAgentOuts
         newAgentIns' = distributeMessages newAgentIns newAgentOuts
 
-        processAgents :: [sf]
+        processAgents :: [SF (AgentIn s m) (AgentOut s m)]
                             -> [AgentIn s m]
                             -> [AgentOut s m]
-                            -> ([sf], [AgentIn s m])
+                            -> ([SF (AgentIn s m) (AgentOut s m)], [AgentIn s m])
         processAgents asfs oldIs newOs = foldr (\a acc -> handleAgent acc a ) ([], []) asfsWithIsOs
             where
                 asfsWithIsOs = zip3 asfs oldIs newOs
 
-                handleAgent :: ([sf], [AgentIn s m])
-                                -> (sf, AgentIn s m, AgentOut s m)
-                                -> ([sf], [AgentIn s m])
+                handleAgent :: ([SF (AgentIn s m) (AgentOut s m)], [AgentIn s m])
+                                -> (SF (AgentIn s m) (AgentOut s m), AgentIn s m, AgentOut s m)
+                                -> ([SF (AgentIn s m) (AgentOut s m)], [AgentIn s m])
                 handleAgent acc a@(sf, oldIn, newOut) = handleKillOrLiveAgent acc' a
                     where
                         acc' = handleCreateAgents acc newOut
 
-                handleCreateAgents :: ([sf], [AgentIn s m])
+                handleCreateAgents :: ([SF (AgentIn s m) (AgentOut s m)], [AgentIn s m])
                                         -> AgentOut s m
-                                        -> ([sf], [AgentIn s m])
+                                        -> ([SF (AgentIn s m) (AgentOut s m)], [AgentIn s m])
                 handleCreateAgents acc@(asfsAcc, ainsAcc) o
                     | hasCreateAgents = (asfsAcc ++ newSfs, ainsAcc ++ newAis)
                     | otherwise = acc
@@ -152,9 +152,9 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
                         newSfs = map adBehaviour newAgentDefs
                         newAis = map startingAgentInFromAgentDef newAgentDefs
 
-                handleKillOrLiveAgent :: ([sf], [AgentIn s m])
-                                            -> (sf, AgentIn s m, AgentOut s m)
-                                            -> ([sf], [AgentIn s m])
+                handleKillOrLiveAgent :: ([SF (AgentIn s m) (AgentOut s m)], [AgentIn s m])
+                                            -> (SF (AgentIn s m) (AgentOut s m), AgentIn s m, AgentOut s m)
+                                            -> ([SF (AgentIn s m) (AgentOut s m)], [AgentIn s m])
                 handleKillOrLiveAgent acc@(asfsAcc, ainsAcc) (sf, oldIn, newOut)
                     | kill = acc
                     | live = (asfsAcc ++ [sf], ainsAcc ++ [newIn])

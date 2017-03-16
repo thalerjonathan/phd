@@ -3,7 +3,7 @@ module Main where
 import System.IO
 
 import SIRS.RunSIRS
--- import FrABS.YampaSeqTest
+import FrABS.YampaSeqTest
 
 main :: IO ()
 main = do

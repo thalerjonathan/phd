@@ -28,4 +28,10 @@ runSFInit sf0 a0 = (sfTF sf0) a0
 -- sfTF' :: SF' a b -> (DTime -> a -> Transition a b)
 runSFCont :: SF' a b -> a -> DTime -> (SF' a b, b)
 runSFCont sf0 a0 dt0 = (sfTF' sf0 dt0) a0
+
+freeze :: SF' a b -> DTime -> SF a b
+freeze sf dt = SF {sfTF = (sfTF' sf) dt}
+
+freezeCol :: Functor col => col (SF' a b) -> DTime -> col (SF a b)
+freezeCol sfs dt = fmap (`freeze` dt) sfs
 ------------------------------------------------------------------------------------------------------------------------

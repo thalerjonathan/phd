@@ -63,7 +63,7 @@ testParCallback oldIns newOuts allSfs = (allSfs, newIns)
 ------------------------------------------------------------------------------------------------------------------------
 testSeqEmbed:: IO ()
 testSeqEmbed = do
-                    let oos = embed (runSeqSF sfs testSeqCallback) (is, sts)
+                    let oos = embed (runSeqSF sfs testSeqCallback testIterCallback) (is, sts)
                     -- putStrLn $ show (length oos)
                     let os = (last oos)
                     mapM (putStrLn . show) os
@@ -72,21 +72,22 @@ testSeqEmbed = do
             n = 3
             sfs = map simpleSF [0..n-1]
             is = [0..n-1]
-            steps = 3
+            steps = 2
             dt = 1.0
             sts = replicate steps (dt, Nothing)
+
+testIterCallback :: [TestOutput] -> ([SF TestInput TestOutput], [TestInput])
+testIterCallback allOuts = ([], [])
 
 -- NOTE: this callback feeds in all the inputs and the current working triple: SF, Inpout and Output
 -- It allows to change the inputs of future SFs and may return the SF. if it doesnt return a SF this means it is deleted from the system
 testSeqCallback :: [TestInput] -- the existing inputs
                     -> (SF TestInput TestOutput, TestInput, TestOutput) -- the current working triple
                     -> ([TestInput],
-                        Maybe (SF TestInput TestOutput, TestInput),
-                        [SF TestInput TestOutput],
-                        [TestInput]) -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
-testSeqCallback allIs (sf, oldIn, newOut) = (allIs', maySfIn, [], [])
+                        Maybe (SF TestInput TestOutput, TestInput) ) -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
+testSeqCallback allIns (sf, oldIn, newOut) = (allIs', maySfIn)
     where
-        allIs' = map (\i' -> i' + (truncate $ realToFrac newOut)) allIs  -- distribute the current output to the new inputs
+        allIs' = map (\i' -> i' + (truncate $ realToFrac newOut)) allIns  -- distribute the current output to the new inputs
         newIn = outputToNewInput oldIn newOut
         maySfIn = Just (sf, newIn)
 ------------------------------------------------------------------------------------------------------------------------

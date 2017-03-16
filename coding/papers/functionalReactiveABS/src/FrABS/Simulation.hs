@@ -8,12 +8,13 @@ import FrABS.ParIteration
 
 import FRP.Yampa
 import FRP.Yampa.InternalCore
+
+-- TODO: remove these imports
+import Debug.Trace
+
 ----------------------------------------------------------------------------------------------------------------------
 -- TODOs
 ----------------------------------------------------------------------------------------------------------------------
--- TODO feed in the initial inputs through the SF instead of currying
--- TODO implement sequential iteration
--- TODO implement parallel iteration
 -- TODO random iteration in sequential
 
 -- TODO need a way to specify the environment: spatial (2d/3d continuous/discrete) or graph. includes global neighbourhood information
@@ -103,11 +104,10 @@ samplingTimes t dt = (t', Nothing) : (samplingTimes t' dt)
         t' = t + dt
 ----------------------------------------------------------------------------------------------------------------------
 
-
 process :: [AgentDef s m] -> Bool -> SF [AgentIn s m] [AgentOut s m]
 process as parStrategy
     | parStrategy = runParSF asfs parCallback
-    | otherwise = runSeqSF asfs seqCallback
+    | otherwise = runSeqSF asfs seqCallback seqCallbackIteration
     where
         asfs = map adBehaviour as
 
@@ -138,19 +138,6 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
                     where
                         acc' = handleCreateAgents acc newOut
 
-                handleCreateAgents :: ([SF (AgentIn s m) (AgentOut s m)], [AgentIn s m])
-                                        -> AgentOut s m
-                                        -> ([SF (AgentIn s m) (AgentOut s m)], [AgentIn s m])
-                handleCreateAgents acc@(asfsAcc, ainsAcc) o
-                    | hasCreateAgents = (asfsAcc ++ newSfs, ainsAcc ++ newAis)
-                    | otherwise = acc
-                    where
-                        newAgentDefsEvt = aoCreate o
-                        hasCreateAgents = isEvent newAgentDefsEvt
-                        newAgentDefs = fromEvent newAgentDefsEvt
-                        newSfs = map adBehaviour newAgentDefs
-                        newAis = map startingAgentInFromAgentDef newAgentDefs
-
                 handleKillOrLiveAgent :: ([SF (AgentIn s m) (AgentOut s m)], [AgentIn s m])
                                             -> (SF (AgentIn s m) (AgentOut s m), AgentIn s m, AgentOut s m)
                                             -> ([SF (AgentIn s m) (AgentOut s m)], [AgentIn s m])
@@ -168,35 +155,26 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
 ----------------------------------------------------------------------------------------------------------------------
 -- SEQUENTIAL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
+seqCallbackIteration :: [AgentOut s m] -> ([SF (AgentIn s m) (AgentOut s m)], [AgentIn s m])
+seqCallbackIteration aouts = (newSfs, newSfsIns')
+    where
+        -- NOTE: messages of this agent are ALWAYS distributed, whether it is killed or not
+        (newSfs, newSfsIns) = foldl handleCreateAgents ([], []) aouts
+        -- NOTE: distribute messages to newly created agents as well
+        newSfsIns' = distributeMessages newSfsIns aouts
+
 -- NOTE: this callback feeds in all the inputs and the current working triple: SF, Inpout and Output
 -- It allows to change the inputs of future SFs and may return the SF. if it doesnt return a SF this means it is deleted from the system
 seqCallback :: [AgentIn s m] -- the existing inputs
                 -> (SF (AgentIn s m) (AgentOut s m), AgentIn s m, AgentOut s m) -- the current working triple
                 -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
                 -> ([AgentIn s m],
-                    Maybe (SF (AgentIn s m) (AgentOut s m), AgentIn s m),
-                    [SF (AgentIn s m) (AgentOut s m)],
-                    [AgentIn s m])
-seqCallback allIns a@(sf, oldIn, newOut) = (allIns', maySfIn, newSfs, newIns')
+                    Maybe (SF (AgentIn s m) (AgentOut s m), AgentIn s m))
+seqCallback allIns a@(sf, oldIn, newOut) = (allIns', maySfIn)
     where
         maySfIn = handleKillOrLiveAgent a
-        -- NOTE: messages of this agent are ALWAYS distributed, whether it is killed or not
-        (newSfs, newIns) = handleCreateAgents newOut
-        -- NOTE: distribute messages to newly created agents as well
-        newIns' = distributeMessages newIns [newOut]
         -- NOTE: distribute messages to all other agents
         allIns' = distributeMessages allIns [newOut]
-
-        handleCreateAgents :: AgentOut s m -> ([SF (AgentIn s m) (AgentOut s m)], [AgentIn s m])
-        handleCreateAgents out
-            | hasCreateAgents = (newSfs, newAis)
-            | otherwise = ([], [])
-            where
-                newAgentDefsEvt = aoCreate out
-                hasCreateAgents = isEvent newAgentDefsEvt
-                newAgentDefs = fromEvent newAgentDefsEvt
-                newSfs = map adBehaviour newAgentDefs
-                newAis = map startingAgentInFromAgentDef newAgentDefs
 
         handleKillOrLiveAgent :: (SF (AgentIn s m) (AgentOut s m), AgentIn s m, AgentOut s m)
                                     -> Maybe (SF (AgentIn s m) (AgentOut s m), AgentIn s m)
@@ -214,16 +192,30 @@ seqCallback allIns a@(sf, oldIn, newOut) = (allIns', maySfIn, newSfs, newIns')
 ----------------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------------------------------------------------------------------------------------
--- Internal: Message collecting & distributing
+-- utils
 ----------------------------------------------------------------------------------------------------------------------
+handleCreateAgents :: ([SF (AgentIn s m) (AgentOut s m)], [AgentIn s m])
+                        -> AgentOut s m
+                        -> ([SF (AgentIn s m) (AgentOut s m)], [AgentIn s m])
+handleCreateAgents acc@(asfsAcc, ainsAcc) o
+    | hasCreateAgents = (asfsAcc ++ newSfs, ainsAcc ++ newAis)
+    | otherwise = acc
+    where
+        newAgentDefsEvt = aoCreate o
+        hasCreateAgents = isEvent newAgentDefsEvt
+        newAgentDefs = fromEvent newAgentDefsEvt
+        newSfs = map adBehaviour newAgentDefs
+        newAis = map startingAgentInFromAgentDef newAgentDefs
+
 distributeMessages :: [AgentIn s m] -> [AgentOut s m] -> [AgentIn s m]
-distributeMessages ais aos = map (collectMessagesFor aos) ais
+distributeMessages ains aouts = map (collectMessagesFor aouts) ains
 
 collectMessagesFor :: [AgentOut s m] -> AgentIn s m -> AgentIn s m
-collectMessagesFor aos ai = ai { aiMessages = msgsEvt }
+collectMessagesFor aouts ai = ai { aiMessages = msgsEvt }
     where
         aid = aiId ai
-        msgsEvt = foldr (\ao accMsgs -> mergeMessages (collectMessagesFrom aid ao) accMsgs ) NoEvent aos
+        aiMsgs = aiMessages ai
+        msgsEvt = foldr (\ao accMsgs -> mergeMessages (collectMessagesFrom aid ao) accMsgs) aiMsgs aouts
 
 collectMessagesFrom :: AgentId -> AgentOut s m -> Event [AgentMessage m]
 collectMessagesFrom aid ao = foldr (\(receiverId, m) accMsgs-> if receiverId == aid then

@@ -1,9 +1,7 @@
 {-# LANGUAGE Arrows #-}
-
 module FrABS.Agent.Agent where
 
 import FRP.Yampa
-import FRP.Yampa.Switches
 
 type AgentId = Int
 type AgentMessage m = (AgentId, m)

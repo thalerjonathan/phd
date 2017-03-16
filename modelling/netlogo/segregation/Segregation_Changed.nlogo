@@ -55,7 +55,7 @@ end
 to choose-movement-strategy
   if movementStrategy = "local" [ find-new-spot-local ]
   if movementStrategy = "neighbor" [ find-new-spot-neighbour ]
-  if movementStrategy = "global" [ find-new-spot-global patch-here globalComparison ]
+  if movementStrategy = "global" [ find-new-spot-global patch-here globalSearchRetries ]
 end
 
 ;; move until we find an unoccupied spot
@@ -334,7 +334,7 @@ SLIDER
 %-accept-situation
 0
 100
-80.0
+0.0
 1
 1
 %
@@ -355,10 +355,10 @@ SLIDER
 176
 281
 209
-globalComparison
-globalComparison
+globalSearchRetries
+globalSearchRetries
 1
-10
+5
 1.0
 1
 1

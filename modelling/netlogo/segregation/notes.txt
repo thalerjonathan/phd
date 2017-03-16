@@ -1,0 +1,42 @@
+accept-situation can make a difference in local movement
+	density:				50%
+	%-similar wanted:		80%
+		When %-accept-situation:		10%
+			arrives at 'all happy' after 290 steps
+		When %-accept-situation:		0%
+			arrives at 'all happy' after 715 steps
+
+	density:				75%
+	%-similar wanted:		80%
+		When %-accept-situation:		90%
+			arrives at 'all happy' after 1400 steps
+		When %-accept-situation:		80%
+			arrives at 'all happy' after 895 steps
+		When %-accept-situation:		70%
+			arrives at 'all happy' after 1120 steps
+		When %-accept-situation:		<= 60%
+			no solution
+
+	density:				80%
+	%-similar wanted:		80%
+		When %-accept-situation:		90%
+			arrives at 'all happy' after 6700 steps
+		
+	density:				90%
+	%-similar wanted:		80%
+		When %-accept-situation:		95%
+			arrives at 'all happy' after 6700 steps
+		
+		
+	=> the higher the density, the more tolerance we need?
+	
+	
+neighbor movement-strategy seems to be not working at all
+
+global movement-strategy is extremely powerful
+	can deal with very high density TOGETHER with very high similarity wanted
+	
+	in case there exists no solution (not enough space to perfectly separate)
+	it is able to build segregation anyway (but population unhappiness stays at some level)
+	
+	NEEDS at least a little space, otherwise fails

@@ -1,10 +1,9 @@
 {-# LANGUAGE Arrows #-}
 
-module FrABS.YampaSeqTest where
+module FrABS.Misc.YampaSeqTest where
 
-import FrABS.Utils
-import FrABS.SeqIteration
-import FrABS.ParIteration
+import FrABS.Simulation.SeqIteration
+import FrABS.Simulation.ParIteration
 
 import FRP.Yampa
 import FRP.Yampa.InternalCore

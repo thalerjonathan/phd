@@ -1,8 +1,6 @@
-module FrABS.Utils where
+module FrABS.Simulation.Utils where
 
 import FRP.Yampa.InternalCore
-
-import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Running a Signal-Function

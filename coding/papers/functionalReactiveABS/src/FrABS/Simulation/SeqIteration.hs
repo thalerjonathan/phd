@@ -1,8 +1,8 @@
-module FrABS.SeqIteration where
+module FrABS.Simulation.SeqIteration where
+
+import FrABS.Simulation.Utils
 
 import FRP.Yampa.InternalCore
-
-import FrABS.Utils
 
 import Data.Maybe
 

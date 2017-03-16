@@ -5,8 +5,8 @@ import qualified FrABS.Agents2DDiscrete as Front
 import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.IO.Animate
 import Data.IORef
-import FrABS.Agent
-import FrABS.Simulation
+import FrABS.Agent.Agent
+import FrABS.Simulation.Simulation
 import FRP.Yampa
 import System.IO
 import System.Random

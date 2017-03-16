@@ -6,7 +6,7 @@ import FRP.Yampa
 import System.IO
 import Debug.Trace
 import System.Random
-import FrABS.Agent
+import FrABS.Agent.Agent
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS

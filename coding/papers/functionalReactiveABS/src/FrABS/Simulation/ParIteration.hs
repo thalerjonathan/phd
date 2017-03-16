@@ -1,13 +1,10 @@
-{-# LANGUAGE GADTs, Rank2Types, CPP #-}
-module FrABS.ParIteration where
+module FrABS.Simulation.ParIteration where
 
-import FRP.Yampa.Switches
+import FrABS.Simulation.Utils
+
 import FRP.Yampa.InternalCore
 
-import FrABS.Utils
-
 import Data.Maybe
-import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 -- PAR implementation

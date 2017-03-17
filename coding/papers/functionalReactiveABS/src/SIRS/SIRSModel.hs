@@ -8,7 +8,7 @@ import FrABS.Env.Environment
 -- Project-specific libraries follow
 import FRP.Yampa
 
--- System imports last
+-- System imports then
 import System.IO
 import System.Random
 
@@ -30,9 +30,12 @@ data SIRSAgentState = SIRSAgentState {
     sirsRng :: StdGen
 } deriving (Show)
 
-type SIRSAgentDef = AgentDef SIRSAgentState SIRSMsg AgentId
-type SIRSAgentBehaviour = AgentBehaviour SIRSAgentState SIRSMsg AgentId
-type SIRSAgentOut = AgentOut SIRSAgentState SIRSMsg AgentId
+type SIRSEnvCell = AgentId
+type SIRSEnvironment = Environment SIRSEnvCell
+
+type SIRSAgentDef = AgentDef SIRSAgentState SIRSMsg SIRSEnvCell
+type SIRSAgentBehaviour = AgentBehaviour SIRSAgentState SIRSMsg SIRSEnvCell
+type SIRSAgentOut = AgentOut SIRSAgentState SIRSMsg SIRSEnvCell
 ------------------------------------------------------------------------------------------------------------------------
 
 
@@ -146,7 +149,7 @@ sirsAgentBehaviour = proc ain ->
 ------------------------------------------------------------------------------------------------------------------------
 -- BOILER-PLATE CODE
 ------------------------------------------------------------------------------------------------------------------------
-createSIRSEnv :: (Int, Int) -> [SIRSAgentDef] -> Environment AgentId
+createSIRSEnv :: (Int, Int) -> [SIRSAgentDef] -> SIRSEnvironment
 createSIRSEnv limits@(xMax, yMax) as = createEnvironment
                                             Nothing
                                             limits

@@ -1,7 +1,7 @@
 module Main where
 
 import SIRS.RunSIRS
---import Segregation.RunSegregation
+import Segregation.RunSegregation
 
 main :: IO ()
-main = runSIRSWithRendering -- runSegWithRendering
+main = runSegWithRendering -- runSIRSWithRendering -- runSegWithRendering

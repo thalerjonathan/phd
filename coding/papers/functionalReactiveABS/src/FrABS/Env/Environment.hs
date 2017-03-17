@@ -30,14 +30,14 @@ data Environment c = Environment {
     envLimits :: EnvLimits,
     envNeighbourhood :: EnvNeighbourhood,
     envWrapping :: EnvWrapping,
-    envCells :: Array EnvLimits c
+    envCells :: Array EnvCoord c
 }
 
 createEnvironment :: Maybe (EnvironmentBehaviour c) ->
                         EnvLimits ->
                         EnvNeighbourhood ->
                         EnvWrapping ->
-                        [(EnvLimits, c)] ->
+                        [(EnvCoord, c)] ->
                         Environment c
 createEnvironment beh
                     l@(xLimit, yLimit)

@@ -1,18 +1,25 @@
 {-# LANGUAGE Arrows #-}
-
 module Segregation.Segregation where
 
-import FRP.Yampa
-import System.IO
-import Debug.Trace
-import System.Random
+-- Project-internal import first
 import FrABS.Agent.Agent
+import FrABS.Env.Environment
+
+-- Project-specific libraries follow
+import FRP.Yampa
+
+-- System imports then
+import System.IO
+import System.Random
+
+-- debugging imports finally, to be easily removed in final version
+import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
 data SegAgentType = Red | Green deriving (Eq, Show)
-type SegMsg = ()
+type SegMsg = ()    -- Agents are not communicating in Schelling Segregation
 
 type SegCoord = (Int, Int)
 
@@ -22,9 +29,12 @@ data SegAgentState = SegAgentState {
     segRng :: StdGen
 } deriving (Show)
 
-type SegAgentDef = AgentDef SegAgentState SegMsg ()
-type SegAgentBehaviour = AgentBehaviour SegAgentState SegMsg ()
-type SegAgentOut = AgentOut SegAgentState SegMsg ()
+type SegEnvCell = Maybe SegAgentType
+type SegEnvironment = Environment SegEnvCell
+
+type SegAgentDef = AgentDef SegAgentState SegMsg SegEnvCell
+type SegAgentBehaviour = AgentBehaviour SegAgentState SegMsg SegEnvCell
+type SegAgentOut = AgentOut SegAgentState SegMsg SegEnvCell
 ------------------------------------------------------------------------------------------------------------------------
 
 -- TODO implement segregation
@@ -39,8 +49,8 @@ acceptPercent = 0.3
 density :: Double
 density = 0.5
 
-redBlueDist :: Double
-redBlueDist = 0.5
+redGreenDist :: Double
+redGreenDist = 0.5
 ------------------------------------------------------------------------------------------------------------------------
 
 
@@ -55,25 +65,49 @@ is ao sat = (segAgentType s) == sat
 segDt :: SegAgentOut -> Double -> SegAgentOut
 segDt ao dt = ao
 
-segAgentBehaviour :: SegAgentBehaviour
-segAgentBehaviour = proc ain ->
-    do
-        let ao = agentOutFromIn ain
-        let aoAfterTime = segDt ao 1.0
-        returnA -< aoAfterTime
+
 ------------------------------------------------------------------------------------------------------------------------
 
 
 ------------------------------------------------------------------------------------------------------------------------
 -- BOILER-PLATE CODE
 ------------------------------------------------------------------------------------------------------------------------
-createRandomSegAgents :: (Int, Int) -> IO [SegAgentDef]
-createRandomSegAgents max@(x,y) =  do
-                                       let ssIO = [ randomAgentState max (xCoord, yCoord) | xCoord <- [0..x-1], yCoord <- [0..y-1] ]
-                                       ss <- mapM id ssIO
-                                       let as = map (\s -> createAgent s max) ss
-                                       return as
+createSegAgentsAndEnv :: (Int, Int) -> IO ([SegAgentDef], SegEnvironment)
+createSegAgentsAndEnv limits@(x,y) =  do
+                                        let coords = [ (xCoord, yCoord) | xCoord <- [0..x-1], yCoord <- [0..y-1] ]
+                                        (asDefs, envCells) <- populateEnv limits coords
+                                        let env = createEnvironment
+                                                              Nothing
+                                                              limits
+                                                              moore
+                                                              WrapBoth
+                                                              envCells
+
+                                        let as = map (\s -> createAgent s limits) asDefs
+                                        return (as, env)
     where
+        populateEnv :: (Int, Int) -> [(Int, Int)] -> IO ([SegAgentState], [(EnvCoord, SegEnvCell)])
+        populateEnv max coords = foldr (populateEnvAux max) (return ([], [])) coords
+
+            where
+                populateEnvAux :: (Int, Int)
+                                    -> (Int, Int)
+                                    -> IO ([SegAgentState], [(EnvCoord, SegEnvCell)])
+                                    -> IO ([SegAgentState], [(EnvCoord, SegEnvCell)])
+                populateEnvAux max coord accIO = do
+                                                    (accAs, accCells) <- accIO
+
+                                                    ra <- randomAgentState max coord
+
+                                                    let emptyCell = (coord, Nothing)
+                                                    let occupiedCell = (coord, Just (segAgentType ra))
+
+                                                    r <- getStdRandom (randomR(0.0, 1.0))
+                                                    if r < density then
+                                                        return ((ra : accAs), occupiedCell : accCells)
+                                                        else
+                                                            return (accAs, emptyCell : accCells)
+
         createAgent :: SegAgentState -> (Int, Int) -> SegAgentDef
         createAgent s max = AgentDef { adId = agentId,
                                         adState = s,
@@ -85,15 +119,13 @@ createRandomSegAgents max@(x,y) =  do
 randomAgentState :: (Int, Int) -> SegCoord -> IO SegAgentState
 randomAgentState max coord = do
                                 r <- getStdRandom (randomR(0.0, 1.0))
-                                let isRed = (r <= redBlueDist)
+                                let isRed = (r <= redGreenDist)
 
                                 let s = if isRed then
                                             Red
                                             else
                                                 Green
 
-                                let nCoords = neighbours coord max
-                                let nIds = map (coordToAid max) nCoords
                                 rng <- newStdGen
 
                                 return SegAgentState {
@@ -104,34 +136,11 @@ randomAgentState max coord = do
 
 coordToAid :: (Int, Int) -> SegCoord -> AgentId
 coordToAid (xMax, yMax) (x, y) = (y * xMax) + x
-
-neighbours :: SegCoord -> (Int, Int) -> [SegCoord]
-neighbours (x,y) max = clipCoords allCoords max
-    where
-        allCoords = map (\(x', y') -> (x+x', y+y')) neighbourhood
-
-clipCoords :: [SegCoord] -> (Int, Int) -> [SegCoord]
-clipCoords cs max = filter (\c -> validCoord c max ) cs
-    where
-        validCoord :: SegCoord -> (Int, Int) -> Bool
-        validCoord (x, y) (xMax, yMax)
-            | x < 0 = False
-            | y < 0 = False
-            | x >= xMax = False
-            | y >= yMax = False
-            | otherwise = True
-
-neighbourhood :: [(Int, Int)]
-neighbourhood = [topLeft, top, topRight,
-                 left, right,
-                 bottomLeft, bottom, bottomRight]
-    where
-        topLeft =       (-1, -1)
-        top =           ( 0, -1)
-        topRight =      ( 1, -1)
-        left =          (-1,  0)
-        right =         ( 1,  0)
-        bottomLeft =    (-1,  1)
-        bottom =        ( 0,  1)
-        bottomRight =   ( 1,  1)
 ------------------------------------------------------------------------------------------------------------------------
+
+segAgentBehaviour :: SegAgentBehaviour
+segAgentBehaviour = proc ain ->
+    do
+        let ao = agentOutFromIn ain
+        let aoAfterTime = segDt ao 1.0
+        returnA -< aoAfterTime

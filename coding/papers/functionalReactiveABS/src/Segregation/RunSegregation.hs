@@ -1,13 +1,15 @@
 module Segregation.RunSegregation where
 
+import FrABS.Agent.Agent
+import FrABS.Simulation.Simulation
 import Segregation.Segregation
+
+import FRP.Yampa
 import qualified FrABS.Agents2DDiscrete as Front
 import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.IO.Animate
+
 import Data.IORef
-import FrABS.Agent.Agent
-import FrABS.Simulation.Simulation
-import FRP.Yampa
 import System.IO
 import System.Random
 
@@ -22,10 +24,10 @@ runSegWithRendering :: IO ()
 runSegWithRendering = do
                         hSetBuffering stdin NoBuffering
                         initRng rngSeed
-                        as <- createRandomSegAgents cells
+                        (as, env) <- createSegAgentsAndEnv cells
 
                         outRef <- (newIORef []) :: (IO (IORef [SegAgentOut]))
-                        hdl <- processIOInit as () parallelStrategyFlag (nextIteration outRef)
+                        hdl <- processIOInit as env parallelStrategyFlag (nextIteration outRef)
 
                         simulateAndRender hdl outRef
 
@@ -44,10 +46,10 @@ runSegStepsAndRender :: IO ()
 runSegStepsAndRender = do
                             hSetBuffering stdin NoBuffering
                             initRng rngSeed
-                            as <- createRandomSegAgents cells
+                            (as, env) <- createSegAgentsAndEnv cells
 
                             let steps = 10
-                            let ass = processSteps as () parallelStrategyFlag 1.0 steps
+                            let ass = processSteps as env parallelStrategyFlag 1.0 steps
                             let as' = last ass
 
                             pic <- modelToPicture as'
@@ -64,7 +66,7 @@ initRng seed = do
 
 simulateAndRender :: ReactHandle [AgentIn s m ec] [SegAgentOut] -> IORef [SegAgentOut] -> IO ()
 simulateAndRender hdl outRef = animateIO (Front.display winTitle winSize)
-                                            GLO.white
+                                            GLO.black -- GLO.white
                                             (nextFrame hdl outRef)
                                             (\controller -> return () )
 

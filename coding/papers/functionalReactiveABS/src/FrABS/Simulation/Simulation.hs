@@ -1,5 +1,4 @@
 {-# LANGUAGE Arrows #-}
-
 module FrABS.Simulation.Simulation where
 
 import FrABS.Env.Environment
@@ -16,14 +15,6 @@ import Debug.Trace
 ----------------------------------------------------------------------------------------------------------------------
 -- TODOs
 ----------------------------------------------------------------------------------------------------------------------
--- TODO need a way to specify the environment: spatial (2d/3d continuous/discrete) or graph. includes global neighbourhood information
--- TODO  environment also needs a signalfunction which runs once per simulation-step: environmentIn/out
--- TODO agents need to be able to access the environment and update it: sequential vs parallel
-
--- TODO test creation / killing of agents
-
--- TODO random iteration in sequential
-
 -- TODO create project structure according to put it on Hackage in september: tests, comments,...
 -- TODO write unit-tests
 -- TODO write QuickCheck tests

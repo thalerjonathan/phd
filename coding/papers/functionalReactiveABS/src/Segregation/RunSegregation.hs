@@ -5,7 +5,7 @@ import FrABS.Simulation.Simulation
 import Segregation.Segregation
 
 import FRP.Yampa
-import qualified FrABS.Agents2DDiscrete as Front
+import qualified FrABS.Rendering.Agents2DDiscrete as Front
 import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.IO.Animate
 

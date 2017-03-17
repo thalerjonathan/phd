@@ -49,8 +49,8 @@
       <file leaf-file-name="PureAgentsPar.hs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/PureAgentsPar.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="396">
-              <caret line="199" column="26" lean-forward="false" selection-start-line="199" selection-start-column="14" selection-end-line="199" selection-end-column="26" />
+            <state relative-caret-position="540">
+              <caret line="30" column="0" lean-forward="false" selection-start-line="30" selection-start-column="0" selection-end-line="30" selection-end-column="20" />
               <folding />
             </state>
           </provider>
@@ -149,8 +149,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
-      <pane id="Scratches" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -179,7 +178,8 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
+      <pane id="PackagesPane" />
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -848,8 +848,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/PureAgentsPar.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="396">
-          <caret line="199" column="26" lean-forward="false" selection-start-line="199" selection-start-column="14" selection-end-line="199" selection-end-column="26" />
+        <state relative-caret-position="540">
+          <caret line="30" column="0" lean-forward="false" selection-start-line="30" selection-start-column="0" selection-end-line="30" selection-end-column="20" />
           <folding />
         </state>
       </provider>

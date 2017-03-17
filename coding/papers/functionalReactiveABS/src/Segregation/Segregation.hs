@@ -11,6 +11,7 @@ import FRP.Yampa
 -- System imports then
 import System.IO
 import System.Random
+import Data.Maybe
 
 -- debugging imports finally, to be easily removed in final version
 import Debug.Trace
@@ -43,14 +44,17 @@ type SegAgentOut = AgentOut SegAgentState SegMsg SegEnvCell
 
 ------------------------------------------------------------------------------------------------------------------------
 -- MODEL-PARAMETERS
-acceptPercent :: Double
-acceptPercent = 0.3
+similarWanted :: Double
+similarWanted = 0.6
 
 density :: Double
-density = 0.5
+density = 0.75
 
 redGreenDist :: Double
 redGreenDist = 0.5
+
+freeCellRetries :: Int
+freeCellRetries = 3
 ------------------------------------------------------------------------------------------------------------------------
 
 
@@ -62,9 +66,71 @@ is ao sat = (segAgentType s) == sat
     where
         s = aoState ao
 
-segDt :: SegAgentOut -> Double -> SegAgentOut
-segDt ao dt = ao
+isOccupied :: SegEnvCell -> Bool
+isOccupied = isJust
 
+segDt :: SegAgentOut -> Double -> SegAgentOut
+segDt ao dt
+    | isHappy ao = ao
+    | otherwise = move ao
+
+move :: SegAgentOut -> SegAgentOut
+move ao
+    | freeCoordFound = moveTo ao' freeCoord
+    | otherwise = ao'
+    where
+        freeCoordFound = isJust mayRandCoord
+        freeCoord = fromJust mayRandCoord
+        (ao', mayRandCoord) = findRandomFreeCoord ao freeCellRetries
+
+moveTo :: SegAgentOut -> EnvCoord -> SegAgentOut
+moveTo ao newCoord = ao''
+    where
+        s = aoState ao
+        env = aoEnv ao
+        oldCoord = segCoord s
+        c = segAgentType s
+        env' = changeCellAt env oldCoord Nothing
+        env'' = changeCellAt env' newCoord (Just c)
+        ao' = ao { aoEnv = env'' }
+        ao'' = updateState ao' (\s -> s { segCoord = newCoord } )
+
+findRandomFreeCoord :: SegAgentOut -> Int -> (SegAgentOut, Maybe EnvCoord)
+findRandomFreeCoord ao 0 = (ao, Nothing)
+findRandomFreeCoord ao maxRetries
+    | isOccupied randCell = findRandomFreeCoord ao' (maxRetries - 1)
+    | otherwise = (ao', Just randCoord)
+    where
+        ret@(ao', randCell, randCoord) = drawRandomCell ao
+
+drawRandomCell :: SegAgentOut -> (SegAgentOut, SegEnvCell, EnvCoord)
+drawRandomCell ao = (ao', randCell, randCoord)
+    where
+        s = aoState ao
+        env = aoEnv ao
+        g = segRng s
+        (randCell, randCoord, g') = randomCell g env
+        ao' = updateState ao (\s -> s { segRng = g' } )
+
+isHappy :: SegAgentOut -> Bool
+isHappy ao
+    | is ao Red = (fromInteger $ fromIntegral reds)  >= acceptCount
+    | is ao Green = (fromInteger $ fromIntegral greens)  >= acceptCount
+    where
+        s = aoState ao
+        env = aoEnv ao
+        coord = segCoord s
+        cs = neighbours env coord
+        (reds, greens) = countOccupied cs
+        totalCount = reds + greens
+        acceptCount = similarWanted * (fromInteger $ fromIntegral totalCount)
+
+countOccupied :: [SegEnvCell] -> (Int, Int)
+countOccupied cs = (redCount, greenCount)
+    where
+        occupiedCells = filter isOccupied cs
+        redCount = length $ filter ((==Red) . fromJust) occupiedCells
+        greenCount = length $ filter ((==Green) . fromJust) occupiedCells
 
 ------------------------------------------------------------------------------------------------------------------------
 

@@ -18,7 +18,7 @@ winTitle = "Schelling Segregation FrABS"
 
 rngSeed = 42
 cells = (51, 51)
-parallelStrategyFlag = False
+parallelStrategyFlag = False -- NOTE: segregation will not give correct result when run with parallel update-strategy
 
 runSegWithRendering :: IO ()
 runSegWithRendering = do

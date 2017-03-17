@@ -1,8 +1,8 @@
 {-# LANGUAGE Arrows #-}
 module FrABS.Env.Environment where
 
-import FRP.Yampa
 import Data.Array.IArray
+import System.Random
 
 {-
 an Environment is a container which contains Agents and allows them to move arround
@@ -18,7 +18,7 @@ an Environment is a container which contains Agents and allows them to move arro
 -- TODO: graph environment: no geometrical space => no position but only neighbours
 
 data (Num d) => EnvCoordGeneric d = EnvCoordGeneric (d, d)
-type EnvironmentBehaviour c = SF (Environment c) (Environment c)
+type EnvironmentBehaviour c = (Environment c -> Environment c)
 type EnvCoord = (Int, Int)
 type EnvLimits = (Int, Int)
 type EnvNeighbourhood = [(Int, Int)]
@@ -59,6 +59,12 @@ updateEnvironmentCells env mecf = env { envCells = ec' }
         ec = envCells env
         ec' = amap mecf ec
 
+changeCellAt :: Environment c -> EnvCoord -> c -> Environment c
+changeCellAt env coord c = env { envCells = arr' }
+    where
+        arr = envCells env
+        arr' = arr // [(coord, c)]
+
 cellsAt :: Environment c -> [EnvCoord] -> [c]
 cellsAt env cs = map (arr !) cs
     where
@@ -68,6 +74,15 @@ cellAt :: Environment c -> EnvCoord -> c
 cellAt env coord = arr ! coord
     where
         arr = envCells env
+
+randomCell :: (RandomGen g) => g -> Environment c -> (c, EnvCoord, g)
+randomCell g env = (randCell, randCoord, g'')
+    where
+        (maxX, maxY) = envLimits env
+        (randX, g') = randomR (0, maxX - 1) g
+        (randY, g'') = randomR (0, maxY - 1) g'
+        randCoord = (randX, randY)
+        randCell = cellAt env randCoord
 
 -- TODO: use wrap-settings, this discharges coords outside
 neighbours :: Environment c -> EnvCoord -> [c]

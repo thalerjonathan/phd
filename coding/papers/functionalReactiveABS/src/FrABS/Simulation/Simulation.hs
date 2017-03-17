@@ -132,6 +132,9 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
     where
         (asfs', newAgentIns) = processAgents asfs oldAgentIns newAgentOuts
         newAgentIns' = distributeMessages newAgentIns newAgentOuts
+        -- TODO: collapse all environments into one - collapsing is specific to the model!!
+        -- TODO run the behaviour of the resulting environment
+        -- TODO distribute the resulting env to all agentins
 
         processAgents :: [AgentBehaviour s m ec]
                             -> [AgentIn s m ec]
@@ -172,6 +175,9 @@ seqCallbackIteration aouts = (newSfs, newSfsIns')
         (newSfs, newSfsIns) = foldl handleCreateAgents ([], []) aouts
         -- NOTE: distribute messages to newly created agents as well
         newSfsIns' = distributeMessages newSfsIns aouts
+        -- TODO: collapse all environments into one - collapsing is specific to the model!!
+        -- TODO run the behaviour of the resulting environment
+        -- TODO distribute the resulting env to all agentins
 
 -- NOTE: this callback feeds in all the inputs and the current working triple: SF, Inpout and Output
 -- It allows to change the inputs of future SFs and may return the SF. if it doesnt return a SF this means it is deleted from the system
@@ -180,11 +186,13 @@ seqCallback :: [AgentIn s m ec] -- the existing inputs
                 -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
                 -> ([AgentIn s m ec],
                     Maybe (AgentBehaviour s m ec, AgentIn s m ec))
-seqCallback allIns a@(sf, oldIn, newOut) = (allIns', maySfIn)
+seqCallback allIns a@(sf, oldIn, newOut) = (allIns'', maySfIn)
     where
         maySfIn = handleKillOrLiveAgent a
         -- NOTE: distribute messages to all other agents
         allIns' = distributeMessages allIns [newOut]
+        -- NOTE: passing the changed environment to the next agents
+        allIns'' = passEnvForward newOut allIns'
 
         handleKillOrLiveAgent :: (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                                     -> Maybe (AgentBehaviour s m ec, AgentIn s m ec)
@@ -199,6 +207,11 @@ seqCallback allIns a@(sf, oldIn, newOut) = (allIns', maySfIn)
                                 aiMessages = NoEvent }
                 -- NOTE: need to handle sending messages to itself because the input of this agent is not in the list of all inputs because it will be replaced anyway by newIn
                 newIn' = collectMessagesFor [newOut] newIn
+
+        passEnvForward :: AgentOut s m ec -> [AgentIn s m ec] -> [AgentIn s m ec]
+        passEnvForward out allIns = map (\ain -> ain {aiEnv = env }) allIns
+            where
+                env = aoEnv out
 ----------------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------------------------------------------------------------------------------------

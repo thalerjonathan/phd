@@ -24,6 +24,7 @@ type EnvLimits = (Int, Int)
 type EnvNeighbourhood = [(Int, Int)]
 data EnvWrapping = ClipToMax | WrapHorizontal | WrapVertical | WrapBoth
 
+-- TODO: mapping of agent -> coordinate
 data Environment c = Environment {
     envBehaviour :: Maybe (EnvironmentBehaviour c),
     envLimits :: EnvLimits,
@@ -57,6 +58,34 @@ updateEnvironmentCells env mecf = env { envCells = ec' }
     where
         ec = envCells env
         ec' = amap mecf ec
+
+cellsAt :: Environment c -> [EnvCoord] -> [c]
+cellsAt env cs = map (arr !) cs
+    where
+        arr = envCells env
+
+cellAt :: Environment c -> EnvCoord -> c
+cellAt env coord = arr ! coord
+    where
+        arr = envCells env
+
+-- TODO: use wrap-settings, this discharges coords outside
+neighbours :: Environment c -> EnvCoord -> [c]
+neighbours env coord@(x, y) = cellsAt env clippedCoords
+    where
+        n = (envNeighbourhood env)
+        l = (envLimits env)
+        unclippedCoords = neighbourhoodOf coord n
+        clippedCoords = filter (\c -> validCoord c l ) unclippedCoords
+
+        validCoord :: EnvCoord -> EnvLimits -> Bool
+        validCoord (x, y) (xMax, yMax)
+            | x < 0 = False
+            | y < 0 = False
+            | x >= xMax = False
+            | y >= yMax = False
+            | otherwise = True
+
 
 ------------------------------------------------------------------------------------------------------------------------
 -- GENERAL SPATIAL

@@ -27,7 +27,6 @@ data SIRSAgentState = SIRSAgentState {
     sirsState :: SIRSState,
     sirsCoord :: SIRSCoord,
     sirsTime :: Double,
-    sirsNeighbours :: [AgentId],
     sirsRng :: StdGen
 } deriving (Show)
 
@@ -126,10 +125,11 @@ handleRecoveredAgent ao dt = if t' >= immuneDuration then
 randomContact :: SIRSAgentOut -> SIRSAgentOut
 randomContact ao = sendMessage ao' (randNeigh, (Contact Infected))
     where
-        nsCount = length (sirsNeighbours (aoState ao))
+        ns = FrABS.Env.Environment.neighbours (aoEnv ao) (sirsCoord (aoState ao))
+        nsCount = length ns
         g = (sirsRng (aoState ao))
         (randIdx, g') = randomR(0, nsCount-1) g
-        randNeigh = (sirsNeighbours (aoState ao)) !! randIdx
+        randNeigh = ns !! randIdx
         ao' = updateState ao (\s -> s { sirsRng = g' } )
 
 -- TODO: switch SF when in different states as behaviour changes
@@ -188,48 +188,15 @@ randomAgentState p max coord = do
                                                 else
                                                     0.0
 
-                                    let nCoords = neighbours coord max
-                                    let nIds = map (coordToAid max) nCoords
                                     rng <- newStdGen
 
                                     return SIRSAgentState{
                                             sirsState = s,
                                             sirsCoord = coord,
                                             sirsTime = t,
-                                            sirsNeighbours = nIds,
                                             sirsRng = rng }
 
 
 coordToAid :: (Int, Int) -> SIRSCoord -> AgentId
 coordToAid (xMax, yMax) (x, y) = (y * xMax) + x
-
-neighbours :: SIRSCoord -> (Int, Int) -> [SIRSCoord]
-neighbours (x,y) max = clipCoords allCoords max
-    where
-        allCoords = map (\(x', y') -> (x+x', y+y')) neighbourhood
-
-clipCoords :: [SIRSCoord] -> (Int, Int) -> [SIRSCoord]
-clipCoords cs max = filter (\c -> validCoord c max ) cs
-    where
-        validCoord :: SIRSCoord -> (Int, Int) -> Bool
-        validCoord (x, y) (xMax, yMax)
-            | x < 0 = False
-            | y < 0 = False
-            | x >= xMax = False
-            | y >= yMax = False
-            | otherwise = True
-
-neighbourhood :: [(Int, Int)]
-neighbourhood = [topLeft, top, topRight,
-                 left, right,
-                 bottomLeft, bottom, bottomRight]
-    where
-        topLeft =       (-1, -1)
-        top =           ( 0, -1)
-        topRight =      ( 1, -1)
-        left =          (-1,  0)
-        right =         ( 1,  0)
-        bottomLeft =    (-1,  1)
-        bottom =        ( 0,  1)
-        bottomRight =   ( 1,  1)
 ------------------------------------------------------------------------------------------------------------------------

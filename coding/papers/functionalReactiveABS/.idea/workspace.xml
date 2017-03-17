@@ -39,8 +39,8 @@
       <file leaf-file-name="SIRSModel.hs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/SIRS/SIRSModel.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="252">
-              <caret line="35" column="59" lean-forward="false" selection-start-line="35" selection-start-column="59" selection-end-line="35" selection-end-column="59" />
+            <state relative-caret-position="803">
+              <caret line="200" column="47" lean-forward="false" selection-start-line="200" selection-start-column="47" selection-end-line="200" selection-end-column="47" />
               <folding />
             </state>
           </provider>
@@ -49,18 +49,8 @@
       <file leaf-file-name="Environment.hs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/FrABS/Env/Environment.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="306">
-              <caret line="26" column="18" lean-forward="false" selection-start-line="26" selection-start-column="5" selection-end-line="26" selection-end-column="18" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Simulation.hs" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/FrABS/Simulation/Simulation.hs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2844">
-              <caret line="218" column="78" lean-forward="false" selection-start-line="218" selection-start-column="78" selection-end-line="218" selection-end-column="78" />
+            <state relative-caret-position="240">
+              <caret line="54" column="0" lean-forward="true" selection-start-line="54" selection-start-column="0" selection-end-line="54" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -98,6 +88,7 @@
       <find>parCallback</find>
       <find>createStartingAgentIn</find>
       <find>AgentIn s m</find>
+      <find>neighbours</find>
     </findStrings>
     <replaceStrings>
       <replace>o</replace>
@@ -142,14 +133,14 @@
         <option value="$PROJECT_DIR$/src/FrABS/Simulation/ParIteration.hs" />
         <option value="$PROJECT_DIR$/src/FrABS/Simulation/Utils.hs" />
         <option value="$PROJECT_DIR$/functionalReactiveABS.cabal" />
-        <option value="$PROJECT_DIR$/src/FrABS/Env/Environment.hs" />
         <option value="$PROJECT_DIR$/src/FrABS/Agent/Agent.hs" />
         <option value="$PROJECT_DIR$/src/FrABS/Simulation/Simulation.hs" />
-        <option value="$PROJECT_DIR$/src/SIRS/SIRSModel.hs" />
         <option value="$PROJECT_DIR$/src/Segregation/Segregation.hs" />
         <option value="$PROJECT_DIR$/src/Segregation/RunSegregation.hs" />
         <option value="$PROJECT_DIR$/src/Main.hs" />
         <option value="$PROJECT_DIR$/src/SIRS/RunSIRS.hs" />
+        <option value="$PROJECT_DIR$/src/SIRS/SIRSModel.hs" />
+        <option value="$PROJECT_DIR$/src/FrABS/Env/Environment.hs" />
       </list>
     </option>
   </component>
@@ -880,14 +871,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/FrABS/Simulation/Simulation.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2844">
-          <caret line="218" column="78" lean-forward="false" selection-start-line="218" selection-start-column="78" selection-end-line="218" selection-end-column="78" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Segregation/RunSegregation.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="162">
@@ -928,18 +911,26 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/FrABS/Simulation/Simulation.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2844">
+          <caret line="218" column="78" lean-forward="false" selection-start-line="218" selection-start-column="78" selection-end-line="218" selection-end-column="78" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/SIRS/SIRSModel.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="35" column="59" lean-forward="false" selection-start-line="35" selection-start-column="59" selection-end-line="35" selection-end-column="59" />
+        <state relative-caret-position="803">
+          <caret line="200" column="47" lean-forward="false" selection-start-line="200" selection-start-column="47" selection-end-line="200" selection-end-column="47" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/FrABS/Env/Environment.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
-          <caret line="26" column="18" lean-forward="false" selection-start-line="26" selection-start-column="5" selection-end-line="26" selection-end-column="18" />
+        <state relative-caret-position="240">
+          <caret line="54" column="0" lean-forward="true" selection-start-line="54" selection-start-column="0" selection-end-line="54" selection-end-column="0" />
           <folding />
         </state>
       </provider>

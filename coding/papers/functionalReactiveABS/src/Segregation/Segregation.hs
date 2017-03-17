@@ -22,9 +22,9 @@ data SegAgentState = SegAgentState {
     segRng :: StdGen
 } deriving (Show)
 
-type SegAgentDef = AgentDef SegAgentState SegMsg
-type SegAgentBehaviour = AgentBehaviour SegAgentState SegMsg
-type SegAgentOut = AgentOut SegAgentState SegMsg
+type SegAgentDef = AgentDef SegAgentState SegMsg ()
+type SegAgentBehaviour = AgentBehaviour SegAgentState SegMsg ()
+type SegAgentOut = AgentOut SegAgentState SegMsg ()
 ------------------------------------------------------------------------------------------------------------------------
 
 -- TODO implement segregation

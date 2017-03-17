@@ -25,11 +25,15 @@ runSegWithRendering = do
                         as <- createRandomSegAgents cells
 
                         outRef <- (newIORef []) :: (IO (IORef [SegAgentOut]))
-                        hdl <- processIOInit as parallelStrategyFlag (nextIteration outRef)
+                        hdl <- processIOInit as () parallelStrategyFlag (nextIteration outRef)
 
                         simulateAndRender hdl outRef
 
-nextIteration :: IORef [SegAgentOut] -> ReactHandle [AgentIn s m] [SegAgentOut] -> Bool -> [SegAgentOut] -> IO Bool
+nextIteration :: IORef [SegAgentOut]
+                    -> ReactHandle [AgentIn s m ec] [SegAgentOut]
+                     -> Bool
+                     -> [SegAgentOut]
+                     -> IO Bool
 nextIteration outRef _ _ aouts = do
                                     --putStrLn "nextIteration: writing Ref"
                                     writeIORef outRef aouts
@@ -43,7 +47,7 @@ runSegStepsAndRender = do
                             as <- createRandomSegAgents cells
 
                             let steps = 10
-                            let ass = processSteps as parallelStrategyFlag 1.0 steps
+                            let ass = processSteps as () parallelStrategyFlag 1.0 steps
                             let as' = last ass
 
                             pic <- modelToPicture as'
@@ -58,13 +62,13 @@ initRng seed = do
                 setStdGen g
                 return g
 
-simulateAndRender :: ReactHandle [AgentIn s m] [SegAgentOut] -> IORef [SegAgentOut] -> IO ()
+simulateAndRender :: ReactHandle [AgentIn s m ec] [SegAgentOut] -> IORef [SegAgentOut] -> IO ()
 simulateAndRender hdl outRef = animateIO (Front.display winTitle winSize)
                                             GLO.white
                                             (nextFrame hdl outRef)
                                             (\controller -> return () )
 
-nextFrame :: ReactHandle [AgentIn s m] [SegAgentOut] -> IORef [SegAgentOut] -> Float -> IO Picture
+nextFrame :: ReactHandle [AgentIn s m ec] [SegAgentOut] -> IORef [SegAgentOut] -> Float -> IO Picture
 nextFrame hdl outRef dt = do
                             --putStrLn "nextFrame: before react"
                             react hdl (1.0, Nothing) -- NOTE: will result in call to nextIteration

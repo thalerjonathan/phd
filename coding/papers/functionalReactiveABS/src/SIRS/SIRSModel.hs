@@ -1,12 +1,19 @@
 {-# LANGUAGE Arrows #-}
-
 module SIRS.SIRSModel where
 
-import FRP.Yampa
-import System.IO
-import Debug.Trace
-import System.Random
+-- Project-internal import first
 import FrABS.Agent.Agent
+import FrABS.Env.Environment
+
+-- Project-specific libraries follow
+import FRP.Yampa
+
+-- System imports last
+import System.IO
+import System.Random
+
+-- debugging imports finally, to be easily removed in final version
+import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
@@ -24,9 +31,9 @@ data SIRSAgentState = SIRSAgentState {
     sirsRng :: StdGen
 } deriving (Show)
 
-type SIRSAgentDef = AgentDef SIRSAgentState SIRSMsg
-type SIRSAgentBehaviour = AgentBehaviour SIRSAgentState SIRSMsg
-type SIRSAgentOut = AgentOut SIRSAgentState SIRSMsg
+type SIRSAgentDef = AgentDef SIRSAgentState SIRSMsg AgentId
+type SIRSAgentBehaviour = AgentBehaviour SIRSAgentState SIRSMsg AgentId
+type SIRSAgentOut = AgentOut SIRSAgentState SIRSMsg AgentId
 ------------------------------------------------------------------------------------------------------------------------
 
 
@@ -139,6 +146,16 @@ sirsAgentBehaviour = proc ain ->
 ------------------------------------------------------------------------------------------------------------------------
 -- BOILER-PLATE CODE
 ------------------------------------------------------------------------------------------------------------------------
+createSIRSEnv :: (Int, Int) -> [SIRSAgentDef] -> Environment AgentId
+createSIRSEnv limits@(xMax, yMax) as = createEnvironment
+                                            Nothing
+                                            limits
+                                            moore
+                                            ClipToMax
+                                            cs
+    where
+        cs = map (\a -> ((sirsCoord (adState a)), (adId a))) as
+
 createRandomSIRSAgents :: (Int, Int) -> Double -> IO [SIRSAgentDef]
 createRandomSIRSAgents max@(x,y) p =  do
                                            let ssIO = [ randomAgentState p max (xCoord, yCoord) | xCoord <- [0..x-1], yCoord <- [0..y-1] ]

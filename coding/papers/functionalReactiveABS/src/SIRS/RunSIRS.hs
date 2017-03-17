@@ -24,13 +24,18 @@ runSIRSWithRendering = do
                         hSetBuffering stdin NoBuffering
                         initRng rngSeed
                         as <- createRandomSIRSAgents cells initInfectionProb
+                        let env = createSIRSEnv cells as
 
                         outRef <- (newIORef []) :: (IO (IORef [SIRSAgentOut]))
-                        hdl <- processIOInit as parallelStrategyFlag (nextIteration outRef)
+                        hdl <- processIOInit as env parallelStrategyFlag (nextIteration outRef)
 
                         simulateAndRender hdl outRef
 
-nextIteration :: IORef [SIRSAgentOut] -> ReactHandle [AgentIn s m] [SIRSAgentOut] -> Bool -> [SIRSAgentOut] -> IO Bool
+nextIteration :: IORef [SIRSAgentOut]
+                    -> ReactHandle [AgentIn s m ec] [SIRSAgentOut]
+                     -> Bool
+                     -> [SIRSAgentOut]
+                     -> IO Bool
 nextIteration outRef _ _ aouts = do
                                     --putStrLn "nextIteration: writing Ref"
                                     writeIORef outRef aouts
@@ -42,9 +47,10 @@ runSIRSStepsAndRender = do
                             hSetBuffering stdin NoBuffering
                             initRng rngSeed
                             as <- createRandomSIRSAgents cells initInfectionProb
+                            let env = createSIRSEnv cells as
 
                             let steps = 10
-                            let ass = processSteps as parallelStrategyFlag 1.0 steps
+                            let ass = processSteps as env parallelStrategyFlag 1.0 steps
                             let as' = last ass
 
                             pic <- modelToPicture as'
@@ -59,13 +65,16 @@ initRng seed = do
                 setStdGen g
                 return g
 
-simulateAndRender :: ReactHandle [AgentIn s m] [SIRSAgentOut] -> IORef [SIRSAgentOut] -> IO ()
+simulateAndRender :: ReactHandle [AgentIn s m ec] [SIRSAgentOut] -> IORef [SIRSAgentOut] -> IO ()
 simulateAndRender hdl outRef = animateIO (Front.display winTitle winSize)
                                             GLO.white
                                             (nextFrame hdl outRef)
                                             (\controller -> return () )
 
-nextFrame :: ReactHandle [AgentIn s m] [SIRSAgentOut] -> IORef [SIRSAgentOut] -> Float -> IO Picture
+nextFrame :: ReactHandle [AgentIn s m ec] [SIRSAgentOut]
+                -> IORef [SIRSAgentOut]
+                -> Float
+                -> IO Picture
 nextFrame hdl outRef dt = do
                             --putStrLn "nextFrame: before react"
                             react hdl (1.0, Nothing) -- NOTE: will result in call to nextIteration

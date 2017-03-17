@@ -2,6 +2,7 @@
 module FrABS.Env.Environment where
 
 import FRP.Yampa
+import Data.Array.IArray
 
 {-
 an Environment is a container which contains Agents and allows them to move arround
@@ -11,26 +12,61 @@ an Environment is a container which contains Agents and allows them to move arro
     => has a signal-function which is invoked once per iteration to allow the environment to behave e.g. regrow ressources which were harvested by the agents
 -}
 
--- TODO: continuous environment
+-- TODO: continuous environment: instead of Int, use Double -> can we do this by params?
+    -- or use type-classes?
 -- TODO: can we generalize to higher dimensions?
 -- TODO: graph environment: no geometrical space => no position but only neighbours
 
-type EnvironmentBehaviour = SF Environment Environment
+data (Num d) => EnvCoordGeneric d = EnvCoordGeneric (d, d)
+type EnvironmentBehaviour c = SF (Environment c) (Environment c)
 type EnvCoord = (Int, Int)
 type EnvLimits = (Int, Int)
 type EnvNeighbourhood = [(Int, Int)]
 data EnvWrapping = ClipToMax | WrapHorizontal | WrapVertical | WrapBoth
 
-data Environment = Environment {
-    envBehaviour :: EnvironmentBehaviour,
+data Environment c = Environment {
+    envBehaviour :: Maybe (EnvironmentBehaviour c),
     envLimits :: EnvLimits,
     envNeighbourhood :: EnvNeighbourhood,
-    envWrapping :: EnvWrapping
+    envWrapping :: EnvWrapping,
+    envCells :: Array EnvLimits c
 }
 
+createEnvironment :: Maybe (EnvironmentBehaviour c) ->
+                        EnvLimits ->
+                        EnvNeighbourhood ->
+                        EnvWrapping ->
+                        [(EnvLimits, c)] ->
+                        Environment c
+createEnvironment beh
+                    l@(xLimit, yLimit)
+                    n
+                    w
+                    cs = Environment {
+                             envBehaviour = beh,
+                             envLimits = l,
+                             envNeighbourhood = n,
+                             envWrapping = w,
+                             envCells = arr
+                         }
+    where
+        arr = array ((0, 0), (xLimit - 1, yLimit - 1)) cs
+
+updateEnvironmentCells :: Environment c -> (c -> c) -> Environment c
+updateEnvironmentCells env mecf = env { envCells = ec' }
+    where
+        ec = envCells env
+        ec' = amap mecf ec
+
+------------------------------------------------------------------------------------------------------------------------
+-- GENERAL SPATIAL
+------------------------------------------------------------------------------------------------------------------------
 wrapNeighbourhood :: EnvLimits -> EnvWrapping -> EnvNeighbourhood -> EnvNeighbourhood
 wrapNeighbourhood l w ns = map (wrap l w) ns
 
+------------------------------------------------------------------------------------------------------------------------
+-- 2D DISCRETE SPATIAL
+------------------------------------------------------------------------------------------------------------------------
 wrap :: EnvLimits -> EnvWrapping -> EnvCoord -> EnvCoord
 wrap (maxX, maxY) ClipToMax (x, y) = (min x maxX, min y maxY)
 wrap (maxX, maxY) WrapHorizontal (x, y) = (min x (x - maxX - 1), y)
@@ -40,29 +76,30 @@ wrap (maxX, maxY) WrapBoth (x, y) = (min x (x - maxX - 1), min y (y - maxY - 1))
 neighbourhoodOf :: EnvCoord -> EnvNeighbourhood -> EnvNeighbourhood
 neighbourhoodOf (x,y) ns = map (\(x', y') -> (x + x', y + y')) ns
 
+-- NOTE: neumann-neighbourhood only exists in discrete spatial environments
 neumann :: EnvNeighbourhood
-neumann = [top, left, right, bottom]
-
+neumann = [topDelta, leftDelta, rightDelta, bottomDelta]
 neumannSelf :: EnvNeighbourhood
-neumannSelf = [top, left, center, right, bottom]
+neumannSelf = [topDelta, leftDelta, centerDelta, rightDelta, bottomDelta]
 
+-- NOTE: moore-neighbourhood only exists in discrete spatial environments
 moore :: EnvNeighbourhood
-moore = [topLeft, top, topRight,
-         left, right,
-         bottomLeft, bottom, bottomRight]
-
+moore = [topLeftDelta, topDelta, topRightDelta,
+         leftDelta, rightDelta,
+         bottomLeftDelta, bottomDelta, bottomRightDelta]
 mooreSelf :: EnvNeighbourhood
-mooreSelf = [topLeft, top, topRight,
-             left, center, right,
-             bottomLeft, bottom, bottomRight]
+mooreSelf = [topLeftDelta, topDelta, topRightDelta,
+             leftDelta, centerDelta, rightDelta,
+             bottomLeftDelta, bottomDelta, bottomRightDelta]
 
-topLeft =       (-1, -1)
-top =           ( 0, -1)
-topRight =      ( 1, -1)
-left =          (-1,  0)
-center =        ( 0,  0)
-right =         ( 1,  0)
-bottomLeft =    (-1,  1)
-bottom =        ( 0,  1)
-bottomRight =   ( 1,  1)
+topLeftDelta =       (-1, -1)
+topDelta =           ( 0, -1)
+topRightDelta =      ( 1, -1)
+leftDelta =          (-1,  0)
+centerDelta =        ( 0,  0)
+rightDelta =         ( 1,  0)
+bottomLeftDelta =    (-1,  1)
+bottomDelta =        ( 0,  1)
+bottomRightDelta =   ( 1,  1)
+------------------------------------------------------------------------------------------------------------------------
 

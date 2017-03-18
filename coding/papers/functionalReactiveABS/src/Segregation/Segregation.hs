@@ -161,7 +161,6 @@ globalRandomCell ao = (ao', randCell, randCoord)
         (randCell, randCoord, g') = randomCell g env
         ao' = updateState ao (\s -> s { segRng = g' } )
 
--- TODO: need to calculate 'as if' the agent was on the given coord
 calculateSimilarity :: SegAgentOut -> SegCoord -> Double
 calculateSimilarity ao coord
     | is ao Red = (fromInteger $ fromIntegral reds) / totalCount
@@ -189,8 +188,6 @@ makesHappy ao coord = similarityOnCoord >= similarityWanted
 
 isHappy :: SegAgentOut -> Bool
 isHappy ao = makesHappy ao (segCoord (aoState ao))
-
-
 ------------------------------------------------------------------------------------------------------------------------
 
 

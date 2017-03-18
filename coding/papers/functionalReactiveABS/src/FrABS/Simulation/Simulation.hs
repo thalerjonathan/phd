@@ -95,22 +95,33 @@ processSteps as env parStrategy dt steps = embed
                                             (ains, sts)
     where
         -- NOTE: again haskells laziness put to use: take steps items from the infinite list of sampling-times
-        sts = take steps $ samplingTimes 0 dt
+        sts = replicate steps (dt, Nothing)
         ains = createStartingAgentIn as env
 
--- NOTE: this creates an infinite list of sampling-times with starting time t and sampling-interval dt
-samplingTimes :: Double -> Double -> [(DTime, Maybe a)]
-samplingTimes t dt = (t', Nothing) : (samplingTimes t' dt)
-    where
-        t' = t + dt
-----------------------------------------------------------------------------------------------------------------------
 
+----------------------------------------------------------------------------------------------------------------------
 process :: [AgentDef s m ec] -> Bool -> SF [AgentIn s m ec] [AgentOut s m ec]
-process as parStrategy
-    | parStrategy = runParSF asfs parCallback
-    | otherwise = runSeqSF asfs seqCallback seqCallbackIteration
+process as parStrategy = iterationStrategy asfs parStrategy
     where
         asfs = map adBehaviour as
+
+iterationStrategy :: [SF (AgentIn s m ec) (AgentOut s m ec)] -> Bool -> SF [AgentIn s m ec] [AgentOut s m ec]
+iterationStrategy asfs parStrategy
+    | parStrategy = runParSF asfs parCallback
+    | otherwise = runSeqSF asfs seqCallback seqCallbackIteration
+
+simulate :: [AgentIn s m ec]
+                     -> [SF (AgentIn s m ec) (AgentOut s m ec)]
+                     -> Bool
+                     -> Double
+                     -> Int
+                     -> [[AgentOut s m ec]]
+simulate ains asfs parStrategy dt steps = embed
+                                                     sfStrat
+                                                     (ains, sts)
+    where
+        sts = replicate steps (dt, Nothing)
+        sfStrat = iterationStrategy asfs parStrategy
 
 ----------------------------------------------------------------------------------------------------------------------
 -- PARALLEL STRATEGY

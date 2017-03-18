@@ -2,8 +2,12 @@
 module FrABS.Agent.Agent where
 
 import FrABS.Env.Environment
+-- TODO: problem this forms a cycle
+--import FrABS.Simulation.Simulation
 
 import FRP.Yampa
+
+import Data.Maybe
 
 type AgentId = Int
 type AgentMessage m = (AgentId, m)
@@ -16,6 +20,7 @@ data AgentDef s m ec = AgentDef {
     adBehaviour :: AgentBehaviour s m ec
 }
 
+-- TODO: need behaviour here
 data AgentIn s m ec = AgentIn {
     aiId :: AgentId,
     aiMessages :: Event [AgentMessage m],     -- AgentId identifies sender
@@ -23,9 +28,18 @@ data AgentIn s m ec = AgentIn {
     aiStop :: Event (),
     aiTerminate :: Event(),
     aiState :: s,
-    aiEnv :: Environment ec
+    aiEnv :: Environment ec,
+    aiRec :: Maybe (AgentRecursion s m ec)
 }
 
+
+data AgentRecursion s m ec = AgentRecursion {
+    arecDepth :: Int,
+    arecOtherIns :: [AgentIn s m ec],
+    arecOtherSfs :: [AgentBehaviour s m ec]
+}
+
+-- TODO: need behaviour here
 data AgentOut s m ec = AgentOut {
     aoId :: AgentId,
     aoKill :: Event (),
@@ -106,6 +120,52 @@ updateState ao sfunc = ao { aoState = s' }
     where
         s = aoState ao
         s' = sfunc s
+
+recursive :: AgentIn s m ec
+                -> AgentOut s m ec
+                -> Int
+                -> Int
+                -> Double
+                -> Bool
+                -> [[AgentOut s m ec]]
+recursive originalAin aout depth steps dt parStrategy
+    | isJust originalAinRec = []
+    | otherwise = []
+    where
+        originalAinRec = (aiRec originalAin)
+
+        arec = AgentRecursion {
+            arecDepth = 0,
+            arecOtherIns = [], -- TODO: need the inputs
+            arecOtherSfs = [] -- TODO: need the sfs
+        }
+        ainRec = AgentIn {  -- TODO take old ain
+                     -- aiId :: AgentId,                            NOTE: taken from the old ain
+                     -- aiMessages :: Event [AgentMessage m],       TODO: what should we do in this case?
+                     -- aiStart :: Event (),
+                     -- aiStop :: Event (),
+                     -- aiTerminate :: Event(),
+                     aiState = (aoState aout),
+                     aiEnv = (aoEnv aout),
+                     aiRec = Just arec
+                 }
+
+        recurrOneLevel :: Int
+                          -> Int
+                          -> Double
+                          -> Bool
+                          -> AgentRecursion s m ec
+                          -> AgentIn s m ec
+                          -> [[AgentOut s m ec]]
+        recurrOneLevel depth steps dt parStrat arec ain
+            | depth == currDepth = [] -- NOTE: reached recursion-depth, no more simulation
+            | otherwise = [] -- aouts -- TODO: increment depth by 1
+                where
+                    currDepth = arecDepth arec
+                    ains = arecOtherIns arec
+                    asfs = arecOtherSfs arec
+                    -- TODO: problem: circular includes
+                    -- aouts = simulate ains asfs parStrat dt steps    -- NOTE: calculate outputs of this level
 ----------------------------------------------------------------------------------------------------------------------
 
 

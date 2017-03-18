@@ -23,7 +23,7 @@ data SegAgentType = Red | Green deriving (Eq, Show)
 type SegMsg = ()    -- Agents are not communicating in Schelling Segregation
 
 data SegMoveStrategy = Local | Global deriving (Eq)
-data SegOptStrategy = None | OptimizePresent Int | OptimizieRecursive Int deriving (Eq) -- TODO: add recursion depth (1)
+data SegOptStrategy = None | OptimizePresent Int | OptimizeRecursive Int Int Int deriving (Eq)
 
 type SegCoord = (Int, Int)
 
@@ -40,6 +40,7 @@ type SegEnvironment = Environment SegEnvCell
 
 type SegAgentDef = AgentDef SegAgentState SegMsg SegEnvCell
 type SegAgentBehaviour = AgentBehaviour SegAgentState SegMsg SegEnvCell
+type SegAgentIn = AgentIn SegAgentState SegMsg SegEnvCell
 type SegAgentOut = AgentOut SegAgentState SegMsg SegEnvCell
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -49,10 +50,10 @@ type SegAgentOut = AgentOut SegAgentState SegMsg SegEnvCell
 ------------------------------------------------------------------------------------------------------------------------
 -- MODEL-PARAMETERS
 similarWanted :: Double
-similarWanted = 0.9
+similarWanted = 0.8
 
 density :: Double
-density = 0.8
+density = 0.5
 
 redGreenDist :: Double
 redGreenDist = 0.5
@@ -61,13 +62,13 @@ freeCellRetries :: Int
 freeCellRetries = 3
 
 localMovementRadius :: Int
-localMovementRadius = 2
+localMovementRadius = 5
 
 movementStrategy :: SegMoveStrategy
 movementStrategy = Local
 
 optimizingStrategy :: SegOptStrategy
-optimizingStrategy = OptimizePresent 5
+optimizingStrategy = None --  OptimizePresent 4   OptimizeRecursive 1 1 4
 ------------------------------------------------------------------------------------------------------------------------
 
 
@@ -82,23 +83,23 @@ is ao sat = (segAgentType s) == sat
 isOccupied :: SegEnvCell -> Bool
 isOccupied = isJust
 
-segDt :: SegAgentOut -> Double -> SegAgentOut
-segDt ao dt
-    | isHappy ao = ao
-    | otherwise = move ao
+segMovement :: SegAgentOut -> SegAgentIn -> Double -> SegAgentOut
+segMovement aout ain dt
+    | isHappy aout = aout
+    | otherwise = move aout ain
 
-move :: SegAgentOut -> SegAgentOut
-move ao
-    | optCoordFound = moveTo ao' optCoord
-    | otherwise = ao'
+move :: SegAgentOut -> SegAgentIn -> SegAgentOut
+move aout ain
+    | optCoordFound = moveTo aout' optCoord
+    | otherwise = aout'
     where
-        (ao', mayOptCoord) = findOptMove optimizingStrategy ao
+        (aout', mayOptCoord) = findOptMove optimizingStrategy aout ain
         optCoordFound = isJust mayOptCoord
         optCoord = fromJust mayOptCoord
 
-findOptMove :: SegOptStrategy -> SegAgentOut -> (SegAgentOut, Maybe EnvCoord)
-findOptMove None ao = findFreeCoord ao freeCellRetries
-findOptMove (OptimizePresent retries) ao = findOptMoveAux ao retries
+findOptMove :: SegOptStrategy -> SegAgentOut -> SegAgentIn -> (SegAgentOut, Maybe EnvCoord)
+findOptMove None aout _ = findFreeCoord aout freeCellRetries
+findOptMove (OptimizePresent retries) aout _ = findOptMoveAux aout retries
     where
         findOptMoveAux :: SegAgentOut -> Int -> (SegAgentOut, Maybe EnvCoord)
         findOptMoveAux ao 0 = findFreeCoord ao freeCellRetries
@@ -110,11 +111,28 @@ findOptMove (OptimizePresent retries) ao = findOptMoveAux ao retries
                 freeCoordFound = isJust mayFreeCoord
                 freeCoord = fromJust mayFreeCoord
 
-        moveImproves :: SegAgentOut -> EnvCoord -> Bool
-        moveImproves ao coord = similiarityOnCoord > similiarityCurrent
+findOptMove (OptimizeRecursive depth steps retries) aout ain = findOptMoveRecursive aout depth steps retries
+    where
+        findOptMoveRecursive :: SegAgentOut -> Int -> Int -> Int -> (SegAgentOut, Maybe EnvCoord)
+        findOptMoveRecursive aout depth steps 0 = findFreeCoord aout freeCellRetries
+        findOptMoveRecursive aout depth steps retries
+            | freeCoordFound = if freeCoordImprovesInFuture then ret else findOptMoveRecursive aout' depth steps (retries - 1)
+            | otherwise = ret
             where
-                similiarityOnCoord = calculateSimilarity ao coord
-                similiarityCurrent = (segSimilarityCurrent (aoState ao))
+                ret@(aout', mayFreeCoord) = findFreeCoord aout freeCellRetries
+                freeCoordFound = isJust mayFreeCoord
+                freeCoord = fromJust mayFreeCoord
+
+                aoutMoved = moveTo aout' freeCoord
+                futureAouts = recursive ain aoutMoved depth steps 1.0 False -- TODO: replace 1.0 with correct dt
+                futureAoutMoved = (last futureAouts) !! 0 -- TODO: need to find the correct out of this agent
+                freeCoordImprovesInFuture = moveImproves futureAoutMoved freeCoord
+
+moveImproves :: SegAgentOut -> EnvCoord -> Bool
+moveImproves ao coord = similiarityOnCoord > similiarityCurrent
+    where
+        similiarityOnCoord = calculateSimilarity ao coord
+        similiarityCurrent = (segSimilarityCurrent (aoState ao))
 
 moveTo :: SegAgentOut -> EnvCoord -> SegAgentOut
 moveTo ao newCoord = ao''
@@ -266,5 +284,5 @@ segAgentBehaviour :: SegAgentBehaviour
 segAgentBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
-        let aoAfterTime = segDt ao 1.0
-        returnA -< aoAfterTime
+        let ao' = segMovement ao ain 1.0
+        returnA -< ao'

@@ -121,13 +121,23 @@ updateState ao sfunc = ao { aoState = s' }
         s = aoState ao
         s' = sfunc s
 
+-- TODO: put SFs into AgentIn (frozen sf before execution) and AgentOut (frozen sf after execution)
+-- TODO: need to have a mechanism for marking agents calculating recursions e.g. only the calling, neighbours, all, ...
+-- TODO: how much does the order of sequential execution matters here? e.g. where should be place the new AgentIn
+-- NOTE: in each recursion:
+    -- 1. temporary new AgentIn is created from the AgentOut
+    -- 2. the temp AgentIn is added to the other agent ins
+    -- 3. the whole thing is simulated for a given number of steps, resulting in a list of list of Agent-Outs where the last list is the last step
+    -- 4. find the AgentOut of the Agent and add it to the list of AgentOuts
+    -- 5. recurr until depth has been reached
+    -- 6. return the list of AgentOuts: each entry is the output of the corresponding agent of the last step for each recursion-depth
 recursive :: AgentIn s m ec
                 -> AgentOut s m ec
                 -> Int
                 -> Int
                 -> Double
                 -> Bool
-                -> [[AgentOut s m ec]]
+                -> [AgentOut s m ec]
 recursive originalAin aout depth steps dt parStrategy
     | isJust originalAinRec = []
     | otherwise = []

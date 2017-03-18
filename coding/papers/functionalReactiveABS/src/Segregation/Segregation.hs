@@ -125,7 +125,7 @@ findOptMove (OptimizeRecursive depth steps retries) aout ain = findOptMoveRecurs
 
                 aoutMoved = moveTo aout' freeCoord
                 futureAouts = recursive ain aoutMoved depth steps 1.0 False -- TODO: replace 1.0 with correct dt
-                futureAoutMoved = (last futureAouts) !! 0 -- TODO: need to find the correct out of this agent
+                futureAoutMoved = last futureAouts
                 freeCoordImprovesInFuture = moveImproves futureAoutMoved freeCoord
 
 moveImproves :: SegAgentOut -> EnvCoord -> Bool

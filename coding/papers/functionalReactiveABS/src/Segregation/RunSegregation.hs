@@ -22,29 +22,29 @@ parallelStrategyFlag = False -- NOTE: segregation will not give correct result w
 
 runSegWithRendering :: IO ()
 runSegWithRendering = do
-                        hSetBuffering stdin NoBuffering
+                        hSetBuffering stdout NoBuffering
                         initRng rngSeed
                         (as, env) <- createSegAgentsAndEnv cells
 
-                        outRef <- (newIORef []) :: (IO (IORef [SegAgentOut]))
+                        outRef <- (newIORef ([], False)) :: (IO (IORef ([SegAgentOut], Bool)))
                         hdl <- processIOInit as env parallelStrategyFlag (nextIteration outRef)
 
                         simulateAndRender hdl outRef
 
-nextIteration :: IORef [SegAgentOut]
+nextIteration :: IORef ([SegAgentOut], Bool)
                     -> ReactHandle [AgentIn s m ec] [SegAgentOut]
                      -> Bool
                      -> [SegAgentOut]
                      -> IO Bool
 nextIteration outRef _ _ aouts = do
-                                    --putStrLn "nextIteration: writing Ref"
-                                    writeIORef outRef aouts
-                                    return False
+                                    let allHappy = all isHappy aouts
+                                    writeIORef outRef (aouts, allHappy)
+                                    return allHappy
 
 
 runSegStepsAndRender :: IO ()
 runSegStepsAndRender = do
-                            hSetBuffering stdin NoBuffering
+                            hSetBuffering stdout NoBuffering
                             initRng rngSeed
                             (as, env) <- createSegAgentsAndEnv cells
 
@@ -64,18 +64,16 @@ initRng seed = do
                 setStdGen g
                 return g
 
-simulateAndRender :: ReactHandle [AgentIn s m ec] [SegAgentOut] -> IORef [SegAgentOut] -> IO ()
+simulateAndRender :: ReactHandle [AgentIn s m ec] [SegAgentOut] -> IORef ([SegAgentOut], Bool) -> IO ()
 simulateAndRender hdl outRef = animateIO (Front.display winTitle winSize)
                                             GLO.black -- GLO.white
                                             (nextFrame hdl outRef)
                                             (\controller -> return () )
 
-nextFrame :: ReactHandle [AgentIn s m ec] [SegAgentOut] -> IORef [SegAgentOut] -> Float -> IO Picture
+nextFrame :: ReactHandle [AgentIn s m ec] [SegAgentOut] -> IORef ([SegAgentOut], Bool) -> Float -> IO Picture
 nextFrame hdl outRef dt = do
-                            --putStrLn "nextFrame: before react"
-                            react hdl (1.0, Nothing) -- NOTE: will result in call to nextIteration
-                            --putStrLn "nextFrame: after react"
-                            aouts <- readIORef outRef
+                            react hdl (1.0, Nothing)  -- NOTE: will result in call to nextIteration
+                            (aouts, _) <- readIORef outRef
                             modelToPicture aouts
 
 modelToPicture :: [SegAgentOut] -> IO GLO.Picture

@@ -68,7 +68,7 @@ movementStrategy :: SegMoveStrategy
 movementStrategy = Local
 
 optimizingStrategy :: SegOptStrategy
-optimizingStrategy = None --  OptimizePresent 4   OptimizeRecursive 1 1 4
+optimizingStrategy = OptimizePresent 4 --  OptimizePresent 4   OptimizeRecursive 1 1 4
 ------------------------------------------------------------------------------------------------------------------------
 
 
@@ -110,7 +110,6 @@ findOptMove (OptimizePresent retries) aout _ = findOptMoveAux aout retries
                 ret@(ao', mayFreeCoord) = findFreeCoord ao freeCellRetries
                 freeCoordFound = isJust mayFreeCoord
                 freeCoord = fromJust mayFreeCoord
-
 findOptMove (OptimizeRecursive depth steps retries) aout ain = findOptMoveRecursive aout depth steps retries
     where
         findOptMoveRecursive :: SegAgentOut -> Int -> Int -> Int -> (SegAgentOut, Maybe EnvCoord)
@@ -197,15 +196,10 @@ calculateSimilarity ao coord
                 redCount = length $ filter ((==Red) . fromJust) occupiedCells
                 greenCount = length $ filter ((==Green) . fromJust) occupiedCells
 
-makesHappy :: SegAgentOut -> SegCoord -> Bool
-makesHappy ao coord = similarityOnCoord >= similarityWanted
+isHappy :: SegAgentOut -> Bool
+isHappy ao = (segSimilarityCurrent s) >= (segSimilarityWanted s)
     where
         s = aoState ao
-        similarityOnCoord = calculateSimilarity ao coord
-        similarityWanted = segSimilarityWanted s
-
-isHappy :: SegAgentOut -> Bool
-isHappy ao = makesHappy ao (segCoord (aoState ao))
 ------------------------------------------------------------------------------------------------------------------------
 
 

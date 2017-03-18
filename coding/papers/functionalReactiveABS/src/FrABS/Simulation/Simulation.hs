@@ -15,6 +15,8 @@ import Debug.Trace
 ----------------------------------------------------------------------------------------------------------------------
 -- TODOs
 ----------------------------------------------------------------------------------------------------------------------
+-- TODO: allow to be able to stop simulation when iteration.function returns True
+
 -- TODO create project structure according to put it on Hackage in september: tests, comments,...
 -- TODO write unit-tests
 -- TODO write QuickCheck tests
@@ -69,7 +71,10 @@ iter outFunc hdl _ out = do
 processIOInit :: [AgentDef s m ec]
                     -> Environment ec
                     -> Bool
-                    -> (ReactHandle [AgentIn s m ec] [AgentOut s m ec] -> Bool -> [AgentOut s m ec] -> IO Bool)
+                    -> (ReactHandle [AgentIn s m ec] [AgentOut s m ec]
+                            -> Bool
+                            -> [AgentOut s m ec]
+                            -> IO Bool)
                     -> IO (ReactHandle [AgentIn s m ec] [AgentOut s m ec])
 processIOInit as env parStrategy iterFunc = reactInit
                                                 (return ains)

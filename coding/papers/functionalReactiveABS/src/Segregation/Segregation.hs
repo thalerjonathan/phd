@@ -22,11 +22,16 @@ import Debug.Trace
 data SegAgentType = Red | Green deriving (Eq, Show)
 type SegMsg = ()    -- Agents are not communicating in Schelling Segregation
 
+data SegMoveStrategy = Local | Global deriving (Eq)
+data SegOptStrategy = None | OptimizePresent Int | OptimizieRecursive Int deriving (Eq) -- TODO: add recursion depth (1)
+
 type SegCoord = (Int, Int)
 
 data SegAgentState = SegAgentState {
     segAgentType :: SegAgentType,
     segCoord :: SegCoord,
+    segSimilarityWanted :: Double,
+    segSimilarityCurrent :: Double,
     segRng :: StdGen
 } deriving (Show)
 
@@ -44,16 +49,25 @@ type SegAgentOut = AgentOut SegAgentState SegMsg SegEnvCell
 ------------------------------------------------------------------------------------------------------------------------
 -- MODEL-PARAMETERS
 similarWanted :: Double
-similarWanted = 0.6
+similarWanted = 0.9
 
 density :: Double
-density = 0.75
+density = 0.8
 
 redGreenDist :: Double
 redGreenDist = 0.5
 
 freeCellRetries :: Int
 freeCellRetries = 3
+
+localMovementRadius :: Int
+localMovementRadius = 2
+
+movementStrategy :: SegMoveStrategy
+movementStrategy = Local
+
+optimizingStrategy :: SegOptStrategy
+optimizingStrategy = OptimizePresent 5
 ------------------------------------------------------------------------------------------------------------------------
 
 
@@ -75,12 +89,32 @@ segDt ao dt
 
 move :: SegAgentOut -> SegAgentOut
 move ao
-    | freeCoordFound = moveTo ao' freeCoord
+    | optCoordFound = moveTo ao' optCoord
     | otherwise = ao'
     where
-        freeCoordFound = isJust mayRandCoord
-        freeCoord = fromJust mayRandCoord
-        (ao', mayRandCoord) = findRandomFreeCoord ao freeCellRetries
+        (ao', mayOptCoord) = findOptMove optimizingStrategy ao
+        optCoordFound = isJust mayOptCoord
+        optCoord = fromJust mayOptCoord
+
+findOptMove :: SegOptStrategy -> SegAgentOut -> (SegAgentOut, Maybe EnvCoord)
+findOptMove None ao = findFreeCoord ao freeCellRetries
+findOptMove (OptimizePresent retries) ao = findOptMoveAux ao retries
+    where
+        findOptMoveAux :: SegAgentOut -> Int -> (SegAgentOut, Maybe EnvCoord)
+        findOptMoveAux ao 0 = findFreeCoord ao freeCellRetries
+        findOptMoveAux ao retries
+            | freeCoordFound = if moveImproves ao' freeCoord then ret else findOptMoveAux ao' (retries - 1)
+            | otherwise = ret
+            where
+                ret@(ao', mayFreeCoord) = findFreeCoord ao freeCellRetries
+                freeCoordFound = isJust mayFreeCoord
+                freeCoord = fromJust mayFreeCoord
+
+        moveImproves :: SegAgentOut -> EnvCoord -> Bool
+        moveImproves ao coord = similiarityOnCoord > similiarityCurrent
+            where
+                similiarityOnCoord = calculateSimilarity ao coord
+                similiarityCurrent = (segSimilarityCurrent (aoState ao))
 
 moveTo :: SegAgentOut -> EnvCoord -> SegAgentOut
 moveTo ao newCoord = ao''
@@ -92,18 +126,34 @@ moveTo ao newCoord = ao''
         env' = changeCellAt env oldCoord Nothing
         env'' = changeCellAt env' newCoord (Just c)
         ao' = ao { aoEnv = env'' }
-        ao'' = updateState ao' (\s -> s { segCoord = newCoord } )
+        newSimilarity = calculateSimilarity ao' newCoord
+        ao'' = updateState ao' (\s -> s { segCoord = newCoord, segSimilarityCurrent = newSimilarity } )
 
-findRandomFreeCoord :: SegAgentOut -> Int -> (SegAgentOut, Maybe EnvCoord)
-findRandomFreeCoord ao 0 = (ao, Nothing)
-findRandomFreeCoord ao maxRetries
-    | isOccupied randCell = findRandomFreeCoord ao' (maxRetries - 1)
+findFreeCoord :: SegAgentOut -> Int -> (SegAgentOut, Maybe EnvCoord)
+findFreeCoord ao 0 = (ao, Nothing)
+findFreeCoord ao maxRetries
+    | isOccupied randCell = findFreeCoord ao' (maxRetries - 1)
     | otherwise = (ao', Just randCoord)
     where
-        ret@(ao', randCell, randCoord) = drawRandomCell ao
+        (ao', randCell, randCoord) = findFreeCoordAux movementStrategy ao
 
-drawRandomCell :: SegAgentOut -> (SegAgentOut, SegEnvCell, EnvCoord)
-drawRandomCell ao = (ao', randCell, randCoord)
+        findFreeCoordAux :: SegMoveStrategy -> SegAgentOut -> (SegAgentOut, SegEnvCell, EnvCoord)
+        findFreeCoordAux strat ao
+            | Local == strat = localRandomCell ao
+            | Global == strat = globalRandomCell ao
+
+localRandomCell :: SegAgentOut -> (SegAgentOut, SegEnvCell, EnvCoord)
+localRandomCell ao = (ao', randCell, randCoord)
+    where
+        s = aoState ao
+        env = aoEnv ao
+        g = segRng s
+        originCoord = segCoord s
+        (randCell, randCoord, g') = randomCellWithRadius g env originCoord localMovementRadius
+        ao' = updateState ao (\s -> s { segRng = g' } )
+
+globalRandomCell :: SegAgentOut -> (SegAgentOut, SegEnvCell, EnvCoord)
+globalRandomCell ao = (ao', randCell, randCoord)
     where
         s = aoState ao
         env = aoEnv ao
@@ -111,25 +161,35 @@ drawRandomCell ao = (ao', randCell, randCoord)
         (randCell, randCoord, g') = randomCell g env
         ao' = updateState ao (\s -> s { segRng = g' } )
 
-isHappy :: SegAgentOut -> Bool
-isHappy ao
-    | is ao Red = (fromInteger $ fromIntegral reds)  >= acceptCount
-    | is ao Green = (fromInteger $ fromIntegral greens)  >= acceptCount
+-- TODO: need to calculate 'as if' the agent was on the given coord
+calculateSimilarity :: SegAgentOut -> SegCoord -> Double
+calculateSimilarity ao coord
+    | is ao Red = (fromInteger $ fromIntegral reds) / totalCount
+    | is ao Green = (fromInteger $ fromIntegral greens) / totalCount
     where
         s = aoState ao
         env = aoEnv ao
-        coord = segCoord s
         cs = neighbours env coord
         (reds, greens) = countOccupied cs
-        totalCount = reds + greens
-        acceptCount = similarWanted * (fromInteger $ fromIntegral totalCount)
+        totalCount = (fromInteger $ fromIntegral (reds + greens))
 
-countOccupied :: [SegEnvCell] -> (Int, Int)
-countOccupied cs = (redCount, greenCount)
+        countOccupied :: [SegEnvCell] -> (Int, Int)
+        countOccupied cs = (redCount, greenCount)
+            where
+                occupiedCells = filter isOccupied cs
+                redCount = length $ filter ((==Red) . fromJust) occupiedCells
+                greenCount = length $ filter ((==Green) . fromJust) occupiedCells
+
+makesHappy :: SegAgentOut -> SegCoord -> Bool
+makesHappy ao coord = similarityOnCoord >= similarityWanted
     where
-        occupiedCells = filter isOccupied cs
-        redCount = length $ filter ((==Red) . fromJust) occupiedCells
-        greenCount = length $ filter ((==Green) . fromJust) occupiedCells
+        s = aoState ao
+        similarityOnCoord = calculateSimilarity ao coord
+        similarityWanted = segSimilarityWanted s
+
+isHappy :: SegAgentOut -> Bool
+isHappy ao = makesHappy ao (segCoord (aoState ao))
+
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -145,7 +205,7 @@ createSegAgentsAndEnv limits@(x,y) =  do
                                                               Nothing
                                                               limits
                                                               moore
-                                                              WrapBoth
+                                                              ClipToMax
                                                               envCells
 
                                         let as = map (\s -> createAgent s limits) asDefs
@@ -196,6 +256,8 @@ randomAgentState max coord = do
                                 return SegAgentState {
                                         segAgentType = s,
                                         segCoord = coord,
+                                        segSimilarityWanted = similarWanted,
+                                        segSimilarityCurrent = 0.0,
                                         segRng = rng }
 
 

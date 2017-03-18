@@ -84,6 +84,15 @@ randomCell g env = (randCell, randCoord, g'')
         randCoord = (randX, randY)
         randCell = cellAt env randCoord
 
+randomCellWithRadius :: (RandomGen g) => g -> Environment c -> EnvCoord -> Int -> (c, EnvCoord, g)
+randomCellWithRadius g env (x, y) r = (randCell, randCoord', g'')
+    where
+        (randX, g') = randomR (-r, r) g
+        (randY, g'') = randomR (-r, r) g'
+        randCoord = (x + randX, y + randY)
+        randCoord' = wrap (envLimits env) (envWrapping env) randCoord
+        randCell = cellAt env randCoord'
+
 -- TODO: use wrap-settings, this discharges coords outside
 neighbours :: Environment c -> EnvCoord -> [c]
 neighbours env coord@(x, y) = cellsAt env clippedCoords
@@ -111,8 +120,9 @@ wrapNeighbourhood l w ns = map (wrap l w) ns
 ------------------------------------------------------------------------------------------------------------------------
 -- 2D DISCRETE SPATIAL
 ------------------------------------------------------------------------------------------------------------------------
+-- TODO: is not yet correct
 wrap :: EnvLimits -> EnvWrapping -> EnvCoord -> EnvCoord
-wrap (maxX, maxY) ClipToMax (x, y) = (min x maxX, min y maxY)
+wrap (maxX, maxY) ClipToMax (x, y) = (max 0 (min x (maxX - 1)), max 0 (min y (maxY - 1)))
 wrap (maxX, maxY) WrapHorizontal (x, y) = (min x (x - maxX - 1), y)
 wrap (maxX, maxY) WrapVertical (x, y) = (x, min y (y - maxY - 1))
 wrap (maxX, maxY) WrapBoth (x, y) = (min x (x - maxX - 1), min y (y - maxY - 1))

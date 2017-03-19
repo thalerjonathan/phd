@@ -2,8 +2,6 @@
 module FrABS.Agent.Agent where
 
 import FrABS.Env.Environment
--- TODO: problem this forms a cycle
---import FrABS.Simulation.Simulation
 
 import FRP.Yampa
 
@@ -17,10 +15,9 @@ type MessageFilter m = (AgentMessage m -> Bool)
 data AgentDef s m ec = AgentDef {
     adId :: AgentId,
     adState :: s,
-    adBehaviour :: AgentBehaviour s m ec
+    adBeh :: AgentBehaviour s m ec
 }
 
--- TODO: need behaviour here
 data AgentIn s m ec = AgentIn {
     aiId :: AgentId,
     aiMessages :: Event [AgentMessage m],     -- AgentId identifies sender
@@ -29,24 +26,17 @@ data AgentIn s m ec = AgentIn {
     aiTerminate :: Event(),
     aiState :: s,
     aiEnv :: Environment ec,
-    aiRec :: Maybe (AgentRecursion s m ec)
+    aiRec :: Event ((Int, Int, Int), [AgentOut s m ec])
 }
 
-
-data AgentRecursion s m ec = AgentRecursion {
-    arecDepth :: Int,
-    arecOtherIns :: [AgentIn s m ec],
-    arecOtherSfs :: [AgentBehaviour s m ec]
-}
-
--- TODO: need behaviour here
 data AgentOut s m ec = AgentOut {
     aoId :: AgentId,
     aoKill :: Event (),
     aoCreate :: Event [AgentDef s m ec],
     aoMessages :: Event [AgentMessage m],     -- AgentId identifies receiver
     aoState :: s,
-    aoEnv :: Environment ec
+    aoEnv :: Environment ec,
+    aoRec :: Event (Int, Int, Int)
 }
 
 ----------------------------------------------------------------------------------------------------------------------
@@ -58,7 +48,8 @@ agentOutFromIn ai = AgentOut{ aoId = (aiId ai),
                               aoCreate = NoEvent,
                               aoMessages = NoEvent,
                               aoState = (aiState ai),
-                              aoEnv = (aiEnv ai)}
+                              aoEnv = (aiEnv ai),
+                              aoRec = NoEvent}
 
 sendMessage :: AgentOut s m ec -> AgentMessage m -> AgentOut s m ec
 sendMessage ao msg = ao { aoMessages = mergedMsgs }
@@ -121,61 +112,15 @@ updateState ao sfunc = ao { aoState = s' }
         s = aoState ao
         s' = sfunc s
 
--- TODO: put SFs into AgentIn (frozen sf before execution) and AgentOut (frozen sf after execution)
--- TODO: need to have a mechanism for marking agents calculating recursions e.g. only the calling, neighbours, all, ...
--- TODO: how much does the order of sequential execution matters here? e.g. where should be place the new AgentIn
--- NOTE: in each recursion:
-    -- 1. temporary new AgentIn is created from the AgentOut
-    -- 2. the temp AgentIn is added to the other agent ins
-    -- 3. the whole thing is simulated for a given number of steps, resulting in a list of list of Agent-Outs where the last list is the last step
-    -- 4. find the AgentOut of the Agent and add it to the list of AgentOuts
-    -- 5. recurr until depth has been reached
-    -- 6. return the list of AgentOuts: each entry is the output of the corresponding agent of the last step for each recursion-depth
-recursive :: AgentIn s m ec
-                -> AgentOut s m ec
-                -> Int
-                -> Int
-                -> Double
-                -> Bool
-                -> [AgentOut s m ec]
-recursive originalAin aout depth steps dt parStrategy
-    | isJust originalAinRec = []
-    | otherwise = []
+recursive :: AgentOut s m ec -> Int -> Int -> AgentOut s m ec
+recursive aout initDepth initSteps
+    | isEvent recEvt = aout { aoRec = Event (initDepth, initDepth, initSteps) }
+    | otherwise = aout { aoRec = newRec }
     where
-        originalAinRec = (aiRec originalAin)
-
-        arec = AgentRecursion {
-            arecDepth = 0,
-            arecOtherIns = [], -- TODO: need the inputs
-            arecOtherSfs = [] -- TODO: need the sfs
-        }
-        ainRec = AgentIn {  -- TODO take old ain
-                     -- aiId :: AgentId,                            NOTE: taken from the old ain
-                     -- aiMessages :: Event [AgentMessage m],       TODO: what should we do in this case?
-                     -- aiStart :: Event (),
-                     -- aiStop :: Event (),
-                     -- aiTerminate :: Event(),
-                     aiState = (aoState aout),
-                     aiEnv = (aoEnv aout),
-                     aiRec = Just arec
-                 }
-
-        recurrOneLevel :: Int
-                          -> Int
-                          -> Double
-                          -> Bool
-                          -> AgentRecursion s m ec
-                          -> AgentIn s m ec
-                          -> [[AgentOut s m ec]]
-        recurrOneLevel depth steps dt parStrat arec ain
-            | depth == currDepth = [] -- NOTE: reached recursion-depth, no more simulation
-            | otherwise = [] -- aouts -- TODO: increment depth by 1
-                where
-                    currDepth = arecDepth arec
-                    ains = arecOtherIns arec
-                    asfs = arecOtherSfs arec
-                    -- TODO: problem: circular includes
-                    -- aouts = simulate ains asfs parStrat dt steps    -- NOTE: calculate outputs of this level
+        recEvt = aoRec aout
+        (totalDepth, currDepth, steps) = fromEvent recEvt
+        newDepth = currDepth - 1
+        newRec = if newDepth <= 0 then NoEvent else Event (totalDepth, currDepth - 1, steps)
 ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -192,7 +137,8 @@ startingAgentInFromAgentDef env a = AgentIn { aiId = (adId a),
                                         aiStop = NoEvent,
                                         aiTerminate = NoEvent,
                                         aiState = (adState a),
-                                        aiEnv = env }
+                                        aiEnv = env,
+                                        aiRec = NoEvent }
 
 mergeMessages :: Event [AgentMessage m] -> Event [AgentMessage m] -> Event [AgentMessage m]
 mergeMessages l r = mergeBy (\msgsLeft msgsRight -> msgsLeft ++ msgsRight) l r

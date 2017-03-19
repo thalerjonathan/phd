@@ -4,6 +4,7 @@ module Segregation.Segregation where
 -- Project-internal import first
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
+import FrABS.Simulation.Simulation
 
 -- Project-specific libraries follow
 import FRP.Yampa
@@ -68,7 +69,7 @@ movementStrategy :: SegMoveStrategy
 movementStrategy = Local
 
 optimizingStrategy :: SegOptStrategy
-optimizingStrategy = OptimizePresent 4 --  OptimizePresent 4   OptimizeRecursive 1 1 4
+optimizingStrategy = OptimizeRecursive 1 1 4 --  OptimizePresent 4   OptimizeRecursive 1 1 4
 ------------------------------------------------------------------------------------------------------------------------
 
 
@@ -110,22 +111,23 @@ findOptMove (OptimizePresent retries) aout _ = findOptMoveAux aout retries
                 ret@(ao', mayFreeCoord) = findFreeCoord ao freeCellRetries
                 freeCoordFound = isJust mayFreeCoord
                 freeCoord = fromJust mayFreeCoord
+
+-- NOTE: a recursive optimizing agent does NOT make an initial move but just requests a recursive simulation
+-- TODO: don't move
+-- TODO: change optimization technique here or down?
 findOptMove (OptimizeRecursive depth steps retries) aout ain = findOptMoveRecursive aout depth steps retries
     where
         findOptMoveRecursive :: SegAgentOut -> Int -> Int -> Int -> (SegAgentOut, Maybe EnvCoord)
         findOptMoveRecursive aout depth steps 0 = findFreeCoord aout freeCellRetries
         findOptMoveRecursive aout depth steps retries
-            | freeCoordFound = if freeCoordImprovesInFuture then ret else findOptMoveRecursive aout' depth steps (retries - 1)
+            | freeCoordFound = (recursiveAout, mayFreeCoord)
             | otherwise = ret
             where
                 ret@(aout', mayFreeCoord) = findFreeCoord aout freeCellRetries
                 freeCoordFound = isJust mayFreeCoord
                 freeCoord = fromJust mayFreeCoord
+                recursiveAout = recursive aout' depth steps
 
-                aoutMoved = moveTo aout' freeCoord
-                futureAouts = recursive ain aoutMoved depth steps 1.0 False -- TODO: replace 1.0 with correct dt
-                futureAoutMoved = last futureAouts
-                freeCoordImprovesInFuture = moveImproves futureAoutMoved freeCoord
 
 moveImproves :: SegAgentOut -> EnvCoord -> Bool
 moveImproves ao coord = similiarityOnCoord > similiarityCurrent
@@ -245,7 +247,7 @@ createSegAgentsAndEnv limits@(x,y) =  do
         createAgent :: SegAgentState -> (Int, Int) -> SegAgentDef
         createAgent s max = AgentDef { adId = agentId,
                                         adState = s,
-                                        adBehaviour = segAgentBehaviour }
+                                        adBeh = segAgentBehaviour }
             where
                 c = segCoord s
                 agentId = coordToAid max c
@@ -274,9 +276,19 @@ coordToAid :: (Int, Int) -> SegCoord -> AgentId
 coordToAid (xMax, yMax) (x, y) = (y * xMax) + x
 ------------------------------------------------------------------------------------------------------------------------
 
+handleRecursion :: SegAgentIn -> SegAgentOut
+handleRecursion ain = agentOutFromIn ain
+    where -- TODO: investigate
+        ((totalDepth, currDepth, steps), recAos) = fromEvent $ aiRec ain
+
+handleNonRecursion :: SegAgentIn -> SegAgentOut
+handleNonRecursion ain = segMovement ao ain 1.0
+    where
+        ao = agentOutFromIn ain
+
 segAgentBehaviour :: SegAgentBehaviour
 segAgentBehaviour = proc ain ->
     do
-        let ao = agentOutFromIn ain
-        let ao' = segMovement ao ain 1.0
-        returnA -< ao'
+        let recEvt = aiRec ain
+        let ao = if isEvent recEvt then handleRecursion ain else handleNonRecursion ain
+        returnA -< ao

@@ -74,7 +74,7 @@ sirsDt ao dt
         newAgentDef = AgentDef {
                           adId = (aoId ao),
                           adState = (aoState ao),
-                          adBehaviour = sirsAgentBehaviour
+                          adBeh = sirsAgentBehaviour
                       }
 
 infectAgent :: SIRSAgentOut -> SIRSAgentOut
@@ -169,7 +169,7 @@ createRandomSIRSAgents max@(x,y) p =  do
         createAgent :: SIRSAgentState -> (Int, Int) -> SIRSAgentDef
         createAgent s max = AgentDef { adId = agentId,
                                         adState = s,
-                                        adBehaviour = sirsAgentBehaviour }
+                                        adBeh = sirsAgentBehaviour }
             where
                 c = sirsCoord s
                 agentId = coordToAid max c

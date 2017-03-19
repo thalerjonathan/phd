@@ -1,15 +1,22 @@
 {-# LANGUAGE Arrows #-}
 module FrABS.Simulation.Simulation where
 
+-- Project-internal import first
 import FrABS.Env.Environment
 import FrABS.Simulation.SeqIteration
 import FrABS.Simulation.ParIteration
 import FrABS.Agent.Agent
 
+-- Project-specific libraries follow
 import FRP.Yampa
 import FRP.Yampa.InternalCore
 
+-- System imports then
+import Data.Maybe
+import Data.List
+
 -- TODO: remove these imports
+-- debugging imports finally, to be easily removed in final version
 import Debug.Trace
 
 ----------------------------------------------------------------------------------------------------------------------
@@ -108,7 +115,7 @@ processSteps as env parStrategy dt steps = embed
 process :: [AgentDef s m ec] -> Bool -> SF [AgentIn s m ec] [AgentOut s m ec]
 process as parStrategy = iterationStrategy asfs parStrategy
     where
-        asfs = map adBehaviour as
+        asfs = map adBeh as
 
 iterationStrategy :: [SF (AgentIn s m ec) (AgentOut s m ec)] -> Bool -> SF [AgentIn s m ec] [AgentOut s m ec]
 iterationStrategy asfs parStrategy
@@ -116,17 +123,19 @@ iterationStrategy asfs parStrategy
     | otherwise = runSeqSF asfs seqCallback seqCallbackIteration
 
 simulate :: [AgentIn s m ec]
-                     -> [SF (AgentIn s m ec) (AgentOut s m ec)]
-                     -> Bool
-                     -> Double
-                     -> Int
-                     -> [[AgentOut s m ec]]
+                  -> [SF (AgentIn s m ec) (AgentOut s m ec)]
+                  -> Bool
+                  -> Double
+                  -> Int
+                  -> [[AgentOut s m ec]]
 simulate ains asfs parStrategy dt steps = embed
-                                                     sfStrat
-                                                     (ains, sts)
+                                                  sfStrat
+                                                  (ains, sts)
     where
         sts = replicate steps (dt, Nothing)
         sfStrat = iterationStrategy asfs parStrategy
+----------------------------------------------------------------------------------------------------------------------
+
 
 ----------------------------------------------------------------------------------------------------------------------
 -- PARALLEL STRATEGY
@@ -135,10 +144,11 @@ parCallback :: [AgentIn s m ec]
                 -> [AgentOut s m ec]
                 -> [AgentBehaviour s m ec]
                 -> ([AgentBehaviour s m ec], [AgentIn s m ec])
-parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
+parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns0)
     where
         (asfs', newAgentIns) = processAgents asfs oldAgentIns newAgentOuts
-        newAgentIns' = distributeMessages newAgentIns newAgentOuts
+        newAgentIns0 = distributeMessages newAgentIns newAgentOuts
+
         -- TODO: collapse all environments into one - collapsing is specific to the model!!
         -- TODO run the behaviour of the resulting environment
         -- TODO distribute the resulting env to all agentins
@@ -192,20 +202,71 @@ seqCallback :: [AgentIn s m ec] -- the existing inputs
                 -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec) -- the current working triple
                 -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
                 -> ([AgentIn s m ec],
-                    Maybe (AgentBehaviour s m ec, AgentIn s m ec))
-seqCallback allIns a@(sf, oldIn, newOut) = (allIns'', maySfIn)
+                    Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec))
+seqCallback otherIns a@(sf, oldIn, newOut)
+    | isJust mayAgent = (otherIns1, justRecAgent)
+    | otherwise = (otherIns1, mayAgent)
     where
-        maySfIn = handleKillOrLiveAgent a
+        mayAgent = handleKillOrLiveAgent a
         -- NOTE: distribute messages to all other agents
-        allIns' = distributeMessages allIns [newOut]
+        otherIns0 = distributeMessages otherIns [newOut]
         -- NOTE: passing the changed environment to the next agents
-        allIns'' = passEnvForward newOut allIns'
+        otherIns1 = passEnvForward newOut otherIns0
+
+        -- TODO: need to get the other signalfunctions!
+        justRecAgent = Just (handleRecursionAgent otherIns1 [] (fromJust mayAgent))
+
+        handleRecursionAgent :: [AgentIn s m ec]
+                                    -> [AgentBehaviour s m ec]
+                                    -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
+                                    -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
+        handleRecursionAgent otherIns otherSfs a@(sf, newIn, oldOut)
+            | isEvent recEvt = (sf, newIn', recOut)
+            | otherwise = (sf, newInNoRec, oldOut) -- NOTE: at this point we stop the recursion
+            where
+                recEvt = aoRec newOut
+                newInNoRec = newIn { aiRec = NoEvent }
+
+                recInfo@(totalDepth, currDepth, steps) = fromEvent recEvt
+
+                initRecIn = newIn { aiRec = Event (recInfo, []) }
+                recIn = if isInitialRecursion recEvt then initRecIn else newIn
+
+                agentId = (aiId newIn)
+                ains = otherIns ++ [recIn]                 -- NOTE: need to add agent, because not included
+                asfs = otherSfs ++ [sf]                     -- NOTE: need to add agent, because not included
+
+                allStepsRecAouts = simulate ains asfs False 1.0 steps
+
+                lastStepRecAouts = (last allStepsRecAouts)
+                recAgentAout = fromJust (Data.List.find (\ao -> (aoId ao) == agentId) lastStepRecAouts)       -- NOTE: it MUST BE in the list
+                mergedRecIn = mergeRecInEvent (aiRec recIn) (Event (recInfo, [recAgentAout]))
+                newIn' = newIn { aiRec = mergedRecIn }
+                recOut = runAgent sf newIn'         -- TODO: is it correct that time has passed??
+
+                isInitialRecursion :: Event (Int, Int, Int) -> Bool
+                isInitialRecursion recEvt = totalDepth == currDepth
+                    where
+                        (totalDepth, currDepth, _) = fromEvent recEvt
+
+                runAgent :: AgentBehaviour s m ec
+                                -> AgentIn s m ec
+                                -> AgentOut s m ec
+                runAgent asf ain = b0
+                    where
+                         (_, b0) = (sfTF asf) ain
+
+                mergeRecInEvent :: Event ((Int, Int, Int), [AgentOut s m ec])
+                                    -> Event ((Int, Int, Int), [AgentOut s m ec])
+                                    -> Event ((Int, Int, Int), [AgentOut s m ec])
+                mergeRecInEvent l r = mergeBy
+                                        (\(recInfoLeft, aosLeft) (recInfoRight, aosRight) -> (recInfoLeft, aosLeft ++ aosRight)) l r
 
         handleKillOrLiveAgent :: (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
-                                    -> Maybe (AgentBehaviour s m ec, AgentIn s m ec)
+                                    -> Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
         handleKillOrLiveAgent (sf, oldIn, newOut)
             | kill = Nothing
-            | live = Just (sf, newIn')
+            | live = Just (sf, newIn', newOut)
             where
                 kill = isEvent $ aoKill newOut
                 live = not kill
@@ -235,7 +296,7 @@ handleCreateAgents acc@(asfsAcc, ainsAcc) o
         newAgentDefsEvt = aoCreate o
         hasCreateAgents = isEvent newAgentDefsEvt
         newAgentDefs = fromEvent newAgentDefsEvt
-        newSfs = map adBehaviour newAgentDefs
+        newSfs = map adBeh newAgentDefs
         newAis = map (startingAgentInFromAgentDef newAgentInheritedEnvironment) newAgentDefs
 
 distributeMessages :: [AgentIn s m ec] -> [AgentOut s m ec] -> [AgentIn s m ec]

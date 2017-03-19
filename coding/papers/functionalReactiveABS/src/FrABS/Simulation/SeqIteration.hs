@@ -10,7 +10,7 @@ import Data.Maybe
 -- SEQ implementation
 ------------------------------------------------------------------------------------------------------------------------
 runSeqSF :: [SF i o]
-            -> ([i] -> (SF i o, i, o) -> ([i], Maybe (SF i o, i)))
+            -> ([i] -> (SF i o, i, o) -> ([i], Maybe (SF i o, i, o)))
             -> ([o] -> ([SF i o], [i]))
             -> SF [i] [o]
 runSeqSF initSfs clbkSeq clbkIter = SF {sfTF = tf0}
@@ -36,7 +36,7 @@ runSeqSF initSfs clbkSeq clbkIter = SF {sfTF = tf0}
 
 runSeqInternal :: [SF i o]
                 -> [i]
-                -> ([i] -> (SF i o, i, o) -> ([i], Maybe (SF i o, i)))
+                -> ([i] -> (SF i o, i, o) -> ([i], Maybe (SF i o, i, o)))
                 -> ([o] -> ([SF i o], [i]))
                 -> DTime
                 -> ([SF i o], [i], [o])
@@ -56,7 +56,7 @@ runSeqInternal sfs ins clbkSeq clbkIter dt = (sfs' ++ newSfs, ins' ++ newSfsIns,
                     -> Int                  -- index of the current position in the sequence
                     -> ([i] ->              -- the callback for a single sequential calculation
                         (SF i o, i, o)
-                        -> ([i], Maybe (SF i o, i)))
+                        -> ([i], Maybe (SF i o, i, o)))
                     -> DTime                -- time delta since last iteration
                     -> ([SF i o],           -- the accumulator for the next sfs
                         [i],                -- the accumulator for the next inputs
@@ -84,12 +84,12 @@ runSeqInternal sfs ins clbkSeq clbkIter dt = (sfs' ++ newSfs, ins' ++ newSfsIns,
                     -- the one behind is the input for the signal-functions remaining in this iteration
                 (accIns', ins') = splitAt idx allIns'
 
-                acc' = accumulateData (accSfs, accIns', accOuts) mayCont out
+                acc' = accumulateData (accSfs, accIns', accOuts) mayCont
 
-                accumulateData :: ([SF i o], [i], [o]) -> Maybe (SF i o, i) -> o -> ([SF i o], [i], [o])
-                accumulateData (accSfs, accIns, accOuts) mayCont out
-                    | isJust mayCont = (sf : accSfs, newIn : accIns, out : accOuts)
-                    | otherwise = (accSfs, accIns, out : accOuts)
+                accumulateData :: ([SF i o], [i], [o]) -> Maybe (SF i o, i, o) -> ([SF i o], [i], [o])
+                accumulateData (accSfs, accIns, accOuts) mayCont
+                    | isJust mayCont = (sf : accSfs, newIn : accIns, oldOut : accOuts)
+                    | otherwise = (accSfs, accIns, oldOut : accOuts)
                         where
-                            (sf, newIn) = fromJust mayCont
+                            (sf, newIn, oldOut) = fromJust mayCont
 ------------------------------------------------------------------------------------------------------------------------

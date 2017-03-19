@@ -214,49 +214,64 @@ seqCallback otherIns a@(sf, oldIn, newOut)
         otherIns1 = passEnvForward newOut otherIns0
 
         -- TODO: need to get the other signalfunctions!
-        justRecAgent = Just (handleRecursionAgent otherIns1 [] (fromJust mayAgent))
+        justRecAgent = Just (handleAgentRecursion otherIns1 [] (fromJust mayAgent))
 
-        handleRecursionAgent :: [AgentIn s m ec]
-                                    -> [AgentBehaviour s m ec]
-                                    -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
-                                    -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
-        handleRecursionAgent otherIns otherSfs a@(sf, newIn, oldOut)
-            | isEvent recEvt = handleRecursionAgent ains asfs (sf, newIn, recOut)
+        handleAgentRecursion :: [AgentIn s m ec]
+                                 -> [AgentBehaviour s m ec]
+                                 -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
+                                 -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
+        handleAgentRecursion otherIns otherSfs a@(sf, newIn, oldOut)
+            | isEvent recEvt = handleDepthRecursion otherIns otherSfs a (fromEvent recEvt)
             | otherwise = (sf, newInNoRec, oldOut)
             where
-                recEvt = aoRec newOut
-                newInNoRec = newIn { aiRec = NoEvent } -- do we really need this?
+                recEvt = aoRec oldOut
+                newInNoRec = newIn { aiRec = NoEvent }
 
-                recInfo@(_, _, steps) = fromEvent recEvt
-                recInInit = newIn { aiRec = Event (recInfo, oldOut) }
-                agentId = (aiId recInInit)
+        handleDepthRecursion :: [AgentIn s m ec]
+                                 -> [AgentBehaviour s m ec]
+                                 -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
+                                 -> (Int, Int, Int)
+                                 -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
+        handleDepthRecursion otherIns otherSfs a@(sf, newIn, oldOut) recInfo@(totalDepth, currDepth, replications)
+            | currDepth == totalDepth = a       -- edge case: terminate depth-recursion, no new recursion level
+            | currDepth == 0 = a                -- initial case: start depth-recursion
+            | otherwise = a             -- recursion case:
+            where
+                initRecIn =  newIn { aiRec = Event (recInfo, []) }
+
+        handleReplications :: [AgentIn s m ec]
+                                    -> [AgentBehaviour s m ec]
+                                    -> Int
+                                    -> Int
+                                    -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
+                                    -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
+        handleReplications otherIns otherSfs depth 0 a = a
+        handleReplications otherIns
+                            otherSfs
+                            depth
+                            replications
+                            (sf, newIn, oldOut) = handleReplications
+                                                                otherIns
+                                                                otherSfs
+                                                                depth
+                                                                (replications - 1)
+                                                                (sf, recIn, oldOut)
+            where
+                agentId = (aiId newIn)
 
                  -- NOTE: need to add agent, because not included
-                ains = otherIns ++ [recInInit]
+                ains = otherIns ++ [newIn]
                 asfs = otherSfs ++ [sf]
 
-                allStepsRecOuts = simulate ains asfs False 1.0 steps
+                 -- TODO: does it make sense to run multiple steps? what is the meaning of that?
+                allStepsRecOuts = simulate ains asfs False 1.0 1
 
                 lastStepRecOuts = (last allStepsRecOuts)
                 recOut = fromJust (Data.List.find (\ao -> (aoId ao) == agentId) lastStepRecOuts)       -- NOTE: it MUST BE in the list
-                -- TODO: add recOut to recin: accumulate recOuts
 
-                {-
-                recIn = recInInit { aiState = (aoState recOut),
-                                    aiRec = NoEvent }
-
-                isInitialRecursion :: Event (Int, Int, Int) -> Bool
-                isInitialRecursion recEvt = totalDepth == currDepth
-                    where
-                        (totalDepth, currDepth, _) = fromEvent recEvt
-
-                runAgent :: AgentBehaviour s m ec
-                                -> AgentIn s m ec
-                                -> AgentOut s m ec
-                runAgent asf ain = b0
-                    where
-                         (_, b0) = (sfTF asf) ain
-                -}
+                (recInfo, recEvtOuts) = fromEvent $ aiRec newIn
+                recEvtOuts' = recOut : recEvtOuts
+                recIn = newIn { aiRec = Event (recInfo, recEvtOuts') }
 
         handleKillOrLiveAgent :: (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                                     -> Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)

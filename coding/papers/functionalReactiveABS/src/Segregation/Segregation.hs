@@ -112,22 +112,17 @@ findOptMove (OptimizePresent retries) aout _ = findOptMoveAux aout retries
                 freeCoordFound = isJust mayFreeCoord
                 freeCoord = fromJust mayFreeCoord
 
--- NOTE: a recursive optimizing agent does NOT make an initial move but just requests a recursive simulation
--- TODO: don't move
--- TODO: change optimization technique here or down?
-findOptMove (OptimizeRecursive depth steps retries) aout ain = findOptMoveRecursive aout depth steps retries
+findOptMove (OptimizeRecursive depth steps retries) aout ain
+    | freeCoordFound = (recursiveAout, mayFreeCoord)
+    | otherwise = ret
     where
-        findOptMoveRecursive :: SegAgentOut -> Int -> Int -> Int -> (SegAgentOut, Maybe EnvCoord)
-        findOptMoveRecursive aout depth steps 0 = findFreeCoord aout freeCellRetries
-        findOptMoveRecursive aout depth steps retries
-            | freeCoordFound = (recursiveAout, mayFreeCoord)
-            | otherwise = ret
-            where
-                ret@(aout', mayFreeCoord) = findFreeCoord aout freeCellRetries
-                freeCoordFound = isJust mayFreeCoord
-                freeCoord = fromJust mayFreeCoord
-                recursiveAout = recursive aout' depth steps
+        ret@(aout', mayFreeCoord) = findFreeCoord aout freeCellRetries
+        freeCoordFound = isJust mayFreeCoord
+        freeCoord = fromJust mayFreeCoord
 
+        recursiveAout = recursive aout' depth steps
+        ((totalDepth, currDepth, steps), previousOut) = fromEvent $ aiRec ain
+        -- TODO: do recursive until given number of depths has been reached, then take the best
 
 moveImproves :: SegAgentOut -> EnvCoord -> Bool
 moveImproves ao coord = similiarityOnCoord > similiarityCurrent
@@ -278,8 +273,8 @@ coordToAid (xMax, yMax) (x, y) = (y * xMax) + x
 
 handleRecursion :: SegAgentIn -> SegAgentOut
 handleRecursion ain = agentOutFromIn ain
-    where -- TODO: investigate
-        ((totalDepth, currDepth, steps), recAos) = fromEvent $ aiRec ain
+    where
+        ((totalDepth, currDepth, steps), previousOut) = fromEvent $ aiRec ain
 
 handleNonRecursion :: SegAgentIn -> SegAgentOut
 handleNonRecursion ain = segMovement ao ain 1.0
@@ -289,6 +284,5 @@ handleNonRecursion ain = segMovement ao ain 1.0
 segAgentBehaviour :: SegAgentBehaviour
 segAgentBehaviour = proc ain ->
     do
-        let recEvt = aiRec ain
-        let ao = if isEvent recEvt then handleRecursion ain else handleNonRecursion ain
-        returnA -< ao
+        let ao = agentOutFromIn ain
+        returnA -< segMovement ao ain 1.0

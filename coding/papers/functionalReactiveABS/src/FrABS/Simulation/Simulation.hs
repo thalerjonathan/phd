@@ -221,28 +221,29 @@ seqCallback otherIns a@(sf, oldIn, newOut)
                                     -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                                     -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
         handleRecursionAgent otherIns otherSfs a@(sf, newIn, oldOut)
-            | isEvent recEvt = (sf, newIn', recOut)
-            | otherwise = (sf, newInNoRec, oldOut) -- NOTE: at this point we stop the recursion
+            | isEvent recEvt = handleRecursionAgent ains asfs (sf, newIn, recOut)
+            | otherwise = (sf, newInNoRec, oldOut)
             where
                 recEvt = aoRec newOut
-                newInNoRec = newIn { aiRec = NoEvent }
+                newInNoRec = newIn { aiRec = NoEvent } -- do we really need this?
 
-                recInfo@(totalDepth, currDepth, steps) = fromEvent recEvt
+                recInfo@(_, _, steps) = fromEvent recEvt
+                recInInit = newIn { aiRec = Event (recInfo, oldOut) }
+                agentId = (aiId recInInit)
 
-                initRecIn = newIn { aiRec = Event (recInfo, []) }
-                recIn = if isInitialRecursion recEvt then initRecIn else newIn
+                 -- NOTE: need to add agent, because not included
+                ains = otherIns ++ [recInInit]
+                asfs = otherSfs ++ [sf]
 
-                agentId = (aiId newIn)
-                ains = otherIns ++ [recIn]                 -- NOTE: need to add agent, because not included
-                asfs = otherSfs ++ [sf]                     -- NOTE: need to add agent, because not included
+                allStepsRecOuts = simulate ains asfs False 1.0 steps
 
-                allStepsRecAouts = simulate ains asfs False 1.0 steps
+                lastStepRecOuts = (last allStepsRecOuts)
+                recOut = fromJust (Data.List.find (\ao -> (aoId ao) == agentId) lastStepRecOuts)       -- NOTE: it MUST BE in the list
+                -- TODO: add recOut to recin: accumulate recOuts
 
-                lastStepRecAouts = (last allStepsRecAouts)
-                recAgentAout = fromJust (Data.List.find (\ao -> (aoId ao) == agentId) lastStepRecAouts)       -- NOTE: it MUST BE in the list
-                mergedRecIn = mergeRecInEvent (aiRec recIn) (Event (recInfo, [recAgentAout]))
-                newIn' = newIn { aiRec = mergedRecIn }
-                recOut = runAgent sf newIn'         -- TODO: is it correct that time has passed??
+                {-
+                recIn = recInInit { aiState = (aoState recOut),
+                                    aiRec = NoEvent }
 
                 isInitialRecursion :: Event (Int, Int, Int) -> Bool
                 isInitialRecursion recEvt = totalDepth == currDepth
@@ -255,12 +256,7 @@ seqCallback otherIns a@(sf, oldIn, newOut)
                 runAgent asf ain = b0
                     where
                          (_, b0) = (sfTF asf) ain
-
-                mergeRecInEvent :: Event ((Int, Int, Int), [AgentOut s m ec])
-                                    -> Event ((Int, Int, Int), [AgentOut s m ec])
-                                    -> Event ((Int, Int, Int), [AgentOut s m ec])
-                mergeRecInEvent l r = mergeBy
-                                        (\(recInfoLeft, aosLeft) (recInfoRight, aosRight) -> (recInfoLeft, aosLeft ++ aosRight)) l r
+                -}
 
         handleKillOrLiveAgent :: (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                                     -> Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)

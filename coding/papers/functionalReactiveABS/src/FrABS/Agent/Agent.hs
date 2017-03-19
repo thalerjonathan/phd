@@ -26,7 +26,7 @@ data AgentIn s m ec = AgentIn {
     aiTerminate :: Event(),
     aiState :: s,
     aiEnv :: Environment ec,
-    aiRec :: Event ((Int, Int, Int), [AgentOut s m ec])
+    aiRec :: Event ((Int, Int, Int), AgentOut s m ec)
 }
 
 data AgentOut s m ec = AgentOut {

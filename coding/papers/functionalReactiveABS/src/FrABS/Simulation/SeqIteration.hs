@@ -10,7 +10,7 @@ import Data.Maybe
 -- SEQ implementation
 ------------------------------------------------------------------------------------------------------------------------
 runSeqSF :: [SF i o]
-            -> ([i] -> (SF i o, i, o) -> ([i], Maybe (SF i o, i, o)))
+            -> (([i], [SF i o]) -> (SF i o) -> (SF i o, i, o) -> ([i], Maybe (SF i o, i, o)))
             -> ([o] -> ([SF i o], [i]))
             -> SF [i] [o]
 runSeqSF initSfs clbkSeq clbkIter = SF {sfTF = tf0}
@@ -36,7 +36,7 @@ runSeqSF initSfs clbkSeq clbkIter = SF {sfTF = tf0}
 
 runSeqInternal :: [SF i o]
                 -> [i]
-                -> ([i] -> (SF i o, i, o) -> ([i], Maybe (SF i o, i, o)))
+                -> (([i], [SF i o]) -> (SF i o) -> (SF i o, i, o) -> ([i], Maybe (SF i o, i, o)))
                 -> ([o] -> ([SF i o], [i]))
                 -> DTime
                 -> ([SF i o], [i], [o])
@@ -54,8 +54,9 @@ runSeqInternal sfs ins clbkSeq clbkIter dt = (sfs' ++ newSfs, ins' ++ newSfsIns,
         runSeqRec :: [SF i o]               -- the signal-functions to run sequentially in this iteration
                     -> [i]                  -- the inputs for each signal-function (length must be equal!)
                     -> Int                  -- index of the current position in the sequence
-                    -> ([i] ->              -- the callback for a single sequential calculation
-                        (SF i o, i, o)
+                    -> (([i], [SF i o])   -- the callback for a single sequential calculation
+                        -> (SF i o)
+                        -> (SF i o, i, o)
                         -> ([i], Maybe (SF i o, i, o)))
                     -> DTime                -- time delta since last iteration
                     -> ([SF i o],           -- the accumulator for the next sfs
@@ -72,11 +73,12 @@ runSeqInternal sfs ins clbkSeq clbkIter dt = (sfs' ++ newSfs, ins' ++ newSfsIns,
 
                  -- NOTE: current input i is not included because it is replaced (or ignored)
                 allIns = accIns ++ ins
+                allSfs = accSfs ++ sfs
 
                 -- 2. now the callback is invoked to let the simulation handle the result of the current SF
                 (allIns',           -- the new inputs, NOT including the new input of the current signal-function
                     mayCont)        -- Nothing if this signal-function should be terminated, Just (sf, newIn) if the signal-function should continue (can be replaced) with the new input
-                        = clbk allIns (sf', i, out)   -- callback is provided with a list of all the inputs (which does NOT include the current input) and
+                        = clbk (allIns, allSfs) sf (sf', i, out)   -- callback is provided with a list of all the inputs (which does NOT include the current input) and
                                                         -- the frozen signal-function, old input and output of the signal-function
 
                 -- 3. split the list of all inputs at the position we are currently at, the result are two lists:

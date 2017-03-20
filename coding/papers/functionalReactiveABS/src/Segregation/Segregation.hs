@@ -24,7 +24,7 @@ data SegAgentType = Red | Green deriving (Eq, Show)
 type SegMsg = ()    -- Agents are not communicating in Schelling Segregation
 
 data SegMoveStrategy = Local | Global deriving (Eq)
-data SegOptStrategy = None | OptimizePresent Int | OptimizeRecursive Int Int Int deriving (Eq)
+data SegOptStrategy = None | OptimizePresent Int | OptimizeRecursive Int Int deriving (Eq)
 
 type SegCoord = (Int, Int)
 
@@ -69,9 +69,10 @@ movementStrategy :: SegMoveStrategy
 movementStrategy = Local
 
 optimizingStrategy :: SegOptStrategy
-optimizingStrategy = OptimizeRecursive 1 1 4 --  OptimizePresent 4   OptimizeRecursive 1 1 4
+optimizingStrategy = OptimizeRecursive 1 4 -- None -- OptimizeRecursive 1 1 4 --  OptimizePresent 4   OptimizeRecursive 1 1 4
 ------------------------------------------------------------------------------------------------------------------------
 
+recTracingAgentId = 1
 
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR
@@ -86,7 +87,7 @@ isOccupied = isJust
 
 segMovement :: SegAgentOut -> SegAgentIn -> Double -> SegAgentOut
 segMovement aout ain dt
-    | isHappy aout = aout
+    | isHappy aout = if (aiId ain == recTracingAgentId) then trace ("agentid 1 is happy") aout else aout
     | otherwise = move aout ain
 
 move :: SegAgentOut -> SegAgentIn -> SegAgentOut
@@ -99,7 +100,23 @@ move aout ain
         optCoord = fromJust mayOptCoord
 
 findOptMove :: SegOptStrategy -> SegAgentOut -> SegAgentIn -> (SegAgentOut, Maybe EnvCoord)
+findOptMove (OptimizeRecursive depth retries) aout ain
+    | isRecursive ain = trace ("recOuts " ++ (show $ (map aoState recOuts)))
+                            (if length recOuts < 5 then
+                                (recAout, mayFreeCoord)
+                                else
+                                    (aout', Nothing))
+
+    | otherwise = if (aoId aout == recTracingAgentId) then (recAout, mayFreeCoord) else ret
+    where
+        recInputEvent = aiRec ain
+        recOuts = fromEvent $ recInputEvent
+
+        ret@(aout', mayFreeCoord) = findFreeCoord aout freeCellRetries
+        recAout = recursive aout'
+{-
 findOptMove None aout _ = findFreeCoord aout freeCellRetries
+
 findOptMove (OptimizePresent retries) aout _ = findOptMoveAux aout retries
     where
         findOptMoveAux :: SegAgentOut -> Int -> (SegAgentOut, Maybe EnvCoord)
@@ -112,37 +129,47 @@ findOptMove (OptimizePresent retries) aout _ = findOptMoveAux aout retries
                 freeCoordFound = isJust mayFreeCoord
                 freeCoord = fromJust mayFreeCoord
 
-{-
-findOptMove (OptimizeRecursive depth steps retries) aout ain
-    | freeCoordFound = (recursiveAout, mayFreeCoord)
-    | otherwise = ret
-    where
-        ret@(aout', mayFreeCoord) = findFreeCoord aout freeCellRetries
-        freeCoordFound = isJust mayFreeCoord
-        freeCoord = fromJust mayFreeCoord
-
-        recursiveAout = recursive aout' depth steps
-        ((totalDepth, currDepth, steps), previousOut) = fromEvent $ aiRec ain
-        -- TODO: do recursive until given number of depths has been reached, then take the best
--}
-
-findOptMove (OptimizeRecursive depth steps retries) aout ain
+findOptMove (OptimizeRecursive depth retries) aout ain
     | isRecursive ain = handleRecursion aout ain
-    | otherwise = maybe (aout', mayFreeCoord) (\_ -> (recursiveAout, mayFreeCoord)) mayFreeCoord
+    | otherwise = recursiveMove aout
     where
-        ret@(aout', mayFreeCoord) = findFreeCoord aout freeCellRetries
-        recursiveAout = recursive aout' depth steps
-
-        isRecursive :: SegAgentIn -> Bool
-        isRecursive ain = isEvent $ aiRec ain
+        recursiveMove :: SegAgentOut -> (SegAgentOut, Maybe EnvCoord)
+        recursiveMove aout = maybe
+                                (aout', mayFreeCoord)
+                                (\_ -> if (aoId aout == recTracingAgentId) then
+                                            trace ("starting recursion with " ++ show (fromJust mayFreeCoord)) (recursiveAout, mayFreeCoord)
+                                            else
+                                                (recursiveAout, mayFreeCoord) )
+                                mayFreeCoord
+            where
+                ret@(aout', mayFreeCoord) = findFreeCoord aout freeCellRetries
+                -- NOTE: for now only the agent with id 0 performs recursive simulation, otherwise can't debug
+                recursiveAout = if (aoId aout == recTracingAgentId) then recursive aout' else aout'
 
         handleRecursion :: SegAgentOut -> SegAgentIn -> (SegAgentOut, Maybe EnvCoord)
-        handleRecursion aout ain = trace ("agentid = " ++ (show (aiId ain)) ++ " currDepth = " ++ (show currDepth) ) (aout, Nothing)
+        handleRecursion aout ain = trace ("agent has recursion: agentid = "
+                    ++ (show (aiId ain))
+                    ++ "\n currentState = "
+                    ++ (show $ aoState aout)
+                    ++ "\n futureOut = "
+                    ++ (show $ (map aoState pastOuts))) ret
             where
                 recEvent = aiRec ain
-                recursiveAout = recursive aout' depth steps
-                ((totalDepth, currDepth, steps), previousOut) = fromEvent $ aiRec ain
+                pastOuts = fromEvent $ recEvent
+                ret = recursiveMove aout
 
+                {-
+                -- TODO: recalculate future similarity: environment has changed
+
+                currentSimiliarity = (segSimilarityCurrent (aoState aout))
+                aoutNoRec = unrecursive aout
+
+                ret = if (futureSimiliarity > currentSimiliarity) then
+                        trace ("future move of " ++ (show $ futureCoord) ++ " increases similarity") (aoutNoRec, Just futureCoord)
+                        else
+                            trace ("future move of " ++ (show $ futureCoord) ++ " decreases similarity, continue recursion") (recursiveMove aout)
+                -}
+-}
 
 moveImproves :: SegAgentOut -> EnvCoord -> Bool
 moveImproves ao coord = similiarityOnCoord > similiarityCurrent
@@ -291,15 +318,6 @@ coordToAid :: (Int, Int) -> SegCoord -> AgentId
 coordToAid (xMax, yMax) (x, y) = (y * xMax) + x
 ------------------------------------------------------------------------------------------------------------------------
 
-handleRecursion :: SegAgentIn -> SegAgentOut
-handleRecursion ain = agentOutFromIn ain
-    where
-        ((totalDepth, currDepth, steps), previousOut) = fromEvent $ aiRec ain
-
-handleNonRecursion :: SegAgentIn -> SegAgentOut
-handleNonRecursion ain = segMovement ao ain 1.0
-    where
-        ao = agentOutFromIn ain
 
 segAgentBehaviour :: SegAgentBehaviour
 segAgentBehaviour = proc ain ->

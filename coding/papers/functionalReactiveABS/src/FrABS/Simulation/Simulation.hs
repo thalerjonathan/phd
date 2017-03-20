@@ -141,6 +141,9 @@ simulate ains asfs parStrategy dt steps = embed
 ----------------------------------------------------------------------------------------------------------------------
 -- PARALLEL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
+-- TODO: collapse all environments into one - collapsing is specific to the model!!
+-- TODO run the behaviour of the resulting environment
+-- TODO distribute the resulting env to all agentins
 parCallback :: [AgentIn s m ec]
                 -> [AgentOut s m ec]
                 -> [AgentBehaviour s m ec]
@@ -149,10 +152,6 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns0)
     where
         (asfs', newAgentIns) = processAgents asfs oldAgentIns newAgentOuts
         newAgentIns0 = distributeMessages newAgentIns newAgentOuts
-
-        -- TODO: collapse all environments into one - collapsing is specific to the model!!
-        -- TODO run the behaviour of the resulting environment
-        -- TODO distribute the resulting env to all agentins
 
         processAgents :: [AgentBehaviour s m ec]
                             -> [AgentIn s m ec]
@@ -186,6 +185,9 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns0)
 ----------------------------------------------------------------------------------------------------------------------
 -- SEQUENTIAL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
+-- TODO: collapse all environments into one - collapsing is specific to the model!!
+-- TODO run the behaviour of the resulting environment
+-- TODO distribute the resulting env to all agentins
 seqCallbackIteration :: [AgentOut s m ec] -> ([AgentBehaviour s m ec], [AgentIn s m ec])
 seqCallbackIteration aouts = (newSfs, newSfsIns')
     where
@@ -193,97 +195,83 @@ seqCallbackIteration aouts = (newSfs, newSfsIns')
         (newSfs, newSfsIns) = foldl handleCreateAgents ([], []) aouts
         -- NOTE: distribute messages to newly created agents as well
         newSfsIns' = distributeMessages newSfsIns aouts
-        -- TODO: collapse all environments into one - collapsing is specific to the model!!
-        -- TODO run the behaviour of the resulting environment
-        -- TODO distribute the resulting env to all agentins
 
--- NOTE: this callback feeds in all the inputs and the current working triple: SF, Inpout and Output
--- It allows to change the inputs of future SFs and may return the SF. if it doesnt return a SF this means it is deleted from the system
-seqCallback :: [AgentIn s m ec] -- the existing inputs
-                -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec) -- the current working triple
-                -- optionally returns a sf-continuation for the current, can return new signal-functions and changed testinputs
+seqCallback :: ([AgentIn s m ec], [AgentBehaviour s m ec])
+                -> (AgentBehaviour s m ec)
+                -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                 -> ([AgentIn s m ec],
                     Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec))
-seqCallback otherIns a@(sf, oldIn, newOut)
-    | isJust mayAgent = (otherIns1, justRecAgent)
-    | otherwise = (otherIns1, mayAgent)
+seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
+    | doRecursion = seqCallbackRec otherIns otherSfs oldSf (sf, recIn, newOut)
+    | otherwise = handleAgent otherIns a
     where
-        mayAgent = handleKillOrLiveAgent a
-        -- NOTE: distribute messages to all other agents
-        otherIns0 = distributeMessages otherIns [newOut]
-        -- NOTE: passing the changed environment to the next agents
-        otherIns1 = passEnvForward newOut otherIns0
+        -- NOTE: first layer of recursion: calling simulate within a simulation
+        -- NOTE: at this level we are determining how many levels of recursion we run: at the moment, we stop after the first level
+        doRecursion = if (isEvent (aiRec oldIn)) then
+                        False   -- this is recursion-level 1 (0 is the initial level), stop here, can be replaced by counter in the future
+                        else
+                            isEvent $ aoRec newOut      -- this is recursion-level 0 (initial level), do recursion only if the agent requests to do so
 
-        -- TODO: need to get the other signalfunctions!
-        justRecAgent = Just (handleAgentRecursion otherIns1 [] (fromJust mayAgent))
+        -- NOTE: need to handle inputs different based upon whether we are doing
+        recIn = if (isEvent $ aiRec oldIn) then
+                    oldIn -- this is recursion level 1 => will do normal agent-handling and feed past outputs to the agent so it can select the best
+                    else
+                        oldIn { aiRec = Event [] } -- this is recursion level 0 => start with empty past outputs
 
-        handleAgentRecursion :: [AgentIn s m ec]
-                                 -> [AgentBehaviour s m ec]
-                                 -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
-                                 -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
-        handleAgentRecursion otherIns otherSfs a@(sf, newIn, oldOut)
-            | isEvent recEvt = handleDepthRecursion otherIns otherSfs a (fromEvent recEvt)
-            | otherwise = (sf, newInNoRec, oldOut)
+        -- NOTE: second layer of recursion: this allows the agent to simulate an arbitrary number of AgentOuts
+        seqCallbackRec :: [AgentIn s m ec]
+                           -> [AgentBehaviour s m ec]
+                           -> (AgentBehaviour s m ec)
+                           -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
+                           -> ([AgentIn s m ec],
+                               Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec))
+        seqCallbackRec otherIns otherSfs oldSf a@(sf, recIn, newOut)
+            | isEvent $ aoRec newOut = handleRecursion otherIns otherSfs oldSf (sf, recIn', newOut)     -- the last output requested recursion, perform it
+            | otherwise = handleAgent otherIns a                                                        -- no more recursion request, just handle agent as it is and return it, this will transport it back to the outer level
             where
-                recEvt = aoRec oldOut
-                newInNoRec = newIn { aiRec = NoEvent }
+                pastOutputs = fromEvent $ aiRec recIn                           -- at this point we can be sure that there MUST be an aiRec - Event otherwise would make no sense: having an aiRec - Event with a list means, that we are inside a recursion level (either 0 or 1)
+                recIn' = recIn { aiRec = Event (newOut : pastOutputs) }         -- append the new output to the past ones
 
-        handleDepthRecursion :: [AgentIn s m ec]
-                                 -> [AgentBehaviour s m ec]
+        -- this initiates the recursive simulation call
+        handleRecursion :: [AgentIn s m ec]     -- the inputs to the 'other' agents
+                                 -> [AgentBehaviour s m ec] -- the signal functions of the 'other' agents
+                                 -> (AgentBehaviour s m ec)     -- the OLD signal function of the current agent: it is the SF BEFORE having initiated the recursion
                                  -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
-                                 -> (Int, Int, Int)
-                                 -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
-        handleDepthRecursion otherIns otherSfs a@(sf, newIn, oldOut) recInfo@(totalDepth, currDepth, steps)
-            | currDepth == totalDepth = a       -- edge case: terminate depth-recursion, no new recursion level
-            | currDepth == 0 = a                -- initial case: start depth-recursion
-            | otherwise = a             -- recursion case:
+                                 -> ([AgentIn s m ec],
+                                        Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec))
+        handleRecursion otherIns otherSfs oldSf a@(sf, oldIn, newOut)
+            | isJust mayAgent = retAfterRec
+            | otherwise = retSelfKilled       -- the agent killed itself, terminate recursion
             where
-                newCurrDepth = (currDepth + 1)
-                recInfo' = (totalDepth, newCurrDepth, steps)
-                initRecIn =  newIn { aiRec = Event (recInfo', []) }
+                -- NOTE: collect self-messages for agent, distribute its messages and environment to others
+                retSelfKilled@(otherIns', mayAgent) = handleAgent otherIns a
 
-        handleReplications :: [AgentIn s m ec]
-                                    -> [AgentBehaviour s m ec]
-                                    -> Int
-                                    -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
-                                    -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
-        handleReplications otherIns
-                            otherSfs
-                            steps
-                            a@(sf, replIn, out)
-            | isEvent recEvt = handleReplications
-                                                                                               otherIns
-                                                                                               otherSfs
-                                                                                               steps
-                                                                                               (sf, replIn', replOut)
-            | otherwise =  (sf, newInNoRec, out)
-            where
-                recEvt = aoRec out
-                newInNoRec = replIn { aiRec = NoEvent }
+                (_, newIn, _) = fromJust mayAgent
 
-                agentId = (aiId replIn)
+                -- NOTE: need to add agent, because not included
+                allAsfs = otherSfs ++ [oldSf]       -- NOTE: use the old sf, no time
+                allAins = otherIns' ++ [newIn]
 
-                 -- NOTE: need to add agent, because not included
-                ains = otherIns ++ [replIn]
-                asfs = otherSfs ++ [sf]
-
-                 -- TODO: does it make sense to run multiple steps? what is the meaning of that?
-                allStepsRecOuts = simulate ains asfs False 1.0 steps
+                -- TODO: does it make sense to run multiple steps? what is the meaning of it?
+                allStepsRecOuts = (simulate allAins allAsfs False 1.0 1)
 
                 lastStepRecOuts = (last allStepsRecOuts)
-                recOut = fromJust (Data.List.find (\ao -> (aoId ao) == agentId) lastStepRecOuts)       -- NOTE: it MUST BE in the list
+                mayRecOut = Data.List.find (\ao -> (aoId ao) == (aiId oldIn)) lastStepRecOuts
 
-                (recInfo, recEvtOuts) = fromEvent $ aiRec replIn
-                recEvtOuts' = recOut : recEvtOuts
-                replIn' = replIn { aiRec = Event (recInfo, recEvtOuts') }
+                -- TODO: the agent died in the recursive simulation, what should we do?
+                retAfterRec = if isJust mayRecOut then
+                                seqCallbackRec otherIns otherSfs oldSf (sf, newIn, fromJust mayRecOut)
+                                else
+                                    retSelfKilled
 
-                -- TODO: run agent with OLD signalfunction: time cannot not advance
-                replOut = runAgentReplication sf replIn'
-
-                runAgentReplication :: AgentBehaviour s m ec -> AgentIn s m ec -> AgentOut s m ec
-                runAgentReplication asf ain = aout
-                    where
-                        (_, aout) = (sfTF asf) ain
+        handleAgent :: [AgentIn s m ec]
+                                -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
+                                -> ([AgentIn s m ec],
+                                     Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec))
+        handleAgent otherIns a@(sf, oldIn, newOut) = (otherIns', mayAgent)
+            where
+                mayAgent = handleKillOrLiveAgent a
+                otherIns' = distributeActions otherIns newOut
 
         handleKillOrLiveAgent :: (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                                     -> Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
@@ -299,8 +287,16 @@ seqCallback otherIns a@(sf, oldIn, newOut)
                 -- NOTE: need to handle sending messages to itself because the input of this agent is not in the list of all inputs because it will be replaced anyway by newIn
                 newIn' = collectMessagesFor [newOut] newIn
 
+        distributeActions :: [AgentIn s m ec] -> AgentOut s m ec -> [AgentIn s m ec]
+        distributeActions otherIns newOut = otherIns1
+            where
+                 -- NOTE: distribute messages to all other agents
+                otherIns0 = distributeMessages otherIns [newOut]
+                -- NOTE: passing the changed environment to the next agents
+                otherIns1 = passEnvForward newOut otherIns0
+
         passEnvForward :: AgentOut s m ec -> [AgentIn s m ec] -> [AgentIn s m ec]
-        passEnvForward out allIns = map (\ain -> ain {aiEnv = env }) allIns
+        passEnvForward out allIns = map (\ain -> ain { aiEnv = env }) allIns
             where
                 env = aoEnv out
 ----------------------------------------------------------------------------------------------------------------------

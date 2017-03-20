@@ -26,7 +26,7 @@ data AgentIn s m ec = AgentIn {
     aiTerminate :: Event(),
     aiState :: s,
     aiEnv :: Environment ec,
-    aiRec :: Event ((Int, Int, Int), [AgentOut s m ec])
+    aiRec :: Event ([AgentOut s m ec])
 }
 
 data AgentOut s m ec = AgentOut {
@@ -36,7 +36,7 @@ data AgentOut s m ec = AgentOut {
     aoMessages :: Event [AgentMessage m],     -- AgentId identifies receiver
     aoState :: s,
     aoEnv :: Environment ec,
-    aoRec :: Event (Int, Int, Int)
+    aoRec :: Event ()
 }
 
 ----------------------------------------------------------------------------------------------------------------------
@@ -112,15 +112,14 @@ updateState ao sfunc = ao { aoState = s' }
         s = aoState ao
         s' = sfunc s
 
-recursive :: AgentOut s m ec -> Int -> Int -> AgentOut s m ec
-recursive aout initDepth initSteps
-    | isEvent recEvt = aout { aoRec = Event (initDepth, initDepth, initSteps) }
-    | otherwise = aout { aoRec = newRec }
-    where
-        recEvt = aoRec aout
-        (totalDepth, currDepth, steps) = fromEvent recEvt
-        newDepth = currDepth - 1
-        newRec = if newDepth <= 0 then NoEvent else Event (totalDepth, currDepth - 1, steps)
+recursive :: AgentOut s m ec -> AgentOut s m ec
+recursive aout = aout { aoRec = Event () }
+
+unrecursive :: AgentOut s m ec -> AgentOut s m ec
+unrecursive aout = aout { aoRec = NoEvent }
+
+isRecursive :: AgentIn s m ec -> Bool
+isRecursive ain = isEvent $ aiRec ain
 ----------------------------------------------------------------------------------------------------------------------
 
 

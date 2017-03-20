@@ -23,6 +23,7 @@ import Debug.Trace
 -- TODOs
 ----------------------------------------------------------------------------------------------------------------------
 -- TODO: allow to be able to stop simulation when iteration.function returns True
+-- TODO: hide AgentIn and AgentOut same way as DTime is hidden, only generic state in/out
 
 -- TODO create project structure according to put it on Hackage in september: tests, comments,...
 -- TODO write unit-tests
@@ -232,46 +233,57 @@ seqCallback otherIns a@(sf, oldIn, newOut)
                                  -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                                  -> (Int, Int, Int)
                                  -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
-        handleDepthRecursion otherIns otherSfs a@(sf, newIn, oldOut) recInfo@(totalDepth, currDepth, replications)
+        handleDepthRecursion otherIns otherSfs a@(sf, newIn, oldOut) recInfo@(totalDepth, currDepth, steps)
             | currDepth == totalDepth = a       -- edge case: terminate depth-recursion, no new recursion level
             | currDepth == 0 = a                -- initial case: start depth-recursion
             | otherwise = a             -- recursion case:
             where
-                initRecIn =  newIn { aiRec = Event (recInfo, []) }
+                newCurrDepth = (currDepth + 1)
+                recInfo' = (totalDepth, newCurrDepth, steps)
+                initRecIn =  newIn { aiRec = Event (recInfo', []) }
 
         handleReplications :: [AgentIn s m ec]
                                     -> [AgentBehaviour s m ec]
                                     -> Int
-                                    -> Int
                                     -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                                     -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
-        handleReplications otherIns otherSfs depth 0 a = a
         handleReplications otherIns
                             otherSfs
-                            depth
-                            replications
-                            (sf, newIn, oldOut) = handleReplications
-                                                                otherIns
-                                                                otherSfs
-                                                                depth
-                                                                (replications - 1)
-                                                                (sf, recIn, oldOut)
+                            steps
+                            a@(sf, replIn, out)
+            | isEvent recEvt = handleReplications
+                                                                                               otherIns
+                                                                                               otherSfs
+                                                                                               steps
+                                                                                               (sf, replIn', replOut)
+            | otherwise =  (sf, newInNoRec, out)
             where
-                agentId = (aiId newIn)
+                recEvt = aoRec out
+                newInNoRec = replIn { aiRec = NoEvent }
+
+                agentId = (aiId replIn)
 
                  -- NOTE: need to add agent, because not included
-                ains = otherIns ++ [newIn]
+                ains = otherIns ++ [replIn]
                 asfs = otherSfs ++ [sf]
 
                  -- TODO: does it make sense to run multiple steps? what is the meaning of that?
-                allStepsRecOuts = simulate ains asfs False 1.0 1
+                allStepsRecOuts = simulate ains asfs False 1.0 steps
 
                 lastStepRecOuts = (last allStepsRecOuts)
                 recOut = fromJust (Data.List.find (\ao -> (aoId ao) == agentId) lastStepRecOuts)       -- NOTE: it MUST BE in the list
 
-                (recInfo, recEvtOuts) = fromEvent $ aiRec newIn
+                (recInfo, recEvtOuts) = fromEvent $ aiRec replIn
                 recEvtOuts' = recOut : recEvtOuts
-                recIn = newIn { aiRec = Event (recInfo, recEvtOuts') }
+                replIn' = replIn { aiRec = Event (recInfo, recEvtOuts') }
+
+                -- TODO: run agent with OLD signalfunction: time cannot not advance
+                replOut = runAgentReplication sf replIn'
+
+                runAgentReplication :: AgentBehaviour s m ec -> AgentIn s m ec -> AgentOut s m ec
+                runAgentReplication asf ain = aout
+                    where
+                        (_, aout) = (sfTF asf) ain
 
         handleKillOrLiveAgent :: (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                                     -> Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)

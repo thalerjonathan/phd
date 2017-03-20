@@ -23,6 +23,7 @@ parallelStrategyFlag = False -- NOTE: segregation will not give correct result w
 runSegWithRendering :: IO ()
 runSegWithRendering = do
                         hSetBuffering stdout NoBuffering
+                        hSetBuffering stderr NoBuffering
                         initRng rngSeed
                         (as, env) <- createSegAgentsAndEnv cells
 

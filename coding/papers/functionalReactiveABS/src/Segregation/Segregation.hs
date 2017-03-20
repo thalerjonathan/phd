@@ -112,6 +112,7 @@ findOptMove (OptimizePresent retries) aout _ = findOptMoveAux aout retries
                 freeCoordFound = isJust mayFreeCoord
                 freeCoord = fromJust mayFreeCoord
 
+{-
 findOptMove (OptimizeRecursive depth steps retries) aout ain
     | freeCoordFound = (recursiveAout, mayFreeCoord)
     | otherwise = ret
@@ -123,6 +124,25 @@ findOptMove (OptimizeRecursive depth steps retries) aout ain
         recursiveAout = recursive aout' depth steps
         ((totalDepth, currDepth, steps), previousOut) = fromEvent $ aiRec ain
         -- TODO: do recursive until given number of depths has been reached, then take the best
+-}
+
+findOptMove (OptimizeRecursive depth steps retries) aout ain
+    | isRecursive ain = handleRecursion aout ain
+    | otherwise = maybe (aout', mayFreeCoord) (\_ -> (recursiveAout, mayFreeCoord)) mayFreeCoord
+    where
+        ret@(aout', mayFreeCoord) = findFreeCoord aout freeCellRetries
+        recursiveAout = recursive aout' depth steps
+
+        isRecursive :: SegAgentIn -> Bool
+        isRecursive ain = isEvent $ aiRec ain
+
+        handleRecursion :: SegAgentOut -> SegAgentIn -> (SegAgentOut, Maybe EnvCoord)
+        handleRecursion aout ain = trace ("agentid = " ++ (show (aiId ain)) ++ " currDepth = " ++ (show currDepth) ) (aout, Nothing)
+            where
+                recEvent = aiRec ain
+                recursiveAout = recursive aout' depth steps
+                ((totalDepth, currDepth, steps), previousOut) = fromEvent $ aiRec ain
+
 
 moveImproves :: SegAgentOut -> EnvCoord -> Bool
 moveImproves ao coord = similiarityOnCoord > similiarityCurrent

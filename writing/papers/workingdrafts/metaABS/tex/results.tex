@@ -1,4 +1,5 @@
 \section{Results}
+In this section we report and discuss the results of our experiments with Meta-ABS. In Table \ref{tab:model_configuration} we give the configuration of the model which is the same for all experiments. For the future move-optimization additional parameters are set, which are mentioned in the respective section.
 
 \begin{table*}[t]
 	\centering
@@ -13,7 +14,6 @@
 			\textbf{Agent-distribution}			& 50\% Red, 50\% Green	\\ 
 			\textbf{Local-movement distance}	& 5	\\ 
 			\textbf{Find-free-place retries}	& 4	\\ 
-			\textbf{Max Time-steps}				& 250 \\ 
 			\hline \hline
 		\end{tabular}
 \end{table*}
@@ -27,25 +27,19 @@ What we are interested in are the following dynamics
 \end{enumerate}
 
 \subsection{No move-optimization}
-Hypotheses
-	- local movement: compared to others, slowest convergence/impossible to reach complete happiness
-	- global movement: should have faster convergence than local-movement, due to larger movement which results in faster escape of local minima, also global movement makes 
+Hypothesis: compared to others, slowest convergence/impossible to reach complete happiness
 	
 \subsection{Present move-optimization}
-Hypotheses
-	- local movement: should have much faster convergence than all non-optimizing, areas act as attractors
-	- global movement: should have even faster convergence than local movement because moving globally and can find better globally 
+Hypothesis: should have much faster convergence than non-optimizing, areas act as attractors
 	
 \subsection{Future move-optimization}
-TODO: how many agents are predicting?
+TODO: how many agents are predicting? fraction between 0.0 and 1.0
 TODO: compare the performance of the predicting-agents to the non-predicting ones
 
 Deterministic future:
-	Hypotheses
-		- local / global movement without present:  
-		- local / global movement with present: fastest convergence of all
+	Hypothesis without present:  	same as present-only
+	Hypothesis with present: 		fastest convergence of all
 		
 Non-Deterministic future:
-	Hypotheses
-		- local / global movement without present: complete breakdown, falling back to dynamics of non-optimization
-		- local / global movement with present: same as present only optimization
+	Hypothesis without present: 	complete breakdown, falling back to dynamics of non-optimization
+	Hypothesis with present: 		same as present-only optimization

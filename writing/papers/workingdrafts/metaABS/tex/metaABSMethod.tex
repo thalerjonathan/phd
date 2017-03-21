@@ -1,10 +1,18 @@
 \section{Meta ABS}
-Informally, Meta-ABS can be understood as giving the agents the ability to project the outcome of their actions in the future. They are able to halt time and 'play through' an arbitrary number of actions, compare their outcome and then to unhalt time and continue with a specifically chosen action e.g. the best performing or in which they haven't died. 
+Informally, Meta-ABS can be understood as giving the agents the ability to project the outcome of their actions into the future. They are able to halt time and 'play through' an arbitrary number of actions, compare their outcome and then to resume time and continue with a specifically chosen action e.g. the best performing or the one in which they haven't died.
 
 \subsection{Formal description}
 explain the level two levels of recursion
 
-\subsection{Interpretation}
-TODO: how can be Meta ABS be interpreted?
+when an agent is running a recursion, then we need to restrict the other agents otherwise we will end up in an infinite regress.
 
-how can we justify the ability of the agents to do that? real persons lack the information and the computational power to forecast such a complex problem. 
+we are spanning up 3 dimensions: recursion-depth, replications, and time-steps
+
+the agent who is initiating the recursion can be seen as 'knowing' that it is running inside a simulation, but the other agents are not able to distinguish between them running on the base level of the simulation or on a recursive level
+
+\subsection{Interpretation}
+The main problem of our approach is that, depending on ones view-point, it is violating the principles of locality of information and limit of computing power. To recursively run the simulation the agent which initiates the recursion is feeding in all the states of the other agents and calculates the outcome of potentially multiple of its own steps, each potentially multiple recursion-layers deep and each recursion-layer multiple time-steps long. Both requires that each agent has perfect information about the complete simulation \textit{and} can compute these 3-dimensional recursions, which scale exponentially.
+In the social sciences where agents are often designed to have only very local information and perform low-cost computations it is very difficult or impossible to motivate the usage of recursive simulations - it simply does not match the assumptions of the real world, the social sciences want to model.
+In general simulations, with no direct link to the real world, where it is much more commonly accepted to assume perfect information and potentially infinite amount of computing power this approach is easily motivated by a constructive argument: it is possible to build, thus we build it.
+What we are ultimately interested in is the influence on the dynamics.
+Note that we identified the future-optimization technique as being locally. This is still the case despite of using global information for recurring the simulation - the reason for this is that we are talking about two different contexts here.

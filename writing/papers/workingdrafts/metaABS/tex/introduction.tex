@@ -1,11 +1,8 @@
 \section{Introduction}
 The 'meaning' of MetaABS is not really clear: how can it be interpreted?
 It is not so much about the dynamics but more on the philosophical questions it raises.
-But also we wanted to check if the same happens as in the recursive simulation paper \cite{gilmer_recursive_2000} : deterministic vs. non-deterministic AND one-agent recursion or all-agents recursion
 
-we are spanning up 3 dimensions: recursion-depth, replications, and time-steps
-
-the agent who is initiating the recursion can be seen as 'knowing' that it is running inside a simulation, but the other agents are not able to distinguish between them running on the base level of the simulation or on a recursive level
+But also we wanted to check if the same happens as in the recursive simulation paper \cite{gilmer_recursive_2000}: deterministic vs. non-deterministic AND one-agent recursion or all-agents recursion
 
 We implemented our Meta-ABS in Haskell using the functional reactive programming paradigm following the Yampa library. We believe that pure functional programming is especially suited to implement Meta-ABS due to its lack of implicit side-effects and copying of data. The code is available freely under
 TODO: until now the whole things is implemented in functionalReactiveABS,  when project and paper is finished, copy the code-base to metaABS and insert link

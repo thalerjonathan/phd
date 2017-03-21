@@ -2,14 +2,23 @@
 \subsection{Schelling Segregation}
 
 \subsubsection{Movement strategies}
-We distinguish between two movement-strategies: local and global.
+The original Schelling model only knew the local strategy.
+
+\paragraph{Local} An agent which moves selects an unoccupied place randomly relative from its current place within a rectangle of side-length 2r where its current place is at the center. The interpretation for that behaviour is that agents won't move too far as it could be costly. Also children might attend a school in this area or the family has friends in this area, so they don't want to break that.
+
+We introduce an additional movement-strategy
+
+\paragraph{Global} An agent which moves selects an unoccupied place randomly within the whole environment. The interpretation for that behaviour is that agents don't care for the moving-costs and don't really care where they end up. 
 
 \subsubsection{Optimizing behaviour}
-We distinguish between multiple optimization-strategies: 
-	1. none at all: 				agent just move depending on their movement-strategy to another place if they are not happy on the current one - they don't care how the target place is in the present or in the future, they will decide again in the next time-step
-	
-	2. optimizing in the present: 				agent pick a free place depending on their movement-strategy and move to it if it satisfies the condition
-	3. optimizing in the future: 				agent pick a free place depending on their movement-strategy and move to it if it satisfies the condition in the future
-	4. optimizing in the present \& future: 	agent pick a free place depending on their movement-strategy and move to it if it satisfies the condition now and in the future - note that we can distinguish between conditions now and in the future: they may be the same or they may differ
-	
-	we introduce the condition: either it makes them happy or it just increases their utility but ultimately does not make them completely happy
+The original schelling model didn't have a move-optimizing behaviour, meaning agents are just binary: if it is happy it will not move, if it is unhappy it will move but they won't care where they move. 
+
+\paragraph{None} Agents just move depending on their movement-strategy to another place if they are not happy on the current one - they don't care how the target place is in the present or in the future, they will decide again in the next time-step. The interpretation for that behaviour is: agents want to 'just get out' at any cost, not caring what the future place will look like - it might be better or worse but they will see then.
+
+We introduce local move-optimizing behaviours which can be interpreted as being realistic in the real-world. It is important to note that we focus on \textit{local} instead of \textit{global} move-optimization: the agents are limited in their reasoning-capabilities and have limited information available: they cannot check out \textit{every} place and pick the globally best one.
+
+\paragraph{Optimizing present} Agents pick an unoccupied place depending on their movement-strategy and move to it if it increases their utility. The interpretation for that behaviour is: agents heard about a cool spot in town, check it out and move to it if they like it.
+
+\paragraph{Optimizing future} Agents pick an unoccupied place depending on their movement-strategy and move to it if it increases their utility in the future. The interpretation for that behaviour is: agents heard about a place which will be cool in the future.
+
+\paragraph{Optimizing present \& future} Agents pick an unoccupied place depending on their movement-strategy and move to it if it increases their utility in the now and in the future. The interpretation for that behaviour is: agents heard about a cool spot in town, check it out and move to it if they like it but they also anticipate the coolness of the place in the future and if it seems that the place is going down then they won't move there.

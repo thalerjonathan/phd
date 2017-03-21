@@ -48,7 +48,7 @@ type SegAgentOut = AgentOut SegAgentState SegMsg SegEnvCell
 ------------------------------------------------------------------------------------------------------------------------
 -- MODEL-PARAMETERS
 similarWanted :: Double
-similarWanted = 0.75
+similarWanted = 0.8
 
 density :: Double
 density = 0.75
@@ -57,16 +57,16 @@ redGreenDist :: Double
 redGreenDist = 0.5
 
 freeCellRetries :: Int
-freeCellRetries = 3
+freeCellRetries = 4
 
 localMovementRadius :: Int
 localMovementRadius = 5
 
 movementStrategy :: SegMoveStrategy
-movementStrategy = Local
+movementStrategy = Global
 
 optimizingStrategy :: SegOptStrategy
-optimizingStrategy = None -- None -- OptimizeRecursive 1 1 4 --  OptimizePresent 4   OptimizeRecursive 1 1 4
+optimizingStrategy = OptimizePresent 1 -- None -- OptimizePresent 1 -- OptimizeRecursive 1 1 1
 ------------------------------------------------------------------------------------------------------------------------
 
 recTracingAgentId = 1
@@ -82,9 +82,10 @@ is ao sat = (segAgentType s) == sat
 isOccupied :: SegEnvCell -> Bool
 isOccupied = isJust
 
+-- TODO: need to distinguish if we are in recursion or not: if we accept happy immediately, then we cannot stop recursion and can't distinguish between multiple happiness
 segMovement :: SegAgentOut -> SegAgentIn -> Double -> SegAgentOut
 segMovement aout ain dt
-    | isHappy aout = if (aiId ain == recTracingAgentId) then trace ("agentid 1 is happy") aout else aout
+    | isHappy aout = aout -- if (aiId ain == recTracingAgentId) then trace ("agentid 1 is happy") aout else aout
     | otherwise = move aout ain
 
 move :: SegAgentOut -> SegAgentIn -> SegAgentOut
@@ -243,14 +244,17 @@ isHappy ao = (segSimilarityCurrent s) >= (segSimilarityWanted s)
     where
         s = aoState ao
 
-calculateHappinessChange :: [SegAgentOut] -> [SegAgentOut] -> Double
-calculateHappinessChange aoutsPrev aoutCurr = sumSimilarityWantedCurr - sumSimilarityWantedPrev
+calculateSimilarityChange :: [SegAgentOut] -> [SegAgentOut] -> Double
+calculateSimilarityChange aoutsPrev aoutCurr = sumSimilarityCurr - sumSimilarityPrev
     where
-        sumSimilarityWantedPrev = sum $ map (segSimilarityCurrent . aoState) aoutsPrev
-        sumSimilarityWantedCurr = sum $ map (segSimilarityCurrent . aoState) aoutCurr
+        sumSimilarityPrev = totalCurrentSimliarity aoutsPrev
+        sumSimilarityCurr = totalCurrentSimliarity aoutCurr
 
-calculateStats :: [SegAgentOut] -> (Int, Int, Int, Double)
-calculateStats aouts = (totalCount, happyCount, unhappyCount, unhappyFract)
+totalCurrentSimliarity :: [SegAgentOut] -> Double
+totalCurrentSimliarity aouts = sum $ map (segSimilarityCurrent . aoState) aouts
+
+calculateHappinessStats :: [SegAgentOut] -> (Int, Int, Int, Double)
+calculateHappinessStats aouts = (totalCount, happyCount, unhappyCount, unhappyFract)
     where
         totalCount = length aouts
         happy = filter isHappy aouts

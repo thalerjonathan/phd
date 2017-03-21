@@ -49,10 +49,22 @@ nextIteration outRef _ _ aouts = do
 printDynamics :: IORef ([SegAgentOut], Bool) -> [SegAgentOut] -> IO ()
 printDynamics outRef aoutsCurr = do
                                     (aoutsPrev, _) <- readIORef outRef
-                                    let happinessDelta = calculateHappinessChange aoutsPrev aoutsCurr
-                                    putStrLn (show unhappyFract ++ "," ++ show happinessDelta ++ ";")
+
+                                    let maxSimilarity = fromInteger $ fromIntegral totalCount -- NOTE: an agent can reach a maximum of 1.0
+                                    let currSimilarity = totalCurrentSimliarity aoutsCurr
+                                    let prevSimilarity = totalCurrentSimliarity aoutsPrev
+                                    let similarityDelta = currSimilarity - prevSimilarity
+
+                                    let currSimilarityNormalized = currSimilarity / maxSimilarity
+                                    let similarityDeltaNormalized = similarityDelta / maxSimilarity
+
+
+                                    putStrLn (show unhappyFract
+                                                ++ "," ++ show currSimilarityNormalized
+                                                ++ "," ++ show similarityDeltaNormalized
+                                                ++ ";" )
                                     where
-                                        (totalCount, happyCount, unhappyCount, unhappyFract) = calculateStats aoutsCurr
+                                        (totalCount, happyCount, unhappyCount, unhappyFract) = calculateHappinessStats aoutsCurr
 
 runSegStepsAndRender :: IO ()
 runSegStepsAndRender = do
@@ -60,7 +72,7 @@ runSegStepsAndRender = do
                             initRng rngSeed
                             (as, env) <- createSegAgentsAndEnv cells
 
-                            let steps = 10
+                            let steps = 500
                             let ass = processSteps as env parallelStrategyFlag 1.0 steps
                             let as' = last ass
 

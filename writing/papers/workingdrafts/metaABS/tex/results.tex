@@ -1,20 +1,51 @@
 \section{Results}
 
-\subsection{Experiment Setup}
+\begin{table*}[t]
+	\centering
+	\caption{Model Configuration}
+	\label{tab:model_configuration}
+		\begin{tabular}{ l | l }
+			\hline \hline
+			\textbf{Dimensions}					& 50 x 50 \\  
+			\textbf{World-type}					& Torus	\\ 
+			\textbf{Density}					& 0.75	\\ 
+			\textbf{Similarity required}		& 0.8	\\ 
+			\textbf{Agent-distribution}			& 50\% Red, 50\% Green	\\ 
+			\textbf{Local-movement distance}	& 5	\\ 
+			\textbf{Find-free-place retries}	& 4	\\ 
+			\textbf{Max Time-steps}				& 250 \\ 
+			\hline \hline
+		\end{tabular}
+\end{table*}
 
-Setup: 
-50x50, 0.8 density, 0.8 similarity, torus-world, 50/50 red/green distribution, local movement-radius 5
 
-Dynamics:
-- global happiness over time
-- happiness-change between steps
+What we are interested in are the following dynamics
+\begin{enumerate}
+	\item Global happiness (Yes / No) over time
+	\item Global similarity over time
+	\item Global change of similarity between steps
+\end{enumerate}
 
+\subsection{No move-optimization}
+Hypotheses
+	- local movement: compared to others, slowest convergence/impossible to reach complete happiness
+	- global movement: should have faster convergence than local-movement, due to larger movement which results in faster escape of local minima, also global movement makes 
+	
+\subsection{Present move-optimization}
+Hypotheses
+	- local movement: should have much faster convergence than all non-optimizing, areas act as attractors
+	- global movement: should have even faster convergence than local movement because moving globally and can find better globally 
+	
+\subsection{Future move-optimization}
+TODO: how many agents are predicting?
+TODO: compare the performance of the predicting-agents to the non-predicting ones
 
-\subsection{Future optimizing}
-a fraction pf agents is predicting: see what influence it has
-
-- deterministic future vs. non-deterministic future
-
-questions:
-	- can it solve the difficult case which global optimizing can solve?
-	- is it faster than global optimizing?
+Deterministic future:
+	Hypotheses
+		- local / global movement without present:  
+		- local / global movement with present: fastest convergence of all
+		
+Non-Deterministic future:
+	Hypotheses
+		- local / global movement without present: complete breakdown, falling back to dynamics of non-optimization
+		- local / global movement with present: same as present only optimization

@@ -45,16 +45,13 @@ type SegAgentIn = AgentIn SegAgentState SegMsg SegEnvCell
 type SegAgentOut = AgentOut SegAgentState SegMsg SegEnvCell
 ------------------------------------------------------------------------------------------------------------------------
 
--- TODO implement recursive simulations: MetaABS: test it using the segregation model. run recursive simulation for local neighbourhood only
-    -- for each move compute 1 step recursive and see how this move performs. if it improves the outcome, then take it otherwise stay.
-
 ------------------------------------------------------------------------------------------------------------------------
 -- MODEL-PARAMETERS
 similarWanted :: Double
-similarWanted = 0.8
+similarWanted = 0.75
 
 density :: Double
-density = 0.5
+density = 0.75
 
 redGreenDist :: Double
 redGreenDist = 0.5
@@ -69,7 +66,7 @@ movementStrategy :: SegMoveStrategy
 movementStrategy = Local
 
 optimizingStrategy :: SegOptStrategy
-optimizingStrategy = OptimizeRecursive 1 4 -- None -- OptimizeRecursive 1 1 4 --  OptimizePresent 4   OptimizeRecursive 1 1 4
+optimizingStrategy = None -- None -- OptimizeRecursive 1 1 4 --  OptimizePresent 4   OptimizeRecursive 1 1 4
 ------------------------------------------------------------------------------------------------------------------------
 
 recTracingAgentId = 1
@@ -100,21 +97,6 @@ move aout ain
         optCoord = fromJust mayOptCoord
 
 findOptMove :: SegOptStrategy -> SegAgentOut -> SegAgentIn -> (SegAgentOut, Maybe EnvCoord)
-findOptMove (OptimizeRecursive depth retries) aout ain
-    | isRecursive ain = trace ("recOuts " ++ (show $ (map aoState recOuts)))
-                            (if length recOuts < 5 then
-                                (recAout, mayFreeCoord)
-                                else
-                                    (aout', Nothing))
-
-    | otherwise = if (aoId aout == recTracingAgentId) then (recAout, mayFreeCoord) else ret
-    where
-        recInputEvent = aiRec ain
-        recOuts = fromEvent $ recInputEvent
-
-        ret@(aout', mayFreeCoord) = findFreeCoord aout freeCellRetries
-        recAout = recursive aout'
-{-
 findOptMove None aout _ = findFreeCoord aout freeCellRetries
 
 findOptMove (OptimizePresent retries) aout _ = findOptMoveAux aout retries
@@ -129,6 +111,22 @@ findOptMove (OptimizePresent retries) aout _ = findOptMoveAux aout retries
                 freeCoordFound = isJust mayFreeCoord
                 freeCoord = fromJust mayFreeCoord
 
+findOptMove (OptimizeRecursive depth retries) aout ain
+    | isRecursive ain = trace ("recOuts " ++ (show $ (map aoState recOuts)))
+                            (if length recOuts < 5 then
+                                (recAout, mayFreeCoord)
+                                else
+                                    (aout', Nothing))
+
+    | otherwise = if (aoId aout == recTracingAgentId) then (recAout, mayFreeCoord) else ret
+    where
+        recInputEvent = aiRec ain
+        recOuts = fromEvent $ recInputEvent
+
+        ret@(aout', mayFreeCoord) = findFreeCoord aout freeCellRetries
+        recAout = recursive aout'
+
+{-
 findOptMove (OptimizeRecursive depth retries) aout ain
     | isRecursive ain = handleRecursion aout ain
     | otherwise = recursiveMove aout
@@ -244,6 +242,21 @@ isHappy :: SegAgentOut -> Bool
 isHappy ao = (segSimilarityCurrent s) >= (segSimilarityWanted s)
     where
         s = aoState ao
+
+calculateHappinessChange :: [SegAgentOut] -> [SegAgentOut] -> Double
+calculateHappinessChange aoutsPrev aoutCurr = sumSimilarityWantedCurr - sumSimilarityWantedPrev
+    where
+        sumSimilarityWantedPrev = sum $ map (segSimilarityCurrent . aoState) aoutsPrev
+        sumSimilarityWantedCurr = sum $ map (segSimilarityCurrent . aoState) aoutCurr
+
+calculateStats :: [SegAgentOut] -> (Int, Int, Int, Double)
+calculateStats aouts = (totalCount, happyCount, unhappyCount, unhappyFract)
+    where
+        totalCount = length aouts
+        happy = filter isHappy aouts
+        happyCount = length happy
+        unhappyCount = totalCount - happyCount
+        unhappyFract = (fromInteger $ fromIntegral unhappyCount) / (fromInteger $ fromIntegral totalCount)
 ------------------------------------------------------------------------------------------------------------------------
 
 

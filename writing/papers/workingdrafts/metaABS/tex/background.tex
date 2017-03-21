@@ -1,4 +1,15 @@
 \section{Background}
 \subsection{Schelling Segregation}
 
-\subsection{Extension to Schelling Segregation: movement strategies}
+\subsubsection{Movement strategies}
+We distinguish between two movement-strategies: local and global.
+
+\subsubsection{Optimizing behaviour}
+We distinguish between multiple optimization-strategies: 
+	1. none at all: 				agent just move depending on their movement-strategy to another place if they are not happy on the current one - they don't care how the target place is in the present or in the future, they will decide again in the next time-step
+	
+	2. optimizing in the present: 				agent pick a free place depending on their movement-strategy and move to it if it satisfies the condition
+	3. optimizing in the future: 				agent pick a free place depending on their movement-strategy and move to it if it satisfies the condition in the future
+	4. optimizing in the present \& future: 	agent pick a free place depending on their movement-strategy and move to it if it satisfies the condition now and in the future - note that we can distinguish between conditions now and in the future: they may be the same or they may differ
+	
+	we introduce the condition: either it makes them happy or it just increases their utility but ultimately does not make them completely happy

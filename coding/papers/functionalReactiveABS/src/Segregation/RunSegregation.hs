@@ -15,10 +15,12 @@ import System.Random
 
 winSize = (800, 800)
 winTitle = "Schelling Segregation FrABS"
+renderCircles = True
 
 rngSeed = 42
-cells = (51, 51)
+cells = (50, 50)
 parallelStrategyFlag = False -- NOTE: segregation will not give correct result when run with parallel update-strategy
+
 
 runSegWithRendering :: IO ()
 runSegWithRendering = do
@@ -27,6 +29,7 @@ runSegWithRendering = do
                         initRng rngSeed
                         (as, env) <- createSegAgentsAndEnv cells
 
+                        putStrLn "dynamics = ["
                         outRef <- (newIORef ([], False)) :: (IO (IORef ([SegAgentOut], Bool)))
                         hdl <- processIOInit as env parallelStrategyFlag (nextIteration outRef)
 
@@ -38,10 +41,18 @@ nextIteration :: IORef ([SegAgentOut], Bool)
                      -> [SegAgentOut]
                      -> IO Bool
 nextIteration outRef _ _ aouts = do
+                                    printDynamics outRef aouts
                                     let allHappy = all isHappy aouts
                                     writeIORef outRef (aouts, allHappy)
                                     return allHappy
 
+printDynamics :: IORef ([SegAgentOut], Bool) -> [SegAgentOut] -> IO ()
+printDynamics outRef aoutsCurr = do
+                                    (aoutsPrev, _) <- readIORef outRef
+                                    let happinessDelta = calculateHappinessChange aoutsPrev aoutsCurr
+                                    putStrLn (show unhappyFract ++ "," ++ show happinessDelta ++ ";")
+                                    where
+                                        (totalCount, happyCount, unhappyCount, unhappyFract) = calculateStats aoutsCurr
 
 runSegStepsAndRender :: IO ()
 runSegStepsAndRender = do
@@ -80,7 +91,7 @@ nextFrame hdl outRef dt = do
 modelToPicture :: [SegAgentOut] -> IO GLO.Picture
 modelToPicture as = do
                         let rcs = map (sirsAgentToRenderCell cells) as
-                        return (Front.renderFrame rcs winSize cells)
+                        return (Front.renderFrame renderCircles rcs winSize cells)
 
 sirsAgentToRenderCell :: (Int, Int) -> SegAgentOut -> Front.RenderCell
 sirsAgentToRenderCell (xDim, yDim) a = Front.RenderCell { Front.renderCellCoord = (ax, ay),
@@ -89,5 +100,5 @@ sirsAgentToRenderCell (xDim, yDim) a = Front.RenderCell { Front.renderCellCoord 
         s = aoState a
         (ax, ay) = (segCoord s)
         ss = case (segAgentType s) of
-                        Red -> (0.0, 0.55, 0.0)
-                        Green -> (0.7, 0.0, 0.0)
+                        Red -> (0.0, 0.6, 0.0)
+                        Green -> (0.6, 0.0, 0.0)

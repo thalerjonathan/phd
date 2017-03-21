@@ -1,13 +1,20 @@
 \section{Results}
 
-\subsection{Non-optimizing movement}
-TODO: first show the dynamics of a difficult but solvable problem e.g. 51x51, 0.75 density, 0.5 similarity. 
-TODO: cannot solve high density with high similarity: utility stays low
+\subsection{Experiment Setup}
 
-\subsection{Global optimizing movement}
-TODO: show that global optimizing movement with can solve extremely difficult cases: 51x51, 0.9 density, 0.9 similarity. actually it doesnt mean it can really solve it but that it can increase the total utility dramatically compared to non-optimizing movement
+Setup: 
+50x50, 0.8 density, 0.8 similarity, torus-world, 50/50 red/green distribution, local movement-radius 5
 
-\subsection{Future optimizing movement}
-TODO: MetaABS
+Dynamics:
+- global happiness over time
+- happiness-change between steps
+
+
+\subsection{Future optimizing}
+a fraction pf agents is predicting: see what influence it has
+
+- deterministic future vs. non-deterministic future
+
+questions:
 	- can it solve the difficult case which global optimizing can solve?
 	- is it faster than global optimizing?

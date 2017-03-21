@@ -85,7 +85,7 @@ nextFrame hdl outRef dt = do
 modelToPicture :: [SIRSAgentOut] -> IO GLO.Picture
 modelToPicture as = do
                         let rcs = map (sirsAgentToRenderCell cells) as
-                        return (Front.renderFrame rcs winSize cells)
+                        return (Front.renderFrame True rcs winSize cells)
 
 sirsAgentToRenderCell :: (Int, Int) -> SIRSAgentOut -> Front.RenderCell
 sirsAgentToRenderCell (xDim, yDim) a = Front.RenderCell { Front.renderCellCoord = (ax, ay),

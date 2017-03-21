@@ -271,7 +271,7 @@ createSegAgentsAndEnv limits@(x,y) =  do
                                                               Nothing
                                                               limits
                                                               moore
-                                                              ClipToMax
+                                                              WrapBoth
                                                               envCells
 
                                         let as = map (\s -> createAgent s limits) asDefs

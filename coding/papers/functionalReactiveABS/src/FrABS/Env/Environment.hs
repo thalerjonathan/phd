@@ -24,7 +24,6 @@ type EnvLimits = (Int, Int)
 type EnvNeighbourhood = [(Int, Int)]
 data EnvWrapping = ClipToMax | WrapHorizontal | WrapVertical | WrapBoth
 
--- TODO: mapping of agent -> coordinate
 data Environment c = Environment {
     envBehaviour :: Maybe (EnvironmentBehaviour c),
     envLimits :: EnvLimits,
@@ -93,23 +92,14 @@ randomCellWithRadius g env (x, y) r = (randCell, randCoord', g'')
         randCoord' = wrap (envLimits env) (envWrapping env) randCoord
         randCell = cellAt env randCoord'
 
--- TODO: use wrap-settings, this discharges coords outside
 neighbours :: Environment c -> EnvCoord -> [c]
-neighbours env coord@(x, y) = cellsAt env clippedCoords
+neighbours env coord@(x, y) = cellsAt env wrappedNs
     where
         n = (envNeighbourhood env)
         l = (envLimits env)
-        unclippedCoords = neighbourhoodOf coord n
-        clippedCoords = filter (\c -> validCoord c l ) unclippedCoords
-
-        validCoord :: EnvCoord -> EnvLimits -> Bool
-        validCoord (x, y) (xMax, yMax)
-            | x < 0 = False
-            | y < 0 = False
-            | x >= xMax = False
-            | y >= yMax = False
-            | otherwise = True
-
+        w = (envWrapping env)
+        ns = neighbourhoodOf coord n
+        wrappedNs = wrapNeighbourhood l w ns
 
 ------------------------------------------------------------------------------------------------------------------------
 -- GENERAL SPATIAL
@@ -120,12 +110,17 @@ wrapNeighbourhood l w ns = map (wrap l w) ns
 ------------------------------------------------------------------------------------------------------------------------
 -- 2D DISCRETE SPATIAL
 ------------------------------------------------------------------------------------------------------------------------
--- TODO: is not yet correct
 wrap :: EnvLimits -> EnvWrapping -> EnvCoord -> EnvCoord
 wrap (maxX, maxY) ClipToMax (x, y) = (max 0 (min x (maxX - 1)), max 0 (min y (maxY - 1)))
-wrap (maxX, maxY) WrapHorizontal (x, y) = (min x (x - maxX - 1), y)
-wrap (maxX, maxY) WrapVertical (x, y) = (x, min y (y - maxY - 1))
-wrap (maxX, maxY) WrapBoth (x, y) = (min x (x - maxX - 1), min y (y - maxY - 1))
+wrap l@(maxX, _) WrapHorizontal (x, y)
+    | x < 0 = wrap l WrapHorizontal (x + maxX, y)
+    | x >= maxX = wrap l WrapHorizontal (x - maxX, y)
+    | otherwise = (x, y)
+wrap l@(_, maxY) WrapVertical (x, y)
+    | y < 0 = wrap l WrapVertical (x, y + maxY)
+    | y >= maxY = wrap l WrapVertical (x, y - maxY)
+    | otherwise = (x, y)
+wrap l WrapBoth c = wrap l WrapHorizontal $ wrap l WrapVertical  c
 
 neighbourhoodOf :: EnvCoord -> EnvNeighbourhood -> EnvNeighbourhood
 neighbourhoodOf (x,y) ns = map (\(x', y') -> (x + x', y + y')) ns

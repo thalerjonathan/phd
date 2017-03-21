@@ -19,28 +19,28 @@
       <file leaf-file-name="RunSegregation.hs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Segregation/RunSegregation.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="648">
-              <caret line="36" column="0" lean-forward="true" selection-start-line="36" selection-start-column="0" selection-end-line="36" selection-end-column="0" />
+            <state relative-caret-position="39">
+              <caret line="16" column="41" lean-forward="false" selection-start-line="16" selection-start-column="41" selection-end-line="16" selection-end-column="41" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Segregation.hs" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Segregation.hs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Segregation/Segregation.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-3583">
-              <caret line="50" column="20" lean-forward="false" selection-start-line="50" selection-start-column="18" selection-end-line="50" selection-end-column="20" />
+            <state relative-caret-position="2012">
+              <caret line="307" column="36" lean-forward="false" selection-start-line="307" selection-start-column="26" selection-end-line="307" selection-end-column="36" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Simulation.hs" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/FrABS/Simulation/Simulation.hs">
+      <file leaf-file-name="Environment.hs" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/FrABS/Env/Environment.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="398">
-              <caret line="249" column="0" lean-forward="false" selection-start-line="249" selection-start-column="0" selection-end-line="249" selection-end-column="0" />
+            <state relative-caret-position="111">
+              <caret line="94" column="10" lean-forward="false" selection-start-line="94" selection-start-column="0" selection-end-line="94" selection-end-column="10" />
               <folding />
             </state>
           </provider>
@@ -50,8 +50,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>AgentIn s m</find>
-      <find>neighbours</find>
       <find>foldr</find>
       <find>acceptPercent</find>
       <find>similarWanted</find>
@@ -80,6 +78,8 @@
       <find>mayFreeCoord</find>
       <find>oldIn</find>
       <find>recEvt</find>
+      <find>neighbours</find>
+      <find>coordToAid</find>
     </findStrings>
     <replaceStrings>
       <replace>o</replace>
@@ -125,15 +125,15 @@
         <option value="$PROJECT_DIR$/src/Main.hs" />
         <option value="$PROJECT_DIR$/src/SugarScape/SugarScape.hs" />
         <option value="$PROJECT_DIR$/src/FrABS/FrABS.hs" />
-        <option value="$PROJECT_DIR$/src/FrABS/Env/Environment.hs" />
         <option value="$PROJECT_DIR$/src/SIRS/SIRSModel.hs" />
         <option value="$PROJECT_DIR$/src/FrABS/Simulation/SeqIteration.hs" />
         <option value="$PROJECT_DIR$/src/FrABS/Agent/Agent.hs" />
         <option value="$PROJECT_DIR$/src/FrABS/Simulation/Simulation.hs" />
-        <option value="$PROJECT_DIR$/src/FrABS/Rendering/Agents2DDiscrete.hs" />
         <option value="$PROJECT_DIR$/src/SIRS/RunSIRS.hs" />
         <option value="$PROJECT_DIR$/src/Segregation/Segregation.hs" />
         <option value="$PROJECT_DIR$/src/Segregation/RunSegregation.hs" />
+        <option value="$PROJECT_DIR$/src/FrABS/Rendering/Agents2DDiscrete.hs" />
+        <option value="$PROJECT_DIR$/src/FrABS/Env/Environment.hs" />
       </list>
     </option>
   </component>
@@ -869,13 +869,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/FrABS/Env/Environment.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="249">
-          <caret line="128" column="0" lean-forward="true" selection-start-line="128" selection-start-column="0" selection-end-line="128" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/SIRS/SIRSModel.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="162">
@@ -913,14 +906,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/FrABS/Rendering/Agents2DDiscrete.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="326">
-          <caret line="24" column="43" lean-forward="false" selection-start-line="24" selection-start-column="43" selection-end-line="24" selection-end-column="43" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/FrABS/Misc/YampaSeqTest.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-558">
@@ -937,18 +922,34 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/FrABS/Rendering/Agents2DDiscrete.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="272">
+          <caret line="21" column="71" lean-forward="true" selection-start-line="21" selection-start-column="71" selection-end-line="21" selection-end-column="71" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/Segregation/RunSegregation.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="648">
-          <caret line="36" column="0" lean-forward="true" selection-start-line="36" selection-start-column="0" selection-end-line="36" selection-end-column="0" />
+        <state relative-caret-position="39">
+          <caret line="16" column="41" lean-forward="false" selection-start-line="16" selection-start-column="41" selection-end-line="16" selection-end-column="41" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Segregation/Segregation.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-3583">
-          <caret line="50" column="20" lean-forward="false" selection-start-line="50" selection-start-column="18" selection-end-line="50" selection-end-column="20" />
+        <state relative-caret-position="2012">
+          <caret line="307" column="36" lean-forward="false" selection-start-line="307" selection-start-column="26" selection-end-line="307" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/FrABS/Env/Environment.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="111">
+          <caret line="94" column="10" lean-forward="false" selection-start-line="94" selection-start-column="0" selection-end-line="94" selection-end-column="10" />
           <folding />
         </state>
       </provider>

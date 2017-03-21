@@ -14,7 +14,7 @@ import System.IO
 import System.Random
 
 winSize = (800, 800)
-winTitle = "Schelling Segregation FrABS"
+winTitle = "Schelling Segregation MetaABS"
 renderCircles = True
 
 rngSeed = 42

@@ -7,7 +7,6 @@ An agent which moves selects an unoccupied place randomly relative from its curr
 
 Agents just move depending on their movement-strategy to another place if they are not happy on the current one - they don't care how the target place is in the present or in the future, they will decide again in the next time-step. The interpretation for that behaviour is: agents want to 'just get out' at any cost, not caring what the future place will look like - it might be better or worse but they will see then.
 
-TODO: mention kirman complex economics where he investigates the model more in depth
 
 \subsubsection{Optimizing behaviour}
 The original schelling model didn't have a move-optimizing behaviour, meaning agents are just binary: if it is happy it will not move, if it is unhappy it will move but they won't care where they move. We introduce local move-optimizing behaviours which can be interpreted as being realistic in the real-world. It is important to note that we focus on \textit{local} instead of \textit{global} move-optimization: the agents are limited in their reasoning-capabilities and have limited information available: they cannot check out \textit{every} place and pick the globally best one.
@@ -17,3 +16,6 @@ The original schelling model didn't have a move-optimizing behaviour, meaning ag
 \paragraph{Optimizing future} Agents pick an unoccupied random place and move to it if it increases their utility in the future. The interpretation for that behaviour is: agents heard about a place which will be cool in the future.
 
 \paragraph{Optimizing present \& future} Agents pick an unoccupied random place and move to it if it increases their utility in the now and in the future. The interpretation for that behaviour is: agents heard about a cool spot in town, check it out and move to it if they like it but they also anticipate the coolness of the place in the future and if it seems that the place is going down then they won't move there.
+
+\subsection{Related Research}
+TODO: mention kirman complex economics where he investigates the model more in depth

@@ -8,9 +8,13 @@ when an agent is running a recursion, then we need to restrict the other agents 
 
 we are spanning up 3 dimensions: recursion-depth, replications, and time-steps
 
+
+\subsection{Interpretations}
+the prediction may work for a single agent but what if more and more agents predict their future? within the prediction no recursion is run so no 2nd level anticipation. 
+hypothesis: increasing the ratio of predicting agents will decrease the effectiveness of the predictions because the future becomes then in effect non-deterministic => non-determinism as emerging property? is there a limit e.g. up until which ratio does the average utility of the predicting agents increase?
+
 the agent who is initiating the recursion can be seen as 'knowing' that it is running inside a simulation, but the other agents are not able to distinguish between them running on the base level of the simulation or on a recursive level
 
-\subsection{Interpretation}
 The main problem of our approach is that, depending on ones view-point, it is violating the principles of locality of information and limit of computing power. To recursively run the simulation the agent which initiates the recursion is feeding in all the states of the other agents and calculates the outcome of potentially multiple of its own steps, each potentially multiple recursion-layers deep and each recursion-layer multiple time-steps long. Both requires that each agent has perfect information about the complete simulation \textit{and} can compute these 3-dimensional recursions, which scale exponentially.
 In the social sciences where agents are often designed to have only very local information and perform low-cost computations it is very difficult or impossible to motivate the usage of recursive simulations - it simply does not match the assumptions of the real world, the social sciences want to model.
 In general simulations, with no direct link to the real world, where it is much more commonly accepted to assume perfect information and potentially infinite amount of computing power this approach is easily motivated by a constructive argument: it is possible to build, thus we build it.

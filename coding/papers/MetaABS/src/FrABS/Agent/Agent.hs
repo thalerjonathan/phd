@@ -12,6 +12,8 @@ type AgentMessage m = (AgentId, m)
 type AgentBehaviour s m ec = SF (AgentIn s m ec) (AgentOut s m ec)
 type MessageFilter m = (AgentMessage m -> Bool)
 
+-- TODO: move 2d discrete coordinates to env / agent instead of agentstate s: map of agentid to coords? or spatialinfo in agentin/out?
+
 data AgentDef s m ec = AgentDef {
     adId :: AgentId,
     adState :: s,

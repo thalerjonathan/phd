@@ -28,6 +28,7 @@ data SegOptStrategy = None | OptimizePresent Int | OptimizeRecursive Int Int der
 
 type SegCoord = (Int, Int)
 
+-- TODO: move 2d discrete coordinates to env / agent instead of segagentstate: map of agentid to coords? or spatialinfo in agentin/out?
 data SegAgentState = SegAgentState {
     segAgentType :: SegAgentType,
     segCoord :: SegCoord,

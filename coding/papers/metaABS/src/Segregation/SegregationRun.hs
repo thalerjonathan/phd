@@ -1,8 +1,11 @@
-module Segregation.RunSegregation where
+module Segregation.SegregationRun where
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
-import Segregation.Segregation
+
+import Segregation.SegregationModel
+import Segregation.SegregationInit
+import Segregation.SegregationStats
 
 import FRP.Yampa
 import qualified FrABS.Rendering.Agents2DDiscrete as Front

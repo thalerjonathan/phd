@@ -26,13 +26,17 @@ What we are interested in are the following dynamics
 	\item Global change of similarity between steps
 \end{enumerate}
 
-\subsection{No move-optimization}
-Hypothesis: compared to others, slowest convergence/impossible to reach complete happiness
-	
-\subsection{Present move-optimization}
+\subsection{Non-optimizing}
+Agents move to the nearest free spot
+
+Hypothesis: very slow convergence, can't solve high density with high similarity requirements.
+
+\subsection{Optimizing}
+Agents move to the nearest free spot which satisfies their requirements
+
 Hypothesis: should have much faster convergence than non-optimizing, areas act as attractors
-	
-\subsection{Future move-optimization}
+
+\subsection{Anticipating}
 TODO: how many agents are predicting? fraction between 0.0 and 1.0
 TODO: compare the performance of the predicting-agents to the non-predicting ones
 
@@ -40,9 +44,9 @@ Prediction-Ratio
 	hypothesis: increasing the ratio of predicting agents will decrease the effectiveness of the predictions because the future becomes then in effect non-deterministic
 
 Deterministic future:
-	Hypothesis without present:  	same as present-only
-	Hypothesis with present: 		fastest convergence of all
+	Hypothesis without present optimizing:  	same as Optimizing
+	Hypothesis with present optimizing: 		fastest convergence of all
 		
 Non-Deterministic future:
-	Hypothesis without present: 	complete breakdown, falling back to dynamics of non-optimization
-	Hypothesis with present: 		same as present-only optimization
+	Hypothesis without present optimizing: 		complete breakdown, falling back to dynamics of non-optimization
+	Hypothesis with present optimizing: 		same as present-only optimization

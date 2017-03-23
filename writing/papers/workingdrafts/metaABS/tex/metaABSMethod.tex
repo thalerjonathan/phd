@@ -9,10 +9,8 @@ when an agent is running a recursion, then we need to restrict the other agents 
 we are spanning up 3 dimensions: recursion-depth, replications, and time-steps
 
 \subsection{Deterministic vs. Non-Deterministic future}
-what is the difference between deterministic and non-deterministic future?
+The model as described in Background section is completely deterministic once it is running because it makes no use of a random-number generator and there are no other sources of non-determinism - the next move of an agent is always completely predictable. If we introduce randomness through a random-number generator into our model then the future becomes non-deterministic \textit{if the state of random-number generator when running recursive simulations is different from when the simulation is run non-recursively.}
 
-\subsection{Sequential vs. parallel}
-how would MetaABS work in parallel iteration?
 
 \subsection{Computational complexity}
 the computation power grows exponentially with the number of recursion: give a formula depending on number of agents, recursion depth, independent moves of an agent and number of time-steps 

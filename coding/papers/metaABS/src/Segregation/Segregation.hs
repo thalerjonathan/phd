@@ -58,16 +58,16 @@ redGreenDist :: Double
 redGreenDist = 0.5
 
 freeCellRetries :: Int
-freeCellRetries = 4
+freeCellRetries = 5
 
 localMovementRadius :: Int
 localMovementRadius = 5
 
 movementStrategy :: SegMoveStrategy
-movementStrategy = Global
+movementStrategy = Local
 
 optimizingStrategy :: SegOptStrategy
-optimizingStrategy = OptimizePresent 1 -- None -- OptimizePresent 1 -- OptimizeRecursive 1 1 1
+optimizingStrategy = None -- None -- OptimizePresent 1 -- OptimizeRecursive 1 1 1
 ------------------------------------------------------------------------------------------------------------------------
 
 recTracingAgentId = 1
@@ -83,11 +83,22 @@ is ao sat = (segAgentType s) == sat
 isOccupied :: SegEnvCell -> Bool
 isOccupied = isJust
 
+isHappy :: SegAgentOut -> Bool
+isHappy aout = (segSimilarityCurrent s) >= (segSimilarityWanted s)
+    where
+        s = aoState aout
+
 -- TODO: need to distinguish if we are in recursion or not: if we accept happy immediately, then we cannot stop recursion and can't distinguish between multiple happiness
 segMovement :: SegAgentOut -> SegAgentIn -> Double -> SegAgentOut
 segMovement aout ain dt
-    | isHappy aout = aout -- if (aiId ain == recTracingAgentId) then trace ("agentid 1 is happy") aout else aout
-    | otherwise = move aout ain
+    | isHappy aout' = aout' -- if (aiId ain == recTracingAgentId) then trace ("agentid 1 is happy") aout else aout
+    | otherwise = move aout' ain
+    where
+         -- NOTE: need to re-calculate similarity and update agent because could have changed since last update
+        s = aoState aout
+        coord = segCoord s
+        updatedCurrentSimilarity = calculateSimilarity aout coord
+        aout' = updateState aout (\s -> s { segSimilarityCurrent = updatedCurrentSimilarity } )
 
 move :: SegAgentOut -> SegAgentIn -> SegAgentOut
 move aout ain
@@ -240,10 +251,6 @@ calculateSimilarity ao coord
                 redCount = length $ filter ((==Red) . fromJust) occupiedCells
                 greenCount = length $ filter ((==Green) . fromJust) occupiedCells
 
-isHappy :: SegAgentOut -> Bool
-isHappy ao = (segSimilarityCurrent s) >= (segSimilarityWanted s)
-    where
-        s = aoState ao
 
 calculateSimilarityChange :: [SegAgentOut] -> [SegAgentOut] -> Double
 calculateSimilarityChange aoutsPrev aoutCurr = sumSimilarityCurr - sumSimilarityPrev

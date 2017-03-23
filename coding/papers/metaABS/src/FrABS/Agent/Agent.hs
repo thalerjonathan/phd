@@ -1,4 +1,3 @@
-{-# LANGUAGE Arrows #-}
 module FrABS.Agent.Agent where
 
 import FrABS.Env.Environment
@@ -12,12 +11,11 @@ type AgentMessage m = (AgentId, m)
 type AgentBehaviour s m ec = SF (AgentIn s m ec) (AgentOut s m ec)
 type MessageFilter m = (AgentMessage m -> Bool)
 
--- TODO: move 2d discrete coordinates to env / agent instead of agentstate s: map of agentid to coords? or spatialinfo in agentin/out?
-
 data AgentDef s m ec = AgentDef {
     adId :: AgentId,
     adState :: s,
-    adBeh :: AgentBehaviour s m ec
+    adBeh :: AgentBehaviour s m ec,
+    adEnvPos :: EnvCoord
 }
 
 data AgentIn s m ec = AgentIn {
@@ -28,7 +26,8 @@ data AgentIn s m ec = AgentIn {
     aiTerminate :: Event(),
     aiState :: s,
     aiEnv :: Environment ec,
-    aiRec :: Event ([AgentOut s m ec])
+    aiRec :: Event ([AgentOut s m ec]),
+    aiEnvPos :: EnvCoord
 }
 
 data AgentOut s m ec = AgentOut {
@@ -38,12 +37,11 @@ data AgentOut s m ec = AgentOut {
     aoMessages :: Event [AgentMessage m],     -- AgentId identifies receiver
     aoState :: s,
     aoEnv :: Environment ec,
+    aoEnvPos :: EnvCoord,
     aoRec :: Event ()
 }
 
-----------------------------------------------------------------------------------------------------------------------
--- EXPORTS OF AGENTS
-----------------------------------------------------------------------------------------------------------------------
+
 agentOutFromIn :: AgentIn s m ec -> AgentOut s m ec
 agentOutFromIn ai = AgentOut{ aoId = (aiId ai),
                               aoKill = NoEvent,
@@ -51,7 +49,8 @@ agentOutFromIn ai = AgentOut{ aoId = (aiId ai),
                               aoMessages = NoEvent,
                               aoState = (aiState ai),
                               aoEnv = (aiEnv ai),
-                              aoRec = NoEvent}
+                              aoRec = NoEvent,
+                              aoEnvPos = (aiEnvPos ai)}
 
 sendMessage :: AgentOut s m ec -> AgentMessage m -> AgentOut s m ec
 sendMessage ao msg = ao { aoMessages = mergedMsgs }
@@ -122,24 +121,20 @@ unrecursive aout = aout { aoRec = NoEvent }
 
 isRecursive :: AgentIn s m ec -> Bool
 isRecursive ain = isEvent $ aiRec ain
-----------------------------------------------------------------------------------------------------------------------
 
-
-----------------------------------------------------------------------------------------------------------------------
--- PRIVATES
-----------------------------------------------------------------------------------------------------------------------
 createStartingAgentIn :: [AgentDef s m ec] -> Environment ec -> [AgentIn s m ec]
 createStartingAgentIn as env = map (startingAgentInFromAgentDef env) as
 
 startingAgentInFromAgentDef :: Environment ec -> AgentDef s m ec -> AgentIn s m ec
 startingAgentInFromAgentDef env a = AgentIn { aiId = (adId a),
-                                        aiMessages = NoEvent,
-                                        aiStart = Event (),
-                                        aiStop = NoEvent,
-                                        aiTerminate = NoEvent,
-                                        aiState = (adState a),
-                                        aiEnv = env,
-                                        aiRec = NoEvent }
+                                                aiMessages = NoEvent,
+                                                aiStart = Event (),
+                                                aiStop = NoEvent,
+                                                aiTerminate = NoEvent,
+                                                aiState = (adState a),
+                                                aiEnv = env,
+                                                aiEnvPos = (adEnvPos a),
+                                                aiRec = NoEvent }
 
 mergeMessages :: Event [AgentMessage m] -> Event [AgentMessage m] -> Event [AgentMessage m]
 mergeMessages l r = mergeBy (\msgsLeft msgsRight -> msgsLeft ++ msgsRight) l r

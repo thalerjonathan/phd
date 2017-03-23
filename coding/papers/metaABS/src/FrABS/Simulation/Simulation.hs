@@ -23,9 +23,9 @@ import Debug.Trace
 -- TODOs
 ----------------------------------------------------------------------------------------------------------------------
 -- TODO: allow to be able to stop simulation when iteration.function returns True
--- TODO: hide AgentIn and AgentOut same way as DTime is hidden, only generic state in/out
-
 -- TODO: sequential iteration should have the feature to shuffle agents randomly before iterating them
+
+-- TODO: hide AgentIn and AgentOut same way as DTime is hidden, only generic state in/out
 
 -- TODO create project structure according to put it on Hackage in september: tests, comments,...
 -- TODO write unit-tests
@@ -285,7 +285,9 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
                 live = not kill
                 newIn = oldIn { aiStart = NoEvent,
                                 aiState = (aoState newOut),
-                                aiMessages = NoEvent }
+                                aiMessages = NoEvent,
+                                aiEnvPos = (aoEnvPos newOut)}
+
                 -- NOTE: need to handle sending messages to itself because the input of this agent is not in the list of all inputs because it will be replaced anyway by newIn
                 newIn' = collectMessagesFor [newOut] newIn
 

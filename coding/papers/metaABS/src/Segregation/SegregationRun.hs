@@ -45,29 +45,28 @@ nextIteration :: IORef ([SegAgentOut], Bool)
                      -> IO Bool
 nextIteration outRef _ _ aouts = do
                                     printDynamics outRef aouts
-                                    let allHappy = all isHappy aouts
-                                    writeIORef outRef (aouts, allHappy)
-                                    return allHappy
+                                    let allSatisfied = all isSatisfied aouts
+                                    writeIORef outRef (aouts, allSatisfied)
+                                    return allSatisfied
 
 printDynamics :: IORef ([SegAgentOut], Bool) -> [SegAgentOut] -> IO ()
 printDynamics outRef aoutsCurr = do
                                     (aoutsPrev, _) <- readIORef outRef
 
                                     let maxSimilarity = fromInteger $ fromIntegral totalCount -- NOTE: an agent can reach a maximum of 1.0
-                                    let currSimilarity = totalCurrentSimliarity aoutsCurr
-                                    let prevSimilarity = totalCurrentSimliarity aoutsPrev
+                                    let currSimilarity = totalSatisfaction aoutsCurr
+                                    let prevSimilarity = totalSatisfaction aoutsPrev
                                     let similarityDelta = currSimilarity - prevSimilarity
 
                                     let currSimilarityNormalized = currSimilarity / maxSimilarity
                                     let similarityDeltaNormalized = similarityDelta / maxSimilarity
-
 
                                     putStrLn (show unhappyFract
                                                 ++ "," ++ show currSimilarityNormalized
                                                 ++ "," ++ show similarityDeltaNormalized
                                                 ++ ";" )
                                     where
-                                        (totalCount, happyCount, unhappyCount, unhappyFract) = calculateHappinessStats aoutsCurr
+                                        (totalCount, happyCount, unhappyCount, unhappyFract) = satisfactionStats aoutsCurr
 
 runSegStepsAndRender :: IO ()
 runSegStepsAndRender = do
@@ -109,11 +108,11 @@ modelToPicture as = do
                         return (Front.renderFrame renderCircles rcs winSize cells)
 
 sirsAgentToRenderCell :: (Int, Int) -> SegAgentOut -> Front.RenderCell
-sirsAgentToRenderCell (xDim, yDim) a = Front.RenderCell { Front.renderCellCoord = (ax, ay),
-                                                        Front.renderCellColor = ss }
+sirsAgentToRenderCell (xDim, yDim) ao = Front.RenderCell { Front.renderCellCoord = (ax, ay),
+                                                        Front.renderCellColor = col }
     where
-        s = aoState a
-        (ax, ay) = (segCoord s)
-        ss = case (segAgentType s) of
+        s = aoState ao
+        (ax, ay) = (aoEnvPos ao)
+        col = case (segParty s) of
                         Red -> (0.0, 0.6, 0.0)
                         Green -> (0.6, 0.0, 0.0)

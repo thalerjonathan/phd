@@ -17,8 +17,6 @@ an Environment is a container which contains Agents and allows them to move arro
 -- TODO: can we generalize to higher dimensions?
 -- TODO: graph environment: no geometrical space => no position but only neighbours
 
--- TODO: move 2d discrete coordinates to env / agent instead of agentstate s: map of agentid to coords? or spatialinfo in agentin/out?
-
 data (Num d) => EnvCoordGeneric d = EnvCoordGeneric (d, d)
 type EnvironmentBehaviour c = (Environment c -> Environment c)
 type EnvCoord = (Int, Int)

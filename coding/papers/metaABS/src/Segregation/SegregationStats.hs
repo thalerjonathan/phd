@@ -4,20 +4,14 @@ import Segregation.SegregationModel
 
 import FrABS.Agent.Agent
 
-calculateSimilarityChange :: [SegAgentOut] -> [SegAgentOut] -> Double
-calculateSimilarityChange aoutsPrev aoutCurr = sumSimilarityCurr - sumSimilarityPrev
-    where
-        sumSimilarityPrev = totalCurrentSimliarity aoutsPrev
-        sumSimilarityCurr = totalCurrentSimliarity aoutCurr
+totalSatisfaction :: [SegAgentOut] -> Double
+totalSatisfaction aos = sum $ map (segSatisfactionLevel . aoState) aos
 
-totalCurrentSimliarity :: [SegAgentOut] -> Double
-totalCurrentSimliarity aouts = sum $ map (segSimilarityCurrent . aoState) aouts
-
-calculateHappinessStats :: [SegAgentOut] -> (Int, Int, Int, Double)
-calculateHappinessStats aouts = (totalCount, happyCount, unhappyCount, unhappyFract)
+satisfactionStats :: [SegAgentOut] -> (Int, Int, Int, Double)
+satisfactionStats aos = (totalCount, happyCount, unhappyCount, unhappyFract)
     where
-        totalCount = length aouts
-        happy = filter isHappy aouts
+        totalCount = length aos
+        happy = filter isSatisfied aos
         happyCount = length happy
         unhappyCount = totalCount - happyCount
         unhappyFract = (fromInteger $ fromIntegral unhappyCount) / (fromInteger $ fromIntegral totalCount)

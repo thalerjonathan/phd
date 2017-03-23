@@ -58,7 +58,7 @@ redGreenDist :: Double
 redGreenDist = 0.5
 
 freeCellRetries :: Int
-freeCellRetries = 5
+freeCellRetries = 4
 
 localMovementRadius :: Int
 localMovementRadius = 5
@@ -97,7 +97,7 @@ segMovement aout ain dt
          -- NOTE: need to re-calculate similarity and update agent because could have changed since last update
         s = aoState aout
         coord = segCoord s
-        updatedCurrentSimilarity = calculateSimilarity aout coord
+        updatedCurrentSimilarity = calculateSimilarity aout
         aout' = updateState aout (\s -> s { segSimilarityCurrent = updatedCurrentSimilarity } )
 
 move :: SegAgentOut -> SegAgentIn -> SegAgentOut
@@ -185,7 +185,7 @@ findOptMove (OptimizeRecursive depth retries) aout ain
 moveImproves :: SegAgentOut -> EnvCoord -> Bool
 moveImproves ao coord = similiarityOnCoord > similiarityCurrent
     where
-        similiarityOnCoord = calculateSimilarity ao coord
+        similiarityOnCoord = calculateSimilarityOn ao coord True
         similiarityCurrent = (segSimilarityCurrent (aoState ao))
 
 moveTo :: SegAgentOut -> EnvCoord -> SegAgentOut
@@ -198,8 +198,9 @@ moveTo ao newCoord = ao''
         env' = changeCellAt env oldCoord Nothing
         env'' = changeCellAt env' newCoord (Just c)
         ao' = ao { aoEnv = env'' }
-        newSimilarity = calculateSimilarity ao' newCoord
-        ao'' = updateState ao' (\s -> s { segCoord = newCoord, segSimilarityCurrent = newSimilarity } )
+        ao'' = updateState ao' (\s -> s { segCoord = newCoord } )
+        --newSimilarity = calculateSimilarity ao'
+        --ao''' = updateState ao'' (\s -> s { segSimilarityCurrent = newSimilarity } )
 
 findFreeCoord :: SegAgentOut -> Int -> (SegAgentOut, Maybe EnvCoord)
 findFreeCoord ao 0 = (ao, Nothing)
@@ -233,14 +234,21 @@ globalRandomCell ao = (ao', randCell, randCoord)
         (randCell, randCoord, g') = randomCell g env
         ao' = updateState ao (\s -> s { segRng = g' } )
 
-calculateSimilarity :: SegAgentOut -> SegCoord -> Double
-calculateSimilarity ao coord
-    | is ao Red = (fromInteger $ fromIntegral reds) / totalCount
-    | is ao Green = (fromInteger $ fromIntegral greens) / totalCount
+calculateSimilarity :: SegAgentOut -> Double
+calculateSimilarity ao = calculateSimilarityOn ao coord False
+    where
+        s = aoState ao
+        coord = segCoord s
+
+calculateSimilarityOn :: SegAgentOut -> SegCoord -> Bool -> Double
+calculateSimilarityOn ao coord includeSelf
+    | is ao Red = (fromInteger $ fromIntegral reds + inc) / totalCount
+    | is ao Green = (fromInteger $ fromIntegral greens + inc) / totalCount
     where
         s = aoState ao
         env = aoEnv ao
         cs = neighbours env coord
+        inc = if includeSelf then 1 else 0
         (reds, greens) = countOccupied cs
         totalCount = (fromInteger $ fromIntegral (reds + greens))
 

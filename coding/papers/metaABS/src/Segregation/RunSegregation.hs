@@ -72,13 +72,13 @@ runSegStepsAndRender = do
                             initRng rngSeed
                             (as, env) <- createSegAgentsAndEnv cells
 
-                            let steps = 500
+                            let steps = 10
                             let ass = processSteps as env parallelStrategyFlag 1.0 steps
                             let as' = last ass
 
-                            pic <- modelToPicture as'
-                            GLO.display (Front.display winTitle winSize) GLO.white pic
-                            --mapM (putStrLn . show . aoState) as'
+                            --pic <- modelToPicture as'
+                            --GLO.display (Front.display winTitle winSize) GLO.black pic
+                            mapM (putStrLn . show . aoState) as'
 
                             return ()
 

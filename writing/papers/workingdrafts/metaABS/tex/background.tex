@@ -11,6 +11,8 @@ Agents just move depending on their movement-strategy to another place if they a
 \subsubsection{Optimizing behaviour}
 The original schelling model didn't have a move-optimizing behaviour, meaning agents are just binary: if it is happy it will not move, if it is unhappy it will move but they won't care where they move. We introduce local move-optimizing behaviours which can be interpreted as being realistic in the real-world. It is important to note that we focus on \textit{local} instead of \textit{global} move-optimization: the agents are limited in their reasoning-capabilities and have limited information available: they cannot check out \textit{every} place and pick the globally best one.
 
+TODO: is this optimizing behaviour in the spirit of schellings original work? 
+
 \paragraph{Optimizing present} Agents pick an unoccupied random place and move to it if it increases their utility. The interpretation for that behaviour is: agents heard about a cool spot in town, check it out and move to it if they like it.
 
 \paragraph{Optimizing future} Agents pick an unoccupied random place and move to it if it increases their utility in the future. The interpretation for that behaviour is: agents heard about a place which will be cool in the future.
@@ -18,4 +20,4 @@ The original schelling model didn't have a move-optimizing behaviour, meaning ag
 \paragraph{Optimizing present \& future} Agents pick an unoccupied random place and move to it if it increases their utility in the now and in the future. The interpretation for that behaviour is: agents heard about a cool spot in town, check it out and move to it if they like it but they also anticipate the coolness of the place in the future and if it seems that the place is going down then they won't move there.
 
 \subsection{Related Research}
-TODO: mention kirman complex economics where he investigates the model more in depth
+TODO: \cite{kirman_complex_2010} mention kirman complex economics where he investigates the model more in depth

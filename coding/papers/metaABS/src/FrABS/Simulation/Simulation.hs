@@ -25,6 +25,8 @@ import Debug.Trace
 -- TODO: allow to be able to stop simulation when iteration.function returns True
 -- TODO: hide AgentIn and AgentOut same way as DTime is hidden, only generic state in/out
 
+-- TODO: sequential iteration should have the feature to shuffle agents randomly before iterating them
+
 -- TODO create project structure according to put it on Hackage in september: tests, comments,...
 -- TODO write unit-tests
 -- TODO write QuickCheck tests

@@ -10,10 +10,10 @@ executable metaABS
   ghc-options:      -O2
                     -- -eventlog
                     -- -rtsopts
-                    -prof
-                    -auto-all
-                    -caf-all
-                    -fforce-recomp
-                    "-with-rtsopts= -s -hy -p -i0.1 -K256M"
+                    -- -prof
+                    -- -auto-all
+                    -- -caf-all
+                    -- -fforce-recomp
+                    -- "-with-rtsopts= -s -hy -p -i0.1 -K256M"
                     -- "-with-rtsopts=-N"
                       -- use hc, hd or hy

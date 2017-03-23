@@ -66,6 +66,18 @@ changeCellAt env coord c = env { envCells = arr' }
         arr = envCells env
         arr' = arr // [(coord, c)]
 
+distance :: EnvCoord -> EnvCoord -> Int
+distance (x1, y1) (x2, y2) = (abs x1 - x2) + (abs y1 - y2)
+
+cellsAround :: Environment c -> EnvCoord -> Int -> [(EnvCoord, c)]
+cellsAround env (cx, cy) r = zip wrappedCs cells
+    where
+        cs = [(x, y) | x <- [cx - r .. cx + r], y <- [cy - r .. cy + r]]
+        l = (envLimits env)
+        w = (envWrapping env)
+        wrappedCs = wrapCells l w cs
+        cells = cellsAt env wrappedCs
+
 cellsAt :: Environment c -> [EnvCoord] -> [c]
 cellsAt env cs = map (arr !) cs
     where
@@ -106,6 +118,9 @@ neighbours env coord@(x, y) = cellsAt env wrappedNs
 ------------------------------------------------------------------------------------------------------------------------
 -- GENERAL SPATIAL
 ------------------------------------------------------------------------------------------------------------------------
+wrapCells :: EnvLimits -> EnvWrapping -> EnvNeighbourhood -> EnvNeighbourhood
+wrapCells = wrapNeighbourhood
+
 wrapNeighbourhood :: EnvLimits -> EnvWrapping -> EnvNeighbourhood -> EnvNeighbourhood
 wrapNeighbourhood l w ns = map (wrap l w) ns
 

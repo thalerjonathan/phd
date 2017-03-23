@@ -24,7 +24,7 @@ data SegAgentType = Red | Green deriving (Eq, Show)
 type SegMsg = ()    -- Agents are not communicating in Schelling Segregation
 
 data SegMoveStrategy = Local | Global deriving (Eq)
-data SegOptStrategy = None | OptimizePresent Int | OptimizeRecursive Int Int deriving (Eq)
+data SegOptStrategy = None | NearestMakesHappy | MakesHappy Int | OptimizePresent Int | OptimizeRecursive Int Int deriving (Eq)
 
 type SegCoord = (Int, Int)
 
@@ -61,13 +61,13 @@ freeCellRetries :: Int
 freeCellRetries = 4
 
 localMovementRadius :: Int
-localMovementRadius = 5
+localMovementRadius = 2
 
 movementStrategy :: SegMoveStrategy
 movementStrategy = Local
 
 optimizingStrategy :: SegOptStrategy
-optimizingStrategy = None -- None -- OptimizePresent 1 -- OptimizeRecursive 1 1 1
+optimizingStrategy =  None -- NearestMakesHappy -- MakesHappy 4 -- OptimizePresent 1 -- OptimizeRecursive 1 1 1
 ------------------------------------------------------------------------------------------------------------------------
 
 recTracingAgentId = 1
@@ -111,19 +111,9 @@ move aout ain
 
 findOptMove :: SegOptStrategy -> SegAgentOut -> SegAgentIn -> (SegAgentOut, Maybe EnvCoord)
 findOptMove None aout _ = findFreeCoord aout freeCellRetries
-
-findOptMove (OptimizePresent retries) aout _ = findOptMoveAux aout retries
-    where
-        findOptMoveAux :: SegAgentOut -> Int -> (SegAgentOut, Maybe EnvCoord)
-        findOptMoveAux ao 0 = findFreeCoord ao freeCellRetries
-        findOptMoveAux ao retries
-            | freeCoordFound = if moveImproves ao' freeCoord then ret else findOptMoveAux ao' (retries - 1)
-            | otherwise = ret
-            where
-                ret@(ao', mayFreeCoord) = findFreeCoord ao freeCellRetries
-                freeCoordFound = isJust mayFreeCoord
-                freeCoord = fromJust mayFreeCoord
-
+findOptMove (NearestMakesHappy) aout _ = (aout, findNearest aout)
+findOptMove (MakesHappy retries) aout _ = findOptMoveAux aout retries moveImproves
+findOptMove (OptimizePresent retries) aout _ = findOptMoveAux aout retries moveMakesHappy
 findOptMove (OptimizeRecursive depth retries) aout ain
     | isRecursive ain = trace ("recOuts " ++ (show $ (map aoState recOuts)))
                             (if length recOuts < 5 then
@@ -138,6 +128,47 @@ findOptMove (OptimizeRecursive depth retries) aout ain
 
         ret@(aout', mayFreeCoord) = findFreeCoord aout freeCellRetries
         recAout = recursive aout'
+
+findNearest :: SegAgentOut -> Maybe EnvCoord
+findNearest aout
+    | isJust mayNearest = Just $ fst $ fromJust mayNearest
+    | otherwise = Nothing
+    where
+        s = aoState aout
+        env = aoEnv aout
+        coord = segCoord s
+        coordsCells = cellsAround env coord localMovementRadius
+        mayNearest = foldr (findNearestAux coord aout) Nothing coordsCells
+
+        findNearestAux :: EnvCoord -> SegAgentOut -> (EnvCoord, SegEnvCell) -> Maybe (EnvCoord, SegEnvCell) -> Maybe (EnvCoord, SegEnvCell)
+        findNearestAux _ _ p@(coord, c) Nothing
+            | isOccupied c = Nothing
+            | otherwise = Just p
+        findNearestAux agentPos aout p@(pairCoord, c) best@(Just (bestCoord, bestCell))
+            | isOccupied c = best
+            | otherwise = if not pairMakesHappy then
+                            best
+                            else
+                               if distPair < distBest then
+                                    Just p
+                                    else
+                                        best
+
+            where
+                distBest = distance agentPos bestCoord
+                distPair = distance agentPos pairCoord
+                bestMakesHappy = moveMakesHappy aout bestCoord
+                pairMakesHappy = moveMakesHappy aout pairCoord
+
+findOptMoveAux :: SegAgentOut -> Int -> MoveImprovesFunc -> (SegAgentOut, Maybe EnvCoord)
+findOptMoveAux ao 0 optFunc = findFreeCoord ao freeCellRetries
+findOptMoveAux ao retries optFunc
+    | freeCoordFound = if optFunc ao' freeCoord then ret else findOptMoveAux ao' (retries - 1) optFunc
+    | otherwise = ret
+    where
+        ret@(ao', mayFreeCoord) = findFreeCoord ao freeCellRetries
+        freeCoordFound = isJust mayFreeCoord
+        freeCoord = fromJust mayFreeCoord
 
 {-
 findOptMove (OptimizeRecursive depth retries) aout ain
@@ -182,11 +213,18 @@ findOptMove (OptimizeRecursive depth retries) aout ain
                 -}
 -}
 
-moveImproves :: SegAgentOut -> EnvCoord -> Bool
+type MoveImprovesFunc = (SegAgentOut -> EnvCoord -> Bool)
+
+moveImproves :: MoveImprovesFunc
 moveImproves ao coord = similiarityOnCoord > similiarityCurrent
     where
         similiarityOnCoord = calculateSimilarityOn ao coord True
         similiarityCurrent = (segSimilarityCurrent (aoState ao))
+
+moveMakesHappy :: MoveImprovesFunc
+moveMakesHappy ao coord = similiarityOnCoord > (segSimilarityWanted (aoState ao))
+    where
+        similiarityOnCoord = calculateSimilarityOn ao coord True
 
 moveTo :: SegAgentOut -> EnvCoord -> SegAgentOut
 moveTo ao newCoord = ao''

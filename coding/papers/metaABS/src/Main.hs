@@ -4,4 +4,4 @@ import SIRS.RunSIRS
 import Segregation.RunSegregation
 
 main :: IO ()
-main = runSegStepsAndRender -- runSIRSWithRendering -- runSegWithRendering -- runSegStepsAndRender
+main = runSegWithRendering -- runSIRSWithRendering -- runSegWithRendering -- runSegStepsAndRender

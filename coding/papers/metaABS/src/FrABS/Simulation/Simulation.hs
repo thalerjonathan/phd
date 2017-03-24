@@ -205,7 +205,7 @@ seqCallback :: ([AgentIn s m ec], [AgentBehaviour s m ec])
                     Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec))
 seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
     | doRecursion = seqCallbackRec otherIns otherSfs oldSf (sf, recIn, newOut)
-    | otherwise = handleAgent otherIns a
+    | otherwise = handleAgent otherIns (sf, unRecIn, newOut)
     where
         -- NOTE: first layer of recursion: calling simulate within a simulation
         -- NOTE: at this level we are determining how many levels of recursion we run: at the moment, we stop after the first level
@@ -220,6 +220,9 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
                     else
                         oldIn { aiRec = Event [] } -- this is recursion level 0 => start with empty past outputs
 
+        -- NOTE: need to stop recursion
+        unRecIn = oldIn { aiRec = NoEvent }
+
         -- NOTE: second layer of recursion: this allows the agent to simulate an arbitrary number of AgentOuts
         seqCallbackRec :: [AgentIn s m ec]
                            -> [AgentBehaviour s m ec]
@@ -229,10 +232,13 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
                                Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec))
         seqCallbackRec otherIns otherSfs oldSf a@(sf, recIn, newOut)
             | isEvent $ aoRec newOut = handleRecursion otherIns otherSfs oldSf (sf, recIn', newOut)     -- the last output requested recursion, perform it
-            | otherwise = handleAgent otherIns a                                                        -- no more recursion request, just handle agent as it is and return it, this will transport it back to the outer level
+            | otherwise = handleAgent otherIns (sf, unRecIn, newOut)                                                     -- no more recursion request, just handle agent as it is and return it, this will transport it back to the outer level
             where
                 pastOutputs = fromEvent $ aiRec recIn                           -- at this point we can be sure that there MUST be an aiRec - Event otherwise would make no sense: having an aiRec - Event with a list means, that we are inside a recursion level (either 0 or 1)
                 recIn' = recIn { aiRec = Event (newOut : pastOutputs) }         -- append the new output to the past ones
+
+                -- NOTE: need to stop recursion
+                unRecIn = recIn { aiRec = NoEvent }
 
         -- this initiates the recursive simulation call
         handleRecursion :: [AgentIn s m ec]     -- the inputs to the 'other' agents
@@ -286,7 +292,7 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
                 newIn = oldIn { aiStart = NoEvent,
                                 aiState = (aoState newOut),
                                 aiMessages = NoEvent,
-                                aiEnvPos = (aoEnvPos newOut)}
+                                aiEnvPos = (aoEnvPos newOut) }
 
                 -- NOTE: need to handle sending messages to itself because the input of this agent is not in the list of all inputs because it will be replaced anyway by newIn
                 newIn' = collectMessagesFor [newOut] newIn

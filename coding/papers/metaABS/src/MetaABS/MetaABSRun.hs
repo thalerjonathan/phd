@@ -22,13 +22,18 @@ parallelStrategyFlag = False
 runMetaABSStepsAndPrint :: IO ()
 runMetaABSStepsAndPrint = do
                             hSetBuffering stdout NoBuffering
+                            hSetBuffering stderr NoBuffering
                             initRng rngSeed
                             (as, env) <- createMetaABSAgentsAndEnv agentCount
+
+                            putStrLn "Initial Agents:"
+                            mapM_ (putStrLn . show . adState) as
 
                             let steps = 1
                             let ass = processSteps as env parallelStrategyFlag 1.0 steps
                             let as' = last ass
 
+                            putStrLn "Final Agents:"
                             mapM (putStrLn . show . aoState) as'
 
                             return ()

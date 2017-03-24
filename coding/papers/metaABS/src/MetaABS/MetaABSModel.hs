@@ -44,25 +44,25 @@ randomRangeCounter = (0, 10)
 
 metaABSStep :: MetaABSAgentOut -> MetaABSAgentIn -> MetaABSAgentOut
 metaABSStep aout ain
-    | isRecursive ain = trace ("agent " ++ (show $ aiId ain) ++ ": isRecursive") metaABSActRecursive aout ain
-    | otherwise = trace ("agent " ++ (show $ aiId ain) ++ ": isNormal") metaABSActNonRec aout ain
+    | isRecursive ain = trace ("agent " ++ (show $ aiId ain) ++ ": RECURSIVE") metaABSActRecursive aout ain
+    | otherwise = trace ("agent " ++ (show $ aiId ain) ++ ": NORMAL") metaABSActNonRec aout ain
 
 metaABSActRecursive :: MetaABSAgentOut -> MetaABSAgentIn -> MetaABSAgentOut
 metaABSActRecursive aout ain
-    | length recursiveOuts < 2 = trace ("agent " ++ (show $ aiId ain) ++ ": continuing recursive simulation") aoutRec
-    | otherwise = trace ("agent " ++ (show $ aiId ain) ++ ": stopping recursive simulation") aoutUnRec
+    | length recursiveOuts < 2 = trace ("agent " ++ (show $ aiId ain) ++ ":  continuing recursive simulation, generating state " ++ (show $ aoState aoutRec)) aoutRec
+    | otherwise = trace ("agent " ++ (show $ aiId ain) ++ ":  stopping recursive simulation, returning state " ++ (show $ aoState aoutUnRec)) aoutUnRec
     where
         recursiveOuts = fromEvent $ aiRec ain
         recursiveStates = map aoState recursiveOuts
 
-        aout' = trace ("agent " ++ (show $ aiId ain) ++ ": has recursiveOuts: " ++ (show recursiveStates)) (metaABSRandomizeCounter aout)
+        aout' = trace ("agent " ++ (show $ aiId ain) ++ ":  has recursiveOuts: " ++ (show recursiveStates)) (metaABSRandomizeCounter aout)
         aoutRec = recursive aout'
 
-        aoutSelected = trace ("agent " ++ (show $ aiId ain) ++ ": has recursiveOuts: " ++ (show recursiveStates)) (recursiveOuts !! 0)
+        aoutSelected = trace ("agent " ++ (show $ aiId ain) ++ ":  has recursiveOuts: " ++ (show recursiveStates)) (recursiveOuts !! 0)
         aoutUnRec = unrecursive aoutSelected
 
 metaABSActNonRec :: MetaABSAgentOut -> MetaABSAgentIn -> MetaABSAgentOut
-metaABSActNonRec aout ain = trace ("agent " ++ (show $ aiId ain) ++ ": requests recursion") aoutRec
+metaABSActNonRec aout ain = trace ("agent " ++ (show $ aiId ain) ++ ": requests recursion, generating state " ++ (show $ aoState aoutRec)) aoutRec
     where
         aout' = metaABSRandomizeCounter aout
         aoutRec = recursive aout'
@@ -79,4 +79,5 @@ metaABSAgentBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
         t <- time -< 0.0
-        returnA -< trace ("agent " ++ (show $ aiId ain) ++ ": time = " ++ (show t)) (metaABSStep ao ain)
+        let ao' = trace ("agent " ++ (show $ aiId ain) ++ ": at time = " ++ (show t) ++ " has " ++ (show $ aoState ao)) (metaABSStep ao ain)
+        returnA -<ao'

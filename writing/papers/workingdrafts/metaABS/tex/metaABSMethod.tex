@@ -1,28 +1,41 @@
 \section{Meta ABS}
-Informally, Meta-ABS can be understood as giving the agents the ability to project the outcome of their actions into the future. They are able to halt time and 'play through' an arbitrary number of actions, compare their outcome and then to resume time and continue with a specifically chosen action e.g. the best performing or the one in which they haven't died.
+Informally, Meta-ABS can be understood as giving the agents the ability to project the outcome of their actions into the future. They are able to halt time and 'play through' an arbitrary number of actions, compare their outcome and then to resume time and continue with a specifically chosen action e.g. the best performing or the one in which they haven't died. 
+More precisely, what we want is to give an agent the ability to run the simulation recursively a number of times where the this number is not determined initially but can depend on the outcome of the recursive simulation. 
 
-\subsection{Formal description}
-explain the level two levels of recursion
+\subsection{Functional description}
+In this section we will give a formal description of how Meta-ABS works. Although we look at it from a programming-language agnostic way, we follow a functional description (rather than object-oriented) both in our pseudo-code and description because we think it allows for a much clearer formalization.
 
-when an agent is running a recursion, then we need to restrict the other agents otherwise we will end up in an infinite regress.
+First we need to establish a little bit of terminology to be able to unambiguously discuss the formal approach of Meta-ABS
+TODO: recursion-depth:
+TODO: recursion-replications
+TODO: recursion-length
 
-we are spanning up 3 dimensions: recursion-depth, replications, and time-steps
+TODO: what is the difference between depth and length?
+
+There are a few serious pitfalls here: 
+\begin{enumeration}
+	\item When an agent is running a recursion, then we need to restrict the other agents  otherwise we will end up in an infinite regress.
+\end{enumeration}
+
+
 
 \subsection{Deterministic vs. Non-Deterministic future}
 The model as described in Background section is completely deterministic once it is running because it makes no use of a random-number generator and there are no other sources of non-determinism - the next move of an agent is always completely predictable. If we introduce randomness through a random-number generator into our model then the future becomes non-deterministic \textit{if the state of random-number generator when running recursive simulations is different from when the simulation is run non-recursively.}
 
+TODO: What if the agents are shuffled every time before being traversed sequentially? The deterministic iteration is of importance here!
 
 \subsection{Computational complexity}
 the computation power grows exponentially with the number of recursion: give a formula depending on number of agents, recursion depth, independent moves of an agent and number of time-steps 
 problem: need to escape infinite regress by preventing simulated 'other' agents to simulate themselves: what would be the outcome in a zeno machine/accelerated turing machine?
 
+we are spanning up 3 dimensions: recursion-depth, replications, and time-steps
 
 \subsection{Philosophical implications}
 
 \subsubsection{Omega Point}
 tiplers omega point and paper about god and the simulation argument
 accelerating turing machine: finishes after 1 time steps
- 
+
 \subsubsection{Emergent Non-Determinism}
 the prediction may work for a single agent but what if more and more agents predict their future? within the prediction no recursion is run so no 2nd level anticipation. 
 hypothesis: increasing the ratio of predicting agents will decrease the effectiveness of the predictions because the future becomes then in effect non-deterministic => non-determinism as emerging property? is there a limit e.g. up until which ratio does the average utility of the predicting agents increase?

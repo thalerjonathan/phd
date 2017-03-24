@@ -17,7 +17,7 @@ import System.IO
 import System.Random
 
 winSize = (800, 800)
-winTitle = "Schelling Segregation MetaABS"
+winTitle = "Schelling Segregation FrABS"
 renderCircles = True
 
 rngSeed = 42
@@ -104,11 +104,11 @@ nextFrame hdl outRef dt = do
 
 modelToPicture :: [SegAgentOut] -> IO GLO.Picture
 modelToPicture as = do
-                        let rcs = map (sirsAgentToRenderCell cells) as
+                        let rcs = map (setAgentOutToRenderCell cells) as
                         return (Front.renderFrame renderCircles rcs winSize cells)
 
-sirsAgentToRenderCell :: (Int, Int) -> SegAgentOut -> Front.RenderCell
-sirsAgentToRenderCell (xDim, yDim) ao = Front.RenderCell { Front.renderCellCoord = (ax, ay),
+setAgentOutToRenderCell :: (Int, Int) -> SegAgentOut -> Front.RenderCell
+setAgentOutToRenderCell (xDim, yDim) ao = Front.RenderCell { Front.renderCellCoord = (ax, ay),
                                                         Front.renderCellColor = col }
     where
         s = aoState ao

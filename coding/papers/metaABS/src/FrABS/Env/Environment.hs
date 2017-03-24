@@ -126,6 +126,7 @@ wrapNeighbourhood l w ns = map (wrap l w) ns
 ------------------------------------------------------------------------------------------------------------------------
 -- 2D DISCRETE SPATIAL
 ------------------------------------------------------------------------------------------------------------------------
+-- TODO: should not be used to clip because clipping and wrapping are two different things: clip REMOVES vertices, wrap just changes them
 wrap :: EnvLimits -> EnvWrapping -> EnvCoord -> EnvCoord
 wrap (maxX, maxY) ClipToMax (x, y) = (max 0 (min x (maxX - 1)), max 0 (min y (maxY - 1)))
 wrap l@(maxX, _) WrapHorizontal (x, y)

@@ -140,6 +140,9 @@ wrap l WrapBoth c = wrap l WrapHorizontal $ wrap l WrapVertical  c
 neighbourhoodOf :: EnvCoord -> EnvNeighbourhood -> EnvNeighbourhood
 neighbourhoodOf (x,y) ns = map (\(x', y') -> (x + x', y + y')) ns
 
+neighbourhoodScale :: EnvNeighbourhood -> Int -> EnvNeighbourhood
+neighbourhoodScale ns s = map (\(x,y) -> (x * s, y * s)) ns
+
 -- NOTE: neumann-neighbourhood only exists in discrete spatial environments
 neumann :: EnvNeighbourhood
 neumann = [topDelta, leftDelta, rightDelta, bottomDelta]

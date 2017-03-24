@@ -2,22 +2,15 @@
 
 \subsection{Schelling Segregation}
 We follow in our implementation the original paper of Schelling as in \cite{schelling_dynamic_1971} where we focus on the \textit{Area Distribution} section (Schelling starts with movement in a linear, 1-dimensional world where agents are able to move to the nearest point which meets the agents satisfaction but this is not what we follow here). One assumes a discrete 2-dimensional lattice-world with NxM fields. Each field is either occupied by an agent of a given color (e.g. Red or Green) or is free. Each field has 8 neighbours, which denotes a Moore-Neighbourhood. In Schellings original work the lattice-world is limited at its borders but we assume a torus world which is wrapped around in both the x- and y-dimensions resulting in 8 neighbours also for fields at the border. The occupation density was set by Schelling to be about 70\%-75\% which he identifies as being a setting which allows the agents to move around freely without making the lattice-world too sparse.
-Now the agents make their move sequentially one after another. In each move an agent calculates the number of neighbours which are of equal color. If the number satisfies the agents needs about the neighbourhood then the agent is regarded as being 'happy' and will stay on this field. On the other hand the agent moves to the nearest unoccupied field which within its neighbourhood satisfies its needs. Schelling assumed the 3x3 square around the agent to be its neighbourhood, we generalize this in the following way. An agent which moves selects an unoccupied place randomly relative from its current place within a rectangle of side-length 2r where its current place is at the center.
+Now the agents make their move sequentially one after another. In each move an agent calculates the number of neighbours which are of equal color. If the number satisfies the agents needs about the neighbourhood then the agent is regarded as being 'happy' and will stay on this field. On the other hand the agent moves to the nearest unoccupied field which within its neighbourhood satisfies its needs.
 
-
-\subsubsection{Optimizing behaviour}
-TODO: define utility
-
-The original schelling model didn't have a move-optimizing behaviour, meaning agents are just binary: if it is happy it will not move, if it is unhappy it will move but they won't care where they move. We introduce local move-optimizing behaviours which can be interpreted as being realistic in the real-world. It is important to note that we focus on \textit{local} instead of \textit{global} move-optimization: the agents are limited in their reasoning-capabilities and have limited information available: they cannot check out \textit{every} place and pick the globally best one.\\
+NOTE: we stick with the deterministic movement of picking the \textit{nearest satisfying} field. This is also much more realistic when coming to predicting
 
 \subsubsection{Anticipating behaviour}
-Schelling explicitly mentions in \cite{schelling_dynamic_1971} that nobody anticipates moves of others. This is what we introduce using the recursive simulation.
+Schelling explicitly mentions in \cite{schelling_dynamic_1971} that nobody anticipates moves of others. This is what we introduce using the recursive simulation. Agents select an unoccupied place as in the original model and move to it if it satisfies them in the future as well. The interpretation for that behaviour is: agents heard about an uprising place in town which they want to be part of, thus anticipating their moving there.
 
-TODO: is this optimizing behaviour in the spirit of schellings original work? 
-
-\paragraph{Optimizing future} Agents pick an unoccupied random place and move to it if it increases their utility in the future. The interpretation for that behaviour is: agents heard about a place which will be cool in the future.
-
-\paragraph{Optimizing present \& future} Agents pick an unoccupied random place and move to it if it increases their utility in the now and in the future. The interpretation for that behaviour is: agents heard about a cool spot in town, check it out and move to it if they like it but they also anticipate the coolness of the place in the future and if it seems that the place is going down then they won't move there.
+\subsubsection{Non-Deterministic Extensions}
+TODO: for the non-deterministic future we need to extend this model with non-deterministic behaviour e.g. pick random position.
 
 \subsection{Related Research}
 TODO: \cite{kirman_complex_2010} mention kirman complex economics where he investigates the model more in depth

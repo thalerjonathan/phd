@@ -22,12 +22,11 @@ import System.Random
 data SegParty = Red | Green deriving (Eq, Show)
 type SegMsg = ()    -- Agents are not communicating in Schelling Segregation
 
-data SegMoveStrategy = Local | Global deriving (Eq)
-data SegOptStrategy = None
-                        | NearestMakesHappy
-                        | MakesHappy Int
-                        | OptimizePresent Int
-                        | OptimizeRecursive Int Int
+data SegMoveStrategy = MoveLocal Int | MoveGlobal deriving (Eq)
+data SegSelectionStrategy = SelectNearest | SelectRandom Int Int deriving (Eq)
+data SegOptStrategy = OptNone
+                        | OptSimilaritySatisfied
+                        | OptSimilarityIncreasing
                             deriving (Eq)
 
 data SegAgentState = SegAgentState {
@@ -57,17 +56,23 @@ density = 0.75
 redGreenDist :: Double
 redGreenDist = 0.5
 
-freeCellRetries :: Int
-freeCellRetries = 4
-
 localMovementRadius :: Int
 localMovementRadius = 5
 
+randomSearchFreeCellRetries :: Int
+randomSearchFreeCellRetries = 4
+
+randomSearchOptRetries :: Int
+randomSearchOptRetries = 4
+
 movementStrategy :: SegMoveStrategy
-movementStrategy = Local
+movementStrategy = MoveGlobal -- MoveLocal localMovementRadius
+
+selectionStrategy :: SegSelectionStrategy
+selectionStrategy = SelectNearest -- SelectRandom randomSearchOptRetries randomSearchFreeCellRetries
 
 optimizingStrategy :: SegOptStrategy
-optimizingStrategy =  None -- None -- NearestMakesHappy -- MakesHappy 4 -- OptimizePresent 1 -- OptimizeRecursive 1 1 1
+optimizingStrategy = OptSimilarityIncreasing -- OptNone -- OptSimilarityIncreasing
 ------------------------------------------------------------------------------------------------------------------------
 
 recTracingAgentId = 1
@@ -87,8 +92,6 @@ isSatisfied :: SegAgentOut -> Bool
 isSatisfied aout = (segSatisfactionLevel s) >= (segSatisfactionWanted s)
     where
         s = aoState aout
-
-type MoveImprovesFunc = (SegAgentOut -> EnvCoord -> Bool)
 ------------------------------------------------------------------------------------------------------------------------
 
 
@@ -102,140 +105,16 @@ segMovement ao ain dt
     | otherwise = move ao' ain
     where
          -- NOTE: need to re-calculate similarity and update agent because could have changed since last update
-        updatedSatisfactionLevel = calculateSimilarity ao
-        ao' = updateState ao (\s -> s { segSatisfactionLevel = updatedSatisfactionLevel } )
+        ao' = updateSatisfactionLevel ao
 
-move :: SegAgentOut -> SegAgentIn -> SegAgentOut
-move ao ain
-    | optCoordFound = moveTo ao' optCoord
-    | otherwise = ao'
-    where
-        (ao', mayOptCoord) = findOptMove optimizingStrategy ao ain
-        optCoordFound = isJust mayOptCoord
-        optCoord = fromJust mayOptCoord
-
-moveTo :: SegAgentOut -> EnvCoord -> SegAgentOut
-moveTo ao newCoord = ao'
-    where
-        s = aoState ao
-        env = aoEnv ao
-        oldCoord = aoEnvPos ao
-        c = segParty s
-        env' = changeCellAt env oldCoord Nothing
-        env'' = changeCellAt env' newCoord (Just c)
-        ao' = ao { aoEnv = env'', aoEnvPos = newCoord }
-
-findOptMove :: SegOptStrategy -> SegAgentOut -> SegAgentIn -> (SegAgentOut, Maybe EnvCoord)
-findOptMove None ao _ = findFreeCoord ao freeCellRetries
-findOptMove (NearestMakesHappy) ao _ = (ao, findNearest ao)
-findOptMove (MakesHappy retries) ao _ = findOptMoveAux ao retries moveMakesHappy
-findOptMove (OptimizePresent retries) ao _ = findOptMoveAux ao retries moveImproves
-findOptMove (OptimizeRecursive depth retries) ao ain
-    | isRecursive ain = trace ("recOuts " ++ (show $ (map aoState recOuts)))
-                            (if length recOuts < 5 then
-                                (recAout, mayFreeCoord)
-                                else
-                                    (ao', Nothing))
-
-    | otherwise = if (aoId ao == recTracingAgentId) then (recAout, mayFreeCoord) else ret
-    where
-        recInputEvent = aiRec ain
-        recOuts = fromEvent $ recInputEvent
-
-        ret@(ao', mayFreeCoord) = findFreeCoord ao freeCellRetries
-        recAout = recursive ao'
-
-findOptMoveAux :: SegAgentOut -> Int -> MoveImprovesFunc -> (SegAgentOut, Maybe EnvCoord)
-findOptMoveAux ao 0 optFunc = findFreeCoord ao freeCellRetries
-findOptMoveAux ao retries optFunc
-    | freeCoordFound = if optFunc ao' freeCoord then ret else findOptMoveAux ao' (retries - 1) optFunc
-    | otherwise = ret
-    where
-        ret@(ao', mayFreeCoord) = findFreeCoord ao freeCellRetries
-        freeCoordFound = isJust mayFreeCoord
-        freeCoord = fromJust mayFreeCoord
-
-findNearest :: SegAgentOut -> Maybe EnvCoord
-findNearest ao
-    | isJust mayNearest = Just $ fst $ fromJust mayNearest
-    | otherwise = Nothing
-    where
-        env = aoEnv ao
-        coord = aoEnvPos ao
-        -- TODO: this includes itself, is a problem when calcuulating if a move makes happy: if one checks the position the agent is on, it has heavier weight because there is +1 included
-        coordsCells = cellsAround env coord localMovementRadius
-        mayNearest = foldr (findNearestAux coord ao) Nothing coordsCells
-
-        findNearestAux :: EnvCoord -> SegAgentOut -> (EnvCoord, SegEnvCell) -> Maybe (EnvCoord, SegEnvCell) -> Maybe (EnvCoord, SegEnvCell)
-        findNearestAux _ _ p@(coord, c) Nothing
-            | isOccupied c = Nothing
-            | otherwise = Just p
-        findNearestAux agentPos ao p@(pairCoord, c) best@(Just (bestCoord, bestCell))
-            | isOccupied c = best
-            | otherwise = if not pairMakesHappy then
-                            best
-                            else
-                               if distPair < distBest then
-                                    Just p
-                                    else
-                                        best
-
-            where
-                distBest = distance agentPos bestCoord
-                distPair = distance agentPos pairCoord
-                bestMakesHappy = moveMakesHappy ao bestCoord
-                pairMakesHappy = moveMakesHappy ao pairCoord
-
-moveImproves :: MoveImprovesFunc
-moveImproves ao coord = satisfactionLevelOnCoord > satisfactionLevel
-    where
-        satisfactionLevelOnCoord = calculateSimilarityOn ao coord True
-        satisfactionLevel = (segSatisfactionLevel (aoState ao))
-
-moveMakesHappy :: MoveImprovesFunc
-moveMakesHappy ao coord = similiarityOnCoord > (segSatisfactionWanted (aoState ao))
-    where
-        similiarityOnCoord = calculateSimilarityOn ao coord True
-
-findFreeCoord :: SegAgentOut -> Int -> (SegAgentOut, Maybe EnvCoord)
-findFreeCoord ao 0 = (ao, Nothing)
-findFreeCoord ao maxRetries
-    | isOccupied randCell = findFreeCoord ao' (maxRetries - 1)
-    | otherwise = (ao', Just randCoord)
-    where
-        (ao', randCell, randCoord) = findFreeCoordAux movementStrategy ao
-
-        findFreeCoordAux :: SegMoveStrategy -> SegAgentOut -> (SegAgentOut, SegEnvCell, EnvCoord)
-        findFreeCoordAux strat ao
-            | Local == strat = localRandomCell ao
-            | Global == strat = globalRandomCell ao
-
-localRandomCell :: SegAgentOut -> (SegAgentOut, SegEnvCell, EnvCoord)
-localRandomCell ao = (ao', randCell, randCoord)
-    where
-        s = aoState ao
-        env = aoEnv ao
-        g = segRng s
-        originCoord = aoEnvPos ao
-        (randCell, randCoord, g') = randomCellWithRadius g env originCoord localMovementRadius
-        ao' = updateState ao (\s -> s { segRng = g' } )
-
-globalRandomCell :: SegAgentOut -> (SegAgentOut, SegEnvCell, EnvCoord)
-globalRandomCell ao = (ao', randCell, randCoord)
-    where
-        s = aoState ao
-        env = aoEnv ao
-        g = segRng s
-        (randCell, randCoord, g') = randomCell g env
-        ao' = updateState ao (\s -> s { segRng = g' } )
-
-calculateSimilarity :: SegAgentOut -> Double
-calculateSimilarity ao = calculateSimilarityOn ao coord True
+updateSatisfactionLevel :: SegAgentOut -> SegAgentOut
+updateSatisfactionLevel ao = updateState ao (\s -> s { segSatisfactionLevel = updatedSatisfactionLevel } )
     where
         coord = aoEnvPos ao
+        updatedSatisfactionLevel = calculateSatisfactionOn ao coord True
 
-calculateSimilarityOn :: SegAgentOut -> EnvCoord -> Bool -> Double
-calculateSimilarityOn ao coord includeSelf
+calculateSatisfactionOn :: SegAgentOut -> EnvCoord -> Bool -> Double
+calculateSatisfactionOn ao coord includeSelf
     | isParty ao Red = (fromInteger $ fromIntegral reds + inc) / totalCount
     | isParty ao Green = (fromInteger $ fromIntegral greens + inc) / totalCount
     where
@@ -253,6 +132,182 @@ calculateSimilarityOn ao coord includeSelf
                 redCount = length $ filter ((==Red) . fromJust) occupiedCells
                 greenCount = length $ filter ((==Green) . fromJust) occupiedCells
 
+
+move :: SegAgentOut -> SegAgentIn -> SegAgentOut
+move ao ain = maybe ao' (\optCoord -> moveTo ao' optCoord) mayOptCoord
+    where
+        (ao', mayOptCoord) = findMove
+                                optimizingStrategy
+                                movementStrategy
+                                selectionStrategy
+                                ao
+
+moveTo :: SegAgentOut -> EnvCoord -> SegAgentOut
+moveTo ao newCoord = ao'
+    where
+        s = aoState ao
+        env = aoEnv ao
+        oldCoord = aoEnvPos ao
+        c = segParty s
+        env' = changeCellAt env oldCoord Nothing
+        env'' = changeCellAt env' newCoord (Just c)
+        ao' = ao { aoEnv = env'', aoEnvPos = newCoord }
+
+findMove :: SegOptStrategy
+                -> SegMoveStrategy
+                -> SegSelectionStrategy
+                -> SegAgentOut
+                -> (SegAgentOut, Maybe EnvCoord)
+
+findMove opts ms SelectNearest ao = (ao, findNearestFreeCoord ao (optimizeDistance opts ao) ms)
+findMove opts ms (SelectRandom optRetries freeCellRetries) ao = findOptRandomFreeCoord ao ms optRetries freeCellRetries (optimizeSatisfaction opts)
+
+------------------------------------------------------------------------------------------------------------------------
+-- OPTIMIZING
+------------------------------------------------------------------------------------------------------------------------
+
+moveAlways :: (SegAgentOut -> EnvCoord -> Bool)
+moveAlways _ _ = True
+
+
+moveSatisfies :: (SegAgentOut -> EnvCoord -> Bool)
+moveSatisfies ao coord = similiarityOnCoord > (segSatisfactionWanted (aoState ao))
+    where
+        similiarityOnCoord = calculateSatisfactionOn ao coord True
+
+moveImproves :: (SegAgentOut -> EnvCoord -> Bool)
+moveImproves ao coord = satisfactionLevelOnCoord > satisfactionLevel
+    where
+        satisfactionLevelOnCoord = calculateSatisfactionOn ao coord True
+        satisfactionLevel = (segSatisfactionLevel (aoState ao))
+
+optimizeSatisfaction :: SegOptStrategy -> SegAgentOut -> EnvCoord -> Bool
+optimizeSatisfaction OptNone = moveAlways
+optimizeSatisfaction OptSimilaritySatisfied = moveSatisfies
+optimizeSatisfaction OptSimilarityIncreasing = moveImproves
+
+optimizeDistance :: SegOptStrategy
+                        -> SegAgentOut
+                        -> (EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell)
+optimizeDistance opts ao best@(bestCoord, bestCell) comp@(compCoord, compCell) = if distComp < distBest then
+                                                                                     if improves then
+                                                                                        comp
+                                                                                        else
+                                                                                            best
+                                                                                     else
+                                                                                         best
+
+    where
+        agentPos = aoEnvPos ao
+        improves = optimizeSatisfaction opts ao compCoord
+        distBest = distance agentPos bestCoord
+        distComp = distance agentPos compCoord
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- Nearest Cell Selection
+------------------------------------------------------------------------------------------------------------------------
+findNearestFreeCoord :: SegAgentOut
+                        -> ((EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell))
+                        -> SegMoveStrategy
+                        -> Maybe EnvCoord
+findNearestFreeCoord ao optFunc (MoveLocal radius) = findNearestLocal ao optFunc
+findNearestFreeCoord ao optFunc MoveGlobal = findNearestGlobal ao optFunc
+
+findNearestGlobal :: SegAgentOut
+                        -> ((EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell))
+                        -> Maybe EnvCoord
+findNearestGlobal ao optFunc = findNearestGlobalAux 0 ao
+    where
+        findNearestGlobalAux :: Int -> SegAgentOut -> Maybe EnvCoord
+        findNearestGlobalAux scale ao
+            | isJust mayNearest = Just $ fst $ fromJust mayNearest
+            | otherwise = findNearestGlobalAux (scale + 1) ao
+            where
+                env = aoEnv ao
+                coord = aoEnvPos ao
+                l = envLimits env
+                w = envWrapping env
+                mooreRingCoords = neighbourhoodScale mooreSelf scale
+                mooreRingNeighbourhood = neighbourhoodOf coord mooreRingCoords
+                wrappedMooreRingNeighbourhood = wrapNeighbourhood l w mooreRingNeighbourhood
+                mooreRingCells = cellsAt env wrappedMooreRingNeighbourhood
+                mayNearest = foldr (findNearestAux optFunc) Nothing (zip wrappedMooreRingNeighbourhood mooreRingCells)
+
+findNearestLocal :: SegAgentOut
+                        -> ((EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell))
+                        -> Maybe EnvCoord
+findNearestLocal ao optFunc
+    | isJust mayNearest = Just $ fst $ fromJust mayNearest
+    | otherwise = Nothing
+    where
+        env = aoEnv ao
+        coord = aoEnvPos ao
+        -- TODO: this includes itself, is a problem when calcuulating if a move makes happy: if one checks the position the agent is on, it has heavier weight because there is +1 included
+        coordsCells = cellsAround env coord localMovementRadius
+        mayNearest = foldr (findNearestAux optFunc) Nothing coordsCells
+
+findNearestAux :: ((EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell))
+                    -> (EnvCoord, SegEnvCell)
+                    -> Maybe (EnvCoord, SegEnvCell)
+                    -> Maybe (EnvCoord, SegEnvCell)
+findNearestAux optFunc comp@(compCoord, compCell) Nothing
+    | isOccupied compCell = Nothing
+    | otherwise = Just comp
+findNearestAux optFunc comp@(compCoord, compCell) best@(Just (bestCoord, bestCell))
+    | isOccupied compCell = best
+    | otherwise = Just $ optFunc (bestCoord, bestCell) comp
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- Random Cell Selection
+------------------------------------------------------------------------------------------------------------------------
+findOptRandomFreeCoord :: SegAgentOut
+                            -> SegMoveStrategy
+                            -> Int
+                            -> Int
+                            -> (SegAgentOut -> EnvCoord -> Bool)
+                             -> (SegAgentOut, Maybe EnvCoord)
+findOptRandomFreeCoord ao ms 0 freeCellRetries optFunc = findRandomFreeCoord ao ms freeCellRetries
+findOptRandomFreeCoord ao ms optRetries freeCellRetries optFunc
+    | freeCoordFound = if optFunc ao' freeCoord then ret else findOptRandomFreeCoord ao' ms (optRetries - 1) freeCellRetries optFunc
+    | otherwise = ret
+    where
+        ret@(ao', mayFreeCoord) = findRandomFreeCoord ao ms freeCellRetries
+        freeCoordFound = isJust mayFreeCoord
+        freeCoord = fromJust mayFreeCoord
+
+findRandomFreeCoord :: SegAgentOut -> SegMoveStrategy -> Int -> (SegAgentOut, Maybe EnvCoord)
+findRandomFreeCoord ao ms 0 = (ao, Nothing)
+findRandomFreeCoord ao ms maxRetries
+    | isOccupied randCell = findRandomFreeCoord ao' ms (maxRetries - 1)
+    | otherwise = (ao', Just randCoord)
+    where
+        (ao', randCell, randCoord) = findRandomFreeCoordAux ms ao
+
+        findRandomFreeCoordAux :: SegMoveStrategy -> SegAgentOut -> (SegAgentOut, SegEnvCell, EnvCoord)
+        findRandomFreeCoordAux (MoveLocal radius) ao = localRandomCell ao radius
+        findRandomFreeCoordAux MoveGlobal ao = globalRandomCell ao
+
+localRandomCell :: SegAgentOut -> Int -> (SegAgentOut, SegEnvCell, EnvCoord)
+localRandomCell ao radius = (ao', randCell, randCoord)
+    where
+        s = aoState ao
+        env = aoEnv ao
+        g = segRng s
+        originCoord = aoEnvPos ao
+        (randCell, randCoord, g') = randomCellWithRadius g env originCoord radius
+        ao' = updateState ao (\s -> s { segRng = g' } )
+
+globalRandomCell :: SegAgentOut -> (SegAgentOut, SegEnvCell, EnvCoord)
+globalRandomCell ao = (ao', randCell, randCoord)
+    where
+        s = aoState ao
+        env = aoEnv ao
+        g = segRng s
+        (randCell, randCoord, g') = randomCell g env
+        ao' = updateState ao (\s -> s { segRng = g' } )
+------------------------------------------------------------------------------------------------------------------------
 
 segAgentBehaviour :: SegAgentBehaviour
 segAgentBehaviour = proc ain ->

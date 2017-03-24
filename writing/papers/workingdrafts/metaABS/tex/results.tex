@@ -27,8 +27,7 @@ What we are interested in are the following dynamics
 \end{enumerate}
 
 \subsection{Non-optimizing}
-Agents move to the nearest free spot
-
+Agents move to the nearest free spot. This is included because it is needed for the hypothesis for anticipating in non-deterministic future
 Hypothesis: very slow convergence, can't solve high density with high similarity requirements.
 
 \subsection{Optimizing}
@@ -40,13 +39,8 @@ Hypothesis: should have much faster convergence than non-optimizing, areas act a
 TODO: how many agents are predicting? fraction between 0.0 and 1.0
 TODO: compare the performance of the predicting-agents to the non-predicting ones
 
-Prediction-Ratio
-	hypothesis: increasing the ratio of predicting agents will decrease the effectiveness of the predictions because the future becomes then in effect non-deterministic
+Prediction-Ratio hypothesis: increasing the ratio of predicting agents will decrease the effectiveness of the predictions because the future becomes then in effect non-deterministic
 
-Deterministic future:
-	Hypothesis without present optimizing:  	same as Optimizing
-	Hypothesis with present optimizing: 		fastest convergence of all
-		
-Non-Deterministic future:
-	Hypothesis without present optimizing: 		complete breakdown, falling back to dynamics of non-optimization
-	Hypothesis with present optimizing: 		same as present-only optimization
+Deterministic future Hypothesis: 				faster convergence than optimizing
+
+Non-Deterministic future Hypothesis:			complete breakdown, falling back to dynamics of Non-optimizing

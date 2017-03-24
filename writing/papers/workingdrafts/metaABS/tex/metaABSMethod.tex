@@ -5,6 +5,67 @@ More precisely, what we want is to give an agent the ability to run the simulati
 \subsection{Functional description}
 In this section we will give a formal description of how Meta-ABS works. Although we look at it from a programming-language agnostic way, we follow a functional description (rather than object-oriented) both in our pseudo-code and description because we think it allows for a much clearer formalization.
 
+We assume an Agent-Behaviour Function with an argument of type AgentIn and a return value of type AgentOut.
+
+\begin{lstlisting}[frame=single]
+agentBeh :: AgentIn -> AgentOut
+\end{lstlisting}
+
+We will keep the AgentIn and AgentOut types opaque and provide a few functions to work on them. We assume some domain-specific function which can create a new domain-specific solution by taking an AgentIn and returning an AgentOut. This can be used to iteratively update the agent
+
+\begin{lstlisting}[frame=single]
+createNewSolution :: AgentIn -> AgentOut
+
+agentBeh :: AgentIn -> AgentOut
+agentBeh ain = createNewSolution ain
+\end{lstlisting}
+
+If an agent wants to initiate recursive simulations it calls the function recursive 
+
+\begin{lstlisting}[frame=single]
+recursive :: AgentOut -> AgentOut
+
+agentBeh :: AgentIn -> AgentOut
+agentBeh ain = recursive createNewSolution ain
+\end{lstlisting}
+
+This will tell the simulation system to initiate a recursive simulation. The system will then call the agent-behaviour function again but provides information that the agent is running recursively through the AgentIn type. To check this it is possible to query it by using the isRecursive function:
+
+\begin{lstlisting}[frame=single]
+isRecursive :: AgentIn -> Bool
+
+agentBeh :: AgentIn -> AgentOut
+agentBeh ain 
+	| isRecursive ain = handleRecursion ain
+	| otherwise = recursive createNewSolution ain
+	
+handleRecursion :: AgentIn -> AgentOut
+\end{lstlisting}
+
+The AgentIn type provides an additional function to get a list of AgentOut of all the past recursions. 
+
+\begin{lstlisting}[frame=single]
+recursiveAgentOuts :: AgentIn -> [AgentOut]
+\end{lstlisting}
+
+Further we need a function to stop the recursion if we are happy with one of the AgentOut:
+
+\begin{lstlisting}[frame=single]
+unrecursive :: AgentOut -> AgentOut
+\end{lstlisting}
+
+Putting all together we can continue the calculation of recursions until the agent is satisfied with one AgentOut. 
+
+\begin{lstlisting}[frame=single]
+handleRecursion :: AgentIn -> AgentOut
+handleRecursion ain 
+	| satisfies recursiveAgentOuts ain = unrecursive $ pickBest recursiveAgentOuts ain
+	| otherwise = recursive createNewSolution ain
+
+satisfies :: [AgentOut] -> Bool
+pickBest :: [AgentOut] -> AgentOut
+\end{lstlisting}
+
 First we need to establish a little bit of terminology to be able to unambiguously discuss the formal approach of Meta-ABS
 TODO: recursion-depth:
 TODO: recursion-replications
@@ -13,11 +74,10 @@ TODO: recursion-length
 TODO: what is the difference between depth and length?
 
 There are a few serious pitfalls here: 
-\begin{enumeration}
-	\item When an agent is running a recursion, then we need to restrict the other agents  otherwise we will end up in an infinite regress.
-\end{enumeration}
-
-
+\begin{enumerate}
+	\item When an agent is running a recursion, then we need to restrict the other agents otherwise we will end up in an infinite regress.
+\end{enumerate}
+	
 
 \subsection{Deterministic vs. Non-Deterministic future}
 The model as described in Background section is completely deterministic once it is running because it makes no use of a random-number generator and there are no other sources of non-determinism - the next move of an agent is always completely predictable. If we introduce randomness through a random-number generator into our model then the future becomes non-deterministic \textit{if the state of random-number generator when running recursive simulations is different from when the simulation is run non-recursively.}

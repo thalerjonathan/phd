@@ -261,6 +261,7 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
                 allAins = otherIns' ++ [newIn]
 
                 -- TODO: does it make sense to run multiple steps? what is the meaning of it?
+                -- NOTE: when setting steps to > 1 we end up in an infinite loop - why?
                 allStepsRecOuts = (simulate allAins allAsfs False 1.0 1)
 
                 lastStepRecOuts = (last allStepsRecOuts)

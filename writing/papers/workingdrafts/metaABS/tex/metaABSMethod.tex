@@ -66,6 +66,14 @@ satisfies :: [AgentOut] -> Bool
 pickBest :: [AgentOut] -> AgentOut
 \end{lstlisting}
 
+We need to establish a very important invariant of time. We can query the simulation-time using the function
+\begin{lstlisting}[frame=single]
+simTime :: AgentIn -> Real
+\end{lstlisting}
+
+The following invariant must hold: when calling simTime during recursion it must return constantly the same time as when starting the recursion
+TODO: more formal
+
 First we need to establish a little bit of terminology to be able to unambiguously discuss the formal approach of Meta-ABS
 TODO: recursion-depth:
 TODO: recursion-replications

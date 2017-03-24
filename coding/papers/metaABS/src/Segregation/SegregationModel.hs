@@ -174,41 +174,24 @@ findMove opts ms SelectNearest ao = (ao,
                                         ao
                                         (optimizeDistance opts ao)
                                         ms)
-    where
-        -- NOTE: at this point we know the agent is not satisfied
-        hiddenAo = hideAgentFromEnv ao
 findMove opts ms (SelectRandom optRetries freeCellRetries) ao = findOptRandomFreeCoord
                                                                     ao
                                                                     ms
                                                                     optRetries
                                                                     freeCellRetries
                                                                     (optimizeSatisfaction opts)
-    where
-        -- NOTE: at this point we know the agent is not satisfied
-        hiddenAo = hideAgentFromEnv ao
-
-hideAgentFromEnv :: SegAgentOut -> SegAgentOut
-hideAgentFromEnv ao = ao'
-    where
-        s = aoState ao
-        env = aoEnv ao
-        agentPos = aoEnvPos ao
-        c = segParty s
-        env' = changeCellAt env agentPos Nothing
-        ao' = ao { aoEnv = env' }
-
 ------------------------------------------------------------------------------------------------------------------------
 -- OPTIMIZING
 ------------------------------------------------------------------------------------------------------------------------
-moveAlways :: (SegAgentOut -> EnvCoord -> Bool)
+moveAlways :: SegAgentOut -> EnvCoord -> Bool
 moveAlways _ _ = True
 
-moveSatisfies :: (SegAgentOut -> EnvCoord -> Bool)
+moveSatisfies :: SegAgentOut -> EnvCoord -> Bool
 moveSatisfies ao targetCoord = similiarityOnCoord > (segSimilarityWanted (aoState ao))
     where
         similiarityOnCoord = satisfactionOn ao targetCoord
 
-moveImproves :: (SegAgentOut -> EnvCoord -> Bool)
+moveImproves :: SegAgentOut -> EnvCoord -> Bool
 moveImproves ao targetCoord = satisfactionLevelOnCoord > satisfactionLevel
     where
         satisfactionLevelOnCoord = satisfactionOn ao targetCoord

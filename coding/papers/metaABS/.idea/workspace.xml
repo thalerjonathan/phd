@@ -29,21 +29,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SegregationModel.hs" pinned="false" current-in-tab="false">
+      <file leaf-file-name="SegregationModel.hs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Segregation/SegregationModel.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="307">
-              <caret line="206" column="57" lean-forward="false" selection-start-line="206" selection-start-column="57" selection-end-line="206" selection-end-column="57" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="SegregationInit.hs" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/Segregation/SegregationInit.hs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="804">
-              <caret line="62" column="44" lean-forward="false" selection-start-line="62" selection-start-column="44" selection-end-line="62" selection-end-column="44" />
+            <state relative-caret-position="168">
+              <caret line="96" column="0" lean-forward="true" selection-start-line="96" selection-start-column="0" selection-end-line="96" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -53,7 +43,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>s</find>
       <find>isHappy</find>
       <find>calculateSimilarityOn</find>
       <find>segSimilarityCurrent</find>
@@ -81,6 +70,9 @@
       <find>density</find>
       <find>densi</find>
       <find>neighbours</find>
+      <find>optimizeDistance</find>
+      <find>findNearestFreeCoord</find>
+      <find>optFunc</find>
     </findStrings>
   </component>
   <component name="GradleLocalSettings">
@@ -103,8 +95,8 @@
         <option value="$PROJECT_DIR$/src/FrABS/Agent/Agent.hs" />
         <option value="$PROJECT_DIR$/src/FrABS/Env/Environment.hs" />
         <option value="$PROJECT_DIR$/src/SIRS/SIRSModel.hs" />
-        <option value="$PROJECT_DIR$/src/Segregation/SegregationModel.hs" />
         <option value="$PROJECT_DIR$/src/Segregation/SegregationInit.hs" />
+        <option value="$PROJECT_DIR$/src/Segregation/SegregationModel.hs" />
       </list>
     </option>
   </component>
@@ -790,18 +782,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Segregation/SegregationModel.hs">
+    <entry file="file://$PROJECT_DIR$/src/Segregation/SegregationInit.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="307">
-          <caret line="206" column="57" lean-forward="false" selection-start-line="206" selection-start-column="57" selection-end-line="206" selection-end-column="57" />
+        <state relative-caret-position="992">
+          <caret line="62" column="44" lean-forward="false" selection-start-line="62" selection-start-column="44" selection-end-line="62" selection-end-column="44" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Segregation/SegregationInit.hs">
+    <entry file="file://$PROJECT_DIR$/src/Segregation/SegregationModel.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="804">
-          <caret line="62" column="44" lean-forward="false" selection-start-line="62" selection-start-column="44" selection-end-line="62" selection-end-column="44" />
+        <state relative-caret-position="168">
+          <caret line="96" column="0" lean-forward="true" selection-start-line="96" selection-start-column="0" selection-end-line="96" selection-end-column="0" />
           <folding />
         </state>
       </provider>

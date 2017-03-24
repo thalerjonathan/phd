@@ -60,6 +60,6 @@ createSegAgentsAndEnv limits@(x,y) =  do
 
                                 return SegAgentState {
                                         segParty = s,
-                                        segSatisfactionWanted = satisfactionWanted,
+                                        segSimilarityWanted = similarityWanted,
                                         segSatisfactionLevel = 0.0,
                                         segRng = rng }

@@ -76,7 +76,8 @@ sirsDt ao dt
         newAgentDef = AgentDef {
                           adId = (aoId ao),
                           adState = (aoState ao),
-                          adBeh = sirsAgentBehaviour
+                          adBeh = sirsAgentBehaviour,
+                          adEnvPos = (aoEnvPos ao)
                       }
 
 infectAgent :: SIRSAgentOut -> SIRSAgentOut
@@ -134,7 +135,7 @@ randomContact ao = sendMessage ao' (randNeigh, (Contact Infected))
         nsCount = length ns
         g = (sirsRng (aoState ao))
         (randIdx, g') = randomR(0, nsCount-1) g
-        randNeigh = ns !! randIdx
+        randNeigh = snd $ ns !! randIdx
         ao' = updateState ao (\s -> s { sirsRng = g' } )
 
 -- TODO: switch SF when in different states as behaviour changes
@@ -171,7 +172,8 @@ createRandomSIRSAgents max@(x,y) p =  do
         createAgent :: SIRSAgentState -> (Int, Int) -> SIRSAgentDef
         createAgent s max = AgentDef { adId = agentId,
                                         adState = s,
-                                        adBeh = sirsAgentBehaviour }
+                                        adBeh = sirsAgentBehaviour,
+                                        adEnvPos = c}
             where
                 c = sirsCoord s
                 agentId = coordToAid max c

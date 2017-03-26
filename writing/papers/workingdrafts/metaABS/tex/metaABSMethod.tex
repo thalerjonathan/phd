@@ -42,7 +42,7 @@ agentBeh ain
 handleRecursion :: AgentIn -> AgentOut
 \end{lstlisting}
 
-The AgentIn type provides an additional function to get a list of AgentOut of all the past recursions. 
+The AgentIn type provides an additional function to get a list of AgentOut of all the past recursions.  invariant: when in recursion and returning an aout and staying in recursion the aout returned will show up in the next recursive calls list at the top
 
 \begin{lstlisting}[frame=single]
 recursiveAgentOuts :: AgentIn -> [AgentOut]
@@ -74,6 +74,10 @@ simTime :: AgentIn -> Real
 The following invariant must hold: when calling simTime during recursion it must return constantly the same time as when starting the recursion
 TODO: more formal
 
+TODO:  how do we restrict recursion to only the recurring agent? either all or none or a list of agentids? the problem is that this is model dependent
+
+TODO:  what happens when running a recursion for more than 1 timestep? does it make sense? what is the meaning of this?
+
 First we need to establish a little bit of terminology to be able to unambiguously discuss the formal approach of Meta-ABS
 TODO: recursion-depth:
 TODO: recursion-replications
@@ -103,6 +107,10 @@ we are spanning up 3 dimensions: recursion-depth, replications, and time-steps
 \subsubsection{Omega Point}
 tiplers omega point and paper about god and the simulation argument
 accelerating turing machine: finishes after 1 time steps
+
+\url{https://en.m.wikipedia.org/wiki/Omega_Point}
+\url{https://en.m.wikipedia.org/wiki/Zeno_machine}
+\url{https://en.m.wikipedia.org/wiki/Hypercomputation}
 
 \subsubsection{Emergent Non-Determinism}
 the prediction may work for a single agent but what if more and more agents predict their future? within the prediction no recursion is run so no 2nd level anticipation. 

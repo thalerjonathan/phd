@@ -1,0 +1,1083 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 2009 by Scott Pakin <scott+iecnf@pakin.org>
+% ---------------------------------------------------------
+%
+% This file may be distributed and/or modified under the conditions of
+% the LaTeX Project Public License, either version 1.3c of this license
+% or (at your option) any later version.  The latest version of this
+% license is in:
+%
+%    http://www.latex-project.org/lppl.txt
+%
+% and version 1.3c or later is part of all distributions of LaTeX
+% version 2006/05/20 or later.
+%
+% \fi
+%
+% \iffalse
+%<*driver>
+\ProvidesFile{IEEEconf.dtx}
+%</driver>
+%<class>\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+%<class>\ProvidesClass{IEEEconf}
+%<*class>
+    [2009/04/05 v1.4 IEEE Computer Society 8.5x11" conference proceedings]
+%</class>
+%
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{textcomp}
+\usepackage{needspace}
+\usepackage[hyperindex=false,bookmarksopen=true]{hyperref}
+\EnableCrossrefs
+\CodelineIndex
+\RecordChanges
+\begin{document}
+  \DocInput{IEEEconf.dtx}
+\end{document}
+%</driver>
+% \fi
+%
+% \CheckSum{360}
+%
+% \CharacterTable
+%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%   Digits        \0\1\2\3\4\5\6\7\8\9
+%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%   Dollar        \$     Percent       \%     Ampersand     \&
+%   Acute accent  \'     Left paren    \(     Right paren   \)
+%   Asterisk      \*     Plus          \+     Comma         \,
+%   Minus         \-     Point         \.     Solidus       \/
+%   Colon         \:     Semicolon     \;     Less than     \<
+%   Equals        \=     Greater than  \>     Question mark \?
+%   Commercial at \@     Left bracket  \[     Backslash     \\
+%   Right bracket \]     Circumflex    \^     Underscore    \_
+%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%   Right brace   \}     Tilde         \~}
+%
+%
+% \changes{v1.0}{2004/01/14}{Initial version}
+% \changes{v1.0a}{2004/09/18}{Clarified the documentation as per Ming
+%   Kin Lai's suggestions}
+% \changes{v1.3}{2005/08/28}{Added a paragraph about formatting
+%   reference lists as per Rennie deGraaf's suggestion}
+%
+% \GetFileInfo{IEEEconf.dtx}
+%
+% \DoNotIndex{\.,\@arabic,\@beginparpenalty,\@clubpenalty,\@empty}
+% \DoNotIndex{\@endparpenalty,\@gobble,\@lowpenalty,\@M,\@m,\@minipagefalse}
+% \DoNotIndex{\@mkboth,\@noitemerr,\@openbib@code,\@plus,\@tempboxa}
+% \DoNotIndex{\advance,\baselineskip,\begin,\bfseries,\box,\c@enumiv}
+% \DoNotIndex{\centering,\clubpenalty,\crcr,\CurrentOption,\def,\else}
+% \DoNotIndex{\end,\endieee@thebibitemlist,\endlist,\endquotation}
+% \DoNotIndex{\endthebibitemlist,\endtitlepage,\fi,\fontsize,\footnote}
+% \DoNotIndex{\global,\hb@xt@,\hfil,\hsize,\hskip,\ifdim,\ifx,\itshape,\let}
+% \DoNotIndex{\list,\long,\mdseries,\newcommand,\newenvironment,\newif}
+% \DoNotIndex{\newlength,\newpage,\next,\null,\p@enumiv,\par,\ProcessOptions}
+% \DoNotIndex{\quotation,\refname,\relax,\renewcommand,\renewenvironment}
+% \DoNotIndex{\rmfamily,\rule,\sbox,\setlength,\settowidth,\sfcode}
+% \DoNotIndex{\sffamily,\sloppy,\small,\upshape,\usecounter,\vfil,\vskip}
+% \DoNotIndex{\vspace,\wd,\widowpenalty,\z@}
+%
+% ^^A  Define a macro for indexing package names.
+% \DeclareRobustCommand{\indexpkgname}[1]{^^A
+%   \index{#1\actualchar\textsf{#1} (package)\encapchar usage}^^A
+%   \index{packages:\levelchar#1\actualchar\textsf{#1}\encapchar usage}^^A
+% }
+%
+% ^^A  Define a macro for typesetting and indexing package names.
+% \DeclareRobustCommand{\pkgname}[1]{^^A
+%   \textsf{#1}^^A
+%   \indexpkgname{#1}^^A
+% }
+%
+% ^^A  Define a macro for typesetting "IEEEconf" and one for typesetting
+% ^^A  "IEEE Computer Society Press".
+% \newcommand{\iecnf}{\pkgname{IEEEconf}}
+% \newcommand{\ICSP}{IEEE Computer Society Press}
+%
+% \title{The \iecnf{} class\thanks{This document
+%   corresponds to \iecnf{}~\fileversion, dated \filedate.}}
+% \author{Scott Pakin \\
+%   \href{mailto:scott+iecnf@pakin.org}{\texttt{scott+iecnf@pakin.org}}}
+%
+% \hypersetup{^^A
+%   pdftitle={The IEEEconf class},
+%   pdfauthor={Scott Pakin <scott+iecnf@pakin.org>},
+%   pdfsubject={Format papers for IEEE Computer Society Press conference
+%     proceedings},
+%   pdfkeywords={conference proceedings, formatting requirements, IEEE
+%     Computer Society Press}
+% }
+%
+% \maketitle
+%
+% \section{Introduction}
+%
+% The \iecnf{} class implements the formatting dictated by the \ICSP{}
+% for conference proceedings.  |IEEEconf.cls| replaces |latex8.sty| and
+% is compatible with any \BibTeX{} style, not just |latex8.bst|.  The
+% goal was to produce a more faithful implementation of the formatting
+% rules and to do so with cleaner \LaTeX{} code than that provided by
+% the |latex8.*| files:
+%
+% \begin{itemize}
+%   \item \iecnf{} is written as a class, which makes more sense than
+%     implementing it as a style file.
+%
+%   \item \iecnf{} uses the \pkgname{titlesec} package to redefine
+%     |\section|, |\subsection|, and |\subsubsection| as dictated by the
+%     guidelines.  \pkgname{latex8} requires that authors use
+%     |\Section|, which internally calls |\section| then backspaces to
+%     add the required period after the section number.  Yuck!  By using
+%     proper sectioning, \iecnf{} is compatible with the
+%     \pkgname{hyperref} package.  (Examine the PDF bookmarks produced
+%     when using \pkgname{latex8} with \pkgname{hyperref}.)
+%
+%   \item \iecnf{} changes bibliography formatting by redefining the
+%     |thebibliography| environment instead of by requiring the author to
+%     use a particular \BibTeX{} style file.
+%
+%   \item \iecnf{} selects fonts using the \LaTeXe{} font commands
+%     instead of \TeX{} primitives.  This lets an author redefine
+%     |\rmdefault|, |\sfdefault|, and |\ttdefault| and have those changes
+%     honored by \iecnf.
+%
+%   \item \iecnf{} uses the \pkgname{geometry} package to construct the
+%     page layout rather than setting \LaTeX{} registers directly.
+% \end{itemize}
+%
+% Note that \iecnf{} is intended specifically for preparing manuscripts
+% for \ICSP{} conference proceedings.  Most other IEEE
+% publications---including other IEEE conference proceedings---specify
+% different formatting requirements.  Unless you were instructed
+% explicitly to follow \ICSP's conference-proceedings guidelines, you
+% may find the \pkgname{IEEEtran} package more appropriate than \iecnf.
+%
+% \paragraph{Caveats}  First, as of this writing, \iecnf{} has been neither
+% validated nor endorsed by the \ICSP{}\@.  Second, some of the \ICSP's
+% guidelines are outside of \iecnf's scope.  See
+% Section~\ref{sec:limitations} for details.  Third, the \ICSP{}
+% occasionally changes their guidelines; \iecnf~\fileversion{}
+% implements the guidelines that were current on~2007/01/15.  In fact,
+% the \ICSP{} Web site provides two sets of guidelines:
+%
+% \begin{itemize}
+%   \item
+%     \url{ftp://pubftp.computer.org/press/outgoing/proceedings/instruct8.5x11.pdf}.
+%     \iecnf{} relies on this document for its primary set of
+%     guidelines.
+%
+%   \item
+%     \url{http://www.computer.org/portal/site/ieeecs/index.jsp?pageID=ieeecs_level1&path=ieeecs/publications/cps&file=cps_forms.xml&xsl=generic.xsl}.
+%     This Web page contains almost the same contents as the preceding
+%     PDF file except that the ``Footnotes'' section has nothing to do
+%     with footnotes but rather with column formatting.  Footnote
+%     guidance is taken from the other set of guidelines.
+%
+%   \item
+%     \url{ftp://pubftp.computer.org/press/outgoing/proceedings/INSTRUCT.HTM}
+%     and
+%     \url{ftp://pubftp.computer.org/press/outgoing/proceedings/instruct.txt}.
+%     This document provides guidance on footnote formatting.  However,
+%     it contradicts the previous documents by specifying that paragraphs
+%     be indented by 1~pica while the preceding document says to indent
+%     paragraphs by 1/4~inch (1.5~picas).  It limits the abstract to
+%     3~inches (7.62\,cm) while the previous document dictates a
+%     150-word limit.  \iecnf{} follows the previous document in the
+%     case of any conflict.
+%
+%     This document contains an additional section about illustrations
+%     that says not to use color figures unless instructed to do so and
+%     presents a few prehistoric guidelines about penciling in page
+%     numbers and how to use rub-on symbols.
+% \end{itemize}
+%
+% Pages on the IEEE Computer Society Web site are frequently moved
+% and/or renamed.  You may need to search a bit to find the latest
+% versions of the documents described above.
+%
+%
+% \section{Usage}
+%
+% Unlike \pkgname{latex8}, \iecnf\ is a proper \LaTeXe\ class.  Also
+% unlike \pkgname{latex8}, it automatically loads the packages it needs
+% and sets all of the correct formatting options by default.
+%
+% \subsection{Class options}
+%
+% \DescribeMacro{\documentclass}
+% Begin your document by loading the \iecnf{} class:
+%
+% \begin{verbatim}
+%     \documentclass{IEEEconf}
+% \end{verbatim}
+%
+% \noindent
+% Although \iecnf\ is derived from \textsf{article} and accepts the
+% same class options, you should not, in general, pass any extra options
+% to |\documentclass|.  \iecnf\ will automatically set two-column mode
+% and a 10\,pt.\ Times Roman font.  \iecnf\ honors the user's default
+% paper size because the \ICSP\ now allows both U.S.~Letter- and
+% A4-sized paper.  The default paper size can be overridden by the
+% |letterpaper| or |a4paper| class options if a conference dictates a
+% particular paper size.
+%
+% \iecnf\ introduces one class option of its own: |latex8|.  The
+% |latex8| option instructs \iecnf\ to violate the \ICSP\ guidelines in
+% the same manner that the \pkgname{latex8} package provided by the
+% \ICSP\ violates them.  The advantage of using the |latex8| option is
+% that \pkgname{latex8}'s incorrect formatting provides a larger text
+% block (27\,pt.\ wider) than the guidelines allow.  Hence, if you need
+% to squeeze a little extra text into your paper, the |latex8| option
+% lets you do that without violating the rules any more than the
+% \pkgname{latex8} package does.
+%
+%
+% \subsection{User commands}
+%
+% \DescribeMacro{\title}
+% The |\title| command behaves identically to the one in the
+% \textsf{article} class.  Just remember to follow what the guidelines
+% say about capitalization of words in the title.
+%
+% \DescribeMacro{\author}
+% \DescribeEnv{affiliation}
+% \DescribeMacro{\email}
+% The guidelines specify different formatting for an author's name and
+% for an author's affiliation and e-mail address.  For convenience,
+% \iecnf\ provides an |affiliation| environment for
+% typesetting affiliations and an |\email| macro for typesetting e-mail
+% addresses.  The following examples show how to format an author list:
+%
+% \begin{verbatim}
+% % Individual author
+% \author{%
+%   Amy Author \\
+%   \begin{affiliation}
+%     Fancy Text Processing Department \\
+%     University of Llanfairpwllgwyngyllgogerychwyrndrobwllllantysiliogogogoch
+%   \end{affiliation} \\
+%   \email{author@llanfairPG.ac.uk}
+% }
+% \end{verbatim}
+%
+% \begin{verbatim}
+% % Multiple authors
+% \author{%
+%   Ray Writer \\
+%   \begin{affiliation}
+%     International Giant Mega-Corporation, Inc.
+%   \end{affiliation} \\
+%   \email{writer@giantmegaco.com}
+% \and
+%   Kim Composer \\
+%   \begin{affiliation}
+%     Department of Reading, 'Riting, and 'Rithmetic
+%     \LaTeX{} State University
+%   \end{affiliation} \\
+%   \email{composer@latexstate.edu}
+% }
+% \end{verbatim}
+%
+% There is not currently any special support in \iecnf\ for typesetting
+% multiple affiliations per author.
+%
+% \DescribeMacro{\date}
+% The date macro is implemented but doesn't actually typeset anything.
+%
+% \DescribeMacro{\callout}
+% A \emph{callout} is a piece of text referring to a figure or table.
+% When the \ICSP\ re-typesets a document they supposedly want the ``See
+% Figure\dots'' and ``See Table\dots'' text to stand out to help the
+% typesetter ensure that figures and tables are placed as close as
+% possible to their references.  The |\callout| macro simply typesets
+% its argument in 9-point Helvetica as per the guidelines and is
+% typically used as follows: ``\texttt{For details, see}
+% |\callout{Figure~\ref{myfigure}}|''.  My understanding is that
+% |\callout| should be used only when a paper will be re-typeset and not
+% when producing camera-ready copy.
+%
+% \DescribeMacro{\dobeforekey}
+% The \ICSP\ guidelines say, ``If the last page of your paper is only
+% partially filled, arrange the columns so that they are evenly balanced
+% if possible, rather than having one long column.''  While the
+% \pkgname{balance} and \pkgname{multicol} packages may help, this is a
+% fairly tricky requirement in the general case for \LaTeXe\@.  Because
+% the last page of a conference paper typically contains only
+% references, \iecnf\ provides a simple command, |\dobeforekey|, to help
+% with that specific case.  |\dobeforekey| takes two arguments: a
+% bibliography key (i.e.,~a string passed to the |\cite| command) and a
+% command to execute before typesetting the corresponding bibliography
+% entry.  When preparing the final version of your paper, put
+% ``|\dobeforekey{|\meta{key}|}{\newpage}|'' anywhere before the
+% |\bibliography| command and use trial-and-error to find the key that
+% best balances the columns on the last page of the paper.
+%
+% \paragraph{Reference lists}
+% The \ICSP\ provides little guidance about typesetting reference
+% lists.  Apparently, the author is granted some flexibility.  \iecnf{}
+% uses the specified font but leaves the rest of the formatting
+% decisions to the author's chosen bibliography style.  As the \ICSP's
+% two sample references both use abbreviated author names, it's probably
+% best to use |\bibliographystyle{abbrv}| when including a \BibTeX{}
+% bibliography.\footnote{\texttt{latex8.bst} is in fact identical to
+% \texttt{abbrv.bst} except that it injects
+% ``\texttt{\cs{setlength}\linebreak[0]\string{\cs{itemsep}\string}\linebreak[0]\string{-1ex\string}\linebreak[0]\cs{small}}''
+% into its generated \texttt{thebibliography} environment.}  \iecnf{}
+% also supports the |\thebibliography| environment for authors who
+% prefer to typeset their reference lists manually.
+%
+% \DescribeMacro{\extrareflistcode}
+% Previous versions of the \ICSP\ guidelines stated that bibliographic
+% references must be single-spaced, and that's how \iecnf\ formats the
+% list of references.  The current guidelines say nothing about
+% inter-reference spacing but their two sample references are in fact
+% separated by a blank line.  To provide the author with both
+% alternatives, \iecnf\ provides a ``hook'' macro called
+% |\extrareflistcode| that enables one to alter the line spacing---or
+% any other aspect of reference-list spacing.
+%
+% As in most \LaTeXe\ classes, references are typeset within a \LaTeX{}
+% |list| environment.  The |\extrareflistcode| macro specifies extra
+% code to execute as part of the second argument to |\begin{list}| when
+% typesetting the document's References section.  |\extrareflistcode| is
+% initially empty but can be redefined by the author with
+% |\renewcommand|.  For example, the following code instructs \iecnf{}
+% to insert a blank line between entries in the references list:
+%
+% \begin{verbatim}
+%     \renewcommand{\extrareflistcode}{\setlength{\itemsep}{\baselineskip}}
+% \end{verbatim}
+%
+%
+% \section{Limitations}
+% \label{sec:limitations}
+%
+% There are some requirements in the Computer Society's guidelines that
+% \iecnf\ is unable to enforce:
+%
+% \begin{itemize}
+%   \item ``All manuscripts must be in English.''
+%
+%   \item ``Capitalize the first letter of nouns, pronouns, verbs,
+%   adjectives, and adverbs; do not capitalize articles, coordinate
+%   conjunctions, or prepositions (unless the title begins with such a
+%   word).''
+%
+%   \item ``Avoid the use of academic degrees and society affiliations.''
+%
+%   \item ``Avoid using bit-mapped fonts if possible.  True--Type~1
+%   fonts are preferred.''
+%
+%   \item ``Use footnotes sparingly (or not at all!)''.  The guidelines
+%   do specify how to format footnotes if you're desperate and \iecnf{}
+%   honors the those requirements.
+%
+%   \item ``Where appropriate, include the name(s) of editors of
+%   referenced books.''
+% \end{itemize}
+%
+% \noindent
+% Furthermore, there are also some requirements the \iecnf{}
+% does not currently implement:
+%
+% \begin{itemize}
+%   \item ``The abstract is to be\dots  up to 150~words in length.''
+%   \iecnf\ currently allows abstracts of any length.
+%
+%   \item In the author list, ``[m]ultiple authors may be shown in a
+%   two- or three-column format''.  Like \textsf{article}, \iecnf{}
+%   packs as many authors as possible onto a line.
+%
+%   \item ``Initially capitalize only the first word of each figure
+%   caption and table title~\dots\ Figure captions are to be centered
+%   below the figures.  Table titles are to be centered above the
+%   tables.''  Consider using the \pkgname{topcapt} package to help with
+%   this captioning requirement.
+%
+%   \item ``If the last page of your paper is only partially filled,
+%   arrange the columns so that they are evenly balanced if possible,
+%   rather than having one long column.''  Consider using either
+%   \iecnf's |\doafterkey| macro or the \pkgname{balance} package to
+%   help with this formatting requirement.
+% \end{itemize}
+%
+% \noindent
+% Some of the above shortcomings may be fixed in a future release of
+% \iecnf\ if I figure out a good way to do so.
+%
+% Also note that currently, only $8\mbox{\textonehalf} \times 11''$
+% proceedings are supported, not $6 \times 9''$ proceedings.
+%
+%
+% \StopEventually{%
+%   \section{License}
+%
+%   Copyright \textcopyright\ 2009 by Scott Pakin
+%
+%   \bigskip
+%
+%   This file may be distributed and/or modified under the conditions of
+%   the \LaTeX\ Project Public License, either version~1.3c of this
+%   license or (at your option) any later version.  The latest version of
+%   this license is in:
+%
+%   \begin{center}
+%     \texttt{http://www.latex-project.org/lppl.txt}
+%   \end{center}
+%
+%   \noindent
+%   and version~1.3c or later is part of all distributions of \LaTeX{}
+%   version 2006/05/20 or later.
+%
+%   \needspace{3cm}
+%   \phantomsection
+%   \addcontentsline{toc}{section}{Change History}
+%   \PrintChanges
+%
+%   \needspace{3cm}
+%   \phantomsection
+%   \addcontentsline{toc}{section}{Index}
+%   \PrintIndex
+% }
+%
+%
+% \section{Implementation}
+%
+% This section contains the complete source code to \iecnf.
+% If you're not a \LaTeX\ hacker you probably won't find it
+% particularly interesting or useful.  However, if you're comfortable
+% reading \TeX\ and \LaTeX\ code, you can see exactly what
+% \iecnf\ is doing and how.
+%
+% \subsection{Initialization}
+%
+% \changes{v1.4}{2009/03/21}{Introduced a \texttt{onecolumn} class option
+%   in case a document needs to use the \pkgname{multicol} package}
+% \begin{macro}{\ieee@column@spec}
+% The guidelines require that all text be in a two-column format.
+% However, there may be some special cases in which a single-column
+% format is desirable, for example if the \pkgname{multicol} package is
+% needed anywhere in the document.  We therefore provide a |onecolumn|
+% option to suppress the default two-column formatting.
+%    \begin{macrocode}
+\def\ieee@column@spec{twocolumn}
+\DeclareOption{onecolumn}{\def\ieee@column@spec{onecolumn}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\if@ieee@correct@geometry@}
+% \begin{macro}{\@ieee@correct@geometry@true}
+% \begin{macro}{\@ieee@correct@geometry@false}
+% \iecnf\ lays out the page geometry according to the \ICSP\ guidelines.
+% However, as \iecnf\ is not yet recognized by the IEEE Computer
+% Society, virtually all IEEE Computer Society conferences point authors
+% wanting to use \LaTeX\ to the old, broken \pkgname{latex8} package,
+% which fails to honor the \ICSP's formatting guidelines.  However,
+% because of its incorrectness, \pkgname{latex8} actually gives authors
+% a little more space for text.  \iecnf\ therefore provides a |latex8|
+% option to give authors the extra space provided by the
+% \pkgname{latex8} package without sacrificing compatibility with other
+% \LaTeXe\ packages and flexibility as would using the \pkgname{latex8}
+% package directly.
+%    \begin{macrocode}
+\newif\if@ieee@correct@geometry@
+\@ieee@correct@geometry@true
+\DeclareOption{latex8}{\@ieee@correct@geometry@false}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% For simplicity, we'll derive everything from the standard |article|
+% class but force the |10pt| and, unless overridden, |twocolumn| options.
+%    \begin{macrocode}
+\DeclareOption*{\PassOptionsToClass{\CurrentOption}{article}}
+\ProcessOptions\relax
+\PassOptionsToClass{\ieee@column@spec,10pt}{article}
+\LoadClass{article}
+%    \end{macrocode}
+%
+% \begin{macro}{\ieee@old@maketitle}
+% \begin{macro}{\maketitle}
+% The guidelines say not to paginate.
+%    \begin{macrocode}
+\let\ieee@old@maketitle=\maketitle
+\renewcommand{\maketitle}{%
+  \ieee@old@maketitle
+  \thispagestyle{empty}%
+}
+\pagestyle{empty}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% ``All paragraphs should be indented 1/4~inch (approximately 0.5\,cm).''
+% \changes{v1.3}{2005/08/28}{Updated the paragraph indentation to match
+%   the new \ICSP\ specifications.}
+%    \begin{macrocode}
+\setlength{\parindent}{0.25in}
+%    \end{macrocode}
+%
+%
+% \subsection{Page layout}
+%
+% Define the page layout as per the following instructions:
+%
+% \begin{quotation}
+%   All printed material, including text, illustrations, and charts,
+%   must be kept within a print area of 6-1/2 inches (16.51\,cm) wide by
+%   8-7/8 inches (22.51\,cm) high.  Do not write or print anything
+%   outside the print area.  All \emph{text} must be in a two-column
+%   format.  Columns are to be 3-1/16 inches (7.85\,cm) wide, with a
+%   3/8~inch (0.81\,cm) space between them.  Text must be fully
+%   justified.
+% \end{quotation}
+%
+% \noindent
+% We set the top margin to 1~inch and let the bottom margin define
+% itself based on the top margin and the text height as per the
+% following instructions:
+%
+% \begin{quotation}
+%   The second and following pages should begin 1.0~inch (2.54\,cm) from
+%   the top edge.  On all pages, the bottom margin should be
+%   \mbox{1-1/8~inches} (2.86\,cm) from the bottom edge of the page for
+%   \mbox{8.5~$\times$~11-inch} paper; for A4~paper, approximately
+%   \mbox{1-5/8~inches} (4.13\,cm) from the bottom edge of the page.
+% \end{quotation}
+% \changes{v1.3}{2005/08/28}{Updated the page layout to match the new
+%   \ICSP\ specifications.}
+% \changes{v1.4}{2009/03/21}{Introduced a \texttt{latex8} class option
+%   as per Oliver Kopp's suggestion}
+%    \begin{macrocode}
+\if@ieee@correct@geometry@
+  \RequirePackage[%
+    noheadfoot,
+    textwidth=6.5in,
+    textheight=8.875in,
+    tmargin=1in
+  ]{geometry}
+  \setlength{\columnsep}{0.375in}
+\else
+%    \end{macrocode}
+% The following was copied verbatim from |latex8.sty|:
+%    \begin{macrocode}
+  \setlength{\textheight}{8.875in}
+  \setlength{\textwidth}{6.875in}
+  \setlength{\columnsep}{0.3125in}
+  \setlength{\topmargin}{0in}
+  \setlength{\headheight}{0in}
+  \setlength{\headsep}{0in}
+  \setlength{\parindent}{1pc}
+  \setlength{\oddsidemargin}{-.304in}
+  \setlength{\evensidemargin}{-.304in}
+\fi
+%    \end{macrocode}
+%
+%
+% \subsection{Font selection}
+%
+% The guidelines specify Times (or similar) as the default font and
+% Helvetica as the sans-serif font.  While we're at it, we specify
+% Courier as the fixed-width font.
+% \indexpkgname{mathptmx}\indexpkgname{helvet}\indexpkgname{courier}
+%    \begin{macrocode}
+\RequirePackage{mathptmx}
+\RequirePackage{helvet}
+\RequirePackage{courier}
+%    \end{macrocode}
+%
+% Next, we define commands to set the fonts we'll need later in this
+% file.
+%
+% \begin{macro}{\ieee@times@xiv@bold}
+% Set Times 14\,pt.\ bold.
+%    \begin{macrocode}
+\newcommand{\ieee@times@xiv@bold}{%
+  \rmfamily\bfseries\upshape\fontsize{14}{16}\selectfont}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ieee@times@xii@bold}
+% Set Times 12\,pt.\ bold.
+%    \begin{macrocode}
+\newcommand{\ieee@times@xii@bold}{%
+  \rmfamily\bfseries\upshape\fontsize{12}{14}\selectfont}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ieee@times@xi@bold}
+% Set Times 11\,pt.\ bold.
+%    \begin{macrocode}
+\newcommand{\ieee@times@xi@bold}{%
+  \rmfamily\bfseries\upshape\fontsize{11}{13}\selectfont}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ieee@times@x@bold}
+% Set Times 10\,pt.\ bold.
+%    \begin{macrocode}
+\newcommand{\ieee@times@x@bold}{%
+  \rmfamily\bfseries\upshape\fontsize{10}{12}\selectfont}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ieee@times@xii@roman}
+% Set Times 12\,pt.\ roman.
+%    \begin{macrocode}
+\newcommand{\ieee@times@xii@roman}{%
+  \rmfamily\mdseries\upshape\fontsize{12}{14}\selectfont}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ieee@times@xii@italic}
+% Set Times 12\,pt.\ italic.
+%    \begin{macrocode}
+\newcommand{\ieee@times@xii@italic}{%
+  \rmfamily\mdseries\itshape\fontsize{12}{14}\selectfont}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ieee@times@ix@roman}
+% Set Times 9\,pt.\ roman.
+%    \begin{macrocode}
+\newcommand{\ieee@times@ix@roman}{%
+  \rmfamily\mdseries\upshape\fontsize{9}{11}\selectfont}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ieee@helv@ix@roman}
+% Set Helvetica 9\,pt.\ roman.
+%    \begin{macrocode}
+\newcommand{\ieee@helv@ix@roman}{%
+  \sffamily\mdseries\upshape\fontsize{9}{11}\selectfont}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ieee@helv@x@bold}
+% Set Helvetica 10\,pt.\ bold.
+% \changes{v1.1}{2005/02/12}{Converted figure/table captions from roman
+%   to boldface.  Thanks to Thomas J. Hacker for pointing out the
+%   formatting violation.}
+%    \begin{macrocode}
+\newcommand{\ieee@helv@x@bold}{%
+  \sffamily\bfseries\upshape\fontsize{10}{12}\selectfont}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Title formatting}
+%
+% We use the \pkgname{array} package to help center the text within
+% |tabular| ``|p|'' columns.
+%    \begin{macrocode}
+\RequirePackage{array}
+%    \end{macrocode}
+%
+% \begin{macro}{\ieee@author@width}
+% |\@maketitle| sets this \meta{dimen} to the width of the widest author
+% block.
+%    \begin{macrocode}
+\newlength{\ieee@author@width}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\and}
+% Redefine the |\and| macro used in titles to force some blank space
+% above each author block.  (Other than the |\rule| line, this version
+% of |\and| is identical to the one in |ltsect.dtx|.)
+% \changes{v1.2}{2005/03/26}{Introduced this macro in order to insert
+%   blank space between author blocks.}
+%    \begin{macrocode}
+\def\and{%
+  \end{tabular}%
+  \hskip 1em \@plus 0.17fil%
+  \rule{0pt}{1.5\baselineskip}%
+  \begin{tabular}[t]{@{}>{\centering}p{\ieee@author@width}@{}}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@maketitle}
+% The guidelines say that the ``title (on the first page) should begin
+% 1-3/8 inches (3.49~cm) from the top edge of the page, centered, and in
+% Times 14-point, boldface type\dots Leave two blank lines after the title.''
+% \changes{v1.3b}{2007/01/15}{Corrected the spacing between lines of multiline
+%   titles.}
+%    \begin{macrocode}
+\def\@maketitle{%
+  \newpage
+  \null
+  \vskip 0.375in%
+  \begin{center}%
+    \let\footnote=\thanks
+    {\ieee@times@xiv@bold\@title\par}%
+    \vskip 24pt
+    \ieee@times@xii@roman
+%    \end{macrocode}
+% Set |\ieee@author@width| to the width of the widest author block.
+% \changes{v1.2}{2005/03/26}{Modified to place author blocks in a more
+%   aesthetic manner.  Thanks to Joey Lawrance for drawing my attention
+%   to the unusual-looking formatting used in the previous version of
+%   \iecnf.}
+%    \begin{macrocode}
+    \settowidth{\ieee@author@width}{%
+      \let\and=\crcr
+%    \end{macrocode}
+% We temporarily let-bind both |\thanks| and |\footnote| to |\@gobble|.
+% If we didn't, \iecnf\ would output each footnote twice: once when
+% calculating the width of the author blocks and once when typesetting
+% them.  Note that we use |\@gobble| instead of, say, |\footnotemark|
+% because |\@ieee@old@maketitle| (a.k.a.\ the \pkgname{article} class's
+% |\maketitle| macro) places footnote markers within an |\rlap| so they
+% occupy no horizontal space.
+% \changes{v1.2a}{2005/05/20}{Fixed a bug that caused
+%   \texttt{\string\string\string\thanks} and
+%   \texttt{\string\string\string\footnote} to produce duplicate
+%   footnotes.  Thanks to M. Rasit Eskicioglu for reporting the
+%   duplicate-footnote problem.}
+%    \begin{macrocode}
+      \let\thanks=\@gobble
+      \let\footnote=\@gobble
+      \begin{tabular}[t]{@{}c@{}}%
+        \@author
+      \end{tabular}%
+    }%
+%    \end{macrocode}
+% Typeset all author blocks with columns exactly of width
+% |\ieee@author@width|.
+%    \begin{macrocode}
+    \begin{tabular}[t]{@{}>{\hfil}p{\ieee@author@width}<{\hfil}@{}}%
+      \@author
+    \end{tabular}%
+  \end{center}%
+%    \end{macrocode}
+% ``Author information should be followed by two 12-point blank lines.''
+% The old, broken \pkgname{latex8} package incorrectly follows the
+% author information with only \emph{one} 12-point blank line, so we do
+% likewise when the |latex8| package option is specified.
+% \changes{v1.4}{2009/03/22}{Corrected the spacing between the title block
+%   and the document text}
+%    \begin{macrocode}
+  \if@ieee@correct@geometry@
+    \vskip -\baselineskip
+    \vskip 24pt%
+  \else
+    \vspace*{0.5em}%
+    \vspace*{12pt}%
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{environment}{affiliation}
+% Affiliations are supposed to be in Times~12\,pt.\ italic type.  We
+% define an environment to help out with that.  In \pkgname{latex8}
+% compatibility mode we introduce an extra, unnecessary half~em of
+% vertical space between the author name and affiliation.
+%    \begin{macrocode}
+\newenvironment{affiliation}{%
+  \ieee@times@xii@italic
+  \if@ieee@correct@geometry@
+  \else
+    \rule[10pt]{0pt}{0.5em}%
+  \fi
+  \begin{tabular}[t]{c}%
+}{%
+  \end{tabular}%
+}
+%    \end{macrocode}
+% \end{environment}
+%
+% \begin{macro}{email}
+% E-mail addresses are supposed to be in Times~12\,pt.\ italic type.  We
+% define a macro to help out with that.
+%    \begin{macrocode}
+\newcommand*{\email}[1]{%
+  {\ieee@times@xii@italic#1}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Abstract}
+%
+% \begin{environment}{abstract}
+% The guidelines have a lot to say about formatting abstracts:
+%
+% \begin{quotation}
+%   The abstract is to be in fully-justified italicized text, at the top
+%   of the left-hand column as it is here, below the author information.
+%   Use the word ``Abstract'' as the title, in 12-point Times, boldface
+%   type, centered relative to the column, initially capitalized.  The
+%   abstract is to be in 10-point, single-spaced type, and up to
+%   150~words in length.  Leave two blank lines after the abstract, then
+%   begin the main text.
+% \end{quotation}
+%
+% Most of the following code was taken verbatim from |classes.dtx|.
+% \changes{v1.4}{2009/03/21}{Modified the abstract-handling code to use
+%   the same formatting in both one- and two-column mode}
+% \changes{v1.4}{2009/04/05}{Added \texttt{\char`\\par}
+%   after the abstract title to force paragraph indentation in the
+%   first paragraph of the abstract}
+%    \begin{macrocode}
+\if@titlepage
+  \renewenvironment{abstract}{%
+      \titlepage
+      \null\vfil
+      \@beginparpenalty\@lowpenalty
+      \begin{center}%
+        \bfseries \abstractname
+        \@endparpenalty\@M
+      \end{center}%
+      \par}%
+     {\par\vfil\null\endtitlepage}
+\else
+  \renewenvironment{abstract}{%
+      \begin{center}%
+        \ieee@times@xii@bold \abstractname
+      \end{center}%
+      \par
+      \itshape}%
+      {\vspace*{\baselineskip}}%
+\fi
+%    \end{macrocode}
+% \end{environment}
+%
+%
+% \subsection{Figures and tables}
+%
+% Format figure and table captions as follows:
+%
+% \begin{quotation}
+%   Figure and table captions should be 10-point Helvetica (or a similar
+%   sans-serif font), boldface.  Callouts should be 9-point Helvetica,
+%   non-boldface.  Initially capitalize only the first word of each
+%   figure caption and table title.  Figures and tables must be numbered
+%   separately.  For example: ``Figure~1. Database contexts'',
+%   ``Table~1. Input data''.  Figure captions are to be below the
+%   figures.  Table titles are to be centered above the tables.
+% \end{quotation}
+%
+% Currently, the author is responsible for putting captions above tables
+% and below figures.  The \pkgname{topcapt} package is useful for
+% ensuring proper spacing when captions are placed above a table.
+%
+% \begin{macro}{\@makecaption}
+% Modify |\@makecaption| to typeset everything in 10 pt.\ Helvetica and
+% to put a period instead of a colon after the figure number.  See the
+% definition of |\@makecaption| in |classes.dtx| for additional
+% commentary.
+%    \begin{macrocode}
+\long\def\@makecaption#1#2{%
+  \vskip\abovecaptionskip
+  \sbox\@tempboxa{\ieee@helv@x@bold #1. #2}%
+  \ifdim \wd\@tempboxa >\hsize
+    \ieee@helv@x@bold #1. #2\par
+  \else
+    \global \@minipagefalse
+    \hb@xt@\hsize{\hfil\box\@tempboxa\hfil}%
+  \fi
+  \vskip\belowcaptionskip}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\callout}
+% When the \ICSP\ re-typesets a document they supposedly want the ``See
+% Figure'' and ``See Table'' callouts to stand out to help the
+% typesetter ensure that figures and tables are placed as close as
+% possible to their callouts.  The |\callout| macro simply typesets its
+% argument in 9-point Helvetica as per the \ICSP\ guidelines.
+% \changes{v1.3}{2005/08/28}{Introduced this macro.  Thanks to Ming Kin Lai
+%   for finding out what a ``callout'' is.}
+%    \begin{macrocode}
+\DeclareRobustCommand{\callout}[1]{%
+  {\ieee@helv@ix@roman#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Section headers}
+%
+% The \pkgname{titlesec} package makes it easy to modify section headers.
+%    \begin{macrocode}
+\RequirePackage{titlesec}
+%    \end{macrocode}
+%
+% Format sections as follows:
+%
+% \begin{quotation}
+%   For example, ``1.~Introduction'', should be Times 12-point boldface,
+%   initially capitalized, flush left, with one blank line before, and
+%   one blank line after. Use a period~(``.'') after the Arabic heading
+%   number, not a colon.
+% \end{quotation}
+%
+%    \begin{macrocode}
+\titleformat{\section}{\ieee@times@xii@bold}{\thesection.}{0.5em}%
+  {}\relax
+\titlespacing{\section}{0pt}{12pt}{12pt}
+%    \end{macrocode}
+%
+% Format subsections as follows:
+%
+% \begin{quotation}
+% As in this heading, they should be Times 11-point boldface, initially
+% capitalized, flush left, with one blank line before, and one after.
+% \end{quotation}
+%
+%    \begin{macrocode}
+\titleformat{\subsection}{\ieee@times@xi@bold}{\thesubsection.}%
+  {0.5em}{}\relax
+\titlespacing{\subsection}{0pt}{11pt}{11pt}
+%    \end{macrocode}
+%
+% Format subsubsections as follows:
+%
+% \begin{quotation}
+% Third-order headings, as in this paragraph, are discouraged. However,
+% if you must use them, use 10-point Times, boldface, initially
+% capitalized, flush left, preceded by one blank line, followed by a
+% period and your text on the same line.
+% \end{quotation}
+%
+% \changes{v1.0b}{2004/10/10}{Corrected a formatting problem with
+%   \texttt{\string\string\string\subsubsection} identified by
+%   Ben Ochoa.}
+%
+%    \begin{macrocode}
+\titleformat{\subsubsection}[runin]{\ieee@times@x@bold}%
+  {\thesubsubsection.}{0.5em}{}[.]
+\titlespacing{\subsubsection}{0pt}{10pt}{0.5em}
+%    \end{macrocode}
+%
+% \subsection{References}
+%
+% \begin{environment}{thebibliography}
+% In order to make \iecnf\ play nicely with the \pkgname{tocbibind}
+% package we need to separate the code that outputs the word
+% ``References'' (or whatever |\refname| is defined as) from the code
+% that typesets the bibliography in a list.  Hence, our
+% |thebibliography| definition is rather short.
+%    \begin{macrocode}
+\renewenvironment{thebibliography}[1]{%
+  \section*{\refname}%
+  \@mkboth{\MakeUppercase\refname}{\MakeUppercase\refname}%
+  \begin{ieee@thebibitemlist}{#1}%
+}{%
+  \end{ieee@thebibitemlist}%
+}
+%    \end{macrocode}
+% \end{environment}
+%
+% \begin{environment}{ieee@thebibitemlist}
+% The IEEE guidelines provide very little guidance when it comes to
+% formatting a bibliography.  All they insist upon is that it be typeset
+% in 9\,pt.\ Times and use square brackets.  The following is almost
+% identical to the definition of |thebibliography| in |classes.dtx| but
+% sets the appropriate font size and---as a courtesy to authors
+% struggling to meet page-length requirements---eliminates blank lines
+% between entries.  The user can reinstate blank lines by redefining the
+% |\extrareflistcode| hook.
+%    \begin{macrocode}
+\newenvironment{ieee@thebibitemlist}[1]
+     {\list{\@biblabel{\@arabic\c@enumiv}}%
+           {\ieee@times@ix@roman
+            \setlength{\itemsep}{0pt}%
+            \setlength{\parsep}{0pt}%
+            \settowidth\labelwidth{\@biblabel{#1}}%
+            \leftmargin\labelwidth
+            \advance\leftmargin\labelsep
+            \@openbib@code
+            \usecounter{enumiv}%
+            \let\p@enumiv\@empty
+            \renewcommand\theenumiv{\@arabic\c@enumiv}%
+            \extrareflistcode}%
+      \sloppy
+      \clubpenalty4000
+      \@clubpenalty \clubpenalty
+      \widowpenalty4000%
+      \sfcode`\.\@m}
+     {\def\@noitemerr
+       {\@latex@warning{Empty `thebibliography' environment}}%
+      \endlist}
+%    \end{macrocode}
+% \end{environment}
+%
+% At the beginning of the document, after the author has finished
+% loading packages, we check to see if the \pkgname{tocbibind} package
+% was loaded.  If it was, we replace its |thebibitemlist| environment
+% with our |ieee@thebibitemlist| environment.
+%    \begin{macrocode}
+\AtBeginDocument{%
+  \@ifpackageloaded{tocbibind}{%
+    \let\thebibitemlist=\ieee@thebibitemlist
+    \let\endthebibitemlist=\endieee@thebibitemlist
+  }%
+  {}%
+}
+%    \end{macrocode}
+%
+% \begin{macro}{\ieee@pre@bibitem@key}
+% \begin{macro}{\ieee@pre@bibitem@cmd}
+% The commands defined by the user in |\ieee@pre@bibitem@cmd| are
+% executed before \iecnf\ typesets a bibliographic entry with key
+% |\ieee@pre@bibitem@key|.
+%    \begin{macrocode}
+\newcommand{\ieee@pre@bibitem@key}{IEEEconf}
+\newcommand{\ieee@pre@bibitem@cmd}{}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\dobeforekey}
+% Store a command to execute before a given bibliography key.
+% \changes{v1.3}{2005/05/28}{Introduced this macro.}
+%    \begin{macrocode}
+\newcommand{\dobeforekey}[2]{%
+  \def\ieee@pre@bibitem@key{#1}%
+  \def\ieee@pre@bibitem@cmd{#2}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ieee@old@bibitem}
+% \begin{macro}{\bibitem}
+% Redefine |\bibitem| to insert |\ieee@pre@bibitem@cmd| before a
+% citation or reference label designated by the user.
+%    \begin{macrocode}
+\let\ieee@old@bibitem=\bibitem
+\renewcommand{\bibitem}[2][]{%
+  \def\ieee@biblabel{#1}%
+  \def\ieee@bibkey{#2}%
+  \ifx\ieee@bibkey\ieee@pre@bibitem@key
+    \ieee@pre@bibitem@cmd
+  \fi
+  \ifx\ieee@biblabel\@empty
+    \def\next{\ieee@old@bibitem{#2}}%
+  \else
+    \def\next{\ieee@old@bibitem[#1]{#2}}%
+  \fi
+  \next
+}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\extrareflistcode}
+% Provide a hook for the user to inject arbitrary code into the |list|
+% environment's spacing argument (i.e.,~the second argument to
+% |\begin{list}|) when producing a reference list.
+% \changes{v1.3a}{2005/09/03}{Introduced this macro.}
+%    \begin{macrocode}
+\newcommand{\extrareflistcode}{}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \Finale
+%
+\endinput

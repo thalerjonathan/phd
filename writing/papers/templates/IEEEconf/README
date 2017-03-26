@@ -1,0 +1,51 @@
+              +---------------------------------------+
+              |          THE IEEECONF CLASS           |
+              | By Scott Pakin, scott+iecnf@pakin.org |
+              +---------------------------------------+
+
+Description
+===========
+
+The IEEEconf class implements the formatting dictated by the IEEE
+Computer Society Press for conference proceedings
+(ftp://pubftp.computer.org/press/outgoing/proceedings/instruct8.5x11.pdf).
+IEEEconf.cls replaces latex8.sty and is compatible with any BibTeX
+style, not just latex8.bst.  The goal was to produce a more faithful
+implementation of the formatting rules and to do so with cleaner LaTeX
+code than that provided by the latex8.* files.
+
+
+Installation
+============
+
+Execute "latex IEEEconf.ins" to create IEEEconf.cls.  Install
+IEEEconf.cls at an appropriate place in your directory tree (e.g., in
+/usr/local/share/texmf/tex/latex/IEEEconf/ or
+C:\localtexmf\tex\latex\IEEEconf\) and update the filename database,
+if necessary.  See the UK TeX FAQ (http://www.tex.ac.uk/faq) for more
+information on installing classes.
+
+IEEEconf comes with prebuilt PDF documentation formatted for
+U.S. Letter paper.  If you want to build the documentation from
+scratch, the procedure is as follows:
+
+    latex IEEEconf.dtx
+    makeindex -s gind.ist IEEEconf
+    makeindex -s gglo.ist IEEEconf.glo -o IEEEconf.gls
+    latex IEEEconf.dtx
+
+
+License
+=======
+
+Copyright (C) 2009 by Scott Pakin
+
+This file may be distributed and/or modified under the conditions of
+the LaTeX Project Public License, either version 1.3c of this license
+or (at your option) any later version.  The latest version of this
+license is in:
+
+   http://www.latex-project.org/lppl.txt
+
+and version 1.3c or later is part of all distributions of LaTeX
+version 2006/05/20 or later.

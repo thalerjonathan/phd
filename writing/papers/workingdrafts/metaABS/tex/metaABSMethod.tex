@@ -71,25 +71,18 @@ We need to establish a very important invariant of time. We can query the simula
 simTime :: AgentIn -> Real
 \end{lstlisting}
 
-The following invariant must hold: when calling simTime during recursion it must return constantly the same time as when starting the recursion
-TODO: more formal
+The following invariant must hold: when calling simTime during recursion it must return constantly the same time as when starting the recursion. TODO: more formal
+
+Now when following this approach and running more than one agent we will end up in an infinite regress as every agent will run the other agents which will lead them to initiate a recursion on their own. We need a mechanism to prevent agents which are recursively simulated by the initiating agent to run recursive simulations by their own. TODO: we need to define the terms precisely (initiating agent, recursively simulated agent)
 
 TODO:  how do we restrict recursion to only the recurring agent? either all or none or a list of agentids? the problem is that this is model dependent
 
-TODO:  what happens when running a recursion for more than 1 timestep? does it make sense? what is the meaning of this?
+So far we assumed (TODO: make that clear in the up description) that each recursive simulation is executed for 1 step and thus returning only one AgentOut. What if we want to run a recursive simulation for an arbitrary number of time-steps? We need again the mechanism to prevent 'other' agents from initiating recursive simulations but that is not enough, we need some mechanism of preventing the initiating agent of recursively initiating simulations in every time-step of the recursive simulation - ideally we should leave the choice to the initiating agent but it needs to know that it is in an evolving recursive simulation. within it it can initiate an additional recursive simulation or not - thus an agent can spawn an arbitrary number of recursive simulations within recursive simulations within recursive simulations...
 
 First we need to establish a little bit of terminology to be able to unambiguously discuss the formal approach of Meta-ABS
 TODO: recursion-depth:
 TODO: recursion-replications
 TODO: recursion-length
-
-TODO: what is the difference between depth and length?
-
-There are a few serious pitfalls here: 
-\begin{enumerate}
-	\item When an agent is running a recursion, then we need to restrict the other agents otherwise we will end up in an infinite regress.
-\end{enumerate}
-	
 
 \subsection{Deterministic vs. Non-Deterministic future}
 The model as described in Background section is completely deterministic once it is running because it makes no use of a random-number generator and there are no other sources of non-determinism - the next move of an agent is always completely predictable. If we introduce randomness through a random-number generator into our model then the future becomes non-deterministic \textit{if the state of random-number generator when running recursive simulations is different from when the simulation is run non-recursively.}
@@ -98,19 +91,21 @@ TODO: What if the agents are shuffled every time before being traversed sequenti
 
 \subsection{Computational complexity}
 the computation power grows exponentially with the number of recursion: give a formula depending on number of agents, recursion depth, independent moves of an agent and number of time-steps 
-problem: need to escape infinite regress by preventing simulated 'other' agents to simulate themselves: what would be the outcome in a zeno machine/accelerated turing machine?
 
-we are spanning up 3 dimensions: recursion-depth, replications, and time-steps
 
 \subsection{Philosophical implications}
 
-\subsubsection{Omega Point}
+\subsubsection{Omega Point: the limit case}
 tiplers omega point and paper about god and the simulation argument
 accelerating turing machine: finishes after 1 time steps
+what would be the outcome in a zeno machine/accelerated turing machine if we don't restrict the recursions of 'others' and self?
 
 \url{https://en.m.wikipedia.org/wiki/Omega_Point}
 \url{https://en.m.wikipedia.org/wiki/Zeno_machine}
 \url{https://en.m.wikipedia.org/wiki/Hypercomputation}
+
+\subsubsection{Multidimensional Computation}
+we are spanning up 3 dimensions: recursion-depth, replications, and time-steps
 
 \subsubsection{Emergent Non-Determinism}
 the prediction may work for a single agent but what if more and more agents predict their future? within the prediction no recursion is run so no 2nd level anticipation. 

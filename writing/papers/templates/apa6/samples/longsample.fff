@@ -1,0 +1,9 @@
+\begin{figure*}[hbt]
+\ifnextchar[{\eatarg}{}
+
+    \includegraphics[bb=0in 0in 2.5in 2.5in, height=2.5in, width=2.5in]{Figure1.pdf}
+    \caption{This is my first figure caption.}
+    \label{fig:Figure1}
+\end{figure*}
+\efloatseparator
+ 

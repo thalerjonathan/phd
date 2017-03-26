@@ -1,0 +1,31 @@
+----------------------------------------------------------------------
+
+apa6 - A LaTeX class for formatting documents in compliance with the
+American Psychological Association's Publication Manual, 6th edition
+
+Copyright (C) 2011-2016 by Brian D. Beitzel <brian at beitzel.com>
+
+This work may be distributed and/or modified under the
+conditions of the LaTeX Project Public License (LPPL), either
+version 1.3c of this license or (at your option) any later
+version.  The latest version of this license is in the file:
+
+http://www.latex-project.org/lppl.txt
+
+Users may freely modify these files without permission, as long as the
+copyright line and this statement are maintained intact.
+
+This work is not endorsed by, affiliated with, or probably even known
+by, the American Psychological Association.
+
+----------------------------------------------------------------------
+
+The Publication Manual of the American Psychological Association is
+widely used in the social sciences.  The most recent update, in 2009,
+altered the formatting guidelines and therefore rendered existing
+formatting solutions inadequate.  The apa6 class is an update of
+older code from the apa class (available from CTAN), which is no
+longer being maintained.  New features have also been added, such as
+suppressing references to one's own work to facilitate masked reviews
+of manuscripts by independent reviewers.  See the documentation for
+details.

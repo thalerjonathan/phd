@@ -1,0 +1,420 @@
+%%
+%% This is file `./pseudoTeX/apa6.ptex',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% apa6.dtx  (with options: `ptex')
+%% ----------------------------------------------------------------------
+%% 
+%% apa6 - A LaTeX class for formatting documents in compliance with the
+%% American Psychological Association's Publication Manual, 6th edition
+%% 
+%% Copyright (C) 2011-2016 by Brian D. Beitzel <brian at beitzel.com>
+%% 
+%% This work may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License (LPPL), either
+%% version 1.3c of this license or (at your option) any later
+%% version.  The latest version of this license is in the file:
+%% 
+%% http://www.latex-project.org/lppl.txt
+%% 
+%% Users may freely modify these files without permission, as long as the
+%% copyright line and this statement are maintained intact.
+%% 
+%% This work is not endorsed by, affiliated with, or probably even known
+%% by, the American Psychological Association.
+%% 
+%% ----------------------------------------------------------------------
+%% 
+
+%% pseudo {apa6}
+%% Copyright (C) 2001-2011 Chikrii Softlab.
+%% All rights reserved.
+%% http://www.chikrii.com
+%% mailto: support@chikrii.com
+%% License: You are allowed to create your own translators based
+%% on the contents of this file solely for use with TeX2Word.
+%% Chikrii Softlab is not responsible for any damages caused by the
+%% use of this file or derived works.
+%%
+%% Modified by Brian Beitzel for the 'apa6' class
+%% Distributed with permission from Chikrii Softlab
+
+\DeclareOption{mask}{\def\apaSix@maskauthoridentity{\relax}}
+
+\ProcessOptions\relax
+
+\newenvironment{abstract}{\section*{\abstractname}}{\relax}
+
+\newenvironment{titlepage}{\relax}{\relax}
+\newcommand\appendix{\par
+  \setcounter{section}{0}%
+  \setcounter{subsection}{0}%
+  \gdef\thesection{\@Alph\c@section}}
+\renewcommand\theequation{\@arabic\c@equation}
+\renewcommand\thefigure{\@arabic\c@figure}
+\renewcommand\thetable{\@arabic\c@table}
+
+\newcommand\tableofcontents{\section*{\contentsname}\entity@toc@placeholder}
+\newcommand\listoffigures{\section*{\listfigurename}}
+\newcommand\listoftables{\section*{\listtablename}}
+
+\newenvironment{theindex}{\relax}{\relax}
+\newcommand\contentsname{Contents}
+\newcommand\listfigurename{List of Figures}
+\newcommand\listtablename{List of Tables}
+\newcommand\refname{References}
+\newcommand\indexname{Index}
+\newcommand\figurename{Figure}
+\newcommand\tablename{Table}
+\newcommand\partname{Part}
+\newcommand\appendixname{Appendix}
+\newcommand\abstractname{Abstract}
+\def\today{\ifcase\month\or
+  January\or February\or March\or April\or May\or June\or
+  July\or August\or September\or October\or November\or December\fi
+  \space\number\day, \number\year}
+
+\def\shorttitle#1{\gdef\@shorttitle{#1}\relax}
+\def\leftheader#1{\gdef\@leftheader{#1}\relax}
+\long\def\abstract#1{\gdef\@abstract{#1}\relax}
+\long\def\keywords#1{\gdef\@keywords{#1}\relax}
+\long\def\authornote#1{\gdef\@authornote{#1}\relax}
+\long\def\note#1{\gdef\@note{#1}\relax}
+
+\long\def\cmidrule#1{\gdef\@cmidrule{#1}}
+
+\newcommand{\tabfnm}[1]{\textsuperscript{#1}}
+\newcommand{\tabfnt}[1]{\textsuperscript{#1}}
+\newcommand{\tnote}[1]{\textsuperscript{#1}}
+
+\newcommand\table[1][tbp]{%
+\begingroup%
+    \entity@paragraph@first=0%
+\let\caption=\tab@caption}
+\def\endtable{\par\endgroup}
+
+\@namedef{caption*}#1{\entity@paragraph@new\entity@paragraph@just=1\relax%
+{\normalsize\rm{#1}\par}}
+\newcommand{\tab@caption}[2][?]{\refstepcounter{table}\entity@paragraph@new\relax%
+{\entity@paragraph@first=0\normalsize\rm{\tablename~\thetable\par{\it #2}\par}}%
+}
+\newcommand{\fig@caption}[2][?]{\refstepcounter{figure}\entity@paragraph@new\relax%
+{\entity@paragraph@first=0\normalsize\rm{{\it \figurename~\thefigure.}\space{#2}\par}}%
+}
+
+\newcommand\@secdef@nonum[7]{%
+        \begingroup%
+        \entity@paragraph@style=#1%
+        \entity@paragraph@span@font=0%
+        \entity@paragraph@just=#2%
+        \entity@paragraph@spacebefore=#3%
+        \entity@paragraph@spaceafter=#4%
+        \entity@paragraph@keepwithnext=1%
+        \entity@paragraph@linespacingmultiple=1%
+        \entity@paragraph@spacebetween=480%
+        \entity@paragraph@sbasedon=0\entity@paragraph@snext=0%
+        \relax #5\relax%
+        \stylesheet@style#1=#7; aka Heading #1;%
+        \endgroup%
+        \@namedef{#6}{%
+        \def\@sec@hook@setstyle{\entity@paragraph@style=#1\relax}%
+        \def\@sec@hook@refstepcounter{\relax}%
+        \def\@sec@hook@prefix{\relax}%
+        \@sec@hook}}
+
+\def\@sec@hook@paragraphlevel{%
+        \entity@paragraph@new%
+        \entity@paragraph@linespacingmultiple=1%
+        \entity@paragraph@spacebetween=480%
+        \@@sec@hook@paragraphlevel}
+\def\@@sec@hook@paragraphlevel{%
+        \@ifnextchar*{\@@@sec@hook@paragraphlevel}{\@@@@sec@hook@paragraphlevel}}
+\def\@@@sec@hook@paragraphlevel*#1{%
+        {\@sec@hook@setstyle{#1}\entity@paragraph@new}}
+\def\@@@@sec@hook@paragraphlevel{%
+        \@ifnextchar[{\@@@@@sec@hook@paragraphlevel}{\@@@@@@sec@hook@paragraphlevel}}
+\def\@@@@@sec@hook@paragraphlevel[#1]#2{%
+        {\@sec@hook@setstyle\@sec@hook@refstepcounter\@sec@hook@prefix{#2}.}}
+\def\@@@@@@sec@hook@paragraphlevel#1{%
+        {\@sec@hook@setstyle\@sec@hook@refstepcounter\@sec@hook@prefix{#1}.}}
+
+\newcommand\@secdef@nonum@paragraphlevel[7]{%
+        \begingroup%
+        \entity@paragraph@style=#1%
+        \entity@paragraph@just=1%
+        \entity@paragraph@span@font=0%
+        \entity@paragraph@sbasedon=0\entity@paragraph@snext=0%
+        \relax #5\relax%
+        \stylesheet@style#1=#7; aka Normal;%
+        \endgroup%
+        \@namedef{#6}{%
+        \def\@sec@hook@setstyle{\entity@paragraph@style=#1\relax}%
+        \def\@sec@hook@refstepcounter{\relax}%
+        \def\@sec@hook@prefix{\relax}%
+        \@sec@hook@paragraphlevel}}
+
+\@secdef@nonum{1}{3}{0}{0}{\normalsize\rm\bf}{section}{Section}
+\@secdef@nonum{2}{1}{0}{0}{\normalsize\rm\bf}{subsection}{Subsection}
+\@addtoreset{subsection}{section}
+\@secdef@nonum@paragraphlevel{3}{1}{0}{0}{\normalsize\rm\bf}{subsubsection}{Subsubsection}
+\@addtoreset{subsubsection}{subsection}
+\@secdef@nonum@paragraphlevel{4}{1}{0}{0}{\normalsize\rm\bf\it}{paragraph}{Paragraph}
+\@addtoreset{paragraph}{subsubsection}
+\@secdef@nonum@paragraphlevel{5}{1}{0}{0}{\normalsize\rm\it}{subparagraph}{Subparagraph}
+\@addtoreset{subparagraph}{paragraph}
+
+\newcommand\DeclareLanguageMapping[2]{}
+\newcommand\addbibresource[1]{}
+\newcommand\printbibliography{}
+
+\def\specialComma{,}
+\def\specialSemicolon{;}
+
+\catcode`\^^G=12
+\newcommand*{\doachar}[1]{%
+\if#1\specialComma\specialSemicolon\else#1\fi%%
+}
+\newcommand*{\makeCommaIntoSemicolon}[1]{%
+\def\stuff{#1}\ifx\stuff\@empty\else\@llchars#1^^G\fi}
+\def\@llchars#1#2^^G{%
+\def\letter{#1}\def\others{#2}%
+\ifx\letter\@empty\let\next\@gobble%
+\else%
+\doachar{#1}%
+\ifx\others\@empty \let\next\@gobble%
+\else \let\next\@llchars \fi%
+\fi%
+\next#2^^G}
+\catcode`\^^G=15
+
+\def\parencite{%
+  \@ifnextchar[%
+  {\@parencite}%
+  {\@parencite[]}%
+}
+\def\@parencite[#1]{%
+  \@ifnextchar[%
+  {\@@parencite[#1]}%
+  {\@@parencite[#1][]}%
+}
+\def\@@parencite[#1][#2]#3{%
+  \makeatletter%
+  {\{{{#1}\textbackslash}{\makeCommaIntoSemicolon{#3}}@{#2}\}}%
+  \makeatother%
+}
+
+\let\Parencite=\parencite
+\let\citep=\parencite
+\let\Citep=\parencite
+\let\citeyear=\parencite
+\let\citeyearpar=\parencite
+
+\def\textcite{%
+  \@ifnextchar[%
+  {\@textcite}%
+  {\@textcite[]}%
+}
+\def\@textcite[#1]{%
+  \@ifnextchar[%
+  {\@@textcite[#1]}%
+  {\@@textcite[#1][]}%
+}
+\def\@@textcite[#1][#2]#3{%
+  \makeatletter%
+  {\{ , , \makeCommaIntoSemicolon{#3}@{#2}@author-year\}}%
+  \makeatother%
+}
+\let\Textcite=\textcite
+
+\let\citet=\textcite
+\let\Citet=\textcite
+
+\let\citeA=\textcite
+
+\let\citeauthor=\textcite
+\let\Citeauthor=\textcite
+
+\let\citeyearNP=\textcite
+\let\citeNP=\textcite
+
+\@ifundefined{apaSix@maskauthoridentity}{%  change masked references to unmasked
+
+    % \maskcite
+    \let\maskcite=\parencite
+
+    \let\maskparencite=\maskcite
+    \let\maskParencite=\maskparencite
+    \let\maskcitep=\maskparencite
+    \let\maskCitep=\maskparencite
+    \let\maskciteyear=\maskparencite
+    \let\maskciteyearpar=\maskparencite
+    \let\masktextcite=\maskparencite
+    \let\maskTextcite=\maskparencite
+    \let\maskcitet=\maskparencite
+    \let\maskCitet=\maskparencite
+    \let\maskciteA=\maskparencite
+    \let\maskciteauthor=\maskparencite
+    \let\maskCiteauthor=\maskparencite
+    \let\maskciteyearNP=\maskparencite
+    \let\maskciteNP=\maskparencite
+
+}{%  mask references to author
+
+    % \maskcite
+    \newcommand\maskcite{\@ifnextchar[{\maskcite@@also}{\maskcite@@also[]}}
+    \newcommand\maskcite@@also{}
+    \def\maskcite@@also[#1]{\@ifnextchar[{\maskcite@@@also[#1]}{\maskcite@@@also[][#1]}}
+
+    \def\maskcite@@@also%
+        [#1][#2]#3{%
+            \def\apaSix@masked@refs{\it (citation(s) removed for masked review)}%
+            {\apaSix@masked@refs}%
+    }
+
+    \let\maskparencite=\maskcite
+    \let\maskParencite=\maskparencite
+    \let\maskcitep=\maskparencite
+    \let\maskCitep=\maskparencite
+    \let\maskciteyear=\maskparencite
+    \let\maskciteyearpar=\maskparencite
+
+    \let\masktextcite=\maskparencite
+    \let\maskTextcite=\maskparencite
+    \let\maskcitet=\maskparencite
+    \let\maskCitet=\maskparencite
+    \let\maskciteA=\maskparencite
+    \let\maskciteauthor=\maskparencite
+    \let\maskCiteauthor=\maskparencite
+    \let\maskciteyearNP=\maskparencite
+    \let\maskciteNP=\maskparencite
+
+}
+
+\long\def\maketitle{\entity@paragraph@new\begingroup\entity@paragraph@just=1\relax%
+{\raggedright\entity@paragraph@first=0\entity@paragraph@linespacingmultiple=0\entity@paragraph@spacebetween=240%
+{\bf INSTRUCTIONS:}\par\entity@paragraph@first=0%
+\begin{enumerate}%
+\item Insert page numbers (non-italic) in top right corner\par%
+\item Insert the following text on the left-hand side of the page header:\par%
+  \begin{itemize}%
+    \item Running head: \MakeUppercase{\@shorttitle}\par%
+  \end{itemize}%
+\item Adjust the vertical spacing on this title page to look appealing%
+\item Verify formatting accuracy of bibliographic entries and References list%
+\item Move each table and figure to its appropriate place at the end of the document%
+  \begin{itemize}%
+    \item {\it Note:} Captions are already formatted properly (above tables, below figures)
+  \end{itemize}%
+\item Format tables
+  \begin{itemize}%
+    \item {\it Hint:} Start by showing all borders, left-align, and make 100\% wide
+    \item See the .pdf version of the \LaTeX\ file to see how the table should look
+  \end{itemize}%
+\item The final pages must appear in this order:%
+  \begin{enumerate}%
+    \item References
+    \item Tables
+    \item Figures
+    \item Appendices
+  \end{enumerate}%
+\item Delete these instructions!%
+\end{enumerate}}%
+\@ifundefined{apaSix@maskauthoridentity}{%
+{\par\centering\entity@paragraph@first=0{\newline}\par}%
+{\centering\entity@paragraph@first=0%
+{\@title}\newline%
+{\@author}\newline%
+{\@affiliation}%
+        \newline{\@note}%
+\par%
+{%
+\@ifundefined{\@authornote}{}{%
+\par\entity@paragraph@first=0%
+\newline\newline\newline%
+{Author Note\par\par}%
+}%
+}%
+}%
+\@ifundefined{\@authornote}{}{%
+    {\entity@paragraph@first=720\@authornote}%
+}
+}{%
+{\par\centering\entity@paragraph@first=0{\newline}\par}%
+{\centering\entity@paragraph@first=0%
+{\@title}\newline%
+        \newline{\@note}%
+\par%
+}%
+     {\entity@paragraph@first=720\par}
+}%
+\newpage%
+{\centering\entity@paragraph@first=0{Abstract\par\par}}%
+{\entity@paragraph@first=0\@abstract\par}%
+{\entity@paragraph@first=720{\it Keywords:} \@keywords}%
+\newpage%
+{\entity@paragraph@new\begingroup\entity@paragraph@just=3\entity@paragraph@first=0\relax%
+  {\@title}%
+  \par\endgroup%
+}%
+\entity@paragraph@first=720%
+\endgroup}
+
+\entity@paragraph@just=1
+\entity@paragraph@first=720%
+\entity@paragraph@linespacingmultiple=1%
+\entity@paragraph@spacebetween=480%
+\stylesheet@style8=Normal; aka Normal;%
+
+\ProcessOptions
+
+\api@lockfile apa6
+
+\@@endinput
+
+
+%% 
+%% Copyright (C) 2011-2016 by Brian D. Beitzel <brian at beitzel.com>
+%% 
+%% This work may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License (LPPL), either
+%% version 1.3c of this license or (at your option) any later
+%% version.  The latest version of this license is in the file:
+%% 
+%% http://www.latex-project.org/lppl.txt
+%% 
+%% Users may freely modify these files without permission, as long as the
+%% copyright line and this statement are maintained intact.
+%% 
+%% This work is not endorsed by, affiliated with, or probably even known
+%% by, the American Psychological Association.
+%% 
+%% 
+%% This work is "maintained" (as per LPPL maintenance status) by
+%% Brian D. Beitzel.
+%% 
+%% This work consists of the file  apa6.dtx
+%% and the derived files           apa6.ins,
+%%                                 apa6.cls,
+%%                                 apa6.pdf,
+%%                                 README,
+%%                                 APAamerican.txt,
+%%                                 APAbritish.txt,
+%%                                 APAdutch.txt,
+%%                                 APAenglish.txt,
+%%                                 APAgerman.txt,
+%%                                 APAngerman.txt,
+%%                                 APAgreek.txt,
+%%                                 APAczech.txt,
+%%                                 APAturkish.txt,
+%%                                 APAendfloat.cfg,
+%%                                 apa6.ptex,
+%%                                 TeX2WordForapa6.bas,
+%%                                 Figure1.pdf,
+%%                                 shortsample.tex,
+%%                                 longsample.tex, and
+%%                                 bibliography.bib.
+%% 
+%%
+%% End of file `./pseudoTeX/apa6.ptex'.

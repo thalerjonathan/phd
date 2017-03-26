@@ -1,0 +1,177 @@
+%%
+%% This is file `./samples/shortsample.tex',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% apa6.dtx  (with options: `shortsample')
+%% ----------------------------------------------------------------------
+%% 
+%% apa6 - A LaTeX class for formatting documents in compliance with the
+%% American Psychological Association's Publication Manual, 6th edition
+%% 
+%% Copyright (C) 2011-2016 by Brian D. Beitzel <brian at beitzel.com>
+%% 
+%% This work may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License (LPPL), either
+%% version 1.3c of this license or (at your option) any later
+%% version.  The latest version of this license is in the file:
+%% 
+%% http://www.latex-project.org/lppl.txt
+%% 
+%% Users may freely modify these files without permission, as long as the
+%% copyright line and this statement are maintained intact.
+%% 
+%% This work is not endorsed by, affiliated with, or probably even known
+%% by, the American Psychological Association.
+%% 
+%% ----------------------------------------------------------------------
+%% 
+\documentclass[jou]{apa6}
+
+\usepackage[american]{babel}
+
+\usepackage{csquotes}
+\usepackage[style=apa,sortcites=true,sorting=nyt,backend=biber]{biblatex}
+\DeclareLanguageMapping{american}{american-apa}
+\addbibresource{bibliography.bib}
+
+\title{Sample APA-Style Document Using the \textsf{apa6} Package}
+
+\author{Brian D. Beitzel}
+\affiliation{SUNY Oneonta}
+
+\leftheader{Beitzel}
+
+\abstract{This demonstration paper uses the \textsf{apa6} \LaTeX\
+  class to format the document in compliance with the 6th Edition of
+  the American Psychological Assocation's \textit{Publication Manual.}
+  The references are managed using \textsf{biblatex}.}
+
+\keywords{APA style, demonstration}
+
+\begin{document}
+\maketitle
+We begin with \textcite{Shotton1989}.  We can also cite this work in
+parenthesis, like this: \parencite{Shotton1989}.
+
+A three-author paper \parencite[e.g.,][]{Lassen2006} lists all
+three authors for the first citation, then only the first author
+on all subsequent citations \parencite{Lassen2006}.
+
+Note the use of five heading levels throughout this demonstration
+Method section.
+
+\section{Method}
+\subsection{Participants}
+We had a lot of people in this study.
+
+\subsection{Materials}
+Several materials were used for this project.  Some of themwere
+already created for prior research.
+
+\subsubsection{Paper-and-Pencil Instrument}
+We used an instrument that we found to be highly successful.
+
+\paragraph{Reliability}
+The reliability of this instrument is extraordinary.
+
+\paragraph{Validity}
+We now discuss the validity of our instrument.
+
+\subparagraph{Face validity} The face validity is exceptionally
+strong.  Everyone should be impressed.
+
+\subparagraph{Construct validity} Also very strong.
+
+\subsection{Design}
+This section describes the study's design.
+
+\subsection{Procedure}
+The procedure was fairly straightforward, yet required
+attention to detail.
+
+\section{Results}
+Table \ref{tab:ComplexTable} contains some sample data.  Our
+statistical prowess in analyzing these data is unmatched.
+
+\begin{table}[htbp]
+  \vspace*{2em}
+  \begin{threeparttable}
+    \caption{A Complex Table}
+    \label{tab:ComplexTable}
+    \begin{tabular}{@{}lrrr@{}}         \toprule
+    Distribution type  & \multicolumn{2}{l}{Percentage of} & Total number   \\
+                       & \multicolumn{2}{l}{targets with}  & of trials per  \\
+                       & \multicolumn{2}{l}{segment in}    & participant    \\ \cmidrule(r){2-3}
+                                    &  Onset  &  Coda            &          \\ \midrule
+    Categorical -- onset\tabfnm{a}  &    100  &     0            &  196     \\
+    Probabilistic                   &     80  &    20\tabfnm{*}  &  200     \\
+    Categorical -- coda\tabfnm{b}   &      0  &   100\tabfnm{*}  &  196     \\ \midrule
+    \end{tabular}
+    \begin{tablenotes}[para,flushleft]
+        {\small
+            \textit{Note.} All data are approximate.
+
+            \tabfnt{a}Categorical may be onset.
+            \tabfnt{b}Categorical may also be coda.
+
+            \tabfnt{*}\textit{p} < .05.
+            \tabfnt{**}\textit{p} < .01.
+         }
+    \end{tablenotes}
+  \end{threeparttable}
+\end{table}
+
+\section{Discussion}
+This is a lengthy and erudite discussion.  It demonstrates amazing
+skill in interpreting the results for the masses.
+
+\printbibliography
+
+\end{document}
+
+%% 
+%% Copyright (C) 2011-2016 by Brian D. Beitzel <brian at beitzel.com>
+%% 
+%% This work may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License (LPPL), either
+%% version 1.3c of this license or (at your option) any later
+%% version.  The latest version of this license is in the file:
+%% 
+%% http://www.latex-project.org/lppl.txt
+%% 
+%% Users may freely modify these files without permission, as long as the
+%% copyright line and this statement are maintained intact.
+%% 
+%% This work is not endorsed by, affiliated with, or probably even known
+%% by, the American Psychological Association.
+%% 
+%% 
+%% This work is "maintained" (as per LPPL maintenance status) by
+%% Brian D. Beitzel.
+%% 
+%% This work consists of the file  apa6.dtx
+%% and the derived files           apa6.ins,
+%%                                 apa6.cls,
+%%                                 apa6.pdf,
+%%                                 README,
+%%                                 APAamerican.txt,
+%%                                 APAbritish.txt,
+%%                                 APAdutch.txt,
+%%                                 APAenglish.txt,
+%%                                 APAgerman.txt,
+%%                                 APAngerman.txt,
+%%                                 APAgreek.txt,
+%%                                 APAczech.txt,
+%%                                 APAturkish.txt,
+%%                                 APAendfloat.cfg,
+%%                                 apa6.ptex,
+%%                                 TeX2WordForapa6.bas,
+%%                                 Figure1.pdf,
+%%                                 shortsample.tex,
+%%                                 longsample.tex, and
+%%                                 bibliography.bib.
+%% 
+%%
+%% End of file `./samples/shortsample.tex'.

@@ -1,36 +1,30 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% University/School Laboratory Report
-% LaTeX Template
-% Version 3.1 (25/3/14)
-%
-% This template has been downloaded from:
-% http://www.LaTeXTemplates.com
-%
-% Original author:
-% Linux and Unix Users Group at Virginia Tech Wiki 
-% (https://vtluug.org/wiki/Example_LaTeX_chem_lab_report)
-%
-% License:
-% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ----------------------------------------------------------------------
+%% 
+%% apa6 - A LaTeX class for formatting documents in compliance with the
+%% American Psychological Association's Publication Manual, 6th edition
+%% 
+%% Copyright (C) 2011-2016 by Brian D. Beitzel <brian at beitzel.com>
+%% 
+%% This work may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License (LPPL), either
+%% version 1.3c of this license or (at your option) any later
+%% version.  The latest version of this license is in the file:
+%% 
+%% http://www.latex-project.org/lppl.txt
+%% 
+%% Users may freely modify these files without permission, as long as the
+%% copyright line and this statement are maintained intact.
+%% 
+%% This work is not endorsed by, affiliated with, or probably even known
+%% by, the American Psychological Association.
+%% 
+%% ----------------------------------------------------------------------
 
-%----------------------------------------------------------------------------------------
-%	PACKAGES AND DOCUMENT CONFIGURATIONS
-%----------------------------------------------------------------------------------------
-
-\documentclass[twocolumn, 10pt]{article}
-%\documentclass[10pt]{article}
-% \documentclass{llncs}
-% \usepackage{makeidx}
-
+\documentclass[jou]{apa6}
 
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx} % Required for the inclusion of images
-%\usepackage{natbib} % Required to change bibliography style to APA
 \usepackage{amsmath} % Required for some math elements 
-\usepackage{glossaries}
-\usepackage[toc,page]{appendix}
 \usepackage[autostyle=true]{csquotes}
 \usepackage{hyperref}
 \usepackage{amssymb}
@@ -42,32 +36,23 @@
 \usepackage{subcaption}
 \usepackage{rotating}
 
-\setlength\parindent{0pt} % Removes all indentation from paragraphs
+\usepackage[style=apa,sortcites=true,sorting=nyt,backend=biber]{biblatex}
 
-%\usepackage{times} % Uncomment to use the Times New Roman font
+\addbibresource{../../../references/phdReferences.bib}
 
-%----------------------------------------------------------------------------------------
-%	DOCUMENT INFORMATION
-%----------------------------------------------------------------------------------------
+\title{The Art of Iterating:\\Update-Strategies in Agent-Based Simulation}
 
-\title{The Art of Iterating:\\Update-Strategies in Agent-Based Simulation} % Title
- 
-\author{Jonathan \textsc{Thaler}} % Author name
+\twoauthors{Jonathan Thaler}{Dr. Peer-Olaf Siebers}
+\twoaffiliations{University of Nottingham}{University of Nottingham}
 
-\date{\today} % Date for the report
+\leftheader{Thaler}
+
+\abstract{When developing a model for an Agent-Based Simulation (ABS) it is very important to select the update-strategy which reflects the semantics of the model because simulation results can vary vastly across different update-strategies. This awareness, we claim, is still lacking in the field of ABS. In this paper our contribution is to derive general properties of ABS and use them to classify all update-strategies possible in ABS. This will allow implementers and researchers in this field to use a general terminology, removing ambiguities when discussing ABS and their models. We will give results of simulating a discrete and a continuous game using our update-strategies and show that in the case of the discrete game only one specific strategy seems to be able to produce its emergent patterns whereas the pattern of the continuous game seems to be robust under varying update-strategies.}
+
+\keywords{Agent-Based Simulation, Parallelism, Concurrency, Emergence}
 
 \begin{document}
-%
-\maketitle % Insert the title, author and date
-
-% If you wish to include an abstract, uncomment the lines below
-\begin{abstract}
-When developing a model for an Agent-Based Simulation (ABS) it is very important to select the update-strategy which reflects the semantics of the model because simulation results can vary vastly across different update-strategies. This awareness, we claim, is still lacking in the field of ABS. In this paper our contribution is to derive general properties of ABS and use them to classify all update-strategies possible in ABS. This will allow implementers and researchers in this field to use a general terminology, removing ambiguities when discussing ABS and their models. We will give results of simulating a discrete and a continuous game using our update-strategies and show that in the case of the discrete game only one specific strategy seems to be able to produce its emergent patterns whereas the pattern of the continuous game seems to be robust under varying update-strategies.
-%TODO: read 2 or 3 papers of target conference to get a feeling on the content/style. "how do people communicate?"
-\end{abstract}
-
-\subsection*{Keywords}
-Agent-Based Simulation, Parallelism, Concurrency, Actors, Emergence, Prisoners Dilemma, Heroes and Cowards
+\maketitle
 
 \input{./tex/introduction.tex}
 
@@ -79,7 +64,8 @@ Agent-Based Simulation, Parallelism, Concurrency, Actors, Emergence, Prisoners D
 
 \input{./tex/conclusion.tex}
 
-\bibliographystyle{acm}
-\bibliography{../../references/phdReferences}
+%\bibliographystyle{acm}
+%\bibliography{../../..references/phdReferences}
+\printbibliography
 
 \end{document}

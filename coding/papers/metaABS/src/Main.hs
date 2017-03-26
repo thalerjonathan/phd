@@ -5,4 +5,4 @@ import Segregation.SegregationRun
 import MetaABS.MetaABSRun
 
 main :: IO ()
-main = runMetaABSStepsAndPrint -- runSIRSWithRendering -- runSegWithRendering -- runSegStepsAndRender
+main = runSegWithRendering -- runMetaABSStepsAndPrint -- runSIRSWithRendering -- runSegWithRendering -- runSegStepsAndRender

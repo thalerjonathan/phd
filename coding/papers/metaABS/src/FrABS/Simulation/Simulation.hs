@@ -256,12 +256,18 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
 
                 (_, newIn, _) = fromJust mayAgent
 
+                -- TODO: introduce flag in AgentOut: OthersRecursionAllow/Deny
+                -- TODO: introduce flag in AgentIn: aiRecAllowed/aiInsideOtherRecursion
+                -- TODO: set the flag of the others AgentIn simply when we are starting a simulation here to prevent them
+                -- TODO: to prevent an endless creation of recursions when running a recursion for more than 1 step one needs to let the recursive agent let know it is inside its own recursion with the same mechanism as letting others now they are inside another recursion.
+
                 -- NOTE: need to add agent, because not included
                 allAsfs = otherSfs ++ [oldSf]       -- NOTE: use the old sf, no time
                 allAins = otherIns' ++ [newIn]
 
                 -- TODO: does it make sense to run multiple steps? what is the meaning of it?
-                -- NOTE: when setting steps to > 1 we end up in an infinite loop - why?
+                -- TODO: when running for multiple steps it makes sense to specify WHEN the agent of oldSF runs
+                -- NOTE: when setting steps to > 1 we end up in an infinite loop
                 allStepsRecOuts = (simulate allAins allAsfs False 1.0 1)
 
                 lastStepRecOuts = (last allStepsRecOuts)

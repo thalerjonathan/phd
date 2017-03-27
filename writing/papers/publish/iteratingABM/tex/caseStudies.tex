@@ -1,9 +1,9 @@
 \section{Case-Studies}
-In this section we present two case-studies in simulating the \textit{Prisoners Dilemma} and \textit{Heroes \& Cowards} games for discussing the effect of using different update-strategies. As already emphasised both are of different nature. The first one is a discrete game, played at discrete time-steps. The second one is a continuous game where each agent is continuously playing. This has profound implications on the simulation results as will is shown below. The figures show that depending on the type of model the results can vary when using different update-strategies as happening in the case of \textit{Prisoners Dilemma}. Results of other models seem to be stable under varying update-strategies as is the case with \textit{Heroes \& Cowards}.
+In this section we present two case-studies in simulating the \textit{Prisoners Dilemma} and \textit{Heroes \& Cowards} games for discussing the effect of using different update-strategies. As already emphasised in this section, both are of different nature. The first one is a discrete game, played at discrete time-steps. The second one is a continuous game where each agent is continuously playing. This has profound implications on the simulation results as will is shown below. We implemented the simulations for all strategies except the actor-strategy in Java and the simulations for the actor-strategy in Haskell and in Scala with the Actor-library.
 
-\begin{table*}
-	\centering
-	
+\begin{figure*}
+\begin{center}
+
 	\begin{tabular}{c c}
 		\textbf{Prisoners Dilemma} & \textbf{Heroes \& Cowards} \\ 
 
@@ -78,70 +78,9 @@ In this section we present two case-studies in simulating the \textit{Prisoners 
 	
 	\caption{\small Effect on results simulating the Prisoners Dilemma and Heroes \& Cowards with all four update-strategies.} 
 	\label{fig:results}
-\end{table*}
-
-%\begin{figure*}
-%
-%	 \centering
-%	
-%    \begin{subfigure}[b]{0.4\textwidth}
-%			\centering
-%       	\includegraphics[width=.7\textwidth, angle=0]{./fig/seq_QUEUED_SG_436steps_java.png}
-%        \caption{\textit{sequential} Prisoners Dilemma}
-%        \label{fig:pd_seq}
-%    \end{subfigure}
-%    \begin{subfigure}[b]{0.4\textwidth}
-%		\centering
-%        \includegraphics[width=.7\textwidth, angle=0]{./fig/seq_HAC_100_000_500steps_java.png}
-%        \caption{\textit{sequential} Heroes \& Cowards}
-%        \label{fig:hac_seq}
-%    \end{subfigure}
-%       
-%
-%    \begin{subfigure}[b]{0.4\textwidth}
-%		\centering
-%       	\includegraphics[width=.7\textwidth, angle=0]{./fig/par_SG_436steps_java.png}
-%        \caption{\textit{parallel} Prisoners Dilemma}
-%        \label{fig:pd_par}
-%    \end{subfigure}
-%    \begin{subfigure}[b]{0.4\textwidth}
-%    	\centering
-%        \includegraphics[width=.7\textwidth, angle=0]{./fig/par_HAC_100_000_500steps_java.png}
-%        \caption{\textit{parallel} Heroes \& Cowards}
-%        \label{fig:hac_par}
-%    \end{subfigure}
-%        
-%
-%    \begin{subfigure}[b]{0.4\textwidth}
-%		\centering
-%       	\includegraphics[width=.7\textwidth, angle=0]{./fig/con_SG_436steps_java.png}
-%        \caption{\textit{concurrent} Prisoners Dilemma}
-%        \label{fig:pd_con}
-%    \end{subfigure}
-%    \begin{subfigure}[b]{0.4\textwidth}
-%    	\centering
-%        \includegraphics[width=.7\textwidth, angle=0]{./fig/con_HAC_100_000_500steps_java.png}
-%        \caption{\textit{concurrent} Heroes \& Cowards}
-%        \label{fig:hac_con}
-%    \end{subfigure}
-%
-%
-%    \begin{subfigure}[b]{0.4\textwidth}
-%		\centering
-%       	\includegraphics[width=.7\textwidth, angle=0]{./fig/act_SG_436steps_java.png}
-%        \caption{\textit{actor} Prisoners Dilemma}
-%        \label{fig:pd_act}
-%    \end{subfigure}  
-%    \begin{subfigure}[b]{0.4\textwidth}
-%    	\centering
-%        \includegraphics[width=.7\textwidth, angle=0]{./fig/act_HAC_100_000_500steps_scala.png}
-%        \caption{\textit{actor} Heroes \& Cowards}
-%        \label{fig:hac_act}
-%    \end{subfigure}
-%
-%	\caption{\small Effect on results simulating the Prisoners Dilemma and Heroes \& Cowards with all four update-strategies.} 
-%	\label{fig:results}
-%\end{figure*}
+	
+\end{center}
+\end{figure*}
 
 \subsection{Prisoners Dilemma}
 \paragraph{The agent-based model}
@@ -150,7 +89,7 @@ Our agent-based model of this game works as follows: at the start of the simulat
 Care must be taken to ensure that the update-strategies are comparable because when implementing a model in an update-strategy it is necessary to both map the model to the strategy and try to stick to the same specification - if the implementation of the model differs fundamentally across the update-strategies it is not possible to compare the solutions. So we put great emphasis and care keeping all four implementations of the model the same just with a different update-strategy running behind the scenes which guarantees comparability.
 
 \paragraph{Results}
-The results as seen in the left column of Figure \ref{fig:results} were created with the same configuration as reported in the original paper. When comparing the pictures with the one from the original paper seen in Figure \ref{fig:sync_patterns} the only update-strategy which is able to reproduce the matching result is the \textit{parallel strategy} - all the others clearly fail to reproduce the pattern (with the exception of a slightly different implementation using immediate messaging in the sequential strategy, see below). From this we can deduce that only the \textit{parallel strategy} is suitable to simulate this model because only that strategy is the one which renders the results of the original paper, meaning it is the 'correct' strategy for this model. 
+The results as seen in the left column of Figure \ref{fig:results} were created with the same configuration as reported in \cite{nowak_evolutionary_1992}. When comparing the pictures with the one from the reference seen in Figure \ref{fig:sync_patterns} the only update-strategy which is able to reproduce the matching result is the \textit{parallel strategy} - all the others clearly fail to reproduce the pattern (with the exception of a slightly different implementation using immediate messaging in the sequential strategy, see below). From this we can deduce that only the \textit{parallel strategy} is suitable to simulate this model because only that strategy is the one which renders the results of the original paper, meaning it is the 'correct' strategy for this model. 
 
 To reproduce the pattern of Figure \ref{fig:sync_patterns} the simulation needs to be split into two global steps which must happen after each other: first calculating the sum of all payoffs for every agent and then selecting the role of the highest payoff within the neighbourhood. This two-step approach results in the need for twice as many steps to arrive at the matching pattern when using \textit{queued} messaging as is the case in the \textit{parallel, concurrent} and \textit{actor strategy}.
 

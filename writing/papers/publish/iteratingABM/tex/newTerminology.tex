@@ -1,6 +1,8 @@
 \section{A new terminology}
 When looking at related work, we observe that there seems to be a variety of meanings attributed to the terminology of asynchronous and synchronous updates but the very semantic and technical details are unclear and not described very precisely. To develop a standard terminology, we propose to abandon the notion of synchronous and asynchronous updates and, based on the discussion above we propose six properties characterizing the dimensions and details of the internals of an ABS. Having these properties identified we then derive all meaningful and reasonable update-strategies which are possible in a general form in ABS. These update-strategies together with the properties will form the new terminology we propose for speaking about update-strategies in ABS in general. For each strategy we give a short description, the list of all properties and discuss their semantics and variations. We will discuss all details programming-language agnostic, give semantic meanings and interpretations of them and the implications selecting update-strategies for a model. A summary of all update-strategies and their properties is given in Table \ref{tab:update_strategies}.
 
+TODO peer comment: which is the typical strategy used? maybe you want to say this somewhere in similiar to the statement that the actor-strategy is the most generic one. e.g. NetLogo? AnyLogic?
+
 \subsection{ABS Properties}
 TODO peer comment: one sentence to tell what is coming e.g. "Used to distinguish update-strategies..."
 
@@ -25,7 +27,7 @@ Does the ABS has an external source of non-determinism which it cannot influence
 \subsection{ABS Update-Strategies}
 
 \subsubsection{Sequential Strategy}
-This strategy has a globally synchronized time-flow and in each time-step iterates through all the agents and updates one agent after another. Messages sent and changes to the environment made by agents are visible immediately.
+This strategy has a globally synchronized time-flow and in each time-step iterates through all the agents and updates one agent after another. Messages sent and changes to the environment made by agents are visible immediately. \\
 
 \textbf{Iteration-Order:} Sequential \\
 \textbf{Global Synchronization:} Yes \\
@@ -39,7 +41,7 @@ This strategy has a globally synchronized time-flow and in each time-step iterat
 \paragraph{Variation:} If the sequential iteration from agent [1..n] imposes an advantage over the agents further ahead or behind in the queue (e.g. if it is of benefit when making choices earlier than others in auctions or later when more information is available) then one could use random-walk iteration where in each time-step the agents are shuffled before iterated. Note that although this would introduce randomness in the model the source is a random-number generator implying it is still deterministic. If one wants to have a very specific ordering, e.g. 'better performing' agents first, then this can be easily implemented too by exposing some sorting-criterion and sorting the collection of agents after each iteration. \\
 
 \subsubsection{Parallel Strategy}
-This strategy has a globally synchronized time-flow and in each time-step iterates through all the agents and updates them in parallel. Messages sent and changes to the environment made by agents are visible in the next global step. We can think about this strategy in a way that all agents make their moves at the same time.
+This strategy has a globally synchronized time-flow and in each time-step iterates through all the agents and updates them in parallel. Messages sent and changes to the environment made by agents are visible in the next global step. We can think about this strategy in a way that all agents make their moves at the same time. \\
 
 \textbf{Iteration-Order:} Parallel \\
 \textbf{Global Synchronization:} Yes \\
@@ -53,7 +55,7 @@ It does not make a difference if the agents are really computed in parallel or j
 It is important to note that in this strategy a reply to a message will not be delivered in the current but in the next global time-step. This is in contrast to the immediate message-delivery of the \textit{sequential} strategy where within a global time-step agents can have in fact an arbitrary number of messages exchanged. \\
 
 \subsubsection{Concurrent Strategy}
-This strategy has a globally synchronized time-flow and in each time-step iterates through all the agents and updates all agents in parallel but all messages sent and changes to the environment are immediately visible. So this strategy can be understood as a more general form of the \textit{parallel strategy}: all agents run at the same time but act concurrently.
+This strategy has a globally synchronized time-flow and in each time-step iterates through all the agents and updates all agents in parallel but all messages sent and changes to the environment are immediately visible. So this strategy can be understood as a more general form of the \textit{parallel strategy}: all agents run at the same time but act concurrently. \\
 
 \textbf{Iteration-Order:} Parallel \\
 \textbf{Global Synchronization:} Yes \\
@@ -66,7 +68,7 @@ This strategy has a globally synchronized time-flow and in each time-step iterat
 
 
 \subsubsection{Actor Strategy}
-This strategy has no globally synchronized time-flow but all the agents run concurrently in parallel, with their own local time-flow. The messages and changes to the environment are visible as soon as the data arrive at the local agents - this can be immediately when running locally on a multi-processor or with a significant delay when running in a cluster over a network. Obviously this is also a non-deterministic strategy and repeated runs with the same agent and model-configuration may (and will) lead to different results.
+This strategy has no globally synchronized time-flow but all the agents run concurrently in parallel, with their own local time-flow. The messages and changes to the environment are visible as soon as the data arrive at the local agents - this can be immediately when running locally on a multi-processor or with a significant delay when running in a cluster over a network. Obviously this is also a non-deterministic strategy and repeated runs with the same agent and model-configuration may (and will) lead to different results. \\
 
 \textbf{Iteration-Order:} Parallel \\
 \textbf{Global Synchronization:} No \\

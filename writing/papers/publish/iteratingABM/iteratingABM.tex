@@ -20,8 +20,8 @@
 %% 
 %% ----------------------------------------------------------------------
 
-\documentclass[jou]{apa6}
-%\documentclass[a4paper, 10pt, conference]{ieeeconf}
+%\documentclass[jou]{apa6}
+\documentclass[a4paper, 10pt, conference]{IEEEconf}
 
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx} % Required for the inclusion of images
@@ -35,23 +35,29 @@
 \usepackage{listings}
 \usepackage{subcaption}
 
-\usepackage[style=apa,sortcites=true,sorting=nyt,backend=biber]{biblatex}
+%\usepackage[style=apa,sortcites=true,sorting=nyt,backend=biber]{biblatex}
 
-\addbibresource{../../../references/phdReferences.bib}
+%\addbibresource{../../../references/phdReferences}
 
 \title{The Art of Iterating:\\Update-Strategies in Agent-Based Simulation}
 
-\twoauthors{Jonathan Thaler}{Dr. Peer-Olaf Siebers}
-\twoaffiliations{University of Nottingham}{University of Nottingham}
+\author{Jonathan \textsc{Thaler}} % Author name
 
-\leftheader{Thaler}
+%\twoauthors{Jonathan Thaler}{Dr. Peer-Olaf Siebers}
+%\twoaffiliations{University of Nottingham}{University of Nottingham}
 
-\abstract{When developing a model for an Agent-Based Simulation (ABS) it is very important to select the update-strategy which reflects the semantics of the model because simulation results can vary vastly across different update-strategies. This awareness, we claim, is still lacking in the field of ABS. In this paper our contribution is to derive general properties of ABS and use them to classify all update-strategies possible in ABS. This will allow implementers and researchers in this field to use a general terminology, removing ambiguities when discussing ABS and their models. We will give results of simulating a discrete and a continuous game using our update-strategies and show that in the case of the discrete game only one specific strategy seems to be able to produce its emergent patterns whereas the pattern of the continuous game seems to be robust under varying update-strategies.}
+%\leftheader{Thaler}
 
-\keywords{Agent-Based Simulation, Parallelism, Concurrency, Emergence}
+%\abstract{When developing a model for an Agent-Based Simulation (ABS) it is very important to select the update-strategy which reflects the semantics of the model because simulation results can vary vastly across different update-strategies. This awareness, we claim, is still lacking in the field of ABS. In this paper our contribution is to derive general properties of ABS and use them to classify all update-strategies possible in ABS. This will allow implementers and researchers in this field to use a general terminology, removing ambiguities when discussing ABS and their models. We will give results of simulating a discrete and a continuous game using our update-strategies and show that in the case of the discrete game only one specific strategy seems to be able to produce its emergent patterns whereas the pattern of the continuous game seems to be robust under varying update-strategies.}
+
+%\keywords{Agent-Based Simulation, Parallelism, Concurrency, Emergence}
 
 \begin{document}
 \maketitle
+
+\begin{abstract}
+When developing a model for an Agent-Based Simulation (ABS) it is very important to select the update-strategy which reflects the semantics of the model because simulation results can vary vastly across different update-strategies. This awareness, we claim, is still lacking in the field of ABS. In this paper our contribution is to derive general properties of ABS and use them to classify all update-strategies possible in ABS. This will allow implementers and researchers in this field to use a general terminology, removing ambiguities when discussing ABS and their models. We will give results of simulating a discrete and a continuous game using our update-strategies and show that in the case of the discrete game only one specific strategy seems to be able to produce its emergent patterns whereas the pattern of the continuous game seems to be robust under varying update-strategies.
+\end{abstract}
 
 \input{./tex/introduction.tex}
 
@@ -63,6 +69,8 @@
 
 \input{./tex/conclusion.tex}
 
-\printbibliography
+%\printbibliography
+\bibliographystyle{acm}
+\bibliography{../../../references/phdReferences}
 
 \end{document}

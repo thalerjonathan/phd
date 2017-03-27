@@ -1,10 +1,10 @@
 \section{A new terminology}
 When looking at related work, we observe that there seems to be a variety of meanings attributed to the terminology of asynchronous and synchronous updates but the very semantic and technical details are unclear and not described very precisely. To develop a standard terminology, we propose to abandon the notion of synchronous and asynchronous updates and, based on the discussion above we propose six properties characterizing the dimensions and details of the internals of an ABS. Having these properties identified we then derive all meaningful and reasonable update-strategies which are possible in a general form in ABS. These update-strategies together with the properties will form the new terminology we propose for speaking about update-strategies in ABS in general. For each strategy we give a short description, the list of all properties and discuss their semantics and variations. We will discuss all details programming-language agnostic, give semantic meanings and interpretations of them and the implications selecting update-strategies for a model. A summary of all update-strategies and their properties is given in Table \ref{tab:update_strategies}.
 
-TODO peer comment: which is the typical strategy used? maybe you want to say this somewhere in similiar to the statement that the actor-strategy is the most generic one. e.g. NetLogo? AnyLogic?
+%TODO peer comment: which is the typical strategy used? maybe you want to say this somewhere in similiar to the statement that the actor-strategy is the most generic one. e.g. NetLogo? AnyLogic?
 
 \subsection{ABS Properties}
-TODO peer comment: one sentence to tell what is coming e.g. "Used to distinguish update-strategies..."
+We identified the following properties of agent-based simulations which are necessary to derive and define the differences between the update-strategies.
 
 \paragraph{Iteration-Order}
 Is the collection of agents updated \textit{sequential} with one agent updated after the other or are all agents updated in \textit{parallel}, at virtually the same time?

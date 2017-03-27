@@ -46,7 +46,15 @@ As an example for a continuous game we use the \textit{Heroes \& Cowards} game i
 \end{figure}
 
 \subsection{2.4 Related Research}
-\cite{lysenko_framework_2008} give an approach for ABS on GPUs which is a very different approach to updating and iterating agents in ABS. They discuss execution order at length, highlight the problem of inducing a specific execution-order in a model which is problematic for parallel execution and give solutions how to circumvent these shortcomings. Although we haven't mapped our ideas to GPUs we explicitly include an approach for data-parallelism which, we hypothesize, can be utilized to roughly map their approach onto our terminology. 
+\cite{wilensky_introduction_2015} also mention in their book \textit{asynchronous vs. synchronous updates}. They define asynchronous updates when changes made by an agent are seen immediately by the others whereas in synchronous updating the changes are only visible in the next tick. They also look into the notion of \textit{sequential vs. parallel actions} and identify as sequential when only one agent acts at a time and parallel when agents act truly parallel, independent from each other.
+
+\cite{railsback_agent-based_2011} discuss the importance of order of execution of the agents and describe \textit{asynchronous and synchronous updating} as well and follow in their definition exactly the one found in \cite{wilensky_introduction_2015}.
+
+\cite{page_incentives_1997} in discuss synchronous and asynchronous updates and define as being asynchronous updating as sequentially instead of synchronous which would be an update at virtually the same time. They go further and discuss also random updates where the order of the agent-sequence is shuffled before updating all agents. They also introduce \textit{incentive based asynchronous updating} where the agent which gains the most from the update is updated first, thus introducing an ordering on the sequence which is sorted by the benefit each agent gains from its update. They also compare the differences synchronous, random-asynchronous and incentive-asynchronous updating has on dynamics and come to the conclusion that the order of updating the agents has an impact on the dynamics and should be considered with great care when implementing a simulation.
+
+\cite{bersini_asynchrony_1994} discuss the influence of asynchrony in cellular automata. They define as asynchronous update as picking a cell at random and updating it and synchronous as all agents updating at the same time and report different dynamics when switching between the two. The authors also raise the question which of both is correct and most faithful to reality as in an ideal solution both should deliver the similar spatio-temporal dynamics. They conclude that developers of simulations should pay attention to the fact that the dynamics and results are sensible to the updating preceduces and often turn out to be the indicator of a hidden stability. TODO: the last sentence is too directly copied, reforumlate.
+
+TODO: \cite{polhill_what_2006} is it really necessary?\\
 	
 \cite{botta_time_2010} sketch a minimal ABS implementation in Haskell. Their focus is primarily on economic simulations and instead of iterating a simulation with a global time, their focus is on how to synchronize agents which have internal, local transition times. 
 
@@ -54,10 +62,4 @@ As an example for a continuous game we use the \textit{Heroes \& Cowards} game i
 
 \cite{yuxuan_agent-based_2016} presents a comprehensive discussion on how to implement an ABS for state-charts in Java and also mentions synchronous and asynchronous time-models. He identifies the asynchronous time-model to be one in which updates are triggered by the exchange of messages and the synchronous ones which trigger changes immediately without the indirection of messages.
 
-\cite{wilensky_introduction_2015} also mention in their book \textit{asynchronous vs. synchronous updates}. They define asynchronous updates when changes made by an agent are seen immediately by the others whereas in synchronous updating the changes are only visible in the next tick. They also look into the notion of \textit{sequential vs. parallel actions} and identify as sequential when only one agent acts at a time and parallel when agents act truly parallel, independent from each other.
-
-\cite{railsback_agent-based_2011} discuss the importance of order of execution of the agents and describe \textit{asynchronous and synchronous updating} as well and follow in their definition exactly the one found in \cite{wilensky_introduction_2015}.
-
-TODO: \cite{page_incentives_1997}
-
-TODO: \cite{polhill_what_2006} is it really necessary?
+\cite{lysenko_framework_2008} give an approach for ABS on GPUs which is a very different approach to updating and iterating agents in ABS. They discuss execution order at length, highlight the problem of inducing a specific execution-order in a model which is problematic for parallel execution and give solutions how to circumvent these shortcomings. Although we haven't mapped our ideas to GPUs we explicitly include an approach for data-parallelism which, we hypothesize, can be utilized to roughly map their approach onto our terminology. 

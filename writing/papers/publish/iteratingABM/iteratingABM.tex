@@ -20,7 +20,6 @@
 %% 
 %% ----------------------------------------------------------------------
 
-%\documentclass[jou]{apa6}
 \documentclass[a4paper, 10pt, conference]{IEEEconf}
 
 \usepackage[utf8]{inputenc}
@@ -34,25 +33,27 @@
 \usepackage{float}
 \usepackage{listings}
 \usepackage{subcaption}
-
-%\usepackage[style=apa,sortcites=true,sorting=nyt,backend=biber]{biblatex}
-
-%\addbibresource{../../../references/phdReferences}
+\usepackage{apacite}
 
 \title{The Art of Iterating:\\Update-Strategies in Agent-Based Simulation}
 
-\author{Jonathan \textsc{Thaler}} % Author name
-
-%\twoauthors{Jonathan Thaler}{Dr. Peer-Olaf Siebers}
-%\twoaffiliations{University of Nottingham}{University of Nottingham}
-
-%\leftheader{Thaler}
-
-%\abstract{When developing a model for an Agent-Based Simulation (ABS) it is very important to select the update-strategy which reflects the semantics of the model because simulation results can vary vastly across different update-strategies. This awareness, we claim, is still lacking in the field of ABS. In this paper our contribution is to derive general properties of ABS and use them to classify all update-strategies possible in ABS. This will allow implementers and researchers in this field to use a general terminology, removing ambiguities when discussing ABS and their models. We will give results of simulating a discrete and a continuous game using our update-strategies and show that in the case of the discrete game only one specific strategy seems to be able to produce its emergent patterns whereas the pattern of the continuous game seems to be robust under varying update-strategies.}
-
-%\keywords{Agent-Based Simulation, Parallelism, Concurrency, Emergence}
+\author{
+	Jonathan Thaler \\
+	\email{jonathan.thaler@nottingham.ac.uk} \\
+	\begin{affiliation}
+		School of Computer Science, University of Nottingham
+	\end{affiliation} \\
+	\and 
+	Peer-Olaf Siebers \\
+	\email{peer-olaf.siebers@nottingham.ac.uk} \\
+	\begin{affiliation}
+		School of Computer Science, University of Nottingham
+	\end{affiliation} \\
+}
 
 \begin{document}
+
+
 \maketitle
 
 \begin{abstract}
@@ -69,8 +70,10 @@ When developing a model for an Agent-Based Simulation (ABS) it is very important
 
 \input{./tex/conclusion.tex}
 
-%\printbibliography
-\bibliographystyle{acm}
-\bibliography{../../../references/phdReferences}
+\bibliographystyle{apacite}
+\bibliography{../../../references/phdReferences_apa6}
+
+%\bibliographystyle{apalike}
+%\bibliography{../../../references/phdReferences}
 
 \end{document}

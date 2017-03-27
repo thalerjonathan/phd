@@ -1,4 +1,4 @@
-\section{4 Case-Studies}
+\section{Case-Studies}
 In this section we present two case-studies in simulating the \textit{Prisoners Dilemma} and \textit{Heroes \& Cowards} games for discussing the effect of using different update-strategies. As already emphasised both are of different nature. The first one is a discrete game, played at discrete time-steps. The second one is a continuous game where each agent is continuously playing. This has profound implications on the simulation results as will is shown below. The figures show that depending on the type of model the results can vary when using different update-strategies as happening in the case of \textit{Prisoners Dilemma}. Results of other models seem to be stable under varying update-strategies as is the case with \textit{Heroes \& Cowards}.
 
 \begin{table*}
@@ -143,7 +143,7 @@ In this section we present two case-studies in simulating the \textit{Prisoners 
 %	\label{fig:results}
 %\end{figure*}
 
-\subsection{4.1 Prisoners Dilemma}
+\subsection{Prisoners Dilemma}
 \paragraph{The agent-based model}
 Our agent-based model of this game works as follows: at the start of the simulation each agent sends its state to all its neighbours which allows to incrementally calculate the local payoff. If all neighbours states have been received then the agent will send its local payoff to all neighbours which allows to compare all payoffs in its neighbourhood and calculate the best. When all neighbours local payoff have been received the agent will adopt the role of the highest payoff and sends its new state to all its neighbours, creating a circle. 
 
@@ -160,7 +160,7 @@ The reason why the other strategies fail to reproduce the pattern is due to the 
 This is not the case in the \textit{parallel strategy}  where all agents play the game at the same time based on the frozen state of the previous step, leading to a synchronized update as required by the model. Note that the \textit{concurrent} and \textit{actor strategy} produce different results on every run due to the inherent non-deterministic event-ordering introduce by concurrency.
 
 
-\subsection{4.2 Heroes \& Cowards}
+\subsection{Heroes \& Cowards}
 \paragraph{The agent-based model}
 Our agent-based model of this game works as follows: in each time-step an agent asks its friend and enemy for their positions which will answer with a corresponding message containing their current positions. The agent will have its own local information about the position of its friend and enemy and will calculate its move in every step based on this local information.
 

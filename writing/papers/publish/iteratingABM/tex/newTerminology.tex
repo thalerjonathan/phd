@@ -1,8 +1,6 @@
 \section{A new terminology}
 When looking at related work, we observe that there seems to be a variety of meanings attributed to the terminology of asynchronous and synchronous updates but the very semantic and technical details are unclear and not described very precisely. To develop a standard terminology, we propose to abandon the notion of synchronous and asynchronous updates and, based on the discussion above we propose six properties characterizing the dimensions and details of the internals of an ABS. Having these properties identified we then derive all meaningful and reasonable update-strategies which are possible in a general form in ABS. These update-strategies together with the properties will form the new terminology we propose for speaking about update-strategies in ABS in general. For each strategy we give a short description, the list of all properties and discuss their semantics and variations. We will discuss all details programming-language agnostic, give semantic meanings and interpretations of them and the implications selecting update-strategies for a model. A summary of all update-strategies and their properties is given in Table \ref{tab:update_strategies}.
 
-%TODO peer comment: which is the typical strategy used? maybe you want to say this somewhere in similiar to the statement that the actor-strategy is the most generic one. e.g. NetLogo? AnyLogic?
-
 \subsection{ABS Properties}
 We identified the following properties of agent-based simulations which are necessary to derive and define the differences between the update-strategies.
 
@@ -81,6 +79,20 @@ This strategy has no globally synchronized time-flow but all the agents run conc
 The concept of Actors was proposed by C. Hewitt in 1973 in his work \cite{hewitt_universal_1973} for which I. Grief in \cite{greif_semantics_1975} and W. Clinger in \cite{clinger_foundations_1981} developed semantics of different kinds. These works were very influential in the development of the concepts of agents and and can be regarded as foundational basics for ABS.
 
 \paragraph{Variation:} This is the most general one of all the strategies as it can emulate all the others by introducing the necessary synchronization mechanisms.
+
+
+
+\subsection{ABS Toolskits}
+There exist a lot of tools for modelling and running ABS. We investigated the abilities of two of them to capture our update-strategies and give an overview of our findings in this section.
+
+\subsubsection{NetLogo}
+NetLogo is probably the most popular ABS toolkit around as it comes with a modelling language which is very close to natural language and very easy to learn for non-computer scientists. It follows a strictly single-threaded computing approach when running a single model, so we can rule out both the \textit{concurrent} and \textit{actor strategy} as both require separate threads of execution. The tool has no built-in concept of messages and it is built on global synchronization which is happening through advancing the global time by the 'tick' command. It falls into the responsibility of the model-implementer to iterate over all agents and let them perform actions on themselves and on others. This allows for very flexible updating of agents which also allows to implement the \textit{parallel strategy}. A NetLogo model which implements the prisoners dilemma game synchronous and asynchronous to reproduce the findings of \cite{huberman_evolutionary_1993} can be found in chapter 5.4 of \cite{jansen_introduction_2012}.
+
+\subsubsection{AnyLogic}
+AnyLogic follows a rather different approach than NetLogo and is regarded as a multimethod simulation tool as it allows to do system dynamics, discrete event simulation and agent-based simulation at the same time where all three methods can interact with each other. For ABS it provides the modeller with a high-level view on agents and does not provide the ability to iterate over all agents - this is done by AnyLogic itself and the modeller can customize the behaviour of the agent either by modelling diagrams or programming in Java. As NetLogo, AnyLogic runs a model using a single thread thus the \textit{concurrent} and \textit{actor strategy} are not feasible in AnyLogic. A feature this toolkit provides is communication between agents using messages and it supports both queued and immediate messaging. AnyLogic does not provide a mechanism to directly implement the \textit{parallel strategy} because all changes are seen immediately by the other agents but using queued messaging we think that the \textit{parallel strategy} can be emulated nevertheless.
+ 
+\subsubsection{Summary}
+To conclude, the most natural and common update-strategy in these toolkits is the \textit{sequential strategy} which is not very surprising. The primary target are mostly agent-based modellers which are non-computer scientists so the toolkits also try to be as simple as possible and multi-threading and concurrency would introduce lots of additional complications for modellers to worry about. So the general consensus is to refrain from multi-threading and concurrency as it is obviously harder to develop, debug and introduces non-repeatability in the case of concurrency and to stick with the \textit{sequential strategy}. The \textit{parallel strategy} is not supported \textit{directly} by any of them but can be implemented using various mechanisms like queued message passing and custom iteration over the agents.
 
 
 \begin{table*}[t]

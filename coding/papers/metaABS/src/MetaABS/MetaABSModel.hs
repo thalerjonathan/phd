@@ -40,6 +40,9 @@ type MetaABSAgentOut = AgentOut MetaABSAgentState MetaABSMsg MetaABSEnvCell
 ------------------------------------------------------------------------------------------------------------------------
 randomRangeCounter :: (Int, Int)
 randomRangeCounter = (0, 10)
+
+allowRecursionToOthers :: Bool
+allowRecursionToOthers = False
 ------------------------------------------------------------------------------------------------------------------------
 
 metaABSStep :: MetaABSAgentOut -> MetaABSAgentIn -> MetaABSAgentOut
@@ -56,16 +59,18 @@ metaABSActRecursive aout ain
         recursiveStates = map aoState recursiveOuts
 
         aout' = trace ("agent " ++ (show $ aiId ain) ++ ":  has recursiveOuts: " ++ (show recursiveStates)) (metaABSRandomizeCounter aout)
-        aoutRec = recursive aout'
+        aoutRec = recursive aout' allowRecursionToOthers
 
         aoutSelected = trace ("agent " ++ (show $ aiId ain) ++ ":  has recursiveOuts: " ++ (show recursiveStates)) (recursiveOuts !! 0)
         aoutUnRec = unrecursive aoutSelected
 
 metaABSActNonRec :: MetaABSAgentOut -> MetaABSAgentIn -> MetaABSAgentOut
-metaABSActNonRec aout ain = trace ("agent " ++ (show $ aiId ain) ++ ": requests recursion, generating state " ++ (show $ aoState aoutRec)) aoutRec
+metaABSActNonRec aout ain
+    | recInitAllowed ain = trace ("agent " ++ (show $ aiId ain) ++ ": recursion is allowed, requests recursion, generating state " ++ (show $ aoState aoutRec)) aoutRec
+    | otherwise = trace ("agent " ++ (show $ aiId ain) ++ ": recursion is forbidden, generating state " ++ (show $ aoState aout')) aout'
     where
         aout' = metaABSRandomizeCounter aout
-        aoutRec = recursive aout'
+        aoutRec = recursive aout' allowRecursionToOthers
 
 metaABSRandomizeCounter :: MetaABSAgentOut -> MetaABSAgentOut
 metaABSRandomizeCounter aout = aout'

@@ -26,8 +26,9 @@ data AgentIn s m ec = AgentIn {
     aiTerminate :: Event(),
     aiState :: s,
     aiEnv :: Environment ec,
+    aiEnvPos :: EnvCoord,
     aiRec :: Event ([AgentOut s m ec]),
-    aiEnvPos :: EnvCoord
+    aiRecInitAllowed :: Bool
 }
 
 data AgentOut s m ec = AgentOut {
@@ -38,9 +39,12 @@ data AgentOut s m ec = AgentOut {
     aoState :: s,
     aoEnv :: Environment ec,
     aoEnvPos :: EnvCoord,
-    aoRec :: Event ()
+    aoRec :: Event (),
+    aoRecOthersAllowed :: Bool
 }
 
+recInitAllowed :: AgentIn s m ec -> Bool
+recInitAllowed = aiRecInitAllowed
 
 agentOutFromIn :: AgentIn s m ec -> AgentOut s m ec
 agentOutFromIn ai = AgentOut{ aoId = (aiId ai),
@@ -50,7 +54,8 @@ agentOutFromIn ai = AgentOut{ aoId = (aiId ai),
                               aoState = (aiState ai),
                               aoEnv = (aiEnv ai),
                               aoRec = NoEvent,
-                              aoEnvPos = (aiEnvPos ai)}
+                              aoEnvPos = (aiEnvPos ai),
+                              aoRecOthersAllowed = True }
 
 sendMessage :: AgentOut s m ec -> AgentMessage m -> AgentOut s m ec
 sendMessage ao msg = ao { aoMessages = mergedMsgs }
@@ -113,8 +118,11 @@ updateState ao sfunc = ao { aoState = s' }
         s = aoState ao
         s' = sfunc s
 
-recursive :: AgentOut s m ec -> AgentOut s m ec
-recursive aout = aout { aoRec = Event () }
+allowsRecOthers :: AgentOut s m ec -> Bool
+allowsRecOthers = aoRecOthersAllowed
+
+recursive :: AgentOut s m ec -> Bool -> AgentOut s m ec
+recursive aout allowOthers = aout { aoRec = Event (), aoRecOthersAllowed = allowOthers }
 
 unrecursive :: AgentOut s m ec -> AgentOut s m ec
 unrecursive aout = aout { aoRec = NoEvent }
@@ -134,7 +142,8 @@ startingAgentInFromAgentDef env a = AgentIn { aiId = (adId a),
                                                 aiState = (adState a),
                                                 aiEnv = env,
                                                 aiEnvPos = (adEnvPos a),
-                                                aiRec = NoEvent }
+                                                aiRec = NoEvent,
+                                                aiRecInitAllowed = True }
 
 mergeMessages :: Event [AgentMessage m] -> Event [AgentMessage m] -> Event [AgentMessage m]
 mergeMessages l r = mergeBy (\msgsLeft msgsRight -> msgsLeft ++ msgsRight) l r

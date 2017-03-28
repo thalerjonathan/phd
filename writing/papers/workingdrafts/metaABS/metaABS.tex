@@ -27,6 +27,10 @@ In this paper we ask what influence recursive simulations has on the dynamics of
 We investigate the dynamics when using recursive simulations and compare it to the dynamics of the original model and our optimizing movement-strategy where agents are not projecting into the future. We hypothesize that in the case of a deterministic future this approach allows the agents to increase their utility as a group but we hypothesize that this is not the case when the future is non-deterministic as the power to predict is simply lost in this case.  Further we hypothesize that a deterministic future endogenously turns into a non-deterministic one if the fraction of anticipating agents reaches a given threshold, rendering the predictive power in effect useless. This implies that MetaABS is only useful for optimization if not the whole system is trying to anticipate. 
 We put strong emphasis on the point that MetaABS is \textit{not} another optimization technique but that this research was investigated to raise and address interesting philosophical questions and implications: determinism, computational complexity, simulation argument,... TODO
 
+TODO: important difference to game theory: the initiating agent makes no assumptions of the others behaviours, it lets them simulate, thus leaving them being autonomous
+
+TODO:  what if we let 2 agents play the prisoners dilemma recursively? which strategy does emerge? does tit-for-tat? problem: we need some strategy for the agents because we let them simulate the others, it is NOT a game-theoretic approach where an agent systematically plays through the opponents options. But is there a way to let tit-for-tat emerge? e.g. do random-bidding and then see what the other agent does and bid the payoff which is the highest in total? it makes a difference if the agent optimizes for best payoff alone or best payoff combined!
+
 The main contribution of this paper is the introduction of recursive agent-based simulation, a completely new method in ABS, which we termed MetaABS.
 \end{abstract}
 

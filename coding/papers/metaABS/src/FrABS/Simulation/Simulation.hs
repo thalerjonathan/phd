@@ -256,14 +256,13 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
 
                 (_, newIn, _) = fromJust mayAgent
 
-                -- TODO: introduce flag in AgentOut: OthersRecursionAllow/Deny
-                -- TODO: introduce flag in AgentIn: aiRecAllowed/aiInsideOtherRecursion
-                -- TODO: set the flag of the others AgentIn simply when we are starting a simulation here to prevent them
+                otherIns'' = if allowsRecOthers newOut then otherIns' else forbidRecursion otherIns'
+
                 -- TODO: to prevent an endless creation of recursions when running a recursion for more than 1 step one needs to let the recursive agent let know it is inside its own recursion with the same mechanism as letting others now they are inside another recursion.
 
                 -- NOTE: need to add agent, because not included
                 allAsfs = otherSfs ++ [oldSf]       -- NOTE: use the old sf, no time
-                allAins = otherIns' ++ [newIn]
+                allAins = otherIns'' ++ [newIn]
 
                 -- TODO: does it make sense to run multiple steps? what is the meaning of it?
                 -- TODO: when running for multiple steps it makes sense to specify WHEN the agent of oldSF runs
@@ -278,6 +277,9 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
                                 seqCallbackRec otherIns otherSfs oldSf (sf, newIn, fromJust mayRecOut)
                                 else
                                     retSelfKilled
+
+        forbidRecursion :: [AgentIn s m ec] -> [AgentIn s m ec]
+        forbidRecursion ains = map (\ai -> ai { aiRecInitAllowed = False } ) ains
 
         handleAgent :: [AgentIn s m ec]
                                 -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)

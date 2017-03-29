@@ -104,15 +104,15 @@ nextFrame hdl outRef dt = do
 
 modelToPicture :: [SegAgentOut] -> IO GLO.Picture
 modelToPicture as = do
-                        let rcs = map (setAgentOutToRenderCell cells) as
+                        let rcs = map (segAgentOutToRenderCell cells) as
                         return (Front.renderFrame renderCircles rcs winSize cells)
 
-setAgentOutToRenderCell :: (Int, Int) -> SegAgentOut -> Front.RenderCell
-setAgentOutToRenderCell (xDim, yDim) ao = Front.RenderCell { Front.renderCellCoord = (ax, ay),
+segAgentOutToRenderCell :: (Int, Int) -> SegAgentOut -> Front.RenderCell
+segAgentOutToRenderCell (xDim, yDim) ao = Front.RenderCell { Front.renderCellCoord = (ax, ay),
                                                         Front.renderCellColor = col }
     where
         s = aoState ao
         (ax, ay) = (aoEnvPos ao)
         col = case (segParty s) of
-                        Red -> (0.0, 0.6, 0.0)
-                        Green -> (0.6, 0.0, 0.0)
+                        Red -> (0.6, 0.0, 0.0)
+                        Green -> (0.0, 0.6, 0.0)

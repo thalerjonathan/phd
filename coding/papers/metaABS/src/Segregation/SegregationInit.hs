@@ -27,24 +27,24 @@ createSegAgentsAndEnv limits@(x,y) =  do
                             -> IO ([SegAgentDef], [(EnvCoord, SegEnvCell)])
                             -> IO ([SegAgentDef], [(EnvCoord, SegEnvCell)])
         populateEnvAux coord accIO = do
-                                            (accAs, accCells) <- accIO
+                                        (accAs, accCells) <- accIO
 
-                                            let agentId = length accAs
+                                        let agentId = length accAs
 
-                                            s <- randomAgentState
-                                            let a = AgentDef { adId = agentId,
-                                                                adState = s,
-                                                                adEnvPos = coord,
-                                                                adBeh = segAgentBehaviour }
+                                        s <- randomAgentState
+                                        let a = AgentDef { adId = agentId,
+                                                            adState = s,
+                                                            adEnvPos = coord,
+                                                            adBeh = segAgentBehaviour }
 
-                                            let emptyCell = (coord, Nothing)
-                                            let occupiedCell = (coord, Just (segParty s))
+                                        let emptyCell = (coord, Nothing)
+                                        let occupiedCell = (coord, Just (segParty s))
 
-                                            r <- getStdRandom (randomR(0.0, 1.0))
-                                            if r < density then
-                                                return ((a : accAs), occupiedCell : accCells)
-                                                else
-                                                    return (accAs, emptyCell : accCells)
+                                        r <- getStdRandom (randomR(0.0, 1.0))
+                                        if r < density then
+                                            return ((a : accAs), occupiedCell : accCells)
+                                            else
+                                                return (accAs, emptyCell : accCells)
 
         randomAgentState :: IO SegAgentState
         randomAgentState = do

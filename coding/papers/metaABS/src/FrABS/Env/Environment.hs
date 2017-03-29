@@ -52,6 +52,11 @@ createEnvironment beh
     where
         arr = array ((0, 0), (xLimit - 1, yLimit - 1)) cs
 
+allCellsWithCoords :: Environment c -> [(EnvCoord, c)]
+allCellsWithCoords env = assocs ec
+    where
+        ec = envCells env
+
 updateEnvironmentCells :: Environment c -> (c -> c) -> Environment c
 updateEnvironmentCells env mecf = env { envCells = ec' }
     where

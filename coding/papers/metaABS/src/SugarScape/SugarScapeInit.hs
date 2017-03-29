@@ -5,15 +5,20 @@ import SugarScape.SugarScapeModel
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 
+import Data.List
+
 import System.Random
 import System.IO
 import Debug.Trace
 
 createSugarScape :: Int -> EnvLimits -> IO ([SugarScapeAgentDef], SugarScapeEnvironment)
 createSugarScape agentCount l = do
-                                    cells <- createCells l
                                     randCoords <- drawRandomCoords l agentCount
+
                                     as <- mapM randomAgent (zip [0..agentCount-1] randCoords)
+                                    let occupations = map (\a -> (adEnvPos a, adId a)) as
+
+                                    cells <- createCells l occupations
 
                                     let env = createEnvironment
                                                           (Just sugarScapeEnvironmentBehaviour)
@@ -22,24 +27,30 @@ createSugarScape agentCount l = do
                                                           WrapBoth
                                                           cells
                                     return (as, env)
+                                    -- return (trace ("Environment has cells: " ++ (show cells)) (as, env))
     where
-        createCells :: EnvLimits -> IO [(EnvCoord, SugarScapeEnvCell)]
-        createCells (maxX, maxY) = do
-                                        let coords = [ (x, y) | x <- [0..maxX-1], y <- [0..maxY-1] ]
-                                        let cellCount = maxX * maxY
-                                        cs <- mapM randomCell coords
-                                        return cs
 
-        randomCell :: EnvCoord -> IO (EnvCoord, SugarScapeEnvCell)
-        randomCell coord = do
-                                cap <- getStdRandom (randomR(sugarMinCapacity, sugarMaxCapacity))
 
-                                let c = SugarScapeEnvCell {
-                                    sugEnvSugarCapacity = cap,
-                                    sugEnvSugarLevel = cap
-                                }
+        createCells :: EnvLimits -> [(EnvCoord, AgentId)] -> IO [(EnvCoord, SugarScapeEnvCell)]
+        createCells (maxX, maxY) occupations = do
+                                                    let coords = [ (x, y) | x <- [0..maxX-1], y <- [0..maxY-1] ]
+                                                    let cellCount = maxX * maxY
+                                                    cs <- mapM (randomCell occupations) coords
+                                                    return cs
 
-                                return (coord, c)
+        randomCell :: [(EnvCoord, AgentId)] -> EnvCoord -> IO (EnvCoord, SugarScapeEnvCell)
+        randomCell occupations coord = do
+                                        randCap <- getStdRandom $ randomR sugarCapacityRange
+
+                                        let mayOccupied = Data.List.find ((==coord) . fst) occupations
+
+                                        let c = SugarScapeEnvCell {
+                                            sugEnvSugarCapacity = randCap,
+                                            sugEnvSugarLevel = randCap,
+                                            sugEnvOccupied = maybe Nothing (Just . snd) mayOccupied
+                                        }
+
+                                        return (coord, c)
 
         -- NOTE: will draw random-coords within (0,0) and limits WITHOUT repeating any coordinate
         drawRandomCoords :: EnvLimits -> Int -> IO [EnvCoord]
@@ -62,11 +73,17 @@ createSugarScape agentCount l = do
 
         randomAgent :: (Int, EnvCoord) -> IO SugarScapeAgentDef
         randomAgent (agentId, coord) = do
+                                        randMeta <- getStdRandom $ randomR metabolismRange
+                                        randVision <- getStdRandom $ randomR visionRange
+                                        randEnd <- getStdRandom $ randomR sugarEndowmentRange
+
                                         rng <- newStdGen
 
                                         let s = SugarScapeAgentState {
-                                            sugTribe = 0,
-                                            sugRng = rng
+                                            sugAgMetabolism = randMeta,
+                                            sugAgVision = randVision,
+                                            sugAgSugar = randEnd,
+                                            sugAgRng = rng
                                         }
 
                                         let a = AgentDef {
@@ -75,5 +92,4 @@ createSugarScape agentCount l = do
                                             adEnvPos = coord,
                                             adBeh = sugarScapeAgentBehaviour }
 
-                                        return a
-                                        --return (trace ("Agent " ++ (show agentId) ++ " has coord " ++ (show coord)) a)
+                                        return (trace ("Agent " ++ (show agentId) ++ " has state: " ++ (show s) ++ " and coord " ++ (show coord)) a)

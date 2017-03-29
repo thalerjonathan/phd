@@ -20,7 +20,7 @@ winTitle = "SugarScape Chapter 2 FrABS"
 renderCircles = True
 
 rngSeed = 42
-agentCount = 50
+agentCount = 5
 envSize = (50, 50)
 
 parallelStrategyFlag = False -- NOTE: sugarscape will not give correct result when run with parallel update-strategy
@@ -66,5 +66,6 @@ nextFrame hdl outRef dt = do
 
 modelToPicture :: [SugarScapeAgentOut] -> IO GLO.Picture
 modelToPicture aouts = do
+                        -- NOTE: the corresponding most recent environment is the one of the last agentout because for now we are iterating sequentially
                         let env = aoEnv $ last aouts
                         return (Renderer.renderFrame aouts env winSize)

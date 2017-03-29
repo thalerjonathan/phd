@@ -32,7 +32,7 @@ renderEnvCell (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = GLO.color color 
         yPix = fromRational (toRational (fromIntegral y * rectHeight)) - halfYSize
 
         sugarLevel = sugEnvSugarCapacity cell
-        sugarLevelRatio = sugarLevel / sugarMaxCapacity
+        sugarLevelRatio = sugarLevel / (snd sugarCapacityRange)
 
         radius = rectWidth * (realToFrac sugarLevelRatio)
 

@@ -10,12 +10,20 @@ import Graphics.Gloss.Interface.Pure.Animate
 
 main :: IO ()
 main = runSugarScapeWithRendering
+    -- test
     -- testGloss
     -- runSugarScapeWithRendering
     -- runMetaABSStepsAndPrint
     -- runSIRSWithRendering
     -- runSegWithRendering
     -- runSegStepsAndRender
+
+test :: IO ()
+test = do
+        let x = -10
+        let y = max 0 x
+        putStrLn ("y = " ++ (show y))
+
 
 testGloss :: IO ()
 testGloss = do

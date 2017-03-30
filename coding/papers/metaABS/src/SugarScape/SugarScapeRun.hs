@@ -38,7 +38,7 @@ runSugarScapeWithRendering = do
                                 outRef <- (newIORef ([])) :: (IO (IORef ([SugarScapeAgentOut])))
                                 hdl <- processIOInit as env parallelStrategyFlag (nextIteration outRef)
 
-                                -- simulateAndRender hdl outRef
+                                --simulateAndRenderNoTime hdl outRef
                                 simulateAndRenderWithTime hdl outRef
 
 nextIteration :: IORef ([SugarScapeAgentOut])
@@ -101,5 +101,4 @@ modelToPicture aouts
     | otherwise = do
                     -- NOTE: the corresponding most recent environment is the one of the last agentout because for now we are iterating sequentially
                     let env = aoEnv $ last aouts
-                    -- trace ("Environment has cells: " ++ (show $ allCellsWithCoords env))
                     return $ (Renderer.renderFrame aouts env winSize)

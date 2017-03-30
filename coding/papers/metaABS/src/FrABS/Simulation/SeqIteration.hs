@@ -5,6 +5,7 @@ import FrABS.Simulation.Utils
 import FRP.Yampa.InternalCore
 
 import Data.Maybe
+import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 -- SEQ implementation
@@ -66,7 +67,9 @@ runSeqInternal sfs ins clbkSeq clbkIter dt = (sfs' ++ newSfs, ins' ++ newSfsIns,
                     -> ([SF i o], [i], [o])     -- the collection of signal-functions, outputs and inputs for the next iteration: the outputs are the output from the current iteration but the inputs are for the next one
 
         runSeqRec [] [] _ _ _ acc = acc
-        runSeqRec (sf:sfs) (i:ins) idx clbk dt acc@(accSfs, accIns, accOuts) = runSeqRec sfs ins' (idx + 1) clbk dt acc'
+        runSeqRec sfs [] _ _ _ acc = trace ("fuck1: " ++ (show $ length sfs)) acc
+        runSeqRec [] is _ _ _ acc = trace "fuck2" acc
+        runSeqRec (sf:sfs) (i:ins) idx clbk dt acc@(accSfs, accIns, accOuts) = runSeqRec sfs ins' idx' clbk dt acc'
             where
                 -- 1. run the current signal-function with the required input (i) and time-delta (dt) and freeze it (with the time-delta)
                     -- results is a frozen signal-function (type SF) and the output of the signal-function
@@ -87,12 +90,14 @@ runSeqInternal sfs ins clbkSeq clbkIter dt = (sfs' ++ newSfs, ins' ++ newSfsIns,
                     -- the one behind is the input for the signal-functions remaining in this iteration
                 (accIns', ins') = splitAt idx allIns'
 
-                acc' = accumulateData (accSfs, accIns', accOuts) mayCont
+                acc' = accumulateData (accSfs, accIns', accOuts) mayCont out
 
-                accumulateData :: ([SF i o], [i], [o]) -> Maybe (SF i o, i, o) -> ([SF i o], [i], [o])
-                accumulateData (accSfs, accIns, accOuts) mayCont
-                    | isJust mayCont = (sf : accSfs, newIn : accIns, oldOut : accOuts)
+                idx' = if isJust mayCont then idx + 1 else idx
+
+                accumulateData :: ([SF i o], [i], [o]) -> Maybe (SF i o, i, o) -> o -> ([SF i o], [i], [o])
+                accumulateData (accSfs, accIns, accOuts) mayCont oldOut
+                    | isJust mayCont = (sf : accSfs, newIn : accIns, changedOut : accOuts)
                     | otherwise = (accSfs, accIns, oldOut : accOuts)
                         where
-                            (sf, newIn, oldOut) = fromJust mayCont
+                            (sf, newIn, changedOut) = fromJust mayCont
 ------------------------------------------------------------------------------------------------------------------------

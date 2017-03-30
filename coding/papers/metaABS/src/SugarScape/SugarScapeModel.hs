@@ -17,9 +17,11 @@ import Data.List
 import Debug.Trace
 import System.Random
 
+-- TODO: when no agents are there then the environment will disappear, need to communicate the environment as a separate output
+
 -- TODO Implement SugarScape Chapters
     -- TODO environment also needs a signalfunction which runs once per simulation-step: environmentIn/out
-    -- TODO test creation / killing of agents
+    -- TODO test creation of agents
     -- TODO random iteration in sequential
 
 -- TODO implement rules as SF which can be turned on or off
@@ -69,7 +71,7 @@ metabolismRange :: (Double, Double)
 metabolismRange = (1.0, 4.0)
 
 visionRange :: (Int, Int)
-visionRange = (1, 6)
+visionRange = (1, 1)
 ------------------------------------------------------------------------------------------------------------------------
 
 cellOccupied :: SugarScapeEnvCell -> Bool
@@ -93,8 +95,8 @@ sugarScapeEnvironmentBehaviour env = env -- regrowSugarEnv
 
 agentAction :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentAction a
-    | starvedToDeath agentAfterHarvest = kill agentAfterHarvest -- trace ("Agent " ++ (show $ aoId a) ++ " starved to death") (agentAfterMove)
-    | otherwise = agentAfterHarvest -- trace ("Agent " ++ (show $ aoId a) ++ " has sugarlevel of " ++ (show $ sugAgSugar $ aoState agentAfterMove)) agentAfterMove
+    | starvedToDeath agentAfterHarvest = kill agentAfterHarvest -- trace ("Agent " ++ (show $ aoId a) ++ " starved to death")
+    | otherwise = agentAfterHarvest -- trace ("Agent " ++ (show $ aoId a) ++ " has sugarlevel of " ++ (show $ sugAgSugar $ aoState agentAfterMove))
     where
         agentAfterHarvest = agentMetabolism $ agentCollecting a
 

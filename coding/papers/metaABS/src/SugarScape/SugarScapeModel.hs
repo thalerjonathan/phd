@@ -17,7 +17,6 @@ import Data.List
 import Debug.Trace
 import System.Random
 
--- TODO: when no agents are there then the environment will disappear, need to communicate the environment as a separate output
 
 -- TODO Implement SugarScape Chapters
     -- TODO environment also needs a signalfunction which runs once per simulation-step: environmentIn/out

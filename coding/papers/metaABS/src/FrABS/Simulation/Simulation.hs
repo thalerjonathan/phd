@@ -19,9 +19,11 @@ import Data.List
 -- debugging imports finally, to be easily removed in final version
 import Debug.Trace
 
-----------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 -- TODOs
-----------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+-- TODO: when no agents are there then the environment will disappear, need to communicate the environment as a separate output
+
 -- TODO: allow to be able to stop simulation when iteration.function returns True
 -- TODO: sequential iteration should have the feature to shuffle agents randomly before iterating them
 
@@ -32,51 +34,11 @@ import Debug.Trace
 -- TODO write QuickCheck tests
 
 -- TODO STM FrABS using Dunai?
-----------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
-----------------------------------------------------------------------------------------------------------------------
--- RUNNING SIMULATION WITH ITS OWN LOOP
-----------------------------------------------------------------------------------------------------------------------
-processIO :: [AgentDef s m ec]
-                -> Environment ec
-                -> Bool
-                -> ([AgentOut s m ec] -> IO (Bool, Double))
-                -> IO ()
-processIO as env parStrategy outFunc = do
-                                        hdl <- reactInit
-                                                    (return ains)
-                                                    (iter outFunc)
-                                                    (process as parStrategy)
-                                        FrABS.Simulation.Simulation.iterate hdl (1.0, Nothing)
-                                        return ()
-                                            where
-                                                ains = createStartingAgentIn as env
-
-iterate :: ReactHandle a b
-            -> (DTime, Maybe a)
-            -> IO Bool
-iterate hdl (dt, input) = do
-                            cont <- react hdl (1.0, Nothing)
-                            if cont then
-                                FrABS.Simulation.Simulation.iterate hdl (dt, input)
-                                    else
-                                        return False
-
--- NOTE: don't care about a, we don't use it anyway
-iter :: ([AgentOut s m ec]
-            -> IO (Bool, Double))
-            -> ReactHandle a [AgentOut s m ec]
-            -> Bool
-            -> [AgentOut s m ec]
-            -> IO Bool
-iter outFunc hdl _ out = do
-                            (cont, dt) <- outFunc out
-                            return cont
-----------------------------------------------------------------------------------------------------------------------
-
-----------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 -- RUNNING SIMULATION FROM AN OUTER LOOP
-----------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 -- NOTE: don't care about a, we don't use it anyway
 processIOInit :: [AgentDef s m ec]
                     -> Environment ec
@@ -92,12 +54,11 @@ processIOInit as env parStrategy iterFunc = reactInit
                                                 (process as parStrategy)
     where
         ains = createStartingAgentIn as env
-----------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
-
-----------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 -- CALCULATING A FIXED NUMBER OF STEPS OF THE SIMULATION
-----------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 {- NOTE: to run Yampa in a pure-functional way use embed -}
 processSteps :: [AgentDef s m ec]
                     -> Environment ec
@@ -112,15 +73,20 @@ processSteps as env parStrategy dt steps = embed
         -- NOTE: again haskells laziness put to use: take steps items from the infinite list of sampling-times
         sts = replicate steps (dt, Nothing)
         ains = createStartingAgentIn as env
+----------------------------------------------------------------------------------------------------------------------
 
 
 ----------------------------------------------------------------------------------------------------------------------
-process :: [AgentDef s m ec] -> Bool -> SF [AgentIn s m ec] [AgentOut s m ec]
+process :: [AgentDef s m ec]
+                -> Bool
+                -> SF [AgentIn s m ec] [AgentOut s m ec]
 process as parStrategy = iterationStrategy asfs parStrategy
     where
         asfs = map adBeh as
 
-iterationStrategy :: [SF (AgentIn s m ec) (AgentOut s m ec)] -> Bool -> SF [AgentIn s m ec] [AgentOut s m ec]
+iterationStrategy :: [SF (AgentIn s m ec) (AgentOut s m ec)]
+                        -> Bool
+                        -> SF [AgentIn s m ec] [AgentOut s m ec]
 iterationStrategy asfs parStrategy
     | parStrategy = runParSF asfs parCallback
     | otherwise = runSeqSF asfs seqCallback seqCallbackIteration
@@ -139,57 +105,17 @@ simulate ains asfs parStrategy dt steps = embed
         sfStrat = iterationStrategy asfs parStrategy
 ----------------------------------------------------------------------------------------------------------------------
 
-
-----------------------------------------------------------------------------------------------------------------------
--- PARALLEL STRATEGY
-----------------------------------------------------------------------------------------------------------------------
--- TODO: collapse all environments into one - collapsing is specific to the model!!
--- TODO run the behaviour of the resulting environment
--- TODO distribute the resulting env to all agentins
-parCallback :: [AgentIn s m ec]
-                -> [AgentOut s m ec]
-                -> [AgentBehaviour s m ec]
-                -> ([AgentBehaviour s m ec], [AgentIn s m ec])
-parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns0)
-    where
-        (asfs', newAgentIns) = processAgents asfs oldAgentIns newAgentOuts
-        newAgentIns0 = distributeMessages newAgentIns newAgentOuts
-
-        processAgents :: [AgentBehaviour s m ec]
-                            -> [AgentIn s m ec]
-                            -> [AgentOut s m ec]
-                            -> ([AgentBehaviour s m ec], [AgentIn s m ec])
-        processAgents asfs oldIs newOs = foldr (\a acc -> handleAgent acc a ) ([], []) asfsWithIsOs
-            where
-                asfsWithIsOs = zip3 asfs oldIs newOs
-
-                handleAgent :: ([AgentBehaviour s m ec], [AgentIn s m ec])
-                                -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
-                                -> ([AgentBehaviour s m ec], [AgentIn s m ec])
-                handleAgent acc a@(sf, oldIn, newOut) = handleKillOrLiveAgent acc' a
-                    where
-                        acc' = handleCreateAgents acc newOut
-
-                handleKillOrLiveAgent :: ([AgentBehaviour s m ec], [AgentIn s m ec])
-                                            -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
-                                            -> ([AgentBehaviour s m ec], [AgentIn s m ec])
-                handleKillOrLiveAgent acc@(asfsAcc, ainsAcc) (sf, oldIn, newOut)
-                    | kill = acc
-                    | live = (asfsAcc ++ [sf], ainsAcc ++ [newIn])
-                    where
-                        kill = isEvent $ aoKill newOut
-                        live = not kill
-                        newIn = oldIn { aiStart = NoEvent,
-                                        aiState = (aoState newOut),
-                                        aiMessages = NoEvent }
-----------------------------------------------------------------------------------------------------------------------
-
 ----------------------------------------------------------------------------------------------------------------------
 -- SEQUENTIAL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
+-- TODO: this is basically the same as the seqCallback which is called after the running of one sequential iteration
 -- TODO: collapse all environments into one - collapsing is specific to the model!!
 -- TODO run the behaviour of the resulting environment
 -- TODO distribute the resulting env to all agentins
+simulateSeq :: SF ([AgentIn s m ec], Environment ec) ([AgentOut s m ec], Environment ec)
+simulateSeq = undefined
+
+
 seqCallbackIteration :: [AgentOut s m ec] -> ([AgentBehaviour s m ec], [AgentIn s m ec])
 seqCallbackIteration aouts = (newSfs, newSfsIns')
     where
@@ -320,6 +246,55 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
             where
                 env = aoEnv out
 ----------------------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------------------------
+-- PARALLEL STRATEGY
+----------------------------------------------------------------------------------------------------------------------
+-- TODO: this is basically the same as the parCallback which is called after the running of one parallel iteration
+-- TODO: collapse all environments into one - collapsing is specific to the model!!
+-- TODO run the behaviour of the resulting environment
+-- TODO distribute the resulting env to all agentins
+simulatePar :: SF ([AgentIn s m ec], Environment ec) ([AgentOut s m ec], Environment ec)
+simulatePar = undefined
+
+parCallback :: [AgentIn s m ec]
+                -> [AgentOut s m ec]
+                -> [AgentBehaviour s m ec]
+                -> ([AgentBehaviour s m ec], [AgentIn s m ec])
+parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns0)
+    where
+        (asfs', newAgentIns) = processAgents asfs oldAgentIns newAgentOuts
+        newAgentIns0 = distributeMessages newAgentIns newAgentOuts
+
+        processAgents :: [AgentBehaviour s m ec]
+                            -> [AgentIn s m ec]
+                            -> [AgentOut s m ec]
+                            -> ([AgentBehaviour s m ec], [AgentIn s m ec])
+        processAgents asfs oldIs newOs = foldr (\a acc -> handleAgent acc a ) ([], []) asfsWithIsOs
+            where
+                asfsWithIsOs = zip3 asfs oldIs newOs
+
+                handleAgent :: ([AgentBehaviour s m ec], [AgentIn s m ec])
+                                -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
+                                -> ([AgentBehaviour s m ec], [AgentIn s m ec])
+                handleAgent acc a@(sf, oldIn, newOut) = handleKillOrLiveAgent acc' a
+                    where
+                        acc' = handleCreateAgents acc newOut
+
+                handleKillOrLiveAgent :: ([AgentBehaviour s m ec], [AgentIn s m ec])
+                                            -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
+                                            -> ([AgentBehaviour s m ec], [AgentIn s m ec])
+                handleKillOrLiveAgent acc@(asfsAcc, ainsAcc) (sf, oldIn, newOut)
+                    | kill = acc
+                    | live = (asfsAcc ++ [sf], ainsAcc ++ [newIn])
+                    where
+                        kill = isEvent $ aoKill newOut
+                        live = not kill
+                        newIn = oldIn { aiStart = NoEvent,
+                                        aiState = (aoState newOut),
+                                        aiMessages = NoEvent }
+----------------------------------------------------------------------------------------------------------------------
+
 
 ----------------------------------------------------------------------------------------------------------------------
 -- utils

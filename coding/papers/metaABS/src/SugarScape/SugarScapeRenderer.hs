@@ -13,12 +13,13 @@ renderFrame :: [SugarScapeAgentOut] -> SugarScapeEnvironment -> (Int, Int) -> GL
 renderFrame aouts env wSize@(wx, wy) = GLO.Pictures $ (envPics ++ agentPics)
     where
         (cx, cy) = envLimits env
+        cellWidth = (fromIntegral wx) / (fromIntegral cx)
+        cellHeight = (fromIntegral wy) / (fromIntegral cy)
+
         cells = allCellsWithCoords env
 
         agentPics = map (renderAgent (cellWidth, cellHeight) wSize) aouts
         envPics = map (renderEnvCell (cellWidth, cellHeight) wSize) cells
-        cellWidth = (fromIntegral wx) / (fromIntegral cx)
-        cellHeight = (fromIntegral wy) / (fromIntegral cy)
 
 renderEnvCell :: (Float, Float) -> (Int, Int) -> (EnvCoord, SugarScapeEnvCell) -> GLO.Picture
 renderEnvCell (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = GLO.color color $ GLO.translate xPix yPix $ GLO.ThickCircle 0 radius
@@ -31,7 +32,7 @@ renderEnvCell (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = GLO.color color 
         xPix = fromRational (toRational (fromIntegral x * rectWidth)) - halfXSize
         yPix = fromRational (toRational (fromIntegral y * rectHeight)) - halfYSize
 
-        sugarLevel = sugEnvSugarCapacity cell
+        sugarLevel = sugEnvSugarLevel cell
         sugarLevelRatio = sugarLevel / (snd sugarCapacityRange)
 
         radius = rectWidth * (realToFrac sugarLevelRatio)

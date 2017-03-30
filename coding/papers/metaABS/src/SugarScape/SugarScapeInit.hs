@@ -27,10 +27,8 @@ createSugarScape agentCount l = do
                                                           WrapBoth
                                                           cells
                                     return (as, env)
-                                    -- return (trace ("Environment has cells: " ++ (show cells)) (as, env))
+                                    --return (trace ("Environment has cells: " ++ (show cells)) (as, env))
     where
-
-
         createCells :: EnvLimits -> [(EnvCoord, AgentId)] -> IO [(EnvCoord, SugarScapeEnvCell)]
         createCells (maxX, maxY) occupations = do
                                                     let coords = [ (x, y) | x <- [0..maxX-1], y <- [0..maxY-1] ]
@@ -92,4 +90,5 @@ createSugarScape agentCount l = do
                                             adEnvPos = coord,
                                             adBeh = sugarScapeAgentBehaviour }
 
-                                        return (trace ("Agent " ++ (show agentId) ++ " has state: " ++ (show s) ++ " and coord " ++ (show coord)) a)
+                                        return a
+                                        --return (trace ("Agent " ++ (show agentId) ++ " has state: " ++ (show s) ++ " and coord " ++ (show coord)) a)

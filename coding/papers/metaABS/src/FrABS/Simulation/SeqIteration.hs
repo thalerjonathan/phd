@@ -34,6 +34,7 @@ runSeqSF initSfs clbkSeq clbkIter = SF {sfTF = tf0}
                         -- create a continuation of this SF
                         tf' = runSeqSFAux sfs' ins'
 
+-- TODO: this implementation reverts the order of the agents every iteration e.g. 1st iteration: [0,1,2], 2nd iteration: [2,1,0], 3rd iteration: [0,1,2]
 runSeqInternal :: [SF i o]
                 -> [i]
                 -> (([i], [SF i o]) -> (SF i o) -> (SF i o, i, o) -> ([i], Maybe (SF i o, i, o)))

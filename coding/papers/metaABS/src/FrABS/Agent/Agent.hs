@@ -22,8 +22,6 @@ data AgentIn s m ec = AgentIn {
     aiId :: AgentId,
     aiMessages :: Event [AgentMessage m],     -- AgentId identifies sender
     aiStart :: Event (),
-    aiStop :: Event (),
-    aiTerminate :: Event(),
     aiState :: s,
     aiEnv :: Environment ec,
     aiEnvPos :: EnvCoord,
@@ -137,8 +135,6 @@ startingAgentInFromAgentDef :: Environment ec -> AgentDef s m ec -> AgentIn s m 
 startingAgentInFromAgentDef env a = AgentIn { aiId = (adId a),
                                                 aiMessages = NoEvent,
                                                 aiStart = Event (),
-                                                aiStop = NoEvent,
-                                                aiTerminate = NoEvent,
                                                 aiState = (adState a),
                                                 aiEnv = env,
                                                 aiEnvPos = (adEnvPos a),

@@ -75,8 +75,12 @@ visionRange = (1, 6)
 cellOccupied :: SugarScapeEnvCell -> Bool
 cellOccupied cell = isJust $ sugEnvOccupied cell
 
+cellUnoccupied :: SugarScapeEnvCell -> Bool
+cellUnoccupied = not . cellOccupied
+
+
 sugarScapeEnvironmentBehaviour :: SugarScapeEnvironmentBehaviour
-sugarScapeEnvironmentBehaviour env = regrowSugarEnv
+sugarScapeEnvironmentBehaviour env = env -- regrowSugarEnv
     where
         regrowSugarEnv = updateEnvironmentCells
                             env
@@ -89,10 +93,10 @@ sugarScapeEnvironmentBehaviour env = regrowSugarEnv
 
 agentAction :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentAction a
-    | starvedToDeath agentAfterMove = trace ("Agent " ++ (show $ aoId a) ++ " starved to death") (agentAfterMove)
-    | otherwise = trace ("Agent " ++ (show $ aoId a) ++ " has sugarlevel of " ++ (show $ sugAgSugar $ aoState agentAfterMove)) agentAfterMove
+    | starvedToDeath agentAfterHarvest = kill agentAfterHarvest -- trace ("Agent " ++ (show $ aoId a) ++ " starved to death") (agentAfterMove)
+    | otherwise = agentAfterHarvest -- trace ("Agent " ++ (show $ aoId a) ++ " has sugarlevel of " ++ (show $ sugAgSugar $ aoState agentAfterMove)) agentAfterMove
     where
-        agentAfterMove = agentMetabolism $ agentCollecting a
+        agentAfterHarvest = agentMetabolism $ agentCollecting a
 
 starvedToDeath :: SugarScapeAgentOut -> Bool
 starvedToDeath a = sugAgSugar s <= 0
@@ -110,43 +114,54 @@ agentMetabolism a = updateState
 
 agentCollecting :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentCollecting a
-    | null unoccupiedCells = a      -- NOTE: no free cells to move to
-    | otherwise = aMoved
+    | null unoccupiedCells = a -- trace ("Agent " ++ (show $ aoId a) ++ " found no unoccupied cells") a
+    | otherwise = aHarvested
     where
         cellsInSight = agentLookout a
-        unoccupiedCells = trace ("Agent " ++ (show $ aoId a) ++ " looked out: " ++ (show cellsInSight)) (filter (not . cellOccupied . snd) cellsInSight)
+        unoccupiedCells = filter (cellUnoccupied . snd) cellsInSight
+        bestCells = selectBestCells unoccupiedCells
+        (a', cellInfo) = agentPickRandom a bestCells
+        aHarvested = agentMoveAndHarvestCell a' cellInfo
 
-        cellsSortedBySugarLevel = sortBy (\c1 c2 -> compare (sugEnvSugarLevel $ snd c1) (sugEnvSugarLevel $ snd c2)) unoccupiedCells
+agentMoveAndHarvestCell :: SugarScapeAgentOut -> (EnvCoord, SugarScapeEnvCell) -> SugarScapeAgentOut
+agentMoveAndHarvestCell a (cellCoord, cell) = updateState a' (\s -> s { sugAgSugar = newSugarLevelAgent })
+    where
+        env = aoEnv a
+        sugarLevelCell = sugEnvSugarLevel cell
+        sugarLevelAgent = sugAgSugar $ aoState a
+        newSugarLevelAgent = (sugarLevelCell + sugarLevelAgent) -- trace ("Agent " ++ (show $ aoId a) ++ " environment BEFORE move has cells: " ++ (show $ allCellsWithCoords env))
+
+        currentAgentPosition = aoEnvPos a
+        currentAgentCell = cellAt env currentAgentPosition
+        currentAgentCellUnoccupied = currentAgentCell { sugEnvOccupied = Nothing }
+
+        cellHarvestedAndOccupied = cell { sugEnvSugarLevel = 0.0, sugEnvOccupied = Just (aoId a) }
+
+        env' = changeCellAt env currentAgentPosition currentAgentCellUnoccupied
+        env'' = changeCellAt env' cellCoord cellHarvestedAndOccupied
+
+        --trace ("Agent " ++ (show $ aoId a) ++ " environment AFTER move has cells: " ++ (show $ allCellsWithCoords env''))
+        a' = (a { aoEnvPos = cellCoord, aoEnv = env'' })
+
+
+selectBestCells :: [(EnvCoord, SugarScapeEnvCell)] -> [(EnvCoord, SugarScapeEnvCell)]
+selectBestCells cs = bestSugarCells
+    where
+        cellsSortedBySugarLevel = sortBy (\c1 c2 -> compare (sugEnvSugarLevel $ snd c2) (sugEnvSugarLevel $ snd c1)) cs
         bestSugarLevel = sugEnvSugarLevel $ snd $ head cellsSortedBySugarLevel
         bestSugarCells = filter ((==bestSugarLevel) . sugEnvSugarLevel . snd) cellsSortedBySugarLevel
+        -- TODO: filter by best distance
 
-        -- TODO: pick best distance
-        (a', (targetCoord, targetCell)) = agentPickRandom a bestSugarCells
-
-        aCollected = updateState a' (\s -> s { sugAgSugar = sugEnvSugarLevel targetCell })
-
-        targetCellOccupied = targetCell { sugEnvSugarLevel = 0.0, sugEnvOccupied = Just (aoId a) }
-
-        env = aoEnv a
-
-        oldCellCoord = aoEnvPos a
-        oldCell = cellAt env oldCellCoord
-        oldCellUnoccupied = oldCell { sugEnvOccupied = Nothing }
-
-        env' = changeCellAt env oldCellCoord oldCellUnoccupied
-        env'' = changeCellAt env targetCoord targetCellOccupied
-
-        aMoved = aCollected { aoEnvPos = targetCoord, aoEnv = env'' }
-
-agentPickRandom :: SugarScapeAgentOut -> [(EnvCoord, SugarScapeEnvCell)] -> (SugarScapeAgentOut, (EnvCoord, SugarScapeEnvCell))
-agentPickRandom a allCells@(c:cs)
-    | null cs = (a, c)
-    | otherwise = (a', randCell)
+-- TODO: think about moving this to the general Agent.hs: introduce a Maybe StdGen, but then: don't we loose reasoning abilities?
+agentPickRandom :: SugarScapeAgentOut -> [a] -> (SugarScapeAgentOut, a)
+agentPickRandom a all@(x:xs)
+    | null xs = (a, x)
+    | otherwise = (a', randElem)
     where
         g = sugAgRng $ aoState a
-        cellCount = length allCells
+        cellCount = length all
         (randIdx, g') = randomR (0, cellCount - 1) g
-        randCell = allCells !! randIdx
+        randElem = all !! randIdx
         a' = updateState a (\s -> s { sugAgRng = g' } )
 
 agentLookout :: SugarScapeAgentOut -> [(EnvCoord, SugarScapeEnvCell)]
@@ -156,6 +171,8 @@ agentLookout a = zip visionCoordsWrapped visionCells
         aPos = aoEnvPos a
         n = envNeighbourhood env
         vis = sugAgVision $ aoState a
+
+        -- TODO: put this logic into environment.hs
         visionCoordsDeltas = foldr (\v acc -> acc ++ (neighbourhoodScale n v)) [] [1 .. vis]
         visionCoords = neighbourhoodOf aPos visionCoordsDeltas
         visionCoordsWrapped = wrapCells (envLimits env) (envWrapping env) visionCoords

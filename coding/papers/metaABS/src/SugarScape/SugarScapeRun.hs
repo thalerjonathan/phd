@@ -95,6 +95,7 @@ nextFrameSimulateNoTime hdl outRef dt = do
                                             aouts <- readIORef outRef
                                             modelToPicture aouts
 
+-- TODO: when no agents are there then the environment will disappear, need to communicate the environment as a separate output
 modelToPicture :: [SugarScapeAgentOut] -> IO GLO.Picture
 modelToPicture aouts
     | null aouts = return GLO.Blank

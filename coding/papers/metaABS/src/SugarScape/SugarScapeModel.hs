@@ -61,15 +61,15 @@ sugarGrowbackRate = 1.0
 sugarCapacityRange :: (Double, Double)
 sugarCapacityRange = (0.0, 4.0)
 
--- NOTE: this is NOT specified in Chapter II
+-- NOTE: this is NOT specified in Chapter II, but taken from the NetLogo implementation
 sugarEndowmentRange :: (Double, Double)
-sugarEndowmentRange = (4.0, 10.0)
+sugarEndowmentRange = (5.0, 25.0)
 
 metabolismRange :: (Double, Double)
 metabolismRange = (1.0, 4.0)
 
 visionRange :: (Int, Int)
-visionRange = (1, 10)
+visionRange = (1, 6)
 ------------------------------------------------------------------------------------------------------------------------
 
 cellOccupied :: SugarScapeEnvCell -> Bool

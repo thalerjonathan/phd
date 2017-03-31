@@ -23,7 +23,7 @@ circlesSugar sugarLevel circles (coord, cell)
 
 createSugarScape :: Int -> EnvLimits -> IO ([SugarScapeAgentDef], SugarScapeEnvironment)
 createSugarScape agentCount l = do
-                                    randCoords <- drawRandomCoords (25, 25) agentCount
+                                    randCoords <- drawRandomCoords (0,0) l agentCount
 
                                     as <- mapM randomAgent (zip [0..agentCount-1] randCoords)
                                     let occupations = map (\a -> (adEnvPos a, adId a)) as
@@ -86,23 +86,26 @@ createSugarScape agentCount l = do
                                         return (coord, c)
 
         -- NOTE: will draw random-coords within (0,0) and limits WITHOUT repeating any coordinate
-        drawRandomCoords :: EnvLimits -> Int -> IO [EnvCoord]
-        drawRandomCoords l@(maxX, maxY) n
-            | n > (maxX * maxY) = error "Logical error: can't draw more elements from a finite set than there are elements in the set"
-            | otherwise = drawRandomCoordsAux l n []
+        drawRandomCoords :: EnvLimits -> EnvLimits -> Int -> IO [EnvCoord]
+        drawRandomCoords lower@(minX, minY) upper@(maxX, maxY) n
+            | n > totalCoords = error "Logical error: can't draw more elements from a finite set than there are elements in the set"
+            | otherwise = drawRandomCoordsAux lower upper n []
             where
-                -- NOTE: using accumulator, must faster
-                drawRandomCoordsAux :: EnvLimits -> Int -> [EnvCoord] -> IO [EnvCoord]
-                drawRandomCoordsAux _ 0 acc = return acc
-                drawRandomCoordsAux l@(maxX, maxY) n acc = do
-                                                              randX <- getStdRandom (randomR(0, maxX - 1))
-                                                              randY <- getStdRandom (randomR(0, maxY - 1))
+                totalCoords = (maxX - minX) * (maxY - minY)
 
-                                                              let c = (randX, randY)
-                                                              if (any (==c) acc) then
-                                                                  drawRandomCoordsAux l n acc
-                                                                  else
-                                                                    drawRandomCoordsAux l (n-1) (c : acc)
+                -- NOTE: using accumulator, must faster
+                drawRandomCoordsAux :: EnvLimits -> EnvLimits -> Int -> [EnvCoord] -> IO [EnvCoord]
+                drawRandomCoordsAux _ _ 0 acc = return acc
+                drawRandomCoordsAux lower@(minX, minY) upper@(maxX, maxY) n acc =
+                    do
+                      randX <- getStdRandom (randomR(minX, maxX - 1))
+                      randY <- getStdRandom (randomR(minY, maxY - 1))
+
+                      let c = (randX, randY)
+                      if (any (==c) acc) then
+                          drawRandomCoordsAux lower upper n acc
+                          else
+                            drawRandomCoordsAux lower upper (n-1) (c : acc)
 
         randomAgent :: (Int, EnvCoord) -> IO SugarScapeAgentDef
         randomAgent (agentId, coord) = do

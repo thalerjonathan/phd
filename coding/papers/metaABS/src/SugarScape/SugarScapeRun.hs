@@ -23,7 +23,7 @@ winTitle = "SugarScape Chapter II"
 renderCircles = True
 
 rngSeed = 42
-agentCount = 400
+agentCount = 1000
 envSize = (50, 50)
 
 parallelStrategyFlag = False -- NOTE: sugarscape will not give correct result when run with parallel update-strategy
@@ -38,8 +38,8 @@ runSugarScapeWithRendering = do
                                 outRef <- (newIORef ([], env)) :: (IO (IORef ([SugarScapeAgentOut], SugarScapeEnvironment)))
                                 hdl <- processIOInit as env parallelStrategyFlag (nextIteration outRef)
 
-                                --simulateAndRenderNoTime hdl outRef
-                                simulateAndRenderWithTime env hdl outRef
+                                simulateAndRenderNoTime hdl outRef
+                                -- simulateAndRenderWithTime env hdl outRef
 
 nextIteration :: IORef ([SugarScapeAgentOut], SugarScapeEnvironment)
                     -> ReactHandle ([SugarScapeAgentIn], SugarScapeEnvironment) ([SugarScapeAgentOut], SugarScapeEnvironment)

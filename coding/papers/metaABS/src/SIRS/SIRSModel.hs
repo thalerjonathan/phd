@@ -37,6 +37,7 @@ type SIRSEnvironment = Environment SIRSEnvCell
 
 type SIRSAgentDef = AgentDef SIRSAgentState SIRSMsg SIRSEnvCell
 type SIRSAgentBehaviour = AgentBehaviour SIRSAgentState SIRSMsg SIRSEnvCell
+type SIRSAgentIn = AgentIn SIRSAgentState SIRSMsg SIRSEnvCell
 type SIRSAgentOut = AgentOut SIRSAgentState SIRSMsg SIRSEnvCell
 ------------------------------------------------------------------------------------------------------------------------
 

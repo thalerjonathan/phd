@@ -67,8 +67,6 @@ runSeqInternal sfs ins clbkSeq clbkIter dt = (sfs' ++ newSfs, ins' ++ newSfsIns,
                     -> ([SF i o], [i], [o])     -- the collection of signal-functions, outputs and inputs for the next iteration: the outputs are the output from the current iteration but the inputs are for the next one
 
         runSeqRec [] [] _ _ _ acc = acc
-        runSeqRec sfs [] _ _ _ acc = trace ("fuck1: " ++ (show $ length sfs)) acc
-        runSeqRec [] is _ _ _ acc = trace "fuck2" acc
         runSeqRec (sf:sfs) (i:ins) idx clbk dt acc@(accSfs, accIns, accOuts) = runSeqRec sfs ins' idx' clbk dt acc'
             where
                 -- 1. run the current signal-function with the required input (i) and time-delta (dt) and freeze it (with the time-delta)

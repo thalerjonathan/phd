@@ -31,7 +31,7 @@ runMetaABSStepsAndPrint = do
 
                             let steps = 1
                             let ass = processSteps as env parallelStrategyFlag 1.0 steps
-                            let as' = last ass
+                            let (as', env') = last ass
 
                             putStrLn "Final Agents:"
                             mapM (putStrLn . show . aoState) as'

@@ -58,7 +58,7 @@ type SugarScapeAgentOut = AgentOut SugarScapeAgentState SugarScapeMsg SugarScape
 -- MODEL-PARAMETERS
 ------------------------------------------------------------------------------------------------------------------------
 sugarGrowbackRate :: Double
-sugarGrowbackRate = 2.0
+sugarGrowbackRate = 1.0
 
 sugarCapacityRange :: (Double, Double)
 sugarCapacityRange = (1.0, 10.0)
@@ -81,23 +81,39 @@ cellUnoccupied = not . cellOccupied
 
 
 sugarScapeEnvironmentBehaviour :: SugarScapeEnvironmentBehaviour
-sugarScapeEnvironmentBehaviour env = env -- regrowSugarEnv
+sugarScapeEnvironmentBehaviour env = regrowSugarEnvRate
     where
-        regrowSugarEnv = updateEnvironmentCells
+        regrowSugarEnvRate = updateEnvironmentCells
                             env
                             (\c -> c {
-                                sugEnvSugarLevel =
+                                sugEnvSugarLevel = (
                                     min
                                         (sugEnvSugarCapacity c)
-                                        ((sugEnvSugarLevel c) + sugarGrowbackRate)
+                                        ((sugEnvSugarLevel c) + sugarGrowbackRate))
                                         } )
+
+        regrowSugarEnvMax = updateEnvironmentCells
+                                    env
+                                    (\c -> c {
+                                        sugEnvSugarLevel = (sugEnvSugarCapacity c)} )
 
 agentAction :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentAction a
-    | starvedToDeath agentAfterHarvest = kill agentAfterHarvest -- trace ("Agent " ++ (show $ aoId a) ++ " starved to death")
-    | otherwise = agentAfterHarvest -- trace ("Agent " ++ (show $ aoId a) ++ " has sugarlevel of " ++ (show $ sugAgSugar $ aoState agentAfterMove))
+    | starvedToDeath agentAfterHarvest = kill $ unoccupyPosition agentAfterHarvest
+    | otherwise = agentAfterHarvest
     where
         agentAfterHarvest = agentMetabolism $ agentCollecting a
+
+unoccupyPosition ::  SugarScapeAgentOut -> SugarScapeAgentOut
+unoccupyPosition a = a { aoEnv = env' }
+    where
+        env = aoEnv a
+
+        currentAgentPosition = aoEnvPos a
+        currentAgentCell = cellAt env currentAgentPosition
+        currentAgentCellUnoccupied = currentAgentCell { sugEnvOccupied = Nothing }
+
+        env' = changeCellAt env currentAgentPosition currentAgentCellUnoccupied
 
 starvedToDeath :: SugarScapeAgentOut -> Bool
 starvedToDeath a = sugAgSugar s <= 0
@@ -125,24 +141,20 @@ agentCollecting a
         aHarvested = agentMoveAndHarvestCell a' cellInfo
 
 agentMoveAndHarvestCell :: SugarScapeAgentOut -> (EnvCoord, SugarScapeEnvCell) -> SugarScapeAgentOut
-agentMoveAndHarvestCell a (cellCoord, cell) = updateState a' (\s -> s { sugAgSugar = newSugarLevelAgent })
+agentMoveAndHarvestCell a (cellCoord, cell) = updateState a'' (\s -> s { sugAgSugar = newSugarLevelAgent })
     where
-        env = aoEnv a
         sugarLevelCell = sugEnvSugarLevel cell
         sugarLevelAgent = sugAgSugar $ aoState a
         newSugarLevelAgent = (sugarLevelCell + sugarLevelAgent) -- trace ("Agent " ++ (show $ aoId a) ++ " environment BEFORE move has cells: " ++ (show $ allCellsWithCoords env))
 
-        currentAgentPosition = aoEnvPos a
-        currentAgentCell = cellAt env currentAgentPosition
-        currentAgentCellUnoccupied = currentAgentCell { sugEnvOccupied = Nothing }
+        a' = unoccupyPosition a
+        env = aoEnv a'
 
         cellHarvestedAndOccupied = cell { sugEnvSugarLevel = 0.0, sugEnvOccupied = Just (aoId a) }
-
-        env' = changeCellAt env currentAgentPosition currentAgentCellUnoccupied
-        env'' = changeCellAt env' cellCoord cellHarvestedAndOccupied
+        env' = changeCellAt env cellCoord cellHarvestedAndOccupied
 
         --trace ("Agent " ++ (show $ aoId a) ++ " environment AFTER move has cells: " ++ (show $ allCellsWithCoords env''))
-        a' = (a { aoEnvPos = cellCoord, aoEnv = env'' })
+        a'' = a' { aoEnvPos = cellCoord, aoEnv = env' }
 
 
 selectBestCells :: [(EnvCoord, SugarScapeEnvCell)] -> [(EnvCoord, SugarScapeEnvCell)]

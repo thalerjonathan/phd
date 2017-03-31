@@ -33,25 +33,27 @@ runSegWithRendering = do
                         (as, env) <- createSegAgentsAndEnv cells
 
                         putStrLn "dynamics = ["
-                        outRef <- (newIORef ([], False)) :: (IO (IORef ([SegAgentOut], Bool)))
+                        outRef <- (newIORef (([], env), False)) :: (IO (IORef (([SegAgentOut], SegEnvironment), Bool)))
                         hdl <- processIOInit as env parallelStrategyFlag (nextIteration outRef)
 
                         simulateAndRender hdl outRef
 
-nextIteration :: IORef ([SegAgentOut], Bool)
-                    -> ReactHandle [AgentIn s m ec] [SegAgentOut]
+nextIteration :: IORef (([SegAgentOut], SegEnvironment), Bool)
+                    -> ReactHandle ([SegAgentIn], SegEnvironment) ([SegAgentOut], SegEnvironment)
                      -> Bool
-                     -> [SegAgentOut]
+                     -> ([SegAgentOut], SegEnvironment)
                      -> IO Bool
-nextIteration outRef _ _ aouts = do
-                                    printDynamics outRef aouts
-                                    let allSatisfied = all isSatisfied aouts
-                                    writeIORef outRef (aouts, allSatisfied)
-                                    return allSatisfied
+nextIteration outRef _ _ aep@(aouts, _) = do
+                                            printDynamics outRef aouts
+                                            let allSatisfied = all isSatisfied aouts
+                                            writeIORef outRef (aep, allSatisfied)
+                                            return allSatisfied
 
-printDynamics :: IORef ([SegAgentOut], Bool) -> [SegAgentOut] -> IO ()
+printDynamics :: IORef (([SegAgentOut], SegEnvironment), Bool)
+                    -> [SegAgentOut]
+                    -> IO ()
 printDynamics outRef aoutsCurr = do
-                                    (aoutsPrev, _) <- readIORef outRef
+                                    ((aoutsPrev, _), _) <- readIORef outRef
 
                                     let maxSimilarity = fromInteger $ fromIntegral totalCount -- NOTE: an agent can reach a maximum of 1.0
                                     let currSimilarity = totalSatisfaction aoutsCurr
@@ -76,7 +78,7 @@ runSegStepsAndRender = do
 
                             let steps = 10
                             let ass = processSteps as env parallelStrategyFlag 1.0 steps
-                            let as' = last ass
+                            let (as', env') = last ass
 
                             --pic <- modelToPicture as'
                             --GLO.display (Front.display winTitle winSize) GLO.black pic
@@ -90,22 +92,24 @@ initRng seed = do
                 setStdGen g
                 return g
 
-simulateAndRender :: ReactHandle [AgentIn s m ec] [SegAgentOut] -> IORef ([SegAgentOut], Bool) -> IO ()
+simulateAndRender :: ReactHandle ([SegAgentIn], SegEnvironment) ([SegAgentOut], SegEnvironment)
+                        -> IORef (([SegAgentOut], SegEnvironment), Bool) -> IO ()
 simulateAndRender hdl outRef = animateIO (Front.display winTitle winSize)
                                             GLO.black -- GLO.white
                                             (nextFrame hdl outRef)
                                             (\controller -> return () )
 
-nextFrame :: ReactHandle [AgentIn s m ec] [SegAgentOut] -> IORef ([SegAgentOut], Bool) -> Float -> IO Picture
+nextFrame :: ReactHandle ([SegAgentIn], SegEnvironment) ([SegAgentOut], SegEnvironment)
+                -> IORef (([SegAgentOut], SegEnvironment), Bool) -> Float -> IO Picture
 nextFrame hdl outRef dt = do
                             react hdl (1.0, Nothing)  -- NOTE: will result in call to nextIteration
                             (aouts, _) <- readIORef outRef
                             modelToPicture aouts
 
-modelToPicture :: [SegAgentOut] -> IO GLO.Picture
-modelToPicture as = do
-                        let rcs = map (segAgentOutToRenderCell cells) as
-                        return (Front.renderFrame renderCircles rcs winSize cells)
+modelToPicture :: ([SegAgentOut], SegEnvironment) -> IO GLO.Picture
+modelToPicture (as, env) = do
+                            let rcs = map (segAgentOutToRenderCell cells) as
+                            return (Front.renderFrame renderCircles rcs winSize cells)
 
 segAgentOutToRenderCell :: (Int, Int) -> SegAgentOut -> Front.RenderCell
 segAgentOutToRenderCell (xDim, yDim) ao = Front.RenderCell { Front.renderCellCoord = (ax, ay),

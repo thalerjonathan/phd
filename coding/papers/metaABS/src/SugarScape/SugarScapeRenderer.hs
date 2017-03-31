@@ -21,7 +21,10 @@ renderFrame aouts env wSize@(wx, wy) = GLO.Pictures $ (envPics ++ agentPics)
         agentPics = map (renderAgent (cellWidth, cellHeight) wSize) aouts
         envPics = map (renderEnvCell (cellWidth, cellHeight) wSize) cells
 
-renderEnvCell :: (Float, Float) -> (Int, Int) -> (EnvCoord, SugarScapeEnvCell) -> GLO.Picture
+renderEnvCell :: (Float, Float)
+                    -> (Int, Int)
+                    -> (EnvCoord, SugarScapeEnvCell)
+                    -> GLO.Picture
 renderEnvCell (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = GLO.color color $ GLO.translate xPix yPix $ GLO.ThickCircle 0 radius
     where
         color = GLO.makeColor (realToFrac 0.9) (realToFrac 0.9) (realToFrac 0.0) 1.0
@@ -37,7 +40,10 @@ renderEnvCell (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = GLO.color color 
 
         radius = rectWidth * (realToFrac sugarLevelRatio)
 
-renderAgent :: (Float, Float) -> (Int, Int) -> SugarScapeAgentOut -> GLO.Picture
+renderAgent :: (Float, Float)
+                -> (Int, Int)
+                -> SugarScapeAgentOut
+                -> GLO.Picture
 renderAgent (rectWidth, rectHeight) (wx, wy) a = GLO.color color $ GLO.translate xPix yPix $ GLO.ThickCircle 0 rectWidth
     where
         s = aoState a

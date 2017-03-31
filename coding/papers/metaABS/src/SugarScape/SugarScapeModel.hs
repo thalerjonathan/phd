@@ -17,9 +17,7 @@ import Data.List
 import Debug.Trace
 import System.Random
 
-
 -- TODO Implement SugarScape Chapters
-    -- TODO environment also needs a signalfunction which runs once per simulation-step: environmentIn/out
     -- TODO test creation of agents
     -- TODO random iteration in sequential
 
@@ -61,16 +59,17 @@ sugarGrowbackRate :: Double
 sugarGrowbackRate = 1.0
 
 sugarCapacityRange :: (Double, Double)
-sugarCapacityRange = (1.0, 10.0)
+sugarCapacityRange = (0.0, 4.0)
 
+-- NOTE: this is NOT specified in Chapter II
 sugarEndowmentRange :: (Double, Double)
-sugarEndowmentRange = (5.0, 10.0)
+sugarEndowmentRange = (4.0, 10.0)
 
 metabolismRange :: (Double, Double)
 metabolismRange = (1.0, 4.0)
 
 visionRange :: (Int, Int)
-visionRange = (1, 1)
+visionRange = (1, 10)
 ------------------------------------------------------------------------------------------------------------------------
 
 cellOccupied :: SugarScapeEnvCell -> Bool
@@ -131,13 +130,16 @@ agentMetabolism a = updateState
 
 agentCollecting :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentCollecting a
-    | null unoccupiedCells = a -- trace ("Agent " ++ (show $ aoId a) ++ " found no unoccupied cells") a
+    | null unoccupiedCells = a
     | otherwise = aHarvested
     where
         cellsInSight = agentLookout a
         unoccupiedCells = filter (cellUnoccupied . snd) cellsInSight
-        bestCells = selectBestCells unoccupiedCells
+
+        bestCells = selectBestCells (aoEnvPos a) unoccupiedCells
+        -- NOTE: can return equally good cells, do random selection
         (a', cellInfo) = agentPickRandom a bestCells
+
         aHarvested = agentMoveAndHarvestCell a' cellInfo
 
 agentMoveAndHarvestCell :: SugarScapeAgentOut -> (EnvCoord, SugarScapeEnvCell) -> SugarScapeAgentOut
@@ -145,7 +147,7 @@ agentMoveAndHarvestCell a (cellCoord, cell) = updateState a'' (\s -> s { sugAgSu
     where
         sugarLevelCell = sugEnvSugarLevel cell
         sugarLevelAgent = sugAgSugar $ aoState a
-        newSugarLevelAgent = (sugarLevelCell + sugarLevelAgent) -- trace ("Agent " ++ (show $ aoId a) ++ " environment BEFORE move has cells: " ++ (show $ allCellsWithCoords env))
+        newSugarLevelAgent = (sugarLevelCell + sugarLevelAgent)
 
         a' = unoccupyPosition a
         env = aoEnv a'
@@ -153,17 +155,20 @@ agentMoveAndHarvestCell a (cellCoord, cell) = updateState a'' (\s -> s { sugAgSu
         cellHarvestedAndOccupied = cell { sugEnvSugarLevel = 0.0, sugEnvOccupied = Just (aoId a) }
         env' = changeCellAt env cellCoord cellHarvestedAndOccupied
 
-        --trace ("Agent " ++ (show $ aoId a) ++ " environment AFTER move has cells: " ++ (show $ allCellsWithCoords env''))
         a'' = a' { aoEnvPos = cellCoord, aoEnv = env' }
 
 
-selectBestCells :: [(EnvCoord, SugarScapeEnvCell)] -> [(EnvCoord, SugarScapeEnvCell)]
-selectBestCells cs = bestSugarCells
+selectBestCells :: EnvCoord -> [(EnvCoord, SugarScapeEnvCell)] -> [(EnvCoord, SugarScapeEnvCell)]
+selectBestCells refCoord cs = bestShortestDistanceCells
     where
         cellsSortedBySugarLevel = sortBy (\c1 c2 -> compare (sugEnvSugarLevel $ snd c2) (sugEnvSugarLevel $ snd c1)) cs
         bestSugarLevel = sugEnvSugarLevel $ snd $ head cellsSortedBySugarLevel
         bestSugarCells = filter ((==bestSugarLevel) . sugEnvSugarLevel . snd) cellsSortedBySugarLevel
-        -- TODO: filter by best distance
+
+        shortestDistanceBestCells = sortBy (\c1 c2 -> compare (distanceEucl refCoord (fst c1)) (distanceEucl refCoord (fst c2))) bestSugarCells
+        shortestDistance = distanceEucl refCoord (fst $ head shortestDistanceBestCells)
+        bestShortestDistanceCells = filter ((==shortestDistance) . (distanceEucl refCoord) . fst) shortestDistanceBestCells
+
 
 -- TODO: think about moving this to the general Agent.hs: introduce a Maybe StdGen, but then: don't we loose reasoning abilities?
 agentPickRandom :: SugarScapeAgentOut -> [a] -> (SugarScapeAgentOut, a)
@@ -177,6 +182,7 @@ agentPickRandom a all@(x:xs)
         randElem = all !! randIdx
         a' = updateState a (\s -> s { sugAgRng = g' } )
 
+-- TODO: it is not 100% clear how this is meant in the book
 agentLookout :: SugarScapeAgentOut -> [(EnvCoord, SugarScapeEnvCell)]
 agentLookout a = zip visionCoordsWrapped visionCells
     where

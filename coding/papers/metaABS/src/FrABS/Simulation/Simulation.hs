@@ -23,6 +23,8 @@ import Debug.Trace
 ------------------------------------------------------------------------------------------------------------------------
 -- TODOs
 ------------------------------------------------------------------------------------------------------------------------
+-- TODO: implement replications (using parallelism!)
+
 -- TODO: allow to be able to stop simulation when iteration.function returns True
 -- TODO: sequential iteration should have the feature to shuffle agents randomly before iterating them
 

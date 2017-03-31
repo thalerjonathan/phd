@@ -70,7 +70,13 @@ changeCellAt env coord c = env { envCells = arr' }
         arr' = arr // [(coord, c)]
 
 distance :: EnvCoord -> EnvCoord -> Int
-distance (x1, y1) (x2, y2) = (abs x1 - x2) + (abs y1 - y2)
+distance (x1, y1) (x2, y2) = (abs (x1 - x2)) + (abs (y1 - y2))
+
+distanceEucl :: EnvCoord -> EnvCoord -> Double
+distanceEucl (x1, y1) (x2, y2) = sqrt (xDelta*xDelta + yDelta*yDelta)
+    where
+        xDelta = fromRational $ toRational (x2 - x1)
+        yDelta = fromRational $ toRational (y2 - y1)
 
 cellsAround :: Environment c -> EnvCoord -> Int -> [(EnvCoord, c)]
 cellsAround env (cx, cy) r = zip wrappedCs cells

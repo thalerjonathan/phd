@@ -11,30 +11,65 @@ import System.Random
 import System.IO
 import Debug.Trace
 
+allZeroSugar :: (EnvCoord, SugarScapeEnvCell) -> Double
+allZeroSugar _ = 0.0
+
+circlesSugar :: Double -> [(EnvCoord, Double)] -> (EnvCoord, SugarScapeEnvCell) -> Double
+circlesSugar sugarLevel circles (coord, cell)
+    | withinRadius = sugarLevel
+    | otherwise = sugEnvSugarLevel cell -- NOTE: keep the level of before
+        where
+            withinRadius = any (\(p, r) -> distanceEucl p coord <= r) circles
+
 createSugarScape :: Int -> EnvLimits -> IO ([SugarScapeAgentDef], SugarScapeEnvironment)
 createSugarScape agentCount l = do
-                                    randCoords <- drawRandomCoords l agentCount
+                                    randCoords <- drawRandomCoords (25, 25) agentCount
 
                                     as <- mapM randomAgent (zip [0..agentCount-1] randCoords)
                                     let occupations = map (\a -> (adEnvPos a, adId a)) as
 
-                                    cells <- createCells l occupations
+                                    initRandomSugarCells <- createCells l occupations
+
+                                    let zeroSugarCells = initSugar initRandomSugarCells allZeroSugar
+                                    let cellsWithLevel1 = initSugar zeroSugarCells (circlesSugar 1 [((35, 35), 20.0), ((15, 15), 20.0)])
+                                    let cellsWithLevel2 = initSugar cellsWithLevel1 (circlesSugar 2 [((35, 35), 15.0), ((15, 15), 15.0)])
+                                    let cellsWithLevel3 = initSugar cellsWithLevel2 (circlesSugar 3 [((35, 35), 10.0), ((15, 15), 10.0)])
+                                    let cellsWithLevel4 = initSugar cellsWithLevel3 (circlesSugar 4 [((35, 35), 5.0), ((15, 15), 5.0)])
 
                                     let env = createEnvironment
                                                           (Just sugarScapeEnvironmentBehaviour)
                                                           l
                                                           neumann
                                                           WrapBoth
-                                                          cells
+                                                          cellsWithLevel4
                                     return (as, env)
                                     --return (trace ("Environment has cells: " ++ (show cells)) (as, env))
     where
-        createCells :: EnvLimits -> [(EnvCoord, AgentId)] -> IO [(EnvCoord, SugarScapeEnvCell)]
+        initSugar :: [(EnvCoord, SugarScapeEnvCell)]
+                            -> ((EnvCoord, SugarScapeEnvCell) -> Double)
+                            -> [(EnvCoord, SugarScapeEnvCell)]
+        initSugar cs sugarFunc = map (initSugarAux sugarFunc) cs
+
+            where
+                initSugarAux :: ((EnvCoord, SugarScapeEnvCell) -> Double)
+                                        -> (EnvCoord, SugarScapeEnvCell)
+                                        -> (EnvCoord, SugarScapeEnvCell)
+                initSugarAux sugarFunc cp@(coord, cell) = (coord, cell')
+                    where
+                        sugar = sugarFunc cp
+                        cell' = cell { sugEnvSugarLevel = sugar,
+                                        sugEnvSugarCapacity = sugar }
+
+        createCells :: EnvLimits
+                        -> [(EnvCoord, AgentId)]
+                        -> IO [(EnvCoord, SugarScapeEnvCell)]
         createCells (maxX, maxY) occupations = do
                                                     let coords = [ (x, y) | x <- [0..maxX-1], y <- [0..maxY-1] ]
                                                     let cellCount = maxX * maxY
                                                     cs <- mapM (randomCell occupations) coords
                                                     return cs
+
+
 
         randomCell :: [(EnvCoord, AgentId)] -> EnvCoord -> IO (EnvCoord, SugarScapeEnvCell)
         randomCell occupations coord = do

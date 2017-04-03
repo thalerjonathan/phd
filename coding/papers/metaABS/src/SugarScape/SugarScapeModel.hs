@@ -50,6 +50,7 @@ data SugarScapeAgentState = SugarScapeAgentState {
     sugAgMetabolism :: Double,
     sugAgVision :: Int,
     sugAgSugar :: Double,
+    sugAgMaxAge :: Double,
     sugAgRng :: StdGen
 } deriving (Show)
 
@@ -115,10 +116,12 @@ sugarScapeEnvironmentBehaviour env = regrowSugarEnvRate
                                     (\c -> c {
                                         sugEnvSugarLevel = (sugEnvSugarCapacity c)} )
 
+agentDies :: SugarScapeAgentOut -> SugarScapeAgentOut
+agentDies = unoccupyPosition . kill
 
 agentAction :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentAction a
-    | starvedToDeath agentAfterHarvest = kill $ unoccupyPosition agentAfterHarvest
+    | starvedToDeath agentAfterHarvest = agentDies agentAfterHarvest
     | otherwise = agentAfterHarvest
     where
         agentAfterHarvest = agentMetabolism $ agentCollecting a
@@ -217,9 +220,51 @@ agentLookout a = zip visionCoordsWrapped visionCells
         visionCoordsWrapped = wrapCells (envLimits env) (envWrapping env) visionCoords
         visionCells = cellsAt env visionCoordsWrapped
 
+agentAgeing :: SugarScapeAgentOut -> Double -> SugarScapeAgentOut
+agentAgeing a age
+    | diedFromAge a age = trace ("Agent " ++ (show $ aoId a) ++ " died") agentDies $ birthNewAgent a
+    | otherwise = agentAction a
+
+birthNewAgent :: SugarScapeAgentOut -> SugarScapeAgentOut
+birthNewAgent a = createAgent a newAgentDef
+    where
+        newAgentId = aoId a                             -- NOTE: we keep the old id
+        newAgentCoord = aoEnvPos a                      -- NOTE: for now use same position, can look for random unoccupied
+        newAgentBehaviour = sugarScapeAgentBehaviour    -- NOTE: new SF, must start from 0
+        oldAgentRng = sugAgRng $ aoState a
+        (newAgentDef, _) = randomAgentRng (newAgentId, newAgentCoord) oldAgentRng
+
+diedFromAge :: SugarScapeAgentOut -> Double -> Bool
+diedFromAge a age = age >= (sugAgMaxAge $ aoState a)
+
+randomAgentRng :: (Int, EnvCoord) -> StdGen -> (SugarScapeAgentDef, StdGen)
+randomAgentRng (agentId, coord) g0 = (adef, g5)
+    where
+        (randMeta, g1) = randomR metabolismRange g0
+        (randVision, g2) = randomR visionRange g1
+        (randEnd, g3) = randomR sugarEndowmentRange g2
+        (randMaxAge, g4) = randomR ageRange g3
+        (rng, g5) = split g4
+
+        s = SugarScapeAgentState {
+            sugAgMetabolism = randMeta,
+            sugAgVision = randVision,
+            sugAgSugar = randEnd,
+            sugAgMaxAge = randMaxAge,
+            sugAgRng = rng
+        }
+
+        adef = AgentDef {
+           adId = agentId,
+           adState = s,
+           adEnvPos = coord,
+           adInitMessages = NoEvent,
+           adBeh = sugarScapeAgentBehaviour }
+
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour
 sugarScapeAgentBehaviour = proc ain ->
     do
-        let aout = agentOutFromIn ain
+        let a = agentOutFromIn ain
         age <- time -< 0
-        returnA -< agentAction aout
+        returnA -< agentAgeing a age
+

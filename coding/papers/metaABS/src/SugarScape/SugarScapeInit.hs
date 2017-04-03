@@ -114,13 +114,14 @@ createSugarScape agentCount l = do
                                         randMeta <- getStdRandom $ randomR metabolismRange
                                         randVision <- getStdRandom $ randomR visionRange
                                         randEnd <- getStdRandom $ randomR sugarEndowmentRange
-
+                                        randMaxAge <- getStdRandom $ randomR ageRange
                                         rng <- newStdGen
 
                                         let s = SugarScapeAgentState {
                                             sugAgMetabolism = randMeta,
                                             sugAgVision = randVision,
                                             sugAgSugar = randEnd,
+                                            sugAgMaxAge = randMaxAge,
                                             sugAgRng = rng
                                         }
 

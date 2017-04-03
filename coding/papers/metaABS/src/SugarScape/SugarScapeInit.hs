@@ -5,6 +5,8 @@ import SugarScape.SugarScapeModel
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 
+import FRP.Yampa
+
 import Data.List
 
 import System.Random
@@ -126,6 +128,7 @@ createSugarScape agentCount l = do
                                             adId = agentId,
                                             adState = s,
                                             adEnvPos = coord,
+                                            adInitMessages = NoEvent,
                                             adBeh = sugarScapeAgentBehaviour }
 
                                         return a

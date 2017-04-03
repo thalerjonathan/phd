@@ -15,6 +15,7 @@ data AgentDef s m ec = AgentDef {
     adId :: AgentId,
     adState :: s,
     adBeh :: AgentBehaviour s m ec,
+    adInitMessages :: Event [AgentMessage m],     -- AgentId identifies sender
     adEnvPos :: EnvCoord
 }
 

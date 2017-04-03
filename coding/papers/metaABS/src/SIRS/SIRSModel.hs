@@ -77,6 +77,7 @@ sirsDt ao dt
         newAgentDef = AgentDef {
                           adId = (aoId ao),
                           adState = (aoState ao),
+                          adInitMessages = NoEvent,
                           adBeh = sirsAgentBehaviour,
                           adEnvPos = (aoEnvPos ao)
                       }
@@ -174,6 +175,7 @@ createRandomSIRSAgents max@(x,y) p =  do
         createAgent s max = AgentDef { adId = agentId,
                                         adState = s,
                                         adBeh = sirsAgentBehaviour,
+                                        adInitMessages = NoEvent,
                                         adEnvPos = c}
             where
                 c = sirsCoord s

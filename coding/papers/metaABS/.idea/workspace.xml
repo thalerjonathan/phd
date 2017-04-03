@@ -25,28 +25,38 @@
       <file leaf-file-name="SugarScapeRun.hs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/SugarScape/SugarScapeRun.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="119">
+            <state relative-caret-position="425">
               <caret line="25" column="15" lean-forward="false" selection-start-line="25" selection-start-column="15" selection-end-line="25" selection-end-column="15" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SugarScapeInit.hs" pinned="false" current-in-tab="true">
+      <file leaf-file-name="SugarScapeInit.hs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/SugarScape/SugarScapeInit.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="161">
-              <caret line="15" column="0" lean-forward="true" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
+            <state relative-caret-position="51">
+              <caret line="15" column="21" lean-forward="true" selection-start-line="15" selection-start-column="21" selection-end-line="15" selection-end-column="21" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SugarScapeModel.hs" pinned="false" current-in-tab="false">
+      <file leaf-file-name="SugarScapeModel.hs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/SugarScape/SugarScapeModel.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
-              <caret line="63" column="87" lean-forward="false" selection-start-line="63" selection-start-column="87" selection-end-line="63" selection-end-column="87" />
+            <state relative-caret-position="608">
+              <caret line="223" column="24" lean-forward="false" selection-start-line="223" selection-start-column="24" selection-end-line="223" selection-end-column="24" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Agent.hs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/FrABS/Agent/Agent.hs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="68">
+              <caret line="4" column="0" lean-forward="false" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="16" />
               <folding />
             </state>
           </provider>
@@ -105,20 +115,20 @@
         <option value="$PROJECT_DIR$/src/MetaABS/MetaABSInit.hs" />
         <option value="$PROJECT_DIR$/src/MetaABS/MetaABSModel.hs" />
         <option value="$PROJECT_DIR$/src/Segregation/SegregationModel.hs" />
-        <option value="$PROJECT_DIR$/src/Segregation/SegregationInit.hs" />
-        <option value="$PROJECT_DIR$/src/FrABS/Agent/Agent.hs" />
         <option value="$PROJECT_DIR$/src/MetaABS/MetaABSRun.hs" />
         <option value="$PROJECT_DIR$/src/Segregation/SegregationRun.hs" />
         <option value="$PROJECT_DIR$/src/Main.hs" />
-        <option value="$PROJECT_DIR$/src/SIRS/SIRSModel.hs" />
         <option value="$PROJECT_DIR$/src/SIRS/RunSIRS.hs" />
         <option value="$PROJECT_DIR$/src/FrABS/Simulation/SeqIteration.hs" />
         <option value="$PROJECT_DIR$/src/FrABS/Env/Environment.hs" />
         <option value="$PROJECT_DIR$/src/SugarScape/SugarScapeRenderer.hs" />
         <option value="$PROJECT_DIR$/src/FrABS/Simulation/Simulation.hs" />
-        <option value="$PROJECT_DIR$/src/SugarScape/SugarScapeModel.hs" />
-        <option value="$PROJECT_DIR$/src/SugarScape/SugarScapeInit.hs" />
         <option value="$PROJECT_DIR$/src/SugarScape/SugarScapeRun.hs" />
+        <option value="$PROJECT_DIR$/src/FrABS/Agent/Agent.hs" />
+        <option value="$PROJECT_DIR$/src/SIRS/SIRSModel.hs" />
+        <option value="$PROJECT_DIR$/src/SugarScape/SugarScapeInit.hs" />
+        <option value="$PROJECT_DIR$/src/Segregation/SegregationInit.hs" />
+        <option value="$PROJECT_DIR$/src/SugarScape/SugarScapeModel.hs" />
       </list>
     </option>
   </component>
@@ -143,6 +153,9 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scratches" />
+      <pane id="Scope" />
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -187,11 +200,48 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="MetaABS" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="metaABS" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="FrABS" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="MetaABS" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="metaABS" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="FrABS" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Agent" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
-      <pane id="Scratches" />
-      <pane id="Scope" />
-      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -652,24 +702,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Segregation/SegregationInit.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="928">
-          <caret line="58" column="48" lean-forward="true" selection-start-line="58" selection-start-column="32" selection-end-line="58" selection-end-column="48" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/FrABS/Rendering/Agents2DDiscrete.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="679">
           <caret line="51" column="0" lean-forward="true" selection-start-line="51" selection-start-column="0" selection-end-line="51" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/FrABS/Agent/Agent.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2080">
-          <caret line="136" column="67" lean-forward="false" selection-start-line="136" selection-start-column="67" selection-end-line="136" selection-end-column="67" />
         </state>
       </provider>
     </entry>
@@ -691,13 +727,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="416">
           <caret line="39" column="19" lean-forward="false" selection-start-line="39" selection-start-column="5" selection-end-line="39" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/SIRS/SIRSModel.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="283">
-          <caret line="39" column="16" lean-forward="false" selection-start-line="39" selection-start-column="5" selection-end-line="39" selection-end-column="16" />
         </state>
       </provider>
     </entry>
@@ -764,26 +793,50 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/SugarScape/SugarScapeModel.hs">
+    <entry file="file://$PROJECT_DIR$/src/SugarScape/SugarScapeRun.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="63" column="87" lean-forward="false" selection-start-line="63" selection-start-column="87" selection-end-line="63" selection-end-column="87" />
+        <state relative-caret-position="425">
+          <caret line="25" column="15" lean-forward="false" selection-start-line="25" selection-start-column="15" selection-end-line="25" selection-end-column="15" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/SugarScape/SugarScapeRun.hs">
+    <entry file="file://$PROJECT_DIR$/src/SIRS/SIRSModel.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="25" column="15" lean-forward="false" selection-start-line="25" selection-start-column="15" selection-end-line="25" selection-end-column="15" />
+        <state relative-caret-position="212">
+          <caret line="177" column="65" lean-forward="false" selection-start-line="177" selection-start-column="65" selection-end-line="177" selection-end-column="65" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Segregation/SegregationInit.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="136">
+          <caret line="8" column="0" lean-forward="true" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/SugarScape/SugarScapeInit.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="161">
-          <caret line="15" column="0" lean-forward="true" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
+        <state relative-caret-position="51">
+          <caret line="15" column="21" lean-forward="true" selection-start-line="15" selection-start-column="21" selection-end-line="15" selection-end-column="21" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/FrABS/Agent/Agent.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="68">
+          <caret line="4" column="0" lean-forward="false" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="16" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/SugarScape/SugarScapeModel.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="608">
+          <caret line="223" column="24" lean-forward="false" selection-start-line="223" selection-start-column="24" selection-end-line="223" selection-end-column="24" />
           <folding />
         </state>
       </provider>

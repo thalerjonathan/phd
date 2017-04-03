@@ -5,6 +5,8 @@ import Segregation.SegregationModel
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 
+import FRP.Yampa
+
 import System.Random
 import System.IO
 
@@ -35,6 +37,7 @@ createSegAgentsAndEnv limits@(x,y) =  do
                                         let a = AgentDef { adId = agentId,
                                                             adState = s,
                                                             adEnvPos = coord,
+                                                            adInitMessages = NoEvent,
                                                             adBeh = segAgentBehaviour }
 
                                         let emptyCell = (coord, Nothing)

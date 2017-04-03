@@ -17,10 +17,26 @@ import Data.List
 import Debug.Trace
 import System.Random
 
--- TODO Implement SugarScape Chapters
-    -- TODO test creation of agents
-    -- TODO random iteration in sequential
+-- TODO Implement and VALIDATE SugarScape Chapters
+    {- TODO Implement:
+        how do we generate global unique agentids when creating them during runtime?
+        we could let the runtimesystem handle it because it knows all agents but then how can the
+         parent-agent get to know which ids they have? this is important as agents can only communicate
+         with each other by knowing their ids. we could introduce "initialMessages" in the agentdef
+         which allows the parent to send initial messages to the child. this allows the domain-specific
+          handling of new children: if a parent needs to know the id of its children and/or the children
+          the parents' id then the parent sends a domain-specific message in initial messages with its
+          id and the child replies with a same message and maybe a tag which allows the parent to distinguish
+          the child from other newly created ones. this is not required in sugarscape thus no initial messages
+           are placed but it may be necessary in Heroes and cowards when creating dynamically new agents
+    -}
 
+    -- TODO: implement death of age and newborn: newly created agents must be run at the end of the iteration they where created in?
+    -- TODO: implement seasons: environment behaviour also needs the current time e.g. for seasonal changes. implement it as a SF?
+    -- TODO: implement polution
+    -- TODO: export dynamics in a text file with matlab format of the data: wealth distribution, number of agents, mean vision/metabolism, mean age,
+
+-- TODO random iteration in sequential
 -- TODO implement rules as SF which can be turned on or off
 -- TODO formalize rules in my EDSL
 -- TODO problem of sugarscape trading in our functional approach: cannot reply immediately thus potentially violating budget constraints. need to solve this e.g. by having a temporary reserved amount "open for transaction"
@@ -61,7 +77,7 @@ sugarGrowbackRate = 1.0
 sugarCapacityRange :: (Double, Double)
 sugarCapacityRange = (0.0, 4.0)
 
--- NOTE: this is NOT specified in Chapter II, but taken from the NetLogo implementation
+-- NOTE: this is specified in book page 33 where the initial endowments are set to 5-25
 sugarEndowmentRange :: (Double, Double)
 sugarEndowmentRange = (5.0, 25.0)
 
@@ -70,6 +86,9 @@ metabolismRange = (1.0, 4.0)
 
 visionRange :: (Int, Int)
 visionRange = (1, 6)
+
+ageRange :: (Double, Double)
+ageRange = (60, 100)
 ------------------------------------------------------------------------------------------------------------------------
 
 cellOccupied :: SugarScapeEnvCell -> Bool
@@ -95,6 +114,7 @@ sugarScapeEnvironmentBehaviour env = regrowSugarEnvRate
                                     env
                                     (\c -> c {
                                         sugEnvSugarLevel = (sugEnvSugarCapacity c)} )
+
 
 agentAction :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentAction a
@@ -201,4 +221,5 @@ sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour
 sugarScapeAgentBehaviour = proc ain ->
     do
         let aout = agentOutFromIn ain
+        age <- time -< 0
         returnA -< agentAction aout

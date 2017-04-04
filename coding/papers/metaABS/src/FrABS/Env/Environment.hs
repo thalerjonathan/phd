@@ -16,7 +16,10 @@ an Environment is a container which contains Agents and allows them to move arro
     -- or use type-classes?
 -- TODO: can we generalize to higher dimensions?
 -- TODO: graph environment: no geometrical space => no position but only neighbours
-
+    -- TODO: https://hackage.haskell.org/package/containers-0.5.10.2/docs/Data-Graph.html
+    -- TODO: https://hackage.haskell.org/package/fgl
+    -- TODO: http://mazzo.li/posts/graph-drawing.html
+    
 data (Num d) => EnvCoordGeneric d = EnvCoordGeneric (d, d)
 type EnvironmentBehaviour c = (Environment c -> Environment c)
 type EnvCoord = (Int, Int)

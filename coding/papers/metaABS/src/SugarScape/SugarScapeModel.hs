@@ -222,17 +222,26 @@ agentLookout a = zip visionCoordsWrapped visionCells
 
 agentAgeing :: SugarScapeAgentOut -> Double -> SugarScapeAgentOut
 agentAgeing a age
-    | diedFromAge a age = trace ("Agent " ++ (show $ aoId a) ++ " died") agentDies $ birthNewAgent a
+    | diedFromAge a age = trace ("Agent " ++ (show $ aoId a) ++ " died of age " ++ (show age)) agentDies $ birthNewAgent a
     | otherwise = agentAction a
 
 birthNewAgent :: SugarScapeAgentOut -> SugarScapeAgentOut
 birthNewAgent a = createAgent a newAgentDef
     where
-        newAgentId = aoId a                             -- NOTE: we keep the old id
-        newAgentCoord = aoEnvPos a                      -- NOTE: for now use same position, can look for random unoccupied
-        newAgentBehaviour = sugarScapeAgentBehaviour    -- NOTE: new SF, must start from 0
-        oldAgentRng = sugAgRng $ aoState a
+        newAgentId = aoId a                                 -- NOTE: we keep the old id
+        (newAgentCoord, a') = findUnoccpiedRandomPosition a
+        oldAgentRng = sugAgRng $ aoState a'
         (newAgentDef, _) = randomAgentRng (newAgentId, newAgentCoord) oldAgentRng
+
+        findUnoccpiedRandomPosition :: SugarScapeAgentOut -> (EnvCoord, SugarScapeAgentOut)
+        findUnoccpiedRandomPosition a
+            | cellOccupied c = findUnoccpiedRandomPosition a'
+            | otherwise = (coord, a')
+            where
+                g = sugAgRng $ aoState a
+                env = aoEnv a
+                (c, coord, g') = randomCell g env
+                a' = updateState a (\s -> s { sugAgRng = g' })
 
 diedFromAge :: SugarScapeAgentOut -> Double -> Bool
 diedFromAge a age = age >= (sugAgMaxAge $ aoState a)

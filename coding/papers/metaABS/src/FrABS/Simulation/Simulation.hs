@@ -155,10 +155,7 @@ simulateSeq initSfs = SF {sfTF = tf0}
 
                         -- NOTE: the 'last' environment is in the first of outs because runSeqInternal reverses the outputs
                         env' = if null outs then env else aoEnv $ head outs
-                        mayEnvBeh = envBehaviour env'
-                        env'' = maybe env' (\envBeh -> envBeh env') mayEnvBeh
-
-                        --runAndFreezeSF
+                        env'' = runEnv env' dt
 
                         insWithNewEnv = map (\ain -> ain { aiEnv = env'' }) ins'
 
@@ -328,10 +325,10 @@ simulatePar initSfs = SF {sfTF = tf0}
                         -- run the next step with the new sfs and inputs to get the sf-contintuations and their outputs
                         (sfs'', outs') = runParInternal sfs' ins'
 
-                        -- TODO: run behaviour of env
+                        env' = runEnv env dt
 
                         -- create a continuation of this SF
-                        tf' = simulateParAux sfs'' ins' outs' env
+                        tf' = simulateParAux sfs'' ins' outs' env'
 
 
 parCallback :: [AgentIn s m ec]
@@ -376,6 +373,16 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns0)
 ----------------------------------------------------------------------------------------------------------------------
 -- utils
 ----------------------------------------------------------------------------------------------------------------------
+runEnv :: Environment c -> DTime -> Environment c
+runEnv env dt
+    | isNothing mayEnvBeh = env
+    | otherwise = env' { envBehaviour = Just envSF' }
+    where
+        mayEnvBeh = envBehaviour env
+
+        envSF = fromJust mayEnvBeh
+        (envSF', env') = runAndFreezeSF envSF env dt
+
 handleCreateAgents :: ([AgentBehaviour s m ec], [AgentIn s m ec])
                         -> AgentOut s m ec
                         -> ([AgentBehaviour s m ec], [AgentIn s m ec])

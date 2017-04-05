@@ -18,7 +18,6 @@ import Debug.Trace
 import System.Random
 
 -- TODO Implement and VALIDATE SugarScape Chapters
-    -- TODO: implement seasons: environment behaviour also needs the current time e.g. for seasonal changes. implement it as a SF?
     -- TODO: implement polution
     -- TODO: export dynamics in a text file with matlab format of the data: wealth distribution, number of agents, mean vision/metabolism, mean age,
 
@@ -58,8 +57,17 @@ type SugarScapeAgentOut = AgentOut SugarScapeAgentState SugarScapeMsg SugarScape
 ------------------------------------------------------------------------------------------------------------------------
 -- MODEL-PARAMETERS
 ------------------------------------------------------------------------------------------------------------------------
-sugarGrowbackRate :: Double
-sugarGrowbackRate = 1.0
+sugarGrowbackUnits :: Double
+sugarGrowbackUnits = 1.0
+
+summerSeasonGrowbackRate :: Double
+summerSeasonGrowbackRate = 1.0
+
+winterSeasonGrowbackRate :: Double
+winterSeasonGrowbackRate = 8.0
+
+seasonDuration :: Double
+seasonDuration = 50.0
 
 sugarCapacityRange :: (Double, Double)
 sugarCapacityRange = (0.0, 4.0)
@@ -76,6 +84,9 @@ visionRange = (1, 6)
 
 ageRange :: (Double, Double)
 ageRange = (60, 100)
+
+
+
 ------------------------------------------------------------------------------------------------------------------------
 
 cellOccupied :: SugarScapeEnvCell -> Bool
@@ -83,24 +94,6 @@ cellOccupied cell = isJust $ sugEnvOccupied cell
 
 cellUnoccupied :: SugarScapeEnvCell -> Bool
 cellUnoccupied = not . cellOccupied
-
-
-sugarScapeEnvironmentBehaviour :: SugarScapeEnvironmentBehaviour
-sugarScapeEnvironmentBehaviour env = regrowSugarEnvRate
-    where
-        regrowSugarEnvRate = updateEnvironmentCells
-                            env
-                            (\c -> c {
-                                sugEnvSugarLevel = (
-                                    min
-                                        (sugEnvSugarCapacity c)
-                                        ((sugEnvSugarLevel c) + sugarGrowbackRate))
-                                        } )
-
-        regrowSugarEnvMax = updateEnvironmentCells
-                                    env
-                                    (\c -> c {
-                                        sugEnvSugarLevel = (sugEnvSugarCapacity c)} )
 
 agentDies :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentDies = unoccupyPosition . kill
@@ -263,3 +256,54 @@ sugarScapeAgentBehaviour = proc ain ->
         age <- time -< 0
         returnA -< agentAgeing a age
 
+sugarScapeEnvironmentBehaviour :: SugarScapeEnvironmentBehaviour
+sugarScapeEnvironmentBehaviour = proc env ->
+    do
+        let envRegrowSugarByRate = regrowSugarByRate sugarGrowbackUnits env
+        let envRegrowSugarToMax = regrowSugarToMax env
+
+        t <- time -< 0
+        returnA -< seasonalEnvironment t env
+
+    where
+        regrowSugarByRate :: Double -> SugarScapeEnvironment -> SugarScapeEnvironment
+        regrowSugarByRate rate env = updateEnvironmentCells
+                                        env
+                                        (\c -> c {
+                                            sugEnvSugarLevel = (
+                                                min
+                                                    (sugEnvSugarCapacity c)
+                                                    ((sugEnvSugarLevel c) + rate))
+                                                    } )
+
+        regrowSugarToMax ::  SugarScapeEnvironment -> SugarScapeEnvironment
+        regrowSugarToMax env = updateEnvironmentCells
+                                    env
+                                    (\c -> c {
+                                        sugEnvSugarLevel = (sugEnvSugarCapacity c)} )
+
+        regrowSugarByRateAndRegion :: (Int, Int) -> Double -> SugarScapeEnvironment -> SugarScapeEnvironment
+        regrowSugarByRateAndRegion range rate env = updateEnvironmentCellsWithCoords
+                                                    env
+                                                    (regrowCell range)
+            where
+                regrowCell :: (Int, Int) -> (EnvCoord, SugarScapeEnvCell) -> SugarScapeEnvCell
+                regrowCell (fromY, toY) ((_, y), c)
+                    | y >= fromY && y <= toY = c {
+                                                   sugEnvSugarLevel = (
+                                                       min
+                                                           (sugEnvSugarCapacity c)
+                                                           ((sugEnvSugarLevel c) + rate))
+                                                           }
+                    | otherwise = c
+
+        seasonalEnvironment :: Double -> SugarScapeEnvironment -> SugarScapeEnvironment
+        seasonalEnvironment t env = envWinterRegrow
+            where
+                r = floor (t / seasonDuration)
+                summerTop = even r
+                winterTop = not summerTop
+                summerRange = if summerTop then (1, 25) else (26, 50)
+                winterRange = if winterTop then (1, 25) else (26, 50)
+                envSummerRegrow = regrowSugarByRateAndRegion summerRange (sugarGrowbackUnits / summerSeasonGrowbackRate) env
+                envWinterRegrow = regrowSugarByRateAndRegion winterRange (sugarGrowbackUnits / winterSeasonGrowbackRate) envSummerRegrow

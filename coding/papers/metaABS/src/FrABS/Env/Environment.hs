@@ -1,6 +1,8 @@
 {-# LANGUAGE Arrows #-}
 module FrABS.Env.Environment where
 
+import FRP.Yampa
+
 import Data.Array.IArray
 import System.Random
 
@@ -21,7 +23,7 @@ an Environment is a container which contains Agents and allows them to move arro
     -- TODO: http://mazzo.li/posts/graph-drawing.html
     
 data (Num d) => EnvCoordGeneric d = EnvCoordGeneric (d, d)
-type EnvironmentBehaviour c = (Environment c -> Environment c)
+type EnvironmentBehaviour c = SF (Environment c) (Environment c)
 type EnvCoord = (Int, Int)
 type EnvLimits = (Int, Int)
 type EnvNeighbourhood = [(Int, Int)]
@@ -65,6 +67,14 @@ updateEnvironmentCells env mecf = env { envCells = ec' }
     where
         ec = envCells env
         ec' = amap mecf ec
+
+updateEnvironmentCellsWithCoords :: Environment c -> ((EnvCoord, c) -> c) -> Environment c
+updateEnvironmentCellsWithCoords env mecf = env'
+    where
+        ecs = allCellsWithCoords env
+        cs = map mecf ecs
+        ecCoords = map fst ecs
+        env' = foldr (\(coord, c) accEnv -> changeCellAt accEnv coord c) env (zip ecCoords cs)
 
 changeCellAt :: Environment c -> EnvCoord -> c -> Environment c
 changeCellAt env coord c = env { envCells = arr' }

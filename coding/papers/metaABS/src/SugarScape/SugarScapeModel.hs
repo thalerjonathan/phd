@@ -17,9 +17,7 @@ import Data.List
 import Debug.Trace
 import System.Random
 
--- TODO Implement and VALIDATE SugarScape Chapters
-    -- TODO: implement polution
-    -- TODO: export dynamics in a text file with matlab format of the data: wealth distribution, number of agents, mean vision/metabolism, mean age,
+-- TODO: export dynamics in a text file with matlab format of the data: wealth distribution, number of agents, mean vision/metabolism, mean age,
 
 -- TODO random iteration in sequential
 -- TODO implement rules as SF which can be turned on or off
@@ -42,6 +40,7 @@ data SugarScapeAgentState = SugarScapeAgentState {
 data SugarScapeEnvCell = SugarScapeEnvCell {
     sugEnvSugarCapacity :: Double,
     sugEnvSugarLevel :: Double,
+    sugEnvPolutionLevel :: Double,
     sugEnvOccupied :: Maybe AgentId
 } deriving (Show)
 
@@ -85,10 +84,20 @@ visionRange = (1, 6)
 ageRange :: (Double, Double)
 ageRange = (60, 100)
 
+polutionMetabolismFactor :: Double
+polutionMetabolismFactor = 1.0
 
+polutionHarvestFactor :: Double
+polutionHarvestFactor = 1.0
+
+diffusePolutionTime :: Int
+diffusePolutionTime = 11
 
 ------------------------------------------------------------------------------------------------------------------------
 
+------------------------------------------------------------------------------------------------------------------------
+-- AGENT-BEHAVIOUR
+------------------------------------------------------------------------------------------------------------------------
 cellOccupied :: SugarScapeEnvCell -> Bool
 cellOccupied cell = isJust $ sugEnvOccupied cell
 
@@ -154,7 +163,16 @@ agentMoveAndHarvestCell a (cellCoord, cell) = updateState a'' (\s -> s { sugAgSu
         a' = unoccupyPosition a
         env = aoEnv a'
 
-        cellHarvestedAndOccupied = cell { sugEnvSugarLevel = 0.0, sugEnvOccupied = Just (aoId a) }
+        agentMetabolism = sugAgMetabolism $ aoState a
+        polutionIncByMeta =  agentMetabolism * polutionMetabolismFactor
+        polutionIncByHarvest = sugarLevelCell * polutionHarvestFactor
+        newPolutionLevel = polutionIncByMeta + polutionIncByHarvest + sugEnvPolutionLevel cell
+
+        cellHarvestedAndOccupied = cell {
+                sugEnvSugarLevel = 0.0,
+                sugEnvOccupied = Just (aoId a),
+                sugEnvPolutionLevel = newPolutionLevel
+                }
         env' = changeCellAt env cellCoord cellHarvestedAndOccupied
 
         a'' = a' { aoEnvPos = cellCoord, aoEnv = env' }
@@ -163,14 +181,24 @@ agentMoveAndHarvestCell a (cellCoord, cell) = updateState a'' (\s -> s { sugAgSu
 selectBestCells :: EnvCoord -> [(EnvCoord, SugarScapeEnvCell)] -> [(EnvCoord, SugarScapeEnvCell)]
 selectBestCells refCoord cs = bestShortestDistanceCells
     where
-        cellsSortedBySugarLevel = sortBy (\c1 c2 -> compare (sugEnvSugarLevel $ snd c2) (sugEnvSugarLevel $ snd c1)) cs
-        bestSugarLevel = sugEnvSugarLevel $ snd $ head cellsSortedBySugarLevel
-        bestSugarCells = filter ((==bestSugarLevel) . sugEnvSugarLevel . snd) cellsSortedBySugarLevel
+        measureFunc = bestMeasureSugarPolutionRatio
 
-        shortestDistanceBestCells = sortBy (\c1 c2 -> compare (distanceEucl refCoord (fst c1)) (distanceEucl refCoord (fst c2))) bestSugarCells
-        shortestDistance = distanceEucl refCoord (fst $ head shortestDistanceBestCells)
-        bestShortestDistanceCells = filter ((==shortestDistance) . (distanceEucl refCoord) . fst) shortestDistanceBestCells
+        cellsSortedByMeasure = sortBy (\c1 c2 -> compare (measureFunc $ snd c2) (measureFunc $ snd c1)) cs
+        bestCellMeasure = measureFunc $ snd $ head cellsSortedByMeasure
+        bestCells = filter ((==bestCellMeasure) . measureFunc . snd) cellsSortedByMeasure
 
+        shortestDistanceBestCells = sortBy (\c1 c2 -> compare (distance refCoord (fst c1)) (distance refCoord (fst c2))) bestCells
+        shortestDistance = distance refCoord (fst $ head shortestDistanceBestCells)
+        bestShortestDistanceCells = filter ((==shortestDistance) . (distance refCoord) . fst) shortestDistanceBestCells
+
+        bestMeasureSugarLevel :: SugarScapeEnvCell -> Double
+        bestMeasureSugarLevel c = sugEnvSugarLevel c
+
+        bestMeasureSugarPolutionRatio :: SugarScapeEnvCell -> Double
+        bestMeasureSugarPolutionRatio c = sugLvl / (1 + polLvl)
+            where
+                sugLvl = sugEnvSugarLevel c
+                polLvl = sugEnvPolutionLevel c
 
 -- TODO: think about moving this to the general Agent.hs: introduce a Maybe StdGen, but then: don't we loose reasoning abilities?
 agentPickRandom :: SugarScapeAgentOut -> [a] -> (SugarScapeAgentOut, a)
@@ -201,7 +229,7 @@ agentLookout a = zip visionCoordsWrapped visionCells
 
 agentAgeing :: SugarScapeAgentOut -> Double -> SugarScapeAgentOut
 agentAgeing a age
-    | diedFromAge a age = trace ("Agent " ++ (show $ aoId a) ++ " died of age " ++ (show age)) agentDies $ birthNewAgent a
+    | diedFromAge a age = agentDies $ birthNewAgent a
     | otherwise = agentAction a
 
 birthNewAgent :: SugarScapeAgentOut -> SugarScapeAgentOut
@@ -249,6 +277,11 @@ randomAgentRng (agentId, coord) g0 = (adef, g5)
            adInitMessages = NoEvent,
            adBeh = sugarScapeAgentBehaviour }
 
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- ENVIRONMENT-BEHAVIOUR
+------------------------------------------------------------------------------------------------------------------------
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour
 sugarScapeAgentBehaviour = proc ain ->
     do
@@ -259,13 +292,27 @@ sugarScapeAgentBehaviour = proc ain ->
 sugarScapeEnvironmentBehaviour :: SugarScapeEnvironmentBehaviour
 sugarScapeEnvironmentBehaviour = proc env ->
     do
-        let envRegrowSugarByRate = regrowSugarByRate sugarGrowbackUnits env
-        let envRegrowSugarToMax = regrowSugarToMax env
-
         t <- time -< 0
-        returnA -< seasonalEnvironment t env
+
+        let envPolutionDiffusion = diffusePolution t env
+
+        let envSeasonal = environmentSeasons t envPolutionDiffusion
+        let envRegrowSugarByRate = regrowSugarByRate sugarGrowbackUnits envPolutionDiffusion
+        let envRegrowSugarToMax = regrowSugarToMax envPolutionDiffusion
+
+        returnA -< trace ("Time = " ++ (show t)) envRegrowSugarByRate
 
     where
+        diffusePolution :: Double -> SugarScapeEnvironment -> SugarScapeEnvironment
+        diffusePolution t env
+            | timeReached = updateEnvironmentCells
+                                                   env
+                                                   (\c -> c {
+                                                       sugEnvPolutionLevel = 0.0} )
+            | otherwise = env
+            where
+                timeReached =  mod (floor t) diffusePolutionTime == 0
+
         regrowSugarByRate :: Double -> SugarScapeEnvironment -> SugarScapeEnvironment
         regrowSugarByRate rate env = updateEnvironmentCells
                                         env
@@ -297,13 +344,15 @@ sugarScapeEnvironmentBehaviour = proc env ->
                                                            }
                     | otherwise = c
 
-        seasonalEnvironment :: Double -> SugarScapeEnvironment -> SugarScapeEnvironment
-        seasonalEnvironment t env = envWinterRegrow
+        environmentSeasons :: Double -> SugarScapeEnvironment -> SugarScapeEnvironment
+        environmentSeasons t env = envWinterRegrow
             where
                 r = floor (t / seasonDuration)
                 summerTop = even r
                 winterTop = not summerTop
-                summerRange = if summerTop then (1, 25) else (26, 50)
-                winterRange = if winterTop then (1, 25) else (26, 50)
+                summerRange = if summerTop then (1, halfY) else (halfY + 1, maxY)
+                winterRange = if winterTop then (1, halfY) else (halfY + 1, maxY)
                 envSummerRegrow = regrowSugarByRateAndRegion summerRange (sugarGrowbackUnits / summerSeasonGrowbackRate) env
                 envWinterRegrow = regrowSugarByRateAndRegion winterRange (sugarGrowbackUnits / winterSeasonGrowbackRate) envSummerRegrow
+                (_, maxY) = envLimits env
+                halfY = floor ((toRational $ fromIntegral maxY) / 2.0 )

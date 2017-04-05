@@ -6,6 +6,8 @@ import FrABS.Env.Environment
 
 import qualified Graphics.Gloss as GLO
 
+import Debug.Trace
+
 display :: String -> (Int, Int) -> GLO.Display
 display title winSize = (GLO.InWindow title winSize (0, 0))
 
@@ -18,16 +20,28 @@ renderFrame aouts env wSize@(wx, wy) = GLO.Pictures $ (envPics ++ agentPics)
 
         cells = allCellsWithCoords env
 
+        maxPolLevel = foldr (\(_, cell) maxLvl -> if sugEnvPolutionLevel cell > maxLvl then
+                                                    sugEnvPolutionLevel cell
+                                                    else
+                                                        maxLvl ) 0.0 cells
+
         agentPics = map (renderAgent (cellWidth, cellHeight) wSize) aouts
-        envPics = map (renderEnvCell (cellWidth, cellHeight) wSize) cells
+        envPics = trace ("maxpol=" ++ (show maxPolLevel)) (map (renderEnvCell (cellWidth, cellHeight) wSize maxPolLevel) cells)
 
 renderEnvCell :: (Float, Float)
                     -> (Int, Int)
+                    -> Double
                     -> (EnvCoord, SugarScapeEnvCell)
                     -> GLO.Picture
-renderEnvCell (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = GLO.color color $ GLO.translate xPix yPix $ GLO.ThickCircle 0 radius
+renderEnvCell (rectWidth, rectHeight) (wx, wy) maxPolLevel ((x, y), cell) = GLO.Pictures $ [polutionLevelRect, sugarLevelCircle]
     where
-        color = GLO.makeColor (realToFrac 0.9) (realToFrac 0.9) (realToFrac 0.0) 1.0
+        polLevel = sugEnvPolutionLevel cell
+        polGreenShadeRelative = (realToFrac (polLevel / maxPolLevel))
+        polGreenShadeAbsolute = 1.0 - (min 1.0 (realToFrac (polLevel / 50)))
+        polGreenShade = polGreenShadeAbsolute
+
+        sugarColor = GLO.makeColor (realToFrac 0.9) (realToFrac 0.9) (realToFrac 0.0) 1.0
+        polutionColor = if polLevel == 0.0 then GLO.white else GLO.makeColor (realToFrac 0.0) polGreenShade (realToFrac 0.0) 1.0
 
         halfXSize = fromRational (toRational wx / 2.0)
         halfYSize = fromRational (toRational wy / 2.0)
@@ -39,6 +53,8 @@ renderEnvCell (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = GLO.color color 
         sugarLevelRatio = sugarLevel / (snd sugarCapacityRange)
 
         radius = rectWidth * (realToFrac sugarLevelRatio)
+        sugarLevelCircle = GLO.color sugarColor $ GLO.translate xPix yPix $ GLO.ThickCircle 0 radius
+        polutionLevelRect = GLO.color polutionColor $ GLO.translate xPix yPix $ GLO.rectangleSolid rectWidth rectHeight
 
 renderAgent :: (Float, Float)
                 -> (Int, Int)

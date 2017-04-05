@@ -82,6 +82,7 @@ createSugarScape agentCount l = do
                                         let c = SugarScapeEnvCell {
                                             sugEnvSugarCapacity = randCap,
                                             sugEnvSugarLevel = randCap,
+                                            sugEnvPolutionLevel = 0.0,
                                             sugEnvOccupied = maybe Nothing (Just . snd) mayOccupied
                                         }
 

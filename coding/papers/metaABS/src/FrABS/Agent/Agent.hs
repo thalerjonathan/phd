@@ -75,6 +75,9 @@ createAgent ao newDef = ao { aoCreate = createEvt }
 kill :: AgentOut s m ec -> AgentOut s m ec
 kill ao = ao { aoKill = Event () }
 
+isKilled :: AgentOut s m ec -> Bool
+isKilled = isEvent . aoKill
+
 onStart :: AgentIn s m ec -> (AgentOut s m ec -> AgentOut s m ec) -> AgentOut s m ec -> AgentOut s m ec
 onStart ai evtHdl ao = onEvent startEvt evtHdl ao
     where

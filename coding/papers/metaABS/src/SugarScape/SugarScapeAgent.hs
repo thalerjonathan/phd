@@ -3,6 +3,7 @@ module SugarScape.SugarScapeAgent where
 
 -- Project-internal import first
 import SugarScape.SugarScapeModel
+import SugarScape.SugarScapeEnvironment
 import FrABS.Env.Environment
 import FrABS.Agent.Agent
 
@@ -20,12 +21,6 @@ import System.Random
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR
 ------------------------------------------------------------------------------------------------------------------------
-cellOccupied :: SugarScapeEnvCell -> Bool
-cellOccupied cell = isJust $ sugEnvOccupied cell
-
-cellUnoccupied :: SugarScapeEnvCell -> Bool
-cellUnoccupied = not . cellOccupied
-
 agentDies :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentDies = unoccupyPosition . kill
 
@@ -48,7 +43,7 @@ unoccupyPosition a = a { aoEnv = env' }
         env' = changeCellAt env currentAgentPosition currentAgentCellUnoccupied
 
 starvedToDeath :: SugarScapeAgentOut -> Bool
-starvedToDeath a = sugAgSugar s <= 0
+starvedToDeath a = sugAgSugarLevel s <= 0
     where
         s = aoState a
 
@@ -56,10 +51,10 @@ agentMetabolism :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentMetabolism a = updateState
                             a
                             (\s -> s {
-                                sugAgSugar =
+                                sugAgSugarLevel =
                                     max
                                         0
-                                        ((sugAgSugar s) - (sugAgMetabolism s))})
+                                        ((sugAgSugarLevel s) - (sugAgMetabolism s))})
 
 agentCollecting :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentCollecting a
@@ -76,10 +71,10 @@ agentCollecting a
         aHarvested = agentMoveAndHarvestCell a' cellInfo
 
 agentMoveAndHarvestCell :: SugarScapeAgentOut -> (EnvCoord, SugarScapeEnvCell) -> SugarScapeAgentOut
-agentMoveAndHarvestCell a (cellCoord, cell) = updateState a'' (\s -> s { sugAgSugar = newSugarLevelAgent })
+agentMoveAndHarvestCell a (cellCoord, cell) = updateState a'' (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
     where
         sugarLevelCell = sugEnvSugarLevel cell
-        sugarLevelAgent = sugAgSugar $ aoState a
+        sugarLevelAgent = sugAgSugarLevel $ aoState a
         newSugarLevelAgent = (sugarLevelCell + sugarLevelAgent)
 
         a' = unoccupyPosition a
@@ -88,7 +83,8 @@ agentMoveAndHarvestCell a (cellCoord, cell) = updateState a'' (\s -> s { sugAgSu
         agentMetabolism = sugAgMetabolism $ aoState a
         polutionIncByMeta =  agentMetabolism * polutionMetabolismFactor
         polutionIncByHarvest = sugarLevelCell * polutionHarvestFactor
-        newPolutionLevel = polutionIncByMeta + polutionIncByHarvest + sugEnvPolutionLevel cell
+        -- newPolutionLevel = polutionIncByMeta + polutionIncByHarvest + sugEnvPolutionLevel cell
+        newPolutionLevel = 0
 
         cellHarvestedAndOccupied = cell {
                 sugEnvSugarLevel = 0.0,
@@ -103,7 +99,7 @@ agentMoveAndHarvestCell a (cellCoord, cell) = updateState a'' (\s -> s { sugAgSu
 selectBestCells :: EnvCoord -> [(EnvCoord, SugarScapeEnvCell)] -> [(EnvCoord, SugarScapeEnvCell)]
 selectBestCells refCoord cs = bestShortestDistanceCells
     where
-        measureFunc = bestMeasureSugarPolutionRatio
+        measureFunc = bestMeasureSugarLevel
 
         cellsSortedByMeasure = sortBy (\c1 c2 -> compare (measureFunc $ snd c2) (measureFunc $ snd c1)) cs
         bestCellMeasure = measureFunc $ snd $ head cellsSortedByMeasure
@@ -175,19 +171,28 @@ diedFromAge :: SugarScapeAgentOut -> Double -> Bool
 diedFromAge a age = age >= (sugAgMaxAge $ aoState a)
 
 randomAgent :: (AgentId, EnvCoord) -> StdGen -> (SugarScapeAgentDef, StdGen)
-randomAgent (agentId, coord) g0 = (adef, g5)
+randomAgent (agentId, coord) g0 = (adef, g6)
     where
         (randMeta, g1) = randomR metabolismRange g0
         (randVision, g2) = randomR visionRange g1
-        (randEnd, g3) = randomR sugarEndowmentRange g2
+        (randSugarEndowment, g3) = randomR sugarEndowmentRange g2
         (randMaxAge, g4) = randomR ageRange g3
-        (rng, g5) = split g4
+        (randMale, g5) = random g4 :: (Bool, StdGen)
+        (rng, g6) = split g5
+
+        randGender = if randMale then Male else Female
 
         s = SugarScapeAgentState {
             sugAgMetabolism = randMeta,
             sugAgVision = randVision,
-            sugAgSugar = randEnd,
+
+            sugAgSugarLevel = randSugarEndowment,
+            sugAgSugarInit = randSugarEndowment,
+
             sugAgMaxAge = randMaxAge,
+
+            sugAgGender = randGender,
+
             sugAgRng = rng
         }
 

@@ -10,12 +10,20 @@ import FrABS.Agent.Agent
 -- Project-specific libraries follow
 import FRP.Yampa
 
+import Data.Maybe
+
 -- debugging imports finally, to be easily removed in final version
 import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 -- ENVIRONMENT-BEHAVIOUR
 ------------------------------------------------------------------------------------------------------------------------
+cellOccupied :: SugarScapeEnvCell -> Bool
+cellOccupied cell = isJust $ sugEnvOccupied cell
+
+cellUnoccupied :: SugarScapeEnvCell -> Bool
+cellUnoccupied = not . cellOccupied
+
 diffusePolution :: Double -> SugarScapeEnvironment -> SugarScapeEnvironment
 diffusePolution t env
     | timeReached = updateEnvironmentCells
@@ -75,7 +83,8 @@ sugarScapeEnvironmentBehaviour = proc env ->
     do
         t <- time -< 0
 
-        let envPolutionDiffusion = diffusePolution t env
+        --let envPolutionDiffusion = diffusePolution t env
+        let envPolutionDiffusion = env
 
         let envSeasonal = environmentSeasons t envPolutionDiffusion
         let envRegrowSugarByRate = regrowSugarByRate sugarGrowbackUnits envPolutionDiffusion

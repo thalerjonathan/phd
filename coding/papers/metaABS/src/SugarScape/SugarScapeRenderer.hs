@@ -73,4 +73,9 @@ renderAgent (rectWidth, rectHeight) (wx, wy) a = GLO.color color $ GLO.translate
         yPix = fromRational (toRational (fromIntegral y * rectHeight)) - halfYSize
 
 agentColor :: SugarScapeAgentOut -> GLO.Color
-agentColor a = GLO.makeColor (realToFrac 0.7) (realToFrac 0.0) (realToFrac 0.0) 1.0
+agentColor a
+    | isMale = GLO.makeColor (realToFrac 1.0) (realToFrac 0.1) (realToFrac 0.1) 1.0
+    | isFemale = GLO.makeColor (realToFrac 0.0) (realToFrac 0.3) (realToFrac 0.6) 1.0
+    where
+        isMale = Male == (sugAgGender $ aoState a)
+        isFemale = not isMale

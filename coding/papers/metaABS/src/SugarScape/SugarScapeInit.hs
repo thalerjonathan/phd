@@ -1,6 +1,8 @@
 module SugarScape.SugarScapeInit where
 
 import SugarScape.SugarScapeModel
+import SugarScape.SugarScapeEnvironment
+import SugarScape.SugarScapeAgent
 
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
@@ -27,7 +29,7 @@ createSugarScape :: Int -> EnvLimits -> IO ([SugarScapeAgentDef], SugarScapeEnvi
 createSugarScape agentCount l = do
                                     randCoords <- drawRandomCoords (0,0) l agentCount
 
-                                    as <- mapM randomAgent (zip [0..agentCount-1] randCoords)
+                                    as <- mapM randomAgentIO (zip [0..agentCount-1] randCoords)
                                     let occupations = map (\a -> (adEnvPos a, adId a)) as
 
                                     initRandomSugarCells <- createCells l occupations
@@ -71,8 +73,6 @@ createSugarScape agentCount l = do
                                                     cs <- mapM (randomCell occupations) coords
                                                     return cs
 
-
-
         randomCell :: [(EnvCoord, AgentId)] -> EnvCoord -> IO (EnvCoord, SugarScapeEnvCell)
         randomCell occupations coord = do
                                         randCap <- getStdRandom $ randomR sugarCapacityRange
@@ -110,28 +110,9 @@ createSugarScape agentCount l = do
                           else
                             drawRandomCoordsAux lower upper (n-1) (c : acc)
 
-        randomAgent :: (Int, EnvCoord) -> IO SugarScapeAgentDef
-        randomAgent (agentId, coord) = do
-                                        randMeta <- getStdRandom $ randomR metabolismRange
-                                        randVision <- getStdRandom $ randomR visionRange
-                                        randEnd <- getStdRandom $ randomR sugarEndowmentRange
-                                        randMaxAge <- getStdRandom $ randomR ageRange
-                                        rng <- newStdGen
-
-                                        let s = SugarScapeAgentState {
-                                            sugAgMetabolism = randMeta,
-                                            sugAgVision = randVision,
-                                            sugAgSugar = randEnd,
-                                            sugAgMaxAge = randMaxAge,
-                                            sugAgRng = rng
-                                        }
-
-                                        let a = AgentDef {
-                                            adId = agentId,
-                                            adState = s,
-                                            adEnvPos = coord,
-                                            adInitMessages = NoEvent,
-                                            adBeh = sugarScapeAgentBehaviour }
-
-                                        return a
-                                        --return (trace ("Agent " ++ (show agentId) ++ " has state: " ++ (show s) ++ " and coord " ++ (show coord)) a)
+        randomAgentIO :: (AgentId, EnvCoord) -> IO SugarScapeAgentDef
+        randomAgentIO aidCoord = do
+                                    std <- getStdGen
+                                    let (adef, std') = randomAgent aidCoord std
+                                    setStdGen std'
+                                    return adef

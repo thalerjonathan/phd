@@ -37,7 +37,7 @@ renderEnvCell (rectWidth, rectHeight) (wx, wy) maxPolLevel ((x, y), cell) = GLO.
     where
         polLevel = sugEnvPolutionLevel cell
         polGreenShadeRelative = (realToFrac (polLevel / maxPolLevel))
-        polGreenShadeAbsolute = 1.0 - (min 1.0 (realToFrac (polLevel / 50)))
+        polGreenShadeAbsolute = 1.0 - (min 1.0 (realToFrac (polLevel / 30)))
         polGreenShade = polGreenShadeAbsolute
 
         sugarColor = GLO.makeColor (realToFrac 0.9) (realToFrac 0.9) (realToFrac 0.0) 1.0

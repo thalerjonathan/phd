@@ -2,6 +2,8 @@ module MetaABS.MetaABSInit where
 
 import MetaABS.MetaABSModel
 
+import FRP.Yampa
+
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 
@@ -33,6 +35,7 @@ createMetaABSAgentsAndEnv count = do
                                 let a = AgentDef { adId = agentId,
                                             adState = s,
                                             adEnvPos = (0,0),
+                                            adInitMessages = NoEvent,
                                             adBeh = metaABSAgentBehaviour }
 
                                 return a

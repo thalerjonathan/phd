@@ -133,12 +133,12 @@ createStartingAgentIn :: [AgentDef s m ec] -> Environment ec -> [AgentIn s m ec]
 createStartingAgentIn as env = map (startingAgentInFromAgentDef env) as
 
 startingAgentInFromAgentDef :: Environment ec -> AgentDef s m ec -> AgentIn s m ec
-startingAgentInFromAgentDef env a = AgentIn { aiId = (adId a),
-                                                aiMessages = NoEvent,
+startingAgentInFromAgentDef env a = AgentIn { aiId = adId a,
+                                                aiMessages = adInitMessages a,
                                                 aiStart = Event (),
-                                                aiState = (adState a),
+                                                aiState = adState a,
                                                 aiEnv = env,
-                                                aiEnvPos = (adEnvPos a),
+                                                aiEnvPos = adEnvPos a,
                                                 aiRec = NoEvent,
                                                 aiRecInitAllowed = True }
 

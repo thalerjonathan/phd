@@ -23,6 +23,20 @@ import Debug.Trace
 ------------------------------------------------------------------------------------------------------------------------
 -- TODOs
 ------------------------------------------------------------------------------------------------------------------------
+-- TODO: need some mechanism to give GLOBALLY UNIQUE IDs to agents when creating new
+    {-
+        how do we generate global unique agentids when creating them during runtime?
+        we could let the runtimesystem handle it because it knows all agents but then how can the
+         parent-agent get to know which ids they have? this is important as agents can only communicate
+         with each other by knowing their ids. we could introduce "initialMessages" in the agentdef
+         which allows the parent to send initial messages to the child. this allows the domain-specific
+          handling of new children: if a parent needs to know the id of its children and/or the children
+          the parents' id then the parent sends a domain-specific message in initial messages with its
+          id and the child replies with a same message and maybe a tag which allows the parent to distinguish
+          the child from other newly created ones. this is not required in sugarscape thus no initial messages
+           are placed but it may be necessary in Heroes and cowards when creating dynamically new agents
+        -}
+
 -- TODO: implement replications (using parallelism!)
 
 -- TODO: allow to be able to stop simulation when iteration.function returns True
@@ -143,6 +157,8 @@ simulateSeq initSfs = SF {sfTF = tf0}
                         env' = if null outs then env else aoEnv $ head outs
                         mayEnvBeh = envBehaviour env'
                         env'' = maybe env' (\envBeh -> envBeh env') mayEnvBeh
+
+                        --runAndFreezeSF
 
                         insWithNewEnv = map (\ain -> ain { aiEnv = env'' }) ins'
 
@@ -311,6 +327,8 @@ simulatePar initSfs = SF {sfTF = tf0}
 
                         -- run the next step with the new sfs and inputs to get the sf-contintuations and their outputs
                         (sfs'', outs') = runParInternal sfs' ins'
+
+                        -- TODO: run behaviour of env
 
                         -- create a continuation of this SF
                         tf' = simulateParAux sfs'' ins' outs' env

@@ -71,16 +71,8 @@ sirsDt :: SIRSAgentOut -> Double -> SIRSAgentOut
 sirsDt ao dt
     | is ao Susceptible = ao
     | is ao Infected = handleInfectedAgent ao dt
-    | is ao Recovered = handleRecoveredAgent ao dt -- NOTE: to test creation/killing of agents use: createAgent (kill ao) newAgentDef
+    | is ao Recovered = handleRecoveredAgent ao dt
 
-    where
-        newAgentDef = AgentDef {
-                          adId = (aoId ao),
-                          adState = (aoState ao),
-                          adInitMessages = NoEvent,
-                          adBeh = sirsAgentBehaviour,
-                          adEnvPos = (aoEnvPos ao)
-                      }
 
 infectAgent :: SIRSAgentOut -> SIRSAgentOut
 infectAgent ao

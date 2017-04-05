@@ -18,20 +18,6 @@ import Debug.Trace
 import System.Random
 
 -- TODO Implement and VALIDATE SugarScape Chapters
-    {- TODO Implement:
-        how do we generate global unique agentids when creating them during runtime?
-        we could let the runtimesystem handle it because it knows all agents but then how can the
-         parent-agent get to know which ids they have? this is important as agents can only communicate
-         with each other by knowing their ids. we could introduce "initialMessages" in the agentdef
-         which allows the parent to send initial messages to the child. this allows the domain-specific
-          handling of new children: if a parent needs to know the id of its children and/or the children
-          the parents' id then the parent sends a domain-specific message in initial messages with its
-          id and the child replies with a same message and maybe a tag which allows the parent to distinguish
-          the child from other newly created ones. this is not required in sugarscape thus no initial messages
-           are placed but it may be necessary in Heroes and cowards when creating dynamically new agents
-    -}
-
-    -- TODO: implement death of age and newborn: newly created agents must be run at the end of the iteration they where created in?
     -- TODO: implement seasons: environment behaviour also needs the current time e.g. for seasonal changes. implement it as a SF?
     -- TODO: implement polution
     -- TODO: export dynamics in a text file with matlab format of the data: wealth distribution, number of agents, mean vision/metabolism, mean age,

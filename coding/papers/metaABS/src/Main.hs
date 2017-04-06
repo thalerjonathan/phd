@@ -4,19 +4,20 @@ import SIRS.RunSIRS
 import Segregation.SegregationRun
 import MetaABS.MetaABSRun
 import SugarScape.SugarScapeRun
+import Conversation.ConversationRun
 
 import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.Pure.Animate
 
 main :: IO ()
-main = runSugarScapeWithRendering
-    -- test
-    -- testGloss
+main = runConversationStepsAndPrint
     -- runSugarScapeWithRendering
     -- runMetaABSStepsAndPrint
     -- runSIRSWithRendering
     -- runSegWithRendering
     -- runSegStepsAndRender
+    -- test
+    -- testGloss
 
 test :: IO ()
 test = do

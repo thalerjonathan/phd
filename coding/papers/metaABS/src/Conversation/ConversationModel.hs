@@ -33,6 +33,8 @@ type ConversationAgentDef = AgentDef ConversationAgentState ConversationMsg Conv
 type ConversationAgentBehaviour = AgentBehaviour ConversationAgentState ConversationMsg ConversationEnvCell
 type ConversationAgentIn = AgentIn ConversationAgentState ConversationMsg ConversationEnvCell
 type ConversationAgentOut = AgentOut ConversationAgentState ConversationMsg ConversationEnvCell
+
+type ConversationAgentConversation = AgentConversation ConversationAgentState ConversationMsg ConversationEnvCell
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -42,8 +44,17 @@ randomRangeCounter :: (Int, Int)
 randomRangeCounter = (0, 10)
 ------------------------------------------------------------------------------------------------------------------------
 
+conversationHandler :: ConversationAgentConversation
+conversationHandler ain (senderId, msg) = trace ("Agent " ++ (show $ aiId ain) ++ " receives conversation: " ++ (show msg))(Nothing, ain)
+
+beginConversation :: ConversationAgentOut -> ConversationAgentOut
+beginConversation a = a { aoBeginConversation = Event (msg, Nothing)}
+    where
+        receiverId = if aoId a == 0 then 1 else 0
+        msg = (receiverId, Hello 0)
+
 conversationAgentBehaviour :: ConversationAgentBehaviour
 conversationAgentBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
-        returnA -< ao
+        returnA -< beginConversation ao

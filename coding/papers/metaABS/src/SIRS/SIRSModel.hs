@@ -168,6 +168,7 @@ createRandomSIRSAgents max@(x,y) p =  do
                                         adState = s,
                                         adBeh = sirsAgentBehaviour,
                                         adInitMessages = NoEvent,
+                                        adConversation = Nothing,
                                         adEnvPos = c}
             where
                 c = sirsCoord s

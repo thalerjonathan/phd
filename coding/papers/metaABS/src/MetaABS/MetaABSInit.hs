@@ -36,6 +36,7 @@ createMetaABSAgentsAndEnv count = do
                                             adState = s,
                                             adEnvPos = (0,0),
                                             adInitMessages = NoEvent,
+                                            adConversation = Nothing,
                                             adBeh = metaABSAgentBehaviour }
 
                                 return a

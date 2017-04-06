@@ -219,10 +219,31 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
                                 -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                                 -> ([AgentIn s m ec],
                                      Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec))
-        handleAgent otherIns a@(sf, oldIn, newOut) = (otherIns', mayAgent)
+        handleAgent otherIns a@(sf, oldIn, newOut) = (otherIns'', mayAgent)
             where
+                (newOut', otherIns') = handleConversation otherIns newOut
                 mayAgent = handleKillOrLiveAgent a
-                otherIns' = distributeActions otherIns newOut
+                otherIns'' = distributeActions otherIns' newOut'
+
+        handleConversation :: [AgentIn s m ec] -> AgentOut s m ec -> (AgentOut s m ec, [AgentIn s m ec])
+        handleConversation otherIns newOut
+            | beginsConversation newOut = (newOut, otherIns')
+            | otherwise = (newOut, otherIns)
+            where
+                ((receiverId, msg), senderReply) = fromEvent $ aoBeginConversation newOut
+                mayReceivingIndex = fromJust $ findIndex (\ai -> aiId ai == receiverId) otherIns    -- TODO: proper handling
+                receivingIn = otherIns !! mayReceivingIndex
+                mayConvHandler = fromJust $ aiConversation receivingIn                   -- TODO: proper handling
+
+                (mayNextMsg, newReceivingIn) = mayConvHandler receivingIn (aoId newOut, msg)
+
+                -- TODO: feed back into the sender and update its output
+                -- TODO: call recursively => if there is still conversation then go on => can have conversations with same/different agents
+
+                -- TODO: this does not work correctly yet
+                (otherInsFront, otherInsBack) = splitAt mayReceivingIndex otherIns
+                frontDropped = if null otherInsFront then [] else init otherInsFront
+                otherIns' = frontDropped ++ (newReceivingIn : otherInsBack)
 
         handleKillOrLiveAgent :: (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                                     -> Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)

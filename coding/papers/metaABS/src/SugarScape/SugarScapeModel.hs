@@ -166,5 +166,6 @@ randomAgent (agentId, coord) beh g0 = (adef, g8)
            adId = agentId,
            adState = s,
            adEnvPos = coord,
+           adConversation = Nothing,
            adInitMessages = NoEvent,
            adBeh = beh }

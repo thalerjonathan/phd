@@ -36,6 +36,7 @@ createConversationAgentsAndEnv count = do
                                             adState = s,
                                             adEnvPos = (0,0),
                                             adInitMessages = NoEvent,
+                                            adConversation = Just conversationHandler,
                                             adBeh = conversationAgentBehaviour }
 
                                 return a

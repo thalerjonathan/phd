@@ -38,6 +38,7 @@ createSegAgentsAndEnv limits@(x,y) =  do
                                                             adState = s,
                                                             adEnvPos = coord,
                                                             adInitMessages = NoEvent,
+                                                            adConversation = Nothing,
                                                             adBeh = segAgentBehaviour }
 
                                         let emptyCell = (coord, Nothing)

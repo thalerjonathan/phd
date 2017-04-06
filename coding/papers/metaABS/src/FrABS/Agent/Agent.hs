@@ -11,10 +11,20 @@ type AgentMessage m = (AgentId, m)
 type AgentBehaviour s m ec = SF (AgentIn s m ec) (AgentOut s m ec)
 type MessageFilter m = (AgentMessage m -> Bool)
 
+type AgentConversationReceiver s m ec = (AgentIn s m ec
+                                            -> AgentMessage m
+                                            -> (Maybe (AgentMessage m), AgentIn s m ec))
+
+data AgentConversationSender s m ec = Response (AgentOut s m ec
+                                        -> AgentMessage m
+                                        -> (Maybe (AgentMessage m), AgentOut s m ec)) | NoResponse
+
+
 data AgentDef s m ec = AgentDef {
     adId :: AgentId,
     adState :: s,
     adBeh :: AgentBehaviour s m ec,
+    adConversation :: Maybe (AgentConversationReceiver s m ec),
     adInitMessages :: Event [AgentMessage m],     -- AgentId identifies sender
     adEnvPos :: EnvCoord
 }
@@ -22,6 +32,7 @@ data AgentDef s m ec = AgentDef {
 data AgentIn s m ec = AgentIn {
     aiId :: AgentId,
     aiMessages :: Event [AgentMessage m],     -- AgentId identifies sender
+    aiConversation :: Maybe (AgentConversationReceiver s m ec),
     aiStart :: Event (),
     aiState :: s,
     aiEnv :: Environment ec,
@@ -35,6 +46,7 @@ data AgentOut s m ec = AgentOut {
     aoKill :: Event (),
     aoCreate :: Event [AgentDef s m ec],
     aoMessages :: Event [AgentMessage m],     -- AgentId identifies receiver
+    aoBeginConversation :: Event (AgentMessage m, Maybe (AgentConversationSender s m ec)),
     aoState :: s,
     aoEnv :: Environment ec,
     aoEnvPos :: EnvCoord,
@@ -50,6 +62,7 @@ agentOutFromIn ai = AgentOut{ aoId = (aiId ai),
                               aoKill = NoEvent,
                               aoCreate = NoEvent,
                               aoMessages = NoEvent,
+                              aoBeginConversation = NoEvent,
                               aoState = (aiState ai),
                               aoEnv = (aiEnv ai),
                               aoRec = NoEvent,
@@ -62,6 +75,9 @@ sendMessage ao msg = ao { aoMessages = mergedMsgs }
         newMsgEvent = Event [msg]
         existingMsgEvent = aoMessages ao
         mergedMsgs = mergeMessages existingMsgEvent newMsgEvent
+
+beginsConversation :: AgentOut s m ec -> Bool
+beginsConversation = isEvent . aoBeginConversation
 
 sendMessages :: AgentOut s m ec -> [AgentMessage m] -> AgentOut s m ec
 sendMessages ao msgs = foldr (\msg ao' -> sendMessage ao' msg ) ao msgs
@@ -138,6 +154,7 @@ createStartingAgentIn as env = map (startingAgentInFromAgentDef env) as
 startingAgentInFromAgentDef :: Environment ec -> AgentDef s m ec -> AgentIn s m ec
 startingAgentInFromAgentDef env a = AgentIn { aiId = adId a,
                                                 aiMessages = adInitMessages a,
+                                                aiConversation = adConversation a,
                                                 aiStart = Event (),
                                                 aiState = adState a,
                                                 aiEnv = env,

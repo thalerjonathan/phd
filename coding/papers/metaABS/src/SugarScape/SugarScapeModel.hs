@@ -25,9 +25,15 @@ import System.Random
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
-type SugarScapeMsg = ()
-
 data SugarScapeAgentGender = Male | Female deriving (Show, Eq)
+
+data SugarScapeMsg =
+    Mating {
+        matingMsgGender :: SugarScapeAgentGender,
+        matingMsgMetab :: Double,
+        matingMsgVision :: Int,
+        matingMsgSugar :: Double
+    } deriving (Show)
 
 data SugarScapeAgentState = SugarScapeAgentState {
     sugAgMetabolism :: Double,              -- this amount of sugar will be consumed by the agent in each time-step

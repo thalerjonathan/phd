@@ -1,9 +1,13 @@
+{-# LANGUAGE Arrows #-}
 module SugarScape.SugarScapeModel where
 
 -- Project-internal import first
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 import FrABS.Simulation.Simulation
+
+-- Project-specific libraries follow
+import FRP.Yampa
 
 -- System imports then
 import Data.Maybe
@@ -35,6 +39,7 @@ data SugarScapeAgentState = SugarScapeAgentState {
     sugAgMaxAge :: Double,                  -- at this age the agent will die and create a single new random offspring
 
     sugAgGender :: SugarScapeAgentGender,   -- an agent is either male or female
+    sugAgFertAgeRange :: (Double, Double),   -- an agent younger/older than this cannot bear children
 
     sugAgRng :: StdGen
 } deriving (Show)
@@ -57,6 +62,10 @@ type SugarScapeAgentOut = AgentOut SugarScapeAgentState SugarScapeMsg SugarScape
 
 ------------------------------------------------------------------------------------------------------------------------
 -- MODEL-PARAMETERS
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- CHAPTER II
 ------------------------------------------------------------------------------------------------------------------------
 sugarGrowbackUnits :: Double
 sugarGrowbackUnits = 1.0
@@ -94,4 +103,62 @@ polutionHarvestFactor = 1.0
 
 diffusePolutionTime :: Int
 diffusePolutionTime = 25
+
 ------------------------------------------------------------------------------------------------------------------------
+-- CHAPTER III
+------------------------------------------------------------------------------------------------------------------------
+childBearingMinAgeRange :: (Double, Double)
+childBearingMinAgeRange = (12, 15)
+
+childBearingFemaleMaxAgeRange :: (Double, Double)
+childBearingFemaleMaxAgeRange = (40, 50)
+
+childBearingMaleMaxAgeRange :: (Double, Double)
+childBearingMaleMaxAgeRange = (50, 60)
+
+sexualReproductionInitialEndowmentRange :: (Double, Double)
+sexualReproductionInitialEndowmentRange = (50, 100)
+------------------------------------------------------------------------------------------------------------------------
+
+
+randomAgent :: (AgentId, EnvCoord)
+                -> SugarScapeAgentBehaviour
+                -> StdGen
+                -> (SugarScapeAgentDef, StdGen)
+randomAgent (agentId, coord) beh g0 = (adef, g8)
+    where
+        (randMeta, g1) = randomR metabolismRange g0
+        (randVision, g2) = randomR visionRange g1
+        (randSugarEndowment, g3) = randomR sugarEndowmentRange g2
+        (randMaxAge, g4) = randomR ageRange g3
+        (randMale, g5) = random g4 :: (Bool, StdGen)
+        (randMinFert, g6) = randomR childBearingMinAgeRange g5
+
+        randGender = if randMale then Male else Female
+        fertilityMaxRange = if randMale then childBearingMaleMaxAgeRange else childBearingFemaleMaxAgeRange
+
+        (randMaxFert, g7) = randomR fertilityMaxRange g6
+
+        (rng, g8) = split g7
+
+        s = SugarScapeAgentState {
+            sugAgMetabolism = randMeta,
+            sugAgVision = randVision,
+
+            sugAgSugarLevel = randSugarEndowment,
+            sugAgSugarInit = randSugarEndowment,
+
+            sugAgMaxAge = randMaxAge,
+
+            sugAgGender = randGender,
+            sugAgFertAgeRange = (randMinFert, randMaxFert),
+
+            sugAgRng = rng
+        }
+
+        adef = AgentDef {
+           adId = agentId,
+           adState = s,
+           adEnvPos = coord,
+           adInitMessages = NoEvent,
+           adBeh = beh }

@@ -1,8 +1,8 @@
 module SugarScape.SugarScapeInit where
 
 import SugarScape.SugarScapeModel
-import SugarScape.SugarScapeEnvironment
 import SugarScape.SugarScapeAgent
+import SugarScape.SugarScapeEnvironment
 
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
@@ -113,6 +113,6 @@ createSugarScape agentCount l = do
         randomAgentIO :: (AgentId, EnvCoord) -> IO SugarScapeAgentDef
         randomAgentIO aidCoord = do
                                     std <- getStdGen
-                                    let (adef, std') = randomAgent aidCoord std
+                                    let (adef, std') = randomAgent aidCoord sugarScapeAgentBehaviour std
                                     setStdGen std'
                                     return adef

@@ -1,0 +1,44 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} % Required for the inclusion of images
+\usepackage{amsmath} % Required for some math elements 
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+
+% A written report that contains the following sections. There is no specific requirement on formatting but it should be well-presented and proof-read to ensure it is a piece of high-quality academic writing. As guidance, the whole report including the appendix should normally be around 8000-10000 words in length.
+
+%TODO Current title of PhD project, Whether it is a first, second or third annual review report, word count, student name, student ID, names of supervisors, initial registration date, expected date for entering thesis pending stage, expected date for thesis submission.
+\title{1st Year Report} % Title
+
+\author{Jonathan \textsc{Thaler}} % Author name
+
+\date{\today} % Date for the report
+
+\begin{document}
+\maketitle % Insert the title, author and date
+
+% If you wish to include an abstract, uncomment the lines below
+\begin{abstract}
+A succinct and concise summary (250 words maximum) of the report contents and presented on a single page.
+\end{abstract}
+
+%TODO Contents Page Main headings with page numbers.
+
+\input{./tex/introduction.tex}
+
+\input{./tex/conductedResearch.tex}
+
+\input{./tex/conclusions.tex}
+
+\input{./tex/futureWork.tex}
+
+%\bibliographystyle{acm}
+\bibliography{../../references/phdReferences}
+
+\input{./tex/appendix.tex}
+
+\end{document}

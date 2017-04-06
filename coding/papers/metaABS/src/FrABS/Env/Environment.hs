@@ -129,7 +129,7 @@ randomCellWithRadius g env (x, y) r = (randCell, randCoord', g'')
         randCell = cellAt env randCoord'
 
 neighbours :: Environment c -> EnvCoord -> [(EnvCoord, c)]
-neighbours env coord@(x, y) = zip wrappedNs cells
+neighbours env coord = zip wrappedNs cells
     where
         n = (envNeighbourhood env)
         l = (envLimits env)

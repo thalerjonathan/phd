@@ -203,10 +203,28 @@ randomAgent (agentId, coord) g0 = (adef, g6)
            adInitMessages = NoEvent,
            adBeh = sugarScapeAgentBehaviour }
 
+agentSex :: Double -> SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
+agentSex age ain a = trace ("Agent has neighbours: " ++ (show nids)) a
+    where
+        nids = getNeighbours a
+
+getNeighbours :: SugarScapeAgentOut -> [AgentId]
+getNeighbours a = nids
+    where
+        env = aoEnv a
+        pos = aoEnvPos a
+        ns = neighbours env pos
+        nids = foldr (\(_, c) acc -> if isJust $ sugEnvOccupied c then (fromJust $ sugEnvOccupied c) : acc else acc ) [] ns
+
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour
 sugarScapeAgentBehaviour = proc ain ->
     do
-        let a = agentOutFromIn ain
         age <- time -< 0
-        returnA -< agentAgeing a age
+
+        let a = agentOutFromIn ain
+
+        let a0 = agentAgeing a age
+        let a1 = if isKilled a0 then a0 else agentSex age ain a0
+
+        returnA -< a1
 ------------------------------------------------------------------------------------------------------------------------

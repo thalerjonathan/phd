@@ -229,18 +229,28 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
                                 -> AgentOut s m ec
                                 -> (AgentOut s m ec, [AgentIn s m ec])
         handleConversation otherIns newOut
-            | hasConversation newOut = handleConversation otherIns newOut'
+            | hasConversation newOut = do
+                                            handleConversation otherIns newOut'
             | otherwise = (newOut, otherIns)
             where
-                ((receiverId, msg), senderReplyFunc) = fromEvent $ aoBeginConversation newOut
-                mayReceivingIndex = fromJust $ findIndex (\ai -> aiId ai == receiverId) otherIns    -- TODO: proper handling
-                receivingIn = otherIns !! mayReceivingIndex
-                mayConvHandler = fromJust $ aiConversation receivingIn                   -- TODO: proper handling
+                ((receiverId, m), senderReplyFunc) = fromEvent $ aoBeginConversation newOut
 
-                (replyMsg, newReceivingIn) = mayConvHandler receivingIn (aoId newOut, msg)
-                otherIns' = replace mayReceivingIndex otherIns newReceivingIn
+                -- NOTE: it is possible that agents which are just newly created are already target of a conversation because
+                --       their position in the environment was occupied using their id which exposes them to potential messages
+                --       and conversations. These newly created agents are not yet available in the current iteration and can
+                --       only fully participate in the next one. Thus we ignore conversation-requests
+                mayReceivingIndex = findIndex (\ai -> (aiId ai) == receiverId) otherIns
+                receivingIndex = if isNothing mayReceivingIndex then trace ("couldnt find " ++ (show receiverId)) 0 else fromJust mayReceivingIndex
+                receivingIn = otherIns !! receivingIndex
+                mayConvHandler = fromJust $ aiConversation receivingIn
 
-                newOut' = senderReplyFunc newOut (receiverId, replyMsg)
+                (replyMsg, newReceivingIn) = mayConvHandler receivingIn (aoId newOut, m)
+                otherIns' = replace receivingIndex otherIns newReceivingIn
+
+                mayReplyMessage = Just (receiverId, replyMsg)
+
+                newOut' = senderReplyFunc newOut mayReplyMessage
+
 
         replace :: Int -> [a] -> a -> [a]
         replace idx as a = front ++ (a : backNoElem)

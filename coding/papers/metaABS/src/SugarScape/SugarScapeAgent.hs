@@ -184,15 +184,23 @@ dieFromAge a = age > maxAge
 ------------------------------------------------------------------------------------------------------------------------
 agentSex :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentSex a
-    | isFertile s = agentMatingConversation occupiedIds unoccupiedCells a
+    | isFertile s = agentMatingConversation neighbourIds nncsUnoccupied a
     | otherwise = a
     where
         s = aoState a
-        ncs = getNeighbourCells a
-        -- TODO: get all unoccpied cells of the neighbours as well because SugarScape states that either one has to have an unoccpied neighbourcell
-        occupiedCells = filter (isJust . sugEnvOccupied . snd) ncs
-        unoccupiedCells = filter (isNothing . sugEnvOccupied . snd) ncs
-        occupiedIds = map (fromJust . sugEnvOccupied . snd) occupiedCells
+        pos = aoEnvPos a
+        env = aoEnv a
+
+        neighbourCells = neighbours env pos
+
+        occupiedCells = filter (isJust . sugEnvOccupied . snd) neighbourCells
+        neighbourIds = map (fromJust . sugEnvOccupied . snd) occupiedCells
+
+        -- NOTE: this calculates the cells which are in the initial neighbourhood and in the neighbourhood of all the neighbours
+        nncsDupl = foldr (\(coord, _) acc -> (neighbours env coord) ++ acc) neighbourCells neighbourCells
+        -- NOTE: the nncs are not unique, remove duplicates
+        nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
+        nncsUnoccupied = filter (isNothing . sugEnvOccupied . snd) nncsUnique
 
         agentMatingConversation :: [AgentId]
                                         -> [(EnvCoord, SugarScapeEnvCell)]
@@ -200,18 +208,19 @@ agentSex a
                                         -> SugarScapeAgentOut
         agentMatingConversation [] _ a = stopConversation a
         agentMatingConversation _ [] a = stopConversation a
-        agentMatingConversation (aid:otherAis) allCoords@((coord, cell):cs) a
-            | satisfiesWealthForChildBearing s = beginConversation a (aid, m) agentMatingConversationsReply
+        agentMatingConversation (receiverId:otherAis) allCoords@((coord, cell):cs) a
+            | satisfiesWealthForChildBearing s = beginConversation a (receiverId, m) agentMatingConversationsReply
             | otherwise = stopConversation a
             where
                 s = aoState a
-                m =  MatingRequest (sugAgGender $ s)
+                m = MatingRequest (sugAgGender $ s)
 
                 agentMatingConversationsReply :: SugarScapeAgentOut
-                                                    -> AgentMessage SugarScapeMsg
+                                                    -> Maybe (AgentMessage SugarScapeMsg)
                                                     -> SugarScapeAgentOut
-                agentMatingConversationsReply a (senderId, MatingReplyNo) = agentMatingConversation otherAis allCoords a
-                agentMatingConversationsReply a (senderId, MatingReplyYes otherTup) = agentMatingConversation otherAis cs a2
+                agentMatingConversationsReply a Nothing = agentMatingConversation otherAis allCoords a  -- NOTE: the target was not found or does not have a handler, continue with the next
+                agentMatingConversationsReply a (Just (senderId, MatingReplyNo)) = agentMatingConversation otherAis allCoords a
+                agentMatingConversationsReply a (Just (senderId, MatingReplyYes otherTup)) = agentMatingConversation otherAis cs a2
                     where
                         s = aoState a
                         g = sugAgRng s
@@ -239,6 +248,7 @@ agentSex a
                         a1 = updateState a0 (\s -> s { sugAgSugarLevel = sugarLevel - mySugarContribution,
                                                         sugAgRng = g' } )
                         a2 = createAgent a1 newBornDef
+                agentMatingConversationsReply a (Just (_, _)) = agentMatingConversation otherAis allCoords a  -- NOTE: unexpected reply, continue with the next
 
 createNewBorn :: (AgentId, EnvCoord)
                     -> StdGen
@@ -287,20 +297,6 @@ isFertile s = withinRange age fertilityAgeRange
 
 withinRange :: (Ord a) => a -> (a, a) -> Bool
 withinRange a (l, u) = a >= l && a <= u
-
-getNeighbourCells :: SugarScapeAgentOut -> [(EnvCoord, SugarScapeEnvCell)]
-getNeighbourCells a = neighbours env pos
-    where
-        env = aoEnv a
-        pos = aoEnvPos a
-
-getNeighbours :: SugarScapeAgentOut -> [AgentId]
-getNeighbours a = nids
-    where
-        env = aoEnv a
-        pos = aoEnvPos a
-        ns = neighbours env pos
-        nids = foldr (\(_, c) acc -> if isJust $ sugEnvOccupied c then (fromJust $ sugEnvOccupied c) : acc else acc ) [] ns
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

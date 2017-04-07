@@ -16,7 +16,7 @@ type AgentConversationReceiver s m ec = (AgentIn s m ec
                                             -> (m, AgentIn s m ec)) -- NOTE: the receiver MUST reply, otherwise we could've used the normal messaging
 
 type AgentConversationSender s m ec = (AgentOut s m ec
-                                        -> AgentMessage m
+                                        -> Maybe (AgentMessage m)   -- NOTE: this will be Nothing in case the conversation with the target was not established e.g. id not found, target got no receiving handler
                                         -> AgentOut s m ec)
 
 

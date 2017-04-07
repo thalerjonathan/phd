@@ -55,8 +55,8 @@ makeConversationWith a = beginConversation a msg makeConversationWithAux
         receiverId = if aoId a == 0 then 1 else 0
         msg = (receiverId, Hello 0)
 
-        makeConversationWithAux :: ConversationAgentOut -> AgentMessage ConversationMsg -> ConversationAgentOut
-        makeConversationWithAux a (senderId, msg@(Hello n))
+        makeConversationWithAux :: ConversationAgentOut -> Maybe (AgentMessage ConversationMsg) -> ConversationAgentOut
+        makeConversationWithAux a (Just (senderId, msg@(Hello n)))
             | senderId == 0 = trace ("Agent " ++ (show $ aoId a) ++ " receives reply: " ++ (show msg) ++ " but stoppin") stopConversation a
             | otherwise = if (n<2) then (beginConversation a (2, Hello (n + 1)) makeConversationWithAux) else stopConversation a
 

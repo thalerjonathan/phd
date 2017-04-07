@@ -225,25 +225,28 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
                 mayAgent = handleKillOrLiveAgent a
                 otherIns'' = distributeActions otherIns' newOut'
 
-        handleConversation :: [AgentIn s m ec] -> AgentOut s m ec -> (AgentOut s m ec, [AgentIn s m ec])
+        handleConversation :: [AgentIn s m ec]
+                                -> AgentOut s m ec
+                                -> (AgentOut s m ec, [AgentIn s m ec])
         handleConversation otherIns newOut
-            | beginsConversation newOut = (newOut, otherIns')
+            | hasConversation newOut = handleConversation otherIns newOut'
             | otherwise = (newOut, otherIns)
             where
-                ((receiverId, msg), senderReply) = fromEvent $ aoBeginConversation newOut
+                ((receiverId, msg), senderReplyFunc) = fromEvent $ aoBeginConversation newOut
                 mayReceivingIndex = fromJust $ findIndex (\ai -> aiId ai == receiverId) otherIns    -- TODO: proper handling
                 receivingIn = otherIns !! mayReceivingIndex
                 mayConvHandler = fromJust $ aiConversation receivingIn                   -- TODO: proper handling
 
-                (mayNextMsg, newReceivingIn) = mayConvHandler receivingIn (aoId newOut, msg)
+                (replyMsg, newReceivingIn) = mayConvHandler receivingIn (aoId newOut, msg)
+                otherIns' = replace mayReceivingIndex otherIns newReceivingIn
 
-                -- TODO: feed back into the sender and update its output
-                -- TODO: call recursively => if there is still conversation then go on => can have conversations with same/different agents
+                newOut' = senderReplyFunc newOut (receiverId, replyMsg)
 
-                -- TODO: this does not work correctly yet
-                (otherInsFront, otherInsBack) = splitAt mayReceivingIndex otherIns
-                frontDropped = if null otherInsFront then [] else init otherInsFront
-                otherIns' = frontDropped ++ (newReceivingIn : otherInsBack)
+        replace :: Int -> [a] -> a -> [a]
+        replace idx as a = front ++ (a : backNoElem)
+            where
+                (front, back) = splitAt idx as  -- NOTE: back includes the element with the index
+                backNoElem = tail back
 
         handleKillOrLiveAgent :: (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                                     -> Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)

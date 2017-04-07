@@ -16,7 +16,7 @@ import System.IO
 import System.Random
 
 rngSeed = 42
-agentCount = 2
+agentCount = 3
 parallelStrategyFlag = False
 
 runConversationStepsAndPrint :: IO ()

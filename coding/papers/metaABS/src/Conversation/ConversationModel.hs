@@ -34,7 +34,7 @@ type ConversationAgentBehaviour = AgentBehaviour ConversationAgentState Conversa
 type ConversationAgentIn = AgentIn ConversationAgentState ConversationMsg ConversationEnvCell
 type ConversationAgentOut = AgentOut ConversationAgentState ConversationMsg ConversationEnvCell
 
-type ConversationAgentConversation = AgentConversation ConversationAgentState ConversationMsg ConversationEnvCell
+type ConversationAgentConversation = AgentConversationReceiver ConversationAgentState ConversationMsg ConversationEnvCell
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -45,16 +45,23 @@ randomRangeCounter = (0, 10)
 ------------------------------------------------------------------------------------------------------------------------
 
 conversationHandler :: ConversationAgentConversation
-conversationHandler ain (senderId, msg) = trace ("Agent " ++ (show $ aiId ain) ++ " receives conversation: " ++ (show msg))(Nothing, ain)
+conversationHandler ain (senderId, msg@(Hello n)) =
+    trace ("Agent " ++ (show $ aiId ain) ++ " receives conversation: " ++ (show msg))
+        (Hello (n+1), ain)
 
-beginConversation :: ConversationAgentOut -> ConversationAgentOut
-beginConversation a = a { aoBeginConversation = Event (msg, Nothing)}
+makeConversationWith :: ConversationAgentOut -> ConversationAgentOut
+makeConversationWith a = beginConversation a msg makeConversationWithAux
     where
         receiverId = if aoId a == 0 then 1 else 0
         msg = (receiverId, Hello 0)
+
+        makeConversationWithAux :: ConversationAgentOut -> AgentMessage ConversationMsg -> ConversationAgentOut
+        makeConversationWithAux a (senderId, msg@(Hello n))
+            | senderId == 0 = trace ("Agent " ++ (show $ aoId a) ++ " receives reply: " ++ (show msg) ++ " but stoppin") stopConversation a
+            | otherwise = if (n<2) then (beginConversation a (2, Hello (n + 1)) makeConversationWithAux) else stopConversation a
 
 conversationAgentBehaviour :: ConversationAgentBehaviour
 conversationAgentBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
-        returnA -< beginConversation ao
+        returnA -< makeConversationWith ao

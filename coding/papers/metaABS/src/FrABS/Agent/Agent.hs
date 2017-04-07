@@ -13,11 +13,11 @@ type MessageFilter m = (AgentMessage m -> Bool)
 
 type AgentConversationReceiver s m ec = (AgentIn s m ec
                                             -> AgentMessage m
-                                            -> (Maybe (AgentMessage m), AgentIn s m ec))
+                                            -> (m, AgentIn s m ec)) -- NOTE: the receiver MUST reply, otherwise we could've used the normal messaging
 
-data AgentConversationSender s m ec = Response (AgentOut s m ec
+type AgentConversationSender s m ec = (AgentOut s m ec
                                         -> AgentMessage m
-                                        -> (Maybe (AgentMessage m), AgentOut s m ec)) | NoResponse
+                                        -> AgentOut s m ec)
 
 
 data AgentDef s m ec = AgentDef {
@@ -46,7 +46,7 @@ data AgentOut s m ec = AgentOut {
     aoKill :: Event (),
     aoCreate :: Event [AgentDef s m ec],
     aoMessages :: Event [AgentMessage m],     -- AgentId identifies receiver
-    aoBeginConversation :: Event (AgentMessage m, Maybe (AgentConversationSender s m ec)),
+    aoBeginConversation :: Event (AgentMessage m, AgentConversationSender s m ec),
     aoState :: s,
     aoEnv :: Environment ec,
     aoEnvPos :: EnvCoord,
@@ -76,8 +76,17 @@ sendMessage ao msg = ao { aoMessages = mergedMsgs }
         existingMsgEvent = aoMessages ao
         mergedMsgs = mergeMessages existingMsgEvent newMsgEvent
 
-beginsConversation :: AgentOut s m ec -> Bool
-beginsConversation = isEvent . aoBeginConversation
+hasConversation :: AgentOut s m ec -> Bool
+hasConversation = isEvent . aoBeginConversation
+
+beginConversation :: AgentOut s m ec
+                        -> AgentMessage m
+                        -> AgentConversationSender s m ec
+                        -> AgentOut s m ec
+beginConversation ao msg replyHdl = ao { aoBeginConversation = Event (msg, replyHdl)}
+
+stopConversation :: AgentOut s m ec -> AgentOut s m ec
+stopConversation ao = ao { aoBeginConversation = NoEvent }
 
 sendMessages :: AgentOut s m ec -> [AgentMessage m] -> AgentOut s m ec
 sendMessages ao msgs = foldr (\msg ao' -> sendMessage ao' msg ) ao msgs

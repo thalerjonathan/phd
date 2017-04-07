@@ -28,12 +28,10 @@ import System.Random
 data SugarScapeAgentGender = Male | Female deriving (Show, Eq)
 
 data SugarScapeMsg =
-    Mating {
-        matingMsgGender :: SugarScapeAgentGender,
-        matingMsgMetab :: Double,
-        matingMsgVision :: Int,
-        matingMsgSugar :: Double
-    } deriving (Show)
+    MatingRequest SugarScapeAgentGender
+    | MatingReplyNo
+    | MatingReplyYes (Double, Double, Int) -- Sugar-Contribution, Metabolism, Vision
+    deriving (Show)
 
 data SugarScapeAgentState = SugarScapeAgentState {
     sugAgMetabolism :: Double,              -- this amount of sugar will be consumed by the agent in each time-step
@@ -46,6 +44,8 @@ data SugarScapeAgentState = SugarScapeAgentState {
 
     sugAgGender :: SugarScapeAgentGender,   -- an agent is either male or female
     sugAgFertAgeRange :: (Double, Double),   -- an agent younger/older than this cannot bear children
+
+    sugAgAge :: Double,                     -- the current age of the agent, could be calculated using time in the SF but we need it in the conversations as well, which are not running in the SF
 
     sugAgRng :: StdGen
 } deriving (Show)
@@ -64,6 +64,8 @@ type SugarScapeAgentDef = AgentDef SugarScapeAgentState SugarScapeMsg SugarScape
 type SugarScapeAgentBehaviour = AgentBehaviour SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell
 type SugarScapeAgentIn = AgentIn SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell
 type SugarScapeAgentOut = AgentOut SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell
+
+type SugarScapeAgentConversation = AgentConversationReceiver SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -129,13 +131,15 @@ sexualReproductionInitialEndowmentRange = (50, 100)
 
 randomAgent :: (AgentId, EnvCoord)
                 -> SugarScapeAgentBehaviour
+                -> SugarScapeAgentConversation
                 -> StdGen
                 -> (SugarScapeAgentDef, StdGen)
-randomAgent (agentId, coord) beh g0 = (adef, g8)
+randomAgent (agentId, coord) beh conv g0 = (adef, g8)
     where
         (randMeta, g1) = randomR metabolismRange g0
         (randVision, g2) = randomR visionRange g1
-        (randSugarEndowment, g3) = randomR sugarEndowmentRange g2
+        -- (randSugarEndowment, g3) = randomR sugarEndowmentRange g2
+        (randSugarEndowment, g3) = randomR sexualReproductionInitialEndowmentRange g2
         (randMaxAge, g4) = randomR ageRange g3
         (randMale, g5) = random g4 :: (Bool, StdGen)
         (randMinFert, g6) = randomR childBearingMinAgeRange g5
@@ -159,6 +163,8 @@ randomAgent (agentId, coord) beh g0 = (adef, g8)
             sugAgGender = randGender,
             sugAgFertAgeRange = (randMinFert, randMaxFert),
 
+            sugAgAge = 0.0,
+
             sugAgRng = rng
         }
 
@@ -166,6 +172,6 @@ randomAgent (agentId, coord) beh g0 = (adef, g8)
            adId = agentId,
            adState = s,
            adEnvPos = coord,
-           adConversation = Nothing,
+           adConversation = Just conv,
            adInitMessages = NoEvent,
            adBeh = beh }

@@ -10,7 +10,8 @@ import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.Pure.Animate
 
 main :: IO ()
-main = runConversationStepsAndPrint
+main = runSugarScapeWithRendering
+    -- runConversationStepsAndPrint
     -- runSugarScapeWithRendering
     -- runMetaABSStepsAndPrint
     -- runSIRSWithRendering

@@ -144,9 +144,9 @@ agentLookout a = zip visionCoordsWrapped visionCells
         visionCoordsWrapped = wrapCells (envLimits env) (envWrapping env) visionCoords
         visionCells = cellsAt env visionCoordsWrapped
 
-agentAgeing :: SugarScapeAgentOut -> Double -> SugarScapeAgentOut
-agentAgeing a age
-    | dieFromAge a age = agentDies $ birthNewAgent a
+agentAgeing :: SugarScapeAgentOut -> SugarScapeAgentOut
+agentAgeing a
+    | dieFromAge a = agentDies $ birthNewAgent a
     | otherwise = agentAction a
 
 birthNewAgent :: SugarScapeAgentOut -> SugarScapeAgentOut
@@ -155,7 +155,11 @@ birthNewAgent a = createAgent a newAgentDef
         newAgentId = aoId a                                 -- NOTE: we keep the old id
         (newAgentCoord, a') = findUnoccpiedRandomPosition a
         oldAgentRng = sugAgRng $ aoState a'
-        (newAgentDef, _) = randomAgent (newAgentId, newAgentCoord) sugarScapeAgentBehaviour oldAgentRng
+        (newAgentDef, _) = randomAgent
+                            (newAgentId, newAgentCoord)
+                            sugarScapeAgentBehaviour
+                            sugarScapeAgentConversation
+                            oldAgentRng
 
         findUnoccpiedRandomPosition :: SugarScapeAgentOut -> (EnvCoord, SugarScapeAgentOut)
         findUnoccpiedRandomPosition a
@@ -167,62 +171,119 @@ birthNewAgent a = createAgent a newAgentDef
                 (c, coord, g') = randomCell g env
                 a' = updateState a (\s -> s { sugAgRng = g' })
 
-dieFromAge :: SugarScapeAgentOut -> Double -> Bool
-dieFromAge a age = age >= (sugAgMaxAge $ aoState a)
+dieFromAge :: SugarScapeAgentOut -> Bool
+dieFromAge a = age > maxAge
+    where
+        s = aoState a
+        age = sugAgAge s
+        maxAge = sugAgMaxAge s
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
 -- CHAPTER III: Sex, Culture, And Conflict: The Emergence Of History
 ------------------------------------------------------------------------------------------------------------------------
-agentSex :: Double -> SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
-agentSex age ain a
-    | isFertile a age &&
-        satisfiesWealthForChildBearing a &&
-        hasMatingNeighbours &&
-        hasSpaceForOffspring = (agentHandleMatingRequests ain) $ agentSendMatingRequests occupiedIds a
-    | otherwise = a  -- NOTE: this will ignore all Mating Messages and implicitly discharges it
+agentSex :: SugarScapeAgentOut -> SugarScapeAgentOut
+agentSex a
+    | isFertile s = agentMatingConversation occupiedIds unoccupiedCells a
+    | otherwise = a
     where
+        s = aoState a
         ncs = getNeighbourCells a
+        -- TODO: get all unoccpied cells of the neighbours as well because SugarScape states that either one has to have an unoccpied neighbourcell
         occupiedCells = filter (isJust . sugEnvOccupied . snd) ncs
         unoccupiedCells = filter (isNothing . sugEnvOccupied . snd) ncs
         occupiedIds = map (fromJust . sugEnvOccupied . snd) occupiedCells
-        hasMatingNeighbours = (not . null) occupiedIds
-        hasSpaceForOffspring = (not . null) unoccupiedCells
 
-agentSendMatingRequests :: [AgentId] -> SugarScapeAgentOut -> SugarScapeAgentOut
-agentSendMatingRequests ais a = sendMessages a msgs
+        agentMatingConversation :: [AgentId]
+                                        -> [(EnvCoord, SugarScapeEnvCell)]
+                                        -> SugarScapeAgentOut
+                                        -> SugarScapeAgentOut
+        agentMatingConversation [] _ a = stopConversation a
+        agentMatingConversation _ [] a = stopConversation a
+        agentMatingConversation (aid:otherAis) allCoords@((coord, cell):cs) a
+            | satisfiesWealthForChildBearing s = beginConversation a (aid, m) agentMatingConversationsReply
+            | otherwise = stopConversation a
+            where
+                s = aoState a
+                m =  MatingRequest (sugAgGender $ s)
+
+                agentMatingConversationsReply :: SugarScapeAgentOut
+                                                    -> AgentMessage SugarScapeMsg
+                                                    -> SugarScapeAgentOut
+                agentMatingConversationsReply a (senderId, MatingReplyNo) = agentMatingConversation otherAis allCoords a
+                agentMatingConversationsReply a (senderId, MatingReplyYes otherTup) = agentMatingConversation otherAis cs a2
+                    where
+                        s = aoState a
+                        g = sugAgRng s
+
+                        initialSugarEndow = sugAgSugarInit s
+                        sugarLevel = sugAgSugarLevel s
+
+                        mySugarContribution = initialSugarEndow / 2.0
+                        myMetab = sugAgMetabolism s
+                        myVision = sugAgVision s
+
+                        newBornId = senderId * aoId a   -- TODO: this is a real problem: which ids do we give our newborns?
+
+                        (newBornDef, g') = createNewBorn
+                                                (newBornId, coord)
+                                                g
+                                                (mySugarContribution, myMetab, myVision)
+                                                otherTup
+
+                        env = aoEnv a
+                        cell' = cell { sugEnvOccupied = Just newBornId }
+                        env' = changeCellAt env coord cell'
+
+                        a0 = a { aoEnv = env' }
+                        a1 = updateState a0 (\s -> s { sugAgSugarLevel = sugarLevel - mySugarContribution,
+                                                        sugAgRng = g' } )
+                        a2 = createAgent a1 newBornDef
+
+createNewBorn :: (AgentId, EnvCoord)
+                    -> StdGen
+                    -> (Double, Double, Int)
+                    -> (Double, Double, Int)
+                    -> (SugarScapeAgentDef, StdGen)
+createNewBorn idCoord
+                g0
+                (sugEndowFather, metabFather, visionFather)
+                (sugEndowMother, metabMother, visionMother) = (newBornDef', g3)
     where
-        s = aoState a
-        m =  Mating {
-                    matingMsgGender = sugAgGender s,
-                    matingMsgMetab = sugAgMetabolism s,
-                    matingMsgVision = sugAgVision s,
-                    matingMsgSugar = sugAgSugarLevel s
-                }
-        msgs = zip ais (replicate (length ais) m)
+        newBornSugarEndow = sugEndowFather + sugEndowMother
+        (newBornMetabolism, g1) = crossover (metabFather, metabMother) g0
+        (newBornVision, g2) = crossover (visionFather, visionMother) g1
 
-agentHandleMatingRequests :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
-agentHandleMatingRequests ain a = onMessage
-                                    matingRequest
-                                    ain
-                                    (\a' (senderId, m) -> trace ("Agent " ++ (show $ aoId a) ++ " received Mating from " ++ show (senderId) ++ ": " ++ show m) a')
-                                    a
+        (newBornDef, g3) = randomAgent
+                            idCoord
+                            sugarScapeAgentBehaviour
+                            sugarScapeAgentConversation
+                            g2
 
+        newBornState = adState newBornDef
+        newBornState' = newBornState { sugAgMetabolism = newBornMetabolism,
+                                       sugAgVision = newBornVision,
+                                       sugAgSugarInit = newBornSugarEndow }
+        newBornDef' = newBornDef { adState = newBornState' }
+
+        crossover :: (a, a) -> StdGen -> (a, StdGen)
+        crossover (x, y) rng
+            | takeX = (x, rng')
+            | otherwise = (y, rng')
+            where
+                (takeX, rng') = random rng :: (Bool, StdGen)
+
+satisfiesWealthForChildBearing :: SugarScapeAgentState -> Bool
+satisfiesWealthForChildBearing s = currSugar >= initSugar
     where
-        matingRequest :: AgentMessage SugarScapeMsg -> Bool
-        matingRequest (_, Mating a b c d) = True
-        -- matingRequest otherwise = False
+        currSugar = sugAgSugarLevel s
+        initSugar = sugAgSugarInit s
 
-satisfiesWealthForChildBearing :: SugarScapeAgentOut -> Bool
-satisfiesWealthForChildBearing a = currSugar >= initSugar
+isFertile :: SugarScapeAgentState -> Bool
+isFertile s = withinRange age fertilityAgeRange
     where
-        currSugar = sugAgSugarLevel $ aoState a
-        initSugar = sugAgSugarInit $ aoState a
-
-isFertile :: SugarScapeAgentOut -> Double -> Bool
-isFertile a age = withinRange age fertilityAgeRange
-    where
-        fertilityAgeRange = sugAgFertAgeRange $ aoState a
+        age = sugAgAge s
+        fertilityAgeRange = sugAgFertAgeRange s
 
 withinRange :: (Ord a) => a -> (a, a) -> Bool
 withinRange a (l, u) = a >= l && a <= u
@@ -245,15 +306,42 @@ getNeighbours a = nids
 ------------------------------------------------------------------------------------------------------------------------
 -- GENERAL AGENT-RELATED
 ------------------------------------------------------------------------------------------------------------------------
+sugarScapeAgentConversation :: SugarScapeAgentConversation
+sugarScapeAgentConversation ain (_, (MatingRequest tup)) = handleMatingConversation tup ain
+
+handleMatingConversation :: (SugarScapeAgentGender)
+                                -> SugarScapeAgentIn
+                                -> (SugarScapeMsg, SugarScapeAgentIn)
+handleMatingConversation otherGender ain
+    | isFertile s &&
+        satisfiesWealthForChildBearing s &&
+        differentGender = (MatingReplyYes (mySugarContribution, myMetab, myVision), ain')
+    | otherwise = (MatingReplyNo, ain)
+    where
+        s = aiState ain
+        myGender = sugAgGender s
+        differentGender = myGender /= otherGender
+
+        -- NOTE: to be fertile an agent must have at least as much sugar as initially endowed, therefore it cannot go negative
+        initialSugarEndow = sugAgSugarInit s
+        sugarLevel = sugAgSugarLevel s
+        mySugarContribution = initialSugarEndow / 2.0
+        myMetab = sugAgMetabolism s
+        myVision = sugAgVision s
+
+        s' = s { sugAgSugarLevel = sugarLevel - mySugarContribution }
+        ain' = ain { aiState = s'}
+
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour
 sugarScapeAgentBehaviour = proc ain ->
     do
         age <- time -< 0
 
         let a = agentOutFromIn ain
+        let a' = updateState a (\s -> s { sugAgAge = age })
 
-        let a0 = agentAgeing a age
-        let a1 = if isKilled a0 then a0 else agentSex age ain a0
+        let a0 = agentAgeing a'
+        let a1 = if isKilled a0 then a0 else agentSex a0
 
         returnA -< a1
 ------------------------------------------------------------------------------------------------------------------------

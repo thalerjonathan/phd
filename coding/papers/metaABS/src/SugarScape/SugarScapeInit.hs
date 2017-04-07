@@ -113,6 +113,10 @@ createSugarScape agentCount l = do
         randomAgentIO :: (AgentId, EnvCoord) -> IO SugarScapeAgentDef
         randomAgentIO aidCoord = do
                                     std <- getStdGen
-                                    let (adef, std') = randomAgent aidCoord sugarScapeAgentBehaviour std
+                                    let (adef, std') = randomAgent
+                                                            aidCoord
+                                                            sugarScapeAgentBehaviour
+                                                            sugarScapeAgentConversation
+                                                            std
                                     setStdGen std'
                                     return adef

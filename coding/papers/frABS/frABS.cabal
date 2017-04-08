@@ -1,4 +1,4 @@
-name:              metaABS
+name:              FrABS
 version:           1.0
 Build-Type:        Simple
 cabal-version:     >= 1.2

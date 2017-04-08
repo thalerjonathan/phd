@@ -16,7 +16,7 @@
 Implementations of Agent-Based Simulation (ABS) Systems has so far been reduced to the context of Object-Orientation. We ask how ABS can be implemented in a pure functional language like Haskell. The fundamental problem is that unlike in OO e.g. Java there are no objects and no implicit aliases through which to access and change data: method calls are not there in FP. We must solve the problem of how to represent an agent and how agents can interact with each other. We build on the concept of Functional Reactive Programming where we use the library Yampa. This allows us to represent agents as signal-functions with different types as input and output. Also we can build on the facilities Yampa provides for time-flow of a system be it continuous or discrete. For interaction between Agents we implemented messages and a novel concept which we termed 'conversations'. Currently we are implementing the full SugarScape model of J.M.Epstein and R.Axtell as described in their book, which serves as a use-case to drive the implementation of our library. The code is freely available but still not stable as it is more a prototyping for gaining insights into the problems and how they can be solved. The plan is to release the final implementation at the end of the PhD as a stable and full-featured library on Hackage.
 
 \FurtherReading
-  \url{(https://github.com/thalerjonathan/phd/tree/master/coding/papers/metaABS)}
+  \url{(https://github.com/thalerjonathan/phd/tree/master/coding/libraries/frABS)}
 \end{hcarentry}
 
 \end{document}

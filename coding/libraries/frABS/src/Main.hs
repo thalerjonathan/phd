@@ -7,7 +7,7 @@ import SugarScape.SugarScapeRun
 import Conversation.ConversationRun
 
 main :: IO ()
-main = runSugarScapeWithRendering
+main = runSegWithRendering
     -- runSugarScapeWithRendering
     -- runConversationStepsAndPrint
     -- runSugarScapeWithRendering

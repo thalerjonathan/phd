@@ -3,7 +3,7 @@ version:           1.0
 Build-Type:        Simple
 cabal-version:     >= 1.2
 
-executable metaABS
+executable frABS
   main-is:         Main.hs
   hs-source-dirs:  src
   build-depends:   base, Yampa, gloss, QuickCheck, random, containers, array

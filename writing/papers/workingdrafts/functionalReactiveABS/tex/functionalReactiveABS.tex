@@ -1,4 +1,5 @@
 \section{Functional Reactive ABS}
+the fundamental problem is that unlike in oo e.g. java there are no objects and no implicit aliases through which to acess and change data: method calls are not there in FP. we must silve the problem of how to represent an agent and how agents can interact with each other
 
 \subsection{Parallel vs. Sequential}
 TODO: cite my own work
@@ -20,3 +21,6 @@ Each Agent can send a message to an other agent where the messages are queued an
 \subsubsection{Conversation}
 When sending messages between agents there is the limitation that an agent cannot reply to a message within the same iteration. In some models this is not a problem as it is not required by the model to reply to messages e.g. in the case of the SIR-Model where an agent just sends a 'Contact Infected' messages which infects the receiver with a given probability but the receiver does not reply to this message.
 This limitation is for some models a huge problem which prevents a faithful implementation of it in FrABS. For this we introduce the concept of a conversation between agents. This allows an agent A to initiate a conversation with another agent B in which the simulation is and halted both can exchange an arbitrary number of messages through calling and responsing without time passing (something not possible without this concept because in each iteration the time advances). After either one agent has finished with the conversation it will terminate it and the simulation will continue with the updated agents.
+
+\subsubsection{Sampling Time}
+because an agent cannot reply within the same timestep sampling interval becomes an issue: if we need a reply within a given time then the sampling interval needs to be at least twice as much

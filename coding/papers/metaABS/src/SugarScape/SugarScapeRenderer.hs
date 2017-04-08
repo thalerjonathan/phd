@@ -26,7 +26,7 @@ renderFrame aouts env wSize@(wx, wy) = GLO.Pictures $ (envPics ++ agentPics)
                                                         maxLvl ) 0.0 cells
 
         agentPics = map (renderAgent (cellWidth, cellHeight) wSize) aouts
-        envPics = trace ("maxpol=" ++ (show maxPolLevel)) (map (renderEnvCell (cellWidth, cellHeight) wSize maxPolLevel) cells)
+        envPics = (map (renderEnvCell (cellWidth, cellHeight) wSize maxPolLevel) cells)
 
 renderEnvCell :: (Float, Float)
                     -> (Int, Int)

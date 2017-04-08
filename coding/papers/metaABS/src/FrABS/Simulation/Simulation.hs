@@ -221,17 +221,16 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
                                      Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec))
         handleAgent otherIns a@(sf, oldIn, newOut) = (otherIns'', mayAgent)
             where
-                (newOut', otherIns') = handleConversation otherIns newOut
+                (otherIns', newOut') = handleConversation otherIns newOut
                 mayAgent = handleKillOrLiveAgent a
                 otherIns'' = distributeActions otherIns' newOut'
 
         handleConversation :: [AgentIn s m ec]
                                 -> AgentOut s m ec
-                                -> (AgentOut s m ec, [AgentIn s m ec])
+                                -> ([AgentIn s m ec], AgentOut s m ec)
         handleConversation otherIns newOut
-            | hasConversation newOut = do
-                                            handleConversation otherIns newOut'
-            | otherwise = (newOut, otherIns)
+            | hasConversation newOut = handleConversation otherIns' newOut'
+            | otherwise = (otherIns, newOut)
             where
                 ((receiverId, m), senderReplyFunc) = fromEvent $ aoBeginConversation newOut
 
@@ -240,16 +239,24 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
                 --       and conversations. These newly created agents are not yet available in the current iteration and can
                 --       only fully participate in the next one. Thus we ignore conversation-requests
                 mayReceivingIndex = findIndex (\ai -> (aiId ai) == receiverId) otherIns
-                receivingIndex = if isNothing mayReceivingIndex then trace ("couldnt find " ++ (show receiverId)) 0 else fromJust mayReceivingIndex
-                receivingIn = otherIns !! receivingIndex
-                mayConvHandler = fromJust $ aiConversation receivingIn
+                mayReceivingIn = maybe Nothing (\receivingIndex -> Just (otherIns !! receivingIndex)) mayReceivingIndex
 
-                (replyMsg, newReceivingIn) = mayConvHandler receivingIn (aoId newOut, m)
-                otherIns' = replace receivingIndex otherIns newReceivingIn
-
-                mayReplyMessage = Just (receiverId, replyMsg)
-
-                newOut' = senderReplyFunc newOut mayReplyMessage
+                -- TODO: this is so extremely ugly, is there a way to change this?
+                (mayReplyMsg, otherIns') =
+                    maybe
+                        (Nothing, otherIns)
+                        (\receivingIn -> do
+                                            let mayConvHandler = aiConversation receivingIn
+                                            maybe (Nothing, otherIns)
+                                                (\convHandler -> do
+                                                                    let (replyMsg, newReceivingIn) = convHandler receivingIn (aoId newOut, m)
+                                                                    let otherIns' = replace (fromJust $ mayReceivingIndex) otherIns newReceivingIn
+                                                                    let replyMessage = Just (receiverId, replyMsg)
+                                                                    (replyMessage, otherIns')
+                                                ) mayConvHandler
+                                           )
+                        mayReceivingIn
+                newOut' = senderReplyFunc newOut mayReplyMsg
 
 
         replace :: Int -> [a] -> a -> [a]

@@ -31,6 +31,9 @@ data SugarScapeMsg =
     MatingRequest SugarScapeAgentGender
     | MatingReplyNo
     | MatingReplyYes (Double, Double, Int) -- Sugar-Contribution, Metabolism, Vision
+
+    | InheritSugar Double
+
     deriving (Show)
 
 data SugarScapeAgentState = SugarScapeAgentState {
@@ -44,6 +47,8 @@ data SugarScapeAgentState = SugarScapeAgentState {
 
     sugAgGender :: SugarScapeAgentGender,   -- an agent is either male or female
     sugAgFertAgeRange :: (Double, Double),   -- an agent younger/older than this cannot bear children
+
+    sugAgChildren :: [AgentId],             -- the ids of all the children this agent has born
 
     sugAgAge :: Double,                     -- the current age of the agent, could be calculated using time in the SF but we need it in the conversations as well, which are not running in the SF
 
@@ -162,6 +167,8 @@ randomAgent (agentId, coord) beh conv g0 = (adef, g8)
 
             sugAgGender = randGender,
             sugAgFertAgeRange = (randMinFert, randMaxFert),
+
+            sugAgChildren = [],
 
             sugAgAge = 0.0,
 

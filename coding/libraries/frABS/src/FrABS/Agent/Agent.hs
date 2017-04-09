@@ -4,7 +4,6 @@ import FrABS.Env.Environment
 
 import FRP.Yampa
 
-import Data.Maybe
 
 type AgentId = Int
 type AgentMessage m = (AgentId, m)
@@ -91,6 +90,13 @@ stopConversation ao = ao { aoBeginConversation = NoEvent }
 sendMessages :: AgentOut s m ec -> [AgentMessage m] -> AgentOut s m ec
 sendMessages ao msgs = foldr (\msg ao' -> sendMessage ao' msg ) ao msgs
 
+broadcastMessage :: AgentOut s m ec -> m -> [AgentId] -> AgentOut s m ec
+broadcastMessage ao m receiverIds = sendMessages ao msgs
+    where
+        n = length receiverIds
+        ms = replicate n m
+        msgs = zip receiverIds ms
+
 createAgent :: AgentOut s m ec -> AgentDef s m ec -> AgentOut s m ec
 createAgent ao newDef = ao { aoCreate = createEvt }
     where
@@ -100,8 +106,8 @@ createAgent ao newDef = ao { aoCreate = createEvt }
 kill :: AgentOut s m ec -> AgentOut s m ec
 kill ao = ao { aoKill = Event () }
 
-isKilled :: AgentOut s m ec -> Bool
-isKilled = isEvent . aoKill
+isDead :: AgentOut s m ec -> Bool
+isDead = isEvent . aoKill
 
 onStart :: AgentIn s m ec -> (AgentOut s m ec -> AgentOut s m ec) -> AgentOut s m ec -> AgentOut s m ec
 onStart ai evtHdl ao = onEvent startEvt evtHdl ao

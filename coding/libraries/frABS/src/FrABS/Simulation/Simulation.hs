@@ -135,7 +135,7 @@ seqCallback :: ([AgentIn s m ec], [AgentBehaviour s m ec])
                 -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                 -> ([AgentIn s m ec],
                     Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec))
-seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
+seqCallback (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
     | doRecursion = seqCallbackRec otherIns otherSfs oldSf (sf, recIn, newOut)
     | otherwise = handleAgent otherIns (sf, unRecIn, newOut)
     where
@@ -162,7 +162,7 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
                            -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                            -> ([AgentIn s m ec],
                                Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec))
-        seqCallbackRec otherIns otherSfs oldSf a@(sf, recIn, newOut)
+        seqCallbackRec otherIns otherSfs oldSf (sf, recIn, newOut)
             | isEvent $ aoRec newOut = handleRecursion otherIns otherSfs oldSf (sf, recIn', newOut)     -- the last output requested recursion, perform it
             | otherwise = handleAgent otherIns (sf, unRecIn, newOut)                                                     -- no more recursion request, just handle agent as it is and return it, this will transport it back to the outer level
             where
@@ -219,7 +219,7 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
                                 -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                                 -> ([AgentIn s m ec],
                                      Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec))
-        handleAgent otherIns a@(sf, oldIn, newOut) = (otherIns'', mayAgent)
+        handleAgent otherIns a@(_, _, newOut) = (otherIns'', mayAgent)
             where
                 (otherIns', newOut') = handleConversation otherIns newOut
                 mayAgent = handleKillOrLiveAgent a
@@ -229,7 +229,7 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
                                 -> AgentOut s m ec
                                 -> ([AgentIn s m ec], AgentOut s m ec)
         handleConversation otherIns newOut
-            | hasConversation newOut = handleConversation otherIns' newOut'
+            | hasConversation newOut = trace ("conversation began") handleConversation otherIns' newOut'
             | otherwise = (otherIns, newOut)
             where
                 ((receiverId, m), senderReplyFunc) = fromEvent $ aoBeginConversation newOut
@@ -239,7 +239,7 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
                 --       and conversations. These newly created agents are not yet available in the current iteration and can
                 --       only fully participate in the next one. Thus we ignore conversation-requests
                 mayReceivingIndex = findIndex (\ai -> (aiId ai) == receiverId) otherIns
-                mayReceivingIn = maybe Nothing (\receivingIndex -> Just (otherIns !! receivingIndex)) mayReceivingIndex
+                mayReceivingIn = trace ("mayReceivingIndex = " ++ (show mayReceivingIndex) ++ " receiverId = " ++ (show receiverId)) maybe Nothing (\receivingIndex -> Just (otherIns !! receivingIndex)) mayReceivingIndex
 
                 -- TODO: this is so extremely ugly, is there a way to change this?
                 (mayReplyMsg, otherIns') =
@@ -252,11 +252,11 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
                                                                     let (replyMsg, newReceivingIn) = convHandler receivingIn (aoId newOut, m)
                                                                     let otherIns' = replace (fromJust $ mayReceivingIndex) otherIns newReceivingIn
                                                                     let replyMessage = Just (receiverId, replyMsg)
-                                                                    (replyMessage, otherIns')
+                                                                    trace ("replyMessage = " ++ (show receiverId)) (replyMessage, otherIns')
                                                 ) mayConvHandler
                                            )
                         mayReceivingIn
-                newOut' = senderReplyFunc newOut mayReplyMsg
+                newOut' = trace ("calling senderReplyFunc of agent " ++ (show $ aoId newOut) ++ " isJust  " ++ (show $ isJust mayReplyMsg)) senderReplyFunc newOut mayReplyMsg
 
 
         replace :: Int -> [a] -> a -> [a]
@@ -268,11 +268,10 @@ seqCallback (otherIns, otherSfs) oldSf a@(sf, oldIn, newOut)
         handleKillOrLiveAgent :: (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                                     -> Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
         handleKillOrLiveAgent (sf, oldIn, newOut)
-            | kill = Nothing
-            | live = Just (sf, newIn', newOut)
+            | killAgent = Nothing
+            | otherwise = Just (sf, newIn', newOut)
             where
-                kill = isEvent $ aoKill newOut
-                live = not kill
+                killAgent = isEvent $ aoKill newOut
                 newIn = oldIn { aiStart = NoEvent,
                                 aiState = (aoState newOut),
                                 aiMessages = NoEvent,
@@ -352,7 +351,7 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns0)
                 handleAgent :: ([AgentBehaviour s m ec], [AgentIn s m ec])
                                 -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                                 -> ([AgentBehaviour s m ec], [AgentIn s m ec])
-                handleAgent acc a@(sf, oldIn, newOut) = handleKillOrLiveAgent acc' a
+                handleAgent acc a@(_, _, newOut) = handleKillOrLiveAgent acc' a
                     where
                         acc' = handleCreateAgents acc newOut
 
@@ -360,11 +359,10 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns0)
                                             -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                                             -> ([AgentBehaviour s m ec], [AgentIn s m ec])
                 handleKillOrLiveAgent acc@(asfsAcc, ainsAcc) (sf, oldIn, newOut)
-                    | kill = acc
-                    | live = (asfsAcc ++ [sf], ainsAcc ++ [newIn])
+                    | killAgent = acc
+                    | otherwise = (asfsAcc ++ [sf], ainsAcc ++ [newIn])
                     where
-                        kill = isEvent $ aoKill newOut
-                        live = not kill
+                        killAgent = isEvent $ aoKill newOut
                         newIn = oldIn { aiStart = NoEvent,
                                         aiState = (aoState newOut),
                                         aiMessages = NoEvent }

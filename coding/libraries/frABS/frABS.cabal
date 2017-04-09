@@ -8,6 +8,7 @@ executable frABS
   hs-source-dirs:  src
   build-depends:   base, Yampa, gloss, QuickCheck, random, containers, array
   ghc-options:      -O2
+                    -Wall
                     -- -eventlog
                     -- -rtsopts
                     -- -prof

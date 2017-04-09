@@ -3,15 +3,8 @@ module Conversation.ConversationRun where
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
 
-import Conversation.ConversationModel
 import Conversation.ConversationInit
 
-import FRP.Yampa
-import qualified FrABS.Rendering.Agents2DDiscrete as Front
-import qualified Graphics.Gloss as GLO
-import Graphics.Gloss.Interface.IO.Animate
-
-import Data.IORef
 import System.IO
 import System.Random
 
@@ -31,7 +24,7 @@ runConversationStepsAndPrint = do
 
                                 let steps = 1
                                 let ass = processSteps as env parallelStrategyFlag 1.0 steps
-                                let (as', env') = last ass
+                                let (as', _) = last ass
 
                                 putStrLn "Final Agents:"
                                 mapM (putStrLn . show . aoState) as'

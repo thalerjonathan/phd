@@ -70,13 +70,13 @@ simulateAndRender :: ReactHandle ([SIRSAgentIn], SIRSEnvironment) ([SIRSAgentOut
 simulateAndRender hdl outRef = animateIO (Front.display winTitle winSize)
                                             GLO.white
                                             (nextFrame hdl outRef)
-                                            (\controller -> return () )
+                                            (\_ -> return () )
 
 nextFrame :: ReactHandle ([SIRSAgentIn], SIRSEnvironment) ([SIRSAgentOut], SIRSEnvironment)
                 -> IORef ([SIRSAgentOut], SIRSEnvironment)
                 -> Float
                 -> IO Picture
-nextFrame hdl outRef dt = do
+nextFrame hdl outRef _ = do
                             --putStrLn "nextFrame: before react"
                             react hdl (1.0, Nothing) -- NOTE: will result in call to nextIteration
                             --putStrLn "nextFrame: after react"
@@ -85,11 +85,11 @@ nextFrame hdl outRef dt = do
 
 modelToPicture :: [SIRSAgentOut] -> IO GLO.Picture
 modelToPicture as = do
-                        let rcs = map (sirsAgentToRenderCell cells) as
+                        let rcs = map sirsAgentToRenderCell as
                         return (Front.renderFrame True rcs winSize cells)
 
-sirsAgentToRenderCell :: (Int, Int) -> SIRSAgentOut -> Front.RenderCell
-sirsAgentToRenderCell (xDim, yDim) a = Front.RenderCell { Front.renderCellCoord = (ax, ay),
+sirsAgentToRenderCell :: SIRSAgentOut -> Front.RenderCell
+sirsAgentToRenderCell a = Front.RenderCell { Front.renderCellCoord = (ax, ay),
                                                         Front.renderCellColor = ss }
     where
         s = aoState a

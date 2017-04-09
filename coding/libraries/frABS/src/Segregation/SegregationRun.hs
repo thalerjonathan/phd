@@ -68,7 +68,7 @@ printDynamics outRef aoutsCurr = do
                                                 ++ "," ++ show similarityDeltaNormalized
                                                 ++ ";" )
                                     where
-                                        (totalCount, happyCount, unhappyCount, unhappyFract) = satisfactionStats aoutsCurr
+                                        (totalCount, _, _, unhappyFract) = satisfactionStats aoutsCurr
 
 runSegStepsAndRender :: IO ()
 runSegStepsAndRender = do
@@ -78,7 +78,7 @@ runSegStepsAndRender = do
 
                             let steps = 10
                             let ass = processSteps as env parallelStrategyFlag 1.0 steps
-                            let (as', env') = last ass
+                            let (as', _) = last ass
 
                             --pic <- modelToPicture as'
                             --GLO.display (Front.display winTitle winSize) GLO.black pic
@@ -97,22 +97,22 @@ simulateAndRender :: ReactHandle ([SegAgentIn], SegEnvironment) ([SegAgentOut], 
 simulateAndRender hdl outRef = animateIO (Front.display winTitle winSize)
                                             GLO.black -- GLO.white
                                             (nextFrame hdl outRef)
-                                            (\controller -> return () )
+                                            (\_ -> return () )
 
 nextFrame :: ReactHandle ([SegAgentIn], SegEnvironment) ([SegAgentOut], SegEnvironment)
                 -> IORef (([SegAgentOut], SegEnvironment), Bool) -> Float -> IO Picture
-nextFrame hdl outRef dt = do
+nextFrame hdl outRef _ = do
                             react hdl (1.0, Nothing)  -- NOTE: will result in call to nextIteration
                             (aouts, _) <- readIORef outRef
                             modelToPicture aouts
 
 modelToPicture :: ([SegAgentOut], SegEnvironment) -> IO GLO.Picture
-modelToPicture (as, env) = do
-                            let rcs = map (segAgentOutToRenderCell cells) as
+modelToPicture (as, _) = do
+                            let rcs = map segAgentOutToRenderCell as
                             return (Front.renderFrame renderCircles rcs winSize cells)
 
-segAgentOutToRenderCell :: (Int, Int) -> SegAgentOut -> Front.RenderCell
-segAgentOutToRenderCell (xDim, yDim) ao = Front.RenderCell { Front.renderCellCoord = (ax, ay),
+segAgentOutToRenderCell :: SegAgentOut -> Front.RenderCell
+segAgentOutToRenderCell ao = Front.RenderCell { Front.renderCellCoord = (ax, ay),
                                                         Front.renderCellColor = col }
     where
         s = aoState ao

@@ -5,7 +5,6 @@ import FrABS.Simulation.Utils
 import FRP.Yampa.InternalCore
 
 import Data.Maybe
-import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 -- SEQ implementation

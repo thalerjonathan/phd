@@ -8,7 +8,6 @@ import FrABS.Agent.Agent
 import FrABS.Env.Environment
 
 import System.Random
-import System.IO
 
 createConversationAgentsAndEnv :: Int -> IO ([ConversationAgentDef], ConversationEnvironment)
 createConversationAgentsAndEnv count = do

@@ -6,8 +6,6 @@ import FrABS.Env.Environment
 
 import qualified Graphics.Gloss as GLO
 
-import Debug.Trace
-
 display :: String -> (Int, Int) -> GLO.Display
 display title winSize = (GLO.InWindow title winSize (0, 0))
 
@@ -36,7 +34,7 @@ renderEnvCell :: (Float, Float)
 renderEnvCell (rectWidth, rectHeight) (wx, wy) maxPolLevel ((x, y), cell) = GLO.Pictures $ [polutionLevelRect, sugarLevelCircle]
     where
         polLevel = sugEnvPolutionLevel cell
-        polGreenShadeRelative = (realToFrac (polLevel / maxPolLevel))
+        --polGreenShadeRelative = (realToFrac (polLevel / maxPolLevel))
         polGreenShadeAbsolute = 1.0 - (min 1.0 (realToFrac (polLevel / 30)))
         polGreenShade = polGreenShadeAbsolute
 
@@ -62,7 +60,6 @@ renderAgent :: (Float, Float)
                 -> GLO.Picture
 renderAgent (rectWidth, rectHeight) (wx, wy) a = GLO.color color $ GLO.translate xPix yPix $ GLO.ThickCircle 0 rectWidth
     where
-        s = aoState a
         (x, y) = aoEnvPos a
         color = agentColor a
 
@@ -75,7 +72,6 @@ renderAgent (rectWidth, rectHeight) (wx, wy) a = GLO.color color $ GLO.translate
 agentColor :: SugarScapeAgentOut -> GLO.Color
 agentColor a
     | isMale = GLO.makeColor (realToFrac 1.0) (realToFrac 0.1) (realToFrac 0.1) 1.0
-    | isFemale = GLO.makeColor (realToFrac 0.0) (realToFrac 0.3) (realToFrac 0.6) 1.0
+    | otherwise = GLO.makeColor (realToFrac 0.0) (realToFrac 0.3) (realToFrac 0.6) 1.0
     where
         isMale = Male == (sugAgGender $ aoState a)
-        isFemale = not isMale

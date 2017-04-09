@@ -8,11 +8,10 @@ import FrABS.Agent.Agent
 import FrABS.Env.Environment
 
 import System.Random
-import System.IO
 
 createMetaABSAgentsAndEnv :: Int -> IO ([MetaABSAgentDef], MetaABSEnvironment)
-createMetaABSAgentsAndEnv count = do
-                                        as <- mapM randomAgent [0..count-1]
+createMetaABSAgentsAndEnv agentCount = do
+                                        as <- mapM randomAgent [0..agentCount-1]
 
                                         let env = createEnvironment
                                                               Nothing

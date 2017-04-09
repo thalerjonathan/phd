@@ -12,8 +12,6 @@ import FRP.Yampa
 import Data.List
 
 import System.Random
-import System.IO
-import Debug.Trace
 
 allZeroSugar :: (EnvCoord, SugarScapeEnvCell) -> Double
 allZeroSugar _ = 0.0
@@ -69,7 +67,6 @@ createSugarScape agentCount l = do
                         -> IO [(EnvCoord, SugarScapeEnvCell)]
         createCells (maxX, maxY) occupations = do
                                                     let coords = [ (x, y) | x <- [0..maxX-1], y <- [0..maxY-1] ]
-                                                    let cellCount = maxX * maxY
                                                     cs <- mapM (randomCell occupations) coords
                                                     return cs
 

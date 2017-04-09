@@ -92,9 +92,9 @@ agentMoveAndHarvestCell a (cellCoord, cell) = updateState a'' (\s -> s { sugAgSu
         a' = unoccupyPosition a
         env = aoEnv a'
 
-        agentMetabolism = sugAgMetabolism $ aoState a
-        polutionIncByMeta =  agentMetabolism * polutionMetabolismFactor
-        polutionIncByHarvest = sugarLevelCell * polutionHarvestFactor
+        --agentMetabolism = sugAgMetabolism $ aoState a
+        --polutionIncByMeta =  agentMetabolism * polutionMetabolismFactor
+        --polutionIncByHarvest = sugarLevelCell * polutionHarvestFactor
         -- newPolutionLevel = polutionIncByMeta + polutionIncByHarvest + sugEnvPolutionLevel cell
         newPolutionLevel = 0
 
@@ -131,15 +131,16 @@ selectBestCells refCoord cs = bestShortestDistanceCells
                 polLvl = sugEnvPolutionLevel c
 
 -- TODO: think about moving this to the general Agent.hs: introduce a Maybe StdGen, but then: don't we loose reasoning abilities?
+-- NOTE: must never be called with empty list
 agentPickRandom :: SugarScapeAgentOut -> [a] -> (SugarScapeAgentOut, a)
-agentPickRandom a all@(x:xs)
+agentPickRandom a allXs@(x:xs)
     | null xs = (a, x)
     | otherwise = (a', randElem)
     where
         g = sugAgRng $ aoState a
-        cellCount = length all
+        cellCount = length allXs
         (randIdx, g') = randomR (0, cellCount - 1) g
-        randElem = all !! randIdx
+        randElem = allXs !! randIdx
         a' = updateState a (\s -> s { sugAgRng = g' } )
 
 agentLookout :: SugarScapeAgentOut -> [(EnvCoord, SugarScapeEnvCell)]
@@ -231,7 +232,7 @@ agentSex a
                                                     -> Maybe (AgentMessage SugarScapeMsg)
                                                     -> SugarScapeAgentOut
                 agentMatingConversationsReply a Nothing = trace ("Nothing") agentMatingConversation otherAis allCoords a  -- NOTE: the target was not found or does not have a handler, continue with the next
-                agentMatingConversationsReply a (Just (senderId, MatingReplyNo)) = trace ("MatingReplyNo") agentMatingConversation otherAis allCoords a
+                agentMatingConversationsReply a (Just (_, MatingReplyNo)) = trace ("MatingReplyNo") agentMatingConversation otherAis allCoords a
                 agentMatingConversationsReply a (Just (senderId, MatingReplyYes otherTup)) = trace ("MatingReplyYes") agentMatingConversation otherAis cs a2
                     where
                         s = aoState a
@@ -320,7 +321,7 @@ inheritSugar ain a = onMessage inheritSugarMatch ain inheritSugarAction a
 
         inheritSugarMatch :: AgentMessage SugarScapeMsg -> Bool
         inheritSugarMatch (_, InheritSugar _) = True
-        inheritSugarMatch otherwise = False
+        inheritSugarMatch _ = False
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -328,6 +329,7 @@ inheritSugar ain a = onMessage inheritSugarMatch ain inheritSugarAction a
 ------------------------------------------------------------------------------------------------------------------------
 sugarScapeAgentConversation :: SugarScapeAgentConversation
 sugarScapeAgentConversation ain (_, (MatingRequest tup)) = handleMatingConversation tup ain
+-- sugarScapeAgentConversation ain _ = TODO: reply with nothing: can't reply to a conversation unknown
 
 handleMatingConversation :: (SugarScapeAgentGender)
                                 -> SugarScapeAgentIn

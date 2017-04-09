@@ -4,13 +4,11 @@ module MetaABS.MetaABSModel where
 -- Project-internal import first
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
-import FrABS.Simulation.Simulation
 
 -- Project-specific libraries follow
 import FRP.Yampa
 
 -- System imports then
-import Data.Maybe
 
 -- debugging imports finally, to be easily removed in final version
 import Debug.Trace

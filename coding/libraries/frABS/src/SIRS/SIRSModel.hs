@@ -9,11 +9,9 @@ import FrABS.Env.Environment
 import FRP.Yampa
 
 -- System imports then
-import System.IO
 import System.Random
 
 -- debugging imports finally, to be easily removed in final version
-import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
@@ -60,7 +58,7 @@ infectionProbability = 0.3
 ------------------------------------------------------------------------------------------------------------------------
 contactInfected :: AgentMessage SIRSMsg -> Bool
 contactInfected (_, Contact Infected) = True
-contactInfected otherwise = False
+contactInfected _ = False
 
 is :: SIRSAgentOut -> SIRSState -> Bool
 is ao ss = (sirsState s) == ss
@@ -71,7 +69,7 @@ sirsDt :: SIRSAgentOut -> Double -> SIRSAgentOut
 sirsDt ao dt
     | is ao Susceptible = ao
     | is ao Infected = handleInfectedAgent ao dt
-    | is ao Recovered = handleRecoveredAgent ao dt
+    | otherwise = handleRecoveredAgent ao dt
 
 
 infectAgent :: SIRSAgentOut -> SIRSAgentOut
@@ -147,7 +145,7 @@ sirsAgentBehaviour = proc ain ->
 -- BOILER-PLATE CODE
 ------------------------------------------------------------------------------------------------------------------------
 createSIRSEnv :: (Int, Int) -> [SIRSAgentDef] -> SIRSEnvironment
-createSIRSEnv limits@(xMax, yMax) as = createEnvironment
+createSIRSEnv limits as = createEnvironment
                                             Nothing
                                             limits
                                             moore
@@ -158,7 +156,7 @@ createSIRSEnv limits@(xMax, yMax) as = createEnvironment
 
 createRandomSIRSAgents :: (Int, Int) -> Double -> IO [SIRSAgentDef]
 createRandomSIRSAgents max@(x,y) p =  do
-                                           let ssIO = [ randomAgentState p max (xCoord, yCoord) | xCoord <- [0..x-1], yCoord <- [0..y-1] ]
+                                           let ssIO = [ randomAgentState p (xCoord, yCoord) | xCoord <- [0..x-1], yCoord <- [0..y-1] ]
                                            ss <- mapM id ssIO
                                            let as = map (\s -> createAgent s max) ss
                                            return as
@@ -174,8 +172,8 @@ createRandomSIRSAgents max@(x,y) p =  do
                 c = sirsCoord s
                 agentId = coordToAid max c
 
-randomAgentState :: Double -> (Int, Int) -> SIRSCoord -> IO SIRSAgentState
-randomAgentState p max coord = do
+randomAgentState :: Double -> SIRSCoord -> IO SIRSAgentState
+randomAgentState p coord = do
                                     r <- getStdRandom (randomR(0.0, 1.0))
                                     let isInfected = r <= p
 
@@ -201,5 +199,5 @@ randomAgentState p max coord = do
 
 
 coordToAid :: (Int, Int) -> SIRSCoord -> AgentId
-coordToAid (xMax, yMax) (x, y) = (y * xMax) + x
+coordToAid (xMax, _) (x, y) = (y * xMax) + x
 ------------------------------------------------------------------------------------------------------------------------

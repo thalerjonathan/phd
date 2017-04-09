@@ -4,7 +4,6 @@ module FrABS.Env.Environment where
 import FRP.Yampa
 
 import Data.Array.IArray
-import System.Random
 
 {-
 an Environment is a container which contains Agents and allows them to move arround

@@ -4,7 +4,6 @@ module Segregation.SegregationModel where
 -- Project-internal import first
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
-import FrABS.Simulation.Simulation
 
 -- Project-specific libraries follow
 import FRP.Yampa
@@ -13,7 +12,6 @@ import FRP.Yampa
 import Data.Maybe
 
 -- debugging imports finally, to be easily removed in final version
-import Debug.Trace
 import System.Random
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -101,7 +99,7 @@ isSatisfied aout = (segSatisfactionLevel s) >= (segSimilarityWanted s)
 ------------------------------------------------------------------------------------------------------------------------
 -- TODO: need to distinguish if we are in recursion or not: if we accept happy immediately, then we cannot stop recursion and can't distinguish between multiple happiness
 segMovement :: SegAgentOut -> SegAgentIn -> Double -> SegAgentOut
-segMovement ao ain dt
+segMovement ao ain _
     | isSatisfied ao' = ao'
     | otherwise = move ao' ain
     where
@@ -119,7 +117,7 @@ updateSatisfactionLevel ao = updateState ao (\s -> s { segSatisfactionLevel = up
 satisfactionOn :: SegAgentOut -> EnvCoord -> Double
 satisfactionOn ao targetCoord
     | Red == party = redFraction
-    | Green == party = greenFraction
+    | otherwise = greenFraction
     where
         env = aoEnv ao
         party = segParty $ aoState ao
@@ -146,7 +144,7 @@ satisfactionOn ao targetCoord
 
 
 move :: SegAgentOut -> SegAgentIn -> SegAgentOut
-move ao ain = maybe ao' (\optCoord -> moveTo ao' optCoord) mayOptCoord
+move ao _ = maybe ao' (\optCoord -> moveTo ao' optCoord) mayOptCoord
     where
         (ao', mayOptCoord) = findMove
                                 optimizingStrategy
@@ -206,7 +204,7 @@ optimizeSatisfaction OptSimilarityIncreasing = moveImproves
 optimizeDistance :: SegOptStrategy
                         -> SegAgentOut
                         -> (EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell)
-optimizeDistance opts ao best@(bestCoord, bestCell) comp@(compCoord, compCell) = if distComp < distBest then
+optimizeDistance opts ao best@(bestCoord, _) comp@(compCoord, _) = if distComp < distBest then
                                                                                      if improves then
                                                                                         comp
                                                                                         else
@@ -228,7 +226,7 @@ findNearestFreeCoord :: SegAgentOut
                         -> ((EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell))
                         -> SegMoveStrategy
                         -> Maybe EnvCoord
-findNearestFreeCoord ao optFunc (MoveLocal radius) = findNearestLocal ao optFunc
+findNearestFreeCoord ao optFunc (MoveLocal _) = findNearestLocal ao optFunc
 findNearestFreeCoord ao optFunc MoveGlobal = findNearestGlobal ao optFunc
 
 findNearestGlobal :: SegAgentOut
@@ -267,10 +265,10 @@ findNearestAux :: ((EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell) -> (EnvCoord
                     -> (EnvCoord, SegEnvCell)
                     -> Maybe (EnvCoord, SegEnvCell)
                     -> Maybe (EnvCoord, SegEnvCell)
-findNearestAux optFunc comp@(compCoord, compCell) Nothing
+findNearestAux _ comp@(_, compCell) Nothing
     | isOccupied compCell = Nothing
     | otherwise = Just comp
-findNearestAux optFunc comp@(compCoord, compCell) best@(Just (bestCoord, bestCell))
+findNearestAux optFunc comp@(_, compCell) best@(Just (bestCoord, bestCell))
     | isOccupied compCell = best
     | otherwise = Just $ optFunc (bestCoord, bestCell) comp
 ------------------------------------------------------------------------------------------------------------------------
@@ -284,7 +282,7 @@ findOptRandomFreeCoord :: SegAgentOut
                             -> Int
                             -> (SegAgentOut -> EnvCoord -> Bool)
                              -> (SegAgentOut, Maybe EnvCoord)
-findOptRandomFreeCoord ao ms 0 freeCellRetries optFunc = findRandomFreeCoord ao ms freeCellRetries
+findOptRandomFreeCoord ao ms 0 freeCellRetries _ = findRandomFreeCoord ao ms freeCellRetries
 findOptRandomFreeCoord ao ms optRetries freeCellRetries optFunc =
         maybe ret (\freeCoord -> if optFunc ao' freeCoord then
                                     ret
@@ -294,7 +292,7 @@ findOptRandomFreeCoord ao ms optRetries freeCellRetries optFunc =
         ret@(ao', mayFreeCoord) = findRandomFreeCoord ao ms freeCellRetries
 
 findRandomFreeCoord :: SegAgentOut -> SegMoveStrategy -> Int -> (SegAgentOut, Maybe EnvCoord)
-findRandomFreeCoord ao ms 0 = (ao, Nothing)
+findRandomFreeCoord ao _ 0 = (ao, Nothing)
 findRandomFreeCoord ao ms maxRetries
     | isOccupied randCell = findRandomFreeCoord ao' ms (maxRetries - 1)
     | otherwise = (ao', Just randCoord)

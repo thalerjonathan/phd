@@ -3,9 +3,7 @@ module SugarScape.SugarScapeEnvironment where
 
 -- Project-internal import first
 import SugarScape.SugarScapeModel
-
 import FrABS.Env.Environment
-import FrABS.Agent.Agent
 
 -- Project-specific libraries follow
 import FRP.Yampa

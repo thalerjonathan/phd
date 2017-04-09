@@ -8,7 +8,6 @@ import FrABS.Env.Environment
 import FRP.Yampa
 
 import System.Random
-import System.IO
 
 createSegAgentsAndEnv :: (Int, Int) -> IO ([SegAgentDef], SegEnvironment)
 createSegAgentsAndEnv limits@(x,y) =  do

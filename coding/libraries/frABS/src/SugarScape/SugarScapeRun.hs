@@ -1,8 +1,6 @@
 module SugarScape.SugarScapeRun where
 
-import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
-import FrABS.Env.Environment
 
 import SugarScape.SugarScapeModel
 import SugarScape.SugarScapeInit
@@ -16,7 +14,6 @@ import Graphics.Gloss.Interface.IO.Simulate
 import Data.IORef
 import System.IO
 import System.Random
-import Debug.Trace
 
 winSize = (800, 800)
 winTitle = "SugarScape Chapter II"
@@ -46,7 +43,7 @@ nextIteration :: IORef ([SugarScapeAgentOut], SugarScapeEnvironment)
                      -> Bool
                      -> ([SugarScapeAgentOut], SugarScapeEnvironment)
                      -> IO Bool
-nextIteration outRef _ _ aep@(aouts, env) = do
+nextIteration outRef _ _ aep@(aouts, _) = do
                                                 writeIORef outRef aep
                                                 putStrLn ("" ++ (show $ length aouts))
                                                 return False
@@ -74,7 +71,7 @@ nextFrameSimulateWithTime :: ReactHandle ([SugarScapeAgentIn], SugarScapeEnviron
                                 -> Float
                                 -> ([SugarScapeAgentOut], SugarScapeEnvironment)
                                 -> IO ([SugarScapeAgentOut], SugarScapeEnvironment)
-nextFrameSimulateWithTime hdl outRef _ _ outs = do
+nextFrameSimulateWithTime hdl outRef _ _ _ = do
                                                  react hdl (1.0, Nothing)  -- NOTE: will result in call to nextIteration
                                                  aouts <- readIORef outRef
                                                  return aouts
@@ -86,13 +83,13 @@ simulateAndRenderNoTime :: ReactHandle ([SugarScapeAgentIn], SugarScapeEnvironme
 simulateAndRenderNoTime hdl outRef = animateIO (Renderer.display winTitle winSize)
                                             GLO.white
                                             (nextFrameSimulateNoTime hdl outRef)
-                                            (\controller -> return () )
+                                            (\_ -> return () )
 
 nextFrameSimulateNoTime :: ReactHandle ([SugarScapeAgentIn], SugarScapeEnvironment) ([SugarScapeAgentOut], SugarScapeEnvironment)
                 -> IORef ([SugarScapeAgentOut], SugarScapeEnvironment)
                 -> Float
                 -> IO Picture
-nextFrameSimulateNoTime hdl outRef dt = do
+nextFrameSimulateNoTime hdl outRef _ = do
                                             react hdl (1.0, Nothing)  -- NOTE: will result in call to nextIteration
                                             aouts <- readIORef outRef
                                             modelToPicture aouts

@@ -60,8 +60,25 @@ makeConversationWith n a = conversation a msg makeConversationWithAux
 
         makeConversationWithAux :: ConversationAgentOut -> Maybe (AgentMessage ConversationMsg) -> ConversationAgentOut
         makeConversationWithAux a (Just (senderId, msg@(Hello n)))
-            | n > 5 = trace ("Agent " ++ (show $ aoId a) ++ " receives reply: " ++ (show msg) ++ " but stoppin") conversationEnd a
+            | n > 5 = trace ("Agent " ++ (show $ aoId a) ++ " receives reply: " ++ (show msg) ++ " but stoppin") conversationEnd a'
             | otherwise = trace ("Agent " ++ (show $ aoId a) ++ " receives reply: " ++ (show msg) ++ " continuing") makeConversationWith (n + 1) a
+            where
+                g = convRng $ aoState a
+                (g', g'') = split g
+
+                s = ConversationAgentState {
+                    convCounter = 42,
+                    convRng = g'
+                }
+
+                adef = AgentDef { adId = 100+n,
+                            adState = s,
+                            adEnvPos = (0,0),
+                            adInitMessages = NoEvent,
+                            adConversation = Just conversationHandler,
+                            adBeh = conversationAgentBehaviour }
+
+                a' = createAgent a adef 
         makeConversationWithAux a _ = trace ("Agent " ++ (show $ aoId a) ++ " receives Nothing -> stopping") conversationEnd a
 
 conversationAgentBehaviour :: ConversationAgentBehaviour

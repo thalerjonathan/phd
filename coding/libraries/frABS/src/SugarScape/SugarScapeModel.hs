@@ -107,6 +107,7 @@ visionRange = (1, 6)
 ageRange :: (Double, Double)
 ageRange = (60, 100)
 
+
 polutionMetabolismFactor :: Double
 polutionMetabolismFactor = 1.0
 

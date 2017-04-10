@@ -232,6 +232,7 @@ agentSex a
                                                     -> Maybe (AgentMessage SugarScapeMsg)
                                                     -> SugarScapeAgentOut
                 agentMatingConversationsReply a Nothing = agentMatingConversation otherAis allCoords a  -- NOTE: the target was not found or does not have a handler, continue with the next
+                agentMatingConversationsReply a (Just (_, MatingReplyNo)) = agentMatingConversation otherAis allCoords a
                 agentMatingConversationsReply a (Just (senderId, (MatingReplyYes otherTup))) = 
                     conversation a2 (receiverId, (MatingChild newBornId)) (\a' _ -> agentMatingConversation otherAis cs a')
                     
@@ -248,7 +249,7 @@ agentSex a
 
                         newBornId = senderId * aoId a   -- TODO: this is a real problem: which ids do we give our newborns?
 
-                        (newBornDef, g') = trace ("MatingReplyYes 1") createNewBorn
+                        (newBornDef, g') = createNewBorn
                                                 (newBornId, coord)
                                                 g
                                                 (mySugarContribution, myMetab, myVision)
@@ -262,9 +263,7 @@ agentSex a
                         a1 = updateState a0 (\s -> s { sugAgSugarLevel = sugarLevel - mySugarContribution,
                                                         sugAgRng = g',
                                                         sugAgChildren = newBornId : (sugAgChildren s)})
-                        a2 = trace ("MatingReplyYes 2") createAgent a1 newBornDef
-
-                agentMatingConversationsReply a (Just (_, MatingReplyNo)) = agentMatingConversation otherAis allCoords a
+                        a2 = createAgent a1 newBornDef
                 agentMatingConversationsReply a (Just (_, _)) = agentMatingConversation otherAis allCoords a  -- NOTE: unexpected reply, continue with the next
 
 createNewBorn :: (AgentId, EnvCoord)
@@ -275,7 +274,7 @@ createNewBorn :: (AgentId, EnvCoord)
 createNewBorn idCoord
                 g0
                 (sugEndowFather, metabFather, visionFather)
-                (sugEndowMother, metabMother, visionMother) = trace ("createNewBorn") (newBornDef', g3)
+                (sugEndowMother, metabMother, visionMother) = (newBornDef', g3)
     where
         newBornSugarEndow = sugEndowFather + sugEndowMother
         (newBornMetabolism, g1) = crossover (metabFather, metabMother) g0
@@ -338,7 +337,7 @@ sugarScapeAgentConversation ain (_, (MatingChild childId)) = (Nothing, Just ain'
     where
         s = aiState ain
         s' = s { sugAgChildren = childId : (sugAgChildren s)}
-        ain' = trace ("Got childId " ++ (show childId)) ain { aiState = s' }
+        ain' = ain { aiState = s' }
 sugarScapeAgentConversation ain _ = (Nothing, Nothing)
 
 handleMatingConversation :: (SugarScapeAgentGender)
@@ -364,7 +363,7 @@ handleMatingConversation otherGender ain
         myVision = sugAgVision s
 
         s' = s { sugAgSugarLevel = sugarLevel - mySugarContribution }
-        ain' = trace ("Agent " ++ (show $ aiId ain) ++ " agrees to mate")  ain { aiState = s'}
+        ain' = ain { aiState = s'}
 
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour
 sugarScapeAgentBehaviour = proc ain ->

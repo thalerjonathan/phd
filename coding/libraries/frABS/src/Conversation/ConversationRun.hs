@@ -22,7 +22,7 @@ runConversationStepsAndPrint = do
                                 putStrLn "Initial Agents:"
                                 mapM_ (putStrLn . show . adState) as
 
-                                let steps = 1
+                                let steps = 2
                                 let ass = processSteps as env parallelStrategyFlag 1.0 steps
                                 let (as', _) = last ass
 

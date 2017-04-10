@@ -20,7 +20,7 @@ winTitle = "SugarScape Chapter II"
 renderCircles = True
 
 rngSeed = 42
-agentCount = 800
+agentCount = 400
 envSize = (50, 50)
 
 parallelStrategyFlag = False -- NOTE: sugarscape will not give correct result when run with parallel update-strategy

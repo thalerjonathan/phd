@@ -126,7 +126,7 @@ seqCallbackIteration :: [AgentOut s m ec] -> ([AgentBehaviour s m ec], [AgentIn 
 seqCallbackIteration aouts = (newSfs, newSfsIns')
     where
         -- NOTE: messages of this agent are ALWAYS distributed, whether it is killed or not
-        (newSfs, newSfsIns) = foldl handleCreateAgents ([], []) aouts
+        (newSfs, newSfsIns) = foldr handleCreateAgents ([], []) aouts
         -- NOTE: distribute messages to newly created agents as well
         newSfsIns' = distributeMessages newSfsIns aouts
 
@@ -219,10 +219,10 @@ seqCallback (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                                 -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
                                 -> ([AgentIn s m ec],
                                      Maybe (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec))
-        handleAgent otherIns a@(_, _, newOut) = (otherIns'', mayAgent)
+        handleAgent otherIns a@(sf, oldIn, newOut) = (otherIns'', mayAgent)
             where
                 (otherIns', newOut') = handleConversation otherIns newOut
-                mayAgent = handleKillOrLiveAgent a
+                mayAgent = handleKillOrLiveAgent (sf, oldIn, newOut')
                 otherIns'' = distributeActions otherIns' newOut'
 
         handleConversation :: [AgentIn s m ec]
@@ -356,7 +356,7 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns0)
                                 -> ([AgentBehaviour s m ec], [AgentIn s m ec])
                 handleAgent acc a@(_, _, newOut) = handleKillOrLiveAgent acc' a
                     where
-                        acc' = handleCreateAgents acc newOut
+                        acc' = handleCreateAgents newOut acc
 
                 handleKillOrLiveAgent :: ([AgentBehaviour s m ec], [AgentIn s m ec])
                                             -> (AgentBehaviour s m ec, AgentIn s m ec, AgentOut s m ec)
@@ -368,7 +368,9 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns0)
                         killAgent = isEvent $ aoKill newOut
                         newIn = oldIn { aiStart = NoEvent,
                                         aiState = (aoState newOut),
-                                        aiMessages = NoEvent }
+                                        aiMessages = NoEvent,
+                                        aiEnvPos = (aoEnvPos newOut),
+                                        aiEnv = (aoEnv newOut) }
 ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -385,10 +387,10 @@ runEnv env dt
         envSF = fromJust mayEnvBeh
         (envSF', env') = runAndFreezeSF envSF env dt
 
-handleCreateAgents :: ([AgentBehaviour s m ec], [AgentIn s m ec])
-                        -> AgentOut s m ec
+handleCreateAgents :: AgentOut s m ec
                         -> ([AgentBehaviour s m ec], [AgentIn s m ec])
-handleCreateAgents acc@(asfsAcc, ainsAcc) o
+                        -> ([AgentBehaviour s m ec], [AgentIn s m ec])
+handleCreateAgents o acc@(asfsAcc, ainsAcc) 
     | hasCreateAgents = (asfsAcc ++ newSfs, ainsAcc ++ newAis)
     | otherwise = acc
     where

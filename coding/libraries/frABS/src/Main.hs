@@ -5,10 +5,14 @@ import Segregation.SegregationRun
 import MetaABS.MetaABSRun
 import SugarScape.SugarScapeRun
 import Conversation.ConversationRun
+import MessageSampling.MessageSamplingRun
 
 main :: IO ()
-main = runSugarScapeWithRendering
+main = runMessageSamplingAndPrint
+
     -- runSugarScapeWithRendering
+
+    -- runMessageSamplingAndPrint
     -- runConversationStepsAndPrint
     -- runSugarScapeWithRendering
     -- runMetaABSStepsAndPrint

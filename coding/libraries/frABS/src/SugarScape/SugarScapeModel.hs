@@ -29,6 +29,7 @@ data SugarScapeMsg =
     MatingRequest SugarScapeAgentGender
     | MatingReplyNo
     | MatingReplyYes (Double, Double, Int) -- Sugar-Contribution, Metabolism, Vision
+    | MatingChild AgentId
 
     | InheritSugar Double
 

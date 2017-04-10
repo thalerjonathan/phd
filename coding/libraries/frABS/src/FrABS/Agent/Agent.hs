@@ -12,7 +12,7 @@ type MessageFilter m = (AgentMessage m -> Bool)
 
 type AgentConversationReceiver s m ec = (AgentIn s m ec
                                             -> AgentMessage m
-                                            -> (m, AgentIn s m ec)) -- NOTE: the receiver MUST reply, otherwise we could've used the normal messaging
+                                            -> Maybe (m, AgentIn s m ec)) -- NOTE: the receiver MUST reply, otherwise we could've used the normal messaging
 
 type AgentConversationSender s m ec = (AgentOut s m ec
                                         -> Maybe (AgentMessage m)   -- NOTE: this will be Nothing in case the conversation with the target was not established e.g. id not found, target got no receiving handler

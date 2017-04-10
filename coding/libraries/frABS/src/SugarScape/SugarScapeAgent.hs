@@ -222,18 +222,18 @@ agentSex a
         agentMatingConversation [] _ a = trace ("empty neighbours") stopConversation a
         agentMatingConversation _ [] a = trace ("empty coords") stopConversation a
         agentMatingConversation (receiverId:otherAis) allCoords@((coord, cell):cs) a
-            | satisfiesWealthForChildBearing s = trace ("beginConversation") beginConversation a (receiverId, m) agentMatingConversationsReply
+            | satisfiesWealthForChildBearing s = beginConversation a (receiverId, m) agentMatingConversationsReply
             | otherwise = trace ("not enough wealth") stopConversation a
             where
                 s = aoState a
-                m = MatingRequest (sugAgGender $ s)
+                m =  MatingRequest (sugAgGender $ s) --trace ("MatingRequest to " ++ (show receiverId)) MatingRequest (sugAgGender $ s)
 
                 agentMatingConversationsReply :: SugarScapeAgentOut
                                                     -> Maybe (AgentMessage SugarScapeMsg)
                                                     -> SugarScapeAgentOut
-                agentMatingConversationsReply a Nothing = trace ("Nothing") agentMatingConversation otherAis allCoords a  -- NOTE: the target was not found or does not have a handler, continue with the next
-                agentMatingConversationsReply a (Just (_, MatingReplyNo)) = trace ("MatingReplyNo") agentMatingConversation otherAis allCoords a
-                agentMatingConversationsReply a (Just (senderId, MatingReplyYes otherTup)) = trace ("MatingReplyYes") agentMatingConversation otherAis cs a2
+                agentMatingConversationsReply a Nothing = agentMatingConversation otherAis allCoords a  -- NOTE: the target was not found or does not have a handler, continue with the next
+                agentMatingConversationsReply a (Just (senderId, (MatingReplyYes otherTup))) = case agentMatingConversation otherAis cs a2 of
+                                                                                                 x -> x
                     where
                         s = aoState a
                         g = sugAgRng s
@@ -261,8 +261,9 @@ agentSex a
                         a1 = updateState a0 (\s -> s { sugAgSugarLevel = sugarLevel - mySugarContribution,
                                                         sugAgRng = g',
                                                         sugAgChildren = newBornId : (sugAgChildren s)})
-                        a2 = createAgent a1 newBornDef
-                agentMatingConversationsReply a (Just (_, _)) = trace ("unknown reply") agentMatingConversation otherAis allCoords a  -- NOTE: unexpected reply, continue with the next
+                        a2 = trace ("MatingReplyYes") createAgent a1 newBornDef
+                agentMatingConversationsReply a (Just (_, MatingReplyNo)) = agentMatingConversation otherAis allCoords a
+                agentMatingConversationsReply a (Just (_, _)) = agentMatingConversation otherAis allCoords a  -- NOTE: unexpected reply, continue with the next
 
 createNewBorn :: (AgentId, EnvCoord)
                     -> StdGen
@@ -328,8 +329,8 @@ inheritSugar ain a = onMessage inheritSugarMatch ain inheritSugarAction a
 -- GENERAL AGENT-RELATED
 ------------------------------------------------------------------------------------------------------------------------
 sugarScapeAgentConversation :: SugarScapeAgentConversation
-sugarScapeAgentConversation ain (_, (MatingRequest tup)) = handleMatingConversation tup ain
--- sugarScapeAgentConversation ain _ = TODO: reply with nothing: can't reply to a conversation unknown
+sugarScapeAgentConversation ain (_, (MatingRequest tup)) = Just $ handleMatingConversation tup ain
+sugarScapeAgentConversation ain _ = Nothing
 
 handleMatingConversation :: (SugarScapeAgentGender)
                                 -> SugarScapeAgentIn
@@ -337,12 +338,14 @@ handleMatingConversation :: (SugarScapeAgentGender)
 handleMatingConversation otherGender ain
     | isFertile s &&
         satisfiesWealthForChildBearing s &&
-        differentGender = trace ("myGender = " ++ (show myGender) ++ " otherGender = " ++  (show otherGender )++ ", " ++ (show differentGender)) (MatingReplyYes (mySugarContribution, myMetab, myVision), ain')
+        differentGender = (MatingReplyYes (mySugarContribution, myMetab, myVision), ain')
     | otherwise = (MatingReplyNo, ain)
     where
         s = aiState ain
         myGender = sugAgGender s
         differentGender = myGender /= otherGender
+
+        -- TODO: this agent needs to add the id of the newborn to its children to pass on its wealth when it dies
 
         -- NOTE: to be fertile an agent must have at least as much sugar as initially endowed, therefore it cannot go negative
         initialSugarEndow = sugAgSugarInit s
@@ -352,7 +355,7 @@ handleMatingConversation otherGender ain
         myVision = sugAgVision s
 
         s' = s { sugAgSugarLevel = sugarLevel - mySugarContribution }
-        ain' = ain { aiState = s'}
+        ain' = trace ("Agent " ++ (show $ aiId ain) ++ " agrees to mate")  ain { aiState = s'}
 
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour
 sugarScapeAgentBehaviour = proc ain ->

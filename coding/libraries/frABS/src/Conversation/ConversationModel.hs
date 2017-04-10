@@ -50,26 +50,19 @@ agentTest a = updateState a (\s -> s { convRng = g', convCounter = n})
 conversationHandler :: ConversationAgentConversation
 conversationHandler ain (_, msg@(Hello n)) =
     trace ("Agent " ++ (show $ aiId ain) ++ " receives conversation: " ++ (show msg))
-        Just (Hello (n+1), ain)
+        (Just (Hello (n+1)), Just ain)
 
 makeConversationWith :: Int -> ConversationAgentOut -> ConversationAgentOut
-makeConversationWith n a = beginConversation a msg makeConversationWithAux
+makeConversationWith n a = conversation a msg makeConversationWithAux
     where
         receiverId = if aoId a == 0 then 1 else 0
         msg =  trace ("makeConversationWith " ++ (show n) ++ " receiverId = " ++ (show receiverId))  (receiverId, Hello n)
 
         makeConversationWithAux :: ConversationAgentOut -> Maybe (AgentMessage ConversationMsg) -> ConversationAgentOut
         makeConversationWithAux a (Just (senderId, msg@(Hello n)))
-            | n > 5 = trace ("Agent " ++ (show $ aoId a) ++ " receives reply: " ++ (show msg) ++ " but stoppin") stopConversation a
+            | n > 5 = trace ("Agent " ++ (show $ aoId a) ++ " receives reply: " ++ (show msg) ++ " but stoppin") conversationEnd a
             | otherwise = trace ("Agent " ++ (show $ aoId a) ++ " receives reply: " ++ (show msg) ++ " continuing") makeConversationWith (n + 1) a
-        makeConversationWithAux a _ = trace ("Agent " ++ (show $ aoId a) ++ " receives Nothing -> stopping") stopConversation a
-{-
-        makeConversationWithAux :: ConversationAgentOut -> Maybe (AgentMessage ConversationMsg) -> ConversationAgentOut
-        makeConversationWithAux a (Just (senderId, msg@(Hello n)))
-            | senderId == 0 = trace ("Agent " ++ (show $ aoId a) ++ " receives reply: " ++ (show msg) ++ " but stoppin") stopConversation a
-            | otherwise = trace ("Agent " ++ (show $ aoId a) ++ " receives reply: " ++ (show msg) ++ " continuing") (if (n<2) then (beginConversation a (2, Hello (n + 1)) makeConversationWithAux) else stopConversation a)
-        makeConversationWithAux a _ = trace ("Agent " ++ (show $ aoId a) ++ " receives Nothing -> stopping")  stopConversation a
--}
+        makeConversationWithAux a _ = trace ("Agent " ++ (show $ aoId a) ++ " receives Nothing -> stopping") conversationEnd a
 
 conversationAgentBehaviour :: ConversationAgentBehaviour
 conversationAgentBehaviour = proc ain ->

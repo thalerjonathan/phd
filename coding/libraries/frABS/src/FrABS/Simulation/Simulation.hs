@@ -232,7 +232,7 @@ seqCallback (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
             | hasConversation newOut = handleConversation otherIns' newOut'
             | otherwise = (otherIns, newOut)
             where
-                ((receiverId, m), senderReplyFunc) = fromEvent $ aoBeginConversation newOut
+                ((receiverId, m), senderReplyFunc) = fromEvent $ aoConversation newOut
 
                 -- NOTE: it is possible that agents which are just newly created are already target of a conversation because
                 --       their position in the environment was occupied using their id which exposes them to potential messages
@@ -250,13 +250,13 @@ seqCallback (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                             let mayConvHandler = aiConversation receivingIn
                             maybe (Nothing, otherIns)
                                 (\convHandler -> do
-                                    let mayReply = convHandler receivingIn (aoId newOut, m)
+                                    let (mayReplyM, mayChangedReceivingIn) = convHandler receivingIn (aoId newOut, m)
                                     maybe (Nothing, otherIns)
-                                        (\(reply, newReceivingIn) -> do
-                                            let otherIns' = replace (fromJust $ mayReceivingIndex) otherIns newReceivingIn
-                                            let replyMsg = Just (receiverId, reply)
+                                        (\changedReceivingIn -> do
+                                            let otherIns' = replace (fromJust $ mayReceivingIndex) otherIns changedReceivingIn
+                                            let replyMsg = maybe Nothing (\replyM -> Just (receiverId, replyM)) mayReplyM
                                             (replyMsg, otherIns') )
-                                        mayReply
+                                        mayChangedReceivingIn
                                 ) mayConvHandler
                         ) mayReceivingIn
                 newOut' = case senderReplyFunc newOut mayReplyMsg of

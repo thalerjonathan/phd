@@ -10,9 +10,11 @@ type AgentMessage m = (AgentId, m)
 type AgentBehaviour s m ec = SF (AgentIn s m ec) (AgentOut s m ec)
 type MessageFilter m = (AgentMessage m -> Bool)
 
+type AgentConversationReply s m ec = (Maybe m, Maybe (AgentIn s m ec))
+
 type AgentConversationReceiver s m ec = (AgentIn s m ec
                                             -> AgentMessage m
-                                            -> Maybe (m, AgentIn s m ec)) -- NOTE: the receiver MUST reply, otherwise we could've used the normal messaging
+                                            -> AgentConversationReply s m ec) -- NOTE: the receiver MUST reply, otherwise we could've used the normal messaging
 
 type AgentConversationSender s m ec = (AgentOut s m ec
                                         -> Maybe (AgentMessage m)   -- NOTE: this will be Nothing in case the conversation with the target was not established e.g. id not found, target got no receiving handler
@@ -45,7 +47,7 @@ data AgentOut s m ec = AgentOut {
     aoKill :: Event (),
     aoCreate :: Event [AgentDef s m ec],
     aoMessages :: Event [AgentMessage m],     -- AgentId identifies receiver
-    aoBeginConversation :: Event (AgentMessage m, AgentConversationSender s m ec),
+    aoConversation :: Event (AgentMessage m, AgentConversationSender s m ec),
     aoState :: s,
     aoEnv :: Environment ec,
     aoEnvPos :: EnvCoord,
@@ -61,7 +63,7 @@ agentOutFromIn ai = AgentOut{ aoId = (aiId ai),
                               aoKill = NoEvent,
                               aoCreate = NoEvent,
                               aoMessages = NoEvent,
-                              aoBeginConversation = NoEvent,
+                              aoConversation = NoEvent,
                               aoState = (aiState ai),
                               aoEnv = (aiEnv ai),
                               aoRec = NoEvent,
@@ -76,16 +78,16 @@ sendMessage ao msg = ao { aoMessages = mergedMsgs }
         mergedMsgs = mergeMessages existingMsgEvent newMsgEvent
 
 hasConversation :: AgentOut s m ec -> Bool
-hasConversation = isEvent . aoBeginConversation
+hasConversation = isEvent . aoConversation
 
-beginConversation :: AgentOut s m ec
+conversation :: AgentOut s m ec
                         -> AgentMessage m
                         -> AgentConversationSender s m ec
                         -> AgentOut s m ec
-beginConversation ao msg replyHdl = ao { aoBeginConversation = Event (msg, replyHdl)}
+conversation ao msg replyHdl = ao { aoConversation = Event (msg, replyHdl)}
 
-stopConversation :: AgentOut s m ec -> AgentOut s m ec
-stopConversation ao = ao { aoBeginConversation = NoEvent }
+conversationEnd :: AgentOut s m ec -> AgentOut s m ec
+conversationEnd ao = ao { aoConversation = NoEvent }
 
 sendMessages :: AgentOut s m ec -> [AgentMessage m] -> AgentOut s m ec
 sendMessages ao msgs = foldr (\msg ao' -> sendMessage ao' msg ) ao msgs

@@ -219,11 +219,11 @@ agentSex a
                                         -> [(EnvCoord, SugarScapeEnvCell)]
                                         -> SugarScapeAgentOut
                                         -> SugarScapeAgentOut
-        agentMatingConversation [] _ a = stopConversation a
-        agentMatingConversation _ [] a = stopConversation a
+        agentMatingConversation [] _ a = conversationEnd a
+        agentMatingConversation _ [] a = conversationEnd a
         agentMatingConversation (receiverId:otherAis) allCoords@((coord, cell):cs) a
-            | satisfiesWealthForChildBearing s = beginConversation a (receiverId, m) agentMatingConversationsReply
-            | otherwise = stopConversation a
+            | satisfiesWealthForChildBearing s = conversation a (receiverId, m) agentMatingConversationsReply
+            | otherwise = conversationEnd a
             where
                 s = aoState a
                 m =  MatingRequest (sugAgGender $ s) --trace ("MatingRequest to " ++ (show receiverId)) MatingRequest (sugAgGender $ s)
@@ -232,7 +232,9 @@ agentSex a
                                                     -> Maybe (AgentMessage SugarScapeMsg)
                                                     -> SugarScapeAgentOut
                 agentMatingConversationsReply a Nothing = agentMatingConversation otherAis allCoords a  -- NOTE: the target was not found or does not have a handler, continue with the next
-                agentMatingConversationsReply a (Just (senderId, (MatingReplyYes otherTup))) = agentMatingConversation otherAis cs a2
+                agentMatingConversationsReply a (Just (senderId, (MatingReplyYes otherTup))) = 
+                    conversation a2 (receiverId, (MatingChild newBornId)) (\a' _ -> agentMatingConversation otherAis cs a')
+                    
                     where
                         s = aoState a
                         g = sugAgRng s
@@ -329,8 +331,15 @@ inheritSugar ain a = onMessage inheritSugarMatch ain inheritSugarAction a
 -- GENERAL AGENT-RELATED
 ------------------------------------------------------------------------------------------------------------------------
 sugarScapeAgentConversation :: SugarScapeAgentConversation
-sugarScapeAgentConversation ain (_, (MatingRequest tup)) = Just $ handleMatingConversation tup ain
-sugarScapeAgentConversation ain _ = Nothing
+sugarScapeAgentConversation ain (_, (MatingRequest tup)) = (Just m, Just ain')
+    where 
+        (m, ain') = handleMatingConversation tup ain
+sugarScapeAgentConversation ain (_, (MatingChild childId)) = (Nothing, Just ain')
+    where
+        s = aiState ain
+        s' = s { sugAgChildren = childId : (sugAgChildren s)}
+        ain' = trace ("Got childId " ++ (show childId)) ain { aiState = s' }
+sugarScapeAgentConversation ain _ = (Nothing, Nothing)
 
 handleMatingConversation :: (SugarScapeAgentGender)
                                 -> SugarScapeAgentIn

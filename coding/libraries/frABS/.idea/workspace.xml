@@ -26,38 +26,28 @@
       <file leaf-file-name="SugarScapeModel.hs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/SugarScape/SugarScapeModel.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1973">
+            <state relative-caret-position="544">
               <caret line="32" column="0" lean-forward="false" selection-start-line="32" selection-start-column="0" selection-end-line="32" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SugarScapeAgent.hs" pinned="false" current-in-tab="false">
+      <file leaf-file-name="SugarScapeAgent.hs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/SugarScape/SugarScapeAgent.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="47">
-              <caret line="331" column="66" lean-forward="false" selection-start-line="331" selection-start-column="66" selection-end-line="331" selection-end-column="66" />
+            <state relative-caret-position="642">
+              <caret line="265" column="18" lean-forward="false" selection-start-line="265" selection-start-column="18" selection-end-line="265" selection-end-column="18" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ConversationModel.hs" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/Conversation/ConversationModel.hs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="251">
-              <caret line="54" column="0" lean-forward="false" selection-start-line="54" selection-start-column="0" selection-end-line="54" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Simulation.hs" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Simulation.hs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/FrABS/Simulation/Simulation.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="398">
-              <caret line="260" column="25" lean-forward="false" selection-start-line="260" selection-start-column="25" selection-end-line="260" selection-end-column="25" />
+            <state relative-caret-position="126">
+              <caret line="244" column="46" lean-forward="false" selection-start-line="244" selection-start-column="46" selection-end-line="244" selection-end-column="46" />
               <folding />
             </state>
           </provider>
@@ -129,8 +119,8 @@
         <option value="$PROJECT_DIR$/src/SugarScape/SugarScapeModel.hs" />
         <option value="$PROJECT_DIR$/src/FrABS/Agent/Agent.hs" />
         <option value="$PROJECT_DIR$/src/Conversation/ConversationModel.hs" />
-        <option value="$PROJECT_DIR$/src/SugarScape/SugarScapeAgent.hs" />
         <option value="$PROJECT_DIR$/src/FrABS/Simulation/Simulation.hs" />
+        <option value="$PROJECT_DIR$/src/SugarScape/SugarScapeAgent.hs" />
       </list>
     </option>
   </component>
@@ -155,6 +145,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -241,9 +232,8 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
-      <pane id="Scratches" />
       <pane id="Scope" />
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -589,7 +579,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="153">
           <caret line="9" column="56" lean-forward="false" selection-start-line="9" selection-start-column="56" selection-end-line="9" selection-end-column="56" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -613,7 +602,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="153">
           <caret line="9" column="56" lean-forward="false" selection-start-line="9" selection-start-column="56" selection-end-line="9" selection-end-column="56" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -637,7 +625,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="153">
           <caret line="9" column="56" lean-forward="false" selection-start-line="9" selection-start-column="56" selection-end-line="9" selection-end-column="56" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -875,7 +862,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="153">
           <caret line="9" column="56" lean-forward="false" selection-start-line="9" selection-start-column="56" selection-end-line="9" selection-end-column="56" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -883,7 +869,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="255">
           <caret line="24" column="45" lean-forward="false" selection-start-line="24" selection-start-column="45" selection-end-line="24" selection-end-column="45" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -897,7 +882,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/SugarScape/SugarScapeModel.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1973">
+        <state relative-caret-position="544">
           <caret line="32" column="0" lean-forward="false" selection-start-line="32" selection-start-column="0" selection-end-line="32" selection-end-column="0" />
           <folding />
         </state>
@@ -911,10 +896,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/SugarScape/SugarScapeAgent.hs">
+    <entry file="file://$PROJECT_DIR$/src/FrABS/Simulation/Simulation.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="47">
-          <caret line="331" column="66" lean-forward="false" selection-start-line="331" selection-start-column="66" selection-end-line="331" selection-end-column="66" />
+        <state relative-caret-position="126">
+          <caret line="244" column="46" lean-forward="false" selection-start-line="244" selection-start-column="46" selection-end-line="244" selection-end-column="46" />
           <folding />
         </state>
       </provider>
@@ -927,10 +912,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/FrABS/Simulation/Simulation.hs">
+    <entry file="file://$PROJECT_DIR$/src/SugarScape/SugarScapeAgent.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="398">
-          <caret line="260" column="25" lean-forward="false" selection-start-line="260" selection-start-column="25" selection-end-line="260" selection-end-column="25" />
+        <state relative-caret-position="642">
+          <caret line="265" column="18" lean-forward="false" selection-start-line="265" selection-start-column="18" selection-end-line="265" selection-end-column="18" />
           <folding />
         </state>
       </provider>

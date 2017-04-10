@@ -21,7 +21,7 @@ an Environment is a container which contains Agents and allows them to move arro
     -- TODO: https://hackage.haskell.org/package/fgl
     -- TODO: http://mazzo.li/posts/graph-drawing.html
     
-data (Num d) => EnvCoordGeneric d = EnvCoordGeneric (d, d)
+--data (Num d) => EnvCoordGeneric d = EnvCoordGeneric (d, d)
 type EnvironmentBehaviour c = SF (Environment c) (Environment c)
 type EnvCoord = (Int, Int)
 type EnvLimits = (Int, Int)

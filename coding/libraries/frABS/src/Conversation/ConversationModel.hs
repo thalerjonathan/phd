@@ -51,7 +51,6 @@ conversationHandler :: ConversationAgentConversation
 conversationHandler ain (_, msg@(Hello n)) =
     trace ("Agent " ++ (show $ aiId ain) ++ " receives conversation: " ++ (show msg))
         Just (Hello (n+1), ain)
-conversationHandler _ _ = Nothing
 
 makeConversationWith :: Int -> ConversationAgentOut -> ConversationAgentOut
 makeConversationWith n a = beginConversation a msg makeConversationWithAux

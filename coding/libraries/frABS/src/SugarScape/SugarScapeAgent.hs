@@ -219,11 +219,11 @@ agentSex a
                                         -> [(EnvCoord, SugarScapeEnvCell)]
                                         -> SugarScapeAgentOut
                                         -> SugarScapeAgentOut
-        agentMatingConversation [] _ a = trace ("empty neighbours") stopConversation a
-        agentMatingConversation _ [] a = trace ("empty coords") stopConversation a
+        agentMatingConversation [] _ a = stopConversation a
+        agentMatingConversation _ [] a = stopConversation a
         agentMatingConversation (receiverId:otherAis) allCoords@((coord, cell):cs) a
             | satisfiesWealthForChildBearing s = beginConversation a (receiverId, m) agentMatingConversationsReply
-            | otherwise = trace ("not enough wealth") stopConversation a
+            | otherwise = stopConversation a
             where
                 s = aoState a
                 m =  MatingRequest (sugAgGender $ s) --trace ("MatingRequest to " ++ (show receiverId)) MatingRequest (sugAgGender $ s)
@@ -232,8 +232,7 @@ agentSex a
                                                     -> Maybe (AgentMessage SugarScapeMsg)
                                                     -> SugarScapeAgentOut
                 agentMatingConversationsReply a Nothing = agentMatingConversation otherAis allCoords a  -- NOTE: the target was not found or does not have a handler, continue with the next
-                agentMatingConversationsReply a (Just (senderId, (MatingReplyYes otherTup))) = case agentMatingConversation otherAis cs a2 of
-                                                                                                 x -> x
+                agentMatingConversationsReply a (Just (senderId, (MatingReplyYes otherTup))) = agentMatingConversation otherAis cs a2
                     where
                         s = aoState a
                         g = sugAgRng s
@@ -247,7 +246,7 @@ agentSex a
 
                         newBornId = senderId * aoId a   -- TODO: this is a real problem: which ids do we give our newborns?
 
-                        (newBornDef, g') = createNewBorn
+                        (newBornDef, g') = trace ("MatingReplyYes 1") createNewBorn
                                                 (newBornId, coord)
                                                 g
                                                 (mySugarContribution, myMetab, myVision)
@@ -261,7 +260,8 @@ agentSex a
                         a1 = updateState a0 (\s -> s { sugAgSugarLevel = sugarLevel - mySugarContribution,
                                                         sugAgRng = g',
                                                         sugAgChildren = newBornId : (sugAgChildren s)})
-                        a2 = trace ("MatingReplyYes") createAgent a1 newBornDef
+                        a2 = trace ("MatingReplyYes 2") createAgent a1 newBornDef
+
                 agentMatingConversationsReply a (Just (_, MatingReplyNo)) = agentMatingConversation otherAis allCoords a
                 agentMatingConversationsReply a (Just (_, _)) = agentMatingConversation otherAis allCoords a  -- NOTE: unexpected reply, continue with the next
 
@@ -335,7 +335,7 @@ sugarScapeAgentConversation ain _ = Nothing
 handleMatingConversation :: (SugarScapeAgentGender)
                                 -> SugarScapeAgentIn
                                 -> (SugarScapeMsg, SugarScapeAgentIn)
-handleMatingConversation otherGender ain
+handleMatingConversation otherGender ain 
     | isFertile s &&
         satisfiesWealthForChildBearing s &&
         differentGender = (MatingReplyYes (mySugarContribution, myMetab, myVision), ain')

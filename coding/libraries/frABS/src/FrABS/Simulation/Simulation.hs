@@ -243,9 +243,11 @@ seqCallback (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                 mayReceivingIn = maybe Nothing (\receivingIndex -> Just (otherIns !! receivingIndex)) mayReceivingIndex
 
                 -- TODO: this is so extremely ugly, is there a way to change this?
+                -- https://en.wikibooks.org/wiki/Haskell/Monad_transformers
+                -- https://wiki.haskell.org/Monad_Transformers_Tutorial
+                -- https://hackage.haskell.org/package/transformers-0.5.4.0/docs/Control-Monad-Trans-Maybe.html
                 (mayReplyMsg, otherIns') =
-                    maybe
-                        (Nothing, otherIns)
+                    maybe (Nothing, otherIns)
                         (\receivingIn -> do
                             let mayConvHandler = aiConversation receivingIn
                             maybe (Nothing, otherIns)
@@ -259,8 +261,7 @@ seqCallback (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                                         mayChangedReceivingIn
                                 ) mayConvHandler
                         ) mayReceivingIn
-                newOut' = case senderReplyFunc newOut mayReplyMsg of
-                            x -> x
+                newOut' = senderReplyFunc newOut mayReplyMsg
 
         replace :: Int -> [a] -> a -> [a]
         replace idx as a = front ++ (a : backNoElem)

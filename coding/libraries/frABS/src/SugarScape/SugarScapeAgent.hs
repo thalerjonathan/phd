@@ -27,7 +27,7 @@ agentDies = unoccupyPosition . kill
 passWealthOn :: SugarScapeAgentOut -> SugarScapeAgentOut
 passWealthOn a
     | null childrenIds = a
-    | otherwise = trace ("passWealthOn to " ++ (show childrenCount) ++ " chidlren each " ++ (show childrenSugarShare)) broadcastMessage a (InheritSugar childrenSugarShare) childrenIds
+    | otherwise = broadcastMessage a (InheritSugar childrenSugarShare) childrenIds
     where
         s = aoState a
         sugarLevel = sugAgSugarLevel s
@@ -159,7 +159,7 @@ agentLookout a = zip visionCoordsWrapped visionCells
 
 agentAgeing :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentAgeing a
-    | dieFromAge a =  agentDies $ passWealthOn $ birthNewAgent a
+    | dieFromAge a =  agentDies $ passWealthOn a -- $ birthNewAgent a
     | otherwise = agentAction a
 
 birthNewAgent :: SugarScapeAgentOut -> SugarScapeAgentOut
@@ -244,13 +244,14 @@ agentSex a
                         mySugarContribution = initialSugarEndow / 2.0
                         myMetab = sugAgMetabolism s
                         myVision = sugAgVision s
+                        myCulturalTag = sugAgCulturalTag s
 
                         newBornId = senderId * aoId a   -- TODO: this is a real problem: which ids do we give our newborns?
 
                         (newBornDef, g') = createNewBorn
                                                 (newBornId, coord)
                                                 g
-                                                (mySugarContribution, myMetab, myVision)
+                                                (mySugarContribution, myMetab, myVision, myCulturalTag)
                                                 otherTup
 
                         env = aoEnv a
@@ -266,23 +267,24 @@ agentSex a
 
 createNewBorn :: (AgentId, EnvCoord)
                     -> StdGen
-                    -> (Double, Double, Int)
-                    -> (Double, Double, Int)
+                    -> (Double, Double, Int, SugarScapeCulturalTag)
+                    -> (Double, Double, Int, SugarScapeCulturalTag)
                     -> (SugarScapeAgentDef, StdGen)
 createNewBorn idCoord
                 g0
-                (sugEndowFather, metabFather, visionFather)
-                (sugEndowMother, metabMother, visionMother) = (newBornDef', g3)
+                (sugEndowFather, metabFather, visionFather, cultureFather)
+                (sugEndowMother, metabMother, visionMother, cultureMother) = (newBornDef', g4)
     where
         newBornSugarEndow = sugEndowFather + sugEndowMother
         (newBornMetabolism, g1) = crossover (metabFather, metabMother) g0
         (newBornVision, g2) = crossover (visionFather, visionMother) g1
+        (newBornCulturalTag, g3) = culturalCrossover cultureFather cultureMother g2
 
-        (newBornDef, g3) = randomAgent
+        (newBornDef, g4) = randomAgent
                             idCoord
                             sugarScapeAgentBehaviour
                             sugarScapeAgentConversation
-                            g2
+                            g3
 
         -- TODO: crossover cultural tags
 
@@ -368,14 +370,12 @@ handleMatingConversation :: (SugarScapeAgentGender)
 handleMatingConversation otherGender ain 
     | isFertile s &&
         satisfiesWealthForChildBearing s &&
-        differentGender = (MatingReplyYes (mySugarContribution, myMetab, myVision), ain')
+        differentGender = (MatingReplyYes (mySugarContribution, myMetab, myVision, myCulturalTag), ain')
     | otherwise = (MatingReplyNo, ain)
     where
         s = aiState ain
         myGender = sugAgGender s
         differentGender = myGender /= otherGender
-
-        -- TODO: this agent needs to add the id of the newborn to its children to pass on its wealth when it dies
 
         -- NOTE: to be fertile an agent must have at least as much sugar as initially endowed, therefore it cannot go negative
         initialSugarEndow = sugAgSugarInit s
@@ -383,7 +383,8 @@ handleMatingConversation otherGender ain
         mySugarContribution = initialSugarEndow / 2.0
         myMetab = sugAgMetabolism s
         myVision = sugAgVision s
-
+        myCulturalTag = sugAgCulturalTag s
+        
         s' = s { sugAgSugarLevel = sugarLevel - mySugarContribution }
         ain' = ain { aiState = s'}
 
@@ -406,7 +407,7 @@ sugarScapeAgentBehaviour = proc ain ->
         let a2 = agentCultureContact ain a1
 
         let a3 = agentAgeing a2
-        let a4 = a3 --if isDead a3 then a3 else agentSex a3
+        let a4 = if isDead a3 then a3 else agentSex a3
 
         returnA -< a4
 ------------------------------------------------------------------------------------------------------------------------

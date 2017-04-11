@@ -31,7 +31,7 @@ type SugarScapeCulturalTag = [Bool]
 data SugarScapeMsg =
     MatingRequest SugarScapeAgentGender
     | MatingReplyNo
-    | MatingReplyYes (Double, Double, Int) -- Sugar-Contribution, Metabolism, Vision
+    | MatingReplyYes (Double, Double, Int, SugarScapeCulturalTag) -- Sugar-Contribution, Metabolism, Vision
     | MatingChild AgentId
 
     | InheritSugar Double
@@ -162,14 +162,20 @@ cultureContact tagActive tagPassive g = (tagPassive', g')
 
 -- NOTE: the tags must have same length, this could be enforced statically through types if we had a dependent type-system
 flipCulturalTag :: SugarScapeCulturalTag -> SugarScapeCulturalTag -> Int -> SugarScapeCulturalTag
-flipCulturalTag tagActive tagPassive idx = flipCulturalTagAux (zip tagActive tagPassive) idx
+flipCulturalTag tagActive tagPassive idx = map (\(i, a, p) -> if i == idx then a else p) (zip3 [0..len-1] tagActive tagPassive) 
     where
-        flipCulturalTagAux :: [(Bool, Bool)] -> Int -> [Bool]
-        flipCulturalTagAux [] _ = []
-        flipCulturalTagAux ((a, p):ps) 0 
-            | a /= p = a : (map snd ps)
-            | otherwise = p : (map snd ps)
-        flipCulturalTagAux ((a, p):ps) _ = p : flipCulturalTagAux ps (idx - 1)
+        len = length tagActive
+
+culturalCrossover :: SugarScapeCulturalTag -> SugarScapeCulturalTag -> StdGen -> (SugarScapeCulturalTag, StdGen)
+culturalCrossover ts1 ts2 g = foldr culturalCrossoverAux ([],g) (zip ts1 ts2)
+    where
+        culturalCrossoverAux :: (Bool, Bool) -> (SugarScapeCulturalTag, StdGen) -> (SugarScapeCulturalTag, StdGen) 
+        culturalCrossoverAux (t1, t2) (tagAcc, g)
+            | t1 == t2 = (t1 : tagAcc, g')
+            | otherwise = (randTag : tagAcc, g')
+            where
+                (randFlag, g') = random g :: (Bool, StdGen)
+                randTag = if randFlag then t1 else t2
 
 randomAgent :: (AgentId, EnvCoord)
                 -> SugarScapeAgentBehaviour
@@ -178,6 +184,9 @@ randomAgent :: (AgentId, EnvCoord)
                 -> (SugarScapeAgentDef, StdGen)
 randomAgent (agentId, coord) beh conv g0 = (adef, g9)
     where
+        -- TODO: cleanup using Monad
+        -- https://hackage.haskell.org/package/MonadRandom-0.1.3/docs/Control-Monad-Random.html
+
         (randMeta, g1) = randomR metabolismRange g0
         (randVision, g2) = randomR visionRange g1
         -- (randSugarEndowment, g3) = randomR sugarEndowmentRange g2

@@ -8,9 +8,7 @@ import Conversation.ConversationRun
 import MessageSampling.MessageSamplingRun
 
 main :: IO ()
-main = runMessageSamplingAndPrint
-
-    -- runSugarScapeWithRendering
+main = runSugarScapeWithRendering
 
     -- runMessageSamplingAndPrint
     -- runConversationStepsAndPrint

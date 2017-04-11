@@ -197,7 +197,7 @@ dieFromAge a = age > maxAge
 ------------------------------------------------------------------------------------------------------------------------
 agentSex :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentSex a
-    | isFertile s = agentMatingConversation neighbourIds nncsUnoccupied a
+    | isFertile s = agentMatingConversation nids nncsUnoccupied a
     | otherwise = a
     where
         s = aoState a
@@ -205,9 +205,7 @@ agentSex a
         env = aoEnv a
 
         neighbourCells = neighbours env pos
-
-        occupiedCells = filter (isJust . sugEnvOccupied . snd) neighbourCells
-        neighbourIds = map (fromJust . sugEnvOccupied . snd) occupiedCells
+        nids = neighbourIds a
 
         -- NOTE: this calculates the cells which are in the initial neighbourhood and in the neighbourhood of all the neighbours
         nncsDupl = foldr (\(coord, _) acc -> (neighbours env coord) ++ acc) neighbourCells neighbourCells
@@ -286,6 +284,8 @@ createNewBorn idCoord
                             sugarScapeAgentConversation
                             g2
 
+        -- TODO: crossover cultural tags
+
         newBornState = adState newBornDef
         newBornState' = newBornState { sugAgMetabolism = newBornMetabolism,
                                        sugAgVision = newBornVision,
@@ -318,12 +318,34 @@ inheritSugar :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
 inheritSugar ain a = onMessage inheritSugarMatch ain inheritSugarAction a
     where
         inheritSugarAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
-        inheritSugarAction a (_, (InheritSugar sug)) = trace ("Inherited " ++ (show sug))
-            updateState a (\s -> s { sugAgSugarLevel = (sugAgSugarLevel s) + sug})
+        inheritSugarAction a (_, (InheritSugar sug)) = updateState a (\s -> s { sugAgSugarLevel = (sugAgSugarLevel s) + sug})
 
         inheritSugarMatch :: AgentMessage SugarScapeMsg -> Bool
         inheritSugarMatch (_, InheritSugar _) = True
         inheritSugarMatch _ = False
+
+agentCultureContact :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
+agentCultureContact ain a = broadcastMessage a' (CulturalContact culturalTag) nids 
+    where
+        a' = onMessage cultureContactMatch ain cultureContactAction a
+        nids = neighbourIds a'
+        culturalTag = sugAgCulturalTag $ aoState a'
+
+        cultureContactMatch :: AgentMessage SugarScapeMsg -> Bool
+        cultureContactMatch (_, CulturalContact _) = True
+        cultureContactMatch _ = False
+
+        cultureContactAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
+        cultureContactAction a (_, (CulturalContact tagActive)) = 
+                updateState a (\s -> s { sugAgRng = g',
+                                         sugAgCulturalTag = tagPassive',
+                                         sugAgTribe = tribe})
+            where
+                s = aoState a
+                tagPassive = sugAgCulturalTag s
+                g = sugAgRng s
+                (tagPassive', g') = cultureContact tagActive tagPassive g
+                tribe = calculateTribe tagPassive'
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -365,6 +387,14 @@ handleMatingConversation otherGender ain
         s' = s { sugAgSugarLevel = sugarLevel - mySugarContribution }
         ain' = ain { aiState = s'}
 
+neighbourIds :: SugarScapeAgentOut -> [AgentId]
+neighbourIds a = map (fromJust . sugEnvOccupied . snd) occupiedCells
+    where
+        env = aoEnv a
+        pos = aoEnvPos a
+        neighbourCells = neighbours env pos
+        occupiedCells = filter (isJust . sugEnvOccupied . snd) neighbourCells
+
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour
 sugarScapeAgentBehaviour = proc ain ->
     do
@@ -373,9 +403,10 @@ sugarScapeAgentBehaviour = proc ain ->
         let a = agentOutFromIn ain
         let a0 = updateState a (\s -> s { sugAgAge = age })
         let a1 = inheritSugar ain a0
+        let a2 = agentCultureContact ain a1
 
-        let a2 = agentAgeing a1
-        let a3 = if isDead a2 then a2 else agentSex a2
+        let a3 = agentAgeing a2
+        let a4 = a3 --if isDead a3 then a3 else agentSex a3
 
-        returnA -< a3
+        returnA -< a4
 ------------------------------------------------------------------------------------------------------------------------

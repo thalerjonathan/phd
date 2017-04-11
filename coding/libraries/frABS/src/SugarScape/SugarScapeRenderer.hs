@@ -61,7 +61,7 @@ renderAgent :: (Float, Float)
 renderAgent (rectWidth, rectHeight) (wx, wy) a = GLO.color color $ GLO.translate xPix yPix $ GLO.ThickCircle 0 rectWidth
     where
         (x, y) = aoEnvPos a
-        color = agentColor a
+        color = agentColorTribe a
 
         halfXSize = fromRational (toRational wx / 2.0)
         halfYSize = fromRational (toRational wy / 2.0)
@@ -69,9 +69,16 @@ renderAgent (rectWidth, rectHeight) (wx, wy) a = GLO.color color $ GLO.translate
         xPix = fromRational (toRational (fromIntegral x * rectWidth)) - halfXSize
         yPix = fromRational (toRational (fromIntegral y * rectHeight)) - halfYSize
 
-agentColor :: SugarScapeAgentOut -> GLO.Color
-agentColor a
+agentColorGender :: SugarScapeAgentOut -> GLO.Color
+agentColorGender a
     | isMale = GLO.makeColor (realToFrac 1.0) (realToFrac 0.1) (realToFrac 0.1) 1.0
     | otherwise = GLO.makeColor (realToFrac 0.0) (realToFrac 0.3) (realToFrac 0.6) 1.0
     where
         isMale = Male == (sugAgGender $ aoState a)
+
+agentColorTribe:: SugarScapeAgentOut -> GLO.Color
+agentColorTribe a
+    | tribe == Red = GLO.makeColor (realToFrac 1.0) (realToFrac 0.1) (realToFrac 0.1) 1.0
+    | otherwise = GLO.makeColor (realToFrac 0.0) (realToFrac 0.3) (realToFrac 0.6) 1.0
+    where
+        tribe = sugAgTribe $ aoState a

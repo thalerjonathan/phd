@@ -24,6 +24,9 @@ import System.Random
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
 data SugarScapeAgentGender = Male | Female deriving (Show, Eq)
+data SugarScapeTribe = Red | Blue deriving (Show, Eq)
+
+type SugarScapeCulturalTag = [Bool]
 
 data SugarScapeMsg =
     MatingRequest SugarScapeAgentGender
@@ -32,6 +35,8 @@ data SugarScapeMsg =
     | MatingChild AgentId
 
     | InheritSugar Double
+
+    | CulturalContact SugarScapeCulturalTag
 
     deriving (Show)
 
@@ -50,6 +55,9 @@ data SugarScapeAgentState = SugarScapeAgentState {
     sugAgChildren :: [AgentId],             -- the ids of all the children this agent has born
 
     sugAgAge :: Double,                     -- the current age of the agent, could be calculated using time in the SF but we need it in the conversations as well, which are not running in the SF
+
+    sugAgCulturalTag :: SugarScapeCulturalTag,  -- the agents cultural tag
+    sugAgTribe :: SugarScapeTribe,          -- the agents tribe it belongs to according to its cultural tag
 
     sugAgRng :: StdGen
 } deriving (Show)
@@ -131,15 +139,44 @@ childBearingMaleMaxAgeRange = (50, 60)
 
 sexualReproductionInitialEndowmentRange :: (Double, Double)
 sexualReproductionInitialEndowmentRange = (50, 100)
+
+culturalTagLength :: Int
+culturalTagLength = 10
 ------------------------------------------------------------------------------------------------------------------------
 
+calculateTribe :: SugarScapeCulturalTag -> SugarScapeTribe
+calculateTribe tag
+    | falseCount >= trueCount = Blue
+    | otherwise = Red
+    where
+        falseCount = length $ filter (==False) tag 
+        trueCount = length $ filter (==True) tag 
+       
+-- NOTE: the tags must have same length, this could be enforced statically through types if we had a dependent type-system
+cultureContact :: SugarScapeCulturalTag -> SugarScapeCulturalTag -> StdGen -> (SugarScapeCulturalTag, StdGen)
+cultureContact tagActive tagPassive g = (tagPassive', g')
+    where
+        tagLength = length tagActive
+        (randIdx, g') = randomR (0, tagLength-1) g
+        tagPassive' = flipCulturalTag tagActive tagPassive randIdx
+
+-- NOTE: the tags must have same length, this could be enforced statically through types if we had a dependent type-system
+flipCulturalTag :: SugarScapeCulturalTag -> SugarScapeCulturalTag -> Int -> SugarScapeCulturalTag
+flipCulturalTag tagActive tagPassive idx = flipCulturalTagAux (zip tagActive tagPassive) idx
+    where
+        flipCulturalTagAux :: [(Bool, Bool)] -> Int -> [Bool]
+        flipCulturalTagAux [] _ = []
+        flipCulturalTagAux ((a, p):ps) 0 
+            | a /= p = a : (map snd ps)
+            | otherwise = p : (map snd ps)
+        flipCulturalTagAux ((a, p):ps) _ = p : flipCulturalTagAux ps (idx - 1)
 
 randomAgent :: (AgentId, EnvCoord)
                 -> SugarScapeAgentBehaviour
                 -> SugarScapeAgentConversation
                 -> StdGen
                 -> (SugarScapeAgentDef, StdGen)
-randomAgent (agentId, coord) beh conv g0 = (adef, g8)
+randomAgent (agentId, coord) beh conv g0 = (adef, g9)
     where
         (randMeta, g1) = randomR metabolismRange g0
         (randVision, g2) = randomR visionRange g1
@@ -148,13 +185,14 @@ randomAgent (agentId, coord) beh conv g0 = (adef, g8)
         (randMaxAge, g4) = randomR ageRange g3
         (randMale, g5) = random g4 :: (Bool, StdGen)
         (randMinFert, g6) = randomR childBearingMinAgeRange g5
+        (randCulturalTag, g7) = randomCulturalTag g6 culturalTagLength
 
         randGender = if randMale then Male else Female
         fertilityMaxRange = if randMale then childBearingMaleMaxAgeRange else childBearingFemaleMaxAgeRange
 
-        (randMaxFert, g7) = randomR fertilityMaxRange g6
+        (randMaxFert, g8) = randomR fertilityMaxRange g7
 
-        (rng, g8) = split g7
+        (rng, g9) = split g8
 
         s = SugarScapeAgentState {
             sugAgMetabolism = randMeta,
@@ -172,6 +210,9 @@ randomAgent (agentId, coord) beh conv g0 = (adef, g8)
 
             sugAgAge = 0.0,
 
+            sugAgCulturalTag = randCulturalTag,
+            sugAgTribe = calculateTribe randCulturalTag,
+
             sugAgRng = rng
         }
 
@@ -182,3 +223,10 @@ randomAgent (agentId, coord) beh conv g0 = (adef, g8)
            adConversation = Just conv,
            adInitMessages = NoEvent,
            adBeh = beh }
+
+        randomCulturalTag :: StdGen -> Int -> ([Bool], StdGen)
+        randomCulturalTag g 0 = ([], g)
+        randomCulturalTag g n = (t : ts, g'')
+            where
+                (t, g') = random g :: (Bool, StdGen)
+                (ts, g'') = randomCulturalTag g' (n-1) 

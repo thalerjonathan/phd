@@ -36,13 +36,6 @@ passWealthOn a
         childrenCount = length childrenIds
         childrenSugarShare = sugarLevel / (fromRational $ toRational $ fromIntegral childrenCount)
 
-agentAction :: SugarScapeAgentOut -> SugarScapeAgentOut
-agentAction a
-    | starvedToDeath agentAfterHarvest = agentDies agentAfterHarvest
-    | otherwise = agentAfterHarvest
-    where
-        agentAfterHarvest = agentMetabolism $ agentCollecting a
-
 unoccupyPosition ::  SugarScapeAgentOut -> SugarScapeAgentOut
 unoccupyPosition a = a { aoEnv = env' }
     where
@@ -68,8 +61,8 @@ agentMetabolism a = updateState
                                         0
                                         ((sugAgSugarLevel s) - (sugAgMetabolism s))})
 
-agentCollecting :: SugarScapeAgentOut -> SugarScapeAgentOut
-agentCollecting a
+agentNonCombatMove :: SugarScapeAgentOut -> SugarScapeAgentOut
+agentNonCombatMove a
     | null unoccupiedCells = a
     | otherwise = aHarvested
     where
@@ -83,15 +76,13 @@ agentCollecting a
         aHarvested = agentMoveAndHarvestCell a' cellInfo
 
 agentMoveAndHarvestCell :: SugarScapeAgentOut -> (EnvCoord, SugarScapeEnvCell) -> SugarScapeAgentOut
-agentMoveAndHarvestCell a (cellCoord, cell) = updateState a'' (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
+agentMoveAndHarvestCell a (cellCoord, cell) = a' { aoEnvPos = cellCoord, aoEnv = env }
     where
         sugarLevelCell = sugEnvSugarLevel cell
         sugarLevelAgent = sugAgSugarLevel $ aoState a
         newSugarLevelAgent = (sugarLevelCell + sugarLevelAgent)
 
-        a' = unoccupyPosition a
-        env = aoEnv a'
-        s = aoState a'
+        a' = unoccupyPosition $ updateState a (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
 
         --agentMetabolism = sugAgMetabolism $ aoState a
         --polutionIncByMeta =  agentMetabolism * polutionMetabolismFactor
@@ -101,13 +92,11 @@ agentMoveAndHarvestCell a (cellCoord, cell) = updateState a'' (\s -> s { sugAgSu
 
         cellHarvestedAndOccupied = cell {
                 sugEnvSugarLevel = 0.0,
-                sugEnvOccupier = Just (cellOccupier (aoId a) s),
+                sugEnvOccupier = Just (cellOccupier (aoId a') (aoState a')),
                 sugEnvPolutionLevel = newPolutionLevel
         }
-        env' = changeCellAt env cellCoord cellHarvestedAndOccupied
-
-        a'' = a' { aoEnvPos = cellCoord, aoEnv = env' }
-
+                
+        env = changeCellAt (aoEnv a') cellCoord cellHarvestedAndOccupied
 
 selectBestCells :: EnvCoord -> [(EnvCoord, SugarScapeEnvCell)] -> [(EnvCoord, SugarScapeEnvCell)]
 selectBestCells refCoord cs = bestShortestDistanceCells
@@ -158,10 +147,12 @@ agentLookout a = zip visionCoordsWrapped visionCells
         visionCoordsWrapped = wrapCells (envLimits env) (envWrapping env) visionCoords
         visionCells = cellsAt env visionCoordsWrapped
 
-agentAgeing :: SugarScapeAgentOut -> SugarScapeAgentOut
-agentAgeing a
-    | dieFromAge a = agentDies $ passWealthOn a -- $ birthNewAgent a
-    | otherwise = agentAction a
+agentAgeing :: Double -> SugarScapeAgentOut -> SugarScapeAgentOut
+agentAgeing newAge a
+    | dieFromAge a = agentDies $ passWealthOn a' -- $ birthNewAgent a
+    | otherwise = a'
+    where
+        a' = updateState a (\s -> s { sugAgAge = newAge })
 
 birthNewAgent :: SugarScapeAgentOut -> SugarScapeAgentOut
 birthNewAgent a = createAgent a newAgentDef
@@ -353,18 +344,85 @@ agentCultureContact ain a = broadcastMessage a' (CulturalContact culturalTag) ni
                 (tagPassive', g') = cultureContact tagActive tagPassive g
                 tribe = calculateTribe tagPassive'
 
-agentCombat :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
-agentCombat ain a = a
+agentKilledInCombat :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
+agentKilledInCombat ain a = onMessage killedInCombatMatch ain killedInCombatAction a
+    where
+        killedInCombatAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
+        killedInCombatAction a (_, KilledInCombat) = kill a -- NOTE: don't unoccupie position (as in agentdies) because it is occupied by the killer already
+
+        killedInCombatMatch :: AgentMessage SugarScapeMsg -> Bool
+        killedInCombatMatch (_, KilledInCombat) = True
+        killedInCombatMatch _ = False
+
+agentCombatMove :: SugarScapeAgentOut -> SugarScapeAgentOut
+agentCombatMove a 
+    | null targetCells = a          -- NOTE: no cell to move to
+    | otherwise = moveAndHarvestBestCell bestCell a'
     where
         s = aoState a
+        agentPos = aoEnvPos a
         myTribe = sugAgTribe s
         myWealth = sugAgSugarLevel s 
 
         cellsInSight = agentLookout a
-        cellsOccupied = filter (cellUnoccupied . snd) cellsInSight
-        cellsOtherTribe = filter ((/=myTribe) . sugEnvOccTribe . fromJust . sugEnvOccupier . snd) cellsOccupied
-        cellsOthersLessWealthy = filter ((<myWealth) . sugEnvOccWealth . fromJust . sugEnvOccupier . snd) cellsOtherTribe
-        -- TODO: check if there are other agents of the other tribe which are wealthier in the vision, because this could cause retalation
+        targetCells = filter filterTargetCell cellsInSight
+        -- TODO: filter for retaliation???
+        targeCellsWithPayoff = map cellPayoff targetCells
+
+        cellsSortedByPayoff = sortBy (\c1 c2 -> compare (snd c2) (snd c1)) targeCellsWithPayoff
+        bestCellPayoff = snd $ head cellsSortedByPayoff
+        bestCells = filter ((==bestCellPayoff) . snd) cellsSortedByPayoff
+
+        shortestDistanceBestCells = sortBy (\c1 c2 -> compare (distance agentPos (fst . fst $ c1)) (distance agentPos (fst . fst $ c2))) bestCells
+        shortestDistance = distance agentPos (fst . fst $ head shortestDistanceBestCells)
+        bestShortestDistanceCells = filter ((==shortestDistance) . (distance agentPos) . fst . fst) shortestDistanceBestCells
+
+        (a', bestCell) = agentPickRandom a bestShortestDistanceCells
+
+        moveAndHarvestBestCell :: ((EnvCoord, SugarScapeEnvCell), Double) -> SugarScapeAgentOut -> SugarScapeAgentOut
+        moveAndHarvestBestCell ((cellCoord, cell), payoff) a 
+            | cellOccupied cell = killOccupierOfCell a'' cell
+            | otherwise = a''
+                where
+                    sugarLevelAgent = sugAgSugarLevel $ aoState a
+                    newSugarLevelAgent = (payoff + sugarLevelAgent)
+
+                    a' = unoccupyPosition $ updateState a (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
+
+                    cellHarvestedAndOccupied = cell {
+                            sugEnvSugarLevel = 0.0,
+                            sugEnvOccupier = Just (cellOccupier (aoId a') (aoState a')),
+                            sugEnvPolutionLevel = 0
+                    }
+                            
+                    env = changeCellAt (aoEnv a') cellCoord cellHarvestedAndOccupied
+                    a'' = a' { aoEnvPos = cellCoord, aoEnv = env }
+
+        killOccupierOfCell :: SugarScapeAgentOut -> SugarScapeEnvCell -> SugarScapeAgentOut
+        killOccupierOfCell a cell = sendMessage a (occupierId, KilledInCombat)
+            where
+                occupier = fromJust $ sugEnvOccupier cell
+                occupierId = sugEnvOccId occupier 
+
+        filterTargetCell :: (EnvCoord, SugarScapeEnvCell) -> Bool
+        filterTargetCell (coord, cell) = maybe True occupierCombatable mayOccupier
+            where
+                mayOccupier = sugEnvOccupier cell
+
+        occupierCombatable :: SugarScapeEnvCellOccupier -> Bool
+        occupierCombatable occupier = differentTribe && lessWealthy
+            where
+                otherTribe = sugEnvOccTribe occupier
+                otherWealth = sugEnvOccWealth occupier
+                differentTribe = otherTribe /= myTribe
+                lessWealthy = otherWealth <myWealth 
+
+        cellPayoff :: (EnvCoord, SugarScapeEnvCell) -> ((EnvCoord, SugarScapeEnvCell), Double)
+        cellPayoff (c, cell) = ((c, cell), payoff)
+            where
+                mayOccupier = sugEnvOccupier cell
+                sugarLevel = sugEnvSugarLevel cell
+                payoff = maybe sugarLevel (\occupier -> sugarLevel + combatReward + (sugEnvOccWealth occupier)) mayOccupier
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -413,19 +471,35 @@ neighbourIds a = map (sugEnvOccId . fromJust . sugEnvOccupier . snd) occupiedCel
         neighbourCells = neighbours env pos
         occupiedCells = filter (isJust . sugEnvOccupier . snd) neighbourCells
 
+sugarScapeAgentBehaviourFunc :: Double -> SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut 
+sugarScapeAgentBehaviourFunc age ain a = do     
+                                            let a0 = agentKilledInCombat ain a 
+                                            if isDead a0 then
+                                                a0
+                                                else
+                                                    do
+                                                        let a1 = agentAgeing age a0
+                                                        if isDead a1 then
+                                                            a1
+                                                            else
+                                                                do
+                                                                    let a2 = agentMetabolism a1
+                                                                    if starvedToDeath a2 then 
+                                                                        a2
+                                                                        else 
+                                                                            do
+                                                                                let a3 = agentCombatMove a2
+                                                                                let a4 = inheritSugar ain a3
+                                                                                let a5 = agentCultureContact ain a4
+                                                                                let a6 = agentSex a5
+                                                                                a6 
+
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour
 sugarScapeAgentBehaviour = proc ain ->
     do
         age <- time -< 0
 
         let a = agentOutFromIn ain
-        let a0 = updateState a (\s -> s { sugAgAge = age })
-        let a1 = inheritSugar ain a0
-        let a2 = agentCultureContact ain a1
-        let a3 = agentCombat ain a2
+        returnA -< sugarScapeAgentBehaviourFunc age ain a
 
-        let a4 = agentAgeing a3
-        let a5 = if isDead a4 then a4 else agentSex a4
-
-        returnA -< a5
 ------------------------------------------------------------------------------------------------------------------------

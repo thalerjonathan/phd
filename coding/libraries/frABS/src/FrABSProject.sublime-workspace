@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"sugEnv",
+				"sugEnvSugarLevel ∷ SugarScapeEnvCell → Double\tSugarScape.SugarScapeModel"
+			],
+			[
 				"sugAgSug",
 				"sugAgSugarLevel ∷ SugarScapeAgentState → Double\tSugarScape.SugarScapeModel"
 			],
@@ -28,7 +32,7 @@
 			"file": "SugarScape/SugarScapeModel.hs",
 			"settings":
 			{
-				"buffer_size": 10415,
+				"buffer_size": 10485,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -37,7 +41,7 @@
 			"file": "SugarScape/SugarScapeAgent.hs",
 			"settings":
 			{
-				"buffer_size": 19453,
+				"buffer_size": 24149,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -88,6 +92,8 @@
 	],
 	"file_history":
 	[
+		"/C/Users/Jonathan Thaler/AppData/Roaming/Sublime Text 3/Packages/User/SublimeHaskell.sublime-settings",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeInit.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeEnvironment.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation/Simulation.hs",
@@ -101,10 +107,8 @@
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationRun.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationInit.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABSProject.sublime-project",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Env/Environment.hs",
-		"/C/Users/Jonathan Thaler/AppData/Roaming/Sublime Text 3/Packages/User/SublimeHaskell.sublime-settings",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/    Illegal datatype context (use DatatypeContexts)",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation/Utils.hs",
 		"/C/Users/Jonathan Thaler/Desktop/test"
@@ -126,6 +130,16 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"unoccupyPosition",
+			"agentAgeing",
+			"unoccupyPosition",
+			"agentAgeing",
+			"agentAction",
+			"agentMoveAndHarvestCell",
+			"agentPickRandom",
+			"selectBestCells",
+			"refCoord",
+			"selectBestCells",
 			"randomAgentIO",
 			"cellOccupier",
 			"SugarScapeAgentState",
@@ -183,8 +197,8 @@
 						"selection":
 						[
 							[
-								507,
-								507
+								38,
+								18
 							]
 						],
 						"settings":
@@ -195,7 +209,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
@@ -204,15 +218,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 10415,
+						"buffer_size": 10485,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3088,
-								3103
+								1573,
+								1573
 							]
 						],
 						"settings":
@@ -221,11 +235,11 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": -0.0,
-						"translation.y": 931.0,
+						"translation.x": 0.0,
+						"translation.y": 324.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
@@ -234,15 +248,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 19453,
+						"buffer_size": 24149,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								16676,
-								16676
+								15967,
+								15967
 							]
 						],
 						"settings":
@@ -251,8 +265,8 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": 3.0,
-						"translation.y": 6208.0,
+						"translation.x": 0.0,
+						"translation.y": 8478.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -350,7 +364,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 275.0,
+	"side_bar_width": 250.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

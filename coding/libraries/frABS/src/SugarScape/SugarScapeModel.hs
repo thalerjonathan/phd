@@ -38,6 +38,8 @@ data SugarScapeMsg =
 
     | CulturalContact SugarScapeCulturalTag
 
+    | KilledInCombat
+    
     deriving (Show)
 
 data SugarScapeAgentState = SugarScapeAgentState {
@@ -148,6 +150,9 @@ sexualReproductionInitialEndowmentRange = (50, 100)
 
 culturalTagLength :: Int
 culturalTagLength = 10
+
+combatReward :: Double
+combatReward = 2.0 
 ------------------------------------------------------------------------------------------------------------------------
 
 cellOccupier :: AgentId -> SugarScapeAgentState -> SugarScapeEnvCellOccupier

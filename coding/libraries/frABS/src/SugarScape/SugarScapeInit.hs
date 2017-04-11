@@ -28,7 +28,7 @@ createSugarScape agentCount l = do
                                     randCoords <- drawRandomCoords (0,0) l agentCount
 
                                     as <- mapM randomAgentIO (zip [0..agentCount-1] randCoords)
-                                    let occupations = map (\a -> (adEnvPos a, adId a)) as
+                                    let occupations = map (\a -> (adEnvPos a, (adId a, adState a))) as
 
                                     initRandomSugarCells <- createCells l occupations
 
@@ -63,27 +63,27 @@ createSugarScape agentCount l = do
                                         sugEnvSugarCapacity = sugar }
 
         createCells :: EnvLimits
-                        -> [(EnvCoord, AgentId)]
+                        -> [(EnvCoord, (AgentId, SugarScapeAgentState))]
                         -> IO [(EnvCoord, SugarScapeEnvCell)]
         createCells (maxX, maxY) occupations = do
                                                     let coords = [ (x, y) | x <- [0..maxX-1], y <- [0..maxY-1] ]
                                                     cs <- mapM (randomCell occupations) coords
                                                     return cs
 
-        randomCell :: [(EnvCoord, AgentId)] -> EnvCoord -> IO (EnvCoord, SugarScapeEnvCell)
-        randomCell occupations coord = do
-                                        randCap <- getStdRandom $ randomR sugarCapacityRange
+        randomCell :: [(EnvCoord, (AgentId, SugarScapeAgentState))] -> EnvCoord -> IO (EnvCoord, SugarScapeEnvCell)
+        randomCell os coord = do
+                randCap <- getStdRandom $ randomR sugarCapacityRange
 
-                                        let mayOccupied = Data.List.find ((==coord) . fst) occupations
+                let mayOccupier = Data.List.find ((==coord) . fst) os
 
-                                        let c = SugarScapeEnvCell {
-                                            sugEnvSugarCapacity = randCap,
-                                            sugEnvSugarLevel = randCap,
-                                            sugEnvPolutionLevel = 0.0,
-                                            sugEnvOccupied = maybe Nothing (Just . snd) mayOccupied
-                                        }
+                let c = SugarScapeEnvCell {
+                    sugEnvSugarCapacity = randCap,
+                    sugEnvSugarLevel = randCap,
+                    sugEnvPolutionLevel = 0.0,
+                    sugEnvOccupier = maybe Nothing (\(_, (aid, s)) -> (Just (cellOccupier aid s))) mayOccupier
+                }
 
-                                        return (coord, c)
+                return (coord, c)
 
         -- NOTE: will draw random-coords within (0,0) and limits WITHOUT repeating any coordinate
         drawRandomCoords :: EnvLimits -> EnvLimits -> Int -> IO [EnvCoord]

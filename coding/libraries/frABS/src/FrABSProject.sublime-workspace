@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"sugAgSug",
+				"sugAgSugarLevel ∷ SugarScapeAgentState → Double\tSugarScape.SugarScapeModel"
+			],
+			[
 				"Cultur",
 				"SugarScapeCulturalTag \tSugarScape.SugarScapeModel"
 			]
@@ -24,7 +28,7 @@
 			"file": "SugarScape/SugarScapeModel.hs",
 			"settings":
 			{
-				"buffer_size": 9400,
+				"buffer_size": 10415,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -33,7 +37,7 @@
 			"file": "SugarScape/SugarScapeAgent.hs",
 			"settings":
 			{
-				"buffer_size": 18407,
+				"buffer_size": 19453,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -84,14 +88,16 @@
 	],
 	"file_history":
 	[
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeInit.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeEnvironment.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation/Simulation.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeAgent.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeRenderer.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MessageSampling/MessageSamplingInit.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MessageSampling/MessageSamplingRun.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MessageSampling/MessageSamplingModel.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeAgent.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeRun.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationRun.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationInit.hs",
@@ -112,6 +118,7 @@
 		"height": 90.0,
 		"where_history":
 		[
+			"C:\\Users\\Jonathan Thaler\\phd\\coding\\libraries\\frABS\\src,*.hs"
 		]
 	},
 	"find_state":
@@ -119,6 +126,20 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"randomAgentIO",
+			"cellOccupier",
+			"SugarScapeAgentState",
+			"createCells",
+			"SugarScapeEnvCellOccupier",
+			"cellOccupier",
+			"filter",
+			"filter (",
+			"cellUnoccupied",
+			"agentLookout",
+			"agentCollecting",
+			"cellUnoccupied",
+			"agentLookout",
+			"^(.*)$",
 			"neighbourIds",
 			"replace",
 			"randomage",
@@ -133,12 +154,12 @@
 		"highlight": true,
 		"in_selection": false,
 		"preserve_case": false,
-		"regex": false,
+		"regex": true,
 		"replace_history":
 		[
 		],
 		"reverse": false,
-		"show_context": true,
+		"show_context": false,
 		"use_buffer2": true,
 		"whole_word": false,
 		"wrap": true
@@ -146,7 +167,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 2,
 			"sheets":
 			[
 				{
@@ -162,8 +183,8 @@
 						"selection":
 						[
 							[
-								258,
-								258
+								507,
+								507
 							]
 						],
 						"settings":
@@ -174,7 +195,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
@@ -183,15 +204,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 9400,
+						"buffer_size": 10415,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								7350,
-								7350
+								3088,
+								3103
 							]
 						],
 						"settings":
@@ -201,10 +222,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": -0.0,
-						"translation.y": 2448.0,
+						"translation.y": 931.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
@@ -213,15 +234,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 18407,
+						"buffer_size": 19453,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								18224,
-								18224
+								16676,
+								16676
 							]
 						],
 						"settings":
@@ -230,11 +251,11 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": 0.0,
-						"translation.y": 7092.0,
+						"translation.x": 3.0,
+						"translation.y": 6208.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 0,
 					"type": "text"
 				}
 			]

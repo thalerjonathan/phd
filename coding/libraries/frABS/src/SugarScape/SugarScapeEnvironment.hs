@@ -17,7 +17,7 @@ import Debug.Trace
 -- ENVIRONMENT-BEHAVIOUR
 ------------------------------------------------------------------------------------------------------------------------
 cellOccupied :: SugarScapeEnvCell -> Bool
-cellOccupied cell = isJust $ sugEnvOccupied cell
+cellOccupied cell = isJust $ sugEnvOccupier cell
 
 cellUnoccupied :: SugarScapeEnvCell -> Bool
 cellUnoccupied = not . cellOccupied

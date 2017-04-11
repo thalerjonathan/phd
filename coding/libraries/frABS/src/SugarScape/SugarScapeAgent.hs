@@ -50,7 +50,7 @@ unoccupyPosition a = a { aoEnv = env' }
 
         currentAgentPosition = aoEnvPos a
         currentAgentCell = cellAt env currentAgentPosition
-        currentAgentCellUnoccupied = currentAgentCell { sugEnvOccupied = Nothing }
+        currentAgentCellUnoccupied = currentAgentCell { sugEnvOccupier = Nothing }
 
         env' = changeCellAt env currentAgentPosition currentAgentCellUnoccupied
 
@@ -91,6 +91,7 @@ agentMoveAndHarvestCell a (cellCoord, cell) = updateState a'' (\s -> s { sugAgSu
 
         a' = unoccupyPosition a
         env = aoEnv a'
+        s = aoState a'
 
         --agentMetabolism = sugAgMetabolism $ aoState a
         --polutionIncByMeta =  agentMetabolism * polutionMetabolismFactor
@@ -100,9 +101,9 @@ agentMoveAndHarvestCell a (cellCoord, cell) = updateState a'' (\s -> s { sugAgSu
 
         cellHarvestedAndOccupied = cell {
                 sugEnvSugarLevel = 0.0,
-                sugEnvOccupied = Just (aoId a),
+                sugEnvOccupier = Just (cellOccupier (aoId a) s),
                 sugEnvPolutionLevel = newPolutionLevel
-                }
+        }
         env' = changeCellAt env cellCoord cellHarvestedAndOccupied
 
         a'' = a' { aoEnvPos = cellCoord, aoEnv = env' }
@@ -159,7 +160,7 @@ agentLookout a = zip visionCoordsWrapped visionCells
 
 agentAgeing :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentAgeing a
-    | dieFromAge a =  agentDies $ passWealthOn a -- $ birthNewAgent a
+    | dieFromAge a = agentDies $ passWealthOn a -- $ birthNewAgent a
     | otherwise = agentAction a
 
 birthNewAgent :: SugarScapeAgentOut -> SugarScapeAgentOut
@@ -211,7 +212,7 @@ agentSex a
         nncsDupl = foldr (\(coord, _) acc -> (neighbours env coord) ++ acc) neighbourCells neighbourCells
         -- NOTE: the nncs are not unique, remove duplicates
         nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
-        nncsUnoccupied = filter (isNothing . sugEnvOccupied . snd) nncsUnique
+        nncsUnoccupied = filter (isNothing . sugEnvOccupier . snd) nncsUnique
 
         agentMatingConversation :: [AgentId]
                                         -> [(EnvCoord, SugarScapeEnvCell)]
@@ -255,7 +256,7 @@ agentSex a
                                                 otherTup
 
                         env = aoEnv a
-                        cell' = cell { sugEnvOccupied = Just newBornId }
+                        cell' = cell { sugEnvOccupier = Just (cellOccupier newBornId (adState newBornDef))}
                         env' = changeCellAt env coord cell'
 
                         a0 = a { aoEnv = env' }
@@ -291,7 +292,10 @@ createNewBorn idCoord
         newBornState = adState newBornDef
         newBornState' = newBornState { sugAgMetabolism = newBornMetabolism,
                                        sugAgVision = newBornVision,
-                                       sugAgSugarInit = newBornSugarEndow }
+                                       sugAgSugarInit = newBornSugarEndow,
+                                       sugAgCulturalTag = newBornCulturalTag,
+                                       sugAgTribe = calculateTribe newBornCulturalTag }
+
         newBornDef' = newBornDef { adState = newBornState' }
 
         crossover :: (a, a) -> StdGen -> (a, StdGen)
@@ -348,6 +352,19 @@ agentCultureContact ain a = broadcastMessage a' (CulturalContact culturalTag) ni
                 g = sugAgRng s
                 (tagPassive', g') = cultureContact tagActive tagPassive g
                 tribe = calculateTribe tagPassive'
+
+agentCombat :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
+agentCombat ain a = a
+    where
+        s = aoState a
+        myTribe = sugAgTribe s
+        myWealth = sugAgSugarLevel s 
+
+        cellsInSight = agentLookout a
+        cellsOccupied = filter (cellUnoccupied . snd) cellsInSight
+        cellsOtherTribe = filter ((/=myTribe) . sugEnvOccTribe . fromJust . sugEnvOccupier . snd) cellsOccupied
+        cellsOthersLessWealthy = filter ((<myWealth) . sugEnvOccWealth . fromJust . sugEnvOccupier . snd) cellsOtherTribe
+        -- TODO: check if there are other agents of the other tribe which are wealthier in the vision, because this could cause retalation
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -389,12 +406,12 @@ handleMatingConversation otherGender ain
         ain' = ain { aiState = s'}
 
 neighbourIds :: SugarScapeAgentOut -> [AgentId]
-neighbourIds a = map (fromJust . sugEnvOccupied . snd) occupiedCells
+neighbourIds a = map (sugEnvOccId . fromJust . sugEnvOccupier . snd) occupiedCells
     where
         env = aoEnv a
         pos = aoEnvPos a
         neighbourCells = neighbours env pos
-        occupiedCells = filter (isJust . sugEnvOccupied . snd) neighbourCells
+        occupiedCells = filter (isJust . sugEnvOccupier . snd) neighbourCells
 
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour
 sugarScapeAgentBehaviour = proc ain ->
@@ -405,9 +422,10 @@ sugarScapeAgentBehaviour = proc ain ->
         let a0 = updateState a (\s -> s { sugAgAge = age })
         let a1 = inheritSugar ain a0
         let a2 = agentCultureContact ain a1
+        let a3 = agentCombat ain a2
 
-        let a3 = agentAgeing a2
-        let a4 = if isDead a3 then a3 else agentSex a3
+        let a4 = agentAgeing a3
+        let a5 = if isDead a4 then a4 else agentSex a4
 
-        returnA -< a4
+        returnA -< a5
 ------------------------------------------------------------------------------------------------------------------------

@@ -62,11 +62,17 @@ data SugarScapeAgentState = SugarScapeAgentState {
     sugAgRng :: StdGen
 } deriving (Show)
 
+data SugarScapeEnvCellOccupier = SugarScapeEnvCellOccupier {
+    sugEnvOccId :: AgentId,
+    sugEnvOccTribe :: SugarScapeTribe,
+    sugEnvOccWealth :: Double
+} deriving (Show)
+
 data SugarScapeEnvCell = SugarScapeEnvCell {
     sugEnvSugarCapacity :: Double,
     sugEnvSugarLevel :: Double,
     sugEnvPolutionLevel :: Double,
-    sugEnvOccupied :: Maybe AgentId
+    sugEnvOccupier :: Maybe SugarScapeEnvCellOccupier
 } deriving (Show)
 
 type SugarScapeEnvironment = Environment SugarScapeEnvCell
@@ -143,6 +149,13 @@ sexualReproductionInitialEndowmentRange = (50, 100)
 culturalTagLength :: Int
 culturalTagLength = 10
 ------------------------------------------------------------------------------------------------------------------------
+
+cellOccupier :: AgentId -> SugarScapeAgentState -> SugarScapeEnvCellOccupier
+cellOccupier aid s = SugarScapeEnvCellOccupier {
+                        sugEnvOccId = aid,
+                        sugEnvOccTribe = sugAgTribe s,
+                        sugEnvOccWealth = sugAgSugarLevel s
+                    }
 
 calculateTribe :: SugarScapeCulturalTag -> SugarScapeTribe
 calculateTribe tag

@@ -152,7 +152,7 @@ culturalTagLength :: Int
 culturalTagLength = 10
 
 combatReward :: Double
-combatReward = 2.0 
+combatReward = 2.0 -- replace with huge number e.g. 10^7 for harvesting all the other agents sugar 
 ------------------------------------------------------------------------------------------------------------------------
 
 cellOccupier :: AgentId -> SugarScapeAgentState -> SugarScapeEnvCellOccupier

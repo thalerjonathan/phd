@@ -32,7 +32,7 @@
 			"file": "SugarScape/SugarScapeModel.hs",
 			"settings":
 			{
-				"buffer_size": 10485,
+				"buffer_size": 10565,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -41,7 +41,7 @@
 			"file": "SugarScape/SugarScapeAgent.hs",
 			"settings":
 			{
-				"buffer_size": 24149,
+				"buffer_size": 26037,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -87,11 +87,13 @@
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Agent",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Env",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape"
 	],
 	"file_history":
 	[
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Env/Environment.hs",
 		"/C/Users/Jonathan Thaler/AppData/Roaming/Sublime Text 3/Packages/User/SublimeHaskell.sublime-settings",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeInit.hs",
@@ -108,7 +110,6 @@
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationInit.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABSProject.sublime-project",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Env/Environment.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/    Illegal datatype context (use DatatypeContexts)",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation/Utils.hs",
 		"/C/Users/Jonathan Thaler/Desktop/test"
@@ -130,6 +131,8 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"agentLookout",
+			"combatReward",
 			"unoccupyPosition",
 			"agentAgeing",
 			"unoccupyPosition",
@@ -197,8 +200,8 @@
 						"selection":
 						[
 							[
-								38,
-								18
+								17,
+								17
 							]
 						],
 						"settings":
@@ -209,7 +212,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
@@ -218,15 +221,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 10485,
+						"buffer_size": 10565,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1573,
-								1573
+								6239,
+								6239
 							]
 						],
 						"settings":
@@ -236,10 +239,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 324.0,
+						"translation.y": 2321.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
@@ -248,15 +251,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 24149,
+						"buffer_size": 26037,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								15967,
-								15967
+								19316,
+								19316
 							]
 						],
 						"settings":
@@ -266,7 +269,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 8478.0,
+						"translation.y": 7342.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,

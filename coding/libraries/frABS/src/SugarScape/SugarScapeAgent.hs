@@ -63,7 +63,7 @@ agentMetabolism a = updateState
 
 agentNonCombatMove :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentNonCombatMove a
-    | null unoccupiedCells = a
+    | null unoccupiedCells = agentStayAndHarvest a
     | otherwise = aHarvested
     where
         cellsInSight = agentLookout a
@@ -74,6 +74,25 @@ agentNonCombatMove a
         (a', cellInfo) = agentPickRandom a bestCells
 
         aHarvested = agentMoveAndHarvestCell a' cellInfo
+
+agentStayAndHarvest :: SugarScapeAgentOut -> SugarScapeAgentOut
+agentStayAndHarvest a = a' { aoEnv = env' }
+    where
+        env = aoEnv a
+        agentPos = aoEnvPos a
+        agentCell = cellAt env agentPos
+
+        sugarLevelCell = sugEnvSugarLevel agentCell
+        sugarLevelAgent = sugAgSugarLevel $ aoState a
+        newSugarLevelAgent = (sugarLevelCell + sugarLevelAgent)
+
+        a' = updateState a (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
+
+        cellHarvested = agentCell {
+            sugEnvSugarLevel = 0.0
+        }
+
+        env' = changeCellAt (aoEnv a') agentPos cellHarvested
 
 agentMoveAndHarvestCell :: SugarScapeAgentOut -> (EnvCoord, SugarScapeEnvCell) -> SugarScapeAgentOut
 agentMoveAndHarvestCell a (cellCoord, cell) = a' { aoEnvPos = cellCoord, aoEnv = env }
@@ -356,8 +375,8 @@ agentKilledInCombat ain a = onMessage killedInCombatMatch ain killedInCombatActi
 
 agentCombatMove :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentCombatMove a 
-    | null targetCells = a          -- NOTE: no cell to move to
-    | otherwise = moveAndHarvestBestCell bestCell a'
+    | null targetCells = agentStayAndHarvest a
+    | otherwise = if vulnerableToRetaliation payoff a' then agentStayAndHarvest a' else moveAndHarvestBestCell bestCell a'
     where
         s = aoState a
         agentPos = aoEnvPos a
@@ -365,8 +384,7 @@ agentCombatMove a
         myWealth = sugAgSugarLevel s 
 
         cellsInSight = agentLookout a
-        targetCells = filter filterTargetCell cellsInSight
-        -- TODO: filter for retaliation???
+        targetCells = filter (filterTargetCell occupierCombatable) cellsInSight
         targeCellsWithPayoff = map cellPayoff targetCells
 
         cellsSortedByPayoff = sortBy (\c1 c2 -> compare (snd c2) (snd c1)) targeCellsWithPayoff
@@ -377,7 +395,18 @@ agentCombatMove a
         shortestDistance = distance agentPos (fst . fst $ head shortestDistanceBestCells)
         bestShortestDistanceCells = filter ((==shortestDistance) . (distance agentPos) . fst . fst) shortestDistanceBestCells
 
-        (a', bestCell) = agentPickRandom a bestShortestDistanceCells
+        (a', bestCell@((_,_), payoff)) = agentPickRandom a bestShortestDistanceCells
+        
+        -- NOTE: calculate if retalion is possible: is there an agent of the other tribe in my vision which is wealthier AFTER i have preyed on the current one?
+        -- TODO: this is not very well specified in the SugarScape book. we don't know the vision of the other agent, and its information we should not have access to
+        vulnerableToRetaliation :: Double -> SugarScapeAgentOut -> Bool
+        vulnerableToRetaliation payoff a = (not . null) retaliatingCells
+            where
+                sugarLevelAgent = sugAgSugarLevel $ aoState a
+                futureSugarLevel = (payoff + sugarLevelAgent)
+
+                cellsInSight = agentLookout a
+                retaliatingCells = filter (filterTargetCell (occupierRetaliator futureSugarLevel)) cellsInSight
 
         moveAndHarvestBestCell :: ((EnvCoord, SugarScapeEnvCell), Double) -> SugarScapeAgentOut -> SugarScapeAgentOut
         moveAndHarvestBestCell ((cellCoord, cell), payoff) a 
@@ -404,8 +433,8 @@ agentCombatMove a
                 occupier = fromJust $ sugEnvOccupier cell
                 occupierId = sugEnvOccId occupier 
 
-        filterTargetCell :: (EnvCoord, SugarScapeEnvCell) -> Bool
-        filterTargetCell (coord, cell) = maybe True occupierCombatable mayOccupier
+        filterTargetCell :: (SugarScapeEnvCellOccupier -> Bool) -> (EnvCoord, SugarScapeEnvCell) -> Bool
+        filterTargetCell f (coord, cell) = maybe True f mayOccupier
             where
                 mayOccupier = sugEnvOccupier cell
 
@@ -417,12 +446,20 @@ agentCombatMove a
                 differentTribe = otherTribe /= myTribe
                 lessWealthy = otherWealth <myWealth 
 
+        occupierRetaliator :: Double -> SugarScapeEnvCellOccupier -> Bool
+        occupierRetaliator referenceWealth occupier = differentTribe && moreWealthy
+            where
+                otherTribe = sugEnvOccTribe occupier
+                otherWealth = sugEnvOccWealth occupier
+                differentTribe = otherTribe /= myTribe
+                moreWealthy = otherWealth > referenceWealth 
+
         cellPayoff :: (EnvCoord, SugarScapeEnvCell) -> ((EnvCoord, SugarScapeEnvCell), Double)
         cellPayoff (c, cell) = ((c, cell), payoff)
             where
                 mayOccupier = sugEnvOccupier cell
                 sugarLevel = sugEnvSugarLevel cell
-                payoff = maybe sugarLevel (\occupier -> sugarLevel + combatReward + (sugEnvOccWealth occupier)) mayOccupier
+                payoff = maybe sugarLevel (\occupier -> sugarLevel + (min combatReward (sugEnvOccWealth occupier))) mayOccupier
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -488,7 +525,7 @@ sugarScapeAgentBehaviourFunc age ain a = do
                                                                         a2
                                                                         else 
                                                                             do
-                                                                                let a3 = agentCombatMove a2
+                                                                                let a3 = agentNonCombatMove a2
                                                                                 let a4 = inheritSugar ain a3
                                                                                 let a5 = agentCultureContact ain a4
                                                                                 let a6 = agentSex a5

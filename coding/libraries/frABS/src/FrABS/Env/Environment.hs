@@ -4,6 +4,7 @@ module FrABS.Env.Environment where
 import FRP.Yampa
 
 import Data.Array.IArray
+import Control.Monad.Random
 
 {-
 an Environment is a container which contains Agents and allows them to move arround
@@ -109,23 +110,33 @@ cellAt env coord = arr ! coord
     where
         arr = envCells env
 
-randomCell :: (RandomGen g) => g -> Environment c -> (c, EnvCoord, g)
-randomCell g env = (randCell, randCoord, g'')
-    where
-        (maxX, maxY) = envLimits env
-        (randX, g') = randomR (0, maxX - 1) g
-        (randY, g'') = randomR (0, maxY - 1) g'
-        randCoord = (randX, randY)
-        randCell = cellAt env randCoord
+randomCell :: Environment c -> Rand StdGen (c, EnvCoord)
+randomCell env = 
+    do
+        let (maxX, maxY) = envLimits env
 
-randomCellWithRadius :: (RandomGen g) => g -> Environment c -> EnvCoord -> Int -> (c, EnvCoord, g)
-randomCellWithRadius g env (x, y) r = (randCell, randCoord', g'')
-    where
-        (randX, g') = randomR (-r, r) g
-        (randY, g'') = randomR (-r, r) g'
-        randCoord = (x + randX, y + randY)
-        randCoord' = wrap (envLimits env) (envWrapping env) randCoord
-        randCell = cellAt env randCoord'
+        randX <- getRandomR (0, maxX - 1) 
+        randY <- getRandomR (0, maxY - 1)
+
+        let randCoord = (randX, randY)
+        let randCell = cellAt env randCoord
+
+        return (randCell, randCoord)
+
+randomCellWithRadius :: Environment c 
+                        -> EnvCoord 
+                        -> Int 
+                        -> Rand StdGen (c, EnvCoord)
+randomCellWithRadius env (x, y) r = 
+    do
+        randX <- getRandomR (-r, r)
+        randY <- getRandomR (-r, r)
+        
+        let randCoord = (x + randX, y + randY)
+        let randCoordWrapped = wrap (envLimits env) (envWrapping env) randCoord
+        let randCell = cellAt env randCoordWrapped
+
+        return (randCell, randCoordWrapped)
 
 neighbours :: Environment c -> EnvCoord -> [(EnvCoord, c)]
 neighbours env coord = zip wrappedNs cells

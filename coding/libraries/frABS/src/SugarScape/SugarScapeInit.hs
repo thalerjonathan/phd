@@ -12,6 +12,7 @@ import FRP.Yampa
 import Data.List
 
 import System.Random
+import Control.Monad.Random
 
 allZeroSugar :: (EnvCoord, SugarScapeEnvCell) -> Double
 allZeroSugar _ = 0.0
@@ -110,10 +111,10 @@ createSugarScape agentCount l = do
         randomAgentIO :: (AgentId, EnvCoord) -> IO SugarScapeAgentDef
         randomAgentIO aidCoord = do
                                     std <- getStdGen
-                                    let (adef, std') = randomAgent
-                                                            aidCoord
-                                                            sugarScapeAgentBehaviour
-                                                            sugarScapeAgentConversation
-                                                            std
+                                    let (adef, std') = runRand (randomAgent
+                                                                    aidCoord
+                                                                    sugarScapeAgentBehaviour
+                                                                    sugarScapeAgentConversation)
+                                                                    std
                                     setStdGen std'
                                     return adef

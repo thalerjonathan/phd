@@ -20,7 +20,6 @@ type AgentConversationSender s m ec = (AgentOut s m ec
                                         -> Maybe (AgentMessage m)   -- NOTE: this will be Nothing in case the conversation with the target was not established e.g. id not found, target got no receiving handler
                                         -> AgentOut s m ec)
 
-
 data AgentDef s m ec = AgentDef {
     adId :: AgentId,
     adState :: s,
@@ -55,6 +54,9 @@ data AgentOut s m ec = AgentOut {
     aoRecOthersAllowed :: Bool
 }
 
+------------------------------------------------------------------------------------------------------------------------
+-- Agent Functions
+------------------------------------------------------------------------------------------------------------------------
 recInitAllowed :: AgentIn s m ec -> Bool
 recInitAllowed = aiRecInitAllowed
 

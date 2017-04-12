@@ -14,6 +14,8 @@ import FRP.Yampa
 import Data.Maybe
 import Data.List
 import System.Random
+import Control.Monad.Random
+import Control.Monad
 
 -- debugging imports finally, to be easily removed in final version
 import Debug.Trace
@@ -185,27 +187,19 @@ agentAgeing newAge a
         a' = updateState a (\s -> s { sugAgAge = newAge })
 
 birthNewAgent :: SugarScapeAgentOut -> SugarScapeAgentOut
-birthNewAgent a = createAgent a newAgentDef
+birthNewAgent a = createAgent a1 newAgentDef
     where
         newAgentId = aoId a                                 -- NOTE: we keep the old id
-        (newAgentCoord, a') = findUnoccpiedRandomPosition a
-        oldAgentRng = sugAgRng $ aoState a'
-        (newAgentDef, _) = randomAgent
-                            (newAgentId, newAgentCoord)
-                            sugarScapeAgentBehaviour
-                            sugarScapeAgentConversation
-                            oldAgentRng
+        (newAgentCoord, a0) = findUnoccpiedRandomPosition a
+        (a1, newAgentDef) = runRandomSugarScapeAgent a0
+            (randomAgent (newAgentId, newAgentCoord) sugarScapeAgentBehaviour sugarScapeAgentConversation)
 
         findUnoccpiedRandomPosition :: SugarScapeAgentOut -> (EnvCoord, SugarScapeAgentOut)
         findUnoccpiedRandomPosition a
             | cellOccupied c = findUnoccpiedRandomPosition a'
             | otherwise = (coord, a')
             where
-                g = sugAgRng $ aoState a
-                env = aoEnv a
-                (c, coord, g') = randomCell g env
-                a' = updateState a (\s -> s { sugAgRng = g' })
-
+                (a', (c, coord)) = runRandomSugarScapeAgent a (randomCell (aoEnv a))
 dieFromAge :: SugarScapeAgentOut -> Bool
 dieFromAge a = age > maxAge
     where
@@ -254,12 +248,10 @@ agentSex a
                 agentMatingConversationsReply a Nothing = agentMatingConversation otherAis allCoords a  -- NOTE: the target was not found or does not have a handler, continue with the next
                 agentMatingConversationsReply a (Just (_, MatingReplyNo)) = agentMatingConversation otherAis allCoords a
                 agentMatingConversationsReply a (Just (senderId, (MatingReplyYes otherTup))) = 
-                    conversation a2 (receiverId, (MatingChild newBornId)) (\a' _ -> agentMatingConversation otherAis cs a')
+                    conversation a3 (receiverId, (MatingChild newBornId)) (\a' _ -> agentMatingConversation otherAis cs a')
                     
                     where
                         s = aoState a
-                        g = sugAgRng s
-
                         initialSugarEndow = sugAgSugarInit s
                         sugarLevel = sugAgSugarLevel s
 
@@ -270,59 +262,49 @@ agentSex a
 
                         newBornId = senderId * aoId a   -- TODO: this is a real problem: which ids do we give our newborns?
 
-                        (newBornDef, g') = createNewBorn
-                                                (newBornId, coord)
-                                                g
-                                                (mySugarContribution, myMetab, myVision, myCulturalTag)
-                                                otherTup
+                        (a0, newBornDef) = runRandomSugarScapeAgent a
+                            (createNewBorn 
+                                (newBornId, coord)
+                                (mySugarContribution, myMetab, myVision, myCulturalTag)
+                                otherTup)
 
-                        env = aoEnv a
+                        env = aoEnv a0
                         cell' = cell { sugEnvOccupier = Just (cellOccupier newBornId (adState newBornDef))}
                         env' = changeCellAt env coord cell'
 
-                        a0 = a { aoEnv = env' }
-                        a1 = updateState a0 (\s -> s { sugAgSugarLevel = sugarLevel - mySugarContribution,
-                                                        sugAgRng = g',
+                        a1 = a0 { aoEnv = env' }
+                        a2 = updateState a1 (\s -> s { sugAgSugarLevel = sugarLevel - mySugarContribution,
                                                         sugAgChildren = newBornId : (sugAgChildren s)})
-                        a2 = createAgent a1 newBornDef
+                        a3 = createAgent a2 newBornDef
+
                 agentMatingConversationsReply a (Just (_, _)) = agentMatingConversation otherAis allCoords a  -- NOTE: unexpected reply, continue with the next
 
 createNewBorn :: (AgentId, EnvCoord)
-                    -> StdGen
                     -> (Double, Double, Int, SugarScapeCulturalTag)
                     -> (Double, Double, Int, SugarScapeCulturalTag)
-                    -> (SugarScapeAgentDef, StdGen)
+                    -> Rand StdGen SugarScapeAgentDef
 createNewBorn idCoord
-                g0
                 (sugEndowFather, metabFather, visionFather, cultureFather)
-                (sugEndowMother, metabMother, visionMother, cultureMother) = (newBornDef', g4)
-    where
-        newBornSugarEndow = sugEndowFather + sugEndowMother
-        (newBornMetabolism, g1) = crossover (metabFather, metabMother) g0
-        (newBornVision, g2) = crossover (visionFather, visionMother) g1
-        (newBornCulturalTag, g3) = culturalCrossover cultureFather cultureMother g2
+                (sugEndowMother, metabMother, visionMother, cultureMother) =
+    do
+        newBornMetabolism <- crossover (metabFather, metabMother)
+        newBornVision <- crossover (visionFather, visionMother)
+        newBornCulturalTag <- culturalCrossover cultureFather cultureMother
 
-        (newBornDef, g4) = randomAgent
+        let newBornSugarEndow = sugEndowFather + sugEndowMother
+
+        newBornDef <- randomAgent
                             idCoord
                             sugarScapeAgentBehaviour
                             sugarScapeAgentConversation
-                            g3
 
-        newBornState = adState newBornDef
-        newBornState' = newBornState { sugAgMetabolism = newBornMetabolism,
-                                       sugAgVision = newBornVision,
-                                       sugAgSugarInit = newBornSugarEndow,
-                                       sugAgCulturalTag = newBornCulturalTag,
-                                       sugAgTribe = calculateTribe newBornCulturalTag }
+        let newBornState' = (adState newBornDef) { sugAgMetabolism = newBornMetabolism,
+                                                   sugAgVision = newBornVision,
+                                                   sugAgSugarInit = newBornSugarEndow,
+                                                   sugAgCulturalTag = newBornCulturalTag,
+                                                   sugAgTribe = calculateTribe newBornCulturalTag }
 
-        newBornDef' = newBornDef { adState = newBornState' }
-
-        crossover :: (a, a) -> StdGen -> (a, StdGen)
-        crossover (x, y) rng
-            | takeX = (x, rng')
-            | otherwise = (y, rng')
-            where
-                (takeX, rng') = random rng :: (Bool, StdGen)
+        return newBornDef { adState = newBornState' }
 
 satisfiesWealthForChildBearing :: SugarScapeAgentState -> Bool
 satisfiesWealthForChildBearing s = currSugar >= initSugar
@@ -362,15 +344,13 @@ agentCultureContact ain a = broadcastMessage a' (CulturalContact culturalTag) ni
 
         cultureContactAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
         cultureContactAction a (_, (CulturalContact tagActive)) = 
-                updateState a (\s -> s { sugAgRng = g',
-                                         sugAgCulturalTag = tagPassive',
-                                         sugAgTribe = tribe})
+                updateState a' (\s -> s { sugAgCulturalTag = agentTag',
+                                            sugAgTribe = tribe})
             where
                 s = aoState a
-                tagPassive = sugAgCulturalTag s
-                g = sugAgRng s
-                (tagPassive', g') = cultureContact tagActive tagPassive g
-                tribe = calculateTribe tagPassive'
+                agentTag = sugAgCulturalTag s
+                (a', agentTag') = runRandomSugarScapeAgent a (cultureContact tagActive agentTag)
+                tribe = calculateTribe agentTag'
 
 agentKilledInCombat :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
 agentKilledInCombat ain a = onMessage killedInCombatMatch ain killedInCombatAction a

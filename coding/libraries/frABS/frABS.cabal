@@ -6,7 +6,7 @@ cabal-version:     >= 1.2
 executable frABS
   main-is:         Main.hs
   hs-source-dirs:  src
-  build-depends:   base, Yampa, gloss, QuickCheck, random, containers, array
+  build-depends:   base, Yampa, gloss, QuickCheck, random, containers, array, MonadRandom
   ghc-options:      -O2
                     -Wall
                     -- -eventlog

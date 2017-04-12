@@ -27,27 +27,16 @@
 			"file": "Main.hs",
 			"settings":
 			{
-				"buffer_size": 505,
-				"encoding": "UTF-8",
+				"buffer_size": 1319,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "SugarScape/SugarScapeModel.hs",
+			"file": "Segregation/SegregationModel.hs",
 			"settings":
 			{
-				"buffer_size": 10616,
-				"encoding": "UTF-8",
+				"buffer_size": 15306,
 				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "SugarScape/SugarScapeAgent.hs",
-			"settings":
-			{
-				"buffer_size": 26261,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
 			}
 		}
 	],
@@ -90,23 +79,25 @@
 	[
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Agent",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Env",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape"
 	],
 	"file_history":
 	[
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeEnvironment.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeAgent.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Env/Environment.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeModel.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeInit.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Main.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/    * Variable not in scope",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/    Variable not in scope",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeRun.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Env/Environment.hs",
-		"/C/Users/Jonathan Thaler/AppData/Roaming/Sublime Text 3/Packages/User/SublimeHaskell.sublime-settings",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/frABS.cabal",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeInit.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeEnvironment.hs",
+		"/C/Users/Jonathan Thaler/AppData/Roaming/Sublime Text 3/Packages/User/SublimeHaskell.sublime-settings",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation/Simulation.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeAgent.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeRenderer.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MessageSampling/MessageSamplingInit.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MessageSampling/MessageSamplingRun.hs",
@@ -136,6 +127,8 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"rand",
+			"random",
 			"agentNonCombatMove",
 			"inheritSugar",
 			"agentCultureContact",
@@ -201,7 +194,7 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -210,43 +203,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 505,
+						"buffer_size": 1319,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								223,
-								223
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "SugarScape/SugarScapeModel.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 10616,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								5387,
-								5387
+								257,
+								257
 							]
 						],
 						"settings":
@@ -256,27 +221,27 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2106.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "SugarScape/SugarScapeAgent.hs",
+					"buffer": 1,
+					"file": "Segregation/SegregationModel.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 26261,
+						"buffer_size": 15306,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2195,
-								2195
+								14620,
+								14620
 							]
 						],
 						"settings":
@@ -286,7 +251,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 5364.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,

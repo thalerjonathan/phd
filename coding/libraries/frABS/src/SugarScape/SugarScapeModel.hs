@@ -1,4 +1,3 @@
-{-# LANGUAGE Arrows #-}
 module SugarScape.SugarScapeModel where
 
 -- Project-internal import first
@@ -9,9 +8,9 @@ import FrABS.Env.Environment
 import FRP.Yampa
 
 -- System imports then
-
--- debugging imports finally, to be easily removed in final version
 import System.Random
+import Control.Monad.Random
+import Control.Monad
 
 -- TODO: export dynamics in a text file with matlab format of the data: wealth distribution, number of agents, mean vision/metabolism, mean age,
 
@@ -174,57 +173,73 @@ calculateTribe tag
         trueCount = length $ filter (==True) tag 
        
 -- NOTE: the tags must have same length, this could be enforced statically through types if we had a dependent type-system
-cultureContact :: SugarScapeCulturalTag -> SugarScapeCulturalTag -> StdGen -> (SugarScapeCulturalTag, StdGen)
-cultureContact tagActive tagPassive g = (tagPassive', g')
+cultureContact :: SugarScapeCulturalTag 
+                    -> SugarScapeCulturalTag 
+                    -> Rand StdGen SugarScapeCulturalTag
+cultureContact tagActive tagPassive = 
+    do
+        randIdx <- getRandomR (0, tagLength-1)
+        return $ flipCulturalTag tagActive tagPassive randIdx
     where
         tagLength = length tagActive
-        (randIdx, g') = randomR (0, tagLength-1) g
-        tagPassive' = flipCulturalTag tagActive tagPassive randIdx
-
+        
 -- NOTE: the tags must have same length, this could be enforced statically through types if we had a dependent type-system
-flipCulturalTag :: SugarScapeCulturalTag -> SugarScapeCulturalTag -> Int -> SugarScapeCulturalTag
+flipCulturalTag :: SugarScapeCulturalTag 
+                    -> SugarScapeCulturalTag 
+                    -> Int 
+                    -> SugarScapeCulturalTag
 flipCulturalTag tagActive tagPassive idx = map (\(i, a, p) -> if i == idx then a else p) (zip3 [0..len-1] tagActive tagPassive) 
     where
         len = length tagActive
 
-culturalCrossover :: SugarScapeCulturalTag -> SugarScapeCulturalTag -> StdGen -> (SugarScapeCulturalTag, StdGen)
-culturalCrossover ts1 ts2 g = foldr culturalCrossoverAux ([],g) (zip ts1 ts2)
+culturalCrossover :: SugarScapeCulturalTag 
+                    -> SugarScapeCulturalTag 
+                    -> Rand StdGen SugarScapeCulturalTag
+culturalCrossover ts1 ts2 = 
+    do
+        randTags <- replicateM (length ts1) (getRandomR (True, False))
+        return $ map (\(t1, t2, randT) -> if t1 == t2 then t1 else randT) (zip3 ts1 ts2 randTags)
+
+crossover :: (a, a) -> Rand StdGen a
+crossover (x, y) =
+    do
+        takeX <- getRandomR (True, False)
+        if takeX then
+            return x
+            else
+                return y
+
+runRandomSugarScapeAgent :: SugarScapeAgentOut -> Rand StdGen a -> (SugarScapeAgentOut, a)
+runRandomSugarScapeAgent a f = (a', ret)
     where
-        culturalCrossoverAux :: (Bool, Bool) -> (SugarScapeCulturalTag, StdGen) -> (SugarScapeCulturalTag, StdGen) 
-        culturalCrossoverAux (t1, t2) (tagAcc, g)
-            | t1 == t2 = (t1 : tagAcc, g')
-            | otherwise = (randTag : tagAcc, g')
-            where
-                (randFlag, g') = random g :: (Bool, StdGen)
-                randTag = if randFlag then t1 else t2
+        g = sugAgRng $ aoState a
+        (ret, g') = runRand f g
+        a' = updateState a (\s -> s {sugAgRng = g'})
 
 randomAgent :: (AgentId, EnvCoord)
                 -> SugarScapeAgentBehaviour
                 -> SugarScapeAgentConversation
-                -> StdGen
-                -> (SugarScapeAgentDef, StdGen)
-randomAgent (agentId, coord) beh conv g0 = (adef, g9)
-    where
-        -- TODO: cleanup using Monad
-        -- https://hackage.haskell.org/package/MonadRandom-0.1.3/docs/Control-Monad-Random.html
+                -> Rand StdGen SugarScapeAgentDef
+randomAgent (agentId, coord) beh conv = 
+    do
+        randMeta <- getRandomR metabolismRange
+        randVision <- getRandomR  visionRange
+        randSugarEndowment <- getRandomR  sugarEndowmentRange
+        randSugarEndowment <- getRandomR  sexualReproductionInitialEndowmentRange
+        randMaxAge <- getRandomR  ageRange
+        randMale <- getRandomR (True, False)
+        randMinFert <- getRandomR childBearingMinAgeRange
+        randCulturalTagInf <- getRandoms  
+        let randCulturalTag = take culturalTagLength randCulturalTagInf
 
-        (randMeta, g1) = randomR metabolismRange g0
-        (randVision, g2) = randomR visionRange g1
-        -- (randSugarEndowment, g3) = randomR sugarEndowmentRange g2
-        (randSugarEndowment, g3) = randomR sexualReproductionInitialEndowmentRange g2
-        (randMaxAge, g4) = randomR ageRange g3
-        (randMale, g5) = random g4 :: (Bool, StdGen)
-        (randMinFert, g6) = randomR childBearingMinAgeRange g5
-        (randCulturalTag, g7) = randomCulturalTag g6 culturalTagLength
+        let randGender = if randMale then Male else Female
+        let fertilityMaxRange = if randMale then childBearingMaleMaxAgeRange else childBearingFemaleMaxAgeRange
 
-        randGender = if randMale then Male else Female
-        fertilityMaxRange = if randMale then childBearingMaleMaxAgeRange else childBearingFemaleMaxAgeRange
+        randMaxFert <- getRandomR fertilityMaxRange
 
-        (randMaxFert, g8) = randomR fertilityMaxRange g7
+        rng <- getSplit
 
-        (rng, g9) = split g8
-
-        s = SugarScapeAgentState {
+        let s = SugarScapeAgentState {
             sugAgMetabolism = randMeta,
             sugAgVision = randVision,
 
@@ -246,7 +261,7 @@ randomAgent (agentId, coord) beh conv g0 = (adef, g9)
             sugAgRng = rng
         }
 
-        adef = AgentDef {
+        let adef = AgentDef {
            adId = agentId,
            adState = s,
            adEnvPos = coord,
@@ -254,9 +269,4 @@ randomAgent (agentId, coord) beh conv g0 = (adef, g9)
            adInitMessages = NoEvent,
            adBeh = beh }
 
-        randomCulturalTag :: StdGen -> Int -> ([Bool], StdGen)
-        randomCulturalTag g 0 = ([], g)
-        randomCulturalTag g n = (t : ts, g'')
-            where
-                (t, g') = random g :: (Bool, StdGen)
-                (ts, g'') = randomCulturalTag g' (n-1) 
+        return adef

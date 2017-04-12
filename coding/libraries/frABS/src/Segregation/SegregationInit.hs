@@ -33,12 +33,15 @@ createSegAgentsAndEnv limits@(x,y) =  do
                                         let agentId = length accAs
 
                                         s <- randomAgentState
+                                        rng <- newStdGen
+
                                         let a = AgentDef { adId = agentId,
                                                             adState = s,
                                                             adEnvPos = coord,
                                                             adInitMessages = NoEvent,
                                                             adConversation = Nothing,
-                                                            adBeh = segAgentBehaviour }
+                                                            adBeh = segAgentBehaviour,
+                                                            adRng = rng }
 
                                         let emptyCell = (coord, Nothing)
                                         let occupiedCell = (coord, Just (segParty s))
@@ -59,10 +62,7 @@ createSegAgentsAndEnv limits@(x,y) =  do
                                             else
                                                 Green
 
-                                rng <- newStdGen
-
                                 return SegAgentState {
                                         segParty = s,
                                         segSimilarityWanted = similarityWanted,
-                                        segSatisfactionLevel = 0.0,
-                                        segRng = rng }
+                                        segSatisfactionLevel = 0.0 }

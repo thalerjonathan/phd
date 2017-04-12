@@ -58,9 +58,7 @@ data SugarScapeAgentState = SugarScapeAgentState {
     sugAgAge :: Double,                     -- the current age of the agent, could be calculated using time in the SF but we need it in the conversations as well, which are not running in the SF
 
     sugAgCulturalTag :: SugarScapeCulturalTag,  -- the agents cultural tag
-    sugAgTribe :: SugarScapeTribe,          -- the agents tribe it belongs to according to its cultural tag
-
-    sugAgRng :: StdGen
+    sugAgTribe :: SugarScapeTribe           -- the agents tribe it belongs to according to its cultural tag
 } deriving (Show)
 
 data SugarScapeEnvCellOccupier = SugarScapeEnvCellOccupier {
@@ -209,12 +207,7 @@ crossover (x, y) =
             else
                 return y
 
-runRandomSugarScapeAgent :: SugarScapeAgentOut -> Rand StdGen a -> (SugarScapeAgentOut, a)
-runRandomSugarScapeAgent a f = (a', ret)
-    where
-        g = sugAgRng $ aoState a
-        (ret, g') = runRand f g
-        a' = updateState a (\s -> s {sugAgRng = g'})
+
 
 randomAgent :: (AgentId, EnvCoord)
                 -> SugarScapeAgentBehaviour
@@ -256,9 +249,7 @@ randomAgent (agentId, coord) beh conv =
             sugAgAge = 0.0,
 
             sugAgCulturalTag = randCulturalTag,
-            sugAgTribe = calculateTribe randCulturalTag,
-
-            sugAgRng = rng
+            sugAgTribe = calculateTribe randCulturalTag
         }
 
         let adef = AgentDef {
@@ -267,6 +258,7 @@ randomAgent (agentId, coord) beh conv =
            adEnvPos = coord,
            adConversation = Just conv,
            adInitMessages = NoEvent,
-           adBeh = beh }
+           adBeh = beh,
+           adRng = rng }
 
         return adef

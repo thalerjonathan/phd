@@ -27,8 +27,7 @@ createMessageSamplingAgentsAndEnv count = do
                                 rng <- newStdGen
 
                                 let s = MessageSamplingState {
-                                    msgSampCounter = r,
-                                    msgSampRng = rng
+                                    msgSampCounter = r
                                 }
 
                                 let a = AgentDef { adId = agentId,
@@ -36,6 +35,7 @@ createMessageSamplingAgentsAndEnv count = do
                                             adEnvPos = (0,0),
                                             adInitMessages = NoEvent,
                                             adConversation = Nothing,
-                                            adBeh = messageSamplingAgentBehaviour }
+                                            adBeh = messageSamplingAgentBehaviour,
+                                            adRng = rng }
 
                                 return a

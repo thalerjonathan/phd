@@ -27,8 +27,7 @@ createMetaABSAgentsAndEnv agentCount = do
                                 rng <- newStdGen
 
                                 let s = MetaABSAgentState {
-                                    mabsCounter = r,
-                                    mabsRng = rng
+                                    mabsCounter = r
                                 }
 
                                 let a = AgentDef { adId = agentId,
@@ -36,6 +35,7 @@ createMetaABSAgentsAndEnv agentCount = do
                                             adEnvPos = (0,0),
                                             adInitMessages = NoEvent,
                                             adConversation = Nothing,
-                                            adBeh = metaABSAgentBehaviour }
+                                            adBeh = metaABSAgentBehaviour,
+                                            adRng = rng }
 
                                 return a

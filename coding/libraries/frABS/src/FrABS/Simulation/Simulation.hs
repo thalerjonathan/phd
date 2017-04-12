@@ -280,7 +280,8 @@ seqCallback (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                                 aiState = (aoState newOut),
                                 aiMessages = NoEvent,
                                 aiEnvPos = (aoEnvPos newOut),
-                                aiEnv = (aoEnv newOut)}
+                                aiEnv = (aoEnv newOut),
+                                aiRng = aoRng newOut }
 
                 -- NOTE: need to handle sending messages to itself because the input of this agent is not in the list of all inputs because it will be replaced anyway by newIn
                 newIn' = collectMessagesFor [newOut] newIn
@@ -371,7 +372,8 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns0)
                                         aiState = (aoState newOut),
                                         aiMessages = NoEvent,
                                         aiEnvPos = (aoEnvPos newOut),
-                                        aiEnv = (aoEnv newOut) }
+                                        aiEnv = (aoEnv newOut),
+                                        aiRng = aoRng newOut }
 ----------------------------------------------------------------------------------------------------------------------
 
 

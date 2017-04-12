@@ -20,8 +20,7 @@ import System.Random
 data MessageSamplingMsg = Hello Int deriving (Eq, Show)
 
 data MessageSamplingState = MessageSamplingState {
-    msgSampCounter :: Int,
-    msgSampRng :: StdGen
+    msgSampCounter :: Int
 } deriving (Show)
 
 type MessageSamplingEnvCell = ()

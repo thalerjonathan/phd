@@ -74,7 +74,7 @@ agentNonCombatMove a
         unoccupiedCells = filter (cellUnoccupied . snd) cellsInSight
 
         bestCells = selectBestCells (aoEnvPos a) unoccupiedCells
-        (a', (cellCoord, _)) = agentPickRandom a bestCells
+        ((cellCoord, _), a') = agentPickRandom a bestCells
 
 agentMoveAndHarvestCell :: SugarScapeAgentOut -> EnvCoord -> SugarScapeAgentOut
 agentMoveAndHarvestCell a cellCoord = a1
@@ -152,18 +152,6 @@ selectBestCells refCoord cs = bestShortestDistanceCells
                 sugLvl = sugEnvSugarLevel c
                 polLvl = sugEnvPolutionLevel c
 
--- TODO: think about moving this to the general Agent.hs: introduce a Maybe StdGen, but then: don't we loose reasoning abilities?
--- NOTE: must never be called with empty list
-agentPickRandom :: SugarScapeAgentOut -> [a] -> (SugarScapeAgentOut, a)
-agentPickRandom a allXs@(x:xs)
-    | null xs = (a, x)
-    | otherwise = (a', randElem)
-    where
-        g = sugAgRng $ aoState a
-        cellCount = length allXs
-        (randIdx, g') = randomR (0, cellCount - 1) g
-        randElem = allXs !! randIdx
-        a' = updateState a (\s -> s { sugAgRng = g' } )
 
 agentLookout :: SugarScapeAgentOut -> [(EnvCoord, SugarScapeEnvCell)]
 agentLookout a = zip visionCoordsWrapped visionCells
@@ -191,7 +179,7 @@ birthNewAgent a = createAgent a1 newAgentDef
     where
         newAgentId = aoId a                                 -- NOTE: we keep the old id
         (newAgentCoord, a0) = findUnoccpiedRandomPosition a
-        (a1, newAgentDef) = runRandomSugarScapeAgent a0
+        (newAgentDef, a1) = runAgentRandom a0
             (randomAgent (newAgentId, newAgentCoord) sugarScapeAgentBehaviour sugarScapeAgentConversation)
 
         findUnoccpiedRandomPosition :: SugarScapeAgentOut -> (EnvCoord, SugarScapeAgentOut)
@@ -199,7 +187,8 @@ birthNewAgent a = createAgent a1 newAgentDef
             | cellOccupied c = findUnoccpiedRandomPosition a'
             | otherwise = (coord, a')
             where
-                (a', (c, coord)) = runRandomSugarScapeAgent a (randomCell (aoEnv a))
+                ((c, coord), a') = runAgentRandom a (randomCell (aoEnv a))
+                
 dieFromAge :: SugarScapeAgentOut -> Bool
 dieFromAge a = age > maxAge
     where
@@ -262,7 +251,7 @@ agentSex a
 
                         newBornId = senderId * aoId a   -- TODO: this is a real problem: which ids do we give our newborns?
 
-                        (a0, newBornDef) = runRandomSugarScapeAgent a
+                        (newBornDef, a0) = runAgentRandom a
                             (createNewBorn 
                                 (newBornId, coord)
                                 (mySugarContribution, myMetab, myVision, myCulturalTag)
@@ -349,7 +338,7 @@ agentCultureContact ain a = broadcastMessage a' (CulturalContact culturalTag) ni
             where
                 s = aoState a
                 agentTag = sugAgCulturalTag s
-                (a', agentTag') = runRandomSugarScapeAgent a (cultureContact tagActive agentTag)
+                (agentTag', a') = runAgentRandom a (cultureContact tagActive agentTag)
                 tribe = calculateTribe agentTag'
 
 agentKilledInCombat :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
@@ -384,7 +373,7 @@ agentCombatMove a
         shortestDistance = distance agentPos (fst . fst $ head shortestDistanceBestCells)
         bestShortestDistanceCells = filter ((==shortestDistance) . (distance agentPos) . fst . fst) shortestDistanceBestCells
 
-        (a', bestCell@((_,_), payoff)) = agentPickRandom a bestShortestDistanceCells
+        (bestCell@((_,_), payoff), a') = agentPickRandom a bestShortestDistanceCells
         
         -- NOTE: calculate if retalion is possible: is there an agent of the other tribe in my vision which is wealthier AFTER i have preyed on the current one?
         -- TODO: this is not very well specified in the SugarScape book. we don't know the vision of the other agent, and its information we should not have access to

@@ -20,8 +20,7 @@ import System.Random
 data ConversationMsg = Hello Int deriving (Eq, Show)
 
 data ConversationAgentState = ConversationAgentState {
-    convCounter :: Int,
-    convRng :: StdGen
+    convCounter :: Int
 } deriving (Show)
 
 type ConversationEnvCell = ()
@@ -42,10 +41,9 @@ randomRangeCounter :: (Int, Int)
 randomRangeCounter = (0, 10)
 ------------------------------------------------------------------------------------------------------------------------
 agentTest :: ConversationAgentOut -> ConversationAgentOut
-agentTest a = updateState a (\s -> s { convRng = g', convCounter = n})
+agentTest a = updateState a' (\s -> s { convCounter = n})
     where
-        g = convRng $ aoState a
-        (n, g') = randomR (0, 10) g
+        (n, a') = drawRandomRangeFromAgent a  (0, 10)
 
 conversationHandler :: ConversationAgentConversation
 conversationHandler ain (_, msg@(Hello n)) =
@@ -60,15 +58,13 @@ makeConversationWith n a = conversation a msg makeConversationWithAux
 
         makeConversationWithAux :: ConversationAgentOut -> Maybe (AgentMessage ConversationMsg) -> ConversationAgentOut
         makeConversationWithAux a (Just (senderId, msg@(Hello n)))
-            | n > 5 = trace ("Agent " ++ (show $ aoId a) ++ " receives reply: " ++ (show msg) ++ " but stoppin") conversationEnd a'
+            | n > 5 = trace ("Agent " ++ (show $ aoId a) ++ " receives reply: " ++ (show msg) ++ " but stoppin") conversationEnd a1
             | otherwise = trace ("Agent " ++ (show $ aoId a) ++ " receives reply: " ++ (show msg) ++ " continuing") makeConversationWith (n + 1) a
             where
-                g = convRng $ aoState a
-                (g', g'') = split g
+                (g, a0) = splitRandomFromAgent a
 
                 s = ConversationAgentState {
-                    convCounter = 42,
-                    convRng = g'
+                    convCounter = 42
                 }
 
                 adef = AgentDef { adId = 100+n,
@@ -76,9 +72,11 @@ makeConversationWith n a = conversation a msg makeConversationWithAux
                             adEnvPos = (0,0),
                             adInitMessages = NoEvent,
                             adConversation = Just conversationHandler,
-                            adBeh = conversationAgentBehaviour }
+                            adBeh = conversationAgentBehaviour,
+                            adRng = g }
 
-                a' = createAgent a adef 
+                a1 = createAgent a0 adef 
+
         makeConversationWithAux a _ = trace ("Agent " ++ (show $ aoId a) ++ " receives Nothing -> stopping") conversationEnd a
 
 conversationAgentBehaviour :: ConversationAgentBehaviour

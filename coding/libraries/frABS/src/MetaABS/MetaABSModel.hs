@@ -20,8 +20,7 @@ import System.Random
 data MetaABSMsg = Hello Int deriving (Eq, Show)
 
 data MetaABSAgentState = MetaABSAgentState {
-    mabsCounter :: Int,
-    mabsRng :: StdGen
+    mabsCounter :: Int
 } deriving (Show)
 
 type MetaABSEnvCell = ()
@@ -71,11 +70,10 @@ metaABSActNonRec aout ain
         aoutRec = recursive aout' allowRecursionToOthers
 
 metaABSRandomizeCounter :: MetaABSAgentOut -> MetaABSAgentOut
-metaABSRandomizeCounter aout = aout'
+metaABSRandomizeCounter aout = aout1
     where
-        g = mabsRng $ aoState aout
-        (randInt, g') = randomR randomRangeCounter g
-        aout' = updateState aout (\s -> s { mabsCounter = randInt, mabsRng = g' } )
+        (randInt, aout0) = drawRandomRangeFromAgent aout randomRangeCounter
+        aout1 = updateState aout0 (\s -> s { mabsCounter = randInt } )
 
 metaABSAgentBehaviour :: MetaABSAgentBehaviour
 metaABSAgentBehaviour = proc ain ->

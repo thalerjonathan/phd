@@ -27,8 +27,7 @@ createConversationAgentsAndEnv count = do
                                 rng <- newStdGen
 
                                 let s = ConversationAgentState {
-                                    convCounter = r,
-                                    convRng = rng
+                                    convCounter = r
                                 }
 
                                 let a = AgentDef { adId = agentId,
@@ -36,6 +35,7 @@ createConversationAgentsAndEnv count = do
                                             adEnvPos = (0,0),
                                             adInitMessages = NoEvent,
                                             adConversation = Just conversationHandler,
-                                            adBeh = conversationAgentBehaviour }
+                                            adBeh = conversationAgentBehaviour,
+                                            adRng = rng }
 
                                 return a

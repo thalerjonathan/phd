@@ -4,6 +4,9 @@ import FrABS.Env.Environment
 
 import FRP.Yampa
 
+import System.Random
+import Control.Monad.Random
+import Control.Monad
 
 type AgentId = Int
 type AgentMessage m = (AgentId, m)
@@ -26,7 +29,8 @@ data AgentDef s m ec = AgentDef {
     adBeh :: AgentBehaviour s m ec,
     adConversation :: Maybe (AgentConversationReceiver s m ec),
     adInitMessages :: Event [AgentMessage m],     -- AgentId identifies sender
-    adEnvPos :: EnvCoord
+    adEnvPos :: EnvCoord,
+    adRng :: StdGen
 }
 
 data AgentIn s m ec = AgentIn {
@@ -38,7 +42,8 @@ data AgentIn s m ec = AgentIn {
     aiEnv :: Environment ec,
     aiEnvPos :: EnvCoord,
     aiRec :: Event ([AgentOut s m ec]),
-    aiRecInitAllowed :: Bool
+    aiRecInitAllowed :: Bool,
+    aiRng :: StdGen
 }
 
 data AgentOut s m ec = AgentOut {
@@ -51,12 +56,35 @@ data AgentOut s m ec = AgentOut {
     aoEnv :: Environment ec,
     aoEnvPos :: EnvCoord,
     aoRec :: Event (),
-    aoRecOthersAllowed :: Bool
+    aoRecOthersAllowed :: Bool,
+    aoRng :: StdGen
 }
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Agent Functions
 ------------------------------------------------------------------------------------------------------------------------
+runAgentRandom :: AgentOut s m ec -> Rand StdGen a -> (a, AgentOut s m ec)
+runAgentRandom a f = (ret, a')
+    where
+        g = aoRng a
+        (ret, g') = runRand f g
+        a' = a {aoRng = g'}
+
+drawRandomRangeFromAgent :: (Random a) => AgentOut s m ec -> (a, a) -> (a, AgentOut s m ec)
+drawRandomRangeFromAgent a r = runAgentRandom a (getRandomR r)
+
+splitRandomFromAgent :: AgentOut s m ec -> (StdGen, AgentOut s m ec)
+splitRandomFromAgent a = runAgentRandom a getSplit
+
+agentPickRandom :: AgentOut s m ec -> [a] -> (a, AgentOut s m ec)
+agentPickRandom a xs
+    | null xs = error "cannot draw random element from empty list"
+    | otherwise = (randElem, a')
+    where
+        cellCount = length xs
+        (randIdx, a') = drawRandomRangeFromAgent a (0, cellCount - 1)
+        randElem = xs !! randIdx
+
 recInitAllowed :: AgentIn s m ec -> Bool
 recInitAllowed = aiRecInitAllowed
 
@@ -70,7 +98,8 @@ agentOutFromIn ai = AgentOut{ aoId = (aiId ai),
                               aoEnv = (aiEnv ai),
                               aoRec = NoEvent,
                               aoEnvPos = (aiEnvPos ai),
-                              aoRecOthersAllowed = True }
+                              aoRecOthersAllowed = True,
+                              aoRng = aiRng ai }
 
 sendMessage :: AgentOut s m ec -> AgentMessage m -> AgentOut s m ec
 sendMessage ao msg = ao { aoMessages = mergedMsgs }
@@ -171,15 +200,16 @@ createStartingAgentIn :: [AgentDef s m ec] -> Environment ec -> [AgentIn s m ec]
 createStartingAgentIn as env = map (startingAgentInFromAgentDef env) as
 
 startingAgentInFromAgentDef :: Environment ec -> AgentDef s m ec -> AgentIn s m ec
-startingAgentInFromAgentDef env a = AgentIn { aiId = adId a,
-                                                aiMessages = adInitMessages a,
-                                                aiConversation = adConversation a,
+startingAgentInFromAgentDef env ad = AgentIn { aiId = adId ad,
+                                                aiMessages = adInitMessages ad,
+                                                aiConversation = adConversation ad,
                                                 aiStart = Event (),
-                                                aiState = adState a,
+                                                aiState = adState ad,
                                                 aiEnv = env,
-                                                aiEnvPos = adEnvPos a,
+                                                aiEnvPos = adEnvPos ad,
                                                 aiRec = NoEvent,
-                                                aiRecInitAllowed = True }
+                                                aiRecInitAllowed = True,
+                                                aiRng = adRng ad }
 
 mergeMessages :: Event [AgentMessage m] -> Event [AgentMessage m] -> Event [AgentMessage m]
 mergeMessages l r = mergeBy (\msgsLeft msgsRight -> msgsLeft ++ msgsRight) l r

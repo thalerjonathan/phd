@@ -26,8 +26,7 @@ type SIRSCoord = (Int, Int)
 data SIRSAgentState = SIRSAgentState {
     sirsState :: SIRSState,
     sirsCoord :: SIRSCoord,
-    sirsTime :: Double,
-    sirsRng :: StdGen
+    sirsTime :: Double
 } deriving (Show)
 
 type SIRSEnvCell = AgentId
@@ -83,15 +82,8 @@ infectAgent ao
 drawInfectionWithProb :: SIRSAgentOut -> Double -> (SIRSAgentOut, Bool)
 drawInfectionWithProb ao p = (ao', infect)
     where
-        (ao', r) = drawRandom ao
-        infect = r <= p
-
-drawRandom :: SIRSAgentOut -> (SIRSAgentOut, Double)
-drawRandom ao = (ao', r)
-    where
-        g = (sirsRng (aoState ao))
-        (r, g') = randomR (0.0, 1.0) g
-        ao' = updateState ao (\s -> s { sirsRng = g' } )
+        (infectProb, ao') = drawRandomRangeFromAgent ao (0.0, 1.0)
+        infect = infectProb <= p
 
 handleInfectedAgent :: SIRSAgentOut -> Double -> SIRSAgentOut
 handleInfectedAgent ao dt = if t' >= infectedDuration then
@@ -124,11 +116,7 @@ randomContact :: SIRSAgentOut -> SIRSAgentOut
 randomContact ao = sendMessage ao' (randNeigh, (Contact Infected))
     where
         ns = FrABS.Env.Environment.neighbours (aoEnv ao) (sirsCoord (aoState ao))
-        nsCount = length ns
-        g = (sirsRng (aoState ao))
-        (randIdx, g') = randomR(0, nsCount-1) g
-        randNeigh = snd $ ns !! randIdx
-        ao' = updateState ao (\s -> s { sirsRng = g' } )
+        ((_, randNeigh), ao') = agentPickRandom ao ns
 
 -- TODO: switch SF when in different states as behaviour changes
 sirsAgentBehaviour :: SIRSAgentBehaviour
@@ -156,46 +144,47 @@ createSIRSEnv limits as = createEnvironment
 
 createRandomSIRSAgents :: (Int, Int) -> Double -> IO [SIRSAgentDef]
 createRandomSIRSAgents max@(x,y) p =  do
-                                           let ssIO = [ randomAgentState p (xCoord, yCoord) | xCoord <- [0..x-1], yCoord <- [0..y-1] ]
-                                           ss <- mapM id ssIO
-                                           let as = map (\s -> createAgent s max) ss
-                                           return as
+                                        let ssIO = [ randomAgentState p (xCoord, yCoord) | xCoord <- [0..x-1], yCoord <- [0..y-1] ]
+                                        ss <- mapM id ssIO
+                                        as <- mapM (\s -> createAgent s max) ss
+                                        return as
     where
-        createAgent :: SIRSAgentState -> (Int, Int) -> SIRSAgentDef
-        createAgent s max = AgentDef { adId = agentId,
-                                        adState = s,
-                                        adBeh = sirsAgentBehaviour,
-                                        adInitMessages = NoEvent,
-                                        adConversation = Nothing,
-                                        adEnvPos = c}
+        createAgent :: SIRSAgentState -> (Int, Int) -> IO SIRSAgentDef
+        createAgent s max = do 
+                                rng <- newStdGen
+
+                                return AgentDef { adId = agentId,
+                                                    adState = s,
+                                                    adBeh = sirsAgentBehaviour,
+                                                    adInitMessages = NoEvent,
+                                                    adConversation = Nothing,
+                                                    adEnvPos = c,
+                                                    adRng = rng }
             where
                 c = sirsCoord s
                 agentId = coordToAid max c
 
 randomAgentState :: Double -> SIRSCoord -> IO SIRSAgentState
 randomAgentState p coord = do
-                                    r <- getStdRandom (randomR(0.0, 1.0))
-                                    let isInfected = r <= p
+                                r <- getStdRandom (randomR(0.0, 1.0))
+                                let isInfected = r <= p
 
-                                    let s = if isInfected then
-                                                Infected
-                                                else
-                                                    Susceptible
+                                let s = if isInfected then
+                                            Infected
+                                            else
+                                                Susceptible
 
-                                    randTime <- getStdRandom (randomR(1.0, infectedDuration))
+                                randTime <- getStdRandom (randomR(1.0, infectedDuration))
 
-                                    let t = if isInfected then
-                                                randTime
-                                                else
-                                                    0.0
+                                let t = if isInfected then
+                                            randTime
+                                            else
+                                                0.0
 
-                                    rng <- newStdGen
-
-                                    return SIRSAgentState{
-                                            sirsState = s,
-                                            sirsCoord = coord,
-                                            sirsTime = t,
-                                            sirsRng = rng }
+                                return SIRSAgentState{
+                                        sirsState = s,
+                                        sirsCoord = coord,
+                                        sirsTime = t }
 
 
 coordToAid :: (Int, Int) -> SIRSCoord -> AgentId

@@ -30,8 +30,7 @@ data SegOptStrategy = OptNone
 data SegAgentState = SegAgentState {
     segParty :: SegParty,
     segSatisfactionLevel :: Double,
-    segSimilarityWanted :: Double,
-    segRng :: StdGen
+    segSimilarityWanted :: Double
 } deriving (Show)
 
 type SegEnvCell = Maybe SegParty
@@ -306,21 +305,15 @@ findRandomFreeCoord ao ms maxRetries
 localRandomCell :: SegAgentOut -> Int -> (SegAgentOut, SegEnvCell, EnvCoord)
 localRandomCell ao radius = (ao', randCell, randCoord)
     where
-        s = aoState ao
         env = aoEnv ao
-        g = segRng s
         originCoord = aoEnvPos ao
-        (randCell, randCoord, g') = randomCellWithRadius g env originCoord radius
-        ao' = updateState ao (\s -> s { segRng = g' } )
+        ((randCell, randCoord), ao') = runAgentRandom ao (randomCellWithRadius env originCoord radius)
 
 globalRandomCell :: SegAgentOut -> (SegAgentOut, SegEnvCell, EnvCoord)
 globalRandomCell ao = (ao', randCell, randCoord)
     where
-        s = aoState ao
         env = aoEnv ao
-        g = segRng s
-        (randCell, randCoord, g') = randomCell g env
-        ao' = updateState ao (\s -> s { segRng = g' } )
+        ((randCell, randCoord), ao') = runAgentRandom ao (randomCell env)
 ------------------------------------------------------------------------------------------------------------------------
 
 segAgentBehaviour :: SegAgentBehaviour

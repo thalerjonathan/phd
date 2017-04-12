@@ -124,6 +124,9 @@ ageRange :: (Double, Double)
 ageRange = (60, 100)
 
 
+polutionEnabled :: Bool
+polutionEnabled = False
+
 polutionMetabolismFactor :: Double
 polutionMetabolismFactor = 1.0
 
@@ -131,13 +134,13 @@ polutionHarvestFactor :: Double
 polutionHarvestFactor = 1.0
 
 diffusePolutionTime :: Int
-diffusePolutionTime = 25
+diffusePolutionTime = 12
 
 ------------------------------------------------------------------------------------------------------------------------
 -- CHAPTER III
 ------------------------------------------------------------------------------------------------------------------------
 childBearingMinAgeRange :: (Double, Double)
-childBearingMinAgeRange = (12, 15)
+childBearingMinAgeRange = (120, 150)
 
 childBearingFemaleMaxAgeRange :: (Double, Double)
 childBearingFemaleMaxAgeRange = (40, 50)

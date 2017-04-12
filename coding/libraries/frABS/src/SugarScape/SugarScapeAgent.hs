@@ -39,83 +39,94 @@ passWealthOn a
 unoccupyPosition ::  SugarScapeAgentOut -> SugarScapeAgentOut
 unoccupyPosition a = a { aoEnv = env' }
     where
-        env = aoEnv a
-
-        currentAgentPosition = aoEnvPos a
-        currentAgentCell = cellAt env currentAgentPosition
-        currentAgentCellUnoccupied = currentAgentCell { sugEnvOccupier = Nothing }
-
-        env' = changeCellAt env currentAgentPosition currentAgentCellUnoccupied
+        (cellCoord, cell) = agentCell a
+        cellUnoccupied = cell { sugEnvOccupier = Nothing }
+        env' = changeCellAt (aoEnv a) cellCoord cellUnoccupied
 
 starvedToDeath :: SugarScapeAgentOut -> Bool
-starvedToDeath a = sugAgSugarLevel s <= 0
-    where
-        s = aoState a
+starvedToDeath a = (sugAgSugarLevel $ aoState a) <= 0
 
 agentMetabolism :: SugarScapeAgentOut -> SugarScapeAgentOut
-agentMetabolism a = updateState
-                            a
-                            (\s -> s {
+agentMetabolism a 
+    | starvedToDeath a1 = agentDies a1
+    | otherwise = a1
+    where
+        metab = sugAgMetabolism $ aoState a
+
+        a0 = updateState a (\s -> s {
                                 sugAgSugarLevel =
                                     max
                                         0
-                                        ((sugAgSugarLevel s) - (sugAgMetabolism s))})
+                                        ((sugAgSugarLevel s) - metab)})
+
+        pol = metab * polutionMetabolismFactor 
+        cell = agentCell a0
+        a1 = agentPoluteCell pol cell a0
 
 agentNonCombatMove :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentNonCombatMove a
     | null unoccupiedCells = agentStayAndHarvest a
-    | otherwise = aHarvested
+    | otherwise = agentMoveAndHarvestCell a' cellCoord
     where
         cellsInSight = agentLookout a
         unoccupiedCells = filter (cellUnoccupied . snd) cellsInSight
 
         bestCells = selectBestCells (aoEnvPos a) unoccupiedCells
-        -- NOTE: can return equally good cells, do random selection
-        (a', cellInfo) = agentPickRandom a bestCells
+        (a', (cellCoord, _)) = agentPickRandom a bestCells
 
-        aHarvested = agentMoveAndHarvestCell a' cellInfo
+agentMoveAndHarvestCell :: SugarScapeAgentOut -> EnvCoord -> SugarScapeAgentOut
+agentMoveAndHarvestCell a cellCoord = a1
+    where
+        a0 = agentHarvestCell a cellCoord
+        a1 = agentMoveTo a0 cellCoord
 
 agentStayAndHarvest :: SugarScapeAgentOut -> SugarScapeAgentOut
-agentStayAndHarvest a = a' { aoEnv = env' }
+agentStayAndHarvest a = agentHarvestCell a cellCoord
+    where
+        (cellCoord, _) = agentCell a
+
+agentCell :: SugarScapeAgentOut -> (EnvCoord, SugarScapeEnvCell)
+agentCell a = (agentPos, cellOfAgent)
     where
         env = aoEnv a
         agentPos = aoEnvPos a
-        agentCell = cellAt env agentPos
+        cellOfAgent = cellAt env agentPos
 
-        sugarLevelCell = sugEnvSugarLevel agentCell
-        sugarLevelAgent = sugAgSugarLevel $ aoState a
-        newSugarLevelAgent = (sugarLevelCell + sugarLevelAgent)
-
-        a' = updateState a (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
-
-        cellHarvested = agentCell {
-            sugEnvSugarLevel = 0.0
-        }
-
-        env' = changeCellAt (aoEnv a') agentPos cellHarvested
-
-agentMoveAndHarvestCell :: SugarScapeAgentOut -> (EnvCoord, SugarScapeEnvCell) -> SugarScapeAgentOut
-agentMoveAndHarvestCell a (cellCoord, cell) = a' { aoEnvPos = cellCoord, aoEnv = env }
+agentPoluteCell :: Double -> (EnvCoord, SugarScapeEnvCell) -> SugarScapeAgentOut -> SugarScapeAgentOut
+agentPoluteCell polutionIncrease (cellCoord, cell) a 
+    | polutionEnabled = a { aoEnv = env }
+    | otherwise = a
     where
+        cellAfterPolution = cell {
+            sugEnvPolutionLevel = polutionIncrease + (sugEnvPolutionLevel cell)
+        }
+        env = changeCellAt (aoEnv a) cellCoord cellAfterPolution
+
+agentHarvestCell  :: SugarScapeAgentOut -> EnvCoord -> SugarScapeAgentOut
+agentHarvestCell a cellCoord = a2
+    where
+        cell = cellAt (aoEnv a) cellCoord
+
         sugarLevelCell = sugEnvSugarLevel cell
         sugarLevelAgent = sugAgSugarLevel $ aoState a
         newSugarLevelAgent = (sugarLevelCell + sugarLevelAgent)
 
-        a' = unoccupyPosition $ updateState a (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
+        a0 = updateState a (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
 
-        --agentMetabolism = sugAgMetabolism $ aoState a
-        --polutionIncByMeta =  agentMetabolism * polutionMetabolismFactor
-        --polutionIncByHarvest = sugarLevelCell * polutionHarvestFactor
-        -- newPolutionLevel = polutionIncByMeta + polutionIncByHarvest + sugEnvPolutionLevel cell
-        newPolutionLevel = 0
+        cellHarvested = cell { sugEnvSugarLevel = 0.0 }
+        env = changeCellAt (aoEnv a0) cellCoord cellHarvested
+        a1 = a0 { aoEnv = env }
 
-        cellHarvestedAndOccupied = cell {
-                sugEnvSugarLevel = 0.0,
-                sugEnvOccupier = Just (cellOccupier (aoId a') (aoState a')),
-                sugEnvPolutionLevel = newPolutionLevel
-        }
-                
-        env = changeCellAt (aoEnv a') cellCoord cellHarvestedAndOccupied
+        pol = sugarLevelCell * polutionHarvestFactor 
+        a2 = agentPoluteCell pol (cellCoord, cellHarvested) a1
+
+agentMoveTo :: SugarScapeAgentOut -> EnvCoord -> SugarScapeAgentOut
+agentMoveTo a cellCoord = a0 { aoEnvPos = cellCoord, aoEnv = env }
+    where
+        a0 = unoccupyPosition a
+        cell = cellAt (aoEnv a0) cellCoord
+        cellOccupied = cell { sugEnvOccupier = Just (cellOccupier (aoId a0) (aoState a0))}
+        env = changeCellAt (aoEnv a0) cellCoord cellOccupied
 
 selectBestCells :: EnvCoord -> [(EnvCoord, SugarScapeEnvCell)] -> [(EnvCoord, SugarScapeEnvCell)]
 selectBestCells refCoord cs = bestShortestDistanceCells
@@ -296,8 +307,6 @@ createNewBorn idCoord
                             sugarScapeAgentBehaviour
                             sugarScapeAgentConversation
                             g3
-
-        -- TODO: crossover cultural tags
 
         newBornState = adState newBornDef
         newBornState' = newBornState { sugAgMetabolism = newBornMetabolism,
@@ -521,7 +530,7 @@ sugarScapeAgentBehaviourFunc age ain a = do
                                                             else
                                                                 do
                                                                     let a2 = agentMetabolism a1
-                                                                    if starvedToDeath a2 then 
+                                                                    if isDead a2 then
                                                                         a2
                                                                         else 
                                                                             do
@@ -529,7 +538,8 @@ sugarScapeAgentBehaviourFunc age ain a = do
                                                                                 let a4 = inheritSugar ain a3
                                                                                 let a5 = agentCultureContact ain a4
                                                                                 let a6 = agentSex a5
-                                                                                a6 
+                                                                                a6
+
 
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour
 sugarScapeAgentBehaviour = proc ain ->

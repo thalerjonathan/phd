@@ -81,11 +81,10 @@ sugarScapeEnvironmentBehaviour = proc env ->
     do
         t <- time -< 0
 
-        --let envPolutionDiffusion = diffusePolution t env
-        let envPolutionDiffusion = env
+        let env' = if polutionEnabled then diffusePolution t env else env
 
-        let envSeasonal = environmentSeasons t envPolutionDiffusion
-        let envRegrowSugarByRate = regrowSugarByRate sugarGrowbackUnits envPolutionDiffusion
-        let envRegrowSugarToMax = regrowSugarToMax envPolutionDiffusion
+        let envSeasonal = environmentSeasons t env'
+        let envRegrowSugarByRate = regrowSugarByRate sugarGrowbackUnits env'
+        let envRegrowSugarToMax = regrowSugarToMax env'
 
         returnA -< trace ("Time = " ++ (show t)) envRegrowSugarByRate

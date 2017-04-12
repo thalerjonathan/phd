@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"SugarScapeC",
+				"SugarScapeEnvCell \tSugarScape.SugarScapeModel"
+			],
+			[
 				"sugEnv",
 				"sugEnvSugarLevel ∷ SugarScapeEnvCell → Double\tSugarScape.SugarScapeModel"
 			],
@@ -23,7 +27,7 @@
 			"file": "Main.hs",
 			"settings":
 			{
-				"buffer_size": 507,
+				"buffer_size": 505,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -32,7 +36,7 @@
 			"file": "SugarScape/SugarScapeModel.hs",
 			"settings":
 			{
-				"buffer_size": 10565,
+				"buffer_size": 10616,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -41,7 +45,7 @@
 			"file": "SugarScape/SugarScapeAgent.hs",
 			"settings":
 			{
-				"buffer_size": 26037,
+				"buffer_size": 26261,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -93,19 +97,20 @@
 	],
 	"file_history":
 	[
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeEnvironment.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeModel.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/    Variable not in scope",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeRun.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Env/Environment.hs",
 		"/C/Users/Jonathan Thaler/AppData/Roaming/Sublime Text 3/Packages/User/SublimeHaskell.sublime-settings",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeInit.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeEnvironment.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation/Simulation.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeAgent.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeRenderer.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MessageSampling/MessageSamplingInit.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MessageSampling/MessageSamplingRun.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MessageSampling/MessageSamplingModel.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeRun.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationRun.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationInit.hs",
@@ -131,6 +136,18 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"agentNonCombatMove",
+			"inheritSugar",
+			"agentCultureContact",
+			"agentSex",
+			"polute",
+			"agentPoluteCell",
+			"unoccupyPosition",
+			"agentCell",
+			"agentPolutingCell",
+			"moveAndHarvestBestCell",
+			"agentStayAndHarvest",
+			"agentMetabolism",
 			"agentLookout",
 			"combatReward",
 			"unoccupyPosition",
@@ -193,15 +210,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 507,
+						"buffer_size": 505,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								17,
-								17
+								223,
+								223
 							]
 						],
 						"settings":
@@ -221,15 +238,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 10565,
+						"buffer_size": 10616,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								6239,
-								6239
+								5387,
+								5387
 							]
 						],
 						"settings":
@@ -239,7 +256,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2321.0,
+						"translation.y": 2106.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
@@ -251,15 +268,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 26037,
+						"buffer_size": 26261,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								19316,
-								19316
+								2195,
+								2195
 							]
 						],
 						"settings":
@@ -269,7 +286,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 7342.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,

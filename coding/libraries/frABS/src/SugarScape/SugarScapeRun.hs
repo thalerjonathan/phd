@@ -16,7 +16,7 @@ import System.IO
 import System.Random
 
 winSize = (800, 800)
-winTitle = "SugarScape Chapter II"
+winTitle = "SugarScape Chapter III"
 renderCircles = True
 
 rngSeed = 42

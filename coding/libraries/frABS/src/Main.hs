@@ -19,4 +19,3 @@ main = runSugarScapeWithRendering
     -- runSegStepsAndRender
     -- test
     -- testGloss
-

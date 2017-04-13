@@ -232,36 +232,29 @@ seqCallback (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
             | hasConversation newOut = handleConversation otherIns' newOut'
             | otherwise = (otherIns, newOut)
             where
-                ((receiverId, m), senderReplyFunc) = fromEvent $ aoConversation newOut
+                conv@(_, senderReplyFunc) = fromEvent $ aoConversation newOut
 
                 -- NOTE: it is possible that agents which are just newly created are already target of a conversation because
                 --       their position in the environment was occupied using their id which exposes them to potential messages
                 --       and conversations. These newly created agents are not yet available in the current iteration and can
                 --       only fully participate in the next one. Thus we ignore conversation-requests
 
-                mayReceivingIndex = findIndex (\ai -> (aiId ai) == receiverId) otherIns
-                mayReceivingIn = maybe Nothing (\receivingIndex -> Just (otherIns !! receivingIndex)) mayReceivingIndex
+                mayRepl = conversationReply otherIns newOut conv
+                (otherIns', newOut') = maybe (otherIns, senderReplyFunc newOut Nothing) id mayRepl
 
-                -- TODO: this is so extremely ugly, is there a way to change this?
-                -- https://en.wikibooks.org/wiki/Haskell/Monad_transformers
-                -- https://wiki.haskell.org/Monad_Transformers_Tutorial
-                -- https://hackage.haskell.org/package/transformers-0.5.4.0/docs/Control-Monad-Trans-Maybe.html
-                (mayReplyMsg, otherIns') =
-                    maybe (Nothing, otherIns)
-                        (\receivingIn -> do
-                            let mayConvHandler = aiConversation receivingIn
-                            maybe (Nothing, otherIns)
-                                (\convHandler -> do
-                                    let (mayReplyM, mayChangedReceivingIn) = convHandler receivingIn (aoId newOut, m)
-                                    maybe (Nothing, otherIns)
-                                        (\changedReceivingIn -> do
-                                            let otherIns' = replace (fromJust $ mayReceivingIndex) otherIns changedReceivingIn
-                                            let replyMsg = maybe Nothing (\replyM -> Just (receiverId, replyM)) mayReplyM
-                                            (replyMsg, otherIns') )
-                                        mayChangedReceivingIn
-                                ) mayConvHandler
-                        ) mayReceivingIn
-                newOut' = senderReplyFunc newOut mayReplyMsg
+                conversationReply :: [AgentIn s m ec] 
+                                        -> AgentOut s m ec
+                                        -> (AgentMessage m, AgentConversationSender s m ec)
+                                        -> Maybe ([AgentIn s m ec], AgentOut s m ec) 
+                conversationReply otherIns newOut ((receiverId, receiverMsg), senderReplyFunc) =
+                    do
+                        receivingIdx <- findIndex ((==receiverId) . aiId) otherIns
+                        let receivingIn = otherIns !! receivingIdx 
+                        convHandler <- aiConversation receivingIn
+                        (replyM, receivingIn') <- convHandler receivingIn (aoId newOut, receiverMsg)
+                        let otherIns' = replace receivingIdx otherIns receivingIn'
+                        let newOut' = senderReplyFunc newOut (Just (receiverId, replyM))
+                        return (otherIns', newOut')
 
         replace :: Int -> [a] -> a -> [a]
         replace idx as a = front ++ (a : backNoElem)

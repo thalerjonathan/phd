@@ -32,6 +32,7 @@ data SugarScapeMsg =
     | MatingReplyNo
     | MatingReplyYes (Double, Double, Int, SugarScapeCulturalTag) -- Sugar-Contribution, Metabolism, Vision
     | MatingChild AgentId
+    | MatingChildAck
 
     | InheritSugar Double
 

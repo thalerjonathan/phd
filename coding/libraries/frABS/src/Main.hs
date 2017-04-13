@@ -9,6 +9,12 @@ import MessageSampling.MessageSamplingRun
 
 main :: IO ()
 main = runSugarScapeWithRendering
+{-}
+    do
+        let ret = testMaybeMonad "Default"
+        putStrLn $ show ret
+-}
+    -- runSugarScapeWithRendering
 
     -- runMessageSamplingAndPrint
     -- runConversationStepsAndPrint
@@ -20,25 +26,19 @@ main = runSugarScapeWithRendering
     -- test
     -- testGloss
 
-{-
-testCulturalCrossover :: IO ()
-testCulturalCrossover = 
-	do
-		let g = mkStdGen 42
-		let tag1 = [True, False, True, False]
-		let tag2 = [True, True, False, False]
-		let (tag', g') = runRand (cc tag1 tag2) g
-		putStrLn (show tag')
+testMaybeMonad :: String -> Maybe String
+testMaybeMonad d =
+    do
+        i <- maybeFunc1
+        b <- maybeFunc2
+        s <- maybeFunc3
+        return s
 
-cc :: (RandomGen g) => [Bool] -> [Bool] -> Rand g [Bool] 
-cc ts1 ts2 = 
-	do
-		randTags <- replicateM zipLen (getRandomR (True, False))
-		return map (\(t1, t2, randT) -> if t1 == t2 then t1 else randT) (zip3 ts1 ts2 randTags)
+maybeFunc1 :: Maybe Int
+maybeFunc1 = Just 42
 
-    where
-        tagZip = zip ts1 ts2
-        zipLen = length tagZip
-        tagsIdentical = map (\(t1, t2) -> t1 == t2) tagZip 	-- is true where the values are identical (also in case of both are False)
-        tagsAnd = map (\(t1, t2) -> t1 && t2) tagZip		-- is True when both values are True and False in other cases (also in case both are False)
--}
+maybeFunc2 :: Maybe Bool
+maybeFunc2 = Nothing
+
+maybeFunc3 :: Maybe String
+maybeFunc3 = Just "Jonathan"

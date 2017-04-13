@@ -48,7 +48,7 @@ agentTest a = updateState a' (\s -> s { convCounter = n})
 conversationHandler :: ConversationAgentConversation
 conversationHandler ain (_, msg@(Hello n)) =
     trace ("Agent " ++ (show $ aiId ain) ++ " receives conversation: " ++ (show msg))
-        (Just (Hello (n+1)), Just ain)
+        Just (Hello (n+1), ain)
 
 makeConversationWith :: Int -> ConversationAgentOut -> ConversationAgentOut
 makeConversationWith n a = conversation a msg makeConversationWithAux

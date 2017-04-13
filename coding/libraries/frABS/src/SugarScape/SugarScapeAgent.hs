@@ -266,7 +266,7 @@ agentSex a
                                                         sugAgChildren = newBornId : (sugAgChildren s)})
                         a3 = createAgent a2 newBornDef
 
-                agentMatingConversationsReply a (Just (_, _)) = agentMatingConversation otherAis allCoords a  -- NOTE: unexpected reply, continue with the next
+                agentMatingConversationsReply a (Just (_, _)) = agentMatingConversation otherAis allCoords a  -- NOTE: unexpected/MatingChildAck reply, continue with the next
 
 createNewBorn :: (AgentId, EnvCoord)
                     -> (Double, Double, Int, SugarScapeCulturalTag)
@@ -444,15 +444,15 @@ agentCombatMove a
 -- GENERAL AGENT-RELATED
 ------------------------------------------------------------------------------------------------------------------------
 sugarScapeAgentConversation :: SugarScapeAgentConversation
-sugarScapeAgentConversation ain (_, (MatingRequest tup)) = (Just m, Just ain')
+sugarScapeAgentConversation ain (_, (MatingRequest tup)) = Just (m, ain')
     where 
         (m, ain') = handleMatingConversation tup ain
-sugarScapeAgentConversation ain (_, (MatingChild childId)) = (Nothing, Just ain')
+sugarScapeAgentConversation ain (_, (MatingChild childId)) = Just (MatingChildAck, ain')
     where
         s = aiState ain
         s' = s { sugAgChildren = childId : (sugAgChildren s)}
         ain' = ain { aiState = s' }
-sugarScapeAgentConversation ain _ = (Nothing, Nothing)
+sugarScapeAgentConversation ain _ = Nothing
 
 handleMatingConversation :: (SugarScapeAgentGender)
                                 -> SugarScapeAgentIn

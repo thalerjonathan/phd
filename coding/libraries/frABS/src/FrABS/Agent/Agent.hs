@@ -13,7 +13,7 @@ type AgentMessage m = (AgentId, m)
 type AgentBehaviour s m ec = SF (AgentIn s m ec) (AgentOut s m ec)
 type MessageFilter m = (AgentMessage m -> Bool)
 
-type AgentConversationReply s m ec = (Maybe m, Maybe (AgentIn s m ec))
+type AgentConversationReply s m ec = Maybe (m, (AgentIn s m ec))
 
 type AgentConversationReceiver s m ec = (AgentIn s m ec
                                             -> AgentMessage m

@@ -23,4 +23,9 @@ When sending messages between agents there is the limitation that an agent canno
 This limitation is for some models a huge problem which prevents a faithful implementation of it in FrABS. For this we introduce the concept of a conversation between agents. This allows an agent A to initiate a conversation with another agent B in which the simulation is and halted both can exchange an arbitrary number of messages through calling and responsing without time passing (something not possible without this concept because in each iteration the time advances). After either one agent has finished with the conversation it will terminate it and the simulation will continue with the updated agents.
 
 \subsubsection{Sampling Time}
+my wrongthinking: messaging ALWAYS takes time e.g. send/response roundtrip. conversations dont take time but are restricted for the receiver e.g. the receiver cannot send messages to others or change the environment in a conversation
+
 because an agent cannot reply within the same timestep sampling interval becomes an issue: if we need a reply within a given time then the sampling interval needs to be at least twice as much
+
+difference between discrete and continuous: the successor of discrete is defined whereas in the case of continuous it is not?
+how is the successor defined in the case of continuous time?

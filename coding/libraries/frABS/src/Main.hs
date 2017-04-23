@@ -2,7 +2,7 @@ module Main where
 
 import SIRS.RunSIRS
 import Segregation.SegregationRun
-import MetaABS.MetaABSRun
+import RecursiveABS.RecursiveABSRun
 import SugarScape.SugarScapeRun
 import Conversation.ConversationRun
 import MessageSampling.MessageSamplingRun

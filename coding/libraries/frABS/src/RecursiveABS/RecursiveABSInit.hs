@@ -1,6 +1,6 @@
-module MetaABS.MetaABSInit where
+module RecursiveABS.RecursiveABSInit where
 
-import MetaABS.MetaABSModel
+import RecursiveABS.RecursiveABSModel
 
 import FRP.Yampa
 

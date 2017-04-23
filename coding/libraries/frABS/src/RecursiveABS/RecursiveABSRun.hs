@@ -1,9 +1,9 @@
-module MetaABS.MetaABSRun where
+module RecursiveABS.RecursiveABSRun where
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
 
-import MetaABS.MetaABSInit
+import RecursiveABS.RecursiveABSInit
 
 import System.IO
 import System.Random

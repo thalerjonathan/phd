@@ -1,5 +1,5 @@
 {-# LANGUAGE Arrows #-}
-module MetaABS.MetaABSModel where
+module RecursiveABS.RecursiveABSModel where
 
 -- Project-internal import first
 import FrABS.Agent.Agent

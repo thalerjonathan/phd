@@ -15,12 +15,10 @@ Specification: how is my model specified?
 Verification: does my implementation really match my specification? 
 Validation: how to connect the results to the hypothesis? are the emergent properties the ones anticipated? if it is completely different why? note: we always MUST HAVE a hypothesis regarding the outcome of the simulation, otherwise we leave the path of scientific discovery. But we must admit that sometimes it is extremely hard to anticipate \textit{emergent patterns}. But anyway there must be \textit{some} hypothesis regarding the dynamics of the simulation.
 
-
-
 \subsection{Functional approach to Agent-Based Modelling \& Simulation}
 Because we left the path of OO and want to develop a completely different method we have fundamentally two problems to solve in our functional method:
-1. Specifying the Agent-Based Model (ABM): Category-Theory, Type-Theory, EDSL
-2. Implementing the ABM into an Agent-Based Simulation (ABS): FRP
+1. Specifying the Agent-Based Model (ABM): Category-Theory, Type-Theory, EDSL: all this clearly overlaps with the  implementation-aspect because the theory behind pure functional programming in Haskell is exactly this. This is a very strong indication that functional programming may be able to really close the gap between specification and implementation in ABS.
+2. Implementing the ABM into an Agent-Based Simulation (ABS): building on FRP paradigm
 
 \subsubsection{Challenges}
 - how is an agent represented?
@@ -28,3 +26,14 @@ Because we left the path of OO and want to develop a completely different method
 - how do agents interact?
 - how is the environment represented?
 - how can agents act on the environment?
+- how to handle structural dynamism (creation and removal of agents)?
+
+\subsection{Field of Application}
+Agent-Based Modelling \& Simulation is a method and tool and thus always applied in a very specific domain in which phenomenon are being researched which can be mapped to ABS. For our PhD we picked the field of Agent-Based Computational Social Sciences (ACS) with slight influences from Agent-Based Computational Economics (ACE). The reason for this is that ACS was one of the first fields to adopt ABS in their research on artificial societies and is still a strong driving force behind the application of ABS. ACE is about the same age as ACS but is not yet nearly as established in Economics as ACS is in the Social Sciences (TODO: can i really back up my claims?). ACS draw upon findings of ACE in the SugarScape Model where Agents engage in bilateral decentralized bartering. The author claims that both fields are highly relevant for the future. Economists start realizing that more heterogenous models need to be studied which can only be done using ABS.
+Our primary field of application will be ACS but we will sometimes draw upon ACE when appropriate e.g. in SugarScape. By applying our new method to these fields we hope to bring forward a paradigm-shift which allows to better understand the concepts of ABS and to have more powerful tools for verification \& validation at hand.
+
+TODO: what are the aims of ACS and ACE?
+
+1. Initial Use-Case: SugarScape Model as in "Growing Artificial Societies: Social Science From the Bottom Up"
+2. Supplementary Material: "Generative Social Science: Studies in Agent-Based Computational Modelling"
+3. Deepening Use-Case: "Agent\_Zero: Toward Neurocognitive Foundations for Generative Social Science"

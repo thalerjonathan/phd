@@ -105,11 +105,11 @@ type SugarScapeAgentConversation = AgentConversationReceiver SugarScapeAgentStat
 sugarGrowbackUnits :: Double
 sugarGrowbackUnits = 1.0
 
-summerSeasonGrowbackRate :: Double
-summerSeasonGrowbackRate = 1.0
+summerSeasonSugarGrowbackRate :: Double
+summerSeasonSugarGrowbackRate = 1.0
 
-winterSeasonGrowbackRate :: Double
-winterSeasonGrowbackRate = 8.0
+winterSeasonSugarGrowbackRate :: Double
+winterSeasonSugarGrowbackRate = 8.0
 
 seasonDuration :: Double
 seasonDuration = 50.0
@@ -176,14 +176,25 @@ spiceCapacityRange = (0.0, 4.0)
 
 spiceEndowmentRange :: (Double, Double)
 spiceEndowmentRange = (5.0, 25.0)
+
+spiceGrowbackUnits :: Double
+spiceGrowbackUnits = 1.0
+
+summerSeasonSpiceGrowbackRate :: Double
+summerSeasonSpiceGrowbackRate = 1.0
+
+winterSeasonSpiceGrowbackRate :: Double
+winterSeasonSpiceGrowbackRate = 8.0
 ------------------------------------------------------------------------------------------------------------------------
 
 cellOccupier :: AgentId -> SugarScapeAgentState -> SugarScapeEnvCellOccupier
 cellOccupier aid s = SugarScapeEnvCellOccupier {
                         sugEnvOccId = aid,
                         sugEnvOccTribe = sugAgTribe s,
-                        sugEnvOccWealth = sugAgSugarLevel s
+                        sugEnvOccWealth = wealth
                     }
+    where
+        wealth = (sugAgSugarLevel s) + (sugAgSpiceLevel s)
 
 calculateTribe :: SugarScapeCulturalTag -> SugarScapeTribe
 calculateTribe tag

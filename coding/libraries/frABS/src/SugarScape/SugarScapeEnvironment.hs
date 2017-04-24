@@ -42,11 +42,27 @@ regrowSugarByRate rate env = updateEnvironmentCells
                                             ((sugEnvSugarLevel c) + rate))
                                             } )
 
+regrowSpiceByRate :: Double -> SugarScapeEnvironment -> SugarScapeEnvironment
+regrowSpiceByRate rate env = updateEnvironmentCells
+                                env
+                                (\c -> c {
+                                    sugEnvSpiceLevel = (
+                                        min
+                                            (sugEnvSpiceCapacity c)
+                                            ((sugEnvSpiceLevel c) + rate))
+                                            } )
+
 regrowSugarToMax ::  SugarScapeEnvironment -> SugarScapeEnvironment
 regrowSugarToMax env = updateEnvironmentCells
                             env
                             (\c -> c {
                                 sugEnvSugarLevel = (sugEnvSugarCapacity c)} )
+
+regrowSpiceToMax ::  SugarScapeEnvironment -> SugarScapeEnvironment
+regrowSpiceToMax env = updateEnvironmentCells
+                            env
+                            (\c -> c {
+                                sugEnvSpiceLevel = (sugEnvSpiceCapacity c)} )
 
 regrowSugarByRateAndRegion :: (Int, Int) -> Double -> SugarScapeEnvironment -> SugarScapeEnvironment
 regrowSugarByRateAndRegion range rate env = updateEnvironmentCellsWithCoords
@@ -63,6 +79,21 @@ regrowSugarByRateAndRegion range rate env = updateEnvironmentCellsWithCoords
                                                    }
             | otherwise = c
 
+regrowSpiceByRateAndRegion :: (Int, Int) -> Double -> SugarScapeEnvironment -> SugarScapeEnvironment
+regrowSpiceByRateAndRegion range rate env = updateEnvironmentCellsWithCoords
+                                            env
+                                            (regrowCell range)
+    where
+        regrowCell :: (Int, Int) -> (EnvCoord, SugarScapeEnvCell) -> SugarScapeEnvCell
+        regrowCell (fromY, toY) ((_, y), c)
+            | y >= fromY && y <= toY = c {
+                                           sugEnvSpiceLevel = (
+                                               min
+                                                   (sugEnvSpiceCapacity c)
+                                                   ((sugEnvSpiceLevel c) + rate))
+                                                   }
+            | otherwise = c
+
 environmentSeasons :: Double -> SugarScapeEnvironment -> SugarScapeEnvironment
 environmentSeasons t env = envWinterRegrow
     where
@@ -71,8 +102,12 @@ environmentSeasons t env = envWinterRegrow
         winterTop = not summerTop
         summerRange = if summerTop then (1, halfY) else (halfY + 1, maxY)
         winterRange = if winterTop then (1, halfY) else (halfY + 1, maxY)
-        envSummerRegrow = regrowSugarByRateAndRegion summerRange (sugarGrowbackUnits / summerSeasonGrowbackRate) env
-        envWinterRegrow = regrowSugarByRateAndRegion winterRange (sugarGrowbackUnits / winterSeasonGrowbackRate) envSummerRegrow
+
+        envSummerRegrow = regrowSpiceByRateAndRegion summerRange (spiceGrowbackUnits / summerSeasonSpiceGrowbackRate) 
+                            (regrowSugarByRateAndRegion summerRange (sugarGrowbackUnits / summerSeasonSugarGrowbackRate) env)
+        envWinterRegrow = regrowSpiceByRateAndRegion winterRange (spiceGrowbackUnits / winterSeasonSpiceGrowbackRate)
+                            (regrowSugarByRateAndRegion winterRange (sugarGrowbackUnits / winterSeasonSugarGrowbackRate) envSummerRegrow)
+
         (_, maxY) = envLimits env
         halfY = floor ((toRational $ fromIntegral maxY) / 2.0 )
 
@@ -84,7 +119,7 @@ sugarScapeEnvironmentBehaviour = proc env ->
         let env' = if polutionEnabled then diffusePolution t env else env
 
         let envSeasonal = environmentSeasons t env'
-        let envRegrowSugarByRate = regrowSugarByRate sugarGrowbackUnits env'
-        let envRegrowSugarToMax = regrowSugarToMax env'
+        let envRegrowByRate = regrowSpiceByRate spiceGrowbackUnits (regrowSugarByRate sugarGrowbackUnits env')
+        let envRegrowToMax = regrowSugarToMax (regrowSugarToMax env')
 
-        returnA -< trace ("Time = " ++ (show t)) envRegrowSugarByRate
+        returnA -< trace ("Time = " ++ (show t)) envRegrowByRate

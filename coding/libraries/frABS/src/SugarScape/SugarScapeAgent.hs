@@ -117,14 +117,21 @@ agentHarvestCell a cellCoord = a2
 
         sugarLevelCell = sugEnvSugarLevel cell
         sugarLevelAgent = sugAgSugarLevel $ aoState a
-        newSugarLevelAgent = (sugarLevelCell + sugarLevelAgent)
+        newSugarLevelAgent = sugarLevelCell + sugarLevelAgent
 
-        a0 = updateState a (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
+        spiceLevelCell = sugEnvSpiceLevel cell
+        spiceLevelAgent = sugAgSpiceLevel $ aoState a
+        newSpiceLevelAgent = spiceLevelCell + spiceLevelAgent
 
-        cellHarvested = cell { sugEnvSugarLevel = 0.0 }
+        a0 = updateState a (\s -> s { sugAgSugarLevel = newSugarLevelAgent,
+                                        sugAgSpiceLevel = newSpiceLevelAgent })
+
+        cellHarvested = cell { sugEnvSugarLevel = 0.0,
+                                 sugEnvSpiceLevel = 0.0 }
         env = changeCellAt (aoEnv a0) cellCoord cellHarvested
         a1 = a0 { aoEnv = env }
 
+        -- NOTE: at the moment harvesting SPICE does not influence the polution
         pol = sugarLevelCell * polutionHarvestFactor 
         a2 = agentPoluteCell pol (cellCoord, cellHarvested) a1
 

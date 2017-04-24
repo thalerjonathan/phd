@@ -12,6 +12,10 @@ import System.Random
 import Control.Monad.Random
 import Control.Monad
 
+-- TODO: when sex is turned on the number of agents is constantly increasing which should not be possible because more agents compete for less ressources which should reduce the population. Probably we are leaking wealth
+
+-- TODO: unique IDs through state-monad?
+
 -- TODO: export dynamics in a text file with matlab format of the data: wealth distribution, number of agents, mean vision/metabolism, mean age,
 
 -- TODO random iteration in sequential

@@ -79,7 +79,7 @@ agentNonCombatMove a
         cellsInSight = agentLookout a
         unoccupiedCells = filter (cellUnoccupied . snd) cellsInSight
 
-        bestCells = selectBestCells (aoEnvPos a) unoccupiedCells
+        bestCells = selectBestCells a unoccupiedCells
         ((cellCoord, _), a') = agentPickRandom a bestCells
 
 agentMoveAndHarvestCell :: SugarScapeAgentOut -> EnvCoord -> SugarScapeAgentOut
@@ -143,10 +143,11 @@ agentMoveTo a cellCoord = a0 { aoEnvPos = cellCoord, aoEnv = env }
         cellOccupied = cell { sugEnvOccupier = Just (cellOccupier (aoId a0) (aoState a0))}
         env = changeCellAt (aoEnv a0) cellCoord cellOccupied
 
-selectBestCells :: EnvCoord -> [(EnvCoord, SugarScapeEnvCell)] -> [(EnvCoord, SugarScapeEnvCell)]
-selectBestCells refCoord cs = bestShortestDistanceCells
+selectBestCells :: SugarScapeAgentOut -> [(EnvCoord, SugarScapeEnvCell)] -> [(EnvCoord, SugarScapeEnvCell)]
+selectBestCells a cs = bestShortestDistanceCells
     where
-        measureFunc = bestMeasureSugarLevel
+        refCoord = aoEnvPos a
+        measureFunc = bestMeasureSugarAndSpiceLevel
 
         cellsSortedByMeasure = sortBy (\c1 c2 -> compare (measureFunc $ snd c2) (measureFunc $ snd c1)) cs
         bestCellMeasure = measureFunc $ snd $ head cellsSortedByMeasure
@@ -158,6 +159,21 @@ selectBestCells refCoord cs = bestShortestDistanceCells
 
         bestMeasureSugarLevel :: SugarScapeEnvCell -> Double
         bestMeasureSugarLevel c = sugEnvSugarLevel c
+
+        bestMeasureSugarAndSpiceLevel :: SugarScapeEnvCell -> Double
+        bestMeasureSugarAndSpiceLevel c = ((w1 + x1)**(m1/mT)) * ((w2 + x2)**(m2/mT))
+            where
+                s = aoState a
+
+                m1 = sugAgSugarMetab s
+                m2 = sugAgSpiceMetab s
+                mT = m1 + m2
+
+                w1 = sugAgSugarLevel s
+                w2 = sugAgSpiceLevel s
+
+                x1 = sugEnvSugarLevel c
+                x2 = sugEnvSpiceLevel c
 
         bestMeasureSugarPolutionRatio :: SugarScapeEnvCell -> Double
         bestMeasureSugarPolutionRatio c = sugLvl / (1 + polLvl)

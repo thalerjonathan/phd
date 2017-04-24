@@ -138,7 +138,7 @@ diffusePolutionTime = 12
 -- CHAPTER III
 ------------------------------------------------------------------------------------------------------------------------
 childBearingMinAgeRange :: (Double, Double)
-childBearingMinAgeRange = (120, 150)
+childBearingMinAgeRange = (12, 15)
 
 childBearingFemaleMaxAgeRange :: (Double, Double)
 childBearingFemaleMaxAgeRange = (40, 50)

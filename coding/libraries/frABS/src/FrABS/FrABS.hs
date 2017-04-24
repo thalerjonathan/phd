@@ -23,6 +23,8 @@ import FRP.Yampa
            are placed but it may be necessary in Heroes and cowards when creating dynamically new agents
         -}
 
+-- TODO: unique Ids through the state-monad?
+
 -- TODO: implement replications (using parallelism!)
 
 -- TODO: allow to be able to stop simulation when iteration.function returns True

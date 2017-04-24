@@ -91,7 +91,7 @@ type SugarScapeAgentConversation = AgentConversationReceiver SugarScapeAgentStat
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
--- CHAPTER II
+-- CHAPTER II: Life And Death On The Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
 sugarGrowbackUnits :: Double
 sugarGrowbackUnits = 1.0
@@ -135,7 +135,7 @@ diffusePolutionTime :: Int
 diffusePolutionTime = 12
 
 ------------------------------------------------------------------------------------------------------------------------
--- CHAPTER III
+-- CHAPTER III: Sex, Culture, And Conflict: The Emergence Of History
 ------------------------------------------------------------------------------------------------------------------------
 childBearingMinAgeRange :: (Double, Double)
 childBearingMinAgeRange = (12, 15)
@@ -154,6 +154,10 @@ culturalTagLength = 10
 
 combatReward :: Double
 combatReward = 2.0 -- replace with huge number e.g. 10^7 for harvesting all the other agents sugar 
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- CHAPTER IV: 
 ------------------------------------------------------------------------------------------------------------------------
 
 cellOccupier :: AgentId -> SugarScapeAgentState -> SugarScapeEnvCellOccupier

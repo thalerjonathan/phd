@@ -30,7 +30,7 @@ type SugarScapeCulturalTag = [Bool]
 data SugarScapeMsg =
     MatingRequest SugarScapeAgentGender
     | MatingReplyNo
-    | MatingReplyYes (Double, Double, Int, SugarScapeCulturalTag) -- Sugar-Contribution, Metabolism, Vision
+    | MatingReplyYes (Double, Double, Double, Int, SugarScapeCulturalTag) -- SugarContribution, SugarMetabolism, SpiceMetabolism, Vision
     | MatingChild AgentId
     | MatingChildAck
 
@@ -43,11 +43,16 @@ data SugarScapeMsg =
     deriving (Show)
 
 data SugarScapeAgentState = SugarScapeAgentState {
-    sugAgMetabolism :: Double,              -- this amount of sugar will be consumed by the agent in each time-step
+    sugAgSugarMetab :: Double,              -- this amount of sugar will be consumed by the agent in each time-step
+    sugAgSpiceMetab :: Double,              -- this amount of spice will be consumed by the agent in each time-step
+
     sugAgVision :: Int,                     -- the vision of the agent: strongly depends on the type of the environment: Int because its 2d discrete
 
     sugAgSugarLevel :: Double,              -- the current sugar holdings of the agent, if 0 then the agent starves to death
     sugAgSugarInit :: Double,               -- agent is fertile only when its sugarlevel is GE than its initial endowment
+
+    sugAgSpiceLevel :: Double,              -- the current spice holdings of the agent, if 0 then the agent starves to death
+    sugAgSpiceInit :: Double,
 
     sugAgMaxAge :: Double,                  -- at this age the agent will die and create a single new random offspring
 
@@ -71,6 +76,10 @@ data SugarScapeEnvCellOccupier = SugarScapeEnvCellOccupier {
 data SugarScapeEnvCell = SugarScapeEnvCell {
     sugEnvSugarCapacity :: Double,
     sugEnvSugarLevel :: Double,
+
+    sugEnvSpiceCapacity :: Double,
+    sugEnvSpiceLevel :: Double,
+
     sugEnvPolutionLevel :: Double,
     sugEnvOccupier :: Maybe SugarScapeEnvCellOccupier
 } deriving (Show)
@@ -112,8 +121,8 @@ sugarCapacityRange = (0.0, 4.0)
 sugarEndowmentRange :: (Double, Double)
 sugarEndowmentRange = (5.0, 25.0)
 
-metabolismRange :: (Double, Double)
-metabolismRange = (1.0, 4.0)
+sugarMetabolismRange :: (Double, Double)
+sugarMetabolismRange = (1.0, 4.0)
 
 visionRange :: (Int, Int)
 visionRange = (1, 6)
@@ -157,7 +166,16 @@ combatReward = 2.0 -- replace with huge number e.g. 10^7 for harvesting all the 
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
--- CHAPTER IV: 
+-- CHAPTER IV: Sugar and Spice - Trade Comes to the Sugarscape
+------------------------------------------------------------------------------------------------------------------------
+spiceMetabolismRange :: (Double, Double)
+spiceMetabolismRange = (1.0, 4.0)
+
+spiceCapacityRange :: (Double, Double)
+spiceCapacityRange = (0.0, 4.0)
+
+spiceEndowmentRange :: (Double, Double)
+spiceEndowmentRange = (5.0, 25.0)
 ------------------------------------------------------------------------------------------------------------------------
 
 cellOccupier :: AgentId -> SugarScapeAgentState -> SugarScapeEnvCellOccupier
@@ -220,10 +238,12 @@ randomAgent :: (AgentId, EnvCoord)
                 -> Rand StdGen SugarScapeAgentDef
 randomAgent (agentId, coord) beh conv = 
     do
-        randMeta <- getRandomR metabolismRange
+        randSugarMetab <- getRandomR sugarMetabolismRange
+        randSpiceMetab <- getRandomR spiceMetabolismRange
         randVision <- getRandomR  visionRange
-        randSugarEndowment <- getRandomR  sugarEndowmentRange
-        randSugarEndowment <- getRandomR  sexualReproductionInitialEndowmentRange
+        randSugarEndowment <- getRandomR sugarEndowmentRange
+        randSpiceEndowment <- getRandomR spiceEndowmentRange
+        -- randSugarEndowment <- getRandomR sexualReproductionInitialEndowmentRange
         randMaxAge <- getRandomR  ageRange
         randMale <- getRandomR (True, False)
         randMinFert <- getRandomR childBearingMinAgeRange
@@ -238,11 +258,16 @@ randomAgent (agentId, coord) beh conv =
         rng <- getSplit
 
         let s = SugarScapeAgentState {
-            sugAgMetabolism = randMeta,
+            sugAgSugarMetab = randSugarMetab,
+            sugAgSpiceMetab = randSpiceMetab,
+
             sugAgVision = randVision,
 
             sugAgSugarLevel = randSugarEndowment,
             sugAgSugarInit = randSugarEndowment,
+
+            sugAgSpiceInit = randSpiceEndowment,
+            sugAgSpiceLevel = randSpiceEndowment,
 
             sugAgMaxAge = randMaxAge,
 

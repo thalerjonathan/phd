@@ -46,22 +46,28 @@ unoccupyPosition a = a { aoEnv = env' }
         env' = changeCellAt (aoEnv a) cellCoord cellUnoccupied
 
 starvedToDeath :: SugarScapeAgentOut -> Bool
-starvedToDeath a = (sugAgSugarLevel $ aoState a) <= 0
+starvedToDeath a = noSugar || noSpice
+    where
+        noSugar = (sugAgSugarLevel $ aoState a) <= 0
+        noSpice = (sugAgSpiceLevel $ aoState a) <= 0
 
 agentMetabolism :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentMetabolism a 
     | starvedToDeath a1 = agentDies a1
     | otherwise = a1
     where
-        metab = sugAgMetabolism $ aoState a
+        s = aoState a
+        sugarMetab = sugAgSugarMetab s
+        spiceMetab = sugAgSpiceMetab s
 
-        a0 = updateState a (\s -> s {
-                                sugAgSugarLevel =
-                                    max
-                                        0
-                                        ((sugAgSugarLevel s) - metab)})
+        newSugarLevel = max 0 ((sugAgSugarLevel s) - sugarMetab)
+        newSpiceLevel = max 0 ((sugAgSpiceLevel s) - spiceMetab)
 
-        pol = metab * polutionMetabolismFactor 
+        a0 = updateState a (\s -> s { sugAgSugarLevel = newSugarLevel,
+                                        sugAgSpiceLevel = newSpiceLevel })
+
+        -- NOTE: for now the metabolism (and harvest) of spice does not cause any polution
+        pol = sugarMetab * polutionMetabolismFactor
         cell = agentCell a0
         a1 = agentPoluteCell pol cell a0
 
@@ -245,7 +251,8 @@ agentSex a
                         sugarLevel = sugAgSugarLevel s
 
                         mySugarContribution = initialSugarEndow / 2.0
-                        myMetab = sugAgMetabolism s
+                        mySugarMetab = sugAgSugarMetab s
+                        mySpiceMetab = sugAgSpiceMetab s
                         myVision = sugAgVision s
                         myCulturalTag = sugAgCulturalTag s
 
@@ -254,7 +261,7 @@ agentSex a
                         (newBornDef, a0) = runAgentRandom a
                             (createNewBorn 
                                 (newBornId, coord)
-                                (mySugarContribution, myMetab, myVision, myCulturalTag)
+                                (mySugarContribution, mySugarMetab, mySpiceMetab, myVision, myCulturalTag)
                                 otherTup)
 
                         env = aoEnv a0
@@ -269,14 +276,15 @@ agentSex a
                 agentMatingConversationsReply a (Just (_, _)) = agentMatingConversation otherAis allCoords a  -- NOTE: unexpected/MatingChildAck reply, continue with the next
 
 createNewBorn :: (AgentId, EnvCoord)
-                    -> (Double, Double, Int, SugarScapeCulturalTag)
-                    -> (Double, Double, Int, SugarScapeCulturalTag)
+                    -> (Double, Double, Double, Int, SugarScapeCulturalTag)
+                    -> (Double, Double, Double, Int, SugarScapeCulturalTag)
                     -> Rand StdGen SugarScapeAgentDef
 createNewBorn idCoord
-                (sugEndowFather, metabFather, visionFather, cultureFather)
-                (sugEndowMother, metabMother, visionMother, cultureMother) =
+                (sugEndowFather, sugarMetabFather, spiceMetabFather, visionFather, cultureFather)
+                (sugEndowMother, sugarMetabMother, spiceMetabMother, visionMother, cultureMother) =
     do
-        newBornMetabolism <- crossover (metabFather, metabMother)
+        newBornSugarMetab <- crossover (sugarMetabFather, sugarMetabMother)
+        newBornSpiceMetab <- crossover (spiceMetabFather, spiceMetabMother)
         newBornVision <- crossover (visionFather, visionMother)
         newBornCulturalTag <- culturalCrossover cultureFather cultureMother
 
@@ -287,7 +295,8 @@ createNewBorn idCoord
                             sugarScapeAgentBehaviour
                             sugarScapeAgentConversation
 
-        let newBornState' = (adState newBornDef) { sugAgMetabolism = newBornMetabolism,
+        let newBornState' = (adState newBornDef) { sugAgSugarMetab = newBornSugarMetab,
+                                                   sugAgSpiceMetab = newBornSpiceMetab,
                                                    sugAgVision = newBornVision,
                                                    sugAgSugarInit = newBornSugarEndow,
                                                    sugAgCulturalTag = newBornCulturalTag,
@@ -467,7 +476,7 @@ handleMatingConversation :: (SugarScapeAgentGender)
 handleMatingConversation otherGender ain 
     | isFertile s &&
         satisfiesWealthForChildBearing s &&
-        differentGender = (MatingReplyYes (mySugarContribution, myMetab, myVision, myCulturalTag), ain')
+        differentGender = (MatingReplyYes (mySugarContribution, mySugarMetab, mySpiceMetab, myVision, myCulturalTag), ain')
     | otherwise = (MatingReplyNo, ain)
     where
         s = aiState ain
@@ -478,7 +487,8 @@ handleMatingConversation otherGender ain
         initialSugarEndow = sugAgSugarInit s
         sugarLevel = sugAgSugarLevel s
         mySugarContribution = initialSugarEndow / 2.0
-        myMetab = sugAgMetabolism s
+        mySugarMetab = sugAgSugarMetab s
+        mySpiceMetab = sugAgSpiceMetab s
         myVision = sugAgVision s
         myCulturalTag = sugAgCulturalTag s
         
@@ -513,8 +523,8 @@ sugarScapeAgentBehaviourFunc age ain a = do
                                                                                 let a3 = agentNonCombatMove a2
                                                                                 let a4 = inheritSugar ain a3
                                                                                 let a5 = agentCultureContact ain a4
-                                                                                let a6 = agentSex a5
-                                                                                a6
+                                                                                --let a6 = agentSex a5
+                                                                                a5
 
 
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour

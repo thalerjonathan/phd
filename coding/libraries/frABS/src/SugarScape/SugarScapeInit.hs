@@ -24,6 +24,13 @@ circlesSugar sugarLevel circles (coord, cell)
         where
             withinRadius = any (\(p, r) -> distanceEucl p coord <= r) circles
 
+circlesSpice :: Double -> [(EnvCoord, Double)] -> (EnvCoord, SugarScapeEnvCell) -> Double
+circlesSpice spiceLevel circles (coord, cell)
+    | withinRadius = spiceLevel
+    | otherwise = sugEnvSpiceLevel cell -- NOTE: keep the level of before
+        where
+            withinRadius = any (\(p, r) -> distanceEucl p coord <= r) circles
+
 createSugarScape :: Int -> EnvLimits -> IO ([SugarScapeAgentDef], SugarScapeEnvironment)
 createSugarScape agentCount l = do
                                     randCoords <- drawRandomCoords (0,0) l agentCount
@@ -31,20 +38,24 @@ createSugarScape agentCount l = do
                                     as <- mapM randomAgentIO (zip [0..agentCount-1] randCoords)
                                     let occupations = map (\a -> (adEnvPos a, (adId a, adState a))) as
 
-                                    initRandomSugarCells <- createCells l occupations
+                                    initRandomCells <- createCells l occupations
 
-                                    let zeroSugarCells = initSugar initRandomSugarCells allZeroSugar
-                                    let cellsWithLevel1 = initSugar zeroSugarCells (circlesSugar 1 [((35, 35), 20.0), ((15, 15), 20.0)])
-                                    let cellsWithLevel2 = initSugar cellsWithLevel1 (circlesSugar 2 [((35, 35), 15.0), ((15, 15), 15.0)])
-                                    let cellsWithLevel3 = initSugar cellsWithLevel2 (circlesSugar 3 [((35, 35), 10.0), ((15, 15), 10.0)])
-                                    let cellsWithLevel4 = initSugar cellsWithLevel3 (circlesSugar 4 [((35, 35), 5.0), ((15, 15), 5.0)])
+                                    let cellsWithSugarLevel1 = initSugar initRandomCells (circlesSugar 1 [((35, 35), 20.0), ((15, 15), 20.0)])
+                                    let cellsWithSugarLevel2 = initSugar cellsWithSugarLevel1 (circlesSugar 2 [((35, 35), 15.0), ((15, 15), 15.0)])
+                                    let cellsWithSugarLevel3 = initSugar cellsWithSugarLevel2 (circlesSugar 3 [((35, 35), 10.0), ((15, 15), 10.0)])
+                                    let cellsWithSugarLevel4 = initSugar cellsWithSugarLevel3 (circlesSugar 4 [((35, 35), 5.0), ((15, 15), 5.0)])
+
+                                    let cellsWithSpiceLevel1 = initSpice cellsWithSugarLevel4 (circlesSpice 1 [((15, 35), 20.0), ((35, 15), 20.0)])
+                                    let cellsWithSpiceLevel2 = initSpice cellsWithSpiceLevel1 (circlesSpice 2 [((15, 35), 15.0), ((35, 15), 15.0)])
+                                    let cellsWithSpiceLevel3 = initSpice cellsWithSpiceLevel2 (circlesSpice 3 [((15, 35), 10.0), ((35, 15), 10.0)])
+                                    let cellsWithSpiceLevel4 = initSpice cellsWithSpiceLevel3 (circlesSpice 4 [((15, 35), 5.0), ((35, 15), 5.0)])
 
                                     let env = createEnvironment
                                                           (Just sugarScapeEnvironmentBehaviour)
                                                           l
                                                           neumann
                                                           WrapBoth
-                                                          cellsWithLevel4
+                                                          cellsWithSpiceLevel4
                                     return (as, env)
                                     --return (trace ("Environment has cells: " ++ (show cells)) (as, env))
     where
@@ -63,6 +74,21 @@ createSugarScape agentCount l = do
                         cell' = cell { sugEnvSugarLevel = sugar,
                                         sugEnvSugarCapacity = sugar }
 
+        initSpice :: [(EnvCoord, SugarScapeEnvCell)]
+                            -> ((EnvCoord, SugarScapeEnvCell) -> Double)
+                            -> [(EnvCoord, SugarScapeEnvCell)]
+        initSpice cs spiceFunc = map (initSpiceAux spiceFunc) cs
+
+            where
+                initSpiceAux :: ((EnvCoord, SugarScapeEnvCell) -> Double)
+                                        -> (EnvCoord, SugarScapeEnvCell)
+                                        -> (EnvCoord, SugarScapeEnvCell)
+                initSpiceAux spiceFunc cp@(coord, cell) = (coord, cell')
+                    where
+                        spice = spiceFunc cp
+                        cell' = cell { sugEnvSpiceLevel = spice,
+                                        sugEnvSpiceCapacity = spice }
+
         createCells :: EnvLimits
                         -> [(EnvCoord, (AgentId, SugarScapeAgentState))]
                         -> IO [(EnvCoord, SugarScapeEnvCell)]
@@ -73,14 +99,20 @@ createSugarScape agentCount l = do
 
         randomCell :: [(EnvCoord, (AgentId, SugarScapeAgentState))] -> EnvCoord -> IO (EnvCoord, SugarScapeEnvCell)
         randomCell os coord = do
-                randCap <- getStdRandom $ randomR sugarCapacityRange
+                randSugarCap <- getStdRandom $ randomR sugarCapacityRange
+                randSpiceCap <- getStdRandom $ randomR spiceCapacityRange
 
                 let mayOccupier = Data.List.find ((==coord) . fst) os
 
                 let c = SugarScapeEnvCell {
-                    sugEnvSugarCapacity = randCap,
-                    sugEnvSugarLevel = randCap,
+                    sugEnvSugarCapacity = 0,
+                    sugEnvSugarLevel = 0,
+
+                    sugEnvSpiceCapacity = 0,
+                    sugEnvSpiceLevel = 0,
+
                     sugEnvPolutionLevel = 0.0,
+
                     sugEnvOccupier = maybe Nothing (\(_, (aid, s)) -> (Just (cellOccupier aid s))) mayOccupier
                 }
 

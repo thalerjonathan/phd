@@ -31,7 +31,7 @@ renderEnvCell :: (Float, Float)
                     -> Double
                     -> (EnvCoord, SugarScapeEnvCell)
                     -> GLO.Picture
-renderEnvCell (rectWidth, rectHeight) (wx, wy) maxPolLevel ((x, y), cell) = GLO.Pictures $ [polutionLevelRect, sugarLevelCircle]
+renderEnvCell (rectWidth, rectHeight) (wx, wy) maxPolLevel ((x, y), cell) = GLO.Pictures $ [polutionLevelRect, spiceLevelCircle, sugarLevelCircle]
     where
         polLevel = sugEnvPolutionLevel cell
         --polGreenShadeRelative = (realToFrac (polLevel / maxPolLevel))
@@ -39,6 +39,7 @@ renderEnvCell (rectWidth, rectHeight) (wx, wy) maxPolLevel ((x, y), cell) = GLO.
         polGreenShade = polGreenShadeAbsolute
 
         sugarColor = GLO.makeColor (realToFrac 0.9) (realToFrac 0.9) (realToFrac 0.0) 1.0
+        spiceColor = GLO.makeColor (realToFrac 0.9) (realToFrac 0.7) (realToFrac 0.0) 1.0
         polutionColor = if polLevel == 0.0 then GLO.white else GLO.makeColor (realToFrac 0.0) polGreenShade (realToFrac 0.0) 1.0
 
         halfXSize = fromRational (toRational wx / 2.0)
@@ -48,10 +49,17 @@ renderEnvCell (rectWidth, rectHeight) (wx, wy) maxPolLevel ((x, y), cell) = GLO.
         yPix = fromRational (toRational (fromIntegral y * rectHeight)) - halfYSize
 
         sugarLevel = sugEnvSugarLevel cell
-        sugarLevelRatio = sugarLevel / (snd sugarCapacityRange)
+        sugarRatio = sugarLevel / (snd sugarCapacityRange)
 
-        radius = rectWidth * (realToFrac sugarLevelRatio)
-        sugarLevelCircle = GLO.color sugarColor $ GLO.translate xPix yPix $ GLO.ThickCircle 0 radius
+        spiceLevel = sugEnvSpiceLevel cell
+        spiceRatio = spiceLevel / (snd spiceCapacityRange)
+
+        sugarRadius = rectWidth * (realToFrac sugarRatio)
+        sugarLevelCircle = GLO.color sugarColor $ GLO.translate xPix yPix $ GLO.ThickCircle 0 sugarRadius
+
+        spiceRadius = rectWidth * (realToFrac spiceRatio)
+        spiceLevelCircle = GLO.color spiceColor $ GLO.translate xPix yPix $ GLO.ThickCircle 0 spiceRadius
+
         polutionLevelRect = GLO.color polutionColor $ GLO.translate xPix yPix $ GLO.rectangleSolid rectWidth rectHeight
 
 renderAgent :: (Float, Float)

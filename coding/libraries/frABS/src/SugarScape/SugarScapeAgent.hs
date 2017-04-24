@@ -161,17 +161,8 @@ selectBestCells a cs = bestShortestDistanceCells
         bestMeasureSugarLevel c = sugEnvSugarLevel c
 
         bestMeasureSugarAndSpiceLevel :: SugarScapeEnvCell -> Double
-        bestMeasureSugarAndSpiceLevel c = ((w1 + x1)**(m1/mT)) * ((w2 + x2)**(m2/mT))
+        bestMeasureSugarAndSpiceLevel c = agentWelfareChange (aoState a) (x1, x2)
             where
-                s = aoState a
-
-                m1 = sugAgSugarMetab s
-                m2 = sugAgSpiceMetab s
-                mT = m1 + m2
-
-                w1 = sugAgSugarLevel s
-                w2 = sugAgSpiceLevel s
-
                 x1 = sugEnvSugarLevel c
                 x2 = sugEnvSpiceLevel c
 
@@ -180,7 +171,6 @@ selectBestCells a cs = bestShortestDistanceCells
             where
                 sugLvl = sugEnvSugarLevel c
                 polLvl = sugEnvPolutionLevel c
-
 
 agentLookout :: SugarScapeAgentOut -> [(EnvCoord, SugarScapeEnvCell)]
 agentLookout a = zip visionCoordsWrapped visionCells
@@ -352,6 +342,33 @@ inheritSugar ain a = onMessage inheritSugarMatch ain inheritSugarAction a
         inheritSugarMatch (_, InheritSugar _) = True
         inheritSugarMatch _ = False
 
+handleMatingConversation :: (SugarScapeAgentGender)
+                                -> SugarScapeAgentIn
+                                -> (SugarScapeMsg, SugarScapeAgentIn)
+handleMatingConversation otherGender ain 
+    | isFertile s &&
+        satisfiesWealthForChildBearing s &&
+        differentGender = (MatingReplyYes (mySugarContribution, mySugarMetab, mySpiceMetab, myVision, myCulturalTag), ain')
+    | otherwise = (MatingReplyNo, ain)
+    where
+        s = aiState ain
+        myGender = sugAgGender s
+        differentGender = myGender /= otherGender
+
+        -- NOTE: to be fertile an agent must have at least as much sugar as initially endowed, therefore it cannot go negative
+        initialSugarEndow = sugAgSugarInit s
+        sugarLevel = sugAgSugarLevel s
+        mySugarContribution = initialSugarEndow / 2.0
+        mySugarMetab = sugAgSugarMetab s
+        mySpiceMetab = sugAgSpiceMetab s
+        myVision = sugAgVision s
+        myCulturalTag = sugAgCulturalTag s
+        
+        s' = s { sugAgSugarLevel = sugarLevel - mySugarContribution }
+        ain' = ain { aiState = s'}
+
+
+
 agentCultureContact :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
 agentCultureContact ain a = broadcastMessage a' (CulturalContact culturalTag) nids 
     where
@@ -475,8 +492,87 @@ agentCombatMove a
 ------------------------------------------------------------------------------------------------------------------------
 -- Chapter IV: Sugar and Spice - Trade Comes to the Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
+agentTrading :: SugarScapeAgentOut -> SugarScapeAgentOut
+agentTrading a = agentTradingConversation nids a
+    where
+        nids = neighbourIds a
+
+        agentTradingConversation :: [AgentId]
+                                    -> SugarScapeAgentOut
+                                    -> SugarScapeAgentOut
+        agentTradingConversation [] a = conversationEnd a
+        agentTradingConversation (receiverId:otherAis) a = conversation a (receiverId, m) agentTradingConversationsReply
+            where
+                mrsA = agentMRS $ aoState a
+                m = TradingRequest mrsA
+
+                agentTradingConversationsReply :: SugarScapeAgentOut
+                                                    -> Maybe (AgentMessage SugarScapeMsg)
+                                                    -> SugarScapeAgentOut
+                agentTradingConversationsReply a Nothing = agentTradingConversation otherAis a  -- NOTE: the target was not found or does not have a handler, continue with the next
+                agentTradingConversationsReply a (Just (_, TradingRefuse)) = agentTradingConversation otherAis a
+                agentTradingConversationsReply a (Just (senderId, (TradingAccept mrsB))) = trace ("Trading-Price = " ++ (show price)) (agentTradingConversation otherAis aAfterTrade)
+                    where
+                        s = aoState a
+                        price = sqrt (mrsA * mrsB)
+                        sugarLevel = sugAgSugarLevel s
+                        spiceLevel = sugAgSpiceLevel s
+
+                        sBuySpice = s { sugAgSugarLevel = sugarLevel - price, sugAgSpiceLevel = spiceLevel + price }
+                        sBuySugar = s { sugAgSugarLevel = sugarLevel + price, sugAgSpiceLevel = spiceLevel - price }
+
+                        -- NOTE: this agent is A
+                        aAfterTrade = if mrsA > mrsB then a { aoState = sBuySugar } else a { aoState = sBuySpice }
+
+agentMRS :: SugarScapeAgentState -> Double
+agentMRS s = (w2 * m1) / (w1 * m2)
+    where
+        m1 = sugAgSugarMetab s
+        m2 = sugAgSpiceMetab s
+
+        w1 = sugAgSugarLevel s
+        w2 = sugAgSpiceLevel s
 
 
+handleTradingConversation :: Double
+                                -> SugarScapeAgentIn
+                                -> (SugarScapeMsg, SugarScapeAgentIn)
+handleTradingConversation mrsA ain 
+    | newWelfare > currentWelfare = (TradingAccept mrsB, ainAfterTrade)     -- This makes the agent better off
+    | otherwise = (TradingRefuse, ain) 
+    where
+        s = aiState ain
+
+        -- TODO: handle cross-over
+
+        mrsB = agentMRS s
+        price = sqrt (mrsA * mrsB)
+
+        currentWelfare = agentWelfare s
+        -- NOTE: we assume that it never occurs that two floating-point values are the same (especially not in this case) thus treating this case as mrsA < mrsB
+        newWelfare = if mrsA > mrsB then agentWelfareChange s ((-price), price) else agentWelfareChange s (price, (-price))
+
+        sugarLevel = sugAgSugarLevel s
+        spiceLevel = sugAgSpiceLevel s
+
+        sBuySpice = s { sugAgSugarLevel = sugarLevel - price, sugAgSpiceLevel = spiceLevel + price }
+        sBuySugar = s { sugAgSugarLevel = sugarLevel + price, sugAgSpiceLevel = spiceLevel - price }
+
+        -- NOTE: this agent is B
+        ainAfterTrade = if mrsA > mrsB then ain { aiState = sBuySpice } else ain { aiState = sBuySugar }
+
+agentWelfare :: SugarScapeAgentState -> Double
+agentWelfare s = agentWelfareChange s (0, 0)
+
+agentWelfareChange :: SugarScapeAgentState -> (Double, Double) -> Double
+agentWelfareChange s (sugarChange, spiceChange) = ((w1 + sugarChange)**(m1/mT)) * ((w2 + spiceChange)**(m2/mT))
+    where
+        m1 = sugAgSugarMetab s
+        m2 = sugAgSpiceMetab s
+        mT = m1 + m2
+
+        w1 = sugAgSugarLevel s
+        w2 = sugAgSpiceLevel s
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -491,32 +587,11 @@ sugarScapeAgentConversation ain (_, (MatingChild childId)) = Just (MatingChildAc
         s = aiState ain
         s' = s { sugAgChildren = childId : (sugAgChildren s)}
         ain' = ain { aiState = s' }
+sugarScapeAgentConversation ain (_, (TradingRequest mrs)) = Just (m , ain')
+    where
+        (m, ain') = handleTradingConversation mrs ain
 sugarScapeAgentConversation ain _ = Nothing
 
-handleMatingConversation :: (SugarScapeAgentGender)
-                                -> SugarScapeAgentIn
-                                -> (SugarScapeMsg, SugarScapeAgentIn)
-handleMatingConversation otherGender ain 
-    | isFertile s &&
-        satisfiesWealthForChildBearing s &&
-        differentGender = (MatingReplyYes (mySugarContribution, mySugarMetab, mySpiceMetab, myVision, myCulturalTag), ain')
-    | otherwise = (MatingReplyNo, ain)
-    where
-        s = aiState ain
-        myGender = sugAgGender s
-        differentGender = myGender /= otherGender
-
-        -- NOTE: to be fertile an agent must have at least as much sugar as initially endowed, therefore it cannot go negative
-        initialSugarEndow = sugAgSugarInit s
-        sugarLevel = sugAgSugarLevel s
-        mySugarContribution = initialSugarEndow / 2.0
-        mySugarMetab = sugAgSugarMetab s
-        mySpiceMetab = sugAgSpiceMetab s
-        myVision = sugAgVision s
-        myCulturalTag = sugAgCulturalTag s
-        
-        s' = s { sugAgSugarLevel = sugarLevel - mySugarContribution }
-        ain' = ain { aiState = s'}
 
 neighbourIds :: SugarScapeAgentOut -> [AgentId]
 neighbourIds a = map (sugEnvOccId . fromJust . sugEnvOccupier . snd) occupiedCells
@@ -547,7 +622,8 @@ sugarScapeAgentBehaviourFunc age ain a = do
                                                                                 let a4 = inheritSugar ain a3
                                                                                 let a5 = agentCultureContact ain a4
                                                                                 --let a6 = agentSex a5
-                                                                                a5
+                                                                                let a7 = agentTrading a5
+                                                                                a7
 
 
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour

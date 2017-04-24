@@ -63,6 +63,7 @@ data AgentOut s m ec = AgentOut {
 ------------------------------------------------------------------------------------------------------------------------
 -- Agent Functions
 ------------------------------------------------------------------------------------------------------------------------
+-- NOTE: beware of a = AgentOut (randomly manipulating AgentOut) because one will end up with 2 versions of AgentOut which need to be merged
 runAgentRandom :: AgentOut s m ec -> Rand StdGen a -> (a, AgentOut s m ec)
 runAgentRandom a f = (ret, a')
     where

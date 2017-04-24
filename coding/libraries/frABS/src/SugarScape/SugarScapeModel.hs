@@ -44,7 +44,9 @@ data SugarScapeMsg =
 
     | KilledInCombat
     
-    deriving (Show)
+    | TradingRequest Double         -- mrsA
+    | TradingAccept Double          -- mrsB
+    | TradingRefuse deriving (Show)
 
 data SugarScapeAgentState = SugarScapeAgentState {
     sugAgSugarMetab :: Double,              -- this amount of sugar will be consumed by the agent in each time-step
@@ -116,7 +118,7 @@ winterSeasonSugarGrowbackRate :: Double
 winterSeasonSugarGrowbackRate = 8.0
 
 seasonDuration :: Double
-seasonDuration = 50.0
+seasonDuration = 10.0
 
 sugarCapacityRange :: (Double, Double)
 sugarCapacityRange = (0.0, 4.0)
@@ -126,10 +128,10 @@ sugarEndowmentRange :: (Double, Double)
 sugarEndowmentRange = (5.0, 25.0)
 
 sugarMetabolismRange :: (Double, Double)
-sugarMetabolismRange = (1.0, 4.0)
+sugarMetabolismRange = (1.0, 5.0)
 
 visionRange :: (Int, Int)
-visionRange = (1, 6)
+visionRange = (1, 10)
 
 ageRange :: (Double, Double)
 ageRange = (60, 100)
@@ -173,7 +175,7 @@ combatReward = 2.0 -- replace with huge number e.g. 10^7 for harvesting all the 
 -- CHAPTER IV: Sugar and Spice - Trade Comes to the Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
 spiceMetabolismRange :: (Double, Double)
-spiceMetabolismRange = (1.0, 4.0)
+spiceMetabolismRange = (1.0, 5.0)
 
 spiceCapacityRange :: (Double, Double)
 spiceCapacityRange = (0.0, 4.0)

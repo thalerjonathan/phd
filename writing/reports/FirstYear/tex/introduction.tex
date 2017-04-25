@@ -1,9 +1,4 @@
 \section{Introduction}
-TODO: Discuss the key aspects of the PhD project such as: background material, context, motivation, aims and objectives. Include a succinct and concise account of the progress and achievements during this stage of the PhD.
-
-Direction of Research:
-ABS mit FRP durch FrABS. SugarScape und Agent\_Zero implementieren
-BEGRueNDEN wieso FP in ABS. Robustness, Testbarkeit mit Quickcheck, Verification, Validierung, Code = Spezifikation
 
 \subsection{Problems of ABS in OO}
 - Objects don't compose
@@ -29,6 +24,11 @@ Because we left the path of OO and want to develop a completely different method
 - how can agents act on the environment?
 - how to handle structural dynamism (creation and removal of agents)?
 
+\subsubsection{Expected benefits}
+1. By mapping the concepts of ABS to Category-Theory and Type-Theory we gain a deeper understanding of the deeper structure of Agents, Agent-Models and Agent-Simulations.
+2. The declarative nature of pure functional programming will allow to close the gap between specification and code by designing an EDSL for ABS in Haskell building on the previously derived abstractions in Category-Theory and Type-Theory. The abstractions and the EDSL implementation will then serve as a specification tool and at the same time code.
+3. The pure functional nature together with the EDSL and abstractions in Category- \& Type-Theory allow for a new level of formal verification \& validation using a combination of mathematical proofs in Category- \& Type-Theory, algebraic reasoning in the EDSL and model-checking using Unit-Tests and QuickCheck. The expectation is that this allows us to formally specify hypotheses about expected outcomes about the dynamics (or emergent patterns) of our simulations which then can be verified.
+
 \subsection{Field of Application}
 Agent-Based Modelling \& Simulation is a method and tool and thus always applied in a very specific domain in which phenomenon are being researched which can be mapped to ABS. For our PhD we picked the field of Agent-Based Computational Social Sciences (ACS) with slight influences from Agent-Based Computational Economics (ACE). The reason for this is that ACS was one of the first fields to adopt ABS in their research on artificial societies and is still a strong driving force behind the application of ABS. ACE is about the same age as ACS but is not yet nearly as established in Economics as ACS is in the Social Sciences (TODO: can i really back up my claims?). ACS draw upon findings of ACE in the SugarScape Model where Agents engage in bilateral decentralized bartering. The author claims that both fields are highly relevant for the future. Economists start realizing that more heterogenous models need to be studied which can only be done using ABS.
 Our primary field of application will be ACS but we will sometimes draw upon ACE when appropriate e.g. in SugarScape. By applying our new method to these fields we hope to bring forward a paradigm-shift which allows to better understand the concepts of ABS and to have more powerful tools for verification \& validation at hand.
@@ -38,3 +38,4 @@ TODO: what are the aims of ACS and ACE?
 1. Initial Use-Case: SugarScape Model as in "Growing Artificial Societies: Social Science From the Bottom Up"
 2. Supplementary Material: "Generative Social Science: Studies in Agent-Based Computational Modelling"
 3. Verification \& Validation Use-Case: "Agent\_Zero: Toward Neurocognitive Foundations for Generative Social Science"
+

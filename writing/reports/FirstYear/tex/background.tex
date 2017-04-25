@@ -1,28 +1,2 @@
 \section{Background}
 
-\subsection{Implementation}
-
-\subsubsection{Monads}
-
-\subsubsection{Arrows}
-
-\subsubsection{Continuations}
- 
-\subsubsection{FRP}
-TODO: why Yampa? There are lots of other FRP-libraries for Haskell. Reason: in-house knowledge (Nilsson, Perez), start with \textit{some} FRP-library to get familiar with the concept and see if FRP is applicable to ABS. TODO: short overview over other FRP-libraries but leave a in-depth evaluation for further-research out of the scope of the PhD as Yampa seems to be suitable. One exception: the extension of Yampa to Dunai to be able to do FRP in Monads, something which will be definitely useful for a better and clearer structuring of the implementation.
-TODO: Push vs. Pull
-
-TODO: describe FRP
-
-TODO: 1st year report Ivan: "FPR tries to shift the direction of data-flow, from message passing onto data dependency. This helps reason about what things are over time, as opposed to how changes propagate". QUESTION: Message-passing is an essential concept in ABS, thus is then FRP still the right way to do ABS or DO WE HAVE TO LOOK AT MESSAGE PASSING IN A DIFFERENT WAY IN FRP, TO VIEW AND MODEL IT AS DATA-DEPENDENCY? HOW CAN THIS BE DONE?
-BUT: agent-relations in interactions are NEVER FIXED and always completely dynamic, forming a network. The question is: is there a mechanism in which we have explicit data-dependency but which is dynamic like message-passing but does not try to fake method-calls? maybe the conversations come very close
-
-\subsection{Specification}
-\subsubsection{Category Theory}
-include paper on arrows my hughes
-
-apply category theory to agent-based simulation: how can a ABS system itself be represented in category theory and can we represent models in this category theory as well?
-
-ADOM: Agent Domain of Monads: https://www.haskell.org/communities/11-2006/html/report.html
-
- develop category theory behind FrABS: look into monads, arrows

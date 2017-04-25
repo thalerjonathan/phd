@@ -1,0 +1,51 @@
+\section{Literature Review}
+Literature Review
+- trichter: mit den 3 themen beginnen und dann runterbrechen und ins detail gehen, bis der gap gefunden wurde
+
+% MAJOR TOPIC
+\subsection{Agent-Based Modelling \& Simulation}
+% SUB TOPIC
+\subsubsection{Social Simulation}
+% SUB TOPIC
+\subsubsection{Computational Economics}
+% SUB TOPIC
+\subsection{Verification \& Validation}
+TODO: nothing yet 
+
+
+% MAJOR TOPIC
+\subsection{Functional Programming}
+% SUB TOPIC
+\subsubsection{General principles}
+% SUB TOPIC
+\subsubsection{Structuring}
+Monads
+Arrows
+Continuations
+% SUB TOPIC
+\subsubsection{Paradigm: FRP}
+TODO: why Yampa? There are lots of other FRP-libraries for Haskell. Reason: in-house knowledge (Nilsson, Perez), start with \textit{some} FRP-library to get familiar with the concept and see if FRP is applicable to ABS. TODO: short overview over other FRP-libraries but leave a in-depth evaluation for further-research out of the scope of the PhD as Yampa seems to be suitable. One exception: the extension of Yampa to Dunai to be able to do FRP in Monads, something which will be definitely useful for a better and clearer structuring of the implementation.
+TODO: Push vs. Pull
+
+TODO: describe FRP
+
+TODO: 1st year report Ivan: "FPR tries to shift the direction of data-flow, from message passing onto data dependency. This helps reason about what things are over time, as opposed to how changes propagate". QUESTION: Message-passing is an essential concept in ABS, thus is then FRP still the right way to do ABS or DO WE HAVE TO LOOK AT MESSAGE PASSING IN A DIFFERENT WAY IN FRP, TO VIEW AND MODEL IT AS DATA-DEPENDENCY? HOW CAN THIS BE DONE?
+BUT: agent-relations in interactions are NEVER FIXED and always completely dynamic, forming a network. The question is: is there a mechanism in which we have explicit data-dependency but which is dynamic like message-passing but does not try to fake method-calls? maybe the conversations come very close
+
+
+% MAJOR TOPIC
+\subsection{Category- \& Type-Theory}
+include paper on arrows my hughes
+apply category theory to agent-based simulation: how can a ABS system itself be represented in category theory and can we represent models in this category theory as well?
+ADOM: Agent Domain of Monads: https://www.haskell.org/communities/11-2006/html/report.html
+develop category theory behind FrABS: look into monads, arrows
+
+
+\subsection{Identifying the Gap}
+- Functional programming in this area exists but only scratches the surface and focus only on implementing agent-behaviour frameworks like BDI. An in-depth treatise of Agent-Based Modelling and implementing an Agent-Based Simulation in a pure functional language has so far never been attempted.
+
+- There basically exists no approach to Agent-Based Modelling \& Simulation in terms of Category-Theory and Type-Theory
+
+- Verification is an issue in ABS as they are very often described in natural language and supplemented with a few formulas. This leads to implementation-errors, e.g. Gintis Bartering-Paper, and results become hard to reproduce. Such errors become a threatening problem when simulation-results are used in decision making e.g. economics, policy-making, ...
+
+- Validation is basically an untouched topic in ABS: models are formulated, a few hypotheses are formulated, the model is implemented and run, then the results are checked against the hypotheses. What the field of ABS needs is an in-depth discussion on how to rigorously validate a model. Validation is of course only as strong as the verification part: if the implementation is wrong anyway then we can not rely on anything (from false comes nothing)

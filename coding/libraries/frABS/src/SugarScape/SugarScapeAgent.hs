@@ -518,6 +518,7 @@ agentTrading a = agentTradingConversation nids a
                         sugarLevel = sugAgSugarLevel s
                         spiceLevel = sugAgSpiceLevel s
 
+                        -- TODO: correct exchange as described in the book
                         sBuySpice = s { sugAgSugarLevel = sugarLevel - price, sugAgSpiceLevel = spiceLevel + price }
                         sBuySugar = s { sugAgSugarLevel = sugarLevel + price, sugAgSpiceLevel = spiceLevel - price }
 
@@ -555,6 +556,7 @@ handleTradingConversation mrsA ain
         sugarLevel = sugAgSugarLevel s
         spiceLevel = sugAgSpiceLevel s
 
+        -- TODO: correct exchange as described in the book
         sBuySpice = s { sugAgSugarLevel = sugarLevel - price, sugAgSpiceLevel = spiceLevel + price }
         sBuySugar = s { sugAgSugarLevel = sugarLevel + price, sugAgSpiceLevel = spiceLevel - price }
 

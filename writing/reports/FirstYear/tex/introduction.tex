@@ -1,5 +1,25 @@
 \section{Introduction}
 
+The central aspect of my PhD is centred around the main question of \textit{How can Agent-Based Simulation be done using pure functional programming and what are the benefits and disadvantages of it?}. So far functional programming has not got much attention in the field of ABS and implementations always focus on the object-oriented approach. We claim, based upon the research of the first year that functional programming is very well suited for ABS and that it offers methods which are not directly possible and only very difficult to achieve with object-oriented programming. 
+
+We claim that to build large and complex agent-based simulations in functional programming is possible using the functional reactive programming (FRP) paradigm. We applied FRP to implementing ABS and developed a library in Haskell called FrABS. We implemented the quite complex model SugarScape from social simulation using FrABS and proofed by that, that applying FRP to ABS enables ABS to happen in pure functional programming.
+
+After having shown how agent-based simulation can be done in functional programming we claim that the major benefit of using it enabled a new way of \textit{verification \& validation} in agent-based simulation. 
+
+Due to the declarative nature of pure functional programming it is an established method of implementing an EDSL to solve a given problem in a specific domain. We followed this approach in FrABS and developed an EDSL for ABS in pure functional programming. Our intention was to develop an EDSL which can be used both as specification- and implementation-language. We show this by specifying all the rules of SugarScape in our EDSL.
+
+Due to the lack of implicit side-effects and the recursive nature of pure functional programming we claim that it is natural to apply it to a novel method we came up with: MetaABS, which allows recursive simulation.
+
+Finally having such an EDSL at hand this will allow us to reason about the programs. This will be applied to specify and reason about the dynamics and emergent properties of decentralized bilateral trading and bartering in agent-based computational economics (ACE) and social simulations like SugarScape.
+
+Disadvantages
+- although the lack of side-effects is also a benefit, it is also a weakness as all data needs to be passed in and out explicitly 
+- indirection due to the lack of objects \& method calls.
+- When not to use it: 
+	- if you are not familiar with functional programming
+	- when you can solve your problem without programming in a Tool like NetLogo, AnyLogic,...
+	- when you don't need to reason about your program
+	
 \subsection{Problems of ABS in OO}
 - Objects don't compose
 - implicit state, change through effectful computations

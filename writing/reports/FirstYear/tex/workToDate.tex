@@ -19,6 +19,39 @@ Actors in Scala
 
 \subsubsection{Papers in Progress}
 \paragraph{Recursive ABS}
+Give each  Agent the ability to run the simulation locally from its point of view do anticipate its actions and change them in the future thus introducing a meta-level in the simulation, from which the method derives its name.
+
+- TODO:  i have only the idea but am lacking a theory or hypothesis for its use
+
+- meta need a kind of decision error measure to distinguish between various meta-simulations. also we need a mechanism to sample the decision space => it can be considered to be an optimization technique.
+
+Problems
+\begin{itemize}
+	\item Definition of a recursive, declarative description of the Model.
+	\item Perfect information about other agents is not realistic and runs counter to agent-based simulation (especially in social sciences) thus an Agent needs to be able to have local, noisy representations of the other agents.
+	\item Local representation of other agents could be captured by Hidden Markov Models: observe what other agents do but have hidden interpretation of their internal state - these internal state-representations can be different between the local and the global version whereas the agent learns to represent the global version as best as possible locally.
+	\item Infinite regress is theoretically possible but not on computers, we need to terminate at some point
+\end{itemize}
+
+Interpretation: It can be regarded as a Model of Free Will in ABS, which allows learning in an ABS environment in a new way - look on the section of interpretation.
+Application: hypothesis: allows to model social and psychological phenomena like free will. Mostly in social sciences, maybe also in economics. Investigate SugarScape, PrisonersDilemma and ACE Trading World
+
+TODO: question: what is the meaning of an entity running simulations? it strongly depends on the context: in ACE it may be search for optimization behaviour, in Social Simulation it may be interpreted as a kind of free will
+
+Research Questions
+\begin{enumerate}
+	\item How does deep regression influence the dynamics of a system? Hypothesis: TODO
+	\item How do the dynamics of a system change when using perfect information or learning local information? Hypothesis: TODO
+	\item Is a hidden markov model suitable for the local learning? Hypothesis: TODO
+	\item How can MetaABS best be implemented? Hypothesis: implementing a MetaABS EDSL in a pure functional language like Haskell, should be best suited due to its inherent recursive, declarative nature, which should allow a direct mapping of features of this paradigm to the specification of the meta-model
+\end{enumerate}
+
+- functional programming perfect. standard toolkits (anylogic, netlogo, repast) are not capable of doing this
+- extend my existing EDSL for functional reactive agent-based simulation \& modelling (FrABS/M) with recursive functionality
+ 
+Related Research:
+TODO: \cite{gilmer_recursive_2000} cite paper of recursive simulation: [ ] military simulation, [ ] not explicitly abs, [ ] implemented in c++, [ ] deterministic models seem to benefit significantly from using recursions of the simulation for the decision making process. when using stochastic models this benefit seems to be lost
+
 
 \paragraph{Functional Reactive ABS}
 

@@ -4,17 +4,46 @@ Literature Review
 
 % MAJOR TOPIC
 \subsection{Agent-Based Modelling \& Simulation}
+ wooldridge,  will clinger, hewitt
+
+TODO: baas: emergence, hierarchies and hyperstructures
+TODO: \cite{baas_emergence_1997}
+
 % SUB TOPIC
 \subsubsection{Social Simulation}
+The SugarScape model \cite{epstein_growing_1996} is one of the most influential models of agent-based simulation in the social sciences. The book heavily promotes object-oriented programming (note that in 1996 oop was still in its infancy and not yet very well understood by the mainstream software-engineering industry). We ask how it can be done using pure functional programming paradigm and what the benefits and limits are. We hypothesize that our solution will be shorter (original reported 20.000 LOC), can make use of EDSL thus making it much more expressive, can utilize QuickCheck for a completely new dimension of model-checking and debugging and allows a very natural implementation of MetaABS (see Part III) due to its recursive and declarative nature.
+
+TODO \cite{huberman_evolutionary_1993} 
+TODO \cite{nowak_evolutionary_1992}
 % SUB TOPIC
 \subsubsection{Computational Economics}
+\cite{tesfatsion_agent-based_2006} gives a broad overview of agent-based computational economics (ACE), gives the four primary objectives of it and discusses advantages and disadvantages. She introduces a model called \textit{ACE Trading World} in which she shows how an artificial economy can be implemented without the \textit{Walrasian Auctioneer} but just by agents and their interactions. She gives a detailed mathematical specification in the appendix of the paper which should allow others to implement the simulation.
+
+- Artificial agent-based economies: \cite{tesfatsion_agent-based_2006}, \cite{gintis_emergence_2006}, \cite{gintis_dynamics_2007}, \cite{gaffeo_adaptive_2008}, \cite{botta_functional_2011}
+- Artificial agent-based markets: \cite{mackie-mason_chapter_2006}, \cite{darley_nasdaq_2007}
+- Agent-Based Market Design: \cite{marks_chapter_2006}, \cite{budish_editors_2015}
+
+market-microstructure: \cite{LehalleLaruelle2013}, \cite{baker_market_2013}
+
+Basics of Economics \cite{bowles_understanding_2005}, \cite{kirman_complex_2010}
+
 % SUB TOPIC
 \subsection{Verification \& Validation}
-TODO: nothing yet 
+model checking and reasoning by quickcheck: \cite{claessen_quickcheck:_2000}, \cite{hutton_tutorial_1999}
 
+Verification/Reasoning ist einer der größten Pluspunkte von rein funktionaler Programmierung, da durch den deklarativen Stil und das Fehlen von Sideeffects und Globalen Daten equational/algebraic/inductive Reasoning betrieben werden kann. Hier habe ich noch garnichts dazu gemacht, aber sollte mit den oben genannten Ideen sicherlich interessant werden - ein interessantes Paper von Graham Hutton (für den ich übrigens dieses Semester ein Tutor in seiner Haskell-Laborübung bin) gibt interessante Richtungen für Reasoning vor: http://dl.acm.org/citation.cfm?id=968579
+
+[ ] deadlock: when messages need to be exchanged but mutual waiting
+[ ] silence: no more message exchange
+[ ] protocoll: ensure happens before / sequences (like necessary for 2D prisoner dilemma)
 
 % MAJOR TOPIC
 \subsection{Functional Programming}
+all FRP, quickcheck, arrows, monads, wadler, hughes
+
+\subsubsection{EDSL}
+EDSL steht für Embedded Domain Specific Language d.h. man implementiert in Haskell eine Art von 'Spezifikations-Sprache' für eine spezielle Domain (z.b. ABM/S), die - dank der rein funktionalen, deklarativen Natur von Haskell - auch gleichzeitig Haskell Code ist - der Unterschied zwischen Spezifikation und Implementierung verschwindet dann (idealserweise). In diese Richtung arbeite ich erst seit kurzem, durch die Umsetzung von ABS/M mit Yampa. Yampa ist ebenfalls eine EDSL um funktional-reaktive Systeme zu beschreiben/implementieren, ich werde auf dieser EDSL aufsetzen und sie um ABS/M erweitern - so zumindest der Plan. Dann habe ich die theoretische Grundlage von FRP, auf die ich dann auch theorie von ABS/M (z.b. Actor Semantics) setzen kann und somit zum nächsten Punkt komme:
+
 % SUB TOPIC
 \subsubsection{General principles}
 % SUB TOPIC
@@ -35,6 +64,8 @@ BUT: agent-relations in interactions are NEVER FIXED and always completely dynam
 
 % MAJOR TOPIC
 \subsection{Category- \& Type-Theory}
+Category-Theory \cite{Pierce1991} \cite{spivak_category_2014}
+
 include paper on arrows my hughes
 apply category theory to agent-based simulation: how can a ABS system itself be represented in category theory and can we represent models in this category theory as well?
 ADOM: Agent Domain of Monads: https://www.haskell.org/communities/11-2006/html/report.html

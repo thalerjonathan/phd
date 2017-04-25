@@ -10,3 +10,28 @@
 - Verification: closing the gap between specification and implementation through the category- \& type-theoretical view and the EDSL
 
 - Validation: formalizing hypotheses and reasoning about dynamics and expected outcomes of the simulation
+
+Define 5 general research questions for each Research-Context
+	\begin{itemize}
+    \item 2 related to FP
+    \item 1 related to integration of FP to ABM/S
+    \item 2 related to ABM/S
+    \end{itemize}
+    
+\subsection{Validation}
+Semantics for FrABS and our EDSL to reason about the results: are they reasonable? do they match the theory? if yes why? if not why not?
+	- Can we define semantics for the EDSL to do reasoning about ABS in general?
+	- How can we reason about ABS in general in pure functional programming?
+		- dynamics
+		- emergent properties
+		- deadlocks
+		- silence (no messages/agent-agent communication and interaction)
+		- define semantics of FrABS based on semantics of FRP and Actors
+		- what is emergence in ABS and how can we reason about it? 
+			- identify emergent properties: equilibrium, behaviour on macroscale not defined on micro, chaos,...
+			- can we anticipate emergent properties / dynamics just by looking at the code and reason about it?
+			- can emergence in ABS be formalized?
+				- hypothesis: it may be possible through functional programming because of its dual nature of declarative EDSL which awakens to a process during computation
+					- what is the relation between emergence and computation? we need change over time (=computation) for emergence
+					
+		- Can we reason about the dynamics and equilibria of agent-based models of decentralized bilateral trading \& bartering?

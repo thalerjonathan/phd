@@ -503,28 +503,66 @@ agentTrading a = agentTradingConversation nids a
         agentTradingConversation [] a = conversationEnd a
         agentTradingConversation (receiverId:otherAis) a = conversation a (receiverId, m) agentTradingConversationsReply
             where
-                mrsA = agentMRS $ aoState a
-                m = TradingRequest mrsA
+                mrsSelf = agentMRS $ aoState a
+                m = TradingOffer mrsSelf
 
                 agentTradingConversationsReply :: SugarScapeAgentOut
                                                     -> Maybe (AgentMessage SugarScapeMsg)
                                                     -> SugarScapeAgentOut
-                agentTradingConversationsReply a Nothing = agentTradingConversation otherAis a  -- NOTE: the target was not found or does not have a handler, continue with the next
+                agentTradingConversationsReply a Nothing = agentTradingConversation otherAis a 
                 agentTradingConversationsReply a (Just (_, TradingRefuse)) = agentTradingConversation otherAis a
-                agentTradingConversationsReply a (Just (senderId, (TradingAccept mrsB))) = trace ("Trading-Price = " ++ (show price)) (agentTradingConversation otherAis aAfterTrade)
+                agentTradingConversationsReply a (Just (_, (TradingTransact _))) = agentTradingConversation otherAis a -- NOTE: other agent has transacted, continue with next
+                agentTradingConversationsReply a (Just (senderId, (TradingAccept mrsOther))) 
+                    | welfareIncreases = conversation aAfterTrade (senderId, TradingTransact mrsSelf) agentTradingConversationsReply
+                    | otherwise = agentTradingConversation otherAis a 
                     where
+                        welfareIncreases = agentTradeIncreaseWelfare s mrsOther
                         s = aoState a
-                        price = sqrt (mrsA * mrsB)
-                        sugarLevel = sugAgSugarLevel s
-                        spiceLevel = sugAgSpiceLevel s
+                        s' = agentTradeExchange s mrsOther
+                        aAfterTrade = a { aoState = s' }
 
-                        -- TODO: correct exchange as described in the book
-                        sBuySpice = s { sugAgSugarLevel = sugarLevel - price, sugAgSpiceLevel = spiceLevel + price }
-                        sBuySugar = s { sugAgSugarLevel = sugarLevel + price, sugAgSpiceLevel = spiceLevel - price }
+-- NOTE: we ignore cross-over trades which is forbidden in the SugarScape-Book. We claim in our implementation it is not a problem as it works different.
+--       also agents move on in the next step and won't be neighbours anyway, so a cross-over would not really become a problem in a way as Epstein and Axtell said it would create infinite recursion
+--       which probably would occur in their oo-implementation because of direct method-calls
+handleTradingOffer :: Double
+                        -> SugarScapeAgentIn
+                        -> (SugarScapeMsg, SugarScapeAgentIn)
+handleTradingOffer mrsOther ain 
+    | welfareIncreases = (TradingAccept mrsSelf, ain)     -- This makes the agent better off
+    | otherwise = (TradingRefuse, ain)                      -- This trade would make the agent worse off, refuse the trade
+    where
+        s = aiState ain
+        mrsSelf = agentMRS s
+        welfareIncreases = agentTradeIncreaseWelfare s mrsOther
 
-                        -- NOTE: this agent is A
-                        aAfterTrade = if mrsA > mrsB then a { aoState = sBuySugar } else a { aoState = sBuySpice }
+handleTradingTransact :: Double
+                            -> SugarScapeAgentIn
+                            -> (SugarScapeMsg, SugarScapeAgentIn)
+handleTradingTransact mrsOther ain = (TradingTransact mrsOther, ainAfterTrade) -- NOTE: simply reply with the same transaction-message
+    where
+        s = aiState ain
+        s' = agentTradeExchange s mrsOther
+        ainAfterTrade = ain { aiState = s' }
 
+agentTradeIncreaseWelfare :: SugarScapeAgentState -> Double -> Bool
+agentTradeIncreaseWelfare s mrsOther = (newWelfare > currentWelfare)
+    where
+        mrsSelf = agentMRS s
+        exchangeTup = sugarSpiceExchange mrsOther mrsSelf
+        currentWelfare = agentWelfare s
+        newWelfare = agentWelfareChange s exchangeTup
+
+agentTradeExchange :: SugarScapeAgentState -> Double -> SugarScapeAgentState
+agentTradeExchange s mrsOther = sAfterTrade -- trace ("Trade: mrsSelf = " ++ (show mrsSelf) ++ " mrsOther = " ++ (show mrsOther) ++ ", sugarChange = " ++ (show sugarChange) ++ " spiceChange = " ++ (show spiceChange) ) 
+    where
+        mrsSelf = agentMRS s
+        (sugarChange, spiceChange) = sugarSpiceExchange mrsOther mrsSelf
+
+        sugarLevel = sugAgSugarLevel s
+        spiceLevel = sugAgSpiceLevel s
+
+        sAfterTrade  = s { sugAgSugarLevel = sugarLevel + sugarChange, sugAgSpiceLevel = spiceLevel + spiceChange }
+ 
 agentMRS :: SugarScapeAgentState -> Double
 agentMRS s = (w2 * m1) / (w1 * m2)
     where
@@ -534,34 +572,26 @@ agentMRS s = (w2 * m1) / (w1 * m2)
         w1 = sugAgSugarLevel s
         w2 = sugAgSpiceLevel s
 
+-- NOTE: this returns the sugar-to-spice exchanges from the view-point of self
+sugarSpiceExchange :: Double -> Double -> (Double, Double)
+sugarSpiceExchange mrsOther mrsSelf 
+    -- NOTE: if mrsOther is larger than mrsSelf then Other values sugar more and is willing to exchange it for spice
+        -- Other takes (+) sugar and gives spice
+        -- Self takes (+) spice and gives (-) sugar
+    | (mrsOther > mrsSelf) && (price > 1) = ((-1.0), price)
+    | (mrsOther > mrsSelf) && (price <= 1) = ((-invPrice), 1.0)
 
-handleTradingConversation :: Double
-                                -> SugarScapeAgentIn
-                                -> (SugarScapeMsg, SugarScapeAgentIn)
-handleTradingConversation mrsA ain 
-    | newWelfare > currentWelfare = (TradingAccept mrsB, ainAfterTrade)     -- This makes the agent better off
-    | otherwise = (TradingRefuse, ain) 
+    -- NOTE: if mrsSelf is larger than mrsOther then Self values sugar more and is willing to exchange it for spice
+        -- Self takes sugar and gives spice
+        -- Other takes spice and gives sugar
+    | (mrsOther <= mrsSelf) && (price > 1) = (1.0, (-price)) 
+    | (mrsOther <= mrsSelf) && (price <= 1) = (invPrice, (-1.0))
     where
-        s = aiState ain
+        price = tradingPrice mrsOther mrsSelf
+        invPrice = 1 / price
 
-        -- TODO: handle cross-over
-
-        mrsB = agentMRS s
-        price = sqrt (mrsA * mrsB)
-
-        currentWelfare = agentWelfare s
-        -- NOTE: we assume that it never occurs that two floating-point values are the same (especially not in this case) thus treating this case as mrsA < mrsB
-        newWelfare = if mrsA > mrsB then agentWelfareChange s ((-price), price) else agentWelfareChange s (price, (-price))
-
-        sugarLevel = sugAgSugarLevel s
-        spiceLevel = sugAgSpiceLevel s
-
-        -- TODO: correct exchange as described in the book
-        sBuySpice = s { sugAgSugarLevel = sugarLevel - price, sugAgSpiceLevel = spiceLevel + price }
-        sBuySugar = s { sugAgSugarLevel = sugarLevel + price, sugAgSpiceLevel = spiceLevel - price }
-
-        -- NOTE: this agent is B
-        ainAfterTrade = if mrsA > mrsB then ain { aiState = sBuySpice } else ain { aiState = sBuySugar }
+tradingPrice :: Double -> Double -> Double
+tradingPrice mrsA mrsB = sqrt $ mrsA * mrsB
 
 agentWelfare :: SugarScapeAgentState -> Double
 agentWelfare s = agentWelfareChange s (0, 0)
@@ -575,24 +605,30 @@ agentWelfareChange s (sugarChange, spiceChange) = ((w1 + sugarChange)**(m1/mT)) 
 
         w1 = sugAgSugarLevel s
         w2 = sugAgSpiceLevel s
+
+-- TODO: implement borrowing and lending
 ------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- Chapter V: Sugar and Spice - Trade Comes to the Sugarscape
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+
 
 ------------------------------------------------------------------------------------------------------------------------
 -- GENERAL AGENT-RELATED
 ------------------------------------------------------------------------------------------------------------------------
 sugarScapeAgentConversation :: SugarScapeAgentConversation
-sugarScapeAgentConversation ain (_, (MatingRequest tup)) = Just (m, ain')
-    where 
-        (m, ain') = handleMatingConversation tup ain
+sugarScapeAgentConversation ain (_, (MatingRequest tup)) = Just $ handleMatingConversation tup ain
 sugarScapeAgentConversation ain (_, (MatingChild childId)) = Just (MatingChildAck, ain')
     where
         s = aiState ain
         s' = s { sugAgChildren = childId : (sugAgChildren s)}
         ain' = ain { aiState = s' }
-sugarScapeAgentConversation ain (_, (TradingRequest mrs)) = Just (m , ain')
-    where
-        (m, ain') = handleTradingConversation mrs ain
-sugarScapeAgentConversation ain _ = Nothing
+sugarScapeAgentConversation ain (_, (TradingOffer mrs)) = Just $ handleTradingOffer mrs ain
+sugarScapeAgentConversation ain (_, (TradingTransact mrs)) = Just $ handleTradingTransact mrs ain
+sugarScapeAgentConversation _ _ = Nothing
 
 
 neighbourIds :: SugarScapeAgentOut -> [AgentId]
@@ -624,8 +660,8 @@ sugarScapeAgentBehaviourFunc age ain a = do
                                                                                 let a4 = inheritSugar ain a3
                                                                                 let a5 = agentCultureContact ain a4
                                                                                 --let a6 = agentSex a5
-                                                                                let a7 = agentTrading a5
-                                                                                a7
+                                                                                --let a7 = agentTrading a5
+                                                                                a5
 
 
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour

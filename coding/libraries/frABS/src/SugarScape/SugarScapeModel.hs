@@ -44,8 +44,9 @@ data SugarScapeMsg =
 
     | KilledInCombat
     
-    | TradingRequest Double         -- mrsA
-    | TradingAccept Double          -- mrsB
+    | TradingOffer Double
+    | TradingAccept Double
+    | TradingTransact Double
     | TradingRefuse deriving (Show)
 
 data SugarScapeAgentState = SugarScapeAgentState {

@@ -2,6 +2,7 @@ module SugarScape.SugarScapeRenderer where
 
 import FrABS.Agent.Agent
 import SugarScape.SugarScapeModel
+import SugarScape.SugarScapeAgent
 import FrABS.Env.Environment
 
 import qualified Graphics.Gloss as GLO
@@ -69,13 +70,20 @@ renderAgent :: (Float, Float)
 renderAgent (rectWidth, rectHeight) (wx, wy) a = GLO.color color $ GLO.translate xPix yPix $ GLO.ThickCircle 0 rectWidth
     where
         (x, y) = aoEnvPos a
-        color = agentColorTribe a
+        color = agentColorDiseased a
 
         halfXSize = fromRational (toRational wx / 2.0)
         halfYSize = fromRational (toRational wy / 2.0)
 
         xPix = fromRational (toRational (fromIntegral x * rectWidth)) - halfXSize
         yPix = fromRational (toRational (fromIntegral y * rectHeight)) - halfYSize
+
+agentColorDiseased :: SugarScapeAgentOut -> GLO.Color
+agentColorDiseased a
+    | isDiseased s = GLO.makeColor (realToFrac 1.0) (realToFrac 0.1) (realToFrac 0.1) 1.0
+    | otherwise = GLO.makeColor (realToFrac 0.0) (realToFrac 0.3) (realToFrac 0.6) 1.0
+    where
+        s = aoState a
 
 agentColorGender :: SugarScapeAgentOut -> GLO.Color
 agentColorGender a

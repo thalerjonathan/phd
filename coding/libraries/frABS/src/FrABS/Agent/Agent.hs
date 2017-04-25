@@ -74,6 +74,15 @@ runAgentRandom a f = (ret, a')
 drawRandomRangeFromAgent :: (Random a) => AgentOut s m ec -> (a, a) -> (a, AgentOut s m ec)
 drawRandomRangeFromAgent a r = runAgentRandom a (getRandomR r)
 
+drawMultipleRandomRangeFromAgent :: (Random a) => AgentOut s m ec -> (a, a) -> Int -> ([a], AgentOut s m ec)
+drawMultipleRandomRangeFromAgent a r n = runAgentRandom a blub
+    where
+        blub = do
+                infRand <- getRandomRs r
+                let nRand = take n infRand
+                return nRand
+
+
 splitRandomFromAgent :: AgentOut s m ec -> (StdGen, AgentOut s m ec)
 splitRandomFromAgent a = runAgentRandom a getSplit
 
@@ -85,6 +94,15 @@ agentPickRandom a xs
         cellCount = length xs
         (randIdx, a') = drawRandomRangeFromAgent a (0, cellCount - 1)
         randElem = xs !! randIdx
+
+agentPickRandomMultiple :: AgentOut s m ec -> [a] -> Int -> ([a], AgentOut s m ec)
+agentPickRandomMultiple a xs n
+    | null xs = error "cannot draw random element from empty list"
+    | otherwise = (randElems, a')
+    where
+        cellCount = length xs
+        (randIndices, a') = drawMultipleRandomRangeFromAgent a (0, cellCount - 1) n
+        randElems = foldr (\idx acc -> (xs !! idx) : acc) [] randIndices  
 
 recInitAllowed :: AgentIn s m ec -> Bool
 recInitAllowed = aiRecInitAllowed

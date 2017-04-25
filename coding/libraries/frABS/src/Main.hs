@@ -9,11 +9,7 @@ import MessageSampling.MessageSamplingRun
 
 main :: IO ()
 main = runSugarScapeWithRendering
-{-}
-    do
-        let ret = testMaybeMonad "Default"
-        putStrLn $ show ret
--}
+
     -- runSugarScapeWithRendering
 
     -- runMessageSamplingAndPrint
@@ -25,6 +21,11 @@ main = runSugarScapeWithRendering
     -- runSegStepsAndRender
     -- test
     -- testGloss
+
+{-
+    do
+        let ret = testMaybeMonad "Default"
+        putStrLn $ show ret
 
 testMaybeMonad :: String -> Maybe String
 testMaybeMonad d =
@@ -42,3 +43,4 @@ maybeFunc2 = Nothing
 
 maybeFunc3 :: Maybe String
 maybeFunc3 = Just "Jonathan"
+-}

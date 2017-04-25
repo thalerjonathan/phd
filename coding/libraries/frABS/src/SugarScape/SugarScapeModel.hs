@@ -11,6 +11,9 @@ import FRP.Yampa
 import System.Random
 import Control.Monad.Random
 import Control.Monad
+import Data.List.Split
+import Data.List
+import Data.Maybe
 
 -- TODO: when sex is turned on the number of agents is constantly increasing which should not be possible because more agents compete for less ressources which should reduce the population. Probably we are leaking wealth
 
@@ -30,11 +33,13 @@ data SugarScapeAgentGender = Male | Female deriving (Show, Eq)
 data SugarScapeTribe = Red | Blue deriving (Show, Eq)
 
 type SugarScapeCulturalTag = [Bool]
+type SugarScapeImmuneSystem = [Bool]
+type SugarScapeDisease = [Bool]
 
 data SugarScapeMsg =
     MatingRequest SugarScapeAgentGender
     | MatingReplyNo
-    | MatingReplyYes (Double, Double, Double, Int, SugarScapeCulturalTag) -- SugarContribution, SugarMetabolism, SpiceMetabolism, Vision
+    | MatingReplyYes (Double, Double, Double, Int, SugarScapeCulturalTag, SugarScapeImmuneSystem) -- SugarContribution, SugarMetabolism, SpiceMetabolism, Vision
     | MatingChild AgentId
     | MatingChildAck
 
@@ -47,7 +52,10 @@ data SugarScapeMsg =
     | TradingOffer Double
     | TradingAccept Double
     | TradingTransact Double
-    | TradingRefuse deriving (Show)
+    | TradingRefuse 
+
+    | DiseaseContact [Bool] 
+    deriving (Show)
 
 data SugarScapeAgentState = SugarScapeAgentState {
     sugAgSugarMetab :: Double,              -- this amount of sugar will be consumed by the agent in each time-step
@@ -71,7 +79,11 @@ data SugarScapeAgentState = SugarScapeAgentState {
     sugAgAge :: Double,                     -- the current age of the agent, could be calculated using time in the SF but we need it in the conversations as well, which are not running in the SF
 
     sugAgCulturalTag :: SugarScapeCulturalTag,  -- the agents cultural tag
-    sugAgTribe :: SugarScapeTribe           -- the agents tribe it belongs to according to its cultural tag
+    sugAgTribe :: SugarScapeTribe,           -- the agents tribe it belongs to according to its cultural tag
+
+    sugAgImmuneSys :: SugarScapeImmuneSystem,                -- the agents immune-system, a binary string of 0s and 1s
+    sugAgImmuneSysBorn :: SugarScapeImmuneSystem,            -- the agents immune-system it is born with, stays constant and is inherited to its children
+    sugAgDiseases :: [SugarScapeDisease]                 -- the disease the agent currently has
 } deriving (Show)
 
 data SugarScapeEnvCellOccupier = SugarScapeEnvCellOccupier {
@@ -192,6 +204,28 @@ summerSeasonSpiceGrowbackRate = 1.0
 
 winterSeasonSpiceGrowbackRate :: Double
 winterSeasonSpiceGrowbackRate = 8.0
+
+-- TODO: implement borrowing and lending
+
+
+-- NOTE: haven't implemented "On the Evolution of Foresight"
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- CHAPTER V: Disease Processes
+------------------------------------------------------------------------------------------------------------------------
+immuneSystemLength :: Int
+immuneSystemLength = 50
+
+-- NOTE: disease length must be less or equal to immuneSystemLength
+diseaseLength :: Int
+diseaseLength = 10
+
+diseasesInitial :: Int
+diseasesInitial = 4
+
+diseasedMetabolismIncrease :: Double
+diseasedMetabolismIncrease = 1.0
 ------------------------------------------------------------------------------------------------------------------------
 
 cellOccupier :: AgentId -> SugarScapeAgentState -> SugarScapeEnvCellOccupier
@@ -231,10 +265,10 @@ flipCulturalTag tagActive tagPassive idx = map (\(i, a, p) -> if i == idx then a
     where
         len = length tagActive
 
-culturalCrossover :: SugarScapeCulturalTag 
-                    -> SugarScapeCulturalTag 
-                    -> Rand StdGen SugarScapeCulturalTag
-culturalCrossover ts1 ts2 = 
+crossoverBools :: [Bool] 
+                    -> [Bool]  
+                    -> Rand StdGen [Bool] 
+crossoverBools ts1 ts2 = 
     do
         randTags <- replicateM (length ts1) (getRandomR (True, False))
         return $ map (\(t1, t2, randT) -> if t1 == t2 then t1 else randT) (zip3 ts1 ts2 randTags)
@@ -247,6 +281,40 @@ crossover (x, y) =
             return x
             else
                 return y
+
+
+flipBoolAtIdx :: [Bool] -> Int -> [Bool]
+flipBoolAtIdx as idx = front ++ (flippedElem : backNoElem)
+    where
+        (front, back) = splitAt idx as  -- NOTE: back includes the element with the index
+        elemAtIdx = as !! idx
+        flippedElem = not elemAtIdx
+        backNoElem = tail back
+
+findFirstDiffIdx :: (Eq a) => [a] -> [a] -> (Int)
+findFirstDiffIdx as bs = firstNotEqualIdx
+    where
+        notEquals = map (\(a, b) -> a /= b) (zip as bs)
+        firstNotEqualIdx = fromJust $ findIndex (==True) notEquals
+
+findMinWithIdx :: (Ord a) => [a] -> (a, Int)
+findMinWithIdx as = (minA, minAIdx)
+    where
+        minA = minimum as
+        minAIdx = fromJust $ findIndex (==minA) as
+
+calculateHammingDistances :: [Bool] -> [Bool] -> [Int]
+calculateHammingDistances i d = map (\is -> hammingDistance is d) isubs
+    where
+        dLen = length d
+        isubs = Data.List.Split.divvy dLen 1 i
+
+-- NOTE: both must have the same length
+hammingDistance :: [Bool] -> [Bool] -> Int
+hammingDistance as bs = length $ filter (==False) equals
+    where
+        equals = map (\(a, b) -> a == b) (zip as bs)
+
 
 
 
@@ -265,8 +333,16 @@ randomAgent (agentId, coord) beh conv =
         randMaxAge <- getRandomR  ageRange
         randMale <- getRandomR (True, False)
         randMinFert <- getRandomR childBearingMinAgeRange
-        randCulturalTagInf <- getRandoms  
+        randCulturalTagInf <- getRandoms 
+        randImmuneSystemInf <- getRandoms
+        randDiseasesInitialInf <- getRandoms 
+
         let randCulturalTag = take culturalTagLength randCulturalTagInf
+        let randImmuneSystem = take immuneSystemLength randImmuneSystemInf
+
+        let diseasesStrLen = (diseaseLength * diseasesInitial) :: Int
+        let randDiseasesInitialStr = take diseasesStrLen randDiseasesInitialInf
+        let randDiseasesInitialChunks = Data.List.Split.chunksOf diseaseLength randDiseasesInitialStr
 
         let randGender = if randMale then Male else Female
         let fertilityMaxRange = if randMale then childBearingMaleMaxAgeRange else childBearingFemaleMaxAgeRange
@@ -297,7 +373,11 @@ randomAgent (agentId, coord) beh conv =
             sugAgAge = 0.0,
 
             sugAgCulturalTag = randCulturalTag,
-            sugAgTribe = calculateTribe randCulturalTag
+            sugAgTribe = calculateTribe randCulturalTag,
+
+            sugAgImmuneSys = randImmuneSystem,
+            sugAgImmuneSysBorn = randImmuneSystem,
+            sugAgDiseases = randDiseasesInitialChunks
         }
 
         let adef = AgentDef {

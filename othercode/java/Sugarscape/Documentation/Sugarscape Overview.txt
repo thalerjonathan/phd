@@ -1,0 +1,309 @@
+	Contents
+	--------
+1) Introduction
+2) Current features
+3) Features to be added
+4) Types of assistance required
+5) The Gory Details
+	-> The Approach
+	-> Implementation
+	-> Milestones
+
+1) Introduction
+---------------
+The study of the Social Sciences is a hard subject matter particularly because certain kinds of controlled experimentation are difficult to implement. Hypotheses regarding responses of individuals to social events cannot be tested very easily. Thus curtailing efforts to establish sound causal relationships between individual behaviors on a microscopic level & resulting effects on society-wide level.
+A second significant drawback of many approaches to modeling human society is that they tend to build their approach on a homogenous model of the individual. These attempts build a single model of a human being & then replicate it in large numbers to examine social behavior. Such an approach naturally sacrifices heterogeneity of the human actor in its models/scenarios. 
+Many models especially those involving game theory and many of the classical economic models, tend to study static worlds or worlds frozen at a particular point in time. Such snapshots ignore the dynamics of time & its influence on their models.
+
+This project attempts/intends to apply computer-based modeling techniques to study human social phenomena including gathering, mating, procreation, seasonal migration, interaction with an environment, trade, propagation of disease, population dynamics & much more.
+
+The broad aim here is to develop a computational approach that permits the study of diverse types of human activity from an evolutionary perspective. Utility for education & research also requires the ability to configure various parameters controlling the simulation.
+
+The software attempts this by using an OOP approach that represents the components required (terrain, human beings, resources) as objects with defined properties and rules of behavior. These and many of the objectives have already been achieved, but more sophistication, and complexity continue to spur the next round of development. This includes, development of the Sugarscape object, the citizen object & the environment in which they come together & interact. While the first two are typical OOP components, the environment is more of a design framework made up of two elements. The first is a visual representation of the Sugarscape & citizen objects. It depicts in real-time their actions as they go about living out their lives utilizing what properties they have at their disposal (vision, metabolism, sugar) within rulesets that control their behavior. The second element of the design framework is a command & feedback interface that provides a certain level of interactive capabilities to the user of the simulation. These range from the obvious commands to start, stop, pause or reset the simulation to the more complex control of parameters that control the lives  of the denizens of the Sugarscape. 
+
+The major problem in any such endeavor is the design of the environment & the flexibility that such design provides the ultimate end-users (the social science research community). Life as we know it, is pretty complicated. Once we get beyond the relatively simple rules for survival, gathering, propagation we encounter complexities like culture, group formation, personality development. Incorporating economic processes like trade and the development of diverse industry are also a challenging issue to design & program in a simulation.
+
+Some part of that problem has been simplified with the adoption of ideas laid out in the book described in section 3 of this document. The book is but a starting point, as the project progresses, I plan to incorporate all the ideas that I can lay my hands on and, stitch into one cohesive whole. I  have no idea on whether this may prove useful to someone, but it gives me great pleasure just to create it. If someone out there finds it useful, that's just icing.
+
+2) Current features
+-------------------
+The major features incorporated into the software include:
+- implementation of the Game Of Life as described by Robert Conway with the facility to create initial templates.
+- development of the Sugarscape object (the land environment) that will play host to the human beings populating it.
+- the Citizen object representing the nature & properties of human beings.
+- a constants file that enables default seeding values for the various aspects of simulations that a researcher seeks to manipulate.
+- the graphical display that brings these elements together & depicts their interaction in real-time.
+- the ability to toggle feedback for specific sections of the code rather than inundating users with overwhelming feedback from all processes occurring on the Sugarscape.
+- a tabbed-pane interface for controlling the simulation and toggling the values of variables during runtime.
+- implementation of foraging & consumption activities involving two resources, sugar & spice.
+- implementation of mating & procreation. This includes sexual differentiation, recognition of familial ties, passage of physical characteristics from parents to children and inheritance.
+- the depiction of a life cycle that incorporates birth, puberty, menopause/andropause and finally, death.
+- implementation of internal valuation of the worth of each resource by citizens, seeking, evaluating and selecting trading partners and carrying out a mutually profitable exchange.
+- implementation of cultural processes involving inheritance of belief structure from parents, transfer of ideas among neighbors, adoption of core outgroup norms by disadvantaged minority and group membership.
+- implementation of disease processes including genetic inheritance of immune systems from parents, random exposure to diseases, infection transfer resulting in epidemics, adaptation to disease resulting in eventual immunity and increased costs in terms of metabolism of infected citizens.
+
+3) Features to be added
+-----------------------
+The immediate objective is to streamline the code by refactoring. The code of the project is far from a textbook example of good programming practices, a deficiency I intend to curtail.
+The overall project objective is to continuously increase the level of sophistication of the various actors in the environment, especially the Citizen object. Features planned:
+ - introduction conflict.
+ - natural catastrophes
+Additionally we intend to incorporate startup templates & historical snapshots to be generated & stored in some appropriate file format to enable exchange of results among interested observers.
+
+A website showcasing the software & providing interaction to interested participants is available at 
+http://sugarscape.sourceforge.net/.
+Obtaining & reading a copy of "Growing Artificial Societies - Social Science From   The Bottoms Up" by J Epstein & R Axtell is recommended. The book also comes with a CD that includes an implementation of a similar model. The code however does not seem to be Open Source and I have never seen or used it. I am in no way associated with the authors or publishers of this book.
+
+4) Types of assistance required
+-------------------------------
+Background: The program has been written in Java and as such should work on any platform that supports a JVM environment. It can also be hosted as an applet in webpage’s, it does require the Java 2 Runtime Environment. It does not use any database, software library or framework yet, but may do so in future. I am a programmer of questionable expertise, enthusiasm bordering on the crazy and quite new to Java. With that in mind, I would welcome any & all sorts of assistance including
+ --> discussing the general direction of the project, especially from members who are interested in using a program such as this.
+ --> programmers to code, review & test, additions/revisions to the project.
+ --> documenters to help document & develop an instruction manual.
+ --> website developers to develop & maintain the project website including a page running the software & enabling surfers to test the program online.
+
+If you would like to help but are unsure how, please write to me and I'll try to get you involved.
+
+abraham kannankeril
+kannankeril at hotmail dot com
+USA 425-497-1964
+
+
+
+ 5) The Gory Details (work in progress)
+--------------------------------------
+
+THE APPROACH
+The broad aim of this project is to use a computer simulation to examine diverse spheres of human activity both in concert & in isolation. Such an approach is necessarily multi-disciplinary as it examines biological, economic, social & political processes of human activity. These models can be described as 'artificial societies' and it is hoped that fundamental social structures & group behaviors emerge from individual-level rules and decisions.
+This model involves three basic ingredients: human agents, a terrain with and on which they interact and micro-level rulesets that constrain their behavior. Agents are the citizens of artificial societies. They possess certain attributes and follow certain behavioral rules.   Some attributes like vision and metabolism are fixed for life while others like wealth & cultural identity change as the agents move and interact on the terrain.
+The terrain is modeled as a two-dimensional grid of resource sites containing two or more resources. The land can be modeled as a complex entity in its own with varying levels of resource fertility, accumulating pollution, navigability (hilly terrain, more difficult to navigate than plateaus) etc. It can also be modeled to simulate a two-part terrain. Varying distributions of a land & water mass, each with its own properties and its own influence on the other can then be created. The final component of our AI model are rulesets. A simple illustration of an agent rule can be described thus:
+	Look around & find the richest source of sugar, go there and harvest it.
+These basic ingredients combine and react to emulate real-world actions and activities. Observing and manipulating this proto-world, enables us to better understand our world and its inhabitants.
+
+
+
+Life and Death on the Sugarscape
+================================
+Citizens possess genetic attributes of metabolism and vision. These traits are inherited by offspring from their parents. Citizens possess seperate metabolic requirements for sugar & spice. They need both goods to survive and exhaustion of either will lead to death by starvation. Citizens therefore need to search for these goods and accumulate them in order to survive. Citizens do so by following a simple set of connected instructions that are generally referred to as a ruleset. The ruleset for gathering can be described as follows:
+	Evaluate personal stocks and determine which good is needed more urgently (preferred good). 
+	Look around as far as vision permits and identify the site with the greatest value of the preferred 	good. 
+	If the greatest value exists at multiple locations, select one randomly. 
+	Move to that site and harvest all resources from that site. 
+	If no value is found within the visible grid, then the citizen randomly relocates 
+	to one of the farthest cells within its vision range.
+The last step helps the Citizen avoid getting bogged down in an area of the grid that is barren of any resources or expending valuable search cycles in corner cells of the grid.
+
+
+
+Sex and the Circle of Life and Afterlife (Inheritance)
+======================================================
+Citizens may or may not have their lives curtailed by death. This choice is determined by the current setting of the Mating process. When Mating is activated, citizens will die at the end of their lifespan. Conversely, citizens continue to live past their slated lifespan when Mating is turned off (not implemented yet. When citizens die of hunger, new citizens emerge to replace them, thus keeping the population constant (not implemented yet).
+When activated, Citizens seek a prospective mate from the population located in cells adjacent to the location of the citizen. As for Gathering, Mating too has its own ruleset, note the number of pre-qualifiers that trim the set of citizens allowed to mate.
+IF the Citizen is of child-bearing age, i.e., post-puberty, pre-meno/andropause, past the mating gap (time interval between successive mating events), possessing reserves atleast twice the poverty level and having an adjacent empty cell to locate the child, then the Citizen proceeds to seek mates. 
+Prospective mates must be located in a cell adjacent to the citizen and must be of the opposite sex in addition to satisfying all except the last requirement in step 1. 
+Additional restrictions may be applied at the discretion of the researcher, for e.g., the researcher can choose to allow or deny citizens directly related to each other to mate. The researcher may also adjust wealth levels required to qualify for mating.
+If more than one prospect satisfies the above restrictions, a weighted random selection is made. The weight attached to each mate is a function of their ranking, a composite of their genetic attributes and material wealth. The greater the ranking, the greater their chances of selection. Each citizen can initiate just one mating event per cycle.
+Once the selection is made, the citizen couple produce a child. The child is located in a pre-determined cell located during an earlier step in the mating process. The child  randomly inherits genetic attributes of one or the other parent. It inherits half of each parents original inheritance by default. This can be changed so the child inherits half of the current wealth of its parents at the option of the user by setting the 'Inherit Initial Wealth' field in the Citizen panel to "false".
+The inheritance received by the child is a transfer and each parents wealth is adjusted to reflect the depletion.
+
+
+
+Spice arrives on the Sugarscape...and Trade 
+===========================================
+Citizens need both sugar & spice to survive. They have independent metabolism rates for each resource. There may arise situations where citizens starve to death due to a paucity of one resource, despite having a plentiful supply of the other. Barter offers them a means to acquire a scarce resource in exchange for an abundant commodity. The personality of the citizen is an important attribute affecting their approach to trade. Personality is randomly assigned at birth and determines the trading strategy pursued by the citizen. A bear (cautious) personality seeks to minimize surplus and will only trade the surplus commodity. A bull (aggressive) personality seeks to maximize trades even if it involves trading the scarce commodity. The bull only trades the minimum quantity required to recieve one unit of the other commodity. By maximizing trades, the bull seeks to hedge its exposure to unfair trades.
+For eg. the bear seeks trading partners that possess a surplus of its scarce commodity. It then attempts to trade a certain proportion of its surplus such that the quantity received in exchange can be combined with the balance of its surplus to mitigate the  risk of depletion of any one commodity. The bear strategy is at risk of wild fluctuations in the exchange price depending on the variance in the MRS values of the trading partners. Since they attempt to sell all available surplus immediately, bears could end up trading all their surplus in a single unfavorable trade.
+The Bull strategy, by trading unit amounts with as many traders as possible, seeks to average out price fluctuations and arrive closer to the equilibrium price.
+For purposes of our projects some concepts need definition. The first of these are:
+Consumption Units (CU) = commodity / metabolism for that commodity, the consumption unit defines how many cycles into the future the current stocks of a commodity will last, assuming no more increase in stocks. 
+Time Until Death (TUD) = the lower of of the two CU values, determines how long the citizen can survive based on current stock levels. 
+Marginal Rate of Substitution (MRS) = denotes the relative internal scarcity of the two resources for the citizen. It is calculated as the CU for spice divided by the CU for sugar.
+The Barter process when activated causes citizens to look for trading partners in cells adjacent to their location. Depending on personality, citizens will apply one of the two rulesets detailed below.
+
+The Bear Ruleset:
+IF negligible surplus, abandon trade attempt. 
+Prospective trading partners must be located in a cell adjacent to the citizen. 
+If prospect also posseses a bear personality and has negligible surplus or needs the same good as the citizen, reject prospect. 
+If MRS equal for both, reject prospect. 
+Sort the list of available traders by decreasing order of variance in MRS. 
+Set surplus of both parties to half of their current value, trade the lower of the two surpluses at a price that is the geometric mean of the two MRS values.
+The Bull Ruleset:
+Set surplus to 1. 
+Prospective trading partners must be located in a cell adjacent to the citizen. 
+If MRS equal for both, reject prospect. 
+Sort the list of available traders by decreasing order of variance in MRS. 
+Price is the geometric mean of the two MRS values. 
+The agent with the higher MRS gets sugar, the agent with the lower MRS gets spice.
+Trades are consumated once per cycle with all available partners subject to the above conditions holding true prior to each new trade.
+
+
+Change of Seasons
+=================
+Migratory behavior of a predictable nature is caused by a change of seasons. Citizens tend to move from the region of scarcity to the region of abundance. Fertility fluctuates dramatically, resulting in a concerted move to the region enjoying summer (higher fertility) from the region in the throes of winter.
+The summer region also witnesses a spurt in new births as citizens there accumulate enough reserves to enable them to bear children. This coupled with an increase in deaths in the winter regions caused by scarcity leads to a population concentration in one half of the grid.
+As the season changes, and the tables are reversed a migratory pattern emerges as the bulk of the population moves to the other area. The Sugarscape follows a simple two-phase cycle for change of seasons, so there are only two seasons currently.
+
+
+Inheritance
+===========
+Inheritance when activated kicks in following the death of a citizen. It results in the citizens surviving wealth being distributed equally among its surviving progeny. There is no provision to pass the wealth to grandchildren in the absence of their parents.
+
+
+Pollution
+=========
+Pollution when activated accumulates in each cell as a result of the gathering activity. Each unit of sugar or spice when harvested results in specified increases in pollution within the cells. Both sugar & spice have separate levels of pollutant per unit harvested.
+As citizens move about the Cellspace, the prefer the less polluted cells to their more polluted alternatives given matching resource levels. Nature's effect of dispersing pollution over time is also replicated via a pollution dispersal event that occurs once every cycle. It reduces pollution levels by a specified amount. These values can be adjusted from the Cell panel.
+
+
+
+
+Culture Develops on the Sugarscape
+==================================
+
+Cultural Tag Strings
+--------------------
+Citizen culture tags or tags for short comprise a series of binary numbers. Each binary number can be referred to as an abstraction of a basic unit of culture also known as a meme. Memes can also be described as analogs of genes, while the latter encode genetic information, the former encapsulates units of cultural information.
+Memes can vary in length, the longer the string, the more complex the belief structure, the more diverse the citizen population, the greater the resistance to cultural homogeneity. Memes can be a complex object with their own set of unique properties and links to other memes. Some memes can even be subsets of other memes. 
+
+For our immediate purposes, we bifurcate the meme string into two sub-groups, these correspond to cultural units that rarely change (sticky) while others change frequently (volatile). The Meme string for each citizen can be divided into two substrings (sticky & volatile), the division point denoted by a global variable (CITIZEN_CULTURE_DIVIDE). Tags below this location would be part of the sticky and parts at and above this location form the volatile substring.
+The meme string itself could be represented as an array within the Citizen object (for now), like any other property it would be generated at birth. Later versions could implement it as a separate object with its own identity, name, description, health-level, community types, list of super-memes to which it belongs etc.
+
+Transmission of Culture
+-----------------------
+Culture can either be absorbed from or propogated to others. The direction of the transfer can be determined on the basis of a global variable (CITIZEN_CULTURE_TRANSFER). For eg.,
+	1 -> could denote absorbtion from neighbor to citizen	***implemented***
+	2 -> ...from citizen to neighbor			***implemented***
+	3 -> from the higher-ranked to lower-ranked citizen	***implemented***
+	4 -> form the wealthy to the poorer citizen
+The above transfer applies only to the volatile string. These may change with every citizen-neighbor culture interaction often more than once within the same cycle.
+Sticky memes are much more resistant to change and usually require a rarer set of circumstances to change.The following ruleset determines the change/flipping of volatile memes:
+	For each neighbor, a random integer is generated in the volatile range
+	if both citizen & neighbor have matching values for the tag, the process ends
+	The tag identified by the random value is flipped in the manner indicated by the culture transfer variable
+	Process loops back for the next neighbor.
+
+For eg., if the volatile tags range from the 5th-14th tag in a meme list that is 15 bits in length, the random integer generated must lie in the volatile tag range. Note, that setting the divide to the same value as the tag string length is the same as declaring all tags sticky. So also, a divide value of 0 means all tags are volatile.
+Sticky tags are evaluated while matching and flipping volatile tags for all neighbors. A sticky tag may be flipped if the following conditions are met.
+	-> The citizen has atleast a pre-specified (CITIZEN_CULTURE_OVERWHELM) number of neighbors.
+	-> a random integer is generated from the sticky tag range and all neighbors have a uniform 
+			tag value at this location.
+	-> wealth level (TUD) for citizen is less that that for every neighbor.
+This action tries to mimic social behavior relevant to persistent cultural attributes. Certain cultural attributes - religion, language, national identity etc. are fairly resistant to change with people often holding on to the same values for life. Some values may change under rare circumstances. The conditions described above combine to present an instance of such an event. The scenario can be likened to a citizen relocating to a new region populated by an outgroup all of who hold cultural beliefs at odds with those of the citizen and therefore present a physical threat. The neighbor group is also without exception economically better-off than the citizen. This provides the citizen with a double-incentive to effect a move to the outgroup. The effected outcome is inline with predictions of Social Identity Theory, wherein some individuals react to a perception of ingroup inferiority, by defecting to the outgroup.
+In the Sugarscape, the equivalent of this behavior is the transformation of the citizen's sticky tags to match those of the neighbors.
+
+Group Classification
+--------------------
+Having decided on a tag structure and transmission mechanism, we can turn our attention to group classification for citizens. The number of groups can be left as a choice for the user with the one restriction  - 0 < group count < tag string length, ensuring that we do not end up with more groups than tags. 
+Group membership can be decided by the count of zero tags. The following table illustrates one example of classification (string length = 11).
+		Group Name	# of 0's
+		----------	--------
+		 Blue		 0 - 3
+		 Green		 4 - 7
+		 Red		 8 - 10
+Group classification can thus be decided by reading an array of integers in ascending order and using them as endpoints for each group. A second array containing the same number of elements could store the corresponding group names. Eg.,
+	CITIZEN_GROUP_RANGE[] = {3,7,10}
+	CITIZEN_GROUP_Name [] = {"Blue", "Green", "Red"}
+
+
+Disease Transmission and Immune Response
+========================================
+Binary Strings and the Hamming Distance
+---------------------------------------
+(http://acm.uva.es/p/v7/729.html)
+  In comparing two bit patterns, the Hamming distance is the count of bits different in the two patterns. More generally, if two ordered lists of items are compared, the Hamming distance is the number of items that do not identically agree.
+
+We model the immune system and individual diseases as bit strings. Diseases may be of different length but always shorter than the immune system. The rule of thumb (upto the user's preference) when setting up disease process values would be that:
+	the immune system would likely be 'x' times the largest disease string, 
+where 'x' represents the number of diseases introduced to the Sugarscape. For eg., the disease string may be of random length ranging between 4-10 bits, each bit generated randomly. The immune string could be another bit string of say 50 bits.
+
+A metabolic fee is a representation of the cost associated with a disease. Costs apply from a dual perspective. The virus as a parasite is stealing energy fron the host to manufacture protiens and metabolize sugar. Fevers result in increased caloric expenditure as our body heats up. These costs can be represented in various forms.
+1) A metabolic fee may be assessed by increasing the metabolism of the infected citizen.
+2) A health penalty may be imposed effectively reducing vision.
+3) We could additionally interrupt normal reproductive and trading activity as the agent recovers from their illnesses, but this may not be necessary as the increase in metabolism also results in a reduced ranking and imbalance in internal economic assessments. There is thus an automatic cascading penalty in those areas.
+These options can be controlled via boolean switches 
+DISEASE_SUGAR_COST, DISEASE_SPICE_COST). These can be calculated in the following manner:
+	citizen sugar metabolism = citizen sugar metabolism + 
+					(disease count * metabolic penalty for sugar)
+	citizen spice metabolism = citizen spice metabolism + 
+					(disease count * metabolic penalty for spice)
+	citizen vision = citizen vision - (disease count * cellspace health penalty)	***not implemented***
+
+A random disease list (array of random bit strings) is generated at the start of the program. As each citizen in generated they are infected with a preset number (user choice) of diseases selected randomly from the disease list.
+For each cycle, the list of diseases are evaluated against the citizens immune system, if the disease string is matched by a substring in the immune system, it is eliminated from the citizen's disease list.
+The diseases that remain are sorted by size of the germ's binary string. This ensures that simpler germs are eliminated ahead of the more complex ones. This hopefully is a good analogy to real life where people recover much faster from the flu as compared to more virulent germs. Alternative strategies include sorting by Hamming distance or the simpler, 'First In First Out' strategy. For cases where the citizen is not immune to the next germ, the immune system adapts by flipping one mismatched tag per cycle to match the disease string. This continues over the required number of cycles until immunity is achieved.
+That completes the immune response section of the disease process. Another concept that ties in to this mechanism is that of Immunological memory. The agent remains immune as long as nothing happens to alter the substring. 
+
+The  metabolic and health penalties imposed are calculated at the start of the consumption & gathering phases of the cycle. These form the 'symptoms' portion of the disease process.
+
+The disease transmission process is replicated by infecting each neighbor with a random selection from the disease list of the citizen.
+
+The final process that needs to be modeled is that of immune genotype inheritance. For this purpose the original unchanged version of a parents immune string is retained within the citizen object. The childs immune genotype is derived in the following manner:
+ -> For each bit position where mom & dad's genotype match, the child inherits the same bit value.
+ -> All other positions have a bit value that is randomly determined.
+
+
+
+
+IMPLEMENTATION
+
+The nature and complexities of agent-based AI simulations require the ability to
+	- design an initial system,
+	- write the code that executes the design,
+	- redesign component modules, implement the redesign & 
+		integrate with the bigger system
+This process of repeated refinement of the model leads to the automatic selection of object-oriented programming as the most suitable programming framework to use. Objects are highly independent self-contained components that include both data and procedures. This enables both the agent and the environment to be implemented as independent components. Changes can me made to one without having to rewrite the other.
+
+The Sugarscape (terrain) is a two-dimensional grid of adjustable dimensions. The Sugarscape can be said to comprise of rows or columns of cells that represent the lowest unit of location on the Sugarscape. This just means that a citizen has to occupy all of one cell, there can be no sharing of cells. Think of this as a design limitation for now. The Sugarscape like the land masses it represents has boundaries and citizens are for the present hemmed in by these boundaries.
+
+Cells have the following attributes: sugar, spice & pollution. Sugar and spice are harvested by citizens visiting the cell. Both are renewable resources and once harvested grow back at a pace determined by the executor of the simulation. The visual representation depicts the amount of sugar and spice available in cells as horizontal bars attached to two ends of the cell. The thickness of the bars serve as approximations of the amount of each resource. Cells may also be barren of one or both resource growing capability. This property is randomly determined during creation of the cells. The percentage of barren cells are determined by the user and can be set/changed at the start of each run of the simulation.
+
+The citizen is the occupant of the Sugarscape, rather of individual cells on it. The Sugarscape typically hosts a number of citizens whose initial density on the grid is determined by the user. Each citizen possesses the following properties:
+	- id,		unique descriptor identifying the citizen.
+	- family,	shared name identifying either paternal or maternal lineage.
+	- parents,	male & female citizens, whose mating resulted and who passed
+			on a mix of their attributes to their offspring. The first
+			generation of citizens lack parents.
+	- birthYear	marking the start of their lifecycle on the Sugarscape.
+	- location	specifies their current address on the Sugarscape.
+	- inheritance	the initial allocation of sugar and spice received from their parents
+	- sugar		the total hoard of sugar available for consumption - is
+			determined as the sum of a citizen's inheritance and the net sugar 
+			gathered, consumed & traded while roaming the landscape.
+	- diseases	a list of diseases aquired randomly or from other citizens
+	- immunity	a immune system that dynamically evolves in response to infections
+
+
+MILESTONES
+
+The successful development of artificial societies is signaled when "fundamental social structures and group behaviors emerge from the interaction of individual agents operating under rules that place only bounded demands on each agent's information and computational capacity." (Epstein & Axtell, 1996). In other words, our goal is to study the emergence of society and social behavior resulting from each individual acting on simple rulesets and on information available from their immediate surroundings (defined by their vision).
+
+1) Our first milestone involved implementing the initial Sugarscape & Citizen objects. It also involved implementing the first ruleset, referred to as 'Search & Gather'. Specifically it directs the citizen to,
+	"Look around as far as your vision permits, 
+		find the spot with the most sugar(optimal location), 
+		go there and gather the sugar.
+		if there are multiple optimal locations, randomly select any one.
+Prior to the move the agent consumes sugar equal to their metabolic rate, agents die if the available sugar in insufficient to meet their consumption requirement."
+
+2) The second milestone involved implementing mating and reproduction processes among the denizens of the Sugarscape. The rulset described below can be referred to as 'Search & Mate', it directs each citizen to
+	Ensure that at least one free cell is available to host the newborn child.
+	Examine the adjacent cells and select a random neighbor but bias the choice towards more efficient partners.  
+	If the neighbor
+	- is fertile (past-puberty, pre-andro/meno-pause),
+	- of the opposite sex
+	- not a sibling, parent or child,
+	- past a defined mating interval and,
+	- possesses enough reserves to partially support a child & themselves,
+...proceed with mating. The child inherits resources equal to half of each parent's inheritance to enable it to survive through its early years. It inherits physical attributes of one or the other parent.
+A mating interval may be set separately for male and female citizens which defines a required gap between subsequent mating events. Procreation also leads to the first step in the formation of family trees. Apart from enabling the development of a genealogy, it also provides the first basis for group formation (family members). The ruleset also incorporates the concepts of lifespan, puberty & meno/andro-pause, thereby setting limits on fertility periods for citizens.
+
+3) The third milestone saw the implementation of seasonal variations and their effect on growth of resources and the resulting behavior of the citizens. Another factor introduced was pollution on the Sugarscape. Pollution is caused by the citizen's gathering activity. Each unit of sugar harvested increases pollution and reduces the citizen's desire to move to that cell. Pollution dispersal has been programmed as a function of time to mimic Nature's ability to reclaim its own.
+Yet another behavior incorporated into the Sugarscape was 'Inheritance' resulting from death of the Citizen object. The activation of this behavior results in the distribution of the remaining wealth among the surviving progeny.
+
+4) While the 3rd milestone was a collective completion of multiple smaller objectives, our fourth milestone was focused on large achievement, introducing trade on the Sugarscape. This necessitated the introduction of a second commodity, 'spice' with an added but separate set of citizen parameters determining the need and availability of this good. Citizens requiring both to survive could then trade surplus stocks of one to acquire the other. The process involved internal evaluation, searching for valid trade partners, negotiating prices, selecting offers, determining exchange quantities and finally making the exchange. This was done around the time of arrival of 2004.
+
+5) Based of some feedback, a better GUI was created to display some of the statistics generated by the simulation. The GUI was also enhanced to enable easier manipulation of simulation control variables. Activation/deactivation of processes & sub-processes including process feedback was also added to the new GUI component, a tabbed-pane interface.
+
+6) Added cultural processes based on fundamental cultural structures called memes, inherited and developed by citizens. These structures represent ideas, norms, beliefs - all components of what is generally recognized as culture. The meme structure also automatically defines group membership.
+
+7) Completed disease processes including random generation of diseases that occur on the Sugarscape, random infection of diseases, inheritance of immune systems from parents, epidemics resulting from movement & interactions of citizens on the Sugarscape and adaptation of immune systems in response to infections.
+
+26 April 2004

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="javadoc">
+<target name="javadoc">
+<javadoc access="public" author="true" classpath="." destdir="doc" nodeprecated="true" nodeprecatedlist="true" noindex="true" nonavbar="true" notree="true" source="1.4" sourcefiles="Sugarscape.java" sourcepath="." splitindex="false" use="true" version="true"/>
+</target>
+</project>

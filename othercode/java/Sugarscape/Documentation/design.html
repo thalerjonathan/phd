@@ -1,0 +1,467 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML> 
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Sugarscape - Growing Agent-based Artificial Societies</title>
+<meta name="GENERATOR" content="kannankeril & WebDwarf">
+<meta name="Description" content="Sugarscape - Growing Agent-based Artificial Societies">
+<meta name="Keywords" content="sugarscape, artificial societies, agent-based computer modeling, cellular automata">
+
+<style type="text/css">
+.fsx01 {font-size: 11px;}
+.fsx02 {font-size: 12px;}
+.fsx03 {font-size: 13px;}
+.fsx04 {font-size: 15px;}
+.fsx05 {font-size: 16px;}
+.fsx06 {font-size: 19px;}
+.fsx07 {font-size: 21px;}
+.fsx08 {font-size: 24px;}
+.fsx09 {font-size: 27px;}
+.fsx10 {font-size: 29px;}
+.fsx11 {font-size: 32px;}
+.fsx12 {font-size: 35px;}
+.fsx13 {font-size: 37px;}
+.fsx14 {font-size: 48px;}
+.fsx15 {font-size: 64px;}
+.fsx16 {font-size: 96px;}
+.txdec {text-decoration: none;}
+#Oobj42 {position:absolute;z-index:25;visibility:visible;;left:4px;top:5px;width:99px;height:23px;color:#000000;font-size:1px;}
+#Oobj43 {position:absolute;z-index:25;visibility:visible;text-align:left;;left:3px;top:3px;width:101px;height:28px;}
+#Oobj45 {position:absolute;z-index:28;visibility:visible;;left:4px;top:5px;width:99px;height:23px;color:#000000;font-size:1px;}
+#Oobj46 {position:absolute;z-index:28;visibility:visible;text-align:left;;left:3px;top:3px;width:101px;height:28px;}
+#Oobj49 {position:absolute;z-index:31;visibility:visible;;left:4px;top:5px;width:99px;height:23px;color:#000000;font-size:1px;}
+#Oobj50 {position:absolute;z-index:31;visibility:visible;text-align:left;;left:3px;top:3px;width:101px;height:28px;}
+#Oobj52 {position:absolute;z-index:34;visibility:visible;;left:4px;top:5px;width:99px;height:23px;color:#000000;font-size:1px;}
+#Oobj53 {position:absolute;z-index:34;visibility:visible;text-align:left;;left:3px;top:3px;width:101px;height:28px;}
+#Oobj35 {position:absolute;z-index:49;visibility:visible;;left:3px;top:5px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj37 {position:absolute;z-index:49;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:19px;}
+#Oobj61 {position:absolute;z-index:50;visibility:visible;;left:3px;top:4px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj67 {position:absolute;z-index:50;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:18px;}
+#Oobj73 {position:absolute;z-index:51;visibility:visible;;left:3px;top:3px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj74 {position:absolute;z-index:51;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:18px;}
+#Oobj75 {position:absolute;z-index:52;visibility:visible;;left:3px;top:3px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj76 {position:absolute;z-index:52;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:18px;}
+#Oobj79 {position:absolute;z-index:53;visibility:visible;;left:3px;top:4px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj80 {position:absolute;z-index:53;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:18px;}
+#Oobj81 {position:absolute;z-index:54;visibility:visible;;left:3px;top:4px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj82 {position:absolute;z-index:54;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:18px;}
+
+.dfltt {font-family:Times New Roman;font-size:14px;font-weight:normal;text-decoration:none;text-align:left;}
+body {margin: 0px;}
+</style>
+</head> 
+
+<body bgcolor="#54555a" alink="#ff00ff" link="#0000ff" vlink="#ff0000" 
+  style="height:100%; width:100%; ">
+
+<div id="Oobj18" style="position:absolute;z-index:1;visibility:visible; left:-1px;top:-1px;width:105px;height:1400px;color:#000000;font-size:1px;">
+<img name="Ggeo22" SRC="../images/verticalBg.png" alt="" border = 0  width="105px" height="6300px">
+</div>
+<div id="Oobj56" style="position:absolute;z-index:2;visibility:visible; left:-618px;top:0px;width:2064px;height:106px;color:#000000;font-size:1px;">
+<img name="Ggeo141" SRC="../images/horizontalBg.png" alt="Oobj56" border = 0  width="2064px" height="106px">
+</div>
+<div id="Oobj7" style="position:absolute;z-index:4;visibility:visible; left:0px;top:0px;width:61px;height:61px;color:#000000;font-size:1px;">
+<img name="Ggeo7" Align=Top SRC="../images/cell4x4.jpg" alt="cell4x4" border=0 width="61px" height="61px"></div>
+
+<div id="Oobj12" style="position:absolute;z-index:5;visibility:visible; left:0px;top:136px;width:15px;height:16px;color:#000000;font-size:1px;">
+<img name="Ggeo12" Align=Top SRC="../images/cell1x1b.jpg" alt="cell1x1b" border=0 width="15px" height="16px"></div>
+
+<div id="Oobj14" style="position:absolute;z-index:6;visibility:visible; left:0px;top:105px;width:30px;height:31px;color:#000000;font-size:1px;">
+<img name="Ggeo14" Align=Top SRC="../images/cell2x2b.jpg" alt="cell2x2b" border=0 width="30px" height="31px"></div>
+
+<div id="Oobj15" style="position:absolute;z-index:7;visibility:visible; left:0px;top:60px;width:46px;height:46px;color:#000000;font-size:1px;">
+<img name="Ggeo15" Align=Top SRC="../images/cell3x3a.jpg" alt="" border=0 width="46px" height="46px"></div>
+
+<div id="Oobj16" style="position:absolute;z-index:8;visibility:visible; left:60px;top:0px;width:45px;height:46px;color:#000000;font-size:1px;">
+<img name="Ggeo16" Align=Top SRC="../images/cell3x3b.jpg" alt="" border=0 width="45px" height="46px"></div>
+
+<div id="Oobj151" style="position:absolute;z-index:9;visibility:visible; left:107px;top:0px;width:231px;height:50px;color:#ffff80;font-size:1px;">
+<img name="Gtitle154" SRC="../images/titleSugarscape.png" alt="Oobj151" border = 0  width="231px" height="50px"></div>
+
+<div id="Oobj152" style="position:absolute;z-index:10;visibility:visible; left:107px;top:48px;width:234px;height:24px;color:#ffff80;font-size:1px;">
+<img name="Gtitle155" SRC="../images/titleGAS.png" alt="Oobj152" border = 0  width="234px" height="24px"></div>
+
+<!-- HORIZONTAL BUTTONS -->
+<div id="Oobj156" style="position:absolute;z-index:11;visibility:visible; left:109px;top:76px;width:99px;height:23px;color:#000000;font-size:1px;">
+<a href="../sugarscape.html" title="Return to Sugarscape Home"><img name="Ggeo159" SRC="../images/bttnBg.png" alt="Oobj156" border = 0  width="99px" height="23px"></a>
+</div>
+<div id="Oobj171" style="position:absolute;z-index:12;visibility:visible; left:108px;top:75px;width:101px;height:28px;">
+<a href="../sugarscape.html" title="Return to Sugarscape Home"><span id="Grtf171" class="dfltt">
+<div align="center"><font face="Arial" class="fsx06" color="#ffff80">Home<br></font></div>
+</span>
+</a>
+</div>
+
+<div id="Oobj57" style="position:absolute;z-index:13;visibility:visible; left:218px;top:76px;width:99px;height:23px;color:#000000;font-size:1px;">
+<a href="../documentation/walkthru.html" title="Detailed Explanation of Main Processes/Events"><img name="Ggeo172" SRC="../images/bttnBg.png" alt="Detailed Explanation of Main Processes/Events" border = 0  width="99px" height="23px"></a>
+</div>
+<div id="Oobj58" style="position:absolute;z-index:14;visibility:visible; left:217px;top:75px;width:101px;height:28px;">
+<a href="../documentation/walkthru.html" title="Detailed Explanation of Main Processes/Events"><span id="Ggeo173" class="dfltt">
+<div align="center"><font face="Arial" class="fsx06" color="#ffff80">WalkThru<br></font></div>
+</span>
+</a>
+</div>
+
+<div id="Oobj62" style="position:absolute;z-index:15;visibility:visible; left:324px;top:76px;width:99px;height:23px;color:#000000;font-size:1px;">
+<a href="../documentation/screenshots.html" title="Sugarscape Home"><img name="Ggeo186" SRC="../images/bttnBg.png" alt="Screen shots with explanations" border = 0  width="99px" height="23px"></a>
+</div>
+<div id="Oobj63" style="position:absolute;z-index:18;visibility:visible; left:325px;top:75px;width:101px;height:28px;">
+<a href="../documentation/screenshots.html" title="Screen shots with explanations"><span id="Ggeo187" class="dfltt">
+<div align="center"><font face="Arial" class="fsx06" color="#ffff80">Scre'nshots<br></font></div>
+</span>
+</a>
+</div>
+
+<div id="Oobj65" style="position:absolute;z-index:17;visibility:visible; left:429px;top:76px;width:99px;height:23px;color:#000000;font-size:1px;">
+<a href="../documentation/design.html" title="Project Design Details"><img name="Ggeo191" SRC="../images/bttnBg.png" alt="Project Design Details" border = 0  width="99px" height="23px"></a>
+</div>
+<div id="Oobj66" style="position:absolute;z-index:20;visibility:visible; left:429px;top:75px;width:101px;height:28px;">
+<a href="../documentation/design.html" title="Project Design Details"><span id="Ggeo192" class="dfltt">
+<div align="center"><font face="Arial" class="fsx06" color="#ffff80">Design<br></font></div>
+</span>
+</a>
+</div>
+
+<div id="Oobj59" style="position:absolute;z-index:16;visibility:visible; left:542px;top:76px;width:99px;height:23px;color:#000000;font-size:1px;">
+<a href="../documentation/documents.html" title="Index of Documents"><img name="Ggeo179" SRC="../images/bttnBg.png" alt="Oobj59" border = 0  width="99px" height="23px"></a>
+</div>
+<div id="Oobj60" style="position:absolute;z-index:19;visibility:visible; left:543px;top:75px;width:101px;height:28px;">
+<a href="../documentation/documents.html" title="Index of Documents"><span id="Ggeo180" class="dfltt">
+<div align="center"><font face="Arial" class="fsx06" color="#ffff80">Documents<br></font></div>
+</span>
+</a>
+</div>
+
+<!-- VERTICAL BUTTONS -->
+<div id="Oobj95" style="position:absolute;z-index:49;visibility:visible; left:5px;top:163px;width:94px;height:28px;color:#000000;font-size:1px;">
+<a href="../documentation/design.html" title="Design - Overview"><div id="Oobj35">
+<a href="../documentation/design.html" title="Design - Overview"><img name="Ggeo44" SRC="../images/bttnBg.png" alt="Design - Overview" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj37">
+<a href="../documentation/design.html" title="Design - Overview"><span id="Ggeo45" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>Overview<br></B></font></div>
+</span></a></div></a></div>
+
+<div id="Oobj96" style="position:absolute;z-index:50;visibility:visible; left:5px;top:195px;width:94px;height:27px;color:#000000;font-size:1px;">
+<a href="../documentation/design.html#Details" title="Design - Details"><div id="Oobj61">
+<a href="../documentation/design.html#Details" title="Design - Details"><img name="Ggeo61" SRC="../images/bttnBg.png" alt="Design - Details" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj67">
+<a href="../documentation/design.html#Details" title="Design - Details"><span id="Ggeo62" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>Details<br></B></font></div>
+</span></a></div></a></div>
+
+<div id="Oobj97" style="position:absolute;z-index:51;visibility:visible; left:5px;top:227px;width:94px;height:26px;color:#000000;font-size:1px;">
+<a href="../documentation/design.html#Change Log" title="Design - Change Log"><div id="Oobj73">
+<a href="../documentation/design.html#Change Log" title="Design - Change Log"><img name="Ggeo68" SRC="../images/bttnBg.png" alt="Design - Change Log" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj74">
+<a href="../documentation/design.html#Change Log" title="Design - Change Log"><span id="Ggeo69" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>Change Log<br></B></font></div>
+</span></a></div></a></div>
+
+<div id="Oobj98" style="position:absolute;z-index:52;visibility:visible; left:5px;top:258px;width:94px;height:26px;color:#000000;font-size:1px;">
+<a href="../documentation/design.html#Pseudocode" title="Design - Pseudocode"><div id="Oobj75">
+<a href="../documentation/design.html#Pseudocode" title="Design - Pseudocode"><img name="Ggeo70" SRC="../images/bttnBg.png" alt="Design - Pseudocode" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj76">
+<a href="../documentation/design.html#Pseudocode" title="Design - Pseudocode"><span id="Ggeo71" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>Pseudocode<br></B></font></div>
+</span></a></div></a></div>
+
+<!--
+<div id="Oobj99" style="position:absolute;z-index:53;visibility:visible; left:5px;top:290px;width:94px;height:27px;color:#000000;font-size:1px;">
+<a href="../documentation/design.html#Configure" TITLE="Design - Configure"><div id="Oobj79">
+<a href="../documentation/design.html#Configure" title="Design - Configure"><img name="Ggeo74" SRC="../images/bttnBg.png" alt="Design - Configure" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj80">
+<a href="../documentation/design.html#Configure" title="Design - Configure"><span id="Ggeo75" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>Configure<br></B></font></div>
+</span></a></div></a></div>
+
+<div id="Oobj100" style="position:absolute;z-index:54;visibility:visible; left:5px;top:321px;width:94px;height:27px;color:#000000;font-size:1px;">
+<a href="../documentation/design.html#History" TITLE="Design - History"><div id="Oobj81">
+<a href="../documentation/design.html#History" title="Design - History"><img name="Ggeo76" SRC="../images/bttnBg.png" alt="Design - History" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj82">
+<a href="../documentation/design.html#History" title="Design - History"><span id="Ggeo77" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>History<br></B></font></div>
+</span></a></div></a></div>
+-->
+
+<div id="Oobj21" style="position:absolute;z-index:3;visibility:visible; left:108px;top:118px;width:637px;height:4780px;">
+<span id="Grtf21" class="dfltt">
+<a href="#Overview" title="Intro to the overall design approach"></a><a name="Overview"></a><font face="Verdana" class="fsx07" color="#ffff80">Overview</font><br><br>
+<font face="Verdana" class="fsx03" color="#ffff80">1) Introduction<br>
+---------------<br>
+The study of the Social Sciences is a complex subject matter particularly because certain kinds of controlled experimentation are difficult to implement. Hypotheses regarding responses of individuals or groups of individuals to social events cannot be tested very easily. Thus curtailing efforts to establish sound causal relationships between individual behaviors on a microscopic level &amp; resulting effects on society.<br>
+<br>
+A second significant drawback of many approaches to modeling human society is that they tend to build their approach on a homogenous model of the individual. These attempts build a single model of a human being and then replicate it in large numbers to examine social behavior. Such an approach naturally sacrifices heterogeneity of the human actor in its models/scenarios. <br>
+Many models especially those involving game theory and many of the classical economic models, tend to study static worlds or worlds frozen at a particular point in time. Such snapshots ignore the dynamics of time &amp; its influence on their models.<br>
+<br>
+This project attempts/intends to apply computer-based modeling techniques to study human social phenomena including gathering, mating, procreation, seasonal migration, interaction with an environment, trade, propagation of disease, population dynamics and much more.<br>
+The broad aim here is to develop a computational approach that permits the study of diverse types of human activity from an evolutionary perspective. Utility for education &amp; research also requires the ability to configure various parameters controlling the simulation.<br>
+<br>
+The software attempts this by using an OOP approach that represents the components required (terrain, human beings, resources) as objects with defined properties and rules of behavior. These and many of the objectives have been partially achieved, but the need to add sophistication and complexity continue to spur the next round of development. This work centers around development of the Cell and Citizen objects and the Rulesets that govern their interaction. While the first two are typical OOP components, the Rulesets are analogus to algorithms that guide their actions and responses to other objects and the Cellspace environment. <br>
+<br>
+The major challenge in any such endeavor is the design of the environment and the flexibility that such design provides the ultimate end-users. Life as we know it, is pretty complicated. Once we get beyond the relatively simple rules for survival, gathering, propagation etc., we encounter complexities like culture, group formation and personality development. Incorporating economic processes like trade and the development of diverse industry are also a formidable task to design and program in a simulation.<br>
+<br>
+Some part of that problem has been simplified with the adoption of ideas laid out in the book described in section 3 of this page. The book is but a starting point, as the project progresses, I plan to incorporate all the ideas that I can lay my hands on and, stitch into one cohesive whole. I &nbsp;have no idea on whether this may prove useful to someone, but it gives me great pleasure just to create it. If someone out there finds it useful, that's just icing.</font><br>
+<br>
+<br>
+<a href="#Details" title="Design Details"></a><a name="Details"></a><font face="Verdana" class="fsx07" color="#ffff80">Details</font><br>
+<font face="Verdana" class="fsx03" color="#ffff80">The broad aim of this project is to use a computer simulation to examine diverse spheres of human activity both in concert &amp; in isolation. Such an approach is necessarily multi-disciplinary as it examines biological, economic, social &amp; political processes of human activity. These models can be described as 'artificial societies' and it is hoped that fundamental social structures &amp; group behaviors emerge from individual-level rules and decisions.<br>
+This model involves three basic ingredients: human agents, a terrain with and on which they interact and micro-level rulesets that constrain their behavior. Agents are the citizens of artificial societies. They possess certain attributes and follow certain behavioral rules. &nbsp; Some attributes like vision and metabolism are fixed for life while others like wealth &amp; cultural identity change as the agents move and interact on the terrain.<br>
+The terrain is modeled as a two-dimensional grid of resource sites containing two or more resources. The land can be modeled as a complex entity in its own with varying levels of resource fertility, accumulating pollution, navigability (hilly terrain, more difficult to navigate than plateaus) etc. It can also be modeled to simulate a two-part terrain. Varying distributions of a land &amp; water mass, each with its own properties and its own influence on the other can then be created. The final component of our AI model are agent are rulesets. A simple illustration of an agent rule can be described thus:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Look around &amp; find the richest source of sugar, go there and harvest it.<br>
+<br>
+<br>
+IMPLEMENTATION<br>
+The nature and complexities of agent-based AI simulations require the ability to<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- design an initial system,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- write the code that executes the design,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- redesign component modules, implement the redesign &amp; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;integrate with the bigger system<br>
+This process of repeated refinement of the model leads to the automatic selection of object-oriented programming as the most suitable programming framework to use. Objects are highly independent self-contained components that include both data and procedures. This enables both the agent and the environment to be implemented as independent components. Changes can me made to one without having to rewrite the other.<br>
+<br>
+The Sugarscape (terrain) is a two-dimensional grid of adjustable dimensions. The Sugarscape can be said to comprise of rows or columns of cells that represent the lowest unit of location on the Sugarscape. This just means that a citizen has to occupy all of one cell, there can be no sharing of cells. Think of this as a design limitation for now. The Sugarscape like the land masses it represents has boundaries and citizens are for the present hemmed in by these boundaries.<br>
+<br>
+Cells have the following attributes: sugar, spice &amp; pollution. Sugar and spice are harvested by citizens visiting the cell. Both are renewable resources and once harvested grow back at a pace determined by the executor of the simulation. The visual representation depicts the amount of sugar and spice available in cells as horizontal bars attached to two ends of the cell. The thickness of the bars serve as approximations of the amount of each resource. Cells may also be barren of one or both resource growing capability. This property is randomly determined during creation of the cells. The percentage of barren cells are determined by the user and can be set/changed at the start of each run of the simulation.<br>
+<br>
+The citizen is the occupant of the Sugarscape, rather of individual cells on it. The Sugarscape typically hosts a number of citizens whose initial density on the grid is determined by the user. Each citizen possesses the following properties:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- id,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unique descriptor identifying the citizen.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- family,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;shared name identifying either paternal or maternal lineage.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- parents,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;male &amp; female citizens, whose mating resulted and who passed<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on a mix of their attributes to their offspring. The first<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;generation of citizens lack parents.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- birthYear&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;marking the start of their lifecycle on the Sugarscape.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- location&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;specifies their current address on the Sugarscape.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- inheritance&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the initial allocation of sugar and spice received from their <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;parents<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- sugar&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the total hoard of sugar available for consumption - is<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;determined as the sum of a citizen's inheritance and the net<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sugar gathered, consumed &amp; traded while roaming the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;landscape.<br>
+<br>
+CURRENT FEATURES<ul>
+<li>The major features incorporated into the software include:
+<li>implementation of the Game Of Life as described by Robert Conway with the facility to create initial templates.
+<li>development of the Sugarscape object (the land environment) that will play host to the human beings populating it.
+<li>the Citizen object representing the nature &amp; properties of human beings.
+<li>a constants file that enables default seeding values for the various aspects of simulations that a researcher seeks to manipulate.
+<li>the graphical display that brings these elements together &amp; depicts their interaction in real-time.
+<li>the ability to toggle feedback for specific sections of the code rather than inundating users with overwhelming feedback from all processes occurring on the Sugarscape.
+<li>a tabbed-pane interface for controlling the simulation and toggling the values of variables during runtime.
+<li>implementation of foraging &amp; consumption activities involving two resources, sugar &amp; spice.
+<li>implementation of mating &amp; procreation. This includes sexual differentiation, recognition of familial ties, passage of physical characteristics from parents to children and inheritance.
+<li>the depiction of a life cycle that incorporates birth, puberty, menopause/andropause and finally, death.
+<li>implementation of internal valuation of the worth of each resource by citizens, seeking, evaluating and selecting trading partners and carrying out a mutually profitable exchange.</ul><br>
+FEATURES TODO<br>
+The project objective is to continuously increase the level of sophistication of the various actors in the environment, especially the Citizen object. Features planned:<ul>
+<li>introduction of culture &amp; conflict
+<li>disease &amp; natural catastrophes</ul>Additionally we intend to incorporate startup templates &amp; historical snapshots to be generated &amp; stored in some appropriate file format to enable exchange of results among interested observers.<br>
+<br>
+A website showcasing the software &amp; providing interaction to interested participants is available at <B><a href="http://sugarscape.sourceforge.net/.">http://sugarscape.sourceforge.net/.</a></B><br>
+Obtaining &amp; reading a copy of &quot;Growing Artificial Societies - Social Science From The Bottoms Up&quot; by J Epstein &amp; R Axtell is recommended. The book also comes with a CD that includes an implementation of a similar model. The code however does not seem to be Open Source and I have never seen or used it. I am in no way associated with the authors or publishers of this book.</font><br>
+<br>
+<br>
+<a href="#Change Log" title="List of changes in chronological order"></a><a name="Change Log"></a><font face="Verdana" class="fsx07" color="#ffff80">Change Log</font><br>
+<font face="Courier New" class="fsx03" color="#ffff80"><B>Built-on the original code from</B><br>
+ Game of Life v1.3<br>
+ Copyright 1996-2001 Edwin Martin &lt;edwin@bitstorm.nl&gt;<br>
+ version 1.0 online since July 3 1996<br>
+ Changes:<br>
+ 1.1: Double buffering to screen; faster paint<br>
+ 1.2: Arrowkeys changed; better use of `synchronized'<br>
+ 1.3: Choose speed from drop down menu and draw with mouse<br>
+<br>
+Start of Sugarscape - Linked List version<br>
+ by abraham kannankeril<br>
+ 1.4: Added template 'Random'&amp; 'Big Bang' to layout choices<br>
+ -------------------------xxx-------------------------------<br>
+ 2.0: Add Sugarscape &amp; Citizen objects incorporating a new<br>
+ &amp; more sophisticated ruleset.<ul>
+<li> a single resource (sugar) is randomly dispersed on the grid 
+<li> citizens scattered on the sugarscape must collect &amp; consume sugar to ensure survival
+<li> citizens possess attributes - vision, metabolism &amp; sugar hoard
+<li> System-level variables can be manually adjusted via public constants to influence behavior on the sugarscape.</ul><br>
+ 2.1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Split into multiple files for better manageablity - package GameOfLife. Added system variable DEBUG to switch debug info ON/OFF<br>
+<br>
+ 2.2:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Added visual representation of cell &amp; citizen properties<br>
+ cells shaded to represent available sugar level (low / medium / high)<br>
+ citizen shaded to represent available sugar level (low / medium / high)<br>
+ citizen shape conveys representation of following combined properties<ul>
+<li> high vision, high metabolism
+<li> high vision, low metabolism
+<li> low vision, high metabolism
+<li> low vision, low metabolism</ul><br>
+ 2.21&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Improved sugar search routine to enable neutral selection between equally fertile cells and selection of random cell if no sugar available to citizen.<br>
+ Added boolean variables to toggle debugging of selected program functions.<br>
+ Added boolean flag to allow imposition of limits on sugar accumulation in cells and a corresponding method to depict absolute values of the sugar matrix<br>
+ Color cues implemented in visual display: <ul>
+<li> Cell color darkens according to sugar accumulated in each cell
+<li> Citizen color gradually varies from red to orange to yellow to green to represent the amount of sugar collected
+<li> Citizen shape varies to depict one of four relative vision/metabolism combinations
+<li> Grid coordinates can be printed if needed. This includes options to print all or some coordinates &amp; to select a print color</ul><br>
+ 2.22 All output from the program has now been redirected to a graphical textarea within the same window as the grid. The earlier dump into STDOUT has been discontinued.<br>
+<br>
+ 2.30 Eliminated &quot;Active Cell found unexpectedly&quot; error<br>
+ Eliminated grid sugar renewal problem - now regenerated with new sugarscape<br>
+ Added debugging variable, DEBUG_PROGRAM_FLOW - enables tracing of method sequence<br>
+ Added command line interface to enable interactive control of program parameters<br>
+<br>
+ 2.35 Added mate selection, child birth and death by aging to the Citizen object.<br>
+ The Citizen object now recognizes familial relationships (sibling, parent, child).<br>
+ Reworked the debug feedback elements. The program feedback has a much smaller delay during execution.<br>
+ Renamed main class/package to Sugarscape to reflect the true name of the project.<br>
+<br>
+ 2.36 Added climate change, pollution<br>
+ Grid fertility adjustable by season<br>
+<br>
+ 2.37 Unreleased version, implements the following options:<ul>
+<li> to resize the grid at runtime.
+<li> of timing the major events(gathering &amp; mating).
+<li> of executing a specified number timePeriods via the command-line.
+<li> to inspect data values for any citizen on the grid and the entire population.
+<li> to start/stop climate change &amp; pollution.</ul><br>
+ 2.40 Major design changes resulting from creation of new Cell object. <br>
+ The Cell object is now a subclass of the CellSpace object and a container of the Citizen object.<br>
+ A separate linked list of references to each citizen is maintained which simplifies operations involving all citizens, shuffling citizens randomly and locating occupants of a particular cell.<br>
+ The major benefit of this redesign (suggested by Digvijay Parmar) is in performance.<br>
+ The resulting code is at least five times faster than my earlier design. That the code is cleaner &amp; more readable is a welcome by-product.<br>
+ I would also like to express my gratitude to Ms. Richa Parmar, whose expert advice, eliminated seemingly enormous obstacles for this novice programmer.<br>
+ BEWARE - the ability to click or drag cells to create/destroy citizens has not been fully implemented, due to plain laziness :)<br>
+<br>
+ 2.41 Added command 'DEMO' / 'TEST' to help demonstrate common program features.<br>
+ Added 2nd commodity, SPICE to the Sugarscape. Citizens need both to survive<br>
+ Changed graphics to represent 2nd commodity &amp; color-coded citizens based on type<br>
+ Added variables in GoLconst to enable manipulation of new/modified objects<br>
+<br>
+ 2.42 Add Barter process to the Sugarscape. <br>
+ Module incorporates internal evaluation, price negotiation and goods exchange. <br>
+ Added 'persona' to citizen - determines Barter strategy. Either maximizing trades involving single units (bull) or minimizing surplus by selling multiple units in safe trades (bear) strategies. Allows creation of additional strategies.<br>
+<br>
+ 2.43 Added a tabbed-pane interface to replace the simple TextArea object that was previously used to display results.<br>
+ Separate panes now display simulation progress data, allow configuration and debugging.<br>
+ Forced to switch from AWT to Swing graphics libraries, applet therefore executes only in AppletViewer, working to improve the situation.<br>
+ Rectified error in barter processes that caused corruption of trade data.<br>
+ Added time counter for the barter processes.<br>
+ Moved GUI objects to top-level mini-classes within Sugarscape.java to overcome problems hindering program execution as an applet.</font><br>
+<br>
+<br>
+<a href="#Pseudocode" title="English-like explain of main program routines"></a><a name="Pseudocode"></a><font face="Verdana" class="fsx07" color="#ffff80">Pseudocode</font><br>
+<font face="Verdana" class="fsx03" color="#ffff80">The purpose of describing the logic of the main sections of the sugarscape is two-fold. The obvious is to expose the algorithms to garner feedback, criticisms and suggestions from other developers. Secondly, the English-like language will hopefully evoke interest from an additional group of non-programmers among the Social Science &nbsp;research community.<br>
+/* The drawSugarscape function or method is executed everytime the simulation is started for the first time.<br>
+This method receives two parameters denoting the number of columns and rows.<br>
+*/<br></font></span>
+</div>
+
+
+
+<div id="Oobj27" style="position:absolute;z-index:21;visibility:visible; left:123px;top:5100px;width:624px;height:1200px;">
+<span id="Grtf27" class="dfltt">
+<font face="Verdana" class="fsx01" color="#ffff80"><I>if current grid size not equal to parameter gridsize<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set new grid size;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resize grid to reflect new size;<br>
+}<br>
+clear grid of previous elements;<br>
+initialize totals for scoreboard;<br>
+<br>
+if seasons process active<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;grow resources by respective seasonal rate;<br>
+else&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;grow resources uniformly by summer rate;<br>
+<br>
+for each cell in the grid<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;generate random number;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if random number &lt; DENSITY Factor<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;create citizens with random attributes;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gather resources in cell of birth;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;increment totals for sugar, spice, citizens<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; and births;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;add new citizen to list of citizens;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}<br>
+<br>
+/* nextScape is the routine/method executing each cycle of the simulation<br>
+*/<br>
+increment cycle count;<br>
+if season process active<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;grow resources by respective seasonal rate;<br>
+else&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;grow resources uniformly by summer rate;<br>
+<br>
+initialize totals &amp; distribution for Scoreboard;<br>
+shuffle citizen list randomly;<br>
+<br>
+while not all citizens processed<br>
+{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#START<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get next citizen on list;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if end of lifespan has arrived<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set &quot;old age&quot; as cause of death;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;add to dead citizen list;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;decrease population &amp; increment death count;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;remove citizen from grid;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;go back to #START;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if not enough sugar or spice to eat<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set &quot;starvation&quot; as cause of death;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;add to dead citizen list;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;decrease population &amp; increment death count;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;remove citizen from grid;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;go back to #START;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;search within range of citizen vision for resources;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if search for goods unsuccessful<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;randomly pick an empty but distant location;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if empty cell, with or without resources found<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;move to that cell and gather available resources;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;record gather time;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if citizen of mating age &amp; has sufficient surplus &amp; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;has atleast one empty cell &amp; prospective mates<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;prepare list of qualified prospective mates;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if more than one mate<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;shuffle mates in list;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pick one mate randomly but weighted by ranking;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bear child with attributes from citizen or mate;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;add child to newborn list;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;update ranking of citizen &amp; mate to reflect transferred <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resources;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;record mating time;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if barter process active<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;seek partners &amp; trade;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;record barter time;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tabulate Scoreboard totals and distributions for this citizen;<br>
+}<br>
+<br>
+eliminate citizens on dead list from citizen list;<br>
+add children on newborn list to citizen list;<br>
+clear dead &amp; newborn list;<br>
+disperse pollution;<br>
+record miscellaneous time;<br></I></font></span>
+</div>
+
+
+<!-- <div id="Oobj102" style="position:absolute;z-index:55;visibility:visible; left:108px;top:1294px;width:657px;height:105px;">
+<span id="Grtf96" class="dfltt">
+<font face="Times New Roman" class="fsx05" color="#ffff80">The source code for Sugarscape is released under the <a href="http://www.opensource.org/licenses/gpl-license.php"><font color="#ff8000">GNU General Public License </font></a>&amp; can be downloaded at<ul>
+<li>Download <a href="http://sourceforge.net/projects/sugarscape/"><font color="#ff8000">Sugarscape project </font></a></ul><I>Space reserved for cute bit of wisdom that I would like to share</I> - <a href="mailto:kannankeril at hotmail"><font color="#ff8000">abraham kannankeril</font></a><br></font></span>
+</div> -->
+
+
+</body> 
+</html> 

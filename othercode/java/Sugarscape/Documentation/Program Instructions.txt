@@ -1,0 +1,72 @@
+	Contents
+	--------
+1) Project Overview
+2) System requirements
+3) Compiling & executing the program
+4) Test Run
+
+
+Project Overview
+----------------
+The Sugarscape project a.k.a. Game of Life (GoL) has been coded as a Java package and is executable as an applet using either the 'AppletViewer' included in most Java SDK installations or inside a webpage through any Java-compatible browser. A sample HTML file is included in the distribution.
+
+It is recommended that the Java SDK be installed on your system in order to completely explore, tweak & understand the program. Configuring simulation parameters no longer requires re-compiling. However, if you wish to examine/modify the code, you will need the Java SDK & a text editor.
+
+
+System Requirements
+-------------------
+The only requirement to use GoL is a working JRE 2 or JDK, version 1.4. A JDK version 1.4 or later is recommended. The idea behind writing it in Java was for it to be available on all major platforms and executable via a web page.
+
+Program Environment
+1) Download and install JDK 1.4. if Java is not already present on your computer.
+Check for the existence of the CLASSPATH variable by opening a DOS window and typing:
+	set CLASSPATH <enter>
+
+The response should look something like this:
+	CLASSPATH=C:\j2sdk1.4.2\bin;C:\j2sdk1.4.2\jre\lib\ext;.;
+Note: the response may not match exactly as shown above but should include the directory containing the java executables, the path to the 'jre\lib\ext' folder and the '.'(period) representing the current directory. Each pathname should be separated by semi-colon characters.
+
+2) Download & unzip the Sugarscape project into a folder on your computer. Ensure that the directory structure given in the Zip file is maintained. All Java files except "Sugarscape.java" should exist within the inner "Sugarscape" folder inside the main folder which is also called Sugarscape, blame it on a lack of foresight on my part :( . All other project files/folders must reside in the main "Sugarscape" folder. Text files contain information or instructions & usually reside in the 'Documentation' subfolder. HTML files in this folder are the same that are seen on the website.
+The HTMLDocs folder contains the JavaDoc documentation for the project.
+The Research folder contains professional journal articles that might be of interest to those interested in a deeper understanding of issues related to this project. I am fascinated by the concept of a 'meme' and hope to incorporate it within the project in the not too distant future.
+
+
+Compiling & executing the program
+---------------------------------
+You can execute the code inside a browser or the appletviewer (recommended) provided as part of the Java SDK. To execute the program simply open "Sugarscape.html" in your Java-enabled browser OR open a DOS window, go to the first Sugarscape folder and type,
+
+	appletviewer Sugarscape.html
+
+If you wish to compile the program files, you may do so in the following manner:
+-> open a DOS window & change to the first Sugarscape folder
+-> type the following commands in the given order:
+	javac GoLconst.java <enter>
+	javac Citizen.java <enter>
+	javac Cellspace.java <enter>
+	javac GameOfLife.java <enter>
+
+If no errors are generated, you can execute the compiled program as described in the preceding paragraph.
+Note: The a.bat file automates this process & combines compilation & execution in one command, type:
+
+	a GameOfLife <enter>
+
+...to automatically compile & execute the program.
+
+
+
+Test Run
+--------
+-> Start the program as described above, you should see a blank grid with a tabbed-pane interface beneath it. The default selected tab should be the 'Scoreboard', which displays discrete real-time data for the simulation.
+The size of the grid can be changed by selecting the 'Sugarscape' tab and typing the desired value into the 'Cols' or 'Rows' fields. 
+
+The program can run either the Sugarscape or, one of about a dozen variations implementing Conway's original ruleset. These are described at http://www.bitstorm.org/gameoflife/. This demo will focus on the Sugarscape (Ss).
+
+-> You can setup the Ss by selecting 'Sugarscape' from the dropdown list on the toolbar. This will generate a random sugar distribution & populate the grid with citizens. The simulation now awaits the command to begin.
+
+-> Click the 'Start' button on the toolbar to execute the simulation. If you wish to execute just one generation worth of processes, click 'Next' on the toolbar.
+
+-> Click the 'Stop' button on the toolbar anytime subsequently to pause the simulation. The simulation will stop running if the citizen population becomes extinct.
+
+-> You can activate/deactivate feedback by toggling any one of the debugging switches available in the 'Configure' tab. By default only critical errors are displayed. These switches are toggled by simply typing 'true' or 'false' against the relevant field. For eg. typing 'true' in the 'Barter Exchange' field will display feedback from all sugar and spice exchanges taking place on the Sugarscape. This feedback can then be viewed by clicking the 'History' tab.
+
+Note: The program does not offer an option to quit, either on the toolbar or on the command line. This stems from a security feature in Java that does no allow programs to terminate their execution. You can safely terminate at any time by closing the window of your browser or appletviewer.

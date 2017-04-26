@@ -1,0 +1,521 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML> 
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Sugarscape - Growing Agent-based Artificial Societies</title>
+<meta name="GENERATOR" content="kannankeril & WebDwarf">
+<meta name="Description" content="Sugarscape - Growing Agent-based Artificial Societies">
+<meta name="Keywords" content="sugarscape, artificial societies, agent-based computer modeling, cellular automata">
+
+<style type="text/css">
+.fsx01 {font-size: 11px;}
+.fsx02 {font-size: 12px;}
+.fsx03 {font-size: 13px;}
+.fsx04 {font-size: 15px;}
+.fsx05 {font-size: 16px;}
+.fsx06 {font-size: 19px;}
+.fsx07 {font-size: 21px;}
+.fsx08 {font-size: 24px;}
+.fsx09 {font-size: 27px;}
+.fsx10 {font-size: 29px;}
+.fsx11 {font-size: 32px;}
+.fsx12 {font-size: 35px;}
+.fsx13 {font-size: 37px;}
+.fsx14 {font-size: 48px;}
+.fsx15 {font-size: 64px;}
+.fsx16 {font-size: 96px;}
+.txdec {text-decoration: none;}
+#Oobj42 {position:absolute;z-index:25;visibility:visible;;left:4px;top:5px;width:99px;height:23px;color:#000000;font-size:1px;}
+#Oobj43 {position:absolute;z-index:25;visibility:visible;text-align:left;;left:3px;top:3px;width:101px;height:28px;}
+#Oobj45 {position:absolute;z-index:28;visibility:visible;;left:4px;top:5px;width:99px;height:23px;color:#000000;font-size:1px;}
+#Oobj46 {position:absolute;z-index:28;visibility:visible;text-align:left;;left:3px;top:3px;width:101px;height:28px;}
+#Oobj49 {position:absolute;z-index:31;visibility:visible;;left:4px;top:5px;width:99px;height:23px;color:#000000;font-size:1px;}
+#Oobj50 {position:absolute;z-index:31;visibility:visible;text-align:left;;left:3px;top:3px;width:101px;height:28px;}
+#Oobj52 {position:absolute;z-index:34;visibility:visible;;left:4px;top:5px;width:99px;height:23px;color:#000000;font-size:1px;}
+#Oobj53 {position:absolute;z-index:34;visibility:visible;text-align:left;;left:3px;top:3px;width:101px;height:28px;}
+#Oobj35 {position:absolute;z-index:49;visibility:visible;;left:3px;top:5px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj37 {position:absolute;z-index:49;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:19px;}
+#Oobj61 {position:absolute;z-index:50;visibility:visible;;left:3px;top:4px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj67 {position:absolute;z-index:50;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:18px;}
+#Oobj73 {position:absolute;z-index:51;visibility:visible;;left:3px;top:3px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj74 {position:absolute;z-index:51;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:18px;}
+#Oobj75 {position:absolute;z-index:52;visibility:visible;;left:3px;top:3px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj76 {position:absolute;z-index:52;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:18px;}
+#Oobj79 {position:absolute;z-index:53;visibility:visible;;left:3px;top:4px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj80 {position:absolute;z-index:53;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:18px;}
+#Oobj81 {position:absolute;z-index:54;visibility:visible;;left:3px;top:4px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj82 {position:absolute;z-index:54;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:18px;}
+
+.dfltt {font-family:Times New Roman;font-size:14px;font-weight:normal;text-decoration:none;text-align:left;}
+body {margin: 0px;}
+</style>
+</head> 
+
+<body bgcolor="#54555a" alink="#ff00ff" link="#0000ff" vlink="#ff0000" 
+  style="height:100%; width:100%; ">
+
+<div id="Oobj18" style="position:absolute;z-index:1;visibility:visible; left:-1px;top:-1px;width:105px;height:1400px;color:#000000;font-size:1px;">
+<img name="Ggeo22" SRC="../images/verticalBg.png" alt="" border = 0  width="105px" height="5430px">
+</div>
+<div id="Oobj56" style="position:absolute;z-index:2;visibility:visible; left:-618px;top:0px;width:2064px;height:106px;color:#000000;font-size:1px;">
+<img name="Ggeo141" SRC="../images/horizontalBg.png" alt="Oobj56" border = 0  width="2064px" height="106px">
+</div>
+
+<div id="Oobj7" style="position:absolute;z-index:4;visibility:visible; left:0px;top:0px;width:61px;height:61px;color:#000000;font-size:1px;">
+<img name="Ggeo7" Align=Top SRC="../images/cell4x4.jpg" alt="cell4x4" border=0 width="61px" height="61px"></div>
+
+<div id="Oobj12" style="position:absolute;z-index:5;visibility:visible; left:0px;top:136px;width:15px;height:16px;color:#000000;font-size:1px;">
+<img name="Ggeo12" Align=Top SRC="../images/cell1x1b.jpg" alt="cell1x1b" border=0 width="15px" height="16px"></div>
+
+<div id="Oobj14" style="position:absolute;z-index:6;visibility:visible; left:0px;top:105px;width:30px;height:31px;color:#000000;font-size:1px;">
+<img name="Ggeo14" Align=Top SRC="../images/cell2x2b.jpg" alt="cell2x2b" border=0 width="30px" height="31px"></div>
+
+<div id="Oobj15" style="position:absolute;z-index:7;visibility:visible; left:0px;top:60px;width:46px;height:46px;color:#000000;font-size:1px;">
+<img name="Ggeo15" Align=Top SRC="../images/cell3x3a.jpg" alt="" border=0 width="46px" height="46px"></div>
+
+<div id="Oobj16" style="position:absolute;z-index:8;visibility:visible; left:60px;top:0px;width:45px;height:46px;color:#000000;font-size:1px;">
+<img name="Ggeo16" Align=Top SRC="../images/cell3x3b.jpg" alt="" border=0 width="45px" height="46px"></div>
+
+<div id="Oobj151" style="position:absolute;z-index:9;visibility:visible; left:107px;top:0px;width:231px;height:50px;color:#ffff80;font-size:1px;">
+<img name="Gtitle154" SRC="../images/titleSugarscape.png" alt="Oobj151" border = 0  width="231px" height="50px"></div>
+
+<div id="Oobj152" style="position:absolute;z-index:10;visibility:visible; left:107px;top:48px;width:234px;height:24px;color:#ffff80;font-size:1px;">
+<img name="Gtitle155" SRC="../images/titleGAS.png" alt="Oobj152" border = 0  width="234px" height="24px"></div>
+
+<!-- HORIZONTAL BUTTONS -->
+<div id="Oobj156" style="position:absolute;z-index:11;visibility:visible; left:109px;top:76px;width:99px;height:23px;color:#000000;font-size:1px;">
+<a href="../sugarscape.html" title="Return to Sugarscape Home"><img name="Ggeo159" SRC="../images/../images/bttnBg.png" alt="Oobj156" border = 0  width="99px" height="23px"></a>
+</div>
+<div id="Oobj171" style="position:absolute;z-index:12;visibility:visible; left:108px;top:75px;width:101px;height:28px;">
+<a href="../sugarscape.html" title="Return to Sugarscape Home"><span id="Grtf171" class="dfltt">
+<div align="center"><font face="Arial" class="fsx06" color="#ffff80">Home<br></font></div>
+</span>
+</a>
+</div>
+
+<div id="Oobj57" style="position:absolute;z-index:13;visibility:visible; left:218px;top:76px;width:99px;height:23px;color:#000000;font-size:1px;">
+<a href="../documentation/walkthru.html" title="Detailed Explanation of Main Processes/Events"><img name="Ggeo172" SRC="../images/../images/bttnBg.png" alt="Detailed Explanation of Main Processes/Events" border = 0  width="99px" height="23px"></a>
+</div>
+<div id="Oobj58" style="position:absolute;z-index:14;visibility:visible; left:217px;top:75px;width:101px;height:28px;">
+<a href="../documentation/walkthru.html" title="Detailed Explanation of Main Processes/Events"><span id="Ggeo173" class="dfltt">
+<div align="center"><font face="Arial" class="fsx06" color="#ffff80">WalkThru<br></font></div>
+</span>
+</a>
+</div>
+
+<div id="Oobj62" style="position:absolute;z-index:15;visibility:visible; left:324px;top:76px;width:99px;height:23px;color:#000000;font-size:1px;">
+<a href="../documentation/screenshots.html" title="Sugarscape Home"><img name="Ggeo186" SRC="../images/bttnBg.png" alt="Screen shots with explanations" border = 0  width="99px" height="23px"></a>
+</div>
+<div id="Oobj63" style="position:absolute;z-index:18;visibility:visible; left:325px;top:75px;width:101px;height:28px;">
+<a href="../documentation/screenshots.html" title="Screen shots with explanations"><span id="Ggeo187" class="dfltt">
+<div align="center"><font face="Arial" class="fsx06" color="#ffff80">Scre'nshots<br></font></div>
+</span>
+</a>
+</div>
+
+<div id="Oobj65" style="position:absolute;z-index:17;visibility:visible; left:429px;top:76px;width:99px;height:23px;color:#000000;font-size:1px;">
+<a href="../documentation/design.html" title="Project Design Details"><img name="Ggeo191" SRC="../images/bttnBg.png" alt="Project Design Details" border = 0  width="99px" height="23px"></a>
+</div>
+<div id="Oobj66" style="position:absolute;z-index:20;visibility:visible; left:429px;top:75px;width:101px;height:28px;">
+<a href="../documentation/design.html" title="Project Design Details"><span id="Ggeo192" class="dfltt">
+<div align="center"><font face="Arial" class="fsx06" color="#ffff80">Design<br></font></div>
+</span>
+</a>
+</div>
+
+<div id="Oobj59" style="position:absolute;z-index:16;visibility:visible; left:542px;top:76px;width:99px;height:23px;color:#000000;font-size:1px;">
+<a href="../documentation/documents.html" title="Index of Documents"><img name="Ggeo179" SRC="../images/bttnBg.png" alt="Oobj59" border = 0  width="99px" height="23px"></a>
+</div>
+<div id="Oobj60" style="position:absolute;z-index:19;visibility:visible; left:543px;top:75px;width:101px;height:28px;">
+<a href="../documentation/documents.html" title="Index of Documents"><span id="Ggeo180" class="dfltt">
+<div align="center"><font face="Arial" class="fsx06" color="#ffff80">Documents<br></font></div>
+</span>
+</a>
+</div>
+
+<!-- VERTICAL BUTTONS -->
+<div id="Oobj95" style="position:absolute;z-index:49;visibility:visible; left:5px;top:163px;width:94px;height:28px;color:#000000;font-size:1px;">
+<a href="../documentation/walkthru.html" title="Walkthru - Installation"><div id="Oobj35">
+<a href="../documentation/walkthru.html" title="Walkthru - Installation"><img name="Ggeo44" SRC="../images/bttnBg.png" alt="Walkthru - Installation" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj37">
+<a href="../documentation/walkthru.html" title="Walkthru - Installation"><span id="Ggeo45" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>Installation</B></font></div>
+</span></a></div></a></div>
+
+<div id="Oobj96" style="position:absolute;z-index:50;visibility:visible; left:5px;top:195px;width:94px;height:27px;color:#000000;font-size:1px;">
+<a href="../documentation/walkthru.html#Introduction" title="Walkthru - Introduction"><div id="Oobj61">
+<a href="../documentation/walkthru.html#Introduction" title="Walkthru - Introduction"><img name="Ggeo61" SRC="../images/bttnBg.png" alt="Walkthru - Introduction" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj67">
+<a href="../documentation/walkthru.html#Introduction" title="Walkthru - Introduction"><span id="Ggeo62" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>Introduction</B></font></div>
+</span></a></div></a></div>
+
+<div id="Oobj97" style="position:absolute;z-index:51;visibility:visible; left:5px;top:227px;width:94px;height:26px;color:#000000;font-size:1px;">
+<a href="../documentation/walkthru.html#Gathering" title="Walkthru - Gathering"><div id="Oobj73">
+<a href="../documentation/walkthru.html#Gathering" title="Walkthru - Gathering"><img name="Ggeo68" SRC="../images/bttnBg.png" alt="Walkthru - Gathering" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj74">
+<a href="../documentation/walkthru.html#Gathering" title="Walkthru - Gathering"><span id="Ggeo69" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>Gathering</B></font></div>
+</span></a></div></a></div>
+
+<div id="Oobj98" style="position:absolute;z-index:52;visibility:visible; left:5px;top:258px;width:94px;height:26px;color:#000000;font-size:1px;">
+<a href="../documentation/walkthru.html#Mating" title="Walkthru - Mating"><div id="Oobj75">
+<a href="../documentation/walkthru.html#Mating" title="Walkthru - Mating"><img name="Ggeo70" SRC="../images/bttnBg.png" alt="Walkthru - Mating" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj76">
+<a href="../documentation/walkthru.html#Mating" title="Walkthru - Mating"><span id="Ggeo71" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>Mating</B></font></div>
+</span></a></div></a></div>
+
+<div id="Oobj99" style="position:absolute;z-index:53;visibility:visible; left:5px;top:290px;width:94px;height:27px;color:#000000;font-size:1px;">
+<a href="../documentation/walkthru.html#Barter" TITLE="Walkthru - Barter"><div id="Oobj79">
+<a href="../documentation/walkthru.html#Barter" title="Walkthru - Barter"><img name="Ggeo74" SRC="../images/bttnBg.png" alt="Walkthru - Barter" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj80">
+<a href="../documentation/walkthru.html#Barter" title="Walkthru - Barter"><span id="Ggeo75" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>Barter</B></font></div>
+</span></a></div></a></div>
+
+<div id="Oobj100" style="position:absolute;z-index:54;visibility:visible; left:5px;top:321px;width:94px;height:27px;color:#000000;font-size:1px;">
+<a href="../documentation/walkthru.html#Misc" TITLE="Walkthru - Misc"><div id="Oobj81">
+<a href="../documentation/walkthru.html#Misc" title="Walkthru - Misc"><img name="Ggeo76" SRC="../images/bttnBg.png" alt="Walkthru - Seasons, Inheritance & Pollution" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj82">
+<a href="../documentation/walkthru.html#Misc" title="Walkthru - Seasons, Inheritance & Pollution"><span id="Ggeo77" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>Misc</B></font></div>
+</span></a></div></a></div>
+
+
+
+
+
+
+
+
+<div id="Oobj21" style="position:absolute;z-index:1;visibility:visible; left:108px;top:118px;width:655px;height:5232px;">
+<span id="Grtf21" class="dfltt">
+<A NAME=Installation><font face="Verdana" class="fsx07" color="#ffff80">Installation</font></A><br>
+<font face="Arial" class="fsx05" color="#ffff80"><B><I>Compiling &amp; executing the program</B></I></font><br>
+<font face="Times New Roman" class="fsx05" color="#ffff80">To run the Sugarscape applet you need to:<br>
+<br>
+<B>1a)</B> Download and install the Java 2 SDK with &quot;AppletViewer.exe&quot; (this is something that would be available on your system if you do some Java programming yourself. Make sure the CLASSPATH variables are set correctly and that the Java directory is included in your PATH system variable.<br>
+<br>
+OR<br>
+<br>
+<B>1b)</B> Internet Explorer 5.x or greater AND the Java 2 Runtime Environment(JRE), which is freely available from Sun at the following website:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.java.com/en/download/windows_automatic.jsp">http://www.java.com/en/download/windows_automatic.jsp</a><br>
+<br>
+Alternatively you can manually download &amp; install the latest Java Runtime(JRE) from:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="http://www.java.com/en/download/manual.jsp>">http://www.java.com/en/download/manual.jsp&gt;</a><br>
+<br>
+If you feel you already have the latest Java Runtime(JRE), try loading this page:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;<a href="http://www.java.com/en/download/help/testvm.jsp>">http://www.java.com/en/download/help/testvm.jsp&gt;</a><br>
+<br>
+The page should display the message, &quot;Congratulations. Java is installed on your system&quot; and some animation within a gray box on the webpage.<br>
+<br>
+<br>
+<B>2a)</B> Download and uncompress the Sugarscape source (Linklist version) available at <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://sourceforge.net/projects/sugarscape/<br>
+...Unzip it on your computer. Maintain the directory structure specified within the Zip file.<br>
+<br>
+<B>2b)</B> Once you have Internet Explorer 5.x and the JRE 2 installed on your computer, simply close all currently open browser windows and restart Internet Explorer. Type the Sugarscape website URL once again in the Address bar of your browser and you should see the applet being downloaded and executed.<br>
+<br>
+<br>
+<B>3a)</B> Open a MS-DOS window, change to the Sugarscape directory and type the following command, then press Enter.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;appletviewer Sugarscape.html<br>
+<br>
+<br>
+<br>
+If you wish to compile the program files, you may do so in the following manner:<br>
+open a DOS window &amp; change to the first Sugarscape folder<br>
+type the following commands in the given order:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;javac GoLconst.java &lt;enter&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;javac Citizen.java &lt;enter&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;javac Cellspace.java &lt;enter&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;javac GameOfLife.java &lt;enter&gt;<br>
+If no errors are generated, you can execute the compiled program as described in the<br>
+preceding paragraph.<br>
+<B>Note:</B> The a.bat file automates this process &amp; combines compilation &amp; execution in one<br>
+command, type:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B>a GameOfLife</B> &lt;enter&gt;<br>
+...to automatically compile &amp; execute the program.</font><br>
+<br>
+<br>
+<A NAME=Introduction><font face="Verdana" class="fsx07" color="#ffff80">Introduction</font></A><br>
+<font face="Verdana" class="fsx03" color="#ffff80">Start the program as described above and you should see the Sugarscape window containing the three major components - the control bar, the cell grid or Cellspace and the tabbed pane.<br>
+The Control Bar: enables the user to select from various Game of Life or one Sugarscape template. It also provides buttons to start, stop or step through the simulation one cycle (time period) at a time. A final selection box allows users to adjust the speed of the simulation.<br>
+The Cellspace: is a visual representation of our society of primitive beings. It comprises of cells arranged in a grid format with horizontal bars originating from the side of each cell denoting resource levels. Occupied cells aslo contain an icon made up of a combination of cmall circles and rectangles.<br>
+The Tabbed Pane: is the interface for displaying results of the simulation and to set/change parameters that control the simulation. It comprises six panels of which the first is used to display summarized data (totals, averages &amp; distributions). The last panel is used to display details about individual processes and responses to commands from the user. The Cellspace tab is used to control the variable options that apply to/control the entire grid of cells, i.e., the number of columns &amp; rows, processes to be activated, grid fertility levels etc. The Cell tab is similarily used to control variables controlling settings for individual cells. These include maximum sugar-n-spice levels, regrowth rates, pollution and dispersal rates etc. The Citizen tab is used to regulate Citizen attributes. They include genetic attributes (vision &amp; metabolism), initial resource levels, life expectancy, mating rules etc.<br>
+By tweaking numerous aspects of the simulation, a researcher is able to set a desired initial state. They can then execute the simulation and compare its results to the predictions of their hypotheses.</font><br>
+<br>
+<A NAME=Gathering><font face="Verdana" class="fsx07" color="#ffff80">Gathering</font></A><br>
+<font face="Verdana" class="fsx03" color="#ffff80">Citizens possess genetic attributes of metabolism and vision. These traits are inherited by offspring from their parents. Citizens possess seperate metabolic requirements for sugar &amp; spice. They need both goods to survive and exhaustion of either will lead to death by starvation. Citizens therefore need to search for these goods and accumulate them in order to survive. Citizens do so by following a simple set of connected instructions that are generally referred to as a ruleset. The ruleset for gathering can be described as follows:<ol>
+<li>Evaluate personal stocks and determine which good is needed more urgently (preferred good).
+<li>Look around as far as vision permits and identify the site with the greatest value of the preferred good.
+<li>If the greatest value exists at multiple locations, select one randomly.
+<li>Move to that site and harvest all resources from that site.
+<li>If no value is found within the visible grid, then the citizen randomly relocates to one of the farthest cells within its vision range.</ol>The last step helps the Citizen avoid getting bogged down in an area of the grid that is barren of any resources or expending valuable search cycles in corner cells of the grid. The following commentary is a sample of feedback generated by the Gather process within the simulation.</font><br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<A NAME=Mating><font face="Verdana" class="fsx07" color="#ffff80">Mating</font></A><br>
+<font face="Verdana" class="fsx03" color="#ffff80">Citizens may or may not have their lives curtailed by death. This choice is determined by the current setting of the Mating process. When Mating is activated, citizens will die at the end of their lifespan. Conversely, citizens continue to live past their slated lifespan when Mating is turned off (not implemented yet. When citizens die of hunger, new citizens emerge to replace them, thus keeping the population constant (not implemented yet).<br>
+When activated, Citizens seek a prospective mate from the population located in cells adjacent to the location of the citizen. As for Gathering, Mating too has its own ruleset, note the number of pre-qualifiers that trim the set of citizens allowed to mate.<ol>
+<li>IF the Citizen is of child-bearing age, i.e., post-puberty, pre-meno/andropause, past the mating gap (time interval between successive mating events), possessinf reserves atleast twice the poverty level and having an adjacent empty cell to locate the child, then the Citizen proceeds to seek mates.
+<li>Prospective mates must be located in a cell adjacent to the citizen and must be of the opposite sex in addition to satisfying all except the last requirement in step 1.
+<li>Additional restrictions may be applied at the discretion of the researcher, for e.g., the researcher can choose to allow or deny citizens directly related to each other to mate. The researcher may also adjust wealth levels required to qualify for mating.</ol>If more than one prospec satisfies the above restrictions, a weighted random selection is made. The weight attached to each mate is a function of their ranking, a composite of their genetic attributes and material wealth. The greater the ranking, the greater their chances of selection. Each citizen can initiate just one mating event per cycle.<br>
+Once the selection is made, the citizen couple produce a child. The child is located in a pre-determined cell located during an earlier step in the mating process. The child &nbsp;randomly inherits genetic attributes of one or the other parent. It inherits half of each parents original inheritance by default. This can be changed so the child inherits half of the current wealth of its parents at the option of the user by setting the 'Inherit Initial Wealth' field in the Citizen panel to &quot;false&quot;.<br>
+The inheritance received by the child is a transfer and each parents wealth is adjusted to reflect the depletion.<br>
+The following commentary is a sample of feedback generated by the Mating process within the simulation.</font><br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<A NAME=Barter><font face="Verdana" class="fsx07" color="#ffff80">Barter</font></A><br>
+<font face="Verdana" class="fsx03" color="#ffff80">Citizens need both sugar &amp; spice to survive. They have independent metabolism rates for each resource. There may arise situations where citizens starve to death due to a paucity of one resource, despite having a plentiful supply of the other. Barter offers them a means to acquire a scarce resource in exchange for an abundant commodity. The personality of the citizen is an important attribute affecting their approach to trade. Personality is randomly assigned at birth and determines the trading strategy pursued by the citizen. A bear (cautious) personality seeks to minimize surplus and will only trade the surplus commodity. A bull (aggressive) personality seeks to maximize trades even if it involves trading the scarce commodity. The bull only trades the minimum quantity required to recieve one unit of the other commodity. By maximizing trades, the bull seeks to hedge its exposure to unfair trades.<br>
+For eg. the bear seeks trading partners that possess a surplus of its scarce commodity. It then attempts to trade a certain proportion of its surplus such that the quantity received in exchange can be combined with the balance of its surplus to mitigate the &nbsp;risk of depletion of any one commodity. The bear strategy is at risk of wild fluctuations in the exchange price depending on the variance in the MRS values of the trading partners. Since they attempt to sell all available surplus immediately, bears could end up trading all their surplus in a single unfavorable trade.<br>
+The Bull strategy, by trading unit amounts with as many traders as possible, seeks to average out price fluctuations and arrive closer to the equilibrium price.<br>
+For purposes of our projects some concepts need definition. The first of these are:<ul>
+<li></font><font face="Verdana" class="fsx02" color="#ffff80">Consumption Units (CU) = commodity / metabolism for that commodity, the consumption unit defines how many cycles into the future the current stocks of a commodity will last, assuming no more increase in stocks.
+<li>Time Until Death (TUD) = the lower of of the two CU values, determines how long the citizen can survive based on current stock levels.</font><font face="Verdana" class="fsx03" color="#ffff80">
+<li> Marginal Rate of Substitution (MRS) = denotes the relative internal scarcity of the two resources for the citizen. It is calculated as the CU for spice divided by the CU for sugar.</ul>The Barter process when activated causes citizens to look for trading partners in cells adjacent to their location. Depending on personality, citizens will apply one of the two rulesets detailed below.<br>
+<br>
+The Bear Ruleset:<ol>
+<li>IF negligible surplus, abandon trade attempt.
+<li>Prospective trading partners must be located in a cell adjacent to the citizen.
+<li>If prospect also posseses a bear personality and has negligible surplus or needs the same good as the citizen, reject prospect.
+<li>If MRS equal for both, reject prospect.
+<li>Sort the list of available traders by decreasing order of variance in MRS.
+<li>Set surplus of both parties to half of their current value, trade the lower of the two surpluses at a price that is the geometric mean of the two MRS values.</ol>The Bull Ruleset:<ol>
+<li>Set surplus to 1.
+<li>Prospective trading partners must be located in a cell adjacent to the citizen.
+<li>If MRS equal for both, reject prospect.
+<li>Sort the list of available traders by decreasing order of variance in MRS.
+<li>Price is the geometric mean of the two MRS values.
+<li>The agent with the higher MRS gets sugar, the agent with the lower MRS gets spice.</ol>Trades are consumated once per cycle with all available partners subject to the above conditions holding true prior to each new trade. The following commentary is a sample of feedback generated by the Barter process within the simulation.</font><br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<A NAME=Misc><font face="Verdana" class="fsx07" color="#ffff80">Change of Seasons</font></A><br>
+<font face="Verdana" class="fsx03" color="#ffff80">Migratory behavior of a predictable nature is caused by a change of seasons. Citizens tend to move from the region of scarcity to the region of abundance. Fertility fluctuates dramatically, resulting in a concerted move to the region enjoying summer (higher fertility) from the region in the throes of winter.<br>
+The summer region also witnesses a spurt in new births as citizens there accumulate enough reserves to enable them to bear children. This coupled with an increase in deaths in the winter regions caused by scarcity leads to a population concentration in one half of the grid.<br>
+As the season changes, and the tables are reversed a migratory pattern emerges as the bulk of the population moves to the other area. The Sugarscape follows a simple two-phase cycle for change of seasons, so there are only two seasons currently. The duration of a season can be adjusted in the Cellspace panel.</font><br>
+<br>
+<br>
+<!-- <A NAME=Inheritance> --> <font face="Verdana" class="fsx07" color="#ffff80">Inheritance</font><!-- </A> --><br>
+<font face="Verdana" class="fsx03" color="#ffff80">Inheritance when activated kicks in following the death of a citizen. It results in the citizens surviving wealth being distributed equally among its surviving progeny. There is no provision to pass the wealth to grandchildren in the absence of their parents.</font><br>
+<br>
+<br>
+<!-- <A NAME=Pollution> --> <font face="Verdana" class="fsx07" color="#ffff80">Pollution</font><!-- </A> --><br>
+<font face="Verdana" class="fsx03" color="#ffff80">Pollution when activated accumulates in each cell as a result of the gathering activity. Each unit of sugar or spice when harvested results in specified increases in pollution within the cells. Both sugar &amp; spice have separate levels of pollutant per unit harvested.<br>
+As citizens move about the Cellspace, the prefer the less polluted cells to their more polluted alternatives given matching resource levels. Nature's effect of dispersing pollution over time is also replicated via a pollution dispersal event that occurs once every cycle. It reduces pollution levels by a specified amount. These values can be adjusted from the Cell panel.<br></font></span>
+</div>
+
+
+
+
+<div id="Oobj26" style="position:absolute;z-index:22;visibility:visible; left:142px;top:1890px;width:619px;height:410px;">
+<span id="Grtf26" class="dfltt">
+<font face="Verdana" class="fsx02" color="#ffff80"><I>Vision = 1<br>
+Search grid for curr citizen -&gt;i0 = 31 &nbsp;j0 = 16&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ix = 33 &nbsp;jx = 18<br>
+Better Dest.[31][16]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;8Su, -1Sp, 0P&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+Better Dest.[31][17]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.1Su, 10Sp, 0P&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+Better Dest.[32][18]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;10Su, 10Sp, 0P&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+Ideal Cell: sugar = 10&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;spice = 10&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Destinations = 1<br>
++--Search over, RandomDest = 0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Highest sugar-n-spice in cell[32][18]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;10Su, 10Sp, 0P&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+moveNGather: Completed move from [32][17] to [32][18]<br>
+<br>
+Vision = 2<br>
+Search grid for curr citizen -&gt;i0 = 5 &nbsp;j0 = 10&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ix = 9 &nbsp;jx = 14<br>
+Better Dest.[5][12]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-1Su, 7.87Sp, 0P&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+Better Dest.[5][13]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;10Su, 10Sp, 0P&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+Cell[7][11] contains 10.0 sugar &amp; 10.0 spice &amp; 0.0 pollution<br>
+Cell[8][11] contains 10.0 sugar &amp; 10.0 spice &amp; 0.0 pollution<br>
+Cell[9][10] contains 10.0 sugar &amp; 10.0 spice &amp; 0.0 pollution<br>
+Ideal Cell: sugar = 10&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;spice = 10&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Destinations = 4<br>
+Random Destination = 4<br>
++--Search over, RandomDest = 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Highest sugar-n-spice in cell[9][10]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;10Su, 10Sp, 0P&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+moveNGather: Completed move from [7][12] to [9][10]<br>
+<br>
+Vision = 1<br>
+Search grid for curr citizen -&gt;i0 = 36 &nbsp;j0 = 0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ix = 38 &nbsp;jx = 1<br>
+No goods found around [37][0]<br>
+Picking farthest cell to relocate!!<br>
+New Destination = 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Distance &nbsp;of cell[38][1] = 2<br>
+Random Destination = 1<br>
+***Destination found!!&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Distance to cell[38][1] = 2<br>
+moveNGather: Completed move from [37][0] to [38][1]<br></I></font></span>
+</div>
+
+<div id="Oobj9" style="position:absolute;z-index:23;visibility:visible; left:140px;top:2885px;width:619px;height:508px;">
+<span id="Ggeo27" class="dfltt">
+<font face="Verdana" class="fsx02" color="#ffff80"><I>Initiating mating processes for: (120)KRUSE<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Unsuccessful attempt to mate<br>
+<br>
+Initiating mating processes for: (124)SERRANO<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SERRANO is of mating age &amp; has sufficient surplus<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Seeking empty cell &amp; mates<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Found mate : &nbsp; 165) FLOYD &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;[33][15]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1V &nbsp;140.65Su/1SuM/130.94SuI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;123.21Sp/1SpM/106.24SpI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Female &nbsp;16(69) yrs old, Rank 14&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Risk Taker<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MRS=0.876&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dies in = 123&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; surplus=17<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;New child's destination: [31][13]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;New child: &nbsp; 232) SERRANO &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;[31][13]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1V &nbsp;125Su/1SuM/125SuI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;126.21Sp/1SpM/126SpI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Female &nbsp;0(60) yrs old, Rank 15&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Risk Taker<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MRS=1.008&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dies in = 125&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; surplus=0<br>
+<br>
+Initiating mating processes for: (113)DUGAN<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DUGAN is of mating age &amp; has sufficient surplus<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Seeking empty cell &amp; mates<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;foundDestination=TRUE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Mate list empty!!<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Unsuccessful attempt to mate<br>
+<br>
+Initiating mating processes for: (92)LARA<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;LARA is of mating age &amp; has sufficient surplus<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Seeking empty cell &amp; mates<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Found mate : &nbsp; &nbsp;67) BOSTON &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;[9][12]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3V &nbsp;109.05Su/2SuM/126.07SuI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;154.98Sp/3SpM/140.3SpI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Male &nbsp;16(78) yrs old, Rank 15&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Risk Taker<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MRS=0.947&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dies in = 51&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; surplus=7<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Found mate : &nbsp; 39) GRIGGS &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;[11][10]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2V &nbsp;146.55Su/1SuM/135.65SuI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;138.85Sp/1SpM/108.58SpI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Male &nbsp;16(60) yrs old, Rank 14&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Risk Taker<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MRS=0.963&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dies in = 139&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; surplus=7<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;New child's destination: [9][11]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Chosen Mate: &nbsp; 39) GRIGGS &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;[11][10]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2V &nbsp;146.55Su/1SuM/135.65SuI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;138.85Sp/1SpM/108.58SpI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Male &nbsp;16(60) yrs old, Rank 14&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Risk Taker<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MRS=0.963&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dies in = 139&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; surplus=7<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;New child: &nbsp; &nbsp;235) GRIGGS &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;[9][11]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2V &nbsp;127Su/1SuM/127SuI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;111Sp/1SpM/111SpI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Female &nbsp;0(65) yrs old, Rank 14&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Risk Taker<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MRS=0.874&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dies in = 111&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; surplus=16<br></I></font></span>
+</div>
+
+<div id="Oobj28" style="position:absolute;z-index:24;visibility:visible; left:150px;top:4450px;width:610px;height:368px;">
+<span id="Grtf28" class="dfltt">
+<font face="Verdana" class="fsx02" color="#ffff80"><I>Initiating barter processes for: (213)FLEMING<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No surplus for barter<br>
+<br>
+Initiating barter processes for: (121)PEREZ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Found trader: &nbsp; &nbsp;115) GOINS &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;[17][5]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1V &nbsp;112.18Su/3SuM/108.07SuI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;116.6Sp/3SpM/107.22SpI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Male &nbsp;1(76) yrs old, Rank 10&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Risk Taker&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MRS=0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dies in = 0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; surplus=0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Before Exchange:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Citizen &nbsp; 121) PEREZ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;[18][6]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1V &nbsp;147.44Su/1SuM/138.63SuI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;150.75Sp/1SpM/133.84SpI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Male &nbsp;1(61) yrs old, Rank 15&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Risk Averse<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MRS=1.022&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dies in = 147&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; surplus=3<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Trader &nbsp; &nbsp;115) GOINS &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;[17][5]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1V &nbsp;112.18Su/3SuM/108.07SuI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;116.6Sp/3SpM/107.22SpI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Male &nbsp;1(76) yrs old, Rank 10&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Risk Taker<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MRS=1.039&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dies in = 37&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; surplus=0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Final tradeable surplus = 1 @ Price 1.0309213<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1)Citizen gets 1 sugar, Trader gets 1.0309213 spice<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;After Exchange:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Citizen &nbsp; 121) PEREZ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;[18][6]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1V &nbsp;148.44Su/1SuM/138.63SuI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;149.72Sp/1SpM/133.84SpI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Male &nbsp;1(61) yrs old, Rank 15&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Risk Averse<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MRS=1.022&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dies in = 147&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; surplus=0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Trader &nbsp; &nbsp;115) GOINS &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;[17][5]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1V &nbsp;111.18Su/3SuM/108.07SuI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;117.63Sp/3SpM/107.22SpI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Male &nbsp;1(76) yrs old, Rank 10&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Risk Taker<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MRS=1.039&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dies in = 37&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; surplus=0<br>
+<br>
+Initiating barter processes for: (39)LACEY<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No prospects available for trade<br></I></font></span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+<!--
+<div id="Oobj102" style="position:absolute;z-index:55;visibility:visible; left:108px;top:5430px;width:657px;height:105px;">
+<span id="Grtf96" class="dfltt">
+<font face="Times New Roman" class="fsx05" color="#ffff80">The source code for Sugarscape is released under the <a href="http://www.opensource.org/licenses/gpl-license.php"><font color="#ff8000">GNU General Public License </font></a>&amp; can be downloaded at<ul>
+<li>Download <a href="http://sourceforge.net/projects/sugarscape/"><font color="#ff8000">Sugarscape project </font></a></ul><I>Space reserved for cute bit of wisdom that I would like to share</I> - <a href="mailto:kannankeril at hotmail"><font color="#ff8000">abraham kannankeril</font></a><br></font></span>
+</div>
+-->
+
+</body> 
+</html> 

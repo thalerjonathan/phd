@@ -1,0 +1,302 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML> 
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Sugarscape - Growing Agent-based Artificial Societies</title>
+<meta name="GENERATOR" content="kannankeril & WebDwarf">
+<meta name="Description" content="Sugarscape - Growing Agent-based Artificial Societies">
+<meta name="Keywords" content="sugarscape, artificial societies, agent-based computer modeling, cellular automata">
+
+<style type="text/css">
+.fsx01 {font-size: 11px;}
+.fsx02 {font-size: 12px;}
+.fsx03 {font-size: 13px;}
+.fsx04 {font-size: 15px;}
+.fsx05 {font-size: 16px;}
+.fsx06 {font-size: 19px;}
+.fsx07 {font-size: 21px;}
+.fsx08 {font-size: 24px;}
+.fsx09 {font-size: 27px;}
+.fsx10 {font-size: 29px;}
+.fsx11 {font-size: 32px;}
+.fsx12 {font-size: 35px;}
+.fsx13 {font-size: 37px;}
+.fsx14 {font-size: 48px;}
+.fsx15 {font-size: 64px;}
+.fsx16 {font-size: 96px;}
+.txdec {text-decoration: none;}
+#Oobj42 {position:absolute;z-index:25;visibility:visible;;left:4px;top:5px;width:99px;height:23px;color:#000000;font-size:1px;}
+#Oobj43 {position:absolute;z-index:25;visibility:visible;text-align:left;;left:3px;top:3px;width:101px;height:28px;}
+#Oobj45 {position:absolute;z-index:28;visibility:visible;;left:4px;top:5px;width:99px;height:23px;color:#000000;font-size:1px;}
+#Oobj46 {position:absolute;z-index:28;visibility:visible;text-align:left;;left:3px;top:3px;width:101px;height:28px;}
+#Oobj49 {position:absolute;z-index:31;visibility:visible;;left:4px;top:5px;width:99px;height:23px;color:#000000;font-size:1px;}
+#Oobj50 {position:absolute;z-index:31;visibility:visible;text-align:left;;left:3px;top:3px;width:101px;height:28px;}
+#Oobj52 {position:absolute;z-index:34;visibility:visible;;left:4px;top:5px;width:99px;height:23px;color:#000000;font-size:1px;}
+#Oobj53 {position:absolute;z-index:34;visibility:visible;text-align:left;;left:3px;top:3px;width:101px;height:28px;}
+#Oobj35 {position:absolute;z-index:49;visibility:visible;;left:3px;top:5px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj37 {position:absolute;z-index:49;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:19px;}
+#Oobj61 {position:absolute;z-index:50;visibility:visible;;left:3px;top:4px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj67 {position:absolute;z-index:50;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:18px;}
+#Oobj73 {position:absolute;z-index:51;visibility:visible;;left:3px;top:3px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj74 {position:absolute;z-index:51;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:18px;}
+#Oobj75 {position:absolute;z-index:52;visibility:visible;;left:3px;top:3px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj76 {position:absolute;z-index:52;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:18px;}
+#Oobj79 {position:absolute;z-index:53;visibility:visible;;left:3px;top:4px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj80 {position:absolute;z-index:53;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:18px;}
+#Oobj81 {position:absolute;z-index:54;visibility:visible;;left:3px;top:4px;width:87px;height:21px;color:#000000;font-size:1px;}
+#Oobj82 {position:absolute;z-index:54;visibility:visible;text-align:left;;left:2px;top:2px;width:89px;height:18px;}
+
+.dfltt {font-family:Times New Roman;font-size:14px;font-weight:normal;text-decoration:none;text-align:left;}
+body {margin: 0px;}
+</style>
+</head> 
+
+<body bgcolor="#54555a" alink="#ff00ff" link="#0000ff" vlink="#ff0000" 
+  style="height:100%; width:100%; ">
+
+<div id="Oobj18" style="position:absolute;z-index:1;visibility:visible; left:-1px;top:-1px;width:105px;height:1400px;color:#000000;font-size:1px;">
+<img name="Ggeo22" SRC="../images/verticalBg.png" alt="" border = 0  width="105px" height="1850px">
+</div>
+<div id="Oobj56" style="position:absolute;z-index:2;visibility:visible; left:-618px;top:0px;width:2064px;height:106px;color:#000000;font-size:1px;">
+<img name="Ggeo141" SRC="../images/horizontalBg.png" alt="Oobj56" border = 0  width="2064px" height="106px">
+</div>
+
+
+
+
+
+
+
+<div id="Oobj7" style="position:absolute;z-index:4;visibility:visible; left:0px;top:0px;width:61px;height:61px;color:#000000;font-size:1px;">
+<img name="Ggeo7" Align=Top SRC="../images/cell4x4.jpg" alt="cell4x4" border=0 width="61px" height="61px"></div>
+
+<div id="Oobj12" style="position:absolute;z-index:5;visibility:visible; left:0px;top:136px;width:15px;height:16px;color:#000000;font-size:1px;">
+<img name="Ggeo12" Align=Top SRC="../images/cell1x1b.jpg" alt="cell1x1b" border=0 width="15px" height="16px"></div>
+
+<div id="Oobj14" style="position:absolute;z-index:6;visibility:visible; left:0px;top:105px;width:30px;height:31px;color:#000000;font-size:1px;">
+<img name="Ggeo14" Align=Top SRC="../images/cell2x2b.jpg" alt="cell2x2b" border=0 width="30px" height="31px"></div>
+
+<div id="Oobj15" style="position:absolute;z-index:7;visibility:visible; left:0px;top:60px;width:46px;height:46px;color:#000000;font-size:1px;">
+<img name="Ggeo15" Align=Top SRC="../images/cell3x3a.jpg" alt="" border=0 width="46px" height="46px"></div>
+
+<div id="Oobj16" style="position:absolute;z-index:8;visibility:visible; left:60px;top:0px;width:45px;height:46px;color:#000000;font-size:1px;">
+<img name="Ggeo16" Align=Top SRC="../images/cell3x3b.jpg" alt="" border=0 width="45px" height="46px"></div>
+
+<div id="Oobj151" style="position:absolute;z-index:9;visibility:visible; left:107px;top:0px;width:231px;height:50px;color:#ffff80;font-size:1px;">
+<img name="Gtitle154" SRC="../images/titleSugarscape.png" alt="Oobj151" border = 0  width="231px" height="50px"></div>
+
+<div id="Oobj152" style="position:absolute;z-index:10;visibility:visible; left:107px;top:48px;width:234px;height:24px;color:#ffff80;font-size:1px;">
+<img name="Gtitle155" SRC="../images/titleGAS.png" alt="Oobj152" border = 0  width="234px" height="24px"></div>
+
+<!-- HORIZONTAL BUTTONS -->
+<div id="Oobj156" style="position:absolute;z-index:11;visibility:visible; left:109px;top:76px;width:99px;height:23px;color:#000000;font-size:1px;">
+<a href="../sugarscape.html" title="Return to Sugarscape Home"><img name="Ggeo159" SRC="../images/bttnBg.png" alt="Oobj156" border = 0  width="99px" height="23px"></a>
+</div>
+<div id="Oobj171" style="position:absolute;z-index:12;visibility:visible; left:108px;top:75px;width:101px;height:28px;">
+<a href="../sugarscape.html" title="Return to Sugarscape Home"><span id="Grtf171" class="dfltt">
+<div align="center"><font face="Arial" class="fsx06" color="#ffff80">Home<br></font></div>
+</span>
+</a>
+</div>
+
+<div id="Oobj57" style="position:absolute;z-index:13;visibility:visible; left:218px;top:76px;width:99px;height:23px;color:#000000;font-size:1px;">
+<a href="../documentation/walkthru.html" title="Detailed Explanation of Main Processes/Events"><img name="Ggeo172" SRC="../images/bttnBg.png" alt="Detailed Explanation of Main Processes/Events" border = 0  width="99px" height="23px"></a>
+</div>
+<div id="Oobj58" style="position:absolute;z-index:14;visibility:visible; left:217px;top:75px;width:101px;height:28px;">
+<a href="../documentation/walkthru.html" title="Detailed Explanation of Main Processes/Events"><span id="Ggeo173" class="dfltt">
+<div align="center"><font face="Arial" class="fsx06" color="#ffff80">WalkThru<br></font></div>
+</span>
+</a>
+</div>
+
+<div id="Oobj62" style="position:absolute;z-index:15;visibility:visible; left:324px;top:76px;width:99px;height:23px;color:#000000;font-size:1px;">
+<a href="../documentation/screenshots.html" title="Sugarscape Home"><img name="Ggeo186" SRC="../images/bttnBg.png" alt="Screen shots with explanations" border = 0  width="99px" height="23px"></a>
+</div>
+<div id="Oobj63" style="position:absolute;z-index:18;visibility:visible; left:325px;top:75px;width:101px;height:28px;">
+<a href="../documentation/screenshots.html" title="Screen shots with explanations"><span id="Ggeo187" class="dfltt">
+<div align="center"><font face="Arial" class="fsx06" color="#ffff80">Scre'nshots<br></font></div>
+</span>
+</a>
+</div>
+
+<div id="Oobj65" style="position:absolute;z-index:17;visibility:visible; left:429px;top:76px;width:99px;height:23px;color:#000000;font-size:1px;">
+<a href="../documentation/design.html" title="Project Design Details"><img name="Ggeo191" SRC="../images/bttnBg.png" alt="Project Design Details" border = 0  width="99px" height="23px"></a>
+</div>
+<div id="Oobj66" style="position:absolute;z-index:20;visibility:visible; left:429px;top:75px;width:101px;height:28px;">
+<a href="../documentation/design.html" title="Project Design Details"><span id="Ggeo192" class="dfltt">
+<div align="center"><font face="Arial" class="fsx06" color="#ffff80">Design<br></font></div>
+</span>
+</a>
+</div>
+
+<div id="Oobj59" style="position:absolute;z-index:16;visibility:visible; left:542px;top:76px;width:99px;height:23px;color:#000000;font-size:1px;">
+<a href="../documentation/documents.html" title="Index of Documents"><img name="Ggeo179" SRC="../images/bttnBg.png" alt="Oobj59" border = 0  width="99px" height="23px"></a>
+</div>
+<div id="Oobj60" style="position:absolute;z-index:19;visibility:visible; left:543px;top:75px;width:101px;height:28px;">
+<a href="../documentation/documents.html" title="Index of Documents"><span id="Ggeo180" class="dfltt">
+<div align="center"><font face="Arial" class="fsx06" color="#ffff80">Documents<br></font></div>
+</span>
+</a>
+</div>
+
+
+
+
+
+<!-- VERTICAL BUTTONS -->
+<div id="Oobj95" style="position:absolute;z-index:49;visibility:visible; left:5px;top:163px;width:94px;height:28px;color:#000000;font-size:1px;">
+<a href="#Scoreboard" title="Home - Scoreboard"><div id="Oobj35">
+<a href="#Scoreboard" title="Home - Scoreboard"><img name="Ggeo44" SRC="../images/bttnBg.png" alt="Home - Scoreboard" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj37">
+<a href="#Scoreboard" title="Home - Scoreboard"><span id="Ggeo45" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>Scoreboard<br></B></font></div>
+</span></a></div></a></div>
+
+<div id="Oobj96" style="position:absolute;z-index:50;visibility:visible; left:5px;top:195px;width:94px;height:27px;color:#000000;font-size:1px;">
+<a href="#Cellspace" title="Home - Cellspace"><div id="Oobj61">
+<a href="#Cellspace" title="Home - Cellspace"><img name="Ggeo61" SRC="../images/bttnBg.png" alt="Home - Cellspace" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj67">
+<a href="#Cellspace" title="Home - Cellspace"><span id="Ggeo62" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>Cellspace<br></B></font></div>
+</span></a></div></a></div>
+
+<div id="Oobj97" style="position:absolute;z-index:51;visibility:visible; left:5px;top:227px;width:94px;height:26px;color:#000000;font-size:1px;">
+<a href="#Cell" title="Home - Cell"><div id="Oobj73">
+<a href="#Cell" title="Home - Cell"><img name="Ggeo68" SRC="../images/bttnBg.png" alt="Home - Cell" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj74">
+<a href="#Cell" title="Home - Cell"><span id="Ggeo69" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>Cell<br></B></font></div>
+</span></a></div></a></div>
+
+<div id="Oobj98" style="position:absolute;z-index:52;visibility:visible; left:5px;top:258px;width:94px;height:26px;color:#000000;font-size:1px;">
+<a href="#Citizen" title="Home - Citizen"><div id="Oobj75">
+<a href="#Citizen" title="Home - Citizen"><img name="Ggeo70" SRC="../images/bttnBg.png" alt="Home - Citizen" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj76">
+<a href="#Citizen" title="Home - Citizen"><span id="Ggeo71" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>Citizen<br></B></font></div>
+</span></a></div></a></div>
+
+<div id="Oobj99" style="position:absolute;z-index:53;visibility:visible; left:5px;top:290px;width:94px;height:27px;color:#000000;font-size:1px;">
+<a href="#Configure" TITLE="Home - Configure"><div id="Oobj79">
+<a href="#Configure" title="Home - Configure"><img name="Ggeo74" SRC="../images/bttnBg.png" alt="Home - Configure" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj80">
+<a href="#Configure" title="Home - Configure"><span id="Ggeo75" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>Configure<br></B></font></div>
+</span></a></div></a></div>
+
+<div id="Oobj100" style="position:absolute;z-index:54;visibility:visible; left:5px;top:321px;width:94px;height:27px;color:#000000;font-size:1px;">
+<a href="#History" TITLE="Home - History"><div id="Oobj81">
+<a href="#History" title="Home - History"><img name="Ggeo76" SRC="../images/bttnBg.png" alt="Home - History" border = 0  width="87px" height="21px"></a>
+</div>
+<div id="Oobj82">
+<a href="#History" title="Home - History"><span id="Ggeo77" class="dfltt">
+<div align="center"><font face="Arial" class="fsx03" color="#ffff80"><B>History<br></B></font></div>
+</span></a></div></a></div>
+
+
+
+
+<div id="Oobj21" style="position:absolute;z-index:3;visibility:visible; left:108px;top:118px;width:655px;height:269px;">
+<span id="Grtf21" class="dfltt">
+<A NAME=Scoreboard><font face="Verdana" class="fsx07" color="#ffff80">Scoreboard</font></A><br>
+<font face="Verdana" class="fsx03" color="#ffff80">The Scoreboard is the first panel in the tabbed-pane interface of the simulation. It provides an overview of the state of the simulation and is perhaps the easiest way of observing patterns of interest to the observer. It currently displays but is by no means restricted to five rows of data.<br>
+The first of these show the density of population on the grid, number of births since genesis, births per cycle, count of the total dead and individual types of death.<br>
+The second row displays averages of some of the more obvious citizen attributes like vision, available sugar &amp; spice levels, metabolism rates, lifespan and age. <br>
+The subsequent rows show various population distributions: seasonal, sex-wise, age-based, genetic and by personality-type.<br>
+The final distribution shows time slices in seconds useed by each of the major processes.<br>
+Bear in mind that there is nothing set about what data is represented on the scoreboard, the current display is just one person's guesstimate of what is relevant. We can just as easily define and select other pieces of data for display. Moreover, we are not restricted to a single scoreboard and could just as easily segregate economic, genetic and cultural data into separate panels.<br></font></span>
+</div>
+
+<div id="Oobj24"  style="position:absolute;z-index:24;visibility:visible; left:109px;top:420px;width:654px;height:176px;">
+<span id="Grtf24" class="dfltt">
+<A NAME=Cellspace><font face="Verdana" class="fsx07" color="#ffff80">The Cellspace</font></A><br>
+<font face="Verdana" class="fsx03" color="#ffff80">The environment in this project or Cellspace posseses some general properties that constrain the behavior of its sub-components and inhabitants. In addition to their number, the Cellspace also controls the overall fertility of sugar &amp; spice distributions on the grid. For eg., A sugar fertility rate of 0.8 determines that 80% of the cells on the grid possess the capacity to grow sugar, the other 20% would typically remain barren through the remainder of the simulation.<br>
+The Cellspace also determines approximately, the initial density of the citizen population on the grid. Another attribute controlled by the Cellspace is the length of each season. Finally, the Cellspace controls the activation of various processes that comprise the activities on the Sugarscape. These options can be accessed via the 'Cellspace' tab of the program's GUI.<br></font></span>
+</div>
+
+<div id="Oobj25" style="position:absolute;z-index:25;visibility:visible; left:110px;top:626px;width:654px;height:238px;">
+<span id="Grtf25" class="dfltt">
+<A NAME=Cell><font face="Verdana" class="fsx07" color="#ffff80">The Cell</font></A><br>
+<font face="Verdana" class="fsx03" color="#ffff80">The Cell is the unit of location on the Cellspace. A citizen occupies all of one cell for now, no sharing of cells is permitted among citizens. In future this may change, for eg., members of a family could share the same cell or a citizen having collected ample reserves could settle down in a cell and invite prospective mates to share the cell in a long-term union.<br>
+Cells have the following attributes: sugar, spice &amp; pollution. Sugar and spice are harvested by citizens visiting the cell. Both are renewable resources and once harvested grow back at a pace determined by the executor of the simulation. The visual representation depicts the amount of sugar and spice available in cells as horizontal bars attached to two ends of the cell. The thickness of the bars serve as approximations of the amount of each resource. Cells may also be barren of one or both resource growing capability. This property is randomly determined during creation of the cells. The percentage of cells barren of sugar &amp; spice are determined by the user and can be set/changed at the start of each run of the simulation. These and other cell properties can be adjusted via the GUI's Cell tab.<br></font></span>
+</div>
+
+<div id="Oobj26" style="position:absolute;z-index:26;visibility:visible; left:108px;top:899px;width:659px;height:142px;">
+<span id="Grtf26" class="dfltt">
+<A NAME=Citizen><font face="Verdana" class="fsx07" color="#ffff80">The Citizen</font></A><br>
+<font face="Verdana" class="fsx03" color="#ffff80">The Citizen is the most complex object on the Sugarscape. While it is modeled as an artificially intelligent agent, its intelligence is bounded or limited by past experiences and memories(not implemented yet), the area visible at presentand information gained via contact with other agents(not implemented yet).<br>
+The citizen is the occupant of the Sugarscape, rather of individual cells on it. The Sugarscape typically hosts a number of citizens whose initial density on the grid is determined by the user. Each citizen possesses the following properties:<br></font></span>
+</div>
+
+<div id="Oobj42" style="position:absolute;z-index:22;visibility:visible; left:108px;top:1049px;width:660px;height:259px;color:#ffff80;">
+<span id="Gcode42" class="dfltt">
+<table border="0" cellpadding="0" cellspacing="0" summary="">
+	<tr>
+		<td width="105"><font color="#ffff80">id</font></td>
+		<td><font color="#ffff80">unique descriptor identifying the citizen.</font></td>
+	</tr>
+	<tr>
+		<td width="105"><font color="#ffff80">family</font></td>
+		<td><font color="#ffff80">shared name identifying either paternal or maternal lineage.</font></td>
+	</tr>
+	<tr>
+		<td width="105" height="41"><font color="#ffff80">parents</font></td>
+		<td height="41"><font color="#ffff80">male & female citizens, whose mating resulted and who passed on a mix of their attributes to their offspring. The first generation of citizens lack parents.</font></td>
+	</tr>
+	<tr>
+		<td width="105"><font color="#ffff80">birthYear</font></td>
+		<td><font color="#ffff80">marking the start of their lifecycle on the Sugarscape.</font></td>
+	</tr>
+	<tr>
+		<td width="105"><font color="#ffff80">location</font></td>
+		<td><font color="#ffff80">specifies their current address on the Sugarscape.</font></td>
+	</tr>
+	<tr>
+		<td width="105"><font color="#ffff80">inheritance</font></td>
+		<td><font color="#ffff80">initial allocation of sugar and spice received from parents.</font></td>
+	</tr>
+	<tr>
+		<td width="105" height="39"><font color="#ffff80">sugar</font></td>
+		<td height="39"><font color="#ffff80">the total hoard of sugar available for consumption - is determined as the sum of a citizen's inheritance and the net sugar gathered, consumed & traded while roaming the landscape.</font></td>
+	</tr>
+	<tr>
+		<td width="105" height="40"><font color="#ffff80">spice</font></td>
+		<td height="40"><font color="#ffff80">the total hoard of spice available for consumption - is determined as the sum of a citizen's inheritance and the net spice gathered, consumed & traded while roaming the landscape.</font></td>
+	</tr>
+</table></span>
+</div>
+
+
+<div id="Oobj45" style="position:absolute;z-index:23;visibility:visible; left:108px;top:1300px;width:660px;height:219px;">
+<span id="Grtf45" class="dfltt">
+<A NAME=Configure><font face="Verdana" class="fsx07" color="#ffff80">Configure</font></A><br>
+<font face="Verdana" class="fsx03" color="#ffff80">The Configure tab provides detailed tracking of one or more processes on the Sugarscape. An observer can use it to examine simulations in minute detail down to the actions of individual agents. Developers and testers can use it to verify behavior in concord with pre-determined patterns.<br>
+Modularity has been stressed to enable tracking both at the process or sub-process levels. Naturally, enabling tracking for a process automatically enables tracking for all its components regardless of their individual activation statuses. Activation is achieved by simply typing 'true' or 'false' against each process in the 'Configure' tab of the GUI.<br>
+Note: The output from each process is redirected to the multi-line text area of the 'History' panel. Moreover, to avoid overloading memory, output is restricted to the current cycle of the simulation. It is advisable to step through cycles using the 'Next' button when feedback has been requested from one or more processes.<br></font></span>
+</div>
+
+<div id="Oobj27" ID=History style="position:absolute;z-index:27;visibility:visible; left:109px;top:1550px;width:660px;height:158px;">
+<span id="Grtf27" class="dfltt">
+<A NAME=History><font face="Verdana" class="fsx07" color="#ffff80">History</font></A><br>
+<font face="Verdana" class="fsx03" color="#ffff80">The 'History' tab provides a secondary means of communication between the user and the simulation. It comprises two components, one for displaying feedback from the simulation to the user, the other to relay instructions from the user to the simulation.<br>
+Feedback from the simulation includes: acknowledgement of user commands, response to requests for information, feedback from active processes and help text. All this is displayed in a multi-line text area while the user communicates via the single-line text field at the bottom of this panel. For eg., type &quot;Help&quot; and press 'Enter' to display a list of commands that can be used to control the simulation from the command line.<br></font></span>
+</div>
+
+
+
+
+<div id="Oobj64" style="position:absolute;z-index:21;visibility:visible; left:108px;top:1750px;width:662px;height:105px;">
+<span id="Grtf61" class="dfltt">
+<font face="Times New Roman" class="fsx05" color="#ffff80">The source code for Sugarscape is released under the <a href="http://www.opensource.org/licenses/gpl-license.php"><font color="#ff8000">GNU General Public License </font></a>&amp; can be downloaded at<ul>
+<li>Download <a href="http://sourceforge.net/projects/sugarscape/"><font color="#ff8000">Sugarscape project </font></a></ul><I>Space reserved for cute bit of wisdom that I would like to share</I> - <a href="mailto:kannankeril at hotmail"><font color="#ff8000">abraham kannankeril</font></a><br></font></span>
+</div>
+
+
+</body> 
+</html> 

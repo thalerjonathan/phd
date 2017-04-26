@@ -86,6 +86,10 @@ TODO: recursion-depth:
 TODO: recursion-replications
 TODO: recursion-length
 
+WARNING WARNING WARNING WARNING WARNING 
+TODO: it is yet unclear how the environment is being handled between recursive calls
+WARNING WARNING WARNING WARNING WARNING 
+
 \subsection{Deterministic vs. Non-Deterministic future}
 The model as described in Background section is completely deterministic once it is running because it makes no use of a random-number generator and there are no other sources of non-determinism - the next move of an agent is always completely predictable. If we introduce randomness through a random-number generator into our model then the future becomes non-deterministic \textit{if the state of random-number generator when running recursive simulations is different from when the simulation is run non-recursively.}
 

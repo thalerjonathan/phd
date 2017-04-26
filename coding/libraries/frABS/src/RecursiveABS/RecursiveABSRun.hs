@@ -9,7 +9,7 @@ import System.IO
 import System.Random
 
 rngSeed = 42
-agentCount = 2
+agentCount = 1
 parallelStrategyFlag = False
 
 runMetaABSStepsAndPrint :: IO ()

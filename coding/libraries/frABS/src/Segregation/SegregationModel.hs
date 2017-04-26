@@ -70,10 +70,8 @@ selectionStrategy :: SegSelectionStrategy
 selectionStrategy = SelectNearest -- SelectRandom randomSearchOptRetries randomSearchFreeCellRetries
 
 optimizingStrategy :: SegOptStrategy
-optimizingStrategy = OptSimilaritySatisfied -- OptNone -- OptSimilaritySatisfied -- OptSimilarityIncreasing
+optimizingStrategy = OptSimilaritySatisfied -- OptNone -- OptSimilaritySatisfied -- OptSimilarityIncreasing 
 ------------------------------------------------------------------------------------------------------------------------
-
-recTracingAgentId = 1
 
 ------------------------------------------------------------------------------------------------------------------------
 -- HELPER-Functions
@@ -96,13 +94,27 @@ isSatisfied aout = (segSatisfactionLevel s) >= (segSimilarityWanted s)
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR
 ------------------------------------------------------------------------------------------------------------------------
--- TODO: need to distinguish if we are in recursion or not: if we accept happy immediately, then we cannot stop recursion and can't distinguish between multiple happiness
-segMovement :: SegAgentOut -> SegAgentIn -> Double -> SegAgentOut
-segMovement ao ain _
+-- the recursive case: only move to the target point when it satisfies ourself in the present and in the future
+    -- satisfied in the present: stay & check if satisfied in future
+            -- satisfied in future: stay
+            -- NOT satsfied in future: move
+
+    -- VERSION 1:
+    -- not satisfied in the present: move and don't care about future
+
+    -- VERSION 2:
+    -- not satisfied in the present: move & check if satisfied in the future
+            -- satisfied in future: stay
+            -- NOT satsfied in future: move
+
+-- TODO: problem is that recursion does not really work well with environment yet: the environment is the environment of the future and we cannot move based upon the old
+
+segMovement :: SegAgentOut -> SegAgentOut
+segMovement ao 
     | isSatisfied ao' = ao'
-    | otherwise = move ao' ain
+    | otherwise = move ao'
     where
-         -- NOTE: need to re-calculate similarity and update agent because could have changed since last update
+        -- NOTE: need to re-calculate similarity and update agent because could have changed since last update
         ao' = updateSatisfactionLevel ao
 
 updateSatisfactionLevel :: SegAgentOut -> SegAgentOut
@@ -142,8 +154,8 @@ satisfactionOn ao targetCoord
                 greenCount = length $ filter ((==Green) . fromJust . snd) occupiedCells
 
 
-move :: SegAgentOut -> SegAgentIn -> SegAgentOut
-move ao _ = maybe ao' (\optCoord -> moveTo ao' optCoord) mayOptCoord
+move :: SegAgentOut -> SegAgentOut
+move ao = maybe ao' (\optCoord -> moveTo ao' optCoord) mayOptCoord
     where
         (ao', mayOptCoord) = findMove
                                 optimizingStrategy
@@ -320,4 +332,4 @@ segAgentBehaviour :: SegAgentBehaviour
 segAgentBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
-        returnA -< segMovement ao ain 1.0
+        returnA -< segMovement ao ain

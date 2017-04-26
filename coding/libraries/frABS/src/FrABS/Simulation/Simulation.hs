@@ -206,6 +206,8 @@ seqCallback (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                 (lastStepRecOuts, _) = (last allStepsRecOuts)
                 mayRecOut = Data.List.find (\ao -> (aoId ao) == (aiId oldIn)) lastStepRecOuts
 
+                -- TODO: what happens to the environment? it could have changed by the other agents but we need to re-set it to before
+                
                 -- TODO: the agent died in the recursive simulation, what should we do?
                 retAfterRec = if isJust mayRecOut then
                                 seqCallbackRec otherIns otherSfs oldSf (sf, newIn, fromJust mayRecOut)

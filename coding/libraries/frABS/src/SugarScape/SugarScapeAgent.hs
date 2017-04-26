@@ -328,17 +328,28 @@ createNewBorn idCoord
 
         return newBornDef { adState = newBornState' }
 
-satisfiesWealthForChildBearing :: SugarScapeAgentState -> Bool
-satisfiesWealthForChildBearing s = currSugar >= initSugar
+excessAmountToChildBearing :: SugarScapeAgentState -> Double
+excessAmountToChildBearing s = currSugar - initSugar
     where
         currSugar = sugAgSugarLevel s
         initSugar = sugAgSugarInit s
+
+satisfiesWealthForChildBearing :: SugarScapeAgentState -> Bool
+satisfiesWealthForChildBearing s = excessAmount >= 0
+    where
+        excessAmount = excessAmountToChildBearing s
 
 isFertile :: SugarScapeAgentState -> Bool
 isFertile s = withinRange age fertilityAgeRange
     where
         age = sugAgAge s
         fertilityAgeRange = sugAgFertAgeRange s
+
+tooOldForChildren :: SugarScapeAgentState -> Bool
+tooOldForChildren s = age > fertilityAgeMax 
+    where
+        age = sugAgAge s
+        (_, fertilityAgeMax) = sugAgFertAgeRange s
 
 withinRange :: (Ord a) => a -> (a, a) -> Bool
 withinRange a (l, u) = a >= l && a <= u
@@ -619,7 +630,148 @@ agentWelfareChange s (sugarChange, spiceChange) = ((w1 + sugarChange)**(m1/mT)) 
         w2 = sugAgSpiceLevel s
 
 agentCredit :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
-agentCredit ain a = a -- TODO: implement borrowing and lending
+agentCredit ain a = agentRequestCredit $ agentCheckCreditPaybackDue $ agentCreditPaybackIncoming ain $ agentCreditsDeathIncoming ain a
+
+-- NOTE: for now only sugar is lended & borrowed, no spice
+agentRequestCredit :: SugarScapeAgentOut -> SugarScapeAgentOut
+agentRequestCredit a
+    | hasNeighbours = agentCreditConversation nids a
+    | otherwise = a
+    where
+        s = aoState a
+        nids = neighbourIds a
+        hasNeighbours = (not $ null nids)
+
+        agentCreditConversation :: [AgentId]
+                                    -> SugarScapeAgentOut
+                                    -> SugarScapeAgentOut
+        agentCreditConversation [] a = conversationEnd a
+        agentCreditConversation (receiverId:otherAis) a 
+            | isPotentialBorrower s = conversation a (receiverId, CreditRequest) agentCreditConversationsReply
+            | otherwise = conversationEnd a
+            where
+                agentCreditConversationsReply :: SugarScapeAgentOut
+                                                    -> Maybe (AgentMessage SugarScapeMsg)
+                                                    -> SugarScapeAgentOut
+                agentCreditConversationsReply a Nothing = agentCreditConversation otherAis a 
+                agentCreditConversationsReply a (Just (lenderId, CreditOffer credit)) = agentCreditConversation otherAis aAfterBorrowing
+                    where
+                        s = aoState a
+                        age = sugAgAge s
+
+                        (faceValue, creditDuration, creditInterestRate) = credit
+                        creditDueAge = age + creditDuration 
+
+                        creditInfo = (lenderId, creditDueAge, credit)
+                        aAfterBorrowing = updateState a (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + faceValue,
+                                                                    sugAgBorrowingCredits = creditInfo : sugAgBorrowingCredits s })
+
+-- NOTE: if a borrower dies: notify the lenders so they know they take a loss (remove it from open credits)
+-- NOTE: if a lender dies: notify the borrowers so they know they don't have to pay back
+-- NOTE that we don't implement the inheritance-rule for loans
+agentDeathHandleCredits :: SugarScapeAgentOut -> SugarScapeAgentOut
+agentDeathHandleCredits a = aNotifiedBorrowers
+    where
+        s = aoState a
+        lenderIds = map (\(lid, _, _) -> lid) (sugAgBorrowingCredits s)
+        borrowerIds = sugAgLendingCredits s
+        
+        aNotifiedLenders = broadcastMessage a CreditBorrowerDied lenderIds
+        aNotifiedBorrowers = broadcastMessage aNotifiedLenders CreditLenderDied lenderIds
+
+agentCreditsDeathIncoming :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
+agentCreditsDeathIncoming ain a = undefined -- TODO: implement 
+
+agentCreditPaybackIncoming :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
+agentCreditPaybackIncoming ain a = onMessage creditPaybackMatch ain creditPaybackAction a
+    where
+        creditPaybackMatch :: AgentMessage SugarScapeMsg -> Bool
+        creditPaybackMatch (_, CreditPaybackHalf _) = True
+        creditPaybackMatch (_, CreditPaybackFull _) = True
+        creditPaybackMatch _ = False
+
+        creditPaybackAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
+        creditPaybackAction a (_, (CreditPaybackHalf amount)) = halfCreditPayback a amount
+        creditPaybackAction a (_, (CreditPaybackFull amount)) = fullCreditPayback a amount
+
+        halfCreditPayback :: SugarScapeAgentOut -> Double -> SugarScapeAgentOut
+        halfCreditPayback a amount = undefined -- TODO: implement 
+
+        fullCreditPayback :: SugarScapeAgentOut -> Double -> SugarScapeAgentOut
+        fullCreditPayback a amount = undefined -- TODO: implement 
+
+agentCheckCreditPaybackDue :: SugarScapeAgentOut -> SugarScapeAgentOut
+agentCheckCreditPaybackDue a = aAfterPayback
+    where
+        s = aoState a
+        borrowingCredits = sugAgBorrowingCredits s 
+
+        (a', borrowingCredits') = foldr agentCheckCreditPaybackAux (a, []) borrowingCredits
+        aAfterPayback = updateState a' (\s -> s { sugAgBorrowingCredits = borrowingCredits'})
+
+        agentCheckCreditPaybackAux :: SugarScapeCreditInfo -> (SugarScapeAgentOut, [SugarScapeCreditInfo]) -> (SugarScapeAgentOut, [SugarScapeCreditInfo])
+        agentCheckCreditPaybackAux creditInfo@(lenderId, ageDue, credit) (a, accCredits) 
+            | creditDue = (a, accCredits)
+            | otherwise = (a, creditInfo : accCredits)
+            where
+                s = aoState a
+                age = sugAgAge s
+                creditDue = ageDue >= age
+
+                paybackCredit :: (SugarScapeAgentOut, [SugarScapeCreditInfo])
+                paybackCredit 
+                    | fullPaybackPossible = (a', accCredits)
+                    | otherwise = (a', newCreditInfo : accCredits)
+                    where
+                        (faceValue, creditDuration, creditInterestRate) = credit
+
+                        wealth = sugAgSugarLevel s
+                        dueAmount = faceValue + (faceValue * (creditInterestRate / 100))
+                        fullPaybackPossible = wealth >= paybackAmount
+
+                        paybackAmount = if fullPaybackPossible then paybackAmount else wealth * 0.5
+                        paybackMessage = if fullPaybackPossible then (CreditPaybackFull paybackAmount) else (CreditPaybackHalf paybackAmount)
+
+                        newCredit = (faceValue - paybackAmount, creditDuration, creditInterestRate)
+                        newCreditInfo = (lenderId, age + creditDuration, newCredit)
+
+                        a' = sendMessage a (lenderId, paybackMessage)
+
+handleCreditRequest :: SugarScapeAgentIn -> AgentId -> (SugarScapeMsg, SugarScapeAgentIn)
+handleCreditRequest ain borrowerId
+    | isLender = (CreditOffer credit, ainAfterCreditOffer)
+    | otherwise = (CreditRequestRefuse, ain)
+    where
+        mayFaceValue = potentialLender s
+        isLender = isJust mayFaceValue
+        
+        faceValue = fromJust mayFaceValue
+        credit = (faceValue, lendingCreditDuration, lendingCreditInterestRate)
+
+        s = aiState ain
+        s' = s { sugAgSugarLevel = (sugAgSugarLevel s) - faceValue,
+                sugAgLendingCredits = borrowerId : (sugAgLendingCredits s) }
+        ainAfterCreditOffer = ain { aiState = s' }
+
+potentialLender :: SugarScapeAgentState -> Maybe Double
+potentialLender s
+    | tooOldForChildren s = Just $ half (sugAgSugarLevel s)
+    | isFertile s = fertileLending s
+    | otherwise = Nothing
+    where
+        fertileLending :: SugarScapeAgentState -> Maybe Double
+        fertileLending s 
+            | excessAmount > 0 = Just excessAmount
+            | otherwise = Nothing
+            where
+                excessAmount = excessAmountToChildBearing s
+
+        half x = x * 0.5
+
+isPotentialBorrower :: SugarScapeAgentState -> Bool
+isPotentialBorrower s 
+    | isFertile s && (not $ satisfiesWealthForChildBearing s) = True
+    | otherwise = False
 
 -- NOTE: haven't implemented "On the Evolution of Foresight"
 ------------------------------------------------------------------------------------------------------------------------
@@ -642,11 +794,12 @@ agentDiseaseContact ain a = onMessage diseaseContactMatch ain diseaseContactActi
 
 agentDiseasesTransmit :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentDiseasesTransmit a  
-    | (isDiseased s) && (not $ null nids) = sendMessages a msgs
+    | (isDiseased s) && hasNeighbours = sendMessages a msgs
     | otherwise = a
     where
         s = aoState a
         nids = neighbourIds a
+        hasNeighbours = not $ null nids
 
         neighbourCount = length nids
         diseases = sugAgDiseases $ aoState a
@@ -688,14 +841,19 @@ agentDiseaseProcesses ain a = agentImmunize $ agentDiseasesTransmit $ agentDisea
 -- GENERAL AGENT-RELATED
 ------------------------------------------------------------------------------------------------------------------------
 sugarScapeAgentConversation :: SugarScapeAgentConversation
+
 sugarScapeAgentConversation ain (_, (MatingRequest tup)) = Just $ handleMatingConversation tup ain
 sugarScapeAgentConversation ain (_, (MatingChild childId)) = Just (MatingChildAck, ain')
     where
         s = aiState ain
         s' = s { sugAgChildren = childId : (sugAgChildren s)}
         ain' = ain { aiState = s' }
+
 sugarScapeAgentConversation ain (_, (TradingOffer mrs)) = Just $ handleTradingOffer mrs ain
 sugarScapeAgentConversation ain (_, (TradingTransact mrs)) = Just $ handleTradingTransact mrs ain
+
+sugarScapeAgentConversation ain (borrowerId, CreditRequest) = Just $ handleCreditRequest ain borrowerId
+
 sugarScapeAgentConversation _ _ = Nothing
 
 
@@ -711,17 +869,17 @@ sugarScapeAgentBehaviourFunc :: Double -> SugarScapeAgentIn -> SugarScapeAgentOu
 sugarScapeAgentBehaviourFunc age ain a = do     
                                             let a0 = agentKilledInCombat ain a 
                                             if isDead a0 then
-                                                a0
+                                                agentDeathHandleCredits a0
                                                 else
                                                     do
                                                         let a1 = agentAgeing age a0
                                                         if isDead a1 then
-                                                            a1
+                                                            agentDeathHandleCredits a1
                                                             else
                                                                 do
                                                                     let a2 = agentMetabolism a1
                                                                     if isDead a2 then
-                                                                        a2
+                                                                        agentDeathHandleCredits a2
                                                                         else 
                                                                             do
                                                                                 let a3 = agentNonCombatMove a2
@@ -729,9 +887,9 @@ sugarScapeAgentBehaviourFunc age ain a = do
                                                                                 -- let a5 = agentCultureContact ain a4
                                                                                 -- let a6 = agentSex a5
                                                                                 -- let a7 = agentTrading a5
-                                                                                -- let a8 = agentCredit ain a4
-                                                                                let a9 = agentDiseaseProcesses ain a4
-                                                                                a9
+                                                                                let a8 = agentCredit ain a4
+                                                                                --let a9 = agentDiseaseProcesses ain a4
+                                                                                a8
 
 
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour

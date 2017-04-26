@@ -33,6 +33,10 @@ data SugarScapeAgentGender = Male | Female deriving (Show, Eq)
 data SugarScapeTribe = Red | Blue deriving (Show, Eq)
 
 type SugarScapeCulturalTag = [Bool]
+
+type SugarScapeCredit = (Double, Double, Double)    -- face-value, duration d years, interest rate r percent
+type SugarScapeCreditInfo = (AgentId, Double, SugarScapeCredit)    -- lender id, due age of agent when to pay back credit, credit
+
 type SugarScapeImmuneSystem = [Bool]
 type SugarScapeDisease = [Bool]
 
@@ -54,7 +58,15 @@ data SugarScapeMsg =
     | TradingTransact Double
     | TradingRefuse 
 
-    | DiseaseContact [Bool] 
+    | DiseaseContact SugarScapeDisease 
+
+    | CreditRequest 
+    | CreditOffer SugarScapeCredit
+    | CreditRequestRefuse 
+    | CreditPaybackHalf Double   -- borrower has not enough wealth to fully pay back, will only pay half of its own wealth but credit continues
+    | CreditPaybackFull Double   -- full payback this will wipe the credit
+    | CreditLenderDied
+    | CreditBorrowerDied
     deriving (Show)
 
 data SugarScapeAgentState = SugarScapeAgentState {
@@ -80,6 +92,9 @@ data SugarScapeAgentState = SugarScapeAgentState {
 
     sugAgCulturalTag :: SugarScapeCulturalTag,  -- the agents cultural tag
     sugAgTribe :: SugarScapeTribe,           -- the agents tribe it belongs to according to its cultural tag
+
+    sugAgBorrowingCredits :: [SugarScapeCreditInfo],                    -- the agents currently running credits it has to pay back
+    sugAgLendingCredits :: [AgentId],                                -- the ids of the borrowers this agent is currently lending to, is necessary to notify borrowers if lender dies
 
     sugAgImmuneSys :: SugarScapeImmuneSystem,                -- the agents immune-system, a binary string of 0s and 1s
     sugAgImmuneSysBorn :: SugarScapeImmuneSystem,            -- the agents immune-system it is born with, stays constant and is inherited to its children
@@ -205,8 +220,12 @@ summerSeasonSpiceGrowbackRate = 1.0
 winterSeasonSpiceGrowbackRate :: Double
 winterSeasonSpiceGrowbackRate = 8.0
 
--- TODO: implement borrowing and lending
+lendingCreditDuration :: Double
+lendingCreditDuration = 10
 
+-- NOTE: this is the interest-rate in percent
+lendingCreditInterestRate :: Double
+lendingCreditInterestRate = 2.5
 
 -- NOTE: haven't implemented "On the Evolution of Foresight"
 ------------------------------------------------------------------------------------------------------------------------
@@ -374,6 +393,9 @@ randomAgent (agentId, coord) beh conv =
 
             sugAgCulturalTag = randCulturalTag,
             sugAgTribe = calculateTribe randCulturalTag,
+
+            sugAgBorrowingCredits = [],
+            sugAgLendingCredits = [],
 
             sugAgImmuneSys = randImmuneSystem,
             sugAgImmuneSysBorn = randImmuneSystem,

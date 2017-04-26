@@ -630,7 +630,7 @@ agentWelfareChange s (sugarChange, spiceChange) = ((w1 + sugarChange)**(m1/mT)) 
         w2 = sugAgSpiceLevel s
 
 agentCredit :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
-agentCredit ain a = agentRequestCredit $ agentCheckCreditPaybackDue $ agentCreditPaybackIncoming ain $ agentCreditsDeathIncoming ain a
+agentCredit ain a = agentRequestCredit $ agentCheckCreditPaybackDue $ agentCreditPaybackIncoming ain $ agentCreditDeathIncoming ain a
 
 -- NOTE: for now only sugar is lended & borrowed, no spice
 agentRequestCredit :: SugarScapeAgentOut -> SugarScapeAgentOut
@@ -653,7 +653,8 @@ agentRequestCredit a
                 agentCreditConversationsReply :: SugarScapeAgentOut
                                                     -> Maybe (AgentMessage SugarScapeMsg)
                                                     -> SugarScapeAgentOut
-                agentCreditConversationsReply a Nothing = agentCreditConversation otherAis a 
+                agentCreditConversationsReply a Nothing = agentCreditConversation otherAis a
+                agentCreditConversationsReply a (Just (_, CreditRequestRefuse)) = agentCreditConversation otherAis a 
                 agentCreditConversationsReply a (Just (lenderId, CreditOffer credit)) = agentCreditConversation otherAis aAfterBorrowing
                     where
                         s = aoState a
@@ -679,8 +680,35 @@ agentDeathHandleCredits a = aNotifiedBorrowers
         aNotifiedLenders = broadcastMessage a CreditBorrowerDied lenderIds
         aNotifiedBorrowers = broadcastMessage aNotifiedLenders CreditLenderDied lenderIds
 
-agentCreditsDeathIncoming :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
-agentCreditsDeathIncoming ain a = undefined -- TODO: implement 
+agentCreditDeathIncoming :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
+agentCreditDeathIncoming ain a = onMessage creditDeathMatch ain creditDeathAction a
+    where
+        creditDeathMatch :: AgentMessage SugarScapeMsg -> Bool
+        creditDeathMatch (_, CreditBorrowerDied) = True
+        creditDeathMatch (_, CreditLenderDied) = True
+        creditDeathMatch _ = False
+
+        creditDeathAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
+        creditDeathAction a (borrowerId, CreditBorrowerDied) = borrowerDied a borrowerId
+        creditDeathAction a (lenderId, CreditLenderDied) = lenderDied a lenderId
+
+        -- NOTE: the borrower could have borrowed multiple times from this lender, remove ALL ids
+        borrowerDied :: SugarScapeAgentOut -> AgentId -> SugarScapeAgentOut
+        borrowerDied a borrowerId = a' 
+            where
+                s = aoState a
+                borrowers = sugAgLendingCredits s
+                borrowersRemoved = filter (/=borrowerId) borrowers
+                a' = updateState a (\s -> s { sugAgLendingCredits = borrowersRemoved } )
+
+        -- NOTE: the lender could have lended multiple times to this borrower, remove ALL credits
+        lenderDied :: SugarScapeAgentOut -> AgentId -> SugarScapeAgentOut
+        lenderDied a lenderId = a' 
+            where
+                s = aoState a
+                borrowedCredits = sugAgBorrowingCredits s
+                borrowersRemoved = filter (\(lId, _, _) -> lId /= lenderId) borrowedCredits
+                a' = updateState a (\s -> s { sugAgBorrowingCredits = borrowersRemoved } )
 
 agentCreditPaybackIncoming :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
 agentCreditPaybackIncoming ain a = onMessage creditPaybackMatch ain creditPaybackAction a
@@ -692,13 +720,27 @@ agentCreditPaybackIncoming ain a = onMessage creditPaybackMatch ain creditPaybac
 
         creditPaybackAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
         creditPaybackAction a (_, (CreditPaybackHalf amount)) = halfCreditPayback a amount
-        creditPaybackAction a (_, (CreditPaybackFull amount)) = fullCreditPayback a amount
+        creditPaybackAction a (borrowerId, (CreditPaybackFull amount)) = fullCreditPayback a borrowerId amount
 
+        -- NOTE: in this case we don't remove the borrower because it has not yet payed back the whole credit
         halfCreditPayback :: SugarScapeAgentOut -> Double -> SugarScapeAgentOut
-        halfCreditPayback a amount = undefined -- TODO: implement 
+        halfCreditPayback = agentChangeSugarWealth 
 
-        fullCreditPayback :: SugarScapeAgentOut -> Double -> SugarScapeAgentOut
-        fullCreditPayback a amount = undefined -- TODO: implement 
+        -- NOTE: in this case we just remove the first borrower-id we find. It is possible that this lender has lended multiple times to the borrower but this doesnt matter in this case
+        fullCreditPayback :: SugarScapeAgentOut -> AgentId -> Double -> SugarScapeAgentOut
+        fullCreditPayback a borrowerId amount = agentChangeSugarWealth a' amount
+            where
+                s = aoState a
+                borrowers = sugAgLendingCredits s
+                borrowersFirstRemoved = delete borrowerId borrowers
+                a' = updateState a (\s -> s { sugAgLendingCredits = borrowersFirstRemoved } )
+
+agentChangeSugarWealth :: SugarScapeAgentOut -> Double -> SugarScapeAgentOut
+agentChangeSugarWealth a amount = updateState a (\s -> s { sugAgSugarLevel = newWealth } )
+    where
+        s = aoState a
+        wealth = sugAgSugarLevel s 
+        newWealth = wealth + amount
 
 agentCheckCreditPaybackDue :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentCheckCreditPaybackDue a = aAfterPayback
@@ -720,8 +762,8 @@ agentCheckCreditPaybackDue a = aAfterPayback
 
                 paybackCredit :: (SugarScapeAgentOut, [SugarScapeCreditInfo])
                 paybackCredit 
-                    | fullPaybackPossible = (a', accCredits)
-                    | otherwise = (a', newCreditInfo : accCredits)
+                    | fullPaybackPossible = (aAfterPayback, accCredits)
+                    | otherwise = (aAfterPayback, newCreditInfo : accCredits)
                     where
                         (faceValue, creditDuration, creditInterestRate) = credit
 
@@ -735,7 +777,8 @@ agentCheckCreditPaybackDue a = aAfterPayback
                         newCredit = (faceValue - paybackAmount, creditDuration, creditInterestRate)
                         newCreditInfo = (lenderId, age + creditDuration, newCredit)
 
-                        a' = sendMessage a (lenderId, paybackMessage)
+                        aReducedWealth = agentChangeSugarWealth a paybackAmount
+                        aAfterPayback = sendMessage aReducedWealth (lenderId, paybackMessage)
 
 handleCreditRequest :: SugarScapeAgentIn -> AgentId -> (SugarScapeMsg, SugarScapeAgentIn)
 handleCreditRequest ain borrowerId

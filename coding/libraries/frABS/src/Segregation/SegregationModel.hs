@@ -131,9 +131,10 @@ segMovementRec ain ao
         segMovementPresent :: SegAgentIn -> SegAgentOut -> SegAgentOut    
         segMovementPresent ain ao
             -- trace ("Agent " ++ (show $ aoId ao) ++ " satisfied in present, start recursion") 
+            -- NOTE: to reduce the ratio of agents using future-forecasting to 50% instead of all 100% use: && (mod (aoId ao) 2 == 0)
             | isSatisfied ao' 
                 && recInitAllowed ain
-                && ((aoId ao) /= -1) = (recursive ao' False)     -- satisfied in the present: check for future, otherwise don't care for future and just move
+                = (recursive ao' False)     -- satisfied in the present: check for future, otherwise don't care for future and just move
             | otherwise = ao'
             where
                 -- NOTE: this is the decision in the present (non-recursive)

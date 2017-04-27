@@ -1,0 +1,15 @@
+experiment-setup
+
+grid-size:          according to _number in files (25, 15, 10)
+similarity:         80%
+density:            80%
+red/green:          50%
+movement:           Global
+selection:          Random
+opt. Retries:       1
+freeCeel Retries:   4
+RNG Seed:           42 (of course in all runs the same!!!)
+Future optimizing:  Depending on experiment, see file if Future/Present
+
+Conclusion so far:
+Future-optimization seems not to be really better but can lead to much more unstable behaviour as seen in the 10x10 case where out of nothing suddenly the dynamics run wild

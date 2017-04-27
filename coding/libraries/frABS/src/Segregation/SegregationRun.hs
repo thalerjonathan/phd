@@ -21,7 +21,7 @@ winTitle = "Schelling Segregation FrABS"
 renderCircles = True
 
 rngSeed = 42
-cells = (25, 25)
+cells = (15, 15)
 parallelStrategyFlag = False -- NOTE: segregation will not give correct result when run with parallel update-strategy
 
 

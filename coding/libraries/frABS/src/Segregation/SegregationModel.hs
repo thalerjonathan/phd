@@ -71,6 +71,9 @@ selectionStrategy = SelectNearest -- SelectRandom randomSearchOptRetries randomS
 
 optimizingStrategy :: SegOptStrategy
 optimizingStrategy = OptSimilaritySatisfied -- OptNone -- OptSimilaritySatisfied -- OptSimilarityIncreasing 
+
+futureOptimizing :: Bool
+futureOptimizing = True
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -99,15 +102,37 @@ isSatisfied aout = (segSatisfactionLevel s) >= (segSimilarityWanted s)
             -- satisfied in future: stay
             -- NOT satsfied in future: move
 
-    -- VERSION 1:
     -- not satisfied in the present: move and don't care about future
 
-    -- VERSION 2:
-    -- not satisfied in the present: move & check if satisfied in the future
-            -- satisfied in future: stay
-            -- NOT satsfied in future: move
+-- in the recursive case we have the SegAgentOut of the present which initiated the recursion AND the SegAgentOut of the future
+-- in the recursive case (future) we need to decide the above cases and return the corresponding SegAgentOut
+-- IMPORTANT: we always need to return the ENVIRONMENT of the PRESENT SegAgentOut
+segMovementRec :: SegAgentIn -> SegAgentOut -> SegAgentOut
+segMovementRec ain ao 
+    | isRecursive ain = unrecursive aoFinal
+    | otherwise = if (isSatisfied ao') then recursive ao' False else ao'    -- satisfied in the present: check for future, otherwise don't care for future and just move
+    where
+        -- NOTE: this is the decision in the present (non-recursive)
+        ao' = segMovement ao
 
--- TODO: problem is that recursion does not really work well with environment yet: the environment is the environment of the future and we cannot move based upon the old
+        -- NOTE: we know that the present IS SATISFIED given is environment and that is HAS NOT MOVED
+
+        -- NOTE: the out from the origin in is the present because it is the one returned in the case of not being in the recursion
+        aoPresent = ao
+        -- NOTE: this is the same as present
+        aoPresent' = head $ fromEvent $ aiRec ain
+        -- NOTE: this becomes the future one by calculating the satisfaction-level which depends on the environment which was changed
+        -- by the other agents which were simulated before
+        aoFuture = updateSatisfactionLevel ao
+        -- NOTE: the final output is: in case we are happy in the future as well then the present position unchanged, 
+        -- if we are not happy in the future we move in the present
+        aoFinal = if (isSatisfied aoFuture) then aoPresent else move aoPresent
+
+        segMovementPresent :: SegAgentOut -> SegAgentOut
+        segMovementPresent ao
+            | isSatisfied ao' = recursive ao' False
+            | otherwise = move ao'
+            where
 
 segMovement :: SegAgentOut -> SegAgentOut
 segMovement ao 
@@ -332,4 +357,5 @@ segAgentBehaviour :: SegAgentBehaviour
 segAgentBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
-        returnA -< segMovement ao ain
+        let aoMoved = if futureOptimizing then segMovementRec ain ao else segMovement ao
+        returnA -< aoMoved

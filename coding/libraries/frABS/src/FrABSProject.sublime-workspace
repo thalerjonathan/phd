@@ -47,25 +47,16 @@
 			"file": "Main.hs",
 			"settings":
 			{
-				"buffer_size": 931,
+				"buffer_size": 900,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "FrABS/Simulation/Simulation.hs",
+			"file": "Segregation/SegregationModel.hs",
 			"settings":
 			{
-				"buffer_size": 23425,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "FrABS/Agent/Agent.hs",
-			"settings":
-			{
-				"buffer_size": 8727,
+				"buffer_size": 17120,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -109,28 +100,28 @@
 	"expanded_folders":
 	[
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape"
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation"
 	],
 	"file_history":
 	[
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationRun.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/RecursiveABS/RecursiveABSModel.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/RecursiveABS/RecursiveABSInit.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationModel.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Main.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation/Simulation.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeAgent.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationModel.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Main.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SIRS/SIRSModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationInit.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MetaABS/MetaABSModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MetaABS/MetaABSInit.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationInit.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MessageSampling/MessageSamplingInit.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MessageSampling/MessageSamplingModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/    Not in scope",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation/Simulation.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Env/Environment.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeInit.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/    * Variable not in scope",
@@ -242,25 +233,25 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 931,
+						"buffer_size": 900,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								257,
-								257
+								316,
+								316
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"syntax": "Packages/Haskell/Haskell.sublime-syntax",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 258.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
@@ -268,19 +259,19 @@
 				},
 				{
 					"buffer": 1,
-					"file": "FrABS/Simulation/Simulation.hs",
+					"file": "Segregation/SegregationModel.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 23425,
+						"buffer_size": 17120,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								13985,
-								13985
+								4485,
+								4485
 							]
 						],
 						"settings":
@@ -290,40 +281,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 3981.0,
+						"translation.y": 1852.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "FrABS/Agent/Agent.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 8727,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1901,
-								1949
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 722.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
 					"type": "text"
 				}
 			]
@@ -362,7 +323,7 @@
 	"menu_visible": true,
 	"output.exec":
 	{
-		"height": 223.0
+		"height": 178.0
 	},
 	"output.find_results":
 	{

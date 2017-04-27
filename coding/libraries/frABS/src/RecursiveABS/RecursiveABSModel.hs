@@ -23,7 +23,7 @@ data MetaABSAgentState = MetaABSAgentState {
     mabsCounter :: Int
 } deriving (Show)
 
-type MetaABSEnvCell = ()
+type MetaABSEnvCell = Int
 type MetaABSEnvironment = Environment MetaABSEnvCell
 
 type MetaABSAgentDef = AgentDef MetaABSAgentState MetaABSMsg MetaABSEnvCell
@@ -44,8 +44,8 @@ allowRecursionToOthers = False
 
 metaABSStep :: MetaABSAgentOut -> MetaABSAgentIn -> MetaABSAgentOut
 metaABSStep aout ain
-    | isRecursive ain = trace ("agent " ++ (show $ aiId ain) ++ ": RECURSIVE") metaABSActRecursive aout ain
-    | otherwise = trace ("agent " ++ (show $ aiId ain) ++ ": NORMAL") metaABSActNonRec aout ain
+    | isRecursive ain = trace ("agent " ++ (show $ aiId ain) ++ ": RECURSIVE with state: " ++ (show $ aoState aout)) metaABSActRecursive aout ain
+    | otherwise = trace ("agent " ++ (show $ aiId ain) ++ ": NORMAL with state: " ++ (show $ aoState aout)) metaABSActNonRec aout ain
 
 metaABSActRecursive :: MetaABSAgentOut -> MetaABSAgentIn -> MetaABSAgentOut
 metaABSActRecursive aout ain

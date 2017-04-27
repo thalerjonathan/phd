@@ -13,6 +13,7 @@ import Data.Maybe
 
 -- debugging imports finally, to be easily removed in final version
 import System.Random
+import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
@@ -46,10 +47,10 @@ type SegAgentOut = AgentOut SegAgentState SegMsg SegEnvCell
 -- MODEL-PARAMETERS
 ------------------------------------------------------------------------------------------------------------------------
 similarityWanted :: Double
-similarityWanted = 0.75
+similarityWanted = 0.8
 
 density :: Double
-density = 0.75
+density = 0.8
 
 redGreenDist :: Double
 redGreenDist = 0.5
@@ -61,13 +62,13 @@ randomSearchFreeCellRetries :: Int
 randomSearchFreeCellRetries = 4
 
 randomSearchOptRetries :: Int
-randomSearchOptRetries = 4
+randomSearchOptRetries = 1
 
 movementStrategy :: SegMoveStrategy
 movementStrategy = MoveGlobal -- MoveLocal localMovementRadius
 
 selectionStrategy :: SegSelectionStrategy
-selectionStrategy = SelectNearest -- SelectRandom randomSearchOptRetries randomSearchFreeCellRetries
+selectionStrategy = SelectRandom randomSearchOptRetries randomSearchFreeCellRetries -- SelectNearest -- SelectRandom randomSearchOptRetries randomSearchFreeCellRetries
 
 optimizingStrategy :: SegOptStrategy
 optimizingStrategy = OptSimilaritySatisfied -- OptNone -- OptSimilaritySatisfied -- OptSimilarityIncreasing 
@@ -109,30 +110,34 @@ isSatisfied aout = (segSatisfactionLevel s) >= (segSimilarityWanted s)
 -- IMPORTANT: we always need to return the ENVIRONMENT of the PRESENT SegAgentOut
 segMovementRec :: SegAgentIn -> SegAgentOut -> SegAgentOut
 segMovementRec ain ao 
-    | isRecursive ain = unrecursive aoFinal
-    | otherwise = if (isSatisfied ao') then recursive ao' False else ao'    -- satisfied in the present: check for future, otherwise don't care for future and just move
+    -- trace ("Agent " ++ (show $ aoId ao) ++ " isRecursive") 
+    | isRecursive ain = (unrecursive $ segMovementFuture ain ao)         -- NOTE: ALWAYS unrecursive, only 1 recursion
+    | otherwise = segMovementPresent ain ao   
     where
-        -- NOTE: this is the decision in the present (non-recursive)
-        ao' = segMovement ao
-
         -- NOTE: we know that the present IS SATISFIED given is environment and that is HAS NOT MOVED
-
-        -- NOTE: the out from the origin in is the present because it is the one returned in the case of not being in the recursion
-        aoPresent = ao
-        -- NOTE: this is the same as present
-        aoPresent' = head $ fromEvent $ aiRec ain
-        -- NOTE: this becomes the future one by calculating the satisfaction-level which depends on the environment which was changed
-        -- by the other agents which were simulated before
-        aoFuture = updateSatisfactionLevel ao
-        -- NOTE: the final output is: in case we are happy in the future as well then the present position unchanged, 
-        -- if we are not happy in the future we move in the present
-        aoFinal = if (isSatisfied aoFuture) then aoPresent else move aoPresent
-
-        segMovementPresent :: SegAgentOut -> SegAgentOut
-        segMovementPresent ao
-            | isSatisfied ao' = recursive ao' False
-            | otherwise = move ao'
+        segMovementFuture :: SegAgentIn -> SegAgentOut -> SegAgentOut    
+        segMovementFuture ain ao
+            -- trace ("Agent " ++ (show $ aoId ao) ++ " is satisfied in future, stay in present") 
+            | isSatisfied aoFuture = aoPresent      -- satisfied in the future as well, stay at same position as present
+            -- trace ("Agent " ++ (show $ aoId ao) ++ " is not satisfied in future, move in present") 
+            | otherwise = (move aoPresent)            -- unhappy in the future, move in the present
             where
+                -- NOTE: we need the present one with the present environment. although ao has the same state it has NOT the same environment
+                aoPresent = head $ fromEvent $ aiRec ain
+                -- NOTE: the aoPresent becomes the future one by calculating the satisfaction-level which depends on the environment which was changed
+                -- by the other agents which were simulated before (recursive simulation!)
+                aoFuture = updateSatisfactionLevel ao
+
+        segMovementPresent :: SegAgentIn -> SegAgentOut -> SegAgentOut    
+        segMovementPresent ain ao
+            -- trace ("Agent " ++ (show $ aoId ao) ++ " satisfied in present, start recursion") 
+            | isSatisfied ao' 
+                && recInitAllowed ain
+                && ((aoId ao) /= -1) = (recursive ao' False)     -- satisfied in the present: check for future, otherwise don't care for future and just move
+            | otherwise = ao'
+            where
+                -- NOTE: this is the decision in the present (non-recursive)
+                ao' = (segMovement ao ) -- trace ("Agent " ++ (show $ aoId ao) ++ " makes move, recAllowed: " ++ (show $ recInitAllowed ain)) 
 
 segMovement :: SegAgentOut -> SegAgentOut
 segMovement ao 
@@ -149,7 +154,6 @@ updateSatisfactionLevel ao = updateState ao (\s -> s { segSatisfactionLevel = up
         updatedSatisfactionLevel = satisfactionOn ao agentPos
 
 -- NOTE: this function calculates the projected satisfaction of the party if the given coordinate is occupied by this party
-
 satisfactionOn :: SegAgentOut -> EnvCoord -> Double
 satisfactionOn ao targetCoord
     | Red == party = redFraction
@@ -262,40 +266,15 @@ findNearestFreeCoord :: SegAgentOut
                         -> ((EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell))
                         -> SegMoveStrategy
                         -> Maybe EnvCoord
-findNearestFreeCoord ao optFunc (MoveLocal _) = findNearestLocal ao optFunc
-findNearestFreeCoord ao optFunc MoveGlobal = findNearestGlobal ao optFunc
-
-findNearestGlobal :: SegAgentOut
-                        -> ((EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell))
-                        -> Maybe EnvCoord
-findNearestGlobal ao optFunc = findNearestGlobalAux 0 ao
-    where
-        findNearestGlobalAux :: Int -> SegAgentOut -> Maybe EnvCoord
-        findNearestGlobalAux scale ao
-            | isJust mayNearest = Just $ fst $ fromJust mayNearest
-            | otherwise = findNearestGlobalAux (scale + 1) ao
-            where
-                env = aoEnv ao
-                coord = aoEnvPos ao
-                l = envLimits env
-                w = envWrapping env
-                mooreRingCoords = neighbourhoodScale mooreSelf scale
-                mooreRingNeighbourhood = neighbourhoodOf coord mooreRingCoords
-                wrappedMooreRingNeighbourhood = wrapNeighbourhood l w mooreRingNeighbourhood
-                mooreRingCells = cellsAt env wrappedMooreRingNeighbourhood
-                mayNearest = foldr (findNearestAux optFunc) Nothing (zip wrappedMooreRingNeighbourhood mooreRingCells)
-
-findNearestLocal :: SegAgentOut
-                        -> ((EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell))
-                        -> Maybe EnvCoord
-findNearestLocal ao optFunc
-    | isJust mayNearest = Just $ fst $ fromJust mayNearest
-    | otherwise = Nothing
+findNearestFreeCoord ao optFunc strat = maybe Nothing (Just . fst) mayNearest
     where
         env = aoEnv ao
         coord = aoEnvPos ao
-        coordsCells = cellsAround env coord localMovementRadius
-        mayNearest = foldr (findNearestAux optFunc) Nothing coordsCells
+        
+        coordsCellsSearch = case strat of   (MoveLocal r) -> cellsAround env coord r
+                                            MoveGlobal -> allCellsWithCoords env
+
+        mayNearest = foldr (findNearestAux optFunc) Nothing coordsCellsSearch
 
 findNearestAux :: ((EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell))
                     -> (EnvCoord, SegEnvCell)

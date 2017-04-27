@@ -43,24 +43,6 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "Main.hs",
-			"settings":
-			{
-				"buffer_size": 900,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "Segregation/SegregationModel.hs",
-			"settings":
-			{
-				"buffer_size": 17120,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		}
 	],
 	"build_system": "",
 	"build_system_choices":
@@ -99,11 +81,12 @@
 	},
 	"expanded_folders":
 	[
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation"
+		"/home/jonathan/phd/coding/libraries/frABS/src"
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/src/Main.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/Segregation/SegregationModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationRun.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/RecursiveABS/RecursiveABSModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/RecursiveABS/RecursiveABSInit.hs",
@@ -224,69 +207,8 @@
 	"groups":
 	[
 		{
-			"selected": 1,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "Main.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 900,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								316,
-								316
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Haskell/Haskell.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "Segregation/SegregationModel.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 17120,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								4485,
-								4485
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1852.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				}
 			]
 		}
 	],

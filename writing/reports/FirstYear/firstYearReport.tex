@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass[oneside]{book}
 
 \usepackage{hyperref}
 \usepackage[utf8]{inputenc}
@@ -9,6 +9,7 @@
 \newtheorem{theorem}{Theorem}
 \newtheorem{corollary}{Corollary}[theorem]
 \newtheorem{lemma}[theorem]{Lemma}
+\usepackage{listings}
 
 %TODO follow the instructions on http://workspace.nottingham.ac.uk/display/CompSci/Procedure+for+PhD+Annual+Reviews
 
@@ -21,19 +22,28 @@
 
 \date{\today} % Date for the report
 
+
+%----------------------------------------------------------------------------------------
+%	BEGIN OF DOCUMENT
+%----------------------------------------------------------------------------------------
+
 \begin{document}
+
 \maketitle % Insert the title, author and date
 
-% If you wish to include an abstract, uncomment the lines below
-\begin{abstract}
-A succinct and concise summary (250 words maximum) of the report contents and presented on a single page.
+%\thispagestyle{fancy} % All pages have headers and footers
 
-So far specifying Agent-Based Models and implementing them as an Agent-Based Simulation (ABS) is done using object-oriented methods like UML and object-oriented programming languages like Java. The reason for this is that until now the concept of an agent was always understood to be very close to, if not equals to - which it is not - the concept of an object. Therefore, the reasoning goes, object-oriented methods and languages should fit themselves naturally to specify and implement agent-based simulations. In this PhD Thesis we fundamentally challenge this assumption by investigating how Agent-Based Models and Simulations can be specified and implemented using pure functional methods and programming in Haskell and what the benefits are. We will show that the implicit assumption that an Agent is \textit{about equal to} an Object is not correct and leads to many implicit assumptions in object-oriented implementations of Agent-Based Simulation (ABS). When implementing ABS in Haskell these implicit assumptions become explicit and challenge the fundamental assumptions about ABS and Agents. We present these implicit assumption in an explicit way by approaching it through programming, type-theory and category-theory to further deepen the concepts and methods in the field of Agent-Based Modelling \& Simulation. We also think that the major benefit of implementing ABS in Haskell is the potential for an unprecedented approach of formal validation \& verification of an Agent-Based Model and its implementation. Due to the declarative nature of pure functional programming in Haskell it is possible to implement an EDSL for ABS which ideally results in code which looks like specification thus closing the gap between specification and implementation because the specification is already the code. For validation we want to pursue testing through QuickCheck.
+\cleardoublepage
+\section*{Abstract}
+%A succinct and concise summary (250 words maximum) of the report contents and presented on a single page.
 
-In this report I discuss the research conducted to far, present the open problems together with an in-depth literature review. An outline for the research of the following 2 years is given and the aims.
-\end{abstract}
+So far specifying Agent-Based Models (ABM) and implementing them as an Agent-Based Simulation (ABS) is done using object-oriented methods like UML and object-oriented (OO) programming languages like Java. The reason for this is that until now the concept of an agent was always understood to be very close to, if not equals to - which it is not - the concept of an object. Therefore, the reasoning goes, object-oriented methods and languages should apply naturally to specify and implement agent-based simulations. In this thesis we fundamentally challenge this assumption by investigating how Agent-Based Models and Simulations can be specified and implemented using pure functional methods and what the benefits are. 
+We show how ABS can be implemented in the pure functional language Haskell and develop a basic underlying theoretical framework in Category-Theory and Type-Theory which allows to view and specify ABS from a different point-of-view.
+Having these tools at hand the major benefit using them is the potential for an unprecedented approach to validation \& verification of an ABM and its implementation. First: due to the declarative nature of pure functional programming in Haskell it is possible to implement an EDSL for ABS which ideally results in code which looks like specification thus closing the gap between specification and implementation. Second: validation becomes possible by formulating hypotheses directly in code using QuickCheck and then verify these hypotheses. Third: Category-Theory allows to view ABS from a high-level view thus giving a different insight and allows to specify ABM in a new way.
 
-%TODO Contents Page Main headings with page numbers.
+\clearpage
+\tableofcontents
+\clearpage
 
 \input{./tex/introduction.tex}
 
@@ -47,7 +57,7 @@ In this report I discuss the research conducted to far, present the open problem
 
 \input{./tex/futureWork.tex}
 
-%\bibliographystyle{acm}
+\bibliographystyle{acm}
 \bibliography{../../references/phdReferences}
 
 \input{./tex/appendix.tex}

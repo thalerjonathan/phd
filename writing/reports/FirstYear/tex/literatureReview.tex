@@ -157,7 +157,10 @@ TODO: \url{https://link.springer.com/chapter/10.1007%2F978-3-642-01109-2_10}
 TODO: \url{http://www3.nd.edu/~nom/Papers/ADS019_Xiang.pdf}
 
 
-model checking and reasoning by quickcheck: \cite{claessen_quickcheck:_2000}, \cite{hutton_tutorial_1999}
+model checking and reasoning in \cite{hutton_tutorial_1999}
+
+In \cite{claessen_quickcheck:_2000} introduce \textit{QuickCheck}, a testing-framework which allows to specifify properties and invariants of ones functions and then test them using randomly generated test-data. This is an additional tool of model-specification and increases the power and strength of the verification process and more properties of a model can be expressed which are directly formulated in code through the EDSL of QuickCheck AND the EDSL of FrABS. Of course it also serves for testing (e.g. regression) and points out errors in the implementation e.g. wrong assumptions about input-data. The authors claim that the major advante of QuickCheckj is to formulate formal specifications which help in understanding a program.
+TODO: the question is whether it can be used for Validation as well.
 
 Verification/Reasoning ist einer der größten Pluspunkte von rein funktionaler Programmierung, da durch den deklarativen Stil und das Fehlen von Sideeffects und Globalen Daten equational/algebraic/inductive Reasoning betrieben werden kann. Hier habe ich noch garnichts dazu gemacht, aber sollte mit den oben genannten Ideen sicherlich interessant werden - ein interessantes Paper von Graham Hutton (für den ich übrigens dieses Semester ein Tutor in seiner Haskell-Laborübung bin) gibt interessante Richtungen für Reasoning vor: http://dl.acm.org/citation.cfm?id=968579
 

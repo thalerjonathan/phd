@@ -1,7 +1,51 @@
 \chapter{Introduction}
 \label{chap:intro}
 
-TODO: split into motivation and background
+\section{Background}
+Agent-based simulation and modelling (ABS) is a method for simulating the emergent behaviour of a system by modelling and simulating the interactions of its sub-parts, called agents. Examples for an ABS is simulating the spread of an epidemic throughout a population or simulating the dynamics of segregation within a city. Central to ABS is the concept of an agent who needs to be updated in regular intervals during the simulation so it can interact with other agents and its environment.
+We understand ABS as a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is known. Those parts, called agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. So the central aspect of ABS is the concept of an agent which can be understood as a metaphor for a pro-active unit, situated in an environment, able to spawn new agents and interacting with other agents in a network of neighbours by exchange of messages \cite{wooldridge_introduction_2009}. 
+
+We informally assume the following about our agents:
+
+\begin{itemize}
+	\item They are uniquely addressable entities with some internal state.
+	\item They can initiate actions on their own e.g. change their internal state, send messages, create new agents, kill themselves.
+	\item They can react to messages they receive with actions as above.
+	\item They can interact with an environment they are situated in.
+\end{itemize} 
+
+It is important to note that we focus our understanding of ABS on a very specific kind of agents where the focus is on communicating entities with individual, localized behaviour from out of which the global behaviour of the system emerges. This explicit distinction is necessary as to not confuse our concept of \textit{agent} with those of other fields like Multi Agent Systems (MAS) and AI \& Kybernetics. Especially ABS and MAS influence each other in the way that the basic concept of an agent is very similar but the areas of application are fundamentally different. MAS is primarily used as an engineering approach to organize large software-systems where ABS is primarily used for the simulation of collective behaviour of agents to gain insight into the dynamics of a system.
+
+ABS is a method and tool and thus always applied in a very specific domain in which phenomenon are being researched which can be mapped to collective behaviour. This implies that we need to select a specific domain in which we want to advance the methodology of ABS. For our PhD we picked the field of Agent-Based Computational Social Sciences (ACS) which is traditionally a highly interdisciplinary field \cite{axelrod_chapter_2006}, drawing on lots of different other areas like economics, epidemology, genetics, neurocognition, biology. As the primary sources we selected the works of Epstein and Axtell in \cite{epstein_growing_1996}, \cite{epstein_generative_2012} and \cite{epstein_agent_zero:_2014} which are fundamentally rooted in ACS but are highly interdisciplinary.
+Another field we are particularly interested in, the simulation of decentralized bilateral bartering, which belongs to the field of Agent-Based Computational Economics (ACE) \cite{tesfatsion_agent-based_2006} is covered in one of the cited works \cite{epstein_growing_1996}. This lucky coincidence let us approach both these very special fields together and apply them as the fundamental use cases for developing our new methods as presented in the next section.
+
+
+\section{Motivation}
+The challenges one faces when specifying and implementing an ABS is manifold:
+\begin{itemize}
+	\item How is an agent represented?
+	\item How do agents pro-actively act?
+	\item How do agents interact?
+	\item How is the environment represented?
+	\item How can agents act on the environment?
+	\item How to handle structural dynamism: creation and removal of agents?
+\end{itemize}
+
+Epstein \& Axtell explicitly advocate object-oriented programming in their SugarScape book as "a particularly natural development environment for Sugarscape specifically and artificial societies generally." and report about 20.00 lines of code which includes GUI, graphs and plotting.
+
+Problems of ABS in OO:
+- Objects don't compose
+- implicit state, change through effectful computations
+- blurring of fundamental difference between agent and object: an agent is a metaphor, it is much more than an object. an object is: a uniquely identifieable compound of functions (=methods) and data
+
+Problems of ABS in general:
+Specification: how is my model specified? 
+Verification: does my implementation really match my specification? 
+Validation: how to connect the results to the hypothesis? are the emergent properties the ones anticipated? if it is completely different why? note: we always MUST HAVE a hypothesis regarding the outcome of the simulation, otherwise we leave the path of scientific discovery. But we must admit that sometimes it is extremely hard to anticipate \textit{emergent patterns}. But anyway there must be \textit{some} hypothesis regarding the dynamics of the simulation.
+The idea is to express hypotheses directly in the program using QuickCheck and then let the simulation verify it
+TODO: report failure of Herbert Gintis
+
+
 
 The central aspect of this thesis is centred around the main question of \textit{How Agent-Based Simulation can be done using pure functional programming and what the benefits and disadvantages are.}. So far functional programming has not got much attention in the field of ABS and implementations always focus on the object-oriented approach. We claim, based upon the research of the first year that functional programming is very well suited for ABS and that it offers methods which are not directly possible and only very difficult to achieve with object-oriented programming.
 
@@ -23,10 +67,10 @@ Disadvantages
 	- when you can solve your problem without programming in a Tool like NetLogo, AnyLogic,...
 	- when you don't need to reason about your program
 	
-I noticed that it is pretty hard to convince an agent-based economics specialist who is not a computer scientist about a pure functional approach. My conjecture is that the implementation technique and method does not matter much to them because they have very little knowledge about programming and are almost always self-taught - they don't know about software-engineering, nothing about proper software-design and architecture, nothing about software-maintenance, nothing about unit-testing,... In the end they just "hack" the simulation in whatever language they are able to: C++, Visual Basic, Java or toolboxes like Netlogo. For them it is all about to \textit{get things done somehow} and not to get things done the right way or in a beautiful way - the way and the method doesn't matter, its just a necessary evil which needs to be done. Thus if functional programming could make their lives easier, then they will definitely welcome it. But functional programming is, i think, harder to learn and harder to understand - so one needs to provide an abstraction through EDSL. So I REALLY need to come up with convincing arguments why to use pure functional approaches in ACE THEY can understand, otherwise I will be lost and not heard (not published,...). \\
+I noticed that it is pretty hard to convince an agent-based economics specialist who is not a computer scientist about a pure functional approach. My conjecture is that the implementation technique and method does not matter much to them because they have very little knowledge about programming and are almost always self-taught - they don't know about software-engineering, nothing about proper software-design and architecture, nothing about software-maintenance, nothing about unit-testing,... In the end they just "hack" the simulation in whatever language they are able to: C++, Visual Basic, Java or toolboxes like Netlogo. For them it is all about to \textit{get things done somehow} and not to get things done the right way or in a beautiful way - the way and the method doesn't matter, its just a necessary evil which needs to be done. Thus if functional programming could make their lives easier, then they will definitely welcome it. But functional programming is, i think, harder to learn and harder to understand - so one needs to provide an abstraction through EDSL. So I REALLY need to come up with convincing arguments why to use pure functional approaches in ACE THEY can understand, otherwise I will be lost and not heard (not published,...). 
 
 
-We show that the implicit assumption that an Agent is \textit{about equal to} an object is not correct and leads to many implicit assumptions in OO implementations of an ABS. When implementing ABS in Haskell these implicit assumptions become explicit and challenge the fundamental assumptions about ABS and Agents. We present these implicit assumption in an explicit way by approaching it through programming, type-theory and category-theory to further deepen the concepts and methods in the field of Agent-Based Modelling \& Simulation.\\
+We show that the implicit assumption that an Agent is \textit{about equal to} an object is not correct and leads to many implicit assumptions in OO implementations of an ABS. When implementing ABS in Haskell these implicit assumptions become explicit and challenge the fundamental assumptions about ABS and Agents. We present these implicit assumption in an explicit way by approaching it through programming, type-theory and category-theory to further deepen the concepts and methods in the field of Agent-Based Modelling \& Simulation.
 
 What ACE economists care for:
 
@@ -89,56 +133,16 @@ Each of the selected scenarios is then implemented using the selected methods wh
 \end{enumerate}
 
 This will then allow to compare the different methods against each other and to show under which circumstances functional methods shine and when they should not be used.
-
-
-
-
-We understand ABS as a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is of knowledge. Those parts, called agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. So the central aspect of ABS is the concept of an agent which can be understood as a metaphor for a pro-active unit, situated in an environment, able to spawn new agents and interacting with other agents in a network of neighbours by exchange of messages \cite{wooldridge_introduction_2009}. It is important to note that we focus our understanding of ABS on a very specific kind of agents where the focus is on communicating entities with individual, localized behaviour from out of which the global behaviour of the system emerges. We informally assume the following about our agents:
-
-\begin{itemize}
-	\item They are uniquely addressable entities with some internal state.
-	\item They can initiate actions on their own e.g. change their internal state, send messages, create new agents, kill themselves.
-	\item They can react to messages they receive with actions as above.
-	\item They can interact with an environment they are situated in.
-\end{itemize} 
-
-\section{Problems of ABS in OO}
-- Objects don't compose
-- implicit state, change through effectful computations
-- blurring of fundamental difference between agent and object: an agent is a metaphor, it is much more than an object. an object is: a uniquely identifieable compound of functions (=methods) and data
-
-\section{Problems of ABS in general}
-Specification: how is my model specified? 
-Verification: does my implementation really match my specification? 
-Validation: how to connect the results to the hypothesis? are the emergent properties the ones anticipated? if it is completely different why? note: we always MUST HAVE a hypothesis regarding the outcome of the simulation, otherwise we leave the path of scientific discovery. But we must admit that sometimes it is extremely hard to anticipate \textit{emergent patterns}. But anyway there must be \textit{some} hypothesis regarding the dynamics of the simulation.
-The idea is to express hypotheses directly in the program using QuickCheck and then let the simulation verify it
-
+ 
 \section{Functional approach to Agent-Based Modelling \& Simulation}
 Because we left the path of OO and want to develop a completely different method we have fundamentally two problems to solve in our functional method:
 1. Specifying the Agent-Based Model (ABM): Category-Theory, Type-Theory, EDSL: all this clearly overlaps with the  implementation-aspect because the theory behind pure functional programming in Haskell is exactly this. This is a very strong indication that functional programming may be able to really close the gap between specification and implementation in ABS.
 2. Implementing the ABM into an Agent-Based Simulation (ABS): building on FRP paradigm
 
-\section{Challenges}
-- how is an agent represented?
-- how do agents pro-actively act?
-- how do agents interact?
-- how is the environment represented?
-- how can agents act on the environment?
-- how to handle structural dynamism (creation and removal of agents)?
+TODO: is it really valid to bind the sending of messages to the advancing of time?
+Downside: we cannot have method-calls as in OO, which allows agents to communicate with each other without time advancing. 
 
 \section{Expected benefits}
 1. By mapping the concepts of ABS to Category-Theory and Type-Theory we gain a deeper understanding of the deeper structure of Agents, Agent-Models and Agent-Simulations.
 2. The declarative nature of pure functional programming will allow to close the gap between specification and code by designing an EDSL for ABS in Haskell building on the previously derived abstractions in Category-Theory and Type-Theory. The abstractions and the EDSL implementation will then serve as a specification tool and at the same time code.
 3. The pure functional nature together with the EDSL and abstractions in Category- \& Type-Theory allow for a new level of formal verification \& validation using a combination of mathematical proofs in Category- \& Type-Theory, algebraic reasoning in the EDSL and model-checking using Unit-Tests and QuickCheck. The expectation is that this allows us to formally specify hypotheses about expected outcomes about the dynamics (or emergent patterns) of our simulations which then can be verified.
-
-\section{Field of Application}
-Agent-Based Modelling \& Simulation is a method and tool and thus always applied in a very specific domain in which phenomenon are being researched which can be mapped to ABS. For our PhD we picked the field of Agent-Based Computational Social Sciences (ACS) with slight influences from Agent-Based Computational Economics (ACE). The reason for this is that ACS was one of the first fields to adopt ABS in their research on artificial societies and is still a strong driving force behind the application of ABS. ACE is about the same age as ACS but is not yet nearly as established in Economics as ACS is in the Social Sciences (TODO: can i really back up my claims?). ACS draw upon findings of ACE in the SugarScape Model where Agents engage in bilateral decentralized bartering. The author claims that both fields are highly relevant for the future. Economists start realizing that more heterogenous models need to be studied which can only be done using ABS.
-Our primary field of application will be ACS but we will sometimes draw upon ACE when appropriate e.g. in SugarScape. By applying our new method to these fields we hope to bring forward a paradigm-shift which allows to better understand the concepts of ABS and to have more powerful tools for verification \& validation at hand.
-
-TODO: what are the aims of ACS and ACE?
-
-1. Initial Use-Case: SugarScape Model as in "Growing Artificial Societies: Social Science From the Bottom Up"
-2. Supplementary Material: "Generative Social Science: Studies in Agent-Based Computational Modelling"
-3. Verification \& Validation Use-Case: "Agent\_Zero: Toward Neurocognitive Foundations for Generative Social Science"
-
-Epstein \& Axtell explicitly advocate object-oriented programming in their SugarScape book as "a particularly natural development environment for Sugarscape specifically and artificial societies generally." and report about 20.00 lines of code which includes GUI, graphs and plotting.

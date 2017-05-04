@@ -19,9 +19,9 @@ It is important to note that we focus our understanding of ABS on a very specifi
 ABS is a method and tool and thus always applied in a very specific domain in which phenomenon are being researched which can be mapped to collective behaviour. This implies that we need to select a specific domain in which we want to advance the methodology of ABS. For our PhD we picked the field of Agent-Based Computational Social Sciences (ACS) which is traditionally a highly interdisciplinary field \cite{axelrod_chapter_2006}, drawing on lots of different other areas like economics, epidemology, genetics, neurocognition, biology. As the primary sources we selected the works of Epstein and Axtell in \cite{epstein_growing_1996}, \cite{epstein_generative_2012} and \cite{epstein_agent_zero:_2014} which are fundamentally rooted in ACS but are highly interdisciplinary.
 Another field we are particularly interested in, the simulation of decentralized bilateral bartering, which belongs to the field of Agent-Based Computational Economics (ACE) \cite{tesfatsion_agent-based_2006} is covered in one of the cited works \cite{epstein_growing_1996}. This lucky coincidence let us approach both these very special fields together and apply them as the fundamental use cases for developing our new methods as presented in the next section.
 
-
 \section{Motivation}
-The challenges one faces when specifying and implementing an ABS is manifold:
+Epstein \& Axtell explicitly advocate object-oriented programming in \cite{epstein_growing_1996} as "a particularly natural development environment for Sugarscape specifically and artificial societies generally." and report about 20.00 lines of code which includes GUI, graphs and plotting. The challenges one faces when specifying and implementing an ABS is manifold:
+
 \begin{itemize}
 	\item How is an agent represented?
 	\item How do agents pro-actively act?
@@ -31,21 +31,33 @@ The challenges one faces when specifying and implementing an ABS is manifold:
 	\item How to handle structural dynamism: creation and removal of agents?
 \end{itemize}
 
-Epstein \& Axtell explicitly advocate object-oriented programming in their SugarScape book as "a particularly natural development environment for Sugarscape specifically and artificial societies generally." and report about 20.00 lines of code which includes GUI, graphs and plotting.
+Up until now most of ABS (if not all) is implemented using programming languages which follow the imperative paradigm be it either structural or object-oriented. This implies a global implicit state with functions / methods being called from other functions / objects. 
 
-Problems of ABS in OO:
-- Objects don't compose
-- implicit state, change through effectful computations
-- blurring of fundamental difference between agent and object: an agent is a metaphor, it is much more than an object. an object is: a uniquely identifieable compound of functions (=methods) and data
+In \cite{axelrod_chapter_2006} Axelrod reports the vulnerability of ABS to misunderstanding. Due to informal specifications of models and change-requests among members of a research-team bugs are very likely to be introduced. He also reported how difficult it was to reproduce the work of Axtell on cultural transmission which took the team four months which was due to inconsistencies between the original code and the published paper. This is explained in much more detail in \cite{axtell_aligning_1996}, TODO: read
 
-Problems of ABS in general:
-Specification: how is my model specified? 
-Verification: does my implementation really match my specification? 
+
+The same problem was reported by ionescou in TODO: cite which tried to reproduce the work of gintis. In his work Gintis claimed to have found a break-through in economics: TODO. When a team tried to reproduce the results in TODO: cite they failed and were only able to solve the problem by directly contacting Gintis which provided the code - the ultimate formal reference. It was found that there was a bug in the code which led to the "revolutionary" results which would have not occured without this bug.  
+
+The author of this text can report the same when implementing \cite{epstein_growing_1996}. Although this work tries to be much more clearer in specifying the rules how the agents behave, when implementing them still some minor inconsistencies and ambiguities show up due to an informal specification.
+
+Specification: how is my model specified?
+informal specifications in natural language or listings of steps of behaviour will notoriously introduce inconsistencies and ambiguities which result in wrong implementations: wrong in the way that the \textit{intended} specification does not match the actual implementation. 
+
+Implementation:
+object-oriented programming paradigm: the effort to manage implicit global state which can be changed through effectful computations (side-effects) increases exponentially with the complexity of the system one implements. This can only be held at bay through the proper usage of patterns \cite{gamma_design_1994} and experience - to put it short: object-oriented programming is hard where the difficulty arises in how to split up a problem into objects and their interactions. Another serious problem of oo implementations is that a blurring of fundamental difference between agent and object occurs - an agent is first of all a metaphor, it is \textit{not} an object.
+
+Verification:  does my implementation really match my specification? 
+To find out this we need to use verification of the model against the code. Verification is an established approach for in software systems and although it is hard it is being done for software which needs to meet high standards e.g. Medicine, Power Plant,... 
+
 Validation: how to connect the results to the hypothesis? are the emergent properties the ones anticipated? if it is completely different why? note: we always MUST HAVE a hypothesis regarding the outcome of the simulation, otherwise we leave the path of scientific discovery. But we must admit that sometimes it is extremely hard to anticipate \textit{emergent patterns}. But anyway there must be \textit{some} hypothesis regarding the dynamics of the simulation.
-The idea is to express hypotheses directly in the program using QuickCheck and then let the simulation verify it
-TODO: report failure of Herbert Gintis
 
+As ABS is almost always used for scientific research, producing often break-through scientific results as pointed out in \cite{axelrod_chapter_2006}, these ABS need to be \textit{free of bugs}, \textit{verified against their specification}, \textit{validated against hypotheses} and ultimately be \textit{reproducable}. In the concluding remarks of \cite{axelrod_chapter_2006} Axelrod explicitly mentions that the ABS community should converge both on standards for testing the robustness of ABS and on its tools. However as presented above, we can draw the conclusion that there seems to be some problems the way ABS are specified and implemented so far. We don't say that the current approach is completely flawed as proofed by influential modells which are perfectly sound but that it always contains some inherent danger of embarassing failure. In this thesis we want to propose a new tool for both implementing and testing ABS: the one of pure functional programming. We claim that the danger of failure can be reduced considereably or even eliminated by proposing a paradigm-shift towards \textit{pure functional methods} as explained in the next section.
 
+\section{Pure functional Methods in ABS}
+TODO: we need to be able to argue that pure functional methods (pure functional programming, EDSL = specification, category-theory as specification / underlying theory) solve or at least diminish the above mentioned problems and propose a real alternative to oo/effectful computation methods. This is one of the major research questions of my thesis: "do pure functional methods improve the ".
+TODO: of course our motivation is not only the one of verification/validation/reproduceability but also the one of discovery: so far pure functional programming was not really investigated in the context of ABS. Thus this thesis is also an investigation how ABS can be done in a pure functional language. 
+
+WHY FUNCTIONAL? "because its the ultimate approach to scientific computing": fewer bugs due to mutable state (why? is thos shown obkectively by someone?), shorter (again as above, productivity), more expressive and closer to math, EDSL, EDSL=model=simulation, better parallelising due to referental transparency, reasoning 
 
 The central aspect of this thesis is centred around the main question of \textit{How Agent-Based Simulation can be done using pure functional programming and what the benefits and disadvantages are.}. So far functional programming has not got much attention in the field of ABS and implementations always focus on the object-oriented approach. We claim, based upon the research of the first year that functional programming is very well suited for ABS and that it offers methods which are not directly possible and only very difficult to achieve with object-oriented programming.
 
@@ -67,10 +79,33 @@ Disadvantages
 	- when you can solve your problem without programming in a Tool like NetLogo, AnyLogic,...
 	- when you don't need to reason about your program
 	
-I noticed that it is pretty hard to convince an agent-based economics specialist who is not a computer scientist about a pure functional approach. My conjecture is that the implementation technique and method does not matter much to them because they have very little knowledge about programming and are almost always self-taught - they don't know about software-engineering, nothing about proper software-design and architecture, nothing about software-maintenance, nothing about unit-testing,... In the end they just "hack" the simulation in whatever language they are able to: C++, Visual Basic, Java or toolboxes like Netlogo. For them it is all about to \textit{get things done somehow} and not to get things done the right way or in a beautiful way - the way and the method doesn't matter, its just a necessary evil which needs to be done. Thus if functional programming could make their lives easier, then they will definitely welcome it. But functional programming is, i think, harder to learn and harder to understand - so one needs to provide an abstraction through EDSL. So I REALLY need to come up with convincing arguments why to use pure functional approaches in ACE THEY can understand, otherwise I will be lost and not heard (not published,...). 
-
+Functional approach to Agent-Based Modelling \& Simulation
+Because we left the path of OO and want to develop a completely different method we have fundamentally two problems to solve in our functional method:
+1. Specifying the Agent-Based Model (ABM): Category-Theory, Type-Theory, EDSL: all this clearly overlaps with the  implementation-aspect because the theory behind pure functional programming in Haskell is exactly this. This is a very strong indication that functional programming may be able to really close the gap between specification and implementation in ABS.
+2. Implementing the ABM into an Agent-Based Simulation (ABS): building on FRP paradigm
 
 We show that the implicit assumption that an Agent is \textit{about equal to} an object is not correct and leads to many implicit assumptions in OO implementations of an ABS. When implementing ABS in Haskell these implicit assumptions become explicit and challenge the fundamental assumptions about ABS and Agents. We present these implicit assumption in an explicit way by approaching it through programming, type-theory and category-theory to further deepen the concepts and methods in the field of Agent-Based Modelling \& Simulation.
+
+TODO: is it really valid to bind the sending of messages to the advancing of time?
+Downside: we cannot have method-calls as in OO, which allows agents to communicate with each other without time advancing. 
+
+Expected benefits
+1. By mapping the concepts of ABS to Category-Theory and Type-Theory we gain a deeper understanding of the deeper structure of Agents, Agent-Models and Agent-Simulations.
+2. The declarative nature of pure functional programming will allow to close the gap between specification and code by designing an EDSL for ABS in Haskell building on the previously derived abstractions in Category-Theory and Type-Theory. The abstractions and the EDSL implementation will then serve as a specification tool and at the same time code.
+3. The pure functional nature together with the EDSL and abstractions in Category- \& Type-Theory allow for a new level of formal verification \& validation using a combination of mathematical proofs in Category- \& Type-Theory, algebraic reasoning in the EDSL and model-checking using Unit-Tests and QuickCheck. The expectation is that this allows us to formally specify hypotheses about expected outcomes about the dynamics (or emergent patterns) of our simulations which then can be verified.
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+I noticed that it is pretty hard to convince an agent-based economics specialist who is not a computer scientist about a pure functional approach. My conjecture is that the implementation technique and method does not matter much to them because they have very little knowledge about programming and are almost always self-taught - they don't know about software-engineering, nothing about proper software-design and architecture, nothing about software-maintenance, nothing about unit-testing,... In the end they just "hack" the simulation in whatever language they are able to: C++, Visual Basic, Java or toolboxes like Netlogo. For them it is all about to \textit{get things done somehow} and not to get things done the right way or in a beautiful way - the way and the method doesn't matter, its just a necessary evil which needs to be done. Thus if functional programming could make their lives easier, then they will definitely welcome it. But functional programming is, i think, harder to learn and harder to understand - so one needs to provide an abstraction through EDSL. So I REALLY need to come up with convincing arguments why to use pure functional approaches in ACE THEY can understand, otherwise I will be lost and not heard (not published,...). 
 
 What ACE economists care for:
 
@@ -91,9 +126,7 @@ central novelty of my PhD: model specification = runnable code. possible through
 
 another novelty approach: model specification through qualitative instead of quantiative approaches. is this possible? \\
 
-WHY FUNCTIONAL? "because its the ultimate approach to scientific computing": fewer bugs due to mutable state (why? is thos shown obkectively by someone?), shorter (again as above, productivity), more expressive and closer to math, EDSL, EDSL=model=simulation, better parallelising due to referental transparency, reasoning \\
 
-scientific results need to be reproduced, especially when they have high impact. a more formal approach of specifying the model and the simulation (model=simulation) could lead to easier sharing and easier reporduction without ambigouites \\
 
 pure functional agent-model \& theory, EDSL framework in Haskell for ACE
 
@@ -133,16 +166,3 @@ Each of the selected scenarios is then implemented using the selected methods wh
 \end{enumerate}
 
 This will then allow to compare the different methods against each other and to show under which circumstances functional methods shine and when they should not be used.
- 
-\section{Functional approach to Agent-Based Modelling \& Simulation}
-Because we left the path of OO and want to develop a completely different method we have fundamentally two problems to solve in our functional method:
-1. Specifying the Agent-Based Model (ABM): Category-Theory, Type-Theory, EDSL: all this clearly overlaps with the  implementation-aspect because the theory behind pure functional programming in Haskell is exactly this. This is a very strong indication that functional programming may be able to really close the gap between specification and implementation in ABS.
-2. Implementing the ABM into an Agent-Based Simulation (ABS): building on FRP paradigm
-
-TODO: is it really valid to bind the sending of messages to the advancing of time?
-Downside: we cannot have method-calls as in OO, which allows agents to communicate with each other without time advancing. 
-
-\section{Expected benefits}
-1. By mapping the concepts of ABS to Category-Theory and Type-Theory we gain a deeper understanding of the deeper structure of Agents, Agent-Models and Agent-Simulations.
-2. The declarative nature of pure functional programming will allow to close the gap between specification and code by designing an EDSL for ABS in Haskell building on the previously derived abstractions in Category-Theory and Type-Theory. The abstractions and the EDSL implementation will then serve as a specification tool and at the same time code.
-3. The pure functional nature together with the EDSL and abstractions in Category- \& Type-Theory allow for a new level of formal verification \& validation using a combination of mathematical proofs in Category- \& Type-Theory, algebraic reasoning in the EDSL and model-checking using Unit-Tests and QuickCheck. The expectation is that this allows us to formally specify hypotheses about expected outcomes about the dynamics (or emergent patterns) of our simulations which then can be verified.

@@ -3,7 +3,7 @@ Literature Review
 - trichter: mit den 3 themen beginnen und dann runterbrechen und ins detail gehen, bis der gap gefunden wurde
 
 % MAJOR TOPIC
-\subsection{Agent-Based Modelling \& Simulation}
+\section{Agent-Based Modelling \& Simulation}
 Agent Models are NOT specific to any programming language implementation but should in theory be implementable in all languages which support the required primitives of the model or which allows the primitives of the model to be mapped to primitives of the language. Of course this says nothing about how well a language is suited to implement a given agent model and how readable and natural the mapping and implementation is. \\
 
 Start from wooldridge 2.6 (look at the original papers which inspired the 2.6 chapter) and weiss book and the original papers those chapter is based upon. Look into denotational semantics of actor model. Look also in functional models of czesar ionescu. why: this is the major contribution of my thesis and is new knowledge. Must find intuitive, original and creative approach. \\
@@ -33,50 +33,16 @@ The amount of research on using the pure functional paradigm using Haskell in th
 
 There already exists research using the Actor Model \cite{agha_actors:_1986} for ABS in the context of Erlang \cite{varela_modelling_2004}, \cite{di_stefano_using_2005}, \cite{di_stefano_exat:_2007}, \cite{sher_agent-based_2013} but we feel that they barely scratched the surface. We want to renew the interest in this direction of research by incorporating Scala with using the Actor-library in our research because we will show that one update-strategy maps directly to the Actor Model.
 
-\subsubsection{The Actor Model}
-The Actor-Model, a model of concurrency, has been around since the paper \cite{hewitt_universal_1973} in 1973. It was a major influence in designing the concept of Agents and although there are important differences between Actors and Agents there are huge similarities thus the idea to use actors to build agent-based simulations comes quite natural. Although there are papers around using the actor model as basis for their ABMS unfortunately no proper theoretical treatment of using the actor-model in implementing agent-based simulations has been done so far. This paper looks into how the more theoretical foundations of the suitability of actor-model to ABMS and what the upsides and downsides of using it are.
-
-\url{http://www.grids.ac.uk/Complex/ABMS/}
-
-
-
-\begin{enumerate}
-\item \cite{Hewitt_1973}
-\item \cite{Greif_1975}
-\item \cite{Clinger_1981}
-\item \cite{Agha_1986}
-\item \cite{Agha_1997}
-\item \cite{Hewitt_2007}
-\item \cite{Hewitt_2010}
-\item \cite{Agha_2004}
-\end{enumerate}
-
-upside: extreme huge number of agnts possible due to distributed and parallel technology 
-downside: depends on system \& hardware: scheduler, system time, systime resolution (not very nice for scientific computation), much more complicated, debugging difficult due to concurrency, no global notion of time appart from systemtime, thus always runs in real-time, but there is no global notion of time in the actor model anyway, no EDSL full of technical details, no determinism, no reasoning
-
-Agents more a high-level concept, Actors low level, technical concurrency primitives\\
-
-This makes simulations very difficult and also due to concurrency implementing a sync conversation among agents is very cumbersome. I have already experience with the Actor Model when implementing a small version of my Master-Thesis Simulation in Erlang which uses the Actor Model as well. For a continuous simulation it was actually not that bad but the problem there was that between a round-trip between 2 agents other messages could have already interfered - this was a problem when agents trade with each other, so one has to implement synchronized trading where only messages from the current agent one trades with are allowed otherwise budget constraints could be violated. Thus I think Erlang/Akka/Actor Model is better suited for distributed high-tolerance concurrent/parallel systems instead for simulations. Note: this is definitely a major point I have to argue in my thesis: why I am rejecting the actor model.
-
-AKKA: thus my prediction is: akka/actor model is very well suited to simulations which 1. dont rely on global time 2. dont have multi-step conversations: interactions among agents which are only question-answer. TODO: find some classical simulation model which satisfies these criterias.
-
-how can we simulate global time? how can we implement multistep conversations (by futures)?
-
-The real problem seems to be concurrency but i feel we can simulate concurrency by synchronizing to continuous time. computations are carried out after another but because time is explicitly modelled they happen logically at the same time. these rules hold: an agent cannot be in two conversations at the same time, the agent can be in only one or none conversation at a given time t.
-
-What if time is of no importance and only the continuous dynamics are of interest?
-
-To put it another way: real concurrency (with threads) makes time implicit which is what one does NOT want in simulation. Maybe FRP is the way to go because it allows to explicitly model continuous and discrete time, but I have to get into FRP first to make a proper judgement about its suitability.
-
-
+% MAJOR TOPIC
+\section{Fields of Application}
 % SUB TOPIC
-\subsubsection{Social Simulation}
+\subsection{Social Simulation}
 The SugarScape model \cite{epstein_growing_1996} is one of the most influential models of agent-based simulation in the social sciences. The book heavily promotes object-oriented programming (note that in 1996 oop was still in its infancy and not yet very well understood by the mainstream software-engineering industry). We ask how it can be done using pure functional programming paradigm and what the benefits and limits are. We hypothesize that our solution will be shorter (original reported 20.000 LOC), can make use of EDSL thus making it much more expressive, can utilize QuickCheck for a completely new dimension of model-checking and debugging and allows a very natural implementation of MetaABS (see Part III) due to its recursive and declarative nature.
 
 TODO \cite{huberman_evolutionary_1993} 
 TODO \cite{nowak_evolutionary_1992}
 % SUB TOPIC
-\subsubsection{Computational Economics}
+\subsection{Computational Economics}
 \cite{tesfatsion_agent-based_2006} gives a broad overview of agent-based computational economics (ACE), gives the four primary objectives of it and discusses advantages and disadvantages. She introduces a model called \textit{ACE Trading World} in which she shows how an artificial economy can be implemented without the \textit{Walrasian Auctioneer} but just by agents and their interactions. She gives a detailed mathematical specification in the appendix of the paper which should allow others to implement the simulation.
 
 - Artificial agent-based economies: \cite{tesfatsion_agent-based_2006}, \cite{gintis_emergence_2006}, \cite{gintis_dynamics_2007}, \cite{gaffeo_adaptive_2008}, \cite{botta_functional_2011}
@@ -144,29 +110,45 @@ behaviour and intelligence is not the main focus
 
 they can be seen as a continuous transformation process
 
-% SUB TOPIC
-\subsection{Verification \& Validation}
-TODO: \url{http://jasss.soc.surrey.ac.uk/12/1/1.html}
-TODO: \url{http://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=4419595}
-TODO: \url{http://dspace.stir.ac.uk/handle/1893/3365#.WNjO1DsrKM8}
-TODO: \url{http://www2.econ.iastate.edu/tesfatsi/DockingSimModels.pdf}
-TODO: \url{http://www2.econ.iastate.edu/tesfatsi/empvalid.htm}
-TODO: \url{http://jasss.soc.surrey.ac.uk/10/2/8.html}
-TODO: \url{https://www.openabm.org/faq/how-validate-and-calibrate-agent-based-models}
-TODO: \url{https://link.springer.com/chapter/10.1007%2F978-3-642-01109-2_10}
-TODO: \url{http://www3.nd.edu/~nom/Papers/ADS019_Xiang.pdf}
+% MAJOR TOPIC
+\section{Alternative to object-orientation}
+TODO: this is already too specific, we need first to derive why haskell: 1st because its not been done so far and because it solves a lot of problems
 
+The pure functional programming language Haskell offers all the required features. Together with the concept of functional reactive programming (FRP) we will show that ABS becomes very well possible to be implemented in a functional language. The declarative nature of Haskell allows us to implement an embedded domain-specific language (EDSL) for ABS based on the FRP paradigm.
 
-model checking and reasoning in \cite{hutton_tutorial_1999}
+\subsection{The Actor Model}
+The Actor-Model, a model of concurrency, has been around since the paper \cite{hewitt_universal_1973} in 1973. It was a major influence in designing the concept of Agents and although there are important differences between Actors and Agents there are huge similarities thus the idea to use actors to build agent-based simulations comes quite natural. Although there are papers around using the actor model as basis for their ABMS unfortunately no proper theoretical treatment of using the actor-model in implementing agent-based simulations has been done so far. This paper looks into how the more theoretical foundations of the suitability of actor-model to ABMS and what the upsides and downsides of using it are.
 
-In \cite{claessen_quickcheck:_2000} introduce \textit{QuickCheck}, a testing-framework which allows to specifify properties and invariants of ones functions and then test them using randomly generated test-data. This is an additional tool of model-specification and increases the power and strength of the verification process and more properties of a model can be expressed which are directly formulated in code through the EDSL of QuickCheck AND the EDSL of FrABS. Of course it also serves for testing (e.g. regression) and points out errors in the implementation e.g. wrong assumptions about input-data. The authors claim that the major advante of QuickCheckj is to formulate formal specifications which help in understanding a program.
-TODO: the question is whether it can be used for Validation as well.
+\url{http://www.grids.ac.uk/Complex/ABMS/}
 
-Verification/Reasoning ist einer der größten Pluspunkte von rein funktionaler Programmierung, da durch den deklarativen Stil und das Fehlen von Sideeffects und Globalen Daten equational/algebraic/inductive Reasoning betrieben werden kann. Hier habe ich noch garnichts dazu gemacht, aber sollte mit den oben genannten Ideen sicherlich interessant werden - ein interessantes Paper von Graham Hutton (für den ich übrigens dieses Semester ein Tutor in seiner Haskell-Laborübung bin) gibt interessante Richtungen für Reasoning vor: http://dl.acm.org/citation.cfm?id=968579
+\begin{enumerate}
+\item \cite{Hewitt_1973}
+\item \cite{Greif_1975}
+\item \cite{Clinger_1981}
+\item \cite{Agha_1986}
+\item \cite{Agha_1997}
+\item \cite{Hewitt_2007}
+\item \cite{Hewitt_2010}
+\item \cite{Agha_2004}
+\end{enumerate}
 
-[ ] deadlock: when messages need to be exchanged but mutual waiting
-[ ] silence: no more message exchange
-[ ] protocoll: ensure happens before / sequences (like necessary for 2D prisoner dilemma)
+upside: extreme huge number of agnts possible due to distributed and parallel technology 
+downside: depends on system \& hardware: scheduler, system time, systime resolution (not very nice for scientific computation), much more complicated, debugging difficult due to concurrency, no global notion of time appart from systemtime, thus always runs in real-time, but there is no global notion of time in the actor model anyway, no EDSL full of technical details, no determinism, no reasoning
+
+Agents more a high-level concept, Actors low level, technical concurrency primitives\\
+
+This makes simulations very difficult and also due to concurrency implementing a sync conversation among agents is very cumbersome. I have already experience with the Actor Model when implementing a small version of my Master-Thesis Simulation in Erlang which uses the Actor Model as well. For a continuous simulation it was actually not that bad but the problem there was that between a round-trip between 2 agents other messages could have already interfered - this was a problem when agents trade with each other, so one has to implement synchronized trading where only messages from the current agent one trades with are allowed otherwise budget constraints could be violated. Thus I think Erlang/Akka/Actor Model is better suited for distributed high-tolerance concurrent/parallel systems instead for simulations. Note: this is definitely a major point I have to argue in my thesis: why I am rejecting the actor model.
+
+AKKA: thus my prediction is: akka/actor model is very well suited to simulations which 1. dont rely on global time 2. dont have multi-step conversations: interactions among agents which are only question-answer. TODO: find some classical simulation model which satisfies these criterias.
+
+how can we simulate global time? how can we implement multistep conversations (by futures)?
+
+The real problem seems to be concurrency but i feel we can simulate concurrency by synchronizing to continuous time. computations are carried out after another but because time is explicitly modelled they happen logically at the same time. these rules hold: an agent cannot be in two conversations at the same time, the agent can be in only one or none conversation at a given time t.
+
+What if time is of no importance and only the continuous dynamics are of interest?
+
+To put it another way: real concurrency (with threads) makes time implicit which is what one does NOT want in simulation. Maybe FRP is the way to go because it allows to explicitly model continuous and discrete time, but I have to get into FRP first to make a proper judgement about its suitability.
+\\
 
 % MAJOR TOPIC
 \subsection{Functional Programming}
@@ -236,7 +218,6 @@ TODO: check out the internet for Actors/Agents i Haskell, but havn't found anyth
 \url{https://code.google.com/archive/p/haskellactor/} makes heavy use of IORef and running in IO-Monad, something we deliberately want to avoid to keep the ability to reason about the program.
 TODO: \url{https://github.com/fizruk/free-agent} look into
 
-
 \subsection{Haskell} 
 NOTE: this chapter should be the very first implementation chapter as the approach of Haskell lays the very foundations for the functional approach by introducing the basic functional concepts
 
@@ -258,13 +239,6 @@ Functional languages can best be characterized by their way computation works: i
 \item Looping is achieved using recursion, mostly through the use of the general fold or the more specific map.
 \item Pattern-matching
 \end{itemize}
-
-
-\subsubsection{EDSL}
-EDSL steht für Embedded Domain Specific Language d.h. man implementiert in Haskell eine Art von 'Spezifikations-Sprache' für eine spezielle Domain (z.b. ABM/S), die - dank der rein funktionalen, deklarativen Natur von Haskell - auch gleichzeitig Haskell Code ist - der Unterschied zwischen Spezifikation und Implementierung verschwindet dann (idealserweise). In diese Richtung arbeite ich erst seit kurzem, durch die Umsetzung von ABS/M mit Yampa. Yampa ist ebenfalls eine EDSL um funktional-reaktive Systeme zu beschreiben/implementieren, ich werde auf dieser EDSL aufsetzen und sie um ABS/M erweitern - so zumindest der Plan. Dann habe ich die theoretische Grundlage von FRP, auf die ich dann auch theorie von ABS/M (z.b. Actor Semantics) setzen kann und somit zum nächsten Punkt komme:
-
-\cite{Henderson1982} gives a wonderful way of constructing an EDSL do denotationally construct an Escher-Picture.
-
 
 % SUB TOPIC
 \subsubsection{General principles}
@@ -288,7 +262,7 @@ Wormholes in FRP? \\
 \\
 
 % SUB TOPIC
-\subsubsection{Structuring}
+\subsection{Structuring}
 Of course the basic pure functional primitives alone do not make a well structured functional program by themselves as the usage of classes, interfaces, objects and inheritance alone does not make a well structured object-oriented program. What is needed are \textit{patterns} how to use the primitives available in pure functional programs to arrive at well structure programs. In object-orientation much work has been done in the 90s by the highly influential book \cite{gamma_design_1994} whereas in functional programming the major inventions were also done in the 90s by the invention of Monads through \cite{Moggi1989}, \cite{Wadler1990} and \cite{Wadler1995} and beginning of the 2000s by the invention of Arrows through \cite{Hughes2000}.
 
 
@@ -314,7 +288,7 @@ Monads
 Arrows
 Continuations
 % SUB TOPIC
-\subsubsection{Paradigm: FRP}
+\subsection{Paradigm: FRP}
 TODO: why Yampa? There are lots of other FRP-libraries for Haskell. Reason: in-house knowledge (Nilsson, Perez), start with \textit{some} FRP-library to get familiar with the concept and see if FRP is applicable to ABS. TODO: short overview over other FRP-libraries but leave a in-depth evaluation for further-research out of the scope of the PhD as Yampa seems to be suitable. One exception: the extension of Yampa to Dunai to be able to do FRP in Monads, something which will be definitely useful for a better and clearer structuring of the implementation.
 TODO: Push vs. Pull
 
@@ -366,7 +340,11 @@ TODO: \cite{perez_functional_2016}
 \cite{Wan2000} discuss the semantic framework of FRP. Very difficult to understand and full of corollaries and theorems and proofs, have to study in depth at another time.
 
 
-% MAJOR TOPIC
+\subsection{EDSL}
+EDSL steht für Embedded Domain Specific Language d.h. man implementiert in Haskell eine Art von 'Spezifikations-Sprache' für eine spezielle Domain (z.b. ABM/S), die - dank der rein funktionalen, deklarativen Natur von Haskell - auch gleichzeitig Haskell Code ist - der Unterschied zwischen Spezifikation und Implementierung verschwindet dann (idealserweise). In diese Richtung arbeite ich erst seit kurzem, durch die Umsetzung von ABS/M mit Yampa. Yampa ist ebenfalls eine EDSL um funktional-reaktive Systeme zu beschreiben/implementieren, ich werde auf dieser EDSL aufsetzen und sie um ABS/M erweitern - so zumindest der Plan. Dann habe ich die theoretische Grundlage von FRP, auf die ich dann auch theorie von ABS/M (z.b. Actor Semantics) setzen kann und somit zum nächsten Punkt komme:
+
+\cite{Henderson1982} gives a wonderful way of constructing an EDSL do denotationally construct an Escher-Picture.
+
 \subsection{Category- \& Type-Theory}
 Category-Theory \cite{Pierce1991} \cite{spivak_category_2014}
 
@@ -375,12 +353,32 @@ apply category theory to agent-based simulation: how can a ABS system itself be 
 ADOM: Agent Domain of Monads: https://www.haskell.org/communities/11-2006/html/report.html
 develop category theory behind FrABS: look into monads, arrows
 
+% MAJOR TOPIC
+\section{Verification \& Validation of ABS}
+To do verification we need a form of formal specification which can be translated easily to the code. Being inspired by the previously mentioned work on a functional framework for agent-based models of exchange in \cite{botta_functional_2011} we opt for a similar direction. Having Haskell as the implementation language instead of an object-oriented one like Java allows us to build on the above proposed EDSL for ABS. Because of the declarative nature of the hypothesized EDSL it can act both as specification- and implementation-language which closes the gap between specification and implementation. This would give us a way of formally specifying the model but still in a more readable way than pure mathematics. This form of formal specification can act easily as a medium for communication between team-memberes and to the scientific audience in papers. Most important the explicit step of verification becomes obsolete as there exists no more difference between specification and implementation. The last point seems to be quite ambitious but this is a hypothesis and we will see in the course of the thesis how far we can close the gap in the end with this approach.
 
-\subsection{Identifying the Gap}
-- Functional programming in this area exists but only scratches the surface and focus only on implementing agent-behaviour frameworks like BDI. An in-depth treatise of Agent-Based Modelling and implementing an Agent-Based Simulation in a pure functional language has so far never been attempted.
+TODO: need to do lots of literature research still
+Having the EDSL from the firt two hypotheses at hand it may be possible to extend it through additional primitves which then allow to formulate hypotheses in a formal way which then can be checked automatically.
 
-- There basically exists no approach to Agent-Based Modelling \& Simulation in terms of Category-Theory and Type-Theory
+TODO: \url{http://jasss.soc.surrey.ac.uk/12/1/1.html}
+TODO: \url{http://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=4419595}
+TODO: \url{http://dspace.stir.ac.uk/handle/1893/3365#.WNjO1DsrKM8}
+TODO: \url{http://www2.econ.iastate.edu/tesfatsi/DockingSimModels.pdf}
+TODO: \url{http://www2.econ.iastate.edu/tesfatsi/empvalid.htm}
+TODO: \url{http://jasss.soc.surrey.ac.uk/10/2/8.html}
+TODO: \url{https://www.openabm.org/faq/how-validate-and-calibrate-agent-based-models}
+TODO: \url{https://link.springer.com/chapter/10.1007%2F978-3-642-01109-2_10}
+TODO: \url{http://www3.nd.edu/~nom/Papers/ADS019_Xiang.pdf}
 
-- Verification is an issue in ABS as they are very often described in natural language and supplemented with a few formulas. This leads to implementation-errors, e.g. Gintis Bartering-Paper, and results become hard to reproduce. Such errors become a threatening problem when simulation-results are used in decision making e.g. economics, policy-making, ...
+The cooperative work of \cite{axtell_aligning_1996} gives insights into validation of computational models, in a process what they call "alignment". They try to determine if two models deal with the same phenomena. For this they tried to qualtiatively reproduce the same results of \cite{axelrod_convergence_1995} in the Sugarscape model of \cite{epstein_growing_1996}. Both models are of very different nature but try to investigate the qualitatively same phenomoenon: that of cultural processes. TODO: read
 
-- Validation is basically an untouched topic in ABS: models are formulated, a few hypotheses are formulated, the model is implemented and run, then the results are checked against the hypotheses. What the field of ABS needs is an in-depth discussion on how to rigorously validate a model. Validation is of course only as strong as the verification part: if the implementation is wrong anyway then we can not rely on anything (from false comes nothing)
+model checking and reasoning in \cite{hutton_tutorial_1999}
+
+In \cite{claessen_quickcheck:_2000} introduce \textit{QuickCheck}, a testing-framework which allows to specifify properties and invariants of ones functions and then test them using randomly generated test-data. This is an additional tool of model-specification and increases the power and strength of the verification process and more properties of a model can be expressed which are directly formulated in code through the EDSL of QuickCheck AND the EDSL of FrABS. Of course it also serves for testing (e.g. regression) and points out errors in the implementation e.g. wrong assumptions about input-data. The authors claim that the major advante of QuickCheckj is to formulate formal specifications which help in understanding a program.
+TODO: the question is whether it can be used for Validation as well.
+
+Verification/Reasoning ist einer der größten Pluspunkte von rein funktionaler Programmierung, da durch den deklarativen Stil und das Fehlen von Sideeffects und Globalen Daten equational/algebraic/inductive Reasoning betrieben werden kann. Hier habe ich noch garnichts dazu gemacht, aber sollte mit den oben genannten Ideen sicherlich interessant werden - ein interessantes Paper von Graham Hutton (für den ich übrigens dieses Semester ein Tutor in seiner Haskell-Laborübung bin) gibt interessante Richtungen für Reasoning vor: http://dl.acm.org/citation.cfm?id=968579
+
+[ ] deadlock: when messages need to be exchanged but mutual waiting
+[ ] silence: no more message exchange
+[ ] protocoll: ensure happens before / sequences (like necessary for 2D prisoner dilemma)

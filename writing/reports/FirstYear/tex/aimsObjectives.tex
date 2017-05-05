@@ -1,5 +1,126 @@
 \chapter{Aims and Objectives}
 
+Deriving from these hypotheses we propose a new tool for implementing, testing, verifying and validating ABS: the one of pure functional programming and its underlying theory which we together will term \textit{pure functional methods}. We claim that these methods are the answer to the questions posed above and will reduce or even elimiate the danger of failure considerably as outlined in the hypotheses. 
+Of course our motivation is not only to improve verification, validation and reproduceability in ABS but also the one of discovery. So far pure functional programming was not really investigated in the context of ABS as will be shown in the literature-review so this thesis is also a proof-of-concept, an investigation how ABS can be done in a pure functional language.
+
+The central aspect of this thesis is centred around the main question of \textit{How Agent-Based Simulation can be done using pure functional programming and what the benefits and disadvantages are.}. So far functional programming has not got much attention in the field of ABS and implementations always focus on the object-oriented approach. We claim, based upon the research of the first year that functional programming is very well suited for ABS and that it offers methods which are not directly possible and only very difficult to achieve with object-oriented programming.
+
+We claim that to build large and complex agent-based simulations in functional programming is possible using the functional reactive programming (FRP) paradigm. We applied FRP to implementing ABS and developed a library in Haskell called FrABS. We implemented the quite complex model SugarScape from social simulation using FrABS and proofed by that, that applying FRP to ABS enables ABS to happen in pure functional programming.
+
+After having shown how agent-based simulation can be done in functional programming we claim that the major benefit of using it enabled a new way of \textit{verification \& validation} in agent-based simulation. 
+
+Due to the declarative nature of pure functional programming it is an established method of implementing an EDSL to solve a given problem in a specific domain. We followed this approach in FrABS and developed an EDSL for ABS in pure functional programming. Our intention was to develop an EDSL which can be used both as specification- and implementation-language. We show this by specifying all the rules of SugarScape in our EDSL.
+
+Due to the lack of implicit side-effects and the recursive nature of pure functional programming we claim that it is natural to apply it to a novel method we came up with: MetaABS, which allows recursive simulation.
+
+Finally having such an EDSL at hand this will allow us to reason about the programs. This will be applied to specify and reason about the dynamics and emergent properties of decentralized bilateral trading and bartering in agent-based computational economics (ACE) and social simulations like SugarScape.
+
+Disadvantages
+- although the lack of side-effects is also a benefit, it is also a weakness as all data needs to be passed in and out explicitly 
+- indirection due to the lack of objects \& method calls.
+- When not to use it: 
+	- if you are not familiar with functional programming
+	- when you can solve your problem without programming in a Tool like NetLogo, AnyLogic,...
+	- when you don't need to reason about your program
+	
+Functional approach to Agent-Based Modelling \& Simulation
+Because we left the path of OO and want to develop a completely different method we have fundamentally two problems to solve in our functional method:
+1. Specifying the Agent-Based Model (ABM): Category-Theory, Type-Theory, EDSL: all this clearly overlaps with the  implementation-aspect because the theory behind pure functional programming in Haskell is exactly this. This is a very strong indication that functional programming may be able to really close the gap between specification and implementation in ABS.
+2. Implementing the ABM into an Agent-Based Simulation (ABS): building on FRP paradigm
+
+We show that the implicit assumption that an Agent is \textit{about equal to} an object is not correct and leads to many implicit assumptions in OO implementations of an ABS. When implementing ABS in Haskell these implicit assumptions become explicit and challenge the fundamental assumptions about ABS and Agents. We present these implicit assumption in an explicit way by approaching it through programming, type-theory and category-theory to further deepen the concepts and methods in the field of Agent-Based Modelling \& Simulation.
+
+TODO: is it really valid to bind the sending of messages to the advancing of time?
+Downside: we cannot have method-calls as in OO, which allows agents to communicate with each other without time advancing. 
+
+Expected benefits
+1. By mapping the concepts of ABS to Category-Theory and Type-Theory we gain a deeper understanding of the deeper structure of Agents, Agent-Models and Agent-Simulations.
+2. The declarative nature of pure functional programming will allow to close the gap between specification and code by designing an EDSL for ABS in Haskell building on the previously derived abstractions in Category-Theory and Type-Theory. The abstractions and the EDSL implementation will then serve as a specification tool and at the same time code.
+3. The pure functional nature together with the EDSL and abstractions in Category- \& Type-Theory allow for a new level of formal verification \& validation using a combination of mathematical proofs in Category- \& Type-Theory, algebraic reasoning in the EDSL and model-checking using Unit-Tests and QuickCheck. The expectation is that this allows us to formally specify hypotheses about expected outcomes about the dynamics (or emergent patterns) of our simulations which then can be verified.
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+I noticed that it is pretty hard to convince an agent-based economics specialist who is not a computer scientist about a pure functional approach. My conjecture is that the implementation technique and method does not matter much to them because they have very little knowledge about programming and are almost always self-taught - they don't know about software-engineering, nothing about proper software-design and architecture, nothing about software-maintenance, nothing about unit-testing,... In the end they just "hack" the simulation in whatever language they are able to: C++, Visual Basic, Java or toolboxes like Netlogo. For them it is all about to \textit{get things done somehow} and not to get things done the right way or in a beautiful way - the way and the method doesn't matter, its just a necessary evil which needs to be done. Thus if functional programming could make their lives easier, then they will definitely welcome it. But functional programming is, i think, harder to learn and harder to understand - so one needs to provide an abstraction through EDSL. So I REALLY need to come up with convincing arguments why to use pure functional approaches in ACE THEY can understand, otherwise I will be lost and not heard (not published,...). 
+
+What ACE economists care for:
+
+\begin{itemize}
+\item Very: Qualitative modelling with quantitative results
+\item Yes: Easy reproducibility
+\item Likely: Reasoning about convergence?
+\item Likely: EDSL
+\end{itemize}
+
+My contributions are: pure functional framework, functional agent-model for market-simulations, EDSL for market-simulations, qualitative / implicit modelling with quanitative results, reasoning in my framework about convergence \\
+
+IDEA: could I develop non-causal modelling (models are expressed in terms of non-directed equations, modelled in signal-relations) to allow for qualitative modelling for the agent-based economists? See hybrid modelling paper of Yampa. \textbf{THIS WOULD BE A HUGE NOVEL CONTRIBUTION TO ACE ESPECIALLY WHEN COMBINED WITH AN EDSL AND PROVIDING FULL REFERENTIAL TRANSPARENCY TO KEEP THE ABILITY TO REASON ABOUT CONVERGENCE}. This should be covered in the "EDSL"-paper.
+
+TODO: maybe i should really focus only on market models? otherwise too much? \\
+
+central novelty of my PhD: model specification = runnable code. possible through EDSL. but only in specific subfield of ACE: market-models. need a functional description of the model, then translate it to model specification in EDSL and then run it to see dynamics. But: model specification moves closer to functional programming languages. \\
+
+another novelty approach: model specification through qualitative instead of quantiative approaches. is this possible? \\
+
+
+
+pure functional agent-model \& theory, EDSL framework in Haskell for ACE
+
+\begin{enumerate}
+\item Which kind of problem do we have?
+\item What aim is there? Solving the problem? 
+\item How the aim is achieved by enumerating VERY CLEAR objectives.
+\item What the impact one expects (hypothesis) and what it is (after results).
+\end{enumerate}
+
+Note: It is not in the interest of the researcher to develop new economic theories but to research the use of functional methods (programming and specification) in agent-based computational economics (ACE).
+
+NOTE: Get the reader’s attention early in the introduction: motivation, significance, originality and novelty.
+
+Methods need to be selected to implement the simulations. Special emphasis will be put on functional ones which will then be compared to established methods in the field of ABM/S and ACE. \\
+
+Claim: non-programming environments are considered to be not powerful enough to capture the complexity of ACE implementations thus a programming approach to ACE will be always required.
+
+
+To apply and test functional methods in ACE, four scenarios of ACE are selected and then the methods applied and compared with each other to see how each of them perform in comparison. The 4 selected scenarios represent a selection of the challenges posed in ACE: from very abstract ones to very operational ones.
+
+Each of the selected scenarios is then implemented using the selected methods where each solution is then compared against the following criteria: 
+
+\begin{enumerate}
+\item suitability for scientific computation
+\item robustness
+\item error-sources
+\item testability
+\item stability
+\item extendability
+\item size of code
+\item maintainability
+\item time taken for development
+\item verification \& correctness
+\item replications \& parallelism
+\item EDSL
+\end{enumerate}
+
+This will then allow to compare the different methods against each other and to show under which circumstances functional methods shine and when they should not be used.
+
+\section{Identifying the Gap}
+- Functional programming in this area exists but only scratches the surface and focus only on implementing agent-behaviour frameworks like BDI. An in-depth treatise of Agent-Based Modelling and implementing an Agent-Based Simulation in a pure functional language has so far never been attempted.
+
+- There basically exists no approach to Agent-Based Modelling \& Simulation in terms of Category-Theory and Type-Theory
+
+- Verification is an issue in ABS as they are very often described in natural language and supplemented with a few formulas. This leads to implementation-errors, e.g. Gintis Bartering-Paper, and results become hard to reproduce. Such errors become a threatening problem when simulation-results are used in decision making e.g. economics, policy-making, ...
+
+- Validation is basically an untouched topic in ABS: models are formulated, a few hypotheses are formulated, the model is implemented and run, then the results are checked against the hypotheses. What the field of ABS needs is an in-depth discussion on how to rigorously validate a model. Validation is of course only as strong as the verification part: if the implementation is wrong anyway then we can not rely on anything (from false comes nothing)
+
+
 - developing a category- \& type-theoretical view on Agent-Based Modelling \& Simulation which will 
 	-> 1. give a deeper insight into the structure of agents, agent-models and agent-based simulation
 	-> 2. serves as the basis for the pure functional implementation

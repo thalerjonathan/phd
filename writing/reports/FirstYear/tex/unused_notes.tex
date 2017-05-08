@@ -1,0 +1,58 @@
+I noticed that it is pretty hard to convince an agent-based economics specialist who is not a computer scientist about a pure functional approach. My conjecture is that the implementation technique and method does not matter much to them because they have very little knowledge about programming and are almost always self-taught - they don't know about software-engineering, nothing about proper software-design and architecture, nothing about software-maintenance, nothing about unit-testing,... In the end they just "hack" the simulation in whatever language they are able to: C++, Visual Basic, Java or toolboxes like Netlogo. For them it is all about to \textit{get things done somehow} and not to get things done the right way or in a beautiful way - the way and the method doesn't matter, its just a necessary evil which needs to be done. Thus if functional programming could make their lives easier, then they will definitely welcome it. But functional programming is, i think, harder to learn and harder to understand - so one needs to provide an abstraction through EDSL. So I REALLY need to come up with convincing arguments why to use pure functional approaches in ACE THEY can understand, otherwise I will be lost and not heard (not published,...). 
+
+What ACE economists care for:
+
+\begin{itemize}
+\item Very: Qualitative modelling with quantitative results
+\item Yes: Easy reproducibility
+\item Likely: Reasoning about convergence?
+\item Likely: EDSL
+\end{itemize}
+
+My contributions are: pure functional framework, functional agent-model for market-simulations, EDSL for market-simulations, qualitative / implicit modelling with quanitative results, reasoning in my framework about convergence \\
+
+IDEA: could I develop non-causal modelling (models are expressed in terms of non-directed equations, modelled in signal-relations) to allow for qualitative modelling for the agent-based economists? See hybrid modelling paper of Yampa. \textbf{THIS WOULD BE A HUGE NOVEL CONTRIBUTION TO ACE ESPECIALLY WHEN COMBINED WITH AN EDSL AND PROVIDING FULL REFERENTIAL TRANSPARENCY TO KEEP THE ABILITY TO REASON ABOUT CONVERGENCE}. This should be covered in the "EDSL"-paper.
+
+TODO: maybe i should really focus only on market models? otherwise too much? \\
+
+central novelty of my PhD: model specification = runnable code. possible through EDSL. but only in specific subfield of ACE: market-models. need a functional description of the model, then translate it to model specification in EDSL and then run it to see dynamics. But: model specification moves closer to functional programming languages. \\
+
+another novelty approach: model specification through qualitative instead of quantiative approaches. is this possible? \\
+
+pure functional agent-model \& theory, EDSL framework in Haskell for ACE
+
+\begin{enumerate}
+\item Which kind of problem do we have?
+\item What aim is there? Solving the problem? 
+\item How the aim is achieved by enumerating VERY CLEAR objectives.
+\item What the impact one expects (hypothesis) and what it is (after results).
+\end{enumerate}
+
+Note: It is not in the interest of the researcher to develop new economic theories but to research the use of functional methods (programming and specification) in agent-based computational economics (ACE).
+
+NOTE: Get the reader’s attention early in the introduction: motivation, significance, originality and novelty.
+
+Methods need to be selected to implement the simulations. Special emphasis will be put on functional ones which will then be compared to established methods in the field of ABM/S and ACE. \\
+
+Claim: non-programming environments are considered to be not powerful enough to capture the complexity of ACE implementations thus a programming approach to ACE will be always required.
+
+To apply and test functional methods in ACE, four scenarios of ACE are selected and then the methods applied and compared with each other to see how each of them perform in comparison. The 4 selected scenarios represent a selection of the challenges posed in ACE: from very abstract ones to very operational ones.
+
+Each of the selected scenarios is then implemented using the selected methods where each solution is then compared against the following criteria: 
+
+\begin{enumerate}
+\item suitability for scientific computation
+\item robustness
+\item error-sources
+\item testability
+\item stability
+\item extendability
+\item size of code
+\item maintainability
+\item time taken for development
+\item verification \& correctness
+\item replications \& parallelism
+\item EDSL
+\end{enumerate}
+
+This will then allow to compare the different methods against each other and to show under which circumstances functional methods shine and when they should not be used.

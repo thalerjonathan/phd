@@ -37,7 +37,10 @@ There already exists research using the Actor Model \cite{agha_actors:_1986} for
 \section{Fields of Application}
 % SUB TOPIC
 \subsection{Social Simulation}
- look closer at the contents of the 3 major books: SugarScape, Generative, Agent\_Zero
+The most influential source on the generative social sciences can be regarded the work of Epstein and Axtell in \cite{epstein_growing_1996} in which they indeed create an artificial society and connect observations in their simulation to phenomenon of real-world societies. They later added more research to this in \cite{epstein_generative_2012} and most recently \cite{epstein_agent_zero:_2014} in which Epstein tries to approach the generative social sciences from a neurocognitive approach.
+
+
+look closer at the contents of the 3 major books: SugarScape, Generative, Agent\_Zero
 
 Agent\_Zero: \url{http://sites.nationalacademies.org/cs/groups/dbassesite/documents/webpage/dbasse_175078.pdf}
 
@@ -48,6 +51,10 @@ TODO \cite{huberman_evolutionary_1993}
 TODO \cite{nowak_evolutionary_1992}
 % SUB TOPIC
 \subsection{Computational Economics}
+TODO: decentralized bilateral bartering is of primary interest to us in the end because of 1.) interesting problem 2.) master-thesis 3.) it is so fundamental to a society 4.) is a non neo-classical approach to economics 5.) Sugarscape approaches it => can connect Social Simulation and ACE in one model. 
+Another field we are particularly interested in, the simulation of decentralized bilateral bartering, which belongs to the field of Agent-Based Computational Economics (ACE) \cite{tesfatsion_agent-based_2006} is covered already in the artifical society of \cite{epstein_growing_1996}. This lucky coincidence let us approach both these very special fields together and apply them as additional use-cases for developing our new methods. 
+
+
 \cite{tesfatsion_agent-based_2006} gives a broad overview of agent-based computational economics (ACE), gives the four primary objectives of it and discusses advantages and disadvantages. She introduces a model called \textit{ACE Trading World} in which she shows how an artificial economy can be implemented without the \textit{Walrasian Auctioneer} but just by agents and their interactions. She gives a detailed mathematical specification in the appendix of the paper which should allow others to implement the simulation.
 
 - Artificial agent-based economies: \cite{tesfatsion_agent-based_2006}, \cite{gintis_emergence_2006}, \cite{gintis_dynamics_2007}, \cite{gaffeo_adaptive_2008}, \cite{botta_functional_2011}
@@ -360,10 +367,20 @@ develop category theory behind FrABS: look into monads, arrows
 
 % MAJOR TOPIC
 \section{Verification \& Validation of ABS}
+In the work of \cite{axtell_aligning_1996} the authors tried to see whether the more complex Sugarscape model can be used to reproduce the results of \cite{axelrod_convergence_1995}. In both models agents have a tag for cultural identification which is comprised of a string of symbols. The question was whether Sugarscape, focusing on generating a complete artifical society which incorporates many more mechanisms like trading, war, ressources can reproduce the results of \cite{axelrod_convergence_1995} which only focuses on transmission of these cultural tags. Although interesting the question if two models are qualitatively equivalent is not what we want to pursue in our thesis as it requires a complete different direction of research.
+
+TODO: write about ABS as a new tool and  generative as opposed to the classical inductive and deductive sciences. major sources: 
+TODO fully read \cite{epstein_chapter_2006}
+TODO fully read \cite{epstein_generative_2012}
+
+
 To do verification we need a form of formal specification which can be translated easily to the code. Being inspired by the previously mentioned work on a functional framework for agent-based models of exchange in \cite{botta_functional_2011} we opt for a similar direction. Having Haskell as the implementation language instead of an object-oriented one like Java allows us to build on the above proposed EDSL for ABS. Because of the declarative nature of the hypothesized EDSL it can act both as specification- and implementation-language which closes the gap between specification and implementation. This would give us a way of formally specifying the model but still in a more readable way than pure mathematics. This form of formal specification can act easily as a medium for communication between team-memberes and to the scientific audience in papers. Most important the explicit step of verification becomes obsolete as there exists no more difference between specification and implementation. The last point seems to be quite ambitious but this is a hypothesis and we will see in the course of the thesis how far we can close the gap in the end with this approach.
 
 TODO: need to do lots of literature research still
 Having the EDSL from the firt two hypotheses at hand it may be possible to extend it through additional primitves which then allow to formulate hypotheses in a formal way which then can be checked automatically.
+
+TODO: Burton and Obel 1995 "The validity of computational models in organization science: from model realism to purpose of the model"
+TODO: Knepell 1993 "Simulation validation, a confidence assessment methodology."
 
 TODO: \url{http://jasss.soc.surrey.ac.uk/12/1/1.html}
 TODO: \url{http://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=4419595}

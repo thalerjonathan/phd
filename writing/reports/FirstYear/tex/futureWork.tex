@@ -3,6 +3,12 @@ TODO: A future work plan that is consistent with the progress to date, stating c
 
 TODO: gantt chart!
 
+Three main contributions
+1.) implement full-fledged pure functional ABS library on top of Haskell and FRP (Yampa): FrABS
+	-> includes a very basic view on ABS from the perspective of category-theory
+2.) Case-study in verification: Sugarscapes decentralized  bilateral trading 
+3.) Case-study in validation: Agent\_Zero network extension
+
 \subsection{TODOs}
 out of this i will build the gantt chart for the next 12 months+
 
@@ -13,8 +19,6 @@ category theory foundations (monads, arrows)
 
 \subsubsection{Implementation and Software-Engineering}
 %how to implement in haskell (sugarscape, agent_zero) 
-implement chapter 4 of sugarscape
-implement chapter 5 of sugarscape
 use monadic or arrowized programming for structuribg the siftware
 implement schelling segregation in recursiveABS and report results
 
@@ -24,16 +28,18 @@ FrABS: SugarScape
 
 Agent\_Zero
 1st prototype: implemented the book, based upon FrABS 
+Extension: implement networks and study the effects there. use this as the case-study for verification and validation
 
 \subsubsection{Verification and Validation}
-look into QuickCheck to test and verificate FrABS. start with SIRS
-(quickcheck, isabelle, agda?), recursive simulation
+look into QuickCheck to test and verificate FrABS
 
 \subsubsection{Papers}
-paper 2: recursive ABS:  
-paper 3: FrABS - Towards pure functional programming in ABS
-paper 4: Towards category theory in ABS
-paper 5: verification and validation in ABS with pure functional programming
+paper 2: recursive ABS - don't pursue this : SSC 2018, Deadline in March 2018?
+paper 3: FrABS - Towards pure functional programming in ABS: TFP 2017, Deadline 5th May 2017, 19-21th June 2017, \url{https://www.cs.kent.ac.uk/events/tfp17/index.html}
+
+paper 4: Towards category theory in ABS: ?
+paper 5: verification and validation in ABS with pure functional programming: AAMS 2018, Deadline in November 2018, \url{http://www.aamas2017.org/}
+
 
 
 \subsubsection{Reading}
@@ -44,8 +50,6 @@ read "category theory for the sciences"
 
 \subsection{Concept of an Agent}
 an agent is not an object but when implementing ABS in oo then it is tempting to treat an agent like that. when implementing it in a pure functional language like haskell, this temptation cannot arise which creates a different view on agents.
-
-
 
 - what do i want to have achieved in the first year?
 	-> FrABS
@@ -70,22 +74,14 @@ an agent is not an object but when implementing ABS in oo then it is tempting to
 
 \subsection{Milestones}
 
-TODO: add subpoints
-
-\subsubsection*{Submitted Paper on Iteration}
-SSC 2017, Deadline in 31st March, 25-29th September 2017, \url{http://www.sim2017.com/}
-
-\subsubsection*{Submitted Paper on Towards FrABS}
-TFP 2017, Deadline 5th May 2017, 19-21th June 2017, \url{https://www.cs.kent.ac.uk/events/tfp17/index.html}
-
 \subsubsection*{1st Year Viva}
 Deadline: end of July
 
-\subsubsection*{Submitted Paper on MetaABS}
+\subsubsection*{Submitted Paper on Recursive ABS}
 SSC 2018, Deadline in March 2018?, 
 
-\subsubsection*{Submitted Paper on EDSL}
-TODO Some functional conference?
+\subsubsection*{Submitted Paper on FrABS}
+TFP 2017, Deadline 5th May 2017, 19-21th June 2017, \url{https://www.cs.kent.ac.uk/events/tfp17/index.html}
 
 \subsubsection*{Submitted Paper on Validation \& Verification}
 AAMS 2018, Deadline in November 2018, \url{http://www.aamas2017.org/}
@@ -107,12 +103,8 @@ The whole PhD lasts for 3 years, 36 Months, from October 2016 to September 2019 
 	\item FRP \& ABS = FrABS: meeting with Henrik
 	\item FrABS: work on it
 	\item Agent\_Zero genauer anschauen: winter simulation papers, unterschied zu sugarscape?
-	\item experiment with MetaABS in SchellingSegregation
 	\item Refine project-plan 
 \end{enumerate}
-
-
-
 
 
 

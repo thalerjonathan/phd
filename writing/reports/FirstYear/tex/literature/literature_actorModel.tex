@@ -1,44 +1,16 @@
 \subsection{Actor Model}
-The Actor-Model, a model of concurrency, has been around since the paper \cite{Hewitt_1973} in 1973. It was a major influence in designing the concept of Agents and although there are important differences between Actors and Agents there are huge similarities thus the idea to use actors to build agent-based simulations comes quite natural. Although there are papers around using the actor model as basis for their ABMS unfortunately no proper theoretical treatment of using the actor-model in implementing agent-based simulations has been done so far. This paper looks into how the more theoretical foundations of the suitability of actor-model to ABMS and what the upsides and downsides of using it are.
+The Actor-Model, a model of concurrency, has been around since the paper \cite{hewitt_universal_1973} in 1973. It was a major influence in designing the concept of agents and although there are important differences between actors and agents there are huge similarities thus the idea to use actors to build agent-based simulations comes quite natural. TODO: short explain the similarities / differences
 
-\url{http://www.grids.ac.uk/Complex/ABMS/}
+The theory was put on firm semantic grounds first through Irene Greif by defining its operational semantics \cite{greif_semantics_1975} and then Will Clinger by defining denotational semantics \cite{clinger_foundations_1981}. In the seminal work of Agha \cite{agha_actors:_1986} he developed a programming model for the actor-model which he termed \textit{actors}.
 
-\cite{Bezirgiannis2013} describes in chapter 3.3 a naive clone of NetLogo in the Erlang programming language where each agent was represented as an Erlang process. The author claims the 1:1 mapping between agent and process to "be inherently wrong" because when recursively sending messages (e.g. A to B to A) it will deadlock as A is already awaiting Bs answer. Of course this is one of the problems when adopting Erlang/Scala with Akka/the Actor Model for implementing agents \textit{but it is inherently short-sighted to discharge the actor-model approach just because recursive messaging leads to a deadlock}. It is not a problem of the actor-model but merely a very problem with the communication protocol which needs to be more sophisticated than \cite{Bezirgiannis2013} described. The hypothesis is that the communication protocol will be in fact \textit{very highly application-specific} thus leading to non-reusable agents (across domains, they should but be re-usable within domains e.g. market-simulations) as they only understand the domain-specific protocol. This is definitely NOT a drawback but can't be solved otherwise as in the end (the content of the) communication can be understand to be the very domain of the simulation and is thus not generalizable. Of course specific patterns will show up like "multi-step handshakes" but they are again then specifically applied to the concrete domain.
+TODO \cite{agha_foundation_1997}
+TODO \cite{hewitt_what_2007}
+TODO \cite{hewitt_actor_2010}
+TODO \cite{agha_algebraic_2004}
 
-\cite{jankovic_functional_2007} discuss using functional programming for discrete event simulation (DES) and mention the paradigm of Functional Reactive Programming (FRP) to be very suitable to DES. We were aware of the existence of this paradigm and have experimented with it using the library Yampa, but decided to leave that topic to a side and really keep our implementation clear and very basic.
+\subsubsection{Erlang}
+The programming-model of actors \cite{agha_actors:_1986} was the inspiration for the Erlang programming language which was created in the 80s by Eriksson for developing distributed high reliability software in telecommunications. There exists very little research in using Erlang for ABS \cite{varela_modelling_2004}, \cite{di_stefano_using_2005}, \cite{di_stefano_exat:_2007}, \cite{sher_agent-based_2013}, \cite{Bezirgiannis2013}. TODO: short explanation of what they are doing
 
-The amount of research on using the pure functional paradigm using Haskell in the field of ABS has been moderate so far. Though there exist a few papers which look into Haskell and ABS \cite{de_jong_suitability_2014}, \cite{sulzmann_specifying_2007}, \cite{jankovic_functional_2007} they focus primarily on how to specify agents. A library for Discrete Event Simulation (DES) and System Dynamics (SD) in Haskell called \textit{Aivika 3} is described in \cite{sorokin_aivika_2015}. It also comes with very basic features for ABS but only allows to specify simple state-based agents with timed transitions. This papers is investigating Haskell in a different way by looking into its suitability in implementing update-strategies in ABS, something not looked at in the ABS community so far, presenting an original novelty.
-
-There already exists research using the Actor Model \cite{agha_actors:_1986} for ABS in the context of Erlang \cite{varela_modelling_2004}, \cite{di_stefano_using_2005}, \cite{di_stefano_exat:_2007}, \cite{sher_agent-based_2013} but we feel that they barely scratched the surface. We want to renew the interest in this direction of research by incorporating Scala with using the Actor-library in our research because we will show that one update-strategy maps directly to the Actor Model.
-
-The Actor-Model, a model of concurrency, has been around since the paper \cite{hewitt_universal_1973} in 1973. It was a major influence in designing the concept of Agents and although there are important differences between Actors and Agents there are huge similarities thus the idea to use actors to build agent-based simulations comes quite natural. Although there are papers around using the actor model as basis for their ABMS unfortunately no proper theoretical treatment of using the actor-model in implementing agent-based simulations has been done so far. This paper looks into how the more theoretical foundations of the suitability of actor-model to ABMS and what the upsides and downsides of using it are.
-
-\url{http://www.grids.ac.uk/Complex/ABMS/}
-
-\begin{enumerate}
-\item \cite{Hewitt_1973}
-\item \cite{Greif_1975}
-\item \cite{Clinger_1981}
-\item \cite{Agha_1986}
-\item \cite{Agha_1997}
-\item \cite{Hewitt_2007}
-\item \cite{Hewitt_2010}
-\item \cite{Agha_2004}
-\end{enumerate}
-
-upside: extreme huge number of agnts possible due to distributed and parallel technology 
-downside: depends on system \& hardware: scheduler, system time, systime resolution (not very nice for scientific computation), much more complicated, debugging difficult due to concurrency, no global notion of time appart from systemtime, thus always runs in real-time, but there is no global notion of time in the actor model anyway, no EDSL full of technical details, no determinism, no reasoning
-
-Agents more a high-level concept, Actors low level, technical concurrency primitives\\
-
-This makes simulations very difficult and also due to concurrency implementing a sync conversation among agents is very cumbersome. I have already experience with the Actor Model when implementing a small version of my Master-Thesis Simulation in Erlang which uses the Actor Model as well. For a continuous simulation it was actually not that bad but the problem there was that between a round-trip between 2 agents other messages could have already interfered - this was a problem when agents trade with each other, so one has to implement synchronized trading where only messages from the current agent one trades with are allowed otherwise budget constraints could be violated. Thus I think Erlang/Akka/Actor Model is better suited for distributed high-tolerance concurrent/parallel systems instead for simulations. Note: this is definitely a major point I have to argue in my thesis: why I am rejecting the actor model.
-
-AKKA: thus my prediction is: akka/actor model is very well suited to simulations which 1. dont rely on global time 2. dont have multi-step conversations: interactions among agents which are only question-answer. TODO: find some classical simulation model which satisfies these criterias.
-
-how can we simulate global time? how can we implement multistep conversations (by futures)?
-
-The real problem seems to be concurrency but i feel we can simulate concurrency by synchronizing to continuous time. computations are carried out after another but because time is explicitly modelled they happen logically at the same time. these rules hold: an agent cannot be in two conversations at the same time, the agent can be in only one or none conversation at a given time t.
-
-What if time is of no importance and only the continuous dynamics are of interest?
-
-To put it another way: real concurrency (with threads) makes time implicit which is what one does NOT want in simulation. Maybe FRP is the way to go because it allows to explicitly model continuous and discrete time, but I have to get into FRP first to make a proper judgement about its suitability.
+\subsubsection{Scala}
+Scala is a multi-paradigm language which also comes with an implementation of the actor-model as a library which enables to do actor-programming in the way of Erlang. It was developed in 2004 and became popular in recent years due to the increased availability of multi-core CPUs which emphasised the distributed, parallel and concurrent programming for which the actor-model is highly suited.
+As for Erlang, there exists even less research in using Scala \& Actors for ABS TODO: cite.  TODO: short explanation of what they are doing

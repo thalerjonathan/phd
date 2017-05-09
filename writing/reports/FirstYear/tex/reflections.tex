@@ -1,0 +1,31 @@
+\chapter{Reflecting the Literature}
+\label{chap:refl}
+
+\section{Conclusion}
+TODO: put at the end
+Thread of argumentation: actor model is nice but for the kind of simulation we want to do we need too much synchronization otherwise we end up non-deterministic \& non-replicable. also actor-model very difficult to reason about because of non-deterministic specifications of message-transmission.
+process calculi are nice for algebraic reasoning but are too cumbersome and not feasible for real, complex ABS. they may be of use for verification \& validation later on of small, critical parts of the ABS-communication which can be mapped to e.g. the pi-calculus and then apply algebraic reasoning.
+the concept of homoiconicity of LISP seems to be very interesting and powerful to apply to ABS but an agent-based model where this extremely powerful technique can be applied is lacking. Also it is clear that when using this technique verification and validation becomes immensely more difficult, if not even impossible. Thus we refrain from LISP and its homoiconicity and look for something more structured, static and not as dynamic.
+
+This leads us to pure functional programming with FRP which combines all the benefits: local memory, messages, switching of behaviour, algebraic reasoning, static typesystem
+
+\section{Actor Model}
+upside: extreme huge number of agnets possible due to distributed and parallel technology 
+downside: depends on system \& hardware: scheduler, system time, systime resolution (not very nice for scientific computation), much more complicated, debugging difficult due to concurrency, no global notion of time appart from systemtime, thus always runs in real-time, but there is no global notion of time in the actor model anyway, no EDSL full of technical details, no determinism, no reasoning
+
+Agents more a high-level concept, Actors low level, technical concurrency primitives
+
+This makes simulations very difficult and also due to concurrency implementing a sync conversation among agents is very cumbersome. I have already experience with the Actor Model when implementing a small version of my Master-Thesis Simulation in Erlang which uses the Actor Model as well. For a continuous simulation it was actually not that bad but the problem there was that between a round-trip between 2 agents other messages could have already interfered - this was a problem when agents trade with each other, so one has to implement synchronized trading where only messages from the current agent one trades with are allowed otherwise budget constraints could be violated. Thus I think Erlang/Akka/Actor Model is better suited for distributed high-tolerance concurrent/parallel systems instead for simulations. Note: this is definitely a major point I have to argue in my thesis: why I am rejecting the actor model.
+
+
+AKKA: thus my prediction is: akka/actor model is very well suited to simulations which 1. dont rely on global time 2. dont have multi-step conversations: interactions among agents which are only question-answer. TODO: find some classical simulation model which satisfies these criterias.
+
+how can we simulate global time? how can we implement multistep conversations (by futures)?
+
+The real problem seems to be concurrency but i feel we can simulate concurrency by synchronizing to continuous time. computations are carried out after another but because time is explicitly modelled they happen logically at the same time. these rules hold: an agent cannot be in two conversations at the same time, the agent can be in only one or none conversation at a given time t.
+
+What if time is of no importance and only the continuous dynamics are of interest?
+
+To put it another way: real concurrency (with threads) makes time implicit by connecting it to the real-time of the real-world, which is what one does NOT want in simulation. Maybe FRP is the way to go because it allows to explicitly model continuous and discrete time, but I have to get into FRP first to make a proper judgement about its suitability.
+
+\cite{Bezirgiannis2013} describes in chapter 3.3 a naive clone of NetLogo in the Erlang programming language where each agent was represented as an Erlang process. The author claims the 1:1 mapping between agent and process to "be inherently wrong" because when recursively sending messages (e.g. A to B to A) it will deadlock as A is already awaiting Bs answer. Of course this is one of the problems when adopting Erlang/Scala with Akka/the Actor Model for implementing agents \textit{but it is inherently short-sighted to discharge the actor-model approach just because recursive messaging leads to a deadlock}. It is not a problem of the actor-model but merely a very problem with the communication protocol which needs to be more sophisticated than \cite{Bezirgiannis2013} described. The hypothesis is that the communication protocol will be in fact \textit{very highly application-specific} thus leading to non-reusable agents (across domains, they should but be re-usable within domains e.g. market-simulations) as they only understand the domain-specific protocol. This is definitely NOT a drawback but can't be solved otherwise as in the end (the content of the) communication can be understand to be the very domain of the simulation and is thus not generalizable. Of course specific patterns will show up like "multi-step handshakes" but they are again then specifically applied to the concrete domain.

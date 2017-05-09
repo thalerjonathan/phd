@@ -1,12 +1,14 @@
 \subsection{Actor Model}
-The Actor-Model, a model of concurrency, has been around since the paper \cite{hewitt_universal_1973} in 1973. It was a major influence in designing the concept of agents and although there are important differences between actors and agents there are huge similarities thus the idea to use actors to build agent-based simulations comes quite natural. TODO: short explain the similarities / differences
+The Actor-Model, a model of concurrency, was initially conceived by Hewitt in 1973 \cite{hewitt_universal_1973} and refined later on \cite{hewitt_what_2007}, \cite{hewitt_actor_2010}. It was a major influence in designing the concept of agents and although there are important differences between actors and agents there are huge similarities thus the idea to use actors to build agent-based simulations comes quite natural. The theory was put on firm semantic grounds first through Irene Greif by defining its operational semantics \cite{greif_semantics_1975} and then Will Clinger by defining denotational semantics \cite{clinger_foundations_1981}. In the seminal work of Agha \cite{agha_actors:_1986} he developed a semantic mode, he termed \textit{actors} which was then developed further \cite{agha_foundation_1997} into an actor language with operational semantics which made connections to process calculi and functional programming languages (see both below). 
 
-The theory was put on firm semantic grounds first through Irene Greif by defining its operational semantics \cite{greif_semantics_1975} and then Will Clinger by defining denotational semantics \cite{clinger_foundations_1981}. In the seminal work of Agha \cite{agha_actors:_1986} he developed a programming model for the actor-model which he termed \textit{actors}.
+An actor is a uniquely addressable entity which can \textit{in response to a message}
+\begin{itemize}
+	\item Send an arbitrary number (even infinite) of messages to other actors.
+	\item Create an arbitrary number of actors.
+	\item Define its own behaviour upon reception of the next message.
+\end{itemize}
 
-TODO \cite{agha_foundation_1997}
-TODO \cite{hewitt_what_2007}
-TODO \cite{hewitt_actor_2010}
-TODO \cite{agha_algebraic_2004}
+In the actor model theory there is no restriction on the order of the above actions and so an actor can do all the things above in parallel and concurrently at the same time. This property and that actors are reactive and not pro-active is the fundamental difference between actors and agents, so an agent is \textit{not} an actor. There have been a few attempts on implementing the actor model in real programming languages where the most notable are Erlang and Scala.
 
 \subsubsection{Erlang}
 The programming-model of actors \cite{agha_actors:_1986} was the inspiration for the Erlang programming language which was created in the 80s by Eriksson for developing distributed high reliability software in telecommunications. There exists very little research in using Erlang for ABS \cite{varela_modelling_2004}, \cite{di_stefano_using_2005}, \cite{di_stefano_exat:_2007}, \cite{sher_agent-based_2013}, \cite{Bezirgiannis2013}. TODO: short explanation of what they are doing

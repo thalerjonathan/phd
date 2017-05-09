@@ -1,0 +1,44 @@
+% MAJOR TOPIC
+\section{Verification \& Validation of ABS}
+In the work of \cite{axtell_aligning_1996} the authors tried to see whether the more complex Sugarscape model can be used to reproduce the results of \cite{axelrod_convergence_1995}. In both models agents have a tag for cultural identification which is comprised of a string of symbols. The question was whether Sugarscape, focusing on generating a complete artifical society which incorporates many more mechanisms like trading, war, ressources can reproduce the results of \cite{axelrod_convergence_1995} which only focuses on transmission of these cultural tags. Although interesting the question if two models are qualitatively equivalent is not what we want to pursue in our thesis as it requires a complete different direction of research.
+
+TODO: write about ABS as a new tool and  generative as opposed to the classical inductive and deductive sciences. major sources: 
+TODO fully read \cite{epstein_chapter_2006}
+TODO fully read \cite{epstein_generative_2012}
+
+To do verification we need a form of formal specification which can be translated easily to the code. Being inspired by the previously mentioned work on a functional framework for agent-based models of exchange in \cite{botta_functional_2011} we opt for a similar direction. Having Haskell as the implementation language instead of an object-oriented one like Java allows us to build on the above proposed EDSL for ABS. Because of the declarative nature of the hypothesized EDSL it can act both as specification- and implementation-language which closes the gap between specification and implementation. This would give us a way of formally specifying the model but still in a more readable way than pure mathematics. This form of formal specification can act easily as a medium for communication between team-memberes and to the scientific audience in papers. Most important the explicit step of verification becomes obsolete as there exists no more difference between specification and implementation. The last point seems to be quite ambitious but this is a hypothesis and we will see in the course of the thesis how far we can close the gap in the end with this approach.
+
+TODO: need to do lots of literature research still
+Having the EDSL from the firt two hypotheses at hand it may be possible to extend it through additional primitves which then allow to formulate hypotheses in a formal way which then can be checked automatically.
+
+
+TODO: baas: emergence, hierarchies and hyperstructures
+TODO: \cite{baas_emergence_1997}
+
+TODO: Burton and Obel 1995 "The validity of computational models in organization science: from model realism to purpose of the model"
+TODO: Knepell 1993 "Simulation validation, a confidence assessment methodology."
+
+TODO: \url{http://jasss.soc.surrey.ac.uk/12/1/1.html}
+TODO: \url{http://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=4419595}
+TODO: \url{http://dspace.stir.ac.uk/handle/1893/3365#.WNjO1DsrKM8}
+TODO: \url{http://www2.econ.iastate.edu/tesfatsi/DockingSimModels.pdf}
+TODO: \url{http://www2.econ.iastate.edu/tesfatsi/empvalid.htm}
+TODO: \url{http://jasss.soc.surrey.ac.uk/10/2/8.html}
+TODO: \url{https://www.openabm.org/faq/how-validate-and-calibrate-agent-based-models}
+TODO: \url{https://link.springer.com/chapter/10.1007%2F978-3-642-01109-2_10}
+TODO: \url{http://www3.nd.edu/~nom/Papers/ADS019_Xiang.pdf}
+
+TODO: \url{http://www.cse.nd.edu/~nom/Papers/ads05_kennedy.pdf}
+
+The cooperative work of \cite{axtell_aligning_1996} gives insights into validation of computational models, in a process what they call "alignment". They try to determine if two models deal with the same phenomena. For this they tried to qualtiatively reproduce the same results of \cite{axelrod_convergence_1995} in the Sugarscape model of \cite{epstein_growing_1996}. Both models are of very different nature but try to investigate the qualitatively same phenomoenon: that of cultural processes. TODO: read
+
+model checking and reasoning in \cite{hutton_tutorial_1999}
+
+In \cite{claessen_quickcheck:_2000} introduce \textit{QuickCheck}, a testing-framework which allows to specifify properties and invariants of ones functions and then test them using randomly generated test-data. This is an additional tool of model-specification and increases the power and strength of the verification process and more properties of a model can be expressed which are directly formulated in code through the EDSL of QuickCheck AND the EDSL of FrABS. Of course it also serves for testing (e.g. regression) and points out errors in the implementation e.g. wrong assumptions about input-data. The authors claim that the major advante of QuickCheckj is to formulate formal specifications which help in understanding a program.
+TODO: the question is whether it can be used for Validation as well.
+
+Verification/Reasoning ist einer der größten Pluspunkte von rein funktionaler Programmierung, da durch den deklarativen Stil und das Fehlen von Sideeffects und Globalen Daten equational/algebraic/inductive Reasoning betrieben werden kann. Hier habe ich noch garnichts dazu gemacht, aber sollte mit den oben genannten Ideen sicherlich interessant werden - ein interessantes Paper von Graham Hutton (für den ich übrigens dieses Semester ein Tutor in seiner Haskell-Laborübung bin) gibt interessante Richtungen für Reasoning vor: http://dl.acm.org/citation.cfm?id=968579
+
+[ ] deadlock: when messages need to be exchanged but mutual waiting
+[ ] silence: no more message exchange
+[ ] protocoll: ensure happens before / sequences (like necessary for 2D prisoner dilemma)

@@ -2,7 +2,11 @@
 In this we present a literature-review which is driven by the motivating questions from the introduction. We present relevant sources which pose possible answers and directions of approaches to the posed questions. Based upon this information, in the next chapter we will select our directions and methods for our research, identify the gap we have to bridge with our PhD research and our objectives in achieving to close the gap.
 
 \section{Alternative approach to object-oriented ABS}
-\subsection{The Actor Model}
+\subsection{Process Calculi}
+pi calculus,...
+there is a paper on actor model \& pi-calculus
+
+\subsection{Actor Model}
 The Actor-Model, a model of concurrency, has been around since the paper \cite{Hewitt_1973} in 1973. It was a major influence in designing the concept of Agents and although there are important differences between Actors and Agents there are huge similarities thus the idea to use actors to build agent-based simulations comes quite natural. Although there are papers around using the actor model as basis for their ABMS unfortunately no proper theoretical treatment of using the actor-model in implementing agent-based simulations has been done so far. This paper looks into how the more theoretical foundations of the suitability of actor-model to ABMS and what the upsides and downsides of using it are.
 
 \url{http://www.grids.ac.uk/Complex/ABMS/}
@@ -250,6 +254,9 @@ EDSL steht für Embedded Domain Specific Language d.h. man implementiert in Hask
 NOTE: this chapter should be the very first implementation chapter as the approach of Haskell lays the very foundations for the functional approach by introducing the basic functional concepts
 
 So far the literature on agent-based modelling \& simulation (ABM/S) hasn't focused much on models for functional agents and is lacking a proper treatment of implementing agents in pure-functional languages like Haskell. This paper looks into how agents can be specified functionally and then be implemented properly in the pure functional language Haskell. The functional agent-model is inspired by wooldridge 2.6. The programming paradigm used to implement the agents in Haskell is functional reactive programming (FRP) where the Yampa framework will be used. The paper will show that specifying and implementing agents in a pure functional language like Haskell has many advantages over classical object-oriented, concurrent ones but needs also more careful considerations to work properly.
+
+\subsubsection{LISP}
+papers on lisp. homoiconicity for abs?
 
 % MAJOR TOPIC
 \section{Verification \& Validation of ABS}

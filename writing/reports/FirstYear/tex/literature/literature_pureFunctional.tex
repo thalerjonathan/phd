@@ -1,5 +1,16 @@
-\subsection{Pure Functional}
-TODO: pure functional haskell is extremeply productive and code seems to look like specification \cite{hudak_haskell_1994}
+\subsection{(Pure) Functional}
+We need to build our motivation by first showing the basic usefulness and concepts of functional programming through classic papers. 
+
+TODO: read \cite{backus_can_1978}
+TODO: read \cite{hughes_why_1989}
+TODO: read \cite{wadler_essence_1992}
+TODO: read \cite{hudak_haskell_1994}: pure functional haskell is extremeply productive and code seems to look like specification 
+
+then go into deeper problems like structuring functional programs (Monads, arrows) because the question is how can we build an ABS out of a functional language which does NOT have objects and methods, thus we immediately have to ask the question of structure
+TODO: read \cite{wadler_monads_1995}
+TODO: read \cite{wadler_how_1997}
+TODO: read \cite{hughes_programming_2005}
+
 
 \cite{Bezirgiannis2013}
 
@@ -102,7 +113,7 @@ TODO: check out the internet for Actors/Agents i Haskell, but havn't found anyth
 TODO: \url{https://github.com/fizruk/free-agent} look into
 
 
-TODO: read \cite{backus_can_1978}
+
 
 The state-of-the-art approach to implementing Agents are object-oriented methods and programming as the metaphor of an Agent as presented above lends itself very naturally to object-orientation (OO). The author of this thesis claims that OO in the hands of inexperienced or ignorant programmers is dangerous, leading to bugs and hardly maintainable and extensible code. The reason for this is that OO provides very powerful techniques of organising and structuring programs through Classes, Type Hierarchies and Objects, which, when misused, lead to the above mentioned problems. Also major problems, which experts face as well as beginners are 1. state is highly scattered across the program which disguises the flow of data in complex simulations and 2. objects don’t compose as well as functions. The reason for this is that objects always carry around some internal state which makes it obviously much more complicated as complex dependencies can be introduced according to the internal state.
 All this is tackled by (pure) functional programming which abandons the concept of global state, Objects and Classes and makes data-flow explicit. This then allows to reason about correctness, termination and other properties of the program e.g. if a given function exhibits side-effects or not. Other benefits are fewer lines of code, easier maintainability and ultimately fewer bugs thus making functional programming the ideal choice for scientific computing and simulation and thus also for ACE. A very powerful feature of functional programming is Lazy evaluation. It allows to describe infinite data-structures and functions producing an infinite stream of output but which are only computed as currently needed. Thus the decision of how many is decoupled from how to (Hughes, J. (1989). Why functional programming matters. Comput. J., 32(2):98–107.).
@@ -199,6 +210,10 @@ TODO: \cite{perez_functional_2016}
 EDSL steht für Embedded Domain Specific Language d.h. man implementiert in Haskell eine Art von 'Spezifikations-Sprache' für eine spezielle Domain (z.b. ABM/S), die - dank der rein funktionalen, deklarativen Natur von Haskell - auch gleichzeitig Haskell Code ist - der Unterschied zwischen Spezifikation und Implementierung verschwindet dann (idealserweise). In diese Richtung arbeite ich erst seit kurzem, durch die Umsetzung von ABS/M mit Yampa. Yampa ist ebenfalls eine EDSL um funktional-reaktive Systeme zu beschreiben/implementieren, ich werde auf dieser EDSL aufsetzen und sie um ABS/M erweitern - so zumindest der Plan. Dann habe ich die theoretische Grundlage von FRP, auf die ich dann auch theorie von ABS/M (z.b. Actor Semantics) setzen kann und somit zum nächsten Punkt komme:
 
 \cite{Henderson1982} gives a wonderful way of constructing an EDSL do denotationally construct an Escher-Picture.
+
+\subsubsection{A word on LISP}
+Nepi2 paper uses LISP
+homoiconicity for abs?
 
 \subsubsection{... and ABS} 
 NOTE: this chapter should be the very first implementation chapter as the approach of Haskell lays the very foundations for the functional approach by introducing the basic functional concepts

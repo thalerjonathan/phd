@@ -1,124 +1,6 @@
-\subsection{(Pure) Functional}
-We need to build our motivation by first showing the basic usefulness and concepts of functional programming through classic papers. 
-
-TODO: read \cite{backus_can_1978}
-TODO: read \cite{hughes_why_1989}
-TODO: read \cite{wadler_essence_1992}
-TODO: read \cite{hudak_haskell_1994}: pure functional haskell is extremeply productive and code seems to look like specification 
-
-then go into deeper problems like structuring functional programs (Monads, arrows) because the question is how can we build an ABS out of a functional language which does NOT have objects and methods, thus we immediately have to ask the question of structure
-TODO: read \cite{wadler_monads_1995}
-TODO: read \cite{wadler_how_1997}
-TODO: read \cite{hughes_programming_2005}
-
-
-\cite{Bezirgiannis2013}
-
-Based upon category-theoretical foundations
-Category-Theory \cite{Pierce1991} \cite{spivak_category_2014}
-
-there are two 
-
-include paper on arrows by hughes
-apply category theory to agent-based simulation: how can a ABS system itself be represented in category theory and can we represent models in this category theory as well?
-ADOM: Agent Domain of Monads: https://www.haskell.org/communities/11-2006/html/report.html
-develop category theory behind FrABS: look into monads, arrows
-
-TODO: cite the 2 papers which i found on category-theory in ABS
-
-Of course the basic pure functional primitives alone do not make a well structured functional program by themselves as the usage of classes, interfaces, objects and inheritance alone does not make a well structured object-oriented program. What is needed are \textit{patterns} how to use the primitives available in pure functional programs to arrive at well structure programs. In object-orientation much work has been done in the 90s by the highly influential book \cite{gamma_design_1994} whereas in functional programming the major inventions were also done in the 90s by the invention of Monads through \cite{Moggi1989}, \cite{Wadler1990} and \cite{Wadler1995} and beginning of the 2000s by the invention of Arrows through \cite{Hughes2000}.
-
-map \& fmap, foldl, applicatives
-\cite{hutton_programming_2007} gives a great overview and motivation for using fmap, applicatives and Monads. TODO: explain Monads
-
-\cite{Hughes2004} is a great tutorial about \textit{Arrows} which are very well suited for structuring functional programs with effects.
-
-\begin{quote}
-Just like monads, arrow types are useful for the additional operations they support, over and above those that every arrow provides.
-\end{quote}
-
-The main difference between Monads and Arrows are that where monadic computations are parameterized only over their output-type, Arrows computations are parameterised both over their input- and output-type thus making Arrows more general.
-
-\begin{quote}
-In real applications an arrow often represents some kind of a process, with an input channel of type a, and an output channel of type b.
-\end{quote}
-
-In the work \cite{Hughes2004} an example for the usage for Arrows is given in the field of circuit simulation. They use previously introduced streams to advance the simulation in discrete steps to calculate values of circuits thus the implementation is a form of \textit{discrete event simulation} - which is in the direction we are heading already with ABM/S. Also the paper mentions Yampa which is introduced in the section (TODO: reference) on functional reactive programming.
-
-
-all FRP, quickcheck, arrows, monads, wadler, hughes
-
-the specification language should not be too technical, its focus should be on non-technical expressiveness. The question is: can we abstract away the technicalities and still translate it directly to haskell (more or less)? If not, can be adjust our Haskell implementation to come closer to our specification language? Thus it is a two-fold approach: both languages need to come closer to each other if we want to close the gap
- 
-TODO: \cite{nowak_evolutionary_1992}, \cite{huberman_evolutionary_1993}
-it is still not exactly clear => we present a formal specification using ABS 
-
-it is not trivial to reproduce the results as there is only very informal descriptions in \cite{nowak_evolutionary_1992}. \cite{huberman_evolutionary_1993} give a few more details but also stay quite informal. Thus here we represent a pure functional formulation of the original program which makes it formally exactly clear how the simulation should work. we then look how it can be translated to an ABM specification
-
-Object-oriented (OO) programming is the current state-of-the-art method used in implementing ABM/S due to the natural way of mapping concepts and models of ABM/S to an OO-language. Although this dominance in the field we claim that OO has also its serious drawbacks:
-
-\begin{itemize}
-\item Mutable State is distributed over multiple objects which is often very difficult to understand, track and control.
-\item Inheritance is a dangerous thing if not used properly and with care because it introduces very strong dependencies which cannot be changed during runtime any-more.
-\item Objects don't compose very well due to their internal (mutable) state (note that we are aware that there is the concept of immutable objects which are becoming more and more popular but that does not solve the fundamental problem.
-\item It is (nearly) impossible to reason about programs.
-\end{itemize}
-
-We claim that these drawbacks are non-existent in pure functional programming like Haskell due to the nature of the functional approach. To give an introduction into functional programming is out of scope of this paper but we refer to the classical paper of \cite{hughes_why_1989} which is a great paper explaining to non-functional programmers what the significance of functional programming is and helping functional programmers putting functional languages to maximum use by showing the real power and advantages of functional languages. The main conclusion of this classical paper is that \textit{modularity}, which is the key to successful programming, can be achieved best using higher-order functions and lazy evaluation provided in functional languages like Haskell. \cite{hughes_why_1989} argues that the ability to divide problems into sub-problems depends on the ability to glue the sub-problems together which depends strongly on the programming-language and \cite{hughes_why_1989} argues that in this ability functional languages are superior to structured programming.
-
-\cite{sulzmann_specifying_2007} present an EDSL for Haskell allowing to specify Agents using the BDI model. We don't go there, thats not our intention. 
-
-\cite{schneider_towards_2012} and \cite{vendrov_frabjous:_2014} present a domain-specific language for developing functional reactive agent-based simulations. This language called FRABJOUS is very human readable and easily understandable by domain-experts. It is not directly implemented in FRP/Haskell/Yampa but is compiled to Haskell/Yampa code which they claim is also readable. This is the direction we want to head but we don't want this intermediate step but look for how a most simple domain-specific language embedded in Haskell would look like. We also don't touch upon FRP and Yampa yet but leave this to further research for another paper of ours.
-
-\cite{klugl_amason:_2013} TODO
-
-TODO: cite julie greensmith paper on haskell
-
-The amount of research on using the pure functional paradigm using Haskell in the field of ABS has been moderate so far.
-Most of the papers look into how agents can be specified using the belief-desire-intention paradigm \cite{de_jong_suitability_2014}, \cite{sulzmann_specifying_2007}, \cite{jankovic_functional_2007}.
-A library for Discrete Event Simulation (DES) and System Dynamics (SD) in Haskell called \textit{Aivika 3} is described in \cite{sorokin_aivika_2015}. It comes with very basic features for ABS but only allows to specify simple state-based agents with timed transitions.
-\cite{jankovic_functional_2007} discuss using functional programming for discrete event simulation (DES) and mention the paradigm of FRP to be very suitable to DES.
-
-\cite{sulzmann_specifying_2007} present an EDSL for Haskell allowing to specify Agents using the BDI model. TODO: We don't go there, thats not our intention. 
-
-\cite{schneider_towards_2012} and \cite{vendrov_frabjous:_2014} present a domain-specific language for developing functional reactive agent-based simulations. This language called FRABJOUS is very human readable and easily understandable by domain-experts. It is not directly implemented in FRP/Haskell/Yampa but is compiled to Haskell/Yampa code which they claim is also readable. This is the direction we want to head but we don't want this intermediate step but look for how a most simple domain-specific language embedded in Haskell would look like. We also don't touch upon FRP and Yampa yet but leave this to further research for another paper of ours.
-
-\cite{klugl_amason:_2013} TODO
-
-TODO: cite julie greensmith paper on haskell
-
-We don't focus on BDI or similar but want to rely much more on low-level basic messaging. We can also draw strong relations to Hoare's Communicating Sequential Processes (CSP), Milner's Calculus of Communicating Systems (CCS) and Pi-Calculus. By mapping the EDSL to CSP/CCS/Pi-Calculus we achieve to be able to algebraic reasoning in our EDSL. TODO: hasn't Agha done something similar in connecting Actors to the Pi-Calculus?
-
-\cite{bezirgiannis_improving_2013} constructs two frameworks: an agent-modelling framework and a DES framework, both written in Haskell. They put special emphasis on parallel and concurrency in their work. The author develops two programs: HLogo which is a clone of the NetLogo agent-modelling framework and HDES, a framework for discrete event simulation - where in both implementations is the very strong emphasis on parallelism.  Here only the HLogo implementation is of interest as it is directly related to agent-based simulation. In this implementation the author claims to have implemented an EDSL which tries to be close to the language used for modelling in NetLogo (Logo) "which lifts certain restrictions of the original NetLogo implementation". Also the aim was to be "faster in most circumstances than NetLogo" and "utilizes many processor cores to speedup the execution of Agent Based Models". The author implements a primitive model of concurrent agents which implements a non-blocking concurrent execution of agents which report their results back to the calling agent in a non-blocking manner. The author mentions that a big issue of the implementation is that repeated runs with same inputs could lead to different results due to random event-orderings happening because of synchronization. The problem is that the author does not give a remedy for that and just accepts it as a fact. Of course it would be very difficult, if not impossible, to introduce determinism in an inherently concurrent execution model of agents which may be the reason the author does not even try. Unfortunately the example implementation the author uses for benchmarking is a very simplistic model: the basic pattern is that agent A sends to agent B and thats it - no complex interactions. Of course this lends itself very good to parallel/concurrent execution and does not need a sophisticated communication protocol. The work lacks a proper treatment of the agent-model presented with its advantages and disadvantages and is too sketchy although the author admits that is is just a proof of concept. \\
-
-Tim Sweeney, CTO of Epic Games gave an invited talk about how "future programming languages could help us write better code" by "supplying stronger typing, reduce run-time failures;  and the need for pervasive concurrency support, both implicit and explicit, to effectively exploit the several forms of parallelism present in games and graphics." \cite{sweeney_next_2006}. Although the fields of games and agent-based simulations seem to be very different in the end, they have also very important similarities: both are simulations which perform numerical computations and update objects - in games they are called "game-objects" and in abm they are called agents but they are in fact the same thing - in a loop either concurrently or sequential. His key-points were:
-
-\begin{itemize}
-\item Dependent types as the remedy of most of the run-time failures.
-\item Parallelism for numerical computation: these are pure functional algorithms, operate locally on mutable state. Haskell ST, STRef solution enables encapsulating local heaps and mutability within referentially transparent code.
-\item Updating game-objects (agents) concurrently using STM: update all objects concurrently in arbitrary order, with each update wrapped in atomic block - depends on collisions if performance goes up.
-\end{itemize}
-
-TODO: discuss \cite{schneider_towards_2012}
-TODO: discuss \cite{vendrov_frabjous:_2014}
-TODO: discuss \cite{sulzmann_specifying_2007}
-TODO: discuss \cite{jankovic_functional_2007}
-TODO: discuss \cite{de_jong_suitability_2014}
-TODO: discuss \cite{sorokin_aivika_2015}
-
-TODO: check out the internet for Actors/Agents i Haskell, but havn't found anything promising
-
-\url{http://haskell-distributed.github.io/wiki.html} looks good but too big and not well suited for simulations
-\url{https://code.google.com/archive/p/haskellactor/} makes heavy use of IORef and running in IO-Monad, something we deliberately want to avoid to keep the ability to reason about the program.
-TODO: \url{https://github.com/fizruk/free-agent} look into
-
-
-
-
-The state-of-the-art approach to implementing Agents are object-oriented methods and programming as the metaphor of an Agent as presented above lends itself very naturally to object-orientation (OO). The author of this thesis claims that OO in the hands of inexperienced or ignorant programmers is dangerous, leading to bugs and hardly maintainable and extensible code. The reason for this is that OO provides very powerful techniques of organising and structuring programs through Classes, Type Hierarchies and Objects, which, when misused, lead to the above mentioned problems. Also major problems, which experts face as well as beginners are 1. state is highly scattered across the program which disguises the flow of data in complex simulations and 2. objects don’t compose as well as functions. The reason for this is that objects always carry around some internal state which makes it obviously much more complicated as complex dependencies can be introduced according to the internal state.
-All this is tackled by (pure) functional programming which abandons the concept of global state, Objects and Classes and makes data-flow explicit. This then allows to reason about correctness, termination and other properties of the program e.g. if a given function exhibits side-effects or not. Other benefits are fewer lines of code, easier maintainability and ultimately fewer bugs thus making functional programming the ideal choice for scientific computing and simulation and thus also for ACE. A very powerful feature of functional programming is Lazy evaluation. It allows to describe infinite data-structures and functions producing an infinite stream of output but which are only computed as currently needed. Thus the decision of how many is decoupled from how to (Hughes, J. (1989). Why functional programming matters. Comput. J., 32(2):98–107.).
-The most powerful aspect using pure functional programming however is that it allows the design of embedded domain specific languages (EDSL). In this case one develops and programs primitives e.g. types and functions in a host language (embed) in a way that they can be combined. The combination of these primitives then looks like a language specific to a given domain, in the case of this thesis ACE. The ease of development of EDSLs in pure functional programming is also a proof of the superior extensibility and composability of pure functional languages over OO (Henderson P. (1982). Functional Geometry. Proceedings of the 1982 ACM Symposium on LISP and Functional Programming.).
-One of the most compelling example to utilize pure functional programming is the reporting of Hudak (Hudak P., Jones M. (1994). Haskell vs. Ada vs. C++ vs. Awk vs. ... An Experiment in Software Prototyping Productivity. Department of Computer Science, Yale University.)  where in a prototyping contest of DARPA the Haskell prototype was by far the shortest with 85 lines of code. Also the Jury mistook the code as specification because the prototype did actually implement a small EDSL which is a perfect proof how close EDSL can get to and look like a specification.
+\subsection{(Pure) Functional Programming}
+In his 1977 ACM Turing Award Lecture, Backus, one of the main contributors to Fortran, an imperative programming language, fundamentally critizied imperative programming for its deep flaws and proposed a functional style of programming to overcome the limitations of imperative programming \cite{backus_can_1978}. The main criticism is its use of \textit{state-transition with complex states} and the inherent semantics of state-manipulation. In the end an imperative program consists of a number of assign-statements resulting in side-effects and are thus \textit{history sensitive}: the order of execution matters.
+Backus proposes the so called \textit{applicative} computing, which he termes \textit{functional programming} which has its foundations in the lambda calculus \cite{church_calculi_1941}. The main idea 
 
 Functional languages can best be characterized by their way computation works: instead of \textit{how} something is computed, \textit{what} is computed is described. Thus functional programming follows a declarative instead of an imperative style of programming. The key points are:
 \begin{itemize}
@@ -130,96 +12,109 @@ Functional languages can best be characterized by their way computation works: i
 \item Pattern-matching
 \end{itemize}
 
-% SUB TOPIC
-\subsubsection{General principles}
-idea: can we implement a message between two agents through events? thus two states: waiting for messages, processing messages. BUT: then sending a message \textit{will take some time}
-
-NOTE: it is important to make a difference about whether the simulation will dynamically \textit{add} or \textit{remove} agents during execution. If this is not the case, a simple par-switch is possible to run ALL agent SF in parallel. If dynamically changes to the agent-population should be part of the simulation, then the dpSwitch or dpSwitchB should be used. Also it should be possible to start/stop agents: if they are inactive then they should have no running SF because would use up resources. Inactive means: doing nothing, also not awaiting something/"doing nothing in the sense that DOING something which is nothing - the best criteria to decide if an agent can be set inactive is when the event which decides if the agents SF should be started comes from outside e.g. if the agent is just statically "living" but not changing and then another agent will "ignite" the "living" agent then this is a clear criterion for being static without a running SF. \\
-
-NOTE: the route-function will be used to distribute "messages" to the agents when they are communicating with each other \\
-
-NOTE: \cite{Meisinger2010} argues that in Game-Engines (it is paraphrased in english, as the thesis was written in german): "communication among Game-Objects is always computer-game specific and must be implemented always new but the functionality of Game-objects can be built by combining independent functions and signal-functions which are fully reuse-able". Game-Objects can be understood as agents thus maybe this also holds true for agent-based simulation. \cite{Meisinger2010} thus distinguishes between normal functions e.g. mathematical functions, signal functions which depend on output since its creation in localtime and game-object functions which output depends on inputs AND time (which is but another input). \\
-
-TODO: need a mechanism to address agents: if agent A wants to send a message to agent B and agent B wants to react by answering with a message to agent A then they must have a mechanism to address each other \\
-
-TODO: design general input/output data-structures \\
-
-TODO: design general agent SF \\
-
-TODO: don't loose STM out of sight!
-
-Wormholes in FRP? \\
+The state-of-the-art approach to implementing Agents are object-oriented methods and programming as the metaphor of an Agent as presented above lends itself very naturally to object-orientation (OO). The author of this thesis claims that OO in the hands of inexperienced or ignorant programmers is dangerous, leading to bugs and hardly maintainable and extensible code. The reason for this is that OO provides very powerful techniques of organising and structuring programs through Classes, Type Hierarchies and Objects, which, when misused, lead to the above mentioned problems. Also major problems, which experts face as well as beginners are 1. state is highly scattered across the program which disguises the flow of data in complex simulations and 2. objects don’t compose as well as functions. The reason for this is that objects always carry around some internal state which makes it obviously much more complicated as complex dependencies can be introduced according to the internal state.
+All this is tackled by (pure) functional programming which abandons the concept of global state, Objects and Classes and makes data-flow explicit. This then allows to reason about correctness, termination and other properties of the program e.g. if a given function exhibits side-effects or not. Other benefits are fewer lines of code, easier maintainability and ultimately fewer bugs thus making functional programming the ideal choice for scientific computing and simulation and thus also for ACE. A very powerful feature of functional programming is Lazy evaluation. It allows to describe infinite data-structures and functions producing an infinite stream of output but which are only computed as currently needed. Thus the decision of how many is decoupled from how to (Hughes, J. (1989). Why functional programming matters. Comput. J., 32(2):98–107.).
+The most powerful aspect using pure functional programming however is that it allows the design of embedded domain specific languages (EDSL). In this case one develops and programs primitives e.g. types and functions in a host language (embed) in a way that they can be combined. The combination of these primitives then looks like a language specific to a given domain, in the case of this thesis ACE. The ease of development of EDSLs in pure functional programming is also a proof of the superior extensibility and composability of pure functional languages over OO (Henderson P. (1982). Functional Geometry. Proceedings of the 1982 ACM Symposium on LISP and Functional Programming.).
+One of the most compelling example to utilize pure functional programming is the reporting of Hudak (Hudak P., Jones M. (1994). Haskell vs. Ada vs. C++ vs. Awk vs. ... An Experiment in Software Prototyping Productivity. Department of Computer Science, Yale University.)  where in a prototyping contest of DARPA the Haskell prototype was by far the shortest with 85 lines of code. Also the Jury mistook the code as specification because the prototype did actually implement a small EDSL which is a perfect proof how close EDSL can get to and look like a specification.
 
 
-Monads
-Arrows
-Continuations
-% SUB TOPIC
-\subsubsection{FRP}
-TODO: why Yampa? There are lots of other FRP-libraries for Haskell. Reason: in-house knowledge (Nilsson, Perez), start with \textit{some} FRP-library to get familiar with the concept and see if FRP is applicable to ABS. TODO: short overview over other FRP-libraries but leave a in-depth evaluation for further-research out of the scope of the PhD as Yampa seems to be suitable. One exception: the extension of Yampa to Dunai to be able to do FRP in Monads, something which will be definitely useful for a better and clearer structuring of the implementation.
-TODO: Push vs. Pull
+\subsubsection{The usefulness of functional programming}
+basic usefulness and concepts of functional programming through classic papers. 
+TODO: read \cite{hughes_why_1989}
+TODO: read \cite{wadler_essence_1992}
+TODO: read \cite{hudak_haskell_1994}: pure functional haskell is extremely productive and code seems to look like specification 
 
-TODO: describe FRP
+The main conclusion of this classical paper is that \textit{modularity}, which is the key to successful programming, can be achieved best using higher-order functions and lazy evaluation provided in functional languages like Haskell. \cite{hughes_why_1989} argues that the ability to divide problems into sub-problems depends on the ability to glue the sub-problems together which depends strongly on the programming-language and \cite{hughes_why_1989} argues that in this ability functional languages are superior to structured programming.
 
-TODO: 1st year report Ivan: "FPR tries to shift the direction of data-flow, from message passing onto data dependency. This helps reason about what things are over time, as opposed to how changes propagate". QUESTION: Message-passing is an essential concept in ABS, thus is then FRP still the right way to do ABS or DO WE HAVE TO LOOK AT MESSAGE PASSING IN A DIFFERENT WAY IN FRP, TO VIEW AND MODEL IT AS DATA-DEPENDENCY? HOW CAN THIS BE DONE?
-BUT: agent-relations in interactions are NEVER FIXED and always completely dynamic, forming a network. The question is: is there a mechanism in which we have explicit data-dependency but which is dynamic like message-passing but does not try to fake method-calls? maybe the conversations come very close
+TODO: \cite{hudak_history_2007}
 
+\subsubsection{Functional Programming in ABS}
+Functional Programming in ABS
+STM Monads, Arrows, FRP, STM
+\cite{Bezirgiannis2013}
 
-FRP is a paradigm for programming hybrid systems which combine continuous and discrete components. Time is explicitly modelled: there is a continuous and synchronous time flow.  \\
+\cite{sulzmann_specifying_2007} present an EDSL for Haskell allowing to specify Agents using the BDI model. We don't focus on BDI or similar but want to rely much more on low-level basic messaging. We can also draw strong relations to Hoare's Communicating Sequential Processes (CSP), Milner's Calculus of Communicating Systems (CCS) and Pi-Calculus. By mapping the EDSL to CSP/CCS/Pi-Calculus we achieve to be able to algebraic reasoning in our EDSL. TODO: hasn't Agha done something similar in connecting Actors to the Pi-Calculus?
 
-there have been many attempts to implement FRP in frameworks which each has its own pro and contra. all started with fran, a domain specific language for graphics and animation and at yale FAL, Frob, Fvision and Fruit were developed. The ideas of them all have then culminated in Yampa which is the reason why it was chosen as the FRP framework. Also, compared to other frameworks it does not distinguish between discrete and synchronous time but leaves that to the user of the framework how the time flow should be sampled (e.g. if the sampling is discrete or continuous - of course sampling always happens at discrete times but when we speak about discrete sampling we mean that time advances in natural numbers: 1,2,3,4,... and when speaking of continuous sampling then time advances in fractions of the natural numbers where the difference between each step is a real number in the range of [0..1]) \\
+The amount of research on using the pure functional paradigm using Haskell in the field of ABS has been moderate so far. Most of the papers look into how agents can be specified using the belief-desire-intention paradigm \cite{de_jong_suitability_2014}, \cite{sulzmann_specifying_2007}, \cite{jankovic_functional_2007}.
+A library for Discrete Event Simulation (DES) and System Dynamics (SD) in Haskell called \textit{Aivika 3} is described in \cite{sorokin_aivika_2015}. It comes with very basic features for ABS but only allows to specify simple state-based agents with timed transitions.
+\cite{jankovic_functional_2007} discuss using functional programming for discrete event simulation (DES) and mention the paradigm of FRP to be very suitable to DES.
+The amount of research on using the pure functional paradigm using Haskell in the field of ABS has been moderate so far. Though there exist a few papers which look into Haskell and ABS \cite{de_jong_suitability_2014}, \cite{sulzmann_specifying_2007}, \cite{jankovic_functional_2007} they focus primarily on how to specify agents. A library for Discrete Event Simulation (DES) and System Dynamics (SD) in Haskell called \textit{Aivika 3} is described in \cite{sorokin_aivika_2015}. It also comes with very basic features for ABS but only allows to specify simple state-based agents with timed transitions. This papers is investigating Haskell in a different way by looking into its suitability in implementing update-strategies in ABS, something not looked at in the ABS community so far, presenting an original novelty.
 
-time- and space-leak: when a time-dependent computation falls behind the current time. TODO: give reason why and how this is solved through Yampa. \\
-Yampa solves this by not allowing signals as first-class values but only allowing signal functions which are signal transformers which can be viewed as a function that maps signals to signals. A signal function is of type SF which is abstract, thus it is not possible to build arbitrary signal functions. Yampa provides primitive signal functions to define more complex ones and utilizes arrows \cite{Hughes2004} to structure them where Yampa itself is built upon the arrows: SF is an instance of the Arrow class. \\
+\cite{schneider_towards_2012} and \cite{vendrov_frabjous:_2014} present a domain-specific language for developing functional reactive agent-based simulations. This language called FRABJOUS is very human readable and easily understandable by domain-experts. It is not directly implemented in FRP/Haskell/Yampa but is compiled to Haskell/Yampa code which they claim is also readable. This is the direction we want to head but we don't want this intermediate step but look for how a most simple domain-specific language embedded in Haskell would look like. We also don't touch upon FRP and Yampa yet but leave this to further research for another paper of ours.
 
-Fran, Frob and FAL made a significant distinction between continuous values and discrete signals. Yampas distinction between them is not as great. Yampas signal-functions can return an Event which makes them then to a signal-stream - the event is then similar to the Maybe type of Haskell: if the event does not signal then it is NoEvent but if it Signals it is Event with the given data. Thus the signal function always outputs something and thus care must be taken that the frequency of events should not exceed the sampling rate of the system (sampling the continuous time-flow). TODO: why? what happens if events occur more often than the sampling interval? will they disappear or will the show up every time? \\
+\cite{klugl_amason:_2013} TODO
 
-switches allow to change behaviour of signal functions when an event occurs. there are multiple types of switches: immediate or delayed, once-only and recurring - all of them can be combined thus making 4 types. It is important to note that time starts with 0 and does not continue the global time when a switch occurs. TODO: why was this decided? \\
+\cite{bezirgiannis_improving_2013} constructs two frameworks: an agent-modelling framework and a DES framework, both written in Haskell. They put special emphasis on parallel and concurrency in their work. The author develops two programs: HLogo which is a clone of the NetLogo agent-modelling framework and HDES, a framework for discrete event simulation - where in both implementations is the very strong emphasis on parallelism.  Here only the HLogo implementation is of interest as it is directly related to agent-based simulation. In this implementation the author claims to have implemented an EDSL which tries to be close to the language used for modelling in NetLogo (Logo) "which lifts certain restrictions of the original NetLogo implementation". Also the aim was to be "faster in most circumstances than NetLogo" and "utilizes many processor cores to speedup the execution of Agent Based Models". The author implements a primitive model of concurrent agents which implements a non-blocking concurrent execution of agents which report their results back to the calling agent in a non-blocking manner. The author mentions that a big issue of the implementation is that repeated runs with same inputs could lead to different results due to random event-orderings happening because of synchronization. The problem is that the author does not give a remedy for that and just accepts it as a fact. Of course it would be very difficult, if not impossible, to introduce determinism in an inherently concurrent execution model of agents which may be the reason the author does not even try. Unfortunately the example implementation the author uses for benchmarking is a very simplistic model: the basic pattern is that agent A sends to agent B and thats it - no complex interactions. Of course this lends itself very good to parallel/concurrent execution and does not need a sophisticated communication protocol. The work lacks a proper treatment of the agent-model presented with its advantages and disadvantages and is too sketchy although the author admits that is is just a proof of concept. \\
 
-\cite{Nilsson2002} give a good overview of Yampa and FRP. Quote: "The essential abstraction that our system captures is time flow". Two \textit{semantic} domains for progress of time: continuous and discrete. \\
+Tim Sweeney, CTO of Epic Games gave an invited talk about how "future programming languages could help us write better code" by "supplying stronger typing, reduce run-time failures;  and the need for pervasive concurrency support, both implicit and explicit, to effectively exploit the several forms of parallelism present in games and graphics." \cite{sweeney_next_2006}. Although the fields of games and agent-based simulations seem to be very different in the end, they have also very important similarities: both are simulations which perform numerical computations and update objects - in games they are called "game-objects" and in abm they are called agents but they are in fact the same thing - in a loop either concurrently or sequential. His key-points were:
 
-The first implementations of FRP (Fran) implemented FRP with synchronized stream processors which was also followed by \cite{Wan2000}. Yampa is but using continuations inspired by Fudgets. In the stream processors approach "signals are represented as time-stamped streams, and signal functions are just functions from streams to streams", where "the Stream type can be implemented directly as (lazy) list in Haskell...":
-\begin{lstlisting}[frame=single]
-type Time = Double
-type SP a b = Stream a -> Stream b
-newtype SF a b = SF (SP (Time, a) b)
-\end{lstlisting}
-Continuations on the other hand allow to freeze program-state e.g. through closures and partial applications in functions which can be continued later. This requires an indirection in the Signal-Functions which is introduced in Yampa in the following manner. 
-\begin{lstlisting}[frame=single]
-type DTime = Double
-
-data SF a b = 
-	SF { sfTF :: DTime -> a -> (SF a b, b)
-\end{lstlisting}
-The implementer of Yampa call a signal function in this implementation a \textit{transition function}. It takes the amount of time which has passed since the previous time step and the durrent input signal (a). It returns a \textit{continuation} of type SF a b determining the behaviour of the signal function on the next step (note that exactly this is the place where how one can introduce stateful functions like integral: one just returns a new function which encloses inputs from the previous time-step) and an \textit{output sample} of the current time-step. \\
-
-When visualizing a simulation one has in fact two flows of time: the one of the user-interface which always follows real-time flow, and the one of the simulation which could be sped up or slowed down. Thus it is important to note that if I/O of the user-interface (rendering, user-input) occurs within the simulations time-frame then the user-interfaces real-time flow becomes the limiting factor. Yampa provides the function embedSync which allows to embed a signal function within another one which is then run at a given ratio of the outer SF. This allows to give the simulation its own time-flow which is independent of the user-interface. \\
-
-One may be initially want to reject Yampa as being suitable for ABM/S because one is tempted to believe that due to its focus on continuous, time-changing signals, Yampa is only suitable for physical simulations modelled explicitly using mathematical formulas (integrals, differential equations,...) but that is not the case. Yampa has been used in multiple agent-based applications: \cite{Hudak2003} uses Yampa for implementing a robot-simulation, \cite{Courtney2003} implement the classical Space Invaders game using Yampa, the thesis of \cite{Meisinger2010} shows how Yampa can be used for implementing a Game-Engine, \cite{Frag2005} implemented a 3D first-person shooter game with the style of Quake 3 in Yampa. Note that although all these applications don't focus explicitly on agents and agent-based modelling / simulation all of them inherently deal with kinds of agents which share properties of classical agents: game-entities, robots,... Other fields in which Yampa was successfully used were programming of synthesizers (TODO: cite), Network Routers, Computer Music Development and various other computer-games. This leads to the conclusion that Yampa is mature, stable and suitable to be used in functional ABM/S. \\
-Jason Gregory (Game Engine Architecture) defines Computer-Games as "soft real-time interactive agent-based computer simulations".
-
-To conclude: when programming systems in Haskell and Yampa one describes the system in terms of signal functions in a declarative manner (functional programming) using the EDSL of Yampa. During execution the top level signal functions will then be evaluated and return new signal functions (transition functions) which act as continuations: "every signal function in the dataflow graph returns a new continuation at every time step".
-
-"A major design goal for FRP is to free the programmer from 'presentation' details by providing the ability to think in terms of 'modeling'. It is common that an FRP program is concise enough to also serve as a specification for the problem it solves" \cite{Wan2000}. This quotation describes exactly one of the strengths using FRP in ACE \\
-
-TODO: \cite{perez_functional_2016}
-
-\cite{Wan2000} discuss the semantic framework of FRP. Very difficult to understand and full of corollaries and theorems and proofs, have to study in depth at another time.
-
-\subsubsection{EDSL}
-EDSL steht für Embedded Domain Specific Language d.h. man implementiert in Haskell eine Art von 'Spezifikations-Sprache' für eine spezielle Domain (z.b. ABM/S), die - dank der rein funktionalen, deklarativen Natur von Haskell - auch gleichzeitig Haskell Code ist - der Unterschied zwischen Spezifikation und Implementierung verschwindet dann (idealserweise). In diese Richtung arbeite ich erst seit kurzem, durch die Umsetzung von ABS/M mit Yampa. Yampa ist ebenfalls eine EDSL um funktional-reaktive Systeme zu beschreiben/implementieren, ich werde auf dieser EDSL aufsetzen und sie um ABS/M erweitern - so zumindest der Plan. Dann habe ich die theoretische Grundlage von FRP, auf die ich dann auch theorie von ABS/M (z.b. Actor Semantics) setzen kann und somit zum nächsten Punkt komme:
-
-\cite{Henderson1982} gives a wonderful way of constructing an EDSL do denotationally construct an Escher-Picture.
-
-\subsubsection{A word on LISP}
-Nepi2 paper uses LISP
-homoiconicity for abs?
-
-\subsubsection{... and ABS} 
-NOTE: this chapter should be the very first implementation chapter as the approach of Haskell lays the very foundations for the functional approach by introducing the basic functional concepts
-
-So far the literature on agent-based modelling \& simulation (ABM/S) hasn't focused much on models for functional agents and is lacking a proper treatment of implementing agents in pure-functional languages like Haskell. This paper looks into how agents can be specified functionally and then be implemented properly in the pure functional language Haskell. The functional agent-model is inspired by wooldridge 2.6. The programming paradigm used to implement the agents in Haskell is functional reactive programming (FRP) where the Yampa framework will be used. The paper will show that specifying and implementing agents in a pure functional language like Haskell has many advantages over classical object-oriented, concurrent ones but needs also more careful considerations to work properly.
+\begin{itemize}
+\item Dependent types as the remedy of most of the run-time failures.
+\item Parallelism for numerical computation: these are pure functional algorithms, operate locally on mutable state. Haskell ST, STRef solution enables encapsulating local heaps and mutability within referentially transparent code.
+\item Updating game-objects (agents) concurrently using STM: update all objects concurrently in arbitrary order, with each update wrapped in atomic block - depends on collisions if performance goes up.
+\end{itemize}
 
 \cite{jankovic_functional_2007} discuss using functional programming for discrete event simulation (DES) and mention the paradigm of Functional Reactive Programming (FRP) to be very suitable to DES. We were aware of the existence of this paradigm and have experimented with it using the library Yampa, but decided to leave that topic to a side and really keep our implementation clear and very basic.
 
-The amount of research on using the pure functional paradigm using Haskell in the field of ABS has been moderate so far. Though there exist a few papers which look into Haskell and ABS \cite{de_jong_suitability_2014}, \cite{sulzmann_specifying_2007}, \cite{jankovic_functional_2007} they focus primarily on how to specify agents. A library for Discrete Event Simulation (DES) and System Dynamics (SD) in Haskell called \textit{Aivika 3} is described in \cite{sorokin_aivika_2015}. It also comes with very basic features for ABS but only allows to specify simple state-based agents with timed transitions. This papers is investigating Haskell in a different way by looking into its suitability in implementing update-strategies in ABS, something not looked at in the ABS community so far, presenting an original novelty.
+TODO: discuss \cite{schneider_towards_2012}
+TODO: discuss \cite{vendrov_frabjous:_2014}
+TODO: discuss \cite{sulzmann_specifying_2007}
+TODO: discuss \cite{jankovic_functional_2007}
+TODO: discuss \cite{de_jong_suitability_2014}
+TODO: discuss \cite{sorokin_aivika_2015}
+
+TODO: this seems all to be focused on MAS
+\url{http://haskell-distributed.github.io/wiki.html} looks good but too big and not well suited for simulations
+\url{https://code.google.com/archive/p/haskellactor/} makes heavy use of IORef and running in IO-Monad, something we deliberately want to avoid to keep the ability to reason about the program.
+TODO: \url{https://github.com/fizruk/free-agent} look into
+
+\subsubsection{Structuring Functional Programming}
+\paragraph{Monads}
+TODO: \cite{moggi_computational_1989}
+TODO: \cite{wadler_comprehending_1990}
+TODO: \cite{wadler_monads_1995}
+TODO: \cite{wadler_how_1997}
+
+\paragraph{Arrows}
+The main difference between Monads and Arrows are that where monadic computations are parameterized only over their output-type, Arrows computations are parametrised both over their input- and output-type thus making Arrows more general.
+
+"Just like monads, arrow types are useful for the additional operations they support, over and above those that every arrow provides."
+"In real applications an arrow often represents some kind of a process, with an input channel of type a, and an output channel of type b."
+
+TODO: \cite{hughes_generalising_2000}
+TODO: \cite{Hughes2004} -- cant find this reference anymore, maybe in print-outs?
+TODO: \cite{hughes_programming_2005}
+
+In the work \cite{Hughes2004} an example for the usage for Arrows is given in the field of circuit simulation. They use previously introduced streams to advance the simulation in discrete steps to calculate values of circuits thus the implementation is a form of \textit{discrete event simulation} - which is in the direction we are heading already with ABM/S. Also the paper mentions Yampa which is introduced in the section (TODO: reference) on functional reactive programming.
+
+\paragraph{FRP}
+Luxury of having the know-how in-house
+TODO \cite{courtney_yampa_2003}
+TODO \cite{nilsson_functional_2002}
+TODO \cite{hudak_arrows_2003}
+TODO \cite{mun_hon_functional_2005}
+TODO \cite{meisinger_game-engine-architektur_2010}
+TODO \cite{nilsson_declarative_2014}
+TODO \cite{perez_functional_2016}
+
+\subsubsection{EDSL}
+TODO: cite julie greensmith paper on haskell
+EDSL steht für Embedded Domain Specific Language d.h. man implementiert in Haskell eine Art von 'Spezifikations-Sprache' für eine spezielle Domain (z.b. ABM/S), die - dank der rein funktionalen, deklarativen Natur von Haskell - auch gleichzeitig Haskell Code ist - der Unterschied zwischen Spezifikation und Implementierung verschwindet dann (idealserweise). In diese Richtung arbeite ich erst seit kurzem, durch die Umsetzung von ABS/M mit Yampa. Yampa ist ebenfalls eine EDSL um funktional-reaktive Systeme zu beschreiben/implementieren, ich werde auf dieser EDSL aufsetzen und sie um ABS/M erweitern - so zumindest der Plan. Dann habe ich die theoretische Grundlage von FRP, auf die ich dann auch theorie von ABS/M (z.b. Actor Semantics) setzen kann und somit zum nächsten Punkt komme:
+
+\cite{henderson_functional_1982} gives a wonderful way of constructing an EDSL do denotationally construct an Escher-Picture.
+
+\subsubsection{Reasoning}
+TODO \cite{hutton_programming_2007}
+TODO \cite{claessen_quickcheck:_2000}
+
+\subsubsection{Foundations: Category-Theory}
+Category-Theory \cite{Pierce1991} \cite{spivak_category_2014}
+TODO: cite the 2 papers which i found on category-theory in ABS
+apply category theory to agent-based simulation: how can a ABS system itself be represented in category theory and can we represent models in this category theory as well?
+ADOM: Agent Domain of Monads: https://www.haskell.org/communities/11-2006/html/report.html
+develop category theory behind FrABS: look into monads, arrows
+
+\subsubsection{A final word on LISP}
+LISP the oldest functional programming language - why not considering it here?
+Nepi2 paper uses LISP
+homoiconicity for abs?

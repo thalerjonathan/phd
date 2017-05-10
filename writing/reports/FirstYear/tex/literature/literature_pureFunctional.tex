@@ -1,32 +1,25 @@
 \subsection{(Pure) Functional Programming}
-In his 1977 ACM Turing Award Lecture, Backus, one of the main contributors to Fortran, an imperative programming language, fundamentally critizied imperative programming for its deep flaws and proposed a functional style of programming to overcome the limitations of imperative programming \cite{backus_can_1978}. The main criticism is its use of \textit{state-transition with complex states} and the inherent semantics of state-manipulation. In the end an imperative program consists of a number of assign-statements resulting in side-effects and are thus \textit{history sensitive}: the order of execution matters.
-Backus proposes the so called \textit{applicative} computing, which he termes \textit{functional programming} which has its foundations in the lambda calculus \cite{church_calculi_1941}. The main idea 
+In his 1977 ACM Turing Award Lecture, Backus, one of the main contributors to Fortran, an imperative programming language, fundamentally critizied imperative programming for its deep flaws and proposed a functional style of programming to overcome the limitations of imperative programming \cite{backus_can_1978}. The main criticism is its use of \textit{state-transition with complex states} and the inherent semantics of state-manipulation. In the end an imperative program consists of a number of assign-statements resulting in side-effects on global mutable state which makes reasoning about programs nearly impossible. Backus proposes the so called \textit{applicative} computing, which he termes \textit{functional programming} which has its foundations in the lambda calculus \cite{church_calculi_1941}. The main idea behind it is that programming follows a declarative rather than an imperative style of programming: instead of describing \textit{how} something is computed, one describes \textit{what} is computed. The central concepts of functional programming are:
 
-Functional languages can best be characterized by their way computation works: instead of \textit{how} something is computed, \textit{what} is computed is described. Thus functional programming follows a declarative instead of an imperative style of programming. The key points are:
 \begin{itemize}
-\item No assignment statements - variables values can never change once given a value.
-\item Function calls have no side-effect and will only compute the results - this makes order of execution irrelevant, as due to the lack of side-effects the logical point in \textit{time} when the function is calculated within the program-execution does not matter.
-\item higher-order functions
-\item lazy evaluation
-\item Looping is achieved using recursion, mostly through the use of the general fold or the more specific map.
-\item Pattern-matching
+\item No assignment statements, variables, side-effects and (global) mutable state. This implies that function calls have no side-effect which makes order of execution irrelevant, as due to the lack of side-effects. 
+\item Simple core of function application, variable substitution and binding (basics of Lambda Calculus)
+\item Pattern matching 
+\item Recursion
 \end{itemize}
 
-The state-of-the-art approach to implementing Agents are object-oriented methods and programming as the metaphor of an Agent as presented above lends itself very naturally to object-orientation (OO). The author of this thesis claims that OO in the hands of inexperienced or ignorant programmers is dangerous, leading to bugs and hardly maintainable and extensible code. The reason for this is that OO provides very powerful techniques of organising and structuring programs through Classes, Type Hierarchies and Objects, which, when misused, lead to the above mentioned problems. Also major problems, which experts face as well as beginners are 1. state is highly scattered across the program which disguises the flow of data in complex simulations and 2. objects don’t compose as well as functions. The reason for this is that objects always carry around some internal state which makes it obviously much more complicated as complex dependencies can be introduced according to the internal state.
-All this is tackled by (pure) functional programming which abandons the concept of global state, Objects and Classes and makes data-flow explicit. This then allows to reason about correctness, termination and other properties of the program e.g. if a given function exhibits side-effects or not. Other benefits are fewer lines of code, easier maintainability and ultimately fewer bugs thus making functional programming the ideal choice for scientific computing and simulation and thus also for ACE. A very powerful feature of functional programming is Lazy evaluation. It allows to describe infinite data-structures and functions producing an infinite stream of output but which are only computed as currently needed. Thus the decision of how many is decoupled from how to (Hughes, J. (1989). Why functional programming matters. Comput. J., 32(2):98–107.).
-The most powerful aspect using pure functional programming however is that it allows the design of embedded domain specific languages (EDSL). In this case one develops and programs primitives e.g. types and functions in a host language (embed) in a way that they can be combined. The combination of these primitives then looks like a language specific to a given domain, in the case of this thesis ACE. The ease of development of EDSLs in pure functional programming is also a proof of the superior extensibility and composability of pure functional languages over OO (Henderson P. (1982). Functional Geometry. Proceedings of the 1982 ACM Symposium on LISP and Functional Programming.).
-One of the most compelling example to utilize pure functional programming is the reporting of Hudak (Hudak P., Jones M. (1994). Haskell vs. Ada vs. C++ vs. Awk vs. ... An Experiment in Software Prototyping Productivity. Department of Computer Science, Yale University.)  where in a prototyping contest of DARPA the Haskell prototype was by far the shortest with 85 lines of code. Also the Jury mistook the code as specification because the prototype did actually implement a small EDSL which is a perfect proof how close EDSL can get to and look like a specification.
-
-
 \subsubsection{The usefulness of functional programming}
-basic usefulness and concepts of functional programming through classic papers. 
-TODO: read \cite{hughes_why_1989}
 TODO: read \cite{wadler_essence_1992}
-TODO: read \cite{hudak_haskell_1994}: pure functional haskell is extremely productive and code seems to look like specification 
 
+TODO: read \cite{hudak_haskell_1994}: pure functional haskell is extremely productive and code seems to look like specification 
+One of the most compelling example to utilize pure functional programming is the reporting of \cite{hudak_haskell_1994} where in a prototyping contest of DARPA the Haskell prototype was by far the shortest with 85 lines of code. Also the Jury mistook the code as specification because the prototype did actually implement a small EDSL which is a perfect proof how close EDSL can get to and look like a specification.
+
+TODO: read \cite{hughes_why_1989}
 The main conclusion of this classical paper is that \textit{modularity}, which is the key to successful programming, can be achieved best using higher-order functions and lazy evaluation provided in functional languages like Haskell. \cite{hughes_why_1989} argues that the ability to divide problems into sub-problems depends on the ability to glue the sub-problems together which depends strongly on the programming-language and \cite{hughes_why_1989} argues that in this ability functional languages are superior to structured programming.
+A very powerful feature of functional programming is Lazy evaluation. It allows to describe infinite data-structures and functions producing an infinite stream of output but which are only computed as currently needed. Thus the decision of how many is decoupled from how to.
 
 TODO: \cite{hudak_history_2007}
+propose haskell
 
 \subsubsection{Functional Programming in ABS}
 Functional Programming in ABS
@@ -55,13 +48,6 @@ Tim Sweeney, CTO of Epic Games gave an invited talk about how "future programmin
 \end{itemize}
 
 \cite{jankovic_functional_2007} discuss using functional programming for discrete event simulation (DES) and mention the paradigm of Functional Reactive Programming (FRP) to be very suitable to DES. We were aware of the existence of this paradigm and have experimented with it using the library Yampa, but decided to leave that topic to a side and really keep our implementation clear and very basic.
-
-TODO: discuss \cite{schneider_towards_2012}
-TODO: discuss \cite{vendrov_frabjous:_2014}
-TODO: discuss \cite{sulzmann_specifying_2007}
-TODO: discuss \cite{jankovic_functional_2007}
-TODO: discuss \cite{de_jong_suitability_2014}
-TODO: discuss \cite{sorokin_aivika_2015}
 
 TODO: this seems all to be focused on MAS
 \url{http://haskell-distributed.github.io/wiki.html} looks good but too big and not well suited for simulations
@@ -101,7 +87,7 @@ TODO \cite{perez_functional_2016}
 TODO: cite julie greensmith paper on haskell
 EDSL steht für Embedded Domain Specific Language d.h. man implementiert in Haskell eine Art von 'Spezifikations-Sprache' für eine spezielle Domain (z.b. ABM/S), die - dank der rein funktionalen, deklarativen Natur von Haskell - auch gleichzeitig Haskell Code ist - der Unterschied zwischen Spezifikation und Implementierung verschwindet dann (idealserweise). In diese Richtung arbeite ich erst seit kurzem, durch die Umsetzung von ABS/M mit Yampa. Yampa ist ebenfalls eine EDSL um funktional-reaktive Systeme zu beschreiben/implementieren, ich werde auf dieser EDSL aufsetzen und sie um ABS/M erweitern - so zumindest der Plan. Dann habe ich die theoretische Grundlage von FRP, auf die ich dann auch theorie von ABS/M (z.b. Actor Semantics) setzen kann und somit zum nächsten Punkt komme:
 
-\cite{henderson_functional_1982} gives a wonderful way of constructing an EDSL do denotationally construct an Escher-Picture.
+The most powerful aspect using pure functional programming however is that it allows the design of embedded domain specific languages (EDSL). In this case one develops and programs primitives e.g. types and functions in a host language (embed) in a way that they can be combined. The combination of these primitives then looks like a language specific to a given domain, in the case of this thesis ACE. The ease of development of EDSLs in pure functional programming is also a proof of the superior extensibility and composability of pure functional languages over OO. \cite{henderson_functional_1982} gives a wonderful way of constructing an EDSL do denotationally construct an Escher-Picture.
 
 \subsubsection{Reasoning}
 TODO \cite{hutton_programming_2007}

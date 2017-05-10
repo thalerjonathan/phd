@@ -11,6 +11,8 @@ As emphasised in the literature-review, not research was found on using process-
 
 This leads us to pure functional programming with FRP which combines all the benefits: local memory, messages, switching of behaviour, algebraic reasoning, static typesystem
 
+By the literature-review it seems that all the problems of object-oriented programming (as it is done in Java and C++) mentioned in the introduction, can be solved by (pure) functional programming which abandons the concept of global state, Objects and Classes and makes data-flow explicit. This then allows to reason about correctness, termination and other properties of the program e.g. if a given function exhibits side-effects or not. Other benefits are fewer lines of code, easier maintainability and ultimately fewer bugs thus making functional programming the ideal choice for scientific computing and simulation and thus also for ACE.
+
 \section{Actor Model}
 upside: extreme huge number of agnets possible due to distributed and parallel technology 
 downside: depends on system \& hardware: scheduler, system time, systime resolution (not very nice for scientific computation), much more complicated, debugging difficult due to concurrency, no global notion of time appart from systemtime, thus always runs in real-time, but there is no global notion of time in the actor model anyway, no EDSL full of technical details, no determinism, no reasoning

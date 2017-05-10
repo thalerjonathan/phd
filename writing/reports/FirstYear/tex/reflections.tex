@@ -7,6 +7,8 @@ Thread of argumentation: actor model is nice but for the kind of simulation we w
 process calculi are nice for algebraic reasoning but are too cumbersome and not feasible for real, complex ABS. they may be of use for verification \& validation later on of small, critical parts of the ABS-communication which can be mapped to e.g. the pi-calculus and then apply algebraic reasoning.
 the concept of homoiconicity of LISP seems to be very interesting and powerful to apply to ABS but an agent-based model where this extremely powerful technique can be applied is lacking. Also it is clear that when using this technique verification and validation becomes immensely more difficult, if not even impossible. Thus we refrain from LISP and its homoiconicity and look for something more structured, static and not as dynamic.
 
+As emphasised in the literature-review, not research was found on using process-calculi in the field of ABS. Although we can reason that if the $\pi$-calculus can be used to specifying and reasoning about MAS then it should be possible to do so for ABS or parts of it. There exists also a connection from the actor-model to process calculi \cite{agha_foundation_1997}, which strengthen our argument. 
+
 This leads us to pure functional programming with FRP which combines all the benefits: local memory, messages, switching of behaviour, algebraic reasoning, static typesystem
 
 \section{Actor Model}

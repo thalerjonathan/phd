@@ -1,14 +1,17 @@
 \subsection{(Pure) Functional Programming}
-In his 1977 ACM Turing Award Lecture, Backus, one of the main contributors to Fortran, an imperative programming language, fundamentally critizied imperative programming for its deep flaws and proposed a functional style of programming to overcome the limitations of imperative programming \cite{backus_can_1978}. The main criticism is its use of \textit{state-transition with complex states} and the inherent semantics of state-manipulation. In the end an imperative program consists of a number of assign-statements resulting in side-effects on global mutable state which makes reasoning about programs nearly impossible. Backus proposes the so called \textit{applicative} computing, which he termes \textit{functional programming} which has its foundations in the lambda calculus \cite{church_calculi_1941}. The main idea behind it is that programming follows a declarative rather than an imperative style of programming: instead of describing \textit{how} something is computed, one describes \textit{what} is computed. The central concepts of functional programming are:
+In his 1977 ACM Turing Award Lecture, John Backus, one of the giants of Computer Science and a main contributor to Fortran, an imperative programming language, fundamentally critizied imperative programming for its deep flaws and proposed a functional style of programming to overcome the limitations of imperative programming \cite{backus_can_1978}. The main criticism is its use of \textit{state-transition with complex states} and the inherent semantics of state-manipulation. In the end an imperative program consists of a number of assign-statements resulting in side-effects on global mutable state which makes reasoning about programs nearly impossible. Backus proposes the so called \textit{applicative} computing, which he termes \textit{functional programming} which has its foundations in the Lambda Calculus \cite{church_calculi_1941}. The main idea behind it is that programming follows a declarative rather than an imperative style of programming: instead of describing \textit{how} something is computed, one describes \textit{what} is computed. This concept abandons variables, side-effects and (global) mutable state and resorts to the simple core of function application, variable substitution and binding of the Lambda Calculus. Although possible and an important step to understand the very foundations, one does not do functional programming in the Lambda Calculus \cite{michaelson_introduction_2011}, as one does not do imperative programming in a Turing Machine. 
+In our thesis we opt for Haskell as our choice for a functional programming language and deliberately ignored other functional languages \footnote{We did a bit of research using Scala (a mixed paradigm functional language) in ABS (see Appendix B) but it is completely out-of-scope of this thesis to do an in-depth comparison of functional languages for their suitability to implement ABS.}. The paper of \cite{hudak_history_2007} gives a comprehensive overview over the history of the language, how it developed and its features and is very interesting to read and get accustomed to the background of the language. A widely used introduction to programming in Haskell which is regarded as being one is \cite{hutton_programming_2016}. The main points why we decided to go for Haskell are
 
 \begin{itemize}
-\item No assignment statements, variables, side-effects and (global) mutable state. This implies that function calls have no side-effect which makes order of execution irrelevant, as due to the lack of side-effects. 
-\item Simple core of function application, variable substitution and binding (basics of Lambda Calculus)
-\item Pattern matching 
-\item Recursion
+	\item Pure, Lazy, Higher-Order and Static Typing - these are the most important points for the decision as they form the very foundation for composition, correctness, reasoning and verification. 
+	\item Real-World applications - The strength of Haskell has been proven through a vast amount of highly diverse real-world applications \footnote{\url{https://wiki.haskell.org/Applications_and_libraries}}
+	\item Modern - Haskell is constantly evolving through its community and adapting to keep up with the fast changing field of computer science e.g. parallelism \& concurrency.
+	\item In-house knowledge - The School of Computer Science of the University of Nottingham has a large amount of in-house knowledge in Haskell which can be put to use and leveraged in my thesis.
 \end{itemize}
 
-\subsubsection{The usefulness of functional programming}
+It seems that we are on the right track with pure functional programming in answering the questions in the motivation as it promises to solve all the issues raised in these questions. We will now investigate by looking into relevant literature if this is really the case.
+
+\subsubsection{Strengths}
 TODO: read \cite{wadler_essence_1992}
 
 TODO: read \cite{hudak_haskell_1994}: pure functional haskell is extremely productive and code seems to look like specification 
@@ -18,10 +21,10 @@ TODO: read \cite{hughes_why_1989}
 The main conclusion of this classical paper is that \textit{modularity}, which is the key to successful programming, can be achieved best using higher-order functions and lazy evaluation provided in functional languages like Haskell. \cite{hughes_why_1989} argues that the ability to divide problems into sub-problems depends on the ability to glue the sub-problems together which depends strongly on the programming-language and \cite{hughes_why_1989} argues that in this ability functional languages are superior to structured programming.
 A very powerful feature of functional programming is Lazy evaluation. It allows to describe infinite data-structures and functions producing an infinite stream of output but which are only computed as currently needed. Thus the decision of how many is decoupled from how to.
 
-TODO: \cite{hudak_history_2007}
-propose haskell
+\subsubsection{Weaknesses}
+TODO: look for relevant literature, also required for  supervision-meeting
 
-\subsubsection{Functional Programming in ABS}
+\subsubsection{ABS}
 Functional Programming in ABS
 STM Monads, Arrows, FRP, STM
 \cite{Bezirgiannis2013}
@@ -54,7 +57,7 @@ TODO: this seems all to be focused on MAS
 \url{https://code.google.com/archive/p/haskellactor/} makes heavy use of IORef and running in IO-Monad, something we deliberately want to avoid to keep the ability to reason about the program.
 TODO: \url{https://github.com/fizruk/free-agent} look into
 
-\subsubsection{Structuring Functional Programming}
+\subsubsection{Composition}
 \paragraph{Monads}
 TODO: \cite{moggi_computational_1989}
 TODO: \cite{wadler_comprehending_1990}
@@ -93,7 +96,7 @@ The most powerful aspect using pure functional programming however is that it al
 TODO \cite{hutton_programming_2007}
 TODO \cite{claessen_quickcheck:_2000}
 
-\subsubsection{Foundations: Category-Theory}
+\subsubsection{Foundations in Category-Theory}
 Category-Theory \cite{Pierce1991} \cite{spivak_category_2014}
 TODO: cite the 2 papers which i found on category-theory in ABS
 apply category theory to agent-based simulation: how can a ABS system itself be represented in category theory and can we represent models in this category theory as well?
@@ -101,6 +104,4 @@ ADOM: Agent Domain of Monads: https://www.haskell.org/communities/11-2006/html/r
 develop category theory behind FrABS: look into monads, arrows
 
 \subsubsection{A final word on LISP}
-LISP the oldest functional programming language - why not considering it here?
-Nepi2 paper uses LISP
-homoiconicity for abs?
+Being the oldest functional programming language and the 2nd oldest high-level programming language ever created, at one point we considered using LISP in our research due to its immensely powerful feature of homoiconicity. The idea was to investigate if this could be made useful for ABS and bring it to a new level. We abandoned this quickly as it would have led to a total different approach and would have definitely not solved the issues the questions raised in the introduction. TODO cite Nepi2 paper, it uses LISP

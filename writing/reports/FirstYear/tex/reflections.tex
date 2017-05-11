@@ -13,6 +13,38 @@ This leads us to pure functional programming with FRP which combines all the ben
 
 By the literature-review it seems that all the problems of object-oriented programming (as it is done in Java and C++) mentioned in the introduction, can be solved by (pure) functional programming which abandons the concept of global state, Objects and Classes and makes data-flow explicit. This then allows to reason about correctness, termination and other properties of the program e.g. if a given function exhibits side-effects or not. Other benefits are fewer lines of code, easier maintainability and ultimately fewer bugs thus making functional programming the ideal choice for scientific computing and simulation and thus also for ACE.
 
+\section{Pure Functional Programming}
+why pure functional programming? what are its strengths? why does it overcome the problems? what are possible problems when doing it pure functional instead of oop?
+
+\subsection{Strengths}
+\begin{itemize}
+	\item Pure - explicit about effects
+	\item Composability 
+	\item EDSL
+	\item Reasoning
+	\item Correctness
+\end{itemize}
+
+
+\subsection{Weaknesses}
+Here we give an overview of the weaknesses and problems of pure, lazy functional programming in Haskell.
+
+\paragraph{Space-Leaks}
+The main issue in a lazy functional programming language is the difficulty of predicting space behaviour, which is very hard even for experienced programmers \cite{hudak_history_2007}. The problem arises from the fact, that Haskell abstracts away from evaluation order and object lifetimes. Programmers have no way to determine which data-structures live for how long - indeed they don't want and should not be bothered to think about these details as this would violate the whole concept behind pure lazyness \cite{hudak_history_2007}.
+
+\paragraph{Debugging}
+Due to the lazy evaluation and non-imperative programming style it becomes apparent that debugging needs to be approached completely different than in imperative programming where one can freely set breakpoints to statements and inspect data. This is not possible in Haskell as there are no imperative statements and the data may have not been evaluated yet due to the unpredictable evaluation order as mentioned already in the space-leak problem.
+
+\paragraph{Performance}
+Due to the lack of side-effects and aliasing, efficient in-order updates of memory is not as easily possible as in imperative languages like C thus real-time applications like Games which have a big global mutable state run much slower compared to its imperative implementations.
+TODO: check if these references really support my argument \cite{mun_hon_functional_2005}, \cite{meisinger_game-engine-architektur_2010} - The works on game-programming in Yampa mention a similar problem (FRP-section).
+
+\paragraph{Monad composition}
+Monads do not compose in a nice, modular way and this issue is still open research \cite{hudak_history_2007}. TODO: is this still the case?
+
+
+
+
 \section{Actor Model}
 upside: extreme huge number of agnets possible due to distributed and parallel technology 
 downside: depends on system \& hardware: scheduler, system time, systime resolution (not very nice for scientific computation), much more complicated, debugging difficult due to concurrency, no global notion of time appart from systemtime, thus always runs in real-time, but there is no global notion of time in the actor model anyway, no EDSL full of technical details, no determinism, no reasoning

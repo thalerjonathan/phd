@@ -8,7 +8,7 @@ import Conversation.ConversationRun
 import MessageSampling.MessageSamplingRun
 
 main :: IO ()
-main = runSegWithRendering
+main = runSIRSWithRendering
 
     -- runMessageSamplingAndPrint
     -- runConversationStepsAndPrint

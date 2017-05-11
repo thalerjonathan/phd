@@ -1,28 +1,29 @@
 \subsection{(Pure) Functional Programming}
 In his 1977 ACM Turing Award Lecture, John Backus, one of the giants of Computer Science and a main contributor to Fortran, an imperative programming language, fundamentally critizied imperative programming for its deep flaws and proposed a functional style of programming to overcome the limitations of imperative programming \cite{backus_can_1978}. The main criticism is its use of \textit{state-transition with complex states} and the inherent semantics of state-manipulation. In the end an imperative program consists of a number of assign-statements resulting in side-effects on global mutable state which makes reasoning about programs nearly impossible. Backus proposes the so called \textit{applicative} computing, which he termes \textit{functional programming} which has its foundations in the Lambda Calculus \cite{church_calculi_1941}. The main idea behind it is that programming follows a declarative rather than an imperative style of programming: instead of describing \textit{how} something is computed, one describes \textit{what} is computed. This concept abandons variables, side-effects and (global) mutable state and resorts to the simple core of function application, variable substitution and binding of the Lambda Calculus. Although possible and an important step to understand the very foundations, one does not do functional programming in the Lambda Calculus \cite{michaelson_introduction_2011}, as one does not do imperative programming in a Turing Machine. 
-In our thesis we opt for Haskell as our choice for a functional programming language and deliberately ignored other functional languages \footnote{We did a bit of research using Scala (a mixed paradigm functional language) in ABS (see Appendix B) but it is completely out-of-scope of this thesis to do an in-depth comparison of functional languages for their suitability to implement ABS.}. The paper of \cite{hudak_history_2007} gives a comprehensive overview over the history of the language, how it developed and its features and is very interesting to read and get accustomed to the background of the language. A widely used introduction to programming in Haskell which is regarded as being one is \cite{hutton_programming_2016}. The main points why we decided to go for Haskell are
+In our thesis we opt for Haskell as our choice for a functional programming language and deliberately ignored other functional languages \footnote{We did a bit of research using Scala (a mixed paradigm functional language) in ABS (see Appendix B) but it is completely out-of-scope of this thesis to do an in-depth comparison of functional languages for their suitability to implement ABS.}. The paper of \cite{hudak_history_2007} gives a comprehensive overview over the history of the language, how it developed and its features and is very interesting to read and get accustomed to the background of the language. A widely used introduction to programming in Haskell is \cite{hutton_programming_2016}. The main points why we decided to go for Haskell are
 
 \begin{itemize}
 	\item Pure, Lazy, Higher-Order and Static Typing - these are the most important points for the decision as they form the very foundation for composition, correctness, reasoning and verification. 
-	\item Real-World applications - The strength of Haskell has been proven through a vast amount of highly diverse real-world applications \footnote{\url{https://wiki.haskell.org/Applications_and_libraries}}
+	\item Real-World applications - The strength of Haskell has been proven through a vast amount of highly diverse real-world applications \footnote{\url{https://wiki.haskell.org/Applications_and_libraries}} \cite{hudak_history_2007}.
 	\item Modern - Haskell is constantly evolving through its community and adapting to keep up with the fast changing field of computer science e.g. parallelism \& concurrency.
 	\item In-house knowledge - The School of Computer Science of the University of Nottingham has a large amount of in-house knowledge in Haskell which can be put to use and leveraged in my thesis.
 \end{itemize}
 
-It seems that we are on the right track with pure functional programming in answering the questions in the motivation as it promises to solve all the issues raised in these questions. We will now investigate by looking into relevant literature if this is really the case.
-
-\subsubsection{Strengths}
-TODO: read \cite{wadler_essence_1992}
-
-TODO: read \cite{hudak_haskell_1994}: pure functional haskell is extremely productive and code seems to look like specification 
-One of the most compelling example to utilize pure functional programming is the reporting of \cite{hudak_haskell_1994} where in a prototyping contest of DARPA the Haskell prototype was by far the shortest with 85 lines of code. Also the Jury mistook the code as specification because the prototype did actually implement a small EDSL which is a perfect proof how close EDSL can get to and look like a specification.
+It seems that we are on the right track with pure functional programming in answering the questions in the motivation as it promises to solve all the issues raised in these questions. We will now investigate by looking into relevant literature if this is really the case. 
 
 TODO: read \cite{hughes_why_1989}
 The main conclusion of this classical paper is that \textit{modularity}, which is the key to successful programming, can be achieved best using higher-order functions and lazy evaluation provided in functional languages like Haskell. \cite{hughes_why_1989} argues that the ability to divide problems into sub-problems depends on the ability to glue the sub-problems together which depends strongly on the programming-language and \cite{hughes_why_1989} argues that in this ability functional languages are superior to structured programming.
 A very powerful feature of functional programming is Lazy evaluation. It allows to describe infinite data-structures and functions producing an infinite stream of output but which are only computed as currently needed. Thus the decision of how many is decoupled from how to.
 
-\subsubsection{Weaknesses}
-TODO: look for relevant literature, also required for  supervision-meeting
+TODO: read \cite{wadler_essence_1992}
+
+TODO: read \cite{hudak_haskell_1994}: pure functional haskell is extremely productive and code seems to look like specification 
+One of the most compelling example to utilize pure functional programming is the reporting of \cite{hudak_haskell_1994} where in a prototyping contest of DARPA the Haskell prototype was by far the shortest with 85 lines of code. Also the Jury mistook the code as specification because the prototype did actually implement a small EDSL which is a perfect proof how close EDSL can get to and look like a specification.
+It seems that one of the very powerful aspects of using pure functional programming is that it allows the design of embedded domain specific languages (EDSL). In this case one develops and programs primitives e.g. types and functions in a host language (embed) in a way that they can be combined. The combination of these primitives then looks like a language specific to a given domain, in the case of this thesis ACE. The ease of development of EDSLs in pure functional programming is also a proof of the superior extensibility and composability of pure functional languages over OO. \cite{henderson_functional_1982} gives a wonderful way of constructing an EDSL do denotationally construct an Escher-Picture. This is the direction we will be heading for our quest for verification and closing the gap between specification and implementation
+ 
+TODO \cite{hutton_programming_2007}
+TODO \cite{claessen_quickcheck:_2000} and \cite{claessen_testing_2002}: testing against a specification which is formulated in an EDSL built on QuickCheck and the EDSL of the domain to test itself: one tests code by writing formal specifications. this is the very essence of verification
+
 
 \subsubsection{ABS}
 Functional Programming in ABS
@@ -57,8 +58,21 @@ TODO: this seems all to be focused on MAS
 \url{https://code.google.com/archive/p/haskellactor/} makes heavy use of IORef and running in IO-Monad, something we deliberately want to avoid to keep the ability to reason about the program.
 TODO: \url{https://github.com/fizruk/free-agent} look into
 
-\subsubsection{Composition}
+\subsubsection{Functional Reactive Programming}
+From the section on functional programming in ABS it becomes clear that the most promising approach for implementing ABS in Haskell is the one of Functional Reactive Programming (FRP). 
+
+Luxury of having the know-how in-house
+TODO \cite{courtney_yampa_2003}
+TODO \cite{nilsson_functional_2002}
+TODO \cite{hudak_arrows_2003}
+TODO \cite{mun_hon_functional_2005}
+TODO \cite{meisinger_game-engine-architektur_2010}
+TODO \cite{nilsson_declarative_2014}
+TODO \cite{perez_functional_2016}
+
 \paragraph{Monads}
+The IO-monad encapsulates implicit globally mutable state and provides effectful operations which can change this globally mutable state. 
+
 TODO: \cite{moggi_computational_1989}
 TODO: \cite{wadler_comprehending_1990}
 TODO: \cite{wadler_monads_1995}
@@ -76,26 +90,6 @@ TODO: \cite{hughes_programming_2005}
 
 In the work \cite{Hughes2004} an example for the usage for Arrows is given in the field of circuit simulation. They use previously introduced streams to advance the simulation in discrete steps to calculate values of circuits thus the implementation is a form of \textit{discrete event simulation} - which is in the direction we are heading already with ABM/S. Also the paper mentions Yampa which is introduced in the section (TODO: reference) on functional reactive programming.
 
-\paragraph{FRP}
-Luxury of having the know-how in-house
-TODO \cite{courtney_yampa_2003}
-TODO \cite{nilsson_functional_2002}
-TODO \cite{hudak_arrows_2003}
-TODO \cite{mun_hon_functional_2005}
-TODO \cite{meisinger_game-engine-architektur_2010}
-TODO \cite{nilsson_declarative_2014}
-TODO \cite{perez_functional_2016}
-
-\subsubsection{EDSL}
-TODO: cite julie greensmith paper on haskell
-EDSL steht für Embedded Domain Specific Language d.h. man implementiert in Haskell eine Art von 'Spezifikations-Sprache' für eine spezielle Domain (z.b. ABM/S), die - dank der rein funktionalen, deklarativen Natur von Haskell - auch gleichzeitig Haskell Code ist - der Unterschied zwischen Spezifikation und Implementierung verschwindet dann (idealserweise). In diese Richtung arbeite ich erst seit kurzem, durch die Umsetzung von ABS/M mit Yampa. Yampa ist ebenfalls eine EDSL um funktional-reaktive Systeme zu beschreiben/implementieren, ich werde auf dieser EDSL aufsetzen und sie um ABS/M erweitern - so zumindest der Plan. Dann habe ich die theoretische Grundlage von FRP, auf die ich dann auch theorie von ABS/M (z.b. Actor Semantics) setzen kann und somit zum nächsten Punkt komme:
-
-The most powerful aspect using pure functional programming however is that it allows the design of embedded domain specific languages (EDSL). In this case one develops and programs primitives e.g. types and functions in a host language (embed) in a way that they can be combined. The combination of these primitives then looks like a language specific to a given domain, in the case of this thesis ACE. The ease of development of EDSLs in pure functional programming is also a proof of the superior extensibility and composability of pure functional languages over OO. \cite{henderson_functional_1982} gives a wonderful way of constructing an EDSL do denotationally construct an Escher-Picture.
-
-\subsubsection{Reasoning}
-TODO \cite{hutton_programming_2007}
-TODO \cite{claessen_quickcheck:_2000}
-
 \subsubsection{Foundations in Category-Theory}
 Category-Theory \cite{Pierce1991} \cite{spivak_category_2014}
 TODO: cite the 2 papers which i found on category-theory in ABS
@@ -104,4 +98,4 @@ ADOM: Agent Domain of Monads: https://www.haskell.org/communities/11-2006/html/r
 develop category theory behind FrABS: look into monads, arrows
 
 \subsubsection{A final word on LISP}
-Being the oldest functional programming language and the 2nd oldest high-level programming language ever created, at one point we considered using LISP in our research due to its immensely powerful feature of homoiconicity. The idea was to investigate if this could be made useful for ABS and bring it to a new level. We abandoned this quickly as it would have led to a total different approach and would have definitely not solved the issues the questions raised in the introduction. TODO cite Nepi2 paper, it uses LISP
+Being the oldest functional programming language and the 2nd oldest high-level programming language ever created, at one point we considered using LISP in our research due to its immensely powerful feature of homoiconicity. The idea was to investigate if this could be made useful for ABS and bring it to a new level. We abandoned this quickly as it would have led to a total different approach. Besides, it would have definitely not solved the issues the questions raised in the introduction because of its imperative nature. Still there exists a paper \cite{kawabe_nepi2programming_2000} which implements a MAS in LISP.

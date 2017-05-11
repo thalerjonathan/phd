@@ -678,7 +678,7 @@ agentDeathHandleCredits a = aNotifiedBorrowers
         borrowerIds = sugAgLendingCredits s
         
         aNotifiedLenders = broadcastMessage a CreditBorrowerDied lenderIds
-        aNotifiedBorrowers = broadcastMessage aNotifiedLenders CreditLenderDied lenderIds
+        aNotifiedBorrowers = broadcastMessage aNotifiedLenders CreditLenderDied borrowerIds
 
 agentCreditDeathIncoming :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
 agentCreditDeathIncoming ain a = onMessage creditDeathMatch ain creditDeathAction a

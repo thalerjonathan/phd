@@ -1,4 +1,6 @@
-\subsection{(Pure) Functional Programming}
+\section{(Pure) Functional Programming}
+TODO: this is an oo alternative
+
 In his 1977 ACM Turing Award Lecture, John Backus, one of the giants of Computer Science and a main contributor to Fortran, an imperative programming language, fundamentally critizied imperative programming for its deep flaws and proposed a functional style of programming to overcome the limitations of imperative programming \cite{backus_can_1978}. The main criticism is its use of \textit{state-transition with complex states} and the inherent semantics of state-manipulation. In the end an imperative program consists of a number of assign-statements resulting in side-effects on global mutable state which makes reasoning about programs nearly impossible. Backus proposes the so called \textit{applicative} computing, which he termes \textit{functional programming} which has its foundations in the Lambda Calculus \cite{church_calculi_1941}. The main idea behind it is that programming follows a declarative rather than an imperative style of programming: instead of describing \textit{how} something is computed, one describes \textit{what} is computed. This concept abandons variables, side-effects and (global) mutable state and resorts to the simple core of function application, variable substitution and binding of the Lambda Calculus. Although possible and an important step to understand the very foundations, one does not do functional programming in the Lambda Calculus \cite{michaelson_introduction_2011}, as one does not do imperative programming in a Turing Machine. 
 In our thesis we opt for Haskell as our choice for a functional programming language and deliberately ignored other functional languages \footnote{We did a bit of research using Scala (a mixed paradigm functional language) in ABS (see Appendix B) but it is completely out-of-scope of this thesis to do an in-depth comparison of functional languages for their suitability to implement ABS.}. The paper of \cite{hudak_history_2007} gives a comprehensive overview over the history of the language, how it developed and its features and is very interesting to read and get accustomed to the background of the language. A widely used introduction to programming in Haskell is \cite{hutton_programming_2016}. The main points why we decided to go for Haskell are
 
@@ -14,6 +16,25 @@ It seems that we are on the right track with pure functional programming in answ
 The main conclusion of the classical paper \cite{hughes_why_1989} is that \textit{modularity}, which is the key to successful programming, can be achieved best using higher-order functions and lazy evaluation provided in functional languages like Haskell. \cite{hughes_why_1989} argues that the ability to divide problems into sub-problems depends on the ability to glue the sub-problems together which depends strongly on the programming-language and \cite{hughes_why_1989} argues that in this ability functional languages are superior to structured programming due to laziness and higher-order functions. A very powerful feature of functional programming is Lazy evaluation. It allows to describe infinite data-structures and functions producing an infinite stream of output but which are only computed as currently needed. Thus the decision of \textit{how many} is decoupled from \textit{how to} .
 
 TODO: read \cite{wadler_essence_1992}
+The IO-monad encapsulates implicit globally mutable state and provides effectful operations which can change this globally mutable state. 
+
+TODO: \cite{moggi_computational_1989}
+TODO: \cite{wadler_comprehending_1990}
+TODO: \cite{wadler_monads_1995}
+TODO: \cite{wadler_how_1997}
+
+\paragraph{Arrows}
+The main difference between Monads and Arrows are that where monadic computations are parameterized only over their output-type, Arrows computations are parametrised both over their input- and output-type thus making Arrows more general.
+
+"Just like monads, arrow types are useful for the additional operations they support, over and above those that every arrow provides."
+"In real applications an arrow often represents some kind of a process, with an input channel of type a, and an output channel of type b."
+
+TODO: \cite{hughes_generalising_2000}
+TODO: \cite{Hughes2004} -- cant find this reference anymore, maybe in print-outs?
+TODO: \cite{hughes_programming_2005}
+
+In the work \cite{Hughes2004} an example for the usage for Arrows is given in the field of circuit simulation. They use previously introduced streams to advance the simulation in discrete steps to calculate values of circuits thus the implementation is a form of \textit{discrete event simulation} - which is in the direction we are heading already with ABM/S. Also the paper mentions Yampa which is introduced in the section (TODO: reference) on functional reactive programming.
+
 
 TODO: read \cite{hudak_haskell_1994}: pure functional haskell is extremely productive and code seems to look like specification 
 One of the most compelling example to utilize pure functional programming is the reporting of \cite{hudak_haskell_1994} where in a prototyping contest of DARPA the Haskell prototype was by far the shortest with 85 lines of code. Also the Jury mistook the code as specification because the prototype did actually implement a small EDSL which is a perfect proof how close EDSL can get to and look like a specification.
@@ -23,7 +44,7 @@ TODO \cite{hutton_programming_2007}
 TODO \cite{claessen_quickcheck:_2000} and \cite{claessen_testing_2002}: testing against a specification which is formulated in an EDSL built on QuickCheck and the EDSL of the domain to test itself: one tests code by writing formal specifications. this is the very essence of verification
 
 
-\subsubsection{ABS}
+\subsection{ABS}
 Functional Programming in ABS
 STM Monads, Arrows, FRP, STM
 \cite{Bezirgiannis2013}
@@ -56,7 +77,7 @@ TODO: this seems all to be focused on MAS
 \url{https://code.google.com/archive/p/haskellactor/} makes heavy use of IORef and running in IO-Monad, something we deliberately want to avoid to keep the ability to reason about the program.
 TODO: \url{https://github.com/fizruk/free-agent} look into
 
-\subsubsection{Functional Reactive Programming}
+\subsection{Functional Reactive Programming}
 From the section on functional programming in ABS it becomes clear that the most promising approach for implementing ABS in Haskell is the one of Functional Reactive Programming (FRP). 
 
 Luxury of having the know-how in-house
@@ -68,32 +89,13 @@ TODO \cite{meisinger_game-engine-architektur_2010}
 TODO \cite{nilsson_declarative_2014}
 TODO \cite{perez_functional_2016}
 
-\paragraph{Monads}
-The IO-monad encapsulates implicit globally mutable state and provides effectful operations which can change this globally mutable state. 
 
-TODO: \cite{moggi_computational_1989}
-TODO: \cite{wadler_comprehending_1990}
-TODO: \cite{wadler_monads_1995}
-TODO: \cite{wadler_how_1997}
-
-\paragraph{Arrows}
-The main difference between Monads and Arrows are that where monadic computations are parameterized only over their output-type, Arrows computations are parametrised both over their input- and output-type thus making Arrows more general.
-
-"Just like monads, arrow types are useful for the additional operations they support, over and above those that every arrow provides."
-"In real applications an arrow often represents some kind of a process, with an input channel of type a, and an output channel of type b."
-
-TODO: \cite{hughes_generalising_2000}
-TODO: \cite{Hughes2004} -- cant find this reference anymore, maybe in print-outs?
-TODO: \cite{hughes_programming_2005}
-
-In the work \cite{Hughes2004} an example for the usage for Arrows is given in the field of circuit simulation. They use previously introduced streams to advance the simulation in discrete steps to calculate values of circuits thus the implementation is a form of \textit{discrete event simulation} - which is in the direction we are heading already with ABM/S. Also the paper mentions Yampa which is introduced in the section (TODO: reference) on functional reactive programming.
-
-\subsubsection{Foundations in Category-Theory}
+\subsection{Foundations in Category-Theory}
 Category-Theory \cite{Pierce1991} \cite{spivak_category_2014}
 TODO: cite the 2 papers which i found on category-theory in ABS
 apply category theory to agent-based simulation: how can a ABS system itself be represented in category theory and can we represent models in this category theory as well?
 ADOM: Agent Domain of Monads: https://www.haskell.org/communities/11-2006/html/report.html
 develop category theory behind FrABS: look into monads, arrows
 
-\subsubsection{A final word on LISP}
+\subsection{A final word on LISP}
 Being the oldest functional programming language and the 2nd oldest high-level programming language ever created, at one point we considered using LISP in our research due to its immensely powerful feature of homoiconicity. The idea was to investigate if this could be made useful for ABS and bring it to a new level. We abandoned this quickly as it would have led to a total different approach. Besides, it would have definitely not solved the issues the questions raised in the introduction because of its imperative nature. Still there exists a paper \cite{kawabe_nepi2programming_2000} which implements a MAS in LISP.

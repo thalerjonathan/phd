@@ -13,27 +13,12 @@ In our thesis we opt for Haskell as our choice for a functional programming lang
 
 It seems that we are on the right track with pure functional programming in answering the questions in the motivation as it promises to solve all the issues raised in these questions. We will now investigate by looking into relevant literature if this is really the case. 
 
-The main conclusion of the classical paper \cite{hughes_why_1989} is that \textit{modularity}, which is the key to successful programming, can be achieved best using higher-order functions and lazy evaluation provided in functional languages like Haskell. \cite{hughes_why_1989} argues that the ability to divide problems into sub-problems depends on the ability to glue the sub-problems together which depends strongly on the programming-language and \cite{hughes_why_1989} argues that in this ability functional languages are superior to structured programming due to laziness and higher-order functions. A very powerful feature of functional programming is Lazy evaluation. It allows to describe infinite data-structures and functions producing an infinite stream of output but which are only computed as currently needed. Thus the decision of \textit{how many} is decoupled from \textit{how to} .
+The main conclusion of the classical paper \cite{hughes_why_1989} is that \textit{modularity} is the key to successful programming and can be achieved best using higher-order functions and lazy evaluation provided in functional languages like Haskell. The author argues that the ability to divide problems into sub-problems depends on the ability to glue the sub-problems together which depends strongly on the programming-language. He shows that laziness and higher-order functions are in combination a highly powerful glue and identifies this as the reason why functional languages are superior to structure programming. Another property of lazy evaluation is that it allows to describe infinite data-structures, which are computed as currently needed. This makes functions possible which produce an infinite stream which is consumed by another function - the decision of \textit{how many} is decoupled from \textit{how to}.
 
-TODO: read \cite{wadler_essence_1992}
-The IO-monad encapsulates implicit globally mutable state and provides effectful operations which can change this globally mutable state. 
+In the paper \cite{wadler_essence_1992} Wadler describes Monads as the essence of functional programming (in Haskell). Originally inspired by monads from category-theory (see below) through the paper of Moggi \cite{moggi_computational_1989}, Wadler realized that monads can be used to structure functional programs \cite{wadler_comprehending_1990}. A pure functional language like Haskell needs some way to perform impure (side-effects) computations otherwise it has no relevance for solving real-world problems like GUI-programming, graphics, concurrency,... . This is where monads come in, because ultimately they can be seen as a way to make effectful computations explicit \footnote{This is seen as the one of the main impacts of Haskell on the mainstream programming \cite{hudak_history_2007}}. 
+In \cite{wadler_essence_1992} Wadler shows how to factor out the error handling in a parser into monads which prevents code to be cluttered by cross-cutting concerns not relevant to the original problem. Other examples Wadler gives are the propagating of mutable state, (debugging) text-output during execution, non-deterministic choice. Further applications of monads are given in \cite{wadler_essence_1992}, \cite{wadler_monads_1995}, \cite{wadler_how_1997} where they are used for array updating, interpreting of a language formed by expressions in algebraic data-types, filters, parsers, exceptions, IO, emulating an imperative-style of programming. This seems to be exactly the way to go, tackling the problems mentioned in the introduction: making data-flow explicit, allowing to factor out cross-cutting concerns and encapsulate side-effects in types thus making them explicit.
 
-TODO: \cite{moggi_computational_1989}
-TODO: \cite{wadler_comprehending_1990}
-TODO: \cite{wadler_monads_1995}
-TODO: \cite{wadler_how_1997}
-
-\paragraph{Arrows}
-The main difference between Monads and Arrows are that where monadic computations are parameterized only over their output-type, Arrows computations are parametrised both over their input- and output-type thus making Arrows more general.
-
-"Just like monads, arrow types are useful for the additional operations they support, over and above those that every arrow provides."
-"In real applications an arrow often represents some kind of a process, with an input channel of type a, and an output channel of type b."
-
-TODO: \cite{hughes_generalising_2000}
-TODO: \cite{Hughes2004} -- cant find this reference anymore, maybe in print-outs?
-TODO: \cite{hughes_programming_2005}
-
-In the work \cite{Hughes2004} an example for the usage for Arrows is given in the field of circuit simulation. They use previously introduced streams to advance the simulation in discrete steps to calculate values of circuits thus the implementation is a form of \textit{discrete event simulation} - which is in the direction we are heading already with ABM/S. Also the paper mentions Yampa which is introduced in the section (TODO: reference) on functional reactive programming.
+The concept of monads was further generalized by Hughes by the concept of arrows \cite{hughes_generalising_2000}. The main difference between Monads and Arrows are that where monadic computations are parameterized only over their output-type, Arrows computations are parametrised both over their input- and output-type thus making Arrows more general. In \cite{hughes_programming_2005} Hughes gives an example for the usage for Arrows in the field of circuit simulation. Streams are used to advance the simulation in discrete steps to calculate values of circuits thus the implementation is a form of \textit{discrete event simulation} - which is in the direction we are heading already with ABS. As will be shown below, the concept of arrows is essential for Functional Reactive Programming a potential way to do ABS in pure functional programming.
 
 
 TODO: read \cite{hudak_haskell_1994}: pure functional haskell is extremely productive and code seems to look like specification 
@@ -43,11 +28,9 @@ It seems that one of the very powerful aspects of using pure functional programm
 TODO \cite{hutton_programming_2007}
 TODO \cite{claessen_quickcheck:_2000} and \cite{claessen_testing_2002}: testing against a specification which is formulated in an EDSL built on QuickCheck and the EDSL of the domain to test itself: one tests code by writing formal specifications. this is the very essence of verification
 
-
 \subsection{ABS}
 Functional Programming in ABS
-STM Monads, Arrows, FRP, STM
-\cite{Bezirgiannis2013}
+VERY IMPORTANT TO MENTION parallelism, concurrency and STM \cite{Bezirgiannis2013} and Sweeny,  cite parallel/concurrency/stm papers on haskell
 
 \cite{sulzmann_specifying_2007} present an EDSL for Haskell allowing to specify Agents using the BDI model. We don't focus on BDI or similar but want to rely much more on low-level basic messaging. We can also draw strong relations to Hoare's Communicating Sequential Processes (CSP), Milner's Calculus of Communicating Systems (CCS) and Pi-Calculus. By mapping the EDSL to CSP/CCS/Pi-Calculus we achieve to be able to algebraic reasoning in our EDSL. TODO: hasn't Agha done something similar in connecting Actors to the Pi-Calculus?
 
@@ -78,6 +61,8 @@ TODO: this seems all to be focused on MAS
 TODO: \url{https://github.com/fizruk/free-agent} look into
 
 \subsection{Functional Reactive Programming}
+So far we have only quite low-level approaches by higher-order functions, lazyness, monads and arrows. We need a programming paradigm built into pure functional programming when we want to use it for building ABS. As already mentioned above, functional reactive programming seems to be a highly promising approach.
+
 From the section on functional programming in ABS it becomes clear that the most promising approach for implementing ABS in Haskell is the one of Functional Reactive Programming (FRP). 
 
 Luxury of having the know-how in-house
@@ -89,6 +74,8 @@ TODO \cite{meisinger_game-engine-architektur_2010}
 TODO \cite{nilsson_declarative_2014}
 TODO \cite{perez_functional_2016}
 
+\subsection{Dependent Types}
+TODO: allows to push correctness even further by statically ensuring invariants at compile time where properties of types can depend on each other. cite papers on agda
 
 \subsection{Foundations in Category-Theory}
 Category-Theory \cite{Pierce1991} \cite{spivak_category_2014}

@@ -43,6 +43,14 @@
 	},
 	"buffers":
 	[
+		{
+			"file": "FrABS/Agent/Agent.hs",
+			"settings":
+			{
+				"buffer_size": 9669,
+				"line_ending": "Unix"
+			}
+		}
 	],
 	"build_system": "",
 	"build_system_choices":
@@ -81,18 +89,18 @@
 	},
 	"expanded_folders":
 	[
-		"/home/jonathan/phd/coding/libraries/frABS/src"
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Agent"
 	],
 	"file_history":
 	[
-		"/home/jonathan/phd/coding/libraries/frABS/src/Main.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/Segregation/SegregationModel.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationRun.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/RecursiveABS/RecursiveABSModel.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/RecursiveABS/RecursiveABSInit.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Main.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationRun.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/RecursiveABS/RecursiveABSModel.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/RecursiveABS/RecursiveABSInit.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation/Simulation.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeAgent.hs",
@@ -207,8 +215,37 @@
 	"groups":
 	[
 		{
+			"selected": 0,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "FrABS/Agent/Agent.hs",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 9669,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
+						},
+						"translation.x": -0.0,
+						"translation.y": 2646.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
 			]
 		}
 	],

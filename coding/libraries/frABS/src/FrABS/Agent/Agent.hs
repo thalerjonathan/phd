@@ -172,6 +172,7 @@ onEvent evt evtHdl ao = if isEvent evt then
                             else
                                 ao
 
+-- TODO: too much ceremony with the filter, find more elegant solution
 onMessage :: MessageFilter m -> AgentIn s m ec -> (AgentOut s m ec -> AgentMessage m -> AgentOut s m ec) -> AgentOut s m ec -> AgentOut s m ec
 onMessage msgFilter ai evtHdl ao
     | not hasMessages = ao

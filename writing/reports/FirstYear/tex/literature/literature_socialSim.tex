@@ -9,20 +9,23 @@ The field of social simulation can be traced back to self-replicating von Neuman
 	\item Population dynamics under sexual reproduction.
 	\item Cultural processes and transmission.
 	\item Combat and assimilation.
-	\item Bilateral centralized trading (bartering) between agents with endogenous demand and supply.
+	\item Bilateral decentralized trading (bartering) between agents with endogenous demand and supply.
 	\item Emergent Credit-Networks.
 	\item Disease Processes, Transmission and immunology.
 \end{itemize}
 
-Because of its essential importance to this field, its complexity, number of features and allowing us to bridge the gap to ACE, we select it as the first of two central models, which will serve as use-case to develop our methods.
+Because of its essential importance to this field, its complexity, number of features and allowing us to bridge the gap to ACE, we select it as the first of two central models, which will serve as use-case to develop our methods. The idea is to formally specify and then verify the process of bilateral decentralized trading because it is the most complex of the features.
 
-The second model is the \textit{Agent\_Zero} model developed by Epstein in 2013 \cite{epstein_agent_zero:_2014} in which the author tries to approach the generative social sciences from a neurocognitive approach. In a recent work \cite{epstein_advancing_2016} Epstein offers a range of new research directions for Agent\_Zero, most notably new interactions, empirical testing, replication of historical episodes and formal axioms for modular agents. 
-\textit{Agent\_Zero} is an agent which: TODO. 
-
-The model allows to replicate and simulate the following dynamics:
+In 2013 Epstein introduced the \textit{Agent\_Zero} model \cite{epstein_agent_zero:_2014} in which the author approaches the generative social sciences from a neurocognitive perspective \footnote{Epstein termed this work Volume III in the triology on generative social science. Volume I is the Sugarscape book mentioned above \cite{epstein_growing_1996}. Volume II is a collection of papers published in the book \cite{epstein_generative_2012} which applied agent-based modeling to the fields of economics, archaeology, conflict, epidemiology, spatial games and the dynamics of norms. Note that we look at the first chapter of the Volume II book in the Validation \& Verification chapter as it deals very much with the deeper meaning and formalization of agent-based social simulation.}.
+\textit{Agent\_Zero} is an agent which is endowed with emotional/affective (emotional/gefühlsbezogen), cognitive/deliberative (wahrnehmung/abwägend) and social modules which are all interconnected and interact with each other. Also Agent\_Zero is always part of a social network through which it is influenced by other Agent\_Zero and can influence them. The core behaviour Epstein wants to "grow" in this model is \textit{"the person who feels no aversion to black people, who has never had any direct evidence or experience of black wrongdoing [...], and who yet initiates the lynching"} \footnote{\cite{epstein_agent_zero:_2014}, page 2}. The model allows to replicate and simulate the following scenarios, amongst others:
 
 \begin{itemize}
-	\item TODO
+	\item Fight vs. Flight
+	\item Replicating the Latané-Darley experiment
+	\item Growing the 2011 Arab Spring
+	\item Jury processes
+	\item Prices and seasonal economic cycles
+	\item Mutual escalation spirals
 \end{itemize}
 
-We include \textit{Agent\_Zero} as our second central model serving as use-case to develop our methods because it can be regarded as the next step in ABSS and offers a very interesting use-case to apply various networks as presented in the ACE section.
+We select \textit{Agent\_Zero} as our second central model serving as use-case to develop our methods because of its in ABSS and offers a very interesting use-case to apply various networks as presented in the ACE section \footnote{In a recent work \cite{epstein_advancing_2016} Epstein offers a range of new research directions for Agent\_Zero, most notably new interactions, empirical testing, replication of historical episodes and formal axioms for modular agents. We include it for completeness but it does not offer fundamentally new insights to Agent\_Zero neither does it approach the lack of a deeper treatment of the influence of networks in the model.}. As Epstein only looks at a network of three agents, the idea is to investigate the effect of various types of networks as presented in the literature-review section on ACE with much more than three agents on the model.

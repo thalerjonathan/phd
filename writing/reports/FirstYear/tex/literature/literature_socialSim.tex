@@ -1,11 +1,28 @@
-\section{Social Simulation}
-The most influential source on the generative social sciences can be regarded the work of Epstein and Axtell in \cite{epstein_growing_1996} in which they indeed create an artificial society and connect observations in their simulation to phenomenon of real-world societies. They later added more research to this in \cite{epstein_generative_2012} and most recently \cite{epstein_agent_zero:_2014} in which Epstein tries to approach the generative social sciences from a neurocognitive approach.
+\section{Agent-Based Social Simulation (ABSS)}
+The field of social simulation can be traced back to self-replicating von Neumann machines, cellular automata and Conway's Game of Life. The most prominent topics which are explored in social simulation are social norms, institutions, reputation, elections and economics. The first large scale ABSS model which rose to some prominence was the \textit{Sugarscape} model developed by Epstein and Axtell in 1996 \cite{epstein_growing_1996}. Their aim was to \textit{grow} an artificial society by simulation and connect observations in their simulation to phenomenon of real-world societies. The main features of this model are:
 
-look closer at the contents of the 3 major books: SugarScape, Generative, Agent\_Zero
+\begin{itemize}
+	\item Searching, harvesting and consuming of resources.
+	\item Wealth and age distributions.
+	\item Seasons in the environment and migration of agents.
+	\item Pollution of the environment.
+	\item Population dynamics under sexual reproduction.
+	\item Cultural processes and transmission.
+	\item Combat and assimilation.
+	\item Bilateral centralized trading (bartering) between agents with endogenous demand and supply.
+	\item Emergent Credit-Networks.
+	\item Disease Processes, Transmission and immunology.
+\end{itemize}
 
-Agent\_Zero: \url{http://sites.nationalacademies.org/cs/groups/dbassesite/documents/webpage/dbasse_175078.pdf}
+Because of its essential importance to this field, its complexity, number of features and allowing us to bridge the gap to ACE, we select it as the first of two central models, which will serve as use-case to develop our methods.
 
-The SugarScape model \cite{epstein_growing_1996} is one of the most influential models of agent-based simulation in the social sciences. The book heavily promotes object-oriented programming (note that in 1996 oop was still in its infancy and not yet very well understood by the mainstream software-engineering industry). We ask how it can be done using pure functional programming paradigm and what the benefits and limits are. We hypothesize that our solution will be shorter (original reported 20.000 LOC), can make use of EDSL thus making it much more expressive, can utilize QuickCheck for a completely new dimension of model-checking and debugging and allows a very natural implementation of MetaABS (see Part III) due to its recursive and declarative nature.
+The second model is the \textit{Agent\_Zero} model developed by Epstein in 2013 \cite{epstein_agent_zero:_2014} in which the author tries to approach the generative social sciences from a neurocognitive approach. In a recent work \cite{epstein_advancing_2016} Epstein offers a range of new research directions for Agent\_Zero, most notably new interactions, empirical testing, replication of historical episodes and formal axioms for modular agents. 
+\textit{Agent\_Zero} is an agent which: TODO. 
 
-TODO \cite{huberman_evolutionary_1993} 
-TODO \cite{nowak_evolutionary_1992}
+The model allows to replicate and simulate the following dynamics:
+
+\begin{itemize}
+	\item TODO
+\end{itemize}
+
+We include \textit{Agent\_Zero} as our second central model serving as use-case to develop our methods because it can be regarded as the next step in ABSS and offers a very interesting use-case to apply various networks.

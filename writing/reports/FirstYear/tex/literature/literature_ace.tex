@@ -1,69 +1,33 @@
 \subsection{Agent-Based Computational Economics (ACE)}
-The field of economics and as a consequence ACE is an immensely vast one, so we limit our interests to the one of out-of-equilibrium models in bilateral decentralized bartering and trading and the influence of networks in it \footnote{It is of very importance to note that this thesis does not attempt to develop or proof some economic theory. Rather the intention is to use ACE as a use-case to develop the tools and apply them directly to ACE to demonstrate the usefulness and benefit of the new tool.}. Out of this we can derive the following three major topics:
+The field of economics is an immensely vast and complex one with many facets to it \cite{bowles_understanding_2005}. Equilibrium-theory is the very foundation of (micro) economics \cite{colell_microeconomic_1995} and central to the way economists think and approach the dynamics of economic processes. This model requires a central \textit{walrasian} auctioneer which has perfect information and assumes homogeneous, rationally acting agents. The theory then postulates the existence of an equilibrium under given properties but does not give a process or the dynamics how this equilibrium can be approached. 
+This notion of equilibrium has always been criticized for being not realistic, making impossible assumptions e.g. perfect information and not being able to provide a process under which this equilibrium is reached \cite{kirman_complex_2010}. The problem is that as soon as more realistic assumptions are made, the solutions become analytically intractable. This is where ACE comes in, as it allows to experimentally approach equilibrium-theory from a more realistic point-of-view by removing the central auctioneer and introducing agents with bounded rationality, local information and restricted interactions over networks \cite{farmer_economy_2009}. 
+%look into computable economics book: \url{http://www.e-elgar.com/shop/computable-economics}
+
+Tesfatsion defines ACE as \textit{[...] computational modelling of economic processes (including whole economies) as open-ended dynamic systems of interacting agents.} \url{http://www2.econ.iastate.edu/tesfatsi/ace.htm}. She gives a broad overview \cite{tesfatsion_agent-based_2006} of ACE, discusses advantages and disadvantages and giving the four primary objectives of it which are:
 
 \begin{enumerate}
+	\item empirical understanding: why have particular global regularities evolved and persisted, despite the absence of centralized planning and control?
+	\item normative understanding: how can agent-based models be used as laboratories for the discovery of good economic designs?
+	\item qualitative insight and theory generation: how can economic systems be more fully understood through a systematic examination of their potential dynamical behaviors under alternatively specified initial conditions?
+	\item methodological advancement: how best to provide ACE researchers with the methods and tools they need to undertake the rigorous study of economic systems through controlled computational experiments?
+\end{enumerate}
+
+She introduces a model called \textit{ACE Trading World} in which she shows how an artificial economy can be implemented without the \textit{Walrasian Auctioneer} but just by agents and their interactions. She gives a detailed mathematical specification in the appendix of the paper which should allow others to implement the simulation. Other works which investigate ACE as a discipline and discuss its methodology are \cite{tesfatsion_agent-based_2002}, \cite{richiardi_agent-based_2007}, \cite{ballot_agent-based_2015}, \cite{blume_introduction_2015}
+
+During the reading we became particularly interested in the dynamics of bilateral decentralized bartering \footnote{The Sugarscape book \cite{epstein_growing_1996}, in footnote 14 on page 104, cites a few introductory works on bilateral bartering with incomplete information which we don't want to repeat here} and emerging networks. The reason for this is that the Sugarscape model \cite{epstein_growing_1996}, mentioned in the previous section on Social Simulation, implements this bilateral decentralized bartering and emerging of credit-networks and looks at the out-of-equilibrium dynamics. This allows us to bridge the gap from ACE to Social Simulation because considerable research in ACE goes into out-of-equilibrium models, which try to find processes which lead to the general equilibrium \cite{gintis_emergence_2006}, \cite{gintis_dynamics_2007}, \cite{arthur_out--equilibrium_2006} and \cite{botta_functional_2011}.
+
+Although not directly subject of this research, to better understand trading and bartering, it is quite useful to have a basic understanding of \textit{Market Microstructure} which deals how real markets work \footnote{A topic we deliberately ignore is the one of \textit{Market Design} which deals with problems real markets face. It is a very hot topic at the moment in economics, having received a number of Nobel-prices e.g. Alvin Roth who wrote an introduction to this topic for the non-expert \cite{roth_who_2015}. In the preparation phase we did quite some reading in this field inspired by \cite{sornette_crashes_2011} and \cite{budish_editors_2015} on the problems caused by High-Frequency Trading (HFT). We were able to find quite a few papers which used ABS to research the benefits and downside of HFT: \cite{wah_latency_2013}, \cite{leal_rock_2016}, \cite{yim_effect_2015}. A broad overview of Market Design using Agent-Based Models is given in \cite{marks_chapter_2006}}. Introductory texts to market microstructure are \cite{harris_trading_2003}, \cite{baker_market_2013} and \cite{lehalle_market_2013}. A highly interesting research using ABS for simulating the NASDAQ market was done in \cite{darley_nasdaq_2007}. The authors where approached by NSDAQ to predict the switching to the decimal system which was enforced by the SEC in April 9th 2001. They implemented an ABS in Java to build relevant models and predicted most of the changes correctly. Other works on using ABS in finance and stock markets are \cite{lebaron_agent-based_2000}, \cite{lebaron_building_2002}, \cite{streltchenko_multi-agent_2005} and \cite{panayi_agent-based_2012}. Another sub-field is autonomous and automated trading agents \cite{mackie-mason_chapter_2006}, \cite{toulis_mertacor:_2006}.
+
+Another topic I am particularly interested in is the one of networks as it was of central focus in my master-thesis TODO:cite on continuous double-auctions in networks. Although this topic is not unique to economics, it has received considerable attention in the last years due to the sub-prime mortgage crisis where contagion through networks was one of the primary reasons for its cause.
+
+TODO: add literature on networks from my masterthesis.
+TODO cite Jackson Social and Economic networks, cite easley networks, crowds and markets
+
+
+\begin{enumerate}
+	\item Bilateral decentralized bartering \&  trading
 	\item Out-Of-Equilibrium dynamics
-	\item Bilateral decentralized bartering / trading
 	\item Networks
 \end{enumerate}
 
-All three topics are highly interrelated and particularly well suited for ACE because they are only possible by representing the system as interconnected autonomous heterogeneous traders, with bounded-rationality and local information. The topics are also applicable to the field of Social Simulation as presented in the previous section and indeed the Sugarscape model incorporates all three of them which allows us to bridge the gap from ACE to Social Simulation.
-
-"[...] computational modelling of economic processes (including whole economies) as open-ended dynamic systems of interacting agents." Leigh Tesfatsion
-
-NOTE: I REALLY need to work out what is special in ACE? what is the unique property of ACE AS compared to other ABM/S? Conjecture: equilibrium of dynamics is the central aspect.
-\url{http://www2.econ.iastate.edu/tesfatsi/ace.htm}
-
-\cite{tesfatsion_agent-based_2006} gives a broad overview of agent-based computational economics (ACE), gives the four primary objectives of it and discusses advantages and disadvantages. She introduces a model called \textit{ACE Trading World} in which she shows how an artificial economy can be implemented without the \textit{Walrasian Auctioneer} but just by agents and their interactions. She gives a detailed mathematical specification in the appendix of the paper which should allow others to implement the simulation.
-
-- Artificial agent-based economies: \cite{tesfatsion_agent-based_2006}, \cite{gintis_emergence_2006}, \cite{gintis_dynamics_2007}, \cite{gaffeo_adaptive_2008}, \cite{botta_functional_2011}
-- Artificial agent-based markets: \cite{mackie-mason_chapter_2006}, \cite{darley_nasdaq_2007}
-- Agent-Based Market Design: \cite{marks_chapter_2006}, \cite{budish_editors_2015}
-
-\cite{mandel_2015} Agent-based modeling and economic theory: where do we stand? - Ballot, Mandel, Vignes \\
-\cite{richiardi_2007} Agent-based Computational Economics. A Short Introduction - Richiardi \\
-\cite{tesfatsion_2006} Agent-based computational economics: a constructive approach to economic theory - tesfatsion \\
-\cite{kleinberg_easley_2015} Introduction to computer science and economic theory - blume, easley, kleinberg \\
-\cite{tesfatsion_2002} agent-based computational economics - tesfatsion 
-
-The book \cite{KirmanComplex2010} is a critique of classic economics with the triple of rational agents, "average" inidividuum, equilibrium theory. Although it does not mention ACE it  can be seen as an important introduction to the approach of ACE as it introduces many important concepts and views dominant in ACE. Also ACE can be seen as an approach of tackling the problems introduced in this book: 
-
-page 6: "the view of economy is much closer to that of social insects than to the traditional view of how economies function." \\
-page 7: "... main argument that it is the interaction between individuals that is at the heart of the explanation of many macroeconomic phenomena..." \\
-page 15: "problem of equilibrium is information" \\
-page 21: "the theme of this book will be that the very fact individuals interact with each other causes aggregate behaviour to be different from that of individuals" \\
-
-TODO: http://www2.econ.iastate.edu/tesfatsi/ace.htm
-
-TODO: \cite{Kirman2001}
-TODO: \cite{Kaminski2013}
-TODO: how economists can get a life  tesfatsion
-
-TODO: look into the models of agents dominant in ACE. They seem to be more of reactive, continuous nature
-
-same as in classic ABMs: decentralised: there is no place where global system behaviour (system dynamics) is defined. Instead individual agents interact with each other and their environment to produce complex collective behaviour patterns.
-
-also central to ACE: emergent properties. They show up in the form of equilibria
-
-spatial / geo-spatial aspects not as dominant as in other fields of ABMs. TODO: is this really true?
-more important: networks between agents
-
-
-\subsubsection{Out-Of-Equilibrium}
-Basics of Economics \cite{bowles_understanding_2005}, \cite{kirman_complex_2010}
-look into computable economics book: \url{http://www.e-elgar.com/shop/computable-economics}
-
-\subsubsection{Trading, Market Design \& Microstructure}
-building the nasdaq stock market
-market-microstructure: \cite{LehalleLaruelle2013}, \cite{baker_market_2013}
-
-Another field we are particularly interested in, the simulation of decentralized bilateral bartering, which belongs to the field of Agent-Based Computational Economics (ACE) \cite{tesfatsion_agent-based_2006} is covered already in the artifical society of \cite{epstein_growing_1996}. This lucky coincidence let us approach both these very special fields together and apply them as additional use-cases for developing our new methods.
-
-TODO: A topic we deliberately ignore is the one of \textit{market design}, which is a very hot topic at the moment in economics having received a number of nobel prices (TODO: cite). Why we don't include it: does not allow to combine as easily with Social Simulation, too complex, completely different direction, 
-
-\subsubsection{Networks}
-TODO cite Jackson Social and Economic networks, cite easley networks, crowds and markets
-and the authors master-thesis TODO: cite had networks in double-auctions as the central focus. 
-
-Although the topic of networks is not unique to economics, it has received considerable attention in the last years due to the sub-prime mortgage crisis where contagion through networks was one of the primary reasons for its cause. \\
-
+ \footnote{It is of very importance to note that this thesis does not attempt to develop or proof some economic theory. Rather the intention is to use ACE as a use-case to develop the tools and apply them directly to ACE to demonstrate the usefulness and benefit of the new tool.}.

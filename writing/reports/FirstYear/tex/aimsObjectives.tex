@@ -1,47 +1,12 @@
 \chapter{Aims and Objectives}
+\label{chap:aimsObj}
+
 In this chapter we derive the hypotheses to the motivating questions from the introduction based upon our literature-review and present our aims and objectives for our PhD. We present research-questions and hypotheses.
-
-\section{Deriving the research-direction}
-TODO: select the direction: Category-Theory and not Actor Model, Haskell with FRP and not Scala\&Actors/Erlang. need a thorough explanation reasoning
-
-emphasize my own research on scala with actors, experiments with erlang and prototyping with haskell.
-
-As becomes evident from the literature-review we advocate pure functional programming in Haskell and its category-theoretic foundations as a solution to the questions posed. The usage of pure functional programming in ABS is also a strong motivation by itself as it hasn't been researched yet and deserves a thorough treatment on its own. Surprisingly there exist hardly any attempts on implementing ABS in pure functional programming as will become clear in the literature-review. Maybe this can also be seen as a hint that ABS lacks a level of deductive formalism which we hope to repair with our thesis. 
-
-So put short the motivation is a twofold direction, referring to each other in a circular way. First, pure functional programming has not been researched for implementing and specifying ABS so far. Second,  the current state-of-the-art seems to be susceptible to flaws and bugs due to the lack of powerful verification. Combining both issues forms the very basic motivation of our thesis: use pure functional programming and its underlying theoretical framework to develop new methods for specifying, implementing, verifying and validating ABS to create simulations which are more reliable, reproducible and communicatable.
-
-\section{Identifying the Gap}
-- Functional programming in this area exists but only scratches the surface and focus only on implementing agent-behaviour frameworks like BDI. An in-depth treatise of Agent-Based Modelling and implementing an Agent-Based Simulation in a pure functional language has so far never been attempted.
-
-- There basically exists no approach to Agent-Based Modelling \& Simulation in terms of Category-Theory and Type-Theory
-
-- Verification is an issue in ABS as they are very often described in natural language and supplemented with a few formulas. This leads to implementation-errors, e.g. Gintis Bartering-Paper, and results become hard to reproduce. Such errors become a threatening problem when simulation-results are used in decision making e.g. economics, policy-making, ...
-
-- Validation is basically an untouched topic in ABS: models are formulated, a few hypotheses are formulated, the model is implemented and run, then the results are checked against the hypotheses. What the field of ABS needs is an in-depth discussion on how to rigorously validate a model. Validation is of course only as strong as the verification part: if the implementation is wrong anyway then we can not rely on anything (from false comes nothing)
-
-
-- developing a category- \& type-theoretical view on Agent-Based Modelling \& Simulation which will 
-	-> 1. give a deeper insight into the structure of agents, agent-models and agent-based simulation
-	-> 2. serves as the basis for the pure functional implementation
-	-> 3. serves as a high-level specification tool for agent-models
-
-- implementing a library called FrABS based upon the FRP paradigm which allows to specify Agent-Based Models in an EDSL and run them
-
-- Verification: closing the gap between specification and implementation through the category- \& type-theoretical view and the EDSL
-
-- Validation: formalizing hypotheses and reasoning about dynamics and expected outcomes of the simulation
-
-Define 5 general research questions for each Research-Context
-	\begin{itemize}
-    \item 2 related to FP
-    \item 1 related to integration of FP to ABM/S
-    \item 2 related to ABM/S
-    \end{itemize}
-
 
 \section{Aims}
 The pure functional programming language Haskell offers all the required features. Together with the concept of functional reactive programming (FRP) we will show that ABS becomes very well possible to be implemented in a functional language. The declarative nature of Haskell allows us to implement an embedded domain-specific language (EDSL) for ABS based on the FRP paradigm.
 
+To do verification we need a form of formal specification which can be translated easily to the code. Being inspired by the previously mentioned work on a functional framework for agent-based models of exchange in \cite{botta_functional_2011} we opt for a similar direction. Having Haskell as the implementation language instead of an object-oriented one like Java allows us to build on the above proposed EDSL for ABS. Because of the declarative nature of the hypothesized EDSL it can act both as specification- and implementation-language which closes the gap between specification and implementation. This would give us a way of formally specifying the model but still in a more readable way than pure mathematics. This form of formal specification can act easily as a medium for communication between team-memberes and to the scientific audience in papers. Most important the explicit step of verification becomes obsolete as there exists no more difference between specification and implementation. The last point seems to be quite ambitious but this is a hypothesis and we will see in the course of the thesis how far we can close the gap in the end with this approach.
 
 we propose a new tool for implementing, testing, verifying and validating ABS: the one of pure functional programming and its underlying theory which we together will term \textit{pure functional methods}. We claim that these methods are the answer to the questions posed above and will reduce or even elimiate the danger of failure considerably as outlined in the hypotheses. 
 Of course our motivation is not only to improve verification, validation and reproduceability in ABS but also the one of discovery. So far pure functional programming was not really investigated in the context of ABS as will be shown in the literature-review so this thesis is also a proof-of-concept, an investigation how ABS can be done in a pure functional language.

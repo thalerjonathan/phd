@@ -2,7 +2,22 @@
 Verification \& Validation are, generally speaking, independent processes to check whether a product meets its requirements and fulfills its intended purpose TODO: cite?. Here we focus explicitly on software verification \& validation where we identify \textit{Verification} to be the process of checking whether an implementation matches a given specification without any bugs or missing parts and \textit{Validation} to be the process of checking if the implementation meets high level requirements. TODO: cite?
 To put short the difference between verification \& validation is that verification tries to answer "are we building the product right?" and validation "are we building the right product?" \cite{boehm_software_1989}. For (most of) the software built in the industry in well-defined software-development processes with its own quality control and quality assurance to answer these questions is rather straight-forward. Numerous techniques like checklists, software-tests, integration-tests,... have been developed to deal with Verification \& Validation. TODO: cite?
 
-The question is now how the above applies to ABS. TODO: \url{http://www2.econ.iastate.edu/tesfatsi/empvalid.htm}
+The question is how the above applies to ABS and from reviewing the literature, it becomes evident that in the context of ABS it is a much more difficult challenge and is still open research \footnote{Leigh Tesfatsion has, as part of her internet-presence on ACE, set up a whole site devoted just to this topic where she cites major references \url{http://www2.econ.iastate.edu/tesfatsi/empvalid.htm}. Most of the literature we have investigated  is drawn from there.}. 
+
+In this thesis we aim for replicating both the Sugarscape \cite{epstein_growing_1996} and Agent\_Zero \cite{epstein_agent_zero:_2014} models. In doing so we also perform verification \& validation on these models, or at least on parts of them. Also we aim to develop new methods of verification and validation of ABS based on theses models as use-cases. 
+
+The issue of validation \& verification is also very closely related to the problem of replication. In the paper \cite{wilensky_making_2007} Wilensky discusses the issues with replicating a model and gives advices to modellers what details (e.g. order of events) to publish to support replication of models. They recommend to make pseudo-code publicly available and to converge to a common standard form for model publication in the long run. This is our approach: an EDSL can act both as a pseudo-code specification which is in fact already runnable code and due to its declarative and concise nature can act as a full description.
+ 
+
+
+
+
+
+
+
+
+
+
 
 TODO: baas: emergence, hierarchies and hyperstructures
 TODO: \cite{baas_emergence_1997}
@@ -28,3 +43,4 @@ TODO: \cite{windrum_empirical_2007}
 model checking and reasoning in \cite{hutton_tutorial_1999}\\
 
 \subsection{Validation}
+The question is what the \textit{meaning} of validation - are we building the right simulation? - in the context of ABS is. Wilensky defines model validation in \cite{wilensky_making_2007} to be the process of determining whether the simulation explains and corresponds to phenomenon of the real world.

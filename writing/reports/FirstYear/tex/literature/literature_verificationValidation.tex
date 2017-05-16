@@ -8,8 +8,7 @@ In this thesis we aim for replicating both the Sugarscape \cite{epstein_growing_
 
 The issue of validation \& verification is also very closely related to the problem of replication. In the paper \cite{wilensky_making_2007} Wilensky discusses the issues with replicating a model and gives advices to modellers what details (e.g. order of events) to publish to support replication of models. They recommend to make pseudo-code publicly available and to converge to a common standard form for model publication in the long run. This is our approach: an EDSL can act both as a pseudo-code specification which is in fact already runnable code and due to its declarative and concise nature can act as a full description.
  
-
-
+\cite{galan_errors_2009} makes the critical point that the dynamics of a model in ABS are almost always so complex, that the creator of the is not able to exactly explain what the deeper reasons are for them and which aspects of the model are responsible for their exhibition. If this were so, one would not need to resort to simulation. This implies that one can not know in advance what exactly to expect and which part of the emergent behaviour of the system connects to which local interaction amongst agents. Also it is very hard to check if the emergent behaviour is not due to some bug in the implementation.
 
 
 
@@ -44,3 +43,4 @@ model checking and reasoning in \cite{hutton_tutorial_1999}\\
 
 \subsection{Validation}
 The question is what the \textit{meaning} of validation - are we building the right simulation? - in the context of ABS is. Wilensky defines model validation in \cite{wilensky_making_2007} to be the process of determining whether the simulation explains and corresponds to phenomenon of the real world.
+\cite{galan_errors_2009} define validation of a model to check if it is consistent with the intended application of the model, how well the model captures its empirical referent.

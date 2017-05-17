@@ -1,8 +1,12 @@
 \section{Verification \& Validation of ABS}
 Verification \& Validation are, generally speaking, independent processes to check whether a product meets its requirements and fulfills its intended purpose TODO: cite?. Here we focus explicitly on software verification \& validation where we identify \textit{Verification} to be the process of checking whether an implementation matches a given specification without any bugs or missing parts and \textit{Validation} to be the process of checking if the implementation meets high level requirements. TODO: cite?
-To put short the difference between verification \& validation is that verification tries to answer "are we building the product right?" and validation "are we building the right product?" \cite{boehm_software_1989}. For (most of) the software built in the industry in well-defined software-development processes with its own quality control and quality assurance to answer these questions is rather straight-forward. Numerous techniques like checklists, software-tests, integration-tests,... have been developed to deal with Verification \& Validation. TODO: cite?
+To put short according to Boehm \cite{boehm_software_1989} the difference between verification \& validation is that verification tries to answer "are we building the product right?" and validation "are we building the right product?". For (most of) the software built in the industry in well-defined software-development processes with its own quality control and quality assurance to answer these questions is rather straight-forward. Numerous techniques like checklists, software-tests, integration-tests,... have been developed to deal with Verification \& Validation. TODO: cite?
 
 The question is how the above applies to ABS and from reviewing the literature, it becomes evident that in the context of ABS it is a much more difficult challenge and is still open research \footnote{Leigh Tesfatsion has, as part of her internet-presence on ACE, set up a whole site devoted just to this topic where she cites major references \url{http://www2.econ.iastate.edu/tesfatsi/empvalid.htm}. Most of the literature we have investigated  is drawn from there.}. 
+
+\cite{ormerod_epistemological_2009} clarifies on this subject a bit and defines verification to be "the process of determining that the equations are solved correctly" / "does the model do what we think it is supposed to do?" and validation to be "the process of determining that we are using the correct equations" / "" - basically a reformulation of the questions posed by Boehm \cite{boehm_software_1989} above. They add on these definitions by adding the concept of a model: verification is then "the process of determining that a computational software implementation correctly represents a model of a process" and validation is "the process of assessing the degree to which a computer model is an accurate representation of the real world from the perspective of the models intended applications".
+A fundamentally observation \cite{ormerod_epistemological_2009} make is that ABS may blur the boundary between verification and validation. This is due to the problem of plausibly deciding how the micro-behaviour influences the macro-behaviour when changing e.g. a variable which drives the micro-behaviour. For this to decide we have to turn to validation, where we check if the model is a plausible image of the real-world process.
+Also an important question raised in \cite{ormerod_epistemological_2009} is the one how the time-stepping of ABS relates to time in reality \footnote{My foundational paper on Iteration-Strategies clarifies on this a bit: although we perceive time in reality as a continuous flow, the way we \textit{implement} time in a simulation is always in steps, be it discrete- or continuous-time.}. Concluding, the authors follow the Popperian position 'that validation can never be proof'. They stress that an important part of validation is a clear description of what is being explained (My question: can this be only natural language e.g. could we formalize this? if yes, we can formalize validation!).
 
 In this thesis we aim for replicating both the Sugarscape \cite{epstein_growing_1996} and Agent\_Zero \cite{epstein_agent_zero:_2014} models. In doing so we also perform verification \& validation on these models, or at least on parts of them. Also we aim to develop new methods of verification and validation of ABS based on theses models as use-cases. 
 
@@ -10,10 +14,7 @@ The issue of validation \& verification is also very closely related to the prob
  
 \cite{galan_errors_2009} makes the critical point that the dynamics of a model in ABS are almost always so complex, that the creator of the is not able to exactly explain what the deeper reasons are for them and which aspects of the model are responsible for their exhibition. If this were so, one would not need to resort to simulation. This implies that one can not know in advance what exactly to expect and which part of the emergent behaviour of the system connects to which local interaction amongst agents. Also it is very hard to check if the emergent behaviour is not due to some bug in the implementation.
 
-
-
-
-
+The paper of \cite{windrum_empirical_2007} explores problems with empirical validation of agent-based models. They identify six issues and presents a novel taxonomy to classify the approaches developed by the ABS community so far in tackling these issues. The authors then discussed three approaches to ABS validation and showed how to apply them.
 
 
 
@@ -27,7 +28,10 @@ TODO: \url{http://dspace.stir.ac.uk/handle/1893/3365#.WNjO1DsrKM8}
 TODO: \cite{klugl_amason:_2013}
 
 \subsection{Verification}
-TODO: \cite{axelrod_advancing_1997}
+From the cited literature, we can derive that verification of ABS means, to check if our model-specification matches our implementation. The model-specification could be delivered in natural language, mathematical equations, specific formalisms e.g. DEVS, Process Calculi, pseudo-code,... This implies that there exists always a gap between the specification and the implementation. Our hypothesis is that this gap can be closed by implementing a sufficently powerful EDSL in Haskell which is both specification- and implementation-language at the same time - the specification becomes the implementation. Of course when a model is conceived it will be almost always be written down in a narrative natural-language style as this is the way we think. The next step would then be to translate this natural-language description into the EDSL. So we see that there is obviously always some translation step included so the question is what we really gain. Also we can ask: aren't there already enough formalisms for ABS? TODO: i need to argue very very thoroughly because this is another major attacking point to my thesis (the other one is why bother doing functional programming).
+Answer: its the power of the whole package of EDSL = Haskell-code. this let us share the specification and apply all the reasoning-techniques available to Haskell. Question: is this impossible in other specifications like FRABJOUS or NetLogo?
+
+TODO: \cite{axelrod_advancing_1997}, establishes 3 ways of comparing models: same numerical outputs, same distributions of numerical outputs, same correlation of outputs: if x is increased in both models and y increases in the original then it should also be increased in the replicated model. \cite{ormerod_epistemological_2009} claim that the 3rd property is rather too weak and extend it to be 'if input variable x is increased in both models by a given amount, the distribution observed in the changes in output variable y should be statistically indistinguishable'.
 
 In the work of \cite{axtell_aligning_1996} the authors tried to see whether the more complex Sugarscape model can be used to reproduce the results of \cite{axelrod_convergence_1995}. In both models agents have a tag for cultural identification which is comprised of a string of symbols. The question was whether Sugarscape, focusing on generating a complete artifical society which incorporates many more mechanisms like trading, war, ressources can reproduce the results of \cite{axelrod_convergence_1995} which only focuses on transmission of these cultural tags. Although interesting the question if two models are qualitatively equivalent is not what we want to pursue in our thesis as it requires a complete different direction of research.
 The cooperative work of \cite{axtell_aligning_1996} gives insights into validation of computational models, in a process what they call "alignment". They try to determine if two models deal with the same phenomena. For this they tried to qualtiatively reproduce the same results of \cite{axelrod_convergence_1995} in the Sugarscape model of \cite{epstein_growing_1996}. Both models are of very different nature but try to investigate the qualitatively same phenomoenon: that of cultural processes. TODO: read
@@ -37,10 +41,13 @@ TODO fully read \cite{epstein_chapter_2006}
 TODO fully read \cite{epstein_generative_2012}
 
 TODO: \cite{galan_errors_2009}
-TODO: \cite{windrum_empirical_2007}
+
 
 model checking and reasoning in \cite{hutton_tutorial_1999}\\
 
 \subsection{Validation}
 The question is what the \textit{meaning} of validation - are we building the right simulation? - in the context of ABS is. Wilensky defines model validation in \cite{wilensky_making_2007} to be the process of determining whether the simulation explains and corresponds to phenomenon of the real world.
 \cite{galan_errors_2009} define validation of a model to check if it is consistent with the intended application of the model, how well the model captures its empirical referent.
+
+From the cited literature above, it becomes clear that validation is concerned with the relationship between the simulated model and its real-world counterpart - the system / thing / object being simulated.
+The question is: is there a view which connects both of them? Hypothesis: category-theory may be an approach which allows to abstract from the simulated model and the real-world system and show that the simulated model is indeed an instance of the real-world system. Also it may work in the way that we extract a category-theoretical view of our real-world system and map this then to pure functional concepts in Haskell.

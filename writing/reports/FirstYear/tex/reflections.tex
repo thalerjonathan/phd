@@ -2,6 +2,18 @@
 \label{chap:refl}
 
 \section{Conclusion}
+we combine the good parts
+1. Processes have “share nothing” semantics. This is obvious since they are imagined to run on physically separated machines.
+2. Message passing is the only way to pass data between processes. Again since nothing is shared this is the only means possible to exchange data.
+3. Isolation implies that message passing is asynchronous. If process communication is synchronous then a software error in the receiver of a message could indefinitely block the sender of the message destroying the property of isolation.
+4. Since nothing is shared, everything necessary to perform a distributed computation must be copied. Since nothing is shared, and the only way to communicate between processes is by message passing, then we will never know if our messages arrive (remember we said that message passing is inherently unreliable.) The only way to know if a message has been correctly sent is to send a confirmation message back
+
+we take the philosophy of the actor model as implemented in erlang (quoted above from Joe Armstrongs Thesis) and
+implement it synchronously with reliable message-passing in a pure functional language. To add parallelism and concurrency
+is not straight-forward for ABS because it depends on model-semantics but
+is much much easier in a pure functional language
+
+
 functional programming is our choice because it allows a deterministic, synchronized, actor style  implementation with  immutable messages and no sharing. and it allows algebraic and equational reasoning like process calculi\\
 
 the single strength of todays oop is its use as a modelling language. the problem is what is going on under the hood: the sharing of mutable state. this is the real problem of mixing up the concept of object and agent

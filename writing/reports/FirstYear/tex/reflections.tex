@@ -22,32 +22,13 @@ DEVS is, although of very different nature than process calculi, on the same low
 There exist a lot of agent formalisms in the field of multi-agent systems (MAS) which allow the formal and high-level specification of such a system. Some make use of low-level features like process calculi and algebraic reasoning. Our intention in this PhD is not to deliver a new Agent Formalism but to draw inspiration from them and bringing their strengths - a high-level specification of interacting agents - to a real programming language. 
 
 \subsection{Pure Functional Programming}
-why pure functional programming? what are its strengths? why does it overcome the problems? what are possible problems when doing it pure functional instead of oop?
+As pointed out in the literature-review at length, the strengths of pure functional programming (as in Haskell) are manifold and overcome the problems of object-oriented programming we indicated in the introduction \footnote{This does not mean that it makes object-oriented programming obsolete or that it can be applied equally well to all domains which have been assumed to be classic oop-domains - here we are just interested in ABS and we claim the pure functional way is very well suited for it - see below. Although attempts exist in bringing pure functional programming to e.g. GUI- and Game-programming, we think that especially these two fields are better suited to object-orientation because in both fields side-effects are fundamental and pervasive in every aspect of the domain and thus utterly difficult to isolate in a pure-functional way (which also allows for high-performance, see below).}. The most powerful aspect is obviously its \textit{purity}: it is explicit about effects (through monads) and has thus an explicit data-flow. Its composability achieved through higher-order functions and lazyness is superior to objects because of the loose coupling between data and code. The declarative style allows to easily implement EDSLs for a given problem which makes reasoning possible, also due to the lack of implicit side-effects. Finally the static type system is a powerful tool to create contracts and specifications in code which supports reasoning and increases correctness and can be seen as a form of additional documentations \footnote{Of course to some, a static type system is just an annoying obstacle in writing code, but when going in the direction of verification and validation, it is a mandatory tool and can not be left aside.}.
 
-\subsubsection{Strengths}
-\begin{itemize}
-	\item Pure - explicit about effects through monads
-	\item Composability through higher-order functions and lazyness
-	\item EDSL by its declarative style
-	\item Reasoning through EDSL and lack of implicit side-effects 
-	\item Static Type System
-\end{itemize}
-
-\subsubsection{Weaknesses}
-Here we give an overview of the weaknesses and problems of pure, lazy functional programming in Haskell.
-
-\paragraph{Space-Leaks}
-The main issue in a lazy functional programming language is the difficulty of predicting space behaviour, which is very hard even for experienced programmers \cite{hudak_history_2007}. The problem arises from the fact, that Haskell abstracts away from evaluation order and object lifetimes. Programmers have no way to determine which data-structures live for how long - indeed they don't want and should not be bothered to think about these details as this would violate the whole concept behind pure lazyness \cite{hudak_history_2007}.
-
-\paragraph{Debugging}
+Of course pure functional programming has also its important weaknesses. The main issue in a lazy functional programming language is the difficulty of predicting space behaviour, resulting in \textit{space-leaks}, which is very hard even for experienced programmers \cite{hudak_history_2007}. The problem arises from the fact, that Haskell abstracts away from evaluation order and object lifetimes. Programmers have no way to determine which data-structures live for how long - indeed they don't want and should not be bothered to think about these details as this would violate the whole concept behind pure lazyness \cite{hudak_history_2007}.
 Due to the lazy evaluation and non-imperative programming style it becomes apparent that debugging needs to be approached completely different than in imperative programming where one can freely set breakpoints to statements and inspect data. This is not possible in Haskell as there are no imperative statements and the data may have not been evaluated yet due to the unpredictable evaluation order as mentioned already in the space-leak problem.
-
-\paragraph{Performance}
 Due to the lack of side-effects and aliasing, efficient in-order updates of memory is not as easily possible as in imperative languages like C thus real-time applications like Games which have a big global mutable state run much slower compared to its imperative implementations.
 TODO: check if these references really support my argument \cite{mun_hon_functional_2005}, \cite{meisinger_game-engine-architektur_2010} - The works on game-programming in Yampa mention a similar problem (FRP-section).
-
-\paragraph{Monad composition}
-Monads do not compose in a nice, modular way and this issue is still open research \cite{hudak_history_2007}. TODO: is this still the case?
+Although monads are a benefit to pure functional programming by allowing to making side-effects explicit, so far monads do not compose in a nice, modular way and this issue is still open research \cite{hudak_history_2007}.
 
 \section{Combining the strengths}
 TODO: combine best of all techniques to leverage
@@ -128,3 +109,18 @@ TODO: the question is whether it can be used for Validation as well.
 Fair point, NetLogo can be seen as a functional language. 
 Problem: side-effects, global state, dynamic, very difficult to verify
 Main benefits: quick and easy to learn, for beginners
+
+Question: Why another formalism? don't we have already enough?
+Answer: it is only partly another formalism - the important fact is, that it is directly built into Haskell, thus leveraging on a pure functional programming language directly than having some formal language which is then translated to machine code.
+
+Question: Pure functional programming? You must be kidding! Objects are so close to Agents!
+Answer: exactly this is the problem: objects are in fact very close to agents but they have also very important differences which are quickly cast aside when implementing ABS in e.g. Java leading to problems like shared state.
+
+Question: What about parallelism and concurrency?
+Answer: Although very important, they are not of primary interest in this PhD. It is very well known that pure functional programming is exceptionally well suited in implementing parallel programs (no side-effects) and also concurrent ones (through STM, allowing composition of concurrency) and we have looked into this a bit in the paper on programming paradigms in ABS, so all of this can be applied to our research as well.
+
+Question: You mentioned performance and space-leaks as weaknesses?
+Answer: yes this is probably the largest issue to date as even problems with small number of agents (~500-1000) are getting very slow. Although performance is not of interest here we are well aware that slow software is simply not used, thus we are looking for ways in improving the speed.
+
+Question: You mentioned the difficulty of debugging in weaknesses of pure functional programming, how can you be sure your program is correct?
+Answer: Good point. But having the ability to step through a program alone does not guarantee the correctness of a program. In Haskell the static type system enforces already so much and prevents bugs which are normal in e.g. Java, also the lack of implicity side-effects makes programs much less prone to errors. In the end there is also reasoning techniques and QuickCheck. Thus we have much more power at hand in detecting bugs and ensuring correctness than classic oop languages like Java or C++.

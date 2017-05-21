@@ -22,4 +22,16 @@ Yes this is probably the largest issue to date as even problems with small numbe
 Good point but having the ability to step through a program alone does not guarantee the correctness of a program. In Haskell the static type system enforces already so much and prevents bugs which are normal in e.g. Java, also the lack of implicit side-effects makes programs much less prone to errors. In the end there is also reasoning techniques and QuickCheck. Thus we have much more power at hand in detecting bugs and ensuring correctness than classic oop languages like Java or C++.
 
 \paragraph{So you say ABS should be done in Haskell using your library and using your techniques and object-orientation sucks?}
-You're mixing things up but: it depends. If you are familiar with Haskell and like functional programming, go for it. If you are an oop-disciple, just don't. If you need correctness and verification in your simulation then definitely go for it.
+You're mixing things up but: it depends. If you are familiar with Haskell and like functional programming, go for it. If you are an oop-disciple, who can code the most complex ABS just don't. If you need correctness and verification in your simulation then definitely go for it. 
+
+\paragraph{Nobody has done it before? Probably for a good reason, object-oriented is the way to go for ABS!}
+At least to my knowledge, backed-up by a thorough literature-review, no one has done a proper treatment of ABS in a pure functional way. My original motivation was just one thing: curiosity! No one has done it and I want to find out how it can be done, what its benefits are, what its weaknesses are. Just to claim oo is the \textit{right} way is not a serious claim unless you haven't tried other ways and compared them. I have done both ways in-depth, have you?
+
+\paragraph{What are the benefits?}
+Simulations are more likely to be correct, better support for verification, no gap between specification and code, easier to replicate.
+
+\paragraph{What are the weaknesses?}
+Performance, steep learning curve if you don't know functional programming.
+
+\paragraph{Why not using Erlang? Its functional, it has the actor model built in?}
+Yes, Erlang would be nearly perfect but the non-determinism and asynchronous nature of the messaging is the main problem which can hardly be overcome. If you don't need determinism (as in every run may have different dynamics despite using the same RNG) in your model, then Erlang (or Scala) is definitely an interesting option.

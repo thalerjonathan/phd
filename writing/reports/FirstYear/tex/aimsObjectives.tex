@@ -1,8 +1,26 @@
 \chapter{Aims and Objectives}
 \label{chap:aimsObj}
 
+\section{The Vision}
+As becomes evident from the reflections on the literature we advocate pure functional programming in Haskell and its category-theoretic foundations as a solution to the questions posed. The usage of pure functional programming in ABS is also a strong motivation by itself as it hasn't been researched yet and deserves a thorough treatment on its own. Surprisingly there exist hardly any attempts on implementing ABS in pure functional programming as will become clear in the literature-review. Maybe this can also be seen as a hint that ABS lacks a level of deductive formalism which we hope to repair with our thesis. So put short the motivation is a twofold direction, referring to each other in a circular way. First, pure functional programming has not been researched for implementing and specifying ABS so far. Second, the current state-of-the-art seems to be susceptible to flaws and bugs due to the lack of powerful verification. Combining both issues forms the very basic motivation of our thesis: use pure functional programming and its underlying theoretical framework to develop new methods for specifying, implementing, verifying and validating ABS to create simulations which are more reliable, reproducible and shareable with the community.
+To do verification we need a form of formal specification which can be translated easily to the code. Being inspired by the previously mentioned work on a functional framework for agent-based models of exchange in \cite{botta_functional_2011} we opt for a similar direction. Having Haskell as the implementation language instead of an object-oriented one like Java allows us to build on the above proposed EDSL for ABS. Because of the declarative nature of the hypothesized EDSL it can act both as specification- and implementation-language which closes the gap between specification and implementation. This would give us a way of formally specifying the model but still in a more readable way than pure mathematics. This form of formal specification can act easily as a medium for communication between team-memberes and to the scientific audience in papers. Most important the explicit step of verification becomes obsolete as there exists no more difference between specification and implementation. The last point seems to be quite ambitious but this is a hypothesis and we will see in the course of the thesis how far we can close the gap in the end with this approach.
+In \cite{claessen_quickcheck:_2000} introduce \textit{QuickCheck}, a testing-framework which allows to specifify properties and invariants of ones functions and then test them using randomly generated test-data. This is an additional tool of model-specification and increases the power and strength of the verification process and more properties of a model can be expressed which are directly formulated in code through the EDSL of QuickCheck AND the EDSL of FrABS. Of course it also serves for testing (e.g. regression) and points out errors in the implementation e.g. wrong assumptions about input-data. The authors claim that the major advante of QuickCheckj is to formulate formal specifications which help in understanding a program. The question is whether it can be used for Validation as well.
+Also it would be of interest to put pure functional ABS on a firm theoretical ground by developing a category- \& type-theoretical view on ABS. This could potentially, give a deeper insight into the structure of agents, agent-models and agent-based simulation, serves as the basis for the pure functional implementation, serves as a high-level specification tool for agent-models.
+As we have seen from the literature-review that there may exist category-theoretical views on models for verification. Because of the category-theoretic foundations of haskell it may be the case that we also close the gap between conceptual model and implementation thus making a huge advancement in validation.
+
+
+
+
 In this chapter we derive the hypotheses to the motivating questions from the introduction based upon our literature-review and present our aims and objectives for our PhD. We present research-questions and hypotheses.
 
+
+Define 5 general research questions for each Research-Context
+	\begin{itemize}
+    \item 2 related to FP
+    \item 1 related to integration of FP to ABM/S
+    \item 2 related to ABM/S
+    \end{itemize}
+    
 \section{Aims}
 The pure functional programming language Haskell offers all the required features. Together with the concept of functional reactive programming (FRP) we will show that ABS becomes very well possible to be implemented in a functional language. The declarative nature of Haskell allows us to implement an embedded domain-specific language (EDSL) for ABS based on the FRP paradigm.
 
@@ -57,7 +75,11 @@ implement full-fledged pure functional ABS library on top of Haskell and FRP (Ya
 Sugarscapes decentralized  bilateral trading . NOTE: sugarscape may be too complicated: the interconnection of sugar- and spice-harvesting makes the demand/supply endogenous but relies on so many facts. maybe we can find a simpler model which is equal in explanatory power (verification \& validation)
 look into \cite{botta_functional_2011}
 
+Solving the problem of verification: showing that the code is a correct implementation of the model specification. If we can develop an EDSL which closes the gap between specification and implementation - which can be used for both - then we get rid of this problem as there exists no more distinction. 
+
 \subsection{Case Study in Validation}
+Solving the problem of validation: showing that the implemented model is in fact a faithful representation of the real-world concept. If we find a category-theoretical description of the real-world concept and show that our functional program also exhibits these, then it must follow that our implementation \textit{is} indeed equivalent to the real-world concept and thus valid.
+
 Agent\_Zero network extension
 
 Semantics for FrABS and our EDSL to reason about the results: are they reasonable? do they match the theory? if yes why? if not why not?

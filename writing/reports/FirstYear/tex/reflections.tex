@@ -4,8 +4,6 @@
 In this chapter we reflect the literature we have investigated in the previous chapter to identify a research-gap and derive a vision for our research which will be clarified in the next chapter on aims and objectives.
 
 \section{Strengths and Weaknesses}
-TODO: all techniques alone wont help, each has weaknesses
-
 When looking at the literature it seems that the relevant concepts for approaching the problems mentioned in the introduction but that they are distributed over the various topics. Lets first look at each relevant topic to derive its core concept and core weakness - all from the viewpoint of ABS.
 
 \subsection{Actor Model}
@@ -31,76 +29,8 @@ TODO: check if these references really support my argument \cite{mun_hon_functio
 Although monads are a benefit to pure functional programming by allowing to making side-effects explicit, so far monads do not compose in a nice, modular way and this issue is still open research \cite{hudak_history_2007}.
 
 \section{Combining the strengths}
-From pi-calculus, DEVS and agent formalisms we take the concept of a domain-specific language which allows to reason - can be built in a pure functional language
-
-TODO: combine best of all techniques to leverage
-
-Although in which way precisely process-calculi and DEVS can be made of use for ABS is unclear and will be part of the research.
-
-By the literature-review it seems that all the problems of object-oriented programming (as it is done in Java and C++) mentioned in the introduction, can be solved by (pure) functional programming which abandons the concept of global state, Objects and Classes and makes data-flow explicit. This then allows to reason about correctness, termination and other properties of the program e.g. if a given function exhibits side-effects or not. Other benefits are fewer lines of code, easier maintainability and ultimately fewer bugs thus making functional programming the ideal choice for scientific computing and simulation and thus also for ACE.
-
-Thread of argumentation: actor model is nice but for the kind of simulation we want to do we need too much synchronization otherwise we end up non-deterministic \& non-replicable. also actor-model very difficult to reason about because of non-deterministic specifications of message-transmission. what we need is a combination: deterministic, synchronized traversal of agents which are represented as a pure function: immutable messages and no exchange of aliases through which state can be mutated.
-
-we combine the good parts
-1. Processes have “share nothing” semantics. This is obvious since they are imagined to run on physically separated machines.
-2. Message passing is the only way to pass data between processes. Again since nothing is shared this is the only means possible to exchange data.
-3. Isolation implies that message passing is asynchronous. If process communication is synchronous then a software error in the receiver of a message could indefinitely block the sender of the message destroying the property of isolation.
-4. Since nothing is shared, everything necessary to perform a distributed computation must be copied. Since nothing is shared, and the only way to communicate between processes is by message passing, then we will never know if our messages arrive (remember we said that message passing is inherently unreliable.) The only way to know if a message has been correctly sent is to send a confirmation message back
-
-we take the philosophy of the actor model as implemented in erlang (quoted above from Joe Armstrongs Thesis) and
-implement it synchronously with reliable message-passing in a pure functional language. To add parallelism and concurrency
-is not straight-forward for ABS because it depends on model-semantics but is much much easier in a pure functional language
-
-functional programming is our choice because it allows a deterministic, synchronized, actor style  implementation with  immutable messages and no sharing. and it allows algebraic and equational reasoning like process calculi
-
-the single strength of todays oop is its use as a modelling language. the problem is what is going on under the hood: the sharing of mutable state. this is the real problem of mixing up the concept of object and agent
-
-TODO: put at the end
-
-
-This leads us to pure functional programming with FRP which combines all the benefits: local memory, messages, switching of behaviour, algebraic reasoning, static typesystem
+Having identified the weaknesses and strengths of the approaches we can now derive what is needed for handling the problems mentioned in the introduction: we are combining the strengths of the approaches. From process-calculus, DEVS and agent formalisms we take the concept of a domain-specific language which allows to reason about the system and apply algebraic laws in manipulating it. Also we hope to make use of the $\pi$-calculus and DEVS for verification purposes although in which way precisely they can be made of use to ABS is unclear and will be part of the research. From the actor model we take the concept of processes which interact with each other by shared-nothing messaging.
+When applying these to pure functional programming in Haskell we arrive at an ideal combination. The purity allows us to implement deterministic, synchronized and reliable messaging with shared-nothing semantics. The declarative nature and its static type-system allows us to implement an EDSL inspired by the actor model and the formalisms mentioned above. Building on top of a FRP library like Yampa gives us the necessary time-semantics for ABS and allows us to formulate agents as processes, implemented as signal-functions (see chapter on functional reactive ABS).
 
 \section{Identifying the Gap}
-TODO: what hasn't been researched yet
-
-- Functional programming in this area exists but only scratches the surface and focus only on implementing agent-behaviour frameworks like BDI. An in-depth treatise of Agent-Based Modelling and implementing an Agent-Based Simulation in a pure functional language has so far never been attempted.
-
-- There basically exists no approach to Agent-Based Modelling \& Simulation in terms of Category-Theory and Type-Theory
-
-- Verification is an issue in ABS as they are very often described in natural language and supplemented with a few formulas. This leads to implementation-errors, e.g. Gintis Bartering-Paper, and results become hard to reproduce. Such errors become a threatening problem when simulation-results are used in decision making e.g. economics, policy-making, ...
-
-- Validation is basically an untouched topic in ABS: models are formulated, a few hypotheses are formulated, the model is implemented and run, then the results are checked against the hypotheses. What the field of ABS needs is an in-depth discussion on how to rigorously validate a model. Validation is of course only as strong as the verification part: if the implementation is wrong anyway then we can not rely on anything (from false comes nothing)
-
-- developing a category- \& type-theoretical view on Agent-Based Modelling \& Simulation which will 
-	-> 1. give a deeper insight into the structure of agents, agent-models and agent-based simulation
-	-> 2. serves as the basis for the pure functional implementation
-	-> 3. serves as a high-level specification tool for agent-models
-
-- implementing a library called FrABS based upon the FRP paradigm which allows to specify Agent-Based Models in an EDSL and run them
-
-- Verification: closing the gap between specification and implementation through the category- \& type-theoretical view and the EDSL
-
-- Validation: formalizing hypotheses and reasoning about dynamics and expected outcomes of the simulation
-
-Define 5 general research questions for each Research-Context
-	\begin{itemize}
-    \item 2 related to FP
-    \item 1 related to integration of FP to ABM/S
-    \item 2 related to ABM/S
-    \end{itemize}
-    
-
-\section{The Vision}
-TODO:  solution is pure functional programming with a synchronous, reliable actor-model as basics with pro-activity added on top, made possible through FRPs Yampa. benefits: EDSL, QuickCheck, Verification
-TODO: select the direction: Category-Theory and not Actor Model, Haskell with FRP and not Scala\&Actors/Erlang. need a thorough explanation reasoning
-
-emphasize my own research on scala with actors, experiments with erlang and prototyping with haskell.
-
-As becomes evident from the literature-review we advocate pure functional programming in Haskell and its category-theoretic foundations as a solution to the questions posed. The usage of pure functional programming in ABS is also a strong motivation by itself as it hasn't been researched yet and deserves a thorough treatment on its own. Surprisingly there exist hardly any attempts on implementing ABS in pure functional programming as will become clear in the literature-review. Maybe this can also be seen as a hint that ABS lacks a level of deductive formalism which we hope to repair with our thesis. 
-
-So put short the motivation is a twofold direction, referring to each other in a circular way. First, pure functional programming has not been researched for implementing and specifying ABS so far. Second, the current state-of-the-art seems to be susceptible to flaws and bugs due to the lack of powerful verification. Combining both issues forms the very basic motivation of our thesis: use pure functional programming and its underlying theoretical framework to develop new methods for specifying, implementing, verifying and validating ABS to create simulations which are more reliable, reproducible and shareable with the community.
-
-- To do verification we need a form of formal specification which can be translated easily to the code. Being inspired by the previously mentioned work on a functional framework for agent-based models of exchange in \cite{botta_functional_2011} we opt for a similar direction. Having Haskell as the implementation language instead of an object-oriented one like Java allows us to build on the above proposed EDSL for ABS. Because of the declarative nature of the hypothesized EDSL it can act both as specification- and implementation-language which closes the gap between specification and implementation. This would give us a way of formally specifying the model but still in a more readable way than pure mathematics. This form of formal specification can act easily as a medium for communication between team-memberes and to the scientific audience in papers. Most important the explicit step of verification becomes obsolete as there exists no more difference between specification and implementation. The last point seems to be quite ambitious but this is a hypothesis and we will see in the course of the thesis how far we can close the gap in the end with this approach.
-
-- In \cite{claessen_quickcheck:_2000} introduce \textit{QuickCheck}, a testing-framework which allows to specifify properties and invariants of ones functions and then test them using randomly generated test-data. This is an additional tool of model-specification and increases the power and strength of the verification process and more properties of a model can be expressed which are directly formulated in code through the EDSL of QuickCheck AND the EDSL of FrABS. Of course it also serves for testing (e.g. regression) and points out errors in the implementation e.g. wrong assumptions about input-data. The authors claim that the major advante of QuickCheckj is to formulate formal specifications which help in understanding a program.
-TODO: the question is whether it can be used for Validation as well.
+Functional programming in this area exists but only scratches the surface and focus only on implementing agent-behaviour frameworks like BDI and focus only on MAS. An in-depth treatise of agent-based modelling and implementing an agent-based simulation in a pure functional language has so far never been attempted. Also there basically exists no approach to ABS in terms of Category-Theory and Type-Theory which form the basis of pure functional programming. Thus this approach is a unique and novel direction in research.

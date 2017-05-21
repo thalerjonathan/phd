@@ -1,0 +1,25 @@
+\chapter{Questions \& Answers}
+\label{chap:qa}
+
+In this chapter I give answers to anticipated questions and objections about my research direction and vision of doing pure functional ABS \footnote{They are not always posed in a dead-serious way but as it is a quite controversial topic - ABS should be done object-orientated after all huh? - I think it is appropriate. Also some objections were raised in exactly this way.}.
+
+\paragraph{Doesn't NetLogo provide all this?}
+Fair point, NetLogo can be seen as a functional language. Problem: side-effects, global state, dynamic, very difficult to verify. Main benefits: quick and easy to learn, for beginners.
+
+\paragraph{Why another formalism, don't we have already enough of them?}
+It is only partly another formalism - the important fact is, that it is directly built into Haskell, thus leveraging on a pure functional programming language directly than having some formal language which is then translated to machine code.
+
+\paragraph{Pure functional programming? You must be kidding! Objects are so close to Agents!}
+Exactly this is the problem: objects are in fact very close to agents but they have also very important differences which are quickly cast aside when implementing ABS in e.g. Java leading to problems like shared state.
+
+\paragraph{What about parallelism and concurrency?}
+Although very important, they are not of primary interest in this PhD. It is very well known that pure functional programming is exceptionally well suited in implementing parallel programs (no side-effects) and also concurrent ones (through STM, allowing composition of concurrency) and we have looked into this a bit in the paper on programming paradigms in ABS, so all of this can be applied to our research as well.
+
+\paragraph{You mentioned performance and space-leaks as weaknesses?}
+Yes this is probably the largest issue to date as even problems with small number of agents (~500-1000) are getting very slow. Although performance is not of interest here we are well aware that slow software is simply not used, thus we are looking for ways in improving the speed.
+
+\paragraph{You mentioned the difficulty of debugging in weaknesses of pure functional programming, how can you be sure your program is correct?}
+Good point but having the ability to step through a program alone does not guarantee the correctness of a program. In Haskell the static type system enforces already so much and prevents bugs which are normal in e.g. Java, also the lack of implicit side-effects makes programs much less prone to errors. In the end there is also reasoning techniques and QuickCheck. Thus we have much more power at hand in detecting bugs and ensuring correctness than classic oop languages like Java or C++.
+
+\paragraph{So you say ABS should be done in Haskell using your library and using your techniques and object-orientation sucks?}
+You're mixing things up but: it depends. If you are familiar with Haskell and like functional programming, go for it. If you are an oop-disciple, just don't. If you need correctness and verification in your simulation then definitely go for it.

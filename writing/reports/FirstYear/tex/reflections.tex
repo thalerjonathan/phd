@@ -31,6 +31,8 @@ TODO: check if these references really support my argument \cite{mun_hon_functio
 Although monads are a benefit to pure functional programming by allowing to making side-effects explicit, so far monads do not compose in a nice, modular way and this issue is still open research \cite{hudak_history_2007}.
 
 \section{Combining the strengths}
+From pi-calculus, DEVS and agent formalisms we take the concept of a domain-specific language which allows to reason - can be built in a pure functional language
+
 TODO: combine best of all techniques to leverage
 
 Although in which way precisely process-calculi and DEVS can be made of use for ABS is unclear and will be part of the research.
@@ -102,25 +104,3 @@ So put short the motivation is a twofold direction, referring to each other in a
 
 - In \cite{claessen_quickcheck:_2000} introduce \textit{QuickCheck}, a testing-framework which allows to specifify properties and invariants of ones functions and then test them using randomly generated test-data. This is an additional tool of model-specification and increases the power and strength of the verification process and more properties of a model can be expressed which are directly formulated in code through the EDSL of QuickCheck AND the EDSL of FrABS. Of course it also serves for testing (e.g. regression) and points out errors in the implementation e.g. wrong assumptions about input-data. The authors claim that the major advante of QuickCheckj is to formulate formal specifications which help in understanding a program.
 TODO: the question is whether it can be used for Validation as well.
-
-
-\section{Critizism of my approach}
-\paragraph{Doesn't NetLogo provide all this?}
-Fair point, NetLogo can be seen as a functional language. 
-Problem: side-effects, global state, dynamic, very difficult to verify
-Main benefits: quick and easy to learn, for beginners
-
-Question: Why another formalism? don't we have already enough?
-Answer: it is only partly another formalism - the important fact is, that it is directly built into Haskell, thus leveraging on a pure functional programming language directly than having some formal language which is then translated to machine code.
-
-Question: Pure functional programming? You must be kidding! Objects are so close to Agents!
-Answer: exactly this is the problem: objects are in fact very close to agents but they have also very important differences which are quickly cast aside when implementing ABS in e.g. Java leading to problems like shared state.
-
-Question: What about parallelism and concurrency?
-Answer: Although very important, they are not of primary interest in this PhD. It is very well known that pure functional programming is exceptionally well suited in implementing parallel programs (no side-effects) and also concurrent ones (through STM, allowing composition of concurrency) and we have looked into this a bit in the paper on programming paradigms in ABS, so all of this can be applied to our research as well.
-
-Question: You mentioned performance and space-leaks as weaknesses?
-Answer: yes this is probably the largest issue to date as even problems with small number of agents (~500-1000) are getting very slow. Although performance is not of interest here we are well aware that slow software is simply not used, thus we are looking for ways in improving the speed.
-
-Question: You mentioned the difficulty of debugging in weaknesses of pure functional programming, how can you be sure your program is correct?
-Answer: Good point. But having the ability to step through a program alone does not guarantee the correctness of a program. In Haskell the static type system enforces already so much and prevents bugs which are normal in e.g. Java, also the lack of implicity side-effects makes programs much less prone to errors. In the end there is also reasoning techniques and QuickCheck. Thus we have much more power at hand in detecting bugs and ensuring correctness than classic oop languages like Java or C++.

@@ -1,325 +1,58 @@
 \chapter{Future Work Plan}
 \label{chap:future}
 
-TODO: A future work plan that is consistent with the progress to date, stating clearly the research question(s) to be addressed during the next year of the PhD.
+%TODO: A future work plan that is consistent with the progress to date, stating clearly the research question(s) to be addressed during the next year of the PhD.
 
-TODO: gantt chart!
+In this chapter we break down the the four main objectives we have identified in Chapter \ref{chap:aimsObj} into small working packages, present mile-stones and holidays, relevant conferences, papers we want to publish (either conference or journal). A Gantt-Chart, reflecting all the details is found in Appendix \ref{app:gantt} in Figure TODO: ref
 
-
-\subsection{TODOs}
-out of this i will build the gantt chart for the next 12 months+
-
-\subsubsection{Category Theory}
-develop category theory behind FrABS: look into monads, arrows
-
-category theory foundations (monads, arrows)
-
-\subsubsection{Implementation and Software-Engineering}
-%how to implement in haskell (sugarscape, agent_zero) 
-use monadic or arrowized programming for structuribg the siftware
-implement schelling segregation in recursiveABS and report results
-
-FrABS: SugarScape
-1st prototype: pure-functional implemented, no category-theory/type-theory applied
-2nd prototype: category-theory/type-theory applied: clean monadic / arrowized programming applied
-
-Agent\_Zero
-1st prototype: implemented the book, based upon FrABS 
-Extension: implement networks and study the effects there. use this as the case-study for verification and validation
-
-\subsubsection{Verification and Validation}
-look into QuickCheck to test and verificate FrABS
-
-\subsubsection{Papers}
-paper 2: recursive ABS - don't pursue this : SSC 2018, Deadline in March 2018?
-paper 3: FrABS - Towards pure functional programming in ABS: TFP 2017, Deadline 5th May 2017, 19-21th June 2017, \url{https://www.cs.kent.ac.uk/events/tfp17/index.html}
-
-paper 4: Towards category theory in ABS: ?
-paper 5: verification and validation in ABS with pure functional programming: AAMS 2018, Deadline in November 2018, \url{http://www.aamas2017.org/}
-
-
-
-\subsubsection{Reading}
-read "Writing For Computer Science"
-read "Agent\_Zero"
-read "category theory for the sciences"
-
-
-\subsection{Concept of an Agent}
-an agent is not an object but when implementing ABS in oo then it is tempting to treat an agent like that. when implementing it in a pure functional language like haskell, this temptation cannot arise which creates a different view on agents.
-
-- what do i want to have achieved in the first year?
-	-> FrABS
-	-> 1st conference paper published
-	-> research questions
-	-> milestones
-	-> clear idea what i want to do and where to go
-	
-- Paradigm shift in ABS!
-
-- Focus on Papers + Milestones
-	-> find out which conferences I want to go and when the deadlines are
-
-- organize as agile sprints
-
-- Conferences
-	-> Multi-Agent Systems, good for verification and validation: 			AAMS, Deadline in November
-	-> Social Simulation, good for new methods in simulation e.g. MetaBS: 	SSC, Deadline in March
-	-> functional, for presenting functional stuff but not too advanced:	TFP	
-	-> TODO some functional, good for FrABS \& EDSL:						?
-
-
-\subsection{Milestones}
-
-\subsubsection*{1st Year Viva}
-Deadline: end of July
-
-\subsubsection*{Submitted Paper on Recursive ABS}
-SSC 2018, Deadline in March 2018?, 
-
-\subsubsection*{Submitted Paper on FrABS}
-TFP 2017, Deadline 5th May 2017, 19-21th June 2017, \url{https://www.cs.kent.ac.uk/events/tfp17/index.html}
-
-\subsubsection*{Submitted Paper on Validation \& Verification}
-AAMS 2018, Deadline in November 2018, \url{http://www.aamas2017.org/}
-
-\subsubsection*{Completed PhD}
-Deadline September 2019
-
-
-\subsection{Time-Line}
-TODO: add Gantt-Chart
-from june 2017 on detailed overview of activity
-also project gantt-chart back to what i have done so far
-
-The whole PhD lasts for 3 years, 36 Months, from October 2016 to September 2019 and thus I will structure it according to 3 years where each year will be a major milestone - which is also intended by the Computer School.
-
-\subsection{ToDo}
-\begin{enumerate}
-	\item Paper: agents' vs. agent's
-	\item FRP \& ABS = FrABS: meeting with Henrik
-	\item FrABS: work on it
-	\item Agent\_Zero genauer anschauen: winter simulation papers, unterschied zu sugarscape?
-	\item Refine project-plan 
-\end{enumerate}
-
-
-
-
-\subsection{1st Year: Groundwork}
-In this year I will learn basics and develop and research the methodology I will use for the main work in the 2nd year. The year will be guided by the principal question of "How can Agent-Based Simulation be done using pure functional programming?".
-
-Important mile-stones:
-
-\begin{center}
-\begin{tabular}{ c|c } 
-	31st March 2017 & Finished and submit Paper \\ 
-	\hline
-	June (Mid) 2017 & Finished writing 1st year report  \\ 
-	\hline
-	End of June / Begin of July 2017 & Oral annual report \\
-\end{tabular}
-\end{center}
-
-\subsubsection{Major Activities}
+Activities
 \begin{itemize}
-	\item Develop FrABS library: March 2017 - May 2017
-	\item Refine FrABS and publish as library on Hackage: July 2017 - September 2017
-	\item Write FrABS paper: July 2017 - September 2017
-	\item Study decentralized bartering: July 2017 - September 2017
+\item Develop FrABS prototype: March 2017 - June 2017
+\item Implement Sugarscape prototype: April 2017
+\item Implement Agent\_Zero prototype: June 2017 (implement parallel update strategy, introduce clean graph-library for non-spatial neighbourhood)
+\item implement FrABS replications using parallelism
+\item Refactor FrABS, Sugarscape and Agent\_Zero: Monadic and/or arrowized programming
+\item Refine FrABS and publish as library on Hackage: July 2017 - September 2017
+\item Study decentralized bartering: September 2017 - December 2017
+\item Write FrABS paper: January 2018 - February 2018
+\item Study category-theory: July 2017 - End of PhD
+\item Specify Sugarscape rules in EDSL
+\item Applying QuickCheck to FrABS and Sugarscape
+\item Writing thesis: April 2019 - August 2019
+\item Submitting thesis, 2 weeks of holidays
 \end{itemize}
 
+\section{Planned Papers}
+\subsection{FrABS - Towards pure functional programming in ABS}
 
-% March --------------	
-\subsubsection{March 2017}
+\subsection{Verification and Validation in ABS with pure functional programming}
+
+\section{Conferences}
 \begin{itemize}
-	\item experiment with MetaABS (also implement it in the EDSL) to see if it is making any sense to follow this road
-	\item Programming: bring ABS to FRP in Yampa: FrABS, implement SugarScape
-	\item 31st March: Finalize and submit 'Art of Iterating'-Paper to SSC 2017 
-	\item Formulate Research Questions
-	\item Draft Project Plan
+	\item \textbf{Multi-Agent Systems AAMS} - General Multi-Agent Systems and Agent-Based Modelling \& Simulation, Deadline in November
+	\item \textbf{Social Simulation Conference SSC} - New Methods and models in simulation, Deadline in March
+	\item \textbf{Symposium on Trends in Functional Programming} - Functional programming stuff, Deadline in May
 \end{itemize}
 
-% April --------------	
-\subsubsection{April 2017}
+\section{Mile-Stones}
 \begin{itemize}
-	\item 9th - 13th: Midland Graduate School in Leicester
-	\item Programming: bring ABS to FRP in Yampa: FrABS, implement SugarScape
-	\item Refine Research Questions
-	\item Refine Project Plan
+	\item 2017 31st March - finished and submit Paper 
+	\item 2017 June (Mid) - Finished writing 1st year report 
+	\item 2017 End of June / Begin of July - Oral annual report
+	\item 2017 October - 2nd year starts
+	\item 2018 May - TFP paper on FrABS
+	\item 2018 October - 3rd year starts
+	\item 2019 30th September - official end of PhD
+	\item 2020 30th September - end of pending-period
 \end{itemize}
 
-% May --------------	
-\subsubsection{May 2017}
+\section{Mile-Stones}
 \begin{itemize}
-	\item Start writing 1st year report
-	\item Programming: bring ABS to FRP in Yampa: FrABS, implement SugarScape
-	\item Finalize Research Questions
-	\item Finalize Project Plan
-\end{itemize}
-
-% June --------------	
-\subsubsection{June 2017}
-\begin{itemize}
-	\item 4th - 18th: 2 weeks holiday on Amrum (planned last year already)
-	\item Finalize 1st year report
-	\item Prepare for 1st Year oral exam
-	\item End (or beginning of July) 1st Year oral exam
-\end{itemize}
-
-% July--------------	
-\subsubsection{July 2017}
-\begin{itemize}
-	\item Start writing on FrABS Paper: show how the rules of SugarScape can be formalized in FrABS => specification equals code
-	\item Study decentralized bilateral trading/bartering
-	\item Refine FrABS library
-\end{itemize}
-
-% August--------------	
-\subsubsection{August 2017}
-\begin{itemize}
-	\item Work on FrABS Paper: Formalize the Rules in the EDSL of FrABS
-	\item Study decentralized bilateral trading/bartering
-	\item Refine FrABS library
-\end{itemize}
-
-% September--------------	
-\subsubsection{September 2017}
-\begin{itemize}
-	\item Finalize FrABS Paper
-	\item Study decentralized bilateral trading/bartering
-	\item Refine FrABS library: put on hackage
-\end{itemize}
-
-% October --------------	
-\subsubsection{October 2017}
-2nd year starts
-
-
-
-
-\subsection{2nd Year: Main Work}
-Applying 1st year results, methods and experiences to work in the Research-Questions. The second year is investigating the question of "What are the benefits of doing ABS in pure functional programming?".
-
-Important mile-stones:
-
-\begin{center}
-\begin{tabular}{ c | c } 
-	October & Finished FrABS Paper \\
-	\hline
-	? & Submit FrABS Paper \\
-	\hline
-	? & Finished and submit MetaABS Paper \\
-\end{tabular}
-\end{center}
-
-\subsubsection{Major Points for research}
-\begin{itemize}
-	\item EDSL which is both specification- and implementation- language
-	\item MetaABS which allows to do recursive simulation
-	\item Reasoning about dynamics and emergent properties of ABS
-\end{itemize}
-
-% October --------------	
-\subsubsection{October 2017}
-Start of 2nd year
-
-% December --------------	
-\subsubsection{December 2017}
-\begin{itemize}
-	\item 22nd December 2017 - 7th January 2018: 2 weeks xmas holidays
-\end{itemize}
-
-% January --------------
-\subsubsection{January 2018}
-\begin{itemize}
-	\item 22nd December 2017 - 7th January 2018: 2 weeks xmas holidays
-\end{itemize}
-
-% April --------------	
-\subsubsection{April 2018}
-1 week holiday
-
-% August --------------	
-\subsubsection{August 2018}
-2 weeks holidays
-
-% October --------------	
-\subsubsection{October 2018}
-3rd year starts
-
-
-
-\subsection{3rd Year: Finalizing, Publishing \& Writing}
-The third year serves to refine, finish and publish the research of the 2nd year (ideally a journal paper) and then to write the final thesis. To have a bit of distraction and to prevent myself to become too locked in in writing on the thesis I will also work on my optional philosophical paper and hope to at least finish them and maybe publish them - at least I want to present them to 2-3 audiences (e.g. FP Lunch) to test the reaction.
-
-Important mile-stones:
-
-\begin{center}
-\begin{tabular}{ c|c } 
-	30th September 2019 & End of official PhD \\ 
-\end{tabular}
-\end{center}
-
-% October --------------	
-\subsubsection{October 2018}
-3rd year starts
-
-\subsubsection{October 2018 - December 2018}
-Finalize research of 2nd year
-
-\subsubsection{22nd December 2018 - 6th January 2019}
-2 weeks xmas holidays
-
-\subsubsection{January 2019 - March 2019}
-Publish journal paper of 2nd year, define structure of PhD Thesis
-
-\subsubsection{April 2019}
-1 week holiday
-
-\subsubsection{April 2019 - August 2019}
-Writing thesis
-	
-\subsubsection{September 2019}
-Submitting final thesis, 2 weeks of holidays
-
-% October --------------	
-\subsubsection{October 2019}
-End of official PhD
-
-
-
-
-
-
-
-
-
-
-\subsection{4th Year: Pending Period}
-It is very hard to finish ALL within the 3rd year and it is very likely that I will enter the 4th year - pending period. I plan on spending in this period not more than till Christmas as I have no funding in this time and I want to finish within time.
-
-Important mile-stones:
-
-\begin{center}
-\begin{tabular}{ c|c } 
-	1st October 2019 & Start of pending period \\
-	\hline
-	30th September 2020 & End of pending period \\ 
-\end{tabular}
-\end{center}
-
-\subsubsection{October}
-\begin{itemize}
-	\item Prepare for viva
-\end{itemize}
-
-\subsubsection{November}
-\begin{itemize}
-	\item Viva
-\end{itemize}
-
-\subsubsection{December}
-\begin{itemize}
-	\item Refine Thesis (incorporate minor changes)
+	\item 2017 June 4th to 18th - 2 weeks holiday on Amrum 
+	\item 2017 August 16th to 30th - 2 weeks holiday in Austria (Cousin marriage)
+	\item 2017 22nd December to 7th January 2018 - 2 weeks xmas holidays
+	\item 2018 April - 1 week holiday
+	\item 2018 August - 2 weeks holiday
+	\item 2018 22nd December 2018 to 6th January 2019 - 2 weeks xmas holidays
+	\item 2019 April - 1 week holiday
 \end{itemize}

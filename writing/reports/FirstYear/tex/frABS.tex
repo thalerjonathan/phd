@@ -3,6 +3,11 @@
 
 TODO: functionsl approach to ABS: parallel application to previous states where only one agent is acting and the others are fixed. per step we have n results. for a full iteration we need $(n-1)^2$ applicatioms
 
+
+TODO: is it really valid to bind the sending of messages to the advancing of time?
+Downside: we cannot have method-calls as in OO, which allows agents to communicate with each other without time advancing. 
+
+
 \section{General principles}
 idea: can we implement a message between two agents through events? thus two states: waiting for messages, processing messages. BUT: then sending a message \textit{will take some time}
 

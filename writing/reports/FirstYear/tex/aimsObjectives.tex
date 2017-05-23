@@ -1,100 +1,78 @@
 \chapter{Aims and Objectives}
 \label{chap:aimsObj}
 
-\section{The Vision}
-As becomes evident from the reflections on the literature we advocate pure functional programming in Haskell and its category-theoretic foundations as a solution to the questions posed. The usage of pure functional programming in ABS is also a strong motivation by itself as it hasn't been researched yet and deserves a thorough treatment on its own. Surprisingly there exist hardly any attempts on implementing ABS in pure functional programming as will become clear in the literature-review. Maybe this can also be seen as a hint that ABS lacks a level of deductive formalism which we hope to repair with our thesis. So put short the motivation is a twofold direction, referring to each other in a circular way. First, pure functional programming has not been researched for implementing and specifying ABS so far. Second, the current state-of-the-art seems to be susceptible to flaws and bugs due to the lack of powerful verification. Combining both issues forms the very basic motivation of our thesis: use pure functional programming and its underlying theoretical framework to develop new methods for specifying, implementing, verifying and validating ABS to create simulations which are more reliable, reproducible and shareable with the community.
-To do verification we need a form of formal specification which can be translated easily to the code. Being inspired by the previously mentioned work on a functional framework for agent-based models of exchange in \cite{botta_functional_2011} we opt for a similar direction. Having Haskell as the implementation language instead of an object-oriented one like Java allows us to build on the above proposed EDSL for ABS. Because of the declarative nature of the hypothesized EDSL it can act both as specification- and implementation-language which closes the gap between specification and implementation. This would give us a way of formally specifying the model but still in a more readable way than pure mathematics. This form of formal specification can act easily as a medium for communication between team-memberes and to the scientific audience in papers. Most important the explicit step of verification becomes obsolete as there exists no more difference between specification and implementation. The last point seems to be quite ambitious but this is a hypothesis and we will see in the course of the thesis how far we can close the gap in the end with this approach.
-In \cite{claessen_quickcheck:_2000} introduce \textit{QuickCheck}, a testing-framework which allows to specifify properties and invariants of ones functions and then test them using randomly generated test-data. This is an additional tool of model-specification and increases the power and strength of the verification process and more properties of a model can be expressed which are directly formulated in code through the EDSL of QuickCheck AND the EDSL of FrABS. Of course it also serves for testing (e.g. regression) and points out errors in the implementation e.g. wrong assumptions about input-data. The authors claim that the major advante of QuickCheckj is to formulate formal specifications which help in understanding a program. The question is whether it can be used for Validation as well.
-Also it would be of interest to put pure functional ABS on a firm theoretical ground by developing a category- \& type-theoretical view on ABS. This could potentially, give a deeper insight into the structure of agents, agent-models and agent-based simulation, serves as the basis for the pure functional implementation, serves as a high-level specification tool for agent-models.
-As we have seen from the literature-review that there may exist category-theoretical views on models for verification. Because of the category-theoretic foundations of haskell it may be the case that we also close the gap between conceptual model and implementation thus making a huge advancement in validation.
-
-
-
-
-In this chapter we derive the hypotheses to the motivating questions from the introduction based upon our literature-review and present our aims and objectives for our PhD. We present research-questions and hypotheses.
-
-
-Define 5 general research questions for each Research-Context
-	\begin{itemize}
-    \item 2 related to FP
-    \item 1 related to integration of FP to ABM/S
-    \item 2 related to ABM/S
-    \end{itemize}
-    
 \section{Aims}
-The pure functional programming language Haskell offers all the required features. Together with the concept of functional reactive programming (FRP) we will show that ABS becomes very well possible to be implemented in a functional language. The declarative nature of Haskell allows us to implement an embedded domain-specific language (EDSL) for ABS based on the FRP paradigm.
+As becomes evident from the reflections on the literature we advocate pure functional programming in Haskell and its category-theoretic foundations as a solution to the questions posed. The usage of pure functional programming in ABS is also a strong motivation for undertaking this research by itself as it hasn't been done yet and deserves a thorough treatment on its own. Surprisingly there exist any attempts on implementing ABS in pure functional programming as demonstrated in the literature-review. Maybe this can be seen as a hint that ABS lacks a level of formalism which we hope to repair with our thesis. Also the current state-of-the-art seems to be susceptible to flaws and bugs due to the lack of powerful verification. Combining both issues forms the very basic motivation of our thesis: use pure functional programming and its underlying theoretical framework to develop new methods for specifying, implementing, verifying and validating ABS to create simulations which are more reliable, reproducible and shareable with the community.
+To do verification we need a form of formal specification which can be translated easily to the code. Being inspired by the previously mentioned work on a functional framework for agent-based models of exchange in \cite{botta_functional_2011} we opt for a similar direction. Having Haskell as the implementation language instead of an object-oriented one like Java allows us to build on the above proposed EDSL for ABS. Because of the declarative nature of the hypothesized EDSL it can act both as specification- and implementation-language which closes the gap between specification and implementation. This would give us a way of formally specifying the model but still in a more readable way than pure mathematics. This form of formal specification can act easily as a medium for communication between team-members and to the scientific audience in papers. Most important the explicit step of verification becomes obsolete as there exists no more difference between specification and implementation. The last point seems to be quite ambitious but this is a hypothesis and we will see in the course of the thesis how far we can close the gap in the end with this approach.
+In \cite{claessen_quickcheck:_2000} introduce \textit{QuickCheck}, a testing-framework which allows to specify properties and invariants of ones functions and then test them using randomly generated test-data. This will become an essential tool of model-specification and increases the power and strength of the verification process and more properties of a model can be expressed which are directly formulated in code through the EDSL of QuickCheck AND the EDSL of FrABS. Of course it also serves for testing (e.g. regression) and points out errors in the implementation e.g. wrong assumptions about input-data. The authors claim that the major advantage of QuickCheckj is to formulate formal specifications which help in understanding a program. The question is whether it can be used for Validation as well.
+Also it would be of interest to put pure functional ABS on a firm theoretical ground by developing a category- \& type-theoretical view on ABS. This could potentially, give a deeper insight into the structure of agents, agent-models and agent-based simulation, serves as the basis for the pure functional implementation, serves as a high-level specification tool for agent-models.
+As we have seen from the literature-review that there may exist category-theoretical views on models for verification. Because of the category-theoretic foundations of Haskell it may be the case that we also close the gap between conceptual model and implementation thus making a huge advancement in validation.
 
-To do verification we need a form of formal specification which can be translated easily to the code. Being inspired by the previously mentioned work on a functional framework for agent-based models of exchange in \cite{botta_functional_2011} we opt for a similar direction. Having Haskell as the implementation language instead of an object-oriented one like Java allows us to build on the above proposed EDSL for ABS. Because of the declarative nature of the hypothesized EDSL it can act both as specification- and implementation-language which closes the gap between specification and implementation. This would give us a way of formally specifying the model but still in a more readable way than pure mathematics. This form of formal specification can act easily as a medium for communication between team-memberes and to the scientific audience in papers. Most important the explicit step of verification becomes obsolete as there exists no more difference between specification and implementation. The last point seems to be quite ambitious but this is a hypothesis and we will see in the course of the thesis how far we can close the gap in the end with this approach.
+Thus the aim is to create a new tool for implementing, testing, verifying and validating ABS: the one of pure functional programming and its underlying theory which we together will term \textit{pure functional methods}. We claim that these methods are the answer to the questions posed above and will reduce or even eliminate the danger of failure considerably as outlined in the hypotheses. 
+Of course our motivation is not only to improve verification, validation and reproduce-ability in ABS but also the one of discovery. So far pure functional programming was not really investigated in the context of ABS as is evident from the literature-review so this thesis is also a proof-of-concept, an investigation how ABS can be done in a pure functional language.
 
-we propose a new tool for implementing, testing, verifying and validating ABS: the one of pure functional programming and its underlying theory which we together will term \textit{pure functional methods}. We claim that these methods are the answer to the questions posed above and will reduce or even elimiate the danger of failure considerably as outlined in the hypotheses. 
-Of course our motivation is not only to improve verification, validation and reproduceability in ABS but also the one of discovery. So far pure functional programming was not really investigated in the context of ABS as will be shown in the literature-review so this thesis is also a proof-of-concept, an investigation how ABS can be done in a pure functional language.
-
-The central aspect of this thesis is centred around the main question of \textit{How Agent-Based Simulation can be done using pure functional programming and what the benefits and disadvantages are.}. So far functional programming has not got much attention in the field of ABS and implementations always focus on the object-oriented approach. We claim, based upon the research of the first year that functional programming is very well suited for ABS and that it offers methods which are not directly possible and only very difficult to achieve with object-oriented programming.
+The central aspect of this thesis is centred around the main question of \textit{How Agent-Based Simulation can be done using pure functional programming and what the benefits and disadvantages are.}. So far functional programming has not got much attention in the field of ABS and implementations always focus on the object-oriented approach. We claim, based upon the research of the first year that functional programming is very well suited for ABS and that it offers methods which are not directly possible and only very difficult to achieve with object-oriented programming. 
 
 We claim that to build large and complex agent-based simulations in functional programming is possible using the functional reactive programming (FRP) paradigm. We applied FRP to implementing ABS and developed a library in Haskell called FrABS. We implemented the quite complex model SugarScape from social simulation using FrABS and proofed by that, that applying FRP to ABS enables ABS to happen in pure functional programming.
 
-After having shown how agent-based simulation can be done in functional programming we claim that the major benefit of using it enabled a new way of \textit{verification \& validation} in agent-based simulation. 
-
-Due to the declarative nature of pure functional programming it is an established method of implementing an EDSL to solve a given problem in a specific domain. We followed this approach in FrABS and developed an EDSL for ABS in pure functional programming. Our intention was to develop an EDSL which can be used both as specification- and implementation-language. We show this by specifying all the rules of SugarScape in our EDSL.
-
-Due to the lack of implicit side-effects and the recursive nature of pure functional programming we claim that it is natural to apply it to a novel method we came up with: MetaABS, which allows recursive simulation.
+After having shown how agent-based simulation can be done in functional programming we claim that the major benefit of using it leads to less error prone code and offers a new way of \textit{verification \& validation} in ABS. 
 
 Finally having such an EDSL at hand this will allow us to reason about the programs. This will be applied to specify and reason about the dynamics and emergent properties of decentralized bilateral trading and bartering in agent-based computational economics (ACE) and social simulations like SugarScape.
 
-Disadvantages
-- although the lack of side-effects is also a benefit, it is also a weakness as all data needs to be passed in and out explicitly 
-- indirection due to the lack of objects \& method calls.
-- When not to use it: 
-	- if you are not familiar with functional programming
-	- when you can solve your problem without programming in a Tool like NetLogo, AnyLogic,...
-	- when you don't need to reason about your program
-	
-Functional approach to Agent-Based Modelling \& Simulation
-Because we left the path of OO and want to develop a completely different method we have fundamentally two problems to solve in our functional method:
-1. Specifying the Agent-Based Model (ABM): Category-Theory, Type-Theory, EDSL: all this clearly overlaps with the  implementation-aspect because the theory behind pure functional programming in Haskell is exactly this. This is a very strong indication that functional programming may be able to really close the gap between specification and implementation in ABS.
-2. Implementing the ABM into an Agent-Based Simulation (ABS): building on FRP paradigm
-
 We show that the implicit assumption that an Agent is \textit{about equal to} an object is not correct and leads to many implicit assumptions in OO implementations of an ABS. When implementing ABS in Haskell these implicit assumptions become explicit and challenge the fundamental assumptions about ABS and Agents. We present these implicit assumption in an explicit way by approaching it through programming, type-theory and category-theory to further deepen the concepts and methods in the field of Agent-Based Modelling \& Simulation.
 
-TODO: is it really valid to bind the sending of messages to the advancing of time?
-Downside: we cannot have method-calls as in OO, which allows agents to communicate with each other without time advancing. 
+Our aim is to primarily focus on the decentralized bilateral trading \& bartering process in Sugarscape, building on the functional model of exchange of \cite{botta_functional_2011}, and research our new verification- and validation-methods based on this problem. This also bridges the gap to ACE and economics as it is a well researched topic with lots of formal theory to it. We may come to the conclusion that the Sugarscape approach to decentralized bilateral trading \& bartering may be too complicated. This danger is indeed a real one because of the endogenous demand \& supply which is driven by sugar- and spice-harvesting which in turn depends on many additional properties like vision, spatiality, history,... . It may be that we have to resort to a simpler model which is equal in explanatory power.
 
-Expected benefits
-1. By mapping the concepts of ABS to Category-Theory and Type-Theory we gain a deeper understanding of the deeper structure of Agents, Agent-Models and Agent-Simulations.
-2. The declarative nature of pure functional programming will allow to close the gap between specification and code by designing an EDSL for ABS in Haskell building on the previously derived abstractions in Category-Theory and Type-Theory. The abstractions and the EDSL implementation will then serve as a specification tool and at the same time code.
-3. The pure functional nature together with the EDSL and abstractions in Category- \& Type-Theory allow for a new level of formal verification \& validation using a combination of mathematical proofs in Category- \& Type-Theory, algebraic reasoning in the EDSL and model-checking using Unit-Tests and QuickCheck. The expectation is that this allows us to formally specify hypotheses about expected outcomes about the dynamics (or emergent patterns) of our simulations which then can be verified.
-	
+\section{Hypotheses}
+Based upon our aim we derived the following hypotheses which will guide us as bold, motivating claims to drive forward our research.
+
+\subsection{Feasibility of functional ABS}
+\paragraph{Functional reactive programming (FRP) in the implementation of Yampa is a useful tool to implement pure functional ABS in Haskell.}
+\paragraph{Building on FRP it is possible to implement the Sugarscape and the Agent\_Zero models with less lines of code and more expressiveness than corresponding Java or NetLogo code} 
+\footnote{There exists a Java-implementation of SugarScape \url{http://sugarscape.sourceforge.net/} which will be subject of investigation during this PhD. NetLogo comes with three Sugarscape models which implement but only the first very basic features - TODO: are there full NetLogo implementations freely available?.}
+
+\subsection{Verification}
+\paragraph{We can develop an EDSL on top of the functional ABS library which is both specification- and implementation-language and thus closes the gap between specification and implementation. This EDSL can then be used to concisely specify and communicate a model with high expressiveness.}
+\paragraph{QuickCheck allows us to formulate specifications of a model directly in code, built on the EDSL and check them.}
+
+\subsection{Validation}
+\paragraph{If we find a category-theoretical description of the real-world concept and develop our functional ABS model after it or show that it follows this description as well, then it must follow that our implementation \textit{is} indeed equivalent to the real-world concept and thus implicitly valid.}
+\paragraph{QuickCheck can be used for validation as well.}
+
+
+
 \section{Objectives}
-\subsection{Functional reactive ABS in Haskell}
-implement full-fledged pure functional ABS library on top of Haskell and FRP (Yampa): FrABS
-	-> includes a very basic view on ABS from the perspective of category-theory
-	
+Based upon the aims and hypotheses we define the following four objectives we want to achieve in our research. The objectives are ordered sequentially in the way they will be undertaken in the course of the remaining PhD.
+
+\subsection{Functional reactive ABS (FrABS)}
+The first goal is to implement a library for pure functional ABS in Haskell, building on the FRP paradigm using Yampa. We term the combination functional reactive agent-based modelling \& simulation: FrABS. The driving use-cases for building this library will be both the Sugarscape- and Agent\_Zero model. The resulting library implements a very rudimentary EDSL for FrABS and will show that functional ABS is indeed very possible, elegant and more concise than object-oriented solutions.
+
+\subsection{Functional Verification}
+The next step is to take the previously developed FrABS library and refine its EDSL to a point where it can be used as a specification language. We test this by giving specifications of all the full Sugarscape rules as described in the book \cite{epstein_growing_1996}. In the next step we will then turn towards an in-depth investigation of the decentralized bilateral trading \& bartering process. We investigate the potential of using QuickCheck for formulating and testing specifications and how far we can get with reasoning about dynamics and equilibria using our EDSL, QuickCheck and Haskell.
+
 \subsection{Category Theory view on ABS}
+After having established the verification we try to derive an ABS representation in category-theory. By mapping the concepts of ABS to category-theory we hope to gain a deeper understanding of the deeper structure behind agents, agent-based models and agent-based simulations.
 
-\subsection{Case Study in Verification}
-Sugarscapes decentralized  bilateral trading . NOTE: sugarscape may be too complicated: the interconnection of sugar- and spice-harvesting makes the demand/supply endogenous but relies on so many facts. maybe we can find a simpler model which is equal in explanatory power (verification \& validation)
-look into \cite{botta_functional_2011}
+\subsection{Functional Validation}
+The final step is then an attempt to combine the previous steps to achieve formal validation of the decentralized bilateral bartering process. We will try to derive a category-theoretical model of real-world bartering and compare this to a category-theoretic view on our implementation. If they match, we have showed that the implemented model-specification - which is at the same time Haskell code - is a valid and faithful representation of the real-world process.
 
-Solving the problem of verification: showing that the code is a correct implementation of the model specification. If we can develop an EDSL which closes the gap between specification and implementation - which can be used for both - then we get rid of this problem as there exists no more distinction. 
+\section{Research Questions}
+We present the research questions at the end of this chapter, because they contain the essence of the previously explained arguments and hypotheses. The questions are ordered according to their specific topics.
 
-\subsection{Case Study in Validation}
-Solving the problem of validation: showing that the implemented model is in fact a faithful representation of the real-world concept. If we find a category-theoretical description of the real-world concept and show that our functional program also exhibits these, then it must follow that our implementation \textit{is} indeed equivalent to the real-world concept and thus valid.
+\subsection{ABS}
+\begin{itemize}
+	\item Can we derive a category-theoretical view on functional ABS? 
+	\item Can we represent emergent properties of a real-world model in category-theory and encode this in Haskell, thus closing the validation-gap?
+\end{itemize}
 
-Agent\_Zero network extension
+\subsection{Functional Programming}
+\begin{itemize}
+	\item How can FRP (as in Yampa) be applied implementing functional ABS?
+	\item How can QuickCheck be made of use to functional ABS verification and can it be used for validation as well?
+\end{itemize}
 
-Semantics for FrABS and our EDSL to reason about the results: are they reasonable? do they match the theory? if yes why? if not why not?
-	- Can we define semantics for the EDSL to do reasoning about ABS in general?
-	- How can we reason about ABS in general in pure functional programming?
-		- dynamics
-		- emergent properties
-		- deadlocks
-		- silence (no messages/agent-agent communication and interaction)
-		- define semantics of FrABS based on semantics of FRP and Actors
-		- what is emergence in ABS and how can we reason about it? 
-			- identify emergent properties: equilibrium, behaviour on macroscale not defined on micro, chaos,...
-			- can we anticipate emergent properties / dynamics just by looking at the code and reason about it?
-			- can emergence in ABS be formalized?
-				- hypothesis: it may be possible through functional programming because of its dual nature of declarative EDSL which awakens to a process during computation
-					- what is the relation between emergence and computation? we need change over time (=computation) for emergence
-					
-		- Can we reason about the dynamics and equilibria of agent-based models of decentralized bilateral trading \& bartering?
+\subsection{ABS \& Functional Programming}
+\begin{itemize}
+	\item How can we reason about the dynamics and equilibria of the decentralized bilateral trading \& bartering?
+	\item How does an EDSL for functional ABS, built on FRP looks like? Can we really close the gap between specification and implementation?
+\end{itemize}

@@ -1,3 +1,19 @@
 \section{Conclusion and further research}
 
 So far we only looked at recursive simulation in a simulation with a strictly sequential update-strategy where agents are updated in sequence after each other as defined in TODO: cite my Art-Of-Iteration Paper. We leave the question of how Meta-ABS would apply to the parallel update-strategy and whether it is reasonable to extend it to that strategy or not for further research.
+
+Research Questions
+\begin{enumerate}
+	\item How does deep regression influence the dynamics of a system? Hypothesis: TODO
+	\item How do the dynamics of a system change when using perfect information or learning local information? Hypothesis: TODO
+	\item Is a hidden markov model suitable for the local learning? Hypothesis: TODO
+	\item How can MetaABS best be implemented? Hypothesis: implementing a MetaABS EDSL in a pure functional language like Haskell, should be best suited due to its inherent recursive, declarative nature, which should allow a direct mapping of features of this paradigm to the specification of the meta-model
+\end{enumerate}
+
+Problems
+\begin{itemize}
+	\item Definition of a recursive, declarative description of the Model.
+	\item Perfect information about other agents is not realistic and runs counter to agent-based simulation (especially in social sciences) thus an Agent needs to be able to have local, noisy representations of the other agents.
+	\item Local representation of other agents could be captured by Hidden Markov Models: observe what other agents do but have hidden interpretation of their internal state - these internal state-representations can be different between the local and the global version whereas the agent learns to represent the global version as best as possible locally.
+	\item Infinite regress is theoretically possible but not on computers, we need to terminate at some point
+\end{itemize}

@@ -1,89 +1,57 @@
 \chapter{Work To Date}
 \label{chap:work}
 
-TODO: Describe the research work carried out during this stage of the PhD and the outcomes. A literature review must be included. Then, as appropriate according to the PhD project, this section can also include theoretical and/or experimental methods, presentation and discussion of results, etc. In the case that papers have been submitted or published within the year of the review, this section can be shorter and focused on discussing the outcomes from those papers within the wider context of the PhD programme of study (papers to be included in the appendix).
+%TODO: Describe the research work carried out during this stage of the PhD and the outcomes. A literature review must be included. Then, as appropriate according to the PhD project, this section can also include theoretical and/or experimental methods, presentation and discussion of results, etc. In the case that papers have been submitted or published within the year of the review, this section can be shorter and focused on discussing the outcomes from those papers within the wider context of the PhD programme of study (papers to be included in the appendix).
 
-We began the search for oo alternatives initially with experimenting in Erlang and then ended up in haskell
+Here we give a concise overview over the activities performed since the beginning of the PhD. 
 
-\subsection{Papers Submitted}
-\paragraph{Update-Strategies in ABS}
-SSC 2017, Deadline in 31st March, 25-29th September 2017, \url{http://www.sim2017.com/}
+\section{Papers Submitted}
+\subsection{Update-Strategies in ABS}
+This paper, which is attached in Appendix \ref{app:updateStrategies}, is the essence of the prototyping and experimenting with bringing ABS to Haskell and comparing the solution to Java. It covers one of the most fundamental aspects of ABS, the issue of how agents are updated. When reading literature, it became evident that there is are inconsistent terminology for speaking about this issue, which also lacks precision and misses important details. We derive these missing details, develop a new terminology and present the four possible ways to update agents and discuss the differences they make. The main conclusion of the paper is that the way agents are updated must reflect the semantics of the model - this may be obvious in the first place but when looking closer into the intricacies  much care must be taken due to the details and implications of each update-strategy.
+We submitted the paper to the Social Simulation Conference 2017 (SSC 2017) \footnote{\url{http://www.sim2017.com/}}, which will take place from 25-29th September 2017 in Dublin.
+For gaining the insights in update-strategies we wrote quite a bit of code: for Java and Haskell we implemented the Heroes \& Cowards game, Spatial Prisoners Dilemma and SIRS Model in all four update-strategies. For Scala we only implemented Heroes \& Cowards using the actor-strategy.
+\footnote{The code can be accesses from \url{https://github.com/thalerjonathan/phd/tree/master/coding/papers/iteratingABM}}. 
 
+\section{Paper Drafts}
+\subsection{Programming Paradigms and ABS}
+This paper, which is attached in Appendix \ref{app:paradigms}, covers the very essence of the software-prototyping conducted in the first months of the PhD. The goal was to see how well the very three different programming paradigms of object-orientation (Java), pure functional (Haskell) and mixed paradigm with actor (Scala) are suited for implementing ABS. Originally this work was part of the submitted paper on update-strategies but was extracted into a separate paper. It turned out that although there is a strong connection between these topics, they should be split into two papers for purpose of clarity, supporting the process of submitting \footnote{A paper should not confuse and mix two topics, although they might be very close. This helps both the reviewers and readers in understanding and accepting the paper.} and arriving at potentially a second paper.
+The work lies dormant at the moment but could be picked up in the future and be developed in a full-fledged conference paper \footnote{It is unclear to which conference it could potentially be submitted but we think SSC is suitable because it discusses these concepts on a very high level and refrains from code listings.} as there are already quite strong basics there. What we would like to do when continuing work on this paper is a closer look in using Software-Transactional-Memory (STM) for concurrent ABS.
 
-TODO: attach as appendix
+\subsection{Recursive ABS}
+The idea for this paper arose from my idea of \textit{anticipating agents}, which can project their actions in the future. Because this paper is not as polished as the draft for programming paradigms, we opted not to include it as an appendix and only give its basic ideas and results for the experiments conducted so far. Note that we were not able to find any research regarding recursive ABS \footnote{We found a paper on recursive simulation in general \cite{gilmer_recursive_2000} which focuses on military simulation implemented in C++. Its main findings are that deterministic models seem to benefit significantly from using recursions of the simulation for the decision making process and that when using stochastic models this benefit seems to be lost}.
+In Recursive ABS agents are able to halt time and 'play through' an arbitrary number of actions, compare their outcome and then to resume time and continue with a specifically chosen action e.g. the best performing or the one in which they haven't died. More precisely, what we want is to give an agent the ability to run the simulation recursively a number of times where the this number is not determined initially but can depend on the outcome of the recursive simulation. So Recursive ABS gives each Agent the ability to run the simulation locally from its point of view do anticipate its actions and change them in the present.
+We investigate the famous Schelling Segregation \cite{schelling_dynamic_1971} and endow our agents with the ability to project their actions into the future by recursively running simulations. Based on the outcome of the recursions they are then able to determine whether their move increases their utility in the future or not. The main finding for now is that it does not increase the convergence speed to equilibrium but can lead to extreme volatility of dynamics although the system seems to be near to complete equilibrium. In the case of a 10x10 field it was observed that although the system was nearly in its steady state - all but one agents were satisfied - the move of a single agent caused the system to become completely unstable and depart from its near-equilibrium state to a highly volatile and unstable state.
 
-A foundational paper
+This approach of course rises a few questions and issues. The main problem of our approach is that, depending on ones view-point, it is violating the principles of locality of information and limit of computing power. To recursively run the simulation the agent which initiates the recursion is feeding in all the states of the other agents and calculates the outcome of potentially multiple of its own steps, each potentially multiple recursion-layers deep and each recursion-layer multiple time-steps long. Both requires that each agent has perfect information about the complete simulation \textit{and} can compute these 3-dimensional recursions, which scale exponentially. In the social sciences where agents are often designed to have only very local information and perform low-cost computations it is very difficult or impossible to motivate the usage of recursive simulations - it simply does not match the assumptions of the real world, the social sciences want to model. In general simulations, with no direct link to the real world, where it is much more commonly accepted to assume perfect information and potentially infinite amount of computing power this approach is easily motivated by a constructive argument: it is possible to build, thus we build it.
+Another fundamental question regards the meaning and epistemology behind an entity running simulations. Of course, this strongly depends on the context: in ACE it may be understood as a search for optimizing behaviour, in Social Simulation it may be interpreted as a kind of free will: the agent who is initiating the recursion can be seen as 'knowing' that it is running inside a simulation, thus in this context free will is seen as being able to anticipate ones actions and change them.
+When talking about recursion it is always the question of the depth of the recursion, because as we are running on computers we need to terminate at some point. Accelerating Turing machines (also known as Zeno Machine) are theoretically able to calculate an infinite regress but this raises again epistemological questions and can be seen as having religious character as discussed e.g. in Tiplers Omega Point, Bostroms simulation argument \cite{bostrom_are_2003} and its theological implications \cite{steinhart_theological_2010}. So the ultimate question this research leaves is what the outcome would be when running a recursive ABS on a Zeno Machine/Accelerated Turing Machine? \footnote{Anyway this would mean we have infinite amount of computing power - I am sure that in this case we don't worry the slightest about recursive ABS any more.}
 
-\subsection{Paper Drafts}
-\paragraph{Programming Paradigms and ABS}
-SSC 2018, Deadline in March 2018?
+At the moment this idea lies dormant as the intention was just to develop it far enough to give a proof-of-concept and see some results. Having achieved this we arrived at the conclusion, that the results are not really ground-breaking. This stems from the fact that Schelling segregation is not the best model to demonstrate this technique and that we are thus lacking the right model in which recursive ABS is the real killer-feature. Also to pursue this direction further and treat it in-depth, would require much more time and give the PhD a complete different spin. Still it is useful in supporting our move towards pure functional ABS as we are convinced that recursion is comparably easy to implement because the language is built on it and due to the lack of side-effects \footnote{Actually implementing it was \textit{really hard} but we wouldn't dare to implement this into an object-oriented language or into an object-oriented ABS framework.}.
 
-TODO: attach as appendix
+\section{Functional Reactive ABS}
+This is the first of the four objectives and is our approach of implementing pure functional ABS in Haskell using the FRP paradigm using Yampa. We are not yet in the process of writing a paper and have thus written an overview of the approach in Appendix \ref{app:frABS}, which discusses the approach, implementation-details and insights so far. 
+Our intention so far is to write a (journal) paper from it and submit it to the Trends in Functional Programming (TFP) 2018 \footnote{\url{http://www.tifp.org/}} which will be held at some time in June 2018.
+We have already implemented basics of the library and have used it to build the Sugarscape- and Agent\_Zero models and Schelling Segregation, SIRS and Recursive ABS \footnote{The code can be accessed from \url{https://github.com/thalerjonathan/phd/tree/master/coding/libraries/frABS/src}}.
 
-In this work I investigated the suitability of three fundamentally different programming pardigms to implement an ABS. The paradigms I looked at was object-oriented using Java, pure functional using Haskell and multi-paradigm functional using Scala with the Actors library. It is important to note that at this point I didn't use FRP as underlying paradigm in Haskell TODO: would this have changed my final conclusion on its suitability?
+\section{Reports}
+\subsection{Haskell Community Report (HAR) May 2017}
+We wrote a new entry for the HAR May 2017, which tries to compile and publish novel and on-going ideas in the Haskell community. It is freely available under % TODO: uncomment when officially released \url{https://www.haskell.org/communities/05-2017/html/report.html}
+We hope that our idea and the work of our PhD gets a bit more attention and may start some discussions with people interested in this work.
 
-STM: the really unique thing which is ONLY possible in pure functional programming is composition of concurrency. TODO: cite Tim Sweeny
-Actors in Scala
+\subsection{1st Year Report}
+This document.
 
-Haskell Community Report May 2017, TODO: link
+\section{Prototyping in Haskell}
+To gain more insight into Haskell, how to approach ABS in a pure functional language and to learn parallelism and concurrency in Haskell the following prototypes were developed \footnote{The code can be accessed from \url{https://github.com/thalerjonathan/phd/tree/master/coding/prototyping/haskell}}:
 
-\subsubsection{Papers in Progress}
-\paragraph{Recursive ABS}
-dont pursue recursive ABS further as separate paper: it could take a whole PhD by itself. proof-of-concept is ok but not groundbreaking. maybe some really groundbreaking idea will come up in a few months, then can work on it again. incorporate it maybe in FrABS paper. definitely incorporate it in final thesis
-
-basic work and prototype within Schelling Segregation is running. The main finding for now is that it does not increase the convergence speed to equilibrium but can lead to extreme volatility of dynamics although the system seems to be near to complete equilibrium. In the case of a 10x10 field it was observed that although the system was nearly in its steady state - all but one agents were satisfied - the move of a single agent caused the system to become completele unstable and depart from its near-equilibrium state to a highly desequilibrium state.
-
-Give each  Agent the ability to run the simulation locally from its point of view do anticipate its actions and change them in the future thus introducing a meta-level in the simulation, from which the method derives its name.
-
-- TODO:  i have only the idea but am lacking a theory or hypothesis for its use
-
-- meta need a kind of decision error measure to distinguish between various meta-simulations. also we need a mechanism to sample the decision space => it can be considered to be an optimization technique.
-
-Problems
 \begin{itemize}
-	\item Definition of a recursive, declarative description of the Model.
-	\item Perfect information about other agents is not realistic and runs counter to agent-based simulation (especially in social sciences) thus an Agent needs to be able to have local, noisy representations of the other agents.
-	\item Local representation of other agents could be captured by Hidden Markov Models: observe what other agents do but have hidden interpretation of their internal state - these internal state-representations can be different between the local and the global version whereas the agent learns to represent the global version as best as possible locally.
-	\item Infinite regress is theoretically possible but not on computers, we need to terminate at some point
+	\item Heroes \& Cowards 
+	\item SIRS Model
+	\item Spatial Prisoners Dilemma
+	\item Wildfire
+	\item 2D-Graphics rendering in OpenGL and Gloss 
+	\item Agents running in IO-Monad, STM, parallel and pure
 \end{itemize}
 
-Interpretation: It can be regarded as a Model of Free Will in ABS, which allows learning in an ABS environment in a new way - look on the section of interpretation.
-Application: hypothesis: allows to model social and psychological phenomena like free will. Mostly in social sciences, maybe also in economics. Investigate SugarScape, PrisonersDilemma and ACE Trading World
-
-TODO: question: what is the meaning of an entity running simulations? it strongly depends on the context: in ACE it may be search for optimization behaviour, in Social Simulation it may be interpreted as a kind of free will
-
-Research Questions
-\begin{enumerate}
-	\item How does deep regression influence the dynamics of a system? Hypothesis: TODO
-	\item How do the dynamics of a system change when using perfect information or learning local information? Hypothesis: TODO
-	\item Is a hidden markov model suitable for the local learning? Hypothesis: TODO
-	\item How can MetaABS best be implemented? Hypothesis: implementing a MetaABS EDSL in a pure functional language like Haskell, should be best suited due to its inherent recursive, declarative nature, which should allow a direct mapping of features of this paradigm to the specification of the meta-model
-\end{enumerate}
-
-- functional programming perfect. standard toolkits (anylogic, netlogo, repast) are not capable of doing this
-- extend my existing EDSL for functional reactive agent-based simulation \& modelling (FrABS/M) with recursive functionality
- 
-Related Research:
-TODO: \cite{gilmer_recursive_2000} cite paper of recursive simulation: [ ] military simulation, [ ] not explicitly abs, [ ] implemented in c++, [ ] deterministic models seem to benefit significantly from using recursions of the simulation for the decision making process. when using stochastic models this benefit seems to be lost
-
-
-\paragraph{Functional Reactive ABS}
-TODO: put into separate chapter as this is the fundamental approach put forward in this thesis
-TFP 2017, Deadline 5th May 2017, 19-21th June 2017, \url{https://www.cs.kent.ac.uk/events/tfp17/index.html}
-
-
-\subsubsection{Software}
-TODO: make a better, more detailed list of what prototyping i did
-
-Lots of prototyping:
-Heroes \& Cowards, SIRS \& Schelling Segregation in Java, Haskell and Scala
-Parallelism and Concurrency in Haskell
-
-Lots of learning \& prototyping for Haskell:
-IO, STM, Pure Functional, FRP
-
-FrABS: SugarScape Model as use-case no.1. TODO: available on github
-
-\subsection{Talks}
-presenting the ideas of my Update-Strategies paper at the IMA - seminar day
-presenting my FrABS ideas to the FP-Lab Group at the FPLunch
+\section{Talks}
+So far only two talks were given. The first one was a presentation of the ideas underlying the Update-Strategies paper at the IMA - seminar day. The second was presenting my ideas about functional reactive ABS to the FP-Lab Group at the FPLunch.

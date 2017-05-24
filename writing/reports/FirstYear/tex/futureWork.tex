@@ -5,27 +5,62 @@
 
 In this chapter we break down the the four main objectives we have identified in Chapter \ref{chap:aimsObj} into small working packages, present mile-stones and holidays, relevant conferences, papers we want to publish (either conference or journal). A Gantt-Chart, reflecting all the details is found in Appendix \ref{app:gantt} in Figure TODO: ref
 
-Activities
+\section{The Four Objectives}
+\subsection{Functional reactive ABS (FrABS)}
+The main goal is to implement a library to be release on Hackage which implements functional reactive ABS (FrABS) using Yampa. As use-cases the Sugarscape- and Agent\_Zero-Model should be implemented. The outcome should be published in a journal-paper (see below) which marks the end of this objective. The time-frame will be until around February 2018.
+
 \begin{itemize}
 \item Develop FrABS prototype: March 2017 - June 2017
 \item Implement Sugarscape prototype: April 2017
 \item Implement Agent\_Zero prototype: June 2017 (implement parallel update strategy, introduce clean graph-library for non-spatial neighbourhood)
 \item implement FrABS replications using parallelism
 \item Refactor FrABS, Sugarscape and Agent\_Zero: Monadic and/or arrowized programming
-\item Refine FrABS and publish as library on Hackage: July 2017 - September 2017
-\item Study decentralized bartering: September 2017 - December 2017
+\item Design EDSL for FrABS
+\item Publish FrABS as library on Hackage: July 2017 - September 2017
 \item Write FrABS paper: January 2018 - February 2018
-\item Study category-theory: July 2017 - End of PhD
+\end{itemize}
+
+\subsection{Functional Verification}
+The main goal of this objective is to implement our novel idea of verification by refining the EDSL of FrABS to a point where it can be used both as specification- and implementation-language. As use-case we pick the decentralized bilateral bartering as specified in the Sugarscape model. Of central focus will be the research of how to use QuickCheck in the verification process for both the use-case and the FrABS library.
+
+\begin{itemize}
+\item Study decentralized bartering: September 2017 - December 2017
 \item Specify Sugarscape rules in EDSL
 \item Applying QuickCheck to FrABS and Sugarscape
-\item Writing thesis: April 2019 - August 2019
-\item Submitting thesis, 2 weeks of holidays
+\end{itemize}
+
+\subsection{Category Theory view on ABS}
+This is an intermediary objective and serves only for studying basics of category-theory and apply it to ABS to gain a deeper understanding of the deeper structure behind agents, agent-based models and agent-based simulations.
+
+\begin{itemize}
+\item Study category-theory: July 2017 - End of PhD
+\end{itemize}
+
+\subsection{Functional Validation}
+In the final objective we built on all the previous research and combine it into a final paper to show the novel approach to verification and validation using FrABS, QuickCheck and category-theory. Again the use-case will be the decentralized bilateral bartering process as specified in the Sugarscape model but supplemented by theoretical work on bilateral decentralized bartering and real-world examples. Also the category-theoretical view on ABS and on decentralized bilateral trading will be incorporated into this work. The outcome will be a journal-paper to be submitted in the field of ABS (see below).
+
+\begin{itemize}
+	\item Study decentralized bartering: September 2017 - December 2017
+	\item Study category-theory: July 2017 - End of PhD
+	\item Write paper: January - February 2019
+	\item Submit paper: March 2019
+\end{itemize}
+
+\section{Final Thesis}
+We want to start the writing of the final thesis as early as possible and thus opt for April 2019 and give us a 5-months writing-window and plan to submit on-time at end of September 2019.
+
+\begin{itemize}
+\item Writing - April 2019 to August 2019
+\item Submitting - September 2019
 \end{itemize}
 
 \section{Planned Papers}
 \subsection{FrABS - Towards pure functional programming in ABS}
+This paper will present the pure functional approach to ABS we have taken and outlined in Appendix \ref{app:frABS}. It will describe the combination of FRP \& ABS, the EDSL built on top and gives some examples of specification and implementation of the SIRS and Sugarscape model. 
+For publishing we think of two strategies: either we focus on a conference in the field of ABS or a journal for functional programming. We opt rather for a conference paper, presenting it to an ABS audience because the ABS-community is our intended target - the functional programming people don't have to be convinced that FP is great. Also it is unclear if a functional programming journal accepts the interdisciplinary work (I regard the FP guys to be still open minded but they may be rather conservative compared to ABS community?). The target-journal/conference is yet to be determined.
 
 \subsection{Verification and Validation in ABS with pure functional programming}
+This paper will present our novel approach to verification \& validation in ABS using our FrABS library and category-theory. We will verify the decentralized bilateral bartering process as specified in the Sugarscape model and validate it against theoretical models and real-world examples. This paper is definitely intended to be a journal-paper because of its central importance to the PhD, its original novelty and the range and depth of the content. The target-journal is yet to be determined but we want to focus primarily on an agent-based modelling journal.
 
 \section{Conferences}
 \begin{itemize}
@@ -38,15 +73,18 @@ Activities
 \begin{itemize}
 	\item 2017 31st March - finished and submit Paper 
 	\item 2017 June (Mid) - Finished writing 1st year report 
-	\item 2017 End of June / Begin of July - Oral annual report
+	\item 2017 Begin of July - Oral annual report
 	\item 2017 October - 2nd year starts
-	\item 2018 May - TFP paper on FrABS
+	\item 2018 May - Paper on FrABS
 	\item 2018 October - 3rd year starts
+	\item 2019 February - Paper on Verification \& Validation
+	\item 2019 April - Begin of thesis-writing
+	\item 2019 September - Submit Thesis
 	\item 2019 30th September - official end of PhD
 	\item 2020 30th September - end of pending-period
 \end{itemize}
 
-\section{Mile-Stones}
+\section{Holidays}
 \begin{itemize}
 	\item 2017 June 4th to 18th - 2 weeks holiday on Amrum 
 	\item 2017 August 16th to 30th - 2 weeks holiday in Austria (Cousin marriage)
@@ -55,4 +93,5 @@ Activities
 	\item 2018 August - 2 weeks holiday
 	\item 2018 22nd December 2018 to 6th January 2019 - 2 weeks xmas holidays
 	\item 2019 April - 1 week holiday
+	\item 2019 September after submission - ? holidays
 \end{itemize}

@@ -3,16 +3,12 @@
 
 %TODO: Provide a succinct account of the conclusions from the report, stating clearly the research questions that have been identified during this stage of the PhD and the progress so far towards addressing those questions.
 
-\section{What we are not doing}
-TODO:
-not another agent-formalism
-no new agent-based (economic) model
-not proofing any economic theory
-not using fancy statistics and number juggling for comparing validating and verifying models: we want structural comparison (category-theory)
-
 \section{Being Realistic}
 It is of most importance to stress that we don't condemn the current state-of-the-art approach of object-oriented specification and implementation to ABS. The strength of object-oriented programming is surely that it can be seen as \textit{programming as modelling} and thus will be always an attractive approach to ABS. Also we are realists and know that there are more points to consider when selecting a set of methods for developing software for an ABS than robustness, verification and validation. Almost always the popularity of an existing language and which languages the implementer knows is the driving force behind which methods and languages to choose. This means that ABS will continue to be implemented in object-oriented programming languages and many perfectly well functioning models will be created by it in the future. Although they all suffer from the same issues mentioned in the introduction this doesn't matter as they are not of central importance to most of them.
 Nonetheless we think our work is still essential and necessary as it may start a slow paradigm-shift and opens up the minds of the ABS community to a more functional and formal way of approaching and implementing agent-based models and simulations and recognizing the benefits one gets automatically from it by doing so.
 
-\section{Aiming High}
-We are aware that we are aiming very high with this work as we are trying to propose a paradigm shift in ABS towards a functional approach. We are but very serious. We think that all objectives are indeed very possible and realistic, except maybe for the functional validation, which may aim a bit too hight, but it is a PhD after all. 
+\section{What we are not doing}
+Because of this highly interdisciplinary topic we explicitly mention what we do not want to undertake in this PhD.
+First we don't want to develop another language for formal agent-specification which needs to be compiled or used in some fancy tool - we want to put it directly into Haskell, building on the existing facilities.
+Second, we are neither developing a new economic theory about decentralized bilateral bartering, we take the existing theory and existing agent-based models and apply our methods to them.
+Third, we don't want to use fancy statistics and number juggling for comparing validating and verifying models: we want structural comparison (category-theory).

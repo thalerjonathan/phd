@@ -44,10 +44,18 @@
 	"buffers":
 	[
 		{
-			"file": "FrABS/Agent/Agent.hs",
+			"file": "FrABS/Simulation/ParIteration.hs",
 			"settings":
 			{
-				"buffer_size": 9669,
+				"buffer_size": 2345,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "FrABS/Simulation/SeqIteration.hs",
+			"settings":
+			{
+				"buffer_size": 6067,
 				"line_ending": "Unix"
 			}
 		}
@@ -91,13 +99,14 @@
 	[
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Agent"
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SIRS"
 	],
 	"file_history":
 	[
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Main.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationModel.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Main.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationRun.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/RecursiveABS/RecursiveABSModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/RecursiveABS/RecursiveABSInit.hs",
@@ -215,16 +224,16 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "FrABS/Agent/Agent.hs",
-					"semi_transient": true,
+					"file": "FrABS/Simulation/ParIteration.hs",
+					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 9669,
+						"buffer_size": 2345,
 						"regions":
 						{
 						},
@@ -237,10 +246,42 @@
 						],
 						"settings":
 						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 378.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "FrABS/Simulation/SeqIteration.hs",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 6067,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": -0.0,
-						"translation.y": 2646.0,
+						"translation.y": 432.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,

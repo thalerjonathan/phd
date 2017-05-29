@@ -17,17 +17,17 @@ winTitle = "SIRS FrABS"
 rngSeed = 42
 cells = (51, 51)
 initInfectionProb = 0.2
-parallelStrategyFlag = False
+parallelStrategy = Nothing
 
 runSIRSWithRendering :: IO ()
 runSIRSWithRendering = do
                         hSetBuffering stdin NoBuffering
                         initRng rngSeed
                         as <- createRandomSIRSAgents cells initInfectionProb
-                        let env = createSIRSEnv cells as
+                        env <- createSIRSEnv cells as
 
                         outRef <- (newIORef ([], env)) :: (IO (IORef ([SIRSAgentOut], SIRSEnvironment)))
-                        hdl <- processIOInit as env parallelStrategyFlag (nextIteration outRef)
+                        hdl <- processIOInit as env parallelStrategy (nextIteration outRef)
 
                         simulateAndRender hdl outRef
 
@@ -47,10 +47,10 @@ runSIRSStepsAndRender = do
                             hSetBuffering stdin NoBuffering
                             initRng rngSeed
                             as <- createRandomSIRSAgents cells initInfectionProb
-                            let env = createSIRSEnv cells as
+                            env <- createSIRSEnv cells as
 
                             let steps = 10
-                            let ass = processSteps as env parallelStrategyFlag 1.0 steps
+                            let ass = processSteps as env parallelStrategy 1.0 steps
                             let (as', _) = last ass
 
                             pic <- modelToPicture as'

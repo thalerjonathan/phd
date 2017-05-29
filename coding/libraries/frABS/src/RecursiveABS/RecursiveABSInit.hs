@@ -12,13 +12,14 @@ import System.Random
 createMetaABSAgentsAndEnv :: Int -> IO ([MetaABSAgentDef], MetaABSEnvironment)
 createMetaABSAgentsAndEnv agentCount = do
                                         as <- mapM randomAgent [0..agentCount-1]
-
+                                        rng <- newStdGen
                                         let env = createEnvironment
                                                               Nothing
                                                               (0,0)
                                                               moore
                                                               WrapBoth
                                                               []
+                                                              rng
                                         return (as, env)
     where
         randomAgent :: Int -> IO MetaABSAgentDef

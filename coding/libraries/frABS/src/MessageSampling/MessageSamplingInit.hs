@@ -12,6 +12,7 @@ import System.Random
 createMessageSamplingAgentsAndEnv :: Int -> IO ([MessageSamplingAgentDef], MessageSamplingEnvironment)
 createMessageSamplingAgentsAndEnv count = do
                                             as <- mapM randomAgent [0..count-1]
+                                            rng <- newStdGen
 
                                             let env = createEnvironment
                                                                   Nothing
@@ -19,6 +20,7 @@ createMessageSamplingAgentsAndEnv count = do
                                                                   moore
                                                                   WrapBoth
                                                                   []
+                                                                  rng
                                             return (as, env)
     where
         randomAgent :: AgentId -> IO MessageSamplingAgentDef

@@ -132,13 +132,17 @@ sirsAgentBehaviour = proc ain ->
 ------------------------------------------------------------------------------------------------------------------------
 -- BOILER-PLATE CODE
 ------------------------------------------------------------------------------------------------------------------------
-createSIRSEnv :: (Int, Int) -> [SIRSAgentDef] -> SIRSEnvironment
-createSIRSEnv limits as = createEnvironment
-                                            Nothing
-                                            limits
-                                            moore
-                                            ClipToMax
-                                            cs
+createSIRSEnv :: (Int, Int) -> [SIRSAgentDef] -> IO SIRSEnvironment
+createSIRSEnv limits as =  
+    do
+        rng <- newStdGen
+        return (createEnvironment
+                        Nothing
+                        limits
+                        moore
+                        ClipToMax
+                        cs
+                        rng)
     where
         cs = map (\a -> ((sirsCoord (adState a)), (adId a))) as
 

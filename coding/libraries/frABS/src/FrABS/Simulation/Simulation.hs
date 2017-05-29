@@ -20,22 +20,24 @@ import Data.List
 -- debugging imports finally, to be easily removed in final version
 import Debug.Trace
 
+type EnvironmentCollapsing ec = ([Environment ec] -> Environment ec)
+
 ------------------------------------------------------------------------------------------------------------------------
 -- RUNNING SIMULATION FROM AN OUTER LOOP
 ------------------------------------------------------------------------------------------------------------------------
 -- NOTE: don't care about a, we don't use it anyway
 processIOInit :: [AgentDef s m ec]
                     -> Environment ec
-                    -> Bool
+                    -> Maybe (EnvironmentCollapsing ec)
                     -> (ReactHandle ([AgentIn s m ec], Environment ec) ([AgentOut s m ec], Environment ec)
                             -> Bool
                             -> ([AgentOut s m ec], Environment ec)
                             -> IO Bool)
                     -> IO (ReactHandle ([AgentIn s m ec], Environment ec) ([AgentOut s m ec], Environment ec))
-processIOInit as env parStrategy iterFunc = reactInit
+processIOInit as env mayParCollapsing iterFunc = reactInit
                                                 (return (ains, env))
                                                 iterFunc
-                                                (process as parStrategy)
+                                                (process as mayParCollapsing)
     where
         ains = createStartingAgentIn as env
 ------------------------------------------------------------------------------------------------------------------------
@@ -46,12 +48,12 @@ processIOInit as env parStrategy iterFunc = reactInit
 {- NOTE: to run Yampa in a pure-functional way use embed -}
 processSteps :: [AgentDef s m ec]
                     -> Environment ec
-                    -> Bool
+                    -> Maybe (EnvironmentCollapsing ec)
                     -> Double
                     -> Int
                     -> [([AgentOut s m ec], Environment ec)]
-processSteps as env parStrategy dt steps = embed
-                                            (process as parStrategy)
+processSteps as env mayParCollapsing dt steps = embed
+                                            (process as mayParCollapsing)
                                             ((ains, env), sts)
     where
         -- NOTE: again haskells laziness put to use: take steps items from the infinite list of sampling-times
@@ -62,31 +64,30 @@ processSteps as env parStrategy dt steps = embed
 
 ----------------------------------------------------------------------------------------------------------------------
 process :: [AgentDef s m ec]
-                -> Bool
+                -> Maybe (EnvironmentCollapsing ec)
                 -> SF ([AgentIn s m ec], Environment ec) ([AgentOut s m ec], Environment ec)
-process as parStrategy = iterationStrategy asfs parStrategy
+process as mayParCollapsing = iterationStrategy asfs mayParCollapsing
     where
         asfs = map adBeh as
 
 iterationStrategy :: [SF (AgentIn s m ec) (AgentOut s m ec)]
-                        -> Bool
+                        -> Maybe (EnvironmentCollapsing ec)
                         -> SF ([AgentIn s m ec], Environment ec) ([AgentOut s m ec], Environment ec)
-iterationStrategy asfs parStrategy
-    | parStrategy = simulatePar asfs
-    | otherwise = simulateSeq asfs
+iterationStrategy asfs mayParCollapsing = maybe (simulateSeq asfs) (\parCollapsing -> simulatePar asfs parCollapsing) mayParCollapsing
+
 
 simulate :: ([AgentIn s m ec], Environment ec)
                   -> [SF (AgentIn s m ec) (AgentOut s m ec)]
-                  -> Bool
+                  -> Maybe (EnvironmentCollapsing ec)
                   -> Double
                   -> Int
                   -> [([AgentOut s m ec], Environment ec)]
-simulate ains asfs parStrategy dt steps = embed
+simulate ains asfs mayParCollapsing dt steps = embed
                                                   sfStrat
                                                   (ains, sts)
     where
         sts = replicate steps (dt, Nothing)
-        sfStrat = iterationStrategy asfs parStrategy
+        sfStrat = iterationStrategy asfs mayParCollapsing
 ----------------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------------------------------------------------------------------------------------
@@ -201,7 +202,8 @@ seqCallback (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                 -- TODO: does it make sense to run multiple steps? what is the meaning of it?
                 -- TODO: when running for multiple steps it makes sense to specify WHEN the agent of oldSF runs
                 -- NOTE: when setting steps to > 1 we end up in an infinite loop
-                allStepsRecOuts = (simulate (allAins, env) allAsfs False 1.0 1)
+                -- TODO: only running in sequential for now
+                allStepsRecOuts = (simulate (allAins, env) allAsfs Nothing 1.0 1) 
 
                 (lastStepRecOuts, _) = (last allStepsRecOuts)
                 mayRecOut = Data.List.find (\ao -> (aoId ao) == (aiId oldIn)) lastStepRecOuts
@@ -298,10 +300,10 @@ seqCallback (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
 ----------------------------------------------------------------------------------------------------------------------
 -- PARALLEL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
--- TODO: for now the environment stays constant, think about this when it becomes necessary
 simulatePar :: [SF (AgentIn s m ec) (AgentOut s m ec)]
+                -> EnvironmentCollapsing ec
                 -> SF ([AgentIn s m ec], Environment ec) ([AgentOut s m ec], Environment ec)
-simulatePar initSfs = SF {sfTF = tf0}
+simulatePar initSfs envCollapsing = SF {sfTF = tf0}
     where
         tf0 (initInputs, initEnv) = (tfCont, (initOs, initEnv))
             where
@@ -314,18 +316,22 @@ simulatePar initSfs = SF {sfTF = tf0}
             where
                 -- NOTE: this is a function defition
                 -- tf :: DTime -> [i] -> Transition [i] [o]
-                tf dt _ =  (tf', (outs', env))
+                tf dt _ =  (tf', (outs', env'))
                     where
                         -- freezing the collection of SF' to 'promote' them back to SF
                         frozenSfs = freezeCol sfs dt
 
+                        insWithEnv = map (\i -> i {aiEnv = env'}) ins
+
                         -- using the callback to create the next inputs and allow changing of the SF-collection
-                        (sfs', ins') = parCallback ins outs frozenSfs
+                        (sfs', ins') = parCallback insWithEnv outs frozenSfs
 
                         -- run the next step with the new sfs and inputs to get the sf-contintuations and their outputs
                         (sfs'', outs') = runParInternal sfs' ins'
 
-                        env' = runEnv env dt
+                        allEnvs = map aoEnv outs'
+                        collapsedEnv = envCollapsing allEnvs 
+                        env' = runEnv collapsedEnv dt
 
                         -- create a continuation of this SF
                         tf' = simulateParAux sfs'' ins' outs' env'

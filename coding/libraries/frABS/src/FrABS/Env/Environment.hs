@@ -34,7 +34,8 @@ data Environment c = Environment {
     envLimits :: EnvLimits,
     envNeighbourhood :: EnvNeighbourhood,
     envWrapping :: EnvWrapping,
-    envCells :: Array EnvCoord c
+    envCells :: Array EnvCoord c,
+    envRng :: StdGen
 }
 
 createEnvironment :: Maybe (EnvironmentBehaviour c) ->
@@ -42,17 +43,20 @@ createEnvironment :: Maybe (EnvironmentBehaviour c) ->
                         EnvNeighbourhood ->
                         EnvWrapping ->
                         [(EnvCoord, c)] ->
+                        StdGen -> 
                         Environment c
 createEnvironment beh
                     l@(xLimit, yLimit)
                     n
                     w
-                    cs = Environment {
+                    cs 
+                    rng = Environment {
                              envBehaviour = beh,
                              envLimits = l,
                              envNeighbourhood = n,
                              envWrapping = w,
-                             envCells = arr
+                             envCells = arr,
+                             envRng = rng
                          }
     where
         arr = array ((0, 0), (xLimit - 1, yLimit - 1)) cs
@@ -90,6 +94,12 @@ distanceEucl (x1, y1) (x2, y2) = sqrt (xDelta*xDelta + yDelta*yDelta)
     where
         xDelta = fromRational $ toRational (x2 - x1)
         yDelta = fromRational $ toRational (y2 - y1)
+
+cellsAroundRadius :: Environment c -> EnvCoord -> Double -> [(EnvCoord, c)]
+cellsAroundRadius env pos r = filter (\(coord, _) -> r >= (distanceEucl pos coord)) ecs 
+    where
+        ecs = allCellsWithCoords env
+        -- TODO: does not yet wrap around boundaries
 
 cellsAround :: Environment c -> EnvCoord -> Int -> [(EnvCoord, c)]
 cellsAround env (cx, cy) r = zip wrappedCs cells

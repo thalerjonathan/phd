@@ -50,12 +50,15 @@ createSugarScape agentCount l = do
                                     let cellsWithSpiceLevel3 = initSpice cellsWithSpiceLevel2 (circlesSpice 3 [((15, 35), 10.0), ((35, 15), 10.0)])
                                     let cellsWithSpiceLevel4 = initSpice cellsWithSpiceLevel3 (circlesSpice 4 [((15, 35), 5.0), ((35, 15), 5.0)])
 
+                                    rng <- newStdGen
+
                                     let env = createEnvironment
                                                           (Just sugarScapeEnvironmentBehaviour)
                                                           l
                                                           neumann
                                                           WrapBoth
                                                           cellsWithSpiceLevel4
+                                                          rng
                                     return (as, env)
                                     --return (trace ("Environment has cells: " ++ (show cells)) (as, env))
     where

@@ -10,7 +10,7 @@ import System.Random
 
 rngSeed = 42
 agentCount = 2
-parallelStrategyFlag = False
+parallelStrategy = Nothing
 
 runConversationStepsAndPrint :: IO ()
 runConversationStepsAndPrint = do
@@ -23,7 +23,7 @@ runConversationStepsAndPrint = do
                                 mapM_ (putStrLn . show . adState) as
 
                                 let steps = 2
-                                let ass = processSteps as env parallelStrategyFlag 1.0 steps
+                                let ass = processSteps as env parallelStrategy 1.0 steps
                                 let (as', _) = last ass
 
                                 putStrLn "Final Agents:"

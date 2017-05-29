@@ -12,13 +12,15 @@ import System.Random
 createConversationAgentsAndEnv :: Int -> IO ([ConversationAgentDef], ConversationEnvironment)
 createConversationAgentsAndEnv count = do
                                         as <- mapM randomAgent [0..count-1]
-
+                                        rng <- newStdGen
+                                        
                                         let env = createEnvironment
                                                               Nothing
                                                               (0,0)
                                                               moore
                                                               WrapBoth
                                                               []
+                                                              rng
                                         return (as, env)
     where
         randomAgent :: AgentId -> IO ConversationAgentDef

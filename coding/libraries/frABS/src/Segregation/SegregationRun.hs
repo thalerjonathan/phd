@@ -22,7 +22,7 @@ renderCircles = True
 
 rngSeed = 42
 cells = (10, 10)
-parallelStrategyFlag = False -- NOTE: segregation will not give correct result when run with parallel update-strategy
+parallelStrategy = Nothing -- NOTE: segregation will not give correct result when run with parallel update-strategy
 
 
 runSegWithRendering :: IO ()
@@ -34,7 +34,7 @@ runSegWithRendering = do
 
                         putStrLn "dynamics = ["
                         outRef <- (newIORef (([], env), False)) :: (IO (IORef (([SegAgentOut], SegEnvironment), Bool)))
-                        hdl <- processIOInit as env parallelStrategyFlag (nextIteration outRef)
+                        hdl <- processIOInit as env parallelStrategy (nextIteration outRef)
 
                         simulateAndRender hdl outRef
 
@@ -77,7 +77,7 @@ runSegStepsAndRender = do
                             (as, env) <- createSegAgentsAndEnv cells
 
                             let steps = 10
-                            let ass = processSteps as env parallelStrategyFlag 1.0 steps
+                            let ass = processSteps as env parallelStrategy 1.0 steps
                             let (as', _) = last ass
 
                             --pic <- modelToPicture as'

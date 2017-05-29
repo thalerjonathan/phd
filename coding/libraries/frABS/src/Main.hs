@@ -1,14 +1,17 @@
 module Main where
 
+import AgentZero.AgentZeroRun
+import SugarScape.SugarScapeRun
+
 import SIRS.RunSIRS
 import Segregation.SegregationRun
+
 import RecursiveABS.RecursiveABSRun
-import SugarScape.SugarScapeRun
 import Conversation.ConversationRun
 import MessageSampling.MessageSamplingRun
 
 main :: IO ()
-main = runSugarScapeWithRendering
+main = runAgentZeroWithRendering
 
     -- runMessageSamplingAndPrint
     -- runConversationStepsAndPrint

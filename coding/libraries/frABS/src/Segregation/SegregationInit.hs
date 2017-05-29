@@ -13,12 +13,14 @@ createSegAgentsAndEnv :: (Int, Int) -> IO ([SegAgentDef], SegEnvironment)
 createSegAgentsAndEnv limits@(x,y) =  do
                                         let coords = [ (xCoord, yCoord) | xCoord <- [0..x-1], yCoord <- [0..y-1] ]
                                         (as, envCells) <- populateEnv coords
+                                        rng <- newStdGen
                                         let env = createEnvironment
                                                               Nothing
                                                               limits
                                                               moore
                                                               WrapBoth
                                                               envCells
+                                                              rng
                                         return (as, env)
     where
         populateEnv :: [(Int, Int)] -> IO ([SegAgentDef], [(EnvCoord, SegEnvCell)])

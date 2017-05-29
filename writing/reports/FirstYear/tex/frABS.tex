@@ -12,11 +12,10 @@ Before we can describe how we solved each of the problems, we first need to give
 
 \section{Yampa}
 The central concept of Yampa is the one of a signal-function which can be understood of a mapping from an input-signal to an output-signal. Whether the signal is discrete or continuous does not matter, Yampa is suited equally well to both kinds. Signal-functions are implemented in Yampa using continuations which allow to freeze program-state e.g. through closures and partial applications in functions which can be continued later:
-\begin{lstlisting}[frame=single]
+\begin{lstlisting}[]
 type DTime = Double
 
-data SF a b = 
-	SF { sfTF :: DTime -> a -> (SF a b, b)
+data SF a b = SF { sfTF :: DTime -> a -> (SF a b, b) }
 \end{lstlisting}
 Such a signal-function, which is called a \textit{transition function} in Yampa, takes the amount of time which has passed since the previous time step and the current input signal (a). It returns a \textit{continuation} of type SF a b determining the behaviour of the signal function on the next step and an output signal (b) of the current time-step. 
 

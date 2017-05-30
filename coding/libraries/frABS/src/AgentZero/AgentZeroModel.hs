@@ -16,6 +16,7 @@ import Data.List
 import Data.Maybe
 import qualified Data.Map as Map
 
+import Debug.Trace
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
@@ -61,10 +62,13 @@ extinctionRate :: Double
 extinctionRate = 1.0
 
 destructionRadius :: Double
-destructionRadius = 4.0
+destructionRadius = 1.0
 
 sampleRadius :: Double
-sampleRadius = 4.0
+sampleRadius = 1.0
+
+memorySize :: Int
+memorySize = 10
 ------------------------------------------------------------------------------------------------------------------------
 
 createAgentZero :: (AgentId, EnvCoord) 
@@ -86,7 +90,7 @@ createAgentZero (agentId, coord) cs beh =
           azAgentEventCount = 0,
           azAgentDispo = 0.0,
           azAgentProb = 0.0,
-          azAgentMemory = [],
+          azAgentMemory = replicate memorySize 0.0,
           azAgentConnections = conn
         }
 

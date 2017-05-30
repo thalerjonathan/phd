@@ -13,6 +13,7 @@ import MessageSampling.MessageSamplingRun
 main :: IO ()
 main = runAgentZeroWithRendering
 
+    -- runAgentZeroWithRendering
     -- runMessageSamplingAndPrint
     -- runConversationStepsAndPrint
     -- runSugarScapeWithRendering
@@ -22,6 +23,7 @@ main = runAgentZeroWithRendering
     -- runSegStepsAndRender
     -- test
     -- testGloss
+
 
 {-
     do

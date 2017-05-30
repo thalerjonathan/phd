@@ -44,7 +44,6 @@ agentZeroCellOnPos a = (agentPos, cellOfAgent)
         agentPos = aoEnvPos a
         cellOfAgent = cellAt env agentPos
 
-
 agentZeroUpdateEventCount :: AgentZeroAgentOut -> AgentZeroAgentOut
 agentZeroUpdateEventCount a 
 	| onAttackingSite a = updateState a (\s -> s { azAgentEventCount = (azAgentEventCount s) + 1} )
@@ -56,28 +55,38 @@ agentZeroUpdateAffect a
 	| otherwise = updateState a (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * extinctionRate * (0 - affect))})
 
 	where
-		state = aoState a 
-		affect = azAgentAffect state
-		learningRate = azAgentLearningRate state
-		delta = azAgentDelta state
-		lambda = azAgentLambda state
+		s = aoState a 
+		affect = azAgentAffect s
+		learningRate = azAgentLearningRate s
+		delta = azAgentDelta s
+		lambda = azAgentLambda s
 
 agentZeroUpdateProb :: AgentZeroAgentOut -> AgentZeroAgentOut
-agentZeroUpdateProb a = updateState a (\s -> s { azAgentProb = currentProb } )
+agentZeroUpdateProb a = updateState a (\s -> s { azAgentProb = newProb, azAgentMemory = mem' } )
 	where
 		env = aoEnv a
 		pos = aoEnvPos a
 		cs = cellsAroundRadius env pos sampleRadius
 		csAttacking = filter (isAttackingSite . snd) cs
 
-		currentProb = fromRational (fromIntegral $ length csAttacking) / (fromIntegral $ length cs)
-		-- TODO: add to memory and calculate median
+		localProb = fromRational (fromIntegral $ length csAttacking) / (fromIntegral $ length cs)
 
+		mem = azAgentMemory $ aoState a
+		mem' = localProb : (init mem)
+
+		newProb = mean mem'
+
+		mean :: (Fractional a) => [a] -> a
+		mean xs = s / n
+		    where
+		        s = sum xs
+		        n = fromIntegral $ length xs
 
 agentZeroUpdateDispo :: AgentZeroAgentIn -> AgentZeroAgentOut -> AgentZeroAgentOut
-agentZeroUpdateDispo ain a = broadcastMessage aDispoOthers (Disposition dispoLocal) connIds
+agentZeroUpdateDispo ain a = broadcastMessage aDispoFinal (Disposition dispoLocal) connIds
 	where
 		s = aoState a
+
 		affect = azAgentAffect s
 		prob = azAgentProb s
 		thresh = azAgentThresh s 
@@ -86,7 +95,7 @@ agentZeroUpdateDispo ain a = broadcastMessage aDispoOthers (Disposition dispoLoc
 		connIds = Map.keys $ azAgentConnections s
 
 		aDispoSelf = updateState a (\s -> s { azAgentDispo = dispoLocal - thresh})
-		aDispoOthers = onMessage dispositionMessageFilter ain dispositionMessageHandle a
+		aDispoFinal = onMessage dispositionMessageFilter ain dispositionMessageHandle aDispoSelf
 
 		dispositionMessageFilter :: AgentMessage AgentZeroMsg -> Bool
 		dispositionMessageFilter (_, (Disposition _)) = True
@@ -108,7 +117,9 @@ agentZeroDestroy a = a { aoEnv = env' }
 		env' = foldr (\(coord, cell) envAcc -> changeCellAt envAcc coord (cell { azCellState = Dead })) env cs
 
 agentZeroRandomMove :: AgentZeroAgentOut -> AgentZeroAgentOut
-agentZeroRandomMove a = a' { aoEnvPos = coord }
+agentZeroRandomMove a 
+	| aoId a /= 0 = a' { aoEnvPos = coord }
+	| otherwise = a
 	where
 		((coord, _), a') = runAgentRandom a (pickRandomNeighbourCell a)
 
@@ -117,7 +128,11 @@ agentZeroAgentBehaviourFunc ain aout
 	| agentZeroTakeAction agentBevoreAction = agentZeroDestroy agentBevoreAction
 	| otherwise = agentBevoreAction
 	where
-		agentBevoreAction = (agentZeroUpdateDispo ain) $ agentZeroUpdateProb $ agentZeroUpdateAffect $ agentZeroUpdateEventCount $ agentZeroRandomMove aout
+		agentBevoreAction = (agentZeroUpdateDispo ain) $ 
+								agentZeroUpdateProb $ 
+								agentZeroUpdateAffect $ 
+								agentZeroUpdateEventCount $ 
+								agentZeroRandomMove aout
 
 agentZeroAgentBehaviour :: AgentZeroAgentBehaviour
 agentZeroAgentBehaviour = proc ain ->

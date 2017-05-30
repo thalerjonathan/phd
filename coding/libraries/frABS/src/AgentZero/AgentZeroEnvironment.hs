@@ -59,16 +59,19 @@ randomAttack env =
 		return env'
 
 randAttackCell :: ((EnvCoord, AgentZeroEnvCell), Double) -> (EnvCoord, AgentZeroEnvCell)
-randAttackCell (cc@(coord, cell), attack)
-    | Dead == state = cc
-    | otherwise = if (attack > 0.95) then 
-    				(coord, cell {azCellState = Attack})
-    				else
-    					(coord, cell {azCellState = Friendly})
+randAttackCell (cc@(coord, cell), rand) 
+	| (x >= 12 && y >= 15) = (coord, cell { azCellState = state' })
+	| otherwise = cc
+	where
+		(x,y) = coord
+		state = azCellState cell
+		state' = selectNewState state rand
 
-   		where
-   			state = azCellState cell
-
+		selectNewState :: AgentZeroCellState -> Double -> AgentZeroCellState
+		selectNewState Dead _ = Dead
+		selectNewState Friendly rand = if rand > 0.8 then Attack else Friendly
+		selectNewState Attack rand = if rand > 0.5 then Friendly else Attack
+			
 {- TODO: when switching to arrowized programming
 randAttackCellSF :: StdGen -> SF (EnvCoord, AgentZeroEnvCell) (EnvCoord, AgentZeroEnvCell)
 randAttackCellSF g = proc cc ->

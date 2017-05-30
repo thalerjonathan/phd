@@ -7,6 +7,8 @@ import FrABS.Env.Environment
 
 import qualified Graphics.Gloss as GLO
 
+import Debug.Trace
+
 display :: String -> (Int, Int) -> GLO.Display
 display title winSize = (GLO.InWindow title winSize (300, 0))
 
@@ -20,7 +22,7 @@ renderFrame aouts env wSize@(wx, wy) = GLO.Pictures $ (envPics ++ agentPics)
         cells = allCellsWithCoords env
 
         agentPics = map (renderAgent (cellWidth, cellHeight) wSize) aouts
-        envPics = (map (renderEnvCell (cellWidth, cellHeight) wSize) cells)
+        envPics = map (renderEnvCell (cellWidth, cellHeight) wSize) cells
 
 renderEnvCell :: (Float, Float)
                     -> (Int, Int)
@@ -43,7 +45,6 @@ cellColor AgentZeroEnvCell {azCellState = state, azCellShade = shade}
     | Friendly == state = GLO.makeColor (realToFrac 1.0) (realToFrac 1.0) (realToFrac shade) 1.0
     | Attack == state = GLO.makeColor (realToFrac 1.0) (realToFrac 0.1) (realToFrac 0.1) 1.0
     | Dead == state = GLO.black 
-
 
 renderAgent :: (Float, Float)
                 -> (Int, Int)

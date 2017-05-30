@@ -1,5 +1,6 @@
 module AgentZero.AgentZeroRun where
 
+import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
 
 import AgentZero.AgentZeroModel
@@ -27,33 +28,47 @@ envSize = (50, 50)
 parallelStrategy = Nothing -- Just agentZeroEnvironmentsCollapse 
 
 runAgentZeroWithRendering :: IO ()
-runAgentZeroWithRendering = do
-                                hSetBuffering stdout NoBuffering
-                                hSetBuffering stderr NoBuffering
-                                initRng rngSeed
-                                (as, env) <- initAgentZeroEpstein
+runAgentZeroWithRendering = 
+    do
+        hSetBuffering stdout NoBuffering
+        hSetBuffering stderr NoBuffering
+        initRng rngSeed
+        (as, env) <- initAgentZeroEpstein
 
-                                outRef <- (newIORef ([], env)) :: (IO (IORef ([AgentZeroAgentOut], AgentZeroEnvironment)))
-                                hdl <- processIOInit as env parallelStrategy (nextIteration outRef)
+        outRef <- (newIORef ([], env)) :: (IO (IORef ([AgentZeroAgentOut], AgentZeroEnvironment)))
+        hdl <- processIOInit as env parallelStrategy (nextIteration outRef)
 
-                                simulateAndRenderNoTime hdl outRef
-                                -- simulateAndRenderWithTime env hdl outRef
+        simulateAndRenderNoTime hdl outRef
+        --simulateAndRenderWithTime env hdl outRef
 
 nextIteration :: IORef ([AgentZeroAgentOut], AgentZeroEnvironment)
                     -> ReactHandle ([AgentZeroAgentIn], AgentZeroEnvironment) ([AgentZeroAgentOut], AgentZeroEnvironment)
                      -> Bool
                      -> ([AgentZeroAgentOut], AgentZeroEnvironment)
                      -> IO Bool
-nextIteration outRef _ _ aep@(aouts, _) = do
-                                                writeIORef outRef aep
-                                                putStrLn ("" ++ (show $ length aouts))
-                                                return False
+nextIteration outRef _ _ aep@(aouts, _) = 
+    do
+        writeIORef outRef aep
+        --putStrLn ("" ++ (show $ length aouts))
+        --mapM printAgent aouts
+        return False
+
+printAgent :: AgentZeroAgentOut -> IO ()
+printAgent aout = 
+    do
+        let s = aoState aout
+        let aid = aoId aout
+
+        putStrLn $ "Agent " ++ (show aid) ++ ": " ++ (show s)
+
+        return ()
 
 initRng :: Int -> IO StdGen
-initRng seed = do
-                let g = mkStdGen seed
-                setStdGen g
-                return g
+initRng seed =
+    do
+        let g = mkStdGen seed
+        setStdGen g
+        return g
 
 simulateAndRenderWithTime :: AgentZeroEnvironment
                                 -> ReactHandle ([AgentZeroAgentIn], AgentZeroEnvironment) ([AgentZeroAgentOut], AgentZeroEnvironment)
@@ -72,10 +87,11 @@ nextFrameSimulateWithTime :: ReactHandle ([AgentZeroAgentIn], AgentZeroEnvironme
                                 -> Float
                                 -> ([AgentZeroAgentOut], AgentZeroEnvironment)
                                 -> IO ([AgentZeroAgentOut], AgentZeroEnvironment)
-nextFrameSimulateWithTime hdl outRef _ _ _ = do
-                                                 react hdl (1.0, Nothing)  -- NOTE: will result in call to nextIteration
-                                                 aouts <- readIORef outRef
-                                                 return aouts
+nextFrameSimulateWithTime hdl outRef _ _ _ = 
+    do
+        react hdl (1.0, Nothing)  -- NOTE: will result in call to nextIteration
+        aouts <- readIORef outRef
+        return aouts
 
 
 simulateAndRenderNoTime :: ReactHandle ([AgentZeroAgentIn], AgentZeroEnvironment) ([AgentZeroAgentOut], AgentZeroEnvironment)
@@ -90,13 +106,15 @@ nextFrameSimulateNoTime :: ReactHandle ([AgentZeroAgentIn], AgentZeroEnvironment
                 -> IORef ([AgentZeroAgentOut], AgentZeroEnvironment)
                 -> Float
                 -> IO Picture
-nextFrameSimulateNoTime hdl outRef _ = do
-                                            react hdl (1.0, Nothing)  -- NOTE: will result in call to nextIteration
-                                            aouts <- readIORef outRef
-                                            modelToPicture aouts
+nextFrameSimulateNoTime hdl outRef _ = 
+    do
+        react hdl (1.0, Nothing)  -- NOTE: will result in call to nextIteration
+        aouts <- readIORef outRef
+        modelToPicture aouts
 
 -- TODO: when no agents are there then the environment will disappear, need to communicate the environment as a separate output
 modelToPicture :: ([AgentZeroAgentOut], AgentZeroEnvironment) -> IO GLO.Picture
-modelToPicture (aouts, env) = do
-                                -- NOTE: the corresponding most recent environment is the one of the last agentout because for now we are iterating sequentially
-                                return $ (Renderer.renderFrame aouts env winSize)
+modelToPicture (aouts, env) = 
+    do
+        -- NOTE: the corresponding most recent environment is the one of the last agentout because for now we are iterating sequentially
+        return $ (Renderer.renderFrame aouts env winSize)

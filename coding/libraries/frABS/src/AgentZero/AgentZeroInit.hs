@@ -17,11 +17,11 @@ import Control.Monad.Random
 initAgentZeroEpstein :: IO ([AgentZeroAgentDef], AgentZeroEnvironment)
 initAgentZeroEpstein = 
   do
-    let dims = (50, 50)
+    let dims = (33, 33)
 
-    a0 <- runCreateAgentZeroIO (0, (16, 34)) [(1, 0.3), (2, 0.3)]
-    a1 <- runCreateAgentZeroIO (1, (30, 20)) [(0, 0.3), (2, 0.3)]
-    a2 <- runCreateAgentZeroIO (2, (28, 16)) [(0, 0.3), (1, 0.3)]
+    a0 <- runCreateAgentZeroIO (0, (9, 9)) [(1, 0.3), (2, 0.3)]
+    a1 <- runCreateAgentZeroIO (1, (22, 17)) [(0, 0.3), (2, 0.3)]
+    a2 <- runCreateAgentZeroIO (2, (20, 26)) [(0, 0.3), (1, 0.3)]
 
     cells <- createCells dims
     envRng <- newStdGen 
@@ -30,7 +30,7 @@ initAgentZeroEpstein =
                           (Just agentZeroEnvironmentBehaviour)
                           dims
                           neumann
-                          WrapBoth
+                          ClipToMax
                           cells
                           envRng
 

@@ -4,8 +4,10 @@ module AgentZero.AgentZeroAgent where
 -- Project-internal import first
 import AgentZero.AgentZeroModel
 import AgentZero.AgentZeroEnvironment
+
 import FrABS.Env.Environment
 import FrABS.Agent.Agent
+import FrABS.Agent.AgentUtils
 
 -- Project-specific libraries follow
 import FRP.Yampa
@@ -16,6 +18,7 @@ import Data.List
 import System.Random
 import Control.Monad.Random
 import Control.Monad
+import qualified Data.Map as Map
 
 -- debugging imports finally, to be easily removed in final version
 import Debug.Trace
@@ -72,13 +75,15 @@ agentZeroUpdateProb a = updateState a (\s -> s { azAgentProb = currentProb } )
 
 
 agentZeroUpdateDispo :: AgentZeroAgentIn -> AgentZeroAgentOut -> AgentZeroAgentOut
-agentZeroUpdateDispo ain a = aDispoOthers -- TODO: send dispoLocal to graph-neighbours 
+agentZeroUpdateDispo ain a = broadcastMessage aDispoOthers (Disposition dispoLocal) connIds
 	where
 		s = aoState a
 		affect = azAgentAffect s
 		prob = azAgentProb s
 		thresh = azAgentThresh s 
 		dispoLocal = affect + prob
+
+		connIds = Map.keys $ azAgentConnections s
 
 		aDispoSelf = updateState a (\s -> s { azAgentDispo = dispoLocal - thresh})
 		aDispoOthers = onMessage dispositionMessageFilter ain dispositionMessageHandle a
@@ -90,7 +95,9 @@ agentZeroUpdateDispo ain a = aDispoOthers -- TODO: send dispoLocal to graph-neig
 		dispositionMessageHandle :: AgentZeroAgentOut -> AgentMessage AgentZeroMsg -> AgentZeroAgentOut
 		dispositionMessageHandle a (senderId, (Disposition d)) = updateState a (\s -> s { azAgentDispo = (azAgentDispo s) + (d * weight)})
 			where
-				weight = 1.0 -- TODO: get weight by senderId
+				s = aoState a
+				conns = azAgentConnections s
+				weight = conns Map.! senderId
 
 agentZeroDestroy :: AgentZeroAgentOut -> AgentZeroAgentOut
 agentZeroDestroy a = a { aoEnv = env' }
@@ -105,26 +112,16 @@ agentZeroRandomMove a = a' { aoEnvPos = coord }
 	where
 		((coord, _), a') = runAgentRandom a (pickRandomNeighbourCell a)
 
-		pickRandomNeighbourCell :: AgentZeroAgentOut -> Rand StdGen (EnvCoord, AgentZeroEnvCell)
-		pickRandomNeighbourCell a = 
-			do
-				let env = aoEnv a
-				let pos = aoEnvPos a
-				let neighbourCells = neighbours env pos
-				let l = length neighbourCells 
-
-				randIdx <- getRandomR (0, l - 1)
-
-				return (neighbourCells !! randIdx)
-
-agentZeroAgentBehaviourFunc :: Double -> AgentZeroAgentIn -> AgentZeroAgentOut -> AgentZeroAgentOut 
-agentZeroAgentBehaviourFunc age ain aout = agentZeroDestroy $ agentZeroRandomMove aout
+agentZeroAgentBehaviourFunc :: AgentZeroAgentIn -> AgentZeroAgentOut -> AgentZeroAgentOut 
+agentZeroAgentBehaviourFunc ain aout 
+	| agentZeroTakeAction agentBevoreAction = agentZeroDestroy agentBevoreAction
+	| otherwise = agentBevoreAction
+	where
+		agentBevoreAction = (agentZeroUpdateDispo ain) $ agentZeroUpdateProb $ agentZeroUpdateAffect $ agentZeroUpdateEventCount $ agentZeroRandomMove aout
 
 agentZeroAgentBehaviour :: AgentZeroAgentBehaviour
 agentZeroAgentBehaviour = proc ain ->
     do
-        age <- time -< 0
-
         let aout = agentOutFromIn ain
-        returnA -< agentZeroAgentBehaviourFunc age ain aout
+        returnA -< agentZeroAgentBehaviourFunc ain aout
 ------------------------------------------------------------------------------------------------------------------------

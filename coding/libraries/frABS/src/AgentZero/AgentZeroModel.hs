@@ -14,6 +14,7 @@ import Control.Monad
 import Data.List.Split
 import Data.List
 import Data.Maybe
+import qualified Data.Map as Map
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
@@ -32,7 +33,9 @@ data AgentZeroAgentState = AgentZeroAgentState {
     azAgentEventCount :: Int,
     azAgentDispo :: Double,
     azAgentProb :: Double,
-    azAgentMemory :: [Double]
+    azAgentMemory :: [Double],
+
+    azAgentConnections :: Map.Map AgentId Double
 } deriving (Show)
 
 data AgentZeroCellState = Friendly | Attack | Dead deriving (Eq, Show)
@@ -64,23 +67,27 @@ sampleRadius :: Double
 sampleRadius = 4.0
 ------------------------------------------------------------------------------------------------------------------------
 
-randomAgent :: (AgentId, EnvCoord)
-                -> AgentZeroAgentBehaviour
-                -> Rand StdGen AgentZeroAgentDef
-randomAgent (agentId, coord) beh = 
+createAgentZero :: (AgentId, EnvCoord) 
+                    -> [(AgentId, Double)]
+                    -> AgentZeroAgentBehaviour 
+                    -> Rand StdGen AgentZeroAgentDef
+createAgentZero (agentId, coord) cs beh = 
     do
         rng <- getSplit
 
+        let conn = foldr (\(k, v) mapAcc -> Map.insert k v mapAcc) Map.empty cs
+
         let s = AgentZeroAgentState {
-          azAgentAffect = 0.0,
-          azAgentLearningRate = 0.0,
-          azAgentLambda = 0.0,
+          azAgentAffect = 0.001,
+          azAgentLearningRate = 0.1,
+          azAgentLambda = 1.0,
           azAgentDelta = 0.0,
-          azAgentThresh = 0.0,
+          azAgentThresh = 0.5,
           azAgentEventCount = 0,
           azAgentDispo = 0.0,
           azAgentProb = 0.0,
-          azAgentMemory = []
+          azAgentMemory = [],
+          azAgentConnections = conn
         }
 
         let adef = AgentDef {

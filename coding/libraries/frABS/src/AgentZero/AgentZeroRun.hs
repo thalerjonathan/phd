@@ -31,7 +31,7 @@ runAgentZeroWithRendering = do
                                 hSetBuffering stdout NoBuffering
                                 hSetBuffering stderr NoBuffering
                                 initRng rngSeed
-                                (as, env) <- createAgentZero agentCount envSize
+                                (as, env) <- initAgentZeroEpstein
 
                                 outRef <- (newIORef ([], env)) :: (IO (IORef ([AgentZeroAgentOut], AgentZeroEnvironment)))
                                 hdl <- processIOInit as env parallelStrategy (nextIteration outRef)

@@ -2,6 +2,8 @@
 module FrABS.Env.Environment where
 
 import FRP.Yampa
+import Data.Graph.Inductive.Graph
+import Data.Graph.Inductive.PatriciaTree
 
 import Data.Array.IArray
 import Control.Monad.Random
@@ -17,12 +19,10 @@ an Environment is a container which contains Agents and allows them to move arro
 -- TODO: continuous environment: instead of Int, use Double -> can we do this by params?
     -- or use type-classes?
 -- TODO: can we generalize to higher dimensions?
--- TODO: graph environment: no geometrical space => no position but only neighbours
-    -- TODO: https://hackage.haskell.org/package/containers-0.5.10.2/docs/Data-Graph.html
-    -- TODO: https://hackage.haskell.org/package/fgl
-    -- TODO: http://mazzo.li/posts/graph-drawing.html
     
 --data (Num d) => EnvCoordGeneric d = EnvCoordGeneric (d, d)
+type NodeType = Int -- NOTE: should be AgentId but agent, which defines AgentId, includes already environment 
+
 type EnvironmentBehaviour c = SF (Environment c) (Environment c)
 type EnvCoord = (Int, Int)
 type EnvLimits = (Int, Int)
@@ -35,7 +35,8 @@ data Environment c = Environment {
     envNeighbourhood :: EnvNeighbourhood,
     envWrapping :: EnvWrapping,
     envCells :: Array EnvCoord c,
-    envRng :: StdGen
+    envRng :: StdGen,
+    envGraph :: Gr NodeType Double
 }
 
 createEnvironment :: Maybe (EnvironmentBehaviour c) ->
@@ -56,7 +57,8 @@ createEnvironment beh
                              envNeighbourhood = n,
                              envWrapping = w,
                              envCells = arr,
-                             envRng = rng
+                             envRng = rng,
+                             envGraph = empty
                          }
     where
         arr = array ((0, 0), (xLimit - 1, yLimit - 1)) cs

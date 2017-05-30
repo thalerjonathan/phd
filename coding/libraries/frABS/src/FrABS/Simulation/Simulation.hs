@@ -321,20 +321,20 @@ simulatePar initSfs envCollapsing = SF {sfTF = tf0}
                         -- freezing the collection of SF' to 'promote' them back to SF
                         frozenSfs = freezeCol sfs dt
 
-                        insWithEnv = map (\i -> i {aiEnv = env'}) ins
-
                         -- using the callback to create the next inputs and allow changing of the SF-collection
-                        (sfs', ins') = parCallback insWithEnv outs frozenSfs
+                        (sfs', ins') = parCallback ins outs frozenSfs
+
+                        insWithEnv = map (\i -> i {aiEnv = env}) ins'
 
                         -- run the next step with the new sfs and inputs to get the sf-contintuations and their outputs
-                        (sfs'', outs') = runParInternal sfs' ins'
+                        (sfs'', outs') = runParInternal sfs' insWithEnv
 
                         allEnvs = map aoEnv outs'
                         collapsedEnv = envCollapsing allEnvs 
                         env' = runEnv collapsedEnv dt
 
                         -- create a continuation of this SF
-                        tf' = simulateParAux sfs'' ins' outs' env'
+                        tf' = simulateParAux sfs'' insWithEnv outs' env'
 
 
 parCallback :: [AgentIn s m ec]

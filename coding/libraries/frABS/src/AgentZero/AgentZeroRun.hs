@@ -20,10 +20,11 @@ winSize = (800, 800)
 winTitle = "Agent_Zero"
 
 rngSeed = 42
-agentCount = 30
+agentCount = 3
 envSize = (50, 50)
 
-parallelStrategy = Nothing -- Just agentZeroEnvironmentsCollapse -- NOTE: agent-zero works BOTH for parallel and sequential
+-- NOTE: agent-zero works BOTH for parallel and sequential, parallel is slower because collapsing the environments is a very expensive operation 
+parallelStrategy = Nothing -- Just agentZeroEnvironmentsCollapse 
 
 runAgentZeroWithRendering :: IO ()
 runAgentZeroWithRendering = do

@@ -29,15 +29,14 @@ agentZeroEnvironmentsCollapse envs = foldr mergeEnvs initEnv envs
 		mergeEnvs env envAcc = foldr (\((coord, cell), (coordAcc, cellAcc)) acc -> changeCellAt acc coordAcc (mergeCells cell cellAcc)) envAcc zippedCells
 			where
 				envCells = allCellsWithCoords env 
-				envAccCells = allCellsWithCoords env
+				envAccCells = allCellsWithCoords envAcc
 				zippedCells = zip envCells envAccCells
 
+		-- NOTE: agents only destroy, which must be merged - all other states are the same in both environments
 		mergeCells :: AgentZeroEnvCell -> AgentZeroEnvCell -> AgentZeroEnvCell
 		mergeCells cellA cellB 
 			| Dead == cellStateA = cellA
 			| Dead == cellStateB = cellB
-			| Attack == cellStateA = cellA
-			| Attack == cellStateB = cellB
 			| otherwise = cellA
 			where
 				cellStateA = azCellState cellA

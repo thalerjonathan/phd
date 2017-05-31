@@ -4,7 +4,7 @@ module FrABS.Env.Environment where
 import FRP.Yampa
 import Data.Graph.Inductive.Graph
 import Data.Graph.Inductive.PatriciaTree
-
+import Data.List
 import Data.Array.IArray
 import Control.Monad.Random
 
@@ -79,6 +79,13 @@ neighbourLinks :: Environment c l -> Node -> Adj l
 neighbourLinks env node = lneighbors gr node
     where
         gr = envGraph env
+
+directLinkBetween :: Environment c l -> Node -> Node -> Maybe l
+directLinkBetween env n1 n2 = 
+    do
+        let ls = neighbourLinks env n1
+        (linkLabel, _) <- Data.List.find ((==n2) . snd) ls
+        return linkLabel
 
 allCellsWithCoords :: Environment c l -> [(EnvCoord, c)]
 allCellsWithCoords env = assocs ec

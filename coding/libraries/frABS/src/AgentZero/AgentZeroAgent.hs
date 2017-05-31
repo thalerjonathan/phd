@@ -106,8 +106,8 @@ agentZeroUpdateDispo ain a = broadcastMessage aDispoFinal (Disposition dispoLoca
 		dispositionMessageHandle :: AgentZeroAgentOut -> AgentMessage AgentZeroMsg -> AgentZeroAgentOut
 		dispositionMessageHandle a (senderId, (Disposition d)) = updateState a (\s -> s { azAgentDispo = (azAgentDispo s) + (d * weight)})
 			where
-				s = aoState a
-				weight = 0.0 -- TODO: find edge between senderId and aid
+				mayWeight = directLinkBetween (aoEnv a) senderId aid
+				weight = maybe 0.0 id mayWeight
 
 agentZeroDestroy :: AgentZeroAgentOut -> AgentZeroAgentOut
 agentZeroDestroy a = a { aoEnv = env' }

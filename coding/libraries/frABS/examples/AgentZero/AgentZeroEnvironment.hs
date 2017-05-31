@@ -3,6 +3,7 @@ module AgentZero.AgentZeroEnvironment where
 
 -- Project-internal import first
 import AgentZero.AgentZeroModel
+
 import FrABS.Env.Environment
 import FrABS.Simulation.Simulation
 

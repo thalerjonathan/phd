@@ -9,6 +9,8 @@ import FRP.Yampa
 ------------------------------------------------------------------------------------------------------------------------
 -- TODOs
 ------------------------------------------------------------------------------------------------------------------------
+-- TODO: if there is no use of the environment but one is running parallel it is strange to provide a collapse function
+
 -- TODO: need some mechanism to give GLOBALLY UNIQUE IDs to agents when creating new
     {-
         how do we generate global unique agentids when creating them during runtime?

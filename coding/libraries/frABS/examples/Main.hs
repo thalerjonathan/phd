@@ -10,8 +10,10 @@ import RecursiveABS.RecursiveABSRun
 import Conversation.ConversationRun
 import MessageSampling.MessageSamplingRun
 
+import DoubleAuction.DARun
+
 main :: IO ()
-main = runAgentZeroWithRendering
+main = runDoubleAuctionWithRendering
 
     -- runAgentZeroWithRendering
     -- runMessageSamplingAndPrint

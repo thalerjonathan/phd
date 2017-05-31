@@ -1,0 +1,21 @@
+name:              FrABSExamples
+version:           1.0
+Build-Type:        Simple
+cabal-version:     >= 1.2
+
+executable frABSExamples
+  main-is:         Main.hs
+  hs-source-dirs:  src
+  build-depends:   base, FrABS, Yampa, gloss, QuickCheck, random, containers, array, MonadRandom, split, fgl
+  ghc-options:      -O2
+                    -fno-warn-tabs
+                    -- -Wall
+                    -- -eventlog
+                    -- -rtsopts
+                    -- -prof
+                    -- -auto-all
+                    -- -caf-all
+                    -- -fforce-recomp
+                    -- "-with-rtsopts= -s -hy -p -i0.1 -K256M"
+                    -- "-with-rtsopts=-N"
+                      -- use hc, hd or hy

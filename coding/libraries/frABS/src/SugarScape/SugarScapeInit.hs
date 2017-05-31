@@ -59,6 +59,7 @@ createSugarScape agentCount l = do
                                                           WrapBoth
                                                           cellsWithSpiceLevel4
                                                           rng
+                                                          Nothing
                                     return (as, env)
                                     --return (trace ("Environment has cells: " ++ (show cells)) (as, env))
     where

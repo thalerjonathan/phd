@@ -34,9 +34,7 @@ data AgentZeroAgentState = AgentZeroAgentState {
     azAgentEventCount :: Int,
     azAgentDispo :: Double,
     azAgentProb :: Double,
-    azAgentMemory :: [Double],
-
-    azAgentConnections :: Map.Map AgentId Double
+    azAgentMemory :: [Double]
 } deriving (Show)
 
 data AgentZeroCellState = Friendly | Attack | Dead deriving (Eq, Show)
@@ -46,13 +44,13 @@ data AgentZeroEnvCell = AgentZeroEnvCell {
     azCellShade :: Float
 } deriving (Show)
 
-type AgentZeroEnvironment = Environment AgentZeroEnvCell
-type AgentZeroEnvironmentBehaviour = EnvironmentBehaviour AgentZeroEnvCell
+type AgentZeroEnvironment = Environment AgentZeroEnvCell Double
+type AgentZeroEnvironmentBehaviour = EnvironmentBehaviour AgentZeroEnvCell Double
 
-type AgentZeroAgentDef = AgentDef AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell
-type AgentZeroAgentBehaviour = AgentBehaviour AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell
-type AgentZeroAgentIn = AgentIn AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell
-type AgentZeroAgentOut = AgentOut AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell
+type AgentZeroAgentDef = AgentDef AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell Double
+type AgentZeroAgentBehaviour = AgentBehaviour AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell Double
+type AgentZeroAgentIn = AgentIn AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell Double
+type AgentZeroAgentOut = AgentOut AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell Double
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -72,14 +70,11 @@ memorySize = 10
 ------------------------------------------------------------------------------------------------------------------------
 
 createAgentZero :: (AgentId, EnvCoord) 
-                    -> [(AgentId, Double)]
                     -> AgentZeroAgentBehaviour 
                     -> Rand StdGen AgentZeroAgentDef
-createAgentZero (agentId, coord) cs beh = 
+createAgentZero (agentId, coord) beh = 
     do
         rng <- getSplit
-
-        let conn = foldr (\(k, v) mapAcc -> Map.insert k v mapAcc) Map.empty cs
 
         let s = AgentZeroAgentState {
           azAgentAffect = 0.001,
@@ -90,8 +85,7 @@ createAgentZero (agentId, coord) cs beh =
           azAgentEventCount = 0,
           azAgentDispo = 0.0,
           azAgentProb = 0.0,
-          azAgentMemory = replicate memorySize 0.0,
-          azAgentConnections = conn
+          azAgentMemory = replicate memorySize 0.0
         }
 
         let adef = AgentDef {

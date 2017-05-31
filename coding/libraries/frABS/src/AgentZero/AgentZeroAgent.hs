@@ -83,16 +83,18 @@ agentZeroUpdateProb a = updateState a (\s -> s { azAgentProb = newProb, azAgentM
 		        n = fromIntegral $ length xs
 
 agentZeroUpdateDispo :: AgentZeroAgentIn -> AgentZeroAgentOut -> AgentZeroAgentOut
-agentZeroUpdateDispo ain a = broadcastMessage aDispoFinal (Disposition dispoLocal) connIds
+agentZeroUpdateDispo ain a = broadcastMessage aDispoFinal (Disposition dispoLocal) linkIds
 	where
-		s = aoState a
+		aid = aoId a
+		env = aoEnv a 
 
+		s = aoState a
 		affect = azAgentAffect s
 		prob = azAgentProb s
 		thresh = azAgentThresh s 
 		dispoLocal = affect + prob
 
-		connIds = Map.keys $ azAgentConnections s
+		linkIds = neighbourNodes env aid
 
 		aDispoSelf = updateState a (\s -> s { azAgentDispo = dispoLocal - thresh})
 		aDispoFinal = onMessage dispositionMessageFilter ain dispositionMessageHandle aDispoSelf
@@ -105,8 +107,7 @@ agentZeroUpdateDispo ain a = broadcastMessage aDispoFinal (Disposition dispoLoca
 		dispositionMessageHandle a (senderId, (Disposition d)) = updateState a (\s -> s { azAgentDispo = (azAgentDispo s) + (d * weight)})
 			where
 				s = aoState a
-				conns = azAgentConnections s
-				weight = conns Map.! senderId
+				weight = 0.0 -- TODO: find edge between senderId and aid
 
 agentZeroDestroy :: AgentZeroAgentOut -> AgentZeroAgentOut
 agentZeroDestroy a = a { aoEnv = env' }

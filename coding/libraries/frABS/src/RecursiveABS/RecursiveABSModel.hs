@@ -24,12 +24,12 @@ data MetaABSAgentState = MetaABSAgentState {
 } deriving (Show)
 
 type MetaABSEnvCell = Int
-type MetaABSEnvironment = Environment MetaABSEnvCell
+type MetaABSEnvironment = Environment MetaABSEnvCell ()
 
-type MetaABSAgentDef = AgentDef MetaABSAgentState MetaABSMsg MetaABSEnvCell
-type MetaABSAgentBehaviour = AgentBehaviour MetaABSAgentState MetaABSMsg MetaABSEnvCell
-type MetaABSAgentIn = AgentIn MetaABSAgentState MetaABSMsg MetaABSEnvCell
-type MetaABSAgentOut = AgentOut MetaABSAgentState MetaABSMsg MetaABSEnvCell
+type MetaABSAgentDef = AgentDef MetaABSAgentState MetaABSMsg MetaABSEnvCell ()
+type MetaABSAgentBehaviour = AgentBehaviour MetaABSAgentState MetaABSMsg MetaABSEnvCell ()
+type MetaABSAgentIn = AgentIn MetaABSAgentState MetaABSMsg MetaABSEnvCell ()
+type MetaABSAgentOut = AgentOut MetaABSAgentState MetaABSMsg MetaABSEnvCell ()
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

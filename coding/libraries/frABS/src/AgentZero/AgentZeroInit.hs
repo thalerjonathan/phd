@@ -26,9 +26,9 @@ initAgentZeroEpstein =
     let a1Node = 1
     let a2Node = 2
     
-    let a0LNode = (a0Node, 0) :: LNode Int
-    let a1LNode = (a1Node, 1) :: LNode Int
-    let a2LNode = (a2Node, 2) :: LNode Int
+    let a0LNode = (a0Node, ()) :: LNode ()
+    let a1LNode = (a1Node, ()) :: LNode ()
+    let a2LNode = (a2Node, ()) :: LNode ()
     
     let a0_a1LEdge = (a0Node, a1Node, 0.3) :: LEdge Double
     let a0_a2LEdge = (a0Node, a2Node, 0.3) :: LEdge Double
@@ -39,7 +39,7 @@ initAgentZeroEpstein =
     let a2_a0LEdge = (a2Node, a0Node, 0.3) :: LEdge Double
     let a2_a1LEdge = (a2Node, a1Node, 0.3) :: LEdge Double
     
-    let gr = mkGraph [a0LNode, a1LNode, a2LNode] [a0_a1LEdge, a0_a2LEdge, a1_a2LEdge] :: Gr Int Double
+    let gr = mkGraph [a0LNode, a1LNode, a2LNode] [a0_a1LEdge, a0_a2LEdge, a1_a2LEdge] :: Gr () Double
 
     let nsA0 = lneighbors gr a0Node
     let nsA1 = lneighbors gr a1Node
@@ -48,9 +48,9 @@ initAgentZeroEpstein =
     putStrLn (show nsA1)
     putStrLn (show nsA2)
 
-    a0 <- runCreateAgentZeroIO (0, (9, 9)) [(1, 0.3), (2, 0.3)]
-    a1 <- runCreateAgentZeroIO (1, (22, 17)) [(0, 0.3), (2, 0.3)]
-    a2 <- runCreateAgentZeroIO (2, (20, 26)) [(0, 0.3), (1, 0.3)]
+    a0 <- runCreateAgentZeroIO (0, (9, 9))
+    a1 <- runCreateAgentZeroIO (1, (22, 17))
+    a2 <- runCreateAgentZeroIO (2, (20, 26))
 
     cells <- createCells dims
     envRng <- newStdGen 
@@ -62,23 +62,12 @@ initAgentZeroEpstein =
                           ClipToMax
                           cells
                           envRng
+                          (Just gr)
 
     return ([a0, a1, a2], env)
 
   where
-    runCreateAgentZeroIO :: (AgentId, EnvCoord) 
-                      -> [(AgentId, Double)]
-                      -> IO AgentZeroAgentDef
-    runCreateAgentZeroIO aidCoord cs = 
-      do
-        std <- getStdGen
-        let (adef, std') = runRand (createAgentZero
-                                        aidCoord
-                                        cs
-                                        agentZeroAgentBehaviour)
-                                        std
-        setStdGen std'
-        return adef
+    
 
 initAgentZeroCount :: Int -> EnvLimits -> IO ([AgentZeroAgentDef], AgentZeroEnvironment)
 initAgentZeroCount agentCount l = 
@@ -96,22 +85,10 @@ initAgentZeroCount agentCount l =
                           WrapBoth
                           initRandomCells
                           envRng
+                          Nothing
     return (as, env)
 
   where
-    runCreateAgentZeroIO :: (AgentId, EnvCoord) 
-                      -> IO AgentZeroAgentDef
-    runCreateAgentZeroIO aidCoord = 
-      do
-        std <- getStdGen
-        let (adef, std') = runRand (createAgentZero
-                                        aidCoord
-                                        []
-                                        agentZeroAgentBehaviour)
-                                        std
-        setStdGen std'
-        return adef
-
     -- NOTE: will draw random-coords within (0,0) and limits WITHOUT repeating any coordinate
     drawRandomCoords :: EnvLimits -> EnvLimits -> Int -> IO [EnvCoord]
     drawRandomCoords lower@(minX, minY) upper@(maxX, maxY) n
@@ -133,6 +110,18 @@ initAgentZeroCount agentCount l =
                       drawRandomCoordsAux lower upper n acc
                       else
                         drawRandomCoordsAux lower upper (n-1) (c : acc)
+
+runCreateAgentZeroIO :: (AgentId, EnvCoord) 
+                      -> IO AgentZeroAgentDef
+runCreateAgentZeroIO aidCoord = 
+  do
+    std <- getStdGen
+    let (adef, std') = runRand (createAgentZero
+                                    aidCoord
+                                    agentZeroAgentBehaviour)
+                                    std
+    setStdGen std'
+    return adef
 
 createCells :: EnvLimits
                 -> IO [(EnvCoord, AgentZeroEnvCell)]

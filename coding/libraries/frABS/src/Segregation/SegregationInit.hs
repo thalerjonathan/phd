@@ -21,6 +21,7 @@ createSegAgentsAndEnv limits@(x,y) =  do
                                                               WrapBoth
                                                               envCells
                                                               rng
+                                                              Nothing
                                         return (as, env)
     where
         populateEnv :: [(Int, Int)] -> IO ([SegAgentDef], [(EnvCoord, SegEnvCell)])

@@ -21,6 +21,7 @@ createConversationAgentsAndEnv count = do
                                                               WrapBoth
                                                               []
                                                               rng
+                                                              Nothing
                                         return (as, env)
     where
         randomAgent :: AgentId -> IO ConversationAgentDef

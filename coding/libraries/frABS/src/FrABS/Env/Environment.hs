@@ -21,60 +21,77 @@ an Environment is a container which contains Agents and allows them to move arro
 -- TODO: can we generalize to higher dimensions?
     
 --data (Num d) => EnvCoordGeneric d = EnvCoordGeneric (d, d)
-type NodeType = Int -- NOTE: should be AgentId but agent, which defines AgentId, includes already environment 
-
-type EnvironmentBehaviour c = SF (Environment c) (Environment c)
+type EnvironmentBehaviour c l = SF (Environment c l) (Environment c l)
 type EnvCoord = (Int, Int)
 type EnvLimits = (Int, Int)
 type EnvNeighbourhood = [(Int, Int)]
 data EnvWrapping = ClipToMax | WrapHorizontal | WrapVertical | WrapBoth
 
-data Environment c = Environment {
-    envBehaviour :: Maybe (EnvironmentBehaviour c),
+type EnvGraph l = Gr () l
+
+data Environment c l = Environment {
+    envBehaviour :: Maybe (EnvironmentBehaviour c l),
     envLimits :: EnvLimits,
     envNeighbourhood :: EnvNeighbourhood,
     envWrapping :: EnvWrapping,
     envCells :: Array EnvCoord c,
     envRng :: StdGen,
-    envGraph :: Gr NodeType Double
+    envGraph :: EnvGraph l
 }
 
-createEnvironment :: Maybe (EnvironmentBehaviour c) ->
+createEnvironment :: Maybe (EnvironmentBehaviour c l) ->
                         EnvLimits ->
                         EnvNeighbourhood ->
                         EnvWrapping ->
                         [(EnvCoord, c)] ->
                         StdGen -> 
-                        Environment c
+                        Maybe (EnvGraph l) ->
+                        Environment c l
 createEnvironment beh
                     l@(xLimit, yLimit)
                     n
                     w
                     cs 
-                    rng = Environment {
+                    rng 
+                    mayGr = Environment {
                              envBehaviour = beh,
                              envLimits = l,
                              envNeighbourhood = n,
                              envWrapping = w,
                              envCells = arr,
                              envRng = rng,
-                             envGraph = empty
+                             envGraph = maybe empty id mayGr
                          }
     where
         arr = array ((0, 0), (xLimit - 1, yLimit - 1)) cs
 
-allCellsWithCoords :: Environment c -> [(EnvCoord, c)]
+neighbourEdges :: Environment c l -> Node -> [l]
+neighbourEdges env node = map fst ls
+    where
+        ls = neighbourLinks env node 
+
+neighbourNodes :: Environment c l -> Node -> [Node]
+neighbourNodes env node = map snd ls
+    where
+        ls = neighbourLinks env node 
+
+neighbourLinks :: Environment c l -> Node -> Adj l
+neighbourLinks env node = lneighbors gr node
+    where
+        gr = envGraph env
+
+allCellsWithCoords :: Environment c l -> [(EnvCoord, c)]
 allCellsWithCoords env = assocs ec
     where
         ec = envCells env
 
-updateEnvironmentCells :: Environment c -> (c -> c) -> Environment c
+updateEnvironmentCells :: Environment c l -> (c -> c) -> Environment c l
 updateEnvironmentCells env mecf = env { envCells = ec' }
     where
         ec = envCells env
         ec' = amap mecf ec
 
-updateEnvironmentCellsWithCoords :: Environment c -> ((EnvCoord, c) -> c) -> Environment c
+updateEnvironmentCellsWithCoords :: Environment c l -> ((EnvCoord, c) -> c) -> Environment c l
 updateEnvironmentCellsWithCoords env mecf = env'
     where
         ecs = allCellsWithCoords env
@@ -82,7 +99,7 @@ updateEnvironmentCellsWithCoords env mecf = env'
         ecCoords = map fst ecs
         env' = foldr (\(coord, c) accEnv -> changeCellAt accEnv coord c) env (zip ecCoords cs)
 
-changeCellAt :: Environment c -> EnvCoord -> c -> Environment c
+changeCellAt :: Environment c l -> EnvCoord -> c -> Environment c l
 changeCellAt env coord c = env { envCells = arr' }
     where
         arr = envCells env
@@ -97,13 +114,13 @@ distanceEucl (x1, y1) (x2, y2) = sqrt (xDelta*xDelta + yDelta*yDelta)
         xDelta = fromRational $ toRational (x2 - x1)
         yDelta = fromRational $ toRational (y2 - y1)
 
-cellsAroundRadius :: Environment c -> EnvCoord -> Double -> [(EnvCoord, c)]
+cellsAroundRadius :: Environment c l -> EnvCoord -> Double -> [(EnvCoord, c)]
 cellsAroundRadius env pos r = filter (\(coord, _) -> r >= (distanceEucl pos coord)) ecs 
     where
         ecs = allCellsWithCoords env
         -- TODO: does not yet wrap around boundaries
 
-cellsAround :: Environment c -> EnvCoord -> Int -> [(EnvCoord, c)]
+cellsAround :: Environment c l -> EnvCoord -> Int -> [(EnvCoord, c)]
 cellsAround env (cx, cy) r = zip wrappedCs cells
     where
         cs = [(x, y) | x <- [cx - r .. cx + r], y <- [cy - r .. cy + r]]
@@ -112,17 +129,17 @@ cellsAround env (cx, cy) r = zip wrappedCs cells
         wrappedCs = wrapCells l w cs
         cells = cellsAt env wrappedCs
 
-cellsAt :: Environment c -> [EnvCoord] -> [c]
+cellsAt :: Environment c l -> [EnvCoord] -> [c]
 cellsAt env cs = map (arr !) cs
     where
         arr = envCells env
 
-cellAt :: Environment c -> EnvCoord -> c
+cellAt :: Environment c l -> EnvCoord -> c
 cellAt env coord = arr ! coord
     where
         arr = envCells env
 
-randomCell :: Environment c -> Rand StdGen (c, EnvCoord)
+randomCell :: Environment c l -> Rand StdGen (c, EnvCoord)
 randomCell env = 
     do
         let (maxX, maxY) = envLimits env
@@ -135,7 +152,7 @@ randomCell env =
 
         return (randCell, randCoord)
 
-randomCellWithRadius :: Environment c 
+randomCellWithRadius :: Environment c l
                         -> EnvCoord 
                         -> Int 
                         -> Rand StdGen (c, EnvCoord)
@@ -150,7 +167,7 @@ randomCellWithRadius env (x, y) r =
 
         return (randCell, randCoordWrapped)
 
-neighbours :: Environment c -> EnvCoord -> [(EnvCoord, c)]
+neighbours :: Environment c l -> EnvCoord -> [(EnvCoord, c)]
 neighbours env coord = zip wrappedNs cells
     where
         n = (envNeighbourhood env)

@@ -30,12 +30,12 @@ data SIRSAgentState = SIRSAgentState {
 } deriving (Show)
 
 type SIRSEnvCell = AgentId
-type SIRSEnvironment = Environment SIRSEnvCell
+type SIRSEnvironment = Environment SIRSEnvCell ()
 
-type SIRSAgentDef = AgentDef SIRSAgentState SIRSMsg SIRSEnvCell
-type SIRSAgentBehaviour = AgentBehaviour SIRSAgentState SIRSMsg SIRSEnvCell
-type SIRSAgentIn = AgentIn SIRSAgentState SIRSMsg SIRSEnvCell
-type SIRSAgentOut = AgentOut SIRSAgentState SIRSMsg SIRSEnvCell
+type SIRSAgentDef = AgentDef SIRSAgentState SIRSMsg SIRSEnvCell ()
+type SIRSAgentBehaviour = AgentBehaviour SIRSAgentState SIRSMsg SIRSEnvCell ()
+type SIRSAgentIn = AgentIn SIRSAgentState SIRSMsg SIRSEnvCell ()
+type SIRSAgentOut = AgentOut SIRSAgentState SIRSMsg SIRSEnvCell ()
 ------------------------------------------------------------------------------------------------------------------------
 
 
@@ -142,7 +142,8 @@ createSIRSEnv limits as =
                         moore
                         ClipToMax
                         cs
-                        rng)
+                        rng
+                        Nothing)
     where
         cs = map (\a -> ((sirsCoord (adState a)), (adId a))) as
 

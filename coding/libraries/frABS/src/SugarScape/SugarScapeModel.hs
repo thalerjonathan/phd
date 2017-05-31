@@ -118,15 +118,15 @@ data SugarScapeEnvCell = SugarScapeEnvCell {
     sugEnvOccupier :: Maybe SugarScapeEnvCellOccupier
 } deriving (Show)
 
-type SugarScapeEnvironment = Environment SugarScapeEnvCell
-type SugarScapeEnvironmentBehaviour = EnvironmentBehaviour SugarScapeEnvCell
+type SugarScapeEnvironment = Environment SugarScapeEnvCell  ()
+type SugarScapeEnvironmentBehaviour = EnvironmentBehaviour SugarScapeEnvCell ()
 
-type SugarScapeAgentDef = AgentDef SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell
-type SugarScapeAgentBehaviour = AgentBehaviour SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell
-type SugarScapeAgentIn = AgentIn SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell
-type SugarScapeAgentOut = AgentOut SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell
+type SugarScapeAgentDef = AgentDef SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell ()
+type SugarScapeAgentBehaviour = AgentBehaviour SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell ()
+type SugarScapeAgentIn = AgentIn SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell ()
+type SugarScapeAgentOut = AgentOut SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell ()
 
-type SugarScapeAgentConversation = AgentConversationReceiver SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell
+type SugarScapeAgentConversation = AgentConversationReceiver SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell ()
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

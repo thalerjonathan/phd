@@ -18,7 +18,7 @@ import Debug.Trace
 ------------------------------------------------------------------------------------------------------------------------
 -- ENVIRONMENT-COLLAPSING (parallel strategy)
 ------------------------------------------------------------------------------------------------------------------------
-type AgentZeroEnvironmentCollapsing = EnvironmentCollapsing AgentZeroEnvCell
+type AgentZeroEnvironmentCollapsing = EnvironmentCollapsing AgentZeroEnvCell Double
 
 agentZeroEnvironmentsCollapse :: AgentZeroEnvironmentCollapsing
 agentZeroEnvironmentsCollapse envs = foldr mergeEnvs initEnv envs

@@ -20,6 +20,7 @@ createMetaABSAgentsAndEnv agentCount = do
                                                               WrapBoth
                                                               []
                                                               rng
+                                                              Nothing
                                         return (as, env)
     where
         randomAgent :: Int -> IO MetaABSAgentDef

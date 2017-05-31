@@ -24,14 +24,14 @@ data MessageSamplingState = MessageSamplingState {
 } deriving (Show)
 
 type MessageSamplingEnvCell = ()
-type MessageSamplingEnvironment = Environment MessageSamplingEnvCell
+type MessageSamplingEnvironment = Environment MessageSamplingEnvCell ()
 
-type MessageSamplingAgentDef = AgentDef MessageSamplingState MessageSamplingMsg MessageSamplingEnvCell
-type MessageSamplingAgentBehaviour = AgentBehaviour MessageSamplingState MessageSamplingMsg MessageSamplingEnvCell
-type MessageSamplingAgentIn = AgentIn MessageSamplingState MessageSamplingMsg MessageSamplingEnvCell
-type MessageSamplingAgentOut = AgentOut MessageSamplingState MessageSamplingMsg MessageSamplingEnvCell
+type MessageSamplingAgentDef = AgentDef MessageSamplingState MessageSamplingMsg MessageSamplingEnvCell ()
+type MessageSamplingAgentBehaviour = AgentBehaviour MessageSamplingState MessageSamplingMsg MessageSamplingEnvCell ()
+type MessageSamplingAgentIn = AgentIn MessageSamplingState MessageSamplingMsg MessageSamplingEnvCell ()
+type MessageSamplingAgentOut = AgentOut MessageSamplingState MessageSamplingMsg MessageSamplingEnvCell ()
 
-type MessageSamplingAgentConversation = AgentConversationReceiver MessageSamplingState MessageSamplingMsg MessageSamplingEnvCell
+type MessageSamplingAgentConversation = AgentConversationReceiver MessageSamplingState MessageSamplingMsg MessageSamplingEnvCell ()
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

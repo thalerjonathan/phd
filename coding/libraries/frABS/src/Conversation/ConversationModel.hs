@@ -24,14 +24,14 @@ data ConversationAgentState = ConversationAgentState {
 } deriving (Show)
 
 type ConversationEnvCell = ()
-type ConversationEnvironment = Environment ConversationEnvCell
+type ConversationEnvironment = Environment ConversationEnvCell  ()
 
-type ConversationAgentDef = AgentDef ConversationAgentState ConversationMsg ConversationEnvCell
-type ConversationAgentBehaviour = AgentBehaviour ConversationAgentState ConversationMsg ConversationEnvCell
-type ConversationAgentIn = AgentIn ConversationAgentState ConversationMsg ConversationEnvCell
-type ConversationAgentOut = AgentOut ConversationAgentState ConversationMsg ConversationEnvCell
+type ConversationAgentDef = AgentDef ConversationAgentState ConversationMsg ConversationEnvCell ()
+type ConversationAgentBehaviour = AgentBehaviour ConversationAgentState ConversationMsg ConversationEnvCell ()
+type ConversationAgentIn = AgentIn ConversationAgentState ConversationMsg ConversationEnvCell ()
+type ConversationAgentOut = AgentOut ConversationAgentState ConversationMsg ConversationEnvCell ()
 
-type ConversationAgentConversation = AgentConversationReceiver ConversationAgentState ConversationMsg ConversationEnvCell
+type ConversationAgentConversation = AgentConversationReceiver ConversationAgentState ConversationMsg ConversationEnvCell ()
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -7,7 +7,7 @@ import System.Random
 import Control.Monad.Random
 import Control.Monad
 
-pickRandomNeighbourCell :: AgentOut s m ec -> Rand StdGen (EnvCoord, ec)
+pickRandomNeighbourCell :: AgentOut s m ec l -> Rand StdGen (EnvCoord, ec)
 pickRandomNeighbourCell a = 
 	do
 		let env = aoEnv a

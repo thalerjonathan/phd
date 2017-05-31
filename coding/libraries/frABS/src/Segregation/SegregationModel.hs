@@ -35,12 +35,12 @@ data SegAgentState = SegAgentState {
 } deriving (Show)
 
 type SegEnvCell = Maybe SegParty
-type SegEnvironment = Environment SegEnvCell
+type SegEnvironment = Environment SegEnvCell ()
 
-type SegAgentDef = AgentDef SegAgentState SegMsg SegEnvCell
-type SegAgentBehaviour = AgentBehaviour SegAgentState SegMsg SegEnvCell
-type SegAgentIn = AgentIn SegAgentState SegMsg SegEnvCell
-type SegAgentOut = AgentOut SegAgentState SegMsg SegEnvCell
+type SegAgentDef = AgentDef SegAgentState SegMsg SegEnvCell ()
+type SegAgentBehaviour = AgentBehaviour SegAgentState SegMsg SegEnvCell ()
+type SegAgentIn = AgentIn SegAgentState SegMsg SegEnvCell ()
+type SegAgentOut = AgentOut SegAgentState SegMsg SegEnvCell ()
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

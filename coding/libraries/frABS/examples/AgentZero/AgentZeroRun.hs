@@ -16,6 +16,7 @@ import Graphics.Gloss.Interface.IO.Simulate
 import Data.IORef
 import System.IO
 import System.Random
+import Control.Monad.Random
 
 winSize = (800, 800)
 winTitle = "Agent_Zero"
@@ -24,9 +25,6 @@ rngSeed = 42
 agentCount = 3
 envSize = (50, 50)
 
--- NOTE: agent-zero works BOTH for parallel and sequential, parallel is slower because collapsing the environments is a very expensive operation 
-parallelStrategy = Nothing -- Just agentZeroEnvironmentsCollapse 
-
 runAgentZeroWithRendering :: IO ()
 runAgentZeroWithRendering = 
     do
@@ -34,9 +32,10 @@ runAgentZeroWithRendering =
         hSetBuffering stderr NoBuffering
         initRng rngSeed
         (as, env) <- initAgentZeroEpstein
+        params <- simParams
 
         outRef <- (newIORef ([], env)) :: (IO (IORef ([AgentZeroAgentOut], AgentZeroEnvironment)))
-        hdl <- processIOInit as env parallelStrategy (nextIteration outRef)
+        hdl <- processIOInit as env params (nextIteration outRef)
 
         simulateAndRenderNoTime hdl outRef
         --simulateAndRenderWithTime env hdl outRef
@@ -62,6 +61,17 @@ printAgent aout =
         putStrLn $ "Agent " ++ (show aid) ++ ": " ++ (show s)
 
         return ()
+
+simParams :: IO (SimulationParams AgentZeroEnvCell AgentZeroLink)
+simParams = 
+    do
+        rng <- getSplit
+        return SimulationParams {
+            simStrategy = Sequential,   -- NOTE: agent-zero works BOTH for parallel and sequential, parallel is slower because collapsing the environments is a very expensive operation 
+            simEnvCollapse = Nothing, -- Just agentZeroEnvironmentsCollapse ,
+            simShuffleAgents = True,
+            simRng = rng
+        }
 
 initRng :: Int -> IO StdGen
 initRng seed =

@@ -15,12 +15,21 @@ import FRP.Yampa.InternalCore
 -- System imports then
 import Data.Maybe
 import Data.List
+import System.Random
 
 -- TODO: remove these imports
 -- debugging imports finally, to be easily removed in final version
 import Debug.Trace
 
+data UpdateStrategy = Sequential | Parallel deriving (Eq)
 type EnvironmentCollapsing ec l = ([Environment ec l] -> Environment ec l)
+
+data SimulationParams ec l = SimulationParams {
+    simStrategy :: UpdateStrategy,
+    simEnvCollapse :: Maybe (EnvironmentCollapsing ec l),
+    simShuffleAgents :: Bool,
+    simRng :: StdGen
+}
 
 ------------------------------------------------------------------------------------------------------------------------
 -- RUNNING SIMULATION FROM AN OUTER LOOP
@@ -28,16 +37,16 @@ type EnvironmentCollapsing ec l = ([Environment ec l] -> Environment ec l)
 -- NOTE: don't care about a, we don't use it anyway
 processIOInit :: [AgentDef s m ec l]
                     -> Environment ec l
-                    -> Maybe (EnvironmentCollapsing ec l)
+                    -> SimulationParams ec l
                     -> (ReactHandle ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
                             -> Bool
                             -> ([AgentOut s m ec l], Environment ec l)
                             -> IO Bool)
                     -> IO (ReactHandle ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l))
-processIOInit as env mayParCollapsing iterFunc = reactInit
+processIOInit as env params iterFunc = reactInit
                                                 (return (ains, env))
                                                 iterFunc
-                                                (process as mayParCollapsing)
+                                                (process as params)
     where
         ains = createStartingAgentIn as env
 ------------------------------------------------------------------------------------------------------------------------
@@ -48,12 +57,12 @@ processIOInit as env mayParCollapsing iterFunc = reactInit
 {- NOTE: to run Yampa in a pure-functional way use embed -}
 processSteps :: [AgentDef s m ec l]
                     -> Environment ec l
-                    -> Maybe (EnvironmentCollapsing ec l)
+                    -> SimulationParams ec l
                     -> Double
                     -> Int
                     -> [([AgentOut s m ec l], Environment ec l)]
-processSteps as env mayParCollapsing dt steps = embed
-                                            (process as mayParCollapsing)
+processSteps as env params dt steps = embed
+                                            (process as params)
                                             ((ains, env), sts)
     where
         -- NOTE: again haskells laziness put to use: take steps items from the infinite list of sampling-times
@@ -64,38 +73,42 @@ processSteps as env mayParCollapsing dt steps = embed
 
 ----------------------------------------------------------------------------------------------------------------------
 process :: [AgentDef s m ec l]
-                -> Maybe (EnvironmentCollapsing ec l)
+                -> SimulationParams ec l
                 -> SF ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
-process as mayParCollapsing = iterationStrategy asfs mayParCollapsing
+process as params = iterationStrategy asfs params
     where
         asfs = map adBeh as
 
 iterationStrategy :: [SF (AgentIn s m ec l) (AgentOut s m ec l)]
-                        -> Maybe (EnvironmentCollapsing ec l)
+                        -> SimulationParams ec l
                         -> SF ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
-iterationStrategy asfs mayParCollapsing = maybe (simulateSeq asfs) (\parCollapsing -> simulatePar asfs parCollapsing) mayParCollapsing
-
+iterationStrategy asfs params 
+    | Sequential == strategy = simulateSeq asfs params
+    | Parallel == strategy = simulatePar asfs params
+    where
+        strategy = simStrategy params
 
 simulate :: ([AgentIn s m ec l], Environment ec l)
                   -> [SF (AgentIn s m ec l) (AgentOut s m ec l)]
-                  -> Maybe (EnvironmentCollapsing ec l)
+                  -> SimulationParams ec l
                   -> Double
                   -> Int
                   -> [([AgentOut s m ec l], Environment ec l)]
-simulate ains asfs mayParCollapsing dt steps = embed
+simulate ains asfs params dt steps = embed
                                                   sfStrat
                                                   (ains, sts)
     where
         sts = replicate steps (dt, Nothing)
-        sfStrat = iterationStrategy asfs mayParCollapsing
+        sfStrat = iterationStrategy asfs params
 ----------------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------------------------------------------------------------------------------------
 -- SEQUENTIAL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
 simulateSeq :: [SF (AgentIn s m ec l) (AgentOut s m ec l)]
+                -> SimulationParams ec l
                 -> SF ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
-simulateSeq initSfs = SF {sfTF = tf0}
+simulateSeq initSfs params = SF {sfTF = tf0}
     where
         tf0 (initInputs, initEnv) = (tfCont, ([], initEnv))
             where
@@ -112,7 +125,7 @@ simulateSeq initSfs = SF {sfTF = tf0}
                 tf dt _ = (tf', (outs, env''))
                     where
                         -- run the next step with the new sfs and inputs to get the sf-contintuations and their outputs
-                        (sfs', ins', outs) = runSeqInternal sfs ins seqCallback seqCallbackIteration dt
+                        (sfs', ins', outs) = runSeqInternal sfs ins (seqCallback params) seqCallbackIteration dt
 
                         -- NOTE: the 'last' environment is in the first of outs because runSeqInternal reverses the outputs
                         env' = if null outs then env else aoEnv $ head outs
@@ -131,13 +144,14 @@ seqCallbackIteration aouts = (newSfs, newSfsIns')
         -- NOTE: distribute messages to newly created agents as well
         newSfsIns' = distributeMessages newSfsIns aouts
 
-seqCallback :: ([AgentIn s m ec l], [AgentBehaviour s m ec l])
+seqCallback :: SimulationParams ec l
+                -> ([AgentIn s m ec l], [AgentBehaviour s m ec l])
                 -> (AgentBehaviour s m ec l)
                 -> (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l)
                 -> ([AgentIn s m ec l],
                     Maybe (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l))
-seqCallback (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
-    | doRecursion = seqCallbackRec otherIns otherSfs oldSf (sf, recIn, newOut)
+seqCallback params (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
+    | doRecursion = seqCallbackRec params otherIns otherSfs oldSf (sf, recIn, newOut)
     | otherwise = handleAgent otherIns (sf, unRecIn, newOut)
     where
         -- NOTE: first layer of recursion: calling simulate within a simulation
@@ -157,14 +171,15 @@ seqCallback (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
         unRecIn = oldIn { aiRec = NoEvent }
 
         -- NOTE: second layer of recursion: this allows the agent to simulate an arbitrary number of AgentOuts
-        seqCallbackRec :: [AgentIn s m ec l]
+        seqCallbackRec :: SimulationParams ec l
+                           -> [AgentIn s m ec l]
                            -> [AgentBehaviour s m ec l]
                            -> (AgentBehaviour s m ec l)
                            -> (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l)
                            -> ([AgentIn s m ec l],
                                Maybe (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l))
-        seqCallbackRec otherIns otherSfs oldSf (sf, recIn, newOut)
-            | isEvent $ aoRec newOut = handleRecursion otherIns otherSfs oldSf (sf, recIn', newOut)     -- the last output requested recursion, perform it
+        seqCallbackRec params otherIns otherSfs oldSf (sf, recIn, newOut)
+            | isEvent $ aoRec newOut = handleRecursion params otherIns otherSfs oldSf (sf, recIn', newOut)     -- the last output requested recursion, perform it
             | otherwise = handleAgent otherIns (sf, unRecIn, newOut)                                                     -- no more recursion request, just handle agent as it is and return it, this will transport it back to the outer level
             where
                 pastOutputs = fromEvent $ aiRec recIn                           -- at this point we can be sure that there MUST be an aiRec - Event otherwise would make no sense: having an aiRec - Event with a list means, that we are inside a recursion level (either 0 or 1)
@@ -174,13 +189,14 @@ seqCallback (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                 unRecIn = recIn { aiRec = NoEvent }
 
         -- this initiates the recursive simulation call
-        handleRecursion :: [AgentIn s m ec l]     -- the inputs to the 'other' agents
-                                 -> [AgentBehaviour s m ec l] -- the signal functions of the 'other' agents
-                                 -> (AgentBehaviour s m ec l)     -- the OLD signal function of the current agent: it is the SF BEFORE having initiated the recursion
-                                 -> (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l)
-                                 -> ([AgentIn s m ec l],
-                                        Maybe (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l))
-        handleRecursion otherIns otherSfs oldSf a@(sf, oldIn, newOut)
+        handleRecursion :: SimulationParams ec l
+                             -> [AgentIn s m ec l]     -- the inputs to the 'other' agents
+                             -> [AgentBehaviour s m ec l] -- the signal functions of the 'other' agents
+                             -> (AgentBehaviour s m ec l)     -- the OLD signal function of the current agent: it is the SF BEFORE having initiated the recursion
+                             -> (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l)
+                             -> ([AgentIn s m ec l],
+                                    Maybe (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l))
+        handleRecursion params otherIns otherSfs oldSf a@(sf, oldIn, newOut)
             | isJust mayAgent = retAfterRec
             | otherwise = retSelfKilled       -- the agent killed itself, terminate recursion
             where
@@ -203,7 +219,7 @@ seqCallback (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                 -- TODO: when running for multiple steps it makes sense to specify WHEN the agent of oldSF runs
                 -- NOTE: when setting steps to > 1 we end up in an infinite loop
                 -- TODO: only running in sequential for now
-                allStepsRecOuts = (simulate (allAins, env) allAsfs Nothing 1.0 1) 
+                allStepsRecOuts = (simulate (allAins, env) allAsfs params 1.0 1) 
 
                 (lastStepRecOuts, _) = (last allStepsRecOuts)
                 mayRecOut = Data.List.find (\ao -> (aoId ao) == (aiId oldIn)) lastStepRecOuts
@@ -212,7 +228,7 @@ seqCallback (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                 
                 -- TODO: the agent died in the recursive simulation, what should we do?
                 retAfterRec = if isJust mayRecOut then
-                                seqCallbackRec otherIns otherSfs oldSf (sf, newIn, fromJust mayRecOut)
+                                seqCallbackRec params otherIns otherSfs oldSf (sf, newIn, fromJust mayRecOut)
                                 else
                                     retSelfKilled
 
@@ -301,14 +317,35 @@ seqCallback (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
 -- PARALLEL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
 simulatePar :: [SF (AgentIn s m ec l) (AgentOut s m ec l)]
-                -> EnvironmentCollapsing ec l
+                -> SimulationParams ec l
                 -> SF ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
-simulatePar initSfs envCollapsing = SF {sfTF = tf0}
+simulatePar initSfs params = SF {sfTF = tf0}
     where
         tf0 (initInputs, initEnv) = (tfCont, (initOs, initEnv))
             where
                 (nextSfs, initOs) = runParInternal initSfs initInputs
                 tfCont = simulateParAux nextSfs initInputs initOs initEnv
+
+        collapseEnvironments :: SimulationParams ec l -> Environment ec l -> Double -> [AgentOut s m ec l] -> Environment ec l
+        collapseEnvironments params initEnv dt outs 
+            | isCollapsingEnv = runEnv collapsedEnv dt
+            | otherwise = initEnv
+            where
+                isCollapsingEnv = isJust $ mayEnvCollapFun
+
+                mayEnvCollapFun = simEnvCollapse params
+                envCollapFun = fromJust mayEnvCollapFun
+
+                allEnvs = map aoEnv outs
+                collapsedEnv = envCollapFun allEnvs 
+
+
+        distributeEnvironment :: SimulationParams ec l -> [AgentIn s m ec l] -> Environment ec l -> [AgentIn s m ec l]
+        distributeEnvironment params ins env 
+            | isCollapsingEnv = map (\i -> i {aiEnv = env}) ins
+            | otherwise = ins
+            where
+                isCollapsingEnv = isJust $ simEnvCollapse params
 
         -- NOTE: here we create recursively a new continuation
         -- ins are the old inputs from which outs resulted, together with their sfs
@@ -324,14 +361,12 @@ simulatePar initSfs envCollapsing = SF {sfTF = tf0}
                         -- using the callback to create the next inputs and allow changing of the SF-collection
                         (sfs', ins') = parCallback ins outs frozenSfs
 
-                        insWithEnv = map (\i -> i {aiEnv = env}) ins'
+                        insWithEnv = distributeEnvironment params ins' env
 
                         -- run the next step with the new sfs and inputs to get the sf-contintuations and their outputs
                         (sfs'', outs') = runParInternal sfs' insWithEnv
 
-                        allEnvs = map aoEnv outs'
-                        collapsedEnv = envCollapsing allEnvs 
-                        env' = runEnv collapsedEnv dt
+                        env' = collapseEnvironments params env dt outs'
 
                         -- create a continuation of this SF
                         tf' = simulateParAux sfs'' insWithEnv outs' env'

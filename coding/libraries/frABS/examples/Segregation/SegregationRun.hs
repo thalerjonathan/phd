@@ -15,6 +15,7 @@ import Graphics.Gloss.Interface.IO.Animate
 import Data.IORef
 import System.IO
 import System.Random
+import Control.Monad.Random
 
 winSize = (800, 800)
 winTitle = "Schelling Segregation FrABS"
@@ -22,8 +23,6 @@ renderCircles = True
 
 rngSeed = 42
 cells = (10, 10)
-parallelStrategy = Nothing -- NOTE: segregation will not give correct result when run with parallel update-strategy
-
 
 runSegWithRendering :: IO ()
 runSegWithRendering = do
@@ -31,10 +30,11 @@ runSegWithRendering = do
                         hSetBuffering stderr NoBuffering
                         initRng rngSeed
                         (as, env) <- createSegAgentsAndEnv cells
+                        params <- simParams
 
                         putStrLn "dynamics = ["
                         outRef <- (newIORef (([], env), False)) :: (IO (IORef (([SegAgentOut], SegEnvironment), Bool)))
-                        hdl <- processIOInit as env parallelStrategy (nextIteration outRef)
+                        hdl <- processIOInit as env params (nextIteration outRef)
 
                         simulateAndRender hdl outRef
 
@@ -75,9 +75,10 @@ runSegStepsAndRender = do
                             hSetBuffering stdout NoBuffering
                             initRng rngSeed
                             (as, env) <- createSegAgentsAndEnv cells
+                            params <- simParams
 
                             let steps = 10
-                            let ass = processSteps as env parallelStrategy 1.0 steps
+                            let ass = processSteps as env params 1.0 steps
                             let (as', _) = last ass
 
                             --pic <- modelToPicture as'
@@ -85,6 +86,18 @@ runSegStepsAndRender = do
                             mapM (putStrLn . show . aoState) as'
 
                             return ()
+
+
+simParams :: IO (SimulationParams SegEnvCell ())
+simParams = 
+    do
+        rng <- getSplit
+        return SimulationParams {
+            simStrategy = Sequential,
+            simEnvCollapse = Nothing,
+            simShuffleAgents = True,
+            simRng = rng
+        }
 
 initRng :: Int -> IO StdGen
 initRng seed = do

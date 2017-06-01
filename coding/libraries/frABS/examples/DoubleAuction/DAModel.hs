@@ -129,7 +129,4 @@ isAuctioneer _ = False
 isTrader :: DAAgentState -> Bool
 isTrader (TraderState {}) = True
 isTrader _ = False
-
-daEnvironmentsCollapse :: DAEnvironmentCollapsing
-daEnvironmentsCollapse envs = head envs
 ------------------------------------------------------------------------------------------------------------------------

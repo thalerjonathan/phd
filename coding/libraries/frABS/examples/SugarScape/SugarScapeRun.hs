@@ -14,6 +14,7 @@ import Graphics.Gloss.Interface.IO.Simulate
 import Data.IORef
 import System.IO
 import System.Random
+import Control.Monad.Random
 
 winSize = (800, 800)
 winTitle = "SugarScape Chapter III"
@@ -23,20 +24,37 @@ rngSeed = 42
 agentCount = 400
 envSize = (50, 50)
 
-parallelStrategy = Nothing -- NOTE: sugarscape will not give correct result when run with parallel update-strategy
-
 runSugarScapeWithRendering :: IO ()
 runSugarScapeWithRendering = do
                                 hSetBuffering stdout NoBuffering
                                 hSetBuffering stderr NoBuffering
                                 initRng rngSeed
+
+                                params <- simParams
                                 (as, env) <- createSugarScape agentCount envSize
 
                                 outRef <- (newIORef ([], env)) :: (IO (IORef ([SugarScapeAgentOut], SugarScapeEnvironment)))
-                                hdl <- processIOInit as env parallelStrategy (nextIteration outRef)
+                                hdl <- processIOInit as env params (nextIteration outRef)
 
                                 simulateAndRenderNoTime hdl outRef
                                 -- simulateAndRenderWithTime env hdl outRef
+
+initRng :: Int -> IO StdGen
+initRng seed = do
+                let g = mkStdGen seed
+                setStdGen g
+                return g
+
+simParams :: IO (SimulationParams SugarScapeEnvCell ())
+simParams = 
+    do
+        rng <- getSplit
+        return SimulationParams {
+            simStrategy = Sequential,
+            simEnvCollapse = Nothing,
+            simShuffleAgents = True,
+            simRng = rng
+        }
 
 nextIteration :: IORef ([SugarScapeAgentOut], SugarScapeEnvironment)
                     -> ReactHandle ([SugarScapeAgentIn], SugarScapeEnvironment) ([SugarScapeAgentOut], SugarScapeEnvironment)
@@ -48,11 +66,7 @@ nextIteration outRef _ _ aep@(aouts, _) = do
                                                 putStrLn ("" ++ (show $ length aouts))
                                                 return False
 
-initRng :: Int -> IO StdGen
-initRng seed = do
-                let g = mkStdGen seed
-                setStdGen g
-                return g
+
 
 simulateAndRenderWithTime :: SugarScapeEnvironment
                                 -> ReactHandle ([SugarScapeAgentIn], SugarScapeEnvironment) ([SugarScapeAgentOut], SugarScapeEnvironment)

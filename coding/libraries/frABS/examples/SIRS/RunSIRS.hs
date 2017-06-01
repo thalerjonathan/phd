@@ -10,6 +10,7 @@ import FrABS.Simulation.Simulation
 import FRP.Yampa
 import System.IO
 import System.Random
+import Control.Monad.Random
 
 winSize = (800, 800)
 winTitle = "SIRS FrABS"
@@ -17,7 +18,6 @@ winTitle = "SIRS FrABS"
 rngSeed = 42
 cells = (51, 51)
 initInfectionProb = 0.2
-parallelStrategy = Nothing
 
 runSIRSWithRendering :: IO ()
 runSIRSWithRendering = do
@@ -25,9 +25,10 @@ runSIRSWithRendering = do
                         initRng rngSeed
                         as <- createRandomSIRSAgents cells initInfectionProb
                         env <- createSIRSEnv cells as
+                        params <- simParams
 
                         outRef <- (newIORef ([], env)) :: (IO (IORef ([SIRSAgentOut], SIRSEnvironment)))
-                        hdl <- processIOInit as env parallelStrategy (nextIteration outRef)
+                        hdl <- processIOInit as env params (nextIteration outRef)
 
                         simulateAndRender hdl outRef
 
@@ -48,9 +49,10 @@ runSIRSStepsAndRender = do
                             initRng rngSeed
                             as <- createRandomSIRSAgents cells initInfectionProb
                             env <- createSIRSEnv cells as
-
+                            params <- simParams
+                            
                             let steps = 10
-                            let ass = processSteps as env parallelStrategy 1.0 steps
+                            let ass = processSteps as env params 1.0 steps
                             let (as', _) = last ass
 
                             pic <- modelToPicture as'
@@ -58,6 +60,17 @@ runSIRSStepsAndRender = do
                             --mapM (putStrLn . show . aoState) as'
 
                             return ()
+
+simParams :: IO (SimulationParams SIRSEnvCell ())
+simParams = 
+    do
+        rng <- getSplit
+        return SimulationParams {
+            simStrategy = Sequential,
+            simEnvCollapse = Nothing,
+            simShuffleAgents = True,
+            simRng = rng
+        }
 
 initRng :: Int -> IO StdGen
 initRng seed = do

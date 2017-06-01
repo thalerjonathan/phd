@@ -44,13 +44,14 @@ data AgentZeroEnvCell = AgentZeroEnvCell {
     azCellShade :: Float
 } deriving (Show)
 
-type AgentZeroEnvironment = Environment AgentZeroEnvCell Double
-type AgentZeroEnvironmentBehaviour = EnvironmentBehaviour AgentZeroEnvCell Double
+type AgentZeroLink = Double
+type AgentZeroEnvironment = Environment AgentZeroEnvCell AgentZeroLink
+type AgentZeroEnvironmentBehaviour = EnvironmentBehaviour AgentZeroEnvCell AgentZeroLink
 
-type AgentZeroAgentDef = AgentDef AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell Double
-type AgentZeroAgentBehaviour = AgentBehaviour AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell Double
-type AgentZeroAgentIn = AgentIn AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell Double
-type AgentZeroAgentOut = AgentOut AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell Double
+type AgentZeroAgentDef = AgentDef AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell AgentZeroLink
+type AgentZeroAgentBehaviour = AgentBehaviour AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell AgentZeroLink
+type AgentZeroAgentIn = AgentIn AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell AgentZeroLink
+type AgentZeroAgentOut = AgentOut AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell AgentZeroLink
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

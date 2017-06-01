@@ -13,15 +13,13 @@ import Graphics.Gloss.Interface.IO.Simulate
 
 import System.IO
 import System.Random
+import Control.Monad.Random
 
 rngSeed = 42
 timeStep = 1.0
 
 agentCount = 10
 steps = 1000
-
--- NOTE: double-auction works both for parallel and sequential
-parallelStrategy = Just daEnvironmentsCollapse
 
 runDoubleAuctionWithRendering :: IO ()
 runDoubleAuctionWithRendering = 
@@ -32,8 +30,9 @@ runDoubleAuctionWithRendering =
         initRng rngSeed
 
         (as, env) <- initDoubleAuction agentCount
-
-        let asenv = processSteps as env parallelStrategy 1.0 steps
+        params <- simParams
+        
+        let asenv = processSteps as env params 1.0 steps
         let (asFinal, envFinal) = last asenv
 
         mapM printTraderAgent asFinal
@@ -59,6 +58,17 @@ printTraderAgent a
 
             return ()
     | otherwise = return ()
+
+simParams :: IO (SimulationParams DAEnvCell ())
+simParams = 
+    do
+        rng <- getSplit
+        return SimulationParams {
+            simStrategy = Parallel,     -- NOTE: double-auction works both for parallel and sequential
+            simEnvCollapse = Nothing,   -- NOTE: double-auction is not using a modifyable environment => no need for collapsing 
+            simShuffleAgents = True,
+            simRng = rng
+        }
 
 initRng :: Int -> IO StdGen
 initRng seed =

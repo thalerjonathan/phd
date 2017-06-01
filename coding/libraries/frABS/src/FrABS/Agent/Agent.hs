@@ -171,30 +171,34 @@ onEvent evt evtHdl ao = if isEvent evt then
                             evtHdl ao
                             else
                                 ao
+                                
+onMessage :: AgentIn s m ec l -> (AgentOut s m ec l -> AgentMessage m -> AgentOut s m ec l) -> AgentOut s m ec l -> AgentOut s m ec l
+onMessage ai msgHdl ao 
+    | not hasMessages = ao
+    | otherwise = foldr (\msg ao'-> msgHdl ao' msg ) ao msgs
+    where
+        msgsEvt = aiMessages ai
+        hasMessages = isEvent msgsEvt
+        msgs = fromEvent msgsEvt
 
 -- TODO: too much ceremony with the filter, find more elegant solution
-onMessage :: MessageFilter m -> AgentIn s m ec l -> (AgentOut s m ec l -> AgentMessage m -> AgentOut s m ec l) -> AgentOut s m ec l -> AgentOut s m ec l
-onMessage msgFilter ai evtHdl ao
+onFilterMessage :: MessageFilter m -> AgentIn s m ec l -> (AgentOut s m ec l -> AgentMessage m -> AgentOut s m ec l) -> AgentOut s m ec l -> AgentOut s m ec l
+onFilterMessage msgFilter ai msgHdl ao
     | not hasMessages = ao
-    | otherwise = foldr (\msg ao'-> evtHdl ao' msg ) ao filteredMsgs
+    | otherwise = foldr (\msg ao'-> msgHdl ao' msg ) ao filteredMsgs
     where
         msgsEvt = aiMessages ai
         hasMessages = isEvent msgsEvt
         msgs = fromEvent msgsEvt
         filteredMsgs = filter msgFilter msgs
 
-onAnyMessage :: AgentIn s m ec l -> (AgentOut s m ec l -> AgentMessage m -> AgentOut s m ec l) -> AgentOut s m ec l -> AgentOut s m ec l
-onAnyMessage ai evtHdl ao = onMessage noMsgFilter ai evtHdl ao
-    where
-        noMsgFilter = (\_ -> True)
-
 onMessageFrom :: AgentId -> AgentIn s m ec l -> (AgentOut s m ec l -> AgentMessage m -> AgentOut s m ec l) -> AgentOut s m ec l -> AgentOut s m ec l
-onMessageFrom senderId ai evtHdl ao = onMessage filterBySender ai evtHdl ao
+onMessageFrom senderId ai msgHdl ao = onFilterMessage filterBySender ai msgHdl ao
     where
         filterBySender = (\(senderId', _) -> senderId == senderId' )
 
 onMessageType :: (Eq m) => m -> AgentIn s m ec l -> (AgentOut s m ec l -> AgentMessage m -> AgentOut s m ec l) -> AgentOut s m ec l -> AgentOut s m ec l
-onMessageType m ai evtHdl ao = onMessage filterByMsgType ai evtHdl ao
+onMessageType m ai msgHdl ao = onFilterMessage filterByMsgType ai msgHdl ao
     where
         filterByMsgType = (\(_, m') -> m == m' )
 

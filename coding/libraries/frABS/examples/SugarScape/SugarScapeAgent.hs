@@ -355,14 +355,11 @@ withinRange :: (Ord a) => a -> (a, a) -> Bool
 withinRange a (l, u) = a >= l && a <= u
 
 inheritSugar :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
-inheritSugar ain a = onMessage inheritSugarMatch ain inheritSugarAction a
+inheritSugar ain a = onMessage ain inheritSugarAction a
     where
         inheritSugarAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
         inheritSugarAction a (_, (InheritSugar sug)) = updateState a (\s -> s { sugAgSugarLevel = (sugAgSugarLevel s) + sug})
-
-        inheritSugarMatch :: AgentMessage SugarScapeMsg -> Bool
-        inheritSugarMatch (_, InheritSugar _) = True
-        inheritSugarMatch _ = False
+        inheritSugarAction a _ = a
 
 handleMatingConversation :: (SugarScapeAgentGender)
                                 -> SugarScapeAgentIn
@@ -395,13 +392,9 @@ handleMatingConversation otherGender ain
 agentCultureContact :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
 agentCultureContact ain a = broadcastMessage a' (CulturalContact culturalTag) nids 
     where
-        a' = onMessage cultureContactMatch ain cultureContactAction a
+        a' = onMessage ain cultureContactAction a
         nids = neighbourIds a'
         culturalTag = sugAgCulturalTag $ aoState a'
-
-        cultureContactMatch :: AgentMessage SugarScapeMsg -> Bool
-        cultureContactMatch (_, CulturalContact _) = True
-        cultureContactMatch _ = False
 
         cultureContactAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
         cultureContactAction a (_, (CulturalContact tagActive)) = 
@@ -412,16 +405,14 @@ agentCultureContact ain a = broadcastMessage a' (CulturalContact culturalTag) ni
                 agentTag = sugAgCulturalTag s
                 (agentTag', a') = runAgentRandom a (cultureContact tagActive agentTag)
                 tribe = calculateTribe agentTag'
+        cultureContactAction a _ = a
 
 agentKilledInCombat :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
-agentKilledInCombat ain a = onMessage killedInCombatMatch ain killedInCombatAction a
+agentKilledInCombat ain a = onMessage ain killedInCombatAction a
     where
         killedInCombatAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
         killedInCombatAction a (_, KilledInCombat) = kill a -- NOTE: don't unoccupie position (as in agentdies) because it is occupied by the killer already
-
-        killedInCombatMatch :: AgentMessage SugarScapeMsg -> Bool
-        killedInCombatMatch (_, KilledInCombat) = True
-        killedInCombatMatch _ = False
+        killedInCombatAction a _ = a
 
 agentCombatMove :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentCombatMove a 
@@ -681,16 +672,12 @@ agentDeathHandleCredits a = aNotifiedBorrowers
         aNotifiedBorrowers = broadcastMessage aNotifiedLenders CreditLenderDied borrowerIds
 
 agentCreditDeathIncoming :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
-agentCreditDeathIncoming ain a = onMessage creditDeathMatch ain creditDeathAction a
+agentCreditDeathIncoming ain a = onMessage ain creditDeathAction a
     where
-        creditDeathMatch :: AgentMessage SugarScapeMsg -> Bool
-        creditDeathMatch (_, CreditBorrowerDied) = True
-        creditDeathMatch (_, CreditLenderDied) = True
-        creditDeathMatch _ = False
-
         creditDeathAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
         creditDeathAction a (borrowerId, CreditBorrowerDied) = borrowerDied a borrowerId
         creditDeathAction a (lenderId, CreditLenderDied) = lenderDied a lenderId
+        creditDeathAction a _ = a
 
         -- NOTE: the borrower could have borrowed multiple times from this lender, remove ALL ids
         borrowerDied :: SugarScapeAgentOut -> AgentId -> SugarScapeAgentOut
@@ -711,16 +698,12 @@ agentCreditDeathIncoming ain a = onMessage creditDeathMatch ain creditDeathActio
                 a' = updateState a (\s -> s { sugAgBorrowingCredits = borrowersRemoved } )
 
 agentCreditPaybackIncoming :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
-agentCreditPaybackIncoming ain a = onMessage creditPaybackMatch ain creditPaybackAction a
+agentCreditPaybackIncoming ain a = onMessage ain creditPaybackAction a
     where
-        creditPaybackMatch :: AgentMessage SugarScapeMsg -> Bool
-        creditPaybackMatch (_, CreditPaybackHalf _) = True
-        creditPaybackMatch (_, CreditPaybackFull _) = True
-        creditPaybackMatch _ = False
-
         creditPaybackAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
         creditPaybackAction a (_, (CreditPaybackHalf amount)) = halfCreditPayback a amount
         creditPaybackAction a (borrowerId, (CreditPaybackFull amount)) = fullCreditPayback a borrowerId amount
+        creditPaybackAction a _ = a
 
         -- NOTE: in this case we don't remove the borrower because it has not yet payed back the whole credit
         halfCreditPayback :: SugarScapeAgentOut -> Double -> SugarScapeAgentOut
@@ -826,14 +809,11 @@ isDiseased :: SugarScapeAgentState -> Bool
 isDiseased s = not $ null (sugAgDiseases s)
 
 agentDiseaseContact :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
-agentDiseaseContact ain a = onMessage diseaseContactMatch ain diseaseContactAction a
+agentDiseaseContact ain a = onMessage ain diseaseContactAction a
     where
-        diseaseContactMatch :: AgentMessage SugarScapeMsg -> Bool
-        diseaseContactMatch (_, DiseaseContact _) = True
-        diseaseContactMatch _ = False
-
         diseaseContactAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
         diseaseContactAction a (_, (DiseaseContact d)) = updateState a (\s -> s { sugAgDiseases = d : (sugAgDiseases s) } )
+        diseaseContactAction a _ = a
 
 agentDiseasesTransmit :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentDiseasesTransmit a  

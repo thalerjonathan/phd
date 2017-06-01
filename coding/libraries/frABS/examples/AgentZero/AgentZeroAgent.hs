@@ -97,17 +97,14 @@ agentZeroUpdateDispo ain a = broadcastMessage aDispoFinal (Disposition dispoLoca
 		linkIds = neighbourNodes env aid
 
 		aDispoSelf = updateState a (\s -> s { azAgentDispo = dispoLocal - thresh})
-		aDispoFinal = onMessage dispositionMessageFilter ain dispositionMessageHandle aDispoSelf
-
-		dispositionMessageFilter :: AgentMessage AgentZeroMsg -> Bool
-		dispositionMessageFilter (_, (Disposition _)) = True
-		dispositionMessageFilter _ = False
+		aDispoFinal = onMessage ain dispositionMessageHandle aDispoSelf
 
 		dispositionMessageHandle :: AgentZeroAgentOut -> AgentMessage AgentZeroMsg -> AgentZeroAgentOut
 		dispositionMessageHandle a (senderId, (Disposition d)) = updateState a (\s -> s { azAgentDispo = (azAgentDispo s) + (d * weight)})
 			where
 				mayWeight = directLinkBetween (aoEnv a) senderId aid
 				weight = maybe 0.0 id mayWeight
+		dispositionMessageHandle a _ = a
 
 agentZeroDestroy :: AgentZeroAgentOut -> AgentZeroAgentOut
 agentZeroDestroy a = a { aoEnv = env' }

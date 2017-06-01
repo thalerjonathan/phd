@@ -55,10 +55,6 @@ infectionProbability = 0.3
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR
 ------------------------------------------------------------------------------------------------------------------------
-contactInfected :: AgentMessage SIRSMsg -> Bool
-contactInfected (_, Contact Infected) = True
-contactInfected _ = False
-
 is :: SIRSAgentOut -> SIRSState -> Bool
 is ao ss = (sirsState s) == ss
     where
@@ -123,9 +119,16 @@ sirsAgentBehaviour :: SIRSAgentBehaviour
 sirsAgentBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
-        let aoAfterMsg = onMessage contactInfected ain (\ao' _ -> if is ao Susceptible then infectAgent ao' else ao' ) ao
+        let aoAfterMsg = onMessage ain contactInfected ao
         let aoAfterTime = sirsDt aoAfterMsg 1.0
         returnA -< aoAfterTime
+
+    where
+        contactInfected :: SIRSAgentOut -> AgentMessage SIRSMsg -> SIRSAgentOut
+        contactInfected a (_, Contact Infected) 
+            | is a Susceptible = infectAgent a
+            | otherwise = a
+        contactInfected a _ = a
 ------------------------------------------------------------------------------------------------------------------------
 
 

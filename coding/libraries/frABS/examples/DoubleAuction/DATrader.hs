@@ -258,8 +258,8 @@ assetLoanAsk s =
 		-- => because of giving asset: need to have enough amount of uncollateralized assets
 		
 		-- the price for 1.0 unit of assets in loans => the unit of this variable is LOANS
-		let limitPriceAssetLoans = 0
-		let maxAssetPriceInLoans = 0
+		let limitPriceAssetLoans = daTraderLimitAsset s / daTraderLimitLoan s
+		let maxAssetPriceInLoans = pU / bondFaceValue
 		assetPriceInLoans <- getRandomR (limitPriceAssetLoans, maxAssetPriceInLoans)
 		-- calculating the amount loans which will be given to buyer
 		let loanGivingAmount = tradingUnitAsset * assetPriceInLoans

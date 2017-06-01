@@ -23,6 +23,45 @@ import qualified Data.Map as Map
 import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
+{- calculates the collateral-obligations 
+	if > 0 then more loans are taken than loans are given => have debt obligations through securitization
+	collateralAdjustment allows to increase/decrease the obligations e.g. when necessary to caluclate
+	the obligations AFTER a trade (to calculate future obligations)
+-}
+collateralObligationsAfterTrade :: DAAgentState -> Double -> Double
+collateralObligationsAfterTrade s collateralTraded = max 0.0 (collateral + collateralTraded)
+	where
+		-- when no BP Mechanism, loans given to other agents cannot be traded
+		-- thus the collateral is the loans taken from other agents which implies
+		-- assets as collateral 
+		loansTaken = daTraderLoansTaken s
+		-- loanGiven decreases the collateral in case of BP because it is available for trades
+		loansGiven = daTraderLoansGiven s
+		collateral = loansTaken - loansGiven
+
+currentObligations :: DAAgentState -> Double
+currentObligations s = collateralObligationsAfterTrade s 0.0
+
+loans :: DAAgentState -> Double
+loans s = loansGiven - loansTaken
+	where
+		loansGiven = daTraderLoansGiven s
+		loansTaken = daTraderLoansTaken s
+
+uncollateralizedAssets :: DAAgentState -> Double
+uncollateralizedAssets s = daTraderAssets s - currentObligations s
+
+sendOfferings :: DAAgentOut -> DAAgentOut
+sendOfferings a = aAfterAsk
+	where
+		s = aoState a
+
+		(bos, a0) = runAgentRandom a (bidOfferings s)
+		(aos, a1) = runAgentRandom a0 (askOfferings s)
+
+		aAfterBid = sendMessage a1 (auctioneer, BidOffering bos)
+		aAfterAsk = sendMessage aAfterBid (auctioneer, AskOffering aos)
+
 bidOfferings :: DAAgentState -> Rand StdGen Offering 
 bidOfferings s = 
 	do
@@ -116,17 +155,17 @@ assetLoanBid s = -- asset-against-bond market is open, check if agent can place 
 		-- the price for 1.0 unit of assets in loans => the unit of this variable is LOANS
 		let minAssetPriceInLoan = 1.0
 		let limitAssetPriceInLoan = daTraderLimitAssetLoan s
-		assetPriceInLoans <- getRandomR (minAssetPriceInLoan, limitAssetPriceInLoan);
+		assetPriceInLoans <- getRandomR (minAssetPriceInLoan, limitAssetPriceInLoan)
 		-- calculate how much loans will be taken (because selling a loan)
-		let loanTakenAmount = tradingUnitAsset * assetPriceInLoans;
+		let loanTakenAmount = tradingUnitAsset * assetPriceInLoans
 
 		-- calculate the amoung of uncollateralized assets AFTER trade. MUST ALWAYS be >= 0
 		let uncollAssetsAfterTrade = daTraderAssets s
 		-- collateral will be bound (taking loan from seller), thus increasing collateral obligations
 		-- thus reducing uncollateralized assets after trade
-		let uncollAssetsAfterTrade' = uncollAssetsAfterTrade - collateralObligationsAfterTrade s loanTakenAmount;
+		let uncollAssetsAfterTrade' = uncollAssetsAfterTrade - collateralObligationsAfterTrade s loanTakenAmount
 		-- getting asset from seller, thus increasing uncollateralized assets after trade
-		let uncollAssetsAfterTrade'' = uncollAssetsAfterTrade' + tradingUnitAsset;
+		let uncollAssetsAfterTrade'' = uncollAssetsAfterTrade' + tradingUnitAsset
 
 		-- cannot go short on assets: uncollateralized assets MUST NEVER be negative
 		if uncollAssetsAfterTrade'' >= 0 then
@@ -134,22 +173,6 @@ assetLoanBid s = -- asset-against-bond market is open, check if agent can place 
 			else
 				return Nothing
 		
-{- calculates the collateral-obligations 
-	if > 0 then more loans are taken than loans are given => have debt obligations through securitization
-	collateralAdjustment allows to increase/decrease the obligations e.g. when necessary to caluclate
-	the obligations AFTER a trade (to calculate future obligations)
--}
-collateralObligationsAfterTrade :: DAAgentState -> Double -> Double
-collateralObligationsAfterTrade s collateralTraded = max 0.0 (collateral + collateralTraded)
-	where
-		-- when no BP Mechanism, loans given to other agents cannot be traded
-		-- thus the collateral is the loans taken from other agents which implies
-		-- assets as collateral 
-		loansTaken = daTraderLoansTaken s
-		-- loanGiven decreases the collateral in case of BP because it is available for trades
-		loansGiven = daTraderLoansGiven s
-		collateral = loansTaken - loansGiven
-
 collatCashBid :: DAAgentState -> Rand StdGen (Maybe OfferingData)
 collatCashBid s  	
 	-- collateral-cash market is open, can only place an offer if there is enough cash left
@@ -158,7 +181,7 @@ collatCashBid s
 			let minCollateralPriceInCash = 0.0 -- minAssetPriceInCash - minLoanPriceInCash 
 			let limitPriceCollateral = daTraderLimitCollateral s
 			-- pick random asset price from range: is the price of 1.0 unit of assets
-			assetPriceInCash <- getRandomR (minCollateralPriceInCash, limitPriceCollateral);
+			assetPriceInCash <- getRandomR (minCollateralPriceInCash, limitPriceCollateral)
 			-- calculate how much assets could be bought with the cash owned
 			-- trade in chunks of TRADING_UNIT_ASSET but if TRADING_UNIT_ASSET > than the
 			-- tradeable amount assetAmount then trade the left amount of assetAmount assets
@@ -171,30 +194,169 @@ collatCashBid s
 		where
 			cashHoldings = daTraderCash s
 
-
 assetCashAsk :: DAAgentState -> Rand StdGen (Maybe OfferingData)
-assetCashAsk s = return (Just (0, 0))
+assetCashAsk s 
+	-- if there are still uncollateralized assets left, create a sell-offer
+	| uncollAssets > tradingUnitAsset =
+		do
+			-- want to SELL an asset against cash 
+			-- => giving asset to buayer
+			-- => getting cash from buyer
+			-- => can only do so it if there are uncollateralized assets left
+
+			-- this is always the price for 1.0 Units of asset - will be normalized during a Match
+			-- to the given amount below - the unit of this variable is CASH
+
+			let limitPriceAsset = daTraderLimitAsset s
+			let maxAssetPriceInCash = pU
+			assetPriceInCash <- getRandomR (limitPriceAsset, maxAssetPriceInCash)
+			return (Just (assetPriceInCash, tradingUnitAsset))
+	-- no more (not enough) uncollateralized assets left, can't sell anymore, don't place a sell-offer
+	| otherwise = return Nothing
+	where
+		uncollAssets = uncollateralizedAssets s
 
 loanCashAsk :: DAAgentState -> Rand StdGen (Maybe OfferingData)
-loanCashAsk s = return (Just (0, 0))
+loanCashAsk s 
+	-- loan-market is open AND there are still uncollateralized assets left
+	-- agent can place a sell-offer because when selling a loan, it needs to be secured by collateralizing 
+	-- the same amount of assets
+	-- IMPORTANT: only generate offers if face-value V of traded bond is larger
+	-- than the down-value pD as in the other case the limit-function is not monotony increasing
+	| tradeableLoans > tradingEpsilon && bondFaceValue > pD =
+		do
+			-- want to SELL a loan against cash: borrowing money from buyer by TAKING a loan
+			-- => collateralize assets of the same amount as security (taking loan)
+			-- => getting money from buyer  (borrowing money from buyer) 
+			-- => need to have enough uncollateralized assets
 
+			-- this is always the price for 1.0 Units of loans - will be normalized during a Match
+			-- to the given amount below - the unit of this variable is CASH
+			let limitPriceLoan = daTraderLimitLoan s
+			let maxLoanPriceInCash = bondFaceValue
+			loanPriceInCash <- getRandomR (limitPriceLoan, maxLoanPriceInCash)
+			
+			-- the maximum of loans we can sell is the uncollateralized assets left (1:1 relationship when collateralizing)
+			-- but don't trad everything at once, break down into small chungs: Markets.TRADING_UNIT_LOAN
+			let loanAmount = min tradeableLoans tradingUnitLoan
+
+			return (Just (loanPriceInCash, loanAmount))
+
+	-- either no more uncollaterlized assets left, can't sell loans because don't have assets to
+	-- secure the loan by collateralizing OR loan-market is closed
+	| otherwise = return Nothing
+	where
+		tradeableLoans = loans s
+
+-- asset-against-bond market is open, check if this agent can place sell-offers
 assetLoanAsk :: DAAgentState -> Rand StdGen (Maybe OfferingData)
-assetLoanAsk s = return (Just (0, 0))
+assetLoanAsk s =
+	do
+		-- want to SELL a loan against an asset 
+		-- => giving asset to buyer
+		-- => getting bond from buyer: giving loan
+		-- => because of giving asset: need to have enough amount of uncollateralized assets
+		
+		-- the price for 1.0 unit of assets in loans => the unit of this variable is LOANS
+		let limitPriceAssetLoans = 0
+		let maxAssetPriceInLoans = 0
+		assetPriceInLoans <- getRandomR (limitPriceAssetLoans, maxAssetPriceInLoans)
+		-- calculating the amount loans which will be given to buyer
+		let loanGivingAmount = tradingUnitAsset * assetPriceInLoans
+		
+		-- calculate the amoung of uncollateralized assets AFTER trade. MUST ALWAYS be >= 0
+		let uncollAssetsAfterTrade0 = daTraderAssets s
+		-- collateral will be freed (giving loan), thus reducing collateral obligations
+		-- thus increasing uncollateralized assets after trade
+		let uncollAssetsAfterTrade1 = uncollAssetsAfterTrade0 - collateralObligationsAfterTrade s (-loanGivingAmount)
+		-- giving asset to buyer, thus decreasing uncollateralized assets after trade
+		let uncollAssetsAfterTrade2 = uncollAssetsAfterTrade1 - tradingUnitAsset
+
+		if uncollAssetsAfterTrade2 >= 0 then
+			return (Just (assetPriceInLoans, tradingUnitAsset))
+			else
+				return Nothing
 
 collatCashAsk :: DAAgentState -> Rand StdGen (Maybe OfferingData)
-collatCashAsk s = return (Just (0, 0))
+collatCashAsk s 
+	-- collateral-cash market is open, can only place offer if there are any collateralized assets around
+	| currOb > tradingEpsilon =
+		do
+			-- pick a random price from range: is the price for 1.0 Unit of (collateral) assets
+			let limitPriceCollateral = daTraderLimitCollateral s
+			let maxCollateralPriceInCash = pU - bondFaceValue
+			assetPriceInCash <- getRandomR (limitPriceCollateral, maxCollateralPriceInCash)
+			-- calculate the amount of assets to trade: don't trade all but in small chunks of TRADING_UNIT_ASSET
+			-- if TRADING_UNIT_ASSET > than the tradeable amount of currentObligations take the rest of 
+			-- currentObligations to trade down to 0
+			let assetAmount = min currOb tradingUnitAsset
 
-
-traderBehaviourFunc :: DAAgentIn -> DAAgentOut -> DAAgentOut 
-traderBehaviourFunc ain aout = aAfterAsk
+			return (Just (assetPriceInCash, assetAmount))
+	| otherwise = return Nothing 
 	where
-		s = aoState aout
+		-- how many assets are bound through bonds
+		currOb = currentObligations s
 
-		(bos, a0) = runAgentRandom aout (bidOfferings s)
-		(aos, a1) = runAgentRandom a0 (askOfferings s)
 
-		aAfterBid = sendMessage a1 (auctioneer, BidOffering bos)
-		aAfterAsk = sendMessage aAfterBid (auctioneer, AskOffering aos)
+receiveTransactions :: DAAgentIn -> DAAgentOut -> DAAgentOut
+receiveTransactions ain a = onMessage ain handleTxMsg a
+	where
+		handleTxMsg :: DAAgentOut -> AgentMessage DoubleAuctionMsg -> DAAgentOut
+		handleTxMsg a (_, (SellTx m o)) = updateState a (transactSell m o)
+		handleTxMsg a (_, (BuyTx m o)) = updateState a (transactBuy m o)
+		handleTxMsg a _ = a
+
+-- executing a sell-transaction on this agent which means this agent is SELLING
+transactSell :: Market -> OfferingData -> DAAgentState -> DAAgentState
+-- SELLING an asset for cash
+-- => giving asset to buyer
+-- => getting cash from buyer
+transactSell AssetCash (price, amount) s = s { daTraderCash = daTraderCash s + price, daTraderAssets = daTraderAssets s - amount }
+-- SELLING a loan for cash
+-- => collateralizing the amount of assets which correspond to the sold amount of loans
+-- => getting money from buyer
+transactSell LoanCash (price, amount) s = s { daTraderCash = daTraderCash s + price, daTraderLoansTaken = daTraderLoansTaken s + amount }
+-- SELLING asset for loan
+-- => giving asset to buyer
+-- => giving loan to buyer (buyer takes a loan)
+-- price is in this case the asset-price in LOANS: amount of loans for 1.0 unit of assets
+-- amount is in this case the asset-amount traded
+-- getNormalizedPrice returns in this case the amount of loans needed for the given asset-amount
+transactSell AssetLoan (price, amount) s = s { daTraderLoansGiven = daTraderLoansGiven s + price, daTraderAssets = daTraderAssets s - amount }
+-- SELLING collateral for cash
+-- => giving COLLATERALIZED asset to buyer (is asset + the amount of loan)
+-- => getting cash from buyer
+transactSell CollateralCash (price, amount) s = s { daTraderCash = daTraderCash s + price, 
+													daTraderLoansGiven = daTraderLoansGiven s + amount,
+													daTraderAssets = daTraderAssets s - amount }
+
+-- executing a buy-transaction on this agent which means this agent is BUYING
+transactBuy :: Market -> OfferingData -> DAAgentState -> DAAgentState
+-- BUYING an asset for cash
+-- => getting assets from seller
+-- => paying cash to seller
+transactBuy AssetCash (price, amount) s = s { daTraderCash = daTraderCash s - price, daTraderAssets = daTraderAssets s + amount }
+-- BUYING a loan for cash
+-- => getting loans from the seller: "un"-collateralizes assets
+-- => paying cash to the seller 
+transactBuy LoanCash (price, amount) s = s { daTraderCash = daTraderCash s - price, daTraderLoansGiven = daTraderLoansGiven s + amount }
+-- BUYING an asset for loan
+-- => getting assets from seller
+-- => taking loan from seller: need to collateralize same amount of assets
+-- price is in this case the asset-price in LOANS: amount of loans for 1.0 unit of assets
+-- amount is in this case the asset-amount traded
+-- getNormalizedPrice returns in this case the amount of loans needed for the given asset-amount
+transactBuy AssetLoan (price, amount) s = s { daTraderLoansTaken = daTraderLoansTaken s + price, daTraderAssets = daTraderAssets s + amount }
+-- BUYING collateral for cash
+-- => getting COLLATERALIZED asset from seller (is asset + the amount of loan)
+-- => giving cash to seller
+transactBuy CollateralCash (price, amount) s = s { daTraderCash = daTraderCash s - price, 
+													daTraderLoansTaken = daTraderLoansTaken s + amount,
+													daTraderAssets = daTraderAssets s + amount }
+
+
+traderBehaviourFunc :: DAAgentIn -> DAAgentOut -> DAAgentOut
+traderBehaviourFunc ain a = sendOfferings $ receiveTransactions ain a
 
 traderAgentBehaviour :: DAAgentBehaviour
 traderAgentBehaviour = proc ain ->

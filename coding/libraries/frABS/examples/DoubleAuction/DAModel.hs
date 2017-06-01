@@ -23,6 +23,22 @@ import Debug.Trace
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
+data Market = AssetCash | LoanCash | AssetLoan | CollateralCash deriving (Eq, Show)
+
+data Match = Match {
+	matchMarket :: Market,
+
+	matchPrice :: Double,
+	matchNormPrice :: Double,
+	matchAmount :: Double,
+
+	matchBidOffer :: OfferingData,
+	matchAskOffer :: OfferingData,
+
+	matchBuyer :: AgentId,
+	matchSeller :: AgentId
+}
+
 type OfferingData = (Double, Double)	-- fst: price, snd: amount
 data Offering = Offering {
 		offeringAssetCash :: Maybe OfferingData,
@@ -34,6 +50,8 @@ data Offering = Offering {
 data DoubleAuctionMsg =
     BidOffering Offering
   | AskOffering Offering
+  | SellTx Market OfferingData
+  | BuyTx Market OfferingData
     deriving (Eq, Show)
 
 data DAAgentState = 
@@ -106,9 +124,11 @@ auctioneer = 0
 -- BOILERPLATE STUFF
 isAuctioneer :: DAAgentState -> Bool
 isAuctioneer (AuctioneerState {}) = True
+isAuctioneer _ = False
 
 isTrader :: DAAgentState -> Bool
 isTrader (TraderState {}) = True
+isTrader _ = False
 
 daEnvironmentsCollapse :: DAEnvironmentCollapsing
 daEnvironmentsCollapse envs = head envs

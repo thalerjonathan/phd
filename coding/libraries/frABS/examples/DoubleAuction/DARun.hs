@@ -17,8 +17,8 @@ import System.Random
 rngSeed = 42
 timeStep = 1.0
 
-agentCount = 3
-steps = 1
+agentCount = 10
+steps = 1000
 
 -- NOTE: double-auction works both for parallel and sequential
 parallelStrategy = Just daEnvironmentsCollapse
@@ -36,18 +36,29 @@ runDoubleAuctionWithRendering =
         let asenv = processSteps as env parallelStrategy 1.0 steps
         let (asFinal, envFinal) = last asenv
 
-        mapM printAgent asFinal
+        mapM printTraderAgent asFinal
         return ()
 
-printAgent :: DAAgentOut -> IO ()
-printAgent aout = 
-    do
-        let s = aoState aout
-        let aid = aoId aout
+printTraderAgent :: DAAgentOut -> IO ()
+printTraderAgent a 
+    | isTrader $ aoState a = 
+        do
+            let aid = aoId a
 
-        putStrLn $ "Agent " ++ (show aid) ++ ": " ++ (show s)
+            let s = aoState a
+            let cash = daTraderCash s
+            let assets = daTraderAssets s
+            let loansTaken = daTraderLoansTaken s
+            let loansGiven = daTraderLoansGiven s
 
-        return ()
+            putStrLn $ "Agent " ++ (show aid) 
+                                ++ ": cash = " ++ (show cash) 
+                                ++ " assets = " ++ (show assets)
+                                ++ " loans taken = " ++ (show loansTaken)
+                                ++ " loans given = " ++ (show loansGiven)
+
+            return ()
+    | otherwise = return ()
 
 initRng :: Int -> IO StdGen
 initRng seed =

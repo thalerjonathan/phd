@@ -18,7 +18,7 @@ rngSeed = 42
 timeStep = 1.0
 
 agentCount = 3
-steps = 100
+steps = 1
 
 -- NOTE: double-auction works both for parallel and sequential
 parallelStrategy = Just daEnvironmentsCollapse

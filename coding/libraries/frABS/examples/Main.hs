@@ -13,8 +13,9 @@ import MessageSampling.MessageSamplingRun
 import DoubleAuction.DARun
 
 main :: IO ()
-main = runDoubleAuctionWithRendering
+main = runDoubleAuctionWithRendering 
 
+    -- runDoubleAuctionWithRendering
     -- runAgentZeroWithRendering
     -- runMessageSamplingAndPrint
     -- runConversationStepsAndPrint

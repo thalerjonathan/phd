@@ -79,14 +79,14 @@ pU = 1.0
 pD :: Double
 pD = 0.2
 
-loan :: Double
-loan = 0.5
+bondFaceValue :: Double
+bondFaceValue = 0.5
 
 limitPriceAsset :: Double -> Double
 limitPriceAsset h = h * pU + (1.0 - h) * pD
 
 limitPriceLoan :: Double -> Double
-limitPriceLoan h = h * loan + (1.0 - h) * pD
+limitPriceLoan h = h * bondFaceValue + (1.0 - h) * pD
 
 cashEndow :: Double 
 cashEndow = 1.0
@@ -94,11 +94,11 @@ cashEndow = 1.0
 assetEndow :: Double
 assetEndow = 1.0
 
-tradingAmountAsset :: Double
-tradingAmountAsset = 0.1
+tradingUnitAsset :: Double
+tradingUnitAsset = 0.1
 
-tradingAmountLoan :: Double
-tradingAmountLoan = 0.2
+tradingUnitLoan :: Double
+tradingUnitLoan = 0.2
 
 tradingEpsilon :: Double
 tradingEpsilon = 0.000000001

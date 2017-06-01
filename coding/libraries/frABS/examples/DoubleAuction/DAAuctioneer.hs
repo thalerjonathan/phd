@@ -24,12 +24,17 @@ import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 auctioneerBehaviourFunc :: DAAgentIn -> DAAgentOut -> DAAgentOut 
-auctioneerBehaviourFunc ain aout = onMessage ain offeringMsg aout
+auctioneerBehaviourFunc ain aout = aout --trace ("bidOfferings: " ++ (show bidOfferings) ++ "\naskOfferings: " ++ (show askOfferings)) aout
+	where
+		(bidOfferings, askOfferings) = onMessage ain offeringMsgAccumulate ([],[])
 
-offeringMsg :: DAAgentOut -> AgentMessage DoubleAuctionMsg -> DAAgentOut
-offeringMsg a (senderId, (bos@BidOffering {})) = trace ("received BidOfferings from " ++ (show senderId) ++ ": " ++ (show bos)) a
-offeringMsg a (senderId, (aos@AskOffering {})) = trace ("received AskOfferings from " ++ (show senderId) ++ ": " ++ (show aos)) a
-offeringMsg a _ = a
+offeringMsgAccumulate :: ([(AgentId, Offering)],[(AgentId, Offering)]) 
+							-> AgentMessage DoubleAuctionMsg 
+							-> ([(AgentId, Offering)],[(AgentId, Offering)])
+offeringMsgAccumulate (bidsAcc, askAcc) (senderId, (BidOffering bos)) = ((senderId, bos) : bidsAcc, askAcc)
+offeringMsgAccumulate (bidsAcc, askAcc) (senderId, (AskOffering aos)) = (bidsAcc, (senderId, aos) : askAcc)
+offeringMsgAccumulate os _ = os
+
 
 -- TODO: we have many ways to do the transaction
 -- 		1. simply send a message to both traders => traders have to check for incoming messages first and transact before sending new offerings to prevent violation of budget constraints

@@ -24,21 +24,16 @@ import Debug.Trace
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
 type OfferingData = (Double, Double)	-- fst: price, snd: amount
-data OfferingType = Ask | Bid deriving (Show, Eq)
+data Offering = Offering {
+		offeringAssetCash :: Maybe OfferingData,
+    	offeringLoanCash :: Maybe OfferingData,
+    	offeringAssetLoan :: Maybe OfferingData,
+    	offeringCollatCash :: Maybe OfferingData
+	} deriving (Eq, Show)
 
 data DoubleAuctionMsg =
-    BidOffering {
-    	offeringAssetCash :: Maybe OfferingData,
-    	offeringLoanCash :: Maybe OfferingData,
-    	offeringAssetLoan :: Maybe OfferingData,
-    	offeringCollatCash :: Maybe OfferingData
-	}
-  | AskOffering {
-    	offeringAssetCash :: Maybe OfferingData,
-    	offeringLoanCash :: Maybe OfferingData,
-    	offeringAssetLoan :: Maybe OfferingData,
-    	offeringCollatCash :: Maybe OfferingData
-	}
+    BidOffering Offering
+  | AskOffering Offering
     deriving (Eq, Show)
 
 data DAAgentState = 

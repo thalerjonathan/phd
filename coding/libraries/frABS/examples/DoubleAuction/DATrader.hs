@@ -23,7 +23,7 @@ import qualified Data.Map as Map
 import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
-bidOfferings :: DAAgentState -> Rand StdGen DoubleAuctionMsg 
+bidOfferings :: DAAgentState -> Rand StdGen Offering 
 bidOfferings s = 
 	do
 		acBid <- assetCashBid s
@@ -31,14 +31,14 @@ bidOfferings s =
 		alBid <- assetLoanBid s 
 		ccBid <- collatCashBid s 
 
-		return $ BidOffering {
+		return $ Offering {
 	    	offeringAssetCash = acBid,
 	    	offeringLoanCash = lcBid,
 	    	offeringAssetLoan = alBid,
 	    	offeringCollatCash = ccBid
 		}
 
-askOfferings :: DAAgentState -> Rand StdGen DoubleAuctionMsg 
+askOfferings :: DAAgentState -> Rand StdGen Offering 
 askOfferings s = 
 	do
 		acAsk <- assetCashAsk s
@@ -46,14 +46,12 @@ askOfferings s =
 		alAsk <- assetLoanAsk s 
 		ccAsk <- collatCashAsk s 
 
-		return $ AskOffering {
+		return $ Offering {
 	    	offeringAssetCash = acAsk,
 	    	offeringLoanCash = lcAsk,
 	    	offeringAssetLoan = alAsk,
 	    	offeringCollatCash = ccAsk
 		}
-
-
 
 assetCashBid :: DAAgentState -> Rand StdGen (Maybe OfferingData)
 assetCashBid s = 
@@ -195,8 +193,8 @@ traderBehaviourFunc ain aout = aAfterAsk
 		(bos, a0) = runAgentRandom aout (bidOfferings s)
 		(aos, a1) = runAgentRandom a0 (askOfferings s)
 
-		aAfterBid = sendMessage a1 (auctioneer, bos)
-		aAfterAsk = sendMessage aAfterBid (auctioneer, aos)
+		aAfterBid = sendMessage a1 (auctioneer, BidOffering bos)
+		aAfterAsk = sendMessage aAfterBid (auctioneer, AskOffering aos)
 
 traderAgentBehaviour :: DAAgentBehaviour
 traderAgentBehaviour = proc ain ->

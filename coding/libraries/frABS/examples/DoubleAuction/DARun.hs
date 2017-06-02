@@ -14,12 +14,13 @@ import Graphics.Gloss.Interface.IO.Simulate
 import System.IO
 import System.Random
 import Control.Monad.Random
+import Text.Printf
 
 rngSeed = 42
 timeStep = 1.0
 
-agentCount = 10
-steps = 1000
+agentCount = 50
+steps = 10000
 
 runDoubleAuctionWithRendering :: IO ()
 runDoubleAuctionWithRendering = 
@@ -51,10 +52,10 @@ printTraderAgent a
             let loansGiven = daTraderLoansGiven s
 
             putStrLn $ "Agent " ++ (show aid) 
-                                ++ ": cash = " ++ (show cash) 
-                                ++ " assets = " ++ (show assets)
-                                ++ " loans taken = " ++ (show loansTaken)
-                                ++ " loans given = " ++ (show loansGiven)
+                                ++ ": cash = " ++ (printf "%.2f" cash)
+                                ++ " assets = " ++ (printf "%.2f" assets)
+                                ++ " loans taken = " ++ (printf "%.2f" loansTaken)
+                                ++ " loans given = " ++ (printf "%.2f" loansGiven)
 
             return ()
     | otherwise = return ()
@@ -66,7 +67,7 @@ simParams =
         return SimulationParams {
             simStrategy = Parallel,     -- NOTE: double-auction works both for parallel and sequential
             simEnvCollapse = Nothing,   -- NOTE: double-auction is not using a modifyable environment => no need for collapsing 
-            simShuffleAgents = True,
+            simShuffleAgents = False,
             simRng = rng
         }
 

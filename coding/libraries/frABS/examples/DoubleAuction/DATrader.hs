@@ -104,12 +104,12 @@ assetCashBid s =
 		assetPriceInCash <- getRandomR (minPriceAsset, limitPriceAsset)
 
 		-- if there is enough cash left to buy the given amount of assets
-		if cashHoldings >= assetPriceInCash * tradingUnitAsset then
+		if cashHoldings >= (assetPriceInCash * tradingUnitAsset) then
 			-- want to BUY an asset against cash 
 			-- => paying cash to seller
 			-- => getting asset from seller
 			-- => need to have positive amount of cash
-			return (Just (assetPriceInCash, tradingUnitAsset))
+			return $ Just (assetPriceInCash, tradingUnitAsset)
 			else
 				-- not enough cash left to place buy-offer for asset
 				return Nothing
@@ -138,7 +138,7 @@ loanCashBid s
 			-- => trading down till reaching 0
 			let loanAmount = min tradingUnitLoan (cashHoldings / loanPriceInCash)
 
-			return (Just (loanPriceInCash, loanAmount))
+			return $ Just (loanPriceInCash, loanAmount)
 	-- either not enough cash left to buy a bond OR loan-market is closed
 	| otherwise = return Nothing
 		where
@@ -187,7 +187,7 @@ collatCashBid s
 			-- tradeable amount assetAmount then trade the left amount of assetAmount assets
 			let assetAmount = min (cashHoldings / assetPriceInCash) tradingUnitAsset
 			
-			return (Just (assetPriceInCash, assetAmount))
+			return $ Just (assetPriceInCash, assetAmount)
 
 	-- either not enough cash left to buy a bond OR loan-market is closed
 	| otherwise = return Nothing
@@ -210,7 +210,7 @@ assetCashAsk s
 			let limitPriceAsset = daTraderLimitAsset s
 			let maxAssetPriceInCash = pU
 			assetPriceInCash <- getRandomR (limitPriceAsset, maxAssetPriceInCash)
-			return (Just (assetPriceInCash, tradingUnitAsset))
+			return $ Just (assetPriceInCash, tradingUnitAsset)
 	-- no more (not enough) uncollateralized assets left, can't sell anymore, don't place a sell-offer
 	| otherwise = return Nothing
 	where
@@ -240,7 +240,7 @@ loanCashAsk s
 			-- but don't trad everything at once, break down into small chungs: Markets.TRADING_UNIT_LOAN
 			let loanAmount = min tradeableLoans tradingUnitLoan
 
-			return (Just (loanPriceInCash, loanAmount))
+			return $ Just (loanPriceInCash, loanAmount)
 
 	-- either no more uncollaterlized assets left, can't sell loans because don't have assets to
 	-- secure the loan by collateralizing OR loan-market is closed
@@ -258,7 +258,7 @@ assetLoanAsk s =
 		-- => because of giving asset: need to have enough amount of uncollateralized assets
 		
 		-- the price for 1.0 unit of assets in loans => the unit of this variable is LOANS
-		let limitPriceAssetLoans = daTraderLimitAsset s / daTraderLimitLoan s
+		let limitPriceAssetLoans = daTraderLimitAssetLoan s
 		let maxAssetPriceInLoans = pU / bondFaceValue
 		assetPriceInLoans <- getRandomR (limitPriceAssetLoans, maxAssetPriceInLoans)
 		-- calculating the amount loans which will be given to buyer
@@ -291,7 +291,7 @@ collatCashAsk s
 			-- currentObligations to trade down to 0
 			let assetAmount = min currOb tradingUnitAsset
 
-			return (Just (assetPriceInCash, assetAmount))
+			return $ Just (assetPriceInCash, assetAmount)
 	| otherwise = return Nothing 
 	where
 		-- how many assets are bound through bonds
@@ -311,18 +311,21 @@ transactSell :: Market -> OfferingData -> DAAgentState -> DAAgentState
 -- SELLING an asset for cash
 -- => giving asset to buyer
 -- => getting cash from buyer
-transactSell AssetCash (price, amount) s = s { daTraderCash = daTraderCash s + price, daTraderAssets = daTraderAssets s - amount }
+transactSell AssetCash (price, amount) s = s { daTraderCash = daTraderCash s + price, 
+											   daTraderAssets = daTraderAssets s - amount }
 -- SELLING a loan for cash
 -- => collateralizing the amount of assets which correspond to the sold amount of loans
 -- => getting money from buyer
-transactSell LoanCash (price, amount) s = s { daTraderCash = daTraderCash s + price, daTraderLoansTaken = daTraderLoansTaken s + amount }
+transactSell LoanCash (price, amount) s = s { daTraderCash = daTraderCash s + price, 
+											  daTraderLoansTaken = daTraderLoansTaken s + amount }
 -- SELLING asset for loan
 -- => giving asset to buyer
 -- => giving loan to buyer (buyer takes a loan)
 -- price is in this case the asset-price in LOANS: amount of loans for 1.0 unit of assets
 -- amount is in this case the asset-amount traded
 -- getNormalizedPrice returns in this case the amount of loans needed for the given asset-amount
-transactSell AssetLoan (price, amount) s = s { daTraderLoansGiven = daTraderLoansGiven s + price, daTraderAssets = daTraderAssets s - amount }
+transactSell AssetLoan (price, amount) s = s { daTraderLoansGiven = daTraderLoansGiven s + price,
+											   daTraderAssets = daTraderAssets s - amount }
 -- SELLING collateral for cash
 -- => giving COLLATERALIZED asset to buyer (is asset + the amount of loan)
 -- => getting cash from buyer
@@ -335,25 +338,27 @@ transactBuy :: Market -> OfferingData -> DAAgentState -> DAAgentState
 -- BUYING an asset for cash
 -- => getting assets from seller
 -- => paying cash to seller
-transactBuy AssetCash (price, amount) s = s { daTraderCash = daTraderCash s - price, daTraderAssets = daTraderAssets s + amount }
+transactBuy AssetCash (price, amount) s = s { daTraderCash = daTraderCash s - price, 
+											  daTraderAssets = daTraderAssets s + amount }
 -- BUYING a loan for cash
 -- => getting loans from the seller: "un"-collateralizes assets
 -- => paying cash to the seller 
-transactBuy LoanCash (price, amount) s = s { daTraderCash = daTraderCash s - price, daTraderLoansGiven = daTraderLoansGiven s + amount }
+transactBuy LoanCash (price, amount) s = s { daTraderCash = daTraderCash s - price, 
+											 daTraderLoansGiven = daTraderLoansGiven s + amount }
 -- BUYING an asset for loan
 -- => getting assets from seller
 -- => taking loan from seller: need to collateralize same amount of assets
 -- price is in this case the asset-price in LOANS: amount of loans for 1.0 unit of assets
 -- amount is in this case the asset-amount traded
 -- getNormalizedPrice returns in this case the amount of loans needed for the given asset-amount
-transactBuy AssetLoan (price, amount) s = s { daTraderLoansTaken = daTraderLoansTaken s + price, daTraderAssets = daTraderAssets s + amount }
+transactBuy AssetLoan (price, amount) s = s { daTraderLoansTaken = daTraderLoansTaken s + price, 
+											  daTraderAssets = daTraderAssets s + amount }
 -- BUYING collateral for cash
 -- => getting COLLATERALIZED asset from seller (is asset + the amount of loan)
 -- => giving cash to seller
 transactBuy CollateralCash (price, amount) s = s { daTraderCash = daTraderCash s - price, 
-													daTraderLoansTaken = daTraderLoansTaken s + amount,
-													daTraderAssets = daTraderAssets s + amount }
-
+												   daTraderLoansTaken = daTraderLoansTaken s + amount,
+												   daTraderAssets = daTraderAssets s + amount }
 
 traderBehaviourFunc :: DAAgentIn -> DAAgentOut -> DAAgentOut
 traderBehaviourFunc ain a = sendOfferings $ receiveTransactions ain a

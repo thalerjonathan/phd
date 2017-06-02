@@ -16,6 +16,9 @@ import Control.Monad
 import Data.List.Split
 import Data.List
 import Data.Maybe
+import Control.Monad.ST
+import Data.Array.ST
+import GHC.Arr
 import qualified Data.Map as Map
 
 import Debug.Trace
@@ -129,4 +132,21 @@ isAuctioneer _ = False
 isTrader :: DAAgentState -> Bool
 isTrader (TraderState {}) = True
 isTrader _ = False
+
+-- taken from https://wiki.haskell.org/Random_shuffle
+shuffleRandom :: RandomGen g => [a] -> Rand g [a]
+shuffleRandom xs = 
+  do
+    let l = length xs
+    rands <- forM [0..(l-2)] $ \i -> getRandomR (i, l-1)
+    let ar = runSTArray $ do
+        ar <- thawSTArray $ listArray (0, l-1) xs
+        forM_ (zip [0..] rands) $ \(i, j) -> do
+            vi <- readSTArray ar i
+            vj <- readSTArray ar j
+            writeSTArray ar j vi
+            writeSTArray ar i vj
+        return ar
+    return (elems ar)
+
 ------------------------------------------------------------------------------------------------------------------------

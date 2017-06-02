@@ -23,35 +23,47 @@ import qualified Data.Map as Map
 import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
-offeringsMatch :: Maybe OfferingData -> Maybe OfferingData -> Bool
-offeringsMatch mayBid mayAsk
-	| isNothing mayAsk = False
-	| isNothing mayBid = False
-	| otherwise = (bidPrice >= askPrice)
-	where
-		(askPrice, _) = fromJust mayAsk
-		(bidPrice, _) = fromJust mayBid
+offeringsMatch :: Maybe OfferingData -> Maybe OfferingData -> Maybe (OfferingData, OfferingData)
+offeringsMatch mayBid mayAsk =
+	do
+		bid@(bidPrice, _) <- mayBid
+		ask@(askPrice, _) <- mayAsk
+		if (bidPrice >= askPrice) then
+			return (bid, ask)
+			else
+				Nothing
 
-crossOver :: (AgentId, Offering) -> (AgentId, Offering) -> Maybe Match
-crossOver (bidder, bids) (asker, asks) 
+crossOver :: ((AgentId, Offering), (AgentId, Offering)) -> Rand StdGen (Maybe Match)
+crossOver (b@(bidder, bids), a@(asker, asks))
 	-- prevent matching of bidder / asker to itself
-	| bidder == asker = Nothing
-	-- TODO: randomize order of market-matching
-	| otherwise = if assetCashMatch 
-					then Just $ createMatch AssetCash (bidder, fromJust $ (offeringAssetCash bids)) (asker, fromJust $ (offeringAssetCash asks))
-					else if loanCashMatch 
-						then Just $ createMatch LoanCash (bidder, fromJust $ (offeringLoanCash bids)) (asker, fromJust $ (offeringLoanCash asks))
-						else if assetLoanMatch 
-							then Just $ createMatch AssetLoan (bidder, fromJust $ (offeringAssetLoan bids)) (asker, fromJust $ (offeringAssetLoan asks))
-							else if collatCashMatch 
-								then Just $ createMatch CollateralCash (bidder, fromJust $ (offeringCollatCash bids)) (asker, fromJust $ (offeringCollatCash asks))
-								else
-								Nothing
+	| bidder == asker = return Nothing
+	| otherwise = 
+		do
+			randMarketPerm <- marketPermuation [AssetCash, LoanCash, AssetLoan, CollateralCash]
+			return $ matchMarketPerms randMarketPerm b a
+
 		where
-			assetCashMatch = offeringsMatch (offeringAssetCash bids) (offeringAssetCash asks)
-			loanCashMatch = offeringsMatch (offeringLoanCash bids) (offeringLoanCash asks)
-			assetLoanMatch = offeringsMatch (offeringAssetLoan bids) (offeringAssetLoan asks)
-			collatCashMatch = offeringsMatch (offeringCollatCash bids) (offeringCollatCash asks)
+			matchMarketPerms :: [Market] -> (AgentId, Offering) -> (AgentId, Offering) -> Maybe Match
+			matchMarketPerms [] _ _ = Nothing
+			matchMarketPerms (m:ms) b@(bidder, bids) a@(asker, asks) =
+				maybe (matchMarketPerms ms b a) 
+					  (\(bidOffering, askOffering) -> 
+						Just $ createMatch m (bidder, bidOffering) (asker, askOffering)) 
+					  (matchMarket m bids asks)
+
+			matchMarket :: Market -> Offering -> Offering -> Maybe (OfferingData, OfferingData)
+			matchMarket AssetCash bids asks = offeringsMatch (offeringAssetCash bids) (offeringAssetCash asks)
+			matchMarket LoanCash bids asks = offeringsMatch (offeringLoanCash bids) (offeringLoanCash asks)
+			matchMarket AssetLoan bids asks = offeringsMatch (offeringAssetLoan bids) (offeringAssetLoan asks)
+			matchMarket CollateralCash bids asks = offeringsMatch (offeringCollatCash bids) (offeringCollatCash asks)
+
+			marketPermuation :: [Market] -> Rand StdGen [Market]
+			marketPermuation markets = 
+				do
+					let n = length markets
+					let permCount = foldr (*) 1 [1..n]
+					randPermIdx <- getRandomR (0, permCount-1)
+					return $ (permutations markets) !! randPermIdx
 
 			createMatch :: Market -> (AgentId, OfferingData) -> (AgentId, OfferingData) -> Match
 			createMatch m (bidder, bid@(bidPrice, bidAmount)) (asker, ask@(askPrice, askAmount)) = 
@@ -74,14 +86,22 @@ crossOver (bidder, bids) (asker, asks)
 					normPrice = price * amount
 
 -- ignoring network-structure for now and assuming complete graph
-findMatches :: ([(AgentId, Offering)],[(AgentId, Offering)]) -> [Maybe Match]
+findMatches :: ([(AgentId, Offering)],[(AgentId, Offering)]) -> Rand StdGen [Maybe Match]
 -- matching all biddings to all askings (note: using lazy-evaluation will not match all of them)
-findMatches (bids, asks) = bidsAgainstAsks
-	where
-		-- TODO: randomize order of matching
-		-- TODO: randomize matching of bids againgst asks OR asks against bids
-		bidsAgainstAsks = [ crossOver b a | b <- bids, a <- asks ]
-		asksAgainstBids = [ crossOver b a | a <- asks, b <- bids ]
+findMatches (bids, asks) = 
+	do
+		bidsShuffled <- shuffleRandom bids
+		asksShuffled <- shuffleRandom asks
+		
+		let bidsAgainstAsks = mapM crossOver [ (b, a) | b <- bids, a <- asks ]
+		let asksAgainstBids = mapM crossOver [ (b, a) | a <- asks, b <- bids ]
+
+		bidsFirst <- getRandom
+
+		if bidsFirst then
+			bidsAgainstAsks
+			else
+				asksAgainstBids
 
 accumulateOfferings :: DAAgentIn -> ([(AgentId, Offering)],[(AgentId, Offering)])
 accumulateOfferings ain = onMessage ain offeringMsgAccumulate ([],[])
@@ -103,17 +123,17 @@ notifyTraders Match { matchSeller = seller,
 					  matchBuyer = buyer,
 					  matchAmount = amount,
 					  matchNormPrice = price,
-					  matchMarket = market } a = aAfterSeller
+					  matchMarket = market } a = aAfterBuyer
 	where
 		o = (price, amount)
-		aAfterBuyer = sendMessage a (seller, SellTx market o)
-		aAfterSeller = sendMessage aAfterBuyer (buyer, BuyTx market o)
+		aAfterSeller = sendMessage a (seller, SellTx market o)
+		aAfterBuyer = sendMessage aAfterSeller (buyer, BuyTx market o)
 
 auctioneerBehaviourFunc :: DAAgentIn -> DAAgentOut -> DAAgentOut 
-auctioneerBehaviourFunc ain aout = maybe aout (\firstMatch -> notifyTraders (fromJust $ firstMatch) aout) mayFirstMatch
+auctioneerBehaviourFunc ain a = maybe a' (\firstMatch -> notifyTraders (fromJust $ firstMatch) a') mayFirstMatch
 	where
 		offerings = accumulateOfferings ain
-		matches = findMatches offerings
+		(matches, a') = runAgentRandom a (findMatches offerings)
 		mayFirstMatch = Data.List.find isJust matches
 
 auctioneerBehaviour :: DAAgentBehaviour

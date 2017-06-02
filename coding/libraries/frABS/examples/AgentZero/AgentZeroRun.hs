@@ -68,7 +68,7 @@ simParams =
         rng <- getSplit
         return SimulationParams {
             simStrategy = Sequential,   -- NOTE: agent-zero works BOTH for parallel and sequential, parallel is slower because collapsing the environments is a very expensive operation 
-            simEnvCollapse = Nothing, -- Just agentZeroEnvironmentsCollapse ,
+            simEnvCollapse = Just agentZeroEnvironmentsCollapse ,
             simShuffleAgents = True,
             simRng = rng
         }

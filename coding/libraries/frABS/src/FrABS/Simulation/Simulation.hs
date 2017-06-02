@@ -16,6 +16,7 @@ import FRP.Yampa.InternalCore
 import Data.Maybe
 import Data.List
 import System.Random
+import qualified Data.Map as Map
 
 -- TODO: remove these imports
 -- debugging imports finally, to be easily removed in final version
@@ -106,19 +107,19 @@ simulate ains asfs params dt steps = embed
 -- SEQUENTIAL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
 simulateSeq :: [SF (AgentIn s m ec l) (AgentOut s m ec l)]
-                -> SimulationParams ec l
+                -> (SimulationParams ec l)
                 -> SF ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
-simulateSeq initSfs params = SF {sfTF = tf0}
+simulateSeq initSfs initParams = SF {sfTF = tf0}
     where
         tf0 (initInputs, initEnv) = (tfCont, ([], initEnv))
             where
                 --(nextSfs, initOs, nextIns) = runSeqInternal initSfs initInput clbk 0.0
                 -- NOTE: in SEQ we need already to know the dt for the NEXT step because we are iterating in sequence => ommit first output => need 1 step more
-                tfCont = simulateSeqAux initSfs initInputs initEnv
+                tfCont = simulateSeqAux initParams initSfs initInputs initEnv
 
         -- NOTE: here we create recursively a new continuation
         -- ins are the old inputs from which outs resulted, together with their sfs
-        simulateSeqAux sfs ins env = SF' tf
+        simulateSeqAux params sfs ins env = SF' tf
             where
                 -- NOTE: this is a function definition
                 -- tf :: DTime -> [i] -> Transition [i] [o]
@@ -133,8 +134,12 @@ simulateSeq initSfs params = SF {sfTF = tf0}
 
                         insWithNewEnv = map (\ain -> ain { aiEnv = env'' }) ins'
 
+                        (params', sfsShuffled, insShuffled) = shuffleAgents params sfs' insWithNewEnv
+
                         -- create a continuation of this SF
-                        tf' = simulateSeqAux sfs' insWithNewEnv env''
+                        tf' = simulateSeqAux params' sfsShuffled insShuffled env''
+
+
 
 seqCallbackIteration :: [AgentOut s m ec l] -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
 seqCallbackIteration aouts = (newSfs, newSfsIns')
@@ -319,12 +324,40 @@ seqCallback params (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
 simulatePar :: [SF (AgentIn s m ec l) (AgentOut s m ec l)]
                 -> SimulationParams ec l
                 -> SF ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
-simulatePar initSfs params = SF {sfTF = tf0}
+simulatePar initSfs initParams = SF {sfTF = tf0}
     where
-        tf0 (initInputs, initEnv) = (tfCont, (initOs, initEnv))
+        tf0 (initInputs, initEnv) = (tfCont, ([], initEnv))
             where
-                (nextSfs, initOs) = runParInternal initSfs initInputs
-                tfCont = simulateParAux nextSfs initInputs initOs initEnv
+                tfCont = simulateParAux initParams initSfs initInputs initEnv
+
+        -- NOTE: here we create recursively a new continuation
+        -- ins are the old inputs from which outs resulted, together with their sfs
+        simulateParAux params sfs ins env = SF' tf
+            where
+                -- NOTE: this is a function defition
+                -- tf :: DTime -> [i] -> Transition [i] [o]
+                tf dt _ =  (tf', (outs', env'))
+                    where
+                         -- run the next step with the new sfs and inputs to get the sf-contintuations and their outputs
+                        (sfs', outs') = runParInternal sfs ins
+
+                        -- freezing the collection of SF' to 'promote' them back to SF
+                        frozenSfs = freezeCol sfs' dt
+
+                        -- using the callback to create the next inputs and allow changing of the SF-collection
+                        (sfs'', ins') = parCallback ins outs' frozenSfs
+
+                        env' = collapseEnvironments params env dt outs'
+                        insWithEnv = distributeEnvironment params ins' env'
+
+                        -- NOTE: although the agents make the move at the same time, when shuffling them, 
+                        --          the order of collecting and distributing the messages makes a difference 
+                        --          if model-semantics are relying on randomized message-ordering, then shuffling is required and has to be turned on in the params
+                        (params', sfsShuffled, insShuffled) = shuffleAgents params sfs'' insWithEnv
+
+                        -- create a continuation of this SF
+                        tf' = simulateParAux params' sfsShuffled insShuffled env'
+
 
         collapseEnvironments :: SimulationParams ec l -> Environment ec l -> Double -> [AgentOut s m ec l] -> Environment ec l
         collapseEnvironments params initEnv dt outs 
@@ -339,38 +372,12 @@ simulatePar initSfs params = SF {sfTF = tf0}
                 allEnvs = map aoEnv outs
                 collapsedEnv = envCollapFun allEnvs 
 
-
         distributeEnvironment :: SimulationParams ec l -> [AgentIn s m ec l] -> Environment ec l -> [AgentIn s m ec l]
         distributeEnvironment params ins env 
             | isCollapsingEnv = map (\i -> i {aiEnv = env}) ins
             | otherwise = ins
             where
                 isCollapsingEnv = isJust $ simEnvCollapse params
-
-        -- NOTE: here we create recursively a new continuation
-        -- ins are the old inputs from which outs resulted, together with their sfs
-        simulateParAux sfs ins outs env = SF' tf
-            where
-                -- NOTE: this is a function defition
-                -- tf :: DTime -> [i] -> Transition [i] [o]
-                tf dt _ =  (tf', (outs', env'))
-                    where
-                        -- freezing the collection of SF' to 'promote' them back to SF
-                        frozenSfs = freezeCol sfs dt
-
-                        -- using the callback to create the next inputs and allow changing of the SF-collection
-                        (sfs', ins') = parCallback ins outs frozenSfs
-
-                        insWithEnv = distributeEnvironment params ins' env
-
-                        -- run the next step with the new sfs and inputs to get the sf-contintuations and their outputs
-                        (sfs'', outs') = runParInternal sfs' insWithEnv
-
-                        env' = collapseEnvironments params env dt outs'
-
-                        -- create a continuation of this SF
-                        tf' = simulateParAux sfs'' insWithEnv outs' env'
-
 
 parCallback :: [AgentIn s m ec l]
                 -> [AgentOut s m ec l]
@@ -416,6 +423,41 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns0)
 ----------------------------------------------------------------------------------------------------------------------
 -- utils
 ----------------------------------------------------------------------------------------------------------------------
+shuffleAgents :: SimulationParams ec l 
+                    -> [AgentBehaviour s m ec l] 
+                    -> [AgentIn s m ec l] 
+                    -> (SimulationParams ec l, [AgentBehaviour s m ec l], [AgentIn s m ec l])
+shuffleAgents params sfs ins 
+    | doShuffle = (params', sfs', ins')
+    | otherwise = (params, sfs, ins)
+    where
+        doShuffle = simShuffleAgents params
+        g = simRng params 
+
+        sfsIns = zip sfs ins
+        (shuffledSfsIns, g') = fisherYatesShuffle g sfsIns
+
+        params' = params { simRng = g' }
+        (sfs', ins') = foldr (\(sf, i) (sfAcc, insAcc) -> (sf : sfAcc, i : insAcc)) ([], []) shuffledSfsIns
+
+-- Taken from https://wiki.haskell.org/Random_shuffle
+-- | Randomly shuffle a list without the IO Monad
+--   /O(N)/
+fisherYatesShuffle :: RandomGen g => g -> [a] -> ([a], g)
+fisherYatesShuffle gen [] = ([], gen)
+fisherYatesShuffle gen l = 
+  toElems $ foldl fisherYatesStep (initial (head l) gen) (numerate (tail l))
+  where
+    toElems (x, y) = (Map.elems x, y)
+    numerate = zip [1..]
+    initial x gen = (Map.singleton 0 x, gen)
+
+    fisherYatesStep :: RandomGen g => (Map.Map Int a, g) -> (Int, a) -> (Map.Map Int a, g)
+    fisherYatesStep (m, gen) (i, x) = ((Map.insert j x . Map.insert i (m Map.! j)) m, gen')
+      where
+        (j, gen') = randomR (0, i) gen
+-----------------------------------------------------------------------------------
+
 runEnv :: Environment c l -> DTime -> Environment c l
 runEnv env dt
     | isNothing mayEnvBeh = env

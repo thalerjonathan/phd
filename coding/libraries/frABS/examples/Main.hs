@@ -12,8 +12,10 @@ import MessageSampling.MessageSamplingRun
 
 import DoubleAuction.DARun
 
+import Wildfire.WildfireRun
+
 main :: IO ()
-main = runDoubleAuctionWithRendering 
+main = runWildfireWithRendering 
 
     -- runDoubleAuctionWithRendering
     -- runAgentZeroWithRendering

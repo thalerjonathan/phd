@@ -7,6 +7,7 @@ import FRP.Yampa
 import System.Random
 import Control.Monad.Random
 import Control.Monad
+import Data.List
 
 type AgentId = Int
 type AgentMessage m = (AgentId, m)
@@ -171,7 +172,17 @@ onEvent evt evtHdl ao = if isEvent evt then
                             evtHdl ao
                             else
                                 ao
-                                
+    
+hasMessage :: (Eq m) => AgentIn s m ec l -> m -> Event ()
+hasMessage ai m
+    | not hasAnyMessage = NoEvent
+    | otherwise = if hasMsg then Event () else NoEvent
+    where
+        msgsEvt = aiMessages ai
+        hasAnyMessage = isEvent msgsEvt
+        msgs = fromEvent msgsEvt
+        hasMsg = Data.List.any ((==m) . snd) msgs
+
 onMessage :: AgentIn s m ec l -> (acc -> AgentMessage m -> acc) -> acc -> acc
 onMessage ai msgHdl a 
     | not hasMessages = a

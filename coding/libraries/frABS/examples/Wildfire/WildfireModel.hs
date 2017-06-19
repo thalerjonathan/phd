@@ -1,0 +1,75 @@
+module Wildfire.WildfireModel where
+
+-- Project-internal import first
+import FrABS.Agent.Agent
+import FrABS.Env.Environment
+
+-- Project-specific libraries follow
+import FRP.Yampa
+
+-- System imports then
+import System.Random
+import Control.Monad.Random
+import Control.Monad
+import Data.List.Split
+import Data.List
+import Data.Maybe
+import qualified Data.Map as Map
+
+import Debug.Trace
+------------------------------------------------------------------------------------------------------------------------
+-- DOMAIN-SPECIFIC AGENT-DEFINITIONS
+------------------------------------------------------------------------------------------------------------------------
+data WildfireMsg =
+    Ignite 
+    deriving (Eq, Show)
+
+data WildfireAgentState = WildfireAgentState {
+    wfLifeState :: LifeState,
+    wfFuel :: Double
+} deriving (Show)
+
+data LifeState = Living | Burning | Dead deriving (Eq, Show)
+
+type WildfireCell = AgentId
+type WildfireLinkLabel = ()
+
+type WildfireEnvironment = Environment WildfireCell WildfireLinkLabel
+type WildfireEnvironmentBehaviour = EnvironmentBehaviour WildfireCell WildfireLinkLabel
+
+type WildfireAgentDef = AgentDef WildfireAgentState WildfireMsg WildfireCell WildfireLinkLabel
+type WildfireAgentBehaviour = AgentBehaviour WildfireAgentState WildfireMsg WildfireCell WildfireLinkLabel
+type WildfireAgentIn = AgentIn WildfireAgentState WildfireMsg WildfireCell WildfireLinkLabel
+type WildfireAgentOut = AgentOut WildfireAgentState WildfireMsg WildfireCell WildfireLinkLabel
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- MODEL-PARAMETERS
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+createWildFireAgent :: (AgentId, EnvCoord)
+                        -> WildfireAgentBehaviour 
+                        -> Bool
+                        -> Rand StdGen WildfireAgentDef
+createWildFireAgent (agentId, coord) beh initIgnite = 
+    do
+        rng <- getSplit
+
+        let s = WildfireAgentState {
+          wfLifeState = Living,
+          wfFuel = 1.0
+        }
+
+        let initMessages = if initIgnite then Event [(0, Ignite)] else NoEvent
+
+        let adef = AgentDef {
+           adId = agentId,
+           adState = s,
+           adEnvPos = coord,
+           adConversation = Nothing,
+           adInitMessages = initMessages,
+           adBeh = beh,
+           adRng = rng }
+
+        return adef

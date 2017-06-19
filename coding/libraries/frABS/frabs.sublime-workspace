@@ -1,0 +1,570 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"extractParamFrom",
+				"extractParamFromVector ∷ Value → Int → Maybe Value\tRpc.Utils"
+			],
+			[
+				"exc",
+				"extractParam ∷ Value → Int → Text → Maybe Value\tRpc.Utils"
+			],
+			[
+				"encod",
+				"encodeQuantity ∷ Int → String\tRpc.Utils"
+			],
+			[
+				"JsonRpcRe",
+				"JsonRpcResponse \tEthJsonRpc.Methods"
+			],
+			[
+				"server",
+				"serverLoop"
+			],
+			[
+				"et",
+				"ethJsonRpcPort"
+			],
+			[
+				"SockA",
+				"SockAddrInet"
+			],
+			[
+				"receivi",
+				"receivingIdx"
+			],
+			[
+				"rece",
+				"receivingIn"
+			],
+			[
+				"may",
+				"mayIdx"
+			],
+			[
+				"handleCon",
+				"handleConversationAux"
+			],
+			[
+				"mayb",
+				"maybeFunc1"
+			],
+			[
+				"SugarScapeC",
+				"SugarScapeEnvCell \tSugarScape.SugarScapeModel"
+			],
+			[
+				"sugEnv",
+				"sugEnvSugarLevel ∷ SugarScapeEnvCell → Double\tSugarScape.SugarScapeModel"
+			],
+			[
+				"sugAgSug",
+				"sugAgSugarLevel ∷ SugarScapeAgentState → Double\tSugarScape.SugarScapeModel"
+			],
+			[
+				"Cultur",
+				"SugarScapeCulturalTag \tSugarScape.SugarScapeModel"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "examples/Main.hs",
+			"settings":
+			{
+				"buffer_size": 644,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "examples/Wildfire/WildfireRun.hs",
+			"settings":
+			{
+				"buffer_size": 4821,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "examples/Wildfire/WildfireAgent.hs",
+			"settings":
+			{
+				"buffer_size": 1970,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "examples/Wildfire/WildfireModel.hs",
+			"settings":
+			{
+				"buffer_size": 2580,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 92.0,
+		"last_filter": "Package Control: insta",
+		"selected_items":
+		[
+			[
+				"Package Control: insta",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: install",
+				"Package Control: Install Package"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 485.0
+	},
+	"console":
+	{
+		"height": 289.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = 'df21e130d211cfc94d9b0905775a7c0f' + '1e3d39e33b79698005270310898eea76'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by) ",
+			"import urllib.request,os; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); open(os.path.join(ipp, pf), 'wb').write(urllib.request.urlopen( 'http://sublime.wbond.net/' + pf.replace(' ','%20')).read())"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/home/jonathan/phd/coding/libraries/frABS",
+		"/home/jonathan/phd/coding/libraries/frABS/examples",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire",
+		"/home/jonathan/phd/coding/libraries/frABS/src",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation"
+	],
+	"file_history":
+	[
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/    Saw",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireEnvironment.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WilidfireRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DARun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
+		"/home/jonathan/ethereum/ethaskell/src/Rpc/Server.hs",
+		"/home/jonathan/ethereum/ethaskell/src/Rpc/Methods.hs",
+		"/home/jonathan/ethereum/ethaskell/src/Rpc/CURL_TEST.txt",
+		"/home/jonathan/ethereum/ethaskell/ETHaskell.cabal",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Rpc/Utils.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Rpc/CURL_TEST.txt",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/p2p/Server.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Rpc/Server.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/p2p/P2P.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Rpc/Methods.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Rpc/Json.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Rpc/JsonRpc.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/    Variable not in scope",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/Utils.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/Methods.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/ETHaskell.cabal",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/    Parse error in pattern",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/JsonRpc.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/Server.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/                             imported from `Prelude' at EthJsonRpc/Server.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/DoubleAuction/DAModel.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Devp2p/Devp2p.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/jsonrpc/JSONRpc.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/EthJsonRpc.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/TODO.txt",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Main.hs",
+		"/C/Users/Jonathan Thaler/coding/ETHaskell/ETHaskell.cabal",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/Main.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation/Simulation.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroRun.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/DoubleAuction/DARun.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeRun.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/Agent 1",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/received AskOfferings from 1",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/received AskOfferings from 2",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/Agent received BidOfferings from 1",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/DoubleAuction/DAAuctioneer.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroAgent.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/SIRS/SIRSModel.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgent.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/DoubleAuction/DATrader.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation/ParIteration.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Main.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationModel.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationRun.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/RecursiveABS/RecursiveABSModel.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/RecursiveABS/RecursiveABSInit.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeModel.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeAgent.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationModel.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SIRS/SIRSModel.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationInit.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MetaABS/MetaABSModel.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MetaABS/MetaABSInit.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationInit.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MessageSampling/MessageSamplingInit.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MessageSampling/MessageSamplingModel.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/    Not in scope",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Env/Environment.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeInit.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/    * Variable not in scope",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/    Variable not in scope",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeRun.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/frABS.cabal",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeEnvironment.hs",
+		"/C/Users/Jonathan Thaler/AppData/Roaming/Sublime Text 3/Packages/User/SublimeHaskell.sublime-settings",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeRenderer.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MessageSampling/MessageSamplingRun.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationRun.hs",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABSProject.sublime-project",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/    Illegal datatype context (use DatatypeContexts)",
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation/Utils.hs",
+		"/C/Users/Jonathan Thaler/Desktop/test"
+	],
+	"find":
+	{
+		"height": 34.0
+	},
+	"find_in_files":
+	{
+		"height": 90.0,
+		"where_history":
+		[
+			"C:\\Users\\Jonathan Thaler\\phd\\coding\\libraries\\frABS\\src,*.hs"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"kill",
+			"AgentZeroAgentOut",
+			"AgentZeroAgentIn",
+			"AgentZeroEnvironment",
+			"extractParam",
+			"decodeUnformattedData",
+			"alphaNumToHex",
+			"-------------------------------------------------------------------------------------------",
+			"contactInfected",
+			"onMessage",
+			"randomCellWithRadius",
+			"runrandom",
+			"rand",
+			"random",
+			"agentNonCombatMove",
+			"inheritSugar",
+			"agentCultureContact",
+			"agentSex",
+			"polute",
+			"agentPoluteCell",
+			"unoccupyPosition",
+			"agentCell",
+			"agentPolutingCell",
+			"moveAndHarvestBestCell",
+			"agentStayAndHarvest",
+			"agentMetabolism",
+			"agentLookout",
+			"combatReward",
+			"unoccupyPosition",
+			"agentAgeing",
+			"unoccupyPosition",
+			"agentAgeing",
+			"agentAction",
+			"agentMoveAndHarvestCell",
+			"agentPickRandom",
+			"selectBestCells",
+			"refCoord",
+			"selectBestCells",
+			"randomAgentIO",
+			"cellOccupier",
+			"SugarScapeAgentState",
+			"createCells",
+			"SugarScapeEnvCellOccupier",
+			"cellOccupier",
+			"filter",
+			"filter (",
+			"cellUnoccupied",
+			"agentLookout",
+			"agentCollecting",
+			"cellUnoccupied",
+			"agentLookout",
+			"^(.*)$",
+			"neighbourIds",
+			"replace",
+			"randomage",
+			"handleCreateAgents",
+			"handleKillOrLiveAgent",
+			"handleAgent",
+			"createAgent",
+			"handleCreateAgents",
+			"#",
+			"handleCreateAgents"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": true,
+		"replace_history":
+		[
+			"WildfireAgentOut",
+			"WildfireAgentIn",
+			"WildfireEnvironment",
+			"hexLitToInt",
+			"-------------------------------------------------------------------------------"
+		],
+		"reverse": false,
+		"show_context": false,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "examples/Main.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 644,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								308,
+								308
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "examples/Wildfire/WildfireRun.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4821,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								400,
+								400
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "examples/Wildfire/WildfireAgent.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1970,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1745,
+								1745
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 487.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "examples/Wildfire/WildfireModel.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2580,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2282,
+								2282
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 225.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 23.0
+	},
+	"input":
+	{
+		"height": 34.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 273.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.sublime_haskell_error_panel":
+	{
+		"height": 118.0
+	},
+	"output.sublime_haskell_output_panel":
+	{
+		"height": 245.0
+	},
+	"pinned_build_system": "Packages/Haskell/Haskell.sublime-build",
+	"project": "frabs.sublime-project",
+	"replace":
+	{
+		"height": 62.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 250.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

@@ -1,12 +1,13 @@
 \section{Category-Theory}
-Many concepts can be seen through category-theory. 
-
-TODO: interdisciplinary \cite{baez_physics_2009}
+The field of Category-Theory formalizes mathematical structure by abstracting away from internal structure of mathematical ojbects and only looking at relations between them. It developed out of algebraic topology in the 1940s by the work of Samuel Eilenberg and Saunders Mac Lane with the goal of understanding the processes that preserve mathematical structure.
+The central concepts are collection of objects and arrows, called morphisms which are structure preserving mapings between these objects. An example for a category is the category of sets with sets being the objects and the arrows are functions from one set to another. It is important to make it clear that in this case an objects is a set which itself consists of elements but in category-theory one does and must not look at these elements - only the extensional properties of the object are relevenat: how does it relate to other objects through morphisms.
 
 The classic introductory text for computer scientists is \cite{pierce_basic_1991}. A more comprehensive text with more emphasis on applications to the (computer) scientist is \cite{spivak_category_2014}.
 
+In the work of  \cite{baez_physics_2009} the author has shown that category-theory can be used to link concepts of computation, physics and logic. As our thesis is multi-disciplinary our aim is also to use category-theory to abstract from these concrete fields and derive common structure.
+
 \paragraph{Computation}
-With the advent of monads in functional programming, the interest in category-theory surged and it was discovered that many computational concepts can be expressed through category-theory.  TODO: how can computation be viewed through category-theory?
+With the advent of monads in functional programming, the interest in category-theory surged and it was discovered that many computational concepts can be expressed through category-theory.
 
 \paragraph{ABS}
 So far only two papers looked into category-theoretical approaches to agent-based models and simulating \cite{beheshti_analyzing_2013}, \cite{lloyd_category-theoretic_2010} but none of them is really satisfying as they lack . The lack of a proper treatment of ABS and because many concepts of functional programming were put on firm grounds it would be only consequential to find a category-theoretical approach to functional ABS and put its foundations on firm category-theoretical grounds as well.
@@ -14,5 +15,4 @@ So far only two papers looked into category-theoretical approaches to agent-base
 \paragraph{Emergence}
 We already mentioned the work of Baas \cite{baas_emergence_1994}, \cite{baas_emergence_1997} on formalizing emergence through category-theory in the section on Verification \& Validation.
 
-Concluding, we can say that the essence of category-theory is to derive structural concepts and compare them. This gives us a high-level structural view to compare concepts which may seem be completely different at first and see it all through one lens
-Thus our central hypothesis is that if we formulate the real-world phenomenon, the model-specification, ABS and the functional implementation in category-theory we may be able to show that they all represent the same thing. So we arrive at the  very essence of validation by showing that the functional program / simulation is indeed a faithful implementation of the real-world phenomenon. To our knowledge such an approach to validating ABS has not been attempted yet.
+Concluding, we can say that the essence of category-theory is to derive structural concepts and compare them. This gives us a high-level structural view to compare concepts which may seem be completely different at first and see it all through one lens. Thus our central hypothesis is that if we formulate the real-world phenomenon, the model-specification, ABS and the functional implementation in category-theory we may be able to show that they all represent the same thing. So we arrive at the  very essence of validation by showing that the functional program / simulation is indeed a faithful implementation of the real-world phenomenon. To our knowledge such an approach to validating ABS has not been attempted yet.

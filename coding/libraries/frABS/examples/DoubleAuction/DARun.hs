@@ -20,7 +20,7 @@ rngSeed = 42
 timeStep = 1.0
 
 agentCount = 50
-steps = 10000
+steps = 1000
 
 runDoubleAuctionWithRendering :: IO ()
 runDoubleAuctionWithRendering = 

@@ -173,10 +173,10 @@ onEvent evt evtHdl ao = if isEvent evt then
                             else
                                 ao
     
-hasMessage :: (Eq m) => AgentIn s m ec l -> m -> Event ()
+hasMessage :: (Eq m) => AgentIn s m ec l -> m -> Bool
 hasMessage ai m
-    | not hasAnyMessage = NoEvent
-    | otherwise = if hasMsg then Event () else NoEvent
+    | not hasAnyMessage = False
+    | otherwise = hasMsg
     where
         msgsEvt = aiMessages ai
         hasAnyMessage = isEvent msgsEvt

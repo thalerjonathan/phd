@@ -23,22 +23,42 @@ import qualified Data.Map as Map
 import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
+rngOfAgent :: SF WildfireAgentOut StdGen
+rngOfAgent = arr aoRng
+
 igniteNeighbours :: WildfireAgentOut -> WildfireAgentOut
-igniteNeighbours ao = broadcastMessage ao Ignite nids -- TODO: use occasionally
+igniteNeighbours ao = sendMessage a' (n, Ignite)
 	where
 		nids = neighbourIds ao
+		(n, a') = agentPickRandom ao nids
+
+igniteNeighboursSF :: RandomGen g => g -> SF WildfireAgentOut WildfireAgentOut
+igniteNeighboursSF g = proc a-> 
+	do
+		g <- rngOfAgent -< a
+		ignitionEvent <- occasionally g 2.0 () -< ()
+		returnA -< (event a (\_ -> igniteNeighbours a) ignitionEvent)
 
 isBurnedDown :: WildfireAgentOut -> Bool
 isBurnedDown ao = wfFuel s <= 0.0
 	where
 		s = aoState ao
 
+-- TODO: burning down per time-unit !!
 burndown :: WildfireAgentOut -> WildfireAgentOut
-burndown ao = updateState ao (\s -> s { wfLifeState = Burning, wfFuel = fuel'})
+burndown ao = updateState ao (\s -> s { wfLifeState = Burning, wfFuel = fuel'}) 
 	where
 		s = aoState ao
 		fuel = wfFuel s
 		fuel' = max 0.0 (fuel - 0.1)
+
+burndownSF :: SF WildfireAgentOut WildfireAgentOut
+burndownSF = proc a ->
+	do
+		let s = aoState a
+		let fuel = wfFuel s
+		remainingFuel <- (1-) ^<< integral -< fuel
+		returnA -< updateState a (\s -> s { wfLifeState = Burning, wfFuel = (max 0.0 remainingFuel)}) 
 
 neighbourIds :: WildfireAgentOut -> [AgentId]
 neighbourIds ao = map snd neighs
@@ -47,16 +67,15 @@ neighbourIds ao = map snd neighs
 		coord = aoEnvPos ao
 		neighs = neighbours env coord
 
-
 wildfireAgentLiving :: SF WildfireAgentIn (WildfireAgentOut, Event ())
 wildfireAgentLiving = proc ain ->
 	do
 		let aout = agentOutFromIn ain
-		let ignitionEvent = hasMessage ain Ignite
+		ignitionEvent <- (iEdge False) -< hasMessage ain Ignite 	-- NOTE: need to use iEdge False to detect Ignite messages which were added at time 0: at initialization time
 		returnA -< (aout, ignitionEvent)
 
-wildfireAgentIgnite :: () -> WildfireAgentBehaviour
-wildfireAgentIgnite evt = wildfireAgentBurningBehaviour
+wildfireAgentIgnite :: RandomGen g => g -> () -> WildfireAgentBehaviour
+wildfireAgentIgnite g evt = wildfireAgentBurningBehaviour g
 
 wildfireAgentDie :: () -> WildfireAgentBehaviour
 wildfireAgentDie evt = proc ain ->
@@ -65,19 +84,21 @@ wildfireAgentDie evt = proc ain ->
 		let aout' = updateState aout (\s -> s { wfLifeState = Dead })
 		returnA -< aout' -- kill aout' -- NOTE: killing would lead to increased performance but would leave the patch white (blank)
 
-wildfireAgentBurning :: SF WildfireAgentIn (WildfireAgentOut, Event ())
-wildfireAgentBurning = proc ain -> 
+wildfireAgentBurning :: RandomGen g => g -> SF WildfireAgentIn (WildfireAgentOut, Event ())
+wildfireAgentBurning g = proc ain -> 
 	do
-		let ao = agentOutFromIn ain
-		let ao' = burndown ao
-		let ao'' = igniteNeighbours ao'
-		let dyingEvent = if isBurnedDown ao' then Event () else NoEvent
+		let a = agentOutFromIn ain
+		
+		a' <- burndownSF -< a
+		a'' <- igniteNeighboursSF g -< a'
 
-		returnA -< (ao'', dyingEvent)
+		dyingEvent <- edge -< isBurnedDown a''
 
-wildfireAgentBurningBehaviour :: WildfireAgentBehaviour
-wildfireAgentBurningBehaviour = switch wildfireAgentBurning wildfireAgentDie
+		returnA -< (a'', dyingEvent)
 
-wildfireAgentLivingBehaviour :: WildfireAgentBehaviour
-wildfireAgentLivingBehaviour = switch wildfireAgentLiving wildfireAgentIgnite
+wildfireAgentBurningBehaviour :: RandomGen g => g -> WildfireAgentBehaviour
+wildfireAgentBurningBehaviour g = switch (wildfireAgentBurning g) wildfireAgentDie
+
+wildfireAgentLivingBehaviour :: RandomGen g => g -> WildfireAgentBehaviour
+wildfireAgentLivingBehaviour g = switch wildfireAgentLiving (wildfireAgentIgnite g)
 ------------------------------------------------------------------------------------------------------------------------

@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"init",
+				"initIgnite"
+			],
+			[
 				"extractParamFrom",
 				"extractParamFromVector ∷ Value → Int → Maybe Value\tRpc.Utils"
 			],
@@ -81,28 +85,19 @@
 			}
 		},
 		{
-			"file": "examples/Wildfire/WildfireRun.hs",
-			"settings":
-			{
-				"buffer_size": 4821,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "examples/Wildfire/WildfireAgent.hs",
 			"settings":
 			{
-				"buffer_size": 1970,
+				"buffer_size": 2596,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "examples/Wildfire/WildfireModel.hs",
+			"file": "examples/Wildfire/WildfireRun.hs",
 			"settings":
 			{
-				"buffer_size": 2580,
+				"buffer_size": 4813,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -164,11 +159,11 @@
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireInit.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRenderer.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRun.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/    Saw",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireEnvironment.hs",
@@ -367,8 +362,8 @@
 						"selection":
 						[
 							[
-								308,
-								308
+								356,
+								356
 							]
 						],
 						"settings":
@@ -379,24 +374,52 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "examples/Wildfire/WildfireRun.hs",
+					"file": "examples/Wildfire/WildfireAgent.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 4821,
+						"buffer_size": 2596,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								400,
-								400
+								1406,
+								1406
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 218.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "examples/Wildfire/WildfireRun.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4813,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								500,
+								500
 							]
 						],
 						"settings":
@@ -409,65 +432,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "examples/Wildfire/WildfireAgent.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1970,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1745,
-								1745
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 487.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "examples/Wildfire/WildfireModel.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2580,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2282,
-								2282
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 225.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
+					"stack_index": 1,
 					"type": "text"
 				}
 			]

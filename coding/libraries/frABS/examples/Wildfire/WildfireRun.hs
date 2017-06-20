@@ -21,7 +21,8 @@ winSize = (800, 800)
 winTitle = "Wildfire"
 
 rngSeed = 42
-envSize = (75, 75)
+envSize = (35, 35)
+samplingTimeDelta = 0.2
 
 runWildfireWithRendering :: IO ()
 runWildfireWithRendering = 
@@ -106,7 +107,7 @@ nextFrameSimulateNoTime :: ReactHandle ([WildfireAgentIn], WildfireEnvironment) 
                 -> IO Picture
 nextFrameSimulateNoTime hdl outRef _ = 
     do
-        react hdl (1.0, Nothing)  -- NOTE: will result in call to nextIteration
+        react hdl (samplingTimeDelta, Nothing)  -- NOTE: will result in call to nextIteration
         aouts <- readIORef outRef
         modelToPicture aouts
 

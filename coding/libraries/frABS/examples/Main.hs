@@ -2,27 +2,22 @@ module Main where
 
 import AgentZero.AgentZeroRun
 import SugarScape.SugarScapeRun
-
 import SIRS.RunSIRS
 import Segregation.SegregationRun
-
 import RecursiveABS.RecursiveABSRun
 import Conversation.ConversationRun
-import MessageSampling.MessageSamplingRun
-
 import DoubleAuction.DARun
-
 import Wildfire.WildfireRun
+import PrisonersDilemma.PDRun
 
 main :: IO ()
-main = runWildfireWithRendering 
+main = runPDWithRendering
 
+	-- runWildfireWithRendering
     -- runDoubleAuctionWithRendering
     -- runAgentZeroWithRendering
-    -- runMessageSamplingAndPrint
     -- runConversationStepsAndPrint
     -- runSugarScapeWithRendering
     -- runMetaABSStepsAndPrint
     -- runSIRSWithRendering
     -- runSegWithRendering
-    -- runSegStepsAndRender

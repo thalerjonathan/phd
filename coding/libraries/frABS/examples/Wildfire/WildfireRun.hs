@@ -88,7 +88,7 @@ nextFrameSimulateWithTime :: ReactHandle ([WildfireAgentIn], WildfireEnvironment
                                 -> IO ([WildfireAgentOut], WildfireEnvironment)
 nextFrameSimulateWithTime hdl outRef _ _ _ = 
     do
-        react hdl (1.0, Nothing)  -- NOTE: will result in call to nextIteration
+        react hdl (samplingTimeDelta, Nothing)  -- NOTE: will result in call to nextIteration
         aouts <- readIORef outRef
         return aouts
 

@@ -66,7 +66,6 @@ sirsDt ao dt
     | is ao Infected = handleInfectedAgent ao dt
     | otherwise = handleRecoveredAgent ao dt
 
-
 infectAgent :: SIRSAgentOut -> SIRSAgentOut
 infectAgent ao
     | yes = updateState ao' (\s -> s { sirsState = Infected,
@@ -107,7 +106,7 @@ handleRecoveredAgent ao dt = if t' >= immuneDuration then
                                                         sirsTime = 0.0 } )
         immuneReducedAgent = updateState ao (\s -> s { sirsTime = t' } )
 
-
+-- TODO: include time-semantics e.g. 1 ontact per time-unit
 randomContact :: SIRSAgentOut -> SIRSAgentOut
 randomContact ao = sendMessage ao' (randNeigh, (Contact Infected))
     where

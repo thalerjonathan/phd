@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"igni",
+				"ignitionEvent"
+			],
+			[
 				"init",
 				"initIgnite"
 			],
@@ -79,25 +83,16 @@
 			"file": "examples/Main.hs",
 			"settings":
 			{
-				"buffer_size": 644,
+				"buffer_size": 588,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "examples/Wildfire/WildfireAgent.hs",
+			"file": "examples/PrisonersDilemma/PDAgent.hs",
 			"settings":
 			{
-				"buffer_size": 2596,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "examples/Wildfire/WildfireRun.hs",
-			"settings":
-			{
-				"buffer_size": 4813,
+				"buffer_size": 4524,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -151,6 +146,7 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire",
 		"/home/jonathan/phd/coding/libraries/frABS/src",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS",
@@ -159,17 +155,23 @@
 	],
 	"file_history":
 	[
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireModel.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRun.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireInit.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRenderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/    Saw",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireEnvironment.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WilidfireRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DARun.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
 		"/home/jonathan/ethereum/ethaskell/src/Rpc/Server.hs",
 		"/home/jonathan/ethereum/ethaskell/src/Rpc/Methods.hs",
 		"/home/jonathan/ethereum/ethaskell/src/Rpc/CURL_TEST.txt",
@@ -262,6 +264,13 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"WildfireAgentState",
+			"WildfireAgentIn",
+			"WildfireAgentOut",
+			"WildfireEnvironment",
+			"WildfireMsg",
+			"WildfireLinkLabel",
+			"WildfireCell",
 			"kill",
 			"AgentZeroAgentOut",
 			"AgentZeroAgentIn",
@@ -331,6 +340,13 @@
 		"regex": true,
 		"replace_history":
 		[
+			"PDAgentState",
+			"PDAgentIn",
+			"PDAgentOut",
+			"PDEnvironment",
+			"PDMsg",
+			"PDLinkLabel",
+			"PDCell",
 			"WildfireAgentOut",
 			"WildfireAgentIn",
 			"WildfireEnvironment",
@@ -346,7 +362,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -355,15 +371,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 644,
+						"buffer_size": 588,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								356,
-								356
+								248,
+								248
 							]
 						],
 						"settings":
@@ -372,64 +388,34 @@
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "examples/Wildfire/WildfireAgent.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2596,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1406,
-								1406
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 218.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "examples/Wildfire/WildfireRun.hs",
+					"buffer": 1,
+					"file": "examples/PrisonersDilemma/PDAgent.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 4813,
+						"buffer_size": 4524,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								500,
-								500
+								3951,
+								3951
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 1269.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,

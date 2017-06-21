@@ -16,7 +16,7 @@ build-type:        Simple
 library
   hs-source-dirs:  src
   ghc-options :    -O3 -Wall -fno-warn-name-shadowing
-  build-depends:   base, Yampa, gloss, QuickCheck, random, containers, array, MonadRandom, split, fgl
+  build-depends:   base, Yampa, gloss, random, containers, array, MonadRandom, split, fgl, transformers 
   exposed-modules:
     FrABS.FrABS
     FrABS.Agent.Agent

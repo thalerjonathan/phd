@@ -10,9 +10,22 @@ import DoubleAuction.DARun
 import Wildfire.WildfireRun
 import PrisonersDilemma.PDRun
 
-main :: IO ()
-main = runPDWithRendering
+{-
+	TODOs
 
+	- Monadic implementations using State
+	- Time-semantics of Yampa using Arrowized implementations 
+	- use-case for continuous 2d-environment: implement Heroes & Cowards
+	- Model-specification using QuickCheck
+	- comment haskell-code
+	- clean-up imports
+	- clean-up structure: lint
+-}
+
+main :: IO ()
+main = runSIRSWithRendering
+
+	-- runPDWithRendering
 	-- runWildfireWithRendering
     -- runDoubleAuctionWithRendering
     -- runAgentZeroWithRendering

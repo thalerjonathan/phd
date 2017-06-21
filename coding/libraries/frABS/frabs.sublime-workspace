@@ -83,16 +83,7 @@
 			"file": "examples/Main.hs",
 			"settings":
 			{
-				"buffer_size": 588,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "examples/PrisonersDilemma/PDAgent.hs",
-			"settings":
-			{
-				"buffer_size": 4524,
+				"buffer_size": 909,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -146,26 +137,32 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape",
 		"/home/jonathan/phd/coding/libraries/frABS/src",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Rendering",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation"
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/FrABS.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/frABS.cabal",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/frABSExamples.cabal",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/RunSIRS.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Rendering/GlossSimulator.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDInit.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireInit.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDRenderer.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRenderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/    Saw",
@@ -264,6 +261,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"sirsAgentBehaviourFuncM",
 			"WildfireAgentState",
 			"WildfireAgentIn",
 			"WildfireAgentOut",
@@ -371,15 +369,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 588,
+						"buffer_size": 909,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								248,
-								248
+								292,
+								292
 							]
 						],
 						"settings":
@@ -391,34 +389,6 @@
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "examples/PrisonersDilemma/PDAgent.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 4524,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								3951,
-								3951
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 1269.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
 					"type": "text"
 				}
 			]

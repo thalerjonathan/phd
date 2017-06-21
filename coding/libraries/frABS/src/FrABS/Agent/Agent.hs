@@ -5,8 +5,11 @@ import FrABS.Env.Environment
 import FRP.Yampa
 
 import System.Random
-import Control.Monad.Random
+
 import Control.Monad
+import Control.Monad.Random
+import Control.Monad.Trans.State
+
 import Data.List
 
 type AgentId = Int
@@ -14,7 +17,7 @@ type AgentMessage m = (AgentId, m)
 type AgentBehaviour s m ec l = SF (AgentIn s m ec l) (AgentOut s m ec l)
 type MessageFilter m = (AgentMessage m -> Bool)
 
-type AgentConversationReply s m ec l = Maybe (m, (AgentIn s m ec l))
+type AgentConversationReply s m ec l = Maybe (m, AgentIn s m ec l)
 
 type AgentConversationReceiver s m ec l = (AgentIn s m ec l
                                             -> AgentMessage m
@@ -42,7 +45,7 @@ data AgentIn s m ec l = AgentIn {
     aiState :: s,
     aiEnv :: Environment ec l,
     aiEnvPos :: EnvCoord,
-    aiRec :: Event ([AgentOut s m ec l]),
+    aiRec :: Event [AgentOut s m ec l],
     aiRecInitAllowed :: Bool,
     aiRng :: StdGen
 }
@@ -83,6 +86,15 @@ drawMultipleRandomRangeFromAgent a r n = runAgentRandom a blub
                 let nRand = take n infRand
                 return nRand
 
+drawBoolWithProbFromAgentM :: Double -> State (AgentOut s m ec l) Bool
+drawBoolWithProbFromAgentM p = state drawBoolWithProbFromAgentMAux 
+    where
+        drawBoolWithProbFromAgentMAux :: (AgentOut s m ec l) -> (Bool, AgentOut s m ec l)
+        drawBoolWithProbFromAgentMAux ao = (infect, ao')
+            where
+                (infectProb, ao') = drawRandomRangeFromAgent ao (0.0, 1.0)
+                infect = infectProb <= p
+
 
 splitRandomFromAgent :: AgentOut s m ec l -> (StdGen, AgentOut s m ec l)
 splitRandomFromAgent a = runAgentRandom a getSplit
@@ -95,6 +107,9 @@ agentPickRandom a xs
         cellCount = length xs
         (randIdx, a') = drawRandomRangeFromAgent a (0, cellCount - 1)
         randElem = xs !! randIdx
+
+agentPickRandomM :: [a] -> State (AgentOut s m ec l) a
+agentPickRandomM xs = state (\ao -> agentPickRandom ao xs)
 
 agentPickRandomMultiple :: AgentOut s m ec l -> [a] -> Int -> ([a], AgentOut s m ec l)
 agentPickRandomMultiple a xs n
@@ -109,15 +124,15 @@ recInitAllowed :: AgentIn s m ec l -> Bool
 recInitAllowed = aiRecInitAllowed
 
 agentOutFromIn :: AgentIn s m ec l -> AgentOut s m ec l
-agentOutFromIn ai = AgentOut{ aoId = (aiId ai),
+agentOutFromIn ai = AgentOut{ aoId = aiId ai,
                               aoKill = NoEvent,
                               aoCreate = NoEvent,
                               aoMessages = NoEvent,
                               aoConversation = NoEvent,
-                              aoState = (aiState ai),
-                              aoEnv = (aiEnv ai),
+                              aoState = aiState ai,
+                              aoEnv = aiEnv ai,
                               aoRec = NoEvent,
-                              aoEnvPos = (aiEnvPos ai),
+                              aoEnvPos = aiEnvPos ai,
                               aoRecOthersAllowed = True,
                               aoRng = aiRng ai }
 
@@ -127,6 +142,9 @@ sendMessage ao msg = ao { aoMessages = mergedMsgs }
         newMsgEvent = Event [msg]
         existingMsgEvent = aoMessages ao
         mergedMsgs = mergeMessages existingMsgEvent newMsgEvent
+
+sendMessageM :: AgentMessage m -> State (AgentOut s m ec l) ()
+sendMessageM msg = state (\ao -> ((), sendMessage ao msg))
 
 hasConversation :: AgentOut s m ec l -> Bool
 hasConversation = isEvent . aoConversation
@@ -217,7 +235,7 @@ updateState ao sfunc = ao { aoState = s' }
     where
         s = aoState ao
         s' = sfunc s
-
+        
 allowsRecOthers :: AgentOut s m ec l -> Bool
 allowsRecOthers = aoRecOthersAllowed
 

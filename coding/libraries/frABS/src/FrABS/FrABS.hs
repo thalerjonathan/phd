@@ -9,6 +9,11 @@ import FRP.Yampa
 ------------------------------------------------------------------------------------------------------------------------
 -- TODOs
 ------------------------------------------------------------------------------------------------------------------------
+-- implement GlossSimulator: run the simulation within gloss-rendering
+-- implement an Agent-Monad: State & Random monad to read/write AgentOut and s and read AgentIn
+    -- is there a way to combine all into one monad?
+-- Use Dunai to run Agent-Monad
+
 -- TODO: need some mechanism to give GLOBALLY UNIQUE IDs to agents when creating new
     {-
         how do we generate global unique agentids when creating them during runtime?
@@ -37,13 +42,5 @@ import FRP.Yampa
 -- TODO write QuickCheck tests
 
 -- TODO STM FrABS using Dunai?
-{- TODO: do we really need Yampa?
-    The essences are:
-    -> continuations
-    -> arrows
-    -> Events which are the same as the Maybe-type
-    -> Would be great to have some kind of monad to work on agents to have some kind of 'imperative' style on agents
-    -> Would be great to introduce STM as well
--}
 
 ------------------------------------------------------------------------------------------------------------------------

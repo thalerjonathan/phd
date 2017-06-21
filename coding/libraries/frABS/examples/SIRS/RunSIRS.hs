@@ -16,7 +16,7 @@ winSize = (800, 800)
 winTitle = "SIRS FrABS"
 
 rngSeed = 42
-cells = (51, 51)
+cells = (31, 31)
 initInfectionProb = 0.2
 
 runSIRSWithRendering :: IO ()

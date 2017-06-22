@@ -2,6 +2,7 @@ module FrABS.Rendering.GlossSimulator (
 	simulateAndRender,
 	simulateStepsAndRender,
 	
+	StepCallback,
 	RenderFrame
   ) where
 
@@ -19,6 +20,8 @@ import FRP.Yampa
 import Data.IORef
 
 type RenderFrame s m ec l = ((Int, Int) -> [AgentOut s m ec l] -> Environment ec l -> GLO.Picture)
+type StepCallback s m ec l = (([AgentOut s m ec l], Environment ec l) -> ([AgentOut s m ec l], Environment ec l) -> IO ())
+
 type RenderFrameInternal s m ec l = ([AgentOut s m ec l] -> Environment ec l -> GLO.Picture)
 
 simulateAndRender :: [AgentDef s m ec l] 
@@ -29,18 +32,20 @@ simulateAndRender :: [AgentDef s m ec l]
 						-> String
 						-> (Int, Int)
 						-> RenderFrame s m ec l
+						-> Maybe (StepCallback s m ec l)
 						-> IO ()
 simulateAndRender initAdefs 
-				  initEnv 
-				  params 
-				  dt 
-				  freq 
-				  winTitle 
-				  winSize
-				  renderFunc =
+					  initEnv 
+					  params 
+					  dt 
+					  freq 
+					  winTitle 
+					  winSize
+					  renderFunc
+					  mayClbk =
 	do
 		outRef <- newIORef (initEmptyAgentOuts, initEnv) -- :: IO (IORef ([AgentOut s m ec l], Environment ec l))
-		hdl <- processIOInit initAdefs initEnv params (nextIteration outRef)
+		hdl <- processIOInit initAdefs initEnv params (nextIteration mayClbk outRef)
 
 		if freq > 0 then
 			simulateIO (displayGlossWindow winTitle winSize)
@@ -87,15 +92,19 @@ simulateStepsAndRender initAdefs
 				GLO.white
 				pic
 
-nextIteration :: IORef ([AgentOut s m ec l], Environment ec l )
+nextIteration :: Maybe (StepCallback s m ec l)
+					-> IORef ([AgentOut s m ec l], Environment ec l)
                     -> ReactHandle ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
 					-> Bool
 					-> ([AgentOut s m ec l], Environment ec l )
 					-> IO Bool
-nextIteration outRef _ _ aep@(aouts, _) = 
+nextIteration (Just clbk) outRef _ _ curr = 
     do
-        writeIORef outRef aep
+    	prev <- readIORef outRef
+    	clbk prev curr
+        writeIORef outRef curr
         return False
+nextIteration Nothing outRef _ _ curr = writeIORef outRef curr >> return False
 
 nextFrameSimulateWithTime :: Double 
 								-> ReactHandle ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)

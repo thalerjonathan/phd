@@ -33,3 +33,4 @@ runPDWithRendering =
                             winTitle
                             winSize
                             Renderer.renderFrame
+                            Nothing

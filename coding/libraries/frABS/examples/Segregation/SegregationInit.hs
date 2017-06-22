@@ -1,6 +1,7 @@
 module Segregation.SegregationInit where
 
 import Segregation.SegregationModel
+import Segregation.SegregationAgent
 
 import FrABS.Agent.Agent
 import FrABS.Env.Environment

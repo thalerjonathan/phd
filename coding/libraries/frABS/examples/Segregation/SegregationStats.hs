@@ -1,6 +1,7 @@
 module Segregation.SegregationStats where
 
 import Segregation.SegregationModel
+import Segregation.SegregationAgent
 
 import FrABS.Agent.Agent
 

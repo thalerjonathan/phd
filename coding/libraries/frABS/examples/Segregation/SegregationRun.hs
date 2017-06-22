@@ -1,135 +1,90 @@
 module Segregation.SegregationRun where
 
-import FrABS.Agent.Agent
-import FrABS.Simulation.Simulation
-
 import Segregation.SegregationModel
 import Segregation.SegregationInit
 import Segregation.SegregationStats
+import Segregation.SegregationRenderer as Renderer
 
-import FRP.Yampa
-import qualified FrABS.Rendering.Agents2DDiscrete as Front
-import qualified Graphics.Gloss as GLO
-import Graphics.Gloss.Interface.IO.Animate
+import FrABS.Agent.Agent
+import FrABS.Simulation.Simulation
+import FrABS.Simulation.SimulationUtils
+import FrABS.Rendering.GlossSimulator
 
-import Data.IORef
+import Text.Printf
+
 import System.IO
-import System.Random
-import Control.Monad.Random
+
+import Data.Maybe
 
 winSize = (800, 800)
-winTitle = "Schelling Segregation FrABS"
-renderCircles = True
-
+winTitle = "Schelling Segregation"
 rngSeed = 42
 cells = (10, 10)
+agentCount = 10
+samplingTimeDelta = 1.0
+frequency = 0
+steps = 10
+updateStrat = Sequential
+envCollapsing = Nothing
+shuffleAgents = True
 
 runSegWithRendering :: IO ()
-runSegWithRendering = do
-                        hSetBuffering stdout NoBuffering
-                        hSetBuffering stderr NoBuffering
-                        initRng rngSeed
-                        (as, env) <- createSegAgentsAndEnv cells
-                        params <- simParams
+runSegWithRendering = 
+    do
+        hSetBuffering stdout NoBuffering
+        hSetBuffering stderr NoBuffering
 
-                        putStrLn "dynamics = ["
-                        outRef <- (newIORef (([], env), False)) :: (IO (IORef (([SegAgentOut], SegEnvironment), Bool)))
-                        hdl <- processIOInit as env params (nextIteration outRef)
+        initRng rngSeed
 
-                        simulateAndRender hdl outRef
+        (initAdefs, initEnv) <- createSegAgentsAndEnv cells
+        params <- initSimParams updateStrat envCollapsing shuffleAgents
 
-nextIteration :: IORef (([SegAgentOut], SegEnvironment), Bool)
-                    -> ReactHandle ([SegAgentIn], SegEnvironment) ([SegAgentOut], SegEnvironment)
-                     -> Bool
-                     -> ([SegAgentOut], SegEnvironment)
-                     -> IO Bool
-nextIteration outRef _ _ aep@(aouts, _) = do
-                                            printDynamics outRef aouts
-                                            let allSatisfied = all isSatisfied aouts
-                                            writeIORef outRef (aep, allSatisfied)
-                                            return allSatisfied
+        putStrLn "dynamics = ["
 
-printDynamics :: IORef (([SegAgentOut], SegEnvironment), Bool)
-                    -> [SegAgentOut]
-                    -> IO ()
-printDynamics outRef aoutsCurr = do
-                                    ((aoutsPrev, _), _) <- readIORef outRef
-
-                                    let maxSimilarity = fromInteger $ fromIntegral totalCount -- NOTE: an agent can reach a maximum of 1.0
-                                    let currSimilarity = totalSatisfaction aoutsCurr
-                                    let prevSimilarity = totalSatisfaction aoutsPrev
-                                    let similarityDelta = currSimilarity - prevSimilarity
-
-                                    let currSimilarityNormalized = currSimilarity / maxSimilarity
-                                    let similarityDeltaNormalized = similarityDelta / maxSimilarity
-
-                                    putStrLn (show unhappyFract
-                                                ++ "," ++ show currSimilarityNormalized
-                                                ++ "," ++ show similarityDeltaNormalized
-                                                ++ ";" )
-                                    where
-                                        (totalCount, _, _, unhappyFract) = satisfactionStats aoutsCurr
+        simulateAndRender initAdefs
+                            initEnv
+                            params
+                            samplingTimeDelta
+                            frequency
+                            winTitle
+                            winSize
+                            Renderer.renderFrame
+                            (Just printDynamics)
 
 runSegStepsAndRender :: IO ()
-runSegStepsAndRender = do
-                            hSetBuffering stdout NoBuffering
-                            initRng rngSeed
-                            (as, env) <- createSegAgentsAndEnv cells
-                            params <- simParams
-
-                            let steps = 10
-                            let ass = processSteps as env params 1.0 steps
-                            let (as', _) = last ass
-
-                            --pic <- modelToPicture as'
-                            --GLO.display (Front.display winTitle winSize) GLO.black pic
-                            mapM (putStrLn . show . aoState) as'
-
-                            return ()
-
-
-simParams :: IO (SimulationParams SegEnvCell ())
-simParams = 
+runSegStepsAndRender = 
     do
-        rng <- getSplit
-        return SimulationParams {
-            simStrategy = Sequential,
-            simEnvCollapse = Nothing,
-            simShuffleAgents = True,
-            simRng = rng
-        }
+        initRng rngSeed
 
-initRng :: Int -> IO StdGen
-initRng seed = do
-                let g = mkStdGen seed
-                setStdGen g
-                return g
+        (initAdefs, initEnv) <- createSegAgentsAndEnv cells
+        params <- initSimParams updateStrat envCollapsing shuffleAgents
 
-simulateAndRender :: ReactHandle ([SegAgentIn], SegEnvironment) ([SegAgentOut], SegEnvironment)
-                        -> IORef (([SegAgentOut], SegEnvironment), Bool) -> IO ()
-simulateAndRender hdl outRef = animateIO (Front.display winTitle winSize)
-                                            GLO.black -- GLO.white
-                                            (nextFrame hdl outRef)
-                                            (\_ -> return () )
+        simulateStepsAndRender initAdefs
+                            initEnv
+                            params
+                            samplingTimeDelta
+                            steps
+                            winTitle
+                            winSize
+                            Renderer.renderFrame
 
-nextFrame :: ReactHandle ([SegAgentIn], SegEnvironment) ([SegAgentOut], SegEnvironment)
-                -> IORef (([SegAgentOut], SegEnvironment), Bool) -> Float -> IO Picture
-nextFrame hdl outRef _ = do
-                            react hdl (1.0, Nothing)  -- NOTE: will result in call to nextIteration
-                            (aouts, _) <- readIORef outRef
-                            modelToPicture aouts
+printDynamics :: ([SegAgentOut], SegEnvironment)
+                    ->([SegAgentOut], SegEnvironment)
+                    -> IO ()
+printDynamics (aoutsPrev, _) (aoutsCurr, _) = 
+    do
+        let maxSimilarity = fromInteger $ fromIntegral totalCount -- NOTE: an agent can reach a maximum of 1.0
+        let currSimilarity = totalSatisfaction aoutsCurr
+        let prevSimilarity = totalSatisfaction aoutsPrev
+        let similarityDelta = currSimilarity - prevSimilarity
 
-modelToPicture :: ([SegAgentOut], SegEnvironment) -> IO GLO.Picture
-modelToPicture (as, _) = do
-                            let rcs = map segAgentOutToRenderCell as
-                            return (Front.renderFrame renderCircles rcs winSize cells)
+        let currSimilarityNormalized = currSimilarity / maxSimilarity
+        let similarityDeltaNormalized = similarityDelta / maxSimilarity
 
-segAgentOutToRenderCell :: SegAgentOut -> Front.RenderCell
-segAgentOutToRenderCell ao = Front.RenderCell { Front.renderCellCoord = (ax, ay),
-                                                        Front.renderCellColor = col }
-    where
-        s = aoState ao
-        (ax, ay) = (aoEnvPos ao)
-        col = case (segParty s) of
-                        Red -> (0.6, 0.0, 0.0)
-                        Green -> (0.0, 0.6, 0.0)
+        putStrLn ((printf "%.3f" unhappyFract) 
+                    ++ "," ++ (printf "%.3f" currSimilarityNormalized)
+                    ++ "," ++ (printf "%.3f" similarityDeltaNormalized)
+                    ++ ";" )
+        where
+            (totalCount, _, _, unhappyFract) = satisfactionStats aoutsCurr
+

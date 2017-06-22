@@ -36,3 +36,4 @@ runSugarScapeWithRendering =
                             winTitle
                             winSize
                             Renderer.renderFrame
+                            Nothing

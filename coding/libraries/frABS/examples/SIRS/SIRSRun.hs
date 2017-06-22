@@ -36,6 +36,7 @@ runSIRSWithRendering = do
                             winTitle
                             winSize
                             Renderer.renderFrame
+                            Nothing
 
 runSIRSStepsAndRender :: IO ()
 runSIRSStepsAndRender =

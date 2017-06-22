@@ -34,3 +34,4 @@ runAgentZeroWithRendering =
                             winTitle
                             winSize
                             Renderer.renderFrame
+                            Nothing

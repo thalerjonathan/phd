@@ -26,9 +26,6 @@ import PrisonersDilemma.PDRun
 main :: IO ()
 main = runSegWithRendering
 
-	-- TODO: apply gloss-rendering to the next ones
-	-- runSegWithRendering
-	
 	-- runDoubleAuctionSteps
 	-- runSIRSWithRendering
 	-- runPDWithRendering
@@ -37,3 +34,4 @@ main = runSegWithRendering
     -- runSugarScapeWithRendering
     -- runConversationSteps
    	-- runMetaABSStepsAndPrint
+   	-- runSegWithRendering

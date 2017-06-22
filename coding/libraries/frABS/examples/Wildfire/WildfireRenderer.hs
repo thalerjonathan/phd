@@ -24,7 +24,6 @@ renderFrame aouts env wSize@(wx, wy) = GLO.Pictures $ agentPics
 
         agentPics = map (renderAgent (cellWidth, cellHeight) wSize) aouts
 
-
 renderAgent :: (Float, Float)
                 -> (Int, Int)
                 -> WildfireAgentOut

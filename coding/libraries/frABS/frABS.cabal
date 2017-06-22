@@ -27,3 +27,4 @@ library
     FrABS.Simulation.SeqIteration
     FrABS.Simulation.ParIteration
     FrABS.Rendering.Agents2DDiscrete
+    FrABS.Rendering.GlossSimulator

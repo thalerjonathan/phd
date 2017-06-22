@@ -7,11 +7,8 @@ import FrABS.Env.Environment
 
 import qualified Graphics.Gloss as GLO
 
-display :: String -> (Int, Int) -> GLO.Display
-display title winSize = (GLO.InWindow title winSize (300, 0))
-
-renderFrame :: [SugarScapeAgentOut] -> SugarScapeEnvironment -> (Int, Int) -> GLO.Picture
-renderFrame aouts env wSize@(wx, wy) = GLO.Pictures $ (envPics ++ agentPics)
+renderFrame :: (Int, Int) -> [SugarScapeAgentOut] -> SugarScapeEnvironment -> GLO.Picture
+renderFrame wSize@(wx, wy) aouts env = GLO.Pictures $ (envPics ++ agentPics)
     where
         (cx, cy) = envLimits env
         cellWidth = (fromIntegral wx) / (fromIntegral cx)

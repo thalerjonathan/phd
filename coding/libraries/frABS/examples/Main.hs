@@ -12,7 +12,7 @@ import PrisonersDilemma.PDRun
 
 {-
 	TODOs
-
+	- export only public functions in FrABS
 	- Monadic implementations using State
 	- Time-semantics of Yampa using Arrowized implementations 
 	- use-case for continuous 2d-environment: implement Heroes & Cowards
@@ -23,14 +23,16 @@ import PrisonersDilemma.PDRun
 -}
 
 main :: IO ()
-main = runWildfireWithRendering
+main = runSIRSWithRendering
+
+	-- TODO: apply gloss-rendering to the next ones
+	-- runSIRSWithRendering
+	-- runConversationStepsAndPrint
+	-- runDoubleAuctionWithRendering
+	-- runMetaABSStepsAndPrint
 
 	-- runPDWithRendering
 	-- runWildfireWithRendering
-    -- runDoubleAuctionWithRendering
     -- runAgentZeroWithRendering
-    -- runConversationStepsAndPrint
     -- runSugarScapeWithRendering
-    -- runMetaABSStepsAndPrint
-    -- runSIRSWithRendering
     -- runSegWithRendering

@@ -1,51 +1,39 @@
 module Conversation.ConversationRun where
 
+import Conversation.ConversationInit
+
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
-
-import Conversation.ConversationInit
-import Conversation.ConversationModel
+import FrABS.Simulation.SimulationUtils
 
 import System.IO
-import System.Random
-import Control.Monad.Random
 
 rngSeed = 42
 agentCount = 2
+samplingTimeDelta = 1.0
+steps = 2
+updateStrat = Sequential
+envCollapsing = Nothing
+shuffleAgents = True
 
-runConversationStepsAndPrint :: IO ()
-runConversationStepsAndPrint = do
-                                hSetBuffering stdout NoBuffering
-                                hSetBuffering stderr NoBuffering
-                                initRng rngSeed
-                                (as, env) <- createConversationAgentsAndEnv agentCount
-                                params <- simParams
-
-                                putStrLn "Initial Agents:"
-                                mapM_ (putStrLn . show . adState) as
-
-                                let steps = 2
-                                let ass = processSteps as env params 1.0 steps
-                                let (as', _) = last ass
-
-                                putStrLn "Final Agents:"
-                                mapM (putStrLn . show . aoState) as'
-
-                                return ()
-
-simParams :: IO (SimulationParams ConversationEnvCell ())
-simParams = 
+runConversationSteps :: IO ()
+runConversationSteps = 
     do
-        rng <- getSplit
-        return SimulationParams {
-            simStrategy = Sequential, 
-            simEnvCollapse = Nothing,
-            simShuffleAgents = True,
-            simRng = rng
-        }
+        hSetBuffering stdout NoBuffering
+        hSetBuffering stderr NoBuffering
 
-initRng :: Int -> IO StdGen
-initRng seed = do
-                let g = mkStdGen seed
-                setStdGen g
-                return g
+        initRng rngSeed
+
+        (initAdefs, initEnv) <- createConversationAgentsAndEnv agentCount
+        params <- initSimParams updateStrat envCollapsing shuffleAgents
+
+        putStrLn "Initial Agents:"
+        mapM_ (putStrLn . show . adState) initAdefs
+
+        let ass = processSteps initAdefs initEnv params samplingTimeDelta steps
+        let (as', _) = last ass
+
+        putStrLn "Final Agents:"
+        mapM (putStrLn . show . aoState) as'
+
+        return ()

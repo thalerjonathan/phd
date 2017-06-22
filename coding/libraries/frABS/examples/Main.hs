@@ -24,15 +24,16 @@ import PrisonersDilemma.PDRun
 -}
 
 main :: IO ()
-main = runDoubleAuctionWithRendering
+main = runSegWithRendering
 
 	-- TODO: apply gloss-rendering to the next ones
-	-- runConversationStepsAndPrint
-	-- runMetaABSStepsAndPrint
-
+	-- runSegWithRendering
+	
+	-- runDoubleAuctionSteps
 	-- runSIRSWithRendering
 	-- runPDWithRendering
 	-- runWildfireWithRendering
     -- runAgentZeroWithRendering
     -- runSugarScapeWithRendering
-    -- runSegWithRendering
+    -- runConversationSteps
+   	-- runMetaABSStepsAndPrint

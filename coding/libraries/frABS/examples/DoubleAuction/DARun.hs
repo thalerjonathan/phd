@@ -5,38 +5,37 @@ import DoubleAuction.DAInit
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
+import FrABS.Simulation.SimulationUtils
 
-import FRP.Yampa
-import qualified Graphics.Gloss as GLO
-import Graphics.Gloss.Interface.IO.Animate
-import Graphics.Gloss.Interface.IO.Simulate
+import Text.Printf
 
 import System.IO
 import System.Random
-import Control.Monad.Random
-import Text.Printf
 
 rngSeed = 42
-timeStep = 1.0
-
+samplingTimeDelta = 1.0
 agentCount = 50
 steps = 1000
+updateStrat = Sequential -- NOTE: double-auction works both for parallel and sequential
+envCollapsing = Nothing   -- NOTE: double-auction is not using a modifyable environment => no need for collapsing 
+shuffleAgents = False
 
-runDoubleAuctionWithRendering :: IO ()
-runDoubleAuctionWithRendering = 
+runDoubleAuctionSteps :: IO ()
+runDoubleAuctionSteps = 
     do
         hSetBuffering stdout NoBuffering
         hSetBuffering stderr NoBuffering
 
         initRng rngSeed
 
-        (as, env) <- initDoubleAuction agentCount
-        params <- simParams
+        (initAdefs, initEnv) <- initDoubleAuction agentCount
+        params <- initSimParams updateStrat envCollapsing shuffleAgents
         
-        let asenv = processSteps as env params 1.0 steps
-        let (asFinal, envFinal) = last asenv
+        let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
 
+        let (asFinal, envFinal) = last asenv
         mapM printTraderAgent asFinal
+
         return ()
 
 printTraderAgent :: DAAgentOut -> IO ()
@@ -59,21 +58,3 @@ printTraderAgent a
 
             return ()
     | otherwise = return ()
-
-simParams :: IO (SimulationParams DAEnvCell ())
-simParams = 
-    do
-        rng <- getSplit
-        return SimulationParams {
-            simStrategy = Parallel,     -- NOTE: double-auction works both for parallel and sequential
-            simEnvCollapse = Nothing,   -- NOTE: double-auction is not using a modifyable environment => no need for collapsing 
-            simShuffleAgents = False,
-            simRng = rng
-        }
-
-initRng :: Int -> IO StdGen
-initRng seed =
-    do
-        let g = mkStdGen seed
-        setStdGen g
-        return g

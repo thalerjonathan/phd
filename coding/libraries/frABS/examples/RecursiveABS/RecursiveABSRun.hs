@@ -2,50 +2,38 @@ module RecursiveABS.RecursiveABSRun where
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
+import FrABS.Simulation.SimulationUtils
 
-import RecursiveABS.RecursiveABSModel
 import RecursiveABS.RecursiveABSInit
 
 import System.IO
-import System.Random
-import Control.Monad.Random
 
 rngSeed = 42
 agentCount = 10
+samplingTimeDelta = 1.0
+steps = 1
+updateStrat = Sequential
+envCollapsing = Nothing
+shuffleAgents = True
 
-runMetaABSStepsAndPrint :: IO ()
-runMetaABSStepsAndPrint = do
-                            hSetBuffering stdout NoBuffering
-                            hSetBuffering stderr NoBuffering
-                            initRng rngSeed
-                            (as, env) <- createMetaABSAgentsAndEnv agentCount
-                            params <- simParams
-
-                            putStrLn "Initial Agents:"
-                            mapM_ (putStrLn . show . adState) as
-
-                            let steps = 1
-                            let ass = processSteps as env params 1.0 steps
-                            let (as', _) = last ass
-
-                            putStrLn "Final Agents:"
-                            mapM (putStrLn . show . aoState) as'
-
-                            return ()
-
-simParams :: IO (SimulationParams MetaABSEnvCell ())
-simParams = 
+runRecursiveABSSteps :: IO ()
+runRecursiveABSSteps = 
     do
-        rng <- getSplit
-        return SimulationParams {
-            simStrategy = Sequential,
-            simEnvCollapse = Nothing,
-            simShuffleAgents = True,
-            simRng = rng
-        }
+        hSetBuffering stdout NoBuffering
+        hSetBuffering stderr NoBuffering
 
-initRng :: Int -> IO StdGen
-initRng seed = do
-                let g = mkStdGen seed
-                setStdGen g
-                return g
+        initRng rngSeed
+
+        (initAdefs, initEnv) <- createMetaABSAgentsAndEnv agentCount
+        params <- initSimParams updateStrat envCollapsing shuffleAgents
+
+        putStrLn "Initial Agents:"
+        mapM_ (putStrLn . show . adState) initAdefs
+
+        let ass = processSteps initAdefs initEnv params samplingTimeDelta steps
+        let (as', _) = last ass
+
+        putStrLn "Final Agents:"
+        mapM (putStrLn . show . aoState) as'
+
+        return ()

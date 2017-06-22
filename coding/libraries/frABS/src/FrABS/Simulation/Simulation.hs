@@ -1,5 +1,12 @@
 {-# LANGUAGE Arrows #-}
-module FrABS.Simulation.Simulation where
+module FrABS.Simulation.Simulation (
+    processIOInit,
+    processSteps,
+    
+    EnvironmentCollapsing,
+    UpdateStrategy (..),
+    SimulationParams (..)
+  ) where
 
 -- Project-internal import first
 import FrABS.Env.Environment

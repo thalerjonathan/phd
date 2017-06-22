@@ -102,6 +102,7 @@ infectAgentM =
             else
                 updateStateM id
 
+{-
 extractStateM :: (SIRSAgentState -> t) -> State SIRSAgentOut t
 extractStateM f = state extractStateMAux
     where
@@ -109,11 +110,14 @@ extractStateM f = state extractStateMAux
         extractStateMAux ao = (f s, ao)
             where
                 s = aoState ao
+-}
 
 handleInfectedAgentM :: Double -> State SIRSAgentOut ()
 handleInfectedAgentM dt = 
     do
-        t <- extractStateM sirsTime :: State SIRSAgentOut Double
+        -- t <- extractStateM sirsTime
+        ao <- get
+        let t = sirsTime $ aoState ao
         let t' = t + dt
         if t' >= infectedDuration then
             -- NOTE: agent has just recovered, don't send infection-contact to others
@@ -126,7 +130,9 @@ handleInfectedAgentM dt =
 handleRecoveredAgentM :: Double -> State SIRSAgentOut ()
 handleRecoveredAgentM dt = 
     do
-        t <- extractStateM sirsTime :: State SIRSAgentOut Double
+        -- t <- extractStateM sirsTime
+        ao <- get
+        let t = sirsTime $ aoState ao
         let t' = t + dt
         if t' >= immuneDuration then
             updateStateM (\s -> s { sirsState = Susceptible, sirsTime = 0.0 } )
@@ -138,7 +144,8 @@ randomContactM =
     do
         ao <- get
         let env = aoEnv ao
-        coord <- extractStateM sirsCoord :: State SIRSAgentOut SIRSCoord
+        --coord <- extractStateM sirsCoord
+        let coord = sirsCoord $ aoState ao
         let ns = FrABS.Env.Environment.neighbours env coord
         (_, randNeigh) <- agentPickRandomM ns
         sendMessageM (randNeigh, (Contact Infected))

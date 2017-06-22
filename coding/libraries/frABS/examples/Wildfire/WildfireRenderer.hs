@@ -8,13 +8,8 @@ import Wildfire.WildfireAgent
 
 import qualified Graphics.Gloss as GLO
 
-import Debug.Trace
-
-display :: String -> (Int, Int) -> GLO.Display
-display title winSize = (GLO.InWindow title winSize (300, 0))
-
-renderFrame :: [WildfireAgentOut] -> WildfireEnvironment -> (Int, Int) -> GLO.Picture
-renderFrame aouts env wSize@(wx, wy) = GLO.Pictures $ agentPics
+renderFrame :: (Int, Int) -> [WildfireAgentOut] -> WildfireEnvironment -> GLO.Picture
+renderFrame wSize@(wx, wy) aouts env = GLO.Pictures $ agentPics
     where
         (cx, cy) = envLimits env
         cellWidth = (fromIntegral wx) / (fromIntegral cx)

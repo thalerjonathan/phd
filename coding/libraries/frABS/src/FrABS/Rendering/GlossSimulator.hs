@@ -1,7 +1,7 @@
-{-# LANGUAGE ExistentialQuantification #-}
 module FrABS.Rendering.GlossSimulator (
 	simulateAndRender,
 	simulateStepsAndRender,
+	
 	RenderFrame
   ) where
 
@@ -12,6 +12,7 @@ import FrABS.Simulation.Simulation
 import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.IO.Animate
 import Graphics.Gloss.Interface.IO.Simulate
+import Graphics.Gloss.Interface.IO.Display
 
 import FRP.Yampa
 
@@ -38,7 +39,7 @@ simulateAndRender initAdefs
 				  winSize
 				  renderFunc =
 	do
-		outRef <- (newIORef ([], initEnv)) :: IO (IORef ([AgentOut s m ec l], Environment ec l))
+		outRef <- newIORef (initEmptyAgentOuts, initEnv) -- :: IO (IORef ([AgentOut s m ec l], Environment ec l))
 		hdl <- processIOInit initAdefs initEnv params (nextIteration outRef)
 
 		if freq > 0 then
@@ -54,6 +55,11 @@ simulateAndRender initAdefs
 					(nextFrameSimulateNoTime (renderFunc winSize) dt hdl outRef)
 					(\_ -> return () )
 		return ()
+
+		where
+			-- NOTE: need this function otherwise would get a compilation error when creating newIORef (see above)
+			initEmptyAgentOuts :: [AgentOut s m ec l]
+			initEmptyAgentOuts = []
 
 simulateStepsAndRender :: [AgentDef s m ec l] 
 							-> Environment ec l  
@@ -75,7 +81,11 @@ simulateStepsAndRender initAdefs
 	do
 		let ass = processSteps initAdefs initEnv params dt steps
 		let (finalAous, finalEnv) = last ass
-		return ()
+		let pic = renderFunc winSize finalAous finalEnv 
+
+		GLO.display (displayGlossWindow winTitle winSize)
+				GLO.white
+				pic
 
 nextIteration :: IORef ([AgentOut s m ec l], Environment ec l )
                     -> ReactHandle ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)

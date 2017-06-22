@@ -1,9 +1,10 @@
 module AgentZero.AgentZeroRenderer where
 
 import FrABS.Agent.Agent
+import FrABS.Env.Environment
+
 import AgentZero.AgentZeroModel
 import AgentZero.AgentZeroAgent
-import FrABS.Env.Environment
 
 import qualified Graphics.Gloss as GLO
 

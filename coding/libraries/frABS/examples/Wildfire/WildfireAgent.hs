@@ -23,14 +23,16 @@ import qualified Data.Map as Map
 import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
+-- AGENT-BEHAVIOUR MONADIC implementation
+------------------------------------------------------------------------------------------------------------------------
+-- TODO: implement AND combine using Dunai?
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- AGENT-BEHAVIOUR YAMPA implementation
+------------------------------------------------------------------------------------------------------------------------
 rngOfAgent :: SF WildfireAgentOut StdGen
 rngOfAgent = arr aoRng
-
-igniteNeighbours :: WildfireAgentOut -> WildfireAgentOut
-igniteNeighbours ao = sendMessage a' (n, Ignite)
-	where
-		nids = neighbourIds ao
-		(n, a') = agentPickRandom ao nids
 
 igniteNeighboursSF :: RandomGen g => g -> SF WildfireAgentOut WildfireAgentOut
 igniteNeighboursSF g = proc a-> 
@@ -38,6 +40,21 @@ igniteNeighboursSF g = proc a->
 		g <- rngOfAgent -< a
 		ignitionEvent <- occasionally g 2.0 () -< ()
 		returnA -< (event a (\_ -> igniteNeighbours a) ignitionEvent)
+
+burndownSF :: SF WildfireAgentOut WildfireAgentOut
+burndownSF = proc a ->
+	do
+		let s = aoState a
+		let fuel = wfFuel s
+		remainingFuel <- (1-) ^<< integral -< fuel
+		returnA -< updateState a (\s -> s { wfLifeState = Burning, wfFuel = (max 0.0 remainingFuel)}) 
+
+igniteNeighbours :: WildfireAgentOut -> WildfireAgentOut
+igniteNeighbours ao = sendMessage a' (n, Ignite)
+	where
+		nids = neighbourIds ao
+		(n, a') = agentPickRandom ao nids
+
 
 isBurnedDown :: WildfireAgentOut -> Bool
 isBurnedDown ao = wfFuel s <= 0.0
@@ -51,14 +68,6 @@ burndown ao = updateState ao (\s -> s { wfLifeState = Burning, wfFuel = fuel'})
 		s = aoState ao
 		fuel = wfFuel s
 		fuel' = max 0.0 (fuel - 0.1)
-
-burndownSF :: SF WildfireAgentOut WildfireAgentOut
-burndownSF = proc a ->
-	do
-		let s = aoState a
-		let fuel = wfFuel s
-		remainingFuel <- (1-) ^<< integral -< fuel
-		returnA -< updateState a (\s -> s { wfLifeState = Burning, wfFuel = (max 0.0 remainingFuel)}) 
 
 neighbourIds :: WildfireAgentOut -> [AgentId]
 neighbourIds ao = map snd neighs

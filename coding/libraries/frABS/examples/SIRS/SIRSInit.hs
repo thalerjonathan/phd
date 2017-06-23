@@ -10,66 +10,55 @@ import FrABS.Env.Environment
 
 import System.Random
 
-createSIRSEnv :: (Int, Int) -> [SIRSAgentDef] -> IO SIRSEnvironment
-createSIRSEnv limits as =  
+createSIRS :: (Int, Int) -> Double -> IO ([SIRSAgentDef], SIRSEnvironment)
+createSIRS dims@(maxX, maxY) p =  
     do
         rng <- newStdGen
-        return (createEnvironment
+
+        let agentCount = maxX * maxY
+        let aids = [0 .. agentCount - 1]
+        let coords = [ (x, y) | x <- [0..maxX - 1], y <- [0..maxY - 1]]
+        let cells = zip coords aids
+
+        adefs <- mapM (randomSIRSAgent p) cells
+
+        let env = (createEnvironment
                         Nothing
-                        limits
+                        dims
                         moore
                         ClipToMax
-                        cs
+                        cells
                         rng
                         Nothing)
-    where
-        cs = map (\a -> ((sirsCoord (adState a)), (adId a))) as
 
-createRandomSIRSAgents :: (Int, Int) -> Double -> IO [SIRSAgentDef]
-createRandomSIRSAgents max@(x,y) p = do
-                                        let ssIO = [ randomAgentState p (xCoord, yCoord) | xCoord <- [0..x-1], yCoord <- [0..y-1] ]
-                                        ss <- mapM id ssIO
-                                        as <- mapM (\s -> createAgent s max) ss
-                                        return as
-    where
-        createAgent :: SIRSAgentState -> (Int, Int) -> IO SIRSAgentDef
-        createAgent s max = do 
-                                rng <- newStdGen
+        return (adefs, env)
 
-                                return AgentDef { adId = agentId,
-                                                    adState = s,
-                                                    adBeh = sirsAgentBehaviour,
-                                                    adInitMessages = NoEvent,
-                                                    adConversation = Nothing,
-                                                    adEnvPos = c,
-                                                    adRng = rng }
-            where
-                c = sirsCoord s
-                agentId = coordToAid max c
+randomSIRSAgent :: Double
+                    -> (EnvCoord, AgentId)
+                    -> IO SIRSAgentDef
+randomSIRSAgent p (pos, agentId) = 
+    do
+        rng <- newStdGen
+        r <- getStdRandom (randomR(0.0, 1.0))
+        randTime <- getStdRandom (randomR(1.0, infectedDuration))
 
-randomAgentState :: Double -> SIRSCoord -> IO SIRSAgentState
-randomAgentState p coord = do
-                                r <- getStdRandom (randomR(0.0, 1.0))
-                                let isInfected = r <= p
+        let isInfected = r <= p
 
-                                let s = if isInfected then
-                                            Infected
-                                            else
-                                                Susceptible
+        let (initS, t) = if isInfected then
+                            (Infected, randTime)
+                            else
+                                (Susceptible, 0.0)
 
-                                randTime <- getStdRandom (randomR(1.0, infectedDuration))
+        let as = SIRSAgentState {
+                    sirsState = initS,
+                    sirsTime = t }
 
-                                let t = if isInfected then
-                                            randTime
-                                            else
-                                                0.0
-
-                                return SIRSAgentState{
-                                        sirsState = s,
-                                        sirsCoord = coord,
-                                        sirsTime = t }
-
-
-coordToAid :: (Int, Int) -> SIRSCoord -> AgentId
-coordToAid (xMax, _) (x, y) = (y * xMax) + x
+        return AgentDef { adId = agentId,
+                            adState = as,
+                            --adBeh = (sirsAgentBehaviourSF initS),    -- for testing Yampa-implementation of Agent
+                            adBeh = sirsAgentBehaviour,        -- for testing Monadic/Non-Monadic implementation of Agent
+                            adInitMessages = NoEvent,
+                            adConversation = Nothing,
+                            adEnvPos = pos,
+                            adRng = rng }
 ------------------------------------------------------------------------------------------------------------------------

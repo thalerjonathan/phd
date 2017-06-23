@@ -24,8 +24,7 @@ runSIRSWithRendering :: IO ()
 runSIRSWithRendering = do
     do
         initRng rngSeed
-        initAdefs <- createRandomSIRSAgents cells initialInfectionProb
-        initEnv <- createSIRSEnv cells initAdefs
+        (initAdefs, initEnv) <- createSIRS cells initialInfectionProb
         params <- initSimParams updateStrat Nothing shuffleAgents
 
         simulateAndRender initAdefs
@@ -42,8 +41,7 @@ runSIRSStepsAndRender :: IO ()
 runSIRSStepsAndRender =
     do
         initRng rngSeed
-        initAdefs <- createRandomSIRSAgents cells initialInfectionProb
-        initEnv <- createSIRSEnv cells initAdefs
+        (initAdefs, initEnv) <- createSIRS cells initialInfectionProb
         params <- initSimParams updateStrat Nothing shuffleAgents
 
         simulateStepsAndRender initAdefs

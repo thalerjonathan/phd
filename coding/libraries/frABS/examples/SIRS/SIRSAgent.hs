@@ -98,10 +98,69 @@ sirsAgentBehaviourFuncM ain = execState (sirsDtM 1.0) aoAfterMsg
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR YAMPA implementation
 ------------------------------------------------------------------------------------------------------------------------
+sirsAgentSuceptibleSF :: SIRSAgentBehaviour
+sirsAgentSuceptibleSF = switch 
+                            sirsAgentSusceptibleBehaviourSF
+                            sirsAgentSusceptibleInfectedSF
 
-sirsAgentBehaviourSF :: SIRSAgentBehaviour
-sirsAgentBehaviourSF = undefined -- TODO: switch to corresponding state if susceptible / infected / recovered
+sirsAgentSusceptibleBehaviourSF :: SF SIRSAgentIn (SIRSAgentOut, Event ())
+sirsAgentSusceptibleBehaviourSF = proc ain ->
+    do
+        let aout = agentOutFromIn ain
+        infectionEvent <- (iEdge False) -< hasMessage ain (Contact Infected)
+        returnA -< (aout, infectionEvent)
+
+sirsAgentSusceptibleInfectedSF :: () -> SIRSAgentBehaviour
+sirsAgentSusceptibleInfectedSF _ = sirsAgentInfectedSF 
+
+
+
+sirsAgentInfectedSF :: SIRSAgentBehaviour
+sirsAgentInfectedSF = switch 
+                        sirsAgentInfectedBehaviourSF
+                        sirsAgentInfectedRecoveredSF
+
+
+sirsAgentInfectedBehaviourSF :: SF SIRSAgentIn (SIRSAgentOut, Event ())
+sirsAgentInfectedBehaviourSF = proc ain ->
+    do
+        let aout = agentOutFromIn ain
+        remainingInfectedTime <- (infectedDuration-) ^<< integral -< 0
+        recoveredEvent <- edge -< (remainingInfectedTime <= 0)
+
+        -- TODO: make occasional contact
+
+        returnA -< (aout, recoveredEvent)
+
+sirsAgentInfectedRecoveredSF :: () -> SIRSAgentBehaviour
+sirsAgentInfectedRecoveredSF _ = sirsAgentRecoveredSF 
+
+
+
+sirsAgentRecoveredSF :: SIRSAgentBehaviour
+sirsAgentRecoveredSF = switch 
+                            sirsAgentRecoveredBehaviourSF
+                            sirsAgentRecoveredSusceptibleSF
+
+sirsAgentRecoveredBehaviourSF :: SF SIRSAgentIn (SIRSAgentOut, Event ())
+sirsAgentRecoveredBehaviourSF = proc ain ->
+    do
+        let aout = agentOutFromIn ain
+        remainingImmuneTime <- (immuneDuration-) ^<< integral -< 0
+        backToSusceptibleEvent <- edge -< (remainingImmuneTime <= 0)
+
+        returnA -< (aout, backToSusceptibleEvent)
+
+sirsAgentRecoveredSusceptibleSF :: () -> SIRSAgentBehaviour
+sirsAgentRecoveredSusceptibleSF _ = sirsAgentSuceptibleSF 
+
+
+sirsAgentBehaviourSF :: SIRSState -> SIRSAgentBehaviour
+sirsAgentBehaviourSF Susceptible = sirsAgentSuceptibleSF
+sirsAgentBehaviourSF Infected = sirsAgentInfectedSF
+sirsAgentBehaviourSF Recovered = sirsAgentRecoveredSF
 ------------------------------------------------------------------------------------------------------------------------
+
 
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR NON-monadic implementation

@@ -6,6 +6,7 @@ import SIRS.SIRSModel
 import FRP.Yampa
 
 import FrABS.Agent.Agent
+import FrABS.Agent.AgentUtils
 import FrABS.Env.Environment
 
 import Control.Monad.Trans.State
@@ -13,17 +14,6 @@ import Control.Monad.Trans.State
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR MONADIC implementation
 ------------------------------------------------------------------------------------------------------------------------
--- TODO: generalize into Agent.hs
-updateStateM :: (SIRSAgentState -> SIRSAgentState) -> State SIRSAgentOut ()
-updateStateM sfunc = state updateStateMAux
-    where
-        updateStateMAux :: SIRSAgentOut -> ((), SIRSAgentOut)
-        updateStateMAux ao = ((), ao')
-            where
-                s = aoState ao
-                s' = sfunc s
-                ao' = ao { aoState = s' }
-
 isM :: SIRSState -> State SIRSAgentOut Bool
 isM ss = state isSirsStateMAux
     where
@@ -33,7 +23,6 @@ isM ss = state isSirsStateMAux
                 s = aoState ao
                 compSS = sirsState s
                 flag = ss == compSS
-
 
 sirsDtM :: Double -> State SIRSAgentOut ()
 sirsDtM dt =
@@ -56,24 +45,12 @@ infectAgentM =
             updateStateM (\s -> s { sirsState = Infected,
                                       sirsTime = 0.0} )
             else
-                updateStateM id
-
-{-
-extractStateM :: (SIRSAgentState -> t) -> State SIRSAgentOut t
-extractStateM f = state extractStateMAux
-    where
-        extractStateMAux :: SIRSAgentOut -> (t, SIRSAgentOut)
-        extractStateMAux ao = (f s, ao)
-            where
-                s = aoState ao
--}
+                return ()
 
 handleInfectedAgentM :: Double -> State SIRSAgentOut ()
 handleInfectedAgentM dt = 
     do
-        -- t <- extractStateM sirsTime
-        ao <- get
-        let t = sirsTime $ aoState ao
+        t <- domainStateM sirsTime
         let t' = t + dt
         if t' >= infectedDuration then
             -- NOTE: agent has just recovered, don't send infection-contact to others
@@ -86,9 +63,7 @@ handleInfectedAgentM dt =
 handleRecoveredAgentM :: Double -> State SIRSAgentOut ()
 handleRecoveredAgentM dt = 
     do
-        -- t <- extractStateM sirsTime
-        ao <- get
-        let t = sirsTime $ aoState ao
+        t <- domainStateM sirsTime
         let t' = t + dt
         if t' >= immuneDuration then
             updateStateM (\s -> s { sirsState = Susceptible, sirsTime = 0.0 } )
@@ -98,13 +73,8 @@ handleRecoveredAgentM dt =
 randomContactM :: State SIRSAgentOut ()
 randomContactM = 
     do
-        ao <- get
-        let env = aoEnv ao
-        --coord <- extractStateM sirsCoord
-        let coord = sirsCoord $ aoState ao
-        let ns = FrABS.Env.Environment.neighbours env coord
-        (_, randNeigh) <- agentPickRandomM ns -- TODO: use pickRandomNeighbourCell from AgentUtils
-        sendMessageM (randNeigh, (Contact Infected))
+        (_, randNeighId) <- pickRandomNeighbourCellM
+        sendMessageM (randNeighId, (Contact Infected))
 
 sirsAgentBehaviourFuncM :: SIRSAgentIn -> SIRSAgentOut
 sirsAgentBehaviourFuncM ain = execState (sirsDtM 1.0) aoAfterMsg

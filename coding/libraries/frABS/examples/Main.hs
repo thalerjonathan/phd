@@ -12,19 +12,37 @@ import PrisonersDilemma.PDRun
 
 {-
 	TODOs
-	- export only public functions in FrABS
-	- reuse the Agent2D renderer if appropriate
 	- Monadic implementations using State
 	- Time-semantics of Yampa using Arrowized implementations 
 	- use-case for continuous 2d-environment: implement Heroes & Cowards
+	- reuse the Agent2D renderer if appropriate
 	- Model-specification using QuickCheck
 	- comment haskell-code
 	- clean-up imports
 	- clean-up structure: lint
 -}
 
+data Test = Test {
+	testInt :: Int,
+	testDouble :: Double
+} deriving (Show)
+
+testExtractionFunc :: Test -> (Test -> t) -> t
+testExtractionFunc test f = f test
+
 main :: IO ()
-main = runSegWithRendering
+main = 
+	do
+		let test = Test { testInt = 42, testDouble = 3.1415 }
+		let i = testExtractionFunc test testInt
+		let d = testExtractionFunc test testDouble
+		putStrLn $ show test
+		putStrLn $ show i
+		putStrLn $ show d
+
+{-
+main :: IO ()
+main = runSIRSWithRendering
 
 	-- runDoubleAuctionSteps
 	-- runSIRSWithRendering
@@ -35,3 +53,5 @@ main = runSegWithRendering
     -- runConversationSteps
    	-- runMetaABSStepsAndPrint
    	-- runSegWithRendering
+
+-}

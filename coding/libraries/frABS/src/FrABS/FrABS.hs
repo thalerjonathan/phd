@@ -9,10 +9,10 @@ import FRP.Yampa
 ------------------------------------------------------------------------------------------------------------------------
 -- TODOs
 ------------------------------------------------------------------------------------------------------------------------
--- implement GlossSimulator: run the simulation within gloss-rendering
 -- implement an Agent-Monad: State & Random monad to read/write AgentOut and s and read AgentIn
     -- is there a way to combine all into one monad?
 -- Use Dunai to run Agent-Monad
+-- export only public functions in FrABS
 
 -- TODO: need some mechanism to give GLOBALLY UNIQUE IDs to agents when creating new
     {-

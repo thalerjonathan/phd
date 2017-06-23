@@ -83,7 +83,7 @@
 			"file": "examples/Main.hs",
 			"settings":
 			{
-				"buffer_size": 909,
+				"buffer_size": 971,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -137,38 +137,58 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction",
 		"/home/jonathan/phd/coding/libraries/frABS/src",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Rendering",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation"
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/SegregationRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Rendering/GlossSimulator.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/SegregationModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/SegregationAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/SegregationStats.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/SegregationInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/SegregationRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/ConversationRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/RecursiveABSRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DARun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSInit.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/AgentUtils.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/Simulation.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/SimulationUtils.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/frABS.cabal",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Rendering/Agents2DDiscrete.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/SimulationHelper.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/FrABS.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeModel.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/frABS.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/frABSExamples.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/RunSIRS.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Rendering/GlossSimulator.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDModel.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDInit.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireInit.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRun.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDRenderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireAgent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireModel.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRenderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/    Saw",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireEnvironment.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WilidfireRun.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DARun.hs",
 		"/home/jonathan/ethereum/ethaskell/src/Rpc/Server.hs",
 		"/home/jonathan/ethereum/ethaskell/src/Rpc/Methods.hs",
 		"/home/jonathan/ethereum/ethaskell/src/Rpc/CURL_TEST.txt",
@@ -261,6 +281,14 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"renderCircles",
+			"renderFrame",
+			"dt ",
+			"nvironment",
+			"WildfireEnvironment",
+			"WildfireAgentOut",
+			"WildfireAgentIn",
+			"WildfireAgentDef",
 			"sirsAgentBehaviourFuncM",
 			"WildfireAgentState",
 			"WildfireAgentIn",
@@ -338,6 +366,11 @@
 		"regex": true,
 		"replace_history":
 		[
+			"Environment",
+			"nvironment ec l ",
+			"AgentOut s m ec l",
+			"AgentIn s m ec l",
+			"AgentDef s m ec l",
 			"PDAgentState",
 			"PDAgentIn",
 			"PDAgentOut",
@@ -369,7 +402,7 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 909,
+						"buffer_size": 971,
 						"regions":
 						{
 						},
@@ -385,7 +418,7 @@
 							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 34.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,

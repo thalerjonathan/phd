@@ -36,7 +36,7 @@ infectedDuration :: Double
 infectedDuration = 7.0
 
 immuneDuration :: Double
-immuneDuration = 3000.0
+immuneDuration = 3.0
 
 infectionProbability :: Double
 infectionProbability = 0.3

@@ -235,7 +235,29 @@ updateState ao sfunc = ao { aoState = s' }
     where
         s = aoState ao
         s' = sfunc s
-        
+    
+updateStateM :: (s -> s) -> State (AgentOut s m ec l) ()
+updateStateM sfunc = state (updateStateMAux sfunc)
+    where
+        updateStateMAux :: (s -> s) 
+                            -> AgentOut s m ec l 
+                            -> ((), AgentOut s m ec l)
+        updateStateMAux sfunc ao = ((), ao')
+            where
+                s = aoState ao
+                s' = sfunc s
+                ao' = ao { aoState = s' }
+
+domainStateM :: (s -> t) -> State (AgentOut s m ec l) t
+domainStateM f = state (domainStateMAux f)
+    where
+        domainStateMAux :: (s -> t) 
+                            -> AgentOut s m ec l
+                            -> (t, AgentOut s m ec l)
+        domainStateMAux f ao = (f s, ao)
+            where
+                s = aoState ao
+
 allowsRecOthers :: AgentOut s m ec l -> Bool
 allowsRecOthers = aoRecOthersAllowed
 

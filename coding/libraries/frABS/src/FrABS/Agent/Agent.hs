@@ -15,6 +15,7 @@ module FrABS.Agent.Agent (
     
     drawRandomRangeFromAgent,
     drawMultipleRandomRangeFromAgent,
+    drawBoolWithProbFromAgent,
     drawBoolWithProbFromAgentM,
     splitRandomFromAgent,
     agentPickRandom,
@@ -145,15 +146,17 @@ drawMultipleRandomRangeFromAgent a r n = runAgentRandom a blub
                 let nRand = take n infRand
                 return nRand
 
+drawBoolWithProbFromAgent :: AgentOut s m ec l -> Double -> (Bool, AgentOut s m ec l)
+drawBoolWithProbFromAgent ao trueProb = (trueFlag, ao')
+    where
+        (randTrue, ao') = drawRandomRangeFromAgent ao (0.0, 1.0)
+        trueFlag = randTrue <= trueProb
+
 drawBoolWithProbFromAgentM :: Double -> State (AgentOut s m ec l) Bool
 drawBoolWithProbFromAgentM p = state drawBoolWithProbFromAgentMAux 
     where
         drawBoolWithProbFromAgentMAux :: (AgentOut s m ec l) -> (Bool, AgentOut s m ec l)
-        drawBoolWithProbFromAgentMAux ao = (infect, ao')
-            where
-                (infectProb, ao') = drawRandomRangeFromAgent ao (0.0, 1.0)
-                infect = infectProb <= p
-
+        drawBoolWithProbFromAgentMAux ao = drawBoolWithProbFromAgent ao p
 
 splitRandomFromAgent :: AgentOut s m ec l -> (StdGen, AgentOut s m ec l)
 splitRandomFromAgent a = runAgentRandom a getSplit

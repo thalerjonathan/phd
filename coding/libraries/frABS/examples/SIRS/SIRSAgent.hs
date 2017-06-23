@@ -96,9 +96,11 @@ sirsAgentBehaviourFuncM ain = execState (sirsDtM 1.0) aoAfterMsg
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
--- AGENT-BEHAVIOUR yampa implementation
+-- AGENT-BEHAVIOUR YAMPA implementation
 ------------------------------------------------------------------------------------------------------------------------
--- TODO
+
+sirsAgentBehaviourSF :: SIRSAgentBehaviour
+sirsAgentBehaviourSF = undefined -- TODO: switch to corresponding state if susceptible / infected / recovered
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -122,19 +124,13 @@ infectAgent ao
                                       sirsTime = 0.0} )
     | otherwise = ao'
     where
-         (ao', yes) = drawInfectionWithProb ao infectionProbability
+         (yes, ao') = drawBoolWithProbFromAgent ao infectionProbability
 
 contactInfected :: SIRSAgentOut -> AgentMessage SIRSMsg -> SIRSAgentOut
 contactInfected a (_, Contact Infected) 
     | is a Susceptible = infectAgent a
     | otherwise = a
 contactInfected a _ = a
-
-drawInfectionWithProb :: SIRSAgentOut -> Double -> (SIRSAgentOut, Bool)
-drawInfectionWithProb ao p = (ao', infect)
-    where
-        (infectProb, ao') = drawRandomRangeFromAgent ao (0.0, 1.0)
-        infect = infectProb <= p
 
 handleInfectedAgent :: SIRSAgentOut -> Double -> SIRSAgentOut
 handleInfectedAgent ao dt = if t' >= infectedDuration then
@@ -163,12 +159,10 @@ handleRecoveredAgent ao dt = if t' >= immuneDuration then
         immuneReducedAgent = updateState ao (\s -> s { sirsTime = t' } )
 
 -- TODO: include time-semantics e.g. 1 ontact per time-unit
--- TODO: use pickRandomNeighbourCell from AgentUtils
 randomContact :: SIRSAgentOut -> SIRSAgentOut
 randomContact ao = sendMessage ao' (randNeigh, (Contact Infected))
     where
-        ns = FrABS.Env.Environment.neighbours (aoEnv ao) (sirsCoord (aoState ao))
-        ((_, randNeigh), ao') = agentPickRandom ao ns
+        ((_, randNeigh), ao') = runAgentRandom ao (pickRandomNeighbourCell ao)
 
 sirsAgentBehaviourFunc :: SIRSAgentIn -> SIRSAgentOut
 sirsAgentBehaviourFunc ain = aoAfterTime

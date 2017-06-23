@@ -1,4 +1,63 @@
-module FrABS.Agent.Agent where
+module FrABS.Agent.Agent (
+    AgentId,
+    AgentMessage,
+    AgentBehaviour,
+
+    AgentConversationReply,
+    AgentConversationReceiver,
+    AgentConversationSender,
+    
+    AgentDef (..),
+    AgentIn (..),
+    AgentOut (..),
+
+    runAgentRandom,
+    
+    drawRandomRangeFromAgent,
+    drawMultipleRandomRangeFromAgent,
+    drawBoolWithProbFromAgentM,
+    splitRandomFromAgent,
+    agentPickRandom,
+    agentPickRandomM,
+    agentPickRandomMultiple,
+
+    createAgent,
+    kill,
+    isDead,
+
+    createStartingAgentIn,
+    agentOutFromIn,
+    startingAgentInFromAgentDef,
+
+    sendMessage,
+    sendMessageM,
+    sendMessages,
+    broadcastMessage,
+    hasMessage,
+    onMessage,
+    onFilterMessage,
+    onMessageFrom,
+    onMessageType,
+
+    hasConversation,
+    conversation,
+    conversationEnd,
+
+    updateState,
+    updateStateM,
+    domainStateM,
+
+    onStart,
+    onEvent,
+
+    recInitAllowed,
+    allowsRecOthers,
+    recursive,
+    unrecursive,
+    isRecursive,
+
+    mergeMessages
+  ) where
 
 import FrABS.Env.Environment
 

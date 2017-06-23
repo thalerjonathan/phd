@@ -1,11 +1,11 @@
-module FrABS.Agent.AgentUtils where
+module FrABS.Agent.AgentUtils (
+	pickRandomNeighbourCell,
+	pickRandomNeighbourCellM
+  ) where
 
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 
-import System.Random
-
-import Control.Monad
 import Control.Monad.Random
 import Control.Monad.Trans.State
 

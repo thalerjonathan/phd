@@ -22,25 +22,6 @@ import PrisonersDilemma.PDRun
 	- clean-up structure: lint
 -}
 
-data Test = Test {
-	testInt :: Int,
-	testDouble :: Double
-} deriving (Show)
-
-testExtractionFunc :: Test -> (Test -> t) -> t
-testExtractionFunc test f = f test
-
-main :: IO ()
-main = 
-	do
-		let test = Test { testInt = 42, testDouble = 3.1415 }
-		let i = testExtractionFunc test testInt
-		let d = testExtractionFunc test testDouble
-		putStrLn $ show test
-		putStrLn $ show i
-		putStrLn $ show d
-
-{-
 main :: IO ()
 main = runSIRSWithRendering
 
@@ -53,5 +34,3 @@ main = runSIRSWithRendering
     -- runConversationSteps
    	-- runMetaABSStepsAndPrint
    	-- runSegWithRendering
-
--}

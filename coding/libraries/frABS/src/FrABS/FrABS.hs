@@ -12,9 +12,9 @@ import FRP.Yampa
 -- implement an Agent-Monad: State & Random monad to read/write AgentOut and s and read AgentIn
     -- is there a way to combine all into one monad?
 -- Use Dunai to run Agent-Monad
--- export only public functions in FrABS
 
 -- TODO: need some mechanism to give GLOBALLY UNIQUE IDs to agents when creating new
+  -- how can we handle the parallel-case?
     {-
         how do we generate global unique agentids when creating them during runtime?
         we could let the runtimesystem handle it because it knows all agents but then how can the

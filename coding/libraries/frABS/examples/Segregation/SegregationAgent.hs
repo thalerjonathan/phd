@@ -191,8 +191,8 @@ optimizeDistance opts ao best@(bestCoord, _) comp@(compCoord, _) = if distComp <
     where
         agentPos = aoEnvPos ao
         improves = optimizeSatisfaction opts ao compCoord
-        distBest = distance agentPos bestCoord
-        distComp = distance agentPos compCoord
+        distBest = distanceManhattan agentPos bestCoord
+        distComp = distanceManhattan agentPos compCoord
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -207,7 +207,7 @@ findNearestFreeCoord ao optFunc strat = maybe Nothing (Just . fst) mayNearest
         env = aoEnv ao
         coord = aoEnvPos ao
         
-        coordsCellsSearch = case strat of   (MoveLocal r) -> cellsAround env coord r
+        coordsCellsSearch = case strat of   (MoveLocal r) -> cellsAroundRect env coord r
                                             MoveGlobal -> allCellsWithCoords env
 
         mayNearest = foldr (findNearestAux optFunc) Nothing coordsCellsSearch
@@ -259,7 +259,7 @@ localRandomCell ao radius = (ao', randCell, randCoord)
     where
         env = aoEnv ao
         originCoord = aoEnvPos ao
-        ((randCell, randCoord), ao') = runAgentRandom ao (randomCellWithRadius env originCoord radius)
+        ((randCell, randCoord), ao') = runAgentRandom ao (randomCellWithinRect env originCoord radius)
 
 globalRandomCell :: SegAgentOut -> (SegAgentOut, SegEnvCell, EnvCoord)
 globalRandomCell ao = (ao', randCell, randCoord)

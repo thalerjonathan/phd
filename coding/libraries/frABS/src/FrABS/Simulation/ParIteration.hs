@@ -1,4 +1,7 @@
-module FrABS.Simulation.ParIteration where
+module FrABS.Simulation.ParIteration (
+    runParSF,
+    runParInternal
+  ) where
 
 import FrABS.Simulation.Utils
 

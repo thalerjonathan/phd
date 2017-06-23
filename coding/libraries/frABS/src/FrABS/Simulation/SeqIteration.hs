@@ -1,4 +1,7 @@
-module FrABS.Simulation.SeqIteration where
+module FrABS.Simulation.SeqIteration (
+    runSeqSF,
+    runSeqInternal
+  ) where
 
 import FrABS.Simulation.Utils
 

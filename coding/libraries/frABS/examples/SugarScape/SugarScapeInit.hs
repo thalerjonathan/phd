@@ -22,14 +22,14 @@ circlesSugar sugarLevel circles (coord, cell)
     | withinRadius = sugarLevel
     | otherwise = sugEnvSugarLevel cell -- NOTE: keep the level of before
         where
-            withinRadius = any (\(p, r) -> distanceEucl p coord <= r) circles
+            withinRadius = any (\(p, r) -> distanceEuclidean p coord <= r) circles
 
 circlesSpice :: Double -> [(EnvCoord, Double)] -> (EnvCoord, SugarScapeEnvCell) -> Double
 circlesSpice spiceLevel circles (coord, cell)
     | withinRadius = spiceLevel
     | otherwise = sugEnvSpiceLevel cell -- NOTE: keep the level of before
         where
-            withinRadius = any (\(p, r) -> distanceEucl p coord <= r) circles
+            withinRadius = any (\(p, r) -> distanceEuclidean p coord <= r) circles
 
 createSugarScape :: Int -> EnvLimits -> IO ([SugarScapeAgentDef], SugarScapeEnvironment)
 createSugarScape agentCount l = do

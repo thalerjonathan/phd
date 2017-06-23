@@ -1,5 +1,48 @@
 {-# LANGUAGE Arrows #-}
-module FrABS.Env.Environment where
+module FrABS.Env.Environment (
+    EnvironmentBehaviour,
+    EnvCoord,
+    EnvLimits,
+    EnvNeighbourhood,
+    EnvWrapping (..),
+    EnvGraph,
+
+    Environment (..),
+
+    createEnvironment,
+
+    neighbourEdges,
+    neighbourNodes,
+    neighbourLinks,
+    directLinkBetween,
+
+    allCellsWithCoords,
+
+    updateEnvironmentCells,
+    updateEnvironmentCellsWithCoords,
+    changeCellAt,
+
+    distanceManhattan,
+    distanceEuclidean,
+
+    cellsAroundRadius,
+    cellsAroundRect,
+
+    cellsAt,
+    cellAt,
+
+    randomCell,
+    randomCellWithinRect,
+
+    neighbours,
+    neighbourhoodOf,
+    neighbourhoodScale,
+   
+    neumann,
+    moore,
+
+     wrapCells
+  ) where
 
 import FRP.Yampa
 import Data.Graph.Inductive.Graph
@@ -112,23 +155,23 @@ changeCellAt env coord c = env { envCells = arr' }
         arr = envCells env
         arr' = arr // [(coord, c)]
 
-distance :: EnvCoord -> EnvCoord -> Int
-distance (x1, y1) (x2, y2) = (abs (x1 - x2)) + (abs (y1 - y2))
+distanceManhattan :: EnvCoord -> EnvCoord -> Int
+distanceManhattan (x1, y1) (x2, y2) = (abs (x1 - x2)) + (abs (y1 - y2))
 
-distanceEucl :: EnvCoord -> EnvCoord -> Double
-distanceEucl (x1, y1) (x2, y2) = sqrt (xDelta*xDelta + yDelta*yDelta)
+distanceEuclidean :: EnvCoord -> EnvCoord -> Double
+distanceEuclidean (x1, y1) (x2, y2) = sqrt (xDelta*xDelta + yDelta*yDelta)
     where
         xDelta = fromRational $ toRational (x2 - x1)
         yDelta = fromRational $ toRational (y2 - y1)
 
 cellsAroundRadius :: Environment c l -> EnvCoord -> Double -> [(EnvCoord, c)]
-cellsAroundRadius env pos r = filter (\(coord, _) -> r >= (distanceEucl pos coord)) ecs 
+cellsAroundRadius env pos r = filter (\(coord, _) -> r >= (distanceEuclidean pos coord)) ecs 
     where
         ecs = allCellsWithCoords env
         -- TODO: does not yet wrap around boundaries
 
-cellsAround :: Environment c l -> EnvCoord -> Int -> [(EnvCoord, c)]
-cellsAround env (cx, cy) r = zip wrappedCs cells
+cellsAroundRect :: Environment c l -> EnvCoord -> Int -> [(EnvCoord, c)]
+cellsAroundRect env (cx, cy) r = zip wrappedCs cells
     where
         cs = [(x, y) | x <- [cx - r .. cx + r], y <- [cy - r .. cy + r]]
         l = (envLimits env)
@@ -159,11 +202,11 @@ randomCell env =
 
         return (randCell, randCoord)
 
-randomCellWithRadius :: Environment c l
+randomCellWithinRect :: Environment c l
                         -> EnvCoord 
                         -> Int 
                         -> Rand StdGen (c, EnvCoord)
-randomCellWithRadius env (x, y) r = 
+randomCellWithinRect env (x, y) r = 
     do
         randX <- getRandomR (-r, r)
         randY <- getRandomR (-r, r)
@@ -184,36 +227,14 @@ neighbours env coord = zip wrappedNs cells
         wrappedNs = wrapNeighbourhood l w ns
         cells = cellsAt env wrappedNs
 
-------------------------------------------------------------------------------------------------------------------------
--- GENERAL SPATIAL
-------------------------------------------------------------------------------------------------------------------------
-wrapCells :: EnvLimits -> EnvWrapping -> EnvNeighbourhood -> EnvNeighbourhood
-wrapCells = wrapNeighbourhood
-
-wrapNeighbourhood :: EnvLimits -> EnvWrapping -> EnvNeighbourhood -> EnvNeighbourhood
-wrapNeighbourhood l w ns = map (wrap l w) ns
-
-------------------------------------------------------------------------------------------------------------------------
--- 2D DISCRETE SPATIAL
-------------------------------------------------------------------------------------------------------------------------
--- TODO: should not be used to clip because clipping and wrapping are two different things: clip REMOVES vertices, wrap just changes them
-wrap :: EnvLimits -> EnvWrapping -> EnvCoord -> EnvCoord
-wrap (maxX, maxY) ClipToMax (x, y) = (max 0 (min x (maxX - 1)), max 0 (min y (maxY - 1)))
-wrap l@(maxX, _) WrapHorizontal (x, y)
-    | x < 0 = wrap l WrapHorizontal (x + maxX, y)
-    | x >= maxX = wrap l WrapHorizontal (x - maxX, y)
-    | otherwise = (x, y)
-wrap l@(_, maxY) WrapVertical (x, y)
-    | y < 0 = wrap l WrapVertical (x, y + maxY)
-    | y >= maxY = wrap l WrapVertical (x, y - maxY)
-    | otherwise = (x, y)
-wrap l WrapBoth c = wrap l WrapHorizontal $ wrap l WrapVertical  c
-
 neighbourhoodOf :: EnvCoord -> EnvNeighbourhood -> EnvNeighbourhood
 neighbourhoodOf (x,y) ns = map (\(x', y') -> (x + x', y + y')) ns
 
 neighbourhoodScale :: EnvNeighbourhood -> Int -> EnvNeighbourhood
 neighbourhoodScale ns s = map (\(x,y) -> (x * s, y * s)) ns
+
+wrapCells :: EnvLimits -> EnvWrapping -> EnvNeighbourhood -> EnvNeighbourhood
+wrapCells = wrapNeighbourhood
 
 -- NOTE: neumann-neighbourhood only exists in discrete spatial environments
 neumann :: EnvNeighbourhood
@@ -230,6 +251,31 @@ mooreSelf :: EnvNeighbourhood
 mooreSelf = [topLeftDelta, topDelta, topRightDelta,
              leftDelta, centerDelta, rightDelta,
              bottomLeftDelta, bottomDelta, bottomRightDelta]
+
+------------------------------------------------------------------------------------------------------------------------
+-- GENERAL SPATIAL
+------------------------------------------------------------------------------------------------------------------------
+
+
+wrapNeighbourhood :: EnvLimits -> EnvWrapping -> EnvNeighbourhood -> EnvNeighbourhood
+wrapNeighbourhood l w ns = map (wrap l w) ns
+
+------------------------------------------------------------------------------------------------------------------------
+-- internal stuff
+------------------------------------------------------------------------------------------------------------------------
+-- TODO: should not be used to clip because clipping and wrapping are two different things: clip REMOVES vertices, wrap just changes them
+wrap :: EnvLimits -> EnvWrapping -> EnvCoord -> EnvCoord
+wrap (maxX, maxY) ClipToMax (x, y) = (max 0 (min x (maxX - 1)), max 0 (min y (maxY - 1)))
+wrap l@(maxX, _) WrapHorizontal (x, y)
+    | x < 0 = wrap l WrapHorizontal (x + maxX, y)
+    | x >= maxX = wrap l WrapHorizontal (x - maxX, y)
+    | otherwise = (x, y)
+wrap l@(_, maxY) WrapVertical (x, y)
+    | y < 0 = wrap l WrapVertical (x, y + maxY)
+    | y >= maxY = wrap l WrapVertical (x, y - maxY)
+    | otherwise = (x, y)
+wrap l WrapBoth c = wrap l WrapHorizontal $ wrap l WrapVertical  c
+
 
 topLeftDelta =       (-1, -1)
 topDelta =           ( 0, -1)

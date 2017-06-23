@@ -150,7 +150,7 @@ agentMoveTo a cellCoord = a0 { aoEnvPos = cellCoord, aoEnv = env }
         env = changeCellAt (aoEnv a0) cellCoord cellOccupied
 
 selectBestCells :: SugarScapeAgentOut -> [(EnvCoord, SugarScapeEnvCell)] -> [(EnvCoord, SugarScapeEnvCell)]
-selectBestCells a cs = bestShortestDistanceCells
+selectBestCells a cs = bestShortestdistanceManhattanCells
     where
         refCoord = aoEnvPos a
         measureFunc = bestMeasureSugarAndSpiceLevel
@@ -159,9 +159,9 @@ selectBestCells a cs = bestShortestDistanceCells
         bestCellMeasure = measureFunc $ snd $ head cellsSortedByMeasure
         bestCells = filter ((==bestCellMeasure) . measureFunc . snd) cellsSortedByMeasure
 
-        shortestDistanceBestCells = sortBy (\c1 c2 -> compare (distance refCoord (fst c1)) (distance refCoord (fst c2))) bestCells
-        shortestDistance = distance refCoord (fst $ head shortestDistanceBestCells)
-        bestShortestDistanceCells = filter ((==shortestDistance) . (distance refCoord) . fst) shortestDistanceBestCells
+        shortestdistanceManhattanBestCells = sortBy (\c1 c2 -> compare (distanceManhattan refCoord (fst c1)) (distanceManhattan refCoord (fst c2))) bestCells
+        shortestdistanceManhattan = distanceManhattan refCoord (fst $ head shortestdistanceManhattanBestCells)
+        bestShortestdistanceManhattanCells = filter ((==shortestdistanceManhattan) . (distanceManhattan refCoord) . fst) shortestdistanceManhattanBestCells
 
         bestMeasureSugarLevel :: SugarScapeEnvCell -> Double
         bestMeasureSugarLevel c = sugEnvSugarLevel c
@@ -432,11 +432,11 @@ agentCombatMove a
         bestCellPayoff = snd $ head cellsSortedByPayoff
         bestCells = filter ((==bestCellPayoff) . snd) cellsSortedByPayoff
 
-        shortestDistanceBestCells = sortBy (\c1 c2 -> compare (distance agentPos (fst . fst $ c1)) (distance agentPos (fst . fst $ c2))) bestCells
-        shortestDistance = distance agentPos (fst . fst $ head shortestDistanceBestCells)
-        bestShortestDistanceCells = filter ((==shortestDistance) . (distance agentPos) . fst . fst) shortestDistanceBestCells
+        shortestdistanceManhattanBestCells = sortBy (\c1 c2 -> compare (distanceManhattan agentPos (fst . fst $ c1)) (distanceManhattan agentPos (fst . fst $ c2))) bestCells
+        shortestdistanceManhattan = distanceManhattan agentPos (fst . fst $ head shortestdistanceManhattanBestCells)
+        bestShortestdistanceManhattanCells = filter ((==shortestdistanceManhattan) . (distanceManhattan agentPos) . fst . fst) shortestdistanceManhattanBestCells
 
-        (bestCell@((_,_), payoff), a') = agentPickRandom a bestShortestDistanceCells
+        (bestCell@((_,_), payoff), a') = agentPickRandom a bestShortestdistanceManhattanCells
         
         -- NOTE: calculate if retalion is possible: is there an agent of the other tribe in my vision which is wealthier AFTER i have preyed on the current one?
         -- TODO: this is not very well specified in the SugarScape book. we don't know the vision of the other agent, and its information we should not have access to

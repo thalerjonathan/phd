@@ -24,8 +24,10 @@ library
     FrABS.Env.Environment
     FrABS.Simulation.Simulation
     FrABS.Simulation.SimulationUtils
+    FrABS.Simulation.ParIteration      
+    FrABS.Simulation.SeqIteration 
     FrABS.Simulation.Utils
-    FrABS.Simulation.SeqIteration
-    FrABS.Simulation.ParIteration
     FrABS.Rendering.Agents2DDiscrete
     FrABS.Rendering.GlossSimulator
+
+-- unclear why ParIteration, SeqIteration & FrABS.Simulation.Utils need to be exposed. if not it leads to undefined symbol 

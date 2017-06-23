@@ -11,6 +11,7 @@ import FrABS.Env.Environment
 
 import Control.Monad.Trans.State
 
+import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT MONAD TODO: generalize this into Agent.hs
@@ -98,67 +99,79 @@ sirsAgentBehaviourFuncM ain = execState (sirsDtM 1.0) aoAfterMsg
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR YAMPA implementation
 ------------------------------------------------------------------------------------------------------------------------
-sirsAgentSuceptibleSF :: SIRSAgentBehaviour
-sirsAgentSuceptibleSF = switch 
+sirsAgentSuceptibleSF :: RandomGen g => g -> SIRSAgentBehaviour
+sirsAgentSuceptibleSF g = switch 
                             sirsAgentSusceptibleBehaviourSF
-                            sirsAgentSusceptibleInfectedSF
+                            (sirsAgentSusceptibleInfectedSF g)
 
 sirsAgentSusceptibleBehaviourSF :: SF SIRSAgentIn (SIRSAgentOut, Event ())
 sirsAgentSusceptibleBehaviourSF = proc ain ->
     do
-        let aout = agentOutFromIn ain
+        let ao = agentOutFromIn ain
+        let ao' = updateState ao (\s -> s { sirsState = Susceptible})
+
         infectionEvent <- (iEdge False) -< hasMessage ain (Contact Infected)
-        returnA -< (aout, infectionEvent)
 
-sirsAgentSusceptibleInfectedSF :: () -> SIRSAgentBehaviour
-sirsAgentSusceptibleInfectedSF _ = sirsAgentInfectedSF 
+        returnA -< (ao', infectionEvent)
 
-
-
-sirsAgentInfectedSF :: SIRSAgentBehaviour
-sirsAgentInfectedSF = switch 
-                        sirsAgentInfectedBehaviourSF
-                        sirsAgentInfectedRecoveredSF
+sirsAgentSusceptibleInfectedSF :: RandomGen g => g -> () -> SIRSAgentBehaviour
+sirsAgentSusceptibleInfectedSF g _ = sirsAgentInfectedSF g
 
 
-sirsAgentInfectedBehaviourSF :: SF SIRSAgentIn (SIRSAgentOut, Event ())
-sirsAgentInfectedBehaviourSF = proc ain ->
+
+sirsAgentInfectedSF :: RandomGen g => g -> SIRSAgentBehaviour
+sirsAgentInfectedSF g = switch 
+                            (sirsAgentInfectedBehaviourSF g)
+                            (sirsAgentInfectedRecoveredSF g)
+
+
+sirsAgentInfectedBehaviourSF :: RandomGen g => g -> SF SIRSAgentIn (SIRSAgentOut, Event ())
+sirsAgentInfectedBehaviourSF g = proc ain ->
     do
-        let aout = agentOutFromIn ain
-        remainingInfectedTime <- (infectedDuration-) ^<< integral -< 0
+        let ao = agentOutFromIn ain
+        let ao' = updateState ao (\s -> s { sirsState = Infected})
+
+        remainingInfectedTime <- (infectedDuration-) ^<< integral -< 1.0
         recoveredEvent <- edge -< (remainingInfectedTime <= 0)
 
-        -- TODO: make occasional contact
+        -- NOTE: this means the agent is randomly contacting one neighbour within the infected duration
+        makeContact <- occasionally g (infectedDuration * 0.5) () -< ()
 
-        returnA -< (aout, recoveredEvent)
+        let ao'' = if isEvent makeContact then
+                    randomContact ao'
+                        else
+                            ao'
 
-sirsAgentInfectedRecoveredSF :: () -> SIRSAgentBehaviour
-sirsAgentInfectedRecoveredSF _ = sirsAgentRecoveredSF 
+        returnA -< (ao'', recoveredEvent)
+
+sirsAgentInfectedRecoveredSF :: RandomGen g => g -> () -> SIRSAgentBehaviour
+sirsAgentInfectedRecoveredSF g _ = sirsAgentRecoveredSF g
 
 
 
-sirsAgentRecoveredSF :: SIRSAgentBehaviour
-sirsAgentRecoveredSF = switch 
+sirsAgentRecoveredSF :: RandomGen g => g -> SIRSAgentBehaviour
+sirsAgentRecoveredSF g = switch 
                             sirsAgentRecoveredBehaviourSF
-                            sirsAgentRecoveredSusceptibleSF
+                            (sirsAgentRecoveredSusceptibleSF g)
 
 sirsAgentRecoveredBehaviourSF :: SF SIRSAgentIn (SIRSAgentOut, Event ())
 sirsAgentRecoveredBehaviourSF = proc ain ->
     do
-        let aout = agentOutFromIn ain
-        remainingImmuneTime <- (immuneDuration-) ^<< integral -< 0
+        let ao = agentOutFromIn ain
+        let ao' = updateState ao (\s -> s { sirsState = Recovered})
+
+        remainingImmuneTime <- (immuneDuration-) ^<< integral -< 1.0
         backToSusceptibleEvent <- edge -< (remainingImmuneTime <= 0)
 
-        returnA -< (aout, backToSusceptibleEvent)
+        returnA -< (ao', backToSusceptibleEvent)
 
-sirsAgentRecoveredSusceptibleSF :: () -> SIRSAgentBehaviour
-sirsAgentRecoveredSusceptibleSF _ = sirsAgentSuceptibleSF 
+sirsAgentRecoveredSusceptibleSF :: RandomGen g => g -> () -> SIRSAgentBehaviour
+sirsAgentRecoveredSusceptibleSF g _ = sirsAgentSuceptibleSF g
 
-
-sirsAgentBehaviourSF :: SIRSState -> SIRSAgentBehaviour
-sirsAgentBehaviourSF Susceptible = sirsAgentSuceptibleSF
-sirsAgentBehaviourSF Infected = sirsAgentInfectedSF
-sirsAgentBehaviourSF Recovered = sirsAgentRecoveredSF
+sirsAgentBehaviourSF :: RandomGen g => g -> SIRSState -> SIRSAgentBehaviour
+sirsAgentBehaviourSF g Susceptible = sirsAgentSuceptibleSF g
+sirsAgentBehaviourSF g Infected = sirsAgentInfectedSF g
+sirsAgentBehaviourSF g Recovered = sirsAgentRecoveredSF g
 ------------------------------------------------------------------------------------------------------------------------
 
 

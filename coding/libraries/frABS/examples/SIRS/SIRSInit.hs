@@ -55,8 +55,8 @@ randomSIRSAgent p (pos, agentId) =
 
         return AgentDef { adId = agentId,
                             adState = as,
-                            --adBeh = (sirsAgentBehaviourSF initS),    -- for testing Yampa-implementation of Agent
-                            adBeh = sirsAgentBehaviour,        -- for testing Monadic/Non-Monadic implementation of Agent
+                            adBeh = (sirsAgentBehaviourSF rng initS),    -- for testing Yampa-implementation of Agent
+                            -- adBeh = sirsAgentBehaviour,        -- for testing Monadic/Non-Monadic implementation of Agent
                             adInitMessages = NoEvent,
                             adConversation = Nothing,
                             adEnvPos = pos,

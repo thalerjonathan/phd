@@ -15,7 +15,7 @@ updStrat = Parallel
 shuffleAgents = False
 rngSeed = 42
 envSize = (35, 35)
-samplingTimeDelta = 0.2
+samplingTimeDelta = 0.1
 frequency = 0
 
 runWildfireWithRendering :: IO ()

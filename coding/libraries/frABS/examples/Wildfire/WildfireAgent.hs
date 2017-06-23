@@ -38,7 +38,7 @@ igniteNeighboursSF :: RandomGen g => g -> SF WildfireAgentOut WildfireAgentOut
 igniteNeighboursSF g = proc a-> 
 	do
 		g <- rngOfAgent -< a
-		ignitionEvent <- occasionally g 2.0 () -< ()
+		ignitionEvent <- occasionally g 0.2 () -< ()
 		returnA -< (event a (\_ -> igniteNeighbours a) ignitionEvent)
 
 burndownSF :: SF WildfireAgentOut WildfireAgentOut
@@ -46,7 +46,7 @@ burndownSF = proc a ->
 	do
 		let s = aoState a
 		let fuel = wfFuel s
-		remainingFuel <- (1-) ^<< integral -< fuel
+		remainingFuel <- (1.0-) ^<< integral -< 1.0 -- TODO: how can we put fuel-variable in?
 		returnA -< updateState a (\s -> s { wfLifeState = Burning, wfFuel = (max 0.0 remainingFuel)}) 
 
 igniteNeighbours :: WildfireAgentOut -> WildfireAgentOut
@@ -60,14 +60,6 @@ isBurnedDown :: WildfireAgentOut -> Bool
 isBurnedDown ao = wfFuel s <= 0.0
 	where
 		s = aoState ao
-
--- TODO: burning down per time-unit !!
-burndown :: WildfireAgentOut -> WildfireAgentOut
-burndown ao = updateState ao (\s -> s { wfLifeState = Burning, wfFuel = fuel'}) 
-	where
-		s = aoState ao
-		fuel = wfFuel s
-		fuel' = max 0.0 (fuel - 0.1)
 
 neighbourIds :: WildfireAgentOut -> [AgentId]
 neighbourIds ao = map snd neighs

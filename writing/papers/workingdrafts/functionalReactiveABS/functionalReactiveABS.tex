@@ -1,62 +1,47 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% University/School Laboratory Report
-% LaTeX Template
-% Version 3.1 (25/3/14)
-%
-% This template has been downloaded from:
-% http://www.LaTeXTemplates.com
-%
-% Original author:
-% Linux and Unix Users Group at Virginia Tech Wiki 
-% (https://vtluug.org/wiki/Example_LaTeX_chem_lab_report)
-%
-% License:
-% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[a4paper, 10pt, conference]{../../templates/IEEEconf/IEEEconf}
 
-%----------------------------------------------------------------------------------------
-%	PACKAGES AND DOCUMENT CONFIGURATIONS
-%----------------------------------------------------------------------------------------
-
-
-\documentclass[twocolumn]{article}
-
-\usepackage[utf8]{inputenc}
-\usepackage{graphicx} % Required for the inclusion of images
-\usepackage{amsmath} % Required for some math elements 
-\usepackage{glossaries}
-\usepackage[toc,page]{appendix}
-\usepackage[autostyle=true]{csquotes}
-\usepackage{hyperref}
-\usepackage{amssymb}
+\usepackage{graphicx}
 \usepackage{caption} 
-\usepackage{hhline}
-\usepackage{float}
+\usepackage{subcaption}
+\usepackage{hyperref}
 \usepackage{listings}
+\usepackage{hhline}
+\usepackage[utf8]{inputenc}
+\usepackage{float}
+\usepackage{amssymb}
+\usepackage[autostyle=true]{csquotes}
+\usepackage{amsmath}
 
-\setlength\parindent{0pt} % Removes all indentation from paragraphs
+\title{Functional Reactive ABMS:\\Towards pure functional Agent-Based Modelling \& Simulation.}
 
-%\usepackage{times} % Uncomment to use the Times New Roman font
-
-%----------------------------------------------------------------------------------------
-%	DOCUMENT INFORMATION
-%----------------------------------------------------------------------------------------
-
-\title{Functional Reactive ABS:\\Towards a new framework of verification and validation of agent-based simulations and models.} % Title
-
-\author{Jonathan \textsc{Thaler}} % Author name
-
-\date{\today} % Date for the report
+\author{
+	Jonathan Thaler \\
+	\email{jonathan.thaler@nottingham.ac.uk} \\
+	\begin{affiliation}
+		School of Computer Science, University of Nottingham
+	\end{affiliation} \\
+	\and 
+	Peer-Olaf Siebers \\
+	\email{peer-olaf.siebers@nottingham.ac.uk} \\
+	\begin{affiliation}
+		School of Computer Science, University of Nottingham
+	\end{affiliation} 
+	\and 
+	Thorsten Altenkirch \\
+	\email{thorsten.altenkirch@nottingham.ac.uk} \\
+	\begin{affiliation}
+		School of Computer Science, University of Nottingham
+	\end{affiliation} 
+}
 
 \begin{document}
+\maketitle 
 
-\maketitle % Insert the title, author and date
-
-% If you wish to include an abstract, uncomment the lines below
 \begin{abstract}
 The pure functional paradigm has so far got not very much attention in ABS where the dominant programming paradigm is object-orientation, realized by Java. In preliminary research of ours, we came to the insight that pure functional programming using Haskell without any additional libraries is very well suited to implement ABS but that in order to build more complex, reald-world models it would be necessary to leverage the basic concepts with functional reactive programming (FRP). In this paper we show how ABS can be fused with FRP to design an embedded domain specific language (EDSL) which allows to write specifications which (nearly) match pure functional code - the specification becomes Haskell code. For a proof of concept, we chose to implement the famous and well known \textit{Sugarscape} model from the social sciences and the \textit{ACE Trading World} from agent-based computational economics (ACE).
 \end{abstract}
+
+\textbf{Keywords:} Agent-Based Simulation, Functional Programming, Reactive Programming, Haskell
 
 \input{./tex/introduction.tex}
 

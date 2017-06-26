@@ -15,10 +15,10 @@ winTitle = "SIRS"
 updateStrat = Sequential
 shuffleAgents = True
 rngSeed = 42
-samplingTimeDelta = 1.0
+samplingTimeDelta = 0.5
 frequency = 0
 cells = (31, 31)
-steps = 10
+steps = 60
 
 runSIRSWithRendering :: IO ()
 runSIRSWithRendering = do

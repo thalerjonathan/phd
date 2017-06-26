@@ -23,7 +23,7 @@ import PrisonersDilemma.PDRun
 -}
 
 main :: IO ()
-main = runSIRSWithRendering
+main = runSIRSStepsAndRender
 
 	-- runDoubleAuctionSteps
 	-- runSIRSWithRendering

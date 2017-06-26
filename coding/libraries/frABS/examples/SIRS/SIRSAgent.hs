@@ -9,7 +9,12 @@ import FrABS.Agent.Agent
 import FrABS.Agent.AgentUtils
 import FrABS.Env.Environment
 
+
+import Control.Monad.Random
 import Control.Monad.Trans.State
+import Control.Monad.Trans.Class (lift)
+import qualified Control.Monad.State.Lazy as ST
+import Control.Monad (ap)
 
 import Debug.Trace
 
@@ -114,6 +119,7 @@ sirsAgentSusceptibleBehaviourSF = proc ain ->
 
         returnA -< (ao', infectionEvent)
 
+-- TODO: update sirsState to infected here once, no need to constantly set to infected in infecedbehaviourSF
 sirsAgentSusceptibleInfectedSF :: RandomGen g => g -> () -> SIRSAgentBehaviour
 sirsAgentSusceptibleInfectedSF g _ = sirsAgentInfectedSF g
 
@@ -144,6 +150,7 @@ sirsAgentInfectedBehaviourSF g = proc ain ->
 
         returnA -< (ao'', recoveredEvent)
 
+-- TODO: update sirsState to recovered here once, no need to constantly set to recovered in recoverbehaviourSF
 sirsAgentInfectedRecoveredSF :: RandomGen g => g -> () -> SIRSAgentBehaviour
 sirsAgentInfectedRecoveredSF g _ = sirsAgentRecoveredSF g
 
@@ -165,6 +172,7 @@ sirsAgentRecoveredBehaviourSF = proc ain ->
 
         returnA -< (ao', backToSusceptibleEvent)
 
+-- TODO: update sirsState to susceptible here once, no need to constantly set to susceptible in susceptiblebehaviourSF
 sirsAgentRecoveredSusceptibleSF :: RandomGen g => g -> () -> SIRSAgentBehaviour
 sirsAgentRecoveredSusceptibleSF g _ = sirsAgentSuceptibleSF g
 

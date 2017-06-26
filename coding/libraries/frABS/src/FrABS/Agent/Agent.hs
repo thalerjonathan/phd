@@ -135,6 +135,12 @@ runAgentRandom a f = (ret, a')
         (ret, g') = runRand f g
         a' = a {aoRng = g'}
 
+runAgentRandomM :: Rand StdGen a -> State (AgentOut s m ec l) a
+runAgentRandomM f = state (runAgentRandomMAux f)
+    where
+        runAgentRandomMAux :: Rand StdGen a -> AgentOut s m ec l -> (a, AgentOut s m ec l)
+        runAgentRandomMAux f ao = runAgentRandom ao f
+
 drawRandomRangeFromAgent :: (Random a) => AgentOut s m ec l -> (a, a) -> (a, AgentOut s m ec l)
 drawRandomRangeFromAgent a r = runAgentRandom a (getRandomR r)
 

@@ -22,7 +22,8 @@ module FrABS.Agent.Agent (
     agentPickRandom,
     agentPickRandomM,
     agentPickRandomMultiple,
-
+    agentPickRandomMultipleM,
+    
     agentIdM,
     environmentM,
     environmentPositionM,
@@ -53,7 +54,9 @@ module FrABS.Agent.Agent (
 
     hasConversation,
     conversation,
+    conversationM,
     conversationEnd,
+    conversationEndM,
 
     updateDomainState,
     updateDomainStateM,
@@ -214,6 +217,9 @@ agentPickRandomMultiple a xs n
         (randIndices, a') = drawMultipleRandomRangeFromAgent a (0, cellCount - 1) n
         randElems = foldr (\idx acc -> (xs !! idx) : acc) [] randIndices  
 
+agentPickRandomMultipleM :: [a] -> Int -> State (AgentOut s m ec l) [a]
+agentPickRandomMultipleM xs n = state (\ao -> agentPickRandomMultiple ao xs n)
+
 recInitAllowed :: AgentIn s m ec l -> Bool
 recInitAllowed = aiRecInitAllowed
 
@@ -244,20 +250,27 @@ hasConversation :: AgentOut s m ec l -> Bool
 hasConversation = isEvent . aoConversation
 
 conversation :: AgentOut s m ec l
-                        -> AgentMessage m
-                        -> AgentConversationSender s m ec l
-                        -> AgentOut s m ec l
+                -> AgentMessage m
+                -> AgentConversationSender s m ec l
+                -> AgentOut s m ec l
 conversation ao msg replyHdl = ao { aoConversation = Event (msg, replyHdl)}
+
+conversationM :: AgentMessage m
+                -> AgentConversationSender s m ec l
+                -> State (AgentOut s m ec l) ()
+conversationM msg replyHdl = state (\ao -> ((), conversation ao msg replyHdl))
 
 conversationEnd :: AgentOut s m ec l -> AgentOut s m ec l
 conversationEnd ao = ao { aoConversation = NoEvent }
+
+conversationEndM :: State (AgentOut s m ec l) ()
+conversationEndM = state (\ao -> ((), conversationEnd ao))
 
 sendMessages :: AgentOut s m ec l -> [AgentMessage m] -> AgentOut s m ec l
 sendMessages ao msgs = foldr (\msg ao' -> sendMessage ao' msg ) ao msgs
 
 sendMessagesM :: [AgentMessage m] -> State (AgentOut s m ec l) ()
 sendMessagesM msgs = state (\ao -> ((), sendMessages ao msgs))
-
 
 broadcastMessage :: AgentOut s m ec l -> m -> [AgentId] -> AgentOut s m ec l
 broadcastMessage ao m receiverIds = sendMessages ao msgs

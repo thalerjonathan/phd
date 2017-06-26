@@ -40,6 +40,7 @@ module FrABS.Env.Environment (
     randomCellWithinRect,
 
     neighbours,
+    neighboursM,
     neighboursDistance,
     neighboursDistanceM,
     neighbourhoodOf,
@@ -257,6 +258,9 @@ neighboursDistanceM coord dist = state (\env -> (neighboursDistance env coord di
 
 neighbours :: Environment c l -> EnvCoord -> [(EnvCoord, c)]
 neighbours env coord = neighboursDistance env coord 1
+
+neighboursM :: EnvCoord -> State (Environment c l) [(EnvCoord, c)]
+neighboursM coord = state (\env -> (neighbours env coord, env))
 
 neighbourhoodOf :: EnvCoord -> EnvNeighbourhood -> EnvNeighbourhood
 neighbourhoodOf (x,y) ns = map (\(x', y') -> (x + x', y + y')) ns

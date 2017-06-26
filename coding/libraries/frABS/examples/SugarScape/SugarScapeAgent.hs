@@ -27,8 +27,11 @@ import Debug.Trace
 
 
 ------------------------------------------------------------------------------------------------------------------------
--- DOMAIN-STATE FUNCTIONS not used for manipulating the state
+-- GENERAL FUNCTIONS, independent of monadic / non-monadic implementation
 ------------------------------------------------------------------------------------------------------------------------
+isDiseased :: SugarScapeAgentState -> Bool
+isDiseased s = not $ null (sugAgDiseases s)
+
 metabolismAmount :: SugarScapeAgentState -> (Double, Double)
 metabolismAmount s = (sugarMetab + inc, spiceMetab + inc)
     where
@@ -66,10 +69,135 @@ bestMeasureSugarPolutionRatio c = sugLvl / (1 + polLvl)
     where
         sugLvl = sugEnvSugarLevel c
         polLvl = sugEnvPolutionLevel c
+
+excessAmountToChildBearing :: SugarScapeAgentState -> Double
+excessAmountToChildBearing s = currSugar - initSugar
+    where
+        currSugar = sugAgSugarLevel s
+        initSugar = sugAgSugarInit s
+
+satisfiesWealthForChildBearing :: SugarScapeAgentState -> Bool
+satisfiesWealthForChildBearing s = excessAmount >= 0
+    where
+        excessAmount = excessAmountToChildBearing s
+
+isFertile :: SugarScapeAgentState -> Bool
+isFertile s = withinRange age fertilityAgeRange
+    where
+        age = sugAgAge s
+        fertilityAgeRange = sugAgFertAgeRange s
+
+tooOldForChildren :: SugarScapeAgentState -> Bool
+tooOldForChildren s = age > fertilityAgeMax 
+    where
+        age = sugAgAge s
+        (_, fertilityAgeMax) = sugAgFertAgeRange s
+
+withinRange :: (Ord a) => a -> (a, a) -> Bool
+withinRange a (l, u) = a >= l && a <= u
+
+neighbourIds :: SugarScapeAgentOut -> [AgentId]
+neighbourIds a = map (sugEnvOccId . fromJust . sugEnvOccupier . snd) occupiedCells
+    where
+        env = aoEnv a
+        pos = aoEnvPos a
+        neighbourCells = neighbours env pos
+        occupiedCells = filter (isJust . sugEnvOccupier . snd) neighbourCells
+
+neighbourIdsM :: State SugarScapeAgentOut [AgentId]
+neighbourIdsM = state (\ao -> (neighbourIds ao, ao))
+
+createNewBorn :: (AgentId, EnvCoord)
+                    -> (Double, Double, Double, Int, SugarScapeCulturalTag, SugarScapeImmuneSystem)
+                    -> (Double, Double, Double, Int, SugarScapeCulturalTag, SugarScapeImmuneSystem)
+                    -> Rand StdGen SugarScapeAgentDef
+createNewBorn idCoord
+                (sugEndowFather, sugarMetabFather, spiceMetabFather, visionFather, cultureFather, immuneSysBornFather)
+                (sugEndowMother, sugarMetabMother, spiceMetabMother, visionMother, cultureMother, immuneSysBornMother) =
+    do
+        newBornSugarMetab <- crossover (sugarMetabFather, sugarMetabMother)
+        newBornSpiceMetab <- crossover (spiceMetabFather, spiceMetabMother)
+        newBornVision <- crossover (visionFather, visionMother)
+        newBornCulturalTag <- crossoverBools cultureFather cultureMother
+        newBornImmuneSystem <- crossoverBools immuneSysBornFather immuneSysBornMother
+
+        let newBornSugarEndow = sugEndowFather + sugEndowMother
+
+        newBornDef <- randomAgent
+                            idCoord
+                            sugarScapeAgentBehaviour
+                            sugarScapeAgentConversation
+
+        let newBornState' = (adState newBornDef) { sugAgSugarMetab = newBornSugarMetab,
+                                                   sugAgSpiceMetab = newBornSpiceMetab,
+                                                   sugAgVision = newBornVision,
+                                                   sugAgSugarInit = newBornSugarEndow,
+                                                   sugAgCulturalTag = newBornCulturalTag,
+                                                   sugAgTribe = calculateTribe newBornCulturalTag,
+                                                   sugAgImmuneSys = newBornImmuneSystem,
+                                                   sugAgImmuneSysBorn = newBornImmuneSystem,
+                                                   sugAgDiseases = [] }
+
+        return newBornDef { adState = newBornState' }
+
+filterTargetCell :: (SugarScapeEnvCellOccupier -> Bool) -> (EnvCoord, SugarScapeEnvCell) -> Bool
+filterTargetCell f (coord, cell) = maybe True f mayOccupier
+    where
+        mayOccupier = sugEnvOccupier cell
+
+occupierCombatable :: Double
+                        -> SugarScapeTribe 
+                        -> SugarScapeEnvCellOccupier
+                        -> Bool
+occupierCombatable myWealth myTribe occupier= differentTribe && lessWealthy
+    where
+        otherTribe = sugEnvOccTribe occupier
+        otherWealth = sugEnvOccWealth occupier
+        differentTribe = otherTribe /= myTribe
+        lessWealthy = otherWealth <myWealth 
+
+occupierRetaliator :: Double 
+                        -> SugarScapeTribe 
+                        -> SugarScapeEnvCellOccupier
+                        -> Bool
+occupierRetaliator referenceWealth myTribe occupier = differentTribe && moreWealthy
+    where
+        otherTribe = sugEnvOccTribe occupier
+        otherWealth = sugEnvOccWealth occupier
+        differentTribe = otherTribe /= myTribe
+        moreWealthy = otherWealth > referenceWealth 
+
+cellPayoff :: (EnvCoord, SugarScapeEnvCell) -> ((EnvCoord, SugarScapeEnvCell), Double)
+cellPayoff (c, cell) = ((c, cell), payoff)
+    where
+        mayOccupier = sugEnvOccupier cell
+        sugarLevel = sugEnvSugarLevel cell
+        payoff = maybe sugarLevel (\occupier -> sugarLevel + (min combatReward (sugEnvOccWealth occupier))) mayOccupier
+
+agentImmunizeAux :: SugarScapeDisease 
+                    -> (SugarScapeImmuneSystem, [SugarScapeDisease]) 
+                    -> (SugarScapeImmuneSystem, [SugarScapeDisease])
+agentImmunizeAux disease (imSys, accDis) 
+    | minHam == 0 = (imSys, accDis)
+    | otherwise = (imSys', disease : accDis)
+    where
+        dLen = length disease
+
+        hd = calculateHammingDistances imSys disease
+        mi@(minHam, minHamIdx) = findMinWithIdx hd
+
+        minSubImmSys = take dLen (drop minHamIdx imSys)
+
+        tagIdx = findFirstDiffIdx minSubImmSys disease
+        globalIdx = minHamIdx + tagIdx
+        imSys' = flipBoolAtIdx imSys globalIdx
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR MONADIC 
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+-- Chapter II: Life And Death On The Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
 agentDiesM :: State SugarScapeAgentOut ()
 agentDiesM = unoccupyPositionM >> killM
@@ -238,6 +366,251 @@ dieFromAgeM =
         age <- domainStateFieldM sugAgAge
         maxAge <- domainStateFieldM sugAgMaxAge
         return $ age > maxAge
+
+------------------------------------------------------------------------------------------------------------------------
+-- CHAPTER III: Sex, Culture, And Conflict: The Emergence Of History
+------------------------------------------------------------------------------------------------------------------------
+agentSexM :: State SugarScapeAgentOut ()
+agentSexM =
+    do
+        s <- getDomainStateM
+        pos <- environmentPositionM
+        env <- environmentM
+
+        neighbourCells <- runEnvironmentM $ neighboursM pos
+        nids <- neighbourIdsM 
+
+        -- TODO: implement this as monadic
+        -- NOTE: this calculates the cells which are in the initial neighbourhood and in the neighbourhood of all the neighbours
+        let  nncsDupl = foldr (\(coord, _) acc -> (neighbours env coord) ++ acc) neighbourCells neighbourCells
+        -- NOTE: the nncs are not unique, remove duplicates
+        let nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
+        let nncsUnoccupied = filter (isNothing . sugEnvOccupier . snd) nncsUnique
+
+        when (isFertile s) (agentMatingConversationM nids nncsUnoccupied)
+
+    where
+        agentMatingConversationM :: [AgentId]
+                                    -> [(EnvCoord, SugarScapeEnvCell)]
+                                    -> State SugarScapeAgentOut ()
+        agentMatingConversationM [] _ = conversationEndM
+        agentMatingConversationM _ [] = conversationEndM
+        agentMatingConversationM (receiverId:otherAis) allCoords@((coord, cell):cs) =
+            do
+                s <- getDomainStateM
+                gender <- domainStateFieldM sugAgGender
+
+                ifThenElse (satisfiesWealthForChildBearing s)
+                    (conversationM (receiverId, (MatingRequest gender)) agentMatingConversationsReplyMonadicRunner)
+                    conversationEndM
+                
+            where
+                agentMatingConversationsReplyMonadicRunner :: SugarScapeAgentOut
+                                                                    -> Maybe (AgentMessage SugarScapeMsg)
+                                                                    -> SugarScapeAgentOut
+                agentMatingConversationsReplyMonadicRunner ao mayReply = 
+                    execState (agentMatingConversationsReplyM mayReply) ao
+
+                agentMatingConversationsReplyM :: Maybe (AgentMessage SugarScapeMsg) -> State SugarScapeAgentOut ()
+                agentMatingConversationsReplyM Nothing = agentMatingConversationM otherAis allCoords  -- NOTE: the target was not found or does not have a handler, continue with the next
+                agentMatingConversationsReplyM (Just (_, MatingReplyNo)) = agentMatingConversationM otherAis allCoords
+                agentMatingConversationsReplyM (Just (senderId, (MatingReplyYes otherTup))) = 
+                    do
+                        initialSugarEndow <- domainStateFieldM sugAgSugarInit
+                        aid <- agentIdM 
+
+                        let mySugarContribution = initialSugarEndow / 2.0
+                        mySugarMetab <- domainStateFieldM sugAgSugarMetab
+                        mySpiceMetab <- domainStateFieldM sugAgSpiceMetab
+                        myVision <- domainStateFieldM sugAgVision
+                        myCulturalTag <- domainStateFieldM sugAgCulturalTag
+                        myImmuneSysBorn <- domainStateFieldM sugAgImmuneSysBorn
+
+                        let newBornId = senderId * aid   -- TODO: this is a real problem: which ids do we give our newborns?
+
+                        newBornDef <- runAgentRandomM
+                            (createNewBorn 
+                                (newBornId, coord)
+                                (mySugarContribution, mySugarMetab, mySpiceMetab, myVision, myCulturalTag, myImmuneSysBorn)
+                                otherTup)
+
+                        let cell' = cell { sugEnvOccupier = Just (cellOccupier newBornId (adState newBornDef))}
+                        runEnvironmentM $ changeCellAtM coord cell'
+
+                        updateDomainStateM (\s -> s { sugAgSugarLevel = (sugAgSugarLevel s) - mySugarContribution,
+                                                      sugAgChildren = newBornId : (sugAgChildren s)})
+                        createAgentM newBornDef
+
+                        conversationM 
+                            (receiverId, (MatingChild newBornId))
+                            (\ao _ -> execState (agentMatingConversationM otherAis cs) ao)
+                  
+                agentMatingConversationsReplyM (Just (_, _)) = agentMatingConversationM otherAis allCoords  -- NOTE: unexpected/MatingChildAck reply, continue with the next
+
+inheritSugarM :: SugarScapeAgentIn 
+                    -> State SugarScapeAgentOut ()
+inheritSugarM ain = onMessageM ain inheritSugarActionM
+    where
+        inheritSugarActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
+        inheritSugarActionM (_, (InheritSugar sug)) = updateDomainStateM (\s -> s { sugAgSugarLevel = (sugAgSugarLevel s) + sug})
+        inheritSugarActionM _ = return ()
+
+-- TODO: implement handleMatingConversation as monadic ?
+
+agentCultureContactM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
+agentCultureContactM ain = 
+    do
+        onMessageM ain cultureContactActionM
+
+        nids <- neighbourIdsM
+        culturalTag <- domainStateFieldM sugAgCulturalTag
+
+        broadcastMessageM (CulturalContact culturalTag) nids 
+
+    where
+        cultureContactActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
+        cultureContactActionM (_, (CulturalContact tagActive)) = 
+            do
+                agentTag <- domainStateFieldM sugAgCulturalTag
+                agentTag' <- runAgentRandomM (cultureContact tagActive agentTag)
+                
+                let tribe = calculateTribe agentTag'
+
+                updateDomainStateM (\s -> s { sugAgCulturalTag = agentTag',
+                                              sugAgTribe = tribe})
+        cultureContactActionM _ = return ()
+
+agentKilledInCombatM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
+agentKilledInCombatM ain = onMessageM ain killedInCombatActionM
+    where
+        killedInCombatActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
+        killedInCombatActionM (_, KilledInCombat) = killM -- NOTE: don't unoccupie position (as in agentdies) because it is occupied by the killer already
+        killedInCombatActionM _ = return ()
+
+agentCombatMoveM :: State SugarScapeAgentOut ()
+agentCombatMoveM =
+    do
+        cellsInSight <- agentLookoutM
+        myTribe <- domainStateFieldM sugAgTribe
+        myWealth <- domainStateFieldM sugAgSugarLevel 
+
+        let targetCells = filter (filterTargetCell (occupierCombatable myWealth myTribe)) cellsInSight
+        
+        ifThenElse (null targetCells)
+            agentStayAndHarvestM
+            $ do
+                agentPos <- environmentPositionM
+
+                let targeCellsWithPayoff = map cellPayoff targetCells
+
+                let cellsSortedByPayoff = sortBy (\c1 c2 -> compare (snd c2) (snd c1)) targeCellsWithPayoff
+                let bestCellPayoff = snd $ head cellsSortedByPayoff
+                let bestCells = filter ((==bestCellPayoff) . snd) cellsSortedByPayoff
+
+                let shortestdistanceManhattanBestCells = sortBy (\c1 c2 -> compare (distanceManhattan agentPos (fst . fst $ c1)) (distanceManhattan agentPos (fst . fst $ c2))) bestCells
+                let shortestdistanceManhattan = distanceManhattan agentPos (fst . fst $ head shortestdistanceManhattanBestCells)
+                let bestShortestdistanceManhattanCells = filter ((==shortestdistanceManhattan) . (distanceManhattan agentPos) . fst . fst) shortestdistanceManhattanBestCells
+
+                bestCell@((_,_), payoff) <- agentPickRandomM bestShortestdistanceManhattanCells
+                
+                ifThenElseM (vulnerableToRetaliationM payoff)
+                    agentStayAndHarvestM
+                    (moveAndHarvestBestCellM bestCell)
+
+    where
+        -- NOTE: calculate if retalion is possible: is there an agent of the other tribe in my vision which is wealthier AFTER i have preyed on the current one?
+        -- TODO: this is not very well specified in the SugarScape book. we don't know the vision of the other agent, and its information we should not have access to
+        vulnerableToRetaliationM :: Double -> State SugarScapeAgentOut Bool
+        vulnerableToRetaliationM payoff =
+            do
+                sugarLevelAgent <- domainStateFieldM sugAgSugarLevel
+                cellsInSight <- agentLookoutM
+                myTribe <- domainStateFieldM sugAgTribe
+
+                let futureSugarLevel = (payoff + sugarLevelAgent)
+                let retaliatingCells = filter (filterTargetCell (occupierRetaliator futureSugarLevel myTribe)) cellsInSight
+
+                return $ (not . null) retaliatingCells
+              
+        moveAndHarvestBestCellM :: ((EnvCoord, SugarScapeEnvCell), Double) -> State SugarScapeAgentOut ()
+        moveAndHarvestBestCellM ((cellCoord, cell), payoff) =
+            do
+                sugarLevelAgent <- domainStateFieldM sugAgSugarLevel
+                let newSugarLevelAgent = (payoff + sugarLevelAgent)
+
+                unoccupyPositionM
+                updateDomainStateM (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
+
+                aid <- agentIdM
+                s <- getDomainStateM
+
+                let cellHarvestedAndOccupied = cell {
+                        sugEnvSugarLevel = 0.0,
+                        sugEnvOccupier = Just (cellOccupier aid s),
+                        sugEnvPolutionLevel = 0
+                }
+                        
+                runEnvironmentM $ changeCellAtM cellCoord cellHarvestedAndOccupied
+                changeEnvironmentPositionM cellCoord
+
+                when (cellOccupied cell) (killOccupierOfCellM cell)
+
+        killOccupierOfCellM :: SugarScapeEnvCell -> State SugarScapeAgentOut ()
+        killOccupierOfCellM cell = sendMessageM (occupierId, KilledInCombat)
+            where
+                occupier = fromJust $ sugEnvOccupier cell
+                occupierId = sugEnvOccId occupier 
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- Chapter IV: Sugar and Spice - Trade Comes to the Sugarscape
+------------------------------------------------------------------------------------------------------------------------
+-- TODO
+------------------------------------------------------------------------------------------------------------------------
+
+
+------------------------------------------------------------------------------------------------------------------------
+-- Chapter V: Disease Processes
+------------------------------------------------------------------------------------------------------------------------
+agentDiseaseContactM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
+agentDiseaseContactM ain = onMessageM ain diseaseContactActionM
+    where
+        diseaseContactActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
+        diseaseContactActionM (_, (DiseaseContact d)) = updateDomainStateM (\s -> s { sugAgDiseases = d : (sugAgDiseases s) } )
+        diseaseContactActionM _ = return ()
+
+agentDiseasesTransmitM :: State SugarScapeAgentOut ()
+agentDiseasesTransmitM =
+    do
+        nids <- neighbourIdsM
+        diseases <- domainStateFieldM sugAgDiseases
+        s <- getDomainStateM
+
+        let neighbourCount = length nids
+        randDisease <- agentPickRandomMultipleM diseases neighbourCount
+
+        let msgs = map (\(receiverId, disease) -> (receiverId, DiseaseContact disease)) (zip nids randDisease)
+        let hasNeighbours = (not . null) nids
+
+        when ((isDiseased s) && hasNeighbours) (sendMessagesM msgs)
+
+agentImmunizeM :: State SugarScapeAgentOut ()
+agentImmunizeM =
+    do
+        immuneSystem <- domainStateFieldM sugAgImmuneSys
+        diseases <- domainStateFieldM sugAgDiseases
+
+        let (immuneSystem', diseases') = foldr agentImmunizeAux (immuneSystem, []) diseases
+
+        updateDomainStateM (\s -> s { sugAgImmuneSys = immuneSystem',
+                                      sugAgDiseases = diseases' })
+
+agentDiseaseProcessesM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
+agentDiseaseProcessesM ain = agentDiseaseContactM ain >> agentDiseasesTransmitM >> agentImmunizeM
+------------------------------------------------------------------------------------------------------------------------
+
+
+
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR NON-MONADIC 
 ------------------------------------------------------------------------------------------------------------------------
@@ -475,64 +848,6 @@ agentSex a
 
                 agentMatingConversationsReply a (Just (_, _)) = agentMatingConversation otherAis allCoords a  -- NOTE: unexpected/MatingChildAck reply, continue with the next
 
-createNewBorn :: (AgentId, EnvCoord)
-                    -> (Double, Double, Double, Int, SugarScapeCulturalTag, SugarScapeImmuneSystem)
-                    -> (Double, Double, Double, Int, SugarScapeCulturalTag, SugarScapeImmuneSystem)
-                    -> Rand StdGen SugarScapeAgentDef
-createNewBorn idCoord
-                (sugEndowFather, sugarMetabFather, spiceMetabFather, visionFather, cultureFather, immuneSysBornFather)
-                (sugEndowMother, sugarMetabMother, spiceMetabMother, visionMother, cultureMother, immuneSysBornMother) =
-    do
-        newBornSugarMetab <- crossover (sugarMetabFather, sugarMetabMother)
-        newBornSpiceMetab <- crossover (spiceMetabFather, spiceMetabMother)
-        newBornVision <- crossover (visionFather, visionMother)
-        newBornCulturalTag <- crossoverBools cultureFather cultureMother
-        newBornImmuneSystem <- crossoverBools immuneSysBornFather immuneSysBornMother
-
-        let newBornSugarEndow = sugEndowFather + sugEndowMother
-
-        newBornDef <- randomAgent
-                            idCoord
-                            sugarScapeAgentBehaviour
-                            sugarScapeAgentConversation
-
-        let newBornState' = (adState newBornDef) { sugAgSugarMetab = newBornSugarMetab,
-                                                   sugAgSpiceMetab = newBornSpiceMetab,
-                                                   sugAgVision = newBornVision,
-                                                   sugAgSugarInit = newBornSugarEndow,
-                                                   sugAgCulturalTag = newBornCulturalTag,
-                                                   sugAgTribe = calculateTribe newBornCulturalTag,
-                                                   sugAgImmuneSys = newBornImmuneSystem,
-                                                   sugAgImmuneSysBorn = newBornImmuneSystem,
-                                                   sugAgDiseases = [] }
-
-        return newBornDef { adState = newBornState' }
-
-excessAmountToChildBearing :: SugarScapeAgentState -> Double
-excessAmountToChildBearing s = currSugar - initSugar
-    where
-        currSugar = sugAgSugarLevel s
-        initSugar = sugAgSugarInit s
-
-satisfiesWealthForChildBearing :: SugarScapeAgentState -> Bool
-satisfiesWealthForChildBearing s = excessAmount >= 0
-    where
-        excessAmount = excessAmountToChildBearing s
-
-isFertile :: SugarScapeAgentState -> Bool
-isFertile s = withinRange age fertilityAgeRange
-    where
-        age = sugAgAge s
-        fertilityAgeRange = sugAgFertAgeRange s
-
-tooOldForChildren :: SugarScapeAgentState -> Bool
-tooOldForChildren s = age > fertilityAgeMax 
-    where
-        age = sugAgAge s
-        (_, fertilityAgeMax) = sugAgFertAgeRange s
-
-withinRange :: (Ord a) => a -> (a, a) -> Bool
-withinRange a (l, u) = a >= l && a <= u
 
 inheritSugar :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
 inheritSugar ain a = onMessage ain inheritSugarAction a
@@ -566,8 +881,6 @@ handleMatingConversation otherGender ain
 
         s' = s { sugAgSugarLevel = sugarLevel - mySugarContribution }
         ain' = ain { aiState = s'}
-
-
 
 agentCultureContact :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
 agentCultureContact ain a = broadcastMessage a' (CulturalContact culturalTag) nids 
@@ -605,7 +918,7 @@ agentCombatMove a
         myWealth = sugAgSugarLevel s 
 
         cellsInSight = agentLookout a
-        targetCells = filter (filterTargetCell occupierCombatable) cellsInSight
+        targetCells = filter (filterTargetCell (occupierCombatable myWealth myTribe)) cellsInSight
         targeCellsWithPayoff = map cellPayoff targetCells
 
         cellsSortedByPayoff = sortBy (\c1 c2 -> compare (snd c2) (snd c1)) targeCellsWithPayoff
@@ -627,7 +940,7 @@ agentCombatMove a
                 futureSugarLevel = (payoff + sugarLevelAgent)
 
                 cellsInSight = agentLookout a
-                retaliatingCells = filter (filterTargetCell (occupierRetaliator futureSugarLevel)) cellsInSight
+                retaliatingCells = filter (filterTargetCell (occupierRetaliator futureSugarLevel myTribe)) cellsInSight
 
         moveAndHarvestBestCell :: ((EnvCoord, SugarScapeEnvCell), Double) -> SugarScapeAgentOut -> SugarScapeAgentOut
         moveAndHarvestBestCell ((cellCoord, cell), payoff) a 
@@ -653,34 +966,6 @@ agentCombatMove a
             where
                 occupier = fromJust $ sugEnvOccupier cell
                 occupierId = sugEnvOccId occupier 
-
-        filterTargetCell :: (SugarScapeEnvCellOccupier -> Bool) -> (EnvCoord, SugarScapeEnvCell) -> Bool
-        filterTargetCell f (coord, cell) = maybe True f mayOccupier
-            where
-                mayOccupier = sugEnvOccupier cell
-
-        occupierCombatable :: SugarScapeEnvCellOccupier -> Bool
-        occupierCombatable occupier = differentTribe && lessWealthy
-            where
-                otherTribe = sugEnvOccTribe occupier
-                otherWealth = sugEnvOccWealth occupier
-                differentTribe = otherTribe /= myTribe
-                lessWealthy = otherWealth <myWealth 
-
-        occupierRetaliator :: Double -> SugarScapeEnvCellOccupier -> Bool
-        occupierRetaliator referenceWealth occupier = differentTribe && moreWealthy
-            where
-                otherTribe = sugEnvOccTribe occupier
-                otherWealth = sugEnvOccWealth occupier
-                differentTribe = otherTribe /= myTribe
-                moreWealthy = otherWealth > referenceWealth 
-
-        cellPayoff :: (EnvCoord, SugarScapeEnvCell) -> ((EnvCoord, SugarScapeEnvCell), Double)
-        cellPayoff (c, cell) = ((c, cell), payoff)
-            where
-                mayOccupier = sugEnvOccupier cell
-                sugarLevel = sugEnvSugarLevel cell
-                payoff = maybe sugarLevel (\occupier -> sugarLevel + (min combatReward (sugEnvOccWealth occupier))) mayOccupier
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -985,9 +1270,6 @@ isPotentialBorrower s
 ------------------------------------------------------------------------------------------------------------------------
 -- Chapter V: Disease Processes
 ------------------------------------------------------------------------------------------------------------------------
-isDiseased :: SugarScapeAgentState -> Bool
-isDiseased s = not $ null (sugAgDiseases s)
-
 agentDiseaseContact :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
 agentDiseaseContact ain a = onMessage ain diseaseContactAction a
     where
@@ -1019,22 +1301,6 @@ agentImmunize a = updateDomainState a (\s -> s { sugAgImmuneSys = immuneSystem',
 
         (immuneSystem', diseases') = foldr agentImmunizeAux (immuneSystem, []) diseases
 
-        agentImmunizeAux :: SugarScapeDisease -> (SugarScapeImmuneSystem, [SugarScapeDisease]) -> (SugarScapeImmuneSystem, [SugarScapeDisease])
-        agentImmunizeAux disease (imSys, accDis) 
-            | minHam == 0 = (imSys, accDis)
-            | otherwise = (imSys', disease : accDis)
-            where
-                dLen = length disease
-
-                hd = calculateHammingDistances imSys disease
-                mi@(minHam, minHamIdx) = findMinWithIdx hd
- 
-                minSubImmSys = take dLen (drop minHamIdx imSys)
-
-                tagIdx = findFirstDiffIdx minSubImmSys disease
-                globalIdx = minHamIdx + tagIdx
-                imSys' = flipBoolAtIdx imSys globalIdx
-
 agentDiseaseProcesses :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
 agentDiseaseProcesses ain a = agentImmunize $ agentDiseasesTransmit $ agentDiseaseContact ain a
 ------------------------------------------------------------------------------------------------------------------------
@@ -1060,47 +1326,71 @@ sugarScapeAgentConversation ain (borrowerId, CreditRequest) = Just $ handleCredi
 sugarScapeAgentConversation _ _ = Nothing
 
 
-neighbourIds :: SugarScapeAgentOut -> [AgentId]
-neighbourIds a = map (sugEnvOccId . fromJust . sugEnvOccupier . snd) occupiedCells
-    where
-        env = aoEnv a
-        pos = aoEnvPos a
-        neighbourCells = neighbours env pos
-        occupiedCells = filter (isJust . sugEnvOccupier . snd) neighbourCells
-
 sugarScapeAgentBehaviourFunc :: Double -> SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut 
-sugarScapeAgentBehaviourFunc age ain a = do     
-                                            let a0 = agentKilledInCombat ain a 
-                                            if isDead a0 then
-                                                agentDeathHandleCredits a0
-                                                else
-                                                    do
-                                                        let a1 = agentAgeing age a0
-                                                        if isDead a1 then
-                                                            agentDeathHandleCredits a1
-                                                            else
-                                                                do
-                                                                    let a2 = agentMetabolism a1
-                                                                    if isDead a2 then
-                                                                        agentDeathHandleCredits a2
-                                                                        else 
-                                                                            do
-                                                                                let a3 = agentNonCombatMove a2
-                                                                                let a4 = inheritSugar ain a3
-                                                                                -- let a5 = agentCultureContact ain a4
-                                                                                -- let a6 = agentSex a5
-                                                                                -- let a7 = agentTrading a5
-                                                                                let a8 = agentCredit ain a4
-                                                                                --let a9 = agentDiseaseProcesses ain a4
-                                                                                a8
+sugarScapeAgentBehaviourFunc age ain a = 
+    do     
+        let a0 = agentKilledInCombat ain a 
+        if isDead a0 then
+            agentDeathHandleCredits a0
+            else
+                do
+                    let a1 = agentAgeing age a0
+                    if isDead a1 then
+                        agentDeathHandleCredits a1
+                        else
+                            do
+                                let a2 = agentMetabolism a1
+                                if isDead a2 then
+                                    agentDeathHandleCredits a2
+                                    else 
+                                        do
+                                            let a3 = agentNonCombatMove a2
+                                            let a4 = inheritSugar ain a3
+                                            -- let a5 = agentCultureContact ain a4
+                                            -- let a6 = agentSex a5
+                                            -- let a7 = agentTrading a5
+                                            let a8 = agentCredit ain a4
+                                            --let a9 = agentDiseaseProcesses ain a4
+                                            a8
 
+sugarScapeAgentBehaviourFuncM :: Double -> SugarScapeAgentIn -> State SugarScapeAgentOut ()
+sugarScapeAgentBehaviourFuncM age ain = return ()
+{-
+    do     
+        let a0 = agentKilledInCombat ain a 
+        if isDead a0 then
+            agentDeathHandleCredits a0
+            else
+                do
+                    let a1 = agentAgeing age a0
+                    if isDead a1 then
+                        agentDeathHandleCredits a1
+                        else
+                            do
+                                let a2 = agentMetabolism a1
+                                if isDead a2 then
+                                    agentDeathHandleCredits a2
+                                    else 
+                                        do
+                                            let a3 = agentNonCombatMove a2
+                                            let a4 = inheritSugar ain a3
+                                            -- let a5 = agentCultureContact ain a4
+                                            -- let a6 = agentSex a5
+                                            -- let a7 = agentTrading a5
+                                            let a8 = agentCredit ain a4
+                                            --let a9 = agentDiseaseProcesses ain a4
+                                            a8
+-}
 
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour
 sugarScapeAgentBehaviour = proc ain ->
     do
         age <- time -< 0
 
-        let a = agentOutFromIn ain
-        returnA -< sugarScapeAgentBehaviourFunc age ain a
+        let ao = agentOutFromIn ain
+        -- let ao' = sugarScapeAgentBehaviourFunc age ain ao
+        let ao' = execState (sugarScapeAgentBehaviourFuncM age ain) ao
+        
+        returnA -< ao'
 
 ------------------------------------------------------------------------------------------------------------------------

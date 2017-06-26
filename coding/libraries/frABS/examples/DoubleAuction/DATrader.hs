@@ -26,7 +26,7 @@ import Debug.Trace
 -- TODO seems to have bug: negative cash seems to be possible (negative assets is possible if backed up by bonds)
 
 ------------------------------------------------------------------------------------------------------------------------
--- UTILS, operating on the domain-state
+-- DOMAIN-STATE functions
 ------------------------------------------------------------------------------------------------------------------------
 {- calculates the collateral-obligations 
 	if > 0 then more loans are taken than loans are given => have debt obligations through securitization

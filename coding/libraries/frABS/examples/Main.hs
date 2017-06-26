@@ -30,7 +30,7 @@ import PrisonersDilemma.PDRun
 -}
 
 main :: IO ()
-main = runDoubleAuctionSteps
+main = runAgentZeroWithRendering
 
 	-- runDoubleAuctionSteps
 	-- runSIRSWithRendering

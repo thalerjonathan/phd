@@ -23,6 +23,10 @@ module FrABS.Agent.Agent (
     agentPickRandomM,
     agentPickRandomMultiple,
 
+    agentIdM,
+    environmentM,
+    environmentPositionM,
+
     createAgent,
     kill,
     isDead,
@@ -35,6 +39,7 @@ module FrABS.Agent.Agent (
     sendMessageM,
     sendMessages,
     broadcastMessage,
+    broadcastMessageM,
     hasMessage,
     onMessage,
     onFilterMessage,
@@ -129,6 +134,16 @@ data AgentOut s m ec l = AgentOut {
 ------------------------------------------------------------------------------------------------------------------------
 -- Agent Functions
 ------------------------------------------------------------------------------------------------------------------------
+agentIdM :: State (AgentOut s m ec l) AgentId
+agentIdM = state (\ao -> (aoId ao, ao))
+
+environmentM :: State (AgentOut s m ec l) (Environment ec l)
+environmentM = state (\ao -> (aoEnv ao, ao))
+
+environmentPositionM :: State (AgentOut s m ec l) EnvCoord
+environmentPositionM = state (\ao -> (aoEnvPos ao, ao))
+
+
 -- NOTE: beware of a = AgentOut (randomly manipulating AgentOut) because one will end up with 2 versions of AgentOut which need to be merged
 runAgentRandom :: AgentOut s m ec l -> Rand StdGen a -> (a, AgentOut s m ec l)
 runAgentRandom a f = (ret, a')
@@ -237,6 +252,16 @@ broadcastMessage ao m receiverIds = sendMessages ao msgs
         n = length receiverIds
         ms = replicate n m
         msgs = zip receiverIds ms
+
+broadcastMessageM :: m -> [AgentId] -> State (AgentOut s m ec l) ()
+broadcastMessageM m receiverIds = state (broadcastMessageMAux m)
+    where
+        broadcastMessageMAux :: m -> AgentOut s m ec l -> ((), AgentOut s m ec l)
+        broadcastMessageMAux m ao = ((), sendMessages ao msgs)
+            where
+                n = length receiverIds
+                ms = replicate n m
+                msgs = zip receiverIds ms
 
 createAgent :: AgentOut s m ec l -> AgentDef s m ec l -> AgentOut s m ec l
 createAgent ao newDef = ao { aoCreate = createEvt }

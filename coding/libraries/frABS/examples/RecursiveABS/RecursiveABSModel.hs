@@ -73,7 +73,7 @@ metaABSRandomizeCounter :: MetaABSAgentOut -> MetaABSAgentOut
 metaABSRandomizeCounter aout = aout1
     where
         (randInt, aout0) = drawRandomRangeFromAgent aout randomRangeCounter
-        aout1 = updateState aout0 (\s -> s { mabsCounter = randInt } )
+        aout1 = updateDomainState aout0 (\s -> s { mabsCounter = randInt } )
 
 metaABSAgentBehaviour :: MetaABSAgentBehaviour
 metaABSAgentBehaviour = proc ain ->

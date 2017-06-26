@@ -54,7 +54,7 @@ handleNeighbourAction :: PDAgentIn -> PDAgentOut -> PDAgentOut
 handleNeighbourAction ain ao = onMessage ain handleNeighbourActionAux ao
 	where
 		handleNeighbourActionAux :: PDAgentOut -> AgentMessage PDMsg -> PDAgentOut
-		handleNeighbourActionAux ao (_, (NeighbourAction act)) = updateState ao (\s -> s { pdLocalPo = pdLocalPo s + po })
+		handleNeighbourActionAux ao (_, (NeighbourAction act)) = updateDomainState ao (\s -> s { pdLocalPo = pdLocalPo s + po })
 			where
 				curr = pdCurrAction $ aoState ao
 				po = payoff curr act
@@ -65,7 +65,7 @@ handleNeighbourPayoff ain ao = onMessage ain handleNeighbourPayoffAux ao
 	where
 		handleNeighbourPayoffAux :: PDAgentOut -> AgentMessage PDMsg -> PDAgentOut
 		handleNeighbourPayoffAux ao (_, (NeighbourPayoff po@(poAct, poValue)))
-			| poValue > localPoValue = updateState ao (\s -> s { pdBestPo = po })
+			| poValue > localPoValue = updateDomainState ao (\s -> s { pdBestPo = po })
 			| otherwise = ao
 			where
 				s = aoState ao
@@ -75,7 +75,7 @@ handleNeighbourPayoff ain ao = onMessage ain handleNeighbourPayoffAux ao
 
 switchToBestPayoff :: PDAgentOut -> PDAgentOut
 switchToBestPayoff ao = 
-	updateState ao (\s -> s { 
+	updateDomainState ao (\s -> s { 
 		pdCurrAction = bestAction,
     	pdPrevAction = oldAction,
     
@@ -122,8 +122,8 @@ pdAgentBehaviour = -- TODO: send current payoff to neighbours and wait for actio
 
 revertAction :: PDAgentOut -> PDAgentOut
 revertAction ao 
-	| Defector == curr = updateState ao (\s -> s { pdCurrAction = Cooperator})
-	| Cooperator == curr = updateState ao (\s -> s { pdCurrAction = Defector})
+	| Defector == curr = updateDomainState ao (\s -> s { pdCurrAction = Cooperator})
+	| Cooperator == curr = updateDomainState ao (\s -> s { pdCurrAction = Defector})
 	where
 		s = aoState ao
 		curr = pdCurrAction s

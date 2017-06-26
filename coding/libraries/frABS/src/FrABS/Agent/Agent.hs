@@ -38,6 +38,7 @@ module FrABS.Agent.Agent (
     sendMessage,
     sendMessageM,
     sendMessages,
+    sendMessagesM,
     broadcastMessage,
     broadcastMessageM,
     hasMessage,
@@ -50,10 +51,10 @@ module FrABS.Agent.Agent (
     conversation,
     conversationEnd,
 
-    updateState,
-    updateStateM,
+    updateDomainState,
+    updateDomainStateM,
     getDomainStateM,
-    domainStateM,
+    domainStateFieldM,
 
     onStart,
     onEvent,
@@ -246,6 +247,10 @@ conversationEnd ao = ao { aoConversation = NoEvent }
 sendMessages :: AgentOut s m ec l -> [AgentMessage m] -> AgentOut s m ec l
 sendMessages ao msgs = foldr (\msg ao' -> sendMessage ao' msg ) ao msgs
 
+sendMessagesM :: [AgentMessage m] -> State (AgentOut s m ec l) ()
+sendMessagesM msgs = state (\ao -> ((), sendMessages ao msgs))
+
+
 broadcastMessage :: AgentOut s m ec l -> m -> [AgentId] -> AgentOut s m ec l
 broadcastMessage ao m receiverIds = sendMessages ao msgs
     where
@@ -325,31 +330,31 @@ onMessageType m ai msgHdl acc = onFilterMessage filterByMsgType ai msgHdl acc
     where
         filterByMsgType = ((==m) . snd) --(\(_, m') -> m == m' )
 
-updateState :: AgentOut s m ec l -> (s -> s) -> AgentOut s m ec l
-updateState ao sfunc = ao { aoState = s' }
+updateDomainState :: AgentOut s m ec l -> (s -> s) -> AgentOut s m ec l
+updateDomainState ao sfunc = ao { aoState = s' }
     where
         s = aoState ao
         s' = sfunc s
     
-updateStateM :: (s -> s) -> State (AgentOut s m ec l) ()
-updateStateM sfunc = state (updateStateMAux sfunc)
+updateDomainStateM :: (s -> s) -> State (AgentOut s m ec l) ()
+updateDomainStateM sfunc = state (updateDomainStateMAux sfunc)
     where
-        updateStateMAux :: (s -> s) 
+        updateDomainStateMAux :: (s -> s) 
                             -> AgentOut s m ec l 
                             -> ((), AgentOut s m ec l)
-        updateStateMAux sfunc ao = ((), ao')
+        updateDomainStateMAux sfunc ao = ((), ao')
             where
                 s = aoState ao
                 s' = sfunc s
                 ao' = ao { aoState = s' }
 
-domainStateM :: (s -> t) -> State (AgentOut s m ec l) t
-domainStateM f = state (domainStateMAux f)
+domainStateFieldM :: (s -> t) -> State (AgentOut s m ec l) t
+domainStateFieldM f = state (domainStateFieldMAux f)
     where
-        domainStateMAux :: (s -> t) 
+        domainStateFieldMAux :: (s -> t) 
                             -> AgentOut s m ec l
                             -> (t, AgentOut s m ec l)
-        domainStateMAux f ao = (f s, ao)
+        domainStateFieldMAux f ao = (f s, ao)
             where
                 s = aoState ao
 

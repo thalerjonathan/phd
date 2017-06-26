@@ -378,8 +378,8 @@ receiveTransactionsM ain =
 
 	where
 		handleTxMsg :: DAAgentOut -> AgentMessage DoubleAuctionMsg -> DAAgentOut
-		handleTxMsg a (_, (SellTx m o)) = updateState a (transactSell m o)
-		handleTxMsg a (_, (BuyTx m o)) = updateState a (transactBuy m o)
+		handleTxMsg a (_, (SellTx m o)) = updateDomainState a (transactSell m o)
+		handleTxMsg a (_, (BuyTx m o)) = updateDomainState a (transactBuy m o)
 		handleTxMsg a _ = a
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -404,8 +404,8 @@ receiveTransactions :: DAAgentIn -> DAAgentOut -> DAAgentOut
 receiveTransactions ain a = onMessage ain handleTxMsg a
 	where
 		handleTxMsg :: DAAgentOut -> AgentMessage DoubleAuctionMsg -> DAAgentOut
-		handleTxMsg a (_, (SellTx m o)) = updateState a (transactSell m o)
-		handleTxMsg a (_, (BuyTx m o)) = updateState a (transactBuy m o)
+		handleTxMsg a (_, (SellTx m o)) = updateDomainState a (transactSell m o)
+		handleTxMsg a (_, (BuyTx m o)) = updateDomainState a (transactBuy m o)
 		handleTxMsg a _ = a
 ------------------------------------------------------------------------------------------------------------------------
 

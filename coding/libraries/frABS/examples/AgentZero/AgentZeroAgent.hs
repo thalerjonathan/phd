@@ -61,7 +61,7 @@ agentZeroRandomMoveM =
 agentZeroTakeActionM :: State AgentZeroAgentOut Bool
 agentZeroTakeActionM =
 	do
-		dispo <- domainStateM azAgentDispo
+		dispo <- domainStateFieldM azAgentDispo
 		return $ dispo > 0
 
 agentZeroDestroyM :: State AgentZeroAgentOut ()
@@ -85,25 +85,25 @@ agentZeroUpdateEventCountM :: State AgentZeroAgentOut ()
 agentZeroUpdateEventCountM =
 	do
 		attackingSite <- onAttackingSiteM
-		evtCount <- domainStateM azAgentEventCount
+		evtCount <- domainStateFieldM azAgentEventCount
 		if attackingSite then
-			updateStateM (\s -> s { azAgentEventCount = evtCount + 1} )
+			updateDomainStateM (\s -> s { azAgentEventCount = evtCount + 1} )
 			else
 				return ()
 
 agentZeroUpdateAffectM :: State AgentZeroAgentOut ()
 agentZeroUpdateAffectM =
 	do
-		affect <- domainStateM azAgentAffect
-		learningRate <- domainStateM azAgentLearningRate
-		delta <- domainStateM azAgentDelta
-		lambda <- domainStateM azAgentLambda
+		affect <- domainStateFieldM azAgentAffect
+		learningRate <- domainStateFieldM azAgentLearningRate
+		delta <- domainStateFieldM azAgentDelta
+		lambda <- domainStateFieldM azAgentLambda
 
 		attackingSite <- onAttackingSiteM
 		if attackingSite then
-			updateStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * (lambda - affect))})
+			updateDomainStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * (lambda - affect))})
 			else
-				updateStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * extinctionRate * (0 - affect))})
+				updateDomainStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * extinctionRate * (0 - affect))})
 
 
 agentZeroUpdateProbM :: State AgentZeroAgentOut ()
@@ -116,12 +116,12 @@ agentZeroUpdateProbM =
 		let csAttacking = filter (isAttackingSite . snd) cs
 		let localProb = fromRational (fromIntegral $ length csAttacking) / (fromIntegral $ length cs)
 
-		mem <- domainStateM azAgentMemory
+		mem <- domainStateFieldM azAgentMemory
 
 		let mem' = localProb : (init mem)
 		let newProb = mean mem'
 
-		updateStateM (\s -> s { azAgentProb = newProb, azAgentMemory = mem' } )
+		updateDomainStateM (\s -> s { azAgentProb = newProb, azAgentMemory = mem' } )
 
 	where
 		mean :: (Fractional a) => [a] -> a
@@ -136,15 +136,15 @@ agentZeroUpdateDispoM ain =
 		aid <- agentIdM
 		env <- environmentM
 
-		affect <- domainStateM azAgentAffect
-		prob <- domainStateM azAgentProb
-		thresh <- domainStateM azAgentThresh
+		affect <- domainStateFieldM azAgentAffect
+		prob <- domainStateFieldM azAgentProb
+		thresh <- domainStateFieldM azAgentThresh
 		
 		let dispoLocal = affect + prob
 
 		let linkIds = neighbourNodes env aid
 
-		updateStateM (\s -> s { azAgentDispo = dispoLocal - thresh})
+		updateDomainStateM (\s -> s { azAgentDispo = dispoLocal - thresh})
 
 		-- TODO: rework this onMessage, not very nice
 		ao <- get
@@ -154,7 +154,7 @@ agentZeroUpdateDispoM ain =
 
 	where
 		dispositionMessageHandle :: AgentZeroAgentOut -> AgentMessage AgentZeroMsg -> AgentZeroAgentOut
-		dispositionMessageHandle a (senderId, (Disposition d)) = updateState a (\s -> s { azAgentDispo = (azAgentDispo s) + (d * weight)})
+		dispositionMessageHandle a (senderId, (Disposition d)) = updateDomainState a (\s -> s { azAgentDispo = (azAgentDispo s) + (d * weight)})
 			where
 				mayWeight = directLinkBetween (aoEnv a) senderId (aoId a)
 				weight = maybe 0.0 Prelude.id mayWeight
@@ -176,13 +176,13 @@ agentZeroTakeAction a = dispo > 0
 
 agentZeroUpdateEventCount :: AgentZeroAgentOut -> AgentZeroAgentOut
 agentZeroUpdateEventCount a 
-	| onAttackingSite a = updateState a (\s -> s { azAgentEventCount = (azAgentEventCount s) + 1} )
+	| onAttackingSite a = updateDomainState a (\s -> s { azAgentEventCount = (azAgentEventCount s) + 1} )
 	| otherwise = a
 
 agentZeroUpdateAffect :: AgentZeroAgentOut -> AgentZeroAgentOut
 agentZeroUpdateAffect a 
-	| onAttackingSite a = updateState a (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * (lambda - affect))})
-	| otherwise = updateState a (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * extinctionRate * (0 - affect))})
+	| onAttackingSite a = updateDomainState a (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * (lambda - affect))})
+	| otherwise = updateDomainState a (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * extinctionRate * (0 - affect))})
 
 	where
 		s = aoState a 
@@ -192,7 +192,7 @@ agentZeroUpdateAffect a
 		lambda = azAgentLambda s
 
 agentZeroUpdateProb :: AgentZeroAgentOut -> AgentZeroAgentOut
-agentZeroUpdateProb a = updateState a (\s -> s { azAgentProb = newProb, azAgentMemory = mem' } )
+agentZeroUpdateProb a = updateDomainState a (\s -> s { azAgentProb = newProb, azAgentMemory = mem' } )
 	where
 		env = aoEnv a
 		pos = aoEnvPos a
@@ -226,11 +226,11 @@ agentZeroUpdateDispo ain a = broadcastMessage aDispoFinal (Disposition dispoLoca
 
 		linkIds = neighbourNodes env aid
 
-		aDispoSelf = updateState a (\s -> s { azAgentDispo = dispoLocal - thresh})
+		aDispoSelf = updateDomainState a (\s -> s { azAgentDispo = dispoLocal - thresh})
 		aDispoFinal = onMessage ain dispositionMessageHandle aDispoSelf
 
 		dispositionMessageHandle :: AgentZeroAgentOut -> AgentMessage AgentZeroMsg -> AgentZeroAgentOut
-		dispositionMessageHandle a (senderId, (Disposition d)) = updateState a (\s -> s { azAgentDispo = (azAgentDispo s) + (d * weight)})
+		dispositionMessageHandle a (senderId, (Disposition d)) = updateDomainState a (\s -> s { azAgentDispo = (azAgentDispo s) + (d * weight)})
 			where
 				mayWeight = directLinkBetween (aoEnv a) senderId aid
 				weight = maybe 0.0 id mayWeight

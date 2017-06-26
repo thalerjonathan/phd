@@ -62,7 +62,7 @@ agentMetabolism a
         newSugarLevel = max 0 ((sugAgSugarLevel s) - sugarMetab)
         newSpiceLevel = max 0 ((sugAgSpiceLevel s) - spiceMetab)
 
-        a0 = updateState a (\s -> s { sugAgSugarLevel = newSugarLevel,
+        a0 = updateDomainState a (\s -> s { sugAgSugarLevel = newSugarLevel,
                                         sugAgSpiceLevel = newSpiceLevel })
 
         -- NOTE: for now the metabolism (and harvest) of spice does not cause any polution
@@ -129,7 +129,7 @@ agentHarvestCell a cellCoord = a2
         spiceLevelAgent = sugAgSpiceLevel $ aoState a
         newSpiceLevelAgent = spiceLevelCell + spiceLevelAgent
 
-        a0 = updateState a (\s -> s { sugAgSugarLevel = newSugarLevelAgent,
+        a0 = updateDomainState a (\s -> s { sugAgSugarLevel = newSugarLevelAgent,
                                         sugAgSpiceLevel = newSpiceLevelAgent })
 
         cellHarvested = cell { sugEnvSugarLevel = 0.0,
@@ -197,7 +197,7 @@ agentAgeing newAge a
     | dieFromAge a = agentDies $ passWealthOn a' -- $ birthNewAgent a
     | otherwise = a'
     where
-        a' = updateState a (\s -> s { sugAgAge = newAge })
+        a' = updateDomainState a (\s -> s { sugAgAge = newAge })
 
 birthNewAgent :: SugarScapeAgentOut -> SugarScapeAgentOut
 birthNewAgent a = createAgent a1 newAgentDef
@@ -289,7 +289,7 @@ agentSex a
                         env' = changeCellAt env coord cell'
 
                         a1 = a0 { aoEnv = env' }
-                        a2 = updateState a1 (\s -> s { sugAgSugarLevel = sugarLevel - mySugarContribution,
+                        a2 = updateDomainState a1 (\s -> s { sugAgSugarLevel = sugarLevel - mySugarContribution,
                                                         sugAgChildren = newBornId : (sugAgChildren s)})
                         a3 = createAgent a2 newBornDef
 
@@ -358,7 +358,7 @@ inheritSugar :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
 inheritSugar ain a = onMessage ain inheritSugarAction a
     where
         inheritSugarAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
-        inheritSugarAction a (_, (InheritSugar sug)) = updateState a (\s -> s { sugAgSugarLevel = (sugAgSugarLevel s) + sug})
+        inheritSugarAction a (_, (InheritSugar sug)) = updateDomainState a (\s -> s { sugAgSugarLevel = (sugAgSugarLevel s) + sug})
         inheritSugarAction a _ = a
 
 handleMatingConversation :: (SugarScapeAgentGender)
@@ -398,7 +398,7 @@ agentCultureContact ain a = broadcastMessage a' (CulturalContact culturalTag) ni
 
         cultureContactAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
         cultureContactAction a (_, (CulturalContact tagActive)) = 
-                updateState a' (\s -> s { sugAgCulturalTag = agentTag',
+                updateDomainState a' (\s -> s { sugAgCulturalTag = agentTag',
                                             sugAgTribe = tribe})
             where
                 s = aoState a
@@ -457,7 +457,7 @@ agentCombatMove a
                     sugarLevelAgent = sugAgSugarLevel $ aoState a
                     newSugarLevelAgent = (payoff + sugarLevelAgent)
 
-                    a' = unoccupyPosition $ updateState a (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
+                    a' = unoccupyPosition $ updateDomainState a (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
 
                     cellHarvestedAndOccupied = cell {
                             sugEnvSugarLevel = 0.0,
@@ -655,7 +655,7 @@ agentRequestCredit a
                         creditDueAge = age + creditDuration 
 
                         creditInfo = (lenderId, creditDueAge, credit)
-                        aAfterBorrowing = updateState a (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + faceValue,
+                        aAfterBorrowing = updateDomainState a (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + faceValue,
                                                                     sugAgBorrowingCredits = creditInfo : sugAgBorrowingCredits s })
 
 -- NOTE: if a borrower dies: notify the lenders so they know they take a loss (remove it from open credits)
@@ -686,7 +686,7 @@ agentCreditDeathIncoming ain a = onMessage ain creditDeathAction a
                 s = aoState a
                 borrowers = sugAgLendingCredits s
                 borrowersRemoved = filter (/=borrowerId) borrowers
-                a' = updateState a (\s -> s { sugAgLendingCredits = borrowersRemoved } )
+                a' = updateDomainState a (\s -> s { sugAgLendingCredits = borrowersRemoved } )
 
         -- NOTE: the lender could have lended multiple times to this borrower, remove ALL credits
         lenderDied :: SugarScapeAgentOut -> AgentId -> SugarScapeAgentOut
@@ -695,7 +695,7 @@ agentCreditDeathIncoming ain a = onMessage ain creditDeathAction a
                 s = aoState a
                 borrowedCredits = sugAgBorrowingCredits s
                 borrowersRemoved = filter (\(lId, _, _) -> lId /= lenderId) borrowedCredits
-                a' = updateState a (\s -> s { sugAgBorrowingCredits = borrowersRemoved } )
+                a' = updateDomainState a (\s -> s { sugAgBorrowingCredits = borrowersRemoved } )
 
 agentCreditPaybackIncoming :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
 agentCreditPaybackIncoming ain a = onMessage ain creditPaybackAction a
@@ -716,10 +716,10 @@ agentCreditPaybackIncoming ain a = onMessage ain creditPaybackAction a
                 s = aoState a
                 borrowers = sugAgLendingCredits s
                 borrowersFirstRemoved = delete borrowerId borrowers
-                a' = updateState a (\s -> s { sugAgLendingCredits = borrowersFirstRemoved } )
+                a' = updateDomainState a (\s -> s { sugAgLendingCredits = borrowersFirstRemoved } )
 
 agentChangeSugarWealth :: SugarScapeAgentOut -> Double -> SugarScapeAgentOut
-agentChangeSugarWealth a amount = updateState a (\s -> s { sugAgSugarLevel = newWealth } )
+agentChangeSugarWealth a amount = updateDomainState a (\s -> s { sugAgSugarLevel = newWealth } )
     where
         s = aoState a
         wealth = sugAgSugarLevel s 
@@ -732,7 +732,7 @@ agentCheckCreditPaybackDue a = aAfterPayback
         borrowingCredits = sugAgBorrowingCredits s 
 
         (a', borrowingCredits') = foldr agentCheckCreditPaybackAux (a, []) borrowingCredits
-        aAfterPayback = updateState a' (\s -> s { sugAgBorrowingCredits = borrowingCredits'})
+        aAfterPayback = updateDomainState a' (\s -> s { sugAgBorrowingCredits = borrowingCredits'})
 
         agentCheckCreditPaybackAux :: SugarScapeCreditInfo -> (SugarScapeAgentOut, [SugarScapeCreditInfo]) -> (SugarScapeAgentOut, [SugarScapeCreditInfo])
         agentCheckCreditPaybackAux creditInfo@(lenderId, ageDue, credit) (a, accCredits) 
@@ -812,7 +812,7 @@ agentDiseaseContact :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgen
 agentDiseaseContact ain a = onMessage ain diseaseContactAction a
     where
         diseaseContactAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
-        diseaseContactAction a (_, (DiseaseContact d)) = updateState a (\s -> s { sugAgDiseases = d : (sugAgDiseases s) } )
+        diseaseContactAction a (_, (DiseaseContact d)) = updateDomainState a (\s -> s { sugAgDiseases = d : (sugAgDiseases s) } )
         diseaseContactAction a _ = a
 
 agentDiseasesTransmit :: SugarScapeAgentOut -> SugarScapeAgentOut
@@ -830,7 +830,7 @@ agentDiseasesTransmit a
         msgs = map (\(receiverId, disease) -> (receiverId, DiseaseContact disease)) (zip nids randDisease)
 
 agentImmunize :: SugarScapeAgentOut -> SugarScapeAgentOut
-agentImmunize a = updateState a (\s -> s { sugAgImmuneSys = immuneSystem',
+agentImmunize a = updateDomainState a (\s -> s { sugAgImmuneSys = immuneSystem',
                                             sugAgDiseases = diseases' })
     where
         s = aoState a

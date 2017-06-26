@@ -84,7 +84,7 @@ segMovement ao
         ao' = updateSatisfactionLevel ao
 
 updateSatisfactionLevel :: SegAgentOut -> SegAgentOut
-updateSatisfactionLevel ao = updateState ao (\s -> s { segSatisfactionLevel = updatedSatisfactionLevel } )
+updateSatisfactionLevel ao = updateDomainState ao (\s -> s { segSatisfactionLevel = updatedSatisfactionLevel } )
     where
         agentPos = aoEnvPos ao
         updatedSatisfactionLevel = satisfactionOn ao agentPos

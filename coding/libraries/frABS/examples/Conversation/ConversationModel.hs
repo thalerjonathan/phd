@@ -41,7 +41,7 @@ randomRangeCounter :: (Int, Int)
 randomRangeCounter = (0, 10)
 ------------------------------------------------------------------------------------------------------------------------
 agentTest :: ConversationAgentOut -> ConversationAgentOut
-agentTest a = updateState a' (\s -> s { convCounter = n})
+agentTest a = updateDomainState a' (\s -> s { convCounter = n})
     where
         (n, a') = drawRandomRangeFromAgent a  (0, 10)
 

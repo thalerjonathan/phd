@@ -47,7 +47,7 @@ burndownSF = proc a ->
 		let s = aoState a
 		let fuel = wfFuel s
 		remainingFuel <- (1.0-) ^<< integral -< 1.0 -- TODO: how can we put fuel-variable in?
-		returnA -< updateState a (\s -> s { wfLifeState = Burning, wfFuel = (max 0.0 remainingFuel)}) 
+		returnA -< updateDomainState a (\s -> s { wfLifeState = Burning, wfFuel = (max 0.0 remainingFuel)}) 
 
 igniteNeighbours :: WildfireAgentOut -> WildfireAgentOut
 igniteNeighbours ao = sendMessage a' (n, Ignite)
@@ -82,7 +82,7 @@ wildfireAgentDie :: () -> WildfireAgentBehaviour
 wildfireAgentDie evt = proc ain ->
 	do
 		let aout = agentOutFromIn ain
-		let aout' = updateState aout (\s -> s { wfLifeState = Dead })
+		let aout' = updateDomainState aout (\s -> s { wfLifeState = Dead })
 		returnA -< aout' -- kill aout' -- NOTE: killing would lead to increased performance but would leave the patch white (blank)
 
 wildfireAgentBurning :: RandomGen g => g -> SF WildfireAgentIn (WildfireAgentOut, Event ())

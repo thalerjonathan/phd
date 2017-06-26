@@ -129,6 +129,7 @@ notifyTraders Match { matchSeller = seller,
 		aAfterSeller = sendMessage a (seller, SellTx market o)
 		aAfterBuyer = sendMessage aAfterSeller (buyer, BuyTx market o)
 
+-- NOTE: for the auctioneer we don't provide any monadic implementation using the state-monad because the auctioneers behaviour is domain-stateless 
 auctioneerBehaviourFunc :: DAAgentIn -> DAAgentOut -> DAAgentOut 
 auctioneerBehaviourFunc ain a = maybe a' (\firstMatch -> notifyTraders (fromJust $ firstMatch) a') mayFirstMatch
 	where

@@ -15,13 +15,18 @@ import FRP.Yampa
 import Data.Maybe
 import Data.List
 import System.Random
-import Control.Monad.Random
 import Control.Monad
+import Control.Monad.Random
+import Control.Monad.Trans.State
 import qualified Data.Map as Map
 
 -- debugging imports finally, to be easily removed in final version
 import Debug.Trace
 
+-- TODO seems to have bug: negative cash seems to be possible (negative assets is possible if backed up by bonds)
+
+------------------------------------------------------------------------------------------------------------------------
+-- UTILS, operating on the domain-state
 ------------------------------------------------------------------------------------------------------------------------
 {- calculates the collateral-obligations 
 	if > 0 then more loans are taken than loans are given => have debt obligations through securitization
@@ -51,16 +56,61 @@ loans s = loansGiven - loansTaken
 uncollateralizedAssets :: DAAgentState -> Double
 uncollateralizedAssets s = daTraderAssets s - currentObligations s
 
-sendOfferings :: DAAgentOut -> DAAgentOut
-sendOfferings a = aAfterAsk
-	where
-		s = aoState a
 
-		(bos, a0) = runAgentRandom a (bidOfferings s)
-		(aos, a1) = runAgentRandom a0 (askOfferings s)
+-- executing a sell-transaction on this agent which means this agent is SELLING
+transactSell :: Market -> OfferingData -> DAAgentState -> DAAgentState
+-- SELLING an asset for cash
+-- => giving asset to buyer
+-- => getting cash from buyer
+transactSell AssetCash (price, amount) s = s { daTraderCash = daTraderCash s + price, 
+											   daTraderAssets = daTraderAssets s - amount }
+-- SELLING a loan for cash
+-- => collateralizing the amount of assets which correspond to the sold amount of loans
+-- => getting money from buyer
+transactSell LoanCash (price, amount) s = s { daTraderCash = daTraderCash s + price, 
+											  daTraderLoansTaken = daTraderLoansTaken s + amount }
+-- SELLING asset for loan
+-- => giving asset to buyer
+-- => giving loan to buyer (buyer takes a loan)
+-- price is in this case the asset-price in LOANS: amount of loans for 1.0 unit of assets
+-- amount is in this case the asset-amount traded
+-- getNormalizedPrice returns in this case the amount of loans needed for the given asset-amount
+transactSell AssetLoan (price, amount) s = s { daTraderLoansGiven = daTraderLoansGiven s + price,
+											   daTraderAssets = daTraderAssets s - amount }
+-- SELLING collateral for cash
+-- => giving COLLATERALIZED asset to buyer (is asset + the amount of loan)
+-- => getting cash from buyer
+transactSell CollateralCash (price, amount) s = s { daTraderCash = daTraderCash s + price, 
+													daTraderLoansGiven = daTraderLoansGiven s + amount,
+													daTraderAssets = daTraderAssets s - amount }
 
-		aAfterBid = sendMessage a1 (auctioneer, BidOffering bos)
-		aAfterAsk = sendMessage aAfterBid (auctioneer, AskOffering aos)
+-- executing a buy-transaction on this agent which means this agent is BUYING
+transactBuy :: Market -> OfferingData -> DAAgentState -> DAAgentState
+-- BUYING an asset for cash
+-- => getting assets from seller
+-- => paying cash to seller
+transactBuy AssetCash (price, amount) s = s { daTraderCash = daTraderCash s - price, 
+											  daTraderAssets = daTraderAssets s + amount }
+-- BUYING a loan for cash
+-- => getting loans from the seller: "un"-collateralizes assets
+-- => paying cash to the seller 
+transactBuy LoanCash (price, amount) s = s { daTraderCash = daTraderCash s - price, 
+											 daTraderLoansGiven = daTraderLoansGiven s + amount }
+-- BUYING an asset for loan
+-- => getting assets from seller
+-- => taking loan from seller: need to collateralize same amount of assets
+-- price is in this case the asset-price in LOANS: amount of loans for 1.0 unit of assets
+-- amount is in this case the asset-amount traded
+-- getNormalizedPrice returns in this case the amount of loans needed for the given asset-amount
+transactBuy AssetLoan (price, amount) s = s { daTraderLoansTaken = daTraderLoansTaken s + price, 
+											  daTraderAssets = daTraderAssets s + amount }
+-- BUYING collateral for cash
+-- => getting COLLATERALIZED asset from seller (is asset + the amount of loan)
+-- => giving cash to seller
+transactBuy CollateralCash (price, amount) s = s { daTraderCash = daTraderCash s - price, 
+												   daTraderLoansTaken = daTraderLoansTaken s + amount,
+												   daTraderAssets = daTraderAssets s + amount }
+
 
 bidOfferings :: DAAgentState -> Rand StdGen Offering 
 bidOfferings s = 
@@ -296,7 +346,59 @@ collatCashAsk s
 	where
 		-- how many assets are bound through bonds
 		currOb = currentObligations s
+------------------------------------------------------------------------------------------------------------------------
 
+------------------------------------------------------------------------------------------------------------------------
+--  AGENT-BEHAVIOUR MONADIC implementation
+------------------------------------------------------------------------------------------------------------------------
+traderBehaviourFuncM :: DAAgentIn -> DAAgentOut -> DAAgentOut
+traderBehaviourFuncM ain ao = execState (traderBehaviourFuncAux ain) ao
+	where
+		traderBehaviourFuncAux :: DAAgentIn -> State DAAgentOut ()
+		traderBehaviourFuncAux ain =
+			do
+				sendOfferingsM
+				receiveTransactionsM ain
+
+sendOfferingsM :: State DAAgentOut ()
+sendOfferingsM =
+	do
+		s <- getDomainStateM
+		bos <- runAgentRandomM (bidOfferings s)
+		aos <- runAgentRandomM (askOfferings s)
+
+		sendMessageM (auctioneer, BidOffering bos)
+		sendMessageM (auctioneer, AskOffering aos)
+
+receiveTransactionsM :: DAAgentIn -> State DAAgentOut ()
+receiveTransactionsM ain = 
+	do
+		ao <- get 
+		put (onMessage ain handleTxMsg ao) -- TODO: onMessage is not yet implemented to my satisfaction
+
+	where
+		handleTxMsg :: DAAgentOut -> AgentMessage DoubleAuctionMsg -> DAAgentOut
+		handleTxMsg a (_, (SellTx m o)) = updateState a (transactSell m o)
+		handleTxMsg a (_, (BuyTx m o)) = updateState a (transactBuy m o)
+		handleTxMsg a _ = a
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- AGENT-BEHAVIOUR NON-monadic implementation
+------------------------------------------------------------------------------------------------------------------------
+traderBehaviourFunc :: DAAgentIn -> DAAgentOut -> DAAgentOut
+traderBehaviourFunc ain a = sendOfferings $ receiveTransactions ain a
+
+sendOfferings :: DAAgentOut -> DAAgentOut
+sendOfferings a = aAfterAsk
+	where
+		s = aoState a
+
+		(bos, a0) = runAgentRandom a (bidOfferings s)
+		(aos, a1) = runAgentRandom a0 (askOfferings s)
+
+		aAfterBid = sendMessage a1 (auctioneer, BidOffering bos)
+		aAfterAsk = sendMessage aAfterBid (auctioneer, AskOffering aos)
 
 receiveTransactions :: DAAgentIn -> DAAgentOut -> DAAgentOut
 receiveTransactions ain a = onMessage ain handleTxMsg a
@@ -305,67 +407,20 @@ receiveTransactions ain a = onMessage ain handleTxMsg a
 		handleTxMsg a (_, (SellTx m o)) = updateState a (transactSell m o)
 		handleTxMsg a (_, (BuyTx m o)) = updateState a (transactBuy m o)
 		handleTxMsg a _ = a
+------------------------------------------------------------------------------------------------------------------------
 
--- executing a sell-transaction on this agent which means this agent is SELLING
-transactSell :: Market -> OfferingData -> DAAgentState -> DAAgentState
--- SELLING an asset for cash
--- => giving asset to buyer
--- => getting cash from buyer
-transactSell AssetCash (price, amount) s = s { daTraderCash = daTraderCash s + price, 
-											   daTraderAssets = daTraderAssets s - amount }
--- SELLING a loan for cash
--- => collateralizing the amount of assets which correspond to the sold amount of loans
--- => getting money from buyer
-transactSell LoanCash (price, amount) s = s { daTraderCash = daTraderCash s + price, 
-											  daTraderLoansTaken = daTraderLoansTaken s + amount }
--- SELLING asset for loan
--- => giving asset to buyer
--- => giving loan to buyer (buyer takes a loan)
--- price is in this case the asset-price in LOANS: amount of loans for 1.0 unit of assets
--- amount is in this case the asset-amount traded
--- getNormalizedPrice returns in this case the amount of loans needed for the given asset-amount
-transactSell AssetLoan (price, amount) s = s { daTraderLoansGiven = daTraderLoansGiven s + price,
-											   daTraderAssets = daTraderAssets s - amount }
--- SELLING collateral for cash
--- => giving COLLATERALIZED asset to buyer (is asset + the amount of loan)
--- => getting cash from buyer
-transactSell CollateralCash (price, amount) s = s { daTraderCash = daTraderCash s + price, 
-													daTraderLoansGiven = daTraderLoansGiven s + amount,
-													daTraderAssets = daTraderAssets s - amount }
 
--- executing a buy-transaction on this agent which means this agent is BUYING
-transactBuy :: Market -> OfferingData -> DAAgentState -> DAAgentState
--- BUYING an asset for cash
--- => getting assets from seller
--- => paying cash to seller
-transactBuy AssetCash (price, amount) s = s { daTraderCash = daTraderCash s - price, 
-											  daTraderAssets = daTraderAssets s + amount }
--- BUYING a loan for cash
--- => getting loans from the seller: "un"-collateralizes assets
--- => paying cash to the seller 
-transactBuy LoanCash (price, amount) s = s { daTraderCash = daTraderCash s - price, 
-											 daTraderLoansGiven = daTraderLoansGiven s + amount }
--- BUYING an asset for loan
--- => getting assets from seller
--- => taking loan from seller: need to collateralize same amount of assets
--- price is in this case the asset-price in LOANS: amount of loans for 1.0 unit of assets
--- amount is in this case the asset-amount traded
--- getNormalizedPrice returns in this case the amount of loans needed for the given asset-amount
-transactBuy AssetLoan (price, amount) s = s { daTraderLoansTaken = daTraderLoansTaken s + price, 
-											  daTraderAssets = daTraderAssets s + amount }
--- BUYING collateral for cash
--- => getting COLLATERALIZED asset from seller (is asset + the amount of loan)
--- => giving cash to seller
-transactBuy CollateralCash (price, amount) s = s { daTraderCash = daTraderCash s - price, 
-												   daTraderLoansTaken = daTraderLoansTaken s + amount,
-												   daTraderAssets = daTraderAssets s + amount }
-
-traderBehaviourFunc :: DAAgentIn -> DAAgentOut -> DAAgentOut
-traderBehaviourFunc ain a = sendOfferings $ receiveTransactions ain a
+------------------------------------------------------------------------------------------------------------------------
+-- AGENT-BEHAVIOUR YAMPA implementation
+------------------------------------------------------------------------------------------------------------------------
+-- TODO
+------------------------------------------------------------------------------------------------------------------------
 
 traderAgentBehaviour :: DAAgentBehaviour
 traderAgentBehaviour = proc ain ->
     do
-        let aout = agentOutFromIn ain
-        returnA -< traderBehaviourFunc ain aout
+        let ao = agentOutFromIn ain
+        -- let ao' = traderBehaviourFunc ain ao
+        let ao' = traderBehaviourFuncM ain ao
+        returnA -< traderBehaviourFunc ain ao'
 ------------------------------------------------------------------------------------------------------------------------

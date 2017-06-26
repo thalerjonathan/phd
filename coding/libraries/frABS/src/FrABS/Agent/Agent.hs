@@ -12,6 +12,7 @@ module FrABS.Agent.Agent (
     AgentOut (..),
 
     runAgentRandom,
+    runAgentRandomM,
     
     drawRandomRangeFromAgent,
     drawMultipleRandomRangeFromAgent,
@@ -46,6 +47,7 @@ module FrABS.Agent.Agent (
 
     updateState,
     updateStateM,
+    getDomainStateM,
     domainStateM,
 
     onStart,
@@ -325,6 +327,13 @@ domainStateM f = state (domainStateMAux f)
         domainStateMAux f ao = (f s, ao)
             where
                 s = aoState ao
+
+getDomainStateM :: State (AgentOut s m ec l) s
+getDomainStateM = 
+    do
+        ao <- get
+        let domainState = aoState ao 
+        return domainState
 
 allowsRecOthers :: AgentOut s m ec l -> Bool
 allowsRecOthers = aoRecOthersAllowed

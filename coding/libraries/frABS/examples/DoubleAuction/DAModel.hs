@@ -70,9 +70,8 @@ data DAAgentState =
     	daTraderLoansTaken :: Double,			-- the amount of loans sold to other agents for cash or assets. is the amount of collateralized assets
     	daTraderLoansGiven :: Double 			-- the amount of loans bought from other agents for cash or assets. is the amount of UN-collateralized assets
 	} 
-  | AuctioneerState {
-
-  	} deriving (Show)
+  | AuctioneerState     -- NOTE: the auctioneer has no domain-specific state
+    deriving (Show)
 
 type DAEnvCell = ()
 type DALinkLabel = ()

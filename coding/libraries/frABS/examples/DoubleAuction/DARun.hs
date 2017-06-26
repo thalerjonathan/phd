@@ -14,9 +14,9 @@ import System.Random
 
 rngSeed = 42
 samplingTimeDelta = 1.0
-agentCount = 50
+agentCount = 10
 steps = 1000
-updateStrat = Sequential -- NOTE: double-auction works both for parallel and sequential
+updateStrat = Parallel -- NOTE: should not work correctly when using Sequential traversion
 envCollapsing = Nothing   -- NOTE: double-auction is not using a modifyable environment => no need for collapsing 
 shuffleAgents = False
 

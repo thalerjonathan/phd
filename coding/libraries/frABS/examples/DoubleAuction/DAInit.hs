@@ -83,12 +83,9 @@ createDAAuctioneer aid =
     do
         rng <- getSplit
 
-        let s = AuctioneerState {
-        }
-
         let adef = AgentDef {
            adId = aid,
-           adState = s,
+           adState = AuctioneerState,   -- NOTE: again, the auctioneer does not has any domain-specific state
            adEnvPos = (0, 0),
            adConversation = Nothing,
            adInitMessages = NoEvent,

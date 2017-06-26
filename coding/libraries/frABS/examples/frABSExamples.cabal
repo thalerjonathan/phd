@@ -18,7 +18,8 @@ executable frABSExamples
                     split,
                     fgl,
                     mtl,
-                    transformers
+                    transformers,
+                    IfElse
 
   ghc-options:      -O2
                     -fno-warn-tabs

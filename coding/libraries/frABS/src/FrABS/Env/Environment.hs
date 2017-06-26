@@ -13,28 +13,35 @@ module FrABS.Env.Environment (
 
     neighbourEdges,
     neighbourNodes,
+    neighbourNodesM,
     neighbourLinks,
     directLinkBetween,
+    directLinkBetweenM,
 
     allCellsWithCoords,
 
     updateEnvironmentCells,
     updateEnvironmentCellsWithCoords,
     changeCellAt,
+    changeCellAtM,
 
     distanceManhattan,
     distanceEuclidean,
 
     cellsAroundRadius,
+    cellsAroundRadiusM,
     cellsAroundRect,
 
     cellsAt,
     cellAt,
+    cellAtM,
 
     randomCell,
     randomCellWithinRect,
 
     neighbours,
+    neighboursDistance,
+    neighboursDistanceM,
     neighbourhoodOf,
     neighbourhoodScale,
    
@@ -50,6 +57,7 @@ import Data.Graph.Inductive.PatriciaTree
 import Data.List
 import Data.Array.IArray
 import Control.Monad.Random
+import Control.Monad.Trans.State
 
 {-
 an Environment is a container which contains Agents and allows them to move arround
@@ -118,6 +126,9 @@ neighbourNodes env node = map snd ls
     where
         ls = neighbourLinks env node 
 
+neighbourNodesM :: Node -> State (Environment c l) [Node]
+neighbourNodesM node = state (\env -> (neighbourNodes env node, env))
+
 neighbourLinks :: Environment c l -> Node -> Adj l
 neighbourLinks env node = lneighbors gr node
     where
@@ -129,6 +140,9 @@ directLinkBetween env n1 n2 =
         let ls = neighbourLinks env n1
         (linkLabel, _) <- Data.List.find ((==n2) . snd) ls
         return linkLabel
+
+directLinkBetweenM :: Node -> Node -> State (Environment c l) (Maybe l)
+directLinkBetweenM n1 n2 = state (\env -> (directLinkBetween env n1 n2, env))
 
 allCellsWithCoords :: Environment c l -> [(EnvCoord, c)]
 allCellsWithCoords env = assocs ec
@@ -155,6 +169,9 @@ changeCellAt env coord c = env { envCells = arr' }
         arr = envCells env
         arr' = arr // [(coord, c)]
 
+changeCellAtM :: EnvCoord -> c -> State (Environment c l) ()
+changeCellAtM coord c = state (\env -> ((), changeCellAt env coord c))
+
 distanceManhattan :: EnvCoord -> EnvCoord -> Int
 distanceManhattan (x1, y1) (x2, y2) = (abs (x1 - x2)) + (abs (y1 - y2))
 
@@ -169,6 +186,9 @@ cellsAroundRadius env pos r = filter (\(coord, _) -> r >= (distanceEuclidean pos
     where
         ecs = allCellsWithCoords env
         -- TODO: does not yet wrap around boundaries
+
+cellsAroundRadiusM :: EnvCoord -> Double -> State (Environment c l) [(EnvCoord, c)]
+cellsAroundRadiusM pos r = state (\env -> (cellsAroundRadius env pos r, env))
 
 cellsAroundRect :: Environment c l -> EnvCoord -> Int -> [(EnvCoord, c)]
 cellsAroundRect env (cx, cy) r = zip wrappedCs cells
@@ -189,6 +209,10 @@ cellAt env coord = arr ! coord
     where
         arr = envCells env
 
+cellAtM :: EnvCoord -> State (Environment c l) c 
+cellAtM coord = state (\env -> (cellAt env coord, env))
+   
+
 randomCell :: Environment c l -> Rand StdGen (c, EnvCoord)
 randomCell env = 
     do
@@ -201,7 +225,7 @@ randomCell env =
         let randCell = cellAt env randCoord
 
         return (randCell, randCoord)
-
+        
 randomCellWithinRect :: Environment c l
                         -> EnvCoord 
                         -> Int 
@@ -217,15 +241,22 @@ randomCellWithinRect env (x, y) r =
 
         return (randCell, randCoordWrapped)
 
-neighbours :: Environment c l -> EnvCoord -> [(EnvCoord, c)]
-neighbours env coord = zip wrappedNs cells
+neighboursDistance :: Environment c l -> EnvCoord -> Int -> [(EnvCoord, c)]
+neighboursDistance env coord dist = zip wrappedNs cells
     where
-        n = (envNeighbourhood env)
-        l = (envLimits env)
-        w = (envWrapping env)
-        ns = neighbourhoodOf coord n
+        n = envNeighbourhood env
+        coordDeltas = foldr (\v acc -> acc ++ (neighbourhoodScale n v)) [] [1 .. dist]
+        l = envLimits env
+        w = envWrapping env
+        ns = neighbourhoodOf coord coordDeltas
         wrappedNs = wrapNeighbourhood l w ns
         cells = cellsAt env wrappedNs
+
+neighboursDistanceM :: EnvCoord -> Int -> State (Environment c l) [(EnvCoord, c)]
+neighboursDistanceM coord dist = state (\env -> (neighboursDistance env coord dist, env))
+
+neighbours :: Environment c l -> EnvCoord -> [(EnvCoord, c)]
+neighbours env coord = neighboursDistance env coord 1
 
 neighbourhoodOf :: EnvCoord -> EnvNeighbourhood -> EnvNeighbourhood
 neighbourhoodOf (x,y) ns = map (\(x', y') -> (x + x', y + y')) ns

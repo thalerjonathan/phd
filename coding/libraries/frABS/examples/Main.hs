@@ -12,14 +12,6 @@ import PrisonersDilemma.PDRun
 
 {-
 	TODOs
-	- state-monadic implementation for
-		- Agent-Zero
-		- SugarScape
-
-	- Yampa arrowized implementation for
-		- DoubleAuction: no use of time-semantics but to get used to arrowized programming
-		- Agent-Zero : using time-semantics in the environment
-		
 	- reuse the Agent2D renderer if appropriate
 	- use-case for continuous 2d-environment: implement Heroes & Cowards
 
@@ -30,7 +22,7 @@ import PrisonersDilemma.PDRun
 -}
 
 main :: IO ()
-main = runSIRSWithRendering
+main = runSugarScapeWithRendering
 
 	-- runDoubleAuctionSteps
 	-- runSIRSWithRendering

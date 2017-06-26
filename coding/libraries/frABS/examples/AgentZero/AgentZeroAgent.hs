@@ -4,6 +4,7 @@ module AgentZero.AgentZeroAgent where
 -- Project-internal import first
 import AgentZero.AgentZeroModel
 import AgentZero.AgentZeroEnvironment
+import Utils.Utils
 
 import FrABS.Env.Environment
 import FrABS.Agent.Agent
@@ -19,6 +20,7 @@ import System.Random
 import Control.Monad
 import Control.Monad.Random
 import Control.Monad.Trans.State
+import Control.Monad.IfElse
 import qualified Data.Map as Map
 
 -- debugging imports finally, to be easily removed in final version
@@ -43,8 +45,7 @@ agentZeroAgentBehaviourFuncM ain =
 		agentZeroUpdateProbM
 		agentZeroUpdateDispoM ain
 
-		takeAction <- agentZeroTakeActionM
-		when takeAction agentZeroDestroyM
+		whenM agentZeroTakeActionM agentZeroDestroyM
 
 agentZeroRandomMoveM :: State AgentZeroAgentOut ()
 agentZeroRandomMoveM =
@@ -61,13 +62,12 @@ agentZeroTakeActionM =
 agentZeroDestroyM :: State AgentZeroAgentOut ()
 agentZeroDestroyM = 
 	do
-		env <- environmentM
 		pos <- environmentPositionM
-		-- TODO: need better environment access and change
-		let cs = cellsAroundRadius env pos destructionRadius
-		let env' = foldr (\(coord, cell) envAcc -> changeCellAt envAcc coord (cell { azCellState = Dead })) env cs
-		ao <- get
-		put $ ao { aoEnv = env' }
+
+		runEnvironmentM $
+			do
+				cs <- cellsAroundRadiusM pos destructionRadius
+				foldM (\_ (coord, cell) -> changeCellAtM coord (cell { azCellState = Dead })) () cs
 
 onAttackingSiteM :: State AgentZeroAgentOut Bool
 onAttackingSiteM =
@@ -78,11 +78,11 @@ onAttackingSiteM =
 agentZeroUpdateEventCountM :: State AgentZeroAgentOut ()
 agentZeroUpdateEventCountM =
 	do
-		attackingSite <- onAttackingSiteM
 		evtCount <- domainStateFieldM azAgentEventCount
 
-		when attackingSite (updateDomainStateM (\s -> s { azAgentEventCount = evtCount + 1} ))
+		whenM onAttackingSiteM (updateDomainStateM (\s -> s { azAgentEventCount = evtCount + 1} ))
 		
+
 agentZeroUpdateAffectM :: State AgentZeroAgentOut ()
 agentZeroUpdateAffectM =
 	do
@@ -93,21 +93,19 @@ agentZeroUpdateAffectM =
 
 		attackingSite <- onAttackingSiteM
 
-		when attackingSite $ updateDomainStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * (lambda - affect))})
-		when (not attackingSite) $ updateDomainStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * extinctionRate * (0 - affect))})
+		ifThenElseM onAttackingSiteM 
+						(updateDomainStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * (lambda - affect))}))
+						(updateDomainStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * extinctionRate * (0 - affect))}))
 
 agentZeroUpdateProbM :: State AgentZeroAgentOut ()
 agentZeroUpdateProbM =
 	do
-		env <- environmentM
 		pos <- environmentPositionM
-
-		let cs = cellsAroundRadius env pos sampleRadius
-		let csAttacking = filter (isAttackingSite . snd) cs
-		let localProb = fromRational (fromIntegral $ length csAttacking) / (fromIntegral $ length cs)
-
+		cs <- runEnvironmentM $ cellsAroundRadiusM pos sampleRadius
 		mem <- domainStateFieldM azAgentMemory
 
+		let csAttacking = filter (isAttackingSite . snd) cs
+		let localProb = fromRational (fromIntegral $ length csAttacking) / (fromIntegral $ length cs)
 		let mem' = localProb : (init mem)
 		let newProb = mean mem'
 
@@ -124,15 +122,14 @@ agentZeroUpdateDispoM :: AgentZeroAgentIn -> State AgentZeroAgentOut ()
 agentZeroUpdateDispoM ain =
 	do
 		aid <- agentIdM
-		env <- environmentM
 
 		affect <- domainStateFieldM azAgentAffect
 		prob <- domainStateFieldM azAgentProb
 		thresh <- domainStateFieldM azAgentThresh
-		
-		let dispoLocal = affect + prob
-		let linkIds = neighbourNodes env aid
+		linkIds <- runEnvironmentM $ neighbourNodesM aid
 
+		let dispoLocal = affect + prob
+		
 		updateDomainStateM (\s -> s { azAgentDispo = dispoLocal - thresh})
 		onMessageM ain dispositionMessageHandleM
 		broadcastMessageM (Disposition dispoLocal) linkIds
@@ -142,9 +139,8 @@ agentZeroUpdateDispoM ain =
 		dispositionMessageHandleM (senderId, (Disposition d)) = 
 			do
 				aid <- agentIdM
-				env <- environmentM
 
-				let mayWeight = directLinkBetween env senderId aid
+				mayWeight <- runEnvironmentM $ directLinkBetweenM senderId aid
 				let weight = maybe 0.0 Prelude.id mayWeight
 
 				updateDomainStateM (\s -> s { azAgentDispo = (azAgentDispo s) + (d * weight)})

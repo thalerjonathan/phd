@@ -26,9 +26,12 @@ module FrABS.Agent.Agent (
     agentIdM,
     environmentM,
     environmentPositionM,
+    changeEnvironmentPositionM,
 
     createAgent,
+    createAgentM,
     kill,
+    killM,
     isDead,
 
     createStartingAgentIn,
@@ -56,6 +59,8 @@ module FrABS.Agent.Agent (
     updateDomainStateM,
     getDomainStateM,
     domainStateFieldM,
+
+    runEnvironmentM,
 
     onStart,
     onEvent,
@@ -145,6 +150,8 @@ environmentM = state (\ao -> (aoEnv ao, ao))
 environmentPositionM :: State (AgentOut s m ec l) EnvCoord
 environmentPositionM = state (\ao -> (aoEnvPos ao, ao))
 
+changeEnvironmentPositionM :: EnvCoord -> State (AgentOut s m ec l) ()
+changeEnvironmentPositionM pos = state (\ao -> ((), ao { aoEnvPos = pos }))
 
 -- NOTE: beware of a = AgentOut (randomly manipulating AgentOut) because one will end up with 2 versions of AgentOut which need to be merged
 runAgentRandom :: AgentOut s m ec l -> Rand StdGen a -> (a, AgentOut s m ec l)
@@ -275,8 +282,14 @@ createAgent ao newDef = ao { aoCreate = createEvt }
         oldCreateEvt = aoCreate ao
         createEvt = mergeBy (\leftCreate rightCreate -> leftCreate ++ rightCreate) (Event [newDef]) oldCreateEvt
 
+createAgentM :: AgentDef s m ec l -> State (AgentOut s m ec l) ()
+createAgentM newDef = state (\ao -> ((),createAgent ao newDef))
+
 kill :: AgentOut s m ec l -> AgentOut s m ec l
 kill ao = ao { aoKill = Event () }
+
+killM :: State (AgentOut s m ec l) ()
+killM = state (\ao -> ((), ao { aoKill = Event () }))
 
 isDead :: AgentOut s m ec l -> Bool
 isDead = isEvent . aoKill
@@ -367,6 +380,20 @@ domainStateFieldM f = state (domainStateFieldMAux f)
         domainStateFieldMAux f ao = (f s, ao)
             where
                 s = aoState ao
+
+runEnvironmentM :: State (Environment ec l) a -> State (AgentOut s m ec l) a
+runEnvironmentM envStateTrans =
+    do
+        env <- environmentM 
+        let (a, env') = runState envStateTrans env
+        setEnvironmentM env'
+        return a
+
+setEnvironmentM :: Environment ec l -> State (AgentOut s m ec l) ()
+setEnvironmentM env =
+    do
+        ao <- get 
+        put $ ao { aoEnv = env }
 
 getDomainStateM :: State (AgentOut s m ec l) s
 getDomainStateM = 

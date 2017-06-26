@@ -46,7 +46,20 @@ agentZeroEnvironmentsCollapse envs = foldr mergeEnvs initEnv envs
 
 
 ------------------------------------------------------------------------------------------------------------------------
--- ENVIRONMENT-BEHAVIOUR
+-- ENVIRONMENT-BEHAVIOUR MONADIC implementation
+------------------------------------------------------------------------------------------------------------------------
+-- TODO
+------------------------------------------------------------------------------------------------------------------------
+
+
+------------------------------------------------------------------------------------------------------------------------
+-- ENVIRONMENT-BEHAVIOUR Yampa implementation
+------------------------------------------------------------------------------------------------------------------------
+-- TODO
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- ENVIRONMENT-BEHAVIOUR NON-MONADIC implementation
 ------------------------------------------------------------------------------------------------------------------------
 randomAttack :: AgentZeroEnvironment -> Rand StdGen AgentZeroEnvironment 
 randomAttack env = 
@@ -72,7 +85,7 @@ randAttackCell (cc@(coord, cell), rand)
 		selectNewState Dead _ = Dead
 		selectNewState Friendly rand = if rand > 0.8 then Attack else Friendly
 		selectNewState Attack rand = if rand > 0.5 then Friendly else Attack
-			
+
 {- TODO: when switching to arrowized programming
 randAttackCellSF :: StdGen -> SF (EnvCoord, AgentZeroEnvCell) (EnvCoord, AgentZeroEnvCell)
 randAttackCellSF g = proc cc ->

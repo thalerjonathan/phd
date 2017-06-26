@@ -2,6 +2,7 @@
 module SIRS.SIRSAgent where
 
 import SIRS.SIRSModel
+import Utils.Utils
 
 import FRP.Yampa
 
@@ -9,25 +10,11 @@ import FrABS.Agent.Agent
 import FrABS.Agent.AgentUtils
 import FrABS.Env.Environment
 
-
 import Control.Monad.Random
 import Control.Monad.Trans.State
-import Control.Monad.Trans.Class (lift)
-import qualified Control.Monad.State.Lazy as ST
-import Control.Monad (ap)
+import Control.Monad.IfElse
 
 import Debug.Trace
-
-------------------------------------------------------------------------------------------------------------------------
--- AGENT MONAD TODO: generalize this into Agent.hs
--- combines state- and rand-monad 
-------------------------------------------------------------------------------------------------------------------------
--- TODO: can we have elegant updating of domain-state? e.g. in the way we are reading the domain-state?
-
--- https://en.wikibooks.org/wiki/Haskell/Monad_transformers
--- https://hackage.haskell.org/package/transformers-0.5.4.0/docs/Control-Monad-Trans-State-Lazy.html
--- https://github.com/mathandley/haskell_scratch/blob/master/StateIO.hs
-------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR MONADIC implementation
@@ -41,11 +28,8 @@ isM sirsStateComp =
 sirsDtM :: Double -> State SIRSAgentOut ()
 sirsDtM dt =
     do
-        isInfected <- isM Infected
-        isRecovered <- isM Recovered
-
-        when isInfected $ handleInfectedAgentM dt
-        when isRecovered $ handleRecoveredAgentM dt 
+        whenM (isM Infected) $ handleInfectedAgentM dt
+        whenM (isM Recovered) $ handleRecoveredAgentM dt 
 
 infectAgentM :: State SIRSAgentOut ()
 infectAgentM =
@@ -60,14 +44,13 @@ handleInfectedAgentM dt =
 
         let t' = t + dt
         let hasRecovered = t' >= infectedDuration
-        let stillInfected = not hasRecovered
 
         -- NOTE: agent has just recovered, don't send infection-contact to others
-        when hasRecovered $ updateDomainStateM (\s -> s { sirsState = Recovered, sirsTime = 0.0 } )
-        when stillInfected $ 
-            do 
-                updateDomainStateM (\s -> s { sirsTime = t' } )
-                randomContactM
+        ifThenElse hasRecovered 
+                    (updateDomainStateM (\s -> s { sirsState = Recovered, sirsTime = 0.0 } ))
+                    $ do 
+                        updateDomainStateM (\s -> s { sirsTime = t' } )
+                        randomContactM
 
 handleRecoveredAgentM :: Double -> State SIRSAgentOut ()
 handleRecoveredAgentM dt = 
@@ -75,11 +58,11 @@ handleRecoveredAgentM dt =
         t <- domainStateFieldM sirsTime
 
         let t' = t + dt
-        let noMoreImmune = t' >= immuneDuration
-        let stillImmune = not noMoreImmune
+        let lostImmunity = t' >= immuneDuration
 
-        when noMoreImmune $ updateDomainStateM (\s -> s { sirsState = Susceptible, sirsTime = 0.0 } )
-        when stillImmune $ updateDomainStateM (\s -> s { sirsTime = t' } )
+        ifThenElse lostImmunity
+                    (updateDomainStateM (\s -> s { sirsState = Susceptible, sirsTime = 0.0 } ))
+                    (updateDomainStateM (\s -> s { sirsTime = t' } ))
 
 randomContactM :: State SIRSAgentOut ()
 randomContactM = 
@@ -95,10 +78,7 @@ sirsAgentBehaviourFuncM ain =
 
     where
         contactInfectedM :: AgentMessage SIRSMsg -> State SIRSAgentOut ()
-        contactInfectedM (_, Contact Infected) =
-            do
-                isSusceptible <- isM Susceptible
-                when isSusceptible infectAgentM
+        contactInfectedM (_, Contact Infected) = whenM (isM Susceptible) infectAgentM
         contactInfectedM _ = return ()
 
 ------------------------------------------------------------------------------------------------------------------------

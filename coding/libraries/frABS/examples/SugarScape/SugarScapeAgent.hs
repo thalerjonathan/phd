@@ -4,8 +4,11 @@ module SugarScape.SugarScapeAgent where
 -- Project-internal import first
 import SugarScape.SugarScapeModel
 import SugarScape.SugarScapeEnvironment
+import Utils.Utils
+
 import FrABS.Env.Environment
 import FrABS.Agent.Agent
+import FrABS.Agent.AgentUtils
 
 -- Project-specific libraries follow
 import FRP.Yampa
@@ -16,10 +19,228 @@ import Data.List
 import System.Random
 import Control.Monad.Random
 import Control.Monad
+import Control.Monad.IfElse
+import Control.Monad.Trans.State
 
 -- debugging imports finally, to be easily removed in final version
 import Debug.Trace
 
+
+------------------------------------------------------------------------------------------------------------------------
+-- DOMAIN-STATE FUNCTIONS not used for manipulating the state
+------------------------------------------------------------------------------------------------------------------------
+metabolismAmount :: SugarScapeAgentState -> (Double, Double)
+metabolismAmount s = (sugarMetab + inc, spiceMetab + inc)
+    where
+        sugarMetab = sugAgSugarMetab s
+        spiceMetab = sugAgSpiceMetab s
+        inc = if isDiseased s then diseasedMetabolismIncrease else 0 
+
+type BestCellMeasureFunc = (SugarScapeEnvCell -> Double) 
+
+selectBestCells :: BestCellMeasureFunc
+                    -> EnvCoord
+                    -> [(EnvCoord, SugarScapeEnvCell)]
+                    -> [(EnvCoord, SugarScapeEnvCell)]
+selectBestCells measureFunc refCoord cs = bestShortestdistanceManhattanCells
+    where
+        cellsSortedByMeasure = sortBy (\c1 c2 -> compare (measureFunc $ snd c2) (measureFunc $ snd c1)) cs
+        bestCellMeasure = measureFunc $ snd $ head cellsSortedByMeasure
+        bestCells = filter ((==bestCellMeasure) . measureFunc . snd) cellsSortedByMeasure
+
+        shortestdistanceManhattanBestCells = sortBy (\c1 c2 -> compare (distanceManhattan refCoord (fst c1)) (distanceManhattan refCoord (fst c2))) bestCells
+        shortestdistanceManhattan = distanceManhattan refCoord (fst $ head shortestdistanceManhattanBestCells)
+        bestShortestdistanceManhattanCells = filter ((==shortestdistanceManhattan) . (distanceManhattan refCoord) . fst) shortestdistanceManhattanBestCells
+
+bestMeasureSugarLevel :: BestCellMeasureFunc
+bestMeasureSugarLevel c = sugEnvSugarLevel c
+
+bestMeasureSugarAndSpiceLevel :: SugarScapeAgentState -> BestCellMeasureFunc
+bestMeasureSugarAndSpiceLevel s c = agentWelfareChange s (x1, x2)
+    where
+        x1 = sugEnvSugarLevel c
+        x2 = sugEnvSpiceLevel c
+
+bestMeasureSugarPolutionRatio :: BestCellMeasureFunc
+bestMeasureSugarPolutionRatio c = sugLvl / (1 + polLvl)
+    where
+        sugLvl = sugEnvSugarLevel c
+        polLvl = sugEnvPolutionLevel c
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- AGENT-BEHAVIOUR MONADIC 
+------------------------------------------------------------------------------------------------------------------------
+agentDiesM :: State SugarScapeAgentOut ()
+agentDiesM = unoccupyPositionM >> killM
+
+unoccupyPositionM :: State SugarScapeAgentOut ()
+unoccupyPositionM = 
+    do
+        (cellCoord, cell) <- agentCellOnPosM
+        let cellUnoccupied = cell { sugEnvOccupier = Nothing }
+        runEnvironmentM $ changeCellAtM cellCoord cellUnoccupied
+
+passWealthOnM :: State SugarScapeAgentOut ()
+passWealthOnM =
+    do
+        sugarLevel <- domainStateFieldM sugAgSugarLevel
+        childrenIds <- domainStateFieldM sugAgChildren
+
+        let hasChildren = (not . null) childrenIds
+
+        when hasChildren $
+            do 
+                let childrenCount = length childrenIds
+                let childrenSugarShare = sugarLevel / (fromRational $ toRational $ fromIntegral childrenCount)
+                broadcastMessageM (InheritSugar childrenSugarShare) childrenIds
+
+starvedToDeathM :: State SugarScapeAgentOut Bool
+starvedToDeathM = 
+    do
+        sugar <- domainStateFieldM sugAgSugarLevel
+        spice <- domainStateFieldM sugAgSpiceLevel
+        return $ (sugar <= 0) || (spice <= 0)
+
+
+agentMetabolismM :: State SugarScapeAgentOut ()
+agentMetabolismM =
+    do
+        s <- getDomainStateM
+        let (sugarMetab, spiceMetab) = metabolismAmount s
+
+        sugarLevel <- domainStateFieldM sugAgSugarLevel
+        spiceLevel <- domainStateFieldM sugAgSpiceLevel
+
+        let newSugarLevel = max 0 (sugarLevel - sugarMetab)
+        let newSpiceLevel = max 0 (spiceLevel - spiceMetab)
+
+        updateDomainStateM (\s -> s { sugAgSugarLevel = newSugarLevel, sugAgSpiceLevel = newSpiceLevel })
+
+        -- NOTE: for now the metabolism (and harvest) of spice does not cause any polution
+        let pol = sugarMetab * polutionMetabolismFactor
+        
+        cell <- agentCellOnPosM
+        agentPoluteCellM pol cell
+
+        whenM starvedToDeathM agentDiesM
+
+agentPoluteCellM :: Double -> (EnvCoord, SugarScapeEnvCell) -> State SugarScapeAgentOut ()
+agentPoluteCellM polutionIncrease (cellCoord, cell)
+    | polutionEnabled = 
+        do
+            let cellAfterPolution = cell { sugEnvPolutionLevel = polutionIncrease + (sugEnvPolutionLevel cell) }
+            runEnvironmentM $ changeCellAtM cellCoord cellAfterPolution
+    | otherwise = return ()
+
+agentNonCombatMoveM :: State SugarScapeAgentOut ()
+agentNonCombatMoveM = 
+    do
+        cellsInSight <- agentLookoutM
+        pos <- environmentPositionM
+
+        let unoccupiedCells = filter (cellUnoccupied . snd) cellsInSight
+        let bestCells = selectBestCells bestMeasureSugarLevel pos unoccupiedCells
+
+        (cellCoord, _) <- agentPickRandomM bestCells
+
+        ifThenElse (null unoccupiedCells)
+                    agentStayAndHarvestM
+                    (agentMoveAndHarvestCellM cellCoord)
+
+agentLookoutM :: State SugarScapeAgentOut [(EnvCoord, SugarScapeEnvCell)]
+agentLookoutM = 
+    do
+        vis <- domainStateFieldM sugAgVision
+        pos <- environmentPositionM 
+        runEnvironmentM $ neighboursDistanceM pos vis
+
+agentStayAndHarvestM :: State SugarScapeAgentOut ()
+agentStayAndHarvestM = 
+    do
+        (cellCoord, _) <- agentCellOnPosM
+        agentHarvestCellM cellCoord
+
+agentMoveAndHarvestCellM :: EnvCoord -> State SugarScapeAgentOut ()
+agentMoveAndHarvestCellM cellCoord = 
+    do
+        agentHarvestCellM cellCoord
+        agentMoveToM cellCoord
+
+agentMoveToM :: EnvCoord -> State SugarScapeAgentOut ()
+agentMoveToM cellCoord = 
+    do
+        unoccupyPositionM
+
+        s <- getDomainStateM
+        aid <- agentIdM
+        cell <- runEnvironmentM $ cellAtM cellCoord
+
+        let cellOccupied = cell { sugEnvOccupier = Just (cellOccupier aid s) }
+
+        runEnvironmentM $ changeCellAtM cellCoord cellOccupied
+        changeEnvironmentPositionM cellCoord
+
+agentHarvestCellM :: EnvCoord -> State SugarScapeAgentOut ()
+agentHarvestCellM cellCoord = 
+    do
+        cell <- runEnvironmentM $ cellAtM cellCoord
+
+        sugarLevelAgent <- domainStateFieldM sugAgSugarLevel
+        spiceLevelAgent <- domainStateFieldM sugAgSpiceLevel
+
+        let sugarLevelCell = sugEnvSugarLevel cell
+        let spiceLevelCell = sugEnvSpiceLevel cell
+
+        let newSugarLevelAgent = sugarLevelCell + sugarLevelAgent
+        let newSpiceLevelAgent = spiceLevelCell + spiceLevelAgent
+
+        updateDomainStateM (\s -> s { sugAgSugarLevel = newSugarLevelAgent, sugAgSpiceLevel = newSpiceLevelAgent })
+
+        let cellHarvested = cell { sugEnvSugarLevel = 0.0, sugEnvSpiceLevel = 0.0 }
+        runEnvironmentM $ changeCellAtM cellCoord cellHarvested
+       
+        -- NOTE: at the moment harvesting SPICE does not influence the polution
+        let pol = sugarLevelCell * polutionHarvestFactor 
+        agentPoluteCellM pol (cellCoord, cellHarvested)
+
+agentAgeingM :: Double -> State SugarScapeAgentOut ()
+agentAgeingM newAge =
+    do
+        updateDomainStateM (\s -> s { sugAgAge = newAge })
+
+        whenM dieFromAgeM $ 
+            do
+                -- birthNewAgentM
+                passWealthOnM
+                agentDiesM
+
+birthNewAgentM :: State SugarScapeAgentOut ()
+birthNewAgentM = 
+    do
+        newAgentId <- agentIdM -- NOTE: we keep the old id
+        newAgentCoord <- findUnoccpiedRandomPositionM
+        newAgentDef <- runAgentRandomM $ randomAgent (newAgentId, newAgentCoord) sugarScapeAgentBehaviour sugarScapeAgentConversation
+        createAgentM newAgentDef
+
+    where
+        findUnoccpiedRandomPositionM :: State SugarScapeAgentOut EnvCoord
+        findUnoccpiedRandomPositionM =
+            do
+                env <- environmentM
+                (c, coord) <- runAgentRandomM $ (randomCell env)
+
+                ifThenElse (cellOccupied c) findUnoccpiedRandomPositionM (return coord)
+                
+dieFromAgeM :: State SugarScapeAgentOut Bool
+dieFromAgeM = 
+    do
+        age <- domainStateFieldM sugAgAge
+        maxAge <- domainStateFieldM sugAgMaxAge
+        return $ age > maxAge
+------------------------------------------------------------------------------------------------------------------------
+-- AGENT-BEHAVIOUR NON-MONADIC 
+------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 -- Chapter II: Life And Death On The Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
@@ -41,7 +262,7 @@ passWealthOn a
 unoccupyPosition ::  SugarScapeAgentOut -> SugarScapeAgentOut
 unoccupyPosition a = a { aoEnv = env' }
     where
-        (cellCoord, cell) = agentCell a
+        (cellCoord, cell) = agentCellOnPos a
         cellUnoccupied = cell { sugEnvOccupier = Nothing }
         env' = changeCellAt (aoEnv a) cellCoord cellUnoccupied
 
@@ -57,7 +278,7 @@ agentMetabolism a
     | otherwise = a1
     where
         s = aoState a
-        (sugarMetab, spiceMetab) = agentMetabolismAux s
+        (sugarMetab, spiceMetab) = metabolismAmount s
 
         newSugarLevel = max 0 ((sugAgSugarLevel s) - sugarMetab)
         newSpiceLevel = max 0 ((sugAgSpiceLevel s) - spiceMetab)
@@ -67,15 +288,8 @@ agentMetabolism a
 
         -- NOTE: for now the metabolism (and harvest) of spice does not cause any polution
         pol = sugarMetab * polutionMetabolismFactor
-        cell = agentCell a0
+        cell = agentCellOnPos a0
         a1 = agentPoluteCell pol cell a0
-
-        agentMetabolismAux :: SugarScapeAgentState -> (Double, Double)
-        agentMetabolismAux s = (sugarMetab + inc, spiceMetab + inc)
-            where
-                sugarMetab = sugAgSugarMetab s
-                spiceMetab = sugAgSpiceMetab s
-                inc = if isDiseased s then diseasedMetabolismIncrease else 0
 
 agentNonCombatMove :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentNonCombatMove a
@@ -85,7 +299,8 @@ agentNonCombatMove a
         cellsInSight = agentLookout a
         unoccupiedCells = filter (cellUnoccupied . snd) cellsInSight
 
-        bestCells = selectBestCells a unoccupiedCells
+        refCoord = aoEnvPos a
+        bestCells = selectBestCells bestMeasureSugarLevel refCoord unoccupiedCells
         ((cellCoord, _), a') = agentPickRandom a bestCells
 
 agentMoveAndHarvestCell :: SugarScapeAgentOut -> EnvCoord -> SugarScapeAgentOut
@@ -97,14 +312,7 @@ agentMoveAndHarvestCell a cellCoord = a1
 agentStayAndHarvest :: SugarScapeAgentOut -> SugarScapeAgentOut
 agentStayAndHarvest a = agentHarvestCell a cellCoord
     where
-        (cellCoord, _) = agentCell a
-
-agentCell :: SugarScapeAgentOut -> (EnvCoord, SugarScapeEnvCell)
-agentCell a = (agentPos, cellOfAgent)
-    where
-        env = aoEnv a
-        agentPos = aoEnvPos a
-        cellOfAgent = cellAt env agentPos
+        (cellCoord, _) = agentCellOnPos a
 
 agentPoluteCell :: Double -> (EnvCoord, SugarScapeEnvCell) -> SugarScapeAgentOut -> SugarScapeAgentOut
 agentPoluteCell polutionIncrease (cellCoord, cell) a 
@@ -149,34 +357,6 @@ agentMoveTo a cellCoord = a0 { aoEnvPos = cellCoord, aoEnv = env }
         cellOccupied = cell { sugEnvOccupier = Just (cellOccupier (aoId a0) (aoState a0))}
         env = changeCellAt (aoEnv a0) cellCoord cellOccupied
 
-selectBestCells :: SugarScapeAgentOut -> [(EnvCoord, SugarScapeEnvCell)] -> [(EnvCoord, SugarScapeEnvCell)]
-selectBestCells a cs = bestShortestdistanceManhattanCells
-    where
-        refCoord = aoEnvPos a
-        measureFunc = bestMeasureSugarAndSpiceLevel
-
-        cellsSortedByMeasure = sortBy (\c1 c2 -> compare (measureFunc $ snd c2) (measureFunc $ snd c1)) cs
-        bestCellMeasure = measureFunc $ snd $ head cellsSortedByMeasure
-        bestCells = filter ((==bestCellMeasure) . measureFunc . snd) cellsSortedByMeasure
-
-        shortestdistanceManhattanBestCells = sortBy (\c1 c2 -> compare (distanceManhattan refCoord (fst c1)) (distanceManhattan refCoord (fst c2))) bestCells
-        shortestdistanceManhattan = distanceManhattan refCoord (fst $ head shortestdistanceManhattanBestCells)
-        bestShortestdistanceManhattanCells = filter ((==shortestdistanceManhattan) . (distanceManhattan refCoord) . fst) shortestdistanceManhattanBestCells
-
-        bestMeasureSugarLevel :: SugarScapeEnvCell -> Double
-        bestMeasureSugarLevel c = sugEnvSugarLevel c
-
-        bestMeasureSugarAndSpiceLevel :: SugarScapeEnvCell -> Double
-        bestMeasureSugarAndSpiceLevel c = agentWelfareChange (aoState a) (x1, x2)
-            where
-                x1 = sugEnvSugarLevel c
-                x2 = sugEnvSpiceLevel c
-
-        bestMeasureSugarPolutionRatio :: SugarScapeEnvCell -> Double
-        bestMeasureSugarPolutionRatio c = sugLvl / (1 + polLvl)
-            where
-                sugLvl = sugEnvSugarLevel c
-                polLvl = sugEnvPolutionLevel c
 
 agentLookout :: SugarScapeAgentOut -> [(EnvCoord, SugarScapeEnvCell)]
 agentLookout a = zip visionCoordsWrapped visionCells

@@ -44,19 +44,13 @@ agentZeroAgentBehaviourFuncM ain =
 		agentZeroUpdateDispoM ain
 
 		takeAction <- agentZeroTakeActionM
-		if takeAction then
-			agentZeroDestroyM
-			else
-				return ()
+		when takeAction agentZeroDestroyM
 
 agentZeroRandomMoveM :: State AgentZeroAgentOut ()
 agentZeroRandomMoveM =
 	do
 		aid <- agentIdM
-		if aid /= 0 then
-			agentRandomMoveM
-			else
-				return ()
+		when (aid /= 0) agentRandomMoveM
 
 agentZeroTakeActionM :: State AgentZeroAgentOut Bool
 agentZeroTakeActionM =
@@ -86,11 +80,9 @@ agentZeroUpdateEventCountM =
 	do
 		attackingSite <- onAttackingSiteM
 		evtCount <- domainStateFieldM azAgentEventCount
-		if attackingSite then
-			updateDomainStateM (\s -> s { azAgentEventCount = evtCount + 1} )
-			else
-				return ()
 
+		when attackingSite (updateDomainStateM (\s -> s { azAgentEventCount = evtCount + 1} ))
+		
 agentZeroUpdateAffectM :: State AgentZeroAgentOut ()
 agentZeroUpdateAffectM =
 	do
@@ -100,11 +92,9 @@ agentZeroUpdateAffectM =
 		lambda <- domainStateFieldM azAgentLambda
 
 		attackingSite <- onAttackingSiteM
-		if attackingSite then
-			updateDomainStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * (lambda - affect))})
-			else
-				updateDomainStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * extinctionRate * (0 - affect))})
 
+		when attackingSite $ updateDomainStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * (lambda - affect))})
+		when (not attackingSite) $ updateDomainStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * extinctionRate * (0 - affect))})
 
 agentZeroUpdateProbM :: State AgentZeroAgentOut ()
 agentZeroUpdateProbM =
@@ -141,24 +131,25 @@ agentZeroUpdateDispoM ain =
 		thresh <- domainStateFieldM azAgentThresh
 		
 		let dispoLocal = affect + prob
-
 		let linkIds = neighbourNodes env aid
 
 		updateDomainStateM (\s -> s { azAgentDispo = dispoLocal - thresh})
-
-		-- TODO: rework this onMessage, not very nice
-		ao <- get
-		put $ onMessage ain dispositionMessageHandle ao
-
+		onMessageM ain dispositionMessageHandleM
 		broadcastMessageM (Disposition dispoLocal) linkIds
 
 	where
-		dispositionMessageHandle :: AgentZeroAgentOut -> AgentMessage AgentZeroMsg -> AgentZeroAgentOut
-		dispositionMessageHandle a (senderId, (Disposition d)) = updateDomainState a (\s -> s { azAgentDispo = (azAgentDispo s) + (d * weight)})
-			where
-				mayWeight = directLinkBetween (aoEnv a) senderId (aoId a)
-				weight = maybe 0.0 Prelude.id mayWeight
-		dispositionMessageHandle a _ = a
+		dispositionMessageHandleM :: AgentMessage AgentZeroMsg -> State AgentZeroAgentOut ()
+		dispositionMessageHandleM (senderId, (Disposition d)) = 
+			do
+				aid <- agentIdM
+				env <- environmentM
+
+				let mayWeight = directLinkBetween env senderId aid
+				let weight = maybe 0.0 Prelude.id mayWeight
+
+				updateDomainStateM (\s -> s { azAgentDispo = (azAgentDispo s) + (d * weight)})
+
+		dispositionMessageHandleM _ = return ()
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

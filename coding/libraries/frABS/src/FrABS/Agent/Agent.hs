@@ -43,6 +43,7 @@ module FrABS.Agent.Agent (
     broadcastMessageM,
     hasMessage,
     onMessage,
+    onMessageM,
     onFilterMessage,
     onMessageFrom,
     onMessageType,
@@ -305,6 +306,15 @@ onMessage :: AgentIn s m ec l -> (acc -> AgentMessage m -> acc) -> acc -> acc
 onMessage ai msgHdl a 
     | not hasMessages = a
     | otherwise = foldr (\msg acc'-> msgHdl acc' msg ) a msgs
+    where
+        msgsEvt = aiMessages ai
+        hasMessages = isEvent msgsEvt
+        msgs = fromEvent msgsEvt
+
+onMessageM :: AgentIn s m ec l -> (AgentMessage m -> State acc ()) -> State acc ()
+onMessageM ai msgHdl 
+    | not hasMessages = return ()
+    | otherwise = foldM (\_ msg -> msgHdl msg) () msgs
     where
         msgsEvt = aiMessages ai
         hasMessages = isEvent msgsEvt

@@ -351,14 +351,11 @@ collatCashAsk s
 ------------------------------------------------------------------------------------------------------------------------
 --  AGENT-BEHAVIOUR MONADIC implementation
 ------------------------------------------------------------------------------------------------------------------------
-traderBehaviourFuncM :: DAAgentIn -> DAAgentOut -> DAAgentOut
-traderBehaviourFuncM ain ao = execState (traderBehaviourFuncAux ain) ao
-	where
-		traderBehaviourFuncAux :: DAAgentIn -> State DAAgentOut ()
-		traderBehaviourFuncAux ain =
-			do
-				sendOfferingsM
-				receiveTransactionsM ain
+traderBehaviourFuncM :: DAAgentIn -> State DAAgentOut ()
+traderBehaviourFuncM ain =
+	do
+		sendOfferingsM
+		receiveTransactionsM ain
 
 sendOfferingsM :: State DAAgentOut ()
 sendOfferingsM =
@@ -371,16 +368,12 @@ sendOfferingsM =
 		sendMessageM (auctioneer, AskOffering aos)
 
 receiveTransactionsM :: DAAgentIn -> State DAAgentOut ()
-receiveTransactionsM ain = 
-	do
-		ao <- get 
-		put (onMessage ain handleTxMsg ao) -- TODO: onMessage is not yet implemented to my satisfaction
-
+receiveTransactionsM ain = onMessageM ain handleTxMsgM
 	where
-		handleTxMsg :: DAAgentOut -> AgentMessage DoubleAuctionMsg -> DAAgentOut
-		handleTxMsg a (_, (SellTx m o)) = updateDomainState a (transactSell m o)
-		handleTxMsg a (_, (BuyTx m o)) = updateDomainState a (transactBuy m o)
-		handleTxMsg a _ = a
+		handleTxMsgM :: AgentMessage DoubleAuctionMsg -> State DAAgentOut ()
+		handleTxMsgM (_, (SellTx m o)) = updateDomainStateM (transactSell m o)
+		handleTxMsgM (_, (BuyTx m o)) = updateDomainStateM (transactBuy m o)
+		handleTxMsgM _ = return ()
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -421,6 +414,6 @@ traderAgentBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
         -- let ao' = traderBehaviourFunc ain ao
-        let ao' = traderBehaviourFuncM ain ao
+        let ao' = execState (traderBehaviourFuncM ain) ao
         returnA -< traderBehaviourFunc ain ao'
 ------------------------------------------------------------------------------------------------------------------------

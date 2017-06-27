@@ -552,7 +552,7 @@ agentCheckCreditPaybackDue a = aAfterPayback
 
         agentCheckCreditPaybackAux :: SugarScapeCreditInfo -> (SugarScapeAgentOut, [SugarScapeCreditInfo]) -> (SugarScapeAgentOut, [SugarScapeCreditInfo])
         agentCheckCreditPaybackAux creditInfo@(lenderId, ageDue, credit) (a, accCredits) 
-            | creditDue = (a, accCredits)
+            | creditDue = paybackCredit --(a, accCredits)
             | otherwise = (a, creditInfo : accCredits)
             where
                 s = aoState a
@@ -568,9 +568,9 @@ agentCheckCreditPaybackDue a = aAfterPayback
 
                         wealth = sugAgSugarLevel s
                         dueAmount = faceValue + (faceValue * (creditInterestRate / 100))
-                        fullPaybackPossible = wealth >= paybackAmount
+                        fullPaybackPossible = wealth >= dueAmount
 
-                        paybackAmount = if fullPaybackPossible then paybackAmount else wealth * 0.5
+                        paybackAmount = if fullPaybackPossible then dueAmount else wealth * 0.5
                         paybackMessage = if fullPaybackPossible then (CreditPaybackFull paybackAmount) else (CreditPaybackHalf paybackAmount)
 
                         newCredit = (faceValue - paybackAmount, creditDuration, creditInterestRate)

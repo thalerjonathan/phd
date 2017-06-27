@@ -2,7 +2,7 @@ module SugarScape.SugarScapeRenderer where
 
 import FrABS.Agent.Agent
 import SugarScape.SugarScapeModel
-import SugarScape.SugarScapeAgent
+import SugarScape.SugarScapeAgentCommon
 import FrABS.Env.Environment
 
 import qualified Graphics.Gloss as GLO

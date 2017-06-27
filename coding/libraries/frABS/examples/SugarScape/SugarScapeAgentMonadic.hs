@@ -226,16 +226,12 @@ agentSexM =
                 gender <- domainStateFieldM sugAgGender
 
                 ifThenElse (satisfiesWealthForChildBearing s)
-                    (conversationM (receiverId, (MatingRequest gender)) agentMatingConversationsReplyMonadicRunner)
+                    (conversationM 
+                        (receiverId, (MatingRequest gender)) 
+                        (conversationReplyMonadicRunner agentMatingConversationsReplyM))
                     conversationEndM
                 
             where
-                agentMatingConversationsReplyMonadicRunner :: SugarScapeAgentOut
-                                                                -> Maybe (AgentMessage SugarScapeMsg)
-                                                                -> SugarScapeAgentOut
-                agentMatingConversationsReplyMonadicRunner ao mayReply = 
-                    execState (agentMatingConversationsReplyM mayReply) ao
-
                 agentMatingConversationsReplyM :: Maybe (AgentMessage SugarScapeMsg) -> State SugarScapeAgentOut ()
                 agentMatingConversationsReplyM Nothing = agentMatingConversationM otherAis allCoords  -- NOTE: the target was not found or does not have a handler, continue with the next
                 agentMatingConversationsReplyM (Just (_, MatingReplyNo)) = agentMatingConversationM otherAis allCoords
@@ -270,8 +266,9 @@ agentSexM =
 
                         conversationM 
                             (receiverId, (MatingChild newBornId))
-                            (\ao _ -> execState (agentMatingConversationM otherAis cs) ao)
-                  
+                            (conversationIgnoreReplyMonadicRunner (agentMatingConversationM otherAis cs))
+                            --(\ao _ -> execState (agentMatingConversationM otherAis cs) ao)
+                    
                 agentMatingConversationsReplyM (Just (_, _)) = agentMatingConversationM otherAis allCoords  -- NOTE: unexpected/MatingChildAck reply, continue with the next
 
 inheritSugarM :: SugarScapeAgentIn 
@@ -418,34 +415,186 @@ agentCombatMoveM =
 ------------------------------------------------------------------------------------------------------------------------
 -- Chapter IV: Sugar and Spice - Trade Comes to the Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
-agentTradingM :: SugarScapeAgentOut -> SugarScapeAgentOut
-agentTradingM a = agentTradingConversation nids a
+agentTradingM :: State SugarScapeAgentOut ()
+agentTradingM = neighbourIdsM >>= agentTradingConversationM
     where
-        nids = neighbourIds a
-
-        agentTradingConversation :: [AgentId]
-                                    -> SugarScapeAgentOut
-                                    -> SugarScapeAgentOut
-        agentTradingConversation [] a = conversationEnd a
-        agentTradingConversation (receiverId:otherAis) a = conversation a (receiverId, m) agentTradingConversationsReply
+        agentTradingConversationM :: [AgentId]
+                                    -> State SugarScapeAgentOut ()
+        agentTradingConversationM [] = conversationEndM
+        agentTradingConversationM (receiverId:otherAis) = 
+            do
+                s <- getDomainStateM
+                let mrsSelf = agentMRS s
+                conversationM 
+                    (receiverId, (TradingOffer mrsSelf)) 
+                    (conversationReplyMonadicRunner $ agentTradingConversationsReplyM mrsSelf)
+            
             where
-                mrsSelf = agentMRS $ aoState a
-                m = TradingOffer mrsSelf
-
-                agentTradingConversationsReply :: SugarScapeAgentOut
+                agentTradingConversationsReplyM :: Double
                                                     -> Maybe (AgentMessage SugarScapeMsg)
-                                                    -> SugarScapeAgentOut
-                agentTradingConversationsReply a Nothing = agentTradingConversation otherAis a 
-                agentTradingConversationsReply a (Just (_, TradingRefuse)) = agentTradingConversation otherAis a
-                agentTradingConversationsReply a (Just (_, (TradingTransact _))) = agentTradingConversation otherAis a -- NOTE: other agent has transacted, continue with next
-                agentTradingConversationsReply a (Just (senderId, (TradingAccept mrsOther))) 
-                    | welfareIncreases = conversation aAfterTrade (senderId, TradingTransact mrsSelf) agentTradingConversationsReply
-                    | otherwise = agentTradingConversation otherAis a 
-                    where
-                        welfareIncreases = agentTradeIncreaseWelfare s mrsOther
-                        s = aoState a
-                        s' = agentTradeExchange s mrsOther
-                        aAfterTrade = a { aoState = s' }
+                                                    -> State SugarScapeAgentOut ()
+                agentTradingConversationsReplyM _ Nothing = agentTradingConversationM otherAis 
+                agentTradingConversationsReplyM _ (Just (_, TradingRefuse)) = agentTradingConversationM otherAis 
+                agentTradingConversationsReplyM _ (Just (_, (TradingTransact _))) = agentTradingConversationM otherAis  -- NOTE: other agent has transacted, continue with next
+                agentTradingConversationsReplyM mrsSelf (Just (senderId, (TradingAccept mrsOther))) =
+                    do
+                        s <- getDomainStateM
+
+                        let welfareIncreases = agentTradeIncreaseWelfare s mrsOther
+                        
+                        ifThenElse welfareIncreases
+                            (do
+                                let s' = agentTradeExchange s mrsOther
+                                setDomainStateM s'
+                                conversationM 
+                                    (senderId, TradingTransact mrsSelf) 
+                                    (conversationReplyMonadicRunner $ agentTradingConversationsReplyM mrsSelf))
+                            (agentTradingConversationM otherAis)
+
+agentCreditM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
+agentCreditM ain = agentRequestCreditM >> agentCheckCreditPaybackDueM >> agentCreditPaybackIncomingM ain >> agentCreditDeathIncomingM ain
+
+-- NOTE: for now only sugar is lended & borrowed, no spice
+agentRequestCreditM :: State SugarScapeAgentOut ()
+agentRequestCreditM =
+    do
+        nids <- neighbourIdsM
+        let hasNeighbours = (not $ null nids)
+        when hasNeighbours (agentCreditConversationM nids)
+
+    where
+        agentCreditConversationM :: [AgentId]
+                                    -> State SugarScapeAgentOut ()
+        agentCreditConversationM [] = conversationEndM
+        agentCreditConversationM (receiverId:otherAis) =
+            do
+                s <- getDomainStateM
+                ifThenElse (isPotentialBorrower s)
+                    (conversationM (receiverId, CreditRequest) 
+                        (conversationReplyMonadicRunner agentCreditConversationsReplyM))
+                    conversationEndM
+            where
+                agentCreditConversationsReplyM :: Maybe (AgentMessage SugarScapeMsg)
+                                                    -> State SugarScapeAgentOut ()
+                agentCreditConversationsReplyM Nothing = agentCreditConversationM otherAis
+                agentCreditConversationsReplyM (Just (_, CreditRequestRefuse)) = agentCreditConversationM otherAis 
+                agentCreditConversationsReplyM (Just (lenderId, CreditOffer credit)) = 
+                    do
+                        age <- domainStateFieldM sugAgAge
+
+                        let (faceValue, creditDuration, creditInterestRate) = credit
+                        let creditDueAge = age + creditDuration 
+                        let creditInfo = (lenderId, creditDueAge, credit)
+                        updateDomainStateM (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + faceValue,
+                                                        sugAgBorrowingCredits = creditInfo : sugAgBorrowingCredits s })
+
+                        agentCreditConversationM otherAis
+
+-- NOTE: if a borrower dies: notify the lenders so they know they take a loss (remove it from open credits)
+-- NOTE: if a lender dies: notify the borrowers so they know they don't have to pay back
+-- NOTE that we don't implement the inheritance-rule for loans
+agentDeathHandleCreditsM :: State SugarScapeAgentOut ()
+agentDeathHandleCreditsM = 
+    do
+        borrowedCredits <- domainStateFieldM sugAgBorrowingCredits
+        borrowerIds <- domainStateFieldM sugAgLendingCredits
+
+        let lenderIds = map (\(lid, _, _) -> lid) borrowedCredits
+        
+        broadcastMessageM CreditBorrowerDied lenderIds
+        broadcastMessageM CreditLenderDied borrowerIds
+
+agentCreditDeathIncomingM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
+agentCreditDeathIncomingM ain = onMessageM ain creditDeathActionM
+    where
+        creditDeathActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
+        creditDeathActionM (borrowerId, CreditBorrowerDied) = borrowerDiedM borrowerId
+        creditDeathActionM (lenderId, CreditLenderDied) = lenderDiedM lenderId
+        creditDeathActionM _ = return ()
+
+        -- NOTE: the borrower could have borrowed multiple times from this lender, remove ALL ids
+        borrowerDiedM :: AgentId -> State SugarScapeAgentOut ()
+        borrowerDiedM borrowerId = 
+            do
+                borrowers <- domainStateFieldM sugAgLendingCredits
+                let borrowersRemoved = filter (/=borrowerId) borrowers
+                updateDomainStateM (\s -> s { sugAgLendingCredits = borrowersRemoved } )
+
+        -- NOTE: the lender could have lended multiple times to this borrower, remove ALL credits
+        lenderDiedM :: AgentId -> State SugarScapeAgentOut ()
+        lenderDiedM lenderId = 
+            do
+                borrowedCredits <- domainStateFieldM sugAgBorrowingCredits
+                let borrowersRemoved = filter (\(lId, _, _) -> lId /= lenderId) borrowedCredits
+                updateDomainStateM (\s -> s { sugAgBorrowingCredits = borrowersRemoved } )
+
+agentCreditPaybackIncomingM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
+agentCreditPaybackIncomingM ain = onMessageM ain creditPaybackActionM
+    where
+        creditPaybackActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
+        creditPaybackActionM (_, (CreditPaybackHalf amount)) = halfCreditPaybackM amount
+        creditPaybackActionM (borrowerId, (CreditPaybackFull amount)) = fullCreditPaybackM borrowerId amount
+        creditPaybackActionM _ = return ()
+
+        -- NOTE: in this case we don't remove the borrower because it has not yet payed back the whole credit
+        halfCreditPaybackM :: Double -> State SugarScapeAgentOut ()
+        halfCreditPaybackM = agentChangeSugarWealthM 
+
+        -- NOTE: in this case we just remove the first borrower-id we find. It is possible that this lender has lended multiple times to the borrower but this doesnt matter in this case
+        fullCreditPaybackM :: AgentId -> Double -> State SugarScapeAgentOut ()
+        fullCreditPaybackM borrowerId amount = 
+            do
+                borrowers <- domainStateFieldM sugAgLendingCredits
+                let borrowersFirstRemoved = delete borrowerId borrowers
+                updateDomainStateM (\s -> s { sugAgLendingCredits = borrowersFirstRemoved } )
+                agentChangeSugarWealthM amount
+
+agentChangeSugarWealthM :: Double -> State SugarScapeAgentOut ()
+agentChangeSugarWealthM amount = updateDomainStateM (\s -> s { sugAgSugarLevel = (sugAgSugarLevel s) + amount } )
+
+agentCheckCreditPaybackDueM :: State SugarScapeAgentOut ()
+agentCheckCreditPaybackDueM = 
+    do
+        borrowedCredits <- domainStateFieldM sugAgBorrowingCredits
+
+        borrowedCredits' <- foldM agentCheckCreditPaybackAuxM [] borrowedCredits
+        updateDomainStateM (\s -> s { sugAgBorrowingCredits = borrowedCredits'})
+
+    where
+        agentCheckCreditPaybackAuxM :: [SugarScapeCreditInfo] 
+                                        -> SugarScapeCreditInfo 
+                                        -> State SugarScapeAgentOut [SugarScapeCreditInfo]
+        agentCheckCreditPaybackAuxM accCredits creditInfo@(lenderId, ageDue, credit) =
+            do
+                age <- domainStateFieldM sugAgAge
+                let creditDue = ageDue >= age
+
+                ifThenElse creditDue
+                    (paybackCredit age)
+                    (return $ creditInfo : accCredits)
+
+            where
+                paybackCredit :: Double -> State SugarScapeAgentOut [SugarScapeCreditInfo]
+                paybackCredit age =
+                    do
+                        wealth <- domainStateFieldM sugAgSugarLevel
+
+                        let (faceValue, creditDuration, creditInterestRate) = credit
+                        let dueAmount = faceValue + (faceValue * (creditInterestRate / 100))
+                        let fullPaybackPossible = wealth >= dueAmount
+                        
+                        let paybackAmount = if fullPaybackPossible then dueAmount else wealth * 0.5
+                        let paybackMessage = if fullPaybackPossible then (CreditPaybackFull paybackAmount) else (CreditPaybackHalf paybackAmount)
+
+                        let newCredit = (faceValue - paybackAmount, creditDuration, creditInterestRate)
+                        let newCreditInfo = (lenderId, age + creditDuration, newCredit)
+
+                        agentChangeSugarWealthM paybackAmount
+                        sendMessageM (lenderId, paybackMessage)
+
+                        ifThenElse fullPaybackPossible
+                            (return accCredits)
+                            (return $ newCreditInfo : accCredits)
 
 -- NOTE: we ignore cross-over trades which is forbidden in the SugarScape-Book. We claim in our implementation it is not a problem as it works different.
 --       also agents move on in the next step and won't be neighbours anyway, so a cross-over would not really become a problem in a way as Epstein and Axtell said it would create infinite recursion
@@ -469,149 +618,6 @@ handleTradingTransactM mrsOther ain = (TradingTransact mrsOther, ainAfterTrade) 
         s = aiState ain
         s' = agentTradeExchange s mrsOther
         ainAfterTrade = ain { aiState = s' }
-
-agentCreditM :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
-agentCreditM ain a = agentRequestCreditM $ agentCheckCreditPaybackDueM $ agentCreditPaybackIncomingM ain $ agentCreditDeathIncomingM ain a
-
--- NOTE: for now only sugar is lended & borrowed, no spice
-agentRequestCreditM :: SugarScapeAgentOut -> SugarScapeAgentOut
-agentRequestCreditM a
-    | hasNeighbours = agentCreditConversation nids a
-    | otherwise = a
-    where
-        s = aoState a
-        nids = neighbourIds a
-        hasNeighbours = (not $ null nids)
-
-        agentCreditConversation :: [AgentId]
-                                    -> SugarScapeAgentOut
-                                    -> SugarScapeAgentOut
-        agentCreditConversation [] a = conversationEnd a
-        agentCreditConversation (receiverId:otherAis) a 
-            | isPotentialBorrower s = conversation a (receiverId, CreditRequest) agentCreditConversationsReply
-            | otherwise = conversationEnd a
-            where
-                agentCreditConversationsReply :: SugarScapeAgentOut
-                                                    -> Maybe (AgentMessage SugarScapeMsg)
-                                                    -> SugarScapeAgentOut
-                agentCreditConversationsReply a Nothing = agentCreditConversation otherAis a
-                agentCreditConversationsReply a (Just (_, CreditRequestRefuse)) = agentCreditConversation otherAis a 
-                agentCreditConversationsReply a (Just (lenderId, CreditOffer credit)) = agentCreditConversation otherAis aAfterBorrowing
-                    where
-                        s = aoState a
-                        age = sugAgAge s
-
-                        (faceValue, creditDuration, creditInterestRate) = credit
-                        creditDueAge = age + creditDuration 
-
-                        creditInfo = (lenderId, creditDueAge, credit)
-                        aAfterBorrowing = updateDomainState a (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + faceValue,
-                                                                    sugAgBorrowingCredits = creditInfo : sugAgBorrowingCredits s })
-
--- NOTE: if a borrower dies: notify the lenders so they know they take a loss (remove it from open credits)
--- NOTE: if a lender dies: notify the borrowers so they know they don't have to pay back
--- NOTE that we don't implement the inheritance-rule for loans
-agentDeathHandleCreditsM :: SugarScapeAgentOut -> SugarScapeAgentOut
-agentDeathHandleCreditsM a = aNotifiedBorrowers
-    where
-        s = aoState a
-        lenderIds = map (\(lid, _, _) -> lid) (sugAgBorrowingCredits s)
-        borrowerIds = sugAgLendingCredits s
-        
-        aNotifiedLenders = broadcastMessage a CreditBorrowerDied lenderIds
-        aNotifiedBorrowers = broadcastMessage aNotifiedLenders CreditLenderDied borrowerIds
-
-agentCreditDeathIncomingM :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
-agentCreditDeathIncomingM ain a = onMessage ain creditDeathAction a
-    where
-        creditDeathAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
-        creditDeathAction a (borrowerId, CreditBorrowerDied) = borrowerDied a borrowerId
-        creditDeathAction a (lenderId, CreditLenderDied) = lenderDied a lenderId
-        creditDeathAction a _ = a
-
-        -- NOTE: the borrower could have borrowed multiple times from this lender, remove ALL ids
-        borrowerDied :: SugarScapeAgentOut -> AgentId -> SugarScapeAgentOut
-        borrowerDied a borrowerId = a' 
-            where
-                s = aoState a
-                borrowers = sugAgLendingCredits s
-                borrowersRemoved = filter (/=borrowerId) borrowers
-                a' = updateDomainState a (\s -> s { sugAgLendingCredits = borrowersRemoved } )
-
-        -- NOTE: the lender could have lended multiple times to this borrower, remove ALL credits
-        lenderDied :: SugarScapeAgentOut -> AgentId -> SugarScapeAgentOut
-        lenderDied a lenderId = a' 
-            where
-                s = aoState a
-                borrowedCredits = sugAgBorrowingCredits s
-                borrowersRemoved = filter (\(lId, _, _) -> lId /= lenderId) borrowedCredits
-                a' = updateDomainState a (\s -> s { sugAgBorrowingCredits = borrowersRemoved } )
-
-agentCreditPaybackIncomingM :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
-agentCreditPaybackIncomingM ain a = onMessage ain creditPaybackAction a
-    where
-        creditPaybackAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
-        creditPaybackAction a (_, (CreditPaybackHalf amount)) = halfCreditPayback a amount
-        creditPaybackAction a (borrowerId, (CreditPaybackFull amount)) = fullCreditPayback a borrowerId amount
-        creditPaybackAction a _ = a
-
-        -- NOTE: in this case we don't remove the borrower because it has not yet payed back the whole credit
-        halfCreditPayback :: SugarScapeAgentOut -> Double -> SugarScapeAgentOut
-        halfCreditPayback = agentChangeSugarWealthM 
-
-        -- NOTE: in this case we just remove the first borrower-id we find. It is possible that this lender has lended multiple times to the borrower but this doesnt matter in this case
-        fullCreditPayback :: SugarScapeAgentOut -> AgentId -> Double -> SugarScapeAgentOut
-        fullCreditPayback a borrowerId amount = agentChangeSugarWealthM a' amount
-            where
-                s = aoState a
-                borrowers = sugAgLendingCredits s
-                borrowersFirstRemoved = delete borrowerId borrowers
-                a' = updateDomainState a (\s -> s { sugAgLendingCredits = borrowersFirstRemoved } )
-
-agentChangeSugarWealthM :: SugarScapeAgentOut -> Double -> SugarScapeAgentOut
-agentChangeSugarWealthM a amount = updateDomainState a (\s -> s { sugAgSugarLevel = newWealth } )
-    where
-        s = aoState a
-        wealth = sugAgSugarLevel s 
-        newWealth = wealth + amount
-
-agentCheckCreditPaybackDueM :: SugarScapeAgentOut -> SugarScapeAgentOut
-agentCheckCreditPaybackDueM a = aAfterPayback
-    where
-        s = aoState a
-        borrowingCredits = sugAgBorrowingCredits s 
-
-        (a', borrowingCredits') = foldr agentCheckCreditPaybackAux (a, []) borrowingCredits
-        aAfterPayback = updateDomainState a' (\s -> s { sugAgBorrowingCredits = borrowingCredits'})
-
-        agentCheckCreditPaybackAux :: SugarScapeCreditInfo -> (SugarScapeAgentOut, [SugarScapeCreditInfo]) -> (SugarScapeAgentOut, [SugarScapeCreditInfo])
-        agentCheckCreditPaybackAux creditInfo@(lenderId, ageDue, credit) (a, accCredits) 
-            | creditDue = (a, accCredits)
-            | otherwise = (a, creditInfo : accCredits)
-            where
-                s = aoState a
-                age = sugAgAge s
-                creditDue = ageDue >= age
-
-                paybackCredit :: (SugarScapeAgentOut, [SugarScapeCreditInfo])
-                paybackCredit 
-                    | fullPaybackPossible = (aAfterPayback, accCredits)
-                    | otherwise = (aAfterPayback, newCreditInfo : accCredits)
-                    where
-                        (faceValue, creditDuration, creditInterestRate) = credit
-
-                        wealth = sugAgSugarLevel s
-                        dueAmount = faceValue + (faceValue * (creditInterestRate / 100))
-                        fullPaybackPossible = wealth >= paybackAmount
-
-                        paybackAmount = if fullPaybackPossible then paybackAmount else wealth * 0.5
-                        paybackMessage = if fullPaybackPossible then (CreditPaybackFull paybackAmount) else (CreditPaybackHalf paybackAmount)
-
-                        newCredit = (faceValue - paybackAmount, creditDuration, creditInterestRate)
-                        newCreditInfo = (lenderId, age + creditDuration, newCredit)
-
-                        aReducedWealth = agentChangeSugarWealthM a paybackAmount
-                        aAfterPayback = sendMessage aReducedWealth (lenderId, paybackMessage)
 
 handleCreditRequestM :: SugarScapeAgentIn -> AgentId -> (SugarScapeMsg, SugarScapeAgentIn)
 handleCreditRequestM ain borrowerId

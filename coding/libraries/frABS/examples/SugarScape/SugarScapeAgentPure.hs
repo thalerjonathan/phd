@@ -82,7 +82,9 @@ agentNonCombatMove a
         bestCells = selectBestCells bestMeasureSugarLevel refCoord unoccupiedCells
         ((cellCoord, _), a') = agentPickRandom a bestCells
 
-agentMoveAndHarvestCell :: SugarScapeAgentOut -> EnvCoord -> SugarScapeAgentOut
+agentMoveAndHarvestCell :: SugarScapeAgentOut 
+                            -> EnvCoord 
+                            -> SugarScapeAgentOut
 agentMoveAndHarvestCell a cellCoord = a1
     where
         a0 = agentHarvestCell a cellCoord
@@ -93,7 +95,10 @@ agentStayAndHarvest a = agentHarvestCell a cellCoord
     where
         (cellCoord, _) = agentCellOnPos a
 
-agentPoluteCell :: Double -> (EnvCoord, SugarScapeEnvCell) -> SugarScapeAgentOut -> SugarScapeAgentOut
+agentPoluteCell :: Double 
+                    -> (EnvCoord, SugarScapeEnvCell) 
+                    -> SugarScapeAgentOut 
+                    -> SugarScapeAgentOut
 agentPoluteCell polutionIncrease (cellCoord, cell) a 
     | polutionEnabled = a { aoEnv = env }
     | otherwise = a
@@ -103,7 +108,9 @@ agentPoluteCell polutionIncrease (cellCoord, cell) a
         }
         env = changeCellAt (aoEnv a) cellCoord cellAfterPolution
 
-agentHarvestCell  :: SugarScapeAgentOut -> EnvCoord -> SugarScapeAgentOut
+agentHarvestCell  :: SugarScapeAgentOut 
+                        -> EnvCoord 
+                        -> SugarScapeAgentOut
 agentHarvestCell a cellCoord = a2
     where
         cell = cellAt (aoEnv a) cellCoord
@@ -151,7 +158,9 @@ agentLookout a = zip visionCoordsWrapped visionCells
         visionCoordsWrapped = wrapCells (envLimits env) (envWrapping env) visionCoords
         visionCells = cellsAt env visionCoordsWrapped
 
-agentAgeing :: Double -> SugarScapeAgentOut -> SugarScapeAgentOut
+agentAgeing :: Double 
+                -> SugarScapeAgentOut 
+                -> SugarScapeAgentOut
 agentAgeing newAge a
     | dieFromAge a = agentDies $ passWealthOn a' -- $ birthNewAgent a
     | otherwise = a'
@@ -215,9 +224,7 @@ agentSex a
                 s = aoState a
                 m =  MatingRequest (sugAgGender $ s) --trace ("MatingRequest to " ++ (show receiverId)) MatingRequest (sugAgGender $ s)
 
-                agentMatingConversationsReply :: SugarScapeAgentOut
-                                                    -> Maybe (AgentMessage SugarScapeMsg)
-                                                    -> SugarScapeAgentOut
+                agentMatingConversationsReply :: SugarScapeAgentConversationSender
                 agentMatingConversationsReply a Nothing = agentMatingConversation otherAis allCoords a  -- NOTE: the target was not found or does not have a handler, continue with the next
                 agentMatingConversationsReply a (Just (_, MatingReplyNo)) = agentMatingConversation otherAis allCoords a
                 agentMatingConversationsReply a (Just (senderId, (MatingReplyYes otherTup))) = 
@@ -257,7 +264,9 @@ agentSex a
                 agentMatingConversationsReply a (Just (_, _)) = agentMatingConversation otherAis allCoords a  -- NOTE: unexpected/MatingChildAck reply, continue with the next
 
 
-inheritSugar :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
+inheritSugar :: SugarScapeAgentIn 
+                -> SugarScapeAgentOut 
+                -> SugarScapeAgentOut
 inheritSugar ain a = onMessage ain inheritSugarAction a
     where
         inheritSugarAction :: SugarScapeAgentOut -> AgentMessage SugarScapeMsg -> SugarScapeAgentOut
@@ -393,9 +402,7 @@ agentTrading a = agentTradingConversation nids a
                 mrsSelf = agentMRS $ aoState a
                 m = TradingOffer mrsSelf
 
-                agentTradingConversationsReply :: SugarScapeAgentOut
-                                                    -> Maybe (AgentMessage SugarScapeMsg)
-                                                    -> SugarScapeAgentOut
+                agentTradingConversationsReply :: SugarScapeAgentConversationSender
                 agentTradingConversationsReply a Nothing = agentTradingConversation otherAis a 
                 agentTradingConversationsReply a (Just (_, TradingRefuse)) = agentTradingConversation otherAis a
                 agentTradingConversationsReply a (Just (_, (TradingTransact _))) = agentTradingConversation otherAis a -- NOTE: other agent has transacted, continue with next
@@ -452,9 +459,7 @@ agentRequestCredit a
             | isPotentialBorrower s = conversation a (receiverId, CreditRequest) agentCreditConversationsReply
             | otherwise = conversationEnd a
             where
-                agentCreditConversationsReply :: SugarScapeAgentOut
-                                                    -> Maybe (AgentMessage SugarScapeMsg)
-                                                    -> SugarScapeAgentOut
+                agentCreditConversationsReply :: SugarScapeAgentConversationSender
                 agentCreditConversationsReply a Nothing = agentCreditConversation otherAis a
                 agentCreditConversationsReply a (Just (_, CreditRequestRefuse)) = agentCreditConversation otherAis a 
                 agentCreditConversationsReply a (Just (lenderId, CreditOffer credit)) = agentCreditConversation otherAis aAfterBorrowing

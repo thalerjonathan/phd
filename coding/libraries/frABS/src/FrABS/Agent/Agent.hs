@@ -57,10 +57,14 @@ module FrABS.Agent.Agent (
     conversationM,
     conversationEnd,
     conversationEndM,
+    conversationReplyMonadicRunner,
+    conversationIgnoreReplyMonadicRunner,
 
     updateDomainState,
     updateDomainStateM,
     getDomainStateM,
+    setDomainState,
+    setDomainStateM,
     domainStateFieldM,
 
     runEnvironmentM,
@@ -266,6 +270,13 @@ conversationEnd ao = ao { aoConversation = NoEvent }
 conversationEndM :: State (AgentOut s m ec l) ()
 conversationEndM = state (\ao -> ((), conversationEnd ao))
 
+conversationReplyMonadicRunner :: (Maybe (AgentMessage m) -> State (AgentOut s m ec l) ()) 
+                                    -> AgentConversationSender s m ec l
+conversationReplyMonadicRunner replyAction ao mayReply = execState (replyAction mayReply) ao
+
+conversationIgnoreReplyMonadicRunner :: State (AgentOut s m ec l) () -> AgentConversationSender s m ec l
+conversationIgnoreReplyMonadicRunner replyAction ao _ = execState replyAction ao
+
 sendMessages :: AgentOut s m ec l -> [AgentMessage m] -> AgentOut s m ec l
 sendMessages ao msgs = foldr (\msg ao' -> sendMessage ao' msg ) ao msgs
 
@@ -378,11 +389,13 @@ updateDomainStateM sfunc = state (updateDomainStateMAux sfunc)
         updateDomainStateMAux :: (s -> s) 
                             -> AgentOut s m ec l 
                             -> ((), AgentOut s m ec l)
-        updateDomainStateMAux sfunc ao = ((), ao')
-            where
-                s = aoState ao
-                s' = sfunc s
-                ao' = ao { aoState = s' }
+        updateDomainStateMAux sfunc ao = ((), updateDomainState ao sfunc)
+
+setDomainState :: AgentOut s m ec l -> s -> AgentOut s m ec l
+setDomainState ao s = updateDomainState ao (\_ -> s)
+
+setDomainStateM :: s -> State (AgentOut s m ec l) ()
+setDomainStateM s = state (\ao -> ((), setDomainState ao s))
 
 domainStateFieldM :: (s -> t) -> State (AgentOut s m ec l) t
 domainStateFieldM f = state (domainStateFieldMAux f)

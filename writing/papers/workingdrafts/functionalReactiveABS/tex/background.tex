@@ -18,27 +18,14 @@ We will give a formal model of agents in a subsequent section (TODO: reference)
 
 \input{./tex/backgroundModels.tex}
 
-\subsection{Verification and Validation in ABS}
-TODO: \url{http://jasss.soc.surrey.ac.uk/12/1/1.html}
-TODO: \url{http://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=4419595}
-TODO: \url{http://dspace.stir.ac.uk/handle/1893/3365#.WNjO1DsrKM8}
-TODO: \url{http://www2.econ.iastate.edu/tesfatsi/DockingSimModels.pdf}
-TODO: \url{http://www2.econ.iastate.edu/tesfatsi/empvalid.htm}
-TODO: \url{http://jasss.soc.surrey.ac.uk/10/2/8.html}
-TODO: \url{https://www.openabm.org/faq/how-validate-and-calibrate-agent-based-models}
-TODO: \url{https://link.springer.com/chapter/10.1007%2F978-3-642-01109-2_10}
-TODO: \url{http://www3.nd.edu/~nom/Papers/ADS019_Xiang.pdf}
-
 \subsection{Related Research}
-The amount of research on using the pure functional paradigm using Haskell in the field of ABS has been moderate so far.
-Most of the papers look into how agents can be specified using the belief-desire-intention paradigm \cite{de_jong_suitability_2014}, \cite{sulzmann_specifying_2007}, \cite{jankovic_functional_2007}.
-A library for Discrete Event Simulation (DES) and System Dynamics (SD) in Haskell called \textit{Aivika 3} is described in \cite{sorokin_aivika_2015}. It comes with very basic features for ABS but only allows to specify simple state-based agents with timed transitions.
+The amount of research on using the pure functional paradigm using Haskell in the field of ABS has been moderate so far. Most of the papers look into how agents can be specified using the belief-desire-intention paradigm \cite{de_jong_suitability_2014}, \cite{sulzmann_specifying_2007}, \cite{jankovic_functional_2007}. A library for Discrete Event Simulation (DES) and System Dynamics (SD) in Haskell called \textit{Aivika 3} is described in \cite{sorokin_aivika_2015}. It comes with very basic features for ABS and only allows to specify simple state-based agents with timed transitions.
 \cite{jankovic_functional_2007} discuss using functional programming for discrete event simulation (DES) and mention the paradigm of FRP to be very suitable to DES.
 
-\cite{sulzmann_specifying_2007} present an EDSL for Haskell allowing to specify Agents using the BDI model. TODO: We don't go there, thats not our intention. 
+\cite{schneider_towards_2012} and~\cite{vendrov_frabjous:_2014} present a domain-specific language for developing functional reactive agent-based simulations. This language called FRABJOUS is very human readable and easily understandable by domain-experts. It is not directly implemented in FRP/Haskell/Yampa but is compiled to Haskell/Yampa code which they claim is also readable. This is the direction we want to head but we don't want this intermediate step but look for how a most simple domain-specific language embedded in Haskell would look like. We also don't touch upon FRP and Yampa yet but leave this to further research for another paper of ours.
 
-\cite{schneider_towards_2012} and \cite{vendrov_frabjous:_2014} present a domain-specific language for developing functional reactive agent-based simulations. This language called FRABJOUS is very human readable and easily understandable by domain-experts. It is not directly implemented in FRP/Haskell/Yampa but is compiled to Haskell/Yampa code which they claim is also readable. This is the direction we want to head but we don't want this intermediate step but look for how a most simple domain-specific language embedded in Haskell would look like. We also don't touch upon FRP and Yampa yet but leave this to further research for another paper of ours.
-
-\cite{klugl_amason:_2013} TODO
-
-TODO: cite julie greensmith paper on haskell
+\subsection{NetLogo}
+One can look at NetLogo as a functional approach to ABMS which comes with its own EDSL. Our approach differs fundamentally in the following way
+	- no side-effects possible
+	- no direct access to other agents, communication happens through asynchronous messages or synchronized conversations
+	- powerful time-semantics which NetLogo completely lacks 

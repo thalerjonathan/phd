@@ -1,4 +1,6 @@
-\documentclass[a4paper, 10pt, conference]{../../templates/IEEEconf/IEEEconf}
+%\documentclass[a4paper, 10pt, conference]{../../templates/IEEEconf/IEEEconf}
+\documentclass[10pt, conference]{../../templates/IEEEtran/IEEEtran}
+%\documentclass[10pt, journal]{../../templates/IEEEtran/IEEEtran}
 
 \usepackage{graphicx}
 \usepackage{caption} 
@@ -6,42 +8,69 @@
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage{hhline}
-\usepackage[utf8]{inputenc}
 \usepackage{float}
 \usepackage{amssymb}
 \usepackage[autostyle=true]{csquotes}
 \usepackage{amsmath}
 
-\title{Functional Reactive ABMS:\\Towards pure functional Agent-Based Modelling \& Simulation.}
+\font\subtitlefont=cmr12 at 18pt
 
+\title{Functional Reactive ABMS\\{\subtitlefont Towards pure functional Agent-Based Modelling \& Simulation}}
+
+% IEEEtran journal authors
+%\author{Jonathan Thaler, ̃Peer-Olaf Siebers \\ School of Computer Science \\ University of Nottingham%
+%\thanks{jonathan.thaler@nottingham.ac.uk}%
+%\thanks{peer-olaf.siebers@nottingham.ac.uk}
+%}
+
+% IEEEtran conference authors
 \author{
-	Jonathan Thaler \\
-	\email{jonathan.thaler@nottingham.ac.uk} \\
-	\begin{affiliation}
-		School of Computer Science, University of Nottingham
-	\end{affiliation} \\
-	\and 
-	Peer-Olaf Siebers \\
-	\email{peer-olaf.siebers@nottingham.ac.uk} \\
-	\begin{affiliation}
-		School of Computer Science, University of Nottingham
-	\end{affiliation} 
-	\and 
-	Thorsten Altenkirch \\
-	\email{thorsten.altenkirch@nottingham.ac.uk} \\
-	\begin{affiliation}
-		School of Computer Science, University of Nottingham
-	\end{affiliation} 
+	\IEEEauthorblockN{Jonathan Thaler}
+	\IEEEauthorblockA{School of Computer Science\\
+		University of Nottingham\\
+		jonathan.thaler@nottingham.ac.uk}
+		
+	\and
+		
+	\IEEEauthorblockN{Peer-Olaf Siebers}
+	\IEEEauthorblockA{School of Computer Science\\
+		University of Nottingham\\
+		peer-olaf.siebers@nottingham.ac.uk}
 }
+
+%\IEEEpubid{0000--0000/00\$00.00 ̃\copyright ̃2015 IEEE}
+
+% IEEEconf authors
+%\author{
+%	Jonathan Thaler \\
+%	\email{jonathan.thaler@nottingham.ac.uk} \\
+%	\begin{affiliation}
+%		School of Computer Science, University of Nottingham
+%	\end{affiliation} \\
+%	\and 
+%	Peer-Olaf Siebers \\
+%	\email{peer-olaf.siebers@nottingham.ac.uk} \\
+%	\begin{affiliation}
+%		School of Computer Science, University of Nottingham
+%	\end{affiliation} 
+%	\and 
+%	Thorsten Altenkirch \\
+%	\email{thorsten.altenkirch@nottingham.ac.uk} \\
+%	\begin{affiliation}
+%		School of Computer Science, University of Nottingham
+%	\end{affiliation} 
+%}
 
 \begin{document}
 \maketitle 
 
 \begin{abstract}
-The pure functional paradigm has so far got not very much attention in ABS where the dominant programming paradigm is object-orientation, realized by Java. In preliminary research of ours, we came to the insight that pure functional programming using Haskell without any additional libraries is very well suited to implement ABS but that in order to build more complex, reald-world models it would be necessary to leverage the basic concepts with functional reactive programming (FRP). In this paper we show how ABS can be fused with FRP to design an embedded domain specific language (EDSL) which allows to write specifications which (nearly) match pure functional code - the specification becomes Haskell code. For a proof of concept, we chose to implement the famous and well known \textit{Sugarscape} model from the social sciences and the \textit{ACE Trading World} from agent-based computational economics (ACE).
+The pure functional paradigm has so far got not very much attention in ABS where the dominant programming paradigm is object-orientation, mainly through Java. In preliminary research of ours, we came to the insight that pure functional programming using Haskell without any additional libraries is very well suited to implement ABS but that in order to build more complex, reald-world models it would be necessary to leverage the basic concepts with functional reactive programming (FRP). In this paper we show how ABS can be fused with FRP to design an embedded domain specific language (EDSL) which allows to write specifications which (nearly) match pure functional code - the specification becomes Haskell code. 
 \end{abstract}
 
-\textbf{Keywords:} Agent-Based Simulation, Functional Programming, Reactive Programming, Haskell
+\begin{IEEEkeywords}
+Agent-Based Simulation, Functional Programming, Haskell
+\end{IEEEkeywords}
 
 \input{./tex/introduction.tex}
 
@@ -53,7 +82,7 @@ The pure functional paradigm has so far got not very much attention in ABS where
 
 \input{./tex/conclusion.tex}
 
-\bibliographystyle{acm}
+\bibliographystyle{../../templates/IEEEtran/bibtex/IEEEtran}
 \bibliography{../../../references/phdReferences.bib}
 
 \end{document}

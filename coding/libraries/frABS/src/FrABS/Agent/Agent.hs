@@ -34,6 +34,7 @@ module FrABS.Agent.Agent (
     kill,
     killM,
     isDead,
+    isDeadM,
 
     createStartingAgentIn,
     agentOutFromIn,
@@ -202,7 +203,7 @@ splitRandomFromAgent a = runAgentRandom a getSplit
 
 agentPickRandom :: AgentOut s m ec l -> [a] -> (a, AgentOut s m ec l)
 agentPickRandom a xs
-    | null xs = error "cannot draw random element from empty list"
+    | null xs = error "cannot draw single random element from empty list"
     | otherwise = (randElem, a')
     where
         cellCount = length xs
@@ -214,7 +215,7 @@ agentPickRandomM xs = state (\ao -> agentPickRandom ao xs)
 
 agentPickRandomMultiple :: AgentOut s m ec l -> [a] -> Int -> ([a], AgentOut s m ec l)
 agentPickRandomMultiple a xs n
-    | null xs = error "cannot draw random element from empty list"
+    | null xs = error "cannot draw multiple random elements from empty list"
     | otherwise = (randElems, a')
     where
         cellCount = length xs
@@ -317,6 +318,9 @@ killM = state (\ao -> ((), ao { aoKill = Event () }))
 
 isDead :: AgentOut s m ec l -> Bool
 isDead = isEvent . aoKill
+
+isDeadM :: State (AgentOut s m ec l) Bool
+isDeadM = state (\ao -> (isDead ao, ao))
 
 onStart :: AgentIn s m ec l -> (AgentOut s m ec l -> AgentOut s m ec l) -> AgentOut s m ec l -> AgentOut s m ec l
 onStart ai evtHdl ao = onEvent startEvt evtHdl ao

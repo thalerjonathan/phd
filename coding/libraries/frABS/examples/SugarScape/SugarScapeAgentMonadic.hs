@@ -599,6 +599,7 @@ agentCheckCreditPaybackDueM =
 -- NOTE: we ignore cross-over trades which is forbidden in the SugarScape-Book. We claim in our implementation it is not a problem as it works different.
 --       also agents move on in the next step and won't be neighbours anyway, so a cross-over would not really become a problem in a way as Epstein and Axtell said it would create infinite recursion
 --       which probably would occur in their oo-implementation because of direct method-calls
+-- TODO: monadic-refactoring
 handleTradingOfferM :: Double
                         -> SugarScapeAgentIn
                         -> (SugarScapeMsg, SugarScapeAgentIn)
@@ -610,6 +611,7 @@ handleTradingOfferM mrsOther ain
         mrsSelf = agentMRS s
         welfareIncreases = agentTradeIncreaseWelfare s mrsOther
 
+-- TODO: monadic-refactoring
 handleTradingTransactM :: Double
                             -> SugarScapeAgentIn
                             -> (SugarScapeMsg, SugarScapeAgentIn)
@@ -619,6 +621,7 @@ handleTradingTransactM mrsOther ain = (TradingTransact mrsOther, ainAfterTrade) 
         s' = agentTradeExchange s mrsOther
         ainAfterTrade = ain { aiState = s' }
 
+-- TODO: monadic-refactoring
 handleCreditRequestM :: SugarScapeAgentIn -> AgentId -> (SugarScapeMsg, SugarScapeAgentIn)
 handleCreditRequestM ain borrowerId
     | isLender = (CreditOffer credit, ainAfterCreditOffer)
@@ -649,17 +652,18 @@ agentDiseaseContactM ain = onMessageM ain diseaseContactActionM
 agentDiseasesTransmitM :: State SugarScapeAgentOut ()
 agentDiseasesTransmitM =
     do
-        nids <- neighbourIdsM
         diseases <- domainStateFieldM sugAgDiseases
-        s <- getDomainStateM
 
-        let neighbourCount = length nids
-        randDisease <- agentPickRandomMultipleM diseases neighbourCount
+        when (not . null $ diseases)
+            $ do
+                nids <- neighbourIdsM
+                let neighbourCount = length nids
+                randDisease <- agentPickRandomMultipleM diseases neighbourCount
 
-        let msgs = map (\(receiverId, disease) -> (receiverId, DiseaseContact disease)) (zip nids randDisease)
-        let hasNeighbours = (not . null) nids
+                let msgs = map (\(receiverId, disease) -> (receiverId, DiseaseContact disease)) (zip nids randDisease)
+                let hasNeighbours = (not . null) nids
 
-        when ((isDiseased s) && hasNeighbours) (sendMessagesM msgs)
+                when hasNeighbours $ sendMessagesM msgs
 
 agentImmunizeM :: State SugarScapeAgentOut ()
 agentImmunizeM =
@@ -679,6 +683,7 @@ agentDiseaseProcessesM ain = agentDiseaseContactM ain >> agentDiseasesTransmitM 
 ------------------------------------------------------------------------------------------------------------------------
 -- CONVERSATION-HANDLER
 ------------------------------------------------------------------------------------------------------------------------
+-- TODO: monadic-refactoring
 sugarScapeAgentConversationM :: SugarScapeAgentConversation
 sugarScapeAgentConversationM ain (_, (MatingRequest tup)) = Just $ handleMatingConversationM tup ain
 sugarScapeAgentConversationM ain (_, (MatingChild childId)) = Just (MatingChildAck, ain')
@@ -699,33 +704,28 @@ sugarScapeAgentConversationM _ _ = Nothing
 -- BEHAVIOUR-CONTROL
 ------------------------------------------------------------------------------------------------------------------------
 sugarScapeAgentBehaviourFuncM :: Double -> SugarScapeAgentIn -> State SugarScapeAgentOut ()
-sugarScapeAgentBehaviourFuncM age ain = return ()
-{-
+sugarScapeAgentBehaviourFuncM age ain = 
     do     
-        let a0 = agentKilledInCombat ain a 
-        if isDead a0 then
-            agentDeathHandleCredits a0
-            else
-                do
-                    let a1 = agentAgeing age a0
-                    if isDead a1 then
-                        agentDeathHandleCredits a1
-                        else
-                            do
-                                let a2 = agentMetabolism a1
-                                if isDead a2 then
-                                    agentDeathHandleCredits a2
-                                    else 
-                                        do
-                                            let a3 = agentNonCombatMove a2
-                                            let a4 = inheritSugar ain a3
-                                            -- let a5 = agentCultureContact ain a4
-                                            -- let a6 = agentSex a5
-                                            -- let a7 = agentTrading a5
-                                            let a8 = agentCredit ain a4
-                                            --let a9 = agentDiseaseProcesses ain a4
-                                            a8
--}
+        agentKilledInCombatM ain
+
+        ifThenElseM isDeadM
+            agentDeathHandleCreditsM
+            $ do
+                agentAgeingM age
+                ifThenElseM isDeadM
+                    agentDeathHandleCreditsM
+                    $ do
+                        agentMetabolismM
+                        ifThenElseM isDeadM
+                            agentDeathHandleCreditsM
+                            $ do
+                                agentNonCombatMoveM
+                                inheritSugarM ain
+                                agentCultureContactM ain
+                                agentSexM
+                                agentTradingM
+                                agentCreditM ain
+                                agentDiseaseProcessesM ain
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

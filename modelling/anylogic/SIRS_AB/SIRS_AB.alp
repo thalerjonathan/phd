@@ -807,14 +807,15 @@ rectangle.setFillColor(Color.GREEN);]]></EntryAction>
 					</Points>
 					<IconOffset>20.0</IconOffset>
 					<Properties Source="1477304693484" Target="1477304693484" Trigger="rate">
-						<Action><![CDATA[sendToRandomNeighbor( "Infection" );]]></Action>
+						<Action><![CDATA[//sendToRandomNeighbor( "Infection" );
+sendToRandom( "Infection" )]]></Action>
 						<Timeout Class="CodeUnitValue">
 							<Code><![CDATA[3]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[DAY]]></Unit>
 						</Timeout>
 						<Condition><![CDATA[true]]></Condition>
 						<Rate Class="CodeUnitValue">
-							<Code><![CDATA[main.contactRate / infectedDuration]]></Code>
+							<Code><![CDATA[5//main.contactRate / infectedDuration]]></Code>
 							<Unit Class="RateUnits"><![CDATA[PER_DAY]]></Unit>
 						</Rate>
 						<MessageType><![CDATA[Object]]></MessageType>
@@ -1049,6 +1050,10 @@ getPresentation().setPresentable( getEngine().getRoot() );]]></ActionCode>
 				</Parameter>
 				<Parameter>
 					<ParameterName><![CDATA[daysInfected]]></ParameterName>
+					<ParameterValue Class="CodeUnitValue">
+						<Code><![CDATA[15]]></Code>
+						<Unit Class="TimeUnits"><![CDATA[DAY]]></Unit>
+					</ParameterValue>
 				</Parameter>
 				<Parameter>
 					<ParameterName><![CDATA[daysImmune]]></ParameterName>

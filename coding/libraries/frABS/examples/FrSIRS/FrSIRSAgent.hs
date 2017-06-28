@@ -35,23 +35,23 @@ sirsAgentSusceptibleBehaviour = proc ain ->
 
 -- TODO: update sirsState to infected here once, no need to constantly set to infected in infecedbehaviourSF
 sirsAgentSusceptibleInfected :: RandomGen g => g -> () -> FrSIRSAgentBehaviour
-sirsAgentSusceptibleInfected g _ = sirsAgentInfected g
+sirsAgentSusceptibleInfected g _ = sirsAgentInfected g infectedDuration
 
 
 
-sirsAgentInfected :: RandomGen g => g -> FrSIRSAgentBehaviour
-sirsAgentInfected g = switch 
-                            (sirsAgentInfectedBehaviour g)
+sirsAgentInfected :: RandomGen g => g -> Double -> FrSIRSAgentBehaviour
+sirsAgentInfected g duration = switch 
+                            (sirsAgentInfectedBehaviour g infectedDuration)
                             (sirsAgentInfectedRecovered g)
 
 
-sirsAgentInfectedBehaviour :: RandomGen g => g -> SF FrSIRSAgentIn (FrSIRSAgentOut, Event ())
-sirsAgentInfectedBehaviour g = proc ain ->
+sirsAgentInfectedBehaviour :: RandomGen g => g -> Double -> SF FrSIRSAgentIn (FrSIRSAgentOut, Event ())
+sirsAgentInfectedBehaviour g duration = proc ain ->
     do
         let ao = agentOutFromIn ain
         let ao' = setDomainState ao Infected
 
-        recoveredEvent <- after infectedDuration () -< ()
+        recoveredEvent <- after duration () -< ()
 
         -- NOTE: this means the agent is randomly contacting two neighbours within the infected duration
         makeContact <- occasionally g (infectedDuration * 0.5) () -< ()
@@ -88,8 +88,13 @@ sirsAgentRecoveredBehaviour = proc ain ->
 sirsAgentRecoveredSusceptible :: RandomGen g => g -> () -> FrSIRSAgentBehaviour
 sirsAgentRecoveredSusceptible g _ = sirsAgentSuceptible g
 
+-- NOTE: this is the initial SF which will be only called once
 sirsAgentBehaviour :: RandomGen g => g -> FrSIRSState -> FrSIRSAgentBehaviour
 sirsAgentBehaviour g Susceptible = sirsAgentSuceptible g
-sirsAgentBehaviour g Infected = sirsAgentInfected g
+-- NOTE: when initially infected then select duration uniformly random 
+sirsAgentBehaviour g Infected = sirsAgentInfected g' duration
+    where
+        (duration, g') = randomR (0.0, infectedDuration) g
+
 sirsAgentBehaviour g Recovered = sirsAgentRecovered g
 ------------------------------------------------------------------------------------------------------------------------

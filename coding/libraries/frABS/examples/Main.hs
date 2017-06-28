@@ -13,17 +13,20 @@ import PrisonersDilemma.PDRun
 
 {-
 	TODOs
+    - implement replications
 	- reuse the Agent2D renderer if appropriate
 	- use-case for continuous 2d-environment: implement Heroes & Cowards
 
+    - compilation with -w must show no warnings at all
+    - clean-up imports
+    - clean-up structure: lint
+    - comment haskell-code
+
 	- Model-specification using QuickCheck
-	- comment haskell-code
-	- clean-up imports
-	- clean-up structure: lint
 -}
 
 main :: IO ()
-main = runFrSIRSWithRendering
+main = runFrSIRSReplicationsAndWriteToFile -- runFrSIRSStepsAndPrint -- runFrSIRSStepsAndWriteToFile
 
     -- runDoubleAuctionSteps
     -- runFrSIRSWithRendering

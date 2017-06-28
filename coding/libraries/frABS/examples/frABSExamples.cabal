@@ -23,6 +23,8 @@ executable frABSExamples
 
   ghc-options:      -O2
                     -w
+                    -- -threaded
+                    -- "-with-rtsopts=-N"
                     -- -Wall
                     -- -fwarn-tabs
                     -- -fno-warn-tabs

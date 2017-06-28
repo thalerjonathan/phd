@@ -1,11 +1,16 @@
 module FrABS.Simulation.SimulationUtils (
 	initRng,
-	initSimParams
+	initSimParams,
+
+    runReplications
   ) where
 
+import FrABS.Agent.Agent
+import FrABS.Env.Environment
 import FrABS.Simulation.Simulation
 
 import Control.Monad.Random
+import Control.Parallel.Strategies
 
 initRng :: Int -> IO StdGen
 initRng seed =
@@ -28,3 +33,25 @@ initSimParams updtStrat collFunc shuffAs =
             simShuffleAgents = shuffAs,
             simRng = rng
         }
+
+runReplications :: [AgentDef s m ec l]
+                    -> Environment ec l
+                    -> SimulationParams ec l
+                    -> Double
+                    -> Int
+                    -> Int
+                    -> [[([AgentOut s m ec l], Environment ec l)]]
+runReplications as env params dt steps replCount = 
+        parMap rpar (\replRng -> processSteps as env (params { simRng = replRng }) dt steps) replRngs -- NOTE: replace by rseq if no hardware-parallelism should be used
+    
+    where
+        (replRngs, _) = duplicateRng replCount (simRng params)
+       
+        duplicateRng :: Int -> StdGen -> ([StdGen], StdGen)
+        duplicateRng n g = duplicateRngAux n g []
+            where
+                duplicateRngAux :: Int -> StdGen -> [StdGen] -> ([StdGen], StdGen)
+                duplicateRngAux 0 g acc = (acc, g)
+                duplicateRngAux n g acc = duplicateRngAux (n-1) g' (g'' : acc)
+                    where
+                        (g', g'') = split g

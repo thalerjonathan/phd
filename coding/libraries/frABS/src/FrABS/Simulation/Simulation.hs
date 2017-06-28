@@ -118,8 +118,10 @@ simulateSeq :: [SF (AgentIn s m ec l) (AgentOut s m ec l)]
                 -> SF ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
 simulateSeq initSfs initParams = SF {sfTF = tf0}
     where
-        tf0 (initInputs, initEnv) = (tfCont, ([], initEnv))
+        tf0 (initInputs, initEnv) = (tfCont, (initOuts, initEnv))
             where
+                -- NOTE: to prevent undefined outputs we create outputs based on the initials
+                initOuts = map agentOutFromIn initInputs
                 --(nextSfs, initOs, nextIns) = runSeqInternal initSfs initInput clbk 0.0
                 -- NOTE: in SEQ we need already to know the dt for the NEXT step because we are iterating in sequence => ommit first output => need 1 step more
                 tfCont = simulateSeqAux initParams initSfs initInputs initEnv
@@ -333,8 +335,10 @@ simulatePar :: [SF (AgentIn s m ec l) (AgentOut s m ec l)]
                 -> SF ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
 simulatePar initSfs initParams = SF {sfTF = tf0}
     where
-        tf0 (initInputs, initEnv) = (tfCont, ([], initEnv))
+        tf0 (initInputs, initEnv) = (tfCont, (initOuts, initEnv))
             where
+                -- NOTE: to prevent undefined outputs we create outputs based on the initials
+                initOuts = map agentOutFromIn initInputs
                 tfCont = simulateParAux initParams initSfs initInputs initEnv
 
         -- NOTE: here we create recursively a new continuation

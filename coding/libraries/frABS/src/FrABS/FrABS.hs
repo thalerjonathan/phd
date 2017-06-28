@@ -9,8 +9,6 @@ import FRP.Yampa
 ------------------------------------------------------------------------------------------------------------------------
 -- TODOs
 ------------------------------------------------------------------------------------------------------------------------
--- implement an Agent-Monad: State & Random monad to read/write AgentOut and s and read AgentIn
-    -- is there a way to combine all into one monad?
 -- Use Dunai to run Agent-Monad
 
 -- TODO: need some mechanism to give GLOBALLY UNIQUE IDs to agents when creating new
@@ -30,12 +28,11 @@ import FRP.Yampa
 
 -- TODO: unique Ids through the state-monad?
 
--- TODO: implement replications (using parallelism!)
-
 -- TODO: allow to be able to stop simulation when iteration.function returns True
 -- TODO: sequential iteration should have the feature to shuffle agents randomly before iterating them
 
 -- TODO: hide AgentIn and AgentOut same way as DTime is hidden, only generic state in/out
+-- TODO  can we somehow restrict access to agentin/out? hiding dataconstructors? making them completely opaque?
 
 -- TODO create project structure according to put it on Hackage in september: tests, comments,...
 -- TODO write unit-tests

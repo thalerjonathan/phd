@@ -94,7 +94,7 @@ sirsAgentRecoveredSusceptible g _ = sirsAgentSuceptible g
 sirsAgentBehaviour :: RandomGen g => g -> FrSIRSState -> FrSIRSAgentBehaviour
 sirsAgentBehaviour g Susceptible = sirsAgentSuceptible g
 -- NOTE: when initially infected then select duration uniformly random 
-sirsAgentBehaviour g Infected = trace ("initially infected with duration of " ++ (show duration)) (sirsAgentInfected g' duration)
+sirsAgentBehaviour g Infected = sirsAgentInfected g' duration
     where
         (duration, g') = randomR (0.0, infectedDuration) g
 

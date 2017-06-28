@@ -411,7 +411,7 @@
     			<TimePlot>
 					<Id>1477306070181</Id>
 					<Name><![CDATA[plot]]></Name>
-					<X>460</X><Y>80</Y>
+					<X>500</X><Y>140</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
 					<PublicFlag>true</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -918,8 +918,8 @@ rectangle.setFillColor(Color.GREEN);]]></EntryAction>
 					<LineColor/>
 					<LineMaterial>null</LineMaterial>
 					<LineStyle>SOLID</LineStyle>
-					<Width>6</Width>
-					<Height>6</Height>
+					<Width>5</Width>
+					<Height>5</Height>
 					<Rotation>0.0</Rotation>
 					<FillColor>-16776961</FillColor>
 					<FillMaterial>null</FillMaterial>
@@ -1071,7 +1071,7 @@ getPresentation().setPresentable( getEngine().getRoot() );]]></ActionCode>
 				EnableAntiAliasing="true"
 				EnableEnhancedModelElementsAnimation="true"
 				ToolbarCustomizableAtRuntime="true">
-				<Maximized>false</Maximized>
+				<Maximized>true</Maximized>
 				<CloseConfirmation>false</CloseConfirmation>
 				<EnableZoomAndPanning>true</EnableZoomAndPanning>
 				<ExecutionMode><![CDATA[realTimeScaled]]></ExecutionMode>

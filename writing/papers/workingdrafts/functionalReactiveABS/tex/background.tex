@@ -12,20 +12,46 @@ We understand ABS as a method of modelling and simulating a system where the glo
 
 We will give a formal model of agents in a subsequent section (TODO: reference)
 
-\input{./tex/backgroundPureFunctional.tex}
+\subsection{Functional Reactive Programming}
+So far we have considered only quite low-level approaches to structuring and composing functional programming: higher-order functions, laziness, monads and arrows. What we need is a programming paradigm built into pure functional programming which we can leverage to implement ABS. As already mentioned above, functional reactive programming (FRP) seems to be a highly promising approach. It is rather a lucky coincidence that Henrik Nilsson, one of the major contributor to the library Yampa, an implementation of FRP, is situated at the School of Computer Science of the University of Nottingham.
 
-\input{./tex/backgroundFRP.tex}
+FRP is a paradigm for programming hybrid systems which combine continuous and discrete components. Time is explicitly modelled: there is a continuous and synchronous time flow. There have been many attempts to implement FRP in libraries which each has its benefits and deficits. The very first functional reactive language was Fran, a domain specific language for graphics and animation. At Yale FAL, Frob, Fvision and Fruit were developed. The ideas of them all have then culminated in Yampa, the most recent FRP library \cite{nilsson_functional_2002}. The essence of FRP with Yampa is that one describes the system in terms of signal functions in a declarative manner using the EDSL of Yampa. During execution the top level signal functions will then be evaluated and return new signal functions which act as continuations. A major design goal for FRP is to free the programmer from 'presentation' details by providing the ability to think in terms of 'modeling'. It is common that an FRP program is concise enough to also serve as a specification for the problem it solves \cite{wan_functional_2000}.
 
-\input{./tex/backgroundModels.tex}
+Yampa has been used in multiple agent-based applications: \cite{hudak_arrows_2003} uses Yampa for implementing a robot-simulation, \cite{courtney_yampa_2003} implement the classical Space Invaders game using Yampa, \cite{nilsson_declarative_2014} implements a Pong-clone, the thesis of \cite{meisinger_game-engine-architektur_2010} shows how Yampa can be used for implementing a Game-Engine, \cite{mun_hon_functional_2005} implemented a 3D first-person shooter game with the style of Quake 3 in Yampa. Note that although all these applications don't focus explicitly on agents all of them inherently deal with kinds of agents which share properties of classical agents: game-entities, robots,... Other fields in which Yampa was successfully used were programming of synthesizers, network routers, computer music development and has been successfully combined with monads \cite{perez_functional_2016}.
+
+This leads to the conclusion that Yampa is mature, stable and suitable to be used in functional ABS. This and the reason that we have the in-house knowledge lets us focus on Yampa. Also it is out-of-scope to do a in-depth comparison of the many existing FRP libraries.
+
+\subsubsection{Yampa}
+The central concept of Yampa is the one of a signal-function which can be understood of a mapping from an input-signal to an output-signal. Whether the signal is discrete or continuous does not matter, Yampa is suited equally well to both kinds. Signal-functions are implemented in Yampa using continuations which allow to freeze program-state e.g. through closures and partial applications in functions which can be continued later:
+\begin{lstlisting}[]
+type DTime = Double
+
+data SF a b = SF { sfTF :: DTime -> a -> (SF a b, b) }
+\end{lstlisting}
+Such a signal-function, which is called a \textit{transition function} in Yampa, takes the amount of time which has passed since the previous time step and the current input signal (a). It returns a \textit{continuation} of type SF a b determining the behaviour of the signal function on the next step and an output signal (b) of the current time-step. 
+
+Yampa provides a top-level function, running in the IO-Monad, which drives a signal-function by providing both input-values and time-deltas from callbacks. It is important to note that when visualizing a simulation one has in fact two flows of time: the one of the user-interface which always follows real-time flow, and the one of the simulation which could be sped up or slowed down. Thus it is important to note that if I/O of the user-interface (rendering, user-input) occurs within the simulations time-frame then the user-interfaces real-time flow becomes the limiting factor. Yampa provides the function embedSync which allows to embed a signal function within another one which is then run at a given ratio of the outer SF. This allows to give the simulation its own time-flow which is independent of the user-interface. We utilized this in the implementation of Recursive ABS (see Chapter \ref{chap:work}).
+
+Additional functionality which Yampa provides is the concept of Events which allow to implement changing behaviour of signal-functions at given points in time. An event can be understood to be similar to the Maybe-type of Haskell which either is an event with a given type or is simply NoEvent. Yampa provides facilities to detect if an event has fired and also provides functions to switch the signal-function into a new signal-function with changed behaviour. Another feature of Yampa is its EDSL for time-semantics: integration over time, delay, accumulation, holding, firing events after/now/repeatedly.
 
 \subsection{Related Research}
-The amount of research on using the pure functional paradigm using Haskell in the field of ABS has been moderate so far. Most of the papers look into how agents can be specified using the belief-desire-intention paradigm \cite{de_jong_suitability_2014}, \cite{sulzmann_specifying_2007}, \cite{jankovic_functional_2007}. A library for Discrete Event Simulation (DES) and System Dynamics (SD) in Haskell called \textit{Aivika 3} is described in \cite{sorokin_aivika_2015}. It comes with very basic features for ABS and only allows to specify simple state-based agents with timed transitions.
-\cite{jankovic_functional_2007} discuss using functional programming for discrete event simulation (DES) and mention the paradigm of FRP to be very suitable to DES.
+The amount of research on using the pure functional paradigm using Haskell in the field of ABS has been moderate so far. Most of the papers look into how agents can be specified using the belief-desire-intention paradigm \cite{de_jong_suitability_2014}, \cite{sulzmann_specifying_2007}, \cite{jankovic_functional_2007}. A library for Discrete Event Simulation (DES) and System Dynamics (SD) in Haskell called \textit{Aivika 3} is described in \cite{sorokin_aivika_2015}. It comes with very basic features for ABS but only allows to specify simple state-based agents with timed transitions.
+\cite{jankovic_functional_2007} which discuss using functional programming for DES mention the paradigm of functional reactive programming (FRP) to be very suitable to DES. \cite{schneider_towards_2012} and \cite{vendrov_frabjous:_2014} present a domain-specific language for developing functional reactive agent-based simulations. This language called FRABJOUS is human readable and easily understandable by domain-experts. It is not directly implemented in FRP/Haskell but is compiled to Yampa code - a FRP library for Haskell - which they claim is also readable. It seems that FRP is a promising approach to ABS in Haskell, an important hint we will follow in the section below.
 
-\cite{schneider_towards_2012} and~\cite{vendrov_frabjous:_2014} present a domain-specific language for developing functional reactive agent-based simulations. This language called FRABJOUS is very human readable and easily understandable by domain-experts. It is not directly implemented in FRP/Haskell/Yampa but is compiled to Haskell/Yampa code which they claim is also readable. This is the direction we want to head but we don't want this intermediate step but look for how a most simple domain-specific language embedded in Haskell would look like. We also don't touch upon FRP and Yampa yet but leave this to further research for another paper of ours.
+Tim Sweeney, CTO of Epic Games gave an invited talk in which he talked about programming languages in the development of game-engines and scripting of game-logic \cite{sweeney_next_2006}. Although the fields of games and ABS seem to be very different, in the end they have also very important similarities: both are simulations which perform numerical computations and update objects in a loop either concurrently or sequential \footnote{Gregory \cite{gregory_game_2018} defines computer-games as \textit{soft real-time interactive agent-based computer simulations}}. In games these objects are called \textit{game-objects} and in ABS they are called \textit{agents} but they are conceptually the same thing. The two main points Sweeney made were that dependent types could solve most of the run-time failures and that parallelism is the future for performance improvement in games. He distinguishes between pure functional algorithms which can be parallelized easily in a pure functional language and updating game-objects concurrently using software transactional memory (STM).
+
+The thesis of \cite{bezirgiannis_improving_2013} constructs two frameworks: an agent-modelling framework and a DES framework, both written in Haskell. They put special emphasis on parallel and concurrency in their work. The author develops two programs with strong emphasis on parallelism: HLogo which is a clone of the NetLogo agent-modelling framework and HDES, a framework for discrete event simulation.
 
 \subsection{NetLogo}
 One can look at NetLogo as a functional approach to ABMS which comes with its own EDSL. Our approach differs fundamentally in the following way
 	- no side-effects possible
 	- no direct access to other agents, communication happens through asynchronous messages or synchronized conversations
 	- powerful time-semantics which NetLogo completely lacks 
+	
+\subsection{Examples}
+
+\subsubsection{SIRS}
+[ ] SIRS: timed transitions using after, occasionally sending messages, transitions on messages
+
+\subsubsection{Wildfire}
+[ ] WildFire: rate transitions, occasionally sending messages, transition on messages

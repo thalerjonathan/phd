@@ -1,0 +1,23 @@
+\section{Discussion}
+
+advantages:
+	- no side-effects within agents leads to much safer code
+	- edsl for time-semantics
+	- declarative style
+	- sequential and parallel
+	- powerful time-semantics
+	- arrowized programming is optional and only required when utilizing yampas time-semantics. if the model does not rely on time-semantics, it can use monadic-programming by building on the existing monadic functions in the EDSL which allow to run in the State-Monad which simplifies things very much
+	- when to use yampas arrowized programing: time-semantics, simple state-chart agents 
+	- when not using yampas facilities: in all the other cases e.g. SugarScape is such a case as it proceeds in unit time-steps and all agents act in every time-step
+	
+disadvantages:
+	- very steep learning curve for non-functional programmers
+	- learning a new EDSL
+	- think ABMS different: when to use async messages, when to use sync conversations
+
+
+[ ] important: increasing sampling freqzency and increasing number of steps so that the same number of simulation steps are executed should lead to same results. but it doesnt. why?
+[ ] hypothesis: if time-semantics are involved then event ordering becomes relevant for emergent patterns. there are no tine semantics in heroes and cowards but in the prisoners dilemma
+[ ] can we implement different types of agents interacting with each other in the same simulation ? with different behaviour funcs, digferent state? yes, also not possible in NetLogo to my knowledge. but they must have the same messages, emvironment 
+
+[ ] Hypothesis: we can combine with FrABS agent-based simulation and system dynamics

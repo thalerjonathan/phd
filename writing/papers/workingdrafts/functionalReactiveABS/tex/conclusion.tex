@@ -1,22 +1,8 @@
 \section{Conclusion and future research}
 
-put the following into discussion-section
-
-advantages:
-	- no side-effects within agents leads to much safer code
-	- edsl for time-semantics
-	- declarative style
-	- sequential and parallel
-	- powerful time-semantics
-	- arrowized programming is optional and only required when utilizing yampas time-semantics. if the model does not rely on time-semantics, it can use monadic-programming by building on the existing monadic functions in the EDSL which allow to run in the State-Monad which simplifies things very much
-	- when to use yampas arrowized programing: time-semantics, simple state-chart agents 
-	- when not using yampas facilities: in all the other cases e.g. SugarScape is such a case as it proceeds in unit time-steps and all agents act in every time-step
-	
-disadvantages:
-	- very steep learning curve for non-functional programmers
-	- learning a new EDSL
-	- think ABMS different: when to use async messages, when to use sync conversations
-
 further research
 	- verification \& validation
 	- switch to Dunai to allow usage of Monadic programming in the arrows
+	
+	
+In his 1st year report about Functional Reactive GUI programming, Ivan Perez \footnote{main author of the paper \cite{perez_functional_2016}} writes: "FRP tries to shift the direction of data-flow, from message passing onto data dependency. This helps reason about what things are over time, as opposed to how changes propagate". This of course raises the question whether FRP is \textit{really} the right approach, because the way we implement ABS, message-passing is an essential concept. It is important to emphasis that agent-relations in interactions are never fixed in advance and are completely dynamic, forming a network. Maybe one has to look at message passing in a different way in FRP, and to view and model it as a data-dependency but it is not clear how this can be done. The question is whether there is a mechanism in which we have explicit data-dependency but which is dynamic like message-passing but does not try to fake method-calls? Maybe the concept of conversations (see above) are a way to go but we leave this for further research at the moment.

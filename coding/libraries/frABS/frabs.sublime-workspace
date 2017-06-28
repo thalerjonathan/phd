@@ -100,13 +100,29 @@
 	"buffers":
 	[
 		{
-			"contents": "{-# LANGUAGE Arrows #-}\nmodule SIRS.SIRSAgent where\n\nimport SIRS.SIRSModel\nimport Utils.Utils\n\nimport FRP.Yampa\n\nimport FrABS.Agent.Agent\nimport FrABS.Agent.AgentUtils\nimport FrABS.Env.Environment\n\nimport Control.Monad.Random\nimport Control.Monad.Trans.State\nimport Control.Monad.IfElse\n\nimport Debug.Trace\n\n------------------------------------------------------------------------------------------------------------------------\n-- AGENT-BEHAVIOUR MONADIC implementation\n------------------------------------------------------------------------------------------------------------------------\nisM :: SIRSState -> State SIRSAgentOut Bool\nisM sirsStateComp = \n    do\n        ss <- domainStateFieldM sirsState\n        return $ ss == sirsStateComp\n\nsirsDtM :: Double -> State SIRSAgentOut ()\nsirsDtM dt =\n    do\n        whenM (isM Infected) $ handleInfectedAgentM dt\n        whenM (isM Recovered) $ handleRecoveredAgentM dt \n\ninfectAgentM :: State SIRSAgentOut ()\ninfectAgentM =\n    do\n        doInfect <- drawBoolWithProbFromAgentM infectionProbability\n        when doInfect $ updateDomainStateM (\\s -> s { sirsState = Infected, sirsTime = 0.0} )\n\nhandleInfectedAgentM :: Double -> State SIRSAgentOut ()\nhandleInfectedAgentM dt = \n    do\n        t <- domainStateFieldM sirsTime\n\n        let t' = t + dt\n        let hasRecovered = t' >= infectedDuration\n\n        -- NOTE: agent has just recovered, don't send infection-contact to others\n        ifThenElse hasRecovered \n                    (updateDomainStateM (\\s -> s { sirsState = Recovered, sirsTime = 0.0 } ))\n                    $ do \n                        updateDomainStateM (\\s -> s { sirsTime = t' } )\n                        randomContactM\n\nhandleRecoveredAgentM :: Double -> State SIRSAgentOut ()\nhandleRecoveredAgentM dt = \n    do\n        t <- domainStateFieldM sirsTime\n\n        let t' = t + dt\n        let lostImmunity = t' >= immuneDuration\n\n        ifThenElse lostImmunity\n                    (updateDomainStateM (\\s -> s { sirsState = Susceptible, sirsTime = 0.0 } ))\n                    (updateDomainStateM (\\s -> s { sirsTime = t' } ))\n\nrandomContactM :: State SIRSAgentOut ()\nrandomContactM = \n    do\n        (_, randNeighId) <- pickRandomNeighbourCellM\n        sendMessageM (randNeighId, (Contact Infected))\n\nsirsAgentBehaviourFuncM :: SIRSAgentIn -> State SIRSAgentOut ()\nsirsAgentBehaviourFuncM ain = \n    do\n        onMessageM ain contactInfectedM\n        sirsDtM 1.0\n\n    where\n        contactInfectedM :: AgentMessage SIRSMsg -> State SIRSAgentOut ()\n        contactInfectedM (_, Contact Infected) = whenM (isM Susceptible) infectAgentM\n        contactInfectedM _ = return ()\n\n------------------------------------------------------------------------------------------------------------------------\n\n------------------------------------------------------------------------------------------------------------------------\n-- AGENT-BEHAVIOUR YAMPA implementation\n------------------------------------------------------------------------------------------------------------------------\nsirsAgentSuceptibleSF :: RandomGen g => g -> SIRSAgentBehaviour\nsirsAgentSuceptibleSF g = switch \n                            sirsAgentSusceptibleBehaviourSF\n                            (sirsAgentSusceptibleInfectedSF g)\n\nsirsAgentSusceptibleBehaviourSF :: SF SIRSAgentIn (SIRSAgentOut, Event ())\nsirsAgentSusceptibleBehaviourSF = proc ain ->\n    do\n        let ao = agentOutFromIn ain\n        let ao' = updateDomainState ao (\\s -> s { sirsState = Susceptible})\n\n        infectionEvent <- (iEdge False) -< hasMessage ain (Contact Infected)\n\n        returnA -< (ao', infectionEvent)\n\n-- TODO: update sirsState to infected here once, no need to constantly set to infected in infecedbehaviourSF\nsirsAgentSusceptibleInfectedSF :: RandomGen g => g -> () -> SIRSAgentBehaviour\nsirsAgentSusceptibleInfectedSF g _ = sirsAgentInfectedSF g\n\n\n\nsirsAgentInfectedSF :: RandomGen g => g -> SIRSAgentBehaviour\nsirsAgentInfectedSF g = switch \n                            (sirsAgentInfectedBehaviourSF g)\n                            (sirsAgentInfectedRecoveredSF g)\n\n\nsirsAgentInfectedBehaviourSF :: RandomGen g => g -> SF SIRSAgentIn (SIRSAgentOut, Event ())\nsirsAgentInfectedBehaviourSF g = proc ain ->\n    do\n        let ao = agentOutFromIn ain\n        let ao' = updateDomainState ao (\\s -> s { sirsState = Infected})\n\n        remainingInfectedTime <- (infectedDuration-) ^<< integral -< 1.0\n        recoveredEvent <- edge -< (remainingInfectedTime <= 0)\n\n        -- NOTE: this means the agent is randomly contacting two neighbours within the infected duration\n        makeContact <- occasionally g (infectedDuration * 0.5) () -< ()\n\n        let ao'' = if isEvent makeContact then\n                    randomContact ao'\n                        else\n                            ao'\n\n        returnA -< (ao'', recoveredEvent)\n\n-- TODO: update sirsState to recovered here once, no need to constantly set to recovered in recoverbehaviourSF\nsirsAgentInfectedRecoveredSF :: RandomGen g => g -> () -> SIRSAgentBehaviour\nsirsAgentInfectedRecoveredSF g _ = sirsAgentRecoveredSF g\n\n\n\nsirsAgentRecoveredSF :: RandomGen g => g -> SIRSAgentBehaviour\nsirsAgentRecoveredSF g = switch \n                            sirsAgentRecoveredBehaviourSF\n                            (sirsAgentRecoveredSusceptibleSF g)\n\nsirsAgentRecoveredBehaviourSF :: SF SIRSAgentIn (SIRSAgentOut, Event ())\nsirsAgentRecoveredBehaviourSF = proc ain ->\n    do\n        let ao = agentOutFromIn ain\n        let ao' = updateDomainState ao (\\s -> s { sirsState = Recovered})\n\n        remainingImmuneTime <- (immuneDuration-) ^<< integral -< 1.0\n        backToSusceptibleEvent <- edge -< (remainingImmuneTime <= 0)\n\n        returnA -< (ao', backToSusceptibleEvent)\n\n-- TODO: update sirsState to susceptible here once, no need to constantly set to susceptible in susceptiblebehaviourSF\nsirsAgentRecoveredSusceptibleSF :: RandomGen g => g -> () -> SIRSAgentBehaviour\nsirsAgentRecoveredSusceptibleSF g _ = sirsAgentSuceptibleSF g\n\nsirsAgentBehaviourSF :: RandomGen g => g -> SIRSState -> SIRSAgentBehaviour\nsirsAgentBehaviourSF g Susceptible = sirsAgentSuceptibleSF g\nsirsAgentBehaviourSF g Infected = sirsAgentInfectedSF g\nsirsAgentBehaviourSF g Recovered = sirsAgentRecoveredSF g\n------------------------------------------------------------------------------------------------------------------------\n\n\n------------------------------------------------------------------------------------------------------------------------\n-- AGENT-BEHAVIOUR NON-monadic implementation\n------------------------------------------------------------------------------------------------------------------------\nis :: SIRSAgentOut -> SIRSState -> Bool\nis ao ss = (sirsState s) == ss\n    where\n        s = aoState ao\n\n-- TODO: use switching SFs when in different states as behaviour changes\nsirsDt :: SIRSAgentOut -> Double -> SIRSAgentOut\nsirsDt ao dt\n    | is ao Susceptible = ao\n    | is ao Infected = handleInfectedAgent ao dt\n    | otherwise = handleRecoveredAgent ao dt\n\ninfectAgent :: SIRSAgentOut -> SIRSAgentOut\ninfectAgent ao\n    | yes = updateDomainState ao' (\\s -> s { sirsState = Infected,\n                                      sirsTime = 0.0} )\n    | otherwise = ao'\n    where\n         (yes, ao') = drawBoolWithProbFromAgent ao infectionProbability\n\ncontactInfected :: SIRSAgentOut -> AgentMessage SIRSMsg -> SIRSAgentOut\ncontactInfected a (_, Contact Infected) \n    | is a Susceptible = infectAgent a\n    | otherwise = a\ncontactInfected a _ = a\n\nhandleInfectedAgent :: SIRSAgentOut -> Double -> SIRSAgentOut\nhandleInfectedAgent ao dt = if t' >= infectedDuration then\n                                recoveredAgent           -- NOTE: agent has just recovered, don't send infection-contact to others\n                                else\n                                    randomContact gettingBetterAgent\n\n    where\n        t = (sirsTime (aoState ao))\n        t' = t + dt\n        recoveredAgent = updateDomainState ao (\\s -> s { sirsState = Recovered,\n                                                        sirsTime = 0.0 } )\n        gettingBetterAgent = updateDomainState ao (\\s -> s { sirsTime = t' } )\n\n\nhandleRecoveredAgent :: SIRSAgentOut -> Double -> SIRSAgentOut\nhandleRecoveredAgent ao dt = if t' >= immuneDuration then\n                                susceptibleAgent\n                                else\n                                    immuneReducedAgent\n    where\n        t = (sirsTime (aoState ao))\n        t' = t + dt  -- TODO: use Yampa-function integral\n        susceptibleAgent = updateDomainState ao (\\s -> s { sirsState = Susceptible,\n                                                        sirsTime = 0.0 } )\n        immuneReducedAgent = updateDomainState ao (\\s -> s { sirsTime = t' } )\n\n-- TODO: include time-semantics e.g. 1 ontact per time-unit\nrandomContact :: SIRSAgentOut -> SIRSAgentOut\nrandomContact ao = sendMessage ao' (randNeigh, (Contact Infected))\n    where\n        ((_, randNeigh), ao') = runAgentRandom ao (pickRandomNeighbourCell ao)\n\nsirsAgentBehaviourFunc :: SIRSAgentIn -> SIRSAgentOut -> SIRSAgentOut\nsirsAgentBehaviourFunc ain ao = aoAfterTime\n    where\n        aoAfterMsg = onMessage ain contactInfected ao\n        aoAfterTime = sirsDt aoAfterMsg 1.0\n------------------------------------------------------------------------------------------------------------------------\n\n------------------------------------------------------------------------------------------------------------------------\nsirsAgentBehaviour :: SIRSAgentBehaviour\nsirsAgentBehaviour = proc ain ->\n    do\n        let ao = agentOutFromIn ain \n        --let ao' = sirsAgentBehaviourFunc ain ao\n        let ao' = execState (sirsAgentBehaviourFuncM ain) ao\n        returnA -< ao'\n------------------------------------------------------------------------------------------------------------------------\n",
-			"file": "examples/SIRS/SIRSAgent.hs",
-			"file_size": 9893,
-			"file_write_time": 131429693078338374,
+			"file": "examples/Main.hs",
 			"settings":
 			{
-				"buffer_size": 9894,
+				"buffer_size": 889,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "examples/FrSIRS/FrSIRSInit.hs",
+			"settings":
+			{
+				"buffer_size": 1704,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "examples/FrSIRS/FrSIRSAgent.hs",
+			"settings":
+			{
+				"buffer_size": 4059,
+				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		}
@@ -118,10 +134,14 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 92.0,
-		"last_filter": "Package Control: insta",
+		"height": 392.0,
+		"last_filter": "haskell",
 		"selected_items":
 		[
+			[
+				"haskell",
+				"Build With: Haskell"
+			],
 			[
 				"Package Control: insta",
 				"Package Control: Install Package"
@@ -159,15 +179,26 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire",
 		"/home/jonathan/phd/coding/libraries/frABS/src",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Env"
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent"
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/    In an equation for ‘dispositionMessageHandleM’",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/FrSIRSModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/FrSIRSRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/FrSIRSInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/FrSIRSRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/FrSIRSAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/SIRSAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentPure.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentMonadic.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
@@ -178,9 +209,7 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentCommon.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Env/Environment.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils/Utils.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/    • Variable not in scope",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/frABSExamples.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/AgentUtils.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentM.hs",
@@ -198,9 +227,7 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DAInit.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DAModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSRun.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSInit.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRun.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/frABS.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/Simulation.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/SeqIteration.hs",
@@ -287,14 +314,7 @@
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SIRS/SIRSModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationInit.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MetaABS/MetaABSModel.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MetaABS/MetaABSInit.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationInit.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MessageSampling/MessageSamplingInit.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MessageSampling/MessageSamplingModel.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/    Not in scope",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Env/Environment.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeInit.hs"
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MetaABS/MetaABSModel.hs"
 	],
 	"find":
 	{
@@ -313,6 +333,13 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"randomContact",
+			"setDomainState",
+			"sirsAgentInfectedBehaviourSF",
+			"SIRSAgentOut",
+			"SIRSAgentIn",
+			"SIRSAgentBehaviour",
+			"after",
 			"handleMatingConversationM",
 			"agentPickRandomMultiple",
 			"multiple",
@@ -433,14 +460,7 @@
 			"cellUnoccupied",
 			"agentLookout",
 			"^(.*)$",
-			"neighbourIds",
-			"replace",
-			"randomage",
-			"handleCreateAgents",
-			"handleKillOrLiveAgent",
-			"handleAgent",
-			"createAgent",
-			"handleCreateAgents"
+			"neighbourIds"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -448,6 +468,9 @@
 		"regex": true,
 		"replace_history":
 		[
+			"FrSIRSAgentOut",
+			"FrSIRSAgentIn",
+			"FrSIRSAgentBehaviour",
 			"agentCellOnPos",
 			"updateDomainStateM",
 			"domainStateFieldM",
@@ -486,19 +509,47 @@
 			[
 				{
 					"buffer": 0,
-					"file": "examples/SIRS/SIRSAgent.hs",
+					"file": "examples/Main.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 9894,
+						"buffer_size": 889,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4451,
-								4451
+								608,
+								608
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "examples/FrSIRS/FrSIRSInit.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1704,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1312,
+								1312
 							]
 						],
 						"settings":
@@ -508,10 +559,40 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1665.0,
+						"translation.y": 227.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "examples/FrSIRS/FrSIRSAgent.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4059,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2395,
+								2395
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 860.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
 					"type": "text"
 				}
 			]

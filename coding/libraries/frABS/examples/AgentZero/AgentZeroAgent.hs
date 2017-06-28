@@ -145,7 +145,8 @@ agentZeroUpdateDispoM ain =
 
 				updateDomainStateM (\s -> s { azAgentDispo = (azAgentDispo s) + (d * weight)})
 
-		dispositionMessageHandleM _ = return ()
+		-- NOTE: pattern match is redundant because only Disposition message exists
+		-- dispositionMessageHandleM _ = return ()
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -221,7 +222,8 @@ agentZeroUpdateDispo ain a = broadcastMessage aDispoFinal (Disposition dispoLoca
 			where
 				mayWeight = directLinkBetween (aoEnv a) senderId aid
 				weight = maybe 0.0 id mayWeight
-		dispositionMessageHandle a _ = a
+		-- NOTE: pattern match is redundant because only Disposition message exists
+		-- dispositionMessageHandle a _ = a
 
 agentZeroDestroy :: AgentZeroAgentOut -> AgentZeroAgentOut
 agentZeroDestroy a = a { aoEnv = env' }

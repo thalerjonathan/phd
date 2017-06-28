@@ -3,8 +3,6 @@ module SIRS.SIRSModel where
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 
-import System.Random
-
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------

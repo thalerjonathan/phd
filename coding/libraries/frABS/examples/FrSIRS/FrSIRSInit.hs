@@ -1,7 +1,7 @@
-module SIRS.SIRSInit where
+module FrSIRS.FrSIRSInit where
 
-import SIRS.SIRSModel
-import SIRS.SIRSAgent
+import FrSIRS.FrSIRSModel
+import FrSIRS.FrSIRSAgent
 
 import FRP.Yampa
 
@@ -10,8 +10,8 @@ import FrABS.Env.Environment
 
 import System.Random
 
-createSIRS :: (Int, Int) -> Double -> IO ([SIRSAgentDef], SIRSEnvironment)
-createSIRS dims@(maxX, maxY) p =  
+createFrSIRS :: (Int, Int) -> Double -> IO ([FrSIRSAgentDef], FrSIRSEnvironment)
+createFrSIRS dims@(maxX, maxY) p =  
     do
         rng <- newStdGen
 
@@ -20,7 +20,7 @@ createSIRS dims@(maxX, maxY) p =
         let coords = [ (x, y) | x <- [0..maxX - 1], y <- [0..maxY - 1]]
         let cells = zip coords aids
 
-        adefs <- mapM (randomSIRSAgent p) cells
+        adefs <- mapM (randomFrSIRSAgent p) cells
 
         let env = (createEnvironment
                         Nothing
@@ -33,29 +33,20 @@ createSIRS dims@(maxX, maxY) p =
 
         return (adefs, env)
 
-randomSIRSAgent :: Double
+randomFrSIRSAgent :: Double
                     -> (EnvCoord, AgentId)
-                    -> IO SIRSAgentDef
-randomSIRSAgent p (pos, agentId) = 
+                    -> IO FrSIRSAgentDef
+randomFrSIRSAgent p (pos, agentId) = 
     do
         rng <- newStdGen
         r <- getStdRandom (randomR(0.0, 1.0))
-        randTime <- getStdRandom (randomR(1.0, infectedDuration))
-
+        
         let isInfected = r <= p
-
-        let (initS, t) = if isInfected then
-                            (Infected, randTime)
-                            else
-                                (Susceptible, 0.0)
-
-        let as = SIRSAgentState {
-                    sirsState = initS,
-                    sirsTime = t }
+        let initS = if isInfected then Infected else Susceptible
 
         return AgentDef { adId = agentId,
-                            adState = as,
-                            adBeh = sirsAgentBehaviour,
+                            adState = initS,
+                            adBeh = (sirsAgentBehaviour rng initS),    -- for testing Yampa-implementation of Agent
                             adInitMessages = NoEvent,
                             adConversation = Nothing,
                             adEnvPos = pos,

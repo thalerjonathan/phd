@@ -1,22 +1,14 @@
 module Wildfire.WildfireModel where
 
--- Project-internal import first
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 
--- Project-specific libraries follow
 import FRP.Yampa
 
--- System imports then
 import System.Random
 import Control.Monad.Random
-import Control.Monad
-import Data.List.Split
-import Data.List
-import Data.Maybe
-import qualified Data.Map as Map
 
-import Debug.Trace
+
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------

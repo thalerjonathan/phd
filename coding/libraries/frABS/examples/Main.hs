@@ -13,7 +13,6 @@ import PrisonersDilemma.PDRun
 
 {-
 	TODOs
-    - implement replications
 	- reuse the Agent2D renderer if appropriate
 	- use-case for continuous 2d-environment: implement Heroes & Cowards
 
@@ -26,7 +25,7 @@ import PrisonersDilemma.PDRun
 -}
 
 main :: IO ()
-main = runFrSIRSReplicationsAndWriteToFile -- runFrSIRSStepsAndPrint -- runFrSIRSStepsAndWriteToFile
+main = runFrSIRSWithRendering -- runFrSIRSWithRendering -- runFrSIRSStepsAndPrint -- runFrSIRSStepsAndWriteToFile
 
     -- runDoubleAuctionSteps
     -- runFrSIRSWithRendering

@@ -49,14 +49,14 @@ simulateAndRender initAdefs
 
 		if freq > 0 then
 			simulateIO (displayGlossWindow winTitle winSize)
-				GLO.white
+				GLO.black
 				freq
 				([], initEnv)
 				(modelToPicture (renderFunc winSize))
 				(nextFrameSimulateWithTime dt hdl outRef)
 			else
 				animateIO (displayGlossWindow winTitle winSize)
-					GLO.white
+					GLO.black
 					(nextFrameSimulateNoTime (renderFunc winSize) dt hdl outRef)
 					(\_ -> return () )
 		return ()

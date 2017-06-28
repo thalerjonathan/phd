@@ -10,6 +10,8 @@ import FRP.Yampa
 import FrABS.Agent.Agent
 import FrABS.Agent.AgentUtils
 
+import Debug.Trace
+
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR Functional Reactive implementation
 ------------------------------------------------------------------------------------------------------------------------
@@ -54,7 +56,7 @@ sirsAgentInfectedBehaviour g duration = proc ain ->
         recoveredEvent <- after duration () -< ()
 
         -- NOTE: this means the agent is randomly contacting two neighbours within the infected duration
-        makeContact <- occasionally g (infectedDuration * 0.5) () -< ()
+        makeContact <- occasionally g (duration * 0.5) () -< ()
 
         let ao'' = if isEvent makeContact then
                     randomContact ao'
@@ -92,7 +94,7 @@ sirsAgentRecoveredSusceptible g _ = sirsAgentSuceptible g
 sirsAgentBehaviour :: RandomGen g => g -> FrSIRSState -> FrSIRSAgentBehaviour
 sirsAgentBehaviour g Susceptible = sirsAgentSuceptible g
 -- NOTE: when initially infected then select duration uniformly random 
-sirsAgentBehaviour g Infected = sirsAgentInfected g' duration
+sirsAgentBehaviour g Infected = trace ("initially infected with duration of " ++ (show duration)) (sirsAgentInfected g' duration)
     where
         (duration, g') = randomR (0.0, infectedDuration) g
 

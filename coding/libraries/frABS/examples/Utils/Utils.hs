@@ -1,6 +1,6 @@
 module Utils.Utils (
-	ifThenElse,
-  	ifThenElseM
+    ifThenElse,
+    ifThenElseM
   ) where
 
 ifThenElse :: Monad m => Bool -> m a -> m a -> m a

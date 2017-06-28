@@ -4,25 +4,17 @@ module FrSIRS.FrSIRSAgent (
   ) where
 
 import FrSIRS.FrSIRSModel
-import Utils.Utils
 
 import FRP.Yampa
 
 import FrABS.Agent.Agent
 import FrABS.Agent.AgentUtils
-import FrABS.Env.Environment
-
-import Control.Monad.Random
-import Control.Monad.Trans.State
-import Control.Monad.IfElse
-
-import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR Functional Reactive implementation
 ------------------------------------------------------------------------------------------------------------------------
 randomContact :: FrSIRSAgentOut -> FrSIRSAgentOut
-randomContact ao = sendMessage ao' (randNeigh, (Contact Infected))
+randomContact ao = sendMessage ao' (randNeigh, Contact Infected)
     where
         ((_, randNeigh), ao') = runAgentRandom ao (pickRandomNeighbourCell ao)
 
@@ -37,7 +29,7 @@ sirsAgentSusceptibleBehaviour = proc ain ->
         let ao = agentOutFromIn ain
         let ao' = setDomainState ao Susceptible
 
-        infectionEvent <- (iEdge False) -< hasMessage ain (Contact Infected)
+        infectionEvent <- iEdge False -< hasMessage ain (Contact Infected)
 
         returnA -< (ao', infectionEvent)
 
@@ -59,8 +51,7 @@ sirsAgentInfectedBehaviour g = proc ain ->
         let ao = agentOutFromIn ain
         let ao' = setDomainState ao Infected
 
-        remainingInfectedTime <- (infectedDuration-) ^<< integral -< 1.0
-        recoveredEvent <- edge -< (remainingInfectedTime <= 0)
+        recoveredEvent <- after infectedDuration () -< ()
 
         -- NOTE: this means the agent is randomly contacting two neighbours within the infected duration
         makeContact <- occasionally g (infectedDuration * 0.5) () -< ()
@@ -89,10 +80,9 @@ sirsAgentRecoveredBehaviour = proc ain ->
         let ao = agentOutFromIn ain
         let ao' = setDomainState ao Recovered
 
-        remainingImmuneTime <- (immuneDuration-) ^<< integral -< 1.0
-        backToSusceptibleEvent <- edge -< (remainingImmuneTime <= 0)
+        lostImmunityEvent <- after immuneDuration () -< ()
 
-        returnA -< (ao', backToSusceptibleEvent)
+        returnA -< (ao', lostImmunityEvent)
 
 -- TODO: update sirsState to susceptible here once, no need to constantly set to susceptible in susceptiblebehaviourSF
 sirsAgentRecoveredSusceptible :: RandomGen g => g -> () -> FrSIRSAgentBehaviour

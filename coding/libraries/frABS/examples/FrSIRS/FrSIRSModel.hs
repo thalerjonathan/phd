@@ -1,21 +1,21 @@
 module FrSIRS.FrSIRSModel (
-  	FrSIRSState (..),
-  	FrSIRSMsg (..),
+    FrSIRSState (..),
+    FrSIRSMsg (..),
 
-  	FrSIRSAgentState,
-  	FrSIRSEnvLink,
-	FrSIRSEnvCell,
-	FrSIRSEnvironment,
+    FrSIRSAgentState,
+    FrSIRSEnvLink,
+    FrSIRSEnvCell,
+    FrSIRSEnvironment,
 
-	FrSIRSAgentDef,
-	FrSIRSAgentBehaviour,
-	FrSIRSAgentIn,
-	FrSIRSAgentOut,
+    FrSIRSAgentDef,
+    FrSIRSAgentBehaviour,
+    FrSIRSAgentIn,
+    FrSIRSAgentOut,
 
-	infectedDuration,
-	immuneDuration,
-	infectionProbability,
-	initialInfectionProb
+    infectedDuration,
+    immuneDuration,
+    infectionProbability,
+    initialInfectionProb
   ) where
 
 import FrABS.Agent.Agent

@@ -1,9 +1,9 @@
-module SysDynSIRS.SysDynSIRSRun ( 
-    runSysDynSIRSStepsAndWriteToFile
+module SysDynSIR.SysDynSIRRun ( 
+    runSysDynSIRStepsAndWriteToFile
   ) where
 
-import SysDynSIRS.SysDynSIRSInit
-import SysDynSIRS.SysDynSIRSModel
+import SysDynSIR.SysDynSIRInit
+import SysDynSIR.SysDynSIRModel
 
 import Utils.Utils
 
@@ -20,18 +20,18 @@ import Debug.Trace
 samplingTimeDelta = 0.001
 steps = 100000
 
-runSysDynSIRSStepsAndWriteToFile :: IO ()
-runSysDynSIRSStepsAndWriteToFile =
+runSysDynSIRStepsAndWriteToFile :: IO ()
+runSysDynSIRStepsAndWriteToFile =
     do
         -- SystemDynamics MUST NOT rely on RNGs at all, so no need to initialize it 
         -- _ <- initRng rngSeed
-        (initAdefs, initEnv) <- createSysDynSIRS
+        (initAdefs, initEnv) <- createSysDynSIR
         -- SystemDynamics MUST ABSOLUTELY only run Parllel and there is no need to shuffle the agents (=stocks)
         params <- initSimParams Parallel Nothing False
 
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
         let dynamics = map (calculateDynamics . fst) asenv
-        let fileName = "sysDynSIRSDynamics_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt.m"
+        let fileName = "sysDynSIRDynamics_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt.m"
 
         writeSirsDynamicsFile fileName steps samplingTimeDelta 0 dynamics
 
@@ -43,7 +43,7 @@ runSysDynSIRSStepsAndWriteToFile =
 --          stock id 1: Infectious
 --          stock id 2: Recovered
 --          the remaining items are the flows
-calculateDynamics :: [SysDynSIRSOut] -> (Double, Double, Double)
+calculateDynamics :: [SysDynSIROut] -> (Double, Double, Double)
 calculateDynamics unsortedStocks = (susceptibleCount, infectedCount, recoveredCount) -- (susceptibleRatio, infectedRatio, recoveredRatio)
     where
         stocks = sortBy (\s1 s2 -> compare (aoId s1) (aoId s2)) unsortedStocks

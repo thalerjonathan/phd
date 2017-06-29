@@ -1,18 +1,18 @@
-module SysDynSIRS.SysDynSIRSModel (
-    SysDynSIRSMsg (..),
-    SysDynSIRSStockState (..),
+module SysDynSIR.SysDynSIRModel (
+    SysDynSIRMsg (..),
+    SysDynSIRStockState (..),
 
-    SysDynSIRSEnvLink,
-    SysDynSIRSEnvCell,
-    SysDynSIRSEnvironment,
+    SysDynSIREnvLink,
+    SysDynSIREnvCell,
+    SysDynSIREnvironment,
 
-    SysDynSIRSDef,
-    SysDynSIRSBehaviour,
-    SysDynSIRSIn,
-    SysDynSIRSOut,
+    SysDynSIRDef,
+    SysDynSIRBehaviour,
+    SysDynSIRIn,
+    SysDynSIROut,
 
-    SysDynSIRSFlowBehaviour,
-    SysDynSIRSStockBehaviour,
+    SysDynSIRFlowBehaviour,
+    SysDynSIRStockBehaviour,
 
     totalPopulation,
     infectivity,
@@ -32,22 +32,22 @@ import FrABS.Env.Environment
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
-data SysDynSIRSMsg = Value Double deriving (Eq, Show)
+data SysDynSIRMsg = Value Double deriving (Eq, Show)
 
 -- NOTE: the flows are stateless, state is only used by the Stocks 
-type SysDynSIRSStockState = Double
+type SysDynSIRStockState = Double
 
-type SysDynSIRSEnvLink = ()
-type SysDynSIRSEnvCell = ()
-type SysDynSIRSEnvironment = Environment SysDynSIRSEnvCell SysDynSIRSEnvLink
+type SysDynSIREnvLink = ()
+type SysDynSIREnvCell = ()
+type SysDynSIREnvironment = Environment SysDynSIREnvCell SysDynSIREnvLink
 
-type SysDynSIRSDef = AgentDef SysDynSIRSStockState SysDynSIRSMsg SysDynSIRSEnvCell SysDynSIRSEnvLink
-type SysDynSIRSBehaviour = AgentBehaviour SysDynSIRSStockState SysDynSIRSMsg SysDynSIRSEnvCell SysDynSIRSEnvLink
-type SysDynSIRSIn = AgentIn SysDynSIRSStockState SysDynSIRSMsg SysDynSIRSEnvCell SysDynSIRSEnvLink
-type SysDynSIRSOut = AgentOut SysDynSIRSStockState SysDynSIRSMsg SysDynSIRSEnvCell SysDynSIRSEnvLink
+type SysDynSIRDef = AgentDef SysDynSIRStockState SysDynSIRMsg SysDynSIREnvCell SysDynSIREnvLink
+type SysDynSIRBehaviour = AgentBehaviour SysDynSIRStockState SysDynSIRMsg SysDynSIREnvCell SysDynSIREnvLink
+type SysDynSIRIn = AgentIn SysDynSIRStockState SysDynSIRMsg SysDynSIREnvCell SysDynSIREnvLink
+type SysDynSIROut = AgentOut SysDynSIRStockState SysDynSIRMsg SysDynSIREnvCell SysDynSIREnvLink
 
-type SysDynSIRSFlowBehaviour = SysDynSIRSBehaviour
-type SysDynSIRSStockBehaviour = Double -> SysDynSIRSBehaviour
+type SysDynSIRFlowBehaviour = SysDynSIRBehaviour
+type SysDynSIRStockBehaviour = Double -> SysDynSIRBehaviour
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -1,9 +1,9 @@
-module SysDynSIRS.SysDynSIRSInit (
-    createSysDynSIRS
+module SysDynSIR.SysDynSIRInit (
+    createSysDynSIR
   ) where
 
-import SysDynSIRS.SysDynSIRSModel
-import SysDynSIRS.SysDynSIRSStock
+import SysDynSIR.SysDynSIRModel
+import SysDynSIR.SysDynSIRStock
 
 import FRP.Yampa
 
@@ -12,8 +12,8 @@ import FrABS.Env.Environment
 
 import System.Random
 
-createSysDynSIRS :: IO ([SysDynSIRSDef], SysDynSIRSEnvironment)
-createSysDynSIRS =  
+createSysDynSIR :: IO ([SysDynSIRDef], SysDynSIREnvironment)
+createSysDynSIR =  
     do
         -- NOTE: we need a rng to create the environment but we dont create a new one as SystemDynamics does not rely on RNGs
         rng <- getStdGen
@@ -44,9 +44,9 @@ createSysDynSIRS =
         return (adefs, env)
 
 createStock :: AgentId
-                -> SysDynSIRSStockState
-                -> SysDynSIRSStockBehaviour
-                -> IO SysDynSIRSDef
+                -> SysDynSIRStockState
+                -> SysDynSIRStockBehaviour
+                -> IO SysDynSIRDef
 createStock stockId stockState stockBeh = 
     do
         -- NOTE: we need a rng to create the definition but we dont create a new one as SystemDynamics does not rely on RNGs
@@ -61,8 +61,8 @@ createStock stockId stockState stockBeh =
                             adRng = rng }
 
 createFlow :: AgentId
-                -> SysDynSIRSFlowBehaviour
-                -> IO SysDynSIRSDef
+                -> SysDynSIRFlowBehaviour
+                -> IO SysDynSIRDef
 createFlow flowId flowBeh = 
     do
         -- NOTE: we need a rng to create the definition but we dont create a new one as SystemDynamics does not rely on RNGs

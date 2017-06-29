@@ -1,5 +1,5 @@
 {-# LANGUAGE Arrows #-}
-module SysDynSIRS.SysDynSIRSStock (
+module SysDynSIR.SysDynSIRStock (
     susceptibleStock,
     infectiousStock,
     recoveredStock,
@@ -8,7 +8,7 @@ module SysDynSIRS.SysDynSIRSStock (
     recoveryRateFlow
   ) where
 
-import SysDynSIRS.SysDynSIRSModel
+import SysDynSIR.SysDynSIRModel
 
 import FRP.Yampa
 
@@ -19,7 +19,7 @@ import FrABS.Agent.AgentUtils
 -- STOCKS
 -- NOTE: stocks state depends only on its initial value and the integral over incoming and outgoing rates
 ------------------------------------------------------------------------------------------------------------------------
-susceptibleStock :: SysDynSIRSStockBehaviour
+susceptibleStock :: SysDynSIRStockBehaviour
 susceptibleStock initValue = proc ain ->
     do
         let infectious = flowInFrom infectionRateFlowId ain
@@ -32,7 +32,7 @@ susceptibleStock initValue = proc ain ->
 
         returnA -< ao1
 
-infectiousStock :: SysDynSIRSStockBehaviour
+infectiousStock :: SysDynSIRStockBehaviour
 infectiousStock initValue = proc ain ->
     do
         let infectionRate = flowInFrom infectionRateFlowId ain
@@ -47,7 +47,7 @@ infectiousStock initValue = proc ain ->
         
         returnA -< ao2
 
-recoveredStock :: SysDynSIRSStockBehaviour
+recoveredStock :: SysDynSIRStockBehaviour
 recoveredStock initValue = proc ain ->
     do
         let recoveryRate = flowInFrom recoveryRateFlowId ain
@@ -64,7 +64,7 @@ recoveredStock initValue = proc ain ->
 -- FLOWS
 -- NOTE: flows are inherently stateless
 ------------------------------------------------------------------------------------------------------------------------
-infectionRateFlow :: SysDynSIRSFlowBehaviour
+infectionRateFlow :: SysDynSIRFlowBehaviour
 infectionRateFlow = proc ain ->
     do
         let susceptible = stockInFrom susceptibleStockId ain 
@@ -79,7 +79,7 @@ infectionRateFlow = proc ain ->
         returnA -< ao''
 
 -- NOTE: flows are inherently stateless
-recoveryRateFlow :: SysDynSIRSFlowBehaviour
+recoveryRateFlow :: SysDynSIRFlowBehaviour
 recoveryRateFlow = proc ain ->
     do
         let infectious = stockInFrom infectiousStockId ain
@@ -97,13 +97,13 @@ recoveryRateFlow = proc ain ->
 ------------------------------------------------------------------------------------------------------------------------
 -- UTILS
 ------------------------------------------------------------------------------------------------------------------------
-filterMessageValue :: Double -> (AgentMessage SysDynSIRSMsg) -> Double
+filterMessageValue :: Double -> (AgentMessage SysDynSIRMsg) -> Double
 filterMessageValue initValue (_, Value v) = v
 
-valueInFrom :: AgentId -> SysDynSIRSIn -> Double
+valueInFrom :: AgentId -> SysDynSIRIn -> Double
 valueInFrom senderId ain = onMessageFrom senderId ain filterMessageValue 0.0 
 
-valueOutTo :: Double -> AgentId -> SysDynSIRSOut -> SysDynSIRSOut
+valueOutTo :: Double -> AgentId -> SysDynSIROut -> SysDynSIROut
 valueOutTo value receiverId ao = sendMessage ao (receiverId, Value value)
 
 flowInFrom = valueInFrom

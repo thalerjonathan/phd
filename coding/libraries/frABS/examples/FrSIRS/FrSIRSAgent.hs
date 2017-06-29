@@ -20,6 +20,15 @@ randomContact ao = sendMessage ao' (randNeigh, Contact Infected)
     where
         ((_, randNeigh), ao') = runAgentRandom ao (pickRandomNeighbourCell ao)
 
+-- NOTE: infect with a given probability, every message has equal probability
+gotInfected :: FrSIRSAgentIn -> Bool
+gotInfected ain = onMessage ain gotInfectedAux False
+    where
+        gotInfectedAux :: Bool -> AgentMessage FrSIRSMsg -> Bool
+        gotInfectedAux False (_, Contact Infected) = True -- TODO: draw with a given probability
+        gotInfectedAux False _ = False
+        gotInfectedAux True _ = True
+
 sirsAgentSuceptible :: RandomGen g => g -> FrSIRSAgentBehaviour
 sirsAgentSuceptible g = switch 
                             sirsAgentSusceptibleBehaviour
@@ -31,7 +40,7 @@ sirsAgentSusceptibleBehaviour = proc ain ->
         let ao = agentOutFromIn ain
         let ao' = setDomainState ao Susceptible
 
-        infectionEvent <- iEdge False -< hasMessage ain (Contact Infected)
+        infectionEvent <- iEdge False -< gotInfected ain
 
         returnA -< (ao', infectionEvent)
 
@@ -56,6 +65,7 @@ sirsAgentInfectedBehaviour g duration = proc ain ->
         recoveredEvent <- after duration () -< ()
 
         -- NOTE: this means the agent is randomly contacting two neighbours within the infected duration
+        -- NOTE: this is a rate: needs to be sampled at high frequency
         makeContact <- occasionally g (duration * 0.5) () -< ()
 
         let ao'' = if isEvent makeContact then

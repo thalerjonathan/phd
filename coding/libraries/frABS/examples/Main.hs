@@ -4,6 +4,7 @@ import AgentZero.AgentZeroRun
 import SugarScape.SugarScapeRun
 import SIRS.SIRSRun
 import FrSIRS.FrSIRSRun
+import SysDynSIRS.SysDynSIRSRun
 import Segregation.SegregationRun
 import RecursiveABS.RecursiveABSRun
 import Conversation.ConversationRun
@@ -25,7 +26,9 @@ import PrisonersDilemma.PDRun
 -}
 
 main :: IO ()
-main = runFrSIRSWithRendering -- runFrSIRSWithRendering -- runFrSIRSStepsAndPrint -- runFrSIRSStepsAndWriteToFile
+main = runSysDynSIRSStepsAndWriteToFile
+
+    -- runFrSIRSWithRendering -- runFrSIRSStepsAndPrint -- runFrSIRSStepsAndWriteToFile
 
     -- runDoubleAuctionSteps
     -- runFrSIRSWithRendering

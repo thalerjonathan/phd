@@ -4,6 +4,42 @@
 		"selected_items":
 		[
 			[
+				"Age",
+				"AgentMessage m\tFrABS.Agent.Agent"
+			],
+			[
+				"Agent",
+				"AgentMessage m\tFrABS.Agent.Agent"
+			],
+			[
+				"Agen",
+				"AgentId \tFrABS.Agent.Agent"
+			],
+			[
+				"agentOu",
+				"agentOutFromIn ∷ AgentIn s m ec l → AgentOut s m ec l\tFrABS.Agent.Agent"
+			],
+			[
+				"ifthe",
+				"ifThenElseM"
+			],
+			[
+				"ifThen",
+				"ifThenElse"
+			],
+			[
+				"update",
+				"updateDomainStateM"
+			],
+			[
+				"agentout",
+				"agentOutFromIn ∷ AgentIn s m ec l → AgentOut s m ec l\tFrABS.Agent.Agent"
+			],
+			[
+				"envion",
+				"environmentPositionM"
+			],
+			[
 				"igni",
 				"ignitionEvent"
 			],
@@ -79,6 +115,24 @@
 	},
 	"buffers":
 	[
+		{
+			"file": "examples/Main.hs",
+			"settings":
+			{
+				"buffer_size": 1097,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "examples/SysDynSIRS/SysDynSIRSRun.hs",
+			"settings":
+			{
+				"buffer_size": 2342,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		}
 	],
 	"build_system": "",
 	"build_system_choices":
@@ -87,10 +141,14 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 92.0,
-		"last_filter": "Package Control: insta",
+		"height": 392.0,
+		"last_filter": "haskell",
 		"selected_items":
 		[
+			[
+				"haskell",
+				"Build With: Haskell"
+			],
 			[
 				"Package Control: insta",
 				"Package Control: Install Package"
@@ -128,31 +186,52 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIRS",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils",
 		"/home/jonathan/phd/coding/libraries/frABS/src",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Env",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Rendering"
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation"
 	],
 	"file_history":
 	[
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/FrSIRSRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIRS/SysDynSIRSInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIRS/SysDynSIRSStock.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIRS/SysDynSIRSModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIRS/SysDynSIRSRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/    Not in scope",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils/Utils.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/FrSIRSAgent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Rendering/GlossSimulator.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/FrSIRSRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/frABSExamples.cabal",
+		"/home/jonathan/phd/coding/libraries/frABS/frABS.cabal",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/Simulation.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/SimulationUtils.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/FrABS.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/FrSIRSModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/SegregationRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/FrSIRSInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/    In an equation for ‘dispositionMessageHandleM’",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/FrSIRSRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/SIRSAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentPure.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentMonadic.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeRenderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentCommon.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Env/Environment.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroAgent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils/Utils.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/frABSExamples.cabal",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/    • Variable not in scope",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/AgentUtils.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentM.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeEnvironmentM.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroEnvironment.hs",
@@ -163,24 +242,17 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DAAuctioneer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/RecursiveABSModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/SegregationAgent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DARun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DAInit.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DAModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSRun.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSInit.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRun.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSModel.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/frABS.cabal",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/Simulation.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/SeqIteration.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/ParIteration.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/Utils.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeInit.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireInit.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/FrABS.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Utils.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/SegregationRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Rendering/GlossSimulator.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeRun.hs",
@@ -190,18 +262,15 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/SegregationRenderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/ConversationRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/RecursiveABSRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSRenderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroRenderer.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeRenderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDRenderer.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/SimulationUtils.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRenderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Rendering/Agents2DDiscrete.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/SimulationHelper.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/RunSIRS.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDInit.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/    Saw",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireEnvironment.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WilidfireRun.hs",
@@ -253,23 +322,11 @@
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationRun.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/RecursiveABS/RecursiveABSModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/RecursiveABS/RecursiveABSInit.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeModel.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeAgent.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationModel.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SIRS/SIRSModel.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationInit.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MetaABS/MetaABSModel.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MetaABS/MetaABSInit.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Conversation/ConversationInit.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MessageSampling/MessageSamplingInit.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/MessageSampling/MessageSamplingModel.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/    Not in scope",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Env/Environment.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeInit.hs"
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeModel.hs"
 	],
 	"find":
 	{
-		"height": 23.0
+		"height": 34.0
 	},
 	"find_in_files":
 	{
@@ -284,21 +341,42 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"AgentMessage",
+			"dynamicsToString",
+			"processSteps",
+			"randomContact",
+			"setDomainState",
+			"sirsAgentInfectedBehaviourSF",
+			"SIRSAgentOut",
+			"SIRSAgentIn",
+			"SIRSAgentBehaviour",
+			"after",
+			"handleMatingConversationM",
 			"agentPickRandomMultiple",
-			"agentImmunizeAux",
-			"isDiseased",
-			"cellOccupiedM",
-			"filterTargetCell",
-			"occupierCombatable",
-			"occupierRetaliator",
-			"agentCombatMove",
-			"filterTargetCell",
-			"inheritSugar",
-			"changeCellAt",
-			"createNewBorn",
-			"neighbourIds",
-			"conversation",
-			"isFertile",
+			"multiple",
+			"agentAgeing",
+			"agentDeathHandleCreditsM",
+			"isDead",
+			"agentKilledInCombat",
+			"conversationReplyMonadicRunner",
+			"welfareIncreases",
+			"Chapter",
+			"handleMatingConversation",
+			"behaviou",
+			"agentWelfareChange",
+			"ifThenElse",
+			"ifThenElse\n",
+			"cellOccupied",
+			"createAgent",
+			"dieFromAge\n",
+			"unoccupyPosition",
+			"ifelsem",
+			"cellAt",
+			"neighboursDistanceM",
+			"selectBestCells",
+			"agentWelfareChange",
+			"agentPickRandomM",
+			"agentPoluteCell",
 			"ifelsem",
 			"when",
 			"neighbourNodes",
@@ -390,19 +468,7 @@
 			"cellUnoccupied",
 			"agentLookout",
 			"agentCollecting",
-			"cellUnoccupied",
-			"agentLookout",
-			"^(.*)$",
-			"neighbourIds",
-			"replace",
-			"randomage",
-			"handleCreateAgents",
-			"handleKillOrLiveAgent",
-			"handleAgent",
-			"createAgent",
-			"handleCreateAgents",
-			"#",
-			"handleCreateAgents"
+			"cellUnoccupied"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -410,6 +476,9 @@
 		"regex": true,
 		"replace_history":
 		[
+			"FrSIRSAgentOut",
+			"FrSIRSAgentIn",
+			"FrSIRSAgentBehaviour",
 			"agentCellOnPos",
 			"updateDomainStateM",
 			"domainStateFieldM",
@@ -443,8 +512,67 @@
 	"groups":
 	[
 		{
+			"selected": 0,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "examples/Main.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1097,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								179,
+								179
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "examples/SysDynSIRS/SysDynSIRSRun.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2342,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								405,
+								405
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				}
 			]
 		}
 	],
@@ -499,7 +627,7 @@
 	"project": "frabs.sublime-project",
 	"replace":
 	{
-		"height": 42.0
+		"height": 62.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -537,7 +665,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 250.0,
+	"side_bar_width": 487.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

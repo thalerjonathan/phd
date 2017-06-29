@@ -19,12 +19,13 @@ createSysDynSIRS =
         rng <- getStdGen
 
         let initialSusceptibleStockValue = totalPopulation - 1
-        let initialRnfectiousStockState = 1
-        let initialRecoveredStockState = 0
+        let initialRnfectiousStockValue = 1
+        let initialRecoveredStockValue = 0
 
         susStock <- createStock susceptibleStockId initialSusceptibleStockValue susceptibleStock
-        infStock <- createStock infectiousStockId initialRnfectiousStockState infectiousStock
-        recStock <- createStock recoveredStockId initialRecoveredStockState recoveredStock
+        infStock <- createStock infectiousStockId initialRnfectiousStockValue infectiousStock
+        recStock <- createStock recoveredStockId initialRecoveredStockValue recoveredStock
+        
         infRateFlow <- createFlow infectionRateFlowId infectionRateFlow
         recRateFlow <- createFlow recoveryRateFlowId recoveryRateFlow
         
@@ -44,7 +45,7 @@ createSysDynSIRS =
 
 createStock :: AgentId
                 -> SysDynSIRSStockState
-                -> SysDynSIRSBehaviour
+                -> SysDynSIRSStockBehaviour
                 -> IO SysDynSIRSDef
 createStock stockId stockState stockBeh = 
     do
@@ -53,14 +54,14 @@ createStock stockId stockState stockBeh =
 
         return AgentDef { adId = stockId,
                             adState = stockState,
-                            adBeh = stockBeh,
+                            adBeh = (stockBeh stockState),
                             adInitMessages = NoEvent,
                             adConversation = Nothing,
                             adEnvPos = (0,0),
                             adRng = rng }
 
 createFlow :: AgentId
-                -> SysDynSIRSBehaviour
+                -> SysDynSIRSFlowBehaviour
                 -> IO SysDynSIRSDef
 createFlow flowId flowBeh = 
     do

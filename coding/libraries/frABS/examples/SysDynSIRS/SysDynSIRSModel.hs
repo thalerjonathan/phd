@@ -11,6 +11,9 @@ module SysDynSIRS.SysDynSIRSModel (
     SysDynSIRSIn,
     SysDynSIRSOut,
 
+    SysDynSIRSFlowBehaviour,
+    SysDynSIRSStockBehaviour,
+
     totalPopulation,
     infectivity,
     contactRate,
@@ -29,7 +32,7 @@ import FrABS.Env.Environment
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
-data SysDynSIRSMsg = Flow Double | Stock Double deriving (Eq, Show)
+data SysDynSIRSMsg = Value Double deriving (Eq, Show)
 
 -- NOTE: the flows are stateless, state is only used by the Stocks 
 type SysDynSIRSStockState = Double
@@ -42,6 +45,9 @@ type SysDynSIRSDef = AgentDef SysDynSIRSStockState SysDynSIRSMsg SysDynSIRSEnvCe
 type SysDynSIRSBehaviour = AgentBehaviour SysDynSIRSStockState SysDynSIRSMsg SysDynSIRSEnvCell SysDynSIRSEnvLink
 type SysDynSIRSIn = AgentIn SysDynSIRSStockState SysDynSIRSMsg SysDynSIRSEnvCell SysDynSIRSEnvLink
 type SysDynSIRSOut = AgentOut SysDynSIRSStockState SysDynSIRSMsg SysDynSIRSEnvCell SysDynSIRSEnvLink
+
+type SysDynSIRSFlowBehaviour = SysDynSIRSBehaviour
+type SysDynSIRSStockBehaviour = Double -> SysDynSIRSBehaviour
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -63,7 +69,7 @@ avgIllnessDuration = 15
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
--- Hard-coded ids for flows (=sending messages)
+-- Hard-coded ids for stocks & flows interaction (sending messages)
 susceptibleStockId :: AgentId
 susceptibleStockId = 0
 

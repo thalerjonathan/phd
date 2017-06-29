@@ -15,116 +15,100 @@ import FRP.Yampa
 import FrABS.Agent.Agent
 import FrABS.Agent.AgentUtils
 
-import Text.Printf
-import Debug.Trace
-
 ------------------------------------------------------------------------------------------------------------------------
-timeDelta :: Double -> SF () Double
-timeDelta initDt = proc _ ->
+-- STOCKS
+-- NOTE: stocks state depends only on its initial value and the integral over incoming and outgoing rates
+------------------------------------------------------------------------------------------------------------------------
+susceptibleStock :: SysDynSIRSStockBehaviour
+susceptibleStock initValue = proc ain ->
     do
-        t <- time -< 0.0
-        preT <- iPre initDt -< t
-        returnA -< t - preT
+        let infectious = flowInFrom infectionRateFlowId ain
 
-filterRateFlowMessageValue :: Double -> (AgentMessage SysDynSIRSMsg) -> Double
-filterRateFlowMessageValue initValue (_, Flow flowValue) = flowValue
-filterRateFlowMessageValue initValue _ = initValue
-
-filterRateStockMessageValue :: Double -> (AgentMessage SysDynSIRSMsg) -> Double
-filterRateStockMessageValue initValue (_, Stock stockValue) = stockValue
-filterRateStockMessageValue initValue _ = initValue
-
-susceptibleStock :: SysDynSIRSBehaviour
-susceptibleStock = proc ain ->
-    do
-        let ao = agentOutFromIn ain
-
-        --dt <- timeDelta 0.0 -< ()
-
-        let infectiousRate = onMessageFrom infectionRateFlowId ain filterRateFlowMessageValue 0.0
+        stockValue <- (initValue+) ^<< integral -< (-infectious)
         
-        let outFlow = infectiousRate
-        let newStockValue = aoState ao - outFlow
-
-        let ao' = setDomainState ao newStockValue
-
-        let ao'' = sendMessage ao' (infectionRateFlowId, Stock newStockValue)
-
-        returnA -< ao''
-
-infectionRateFlow :: SysDynSIRSBehaviour
-infectionRateFlow = proc ain ->
-    do
         let ao = agentOutFromIn ain
+        let ao0 = setDomainState ao stockValue
+        let ao1 = stockOutTo stockValue infectionRateFlowId ao0
 
-        dt <- timeDelta 0.0 -< ()
+        returnA -< ao1
 
-        let susceptible = onMessageFrom susceptibleStockId ain filterRateStockMessageValue 0.0 
-        let infectious = onMessageFrom infectiousStockId ain filterRateStockMessageValue 0.0 
+infectiousStock :: SysDynSIRSStockBehaviour
+infectiousStock initValue = proc ain ->
+    do
+        let infectionRate = flowInFrom infectionRateFlowId ain
+        let recoveryRate = flowInFrom recoveryRateFlowId ain
 
-        let flowValue = dt * (infectious * contactRate * (susceptible / totalPopulation) * infectivity)
+        stockValue <- (initValue+) ^<< integral -< (infectionRate - recoveryRate)
         
-        let ao' = sendMessage ao (susceptibleStockId, Flow flowValue)
-        let ao'' = sendMessage ao' (infectiousStockId, Flow flowValue)
-
-        returnA -< ao''
-
-infectiousStock :: SysDynSIRSBehaviour
-infectiousStock = proc ain ->
-    do
         let ao = agentOutFromIn ain
-
-        let infectionRate = onMessageFrom infectionRateFlowId ain filterRateFlowMessageValue 0.0
-        let recoveryRate = onMessageFrom recoveryRateFlowId ain filterRateFlowMessageValue 0.0
-
-        let inflow = infectionRate 
-        let outFlow = recoveryRate 
-
-        let changeRate = inflow - outFlow
-
-        let newStockValue = aoState ao + changeRate
-
-        {-
-        let ao0 = trace ("infectiousStock: value = " 
-                    ++ (printf "%.2f" (aoState ao)) ++ ", "
-                    ++ "infectionRate = " ++ (printf "%.3f" infectionRate) ++ ", " 
-                    ++ "recoveryRate = " ++ (printf "%.3f" recoveryRate) ++ ", " 
-                    ++ "changeRate = " ++ (printf "%.3f" changeRate) ++ ", " 
-                    ++ "newStockValue = " ++ (printf "%.3f" newStockValue) )
-                    (setDomainState ao newStockValue)
-        -}
-        let ao0 = setDomainState ao newStockValue
-        let ao1 = sendMessage ao0 (infectionRateFlowId, Stock newStockValue)
-        let ao2 = sendMessage ao1 (recoveryRateFlowId, Stock newStockValue)
+        let ao0 = setDomainState ao stockValue
+        let ao1 = stockOutTo stockValue infectionRateFlowId ao0 
+        let ao2 = stockOutTo stockValue recoveryRateFlowId ao1
         
         returnA -< ao2
 
-recoveryRateFlow :: SysDynSIRSBehaviour
-recoveryRateFlow = proc ain ->
+recoveredStock :: SysDynSIRSStockBehaviour
+recoveredStock initValue = proc ain ->
     do
-        let ao = agentOutFromIn ain
+        let recoveryRate = flowInFrom recoveryRateFlowId ain
 
-        dt <- timeDelta 0.0 -< ()
-
-        let infectious = onMessageFrom infectiousStockId ain filterRateStockMessageValue 0.0 
-
-        let flowValue = dt * (infectious / avgIllnessDuration)
+        stockValue <- (initValue+) ^<< integral -< recoveryRate
         
-        let ao' = sendMessage ao (infectiousStockId, Flow flowValue)
-        let ao'' = sendMessage ao' (recoveredStockId, Flow flowValue)
+        let ao = agentOutFromIn ain
+        let ao' = setDomainState ao stockValue
+
+        returnA -< ao'
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- FLOWS
+-- NOTE: flows are inherently stateless
+------------------------------------------------------------------------------------------------------------------------
+infectionRateFlow :: SysDynSIRSFlowBehaviour
+infectionRateFlow = proc ain ->
+    do
+        let susceptible = stockInFrom susceptibleStockId ain 
+        let infectious = stockInFrom infectiousStockId ain
+
+        let flowValue = infectious * contactRate * (susceptible / totalPopulation) * infectivity
+        
+        let ao = agentOutFromIn ain
+        let ao' = flowOutTo flowValue susceptibleStockId ao
+        let ao'' = flowOutTo flowValue infectiousStockId ao'
 
         returnA -< ao''
 
-recoveredStock :: SysDynSIRSBehaviour
-recoveredStock = proc ain ->
+-- NOTE: flows are inherently stateless
+recoveryRateFlow :: SysDynSIRSFlowBehaviour
+recoveryRateFlow = proc ain ->
     do
+        let infectious = stockInFrom infectiousStockId ain
+
+        let flowValue = infectious / avgIllnessDuration
+        
         let ao = agentOutFromIn ain
-        let recoveryRate = onMessageFrom recoveryRateFlowId ain filterRateFlowMessageValue 0.0
+        let ao' = flowOutTo flowValue infectiousStockId ao
+        let ao'' = flowOutTo flowValue recoveredStockId ao'
 
-        let inflow = recoveryRate
-        let newStockValue = aoState ao + inflow
+        returnA -< ao''
+------------------------------------------------------------------------------------------------------------------------
 
-        let ao' = setDomainState ao newStockValue
 
-        returnA -< ao'
+------------------------------------------------------------------------------------------------------------------------
+-- UTILS
+------------------------------------------------------------------------------------------------------------------------
+filterMessageValue :: Double -> (AgentMessage SysDynSIRSMsg) -> Double
+filterMessageValue initValue (_, Value v) = v
+
+valueInFrom :: AgentId -> SysDynSIRSIn -> Double
+valueInFrom senderId ain = onMessageFrom senderId ain filterMessageValue 0.0 
+
+valueOutTo :: Double -> AgentId -> SysDynSIRSOut -> SysDynSIRSOut
+valueOutTo value receiverId ao = sendMessage ao (receiverId, Value value)
+
+flowInFrom = valueInFrom
+stockInFrom = valueInFrom
+
+flowOutTo = valueOutTo
+stockOutTo = valueOutTo
 ------------------------------------------------------------------------------------------------------------------------

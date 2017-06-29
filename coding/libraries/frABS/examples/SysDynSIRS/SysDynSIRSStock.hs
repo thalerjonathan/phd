@@ -15,6 +15,7 @@ import FRP.Yampa
 import FrABS.Agent.Agent
 import FrABS.Agent.AgentUtils
 
+import Text.Printf
 import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -38,11 +39,11 @@ susceptibleStock = proc ain ->
     do
         let ao = agentOutFromIn ain
 
-        dt <- timeDelta 0.0 -< ()
+        --dt <- timeDelta 0.0 -< ()
 
         let infectiousRate = onMessageFrom infectionRateFlowId ain filterRateFlowMessageValue 0.0
         
-        let outFlow = infectiousRate * dt
+        let outFlow = infectiousRate
         let newStockValue = aoState ao - outFlow
 
         let ao' = setDomainState ao newStockValue
@@ -56,10 +57,12 @@ infectionRateFlow = proc ain ->
     do
         let ao = agentOutFromIn ain
 
+        dt <- timeDelta 0.0 -< ()
+
         let susceptible = onMessageFrom susceptibleStockId ain filterRateStockMessageValue 0.0 
         let infectious = onMessageFrom infectiousStockId ain filterRateStockMessageValue 0.0 
 
-        let flowValue = (infectious * contactRate * susceptible) / (totalPopulation * infectivity)
+        let flowValue = dt * (infectious * contactRate * (susceptible / totalPopulation) * infectivity)
         
         let ao' = sendMessage ao (susceptibleStockId, Flow flowValue)
         let ao'' = sendMessage ao' (infectiousStockId, Flow flowValue)
@@ -71,18 +74,26 @@ infectiousStock = proc ain ->
     do
         let ao = agentOutFromIn ain
 
-        dt <- timeDelta 0.0 -< ()
-
         let infectionRate = onMessageFrom infectionRateFlowId ain filterRateFlowMessageValue 0.0
         let recoveryRate = onMessageFrom recoveryRateFlowId ain filterRateFlowMessageValue 0.0
 
-        let inflow = infectionRate * dt
-        let outFlow = recoveryRate * dt
+        let inflow = infectionRate 
+        let outFlow = recoveryRate 
 
-        let newStockValue = aoState ao + (inflow - outFlow)
+        let changeRate = inflow - outFlow
 
+        let newStockValue = aoState ao + changeRate
+
+        {-
+        let ao0 = trace ("infectiousStock: value = " 
+                    ++ (printf "%.2f" (aoState ao)) ++ ", "
+                    ++ "infectionRate = " ++ (printf "%.3f" infectionRate) ++ ", " 
+                    ++ "recoveryRate = " ++ (printf "%.3f" recoveryRate) ++ ", " 
+                    ++ "changeRate = " ++ (printf "%.3f" changeRate) ++ ", " 
+                    ++ "newStockValue = " ++ (printf "%.3f" newStockValue) )
+                    (setDomainState ao newStockValue)
+        -}
         let ao0 = setDomainState ao newStockValue
-
         let ao1 = sendMessage ao0 (infectionRateFlowId, Stock newStockValue)
         let ao2 = sendMessage ao1 (recoveryRateFlowId, Stock newStockValue)
         
@@ -93,9 +104,11 @@ recoveryRateFlow = proc ain ->
     do
         let ao = agentOutFromIn ain
 
+        dt <- timeDelta 0.0 -< ()
+
         let infectious = onMessageFrom infectiousStockId ain filterRateStockMessageValue 0.0 
 
-        let flowValue = infectious / avgIllnessDuration
+        let flowValue = dt * (infectious / avgIllnessDuration)
         
         let ao' = sendMessage ao (infectiousStockId, Flow flowValue)
         let ao'' = sendMessage ao' (recoveredStockId, Flow flowValue)
@@ -106,12 +119,9 @@ recoveredStock :: SysDynSIRSBehaviour
 recoveredStock = proc ain ->
     do
         let ao = agentOutFromIn ain
-
-        dt <- timeDelta 0.0 -< ()
-
         let recoveryRate = onMessageFrom recoveryRateFlowId ain filterRateFlowMessageValue 0.0
 
-        let inflow = recoveryRate * dt
+        let inflow = recoveryRate
         let newStockValue = aoState ao + inflow
 
         let ao' = setDomainState ao newStockValue

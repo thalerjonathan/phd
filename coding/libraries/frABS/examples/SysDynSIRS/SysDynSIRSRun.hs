@@ -17,8 +17,7 @@ import Data.List
 
 import Debug.Trace 
 
--- the sampling time delta should be <= 0.001 otherwise instable 
-samplingTimeDelta = 0.00001
+samplingTimeDelta = 0.001
 steps = 100000
 
 runSysDynSIRSStepsAndWriteToFile :: IO ()

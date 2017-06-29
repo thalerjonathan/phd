@@ -1,0 +1,26 @@
+\section{Examples}
+
+\subsection{Agent-Based SIR}
+Advantage: can incorporate networking or spatial effects. In this example it runs within a discrete 2D environment. FrABMS library also has the ability for networks.
+
+Hypothesis: high-frequency sampling is required when there are rates involved e.g. occacionally.
+TODO: compare fully-connected SIR to System Dynamics solution
+TODO: look into sequential (shuffled/nonshuffled) vs parallel
+
+\subsection{System Dynamics SIR}
+Because we have the powerful time-semantic features of yampa at hand which allows to sample a system at very high frequency with continuous time at hand we can easily implement System Dynamics.
+Using parallel iteration-strategy (no shuffling of agents)
+Thus in a way we can see FrABMS to be a hybrid approach between ABMS and System Dynamics.
+
+\subsubsection{Stocks}
+are completely defined by the formula
+InitialValue + Integrate (0 to t) by dt (inflow - outflow)
+
+by messages stocks communicate their current value to the flows which require them.
+receive by messages the current vale of all flows relevant to them
+
+\subsubsection{Flows}
+Are stateless and can calculate any rate
+
+receive through messages the current values of their relevant Stocks
+send their current flow-value to the relevant Stocks

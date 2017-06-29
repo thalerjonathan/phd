@@ -119,16 +119,16 @@
 			"file": "examples/Main.hs",
 			"settings":
 			{
-				"buffer_size": 1097,
+				"buffer_size": 1094,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "examples/SysDynSIRS/SysDynSIRSRun.hs",
+			"file": "examples/SysDynSIR/SysDynSIRStock.hs",
 			"settings":
 			{
-				"buffer_size": 2342,
+				"buffer_size": 4230,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -186,8 +186,7 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIRS",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR",
 		"/home/jonathan/phd/coding/libraries/frABS/src",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent",
@@ -195,10 +194,13 @@
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/SysDynSIRRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/SysDynSIRModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/SysDynSIRInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIRS/SysDynSIRSRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIRS/SysDynSIRSInit.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIRS/SysDynSIRSStock.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIRS/SysDynSIRSModel.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIRS/SysDynSIRSRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/    Not in scope",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils/Utils.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/FrSIRSAgent.hs",
@@ -319,10 +321,7 @@
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation/ParIteration.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Main.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationModel.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationRun.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/RecursiveABS/RecursiveABSModel.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/RecursiveABS/RecursiveABSInit.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/SugarScape/SugarScapeModel.hs"
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Segregation/SegregationRun.hs"
 	],
 	"find":
 	{
@@ -341,6 +340,11 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"SysDynSIRSStockState",
+			"SysDynSIRSMsg",
+			"SysDynSIRSEnvLink",
+			"SysDynSIRSEnvCell",
+			"sirs",
 			"AgentMessage",
 			"dynamicsToString",
 			"processSteps",
@@ -463,12 +467,7 @@
 			"createCells",
 			"SugarScapeEnvCellOccupier",
 			"cellOccupier",
-			"filter",
-			"filter (",
-			"cellUnoccupied",
-			"agentLookout",
-			"agentCollecting",
-			"cellUnoccupied"
+			"filter"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -476,6 +475,10 @@
 		"regex": true,
 		"replace_history":
 		[
+			"SysDynSIRStockState",
+			"SysDynSIRMsg",
+			"SysDynSIREnvLink",
+			"SysDynSIREnvCell",
 			"FrSIRSAgentOut",
 			"FrSIRSAgentIn",
 			"FrSIRSAgentBehaviour",
@@ -521,15 +524,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1097,
+						"buffer_size": 1094,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								179,
-								179
+								100,
+								100
 							]
 						],
 						"settings":
@@ -545,19 +548,19 @@
 				},
 				{
 					"buffer": 1,
-					"file": "examples/SysDynSIRS/SysDynSIRSRun.hs",
+					"file": "examples/SysDynSIR/SysDynSIRStock.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2342,
+						"buffer_size": 4230,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								405,
-								405
+								3727,
+								3727
 							]
 						],
 						"settings":
@@ -567,7 +570,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 1080.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,

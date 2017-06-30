@@ -20,11 +20,11 @@ shuffleAgents = False
 
 rngSeed = 42
 
-agentDimensions = (31, 31)
+agentDimensions = (51, 51)
 numInfected = 1
 
-samplingTimeDelta = 0.01
-steps = 20000
+samplingTimeDelta = 0.1
+steps = 2000
 replications = 10
 
 runFrSIRSNetworkStepsAndWriteToFile :: IO ()

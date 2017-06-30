@@ -27,10 +27,10 @@ shuffleAgents = False
 
 rngSeed = 42
 
-agentDimensions = (51, 51)
+agentDimensions = (71, 71)
 frequency = 0
 
-samplingTimeDelta = 0.1
+samplingTimeDelta = 1.0
 steps = 1000
 replications = 10
 

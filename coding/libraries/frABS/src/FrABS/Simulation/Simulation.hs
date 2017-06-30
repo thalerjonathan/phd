@@ -493,9 +493,6 @@ handleCreateAgents o acc@(asfsAcc, ainsAcc)
         newSfs = map adBeh newAgentDefs
         newAis = map (startingAgentInFromAgentDef newAgentInheritedEnvironment) newAgentDefs
 
-{-
-distributeMessages :: [AgentIn s m ec l] -> [AgentOut s m ec l] -> [AgentIn s m ec l]
-distributeMessages ains aouts = map (collectMessagesFor aouts) ains
 
 collectMessagesFor :: [AgentOut s m ec l] -> AgentIn s m ec l -> AgentIn s m ec l
 collectMessagesFor aouts ai = ai { aiMessages = msgsEvt }
@@ -516,36 +513,47 @@ collectMessagesFrom aid ao = foldr (\(receiverId, m) accMsgs-> if receiverId == 
                     fromEvent msgsEvt
                     else
                         []
--}
 
-collectAllMessages :: [AgentOut s m ec l] -> Map.Map AgentId (AgentMessage m)
+
+distributeMessages = distributeMessagesFast
+
+distributeMessagesSlow :: [AgentIn s m ec l] -> [AgentOut s m ec l] -> [AgentIn s m ec l]
+distributeMessagesSlow ains aouts = map (collectMessagesFor aouts) ains
+
+distributeMessagesFast :: [AgentIn s m ec l] -> [AgentOut s m ec l] -> [AgentIn s m ec l]
+distributeMessagesFast ains aouts = map (distributeMessagesAux allMsgs) ains
+    where
+        allMsgs = collectAllMessages aouts
+
+        distributeMessagesAux :: Map.Map AgentId [AgentMessage m]
+                                    -> AgentIn s m ec l
+                                    -> AgentIn s m ec l
+        distributeMessagesAux allMsgs ain = ain { aiMessages = msgsEvt }
+            where
+                receiverId = aiId ain
+                mayReceiverMsgs = Map.lookup receiverId allMsgs
+                msgsEvt = maybe NoEvent (\receiverMsgs -> Event receiverMsgs) mayReceiverMsgs
+
+collectAllMessages :: [AgentOut s m ec l] -> Map.Map AgentId [AgentMessage m]
 collectAllMessages aos = foldr collectAllMessagesAux Map.empty aos
     where
         collectAllMessagesAux :: AgentOut s m ec l 
-                                    -> Map.Map AgentId (AgentMessage m) 
-                                    -> Map.Map AgentId (AgentMessage m)
-        collectAllMessagesAux ao accMsgs = accMsgs
-        
-distributeMessages :: [AgentIn s m ec l] -> [AgentOut s m ec l] -> [AgentIn s m ec l]
-distributeMessages ains aouts = map (collectMessagesFor aouts) ains
+                                    -> Map.Map AgentId [AgentMessage m]
+                                    -> Map.Map AgentId [AgentMessage m]
+        collectAllMessagesAux ao accMsgs 
+            | isEvent msgsEvt = foldr collectAllMessagesAuxAux accMsgs (fromEvent msgsEvt)
+            | otherwise = accMsgs
+            where
+                senderId = aoId ao
+                msgsEvt = aoMessages ao
 
-collectMessagesFor :: [AgentOut s m ec l] -> AgentIn s m ec l -> AgentIn s m ec l
-collectMessagesFor aouts ai = ai { aiMessages = msgsEvt }
-    where
-        aid = aiId ai
-        aiMsgs = aiMessages ai
-        msgsEvt = foldr (\ao accMsgs -> mergeMessages (collectMessagesFrom aid ao) accMsgs) aiMsgs aouts
+                collectAllMessagesAuxAux :: AgentMessage m
+                                            -> Map.Map AgentId [AgentMessage m]
+                                            -> Map.Map AgentId [AgentMessage m]
+                collectAllMessagesAuxAux (receiverId, m) accMsgs = Map.insert receiverId newMsgs accMsgs
+                    where
+                        mayReceiverMsgs = Map.lookup receiverId accMsgs
+                        msg = (senderId, m)
 
-collectMessagesFrom :: AgentId -> AgentOut s m ec l -> Event [AgentMessage m]
-collectMessagesFrom aid ao = foldr (\(receiverId, m) accMsgs-> if receiverId == aid then
-                                                                mergeMessages (Event [(senderId, m)]) accMsgs
-                                                                else
-                                                                    accMsgs) NoEvent msgs
-    where
-        senderId = aoId ao
-        msgsEvt = aoMessages ao
-        msgs = if isEvent msgsEvt then
-                    fromEvent msgsEvt
-                    else
-                        []
+                        newMsgs = maybe [msg] (\receiverMsgs -> (msg : receiverMsgs)) mayReceiverMsgs
 ----------------------------------------------------------------------------------------------------------------------

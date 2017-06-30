@@ -1,16 +1,16 @@
-module FrSIRS.FrSIRSModel (
+module FrSIRSSpatial.FrSIRSSpatialModel (
     SIRSState (..),
-    FrSIRSMsg (..),
+    FrSIRSSpatialMsg (..),
 
-    FrSIRSAgentState,
-    FrSIRSEnvLink,
-    FrSIRSEnvCell,
-    FrSIRSEnvironment,
+    FrSIRSSpatialAgentState,
+    FrSIRSSpatialEnvLink,
+    FrSIRSSpatialEnvCell,
+    FrSIRSSpatialEnvironment,
 
-    FrSIRSAgentDef,
-    FrSIRSAgentBehaviour,
-    FrSIRSAgentIn,
-    FrSIRSAgentOut,
+    FrSIRSSpatialAgentDef,
+    FrSIRSSpatialAgentBehaviour,
+    FrSIRSSpatialAgentIn,
+    FrSIRSSpatialAgentOut,
 
     illnessDuration,
     immuneDuration,
@@ -26,18 +26,18 @@ import FrABS.Env.Environment
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
 data SIRSState = Susceptible | Infected | Recovered deriving (Eq, Show)
-data FrSIRSMsg = Contact SIRSState deriving (Eq, Show)
+data FrSIRSSpatialMsg = Contact SIRSState deriving (Eq, Show)
 
-type FrSIRSAgentState = SIRSState
+type FrSIRSSpatialAgentState = SIRSState
 
-type FrSIRSEnvLink = ()
-type FrSIRSEnvCell = AgentId
-type FrSIRSEnvironment = Environment FrSIRSEnvCell FrSIRSEnvLink
+type FrSIRSSpatialEnvLink = ()
+type FrSIRSSpatialEnvCell = AgentId
+type FrSIRSSpatialEnvironment = Environment FrSIRSSpatialEnvCell FrSIRSSpatialEnvLink
 
-type FrSIRSAgentDef = AgentDef FrSIRSAgentState FrSIRSMsg FrSIRSEnvCell FrSIRSEnvLink
-type FrSIRSAgentBehaviour = AgentBehaviour FrSIRSAgentState FrSIRSMsg FrSIRSEnvCell FrSIRSEnvLink
-type FrSIRSAgentIn = AgentIn FrSIRSAgentState FrSIRSMsg FrSIRSEnvCell FrSIRSEnvLink
-type FrSIRSAgentOut = AgentOut FrSIRSAgentState FrSIRSMsg FrSIRSEnvCell FrSIRSEnvLink
+type FrSIRSSpatialAgentDef = AgentDef FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvCell FrSIRSSpatialEnvLink
+type FrSIRSSpatialAgentBehaviour = AgentBehaviour FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvCell FrSIRSSpatialEnvLink
+type FrSIRSSpatialAgentIn = AgentIn FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvCell FrSIRSSpatialEnvLink
+type FrSIRSSpatialAgentOut = AgentOut FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvCell FrSIRSSpatialEnvLink
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

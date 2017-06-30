@@ -1,10 +1,10 @@
-module FrSIRS.FrSIRSInit (
-    createFrSIRSRandomInfected,
-    createFrSIRSSingleInfected
+module FrSIRSSpatial.FrSIRSSpatialInit (
+    createFrSIRSSpatialRandomInfected,
+    createFrSIRSSpatialSingleInfected
   ) where
 
-import FrSIRS.FrSIRSModel
-import FrSIRS.FrSIRSAgent
+import FrSIRSSpatial.FrSIRSSpatialModel
+import FrSIRSSpatial.FrSIRSSpatialAgent
 
 import FRP.Yampa
 
@@ -13,8 +13,10 @@ import FrABS.Env.Environment
 
 import System.Random
 
-createFrSIRSRandomInfected :: (Int, Int) -> Double -> IO ([FrSIRSAgentDef], FrSIRSEnvironment)
-createFrSIRSRandomInfected dims@(maxX, maxY) p =  
+createFrSIRSSpatialRandomInfected :: (Int, Int) 
+                                        -> Double 
+                                        -> IO ([FrSIRSSpatialAgentDef], FrSIRSSpatialEnvironment)
+createFrSIRSSpatialRandomInfected dims@(maxX, maxY) p =  
     do
         rng <- newStdGen
 
@@ -36,8 +38,8 @@ createFrSIRSRandomInfected dims@(maxX, maxY) p =
 
         return (adefs, env)
 
-createFrSIRSSingleInfected :: (Int, Int) -> IO ([FrSIRSAgentDef], FrSIRSEnvironment)
-createFrSIRSSingleInfected dims@(maxX, maxY) =  
+createFrSIRSSpatialSingleInfected :: (Int, Int) -> IO ([FrSIRSSpatialAgentDef], FrSIRSSpatialEnvironment)
+createFrSIRSSpatialSingleInfected dims@(maxX, maxY) =  
     do
         rng <- newStdGen
 
@@ -64,7 +66,7 @@ createFrSIRSSingleInfected dims@(maxX, maxY) =
 
 susceptibleFrSIRSAgent :: (Int, Int)
                             -> (EnvCoord, AgentId)
-                            -> IO FrSIRSAgentDef
+                            -> IO FrSIRSSpatialAgentDef
 susceptibleFrSIRSAgent center (pos, agentId) = 
     do
         rng <- newStdGen
@@ -81,7 +83,7 @@ susceptibleFrSIRSAgent center (pos, agentId) =
 
 randomFrSIRSAgent :: Double
                     -> (EnvCoord, AgentId)
-                    -> IO FrSIRSAgentDef
+                    -> IO FrSIRSSpatialAgentDef
 randomFrSIRSAgent p (pos, agentId) = 
     do
         rng <- newStdGen

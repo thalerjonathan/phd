@@ -1,13 +1,13 @@
-module FrSIRS.FrSIRSRun ( 
-    runFrSIRSWithRendering,
-    runFrSIRSStepsAndRender,
-    runFrSIRSStepsAndWriteToFile,
-    runFrSIRSReplicationsAndWriteToFile
+module FrSIRSSpatial.FrSIRSSpatialRun ( 
+    runFrSIRSSpatialWithRendering,
+    runFrSIRSSpatialStepsAndRender,
+    runFrSIRSSpatialStepsAndWriteToFile,
+    runFrSIRSSpatialReplicationsAndWriteToFile
   ) where
 
-import FrSIRS.FrSIRSInit
-import FrSIRS.FrSIRSModel
-import FrSIRS.FrSIRSRenderer as Renderer
+import FrSIRSSpatial.FrSIRSSpatialInit
+import FrSIRSSpatial.FrSIRSSpatialModel
+import FrSIRSSpatial.FrSIRSSpatialRenderer as Renderer
 import Utils.Utils
 
 import FrABS.Agent.Agent
@@ -20,7 +20,7 @@ import System.IO
 import Debug.Trace 
 
 winSize = (800, 800)
-winTitle = "FrSIRS"
+winTitle = "FrSIRS Spatial"
 
 updateStrat = Parallel
 shuffleAgents = False
@@ -34,12 +34,12 @@ samplingTimeDelta = 1.0
 steps = 1000
 replications = 10
 
-runFrSIRSWithRendering :: IO ()
-runFrSIRSWithRendering =
+runFrSIRSSpatialWithRendering :: IO ()
+runFrSIRSSpatialWithRendering =
     do
         _ <- initRng rngSeed
-        -- (initAdefs, initEnv) <- createFrSIRSRandomInfected agentDimensions initialInfectionProb
-        (initAdefs, initEnv) <- createFrSIRSSingleInfected agentDimensions
+        -- (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
+        (initAdefs, initEnv) <- createFrSIRSSpatialSingleInfected agentDimensions
         
         params <- initSimParams updateStrat Nothing shuffleAgents
 
@@ -53,11 +53,11 @@ runFrSIRSWithRendering =
                             Renderer.renderFrame
                             (Just (\_ asenv -> printAgentDynamics asenv))
 
-runFrSIRSStepsAndRender :: IO ()
-runFrSIRSStepsAndRender =
+runFrSIRSSpatialStepsAndRender :: IO ()
+runFrSIRSSpatialStepsAndRender =
     do
         _ <- initRng rngSeed
-        (initAdefs, initEnv) <- createFrSIRSRandomInfected agentDimensions initialInfectionProb
+        (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
         params <- initSimParams updateStrat Nothing shuffleAgents
 
         simulateStepsAndRender initAdefs
@@ -69,31 +69,38 @@ runFrSIRSStepsAndRender =
                             winSize
                             Renderer.renderFrame
 
-runFrSIRSStepsAndWriteToFile :: IO ()
-runFrSIRSStepsAndWriteToFile =
+runFrSIRSSpatialStepsAndWriteToFile :: IO ()
+runFrSIRSSpatialStepsAndWriteToFile =
     do
         _ <- initRng rngSeed
-        (initAdefs, initEnv) <- createFrSIRSRandomInfected agentDimensions initialInfectionProb
+        (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
         params <- initSimParams updateStrat Nothing shuffleAgents
 
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
         let dynamics = map agentsToDynamics asenv
-        let fileName = "frSIRSDynamics_" ++ show agentDimensions ++ "agents_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt.m"
+        let fileName = "frSIRSSpatialDynamics_" 
+                        ++ show agentDimensions ++ "agents_" 
+                        ++ show steps ++ "steps_" 
+                        ++ show samplingTimeDelta ++ "_dt.m"
 
         writeSirsDynamicsFile fileName steps samplingTimeDelta 0 dynamics
 
-runFrSIRSReplicationsAndWriteToFile :: IO ()
-runFrSIRSReplicationsAndWriteToFile =
+runFrSIRSSpatialReplicationsAndWriteToFile :: IO ()
+runFrSIRSSpatialReplicationsAndWriteToFile =
     do
         _ <- initRng rngSeed
-        (initAdefs, initEnv) <- createFrSIRSRandomInfected agentDimensions initialInfectionProb
+        (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
         params <- initSimParams updateStrat Nothing shuffleAgents
 
         let assenv = runReplications initAdefs initEnv params samplingTimeDelta steps replications
         let replicationDynamics = map calculateSingleReplicationDynamic assenv
         let dynamics = sirsDynamicsReplMean replicationDynamics
 
-        let fileName = "frSIRSDynamics_" ++ show agentDimensions ++ "agents_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt_" ++ (show replications) ++ "_replications.m"
+        let fileName = "frSIRSSpatialDynamics_" 
+                        ++ show agentDimensions ++ "agents_" 
+                        ++ show steps ++ "steps_" 
+                        ++ show samplingTimeDelta ++ "_dt_" 
+                        ++ (show replications) ++ "_replications.m"
 
         writeSirsDynamicsFile fileName steps samplingTimeDelta replications dynamics
 
@@ -103,7 +110,7 @@ runFrSIRSReplicationsAndWriteToFile =
 agentsToDynamics = (calculateDynamics . fst)
 printAgentDynamics = (putStrLn . sirsDynamicToString . agentsToDynamics)
 
-calculateDynamics :: [FrSIRSAgentOut] -> (Double, Double, Double)
+calculateDynamics :: [FrSIRSSpatialAgentOut] -> (Double, Double, Double)
 calculateDynamics aos = (susceptibleRatio, infectedRatio, recoveredRatio)
     where
         susceptibleCount = length $ filter ((Susceptible==) . aoState) aos
@@ -116,5 +123,5 @@ calculateDynamics aos = (susceptibleRatio, infectedRatio, recoveredRatio)
         infectedRatio = fromIntegral infectedCount / totalCount 
         recoveredRatio = fromIntegral recoveredCount / totalCount
 
-calculateSingleReplicationDynamic :: [([FrSIRSAgentOut], FrSIRSEnvironment)] -> [(Double, Double, Double)]
+calculateSingleReplicationDynamic :: [([FrSIRSSpatialAgentOut], FrSIRSSpatialEnvironment)] -> [(Double, Double, Double)]
 calculateSingleReplicationDynamic  aoss = map (calculateDynamics . fst) aoss

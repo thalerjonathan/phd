@@ -3,7 +3,7 @@ module Main where
 import AgentZero.AgentZeroRun
 import SugarScape.SugarScapeRun
 import SIRS.SIRSRun
-import FrSIRS.FrSIRSRun
+import FrSIRSSpatial.FrSIRSSpatialRun
 import FrSIRSNetwork.FrSIRSNetworkRun
 import SysDynSIR.SysDynSIRRun
 import Segregation.SegregationRun
@@ -15,8 +15,8 @@ import PrisonersDilemma.PDRun
 
 {-
 	TODOs
-    - rename FrSIRS to FrSIRSSpatial
-
+    - performance?
+    
 	- reuse the Agent2D renderer if appropriate
 	- use-case for continuous 2d-environment: implement Heroes & Cowards
 
@@ -29,11 +29,11 @@ import PrisonersDilemma.PDRun
 -}
 
 main :: IO ()
-main = runFrSIRSNetworkStepsAndWriteToFile
+main = runFrSIRSSpatialWithRendering
 
     -- runFrSIRSNetworkStepsAndWriteToFile
     -- runSysDynSIRStepsAndWriteToFile
-    -- runFrSIRSWithRendering -- runFrSIRSStepsAndPrint -- runFrSIRSStepsAndWriteToFile
+    -- runFrSIRSSpatialWithRendering -- runFrSIRSSpatialStepsAndPrint -- runFrSIRSSpatialStepsAndWriteToFile
     -- runDoubleAuctionSteps
     -- runSIRSWithRendering
     -- runPDWithRendering

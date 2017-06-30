@@ -1,13 +1,18 @@
-module FrSIRS.FrSIRSRenderer where
+module FrSIRSSpatial.FrSIRSSpatialRenderer (
+    renderFrame
+  ) where
 
-import FrSIRS.FrSIRSModel
+import FrSIRSSpatial.FrSIRSSpatialModel
 
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 
 import qualified Graphics.Gloss as GLO
 
-renderFrame :: (Int, Int) -> [FrSIRSAgentOut] -> FrSIRSEnvironment -> GLO.Picture
+renderFrame :: (Int, Int) 
+                -> [FrSIRSSpatialAgentOut] 
+                -> FrSIRSSpatialEnvironment 
+                -> GLO.Picture
 renderFrame wSize@(wx, wy) aouts env = GLO.Pictures $ agentPics
     where
         (cx, cy) = envLimits env
@@ -20,7 +25,7 @@ renderFrame wSize@(wx, wy) aouts env = GLO.Pictures $ agentPics
 
 renderAgent :: (Float, Float)
                 -> (Int, Int)
-                -> FrSIRSAgentOut
+                -> FrSIRSSpatialAgentOut
                 -> GLO.Picture
 renderAgent (rectWidth, rectHeight) (wx, wy) a = GLO.color color $ GLO.translate xPix yPix $ GLO.ThickCircle 0 rectWidth
     where

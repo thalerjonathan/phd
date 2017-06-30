@@ -1,9 +1,9 @@
 {-# LANGUAGE Arrows #-}
-module FrSIRS.FrSIRSAgent (
+module FrSIRSSpatial.FrSIRSSpatialAgent (
     sirsAgentBehaviour
   ) where
 
-import FrSIRS.FrSIRSModel
+import FrSIRSSpatial.FrSIRSSpatialModel
 
 import FRP.Yampa
 
@@ -18,25 +18,25 @@ import Debug.Trace
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR Functional Reactive implementation
 ------------------------------------------------------------------------------------------------------------------------
-randomContact :: FrSIRSAgentOut -> FrSIRSAgentOut
+randomContact :: FrSIRSSpatialAgentOut -> FrSIRSSpatialAgentOut
 randomContact ao = sendMessage ao' (randNeigh, Contact Infected)
     where
         ((_, randNeigh), ao') = runAgentRandom ao (pickRandomNeighbourCell ao)
 
-gotInfected :: FrSIRSAgentIn -> Rand StdGen Bool
+gotInfected :: FrSIRSSpatialAgentIn -> Rand StdGen Bool
 gotInfected ain = onMessageM ain gotInfectedAux False
     where
-        gotInfectedAux :: Bool -> AgentMessage FrSIRSMsg -> Rand StdGen Bool
+        gotInfectedAux :: Bool -> AgentMessage FrSIRSSpatialMsg -> Rand StdGen Bool
         gotInfectedAux False (_, Contact Infected) = drawRandomBool infectivity
         gotInfectedAux False _ = return False
         gotInfectedAux True _ = return True
 
-sirsAgentSuceptible :: RandomGen g => g -> FrSIRSAgentBehaviour
+sirsAgentSuceptible :: RandomGen g => g -> FrSIRSSpatialAgentBehaviour
 sirsAgentSuceptible g = switch 
                             sirsAgentSusceptibleBehaviour
                             (sirsAgentSusceptibleInfected g)
 
-sirsAgentSusceptibleBehaviour :: SF FrSIRSAgentIn (FrSIRSAgentOut, Event ())
+sirsAgentSusceptibleBehaviour :: SF FrSIRSSpatialAgentIn (FrSIRSSpatialAgentOut, Event ())
 sirsAgentSusceptibleBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
@@ -48,18 +48,18 @@ sirsAgentSusceptibleBehaviour = proc ain ->
         returnA -< (ao'', infectionEvent)
 
 -- TODO: update sirsState to infected here once, no need to constantly set to infected in infecedbehaviourSF
-sirsAgentSusceptibleInfected :: RandomGen g => g -> () -> FrSIRSAgentBehaviour
+sirsAgentSusceptibleInfected :: RandomGen g => g -> () -> FrSIRSSpatialAgentBehaviour
 sirsAgentSusceptibleInfected g _ = sirsAgentInfected g illnessDuration
 
 
 
-sirsAgentInfected :: RandomGen g => g -> Double -> FrSIRSAgentBehaviour
+sirsAgentInfected :: RandomGen g => g -> Double -> FrSIRSSpatialAgentBehaviour
 sirsAgentInfected g duration = switch 
                             (sirsAgentInfectedBehaviour g illnessDuration)
                             (sirsAgentInfectedRecovered g)
 
 
-sirsAgentInfectedBehaviour :: RandomGen g => g -> Double -> SF FrSIRSAgentIn (FrSIRSAgentOut, Event ())
+sirsAgentInfectedBehaviour :: RandomGen g => g -> Double -> SF FrSIRSSpatialAgentIn (FrSIRSSpatialAgentOut, Event ())
 sirsAgentInfectedBehaviour g duration = proc ain ->
     do
         let ao = agentOutFromIn ain
@@ -77,17 +77,17 @@ sirsAgentInfectedBehaviour g duration = proc ain ->
         returnA -< (ao'', recoveredEvent)
 
 -- TODO: update sirsState to recovered here once, no need to constantly set to recovered in recoverbehaviourSF
-sirsAgentInfectedRecovered :: RandomGen g => g -> () -> FrSIRSAgentBehaviour
+sirsAgentInfectedRecovered :: RandomGen g => g -> () -> FrSIRSSpatialAgentBehaviour
 sirsAgentInfectedRecovered g _ = sirsAgentRecovered g
 
 
 
-sirsAgentRecovered :: RandomGen g => g -> FrSIRSAgentBehaviour
+sirsAgentRecovered :: RandomGen g => g -> FrSIRSSpatialAgentBehaviour
 sirsAgentRecovered g = switch 
                             sirsAgentRecoveredBehaviour
                             (sirsAgentRecoveredSusceptible g)
 
-sirsAgentRecoveredBehaviour :: SF FrSIRSAgentIn (FrSIRSAgentOut, Event ())
+sirsAgentRecoveredBehaviour :: SF FrSIRSSpatialAgentIn (FrSIRSSpatialAgentOut, Event ())
 sirsAgentRecoveredBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
@@ -98,11 +98,11 @@ sirsAgentRecoveredBehaviour = proc ain ->
         returnA -< (ao', lostImmunityEvent)
 
 -- TODO: update sirsState to susceptible here once, no need to constantly set to susceptible in susceptiblebehaviourSF
-sirsAgentRecoveredSusceptible :: RandomGen g => g -> () -> FrSIRSAgentBehaviour
+sirsAgentRecoveredSusceptible :: RandomGen g => g -> () -> FrSIRSSpatialAgentBehaviour
 sirsAgentRecoveredSusceptible g _ = sirsAgentSuceptible g
 
 -- NOTE: this is the initial SF which will be only called once
-sirsAgentBehaviour :: RandomGen g => g -> SIRSState -> FrSIRSAgentBehaviour
+sirsAgentBehaviour :: RandomGen g => g -> SIRSState -> FrSIRSSpatialAgentBehaviour
 sirsAgentBehaviour g Susceptible = sirsAgentSuceptible g
 -- NOTE: when initially infected then select duration uniformly random 
 sirsAgentBehaviour g Infected = sirsAgentInfected g' duration

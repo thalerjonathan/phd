@@ -9,7 +9,9 @@ import FRP.Yampa
 ------------------------------------------------------------------------------------------------------------------------
 -- TODOs
 ------------------------------------------------------------------------------------------------------------------------
--- Use Dunai to run Agent-Monad
+-- Monadic Conversations
+
+-- Use Dunai to run State Monad
 
 -- TODO: need some mechanism to give GLOBALLY UNIQUE IDs to agents when creating new
   -- how can we handle the parallel-case?

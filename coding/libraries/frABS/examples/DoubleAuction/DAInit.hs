@@ -4,6 +4,8 @@ import DoubleAuction.DAModel
 import DoubleAuction.DAAuctioneer
 import DoubleAuction.DATrader
 
+import Utils.Utils
+
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 
@@ -27,7 +29,7 @@ initDoubleAuction n =
 
     let gr = createCompleteGraph n
     let env = createEnvironment
-                          (Just (arr id))
+                          (Just (arr id)) -- TODO: is this really necessary?
                           (0,0)
                           neumann
                           ClipToMax
@@ -36,16 +38,6 @@ initDoubleAuction n =
                           (Just gr)
 
     return (auctioneer : traders, env)
-
-createCompleteGraph :: Int -> Gr () ()
-createCompleteGraph n = 
-  do
-    let edges = [ (nodeFrom, nodeTo, ()) | nodeFrom <- [1..n], nodeTo <- [(nodeFrom + 1)..n]]
-    let nodes = [ (node, ()) | node <- [1..n]]
-    
-    let gr = mkGraph nodes edges :: Gr () ()
-
-    gr
 
 createDATrader :: Int -> AgentId -> Rand StdGen DAAgentDef
 createDATrader n aid = 

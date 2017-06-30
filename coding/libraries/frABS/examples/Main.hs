@@ -4,6 +4,7 @@ import AgentZero.AgentZeroRun
 import SugarScape.SugarScapeRun
 import SIRS.SIRSRun
 import FrSIRS.FrSIRSRun
+import FrSIRSNetwork.FrSIRSNetworkRun
 import SysDynSIR.SysDynSIRRun
 import Segregation.SegregationRun
 import RecursiveABS.RecursiveABSRun
@@ -14,6 +15,9 @@ import PrisonersDilemma.PDRun
 
 {-
 	TODOs
+    - rename FrSIRS to FrSIRSSpatial
+    - use same parameters as in SysDyn and FrSIRSNetwork 
+
 	- reuse the Agent2D renderer if appropriate
 	- use-case for continuous 2d-environment: implement Heroes & Cowards
 
@@ -26,12 +30,12 @@ import PrisonersDilemma.PDRun
 -}
 
 main :: IO ()
-main = runSysDynSIRStepsAndWriteToFile
+main = runFrSIRSWithRendering
 
+    -- runFrSIRSNetworkStepsAndWriteToFile
+    -- runSysDynSIRStepsAndWriteToFile
     -- runFrSIRSWithRendering -- runFrSIRSStepsAndPrint -- runFrSIRSStepsAndWriteToFile
-
     -- runDoubleAuctionSteps
-    -- runFrSIRSWithRendering
     -- runSIRSWithRendering
     -- runPDWithRendering
     -- runWildfireWithRendering

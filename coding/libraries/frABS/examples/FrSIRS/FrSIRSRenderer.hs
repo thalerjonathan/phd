@@ -33,7 +33,7 @@ renderAgent (rectWidth, rectHeight) (wx, wy) a = GLO.color color $ GLO.translate
         xPix = fromRational (toRational (fromIntegral x * rectWidth)) - halfXSize
         yPix = fromRational (toRational (fromIntegral y * rectHeight)) - halfYSize
 
-agentColor :: FrSIRSState -> GLO.Color
+agentColor :: SIRSState -> GLO.Color
 agentColor Susceptible = GLO.makeColor (realToFrac 0.0) (realToFrac 0.0) (realToFrac 0.7) 1.0 
 agentColor Infected = GLO.makeColor (realToFrac 0.7) (realToFrac 0.0) (realToFrac 0.0) 1.0
 agentColor Recovered = GLO.makeColor (realToFrac 0.0) (realToFrac 0.55) (realToFrac 0.0) 1.0

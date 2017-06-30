@@ -46,13 +46,13 @@ sirsAgentSusceptibleBehaviour = proc ain ->
 
 -- TODO: update sirsState to infected here once, no need to constantly set to infected in infecedbehaviourSF
 sirsAgentSusceptibleInfected :: RandomGen g => g -> () -> FrSIRSAgentBehaviour
-sirsAgentSusceptibleInfected g _ = sirsAgentInfected g infectedDuration
+sirsAgentSusceptibleInfected g _ = sirsAgentInfected g illnessDuration
 
 
 
 sirsAgentInfected :: RandomGen g => g -> Double -> FrSIRSAgentBehaviour
 sirsAgentInfected g duration = switch 
-                            (sirsAgentInfectedBehaviour g infectedDuration)
+                            (sirsAgentInfectedBehaviour g illnessDuration)
                             (sirsAgentInfectedRecovered g)
 
 
@@ -101,12 +101,12 @@ sirsAgentRecoveredSusceptible :: RandomGen g => g -> () -> FrSIRSAgentBehaviour
 sirsAgentRecoveredSusceptible g _ = sirsAgentSuceptible g
 
 -- NOTE: this is the initial SF which will be only called once
-sirsAgentBehaviour :: RandomGen g => g -> FrSIRSState -> FrSIRSAgentBehaviour
+sirsAgentBehaviour :: RandomGen g => g -> SIRSState -> FrSIRSAgentBehaviour
 sirsAgentBehaviour g Susceptible = sirsAgentSuceptible g
 -- NOTE: when initially infected then select duration uniformly random 
 sirsAgentBehaviour g Infected = sirsAgentInfected g' duration
     where
-        (duration, g') = randomR (0.0, infectedDuration) g
+        (duration, g') = randomR (0.0, illnessDuration) g
 
 sirsAgentBehaviour g Recovered = sirsAgentRecovered g
 ------------------------------------------------------------------------------------------------------------------------

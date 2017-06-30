@@ -1,5 +1,5 @@
 module FrSIRS.FrSIRSModel (
-    FrSIRSState (..),
+    SIRSState (..),
     FrSIRSMsg (..),
 
     FrSIRSAgentState,
@@ -12,9 +12,10 @@ module FrSIRS.FrSIRSModel (
     FrSIRSAgentIn,
     FrSIRSAgentOut,
 
-    infectedDuration,
+    illnessDuration,
     immuneDuration,
-    infectionProbability,
+    contactRate,
+    infectivity,
     initialInfectionProb
   ) where
 
@@ -24,10 +25,10 @@ import FrABS.Env.Environment
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
-data FrSIRSState = Susceptible | Infected | Recovered deriving (Eq, Show)
-data FrSIRSMsg = Contact FrSIRSState deriving (Eq, Show)
+data SIRSState = Susceptible | Infected | Recovered deriving (Eq, Show)
+data FrSIRSMsg = Contact SIRSState deriving (Eq, Show)
 
-type FrSIRSAgentState = FrSIRSState
+type FrSIRSAgentState = SIRSState
 
 type FrSIRSEnvLink = ()
 type FrSIRSEnvCell = AgentId
@@ -41,14 +42,19 @@ type FrSIRSAgentOut = AgentOut FrSIRSAgentState FrSIRSMsg FrSIRSEnvCell FrSIRSEn
 
 ------------------------------------------------------------------------------------------------------------------------
 -- MODEL-PARAMETERS
-infectedDuration :: Double
-infectedDuration = 7.0
+illnessDuration :: Double
+illnessDuration = 15
 
 immuneDuration :: Double
 immuneDuration = 3000.0
 
-infectionProbability :: Double
-infectionProbability = 0.05
+-- average number of contacts per time-unit
+contactRate :: Double
+contactRate = 5
+
+-- average probability of getting infected 
+infectivity :: Double
+infectivity = 0.05
 
 initialInfectionProb :: Double
 initialInfectionProb = 0.2

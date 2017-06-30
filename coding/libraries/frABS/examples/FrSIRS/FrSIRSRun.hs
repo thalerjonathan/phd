@@ -1,7 +1,6 @@
 module FrSIRS.FrSIRSRun ( 
     runFrSIRSWithRendering,
     runFrSIRSStepsAndRender,
-    runFrSIRSStepsAndPrint,
     runFrSIRSStepsAndWriteToFile,
     runFrSIRSReplicationsAndWriteToFile
   ) where
@@ -9,6 +8,7 @@ module FrSIRS.FrSIRSRun (
 import FrSIRS.FrSIRSInit
 import FrSIRS.FrSIRSModel
 import FrSIRS.FrSIRSRenderer as Renderer
+import Utils.Utils
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
@@ -38,7 +38,9 @@ runFrSIRSWithRendering :: IO ()
 runFrSIRSWithRendering =
     do
         _ <- initRng rngSeed
-        (initAdefs, initEnv) <- createFrSIRS agentDimensions initialInfectionProb
+        -- (initAdefs, initEnv) <- createFrSIRSRandomInfected agentDimensions initialInfectionProb
+        (initAdefs, initEnv) <- createFrSIRSSingleInfected agentDimensions
+        
         params <- initSimParams updateStrat Nothing shuffleAgents
 
         simulateAndRender initAdefs
@@ -55,7 +57,7 @@ runFrSIRSStepsAndRender :: IO ()
 runFrSIRSStepsAndRender =
     do
         _ <- initRng rngSeed
-        (initAdefs, initEnv) <- createFrSIRS agentDimensions initialInfectionProb
+        (initAdefs, initEnv) <- createFrSIRSRandomInfected agentDimensions initialInfectionProb
         params <- initSimParams updateStrat Nothing shuffleAgents
 
         simulateStepsAndRender initAdefs
@@ -67,93 +69,39 @@ runFrSIRSStepsAndRender =
                             winSize
                             Renderer.renderFrame
 
-runFrSIRSStepsAndPrint :: IO ()
-runFrSIRSStepsAndPrint =
-    do
-        _ <- initRng rngSeed
-        (initAdefs, initEnv) <- createFrSIRS agentDimensions initialInfectionProb
-        params <- initSimParams updateStrat Nothing shuffleAgents
-
-        let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
-
-        putStrLn ("steps = " ++ show steps ++ ";")
-        putStrLn ("dt = " ++ show samplingTimeDelta ++ ";")
-        putStrLn "dynamics = ["
-        mapM_ printAgentDynamics asenv
-        putStrLn "];"
-
-        return ()
-
 runFrSIRSStepsAndWriteToFile :: IO ()
 runFrSIRSStepsAndWriteToFile =
     do
         _ <- initRng rngSeed
-        (initAdefs, initEnv) <- createFrSIRS agentDimensions initialInfectionProb
+        (initAdefs, initEnv) <- createFrSIRSRandomInfected agentDimensions initialInfectionProb
         params <- initSimParams updateStrat Nothing shuffleAgents
 
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
         let dynamics = map agentsToDynamics asenv
         let fileName = "frSIRSDynamics_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt.m"
 
-        writeDynamicsFile fileName dynamics
+        writeSirsDynamicsFile fileName steps samplingTimeDelta 0 dynamics
 
 runFrSIRSReplicationsAndWriteToFile :: IO ()
 runFrSIRSReplicationsAndWriteToFile =
     do
         _ <- initRng rngSeed
-        (initAdefs, initEnv) <- createFrSIRS agentDimensions initialInfectionProb
+        (initAdefs, initEnv) <- createFrSIRSRandomInfected agentDimensions initialInfectionProb
         params <- initSimParams updateStrat Nothing shuffleAgents
 
         let assenv = runReplications initAdefs initEnv params samplingTimeDelta steps replications
         let replicationDynamics = map calculateSingleReplicationDynamic assenv
-        let dynamics = calculateDynamicMean replicationDynamics
+        let dynamics = sirsDynamicsReplMean replicationDynamics
 
         let fileName = "frSIRSDynamics_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt_" ++ (show replications) ++ "_replications.m"
 
-        writeDynamicsFile fileName dynamics
+        writeSirsDynamicsFile fileName steps samplingTimeDelta replications dynamics
 
 -------------------------------------------------------------------------------
 -- UTILS
 -------------------------------------------------------------------------------
-writeDynamicsFile :: String -> [(Double, Double, Double)] -> IO ()
-writeDynamicsFile fileName dynamics =
-    do
-        fileHdl <- openFile fileName WriteMode
-        hPutStrLn fileHdl ("steps = " ++ show steps ++ ";")
-        hPutStrLn fileHdl ("dt = " ++ show samplingTimeDelta ++ ";")
-        hPutStrLn fileHdl ("replications = " ++ show replications ++ ";")
-        
-        hPutStrLn fileHdl "dynamics = ["
-        mapM_ (hPutStrLn fileHdl . dynamicsToString) dynamics
-        hPutStrLn fileHdl "];"
-
-        hPutStrLn fileHdl "susceptibleRatio = dynamics (:, 1);"
-        hPutStrLn fileHdl "infectedRatio = dynamics (:, 2);"
-        hPutStrLn fileHdl "recoveredRatio = dynamics (:, 3);"
-        hPutStrLn fileHdl "figure"
-        hPutStrLn fileHdl "plot (susceptibleRatio.', 'color', 'green');"
-        hPutStrLn fileHdl "hold on"
-        hPutStrLn fileHdl "plot (infectedRatio.', 'color', 'red');"
-        hPutStrLn fileHdl "hold on"
-        hPutStrLn fileHdl "plot (recoveredRatio.', 'color', 'blue');"
-        hPutStrLn fileHdl "xlabel ('Steps');"
-        hPutStrLn fileHdl "ylabel ('Ratio');"
-        hPutStrLn fileHdl "legend('Susceptible','Infected', 'Recovered');"
-        hPutStrLn fileHdl ("title ('SIRS Dynamics with " ++ show samplingTimeDelta ++ " dt, " ++ show steps ++ " steps, " ++  (show replications) ++ " replications');")
-
-        hClose fileHdl
-
 agentsToDynamics = (calculateDynamics . fst)
-printAgentDynamics = (putStrLn . dynamicsToString . agentsToDynamics)
-
-dynamicsToString :: (Double, Double, Double) -> String
-dynamicsToString dynamics = 
-                printf "%.3f" susceptibleRatio 
-                    ++ "," ++ printf "%.3f" infectedRatio
-                    ++ "," ++ printf "%.3f" recoveredRatio
-                    ++ ";" 
-    where
-        (susceptibleRatio, infectedRatio, recoveredRatio) = dynamics 
+printAgentDynamics = (putStrLn . sirsDynamicToString . agentsToDynamics)
 
 calculateDynamics :: [FrSIRSAgentOut] -> (Double, Double, Double)
 calculateDynamics aos = (susceptibleRatio, infectedRatio, recoveredRatio)
@@ -168,18 +116,5 @@ calculateDynamics aos = (susceptibleRatio, infectedRatio, recoveredRatio)
         infectedRatio = fromIntegral infectedCount / totalCount 
         recoveredRatio = fromIntegral recoveredCount / totalCount
 
-
 calculateSingleReplicationDynamic :: [([FrSIRSAgentOut], FrSIRSEnvironment)] -> [(Double, Double, Double)]
 calculateSingleReplicationDynamic  aoss = map (calculateDynamics . fst) aoss
-
-calculateDynamicMean :: [[(Double, Double, Double)]] -> [(Double, Double, Double)]
-calculateDynamicMean [] = []
-calculateDynamicMean replDynamics@(initRepl:tailRepls) = replDynamicsRatio
-    where
-        replCountRational = fromIntegral $ length replDynamics :: Double
-
-        replDynamicsSum = foldr sumDyns initRepl tailRepls
-        replDynamicsRatio = map (\(s, i, r) -> (s / replCountRational, i / replCountRational, r / replCountRational)) replDynamicsSum
-
-        sumDyns :: [(Double, Double, Double)] -> [(Double, Double, Double)] -> [(Double, Double, Double)]
-        sumDyns ds1 ds2 = map (\((s1, i1, r1), (s2, i2, r2)) -> (s1+s2, i1+i2, r1+r2)) (zip ds1 ds2)

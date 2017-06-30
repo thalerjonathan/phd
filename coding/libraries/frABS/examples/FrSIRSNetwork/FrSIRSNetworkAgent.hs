@@ -10,6 +10,9 @@ import FRP.Yampa
 import FrABS.Agent.Agent
 import FrABS.Agent.AgentUtils
 
+import Control.Monad
+import Control.Monad.Random
+
 import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -20,14 +23,13 @@ randomContact ao = sendMessage ao' (randNeigh, Contact Infected)
     where
         (randNeigh, ao') = runAgentRandom ao (pickRandomNeighbourNode ao)
 
--- NOTE: infect with a given probability, every message has equal probability
-gotInfected :: FrSIRSNetworkAgentIn -> Bool
-gotInfected ain = onMessage ain gotInfectedAux False
+gotInfected :: FrSIRSNetworkAgentIn -> Rand StdGen Bool
+gotInfected ain = onMessageM ain gotInfectedAux False
     where
-        gotInfectedAux :: Bool -> AgentMessage FrSIRSNetworkMsg -> Bool
-        gotInfectedAux False (_, Contact Infected) = True -- TODO: draw with a given probability
-        gotInfectedAux False _ = False
-        gotInfectedAux True _ = True
+        gotInfectedAux :: Bool -> AgentMessage FrSIRSNetworkMsg -> Rand StdGen Bool
+        gotInfectedAux False (_, Contact Infected) = drawRandomBool infectivity
+        gotInfectedAux False _ = return False
+        gotInfectedAux True _ = return True
 
 sirsAgentSuceptible :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
 sirsAgentSuceptible g = switch 
@@ -39,10 +41,11 @@ sirsAgentSusceptibleBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
         let ao' = setDomainState ao Susceptible
+        let (isInfected, ao'') = runAgentRandom ao' (gotInfected ain)
 
-        infectionEvent <- iEdge False -< gotInfected ain
+        infectionEvent <- iEdge False -< isInfected
 
-        returnA -< (ao', infectionEvent)
+        returnA -< (ao'', infectionEvent)
 
 -- TODO: update sirsState to infected here once, no need to constantly set to infected in infecedbehaviourSF
 sirsAgentSusceptibleInfected :: RandomGen g => g -> () -> FrSIRSNetworkAgentBehaviour

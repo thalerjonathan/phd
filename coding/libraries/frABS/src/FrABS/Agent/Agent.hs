@@ -23,7 +23,8 @@ module FrABS.Agent.Agent (
     agentPickRandomM,
     agentPickRandomMultiple,
     agentPickRandomMultipleM,
-    
+    drawRandomBool,
+
     agentIdM,
     environmentM,
     environmentPositionM,
@@ -49,6 +50,7 @@ module FrABS.Agent.Agent (
     hasMessage,
     onMessage,
     onMessageM,
+    onMessageMState,
     onFilterMessage,
     onMessageFrom,
     onMessageType,
@@ -177,6 +179,12 @@ runAgentRandomM f = state (runAgentRandomMAux f)
 
 drawRandomRangeFromAgent :: (Random a) => AgentOut s m ec l -> (a, a) -> (a, AgentOut s m ec l)
 drawRandomRangeFromAgent a r = runAgentRandom a (getRandomR r)
+
+drawRandomBool :: Double -> Rand StdGen Bool
+drawRandomBool p =
+    do
+        r <- getRandomR (0.0, p) 
+        return $ p >= r
 
 drawMultipleRandomRangeFromAgent :: (Random a) => AgentOut s m ec l -> (a, a) -> Int -> ([a], AgentOut s m ec l)
 drawMultipleRandomRangeFromAgent a r n = runAgentRandom a blub
@@ -352,10 +360,14 @@ onMessage ai msgHdl a
         hasMessages = isEvent msgsEvt
         msgs = fromEvent msgsEvt
 
-onMessageM :: AgentIn s m ec l -> (AgentMessage m -> State acc ()) -> State acc ()
-onMessageM ai msgHdl 
-    | not hasMessages = return ()
-    | otherwise = foldM (\_ msg -> msgHdl msg) () msgs
+onMessageMState :: AgentIn s m ec l -> (AgentMessage m -> State acc ()) -> State acc ()
+onMessageMState ai msgHdl = onMessageM ai (\_ msg -> msgHdl msg) ()
+
+onMessageM :: (Monad mon) => AgentIn s m ec l -> (acc -> AgentMessage m -> mon acc) -> acc -> mon acc
+onMessageM ai msgHdl acc
+    | not hasMessages = return acc
+    -- | otherwise = foldM (\acc msg -> msgHdl acc msg) acc msgs
+    | otherwise = foldM msgHdl acc msgs
     where
         msgsEvt = aiMessages ai
         hasMessages = isEvent msgsEvt

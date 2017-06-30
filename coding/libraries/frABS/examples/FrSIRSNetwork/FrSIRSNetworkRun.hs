@@ -20,11 +20,11 @@ shuffleAgents = False
 
 rngSeed = 42
 
-agentDimensions = (51, 51)
+agentDimensions = (31, 31)
 numInfected = 1
 
-samplingTimeDelta = 1.0
-steps = 1000
+samplingTimeDelta = 0.01
+steps = 20000
 replications = 10
 
 runFrSIRSNetworkStepsAndWriteToFile :: IO ()
@@ -36,7 +36,7 @@ runFrSIRSNetworkStepsAndWriteToFile =
 
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
         let dynamics = map (calculateDynamics . fst) asenv
-        let fileName = "frSIRSNetworkDynamics_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt.m"
+        let fileName = "frSIRSNetworkDynamics_" ++ (show agentDimensions) ++ "agents_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt.m"
 
         writeSirsDynamicsFile fileName steps samplingTimeDelta 0 dynamics
 

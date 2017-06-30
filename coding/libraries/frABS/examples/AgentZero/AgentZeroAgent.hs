@@ -131,7 +131,7 @@ agentZeroUpdateDispoM ain =
 		let dispoLocal = affect + prob
 		
 		updateDomainStateM (\s -> s { azAgentDispo = dispoLocal - thresh})
-		onMessageM ain dispositionMessageHandleM
+		onMessageMState ain dispositionMessageHandleM
 		broadcastMessageM (Disposition dispoLocal) linkIds
 
 	where

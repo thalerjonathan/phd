@@ -73,7 +73,7 @@ randomContactM =
 sirsAgentBehaviourFuncM :: SIRSAgentIn -> State SIRSAgentOut ()
 sirsAgentBehaviourFuncM ain = 
     do
-        onMessageM ain contactInfectedM
+        onMessageMState ain contactInfectedM
         sirsDtM 1.0
 
     where

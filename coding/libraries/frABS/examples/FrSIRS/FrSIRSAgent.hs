@@ -10,6 +10,9 @@ import FRP.Yampa
 import FrABS.Agent.Agent
 import FrABS.Agent.AgentUtils
 
+import Control.Monad
+import Control.Monad.Random
+
 import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -20,14 +23,13 @@ randomContact ao = sendMessage ao' (randNeigh, Contact Infected)
     where
         ((_, randNeigh), ao') = runAgentRandom ao (pickRandomNeighbourCell ao)
 
--- NOTE: infect with a given probability, every message has equal probability
-gotInfected :: FrSIRSAgentIn -> Bool
-gotInfected ain = onMessage ain gotInfectedAux False
+gotInfected :: FrSIRSAgentIn -> Rand StdGen Bool
+gotInfected ain = onMessageM ain gotInfectedAux False
     where
-        gotInfectedAux :: Bool -> AgentMessage FrSIRSMsg -> Bool
-        gotInfectedAux False (_, Contact Infected) = True -- TODO: draw with a given probability
-        gotInfectedAux False _ = False
-        gotInfectedAux True _ = True
+        gotInfectedAux :: Bool -> AgentMessage FrSIRSMsg -> Rand StdGen Bool
+        gotInfectedAux False (_, Contact Infected) = drawRandomBool infectivity
+        gotInfectedAux False _ = return False
+        gotInfectedAux True _ = return True
 
 sirsAgentSuceptible :: RandomGen g => g -> FrSIRSAgentBehaviour
 sirsAgentSuceptible g = switch 
@@ -39,10 +41,11 @@ sirsAgentSusceptibleBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
         let ao' = setDomainState ao Susceptible
+        let (isInfected, ao'') = runAgentRandom ao' (gotInfected ain)
 
-        infectionEvent <- iEdge False -< gotInfected ain
+        infectionEvent <- iEdge False -< isInfected
 
-        returnA -< (ao', infectionEvent)
+        returnA -< (ao'', infectionEvent)
 
 -- TODO: update sirsState to infected here once, no need to constantly set to infected in infecedbehaviourSF
 sirsAgentSusceptibleInfected :: RandomGen g => g -> () -> FrSIRSAgentBehaviour
@@ -64,9 +67,7 @@ sirsAgentInfectedBehaviour g duration = proc ain ->
 
         recoveredEvent <- after duration () -< ()
 
-        -- NOTE: this means the agent is randomly contacting two neighbours within the infected duration
-        -- NOTE: this is a rate: needs to be sampled at high frequency
-        makeContact <- occasionally g (duration * 0.5) () -< ()
+        makeContact <- occasionally g (1 / contactRate) () -< ()
 
         let ao'' = if isEvent makeContact then
                     randomContact ao'

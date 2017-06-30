@@ -30,7 +30,7 @@ rngSeed = 42
 agentDimensions = (51, 51)
 frequency = 0
 
-samplingTimeDelta = 1.0
+samplingTimeDelta = 0.1
 steps = 1000
 replications = 10
 
@@ -78,7 +78,7 @@ runFrSIRSStepsAndWriteToFile =
 
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
         let dynamics = map agentsToDynamics asenv
-        let fileName = "frSIRSDynamics_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt.m"
+        let fileName = "frSIRSDynamics_" ++ show agentDimensions ++ "agents_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt.m"
 
         writeSirsDynamicsFile fileName steps samplingTimeDelta 0 dynamics
 
@@ -93,7 +93,7 @@ runFrSIRSReplicationsAndWriteToFile =
         let replicationDynamics = map calculateSingleReplicationDynamic assenv
         let dynamics = sirsDynamicsReplMean replicationDynamics
 
-        let fileName = "frSIRSDynamics_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt_" ++ (show replications) ++ "_replications.m"
+        let fileName = "frSIRSDynamics_" ++ show agentDimensions ++ "agents_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt_" ++ (show replications) ++ "_replications.m"
 
         writeSirsDynamicsFile fileName steps samplingTimeDelta replications dynamics
 

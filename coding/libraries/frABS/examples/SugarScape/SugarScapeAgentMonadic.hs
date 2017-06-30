@@ -273,7 +273,7 @@ agentSexM =
 
 inheritSugarM :: SugarScapeAgentIn 
                     -> State SugarScapeAgentOut ()
-inheritSugarM ain = onMessageM ain inheritSugarActionM
+inheritSugarM ain = onMessageMState ain inheritSugarActionM
     where
         inheritSugarActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
         inheritSugarActionM (_, (InheritSugar sug)) = updateDomainStateM (\s -> s { sugAgSugarLevel = (sugAgSugarLevel s) + sug})
@@ -309,7 +309,7 @@ handleMatingConversationM otherGender ain
 agentCultureContactM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
 agentCultureContactM ain = 
     do
-        onMessageM ain cultureContactActionM
+        onMessageMState ain cultureContactActionM
 
         nids <- neighbourIdsM
         culturalTag <- domainStateFieldM sugAgCulturalTag
@@ -330,7 +330,7 @@ agentCultureContactM ain =
         cultureContactActionM _ = return ()
 
 agentKilledInCombatM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
-agentKilledInCombatM ain = onMessageM ain killedInCombatActionM
+agentKilledInCombatM ain = onMessageMState ain killedInCombatActionM
     where
         killedInCombatActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
         killedInCombatActionM (_, KilledInCombat) = killM -- NOTE: don't unoccupie position (as in agentdies) because it is occupied by the killer already
@@ -505,7 +505,7 @@ agentDeathHandleCreditsM =
         broadcastMessageM CreditLenderDied borrowerIds
 
 agentCreditDeathIncomingM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
-agentCreditDeathIncomingM ain = onMessageM ain creditDeathActionM
+agentCreditDeathIncomingM ain = onMessageMState ain creditDeathActionM
     where
         creditDeathActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
         creditDeathActionM (borrowerId, CreditBorrowerDied) = borrowerDiedM borrowerId
@@ -529,7 +529,7 @@ agentCreditDeathIncomingM ain = onMessageM ain creditDeathActionM
                 updateDomainStateM (\s -> s { sugAgBorrowingCredits = borrowersRemoved } )
 
 agentCreditPaybackIncomingM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
-agentCreditPaybackIncomingM ain = onMessageM ain creditPaybackActionM
+agentCreditPaybackIncomingM ain = onMessageMState ain creditPaybackActionM
     where
         creditPaybackActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
         creditPaybackActionM (_, (CreditPaybackHalf amount)) = halfCreditPaybackM amount
@@ -643,7 +643,7 @@ handleCreditRequestM ain borrowerId
 -- Chapter V: Disease Processes
 ------------------------------------------------------------------------------------------------------------------------
 agentDiseaseContactM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
-agentDiseaseContactM ain = onMessageM ain diseaseContactActionM
+agentDiseaseContactM ain = onMessageMState ain diseaseContactActionM
     where
         diseaseContactActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
         diseaseContactActionM (_, (DiseaseContact d)) = updateDomainStateM (\s -> s { sugAgDiseases = d : (sugAgDiseases s) } )

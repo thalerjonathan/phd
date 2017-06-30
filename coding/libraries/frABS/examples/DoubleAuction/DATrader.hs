@@ -368,7 +368,7 @@ sendOfferingsM =
 		sendMessageM (auctioneer, AskOffering aos)
 
 receiveTransactionsM :: DAAgentIn -> State DAAgentOut ()
-receiveTransactionsM ain = onMessageM ain handleTxMsgM
+receiveTransactionsM ain = onMessageMState ain handleTxMsgM
 	where
 		handleTxMsgM :: AgentMessage DoubleAuctionMsg -> State DAAgentOut ()
 		handleTxMsgM (_, (SellTx m o)) = updateDomainStateM (transactSell m o)

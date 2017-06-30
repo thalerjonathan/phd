@@ -16,7 +16,6 @@ import PrisonersDilemma.PDRun
 {-
 	TODOs
     - rename FrSIRS to FrSIRSSpatial
-    - use same parameters as in SysDyn and FrSIRSNetwork 
 
 	- reuse the Agent2D renderer if appropriate
 	- use-case for continuous 2d-environment: implement Heroes & Cowards

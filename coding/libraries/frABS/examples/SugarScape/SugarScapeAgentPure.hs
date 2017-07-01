@@ -193,8 +193,8 @@ dieFromAge a = age > maxAge
 ------------------------------------------------------------------------------------------------------------------------
 -- CHAPTER III: Sex, Culture, And Conflict: The Emergence Of History
 ------------------------------------------------------------------------------------------------------------------------
-agentSex :: SugarScapeAgentOut -> SugarScapeAgentOut
-agentSex a
+agentSex :: SugarScapeAgentIn -> SugarScapeAgentOut -> SugarScapeAgentOut
+agentSex ain a
     | isFertile s = agentMatingConversation nids nncsUnoccupied a
     | otherwise = a
     where
@@ -242,7 +242,7 @@ agentSex a
                         myCulturalTag = sugAgCulturalTag s
                         myImmuneSysBorn = sugAgImmuneSysBorn s
 
-                        newBornId = senderId * aoId a   -- TODO: this is a real problem: which ids do we give our newborns?
+                        newBornId = nextAgentId ain -- senderId * aoId a   -- TODO: this is a real problem: which ids do we give our newborns?
 
                         (newBornDef, a0) = runAgentRandom a
                             (createNewBorn 
@@ -680,7 +680,7 @@ sugarScapeAgentBehaviourFunc age ain a =
                                             let a3 = agentNonCombatMove a2
                                             let a4 = inheritSugar ain a3
                                             -- let a5 = agentCultureContact ain a4
-                                            -- let a6 = agentSex a5
+                                            -- let a6 = agentSex ain a5
                                             -- let a7 = agentTrading a5
                                             let a8 = agentCredit ain a4
                                             --let a9 = agentDiseaseProcesses ain a4

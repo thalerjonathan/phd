@@ -1,4 +1,6 @@
-module SugarScape.SugarScapeInit where
+module SugarScape.SugarScapeInit (
+    createSugarScape
+  ) where
 
 import SugarScape.SugarScapeModel
 import SugarScape.SugarScapeAgent
@@ -6,6 +8,7 @@ import SugarScape.SugarScapeEnvironment
 
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
+import FrABS.Simulation.SimulationUtils
 
 import FRP.Yampa
 
@@ -13,30 +16,17 @@ import Data.List
 
 import System.Random
 import Control.Monad.Random
+import Debug.Trace 
 
-allZeroSugar :: (EnvCoord, SugarScapeEnvCell) -> Double
-allZeroSugar _ = 0.0
-
-circlesSugar :: Double -> [(EnvCoord, Double)] -> (EnvCoord, SugarScapeEnvCell) -> Double
-circlesSugar sugarLevel circles (coord, cell)
-    | withinRadius = sugarLevel
-    | otherwise = sugEnvSugarLevel cell -- NOTE: keep the level of before
-        where
-            withinRadius = any (\(p, r) -> distanceEuclidean p coord <= r) circles
-
-circlesSpice :: Double -> [(EnvCoord, Double)] -> (EnvCoord, SugarScapeEnvCell) -> Double
-circlesSpice spiceLevel circles (coord, cell)
-    | withinRadius = spiceLevel
-    | otherwise = sugEnvSpiceLevel cell -- NOTE: keep the level of before
-        where
-            withinRadius = any (\(p, r) -> distanceEuclidean p coord <= r) circles
-
-createSugarScape :: Int -> EnvLimits -> IO ([SugarScapeAgentDef], SugarScapeEnvironment)
-createSugarScape agentCount l = 
+createSugarScape :: Int 
+                    -> EnvLimits 
+                    -> SugarScapeSimParams
+                    -> IO ([SugarScapeAgentDef], SugarScapeEnvironment)
+createSugarScape agentCount l params = 
     do
         randCoords <- drawRandomCoords (0,0) l agentCount
 
-        as <- mapM randomAgentIO (zip [0..agentCount-1] randCoords)
+        as <- mapM (randomAgentIO params) randCoords
         let occupations = map (\a -> (adEnvPos a, (adId a, adState a))) as
 
         initRandomCells <- createCells l occupations
@@ -62,7 +52,6 @@ createSugarScape agentCount l =
                               rng
                               Nothing
         return (as, env)
-
 
 initSugar :: [(EnvCoord, SugarScapeEnvCell)]
                     -> ((EnvCoord, SugarScapeEnvCell) -> Double)
@@ -145,14 +134,33 @@ drawRandomCoords lower@(minX, minY) upper@(maxX, maxY) n
                   else
                     drawRandomCoordsAux lower upper (n-1) (c : acc)
 
-randomAgentIO :: (AgentId, EnvCoord) -> IO SugarScapeAgentDef
-randomAgentIO aidCoord = 
+randomAgentIO :: SugarScapeSimParams -> EnvCoord -> IO SugarScapeAgentDef
+randomAgentIO params coord = 
     do
         std <- getStdGen
+        let aid = newAgentId params
+
         let (adef, std') = runRand (randomAgent
-                                        aidCoord
+                                        (aid, coord)
                                         sugarScapeAgentBehaviour
                                         sugarScapeAgentConversation)
                                         std
-        setStdGen std'
+
         return adef
+
+allZeroSugar :: (EnvCoord, SugarScapeEnvCell) -> Double
+allZeroSugar _ = 0.0
+
+circlesSugar :: Double -> [(EnvCoord, Double)] -> (EnvCoord, SugarScapeEnvCell) -> Double
+circlesSugar sugarLevel circles (coord, cell)
+    | withinRadius = sugarLevel
+    | otherwise = sugEnvSugarLevel cell -- NOTE: keep the level of before
+        where
+            withinRadius = any (\(p, r) -> distanceEuclidean p coord <= r) circles
+
+circlesSpice :: Double -> [(EnvCoord, Double)] -> (EnvCoord, SugarScapeEnvCell) -> Double
+circlesSpice spiceLevel circles (coord, cell)
+    | withinRadius = spiceLevel
+    | otherwise = sugEnvSpiceLevel cell -- NOTE: keep the level of before
+        where
+            withinRadius = any (\(p, r) -> distanceEuclidean p coord <= r) circles

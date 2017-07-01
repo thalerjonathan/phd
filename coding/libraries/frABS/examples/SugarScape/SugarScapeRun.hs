@@ -1,4 +1,6 @@
-module SugarScape.SugarScapeRun where
+module SugarScape.SugarScapeRun (
+    runSugarScapeWithRendering
+  ) where
 
 import SugarScape.SugarScapeInit
 import SugarScape.SugarScapeRenderer as Renderer
@@ -25,9 +27,9 @@ runSugarScapeWithRendering :: IO ()
 runSugarScapeWithRendering = 
     do
         initRng rngSeed
-        (initAdefs, initEnv) <- createSugarScape agentCount envSize
         params <- initSimParams updateStrat envCollapsing shuffleAgents
-
+        (initAdefs, initEnv) <- createSugarScape agentCount envSize params
+        
         simulateAndRender initAdefs
                             initEnv
                             params

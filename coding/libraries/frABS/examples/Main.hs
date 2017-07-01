@@ -16,14 +16,15 @@ import PrisonersDilemma.PDRun
 {-
 	TODOs
     - performance?
-    
-	- reuse the Agent2D renderer if appropriate
+
 	- use-case for continuous 2d-environment: implement Heroes & Cowards
+        -> write Agend2DContinuous
 
     - compilation with -w must show no warnings at all
     - clean-up imports
     - clean-up structure: lint
     - comment haskell-code
+    - reuse the Agent2D renderer if appropriate
 
 	- Model-specification using QuickCheck
 -}

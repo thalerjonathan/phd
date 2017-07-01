@@ -72,6 +72,8 @@ module FrABS.Agent.Agent (
 
     runEnvironmentM,
 
+    nextAgentId,
+
     onStart,
     onEvent,
 
@@ -85,6 +87,7 @@ module FrABS.Agent.Agent (
   ) where
 
 import FrABS.Env.Environment
+import FrABS.Simulation.Utils
 
 import FRP.Yampa
 
@@ -93,6 +96,7 @@ import System.Random
 import Control.Monad
 import Control.Monad.Random
 import Control.Monad.Trans.State
+import Control.Concurrent.STM.TVar
 
 import Data.List
 
@@ -131,7 +135,9 @@ data AgentIn s m ec l = AgentIn {
     aiEnvPos :: EnvCoord,
     aiRec :: Event [AgentOut s m ec l],
     aiRecInitAllowed :: Bool,
-    aiRng :: StdGen
+    aiRng :: StdGen,
+
+    aiIdGen :: TVar Int
 }
 
 data AgentOut s m ec l = AgentOut {
@@ -318,6 +324,9 @@ createAgent ao newDef = ao { aoCreate = createEvt }
 createAgentM :: AgentDef s m ec l -> State (AgentOut s m ec l) ()
 createAgentM newDef = state (\ao -> ((),createAgent ao newDef))
 
+nextAgentId :: AgentIn s m ec l -> AgentId
+nextAgentId AgentIn { aiIdGen = idGen } = incrementAtomicallyUnsafe idGen
+
 kill :: AgentOut s m ec l -> AgentOut s m ec l
 kill ao = ao { aoKill = Event () }
 
@@ -456,20 +465,21 @@ unrecursive aout = aout { aoRec = NoEvent }
 isRecursive :: AgentIn s m ec l -> Bool
 isRecursive ain = isEvent $ aiRec ain
 
-createStartingAgentIn :: [AgentDef s m ec l] -> Environment ec l -> [AgentIn s m ec l]
-createStartingAgentIn as env = map (startingAgentInFromAgentDef env) as
+createStartingAgentIn :: [AgentDef s m ec l] -> Environment ec l -> TVar Int -> [AgentIn s m ec l]
+createStartingAgentIn as env idGen = map (startingAgentInFromAgentDef env idGen) as
 
-startingAgentInFromAgentDef :: Environment ec l -> AgentDef s m ec l -> AgentIn s m ec l
-startingAgentInFromAgentDef env ad = AgentIn { aiId = adId ad,
-                                                aiMessages = adInitMessages ad,
-                                                aiConversation = adConversation ad,
-                                                aiStart = Event (),
-                                                aiState = adState ad,
-                                                aiEnv = env,
-                                                aiEnvPos = adEnvPos ad,
-                                                aiRec = NoEvent,
-                                                aiRecInitAllowed = True,
-                                                aiRng = adRng ad }
+startingAgentInFromAgentDef :: Environment ec l -> TVar Int -> AgentDef s m ec l -> AgentIn s m ec l
+startingAgentInFromAgentDef env idGen ad = AgentIn { aiId = adId ad,
+                                                        aiMessages = adInitMessages ad,
+                                                        aiConversation = adConversation ad,
+                                                        aiStart = Event (),
+                                                        aiState = adState ad,
+                                                        aiEnv = env,
+                                                        aiEnvPos = adEnvPos ad,
+                                                        aiRec = NoEvent,
+                                                        aiRecInitAllowed = True,
+                                                        aiRng = adRng ad,
+                                                        aiIdGen = idGen }
 
 mergeMessages :: Event [AgentMessage m] -> Event [AgentMessage m] -> Event [AgentMessage m]
 mergeMessages l r = mergeBy (\msgsLeft msgsRight -> msgsLeft ++ msgsRight) l r

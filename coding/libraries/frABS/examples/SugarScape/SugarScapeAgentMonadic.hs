@@ -195,8 +195,8 @@ dieFromAgeM =
 ------------------------------------------------------------------------------------------------------------------------
 -- CHAPTER III: Sex, Culture, And Conflict: The Emergence Of History
 ------------------------------------------------------------------------------------------------------------------------
-agentSexM :: State SugarScapeAgentOut ()
-agentSexM =
+agentSexM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
+agentSexM ain =
     do
         s <- getDomainStateM
         pos <- environmentPositionM
@@ -247,7 +247,7 @@ agentSexM =
                         myCulturalTag <- domainStateFieldM sugAgCulturalTag
                         myImmuneSysBorn <- domainStateFieldM sugAgImmuneSysBorn
 
-                        let newBornId = senderId * aid   -- TODO: this is a real problem: which ids do we give our newborns?
+                        let newBornId = nextAgentId ain
 
                         newBornDef <- runAgentRandomM
                             (createNewBorn 
@@ -262,6 +262,7 @@ agentSexM =
 
                         updateDomainStateM (\s -> s { sugAgSugarLevel = (sugAgSugarLevel s) - mySugarContribution,
                                                       sugAgChildren = newBornId : (sugAgChildren s)})
+                        
                         createAgentM newBornDef
 
                         conversationM 
@@ -721,8 +722,8 @@ sugarScapeAgentBehaviourFuncM age ain =
                             $ do
                                 agentNonCombatMoveM
                                 inheritSugarM ain
-                                agentCultureContactM ain
-                                agentSexM
+                                agentCultureContactM  ain
+                                agentSexM ain
                                 agentTradingM
                                 agentCreditM ain
                                 agentDiseaseProcessesM ain

@@ -2,15 +2,18 @@ module FrABS.Simulation.SimulationUtils (
 	initRng,
 	initSimParams,
 
-    runReplications
+    runReplications,
+    newAgentId
   ) where
 
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 import FrABS.Simulation.Simulation
+import FrABS.Simulation.Utils
 
 import Control.Monad.Random
 import Control.Parallel.Strategies
+import Control.Concurrent.STM.TVar
 
 initRng :: Int -> IO StdGen
 initRng seed =
@@ -26,13 +29,18 @@ initSimParams :: UpdateStrategy
 initSimParams updtStrat collFunc shuffAs = 
     do
         rng <- getSplit
+        agentIdVar <- newTVarIO 0
 
         return SimulationParams {
             simStrategy = updtStrat,
             simEnvCollapse = collFunc,
             simShuffleAgents = shuffAs,
-            simRng = rng
+            simRng = rng,
+            simIdGen = agentIdVar
         }
+
+newAgentId :: SimulationParams ec l -> AgentId
+newAgentId SimulationParams { simIdGen = idGen } = incrementAtomicallyUnsafe idGen
 
 runReplications :: [AgentDef s m ec l]
                     -> Environment ec l

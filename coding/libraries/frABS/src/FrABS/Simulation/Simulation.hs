@@ -24,6 +24,7 @@ import Data.Maybe
 import Data.List
 import System.Random
 import qualified Data.Map as Map
+import Control.Concurrent.STM.TVar
 
 -- TODO: remove these imports
 -- debugging imports finally, to be easily removed in final version
@@ -36,7 +37,8 @@ data SimulationParams ec l = SimulationParams {
     simStrategy :: UpdateStrategy,
     simEnvCollapse :: Maybe (EnvironmentCollapsing ec l),
     simShuffleAgents :: Bool,
-    simRng :: StdGen
+    simRng :: StdGen,
+    simIdGen :: TVar Int
 }
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -56,7 +58,8 @@ processIOInit as env params iterFunc = reactInit
                                                 iterFunc
                                                 (process as params)
     where
-        ains = createStartingAgentIn as env
+        idGen = simIdGen params
+        ains = createStartingAgentIn as env idGen
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -75,7 +78,8 @@ processSteps as env params dt steps = embed
     where
         -- NOTE: again haskells laziness put to use: take steps items from the infinite list of sampling-times
         sts = replicate steps (dt, Nothing)
-        ains = createStartingAgentIn as env
+        idGen = simIdGen params
+        ains = createStartingAgentIn as env idGen
 ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -135,7 +139,12 @@ simulateSeq initSfs initParams = SF {sfTF = tf0}
                 tf dt _ = (tf', (outs, env''))
                     where
                         -- run the next step with the new sfs and inputs to get the sf-contintuations and their outputs
-                        (sfs', ins', outs) = runSeqInternal sfs ins (seqCallback params) seqCallbackIteration dt
+                        (sfs', ins', outs) = runSeqInternal 
+                            sfs 
+                            ins 
+                            (seqCallback params) 
+                            (seqCallbackIteration $ simIdGen initParams)
+                            dt
 
                         -- NOTE: the 'last' environment is in the first of outs because runSeqInternal reverses the outputs
                         env' = if null outs then env else aoEnv $ head outs
@@ -150,11 +159,11 @@ simulateSeq initSfs initParams = SF {sfTF = tf0}
 
 
 
-seqCallbackIteration :: [AgentOut s m ec l] -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
-seqCallbackIteration aouts = (newSfs, newSfsIns')
+seqCallbackIteration :: TVar Int -> [AgentOut s m ec l] -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
+seqCallbackIteration idGen aouts = (newSfs, newSfsIns')
     where
         -- NOTE: messages of this agent are ALWAYS distributed, whether it is killed or not
-        (newSfs, newSfsIns) = foldr handleCreateAgents ([], []) aouts
+        (newSfs, newSfsIns) = foldr (handleCreateAgents idGen) ([], []) aouts
         -- NOTE: distribute messages to newly created agents as well
         newSfsIns' = distributeMessages newSfsIns aouts
 
@@ -303,12 +312,7 @@ seqCallback params (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
             | otherwise = Just (sf, newIn', newOut)
             where
                 killAgent = isEvent $ aoKill newOut
-                newIn = oldIn { aiStart = NoEvent,
-                                aiState = (aoState newOut),
-                                aiMessages = NoEvent,
-                                aiEnvPos = (aoEnvPos newOut),
-                                aiEnv = (aoEnv newOut),
-                                aiRng = aoRng newOut }
+                newIn = newAgentIn oldIn newOut
 
                 -- NOTE: need to handle sending messages to itself because the input of this agent is not in the list of all inputs because it will be replaced anyway by newIn
                 newIn' = collectMessagesFor [newOut] newIn
@@ -410,9 +414,10 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns0)
                 handleAgent :: ([AgentBehaviour s m ec l], [AgentIn s m ec l])
                                 -> (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l)
                                 -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
-                handleAgent acc a@(_, _, newOut) = handleKillOrLiveAgent acc' a
+                handleAgent acc a@(_, oldIn, newOut) = handleKillOrLiveAgent acc' a
                     where
-                        acc' = handleCreateAgents newOut acc
+                        idGen = aiIdGen oldIn
+                        acc' = handleCreateAgents idGen newOut acc 
 
                 handleKillOrLiveAgent :: ([AgentBehaviour s m ec l], [AgentIn s m ec l])
                                             -> (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l)
@@ -422,18 +427,22 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns0)
                     | otherwise = (asfsAcc ++ [sf], ainsAcc ++ [newIn])
                     where
                         killAgent = isEvent $ aoKill newOut
-                        newIn = oldIn { aiStart = NoEvent,
-                                        aiState = (aoState newOut),
-                                        aiMessages = NoEvent,
-                                        aiEnvPos = (aoEnvPos newOut),
-                                        aiEnv = (aoEnv newOut),
-                                        aiRng = aoRng newOut }
+                        newIn = newAgentIn oldIn newOut
 ----------------------------------------------------------------------------------------------------------------------
 
 
 ----------------------------------------------------------------------------------------------------------------------
 -- utils
 ----------------------------------------------------------------------------------------------------------------------
+newAgentIn :: AgentIn s m ec l -> AgentOut s m ec l -> AgentIn s m ec l
+newAgentIn oldIn newOut = oldIn { aiStart = NoEvent,
+                                aiState = (aoState newOut),
+                                aiMessages = NoEvent,
+                                aiEnvPos = (aoEnvPos newOut),
+                                aiEnv = (aoEnv newOut),
+                                aiRng = aoRng newOut }
+
+
 shuffleAgents :: SimulationParams ec l 
                     -> [AgentBehaviour s m ec l] 
                     -> [AgentIn s m ec l] 
@@ -479,10 +488,11 @@ runEnv env dt
         envSF = fromJust mayEnvBeh
         (envSF', env') = runAndFreezeSF envSF env dt
 
-handleCreateAgents :: AgentOut s m ec l
+handleCreateAgents :: TVar Int
+                        -> AgentOut s m ec l
                         -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
                         -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
-handleCreateAgents o acc@(asfsAcc, ainsAcc) 
+handleCreateAgents idGen o acc@(asfsAcc, ainsAcc) 
     | hasCreateAgents = (asfsAcc ++ newSfs, ainsAcc ++ newAis)
     | otherwise = acc
     where
@@ -491,7 +501,7 @@ handleCreateAgents o acc@(asfsAcc, ainsAcc)
         hasCreateAgents = isEvent newAgentDefsEvt
         newAgentDefs = fromEvent newAgentDefsEvt
         newSfs = map adBeh newAgentDefs
-        newAis = map (startingAgentInFromAgentDef newAgentInheritedEnvironment) newAgentDefs
+        newAis = map (startingAgentInFromAgentDef newAgentInheritedEnvironment idGen) newAgentDefs
 
 
 collectMessagesFor :: [AgentOut s m ec l] -> AgentIn s m ec l -> AgentIn s m ec l

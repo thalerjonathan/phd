@@ -1,10 +1,17 @@
 module FrABS.Simulation.Utils (
   	runAndFreezeSF,
   	freeze,
-  	freezeCol
+  	freezeCol,
+
+  	incrementAtomically,
+  	incrementAtomicallyUnsafe
   ) where
 
 import FRP.Yampa.InternalCore
+
+import System.IO.Unsafe
+import Control.Concurrent.STM
+import Control.Concurrent.STM.TVar
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Running a Signal-Function
@@ -23,3 +30,16 @@ freeze sf dt = SF {sfTF = (sfTF' sf) dt}
 freezeCol :: Functor col => col (SF' a b) -> DTime -> col (SF a b)
 freezeCol sfs dt = fmap (`freeze` dt) sfs
 ------------------------------------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+-- UTILS
+-------------------------------------------------------------------------------
+incrementAtomically :: TVar Int -> STM Int
+incrementAtomically var = 
+    do
+        value <- readTVar var
+        writeTVar var (value + 1)
+        return value
+
+incrementAtomicallyUnsafe :: TVar Int -> Int
+incrementAtomicallyUnsafe = unsafePerformIO  . atomically . incrementAtomically

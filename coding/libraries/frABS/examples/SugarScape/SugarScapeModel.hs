@@ -3,6 +3,7 @@ module SugarScape.SugarScapeModel where
 -- Project-internal import first
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
+import FrABS.Simulation.Simulation
 
 -- Project-specific libraries follow
 import FRP.Yampa
@@ -16,8 +17,6 @@ import Data.List
 import Data.Maybe
 
 -- TODO: when sex is turned on the number of agents is constantly increasing which should not be possible because more agents compete for less ressources which should reduce the population. Probably we are leaking wealth
-
--- TODO: unique IDs through state-monad?
 
 -- TODO: export dynamics in a text file with matlab format of the data: wealth distribution, number of agents, mean vision/metabolism, mean age,
 
@@ -116,16 +115,19 @@ data SugarScapeEnvCell = SugarScapeEnvCell {
     sugEnvOccupier :: Maybe SugarScapeEnvCellOccupier
 } deriving (Show)
 
-type SugarScapeEnvironment = Environment SugarScapeEnvCell ()
-type SugarScapeEnvironmentBehaviour = EnvironmentBehaviour SugarScapeEnvCell ()
+type SugarScapeEnvLink = ()
+type SugarScapeEnvironment = Environment SugarScapeEnvCell SugarScapeEnvLink
+type SugarScapeEnvironmentBehaviour = EnvironmentBehaviour SugarScapeEnvCell SugarScapeEnvLink
 
-type SugarScapeAgentDef = AgentDef SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell ()
-type SugarScapeAgentBehaviour = AgentBehaviour SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell ()
-type SugarScapeAgentIn = AgentIn SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell ()
-type SugarScapeAgentOut = AgentOut SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell ()
+type SugarScapeAgentDef = AgentDef SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell SugarScapeEnvLink
+type SugarScapeAgentBehaviour = AgentBehaviour SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell SugarScapeEnvLink
+type SugarScapeAgentIn = AgentIn SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell SugarScapeEnvLink
+type SugarScapeAgentOut = AgentOut SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell SugarScapeEnvLink
 
-type SugarScapeAgentConversation = AgentConversationReceiver SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell ()
-type SugarScapeAgentConversationSender = AgentConversationSender SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell ()
+type SugarScapeAgentConversation = AgentConversationReceiver SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell SugarScapeEnvLink
+type SugarScapeAgentConversationSender = AgentConversationSender SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell SugarScapeEnvLink
+
+type SugarScapeSimParams = SimulationParams SugarScapeEnvCell SugarScapeEnvLink
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

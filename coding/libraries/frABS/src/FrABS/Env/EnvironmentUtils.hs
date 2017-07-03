@@ -11,6 +11,8 @@ import Control.Monad.Random
 import Data.Graph.Inductive.Graph
 import Data.Graph.Inductive.PatriciaTree
 
+import Debug.Trace
+
 data NetworkType = Complete Int | ErdosRenyi Int Double | BarbasiAlbert Int Int Int
 
 createAgentNetwork :: NetworkType -> Rand StdGen (Gr () ())
@@ -35,14 +37,14 @@ createCompleteGraph n =
         let gr = mkGraph nodes edges :: Gr () ()
         return gr
     where
-        edges = [ (nodeFrom, nodeTo, ()) | nodeFrom <- [0..(n-1)], nodeTo <- [(nodeFrom + 1)..(n-1)]]
+        edges = [ (nodeFrom, nodeTo, ()) | nodeFrom <- [0..(n-2)], nodeTo <- [(nodeFrom + 1)..(n-1)]]
         nodes = [ (node, ()) | node <- [0..(n-1)]]
 
 createErdosRenyiGraph :: Int -> Double -> Rand StdGen (Gr () ())
 createErdosRenyiGraph n p = 
     do
         let nodes = [ (node, ()) | node <- [0..(n-1)]]
-        let allEdges = [ (nodeFrom, nodeTo, ()) | nodeFrom <- [0..(n-1)], nodeTo <- [(nodeFrom + 1)..(n-1)]]
+        let allEdges = [ (nodeFrom, nodeTo, ()) | nodeFrom <- [0..(n-2)], nodeTo <- [(nodeFrom + 1)..(n-1)]]
         let boundary = (0.0, 1.0) :: (Double, Double) -- sometimes the type-system of Haskell is f**** anyoing...
 
         infRandomThreshs <- getRandomRs boundary

@@ -30,13 +30,13 @@ shuffleAgents = False
 
 rngSeed = 42
 
-agentDimensions = (51, 51)
+agentDimensions = (71, 71)
 agentCount = fst agentDimensions * snd agentDimensions
 
-numInfected = 1
+numInfected = 2
 
-samplingTimeDelta = 1.0
-steps = 150
+samplingTimeDelta = 0.1
+steps = 1500
 replications = 10
 
 completeNetwork = Complete agentCount
@@ -45,7 +45,7 @@ barbasiAlbertNetwork = BarbasiAlbert barbasiAlbertM0 barbasiAlbertM agentCount
 barbasiAlbertM0 = 100
 barbasiAlbertM = 10
 
-network = erdosRenyiNetwork
+network = completeNetwork
 
 runFrSIRSNetworkWithRendering :: IO ()
 runFrSIRSNetworkWithRendering =

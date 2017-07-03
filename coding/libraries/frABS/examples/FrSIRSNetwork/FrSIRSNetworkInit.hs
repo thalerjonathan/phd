@@ -77,7 +77,7 @@ createFrSIRSNetworkNumInfected dims@(maxX, maxY) numInfected network
                             rng
                             (Just gr))
 
-            return (adefsSusceptible ++ adefsInfected, env)
+            return $ trace ("sortedDegs = " ++ (show $ take numInfected sortedDegs) ++ " infectedIds = " ++ (show infectedIds) ++ " infectedCoords = " ++ (show infectedCoords)) (adefsSusceptible ++ adefsInfected, env)
 
     where
         agentCount = maxX * maxY

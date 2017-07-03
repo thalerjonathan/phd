@@ -8,6 +8,7 @@ import Utils.Utils
 
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
+import FrABS.Env.EnvironmentUtils
 
 import FRP.Yampa
 
@@ -27,7 +28,8 @@ initDoubleAuction n =
 
     envRng <- newStdGen 
 
-    let gr = createCompleteGraph n
+    gr <- evalRandIO $ createAgentNetwork (Complete n)
+
     let env = createEnvironment
                           (Just (arr id)) -- TODO: is this really necessary?
                           (0,0)

@@ -22,6 +22,7 @@ library
     FrABS.Agent.Agent
     FrABS.Agent.AgentUtils
     FrABS.Env.Environment
+    FrABS.Env.EnvironmentUtils
     FrABS.Simulation.Simulation
     FrABS.Simulation.SimulationUtils
     FrABS.Simulation.ParIteration      

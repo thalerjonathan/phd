@@ -15,9 +15,6 @@ import PrisonersDilemma.PDRun
 
 {-
 	TODOs
-    - implement power lab networks
-    - implement random networks
-	
     - use-case for continuous 2d-environment: implement Heroes & Cowards
         -> write Agend2DContinuous
         - continuous 2d env: just add a map of agentids with their positions to the env, agents can then update their continuous position (needs to remove itself when killed). problem: environment needs to know about agentid. but do we really need that? it would save us exchanging messages.
@@ -36,9 +33,9 @@ import PrisonersDilemma.PDRun
 -}
 
 main :: IO ()
-main = runFrSIRSSpatialStepsAndRender
+main = runFrSIRSNetworkStepsAndWriteToFile
 
-    -- runFrSIRSNetworkStepsAndWriteToFile
+    -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering
     -- runSysDynSIRStepsAndWriteToFile
     -- runFrSIRSSpatialWithRendering -- runFrSIRSSpatialStepsAndPrint -- runFrSIRSSpatialStepsAndWriteToFile
     -- runDoubleAuctionSteps

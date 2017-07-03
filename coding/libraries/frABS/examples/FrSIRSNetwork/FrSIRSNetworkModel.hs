@@ -15,7 +15,8 @@ module FrSIRSNetwork.FrSIRSNetworkModel (
     infectivity,
     contactRate,
     illnessDuration,
-    immuneDuration
+    immuneDuration,
+    initialInfectionProb
   ) where
 
 import FrABS.Agent.Agent
@@ -54,4 +55,7 @@ illnessDuration = 15
 
 immuneDuration :: Double
 immuneDuration = 3000.0
+
+initialInfectionProb :: Double
+initialInfectionProb = 0.2
 ------------------------------------------------------------------------------------------------------------------------

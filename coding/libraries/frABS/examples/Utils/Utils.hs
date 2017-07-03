@@ -4,13 +4,8 @@ module Utils.Utils (
 
     writeSirsDynamicsFile,
     sirsDynamicToString,
-    sirsDynamicsReplMean,
-
-    createCompleteGraph
+    sirsDynamicsReplMean
   ) where
-
-import Data.Graph.Inductive.Graph
-import Data.Graph.Inductive.PatriciaTree
 
 import Text.Printf
 import System.IO
@@ -73,11 +68,3 @@ sirsDynamicsReplMean replDynamics@(initRepl:tailRepls) = replDynamicsRatio
 
         sumDyns :: [(Double, Double, Double)] -> [(Double, Double, Double)] -> [(Double, Double, Double)]
         sumDyns ds1 ds2 = map (\((s1, i1, r1), (s2, i2, r2)) -> (s1+s2, i1+i2, r1+r2)) (zip ds1 ds2)
-
-createCompleteGraph :: Int -> Gr () ()
-createCompleteGraph n = mkGraph nodes edges :: Gr () ()
-    where
-        edges = [ (nodeFrom, nodeTo, ()) | nodeFrom <- [1..n], nodeTo <- [(nodeFrom + 1)..n]]
-        nodes = [ (node, ()) | node <- [1..n]]
-
-    

@@ -9,20 +9,30 @@ import FRP.Yampa
 
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
+import FrABS.Env.EnvironmentUtils
 
+import Data.List
+import Data.Ord
 import System.Random
+import Control.Monad.Random
 
-createFrSIRSNetworkFullConnectedRandInfected :: (Int, Int) 
-                                                -> Double 
-                                                -> IO ([FrSIRSNetworkAgentDef], FrSIRSNetworkEnvironment)
-createFrSIRSNetworkFullConnectedRandInfected dims@(maxX, maxY) p =  
+import Debug.Trace
+
+createFrSIRSNetworkRandInfected :: (Int, Int) 
+                                    -> Double 
+                                    -> NetworkType
+                                    -> IO ([FrSIRSNetworkAgentDef], FrSIRSNetworkEnvironment)
+createFrSIRSNetworkRandInfected dims@(maxX, maxY) p network =  
     do
         rng <- newStdGen
-        adefs <- mapM (randomFrSIRSNetworkAgent p) [0 .. agentCount - 1]
+        gr <- evalRandIO $ createAgentNetwork network
 
+        let agentIds = nodesOfNetwork gr
+        adefs <- mapM (randomFrSIRSNetworkAgent p) (zip coords agentIds)
+        
         let env = (createEnvironment
                         Nothing
-                        (0,0) -- dimensions of environment do not matter in network
+                        dims
                         moore
                         ClipToMax
                         []
@@ -33,18 +43,30 @@ createFrSIRSNetworkFullConnectedRandInfected dims@(maxX, maxY) p =
 
     where
         agentCount = maxX * maxY
-        gr = createCompleteGraph agentCount
+        coords = [ (x, y) | x <- [0..maxX - 1], y <- [0..maxY - 1]]
 
-createFrSIRSNetworkFullConnectedNumInfected :: (Int, Int) 
-                                                -> Int 
-                                                -> IO ([FrSIRSNetworkAgentDef], FrSIRSNetworkEnvironment)
-createFrSIRSNetworkFullConnectedNumInfected dims@(maxX, maxY) numInfected 
+createFrSIRSNetworkNumInfected :: (Int, Int) 
+                                    -> Int 
+                                    -> NetworkType
+                                    -> IO ([FrSIRSNetworkAgentDef], FrSIRSNetworkEnvironment)
+createFrSIRSNetworkNumInfected dims@(maxX, maxY) numInfected network
     | numInfected > agentCount = error ("Can't create more infections (" ++ (show numInfected) ++ ") than there are agents (" ++ (show agentCount))
     | otherwise =
         do
             rng <- newStdGen
-            adefsSusceptible <- mapM (frSIRSNetworkAgent Susceptible) susceptibleIds
-            adefsInfected <- mapM (frSIRSNetworkAgent Infected) infectedIds
+            gr <- evalRandIO $ createAgentNetwork network
+
+            let degs = networkDegrees gr
+            let sortedDegs = Data.List.sortBy highestDegree degs
+
+            let infectedIds = take numInfected $ map fst sortedDegs
+            let susceptibleIds = drop numInfected $ map fst sortedDegs
+
+            let infectedCoords = take (length infectedIds) coords
+            let susceptibleCoords = drop (length infectedIds) coords
+
+            adefsSusceptible <- mapM (frSIRSNetworkAgent Susceptible) (zip susceptibleCoords susceptibleIds)
+            adefsInfected <- mapM (frSIRSNetworkAgent Infected) (zip infectedCoords infectedIds) 
 
             let env = (createEnvironment
                             Nothing
@@ -59,23 +81,26 @@ createFrSIRSNetworkFullConnectedNumInfected dims@(maxX, maxY) numInfected
 
     where
         agentCount = maxX * maxY
-        gr = createCompleteGraph agentCount
-        susceptibleIds = [0 .. agentCount - numInfected - 1]
-        infectedIds = [agentCount - numInfected .. agentCount - 1]
+        coords = [ (x, y) | x <- [0..maxX - 1], y <- [0..maxY - 1]]
         
+        highestDegree :: (AgentId, Int) -> (AgentId, Int) -> Ordering
+        highestDegree = (\(_, d1) (_, d2) -> compare d2 d1)
 
+        lowestDegree :: (AgentId, Int) -> (AgentId, Int) -> Ordering
+        lowestDegree = (\(_, d1) (_, d2) -> compare d1 d2)
+        
 frSIRSNetworkAgent :: SIRSState
-                        -> AgentId
+                        -> (EnvCoord, AgentId)
                         -> IO FrSIRSNetworkAgentDef
-frSIRSNetworkAgent initS agentId = 
+frSIRSNetworkAgent initS idCoord = 
     do
         rng <- newStdGen
-        return $ createFrSIRSNetworkDef agentId initS rng
+        return $ createFrSIRSNetworkDef idCoord initS rng
 
 randomFrSIRSNetworkAgent :: Double
-                            -> AgentId
+                            -> (EnvCoord, AgentId)
                             -> IO FrSIRSNetworkAgentDef
-randomFrSIRSNetworkAgent p agentId = 
+randomFrSIRSNetworkAgent p idCoord = 
     do
         rng <- newStdGen
         r <- getStdRandom (randomR(0.0, 1.0))
@@ -83,18 +108,18 @@ randomFrSIRSNetworkAgent p agentId =
         let isInfected = r <= p
         let initS = if isInfected then Infected else Susceptible
 
-        return $ createFrSIRSNetworkDef agentId initS rng
+        return $ createFrSIRSNetworkDef idCoord initS rng
 
-createFrSIRSNetworkDef :: AgentId 
+createFrSIRSNetworkDef :: (EnvCoord, AgentId) 
                             -> SIRSState 
                             -> StdGen 
                             -> FrSIRSNetworkAgentDef
-createFrSIRSNetworkDef agentId sirsState rng = 
+createFrSIRSNetworkDef (coord, agentId) sirsState rng = 
     AgentDef { adId = agentId,
                 adState = sirsState,
                 adBeh = (sirsNetworkAgentBehaviour rng sirsState),    -- for testing Yampa-implementation of Agent
                 adInitMessages = NoEvent,
                 adConversation = Nothing,
-                adEnvPos = (0,0), -- dummy position, does not matter in networks
+                adEnvPos = coord, -- for rendering purposes map agents to 2D
                 adRng = rng }
 ------------------------------------------------------------------------------------------------------------------------

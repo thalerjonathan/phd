@@ -1,37 +1,99 @@
 module FrSIRSNetwork.FrSIRSNetworkRun ( 
+    runFrSIRSNetworkWithRendering,
+    runFrSIRSNetworkStepsAndRender,
+
     runFrSIRSNetworkStepsAndWriteToFile,
     runFrSIRSNetworkReplicationsAndWriteToFile
   ) where
 
 import FrSIRSNetwork.FrSIRSNetworkInit
 import FrSIRSNetwork.FrSIRSNetworkModel
+import FrSIRSNetwork.FrSIRSNetworkRenderer as Renderer
 import Utils.Utils
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
 import FrABS.Simulation.SimulationUtils
+import FrABS.Rendering.GlossSimulator
+import FrABS.Env.EnvironmentUtils
 
 import Text.Printf
 import System.IO
 import Debug.Trace 
+
+winSize = (800, 800)
+winTitle = "FrSIRS Network (2D Rendering)"
+frequency = 0
 
 updateStrat = Parallel
 shuffleAgents = False
 
 rngSeed = 42
 
-agentDimensions = (71, 71)
+agentDimensions = (51, 51)
+agentCount = fst agentDimensions * snd agentDimensions
+
 numInfected = 1
 
-samplingTimeDelta = 0.1
-steps = 1500
+samplingTimeDelta = 1.0
+steps = 150
 replications = 10
+
+completeNetwork = Complete agentCount
+erdosRenyiNetwork = ErdosRenyi agentCount 0.2
+barbasiAlbertNetwork = BarbasiAlbert barbasiAlbertM0 barbasiAlbertM agentCount
+barbasiAlbertM0 = 100
+barbasiAlbertM = 10
+
+network = erdosRenyiNetwork
+
+runFrSIRSNetworkWithRendering :: IO ()
+runFrSIRSNetworkWithRendering =
+    do
+        _ <- initRng rngSeed
+
+        (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected agentDimensions numInfected network
+        -- (initAdefs, initEnv) <- createFrSIRSNetworkRandInfected agentDimensions initialInfectionProb network
+        
+        params <- initSimParams updateStrat Nothing shuffleAgents
+
+        simulateAndRender initAdefs
+                            initEnv
+                            params
+                            samplingTimeDelta
+                            frequency
+                            winTitle
+                            winSize
+                            Renderer.renderFrame
+                            Nothing
+
+runFrSIRSNetworkStepsAndRender :: IO ()
+runFrSIRSNetworkStepsAndRender =
+    do
+        _ <- initRng rngSeed
+
+        (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected agentDimensions numInfected network
+        --(initAdefs, initEnv) <- createFrSIRSNetworkRandInfected agentDimensions initialInfectionProb network
+        
+        params <- initSimParams updateStrat Nothing shuffleAgents
+
+        simulateStepsAndRender initAdefs
+                            initEnv
+                            params
+                            samplingTimeDelta
+                            steps
+                            winTitle
+                            winSize
+                            Renderer.renderFrame
 
 runFrSIRSNetworkStepsAndWriteToFile :: IO ()
 runFrSIRSNetworkStepsAndWriteToFile =
     do
         _ <- initRng rngSeed
-        (initAdefs, initEnv) <- createFrSIRSNetworkFullConnectedNumInfected agentDimensions numInfected
+
+        (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected agentDimensions numInfected network
+        --(initAdefs, initEnv) <- createFrSIRSNetworkRandInfected agentDimensions initialInfectionProb network
+
         params <- initSimParams updateStrat Nothing shuffleAgents
 
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
@@ -44,7 +106,10 @@ runFrSIRSNetworkReplicationsAndWriteToFile :: IO ()
 runFrSIRSNetworkReplicationsAndWriteToFile =
     do
         _ <- initRng rngSeed
-        (initAdefs, initEnv) <- createFrSIRSNetworkFullConnectedNumInfected agentDimensions numInfected
+
+        (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected agentDimensions numInfected network
+        --(initAdefs, initEnv) <- createFrSIRSNetworkRandInfected agentDimensions initialInfectionProb network
+
         params <- initSimParams updateStrat Nothing shuffleAgents
 
         let assenv = runReplications initAdefs initEnv params samplingTimeDelta steps replications

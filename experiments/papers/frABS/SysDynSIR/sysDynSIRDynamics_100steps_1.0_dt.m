@@ -113,7 +113,7 @@ hold on
 plot (infectedRatio.', 'color', 'red');
 hold on
 plot (recoveredRatio.', 'color', 'blue');
-xlabel ('Steps');
-ylabel ('Ratio');
+xlabel ('Time');
+ylabel ('Population');
 legend('Susceptible','Infected', 'Recovered');
-title ('SIRS Dynamics with 1.0 dt, 100 steps, 0 replications');
+title ('SIR Dynamics with 1.0 dt, 100 steps');

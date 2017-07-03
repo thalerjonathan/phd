@@ -19,7 +19,10 @@
 			<ClientAreaTopLeft><X>0</X><Y>0</Y></ClientAreaTopLeft>
 			<PresentationTopGroupPersistent>true</PresentationTopGroupPersistent>
 			<IconTopGroupPersistent>true</IconTopGroupPersistent>
-			<StartupCode><![CDATA[//deliverToRandomAgentInside( "Infection" );]]></StartupCode>
+			<StartupCode><![CDATA[double temp = infectionProbability;
+infectionProbability = 1.0;
+deliverToRandomAgentInside( "Infection" );
+infectionProbability = temp;]]></StartupCode>
 			<Generic>false</Generic>
 			<GenericParameter>
 				<Id>1477304614148</Id>
@@ -282,7 +285,7 @@
 						<UnitType><![CDATA[NONE]]></UnitType>
 						<SdArray>false</SdArray>
 						<DefaultValue Class="CodeValue">
-							<Code><![CDATA[0.2]]></Code>
+							<Code><![CDATA[0.0]]></Code>
 						</DefaultValue>
 						<ParameterEditor>
 							<Id>1477314324011</Id>
@@ -773,10 +776,12 @@ rectangle.setFillColor(Color.GREEN);]]></EntryAction>
 					<ShowLabel>false</ShowLabel>
 					<Points>
 						<Point><X>0</X><Y>0</Y></Point>
+						<Point><X>0</X><Y>11</Y></Point>
 						<Point><X>0</X><Y>30</Y></Point>
 					</Points>
 					<IconOffset>20.0</IconOffset>
 					<Properties Source="1477305830949" Target="1477304680608" Trigger="timeout">
+						<Action><![CDATA[infectedDuration = main.daysInfected]]></Action>
 						<Timeout Class="CodeUnitValue">
 							<Code><![CDATA[1]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[DAY]]></Unit>
@@ -815,7 +820,7 @@ sendToRandom( "Infection" )]]></Action>
 						</Timeout>
 						<Condition><![CDATA[true]]></Condition>
 						<Rate Class="CodeUnitValue">
-							<Code><![CDATA[5//main.contactRate / infectedDuration]]></Code>
+							<Code><![CDATA[1/5//main.contactRate / infectedDuration]]></Code>
 							<Unit Class="RateUnits"><![CDATA[PER_DAY]]></Unit>
 						</Rate>
 						<MessageType><![CDATA[Object]]></MessageType>
@@ -1061,11 +1066,14 @@ getPresentation().setPresentable( getEngine().getRoot() );]]></ActionCode>
 				<Parameter>
 					<ParameterName><![CDATA[contactRate]]></ParameterName>
 					<ParameterValue Class="CodeValue">
-						<Code><![CDATA[2]]></Code>
+						<Code><![CDATA[5]]></Code>
 					</ParameterValue>
 				</Parameter>
 				<Parameter>
 					<ParameterName><![CDATA[infectionProbability]]></ParameterName>
+					<ParameterValue Class="CodeValue">
+						<Code><![CDATA[0.05]]></Code>
+					</ParameterValue>
 				</Parameter>
 				<Parameter>
 					<ParameterName><![CDATA[initiallyInfected]]></ParameterName>

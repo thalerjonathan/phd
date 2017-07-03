@@ -27,11 +27,11 @@ shuffleAgents = False
 
 rngSeed = 42
 
-agentDimensions = (71, 71)
+agentDimensions = (51, 51)
 frequency = 0
 
 samplingTimeDelta = 1.0
-steps = 1000
+steps = 140
 replications = 10
 
 runFrSIRSSpatialWithRendering :: IO ()
@@ -57,7 +57,8 @@ runFrSIRSSpatialStepsAndRender :: IO ()
 runFrSIRSSpatialStepsAndRender =
     do
         _ <- initRng rngSeed
-        (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
+        -- (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
+        (initAdefs, initEnv) <- createFrSIRSSpatialSingleInfected agentDimensions
         params <- initSimParams updateStrat Nothing shuffleAgents
 
         simulateStepsAndRender initAdefs

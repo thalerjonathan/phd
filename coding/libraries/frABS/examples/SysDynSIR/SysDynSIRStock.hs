@@ -22,9 +22,9 @@ import FrABS.Agent.AgentUtils
 susceptibleStock :: SysDynSIRStockBehaviour
 susceptibleStock initValue = proc ain ->
     do
-        let infectious = flowInFrom infectionRateFlowId ain
+        let infectionRate = flowInFrom infectionRateFlowId ain
 
-        stockValue <- (initValue+) ^<< integral -< (-infectious)
+        stockValue <- (initValue+) ^<< integral -< (-infectionRate)
         
         let ao = agentOutFromIn ain
         let ao0 = setDomainState ao stockValue

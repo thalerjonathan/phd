@@ -1,6 +1,38 @@
 \chapter{Introduction}
 \label{chap:intro}
 
+\begin{equation}
+\frac{\mathrm d S}{\mathrm d t} = -infectionRate
+\end{equation}
+
+\begin{equation}
+\frac{\mathrm d I}{\mathrm d t} = infectionRate - recoveryRate
+\end{equation}
+
+\begin{equation}
+\frac{\mathrm d R}{\mathrm d t} = recoveryRate
+\end{equation}
+
+\begin{equation}
+S(t) = N + \int_0^t -infectionRate\, \mathrm{d}t
+\end{equation}
+
+\begin{equation}
+I(t) = 1 + \int_0^t infectionRate - recoveryRate\, \mathrm{d}t
+\end{equation}
+
+\begin{equation}
+R(t) = \int_0^t recoveryRate\, \mathrm{d}t
+\end{equation}
+
+\begin{equation}
+infectionRate = \frac{I \beta S \gamma}{N}
+\end{equation}
+
+\begin{equation}
+recoveryRate = \frac{I}{\delta}
+\end{equation}
+
 \section{Background}
 Computer simulation is the means of imitating real-world processes over time through computational means \cite{banks_discrete-event_2013}. It is used for a vast number of purposes, most prominently to study effects of varying conditions when testing a real system is not feasible either because it is too dangerous or the system does not exist under such isolated circumstances or the analytical solution is not tractable \cite{sokolowski_principles_2009}. Naturally there are many different types of simulations and we focus in this thesis on Agent-Based Modelling and Simulation (ABMS \footnote{This abbreviation incorporates both the Modelling and Simulation aspect. When focusing only on the simulation the abbreviation ABS is used and when focusing on modelling ABM is used.}) which is a method for simulating the emergent behaviour of a system by modelling and simulating the interactions of its sub-parts, called agents \cite{siebers_introduction_2008}, \cite{axelrod_guide_2006}, \cite{wilensky_introduction_2015}. Examples for an ABS is simulating the spread of an epidemic throughout a population or simulating the dynamics of segregation within a city. Epstein \cite{epstein_generative_2012} identifies ABS to be especially applicable for analysing \textit{"spatially distributed systems of heterogeneous autonomous actors with bounded information and computing capacity"}. Central to ABS is the concept of an agent who needs to be updated in regular intervals during the simulation so it can interact with other agents and its environment.
 We understand ABS as a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is known. Those parts, called agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. So the central aspect of ABS is the concept of an agent which can be understood as a metaphor for a pro-active unit, situated in an environment, able to spawn new agents and interacting with other agents in a network of neighbours by exchange of messages \cite{wooldridge_introduction_2009}.

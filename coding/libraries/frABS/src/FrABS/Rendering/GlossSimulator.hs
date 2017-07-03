@@ -89,7 +89,7 @@ simulateStepsAndRender initAdefs
 		let pic = renderFunc winSize finalAous finalEnv 
 
 		GLO.display (displayGlossWindow winTitle winSize)
-				GLO.white
+				GLO.black
 				pic
 
 nextIteration :: Maybe (StepCallback s m ec l)

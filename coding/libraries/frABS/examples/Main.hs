@@ -15,11 +15,17 @@ import PrisonersDilemma.PDRun
 
 {-
 	TODOs
-    - performance?
-
-	- use-case for continuous 2d-environment: implement Heroes & Cowards
+    - implement power lab networks
+    - implement random networks
+	
+    - use-case for continuous 2d-environment: implement Heroes & Cowards
         -> write Agend2DContinuous
+        - continuous 2d env: just add a map of agentids with their positions to the env, agents can then update their continuous position (needs to remove itself when killed). problem: environment needs to know about agentid. but do we really need that? it would save us exchanging messages.
+        - basically it would suffice to add another field: posCont and make the other posDisc. or can we distinguish by types the position: any num type
+        - maybe distinguish between discrete agent and continuous agent
+        - distinguish between cont and disc env
 
+    - performance?
     - compilation with -w must show no warnings at all
     - clean-up imports
     - clean-up structure: lint
@@ -30,7 +36,7 @@ import PrisonersDilemma.PDRun
 -}
 
 main :: IO ()
-main = runFrSIRSSpatialWithRendering
+main = runFrSIRSSpatialStepsAndRender
 
     -- runFrSIRSNetworkStepsAndWriteToFile
     -- runSysDynSIRStepsAndWriteToFile

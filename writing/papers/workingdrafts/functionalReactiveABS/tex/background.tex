@@ -52,6 +52,15 @@ One can look at NetLogo as a functional approach to ABMS which comes with its ow
 
 \subsubsection{SIRS}
 [ ] SIRS: timed transitions using after, occasionally sending messages, transitions on messages
+$\frac{\mathrm d S}{\mathrm d t} = -infectionRate$ \\
+$\frac{\mathrm d I}{\mathrm d t} = infectionRate - recoveryRate$ \\
+$\frac{\mathrm d R}{\mathrm d t} = recoveryRate$ \\
 
+$S(t) = N + \int_0^t -infectionRate\, \mathrm{d}t$ \\
+$I(t) = 1 + \int_0^t infectionRate - recoveryRate\, \mathrm{d}t$ \\
+$R(t) = \int_0^t recoveryRate\, \mathrm{d}t$ \\
+
+$infectionRate = \frac{I \beta S \gamma}{N}$ \\
+$recoveryRate = \frac{I}{\delta}$ \\
 \subsubsection{Wildfire}
 [ ] WildFire: rate transitions, occasionally sending messages, transition on messages

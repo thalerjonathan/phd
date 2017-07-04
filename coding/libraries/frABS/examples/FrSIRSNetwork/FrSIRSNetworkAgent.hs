@@ -1,6 +1,7 @@
 {-# LANGUAGE Arrows #-}
 module FrSIRSNetwork.FrSIRSNetworkAgent (
-    sirsNetworkAgentBehaviour
+    sirsNetworkAgentBehaviour,
+    sirsNetworkAgentBehaviourRandInfected
   ) where
 
 import FrSIRSNetwork.FrSIRSNetworkModel
@@ -40,12 +41,12 @@ sirsAgentSusceptibleBehaviour :: SF FrSIRSNetworkAgentIn (FrSIRSNetworkAgentOut,
 sirsAgentSusceptibleBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
-        let ao' = setDomainState ao Susceptible
-        let (isInfected, ao'') = runAgentRandom ao' (gotInfected ain)
+        let ao0 = setDomainState ao Susceptible
+        let (isInfected, ao1) = runAgentRandom ao0 (gotInfected ain)
 
         infectionEvent <- iEdge False -< isInfected
 
-        returnA -< (ao'', infectionEvent)
+        returnA -< (ao1, infectionEvent)
 
 -- TODO: update sirsState to infected here once, no need to constantly set to infected in infecedbehaviourSF
 sirsAgentSusceptibleInfected :: RandomGen g => g -> () -> FrSIRSNetworkAgentBehaviour
@@ -62,21 +63,15 @@ sirsAgentInfected g duration = switch
 sirsAgentInfectedBehaviour :: RandomGen g => g -> Double -> SF FrSIRSNetworkAgentIn (FrSIRSNetworkAgentOut, Event ())
 sirsAgentInfectedBehaviour g duration = proc ain ->
     do
-        let ao = agentOutFromIn ain
-        let ao' = setDomainState ao Infected
-
         recoveredEvent <- after duration () -< ()
+        makeContact <- occasionally g (1 / contactRate) () -< ()
 
-        -- NOTE: this means the agent is randomly contacting two neighbours within the infected duration
-        -- NOTE: this is a rate: needs to be sampled at high frequency
-        makeContact <- occasionally g (duration * 0.5) () -< ()
+        let ao = agentOutFromIn ain
+        let ao0 = setDomainState ao Infected
+        -- NOTE: if recovered, then don't make contact anymore but it is very unlikely that both occur at the same time
+        let ao1 = event ao0 (\_ -> randomContact ao0) makeContact
 
-        let ao'' = if isEvent makeContact then
-                    randomContact ao'
-                        else
-                            ao'
-
-        returnA -< (ao'', recoveredEvent)
+        returnA -< (ao1, recoveredEvent)
 
 -- TODO: update sirsState to recovered here once, no need to constantly set to recovered in recoverbehaviourSF
 sirsAgentInfectedRecovered :: RandomGen g => g -> () -> FrSIRSNetworkAgentBehaviour
@@ -104,12 +99,19 @@ sirsAgentRecoveredSusceptible :: RandomGen g => g -> () -> FrSIRSNetworkAgentBeh
 sirsAgentRecoveredSusceptible g _ = sirsAgentSuceptible g
 
 -- NOTE: this is the initial SF which will be only called once
-sirsNetworkAgentBehaviour :: RandomGen g => g -> SIRSState -> FrSIRSNetworkAgentBehaviour
-sirsNetworkAgentBehaviour g Susceptible = sirsAgentSuceptible g
+sirsNetworkAgentBehaviourRandInfected :: RandomGen g => g -> SIRSState -> FrSIRSNetworkAgentBehaviour
+sirsNetworkAgentBehaviourRandInfected g Susceptible = sirsAgentSuceptible g
 -- NOTE: when initially infected then select duration uniformly random 
-sirsNetworkAgentBehaviour g Infected = sirsAgentInfected g' duration
+sirsNetworkAgentBehaviourRandInfected g Infected = sirsAgentInfected g' duration
     where
         (duration, g') = randomR (0.0, illnessDuration) g
+sirsNetworkAgentBehaviourRandInfected g Recovered = sirsAgentRecovered g
 
+-- NOTE: this is the initial SF which will be only called once
+--          this behaviour should be used when initially a given number of agents is infected 
+--          where is assumed that their illness-duration is not uniform randomly distributed
+sirsNetworkAgentBehaviour :: RandomGen g => g -> SIRSState -> FrSIRSNetworkAgentBehaviour
+sirsNetworkAgentBehaviour g Susceptible = sirsAgentSuceptible g
+sirsNetworkAgentBehaviour g Infected = sirsAgentInfected g illnessDuration
 sirsNetworkAgentBehaviour g Recovered = sirsAgentRecovered g
 ------------------------------------------------------------------------------------------------------------------------

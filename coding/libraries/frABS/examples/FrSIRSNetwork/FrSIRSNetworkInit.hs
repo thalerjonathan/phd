@@ -95,7 +95,8 @@ frSIRSNetworkAgent :: SIRSState
 frSIRSNetworkAgent initS idCoord = 
     do
         rng <- newStdGen
-        return $ createFrSIRSNetworkDef idCoord initS rng
+        let beh = sirsNetworkAgentBehaviour rng initS
+        return $ createFrSIRSNetworkDef idCoord initS beh rng
 
 randomFrSIRSNetworkAgent :: Double
                             -> (EnvCoord, AgentId)
@@ -108,18 +109,21 @@ randomFrSIRSNetworkAgent p idCoord =
         let isInfected = r <= p
         let initS = if isInfected then Infected else Susceptible
 
-        return $ createFrSIRSNetworkDef idCoord initS rng
+        let beh = sirsNetworkAgentBehaviourRandInfected rng initS
+
+        return $ createFrSIRSNetworkDef idCoord initS beh rng 
 
 createFrSIRSNetworkDef :: (EnvCoord, AgentId) 
                             -> SIRSState 
+                            -> FrSIRSNetworkAgentBehaviour
                             -> StdGen 
                             -> FrSIRSNetworkAgentDef
-createFrSIRSNetworkDef (coord, agentId) sirsState rng = 
+createFrSIRSNetworkDef (coord, agentId) sirsState beh rng = 
     AgentDef { adId = agentId,
                 adState = sirsState,
-                adBeh = (sirsNetworkAgentBehaviour rng sirsState),    -- for testing Yampa-implementation of Agent
+                adBeh = beh,
                 adInitMessages = NoEvent,
                 adConversation = Nothing,
-                adEnvPos = coord, -- for rendering purposes map agents to 2D
+                adEnvPos = coord,
                 adRng = rng }
 ------------------------------------------------------------------------------------------------------------------------

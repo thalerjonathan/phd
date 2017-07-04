@@ -30,10 +30,10 @@ shuffleAgents = False
 
 rngSeed = 42
 
-agentDimensions = (71, 71)
+agentDimensions = (31, 31)
 agentCount = fst agentDimensions * snd agentDimensions
 
-numInfected = 2
+numInfected = 1
 
 samplingTimeDelta = 0.1
 steps = 1500
@@ -45,7 +45,7 @@ barbasiAlbertNetwork = BarbasiAlbert barbasiAlbertM0 barbasiAlbertM agentCount
 barbasiAlbertM0 = 100
 barbasiAlbertM = 10
 
-network = completeNetwork
+network = erdosRenyiNetwork
 
 runFrSIRSNetworkWithRendering :: IO ()
 runFrSIRSNetworkWithRendering =
@@ -98,7 +98,7 @@ runFrSIRSNetworkStepsAndWriteToFile =
 
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
         let dynamics = map (calculateDynamics . fst) asenv
-        let fileName = "frSIRSNetworkDynamics_" ++ (show agentDimensions) ++ "agents_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt.m"
+        let fileName = "frSIRSNetworkDynamics_" ++ show agentDimensions ++ "agents_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt.m"
 
         writeSirsDynamicsFile fileName steps samplingTimeDelta 0 dynamics
 
@@ -116,7 +116,7 @@ runFrSIRSNetworkReplicationsAndWriteToFile =
         let replicationDynamics = map calculateSingleReplicationDynamic assenv
         let dynamics = sirsDynamicsReplMean replicationDynamics
 
-        let fileName = "frSIRSNetworkDynamics_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt_" ++ (show replications) ++ "_replications.m"
+        let fileName = "frSIRSNetworkDynamics_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt_" ++ show replications ++ "_replications.m"
 
         writeSirsDynamicsFile fileName steps samplingTimeDelta replications dynamics
 
@@ -137,4 +137,4 @@ calculateDynamics aos = (susceptibleRatio, infectedRatio, recoveredRatio)
         recoveredRatio = fromIntegral recoveredCount / totalCount
 
 calculateSingleReplicationDynamic :: [([FrSIRSNetworkAgentOut], FrSIRSNetworkEnvironment)] -> [(Double, Double, Double)]
-calculateSingleReplicationDynamic  aoss = map (calculateDynamics . fst) aoss
+calculateSingleReplicationDynamic = map (calculateDynamics . fst)

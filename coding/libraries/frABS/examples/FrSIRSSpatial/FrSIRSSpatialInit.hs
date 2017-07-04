@@ -27,14 +27,14 @@ createFrSIRSSpatialRandomInfected dims@(maxX, maxY) p =
 
         adefs <- mapM (randomFrSIRSAgent p) cells
 
-        let env = (createEnvironment
+        let env = createEnvironment
                         Nothing
                         dims
-                        moore
+                        neumann
                         ClipToMax
                         cells
                         rng
-                        Nothing)
+                        Nothing
 
         return (adefs, env)
 
@@ -48,19 +48,19 @@ createFrSIRSSpatialSingleInfected dims@(maxX, maxY) =
         let coords = [ (x, y) | x <- [0..maxX - 1], y <- [0..maxY - 1]]
         let cells = zip coords aids
 
-        let centerX = floor $ (fromIntegral maxX) * 0.5
-        let centerY = floor $ (fromIntegral maxY) * 0.5
+        let centerX = floor $ fromIntegral maxX * 0.5
+        let centerY = floor $ fromIntegral maxY * 0.5
 
         adefs <- mapM (susceptibleFrSIRSAgent (centerX, centerY)) cells
 
-        let env = (createEnvironment
+        let env = createEnvironment
                         Nothing
                         dims
-                        moore
+                        neumann
                         ClipToMax
                         cells
                         rng
-                        Nothing)
+                        Nothing
 
         return (adefs, env)
 
@@ -75,7 +75,7 @@ susceptibleFrSIRSAgent center (pos, agentId) =
 
         return AgentDef { adId = agentId,
                             adState = state,
-                            adBeh = (sirsAgentBehaviour rng state),    -- for testing Yampa-implementation of Agent
+                            adBeh = sirsAgentBehaviour rng state,
                             adInitMessages = NoEvent,
                             adConversation = Nothing,
                             adEnvPos = pos,
@@ -94,7 +94,7 @@ randomFrSIRSAgent p (pos, agentId) =
 
         return AgentDef { adId = agentId,
                             adState = initS,
-                            adBeh = (sirsAgentBehaviour rng initS),    -- for testing Yampa-implementation of Agent
+                            adBeh = sirsAgentBehaviourRandInfected rng initS,
                             adInitMessages = NoEvent,
                             adConversation = Nothing,
                             adEnvPos = pos,

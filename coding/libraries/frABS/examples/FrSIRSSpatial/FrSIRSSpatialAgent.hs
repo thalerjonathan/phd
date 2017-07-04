@@ -1,6 +1,7 @@
 {-# LANGUAGE Arrows #-}
 module FrSIRSSpatial.FrSIRSSpatialAgent (
-    sirsAgentBehaviour
+    sirsAgentBehaviour,
+    sirsAgentBehaviourRandInfected
   ) where
 
 import FrSIRSSpatial.FrSIRSSpatialModel
@@ -102,12 +103,19 @@ sirsAgentRecoveredSusceptible :: RandomGen g => g -> () -> FrSIRSSpatialAgentBeh
 sirsAgentRecoveredSusceptible g _ = sirsAgentSuceptible g
 
 -- NOTE: this is the initial SF which will be only called once
-sirsAgentBehaviour :: RandomGen g => g -> SIRSState -> FrSIRSSpatialAgentBehaviour
-sirsAgentBehaviour g Susceptible = sirsAgentSuceptible g
+sirsAgentBehaviourRandInfected :: RandomGen g => g -> SIRSState -> FrSIRSSpatialAgentBehaviour
+sirsAgentBehaviourRandInfected g Susceptible = sirsAgentSuceptible g
 -- NOTE: when initially infected then select duration uniformly random 
-sirsAgentBehaviour g Infected = sirsAgentInfected g' duration
+sirsNetworkAgentBehaviourRandInfected g Infected = sirsAgentInfected g' duration
     where
         (duration, g') = randomR (0.0, illnessDuration) g
+sirsNetworkAgentBehaviourRandInfected g Recovered = sirsAgentRecovered g
 
+-- NOTE: this is the initial SF which will be only called once
+--          this behaviour should be used when initially a given number of agents is infected 
+--          where is assumed that their illness-duration is not uniform randomly distributed
+sirsAgentBehaviour :: RandomGen g => g -> SIRSState -> FrSIRSSpatialAgentBehaviour
+sirsAgentBehaviour g Susceptible = sirsAgentSuceptible g
+sirsAgentBehaviour g Infected = sirsAgentInfected g illnessDuration
 sirsAgentBehaviour g Recovered = sirsAgentRecovered g
 ------------------------------------------------------------------------------------------------------------------------

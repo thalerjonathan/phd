@@ -189,7 +189,7 @@ drawRandomRangeFromAgent a r = runAgentRandom a (getRandomR r)
 drawRandomBool :: Double -> Rand StdGen Bool
 drawRandomBool p =
     do
-        r <- getRandomR (0.0, p) 
+        r <- getRandomR (0.0, 1.0) 
         return $ p >= r
 
 drawMultipleRandomRangeFromAgent :: (Random a) => AgentOut s m ec l -> (a, a) -> Int -> ([a], AgentOut s m ec l)
@@ -201,10 +201,10 @@ drawMultipleRandomRangeFromAgent a r n = runAgentRandom a blub
                 return nRand
 
 drawBoolWithProbFromAgent :: AgentOut s m ec l -> Double -> (Bool, AgentOut s m ec l)
-drawBoolWithProbFromAgent ao trueProb = (trueFlag, ao')
+drawBoolWithProbFromAgent ao p = (trueFlag, ao')
     where
-        (randTrue, ao') = drawRandomRangeFromAgent ao (0.0, 1.0)
-        trueFlag = randTrue <= trueProb
+        (r, ao') = drawRandomRangeFromAgent ao (0.0, 1.0)
+        trueFlag = p >= r
 
 drawBoolWithProbFromAgentM :: Double -> State (AgentOut s m ec l) Bool
 drawBoolWithProbFromAgentM p = state drawBoolWithProbFromAgentMAux 

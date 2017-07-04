@@ -11,8 +11,6 @@ import Control.Monad.Random
 import Data.Graph.Inductive.Graph
 import Data.Graph.Inductive.PatriciaTree
 
-import Debug.Trace
-
 data NetworkType = Complete Int | ErdosRenyi Int Double | BarbasiAlbert Int Int Int
 
 createAgentNetwork :: NetworkType -> Rand StdGen (Gr () ())
@@ -63,33 +61,35 @@ createBarbasiAlbertGraph n m0 m
     do
         -- start with a fully connected graph of m0 nodes
         initGr <- createCompleteGraph m0
+        let initDegDist = buildDegreeDistr initGr
+
         -- add (n - m0) nodes, where each node is connected to m existing nodes where the m existing nodes are picked at random
-        foldM createBarbasiAlbertGraphAux initGr [m0 .. n - 1]
+        (finalGr', _) <- foldM createBarbasiAlbertGraphAux (initGr, initDegDist) [m0 .. n - 1]
+
+        return finalGr'
 
     where
-        createBarbasiAlbertGraphAux :: (Gr () ()) -> Node -> Rand StdGen (Gr () ())
-        createBarbasiAlbertGraphAux gr node = 
+        createBarbasiAlbertGraphAux :: (Gr () (), [Node]) -> Node -> Rand StdGen (Gr () (), [Node])
+        createBarbasiAlbertGraphAux (gr, degDistr) node = 
             do
                 randomNodes <- pickRandomNodes m node [] degDistr
                 let randomEdges = map (\randNode -> (node, randNode, ())) randomNodes
                 
-                let gr' = insNode (node, ()) gr 
-                let gr'' = insEdges randomEdges gr'
+                let gr0 = insNode (node, ()) gr 
+                let gr1= insEdges randomEdges gr0
                 
-                return gr''
-
-            where
-                degDistr = buildDegreeDistr gr
+                let degDistr' = randomNodes ++ degDistr
+                return (gr1, degDistr')
 
         pickRandomNodes :: Int -> Node -> [Node] -> [Node] -> Rand StdGen [Node]
-        pickRandomNodes 0 self acc dist = return acc
+        pickRandomNodes 0 _ acc _ = return acc
         pickRandomNodes n self acc dist = 
             do
-                randIdx <- getRandomR (0, (length dist)-1)
+                randIdx <- getRandomR (0, length dist - 1)
 
                 let randNode = dist !! randIdx
                 -- NOTE: prevent multi-graphs
-                let nodeAlreadyPicked = any (==randNode) acc
+                let nodeAlreadyPicked = randNode `elem` acc
                 -- NOTE: prevent self-loops
                 let randNodeIsSelf = randNode == self
 

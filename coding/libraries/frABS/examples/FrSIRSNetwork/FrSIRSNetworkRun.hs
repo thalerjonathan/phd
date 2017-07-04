@@ -45,7 +45,7 @@ barbasiAlbertNetwork = BarbasiAlbert barbasiAlbertM0 barbasiAlbertM agentCount
 barbasiAlbertM0 = 100
 barbasiAlbertM = 10
 
-network = erdosRenyiNetwork
+network = barbasiAlbertNetwork
 
 runFrSIRSNetworkWithRendering :: IO ()
 runFrSIRSNetworkWithRendering =

@@ -54,7 +54,7 @@ type SysDynSIRStockBehaviour = Double -> SysDynSIRBehaviour
 -- MODEL-PARAMETERS 
 -- NOTE: in SystemDynamics all parameters are in floating-point even population-sizes
 totalPopulation :: Double
-totalPopulation = 1000
+totalPopulation = 10000
 
 -- average probability of getting infected 
 infectivity :: Double

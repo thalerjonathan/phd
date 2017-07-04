@@ -1,4 +1,7 @@
-module FrSIRSNetwork.FrSIRSNetworkInit where
+module FrSIRSNetwork.FrSIRSNetworkInit (
+    createFrSIRSNetworkRandInfected,
+    createFrSIRSNetworkNumInfected
+  ) where
 
 import FrSIRSNetwork.FrSIRSNetworkModel
 import FrSIRSNetwork.FrSIRSNetworkAgent
@@ -15,8 +18,6 @@ import Data.List
 import Data.Ord
 import System.Random
 import Control.Monad.Random
-
-import Debug.Trace
 
 createFrSIRSNetworkRandInfected :: (Int, Int) 
                                     -> Double 
@@ -50,7 +51,7 @@ createFrSIRSNetworkNumInfected :: (Int, Int)
                                     -> NetworkType
                                     -> IO ([FrSIRSNetworkAgentDef], FrSIRSNetworkEnvironment)
 createFrSIRSNetworkNumInfected dims@(maxX, maxY) numInfected network
-    | numInfected > agentCount = error ("Can't create more infections (" ++ (show numInfected) ++ ") than there are agents (" ++ (show agentCount))
+    | numInfected > agentCount = error ("Can't create more infections (" ++ show numInfected ++ ") than there are agents (" ++ show agentCount)
     | otherwise =
         do
             rng <- newStdGen
@@ -77,7 +78,7 @@ createFrSIRSNetworkNumInfected dims@(maxX, maxY) numInfected network
                             rng
                             (Just gr))
 
-            return $ trace ("sortedDegs = " ++ (show $ take numInfected sortedDegs) ++ " infectedIds = " ++ (show infectedIds) ++ " infectedCoords = " ++ (show infectedCoords)) (adefsSusceptible ++ adefsInfected, env)
+            return (adefsSusceptible ++ adefsInfected, env)
 
     where
         agentCount = maxX * maxY

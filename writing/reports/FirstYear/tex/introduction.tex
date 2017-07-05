@@ -1,41 +1,9 @@
 \chapter{Introduction}
 \label{chap:intro}
 
-\begin{equation}
-\frac{\mathrm d S}{\mathrm d t} = -infectionRate
-\end{equation}
-
-\begin{equation}
-\frac{\mathrm d I}{\mathrm d t} = infectionRate - recoveryRate
-\end{equation}
-
-\begin{equation}
-\frac{\mathrm d R}{\mathrm d t} = recoveryRate
-\end{equation}
-
-\begin{equation}
-S(t) = N + \int_0^t -infectionRate\, \mathrm{d}t
-\end{equation}
-
-\begin{equation}
-I(t) = 1 + \int_0^t infectionRate - recoveryRate\, \mathrm{d}t
-\end{equation}
-
-\begin{equation}
-R(t) = \int_0^t recoveryRate\, \mathrm{d}t
-\end{equation}
-
-\begin{equation}
-infectionRate = \frac{I \beta S \gamma}{N}
-\end{equation}
-
-\begin{equation}
-recoveryRate = \frac{I}{\delta}
-\end{equation}
-
 \section{Background}
-Computer simulation is the means of imitating real-world processes over time through computational means \cite{banks_discrete-event_2013}. It is used for a vast number of purposes, most prominently to study effects of varying conditions when testing a real system is not feasible either because it is too dangerous or the system does not exist under such isolated circumstances or the analytical solution is not tractable \cite{sokolowski_principles_2009}. Naturally there are many different types of simulations and we focus in this thesis on Agent-Based Modelling and Simulation (ABMS \footnote{This abbreviation incorporates both the Modelling and Simulation aspect. When focusing only on the simulation the abbreviation ABS is used and when focusing on modelling ABM is used.}) which is a method for simulating the emergent behaviour of a system by modelling and simulating the interactions of its sub-parts, called agents \cite{siebers_introduction_2008}, \cite{axelrod_guide_2006}, \cite{wilensky_introduction_2015}. Examples for an ABS is simulating the spread of an epidemic throughout a population or simulating the dynamics of segregation within a city. Epstein \cite{epstein_generative_2012} identifies ABS to be especially applicable for analysing \textit{"spatially distributed systems of heterogeneous autonomous actors with bounded information and computing capacity"}. Central to ABS is the concept of an agent who needs to be updated in regular intervals during the simulation so it can interact with other agents and its environment.
-We understand ABS as a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is known. Those parts, called agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. So the central aspect of ABS is the concept of an agent which can be understood as a metaphor for a pro-active unit, situated in an environment, able to spawn new agents and interacting with other agents in a network of neighbours by exchange of messages \cite{wooldridge_introduction_2009}.
+Computer simulation is the means of imitating real-world processes over time through computational means \cite{banks_discrete-event_2013}. It is used for a vast number of purposes, most prominently to study effects of varying conditions when testing a real system is not feasible either because it is too dangerous or the system does not exist under such isolated circumstances or the analytical solution is not tractable \cite{sokolowski_principles_2009}. Naturally there are many different types of simulations and we focus in this thesis on Agent-Based Modelling and Simulation (ABMS \footnote{This abbreviation incorporates both the Modelling and Simulation aspect. When focusing only on the simulation the abbreviation ABS is used and when focusing on modelling ABM is used.}) which is a method for simulating the emergent behaviour of a system by modelling and simulating the interactions of its sub-parts, called agents \cite{siebers_introduction_2008}, \cite{axelrod_guide_2006}, \cite{wilensky_introduction_2015}. Examples for an ABM is simulating the spread of an epidemic throughout a population or simulating the dynamics of segregation within a city. Epstein \cite{epstein_generative_2012} identifies ABMS to be especially applicable for analyzing \textit{"spatially distributed systems of heterogeneous autonomous actors with bounded information and computing capacity"}. Central to ABMS is the concept of an agent who needs to be updated in regular intervals during the simulation so it can interact with other agents and its environment.
+We understand ABMS as a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is known. Those parts, called agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. So the central aspect of ABMS is the concept of an agent which can be understood as a metaphor for a pro-active unit, situated in an environment, able to spawn new agents and interacting with other agents in a network of neighbours by exchange of messages \cite{wooldridge_introduction_2009}.
 
 We informally assume the following about our agents \cite{wooldridge_intelligent_1995}:
 
@@ -46,11 +14,11 @@ We informally assume the following about our agents \cite{wooldridge_intelligent
 	\item They can interact with an environment they are situated in.
 \end{itemize} 
 
-It is important to note that we focus our understanding of ABS on a very specific kind of agents where the focus is on communicating entities with individual, localized behaviour from out of which the global behaviour of the system emerges. This explicit distinction is necessary as to not confuse our concept of \textit{agent} with those of the field of Multi-Agent Systems (MAS). ABS and MAS influence each other in the way that the basic concept of an agent is very similar but the areas of application are fundamentally different. MAS is primarily used as an engineering approach to organize large software-systems \cite{weiss_multiagent_2013} where ABS is primarily used for the simulation of collective behaviour of agents to gain insight into the dynamics of a system \cite{dawson_opening_2014}.
+It is important to note that we focus our understanding of ABMS on a very specific kind of agents where the focus is on communicating entities with individual, localized behaviour from out of which the global behaviour of the system emerges. This explicit distinction is necessary as to not confuse our concept of \textit{agent} with those of the field of Multi-Agent Systems (MAS). ABMS and MAS influence each other in the way that the basic concept of an agent is very similar but the areas of application are fundamentally different. MAS is primarily used as an engineering approach to organize large software-systems \cite{weiss_multiagent_2013} where ABMS is primarily used for the simulation of collective behaviour of agents to gain insight into the dynamics of a system \cite{dawson_opening_2014}.
 
-ABS is a method and thus always applied in a very specific domain in which phenomenon are being researched which can be mapped to collective behaviour. This implies that we need to select a specific domain in which we want to advance the methodology of ABS. Being a vastly diverse, and inherently interdisciplinary research domain \cite{niazi_agent-based_2011}, for our PhD we pick the fields of Agent-Based Social Sciences (ABSS) and Agent-Based Computational Economics (ACE). The former one is traditionally a highly interdisciplinary field \cite{axelrod_chapter_2006}, drawing on lots of different other areas like economics, epidemology, genetics, neurocognition, biology. It is still a young field, having emerged in the 1990's but is constantly growing and gaining significance \cite{axelrod_advancing_1997}. It offers the new approach of \textit{generative} social sciences in which one tries to generate phenomenon by e.g. constructing artificial societies or introducing neurocognition to test hypotheses \cite{epstein_growing_1996}, \cite{epstein_agent_zero:_2014}.
+ABMS is a method and thus always applied in a very specific domain in which phenomenon are being researched which can be mapped to collective behaviour. This implies that we need to select a specific domain in which we want to advance the methodology of ABMS. Being a vastly diverse, and inherently interdisciplinary research domain \cite{niazi_agent-based_2011}, for our PhD we pick the fields of Agent-Based Social Sciences (ABSS) and Agent-Based Computational Economics (ACE). The former one is traditionally a highly interdisciplinary field \cite{axelrod_chapter_2006}, drawing on lots of different other areas like economics, epidemology, genetics, neurocognition, biology. It is still a young field, having emerged in the 1990's but is constantly growing and gaining significance \cite{axelrod_advancing_1997}. It offers the new approach of \textit{generative} social sciences in which one tries to generate phenomenon by e.g. constructing artificial societies or introducing neurocognition to test hypotheses \cite{epstein_growing_1996}, \cite{epstein_agent_zero:_2014}.
 ACE follows basically the same approach but in the field of economics to study economic processes as dynamic systems of interacting agents \cite{tesfatsion_agent-based_2006}. ACE is regarded to offer a new approach to economics, much closer to reality as compared to neo-classical economics which today forms much of the underlying theory of economy. The neo-classical approach follows a top-down approach by postulating equilibrium-properties about systems and trying to fit the agents into this framework. This generally leads to agents as being homogenous, having perfect information and acting rational \cite{kirman_complex_2010}. On the one hand this approach allows to treat the problems analytically but on the other hand poses little resemblance to reality. A major critique to neo-classical economics is that it is both non-constructive and uncomputable \cite{velupillai_unreasonable_2005}.
-ACE on the other hand allows a constructive approach and is computable by its very nature, by following a bottom-up process in which the agents are heterogenous, have only local information at hand, act with bounded rationality and interact continuously with each other \cite{tesfatsion_modeling_2017}, \cite{kirman_complex_2010}. This allows ACE to study economic systems which are not in equilibrium and makes it possible to investigate whether they reach equilibrium or not and under which conditions the equilibrium is reached. This shows, that the study of out-of-equilibrium models is also one of the main fields ACE, and ABS in general is suited for \cite{epstein_generative_2012}.
+ACE on the other hand allows a constructive approach and is computable by its very nature, by following a bottom-up process in which the agents are heterogenous, have only local information at hand, act with bounded rationality and interact continuously with each other \cite{tesfatsion_modeling_2017}, \cite{kirman_complex_2010}. This allows ACE to study economic systems which are not in equilibrium and makes it possible to investigate whether they reach equilibrium or not and under which conditions the equilibrium is reached. This shows, that the study of out-of-equilibrium models is also one of the main fields ACE, and ABMS in general is suited for \cite{epstein_generative_2012}.
 
 \section{Problem}
 The challenges one faces when specifying and implementing an ABS are manifold:
@@ -84,6 +52,6 @@ In the concluding remarks of \cite{axelrod_chapter_2006} Axelrod explicitly ment
 The observations of the problems presented in the previous section leads us to posing fundamental directions and questions which are the basis of the motivation of our thesis.
 
 \begin{enumerate}
-	\item \textbf{Alternative approach to object-oriented ABS} - Is there an alternative view to the established object-oriented view to ABS which does treat agents \textit{not} like objects and does not mix the concept of agent and object? Is there an alternative to the established object-oriented implementation approach to ABS which offers composability, explicit data-flow?
-	\item \textbf{Verification \& Validation of ABS} - Is there a way for formal specification and verification which is still readable and does not fall back to pure mathematics? What exactly is the meaning of validation in ABS and is there a way to do formal validation in ABS? 
+	\item \textbf{Alternative approach to object-oriented ABMS} - Is there an alternative view to the established object-oriented view to ABMS which does treat agents \textit{not} like objects and does not mix the concept of agent and object? Is there an alternative to the established object-oriented implementation approach to ABMS which offers composability, explicit data-flow?
+	\item \textbf{Verification \& Validation of ABMS} - Is there a way for formal specification and verification which is still readable and does not fall back to pure mathematics? What exactly is the meaning of validation in ABMS and is there a way to do formal validation in ABMS? 
 \end{enumerate}

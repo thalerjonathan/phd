@@ -1,21 +1,19 @@
 \chapter{Future Work Plan}
 \label{chap:future}
 
-%TODO: A future work plan that is consistent with the progress to date, stating clearly the research question(s) to be addressed during the next year of the PhD.
-
-In this chapter we break down the the four main objectives we have identified in Chapter \ref{chap:aimsObj} into small working packages, present mile-stones and holidays, relevant conferences, papers we want to publish (either conference or journal). A Gantt-Chart, reflecting all the details is found in Appendix \ref{app:gantt} in Figure \ref{fig:gantt}.
+In this chapter we break down the the four main objectives we have identified in Chapter \ref{chap:aimsObj} into small working packages, present mile-stones and holidays, relevant conferences, papers we want to publish (either conference or journal). A Gantt-Chart, reflecting all the details is found at the end of this chapter in Figure \ref{fig:gantt}.
 
 \section{The Four Objectives}
 \subsection{Functional reactive ABS (FrABS)}
 The main goal is to implement a library to be release on Hackage which implements functional reactive ABS (FrABS) using Yampa. As use-cases the Sugarscape- and Agent\_Zero-Model should be implemented. The outcome should be published in a paper (see below) which marks the end of this objective. The time-frame will be until around February 2018.
 
-\subsection{Functional Verification}
+\subsection{Verification}
 The main goal of this objective is to implement our novel idea of verification by refining the EDSL of FrABS to a point where it can be used both as specification- and implementation-language. As use-case we pick the decentralized bilateral bartering as specified in the Sugarscape model. Of central focus will be the research of how to use QuickCheck in the verification process for both the use-case and the FrABS library. The outcome should be published in a paper (see below), summing up the research of this objective.
 
-\subsection{Category Theory view on ABS}
+\subsection{Category Theory view on ABMS}
 This is an intermediary objective and serves only for studying basics of category-theory and apply it to ABS to gain a deeper understanding of the deeper structure behind agents, agent-based models and agent-based simulations.  The outcome should be published in a paper (see below), summing up the research of this objective.
 
-\subsection{Functional Validation}
+\subsection{Validation}
 In the final objective we built on all the previous research and combine it into a final paper to show the novel approach to verification and validation using FrABS, QuickCheck and category-theory. Again the use-case will be the decentralized bilateral bartering process as specified in the Sugarscape model but supplemented by theoretical work on bilateral decentralized bartering and real-world examples. Also the category-theoretical view on ABS and on decentralized bilateral trading will be incorporated into this work. The outcome will be a journal-paper to be submitted in the field of ABS (see below).
 
 \section{Planned Papers}
@@ -29,7 +27,7 @@ For publishing we think of two strategies: either we focus on a conference in th
 In this paper we will discuss the verification method we have developed using out FrABS implementation and QuickCheck. We describe the decentralized bilateral bartering process of the Sugarscape model and verify it.
 We may come to the conclusion to collapse this paper into the fourth, validation paper if it is better suited there. In any case a paper will be written (I am constantly writing down insights, results and explanations during the process of research, so writing up the paper in the end is only about restructuring and cleaning-up) whether it will be published or not is not that important - it will definitely go into the final thesis.
 
-\subsection{Category-Theory in ABS}
+\subsection{Category-Theory in ABMS}
 In this paper we will present our research about a category-theoretical view on ABS. 
 We may come to the conclusion to collapse this paper into the fourth, validation paper if it is better suited there. In any case a paper will be written (I am constantly writing down insights, results and explanations during the process of research, so writing up the paper in the end is only about restructuring and cleaning-up) whether it will be published or not is not that important - it will definitely go into the final thesis.
 
@@ -69,10 +67,13 @@ In the third year I will look into \textit{validation} with category-theory, foc
 	\item 2020 30th September - end of pending-period
 \end{itemize}
 
-\section{Fixed Holidays}
-\begin{itemize}
-	\item 2017 June 4th to 18th - 2 weeks on Amrum 
-	\item 2017 August 16th to 30th - 2 weeks in Austria
-	\item 2017 22nd December to 7th January 2018 - 2 weeks Xmas
-	\item 2018 22nd December 2018 to 6th January 2019 - 2 weeks Xmas
-\end{itemize}
+
+\label{app:gantt}
+\begin{landscape}
+	\begin{figure}
+		\label{fig:gantt}
+  		\caption{Gantt-Chart for remaining PhD}
+  		\centering
+  		\includegraphics[width=1.2\textwidth]{./charts/gantt.png}
+	\end{figure}
+\end{landscape}

@@ -35,8 +35,8 @@ agentCount = fst agentDimensions * snd agentDimensions
 
 numInfected = 1
 
-samplingTimeDelta = 0.1
-steps = 1500
+samplingTimeDelta = 0.001
+steps = 100000
 replications = 10
 
 completeNetwork = Complete agentCount

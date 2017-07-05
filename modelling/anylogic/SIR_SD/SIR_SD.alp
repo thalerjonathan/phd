@@ -1539,8 +1539,8 @@ getEngine().getPresentation().setPresentable( getEngine().getRoot() );]]></Actio
 				<StopOption><![CDATA[Stop at specified time]]></StopOption>
 				<InitialDate><![CDATA[1153899478771]]></InitialDate>	
 				<InitialTime><![CDATA[0.0]]></InitialTime>	
-				<FinalDate><![CDATA[1197099478000]]></FinalDate>	
-				<FinalTime><![CDATA[500.0]]></FinalTime>	
+				<FinalDate><![CDATA[1162539478000]]></FinalDate>	
+				<FinalTime><![CDATA[100.0]]></FinalTime>	
 			</ModelTimeProperties>
 		</SimulationExperiment>	
 	</Experiments>

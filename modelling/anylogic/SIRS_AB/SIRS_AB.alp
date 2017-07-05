@@ -19,10 +19,7 @@
 			<ClientAreaTopLeft><X>0</X><Y>0</Y></ClientAreaTopLeft>
 			<PresentationTopGroupPersistent>true</PresentationTopGroupPersistent>
 			<IconTopGroupPersistent>true</IconTopGroupPersistent>
-			<StartupCode><![CDATA[double temp = infectionProbability;
-infectionProbability = 1.0;
-deliverToRandomAgentInside( "Infection" );
-infectionProbability = temp;]]></StartupCode>
+			<StartupCode><![CDATA[deliverToRandomAgentInside( "Infection" );]]></StartupCode>
 			<Generic>false</Generic>
 			<GenericParameter>
 				<Id>1477304614148</Id>
@@ -185,37 +182,11 @@ infectionProbability = temp;]]></StartupCode>
 						<UnitOfValue Class="TimeUnits"><![CDATA[DAY]]></UnitOfValue>
 						<SdArray>false</SdArray>
 						<DefaultValue Class="CodeUnitValue">
-							<Code><![CDATA[7]]></Code>
+							<Code><![CDATA[15]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[DAY]]></Unit>
 						</DefaultValue>
 						<ParameterEditor>
 							<Id>1477314129736</Id>
-							<EditorContolType>UNIT_EDITOR</EditorContolType>
-							<MinSliderValue><![CDATA[0]]></MinSliderValue>
-							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
-							<DelimeterType>NO_DELIMETER</DelimeterType>
-						</ParameterEditor>
-					</Properties>                 
-				</Variable>
-				<Variable Class="Parameter">
-					<Id>1477314129741</Id>
-					<Name><![CDATA[daysImmune]]></Name>
-					<X>870</X><Y>-50</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
-						<Type><![CDATA[]]></Type>
-						<UnitType><![CDATA[TIME]]></UnitType>
-						<UnitOfValue Class="TimeUnits"><![CDATA[DAY]]></UnitOfValue>
-						<SdArray>false</SdArray>
-						<DefaultValue Class="CodeUnitValue">
-							<Code><![CDATA[3000]]></Code>
-							<Unit Class="TimeUnits"><![CDATA[DAY]]></Unit>
-						</DefaultValue>
-						<ParameterEditor>
-							<Id>1477314129739</Id>
 							<EditorContolType>UNIT_EDITOR</EditorContolType>
 							<MinSliderValue><![CDATA[0]]></MinSliderValue>
 							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
@@ -237,7 +208,7 @@ infectionProbability = temp;]]></StartupCode>
 						<UnitOfValue Class="RateUnits"><![CDATA[PER_DAY]]></UnitOfValue>
 						<SdArray>false</SdArray>
 						<DefaultValue Class="CodeValue">
-							<Code><![CDATA[0.1]]></Code>
+							<Code><![CDATA[5]]></Code>
 						</DefaultValue>
 						<ParameterEditor>
 							<Id>1477314129742</Id>
@@ -261,34 +232,10 @@ infectionProbability = temp;]]></StartupCode>
 						<UnitType><![CDATA[NONE]]></UnitType>
 						<SdArray>false</SdArray>
 						<DefaultValue Class="CodeValue">
-							<Code><![CDATA[0.1]]></Code>
+							<Code><![CDATA[0.05]]></Code>
 						</DefaultValue>
 						<ParameterEditor>
 							<Id>1477314129745</Id>
-							<EditorContolType>TEXT_BOX</EditorContolType>
-							<MinSliderValue><![CDATA[0]]></MinSliderValue>
-							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
-							<DelimeterType>NO_DELIMETER</DelimeterType>
-						</ParameterEditor>
-					</Properties>                 
-				</Variable>
-				<Variable Class="Parameter">
-					<Id>1477314324013</Id>
-					<Name><![CDATA[initiallyInfected]]></Name>
-					<X>190</X><Y>-20</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
-						<Type><![CDATA[double]]></Type>
-						<UnitType><![CDATA[NONE]]></UnitType>
-						<SdArray>false</SdArray>
-						<DefaultValue Class="CodeValue">
-							<Code><![CDATA[0.0]]></Code>
-						</DefaultValue>
-						<ParameterEditor>
-							<Id>1477314324011</Id>
 							<EditorContolType>TEXT_BOX</EditorContolType>
 							<MinSliderValue><![CDATA[0]]></MinSliderValue>
 							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
@@ -598,6 +545,21 @@ infectionProbability = temp;]]></StartupCode>
 						</InitialValue>
 					</Properties>
 				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1499258311787</Id>
+					<Name><![CDATA[sirsState]]></Name>
+					<X>390</X><Y>70</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[String]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA["Susceptible"]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
 			</Variables>
 			<StatechartElements>
 				<StatechartElement Class="State" ParentState="ROOT_NODE">
@@ -610,7 +572,8 @@ infectionProbability = temp;]]></StartupCode>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="120" Height="60">
 						<EntryAction><![CDATA[main.totalSusceptible++;
-rectangle.setFillColor(Color.BLUE);]]></EntryAction>
+rectangle.setFillColor(Color.BLUE);
+sirsState = "Susceptible";]]></EntryAction>
 						<ExitAction><![CDATA[main.totalSusceptible--]]></ExitAction>
 						<FillColor>-14774017</FillColor>
 					</Properties>
@@ -619,13 +582,15 @@ rectangle.setFillColor(Color.BLUE);]]></EntryAction>
 					<Id>1477304693484</Id>
 					<Name><![CDATA[Infected]]></Name>
 					<X>80</X><Y>270</Y>
-					<Label><X>40</X><Y>20</Y></Label>
+					<Label><X>30</X><Y>20</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="120" Height="40">
 						<EntryAction><![CDATA[main.totalInfected++;
-rectangle.setFillColor(Color.RED);]]></EntryAction>
+rectangle.setFillColor(Color.RED);
+//infectedDuration = main.daysInfected * Math.random();
+sirsState = "Infected";]]></EntryAction>
 						<ExitAction><![CDATA[main.totalInfected--]]></ExitAction>
 						<FillColor>-65536</FillColor>
 					</Properties>
@@ -634,27 +599,17 @@ rectangle.setFillColor(Color.RED);]]></EntryAction>
 					<Id>1477304735734</Id>
 					<Name><![CDATA[Recovered]]></Name>
 					<X>80</X><Y>370</Y>
-					<Label><X>30</X><Y>20</Y></Label>
+					<Label><X>20</X><Y>20</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="120" Height="40">
 						<EntryAction><![CDATA[main.totalRecovered++;
-rectangle.setFillColor(Color.GREEN);]]></EntryAction>
+rectangle.setFillColor(Color.GREEN);
+sirsState = "Recovered";]]></EntryAction>
 						<ExitAction><![CDATA[main.totalRecovered--]]></ExitAction>
 						<FillColor>-16744448</FillColor>
 					</Properties>
-				</StatechartElement>
-				<StatechartElement Class="Branch" ParentState="ROOT_NODE">
-					<Id>1477305830949</Id>
-					<Name><![CDATA[branch]]></Name>
-					<X>140</X><Y>100</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>false</ShowLabel>
-					<Properties>	
-					</Properties>	
 				</StatechartElement>
 				<StatechartElement Class="Transition" ParentState="ROOT_NODE">
 					<Id>1477304773349</Id>
@@ -686,38 +641,6 @@ rectangle.setFillColor(Color.GREEN);]]></EntryAction>
 						<SatisfiesExpression><![CDATA[true]]></SatisfiesExpression>
 					</Properties>	
 				</StatechartElement>
-				<StatechartElement Class="Transition" ParentState="ROOT_NODE">
-					<Id>1477304796282</Id>
-					<Name><![CDATA[deimunization]]></Name>
-					<X>200</X><Y>390</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>false</ShowLabel>
-					<Points>
-						<Point><X>0</X><Y>0</Y></Point>
-						<Point><X>100</X><Y>0</Y></Point>
-						<Point><X>100</X><Y>-220</Y></Point>
-						<Point><X>0</X><Y>-220</Y></Point>
-					</Points>
-					<IconOffset>20.0</IconOffset>
-					<Properties Source="1477304735734" Target="1477304680608" Trigger="timeout">
-						<Timeout Class="CodeUnitValue">
-							<Code><![CDATA[main.daysImmune]]></Code>
-							<Unit Class="TimeUnits"><![CDATA[DAY]]></Unit>
-						</Timeout>
-						<Condition><![CDATA[true]]></Condition>
-						<Rate Class="CodeUnitValue">
-							<Code><![CDATA[1]]></Code>
-							<Unit Class="RateUnits"><![CDATA[PER_DAY]]></Unit>
-						</Rate>
-						<MessageType><![CDATA[Object]]></MessageType>
-						<DefaultTransition>true</DefaultTransition>
-						<FilterType><![CDATA[unconditionally]]></FilterType>
-						<EqualsExpression><![CDATA["text"]]></EqualsExpression>
-						<SatisfiesExpression><![CDATA[true]]></SatisfiesExpression>
-					</Properties>	
-				</StatechartElement>
 				<StatechartElement Class="EntryPoint" ParentState="ROOT_NODE">
 					<Id>1477305523363</Id>
 					<Name><![CDATA[statechart]]></Name>
@@ -728,80 +651,16 @@ rectangle.setFillColor(Color.GREEN);]]></EntryAction>
 					<ShowLabel>true</ShowLabel>
 					<Points>
 						<Point><X>0</X><Y>0</Y></Point>
-						<Point><X>0</X><Y>60</Y></Point>
+						<Point><X>0</X><Y>110</Y></Point>
 					</Points>
-					<Properties Target="1477305830949">
+					<Properties Target="1477304680608">
+						<Action><![CDATA[sirsState = "Susceptible"]]></Action>
 					</Properties>	
 				</StatechartElement>
-				<StatechartElement Class="Transition" ParentState="ROOT_NODE">
-					<Id>1477305902603</Id>
-					<Name><![CDATA[transition1]]></Name>
-					<X>128</X><Y>100</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>false</ShowLabel>
-					<Points>
-						<Point><X>0</X><Y>0</Y></Point>
-						<Point><X>-88</X><Y>0</Y></Point>
-						<Point><X>-88</X><Y>140</Y></Point>
-						<Point><X>-28</X><Y>170</Y></Point>
-					</Points>
-					<IconOffset>20.0</IconOffset>
-					<Properties Source="1477305830949" Target="1477304693484" Trigger="timeout">
-						<Action><![CDATA[infectedDuration = main.daysInfected * Math.random()]]></Action>
-						<Timeout Class="CodeUnitValue">
-							<Code><![CDATA[1]]></Code>
-							<Unit Class="TimeUnits"><![CDATA[DAY]]></Unit>
-						</Timeout>
-						<Condition><![CDATA[main.initiallyInfected >= Math.random()]]></Condition>
-						<Rate Class="CodeUnitValue">
-							<Code><![CDATA[1]]></Code>
-							<Unit Class="RateUnits"><![CDATA[PER_DAY]]></Unit>
-						</Rate>
-						<MessageType><![CDATA[Object]]></MessageType>
-						<DefaultTransition>false</DefaultTransition>
-						<FilterType><![CDATA[unconditionally]]></FilterType>
-						<EqualsExpression><![CDATA["text"]]></EqualsExpression>
-						<SatisfiesExpression><![CDATA[true]]></SatisfiesExpression>
-					</Properties>	
-				</StatechartElement>
-				<StatechartElement Class="Transition" ParentState="ROOT_NODE">
-					<Id>1477305912375</Id>
-					<Name><![CDATA[transition2]]></Name>
-					<X>140</X><Y>110</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>false</ShowLabel>
-					<Points>
-						<Point><X>0</X><Y>0</Y></Point>
-						<Point><X>0</X><Y>11</Y></Point>
-						<Point><X>0</X><Y>30</Y></Point>
-					</Points>
-					<IconOffset>20.0</IconOffset>
-					<Properties Source="1477305830949" Target="1477304680608" Trigger="timeout">
-						<Action><![CDATA[infectedDuration = main.daysInfected]]></Action>
-						<Timeout Class="CodeUnitValue">
-							<Code><![CDATA[1]]></Code>
-							<Unit Class="TimeUnits"><![CDATA[DAY]]></Unit>
-						</Timeout>
-						<Condition><![CDATA[true]]></Condition>
-						<Rate Class="CodeUnitValue">
-							<Code><![CDATA[1]]></Code>
-							<Unit Class="RateUnits"><![CDATA[PER_DAY]]></Unit>
-						</Rate>
-						<MessageType><![CDATA[Object]]></MessageType>
-						<DefaultTransition>true</DefaultTransition>
-						<FilterType><![CDATA[unconditionally]]></FilterType>
-						<EqualsExpression><![CDATA["text"]]></EqualsExpression>
-						<SatisfiesExpression><![CDATA[true]]></SatisfiesExpression>
-					</Properties>	
-				</StatechartElement>
-				<StatechartElement Class="Transition" ParentState="Infected" ParentStateId="1477304693484">
+				<StatechartElement Class="Transition" ParentState="Susceptible" ParentStateId="1477304680608">
 					<Id>1477307326219</Id>
 					<Name><![CDATA[infecting]]></Name>
-					<X>80</X><Y>280</Y>
+					<X>80</X><Y>170</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -811,16 +670,25 @@ rectangle.setFillColor(Color.GREEN);]]></EntryAction>
 						<Point><X>54</X><Y>30</Y></Point>
 					</Points>
 					<IconOffset>20.0</IconOffset>
-					<Properties Source="1477304693484" Target="1477304693484" Trigger="rate">
-						<Action><![CDATA[//sendToRandomNeighbor( "Infection" );
-sendToRandom( "Infection" )]]></Action>
+					<Properties Source="1477304680608" Target="1477304680608" Trigger="rate">
+						<Action><![CDATA[SIRSAgent sirsAgent = get_Main().sIRSAgents.random();
+String state = sirsAgent.sirsState;
+
+if (state.equals("Infected")) {
+	boolean infect = main.infectionProbability >= Math.random();
+	
+	if (infect) {
+		this.send("Infection", this);
+	}
+}
+]]></Action>
 						<Timeout Class="CodeUnitValue">
 							<Code><![CDATA[3]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[DAY]]></Unit>
 						</Timeout>
 						<Condition><![CDATA[true]]></Condition>
 						<Rate Class="CodeUnitValue">
-							<Code><![CDATA[1/5//main.contactRate / infectedDuration]]></Code>
+							<Code><![CDATA[main.contactRate]]></Code>
 							<Unit Class="RateUnits"><![CDATA[PER_DAY]]></Unit>
 						</Rate>
 						<MessageType><![CDATA[Object]]></MessageType>
@@ -853,7 +721,6 @@ sendToRandom( "Infection" )]]></Action>
 							<Code><![CDATA[1]]></Code>
 							<Unit Class="RateUnits"><![CDATA[PER_DAY]]></Unit>
 						</Rate>
-						<Guard><![CDATA[main.infectionProbability >= Math.random()]]></Guard>
 						<MessageType><![CDATA[Object]]></MessageType>
 						<DefaultTransition>true</DefaultTransition>
 						<FilterType><![CDATA[equalsTo]]></FilterType>
@@ -1061,9 +928,6 @@ getPresentation().setPresentable( getEngine().getRoot() );]]></ActionCode>
 					</ParameterValue>
 				</Parameter>
 				<Parameter>
-					<ParameterName><![CDATA[daysImmune]]></ParameterName>
-				</Parameter>
-				<Parameter>
 					<ParameterName><![CDATA[contactRate]]></ParameterName>
 					<ParameterValue Class="CodeValue">
 						<Code><![CDATA[5]]></Code>
@@ -1074,9 +938,6 @@ getPresentation().setPresentable( getEngine().getRoot() );]]></ActionCode>
 					<ParameterValue Class="CodeValue">
 						<Code><![CDATA[0.05]]></Code>
 					</ParameterValue>
-				</Parameter>
-				<Parameter>
-					<ParameterName><![CDATA[initiallyInfected]]></ParameterName>
 				</Parameter>
 			</Parameters>			
 			<PresentationProperties 

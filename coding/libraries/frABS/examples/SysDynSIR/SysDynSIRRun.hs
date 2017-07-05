@@ -17,8 +17,8 @@ import Data.List
 
 import Debug.Trace 
 
-samplingTimeDelta = 0.1
-steps = 1000
+samplingTimeDelta = 1.0
+steps = 100
 
 runSysDynSIRStepsAndWriteToFile :: IO ()
 runSysDynSIRStepsAndWriteToFile =

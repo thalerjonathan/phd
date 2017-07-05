@@ -19,10 +19,16 @@ import Debug.Trace
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR Functional Reactive implementation
 ------------------------------------------------------------------------------------------------------------------------
-randomContact :: FrSIRSNetworkAgentOut -> FrSIRSNetworkAgentOut
-randomContact ao = sendMessage ao' (randNeigh, Contact Infected)
+randomContact :: SIRSState -> FrSIRSNetworkAgentOut -> FrSIRSNetworkAgentOut
+randomContact state ao = sendMessage ao' (randNeigh, Contact state)
     where
         (randNeigh, ao') = runAgentRandom ao (pickRandomNeighbourNode ao)
+
+respondToContactWith :: SIRSState -> FrSIRSNetworkAgentIn -> FrSIRSNetworkAgentOut -> FrSIRSNetworkAgentOut
+respondToContactWith state ain ao = onMessage ain respondToContactWithAux ao
+    where
+        respondToContactWithAux :: FrSIRSNetworkAgentOut -> AgentMessage FrSIRSNetworkMsg -> FrSIRSNetworkAgentOut
+        respondToContactWithAux ao (senderId, Contact _) = sendMessage ao (senderId, Contact state) 
 
 gotInfected :: FrSIRSNetworkAgentIn -> Rand StdGen Bool
 gotInfected ain = onMessageM ain gotInfectedAux False
@@ -34,42 +40,44 @@ gotInfected ain = onMessageM ain gotInfectedAux False
 
 sirsAgentSuceptible :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
 sirsAgentSuceptible g = switch 
-                            sirsAgentSusceptibleBehaviour
+                            (sirsAgentSusceptibleBehaviour g)
                             (sirsAgentSusceptibleInfected g)
 
-sirsAgentSusceptibleBehaviour :: SF FrSIRSNetworkAgentIn (FrSIRSNetworkAgentOut, Event ())
-sirsAgentSusceptibleBehaviour = proc ain ->
+sirsAgentSusceptibleBehaviour :: RandomGen g => g -> SF FrSIRSNetworkAgentIn (FrSIRSNetworkAgentOut, Event ())
+sirsAgentSusceptibleBehaviour g = proc ain ->
     do
         let ao = agentOutFromIn ain
         let ao0 = setDomainState ao Susceptible
         let (isInfected, ao1) = runAgentRandom ao0 (gotInfected ain)
+    
+        infectionEvent <- edge -< isInfected
 
-        infectionEvent <- iEdge False -< isInfected
+        -- TODO: rework the occasionally & sending of event into a signal function
+        makeContact <- occasionally g (1 / contactRate) () -< ()
+        let ao2 = event ao1 (\_ -> randomContact Susceptible ao1) makeContact
 
-        returnA -< (ao1, infectionEvent)
+        returnA -< (ao2, infectionEvent)
 
 -- TODO: update sirsState to infected here once, no need to constantly set to infected in infecedbehaviourSF
 sirsAgentSusceptibleInfected :: RandomGen g => g -> () -> FrSIRSNetworkAgentBehaviour
-sirsAgentSusceptibleInfected g _ = sirsAgentInfected g illnessDuration
+sirsAgentSusceptibleInfected g _ = sirsAgentInfected g illnessDuration -- sirsNetworkAgentBehaviourRandInfected g Infected 
 
 
 
 sirsAgentInfected :: RandomGen g => g -> Double -> FrSIRSNetworkAgentBehaviour
 sirsAgentInfected g duration = switch 
-                            (sirsAgentInfectedBehaviour g illnessDuration)
+                            (sirsAgentInfectedBehaviour duration)
                             (sirsAgentInfectedRecovered g)
 
 
-sirsAgentInfectedBehaviour :: RandomGen g => g -> Double -> SF FrSIRSNetworkAgentIn (FrSIRSNetworkAgentOut, Event ())
-sirsAgentInfectedBehaviour g duration = proc ain ->
+sirsAgentInfectedBehaviour :: Double -> SF FrSIRSNetworkAgentIn (FrSIRSNetworkAgentOut, Event ())
+sirsAgentInfectedBehaviour duration = proc ain ->
     do
         recoveredEvent <- after duration () -< ()
-        makeContact <- occasionally g (1 / contactRate) () -< ()
-
+    
         let ao = agentOutFromIn ain
         let ao0 = setDomainState ao Infected
-        -- NOTE: if recovered, then don't make contact anymore but it is very unlikely that both occur at the same time
-        let ao1 = event ao0 (\_ -> randomContact ao0) makeContact
+        let ao1 = respondToContactWith Infected ain ao0 
 
         returnA -< (ao1, recoveredEvent)
 

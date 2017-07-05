@@ -129,19 +129,28 @@
 			}
 		},
 		{
-			"file": "examples/SysDynSIR/SysDynSIRModel.hs",
+			"file": "examples/SysDynSIR/SysDynSIRRun.hs",
 			"settings":
 			{
-				"buffer_size": 2946,
+				"buffer_size": 2325,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "examples/SysDynSIR/SysDynSIRRun.hs",
+			"file": "examples/FrSIRSNetwork/FrSIRSNetworkRun.hs",
 			"settings":
 			{
-				"buffer_size": 2330,
+				"buffer_size": 5268,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "examples/FrSIRSNetwork/FrSIRSNetworkAgent.hs",
+			"settings":
+			{
+				"buffer_size": 5730,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -199,16 +208,15 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR",
-		"/home/jonathan/phd/coding/libraries/frABS/src",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Env",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Rendering",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation"
+		"/home/jonathan/phd/coding/libraries/frABS/src"
 	],
 	"file_history":
 	[
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/SysDynSIRModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/SysDynSIRStock.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/SysDynSIRRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkInit.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Env/EnvironmentUtils.hs",
@@ -224,7 +232,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkRenderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Rendering/GlossSimulator.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentMonadic.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/SysDynSIRStock.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/FrSIRSSpatialRenderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/FrSIRSSpatialModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/FrSIRSpatialSModel.hs",
@@ -242,7 +249,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/FrSIRSModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/FrABS.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/SysDynSIRRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/SysDynSIRInit.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIRS/SysDynSIRSRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIRS/SysDynSIRSInit.hs",
@@ -544,7 +550,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 3,
 			"sheets":
 			[
 				{
@@ -560,8 +566,38 @@
 						"selection":
 						[
 							[
-								312,
-								312
+								1286,
+								1286
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 270.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "examples/SysDynSIR/SysDynSIRRun.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2325,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								393,
+								393
 							]
 						],
 						"settings":
@@ -574,24 +610,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
-					"buffer": 1,
-					"file": "examples/SysDynSIR/SysDynSIRModel.hs",
+					"buffer": 2,
+					"file": "examples/FrSIRSNetwork/FrSIRSNetworkRun.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2946,
+						"buffer_size": 5268,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2026,
-								2026
+								875,
+								875
 							]
 						],
 						"settings":
@@ -601,27 +637,27 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 360.0,
+						"translation.y": 315.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "examples/SysDynSIR/SysDynSIRRun.hs",
+					"buffer": 3,
+					"file": "examples/FrSIRSNetwork/FrSIRSNetworkAgent.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2330,
+						"buffer_size": 5730,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								398,
-								398
+								2742,
+								2742
 							]
 						],
 						"settings":
@@ -631,10 +667,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 90.0,
+						"translation.y": 563.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 0,
 					"type": "text"
 				}
 			]

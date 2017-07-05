@@ -70,7 +70,7 @@ infectionRateFlow = proc ain ->
         let susceptible = stockInFrom susceptibleStockId ain 
         let infectious = stockInFrom infectiousStockId ain
 
-        let flowValue = infectious * contactRate * (susceptible / totalPopulation) * infectivity
+        let flowValue = (infectious * contactRate * susceptible * infectivity) / totalPopulation
         
         let ao = agentOutFromIn ain
         let ao' = flowOutTo flowValue susceptibleStockId ao

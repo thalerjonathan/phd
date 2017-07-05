@@ -35,8 +35,8 @@ agentCount = fst agentDimensions * snd agentDimensions
 
 numInfected = 1
 
-samplingTimeDelta = 0.001
-steps = 100000
+samplingTimeDelta = 0.1
+steps = 100
 replications = 10
 
 completeNetwork = Complete agentCount
@@ -124,17 +124,17 @@ runFrSIRSNetworkReplicationsAndWriteToFile =
 -- UTILS
 -------------------------------------------------------------------------------
 calculateDynamics :: [FrSIRSNetworkAgentOut] -> (Double, Double, Double)
-calculateDynamics aos = (susceptibleRatio, infectedRatio, recoveredRatio)
+calculateDynamics aos = (susceptibleCount, infectedCount, recoveredCount)
     where
-        susceptibleCount = length $ filter ((Susceptible==) . aoState) aos
-        infectedCount = length $ filter ((Infected==) . aoState) aos
-        recoveredCount = length $ filter ((Recovered==) . aoState) aos
+        susceptibleCount = fromIntegral $ length $ filter ((Susceptible==) . aoState) aos
+        infectedCount = fromIntegral $ length $ filter ((Infected==) . aoState) aos
+        recoveredCount = fromIntegral $ length $ filter ((Recovered==) . aoState) aos
 
-        totalCount = fromIntegral $ susceptibleCount + infectedCount + recoveredCount :: Double
+        totalCount = susceptibleCount + infectedCount + recoveredCount :: Double
 
-        susceptibleRatio = fromIntegral susceptibleCount / totalCount
-        infectedRatio = fromIntegral infectedCount / totalCount 
-        recoveredRatio = fromIntegral recoveredCount / totalCount
+        susceptibleRatio = susceptibleCount / totalCount
+        infectedRatio = infectedCount / totalCount 
+        recoveredRatio = recoveredCount / totalCount
 
 calculateSingleReplicationDynamic :: [([FrSIRSNetworkAgentOut], FrSIRSNetworkEnvironment)] -> [(Double, Double, Double)]
 calculateSingleReplicationDynamic = map (calculateDynamics . fst)

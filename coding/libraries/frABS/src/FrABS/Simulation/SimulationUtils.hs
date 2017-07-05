@@ -15,6 +15,8 @@ import Control.Monad.Random
 import Control.Parallel.Strategies
 import Control.Concurrent.STM.TVar
 
+import Debug.Trace
+
 initRng :: Int -> IO StdGen
 initRng seed =
     do

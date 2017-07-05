@@ -52,7 +52,6 @@ sirsAgentSusceptibleBehaviour g = proc ain ->
     
         infectionEvent <- edge -< isInfected
 
-        -- TODO: rework the occasionally & sending of event into a signal function
         makeContact <- occasionally g (1 / contactRate) () -< ()
         let ao2 = event ao1 (\_ -> randomContact Susceptible ao1) makeContact
 

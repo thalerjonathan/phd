@@ -17,8 +17,8 @@ import Data.List
 
 import Debug.Trace 
 
-samplingTimeDelta = 1.0
-steps = 100
+samplingTimeDelta = 0.1
+steps = 1000
 
 runSysDynSIRStepsAndWriteToFile :: IO ()
 runSysDynSIRStepsAndWriteToFile =
@@ -31,7 +31,10 @@ runSysDynSIRStepsAndWriteToFile =
 
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
         let dynamics = map (calculateDynamics . fst) asenv
-        let fileName = "sysDynSIRDynamics_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt.m"
+        let fileName = "sysDynSIRDynamics_" 
+                        ++ show totalPopulation ++ "population_"
+                        ++ show steps ++ "steps_" 
+                        ++ show samplingTimeDelta ++ "dt.m"
 
         writeSirsDynamicsFile fileName steps samplingTimeDelta 0 dynamics
 

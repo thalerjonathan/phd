@@ -27,17 +27,18 @@ shuffleAgents = False
 
 rngSeed = 42
 
-agentDimensions = (20, 20)
+agentDimensions = (32, 32)
 frequency = 0
 
 samplingTimeDelta = 0.1
-steps = 140
-replications = 10
+steps = 3000
+replications = 4
 
 runFrSIRSSpatialWithRendering :: IO ()
 runFrSIRSSpatialWithRendering =
     do
         _ <- initRng rngSeed
+
         -- (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
         (initAdefs, initEnv) <- createFrSIRSSpatialSingleInfected agentDimensions
         
@@ -57,8 +58,10 @@ runFrSIRSSpatialStepsAndRender :: IO ()
 runFrSIRSSpatialStepsAndRender =
     do
         _ <- initRng rngSeed
+
         -- (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
         (initAdefs, initEnv) <- createFrSIRSSpatialSingleInfected agentDimensions
+
         params <- initSimParams updateStrat Nothing shuffleAgents
 
         simulateStepsAndRender initAdefs
@@ -74,7 +77,10 @@ runFrSIRSSpatialStepsAndWriteToFile :: IO ()
 runFrSIRSSpatialStepsAndWriteToFile =
     do
         _ <- initRng rngSeed
-        (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
+
+        -- (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
+        (initAdefs, initEnv) <- createFrSIRSSpatialSingleInfected agentDimensions
+
         params <- initSimParams updateStrat Nothing shuffleAgents
 
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
@@ -82,7 +88,7 @@ runFrSIRSSpatialStepsAndWriteToFile =
         let fileName = "frSIRSSpatialDynamics_" 
                         ++ show agentDimensions ++ "agents_" 
                         ++ show steps ++ "steps_" 
-                        ++ show samplingTimeDelta ++ "_dt.m"
+                        ++ show samplingTimeDelta ++ "dt.m"
 
         writeSirsDynamicsFile fileName steps samplingTimeDelta 0 dynamics
 
@@ -90,7 +96,10 @@ runFrSIRSSpatialReplicationsAndWriteToFile :: IO ()
 runFrSIRSSpatialReplicationsAndWriteToFile =
     do
         _ <- initRng rngSeed
-        (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
+        
+        -- (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
+        (initAdefs, initEnv) <- createFrSIRSSpatialSingleInfected agentDimensions
+
         params <- initSimParams updateStrat Nothing shuffleAgents
 
         let assenv = runReplications initAdefs initEnv params samplingTimeDelta steps replications
@@ -100,8 +109,8 @@ runFrSIRSSpatialReplicationsAndWriteToFile =
         let fileName = "frSIRSSpatialDynamics_" 
                         ++ show agentDimensions ++ "agents_" 
                         ++ show steps ++ "steps_" 
-                        ++ show samplingTimeDelta ++ "_dt_" 
-                        ++ (show replications) ++ "_replications.m"
+                        ++ show samplingTimeDelta ++ "dt_" 
+                        ++ (show replications) ++ "replications.m"
 
         writeSirsDynamicsFile fileName steps samplingTimeDelta replications dynamics
 
@@ -112,17 +121,17 @@ agentsToDynamics = (calculateDynamics . fst)
 printAgentDynamics = (putStrLn . sirsDynamicToString . agentsToDynamics)
 
 calculateDynamics :: [FrSIRSSpatialAgentOut] -> (Double, Double, Double)
-calculateDynamics aos = (susceptibleRatio, infectedRatio, recoveredRatio)
+calculateDynamics aos = (susceptibleCount, infectedCount, recoveredCount)
     where
-        susceptibleCount = length $ filter ((Susceptible==) . aoState) aos
-        infectedCount = length $ filter ((Infected==) . aoState) aos
-        recoveredCount = length $ filter ((Recovered==) . aoState) aos
+        susceptibleCount = fromIntegral $ length $ filter ((Susceptible==) . aoState) aos
+        infectedCount = fromIntegral $ length $ filter ((Infected==) . aoState) aos
+        recoveredCount = fromIntegral $ length $ filter ((Recovered==) . aoState) aos
 
-        totalCount = fromIntegral $ susceptibleCount + infectedCount + recoveredCount :: Double
+        totalCount = susceptibleCount + infectedCount + recoveredCount
 
-        susceptibleRatio = fromIntegral susceptibleCount / totalCount
-        infectedRatio = fromIntegral infectedCount / totalCount 
-        recoveredRatio = fromIntegral recoveredCount / totalCount
+        susceptibleRatio = susceptibleCount / totalCount
+        infectedRatio = infectedCount / totalCount 
+        recoveredRatio = recoveredCount / totalCount
 
 calculateSingleReplicationDynamic :: [([FrSIRSSpatialAgentOut], FrSIRSSpatialEnvironment)] -> [(Double, Double, Double)]
 calculateSingleReplicationDynamic  aoss = map (calculateDynamics . fst) aoss

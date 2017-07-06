@@ -37,13 +37,13 @@ writeSirsDynamicsFile fileName steps samplingTimeDelta replications dynamics =
         hPutStrLn fileHdl "infectedRatio = dynamics (:, 2);"
         hPutStrLn fileHdl "recoveredRatio = dynamics (:, 3);"
         hPutStrLn fileHdl "figure"
-        hPutStrLn fileHdl "plot (susceptibleRatio.', 'color', 'green');"
+        hPutStrLn fileHdl "plot (susceptibleRatio.', 'color', 'blue');"
         hPutStrLn fileHdl "hold on"
         hPutStrLn fileHdl "plot (infectedRatio.', 'color', 'red');"
         hPutStrLn fileHdl "hold on"
-        hPutStrLn fileHdl "plot (recoveredRatio.', 'color', 'blue');"
+        hPutStrLn fileHdl "plot (recoveredRatio.', 'color', 'green');"
         hPutStrLn fileHdl "xlabel ('Steps');"
-        hPutStrLn fileHdl "ylabel ('Ratio');"
+        hPutStrLn fileHdl "ylabel ('Population');"
         hPutStrLn fileHdl "legend('Susceptible','Infected', 'Recovered');"
         hPutStrLn fileHdl ("title ('SIRS Dynamics with " ++ show samplingTimeDelta ++ " dt, " ++ show steps ++ " steps, " ++  (show replications) ++ " replications');")
 

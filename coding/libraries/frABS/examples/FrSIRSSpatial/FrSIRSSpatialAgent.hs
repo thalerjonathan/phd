@@ -39,6 +39,14 @@ gotInfected ain = onMessageM ain gotInfectedAux False
         gotInfectedAux False _ = return False
         gotInfectedAux True _ = return True
 
+sirsAgentMakeContact :: RandomGen g => g -> SIRSState -> SF FrSIRSSpatialAgentOut FrSIRSSpatialAgentOut
+sirsAgentMakeContact g state = proc ao ->
+    do
+        makeContact <- occasionally g (1 / contactRate) () -< ()
+        let ao' = event ao (\_ -> randomContact state ao) makeContact
+        returnA -< ao'
+
+
 sirsAgentSuceptible :: RandomGen g => g -> FrSIRSSpatialAgentBehaviour
 sirsAgentSuceptible g = switch 
                             (sirsAgentSusceptibleBehaviour g)
@@ -52,9 +60,7 @@ sirsAgentSusceptibleBehaviour g = proc ain ->
         let (isInfected, ao1) = runAgentRandom ao0 (gotInfected ain)
     
         infectionEvent <- edge -< isInfected
-
-        makeContact <- occasionally g (1 / contactRate) () -< ()
-        let ao2 = event ao1 (\_ -> randomContact Susceptible ao1) makeContact
+        ao2 <- sirsAgentMakeContact g Susceptible -< ao1
 
         returnA -< (ao2, infectionEvent)
 
@@ -66,18 +72,20 @@ sirsAgentSusceptibleInfected g _ = sirsAgentBehaviourRandInfected g Infected
 
 sirsAgentInfected :: RandomGen g => g -> Double -> FrSIRSSpatialAgentBehaviour
 sirsAgentInfected g duration = switch 
-                            (sirsAgentInfectedBehaviour duration)
+                            (sirsAgentInfectedBehaviour g duration)
                             (sirsAgentInfectedRecovered g)
 
 
-sirsAgentInfectedBehaviour :: Double -> SF FrSIRSSpatialAgentIn (FrSIRSSpatialAgentOut, Event ())
-sirsAgentInfectedBehaviour duration = proc ain ->
+sirsAgentInfectedBehaviour :: RandomGen g => g -> Double -> SF FrSIRSSpatialAgentIn (FrSIRSSpatialAgentOut, Event ())
+sirsAgentInfectedBehaviour g duration = proc ain ->
     do
         recoveredEvent <- after duration () -< ()
     
         let ao = agentOutFromIn ain
         let ao0 = setDomainState ao Infected
         let ao1 = respondToContactWith Infected ain ao0 
+
+        ao2 <- sirsAgentMakeContact g Infected -< ao1
 
         returnA -< (ao1, recoveredEvent)
 

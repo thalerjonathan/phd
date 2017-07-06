@@ -48,7 +48,7 @@ infectivity = 0.05
 
 -- average number of contacts per time-unit
 contactRate :: Double
-contactRate = 5
+contactRate = 7
 
 illnessDuration :: Double
 illnessDuration = 15

@@ -1,16 +1,12 @@
 {-# LANGUAGE Arrows #-}
 module Conversation.ConversationModel where
 
--- Project-internal import first
 import FrABS.Agent.Agent
+import FrABS.Agent.AgentRandom
 import FrABS.Env.Environment
 
--- Project-specific libraries follow
 import FRP.Yampa
 
--- System imports then
-
--- debugging imports finally, to be easily removed in final version
 import Debug.Trace
 import System.Random
 

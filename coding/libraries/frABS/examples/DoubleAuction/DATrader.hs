@@ -1,17 +1,15 @@
 {-# LANGUAGE Arrows #-}
 module DoubleAuction.DATrader where
 
--- Project-internal import first
 import DoubleAuction.DAModel
 
 import FrABS.Env.Environment
 import FrABS.Agent.Agent
 import FrABS.Agent.AgentUtils
+import FrABS.Agent.AgentRandom
 
--- Project-specific libraries follow
 import FRP.Yampa
 
--- System imports then
 import Data.Maybe
 import Data.List
 import System.Random
@@ -20,7 +18,6 @@ import Control.Monad.Random
 import Control.Monad.Trans.State
 import qualified Data.Map as Map
 
--- debugging imports finally, to be easily removed in final version
 import Debug.Trace
 
 -- TODO seems to have bug: negative cash seems to be possible (negative assets is possible if backed up by bonds)

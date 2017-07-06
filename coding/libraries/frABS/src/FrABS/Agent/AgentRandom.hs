@@ -13,7 +13,9 @@ module FrABS.Agent.AgentRandom (
     agentPickRandomMultipleM,
 
     drawRandomBool,
-    drawRandomExponential
+    drawRandomBoolM,
+    drawRandomExponential,
+    drawRandomExponentialM
   ) where
 
 import FrABS.Agent.Agent
@@ -86,15 +88,21 @@ agentPickRandomMultiple a xs n
 agentPickRandomMultipleM :: [a] -> Int -> State (AgentOut s m ec l) [a]
 agentPickRandomMultipleM xs n = state (\ao -> agentPickRandomMultiple ao xs n)
 
-drawRandomBool :: Double -> Rand StdGen Bool
-drawRandomBool p = getRandomR (0.0, 1.0) >>= (\r -> return $ p >= r)
+drawRandomBoolM :: (RandomGen g) => Double -> Rand g Bool
+drawRandomBoolM p = getRandomR (0.0, 1.0) >>= (\r -> return $ p >= r)
+
+drawRandomBool :: (RandomGen g) => g -> Double -> (Bool, g)
+drawRandomBool g p = runRand (drawRandomBoolM p) g
 
 -- NOTE: THIS CODE INSPIRED BY Euterpea-1.0.0 (I didn't want to create dependencies and their implementation seems neat and tidy)
-drawRandomExponential :: Double -> Rand StdGen Double
-drawRandomExponential lambda = avoid 0 >>= (\r -> return $ ((-log r) / lambda))
+drawRandomExponentialM :: (RandomGen g) => Double -> Rand g Double
+drawRandomExponentialM lambda = avoid 0 >>= (\r -> return $ ((-log r) / lambda))
+
+drawRandomExponential :: (RandomGen g) => g -> Double -> (Double, g)
+drawRandomExponential g lambda = runRand (drawRandomExponentialM lambda) g
 
 -- NOTE: THIS CODE INSPIRED BY Euterpea-1.0.0 (I didn't want to create dependencies and their implementation seems neat and tidy)
-avoid :: (Random a, Eq a) => a -> Rand StdGen a
+avoid :: (Random a, Eq a, RandomGen g) => a -> Rand g a
 avoid x = 
     do
         r <- getRandom

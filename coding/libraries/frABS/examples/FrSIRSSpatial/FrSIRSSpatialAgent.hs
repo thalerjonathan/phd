@@ -10,6 +10,7 @@ import FRP.Yampa
 
 import FrABS.Agent.Agent
 import FrABS.Agent.AgentUtils
+import FrABS.Agent.AgentRandom
 
 import Control.Monad
 import Control.Monad.Random
@@ -28,7 +29,7 @@ gotInfected :: FrSIRSSpatialAgentIn -> Rand StdGen Bool
 gotInfected ain = onMessageM ain gotInfectedAux False
     where
         gotInfectedAux :: Bool -> AgentMessage FrSIRSSpatialMsg -> Rand StdGen Bool
-        gotInfectedAux False (_, Contact Infected) = drawRandomBool infectivity
+        gotInfectedAux False (_, Contact Infected) = drawRandomBoolM infectivity
         gotInfectedAux False _ = return False
         gotInfectedAux True _ = return True
 

@@ -10,6 +10,7 @@ import FRP.Yampa
 
 import FrABS.Agent.Agent
 import FrABS.Agent.AgentUtils
+import FrABS.Agent.AgentRandom
 
 import Control.Monad
 import Control.Monad.Random
@@ -34,7 +35,7 @@ gotInfected :: FrSIRSNetworkAgentIn -> Rand StdGen Bool
 gotInfected ain = onMessageM ain gotInfectedAux False
     where
         gotInfectedAux :: Bool -> AgentMessage FrSIRSNetworkMsg -> Rand StdGen Bool
-        gotInfectedAux False (_, Contact Infected) = drawRandomBool infectivity
+        gotInfectedAux False (_, Contact Infected) = drawRandomBoolM infectivity
         gotInfectedAux False _ = return False
         gotInfectedAux True _ = return True
 
@@ -59,7 +60,7 @@ sirsAgentSusceptibleBehaviour g = proc ain ->
 
 -- TODO: update sirsState to infected here once, no need to constantly set to infected in infecedbehaviourSF
 sirsAgentSusceptibleInfected :: RandomGen g => g -> () -> FrSIRSNetworkAgentBehaviour
-sirsAgentSusceptibleInfected g _ = sirsAgentInfected g illnessDuration -- sirsNetworkAgentBehaviourRandInfected g Infected 
+sirsAgentSusceptibleInfected g _ = sirsNetworkAgentBehaviourRandInfected g Infected
 
 
 
@@ -111,7 +112,7 @@ sirsNetworkAgentBehaviourRandInfected g Susceptible = sirsAgentSuceptible g
 -- NOTE: when initially infected then select duration uniformly random 
 sirsNetworkAgentBehaviourRandInfected g Infected = sirsAgentInfected g' duration
     where
-        (duration, g') = randomR (0.0, illnessDuration) g
+        (duration, g') = drawRandomExponential g (1/illnessDuration)
 sirsNetworkAgentBehaviourRandInfected g Recovered = sirsAgentRecovered g
 
 -- NOTE: this is the initial SF which will be only called once

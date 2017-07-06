@@ -30,13 +30,13 @@ shuffleAgents = False
 
 rngSeed = 42
 
-agentDimensions = (11, 11)
+agentDimensions = (10, 10)
 agentCount = fst agentDimensions * snd agentDimensions
 
-numInfected = 1
+numInfected = 2
 
 samplingTimeDelta = 0.1
-steps = 100
+steps = 1000
 replications = 10
 
 completeNetwork = Complete agentCount

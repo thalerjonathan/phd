@@ -21,6 +21,7 @@ library
     FrABS.FrABS
     FrABS.Agent.Agent
     FrABS.Agent.AgentUtils
+    FrABS.Agent.AgentRandom
     FrABS.Env.Environment
     FrABS.Env.EnvironmentUtils
     FrABS.Simulation.Simulation

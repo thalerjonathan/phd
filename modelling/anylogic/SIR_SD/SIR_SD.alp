@@ -773,7 +773,7 @@ getEngine().getExperiment().stop();]]></ActionCode>
     			<TimePlot>
 					<Id>1498688725730</Id>
 					<Name><![CDATA[chart1]]></Name>
-					<X>160</X><Y>60</Y>
+					<X>800</X><Y>0</Y>
 					<Label><X>0</X><Y>-10</Y></Label>
 					<PublicFlag>true</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -790,15 +790,15 @@ getEngine().getExperiment().stop();]]></ActionCode>
 						<Unit Class="TimeUnits"><![CDATA[DAY]]></Unit>
 					</RecurrenceCode>
 					<EmbeddedIcon>false</EmbeddedIcon>
-					<Width>560</Width>
-					<Height>210</Height>
+					<Width>660</Width>
+					<Height>610</Height>
 					<BackgroundColor/>
 					<BorderColor/>
 					<ChartArea>
 						<XOffset>50</XOffset>
 						<YOffset>30</YOffset>
-						<Width>480</Width>
-						<Height>120</Height>
+						<Width>580</Width>
+						<Height>520</Height>
 						<BackgroundColor>-1</BackgroundColor>
 						<BorderColor>-16777216</BorderColor>
 						<GridColor>-12566464</GridColor>

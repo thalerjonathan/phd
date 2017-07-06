@@ -57,3 +57,6 @@ state-chart: agents are at all time of their life-cycle in one state and can swi
 timed transitions: transition to another state/behaviour happens at a discrete time
 rate transitions: transition happens with a given rate
 message transition: transition upon receiving a given message 
+
+\subsection{Agents as Signals}
+Due to the underlying nature and motivation of Functional Reactive Programming (und im speziellen) Yampa, Agents can be seen as Signals which is generated and consumed by a Signal-Function which is the behaviour of an Agent. If an Agent does not change the OUTPUT-signal is constant, if the agent changes e.g. by sending a message, changing its state,... the OUTPUT signal changes. A dead agent has no signal at all.

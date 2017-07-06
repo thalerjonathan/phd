@@ -1,17 +1,16 @@
 module FrABS.Simulation.Utils (
-  	runAndFreezeSF,
-  	freeze,
-  	freezeCol,
+    runAndFreezeSF,
+    freeze,
+    freezeCol,
 
-  	incrementAtomically,
-  	incrementAtomicallyUnsafe
+    incrementAtomically,
+    incrementAtomicallyUnsafe
   ) where
 
 import FRP.Yampa.InternalCore
 
 import System.IO.Unsafe
 import Control.Concurrent.STM
-import Control.Concurrent.STM.TVar
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Running a Signal-Function

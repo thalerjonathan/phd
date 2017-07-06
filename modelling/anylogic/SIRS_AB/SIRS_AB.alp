@@ -589,7 +589,10 @@ sirsState = "Susceptible";]]></EntryAction>
 					<Properties Width="120" Height="40">
 						<EntryAction><![CDATA[main.totalInfected++;
 rectangle.setFillColor(Color.RED);
-//infectedDuration = main.daysInfected * Math.random();
+
+double l = 1 / main.daysInfected;
+this.infectedDuration = exponential( l );
+
 sirsState = "Infected";]]></EntryAction>
 						<ExitAction><![CDATA[main.totalInfected--]]></ExitAction>
 						<FillColor>-65536</FillColor>
@@ -710,7 +713,7 @@ if (state.equals("Infected")) {
 						<Point><X>0</X><Y>0</Y></Point>
 						<Point><X>0</X><Y>70</Y></Point>
 					</Points>
-					<IconOffset>20.0</IconOffset>
+					<IconOffset>30.0</IconOffset>
 					<Properties Source="1477304680608" Target="1477304693484" Trigger="message">
 						<Timeout Class="CodeUnitValue">
 							<Code><![CDATA[1]]></Code>
@@ -919,6 +922,9 @@ getPresentation().setPresentable( getEngine().getRoot() );]]></ActionCode>
 			<Parameters>			
 				<Parameter>
 					<ParameterName><![CDATA[populationCount]]></ParameterName>
+					<ParameterValue Class="CodeValue">
+						<Code><![CDATA[1000]]></Code>
+					</ParameterValue>
 				</Parameter>
 				<Parameter>
 					<ParameterName><![CDATA[daysInfected]]></ParameterName>

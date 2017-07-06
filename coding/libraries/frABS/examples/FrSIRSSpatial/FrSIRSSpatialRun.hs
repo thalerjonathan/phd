@@ -27,7 +27,7 @@ shuffleAgents = False
 
 rngSeed = 42
 
-agentDimensions = (31, 31)
+agentDimensions = (20, 20)
 frequency = 0
 
 samplingTimeDelta = 0.1
@@ -51,7 +51,7 @@ runFrSIRSSpatialWithRendering =
                             winTitle
                             winSize
                             Renderer.renderFrame
-                            (Just (\_ asenv -> printAgentDynamics asenv))
+                            Nothing --(Just (\_ asenv -> printAgentDynamics asenv))
 
 runFrSIRSSpatialStepsAndRender :: IO ()
 runFrSIRSSpatialStepsAndRender =

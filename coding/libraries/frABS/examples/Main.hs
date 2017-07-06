@@ -16,8 +16,7 @@ import PrisonersDilemma.PDRun
 {-
 	TODOs
     - replications not working in case of FrSIRS because RNGs are fixed at agent-creation time and hardwired into the Behaviour => always use the same RNGs
-    - calibrate FrSIRS to SysDynSIR: probably need to use an exponential distribution for illnessduration, also need repliations but dont work
-
+    
     - use-case for continuous 2d-environment: implement Heroes & Cowards
         -> write Agend2DContinuous
         - continuous 2d env: just add a map of agentids with their positions to the env, agents can then update their continuous position (needs to remove itself when killed). problem: environment needs to know about agentid. but do we really need that? it would save us exchanging messages.
@@ -36,7 +35,7 @@ import PrisonersDilemma.PDRun
 -}
 
 main :: IO ()
-main = runFrSIRSNetworkStepsAndWriteToFile
+main = runFrSIRSSpatialWithRendering
 
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile
     -- runSysDynSIRStepsAndWriteToFile

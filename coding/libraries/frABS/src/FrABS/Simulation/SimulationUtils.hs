@@ -51,12 +51,26 @@ runReplications :: [AgentDef s m ec l]
                     -> Int
                     -> Int
                     -> [[([AgentOut s m ec l], Environment ec l)]]
-runReplications as env params dt steps replCount = 
-        parMap rpar (\replRng -> processSteps as env (params { simRng = replRng }) dt steps) replRngs -- NOTE: replace by rseq if no hardware-parallelism should be used
-    
+runReplications ads env params dt steps replCount = 
+        parMap rpar (runReplicationsAux ads env params) replRngs -- NOTE: replace by rseq if no hardware-parallelism should be used
     where
         (replRngs, _) = duplicateRng replCount (simRng params)
-       
+        
+        runReplicationsAux :: [AgentDef s m ec l]
+                                -> Environment ec l
+                                -> SimulationParams ec l
+                                -> StdGen 
+                                -> [([AgentOut s m ec l], Environment ec l)]
+        runReplicationsAux ads env params replRng = processSteps ads' env (params { simRng = replRng' }) dt steps
+            where
+                (ads', replRng') = foldr adsFoldAux ([], replRng) ads
+
+                adsFoldAux :: AgentDef s m ec l -> ([AgentDef s m ec l], StdGen) -> ([AgentDef s m ec l], StdGen)
+                adsFoldAux ad (adsAcc, rngAcc) = (ad' : adsAcc, rng')
+                    where
+                        (rng, rng') = split rngAcc
+                        ad' = ad { adRng = rng }
+
         duplicateRng :: Int -> StdGen -> ([StdGen], StdGen)
         duplicateRng n g = duplicateRngAux n g []
             where

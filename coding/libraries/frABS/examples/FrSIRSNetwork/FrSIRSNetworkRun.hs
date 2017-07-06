@@ -30,20 +30,20 @@ shuffleAgents = False
 
 rngSeed = 42
 
-agentDimensions = (10, 10)
+agentDimensions = (20, 20)
 agentCount = fst agentDimensions * snd agentDimensions
 
 numInfected = 2
 
 samplingTimeDelta = 0.1
 steps = 1000
-replications = 10
+replications = 20
 
 completeNetwork = Complete agentCount
 erdosRenyiNetwork = ErdosRenyi agentCount 0.2
 barbasiAlbertNetwork = BarbasiAlbert barbasiAlbertM0 barbasiAlbertM agentCount
-barbasiAlbertM0 = 100
-barbasiAlbertM = 10
+barbasiAlbertM0 = 10
+barbasiAlbertM = 3
 
 network = completeNetwork
 
@@ -98,7 +98,7 @@ runFrSIRSNetworkStepsAndWriteToFile =
 
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
         let dynamics = map (calculateDynamics . fst) asenv
-        let fileName = "frSIRSNetworkDynamics_" ++ show agentDimensions ++ "agents_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt.m"
+        let fileName = "frSIRSNetworkDynamics_" ++ show agentDimensions ++ "agents_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "dt.m"
 
         writeSirsDynamicsFile fileName steps samplingTimeDelta 0 dynamics
 
@@ -116,7 +116,7 @@ runFrSIRSNetworkReplicationsAndWriteToFile =
         let replicationDynamics = map calculateSingleReplicationDynamic assenv
         let dynamics = sirsDynamicsReplMean replicationDynamics
 
-        let fileName = "frSIRSNetworkDynamics_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "_dt_" ++ show replications ++ "_replications.m"
+        let fileName = "frSIRSNetworkDynamics_" ++ show agentDimensions ++ "agents_" ++ show steps ++ "steps_" ++ show samplingTimeDelta ++ "dt_" ++ show replications ++ "replications.m"
 
         writeSirsDynamicsFile fileName steps samplingTimeDelta replications dynamics
 

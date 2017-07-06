@@ -60,3 +60,9 @@ message transition: transition upon receiving a given message
 
 \subsection{Agents as Signals}
 Due to the underlying nature and motivation of Functional Reactive Programming (und im speziellen) Yampa, Agents can be seen as Signals which is generated and consumed by a Signal-Function which is the behaviour of an Agent. If an Agent does not change the OUTPUT-signal is constant, if the agent changes e.g. by sending a message, changing its state,... the OUTPUT signal changes. A dead agent has no signal at all.
+
+\subsection{System Dynamics}
+can emulate system dynamics due to the parallel update-strategy and continuous time-flow semantics
+
+\subsection{Discrete Event Simulation}
+DES in FrABMS? how easily can we implement server/queue systems? do they also look like a specification? potential problem: ordering of messages is not guaranteed by now

@@ -127,24 +127,6 @@
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
-		},
-		{
-			"file": "examples/FrSIRSSpatial/FrSIRSSpatialAgent.hs",
-			"settings":
-			{
-				"buffer_size": 5883,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "examples/FrSIRSSpatial/FrSIRSSpatialRun.hs",
-			"settings":
-			{
-				"buffer_size": 5181,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
 		}
 	],
 	"build_system": "",
@@ -209,12 +191,12 @@
 	"file_history":
 	[
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkRun.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/FrSIRSSpatialRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/FrSIRSSpatialAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/SysDynSIRRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/SysDynSIRModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkModel.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/FrSIRSSpatialRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils/Utils.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/FrSIRSSpatialModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/FrSIRSSpatialInit.hs",
@@ -564,68 +546,8 @@
 						"selection":
 						[
 							[
-								1490,
-								1490
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 180.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "examples/FrSIRSSpatial/FrSIRSSpatialAgent.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 5883,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1774,
-								1774
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 259.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "examples/FrSIRSSpatial/FrSIRSSpatialRun.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 5181,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								797,
-								797
+								397,
+								397
 							]
 						],
 						"settings":
@@ -638,7 +560,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 0,
 					"type": "text"
 				}
 			]

@@ -3,7 +3,8 @@
 advantages:
 	- no side-effects within agents leads to much safer code
 	- edsl for time-semantics
-	- declarative style
+	- declarative style: agent-implementation looks like a model-specification
+	- reasoning and verification
 	- sequential and parallel
 	- powerful time-semantics
 	- arrowized programming is optional and only required when utilizing yampas time-semantics. if the model does not rely on time-semantics, it can use monadic-programming by building on the existing monadic functions in the EDSL which allow to run in the State-Monad which simplifies things very much
@@ -11,7 +12,8 @@ advantages:
 	- when not using yampas facilities: in all the other cases e.g. SugarScape is such a case as it proceeds in unit time-steps and all agents act in every time-step
 	- can implement System Dynamics building on Yampas facilities with total ease	
 	- get replications for free without having to worry about side-effects and can even run them in parallel without headaches
-
+	- cant mess around with time because delta-time is hidden from you (intentional design-decision by Yampa). this would be only very difficult and cumbersome to achieve in an object-oriented approach. TODO: experiment with it in Java - how can we actually implement this?
+		
 disadvantages:
 	- very steep learning curve for non-functional programmers
 	- learning a new EDSL

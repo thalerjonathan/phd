@@ -31,7 +31,7 @@ agentDimensions = (32, 32)
 frequency = 0
 
 samplingTimeDelta = 0.1
-steps = 3000
+steps = 3500
 replications = 4
 
 runFrSIRSSpatialWithRendering :: IO ()

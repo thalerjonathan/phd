@@ -1,0 +1,49 @@
+steps:
+
+1. introduction (myself, topic, IMA + FP group)
+2. example: SIR model, how can we simulate this?
+	- Population Size N
+	- Contact Rate 𝛃
+	- Infectivity 𝛄
+	- Illness Duration 𝛅
+
+3. first approach: top-down, System Dynamics SD through differential equations
+	- show SD dynamics
+
+4. second approach: bottom-up, agent-based simulation
+	
+
+4.b what is an agent 
+	- Uniquely addressable entity with internal state
+	- Living in an environment
+	- Pro-actively initiate actions
+		Change internal state
+		Send Messages
+		Create new agents
+		Kill themselves
+		Interact with environment
+	- Reacting to messages with actions
+
+5. ABS advantage: is ability to incorporate spatial- & network effects and to make heterogenous agents
+	- run fully-connected and show single run dynamic & 4 replicated run
+	- run spatial and show dynamics
+	- run barbasi-albert and show dynamics
+
+6. FrABS implementation
+	- state of the art: oop
+	- agent & environment represenation? no classes / objects in haskell
+	- agent-agent & agent-environment interaction? no method calls and references
+	- updating of agents & environment? no mutable data and no side-effects
+
+7. our approach: Yampa & Actor Model
+	- yampa allows to make them pro-active through time-sampling
+	=> hybrid approach with continuous time-flow and discrete events
+	- Ultimate Goal: stay pure and never run within IO
+
+8. update-strategies
+	- sequential & parallel, collapsing environment in parallel case
+	- conversations in case of sequential
+
+9. looking into code
+	- Agent.hs
+	- FrSIRSNetworkAgent.hs

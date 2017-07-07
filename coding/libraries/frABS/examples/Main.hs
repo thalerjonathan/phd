@@ -16,6 +16,7 @@ import PrisonersDilemma.PDRun
 {-
 	TODOs
     - replications not working in case of FrSIRS because RNGs are fixed at agent-creation time and hardwired into the Behaviour => always use the same RNGs
+    -  fix problem of replications: rngs are always the same. pass 2 functions which run in the Rand Monad and gets passed the original agentdef to create a new agentdef and one to create a new envoronment
     
     - use-case for continuous 2d-environment: implement Heroes & Cowards
         -> write Agend2DContinuous

@@ -2,7 +2,7 @@ module RecursiveABS.RecursiveABSRun where
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.SimulationUtils
+import FrABS.Simulation.Utils
 
 import RecursiveABS.RecursiveABSInit
 

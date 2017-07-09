@@ -13,9 +13,9 @@ import Utils.Utils
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.SimulationUtils
+import FrABS.Simulation.Utils
 import FrABS.Rendering.GlossSimulator
-import FrABS.Env.EnvironmentUtils
+import FrABS.Env.Utils
 
 import Text.Printf
 import System.IO

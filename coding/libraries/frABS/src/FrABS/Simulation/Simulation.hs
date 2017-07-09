@@ -13,7 +13,7 @@ import FrABS.Env.Environment
 import FrABS.Simulation.SeqIteration
 import FrABS.Simulation.ParIteration
 import FrABS.Agent.Agent
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Internal
 
 -- Project-specific libraries follow
 import FRP.Yampa

@@ -5,7 +5,7 @@ import DoubleAuction.DAInit
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.SimulationUtils
+import FrABS.Simulation.Utils
 
 import Text.Printf
 

@@ -11,52 +11,29 @@ module FrABS.Agent.Agent (
     AgentIn (..),
     AgentOut (..),
 
-    agentIdM,
-    environmentM,
-    environmentPositionM,
-    changeEnvironmentPositionM,
-
     createAgent,
-    createAgentM,
     kill,
-    killM,
     isDead,
-    isDeadM,
 
     createStartingAgentIn,
     agentOutFromIn,
     startingAgentInFromAgentDef,
 
     sendMessage,
-    sendMessageM,
     sendMessages,
-    sendMessagesM,
     broadcastMessage,
-    broadcastMessageM,
     hasMessage,
     onMessage,
-    onMessageM,
-    onMessageMState,
     onFilterMessage,
     onMessageFrom,
     onMessageType,
 
     hasConversation,
     conversation,
-    conversationM,
     conversationEnd,
-    conversationEndM,
-    conversationReplyMonadicRunner,
-    conversationIgnoreReplyMonadicRunner,
 
     updateDomainState,
-    updateDomainStateM,
-    getDomainStateM,
     setDomainState,
-    setDomainStateM,
-    domainStateFieldM,
-
-    runEnvironmentM,
 
     nextAgentId,
 
@@ -73,15 +50,13 @@ module FrABS.Agent.Agent (
   ) where
 
 import FrABS.Env.Environment
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Internal
 
 import FRP.Yampa
 
-import Control.Monad
-import Control.Monad.Random
-import Control.Monad.Trans.State
 import Control.Concurrent.STM.TVar
 
+import System.Random
 import Data.List
 
 type AgentId = Int
@@ -141,18 +116,6 @@ data AgentOut s m ec l = AgentOut {
 ------------------------------------------------------------------------------------------------------------------------
 -- Agent Functions
 ------------------------------------------------------------------------------------------------------------------------
-agentIdM :: State (AgentOut s m ec l) AgentId
-agentIdM = state (\ao -> (aoId ao, ao))
-
-environmentM :: State (AgentOut s m ec l) (Environment ec l)
-environmentM = state (\ao -> (aoEnv ao, ao))
-
-environmentPositionM :: State (AgentOut s m ec l) EnvCoord
-environmentPositionM = state (\ao -> (aoEnvPos ao, ao))
-
-changeEnvironmentPositionM :: EnvCoord -> State (AgentOut s m ec l) ()
-changeEnvironmentPositionM pos = state (\ao -> ((), ao { aoEnvPos = pos }))
-
 recInitAllowed :: AgentIn s m ec l -> Bool
 recInitAllowed = aiRecInitAllowed
 
@@ -176,9 +139,6 @@ sendMessage ao msg = ao { aoMessages = mergedMsgs }
         existingMsgEvent = aoMessages ao
         mergedMsgs = mergeMessages existingMsgEvent newMsgEvent
 
-sendMessageM :: AgentMessage m -> State (AgentOut s m ec l) ()
-sendMessageM msg = state (\ao -> ((), sendMessage ao msg))
-
 hasConversation :: AgentOut s m ec l -> Bool
 hasConversation = isEvent . aoConversation
 
@@ -188,29 +148,12 @@ conversation :: AgentOut s m ec l
                 -> AgentOut s m ec l
 conversation ao msg replyHdl = ao { aoConversation = Event (msg, replyHdl)}
 
-conversationM :: AgentMessage m
-                -> AgentConversationSender s m ec l
-                -> State (AgentOut s m ec l) ()
-conversationM msg replyHdl = state (\ao -> ((), conversation ao msg replyHdl))
-
 conversationEnd :: AgentOut s m ec l -> AgentOut s m ec l
 conversationEnd ao = ao { aoConversation = NoEvent }
 
-conversationEndM :: State (AgentOut s m ec l) ()
-conversationEndM = state (\ao -> ((), conversationEnd ao))
-
-conversationReplyMonadicRunner :: (Maybe (AgentMessage m) -> State (AgentOut s m ec l) ()) 
-                                    -> AgentConversationSender s m ec l
-conversationReplyMonadicRunner replyAction ao mayReply = execState (replyAction mayReply) ao
-
-conversationIgnoreReplyMonadicRunner :: State (AgentOut s m ec l) () -> AgentConversationSender s m ec l
-conversationIgnoreReplyMonadicRunner replyAction ao _ = execState replyAction ao
 
 sendMessages :: AgentOut s m ec l -> [AgentMessage m] -> AgentOut s m ec l
 sendMessages ao msgs = foldr (\msg ao' -> sendMessage ao' msg ) ao msgs
-
-sendMessagesM :: [AgentMessage m] -> State (AgentOut s m ec l) ()
-sendMessagesM msgs = state (\ao -> ((), sendMessages ao msgs))
 
 broadcastMessage :: AgentOut s m ec l -> m -> [AgentId] -> AgentOut s m ec l
 broadcastMessage ao m receiverIds = sendMessages ao msgs
@@ -219,24 +162,11 @@ broadcastMessage ao m receiverIds = sendMessages ao msgs
         ms = replicate n m
         msgs = zip receiverIds ms
 
-broadcastMessageM :: m -> [AgentId] -> State (AgentOut s m ec l) ()
-broadcastMessageM m receiverIds = state (broadcastMessageMAux m)
-    where
-        broadcastMessageMAux :: m -> AgentOut s m ec l -> ((), AgentOut s m ec l)
-        broadcastMessageMAux m ao = ((), sendMessages ao msgs)
-            where
-                n = length receiverIds
-                ms = replicate n m
-                msgs = zip receiverIds ms
-
 createAgent :: AgentOut s m ec l -> AgentDef s m ec l -> AgentOut s m ec l
 createAgent ao newDef = ao { aoCreate = createEvt }
     where
         oldCreateEvt = aoCreate ao
         createEvt = mergeBy (\leftCreate rightCreate -> leftCreate ++ rightCreate) (Event [newDef]) oldCreateEvt
-
-createAgentM :: AgentDef s m ec l -> State (AgentOut s m ec l) ()
-createAgentM newDef = state (\ao -> ((),createAgent ao newDef))
 
 nextAgentId :: AgentIn s m ec l -> AgentId
 nextAgentId AgentIn { aiIdGen = idGen } = incrementAtomicallyUnsafe idGen
@@ -244,14 +174,8 @@ nextAgentId AgentIn { aiIdGen = idGen } = incrementAtomicallyUnsafe idGen
 kill :: AgentOut s m ec l -> AgentOut s m ec l
 kill ao = ao { aoKill = Event () }
 
-killM :: State (AgentOut s m ec l) ()
-killM = state (\ao -> ((), ao { aoKill = Event () }))
-
 isDead :: AgentOut s m ec l -> Bool
 isDead = isEvent . aoKill
-
-isDeadM :: State (AgentOut s m ec l) Bool
-isDeadM = state (\ao -> (isDead ao, ao))
 
 onStart :: AgentIn s m ec l -> (AgentOut s m ec l -> AgentOut s m ec l) -> AgentOut s m ec l -> AgentOut s m ec l
 onStart ai evtHdl ao = onEvent startEvt evtHdl ao
@@ -283,18 +207,6 @@ onMessage ai msgHdl a
         hasMessages = isEvent msgsEvt
         msgs = fromEvent msgsEvt
 
-onMessageMState :: AgentIn s m ec l -> (AgentMessage m -> State acc ()) -> State acc ()
-onMessageMState ai msgHdl = onMessageM ai (\_ msg -> msgHdl msg) ()
-
-onMessageM :: (Monad mon) => AgentIn s m ec l -> (acc -> AgentMessage m -> mon acc) -> acc -> mon acc
-onMessageM ai msgHdl acc
-    | not hasMessages = return acc
-    -- | otherwise = foldM (\acc msg -> msgHdl acc msg) acc msgs
-    | otherwise = foldM msgHdl acc msgs
-    where
-        msgsEvt = aiMessages ai
-        hasMessages = isEvent msgsEvt
-        msgs = fromEvent msgsEvt
 
 onFilterMessage :: MessageFilter m -> AgentIn s m ec l -> (acc -> AgentMessage m -> acc) -> acc -> acc
 onFilterMessage msgFilter ai msgHdl acc
@@ -322,50 +234,8 @@ updateDomainState ao sfunc = ao { aoState = s' }
         s = aoState ao
         s' = sfunc s
     
-updateDomainStateM :: (s -> s) -> State (AgentOut s m ec l) ()
-updateDomainStateM sfunc = state (updateDomainStateMAux sfunc)
-    where
-        updateDomainStateMAux :: (s -> s) 
-                            -> AgentOut s m ec l 
-                            -> ((), AgentOut s m ec l)
-        updateDomainStateMAux sfunc ao = ((), updateDomainState ao sfunc)
-
 setDomainState :: AgentOut s m ec l -> s -> AgentOut s m ec l
 setDomainState ao s = updateDomainState ao (\_ -> s)
-
-setDomainStateM :: s -> State (AgentOut s m ec l) ()
-setDomainStateM s = state (\ao -> ((), setDomainState ao s))
-
-domainStateFieldM :: (s -> t) -> State (AgentOut s m ec l) t
-domainStateFieldM f = state (domainStateFieldMAux f)
-    where
-        domainStateFieldMAux :: (s -> t) 
-                            -> AgentOut s m ec l
-                            -> (t, AgentOut s m ec l)
-        domainStateFieldMAux f ao = (f s, ao)
-            where
-                s = aoState ao
-
-runEnvironmentM :: State (Environment ec l) a -> State (AgentOut s m ec l) a
-runEnvironmentM envStateTrans =
-    do
-        env <- environmentM 
-        let (a, env') = runState envStateTrans env
-        setEnvironmentM env'
-        return a
-
-setEnvironmentM :: Environment ec l -> State (AgentOut s m ec l) ()
-setEnvironmentM env =
-    do
-        ao <- get 
-        put $ ao { aoEnv = env }
-
-getDomainStateM :: State (AgentOut s m ec l) s
-getDomainStateM = 
-    do
-        ao <- get
-        let domainState = aoState ao 
-        return domainState
 
 allowsRecOthers :: AgentOut s m ec l -> Bool
 allowsRecOthers = aoRecOthersAllowed

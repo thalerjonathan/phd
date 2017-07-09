@@ -3,7 +3,7 @@ module FrABS.Simulation.ParIteration (
     runParInternal
   ) where
 
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Internal
 
 import FRP.Yampa.InternalCore
 

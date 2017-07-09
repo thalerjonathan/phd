@@ -20,15 +20,17 @@ library
   exposed-modules:
     FrABS.FrABS
     FrABS.Agent.Agent
-    FrABS.Agent.AgentUtils
-    FrABS.Agent.AgentRandom
+    FrABS.Agent.Utils
+    FrABS.Agent.Random
+    FrABS.Agent.Monad
+    FrABS.Agent.Reactive
     FrABS.Env.Environment
-    FrABS.Env.EnvironmentUtils
+    FrABS.Env.Utils
     FrABS.Simulation.Simulation
-    FrABS.Simulation.SimulationUtils
+    FrABS.Simulation.Utils
     FrABS.Simulation.ParIteration      
     FrABS.Simulation.SeqIteration 
-    FrABS.Simulation.Utils
+    FrABS.Simulation.Internal
     FrABS.Rendering.Agents2DDiscrete
     FrABS.Rendering.GlossSimulator
 

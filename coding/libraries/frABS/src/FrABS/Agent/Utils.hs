@@ -1,4 +1,4 @@
-module FrABS.Agent.AgentUtils (
+module FrABS.Agent.Utils (
     pickRandomNeighbourNode,
     pickRandomNeighbourNodeM,
     
@@ -13,7 +13,7 @@ module FrABS.Agent.AgentUtils (
   ) where
 
 import FrABS.Agent.Agent
-import FrABS.Agent.AgentRandom
+import FrABS.Agent.Random
 import FrABS.Env.Environment
 
 import Control.Monad.Random

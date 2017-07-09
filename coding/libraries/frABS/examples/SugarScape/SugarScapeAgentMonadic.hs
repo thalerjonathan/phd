@@ -8,8 +8,9 @@ import Utils.Utils
 
 import FrABS.Env.Environment
 import FrABS.Agent.Agent
-import FrABS.Agent.AgentUtils
-import FrABS.Agent.AgentRandom
+import FrABS.Agent.Utils
+import FrABS.Agent.Random
+import FrABS.Agent.Monad
 
 import FRP.Yampa
 
@@ -732,12 +733,5 @@ sugarScapeAgentBehaviourFuncM age ain =
 
 ------------------------------------------------------------------------------------------------------------------------
 sugarScapeAgentBehaviourM :: SugarScapeAgentBehaviour
-sugarScapeAgentBehaviourM = proc ain ->
-    do
-        age <- time -< 0
-
-        let ao = agentOutFromIn ain
-        let ao' = execState (sugarScapeAgentBehaviourFuncM age ain) ao
-        
-        returnA -< ao'
+sugarScapeAgentBehaviourM = agentMonadic sugarScapeAgentBehaviourFuncM
 ------------------------------------------------------------------------------------------------------------------------

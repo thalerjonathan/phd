@@ -5,7 +5,7 @@ import AgentZero.AgentZeroEnvironment
 import AgentZero.AgentZeroRenderer as Renderer
 
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.SimulationUtils
+import FrABS.Simulation.Utils
 import FrABS.Rendering.GlossSimulator
 
 import System.Random

@@ -8,7 +8,7 @@ import SugarScape.SugarScapeEnvironment
 
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
-import FrABS.Simulation.SimulationUtils
+import FrABS.Simulation.Utils
 
 import FRP.Yampa
 

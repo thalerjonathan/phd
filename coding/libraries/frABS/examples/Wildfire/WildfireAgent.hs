@@ -3,12 +3,11 @@ module Wildfire.WildfireAgent (
 	wildfireAgentLivingBehaviour
   ) where
 
--- Project-internal import first
 import Wildfire.WildfireModel
 
 import FrABS.Env.Environment
 import FrABS.Agent.Agent
-import FrABS.Agent.AgentRandom
+import FrABS.Agent.Random
 
 import FRP.Yampa
 

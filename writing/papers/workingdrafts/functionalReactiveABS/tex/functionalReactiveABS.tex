@@ -61,6 +61,9 @@ message transition: transition upon receiving a given message
 \subsection{Agents as Signals}
 Due to the underlying nature and motivation of Functional Reactive Programming (und im speziellen) Yampa, Agents can be seen as Signals which is generated and consumed by a Signal-Function which is the behaviour of an Agent. If an Agent does not change the OUTPUT-signal is constant, if the agent changes e.g. by sending a message, changing its state,... the OUTPUT signal changes. A dead agent has no signal at all.
 
+\subsection{Time-Sampling}
+sampling rate depends on the transition times & rates of the model. when e.g. the contact rate is 5 then the sampling dt should be below 0.2
+
 \subsection{System Dynamics}
 can emulate system dynamics due to the parallel update-strategy and continuous time-flow semantics
 

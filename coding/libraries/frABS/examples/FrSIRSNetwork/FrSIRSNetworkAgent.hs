@@ -9,8 +9,9 @@ import FrSIRSNetwork.FrSIRSNetworkModel
 import FRP.Yampa
 
 import FrABS.Agent.Agent
-import FrABS.Agent.AgentUtils
-import FrABS.Agent.AgentRandom
+import FrABS.Agent.Utils
+import FrABS.Agent.Monad
+import FrABS.Agent.Random
 
 import Control.Monad
 import Control.Monad.Random

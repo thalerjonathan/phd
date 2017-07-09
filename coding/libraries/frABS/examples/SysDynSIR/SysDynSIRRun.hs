@@ -9,7 +9,7 @@ import Utils.Utils
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.SimulationUtils
+import FrABS.Simulation.Utils
 import FrABS.Rendering.GlossSimulator
 
 import Data.Ord

@@ -1,18 +1,15 @@
 module SugarScape.SugarScapeAgentCommon where
 
--- Project-internal import first
 import SugarScape.SugarScapeModel
 import SugarScape.SugarScapeEnvironment
 import Utils.Utils
 
 import FrABS.Env.Environment
 import FrABS.Agent.Agent
-import FrABS.Agent.AgentUtils
+import FrABS.Agent.Utils
 
--- Project-specific libraries follow
 import FRP.Yampa
 
--- System imports then
 import Data.Maybe
 import Data.List
 import System.Random
@@ -21,9 +18,7 @@ import Control.Monad
 import Control.Monad.IfElse
 import Control.Monad.Trans.State
 
--- debugging imports finally, to be easily removed in final version
 import Debug.Trace
-
 
 ------------------------------------------------------------------------------------------------------------------------
 -- GENERAL FUNCTIONS, independent of monadic / non-monadic implementation

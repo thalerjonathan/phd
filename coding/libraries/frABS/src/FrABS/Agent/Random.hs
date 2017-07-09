@@ -1,4 +1,4 @@
-module FrABS.Agent.AgentRandom (
+module FrABS.Agent.Random (
     runAgentRandom,
     runAgentRandomM,
     

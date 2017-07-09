@@ -8,8 +8,8 @@ import Utils.Utils
 
 import FrABS.Env.Environment
 import FrABS.Agent.Agent
-import FrABS.Agent.AgentUtils
-import FrABS.Agent.AgentRandom
+import FrABS.Agent.Utils
+import FrABS.Agent.Random
 
 import FRP.Yampa
 

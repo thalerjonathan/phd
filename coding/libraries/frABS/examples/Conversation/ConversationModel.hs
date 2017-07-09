@@ -2,7 +2,7 @@
 module Conversation.ConversationModel where
 
 import FrABS.Agent.Agent
-import FrABS.Agent.AgentRandom
+import FrABS.Agent.Random
 import FrABS.Env.Environment
 
 import FRP.Yampa

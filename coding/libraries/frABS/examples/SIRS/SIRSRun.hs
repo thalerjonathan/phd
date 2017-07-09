@@ -5,7 +5,7 @@ import SIRS.SIRSModel
 import SIRS.SIRSRenderer as Renderer
 
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.SimulationUtils
+import FrABS.Simulation.Utils
 import FrABS.Rendering.GlossSimulator
 
 import System.Random

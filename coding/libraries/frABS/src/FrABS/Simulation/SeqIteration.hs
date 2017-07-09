@@ -3,7 +3,7 @@ module FrABS.Simulation.SeqIteration (
     runSeqInternal
   ) where
 
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Internal
 
 import FRP.Yampa.InternalCore
 

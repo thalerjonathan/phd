@@ -12,7 +12,6 @@ import FRP.Yampa
 -- PROJECT-STRUCTURE
 	-- import all relevant modules and re-export them: have it all available through single import of FrABS.FrABS
 
--- provide a runAgentMonadic function which requires a function (Double -> AgentIn -> State AgentOut ()) which allows to completely run an agent within the state monad and having the current age of the agent and input available
 -- study arrowized programming (papers): how can dt disappear ? can we ommit arguments which are implicitly there?
 -- develop arrowized EDSL for ABS: timeout transitions, rate transitions, sending messages after, repeatedly send message in interval, occasionally send message
 

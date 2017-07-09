@@ -83,7 +83,7 @@
 			"file": "examples/Main.hs",
 			"settings":
 			{
-				"buffer_size": 3696,
+				"buffer_size": 3672,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -138,13 +138,11 @@
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
 		"/home/jonathan/phd/coding/libraries/frABS/src",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Env",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation"
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS"
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/FrABS.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/ConversationRun.hs",
@@ -157,7 +155,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkInit.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/FrSIRSSpatialRun.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/FrABS.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/FrSIRSSpatialAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDRun.hs",
@@ -276,7 +273,7 @@
 	],
 	"find":
 	{
-		"height": 34.0
+		"height": 23.0
 	},
 	"find_in_files":
 	{
@@ -468,15 +465,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 3696,
+						"buffer_size": 3672,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								66,
-								66
+								1793,
+								1793
 							]
 						],
 						"settings":

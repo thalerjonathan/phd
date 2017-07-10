@@ -4,7 +4,6 @@ module SugarScape.SugarScapeAgentMonadic where
 import SugarScape.SugarScapeAgentCommon
 import SugarScape.SugarScapeModel
 import SugarScape.SugarScapeEnvironment
-import Utils.Utils
 
 import FrABS.Env.Environment
 import FrABS.Agent.Agent

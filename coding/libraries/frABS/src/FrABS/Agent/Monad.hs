@@ -27,7 +27,10 @@ module FrABS.Agent.Monad (
 
     runEnvironmentM,
 
-    agentMonadic
+    agentMonadic,
+
+    ifThenElse,
+    ifThenElseM
   ) where
 
 import FrABS.Agent.Agent
@@ -158,3 +161,13 @@ agentMonadic f = proc ain ->
         let ao' = execState (f age ain) ao
         
         returnA -< ao'
+
+------------------------------------------------------------------------------------------------------------------------
+-- Monadic Utility Functions
+------------------------------------------------------------------------------------------------------------------------
+ifThenElse :: Monad m => Bool -> m a -> m a -> m a
+ifThenElse p trueAction falseAction = if p then trueAction else falseAction
+
+ifThenElseM :: Monad m => m Bool -> m a -> m a -> m a
+ifThenElseM test trueAction falseAction = test >>= \t -> if t then trueAction else falseAction
+------------------------------------------------------------------------------------------------------------------------

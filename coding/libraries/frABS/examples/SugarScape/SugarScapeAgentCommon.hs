@@ -2,7 +2,6 @@ module SugarScape.SugarScapeAgentCommon where
 
 import SugarScape.SugarScapeModel
 import SugarScape.SugarScapeEnvironment
-import Utils.Utils
 
 import FrABS.Env.Environment
 import FrABS.Agent.Agent

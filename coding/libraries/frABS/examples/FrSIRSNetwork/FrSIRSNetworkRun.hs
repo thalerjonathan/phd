@@ -9,7 +9,7 @@ module FrSIRSNetwork.FrSIRSNetworkRun (
 import FrSIRSNetwork.FrSIRSNetworkInit
 import FrSIRSNetwork.FrSIRSNetworkModel
 import FrSIRSNetwork.FrSIRSNetworkRenderer as Renderer
-import Utils.Utils
+import Utils.Sirs
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation

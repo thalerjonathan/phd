@@ -1,7 +1,4 @@
-module Utils.Utils (
-    ifThenElse,
-    ifThenElseM,
-
+module Utils.Sirs (
     writeSirsDynamicsFile,
     sirsDynamicToString,
     sirsDynamicsReplMean
@@ -10,12 +7,6 @@ module Utils.Utils (
 import Text.Printf
 import System.IO
 import Debug.Trace 
-
-ifThenElse :: Monad m => Bool -> m a -> m a -> m a
-ifThenElse p trueAction falseAction = if p then trueAction else falseAction
-
-ifThenElseM :: Monad m => m Bool -> m a -> m a -> m a
-ifThenElseM test trueAction falseAction = test >>= \t -> if t then trueAction else falseAction
 
 writeSirsDynamicsFile :: String 
                             -> Int

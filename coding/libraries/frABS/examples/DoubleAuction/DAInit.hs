@@ -4,8 +4,6 @@ import DoubleAuction.DAModel
 import DoubleAuction.DAAuctioneer
 import DoubleAuction.DATrader
 
-import Utils.Utils
-
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 import FrABS.Env.Utils

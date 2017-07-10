@@ -1,20 +1,16 @@
 {-# LANGUAGE Arrows #-}
 module AgentZero.AgentZeroAgent where
 
--- Project-internal import first
 import AgentZero.AgentZeroModel
 import AgentZero.AgentZeroEnvironment
-import Utils.Utils
 
 import FrABS.Env.Environment
 import FrABS.Agent.Agent
 import FrABS.Agent.Utils
 import FrABS.Agent.Monad
 
--- Project-specific libraries follow
 import FRP.Yampa
 
--- System imports then
 import Data.Maybe
 import Data.List
 import System.Random
@@ -24,7 +20,6 @@ import Control.Monad.Trans.State
 import Control.Monad.IfElse
 import qualified Data.Map as Map
 
--- debugging imports finally, to be easily removed in final version
 import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -4,7 +4,6 @@ module SugarScape.SugarScapeAgentPure where
 import SugarScape.SugarScapeModel
 import SugarScape.SugarScapeEnvironment
 import SugarScape.SugarScapeAgentCommon
-import Utils.Utils
 
 import FrABS.Env.Environment
 import FrABS.Agent.Agent

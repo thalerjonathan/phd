@@ -6,7 +6,7 @@ module FrSIRSNetwork.FrSIRSNetworkInit (
 import FrSIRSNetwork.FrSIRSNetworkModel
 import FrSIRSNetwork.FrSIRSNetworkAgent
 
-import Utils.Utils
+import Utils.Sirs
 
 import FRP.Yampa
 

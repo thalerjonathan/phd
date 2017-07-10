@@ -16,6 +16,7 @@ import PrisonersDilemma.PDRun
 {-
 	TODOs
     - clean-up
+        - imports: no unused imports
         - imports: ALL modules explicitly export their stuff (also when they export everything)
         - warnings: compilation with -w must show no warnings at all
         - lint: must be clear of warnings

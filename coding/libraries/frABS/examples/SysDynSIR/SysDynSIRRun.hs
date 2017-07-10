@@ -5,7 +5,7 @@ module SysDynSIR.SysDynSIRRun (
 import SysDynSIR.SysDynSIRInit
 import SysDynSIR.SysDynSIRModel
 
-import Utils.Utils
+import Utils.Sirs
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation

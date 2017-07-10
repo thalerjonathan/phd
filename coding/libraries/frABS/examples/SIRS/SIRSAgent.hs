@@ -2,7 +2,7 @@
 module SIRS.SIRSAgent where
 
 import SIRS.SIRSModel
-import Utils.Utils
+import Utils.Sirs
 
 import FRP.Yampa
 

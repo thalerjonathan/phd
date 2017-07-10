@@ -8,7 +8,7 @@ module FrSIRSSpatial.FrSIRSSpatialRun (
 import FrSIRSSpatial.FrSIRSSpatialInit
 import FrSIRSSpatial.FrSIRSSpatialModel
 import FrSIRSSpatial.FrSIRSSpatialRenderer as Renderer
-import Utils.Utils
+import Utils.Sirs
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation

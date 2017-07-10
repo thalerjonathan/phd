@@ -40,7 +40,7 @@ import PolicyEffects.Run
 -}
 
 main :: IO ()
-main = runPolicyEffectsReplicationsAndWriteToFile
+main = runPolicyEffectsStepsAndWriteToFile
 
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile
     -- runSysDynSIRStepsAndWriteToFile

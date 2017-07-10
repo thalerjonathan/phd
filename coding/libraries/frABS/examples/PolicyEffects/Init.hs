@@ -16,7 +16,7 @@ import System.Random
 import Control.Monad.Random
 
 createPolicyEffects :: (Int, Int) 
-                        -> Int 
+                        -> Double 
                         -> NetworkType
                         -> IO ([PolicyEffectsAgentDef], PolicyEffectsEnvironment)
 createPolicyEffects dims@(maxX, maxY) initWealth network =  
@@ -42,7 +42,7 @@ createPolicyEffects dims@(maxX, maxY) initWealth network =
         agentCount = maxX * maxY
         coords = [ (x, y) | x <- [0..maxX - 1], y <- [0..maxY - 1]]
 
-policyEffectsAgent :: Int
+policyEffectsAgent :: Double
                         -> (EnvCoord, AgentId)
                         -> IO PolicyEffectsAgentDef
 policyEffectsAgent initWealth (coord, agentId) = 

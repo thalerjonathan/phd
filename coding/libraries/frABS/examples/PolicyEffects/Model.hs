@@ -22,8 +22,8 @@ import FrABS.Env.Environment
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
-data PolicyEffectsMsg = Spend Int deriving (Eq, Show)
-type PolicyEffectsState = Int
+data PolicyEffectsMsg = Spend Double deriving (Eq, Show)
+type PolicyEffectsState = Double
 
 type PolicyEffectsEnvLink = ()
 type PolicyEffectsEnvCell = ()

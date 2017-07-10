@@ -30,11 +30,11 @@ rngSeed = 42
 agentDimensions = (10, 10)
 agentCount = fst agentDimensions * snd agentDimensions
 
-initialWealth :: Int
+initialWealth :: Double
 initialWealth = 100
 
 samplingTimeDelta = 1.0
-steps = 5000
+steps = 10000
 replications = 8
 
 completeNetwork = Complete agentCount
@@ -75,11 +75,17 @@ runPolicyEffectsStepsAndWriteToFile =
 
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
         let dynamics = map (calculateDynamics . fst) asenv
-        let fileName = "policyEffectsDynamics_" 
-                        ++ show agentDimensions ++ "agents_" 
-                        ++ show steps ++ "steps.m" 
+        let dynamicsFileName = "policyEffectsDynamics_" 
+                                ++ show agentDimensions ++ "agents_" 
+                                ++ show steps ++ "steps.m" 
 
-        writeDynamicsFile fileName steps 0 dynamics
+        let finalAgents = (fst . last) asenv
+        let histFileName = "policyEffectsHistogram_" 
+                                ++ show agentDimensions ++ "agents_" 
+                                ++ show steps ++ "steps.m" 
+
+        writeDynamicsFile dynamicsFileName steps 0 dynamics
+        writeHistogramFile histFileName steps 0 finalAgents
 
 runPolicyEffectsReplicationsAndWriteToFile :: IO ()
 runPolicyEffectsReplicationsAndWriteToFile =
@@ -101,17 +107,18 @@ runPolicyEffectsReplicationsAndWriteToFile =
 
         writeDynamicsFile fileName steps replications dynamics
 
+
 calculateDynamics :: [PolicyEffectsAgentOut] -> (Double, Double, Double)
 calculateDynamics aos = (minWealth, maxWealth, std)
     where
         n = length aos
         s = foldr (\ao m -> aoState ao + m) 0 aos
 
-        maxWealth = fromIntegral $ foldr (\ao m -> if (aoState ao > m) then aoState ao else m) 0 aos
-        minWealth = fromIntegral $ foldr (\ao m -> if (aoState ao < m) then aoState ao else m) (initialWealth * agentCount) aos
+        maxWealth = foldr (\ao m -> if (aoState ao > m) then aoState ao else m) 0 aos
+        minWealth = foldr (\ao m -> if (aoState ao < m) then aoState ao else m) (initialWealth * fromIntegral agentCount) aos
 
-        mean = fromIntegral s / fromIntegral n
-        dev = sum $ map (\ao -> ((fromIntegral $ aoState ao) - mean)^2) aos
+        mean = s / fromIntegral n
+        dev = sum $ map (\ao -> (aoState ao - mean)^2) aos
         std = sqrt dev
 
 calculateSingleReplicationDynamic :: [([PolicyEffectsAgentOut], PolicyEffectsEnvironment)] -> [(Double, Double, Double)]
@@ -138,6 +145,11 @@ dynamicsToString dynamics =
     where
         (minWealth, maxWealth, std) = dynamics 
 
+agentWealthToString :: PolicyEffectsAgentOut -> String
+agentWealthToString ao = 
+                printf "%.1f" wealth ++ ";" 
+    where
+        wealth = aoState ao
 
 writeDynamicsFile :: String 
                         -> Int
@@ -168,4 +180,22 @@ writeDynamicsFile fileName steps replications dynamics =
         hPutStrLn fileHdl "legend('Min Wealth','Max Wealth', 'Std');"
         hPutStrLn fileHdl ("title ('Policy Effects over " ++ show steps ++ " steps, " ++  (show replications) ++ " replications');")
 
+        hClose fileHdl
+
+writeHistogramFile :: String 
+                        -> Int
+                        -> Int
+                        -> [PolicyEffectsAgentOut] -> IO ()
+writeHistogramFile fileName steps replications aos =
+    do
+        fileHdl <- openFile fileName WriteMode
+        hPutStrLn fileHdl ("steps = " ++ show steps ++ ";")
+        hPutStrLn fileHdl ("replications = " ++ show replications ++ ";")
+        
+        hPutStrLn fileHdl "agentsWealth = ["
+        mapM_ (hPutStrLn fileHdl . agentWealthToString) aos
+        hPutStrLn fileHdl "];"
+
+        hPutStrLn fileHdl "hist(agentsWealth);"
+        
         hClose fileHdl

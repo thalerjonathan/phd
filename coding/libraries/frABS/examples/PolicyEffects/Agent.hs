@@ -21,7 +21,7 @@ receive ain = onMessageMState ain receiveHandler
         receiveHandler :: (AgentMessage PolicyEffectsMsg) -> State PolicyEffectsAgentOut ()
         receiveHandler (_, Spend amount) = updateDomainStateM (\s -> s + amount)
 
-spend :: Int -> State PolicyEffectsAgentOut ()
+spend :: Double -> State PolicyEffectsAgentOut ()
 spend amount = 
     do
         wealth <- getDomainStateM

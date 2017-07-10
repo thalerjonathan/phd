@@ -25,7 +25,7 @@ renderFrame wSize@(wx, wy) aouts env = GLO.Pictures $ agentPics
 
 renderAgent :: (Float, Float)
                 -> (Int, Int)
-                -> Int
+                -> Double
                 -> PolicyEffectsAgentOut
                 -> GLO.Picture
 renderAgent (rectWidth, rectHeight) (wx, wy) maxWealth a = GLO.color color $ GLO.translate xPix yPix $ GLO.ThickCircle 0 rectWidth
@@ -39,7 +39,7 @@ renderAgent (rectWidth, rectHeight) (wx, wy) maxWealth a = GLO.color color $ GLO
         xPix = fromRational (toRational (fromIntegral x * rectWidth)) - halfXSize
         yPix = fromRational (toRational (fromIntegral y * rectHeight)) - halfYSize
 
-agentColor :: Int -> Int -> GLO.Color
+agentColor :: Double -> Double -> GLO.Color
 agentColor maxWealth agentWealth = GLO.makeColor (realToFrac 0.0) (realToFrac 0.0) (realToFrac shade) 1.0 
     where
-        shade = fromIntegral agentWealth / fromIntegral maxWealth
+        shade = agentWealth / maxWealth

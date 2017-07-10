@@ -4,6 +4,14 @@
 		"selected_items":
 		[
 			[
+				"onMessageM",
+				"onMessageMState ∷ AgentIn s m ec l → (AgentMessage m → State acc ()) → State acc ()\tFrABS.Agent.Monad"
+			],
+			[
+				"onMe",
+				"onMessageM ∷ Monad mon ⇒ AgentIn s m ec l → (acc → AgentMessage m → mon acc) → acc → mon acc\tFrABS.Agent.Monad"
+			],
+			[
 				"error",
 				"error ∷ HasCallStack ⇒ [Char] → a\tPrelude"
 			],
@@ -120,10 +128,19 @@
 	"buffers":
 	[
 		{
-			"file": "examples/TestArrows.hs",
+			"file": "examples/Main.hs",
 			"settings":
 			{
-				"buffer_size": 98,
+				"buffer_size": 3740,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "examples/PolicyEffects/Run.hs",
+			"settings":
+			{
+				"buffer_size": 6211,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -181,15 +198,27 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent"
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Run.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/policyEffectsDynamics_(10,10)agents_1000steps_",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Renderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Utils.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Init.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/PolicyEffectsInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/TestArrows.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DAInit.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkInit.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/FrSIRSSpatialRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSAgent.hs",
@@ -204,7 +233,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/frABSExamples.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/frABS.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireAgent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/TestArrows.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/FrSIRSSpatialAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkAgent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/SysDynSIRModel.hs",
@@ -305,19 +333,11 @@
 		"/C/Users/Jonathan Thaler/coding/ethaskell/src/    Parse error in pattern",
 		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/JsonRpc.hs",
 		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/Server.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/                             imported from `Prelude' at EthJsonRpc/Server.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/DoubleAuction/DAModel.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Devp2p/Devp2p.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/jsonrpc/JSONRpc.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/EthJsonRpc.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/TODO.txt",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Main.hs",
-		"/C/Users/Jonathan Thaler/coding/ETHaskell/ETHaskell.cabal",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/Main.hs"
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/                             imported from `Prelude' at EthJsonRpc/Server.hs"
 	],
 	"find":
 	{
-		"height": 34.0
+		"height": 46.0
 	},
 	"find_in_files":
 	{
@@ -332,6 +352,13 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"FrSIRSNetworkEnvLink",
+			"FrSIRSNetworkEnvCell",
+			"FrSIRSNetworkAgentState",
+			"FrSIRSNetworkMsg",
+			"FrSIRSNetworkEnvCell",
+			"FrSIRSNetworkEnvLink",
+			"FrSIRSNetworkEnvCell",
 			"network",
 			"FrSIRSNetworkAgentBehaviour",
 			"FrSIRSNetworkMsg",
@@ -452,14 +479,7 @@
 			"extractParam",
 			"decodeUnformattedData",
 			"alphaNumToHex",
-			"-------------------------------------------------------------------------------------------",
-			"contactInfected",
-			"onMessage",
-			"randomCellWithRadius",
-			"runrandom",
-			"rand",
-			"random",
-			"agentNonCombatMove"
+			"-------------------------------------------------------------------------------------------"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -467,6 +487,13 @@
 		"regex": true,
 		"replace_history":
 		[
+			"PolicyEffectsEnvLink",
+			"PolicyEffectsEnvCell",
+			"PolicyEffectsState",
+			"PolicyEffectsMsg",
+			"FrSIRSNetworkEnvCell",
+			"FrSIRSNetworkEnvLink",
+			"PolicyEffectsLink",
 			"FrSIRSSpatialAgentBehaviour",
 			"FrSIRSSpatialMsg",
 			"FrSIRSSpatialAgentIn",
@@ -531,30 +558,62 @@
 			[
 				{
 					"buffer": 0,
-					"file": "examples/TestArrows.hs",
+					"file": "examples/Main.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 98,
+						"buffer_size": 3740,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								98,
-								98
+								2216,
+								2244
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 45.0,
+						"translation.y": 450.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "examples/PolicyEffects/Run.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6211,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1723,
+								1723
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": -0.0,
+						"translation.y": 630.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
 					"type": "text"
 				}
 			]
@@ -611,7 +670,7 @@
 	"project": "frabs.sublime-project",
 	"replace":
 	{
-		"height": 62.0
+		"height": 86.0
 	},
 	"save_all_on_build": true,
 	"select_file":

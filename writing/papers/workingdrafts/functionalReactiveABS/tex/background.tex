@@ -40,15 +40,13 @@ Yampa provides a top-level function, running in the IO-Monad, which drives a sig
 
 Additional functionality which Yampa provides is the concept of Events which allow to implement changing behaviour of signal-functions at given points in time. An event can be understood to be similar to the Maybe-type of Haskell which either is an event with a given type or is simply NoEvent. Yampa provides facilities to detect if an event has fired and also provides functions to switch the signal-function into a new signal-function with changed behaviour. Another feature of Yampa is its EDSL for time-semantics: integration over time, delay, accumulation, holding, firing events after/now/repeatedly.
 
-Arrowized programming papers:
-Generalising Monads to Arrows - \cite{hughes_generalising_2000}
-Programming with Arrows - \cite{hughes_programming_2005}
-A new notation for arrows - \cite{paterson_new_2001}
-
 Yampa programming papers:
 The Yampa Arcade (2003) - \cite{courtney_yampa_2003}
 Functional Programming and 3D Games - \cite{mun_hon_functional_2005}
 Game-Engine-Architectur (2010) - \cite{meisinger_game-engine-architektur_2010}
+
+\subsubsection{Arrowized Programming}
+Yampa makes heavy use of Arrows, a generalization of Monads, introduced by Hughes \cite{hughes_generalising_2000}. Arrows allow to parameterise over the input-type as well, which Monads do not allow: they only parameterise over the output-type. This allows to add static parts to an input of a function e.g. a time-delta. Also Arrows can be seen as processes TODO: explain. Both these properties of Arrows are the reason why Yampa is using Arrows (TODO: support by through the papers): it prevents time-leaks which occur when the time-delta parameter shows up visible to the function which then can be changed. Arrowized programming allows to hide exactly this time-delta parameter by passing it along in a point-free style and makes it thus impossible to mess around by the agent-implementer. Fortunately there has been developed a special notation, similar to the monad do-notation, for arrowized programming to increase readability \cite{paterson_new_2001}. The paper \cite{hughes_programming_2005} gives a more in-depth explanation of Arrows, how to program with them and how to use the special arrow-notation. This being a paper for the ABS community, we won't go into depth about arrowized programming as it would be out of the scope of this paper but the concept should become clear from the code-examples in the later sections.
 
 \subsection{Related Research}
 The amount of research on using the pure functional paradigm using Haskell in the field of ABS has been moderate so far. Most of the papers look into how agents can be specified using the belief-desire-intention paradigm \cite{de_jong_suitability_2014}, \cite{sulzmann_specifying_2007}, \cite{jankovic_functional_2007}. A library for Discrete Event Simulation (DES) and System Dynamics (SD) in Haskell called \textit{Aivika 3} is described in \cite{sorokin_aivika_2015}. It comes with very basic features for ABS but only allows to specify simple state-based agents with timed transitions.

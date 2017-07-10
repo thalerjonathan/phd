@@ -15,6 +15,10 @@ module PolicyEffects.Model (
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 
+-- NOTE: this implementation was inspired by this article:
+-- http://www.decisionsciencenews.com/2017/06/19/counterintuitive-problem-everyone-room-keeps-giving-dollars-random-others-youll-never-guess-happens-next/
+-- It shows how random spending of money creates a huge deviation of wealth
+
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------

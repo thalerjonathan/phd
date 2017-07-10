@@ -38,7 +38,7 @@ import PrisonersDilemma.PDRun
 -}
 
 main :: IO ()
-main = runFrSIRSNetworkWithRendering
+main = runWildfireWithRendering
 
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile
     -- runSysDynSIRStepsAndWriteToFile

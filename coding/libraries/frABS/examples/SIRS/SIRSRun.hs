@@ -12,7 +12,7 @@ import System.Random
 
 winSize = (800, 800)
 winTitle = "SIRS"
-updateStrat = Sequential
+updateStrat = Parallel
 shuffleAgents = True
 rngSeed = 42
 samplingTimeDelta = 0.5

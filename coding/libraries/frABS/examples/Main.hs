@@ -12,6 +12,7 @@ import Conversation.ConversationRun
 import DoubleAuction.DARun
 import Wildfire.WildfireRun
 import PrisonersDilemma.PDRun
+import PolicyEffects.Run
 
 {-
 	TODOs
@@ -39,7 +40,7 @@ import PrisonersDilemma.PDRun
 -}
 
 main :: IO ()
-main = runWildfireWithRendering
+main = runPolicyEffectsReplicationsAndWriteToFile
 
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile
     -- runSysDynSIRStepsAndWriteToFile

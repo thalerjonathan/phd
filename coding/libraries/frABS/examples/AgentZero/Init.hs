@@ -45,9 +45,9 @@ initAgentZeroEpstein =
     let nsA0 = lneighbors gr a0Node
     let nsA1 = lneighbors gr a1Node
     let nsA2 = lneighbors gr a2Node
-    putStrLn (show nsA0)
-    putStrLn (show nsA1)
-    putStrLn (show nsA2)
+    print nsA0
+    print nsA1
+    print nsA2
 
     a0 <- runCreateAgentZeroIO (0, (9, 9))
     a1 <- runCreateAgentZeroIO (1, (22, 17))
@@ -66,9 +66,6 @@ initAgentZeroEpstein =
                           (Just gr)
 
     return ([a0, a1, a2], env)
-
-  where
-    
 
 initAgentZeroCount :: Int -> EnvLimits -> IO ([AgentZeroAgentDef], AgentZeroEnvironment)
 initAgentZeroCount agentCount l = 
@@ -107,7 +104,7 @@ initAgentZeroCount agentCount l =
                   randY <- getStdRandom (randomR(minY, maxY - 1))
 
                   let c = (randX, randY)
-                  if (any (==c) acc) then
+                  if c `elem` acc then
                       drawRandomCoordsAux lower upper n acc
                       else
                         drawRandomCoordsAux lower upper (n-1) (c : acc)
@@ -126,12 +123,10 @@ runCreateAgentZeroIO aidCoord =
 
 createCells :: EnvLimits
                 -> IO [(EnvCoord, AgentZeroEnvCell)]
-createCells (maxX, maxY) = 
-  do
-    let coords = [ (x, y) | x <- [0..maxX-1], y <- [0..maxY-1] ]
-    cs <- mapM randomCell coords
-    return cs
+createCells (maxX, maxY) = mapM randomCell coords
   where
+    coords = [ (x, y) | x <- [0..maxX-1], y <- [0..maxY-1] ]
+
     randomCell :: EnvCoord -> IO (EnvCoord, AgentZeroEnvCell)
     randomCell coord = do
             randShade <- getStdRandom $ randomR (0.0, 0.75)

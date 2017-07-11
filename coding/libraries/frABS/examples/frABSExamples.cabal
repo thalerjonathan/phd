@@ -22,7 +22,7 @@ executable frABSExamples
                     IfElse
 
   ghc-options:      -O2
-                    -w
+                    -W
                     -- -Wall
                     -- -fwarn-tabs
                     -- -fno-warn-tabs

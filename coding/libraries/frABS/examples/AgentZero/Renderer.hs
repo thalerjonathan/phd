@@ -10,11 +10,11 @@ import AgentZero.Agent
 import qualified Graphics.Gloss as GLO
 
 renderFrame :: (Int, Int) -> [AgentZeroAgentOut] -> AgentZeroEnvironment -> GLO.Picture
-renderFrame wSize@(wx, wy) aouts env = GLO.Pictures $ (envPics ++ agentPics)
+renderFrame wSize@(wx, wy) aouts env = GLO.Pictures (envPics ++ agentPics)
     where
         (cx, cy) = envLimits env
-        cellWidth = (fromIntegral wx) / (fromIntegral cx)
-        cellHeight = (fromIntegral wy) / (fromIntegral cy)
+        cellWidth = fromIntegral wx / fromIntegral cx
+        cellHeight = fromIntegral wy / fromIntegral cy
 
         cells = allCellsWithCoords env
 
@@ -25,10 +25,10 @@ renderEnvCell :: (Float, Float)
                     -> (Int, Int)
                     -> (EnvCoord, AgentZeroEnvCell)
                     -> GLO.Picture
-renderEnvCell (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = GLO.Pictures $ [cellRect]
+renderEnvCell (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = GLO.Pictures [cellRect]
     where
-        halfXSize = fromRational (toRational wx / 2.0)
-        halfYSize = fromRational (toRational wy / 2.0)
+        halfXSize = fromRational toRational wx / 2.0
+        halfYSize = fromRational toRational wy / 2.0
 
         xPix = fromRational (toRational (fromIntegral x * rectWidth)) - halfXSize
         yPix = fromRational (toRational (fromIntegral y * rectHeight)) - halfYSize

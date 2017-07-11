@@ -100,7 +100,7 @@ agentZeroUpdateProbM =
 
 		let csAttacking = filter (isAttackingSite . snd) cs
 		let localProb = fromRational (fromIntegral $ length csAttacking) / (fromIntegral $ length cs)
-		let mem' = localProb : (init mem)
+		let mem' = localProb : init mem
 		let newProb = mean mem'
 
 		updateDomainStateM (\s -> s { azAgentProb = newProb, azAgentMemory = mem' } )
@@ -130,14 +130,14 @@ agentZeroUpdateDispoM ain =
 
 	where
 		dispositionMessageHandleM :: AgentMessage AgentZeroMsg -> State AgentZeroAgentOut ()
-		dispositionMessageHandleM (senderId, (Disposition d)) = 
+		dispositionMessageHandleM (senderId, Disposition d) = 
 			do
 				aid <- agentIdM
 
 				mayWeight <- runEnvironmentM $ directLinkBetweenM senderId aid
-				let weight = maybe 0.0 Prelude.id mayWeight
+				let weight = fromMaybe 0 mayWeight
 
-				updateDomainStateM (\s -> s { azAgentDispo = (azAgentDispo s) + (d * weight)})
+				updateDomainStateM (\s -> s { azAgentDispo = azAgentDispo s + (d * weight)})
 
 		-- NOTE: pattern match is redundant because only Disposition message exists
 		-- dispositionMessageHandleM _ = return ()
@@ -158,7 +158,7 @@ agentZeroTakeAction a = dispo > 0
 
 agentZeroUpdateEventCount :: AgentZeroAgentOut -> AgentZeroAgentOut
 agentZeroUpdateEventCount a 
-	| onAttackingSite a = updateDomainState a (\s -> s { azAgentEventCount = (azAgentEventCount s) + 1} )
+	| onAttackingSite a = updateDomainState a (\s -> s { azAgentEventCount = azAgentEventCount s + 1} )
 	| otherwise = a
 
 agentZeroUpdateAffect :: AgentZeroAgentOut -> AgentZeroAgentOut
@@ -184,7 +184,7 @@ agentZeroUpdateProb a = updateDomainState a (\s -> s { azAgentProb = newProb, az
 		localProb = fromRational (fromIntegral $ length csAttacking) / (fromIntegral $ length cs)
 
 		mem = azAgentMemory $ aoState a
-		mem' = localProb : (init mem)
+		mem' = localProb : init mem
 
 		newProb = mean mem'
 
@@ -212,10 +212,10 @@ agentZeroUpdateDispo ain a = broadcastMessage aDispoFinal (Disposition dispoLoca
 		aDispoFinal = onMessage ain dispositionMessageHandle aDispoSelf
 
 		dispositionMessageHandle :: AgentZeroAgentOut -> AgentMessage AgentZeroMsg -> AgentZeroAgentOut
-		dispositionMessageHandle a (senderId, (Disposition d)) = updateDomainState a (\s -> s { azAgentDispo = (azAgentDispo s) + (d * weight)})
+		dispositionMessageHandle a (senderId, Disposition d) = updateDomainState a (\s -> s { azAgentDispo = azAgentDispo s + (d * weight)})
 			where
 				mayWeight = directLinkBetween (aoEnv a) senderId aid
-				weight = maybe 0.0 id mayWeight
+				weight = fromMaybe 0 mayWeight
 		-- NOTE: pattern match is redundant because only Disposition message exists
 		-- dispositionMessageHandle a _ = a
 
@@ -237,7 +237,7 @@ agentZeroAgentBehaviourFunc _ ain aout
 	| agentZeroTakeAction agentBevoreAction = agentZeroDestroy agentBevoreAction
 	| otherwise = agentBevoreAction
 	where
-		agentBevoreAction = (agentZeroUpdateDispo ain) $ 
+		agentBevoreAction = agentZeroUpdateDispo ain $ 
 								agentZeroUpdateProb $ 
 								agentZeroUpdateAffect $ 
 								agentZeroUpdateEventCount $ 

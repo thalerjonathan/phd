@@ -55,13 +55,27 @@ randomAttack env =
 		let cellCount = length allCells
 		randActivationsInf <- getRandoms
 		let randActivations = take cellCount randActivationsInf
-		let allCells' = map randAttackCell (zip allCells randActivations)
+		let allCells' = zipWith randAttackCell allCells randActivations
 		let env' = foldr (\(coord, cell) envAcc -> changeCellAt envAcc coord cell) env allCells'
 		return env'
 
-randAttackCell :: ((EnvCoord, AgentZeroEnvCell), Double) -> (EnvCoord, AgentZeroEnvCell)
-randAttackCell (cc@(coord, cell), rand) 
-	| (x >= 12 && y >= 15) = (coord, cell { azCellState = state' })
+randAttackCell :: (EnvCoord, AgentZeroEnvCell) -> Double -> (EnvCoord, AgentZeroEnvCell)
+randAttackCell cc@(coord, cell) rand
+	| x >= 12 && y >= 15 = (coord, cell { azCellState = state' })
+	| otherwise = cc
+	where
+		(x,y) = coord
+		state = azCellState cell
+		state' = selectNewState state rand
+
+		selectNewState :: AgentZeroCellState -> Double -> AgentZeroCellState
+		selectNewState Dead _ = Dead
+		selectNewState Friendly rand = if rand > 0.8 then Attack else Friendly
+		selectNewState Attack rand = if rand > 0.5 then Friendly else Attack
+
+randAttackCell' :: ((EnvCoord, AgentZeroEnvCell), Double) -> (EnvCoord, AgentZeroEnvCell)
+randAttackCell' (cc@(coord, cell), rand) 
+	| x >= 12 && y >= 15 = (coord, cell { azCellState = state' })
 	| otherwise = cc
 	where
 		(x,y) = coord
@@ -96,4 +110,4 @@ agentZeroEnvironmentBehaviour = proc env ->
         let g = envRng env
         let (env', g') = runRand (randomAttack env) g
         let env'' = env' { envRng = g' }
-        returnA -< trace ("Time = " ++ (show t)) env''
+        returnA -< trace ("Time = " ++ show t) env''

@@ -5,9 +5,7 @@ module Wildfire.Run (
 import Wildfire.Init
 import Wildfire.Renderer as Renderer
 
-import FrABS.Simulation.Simulation
-import FrABS.Simulation.Init
-import FrABS.Rendering.GlossSimulator
+import FRP.FrABS
 
 import System.Random
 

@@ -2,8 +2,7 @@ module AgentZero.Renderer (
     renderFrame
   ) where
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
+import FRP.FrABS
 
 import AgentZero.Model
 import AgentZero.Agent

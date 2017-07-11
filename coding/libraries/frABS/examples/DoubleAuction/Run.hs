@@ -5,9 +5,7 @@ module DoubleAuction.Run (
 import DoubleAuction.Model
 import DoubleAuction.Init
 
-import FrABS.Agent.Agent
-import FrABS.Simulation.Simulation
-import FrABS.Simulation.Init
+import FRP.FrABS
 
 import Text.Printf
 

@@ -1,34 +1,27 @@
 {-# LANGUAGE Arrows #-}
-module FrABS.Simulation.Simulation (
-    processIOInit,
-    processSteps,
-    
-    EnvironmentCollapsing,
+module FRP.FrABS.Simulation.Simulation (
     UpdateStrategy (..),
-    SimulationParams (..)
+    EnvironmentCollapsing,
+    SimulationParams (..),
+
+    processIOInit,
+    processSteps
   ) where
 
--- Project-internal import first
-import FrABS.Env.Environment
-import FrABS.Simulation.SeqIteration
-import FrABS.Simulation.ParIteration
-import FrABS.Agent.Agent
-import FrABS.Simulation.Internal
+import FRP.FrABS.Env.Environment
+import FRP.FrABS.Simulation.SeqIteration
+import FRP.FrABS.Simulation.ParIteration
+import FRP.FrABS.Agent.Agent
+import FRP.FrABS.Simulation.Internal
 
--- Project-specific libraries follow
 import FRP.Yampa
 import FRP.Yampa.InternalCore
 
--- System imports then
 import Data.Maybe
 import Data.List
 import System.Random
 import qualified Data.Map as Map
 import Control.Concurrent.STM.TVar
-
--- TODO: remove these imports
--- debugging imports finally, to be easily removed in final version
-import Debug.Trace
 
 data UpdateStrategy = Sequential | Parallel deriving (Eq)
 type EnvironmentCollapsing ec l = ([Environment ec l] -> Environment ec l)

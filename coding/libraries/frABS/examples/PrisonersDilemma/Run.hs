@@ -5,9 +5,7 @@ module PrisonersDilemma.Run (
 import PrisonersDilemma.Init
 import PrisonersDilemma.Renderer as Renderer
 
-import FrABS.Simulation.Simulation
-import FrABS.Simulation.Init
-import FrABS.Rendering.GlossSimulator
+import FRP.FrABS
 
 import System.Random
 

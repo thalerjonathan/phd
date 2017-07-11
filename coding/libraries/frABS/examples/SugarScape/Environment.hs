@@ -6,9 +6,11 @@ module SugarScape.Environment (
   ) where
 
 import SugarScape.Model
-import FrABS.Env.Environment
+
+import FRP.FrABS
 
 import FRP.Yampa
+
 import Data.Maybe
 import Debug.Trace
 

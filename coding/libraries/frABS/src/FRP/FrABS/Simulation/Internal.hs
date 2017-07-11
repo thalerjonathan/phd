@@ -1,4 +1,4 @@
-module FrABS.Simulation.Internal (
+module FRP.FrABS.Simulation.Internal (
     runAndFreezeSF,
     freeze,
     freezeCol,

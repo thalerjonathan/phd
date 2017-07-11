@@ -7,10 +7,7 @@ import SysDynSIR.Model
 
 import Utils.Sirs
 
-import FrABS.Agent.Agent
-import FrABS.Simulation.Simulation
-import FrABS.Simulation.Init
-import FrABS.Rendering.GlossSimulator
+import FRP.FrABS
 
 import Data.Ord
 import Data.List

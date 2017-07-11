@@ -5,8 +5,7 @@ module SugarScape.Renderer (
 import SugarScape.Model
 import SugarScape.AgentCommon
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
+import FRP.FrABS
 
 import qualified Graphics.Gloss as GLO
 

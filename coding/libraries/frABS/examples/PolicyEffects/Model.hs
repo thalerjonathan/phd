@@ -12,8 +12,7 @@ module PolicyEffects.Model (
     PolicyEffectsAgentOut
   ) where
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
+import FRP.FrABS
 
 -- NOTE: this implementation was inspired by this article:
 -- http://www.decisionsciencenews.com/2017/06/19/counterintuitive-problem-everyone-room-keeps-giving-dollars-random-others-youll-never-guess-happens-next/

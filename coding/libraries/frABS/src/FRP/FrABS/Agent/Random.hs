@@ -1,4 +1,4 @@
-module FrABS.Agent.Random (
+module FRP.FrABS.Agent.Random (
     runAgentRandom,
     runAgentRandomM,
     
@@ -18,7 +18,7 @@ module FrABS.Agent.Random (
     drawRandomExponentialM
   ) where
 
-import FrABS.Agent.Agent
+import FRP.FrABS.Agent.Agent
 
 import System.Random
 import Control.Monad.Random

@@ -1,9 +1,9 @@
-module FrABS.Rendering.Agents2DDiscrete (
+module FRP.FrABS.Rendering.Agents2DDiscrete (
     RenderCellCoord,
     RenderCellColor,
     RenderCell(..),
     display,
-    renderFrame
+    render2DDiscreteFrame
   ) where
 
 import qualified Graphics.Gloss as GLO
@@ -19,8 +19,8 @@ data RenderCell = RenderCell {
 display :: String -> (Int, Int) -> GLO.Display
 display title winSize = (GLO.InWindow title winSize (0, 0))
 
-renderFrame :: Bool -> [RenderCell] -> (Int, Int) -> (Int, Int) -> GLO.Picture
-renderFrame renderCircles cs wSize@(wx, wy) (cx, cy) = GLO.Pictures $ agentPics
+render2DDiscreteFrame :: Bool -> [RenderCell] -> (Int, Int) -> (Int, Int) -> GLO.Picture
+render2DDiscreteFrame renderCircles cs wSize@(wx, wy) (cx, cy) = GLO.Pictures $ agentPics
     where
         renderFunc = if renderCircles then renderCellCircle else renderCellRect
         agentPics = map (renderFunc (cellWidth, cellHeight) wSize) cs

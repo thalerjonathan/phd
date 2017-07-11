@@ -5,9 +5,7 @@ module PrisonersDilemma.Agent (
 
 import PrisonersDilemma.Model
 
-import FrABS.Env.Environment
-import FrABS.Agent.Agent
-import FrABS.Agent.Utils
+import FRP.FrABS
 
 import FRP.Yampa
 

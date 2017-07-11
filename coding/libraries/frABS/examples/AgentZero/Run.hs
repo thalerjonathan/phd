@@ -6,9 +6,7 @@ import AgentZero.Init
 import AgentZero.Environment
 import AgentZero.Renderer as Renderer
 
-import FrABS.Simulation.Simulation
-import FrABS.Simulation.Init
-import FrABS.Rendering.GlossSimulator
+import FRP.FrABS
 
 winSize = (800, 800)
 winTitle = "Agent_Zero"

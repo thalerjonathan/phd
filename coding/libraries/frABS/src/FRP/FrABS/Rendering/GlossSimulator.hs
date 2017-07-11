@@ -1,4 +1,4 @@
-module FrABS.Rendering.GlossSimulator (
+module FRP.FrABS.Rendering.GlossSimulator (
 	simulateAndRender,
 	simulateStepsAndRender,
 	
@@ -6,9 +6,9 @@ module FrABS.Rendering.GlossSimulator (
 	RenderFrame
   ) where
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
-import FrABS.Simulation.Simulation
+import FRP.FrABS.Agent.Agent
+import FRP.FrABS.Env.Environment
+import FRP.FrABS.Simulation.Simulation
 
 import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.IO.Animate

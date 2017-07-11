@@ -16,9 +16,6 @@ import Wildfire.Run
 
 {-
 	TODOs
-    - rename all files in examples: get rid of example name 
-    - add FRP folder FrABS 
-    - FrABS imports and re-exports all symbols => only need to include FrABS.FrABS 
     - PolicyEffects should use its own replicator for the environment
     - refactor SIRS: use time
     - implement Prisoners Dilemma

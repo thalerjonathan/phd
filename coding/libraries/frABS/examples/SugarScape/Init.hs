@@ -6,9 +6,7 @@ import SugarScape.Model
 import SugarScape.Agent
 import SugarScape.Environment
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
-import FrABS.Simulation.Init
+import FRP.FrABS
 
 import FRP.Yampa
 

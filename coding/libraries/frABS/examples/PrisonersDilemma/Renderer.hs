@@ -2,8 +2,7 @@ module PrisonersDilemma.Renderer (
     renderFrame
   ) where
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
+import FRP.FrABS
 
 import PrisonersDilemma.Model
 import PrisonersDilemma.Agent

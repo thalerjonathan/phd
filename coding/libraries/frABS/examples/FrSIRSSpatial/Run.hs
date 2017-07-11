@@ -10,11 +10,7 @@ import FrSIRSSpatial.Model
 import FrSIRSSpatial.Renderer as Renderer
 import Utils.Sirs
 
-import FrABS.Agent.Agent
-import FrABS.Simulation.Simulation
-import FrABS.Simulation.Init
-import FrABS.Simulation.Replication
-import FrABS.Rendering.GlossSimulator
+import FRP.FrABS
 
 import Text.Printf
 import System.IO

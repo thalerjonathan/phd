@@ -5,8 +5,7 @@ module Wildfire.Init (
 import Wildfire.Model
 import Wildfire.Agent
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
+import FRP.FrABS
 
 import FRP.Yampa
 

@@ -8,10 +8,7 @@ import Segregation.Init
 import Segregation.Stats
 import Segregation.Renderer as Renderer
 
-import FrABS.Agent.Agent
-import FrABS.Simulation.Simulation
-import FrABS.Simulation.Init
-import FrABS.Rendering.GlossSimulator
+import FRP.FrABS
 
 import Text.Printf
 

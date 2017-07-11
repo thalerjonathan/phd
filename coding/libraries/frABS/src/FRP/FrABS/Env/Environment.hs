@@ -1,5 +1,5 @@
 {-# LANGUAGE Arrows #-}
-module FrABS.Env.Environment (
+module FRP.FrABS.Env.Environment (
     EnvironmentBehaviour,
     EnvCoord,
     EnvLimits,
@@ -49,7 +49,7 @@ module FrABS.Env.Environment (
     neumann,
     moore,
 
-     wrapCells
+    wrapCells
   ) where
 
 import FRP.Yampa

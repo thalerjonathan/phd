@@ -1,9 +1,9 @@
-module FrABS.Simulation.SeqIteration (
+module FRP.FrABS.Simulation.SeqIteration (
     runSeqSF,
     runSeqInternal
   ) where
 
-import FrABS.Simulation.Internal
+import FRP.FrABS.Simulation.Internal
 
 import FRP.Yampa.InternalCore
 

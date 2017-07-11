@@ -7,8 +7,7 @@ import AgentZero.Model
 import AgentZero.Agent
 import AgentZero.Environment
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
+import FRP.FrABS
 
 import FRP.Yampa
 

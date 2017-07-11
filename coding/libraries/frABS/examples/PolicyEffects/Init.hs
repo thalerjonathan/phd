@@ -7,10 +7,7 @@ import PolicyEffects.Agent
 
 import FRP.Yampa
 
-import FrABS.Agent.Agent
-import FrABS.Agent.Monad
-import FrABS.Env.Environment
-import FrABS.Env.Utils
+import FRP.FrABS
 
 import System.Random
 import Control.Monad.Random

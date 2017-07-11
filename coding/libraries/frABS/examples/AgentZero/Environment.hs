@@ -6,19 +6,15 @@ module AgentZero.Environment (
   	agentZeroEnvironmentBehaviour
   ) where
 
--- Project-internal import first
 import AgentZero.Model
 
-import FrABS.Env.Environment
-import FrABS.Simulation.Simulation
+import FRP.FrABS
 
--- Project-specific libraries follow
 import FRP.Yampa
 import Data.Maybe
 import System.Random
 import Control.Monad.Random
 
--- debugging imports finally, to be easily removed in final version
 import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -47,20 +43,6 @@ agentZeroEnvironmentsCollapse envs = foldr mergeEnvs initEnv envs
 			where
 				cellStateA = azCellState cellA
 				cellStateB = azCellState cellB
-------------------------------------------------------------------------------------------------------------------------
-
-
-------------------------------------------------------------------------------------------------------------------------
--- ENVIRONMENT-BEHAVIOUR MONADIC implementation
-------------------------------------------------------------------------------------------------------------------------
--- TODO
-------------------------------------------------------------------------------------------------------------------------
-
-
-------------------------------------------------------------------------------------------------------------------------
--- ENVIRONMENT-BEHAVIOUR Yampa implementation
-------------------------------------------------------------------------------------------------------------------------
--- TODO
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

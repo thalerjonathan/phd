@@ -6,9 +6,7 @@ import DoubleAuction.Model
 import DoubleAuction.Auctioneer
 import DoubleAuction.Trader
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
-import FrABS.Env.Utils
+import FRP.FrABS
 
 import FRP.Yampa
 

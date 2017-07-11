@@ -5,9 +5,7 @@ module SugarScape.Run (
 import SugarScape.Init
 import SugarScape.Renderer as Renderer
 
-import FrABS.Simulation.Simulation
-import FrABS.Simulation.Init
-import FrABS.Rendering.GlossSimulator
+import FRP.FrABS
 
 import System.Random
 

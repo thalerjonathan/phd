@@ -1,4 +1,4 @@
-module FrABS.Simulation.Replication (
+module FRP.FrABS.Simulation.Replication (
     AgentDefReplicator,
     EnvironmentReplicator,
 
@@ -10,10 +10,10 @@ module FrABS.Simulation.Replication (
     runReplications
   ) where
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
-import FrABS.Simulation.Simulation
-import FrABS.Simulation.Internal
+import FRP.FrABS.Agent.Agent
+import FRP.FrABS.Env.Environment
+import FRP.FrABS.Simulation.Simulation
+import FRP.FrABS.Simulation.Internal
 
 import Control.Monad.Random
 import Control.Parallel.Strategies

@@ -1,5 +1,5 @@
 {-# LANGUAGE Arrows #-}
-module FrABS.Agent.Monad (
+module FRP.FrABS.Agent.Monad (
     agentIdM,
     environmentM,
     environmentPositionM,
@@ -33,8 +33,8 @@ module FrABS.Agent.Monad (
     ifThenElseM
   ) where
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
+import FRP.FrABS.Agent.Agent
+import FRP.FrABS.Env.Environment
 
 import FRP.Yampa
 

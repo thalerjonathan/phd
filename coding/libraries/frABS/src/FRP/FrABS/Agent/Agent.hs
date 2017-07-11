@@ -1,5 +1,5 @@
 {-# LANGUAGE Arrows #-}
-module FrABS.Agent.Agent (
+module FRP.FrABS.Agent.Agent (
     AgentId,
     AgentMessage,
     AgentBehaviour,
@@ -52,8 +52,8 @@ module FrABS.Agent.Agent (
     agentPure
   ) where
 
-import FrABS.Env.Environment
-import FrABS.Simulation.Internal
+import FRP.FrABS.Env.Environment
+import FRP.FrABS.Simulation.Internal
 
 import FRP.Yampa
 

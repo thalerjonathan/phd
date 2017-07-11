@@ -26,8 +26,7 @@ module SysDynSIR.Model (
     recoveryRateFlowId
   ) where
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
+import FRP.FrABS
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS

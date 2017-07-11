@@ -8,12 +8,7 @@ import PolicyEffects.Init
 import PolicyEffects.Model
 import PolicyEffects.Renderer as Renderer
 
-import FrABS.Agent.Agent
-import FrABS.Simulation.Simulation
-import FrABS.Simulation.Init
-import FrABS.Simulation.Replication
-import FrABS.Rendering.GlossSimulator
-import FrABS.Env.Utils
+import FRP.FrABS
 
 import Text.Printf
 import System.IO

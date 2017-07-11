@@ -1,5 +1,5 @@
 {-# LANGUAGE Arrows #-}
-module FrABS.YampaSwitchTest where
+module FRP.FrABS.YampaSwitchTest where
 
 import Data.List
 

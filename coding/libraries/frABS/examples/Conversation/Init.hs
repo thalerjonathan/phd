@@ -6,8 +6,7 @@ import Conversation.Model
 
 import FRP.Yampa
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
+import FRP.FrABS
 
 import System.Random
 

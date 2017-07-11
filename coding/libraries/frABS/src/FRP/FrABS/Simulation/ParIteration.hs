@@ -1,9 +1,9 @@
-module FrABS.Simulation.ParIteration (
+module FRP.FrABS.Simulation.ParIteration (
     runParSF,
     runParInternal
   ) where
 
-import FrABS.Simulation.Internal
+import FRP.FrABS.Simulation.Internal
 
 import FRP.Yampa.InternalCore
 

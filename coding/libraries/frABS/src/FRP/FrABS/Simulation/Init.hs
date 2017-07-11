@@ -1,11 +1,11 @@
-module FrABS.Simulation.Init (
+module FRP.FrABS.Simulation.Init (
     initSimulation,
     newAgentId
   ) where
 
-import FrABS.Agent.Agent
-import FrABS.Simulation.Simulation
-import FrABS.Simulation.Internal
+import FRP.FrABS.Agent.Agent
+import FRP.FrABS.Simulation.Simulation
+import FRP.FrABS.Simulation.Internal
 
 import Control.Monad.Random
 import Control.Concurrent.STM.TVar

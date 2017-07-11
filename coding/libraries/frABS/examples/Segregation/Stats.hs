@@ -6,7 +6,7 @@ module Segregation.Stats (
 import Segregation.Model
 import Segregation.Agent
 
-import FrABS.Agent.Agent
+import FRP.FrABS
 
 totalSatisfaction :: [SegAgentOut] -> Double
 totalSatisfaction aos = sum $ map (segSatisfactionLevel . aoState) aos

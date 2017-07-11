@@ -4,11 +4,7 @@ module DoubleAuction.Trader (
 
 import DoubleAuction.Model
 
-import FrABS.Env.Environment
-import FrABS.Agent.Agent
-import FrABS.Agent.Utils
-import FrABS.Agent.Random
-import FrABS.Agent.Monad
+import FRP.FrABS
 
 import FRP.Yampa
 

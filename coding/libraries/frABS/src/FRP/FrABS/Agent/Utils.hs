@@ -1,4 +1,4 @@
-module FrABS.Agent.Utils (
+module FRP.FrABS.Agent.Utils (
     pickRandomNeighbourNode,
     pickRandomNeighbourNodeM,
     
@@ -12,9 +12,9 @@ module FrABS.Agent.Utils (
 	agentCellOnPosM
   ) where
 
-import FrABS.Agent.Agent
-import FrABS.Agent.Random
-import FrABS.Env.Environment
+import FRP.FrABS.Agent.Agent
+import FRP.FrABS.Agent.Random
+import FRP.FrABS.Env.Environment
 
 import Control.Monad.Random
 import Control.Monad.Trans.State

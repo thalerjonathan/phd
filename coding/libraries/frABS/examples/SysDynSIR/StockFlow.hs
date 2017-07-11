@@ -12,8 +12,7 @@ import SysDynSIR.Model
 
 import FRP.Yampa
 
-import FrABS.Agent.Agent
-import FrABS.Agent.Utils
+import FRP.FrABS
 
 ------------------------------------------------------------------------------------------------------------------------
 -- STOCKS

@@ -10,9 +10,7 @@ import Utils.Sirs
 
 import FRP.Yampa
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
-import FrABS.Env.Utils
+import FRP.FrABS
 
 import Data.List
 import Data.Ord

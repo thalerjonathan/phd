@@ -4,8 +4,7 @@ module FrSIRSSpatial.Renderer (
 
 import FrSIRSSpatial.Model
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
+import FRP.FrABS
 
 import qualified Graphics.Gloss as GLO
 

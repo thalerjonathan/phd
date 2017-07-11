@@ -33,9 +33,7 @@ module DoubleAuction.Model (
     shuffleRandom,
   ) where
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
-import FrABS.Simulation.Simulation
+import FRP.FrABS
 
 import FRP.Yampa
 

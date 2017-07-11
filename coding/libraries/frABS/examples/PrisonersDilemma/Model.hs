@@ -22,8 +22,7 @@ module PrisonersDilemma.Model (
     createPDAgent
   ) where
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
+import FRP.FrABS
 
 import FRP.Yampa
 

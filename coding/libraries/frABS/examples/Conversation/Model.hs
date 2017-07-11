@@ -18,9 +18,7 @@ module Conversation.Model (
     conversationAgentBehaviour
   ) where
 
-import FrABS.Agent.Agent
-import FrABS.Agent.Random
-import FrABS.Env.Environment
+import FRP.FrABS
 
 import FRP.Yampa
 

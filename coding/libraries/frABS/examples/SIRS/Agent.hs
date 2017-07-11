@@ -7,11 +7,7 @@ import Utils.Sirs
 
 import FRP.Yampa
 
-import FrABS.Agent.Agent
-import FrABS.Agent.Utils
-import FrABS.Agent.Random
-import FrABS.Agent.Monad
-import FrABS.Env.Environment
+import FRP.FrABS
 
 import Control.Monad.Random
 import Control.Monad.Trans.State

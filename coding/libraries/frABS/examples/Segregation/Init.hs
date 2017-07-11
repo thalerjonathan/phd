@@ -5,8 +5,7 @@ module Segregation.Init (
 import Segregation.Model
 import Segregation.Agent
 
-import FrABS.Agent.Agent
-import FrABS.Env.Environment
+import FRP.FrABS
 
 import FRP.Yampa
 

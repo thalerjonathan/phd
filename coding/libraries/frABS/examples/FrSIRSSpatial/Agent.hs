@@ -8,10 +8,7 @@ import FrSIRSSpatial.Model
 
 import FRP.Yampa
 
-import FrABS.Agent.Agent
-import FrABS.Agent.Utils
-import FrABS.Agent.Random
-import FrABS.Agent.Monad
+import FRP.FrABS
 
 import Control.Monad
 import Control.Monad.Random

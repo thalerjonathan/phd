@@ -11,12 +11,7 @@ import FrSIRSNetwork.Model
 import FrSIRSNetwork.Renderer as Renderer
 import Utils.Sirs
 
-import FrABS.Agent.Agent
-import FrABS.Simulation.Simulation
-import FrABS.Simulation.Init
-import FrABS.Simulation.Replication
-import FrABS.Rendering.GlossSimulator
-import FrABS.Env.Utils
+import FRP.FrABS
 
 import Text.Printf
 import System.IO

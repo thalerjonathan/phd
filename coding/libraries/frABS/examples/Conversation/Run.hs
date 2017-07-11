@@ -4,9 +4,7 @@ module Conversation.Run (
 
 import Conversation.Init
 
-import FrABS.Agent.Agent
-import FrABS.Simulation.Simulation
-import FrABS.Simulation.Init
+import FRP.FrABS
 
 import System.IO
 

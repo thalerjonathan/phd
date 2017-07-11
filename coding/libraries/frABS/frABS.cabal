@@ -18,21 +18,21 @@ library
   ghc-options :    -O3 -Wall -fwarn-tabs -fno-warn-name-shadowing -threaded
   build-depends:   base, Yampa, gloss, random, containers, array, MonadRandom, split, fgl, transformers, parallel, stm
   exposed-modules:
-    FrABS.FrABS
-    FrABS.Agent.Agent
-    FrABS.Agent.Utils
-    FrABS.Agent.Random
-    FrABS.Agent.Monad
-    FrABS.Agent.Reactive
-    FrABS.Env.Environment
-    FrABS.Env.Utils
-    FrABS.Simulation.Simulation
-    FrABS.Simulation.Init
-    FrABS.Simulation.Replication
-    FrABS.Simulation.ParIteration      
-    FrABS.Simulation.SeqIteration 
-    FrABS.Simulation.Internal
-    FrABS.Rendering.Agents2DDiscrete
-    FrABS.Rendering.GlossSimulator
+    FRP.FrABS
+    FRP.FrABS.Agent.Agent
+    FRP.FrABS.Agent.Utils
+    FRP.FrABS.Agent.Random
+    FRP.FrABS.Agent.Monad
+    FRP.FrABS.Agent.Reactive
+    FRP.FrABS.Env.Environment
+    FRP.FrABS.Env.Utils
+    FRP.FrABS.Simulation.Simulation
+    FRP.FrABS.Simulation.Init
+    FRP.FrABS.Simulation.Replication
+    FRP.FrABS.Simulation.ParIteration      
+    FRP.FrABS.Simulation.SeqIteration 
+    FRP.FrABS.Simulation.Internal
+    FRP.FrABS.Rendering.Agents2DDiscrete
+    FRP.FrABS.Rendering.GlossSimulator
 
 -- unclear why ParIteration, SeqIteration & FrABS.Simulation.Utils need to be exposed. if not it leads to undefined symbol 

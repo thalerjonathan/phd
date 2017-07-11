@@ -7,10 +7,7 @@ import SugarScape.Model
 import SugarScape.Environment
 import SugarScape.AgentCommon
 
-import FrABS.Env.Environment
-import FrABS.Agent.Agent
-import FrABS.Agent.Utils
-import FrABS.Agent.Random
+import FRP.FrABS
 
 import FRP.Yampa
 

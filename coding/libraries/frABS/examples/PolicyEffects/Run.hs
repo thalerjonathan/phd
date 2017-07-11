@@ -29,7 +29,7 @@ initialWealth :: Double
 initialWealth = 100
 
 samplingTimeDelta = 1.0
-steps = 10000
+steps = 5000
 
 completeNetwork = Complete agentCount
 erdosRenyiNetwork = ErdosRenyi agentCount 0.2
@@ -37,12 +37,12 @@ barbasiAlbertNetwork = BarbasiAlbert barbasiAlbertM0 barbasiAlbertM agentCount
 barbasiAlbertM0 = 3
 barbasiAlbertM = 1
 
-network = completeNetwork
+network = erdosRenyiNetwork
 
 replCfg = ReplicationConfig {
-    replCfgCount = 8,
+    replCfgCount = 4,
     replCfgAgentReplicator = defaultAgentReplicator,
-    replCfgEnvReplicator = defaultEnvReplicator
+    replCfgEnvReplicator = (policyEffectsEnvReplicator agentDimensions network)
 }
 
 runPolicyEffectsWithRendering :: IO ()

@@ -39,8 +39,9 @@ import           Wildfire.Run
 -}
 
 main :: IO ()
-main = runAgentZeroWithRendering
+main = runPolicyEffectsStepsAndWriteToFile
 
+    -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile
     -- runSysDynSIRStepsAndWriteToFile
     -- runFrSIRSSpatialWithRendering -- runFrSIRSSpatialStepsAndPrint -- runFrSIRSSpatialStepsAndWriteToFile

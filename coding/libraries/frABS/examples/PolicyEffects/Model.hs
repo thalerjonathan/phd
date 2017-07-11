@@ -9,7 +9,9 @@ module PolicyEffects.Model (
     PolicyEffectsAgentDef,
     PolicyEffectsAgentBehaviour,
     PolicyEffectsAgentIn,
-    PolicyEffectsAgentOut
+    PolicyEffectsAgentOut,
+
+    PolicyEffectsEnvironmentReplicator
   ) where
 
 import FRP.FrABS
@@ -32,4 +34,6 @@ type PolicyEffectsAgentDef = AgentDef PolicyEffectsState PolicyEffectsMsg Policy
 type PolicyEffectsAgentBehaviour = AgentBehaviour PolicyEffectsState PolicyEffectsMsg PolicyEffectsEnvCell PolicyEffectsEnvLink
 type PolicyEffectsAgentIn = AgentIn PolicyEffectsState PolicyEffectsMsg PolicyEffectsEnvCell PolicyEffectsEnvLink
 type PolicyEffectsAgentOut = AgentOut PolicyEffectsState PolicyEffectsMsg PolicyEffectsEnvCell PolicyEffectsEnvLink
+
+type PolicyEffectsEnvironmentReplicator = EnvironmentReplicator PolicyEffectsEnvCell PolicyEffectsEnvLink
 ------------------------------------------------------------------------------------------------------------------------

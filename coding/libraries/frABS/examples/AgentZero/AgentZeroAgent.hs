@@ -1,5 +1,6 @@
-{-# LANGUAGE Arrows #-}
-module AgentZero.AgentZeroAgent where
+module AgentZero.AgentZeroAgent (
+  	agentZeroAgentBehaviour
+  ) where
 
 import AgentZero.AgentZeroModel
 import AgentZero.AgentZeroEnvironment
@@ -32,8 +33,8 @@ isAttackingSite AgentZeroEnvCell{azCellState = cellState} = Attack == cellState
 ------------------------------------------------------------------------------------------------------------------------
 --  AGENT-BEHAVIOUR MONADIC implementation
 ------------------------------------------------------------------------------------------------------------------------
-agentZeroAgentBehaviourFuncM :: AgentZeroAgentIn -> State AgentZeroAgentOut ()
-agentZeroAgentBehaviourFuncM ain = 
+agentZeroAgentBehaviourFuncM :: Double -> AgentZeroAgentIn -> State AgentZeroAgentOut ()
+agentZeroAgentBehaviourFuncM _ ain = 
 	do
 		agentZeroRandomMoveM
 		agentZeroUpdateEventCountM
@@ -234,8 +235,8 @@ agentZeroRandomMove a
 	| aoId a /= 0 = agentRandomMove a
 	| otherwise = a
 
-agentZeroAgentBehaviourFunc :: AgentZeroAgentIn -> AgentZeroAgentOut -> AgentZeroAgentOut 
-agentZeroAgentBehaviourFunc ain aout 
+agentZeroAgentBehaviourFunc :: Double -> AgentZeroAgentIn -> AgentZeroAgentOut -> AgentZeroAgentOut 
+agentZeroAgentBehaviourFunc _ ain aout 
 	| agentZeroTakeAction agentBevoreAction = agentZeroDestroy agentBevoreAction
 	| otherwise = agentBevoreAction
 	where
@@ -246,10 +247,5 @@ agentZeroAgentBehaviourFunc ain aout
 								agentZeroRandomMove aout
 
 agentZeroAgentBehaviour :: AgentZeroAgentBehaviour
-agentZeroAgentBehaviour = proc ain ->
-    do
-        let ao = agentOutFromIn ain
-        -- let ao' = agentZeroAgentBehaviourFunc ain ao
-        let ao' = execState (agentZeroAgentBehaviourFuncM ain) ao
-        returnA -< ao'
+agentZeroAgentBehaviour = agentMonadic agentZeroAgentBehaviourFuncM  -- agentPure agentZeroAgentBehaviourFunc
 ------------------------------------------------------------------------------------------------------------------------

@@ -1,10 +1,12 @@
-module PrisonersDilemma.PDRun where
+module PrisonersDilemma.PDRun (
+    runPDWithRendering
+  ) where
 
 import PrisonersDilemma.PDInit
 import PrisonersDilemma.PDRenderer as Renderer
 
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Init
 import FrABS.Rendering.GlossSimulator
 
 import System.Random
@@ -21,10 +23,9 @@ frequency = 0
 runPDWithRendering :: IO ()
 runPDWithRendering = 
     do
-        initRng rngSeed
+        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- initPrisonersDilemma envSize
-        params <- initSimParams updateStrat Nothing shuffleAgents
-
+        
         simulateAndRender initAdefs
                             initEnv
                             params

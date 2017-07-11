@@ -10,7 +10,8 @@ import PolicyEffects.Renderer as Renderer
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Init
+import FrABS.Simulation.Replication
 import FrABS.Rendering.GlossSimulator
 import FrABS.Env.Utils
 
@@ -35,7 +36,6 @@ initialWealth = 100
 
 samplingTimeDelta = 1.0
 steps = 10000
-replications = 8
 
 completeNetwork = Complete agentCount
 erdosRenyiNetwork = ErdosRenyi agentCount 0.2
@@ -45,15 +45,18 @@ barbasiAlbertM = 1
 
 network = completeNetwork
 
+replCfg = ReplicationConfig {
+    replCfgCount = 8,
+    replCfgAgentReplicator = defaultAgentReplicator,
+    replCfgEnvReplicator = defaultEnvReplicator
+}
+
 runPolicyEffectsWithRendering :: IO ()
 runPolicyEffectsWithRendering =
     do
-        _ <- initRng rngSeed
-
+        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- createPolicyEffects agentDimensions initialWealth network
-
-        params <- initSimParams updateStrat Nothing shuffleAgents
-
+        
         simulateAndRender initAdefs
                             initEnv
                             params
@@ -67,11 +70,8 @@ runPolicyEffectsWithRendering =
 runPolicyEffectsStepsAndWriteToFile :: IO ()
 runPolicyEffectsStepsAndWriteToFile =
     do
-        _ <- initRng rngSeed
-
+        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- createPolicyEffects agentDimensions initialWealth network
-
-        params <- initSimParams updateStrat Nothing shuffleAgents
 
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
         let dynamics = map (calculateDynamics . fst) asenv
@@ -90,22 +90,19 @@ runPolicyEffectsStepsAndWriteToFile =
 runPolicyEffectsReplicationsAndWriteToFile :: IO ()
 runPolicyEffectsReplicationsAndWriteToFile =
     do
-        _ <- initRng rngSeed
-
+        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- createPolicyEffects agentDimensions initialWealth network
 
-        params <- initSimParams updateStrat Nothing shuffleAgents
-
-        let assenv = runReplications initAdefs initEnv params samplingTimeDelta steps replications
+        let assenv = runReplications initAdefs initEnv params samplingTimeDelta steps replCfg
         let replicationDynamics = map calculateSingleReplicationDynamic assenv
         let dynamics = dynamicsReplMean replicationDynamics
 
         let fileName = "policyEffectsDynamics_" 
                         ++ show agentDimensions ++ "agents_" 
                         ++ show steps ++ "steps_" 
-                        ++ show replications ++ "replications.m"
+                        ++ show (replCfgCount replCfg) ++ "replications.m"
 
-        writeDynamicsFile fileName steps replications dynamics
+        writeDynamicsFile fileName steps (replCfgCount replCfg) dynamics
 
 
 calculateDynamics :: [PolicyEffectsAgentOut] -> (Double, Double, Double)

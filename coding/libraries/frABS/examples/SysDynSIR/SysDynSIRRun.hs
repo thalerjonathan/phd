@@ -9,13 +9,11 @@ import Utils.Sirs
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Init
 import FrABS.Rendering.GlossSimulator
 
 import Data.Ord
 import Data.List
-
-import Debug.Trace 
 
 samplingTimeDelta = 0.1
 steps = 1000
@@ -23,12 +21,12 @@ steps = 1000
 runSysDynSIRStepsAndWriteToFile :: IO ()
 runSysDynSIRStepsAndWriteToFile =
     do
-        -- SystemDynamics MUST NOT rely on RNGs at all, so no need to initialize it 
-        -- _ <- initRng rngSeed
-        (initAdefs, initEnv) <- createSysDynSIR
+        -- SystemDynamics MUST NOT rely on RNGs at all, so no need to initialize it
         -- SystemDynamics MUST ABSOLUTELY only run Parllel and there is no need to shuffle the agents (=stocks)
-        params <- initSimParams Parallel Nothing False
+        params <- initSimulation Parallel Nothing False Nothing
 
+        (initAdefs, initEnv) <- createSysDynSIR
+        
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
         let dynamics = map (calculateDynamics . fst) asenv
         let fileName = "sysDynSIRDynamics_" 

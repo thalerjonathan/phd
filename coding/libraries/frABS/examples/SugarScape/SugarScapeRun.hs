@@ -6,7 +6,7 @@ import SugarScape.SugarScapeInit
 import SugarScape.SugarScapeRenderer as Renderer
 
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Init
 import FrABS.Rendering.GlossSimulator
 
 import System.Random
@@ -26,8 +26,7 @@ frequency = 0
 runSugarScapeWithRendering :: IO ()
 runSugarScapeWithRendering = 
     do
-        initRng rngSeed
-        params <- initSimParams updateStrat envCollapsing shuffleAgents
+        params <- initSimulation updateStrat envCollapsing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- createSugarScape agentCount envSize params
         
         simulateAndRender initAdefs

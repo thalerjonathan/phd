@@ -1,13 +1,32 @@
-module PrisonersDilemma.PDModel where
+module PrisonersDilemma.PDModel (
+    Payoff,
+    PDMsg (..),
+    PDAgentState (..),
+    PDAction (..),
 
--- Project-internal import first
+    PDCell,
+    PDLinkLabel,
+    PDEnvironment,
+    PDEnvironmentBehaviour,
+
+    PDAgentDef,
+    PDAgentBehaviour,
+    PDAgentIn,
+    PDAgentOut,
+
+    bParam,
+    sParam,
+    pParam,
+    rParam,
+
+    createPDAgent
+  ) where
+
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 
--- Project-specific libraries follow
 import FRP.Yampa
 
--- System imports then
 import System.Random
 import Control.Monad.Random
 import Control.Monad
@@ -16,7 +35,6 @@ import Data.List
 import Data.Maybe
 import qualified Data.Map as Map
 
-import Debug.Trace
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
@@ -45,6 +63,8 @@ type PDAgentBehaviour = AgentBehaviour PDAgentState PDMsg PDCell PDLinkLabel
 type PDAgentIn = AgentIn PDAgentState PDMsg PDCell PDLinkLabel
 type PDAgentOut = AgentOut PDAgentState PDMsg PDCell PDLinkLabel
 ------------------------------------------------------------------------------------------------------------------------
+
+
 
 ------------------------------------------------------------------------------------------------------------------------
 -- MODEL-PARAMETERS

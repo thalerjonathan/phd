@@ -1,4 +1,7 @@
-module Segregation.SegregationRun where
+module Segregation.SegregationRun (
+    runSegWithRendering,
+    runSegStepsAndRender
+  ) where
 
 import Segregation.SegregationModel
 import Segregation.SegregationInit
@@ -7,7 +10,7 @@ import Segregation.SegregationRenderer as Renderer
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Init
 import FrABS.Rendering.GlossSimulator
 
 import Text.Printf
@@ -31,14 +34,9 @@ shuffleAgents = True
 runSegWithRendering :: IO ()
 runSegWithRendering = 
     do
-        hSetBuffering stdout NoBuffering
-        hSetBuffering stderr NoBuffering
-
-        initRng rngSeed
-
-        (initAdefs, initEnv) <- createSegAgentsAndEnv cells
-        params <- initSimParams updateStrat envCollapsing shuffleAgents
-
+        params <- initSimulation updateStrat envCollapsing shuffleAgents (Just rngSeed)
+        (initAdefs, initEnv) <- createSegregation cells
+        
         putStrLn "dynamics = ["
 
         simulateAndRender initAdefs
@@ -54,11 +52,9 @@ runSegWithRendering =
 runSegStepsAndRender :: IO ()
 runSegStepsAndRender = 
     do
-        initRng rngSeed
-
-        (initAdefs, initEnv) <- createSegAgentsAndEnv cells
-        params <- initSimParams updateStrat envCollapsing shuffleAgents
-
+        params <- initSimulation updateStrat envCollapsing shuffleAgents (Just rngSeed)
+        (initAdefs, initEnv) <- createSegregation cells
+        
         simulateStepsAndRender initAdefs
                             initEnv
                             params
@@ -81,10 +77,10 @@ printDynamics (aoutsPrev, _) (aoutsCurr, _) =
         let currSimilarityNormalized = currSimilarity / maxSimilarity
         let similarityDeltaNormalized = similarityDelta / maxSimilarity
 
-        putStrLn ((printf "%.3f" unhappyFract) 
-                    ++ "," ++ (printf "%.3f" currSimilarityNormalized)
-                    ++ "," ++ (printf "%.3f" similarityDeltaNormalized)
-                    ++ ";" )
+        putStrLn (printf "%.3f" unhappyFract 
+                    ++ "," ++ printf "%.3f" currSimilarityNormalized
+                    ++ "," ++ printf "%.3f" similarityDeltaNormalized
+                    ++ ";")
         where
             (totalCount, _, _, unhappyFract) = satisfactionStats aoutsCurr
 

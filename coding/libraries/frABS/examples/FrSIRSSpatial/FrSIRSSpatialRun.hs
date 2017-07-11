@@ -12,7 +12,8 @@ import Utils.Sirs
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Init
+import FrABS.Simulation.Replication
 import FrABS.Rendering.GlossSimulator
 
 import Text.Printf
@@ -32,18 +33,21 @@ frequency = 0
 
 samplingTimeDelta = 0.1
 steps = 3500
-replications = 4
+
+replCfg = ReplicationConfig {
+    replCfgCount = 4,
+    replCfgAgentReplicator = defaultAgentReplicator,
+    replCfgEnvReplicator = defaultEnvReplicator
+}
 
 runFrSIRSSpatialWithRendering :: IO ()
 runFrSIRSSpatialWithRendering =
     do
-        _ <- initRng rngSeed
+        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
 
         -- (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
         (initAdefs, initEnv) <- createFrSIRSSpatialSingleInfected agentDimensions
         
-        params <- initSimParams updateStrat Nothing shuffleAgents
-
         simulateAndRender initAdefs
                             initEnv
                             params
@@ -57,12 +61,10 @@ runFrSIRSSpatialWithRendering =
 runFrSIRSSpatialStepsAndRender :: IO ()
 runFrSIRSSpatialStepsAndRender =
     do
-        _ <- initRng rngSeed
+        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
 
         -- (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
         (initAdefs, initEnv) <- createFrSIRSSpatialSingleInfected agentDimensions
-
-        params <- initSimParams updateStrat Nothing shuffleAgents
 
         simulateStepsAndRender initAdefs
                             initEnv
@@ -76,12 +78,10 @@ runFrSIRSSpatialStepsAndRender =
 runFrSIRSSpatialStepsAndWriteToFile :: IO ()
 runFrSIRSSpatialStepsAndWriteToFile =
     do
-        _ <- initRng rngSeed
+        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
 
         -- (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
         (initAdefs, initEnv) <- createFrSIRSSpatialSingleInfected agentDimensions
-
-        params <- initSimParams updateStrat Nothing shuffleAgents
 
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
         let dynamics = map agentsToDynamics asenv
@@ -95,14 +95,12 @@ runFrSIRSSpatialStepsAndWriteToFile =
 runFrSIRSSpatialReplicationsAndWriteToFile :: IO ()
 runFrSIRSSpatialReplicationsAndWriteToFile =
     do
-        _ <- initRng rngSeed
-        
+        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
+
         -- (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
         (initAdefs, initEnv) <- createFrSIRSSpatialSingleInfected agentDimensions
 
-        params <- initSimParams updateStrat Nothing shuffleAgents
-
-        let assenv = runReplications initAdefs initEnv params samplingTimeDelta steps replications
+        let assenv = runReplications initAdefs initEnv params samplingTimeDelta steps replCfg
         let replicationDynamics = map calculateSingleReplicationDynamic assenv
         let dynamics = sirsDynamicsReplMean replicationDynamics
 
@@ -110,9 +108,9 @@ runFrSIRSSpatialReplicationsAndWriteToFile =
                         ++ show agentDimensions ++ "agents_" 
                         ++ show steps ++ "steps_" 
                         ++ show samplingTimeDelta ++ "dt_" 
-                        ++ (show replications) ++ "replications.m"
+                        ++ show (replCfgCount replCfg) ++ "replications.m"
 
-        writeSirsDynamicsFile fileName steps samplingTimeDelta replications dynamics
+        writeSirsDynamicsFile fileName steps samplingTimeDelta (replCfgCount replCfg) dynamics
 
 -------------------------------------------------------------------------------
 -- UTILS

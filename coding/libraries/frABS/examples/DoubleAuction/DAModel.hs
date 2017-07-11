@@ -1,15 +1,44 @@
-{-# LANGUAGE Arrows #-}
-module DoubleAuction.DAModel where
+module DoubleAuction.DAModel (
+    Market (..),
+    Match (..),
+    OfferingData,
+    Offering (..),
+    DoubleAuctionMsg (..),
+    DAAgentState (..),
 
--- Project-internal import first
+    DAEnvCell,
+    DALinkLabel,
+    DAEnvironment,
+    DAEnvironmentBehaviour,
+    DAEnvironmentCollapsing,
+
+    DAAgentDef,
+    DAAgentBehaviour,
+    DAAgentIn,
+    DAAgentOut,
+
+    pU,
+    pD,
+    bondFaceValue,
+    limitPriceAsset,
+    limitPriceLoan,
+    cashEndow,
+    assetEndow,
+    tradingUnitAsset,
+    tradingUnitLoan,
+    tradingEpsilon,
+    auctioneer,
+    isAuctioneer,
+    isTrader,
+    shuffleRandom,
+  ) where
+
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 import FrABS.Simulation.Simulation
 
--- Project-specific libraries follow
 import FRP.Yampa
 
--- System imports then
 import System.Random
 import Control.Monad.Random
 import Control.Monad
@@ -124,6 +153,7 @@ auctioneer = 0
 
 ------------------------------------------------------------------------------------------------------------------------
 -- BOILERPLATE STUFF
+------------------------------------------------------------------------------------------------------------------------
 isAuctioneer :: DAAgentState -> Bool
 isAuctioneer (AuctioneerState {}) = True
 isAuctioneer _ = False

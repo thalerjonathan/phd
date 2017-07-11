@@ -1,9 +1,13 @@
-module FrABS.Simulation.Utils (
-	initRng,
-	initSimParams,
+module FrABS.Simulation.Replication (
+    AgentDefReplicator,
+    EnvironmentReplicator,
 
-    runReplications,
-    newAgentId
+    ReplicationConfig (..),
+
+    defaultEnvReplicator,
+    defaultAgentReplicator,
+
+    runReplications
   ) where
 
 import FrABS.Agent.Agent
@@ -15,46 +19,41 @@ import Control.Monad.Random
 import Control.Parallel.Strategies
 import Control.Concurrent.STM.TVar
 
-import Debug.Trace
+type AgentDefReplicator s m ec l = (StdGen -> AgentDef s m ec l -> (AgentDef s m ec l, StdGen))
+type EnvironmentReplicator ec l = (StdGen -> Environment ec l -> (Environment ec l, StdGen))
 
-initRng :: Int -> IO StdGen
-initRng seed =
-    do
-        let g = mkStdGen seed
-        setStdGen g
-        return g
+data ReplicationConfig s m ec l = ReplicationConfig {
+    replCfgCount :: Int,
+    replCfgAgentReplicator :: AgentDefReplicator s m ec l,
+    replCfgEnvReplicator :: EnvironmentReplicator ec l
+}
 
-initSimParams :: UpdateStrategy
-				-> Maybe (EnvironmentCollapsing ec l)
-				-> Bool
-				-> IO (SimulationParams ec l)
-initSimParams updtStrat collFunc shuffAs = 
-    do
-        rng <- getSplit
-        agentIdVar <- newTVarIO 0
+defaultEnvReplicator :: EnvironmentReplicator ec l
+defaultEnvReplicator rng env = ( env', rng'')
+    where
+        (rng', rng'') = split rng
+        env' = env { envRng = rng' }
 
-        return SimulationParams {
-            simStrategy = updtStrat,
-            simEnvCollapse = collFunc,
-            simShuffleAgents = shuffAs,
-            simRng = rng,
-            simIdGen = agentIdVar
-        }
-
-newAgentId :: SimulationParams ec l -> AgentId
-newAgentId SimulationParams { simIdGen = idGen } = incrementAtomicallyUnsafe idGen
+defaultAgentReplicator :: AgentDefReplicator s m ec l
+defaultAgentReplicator rng adef = (adef', rng'')
+    where
+        (rng', rng'') = split rng
+        adef' = adef { adRng = rng' }
 
 runReplications :: [AgentDef s m ec l]
                     -> Environment ec l
                     -> SimulationParams ec l
                     -> Double
                     -> Int
-                    -> Int
+                    -> ReplicationConfig s m ec l
                     -> [[([AgentOut s m ec l], Environment ec l)]]
-runReplications ads env params dt steps replCount = 
-        parMap rpar (runReplicationsAux ads env params) replRngs -- NOTE: replace by rseq if no hardware-parallelism should be used
+runReplications ads env params dt steps replCfg = result
     where
+        replCount = replCfgCount replCfg
         (replRngs, _) = duplicateRng replCount (simRng params)
+
+        -- NOTE: replace by rseq if no hardware-parallelism should be used
+        result = parMap rpar (runReplicationsAux ads env params) replRngs
         
         runReplicationsAux :: [AgentDef s m ec l]
                                 -> Environment ec l

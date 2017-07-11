@@ -1,4 +1,6 @@
-module Wildfire.WildfireRenderer where
+module Wildfire.WildfireRenderer (
+    renderFrame
+  ) where
 
 import FrABS.Agent.Agent
 import FrABS.Env.Environment

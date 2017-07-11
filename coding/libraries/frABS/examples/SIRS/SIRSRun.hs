@@ -1,11 +1,14 @@
-module SIRS.SIRSRun where
+module SIRS.SIRSRun (
+    runSIRSWithRendering,
+    runSIRSStepsAndRender
+  )  where
 
 import SIRS.SIRSInit
 import SIRS.SIRSModel
 import SIRS.SIRSRenderer as Renderer
 
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Init
 import FrABS.Rendering.GlossSimulator
 
 import System.Random
@@ -23,9 +26,8 @@ steps = 60
 runSIRSWithRendering :: IO ()
 runSIRSWithRendering = do
     do
-        initRng rngSeed
+        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- createSIRS cells initialInfectionProb
-        params <- initSimParams updateStrat Nothing shuffleAgents
 
         simulateAndRender initAdefs
                             initEnv
@@ -40,9 +42,8 @@ runSIRSWithRendering = do
 runSIRSStepsAndRender :: IO ()
 runSIRSStepsAndRender =
     do
-        initRng rngSeed
+        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- createSIRS cells initialInfectionProb
-        params <- initSimParams updateStrat Nothing shuffleAgents
 
         simulateStepsAndRender initAdefs
                             initEnv

@@ -1,5 +1,10 @@
 {-# LANGUAGE Arrows #-}
-module AgentZero.AgentZeroEnvironment where
+module AgentZero.AgentZeroEnvironment (
+	AgentZeroEnvironmentCollapsing,
+
+	agentZeroEnvironmentsCollapse,
+  	agentZeroEnvironmentBehaviour
+  ) where
 
 -- Project-internal import first
 import AgentZero.AgentZeroModel

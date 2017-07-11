@@ -1,11 +1,13 @@
-module DoubleAuction.DARun where
+module DoubleAuction.DARun (
+    runDoubleAuctionSteps
+  ) where
 
 import DoubleAuction.DAModel
 import DoubleAuction.DAInit
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Init
 
 import Text.Printf
 
@@ -24,12 +26,9 @@ runDoubleAuctionSteps :: IO ()
 runDoubleAuctionSteps = 
     do
         hSetBuffering stdout NoBuffering
-        hSetBuffering stderr NoBuffering
 
-        initRng rngSeed
-
+        params <- initSimulation updateStrat envCollapsing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- initDoubleAuction agentCount
-        params <- initSimParams updateStrat envCollapsing shuffleAgents
         
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
 

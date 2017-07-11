@@ -1,4 +1,6 @@
-module SIRS.SIRSInit where
+module SIRS.SIRSInit (
+    createSIRS
+  ) where
 
 import SIRS.SIRSModel
 import SIRS.SIRSAgent

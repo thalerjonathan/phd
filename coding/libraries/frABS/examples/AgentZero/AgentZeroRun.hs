@@ -1,14 +1,14 @@
-module AgentZero.AgentZeroRun where
+module AgentZero.AgentZeroRun (
+    runAgentZeroWithRendering
+  ) where
 
 import AgentZero.AgentZeroInit
 import AgentZero.AgentZeroEnvironment
 import AgentZero.AgentZeroRenderer as Renderer
 
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Init
 import FrABS.Rendering.GlossSimulator
-
-import System.Random
 
 winSize = (800, 800)
 winTitle = "Agent_Zero"
@@ -22,10 +22,9 @@ frequency = 0
 runAgentZeroWithRendering :: IO ()
 runAgentZeroWithRendering = 
     do
-        initRng rngSeed
+        params <- initSimulation updateStrat envCollapsing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- initAgentZeroEpstein
-        params <- initSimParams updateStrat envCollapsing shuffleAgents
-
+        
         simulateAndRender initAdefs
                             initEnv
                             params

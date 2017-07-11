@@ -1,3 +1,4 @@
+{-# LANGUAGE Arrows #-}
 module FrABS.Agent.Agent (
     AgentId,
     AgentMessage,
@@ -46,7 +47,9 @@ module FrABS.Agent.Agent (
     unrecursive,
     isRecursive,
 
-    mergeMessages
+    mergeMessages,
+
+    agentPure
   ) where
 
 import FrABS.Env.Environment
@@ -267,3 +270,13 @@ startingAgentInFromAgentDef env idGen ad = AgentIn { aiId = adId ad,
 
 mergeMessages :: Event [AgentMessage m] -> Event [AgentMessage m] -> Event [AgentMessage m]
 mergeMessages l r = mergeBy (\msgsLeft msgsRight -> msgsLeft ++ msgsRight) l r
+
+agentPure :: (Double -> AgentIn s m ec l -> AgentOut s m ec l -> AgentOut s m ec l) -> AgentBehaviour s m ec l
+agentPure f = proc ain ->
+    do
+        age <- time -< 0
+
+        let ao = agentOutFromIn ain
+        let ao' = f age ain ao
+        
+        returnA -< ao'

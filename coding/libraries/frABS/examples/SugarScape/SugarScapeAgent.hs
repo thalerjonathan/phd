@@ -1,4 +1,7 @@
-module SugarScape.SugarScapeAgent where
+module SugarScape.SugarScapeAgent (
+    sugarScapeAgentConversation,
+    sugarScapeAgentBehaviour
+  ) where
 
 import SugarScape.SugarScapeModel
 import SugarScape.SugarScapeAgentMonadic

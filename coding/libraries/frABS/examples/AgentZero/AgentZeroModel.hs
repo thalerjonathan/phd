@@ -1,13 +1,31 @@
-module AgentZero.AgentZeroModel where
+module AgentZero.AgentZeroModel (
+    AgentZeroMsg (..),
+    AgentZeroAgentState (..),
+    AgentZeroCellState (..),
+    AgentZeroEnvCell (..),
 
--- Project-internal import first
+    AgentZeroLink,
+    AgentZeroEnvironment,
+    AgentZeroEnvironmentBehaviour,
+
+    AgentZeroAgentDef,
+    AgentZeroAgentBehaviour,
+    AgentZeroAgentIn,
+    AgentZeroAgentOut,
+
+    extinctionRate,
+    destructionRadius,
+    sampleRadius,
+    memorySize,
+    
+    createAgentZero
+  ) where
+
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 
--- Project-specific libraries follow
 import FRP.Yampa
 
--- System imports then
 import System.Random
 import Control.Monad.Random
 import Control.Monad

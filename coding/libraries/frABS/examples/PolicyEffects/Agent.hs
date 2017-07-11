@@ -30,11 +30,14 @@ spend amount =
                 sendMessageM (randNeighbour, Spend amount)
                 setDomainStateM $ wealth - amount)
 
-policyEffectsAgentBehaviour :: Double 
+policyEffectsAgentBehaviourM :: Double 
                                 -> PolicyEffectsAgentIn 
                                 -> State PolicyEffectsAgentOut ()
-policyEffectsAgentBehaviour _ ain = 
+policyEffectsAgentBehaviourM _ ain = 
     do
         receive ain
         spend 1
+
+policyEffectsAgentBehaviour :: PolicyEffectsAgentBehaviour
+policyEffectsAgentBehaviour = agentMonadic policyEffectsAgentBehaviourM
 ------------------------------------------------------------------------------------------------------------------------

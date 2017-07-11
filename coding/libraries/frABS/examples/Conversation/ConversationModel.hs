@@ -1,5 +1,22 @@
 {-# LANGUAGE Arrows #-}
-module Conversation.ConversationModel where
+module Conversation.ConversationModel (
+    ConversationMsg (..),
+    ConversationAgentState,
+
+    ConversationEnvCell,
+    ConversationEnvironment,
+
+    ConversationAgentDef,
+    ConversationAgentBehaviour,
+    ConversationAgentIn,
+    ConversationAgentOut,
+
+    ConversationAgentConversation,
+
+    randomRangeCounter,
+    conversationHandler,
+    conversationAgentBehaviour
+  ) where
 
 import FrABS.Agent.Agent
 import FrABS.Agent.Random
@@ -14,10 +31,7 @@ import System.Random
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
 data ConversationMsg = Hello Int deriving (Eq, Show)
-
-data ConversationAgentState = ConversationAgentState {
-    convCounter :: Int
-} deriving (Show)
+type ConversationAgentState = Int
 
 type ConversationEnvCell = ()
 type ConversationEnvironment = Environment ConversationEnvCell  ()
@@ -36,8 +50,12 @@ type ConversationAgentConversation = AgentConversationReceiver ConversationAgent
 randomRangeCounter :: (Int, Int)
 randomRangeCounter = (0, 10)
 ------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- MODEL IMPLEMENTATION
+------------------------------------------------------------------------------------------------------------------------
 agentTest :: ConversationAgentOut -> ConversationAgentOut
-agentTest a = updateDomainState a' (\s -> s { convCounter = n})
+agentTest a = setDomainState a' n
     where
         (n, a') = drawRandomRangeFromAgent a  (0, 10)
 
@@ -59,9 +77,7 @@ makeConversationWith n a = conversation a msg makeConversationWithAux
             where
                 (g, a0) = splitRandomFromAgent a
 
-                s = ConversationAgentState {
-                    convCounter = 42
-                }
+                s = 42
 
                 adef = AgentDef { adId = 100+n,
                             adState = s,
@@ -80,3 +96,4 @@ conversationAgentBehaviour = proc ain ->
     do
         let ao = trace ("conversationAgentBehaviour")  agentOutFromIn ain
         returnA -< makeConversationWith 0 ao
+------------------------------------------------------------------------------------------------------------------------

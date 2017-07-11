@@ -1,4 +1,6 @@
-module Segregation.SegregationRenderer where
+module Segregation.SegregationRenderer (
+    renderFrame
+  ) where
 
 import Segregation.SegregationModel
 

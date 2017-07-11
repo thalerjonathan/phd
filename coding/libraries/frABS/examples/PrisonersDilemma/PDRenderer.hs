@@ -1,4 +1,6 @@
-module PrisonersDilemma.PDRenderer where
+module PrisonersDilemma.PDRenderer (
+    renderFrame
+  ) where
 
 import FrABS.Agent.Agent
 import FrABS.Env.Environment

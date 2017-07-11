@@ -1,4 +1,22 @@
-module SIRS.SIRSModel where
+module SIRS.SIRSModel (
+    SIRSState (..),
+    SIRSMsg (..),
+    SIRSAgentState (..),
+
+    SIRSEnvLink,
+    SIRSEnvCell,
+    SIRSEnvironment,
+
+    SIRSAgentDef,
+    SIRSAgentBehaviour,
+    SIRSAgentIn,
+    SIRSAgentOut,
+
+    infectedDuration,
+    immuneDuration,
+    infectionProbability,
+    initialInfectionProb
+  ) where
 
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
@@ -14,13 +32,14 @@ data SIRSAgentState = SIRSAgentState {
     sirsTime :: Double
 } deriving (Show)
 
+type SIRSEnvLink = ()
 type SIRSEnvCell = AgentId
-type SIRSEnvironment = Environment SIRSEnvCell ()
+type SIRSEnvironment = Environment SIRSEnvCell SIRSEnvLink
 
-type SIRSAgentDef = AgentDef SIRSAgentState SIRSMsg SIRSEnvCell ()
-type SIRSAgentBehaviour = AgentBehaviour SIRSAgentState SIRSMsg SIRSEnvCell ()
-type SIRSAgentIn = AgentIn SIRSAgentState SIRSMsg SIRSEnvCell ()
-type SIRSAgentOut = AgentOut SIRSAgentState SIRSMsg SIRSEnvCell ()
+type SIRSAgentDef = AgentDef SIRSAgentState SIRSMsg SIRSEnvCell SIRSEnvLink
+type SIRSAgentBehaviour = AgentBehaviour SIRSAgentState SIRSMsg SIRSEnvCell SIRSEnvLink
+type SIRSAgentIn = AgentIn SIRSAgentState SIRSMsg SIRSEnvCell SIRSEnvLink
+type SIRSAgentOut = AgentOut SIRSAgentState SIRSMsg SIRSEnvCell SIRSEnvLink
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

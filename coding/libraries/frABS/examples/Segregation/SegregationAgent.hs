@@ -1,5 +1,8 @@
-{-# LANGUAGE Arrows #-}
-module Segregation.SegregationAgent where
+module Segregation.SegregationAgent (
+    isSatisfied,
+    
+    segAgentBehaviour
+  ) where
 
 import Segregation.SegregationModel
 
@@ -10,8 +13,6 @@ import FrABS.Agent.Random
 import FrABS.Env.Environment
 
 import Data.Maybe
-
-
 
 ------------------------------------------------------------------------------------------------------------------------
 -- HELPER-Functions
@@ -29,7 +30,6 @@ isSatisfied aout = (segSatisfactionLevel s) >= (segSimilarityWanted s)
     where
         s = aoState aout
 ------------------------------------------------------------------------------------------------------------------------
-
 
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR
@@ -269,9 +269,8 @@ globalRandomCell ao = (ao', randCell, randCoord)
         ((randCell, randCoord), ao') = runAgentRandom ao (randomCell env)
 ------------------------------------------------------------------------------------------------------------------------
 
+segAgentBehaviourFunc :: Double -> SegAgentIn -> SegAgentOut -> SegAgentOut
+segAgentBehaviourFunc _ ain ao = if futureOptimizing then segMovementRec ain ao else segMovement ao
+
 segAgentBehaviour :: SegAgentBehaviour
-segAgentBehaviour = proc ain ->
-    do
-        let ao = agentOutFromIn ain
-        let aoMoved = if futureOptimizing then segMovementRec ain ao else segMovement ao
-        returnA -< aoMoved
+segAgentBehaviour = agentPure segAgentBehaviourFunc

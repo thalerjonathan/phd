@@ -16,31 +16,30 @@ import PolicyEffects.Run
 
 {-
 	TODOs
+    - rename all files in examples: get rid of example name 
+    - refactor SIRS: use time
+    - implement Prisoners Dilemma
+    - the 2d-renderer are all the same: refactor into one
+    - implement Heroes & Cowards
+        - use-case for continuous 2d-environment: implement Heroes & Cowards
+        -> write Agend2DContinuous
+            - continuous 2d env: just add a map of agentids with their positions to the env, agents can then update their continuous position (needs to remove itself when killed). problem: environment needs to know about agentid. but do we really need that? it would save us exchanging messages.
+            - basically it would suffice to add another field: posCont and make the other posDisc. or can we distinguish by types the position: any num type
+            - maybe distinguish between discrete agent and continuous agent
+            - distinguish between cont and disc env
+
     - clean-up
         - imports: no unused imports
-        - imports: ALL modules explicitly export their stuff (also when they export everything)
         - warnings: compilation with -w must show no warnings at all
         - lint: must be clear of warnings
 
     - comment haskell code
-
-    - refactorings
-        - replications not working in case of FrSIRS because RNGs are fixed at agent-creation time and hardwired into the Behaviour => always use the same RNGs
-        - fix problem of replications: rngs are always the same. pass 2 functions which run in the Rand Monad and gets passed the original agentdef to create a new agentdef and one to create a new envoronment
-        - reuse the Agent2D renderer if appropriate
-
-    - use-case for continuous 2d-environment: implement Heroes & Cowards
-        -> write Agend2DContinuous
-        - continuous 2d env: just add a map of agentids with their positions to the env, agents can then update their continuous position (needs to remove itself when killed). problem: environment needs to know about agentid. but do we really need that? it would save us exchanging messages.
-        - basically it would suffice to add another field: posCont and make the other posDisc. or can we distinguish by types the position: any num type
-        - maybe distinguish between discrete agent and continuous agent
-        - distinguish between cont and disc env
-
+        
     - performance?
 -}
 
 main :: IO ()
-main = runPolicyEffectsStepsAndWriteToFile
+main = runAgentZeroWithRendering
 
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile
     -- runSysDynSIRStepsAndWriteToFile

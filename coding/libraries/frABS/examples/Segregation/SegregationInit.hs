@@ -1,4 +1,6 @@
-module Segregation.SegregationInit where
+module Segregation.SegregationInit (
+    createSegregation
+  ) where
 
 import Segregation.SegregationModel
 import Segregation.SegregationAgent
@@ -10,63 +12,66 @@ import FRP.Yampa
 
 import System.Random
 
-createSegAgentsAndEnv :: (Int, Int) -> IO ([SegAgentDef], SegEnvironment)
-createSegAgentsAndEnv limits@(x,y) =  do
-                                        let coords = [ (xCoord, yCoord) | xCoord <- [0..x-1], yCoord <- [0..y-1] ]
-                                        (as, envCells) <- populateEnv coords
-                                        rng <- newStdGen
-                                        let env = createEnvironment
-                                                              Nothing
-                                                              limits
-                                                              moore
-                                                              WrapBoth
-                                                              envCells
-                                                              rng
-                                                              Nothing
-                                        return (as, env)
-    where
-        populateEnv :: [(Int, Int)] -> IO ([SegAgentDef], [(EnvCoord, SegEnvCell)])
-        populateEnv coords = foldr populateEnvAux (return ([], [])) coords
+createSegregation :: (Int, Int) -> IO ([SegAgentDef], SegEnvironment)
+createSegregation limits@(x,y) =  
+    do
+        let coords = [ (xCoord, yCoord) | xCoord <- [0..x-1], yCoord <- [0..y-1] ]
+        (as, envCells) <- populateEnv coords
+        rng <- newStdGen
+        let env = createEnvironment
+                              Nothing
+                              limits
+                              moore
+                              WrapBoth
+                              envCells
+                              rng
+                              Nothing
+        return (as, env)
 
-        populateEnvAux :: (Int, Int)
-                            -> IO ([SegAgentDef], [(EnvCoord, SegEnvCell)])
-                            -> IO ([SegAgentDef], [(EnvCoord, SegEnvCell)])
-        populateEnvAux coord accIO = do
-                                        (accAs, accCells) <- accIO
+populateEnv :: [(Int, Int)] -> IO ([SegAgentDef], [(EnvCoord, SegEnvCell)])
+populateEnv coords = foldr populateEnvAux (return ([], [])) coords
 
-                                        let agentId = length accAs
+populateEnvAux :: (Int, Int)
+                    -> IO ([SegAgentDef], [(EnvCoord, SegEnvCell)])
+                    -> IO ([SegAgentDef], [(EnvCoord, SegEnvCell)])
+populateEnvAux coord accIO = 
+    do
+        (accAs, accCells) <- accIO
 
-                                        s <- randomAgentState
-                                        rng <- newStdGen
+        let agentId = length accAs
 
-                                        let a = AgentDef { adId = agentId,
-                                                            adState = s,
-                                                            adEnvPos = coord,
-                                                            adInitMessages = NoEvent,
-                                                            adConversation = Nothing,
-                                                            adBeh = segAgentBehaviour,
-                                                            adRng = rng }
+        s <- randomAgentState
+        rng <- newStdGen
 
-                                        let emptyCell = (coord, Nothing)
-                                        let occupiedCell = (coord, Just (segParty s))
+        let a = AgentDef { adId = agentId,
+                            adState = s,
+                            adEnvPos = coord,
+                            adInitMessages = NoEvent,
+                            adConversation = Nothing,
+                            adBeh = segAgentBehaviour,
+                            adRng = rng }
 
-                                        r <- getStdRandom (randomR(0.0, 1.0))
-                                        if r < density then
-                                            return ((a : accAs), occupiedCell : accCells)
-                                            else
-                                                return (accAs, emptyCell : accCells)
+        let emptyCell = (coord, Nothing)
+        let occupiedCell = (coord, Just (segParty s))
 
-        randomAgentState :: IO SegAgentState
-        randomAgentState = do
-                                r <- getStdRandom (randomR(0.0, 1.0))
-                                let isRed = (r <= redGreenDist)
+        r <- getStdRandom (randomR(0.0, 1.0))
+        if r < density then
+            return ((a : accAs), occupiedCell : accCells)
+            else
+                return (accAs, emptyCell : accCells)
 
-                                let s = if isRed then
-                                            Red
-                                            else
-                                                Green
+randomAgentState :: IO SegAgentState
+randomAgentState = 
+    do
+        r <- getStdRandom (randomR(0.0, 1.0))
+        let isRed = (r <= redGreenDist)
 
-                                return SegAgentState {
-                                        segParty = s,
-                                        segSimilarityWanted = similarityWanted,
-                                        segSatisfactionLevel = 0.0 }
+        let s = if isRed then
+                    Red
+                    else
+                        Green
+
+        return SegAgentState {
+                segParty = s,
+                segSimilarityWanted = similarityWanted,
+                segSatisfactionLevel = 0.0 }

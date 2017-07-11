@@ -1,8 +1,10 @@
-module RecursiveABS.RecursiveABSRun where
+module RecursiveABS.RecursiveABSRun (
+    runRecursiveABSSteps
+  ) where
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Init
 
 import RecursiveABS.RecursiveABSInit
 
@@ -20,13 +22,10 @@ runRecursiveABSSteps :: IO ()
 runRecursiveABSSteps = 
     do
         hSetBuffering stdout NoBuffering
-        hSetBuffering stderr NoBuffering
 
-        initRng rngSeed
-
-        (initAdefs, initEnv) <- createMetaABSAgentsAndEnv agentCount
-        params <- initSimParams updateStrat envCollapsing shuffleAgents
-
+        params <- initSimulation updateStrat envCollapsing shuffleAgents (Just rngSeed)
+        (initAdefs, initEnv) <- createRecursiveABS agentCount
+        
         putStrLn "Initial Agents:"
         mapM_ (putStrLn . show . adState) initAdefs
 

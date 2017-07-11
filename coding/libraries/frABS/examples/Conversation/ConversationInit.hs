@@ -1,4 +1,6 @@
-module Conversation.ConversationInit where
+module Conversation.ConversationInit (
+    createConversation
+  ) where
 
 import Conversation.ConversationModel
 
@@ -9,36 +11,34 @@ import FrABS.Env.Environment
 
 import System.Random
 
-createConversationAgentsAndEnv :: Int -> IO ([ConversationAgentDef], ConversationEnvironment)
-createConversationAgentsAndEnv count = do
-                                        as <- mapM randomAgent [0..count-1]
-                                        rng <- newStdGen
-                                        
-                                        let env = createEnvironment
-                                                              Nothing
-                                                              (0,0)
-                                                              moore
-                                                              WrapBoth
-                                                              []
-                                                              rng
-                                                              Nothing
-                                        return (as, env)
-    where
-        randomAgent :: AgentId -> IO ConversationAgentDef
-        randomAgent agentId = do
-                                r <- getStdRandom (randomR randomRangeCounter)
-                                rng <- newStdGen
+createConversation :: Int -> IO ([ConversationAgentDef], ConversationEnvironment)
+createConversation count =
+  do
+    as <- mapM randomAgent [0..count-1]
+    rng <- newStdGen
+    
+    let env = createEnvironment
+                          Nothing
+                          (0,0)
+                          moore
+                          WrapBoth
+                          []
+                          rng
+                          Nothing
+    return (as, env)
 
-                                let s = ConversationAgentState {
-                                    convCounter = r
-                                }
+randomAgent :: AgentId -> IO ConversationAgentDef
+randomAgent agentId = 
+  do
+    r <- getStdRandom (randomR randomRangeCounter)
+    rng <- newStdGen
 
-                                let a = AgentDef { adId = agentId,
-                                            adState = s,
-                                            adEnvPos = (0,0),
-                                            adInitMessages = NoEvent,
-                                            adConversation = Just conversationHandler,
-                                            adBeh = conversationAgentBehaviour,
-                                            adRng = rng }
+    let s = r
 
-                                return a
+    return AgentDef { adId = agentId,
+                adState = s,
+                adEnvPos = (0,0),
+                adInitMessages = NoEvent,
+                adConversation = Just conversationHandler,
+                adBeh = conversationAgentBehaviour,
+                adRng = rng }

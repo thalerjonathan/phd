@@ -1,5 +1,7 @@
-{-# LANGUAGE Arrows #-}
-module SugarScape.SugarScapeAgentPure where
+module SugarScape.SugarScapeAgentPure (
+    sugarScapeAgentConversationPure,
+    sugarScapeAgentBehaviourPure
+  ) where
 
 import SugarScape.SugarScapeModel
 import SugarScape.SugarScapeEnvironment
@@ -689,12 +691,5 @@ sugarScapeAgentBehaviourFunc age ain a =
 
 ------------------------------------------------------------------------------------------------------------------------
 sugarScapeAgentBehaviourPure :: SugarScapeAgentBehaviour
-sugarScapeAgentBehaviourPure = proc ain ->
-    do
-        age <- time -< 0
-
-        let ao = agentOutFromIn ain
-        let ao' = sugarScapeAgentBehaviourFunc age ain ao
-        
-        returnA -< ao'
+sugarScapeAgentBehaviourPure = agentPure sugarScapeAgentBehaviourFunc
 ------------------------------------------------------------------------------------------------------------------------

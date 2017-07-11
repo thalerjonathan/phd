@@ -1,4 +1,6 @@
-module SIRS.SIRSRenderer where
+module SIRS.SIRSRenderer (
+    renderFrame
+  ) where
 
 import SIRS.SIRSModel
 

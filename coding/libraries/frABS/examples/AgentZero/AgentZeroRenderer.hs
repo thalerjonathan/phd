@@ -1,4 +1,6 @@
-module AgentZero.AgentZeroRenderer where
+module AgentZero.AgentZeroRenderer (
+    renderFrame
+  ) where
 
 import FrABS.Agent.Agent
 import FrABS.Env.Environment

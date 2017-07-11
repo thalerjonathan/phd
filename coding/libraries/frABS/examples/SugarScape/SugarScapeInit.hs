@@ -8,7 +8,7 @@ import SugarScape.SugarScapeEnvironment
 
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Init
 
 import FRP.Yampa
 
@@ -84,11 +84,9 @@ initSpice cs spiceFunc = map (initSpiceAux spiceFunc) cs
 createCells :: EnvLimits
                 -> [(EnvCoord, (AgentId, SugarScapeAgentState))]
                 -> IO [(EnvCoord, SugarScapeEnvCell)]
-createCells (maxX, maxY) occupations = 
-    do
-        let coords = [ (x, y) | x <- [0..maxX-1], y <- [0..maxY-1] ]
-        cs <- mapM (initRandomCell occupations) coords
-        return cs
+createCells (maxX, maxY) occupations = mapM (initRandomCell occupations) coords
+    where
+        coords = [ (x, y) | x <- [0..maxX-1], y <- [0..maxY-1] ]
 
 initRandomCell :: [(EnvCoord, (AgentId, SugarScapeAgentState))] -> EnvCoord -> IO (EnvCoord, SugarScapeEnvCell)
 initRandomCell os coord = 
@@ -129,7 +127,7 @@ drawRandomCoords lower@(minX, minY) upper@(maxX, maxY) n
               randY <- getStdRandom (randomR(minY, maxY - 1))
 
               let c = (randX, randY)
-              if (any (==c) acc) then
+              if elem c acc then
                   drawRandomCoordsAux lower upper n acc
                   else
                     drawRandomCoordsAux lower upper (n-1) (c : acc)

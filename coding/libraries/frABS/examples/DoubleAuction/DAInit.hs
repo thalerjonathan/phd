@@ -1,4 +1,6 @@
-module DoubleAuction.DAInit where
+module DoubleAuction.DAInit (
+    initDoubleAuction
+  ) where
 
 import DoubleAuction.DAModel 
 import DoubleAuction.DAAuctioneer
@@ -29,7 +31,7 @@ initDoubleAuction n =
     gr <- evalRandIO $ createAgentNetwork (Complete n)
 
     let env = createEnvironment
-                          (Just (arr id)) -- TODO: is this really necessary?
+                          Nothing
                           (0,0)
                           neumann
                           ClipToMax

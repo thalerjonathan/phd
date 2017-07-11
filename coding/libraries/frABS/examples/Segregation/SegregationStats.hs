@@ -1,4 +1,7 @@
-module Segregation.SegregationStats where
+module Segregation.SegregationStats (
+    totalSatisfaction,
+    satisfactionStats
+  ) where
 
 import Segregation.SegregationModel
 import Segregation.SegregationAgent

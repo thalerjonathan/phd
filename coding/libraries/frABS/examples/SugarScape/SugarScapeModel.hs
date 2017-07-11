@@ -1,14 +1,83 @@
-module SugarScape.SugarScapeModel where
+module SugarScape.SugarScapeModel (
+    SugarScapeAgentGender (..),
+    SugarScapeTribe (..),
+    SugarScapeCulturalTag,
+    SugarScapeCredit,
+    SugarScapeCreditInfo,
+    SugarScapeImmuneSystem,
+    SugarScapeDisease,
+    SugarScapeMsg (..),
 
--- Project-internal import first
+    SugarScapeAgentState (..),
+
+    SugarScapeEnvCellOccupier (..),
+    SugarScapeEnvCell (..),
+
+    SugarScapeEnvLink,
+    SugarScapeEnvironment,
+    SugarScapeEnvironmentBehaviour,
+
+    SugarScapeAgentDef,
+    SugarScapeAgentBehaviour,
+    SugarScapeAgentIn,
+    SugarScapeAgentOut,
+
+    SugarScapeAgentConversation,
+    SugarScapeAgentConversationSender,
+    SugarScapeSimParams,
+
+    sugarGrowbackUnits,
+    summerSeasonSugarGrowbackRate, 
+    winterSeasonSugarGrowbackRate,
+    seasonDuration,
+    sugarCapacityRange,
+    sugarEndowmentRange,
+    sugarMetabolismRange,
+    visionRange,
+    ageRange,
+    polutionEnabled,
+    polutionMetabolismFactor,
+    polutionHarvestFactor,
+    diffusePolutionTime,
+    childBearingMinAgeRange,
+    childBearingFemaleMaxAgeRange,
+    childBearingMaleMaxAgeRange,
+    sexualReproductionInitialEndowmentRange,
+    culturalTagLength,
+    combatReward,
+    spiceMetabolismRange,
+    spiceCapacityRange,
+    spiceEndowmentRange,
+    spiceGrowbackUnits,
+    summerSeasonSpiceGrowbackRate,
+    winterSeasonSpiceGrowbackRate,
+    lendingCreditDuration,
+    lendingCreditInterestRate,
+    immuneSystemLength,
+    diseaseLength,
+    diseasesInitial,
+    diseasedMetabolismIncrease,
+
+    cellOccupier,
+    calculateTribe,
+    cultureContact,
+    flipCulturalTag,
+    crossoverBools,
+    crossover,
+    flipBoolAtIdx,
+    findFirstDiffIdx,
+    findMinWithIdx,
+    calculateHammingDistances,
+    hammingDistance,
+    randomAgent
+  ) where
+
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 import FrABS.Simulation.Simulation
 
--- Project-specific libraries follow
 import FRP.Yampa
 
--- System imports then
 import System.Random
 import Control.Monad.Random
 import Control.Monad
@@ -19,9 +88,6 @@ import Data.Maybe
 -- TODO: when sex is turned on the number of agents is constantly increasing which should not be possible because more agents compete for less ressources which should reduce the population. Probably we are leaking wealth
 
 -- TODO: export dynamics in a text file with matlab format of the data: wealth distribution, number of agents, mean vision/metabolism, mean age,
-
--- TODO implement rules as SF which can be turned on or off
--- TODO formalize rules in my EDSL
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
@@ -334,8 +400,6 @@ hammingDistance :: [Bool] -> [Bool] -> Int
 hammingDistance as bs = length $ filter (==False) equals
     where
         equals = map (\(a, b) -> a == b) (zip as bs)
-
-
 
 
 randomAgent :: (AgentId, EnvCoord)

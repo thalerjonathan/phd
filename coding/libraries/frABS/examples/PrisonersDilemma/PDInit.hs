@@ -1,4 +1,6 @@
-module PrisonersDilemma.PDInit where
+module PrisonersDilemma.PDInit (
+    initPrisonersDilemma
+  ) where
 
 import PrisonersDilemma.PDModel
 import PrisonersDilemma.PDAgent

@@ -1,5 +1,7 @@
-{-# LANGUAGE Arrows #-}
-module SugarScape.SugarScapeAgentMonadic where
+module SugarScape.SugarScapeAgentMonadic (
+    sugarScapeAgentConversationM,
+    sugarScapeAgentBehaviourM
+  ) where
 
 import SugarScape.SugarScapeAgentCommon
 import SugarScape.SugarScapeModel

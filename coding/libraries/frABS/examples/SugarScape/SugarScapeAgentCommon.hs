@@ -1,4 +1,36 @@
-module SugarScape.SugarScapeAgentCommon where
+module SugarScape.SugarScapeAgentCommon (
+    isDiseased,
+    metabolismAmount,
+
+    BestCellMeasureFunc,
+    selectBestCells,
+    bestMeasureSugarLevel,
+    bestMeasureSugarAndSpiceLevel,
+    bestMeasureSugarPolutionRatio,
+    excessAmountToChildBearing,
+    satisfiesWealthForChildBearing,
+    isFertile,
+    tooOldForChildren,
+    withinRange,
+    neighbourIds,
+    neighbourIdsM,
+    createNewBorn,
+
+    filterTargetCell,
+    occupierCombatable,
+    occupierRetaliator,
+    cellPayoff,
+    agentTradeIncreaseWelfare,
+    agentTradeExchange,
+    agentMRS,
+    sugarSpiceExchange,
+    tradingPrice,
+    agentWelfare,
+    potentialLender,
+    isPotentialBorrower,
+    agentWelfareChange,
+    agentImmunizeAux
+  ) where
 
 import SugarScape.SugarScapeModel
 import SugarScape.SugarScapeEnvironment
@@ -22,6 +54,8 @@ import Debug.Trace
 ------------------------------------------------------------------------------------------------------------------------
 -- GENERAL FUNCTIONS, independent of monadic / non-monadic implementation
 ------------------------------------------------------------------------------------------------------------------------
+type BestCellMeasureFunc = (SugarScapeEnvCell -> Double) 
+
 isDiseased :: SugarScapeAgentState -> Bool
 isDiseased s = not $ null (sugAgDiseases s)
 
@@ -31,8 +65,6 @@ metabolismAmount s = (sugarMetab + inc, spiceMetab + inc)
         sugarMetab = sugAgSugarMetab s
         spiceMetab = sugAgSpiceMetab s
         inc = if isDiseased s then diseasedMetabolismIncrease else 0 
-
-type BestCellMeasureFunc = (SugarScapeEnvCell -> Double) 
 
 selectBestCells :: BestCellMeasureFunc
                     -> EnvCoord

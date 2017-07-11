@@ -1,10 +1,12 @@
-module Conversation.ConversationRun where
+module Conversation.ConversationRun (
+    runConversationSteps
+  ) where
 
 import Conversation.ConversationInit
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Init
 
 import System.IO
 
@@ -20,13 +22,10 @@ runConversationSteps :: IO ()
 runConversationSteps = 
     do
         hSetBuffering stdout NoBuffering
-        hSetBuffering stderr NoBuffering
 
-        initRng rngSeed
-
-        (initAdefs, initEnv) <- createConversationAgentsAndEnv agentCount
-        params <- initSimParams updateStrat envCollapsing shuffleAgents
-
+        params <- initSimulation updateStrat envCollapsing shuffleAgents (Just rngSeed)
+        (initAdefs, initEnv) <- createConversation agentCount
+        
         putStrLn "Initial Agents:"
         mapM_ (putStrLn . show . adState) initAdefs
 

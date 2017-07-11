@@ -1,5 +1,6 @@
-{-# LANGUAGE Arrows #-}
-module DoubleAuction.DAAuctioneer where
+module DoubleAuction.DAAuctioneer (
+	auctioneerBehaviour
+  ) where
 
 import DoubleAuction.DAModel
 
@@ -127,16 +128,13 @@ notifyTraders Match { matchSeller = seller,
 		aAfterBuyer = sendMessage aAfterSeller (buyer, BuyTx market o)
 
 -- NOTE: for the auctioneer we don't provide any monadic implementation using the state-monad because the auctioneers behaviour is domain-stateless 
-auctioneerBehaviourFunc :: DAAgentIn -> DAAgentOut -> DAAgentOut 
-auctioneerBehaviourFunc ain a = maybe a' (\firstMatch -> notifyTraders (fromJust $ firstMatch) a') mayFirstMatch
+auctioneerBehaviourFunc :: Double -> DAAgentIn -> DAAgentOut -> DAAgentOut 
+auctioneerBehaviourFunc _ ain a = maybe a' (\firstMatch -> notifyTraders (fromJust $ firstMatch) a') mayFirstMatch
 	where
 		offerings = accumulateOfferings ain
 		(matches, a') = runAgentRandom a (findMatches offerings)
 		mayFirstMatch = Data.List.find isJust matches
 
 auctioneerBehaviour :: DAAgentBehaviour
-auctioneerBehaviour = proc ain ->
-    do
-        let aout = agentOutFromIn ain
-        returnA -< auctioneerBehaviourFunc ain aout
+auctioneerBehaviour = agentPure auctioneerBehaviourFunc
 ------------------------------------------------------------------------------------------------------------------------

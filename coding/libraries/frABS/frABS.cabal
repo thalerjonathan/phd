@@ -27,7 +27,8 @@ library
     FrABS.Env.Environment
     FrABS.Env.Utils
     FrABS.Simulation.Simulation
-    FrABS.Simulation.Utils
+    FrABS.Simulation.Init
+    FrABS.Simulation.Replication
     FrABS.Simulation.ParIteration      
     FrABS.Simulation.SeqIteration 
     FrABS.Simulation.Internal

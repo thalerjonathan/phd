@@ -48,14 +48,12 @@ policyEffectsAgent :: Double
 policyEffectsAgent initWealth (coord, agentId) = 
     do
         rng <- newStdGen
-        let beh = agentMonadic policyEffectsAgentBehaviour
-        let adef = AgentDef { adId = agentId,
+
+        return AgentDef { adId = agentId,
                                 adState = initWealth,
-                                adBeh = beh,
+                                adBeh = policyEffectsAgentBehaviour,
                                 adInitMessages = NoEvent,
                                 adConversation = Nothing,
                                 adEnvPos = coord,
                                 adRng = rng }
-
-        return adef
 ------------------------------------------------------------------------------------------------------------------------

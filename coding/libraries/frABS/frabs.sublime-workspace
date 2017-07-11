@@ -135,15 +135,6 @@
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
-		},
-		{
-			"file": "examples/PolicyEffects/Run.hs",
-			"settings":
-			{
-				"buffer_size": 6211,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
 		}
 	],
 	"build_system": "",
@@ -198,22 +189,20 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent"
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils"
 	],
 	"file_history":
 	[
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkRun.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/policyEffectsDynamics_(10,10)agents_10000steps.m",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Run.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/policyEffectsDynamics_(10,10)agents_1000steps_",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Renderer.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Agent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Utils.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Init.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Renderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/policyEffectsDynamics_(10,10)agents_1000steps_",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Utils.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/PolicyEffectsInit.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/TestArrows.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
@@ -332,12 +321,11 @@
 		"/C/Users/Jonathan Thaler/coding/ethaskell/ETHaskell.cabal",
 		"/C/Users/Jonathan Thaler/coding/ethaskell/src/    Parse error in pattern",
 		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/JsonRpc.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/Server.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/                             imported from `Prelude' at EthJsonRpc/Server.hs"
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/Server.hs"
 	],
 	"find":
 	{
-		"height": 46.0
+		"height": 34.0
 	},
 	"find_in_files":
 	{
@@ -569,8 +557,8 @@
 						"selection":
 						[
 							[
-								2216,
-								2244
+								1855,
+								1855
 							]
 						],
 						"settings":
@@ -584,36 +572,6 @@
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "examples/PolicyEffects/Run.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 6211,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1723,
-								1723
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": -0.0,
-						"translation.y": 630.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
 					"type": "text"
 				}
 			]

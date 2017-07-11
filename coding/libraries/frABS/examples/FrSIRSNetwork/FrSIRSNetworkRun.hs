@@ -13,7 +13,8 @@ import Utils.Sirs
 
 import FrABS.Agent.Agent
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Init
+import FrABS.Simulation.Replication
 import FrABS.Rendering.GlossSimulator
 import FrABS.Env.Utils
 
@@ -37,7 +38,12 @@ numInfected = 1
 
 samplingTimeDelta = 0.1
 steps = 1000
-replications = 4
+
+replCfg = ReplicationConfig {
+    replCfgCount = 8,
+    replCfgAgentReplicator = defaultAgentReplicator,
+    replCfgEnvReplicator = defaultEnvReplicator
+}
 
 completeNetwork = Complete agentCount
 erdosRenyiNetwork = ErdosRenyi agentCount 0.2
@@ -50,13 +56,11 @@ network = barbasiAlbertNetwork
 runFrSIRSNetworkWithRendering :: IO ()
 runFrSIRSNetworkWithRendering =
     do
-        _ <- initRng rngSeed
-
+        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
+        
         (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected agentDimensions numInfected network
         -- (initAdefs, initEnv) <- createFrSIRSNetworkRandInfected agentDimensions initialInfectionProb network
         
-        params <- initSimParams updateStrat Nothing shuffleAgents
-
         simulateAndRender initAdefs
                             initEnv
                             params
@@ -70,13 +74,11 @@ runFrSIRSNetworkWithRendering =
 runFrSIRSNetworkStepsAndRender :: IO ()
 runFrSIRSNetworkStepsAndRender =
     do
-        _ <- initRng rngSeed
-
+        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
+        
         (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected agentDimensions numInfected network
         --(initAdefs, initEnv) <- createFrSIRSNetworkRandInfected agentDimensions initialInfectionProb network
         
-        params <- initSimParams updateStrat Nothing shuffleAgents
-
         simulateStepsAndRender initAdefs
                             initEnv
                             params
@@ -89,12 +91,10 @@ runFrSIRSNetworkStepsAndRender =
 runFrSIRSNetworkStepsAndWriteToFile :: IO ()
 runFrSIRSNetworkStepsAndWriteToFile =
     do
-        _ <- initRng rngSeed
-
+        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
+        
         (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected agentDimensions numInfected network
         --(initAdefs, initEnv) <- createFrSIRSNetworkRandInfected agentDimensions initialInfectionProb network
-
-        params <- initSimParams updateStrat Nothing shuffleAgents
 
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
         let dynamics = map (calculateDynamics . fst) asenv
@@ -108,24 +108,23 @@ runFrSIRSNetworkStepsAndWriteToFile =
 runFrSIRSNetworkReplicationsAndWriteToFile :: IO ()
 runFrSIRSNetworkReplicationsAndWriteToFile =
     do
-        _ <- initRng rngSeed
-
+        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
+        
         (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected agentDimensions numInfected network
         --(initAdefs, initEnv) <- createFrSIRSNetworkRandInfected agentDimensions initialInfectionProb network
 
-        params <- initSimParams updateStrat Nothing shuffleAgents
-
-        let assenv = runReplications initAdefs initEnv params samplingTimeDelta steps replications
+        let assenv = runReplications initAdefs initEnv params samplingTimeDelta steps replCfg
         let replicationDynamics = map calculateSingleReplicationDynamic assenv
         let dynamics = sirsDynamicsReplMean replicationDynamics
+
 
         let fileName = "frSIRSNetworkDynamics_" 
                         ++ show agentDimensions ++ "agents_" 
                         ++ show steps ++ "steps_" 
                         ++ show samplingTimeDelta ++ "dt_" 
-                        ++ show replications ++ "replications.m"
+                        ++ show (replCfgCount replCfg) ++ "replications.m"
 
-        writeSirsDynamicsFile fileName steps samplingTimeDelta replications dynamics
+        writeSirsDynamicsFile fileName steps samplingTimeDelta (replCfgCount replCfg) dynamics
 
 -------------------------------------------------------------------------------
 -- UTILS

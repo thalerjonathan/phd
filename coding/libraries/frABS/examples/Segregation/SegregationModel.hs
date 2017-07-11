@@ -1,16 +1,41 @@
-module Segregation.SegregationModel where
+module Segregation.SegregationModel (
+    SegParty (..),
+    SegMsg,
 
--- Project-internal import first
+    SegMoveStrategy (..),
+    SegSelectionStrategy (..),
+    SegOptStrategy (..),
+
+    SegAgentState (..),
+
+    SegEnvLink,
+    SegEnvCell,
+    SegEnvironment,
+
+    SegAgentDef,
+    SegAgentBehaviour,
+    SegAgentIn,
+    SegAgentOut,
+
+    similarityWanted,
+    density,
+    redGreenDist,
+    localMovementRadius,
+    randomSearchFreeCellRetries,
+    randomSearchOptRetries,
+    movementStrategy,
+    selectionStrategy,
+    optimizingStrategy,
+    futureOptimizing
+  ) where
+
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
 
--- Project-specific libraries follow
 import FRP.Yampa
 
--- System imports then
 import Data.Maybe
 
--- debugging imports finally, to be easily removed in final version
 import System.Random
 import Debug.Trace
 
@@ -33,13 +58,14 @@ data SegAgentState = SegAgentState {
     segSimilarityWanted :: Double
 } deriving (Show)
 
+type SegEnvLink = ()
 type SegEnvCell = Maybe SegParty
-type SegEnvironment = Environment SegEnvCell ()
+type SegEnvironment = Environment SegEnvCell SegEnvLink
 
-type SegAgentDef = AgentDef SegAgentState SegMsg SegEnvCell ()
-type SegAgentBehaviour = AgentBehaviour SegAgentState SegMsg SegEnvCell ()
-type SegAgentIn = AgentIn SegAgentState SegMsg SegEnvCell ()
-type SegAgentOut = AgentOut SegAgentState SegMsg SegEnvCell ()
+type SegAgentDef = AgentDef SegAgentState SegMsg SegEnvCell SegEnvLink
+type SegAgentBehaviour = AgentBehaviour SegAgentState SegMsg SegEnvCell SegEnvLink
+type SegAgentIn = AgentIn SegAgentState SegMsg SegEnvCell SegEnvLink
+type SegAgentOut = AgentOut SegAgentState SegMsg SegEnvCell SegEnvLink
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

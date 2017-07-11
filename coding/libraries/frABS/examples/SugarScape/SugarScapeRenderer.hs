@@ -1,4 +1,6 @@
-module SugarScape.SugarScapeRenderer where
+module SugarScape.SugarScapeRenderer (
+    renderFrame
+  ) where
 
 import FrABS.Agent.Agent
 import SugarScape.SugarScapeModel

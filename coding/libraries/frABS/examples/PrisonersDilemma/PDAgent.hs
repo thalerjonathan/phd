@@ -1,26 +1,22 @@
 {-# LANGUAGE Arrows #-}
-module PrisonersDilemma.PDAgent where
+module PrisonersDilemma.PDAgent (
+	pdAgentBehaviour
+  ) where
 
--- Project-internal import first
 import PrisonersDilemma.PDModel
 
 import FrABS.Env.Environment
 import FrABS.Agent.Agent
 import FrABS.Agent.Utils
 
--- Project-specific libraries follow
 import FRP.Yampa
 
--- System imports then
 import Data.Maybe
 import Data.List
 import System.Random
 import Control.Monad.Random
 import Control.Monad
 import qualified Data.Map as Map
-
--- debugging imports finally, to be easily removed in final version
-import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 payoff :: PDAction -> PDAction -> Double

@@ -1,5 +1,6 @@
-{-# LANGUAGE Arrows #-}
-module DoubleAuction.DATrader where
+module DoubleAuction.DATrader (
+	traderAgentBehaviour
+  ) where
 
 import DoubleAuction.DAModel
 
@@ -349,8 +350,8 @@ collatCashAsk s
 ------------------------------------------------------------------------------------------------------------------------
 --  AGENT-BEHAVIOUR MONADIC implementation
 ------------------------------------------------------------------------------------------------------------------------
-traderBehaviourFuncM :: DAAgentIn -> State DAAgentOut ()
-traderBehaviourFuncM ain =
+traderBehaviourFuncM :: Double -> DAAgentIn -> State DAAgentOut ()
+traderBehaviourFuncM _ ain =
 	do
 		sendOfferingsM
 		receiveTransactionsM ain
@@ -377,8 +378,8 @@ receiveTransactionsM ain = onMessageMState ain handleTxMsgM
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR NON-monadic implementation
 ------------------------------------------------------------------------------------------------------------------------
-traderBehaviourFunc :: DAAgentIn -> DAAgentOut -> DAAgentOut
-traderBehaviourFunc ain a = sendOfferings $ receiveTransactions ain a
+traderBehaviourFunc :: Double -> DAAgentIn -> DAAgentOut -> DAAgentOut
+traderBehaviourFunc _ ain a = sendOfferings $ receiveTransactions ain a
 
 sendOfferings :: DAAgentOut -> DAAgentOut
 sendOfferings a = aAfterAsk
@@ -400,18 +401,7 @@ receiveTransactions ain a = onMessage ain handleTxMsg a
 		handleTxMsg a _ = a
 ------------------------------------------------------------------------------------------------------------------------
 
-
 ------------------------------------------------------------------------------------------------------------------------
--- AGENT-BEHAVIOUR YAMPA implementation
-------------------------------------------------------------------------------------------------------------------------
--- TODO
-------------------------------------------------------------------------------------------------------------------------
-
 traderAgentBehaviour :: DAAgentBehaviour
-traderAgentBehaviour = proc ain ->
-    do
-        let ao = agentOutFromIn ain
-        -- let ao' = traderBehaviourFunc ain ao
-        let ao' = execState (traderBehaviourFuncM ain) ao
-        returnA -< traderBehaviourFunc ain ao'
+traderAgentBehaviour = agentMonadic traderBehaviourFuncM -- agentPure traderBehaviourFunc
 ------------------------------------------------------------------------------------------------------------------------

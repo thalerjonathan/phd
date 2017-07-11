@@ -1,5 +1,10 @@
 {-# LANGUAGE Arrows #-}
-module SugarScape.SugarScapeEnvironment where
+module SugarScape.SugarScapeEnvironment (
+    cellUnoccupied,
+    cellOccupied,
+    
+    sugarScapeEnvironmentBehaviour
+  ) where
 
 -- Project-internal import first
 import SugarScape.SugarScapeModel

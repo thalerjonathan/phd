@@ -1,4 +1,7 @@
-module AgentZero.AgentZeroInit where
+module AgentZero.AgentZeroInit (
+    initAgentZeroEpstein,
+    initAgentZeroCount
+  ) where
 
 import AgentZero.AgentZeroModel
 import AgentZero.AgentZeroAgent

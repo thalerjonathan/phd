@@ -1,4 +1,6 @@
-module Wildfire.WildfireInit where
+module Wildfire.WildfireInit (
+    initWildfire
+  ) where
 
 import Wildfire.WildfireModel
 import Wildfire.WildfireAgent

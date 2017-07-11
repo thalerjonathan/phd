@@ -1,5 +1,6 @@
-{-# LANGUAGE Arrows #-}
-module SIRS.SIRSAgent where
+module SIRS.SIRSAgent (
+    sirsAgentBehaviour
+  ) where
 
 import SIRS.SIRSModel
 import Utils.Sirs
@@ -72,8 +73,9 @@ randomContactM =
         (_, randNeighId) <- pickRandomNeighbourCellM
         sendMessageM (randNeighId, (Contact Infected))
 
-sirsAgentBehaviourFuncM :: SIRSAgentIn -> State SIRSAgentOut ()
-sirsAgentBehaviourFuncM ain = 
+-- TODO: use time instead of counting my own time
+sirsAgentBehaviourFuncM :: Double -> SIRSAgentIn -> State SIRSAgentOut ()
+sirsAgentBehaviourFuncM time ain = 
     do
         onMessageMState ain contactInfectedM
         sirsDtM 1.0
@@ -146,8 +148,9 @@ randomContact ao = sendMessage ao' (randNeigh, (Contact Infected))
     where
         ((_, randNeigh), ao') = runAgentRandom ao (pickRandomNeighbourCell ao)
 
-sirsAgentBehaviourFunc :: SIRSAgentIn -> SIRSAgentOut -> SIRSAgentOut
-sirsAgentBehaviourFunc ain ao = aoAfterTime
+-- TODO: use time instead of counting my own time
+sirsAgentBehaviourFunc :: Double -> SIRSAgentIn -> SIRSAgentOut -> SIRSAgentOut
+sirsAgentBehaviourFunc time ain ao = aoAfterTime
     where
         aoAfterMsg = onMessage ain contactInfected ao
         aoAfterTime = sirsDt aoAfterMsg 1.0
@@ -155,10 +158,5 @@ sirsAgentBehaviourFunc ain ao = aoAfterTime
 
 ------------------------------------------------------------------------------------------------------------------------
 sirsAgentBehaviour :: SIRSAgentBehaviour
-sirsAgentBehaviour = proc ain ->
-    do
-        let ao = agentOutFromIn ain 
-        --let ao' = sirsAgentBehaviourFunc ain ao
-        let ao' = execState (sirsAgentBehaviourFuncM ain) ao
-        returnA -< ao'
+sirsAgentBehaviour = agentMonadic sirsAgentBehaviourFuncM  -- agentPure sirsAgentBehaviourFunc
 ------------------------------------------------------------------------------------------------------------------------

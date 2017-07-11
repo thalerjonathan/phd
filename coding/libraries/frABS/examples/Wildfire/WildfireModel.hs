@@ -1,4 +1,20 @@
-module Wildfire.WildfireModel where
+module Wildfire.WildfireModel (
+    WildfireMsg (..),
+    WildfireAgentState (..),
+    LifeState (..),
+
+    WildfireLinkLabel,
+    WildfireCell,
+    WildfireEnvironment,
+    WildfireEnvironmentBehaviour,
+
+    WildfireAgentDef,
+    WildfireAgentBehaviour,
+    WildfireAgentIn,
+    WildfireAgentOut,
+
+    createWildFireAgent
+  ) where
 
 import FrABS.Agent.Agent
 import FrABS.Env.Environment
@@ -23,9 +39,8 @@ data WildfireAgentState = WildfireAgentState {
 
 data LifeState = Living | Burning | Dead deriving (Eq, Show)
 
-type WildfireCell = AgentId
 type WildfireLinkLabel = ()
-
+type WildfireCell = AgentId
 type WildfireEnvironment = Environment WildfireCell WildfireLinkLabel
 type WildfireEnvironmentBehaviour = EnvironmentBehaviour WildfireCell WildfireLinkLabel
 

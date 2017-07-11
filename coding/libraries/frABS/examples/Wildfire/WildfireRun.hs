@@ -1,10 +1,12 @@
-module Wildfire.WildfireRun where
+module Wildfire.WildfireRun (
+    runWildfireWithRendering
+  ) where
 
 import Wildfire.WildfireInit
 import Wildfire.WildfireRenderer as Renderer
 
 import FrABS.Simulation.Simulation
-import FrABS.Simulation.Utils
+import FrABS.Simulation.Init
 import FrABS.Rendering.GlossSimulator
 
 import System.Random
@@ -21,10 +23,9 @@ frequency = 0
 runWildfireWithRendering :: IO ()
 runWildfireWithRendering = 
     do
-        initRng rngSeed
+        params <- initSimulation updStrat Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- initWildfire envSize
-        params <- initSimParams updStrat Nothing shuffleAgents
-
+        
         simulateAndRender initAdefs
                             initEnv
                             params

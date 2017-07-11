@@ -7,8 +7,6 @@ import SugarScape.Renderer as Renderer
 
 import FRP.FrABS
 
-import System.Random
-
 winSize = (800, 800)
 winTitle = "SugarScape"
 rngSeed = 42

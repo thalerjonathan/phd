@@ -12,10 +12,6 @@ import FRP.FrABS
 
 import Text.Printf
 
-import System.IO
-
-import Data.Maybe
-
 winSize = (800, 800)
 winTitle = "Schelling Segregation"
 rngSeed = 42

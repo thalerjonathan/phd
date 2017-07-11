@@ -6,16 +6,10 @@ import DoubleAuction.Model
 
 import FRP.FrABS
 
-import FRP.Yampa
-
 import Data.Maybe
 import Data.List
 import System.Random
 import Control.Monad.Random
-import Control.Monad
-import qualified Data.Map as Map
-
-import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 offeringsMatch :: Maybe OfferingData -> Maybe OfferingData -> Maybe (OfferingData, OfferingData)

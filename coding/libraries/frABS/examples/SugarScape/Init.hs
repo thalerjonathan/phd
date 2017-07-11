@@ -14,7 +14,7 @@ import Data.List
 
 import System.Random
 import Control.Monad.Random
-import Debug.Trace 
+
 
 createSugarScape :: Int 
                     -> EnvLimits 

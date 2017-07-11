@@ -3,7 +3,6 @@ module Wildfire.Renderer (
   ) where
 
 import Wildfire.Model
-import Wildfire.Agent
 
 import FRP.FrABS
 

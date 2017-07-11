@@ -9,7 +9,6 @@ import Utils.Sirs
 
 import FRP.FrABS
 
-import Data.Ord
 import Data.List
 
 samplingTimeDelta = 0.1

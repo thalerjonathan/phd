@@ -9,11 +9,8 @@ import SugarScape.AgentCommon
 
 import FRP.FrABS
 
-import FRP.Yampa
-
 import Data.Maybe
 import Data.List
-import System.Random
 
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR NON-MONADIC 

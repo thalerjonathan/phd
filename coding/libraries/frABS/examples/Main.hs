@@ -1,21 +1,24 @@
 module Main where
 
-import AgentZero.Run
-import Conversation.Run
-import DoubleAuction.Run
-import FrSIRSNetwork.Run
-import FrSIRSSpatial.Run
-import PolicyEffects.Run
-import PrisonersDilemma.Run
-import RecursiveABS.Run
-import SIRS.Run
-import Segregation.Run
-import SugarScape.Run
-import SysDynSIR.Run
-import Wildfire.Run
+import           AgentZero.Run
+import           Conversation.Run
+import           DoubleAuction.Run
+import           FrSIRSNetwork.Run
+import           FrSIRSSpatial.Run
+import           PolicyEffects.Run
+import           PrisonersDilemma.Run
+import           RecursiveABS.Run
+import           Segregation.Run
+import           SIRS.Run
+import           SugarScape.Run
+import           SysDynSIR.Run
+import           Wildfire.Run
 
 {-
-	TODOs
+    TODOs
+    - imports: no unused imports
+    - lint: must be clear of warnings
+
     - PolicyEffects should use its own replicator for the environment
     - refactor SIRS: use time
     - implement Prisoners Dilemma
@@ -29,12 +32,10 @@ import Wildfire.Run
             - distinguish between cont and disc env
 
     - clean-up
-        - imports: no unused imports
         - warnings: compilation with -w must show no warnings at all
-        - lint: must be clear of warnings
-
-    - comment haskell code
         
+    - comment haskell code
+
     - performance?
 -}
 
@@ -71,7 +72,7 @@ main = do
 
     var <- newTVarIO 0
     mapM (\i -> forkIO $
-        do 
+        do
             threadId <- myThreadId
             forever $
                 do
@@ -94,7 +95,7 @@ main = do
     --dumpSTMStats
 
 incrementAtomically :: TVar Int -> STM Int
-incrementAtomically var = 
+incrementAtomically var =
     do
         value <- readTVar var
         writeTVar var (value + 1)

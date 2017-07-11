@@ -37,18 +37,9 @@ import FRP.FrABS
 
 import FRP.Yampa
 
-import System.Random
 import Control.Monad.Random
-import Control.Monad
-import Data.List.Split
-import Data.List
-import Data.Maybe
-import Control.Monad.ST
 import Data.Array.ST
 import GHC.Arr
-import qualified Data.Map as Map
-
-import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS

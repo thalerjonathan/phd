@@ -7,8 +7,6 @@ import SugarScape.Model
 import SugarScape.AgentMonadic
 import SugarScape.AgentPure
 
-import FRP.Yampa
-
 ------------------------------------------------------------------------------------------------------------------------
 sugarScapeAgentConversation :: SugarScapeAgentConversation 
 sugarScapeAgentConversation = sugarScapeAgentConversationM -- sugarScapeAgentConversationPure -- sugarScapeAgentConversationM

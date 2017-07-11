@@ -17,41 +17,33 @@ module AgentZero.Model (
     destructionRadius,
     sampleRadius,
     memorySize,
-    
+
     createAgentZero
   ) where
 
-import FRP.FrABS
+import           FRP.FrABS
 
-import FRP.Yampa
+import           FRP.Yampa
 
-import System.Random
-import Control.Monad.Random
-import Control.Monad
-import Data.List.Split
-import Data.List
-import Data.Maybe
-import qualified Data.Map as Map
-
-import Debug.Trace
+import           Control.Monad.Random
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
 
 data AgentZeroMsg =
-    Disposition Double 
+    Disposition Double
     deriving (Eq, Show)
 
 data AgentZeroAgentState = AgentZeroAgentState {
-    azAgentAffect :: Double,
+    azAgentAffect       :: Double,
     azAgentLearningRate :: Double,
-    azAgentLambda :: Double,
-    azAgentDelta :: Double,
-    azAgentThresh :: Double,
-    azAgentEventCount :: Int,
-    azAgentDispo :: Double,
-    azAgentProb :: Double,
-    azAgentMemory :: [Double]
+    azAgentLambda       :: Double,
+    azAgentDelta        :: Double,
+    azAgentThresh       :: Double,
+    azAgentEventCount   :: Int,
+    azAgentDispo        :: Double,
+    azAgentProb         :: Double,
+    azAgentMemory       :: [Double]
 } deriving (Show)
 
 data AgentZeroCellState = Friendly | Attack | Dead deriving (Eq, Show)
@@ -87,10 +79,10 @@ memorySize :: Int
 memorySize = 10
 ------------------------------------------------------------------------------------------------------------------------
 
-createAgentZero :: (AgentId, EnvCoord) 
-                    -> AgentZeroAgentBehaviour 
+createAgentZero :: (AgentId, EnvCoord)
+                    -> AgentZeroAgentBehaviour
                     -> Rand StdGen AgentZeroAgentDef
-createAgentZero (agentId, coord) beh = 
+createAgentZero (agentId, coord) beh =
     do
         rng <- getSplit
 

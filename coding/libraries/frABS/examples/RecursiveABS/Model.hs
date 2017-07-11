@@ -23,7 +23,6 @@ import FRP.FrABS
 import FRP.Yampa
 
 import Debug.Trace
-import System.Random
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS

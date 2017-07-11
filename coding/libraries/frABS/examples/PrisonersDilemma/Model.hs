@@ -28,11 +28,6 @@ import FRP.Yampa
 
 import System.Random
 import Control.Monad.Random
-import Control.Monad
-import Data.List.Split
-import Data.List
-import Data.Maybe
-import qualified Data.Map as Map
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS

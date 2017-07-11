@@ -4,12 +4,9 @@ module PolicyEffects.Agent (
 
 import PolicyEffects.Model
 
-import FRP.Yampa
-
 import FRP.FrABS
 
 import Control.Monad
-import Control.Monad.Random
 import Control.Monad.Trans.State
 
 receive :: PolicyEffectsAgentIn -> State PolicyEffectsAgentOut ()

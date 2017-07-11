@@ -5,7 +5,6 @@ module PrisonersDilemma.Renderer (
 import FRP.FrABS
 
 import PrisonersDilemma.Model
-import PrisonersDilemma.Agent
 
 import qualified Graphics.Gloss as GLO
 

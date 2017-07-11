@@ -33,18 +33,13 @@ module SugarScape.AgentCommon (
   ) where
 
 import SugarScape.Model
-import SugarScape.Environment
 
 import FRP.FrABS
-
-import FRP.Yampa
 
 import Data.Maybe
 import Data.List
 import System.Random
 import Control.Monad.Random
-import Control.Monad
-import Control.Monad.IfElse
 import Control.Monad.Trans.State
 
 import Debug.Trace

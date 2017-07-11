@@ -3,17 +3,12 @@ module SIRS.Agent (
   ) where
 
 import SIRS.Model
-import Utils.Sirs
-
-import FRP.Yampa
 
 import FRP.FrABS
 
 import Control.Monad.Random
 import Control.Monad.Trans.State
 import Control.Monad.IfElse
-
-import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR MONADIC implementation

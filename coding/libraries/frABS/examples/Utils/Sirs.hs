@@ -6,7 +6,6 @@ module Utils.Sirs (
 
 import Text.Printf
 import System.IO
-import Debug.Trace 
 
 writeSirsDynamicsFile :: String 
                             -> Int

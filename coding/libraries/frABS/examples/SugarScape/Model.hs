@@ -78,7 +78,6 @@ import FRP.Yampa
 
 import System.Random
 import Control.Monad.Random
-import Control.Monad
 import Data.List.Split
 import Data.List
 import Data.Maybe

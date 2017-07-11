@@ -1,24 +1,17 @@
 module AgentZero.Agent (
-  	agentZeroAgentBehaviour
+	agentZeroAgentBehaviour
   ) where
 
-import AgentZero.Model
-import AgentZero.Environment
+import           AgentZero.Model
 
-import FRP.FrABS
+import           FRP.FrABS
 
-import FRP.Yampa
+import           Data.Maybe
 
-import Data.Maybe
-import Data.List
-import System.Random
-import Control.Monad
-import Control.Monad.Random
-import Control.Monad.Trans.State
-import Control.Monad.IfElse
-import qualified Data.Map as Map
+import           Control.Monad
 
-import Debug.Trace
+import           Control.Monad.IfElse
+import           Control.Monad.Trans.State
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-STATE functions
@@ -31,7 +24,7 @@ isAttackingSite AgentZeroEnvCell{azCellState = cellState} = Attack == cellState
 --  AGENT-BEHAVIOUR MONADIC implementation
 ------------------------------------------------------------------------------------------------------------------------
 agentZeroAgentBehaviourFuncM :: Double -> AgentZeroAgentIn -> State AgentZeroAgentOut ()
-agentZeroAgentBehaviourFuncM _ ain = 
+agentZeroAgentBehaviourFuncM _ ain =
 	do
 		agentZeroRandomMoveM
 		agentZeroUpdateEventCountM
@@ -54,7 +47,7 @@ agentZeroTakeActionM =
 		return $ dispo > 0
 
 agentZeroDestroyM :: State AgentZeroAgentOut ()
-agentZeroDestroyM = 
+agentZeroDestroyM =
 	do
 		pos <- environmentPositionM
 
@@ -75,7 +68,7 @@ agentZeroUpdateEventCountM =
 		evtCount <- domainStateFieldM azAgentEventCount
 
 		whenM onAttackingSiteM (updateDomainStateM (\s -> s { azAgentEventCount = evtCount + 1} ))
-		
+
 
 agentZeroUpdateAffectM :: State AgentZeroAgentOut ()
 agentZeroUpdateAffectM =
@@ -87,7 +80,7 @@ agentZeroUpdateAffectM =
 
 		attackingSite <- onAttackingSiteM
 
-		ifThenElseM onAttackingSiteM 
+		ifThenElseM onAttackingSiteM
 						(updateDomainStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * (lambda - affect))}))
 						(updateDomainStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * extinctionRate * (0 - affect))}))
 
@@ -123,14 +116,14 @@ agentZeroUpdateDispoM ain =
 		linkIds <- runEnvironmentM $ neighbourNodesM aid
 
 		let dispoLocal = affect + prob
-		
+
 		updateDomainStateM (\s -> s { azAgentDispo = dispoLocal - thresh})
 		onMessageMState ain dispositionMessageHandleM
 		broadcastMessageM (Disposition dispoLocal) linkIds
 
 	where
 		dispositionMessageHandleM :: AgentMessage AgentZeroMsg -> State AgentZeroAgentOut ()
-		dispositionMessageHandleM (senderId, Disposition d) = 
+		dispositionMessageHandleM (senderId, Disposition d) =
 			do
 				aid <- agentIdM
 
@@ -157,17 +150,17 @@ agentZeroTakeAction a = dispo > 0
 		dispo = azAgentDispo $ aoState a
 
 agentZeroUpdateEventCount :: AgentZeroAgentOut -> AgentZeroAgentOut
-agentZeroUpdateEventCount a 
+agentZeroUpdateEventCount a
 	| onAttackingSite a = updateDomainState a (\s -> s { azAgentEventCount = azAgentEventCount s + 1} )
 	| otherwise = a
 
 agentZeroUpdateAffect :: AgentZeroAgentOut -> AgentZeroAgentOut
-agentZeroUpdateAffect a 
+agentZeroUpdateAffect a
 	| onAttackingSite a = updateDomainState a (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * (lambda - affect))})
 	| otherwise = updateDomainState a (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * extinctionRate * (0 - affect))})
 
 	where
-		s = aoState a 
+		s = aoState a
 		affect = azAgentAffect s
 		learningRate = azAgentLearningRate s
 		delta = azAgentDelta s
@@ -198,12 +191,12 @@ agentZeroUpdateDispo :: AgentZeroAgentIn -> AgentZeroAgentOut -> AgentZeroAgentO
 agentZeroUpdateDispo ain a = broadcastMessage aDispoFinal (Disposition dispoLocal) linkIds
 	where
 		aid = aoId a
-		env = aoEnv a 
+		env = aoEnv a
 
 		s = aoState a
 		affect = azAgentAffect s
 		prob = azAgentProb s
-		thresh = azAgentThresh s 
+		thresh = azAgentThresh s
 		dispoLocal = affect + prob
 
 		linkIds = neighbourNodes env aid
@@ -228,19 +221,19 @@ agentZeroDestroy a = a { aoEnv = env' }
 		env' = foldr (\(coord, cell) envAcc -> changeCellAt envAcc coord (cell { azCellState = Dead })) env cs
 
 agentZeroRandomMove :: AgentZeroAgentOut -> AgentZeroAgentOut
-agentZeroRandomMove a 
+agentZeroRandomMove a
 	| aoId a /= 0 = agentRandomMove a
 	| otherwise = a
 
-agentZeroAgentBehaviourFunc :: Double -> AgentZeroAgentIn -> AgentZeroAgentOut -> AgentZeroAgentOut 
-agentZeroAgentBehaviourFunc _ ain aout 
+agentZeroAgentBehaviourFunc :: Double -> AgentZeroAgentIn -> AgentZeroAgentOut -> AgentZeroAgentOut
+agentZeroAgentBehaviourFunc _ ain aout
 	| agentZeroTakeAction agentBevoreAction = agentZeroDestroy agentBevoreAction
 	| otherwise = agentBevoreAction
 	where
-		agentBevoreAction = agentZeroUpdateDispo ain $ 
-								agentZeroUpdateProb $ 
-								agentZeroUpdateAffect $ 
-								agentZeroUpdateEventCount $ 
+		agentBevoreAction = agentZeroUpdateDispo ain $
+								agentZeroUpdateProb $
+								agentZeroUpdateAffect $
+								agentZeroUpdateEventCount $
 								agentZeroRandomMove aout
 
 agentZeroAgentBehaviour :: AgentZeroAgentBehaviour

@@ -9,8 +9,6 @@ import SugarScape.Environment
 
 import FRP.FrABS
 
-import FRP.Yampa
-
 import Data.Maybe
 import Data.List
 import Control.Monad

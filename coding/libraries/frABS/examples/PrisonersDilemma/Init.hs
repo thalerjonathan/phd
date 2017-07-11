@@ -7,12 +7,6 @@ import PrisonersDilemma.Agent
 
 import FRP.FrABS
 
-import FRP.Yampa
-
-import Data.List
-import Data.Graph.Inductive.Graph
-import Data.Graph.Inductive.PatriciaTree
-
 import System.Random
 import Control.Monad.Random
 

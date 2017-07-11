@@ -31,13 +31,6 @@ module Segregation.Model (
 
 import FRP.FrABS
 
-import FRP.Yampa
-
-import Data.Maybe
-
-import System.Random
-import Debug.Trace
-
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------

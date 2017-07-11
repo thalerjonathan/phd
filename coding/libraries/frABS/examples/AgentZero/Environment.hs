@@ -6,16 +6,16 @@ module AgentZero.Environment (
   	agentZeroEnvironmentBehaviour
   ) where
 
-import AgentZero.Model
+import           AgentZero.Model
 
-import FRP.FrABS
+import           FRP.FrABS
 
-import FRP.Yampa
-import Data.Maybe
-import System.Random
-import Control.Monad.Random
+import           Control.Monad.Random
+import           Data.Maybe
+import           FRP.Yampa
+import           System.Random
 
-import Debug.Trace
+import           Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 -- ENVIRONMENT-COLLAPSING (parallel strategy)
@@ -30,13 +30,13 @@ agentZeroEnvironmentsCollapse envs = foldr mergeEnvs initEnv envs
 		mergeEnvs :: AgentZeroEnvironment -> AgentZeroEnvironment -> AgentZeroEnvironment
 		mergeEnvs env envAcc = foldr (\((coord, cell), (coordAcc, cellAcc)) acc -> changeCellAt acc coordAcc (mergeCells cell cellAcc)) envAcc zippedCells
 			where
-				envCells = allCellsWithCoords env 
+				envCells = allCellsWithCoords env
 				envAccCells = allCellsWithCoords envAcc
 				zippedCells = zip envCells envAccCells
 
 		-- NOTE: agents only destroy, which must be merged - all other states are the same in both environments
 		mergeCells :: AgentZeroEnvCell -> AgentZeroEnvCell -> AgentZeroEnvCell
-		mergeCells cellA cellB 
+		mergeCells cellA cellB
 			| Dead == cellStateA = cellA
 			| Dead == cellStateB = cellB
 			| otherwise = cellA
@@ -48,8 +48,8 @@ agentZeroEnvironmentsCollapse envs = foldr mergeEnvs initEnv envs
 ------------------------------------------------------------------------------------------------------------------------
 -- ENVIRONMENT-BEHAVIOUR NON-MONADIC implementation
 ------------------------------------------------------------------------------------------------------------------------
-randomAttack :: AgentZeroEnvironment -> Rand StdGen AgentZeroEnvironment 
-randomAttack env = 
+randomAttack :: AgentZeroEnvironment -> Rand StdGen AgentZeroEnvironment
+randomAttack env =
 	do
 		let allCells = allCellsWithCoords env
 		let cellCount = length allCells
@@ -74,7 +74,7 @@ randAttackCell cc@(coord, cell) rand
 		selectNewState Attack rand = if rand > 0.5 then Friendly else Attack
 
 randAttackCell' :: ((EnvCoord, AgentZeroEnvCell), Double) -> (EnvCoord, AgentZeroEnvCell)
-randAttackCell' (cc@(coord, cell), rand) 
+randAttackCell' (cc@(coord, cell), rand)
 	| x >= 12 && y >= 15 = (coord, cell { azCellState = state' })
 	| otherwise = cc
 	where

@@ -12,10 +12,6 @@ import Utils.Sirs
 
 import FRP.FrABS
 
-import Text.Printf
-import System.IO
-import Debug.Trace 
-
 winSize = (800, 800)
 winTitle = "FrSIRS Spatial"
 

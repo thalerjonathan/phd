@@ -10,10 +10,7 @@ import FRP.Yampa
 
 import FRP.FrABS
 
-import Control.Monad
 import Control.Monad.Random
-
-import Debug.Trace
 
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR Functional Reactive implementation

@@ -7,8 +7,6 @@ import Wildfire.Renderer as Renderer
 
 import FRP.FrABS
 
-import System.Random
-
 winSize = (800, 800)
 winTitle = "Wildfire"
 updStrat = Parallel

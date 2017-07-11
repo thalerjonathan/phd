@@ -6,14 +6,11 @@ module FrSIRSNetwork.Init (
 import FrSIRSNetwork.Model
 import FrSIRSNetwork.Agent
 
-import Utils.Sirs
-
 import FRP.Yampa
 
 import FRP.FrABS
 
 import Data.List
-import Data.Ord
 import System.Random
 import Control.Monad.Random
 

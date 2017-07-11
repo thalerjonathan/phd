@@ -6,17 +6,9 @@ import DoubleAuction.Model
 
 import FRP.FrABS
 
-import FRP.Yampa
-
-import Data.Maybe
-import Data.List
 import System.Random
-import Control.Monad
 import Control.Monad.Random
 import Control.Monad.Trans.State
-import qualified Data.Map as Map
-
-import Debug.Trace
 
 -- TODO seems to have bug: negative cash seems to be possible (negative assets is possible if backed up by bonds)
 

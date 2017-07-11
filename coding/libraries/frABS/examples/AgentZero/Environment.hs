@@ -11,9 +11,7 @@ import           AgentZero.Model
 import           FRP.FrABS
 
 import           Control.Monad.Random
-import           Data.Maybe
 import           FRP.Yampa
-import           System.Random
 
 import           Debug.Trace
 

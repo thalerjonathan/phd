@@ -16,9 +16,6 @@ import           Wildfire.Run
 
 {-
     TODOs
-    - imports: no unused imports
-    - lint: must be clear of warnings
-
     - PolicyEffects should use its own replicator for the environment
     - refactor SIRS: use time
     - implement Prisoners Dilemma
@@ -32,6 +29,8 @@ import           Wildfire.Run
             - distinguish between cont and disc env
 
     - clean-up
+        - imports: no unused imports
+        - lint: must be clear of warnings
         - warnings: compilation with -w must show no warnings at all
         
     - comment haskell code

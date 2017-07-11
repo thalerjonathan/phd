@@ -42,8 +42,6 @@ import System.Random
 import Control.Monad.Random
 import Control.Monad.Trans.State
 
-import Debug.Trace
-
 ------------------------------------------------------------------------------------------------------------------------
 -- GENERAL FUNCTIONS, independent of monadic / non-monadic implementation
 ------------------------------------------------------------------------------------------------------------------------

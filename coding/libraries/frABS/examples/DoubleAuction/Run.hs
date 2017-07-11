@@ -10,7 +10,6 @@ import FRP.FrABS
 import Text.Printf
 
 import System.IO
-import System.Random
 
 rngSeed = 42
 samplingTimeDelta = 1.0

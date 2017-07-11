@@ -4,7 +4,6 @@ module AgentZero.Renderer (
 
 import           FRP.FrABS
 
-import           AgentZero.Agent
 import           AgentZero.Model
 
 import qualified Graphics.Gloss  as GLO

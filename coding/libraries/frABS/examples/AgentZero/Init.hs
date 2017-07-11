@@ -13,10 +13,8 @@ import           FRP.Yampa
 
 import           Data.Graph.Inductive.Graph
 import           Data.Graph.Inductive.PatriciaTree
-import           Data.List
 
 import           Control.Monad.Random
-import           System.Random
 
 initAgentZeroEpstein :: IO ([AgentZeroAgentDef], AgentZeroEnvironment)
 initAgentZeroEpstein =

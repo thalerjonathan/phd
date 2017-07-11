@@ -65,15 +65,13 @@ switchToBestPayoff ao =
 	updateDomainState ao (\s -> s { 
 		pdCurrAction = bestAction,
     	pdPrevAction = oldAction,
-    
     	pdLocalPo = 0.0,
-
     	pdBestPo = (bestAction, 0.0)})
+
 	where
 		s = aoState ao
 		oldAction = pdCurrAction s
 		(bestAction, _) = pdBestPo s
-
 
 pdAgentAwaitingNeighbourPayoffs :: SF PDAgentIn (PDAgentOut, Event ())
 pdAgentAwaitingNeighbourPayoffs = proc ain ->
@@ -81,13 +79,14 @@ pdAgentAwaitingNeighbourPayoffs = proc ain ->
 		let ao = agentOutFromIn ain
 		let ao' = handleNeighbourPayoff ain ao
 
-		timeEvent <- after 1.0 () -< ()	-- NOTE: can also replace this by counting the number of payoffs received from neighbours and creating an event when all have been received
+		timeEvent <- after 0.5 () -< ()	-- NOTE: can also replace this by counting the number of payoffs received from neighbours and creating an event when all have been received
 		returnA -< (ao', timeEvent)
 
 pdAgentNeighbourPayoffsReceived :: () -> PDAgentBehaviour
 pdAgentNeighbourPayoffsReceived _ = -- TODO: switch to best payoff and send it as action to neighbours and wait for actions
 	switch pdAgentAwaitingNeighbourActions pdAgentNeighbourActionsReceived 
-
+	-- switchToBestPayoff
+	-- broadcastLocalAction
 
 pdAgentAwaitingNeighbourActions :: SF PDAgentIn (PDAgentOut, Event ())
 pdAgentAwaitingNeighbourActions = proc ain ->
@@ -96,16 +95,13 @@ pdAgentAwaitingNeighbourActions = proc ain ->
 		let ao' = handleNeighbourAction ain ao
 		let ao'' = revertAction ao'
 
-		timeEvent <- after 1.0 () -< () -- NOTE: can also replace this by counting the number of actions received from neighbours and creating an event when all have been received
+		timeEvent <- after 0.5 () -< () -- NOTE: can also replace this by counting the number of actions received from neighbours and creating an event when all have been received
 		returnA -< (ao'', timeEvent)
 
 pdAgentNeighbourActionsReceived :: () -> PDAgentBehaviour
 pdAgentNeighbourActionsReceived _ = -- TODO: send local payoff to all neighbours and wait for other payoffs
 	switch pdAgentAwaitingNeighbourPayoffs pdAgentNeighbourPayoffsReceived
-
-pdAgentBehaviour :: PDAgentBehaviour
-pdAgentBehaviour = -- TODO: send current payoff to neighbours and wait for actions
-	switch pdAgentAwaitingNeighbourActions pdAgentNeighbourActionsReceived
+	-- broadcastLocalPayoff
 
 revertAction :: PDAgentOut -> PDAgentOut
 revertAction ao 
@@ -114,4 +110,9 @@ revertAction ao
 	where
 		s = aoState ao
 		curr = pdCurrAction s
+
+pdAgentBehaviour :: PDAgentBehaviour
+pdAgentBehaviour = -- TODO: send current payoff to neighbours and wait for actions
+	switch pdAgentAwaitingNeighbourActions pdAgentNeighbourActionsReceived
+	-- broadcastLocalAction
 ------------------------------------------------------------------------------------------------------------------------ 

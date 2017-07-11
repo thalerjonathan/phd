@@ -13,7 +13,7 @@ updateStrat = Parallel
 shuffleAgents = False
 rngSeed = 42
 envSize = (49, 49)
-samplingTimeDelta = 0.2
+samplingTimeDelta = 0.1
 frequency = 0
 
 runPDWithRendering :: IO ()

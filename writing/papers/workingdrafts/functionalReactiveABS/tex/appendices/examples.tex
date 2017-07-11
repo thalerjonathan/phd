@@ -77,7 +77,7 @@ This is an early, non-reactive implementation of a spatial version of the SIRS c
 \end{tabular}
 \end{center}
 
-\subsection{Fr(Spatial$|$Network)SIRS}
+\subsection{Reactive SIRS}
 This is the reactive implementations of both 2D spatial and network (complete graph, Erdos-Renyi and Barbasi-Albert) versions of the SIRS compartment model. Unlike SIRS these examples make full use of the time-semantics provided by Yampa and show the real strength provided by \textit{FrABS}.
 
 \begin{center}
@@ -128,6 +128,20 @@ This is a basic implementation of a double-auction process of a model described 
 \textbf{Yampa Time-Semantics}	& No \\
 \textbf{Update-Strategy}		& Parallel \\
 \textbf{Environment}			& None \\
+\textbf{Recursive}				& No \\
+\textbf{Conversations}			& No \\
+\end{tabular}
+\end{center}
+
+\subsection{Policy Effects}
+This is an implementation of a model inspired by Uri Wilensky \footnote{\url{http://www.decisionsciencenews.com/2017/06/19/counterintuitive-problem-everyone-room-keeps-giving-dollars-random-others-youll-never-guess-happens-next/}}: "Imagine a room full of 100 people with 100 dollars each. With every tick of the clock, every person with money gives a dollar to one randomly chosen other person. After some time progresses, how will the money be distributed?"
+
+\begin{center}
+\begin{tabular}{l || l }
+\textbf{Implementation}			& Monadic \\
+\textbf{Yampa Time-Semantics}	& No \\
+\textbf{Update-Strategy}		& Parallel \\
+\textbf{Environment}			& Network \\
 \textbf{Recursive}				& No \\
 \textbf{Conversations}			& No \\
 \end{tabular}

@@ -1,22 +1,25 @@
 module Main where
 
-import AgentZero.AgentZeroRun
-import SugarScape.SugarScapeRun
-import SIRS.SIRSRun
-import FrSIRSSpatial.FrSIRSSpatialRun
-import FrSIRSNetwork.FrSIRSNetworkRun
-import SysDynSIR.SysDynSIRRun
-import Segregation.SegregationRun
-import RecursiveABS.RecursiveABSRun
-import Conversation.ConversationRun
-import DoubleAuction.DARun
-import Wildfire.WildfireRun
-import PrisonersDilemma.PDRun
+import AgentZero.Run
+import Conversation.Run
+import DoubleAuction.Run
+import FrSIRSNetwork.Run
+import FrSIRSSpatial.Run
 import PolicyEffects.Run
+import PrisonersDilemma.Run
+import RecursiveABS.Run
+import SIRS.Run
+import Segregation.Run
+import SugarScape.Run
+import SysDynSIR.Run
+import Wildfire.Run
 
 {-
 	TODOs
     - rename all files in examples: get rid of example name 
+    - add FRP folder FrABS 
+    - FrABS imports and re-exports all symbols => only need to include FrABS.FrABS 
+    - PolicyEffects should use its own replicator for the environment
     - refactor SIRS: use time
     - implement Prisoners Dilemma
     - the 2d-renderer are all the same: refactor into one

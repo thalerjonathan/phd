@@ -20,43 +20,32 @@ isM sirsStateComp =
         return $ ss == sirsStateComp
 
 sirsDtM :: Double -> State SIRSAgentOut ()
-sirsDtM dt =
+sirsDtM t =
     do
-        whenM (isM Infected) $ handleInfectedAgentM dt
-        whenM (isM Recovered) $ handleRecoveredAgentM dt 
+        whenM (isM Infected) $ handleInfectedAgentM t
+        whenM (isM Recovered) $ handleRecoveredAgentM t 
 
-infectAgentM :: State SIRSAgentOut ()
-infectAgentM =
+infectAgentM :: Double -> State SIRSAgentOut ()
+infectAgentM t =
     do
         doInfect <- drawBoolWithProbFromAgentM infectionProbability
-        when doInfect $ updateDomainStateM (\s -> s { sirsState = Infected, sirsTime = 0.0} )
+        when doInfect $ updateDomainStateM (\s -> s { sirsState = Infected, sirsTime = t + infectedDuration } )
 
 handleInfectedAgentM :: Double -> State SIRSAgentOut ()
-handleInfectedAgentM dt = 
+handleInfectedAgentM t = 
     do
-        t <- domainStateFieldM sirsTime
-
-        let t' = t + dt
-        let hasRecovered = t' >= infectedDuration
-
-        -- NOTE: agent has just recovered, don't send infection-contact to others
-        ifThenElse hasRecovered 
-                    (updateDomainStateM (\s -> s { sirsState = Recovered, sirsTime = 0.0 } ))
-                    $ do 
-                        updateDomainStateM (\s -> s { sirsTime = t' } )
-                        randomContactM
+        timeOfRecovery <- domainStateFieldM sirsTime
+        -- NOTE: if agent has just recovered, don't send infection-contact to others
+        ifThenElse (t >= timeOfRecovery) 
+                    (updateDomainStateM (\s -> s { sirsState = Recovered, sirsTime = t + immuneDuration} ))
+                    randomContactM
 
 handleRecoveredAgentM :: Double -> State SIRSAgentOut ()
-handleRecoveredAgentM dt = 
+handleRecoveredAgentM t = 
     do
-        t <- domainStateFieldM sirsTime
-
-        let t' = t + dt
-        let lostImmunity = t' >= immuneDuration
-
-        ifThenElse lostImmunity
+        timeOfImmunityLost <- domainStateFieldM sirsTime
+        when (t >= timeOfImmunityLost)
                     (updateDomainStateM (\s -> s { sirsState = Susceptible, sirsTime = 0.0 } ))
-                    (updateDomainStateM (\s -> s { sirsTime = t' } ))
 
 randomContactM :: State SIRSAgentOut ()
 randomContactM = 
@@ -64,18 +53,16 @@ randomContactM =
         (_, randNeighId) <- pickRandomNeighbourCellM
         sendMessageM (randNeighId, (Contact Infected))
 
--- TODO: use time instead of counting my own time
 sirsAgentBehaviourFuncM :: Double -> SIRSAgentIn -> State SIRSAgentOut ()
-sirsAgentBehaviourFuncM time ain = 
+sirsAgentBehaviourFuncM t ain = 
     do
         onMessageMState ain contactInfectedM
-        sirsDtM 1.0
+        sirsDtM t
 
     where
         contactInfectedM :: AgentMessage SIRSMsg -> State SIRSAgentOut ()
-        contactInfectedM (_, Contact Infected) = whenM (isM Susceptible) infectAgentM
+        contactInfectedM (_, Contact Infected) = whenM (isM Susceptible) (infectAgentM t)
         contactInfectedM _ = return ()
-
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -86,65 +73,50 @@ is ao ss = (sirsState s) == ss
     where
         s = aoState ao
 
--- TODO: use switching SFs when in different states as behaviour changes
 sirsDt :: SIRSAgentOut -> Double -> SIRSAgentOut
-sirsDt ao dt
+sirsDt ao t
     | is ao Susceptible = ao
-    | is ao Infected = handleInfectedAgent ao dt
-    | otherwise = handleRecoveredAgent ao dt
+    | is ao Infected = handleInfectedAgent ao t
+    | otherwise = handleRecoveredAgent ao t
 
-infectAgent :: SIRSAgentOut -> SIRSAgentOut
-infectAgent ao
-    | yes = updateDomainState ao' (\s -> s { sirsState = Infected,
-                                      sirsTime = 0.0} )
+infectAgent :: Double -> SIRSAgentOut -> SIRSAgentOut
+infectAgent t ao
+    | yes = updateDomainState ao' (\s -> s { sirsState = Infected, sirsTime = t + infectedDuration } )
     | otherwise = ao'
     where
          (yes, ao') = drawBoolWithProbFromAgent ao infectionProbability
 
-contactInfected :: SIRSAgentOut -> AgentMessage SIRSMsg -> SIRSAgentOut
-contactInfected a (_, Contact Infected) 
-    | is a Susceptible = infectAgent a
+contactInfected :: Double -> SIRSAgentOut -> AgentMessage SIRSMsg -> SIRSAgentOut
+contactInfected t a (_, Contact Infected) 
+    | is a Susceptible = infectAgent t a
     | otherwise = a
-contactInfected a _ = a
+contactInfected _ a _ = a
 
 handleInfectedAgent :: SIRSAgentOut -> Double -> SIRSAgentOut
-handleInfectedAgent ao dt = if t' >= infectedDuration then
-                                recoveredAgent           -- NOTE: agent has just recovered, don't send infection-contact to others
-                                else
-                                    randomContact gettingBetterAgent
-
+handleInfectedAgent ao t 
+    | t >= timeOfRecovery = recoveredAgent           -- NOTE: agent has just recovered, don't send infection-contact to others
+    | otherwise = randomContact ao
     where
-        t = (sirsTime (aoState ao))
-        t' = t + dt
-        recoveredAgent = updateDomainState ao (\s -> s { sirsState = Recovered,
-                                                        sirsTime = 0.0 } )
-        gettingBetterAgent = updateDomainState ao (\s -> s { sirsTime = t' } )
-
+        timeOfRecovery = sirsTime $ aoState ao
+        recoveredAgent = updateDomainState ao (\s -> s { sirsState = Recovered, sirsTime = t + immuneDuration} )
 
 handleRecoveredAgent :: SIRSAgentOut -> Double -> SIRSAgentOut
-handleRecoveredAgent ao dt = if t' >= immuneDuration then
-                                susceptibleAgent
-                                else
-                                    immuneReducedAgent
+handleRecoveredAgent ao t 
+    | t >= timeOfImmunityLost = susceptibleAgent
+    | otherwise = ao
     where
-        t = (sirsTime (aoState ao))
-        t' = t + dt  -- TODO: use Yampa-function integral
-        susceptibleAgent = updateDomainState ao (\s -> s { sirsState = Susceptible,
-                                                        sirsTime = 0.0 } )
-        immuneReducedAgent = updateDomainState ao (\s -> s { sirsTime = t' } )
+        timeOfImmunityLost = sirsTime $ aoState ao
+        susceptibleAgent = updateDomainState ao (\s -> s { sirsState = Susceptible, sirsTime = 0.0 } )
 
--- TODO: include time-semantics e.g. 1 ontact per time-unit
 randomContact :: SIRSAgentOut -> SIRSAgentOut
 randomContact ao = sendMessage ao' (randNeigh, (Contact Infected))
     where
         ((_, randNeigh), ao') = runAgentRandom ao (pickRandomNeighbourCell ao)
 
--- TODO: use time instead of counting my own time
 sirsAgentBehaviourFunc :: Double -> SIRSAgentIn -> SIRSAgentOut -> SIRSAgentOut
-sirsAgentBehaviourFunc time ain ao = aoAfterTime
+sirsAgentBehaviourFunc t ain ao = sirsDt aoAfterMsg t
     where
-        aoAfterMsg = onMessage ain contactInfected ao
-        aoAfterTime = sirsDt aoAfterMsg 1.0
+        aoAfterMsg = onMessage ain (contactInfected t) ao
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -16,8 +16,6 @@ import           Wildfire.Run
 
 {-
     TODOs
-    - PolicyEffects should use its own replicator for the environment
-    - refactor SIRS: use time
     - implement Prisoners Dilemma
     - the 2d-renderer are all the same: refactor into one
     - implement Heroes & Cowards
@@ -39,7 +37,7 @@ import           Wildfire.Run
 -}
 
 main :: IO ()
-main = runPolicyEffectsStepsAndWriteToFile
+main = runSIRSWithRendering
 
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile

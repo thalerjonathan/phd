@@ -33,6 +33,7 @@ gotInfected ain = onMessageM gotInfectedAux ain False
         gotInfectedAux False (_, Contact Infected) = drawRandomBoolM infectivity
         gotInfectedAux False _ = return False
         gotInfectedAux True _ = return True
+------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Reactive Functions
@@ -44,6 +45,30 @@ sirsAgentMakeContact g state = proc ao ->
         let ao' = event ao (\_ -> randomContact state ao) makeContact
         returnA -< ao'
 
+{-
+sirsAgentSuceptible :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
+sirsAgentSuceptible g = transitionEventWithGuard
+                            (sirsAgentInfectedTransition g)
+                            (return True)
+                            (sirsAgentSusceptibleBehaviour g)
+                            (sirsNetworkAgentBehaviourRandInfected g Infected)
+
+sirsAgentInfectedTransition :: RandomGen g => g -> SF FrSIRSNetworkAgentIn (Event ())
+sirsAgentInfectedTransition g = proc ain ->
+    do
+        -- let (isInfected, ao1) = runAgentRandom (gotInfected ain) ao0
+        let isInfected = True
+        infectionEvent <- edge -< isInfected
+        returnA -< infectionEvent
+
+sirsAgentSusceptibleBehaviour :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
+sirsAgentSusceptibleBehaviour g = proc ain ->
+    do
+        let ao = agentOutFromIn ain
+        ao0 <- doOnce (setDomainState Susceptible) -< ao
+        ao1 <- sirsAgentMakeContact g Susceptible -< ao0
+        returnA -< ao1
+-}
 
 sirsAgentSuceptible :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
 sirsAgentSuceptible g = switch 
@@ -70,9 +95,9 @@ sirsAgentSusceptibleInfected g _ = sirsNetworkAgentBehaviourRandInfected g Infec
 
 
 
+
 sirsAgentInfected :: RandomGen g => g -> Double -> FrSIRSNetworkAgentBehaviour
 sirsAgentInfected g duration = transitionAfter duration (sirsAgentInfectedBehaviour g) (sirsAgentRecovered g)
-
 
 sirsAgentInfectedBehaviour :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
 sirsAgentInfectedBehaviour g = proc ain ->
@@ -93,9 +118,7 @@ sirsAgentRecoveredBehaviour :: FrSIRSNetworkAgentBehaviour
 sirsAgentRecoveredBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
-
         ao' <- doOnce (setDomainState Recovered) -< ao
-
         returnA -< ao'
 
 

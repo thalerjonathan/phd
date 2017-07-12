@@ -1,15 +1,18 @@
 {-# LANGUAGE Arrows #-}
 module FRP.FrABS.Agent.Reactive (
     doOnce,
-    transitionAfter
+    transitionAfter,
+    transitionEventWithGuard
   ) where
 
 import FRP.Yampa
 
 import FRP.FrABS.Agent.Agent
+import FRP.FrABS.Agent.Random
 
--- study arrowized programming (papers): how can dt disappear ? can we ommit arguments which are implicitly there?
--- develop arrowized EDSL for ABS: timeout transitions, rate transitions, sending messages after, repeatedly send message in interval, occasionally send message
+import Control.Monad.Random
+import Control.Monad.Trans.State
+
 
 doOnce :: (AgentOut s m ec l -> AgentOut s m ec l) -> SF (AgentOut s m ec l) (AgentOut s m ec l)
 doOnce f = proc ao ->
@@ -21,14 +24,41 @@ doOnce f = proc ao ->
         let ao' = event ao id aoOnceEvt
         returnA -< ao'
 
+transitionEventWithGuard :: SF (AgentIn s m ec l) (Event ())
+                            -> Rand StdGen Bool
+                            -> AgentBehaviour s m ec l
+                            -> AgentBehaviour s m ec l
+                            -> AgentBehaviour s m ec l
+transitionEventWithGuard f guardAction from to = switch (transitionEventWithGuardAux f from) (\_ -> to)
+    where
+        transitionEventWithGuardAux :: SF (AgentIn s m ec l) (Event ())
+                                        -> AgentBehaviour s m ec l 
+                                        -> SF (AgentIn s m ec l) (AgentOut s m ec l, Event ())
+        transitionEventWithGuardAux f from = proc ain ->
+            do
+                ao <- from -< ain
+                evt <- f -< ain
+
+                let (ao', transEvt) = guardEvent evt guardAction ao
+
+                returnA -< (ao', transEvt)
+
+        guardEvent :: Event () -> Rand StdGen Bool -> AgentOut s m ec l -> (AgentOut s m ec l, Event ())
+        guardEvent NoEvent _ ao = (ao, NoEvent)
+        guardEvent _ guardAction ao 
+            | guardAllowed = (ao', Event ())
+            | otherwise = (ao', NoEvent)
+            where
+                (guardAllowed, ao') = runAgentRandom guardAction ao
+
 transitionAfter :: Double
                     -> AgentBehaviour s m ec l
                     -> AgentBehaviour s m ec l
                     -> AgentBehaviour s m ec l
-transitionAfter dt from to = switch (transitionAwaiting from) (\_ -> to)
+transitionAfter dt from to = switch (transitionAfterAux from) (\_ -> to)
     where
-        transitionAwaiting :: AgentBehaviour s m ec l -> SF (AgentIn s m ec l) (AgentOut s m ec l, Event ())
-        transitionAwaiting from = proc ain ->
+        transitionAfterAux :: AgentBehaviour s m ec l -> SF (AgentIn s m ec l) (AgentOut s m ec l, Event ())
+        transitionAfterAux from = proc ain ->
             do
                 ao <- from -< ain
                 timeoutEvent <- after dt () -< ()

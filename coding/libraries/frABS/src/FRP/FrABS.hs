@@ -81,7 +81,8 @@ module FRP.FrABS (
 
     doOnce,
     transitionAfter,
-
+    transitionEventWithGuard,
+    
     ifThenElse,
     ifThenElseM,
 

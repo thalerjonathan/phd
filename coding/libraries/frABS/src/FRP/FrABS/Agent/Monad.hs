@@ -58,31 +58,31 @@ changeEnvironmentPositionM pos = state (\ao -> ((), ao { aoEnvPos = pos }))
 
 
 sendMessageM :: AgentMessage m -> State (AgentOut s m ec l) ()
-sendMessageM msg = state (\ao -> ((), sendMessage ao msg))
+sendMessageM msg = state (\ao -> ((), sendMessage msg ao))
 
 conversationM :: AgentMessage m
                 -> AgentConversationSender s m ec l
                 -> State (AgentOut s m ec l) ()
-conversationM msg replyHdl = state (\ao -> ((), conversation ao msg replyHdl))
+conversationM msg replyHdl = state (\ao -> ((), conversation msg replyHdl ao))
 
 conversationEndM :: State (AgentOut s m ec l) ()
 conversationEndM = state (\ao -> ((), conversationEnd ao))
 
 sendMessagesM :: [AgentMessage m] -> State (AgentOut s m ec l) ()
-sendMessagesM msgs = state (\ao -> ((), sendMessages ao msgs))
+sendMessagesM msgs = state (\ao -> ((), sendMessages msgs ao))
 
 broadcastMessageM :: m -> [AgentId] -> State (AgentOut s m ec l) ()
 broadcastMessageM m receiverIds = state (broadcastMessageMAux m)
     where
         broadcastMessageMAux :: m -> AgentOut s m ec l -> ((), AgentOut s m ec l)
-        broadcastMessageMAux m ao = ((), sendMessages ao msgs)
+        broadcastMessageMAux m ao = ((), sendMessages msgs ao)
             where
                 n = length receiverIds
                 ms = replicate n m
                 msgs = zip receiverIds ms
 
 createAgentM :: AgentDef s m ec l -> State (AgentOut s m ec l) ()
-createAgentM newDef = state (\ao -> ((),createAgent ao newDef))
+createAgentM newDef = state (\ao -> ((),createAgent newDef ao))
 
 conversationReplyMonadicRunner :: (Maybe (AgentMessage m) -> State (AgentOut s m ec l) ()) 
                                     -> AgentConversationSender s m ec l
@@ -97,11 +97,11 @@ killM = state (\ao -> ((), ao { aoKill = Event () }))
 isDeadM :: State (AgentOut s m ec l) Bool
 isDeadM = state (\ao -> (isDead ao, ao))
    
-onMessageMState :: AgentIn s m ec l -> (AgentMessage m -> State acc ()) -> State acc ()
-onMessageMState ai msgHdl = onMessageM ai (\_ msg -> msgHdl msg) ()
+onMessageMState :: (AgentMessage m -> State acc ()) -> AgentIn s m ec l -> State acc ()
+onMessageMState msgHdl ai = onMessageM (\_ msg -> msgHdl msg) ai ()
 
-onMessageM :: (Monad mon) => AgentIn s m ec l -> (acc -> AgentMessage m -> mon acc) -> acc -> mon acc
-onMessageM ai msgHdl acc
+onMessageM :: (Monad mon) => (acc -> AgentMessage m -> mon acc) -> AgentIn s m ec l -> acc -> mon acc
+onMessageM msgHdl ai acc
     | not hasMessages = return acc
     -- | otherwise = foldM (\acc msg -> msgHdl acc msg) acc msgs
     | otherwise = foldM msgHdl acc msgs
@@ -111,15 +111,15 @@ onMessageM ai msgHdl acc
         msgs = fromEvent msgsEvt
     
 updateDomainStateM :: (s -> s) -> State (AgentOut s m ec l) ()
-updateDomainStateM sfunc = state (updateDomainStateMAux sfunc)
+updateDomainStateM f = state (updateDomainStateMAux f)
     where
         updateDomainStateMAux :: (s -> s) 
                             -> AgentOut s m ec l 
                             -> ((), AgentOut s m ec l)
-        updateDomainStateMAux sfunc ao = ((), updateDomainState ao sfunc)
+        updateDomainStateMAux f ao = ((), updateDomainState f ao)
 
 setDomainStateM :: s -> State (AgentOut s m ec l) ()
-setDomainStateM s = state (\ao -> ((), setDomainState ao s))
+setDomainStateM s = state (\ao -> ((), setDomainState s ao))
 
 domainStateFieldM :: (s -> t) -> State (AgentOut s m ec l) t
 domainStateFieldM f = state (domainStateFieldMAux f)

@@ -26,7 +26,7 @@ agentZeroEnvironmentsCollapse envs = foldr mergeEnvs initEnv envs
 		initEnv = head envs
 
 		mergeEnvs :: AgentZeroEnvironment -> AgentZeroEnvironment -> AgentZeroEnvironment
-		mergeEnvs env envAcc = foldr (\((coord, cell), (coordAcc, cellAcc)) acc -> changeCellAt acc coordAcc (mergeCells cell cellAcc)) envAcc zippedCells
+		mergeEnvs env envAcc = foldr (\((coord, cell), (coordAcc, cellAcc)) acc -> changeCellAt coordAcc (mergeCells cell cellAcc) acc) envAcc zippedCells
 			where
 				envCells = allCellsWithCoords env
 				envAccCells = allCellsWithCoords envAcc
@@ -54,7 +54,7 @@ randomAttack env =
 		randActivationsInf <- getRandoms
 		let randActivations = take cellCount randActivationsInf
 		let allCells' = zipWith randAttackCell allCells randActivations
-		let env' = foldr (\(coord, cell) envAcc -> changeCellAt envAcc coord cell) env allCells'
+		let env' = foldr (\(coord, cell) envAcc -> changeCellAt coord cell envAcc) env allCells'
 		return env'
 
 randAttackCell :: (EnvCoord, AgentZeroEnvCell) -> Double -> (EnvCoord, AgentZeroEnvCell)

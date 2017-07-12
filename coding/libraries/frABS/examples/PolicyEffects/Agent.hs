@@ -10,7 +10,7 @@ import Control.Monad
 import Control.Monad.Trans.State
 
 receive :: PolicyEffectsAgentIn -> State PolicyEffectsAgentOut ()
-receive ain = onMessageMState ain receiveHandler
+receive ain = onMessageMState receiveHandler ain
     where
         receiveHandler :: (AgentMessage PolicyEffectsMsg) -> State PolicyEffectsAgentOut ()
         receiveHandler (_, Spend amount) = updateDomainStateM (\s -> s + amount)

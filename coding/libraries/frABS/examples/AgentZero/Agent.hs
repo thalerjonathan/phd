@@ -118,7 +118,7 @@ agentZeroUpdateDispoM ain =
 		let dispoLocal = affect + prob
 
 		updateDomainStateM (\s -> s { azAgentDispo = dispoLocal - thresh})
-		onMessageMState ain dispositionMessageHandleM
+		onMessageMState dispositionMessageHandleM ain
 		broadcastMessageM (Disposition dispoLocal) linkIds
 
 	where
@@ -151,13 +151,13 @@ agentZeroTakeAction a = dispo > 0
 
 agentZeroUpdateEventCount :: AgentZeroAgentOut -> AgentZeroAgentOut
 agentZeroUpdateEventCount a
-	| onAttackingSite a = updateDomainState a (\s -> s { azAgentEventCount = azAgentEventCount s + 1} )
+	| onAttackingSite a = updateDomainState (\s -> s { azAgentEventCount = azAgentEventCount s + 1}) a 
 	| otherwise = a
 
 agentZeroUpdateAffect :: AgentZeroAgentOut -> AgentZeroAgentOut
 agentZeroUpdateAffect a
-	| onAttackingSite a = updateDomainState a (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * (lambda - affect))})
-	| otherwise = updateDomainState a (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * extinctionRate * (0 - affect))})
+	| onAttackingSite a = updateDomainState (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * (lambda - affect))}) a 
+	| otherwise = updateDomainState (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * extinctionRate * (0 - affect))}) a 
 
 	where
 		s = aoState a
@@ -167,11 +167,11 @@ agentZeroUpdateAffect a
 		lambda = azAgentLambda s
 
 agentZeroUpdateProb :: AgentZeroAgentOut -> AgentZeroAgentOut
-agentZeroUpdateProb a = updateDomainState a (\s -> s { azAgentProb = newProb, azAgentMemory = mem' } )
+agentZeroUpdateProb a = updateDomainState (\s -> s { azAgentProb = newProb, azAgentMemory = mem' }) a 
 	where
 		env = aoEnv a
 		pos = aoEnvPos a
-		cs = cellsAroundRadius env pos sampleRadius
+		cs = cellsAroundRadius pos sampleRadius env
 		csAttacking = filter (isAttackingSite . snd) cs
 
 		localProb = fromRational (fromIntegral $ length csAttacking) / (fromIntegral $ length cs)
@@ -188,7 +188,7 @@ agentZeroUpdateProb a = updateDomainState a (\s -> s { azAgentProb = newProb, az
 		        n = fromIntegral $ length xs
 
 agentZeroUpdateDispo :: AgentZeroAgentIn -> AgentZeroAgentOut -> AgentZeroAgentOut
-agentZeroUpdateDispo ain a = broadcastMessage aDispoFinal (Disposition dispoLocal) linkIds
+agentZeroUpdateDispo ain a = broadcastMessage (Disposition dispoLocal) linkIds aDispoFinal
 	where
 		aid = aoId a
 		env = aoEnv a
@@ -199,15 +199,15 @@ agentZeroUpdateDispo ain a = broadcastMessage aDispoFinal (Disposition dispoLoca
 		thresh = azAgentThresh s
 		dispoLocal = affect + prob
 
-		linkIds = neighbourNodes env aid
+		linkIds = neighbourNodes aid env
 
-		aDispoSelf = updateDomainState a (\s -> s { azAgentDispo = dispoLocal - thresh})
-		aDispoFinal = onMessage ain dispositionMessageHandle aDispoSelf
+		aDispoSelf = updateDomainState (\s -> s { azAgentDispo = dispoLocal - thresh}) a 
+		aDispoFinal = onMessage dispositionMessageHandle ain aDispoSelf
 
 		dispositionMessageHandle :: AgentZeroAgentOut -> AgentMessage AgentZeroMsg -> AgentZeroAgentOut
-		dispositionMessageHandle a (senderId, Disposition d) = updateDomainState a (\s -> s { azAgentDispo = azAgentDispo s + (d * weight)})
+		dispositionMessageHandle a (senderId, Disposition d) = updateDomainState (\s -> s { azAgentDispo = azAgentDispo s + (d * weight)}) a
 			where
-				mayWeight = directLinkBetween (aoEnv a) senderId aid
+				mayWeight = directLinkBetween senderId aid (aoEnv a)
 				weight = fromMaybe 0 mayWeight
 		-- NOTE: pattern match is redundant because only Disposition message exists
 		-- dispositionMessageHandle a _ = a
@@ -217,8 +217,8 @@ agentZeroDestroy a = a { aoEnv = env' }
 	where
 		env = aoEnv a
 		pos = aoEnvPos a
-		cs = cellsAroundRadius env pos destructionRadius
-		env' = foldr (\(coord, cell) envAcc -> changeCellAt envAcc coord (cell { azCellState = Dead })) env cs
+		cs = cellsAroundRadius pos destructionRadius env
+		env' = foldr (\(coord, cell) envAcc -> changeCellAt coord (cell { azCellState = Dead }) envAcc) env cs
 
 agentZeroRandomMove :: AgentZeroAgentOut -> AgentZeroAgentOut
 agentZeroRandomMove a

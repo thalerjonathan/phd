@@ -16,18 +16,18 @@ import Control.Monad.Random
 -- AGENT-BEHAVIOUR Functional Reactive implementation
 ------------------------------------------------------------------------------------------------------------------------
 randomContact :: SIRSState -> FrSIRSSpatialAgentOut -> FrSIRSSpatialAgentOut
-randomContact state ao = sendMessage ao' (randNeigh, Contact state)
+randomContact state ao = sendMessage (randNeigh, Contact state) ao'
     where
-        ((_, randNeigh), ao') = runAgentRandom ao (pickRandomNeighbourCell ao)
+        ((_, randNeigh), ao') = runAgentRandom (pickRandomNeighbourCell ao) ao
 
 respondToContactWith :: SIRSState -> FrSIRSSpatialAgentIn -> FrSIRSSpatialAgentOut -> FrSIRSSpatialAgentOut
-respondToContactWith state ain ao = onMessage ain respondToContactWithAux ao
+respondToContactWith state ain ao = onMessage respondToContactWithAux ain ao
     where
         respondToContactWithAux :: FrSIRSSpatialAgentOut -> AgentMessage FrSIRSSpatialMsg -> FrSIRSSpatialAgentOut
-        respondToContactWithAux ao (senderId, Contact _) = sendMessage ao (senderId, Contact state) 
+        respondToContactWithAux ao (senderId, Contact _) = sendMessage (senderId, Contact state) ao
 
 gotInfected :: FrSIRSSpatialAgentIn -> Rand StdGen Bool
-gotInfected ain = onMessageM ain gotInfectedAux False
+gotInfected ain = onMessageM gotInfectedAux ain False
     where
         gotInfectedAux :: Bool -> AgentMessage FrSIRSSpatialMsg -> Rand StdGen Bool
         gotInfectedAux False (_, Contact Infected) = drawRandomBoolM infectivity
@@ -51,8 +51,8 @@ sirsAgentSusceptibleBehaviour :: RandomGen g => g -> SF FrSIRSSpatialAgentIn (Fr
 sirsAgentSusceptibleBehaviour g = proc ain ->
     do
         let ao = agentOutFromIn ain
-        let ao0 = setDomainState ao Susceptible
-        let (isInfected, ao1) = runAgentRandom ao0 (gotInfected ain)
+        let ao0 = setDomainState Susceptible ao
+        let (isInfected, ao1) = runAgentRandom (gotInfected ain) ao0
     
         infectionEvent <- edge -< isInfected
         ao2 <- sirsAgentMakeContact g Susceptible -< ao1
@@ -77,7 +77,7 @@ sirsAgentInfectedBehaviour g duration = proc ain ->
         recoveredEvent <- after duration () -< ()
     
         let ao = agentOutFromIn ain
-        let ao0 = setDomainState ao Infected
+        let ao0 = setDomainState Infected ao
         let ao1 = respondToContactWith Infected ain ao0 
 
         ao2 <- sirsAgentMakeContact g Infected -< ao1
@@ -99,7 +99,7 @@ sirsAgentRecoveredBehaviour :: SF FrSIRSSpatialAgentIn (FrSIRSSpatialAgentOut, E
 sirsAgentRecoveredBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
-        let ao' = setDomainState ao Recovered
+        let ao' = setDomainState Recovered ao
 
         lostImmunityEvent <- after immuneDuration () -< ()
 

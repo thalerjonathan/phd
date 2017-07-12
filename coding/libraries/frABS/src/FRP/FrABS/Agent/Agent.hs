@@ -135,38 +135,37 @@ agentOutFromIn ai = AgentOut{ aoId = aiId ai,
                               aoRecOthersAllowed = True,
                               aoRng = aiRng ai }
 
-sendMessage :: AgentOut s m ec l -> AgentMessage m -> AgentOut s m ec l
-sendMessage ao msg = ao { aoMessages = mergedMsgs }
+hasConversation :: AgentOut s m ec l -> Bool
+hasConversation = isEvent . aoConversation
+
+conversation :: AgentMessage m
+                -> AgentConversationSender s m ec l
+                -> AgentOut s m ec l
+                -> AgentOut s m ec l
+conversation msg replyHdl ao = ao { aoConversation = Event (msg, replyHdl)}
+
+conversationEnd :: AgentOut s m ec l -> AgentOut s m ec l
+conversationEnd ao = ao { aoConversation = NoEvent }
+
+sendMessage :: AgentMessage m -> AgentOut s m ec l -> AgentOut s m ec l
+sendMessage msg ao = ao { aoMessages = mergedMsgs }
     where
         newMsgEvent = Event [msg]
         existingMsgEvent = aoMessages ao
         mergedMsgs = mergeMessages existingMsgEvent newMsgEvent
 
-hasConversation :: AgentOut s m ec l -> Bool
-hasConversation = isEvent . aoConversation
+sendMessages :: [AgentMessage m] -> AgentOut s m ec l ->  AgentOut s m ec l
+sendMessages msgs ao = foldr (\msg ao' -> sendMessage msg ao') ao msgs
 
-conversation :: AgentOut s m ec l
-                -> AgentMessage m
-                -> AgentConversationSender s m ec l
-                -> AgentOut s m ec l
-conversation ao msg replyHdl = ao { aoConversation = Event (msg, replyHdl)}
-
-conversationEnd :: AgentOut s m ec l -> AgentOut s m ec l
-conversationEnd ao = ao { aoConversation = NoEvent }
-
-
-sendMessages :: AgentOut s m ec l -> [AgentMessage m] -> AgentOut s m ec l
-sendMessages ao msgs = foldr (\msg ao' -> sendMessage ao' msg ) ao msgs
-
-broadcastMessage :: AgentOut s m ec l -> m -> [AgentId] -> AgentOut s m ec l
-broadcastMessage ao m receiverIds = sendMessages ao msgs
+broadcastMessage :: m -> [AgentId] -> AgentOut s m ec l -> AgentOut s m ec l
+broadcastMessage m receiverIds ao = sendMessages msgs ao
     where
         n = length receiverIds
         ms = replicate n m
         msgs = zip receiverIds ms
 
-createAgent :: AgentOut s m ec l -> AgentDef s m ec l -> AgentOut s m ec l
-createAgent ao newDef = ao { aoCreate = createEvt }
+createAgent :: AgentDef s m ec l -> AgentOut s m ec l -> AgentOut s m ec l
+createAgent newDef ao = ao { aoCreate = createEvt }
     where
         oldCreateEvt = aoCreate ao
         createEvt = mergeBy (\leftCreate rightCreate -> leftCreate ++ rightCreate) (Event [newDef]) oldCreateEvt
@@ -180,19 +179,19 @@ kill ao = ao { aoKill = Event () }
 isDead :: AgentOut s m ec l -> Bool
 isDead = isEvent . aoKill
 
-onStart :: AgentIn s m ec l -> (AgentOut s m ec l -> AgentOut s m ec l) -> AgentOut s m ec l -> AgentOut s m ec l
-onStart ai evtHdl ao = onEvent startEvt evtHdl ao
+onStart :: (AgentOut s m ec l -> AgentOut s m ec l) -> AgentIn s m ec l -> AgentOut s m ec l -> AgentOut s m ec l
+onStart evtHdl ai ao = onEvent evtHdl startEvt ao
     where
         startEvt = aiStart ai
 
-onEvent :: Event () -> (AgentOut s m ec l -> AgentOut s m ec l) -> AgentOut s m ec l -> AgentOut s m ec l
-onEvent evt evtHdl ao = if isEvent evt then
+onEvent :: (AgentOut s m ec l -> AgentOut s m ec l) -> Event () -> AgentOut s m ec l -> AgentOut s m ec l
+onEvent evtHdl evt ao = if isEvent evt then
                             evtHdl ao
                             else
                                 ao
     
-hasMessage :: (Eq m) => AgentIn s m ec l -> m -> Bool
-hasMessage ai m
+hasMessage :: (Eq m) => m -> AgentIn s m ec l -> Bool
+hasMessage m ai
     | not hasAnyMessage = False
     | otherwise = hasMsg
     where
@@ -201,8 +200,8 @@ hasMessage ai m
         msgs = fromEvent msgsEvt
         hasMsg = Data.List.any ((==m) . snd) msgs
 
-onMessage :: AgentIn s m ec l -> (acc -> AgentMessage m -> acc) -> acc -> acc
-onMessage ai msgHdl a 
+onMessage :: (acc -> AgentMessage m -> acc) -> AgentIn s m ec l -> acc -> acc
+onMessage  msgHdl ai a 
     | not hasMessages = a
     | otherwise = foldr (\msg acc'-> msgHdl acc' msg ) a msgs
     where
@@ -211,8 +210,8 @@ onMessage ai msgHdl a
         msgs = fromEvent msgsEvt
 
 
-onFilterMessage :: MessageFilter m -> AgentIn s m ec l -> (acc -> AgentMessage m -> acc) -> acc -> acc
-onFilterMessage msgFilter ai msgHdl acc
+onFilterMessage :: MessageFilter m -> (acc -> AgentMessage m -> acc) -> AgentIn s m ec l -> acc -> acc
+onFilterMessage msgFilter msgHdl ai acc
     | not hasMessages = acc
     | otherwise = foldr (\msg acc'-> msgHdl acc' msg ) acc filteredMsgs
     where
@@ -221,30 +220,30 @@ onFilterMessage msgFilter ai msgHdl acc
         msgs = fromEvent msgsEvt
         filteredMsgs = filter msgFilter msgs
 
-onMessageFrom :: AgentId -> AgentIn s m ec l -> (acc -> AgentMessage m -> acc) -> acc -> acc
-onMessageFrom senderId ai msgHdl acc = onFilterMessage filterBySender ai msgHdl acc
+onMessageFrom :: AgentId -> (acc -> AgentMessage m -> acc) -> AgentIn s m ec l -> acc -> acc
+onMessageFrom senderId msgHdl ai acc = onFilterMessage filterBySender msgHdl ai acc
     where
         filterBySender = (\(senderId', _) -> senderId == senderId' )
 
-onMessageType :: (Eq m) => m -> AgentIn s m ec l -> (acc -> AgentMessage m -> acc) -> acc -> acc
-onMessageType m ai msgHdl acc = onFilterMessage filterByMsgType ai msgHdl acc
+onMessageType :: (Eq m) => m -> (acc -> AgentMessage m -> acc) -> AgentIn s m ec l -> acc -> acc
+onMessageType m msgHdl ai acc = onFilterMessage filterByMsgType msgHdl ai acc
     where
         filterByMsgType = ((==m) . snd) --(\(_, m') -> m == m' )
 
-updateDomainState :: AgentOut s m ec l -> (s -> s) -> AgentOut s m ec l
-updateDomainState ao sfunc = ao { aoState = s' }
+updateDomainState :: (s -> s) -> AgentOut s m ec l ->  AgentOut s m ec l
+updateDomainState f ao = ao { aoState = s' }
     where
         s = aoState ao
-        s' = sfunc s
+        s' = f s
     
-setDomainState :: AgentOut s m ec l -> s -> AgentOut s m ec l
-setDomainState ao s = updateDomainState ao (\_ -> s)
+setDomainState :: s -> AgentOut s m ec l -> AgentOut s m ec l
+setDomainState s ao = updateDomainState (\_ -> s) ao
 
 allowsRecOthers :: AgentOut s m ec l -> Bool
 allowsRecOthers = aoRecOthersAllowed
 
-recursive :: AgentOut s m ec l -> Bool -> AgentOut s m ec l
-recursive aout allowOthers = aout { aoRec = Event (), aoRecOthersAllowed = allowOthers }
+recursive :: Bool -> AgentOut s m ec l -> AgentOut s m ec l
+recursive  allowOthers aout = aout { aoRec = Event (), aoRecOthersAllowed = allowOthers }
 
 unrecursive :: AgentOut s m ec l -> AgentOut s m ec l
 unrecursive aout = aout { aoRec = NoEvent }

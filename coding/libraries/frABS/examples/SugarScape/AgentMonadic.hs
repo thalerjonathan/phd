@@ -204,7 +204,7 @@ agentSexM ain =
 
         -- TODO: implement this as monadic
         -- NOTE: this calculates the cells which are in the initial neighbourhood and in the neighbourhood of all the neighbours
-        let  nncsDupl = foldr (\(coord, _) acc -> (neighbours env coord) ++ acc) neighbourCells neighbourCells
+        let  nncsDupl = foldr (\(coord, _) acc -> (neighbours coord env) ++ acc) neighbourCells neighbourCells
         -- NOTE: the nncs are not unique, remove duplicates
         let nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
         let nncsUnoccupied = filter (isNothing . sugEnvOccupier . snd) nncsUnique
@@ -271,7 +271,7 @@ agentSexM ain =
 
 inheritSugarM :: SugarScapeAgentIn 
                     -> State SugarScapeAgentOut ()
-inheritSugarM ain = onMessageMState ain inheritSugarActionM
+inheritSugarM ain = onMessageMState inheritSugarActionM ain
     where
         inheritSugarActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
         inheritSugarActionM (_, (InheritSugar sug)) = updateDomainStateM (\s -> s { sugAgSugarLevel = (sugAgSugarLevel s) + sug})
@@ -307,7 +307,7 @@ handleMatingConversationM otherGender ain
 agentCultureContactM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
 agentCultureContactM ain = 
     do
-        onMessageMState ain cultureContactActionM
+        onMessageMState cultureContactActionM ain
 
         nids <- neighbourIdsM
         culturalTag <- domainStateFieldM sugAgCulturalTag
@@ -328,7 +328,7 @@ agentCultureContactM ain =
         cultureContactActionM _ = return ()
 
 agentKilledInCombatM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
-agentKilledInCombatM ain = onMessageMState ain killedInCombatActionM
+agentKilledInCombatM ain = onMessageMState killedInCombatActionM ain
     where
         killedInCombatActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
         killedInCombatActionM (_, KilledInCombat) = killM -- NOTE: don't unoccupie position (as in agentdies) because it is occupied by the killer already
@@ -503,7 +503,7 @@ agentDeathHandleCreditsM =
         broadcastMessageM CreditLenderDied borrowerIds
 
 agentCreditDeathIncomingM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
-agentCreditDeathIncomingM ain = onMessageMState ain creditDeathActionM
+agentCreditDeathIncomingM ain = onMessageMState creditDeathActionM ain
     where
         creditDeathActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
         creditDeathActionM (borrowerId, CreditBorrowerDied) = borrowerDiedM borrowerId
@@ -527,7 +527,7 @@ agentCreditDeathIncomingM ain = onMessageMState ain creditDeathActionM
                 updateDomainStateM (\s -> s { sugAgBorrowingCredits = borrowersRemoved } )
 
 agentCreditPaybackIncomingM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
-agentCreditPaybackIncomingM ain = onMessageMState ain creditPaybackActionM
+agentCreditPaybackIncomingM ain = onMessageMState creditPaybackActionM ain
     where
         creditPaybackActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
         creditPaybackActionM (_, (CreditPaybackHalf amount)) = halfCreditPaybackM amount
@@ -641,7 +641,7 @@ handleCreditRequestM ain borrowerId
 -- Chapter V: Disease Processes
 ------------------------------------------------------------------------------------------------------------------------
 agentDiseaseContactM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
-agentDiseaseContactM ain = onMessageMState ain diseaseContactActionM
+agentDiseaseContactM ain = onMessageMState diseaseContactActionM ain
     where
         diseaseContactActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
         diseaseContactActionM (_, (DiseaseContact d)) = updateDomainStateM (\s -> s { sugAgDiseases = d : (sugAgDiseases s) } )

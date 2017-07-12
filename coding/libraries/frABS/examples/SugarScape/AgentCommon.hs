@@ -117,7 +117,7 @@ neighbourIds a = map (sugEnvOccId . fromJust . sugEnvOccupier . snd) occupiedCel
     where
         env = aoEnv a
         pos = aoEnvPos a
-        neighbourCells = neighbours env pos
+        neighbourCells = neighbours pos env
         occupiedCells = filter (isJust . sugEnvOccupier . snd) neighbourCells
 
 neighbourIdsM :: State SugarScapeAgentOut [AgentId]

@@ -355,7 +355,7 @@ sendOfferingsM =
 		sendMessageM (auctioneer, AskOffering aos)
 
 receiveTransactionsM :: DAAgentIn -> State DAAgentOut ()
-receiveTransactionsM ain = onMessageMState ain handleTxMsgM
+receiveTransactionsM ain = onMessageMState handleTxMsgM ain
 	where
 		handleTxMsgM :: AgentMessage DoubleAuctionMsg -> State DAAgentOut ()
 		handleTxMsgM (_, (SellTx m o)) = updateDomainStateM (transactSell m o)
@@ -374,18 +374,18 @@ sendOfferings a = aAfterAsk
 	where
 		s = aoState a
 
-		(bos, a0) = runAgentRandom a (bidOfferings s)
-		(aos, a1) = runAgentRandom a0 (askOfferings s)
+		(bos, a0) = runAgentRandom (bidOfferings s) a 
+		(aos, a1) = runAgentRandom (askOfferings s) a0
 
-		aAfterBid = sendMessage a1 (auctioneer, BidOffering bos)
-		aAfterAsk = sendMessage aAfterBid (auctioneer, AskOffering aos)
+		aAfterBid = sendMessage (auctioneer, BidOffering bos) a1
+		aAfterAsk = sendMessage (auctioneer, AskOffering aos) aAfterBid
 
 receiveTransactions :: DAAgentIn -> DAAgentOut -> DAAgentOut
-receiveTransactions ain a = onMessage ain handleTxMsg a
+receiveTransactions ain a = onMessage handleTxMsg ain a
 	where
 		handleTxMsg :: DAAgentOut -> AgentMessage DoubleAuctionMsg -> DAAgentOut
-		handleTxMsg a (_, (SellTx m o)) = updateDomainState a (transactSell m o)
-		handleTxMsg a (_, (BuyTx m o)) = updateDomainState a (transactBuy m o)
+		handleTxMsg a (_, (SellTx m o)) = updateDomainState (transactSell m o) a
+		handleTxMsg a (_, (BuyTx m o)) = updateDomainState (transactBuy m o) a
 		handleTxMsg a _ = a
 ------------------------------------------------------------------------------------------------------------------------
 

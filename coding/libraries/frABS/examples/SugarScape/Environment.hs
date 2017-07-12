@@ -26,49 +26,49 @@ cellUnoccupied = not . cellOccupied
 diffusePolution :: Double -> SugarScapeEnvironment -> SugarScapeEnvironment
 diffusePolution t env
     | timeReached = updateEnvironmentCells
-                                           env
                                            (\c -> c {
-                                               sugEnvPolutionLevel = 0.0} )
+                                               sugEnvPolutionLevel = 0.0})
+                                           env
     | otherwise = env
     where
         timeReached = mod (floor t) diffusePolutionTime == 0
 
 regrowSugarByRate :: Double -> SugarScapeEnvironment -> SugarScapeEnvironment
 regrowSugarByRate rate env = updateEnvironmentCells
-                                env
                                 (\c -> c {
                                     sugEnvSugarLevel = (
                                         min
                                             (sugEnvSugarCapacity c)
                                             ((sugEnvSugarLevel c) + rate))
-                                            } )
+                                            })
+                                env
 
 regrowSpiceByRate :: Double -> SugarScapeEnvironment -> SugarScapeEnvironment
 regrowSpiceByRate rate env = updateEnvironmentCells
-                                env
                                 (\c -> c {
                                     sugEnvSpiceLevel = (
                                         min
                                             (sugEnvSpiceCapacity c)
                                             ((sugEnvSpiceLevel c) + rate))
-                                            } )
+                                            })
+                                env
 
 regrowSugarToMax ::  SugarScapeEnvironment -> SugarScapeEnvironment
 regrowSugarToMax env = updateEnvironmentCells
-                            env
                             (\c -> c {
-                                sugEnvSugarLevel = (sugEnvSugarCapacity c)} )
+                                sugEnvSugarLevel = (sugEnvSugarCapacity c)})
+                            env
 
 regrowSpiceToMax ::  SugarScapeEnvironment -> SugarScapeEnvironment
 regrowSpiceToMax env = updateEnvironmentCells
-                            env
                             (\c -> c {
-                                sugEnvSpiceLevel = (sugEnvSpiceCapacity c)} )
+                                sugEnvSpiceLevel = (sugEnvSpiceCapacity c)})
+                            env
 
 regrowSugarByRateAndRegion :: (Int, Int) -> Double -> SugarScapeEnvironment -> SugarScapeEnvironment
 regrowSugarByRateAndRegion range rate env = updateEnvironmentCellsWithCoords
-                                            env
                                             (regrowCell range)
+                                            env                          
     where
         regrowCell :: (Int, Int) -> (EnvCoord, SugarScapeEnvCell) -> SugarScapeEnvCell
         regrowCell (fromY, toY) ((_, y), c)
@@ -82,8 +82,8 @@ regrowSugarByRateAndRegion range rate env = updateEnvironmentCellsWithCoords
 
 regrowSpiceByRateAndRegion :: (Int, Int) -> Double -> SugarScapeEnvironment -> SugarScapeEnvironment
 regrowSpiceByRateAndRegion range rate env = updateEnvironmentCellsWithCoords
-                                            env
                                             (regrowCell range)
+                                            env
     where
         regrowCell :: (Int, Int) -> (EnvCoord, SugarScapeEnvCell) -> SugarScapeEnvCell
         regrowCell (fromY, toY) ((_, y), c)

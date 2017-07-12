@@ -19,13 +19,13 @@ payoff Defector Cooperator = bParam
 payoff Cooperator Cooperator = rParam
 
 broadcastLocalAction :: PDAgentOut -> PDAgentOut
-broadcastLocalAction ao = broadcastMessage ao (NeighbourAction curr) ns
+broadcastLocalAction ao = broadcastMessage (NeighbourAction curr) ns ao
 	where
 		curr = pdCurrAction $ aoState ao
 		ns = neighbourCells ao
 
 broadcastLocalPayoff :: PDAgentOut -> PDAgentOut
-broadcastLocalPayoff ao = broadcastMessage ao (NeighbourPayoff (currAct, currPo)) ns
+broadcastLocalPayoff ao = broadcastMessage (NeighbourPayoff (currAct, currPo)) ns ao
 	where
 		s = aoState ao
 		currAct = pdCurrAction s
@@ -33,21 +33,21 @@ broadcastLocalPayoff ao = broadcastMessage ao (NeighbourPayoff (currAct, currPo)
 		ns = neighbourCells ao
 
 handleNeighbourAction :: PDAgentIn -> PDAgentOut -> PDAgentOut
-handleNeighbourAction ain ao = onMessage ain handleNeighbourActionAux ao
+handleNeighbourAction ain ao = onMessage handleNeighbourActionAux ain ao
 	where
 		handleNeighbourActionAux :: PDAgentOut -> AgentMessage PDMsg -> PDAgentOut
-		handleNeighbourActionAux ao (_, NeighbourAction act) = updateDomainState ao (\s -> s { pdLocalPo = pdLocalPo s + po })
+		handleNeighbourActionAux ao (_, NeighbourAction act) = updateDomainState (\s -> s { pdLocalPo = pdLocalPo s + po }) ao
 			where
 				curr = pdCurrAction $ aoState ao
 				po = payoff curr act
 		handleNeighbourActionAux ao _ = ao
 
 handleNeighbourPayoff :: PDAgentIn -> PDAgentOut -> PDAgentOut
-handleNeighbourPayoff ain ao = onMessage ain handleNeighbourPayoffAux ao
+handleNeighbourPayoff ain ao = onMessage handleNeighbourPayoffAux ain ao
 	where
 		handleNeighbourPayoffAux :: PDAgentOut -> AgentMessage PDMsg -> PDAgentOut
 		handleNeighbourPayoffAux ao (_, NeighbourPayoff po@(poAct, poValue))
-			| poValue > localBestPoValue = updateDomainState ao (\s -> s { pdBestPo = po })
+			| poValue > localBestPoValue = updateDomainState (\s -> s { pdBestPo = po }) ao
 			| otherwise = ao
 			where
 				s = aoState ao
@@ -57,11 +57,12 @@ handleNeighbourPayoff ain ao = onMessage ain handleNeighbourPayoffAux ao
 
 switchToBestPayoff :: PDAgentOut -> PDAgentOut
 switchToBestPayoff ao = 
-	updateDomainState ao (\s -> s { 
+	updateDomainState (\s -> s { 
 		pdCurrAction = bestAction,
     	pdPrevAction = oldAction,
     	pdLocalPo = 0.0,
     	pdBestPo = (bestAction, 0.0)})
+		ao
 
 	where
 		s = aoState ao

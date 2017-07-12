@@ -119,61 +119,61 @@ createEnvironment beh
     where
         arr = array ((0, 0), (xLimit - 1, yLimit - 1)) cs
 
-neighbourEdges :: Environment c l -> Node -> [l]
-neighbourEdges env node = map fst ls
+neighbourEdges :: Node -> Environment c l ->  [l]
+neighbourEdges node env = map fst ls
     where
-        ls = neighbourLinks env node 
+        ls = neighbourLinks node env
 
-neighbourNodes :: Environment c l -> Node -> [Node]
-neighbourNodes env node = map snd ls
+neighbourNodes :: Node -> Environment c l -> [Node]
+neighbourNodes node env = map snd ls
     where
-        ls = neighbourLinks env node 
+        ls = neighbourLinks node env
 
 neighbourNodesM :: Node -> State (Environment c l) [Node]
-neighbourNodesM node = state (\env -> (neighbourNodes env node, env))
+neighbourNodesM node = state (\env -> (neighbourNodes node env, env))
 
-neighbourLinks :: Environment c l -> Node -> Adj l
-neighbourLinks env node = lneighbors gr node
+neighbourLinks :: Node -> Environment c l -> Adj l
+neighbourLinks node env = lneighbors gr node
     where
         gr = envGraph env
 
-directLinkBetween :: Environment c l -> Node -> Node -> Maybe l
-directLinkBetween env n1 n2 = 
+directLinkBetween :: Node -> Node -> Environment c l -> Maybe l
+directLinkBetween n1 n2 env = 
     do
-        let ls = neighbourLinks env n1
+        let ls = neighbourLinks n1 env
         (linkLabel, _) <- Data.List.find ((==n2) . snd) ls
         return linkLabel
 
 directLinkBetweenM :: Node -> Node -> State (Environment c l) (Maybe l)
-directLinkBetweenM n1 n2 = state (\env -> (directLinkBetween env n1 n2, env))
+directLinkBetweenM n1 n2 = state (\env -> (directLinkBetween n1 n2 env, env))
 
 allCellsWithCoords :: Environment c l -> [(EnvCoord, c)]
 allCellsWithCoords env = assocs ec
     where
         ec = envCells env
 
-updateEnvironmentCells :: Environment c l -> (c -> c) -> Environment c l
-updateEnvironmentCells env mecf = env { envCells = ec' }
+updateEnvironmentCells :: (c -> c) -> Environment c l -> Environment c l
+updateEnvironmentCells f env = env { envCells = ec' }
     where
         ec = envCells env
-        ec' = amap mecf ec
+        ec' = amap f ec
 
-updateEnvironmentCellsWithCoords :: Environment c l -> ((EnvCoord, c) -> c) -> Environment c l
-updateEnvironmentCellsWithCoords env mecf = env'
+updateEnvironmentCellsWithCoords :: ((EnvCoord, c) -> c) -> Environment c l -> Environment c l
+updateEnvironmentCellsWithCoords f env = env'
     where
         ecs = allCellsWithCoords env
-        cs = map mecf ecs
+        cs = map f ecs
         ecCoords = map fst ecs
-        env' = foldr (\(coord, c) accEnv -> changeCellAt accEnv coord c) env (zip ecCoords cs)
+        env' = foldr (\(coord, c) accEnv -> changeCellAt coord c accEnv) env (zip ecCoords cs)
 
-changeCellAt :: Environment c l -> EnvCoord -> c -> Environment c l
-changeCellAt env coord c = env { envCells = arr' }
+changeCellAt :: EnvCoord -> c -> Environment c l -> Environment c l
+changeCellAt coord c env = env { envCells = arr' }
     where
         arr = envCells env
         arr' = arr // [(coord, c)]
 
 changeCellAtM :: EnvCoord -> c -> State (Environment c l) ()
-changeCellAtM coord c = state (\env -> ((), changeCellAt env coord c))
+changeCellAtM coord c = state (\env -> ((), changeCellAt coord c env))
 
 distanceManhattan :: EnvCoord -> EnvCoord -> Int
 distanceManhattan (x1, y1) (x2, y2) = (abs (x1 - x2)) + (abs (y1 - y2))
@@ -184,36 +184,36 @@ distanceEuclidean (x1, y1) (x2, y2) = sqrt (xDelta*xDelta + yDelta*yDelta)
         xDelta = fromRational $ toRational (x2 - x1)
         yDelta = fromRational $ toRational (y2 - y1)
 
-cellsAroundRadius :: Environment c l -> EnvCoord -> Double -> [(EnvCoord, c)]
-cellsAroundRadius env pos r = filter (\(coord, _) -> r >= (distanceEuclidean pos coord)) ecs 
+cellsAroundRadius :: EnvCoord -> Double -> Environment c l -> [(EnvCoord, c)]
+cellsAroundRadius  pos r env = filter (\(coord, _) -> r >= (distanceEuclidean pos coord)) ecs 
     where
         ecs = allCellsWithCoords env
         -- TODO: does not yet wrap around boundaries
 
 cellsAroundRadiusM :: EnvCoord -> Double -> State (Environment c l) [(EnvCoord, c)]
-cellsAroundRadiusM pos r = state (\env -> (cellsAroundRadius env pos r, env))
+cellsAroundRadiusM pos r = state (\env -> (cellsAroundRadius pos r env, env))
 
-cellsAroundRect :: Environment c l -> EnvCoord -> Int -> [(EnvCoord, c)]
-cellsAroundRect env (cx, cy) r = zip wrappedCs cells
+cellsAroundRect :: EnvCoord -> Int -> Environment c l -> [(EnvCoord, c)]
+cellsAroundRect (cx, cy) r env = zip wrappedCs cells
     where
         cs = [(x, y) | x <- [cx - r .. cx + r], y <- [cy - r .. cy + r]]
         l = (envLimits env)
         w = (envWrapping env)
         wrappedCs = wrapCells l w cs
-        cells = cellsAt env wrappedCs
+        cells = cellsAt wrappedCs env
 
-cellsAt :: Environment c l -> [EnvCoord] -> [c]
-cellsAt env cs = map (arr !) cs
+cellsAt :: [EnvCoord] -> Environment c l -> [c]
+cellsAt cs env = map (arr !) cs
     where
         arr = envCells env
 
-cellAt :: Environment c l -> EnvCoord -> c
-cellAt env coord = arr ! coord
+cellAt :: EnvCoord -> Environment c l -> c
+cellAt coord env = arr ! coord
     where
         arr = envCells env
 
 cellAtM :: EnvCoord -> State (Environment c l) c 
-cellAtM coord = state (\env -> (cellAt env coord, env))
+cellAtM coord = state (\env -> (cellAt coord env, env))
    
 
 randomCell :: Environment c l -> Rand StdGen (c, EnvCoord)
@@ -225,27 +225,27 @@ randomCell env =
         randY <- getRandomR (0, maxY - 1)
 
         let randCoord = (randX, randY)
-        let randCell = cellAt env randCoord
+        let randCell = cellAt randCoord env
 
         return (randCell, randCoord)
         
-randomCellWithinRect :: Environment c l
-                        -> EnvCoord 
+randomCellWithinRect ::  EnvCoord 
                         -> Int 
+                        -> Environment c l
                         -> Rand StdGen (c, EnvCoord)
-randomCellWithinRect env (x, y) r = 
+randomCellWithinRect (x, y) r env = 
     do
         randX <- getRandomR (-r, r)
         randY <- getRandomR (-r, r)
         
         let randCoord = (x + randX, y + randY)
         let randCoordWrapped = wrap (envLimits env) (envWrapping env) randCoord
-        let randCell = cellAt env randCoordWrapped
+        let randCell = cellAt randCoordWrapped env
 
         return (randCell, randCoordWrapped)
 
-neighboursDistance :: Environment c l -> EnvCoord -> Int -> [(EnvCoord, c)]
-neighboursDistance env coord dist = zip wrappedNs cells
+neighboursDistance :: EnvCoord -> Int -> Environment c l -> [(EnvCoord, c)]
+neighboursDistance  coord dist env = zip wrappedNs cells
     where
         n = envNeighbourhood env
         coordDeltas = foldr (\v acc -> acc ++ (neighbourhoodScale n v)) [] [1 .. dist]
@@ -253,16 +253,16 @@ neighboursDistance env coord dist = zip wrappedNs cells
         w = envWrapping env
         ns = neighbourhoodOf coord coordDeltas
         wrappedNs = wrapNeighbourhood l w ns
-        cells = cellsAt env wrappedNs
+        cells = cellsAt wrappedNs env
 
 neighboursDistanceM :: EnvCoord -> Int -> State (Environment c l) [(EnvCoord, c)]
-neighboursDistanceM coord dist = state (\env -> (neighboursDistance env coord dist, env))
+neighboursDistanceM coord dist = state (\env -> (neighboursDistance coord dist env, env))
 
-neighbours :: Environment c l -> EnvCoord -> [(EnvCoord, c)]
-neighbours env coord = neighboursDistance env coord 1
+neighbours :: EnvCoord -> Environment c l -> [(EnvCoord, c)]
+neighbours coord env = neighboursDistance coord 1 env
 
 neighboursM :: EnvCoord -> State (Environment c l) [(EnvCoord, c)]
-neighboursM coord = state (\env -> (neighbours env coord, env))
+neighboursM coord = state (\env -> (neighbours coord env, env))
 
 neighbourhoodOf :: EnvCoord -> EnvNeighbourhood -> EnvNeighbourhood
 neighbourhoodOf (x,y) ns = map (\(x', y') -> (x + x', y + y')) ns

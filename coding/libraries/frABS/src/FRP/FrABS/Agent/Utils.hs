@@ -28,7 +28,7 @@ neighbourCells :: AgentOut s m ec l -> [ec]
 neighbourCells ao = map snd (neighbourCellsWithCoords ao)
 
 neighbourCellsWithCoords :: AgentOut s m ec l -> [(EnvCoord, ec)]
-neighbourCellsWithCoords ao = neighbours env pos
+neighbourCellsWithCoords ao = neighbours pos env
     where
         env = aoEnv ao
         pos = aoEnvPos ao
@@ -38,7 +38,7 @@ pickRandomNeighbourNode a =
     do
         let aid = aoId a
         let env = aoEnv a
-        let nn = neighbourNodes env aid
+        let nn = neighbourNodes aid env
         let l = length nn 
 
         randIdx <- getRandomR (0, l - 1)
@@ -49,7 +49,7 @@ pickRandomNeighbourNodeM :: State (AgentOut s m ec l) Node
 pickRandomNeighbourNodeM = state pickRandomNeighbourNodeMAux
     where
         pickRandomNeighbourNodeMAux :: AgentOut s m ec l -> (Node, AgentOut s m ec l)
-        pickRandomNeighbourNodeMAux ao = runAgentRandom ao (pickRandomNeighbourNode ao)
+        pickRandomNeighbourNodeMAux ao = runAgentRandom (pickRandomNeighbourNode ao) ao
 
 pickRandomNeighbourCell :: AgentOut s m ec l -> Rand StdGen (EnvCoord, ec)
 pickRandomNeighbourCell ao = 
@@ -65,14 +65,14 @@ pickRandomNeighbourCellM :: State (AgentOut s m ec l) (EnvCoord, ec)
 pickRandomNeighbourCellM = state pickRandomNeighbourCellMAux
 	where
 		pickRandomNeighbourCellMAux :: AgentOut s m ec l -> ((EnvCoord, ec), AgentOut s m ec l)
-		pickRandomNeighbourCellMAux ao = runAgentRandom ao (pickRandomNeighbourCell ao)
+		pickRandomNeighbourCellMAux ao = runAgentRandom (pickRandomNeighbourCell ao) ao
 
-agentCellOnPos :: (AgentOut s m ec l) -> (EnvCoord, ec)
+agentCellOnPos :: AgentOut s m ec l -> (EnvCoord, ec)
 agentCellOnPos a = (agentPos, cellOfAgent)
     where
         env = aoEnv a
         agentPos = aoEnvPos a
-        cellOfAgent = cellAt env agentPos
+        cellOfAgent = cellAt agentPos env
 
 agentCellOnPosM :: State (AgentOut s m ec l) (EnvCoord, ec)
 agentCellOnPosM = state agentCellOnPosMAux
@@ -83,7 +83,7 @@ agentCellOnPosM = state agentCellOnPosMAux
 agentRandomMove :: AgentOut s m ec l -> AgentOut s m ec l
 agentRandomMove a = a' { aoEnvPos = coord }
 	where
-		((coord, _), a') = runAgentRandom a (pickRandomNeighbourCell a)
+		((coord, _), a') = runAgentRandom (pickRandomNeighbourCell a) a 
 
 agentRandomMoveM :: State (AgentOut s m ec l) ()
 agentRandomMoveM = state (\ao -> ((), agentRandomMove ao))

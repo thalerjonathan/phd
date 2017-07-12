@@ -67,7 +67,7 @@ segMovementRec ain ao
             -- NOTE: to reduce the ratio of agents using future-forecasting to 50% instead of all 100% use: && (mod (aoId ao) 2 == 0)
             | isSatisfied ao' 
                 && recInitAllowed ain
-                = (recursive ao' False)     -- satisfied in the present: check for future, otherwise don't care for future and just move
+                = (recursive False ao')     -- satisfied in the present: check for future, otherwise don't care for future and just move
             | otherwise = ao'
             where
                 -- NOTE: this is the decision in the present (non-recursive)
@@ -82,7 +82,7 @@ segMovement ao
         ao' = updateSatisfactionLevel ao
 
 updateSatisfactionLevel :: SegAgentOut -> SegAgentOut
-updateSatisfactionLevel ao = updateDomainState ao (\s -> s { segSatisfactionLevel = updatedSatisfactionLevel } )
+updateSatisfactionLevel ao = updateDomainState (\s -> s { segSatisfactionLevel = updatedSatisfactionLevel }) ao
     where
         agentPos = aoEnvPos ao
         updatedSatisfactionLevel = satisfactionOn ao agentPos
@@ -95,7 +95,7 @@ satisfactionOn ao targetCoord
     where
         env = aoEnv ao
         party = segParty $ aoState ao
-        cs = neighbours env targetCoord
+        cs = neighbours targetCoord env
         (reds, greens) = countOccupied cs
 
         -- NOTE: if the agent is in the neighbourhood then don't include itself, otherwise include itself (although it might be on the targetcoord, the targetCoord itself is not included)
@@ -133,8 +133,8 @@ moveTo ao newCoord = ao'
         env = aoEnv ao
         oldCoord = aoEnvPos ao
         c = segParty s
-        env' = changeCellAt env oldCoord Nothing
-        env'' = changeCellAt env' newCoord (Just c)
+        env' = changeCellAt oldCoord Nothing env
+        env'' = changeCellAt newCoord (Just c) env' 
         ao' = ao { aoEnv = env'', aoEnvPos = newCoord }
 
 findMove :: SegOptStrategy
@@ -205,7 +205,7 @@ findNearestFreeCoord ao optFunc strat = maybe Nothing (Just . fst) mayNearest
         env = aoEnv ao
         coord = aoEnvPos ao
         
-        coordsCellsSearch = case strat of   (MoveLocal r) -> cellsAroundRect env coord r
+        coordsCellsSearch = case strat of   (MoveLocal r) -> cellsAroundRect coord r env
                                             MoveGlobal -> allCellsWithCoords env
 
         mayNearest = foldr (findNearestAux optFunc) Nothing coordsCellsSearch
@@ -257,13 +257,13 @@ localRandomCell ao radius = (ao', randCell, randCoord)
     where
         env = aoEnv ao
         originCoord = aoEnvPos ao
-        ((randCell, randCoord), ao') = runAgentRandom ao (randomCellWithinRect env originCoord radius)
+        ((randCell, randCoord), ao') = runAgentRandom (randomCellWithinRect originCoord radius env) ao
 
 globalRandomCell :: SegAgentOut -> (SegAgentOut, SegEnvCell, EnvCoord)
 globalRandomCell ao = (ao', randCell, randCoord)
     where
         env = aoEnv ao
-        ((randCell, randCoord), ao') = runAgentRandom ao (randomCell env)
+        ((randCell, randCoord), ao') = runAgentRandom (randomCell env) ao
 ------------------------------------------------------------------------------------------------------------------------
 
 segAgentBehaviourFunc :: Double -> SegAgentIn -> SegAgentOut -> SegAgentOut

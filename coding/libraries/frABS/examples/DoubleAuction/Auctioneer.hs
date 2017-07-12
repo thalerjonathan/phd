@@ -93,7 +93,7 @@ findMatches (bids, asks) =
 				asksAgainstBids
 
 accumulateOfferings :: DAAgentIn -> ([(AgentId, Offering)],[(AgentId, Offering)])
-accumulateOfferings ain = onMessage ain offeringMsgAccumulate ([],[])
+accumulateOfferings ain = onMessage offeringMsgAccumulate ain ([],[])
 	where
 		offeringMsgAccumulate :: ([(AgentId, Offering)],[(AgentId, Offering)]) 
 									-> AgentMessage DoubleAuctionMsg 
@@ -115,15 +115,15 @@ notifyTraders Match { matchSeller = seller,
 					  matchMarket = market } a = aAfterBuyer
 	where
 		o = (price, amount)
-		aAfterSeller = sendMessage a (seller, SellTx market o)
-		aAfterBuyer = sendMessage aAfterSeller (buyer, BuyTx market o)
+		aAfterSeller = sendMessage (seller, SellTx market o) a 
+		aAfterBuyer = sendMessage (buyer, BuyTx market o) aAfterSeller
 
 -- NOTE: for the auctioneer we don't provide any monadic implementation using the state-monad because the auctioneers behaviour is domain-stateless 
 auctioneerBehaviourFunc :: Double -> DAAgentIn -> DAAgentOut -> DAAgentOut 
 auctioneerBehaviourFunc _ ain a = maybe a' (\firstMatch -> notifyTraders (fromJust $ firstMatch) a') mayFirstMatch
 	where
 		offerings = accumulateOfferings ain
-		(matches, a') = runAgentRandom a (findMatches offerings)
+		(matches, a') = runAgentRandom (findMatches offerings) a 
 		mayFirstMatch = Data.List.find isJust matches
 
 auctioneerBehaviour :: DAAgentBehaviour

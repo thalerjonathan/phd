@@ -25,8 +25,8 @@ import Control.Monad.Random
 import Control.Monad.Trans.State
 
 -- NOTE: beware of a = AgentOut (randomly manipulating AgentOut) because one will end up with 2 versions of AgentOut which need to be merged
-runAgentRandom :: AgentOut s m ec l -> Rand StdGen a -> (a, AgentOut s m ec l)
-runAgentRandom a f = (ret, a')
+runAgentRandom :: Rand StdGen a -> AgentOut s m ec l -> (a, AgentOut s m ec l)
+runAgentRandom f a = (ret, a')
     where
         g = aoRng a
         (ret, g') = runRand f g
@@ -36,57 +36,57 @@ runAgentRandomM :: Rand StdGen a -> State (AgentOut s m ec l) a
 runAgentRandomM f = state (runAgentRandomMAux f)
     where
         runAgentRandomMAux :: Rand StdGen a -> AgentOut s m ec l -> (a, AgentOut s m ec l)
-        runAgentRandomMAux f ao = runAgentRandom ao f
+        runAgentRandomMAux f ao = runAgentRandom f ao
 
-drawRandomRangeFromAgent :: (Random a) => AgentOut s m ec l -> (a, a) -> (a, AgentOut s m ec l)
-drawRandomRangeFromAgent a r = runAgentRandom a (getRandomR r)
+drawRandomRangeFromAgent :: (Random a) => (a, a) -> AgentOut s m ec l -> (a, AgentOut s m ec l)
+drawRandomRangeFromAgent r a = runAgentRandom (getRandomR r) a 
 
-drawMultipleRandomRangeFromAgent :: (Random a) => AgentOut s m ec l -> (a, a) -> Int -> ([a], AgentOut s m ec l)
-drawMultipleRandomRangeFromAgent a r n = runAgentRandom a blub
+drawMultipleRandomRangeFromAgent :: (Random a) => (a, a) -> Int -> AgentOut s m ec l -> ([a], AgentOut s m ec l)
+drawMultipleRandomRangeFromAgent r n a = runAgentRandom blub a 
     where
         blub = do
                 infRand <- getRandomRs r
                 let nRand = take n infRand
                 return nRand
 
-drawBoolWithProbFromAgent :: AgentOut s m ec l -> Double -> (Bool, AgentOut s m ec l)
-drawBoolWithProbFromAgent ao p = (trueFlag, ao')
+drawBoolWithProbFromAgent :: Double -> AgentOut s m ec l -> (Bool, AgentOut s m ec l)
+drawBoolWithProbFromAgent p ao = (trueFlag, ao')
     where
-        (r, ao') = drawRandomRangeFromAgent ao (0.0, 1.0)
+        (r, ao') = drawRandomRangeFromAgent (0.0, 1.0) ao
         trueFlag = p >= r
 
 drawBoolWithProbFromAgentM :: Double -> State (AgentOut s m ec l) Bool
 drawBoolWithProbFromAgentM p = state drawBoolWithProbFromAgentMAux 
     where
         drawBoolWithProbFromAgentMAux :: (AgentOut s m ec l) -> (Bool, AgentOut s m ec l)
-        drawBoolWithProbFromAgentMAux ao = drawBoolWithProbFromAgent ao p
+        drawBoolWithProbFromAgentMAux ao = drawBoolWithProbFromAgent p ao
 
 splitRandomFromAgent :: AgentOut s m ec l -> (StdGen, AgentOut s m ec l)
-splitRandomFromAgent a = runAgentRandom a getSplit
+splitRandomFromAgent a = runAgentRandom getSplit a 
 
-agentPickRandom :: AgentOut s m ec l -> [a] -> (a, AgentOut s m ec l)
-agentPickRandom a xs
+agentPickRandom :: [a] -> AgentOut s m ec l -> (a, AgentOut s m ec l)
+agentPickRandom xs a 
     | null xs = error "cannot draw single random element from empty list"
     | otherwise = (randElem, a')
     where
         cellCount = length xs
-        (randIdx, a') = drawRandomRangeFromAgent a (0, cellCount - 1)
+        (randIdx, a') = drawRandomRangeFromAgent (0, cellCount - 1) a 
         randElem = xs !! randIdx
 
 agentPickRandomM :: [a] -> State (AgentOut s m ec l) a
-agentPickRandomM xs = state (\ao -> agentPickRandom ao xs)
+agentPickRandomM xs = state (\ao -> agentPickRandom xs ao)
 
-agentPickRandomMultiple :: AgentOut s m ec l -> [a] -> Int -> ([a], AgentOut s m ec l)
-agentPickRandomMultiple a xs n
+agentPickRandomMultiple :: [a] -> Int -> AgentOut s m ec l -> ([a], AgentOut s m ec l)
+agentPickRandomMultiple xs n a 
     | null xs = error "cannot draw multiple random elements from empty list"
     | otherwise = (randElems, a')
     where
         cellCount = length xs
-        (randIndices, a') = drawMultipleRandomRangeFromAgent a (0, cellCount - 1) n
+        (randIndices, a') = drawMultipleRandomRangeFromAgent (0, cellCount - 1) n a 
         randElems = foldr (\idx acc -> (xs !! idx) : acc) [] randIndices  
 
 agentPickRandomMultipleM :: [a] -> Int -> State (AgentOut s m ec l) [a]
-agentPickRandomMultipleM xs n = state (\ao -> agentPickRandomMultiple ao xs n)
+agentPickRandomMultipleM xs n = state (\ao -> agentPickRandomMultiple xs n ao)
 
 drawRandomBoolM :: (RandomGen g) => Double -> Rand g Bool
 drawRandomBoolM p = getRandomR (0.0, 1.0) >>= (\r -> return $ p >= r)

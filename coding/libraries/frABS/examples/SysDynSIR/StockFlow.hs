@@ -26,7 +26,7 @@ susceptibleStock initValue = proc ain ->
         stockValue <- (initValue+) ^<< integral -< (-infectionRate)
         
         let ao = agentOutFromIn ain
-        let ao0 = setDomainState ao stockValue
+        let ao0 = setDomainState stockValue ao
         let ao1 = stockOutTo stockValue infectionRateFlowId ao0
 
         returnA -< ao1
@@ -40,7 +40,7 @@ infectiousStock initValue = proc ain ->
         stockValue <- (initValue+) ^<< integral -< (infectionRate - recoveryRate)
         
         let ao = agentOutFromIn ain
-        let ao0 = setDomainState ao stockValue
+        let ao0 = setDomainState stockValue ao
         let ao1 = stockOutTo stockValue infectionRateFlowId ao0 
         let ao2 = stockOutTo stockValue recoveryRateFlowId ao1
         
@@ -54,7 +54,7 @@ recoveredStock initValue = proc ain ->
         stockValue <- (initValue+) ^<< integral -< recoveryRate
         
         let ao = agentOutFromIn ain
-        let ao' = setDomainState ao stockValue
+        let ao' = setDomainState stockValue ao
 
         returnA -< ao'
 ------------------------------------------------------------------------------------------------------------------------
@@ -100,10 +100,10 @@ filterMessageValue :: Double -> (AgentMessage SysDynSIRMsg) -> Double
 filterMessageValue initValue (_, Value v) = v
 
 valueInFrom :: AgentId -> SysDynSIRIn -> Double
-valueInFrom senderId ain = onMessageFrom senderId ain filterMessageValue 0.0 
+valueInFrom senderId ain = onMessageFrom senderId filterMessageValue ain 0.0 
 
 valueOutTo :: Double -> AgentId -> SysDynSIROut -> SysDynSIROut
-valueOutTo value receiverId ao = sendMessage ao (receiverId, Value value)
+valueOutTo value receiverId ao = sendMessage (receiverId, Value value) ao
 
 flowInFrom = valueInFrom
 stockInFrom = valueInFrom

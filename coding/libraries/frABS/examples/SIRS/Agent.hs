@@ -56,7 +56,7 @@ randomContactM =
 sirsAgentBehaviourFuncM :: Double -> SIRSAgentIn -> State SIRSAgentOut ()
 sirsAgentBehaviourFuncM t ain = 
     do
-        onMessageMState ain contactInfectedM
+        onMessageMState contactInfectedM ain
         sirsDtM t
 
     where
@@ -81,10 +81,10 @@ sirsDt ao t
 
 infectAgent :: Double -> SIRSAgentOut -> SIRSAgentOut
 infectAgent t ao
-    | yes = updateDomainState ao' (\s -> s { sirsState = Infected, sirsTime = t + infectedDuration } )
+    | yes = updateDomainState (\s -> s { sirsState = Infected, sirsTime = t + infectedDuration }) ao'
     | otherwise = ao'
     where
-         (yes, ao') = drawBoolWithProbFromAgent ao infectionProbability
+         (yes, ao') = drawBoolWithProbFromAgent infectionProbability ao
 
 contactInfected :: Double -> SIRSAgentOut -> AgentMessage SIRSMsg -> SIRSAgentOut
 contactInfected t a (_, Contact Infected) 
@@ -98,7 +98,7 @@ handleInfectedAgent ao t
     | otherwise = randomContact ao
     where
         timeOfRecovery = sirsTime $ aoState ao
-        recoveredAgent = updateDomainState ao (\s -> s { sirsState = Recovered, sirsTime = t + immuneDuration} )
+        recoveredAgent = updateDomainState (\s -> s { sirsState = Recovered, sirsTime = t + immuneDuration}) ao
 
 handleRecoveredAgent :: SIRSAgentOut -> Double -> SIRSAgentOut
 handleRecoveredAgent ao t 
@@ -106,17 +106,17 @@ handleRecoveredAgent ao t
     | otherwise = ao
     where
         timeOfImmunityLost = sirsTime $ aoState ao
-        susceptibleAgent = updateDomainState ao (\s -> s { sirsState = Susceptible, sirsTime = 0.0 } )
+        susceptibleAgent = updateDomainState (\s -> s { sirsState = Susceptible, sirsTime = 0.0 }) ao
 
 randomContact :: SIRSAgentOut -> SIRSAgentOut
-randomContact ao = sendMessage ao' (randNeigh, (Contact Infected))
+randomContact ao = sendMessage (randNeigh, (Contact Infected)) ao'
     where
-        ((_, randNeigh), ao') = runAgentRandom ao (pickRandomNeighbourCell ao)
+        ((_, randNeigh), ao') = runAgentRandom (pickRandomNeighbourCell ao) ao
 
 sirsAgentBehaviourFunc :: Double -> SIRSAgentIn -> SIRSAgentOut -> SIRSAgentOut
 sirsAgentBehaviourFunc t ain ao = sirsDt aoAfterMsg t
     where
-        aoAfterMsg = onMessage ain (contactInfected t) ao
+        aoAfterMsg = onMessage  (contactInfected t) ain ao
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

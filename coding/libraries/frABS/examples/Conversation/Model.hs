@@ -53,9 +53,9 @@ randomRangeCounter = (0, 10)
 -- MODEL IMPLEMENTATION
 ------------------------------------------------------------------------------------------------------------------------
 agentTest :: ConversationAgentOut -> ConversationAgentOut
-agentTest a = setDomainState a' n
+agentTest a = setDomainState n a'
     where
-        (n, a') = drawRandomRangeFromAgent a  (0, 10)
+        (n, a') = drawRandomRangeFromAgent (0, 10) a
 
 conversationHandler :: ConversationAgentConversation
 conversationHandler ain (_, msg@(Hello n)) =
@@ -63,7 +63,7 @@ conversationHandler ain (_, msg@(Hello n)) =
         Just (Hello (n+1), ain)
 
 makeConversationWith :: Int -> ConversationAgentOut -> ConversationAgentOut
-makeConversationWith n a = conversation a msg makeConversationWithAux
+makeConversationWith n a = conversation msg makeConversationWithAux a 
     where
         receiverId = if aoId a == 0 then 1 else 0
         msg =  trace ("makeConversationWith " ++ (show n) ++ " receiverId = " ++ (show receiverId))  (receiverId, Hello n)
@@ -85,7 +85,7 @@ makeConversationWith n a = conversation a msg makeConversationWithAux
                             adBeh = conversationAgentBehaviour,
                             adRng = g }
 
-                a1 = createAgent a0 adef 
+                a1 = createAgent adef a0
 
         makeConversationWithAux a _ = trace ("Agent " ++ (show $ aoId a) ++ " receives Nothing -> stopping") conversationEnd a
 

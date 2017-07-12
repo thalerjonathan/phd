@@ -24,13 +24,13 @@ burndownSF = proc a ->
 		let s = aoState a
 		let fuel = wfFuel s
 		remainingFuel <- (1.0-) ^<< integral -< 1.0 -- TODO: how can we put fuel-variable in?
-		returnA -< updateDomainState a (\s -> s { wfLifeState = Burning, wfFuel = max 0.0 remainingFuel}) 
+		returnA -< updateDomainState (\s -> s { wfLifeState = Burning, wfFuel = max 0.0 remainingFuel}) a
 
 igniteNeighbours :: WildfireAgentOut -> WildfireAgentOut
-igniteNeighbours ao = sendMessage a' (n, Ignite)
+igniteNeighbours ao = sendMessage (n, Ignite) a'
 	where
 		nids = neighbourIds ao
-		(n, a') = agentPickRandom ao nids
+		(n, a') = agentPickRandom nids ao
 
 
 isBurnedDown :: WildfireAgentOut -> Bool
@@ -43,13 +43,13 @@ neighbourIds ao = map snd neighs
 	where
 		env = aoEnv ao
 		coord = aoEnvPos ao
-		neighs = neighbours env coord
+		neighs = neighbours coord env
 
 wildfireAgentLiving :: SF WildfireAgentIn (WildfireAgentOut, Event ())
 wildfireAgentLiving = proc ain ->
 	do
 		let aout = agentOutFromIn ain
-		ignitionEvent <- (iEdge False) -< hasMessage ain Ignite 	-- NOTE: need to use iEdge False to detect Ignite messages which were added at time 0: at initialization time
+		ignitionEvent <- (iEdge False) -< hasMessage Ignite ain 	-- NOTE: need to use iEdge False to detect Ignite messages which were added at time 0: at initialization time
 		returnA -< (aout, ignitionEvent)
 
 wildfireAgentIgnite :: RandomGen g => g -> () -> WildfireAgentBehaviour
@@ -59,7 +59,7 @@ wildfireAgentDie :: () -> WildfireAgentBehaviour
 wildfireAgentDie _ = proc ain ->
 	do
 		let aout = agentOutFromIn ain
-		let aout' = updateDomainState aout (\s -> s { wfLifeState = Dead })
+		let aout' = updateDomainState (\s -> s { wfLifeState = Dead }) aout
 		returnA -< aout' -- kill aout' -- NOTE: killing would lead to increased performance but would leave the patch white (blank)
 
 wildfireAgentBurning :: RandomGen g => g -> SF WildfireAgentIn (WildfireAgentOut, Event ())
@@ -74,6 +74,7 @@ wildfireAgentBurning g = proc ain ->
 
 		returnA -< (a'', dyingEvent)
 
+-- TODO: use transitionAfter
 wildfireAgentBurningBehaviour :: RandomGen g => g -> WildfireAgentBehaviour
 wildfireAgentBurningBehaviour g = switch (wildfireAgentBurning g) wildfireAgentDie
 

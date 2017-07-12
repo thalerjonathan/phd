@@ -64,7 +64,7 @@ recursiveABSActRecursive aout ain
         recursiveStates = map aoState recursiveOuts
 
         aout' = trace ("agent " ++ (show $ aiId ain) ++ ":  has recursiveOuts: " ++ (show recursiveStates)) (recursiveABSRandomizeCounter aout)
-        aoutRec = recursive aout' allowRecursionToOthers
+        aoutRec = recursive allowRecursionToOthers aout'
 
         aoutSelected = trace ("agent " ++ (show $ aiId ain) ++ ":  has recursiveOuts: " ++ (show recursiveStates)) (recursiveOuts !! 0)
         aoutUnRec = unrecursive aoutSelected
@@ -75,13 +75,13 @@ recursiveABSActNonRec aout ain
     | otherwise = trace ("agent " ++ (show $ aiId ain) ++ ": recursion is forbidden, generating state " ++ (show $ aoState aout')) aout'
     where
         aout' = recursiveABSRandomizeCounter aout
-        aoutRec = recursive aout' allowRecursionToOthers
+        aoutRec = recursive allowRecursionToOthers aout'
 
 recursiveABSRandomizeCounter :: RecursiveABSAgentOut -> RecursiveABSAgentOut
 recursiveABSRandomizeCounter aout = aout1
     where
-        (randInt, aout0) = drawRandomRangeFromAgent aout randomRangeCounter
-        aout1 = setDomainState aout0 randInt
+        (randInt, aout0) = drawRandomRangeFromAgent randomRangeCounter aout
+        aout1 = setDomainState randInt aout0
 
 recursiveABSAgentBehaviour :: RecursiveABSAgentBehaviour
 recursiveABSAgentBehaviour = proc ain ->

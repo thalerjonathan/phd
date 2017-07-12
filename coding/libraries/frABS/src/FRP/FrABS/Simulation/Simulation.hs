@@ -226,6 +226,7 @@ seqCallback params (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                 -- TODO: to prevent an endless creation of recursions when running a recursion for more than 1 step one needs to let the recursive agent let know it is inside its own recursion with the same mechanism as letting others now they are inside another recursion.
 
                 -- NOTE: need to add agent, because not included
+                -- TODO: does it really have to be added at the end?
                 allAsfs = otherSfs ++ [oldSf]       -- NOTE: use the old sf, no time
                 allAins = otherIns'' ++ [newIn]
 
@@ -391,23 +392,23 @@ parCallback :: [AgentIn s m ec l]
                 -> [AgentOut s m ec l]
                 -> [AgentBehaviour s m ec l]
                 -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
-parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns0)
+parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
     where
         (asfs', newAgentIns) = processAgents asfs oldAgentIns newAgentOuts
-        newAgentIns0 = distributeMessages newAgentIns newAgentOuts
+        newAgentIns' = distributeMessages newAgentIns newAgentOuts
 
         processAgents :: [AgentBehaviour s m ec l]
                             -> [AgentIn s m ec l]
                             -> [AgentOut s m ec l]
                             -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
-        processAgents asfs oldIs newOs = foldr (\a acc -> handleAgent acc a ) ([], []) asfsWithIsOs
+        processAgents asfs oldIs newOs = foldr handleAgent ([], []) asfsIsOs
             where
-                asfsWithIsOs = zip3 asfs oldIs newOs
+                asfsIsOs = zip3 asfs oldIs newOs
 
-                handleAgent :: ([AgentBehaviour s m ec l], [AgentIn s m ec l])
-                                -> (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l)
+                handleAgent :: (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l)
                                 -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
-                handleAgent acc a@(_, oldIn, newOut) = handleKillOrLiveAgent acc' a
+                                -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
+                handleAgent  a@(_, oldIn, newOut) acc = handleKillOrLiveAgent acc' a
                     where
                         idGen = aiIdGen oldIn
                         acc' = handleCreateAgents idGen newOut acc 
@@ -417,7 +418,7 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns0)
                                             -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
                 handleKillOrLiveAgent acc@(asfsAcc, ainsAcc) (sf, oldIn, newOut)
                     | killAgent = acc
-                    | otherwise = (asfsAcc ++ [sf], ainsAcc ++ [newIn])
+                    | otherwise = (sf : asfsAcc, newIn : ainsAcc) 
                     where
                         killAgent = isEvent $ aoKill newOut
                         newIn = newAgentIn oldIn newOut

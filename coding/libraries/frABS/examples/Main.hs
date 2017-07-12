@@ -16,8 +16,6 @@ import           Wildfire.Run
 
 {-
     TODOs
-    - performance?
-    
     - the 2d-renderer are all the same: refactor into one
     - implement Heroes & Cowards
         - use-case for continuous 2d-environment: implement Heroes & Cowards
@@ -33,12 +31,10 @@ import           Wildfire.Run
         - warnings: compilation with -w must show no warnings at all
         
     - comment haskell code
-
-    
 -}
 
 main :: IO ()
-main = runPDWithRendering
+main = runPDSteps
 
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile

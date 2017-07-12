@@ -22,14 +22,7 @@ executable frABSExamples
                     IfElse
 
   ghc-options:      -O2
-                    -rtsopts
-                    -prof
-                    -auto-all
-                    -caf-all
-                    -fforce-recomp
-                    "-with-rtsopts= -s -hy -p -i0.1 -K256M"
-
-                    -- -W
+                    -W
                     -- -Wall
                     -- -fwarn-tabs
                     -- -fno-warn-tabs

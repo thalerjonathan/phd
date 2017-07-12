@@ -12,7 +12,7 @@ winTitle = "Prisoners Dilemma"
 updateStrat = Parallel
 shuffleAgents = False
 rngSeed = 42
-envSize = (99, 99)
+envSize = (49, 49)
 samplingTimeDelta = 0.2
 frequency = 0
 

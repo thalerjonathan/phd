@@ -1,4 +1,4 @@
-name:              FrABSExamples
+name:              frABSExamples
 version:           1.0
 Build-Type:        Simple
 cabal-version:     >= 1.2
@@ -22,7 +22,14 @@ executable frABSExamples
                     IfElse
 
   ghc-options:      -O2
-                    -W
+                    -rtsopts
+                    -prof
+                    -auto-all
+                    -caf-all
+                    -fforce-recomp
+                    "-with-rtsopts= -s -hy -p -i0.1 -K256M"
+
+                    -- -W
                     -- -Wall
                     -- -fwarn-tabs
                     -- -fno-warn-tabs

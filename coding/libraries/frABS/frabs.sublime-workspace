@@ -136,7 +136,6 @@
 			"settings":
 			{
 				"buffer_size": 3379,
-				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		}
@@ -148,10 +147,14 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 392.0,
-		"last_filter": "haskell",
+		"height": 152.0,
+		"last_filter": "stack",
 		"selected_items":
 		[
+			[
+				"stack",
+				"SublimeHaskell: Stack Exec"
+			],
 			[
 				"haskell",
 				"SublimeHaskell: Lint"
@@ -193,15 +196,19 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/.stack-work/install/x86_64-linux/lts-8.22",
 		"/home/jonathan/phd/coding/libraries/frABS/src",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS"
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP"
 	],
 	"file_history":
 	[
-		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/frABSExamples.cabal",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/stack.yaml",
+		"/home/jonathan/phd/coding/libraries/frABS/FrABS.cabal",
+		"/home/jonathan/phd/coding/libraries/frABS/stack.yaml",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/Run.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Env/Environment.hs",
@@ -247,7 +254,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Run.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/frABSExamples.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/Init.hs",
@@ -317,17 +323,13 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDRenderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDInit.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDAgent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DAModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/ConversationInit.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/ConversationModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroModel.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DATrader.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DARun.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroAgent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DAInit.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DAAuctioneer.hs"
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs"
 	],
 	"find":
 	{
@@ -558,7 +560,7 @@
 				{
 					"buffer": 0,
 					"file": "examples/Main.hs",
-					"semi_transient": false,
+					"semi_transient": true,
 					"settings":
 					{
 						"buffer_size": 3379,
@@ -568,8 +570,8 @@
 						"selection":
 						[
 							[
-								1270,
-								1270
+								0,
+								0
 							]
 						],
 						"settings":
@@ -579,7 +581,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 180.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,

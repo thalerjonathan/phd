@@ -25,14 +25,11 @@ transitionAfter :: Double
                     -> AgentBehaviour s m ec l
                     -> AgentBehaviour s m ec l
                     -> AgentBehaviour s m ec l
-transitionAfter dt from to = switch (transitionAwaiting from) (transitionOccured to)
+transitionAfter dt from to = switch (transitionAwaiting from) (\_ -> to)
     where
         transitionAwaiting :: AgentBehaviour s m ec l -> SF (AgentIn s m ec l) (AgentOut s m ec l, Event ())
         transitionAwaiting from = proc ain ->
             do
                 ao <- from -< ain
-                timeEvent <- after dt () -< ()
-                returnA -< (ao, timeEvent)
-
-        transitionOccured :: AgentBehaviour s m ec l -> () -> AgentBehaviour s m ec l
-        transitionOccured to _ = to
+                timeoutEvent <- after dt () -< ()
+                returnA -< (ao, timeoutEvent)

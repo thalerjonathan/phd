@@ -47,7 +47,9 @@ module FRP.FrABS.Env.Environment (
     neighbourhoodScale,
    
     neumann,
+    neumannSelf,
     moore,
+    mooreSelf,
 
     wrapCells
   ) where

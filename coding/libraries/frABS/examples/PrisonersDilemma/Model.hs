@@ -87,13 +87,11 @@ createPDAgent (agentId, coord) beh a =
         let s = PDAgentState {
           pdCurrAction = a,
           pdPrevAction = a,
-          
           pdLocalPo = 0.0,
-
           pdBestPo = (a, 0.0)
         }
 
-        let adef = AgentDef {
+        return AgentDef {
            adId = agentId,
            adState = s,
            adEnvPos = coord,
@@ -101,5 +99,3 @@ createPDAgent (agentId, coord) beh a =
            adInitMessages = NoEvent,
            adBeh = beh,
            adRng = rng }
-
-        return adef

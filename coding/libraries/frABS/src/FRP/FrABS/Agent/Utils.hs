@@ -1,8 +1,11 @@
 module FRP.FrABS.Agent.Utils (
+    neighbourCells,
+    neighbourCellsWithCoords,
+
     pickRandomNeighbourNode,
     pickRandomNeighbourNodeM,
     
-	pickRandomNeighbourCell,
+    pickRandomNeighbourCell,
 	pickRandomNeighbourCellM,
 
 	agentRandomMove,
@@ -20,14 +23,21 @@ import Control.Monad.Random
 import Control.Monad.Trans.State
 
 import Data.Graph.Inductive.Graph
-import Data.Graph.Inductive.PatriciaTree
+
+neighbourCells :: AgentOut s m ec l -> [ec]
+neighbourCells ao = map snd (neighbourCellsWithCoords ao)
+
+neighbourCellsWithCoords :: AgentOut s m ec l -> [(EnvCoord, ec)]
+neighbourCellsWithCoords ao = neighbours env pos
+    where
+        env = aoEnv ao
+        pos = aoEnvPos ao
 
 pickRandomNeighbourNode :: AgentOut s m ec l -> Rand StdGen Node
 pickRandomNeighbourNode a = 
     do
         let aid = aoId a
         let env = aoEnv a
-        let pos = aoEnvPos a
         let nn = neighbourNodes env aid
         let l = length nn 
 
@@ -42,16 +52,14 @@ pickRandomNeighbourNodeM = state pickRandomNeighbourNodeMAux
         pickRandomNeighbourNodeMAux ao = runAgentRandom ao (pickRandomNeighbourNode ao)
 
 pickRandomNeighbourCell :: AgentOut s m ec l -> Rand StdGen (EnvCoord, ec)
-pickRandomNeighbourCell a = 
+pickRandomNeighbourCell ao = 
 	do
-		let env = aoEnv a
-		let pos = aoEnvPos a
-		let neighbourCells = neighbours env pos
-		let l = length neighbourCells 
+		let ncc = neighbourCellsWithCoords ao
+		let l = length ncc 
 
 		randIdx <- getRandomR (0, l - 1)
 
-		return (neighbourCells !! randIdx)
+		return (ncc !! randIdx)
 
 pickRandomNeighbourCellM :: State (AgentOut s m ec l) (EnvCoord, ec)
 pickRandomNeighbourCellM = state pickRandomNeighbourCellMAux

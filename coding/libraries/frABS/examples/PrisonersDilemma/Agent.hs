@@ -16,32 +16,25 @@ payoff Cooperator Defector = sParam
 payoff Defector Cooperator = bParam
 payoff Cooperator Cooperator = rParam
 
-neighbourIds :: PDAgentOut -> [AgentId]
-neighbourIds ao = map snd neighs
-	where
-		env = aoEnv ao
-		coord = aoEnvPos ao
-		neighs = neighbours env coord
-
 broadcastLocalAction :: PDAgentOut -> PDAgentOut
-broadcastLocalAction a = broadcastMessage a (NeighbourAction curr) ns
+broadcastLocalAction ao = broadcastMessage ao (NeighbourAction curr) ns
 	where
-		curr = pdCurrAction $ aoState a
-		ns = neighbourIds a
+		curr = pdCurrAction $ aoState ao
+		ns = neighbourCells ao
 
 broadcastLocalPayoff :: PDAgentOut -> PDAgentOut
-broadcastLocalPayoff a = broadcastMessage a (NeighbourPayoff (currAct, currPo)) ns
+broadcastLocalPayoff ao = broadcastMessage ao (NeighbourPayoff (currAct, currPo)) ns
 	where
-		s = aoState a
+		s = aoState ao
 		currAct = pdCurrAction s
 		currPo = pdLocalPo s
-		ns = neighbourIds a
+		ns = neighbourCells ao
 
 handleNeighbourAction :: PDAgentIn -> PDAgentOut -> PDAgentOut
 handleNeighbourAction ain ao = onMessage ain handleNeighbourActionAux ao
 	where
 		handleNeighbourActionAux :: PDAgentOut -> AgentMessage PDMsg -> PDAgentOut
-		handleNeighbourActionAux ao (_, (NeighbourAction act)) = updateDomainState ao (\s -> s { pdLocalPo = pdLocalPo s + po })
+		handleNeighbourActionAux ao (_, NeighbourAction act) = updateDomainState ao (\s -> s { pdLocalPo = pdLocalPo s + po })
 			where
 				curr = pdCurrAction $ aoState ao
 				po = payoff curr act
@@ -51,12 +44,12 @@ handleNeighbourPayoff :: PDAgentIn -> PDAgentOut -> PDAgentOut
 handleNeighbourPayoff ain ao = onMessage ain handleNeighbourPayoffAux ao
 	where
 		handleNeighbourPayoffAux :: PDAgentOut -> AgentMessage PDMsg -> PDAgentOut
-		handleNeighbourPayoffAux ao (_, (NeighbourPayoff po@(poAct, poValue)))
-			| poValue > localPoValue = updateDomainState ao (\s -> s { pdBestPo = po })
+		handleNeighbourPayoffAux ao (_, NeighbourPayoff po@(poAct, poValue))
+			| poValue > localBestPoValue = updateDomainState ao (\s -> s { pdBestPo = po })
 			| otherwise = ao
 			where
 				s = aoState ao
-				localPoValue = pdLocalPo s
+				(_, localBestPoValue) = pdBestPo s
 
 		handleNeighbourPayoffAux ao _ = ao
 
@@ -77,42 +70,36 @@ pdAgentAwaitingNeighbourPayoffs :: SF PDAgentIn (PDAgentOut, Event ())
 pdAgentAwaitingNeighbourPayoffs = proc ain ->
 	do
 		let ao = agentOutFromIn ain
-		let ao' = handleNeighbourPayoff ain ao
+		let ao0 = handleNeighbourPayoff ain ao
 
-		timeEvent <- after 0.5 () -< ()	-- NOTE: can also replace this by counting the number of payoffs received from neighbours and creating an event when all have been received
-		returnA -< (ao', timeEvent)
+		-- question: is this actually evaluated EVERYTIME or due to Haskells laziness just once?
+		aoPoEvt <- once -< (Event . broadcastLocalPayoff) ao0
+		-- this seems to be a bit unelegant, can we formulate this more elegant?
+		let ao1 = event ao0 id aoPoEvt
+
+		timeEvent <- after 0.5 () -< ()
+		returnA -< (ao1, timeEvent)
 
 pdAgentNeighbourPayoffsReceived :: () -> PDAgentBehaviour
-pdAgentNeighbourPayoffsReceived _ = -- TODO: switch to best payoff and send it as action to neighbours and wait for actions
-	switch pdAgentAwaitingNeighbourActions pdAgentNeighbourActionsReceived 
-	-- switchToBestPayoff
-	-- broadcastLocalAction
+pdAgentNeighbourPayoffsReceived _ = switch pdAgentAwaitingNeighbourActions pdAgentNeighbourActionsReceived 
 
 pdAgentAwaitingNeighbourActions :: SF PDAgentIn (PDAgentOut, Event ())
 pdAgentAwaitingNeighbourActions = proc ain ->
 	do
 		let ao = agentOutFromIn ain
-		let ao' = handleNeighbourAction ain ao
-		let ao'' = revertAction ao'
+		let ao0 = handleNeighbourAction ain ao
 
-		timeEvent <- after 0.5 () -< () -- NOTE: can also replace this by counting the number of actions received from neighbours and creating an event when all have been received
-		returnA -< (ao'', timeEvent)
+		-- question: is this actually evaluated EVERYTIME or due to Haskells laziness just once?
+		aoOnceEvt <- once -< (Event . broadcastLocalAction . switchToBestPayoff) ao0
+		-- this seems to be a bit unelegant, can we formulate this more elegant?
+		let ao1 = event ao0 id aoOnceEvt
+
+		timeEvent <- after 0.5 () -< ()
+		returnA -< (ao1, timeEvent)
 
 pdAgentNeighbourActionsReceived :: () -> PDAgentBehaviour
-pdAgentNeighbourActionsReceived _ = -- TODO: send local payoff to all neighbours and wait for other payoffs
-	switch pdAgentAwaitingNeighbourPayoffs pdAgentNeighbourPayoffsReceived
-	-- broadcastLocalPayoff
-
-revertAction :: PDAgentOut -> PDAgentOut
-revertAction ao 
-	| Defector == curr = updateDomainState ao (\s -> s { pdCurrAction = Cooperator})
-	| Cooperator == curr = updateDomainState ao (\s -> s { pdCurrAction = Defector})
-	where
-		s = aoState ao
-		curr = pdCurrAction s
+pdAgentNeighbourActionsReceived _ = switch pdAgentAwaitingNeighbourPayoffs pdAgentNeighbourPayoffsReceived
 
 pdAgentBehaviour :: PDAgentBehaviour
-pdAgentBehaviour = -- TODO: send current payoff to neighbours and wait for actions
-	switch pdAgentAwaitingNeighbourActions pdAgentNeighbourActionsReceived
-	-- broadcastLocalAction
+pdAgentBehaviour = pdAgentNeighbourPayoffsReceived () 
 ------------------------------------------------------------------------------------------------------------------------ 

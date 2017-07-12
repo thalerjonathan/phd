@@ -100,6 +100,9 @@ module FRP.FrABS (
     drawRandomExponential,
     drawRandomExponentialM,
 
+    neighbourCells,
+    neighbourCellsWithCoords,
+
     pickRandomNeighbourNode,
     pickRandomNeighbourNodeM,
     
@@ -159,7 +162,9 @@ module FRP.FrABS (
     neighbourhoodScale,
    
     neumann,
+    neumannSelf,
     moore,
+    mooreSelf,
 
     wrapCells,
 

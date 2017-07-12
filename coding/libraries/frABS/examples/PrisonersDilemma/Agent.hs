@@ -73,11 +73,11 @@ pdAgentAwaitingNeighbourPayoffs = proc ain ->
 		let ao0 = handleNeighbourPayoff ain ao
 
 		-- question: is this actually evaluated EVERYTIME or due to Haskells laziness just once?
-		aoPoEvt <- once -< (Event . broadcastLocalPayoff) ao0
+		aoOnceEvt <- once -< (Event . broadcastLocalPayoff) ao0
 		-- this seems to be a bit unelegant, can we formulate this more elegant?
-		let ao1 = event ao0 id aoPoEvt
+		let ao1 = event ao0 id aoOnceEvt
 
-		timeEvent <- after 0.5 () -< ()
+		timeEvent <- after halfRoundTripTime () -< ()
 		returnA -< (ao1, timeEvent)
 
 pdAgentNeighbourPayoffsReceived :: () -> PDAgentBehaviour
@@ -94,7 +94,7 @@ pdAgentAwaitingNeighbourActions = proc ain ->
 		-- this seems to be a bit unelegant, can we formulate this more elegant?
 		let ao1 = event ao0 id aoOnceEvt
 
-		timeEvent <- after 0.5 () -< ()
+		timeEvent <- after halfRoundTripTime () -< ()
 		returnA -< (ao1, timeEvent)
 
 pdAgentNeighbourActionsReceived :: () -> PDAgentBehaviour

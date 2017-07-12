@@ -31,7 +31,7 @@ initPrisonersDilemma dims@(maxX, maxY) =
     let env = createEnvironment
                           Nothing
                           dims
-                          neumannSelf   -- NOTE: include self otherwise won't get the desired results
+                          mooreSelf   -- NOTE: include self otherwise won't get the desired results
                           ClipToMax
                           cells
                           envRng

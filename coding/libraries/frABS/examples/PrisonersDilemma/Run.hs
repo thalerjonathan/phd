@@ -16,10 +16,10 @@ winTitle = "Prisoners Dilemma"
 updateStrat = Parallel
 shuffleAgents = False
 rngSeed = 42
-envSize = (49, 49)
-samplingTimeDelta = 0.2
+envSize = (99, 99)
+samplingTimeDelta = 0.45
 frequency = 0
-steps = 50 -- this means 10 time-steps
+steps = 485
 
 runPDWithRendering :: IO ()
 runPDWithRendering = 

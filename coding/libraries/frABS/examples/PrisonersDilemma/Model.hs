@@ -19,7 +19,9 @@ module PrisonersDilemma.Model (
     pParam,
     rParam,
 
-    createPDAgent
+    createPDAgent,
+
+    halfRoundTripTime
   ) where
 
 import FRP.FrABS
@@ -58,7 +60,7 @@ type PDAgentIn = AgentIn PDAgentState PDMsg PDCell PDLinkLabel
 type PDAgentOut = AgentOut PDAgentState PDMsg PDCell PDLinkLabel
 ------------------------------------------------------------------------------------------------------------------------
 
-
+halfRoundTripTime = 0.5
 
 ------------------------------------------------------------------------------------------------------------------------
 -- MODEL-PARAMETERS

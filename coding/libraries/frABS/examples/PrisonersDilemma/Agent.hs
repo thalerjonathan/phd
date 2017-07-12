@@ -10,6 +10,8 @@ import FRP.FrABS
 import FRP.Yampa
 
 ------------------------------------------------------------------------------------------------------------------------
+-- Non-Reactive functions
+------------------------------------------------------------------------------------------------------------------------
 payoff :: PDAction -> PDAction -> Double
 payoff Defector Defector = pParam
 payoff Cooperator Defector = sParam
@@ -66,40 +68,35 @@ switchToBestPayoff ao =
 		oldAction = pdCurrAction s
 		(bestAction, _) = pdBestPo s
 
-pdAgentAwaitingNeighbourPayoffs :: SF PDAgentIn (PDAgentOut, Event ())
+------------------------------------------------------------------------------------------------------------------------
+-- Reactive Functions
+------------------------------------------------------------------------------------------------------------------------
+pdAgentAwaitingNeighbourPayoffs :: PDAgentBehaviour
 pdAgentAwaitingNeighbourPayoffs = proc ain ->
 	do
 		let ao = agentOutFromIn ain
 		let ao0 = handleNeighbourPayoff ain ao
 
-		-- question: is this actually evaluated EVERYTIME or due to Haskells laziness just once?
-		aoOnceEvt <- once -< (Event . broadcastLocalPayoff) ao0
-		-- this seems to be a bit unelegant, can we formulate this more elegant?
-		let ao1 = event ao0 id aoOnceEvt
+		ao1 <- doOnce broadcastLocalPayoff -< ao0
 
-		timeEvent <- after halfRoundTripTime () -< ()
-		returnA -< (ao1, timeEvent)
+		returnA -< ao1
 
-pdAgentNeighbourPayoffsReceived :: () -> PDAgentBehaviour
-pdAgentNeighbourPayoffsReceived _ = switch pdAgentAwaitingNeighbourActions pdAgentNeighbourActionsReceived 
-
-pdAgentAwaitingNeighbourActions :: SF PDAgentIn (PDAgentOut, Event ())
+pdAgentAwaitingNeighbourActions :: PDAgentBehaviour
 pdAgentAwaitingNeighbourActions = proc ain ->
 	do
 		let ao = agentOutFromIn ain
 		let ao0 = handleNeighbourAction ain ao
 
-		-- question: is this actually evaluated EVERYTIME or due to Haskells laziness just once?
-		aoOnceEvt <- once -< (Event . broadcastLocalAction . switchToBestPayoff) ao0
-		-- this seems to be a bit unelegant, can we formulate this more elegant?
-		let ao1 = event ao0 id aoOnceEvt
+		ao1 <- doOnce (broadcastLocalAction . switchToBestPayoff) -< ao0
 
-		timeEvent <- after halfRoundTripTime () -< ()
-		returnA -< (ao1, timeEvent)
+		returnA -< ao1
 
-pdAgentNeighbourActionsReceived :: () -> PDAgentBehaviour
-pdAgentNeighbourActionsReceived _ = switch pdAgentAwaitingNeighbourPayoffs pdAgentNeighbourPayoffsReceived
+pdAgentWaitForActions :: PDAgentBehaviour
+pdAgentWaitForActions = transitionAfter halfRoundTripTime pdAgentAwaitingNeighbourActions pdAgentWaitForPayoffs
+
+pdAgentWaitForPayoffs :: PDAgentBehaviour
+pdAgentWaitForPayoffs = transitionAfter halfRoundTripTime pdAgentAwaitingNeighbourPayoffs pdAgentWaitForActions
 
 pdAgentBehaviour :: PDAgentBehaviour
-pdAgentBehaviour = pdAgentNeighbourPayoffsReceived () 
+pdAgentBehaviour = pdAgentWaitForActions
 ------------------------------------------------------------------------------------------------------------------------ 

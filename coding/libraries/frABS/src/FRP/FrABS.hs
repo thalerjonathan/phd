@@ -79,6 +79,9 @@ module FRP.FrABS (
 
     agentMonadic,
 
+    doOnce,
+    transitionAfter,
+
     ifThenElse,
     ifThenElseM,
 

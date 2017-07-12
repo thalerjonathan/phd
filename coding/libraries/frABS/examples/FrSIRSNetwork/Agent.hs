@@ -13,7 +13,7 @@ import FRP.FrABS
 import Control.Monad.Random
 
 ------------------------------------------------------------------------------------------------------------------------
--- AGENT-BEHAVIOUR Functional Reactive implementation
+-- Non-Reactive Functions
 ------------------------------------------------------------------------------------------------------------------------
 randomContact :: SIRSState -> FrSIRSNetworkAgentOut -> FrSIRSNetworkAgentOut
 randomContact state ao = sendMessage ao' (randNeigh, Contact state)
@@ -34,6 +34,9 @@ gotInfected ain = onMessageM ain gotInfectedAux False
         gotInfectedAux False _ = return False
         gotInfectedAux True _ = return True
 
+------------------------------------------------------------------------------------------------------------------------
+-- Reactive Functions
+------------------------------------------------------------------------------------------------------------------------
 sirsAgentMakeContact :: RandomGen g => g -> SIRSState -> SF FrSIRSNetworkAgentOut FrSIRSNetworkAgentOut
 sirsAgentMakeContact g state = proc ao ->
     do
@@ -65,50 +68,35 @@ sirsAgentSusceptibleInfected g _ = sirsNetworkAgentBehaviourRandInfected g Infec
 
 
 
-
 sirsAgentInfected :: RandomGen g => g -> Double -> FrSIRSNetworkAgentBehaviour
-sirsAgentInfected g duration = switch 
-                            (sirsAgentInfectedBehaviour g duration)
-                            (sirsAgentInfectedRecovered g)
+sirsAgentInfected g duration = transitionAfter duration (sirsAgentInfectedBehaviour g) (sirsAgentRecovered g)
 
 
-sirsAgentInfectedBehaviour :: RandomGen g => g -> Double -> SF FrSIRSNetworkAgentIn (FrSIRSNetworkAgentOut, Event ())
-sirsAgentInfectedBehaviour g duration = proc ain ->
+sirsAgentInfectedBehaviour :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
+sirsAgentInfectedBehaviour g = proc ain ->
     do
-        recoveredEvent <- after duration () -< ()
-    
         let ao = agentOutFromIn ain
         let ao0 = setDomainState ao Infected
         let ao1 = respondToContactWith Infected ain ao0 
 
         ao2 <- sirsAgentMakeContact g Infected -< ao1
 
-        returnA -< (ao2, recoveredEvent)
-
--- TODO: update sirsState to recovered here once, no need to constantly set to recovered in recoverbehaviourSF
-sirsAgentInfectedRecovered :: RandomGen g => g -> () -> FrSIRSNetworkAgentBehaviour
-sirsAgentInfectedRecovered g _ = sirsAgentRecovered g
-
+        returnA -< ao2
 
 
 sirsAgentRecovered :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
-sirsAgentRecovered g = switch 
-                            sirsAgentRecoveredBehaviour
-                            (sirsAgentRecoveredSusceptible g)
+sirsAgentRecovered g = transitionAfter immuneDuration sirsAgentRecoveredBehaviour (sirsAgentSuceptible g)
 
-sirsAgentRecoveredBehaviour :: SF FrSIRSNetworkAgentIn (FrSIRSNetworkAgentOut, Event ())
+sirsAgentRecoveredBehaviour :: FrSIRSNetworkAgentBehaviour
 sirsAgentRecoveredBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
         let ao' = setDomainState ao Recovered
 
-        lostImmunityEvent <- after immuneDuration () -< ()
+        -- ao' <- doOnce () -< ao
 
-        returnA -< (ao', lostImmunityEvent)
+        returnA -< ao'
 
--- TODO: update sirsState to susceptible here once, no need to constantly set to susceptible in susceptiblebehaviourSF
-sirsAgentRecoveredSusceptible :: RandomGen g => g -> () -> FrSIRSNetworkAgentBehaviour
-sirsAgentRecoveredSusceptible g _ = sirsAgentSuceptible g
 
 -- NOTE: this is the initial SF which will be only called once
 sirsNetworkAgentBehaviourRandInfected :: RandomGen g => g -> SIRSState -> FrSIRSNetworkAgentBehaviour

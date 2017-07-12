@@ -53,7 +53,7 @@ illnessDuration :: Double
 illnessDuration = 15
 
 immuneDuration :: Double
-immuneDuration = 3000.0
+immuneDuration = 3.0
 
 initialInfectionProb :: Double
 initialInfectionProb = 0.2

@@ -1,5 +1,7 @@
 module PrisonersDilemma.Run (
     runPDWithRendering,
+    runPDStepsAndRender,
+
     runPDSteps
   ) where
 
@@ -14,10 +16,10 @@ winTitle = "Prisoners Dilemma"
 updateStrat = Parallel
 shuffleAgents = False
 rngSeed = 42
-envSize = (29, 29)
-samplingTimeDelta = 0.3
+envSize = (49, 49)
+samplingTimeDelta = 0.2
 frequency = 0
-steps = 100
+steps = 50 -- this means 10 time-steps
 
 runPDWithRendering :: IO ()
 runPDWithRendering = 
@@ -34,6 +36,21 @@ runPDWithRendering =
                             winSize
                             Renderer.renderFrame
                             Nothing
+
+runPDStepsAndRender :: IO ()
+runPDStepsAndRender = 
+    do
+        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
+        (initAdefs, initEnv) <- initPrisonersDilemma envSize
+        
+        simulateStepsAndRender initAdefs
+                            initEnv
+                            params
+                            samplingTimeDelta
+                            steps
+                            winTitle
+                            winSize
+                            Renderer.renderFrame
 
 runPDSteps :: IO ()
 runPDSteps = 

@@ -12,7 +12,7 @@ import FRP.FrABS
 winSize = (800, 800)
 winTitle = "SIRS"
 updateStrat = Parallel
-shuffleAgents = True
+shuffleAgents = False
 rngSeed = 42
 samplingTimeDelta = 0.5
 frequency = 0

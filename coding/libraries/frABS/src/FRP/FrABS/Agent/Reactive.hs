@@ -1,29 +1,37 @@
 {-# LANGUAGE Arrows #-}
 module FRP.FrABS.Agent.Reactive (
     EventSource,
+    MessageSource,
 
     doOnce,
     
-    transitionAfter,
+    sendMessageOccasionallySrc,
+    sendMessageOccasionally,
 
+    constMsgReceiverSource,
+    constMsgSource,
+    randomNodeMsgSource,
+
+    transitionAfter,
     transitionWithUniProb,
     transitionWithExpProb,
-
-    transitionEvent,
-    messageEvent,
+    transitionOnEvent,
     transitionOnMessage,
-    transitionEventWithGuard
+    transitionOnEventWithGuard,
+
+    messageEventSource
   ) where
 
 import FRP.Yampa
 
 import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Agent.Random
+import FRP.FrABS.Agent.Utils
 
 import Control.Monad.Random
-import Control.Monad.Trans.State
 
 type EventSource s m ec l = SF (AgentIn s m ec l, AgentOut s m ec l) (AgentOut s m ec l, Event ())
+type MessageSource s m ec l = (AgentOut s m ec l -> (AgentOut s m ec l, AgentMessage m))
 
 -------------------------------------------------------------------------------
 -- Actions
@@ -43,12 +51,64 @@ doOnce f = proc ao ->
 -- Messaging
 -------------------------------------------------------------------------------
 -- TODO: sendMessageRepeatedly
--- TODO: sendMessageOccasionally
 -- TODO: sendMessageAfter
 -- TODO: sendMessageOnEvent
 -- TODO: sendMessageOnMessageReceived
+
+sendMessageOccasionally :: RandomGen g => g 
+                                        -> Double
+                                        -> AgentMessage m
+                                        -> SF (AgentOut s m ec l) (AgentOut s m ec l)
+sendMessageOccasionally g rate msg = sendMessageOccasionallySrc g rate (constMsgSource msg)
+
+sendMessageOccasionallySrc :: RandomGen g => g 
+                                        -> Double
+                                        -> MessageSource s m ec l 
+                                        -> SF (AgentOut s m ec l) (AgentOut s m ec l)
+sendMessageOccasionallySrc g rate msgSrc = proc ao ->
+    do
+        sendEvt <- occasionally g rate () -< ()
+        let ao' = sendMessageOccasionallyAux msgSrc sendEvt ao
+        returnA -< ao'
+
+    where
+        sendMessageOccasionallyAux :: MessageSource s m ec l 
+                                        -> Event () 
+                                        -> AgentOut s m ec l 
+                                        -> AgentOut s m ec l
+        sendMessageOccasionallyAux _ NoEvent ao = ao
+        sendMessageOccasionallyAux msgSrc (Event ()) ao = sendMessage msg ao'
+            where
+                (ao', msg) = msgSrc ao
+
 -------------------------------------------------------------------------------
 
+-------------------------------------------------------------------------------
+-- MESSAGE-Sources
+-------------------------------------------------------------------------------
+constMsgReceiverSource :: m -> AgentId -> MessageSource s m ec l
+constMsgReceiverSource m receiver ao = (ao, msg)
+    where
+        msg = (receiver, m)
+
+constMsgSource :: AgentMessage m -> MessageSource s m ec l
+constMsgSource msg ao = (ao, msg)
+
+randomNodeMsgSource :: m -> MessageSource s m ec l
+randomNodeMsgSource m ao = (ao', msg)
+    where
+        (randNode, ao') = runAgentRandom (pickRandomNeighbourNode ao) ao
+        msg = (randNode, m)
+
+-- TODO: can we do the following? problem: ec must be AgentId, but this is not allowed by the compiler, cannot infer the type
+{- 
+randomCellMsgSource :: m -> MessageSource s m ec l
+randomCellMsgSource m ao = (ao', msg)
+    where
+        ((_, randCell), ao') = runAgentRandom (pickRandomNeighbourCell ao) ao
+        msg = (randCell, m)
+-}
+-------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- Transitions
@@ -97,11 +157,11 @@ transitionWithExpProb lambda p from to = switch (transitionWithExpProbAux from) 
                 evt <- edge -< (p >= r)
                 returnA -< (ao', evt)
 
-transitionEvent :: EventSource s m ec l
+transitionOnEvent :: EventSource s m ec l
                     -> AgentBehaviour s m ec l
                     -> AgentBehaviour s m ec l
                     -> AgentBehaviour s m ec l
-transitionEvent evtSrc from to = switch (transitionEventAux evtSrc from) (\_ -> to)
+transitionOnEvent evtSrc from to = switch (transitionEventAux evtSrc from) (\_ -> to)
     where
         transitionEventAux :: EventSource s m ec l
                                 -> AgentBehaviour s m ec l
@@ -110,28 +170,21 @@ transitionEvent evtSrc from to = switch (transitionEventAux evtSrc from) (\_ -> 
             do
                 ao <- from -< ain
                 (ao', evt) <- evtSrc -< (ain, ao)
-                returnA -< (ao, evt)
+                returnA -< (ao', evt)
 
 transitionOnMessage :: (Eq m) => m 
                         -> AgentBehaviour s m ec l
                         -> AgentBehaviour s m ec l
                         -> AgentBehaviour s m ec l
-transitionOnMessage msg from to = transitionEvent (messageEvent msg) from to
-
--- TODO: how can we formulate this in point-free arrow style?
-messageEvent :: (Eq m) => m -> SF (AgentIn s m ec l, AgentOut s m ec l) (AgentOut s m ec l, Event ())
-messageEvent msg = proc (ain, ao) ->
-    do
-        evt <- edge -< hasMessage msg ain
-        returnA -< (ao, evt)
+transitionOnMessage msg from to = transitionOnEvent (messageEventSource msg) from to
 
 
-transitionEventWithGuard :: EventSource s m ec l
+transitionOnEventWithGuard :: EventSource s m ec l
                             -> Rand StdGen Bool
                             -> AgentBehaviour s m ec l
                             -> AgentBehaviour s m ec l
                             -> AgentBehaviour s m ec l
-transitionEventWithGuard evtSrc guardAction from to = switch (transitionEventWithGuardAux evtSrc from) (\_ -> to)
+transitionOnEventWithGuard evtSrc guardAction from to = switch (transitionEventWithGuardAux evtSrc from) (\_ -> to)
     where
         transitionEventWithGuardAux :: EventSource s m ec l
                                         -> AgentBehaviour s m ec l 
@@ -150,4 +203,15 @@ transitionEventWithGuard evtSrc guardAction from to = switch (transitionEventWit
             | otherwise = (ao', NoEvent)
             where
                 (guardAllowed, ao') = runAgentRandom guardAction ao
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+-- EVENT-Sources
+-------------------------------------------------------------------------------
+-- TODO: how can we formulate this in point-free arrow style?
+messageEventSource :: (Eq m) => m -> EventSource s m ec l
+messageEventSource msg = proc (ain, ao) ->
+    do
+        evt <- edge -< hasMessage msg ain
+        returnA -< (ao, evt)
 -------------------------------------------------------------------------------

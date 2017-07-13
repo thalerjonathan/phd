@@ -15,11 +15,6 @@ import Control.Monad.Random
 ------------------------------------------------------------------------------------------------------------------------
 -- Non-Reactive Functions
 ------------------------------------------------------------------------------------------------------------------------
-randomContact :: SIRSState -> FrSIRSNetworkAgentOut -> FrSIRSNetworkAgentOut
-randomContact state ao = sendMessage (randNeigh, Contact state) ao' 
-    where
-        (randNeigh, ao') = runAgentRandom (pickRandomNeighbourNode ao) ao
-
 respondToContactWith :: SIRSState -> FrSIRSNetworkAgentIn -> FrSIRSNetworkAgentOut -> FrSIRSNetworkAgentOut
 respondToContactWith state ain ao = onMessage respondToContactWithAux ain ao
     where
@@ -38,16 +33,9 @@ gotInfected ain = onMessageM gotInfectedAux ain False
 ------------------------------------------------------------------------------------------------------------------------
 -- Reactive Functions
 ------------------------------------------------------------------------------------------------------------------------
-sirsAgentMakeContact :: RandomGen g => g -> SIRSState -> SF FrSIRSNetworkAgentOut FrSIRSNetworkAgentOut
-sirsAgentMakeContact g state = proc ao ->
-    do
-        makeContact <- occasionally g (1 / contactRate) () -< ()
-        let ao' = event ao (\_ -> randomContact state ao) makeContact
-        returnA -< ao'
-
 -- SUSCEPTIBLE
 sirsAgentSuceptible :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
-sirsAgentSuceptible g = transitionEvent
+sirsAgentSuceptible g = transitionOnEvent
                             sirsAgentInfectedEvent
                             (sirsAgentSusceptibleBehaviour g)
                             (sirsNetworkAgentBehaviourRandInfected g Infected)
@@ -64,13 +52,18 @@ sirsAgentSusceptibleBehaviour g = proc ain ->
     do
         let ao = agentOutFromIn ain
         ao0 <- doOnce (setDomainState Susceptible) -< ao
-        ao1 <- sirsAgentMakeContact g Susceptible -< ao0
+        ao1 <- sendMessageOccasionallySrc 
+                    g 
+                    (1 / contactRate) 
+                    (randomNodeMsgSource (Contact Susceptible)) -< ao0
         returnA -< ao1
-
 
 -- INFECTED
 sirsAgentInfected :: RandomGen g => g -> Double -> FrSIRSNetworkAgentBehaviour
-sirsAgentInfected g duration = transitionAfter duration (sirsAgentInfectedBehaviour g) (sirsAgentRecovered g)
+sirsAgentInfected g duration = transitionAfter 
+                                    duration 
+                                    (sirsAgentInfectedBehaviour g) 
+                                    (sirsAgentRecovered g)
 
 sirsAgentInfectedBehaviour :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
 sirsAgentInfectedBehaviour g = proc ain ->
@@ -79,13 +72,19 @@ sirsAgentInfectedBehaviour g = proc ain ->
         let ao0 = respondToContactWith Infected ain ao
 
         ao1 <- doOnce (setDomainState Infected) -< ao0
-        ao2 <- sirsAgentMakeContact g Infected -< ao1
+        ao2 <- sendMessageOccasionallySrc 
+                    g 
+                    (1 / contactRate) 
+                    (randomNodeMsgSource (Contact Infected)) -< ao1
 
         returnA -< ao2
 
 -- RECOVERED
 sirsAgentRecovered :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
-sirsAgentRecovered g = transitionAfter immuneDuration sirsAgentRecoveredBehaviour (sirsAgentSuceptible g)
+sirsAgentRecovered g = transitionAfter 
+                            immuneDuration 
+                            sirsAgentRecoveredBehaviour 
+                            (sirsAgentSuceptible g)
 
 sirsAgentRecoveredBehaviour :: FrSIRSNetworkAgentBehaviour
 sirsAgentRecoveredBehaviour = proc ain ->
@@ -94,7 +93,7 @@ sirsAgentRecoveredBehaviour = proc ain ->
         ao' <- doOnce (setDomainState Recovered) -< ao
         returnA -< ao'
 
-
+-- INITIAL CASES
 sirsNetworkAgentBehaviour :: RandomGen g => g -> SIRSState -> FrSIRSNetworkAgentBehaviour
 sirsNetworkAgentBehaviour g Susceptible = sirsAgentSuceptible g
 sirsNetworkAgentBehaviour g Infected = sirsAgentInfected g illnessDuration

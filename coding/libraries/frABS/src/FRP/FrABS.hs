@@ -80,18 +80,25 @@ module FRP.FrABS (
     agentMonadic,
 
     EventSource,
+    MessageSource,
 
     doOnce,
     
-    transitionAfter,
+    sendMessageOccasionallySrc,
+    sendMessageOccasionally,
 
+    constMsgReceiverSource,
+    constMsgSource,
+    randomNodeMsgSource,
+
+    transitionAfter,
     transitionWithUniProb,
     transitionWithExpProb,
-
-    transitionEvent,
-    messageEvent,
+    transitionOnEvent,
     transitionOnMessage,
-    transitionEventWithGuard,
+    transitionOnEventWithGuard,
+
+    messageEventSource,
     
     ifThenElse,
     ifThenElseM,

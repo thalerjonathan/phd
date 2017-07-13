@@ -10,7 +10,23 @@ import FRP.FrABS
 import FRP.Yampa
 
 ------------------------------------------------------------------------------------------------------------------------
--- AGENT-BEHAVIOUR YAMPA implementation
+-- Non-Reactive Functions
+------------------------------------------------------------------------------------------------------------------------
+igniteNeighbours :: WildfireAgentOut -> WildfireAgentOut
+igniteNeighbours ao = sendMessage (n, Ignite) a'
+	where
+		nids = neighbourCells ao
+		(n, a') = agentPickRandom nids ao
+
+
+isBurnedDown :: WildfireAgentOut -> Bool
+isBurnedDown ao = wfFuel s <= 0.0
+	where
+		s = aoState ao
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- Reactive Functions
 ------------------------------------------------------------------------------------------------------------------------
 igniteNeighboursSF :: RandomGen g => g -> SF WildfireAgentOut WildfireAgentOut
 igniteNeighboursSF g = proc a-> 
@@ -25,25 +41,6 @@ burndownSF = proc a ->
 		let fuel = wfFuel s
 		remainingFuel <- (1.0-) ^<< integral -< 1.0 -- TODO: how can we put fuel-variable in?
 		returnA -< updateDomainState (\s -> s { wfLifeState = Burning, wfFuel = max 0.0 remainingFuel}) a
-
-igniteNeighbours :: WildfireAgentOut -> WildfireAgentOut
-igniteNeighbours ao = sendMessage (n, Ignite) a'
-	where
-		nids = neighbourIds ao
-		(n, a') = agentPickRandom nids ao
-
-
-isBurnedDown :: WildfireAgentOut -> Bool
-isBurnedDown ao = wfFuel s <= 0.0
-	where
-		s = aoState ao
-
-neighbourIds :: WildfireAgentOut -> [AgentId]
-neighbourIds ao = map snd neighs
-	where
-		env = aoEnv ao
-		coord = aoEnvPos ao
-		neighs = neighbours coord env
 
 wildfireAgentLiving :: SF WildfireAgentIn (WildfireAgentOut, Event ())
 wildfireAgentLiving = proc ain ->

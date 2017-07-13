@@ -40,7 +40,7 @@ sirsAgentSuceptible g = transitionOnEvent
                             (sirsAgentSusceptibleBehaviour g)
                             (sirsNetworkAgentBehaviourRandInfected g Infected)
 
-sirsAgentInfectedEvent :: FrSIRSEventSource
+sirsAgentInfectedEvent :: FrSIRSNetworkEventSource
 sirsAgentInfectedEvent = proc (ain, ao) ->
     do
         let (isInfected, ao') = runAgentRandom (gotInfected ain) ao

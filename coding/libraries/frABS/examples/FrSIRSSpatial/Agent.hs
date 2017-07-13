@@ -13,13 +13,8 @@ import FRP.FrABS
 import Control.Monad.Random
 
 ------------------------------------------------------------------------------------------------------------------------
--- AGENT-BEHAVIOUR Functional Reactive implementation
+-- Non-Reactive Functions
 ------------------------------------------------------------------------------------------------------------------------
-randomContact :: SIRSState -> FrSIRSSpatialAgentOut -> FrSIRSSpatialAgentOut
-randomContact state ao = sendMessage (randNeigh, Contact state) ao'
-    where
-        ((_, randNeigh), ao') = runAgentRandom (pickRandomNeighbourCell ao) ao
-
 respondToContactWith :: SIRSState -> FrSIRSSpatialAgentIn -> FrSIRSSpatialAgentOut -> FrSIRSSpatialAgentOut
 respondToContactWith state ain ao = onMessage respondToContactWithAux ain ao
     where
@@ -33,96 +28,80 @@ gotInfected ain = onMessageM gotInfectedAux ain False
         gotInfectedAux False (_, Contact Infected) = drawRandomBoolM infectivity
         gotInfectedAux False _ = return False
         gotInfectedAux True _ = return True
+------------------------------------------------------------------------------------------------------------------------
 
-sirsAgentMakeContact :: RandomGen g => g -> SIRSState -> SF FrSIRSSpatialAgentOut FrSIRSSpatialAgentOut
-sirsAgentMakeContact g state = proc ao ->
-    do
-        makeContact <- occasionally g (1 / contactRate) () -< ()
-        let ao' = event ao (\_ -> randomContact state ao) makeContact
-        returnA -< ao'
-
-
+------------------------------------------------------------------------------------------------------------------------
+-- Reactive Functions
+------------------------------------------------------------------------------------------------------------------------
+-- SUSCEPTIBLE
 sirsAgentSuceptible :: RandomGen g => g -> FrSIRSSpatialAgentBehaviour
-sirsAgentSuceptible g = switch 
+sirsAgentSuceptible g = transitionOnEvent
+                            sirsAgentInfectedEvent
                             (sirsAgentSusceptibleBehaviour g)
-                            (sirsAgentSusceptibleInfected g)
+                            (sirsAgentBehaviourRandInfected g Infected)
 
-sirsAgentSusceptibleBehaviour :: RandomGen g => g -> SF FrSIRSSpatialAgentIn (FrSIRSSpatialAgentOut, Event ())
+sirsAgentInfectedEvent :: FrSIRSSpatialEventSource
+sirsAgentInfectedEvent = proc (ain, ao) ->
+    do
+        let (isInfected, ao') = runAgentRandom (gotInfected ain) ao
+        infectionEvent <- edge -< isInfected
+        returnA -< (ao', infectionEvent)
+
+sirsAgentSusceptibleBehaviour :: RandomGen g => g -> FrSIRSSpatialAgentBehaviour
 sirsAgentSusceptibleBehaviour g = proc ain ->
     do
         let ao = agentOutFromIn ain
-        let ao0 = setDomainState Susceptible ao
-        let (isInfected, ao1) = runAgentRandom (gotInfected ain) ao0
-    
-        infectionEvent <- edge -< isInfected
-        ao2 <- sirsAgentMakeContact g Susceptible -< ao1
+        ao0 <- doOnce (setDomainState Susceptible) -< ao
+        ao1 <- sendMessageOccasionallySrc 
+                    g 
+                    (1 / contactRate) 
+                    (randomCellMsgSource (Contact Susceptible)) -< ao0
+        returnA -< ao1
 
-        returnA -< (ao2, infectionEvent)
-
--- TODO: update sirsState to infected here once, no need to constantly set to infected in infecedbehaviourSF
-sirsAgentSusceptibleInfected :: RandomGen g => g -> () -> FrSIRSSpatialAgentBehaviour
-sirsAgentSusceptibleInfected g _ = sirsAgentBehaviourRandInfected g Infected
-
-
-
+-- INFECTED
 sirsAgentInfected :: RandomGen g => g -> Double -> FrSIRSSpatialAgentBehaviour
-sirsAgentInfected g duration = switch 
-                            (sirsAgentInfectedBehaviour g duration)
-                            (sirsAgentInfectedRecovered g)
+sirsAgentInfected g duration = transitionAfter 
+                                    duration 
+                                    (sirsAgentInfectedBehaviour g) 
+                                    (sirsAgentRecovered g)
 
-
-sirsAgentInfectedBehaviour :: RandomGen g => g -> Double -> SF FrSIRSSpatialAgentIn (FrSIRSSpatialAgentOut, Event ())
-sirsAgentInfectedBehaviour g duration = proc ain ->
+sirsAgentInfectedBehaviour :: RandomGen g => g -> FrSIRSSpatialAgentBehaviour
+sirsAgentInfectedBehaviour g = proc ain ->
     do
-        recoveredEvent <- after duration () -< ()
-    
         let ao = agentOutFromIn ain
-        let ao0 = setDomainState Infected ao
-        let ao1 = respondToContactWith Infected ain ao0 
+        let ao0 = respondToContactWith Infected ain ao
 
-        ao2 <- sirsAgentMakeContact g Infected -< ao1
+        ao1 <- doOnce (setDomainState Infected) -< ao0
+        ao2 <- sendMessageOccasionallySrc 
+                    g 
+                    (1 / contactRate) 
+                    (randomCellMsgSource (Contact Infected)) -< ao1
 
-        returnA -< (ao1, recoveredEvent)
+        returnA -< ao2
 
--- TODO: update sirsState to recovered here once, no need to constantly set to recovered in recoverbehaviourSF
-sirsAgentInfectedRecovered :: RandomGen g => g -> () -> FrSIRSSpatialAgentBehaviour
-sirsAgentInfectedRecovered g _ = sirsAgentRecovered g
-
-
-
+-- RECOVERED
 sirsAgentRecovered :: RandomGen g => g -> FrSIRSSpatialAgentBehaviour
-sirsAgentRecovered g = switch 
-                            sirsAgentRecoveredBehaviour
-                            (sirsAgentRecoveredSusceptible g)
+sirsAgentRecovered g = transitionAfter 
+                            immuneDuration 
+                            sirsAgentRecoveredBehaviour 
+                            (sirsAgentSuceptible g)
 
-sirsAgentRecoveredBehaviour :: SF FrSIRSSpatialAgentIn (FrSIRSSpatialAgentOut, Event ())
+sirsAgentRecoveredBehaviour :: FrSIRSSpatialAgentBehaviour
 sirsAgentRecoveredBehaviour = proc ain ->
     do
         let ao = agentOutFromIn ain
-        let ao' = setDomainState Recovered ao
+        ao' <- doOnce (setDomainState Recovered) -< ao
+        returnA -< ao'
 
-        lostImmunityEvent <- after immuneDuration () -< ()
-
-        returnA -< (ao', lostImmunityEvent)
-
--- TODO: update sirsState to susceptible here once, no need to constantly set to susceptible in susceptiblebehaviourSF
-sirsAgentRecoveredSusceptible :: RandomGen g => g -> () -> FrSIRSSpatialAgentBehaviour
-sirsAgentRecoveredSusceptible g _ = sirsAgentSuceptible g
-
--- NOTE: this is the initial SF which will be only called once
-sirsAgentBehaviourRandInfected :: RandomGen g => g -> SIRSState -> FrSIRSSpatialAgentBehaviour
-sirsAgentBehaviourRandInfected g Susceptible = sirsAgentSuceptible g
--- NOTE: when initially infected then select duration uniformly random 
-sirsAgentBehaviourRandInfected g Infected = sirsAgentInfected g' duration
-    where
-        (duration, g') = drawRandomExponential g (1/illnessDuration)
-sirsAgentBehaviourRandInfected g Recovered = sirsAgentRecovered g
-
--- NOTE: this is the initial SF which will be only called once
---          this behaviour should be used when initially a given number of agents is infected 
---          where is assumed that their illness-duration is not uniform randomly distributed
+-- INITIAL CASES
 sirsAgentBehaviour :: RandomGen g => g -> SIRSState -> FrSIRSSpatialAgentBehaviour
 sirsAgentBehaviour g Susceptible = sirsAgentSuceptible g
 sirsAgentBehaviour g Infected = sirsAgentInfected g illnessDuration
 sirsAgentBehaviour g Recovered = sirsAgentRecovered g
+
+sirsAgentBehaviourRandInfected :: RandomGen g => g -> SIRSState -> FrSIRSSpatialAgentBehaviour
+sirsAgentBehaviourRandInfected g Infected = sirsAgentInfected g' duration
+    where
+        (duration, g') = drawRandomExponential g (1/illnessDuration)
+sirsAgentBehaviourRandInfected g s = sirsAgentBehaviour g s
 ------------------------------------------------------------------------------------------------------------------------

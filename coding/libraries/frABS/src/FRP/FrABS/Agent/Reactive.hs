@@ -11,7 +11,8 @@ module FRP.FrABS.Agent.Reactive (
     constMsgReceiverSource,
     constMsgSource,
     randomNodeMsgSource,
-
+    randomCellMsgSource,
+    
     transitionAfter,
     transitionWithUniProb,
     transitionWithExpProb,
@@ -100,14 +101,11 @@ randomNodeMsgSource m ao = (ao', msg)
         (randNode, ao') = runAgentRandom (pickRandomNeighbourNode ao) ao
         msg = (randNode, m)
 
--- TODO: can we do the following? problem: ec must be AgentId, but this is not allowed by the compiler, cannot infer the type
-{- 
-randomCellMsgSource :: m -> MessageSource s m ec l
+randomCellMsgSource :: m -> MessageSource s m AgentId l
 randomCellMsgSource m ao = (ao', msg)
     where
         ((_, randCell), ao') = runAgentRandom (pickRandomNeighbourCell ao) ao
         msg = (randCell, m)
--}
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------

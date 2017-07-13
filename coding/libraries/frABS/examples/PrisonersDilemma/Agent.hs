@@ -93,10 +93,16 @@ pdAgentAwaitingNeighbourActions = proc ain ->
 		returnA -< ao1
 
 pdAgentWaitForActions :: PDAgentBehaviour
-pdAgentWaitForActions = transitionAfter halfRoundTripTime pdAgentAwaitingNeighbourActions pdAgentWaitForPayoffs
+pdAgentWaitForActions = transitionAfter 
+							halfRoundTripTime 
+							pdAgentAwaitingNeighbourActions 
+							pdAgentWaitForPayoffs
 
 pdAgentWaitForPayoffs :: PDAgentBehaviour
-pdAgentWaitForPayoffs = transitionAfter halfRoundTripTime pdAgentAwaitingNeighbourPayoffs pdAgentWaitForActions
+pdAgentWaitForPayoffs = transitionAfter 
+							halfRoundTripTime 
+							pdAgentAwaitingNeighbourPayoffs 
+							pdAgentWaitForActions
 
 pdAgentBehaviour :: PDAgentBehaviour
 pdAgentBehaviour = pdAgentWaitForActions

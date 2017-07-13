@@ -29,7 +29,7 @@ createFrSIRSSpatialRandomInfected dims@(maxX, maxY) p =
         let env = createEnvironment
                         Nothing
                         dims
-                        moore
+                        neumann -- moore
                         ClipToMax
                         cells
                         rng
@@ -55,7 +55,7 @@ createFrSIRSSpatialSingleInfected dims@(maxX, maxY) =
         let env = createEnvironment
                         Nothing
                         dims
-                        moore
+                        neumann -- moore
                         ClipToMax
                         cells
                         rng

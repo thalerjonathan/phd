@@ -12,6 +12,9 @@ module FrSIRSSpatial.Model (
     FrSIRSSpatialAgentIn,
     FrSIRSSpatialAgentOut,
 
+    FrSIRSSpatialEventSource,
+    FrSIRSSpatialMessageSource,
+    
     illnessDuration,
     immuneDuration,
     contactRate,
@@ -37,6 +40,9 @@ type FrSIRSSpatialAgentDef = AgentDef FrSIRSSpatialAgentState FrSIRSSpatialMsg F
 type FrSIRSSpatialAgentBehaviour = AgentBehaviour FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvCell FrSIRSSpatialEnvLink
 type FrSIRSSpatialAgentIn = AgentIn FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvCell FrSIRSSpatialEnvLink
 type FrSIRSSpatialAgentOut = AgentOut FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvCell FrSIRSSpatialEnvLink
+
+type FrSIRSSpatialEventSource = EventSource FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvCell FrSIRSSpatialEnvLink
+type FrSIRSSpatialMessageSource = MessageSource FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvCell FrSIRSSpatialEnvLink
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

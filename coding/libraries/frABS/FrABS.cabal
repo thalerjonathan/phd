@@ -32,7 +32,7 @@ library
     FRP.FrABS.Simulation.ParIteration      
     FRP.FrABS.Simulation.SeqIteration 
     FRP.FrABS.Simulation.Internal
-    FRP.FrABS.Rendering.Agents2DDiscrete
+    FRP.FrABS.Rendering.Discrete2D
     FRP.FrABS.Rendering.GlossSimulator
 
 -- unclear why ParIteration, SeqIteration & FrABS.Simulation.Utils need to be exposed. if not it leads to undefined symbol 

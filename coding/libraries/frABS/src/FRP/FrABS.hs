@@ -200,12 +200,6 @@ module FRP.FrABS (
     nodesOfNetwork,
     networkDegrees,
 
-    RenderCellCoord,
-    RenderCellColor,
-    RenderCell(..),
-    display,
-    render2DDiscreteFrame,
-
     simulateAndRender,
     simulateStepsAndRender,
     
@@ -230,7 +224,22 @@ module FRP.FrABS (
     SimulationParams (..),
 
     processIOInit,
-    processSteps
+    processSteps,
+
+    AgentRenderer,
+    AgentCellColorer,
+    EnvironmentRenderer,
+    EnvironmentCellColorer,
+
+    render2dDiscreteFrame,
+
+    defaultEnvironmentRenderer,
+    defaultEnvironmentColorer,
+    voidEnvironmentRenderer,
+
+    defaultAgentRenderer,
+    defaultAgentColorer,
+    voidAgentRenderer
   ) where
 
 import FRP.FrABS.Agent.Agent
@@ -246,7 +255,7 @@ import FRP.FrABS.Simulation.Replication
 import FRP.FrABS.Simulation.ParIteration      
 import FRP.FrABS.Simulation.SeqIteration 
 import FRP.FrABS.Simulation.Internal
-import FRP.FrABS.Rendering.Agents2DDiscrete
+import FRP.FrABS.Rendering.Discrete2D
 import FRP.FrABS.Rendering.GlossSimulator
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -201,22 +201,29 @@
 		"/home/jonathan/phd/coding/libraries/frABS/src",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Env"
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent"
 	],
 	"file_history":
 	[
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Reactive.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Init.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Renderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Init.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Trader.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/AgentMonadic.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Monad.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/AgentPure.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Environment.hs",
@@ -226,13 +233,11 @@
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Env/Environment.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Auctioneer.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Random.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/StockFlow.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Run.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/Init.hs",
@@ -264,17 +269,12 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils/Sirs.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Run.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Renderer.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Renderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Renderer.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Init.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Renderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/Init.hs",
@@ -288,7 +288,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Agents2DDiscrete.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Env/Utils.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/SeqIteration.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Replication.hs",
@@ -352,6 +351,14 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"edge",
+			"transitionOnEvent",
+			"edge",
+			"transitionOnMessage",
+			"FrSIRSNetworkAgentIn",
+			"FrSIRSNetworkAgentOut",
+			"FrSIRSNetworkAgentBehaviour",
+			"pickRandomNeighbourNode",
 			"onMessageM",
 			"setDomainState",
 			"++",
@@ -471,15 +478,7 @@
 			"hasmess",
 			"drawBoolWithProbFromAgent",
 			"runSeqSF",
-			"runSeqInternal",
-			"internal",
-			"calculate",
-			"distance",
-			"cellsAround",
-			"renderCircles",
-			"renderFrame",
-			"dt ",
-			"nvironment"
+			"runSeqInternal"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -487,6 +486,9 @@
 		"regex": false,
 		"replace_history":
 		[
+			"FrSIRSSpatialAgentIn",
+			"FrSIRSSpatialAgentOut",
+			"FrSIRSSpatialAgentBehaviour",
 			"RecursiveABSAgentIn",
 			"RecursiveABSAgentOut",
 			"RecursiveABSAgentState",
@@ -574,8 +576,8 @@
 						"selection":
 						[
 							[
-								649,
-								649
+								664,
+								664
 							]
 						],
 						"settings":
@@ -584,8 +586,8 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": -0.0,
-						"translation.y": 45.0,
+						"translation.x": 0.0,
+						"translation.y": 180.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,

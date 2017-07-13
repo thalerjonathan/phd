@@ -8,7 +8,7 @@ module FrSIRSNetwork.Run (
 
 import FrSIRSNetwork.Init
 import FrSIRSNetwork.Model
-import FrSIRSNetwork.Renderer as Renderer
+import FrSIRSNetwork.Renderer
 import Utils.Sirs
 
 import FRP.FrABS
@@ -59,7 +59,7 @@ runFrSIRSNetworkWithRendering =
                             frequency
                             winTitle
                             winSize
-                            Renderer.renderFrame
+                            renderFrSIRSNetworkFrame
                             Nothing
 
 runFrSIRSNetworkStepsAndRender :: IO ()
@@ -77,7 +77,7 @@ runFrSIRSNetworkStepsAndRender =
                             steps
                             winTitle
                             winSize
-                            Renderer.renderFrame
+                            renderFrSIRSNetworkFrame
 
 runFrSIRSNetworkStepsAndWriteToFile :: IO ()
 runFrSIRSNetworkStepsAndWriteToFile =

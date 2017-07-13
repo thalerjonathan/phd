@@ -7,7 +7,7 @@ module FrSIRSSpatial.Run (
 
 import FrSIRSSpatial.Init
 import FrSIRSSpatial.Model
-import FrSIRSSpatial.Renderer as Renderer
+import FrSIRSSpatial.Renderer
 import Utils.Sirs
 
 import FRP.FrABS
@@ -47,7 +47,7 @@ runFrSIRSSpatialWithRendering =
                             frequency
                             winTitle
                             winSize
-                            Renderer.renderFrame
+                            renderFrSIRSSpatialFrame
                             Nothing --(Just (\_ asenv -> printAgentDynamics asenv))
 
 runFrSIRSSpatialStepsAndRender :: IO ()
@@ -65,7 +65,7 @@ runFrSIRSSpatialStepsAndRender =
                             steps
                             winTitle
                             winSize
-                            Renderer.renderFrame
+                            renderFrSIRSSpatialFrame
 
 runFrSIRSSpatialStepsAndWriteToFile :: IO ()
 runFrSIRSSpatialStepsAndWriteToFile =

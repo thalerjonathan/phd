@@ -4,7 +4,7 @@ module AgentZero.Run (
 
 import           AgentZero.Environment
 import           AgentZero.Init
-import           AgentZero.Renderer    as Renderer
+import           AgentZero.Renderer 
 
 import           FRP.FrABS
 
@@ -30,5 +30,5 @@ runAgentZeroWithRendering =
                             frequency
                             winTitle
                             winSize
-                            Renderer.renderFrame
+                            renderAgentZeroFrame
                             Nothing

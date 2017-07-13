@@ -3,7 +3,7 @@ module Wildfire.Run (
   ) where
 
 import Wildfire.Init
-import Wildfire.Renderer as Renderer
+import Wildfire.Renderer
 
 import FRP.FrABS
 
@@ -29,6 +29,6 @@ runWildfireWithRendering =
                             frequency
                             winTitle
                             winSize
-                            Renderer.renderFrame
+                            renderWildfireFrame
                             Nothing
                             

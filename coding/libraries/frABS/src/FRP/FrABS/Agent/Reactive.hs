@@ -1,7 +1,17 @@
 {-# LANGUAGE Arrows #-}
 module FRP.FrABS.Agent.Reactive (
+    EventSource,
+
     doOnce,
+    
     transitionAfter,
+
+    transitionWithUniProb,
+    transitionWithExpProb,
+
+    transitionEvent,
+    messageEvent,
+    transitionOnMessage,
     transitionEventWithGuard
   ) where
 
@@ -13,7 +23,11 @@ import FRP.FrABS.Agent.Random
 import Control.Monad.Random
 import Control.Monad.Trans.State
 
+type EventSource s m ec l = SF (AgentIn s m ec l, AgentOut s m ec l) (AgentOut s m ec l, Event ())
 
+-------------------------------------------------------------------------------
+-- Actions
+-------------------------------------------------------------------------------
 doOnce :: (AgentOut s m ec l -> AgentOut s m ec l) -> SF (AgentOut s m ec l) (AgentOut s m ec l)
 doOnce f = proc ao ->
     do
@@ -23,34 +37,22 @@ doOnce f = proc ao ->
         -- this seems to be a bit unelegant, can we formulate this more elegant?
         let ao' = event ao id aoOnceEvt
         returnA -< ao'
+-------------------------------------------------------------------------------
 
-transitionEventWithGuard :: SF (AgentIn s m ec l) (Event ())
-                            -> Rand StdGen Bool
-                            -> AgentBehaviour s m ec l
-                            -> AgentBehaviour s m ec l
-                            -> AgentBehaviour s m ec l
-transitionEventWithGuard f guardAction from to = switch (transitionEventWithGuardAux f from) (\_ -> to)
-    where
-        transitionEventWithGuardAux :: SF (AgentIn s m ec l) (Event ())
-                                        -> AgentBehaviour s m ec l 
-                                        -> SF (AgentIn s m ec l) (AgentOut s m ec l, Event ())
-        transitionEventWithGuardAux f from = proc ain ->
-            do
-                ao <- from -< ain
-                evt <- f -< ain
+-------------------------------------------------------------------------------
+-- Messaging
+-------------------------------------------------------------------------------
+-- TODO: sendMessageRepeatedly
+-- TODO: sendMessageOccasionally
+-- TODO: sendMessageAfter
+-- TODO: sendMessageOnEvent
+-- TODO: sendMessageOnMessageReceived
+-------------------------------------------------------------------------------
 
-                let (ao', transEvt) = guardEvent evt guardAction ao
 
-                returnA -< (ao', transEvt)
-
-        guardEvent :: Event () -> Rand StdGen Bool -> AgentOut s m ec l -> (AgentOut s m ec l, Event ())
-        guardEvent NoEvent _ ao = (ao, NoEvent)
-        guardEvent _ guardAction ao 
-            | guardAllowed = (ao', Event ())
-            | otherwise = (ao', NoEvent)
-            where
-                (guardAllowed, ao') = runAgentRandom guardAction ao
-
+-------------------------------------------------------------------------------
+-- Transitions
+-------------------------------------------------------------------------------
 transitionAfter :: Double
                     -> AgentBehaviour s m ec l
                     -> AgentBehaviour s m ec l
@@ -63,3 +65,89 @@ transitionAfter dt from to = switch (transitionAfterAux from) (\_ -> to)
                 ao <- from -< ain
                 timeoutEvent <- after dt () -< ()
                 returnA -< (ao, timeoutEvent)
+
+transitionWithUniProb :: Double
+                            -> AgentBehaviour s m ec l
+                            -> AgentBehaviour s m ec l
+                            -> AgentBehaviour s m ec l
+transitionWithUniProb p from to = switch (transitionWithUniProbAux from) (\_ -> to)
+    where
+        transitionWithUniProbAux :: AgentBehaviour s m ec l
+                                    -> SF (AgentIn s m ec l) (AgentOut s m ec l, Event ())
+        transitionWithUniProbAux from = proc ain ->
+            do
+                ao <- from -< ain
+                let (evtFlag, ao') = runAgentRandom (drawRandomBoolM p) ao
+                evt <- edge -< evtFlag
+                returnA -< (ao', evt)
+
+transitionWithExpProb :: Double
+                        -> Double
+                        -> AgentBehaviour s m ec l
+                        -> AgentBehaviour s m ec l
+                        -> AgentBehaviour s m ec l
+transitionWithExpProb lambda p from to = switch (transitionWithExpProbAux from) (\_ -> to)
+    where
+        transitionWithExpProbAux :: AgentBehaviour s m ec l
+                                    -> SF (AgentIn s m ec l) (AgentOut s m ec l, Event ())
+        transitionWithExpProbAux from = proc ain ->
+            do
+                ao <- from -< ain
+                let (r, ao') = runAgentRandom (drawRandomExponentialM lambda) ao
+                evt <- edge -< (p >= r)
+                returnA -< (ao', evt)
+
+transitionEvent :: EventSource s m ec l
+                    -> AgentBehaviour s m ec l
+                    -> AgentBehaviour s m ec l
+                    -> AgentBehaviour s m ec l
+transitionEvent evtSrc from to = switch (transitionEventAux evtSrc from) (\_ -> to)
+    where
+        transitionEventAux :: EventSource s m ec l
+                                -> AgentBehaviour s m ec l
+                                -> SF (AgentIn s m ec l) (AgentOut s m ec l, Event ())
+        transitionEventAux evtSrc from = proc ain ->
+            do
+                ao <- from -< ain
+                (ao', evt) <- evtSrc -< (ain, ao)
+                returnA -< (ao, evt)
+
+transitionOnMessage :: (Eq m) => m 
+                        -> AgentBehaviour s m ec l
+                        -> AgentBehaviour s m ec l
+                        -> AgentBehaviour s m ec l
+transitionOnMessage msg from to = transitionEvent (messageEvent msg) from to
+
+-- TODO: how can we formulate this in point-free arrow style?
+messageEvent :: (Eq m) => m -> SF (AgentIn s m ec l, AgentOut s m ec l) (AgentOut s m ec l, Event ())
+messageEvent msg = proc (ain, ao) ->
+    do
+        evt <- edge -< hasMessage msg ain
+        returnA -< (ao, evt)
+
+
+transitionEventWithGuard :: EventSource s m ec l
+                            -> Rand StdGen Bool
+                            -> AgentBehaviour s m ec l
+                            -> AgentBehaviour s m ec l
+                            -> AgentBehaviour s m ec l
+transitionEventWithGuard evtSrc guardAction from to = switch (transitionEventWithGuardAux evtSrc from) (\_ -> to)
+    where
+        transitionEventWithGuardAux :: EventSource s m ec l
+                                        -> AgentBehaviour s m ec l 
+                                        -> SF (AgentIn s m ec l) (AgentOut s m ec l, Event ())
+        transitionEventWithGuardAux evtSrc from = proc ain ->
+            do
+                ao <- from -< ain
+                (ao0, evt) <- evtSrc -< (ain, ao)
+                let (ao1, transEvt) = guardEvent evt guardAction ao0
+                returnA -< (ao1, transEvt)
+
+        guardEvent :: Event () -> Rand StdGen Bool -> AgentOut s m ec l -> (AgentOut s m ec l, Event ())
+        guardEvent NoEvent _ ao = (ao, NoEvent)
+        guardEvent _ guardAction ao 
+            | guardAllowed = (ao', Event ())
+            | otherwise = (ao', NoEvent)
+            where
+                (guardAllowed, ao') = runAgentRandom guardAction ao
+-------------------------------------------------------------------------------

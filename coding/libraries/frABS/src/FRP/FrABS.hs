@@ -79,8 +79,18 @@ module FRP.FrABS (
 
     agentMonadic,
 
+    EventSource,
+
     doOnce,
+    
     transitionAfter,
+
+    transitionWithUniProb,
+    transitionWithExpProb,
+
+    transitionEvent,
+    messageEvent,
+    transitionOnMessage,
     transitionEventWithGuard,
     
     ifThenElse,

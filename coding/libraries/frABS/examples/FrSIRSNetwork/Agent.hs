@@ -45,21 +45,19 @@ sirsAgentMakeContact g state = proc ao ->
         let ao' = event ao (\_ -> randomContact state ao) makeContact
         returnA -< ao'
 
-{-
+-- SUSCEPTIBLE
 sirsAgentSuceptible :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
-sirsAgentSuceptible g = transitionEventWithGuard
-                            (sirsAgentInfectedTransition g)
-                            (return True)
+sirsAgentSuceptible g = transitionEvent
+                            sirsAgentInfectedEvent
                             (sirsAgentSusceptibleBehaviour g)
                             (sirsNetworkAgentBehaviourRandInfected g Infected)
 
-sirsAgentInfectedTransition :: RandomGen g => g -> SF FrSIRSNetworkAgentIn (Event ())
-sirsAgentInfectedTransition g = proc ain ->
+sirsAgentInfectedEvent :: FrSIRSEventSource
+sirsAgentInfectedEvent = proc (ain, ao) ->
     do
-        -- let (isInfected, ao1) = runAgentRandom (gotInfected ain) ao0
-        let isInfected = True
+        let (isInfected, ao') = runAgentRandom (gotInfected ain) ao
         infectionEvent <- edge -< isInfected
-        returnA -< infectionEvent
+        returnA -< (ao', infectionEvent)
 
 sirsAgentSusceptibleBehaviour :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
 sirsAgentSusceptibleBehaviour g = proc ain ->
@@ -68,34 +66,9 @@ sirsAgentSusceptibleBehaviour g = proc ain ->
         ao0 <- doOnce (setDomainState Susceptible) -< ao
         ao1 <- sirsAgentMakeContact g Susceptible -< ao0
         returnA -< ao1
--}
-
-sirsAgentSuceptible :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
-sirsAgentSuceptible g = switch 
-                            (sirsAgentSusceptibleBehaviour g)
-                            (sirsAgentSusceptibleInfected g)
-
-sirsAgentSusceptibleBehaviour :: RandomGen g => g -> SF FrSIRSNetworkAgentIn (FrSIRSNetworkAgentOut, Event ())
-sirsAgentSusceptibleBehaviour g = proc ain ->
-    do
-        let ao = agentOutFromIn ain
-        
-        ao0 <- doOnce (setDomainState Susceptible) -< ao
-
-        let (isInfected, ao1) = runAgentRandom (gotInfected ain) ao0
-        infectionEvent <- edge -< isInfected
-
-        ao2 <- sirsAgentMakeContact g Susceptible -< ao1
-
-        returnA -< (ao2, infectionEvent)
-
--- TODO: update sirsState to infected here once, no need to constantly set to infected in infecedbehaviourSF
-sirsAgentSusceptibleInfected :: RandomGen g => g -> () -> FrSIRSNetworkAgentBehaviour
-sirsAgentSusceptibleInfected g _ = sirsNetworkAgentBehaviourRandInfected g Infected
 
 
-
-
+-- INFECTED
 sirsAgentInfected :: RandomGen g => g -> Double -> FrSIRSNetworkAgentBehaviour
 sirsAgentInfected g duration = transitionAfter duration (sirsAgentInfectedBehaviour g) (sirsAgentRecovered g)
 
@@ -110,7 +83,7 @@ sirsAgentInfectedBehaviour g = proc ain ->
 
         returnA -< ao2
 
-
+-- RECOVERED
 sirsAgentRecovered :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
 sirsAgentRecovered g = transitionAfter immuneDuration sirsAgentRecoveredBehaviour (sirsAgentSuceptible g)
 
@@ -122,20 +95,14 @@ sirsAgentRecoveredBehaviour = proc ain ->
         returnA -< ao'
 
 
--- NOTE: this is the initial SF which will be only called once
-sirsNetworkAgentBehaviourRandInfected :: RandomGen g => g -> SIRSState -> FrSIRSNetworkAgentBehaviour
-sirsNetworkAgentBehaviourRandInfected g Susceptible = sirsAgentSuceptible g
--- NOTE: when initially infected then select duration uniformly random 
-sirsNetworkAgentBehaviourRandInfected g Infected = sirsAgentInfected g' duration
-    where
-        (duration, g') = drawRandomExponential g (1/illnessDuration)
-sirsNetworkAgentBehaviourRandInfected g Recovered = sirsAgentRecovered g
-
--- NOTE: this is the initial SF which will be only called once
---          this behaviour should be used when initially a given number of agents is infected 
---          where is assumed that their illness-duration is not uniform randomly distributed
 sirsNetworkAgentBehaviour :: RandomGen g => g -> SIRSState -> FrSIRSNetworkAgentBehaviour
 sirsNetworkAgentBehaviour g Susceptible = sirsAgentSuceptible g
 sirsNetworkAgentBehaviour g Infected = sirsAgentInfected g illnessDuration
 sirsNetworkAgentBehaviour g Recovered = sirsAgentRecovered g
+
+sirsNetworkAgentBehaviourRandInfected :: RandomGen g => g -> SIRSState -> FrSIRSNetworkAgentBehaviour
+sirsNetworkAgentBehaviourRandInfected g Infected = sirsAgentInfected g' duration
+    where
+        (duration, g') = drawRandomExponential g (1/illnessDuration)
+sirsNetworkAgentBehaviourRandInfected g s = sirsNetworkAgentBehaviour g s
 ------------------------------------------------------------------------------------------------------------------------

@@ -12,6 +12,8 @@ module FrSIRSNetwork.Model (
     FrSIRSNetworkAgentIn,
     FrSIRSNetworkAgentOut,
 
+    FrSIRSEventSource,
+    
     infectivity,
     contactRate,
     illnessDuration,
@@ -37,6 +39,8 @@ type FrSIRSNetworkAgentDef = AgentDef FrSIRSNetworkAgentState FrSIRSNetworkMsg F
 type FrSIRSNetworkAgentBehaviour = AgentBehaviour FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvCell FrSIRSNetworkEnvLink
 type FrSIRSNetworkAgentIn = AgentIn FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvCell FrSIRSNetworkEnvLink
 type FrSIRSNetworkAgentOut = AgentOut FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvCell FrSIRSNetworkEnvLink
+
+type FrSIRSEventSource = EventSource FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvCell FrSIRSNetworkEnvLink
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -13,6 +13,8 @@ module Wildfire.Model (
     WildfireAgentIn,
     WildfireAgentOut,
 
+    WildfireEventSource,
+    
     createWildFireAgent
   ) where
 
@@ -46,6 +48,8 @@ type WildfireAgentDef = AgentDef WildfireAgentState WildfireMsg WildfireCell Wil
 type WildfireAgentBehaviour = AgentBehaviour WildfireAgentState WildfireMsg WildfireCell WildfireLinkLabel
 type WildfireAgentIn = AgentIn WildfireAgentState WildfireMsg WildfireCell WildfireLinkLabel
 type WildfireAgentOut = AgentOut WildfireAgentState WildfireMsg WildfireCell WildfireLinkLabel
+
+type WildfireEventSource = EventSource WildfireAgentState WildfireMsg WildfireCell WildfireLinkLabel
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

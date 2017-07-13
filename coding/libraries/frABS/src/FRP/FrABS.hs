@@ -83,6 +83,7 @@ module FRP.FrABS (
     MessageSource,
 
     doOnce,
+    doNothing,
     
     sendMessageOccasionallySrc,
     sendMessageOccasionally,
@@ -98,7 +99,8 @@ module FRP.FrABS (
     transitionOnEvent,
     transitionOnMessage,
     transitionOnEventWithGuard,
-
+    transitionOnBoolState,
+    
     messageEventSource,
     
     ifThenElse,

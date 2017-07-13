@@ -4,6 +4,7 @@ module FRP.FrABS.Agent.Reactive (
     MessageSource,
 
     doOnce,
+    doNothing,
     
     sendMessageOccasionallySrc,
     sendMessageOccasionally,
@@ -19,6 +20,7 @@ module FRP.FrABS.Agent.Reactive (
     transitionOnEvent,
     transitionOnMessage,
     transitionOnEventWithGuard,
+    transitionOnBoolState,
 
     messageEventSource
   ) where
@@ -46,6 +48,13 @@ doOnce f = proc ao ->
         -- this seems to be a bit unelegant, can we formulate this more elegant?
         let ao' = event ao id aoOnceEvt
         returnA -< ao'
+
+-- TODO: can we formulate this in one line, point-free?
+doNothing :: AgentBehaviour s m ec l
+doNothing = proc ain ->
+    do
+        let aout = agentOutFromIn ain
+        returnA -< aout
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -169,6 +178,24 @@ transitionOnEvent evtSrc from to = switch (transitionEventAux evtSrc from) (\_ -
                 ao <- from -< ain
                 (ao', evt) <- evtSrc -< (ain, ao)
                 returnA -< (ao', evt)
+
+transitionOnBoolState :: (s -> Bool)
+                            -> AgentBehaviour s m ec l
+                            -> AgentBehaviour s m ec l
+                            -> AgentBehaviour s m ec l
+transitionOnBoolState boolStateFunc from to = switch (transitionOnBoolStateAux boolStateFunc from) (\_ -> to)
+    where
+        transitionOnBoolStateAux :: (s -> Bool)
+                                    -> AgentBehaviour s m ec l
+                                    -> SF (AgentIn s m ec l) (AgentOut s m ec l, Event ())
+        transitionOnBoolStateAux boolStateFunc from = proc ain ->
+            do
+                ao <- from -< ain
+                let state = aoState ao
+                let evtFlag = boolStateFunc state
+                evt <- iEdge False -< evtFlag
+                returnA -< (ao, evt)
+
 
 transitionOnMessage :: (Eq m) => m 
                         -> AgentBehaviour s m ec l

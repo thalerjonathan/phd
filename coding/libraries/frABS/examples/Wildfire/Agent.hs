@@ -1,6 +1,6 @@
 {-# LANGUAGE Arrows #-}
 module Wildfire.Agent (
-	wildfireAgentLivingBehaviour
+	wildfireAgentBehaviour
   ) where
 
 import Wildfire.Model
@@ -12,60 +12,58 @@ import FRP.Yampa
 ------------------------------------------------------------------------------------------------------------------------
 -- Non-Reactive Functions
 ------------------------------------------------------------------------------------------------------------------------
-isBurnedDown :: WildfireAgentOut -> Bool
-isBurnedDown ao = wfFuel s <= 0.0
-	where
-		s = aoState ao
+isBurnedDown :: WildfireAgentState -> Bool
+isBurnedDown s = wfFuel s <= 0.0
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Reactive Functions
 ------------------------------------------------------------------------------------------------------------------------
+-- DEAD
+wildfireAgentDie :: WildfireAgentBehaviour
+wildfireAgentDie = proc ain ->
+	do
+		let aout = agentOutFromIn ain
+		let aout' = updateDomainState (\s -> s { wfLifeState = Dead }) aout
+		returnA -< kill aout' -- NOTE: killing leads to increased performance but leaves the patch in the color of the background
+
+-- BURNING
+wildfireAgentBurning :: RandomGen g => g -> WildfireAgentBehaviour
+wildfireAgentBurning g = transitionOnBoolState
+							isBurnedDown
+							(wildfireAgentBurningBehaviour g)
+							wildfireAgentDie
+
+wildfireAgentBurningBehaviour :: RandomGen g => g -> WildfireAgentBehaviour
+wildfireAgentBurningBehaviour g = proc ain -> 
+	do
+		let ao = agentOutFromIn ain
+		ao0 <- burndown -< ao
+		ao1 <- igniteNeighbours g -< ao0
+		returnA -< ao1
+
 igniteNeighbours :: RandomGen g => g -> SF WildfireAgentOut WildfireAgentOut
 igniteNeighbours g = sendMessageOccasionallySrc 
 							g 
 							0.2
 							(randomNeighbourCellMsgSource Ignite)
 
-burndownSF :: SF WildfireAgentOut WildfireAgentOut
-burndownSF = proc a ->
+burndown :: SF WildfireAgentOut WildfireAgentOut
+burndown = proc a ->
 	do
 		let s = aoState a
 		let fuel = wfFuel s
 		remainingFuel <- (1.0-) ^<< integral -< 1.0 -- TODO: how can we put fuel-variable in?
 		returnA -< updateDomainState (\s -> s { wfLifeState = Burning, wfFuel = max 0.0 remainingFuel}) a
 
-wildfireAgentLiving :: WildfireAgentBehaviour
-wildfireAgentLiving = proc ain ->
-	do
-		let aout = agentOutFromIn ain
-		returnA -< aout
+-- LIVING
+wildfireAgentLiving :: RandomGen g => g -> WildfireAgentBehaviour
+wildfireAgentLiving g = transitionOnMessage 
+							Ignite
+							doNothing
+							(wildfireAgentBurning g)
 
-wildfireAgentDie :: () -> WildfireAgentBehaviour
-wildfireAgentDie _ = proc ain ->
-	do
-		let aout = agentOutFromIn ain
-		let aout' = updateDomainState (\s -> s { wfLifeState = Dead }) aout
-		returnA -< kill aout' -- NOTE: killing would lead to increased performance but would leave the patch white (blank)
-
-wildfireAgentBurning :: RandomGen g => g -> SF WildfireAgentIn (WildfireAgentOut, Event ())
-wildfireAgentBurning g = proc ain -> 
-	do
-		let a = agentOutFromIn ain
-
-		a0 <- burndownSF -< a
-		a1 <- igniteNeighbours g -< a0
-		
-		dyingEvent <- edge -< isBurnedDown a1
-
-		returnA -< (a1, dyingEvent)
-
-wildfireAgentBurningBehaviour :: RandomGen g => g -> WildfireAgentBehaviour
-wildfireAgentBurningBehaviour g = switch (wildfireAgentBurning g) wildfireAgentDie
-
-wildfireAgentLivingBehaviour :: RandomGen g => g -> WildfireAgentBehaviour
-wildfireAgentLivingBehaviour g = transitionOnMessage 
-									Ignite
-									wildfireAgentLiving 
-									(wildfireAgentBurningBehaviour g)
+-- INITIAL
+wildfireAgentBehaviour :: RandomGen g => g -> WildfireAgentBehaviour
+wildfireAgentBehaviour = wildfireAgentLiving
 ------------------------------------------------------------------------------------------------------------------------

@@ -50,7 +50,7 @@ runCreateWildfireIO center aidCoord@(_, coord) =
 
     let (adef, std') = runRand (createWildFireAgent
                                     aidCoord
-                                    (wildfireAgentLivingBehaviour std)
+                                    (wildfireAgentBehaviour std)
                                     initIgnite)
                                     std
     setStdGen std'

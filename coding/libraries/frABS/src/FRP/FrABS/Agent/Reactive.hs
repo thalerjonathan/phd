@@ -3,6 +3,8 @@ module FRP.FrABS.Agent.Reactive (
     EventSource,
     MessageSource,
 
+    drain,
+    
     doOnce,
     doNothing,
     
@@ -35,6 +37,17 @@ import Control.Monad.Random
 
 type EventSource s m ec l = SF (AgentIn s m ec l, AgentOut s m ec l) (AgentOut s m ec l, Event ())
 type MessageSource s m ec l = (AgentOut s m ec l -> (AgentOut s m ec l, AgentMessage m))
+
+-------------------------------------------------------------------------------
+-- Continuous Helpers
+-------------------------------------------------------------------------------
+drain :: Double -> SF Double Double
+drain initValue = proc rate ->
+    do
+        value <- (initValue-) ^<< integral -< rate
+        let value' = max value 0
+        returnA -< value'
+-------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- Actions
@@ -133,6 +146,7 @@ transitionAfter dt from to = switch (transitionAfterAux from) (\_ -> to)
                 timeoutEvent <- after dt () -< ()
                 returnA -< (ao, timeoutEvent)
 
+
 transitionWithUniProb :: Double
                             -> AgentBehaviour s m ec l
                             -> AgentBehaviour s m ec l
@@ -147,6 +161,7 @@ transitionWithUniProb p from to = switch (transitionWithUniProbAux from) (\_ -> 
                 let (evtFlag, ao') = runAgentRandom (drawRandomBoolM p) ao
                 evt <- iEdge False -< evtFlag
                 returnA -< (ao', evt)
+
 
 transitionWithExpProb :: Double
                         -> Double
@@ -164,6 +179,7 @@ transitionWithExpProb lambda p from to = switch (transitionWithExpProbAux from) 
                 evt <- iEdge False -< (p >= r)
                 returnA -< (ao', evt)
 
+
 transitionOnEvent :: EventSource s m ec l
                     -> AgentBehaviour s m ec l
                     -> AgentBehaviour s m ec l
@@ -178,6 +194,7 @@ transitionOnEvent evtSrc from to = switch (transitionEventAux evtSrc from) (\_ -
                 ao <- from -< ain
                 (ao', evt) <- evtSrc -< (ain, ao)
                 returnA -< (ao', evt)
+
 
 transitionOnBoolState :: (s -> Bool)
                             -> AgentBehaviour s m ec l

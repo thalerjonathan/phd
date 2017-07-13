@@ -79,6 +79,8 @@ module FRP.FrABS (
 
     agentMonadic,
 
+    drain,
+    
     EventSource,
     MessageSource,
 

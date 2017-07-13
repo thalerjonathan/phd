@@ -7,6 +7,8 @@ import Wildfire.Agent
 
 import FRP.FrABS
 
+import FRP.Yampa
+
 import System.Random
 import Control.Monad.Random
 
@@ -25,7 +27,7 @@ initWildfire dims@(maxX, maxY) =
     let centerX = floor $ (fromIntegral maxX) * 0.5
     let centerY = floor $ (fromIntegral maxY) * 0.5
 
-    adefs <- mapM (runCreateWildfireIO (centerX, centerY)) aidCoordPairs
+    adefs <- mapM (runCreateWildfireIO dims (centerX, centerY)) aidCoordPairs
 
     envRng <- newStdGen 
     let env = createEnvironment
@@ -40,18 +42,52 @@ initWildfire dims@(maxX, maxY) =
     return (adefs, env)
 
 runCreateWildfireIO :: (Int, Int)
+                      -> (Int, Int)
                       -> (AgentId, EnvCoord) 
                       -> IO WildfireAgentDef
-runCreateWildfireIO center aidCoord@(_, coord) = 
+runCreateWildfireIO dims center aidCoord@(agentId, coord) = 
   do
-    std <- getStdGen
+    rng <- newStdGen
 
     let initIgnite = center == coord
+    let initMessages = if initIgnite then Event [(0, Ignite)] else NoEvent
 
-    let (adef, std') = runRand (createWildFireAgent
-                                    aidCoord
-                                    (wildfireAgentBehaviour std)
-                                    initIgnite)
-                                    std
-    setStdGen std'
-    return adef
+    let sphereInitFuel = sphereFuelFunction dims center coord
+    let boxInitFuel = boxFuelFunction dims 10 10 coord
+
+    randInitFuel <- randomRIO randomFuelInitRange
+    randFuelRate <- randomRIO randomFuelRateRange
+
+    let initFuel = boxInitFuel
+
+    let s = WildfireAgentState {
+      wfLifeState = Living,
+
+      wfFuelCurr = initFuel,
+      wfFuelRate = randFuelRate
+    }
+
+    return AgentDef {
+       adId = agentId,
+       adState = s,
+       adEnvPos = coord,
+       adConversation = Nothing,
+       adInitMessages = initMessages,
+       adBeh = wildfireAgentBehaviour rng initFuel,
+       adRng = rng }
+
+sphereFuelFunction :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Double
+sphereFuelFunction (dimX, dimY) (centerX, centerY) (x, y) = 1 - (max r 0)
+  where
+    x' = x - centerX
+    y' = y - centerY
+
+    xNorm = fromIntegral x' / fromIntegral dimX
+    yNorm = fromIntegral y' / fromIntegral dimY
+
+    r = sqrt $ (xNorm^2) + (yNorm^2)
+
+boxFuelFunction :: (Int, Int) -> Int -> Int -> (Int, Int) -> Double
+boxFuelFunction (dimX, dimY) horizontal vertical (x, y)
+  | x > horizontal && y > vertical = 1.0
+  | otherwise = 0.5

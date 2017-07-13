@@ -35,7 +35,7 @@ renderAgent (rectWidth, rectHeight) (wx, wy) a = GLO.color color $ GLO.translate
         yPix = fromRational (toRational (fromIntegral y * rectHeight)) - halfYSize
         
 agentColor :: WildfireAgentState -> GLO.Color
-agentColor WildfireAgentState { wfLifeState = state, wfFuel = fuel }
-    | Living == state = GLO.makeColor (realToFrac 0.0) (realToFrac 0.9) (realToFrac 0.0) 1.0
+agentColor WildfireAgentState { wfLifeState = state, wfFuelCurr = fuel }
+    | Living == state = GLO.makeColor (realToFrac 0.0) (realToFrac fuel) (realToFrac 0.0) 1.0
     | Burning == state = GLO.makeColor (realToFrac fuel) (realToFrac 0.0) (realToFrac 0.0) 1.0
     | Dead == state = GLO.greyN 0.5 

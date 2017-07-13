@@ -14,16 +14,13 @@ module Wildfire.Model (
     WildfireAgentOut,
 
     WildfireEventSource,
-    
-    createWildFireAgent
+
+    ignitions,
+    randomFuelInitRange,
+    randomFuelRateRange
   ) where
 
 import FRP.FrABS
-
-import FRP.Yampa
-
-import System.Random
-import Control.Monad.Random
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
@@ -34,7 +31,8 @@ data WildfireMsg =
 
 data WildfireAgentState = WildfireAgentState {
     wfLifeState :: LifeState,
-    wfFuel :: Double
+    wfFuelCurr :: Double,
+    wfFuelRate :: Double
 } deriving (Show)
 
 data LifeState = Living | Burning | Dead deriving (Eq, Show)
@@ -55,30 +53,12 @@ type WildfireEventSource = EventSource WildfireAgentState WildfireMsg WildfireCe
 ------------------------------------------------------------------------------------------------------------------------
 -- MODEL-PARAMETERS
 ------------------------------------------------------------------------------------------------------------------------
+ignitions :: Double
+ignitions = 5
 
+randomFuelInitRange :: (Double, Double)
+randomFuelInitRange = (0.7, 1.0)
+
+randomFuelRateRange :: (Double, Double)
+randomFuelRateRange = (1.0, 1.0)
 ------------------------------------------------------------------------------------------------------------------------
-createWildFireAgent :: (AgentId, EnvCoord)
-                        -> WildfireAgentBehaviour 
-                        -> Bool
-                        -> Rand StdGen WildfireAgentDef
-createWildFireAgent (agentId, coord) beh initIgnite = 
-    do
-        rng <- getSplit
-
-        let s = WildfireAgentState {
-          wfLifeState = Living,
-          wfFuel = 1.0
-        }
-
-        let initMessages = if initIgnite then Event [(0, Ignite)] else NoEvent
-
-        let adef = AgentDef {
-           adId = agentId,
-           adState = s,
-           adEnvPos = coord,
-           adConversation = Nothing,
-           adInitMessages = initMessages,
-           adBeh = beh,
-           adRng = rng }
-
-        return adef

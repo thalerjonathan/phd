@@ -89,8 +89,8 @@ module FRP.FrABS (
 
     constMsgReceiverSource,
     constMsgSource,
-    randomNodeMsgSource,
-    randomCellMsgSource,
+    randomNeighbourNodeMsgSource,
+    randomNeighbourCellMsgSource,
     
     transitionAfter,
     transitionWithUniProb,

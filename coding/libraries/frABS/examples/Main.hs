@@ -34,7 +34,7 @@ import           Wildfire.Run
 -}
 
 main :: IO ()
-main = runFrSIRSSpatialWithRendering
+main = runWildfireWithRendering
 
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile

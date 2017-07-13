@@ -10,8 +10,8 @@ module FRP.FrABS.Agent.Reactive (
 
     constMsgReceiverSource,
     constMsgSource,
-    randomNodeMsgSource,
-    randomCellMsgSource,
+    randomNeighbourNodeMsgSource,
+    randomNeighbourCellMsgSource,
     
     transitionAfter,
     transitionWithUniProb,
@@ -95,14 +95,14 @@ constMsgReceiverSource m receiver ao = (ao, msg)
 constMsgSource :: AgentMessage m -> MessageSource s m ec l
 constMsgSource msg ao = (ao, msg)
 
-randomNodeMsgSource :: m -> MessageSource s m ec l
-randomNodeMsgSource m ao = (ao', msg)
+randomNeighbourNodeMsgSource :: m -> MessageSource s m ec l
+randomNeighbourNodeMsgSource m ao = (ao', msg)
     where
         (randNode, ao') = runAgentRandom (pickRandomNeighbourNode ao) ao
         msg = (randNode, m)
 
-randomCellMsgSource :: m -> MessageSource s m AgentId l
-randomCellMsgSource m ao = (ao', msg)
+randomNeighbourCellMsgSource :: m -> MessageSource s m AgentId l
+randomNeighbourCellMsgSource m ao = (ao', msg)
     where
         ((_, randCell), ao') = runAgentRandom (pickRandomNeighbourCell ao) ao
         msg = (randCell, m)
@@ -136,7 +136,7 @@ transitionWithUniProb p from to = switch (transitionWithUniProbAux from) (\_ -> 
             do
                 ao <- from -< ain
                 let (evtFlag, ao') = runAgentRandom (drawRandomBoolM p) ao
-                evt <- edge -< evtFlag
+                evt <- iEdge False -< evtFlag
                 returnA -< (ao', evt)
 
 transitionWithExpProb :: Double
@@ -152,7 +152,7 @@ transitionWithExpProb lambda p from to = switch (transitionWithExpProbAux from) 
             do
                 ao <- from -< ain
                 let (r, ao') = runAgentRandom (drawRandomExponentialM lambda) ao
-                evt <- edge -< (p >= r)
+                evt <- iEdge False -< (p >= r)
                 returnA -< (ao', evt)
 
 transitionOnEvent :: EventSource s m ec l
@@ -210,6 +210,6 @@ transitionOnEventWithGuard evtSrc guardAction from to = switch (transitionEventW
 messageEventSource :: (Eq m) => m -> EventSource s m ec l
 messageEventSource msg = proc (ain, ao) ->
     do
-        evt <- edge -< hasMessage msg ain
+        evt <- iEdge False -< hasMessage msg ain
         returnA -< (ao, evt)
 -------------------------------------------------------------------------------

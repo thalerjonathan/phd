@@ -12,7 +12,7 @@ winTitle = "Wildfire"
 updStrat = Parallel
 shuffleAgents = False
 rngSeed = 42
-envSize = (35, 35)
+envSize = (75, 75)
 samplingTimeDelta = 0.1
 frequency = 0
 

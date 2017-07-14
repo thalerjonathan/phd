@@ -16,7 +16,6 @@ import           Wildfire.Run
 
 {-
     TODOs
-    - the 2d-renderer are all the same: refactor into one
     - implement Heroes & Cowards
         - use-case for continuous 2d-environment: implement Heroes & Cowards
         -> write Agend2DContinuous
@@ -34,7 +33,7 @@ import           Wildfire.Run
 -}
 
 main :: IO ()
-main = runFrSIRSSpatialWithRendering
+main = runPolicyEffectsWithRendering
 
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile

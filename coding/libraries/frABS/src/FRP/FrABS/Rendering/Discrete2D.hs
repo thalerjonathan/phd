@@ -44,7 +44,6 @@ render2dDiscreteFrame ar er wSize@(wx, wy) aouts env = GLO.Pictures (envPics ++ 
         agentPics = map (ar (cellWidth, cellHeight) wSize) aouts
         envPics = map (er (cellWidth, cellHeight) wSize) cells
 
-
 defaultEnvironmentRenderer :: EnvironmentCellColorer ec -> EnvironmentRenderer ec
 defaultEnvironmentRenderer cc (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = GLO.Pictures [cellRect]
     where

@@ -7,7 +7,7 @@ module PrisonersDilemma.Run (
 
 import PrisonersDilemma.Init
 import PrisonersDilemma.Model
-import PrisonersDilemma.Renderer as Renderer
+import PrisonersDilemma.Renderer
 
 import FRP.FrABS
 
@@ -34,7 +34,7 @@ runPDWithRendering =
                             frequency
                             winTitle
                             winSize
-                            Renderer.renderFrame
+                            renderPDFrame
                             Nothing
 
 runPDStepsAndRender :: IO ()
@@ -50,7 +50,7 @@ runPDStepsAndRender =
                             steps
                             winTitle
                             winSize
-                            Renderer.renderFrame
+                            renderPDFrame
 
 runPDSteps :: IO ()
 runPDSteps = 

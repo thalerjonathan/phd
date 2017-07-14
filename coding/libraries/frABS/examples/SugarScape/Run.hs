@@ -3,7 +3,7 @@ module SugarScape.Run (
   ) where
 
 import SugarScape.Init
-import SugarScape.Renderer as Renderer
+import SugarScape.Renderer
 
 import FRP.FrABS
 
@@ -32,5 +32,5 @@ runSugarScapeWithRendering =
                             frequency
                             winTitle
                             winSize
-                            Renderer.renderFrame
+                            renderSugarScapeFrame
                             Nothing

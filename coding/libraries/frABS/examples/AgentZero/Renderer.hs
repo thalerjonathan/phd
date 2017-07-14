@@ -9,7 +9,6 @@ import           AgentZero.Model
 import qualified Graphics.Gloss  as GLO
  
 type AgentZeroRenderFrame = RenderFrame AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell AgentZeroLink
-type AgentZeroAgentColorer = AgentCellColorer AgentZeroAgentState
 type AgentZeroEnvCellColorer = EnvironmentCellColorer AgentZeroEnvCell
 
 agentColor = GLO.makeColor (realToFrac 0.0) (realToFrac 0.3) (realToFrac 0.6) 1.0

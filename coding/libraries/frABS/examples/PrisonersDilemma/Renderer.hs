@@ -1,5 +1,5 @@
 module PrisonersDilemma.Renderer (
-    renderFrame
+    renderPDFrame
   ) where
 
 import FRP.FrABS
@@ -8,35 +8,16 @@ import PrisonersDilemma.Model
 
 import qualified Graphics.Gloss as GLO
 
-renderFrame :: (Int, Int) -> [PDAgentOut] -> PDEnvironment -> GLO.Picture
-renderFrame wSize@(wx, wy) aouts env = GLO.Pictures $ agentPics
-    where
-        (cx, cy) = envLimits env
-        cellWidth = (fromIntegral wx) / (fromIntegral cx)
-        cellHeight = (fromIntegral wy) / (fromIntegral cy)
+type PDRenderFrame = RenderFrame PDAgentState PDMsg PDCell PDLinkLabel
+type PDAgentColorer = AgentCellColorer PDAgentState
 
-        cells = allCellsWithCoords env
+renderPDFrame :: PDRenderFrame
+renderPDFrame = render2dDiscreteFrame 
+                    (defaultAgentRenderer pdAgentColor)
+                    voidEnvironmentRenderer
 
-        agentPics = map (renderAgent (cellWidth, cellHeight) wSize) aouts
-
-
-renderAgent :: (Float, Float)
-                -> (Int, Int)
-                -> PDAgentOut
-                -> GLO.Picture
-renderAgent (rectWidth, rectHeight) (wx, wy) a = GLO.color color $ GLO.translate xPix yPix  $ GLO.rectangleSolid rectWidth rectWidth -- $ GLO.ThickCircle 0 rectWidth
-    where
-        (x, y) = aoEnvPos a
-        color = agentColor $ aoState a
-
-        halfXSize = fromRational (toRational wx / 2.0)
-        halfYSize = fromRational (toRational wy / 2.0)
-
-        xPix = fromRational (toRational (fromIntegral x * rectWidth)) - halfXSize
-        yPix = fromRational (toRational (fromIntegral y * rectHeight)) - halfYSize
-        
-agentColor :: PDAgentState -> GLO.Color
-agentColor PDAgentState { pdCurrAction = curr, pdPrevAction = prev } = agentActionsToColor prev curr
+pdAgentColor :: PDAgentColorer
+pdAgentColor PDAgentState { pdCurrAction = curr, pdPrevAction = prev } = agentActionsToColor prev curr
 
 agentActionsToColor :: PDAction -> PDAction -> GLO.Color
 agentActionsToColor Cooperator Cooperator = GLO.makeColor (realToFrac 0.0) (realToFrac 0.0) (realToFrac 0.7) 1.0

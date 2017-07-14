@@ -5,7 +5,7 @@ module SIRS.Run (
 
 import SIRS.Init
 import SIRS.Model
-import SIRS.Renderer as Renderer
+import SIRS.Renderer
 
 import FRP.FrABS
 
@@ -32,7 +32,7 @@ runSIRSWithRendering = do
                             frequency
                             winTitle
                             winSize
-                            Renderer.renderFrame
+                            renderSIRSFrame
                             Nothing
 
 runSIRSStepsAndRender :: IO ()
@@ -48,5 +48,4 @@ runSIRSStepsAndRender =
                             steps
                             winTitle
                             winSize
-                            Renderer.renderFrame
-
+                            renderSIRSFrame

@@ -6,7 +6,7 @@ module PolicyEffects.Run (
 
 import PolicyEffects.Init
 import PolicyEffects.Model
-import PolicyEffects.Renderer as Renderer
+import PolicyEffects.Renderer
 
 import FRP.FrABS
 
@@ -58,7 +58,7 @@ runPolicyEffectsWithRendering =
                             frequency
                             winTitle
                             winSize
-                            Renderer.renderFrame
+                            renderPolicyEffectsFrame
                             Nothing
 
 runPolicyEffectsStepsAndWriteToFile :: IO ()

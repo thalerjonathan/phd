@@ -6,7 +6,7 @@ module Segregation.Run (
 import Segregation.Model
 import Segregation.Init
 import Segregation.Stats
-import Segregation.Renderer as Renderer
+import Segregation.Renderer
 
 import FRP.FrABS
 
@@ -39,7 +39,7 @@ runSegWithRendering =
                             frequency
                             winTitle
                             winSize
-                            Renderer.renderFrame
+                            renderSegFrame
                             (Just printDynamics)
 
 runSegStepsAndRender :: IO ()
@@ -55,7 +55,7 @@ runSegStepsAndRender =
                             steps
                             winTitle
                             winSize
-                            Renderer.renderFrame
+                            renderSegFrame
 
 printDynamics :: ([SegAgentOut], SegEnvironment)
                     ->([SegAgentOut], SegEnvironment)

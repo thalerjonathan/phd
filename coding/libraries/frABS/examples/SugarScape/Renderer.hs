@@ -1,5 +1,5 @@
 module SugarScape.Renderer (
-    renderFrame
+    renderSugarScapeFrame
   ) where
 
 import SugarScape.Model
@@ -9,8 +9,12 @@ import FRP.FrABS
 
 import qualified Graphics.Gloss as GLO
 
-renderFrame :: (Int, Int) -> [SugarScapeAgentOut] -> SugarScapeEnvironment -> GLO.Picture
-renderFrame wSize@(wx, wy) aouts env = GLO.Pictures $ (envPics ++ agentPics)
+type SugarScapeRenderFrame = RenderFrame SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell SugarScapeEnvLink
+type SugarScapeAgentColorer = AgentCellColorer SugarScapeAgentState
+type SugarScapeEnvironmentRenderer = EnvironmentRenderer SugarScapeEnvCell
+
+renderSugarScapeFrame :: SugarScapeRenderFrame
+renderSugarScapeFrame wSize@(wx, wy) aouts env = GLO.Pictures $ (envPics ++ agentPics)
     where
         (cx, cy) = envLimits env
         cellWidth = (fromIntegral wx) / (fromIntegral cx)
@@ -23,15 +27,11 @@ renderFrame wSize@(wx, wy) aouts env = GLO.Pictures $ (envPics ++ agentPics)
                                                     else
                                                         maxLvl ) 0.0 cells
 
-        agentPics = map (renderAgent (cellWidth, cellHeight) wSize) aouts
-        envPics = (map (renderEnvCell (cellWidth, cellHeight) wSize maxPolLevel) cells)
+        agentPics = map (defaultAgentRenderer agentColorDiseased (cellWidth, cellHeight) wSize) aouts
+        envPics = (map (renderEnvCell maxPolLevel (cellWidth, cellHeight) wSize) cells)
 
-renderEnvCell :: (Float, Float)
-                    -> (Int, Int)
-                    -> Double
-                    -> (EnvCoord, SugarScapeEnvCell)
-                    -> GLO.Picture
-renderEnvCell (rectWidth, rectHeight) (wx, wy) maxPolLevel ((x, y), cell) = GLO.Pictures $ [polutionLevelRect, spiceLevelCircle, sugarLevelCircle]
+renderEnvCell :: Double -> SugarScapeEnvironmentRenderer
+renderEnvCell maxPolLevel (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = GLO.Pictures $ [polutionLevelRect, spiceLevelCircle, sugarLevelCircle]
     where
         polLevel = sugEnvPolutionLevel cell
         --polGreenShadeRelative = (realToFrac (polLevel / maxPolLevel))
@@ -62,38 +62,21 @@ renderEnvCell (rectWidth, rectHeight) (wx, wy) maxPolLevel ((x, y), cell) = GLO.
 
         polutionLevelRect = GLO.color polutionColor $ GLO.translate xPix yPix $ GLO.rectangleSolid rectWidth rectHeight
 
-renderAgent :: (Float, Float)
-                -> (Int, Int)
-                -> SugarScapeAgentOut
-                -> GLO.Picture
-renderAgent (rectWidth, rectHeight) (wx, wy) a = GLO.color color $ GLO.translate xPix yPix $ GLO.ThickCircle 0 rectWidth
-    where
-        (x, y) = aoEnvPos a
-        color = agentColorDiseased a
-
-        halfXSize = fromRational (toRational wx / 2.0)
-        halfYSize = fromRational (toRational wy / 2.0)
-
-        xPix = fromRational (toRational (fromIntegral x * rectWidth)) - halfXSize
-        yPix = fromRational (toRational (fromIntegral y * rectHeight)) - halfYSize
-
-agentColorDiseased :: SugarScapeAgentOut -> GLO.Color
-agentColorDiseased a
+agentColorDiseased :: SugarScapeAgentColorer
+agentColorDiseased s
     | isDiseased s = GLO.makeColor (realToFrac 1.0) (realToFrac 0.1) (realToFrac 0.1) 1.0
     | otherwise = GLO.makeColor (realToFrac 0.0) (realToFrac 0.3) (realToFrac 0.6) 1.0
-    where
-        s = aoState a
 
-agentColorGender :: SugarScapeAgentOut -> GLO.Color
-agentColorGender a
+agentColorGender :: SugarScapeAgentColorer
+agentColorGender s
     | isMale = GLO.makeColor (realToFrac 1.0) (realToFrac 0.1) (realToFrac 0.1) 1.0
     | otherwise = GLO.makeColor (realToFrac 0.0) (realToFrac 0.3) (realToFrac 0.6) 1.0
     where
-        isMale = Male == (sugAgGender $ aoState a)
+        isMale = Male == sugAgGender s
 
-agentColorTribe:: SugarScapeAgentOut -> GLO.Color
-agentColorTribe a
+agentColorTribe:: SugarScapeAgentColorer
+agentColorTribe s
     | tribe == Red = GLO.makeColor (realToFrac 1.0) (realToFrac 0.1) (realToFrac 0.1) 1.0
     | otherwise = GLO.makeColor (realToFrac 0.0) (realToFrac 0.3) (realToFrac 0.6) 1.0
     where
-        tribe = sugAgTribe $ aoState a
+        tribe = sugAgTribe s

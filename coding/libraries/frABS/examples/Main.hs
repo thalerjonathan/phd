@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 module Main where
 
 import           AgentZero.Run
@@ -17,6 +18,12 @@ import           Wildfire.Run
 
 {-
     TODOs   
+    - implement continuous / discrete environment
+        -> network is still available in both continuous and discrete environment and independent of it
+        -> do we have to make a distinction between a continuous / discrete agent as it has different operations available ?
+        -> don't want to rewrite all general-purpose functions which are independent of the environment (e.g. send message) 
+        -> dirty hack solution: introduce aoPosCont :: (Double, Double) and aoPosDisc :: (Int, Int)
+
     - clean-up
         - imports: no unused imports
         - lint: must be clear of warnings

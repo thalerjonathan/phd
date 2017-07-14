@@ -11,10 +11,10 @@ import Control.Monad.Random
 import Control.Concurrent.STM.TVar
 
 initSimulation :: UpdateStrategy
-                    -> Maybe (EnvironmentCollapsing ec l)
+                    -> Maybe (EnvironmentCollapsing e)
                     -> Bool
                     -> Maybe Int
-                    -> IO (SimulationParams ec l)
+                    -> IO (SimulationParams e)
 initSimulation updtStrat collFunc shuffAs rngSeed = 
     do
         initRng rngSeed
@@ -30,7 +30,7 @@ initSimulation updtStrat collFunc shuffAs rngSeed =
             simIdGen = agentIdVar
         }
 
-newAgentId :: SimulationParams ec l -> AgentId
+newAgentId :: SimulationParams e -> AgentId
 newAgentId SimulationParams { simIdGen = idGen } = incrementAtomicallyUnsafe idGen
 
 initRng :: Maybe Int -> IO ()

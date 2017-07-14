@@ -8,7 +8,6 @@ module FRP.FrABS.Simulation.Simulation (
     processSteps
   ) where
 
-import FRP.FrABS.Environment.Discrete
 import FRP.FrABS.Simulation.SeqIteration
 import FRP.FrABS.Simulation.ParIteration
 import FRP.FrABS.Agent.Agent
@@ -24,11 +23,11 @@ import qualified Data.Map as Map
 import Control.Concurrent.STM.TVar
 
 data UpdateStrategy = Sequential | Parallel deriving (Eq)
-type EnvironmentCollapsing ec l = ([Environment ec l] -> Environment ec l)
+type EnvironmentCollapsing e = ([e] -> e)
 
-data SimulationParams ec l = SimulationParams {
+data SimulationParams e = SimulationParams {
     simStrategy :: UpdateStrategy,
-    simEnvCollapse :: Maybe (EnvironmentCollapsing ec l),
+    simEnvCollapse :: Maybe (EnvironmentCollapsing e),
     simShuffleAgents :: Bool,
     simRng :: StdGen,
     simIdGen :: TVar Int
@@ -38,14 +37,14 @@ data SimulationParams ec l = SimulationParams {
 -- RUNNING SIMULATION FROM AN OUTER LOOP
 ------------------------------------------------------------------------------------------------------------------------
 -- NOTE: don't care about a, we don't use it anyway
-processIOInit :: [AgentDef s m ec l]
-                    -> Environment ec l
-                    -> SimulationParams ec l
-                    -> (ReactHandle ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
+processIOInit :: [AgentDef s m e]
+                    -> e
+                    -> SimulationParams e
+                    -> (ReactHandle ([AgentIn s m e], e) ([AgentOut s m e], e)
                             -> Bool
-                            -> ([AgentOut s m ec l], Environment ec l)
+                            -> ([AgentOut s m e], e)
                             -> IO Bool)
-                    -> IO (ReactHandle ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l))
+                    -> IO (ReactHandle ([AgentIn s m e], e) ([AgentOut s m e], e))
 processIOInit as env params iterFunc = reactInit
                                                 (return (ains, env))
                                                 iterFunc
@@ -59,12 +58,12 @@ processIOInit as env params iterFunc = reactInit
 -- CALCULATING A FIXED NUMBER OF STEPS OF THE SIMULATION
 ------------------------------------------------------------------------------------------------------------------------
 {- NOTE: to run Yampa in a pure-functional way use embed -}
-processSteps :: [AgentDef s m ec l]
-                    -> Environment ec l
-                    -> SimulationParams ec l
+processSteps :: [AgentDef s m e]
+                    -> e
+                    -> SimulationParams e
                     -> Double
                     -> Int
-                    -> [([AgentOut s m ec l], Environment ec l)]
+                    -> [([AgentOut s m e], e)]
 processSteps as env params dt steps = embed
                                             (process as params)
                                             ((ains, env), sts)
@@ -77,28 +76,28 @@ processSteps as env params dt steps = embed
 
 
 ----------------------------------------------------------------------------------------------------------------------
-process :: [AgentDef s m ec l]
-                -> SimulationParams ec l
-                -> SF ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
+process :: [AgentDef s m e]
+                -> SimulationParams e
+                -> SF ([AgentIn s m e], e) ([AgentOut s m e], e)
 process as params = iterationStrategy asfs params
     where
         asfs = map adBeh as
 
-iterationStrategy :: [SF (AgentIn s m ec l) (AgentOut s m ec l)]
-                        -> SimulationParams ec l
-                        -> SF ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
+iterationStrategy :: [SF (AgentIn s m e) (AgentOut s m e)]
+                        -> SimulationParams e
+                        -> SF ([AgentIn s m e], e) ([AgentOut s m e], e)
 iterationStrategy asfs params 
     | Sequential == strategy = simulateSeq asfs params
     | Parallel == strategy = simulatePar asfs params
     where
         strategy = simStrategy params
 
-simulate :: ([AgentIn s m ec l], Environment ec l)
-                  -> [SF (AgentIn s m ec l) (AgentOut s m ec l)]
-                  -> SimulationParams ec l
+simulate :: ([AgentIn s m e], e)
+                  -> [SF (AgentIn s m e) (AgentOut s m e)]
+                  -> SimulationParams e
                   -> Double
                   -> Int
-                  -> [([AgentOut s m ec l], Environment ec l)]
+                  -> [([AgentOut s m e], e)]
 simulate ains asfs params dt steps = embed
                                                   sfStrat
                                                   (ains, sts)
@@ -110,9 +109,9 @@ simulate ains asfs params dt steps = embed
 ----------------------------------------------------------------------------------------------------------------------
 -- SEQUENTIAL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
-simulateSeq :: [SF (AgentIn s m ec l) (AgentOut s m ec l)]
-                -> (SimulationParams ec l)
-                -> SF ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
+simulateSeq :: [SF (AgentIn s m e) (AgentOut s m e)]
+                -> (SimulationParams e)
+                -> SF ([AgentIn s m e], e) ([AgentOut s m e], e)
 simulateSeq initSfs initParams = SF {sfTF = tf0}
     where
         tf0 (initInputs, initEnv) = (tfCont, (initOuts, initEnv))
@@ -152,7 +151,7 @@ simulateSeq initSfs initParams = SF {sfTF = tf0}
 
 
 
-seqCallbackIteration :: TVar Int -> [AgentOut s m ec l] -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
+seqCallbackIteration :: TVar Int -> [AgentOut s m e] -> ([AgentBehaviour s m e], [AgentIn s m e])
 seqCallbackIteration idGen aouts = (newSfs, newSfsIns')
     where
         -- NOTE: messages of this agent are ALWAYS distributed, whether it is killed or not
@@ -160,12 +159,12 @@ seqCallbackIteration idGen aouts = (newSfs, newSfsIns')
         -- NOTE: distribute messages to newly created agents as well
         newSfsIns' = distributeMessages newSfsIns aouts
 
-seqCallback :: SimulationParams ec l
-                -> ([AgentIn s m ec l], [AgentBehaviour s m ec l])
-                -> (AgentBehaviour s m ec l)
-                -> (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l)
-                -> ([AgentIn s m ec l],
-                    Maybe (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l))
+seqCallback :: SimulationParams e
+                -> ([AgentIn s m e], [AgentBehaviour s m e])
+                -> (AgentBehaviour s m e)
+                -> (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e)
+                -> ([AgentIn s m e],
+                    Maybe (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e))
 seqCallback params (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
     | doRecursion = seqCallbackRec params otherIns otherSfs oldSf (sf, recIn, newOut)
     | otherwise = handleAgent otherIns (sf, unRecIn, newOut)
@@ -187,13 +186,13 @@ seqCallback params (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
         unRecIn = oldIn { aiRec = NoEvent }
 
         -- NOTE: second layer of recursion: this allows the agent to simulate an arbitrary number of AgentOuts
-        seqCallbackRec :: SimulationParams ec l
-                           -> [AgentIn s m ec l]
-                           -> [AgentBehaviour s m ec l]
-                           -> (AgentBehaviour s m ec l)
-                           -> (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l)
-                           -> ([AgentIn s m ec l],
-                               Maybe (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l))
+        seqCallbackRec :: SimulationParams e
+                           -> [AgentIn s m e]
+                           -> [AgentBehaviour s m e]
+                           -> (AgentBehaviour s m e)
+                           -> (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e)
+                           -> ([AgentIn s m e],
+                               Maybe (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e))
         seqCallbackRec params otherIns otherSfs oldSf (sf, recIn, newOut)
             | isEvent $ aoRec newOut = handleRecursion params otherIns otherSfs oldSf (sf, recIn', newOut)     -- the last output requested recursion, perform it
             | otherwise = handleAgent otherIns (sf, unRecIn, newOut)                                                     -- no more recursion request, just handle agent as it is and return it, this will transport it back to the outer level
@@ -205,13 +204,13 @@ seqCallback params (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                 unRecIn = recIn { aiRec = NoEvent }
 
         -- this initiates the recursive simulation call
-        handleRecursion :: SimulationParams ec l
-                             -> [AgentIn s m ec l]     -- the inputs to the 'other' agents
-                             -> [AgentBehaviour s m ec l] -- the signal functions of the 'other' agents
-                             -> (AgentBehaviour s m ec l)     -- the OLD signal function of the current agent: it is the SF BEFORE having initiated the recursion
-                             -> (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l)
-                             -> ([AgentIn s m ec l],
-                                    Maybe (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l))
+        handleRecursion :: SimulationParams e
+                             -> [AgentIn s m e]     -- the inputs to the 'other' agents
+                             -> [AgentBehaviour s m e] -- the signal functions of the 'other' agents
+                             -> (AgentBehaviour s m e)     -- the OLD signal function of the current agent: it is the SF BEFORE having initiated the recursion
+                             -> (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e)
+                             -> ([AgentIn s m e],
+                                    Maybe (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e))
         handleRecursion params otherIns otherSfs oldSf a@(sf, oldIn, newOut)
             | isJust mayAgent = retAfterRec
             | otherwise = retSelfKilled       -- the agent killed itself, terminate recursion
@@ -249,22 +248,22 @@ seqCallback params (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                                 else
                                     retSelfKilled
 
-        forbidRecursion :: [AgentIn s m ec l] -> [AgentIn s m ec l]
+        forbidRecursion :: [AgentIn s m e] -> [AgentIn s m e]
         forbidRecursion ains = map (\ai -> ai { aiRecInitAllowed = False } ) ains
 
-        handleAgent :: [AgentIn s m ec l]
-                                -> (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l)
-                                -> ([AgentIn s m ec l],
-                                     Maybe (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l))
+        handleAgent :: [AgentIn s m e]
+                                -> (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e)
+                                -> ([AgentIn s m e],
+                                     Maybe (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e))
         handleAgent otherIns a@(sf, oldIn, newOut) = (otherIns'', mayAgent)
             where
                 (otherIns', newOut') = handleConversation otherIns newOut
                 mayAgent = handleKillOrLiveAgent (sf, oldIn, newOut')
                 otherIns'' = distributeActions otherIns' newOut'
 
-        handleConversation :: [AgentIn s m ec l]
-                                -> AgentOut s m ec l
-                                -> ([AgentIn s m ec l], AgentOut s m ec l)
+        handleConversation :: [AgentIn s m e]
+                                -> AgentOut s m e
+                                -> ([AgentIn s m e], AgentOut s m e)
         handleConversation otherIns newOut
             | hasConversation newOut = handleConversation otherIns' newOut'
             | otherwise = (otherIns, newOut)
@@ -279,10 +278,10 @@ seqCallback params (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                 mayRepl = conversationReply otherIns newOut conv
                 (otherIns', newOut') = maybe (otherIns, senderReplyFunc newOut Nothing) id mayRepl
 
-                conversationReply :: [AgentIn s m ec l] 
-                                        -> AgentOut s m ec l
-                                        -> (AgentMessage m, AgentConversationSender s m ec l)
-                                        -> Maybe ([AgentIn s m ec l], AgentOut s m ec l) 
+                conversationReply :: [AgentIn s m e] 
+                                        -> AgentOut s m e
+                                        -> (AgentMessage m, AgentConversationSender s m e)
+                                        -> Maybe ([AgentIn s m e], AgentOut s m e) 
                 conversationReply otherIns newOut ((receiverId, receiverMsg), senderReplyFunc) =
                     do
                         receivingIdx <- findIndex ((==receiverId) . aiId) otherIns
@@ -299,8 +298,8 @@ seqCallback params (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                 (front, back) = splitAt idx as  -- NOTE: back includes the element with the index
                 backNoElem = tail back
 
-        handleKillOrLiveAgent :: (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l)
-                                    -> Maybe (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l)
+        handleKillOrLiveAgent :: (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e)
+                                    -> Maybe (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e)
         handleKillOrLiveAgent (sf, oldIn, newOut)
             | killAgent = Nothing
             | otherwise = Just (sf, newIn', newOut)
@@ -311,7 +310,7 @@ seqCallback params (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                 -- NOTE: need to handle sending messages to itself because the input of this agent is not in the list of all inputs because it will be replaced anyway by newIn
                 newIn' = collectMessagesFor [newOut] newIn
 
-        distributeActions :: [AgentIn s m ec l] -> AgentOut s m ec l -> [AgentIn s m ec l]
+        distributeActions :: [AgentIn s m e] -> AgentOut s m e -> [AgentIn s m e]
         distributeActions otherIns newOut = otherIns1
             where
                  -- NOTE: distribute messages to all other agents
@@ -319,7 +318,7 @@ seqCallback params (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                 -- NOTE: passing the changed environment to the next agents
                 otherIns1 = passEnvForward newOut otherIns0
 
-        passEnvForward :: AgentOut s m ec l -> [AgentIn s m ec l] -> [AgentIn s m ec l]
+        passEnvForward :: AgentOut s m e -> [AgentIn s m e] -> [AgentIn s m e]
         passEnvForward out allIns = map (\ain -> ain { aiEnv = env }) allIns
             where
                 env = aoEnv out
@@ -328,9 +327,9 @@ seqCallback params (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
 ----------------------------------------------------------------------------------------------------------------------
 -- PARALLEL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
-simulatePar :: [SF (AgentIn s m ec l) (AgentOut s m ec l)]
-                -> SimulationParams ec l
-                -> SF ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
+simulatePar :: [SF (AgentIn s m e) (AgentOut s m e)]
+                -> SimulationParams e
+                -> SF ([AgentIn s m e], e) ([AgentOut s m e], e)
 simulatePar initSfs initParams = SF {sfTF = tf0}
     where
         tf0 (initInputs, initEnv) = (tfCont, (initOuts, initEnv))
@@ -368,7 +367,7 @@ simulatePar initSfs initParams = SF {sfTF = tf0}
                         tf' = simulateParAux params' sfsShuffled insShuffled env'
 
 
-        collapseEnvironments :: SimulationParams ec l -> Environment ec l -> Double -> [AgentOut s m ec l] -> Environment ec l
+        collapseEnvironments :: SimulationParams e -> e -> Double -> [AgentOut s m e] -> e
         collapseEnvironments params initEnv dt outs 
             | isCollapsingEnv = runEnv collapsedEnv dt
             | otherwise = initEnv
@@ -381,41 +380,41 @@ simulatePar initSfs initParams = SF {sfTF = tf0}
                 allEnvs = map aoEnv outs
                 collapsedEnv = envCollapFun allEnvs 
 
-        distributeEnvironment :: SimulationParams ec l -> [AgentIn s m ec l] -> Environment ec l -> [AgentIn s m ec l]
+        distributeEnvironment :: SimulationParams e -> [AgentIn s m e] -> e -> [AgentIn s m e]
         distributeEnvironment params ins env 
             | isCollapsingEnv = map (\i -> i {aiEnv = env}) ins
             | otherwise = ins
             where
                 isCollapsingEnv = isJust $ simEnvCollapse params
 
-parCallback :: [AgentIn s m ec l]
-                -> [AgentOut s m ec l]
-                -> [AgentBehaviour s m ec l]
-                -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
+parCallback :: [AgentIn s m e]
+                -> [AgentOut s m e]
+                -> [AgentBehaviour s m e]
+                -> ([AgentBehaviour s m e], [AgentIn s m e])
 parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
     where
         (asfs', newAgentIns) = processAgents asfs oldAgentIns newAgentOuts
         newAgentIns' = distributeMessages newAgentIns newAgentOuts
 
-        processAgents :: [AgentBehaviour s m ec l]
-                            -> [AgentIn s m ec l]
-                            -> [AgentOut s m ec l]
-                            -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
+        processAgents :: [AgentBehaviour s m e]
+                            -> [AgentIn s m e]
+                            -> [AgentOut s m e]
+                            -> ([AgentBehaviour s m e], [AgentIn s m e])
         processAgents asfs oldIs newOs = foldr handleAgent ([], []) asfsIsOs
             where
                 asfsIsOs = zip3 asfs oldIs newOs
 
-                handleAgent :: (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l)
-                                -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
-                                -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
+                handleAgent :: (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e)
+                                -> ([AgentBehaviour s m e], [AgentIn s m e])
+                                -> ([AgentBehaviour s m e], [AgentIn s m e])
                 handleAgent  a@(_, oldIn, newOut) acc = handleKillOrLiveAgent acc' a
                     where
                         idGen = aiIdGen oldIn
                         acc' = handleCreateAgents idGen newOut acc 
 
-                handleKillOrLiveAgent :: ([AgentBehaviour s m ec l], [AgentIn s m ec l])
-                                            -> (AgentBehaviour s m ec l, AgentIn s m ec l, AgentOut s m ec l)
-                                            -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
+                handleKillOrLiveAgent :: ([AgentBehaviour s m e], [AgentIn s m e])
+                                            -> (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e)
+                                            -> ([AgentBehaviour s m e], [AgentIn s m e])
                 handleKillOrLiveAgent acc@(asfsAcc, ainsAcc) (sf, oldIn, newOut)
                     | killAgent = acc
                     | otherwise = (sf : asfsAcc, newIn : ainsAcc) 
@@ -428,19 +427,18 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
 ----------------------------------------------------------------------------------------------------------------------
 -- utils
 ----------------------------------------------------------------------------------------------------------------------
-newAgentIn :: AgentIn s m ec l -> AgentOut s m ec l -> AgentIn s m ec l
+newAgentIn :: AgentIn s m e -> AgentOut s m e -> AgentIn s m e
 newAgentIn oldIn newOut = oldIn { aiStart = NoEvent,
                                 aiState = (aoState newOut),
                                 aiMessages = NoEvent,
-                                aiEnvPos = (aoEnvPos newOut),
                                 aiEnv = (aoEnv newOut),
                                 aiRng = aoRng newOut }
 
 
-shuffleAgents :: SimulationParams ec l 
-                    -> [AgentBehaviour s m ec l] 
-                    -> [AgentIn s m ec l] 
-                    -> (SimulationParams ec l, [AgentBehaviour s m ec l], [AgentIn s m ec l])
+shuffleAgents :: SimulationParams e 
+                    -> [AgentBehaviour s m e] 
+                    -> [AgentIn s m e] 
+                    -> (SimulationParams e, [AgentBehaviour s m e], [AgentIn s m e])
 shuffleAgents params sfs ins 
     | doShuffle = (params', sfs', ins')
     | otherwise = (params, sfs, ins)
@@ -472,7 +470,7 @@ fisherYatesShuffle gen l =
         (j, gen') = randomR (0, i) gen
 -----------------------------------------------------------------------------------
 
-runEnv :: Environment c l -> DTime -> Environment c l
+runEnv :: e -> DTime -> e
 runEnv env dt
     | isNothing mayEnvBeh = env
     | otherwise = env' { envBehaviour = Just envSF' }
@@ -483,9 +481,9 @@ runEnv env dt
         (envSF', env') = runAndFreezeSF envSF env dt
 
 handleCreateAgents :: TVar Int
-                        -> AgentOut s m ec l
-                        -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
-                        -> ([AgentBehaviour s m ec l], [AgentIn s m ec l])
+                        -> AgentOut s m e
+                        -> ([AgentBehaviour s m e], [AgentIn s m e])
+                        -> ([AgentBehaviour s m e], [AgentIn s m e])
 handleCreateAgents idGen o acc@(asfsAcc, ainsAcc) 
     | hasCreateAgents = (asfsAcc ++ newSfs, ainsAcc ++ newAis)
     | otherwise = acc
@@ -498,14 +496,14 @@ handleCreateAgents idGen o acc@(asfsAcc, ainsAcc)
         newAis = map (startingAgentInFromAgentDef newAgentInheritedEnvironment idGen) newAgentDefs
 
 
-collectMessagesFor :: [AgentOut s m ec l] -> AgentIn s m ec l -> AgentIn s m ec l
+collectMessagesFor :: [AgentOut s m e] -> AgentIn s m e -> AgentIn s m e
 collectMessagesFor aouts ai = ai { aiMessages = msgsEvt }
     where
         aid = aiId ai
         aiMsgs = aiMessages ai
         msgsEvt = foldr (\ao accMsgs -> mergeMessages (collectMessagesFrom aid ao) accMsgs) aiMsgs aouts
 
-collectMessagesFrom :: AgentId -> AgentOut s m ec l -> Event [AgentMessage m]
+collectMessagesFrom :: AgentId -> AgentOut s m e -> Event [AgentMessage m]
 collectMessagesFrom aid ao = foldr (\(receiverId, m) accMsgs-> if receiverId == aid then
                                                                 mergeMessages (Event [(senderId, m)]) accMsgs
                                                                 else
@@ -521,27 +519,27 @@ collectMessagesFrom aid ao = foldr (\(receiverId, m) accMsgs-> if receiverId == 
 
 distributeMessages = distributeMessagesFast
 
-distributeMessagesSlow :: [AgentIn s m ec l] -> [AgentOut s m ec l] -> [AgentIn s m ec l]
+distributeMessagesSlow :: [AgentIn s m e] -> [AgentOut s m e] -> [AgentIn s m e]
 distributeMessagesSlow ains aouts = map (collectMessagesFor aouts) ains
 
-distributeMessagesFast :: [AgentIn s m ec l] -> [AgentOut s m ec l] -> [AgentIn s m ec l]
+distributeMessagesFast :: [AgentIn s m e] -> [AgentOut s m e] -> [AgentIn s m e]
 distributeMessagesFast ains aouts = map (distributeMessagesAux allMsgs) ains
     where
         allMsgs = collectAllMessages aouts
 
         distributeMessagesAux :: Map.Map AgentId [AgentMessage m]
-                                    -> AgentIn s m ec l
-                                    -> AgentIn s m ec l
+                                    -> AgentIn s m e
+                                    -> AgentIn s m e
         distributeMessagesAux allMsgs ain = ain { aiMessages = msgsEvt }
             where
                 receiverId = aiId ain
                 mayReceiverMsgs = Map.lookup receiverId allMsgs
                 msgsEvt = maybe NoEvent (\receiverMsgs -> Event receiverMsgs) mayReceiverMsgs
 
-collectAllMessages :: [AgentOut s m ec l] -> Map.Map AgentId [AgentMessage m]
+collectAllMessages :: [AgentOut s m e] -> Map.Map AgentId [AgentMessage m]
 collectAllMessages aos = foldr collectAllMessagesAux Map.empty aos
     where
-        collectAllMessagesAux :: AgentOut s m ec l 
+        collectAllMessagesAux :: AgentOut s m e 
                                     -> Map.Map AgentId [AgentMessage m]
                                     -> Map.Map AgentId [AgentMessage m]
         collectAllMessagesAux ao accMsgs 

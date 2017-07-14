@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds #-}
 module Main where
 
 import           AgentZero.Run
@@ -31,6 +30,13 @@ import           Wildfire.Run
         
     - comment haskell code
 -}
+
+class Test a where
+    blaBeh :: a -> Bool
+
+instance Test String where
+    blaBeh "Jonathan" = True
+    blaBeh _ = False
 
 main :: IO ()
 main = runHeroesCowardsWithRendering

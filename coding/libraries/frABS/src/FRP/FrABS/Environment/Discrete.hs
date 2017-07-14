@@ -54,44 +54,42 @@ module FRP.FrABS.Environment.Discrete (
   ) where
 
 import FRP.Yampa
-import Data.Graph.Inductive.Graph
-import Data.Graph.Inductive.PatriciaTree
+
 import Data.List
 import Data.Array.IArray
 import Control.Monad.Random
 import Control.Monad.Trans.State
 
-type EnvironmentBehaviour c l = SF (Environment c l) (Environment c l)
-type EnvCoord = (Int, Int)
-type EnvLimits = (Int, Int)
-type EnvNeighbourhood = [(Int, Int)]
-data EnvWrapping = ClipToMax | WrapHorizontal | WrapVertical | WrapBoth
+neumann :: Discrete2DNeighbourhood
+neumannSelf :: Discrete2DNeighbourhood
+moore :: Discrete2DNeighbourhood
+mooreSelf :: Discrete2DNeighbourhood
+wrapNeighbourhood :: Discrete2DLimit -> EnvironmentWrapping -> Discrete2DNeighbourhood -> Discrete2DNeighbourhood
+distanceManhattanDisc2D :: Discrete2DCoord -> Discrete2DCoord -> Int
+distanceEuclideanDisc2D :: Discrete2DCoord -> Discrete2DCoord -> Double
+neighbourhoodOf :: Discrete2DCoord -> Discrete2DNeighbourhood -> Discrete2DNeighbourhood
+neighbourhoodScale :: Discrete2DNeighbourhood -> Int -> Discrete2DNeighbourhood
+wrapCells :: Discrete2DLimit -> EnvironmentWrapping -> Discrete2DNeighbourhood -> Discrete2DNeighbourhood
+wrapDisc2D :: Discrete2DLimit -> EnvironmentWrapping -> Discrete2DCoord -> Discrete2DCoord
 
-type EnvGraph l = Gr () l
-
-data Environment c l = Environment {
-    envBehaviour :: Maybe (EnvironmentBehaviour c l),
-    envLimits :: EnvLimits,
-    envNeighbourhood :: EnvNeighbourhood,
-    envWrapping :: EnvWrapping,
-    envCells :: Array EnvCoord c,
-    envRng :: StdGen,
-    envGraph :: EnvGraph l
+data Discrete2DEnvironmentData = Discrete2DEnvironmentData c {
+    envBehaviour :: Maybe (EnvironmentBehaviour e),
+    envLimits :: Discrete2DLimit,
+    envNeighbourhood :: Discrete2DNeighbourhood,
+    envWrapping :: EnvironmentWrapping,
+    envCells :: Array Discrete2DCoord c,
+    envRng :: StdGen
 }
 
-createEnvironment :: Maybe (EnvironmentBehaviour c l) ->
-                        EnvLimits ->
-                        EnvNeighbourhood ->
-                        EnvWrapping ->
-                        [(EnvCoord, c)] ->
-                        StdGen -> 
-                        Maybe (EnvGraph l) ->
-                        Environment c l
-createEnvironment beh
-                    l@(xLimit, yLimit)
-                    n
-                    w
-                    cs 
+createEnvironment :: Maybe (EnvironmentBehaviour c l) 
+                        -> EnvLimits
+                        -> EnvNeighbourhood
+                        -> EnvWrapping
+                        -> [(EnvCoord, c)]
+                        -> StdGen
+                        -> Maybe (EnvGraph l)
+                        -> Environment c l
+createEnvironment beh l@(xLimit, yLimit) n w cs 
                     rng 
                     mayGr = Environment {
                              envBehaviour = beh,
@@ -105,33 +103,6 @@ createEnvironment beh
     where
         arr = array ((0, 0), (xLimit - 1, yLimit - 1)) cs
 
-neighbourEdges :: Node -> Environment c l ->  [l]
-neighbourEdges node env = map fst ls
-    where
-        ls = neighbourLinks node env
-
-neighbourNodes :: Node -> Environment c l -> [Node]
-neighbourNodes node env = map snd ls
-    where
-        ls = neighbourLinks node env
-
-neighbourNodesM :: Node -> State (Environment c l) [Node]
-neighbourNodesM node = state (\env -> (neighbourNodes node env, env))
-
-neighbourLinks :: Node -> Environment c l -> Adj l
-neighbourLinks node env = lneighbors gr node
-    where
-        gr = envGraph env
-
-directLinkBetween :: Node -> Node -> Environment c l -> Maybe l
-directLinkBetween n1 n2 env = 
-    do
-        let ls = neighbourLinks n1 env
-        (linkLabel, _) <- Data.List.find ((==n2) . snd) ls
-        return linkLabel
-
-directLinkBetweenM :: Node -> Node -> State (Environment c l) (Maybe l)
-directLinkBetweenM n1 n2 = state (\env -> (directLinkBetween n1 n2 env, env))
 
 allCellsWithCoords :: Environment c l -> [(EnvCoord, c)]
 allCellsWithCoords env = assocs ec
@@ -259,13 +230,11 @@ neighbourhoodScale ns s = map (\(x,y) -> (x * s, y * s)) ns
 wrapCells :: EnvLimits -> EnvWrapping -> EnvNeighbourhood -> EnvNeighbourhood
 wrapCells = wrapNeighbourhood
 
--- NOTE: neumann-neighbourhood only exists in discrete spatial environments
 neumann :: EnvNeighbourhood
 neumann = [topDelta, leftDelta, rightDelta, bottomDelta]
 neumannSelf :: EnvNeighbourhood
 neumannSelf = [topDelta, leftDelta, centerDelta, rightDelta, bottomDelta]
 
--- NOTE: moore-neighbourhood only exists in discrete spatial environments
 moore :: EnvNeighbourhood
 moore = [topLeftDelta, topDelta, topRightDelta,
          leftDelta, rightDelta,
@@ -275,18 +244,10 @@ mooreSelf = [topLeftDelta, topDelta, topRightDelta,
              leftDelta, centerDelta, rightDelta,
              bottomLeftDelta, bottomDelta, bottomRightDelta]
 
-------------------------------------------------------------------------------------------------------------------------
--- GENERAL SPATIAL
-------------------------------------------------------------------------------------------------------------------------
-
 
 wrapNeighbourhood :: EnvLimits -> EnvWrapping -> EnvNeighbourhood -> EnvNeighbourhood
 wrapNeighbourhood l w ns = map (wrap l w) ns
 
-------------------------------------------------------------------------------------------------------------------------
--- internal stuff
-------------------------------------------------------------------------------------------------------------------------
--- TODO: should not be used to clip because clipping and wrapping are two different things: clip REMOVES vertices, wrap just changes them
 wrap :: EnvLimits -> EnvWrapping -> EnvCoord -> EnvCoord
 wrap (maxX, maxY) ClipToMax (x, y) = (max 0 (min x (maxX - 1)), max 0 (min y (maxY - 1)))
 wrap l@(maxX, _) WrapHorizontal (x, y)
@@ -310,4 +271,3 @@ bottomLeftDelta =    (-1,  1)
 bottomDelta =        ( 0,  1)
 bottomRightDelta =   ( 1,  1)
 ------------------------------------------------------------------------------------------------------------------------
-

@@ -13,6 +13,12 @@ import Data.Graph.Inductive.PatriciaTree
 
 data NetworkType = Complete Int | ErdosRenyi Int Double | BarbasiAlbert Int Int Int
 
+data NetworkEnvironmentData = NetworkEnvironmentData l {
+    envBehaviour :: Maybe (EnvironmentBehaviour e),
+    envRng :: StdGen,
+    envGraph :: EnvGraph l
+}
+
 createAgentNetwork :: NetworkType -> Rand StdGen (Gr () ())
 createAgentNetwork (Complete n) = createCompleteGraph n
 createAgentNetwork (ErdosRenyi n p) = createErdosRenyiGraph n p
@@ -26,6 +32,35 @@ networkDegrees gr = zip ns d
     where
         ns = nodes gr
         d = map (deg gr) ns
+
+neighbourEdges :: Node -> Environment c l ->  [l]
+neighbourEdges node env = map fst ls
+    where
+        ls = neighbourLinks node env
+
+neighbourNodes :: Node -> Environment c l -> [Node]
+neighbourNodes node env = map snd ls
+    where
+        ls = neighbourLinks node env
+
+neighbourNodesM :: Node -> State (Environment c l) [Node]
+neighbourNodesM node = state (\env -> (neighbourNodes node env, env))
+
+neighbourLinks :: Node -> Environment c l -> Adj l
+neighbourLinks node env = lneighbors gr node
+    where
+        gr = envGraph env
+
+directLinkBetween :: Node -> Node -> Environment c l -> Maybe l
+directLinkBetween n1 n2 env = 
+    do
+        let ls = neighbourLinks n1 env
+        (linkLabel, _) <- Data.List.find ((==n2) . snd) ls
+        return linkLabel
+
+directLinkBetweenM :: Node -> Node -> State (Environment c l) (Maybe l)
+directLinkBetweenM n1 n2 = state (\env -> (directLinkBetween n1 n2 env, env))
+
 -------------------------------------------------------------------------------
 -- PRIVATE
 -------------------------------------------------------------------------------

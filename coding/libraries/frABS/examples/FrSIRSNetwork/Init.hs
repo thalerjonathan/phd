@@ -26,14 +26,14 @@ createFrSIRSNetworkRandInfected dims@(maxX, maxY) p network =
         let agentIds = nodesOfNetwork gr
         adefs <- mapM (randomFrSIRSNetworkAgent p) (zip coords agentIds)
         
-        let env = (createEnvironment
+        let env = createEnvironment
                         Nothing
                         dims
                         moore
                         ClipToMax
                         []
                         rng
-                        (Just gr))
+                        (Just gr)
 
         return (adefs, env)
 

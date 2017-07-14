@@ -76,7 +76,7 @@ createBarbasiAlbertGraph n m0 m
                 let randomEdges = map (\randNode -> (node, randNode, ())) randomNodes
                 
                 let gr0 = insNode (node, ()) gr 
-                let gr1= insEdges randomEdges gr0
+                let gr1 = insEdges randomEdges gr0
                 
                 let degDistr' = randomNodes ++ degDistr
                 return (gr1, degDistr')

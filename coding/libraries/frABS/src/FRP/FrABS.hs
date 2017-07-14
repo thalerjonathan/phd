@@ -126,8 +126,10 @@ module FRP.FrABS (
     drawRandomExponential,
     drawRandomExponentialM,
 
-    neighbourCells,
-    neighbourCellsWithCoords,
+    agentNeighbourNodes,
+    agentNeighbourNodesM,
+    agentNeighbourCells,
+    agentNeighbourCellsWithCoords,
 
     pickRandomNeighbourNode,
     pickRandomNeighbourNodeM,

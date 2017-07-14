@@ -102,8 +102,9 @@ data AgentIn s m ec l = AgentIn {
     aiIdGen :: TVar Int
 }
 
+-- TODO: remove aoId, should be static
 data AgentOut s m ec l = AgentOut {
-    aoId :: AgentId,
+    aoId :: AgentId,    
     aoKill :: Event (),
     aoCreate :: Event [AgentDef s m ec l],
     aoMessages :: Event [AgentMessage m],     -- AgentId identifies receiver

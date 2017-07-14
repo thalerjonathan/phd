@@ -1,6 +1,8 @@
 module FRP.FrABS.Agent.Utils (
-    neighbourCells,
-    neighbourCellsWithCoords,
+    agentNeighbourNodes,
+    agentNeighbourNodesM,
+    agentNeighbourCells,
+    agentNeighbourCellsWithCoords,
 
     pickRandomNeighbourNode,
     pickRandomNeighbourNodeM,
@@ -24,11 +26,20 @@ import Control.Monad.Trans.State
 
 import Data.Graph.Inductive.Graph
 
-neighbourCells :: AgentOut s m ec l -> [ec]
-neighbourCells ao = map snd (neighbourCellsWithCoords ao)
+agentNeighbourNodesM ::  State (AgentOut s m ec l) [Node]
+agentNeighbourNodesM = state (\ao -> ((agentNeighbourNodes ao), ao))
 
-neighbourCellsWithCoords :: AgentOut s m ec l -> [(EnvCoord, ec)]
-neighbourCellsWithCoords ao = neighbours pos env
+agentNeighbourNodes :: AgentOut s m ec l -> [Node]
+agentNeighbourNodes ao = neighbourNodes selfNode env
+    where
+        env = aoEnv ao
+        selfNode = aoId ao
+
+agentNeighbourCells :: AgentOut s m ec l -> [ec]
+agentNeighbourCells ao = map snd (agentNeighbourCellsWithCoords ao)
+
+agentNeighbourCellsWithCoords :: AgentOut s m ec l -> [(EnvCoord, ec)]
+agentNeighbourCellsWithCoords ao = neighbours pos env
     where
         env = aoEnv ao
         pos = aoEnvPos ao
@@ -54,7 +65,7 @@ pickRandomNeighbourNodeM = state pickRandomNeighbourNodeMAux
 pickRandomNeighbourCell :: AgentOut s m ec l -> Rand StdGen (EnvCoord, ec)
 pickRandomNeighbourCell ao = 
 	do
-		let ncc = neighbourCellsWithCoords ao
+		let ncc = agentNeighbourCellsWithCoords ao
 		let l = length ncc 
 
 		randIdx <- getRandomR (0, l - 1)

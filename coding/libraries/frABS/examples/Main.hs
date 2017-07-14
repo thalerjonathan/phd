@@ -5,6 +5,7 @@ import           Conversation.Run
 import           DoubleAuction.Run
 import           FrSIRSNetwork.Run
 import           FrSIRSSpatial.Run
+import           HeroesCowards.Run
 import           PolicyEffects.Run
 import           PrisonersDilemma.Run
 import           RecursiveABS.Run
@@ -15,15 +16,7 @@ import           SysDynSIR.Run
 import           Wildfire.Run
 
 {-
-    TODOs
-    - implement Heroes & Cowards
-        - use-case for continuous 2d-environment: implement Heroes & Cowards
-        -> write Agend2DContinuous
-            - continuous 2d env: just add a map of agentids with their positions to the env, agents can then update their continuous position (needs to remove itself when killed). problem: environment needs to know about agentid. but do we really need that? it would save us exchanging messages.
-            - basically it would suffice to add another field: posCont and make the other posDisc. or can we distinguish by types the position: any num type
-            - maybe distinguish between discrete agent and continuous agent
-            - distinguish between cont and disc env
-
+    TODOs   
     - clean-up
         - imports: no unused imports
         - lint: must be clear of warnings
@@ -33,7 +26,7 @@ import           Wildfire.Run
 -}
 
 main :: IO ()
-main = runPolicyEffectsWithRendering
+main = runHeroesCowardsWithRendering
 
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile

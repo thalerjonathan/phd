@@ -22,7 +22,7 @@ broadcastLocalAction :: PDAgentOut -> PDAgentOut
 broadcastLocalAction ao = broadcastMessage (NeighbourAction curr) ns ao
 	where
 		curr = pdCurrAction $ aoState ao
-		ns = neighbourCells ao
+		ns = agentNeighbourCells ao
 
 broadcastLocalPayoff :: PDAgentOut -> PDAgentOut
 broadcastLocalPayoff ao = broadcastMessage (NeighbourPayoff (currAct, currPo)) ns ao
@@ -30,7 +30,7 @@ broadcastLocalPayoff ao = broadcastMessage (NeighbourPayoff (currAct, currPo)) n
 		s = aoState ao
 		currAct = pdCurrAction s
 		currPo = pdLocalPo s
-		ns = neighbourCells ao
+		ns = agentNeighbourCells ao
 
 handleNeighbourAction :: PDAgentIn -> PDAgentOut -> PDAgentOut
 handleNeighbourAction ain ao = onMessage handleNeighbourActionAux ain ao

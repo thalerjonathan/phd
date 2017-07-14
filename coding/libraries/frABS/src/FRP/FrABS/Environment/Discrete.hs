@@ -1,5 +1,4 @@
-{-# LANGUAGE Arrows #-}
-module FRP.FrABS.Env.Environment (
+module FRP.FrABS.Environment.Discrete (
     EnvironmentBehaviour,
     EnvCoord,
     EnvLimits,
@@ -62,19 +61,6 @@ import Data.Array.IArray
 import Control.Monad.Random
 import Control.Monad.Trans.State
 
-{-
-an Environment is a container which contains Agents and allows them to move arround
-    => assigns an agent a position within a space
-    => allows an agent to query its neighbourhood within this space
-    => allows an agent to change its location
-    => has a signal-function which is invoked once per iteration to allow the environment to behave e.g. regrow ressources which were harvested by the agents
--}
-
--- TODO: continuous environment: instead of Int, use Double -> can we do this by params?
-    -- or use type-classes?
--- TODO: can we generalize to higher dimensions?
-    
---data (Num d) => EnvCoordGeneric d = EnvCoordGeneric (d, d)
 type EnvironmentBehaviour c l = SF (Environment c l) (Environment c l)
 type EnvCoord = (Int, Int)
 type EnvLimits = (Int, Int)

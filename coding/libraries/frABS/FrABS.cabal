@@ -24,8 +24,9 @@ library
     FRP.FrABS.Agent.Random
     FRP.FrABS.Agent.Monad
     FRP.FrABS.Agent.Reactive
-    FRP.FrABS.Env.Environment
-    FRP.FrABS.Env.Network
+    FRP.FrABS.Environment.Discrete
+    FRP.FrABS.Environment.Continuous
+    FRP.FrABS.Environment.Network
     FRP.FrABS.Simulation.Simulation
     FRP.FrABS.Simulation.Init
     FRP.FrABS.Simulation.Replication

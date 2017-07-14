@@ -1,0 +1,1 @@
+module FRP.FrABS.Environment.Continuous where

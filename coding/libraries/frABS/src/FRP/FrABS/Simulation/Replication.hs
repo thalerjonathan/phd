@@ -11,7 +11,7 @@ module FRP.FrABS.Simulation.Replication (
   ) where
 
 import FRP.FrABS.Agent.Agent
-import FRP.FrABS.Env.Environment
+import FRP.FrABS.Environment.Discrete
 import FRP.FrABS.Simulation.Simulation
 import FRP.FrABS.Simulation.Internal
 

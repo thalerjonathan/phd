@@ -249,8 +249,9 @@ import FRP.FrABS.Agent.Utils
 import FRP.FrABS.Agent.Random
 import FRP.FrABS.Agent.Monad
 import FRP.FrABS.Agent.Reactive
-import FRP.FrABS.Env.Environment
-import FRP.FrABS.Env.Network
+import FRP.FrABS.Environment.Discrete
+import FRP.FrABS.Environment.Continuous
+import FRP.FrABS.Environment.Network
 import FRP.FrABS.Simulation.Simulation
 import FRP.FrABS.Simulation.Init
 import FRP.FrABS.Simulation.Replication

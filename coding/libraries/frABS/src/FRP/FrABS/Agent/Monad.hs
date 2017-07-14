@@ -34,7 +34,7 @@ module FRP.FrABS.Agent.Monad (
   ) where
 
 import FRP.FrABS.Agent.Agent
-import FRP.FrABS.Env.Environment
+import FRP.FrABS.Environment.Discrete
 
 import FRP.Yampa
 

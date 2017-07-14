@@ -7,7 +7,7 @@ module FRP.FrABS.Rendering.GlossSimulator (
   ) where
 
 import FRP.FrABS.Agent.Agent
-import FRP.FrABS.Env.Environment
+import FRP.FrABS.Environment.Discrete
 import FRP.FrABS.Simulation.Simulation
 
 import qualified Graphics.Gloss as GLO

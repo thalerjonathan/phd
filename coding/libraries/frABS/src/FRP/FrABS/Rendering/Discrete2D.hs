@@ -16,7 +16,7 @@ module FRP.FrABS.Rendering.Discrete2D (
   ) where
   
 import FRP.FrABS.Agent.Agent
-import FRP.FrABS.Env.Environment
+import FRP.FrABS.Environment.Discrete
 
 import qualified Graphics.Gloss as GLO
  

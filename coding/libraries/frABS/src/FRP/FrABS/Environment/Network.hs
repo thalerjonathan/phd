@@ -1,4 +1,4 @@
-module FRP.FrABS.Env.Network (
+module FRP.FrABS.Environment.Network (
     NetworkType (..),
 
     createAgentNetwork,

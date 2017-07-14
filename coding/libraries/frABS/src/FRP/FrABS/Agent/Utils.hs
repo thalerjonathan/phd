@@ -19,7 +19,7 @@ module FRP.FrABS.Agent.Utils (
 
 import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Agent.Random
-import FRP.FrABS.Env.Environment
+import FRP.FrABS.Environment.Discrete
 
 import Control.Monad.Random
 import Control.Monad.Trans.State

@@ -52,7 +52,7 @@ module FRP.FrABS.Agent.Agent (
     agentPure
   ) where
 
-import FRP.FrABS.Env.Environment
+import FRP.FrABS.Environment.Discrete
 import FRP.FrABS.Simulation.Internal
 
 import FRP.Yampa

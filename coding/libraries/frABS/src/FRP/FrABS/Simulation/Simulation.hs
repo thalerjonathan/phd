@@ -8,7 +8,7 @@ module FRP.FrABS.Simulation.Simulation (
     processSteps
   ) where
 
-import FRP.FrABS.Env.Environment
+import FRP.FrABS.Environment.Discrete
 import FRP.FrABS.Simulation.SeqIteration
 import FRP.FrABS.Simulation.ParIteration
 import FRP.FrABS.Agent.Agent

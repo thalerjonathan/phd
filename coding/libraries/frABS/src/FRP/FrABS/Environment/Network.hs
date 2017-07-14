@@ -1,10 +1,12 @@
 module FRP.FrABS.Environment.Network (
     NetworkType (..),
+    NetworkEnvironmentData (..),
 
     createAgentNetwork,
-    nodesOfNetwork,
-    networkDegrees
+    EnvironmentNetwork (..)
   ) where
+
+import FRP.FrABS.Environment.Definitions
 
 import Control.Monad.Random
 
@@ -14,7 +16,7 @@ import Data.Graph.Inductive.PatriciaTree
 data NetworkType = Complete Int | ErdosRenyi Int Double | BarbasiAlbert Int Int Int
 
 data NetworkEnvironmentData = NetworkEnvironmentData l {
-    envBehaviour :: Maybe (EnvironmentBehaviour e),
+    envBehaviour :: Maybe (EnvironmentBehaviour (NetworkEnvironmentData l)),
     envRng :: StdGen,
     envGraph :: EnvGraph l
 }
@@ -24,42 +26,54 @@ createAgentNetwork (Complete n) = createCompleteGraph n
 createAgentNetwork (ErdosRenyi n p) = createErdosRenyiGraph n p
 createAgentNetwork (BarbasiAlbert m0 m n) = createBarbasiAlbertGraph n m0 m
 
-nodesOfNetwork :: Gr () () -> [Node]
-nodesOfNetwork = nodes
+-------------------------------------------------------------------------------
+-- Environment-Instance implementation
+-------------------------------------------------------------------------------
+instance EnvironmentNetwork (NetworkEnvironmentData l) where
+    -- environmentBehaviour :: Maybe (EnvironmentBehaviour e)
+    environmentBehaviour = beh
+        where
+            beh = envBehaviour e
 
-networkDegrees :: Gr () () -> [(Node, Int)]
-networkDegrees gr = zip ns d
-    where
-        ns = nodes gr
-        d = map (deg gr) ns
+    -- networkDegrees :: e -> [Node]
+    nodesOfNetwork e = nodes gr
+        where
+            gr = envGraph e
 
-neighbourEdges :: Node -> Environment c l ->  [l]
-neighbourEdges node env = map fst ls
-    where
-        ls = neighbourLinks node env
+    -- networkDegrees :: e -> [(Node, Int)]
+    networkDegrees e = zip ns d
+        where
+            gr = envGraph e
+            ns = nodes gr
+            d = map (deg gr) ns
 
-neighbourNodes :: Node -> Environment c l -> [Node]
-neighbourNodes node env = map snd ls
-    where
-        ls = neighbourLinks node env
+    -- neighbourEdges :: Node -> e ->  [l]
+    neighbourEdges node e = map fst ls
+        where
+            ls = neighbourLinks node e
 
-neighbourNodesM :: Node -> State (Environment c l) [Node]
-neighbourNodesM node = state (\env -> (neighbourNodes node env, env))
+    -- neighbourNodes :: Node -> e -> [Node]
+    neighbourNodes node e = map snd ls
+        where
+            ls = neighbourLinks node e
 
-neighbourLinks :: Node -> Environment c l -> Adj l
-neighbourLinks node env = lneighbors gr node
-    where
-        gr = envGraph env
+    -- neighbourNodesM :: Node -> State e [Node]
+    neighbourNodesM node = state (\e -> (neighbourNodes node e, e))
 
-directLinkBetween :: Node -> Node -> Environment c l -> Maybe l
-directLinkBetween n1 n2 env = 
-    do
-        let ls = neighbourLinks n1 env
-        (linkLabel, _) <- Data.List.find ((==n2) . snd) ls
-        return linkLabel
+    -- neighbourLinks :: Node -> e -> Adj l
+    neighbourLinks node e = lneighbors gr node
+        where
+            gr = envGraph e
 
-directLinkBetweenM :: Node -> Node -> State (Environment c l) (Maybe l)
-directLinkBetweenM n1 n2 = state (\env -> (directLinkBetween n1 n2 env, env))
+    -- directLinkBetween :: Node -> Node -> e -> Maybe l
+    directLinkBetween n1 n2 e = 
+        do
+            let ls = neighbourLinks n1 e
+            (linkLabel, _) <- Data.List.find ((==n2) . snd) ls
+            return linkLabel
+
+    -- directLinkBetweenM :: Node -> Node -> State e (Maybe l)
+    directLinkBetweenM n1 n2 = state (\e -> (directLinkBetween n1 n2 e, e))
 
 -------------------------------------------------------------------------------
 -- PRIVATE

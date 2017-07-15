@@ -18,6 +18,8 @@ module FRP.FrABS.Environment.Discrete (
     wrapDisc2D
   ) where
 
+import FRP.FrABS.Environment.Definitions
+
 import FRP.Yampa
 
 import Data.List
@@ -26,12 +28,12 @@ import Control.Monad.Random
 import Control.Monad.Trans.State
 
 data Discrete2DEnvironmentData = Discrete2DEnvironmentData c {
-    envBehaviour :: Maybe (EnvironmentBehaviour (Discrete2DEnvironmentData c)),
-    envLimits :: Discrete2DLimit,
-    envNeighbourhood :: Discrete2DNeighbourhood,
-    envWrapping :: EnvironmentWrapping,
-    envCells :: Array Discrete2DCoord c,
-    envRng :: StdGen
+    envDisc2dBehaviour :: Maybe (EnvironmentBehaviour (Discrete2DEnvironmentData c)),
+    envDisc2dLimits :: Discrete2DLimit,
+    envDisc2dNeighbourhood :: Discrete2DNeighbourhood,
+    envDisc2dWrapping :: EnvironmentWrapping,
+    envDisc2dCells :: Array Discrete2DCoord c,
+    envDisc2dRng :: StdGen
 }
 
 createEnvironment :: Maybe (EnvironmentBehaviour c l) 
@@ -57,6 +59,8 @@ createEnvironment beh l@(xLimit, yLimit) n w cs
         arr = array ((0, 0), (xLimit - 1, yLimit - 1)) cs
 
 instance EnvironmentDiscrete2D (Discrete2DEnvironmentData c) where
+    environmentBehaviour = Nothing
+
     --agentCoordDisc2D :: AgentId -> e -> Discrete2DCoord
     agentCoordDisc2D aid _ = (0, 0) -- TODO: implement
 
@@ -65,8 +69,8 @@ instance EnvironmentDiscrete2D (Discrete2DEnvironmentData c) where
 
     -- allCellsWithCoords :: e -> [(Discrete2DCoord, c)]
     allCellsWithCoords e = assocs ec
-    where
-        ec = envCells e
+        where
+            ec = envCells e
 
     -- updateEnvironmentCells :: (c -> c) -> e-> e
     updateEnvironmentCells f e = e { envCells = ec' }

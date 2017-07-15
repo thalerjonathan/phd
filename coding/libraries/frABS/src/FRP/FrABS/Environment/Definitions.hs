@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
 module FRP.FrABS.Environment.Definitions (
     EnvironmentWrapping (..),
 
@@ -58,9 +59,16 @@ class (Environment e) => EnvironmentNetwork e where
     directLinkBetween :: Node -> Node -> e -> Maybe l
     directLinkBetweenM :: Node -> Node -> State e (Maybe l)
 
-class (Environment e) => EnvironmentDiscrete2D e where
+
+
+class (Environment e) => EnvironmentSpatial2D e d where
+    agentCoord :: (Num d) => AgentId -> e -> (d, d)
+    updateAgentCoord :: (Num d) => AgentId -> (d, d) -> e -> e
+    environmentDimensions :: e -> (d, d)
+
+-- TODO: how can we make to be Int?
+class EnvironmentSpatial2D e d => EnvironmentDiscrete2D e  where
     agentCoordDisc2D :: AgentId -> e -> Discrete2DCoord
-    environmentLimits :: e -> Discrete2DLimit
     allCellsWithCoords :: e -> [(Discrete2DCoord, c)]
     updateEnvironmentCells :: (c -> c) -> e-> e
     updateEnvironmentCellsWithCoords :: ((Discrete2DCoord, c) -> c) -> e -> e
@@ -80,5 +88,5 @@ class (Environment e) => EnvironmentDiscrete2D e where
     neighboursM :: Discrete2DCoord -> State e [(Discrete2DCoord, c)]
     
 -- TODO: all functions without e are not necessary here
-class (Environment e) => EnvironmentContinuous2D e where
+class (EnvironmentSpatial2D e d) => EnvironmentContinuous2D e d where
     agentCoordCont2D :: AgentId -> e -> Continuous2DCoord

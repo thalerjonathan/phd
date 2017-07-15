@@ -87,6 +87,24 @@
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
+		},
+		{
+			"file": "src/FRP/FrABS/Environment/Definitions.hs",
+			"settings":
+			{
+				"buffer_size": 3208,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/FRP/FrABS/Environment/Discrete.hs",
+			"settings":
+			{
+				"buffer_size": 8681,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
 		}
 	],
 	"build_system": "",
@@ -144,8 +162,9 @@
 	],
 	"file_history":
 	[
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Discrete.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Continuous.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Definitions.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Discrete.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Network.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/FrABS.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroRun.hs",
@@ -270,8 +289,7 @@
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/SIRS/SIRSModel.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgent.hs",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/DoubleAuction/DATrader.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation/ParIteration.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/Main.hs"
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation/ParIteration.hs"
 	],
 	"find":
 	{
@@ -458,7 +476,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -488,7 +506,67 @@
 						"translation.y": 270.0,
 						"zoom_level": 1.0
 					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "src/FRP/FrABS/Environment/Definitions.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3208,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1790,
+								1790
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 630.0,
+						"zoom_level": 1.0
+					},
 					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "src/FRP/FrABS/Environment/Discrete.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 8681,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								693,
+								693
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 855.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
 					"type": "text"
 				}
 			]

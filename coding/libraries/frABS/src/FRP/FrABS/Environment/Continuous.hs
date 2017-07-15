@@ -1,22 +1,29 @@
 module FRP.FrABS.Environment.Continuous (
+    Continuous2DEnvironmentData (..),
+
+    EnvironmentContinuous2D (..),
+
     distanceManhattanCont2D,
     distanceEuclideanCont2D,
 
     wrapCont2D
   ) where
 
-data Continuous2DEnvironmentData = Continuous2DEnvironmentData {
-    envAgentPosition :: Continuous2DCoord,
-
-    
-}
+import FRP.FrABS.Environment.Definitions
 
 data Continuous2DEnvironmentData = Continuous2DEnvironmentData {
-    envBehaviour :: Maybe (EnvironmentBehaviour e),
-    envLimits :: Continuous2DLimit,
-    envWrapping :: EnvironmentWrapping,
-    envRng :: StdGen
+    envCont2dBehaviour :: Maybe (EnvironmentBehaviour Continuous2DEnvironmentData),
+    envCont2dLimits :: Continuous2DLimit,
+    envCont2dWrapping :: EnvironmentWrapping,
+    envCont2dRng :: StdGen,
+    envCont2dAgentPosition :: Continuous2DCoord
 }
+
+instance EnvironmentContinuous2D (Continuous2DEnvironmentData c) where
+    environmentBehaviour = Nothing
+
+    -- agentCoordCont2D :: AgentId -> e -> Continuous2DCoord
+    agentCoordCont2D aid e = (0, 0) -- TODO: implement
 
 distanceManhattanCont2D :: Continuous2DCoord -> Continuous2DCoord -> Double
 distanceManhattanCont2D (x1, y1) (x2, y2) = (abs (x1 - x2)) + (abs (y1 - y2))

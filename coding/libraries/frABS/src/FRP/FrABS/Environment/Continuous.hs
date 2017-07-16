@@ -1,7 +1,13 @@
 module FRP.FrABS.Environment.Continuous (
-    Continuous2DEnvironment(..),
+    Continuous2DDimension,
+    Continuous2DCoord,
 
-    EnvCont2d (..),
+    Continuous2d (..), -- TODO: hide data-constructor
+    Continuous2dNetwork (..),
+    
+    agentCoordCont2D,
+    updateAgentCoordCont2D,
+    environmentDimensionsCont2D,
 
     distanceManhattanCont2D,
     distanceEuclideanCont2D,
@@ -11,6 +17,7 @@ module FRP.FrABS.Environment.Continuous (
 
 import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Environment.Definitions
+import FRP.FrABS.Environment.Network
 
 import Data.List
 import Data.Array.IArray
@@ -18,22 +25,43 @@ import Control.Monad.Random
 import Control.Monad.Trans.State
 import qualified Data.Map as Map
 
-data Continuous2DEnvironment = Continuous2DEnvironment {
+type Continuous2DDimension = (Double, Double)
+type Continuous2DCoord = Continuous2DDimension
+
+data Continuous2d = Continuous2d {
+    envCont2dBehaviour :: Maybe (EnvironmentBehaviour Continuous2d),
     envCont2dDims :: Continuous2DDimension,
     envCont2dWrapping :: EnvironmentWrapping,
     envCont2dRng :: StdGen,
     envCont2dAgentPositions :: Map.Map AgentId Continuous2DCoord
 }
 
-instance EnvCont2d Continuous2DEnvironment where
-    -- agentCoordCont2D :: AgentId -> e -> Continuous2DCoord
-    agentCoordCont2D aid e = (0, 0) -- TODO: implement
+data Continuous2dNetwork l = Continuous2dNetwork {
+    envCombCont2dNetwork :: Network l,
+    envCombCont2d :: Continuous2d
+}
 
-    -- updateAgentCoordCont2D :: AgentId -> Continuous2DCoord -> e -> e
-    updateAgentCoordCont2D aid coord e = e -- TODO: implement
+createContinuous2d :: Maybe (EnvironmentBehaviour Continuous2d) 
+                            -> Continuous2DDimension
+                            -> EnvironmentWrapping
+                            -> StdGen
+                            -> Continuous2d
+createContinuous2d beh d w rng = Continuous2d {
+                                    envCont2dBehaviour = beh,
+                                    envCont2dDims = d,
+                                    envCont2dWrapping = w,
+                                    envCont2dRng = rng,
+                                    envCont2dAgentPositions = Map.empty 
+                                }
 
-    -- environmentDimensionsCont2D :: e -> Continuous2DCoord
-    environmentDimensionsCont2D e = envCont2dDims e
+agentCoordCont2D :: AgentId -> Continuous2d -> Continuous2DCoord
+agentCoordCont2D aid e = (0, 0) -- TODO: implement
+
+updateAgentCoordCont2D :: AgentId -> Continuous2DCoord -> Continuous2d -> Continuous2d
+updateAgentCoordCont2D aid coord e = e -- TODO: implement
+
+environmentDimensionsCont2D :: Continuous2d -> Continuous2DCoord
+environmentDimensionsCont2D e = envCont2dDims e
 
 distanceManhattanCont2D :: Continuous2DCoord -> Continuous2DCoord -> Double
 distanceManhattanCont2D (x1, y1) (x2, y2) = (abs (x1 - x2)) + (abs (y1 - y2))

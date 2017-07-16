@@ -14,7 +14,7 @@ module FRP.FrABS.Agent.Reactive (
     constMsgReceiverSource,
     constMsgSource,
     randomNeighbourNodeMsgSource,
-    -- randomNeighbourCellMsgSource,
+    randomNeighbourCellMsgSource,
     
     transitionAfter,
     transitionWithUniProb,
@@ -28,6 +28,9 @@ module FRP.FrABS.Agent.Reactive (
   ) where
 
 import FRP.FrABS.Environment.Definitions
+import FRP.FrABS.Environment.Discrete
+import FRP.FrABS.Environment.Network
+
 import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Agent.Random
 import FRP.FrABS.Agent.Utils
@@ -118,19 +121,17 @@ constMsgReceiverSource m receiver ao = (ao, msg)
 constMsgSource :: AgentMessage m -> MessageSource s m e
 constMsgSource msg ao = (ao, msg)
 
-randomNeighbourNodeMsgSource :: (EnvNet e) => m -> MessageSource s m e
+randomNeighbourNodeMsgSource :: m -> MessageSource s m (Network l)
 randomNeighbourNodeMsgSource m ao = (ao', msg)
     where
         (randNode, ao') = runAgentRandom (pickRandomNeighbourNode ao) ao
         msg = (randNode, m)
 
-{- TODO: could (Discrete2DEnvironment AgentId) workd?
-randomNeighbourCellMsgSource :: (EnvironmentDiscrete2D e) => m -> MessageSource s m e
+randomNeighbourCellMsgSource ::  m -> MessageSource s m (Discrete2d AgentId)
 randomNeighbourCellMsgSource m ao = (ao', msg)
     where
         ((_, randCell), ao') = runAgentRandom (pickRandomNeighbourCell ao) ao
         msg = (randCell, m)
-    -}
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------

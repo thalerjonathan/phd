@@ -1,47 +1,17 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
--- {-# LANGUAGE FlexibleInstances #-}
 module FRP.FrABS.Environment.Definitions (
     EnvironmentWrapping (..),
-
-    Discrete2DDimension,
-    Continuous2DDimension,
-
-    Discrete2DCoord,
-    Continuous2DCoord,
-
-    Discrete2DNeighbourhood,
-
-    EnvironmentBehaviour,
-
-    EnvNet (..),
-    EnvDisc2d (..),
-    EnvCont2d (..)
+    EnvironmentBehaviour
   ) where
 
 import FRP.Yampa
-
--- NOTE: need AgentId
-import FRP.FrABS.Agent.Agent
-
-import Data.Graph.Inductive.Graph
-
-import Control.Monad.Trans.State
-import Control.Monad.Random
 
 data EnvironmentWrapping = ClipToMax | WrapHorizontal | WrapVertical | WrapBoth
 
 -- newtype EnvironmentSpatial2DDimension d = (Num d, Num d)
 
-type Discrete2DDimension = (Int, Int)
-type Continuous2DDimension = (Double, Double)
-
-type Discrete2DCoord = Discrete2DDimension
-type Continuous2DCoord = Continuous2DDimension
-
-type Discrete2DNeighbourhood = [Discrete2DCoord]
-
 type EnvironmentBehaviour e = SF e e
 
+{-
 class EnvNet e where
     nodesOfNetwork :: e -> [AgentId]
     networkDegrees :: e -> [(AgentId, Int)]
@@ -57,10 +27,10 @@ class EnvSpatial2d e d where
     updateAgentCoord :: (Num d) => AgentId -> (d, d) -> e -> e
     environmentDimensions :: (Num d) => e -> (d, d)
 
-class EnvDisc2d e where
-    agentCoordDisc2D :: AgentId -> e -> Discrete2DCoord
-    updateAgentCoordDisc2D :: AgentId -> Discrete2DCoord -> e -> e
-    environmentDimensionsDisc2D :: e -> Discrete2DDimension
+class EnvDisc2d e c where
+    -- agentCoordDisc2D :: AgentId -> e -> Discrete2DCoord
+    -- updateAgentCoordDisc2D :: AgentId -> Discrete2DCoord -> e -> e
+    -- environmentDimensionsDisc2D :: e -> Discrete2DDimension
     allCellsWithCoords :: e -> [(Discrete2DCoord, c)]
     updateEnvironmentCells :: (c -> c) -> e-> e
     updateEnvironmentCellsWithCoords :: ((Discrete2DCoord, c) -> c) -> e -> e
@@ -83,3 +53,4 @@ class EnvCont2d e where
     agentCoordCont2D :: AgentId -> e -> Continuous2DCoord
     updateAgentCoordCont2D :: AgentId -> Continuous2DCoord -> e -> e
     environmentDimensionsCont2D :: e -> Continuous2DCoord
+-}

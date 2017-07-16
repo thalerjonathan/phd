@@ -1,4 +1,6 @@
 module FRP.FrABS.Agent.Utils (
+    agentPositionDiscrete,
+
     agentNeighbourNodes,
     agentNeighbourNodesM,
     agentNeighbourCells,
@@ -29,16 +31,16 @@ import Data.Graph.Inductive.Graph
 -------------------------------------------------------------------------------
 -- NETWORK-ENVIRONMENT RELATED
 -------------------------------------------------------------------------------
-agentNeighbourNodesM ::  (EnvironmentNetwork e) => State (AgentOut s m e) [Node]
+agentNeighbourNodesM ::  (EnvNet e) => State (AgentOut s m e) [Node]
 agentNeighbourNodesM = state (\ao -> ((agentNeighbourNodes ao), ao))
 
-agentNeighbourNodes :: (EnvironmentNetwork e) => AgentOut s m e -> [Node]
+agentNeighbourNodes :: (EnvNet e) => AgentOut s m e -> [Node]
 agentNeighbourNodes ao = neighbourNodes selfNode env
     where
         env = aoEnv ao
         selfNode = aoId ao
 
-pickRandomNeighbourNode :: (EnvironmentNetwork e) => AgentOut s m e -> Rand StdGen Node
+pickRandomNeighbourNode :: (EnvNet e) => AgentOut s m e -> Rand StdGen Node
 pickRandomNeighbourNode a = 
     do
         let aid = aoId a
@@ -50,27 +52,33 @@ pickRandomNeighbourNode a =
 
         return (nn !! randIdx)
 
-pickRandomNeighbourNodeM :: (EnvironmentNetwork e) => State (AgentOut s m e) Node
+pickRandomNeighbourNodeM :: (EnvNet e) => State (AgentOut s m e) Node
 pickRandomNeighbourNodeM = state pickRandomNeighbourNodeMAux
     where
-        pickRandomNeighbourNodeMAux :: AgentOut s m e -> (Node, AgentOut s m e)
+        pickRandomNeighbourNodeMAux :: (EnvNet e) => AgentOut s m e -> (Node, AgentOut s m e)
         pickRandomNeighbourNodeMAux ao = runAgentRandom (pickRandomNeighbourNode ao) ao
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- DISCRETE 2D-ENVIRONMENT RELATED
 -------------------------------------------------------------------------------
-agentNeighbourCellsWithCoords :: (EnvironmentDiscrete2D e) => AgentOut s m e -> [(Discrete2DCoord, ec)]
+agentPositionDiscrete :: (EnvDisc2d e) => AgentOut s m e -> Discrete2DCoord
+agentPositionDiscrete ao = agentCoordDisc2D aid env
+    where
+        env = aoEnv ao
+        aid = aoId ao
+
+agentNeighbourCellsWithCoords :: (EnvDisc2d e) => AgentOut s m e -> [(Discrete2DCoord, ec)]
 agentNeighbourCellsWithCoords ao = neighbours pos env
     where
         env = aoEnv ao
-        pos = aoEnvPos ao
+        pos = agentPositionDiscrete ao
 
-agentNeighbourCells :: (EnvironmentDiscrete2D e) => AgentOut s m e -> [ec]
+agentNeighbourCells :: (EnvDisc2d e) => AgentOut s m e -> [ec]
 agentNeighbourCells ao = map snd (agentNeighbourCellsWithCoords ao)
 
 
-pickRandomNeighbourCell :: (EnvironmentDiscrete2D e) => AgentOut s m e -> Rand StdGen (Discrete2DCoord, ec)
+pickRandomNeighbourCell :: (EnvDisc2d e) => AgentOut s m e -> Rand StdGen (Discrete2DCoord, ec)
 pickRandomNeighbourCell ao = 
 	do
 		let ncc = agentNeighbourCellsWithCoords ao
@@ -80,30 +88,34 @@ pickRandomNeighbourCell ao =
 
 		return (ncc !! randIdx)
 
-pickRandomNeighbourCellM :: (EnvironmentDiscrete2D e) => State (AgentOut s m e) (Discrete2DCoord, ec)
+pickRandomNeighbourCellM :: (EnvDisc2d e) => State (AgentOut s m e) (Discrete2DCoord, ec)
 pickRandomNeighbourCellM = state pickRandomNeighbourCellMAux
 	where
-		pickRandomNeighbourCellMAux :: AgentOut s m e -> ((Discrete2DCoord, ec), AgentOut s m e)
+		pickRandomNeighbourCellMAux :: (EnvDisc2d e) => AgentOut s m e -> ((Discrete2DCoord, ec), AgentOut s m e)
 		pickRandomNeighbourCellMAux ao = runAgentRandom (pickRandomNeighbourCell ao) ao
 
-agentCellOnPos :: (EnvironmentDiscrete2D e) => AgentOut s m e -> (Discrete2DCoord, ec)
-agentCellOnPos a = (agentPos, cellOfAgent)
+agentCellOnPos :: (EnvDisc2d e) => AgentOut s m e -> (Discrete2DCoord, ec)
+agentCellOnPos ao = (agentPos, cellOfAgent)
     where
-        env = aoEnv a
-        agentPos = aoEnvPos a
+        env = aoEnv ao
+        agentPos = agentPositionDiscrete ao
         cellOfAgent = cellAt agentPos env
 
-agentCellOnPosM :: (EnvironmentDiscrete2D e) => State (AgentOut s m e) (Discrete2DCoord, ec)
+agentCellOnPosM :: (EnvDisc2d e) => State (AgentOut s m e) (Discrete2DCoord, ec)
 agentCellOnPosM = state agentCellOnPosMAux
     where
-    	agentCellOnPosMAux :: AgentOut s m e -> ((Discrete2DCoord, ec), AgentOut s m e)
+    	agentCellOnPosMAux :: (EnvDisc2d e) => AgentOut s m e -> ((Discrete2DCoord, ec), AgentOut s m e)
     	agentCellOnPosMAux ao = (agentCellOnPos ao, ao)
 
-agentRandomMove :: (EnvironmentDiscrete2D e) => AgentOut s m e -> AgentOut s m e
-agentRandomMove a = a' { aoEnvPos = coord }
+agentRandomMove :: (EnvDisc2d e) => AgentOut s m e -> AgentOut s m e
+agentRandomMove ao = ao' { aoEnv = env' }
 	where
-		((coord, _), a') = runAgentRandom (pickRandomNeighbourCell a) a 
+        ((coord, _), ao') = runAgentRandom (pickRandomNeighbourCell ao) ao
 
-agentRandomMoveM :: (EnvironmentDiscrete2D e) => State (AgentOut s m e) ()
+        aid = aoId ao
+        env = aoEnv ao
+        env' = updateAgentCoordDisc2D aid coord env
+	
+agentRandomMoveM :: (EnvDisc2d e) => State (AgentOut s m e) ()
 agentRandomMoveM = state (\ao -> ((), agentRandomMove ao))
 -------------------------------------------------------------------------------

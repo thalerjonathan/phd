@@ -1,9 +1,10 @@
 module FRP.FrABS.Environment.Network (
     NetworkType (..),
-    NetworkEnvironmentData (..),
+    NetworkEnvironment (..),
 
     createAgentNetwork,
-    EnvironmentNetwork (..)
+
+    EnvNet (..)
   ) where
 
 import FRP.FrABS.Environment.Definitions
@@ -15,10 +16,9 @@ import Data.Graph.Inductive.PatriciaTree
 
 data NetworkType = Complete Int | ErdosRenyi Int Double | BarbasiAlbert Int Int Int
 
-data NetworkEnvironmentData = NetworkEnvironmentData l {
-    envBehaviour :: Maybe (EnvironmentBehaviour (NetworkEnvironmentData l)),
-    envRng :: StdGen,
-    envGraph :: EnvGraph l
+data NetworkEnvironment = NetworkEnvironment l {
+    envNetRng :: StdGen,
+    envNetGraph :: EnvGraph l
 }
 
 createAgentNetwork :: NetworkType -> Rand StdGen (Gr () ())
@@ -29,12 +29,7 @@ createAgentNetwork (BarbasiAlbert m0 m n) = createBarbasiAlbertGraph n m0 m
 -------------------------------------------------------------------------------
 -- Environment-Instance implementation
 -------------------------------------------------------------------------------
-instance EnvironmentNetwork (NetworkEnvironmentData l) where
-    -- environmentBehaviour :: Maybe (EnvironmentBehaviour e)
-    environmentBehaviour = beh
-        where
-            beh = envBehaviour e
-
+instance EnvNet (NetworkEnvironment l) where
     -- networkDegrees :: e -> [Node]
     nodesOfNetwork e = nodes gr
         where

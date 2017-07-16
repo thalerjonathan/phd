@@ -1,4 +1,5 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
+-- {-# LANGUAGE FlexibleInstances #-}
 module FRP.FrABS.Environment.Definitions (
     EnvironmentWrapping (..),
 
@@ -8,17 +9,13 @@ module FRP.FrABS.Environment.Definitions (
     Discrete2DCoord,
     Continuous2DCoord,
 
-    Discrete2DLimit,
-    Continuous2DLimit,
-
     Discrete2DNeighbourhood,
 
     EnvironmentBehaviour,
 
-    Environment (..),
-    EnvironmentNetwork (..),
-    EnvironmentDiscrete2D (..),
-    EnvironmentContinuous2D (..)
+    EnvNet (..),
+    EnvDisc2d (..),
+    EnvCont2d (..)
   ) where
 
 import FRP.Yampa
@@ -33,42 +30,37 @@ import Control.Monad.Random
 
 data EnvironmentWrapping = ClipToMax | WrapHorizontal | WrapVertical | WrapBoth
 
+-- newtype EnvironmentSpatial2DDimension d = (Num d, Num d)
+
 type Discrete2DDimension = (Int, Int)
 type Continuous2DDimension = (Double, Double)
 
 type Discrete2DCoord = Discrete2DDimension
 type Continuous2DCoord = Continuous2DDimension
 
-type Discrete2DLimit = Discrete2DDimension
-type Continuous2DLimit = Continuous2DDimension
-
 type Discrete2DNeighbourhood = [Discrete2DCoord]
 
 type EnvironmentBehaviour e = SF e e
 
-class Environment e where
-    environmentBehaviour :: Maybe (EnvironmentBehaviour e)
+class EnvNet e where
+    nodesOfNetwork :: e -> [AgentId]
+    networkDegrees :: e -> [(AgentId, Int)]
+    neighbourEdges :: AgentId -> e ->  [l]
+    neighbourNodes :: AgentId -> e -> [AgentId]
+    neighbourNodesM :: AgentId -> State e [AgentId]
+    neighbourLinks :: AgentId -> e -> Adj l
+    directLinkBetween :: AgentId -> AgentId -> e -> Maybe l
+    directLinkBetweenM :: AgentId -> AgentId -> State e (Maybe l)
 
-class (Environment e) => EnvironmentNetwork e where
-    nodesOfNetwork :: e -> [Node]
-    networkDegrees :: e -> [(Node, Int)]
-    neighbourEdges :: Node -> e ->  [l]
-    neighbourNodes :: Node -> e -> [Node]
-    neighbourNodesM :: Node -> State e [Node]
-    neighbourLinks :: Node -> e -> Adj l
-    directLinkBetween :: Node -> Node -> e -> Maybe l
-    directLinkBetweenM :: Node -> Node -> State e (Maybe l)
-
-
-
-class (Environment e) => EnvironmentSpatial2D e d where
+class EnvSpatial2d e d where
     agentCoord :: (Num d) => AgentId -> e -> (d, d)
     updateAgentCoord :: (Num d) => AgentId -> (d, d) -> e -> e
-    environmentDimensions :: e -> (d, d)
+    environmentDimensions :: (Num d) => e -> (d, d)
 
--- TODO: how can we make to be Int?
-class EnvironmentSpatial2D e d => EnvironmentDiscrete2D e  where
+class EnvDisc2d e where
     agentCoordDisc2D :: AgentId -> e -> Discrete2DCoord
+    updateAgentCoordDisc2D :: AgentId -> Discrete2DCoord -> e -> e
+    environmentDimensionsDisc2D :: e -> Discrete2DDimension
     allCellsWithCoords :: e -> [(Discrete2DCoord, c)]
     updateEnvironmentCells :: (c -> c) -> e-> e
     updateEnvironmentCellsWithCoords :: ((Discrete2DCoord, c) -> c) -> e -> e
@@ -86,7 +78,8 @@ class EnvironmentSpatial2D e d => EnvironmentDiscrete2D e  where
     neighboursDistanceM :: Discrete2DCoord -> Int -> State e [(Discrete2DCoord, c)]
     neighbours :: Discrete2DCoord -> e -> [(Discrete2DCoord, c)]
     neighboursM :: Discrete2DCoord -> State e [(Discrete2DCoord, c)]
-    
--- TODO: all functions without e are not necessary here
-class (EnvironmentSpatial2D e d) => EnvironmentContinuous2D e d where
+
+class EnvCont2d e where
     agentCoordCont2D :: AgentId -> e -> Continuous2DCoord
+    updateAgentCoordCont2D :: AgentId -> Continuous2DCoord -> e -> e
+    environmentDimensionsCont2D :: e -> Continuous2DCoord

@@ -1,8 +1,9 @@
 module FRP.FrABS.Rendering.Discrete2D (
-    AgentRenderer,
+    AgentRendererDisc2d,
     AgentCellColorer,
-    EnvironmentRenderer,
-    EnvironmentCellColorer,
+    AgentCoordDisc2d,
+    EnvDisc2dRenderer,
+    EnvDisc2dCellColorer,
 
     render2dDiscreteFrame,
 
@@ -20,31 +21,34 @@ import FRP.FrABS.Environment.Discrete
 
 import qualified Graphics.Gloss as GLO
  
--- NOTE: 2d cell-size, window-size, agent 
-type AgentRenderer s m e = (Float, Float) -> (Int, Int) -> AgentOut s m e -> GLO.Picture
+type AgentRendererDisc2d s m c = (Float, Float) 
+                                    -> (Int, Int) 
+                                    -> AgentOut s m (Discrete2d c) 
+                                    -> GLO.Picture
 type AgentCellColorer s = s -> GLO.Color
--- NOTE: 2d cell-size, window-size, environment-coord 
-type EnvironmentRenderer c = (Float, Float) -> (Int, Int) -> (EnvCoord, c) -> GLO.Picture
-type EnvironmentCellColorer c = c -> GLO.Color
+type AgentCoordDisc2d s = (s -> Discrete2dCoord)
 
-render2dDiscreteFrame :: AgentRenderer s m (EnvironmentDiscrete2D e c)
-                            -> EnvironmentRenderer c
+type EnvDisc2dRenderer c = (Float, Float) -> (Int, Int) -> (Discrete2dCoord, c) -> GLO.Picture
+type EnvDisc2dCellColorer c = c -> GLO.Color
+
+render2dDiscreteFrame :: AgentRendererDisc2d s m c
+                            -> EnvDisc2dRenderer c
                             -> (Int, Int) 
-                            -> [AgentOut s m e] 
-                            -> e 
+                            -> [AgentOut s m (Discrete2d c)] 
+                            -> Discrete2d c 
                             -> GLO.Picture
-render2dDiscreteFrame ar er wSize@(wx, wy) aouts env = GLO.Pictures (envPics ++ agentPics)
+render2dDiscreteFrame ar er wSize@(wx, wy) aouts e = GLO.Pictures (envPics ++ agentPics)
     where
-        (cx, cy) = environmentLimits env
+        (cx, cy) = envDisc2dDims e
         cellWidth = fromIntegral wx / fromIntegral cx
         cellHeight = fromIntegral wy / fromIntegral cy
 
-        cells = allCellsWithCoords env
+        cells = allCellsWithCoords e
 
         agentPics = map (ar (cellWidth, cellHeight) wSize) aouts
         envPics = map (er (cellWidth, cellHeight) wSize) cells
 
-defaultEnvironmentRenderer :: EnvironmentCellColorer c -> EnvironmentRenderer c
+defaultEnvironmentRenderer :: EnvDisc2dCellColorer c -> EnvDisc2dRenderer c
 defaultEnvironmentRenderer cc (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = GLO.Pictures [cellRect]
     where
         halfXSize = fromRational $ toRational wx / 2.0
@@ -57,17 +61,18 @@ defaultEnvironmentRenderer cc (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = 
 
         cellRect = GLO.color color $ GLO.translate xPix yPix $ GLO.rectangleSolid rectWidth rectHeight
 
-voidEnvironmentRenderer :: EnvironmentRenderer ec
+voidEnvironmentRenderer :: EnvDisc2dRenderer ec
 voidEnvironmentRenderer _ _ _ = GLO.Pictures []
 
-defaultEnvironmentColorer :: GLO.Color -> EnvironmentCellColorer ec
+defaultEnvironmentColorer :: GLO.Color -> EnvDisc2dCellColorer ec
 defaultEnvironmentColorer color _ = color
 
-defaultAgentRenderer :: AgentCellColorer s -> AgentRenderer s m e
-defaultAgentRenderer ac (rectWidth, rectHeight) (wx, wy) a = GLO.color color $ GLO.translate xPix yPix $ GLO.ThickCircle 0 rectWidth
+defaultAgentRenderer :: AgentCellColorer s -> AgentCoordDisc2d s -> AgentRendererDisc2d s m c
+defaultAgentRenderer acf apf (rectWidth, rectHeight) (wx, wy) a = GLO.color color $ GLO.translate xPix yPix $ GLO.ThickCircle 0 rectWidth
     where
-        (x, y) = aoEnvPos a
-        color = ac $ aoState a
+        s = aoState a
+        (x, y) = apf s
+        color = acf s
 
         halfXSize = fromRational (toRational wx / 2.0)
         halfYSize = fromRational (toRational wy / 2.0)
@@ -75,7 +80,7 @@ defaultAgentRenderer ac (rectWidth, rectHeight) (wx, wy) a = GLO.color color $ G
         xPix = fromRational (toRational (fromIntegral x * rectWidth)) - halfXSize
         yPix = fromRational (toRational (fromIntegral y * rectHeight)) - halfYSize
 
-voidAgentRenderer :: AgentRenderer s m e
+voidAgentRenderer :: AgentRendererDisc2d s m c
 voidAgentRenderer _ _ _ = GLO.Pictures []
 
 defaultAgentColorer :: GLO.Color -> AgentCellColorer s

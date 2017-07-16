@@ -87,24 +87,6 @@
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
-		},
-		{
-			"file": "src/FRP/FrABS/Environment/Definitions.hs",
-			"settings":
-			{
-				"buffer_size": 3208,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "src/FRP/FrABS/Environment/Discrete.hs",
-			"settings":
-			{
-				"buffer_size": 8681,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
 		}
 	],
 	"build_system": "",
@@ -155,17 +137,26 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/dist",
 		"/home/jonathan/phd/coding/libraries/frABS/src",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment"
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation"
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Simulation.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Discrete.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Discrete2D.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Reactive.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Utils.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Network.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Continuous.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Definitions.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Discrete.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Network.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Classes.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/FrABS.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/FrABS.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroRun.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroAgent.hs",
@@ -282,14 +273,7 @@
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/Agent 1",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/received AskOfferings from 1",
 		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/received AskOfferings from 2",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/Agent received BidOfferings from 1",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/DoubleAuction/DAAuctioneer.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroAgent.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/SIRS/SIRSModel.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgent.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/DoubleAuction/DATrader.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/src/FrABS/Simulation/ParIteration.hs"
+		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/Agent received BidOfferings from 1"
 	],
 	"find":
 	{
@@ -308,6 +292,18 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"Discrete2DCoord",
+			"Discrete2DNeighbourhood",
+			"wrapDisc2D",
+			"Discrete2DDimension",
+			"Discrete2DCoord",
+			"Node",
+			"wrap",
+			"envlimit",
+			"limit",
+			"EnvironmentDiscrete2D",
+			"EnvironmentNetwork",
+			"pickRandomNeighbourCell",
 			"state",
 			"agentSex",
 			"todo",
@@ -423,26 +419,22 @@
 			"cellOccupier",
 			"filter",
 			"filter (",
-			"cellUnoccupied",
-			"agentLookout",
-			"agentCollecting",
-			"cellUnoccupied",
-			"agentLookout",
-			"^(.*)$",
-			"neighbourIds",
-			"replace",
-			"randomage",
-			"handleCreateAgents",
-			"handleKillOrLiveAgent",
-			"handleAgent",
-			"createAgent"
+			"cellUnoccupied"
 		],
 		"highlight": true,
 		"in_selection": false,
 		"preserve_case": false,
-		"regex": true,
+		"regex": false,
 		"replace_history":
 		[
+			"Discrete2dCoord",
+			"Discrete2dNeighbourhood",
+			"wrapDisc2d",
+			"Discrete2dDimension",
+			"Discrete2dCoord",
+			"AgentId",
+			"EnvDisc2d",
+			"EnvNet",
 			"agentCellOnPos",
 			"updateDomainStateM",
 			"domainStateFieldM",
@@ -476,7 +468,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -503,70 +495,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 270.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "src/FRP/FrABS/Environment/Definitions.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 3208,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1790,
-								1790
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 630.0,
+						"translation.y": 495.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "src/FRP/FrABS/Environment/Discrete.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 8681,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								693,
-								693
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 855.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
 					"type": "text"
 				}
 			]

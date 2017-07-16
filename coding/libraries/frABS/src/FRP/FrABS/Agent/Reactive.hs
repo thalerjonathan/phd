@@ -27,13 +27,11 @@ module FRP.FrABS.Agent.Reactive (
     messageEventSource
   ) where
 
-import FRP.FrABS.Environment.Definitions
 import FRP.FrABS.Environment.Discrete
 import FRP.FrABS.Environment.Network
 
 import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Agent.Random
-import FRP.FrABS.Agent.Utils
 
 import FRP.Yampa
 
@@ -124,13 +122,16 @@ constMsgSource msg ao = (ao, msg)
 randomNeighbourNodeMsgSource :: m -> MessageSource s m (Network l)
 randomNeighbourNodeMsgSource m ao = (ao', msg)
     where
-        (randNode, ao') = runAgentRandom (pickRandomNeighbourNode ao) ao
+        aid = aoId ao
+        env = aoEnv ao
+        (randNode, ao') = runAgentRandom (pickRandomNeighbourNode aid env) ao
         msg = (randNode, m)
 
-randomNeighbourCellMsgSource ::  m -> MessageSource s m (Discrete2d AgentId)
-randomNeighbourCellMsgSource m ao = (ao', msg)
+randomNeighbourCellMsgSource :: Discrete2dCoord -> m -> MessageSource s m (Discrete2d AgentId)
+randomNeighbourCellMsgSource pos m ao = (ao', msg)
     where
-        ((_, randCell), ao') = runAgentRandom (pickRandomNeighbourCell ao) ao
+        env = aoEnv ao
+        ((_, randCell), ao') = runAgentRandom (pickRandomNeighbourCell pos env) ao
         msg = (randCell, m)
 -------------------------------------------------------------------------------
 

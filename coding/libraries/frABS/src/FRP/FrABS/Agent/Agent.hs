@@ -63,6 +63,7 @@ import Data.List
 
 type AgentId = Int
 type AgentMessage m = (AgentId, m)
+-- TODO: replace by SF (AgentIn s m, e) (AgentOut s m, e)
 type AgentBehaviour s m e = SF (AgentIn s m e) (AgentOut s m e)
 type MessageFilter m = (AgentMessage m -> Bool)
 
@@ -91,22 +92,21 @@ data AgentIn s m e = AgentIn {
     aiConversation :: Maybe (AgentConversationReceiver s m e),
     aiStart :: Event (),
     aiState :: s,
-    aiEnv :: e,
+    aiEnv :: e, -- TODO: remove
     aiRec :: Event [AgentOut s m e],
     aiRecInitAllowed :: Bool,
     aiRng :: StdGen,
     aiIdGen :: TVar Int
 }
 
--- TODO: remove aoId, should be static
 data AgentOut s m e = AgentOut {
-    aoId :: AgentId,    
+    aoId :: AgentId,     -- TODO: remove aoId, should be static
     aoKill :: Event (),
     aoCreate :: Event [AgentDef s m e],
     aoMessages :: Event [AgentMessage m],     -- AgentId identifies receiver
     aoConversation :: Event (AgentMessage m, AgentConversationSender s m e),
     aoState :: s,
-    aoEnv :: e,
+    aoEnv :: e, -- TODO: remove
     aoRec :: Event (),
     aoRecOthersAllowed :: Bool,
     aoRng :: StdGen

@@ -14,7 +14,9 @@ module FRP.FrABS.Environment.Network (
     neighbourAgentIdsM,
     neighbourLinks,
     directLinkBetween,
-    directLinkBetweenM
+    directLinkBetweenM,
+
+    pickRandomNeighbourNode
   ) where
 
 import FRP.FrABS.Agent.Agent
@@ -92,12 +94,12 @@ neighbourAgentIds aid e = map snd ls
 neighbourAgentIdsM :: AgentId -> State (Network l) [AgentId]
 neighbourAgentIdsM aid = state (\e -> (neighbourAgentIds aid e, e))
 
-neighbourLinks :: AgentId -> (Network l) -> Adj l
+neighbourLinks :: AgentId -> Network l -> Adj l
 neighbourLinks aid e = lneighbors gr aid
     where
         gr = envNetGraph e
 
-directLinkBetween :: AgentId -> AgentId -> (Network l) -> Maybe l
+directLinkBetween :: AgentId -> AgentId -> Network l -> Maybe l
 directLinkBetween n1 n2 e = 
     do
         let ls = neighbourLinks n1 e
@@ -106,6 +108,18 @@ directLinkBetween n1 n2 e =
 
 directLinkBetweenM :: AgentId -> AgentId -> State (Network l) (Maybe l)
 directLinkBetweenM n1 n2 = state (\e -> (directLinkBetween n1 n2 e, e))
+
+-------------------------------------------------------------------------------
+-- UTILITIES
+-------------------------------------------------------------------------------
+pickRandomNeighbourNode :: AgentId -> Network l -> Rand StdGen AgentId
+pickRandomNeighbourNode aid e = 
+    do
+        let nn = neighbourNodes aid e
+        let l = length nn 
+        randIdx <- getRandomR (0, l - 1)
+        return (nn !! randIdx)
+-------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- PRIVATE

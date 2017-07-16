@@ -8,11 +8,9 @@ module FRP.FrABS.Environment.Discrete (
     
     createDiscrete2d,
  
-    agentCoordDisc2d,
-    updateAgentCoordDisc2d,
     allCellsWithCoords,
-    updateEnvironmentCells,
-    updateEnvironmentCellsWithCoords,
+    updateCells,
+    updateCellsWithCoords,
     changeCellAt,
     changeCellAtM,
     cellsAroundRadius,
@@ -23,10 +21,10 @@ module FRP.FrABS.Environment.Discrete (
     cellAtM,
     randomCell,
     randomCellWithinRect,
-    neighboursDistance,
-    neighboursDistanceM,
-    neighbours,
-    neighboursM,
+    neighbourCellsInDistance,
+    neighbourCellsInDistanceM,
+    neighbourCells,
+    neighbourCellsM,
 
     distanceManhattanDisc2d,
     distanceEuclideanDisc2d,
@@ -38,20 +36,17 @@ module FRP.FrABS.Environment.Discrete (
     moore,
     mooreSelf,
     wrapNeighbourhood,
-    wrapDisc2d
-  ) where
+    wrapDisc2d,
 
-import FRP.FrABS.Agent.Agent
+    pickRandomNeighbourCell
+  ) where
+    
 import FRP.FrABS.Environment.Definitions
 import FRP.FrABS.Environment.Network
 
-import FRP.Yampa
-
-import Data.List
 import Data.Array.IArray
 import Control.Monad.Random
 import Control.Monad.Trans.State
-import qualified Data.Map as Map
 
 type Discrete2dDimension = (Int, Int)
 type Discrete2dCoord = Discrete2dDimension
@@ -64,8 +59,7 @@ data Discrete2d c = Discrete2d {
     envDisc2dNeighbourhood :: Discrete2dNeighbourhood,
     envDisc2dWrapping :: EnvironmentWrapping,
     envDisc2dCells :: Array Discrete2dCoord c,
-    envDisc2dRng :: StdGen,
-    envDisc2dAgentPositions :: Map.Map AgentId Discrete2dCoord
+    envDisc2dRng :: StdGen
 }
 
 data Discrete2dNetwork l c = Discrete2dNetwork {
@@ -87,30 +81,23 @@ createDiscrete2d beh d@(xLimit, yLimit) n w cs rng
                             envDisc2dNeighbourhood = n,
                             envDisc2dWrapping = w,
                             envDisc2dCells = arr,
-                            envDisc2dRng = rng,
-                            envDisc2dAgentPositions = Map.empty
+                            envDisc2dRng = rng
                         }
     where
         arr = array ((0, 0), (xLimit - 1, yLimit - 1)) cs
-
-agentCoordDisc2d :: AgentId -> Discrete2d c -> Discrete2dCoord
-agentCoordDisc2d aid _ = (0, 0) -- TODO: implement
-
-updateAgentCoordDisc2d :: AgentId -> Discrete2dCoord -> Discrete2d c -> Discrete2d c
-updateAgentCoordDisc2d aid coord e = e -- TODO: implement
 
 
 allCellsWithCoords :: Discrete2d c -> [(Discrete2dCoord, c)]
 allCellsWithCoords e = assocs $ envDisc2dCells e
 
-updateEnvironmentCells :: (c -> c) -> Discrete2d c -> Discrete2d c
-updateEnvironmentCells f e = e { envDisc2dCells = ec' }
+updateCells :: (c -> c) -> Discrete2d c -> Discrete2d c
+updateCells f e = e { envDisc2dCells = ec' }
     where
         ec = envDisc2dCells e
         ec' = amap f ec
 
-updateEnvironmentCellsWithCoords :: ((Discrete2dCoord, c) -> c) -> Discrete2d c -> Discrete2d c
-updateEnvironmentCellsWithCoords f e = e'
+updateCellsWithCoords :: ((Discrete2dCoord, c) -> c) -> Discrete2d c -> Discrete2d c
+updateCellsWithCoords f e = e'
     where
         ecs = allCellsWithCoords e
         cs = map f ecs
@@ -127,7 +114,7 @@ changeCellAtM :: Discrete2dCoord -> c -> State (Discrete2d c) ()
 changeCellAtM coord c = state (\e -> ((), changeCellAt coord c e))
 
 cellsAroundRadius :: Discrete2dCoord -> Double -> Discrete2d c -> [(Discrete2dCoord, c)]
-cellsAroundRadius  pos r e = filter (\(coord, _) -> r >= (distanceEuclideanDisc2d pos coord)) ecs 
+cellsAroundRadius  pos r e = filter (\(coord, _) -> r >= distanceEuclideanDisc2d pos coord) ecs 
     where
         ecs = allCellsWithCoords e
         -- TODO: does not yet wrap around boundaries
@@ -182,30 +169,30 @@ randomCellWithinRect (x, y) r e =
 
         return (randCell, randCoordWrapped)
 
-neighboursDistance :: Discrete2dCoord -> Int -> Discrete2d c -> [(Discrete2dCoord, c)]
-neighboursDistance  coord dist e = zip wrappedNs cells
+neighbourCellsInDistance :: Discrete2dCoord -> Int -> Discrete2d c -> [(Discrete2dCoord, c)]
+neighbourCellsInDistance coord dist e = zip wrappedNs cells
     where
         n = envDisc2dNeighbourhood e
-        coordDeltas = foldr (\v acc -> acc ++ (neighbourhoodScale n v)) [] [1 .. dist]
+        coordDeltas = foldr (\v acc -> acc ++ neighbourhoodScale n v) [] [1 .. dist]
         l = envDisc2dDims e
         w = envDisc2dWrapping e
         ns = neighbourhoodOf coord coordDeltas
         wrappedNs = wrapNeighbourhood l w ns
         cells = cellsAt wrappedNs e
 
-neighboursDistanceM :: Discrete2dCoord -> Int -> State (Discrete2d c) [(Discrete2dCoord, c)]
-neighboursDistanceM coord dist = state (\e -> (neighboursDistance coord dist e, e))
+neighbourCellsInDistanceM :: Discrete2dCoord -> Int -> State (Discrete2d c) [(Discrete2dCoord, c)]
+neighbourCellsInDistanceM coord dist = state (\e -> (neighbourCellsInDistance coord dist e, e))
 
-neighbours :: Discrete2dCoord -> (Discrete2d c) -> [(Discrete2dCoord, c)]
-neighbours coord e = neighboursDistance coord 1 e
+neighbourCells :: Discrete2dCoord -> Discrete2d c -> [(Discrete2dCoord, c)]
+neighbourCells coord e = neighbourCellsInDistance coord 1 e
 
-neighboursM :: Discrete2dCoord -> State (Discrete2d c) [(Discrete2dCoord, c)]
-neighboursM coord = state (\e -> (neighbours coord e, e))
+neighbourCellsM :: Discrete2dCoord -> State (Discrete2d c) [(Discrete2dCoord, c)]
+neighbourCellsM coord = state (\e -> (neighbourCells coord e, e))
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 distanceManhattanDisc2d :: Discrete2dCoord -> Discrete2dCoord -> Int
-distanceManhattanDisc2d (x1, y1) (x2, y2) = (abs (x1 - x2)) + (abs (y1 - y2))
+distanceManhattanDisc2d (x1, y1) (x2, y2) = abs (x1 - x2) + abs (y1 - y2)
 
 distanceEuclideanDisc2d :: Discrete2dCoord -> Discrete2dCoord -> Double
 distanceEuclideanDisc2d (x1, y1) (x2, y2) = sqrt (xDelta*xDelta + yDelta*yDelta)
@@ -262,4 +249,18 @@ rightDelta =         ( 1,  0)
 bottomLeftDelta =    (-1,  1)
 bottomDelta =        ( 0,  1)
 bottomRightDelta =   ( 1,  1)
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+-- UTILITIES
+-------------------------------------------------------------------------------
+pickRandomNeighbourCell :: Discrete2dCoord -> Discrete2d c -> Rand StdGen (Discrete2dCoord, c)
+pickRandomNeighbourCell pos e = 
+    do
+        let ncc = neighbourCells pos e
+        let l = length ncc 
+
+        randIdx <- getRandomR (0, l - 1)
+
+        return (ncc !! randIdx)
 -------------------------------------------------------------------------------

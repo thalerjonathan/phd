@@ -1,4 +1,3 @@
-{-# LANGUAGE Arrows #-}
 module FRP.FrABS.Simulation.Simulation (
     UpdateStrategy (..),
     EnvironmentCollapsing,
@@ -12,6 +11,7 @@ import FRP.FrABS.Simulation.SeqIteration
 import FRP.FrABS.Simulation.ParIteration
 import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Simulation.Internal
+import FRP.FrABS.Environment.Definitions
 
 import FRP.Yampa
 import FRP.Yampa.InternalCore
@@ -23,10 +23,11 @@ import qualified Data.Map as Map
 import Control.Concurrent.STM.TVar
 
 data UpdateStrategy = Sequential | Parallel deriving (Eq)
-type EnvironmentCollapsing e = ([e] -> e)
+
 
 data SimulationParams e = SimulationParams {
     simStrategy :: UpdateStrategy,
+    simEnvBehaviour :: Maybe (EnvironmentBehaviour e),
     simEnvCollapse :: Maybe (EnvironmentCollapsing e),
     simShuffleAgents :: Bool,
     simRng :: StdGen,
@@ -110,7 +111,7 @@ simulate ains asfs params dt steps = embed
 -- SEQUENTIAL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
 simulateSeq :: [SF (AgentIn s m e) (AgentOut s m e)]
-                -> (SimulationParams e)
+                -> SimulationParams e
                 -> SF ([AgentIn s m e], e) ([AgentOut s m e], e)
 simulateSeq initSfs initParams = SF {sfTF = tf0}
     where
@@ -140,7 +141,7 @@ simulateSeq initSfs initParams = SF {sfTF = tf0}
 
                         -- NOTE: the 'last' environment is in the first of outs because runSeqInternal reverses the outputs
                         env' = if null outs then env else aoEnv $ head outs
-                        env'' = runEnv env' dt
+                        env'' = runEnv params dt env' 
 
                         insWithNewEnv = map (\ain -> ain { aiEnv = env'' }) ins'
 
@@ -149,9 +150,9 @@ simulateSeq initSfs initParams = SF {sfTF = tf0}
                         -- create a continuation of this SF
                         tf' = simulateSeqAux params' sfsShuffled insShuffled env''
 
-
-
-seqCallbackIteration :: TVar Int -> [AgentOut s m e] -> ([AgentBehaviour s m e], [AgentIn s m e])
+seqCallbackIteration :: TVar Int 
+                        -> [AgentOut s m e] 
+                        -> ([AgentBehaviour s m e], [AgentIn s m e])
 seqCallbackIteration idGen aouts = (newSfs, newSfsIns')
     where
         -- NOTE: messages of this agent are ALWAYS distributed, whether it is killed or not
@@ -161,7 +162,7 @@ seqCallbackIteration idGen aouts = (newSfs, newSfsIns')
 
 seqCallback :: SimulationParams e
                 -> ([AgentIn s m e], [AgentBehaviour s m e])
-                -> (AgentBehaviour s m e)
+                -> AgentBehaviour s m e
                 -> (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e)
                 -> ([AgentIn s m e],
                     Maybe (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e))
@@ -189,7 +190,7 @@ seqCallback params (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
         seqCallbackRec :: SimulationParams e
                            -> [AgentIn s m e]
                            -> [AgentBehaviour s m e]
-                           -> (AgentBehaviour s m e)
+                           -> AgentBehaviour s m e
                            -> (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e)
                            -> ([AgentIn s m e],
                                Maybe (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e))
@@ -207,7 +208,7 @@ seqCallback params (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
         handleRecursion :: SimulationParams e
                              -> [AgentIn s m e]     -- the inputs to the 'other' agents
                              -> [AgentBehaviour s m e] -- the signal functions of the 'other' agents
-                             -> (AgentBehaviour s m e)     -- the OLD signal function of the current agent: it is the SF BEFORE having initiated the recursion
+                             -> AgentBehaviour s m e     -- the OLD signal function of the current agent: it is the SF BEFORE having initiated the recursion
                              -> (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e)
                              -> ([AgentIn s m e],
                                     Maybe (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e))
@@ -235,9 +236,9 @@ seqCallback params (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
                 -- TODO: when running for multiple steps it makes sense to specify WHEN the agent of oldSF runs
                 -- NOTE: when setting steps to > 1 we end up in an infinite loop
                 -- TODO: only running in sequential for now
-                allStepsRecOuts = (simulate (allAins, env) allAsfs params 1.0 1) 
+                allStepsRecOuts = simulate (allAins, env) allAsfs params 1.0 1
 
-                (lastStepRecOuts, _) = (last allStepsRecOuts)
+                (lastStepRecOuts, _) = last allStepsRecOuts
                 mayRecOut = Data.List.find (\ao -> (aoId ao) == (aiId oldIn)) lastStepRecOuts
 
                 -- TODO: what happens to the environment? it could have changed by the other agents but we need to re-set it to before
@@ -252,9 +253,9 @@ seqCallback params (otherIns, otherSfs) oldSf (sf, oldIn, newOut)
         forbidRecursion ains = map (\ai -> ai { aiRecInitAllowed = False } ) ains
 
         handleAgent :: [AgentIn s m e]
-                                -> (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e)
-                                -> ([AgentIn s m e],
-                                     Maybe (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e))
+                        -> (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e)
+                        -> ([AgentIn s m e],
+                             Maybe (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e))
         handleAgent otherIns a@(sf, oldIn, newOut) = (otherIns'', mayAgent)
             where
                 (otherIns', newOut') = handleConversation otherIns newOut
@@ -366,13 +367,12 @@ simulatePar initSfs initParams = SF {sfTF = tf0}
                         -- create a continuation of this SF
                         tf' = simulateParAux params' sfsShuffled insShuffled env'
 
-
         collapseEnvironments :: SimulationParams e -> e -> Double -> [AgentOut s m e] -> e
         collapseEnvironments params initEnv dt outs 
-            | isCollapsingEnv = runEnv collapsedEnv dt
+            | isCollapsingEnv = runEnv params dt collapsedEnv 
             | otherwise = initEnv
             where
-                isCollapsingEnv = isJust $ mayEnvCollapFun
+                isCollapsingEnv = isJust mayEnvCollapFun
 
                 mayEnvCollapFun = simEnvCollapse params
                 envCollapFun = fromJust mayEnvCollapFun
@@ -429,9 +429,9 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
 ----------------------------------------------------------------------------------------------------------------------
 newAgentIn :: AgentIn s m e -> AgentOut s m e -> AgentIn s m e
 newAgentIn oldIn newOut = oldIn { aiStart = NoEvent,
-                                aiState = (aoState newOut),
+                                aiState = aoState newOut,
                                 aiMessages = NoEvent,
-                                aiEnv = (aoEnv newOut),
+                                aiEnv = aoEnv newOut,
                                 aiRng = aoRng newOut }
 
 
@@ -470,15 +470,17 @@ fisherYatesShuffle gen l =
         (j, gen') = randomR (0, i) gen
 -----------------------------------------------------------------------------------
 
-runEnv :: e -> DTime -> e
-runEnv env dt
+runEnv :: SimulationParams e -> DTime -> e -> e
+runEnv params dt e = maybe env (\envBeh -> ) mayEnvBeh
     | isNothing mayEnvBeh = env
-    | otherwise = env' { envBehaviour = Just envSF' }
+    | otherwise = 
     where
-        mayEnvBeh = envBehaviour env
+        mayEnvBeh = simEnvBehaviour e
 
-        envSF = fromJust mayEnvBeh
-        (envSF', env') = runAndFreezeSF envSF env dt
+        runEnvAux :: e -> EnvironmentBehaviour e -> e 
+        runEnvAux e envBeh = env' { envBehaviour = Just envSF' }
+            where
+                (envBeh', e') = runAndFreezeSF envBeh e dt
 
 handleCreateAgents :: TVar Int
                         -> AgentOut s m e

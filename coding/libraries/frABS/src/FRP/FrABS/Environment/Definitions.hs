@@ -1,6 +1,7 @@
 module FRP.FrABS.Environment.Definitions (
     EnvironmentWrapping (..),
-    EnvironmentBehaviour
+    EnvironmentBehaviour,
+    EnvironmentCollapsing
   ) where
 
 import FRP.Yampa
@@ -10,6 +11,7 @@ data EnvironmentWrapping = ClipToMax | WrapHorizontal | WrapVertical | WrapBoth
 -- newtype EnvironmentSpatial2DDimension d = (Num d, Num d)
 
 type EnvironmentBehaviour e = SF e e
+type EnvironmentCollapsing e = ([e] -> e)
 
 {-
 class EnvNet e where

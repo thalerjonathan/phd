@@ -115,7 +115,7 @@ isDeadM = state (\ao -> (isDead ao, ao))
 onMessageMState :: (AgentMessage m -> State acc ()) -> AgentIn s m e -> State acc ()
 onMessageMState msgHdl ai = onMessageM (\_ msg -> msgHdl msg) ai ()
 
-onMessageM :: (Monad mon) => (acc -> AgentMessage m -> mon acc) -> AgentIn s m e -> acc -> mon acc
+onMessageM :: (Monad mon) => (AgentMessage m -> acc -> mon acc) -> AgentIn s m e -> acc -> mon acc
 onMessageM msgHdl ai acc
     | not hasMessages = return acc
     -- | otherwise = foldM (\acc msg -> msgHdl acc msg) acc msgs

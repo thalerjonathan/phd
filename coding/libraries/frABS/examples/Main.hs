@@ -1,7 +1,8 @@
 module Main where
 
-import           DoubleAuction.Run
 import           Conversation.Run
+import           DoubleAuction.Run
+import           FrSIRSSpatial.Run
 import           PrisonersDilemma.Run
 import           RecursiveABS.Run
 import           Segregation.Run
@@ -12,10 +13,8 @@ import           Wildfire.Run
 {-
 import           AgentZero.Run
 import           FrSIRSNetwork.Run
-import           FrSIRSSpatial.Run
 import           HeroesCowards.Run
 import           PolicyEffects.Run
-
 import           SugarScape.Run
 -}
 
@@ -30,7 +29,7 @@ import           SugarScape.Run
 -}
 
 main :: IO ()
-main = runPDWithRendering
+main = runFrSIRSSpatialWithRendering
 
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile

@@ -18,16 +18,16 @@ import Control.Monad.Random
 respondToContactWith :: SIRSState -> FrSIRSSpatialAgentIn -> FrSIRSSpatialAgentOut -> FrSIRSSpatialAgentOut
 respondToContactWith state ain ao = onMessage respondToContactWithAux ain ao
     where
-        respondToContactWithAux :: FrSIRSSpatialAgentOut -> AgentMessage FrSIRSSpatialMsg -> FrSIRSSpatialAgentOut
-        respondToContactWithAux ao (senderId, Contact _) = sendMessage (senderId, Contact state) ao
+        respondToContactWithAux :: AgentMessage FrSIRSSpatialMsg -> FrSIRSSpatialAgentOut -> FrSIRSSpatialAgentOut
+        respondToContactWithAux (senderId, Contact _) ao = sendMessage (senderId, Contact state) ao
 
 gotInfected :: FrSIRSSpatialAgentIn -> Rand StdGen Bool
 gotInfected ain = onMessageM gotInfectedAux ain False
     where
-        gotInfectedAux :: Bool -> AgentMessage FrSIRSSpatialMsg -> Rand StdGen Bool
-        gotInfectedAux False (_, Contact Infected) = drawRandomBoolM infectivity
-        gotInfectedAux False _ = return False
-        gotInfectedAux True _ = return True
+        gotInfectedAux :: AgentMessage FrSIRSSpatialMsg -> Bool -> Rand StdGen Bool
+        gotInfectedAux (_, Contact Infected) False = drawRandomBoolM infectivity
+        gotInfectedAux _ False = return False
+        gotInfectedAux _ True = return True
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -2,9 +2,7 @@ module FrSIRSSpatial.Model (
     SIRSState (..),
     FrSIRSSpatialMsg (..),
 
-    FrSIRSSpatialAgentState,
-    FrSIRSSpatialEnvLink,
-    FrSIRSSpatialEnvCell,
+    FrSIRSSpatialAgentState (..),
     FrSIRSSpatialEnvironment,
 
     FrSIRSSpatialAgentDef,
@@ -30,19 +28,20 @@ import FRP.FrABS
 data SIRSState = Susceptible | Infected | Recovered deriving (Eq, Show)
 data FrSIRSSpatialMsg = Contact SIRSState deriving (Eq, Show)
 
-type FrSIRSSpatialAgentState = SIRSState
+data FrSIRSSpatialAgentState = FrSIRSSpatialAgentState {
+    sirsState :: SIRSState,
+    sirsCoord :: Discrete2dCoord
+}
 
-type FrSIRSSpatialEnvLink = ()
-type FrSIRSSpatialEnvCell = AgentId
-type FrSIRSSpatialEnvironment = Environment FrSIRSSpatialEnvCell FrSIRSSpatialEnvLink
+type FrSIRSSpatialEnvironment = Discrete2d AgentId
 
-type FrSIRSSpatialAgentDef = AgentDef FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvCell FrSIRSSpatialEnvLink
-type FrSIRSSpatialAgentBehaviour = AgentBehaviour FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvCell FrSIRSSpatialEnvLink
-type FrSIRSSpatialAgentIn = AgentIn FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvCell FrSIRSSpatialEnvLink
-type FrSIRSSpatialAgentOut = AgentOut FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvCell FrSIRSSpatialEnvLink
+type FrSIRSSpatialAgentDef = AgentDef FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
+type FrSIRSSpatialAgentBehaviour = AgentBehaviour FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
+type FrSIRSSpatialAgentIn = AgentIn FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
+type FrSIRSSpatialAgentOut = AgentOut FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
 
-type FrSIRSSpatialEventSource = EventSource FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvCell FrSIRSSpatialEnvLink
-type FrSIRSSpatialMessageSource = MessageSource FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvCell FrSIRSSpatialEnvLink
+type FrSIRSSpatialEventSource = EventSource FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
+type FrSIRSSpatialMessageSource = MessageSource FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -3,8 +3,6 @@ module SIRS.Model (
     SIRSMsg (..),
     SIRSAgentState (..),
 
-    SIRSEnvLink,
-    SIRSEnvCell,
     SIRSEnvironment,
 
     SIRSAgentDef,
@@ -12,6 +10,9 @@ module SIRS.Model (
     SIRSAgentIn,
     SIRSAgentOut,
 
+    SIRSAgentPureBehaviour,
+    SIRSAgentMonadicBehaviour,
+    
     infectedDuration,
     immuneDuration,
     infectionProbability,
@@ -28,17 +29,19 @@ data SIRSMsg = Contact SIRSState deriving (Eq, Show)
 
 data SIRSAgentState = SIRSAgentState {
     sirsState :: SIRSState,
-    sirsTime :: Double
+    sirsTime :: Double,
+    sirsCoord :: Discrete2dCoord
 } deriving (Show)
 
-type SIRSEnvLink = ()
-type SIRSEnvCell = AgentId
-type SIRSEnvironment = Environment SIRSEnvCell SIRSEnvLink
+type SIRSEnvironment = Discrete2d AgentId
 
-type SIRSAgentDef = AgentDef SIRSAgentState SIRSMsg SIRSEnvCell SIRSEnvLink
-type SIRSAgentBehaviour = AgentBehaviour SIRSAgentState SIRSMsg SIRSEnvCell SIRSEnvLink
-type SIRSAgentIn = AgentIn SIRSAgentState SIRSMsg SIRSEnvCell SIRSEnvLink
-type SIRSAgentOut = AgentOut SIRSAgentState SIRSMsg SIRSEnvCell SIRSEnvLink
+type SIRSAgentDef = AgentDef SIRSAgentState SIRSMsg SIRSEnvironment
+type SIRSAgentBehaviour = AgentBehaviour SIRSAgentState SIRSMsg SIRSEnvironment
+type SIRSAgentIn = AgentIn SIRSAgentState SIRSMsg SIRSEnvironment
+type SIRSAgentOut = AgentOut SIRSAgentState SIRSMsg SIRSEnvironment
+
+type SIRSAgentPureBehaviour = AgentPureBehaviour SIRSAgentState SIRSMsg SIRSEnvironment
+type SIRSAgentMonadicBehaviour = AgentMonadicBehaviour SIRSAgentState SIRSMsg SIRSEnvironment
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

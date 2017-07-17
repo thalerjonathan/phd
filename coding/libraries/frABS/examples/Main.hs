@@ -1,10 +1,11 @@
 module Main where
 
-import           DoubleAuction.Run
+import           SIRS.Run
 
 {-
 import           AgentZero.Run
 import           Conversation.Run
+import           DoubleAuction.Run
 import           FrSIRSNetwork.Run
 import           FrSIRSSpatial.Run
 import           HeroesCowards.Run
@@ -29,7 +30,7 @@ import           Wildfire.Run
 -}
 
 main :: IO ()
-main = runDoubleAuctionSteps
+main = runSIRSWithRendering
 
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile

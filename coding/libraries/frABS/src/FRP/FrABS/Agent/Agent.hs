@@ -50,7 +50,9 @@ module FRP.FrABS.Agent.Agent (
     mergeMessages,
 
     agentPure,
-    agentPureIgnoreEnv
+    agentPureIgnoreEnv,
+    AgentPureBehaviour,
+    AgentPureBehaviourNoEnv
   ) where
 
 import FRP.FrABS.Simulation.Internal
@@ -76,6 +78,9 @@ type AgentConversationReceiver s m e = ((AgentIn s m e, e)
 type AgentConversationSender s m e = ((AgentOut s m e, e)
                                         -> Maybe (AgentMessage m)   -- NOTE: this will be Nothing in case the conversation with the target was not established e.g. id not found, target got no receiving handler
                                         -> (AgentOut s m e, e))
+
+type AgentPureBehaviour s m e = (e -> Double -> AgentIn s m e -> AgentOut s m e -> (AgentOut s m e, e))
+type AgentPureBehaviourNoEnv s m e = (Double -> AgentIn s m e -> AgentOut s m e -> AgentOut s m e)
 
 data AgentDef s m e = AgentDef {
     adId :: AgentId,
@@ -189,32 +194,32 @@ hasMessage m ai
         msgs = fromEvent msgsEvt
         hasMsg = Data.List.any ((==m) . snd) msgs
 
-onMessage :: (acc -> AgentMessage m -> acc) -> AgentIn s m e -> acc -> acc
+onMessage :: (AgentMessage m -> acc -> acc) -> AgentIn s m e -> acc -> acc
 onMessage  msgHdl ai a 
     | not hasMessages = a
-    | otherwise = foldr (\msg acc'-> msgHdl acc' msg) a msgs
+    | otherwise = foldr (\msg acc'-> msgHdl msg acc') a msgs
     where
         msgsEvt = aiMessages ai
         hasMessages = isEvent msgsEvt
         msgs = fromEvent msgsEvt
 
 
-onFilterMessage :: MessageFilter m -> (acc -> AgentMessage m -> acc) -> AgentIn s m e -> acc -> acc
+onFilterMessage :: MessageFilter m -> (AgentMessage m -> acc -> acc) -> AgentIn s m e -> acc -> acc
 onFilterMessage msgFilter msgHdl ai acc
     | not hasMessages = acc
-    | otherwise = foldr (\msg acc'-> msgHdl acc' msg) acc filteredMsgs
+    | otherwise = foldr (\msg acc'-> msgHdl msg acc') acc filteredMsgs
     where
         msgsEvt = aiMessages ai
         hasMessages = isEvent msgsEvt
         msgs = fromEvent msgsEvt
         filteredMsgs = filter msgFilter msgs
 
-onMessageFrom :: AgentId -> (acc -> AgentMessage m -> acc) -> AgentIn s m e -> acc -> acc
+onMessageFrom :: AgentId -> (AgentMessage m -> acc -> acc) -> AgentIn s m e -> acc -> acc
 onMessageFrom senderId msgHdl ai acc = onFilterMessage filterBySender msgHdl ai acc
     where
         filterBySender = (\(senderId', _) -> senderId == senderId' )
 
-onMessageType :: (Eq m) => m -> (acc -> AgentMessage m -> acc) -> AgentIn s m e -> acc -> acc
+onMessageType :: (Eq m) => m -> (AgentMessage m -> acc -> acc) -> AgentIn s m e -> acc -> acc
 onMessageType m msgHdl ai acc = onFilterMessage filterByMsgType msgHdl ai acc
     where
         filterByMsgType = (==m) . snd --(\(_, m') -> m == m' )
@@ -257,7 +262,7 @@ startingAgentInFromAgentDef idGen ad = AgentIn { aiId = adId ad,
 mergeMessages :: Event [AgentMessage m] -> Event [AgentMessage m] -> Event [AgentMessage m]
 mergeMessages l r = mergeBy (\msgsLeft msgsRight -> msgsLeft ++ msgsRight) l r
 
-agentPure :: (e -> Double -> AgentIn s m e -> AgentOut s m e -> (AgentOut s m e, e)) -> AgentBehaviour s m e
+agentPure :: AgentPureBehaviour s m e -> AgentBehaviour s m e
 agentPure f = proc (ain, e) ->
     do
         age <- time -< 0
@@ -267,7 +272,7 @@ agentPure f = proc (ain, e) ->
         
         returnA -< (ao', e')
 
-agentPureIgnoreEnv :: (Double -> AgentIn s m e -> AgentOut s m e -> AgentOut s m e) -> AgentBehaviour s m e
+agentPureIgnoreEnv :: AgentPureBehaviourNoEnv s m e -> AgentBehaviour s m e
 agentPureIgnoreEnv f = proc (ain, e) ->
     do
         age <- time -< 0

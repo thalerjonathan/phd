@@ -29,7 +29,9 @@ module FRP.FrABS.Agent.Monad (
 
     agentMonadic,
     agentMonadicIgnoreEnv,
-
+    AgentMonadicBehaviour,
+    AgentMonadicBehaviourNoEnv,
+    
     ifThenElse,
     ifThenElseM
   ) where
@@ -40,6 +42,10 @@ import FRP.Yampa
 
 import Control.Monad
 import Control.Monad.Trans.State
+
+type AgentMonadicBehaviour s m e = (e -> Double -> AgentIn s m e -> State (AgentOut s m e) e)
+type AgentMonadicBehaviourNoEnv s m e = (Double -> AgentIn s m e -> State (AgentOut s m e) ())
+
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Monadic Agent Functions
@@ -161,7 +167,7 @@ getDomainStateM =
         let domainState = aoState ao 
         return domainState
 
-agentMonadic :: (e -> Double -> AgentIn s m e -> State (AgentOut s m e) e) -> AgentBehaviour s m e
+agentMonadic :: AgentMonadicBehaviour s m e -> AgentBehaviour s m e
 agentMonadic f = proc (ain, e) ->
     do
         age <- time -< 0
@@ -171,7 +177,7 @@ agentMonadic f = proc (ain, e) ->
 
         returnA -< (ao', e')
 
-agentMonadicIgnoreEnv :: (Double -> AgentIn s m e -> State (AgentOut s m e) ()) -> AgentBehaviour s m e
+agentMonadicIgnoreEnv :: AgentMonadicBehaviourNoEnv s m e -> AgentBehaviour s m e
 agentMonadicIgnoreEnv f = proc (ain, e) ->
     do
         age <- time -< 0

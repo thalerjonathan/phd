@@ -22,7 +22,7 @@ steps = 60
 runSIRSWithRendering :: IO ()
 runSIRSWithRendering = do
     do
-        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- createSIRS cells initialInfectionProb
 
         simulateAndRender initAdefs
@@ -38,7 +38,7 @@ runSIRSWithRendering = do
 runSIRSStepsAndRender :: IO ()
 runSIRSStepsAndRender =
     do
-        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- createSIRS cells initialInfectionProb
 
         simulateStepsAndRender initAdefs

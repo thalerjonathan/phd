@@ -50,6 +50,8 @@ module FRP.FrABS (
 
     agentPure,
     agentPureIgnoreEnv,
+    AgentPureBehaviour,
+    AgentPureBehaviourNoEnv,
     
     -- agentIdM,
     -- environmentM,
@@ -80,6 +82,8 @@ module FRP.FrABS (
 
     agentMonadic,
     agentMonadicIgnoreEnv,
+    AgentMonadicBehaviour,
+    AgentMonadicBehaviourNoEnv,
     
     drain,
     

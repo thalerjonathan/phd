@@ -23,21 +23,19 @@ createSIRS dims@(maxX, maxY) p =
 
         adefs <- mapM (randomSIRSAgent p) cells
 
-        let env = (createEnvironment
-                        Nothing
-                        dims
-                        moore
-                        ClipToMax
-                        cells
-                        rng
-                        Nothing)
+        let e = createDiscrete2d
+                            dims
+                            moore
+                            ClipToMax
+                            cells
+                            rng
 
-        return (adefs, env)
+        return (adefs, e)
 
 randomSIRSAgent :: Double
-                    -> (EnvCoord, AgentId)
+                    -> (Discrete2dCoord, AgentId)
                     -> IO SIRSAgentDef
-randomSIRSAgent p (pos, agentId) = 
+randomSIRSAgent p (coord, agentId) = 
     do
         rng <- newStdGen
         r <- getStdRandom (randomR(0.0, 1.0))
@@ -52,13 +50,13 @@ randomSIRSAgent p (pos, agentId) =
 
         let as = SIRSAgentState {
                     sirsState = initS,
-                    sirsTime = t }
+                    sirsTime = t,
+                    sirsCoord = coord }
 
         return AgentDef { adId = agentId,
                             adState = as,
                             adBeh = sirsAgentBehaviour,
                             adInitMessages = NoEvent,
                             adConversation = Nothing,
-                            adEnvPos = pos,
                             adRng = rng }
 ------------------------------------------------------------------------------------------------------------------------

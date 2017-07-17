@@ -8,12 +8,12 @@ import FRP.FrABS
 
 import qualified Graphics.Gloss as GLO
 
-type SIRSRenderFrame = RenderFrame SIRSAgentState SIRSMsg SIRSEnvCell SIRSEnvLink
+type SIRSRenderFrame = RenderFrame SIRSAgentState SIRSMsg SIRSEnvironment
 type SIRSAgentColorer = AgentCellColorer SIRSAgentState
 
 renderSIRSFrame :: SIRSRenderFrame
 renderSIRSFrame = render2dDiscreteFrame 
-                    (defaultAgentRenderer sirsAgentColor)
+                    (defaultAgentRenderer sirsAgentColor sirsCoord)
                     voidEnvironmentRenderer
 
 sirsAgentColor :: SIRSAgentColorer

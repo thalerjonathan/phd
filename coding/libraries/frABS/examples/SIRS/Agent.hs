@@ -19,11 +19,11 @@ isM sirsStateComp =
         ss <- domainStateFieldM sirsState
         return $ ss == sirsStateComp
 
-sirsDtM :: Double -> State SIRSAgentOut ()
-sirsDtM t =
+sirsDtM :: SIRSEnvironment -> Double -> State SIRSAgentOut ()
+sirsDtM e t =
     do
-        whenM (isM Infected) $ handleInfectedAgentM t
-        whenM (isM Recovered) $ handleRecoveredAgentM t 
+        whenM (isM Infected) (handleInfectedAgentM e t)
+        whenM (isM Recovered) (handleRecoveredAgentM t)
 
 infectAgentM :: Double -> State SIRSAgentOut ()
 infectAgentM t =
@@ -31,14 +31,14 @@ infectAgentM t =
         doInfect <- drawBoolWithProbFromAgentM infectionProbability
         when doInfect $ updateDomainStateM (\s -> s { sirsState = Infected, sirsTime = t + infectedDuration } )
 
-handleInfectedAgentM :: Double -> State SIRSAgentOut ()
-handleInfectedAgentM t = 
+handleInfectedAgentM :: SIRSEnvironment -> Double -> State SIRSAgentOut ()
+handleInfectedAgentM e t = 
     do
         timeOfRecovery <- domainStateFieldM sirsTime
         -- NOTE: if agent has just recovered, don't send infection-contact to others
         ifThenElse (t >= timeOfRecovery) 
                     (updateDomainStateM (\s -> s { sirsState = Recovered, sirsTime = t + immuneDuration} ))
-                    randomContactM
+                    (randomContactM e)
 
 handleRecoveredAgentM :: Double -> State SIRSAgentOut ()
 handleRecoveredAgentM t = 
@@ -47,17 +47,19 @@ handleRecoveredAgentM t =
         when (t >= timeOfImmunityLost)
                     (updateDomainStateM (\s -> s { sirsState = Susceptible, sirsTime = 0.0 } ))
 
-randomContactM :: State SIRSAgentOut ()
-randomContactM = 
+randomContactM :: SIRSEnvironment -> State SIRSAgentOut ()
+randomContactM e = 
     do
-        (_, randNeighId) <- pickRandomNeighbourCellM
+        coord <- domainStateFieldM sirsCoord
+        (_, randNeighId) <- runAgentRandomM (pickRandomNeighbourCell coord e)
         sendMessageM (randNeighId, (Contact Infected))
 
-sirsAgentBehaviourFuncM :: Double -> SIRSAgentIn -> State SIRSAgentOut ()
-sirsAgentBehaviourFuncM t ain = 
+sirsAgentBehaviourFuncM :: SIRSAgentMonadicBehaviour
+sirsAgentBehaviourFuncM e t ain = 
     do
         onMessageMState contactInfectedM ain
-        sirsDtM t
+        sirsDtM e t
+        return e
 
     where
         contactInfectedM :: AgentMessage SIRSMsg -> State SIRSAgentOut ()
@@ -68,16 +70,16 @@ sirsAgentBehaviourFuncM t ain =
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR NON-monadic implementation
 ------------------------------------------------------------------------------------------------------------------------
-is :: SIRSAgentOut -> SIRSState -> Bool
-is ao ss = (sirsState s) == ss
+is :: SIRSState -> SIRSAgentOut -> Bool
+is ss ao = (sirsState s) == ss
     where
         s = aoState ao
 
-sirsDt :: SIRSAgentOut -> Double -> SIRSAgentOut
-sirsDt ao t
-    | is ao Susceptible = ao
-    | is ao Infected = handleInfectedAgent ao t
-    | otherwise = handleRecoveredAgent ao t
+sirsDt :: SIRSEnvironment -> Double -> SIRSAgentOut -> SIRSAgentOut
+sirsDt e t ao
+    | is Susceptible ao = ao
+    | is Infected ao = handleInfectedAgent e t ao
+    | otherwise = handleRecoveredAgent t ao
 
 infectAgent :: Double -> SIRSAgentOut -> SIRSAgentOut
 infectAgent t ao
@@ -86,37 +88,39 @@ infectAgent t ao
     where
          (yes, ao') = drawBoolWithProbFromAgent infectionProbability ao
 
-contactInfected :: Double -> SIRSAgentOut -> AgentMessage SIRSMsg -> SIRSAgentOut
-contactInfected t a (_, Contact Infected) 
-    | is a Susceptible = infectAgent t a
-    | otherwise = a
-contactInfected _ a _ = a
+contactInfected :: Double -> AgentMessage SIRSMsg -> SIRSAgentOut -> SIRSAgentOut
+contactInfected t (_, Contact Infected) ao
+    | is Susceptible ao = infectAgent t ao
+    | otherwise = ao
+contactInfected _ _ ao = ao
 
-handleInfectedAgent :: SIRSAgentOut -> Double -> SIRSAgentOut
-handleInfectedAgent ao t 
+handleInfectedAgent :: SIRSEnvironment -> Double -> SIRSAgentOut -> SIRSAgentOut
+handleInfectedAgent e t ao
     | t >= timeOfRecovery = recoveredAgent           -- NOTE: agent has just recovered, don't send infection-contact to others
-    | otherwise = randomContact ao
+    | otherwise = randomContact e ao
     where
         timeOfRecovery = sirsTime $ aoState ao
         recoveredAgent = updateDomainState (\s -> s { sirsState = Recovered, sirsTime = t + immuneDuration}) ao
 
-handleRecoveredAgent :: SIRSAgentOut -> Double -> SIRSAgentOut
-handleRecoveredAgent ao t 
+handleRecoveredAgent :: Double -> SIRSAgentOut -> SIRSAgentOut
+handleRecoveredAgent t ao 
     | t >= timeOfImmunityLost = susceptibleAgent
     | otherwise = ao
     where
         timeOfImmunityLost = sirsTime $ aoState ao
         susceptibleAgent = updateDomainState (\s -> s { sirsState = Susceptible, sirsTime = 0.0 }) ao
 
-randomContact :: SIRSAgentOut -> SIRSAgentOut
-randomContact ao = sendMessage (randNeigh, (Contact Infected)) ao'
+randomContact :: SIRSEnvironment -> SIRSAgentOut -> SIRSAgentOut
+randomContact e ao = sendMessage (randNeigh, Contact Infected) ao'
     where
-        ((_, randNeigh), ao') = runAgentRandom (pickRandomNeighbourCell ao) ao
+        coord = sirsCoord $ aoState ao
+        ((_, randNeigh), ao') = runAgentRandom (pickRandomNeighbourCell coord e) ao
 
-sirsAgentBehaviourFunc :: Double -> SIRSAgentIn -> SIRSAgentOut -> SIRSAgentOut
-sirsAgentBehaviourFunc t ain ao = sirsDt aoAfterMsg t
+sirsAgentBehaviourFunc :: SIRSAgentPureBehaviour
+sirsAgentBehaviourFunc e t ain ao = (ao', e)
     where
-        aoAfterMsg = onMessage  (contactInfected t) ain ao
+        aoAfterMsg = onMessage (contactInfected t) ain ao
+        ao' = sirsDt e t aoAfterMsg
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -14,11 +14,6 @@ import Data.Maybe
 ------------------------------------------------------------------------------------------------------------------------
 -- HELPER-Functions
 ------------------------------------------------------------------------------------------------------------------------
-isParty :: SegAgentOut -> SegParty -> Bool
-isParty ao p = (segParty s) == p
-    where
-        s = aoState ao
-
 isOccupied :: SegEnvCell -> Bool
 isOccupied = isJust
 
@@ -41,75 +36,78 @@ isSatisfied aout = (segSatisfactionLevel s) >= (segSimilarityWanted s)
 -- in the recursive case we have the SegAgentOut of the present which initiated the recursion AND the SegAgentOut of the future
 -- in the recursive case (future) we need to decide the above cases and return the corresponding SegAgentOut
 -- IMPORTANT: we always need to return the ENVIRONMENT of the PRESENT SegAgentOut
-segMovementRec :: SegAgentIn -> SegAgentOut -> SegAgentOut
-segMovementRec ain ao 
+segMovementRec :: SegEnvironment -> SegAgentIn -> SegAgentOut -> (SegAgentOut, SegEnvironment)
+segMovementRec e ain ao 
     -- trace ("Agent " ++ (show $ aoId ao) ++ " isRecursive") 
-    | isRecursive ain = (unrecursive $ segMovementFuture ain ao)         -- NOTE: ALWAYS unrecursive, only 1 recursion
-    | otherwise = segMovementPresent ain ao   
+    | isRecursive ain = (unrecursive ao', e')        -- NOTE: ALWAYS unrecursive, only 1 recursion
+    | otherwise = segMovementPresent e ain ao   
     where
+        (ao', e') =  segMovementFuture e ain ao
+
         -- NOTE: we know that the present IS SATISFIED given is environment and that is HAS NOT MOVED
-        segMovementFuture :: SegAgentIn -> SegAgentOut -> SegAgentOut    
-        segMovementFuture ain ao
+        segMovementFuture :: SegEnvironment -> SegAgentIn -> SegAgentOut -> (SegAgentOut, SegEnvironment)
+        segMovementFuture e ain ao
             -- trace ("Agent " ++ (show $ aoId ao) ++ " is satisfied in future, stay in present") 
-            | isSatisfied aoFuture = aoPresent      -- satisfied in the future as well, stay at same position as present
+            | isSatisfied aoFuture = aoe      -- satisfied in the future as well, stay at same position as present
             -- trace ("Agent " ++ (show $ aoId ao) ++ " is not satisfied in future, move in present") 
-            | otherwise = (move aoPresent)            -- unhappy in the future, move in the present
+            | otherwise = move e aoPresent            -- unhappy in the future, move in the present
             where
                 -- NOTE: we need the present one with the present environment. although ao has the same state it has NOT the same environment
-                aoPresent = head $ fromEvent $ aiRec ain
+                aoe@(aoPresent, _) = head $ fromEvent $ aiRec ain
                 -- NOTE: the aoPresent becomes the future one by calculating the satisfaction-level which depends on the environment which was changed
                 -- by the other agents which were simulated before (recursive simulation!)
-                aoFuture = updateSatisfactionLevel ao
+                aoFuture = updateSatisfactionLevel e ao
 
-        segMovementPresent :: SegAgentIn -> SegAgentOut -> SegAgentOut    
-        segMovementPresent ain ao
+        segMovementPresent :: SegEnvironment -> SegAgentIn -> SegAgentOut -> (SegAgentOut, SegEnvironment)
+        segMovementPresent e ain ao
             -- trace ("Agent " ++ (show $ aoId ao) ++ " satisfied in present, start recursion") 
             -- NOTE: to reduce the ratio of agents using future-forecasting to 50% instead of all 100% use: && (mod (aoId ao) 2 == 0)
             | isSatisfied ao' 
                 && recInitAllowed ain
-                = (recursive False ao')     -- satisfied in the present: check for future, otherwise don't care for future and just move
-            | otherwise = ao'
+                = (aor, e')     -- satisfied in the present: check for future, otherwise don't care for future and just move
+            | otherwise = (ao', e)
             where
                 -- NOTE: this is the decision in the present (non-recursive)
-                ao' = (segMovement ao ) -- trace ("Agent " ++ (show $ aoId ao) ++ " makes move, recAllowed: " ++ (show $ recInitAllowed ain)) 
+                (ao', e') = segMovement e ao -- trace ("Agent " ++ (show $ aoId ao) ++ " makes move, recAllowed: " ++ (show $ recInitAllowed ain)) 
+                aor = recursive False ao'
 
-segMovement :: SegAgentOut -> SegAgentOut
-segMovement ao 
-    | isSatisfied ao' = ao'
-    | otherwise = move ao'
+segMovement :: SegEnvironment -> SegAgentOut -> (SegAgentOut, SegEnvironment)
+segMovement e ao 
+    | isSatisfied ao' = (ao', e)
+    | otherwise = move e ao'
     where
         -- NOTE: need to re-calculate similarity and update agent because could have changed since last update
-        ao' = updateSatisfactionLevel ao
+        ao' = updateSatisfactionLevel e ao
 
-updateSatisfactionLevel :: SegAgentOut -> SegAgentOut
-updateSatisfactionLevel ao = updateDomainState (\s -> s { segSatisfactionLevel = updatedSatisfactionLevel }) ao
+updateSatisfactionLevel :: SegEnvironment -> SegAgentOut -> SegAgentOut
+updateSatisfactionLevel e ao = updateDomainState (\s -> s { segSatisfactionLevel = updatedSatisfactionLevel }) ao
     where
-        agentPos = aoEnvPos ao
-        updatedSatisfactionLevel = satisfactionOn ao agentPos
+        s = aoState ao
+        agentPos = segCoord s
+        updatedSatisfactionLevel = satisfactionOn e s agentPos
 
 -- NOTE: this function calculates the projected satisfaction of the party if the given coordinate is occupied by this party
-satisfactionOn :: SegAgentOut -> EnvCoord -> Double
-satisfactionOn ao targetCoord
+satisfactionOn :: SegEnvironment -> SegAgentState -> Discrete2dCoord -> Double
+satisfactionOn e s targetCoord
     | Red == party = redFraction
     | otherwise = greenFraction
     where
-        env = aoEnv ao
-        party = segParty $ aoState ao
-        cs = neighbours targetCoord env
+        party = segParty s
+        cs = neighbourCells targetCoord e
         (reds, greens) = countOccupied cs
 
         -- NOTE: if the agent is in the neighbourhood then don't include itself, otherwise include itself (although it might be on the targetcoord, the targetCoord itself is not included)
-        includeAgent = if isAgentInNeighbourhood ao cs then 0 else 1
+        includeAgent = if isAgentInNeighbourhood s cs then 0 else 1
         totalCount = (fromInteger $ fromIntegral (reds + greens + includeAgent))
         redFraction = (fromInteger $ fromIntegral (reds + includeAgent)) / totalCount
         greenFraction = (fromInteger $ fromIntegral (greens + includeAgent)) / totalCount
 
-        isAgentInNeighbourhood :: SegAgentOut -> [(EnvCoord, SegEnvCell)] -> Bool
-        isAgentInNeighbourhood ao cs = any ((==(agentPos)) . fst) cs
+        isAgentInNeighbourhood :: SegAgentState -> [(Discrete2dCoord, SegEnvCell)] -> Bool
+        isAgentInNeighbourhood s cs = any ((==(agentPos)) . fst) cs
             where
-                agentPos = aoEnvPos ao
+                agentPos = segCoord s
 
-        countOccupied :: [(EnvCoord, SegEnvCell)] -> (Int, Int)
+        countOccupied :: [(Discrete2dCoord, SegEnvCell)] -> (Int, Int)
         countOccupied cs = (redCount, greenCount)
             where
                 occupiedCells = filter (isOccupied . snd) cs
@@ -117,103 +115,103 @@ satisfactionOn ao targetCoord
                 greenCount = length $ filter ((==Green) . fromJust . snd) occupiedCells
 
 
-move :: SegAgentOut -> SegAgentOut
-move ao = maybe ao' (\optCoord -> moveTo ao' optCoord) mayOptCoord
+move :: SegEnvironment -> SegAgentOut -> (SegAgentOut, SegEnvironment)
+move e ao = maybe (ao', e) (\optCoord -> moveTo e optCoord ao') mayOptCoord
     where
         (ao', mayOptCoord) = findMove
                                 optimizingStrategy
                                 movementStrategy
                                 selectionStrategy
+                                e
                                 ao
 
-moveTo :: SegAgentOut -> EnvCoord -> SegAgentOut
-moveTo ao newCoord = ao'
+moveTo :: SegEnvironment -> Discrete2dCoord -> SegAgentOut -> (SegAgentOut, SegEnvironment)
+moveTo e newCoord ao = (ao', e'')
     where
         s = aoState ao
-        env = aoEnv ao
-        oldCoord = aoEnvPos ao
+        oldCoord = segCoord s
         c = segParty s
-        env' = changeCellAt oldCoord Nothing env
-        env'' = changeCellAt newCoord (Just c) env' 
-        ao' = ao { aoEnv = env'', aoEnvPos = newCoord }
+
+        e' = changeCellAt oldCoord Nothing e
+        e'' = changeCellAt newCoord (Just c) e'
+
+        ao' = updateDomainState (\s -> s { segCoord = newCoord }) ao
 
 findMove :: SegOptStrategy
                 -> SegMoveStrategy
                 -> SegSelectionStrategy
+                -> SegEnvironment 
                 -> SegAgentOut
-                -> (SegAgentOut, Maybe EnvCoord)
-findMove opts ms SelectNearest ao = (ao,
-                                        findNearestFreeCoord
-                                        ao
-                                        (optimizeDistance opts ao)
-                                        ms)
-findMove opts ms (SelectRandom optRetries freeCellRetries) ao = findOptRandomFreeCoord
-                                                                    ao
-                                                                    ms
-                                                                    optRetries
-                                                                    freeCellRetries
-                                                                    (optimizeSatisfaction opts)
+                -> (SegAgentOut, Maybe Discrete2dCoord)
+findMove opts ms SelectNearest e ao = (ao, mayMoveTarget)
+    where
+        s = aoState ao
+        coord = segCoord s
+        mayMoveTarget = findNearestFreeCoord ms e (optimizeDistance opts e s) coord
+
+findMove opts ms (SelectRandom optRetries freeCellRetries) e ao = aoRandCoord
+    where
+        s = aoState ao
+        aoRandCoord = findOptRandomFreeCoord ms optRetries freeCellRetries (optimizeSatisfaction opts e s) e ao                                                
+        
 ------------------------------------------------------------------------------------------------------------------------
 -- OPTIMIZING
 ------------------------------------------------------------------------------------------------------------------------
-moveAlways :: SegAgentOut -> EnvCoord -> Bool
-moveAlways _ _ = True
+moveAlways :: SegEnvironment -> SegAgentState -> Discrete2dCoord -> Bool
+moveAlways _ _ _ = True
 
-moveSatisfies :: SegAgentOut -> EnvCoord -> Bool
-moveSatisfies ao targetCoord = similiarityOnCoord > (segSimilarityWanted (aoState ao))
+moveSatisfies :: SegEnvironment -> SegAgentState -> Discrete2dCoord -> Bool
+moveSatisfies e s targetCoord = similiarityOnCoord > similarityWanted
     where
-        similiarityOnCoord = satisfactionOn ao targetCoord
+        similiarityOnCoord = satisfactionOn e s targetCoord
+        similarityWanted = segSimilarityWanted s
 
-moveImproves :: SegAgentOut -> EnvCoord -> Bool
-moveImproves ao targetCoord = satisfactionLevelOnCoord > satisfactionLevel
+moveImproves :: SegEnvironment -> SegAgentState -> Discrete2dCoord -> Bool
+moveImproves e s targetCoord = satisfactionLevelOnCoord > satisfactionLevel
     where
-        satisfactionLevelOnCoord = satisfactionOn ao targetCoord
-        satisfactionLevel = (segSatisfactionLevel (aoState ao))
+        satisfactionLevelOnCoord = satisfactionOn e s targetCoord
+        satisfactionLevel = segSatisfactionLevel s
 
-optimizeSatisfaction :: SegOptStrategy -> SegAgentOut -> EnvCoord -> Bool
+optimizeSatisfaction :: SegOptStrategy -> SegEnvironment -> SegAgentState -> Discrete2dCoord -> Bool
 optimizeSatisfaction OptNone = moveAlways
 optimizeSatisfaction OptSimilaritySatisfied = moveSatisfies
 optimizeSatisfaction OptSimilarityIncreasing = moveImproves
 
 optimizeDistance :: SegOptStrategy
-                        -> SegAgentOut
-                        -> (EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell)
-optimizeDistance opts ao best@(bestCoord, _) comp@(compCoord, _) = if distComp < distBest then
-                                                                                     if improves then
-                                                                                        comp
-                                                                                        else
-                                                                                            best
-                                                                                     else
-                                                                                         best
-
+                        -> SegEnvironment 
+                        -> SegAgentState
+                        -> (Discrete2dCoord, SegEnvCell) 
+                        -> (Discrete2dCoord, SegEnvCell) 
+                        -> (Discrete2dCoord, SegEnvCell)
+optimizeDistance opts e s best@(bestCoord, _) comp@(compCoord, _)
+    | distComp < distBest = if improves then comp else best
+    | otherwise = best
     where
-        agentPos = aoEnvPos ao
-        improves = optimizeSatisfaction opts ao compCoord
-        distBest = distanceManhattan agentPos bestCoord
-        distComp = distanceManhattan agentPos compCoord
+        agentPos = segCoord s
+        improves = optimizeSatisfaction opts e s compCoord
+        distBest = distanceManhattanDisc2d agentPos bestCoord
+        distComp = distanceManhattanDisc2d agentPos compCoord
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Nearest Cell Selection
 ------------------------------------------------------------------------------------------------------------------------
-findNearestFreeCoord :: SegAgentOut
-                        -> ((EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell))
-                        -> SegMoveStrategy
-                        -> Maybe EnvCoord
-findNearestFreeCoord ao optFunc strat = maybe Nothing (Just . fst) mayNearest
+findNearestFreeCoord :: SegMoveStrategy
+                        -> SegEnvironment
+                        -> ((Discrete2dCoord, SegEnvCell) -> (Discrete2dCoord, SegEnvCell) -> (Discrete2dCoord, SegEnvCell))
+                        -> Discrete2dCoord
+                        -> Maybe Discrete2dCoord
+findNearestFreeCoord strat e optFunc coord = maybe Nothing (Just . fst) mayNearest
     where
-        env = aoEnv ao
-        coord = aoEnvPos ao
-        
-        coordsCellsSearch = case strat of   (MoveLocal r) -> cellsAroundRect coord r env
-                                            MoveGlobal -> allCellsWithCoords env
+        coordsCellsSearch = case strat of   (MoveLocal r) -> cellsAroundRect coord r e
+                                            MoveGlobal -> allCellsWithCoords e
 
         mayNearest = foldr (findNearestAux optFunc) Nothing coordsCellsSearch
 
-findNearestAux :: ((EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell) -> (EnvCoord, SegEnvCell))
-                    -> (EnvCoord, SegEnvCell)
-                    -> Maybe (EnvCoord, SegEnvCell)
-                    -> Maybe (EnvCoord, SegEnvCell)
+findNearestAux :: ((Discrete2dCoord, SegEnvCell) -> (Discrete2dCoord, SegEnvCell) -> (Discrete2dCoord, SegEnvCell))
+                    -> (Discrete2dCoord, SegEnvCell)
+                    -> Maybe (Discrete2dCoord, SegEnvCell)
+                    -> Maybe (Discrete2dCoord, SegEnvCell)
 findNearestAux _ comp@(_, compCell) Nothing
     | isOccupied compCell = Nothing
     | otherwise = Just comp
@@ -225,49 +223,50 @@ findNearestAux optFunc comp@(_, compCell) best@(Just (bestCoord, bestCell))
 ------------------------------------------------------------------------------------------------------------------------
 -- Random Cell Selection
 ------------------------------------------------------------------------------------------------------------------------
-findOptRandomFreeCoord :: SegAgentOut
-                            -> SegMoveStrategy
+findOptRandomFreeCoord :: SegMoveStrategy
                             -> Int
                             -> Int
-                            -> (SegAgentOut -> EnvCoord -> Bool)
-                             -> (SegAgentOut, Maybe EnvCoord)
-findOptRandomFreeCoord ao ms 0 freeCellRetries _ = findRandomFreeCoord ao ms freeCellRetries
-findOptRandomFreeCoord ao ms optRetries freeCellRetries optFunc =
-        maybe ret (\freeCoord -> if optFunc ao' freeCoord then
+                            -> (Discrete2dCoord -> Bool)
+                            -> SegEnvironment
+                            -> SegAgentOut
+                            -> (SegAgentOut, Maybe Discrete2dCoord)
+findOptRandomFreeCoord ms 0 freeCellRetries _ e ao = findRandomFreeCoord ms freeCellRetries e ao
+findOptRandomFreeCoord ms optRetries freeCellRetries optFunc e ao =
+        maybe ret (\freeCoord -> if optFunc freeCoord then
                                     ret
                                     else
-                                        findOptRandomFreeCoord ao' ms (optRetries - 1) freeCellRetries optFunc) mayFreeCoord
+                                        findOptRandomFreeCoord ms (optRetries - 1) freeCellRetries optFunc e ao') mayFreeCoord
     where
-        ret@(ao', mayFreeCoord) = findRandomFreeCoord ao ms freeCellRetries
+        ret@(ao', mayFreeCoord) = findRandomFreeCoord ms freeCellRetries e ao
 
-findRandomFreeCoord :: SegAgentOut -> SegMoveStrategy -> Int -> (SegAgentOut, Maybe EnvCoord)
-findRandomFreeCoord ao _ 0 = (ao, Nothing)
-findRandomFreeCoord ao ms maxRetries
-    | isOccupied randCell = findRandomFreeCoord ao' ms (maxRetries - 1)
+findRandomFreeCoord :: SegMoveStrategy -> Int -> SegEnvironment -> SegAgentOut -> (SegAgentOut, Maybe Discrete2dCoord)
+findRandomFreeCoord _ 0 e ao = (ao, Nothing)
+findRandomFreeCoord ms maxRetries e ao
+    | isOccupied randCell = findRandomFreeCoord ms (maxRetries - 1) e ao'
     | otherwise = (ao', Just randCoord)
     where
-        (ao', randCell, randCoord) = findRandomFreeCoordAux ms ao
+        (ao', randCell, randCoord) = findRandomFreeCoordAux ms e ao
 
-        findRandomFreeCoordAux :: SegMoveStrategy -> SegAgentOut -> (SegAgentOut, SegEnvCell, EnvCoord)
-        findRandomFreeCoordAux (MoveLocal radius) ao = localRandomCell ao radius
-        findRandomFreeCoordAux MoveGlobal ao = globalRandomCell ao
+        findRandomFreeCoordAux :: SegMoveStrategy -> SegEnvironment -> SegAgentOut -> (SegAgentOut, SegEnvCell, Discrete2dCoord)
+        findRandomFreeCoordAux (MoveLocal radius) e ao = localRandomCell e radius ao
+        findRandomFreeCoordAux MoveGlobal e ao = globalRandomCell e ao
 
-localRandomCell :: SegAgentOut -> Int -> (SegAgentOut, SegEnvCell, EnvCoord)
-localRandomCell ao radius = (ao', randCell, randCoord)
+localRandomCell :: SegEnvironment -> Int -> SegAgentOut -> (SegAgentOut, SegEnvCell, Discrete2dCoord)
+localRandomCell e radius ao = (ao', randCell, randCoord)
     where
-        env = aoEnv ao
-        originCoord = aoEnvPos ao
-        ((randCell, randCoord), ao') = runAgentRandom (randomCellWithinRect originCoord radius env) ao
+        originCoord = segCoord $ aoState ao
+        ((randCell, randCoord), ao') = runAgentRandom (randomCellWithinRect originCoord radius e) ao
 
-globalRandomCell :: SegAgentOut -> (SegAgentOut, SegEnvCell, EnvCoord)
-globalRandomCell ao = (ao', randCell, randCoord)
+globalRandomCell :: SegEnvironment -> SegAgentOut -> (SegAgentOut, SegEnvCell, Discrete2dCoord)
+globalRandomCell e ao = (ao', randCell, randCoord)
     where
-        env = aoEnv ao
-        ((randCell, randCoord), ao') = runAgentRandom (randomCell env) ao
+        ((randCell, randCoord), ao') = runAgentRandom (randomCell e) ao
 ------------------------------------------------------------------------------------------------------------------------
 
-segAgentBehaviourFunc :: Double -> SegAgentIn -> SegAgentOut -> SegAgentOut
-segAgentBehaviourFunc _ ain ao = if futureOptimizing then segMovementRec ain ao else segMovement ao
+segAgentBehaviourFunc :: SegAgentPureBehaviour
+segAgentBehaviourFunc e _ ain ao 
+    | futureOptimizing = segMovementRec e ain ao
+    | otherwise = segMovement e ao
 
 segAgentBehaviour :: SegAgentBehaviour
 segAgentBehaviour = agentPure segAgentBehaviourFunc

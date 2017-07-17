@@ -10,8 +10,8 @@ module SIRS.Model (
     SIRSAgentIn,
     SIRSAgentOut,
 
-    SIRSAgentPureBehaviour,
-    SIRSAgentMonadicBehaviour,
+    SIRSAgentPureReadEnvBehaviour,
+    SIRSAgentMonadicReadEnvBehaviour,
     
     infectedDuration,
     immuneDuration,
@@ -40,8 +40,8 @@ type SIRSAgentBehaviour = AgentBehaviour SIRSAgentState SIRSMsg SIRSEnvironment
 type SIRSAgentIn = AgentIn SIRSAgentState SIRSMsg SIRSEnvironment
 type SIRSAgentOut = AgentOut SIRSAgentState SIRSMsg SIRSEnvironment
 
-type SIRSAgentPureBehaviour = AgentPureBehaviour SIRSAgentState SIRSMsg SIRSEnvironment
-type SIRSAgentMonadicBehaviour = AgentMonadicBehaviour SIRSAgentState SIRSMsg SIRSEnvironment
+type SIRSAgentPureReadEnvBehaviour = AgentPureBehaviourReadEnv SIRSAgentState SIRSMsg SIRSEnvironment
+type SIRSAgentMonadicReadEnvBehaviour = AgentMonadicBehaviourReadEnv SIRSAgentState SIRSMsg SIRSEnvironment
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -8,7 +8,6 @@ module Segregation.Model (
 
     SegAgentState (..),
 
-    SegEnvLink,
     SegEnvCell,
     SegEnvironment,
 
@@ -17,6 +16,8 @@ module Segregation.Model (
     SegAgentIn,
     SegAgentOut,
 
+    SegAgentPureBehaviour,
+    
     similarityWanted,
     density,
     redGreenDist,
@@ -47,17 +48,19 @@ data SegOptStrategy = OptNone
 data SegAgentState = SegAgentState {
     segParty :: SegParty,
     segSatisfactionLevel :: Double,
-    segSimilarityWanted :: Double
+    segSimilarityWanted :: Double,
+    segCoord :: Discrete2dCoord
 } deriving (Show)
 
-type SegEnvLink = ()
 type SegEnvCell = Maybe SegParty
-type SegEnvironment = Environment SegEnvCell SegEnvLink
+type SegEnvironment = Discrete2d SegEnvCell
 
-type SegAgentDef = AgentDef SegAgentState SegMsg SegEnvCell SegEnvLink
-type SegAgentBehaviour = AgentBehaviour SegAgentState SegMsg SegEnvCell SegEnvLink
-type SegAgentIn = AgentIn SegAgentState SegMsg SegEnvCell SegEnvLink
-type SegAgentOut = AgentOut SegAgentState SegMsg SegEnvCell SegEnvLink
+type SegAgentDef = AgentDef SegAgentState SegMsg SegEnvironment
+type SegAgentBehaviour = AgentBehaviour SegAgentState SegMsg SegEnvironment
+type SegAgentIn = AgentIn SegAgentState SegMsg SegEnvironment
+type SegAgentOut = AgentOut SegAgentState SegMsg SegEnvironment
+
+type SegAgentPureBehaviour = AgentPureBehaviour SegAgentState SegMsg SegEnvironment
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -82,13 +85,13 @@ randomSearchOptRetries :: Int
 randomSearchOptRetries = 1
 
 movementStrategy :: SegMoveStrategy
-movementStrategy = MoveGlobal -- MoveLocal localMovementRadius
+movementStrategy = MoveLocal localMovementRadius -- MoveGlobal -- MoveLocal localMovementRadius
 
 selectionStrategy :: SegSelectionStrategy
-selectionStrategy = SelectRandom randomSearchOptRetries randomSearchFreeCellRetries -- SelectNearest -- SelectRandom randomSearchOptRetries randomSearchFreeCellRetries
+selectionStrategy = SelectNearest -- SelectRandom randomSearchOptRetries randomSearchFreeCellRetries -- SelectNearest -- SelectRandom randomSearchOptRetries randomSearchFreeCellRetries
 
 optimizingStrategy :: SegOptStrategy
-optimizingStrategy = OptSimilaritySatisfied -- OptNone -- OptSimilaritySatisfied -- OptSimilarityIncreasing 
+optimizingStrategy = OptNone -- OptSimilaritySatisfied -- OptNone -- OptSimilaritySatisfied -- OptSimilarityIncreasing 
 
 futureOptimizing :: Bool
 futureOptimizing = True

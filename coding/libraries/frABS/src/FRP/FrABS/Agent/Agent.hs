@@ -50,8 +50,10 @@ module FRP.FrABS.Agent.Agent (
     mergeMessages,
 
     agentPure,
+    agentPureReadEnv,
     agentPureIgnoreEnv,
     AgentPureBehaviour,
+    AgentPureBehaviourReadEnv,
     AgentPureBehaviourNoEnv
   ) where
 
@@ -80,6 +82,7 @@ type AgentConversationSender s m e = ((AgentOut s m e, e)
                                         -> (AgentOut s m e, e))
 
 type AgentPureBehaviour s m e = (e -> Double -> AgentIn s m e -> AgentOut s m e -> (AgentOut s m e, e))
+type AgentPureBehaviourReadEnv s m e = (e -> Double -> AgentIn s m e -> AgentOut s m e -> AgentOut s m e)
 type AgentPureBehaviourNoEnv s m e = (Double -> AgentIn s m e -> AgentOut s m e -> AgentOut s m e)
 
 data AgentDef s m e = AgentDef {
@@ -272,6 +275,17 @@ agentPure f = proc (ain, e) ->
         
         returnA -< (ao', e')
 
+agentPureReadEnv :: AgentPureBehaviourReadEnv s m e -> AgentBehaviour s m e
+agentPureReadEnv f = proc (ain, e) ->
+    do
+        age <- time -< 0
+
+        let ao = agentOutFromIn ain
+        let ao' = f e age ain ao
+        
+        returnA -< (ao', e)
+
+
 agentPureIgnoreEnv :: AgentPureBehaviourNoEnv s m e -> AgentBehaviour s m e
 agentPureIgnoreEnv f = proc (ain, e) ->
     do
@@ -281,4 +295,3 @@ agentPureIgnoreEnv f = proc (ain, e) ->
         let ao' = f age ain ao
         
         returnA -< (ao', e)
-

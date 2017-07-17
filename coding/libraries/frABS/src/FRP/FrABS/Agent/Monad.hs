@@ -28,8 +28,10 @@ module FRP.FrABS.Agent.Monad (
     -- runEnvironmentM,
 
     agentMonadic,
+    agentMonadicReadEnv,
     agentMonadicIgnoreEnv,
     AgentMonadicBehaviour,
+    AgentMonadicBehaviourReadEnv,
     AgentMonadicBehaviourNoEnv,
     
     ifThenElse,
@@ -44,6 +46,7 @@ import Control.Monad
 import Control.Monad.Trans.State
 
 type AgentMonadicBehaviour s m e = (e -> Double -> AgentIn s m e -> State (AgentOut s m e) e)
+type AgentMonadicBehaviourReadEnv s m e = (e -> Double -> AgentIn s m e -> State (AgentOut s m e) ())
 type AgentMonadicBehaviourNoEnv s m e = (Double -> AgentIn s m e -> State (AgentOut s m e) ())
 
 
@@ -176,6 +179,16 @@ agentMonadic f = proc (ain, e) ->
         let (e', ao') = runState (f e age ain) ao
 
         returnA -< (ao', e')
+
+agentMonadicReadEnv :: AgentMonadicBehaviourReadEnv s m e -> AgentBehaviour s m e
+agentMonadicReadEnv f = proc (ain, e) ->
+    do
+        age <- time -< 0
+
+        let ao = agentOutFromIn ain
+        let ao' = execState (f e age ain) ao
+
+        returnA -< (ao', e)
 
 agentMonadicIgnoreEnv :: AgentMonadicBehaviourNoEnv s m e -> AgentBehaviour s m e
 agentMonadicIgnoreEnv f = proc (ain, e) ->

@@ -1,6 +1,6 @@
 module Main where
 
-import           SIRS.Run
+import           Segregation.Run
 
 {-
 import           AgentZero.Run
@@ -30,7 +30,7 @@ import           Wildfire.Run
 -}
 
 main :: IO ()
-main = runSIRSWithRendering
+main = runSegWithRendering
 
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile

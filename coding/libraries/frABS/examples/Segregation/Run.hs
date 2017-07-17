@@ -16,18 +16,16 @@ winSize = (800, 800)
 winTitle = "Schelling Segregation"
 rngSeed = 42
 cells = (10, 10)
-agentCount = 10
 samplingTimeDelta = 1.0
 frequency = 0
 steps = 10
 updateStrat = Sequential
-envCollapsing = Nothing
 shuffleAgents = True
 
 runSegWithRendering :: IO ()
 runSegWithRendering = 
     do
-        params <- initSimulation updateStrat envCollapsing shuffleAgents (Just rngSeed)
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- createSegregation cells
         
         putStrLn "dynamics = ["
@@ -45,7 +43,7 @@ runSegWithRendering =
 runSegStepsAndRender :: IO ()
 runSegStepsAndRender = 
     do
-        params <- initSimulation updateStrat envCollapsing shuffleAgents (Just rngSeed)
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- createSegregation cells
         
         simulateStepsAndRender initAdefs

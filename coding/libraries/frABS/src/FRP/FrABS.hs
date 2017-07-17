@@ -49,8 +49,10 @@ module FRP.FrABS (
     -- mergeMessages,
 
     agentPure,
+    agentPureReadEnv,
     agentPureIgnoreEnv,
     AgentPureBehaviour,
+    AgentPureBehaviourReadEnv,
     AgentPureBehaviourNoEnv,
     
     -- agentIdM,
@@ -81,8 +83,10 @@ module FRP.FrABS (
     -- runEnvironmentM,
 
     agentMonadic,
+    agentMonadicReadEnv,
     agentMonadicIgnoreEnv,
     AgentMonadicBehaviour,
+    AgentMonadicBehaviourReadEnv,
     AgentMonadicBehaviourNoEnv,
     
     drain,

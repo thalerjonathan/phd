@@ -54,12 +54,11 @@ randomContactM e =
         (_, randNeighId) <- runAgentRandomM (pickRandomNeighbourCell coord e)
         sendMessageM (randNeighId, (Contact Infected))
 
-sirsAgentBehaviourFuncM :: SIRSAgentMonadicBehaviour
+sirsAgentBehaviourFuncM :: SIRSAgentMonadicReadEnvBehaviour
 sirsAgentBehaviourFuncM e t ain = 
     do
         onMessageMState contactInfectedM ain
         sirsDtM e t
-        return e
 
     where
         contactInfectedM :: AgentMessage SIRSMsg -> State SIRSAgentOut ()
@@ -116,8 +115,8 @@ randomContact e ao = sendMessage (randNeigh, Contact Infected) ao'
         coord = sirsCoord $ aoState ao
         ((_, randNeigh), ao') = runAgentRandom (pickRandomNeighbourCell coord e) ao
 
-sirsAgentBehaviourFunc :: SIRSAgentPureBehaviour
-sirsAgentBehaviourFunc e t ain ao = (ao', e)
+sirsAgentBehaviourFunc :: SIRSAgentPureReadEnvBehaviour
+sirsAgentBehaviourFunc e t ain ao = ao'
     where
         aoAfterMsg = onMessage (contactInfected t) ain ao
         ao' = sirsDt e t aoAfterMsg
@@ -125,5 +124,5 @@ sirsAgentBehaviourFunc e t ain ao = (ao', e)
 
 ------------------------------------------------------------------------------------------------------------------------
 sirsAgentBehaviour :: SIRSAgentBehaviour
-sirsAgentBehaviour = agentMonadic sirsAgentBehaviourFuncM  -- agentPure sirsAgentBehaviourFunc
+sirsAgentBehaviour = agentMonadicReadEnv sirsAgentBehaviourFuncM  -- agentPureReadEnv sirsAgentBehaviourFunc
 ------------------------------------------------------------------------------------------------------------------------

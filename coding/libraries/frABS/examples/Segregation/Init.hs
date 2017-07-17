@@ -11,40 +11,39 @@ import FRP.Yampa
 
 import System.Random
 
-createSegregation :: (Int, Int) -> IO ([SegAgentDef], SegEnvironment)
-createSegregation limits@(x,y) =  
+createSegregation :: Discrete2dDimension -> IO ([SegAgentDef], SegEnvironment)
+createSegregation dims@(x,y) =  
     do
         let coords = [ (xCoord, yCoord) | xCoord <- [0..x-1], yCoord <- [0..y-1] ]
-        (as, envCells) <- populateEnv coords
+        (adefs, cells) <- populateEnv coords
         rng <- newStdGen
-        let env = createEnvironment
-                              Nothing
-                              limits
-                              moore
-                              WrapBoth
-                              envCells
-                              rng
-                              Nothing
-        return (as, env)
 
-populateEnv :: [(Int, Int)] -> IO ([SegAgentDef], [(EnvCoord, SegEnvCell)])
+        let e = createDiscrete2d
+                            dims
+                            moore
+                            WrapBoth
+                            cells
+                            rng
+
+        return (adefs, e)
+
+populateEnv :: [Discrete2dCoord] -> IO ([SegAgentDef], [(Discrete2dCoord, SegEnvCell)])
 populateEnv coords = foldr populateEnvAux (return ([], [])) coords
 
-populateEnvAux :: (Int, Int)
-                    -> IO ([SegAgentDef], [(EnvCoord, SegEnvCell)])
-                    -> IO ([SegAgentDef], [(EnvCoord, SegEnvCell)])
+populateEnvAux :: Discrete2dCoord
+                    -> IO ([SegAgentDef], [(Discrete2dCoord, SegEnvCell)])
+                    -> IO ([SegAgentDef], [(Discrete2dCoord, SegEnvCell)])
 populateEnvAux coord accIO = 
     do
         (accAs, accCells) <- accIO
 
         let agentId = length accAs
 
-        s <- randomAgentState
+        s <- randomAgentState coord
         rng <- newStdGen
 
         let a = AgentDef { adId = agentId,
                             adState = s,
-                            adEnvPos = coord,
                             adInitMessages = NoEvent,
                             adConversation = Nothing,
                             adBeh = segAgentBehaviour,
@@ -59,8 +58,8 @@ populateEnvAux coord accIO =
             else
                 return (accAs, emptyCell : accCells)
 
-randomAgentState :: IO SegAgentState
-randomAgentState = 
+randomAgentState :: Discrete2dCoord -> IO SegAgentState
+randomAgentState coord = 
     do
         r <- getStdRandom (randomR(0.0, 1.0))
         let isRed = (r <= redGreenDist)
@@ -73,4 +72,5 @@ randomAgentState =
         return SegAgentState {
                 segParty = s,
                 segSimilarityWanted = similarityWanted,
-                segSatisfactionLevel = 0.0 }
+                segSatisfactionLevel = 0.0,
+                segCoord = coord }

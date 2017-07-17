@@ -391,5 +391,5 @@ receiveTransactions ain a = onMessage handleTxMsg ain a
 
 ------------------------------------------------------------------------------------------------------------------------
 traderAgentBehaviour :: DAAgentBehaviour
-traderAgentBehaviour = agentMonadic traderBehaviourFuncM -- agentPure traderBehaviourFunc
+traderAgentBehaviour = agentMonadicIgnoreEnv traderBehaviourFuncM -- agentPureIgnoreEnv traderBehaviourFunc
 ------------------------------------------------------------------------------------------------------------------------

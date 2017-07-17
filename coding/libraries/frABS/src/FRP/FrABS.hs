@@ -49,7 +49,8 @@ module FRP.FrABS (
     -- mergeMessages,
 
     agentPure,
-
+    agentPureIgnoreEnv,
+    
     -- agentIdM,
     -- environmentM,
     -- environmentPositionM,
@@ -78,7 +79,8 @@ module FRP.FrABS (
     -- runEnvironmentM,
 
     agentMonadic,
-
+    agentMonadicIgnoreEnv,
+    
     drain,
     
     EventSource,

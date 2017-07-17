@@ -15,8 +15,7 @@ rngSeed = 42
 samplingTimeDelta = 1.0
 agentCount = 10
 steps = 1000
-updateStrat = Parallel -- NOTE: should not work correctly when using Sequential traversion
-envCollapsing = Nothing   -- NOTE: double-auction is not using a modifyable environment => no need for collapsing 
+updateStrat = Parallel -- NOTE: would not work correctly when using Sequential traversion
 shuffleAgents = False
 
 runDoubleAuctionSteps :: IO ()
@@ -24,7 +23,7 @@ runDoubleAuctionSteps =
     do
         hSetBuffering stdout NoBuffering
 
-        params <- initSimulation updateStrat envCollapsing shuffleAgents (Just rngSeed)
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- initDoubleAuction agentCount
         
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps

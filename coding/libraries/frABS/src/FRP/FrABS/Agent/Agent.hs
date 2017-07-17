@@ -49,7 +49,8 @@ module FRP.FrABS.Agent.Agent (
 
     mergeMessages,
 
-    agentPure
+    agentPure,
+    agentPureIgnoreEnv
   ) where
 
 import FRP.FrABS.Simulation.Internal
@@ -265,3 +266,14 @@ agentPure f = proc (ain, e) ->
         let (ao', e') = f e age ain ao
         
         returnA -< (ao', e')
+
+agentPureIgnoreEnv :: (Double -> AgentIn s m e -> AgentOut s m e -> AgentOut s m e) -> AgentBehaviour s m e
+agentPureIgnoreEnv f = proc (ain, e) ->
+    do
+        age <- time -< 0
+
+        let ao = agentOutFromIn ain
+        let ao' = f age ain ao
+        
+        returnA -< (ao', e)
+

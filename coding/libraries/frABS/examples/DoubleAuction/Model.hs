@@ -6,8 +6,6 @@ module DoubleAuction.Model (
     DoubleAuctionMsg (..),
     DAAgentState (..),
 
-    DAEnvCell,
-    DALinkLabel,
     DAEnvironment,
     DAEnvironmentBehaviour,
     DAEnvironmentCollapsing,
@@ -91,16 +89,14 @@ data DAAgentState =
   | AuctioneerState     -- NOTE: the auctioneer has no domain-specific state
     deriving (Show)
 
-type DAEnvCell = ()
-type DALinkLabel = ()
-type DAEnvironment = Environment DAEnvCell DALinkLabel
-type DAEnvironmentBehaviour = EnvironmentBehaviour DAEnvCell DALinkLabel
-type DAEnvironmentCollapsing = EnvironmentCollapsing DAEnvCell DALinkLabel
+type DAEnvironment = Network ()
+type DAEnvironmentBehaviour = EnvironmentBehaviour DAEnvironment
+type DAEnvironmentCollapsing = EnvironmentCollapsing DAEnvironment
 
-type DAAgentDef = AgentDef DAAgentState DoubleAuctionMsg DAEnvCell DALinkLabel
-type DAAgentBehaviour = AgentBehaviour DAAgentState DoubleAuctionMsg DAEnvCell DALinkLabel
-type DAAgentIn = AgentIn DAAgentState DoubleAuctionMsg DAEnvCell DALinkLabel
-type DAAgentOut = AgentOut DAAgentState DoubleAuctionMsg DAEnvCell DALinkLabel
+type DAAgentDef = AgentDef DAAgentState DoubleAuctionMsg DAEnvironment
+type DAAgentBehaviour = AgentBehaviour DAAgentState DoubleAuctionMsg DAEnvironment
+type DAAgentIn = AgentIn DAAgentState DoubleAuctionMsg DAEnvironment
+type DAAgentOut = AgentOut DAAgentState DoubleAuctionMsg DAEnvironment
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

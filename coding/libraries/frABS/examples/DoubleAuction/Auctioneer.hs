@@ -127,5 +127,5 @@ auctioneerBehaviourFunc _ ain a = maybe a' (\firstMatch -> notifyTraders (fromJu
 		mayFirstMatch = Data.List.find isJust matches
 
 auctioneerBehaviour :: DAAgentBehaviour
-auctioneerBehaviour = agentPure auctioneerBehaviourFunc
+auctioneerBehaviour = agentPureIgnoreEnv auctioneerBehaviourFunc
 ------------------------------------------------------------------------------------------------------------------------

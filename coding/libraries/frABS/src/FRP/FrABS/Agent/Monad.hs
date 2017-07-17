@@ -28,6 +28,7 @@ module FRP.FrABS.Agent.Monad (
     -- runEnvironmentM,
 
     agentMonadic,
+    agentMonadicIgnoreEnv,
 
     ifThenElse,
     ifThenElseM
@@ -169,6 +170,16 @@ agentMonadic f = proc (ain, e) ->
         let (e', ao') = runState (f e age ain) ao
 
         returnA -< (ao', e')
+
+agentMonadicIgnoreEnv :: (Double -> AgentIn s m e -> State (AgentOut s m e) ()) -> AgentBehaviour s m e
+agentMonadicIgnoreEnv f = proc (ain, e) ->
+    do
+        age <- time -< 0
+
+        let ao = agentOutFromIn ain
+        let ao' = execState (f age ain) ao
+
+        returnA -< (ao', e)
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Monadic Utility Functions

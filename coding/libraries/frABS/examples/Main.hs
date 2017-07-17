@@ -1,11 +1,10 @@
 module Main where
 
-import           RecursiveABS.Run
+import           DoubleAuction.Run
 
 {-
 import           AgentZero.Run
 import           Conversation.Run
-import           DoubleAuction.Run
 import           FrSIRSNetwork.Run
 import           FrSIRSSpatial.Run
 import           HeroesCowards.Run
@@ -30,7 +29,7 @@ import           Wildfire.Run
 -}
 
 main :: IO ()
-main = runRecursiveABSSteps
+main = runDoubleAuctionSteps
 
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile

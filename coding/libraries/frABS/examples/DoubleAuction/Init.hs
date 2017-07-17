@@ -18,21 +18,9 @@ initDoubleAuction n =
   do
     auctioneer <- evalRandIO (createDAAuctioneer auctioneer)
     traders <- evalRandIO $ mapM (createDATrader n) [1..n]
+    envNet <- evalRandIO $ createNetwork (Complete n) unitEdgeLabeler
 
-    envRng <- newStdGen 
-
-    gr <- evalRandIO $ createAgentNetwork (Complete n)
-
-    let env = createEnvironment
-                          Nothing
-                          (0,0)
-                          neumann
-                          ClipToMax
-                          []
-                          envRng
-                          (Just gr)
-
-    return (auctioneer : traders, env)
+    return (auctioneer : traders, envNet)
 
 createDATrader :: Int -> AgentId -> Rand StdGen DAAgentDef
 createDATrader n aid = 
@@ -57,11 +45,11 @@ createDATrader n aid =
         let adef = AgentDef {
            adId = aid,
            adState = s,
-           adEnvPos = (0, 0),
            adConversation = Nothing,
            adInitMessages = NoEvent,
            adBeh = traderAgentBehaviour,
-           adRng = rng }
+           adRng = rng 
+        }
 
         return adef
 
@@ -71,12 +59,12 @@ createDAAuctioneer aid =
         rng <- getSplit
 
         let adef = AgentDef {
-           adId = aid,
-           adState = AuctioneerState,   -- NOTE: again, the auctioneer does not has any domain-specific state
-           adEnvPos = (0, 0),
-           adConversation = Nothing,
-           adInitMessages = NoEvent,
-           adBeh = auctioneerBehaviour,
-           adRng = rng }
+          adId = aid,
+          adState = AuctioneerState,   -- NOTE: again, the auctioneer does not has any domain-specific state
+          adConversation = Nothing,
+          adInitMessages = NoEvent,
+          adBeh = auctioneerBehaviour,
+          adRng = rng
+        }
 
         return adef

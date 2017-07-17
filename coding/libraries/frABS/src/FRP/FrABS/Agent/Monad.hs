@@ -1,7 +1,7 @@
 {-# LANGUAGE Arrows #-}
 module FRP.FrABS.Agent.Monad (
-    agentIdM,
-    environmentM,
+    -- agentIdM,
+    -- environmentM,
     -- environmentPositionM,
     -- changeEnvironmentPositionM,
 
@@ -25,7 +25,7 @@ module FRP.FrABS.Agent.Monad (
     setDomainStateM,
     domainStateFieldM,
 
-    runEnvironmentM,
+    -- runEnvironmentM,
 
     agentMonadic,
 
@@ -43,13 +43,14 @@ import Control.Monad.Trans.State
 ------------------------------------------------------------------------------------------------------------------------
 -- Monadic Agent Functions
 ------------------------------------------------------------------------------------------------------------------------
+{-
 agentIdM :: State (AgentOut s m e) AgentId
 agentIdM = state (\ao -> (aoId ao, ao))
 
 environmentM :: State (AgentOut s m e) e
 environmentM = state (\ao -> (aoEnv ao, ao))
 
-{-
+
 environmentPositionM :: State (AgentOut s m e) EnvCoord
 environmentPositionM = state (\ao -> (aoEnvPos ao, ao))
 
@@ -84,12 +85,16 @@ broadcastMessageM m receiverIds = state (broadcastMessageMAux m)
 createAgentM :: AgentDef s m e -> State (AgentOut s m e) ()
 createAgentM newDef = state (\ao -> ((),createAgent newDef ao))
 
-conversationReplyMonadicRunner :: (Maybe (AgentMessage m) -> State (AgentOut s m e) ()) 
+conversationReplyMonadicRunner :: (Maybe (AgentMessage m) -> e -> State (AgentOut s m e) e) 
                                     -> AgentConversationSender s m e
-conversationReplyMonadicRunner replyAction ao mayReply = execState (replyAction mayReply) ao
+conversationReplyMonadicRunner replyAction (ao, e) mayReply = (ao', e')
+    where
+        (e', ao') = runState (replyAction mayReply e) ao
 
-conversationIgnoreReplyMonadicRunner :: State (AgentOut s m e) () -> AgentConversationSender s m e
-conversationIgnoreReplyMonadicRunner replyAction ao _ = execState replyAction ao
+conversationIgnoreReplyMonadicRunner :: (e -> State (AgentOut s m e) e) -> AgentConversationSender s m e
+conversationIgnoreReplyMonadicRunner replyAction (ao, e) _ = (ao', e')
+    where
+        (e', ao') = runState (replyAction e) ao
 
 killM :: State (AgentOut s m e) ()
 killM = state (\ao -> ((), ao { aoKill = Event () }))
@@ -131,6 +136,7 @@ domainStateFieldM f = state (domainStateFieldMAux f)
             where
                 s = aoState ao
 
+{- TODO: this stuff should go into Environment.Monadic
 runEnvironmentM :: State e a -> State (AgentOut s m e) a
 runEnvironmentM envStateTrans =
     do
@@ -139,11 +145,13 @@ runEnvironmentM envStateTrans =
         setEnvironmentM env'
         return a
 
+
 setEnvironmentM :: e -> State (AgentOut s m e) ()
 setEnvironmentM env =
     do
         ao <- get 
         put $ ao { aoEnv = env }
+-}
 
 getDomainStateM :: State (AgentOut s m e) s
 getDomainStateM = 
@@ -152,15 +160,15 @@ getDomainStateM =
         let domainState = aoState ao 
         return domainState
 
-agentMonadic :: (Double -> AgentIn s m e -> State (AgentOut s m e) ()) -> AgentBehaviour s m e
-agentMonadic f = proc ain ->
+agentMonadic :: (e -> Double -> AgentIn s m e -> State (AgentOut s m e) e) -> AgentBehaviour s m e
+agentMonadic f = proc (ain, e) ->
     do
         age <- time -< 0
 
         let ao = agentOutFromIn ain
-        let ao' = execState (f age ain) ao
-        
-        returnA -< ao'
+        let (e', ao') = runState (f e age ain) ao
+
+        returnA -< (ao', e')
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Monadic Utility Functions

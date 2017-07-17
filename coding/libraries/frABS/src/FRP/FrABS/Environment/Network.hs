@@ -21,8 +21,6 @@ module FRP.FrABS.Environment.Network (
 
 import FRP.FrABS.Agent.Agent
 
-import FRP.FrABS.Environment.Definitions
-
 import Control.Monad.Random
 import Control.Monad.Trans.State
 
@@ -30,9 +28,17 @@ import Data.List
 import Data.Graph.Inductive.Graph
 import Data.Graph.Inductive.PatriciaTree
 
--- TODO: how can we introduce labels to edges in an elegant way?
---       problem: creating random-networks is then much more difficult as we need to provide the
---       creation algorithm with some mechanics to derive the labels
+{-
+class EnvNet e where
+    nodesOfNetwork :: e -> [AgentId]
+    networkDegrees :: e -> [(AgentId, Int)]
+    neighbourEdges :: AgentId -> e ->  [l]
+    neighbourNodes :: AgentId -> e -> [AgentId]
+    neighbourNodesM :: AgentId -> State e [AgentId]
+    neighbourLinks :: AgentId -> e -> Adj l
+    directLinkBetween :: AgentId -> AgentId -> e -> Maybe l
+    directLinkBetweenM :: AgentId -> AgentId -> State e (Maybe l)
+-}
 
 type EdgeLabeler l = (AgentId -> AgentId -> l)
 

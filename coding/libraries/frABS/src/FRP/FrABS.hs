@@ -50,10 +50,10 @@ module FRP.FrABS (
 
     agentPure,
 
-    agentIdM,
-    environmentM,
-    environmentPositionM,
-    changeEnvironmentPositionM,
+    -- agentIdM,
+    -- environmentM,
+    -- environmentPositionM,
+    -- changeEnvironmentPositionM,
 
     createAgentM,
     killM,
@@ -75,7 +75,7 @@ module FRP.FrABS (
     setDomainStateM,
     domainStateFieldM,
 
-    runEnvironmentM,
+    -- runEnvironmentM,
 
     agentMonadic,
 
@@ -126,81 +126,102 @@ module FRP.FrABS (
     drawRandomExponential,
     drawRandomExponentialM,
 
-    agentNeighbourNodes,
-    agentNeighbourNodesM,
-    agentNeighbourCells,
-    agentNeighbourCellsWithCoords,
+    -- agentNeighbourNodes,
+    -- agentNeighbourNodesM,
+    -- agentNeighbourCells,
+    -- agentNeighbourCellsWithCoords,
 
     pickRandomNeighbourNode,
-    pickRandomNeighbourNodeM,
+    -- pickRandomNeighbourNodeM,
     
     pickRandomNeighbourCell,
-    pickRandomNeighbourCellM,
+    -- pickRandomNeighbourCellM,
 
-    agentRandomMove,
-    agentRandomMoveM,
+    -- agentRandomMove,
+    -- agentRandomMoveM,
 
-    agentCellOnPos,
-    agentCellOnPosM,
+    -- agentCellOnPos,
+    -- agentCellOnPosM,
 
     EnvironmentBehaviour,
-    EnvCoord,
-    EnvLimits,
-    EnvNeighbourhood,
-    EnvWrapping (..),
-    EnvGraph,
+    EnvironmentCollapsing,
 
-    Environment (..),
+    EnvironmentWrapping (..),
 
-    createEnvironment,
+    NetworkType (..),
+    Network (..), -- TODO: hide data-constructor
 
-    neighbourEdges,
+    createNetwork,
+    constEdgeLabeler,
+    unitEdgeLabeler,
+
+    nodesOfNetwork,
+    networkDegrees,
     neighbourNodes,
-    neighbourNodesM,
+    neighbourEdges,
+    neighbourAgentIds,
+    neighbourAgentIdsM,
     neighbourLinks,
     directLinkBetween,
     directLinkBetweenM,
 
-    allCellsWithCoords,
+    pickRandomNeighbourNode,
 
-    updateEnvironmentCells,
-    updateEnvironmentCellsWithCoords,
+        Discrete2dDimension,
+    Discrete2dCoord,
+    Discrete2dNeighbourhood,
+
+    Discrete2d (..), -- TODO: hide data-constructor
+    -- Discrete2dNetwork (..),
+    
+    createDiscrete2d,
+ 
+    allCellsWithCoords,
+    updateCells,
+    updateCellsWithCoords,
     changeCellAt,
     changeCellAtM,
-
-    distanceManhattan,
-    distanceEuclidean,
-
     cellsAroundRadius,
     cellsAroundRadiusM,
     cellsAroundRect,
-
     cellsAt,
     cellAt,
     cellAtM,
-
     randomCell,
     randomCellWithinRect,
+    neighbourCellsInDistance,
+    neighbourCellsInDistanceM,
+    neighbourCells,
+    neighbourCellsM,
 
-    neighbours,
-    neighboursM,
-    neighboursDistance,
-    neighboursDistanceM,
+    distanceManhattanDisc2d,
+    distanceEuclideanDisc2d,
     neighbourhoodOf,
     neighbourhoodScale,
-   
+    wrapCells,
     neumann,
     neumannSelf,
     moore,
     mooreSelf,
+    wrapNeighbourhood,
+    wrapDisc2d,
 
-    wrapCells,
+    pickRandomNeighbourCell,
 
-    NetworkType (..),
+    Continuous2DDimension,
+    Continuous2DCoord,
 
-    createAgentNetwork,
-    nodesOfNetwork,
-    networkDegrees,
+    Continuous2d (..), -- TODO: hide data-constructor
+    -- Continuous2dNetwork (..),
+    
+    createContinuous2d,
+    
+    environmentDimensionsCont2D,
+
+    distanceManhattanCont2D,
+    distanceEuclideanCont2D,
+
+    wrapCont2D,
 
     simulateAndRender,
     simulateStepsAndRender,
@@ -228,10 +249,11 @@ module FRP.FrABS (
     processIOInit,
     processSteps,
 
-    AgentRenderer,
+    AgentRendererDisc2d,
     AgentCellColorer,
-    EnvironmentRenderer,
-    EnvironmentCellColorer,
+    AgentCoordDisc2d,
+    EnvDisc2dRenderer,
+    EnvDisc2dCellColorer,
 
     render2dDiscreteFrame,
 
@@ -252,6 +274,8 @@ import FRP.FrABS.Agent.Reactive
 import FRP.FrABS.Environment.Discrete
 import FRP.FrABS.Environment.Continuous
 import FRP.FrABS.Environment.Network
+import FRP.FrABS.Environment.Definitions
+import FRP.FrABS.Environment.Spatial
 import FRP.FrABS.Simulation.Simulation
 import FRP.FrABS.Simulation.Init
 import FRP.FrABS.Simulation.Replication

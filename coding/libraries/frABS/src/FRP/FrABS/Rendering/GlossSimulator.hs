@@ -13,29 +13,28 @@ import FRP.FrABS.Simulation.Simulation
 import qualified Graphics.Gloss as GLO
 import Graphics.Gloss.Interface.IO.Animate
 import Graphics.Gloss.Interface.IO.Simulate
-import Graphics.Gloss.Interface.IO.Display
 
 import FRP.Yampa
 
 import Data.IORef
 
-type RenderFrame s m ec l = ((Int, Int) -> [AgentOut s m ec l] -> Environment ec l -> GLO.Picture)
-type StepCallback s m ec l = (([AgentOut s m ec l], Environment ec l) -> ([AgentOut s m ec l], Environment ec l) -> IO ())
+type RenderFrame s m e = ((Int, Int) -> [AgentOut s m e] -> e -> GLO.Picture)
+type StepCallback s m e = (([AgentOut s m e], e) -> ([AgentOut s m e], e) -> IO ())
 
-type RenderFrameInternal s m ec l = ([AgentOut s m ec l] -> Environment ec l -> GLO.Picture)
+type RenderFrameInternal s m e = ([AgentOut s m e] -> e -> GLO.Picture)
 
-simulateAndRender :: [AgentDef s m ec l] 
-						-> Environment ec l 
-						-> SimulationParams ec l
+simulateAndRender :: [AgentDef s m e] 
+						-> e 
+						-> SimulationParams e
 						-> Double
 						-> Int
 						-> String
 						-> (Int, Int)
-						-> RenderFrame s m ec l
-						-> Maybe (StepCallback s m ec l)
+						-> RenderFrame s m e
+						-> Maybe (StepCallback s m e)
 						-> IO ()
 simulateAndRender initAdefs 
-					  initEnv 
+					  e 
 					  params 
 					  dt 
 					  freq 
@@ -44,14 +43,14 @@ simulateAndRender initAdefs
 					  renderFunc
 					  mayClbk =
 	do
-		outRef <- newIORef (initEmptyAgentOuts, initEnv) -- :: IO (IORef ([AgentOut s m ec l], Environment ec l))
-		hdl <- processIOInit initAdefs initEnv params (nextIteration mayClbk outRef)
+		outRef <- newIORef (initEmptyAgentOuts, e) -- :: IO (IORef ([AgentOut s m e], Environment e))
+		hdl <- processIOInit initAdefs e params (nextIteration mayClbk outRef)
 
 		if freq > 0 then
 			simulateIO (displayGlossWindow winTitle winSize)
 				GLO.black
 				freq
-				([], initEnv)
+				([], e)
 				(modelToPicture (renderFunc winSize))
 				(nextFrameSimulateWithTime dt hdl outRef)
 			else
@@ -63,20 +62,20 @@ simulateAndRender initAdefs
 
 		where
 			-- NOTE: need this function otherwise would get a compilation error when creating newIORef (see above)
-			initEmptyAgentOuts :: [AgentOut s m ec l]
+			initEmptyAgentOuts :: [AgentOut s m e]
 			initEmptyAgentOuts = []
 
-simulateStepsAndRender :: [AgentDef s m ec l] 
-							-> Environment ec l  
-							-> SimulationParams ec l
+simulateStepsAndRender :: [AgentDef s m e] 
+							-> e  
+							-> SimulationParams e
 							-> Double
 							-> Int
 							-> String
 							-> (Int, Int)
-							-> RenderFrame s m ec l
+							-> RenderFrame s m e
 							-> IO ()
 simulateStepsAndRender initAdefs 
-				       initEnv 
+				       e 
 				       params 
 				       dt 
 				       steps 
@@ -84,7 +83,7 @@ simulateStepsAndRender initAdefs
 				       winSize
 				       renderFunc =
 	do
-		let ass = processSteps initAdefs initEnv params dt steps
+		let ass = processSteps initAdefs e params dt steps
 		let (finalAous, finalEnv) = last ass
 		let pic = renderFunc winSize finalAous finalEnv 
 
@@ -92,11 +91,11 @@ simulateStepsAndRender initAdefs
 				GLO.black
 				pic
 
-nextIteration :: Maybe (StepCallback s m ec l)
-					-> IORef ([AgentOut s m ec l], Environment ec l)
-                    -> ReactHandle ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
+nextIteration :: Maybe (StepCallback s m e)
+					-> IORef ([AgentOut s m e], e)
+                    -> ReactHandle ([AgentIn s m e], e) ([AgentOut s m e], e)
 					-> Bool
-					-> ([AgentOut s m ec l], Environment ec l )
+					-> ([AgentOut s m e], e)
 					-> IO Bool
 nextIteration (Just clbk) outRef _ _ curr = 
     do
@@ -107,22 +106,22 @@ nextIteration (Just clbk) outRef _ _ curr =
 nextIteration Nothing outRef _ _ curr = writeIORef outRef curr >> return False
 
 nextFrameSimulateWithTime :: Double 
-								-> ReactHandle ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
-	                            -> IORef ([AgentOut s m ec l], Environment ec l)
+								-> ReactHandle ([AgentIn s m e], e) ([AgentOut s m e], e)
+	                            -> IORef ([AgentOut s m e], e)
 	                            -> ViewPort
 	                            -> Float
-	                            -> ([AgentOut s m ec l], Environment ec l)
-	                            -> IO ([AgentOut s m ec l], Environment ec l)
+	                            -> ([AgentOut s m e], e)
+	                            -> IO ([AgentOut s m e], e)
 nextFrameSimulateWithTime dt hdl outRef _ _ _ = 
     do
         react hdl (dt, Nothing)  -- NOTE: will result in call to nextIteration
         aouts <- readIORef outRef
         return aouts
 
-nextFrameSimulateNoTime :: RenderFrameInternal s m ec l
+nextFrameSimulateNoTime :: RenderFrameInternal s m e
 							-> Double
-							-> ReactHandle ([AgentIn s m ec l], Environment ec l) ([AgentOut s m ec l], Environment ec l)
-			                -> IORef ([AgentOut s m ec l], Environment ec l)
+							-> ReactHandle ([AgentIn s m e], e) ([AgentOut s m e], e)
+			                -> IORef ([AgentOut s m e], e)
 			                -> Float
 			                -> IO Picture
 nextFrameSimulateNoTime renderFunc dt hdl outRef _ = 
@@ -131,12 +130,12 @@ nextFrameSimulateNoTime renderFunc dt hdl outRef _ =
         aouts <- readIORef outRef
         modelToPicture renderFunc aouts
 
-modelToPicture :: RenderFrameInternal s m ec l
-					-> ([AgentOut s m ec l], Environment ec l) 
+modelToPicture :: RenderFrameInternal s m e
+					-> ([AgentOut s m e], e) 
 					-> IO GLO.Picture
-modelToPicture renderFunc (aouts, env) = 
+modelToPicture renderFunc (aouts, e) = 
     do
-        return $ renderFunc aouts env
+        return $ renderFunc aouts e
 
 displayGlossWindow :: String -> (Int, Int) -> GLO.Display
 displayGlossWindow title winSize = (GLO.InWindow title winSize (0, 0))

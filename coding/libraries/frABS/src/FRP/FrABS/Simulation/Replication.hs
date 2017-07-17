@@ -11,60 +11,54 @@ module FRP.FrABS.Simulation.Replication (
   ) where
 
 import FRP.FrABS.Agent.Agent
-import FRP.FrABS.Environment.Discrete
 import FRP.FrABS.Simulation.Simulation
-import FRP.FrABS.Simulation.Internal
 
 import Control.Monad.Random
 import Control.Parallel.Strategies
-import Control.Concurrent.STM.TVar
 
-type AgentDefReplicator s m ec l = (StdGen -> AgentDef s m ec l -> (AgentDef s m ec l, StdGen))
-type EnvironmentReplicator ec l = (StdGen -> Environment ec l -> (Environment ec l, StdGen))
+type AgentDefReplicator s m e = (StdGen -> AgentDef s m e -> (AgentDef s m e, StdGen))
+type EnvironmentReplicator e = (StdGen -> e -> (e, StdGen))
 
-data ReplicationConfig s m ec l = ReplicationConfig {
+data ReplicationConfig s m e = ReplicationConfig {
     replCfgCount :: Int,
-    replCfgAgentReplicator :: AgentDefReplicator s m ec l,
-    replCfgEnvReplicator :: EnvironmentReplicator ec l
+    replCfgAgentReplicator :: AgentDefReplicator s m e,
+    replCfgEnvReplicator :: EnvironmentReplicator e
 }
 
-defaultEnvReplicator :: EnvironmentReplicator ec l
-defaultEnvReplicator rng env = ( env', rng'')
-    where
-        (rng', rng'') = split rng
-        env' = env { envRng = rng' }
+defaultEnvReplicator :: EnvironmentReplicator e
+defaultEnvReplicator rng e = (e, rng)
 
-defaultAgentReplicator :: AgentDefReplicator s m ec l
+defaultAgentReplicator :: AgentDefReplicator s m e
 defaultAgentReplicator rng adef = (adef', rng'')
     where
         (rng', rng'') = split rng
         adef' = adef { adRng = rng' }
 
-runReplications :: [AgentDef s m ec l]
-                    -> Environment ec l
-                    -> SimulationParams ec l
+runReplications :: [AgentDef s m e]
+                    -> e
+                    -> SimulationParams e
                     -> Double
                     -> Int
-                    -> ReplicationConfig s m ec l
-                    -> [[([AgentOut s m ec l], Environment ec l)]]
-runReplications ads env params dt steps replCfg = result
+                    -> ReplicationConfig s m e
+                    -> [[([AgentOut s m e], e)]]
+runReplications ads e params dt steps replCfg = result
     where
         replCount = replCfgCount replCfg
         (replRngs, _) = duplicateRng replCount (simRng params)
 
         -- NOTE: replace by rseq if no hardware-parallelism should be used
-        result = parMap rpar (runReplicationsAux ads env params) replRngs
+        result = parMap rpar (runReplicationsAux ads e params) replRngs
         
-        runReplicationsAux :: [AgentDef s m ec l]
-                                -> Environment ec l
-                                -> SimulationParams ec l
+        runReplicationsAux :: [AgentDef s m e]
+                                -> e
+                                -> SimulationParams e
                                 -> StdGen 
-                                -> [([AgentOut s m ec l], Environment ec l)]
-        runReplicationsAux ads env params replRng = processSteps ads' env (params { simRng = replRng' }) dt steps
+                                -> [([AgentOut s m e], e)]
+        runReplicationsAux ads e params replRng = processSteps ads' e (params { simRng = replRng' }) dt steps
             where
                 (ads', replRng') = foldr adsFoldAux ([], replRng) ads
 
-                adsFoldAux :: AgentDef s m ec l -> ([AgentDef s m ec l], StdGen) -> ([AgentDef s m ec l], StdGen)
+                adsFoldAux :: AgentDef s m e -> ([AgentDef s m e], StdGen) -> ([AgentDef s m e], StdGen)
                 adsFoldAux ad (adsAcc, rngAcc) = (ad' : adsAcc, rng')
                     where
                         (rng, rng') = split rngAcc

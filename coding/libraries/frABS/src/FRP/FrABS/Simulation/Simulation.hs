@@ -107,7 +107,7 @@ iterationStrategy asfs params
 simulateSeq :: [AgentBehaviour s m e]
                 -> SimulationParams e
                 -> SF ([AgentIn s m e], e) ([AgentOut s m e], e)
-simulateSeq initSfs initParams = SF {sfTF = tf0}
+simulateSeq initSfs initParams = SF { sfTF = tf0 }
     where
         tf0 (initInputs, initEnv) = (tfCont, (initOuts, initEnv))
             where
@@ -140,7 +140,7 @@ simulateSeq initSfs initParams = SF {sfTF = tf0}
                         (finalEnvAfterRun, params') = runEnv dt params finalEnv 
                         outs = map fst outsWithEnv
 
-                        insWithNewEnv = map (\(ain, _) -> (ain, finalEnvAfterRun)) insWithEnv'
+                        insWithNewEnv = replaceEnvOfAins finalEnvAfterRun insWithEnv'
 
                         (params'', sfsShuffled, insShuffled) = shuffleAgents params' sfs' insWithNewEnv
 
@@ -237,14 +237,14 @@ seqCallback params
                 -- TODO: only running in sequential for now
                 allStepsRecOuts = simulate (map fst allAins, env) allAsfs params 1.0 1
 
-                (lastStepRecOuts, lastStepEnv) = last allStepsRecOuts
+                (lastStepRecOuts, lastStepRecEnv) = last allStepsRecOuts
                 mayRecOut = Data.List.find (\ao -> (aoId ao) == (aiId $ fst oldIn)) lastStepRecOuts
 
                 -- TODO: what happens to the environment? it could have changed by the other agents but we need to re-set it to before
                 
                 -- TODO: the agent died in the recursive simulation, what should we do?
                 retAfterRec = if isJust mayRecOut then
-                                seqCallbackRec params otherIns otherSfs oldSf (sf, newIn, (fromJust mayRecOut, lastStepEnv))
+                                seqCallbackRec params otherIns otherSfs oldSf (sf, newIn, (fromJust mayRecOut, lastStepRecEnv)) -- TODO: is this really correct to return this environment?
                                 else
                                     retSelfKilled
 
@@ -328,7 +328,7 @@ seqCallback params
 simulatePar :: [AgentBehaviour s m e]
                 -> SimulationParams e
                 -> SF ([AgentIn s m e], e) ([AgentOut s m e], e)
-simulatePar initSfs initParams = SF {sfTF = tf0}
+simulatePar initSfs initParams = SF { sfTF = tf0 }
     where
         tf0 (initInputs, initEnv) = (tfCont, (initOuts, initEnv))
             where
@@ -367,7 +367,7 @@ simulatePar initSfs initParams = SF {sfTF = tf0}
                         tf' = simulateParAux params'' sfsShuffled insShuffled e'
 
         collapseEnvironments :: Double -> SimulationParams e -> [(AgentOut s m e, e)] -> e -> (e, SimulationParams e)
-        collapseEnvironments dt params outsWithEnv e  
+        collapseEnvironments dt params outsWithEnv e
             | isCollapsingEnv = runEnv dt params collapsedEnv 
             | otherwise = (e, params)
             where
@@ -433,8 +433,6 @@ newAgentIn (oldIn, _) (newOut, e') = (newIn, e')
                         aiState = aoState newOut,
                         aiMessages = NoEvent,
                         aiRng = aoRng newOut }
-
-
 
 shuffleAgents :: SimulationParams e 
                     -> [AgentBehaviour s m e] 
@@ -505,7 +503,7 @@ handleCreateAgents idGen (ao, e) acc@(asfsAcc, ainsAcc)
         newAgentDefs = fromEvent newAgentDefsEvt
         newSfs = map adBeh newAgentDefs
         newAis = map (startingAgentInFromAgentDef idGen) newAgentDefs
-        newAisWithEnv = map (\ain -> (ain, e)) newAis
+        newAisWithEnv = addEnvToAins e newAis
 
 collectMessagesFor :: [(AgentOut s m e, e)] -> (AgentIn s m e, e) -> (AgentIn s m e, e)
 collectMessagesFor aouts (ain, e) = (ain', e)

@@ -91,8 +91,12 @@ module FRP.FrABS (
     
     drain,
     
+    ignoreEnv,
+    
     EventSource,
     MessageSource,
+
+    ReactiveBehaviourIgnoreEnv,
 
     doOnce,
     doNothing,

@@ -2,8 +2,6 @@ module SysDynSIR.Model (
     SysDynSIRMsg (..),
     SysDynSIRStockState (..),
 
-    SysDynSIREnvLink,
-    SysDynSIREnvCell,
     SysDynSIREnvironment,
 
     SysDynSIRDef,
@@ -32,18 +30,14 @@ import FRP.FrABS
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
 data SysDynSIRMsg = Value Double deriving (Eq, Show)
-
--- NOTE: the flows are stateless, state is only used by the Stocks 
 type SysDynSIRStockState = Double
 
-type SysDynSIREnvLink = ()
-type SysDynSIREnvCell = ()
-type SysDynSIREnvironment = Environment SysDynSIREnvCell SysDynSIREnvLink
+type SysDynSIREnvironment = ()
 
-type SysDynSIRDef = AgentDef SysDynSIRStockState SysDynSIRMsg SysDynSIREnvCell SysDynSIREnvLink
-type SysDynSIRBehaviour = AgentBehaviour SysDynSIRStockState SysDynSIRMsg SysDynSIREnvCell SysDynSIREnvLink
-type SysDynSIRIn = AgentIn SysDynSIRStockState SysDynSIRMsg SysDynSIREnvCell SysDynSIREnvLink
-type SysDynSIROut = AgentOut SysDynSIRStockState SysDynSIRMsg SysDynSIREnvCell SysDynSIREnvLink
+type SysDynSIRDef = AgentDef SysDynSIRStockState SysDynSIRMsg SysDynSIREnvironment 
+type SysDynSIRBehaviour = ReactiveBehaviourIgnoreEnv SysDynSIRStockState SysDynSIRMsg SysDynSIREnvironment 
+type SysDynSIRIn = AgentIn SysDynSIRStockState SysDynSIRMsg SysDynSIREnvironment 
+type SysDynSIROut = AgentOut SysDynSIRStockState SysDynSIRMsg SysDynSIREnvironment 
 
 type SysDynSIRFlowBehaviour = SysDynSIRBehaviour
 type SysDynSIRStockBehaviour = Double -> SysDynSIRBehaviour

@@ -30,17 +30,7 @@ createSysDynSIR =
         
         let adefs = [susStock, infStock, recStock, infRateFlow, recRateFlow]
 
-        -- NOTE: we need to create SOME environment but we never access it, its just a dummy one
-        let env = (createEnvironment
-                        Nothing
-                        (0,0)
-                        moore
-                        ClipToMax
-                        []
-                        rng
-                        Nothing)
-
-        return (adefs, env)
+        return (adefs, ())
 
 createStock :: AgentId
                 -> SysDynSIRStockState
@@ -53,10 +43,9 @@ createStock stockId stockState stockBeh =
 
         return AgentDef { adId = stockId,
                             adState = stockState,
-                            adBeh = (stockBeh stockState),
+                            adBeh = ignoreEnv (stockBeh stockState),
                             adInitMessages = NoEvent,
                             adConversation = Nothing,
-                            adEnvPos = (0,0),
                             adRng = rng }
 
 createFlow :: AgentId
@@ -69,9 +58,8 @@ createFlow flowId flowBeh =
 
         return AgentDef { adId = flowId,
                             adState = 0.0, -- NOTE: a flow does not has or use its state, set it to dummy value 0
-                            adBeh = flowBeh,
+                            adBeh = ignoreEnv flowBeh,
                             adInitMessages = NoEvent,
                             adConversation = Nothing,
-                            adEnvPos = (0,0),
                             adRng = rng }
 ------------------------------------------------------------------------------------------------------------------------

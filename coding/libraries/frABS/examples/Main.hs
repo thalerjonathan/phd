@@ -6,6 +6,7 @@ import           RecursiveABS.Run
 import           Segregation.Run
 import           SIRS.Run
 import           Wildfire.Run
+import           SysDynSIR.Run
 
 {-
 import           AgentZero.Run
@@ -15,7 +16,6 @@ import           HeroesCowards.Run
 import           PolicyEffects.Run
 import           PrisonersDilemma.Run
 import           SugarScape.Run
-import           SysDynSIR.Run
 -}
 
 {-
@@ -29,7 +29,7 @@ import           SysDynSIR.Run
 -}
 
 main :: IO ()
-main = runWildfireWithRendering
+main = runSysDynSIRStepsAndWriteToFile
 
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile

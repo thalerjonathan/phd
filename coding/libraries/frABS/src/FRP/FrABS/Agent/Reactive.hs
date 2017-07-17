@@ -3,6 +3,10 @@ module FRP.FrABS.Agent.Reactive (
     EventSource,
     MessageSource,
 
+    ReactiveBehaviourIgnoreEnv,
+
+    ignoreEnv,
+
     drain,
     
     doOnce,
@@ -40,6 +44,18 @@ import Control.Monad.Random
 -- TODO: is access to environment necesssary here?
 type EventSource s m e = SF (AgentIn s m e, AgentOut s m e) (AgentOut s m e, Event ())
 type MessageSource s m e = (e -> AgentOut s m e -> (AgentOut s m e, AgentMessage m))
+
+type ReactiveBehaviourIgnoreEnv s m e = SF (AgentIn s m e) (AgentOut s m e)
+
+-------------------------------------------------------------------------------
+-- MISC
+-------------------------------------------------------------------------------
+ignoreEnv :: ReactiveBehaviourIgnoreEnv s m e -> AgentBehaviour s m e 
+ignoreEnv f = proc (ain, e) ->
+    do
+        ao <- f -< ain
+        returnA -< (ao, e)
+-------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- Continuous Helpers

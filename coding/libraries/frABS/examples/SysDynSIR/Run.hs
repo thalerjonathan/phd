@@ -19,7 +19,7 @@ runSysDynSIRStepsAndWriteToFile =
     do
         -- SystemDynamics MUST NOT rely on RNGs at all, so no need to initialize it
         -- SystemDynamics MUST ABSOLUTELY only run Parllel and there is no need to shuffle the agents (=stocks)
-        params <- initSimulation Parallel Nothing False Nothing
+        params <- initSimNoEnv Parallel False Nothing
 
         (initAdefs, initEnv) <- createSysDynSIR
         

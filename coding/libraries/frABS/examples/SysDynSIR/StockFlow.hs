@@ -96,8 +96,8 @@ recoveryRateFlow = proc ain ->
 ------------------------------------------------------------------------------------------------------------------------
 -- UTILS
 ------------------------------------------------------------------------------------------------------------------------
-filterMessageValue :: Double -> (AgentMessage SysDynSIRMsg) -> Double
-filterMessageValue initValue (_, Value v) = v
+filterMessageValue :: (AgentMessage SysDynSIRMsg) -> Double -> Double
+filterMessageValue (_, Value v) initValue = v
 
 valueInFrom :: AgentId -> SysDynSIRIn -> Double
 valueInFrom senderId ain = onMessageFrom senderId filterMessageValue ain 0.0 

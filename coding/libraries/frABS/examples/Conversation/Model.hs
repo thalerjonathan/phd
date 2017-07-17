@@ -3,7 +3,6 @@ module Conversation.Model (
     ConversationMsg (..),
     ConversationAgentState,
 
-    ConversationEnvCell,
     ConversationEnvironment,
 
     ConversationAgentDef,
@@ -23,7 +22,6 @@ import FRP.FrABS
 import FRP.Yampa
 
 import Debug.Trace
-import System.Random
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
@@ -31,15 +29,15 @@ import System.Random
 data ConversationMsg = Hello Int deriving (Eq, Show)
 type ConversationAgentState = Int
 
-type ConversationEnvCell = ()
-type ConversationEnvironment = Environment ConversationEnvCell  ()
+type ConversationEnvironment = ()
 
-type ConversationAgentDef = AgentDef ConversationAgentState ConversationMsg ConversationEnvCell ()
-type ConversationAgentBehaviour = AgentBehaviour ConversationAgentState ConversationMsg ConversationEnvCell ()
-type ConversationAgentIn = AgentIn ConversationAgentState ConversationMsg ConversationEnvCell ()
-type ConversationAgentOut = AgentOut ConversationAgentState ConversationMsg ConversationEnvCell ()
+type ConversationAgentDef = AgentDef ConversationAgentState ConversationMsg ConversationEnvironment
+type ConversationAgentBehaviour = AgentBehaviour ConversationAgentState ConversationMsg ConversationEnvironment
+type ConversationAgentIn = AgentIn ConversationAgentState ConversationMsg ConversationEnvironment
+type ConversationAgentOut = AgentOut ConversationAgentState ConversationMsg ConversationEnvironment
 
-type ConversationAgentConversation = AgentConversationReceiver ConversationAgentState ConversationMsg ConversationEnvCell ()
+type ConversationAgentConversation = AgentConversationReceiver ConversationAgentState ConversationMsg ConversationEnvironment
+type ConversationAgentSender = AgentConversationSender ConversationAgentState ConversationMsg ConversationEnvironment
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -53,33 +51,32 @@ randomRangeCounter = (0, 10)
 -- MODEL IMPLEMENTATION
 ------------------------------------------------------------------------------------------------------------------------
 agentTest :: ConversationAgentOut -> ConversationAgentOut
-agentTest a = setDomainState n a'
+agentTest ao = setDomainState n ao'
     where
-        (n, a') = drawRandomRangeFromAgent (0, 10) a
+        (n, ao') = drawRandomRangeFromAgent (0, 10) ao
 
 conversationHandler :: ConversationAgentConversation
-conversationHandler ain (_, msg@(Hello n)) =
+conversationHandler aie@(ain, e) (_, msg@(Hello n)) =
     trace ("Agent " ++ (show $ aiId ain) ++ " receives conversation: " ++ (show msg))
-        Just (Hello (n+1), ain)
+        Just (Hello (n+1), aie)
 
 makeConversationWith :: Int -> ConversationAgentOut -> ConversationAgentOut
-makeConversationWith n a = conversation msg makeConversationWithAux a 
+makeConversationWith n ao = conversation msg makeConversationWithAux ao 
     where
-        receiverId = if aoId a == 0 then 1 else 0
+        receiverId = if aoId ao == 0 then 1 else 0
         msg =  trace ("makeConversationWith " ++ (show n) ++ " receiverId = " ++ (show receiverId))  (receiverId, Hello n)
 
-        makeConversationWithAux :: ConversationAgentOut -> Maybe (AgentMessage ConversationMsg) -> ConversationAgentOut
-        makeConversationWithAux a (Just (senderId, msg@(Hello n)))
-            | n > 5 = trace ("Agent " ++ (show $ aoId a) ++ " receives reply: " ++ (show msg) ++ " but stoppin") conversationEnd a1
-            | otherwise = trace ("Agent " ++ (show $ aoId a) ++ " receives reply: " ++ (show msg) ++ " continuing") makeConversationWith (n + 1) a
+        makeConversationWithAux :: ConversationAgentSender
+        makeConversationWithAux (ao, e) (Just (senderId, msg@(Hello n)))
+            | n > 5 = trace ("Agent " ++ (show $ aoId ao) ++ " receives reply: " ++ (show msg) ++ " but stoppin") (conversationEnd a1, e)
+            | otherwise = trace ("Agent " ++ (show $ aoId ao) ++ " receives reply: " ++ (show msg) ++ " continuing") (makeConversationWith (n + 1) ao, e)
             where
-                (g, a0) = splitRandomFromAgent a
+                (g, a0) = splitRandomFromAgent ao
 
                 s = 42
 
                 adef = AgentDef { adId = 100+n,
                             adState = s,
-                            adEnvPos = (0,0),
                             adInitMessages = NoEvent,
                             adConversation = Just conversationHandler,
                             adBeh = conversationAgentBehaviour,
@@ -87,11 +84,12 @@ makeConversationWith n a = conversation msg makeConversationWithAux a
 
                 a1 = createAgent adef a0
 
-        makeConversationWithAux a _ = trace ("Agent " ++ (show $ aoId a) ++ " receives Nothing -> stopping") conversationEnd a
+        makeConversationWithAux (ao, e) _ = trace ("Agent " ++ (show $ aoId ao) ++ " receives Nothing -> stopping") (conversationEnd ao, e)
 
 conversationAgentBehaviour :: ConversationAgentBehaviour
-conversationAgentBehaviour = proc ain ->
+conversationAgentBehaviour = proc (ain, e) ->
     do
         let ao = trace ("conversationAgentBehaviour")  agentOutFromIn ain
-        returnA -< makeConversationWith 0 ao
+        let ao' = makeConversationWith 0 ao
+        returnA -< (ao', e)
 ------------------------------------------------------------------------------------------------------------------------

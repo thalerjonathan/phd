@@ -1,5 +1,6 @@
 module Main where
 
+{-
 import           AgentZero.Run
 import           Conversation.Run
 import           DoubleAuction.Run
@@ -14,6 +15,7 @@ import           SIRS.Run
 import           SugarScape.Run
 import           SysDynSIR.Run
 import           Wildfire.Run
+-}
 
 {-
     TODOs   
@@ -25,15 +27,8 @@ import           Wildfire.Run
     - comment haskell code
 -}
 
-class Test a where
-    blaBeh :: a -> Bool
-
-instance Test String where
-    blaBeh "Jonathan" = True
-    blaBeh _ = False
-
 main :: IO ()
-main = runHeroesCowardsWithRendering
+main = runConversationSteps
 
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile

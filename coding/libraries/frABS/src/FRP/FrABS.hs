@@ -230,6 +230,7 @@ module FRP.FrABS (
     RenderFrame,
 
     initSimulation,
+    initSimNoEnv,
     newAgentId,
 
     AgentDefReplicator,

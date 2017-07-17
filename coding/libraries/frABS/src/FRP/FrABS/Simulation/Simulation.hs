@@ -24,7 +24,6 @@ import Control.Concurrent.STM.TVar
 
 data UpdateStrategy = Sequential | Parallel deriving (Eq)
 
-
 data SimulationParams e = SimulationParams {
     simStrategy :: UpdateStrategy,
     simEnvBehaviour :: Maybe (EnvironmentBehaviour e),

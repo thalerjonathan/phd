@@ -13,7 +13,6 @@ agentCount = 2
 samplingTimeDelta = 1.0
 steps = 2
 updateStrat = Sequential
-envCollapsing = Nothing
 shuffleAgents = True
 
 runConversationSteps :: IO ()
@@ -21,7 +20,7 @@ runConversationSteps =
     do
         hSetBuffering stdout NoBuffering
 
-        params <- initSimulation updateStrat envCollapsing shuffleAgents (Just rngSeed)
+        params <- initSimNoEnv updateStrat shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- createConversation agentCount
         
         putStrLn "Initial Agents:"

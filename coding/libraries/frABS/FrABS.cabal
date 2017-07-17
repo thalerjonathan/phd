@@ -25,6 +25,7 @@ library
     FRP.FrABS.Agent.Monad
     FRP.FrABS.Agent.Reactive
     FRP.FrABS.Environment.Definitions
+    FRP.FrABS.Environment.Spatial
     FRP.FrABS.Environment.Discrete
     FRP.FrABS.Environment.Continuous
     FRP.FrABS.Environment.Network

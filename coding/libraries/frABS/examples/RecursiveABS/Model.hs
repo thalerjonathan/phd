@@ -3,8 +3,6 @@ module RecursiveABS.Model (
     RecursiveABSMsg (..),
     RecursiveABSAgentState,
 
-    RecursiveABSEnvLink,
-    RecursiveABSEnvCell,
     RecursiveABSEnvironment,
 
     RecursiveABSAgentDef,
@@ -30,14 +28,12 @@ import Debug.Trace
 data RecursiveABSMsg = Hello Int deriving (Eq, Show)
 type RecursiveABSAgentState = Int
 
-type RecursiveABSEnvLink = ()
-type RecursiveABSEnvCell = Int
-type RecursiveABSEnvironment = Environment RecursiveABSEnvCell RecursiveABSEnvLink
+type RecursiveABSEnvironment = Int
 
-type RecursiveABSAgentDef = AgentDef RecursiveABSAgentState RecursiveABSMsg RecursiveABSEnvCell RecursiveABSEnvLink
-type RecursiveABSAgentBehaviour = AgentBehaviour RecursiveABSAgentState RecursiveABSMsg RecursiveABSEnvCell RecursiveABSEnvLink
-type RecursiveABSAgentIn = AgentIn RecursiveABSAgentState RecursiveABSMsg RecursiveABSEnvCell RecursiveABSEnvLink
-type RecursiveABSAgentOut = AgentOut RecursiveABSAgentState RecursiveABSMsg RecursiveABSEnvCell RecursiveABSEnvLink
+type RecursiveABSAgentDef = AgentDef RecursiveABSAgentState RecursiveABSMsg RecursiveABSEnvironment
+type RecursiveABSAgentBehaviour = AgentBehaviour RecursiveABSAgentState RecursiveABSMsg RecursiveABSEnvironment
+type RecursiveABSAgentIn = AgentIn RecursiveABSAgentState RecursiveABSMsg RecursiveABSEnvironment
+type RecursiveABSAgentOut = AgentOut RecursiveABSAgentState RecursiveABSMsg RecursiveABSEnvironment
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -61,13 +57,13 @@ recursiveABSActRecursive aout ain
     | otherwise = trace ("agent " ++ (show $ aiId ain) ++ ":  stopping recursive simulation, returning state " ++ (show $ aoState aoutUnRec)) aoutUnRec
     where
         recursiveOuts = fromEvent $ aiRec ain
-        recursiveStates = map aoState recursiveOuts
+        recursiveStates = map (aoState . fst) recursiveOuts
 
         aout' = trace ("agent " ++ (show $ aiId ain) ++ ":  has recursiveOuts: " ++ (show recursiveStates)) (recursiveABSRandomizeCounter aout)
         aoutRec = recursive allowRecursionToOthers aout'
 
         aoutSelected = trace ("agent " ++ (show $ aiId ain) ++ ":  has recursiveOuts: " ++ (show recursiveStates)) (recursiveOuts !! 0)
-        aoutUnRec = unrecursive aoutSelected
+        aoutUnRec = unrecursive $ fst aoutSelected
 
 recursiveABSActNonRec :: RecursiveABSAgentOut -> RecursiveABSAgentIn -> RecursiveABSAgentOut
 recursiveABSActNonRec aout ain
@@ -84,9 +80,9 @@ recursiveABSRandomizeCounter aout = aout1
         aout1 = setDomainState randInt aout0
 
 recursiveABSAgentBehaviour :: RecursiveABSAgentBehaviour
-recursiveABSAgentBehaviour = proc ain ->
+recursiveABSAgentBehaviour = proc (ain, e) ->
     do
         let ao = agentOutFromIn ain
         t <- time -< 0.0
         let ao' = trace ("agent " ++ (show $ aiId ain) ++ ": at time = " ++ (show t) ++ " has " ++ (show $ aoState ao)) (recursiveABSStep ao ain)
-        returnA -<ao'
+        returnA -< (ao', e)

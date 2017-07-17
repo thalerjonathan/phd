@@ -14,16 +14,9 @@ createRecursiveABS :: Int -> IO ([RecursiveABSAgentDef], RecursiveABSEnvironment
 createRecursiveABS agentCount = 
   do
     as <- mapM randomAgent [0..agentCount-1]
-    rng <- newStdGen
-    let env = createEnvironment
-                          Nothing
-                          (0,0)
-                          moore
-                          WrapBoth
-                          []
-                          rng
-                          Nothing
-    return (as, env)
+    let e = 0
+    
+    return (as, e)
     
 randomAgent :: Int -> IO RecursiveABSAgentDef
 randomAgent agentId = 
@@ -31,12 +24,9 @@ randomAgent agentId =
     r <- getStdRandom (randomR randomRangeCounter)
     rng <- newStdGen
 
-    let s = r
-
     return AgentDef { adId = agentId,
-                adState = s,
-                adEnvPos = (0,0),
-                adInitMessages = NoEvent,
-                adConversation = Nothing,
-                adBeh = recursiveABSAgentBehaviour,
-                adRng = rng }
+                      adState = r,
+                      adInitMessages = NoEvent,
+                      adConversation = Nothing,
+                      adBeh = recursiveABSAgentBehaviour,
+                      adRng = rng }

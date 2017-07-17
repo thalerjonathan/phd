@@ -9,11 +9,10 @@ import FRP.FrABS
 import System.IO
 
 rngSeed = 42
-agentCount = 10
+agentCount = 2
 samplingTimeDelta = 1.0
 steps = 1
 updateStrat = Sequential
-envCollapsing = Nothing
 shuffleAgents = True
 
 runRecursiveABSSteps :: IO ()
@@ -21,7 +20,7 @@ runRecursiveABSSteps =
     do
         hSetBuffering stdout NoBuffering
 
-        params <- initSimulation updateStrat envCollapsing shuffleAgents (Just rngSeed)
+        params <- initSimNoEnv updateStrat shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- createRecursiveABS agentCount
         
         putStrLn "Initial Agents:"

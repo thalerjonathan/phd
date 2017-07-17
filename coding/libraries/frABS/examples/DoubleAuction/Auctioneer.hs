@@ -95,12 +95,12 @@ findMatches (bids, asks) =
 accumulateOfferings :: DAAgentIn -> ([(AgentId, Offering)],[(AgentId, Offering)])
 accumulateOfferings ain = onMessage offeringMsgAccumulate ain ([],[])
 	where
-		offeringMsgAccumulate :: ([(AgentId, Offering)],[(AgentId, Offering)]) 
-									-> AgentMessage DoubleAuctionMsg 
+		offeringMsgAccumulate :: AgentMessage DoubleAuctionMsg 
 									-> ([(AgentId, Offering)],[(AgentId, Offering)])
-		offeringMsgAccumulate (bidsAcc, askAcc) (senderId, (BidOffering bos)) = ((senderId, bos) : bidsAcc, askAcc)
-		offeringMsgAccumulate (bidsAcc, askAcc) (senderId, (AskOffering aos)) = (bidsAcc, (senderId, aos) : askAcc)
-		offeringMsgAccumulate os _ = os
+									-> ([(AgentId, Offering)],[(AgentId, Offering)]) 
+		offeringMsgAccumulate (senderId, (BidOffering bos)) (bidsAcc, askAcc) = ((senderId, bos) : bidsAcc, askAcc)
+		offeringMsgAccumulate (senderId, (AskOffering aos)) (bidsAcc, askAcc) = (bidsAcc, (senderId, aos) : askAcc)
+		offeringMsgAccumulate _ os = os
 
 -- NOTE we have many ways to do the transaction
 -- 		1. simply send a message to both traders => traders have to check for incoming messages first and transact before sending new offerings to prevent violation of budget constraints

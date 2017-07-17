@@ -19,7 +19,7 @@ frequency = 0
 runWildfireWithRendering :: IO ()
 runWildfireWithRendering = 
     do
-        params <- initSimulation updStrat Nothing shuffleAgents (Just rngSeed)
+        params <- initSimulation updStrat Nothing Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- initWildfire envSize
         
         simulateAndRender initAdefs

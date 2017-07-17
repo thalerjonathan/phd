@@ -39,7 +39,7 @@ import Control.Monad.Random
 
 -- TODO: is access to environment necesssary here?
 type EventSource s m e = SF (AgentIn s m e, AgentOut s m e) (AgentOut s m e, Event ())
-type MessageSource s m e = (AgentOut s m e -> (AgentOut s m e, AgentMessage m))
+type MessageSource s m e = (e -> AgentOut s m e -> (AgentOut s m e, AgentMessage m))
 
 -------------------------------------------------------------------------------
 -- Continuous Helpers
@@ -84,28 +84,28 @@ doNothing = proc (ain, e) ->
 sendMessageOccasionally :: RandomGen g => g 
                                         -> Double
                                         -> AgentMessage m
-                                        -> SF (AgentOut s m e) (AgentOut s m e)
+                                        -> SF (AgentOut s m e, e) (AgentOut s m e)
 sendMessageOccasionally g rate msg = sendMessageOccasionallySrc g rate (constMsgSource msg)
 
 sendMessageOccasionallySrc :: RandomGen g => g 
                                         -> Double
                                         -> MessageSource s m e 
-                                        -> SF (AgentOut s m e) (AgentOut s m e)
-sendMessageOccasionallySrc g rate msgSrc = proc ao ->
+                                        -> SF (AgentOut s m e, e) (AgentOut s m e)
+sendMessageOccasionallySrc g rate msgSrc = proc aoe ->
     do
         sendEvt <- occasionally g rate () -< ()
-        let ao' = sendMessageOccasionallyAux msgSrc sendEvt ao
+        let ao' = sendMessageOccasionallyAux msgSrc sendEvt aoe
         returnA -< ao'
 
     where
         sendMessageOccasionallyAux :: MessageSource s m e 
                                         -> Event () 
-                                        -> AgentOut s m e 
+                                        -> (AgentOut s m e, e)
                                         -> AgentOut s m e
-        sendMessageOccasionallyAux _ NoEvent ao = ao
-        sendMessageOccasionallyAux msgSrc (Event ()) ao = sendMessage msg ao'
+        sendMessageOccasionallyAux _ NoEvent (ao, _) = ao
+        sendMessageOccasionallyAux msgSrc (Event ()) (ao, e) = sendMessage msg ao'
             where
-                (ao', msg) = msgSrc ao
+                (ao', msg) = msgSrc e ao
 
 -------------------------------------------------------------------------------
 
@@ -113,23 +113,23 @@ sendMessageOccasionallySrc g rate msgSrc = proc ao ->
 -- MESSAGE-Sources
 -------------------------------------------------------------------------------
 constMsgReceiverSource :: m -> AgentId -> MessageSource s m e
-constMsgReceiverSource m receiver ao = (ao, msg)
+constMsgReceiverSource m receiver _ ao = (ao, msg)
     where
         msg = (receiver, m)
 
 constMsgSource :: AgentMessage m -> MessageSource s m e
-constMsgSource msg ao = (ao, msg)
+constMsgSource msg _ ao = (ao, msg)
 
-
-randomNeighbourNodeMsgSource :: Network l -> AgentId -> m -> MessageSource s m (Network l)
-randomNeighbourNodeMsgSource e aid m ao = (ao', msg)
+randomNeighbourNodeMsgSource :: AgentId -> m -> MessageSource s m (Network l)
+randomNeighbourNodeMsgSource aid m e ao = (ao', msg)
     where
         (randNode, ao') = runAgentRandom (pickRandomNeighbourNode aid e) ao
         msg = (randNode, m)
 
-randomNeighbourCellMsgSource :: Discrete2d AgentId -> Discrete2dCoord -> m -> MessageSource s m (Discrete2d AgentId)
-randomNeighbourCellMsgSource e pos m ao = (ao', msg)
+randomNeighbourCellMsgSource :: (s -> Discrete2dCoord) -> m -> MessageSource s m (Discrete2d AgentId)
+randomNeighbourCellMsgSource posFunc m e ao = (ao', msg)
     where
+        pos = posFunc $ aoState ao
         ((_, randCell), ao') = runAgentRandom (pickRandomNeighbourCell pos e) ao
         msg = (randCell, m)
 -------------------------------------------------------------------------------

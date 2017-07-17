@@ -3,10 +3,7 @@ module Wildfire.Model (
     WildfireAgentState (..),
     LifeState (..),
 
-    WildfireLinkLabel,
-    WildfireCell,
     WildfireEnvironment,
-    WildfireEnvironmentBehaviour,
 
     WildfireAgentDef,
     WildfireAgentBehaviour,
@@ -25,29 +22,25 @@ import FRP.FrABS
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
-data WildfireMsg =
-    Ignite 
-    deriving (Eq, Show)
+data WildfireMsg = Ignite deriving (Eq, Show)
 
 data WildfireAgentState = WildfireAgentState {
     wfLifeState :: LifeState,
     wfFuelCurr :: Double,
-    wfFuelRate :: Double
+    wfFuelRate :: Double,
+    wfCoord :: Discrete2dCoord
 } deriving (Show)
 
 data LifeState = Living | Burning | Dead deriving (Eq, Show)
 
-type WildfireLinkLabel = ()
-type WildfireCell = AgentId
-type WildfireEnvironment = Environment WildfireCell WildfireLinkLabel
-type WildfireEnvironmentBehaviour = EnvironmentBehaviour WildfireCell WildfireLinkLabel
+type WildfireEnvironment = Discrete2d AgentId
 
-type WildfireAgentDef = AgentDef WildfireAgentState WildfireMsg WildfireCell WildfireLinkLabel
-type WildfireAgentBehaviour = AgentBehaviour WildfireAgentState WildfireMsg WildfireCell WildfireLinkLabel
-type WildfireAgentIn = AgentIn WildfireAgentState WildfireMsg WildfireCell WildfireLinkLabel
-type WildfireAgentOut = AgentOut WildfireAgentState WildfireMsg WildfireCell WildfireLinkLabel
+type WildfireAgentDef = AgentDef WildfireAgentState WildfireMsg WildfireEnvironment
+type WildfireAgentBehaviour = AgentBehaviour WildfireAgentState WildfireMsg WildfireEnvironment
+type WildfireAgentIn = AgentIn WildfireAgentState WildfireMsg WildfireEnvironment
+type WildfireAgentOut = AgentOut WildfireAgentState WildfireMsg WildfireEnvironment
 
-type WildfireEventSource = EventSource WildfireAgentState WildfireMsg WildfireCell WildfireLinkLabel
+type WildfireEventSource = EventSource WildfireAgentState WildfireMsg WildfireEnvironment
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

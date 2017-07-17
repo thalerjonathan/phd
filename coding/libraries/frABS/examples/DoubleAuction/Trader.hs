@@ -367,26 +367,26 @@ receiveTransactionsM ain = onMessageMState handleTxMsgM ain
 -- AGENT-BEHAVIOUR NON-monadic implementation
 ------------------------------------------------------------------------------------------------------------------------
 traderBehaviourFunc :: Double -> DAAgentIn -> DAAgentOut -> DAAgentOut
-traderBehaviourFunc _ ain a = sendOfferings $ receiveTransactions ain a
+traderBehaviourFunc _ ain ao = sendOfferings $ receiveTransactions ain ao
 
 sendOfferings :: DAAgentOut -> DAAgentOut
-sendOfferings a = aAfterAsk
+sendOfferings ao = aAfterAsk
 	where
-		s = aoState a
+		s = aoState ao
 
-		(bos, a0) = runAgentRandom (bidOfferings s) a 
-		(aos, a1) = runAgentRandom (askOfferings s) a0
+		(bos, ao0) = runAgentRandom (bidOfferings s) ao 
+		(aos, ao1) = runAgentRandom (askOfferings s) ao0
 
-		aAfterBid = sendMessage (auctioneer, BidOffering bos) a1
+		aAfterBid = sendMessage (auctioneer, BidOffering bos) ao1
 		aAfterAsk = sendMessage (auctioneer, AskOffering aos) aAfterBid
 
 receiveTransactions :: DAAgentIn -> DAAgentOut -> DAAgentOut
-receiveTransactions ain a = onMessage handleTxMsg ain a
+receiveTransactions ain ao = onMessage handleTxMsg ain ao
 	where
-		handleTxMsg :: DAAgentOut -> AgentMessage DoubleAuctionMsg -> DAAgentOut
-		handleTxMsg a (_, (SellTx m o)) = updateDomainState (transactSell m o) a
-		handleTxMsg a (_, (BuyTx m o)) = updateDomainState (transactBuy m o) a
-		handleTxMsg a _ = a
+		handleTxMsg :: AgentMessage DoubleAuctionMsg -> DAAgentOut -> DAAgentOut
+		handleTxMsg (_, (SellTx m o)) ao = updateDomainState (transactSell m o) ao
+		handleTxMsg (_, (BuyTx m o)) ao = updateDomainState (transactBuy m o) ao
+		handleTxMsg _ ao = ao
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

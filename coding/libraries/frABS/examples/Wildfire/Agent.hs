@@ -21,11 +21,12 @@ isBurnedDown s = wfFuelCurr s <= 0.0
 ------------------------------------------------------------------------------------------------------------------------
 -- DEAD
 wildfireAgentDie :: WildfireAgentBehaviour
-wildfireAgentDie = proc ain ->
+wildfireAgentDie = proc (ain, e) ->
 	do
 		let aout = agentOutFromIn ain
-		let aout' = updateDomainState (\s -> s { wfLifeState = Dead }) aout
-		returnA -< kill aout' -- NOTE: killing leads to increased performance but leaves the patch in the color of the background
+		let aout0 = updateDomainState (\s -> s { wfLifeState = Dead }) aout
+		let aout1 = kill aout0 -- NOTE: killing leads to increased performance but leaves the patch in the color of the background
+		returnA -<  (aout1, e)
 
 -- BURNING
 wildfireAgentBurning :: RandomGen g => g -> Double -> WildfireAgentBehaviour
@@ -35,13 +36,13 @@ wildfireAgentBurning g initFuel = transitionOnBoolState
 									wildfireAgentDie
 
 wildfireAgentBurningBehaviour :: RandomGen g => g -> Double -> WildfireAgentBehaviour
-wildfireAgentBurningBehaviour g initFuel = proc ain -> 
+wildfireAgentBurningBehaviour g initFuel = proc (ain, e) -> 
 	do
 		let ao = agentOutFromIn ain
 		ao0 <- doOnce (updateDomainState (\s -> s { wfLifeState = Burning })) -< ao
 		ao1 <- burndown initFuel -< ao0
-		ao2 <- igniteNeighbours g -< ao1
-		returnA -< ao2
+		ao2 <- igniteNeighbours g -< (ao1, e)
+		returnA -< (ao2, e)
 
 burndown :: Double -> SF WildfireAgentOut WildfireAgentOut
 burndown initFuel = proc ao ->	
@@ -50,11 +51,11 @@ burndown initFuel = proc ao ->
 		let ao' = updateDomainState (\s -> s { wfFuelCurr = currFuel }) ao
 		returnA -< ao'
 
-igniteNeighbours :: RandomGen g => g -> SF WildfireAgentOut WildfireAgentOut
+igniteNeighbours :: RandomGen g => g -> SF (WildfireAgentOut, WildfireEnvironment) WildfireAgentOut
 igniteNeighbours g = sendMessageOccasionallySrc 
 							g 
 							(1 / ignitions)
-							(randomNeighbourCellMsgSource Ignite)
+							(randomNeighbourCellMsgSource wfCoord Ignite)
 
 -- LIVING
 wildfireAgentLiving :: RandomGen g => g -> Double -> WildfireAgentBehaviour

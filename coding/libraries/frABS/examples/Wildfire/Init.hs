@@ -29,21 +29,20 @@ initWildfire dims@(maxX, maxY) =
 
     adefs <- mapM (runCreateWildfireIO dims (centerX, centerY)) aidCoordPairs
 
-    envRng <- newStdGen 
-    let env = createEnvironment
-                          Nothing
-                          dims
-                          neumann
-                          ClipToMax
-                          cells
-                          envRng
-                          Nothing
+    rng <- newStdGen 
 
-    return (adefs, env)
+    let e = createDiscrete2d
+                  dims
+                  neumann
+                  ClipToMax
+                  cells
+                  rng
 
-runCreateWildfireIO :: (Int, Int)
-                      -> (Int, Int)
-                      -> (AgentId, EnvCoord) 
+    return (adefs, e)
+
+runCreateWildfireIO :: Discrete2dDimension
+                      -> Discrete2dCoord
+                      -> (AgentId, Discrete2dCoord) 
                       -> IO WildfireAgentDef
 runCreateWildfireIO dims center aidCoord@(agentId, coord) = 
   do
@@ -62,21 +61,20 @@ runCreateWildfireIO dims center aidCoord@(agentId, coord) =
 
     let s = WildfireAgentState {
       wfLifeState = Living,
-
       wfFuelCurr = initFuel,
-      wfFuelRate = randFuelRate
+      wfFuelRate = randFuelRate,
+      wfCoord = coord
     }
 
     return AgentDef {
        adId = agentId,
        adState = s,
-       adEnvPos = coord,
        adConversation = Nothing,
        adInitMessages = initMessages,
        adBeh = wildfireAgentBehaviour rng initFuel,
        adRng = rng }
 
-sphereFuelFunction :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Double
+sphereFuelFunction :: Discrete2dDimension -> (Int, Int) -> Discrete2dCoord -> Double
 sphereFuelFunction (dimX, dimY) (centerX, centerY) (x, y) = 1 - (max r 0)
   where
     x' = x - centerX
@@ -87,7 +85,7 @@ sphereFuelFunction (dimX, dimY) (centerX, centerY) (x, y) = 1 - (max r 0)
 
     r = sqrt $ (xNorm^2) + (yNorm^2)
 
-boxFuelFunction :: (Int, Int) -> Int -> Int -> (Int, Int) -> Double
+boxFuelFunction :: Discrete2dDimension -> Int -> Int -> Discrete2dCoord -> Double
 boxFuelFunction (dimX, dimY) horizontal vertical (x, y)
   | x > horizontal && y > vertical = 1.0
   | otherwise = 0.5

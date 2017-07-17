@@ -8,12 +8,12 @@ import FRP.FrABS
 
 import qualified Graphics.Gloss as GLO
 
-type WildfireRenderFrame = RenderFrame WildfireAgentState WildfireMsg WildfireCell WildfireLinkLabel
+type WildfireRenderFrame = RenderFrame WildfireAgentState WildfireMsg WildfireEnvironment
 type WildfireAgentColorer = AgentCellColorer WildfireAgentState
 
 renderWildfireFrame :: WildfireRenderFrame
 renderWildfireFrame = render2dDiscreteFrame 
-                            (defaultAgentRenderer wildfireAgentColor)
+                            (defaultAgentRenderer wildfireAgentColor wfCoord)
                             voidEnvironmentRenderer
 
 wildfireAgentColor :: WildfireAgentColorer

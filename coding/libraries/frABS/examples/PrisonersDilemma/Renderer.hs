@@ -8,12 +8,12 @@ import PrisonersDilemma.Model
 
 import qualified Graphics.Gloss as GLO
 
-type PDRenderFrame = RenderFrame PDAgentState PDMsg PDCell PDLinkLabel
+type PDRenderFrame = RenderFrame PDAgentState PDMsg PDEnvironment
 type PDAgentColorer = AgentCellColorer PDAgentState
 
 renderPDFrame :: PDRenderFrame
 renderPDFrame = render2dDiscreteFrame 
-                    (defaultAgentRenderer pdAgentColor)
+                    (defaultAgentRenderer pdAgentColor pdCoord)
                     voidEnvironmentRenderer
 
 pdAgentColor :: PDAgentColorer

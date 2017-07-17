@@ -140,22 +140,9 @@ module FRP.FrABS (
     drawRandomExponential,
     drawRandomExponentialM,
 
-    -- agentNeighbourNodes,
-    -- agentNeighbourNodesM,
-    -- agentNeighbourCells,
-    -- agentNeighbourCellsWithCoords,
-
     pickRandomNeighbourNode,
-    -- pickRandomNeighbourNodeM,
     
     pickRandomNeighbourCell,
-    -- pickRandomNeighbourCellM,
-
-    -- agentRandomMove,
-    -- agentRandomMoveM,
-
-    -- agentCellOnPos,
-    -- agentCellOnPosM,
 
     EnvironmentBehaviour,
     EnvironmentCollapsing,
@@ -186,8 +173,7 @@ module FRP.FrABS (
     Discrete2dNeighbourhood,
 
     Discrete2d (..), -- TODO: hide data-constructor
-    -- Discrete2dNetwork (..),
-    
+
     createDiscrete2d,
  
     allCellsWithCoords,
@@ -207,6 +193,10 @@ module FRP.FrABS (
     neighbourCellsInDistanceM,
     neighbourCells,
     neighbourCellsM,
+    neighbourInDistance,
+    neighbourInDistanceM,
+    neighbours,
+    neighboursM,
 
     distanceManhattanDisc2d,
     distanceEuclideanDisc2d,
@@ -221,7 +211,8 @@ module FRP.FrABS (
     wrapDisc2d,
 
     pickRandomNeighbourCell,
-
+    pickRandomNeighbour,
+    
     Continuous2DDimension,
     Continuous2DCoord,
 

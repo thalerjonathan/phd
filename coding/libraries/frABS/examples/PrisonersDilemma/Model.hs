@@ -4,13 +4,11 @@ module PrisonersDilemma.Model (
     PDAgentState (..),
     PDAction (..),
 
-    PDCell,
-    PDLinkLabel,
     PDEnvironment,
-    PDEnvironmentBehaviour,
 
     PDAgentDef,
     PDAgentBehaviour,
+    PDAgentBehaviourIgnoreEnv,
     PDAgentIn,
     PDAgentOut,
 
@@ -19,17 +17,10 @@ module PrisonersDilemma.Model (
     pParam,
     rParam,
 
-    createPDAgent,
-
     halfRoundTripTime
   ) where
 
 import FRP.FrABS
-
-import FRP.Yampa
-
-import System.Random
-import Control.Monad.Random
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
@@ -43,21 +34,20 @@ data PDAgentState = PDAgentState {
     
     pdLocalPo :: Double,
 
-    pdBestPo :: Payoff
+    pdBestPo :: Payoff,
+
+    pdCoord :: Discrete2dCoord
 } deriving (Show)
 
 data PDAction = Defector | Cooperator deriving (Eq, Show)
 
-type PDCell = AgentId
-type PDLinkLabel = ()
+type PDEnvironment = Discrete2d AgentId
 
-type PDEnvironment = Environment PDCell PDLinkLabel
-type PDEnvironmentBehaviour = EnvironmentBehaviour PDCell PDLinkLabel
-
-type PDAgentDef = AgentDef PDAgentState PDMsg PDCell PDLinkLabel
-type PDAgentBehaviour = AgentBehaviour PDAgentState PDMsg PDCell PDLinkLabel
-type PDAgentIn = AgentIn PDAgentState PDMsg PDCell PDLinkLabel
-type PDAgentOut = AgentOut PDAgentState PDMsg PDCell PDLinkLabel
+type PDAgentDef = AgentDef PDAgentState PDMsg PDEnvironment
+type PDAgentBehaviour = AgentBehaviour PDAgentState PDMsg PDEnvironment
+type PDAgentBehaviourIgnoreEnv = ReactiveBehaviourIgnoreEnv PDAgentState PDMsg PDEnvironment
+type PDAgentIn = AgentIn PDAgentState PDMsg PDEnvironment
+type PDAgentOut = AgentOut PDAgentState PDMsg PDEnvironment
 ------------------------------------------------------------------------------------------------------------------------
 
 halfRoundTripTime = 0.5
@@ -77,27 +67,3 @@ pParam = 0.0
 rParam :: Double
 rParam = 1.0
 ------------------------------------------------------------------------------------------------------------------------
-
-createPDAgent :: (AgentId, EnvCoord)
-                    -> PDAgentBehaviour
-                    ->  PDAction
-                    -> Rand StdGen PDAgentDef
-createPDAgent (agentId, coord) beh a = 
-    do
-        rng <- getSplit
-
-        let s = PDAgentState {
-          pdCurrAction = a,
-          pdPrevAction = a,
-          pdLocalPo = 0.0,
-          pdBestPo = (a, 0.0)
-        }
-
-        return AgentDef {
-           adId = agentId,
-           adState = s,
-           adEnvPos = coord,
-           adConversation = Nothing,
-           adInitMessages = NoEvent,
-           adBeh = beh,
-           adRng = rng }

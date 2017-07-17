@@ -25,6 +25,10 @@ module FRP.FrABS.Environment.Discrete (
     neighbourCellsInDistanceM,
     neighbourCells,
     neighbourCellsM,
+    neighbourInDistance,
+    neighbourInDistanceM,
+    neighbours,
+    neighboursM,
 
     distanceManhattanDisc2d,
     distanceEuclideanDisc2d,
@@ -38,7 +42,8 @@ module FRP.FrABS.Environment.Discrete (
     wrapNeighbourhood,
     wrapDisc2d,
 
-    pickRandomNeighbourCell
+    pickRandomNeighbourCell,
+    pickRandomNeighbour
   ) where
     
 import FRP.FrABS.Environment.Spatial
@@ -193,8 +198,8 @@ randomCellWithinRect (x, y) r e =
 
         return (randCell, randCoordWrapped)
 
-neighbourCellsInDistance :: Discrete2dCoord -> Int -> Discrete2d c -> [(Discrete2dCoord, c)]
-neighbourCellsInDistance coord dist e = zip wrappedNs cells
+neighbourInDistance :: Discrete2dCoord -> Int -> Discrete2d c -> [(Discrete2dCoord, c)]
+neighbourInDistance coord dist e = zip wrappedNs cells
     where
         n = envDisc2dNeighbourhood e
         coordDeltas = foldr (\v acc -> acc ++ neighbourhoodScale n v) [] [1 .. dist]
@@ -204,13 +209,27 @@ neighbourCellsInDistance coord dist e = zip wrappedNs cells
         wrappedNs = wrapNeighbourhood l w ns
         cells = cellsAt wrappedNs e
 
-neighbourCellsInDistanceM :: Discrete2dCoord -> Int -> State (Discrete2d c) [(Discrete2dCoord, c)]
+neighbourInDistanceM :: Discrete2dCoord -> Int -> State (Discrete2d c) [(Discrete2dCoord, c)]
+neighbourInDistanceM coord dist = state (\e -> (neighbourInDistance coord dist e, e))
+
+neighbours :: Discrete2dCoord -> Discrete2d c -> [(Discrete2dCoord, c)]
+neighbours coord e = neighbourInDistance coord 1 e
+
+neighboursM :: Discrete2dCoord -> State (Discrete2d c) [(Discrete2dCoord, c)]
+neighboursM coord = state (\e -> (neighbours coord e, e))
+
+
+
+neighbourCellsInDistance :: Discrete2dCoord -> Int -> Discrete2d c -> [c]
+neighbourCellsInDistance coord dist e = map snd (neighbourInDistance coord dist e)
+
+neighbourCellsInDistanceM :: Discrete2dCoord -> Int -> State (Discrete2d c) [c]
 neighbourCellsInDistanceM coord dist = state (\e -> (neighbourCellsInDistance coord dist e, e))
 
-neighbourCells :: Discrete2dCoord -> Discrete2d c -> [(Discrete2dCoord, c)]
+neighbourCells :: Discrete2dCoord -> Discrete2d c -> [c]
 neighbourCells coord e = neighbourCellsInDistance coord 1 e
 
-neighbourCellsM :: Discrete2dCoord -> State (Discrete2d c) [(Discrete2dCoord, c)]
+neighbourCellsM :: Discrete2dCoord -> State (Discrete2d c) [c]
 neighbourCellsM coord = state (\e -> (neighbourCells coord e, e))
 -------------------------------------------------------------------------------
 
@@ -278,10 +297,13 @@ bottomRightDelta =   ( 1,  1)
 -------------------------------------------------------------------------------
 -- UTILITIES
 -------------------------------------------------------------------------------
-pickRandomNeighbourCell :: Discrete2dCoord -> Discrete2d c -> Rand StdGen (Discrete2dCoord, c)
-pickRandomNeighbourCell pos e = 
+pickRandomNeighbourCell :: Discrete2dCoord -> Discrete2d c -> Rand StdGen c
+pickRandomNeighbourCell pos e = pickRandomNeighbour pos e >>= (\(_, c) -> return c)
+
+pickRandomNeighbour :: Discrete2dCoord -> Discrete2d c -> Rand StdGen (Discrete2dCoord, c)
+pickRandomNeighbour pos e = 
     do
-        let ncc = neighbourCells pos e
+        let ncc = neighbours pos e
         let l = length ncc 
 
         randIdx <- getRandomR (0, l - 1)

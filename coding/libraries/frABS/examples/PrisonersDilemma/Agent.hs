@@ -18,42 +18,49 @@ payoff Cooperator Defector = sParam
 payoff Defector Cooperator = bParam
 payoff Cooperator Cooperator = rParam
 
-broadcastLocalAction :: PDAgentOut -> PDAgentOut
-broadcastLocalAction ao = broadcastMessage (NeighbourAction curr) ns ao
-	where
-		curr = pdCurrAction $ aoState ao
-		ns = agentNeighbourCells ao
-
-broadcastLocalPayoff :: PDAgentOut -> PDAgentOut
-broadcastLocalPayoff ao = broadcastMessage (NeighbourPayoff (currAct, currPo)) ns ao
+broadcastLocalAction :: PDEnvironment -> PDAgentOut -> PDAgentOut
+broadcastLocalAction e ao = broadcastMessage (NeighbourAction curr) ns ao
 	where
 		s = aoState ao
+
+		coord = pdCoord s
+		curr = pdCurrAction s
+
+		ns = neighbourCells coord e
+
+broadcastLocalPayoff :: PDEnvironment -> PDAgentOut -> PDAgentOut
+broadcastLocalPayoff e ao = broadcastMessage (NeighbourPayoff (currAct, currPo)) ns ao
+	where
+		s = aoState ao
+
+		coord = pdCoord s
 		currAct = pdCurrAction s
 		currPo = pdLocalPo s
-		ns = agentNeighbourCells ao
+
+		ns = neighbourCells coord e
 
 handleNeighbourAction :: PDAgentIn -> PDAgentOut -> PDAgentOut
 handleNeighbourAction ain ao = onMessage handleNeighbourActionAux ain ao
 	where
-		handleNeighbourActionAux :: PDAgentOut -> AgentMessage PDMsg -> PDAgentOut
-		handleNeighbourActionAux ao (_, NeighbourAction act) = updateDomainState (\s -> s { pdLocalPo = pdLocalPo s + po }) ao
+		handleNeighbourActionAux :: AgentMessage PDMsg -> PDAgentOut -> PDAgentOut
+		handleNeighbourActionAux (_, NeighbourAction act) ao = updateDomainState (\s -> s { pdLocalPo = pdLocalPo s + po }) ao
 			where
 				curr = pdCurrAction $ aoState ao
 				po = payoff curr act
-		handleNeighbourActionAux ao _ = ao
+		handleNeighbourActionAux _ ao = ao
 
 handleNeighbourPayoff :: PDAgentIn -> PDAgentOut -> PDAgentOut
 handleNeighbourPayoff ain ao = onMessage handleNeighbourPayoffAux ain ao
 	where
-		handleNeighbourPayoffAux :: PDAgentOut -> AgentMessage PDMsg -> PDAgentOut
-		handleNeighbourPayoffAux ao (_, NeighbourPayoff po@(poAct, poValue))
+		handleNeighbourPayoffAux :: AgentMessage PDMsg -> PDAgentOut -> PDAgentOut
+		handleNeighbourPayoffAux (_, NeighbourPayoff po@(poAct, poValue)) ao
 			| poValue > localBestPoValue = updateDomainState (\s -> s { pdBestPo = po }) ao
 			| otherwise = ao
 			where
 				s = aoState ao
 				(_, localBestPoValue) = pdBestPo s
 
-		handleNeighbourPayoffAux ao _ = ao
+		handleNeighbourPayoffAux _ ao = ao
 
 switchToBestPayoff :: PDAgentOut -> PDAgentOut
 switchToBestPayoff ao = 
@@ -72,38 +79,38 @@ switchToBestPayoff ao =
 ------------------------------------------------------------------------------------------------------------------------
 -- Reactive Functions
 ------------------------------------------------------------------------------------------------------------------------
-pdAgentAwaitingNeighbourPayoffs :: PDAgentBehaviour
-pdAgentAwaitingNeighbourPayoffs = proc ain ->
+pdAgentAwaitingNeighbourPayoffs :: PDEnvironment -> PDAgentBehaviourIgnoreEnv
+pdAgentAwaitingNeighbourPayoffs e = proc ain ->
 	do
 		let ao = agentOutFromIn ain
 		let ao0 = handleNeighbourPayoff ain ao
 
-		ao1 <- doOnce broadcastLocalPayoff -< ao0
+		ao1 <- doOnce (broadcastLocalPayoff e) -< ao0
 
 		returnA -< ao1
 
-pdAgentAwaitingNeighbourActions :: PDAgentBehaviour
-pdAgentAwaitingNeighbourActions = proc ain ->
+pdAgentAwaitingNeighbourActions :: PDEnvironment ->  PDAgentBehaviourIgnoreEnv
+pdAgentAwaitingNeighbourActions e = proc ain ->
 	do
 		let ao = agentOutFromIn ain
 		let ao0 = handleNeighbourAction ain ao
 
-		ao1 <- doOnce (broadcastLocalAction . switchToBestPayoff) -< ao0
+		ao1 <- doOnce ((broadcastLocalAction e) . switchToBestPayoff) -< ao0
 
 		returnA -< ao1
 
-pdAgentWaitForActions :: PDAgentBehaviour
-pdAgentWaitForActions = transitionAfter 
+pdAgentWaitForActions :: PDEnvironment -> PDAgentBehaviour
+pdAgentWaitForActions e = transitionAfter 
 							halfRoundTripTime 
-							pdAgentAwaitingNeighbourActions 
-							pdAgentWaitForPayoffs
+							(ignoreEnv (pdAgentAwaitingNeighbourActions e))
+							(pdAgentWaitForPayoffs e)
 
-pdAgentWaitForPayoffs :: PDAgentBehaviour
-pdAgentWaitForPayoffs = transitionAfter 
+pdAgentWaitForPayoffs :: PDEnvironment -> PDAgentBehaviour
+pdAgentWaitForPayoffs e = transitionAfter 
 							halfRoundTripTime 
-							pdAgentAwaitingNeighbourPayoffs 
-							pdAgentWaitForActions
+							(ignoreEnv (pdAgentAwaitingNeighbourPayoffs e))
+							(pdAgentWaitForActions e)
 
-pdAgentBehaviour :: PDAgentBehaviour
+pdAgentBehaviour :: PDEnvironment -> PDAgentBehaviour
 pdAgentBehaviour = pdAgentWaitForActions
 ------------------------------------------------------------------------------------------------------------------------ 

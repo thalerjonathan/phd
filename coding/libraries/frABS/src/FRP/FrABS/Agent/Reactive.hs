@@ -146,7 +146,7 @@ randomNeighbourCellMsgSource :: (s -> Discrete2dCoord) -> m -> MessageSource s m
 randomNeighbourCellMsgSource posFunc m e ao = (ao', msg)
     where
         pos = posFunc $ aoState ao
-        ((_, randCell), ao') = runAgentRandom (pickRandomNeighbourCell pos e) ao
+        (randCell, ao') = runAgentRandom (pickRandomNeighbourCell pos e) ao
         msg = (randCell, m)
 -------------------------------------------------------------------------------
 

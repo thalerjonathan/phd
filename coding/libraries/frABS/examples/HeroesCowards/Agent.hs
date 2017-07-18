@@ -10,113 +10,66 @@ import Control.Monad
 import Control.Monad.Trans.State
 
 -------------------------------------------------------------------------------
--- Geometric Utilities
--------------------------------------------------------------------------------
-data HACWorldType = Infinite | Border | Wraping deriving (Eq, Show)
-
-multPos :: ContPosition -> Double -> ContPosition
-multPos (x, y) s = (x*s, y*s)
-
-addPos :: ContPosition -> ContPosition -> ContPosition
-addPos (x1, y1) (x2, y2) = (x1+x2, y1+y2)
-
-subPos :: ContPosition -> ContPosition -> ContPosition
-subPos (x1, y1) (x2, y2) = (x1-x2, y1-y2)
-
-posDir :: ContPosition -> ContPosition -> ContPosition
-posDir (x1, y1) (x2, y2) = (x2-x1, y2-y1)
-
-vecLen :: ContPosition -> Double
-vecLen (x, y) = sqrt( x * x + y * y )
-
-vecNorm :: ContPosition -> ContPosition
-vecNorm (x, y)
-    | len == 0 = (0, 0)
-    | otherwise = (x / len, y / len)
-    where
-        len = vecLen (x, y)
-
-clip :: ContPosition -> ContPosition
-clip (x, y) = (clippedX, clippedY)
-    where
-        clippedX = max (-1.0) (min x 1.0)
-        clippedY = max (-1.0) (min y 1.0)
-
-wrap :: ContPosition -> ContPosition
-wrap (x, y) = (wrappedX, wrappedY)
-    where
-        wrappedX = wrapValue x
-        wrappedY = wrapValue y
-
-wrapValue :: Double -> Double
-wrapValue v
-    | v > 1.0 = -1.0
-    | v < -1.0 = 1.0
-    | otherwise = v
-
-worldTransform :: HACWorldType -> (ContPosition -> ContPosition)
-worldTransform wt
-    | wt == Border = clip
-    | wt == Wraping = wrap
-    | otherwise = id
--------------------------------------------------------------------------------
-
--------------------------------------------------------------------------------
 -- Monadic implementation
 -------------------------------------------------------------------------------
-decidePosition :: ContPosition -> ContPosition -> HACRole -> ContPosition
-decidePosition friendPos enemyPos role
+decidePosition :: Continuous2DCoord -> Continuous2DCoord -> HACRole -> Continuous2DCoord
+decidePosition friendCoord enemyCoord role
     | Hero == role = coverPosition
     | otherwise = hidePosition
     where
-        enemyFriendDir = posDir friendPos enemyPos
-        halfPos = multPos enemyFriendDir 0.5
-        coverPosition = addPos friendPos halfPos
-        hidePosition = subPos friendPos halfPos
+        enemyFriendVec = vecFromCoord friendCoord enemyCoord
+        halfVec = multCoord 0.5 enemyFriendVec 
+        coverPosition = addCoord friendCoord halfVec
+        hidePosition = subCoord friendCoord halfVec
 
-agentMove :: HACRole -> State HACAgentOut ()
-agentMove role = 
+agentMove :: HACEnvironment -> HACRole -> State HACAgentOut ()
+agentMove e role = 
     do
-        pos <- domainStateFieldM hacPos
-        friendPos <- domainStateFieldM hacFriendPos
-        enemyPos <- domainStateFieldM hacEnemyPos
+        coord <- domainStateFieldM hacCoord
+        friendCoord <- domainStateFieldM hacFriendCoord
+        enemyCoord <- domainStateFieldM hacEnemyCoord
 
-        let target = decidePosition friendPos enemyPos role
-        let targetDir = vecNorm $ posDir pos target
+        let target = decidePosition friendCoord enemyCoord role
+        let targetDir = vecNorm $ vecFromCoord coord target
 
         let dt = 1.0 -- TODO: can we obtain it somehow?
         let stepWidth = stepWidthPerTimeUnit * dt
-        let newPos = worldTransform Border $ addPos pos (multPos targetDir stepWidth)
+        let newPos = addCoord coord (multCoord stepWidth targetDir)
+        let newPosWrapped = wrapCont2DEnv e newPos
 
-        updateDomainStateM (\s -> s { hacPos = newPos })
+        updateDomainStateM (\s -> s { hacCoord = newPosWrapped })
 
-hacAgent :: HACRole -> Double -> HACAgentIn -> State HACAgentOut ()
-hacAgent role _ ain = 
+hacAgent :: HACRole -> HACAgentBehaviourReadEnv
+hacAgent role e _ ain = 
     do
         onMessageMState handlePositionUpdate ain
-        agentMove role
+        agentMove e role
         onMessageMState handlePositionRequest ain
-
-        aids <- agentNeighbourNodesM
-        broadcastMessageM PositionRequest aids
+        broadcastCurrentPosition
 
 handlePositionUpdate :: AgentMessage HACMsg -> State HACAgentOut ()
-handlePositionUpdate (senderId, PositionUpdate pos) =
+handlePositionUpdate (senderId, PositionUpdate coord) =
     do
         friend <- domainStateFieldM hacFriend
         enemy <- domainStateFieldM hacEnemy
-        when (senderId == friend) (updateDomainStateM (\s -> s { hacFriendPos = pos }))
-        when (senderId == enemy) (updateDomainStateM (\s -> s { hacEnemyPos = pos }))
+        when (senderId == friend) (updateDomainStateM (\s -> s { hacFriendCoord = coord }))
+        when (senderId == enemy) (updateDomainStateM (\s -> s { hacEnemyCoord = coord }))
 handlePositionUpdate _ = return ()
-
 
 handlePositionRequest :: AgentMessage HACMsg -> State HACAgentOut () 
 handlePositionRequest (senderId, PositionRequest) = 
     do
-        pos <- domainStateFieldM hacPos
-        sendMessageM (senderId, PositionUpdate pos)
+        coord <- domainStateFieldM hacCoord
+        sendMessageM (senderId, PositionUpdate coord)
 handlePositionRequest _ = return ()
 
+broadcastCurrentPosition :: State HACAgentOut () 
+broadcastCurrentPosition = 
+    do
+        friend <- domainStateFieldM hacFriend
+        enemy <- domainStateFieldM hacEnemy
+        broadcastMessageM PositionRequest [friend, enemy]
+
 heroesCowardsAgentBehaviour :: HACRole -> HACAgentBehaviour
-heroesCowardsAgentBehaviour role = agentMonadic (hacAgent role)
+heroesCowardsAgentBehaviour role = agentMonadicReadEnv (hacAgent role)
 -------------------------------------------------------------------------------

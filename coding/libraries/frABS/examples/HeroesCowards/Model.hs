@@ -2,11 +2,7 @@ module HeroesCowards.Model (
     HACRole (..),
     HACMsg (..),
     HACAgentState (..),
-
-    ContPosition,
-
-    HACEnvLink,
-    HACEnvCell,
+    
     HACEnvironment,
 
     HACAgentDef,
@@ -14,6 +10,8 @@ module HeroesCowards.Model (
     HACAgentIn,
     HACAgentOut,
 
+    HACAgentBehaviourReadEnv,
+    
     stepWidthPerTimeUnit
   ) where
 
@@ -23,26 +21,27 @@ import FRP.FrABS
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
 data HACRole = Hero | Coward deriving (Eq, Show)
-type ContPosition = (Double, Double)
-data HACMsg = PositionRequest | PositionUpdate ContPosition deriving (Eq, Show)
+data HACMsg = PositionRequest | PositionUpdate Continuous2DCoord deriving (Eq, Show)
 
 data HACAgentState = HACAgentState {
     hacRole :: HACRole,
-    hacPos :: ContPosition,
-    hacFriendPos :: ContPosition,
-    hacEnemyPos :: ContPosition,
+    hacCoord :: Continuous2DCoord,
+
+    hacFriendCoord :: Continuous2DCoord,
+    hacEnemyCoord :: Continuous2DCoord,
+
     hacFriend :: AgentId,
     hacEnemy :: AgentId
 }
 
-type HACEnvLink = ()
-type HACEnvCell = ()
-type HACEnvironment = Environment HACEnvCell HACEnvLink
+type HACEnvironment = Continuous2d
 
-type HACAgentDef = AgentDef HACAgentState HACMsg HACEnvCell HACEnvLink
-type HACAgentBehaviour = AgentBehaviour HACAgentState HACMsg HACEnvCell HACEnvLink
-type HACAgentIn = AgentIn HACAgentState HACMsg HACEnvCell HACEnvLink
-type HACAgentOut = AgentOut HACAgentState HACMsg HACEnvCell HACEnvLink
+type HACAgentDef = AgentDef HACAgentState HACMsg HACEnvironment
+type HACAgentBehaviour = AgentBehaviour HACAgentState HACMsg HACEnvironment
+type HACAgentIn = AgentIn HACAgentState HACMsg HACEnvironment
+type HACAgentOut = AgentOut HACAgentState HACMsg HACEnvironment 
+
+type HACAgentBehaviourReadEnv = AgentMonadicBehaviourReadEnv HACAgentState HACMsg HACEnvironment 
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

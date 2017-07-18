@@ -12,7 +12,15 @@ module FRP.FrABS.Environment.Continuous (
     distanceManhattanCont2D,
     distanceEuclideanCont2D,
 
-    wrapCont2D
+    wrapCont2D,
+    wrapCont2DEnv,
+
+    multCoord,
+    addCoord,
+    subCoord,
+    vecFromCoord,
+    vecLen,
+    vecNorm
   ) where
 
 import FRP.FrABS.Environment.Spatial
@@ -31,8 +39,7 @@ type Continuous2DCoord = Continuous2DDimension
 
 data Continuous2d = Continuous2d {
     envCont2dDims :: Continuous2DDimension,
-    envCont2dWrapping :: EnvironmentWrapping,
-    envCont2dRng :: StdGen
+    envCont2dWrapping :: EnvironmentWrapping
 }
 
 {-
@@ -46,13 +53,10 @@ data Continuous2dNetwork l = Continuous2dNetwork {
 
 createContinuous2d :: Continuous2DDimension
                         -> EnvironmentWrapping
-                        -> StdGen
                         -> Continuous2d
-createContinuous2d d w rng = Continuous2d {
-                                envCont2dDims = d,
-                                envCont2dWrapping = w,
-                                envCont2dRng = rng
-                            }
+createContinuous2d d w = Continuous2d {
+                            envCont2dDims = d,
+                            envCont2dWrapping = w }
 
 environmentDimensionsCont2D :: Continuous2d -> Continuous2DCoord
 environmentDimensionsCont2D e = envCont2dDims e
@@ -65,6 +69,34 @@ distanceEuclideanCont2D (x1, y1) (x2, y2) = sqrt (xDelta*xDelta + yDelta*yDelta)
     where
         xDelta = x2 - x1
         yDelta = y2 - y1
+
+multCoord :: Double -> Continuous2DCoord -> Continuous2DCoord
+multCoord s (x, y) = (x*s, y*s)
+
+addCoord :: Continuous2DCoord -> Continuous2DCoord -> Continuous2DCoord
+addCoord (x1, y1) (x2, y2) = (x1+x2, y1+y2)
+
+subCoord :: Continuous2DCoord -> Continuous2DCoord -> Continuous2DCoord
+subCoord (x1, y1) (x2, y2) = (x1-x2, y1-y2)
+
+vecFromCoord :: Continuous2DCoord -> Continuous2DCoord -> Continuous2DCoord
+vecFromCoord (x1, y1) (x2, y2) = (x2-x1, y2-y1)
+
+vecLen :: Continuous2DCoord -> Double
+vecLen (x, y) = sqrt( x * x + y * y )
+
+vecNorm :: Continuous2DCoord -> Continuous2DCoord
+vecNorm (x, y)
+    | len == 0 = (0, 0)
+    | otherwise = (x / len, y / len)
+    where
+        len = vecLen (x, y)
+
+wrapCont2DEnv :: Continuous2d -> Continuous2DCoord -> Continuous2DCoord
+wrapCont2DEnv e c = wrapCont2D d w c
+    where
+        d = envCont2dDims e
+        w = envCont2dWrapping e
 
 wrapCont2D :: Continuous2DDimension -> EnvironmentWrapping -> Continuous2DCoord -> Continuous2DCoord
 wrapCont2D (maxX, maxY) ClipToMax (x, y) = (max 0 (min x maxX), max 0 (min y maxY))

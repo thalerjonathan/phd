@@ -9,12 +9,12 @@ import FRP.FrABS
 import qualified Graphics.Gloss as GLO
 
 type FrSIRSSpatialRenderFrame = RenderFrame FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
-type FrSIRSSpatialAgentColorer = AgentCellColorer FrSIRSSpatialAgentState
+type FrSIRSSpatialAgentColorer = AgentCellColorerDisc2d FrSIRSSpatialAgentState
 
 renderFrSIRSSpatialFrame :: FrSIRSSpatialRenderFrame
-renderFrSIRSSpatialFrame = render2dDiscreteFrame 
-                                (defaultAgentRenderer frSIRSSpatialAgentColor sirsCoord)
-                                voidEnvironmentRenderer
+renderFrSIRSSpatialFrame = renderFrameDisc2d 
+                                (defaultAgentRendererDisc2d frSIRSSpatialAgentColor sirsCoord)
+                                voidEnvRendererDisc2d
 
 frSIRSSpatialAgentColor :: FrSIRSSpatialAgentColorer
 frSIRSSpatialAgentColor FrSIRSSpatialAgentState { sirsState = state } = frSIRSSpatialAgentColorAux state

@@ -19,21 +19,15 @@ createHeroesCowards agentCount =
     do
         rng <- newStdGen
         gr <- buildGraph agentCount
-        let aids = nodesOfNetwork gr
+        let aids = nodes gr
 
         adefs <- mapM (randomHACDev gr) aids
 
-        let env = createEnvironment
-                        Nothing
-                        (0, 0)
-                        moore
-                        ClipToMax
-                        []
-                        rng
-                        (Just gr)
+        let e = createContinuous2d (1.0, 1.0) ClipToMax
 
-        return (adefs, env)
+        return (adefs, e)
 
+-- TODO: put this into network as: HeroesCowardsGraph: has n nodes where each node is randomly connected to m other nodes
 buildGraph :: Int -> IO (Gr () ())
 buildGraph agentCount = 
     do
@@ -85,9 +79,9 @@ randomHACDev gr agentId =
 
         let hacAgentState = HACAgentState {
             hacRole = randRole,
-            hacPos = (randX, randY),
-            hacFriendPos = (0.0, 0.0),
-            hacEnemyPos = (0.0, 0.0),
+            hacCoord = (randX, randY),
+            hacFriendCoord = (0.0, 0.0),
+            hacEnemyCoord = (0.0, 0.0),
             hacFriend = friend,
             hacEnemy = enemy
         }
@@ -95,7 +89,6 @@ randomHACDev gr agentId =
         return AgentDef {
             adId = agentId,
             adState = hacAgentState,
-            adEnvPos = (0, 0),
             adConversation = Nothing,
             adInitMessages = NoEvent,
             adBeh = heroesCowardsAgentBehaviour randRole,

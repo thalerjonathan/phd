@@ -9,12 +9,12 @@ import FRP.FrABS
 import qualified Graphics.Gloss as GLO
 
 type SIRSRenderFrame = RenderFrame SIRSAgentState SIRSMsg SIRSEnvironment
-type SIRSAgentColorer = AgentCellColorer SIRSAgentState
+type SIRSAgentColorer = AgentCellColorerDisc2d SIRSAgentState
 
 renderSIRSFrame :: SIRSRenderFrame
-renderSIRSFrame = render2dDiscreteFrame 
-                    (defaultAgentRenderer sirsAgentColor sirsCoord)
-                    voidEnvironmentRenderer
+renderSIRSFrame = renderFrameDisc2d 
+                    (defaultAgentRendererDisc2d sirsAgentColor sirsCoord)
+                    voidEnvRendererDisc2d
 
 sirsAgentColor :: SIRSAgentColorer
 sirsAgentColor SIRSAgentState {sirsState = state} = sirsAgentColorAux state

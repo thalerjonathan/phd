@@ -15,9 +15,7 @@ module FRP.FrABS (
     kill,
     isDead,
 
-    -- createStartingAgentIn,
     agentOutFromIn,
-    -- startingAgentInFromAgentDef,
 
     sendMessage,
     sendMessages,
@@ -46,19 +44,12 @@ module FRP.FrABS (
     unrecursive,
     isRecursive,
 
-    -- mergeMessages,
-
     agentPure,
     agentPureReadEnv,
     agentPureIgnoreEnv,
     AgentPureBehaviour,
     AgentPureBehaviourReadEnv,
     AgentPureBehaviourNoEnv,
-    
-    -- agentIdM,
-    -- environmentM,
-    -- environmentPositionM,
-    -- changeEnvironmentPositionM,
 
     createAgentM,
     killM,
@@ -79,8 +70,6 @@ module FRP.FrABS (
     getDomainStateM,
     setDomainStateM,
     domainStateFieldM,
-
-    -- runEnvironmentM,
 
     agentMonadic,
     agentMonadicReadEnv,
@@ -227,6 +216,14 @@ module FRP.FrABS (
     distanceEuclideanCont2D,
 
     wrapCont2D,
+    wrapCont2DEnv,
+    
+    multCoord,
+    addCoord,
+    subCoord,
+    vecFromCoord,
+    vecLen,
+    vecNorm,
 
     simulateAndRender,
     simulateStepsAndRender,
@@ -256,20 +253,34 @@ module FRP.FrABS (
     processSteps,
 
     AgentRendererDisc2d,
-    AgentCellColorer,
+    AgentCellColorerDisc2d,
     AgentCoordDisc2d,
-    EnvDisc2dRenderer,
-    EnvDisc2dCellColorer,
+    EnvRendererDisc2d,
+    EnvCellColorerDisc2d,
 
-    render2dDiscreteFrame,
+    renderFrameDisc2d,
 
-    defaultEnvironmentRenderer,
-    defaultEnvironmentColorer,
-    voidEnvironmentRenderer,
+    defaultEnvRendererDisc2d,
+    defaultEnvColorerDisc2d,
+    voidEnvRendererDisc2d,
 
-    defaultAgentRenderer,
-    defaultAgentColorer,
-    voidAgentRenderer
+    defaultAgentRendererDisc2d,
+    defaultAgentColorerDisc2d,
+    voidAgentRendererDisc2d,
+
+    AgentRendererCont2d,
+    AgentColorerCont2d,
+    AgentCoordCont2d,
+    EnvRendererCont2d,
+
+    renderFrameCont2d,
+
+    defaultEnvRendererCont2d,
+    voidEnvRendererCont2d,
+
+    defaultAgentRendererCont2d,
+    defaultAgentColorerCont2d,
+    voidAgentRendererCont2d
   ) where
 
 import FRP.FrABS.Agent.Agent
@@ -288,15 +299,13 @@ import FRP.FrABS.Simulation.Replication
 import FRP.FrABS.Simulation.ParIteration      
 import FRP.FrABS.Simulation.SeqIteration 
 import FRP.FrABS.Simulation.Internal
-import FRP.FrABS.Rendering.Discrete2D
+import FRP.FrABS.Rendering.Discrete2d
+import FRP.FrABS.Rendering.Continuous2d
 import FRP.FrABS.Rendering.GlossSimulator
 
 ------------------------------------------------------------------------------------------------------------------------
 -- TODOs
 ------------------------------------------------------------------------------------------------------------------------
--- study arrowized programming (papers): how can dt disappear ? can we ommit arguments which are implicitly there?
--- develop arrowized EDSL for ABS: timeout transitions, rate transitions, sending messages after, repeatedly send message in interval, occasionally send message
-
 -- TODO create project structure according to put it on Hackage in september: tests, comments,...
 -- TODO write unit-tests
 -- TODO write QuickCheck tests

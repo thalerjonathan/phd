@@ -70,12 +70,15 @@ randomHACDev gr agentId =
         rng <- newStdGen
 
         randHero <- randomIO :: IO Bool
+        randHeroThresh <- randomRIO (0.0, 1.0) :: IO Double
+
         randX <- randomRIO (0.0, 1.0)
         randY <- randomRIO (0.0, 1.0)
 
         let (friend : enemy : _) = map snd (lneighbors gr agentId)
 
-        let randRole = if randHero then Hero else Coward
+        --let randRole = if randHero then Hero else Coward
+        let randRole = if randHeroThresh <= 0.25 then Hero else Coward
 
         let hacAgentState = HACAgentState {
             hacRole = randRole,

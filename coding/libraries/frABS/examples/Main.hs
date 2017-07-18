@@ -8,6 +8,7 @@ import           PrisonersDilemma.Run
 import           RecursiveABS.Run
 import           Segregation.Run
 import           SIRS.Run
+import           SugarScape.Run
 import           SysDynSIR.Run
 import           Wildfire.Run
 
@@ -15,7 +16,7 @@ import           Wildfire.Run
 import           AgentZero.Run
 import           FrSIRSNetwork.Run
 import           PolicyEffects.Run
-import           SugarScape.Run
+
 -}
 
 {-

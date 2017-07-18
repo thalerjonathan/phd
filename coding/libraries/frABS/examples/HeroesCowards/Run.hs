@@ -14,7 +14,7 @@ frequency = 0
 updateStrat = Parallel
 shuffleAgents = False
 rngSeed = 42
-agentCount = 10000
+agentCount = 100000
 samplingTimeDelta = 1.0
 
 runHeroesCowardsWithRendering :: IO ()

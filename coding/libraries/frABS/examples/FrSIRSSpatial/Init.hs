@@ -12,7 +12,7 @@ import FRP.FrABS
 
 import System.Random
 
-createFrSIRSSpatialRandomInfected :: (Int, Int) 
+createFrSIRSSpatialRandomInfected :: Discrete2dDimension
                                         -> Double 
                                         -> IO ([FrSIRSSpatialAgentDef], FrSIRSSpatialEnvironment)
 createFrSIRSSpatialRandomInfected dims@(maxX, maxY) p =  
@@ -26,18 +26,16 @@ createFrSIRSSpatialRandomInfected dims@(maxX, maxY) p =
 
         adefs <- mapM (randomFrSIRSAgent p) cells
 
-        let env = createEnvironment
-                        Nothing
+        let e = createDiscrete2d
                         dims
                         neumann -- moore
                         ClipToMax
                         cells
                         rng
-                        Nothing
 
-        return (adefs, env)
+        return (adefs, e)
 
-createFrSIRSSpatialSingleInfected :: (Int, Int) -> IO ([FrSIRSSpatialAgentDef], FrSIRSSpatialEnvironment)
+createFrSIRSSpatialSingleInfected :: Discrete2dDimension -> IO ([FrSIRSSpatialAgentDef], FrSIRSSpatialEnvironment)
 createFrSIRSSpatialSingleInfected dims@(maxX, maxY) =  
     do
         rng <- newStdGen
@@ -52,38 +50,40 @@ createFrSIRSSpatialSingleInfected dims@(maxX, maxY) =
 
         adefs <- mapM (susceptibleFrSIRSAgent (centerX, centerY)) cells
 
-        let env = createEnvironment
-                        Nothing
+        let e = createDiscrete2d
                         dims
                         neumann -- moore
                         ClipToMax
                         cells
                         rng
-                        Nothing
 
-        return (adefs, env)
+        return (adefs, e)
 
-susceptibleFrSIRSAgent :: (Int, Int)
-                            -> (EnvCoord, AgentId)
+susceptibleFrSIRSAgent :: Discrete2dCoord
+                            -> (Discrete2dCoord, AgentId)
                             -> IO FrSIRSSpatialAgentDef
-susceptibleFrSIRSAgent center (pos, agentId) = 
+susceptibleFrSIRSAgent center (coord, agentId) = 
     do
         rng <- newStdGen
 
-        let state = if center == pos then Infected else Susceptible
+        let initS = if center == coord then Infected else Susceptible
+
+        let s = FrSIRSSpatialAgentState {
+            sirsState = initS,
+            sirsCoord = coord
+        }
 
         return AgentDef { adId = agentId,
-                            adState = state,
-                            adBeh = sirsAgentBehaviour rng state,
+                            adState = s,
+                            adBeh = sirsAgentBehaviour rng initS,
                             adInitMessages = NoEvent,
                             adConversation = Nothing,
-                            adEnvPos = pos,
                             adRng = rng }
 
 randomFrSIRSAgent :: Double
-                    -> (EnvCoord, AgentId)
+                    -> (Discrete2dCoord, AgentId)
                     -> IO FrSIRSSpatialAgentDef
-randomFrSIRSAgent p (pos, agentId) = 
+randomFrSIRSAgent p (coord, agentId) = 
     do
         rng <- newStdGen
         r <- getStdRandom (randomR(0.0, 1.0))
@@ -91,11 +91,15 @@ randomFrSIRSAgent p (pos, agentId) =
         let isInfected = r <= p
         let initS = if isInfected then Infected else Susceptible
 
+        let s = FrSIRSSpatialAgentState {
+            sirsState = initS,
+            sirsCoord = coord
+        }
+
         return AgentDef { adId = agentId,
-                            adState = initS,
+                            adState = s,
                             adBeh = sirsAgentBehaviourRandInfected rng initS,
                             adInitMessages = NoEvent,
                             adConversation = Nothing,
-                            adEnvPos = pos,
                             adRng = rng }
 ------------------------------------------------------------------------------------------------------------------------

@@ -19,7 +19,8 @@ import           SugarScape.Run
 -}
 
 {-
-    TODOs   
+    TODOs
+    - GlossSimulator: pass Background-color and Circle/Rectangle as additional parameters (use currying)
     - clean-up
         - imports: no unused imports
         - lint: must be clear of warnings

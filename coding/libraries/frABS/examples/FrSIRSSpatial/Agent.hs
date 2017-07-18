@@ -24,10 +24,10 @@ respondToContactWith state ain ao = onMessage respondToContactWithAux ain ao
 gotInfected :: FrSIRSSpatialAgentIn -> Rand StdGen Bool
 gotInfected ain = onMessageM gotInfectedAux ain False
     where
-        gotInfectedAux :: AgentMessage FrSIRSSpatialMsg -> Bool -> Rand StdGen Bool
-        gotInfectedAux (_, Contact Infected) False = drawRandomBoolM infectivity
-        gotInfectedAux _ False = return False
-        gotInfectedAux _ True = return True
+        gotInfectedAux :: Bool -> AgentMessage FrSIRSSpatialMsg -> Rand StdGen Bool
+        gotInfectedAux False (_, Contact Infected) = drawRandomBoolM infectivity
+        gotInfectedAux False _ = return False
+        gotInfectedAux True _ = return True
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -48,15 +48,15 @@ sirsAgentInfectedEvent = proc (ain, ao) ->
         returnA -< (ao', infectionEvent)
 
 sirsAgentSusceptibleBehaviour :: RandomGen g => g -> FrSIRSSpatialAgentBehaviour
-sirsAgentSusceptibleBehaviour g = proc ain ->
+sirsAgentSusceptibleBehaviour g = proc (ain, e) ->
     do
         let ao = agentOutFromIn ain
-        ao0 <- doOnce (setDomainState Susceptible) -< ao
+        ao0 <- doOnce (updateDomainState (\s -> s { sirsState = Susceptible})) -< ao
         ao1 <- sendMessageOccasionallySrc 
                     g 
                     (1 / contactRate) 
-                    (randomNeighbourCellMsgSource (Contact Susceptible)) -< ao0
-        returnA -< ao1
+                    (randomNeighbourCellMsgSource sirsCoord (Contact Susceptible)) -< (ao0, e)
+        returnA -< (ao1, e)
 
 -- INFECTED
 sirsAgentInfected :: RandomGen g => g -> Double -> FrSIRSSpatialAgentBehaviour
@@ -66,18 +66,18 @@ sirsAgentInfected g duration = transitionAfter
                                     (sirsAgentRecovered g)
 
 sirsAgentInfectedBehaviour :: RandomGen g => g -> FrSIRSSpatialAgentBehaviour
-sirsAgentInfectedBehaviour g = proc ain ->
+sirsAgentInfectedBehaviour g = proc (ain, e) ->
     do
         let ao = agentOutFromIn ain
         let ao0 = respondToContactWith Infected ain ao
 
-        ao1 <- doOnce (setDomainState Infected) -< ao0
+        ao1 <- doOnce (updateDomainState (\s -> s { sirsState = Infected})) -< ao0
         ao2 <- sendMessageOccasionallySrc 
                     g 
                     (1 / contactRate) 
-                    (randomNeighbourCellMsgSource (Contact Infected)) -< ao1
+                    (randomNeighbourCellMsgSource sirsCoord (Contact Infected)) -< (ao1, e)
 
-        returnA -< ao2
+        returnA -< (ao2, e)
 
 -- RECOVERED
 sirsAgentRecovered :: RandomGen g => g -> FrSIRSSpatialAgentBehaviour
@@ -87,11 +87,11 @@ sirsAgentRecovered g = transitionAfter
                             (sirsAgentSuceptible g)
 
 sirsAgentRecoveredBehaviour :: FrSIRSSpatialAgentBehaviour
-sirsAgentRecoveredBehaviour = proc ain ->
+sirsAgentRecoveredBehaviour = proc (ain, e) ->
     do
         let ao = agentOutFromIn ain
-        ao' <- doOnce (setDomainState Recovered) -< ao
-        returnA -< ao'
+        ao' <- doOnce (updateDomainState (\s -> s { sirsState = Recovered})) -< ao
+        returnA -< (ao', e)
 
 -- INITIAL CASES
 sirsAgentBehaviour :: RandomGen g => g -> SIRSState -> FrSIRSSpatialAgentBehaviour

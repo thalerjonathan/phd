@@ -35,7 +35,7 @@ replCfg = ReplicationConfig {
 runFrSIRSSpatialWithRendering :: IO ()
 runFrSIRSSpatialWithRendering =
     do
-        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
 
         -- (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
         (initAdefs, initEnv) <- createFrSIRSSpatialSingleInfected agentDimensions
@@ -53,7 +53,7 @@ runFrSIRSSpatialWithRendering =
 runFrSIRSSpatialStepsAndRender :: IO ()
 runFrSIRSSpatialStepsAndRender =
     do
-        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
 
         -- (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
         (initAdefs, initEnv) <- createFrSIRSSpatialSingleInfected agentDimensions
@@ -70,7 +70,7 @@ runFrSIRSSpatialStepsAndRender =
 runFrSIRSSpatialStepsAndWriteToFile :: IO ()
 runFrSIRSSpatialStepsAndWriteToFile =
     do
-        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
 
         -- (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
         (initAdefs, initEnv) <- createFrSIRSSpatialSingleInfected agentDimensions
@@ -87,7 +87,7 @@ runFrSIRSSpatialStepsAndWriteToFile =
 runFrSIRSSpatialReplicationsAndWriteToFile :: IO ()
 runFrSIRSSpatialReplicationsAndWriteToFile =
     do
-        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
 
         -- (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
         (initAdefs, initEnv) <- createFrSIRSSpatialSingleInfected agentDimensions
@@ -113,9 +113,9 @@ printAgentDynamics = (putStrLn . sirsDynamicToString . agentsToDynamics)
 calculateDynamics :: [FrSIRSSpatialAgentOut] -> (Double, Double, Double)
 calculateDynamics aos = (susceptibleCount, infectedCount, recoveredCount)
     where
-        susceptibleCount = fromIntegral $ length $ filter ((Susceptible==) . aoState) aos
-        infectedCount = fromIntegral $ length $ filter ((Infected==) . aoState) aos
-        recoveredCount = fromIntegral $ length $ filter ((Recovered==) . aoState) aos
+        susceptibleCount = fromIntegral $ length $ filter ((Susceptible==) . sirsState . aoState) aos
+        infectedCount = fromIntegral $ length $ filter ((Infected==) . sirsState . aoState) aos
+        recoveredCount = fromIntegral $ length $ filter ((Recovered==) . sirsState . aoState) aos
 
         totalCount = susceptibleCount + infectedCount + recoveredCount
 

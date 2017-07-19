@@ -28,18 +28,6 @@ import Data.List
 import Data.Graph.Inductive.Graph
 import Data.Graph.Inductive.PatriciaTree
 
-{-
-class EnvNet e where
-    nodesOfNetwork :: e -> [AgentId]
-    networkDegrees :: e -> [(AgentId, Int)]
-    neighbourEdges :: AgentId -> e ->  [l]
-    neighbourNodes :: AgentId -> e -> [AgentId]
-    neighbourNodesM :: AgentId -> State e [AgentId]
-    neighbourLinks :: AgentId -> e -> Adj l
-    directLinkBetween :: AgentId -> AgentId -> e -> Maybe l
-    directLinkBetweenM :: AgentId -> AgentId -> State e (Maybe l)
--}
-
 type EdgeLabeler l = (AgentId -> AgentId -> l)
 
 data NetworkType = Complete Int | ErdosRenyi Int Double | BarbasiAlbert Int Int Int

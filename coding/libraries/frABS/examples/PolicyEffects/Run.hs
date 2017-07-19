@@ -22,14 +22,13 @@ shuffleAgents = False
 
 rngSeed = 42
 
-agentDimensions = (10, 10)
-agentCount = fst agentDimensions * snd agentDimensions
+agentCount = 100 :: Int
 
 initialWealth :: Double
 initialWealth = 100
 
 samplingTimeDelta = 1.0
-steps = 5000
+steps = 500
 
 completeNetwork = Complete agentCount
 erdosRenyiNetwork = ErdosRenyi agentCount 0.2
@@ -42,14 +41,14 @@ network = erdosRenyiNetwork
 replCfg = ReplicationConfig {
     replCfgCount = 4,
     replCfgAgentReplicator = defaultAgentReplicator,
-    replCfgEnvReplicator = (policyEffectsEnvReplicator agentDimensions network)
+    replCfgEnvReplicator = policyEffectsEnvReplicator network
 }
 
 runPolicyEffectsWithRendering :: IO ()
 runPolicyEffectsWithRendering =
     do
-        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
-        (initAdefs, initEnv) <- createPolicyEffects agentDimensions initialWealth network
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
+        (initAdefs, initEnv) <- createPolicyEffects initialWealth network
         
         simulateAndRender initAdefs
                             initEnv
@@ -64,18 +63,18 @@ runPolicyEffectsWithRendering =
 runPolicyEffectsStepsAndWriteToFile :: IO ()
 runPolicyEffectsStepsAndWriteToFile =
     do
-        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
-        (initAdefs, initEnv) <- createPolicyEffects agentDimensions initialWealth network
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
+        (initAdefs, initEnv) <- createPolicyEffects initialWealth network
 
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
         let dynamics = map (calculateDynamics . fst) asenv
         let dynamicsFileName = "policyEffectsDynamics_" 
-                                ++ show agentDimensions ++ "agents_" 
+                                ++ show agentCount ++ "agents_" 
                                 ++ show steps ++ "steps.m" 
 
         let finalAgents = (fst . last) asenv
         let histFileName = "policyEffectsHistogram_" 
-                                ++ show agentDimensions ++ "agents_" 
+                                ++ show agentCount ++ "agents_" 
                                 ++ show steps ++ "steps.m" 
 
         writeDynamicsFile dynamicsFileName steps 0 dynamics
@@ -84,15 +83,15 @@ runPolicyEffectsStepsAndWriteToFile =
 runPolicyEffectsReplicationsAndWriteToFile :: IO ()
 runPolicyEffectsReplicationsAndWriteToFile =
     do
-        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
-        (initAdefs, initEnv) <- createPolicyEffects agentDimensions initialWealth network
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
+        (initAdefs, initEnv) <- createPolicyEffects initialWealth network
 
         let assenv = runReplications initAdefs initEnv params samplingTimeDelta steps replCfg
         let replicationDynamics = map calculateSingleReplicationDynamic assenv
         let dynamics = dynamicsReplMean replicationDynamics
 
         let fileName = "policyEffectsDynamics_" 
-                        ++ show agentDimensions ++ "agents_" 
+                        ++ show agentCount ++ "agents_" 
                         ++ show steps ++ "steps_" 
                         ++ show (replCfgCount replCfg) ++ "replications.m"
 

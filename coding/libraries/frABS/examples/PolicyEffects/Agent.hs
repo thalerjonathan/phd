@@ -15,23 +15,25 @@ receive ain = onMessageMState receiveHandler ain
         receiveHandler :: (AgentMessage PolicyEffectsMsg) -> State PolicyEffectsAgentOut ()
         receiveHandler (_, Spend amount) = updateDomainStateM (\s -> s + amount)
 
-spend :: Double -> State PolicyEffectsAgentOut ()
-spend amount = 
+spend :: PolicyEffectsEnvironment -> Double -> State PolicyEffectsAgentOut ()
+spend e amount = 
     do
         wealth <- getDomainStateM
-        when (wealth >= amount) (do
-                randNeighbour <- pickRandomNeighbourNodeM
+        when (wealth >= amount) 
+            (do
+                randNeighbour <- agentRandomNeighbourNode e
                 sendMessageM (randNeighbour, Spend amount)
                 setDomainStateM $ wealth - amount)
 
-policyEffectsAgentBehaviourM :: Double 
+policyEffectsAgentBehaviourM :: PolicyEffectsEnvironment
+                                -> Double 
                                 -> PolicyEffectsAgentIn 
                                 -> State PolicyEffectsAgentOut ()
-policyEffectsAgentBehaviourM _ ain = 
+policyEffectsAgentBehaviourM e _ ain = 
     do
         receive ain
-        spend 1
+        spend e 1
 
 policyEffectsAgentBehaviour :: PolicyEffectsAgentBehaviour
-policyEffectsAgentBehaviour = agentMonadic policyEffectsAgentBehaviourM
+policyEffectsAgentBehaviour = agentMonadicReadEnv policyEffectsAgentBehaviourM
 ------------------------------------------------------------------------------------------------------------------------

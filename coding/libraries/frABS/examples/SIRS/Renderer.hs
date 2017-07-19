@@ -8,7 +8,7 @@ import FRP.FrABS
 
 import qualified Graphics.Gloss as GLO
 
-type SIRSRenderFrame = RenderFrame SIRSAgentState SIRSMsg SIRSEnvironment
+type SIRSRenderFrame = RenderFrame SIRSAgentState SIRSEnvironment
 type SIRSAgentColorer = AgentCellColorerDisc2d SIRSAgentState
 
 renderSIRSFrame :: SIRSRenderFrame

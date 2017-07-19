@@ -14,54 +14,35 @@ import FRP.FrABS
 import System.Random
 import Control.Monad.Random
 
-createPolicyEffects :: (Int, Int) 
-                        -> Double 
+createPolicyEffects :: Double 
                         -> NetworkType
                         -> IO ([PolicyEffectsAgentDef], PolicyEffectsEnvironment)
-createPolicyEffects dims@(maxX, maxY) initWealth network =  
+createPolicyEffects initWealth network =  
     do
-        rng <- newStdGen
-        env <- evalRandIO $ createRandEnvironment dims network
+        e <- evalRandIO $ createRandEnvironment network
 
-        let gr = envGraph env
-        let agentIds = nodesOfNetwork gr
-        adefs <- mapM (policyEffectsAgent initWealth) (zip coords agentIds)
+        let agentIds = nodesOfNetwork e
 
-        return (adefs, env)
+        adefs <- mapM (policyEffectsAgent initWealth) agentIds
 
-    where
-        coords = [ (x, y) | x <- [0..maxX - 1], y <- [0..maxY - 1]]
+        return (adefs, e)
 
 policyEffectsAgent :: Double
-                        -> (EnvCoord, AgentId)
+                        -> AgentId
                         -> IO PolicyEffectsAgentDef
-policyEffectsAgent initWealth (coord, agentId) = 
+policyEffectsAgent initWealth agentId = 
     do
         rng <- newStdGen
-
         return AgentDef { adId = agentId,
                             adState = initWealth,
                             adBeh = policyEffectsAgentBehaviour,
                             adInitMessages = NoEvent,
                             adConversation = Nothing,
-                            adEnvPos = coord,
                             adRng = rng }
 
-createRandEnvironment :: (Int, Int) -> NetworkType -> Rand StdGen PolicyEffectsEnvironment
-createRandEnvironment dims network =
-    do
-        rng <- getSplit
-        gr <- createAgentNetwork network
+createRandEnvironment :: NetworkType -> Rand StdGen PolicyEffectsEnvironment
+createRandEnvironment network = createNetwork network unitEdgeLabeler
 
-        return $ createEnvironment
-                        Nothing
-                        dims
-                        moore
-                        ClipToMax
-                        []
-                        rng
-                        (Just gr)
-
-policyEffectsEnvReplicator :: (Int, Int) -> NetworkType -> PolicyEffectsEnvironmentReplicator
-policyEffectsEnvReplicator dims network rng env = runRand (createRandEnvironment dims network) rng
+policyEffectsEnvReplicator :: NetworkType -> PolicyEffectsEnvironmentReplicator
+policyEffectsEnvReplicator network rng env = runRand (createRandEnvironment network) rng
 ------------------------------------------------------------------------------------------------------------------------

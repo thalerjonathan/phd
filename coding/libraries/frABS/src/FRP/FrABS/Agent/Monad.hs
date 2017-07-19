@@ -1,6 +1,6 @@
 {-# LANGUAGE Arrows #-}
 module FRP.FrABS.Agent.Monad (
-    -- agentIdM,
+    agentIdM,
     -- environmentM,
     -- environmentPositionM,
     -- changeEnvironmentPositionM,
@@ -53,10 +53,10 @@ type AgentMonadicBehaviourNoEnv s m e = (Double -> AgentIn s m e -> State (Agent
 ------------------------------------------------------------------------------------------------------------------------
 -- Monadic Agent Functions
 ------------------------------------------------------------------------------------------------------------------------
-{-
 agentIdM :: State (AgentOut s m e) AgentId
 agentIdM = state (\ao -> (aoId ao, ao))
 
+{-
 environmentM :: State (AgentOut s m e) e
 environmentM = state (\ao -> (aoEnv ao, ao))
 

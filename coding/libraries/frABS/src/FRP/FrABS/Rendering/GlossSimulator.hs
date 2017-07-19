@@ -18,10 +18,10 @@ import FRP.Yampa
 
 import Data.IORef
 
-type RenderFrame s m e = ((Int, Int) -> [AgentOut s m e] -> e -> GLO.Picture)
-type StepCallback s m e = (([AgentOut s m e], e) -> ([AgentOut s m e], e) -> IO ())
+type RenderFrame s e = ((Int, Int) -> [s] -> e -> GLO.Picture)
+type StepCallback s e = (([s], e) -> ([s], e) -> IO ())
 
-type RenderFrameInternal s m e = ([AgentOut s m e] -> e -> GLO.Picture)
+type RenderFrameInternal s e = ([s] -> e -> GLO.Picture)
 
 simulateAndRender :: [AgentDef s m e] 
 						-> e 
@@ -30,8 +30,8 @@ simulateAndRender :: [AgentDef s m e]
 						-> Int
 						-> String
 						-> (Int, Int)
-						-> RenderFrame s m e
-						-> Maybe (StepCallback s m e)
+						-> RenderFrame s e
+						-> Maybe (StepCallback s e)
 						-> IO ()
 simulateAndRender initAdefs 
 					  e 
@@ -72,7 +72,7 @@ simulateStepsAndRender :: [AgentDef s m e]
 							-> Int
 							-> String
 							-> (Int, Int)
-							-> RenderFrame s m e
+							-> RenderFrame s e
 							-> IO ()
 simulateStepsAndRender initAdefs 
 				       e 
@@ -85,22 +85,27 @@ simulateStepsAndRender initAdefs
 	do
 		let ass = processSteps initAdefs e params dt steps
 		let (finalAous, finalEnv) = last ass
-		let pic = renderFunc winSize finalAous finalEnv 
+		let ss = map aoState finalAous
+		let pic = renderFunc winSize ss finalEnv 
 
 		GLO.display (displayGlossWindow winTitle winSize)
 				GLO.black
 				pic
 
-nextIteration :: Maybe (StepCallback s m e)
+nextIteration :: Maybe (StepCallback s e)
 					-> IORef ([AgentOut s m e], e)
                     -> ReactHandle ([AgentIn s m e], e) ([AgentOut s m e], e)
 					-> Bool
 					-> ([AgentOut s m e], e)
 					-> IO Bool
-nextIteration (Just clbk) outRef _ _ curr = 
+nextIteration (Just clbk) outRef _ _ curr@(currAo, currEnv) = 
     do
-    	prev <- readIORef outRef
-    	clbk prev curr
+    	(prevAo, prevEnv) <- readIORef outRef
+
+    	let ssPrev = map aoState prevAo
+    	let ssCurr = map aoState currAo
+    	
+    	clbk (ssPrev, prevEnv) (ssCurr, currEnv)
         writeIORef outRef curr
         return False
 nextIteration Nothing outRef _ _ curr = writeIORef outRef curr >> return False
@@ -118,7 +123,7 @@ nextFrameSimulateWithTime dt hdl outRef _ _ _ =
         aouts <- readIORef outRef
         return aouts
 
-nextFrameSimulateNoTime :: RenderFrameInternal s m e
+nextFrameSimulateNoTime :: RenderFrameInternal s e
 							-> Double
 							-> ReactHandle ([AgentIn s m e], e) ([AgentOut s m e], e)
 			                -> IORef ([AgentOut s m e], e)
@@ -130,12 +135,13 @@ nextFrameSimulateNoTime renderFunc dt hdl outRef _ =
         aouts <- readIORef outRef
         modelToPicture renderFunc aouts
 
-modelToPicture :: RenderFrameInternal s m e
+modelToPicture :: RenderFrameInternal s e
 					-> ([AgentOut s m e], e) 
 					-> IO GLO.Picture
 modelToPicture renderFunc (aouts, e) = 
     do
-        return $ renderFunc aouts e
+    	let ss = map aoState aouts
+        return $ renderFunc ss e
 
 displayGlossWindow :: String -> (Int, Int) -> GLO.Display
 displayGlossWindow title winSize = (GLO.InWindow title winSize (0, 0))

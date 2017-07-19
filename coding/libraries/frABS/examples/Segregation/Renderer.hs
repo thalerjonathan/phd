@@ -8,7 +8,7 @@ import FRP.FrABS
 
 import qualified Graphics.Gloss as GLO
 
-type SegRenderFrame = RenderFrame SegAgentState SegMsg SegEnvironment
+type SegRenderFrame = RenderFrame SegAgentState SegEnvironment
 type SegAgentColorer = AgentCellColorerDisc2d SegAgentState
 
 renderSegFrame :: SegRenderFrame

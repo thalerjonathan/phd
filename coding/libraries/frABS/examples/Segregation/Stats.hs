@@ -8,14 +8,14 @@ import Segregation.Agent
 
 import FRP.FrABS
 
-totalSatisfaction :: [SegAgentOut] -> Double
-totalSatisfaction aos = sum $ map (segSatisfactionLevel . aoState) aos
+totalSatisfaction :: [SegAgentState] -> Double
+totalSatisfaction ss = sum $ map segSatisfactionLevel ss
 
-satisfactionStats :: [SegAgentOut] -> (Int, Int, Int, Double)
-satisfactionStats aos = (totalCount, happyCount, unhappyCount, unhappyFract)
+satisfactionStats :: [SegAgentState] -> (Int, Int, Int, Double)
+satisfactionStats ss = (totalCount, happyCount, unhappyCount, unhappyFract)
     where
-        totalCount = length aos
-        happy = filter isSatisfied aos
+        totalCount = length ss
+        happy = filter isSatisfiedState ss
         happyCount = length happy
         unhappyCount = totalCount - happyCount
         unhappyFract = (fromInteger $ fromIntegral unhappyCount) / (fromInteger $ fromIntegral totalCount)

@@ -1,5 +1,7 @@
 module Segregation.Agent (
     isSatisfied,
+    isSatisfiedState,
+    
     segAgentBehaviour
   ) where
 
@@ -18,9 +20,10 @@ isOccupied :: SegEnvCell -> Bool
 isOccupied = isJust
 
 isSatisfied :: SegAgentOut -> Bool
-isSatisfied aout = (segSatisfactionLevel s) >= (segSimilarityWanted s)
-    where
-        s = aoState aout
+isSatisfied aout = isSatisfiedState $ aoState aout
+
+isSatisfiedState :: SegAgentState -> Bool
+isSatisfiedState s = (segSatisfactionLevel s) >= (segSimilarityWanted s)
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -2,8 +2,6 @@ module PolicyEffects.Model (
     PolicyEffectsMsg (..),
 
     PolicyEffectsState,
-    PolicyEffectsEnvLink,
-    PolicyEffectsEnvCell,
     PolicyEffectsEnvironment,
 
     PolicyEffectsAgentDef,
@@ -26,14 +24,12 @@ import FRP.FrABS
 data PolicyEffectsMsg = Spend Double deriving (Eq, Show)
 type PolicyEffectsState = Double
 
-type PolicyEffectsEnvLink = ()
-type PolicyEffectsEnvCell = ()
-type PolicyEffectsEnvironment = Environment PolicyEffectsEnvCell PolicyEffectsEnvLink
+type PolicyEffectsEnvironment = Network ()
 
-type PolicyEffectsAgentDef = AgentDef PolicyEffectsState PolicyEffectsMsg PolicyEffectsEnvCell PolicyEffectsEnvLink
-type PolicyEffectsAgentBehaviour = AgentBehaviour PolicyEffectsState PolicyEffectsMsg PolicyEffectsEnvCell PolicyEffectsEnvLink
-type PolicyEffectsAgentIn = AgentIn PolicyEffectsState PolicyEffectsMsg PolicyEffectsEnvCell PolicyEffectsEnvLink
-type PolicyEffectsAgentOut = AgentOut PolicyEffectsState PolicyEffectsMsg PolicyEffectsEnvCell PolicyEffectsEnvLink
+type PolicyEffectsAgentDef = AgentDef PolicyEffectsState PolicyEffectsMsg PolicyEffectsEnvironment 
+type PolicyEffectsAgentBehaviour = AgentBehaviour PolicyEffectsState PolicyEffectsMsg PolicyEffectsEnvironment 
+type PolicyEffectsAgentIn = AgentIn PolicyEffectsState PolicyEffectsMsg PolicyEffectsEnvironment 
+type PolicyEffectsAgentOut = AgentOut PolicyEffectsState PolicyEffectsMsg PolicyEffectsEnvironment 
 
-type PolicyEffectsEnvironmentReplicator = EnvironmentReplicator PolicyEffectsEnvCell PolicyEffectsEnvLink
+type PolicyEffectsEnvironmentReplicator = EnvironmentReplicator PolicyEffectsEnvironment 
 ------------------------------------------------------------------------------------------------------------------------

@@ -8,7 +8,7 @@ import FRP.FrABS
 
 import qualified Graphics.Gloss as GLO
 
-type HeroesCowardsRenderFrame = RenderFrame HACAgentState HACMsg HACEnvironment
+type HeroesCowardsRenderFrame = RenderFrame HACAgentState HACEnvironment
 type HeroesCowardsAgentColorer = AgentColorerCont2d HACAgentState
 
 renderHeroesCowardsFrame :: HeroesCowardsRenderFrame

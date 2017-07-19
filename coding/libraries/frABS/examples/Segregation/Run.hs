@@ -55,8 +55,8 @@ runSegStepsAndRender =
                             winSize
                             renderSegFrame
 
-printDynamics :: ([SegAgentOut], SegEnvironment)
-                    ->([SegAgentOut], SegEnvironment)
+printDynamics :: ([SegAgentState], SegEnvironment)
+                    ->([SegAgentState], SegEnvironment)
                     -> IO ()
 printDynamics (aoutsPrev, _) (aoutsCurr, _) = 
     do

@@ -8,7 +8,7 @@ import FRP.FrABS
 
 import qualified Graphics.Gloss as GLO
 
-type FrSIRSSpatialRenderFrame = RenderFrame FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
+type FrSIRSSpatialRenderFrame = RenderFrame FrSIRSSpatialAgentState FrSIRSSpatialEnvironment
 type FrSIRSSpatialAgentColorer = AgentCellColorerDisc2d FrSIRSSpatialAgentState
 
 renderFrSIRSSpatialFrame :: FrSIRSSpatialRenderFrame

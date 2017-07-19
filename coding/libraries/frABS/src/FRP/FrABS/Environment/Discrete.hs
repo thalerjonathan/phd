@@ -52,30 +52,6 @@ import Data.Array.IArray
 import Control.Monad.Random
 import Control.Monad.Trans.State
 
-{-
-class EnvDisc2d e c where
-    -- agentCoordDisc2D :: AgentId -> e -> Discrete2DCoord
-    -- updateAgentCoordDisc2D :: AgentId -> Discrete2DCoord -> e -> e
-    -- environmentDimensionsDisc2D :: e -> Discrete2DDimension
-    allCellsWithCoords :: e -> [(Discrete2DCoord, c)]
-    updateEnvironmentCells :: (c -> c) -> e-> e
-    updateEnvironmentCellsWithCoords :: ((Discrete2DCoord, c) -> c) -> e -> e
-    changeCellAt :: Discrete2DCoord -> c -> e -> e
-    changeCellAtM :: Discrete2DCoord -> c -> State e ()
-    cellsAroundRadius :: Discrete2DCoord -> Double -> e -> [(Discrete2DCoord, c)]
-    cellsAroundRadiusM :: Discrete2DCoord -> Double -> State e [(Discrete2DCoord, c)]
-    cellsAroundRect :: Discrete2DCoord -> Int -> e -> [(Discrete2DCoord, c)]
-    cellsAt :: [Discrete2DCoord] -> e -> [c]
-    cellAt :: Discrete2DCoord -> e -> c
-    cellAtM :: Discrete2DCoord -> State e c 
-    randomCell :: e -> Rand StdGen (c, Discrete2DCoord)
-    randomCellWithinRect :: Discrete2DCoord -> Int -> e -> Rand StdGen (c, Discrete2DCoord)
-    neighboursDistance :: Discrete2DCoord -> Int -> e -> [(Discrete2DCoord, c)]
-    neighboursDistanceM :: Discrete2DCoord -> Int -> State e [(Discrete2DCoord, c)]
-    neighbours :: Discrete2DCoord -> e -> [(Discrete2DCoord, c)]
-    neighboursM :: Discrete2DCoord -> State e [(Discrete2DCoord, c)]
--}
-
 type Discrete2dDimension = (Int, Int)
 type Discrete2dCoord = Discrete2dDimension
 
@@ -88,15 +64,6 @@ data Discrete2d c = Discrete2d {
     envDisc2dCells :: Array Discrete2dCoord c,
     envDisc2dRng :: StdGen
 }
-
-{-
-import FRP.FrABS.Environment.Network
-
-data Discrete2dNetwork l c = Discrete2dNetwork {
-    envCombDisc2dNetwork :: Network l,
-    envCombDisc2d :: Discrete2d  c
-}
--}
 
 createDiscrete2d :: Discrete2dDimension
                     -> Discrete2dNeighbourhood

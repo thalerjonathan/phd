@@ -8,7 +8,7 @@ import FRP.FrABS
 
 import qualified Graphics.Gloss as GLO
 
-type WildfireRenderFrame = RenderFrame WildfireAgentState WildfireMsg WildfireEnvironment
+type WildfireRenderFrame = RenderFrame WildfireAgentState WildfireEnvironment
 type WildfireAgentColorer = AgentCellColorerDisc2d WildfireAgentState
 
 renderWildfireFrame :: WildfireRenderFrame

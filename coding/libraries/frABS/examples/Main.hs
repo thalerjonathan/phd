@@ -4,6 +4,7 @@ import           Conversation.Run
 import           DoubleAuction.Run
 import           FrSIRSSpatial.Run
 import           HeroesCowards.Run
+import           PolicyEffects.Run
 import           PrisonersDilemma.Run
 import           RecursiveABS.Run
 import           Segregation.Run
@@ -15,12 +16,16 @@ import           Wildfire.Run
 {-
 import           AgentZero.Run
 import           FrSIRSNetwork.Run
-import           PolicyEffects.Run
+
 -}
 
 {-
     TODOs
-    - GlossSimulator: pass Background-color and Circle/Rectangle as additional parameters (use currying)
+    - implement Graph-Renderer
+    - run all rendering-stuff in IO?
+    - AgentRenderer: Circle/Rectangle as shapes
+    - GlossSimulator: pass Background-color as additional parameters (use currying)
+
     - clean-up
         - imports: no unused imports
         - lint: must be clear of warnings
@@ -30,7 +35,7 @@ import           PolicyEffects.Run
 -}
 
 main :: IO ()
-main = runHeroesCowardsWithRendering
+main = runPolicyEffectsStepsAndWriteToFile
 
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile

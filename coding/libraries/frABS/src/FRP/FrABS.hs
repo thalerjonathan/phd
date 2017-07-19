@@ -11,6 +11,7 @@ module FRP.FrABS (
     AgentIn (..),
     AgentOut (..),
 
+    agentIdM,
     createAgent,
     kill,
     isDead,
@@ -133,6 +134,8 @@ module FRP.FrABS (
     
     pickRandomNeighbourCell,
 
+    agentRandomNeighbourNode,
+    
     EnvironmentBehaviour,
     EnvironmentCollapsing,
 
@@ -280,7 +283,15 @@ module FRP.FrABS (
 
     defaultAgentRendererCont2d,
     defaultAgentColorerCont2d,
-    voidAgentRendererCont2d
+    voidAgentRendererCont2d,
+
+    AgentRendererNetwork,
+    AgentColorerNetwork,
+
+    renderFrameNetwork,
+
+    defaultAgentRendererNetwork,
+    defaultAgentColorerNetwork
   ) where
 
 import FRP.FrABS.Agent.Agent
@@ -301,6 +312,7 @@ import FRP.FrABS.Simulation.SeqIteration
 import FRP.FrABS.Simulation.Internal
 import FRP.FrABS.Rendering.Discrete2d
 import FRP.FrABS.Rendering.Continuous2d
+import FRP.FrABS.Rendering.Network
 import FRP.FrABS.Rendering.GlossSimulator
 
 ------------------------------------------------------------------------------------------------------------------------

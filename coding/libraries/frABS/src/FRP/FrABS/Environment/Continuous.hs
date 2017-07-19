@@ -3,7 +3,6 @@ module FRP.FrABS.Environment.Continuous (
     Continuous2DCoord,
 
     Continuous2d (..), -- TODO: hide data-constructor
-    -- Continuous2dNetwork (..),
     
     createContinuous2d,
     
@@ -27,13 +26,6 @@ import FRP.FrABS.Environment.Spatial
 
 import Control.Monad.Random
 
-{-
-class EnvCont2d e where
-    agentCoordCont2D :: AgentId -> e -> Continuous2DCoord
-    updateAgentCoordCont2D :: AgentId -> Continuous2DCoord -> e -> e
-    environmentDimensionsCont2D :: e -> Continuous2DCoord
--}
-
 type Continuous2DDimension = (Double, Double)
 type Continuous2DCoord = Continuous2DDimension
 
@@ -41,15 +33,6 @@ data Continuous2d = Continuous2d {
     envCont2dDims :: Continuous2DDimension,
     envCont2dWrapping :: EnvironmentWrapping
 }
-
-{-
-import FRP.FrABS.Environment.Network
-
-data Continuous2dNetwork l = Continuous2dNetwork {
-    envCombCont2dNetwork :: Network l,
-    envCombCont2d :: Continuous2d
-}
--}
 
 createContinuous2d :: Continuous2DDimension
                         -> EnvironmentWrapping

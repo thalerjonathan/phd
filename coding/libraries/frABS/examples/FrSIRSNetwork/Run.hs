@@ -22,11 +22,6 @@ shuffleAgents = False
 
 rngSeed = 42
 
-agentDimensions = (32, 32)
-agentCount = fst agentDimensions * snd agentDimensions
-
-numInfected = 1
-
 samplingTimeDelta = 0.1
 steps = 1000
 
@@ -35,6 +30,9 @@ replCfg = ReplicationConfig {
     replCfgAgentReplicator = defaultAgentReplicator,
     replCfgEnvReplicator = defaultEnvReplicator
 }
+
+agentCount = 32 * 32 :: Int
+numInfected = 1
 
 completeNetwork = Complete agentCount
 erdosRenyiNetwork = ErdosRenyi agentCount 0.2
@@ -47,10 +45,10 @@ network = completeNetwork
 runFrSIRSNetworkWithRendering :: IO ()
 runFrSIRSNetworkWithRendering =
     do
-        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         
-        (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected agentDimensions numInfected network
-        -- (initAdefs, initEnv) <- createFrSIRSNetworkRandInfected agentDimensions initialInfectionProb network
+        (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected numInfected network
+        -- (initAdefs, initEnv) <- createFrSIRSNetworkRandInfected initialInfectionProb network
         
         simulateAndRender initAdefs
                             initEnv
@@ -65,10 +63,10 @@ runFrSIRSNetworkWithRendering =
 runFrSIRSNetworkStepsAndRender :: IO ()
 runFrSIRSNetworkStepsAndRender =
     do
-        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         
-        (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected agentDimensions numInfected network
-        --(initAdefs, initEnv) <- createFrSIRSNetworkRandInfected agentDimensions initialInfectionProb network
+        (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected numInfected network
+        --(initAdefs, initEnv) <- createFrSIRSNetworkRandInfected initialInfectionProb network
         
         simulateStepsAndRender initAdefs
                             initEnv
@@ -82,15 +80,15 @@ runFrSIRSNetworkStepsAndRender =
 runFrSIRSNetworkStepsAndWriteToFile :: IO ()
 runFrSIRSNetworkStepsAndWriteToFile =
     do
-        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         
-        (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected agentDimensions numInfected network
-        --(initAdefs, initEnv) <- createFrSIRSNetworkRandInfected agentDimensions initialInfectionProb network
+        (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected numInfected network
+        --(initAdefs, initEnv) <- createFrSIRSNetworkRandInfected initialInfectionProb network
 
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
         let dynamics = map (calculateDynamics . fst) asenv
         let fileName = "frSIRSNetworkDynamics_" 
-                        ++ show agentDimensions ++ "agents_" 
+                        ++ show agentCount ++ "agents_" 
                         ++ show steps ++ "steps_" 
                         ++ show samplingTimeDelta ++ "dt.m"
 
@@ -99,10 +97,10 @@ runFrSIRSNetworkStepsAndWriteToFile =
 runFrSIRSNetworkReplicationsAndWriteToFile :: IO ()
 runFrSIRSNetworkReplicationsAndWriteToFile =
     do
-        params <- initSimulation updateStrat Nothing shuffleAgents (Just rngSeed)
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         
-        (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected agentDimensions numInfected network
-        --(initAdefs, initEnv) <- createFrSIRSNetworkRandInfected agentDimensions initialInfectionProb network
+        (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected numInfected network
+        --(initAdefs, initEnv) <- createFrSIRSNetworkRandInfected initialInfectionProb network
 
         let assenv = runReplications initAdefs initEnv params samplingTimeDelta steps replCfg
         let replicationDynamics = map calculateSingleReplicationDynamic assenv
@@ -110,7 +108,7 @@ runFrSIRSNetworkReplicationsAndWriteToFile =
 
 
         let fileName = "frSIRSNetworkDynamics_" 
-                        ++ show agentDimensions ++ "agents_" 
+                        ++ show agentCount ++ "agents_" 
                         ++ show steps ++ "steps_" 
                         ++ show samplingTimeDelta ++ "dt_" 
                         ++ show (replCfgCount replCfg) ++ "replications.m"

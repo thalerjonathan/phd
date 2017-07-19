@@ -2,6 +2,7 @@ module Main where
 
 import           Conversation.Run
 import           DoubleAuction.Run
+import           FrSIRSNetwork.Run
 import           FrSIRSSpatial.Run
 import           HeroesCowards.Run
 import           PolicyEffects.Run
@@ -9,14 +10,12 @@ import           PrisonersDilemma.Run
 import           RecursiveABS.Run
 import           Segregation.Run
 import           SIRS.Run
--- import           SugarScape.Run
 import           SysDynSIR.Run
 import           Wildfire.Run
 
 {-
 import           AgentZero.Run
-import           FrSIRSNetwork.Run
-
+import           SugarScape.Run
 -}
 
 {-
@@ -35,7 +34,7 @@ import           FrSIRSNetwork.Run
 -}
 
 main :: IO ()
-main = runPolicyEffectsStepsAndWriteToFile
+main = runFrSIRSNetworkStepsAndWriteToFile
 
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile

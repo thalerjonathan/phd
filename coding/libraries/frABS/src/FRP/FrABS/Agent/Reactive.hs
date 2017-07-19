@@ -122,7 +122,6 @@ sendMessageOccasionallySrc g rate msgSrc = proc aoe ->
         sendMessageOccasionallyAux msgSrc (Event ()) (ao, e) = sendMessage msg ao'
             where
                 (ao', msg) = msgSrc e ao
-
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -136,9 +135,10 @@ constMsgReceiverSource m receiver _ ao = (ao, msg)
 constMsgSource :: AgentMessage m -> MessageSource s m e
 constMsgSource msg _ ao = (ao, msg)
 
-randomNeighbourNodeMsgSource :: AgentId -> m -> MessageSource s m (Network l)
-randomNeighbourNodeMsgSource aid m e ao = (ao', msg)
+randomNeighbourNodeMsgSource :: m -> MessageSource s m (Network l)
+randomNeighbourNodeMsgSource m e ao = (ao', msg)
     where
+        aid = aoId ao
         (randNode, ao') = runAgentRandom (pickRandomNeighbourNode aid e) ao
         msg = (randNode, m)
 

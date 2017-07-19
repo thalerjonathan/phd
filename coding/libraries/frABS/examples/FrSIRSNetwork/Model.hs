@@ -3,8 +3,6 @@ module FrSIRSNetwork.Model (
     FrSIRSNetworkMsg (..),
 
     FrSIRSNetworkAgentState,
-    FrSIRSNetworkEnvLink,
-    FrSIRSNetworkEnvCell,
     FrSIRSNetworkEnvironment,
 
     FrSIRSNetworkAgentDef,
@@ -32,17 +30,15 @@ data FrSIRSNetworkMsg = Contact SIRSState deriving (Eq, Show)
 
 type FrSIRSNetworkAgentState = SIRSState
 
-type FrSIRSNetworkEnvLink = ()
-type FrSIRSNetworkEnvCell = ()
-type FrSIRSNetworkEnvironment = Environment FrSIRSNetworkEnvCell FrSIRSNetworkEnvLink
+type FrSIRSNetworkEnvironment = Network ()
 
-type FrSIRSNetworkAgentDef = AgentDef FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvCell FrSIRSNetworkEnvLink
-type FrSIRSNetworkAgentBehaviour = AgentBehaviour FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvCell FrSIRSNetworkEnvLink
-type FrSIRSNetworkAgentIn = AgentIn FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvCell FrSIRSNetworkEnvLink
-type FrSIRSNetworkAgentOut = AgentOut FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvCell FrSIRSNetworkEnvLink
+type FrSIRSNetworkAgentDef = AgentDef FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvironment
+type FrSIRSNetworkAgentBehaviour = AgentBehaviour FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvironment
+type FrSIRSNetworkAgentIn = AgentIn FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvironment
+type FrSIRSNetworkAgentOut = AgentOut FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvironment
 
-type FrSIRSNetworkEventSource = EventSource FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvCell FrSIRSNetworkEnvLink
-type FrSIRSNetworkMessageSource = MessageSource FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvCell FrSIRSNetworkEnvLink
+type FrSIRSNetworkEventSource = EventSource FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvironment
+type FrSIRSNetworkMessageSource = MessageSource FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvironment
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

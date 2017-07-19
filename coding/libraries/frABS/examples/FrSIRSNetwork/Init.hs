@@ -14,71 +14,39 @@ import Data.List
 import System.Random
 import Control.Monad.Random
 
-createFrSIRSNetworkRandInfected :: (Int, Int) 
-                                    -> Double 
+createFrSIRSNetworkRandInfected :: Double 
                                     -> NetworkType
                                     -> IO ([FrSIRSNetworkAgentDef], FrSIRSNetworkEnvironment)
-createFrSIRSNetworkRandInfected dims@(maxX, maxY) p network =  
+createFrSIRSNetworkRandInfected p network =  
+    do
+        e <- evalRandIO $ createNetwork network unitEdgeLabeler
+
+        let agentIds = nodesOfNetwork e
+        adefs <- mapM (randomFrSIRSNetworkAgent p) agentIds
+        
+        return (adefs, e)
+
+-- NOTE: numInfected > agentCount = error ("Can't create more infections (" ++ show numInfected ++ ") than there are agents (" ++ show agentCount)
+createFrSIRSNetworkNumInfected :: Int 
+                                    -> NetworkType
+                                    -> IO ([FrSIRSNetworkAgentDef], FrSIRSNetworkEnvironment)
+createFrSIRSNetworkNumInfected numInfected network =
     do
         rng <- newStdGen
-        gr <- evalRandIO $ createAgentNetwork network
+        e <- evalRandIO $ createNetwork network unitEdgeLabeler
 
-        let agentIds = nodesOfNetwork gr
-        adefs <- mapM (randomFrSIRSNetworkAgent p) (zip coords agentIds)
-        
-        let env = createEnvironment
-                        Nothing
-                        dims
-                        moore
-                        ClipToMax
-                        []
-                        rng
-                        (Just gr)
+        let degs = networkDegrees e
+        let sortedDegs = Data.List.sortBy highestDegree degs
 
-        return (adefs, env)
+        let infectedIds = take numInfected $ map fst sortedDegs
+        let susceptibleIds = drop numInfected $ map fst sortedDegs
+
+        adefsSusceptible <- mapM (frSIRSNetworkAgent Susceptible) susceptibleIds
+        adefsInfected <- mapM (frSIRSNetworkAgent Infected) infectedIds
+
+        return (adefsSusceptible ++ adefsInfected, e)
 
     where
-        agentCount = maxX * maxY
-        coords = [ (x, y) | x <- [0..maxX - 1], y <- [0..maxY - 1]]
-
-createFrSIRSNetworkNumInfected :: (Int, Int) 
-                                    -> Int 
-                                    -> NetworkType
-                                    -> IO ([FrSIRSNetworkAgentDef], FrSIRSNetworkEnvironment)
-createFrSIRSNetworkNumInfected dims@(maxX, maxY) numInfected network
-    | numInfected > agentCount = error ("Can't create more infections (" ++ show numInfected ++ ") than there are agents (" ++ show agentCount)
-    | otherwise =
-        do
-            rng <- newStdGen
-            gr <- evalRandIO $ createAgentNetwork network
-
-            let degs = networkDegrees gr
-            let sortedDegs = Data.List.sortBy highestDegree degs
-
-            let infectedIds = take numInfected $ map fst sortedDegs
-            let susceptibleIds = drop numInfected $ map fst sortedDegs
-
-            let infectedCoords = take (length infectedIds) coords
-            let susceptibleCoords = drop (length infectedIds) coords
-
-            adefsSusceptible <- mapM (frSIRSNetworkAgent Susceptible) (zip susceptibleCoords susceptibleIds)
-            adefsInfected <- mapM (frSIRSNetworkAgent Infected) (zip infectedCoords infectedIds) 
-
-            let env = (createEnvironment
-                            Nothing
-                            dims
-                            moore
-                            ClipToMax
-                            []
-                            rng
-                            (Just gr))
-
-            return (adefsSusceptible ++ adefsInfected, env)
-
-    where
-        agentCount = maxX * maxY
-        coords = [ (x, y) | x <- [0..maxX - 1], y <- [0..maxY - 1]]
-        
         highestDegree :: (AgentId, Int) -> (AgentId, Int) -> Ordering
         highestDegree = (\(_, d1) (_, d2) -> compare d2 d1)
 
@@ -86,18 +54,18 @@ createFrSIRSNetworkNumInfected dims@(maxX, maxY) numInfected network
         lowestDegree = (\(_, d1) (_, d2) -> compare d1 d2)
         
 frSIRSNetworkAgent :: SIRSState
-                        -> (EnvCoord, AgentId)
+                        -> AgentId
                         -> IO FrSIRSNetworkAgentDef
-frSIRSNetworkAgent initS idCoord = 
+frSIRSNetworkAgent initS aid = 
     do
         rng <- newStdGen
         let beh = sirsNetworkAgentBehaviour rng initS
-        return $ createFrSIRSNetworkDef idCoord initS beh rng
+        return $ createFrSIRSNetworkDef aid initS beh rng
 
 randomFrSIRSNetworkAgent :: Double
-                            -> (EnvCoord, AgentId)
+                            -> AgentId
                             -> IO FrSIRSNetworkAgentDef
-randomFrSIRSNetworkAgent p idCoord = 
+randomFrSIRSNetworkAgent p aid = 
     do
         rng <- newStdGen
         r <- getStdRandom (randomR(0.0, 1.0))
@@ -107,19 +75,18 @@ randomFrSIRSNetworkAgent p idCoord =
 
         let beh = sirsNetworkAgentBehaviourRandInfected rng initS
 
-        return $ createFrSIRSNetworkDef idCoord initS beh rng 
+        return $ createFrSIRSNetworkDef aid initS beh rng 
 
-createFrSIRSNetworkDef :: (EnvCoord, AgentId) 
+createFrSIRSNetworkDef :: AgentId 
                             -> SIRSState 
                             -> FrSIRSNetworkAgentBehaviour
                             -> StdGen 
                             -> FrSIRSNetworkAgentDef
-createFrSIRSNetworkDef (coord, agentId) sirsState beh rng = 
-    AgentDef { adId = agentId,
+createFrSIRSNetworkDef aid sirsState beh rng = 
+    AgentDef { adId = aid,
                 adState = sirsState,
                 adBeh = beh,
                 adInitMessages = NoEvent,
                 adConversation = Nothing,
-                adEnvPos = coord,
                 adRng = rng }
 ------------------------------------------------------------------------------------------------------------------------

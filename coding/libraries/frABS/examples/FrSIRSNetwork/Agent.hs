@@ -18,8 +18,8 @@ import Control.Monad.Random
 respondToContactWith :: SIRSState -> FrSIRSNetworkAgentIn -> FrSIRSNetworkAgentOut -> FrSIRSNetworkAgentOut
 respondToContactWith state ain ao = onMessage respondToContactWithAux ain ao
     where
-        respondToContactWithAux :: FrSIRSNetworkAgentOut -> AgentMessage FrSIRSNetworkMsg -> FrSIRSNetworkAgentOut
-        respondToContactWithAux ao (senderId, Contact _) = sendMessage (senderId, Contact state) ao
+        respondToContactWithAux :: AgentMessage FrSIRSNetworkMsg -> FrSIRSNetworkAgentOut -> FrSIRSNetworkAgentOut
+        respondToContactWithAux (senderId, Contact _) ao = sendMessage (senderId, Contact state) ao
 
 gotInfected :: FrSIRSNetworkAgentIn -> Rand StdGen Bool
 gotInfected ain = onMessageM gotInfectedAux ain False
@@ -48,15 +48,15 @@ sirsAgentInfectedEvent = proc (ain, ao) ->
         returnA -< (ao', infectionEvent)
 
 sirsAgentSusceptibleBehaviour :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
-sirsAgentSusceptibleBehaviour g = proc ain ->
+sirsAgentSusceptibleBehaviour g = proc (ain, e) ->
     do
         let ao = agentOutFromIn ain
         ao0 <- doOnce (setDomainState Susceptible) -< ao
         ao1 <- sendMessageOccasionallySrc 
                     g 
                     (1 / contactRate) 
-                    (randomNeighbourNodeMsgSource (Contact Susceptible)) -< ao0
-        returnA -< ao1
+                    (randomNeighbourNodeMsgSource (Contact Susceptible)) -< (ao0, e)
+        returnA -< (ao1, e)
 
 -- INFECTED
 sirsAgentInfected :: RandomGen g => g -> Double -> FrSIRSNetworkAgentBehaviour
@@ -66,7 +66,7 @@ sirsAgentInfected g duration = transitionAfter
                                     (sirsAgentRecovered g)
 
 sirsAgentInfectedBehaviour :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
-sirsAgentInfectedBehaviour g = proc ain ->
+sirsAgentInfectedBehaviour g = proc (ain, e) ->
     do
         let ao = agentOutFromIn ain
         let ao0 = respondToContactWith Infected ain ao
@@ -75,23 +75,23 @@ sirsAgentInfectedBehaviour g = proc ain ->
         ao2 <- sendMessageOccasionallySrc 
                     g 
                     (1 / contactRate) 
-                    (randomNeighbourNodeMsgSource (Contact Infected)) -< ao1
+                    (randomNeighbourNodeMsgSource (Contact Infected)) -< (ao1, e)
 
-        returnA -< ao2
+        returnA -< (ao2, e)
 
 -- RECOVERED
 sirsAgentRecovered :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
 sirsAgentRecovered g = transitionAfter 
                             immuneDuration 
-                            sirsAgentRecoveredBehaviour 
+                            sirsAgentRecoveredBehaviour
                             (sirsAgentSuceptible g)
 
 sirsAgentRecoveredBehaviour :: FrSIRSNetworkAgentBehaviour
-sirsAgentRecoveredBehaviour = proc ain ->
+sirsAgentRecoveredBehaviour = proc (ain, e) ->
     do
         let ao = agentOutFromIn ain
         ao' <- doOnce (setDomainState Recovered) -< ao
-        returnA -< ao'
+        returnA -< (ao', e)
 
 -- INITIAL CASES
 sirsNetworkAgentBehaviour :: RandomGen g => g -> SIRSState -> FrSIRSNetworkAgentBehaviour

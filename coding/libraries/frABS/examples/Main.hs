@@ -1,5 +1,6 @@
 module Main where
 
+-- import           AgentZero.Run
 import           Conversation.Run
 import           DoubleAuction.Run
 import           FrSIRSNetwork.Run
@@ -14,7 +15,6 @@ import           SysDynSIR.Run
 import           Wildfire.Run
 
 {-
-import           AgentZero.Run
 import           SugarScape.Run
 -}
 

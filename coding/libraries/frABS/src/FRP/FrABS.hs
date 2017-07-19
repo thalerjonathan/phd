@@ -291,7 +291,13 @@ module FRP.FrABS (
     renderFrameNetwork,
 
     defaultAgentRendererNetwork,
-    defaultAgentColorerNetwork
+    defaultAgentColorerNetwork,
+
+    cont2dToDisc2d,
+    disc2dToCont2d,
+
+    cont2dTransDisc2d,
+    disc2dTransCont2d
   ) where
 
 import FRP.FrABS.Agent.Agent

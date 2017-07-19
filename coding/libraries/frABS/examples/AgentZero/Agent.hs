@@ -17,14 +17,17 @@ import           Control.Monad.Trans.State
 -- DOMAIN-STATE functions
 ------------------------------------------------------------------------------------------------------------------------
 isAttackingSite :: AgentZeroEnvCell -> Bool
-isAttackingSite AgentZeroEnvCell{azCellState = cellState} = Attack == cellState
+isAttackingSite AgentZeroEnvCell{ azCellState = cellState } = Attack == cellState
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
 --  AGENT-BEHAVIOUR MONADIC implementation
 ------------------------------------------------------------------------------------------------------------------------
-agentZeroAgentBehaviourFuncM :: Double -> AgentZeroAgentIn -> State AgentZeroAgentOut ()
-agentZeroAgentBehaviourFuncM _ ain =
+agentZeroAgentBehaviourFuncM :: AgentZeroEnvironment 
+								-> Double 
+								-> AgentZeroAgentIn 
+								-> State AgentZeroAgentOut ()
+agentZeroAgentBehaviourFuncM e _ ain =
 	do
 		agentZeroRandomMoveM
 		agentZeroUpdateEventCountM
@@ -49,7 +52,7 @@ agentZeroTakeActionM =
 agentZeroDestroyM :: State AgentZeroAgentOut ()
 agentZeroDestroyM =
 	do
-		pos <- environmentPositionM
+		coord <- domainStateFieldM azAgentCoord
 
 		runEnvironmentM $
 			do
@@ -225,8 +228,12 @@ agentZeroRandomMove a
 	| aoId a /= 0 = agentRandomMove a
 	| otherwise = a
 
-agentZeroAgentBehaviourFunc :: Double -> AgentZeroAgentIn -> AgentZeroAgentOut -> AgentZeroAgentOut
-agentZeroAgentBehaviourFunc _ ain aout
+agentZeroAgentBehaviourFunc :: AgentZeroEnvironment 
+								-> Double 
+								-> AgentZeroAgentIn 
+								-> AgentZeroAgentOut 
+								-> AgentZeroAgentOut
+agentZeroAgentBehaviourFunc e _ ain aout
 	| agentZeroTakeAction agentBevoreAction = agentZeroDestroy agentBevoreAction
 	| otherwise = agentBevoreAction
 	where

@@ -4,9 +4,11 @@ module AgentZero.Model (
     AgentZeroCellState (..),
     AgentZeroEnvCell (..),
 
-    AgentZeroLink,
-    AgentZeroEnvironment,
+    AgentZeroEnvironment (..),
     AgentZeroEnvironmentBehaviour,
+
+    AgentZeroNetwork,
+    AgentZeroWorldPatches,
 
     AgentZeroAgentDef,
     AgentZeroAgentBehaviour,
@@ -16,9 +18,7 @@ module AgentZero.Model (
     extinctionRate,
     destructionRadius,
     sampleRadius,
-    memorySize,
-
-    createAgentZero
+    memorySize
   ) where
 
 import           FRP.FrABS
@@ -26,41 +26,46 @@ import           FRP.FrABS
 import           FRP.Yampa
 
 import           Control.Monad.Random
+
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
-
-data AgentZeroMsg =
-    Disposition Double
-    deriving (Eq, Show)
+data AgentZeroMsg = Disposition Double deriving (Eq, Show)
 
 data AgentZeroAgentState = AgentZeroAgentState {
-    azAgentAffect       :: Double,
-    azAgentLearningRate :: Double,
-    azAgentLambda       :: Double,
-    azAgentDelta        :: Double,
-    azAgentThresh       :: Double,
-    azAgentEventCount   :: Int,
-    azAgentDispo        :: Double,
-    azAgentProb         :: Double,
-    azAgentMemory       :: [Double]
+  azAgentAffect       :: Double,
+  azAgentLearningRate :: Double,
+  azAgentLambda       :: Double,
+  azAgentDelta        :: Double,
+  azAgentThresh       :: Double,
+  azAgentEventCount   :: Int,
+  azAgentDispo        :: Double,
+  azAgentProb         :: Double,
+  azAgentMemory       :: [Double],
+  azAgentCoord        :: Continuous2DCoord
 } deriving (Show)
 
 data AgentZeroCellState = Friendly | Attack | Dead deriving (Eq, Show)
 
 data AgentZeroEnvCell = AgentZeroEnvCell {
-    azCellState :: AgentZeroCellState,
-    azCellShade :: Float
+  azCellState :: AgentZeroCellState,
+  azCellShade :: Float
 } deriving (Show)
 
-type AgentZeroLink = Double
-type AgentZeroEnvironment = Environment AgentZeroEnvCell AgentZeroLink
-type AgentZeroEnvironmentBehaviour = EnvironmentBehaviour AgentZeroEnvCell AgentZeroLink
+data AgentZeroEnvironment = AgentZeroEnvironment {
+  azAgentNetwork :: AgentZeroNetwork,
+  azAgentSpace :: Continuous2d,
+  azWorldPatches :: AgentZeroWorldPatches
+}
 
-type AgentZeroAgentDef = AgentDef AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell AgentZeroLink
-type AgentZeroAgentBehaviour = AgentBehaviour AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell AgentZeroLink
-type AgentZeroAgentIn = AgentIn AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell AgentZeroLink
-type AgentZeroAgentOut = AgentOut AgentZeroAgentState AgentZeroMsg AgentZeroEnvCell AgentZeroLink
+type AgentZeroNetwork = Network Double
+type AgentZeroWorldPatches = Discrete2d AgentZeroEnvCell
+type AgentZeroEnvironmentBehaviour = EnvironmentBehaviour AgentZeroEnvironment
+
+type AgentZeroAgentDef = AgentDef AgentZeroAgentState AgentZeroMsg AgentZeroEnvironment
+type AgentZeroAgentBehaviour = AgentBehaviour AgentZeroAgentState AgentZeroMsg AgentZeroEnvironment
+type AgentZeroAgentIn = AgentIn AgentZeroAgentState AgentZeroMsg AgentZeroEnvironment
+type AgentZeroAgentOut = AgentOut AgentZeroAgentState AgentZeroMsg AgentZeroEnvironment
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -78,33 +83,3 @@ sampleRadius = 1.0
 memorySize :: Int
 memorySize = 10
 ------------------------------------------------------------------------------------------------------------------------
-
-createAgentZero :: (AgentId, EnvCoord)
-                    -> AgentZeroAgentBehaviour
-                    -> Rand StdGen AgentZeroAgentDef
-createAgentZero (agentId, coord) beh =
-    do
-        rng <- getSplit
-
-        let s = AgentZeroAgentState {
-          azAgentAffect = 0.001,
-          azAgentLearningRate = 0.1,
-          azAgentLambda = 1.0,
-          azAgentDelta = 0.0,
-          azAgentThresh = 0.5,
-          azAgentEventCount = 0,
-          azAgentDispo = 0.0,
-          azAgentProb = 0.0,
-          azAgentMemory = replicate memorySize 0.0
-        }
-
-        let adef = AgentDef {
-           adId = agentId,
-           adState = s,
-           adEnvPos = coord,
-           adConversation = Nothing,
-           adInitMessages = NoEvent,
-           adBeh = beh,
-           adRng = rng }
-
-        return adef

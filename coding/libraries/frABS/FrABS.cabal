@@ -29,6 +29,7 @@ library
     FRP.FrABS.Environment.Discrete
     FRP.FrABS.Environment.Continuous
     FRP.FrABS.Environment.Network
+    FRP.FrABS.Environment.Utils
     FRP.FrABS.Simulation.Simulation
     FRP.FrABS.Simulation.Init
     FRP.FrABS.Simulation.Replication

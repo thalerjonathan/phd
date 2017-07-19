@@ -136,3 +136,32 @@ createCells (maxX, maxY) = mapM randomCell coords
 
             return (coord, c)
 
+createAgentZero :: (AgentId, EnvCoord)
+                    -> AgentZeroAgentBehaviour
+                    -> Rand StdGen AgentZeroAgentDef
+createAgentZero (agentId, coord) beh =
+    do
+        rng <- getSplit
+
+        let s = AgentZeroAgentState {
+          azAgentAffect = 0.001,
+          azAgentLearningRate = 0.1,
+          azAgentLambda = 1.0,
+          azAgentDelta = 0.0,
+          azAgentThresh = 0.5,
+          azAgentEventCount = 0,
+          azAgentDispo = 0.0,
+          azAgentProb = 0.0,
+          azAgentMemory = replicate memorySize 0.0
+        }
+
+        let adef = AgentDef {
+           adId = agentId,
+           adState = s,
+           adEnvPos = coord,
+           adConversation = Nothing,
+           adInitMessages = NoEvent,
+           adBeh = beh,
+           adRng = rng }
+
+        return adef

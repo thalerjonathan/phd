@@ -6,7 +6,7 @@ module FRP.FrABS.Environment.Continuous (
     
     createContinuous2d,
     
-    environmentDimensionsCont2D,
+    randomCoord,
 
     distanceManhattanCont2D,
     distanceEuclideanCont2D,
@@ -41,8 +41,16 @@ createContinuous2d d w = Continuous2d {
                             envCont2dDims = d,
                             envCont2dWrapping = w }
 
-environmentDimensionsCont2D :: Continuous2d -> Continuous2DCoord
-environmentDimensionsCont2D e = envCont2dDims e
+randomCoord :: Continuous2DCoord 
+                -> Continuous2d 
+                -> Double 
+                -> Rand StdGen Continuous2DCoord
+randomCoord (ox, oy) e step =  
+    do
+        randAngle <- getRandomR ((0, 360) :: (Double, Double))
+        -- TODO: implement
+        -- TODO: wrap
+        return (ox, oy)
 
 distanceManhattanCont2D :: Continuous2DCoord -> Continuous2DCoord -> Double
 distanceManhattanCont2D (x1, y1) (x2, y2) = (abs (x1 - x2)) + (abs (y1 - y2))

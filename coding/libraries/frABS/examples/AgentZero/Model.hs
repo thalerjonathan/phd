@@ -78,7 +78,7 @@ destructionRadius :: Double
 destructionRadius = 1.0
 
 sampleRadius :: Double
-sampleRadius = 1.0
+sampleRadius = 5.0
 
 memorySize :: Int
 memorySize = 10

@@ -1,6 +1,6 @@
 module Main where
 
--- import           AgentZero.Run
+import           AgentZero.Run
 import           Conversation.Run
 import           DoubleAuction.Run
 import           FrSIRSNetwork.Run
@@ -34,8 +34,7 @@ import           SugarScape.Run
 -}
 
 main :: IO ()
-main = runFrSIRSNetworkStepsAndWriteToFile
-
+main = runAgentZeroWithRendering
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile
     -- runSysDynSIRStepsAndWriteToFile

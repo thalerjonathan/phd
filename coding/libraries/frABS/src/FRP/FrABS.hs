@@ -145,6 +145,7 @@ module FRP.FrABS (
     Network (..), -- TODO: hide data-constructor
 
     createNetwork,
+    createNetworkWithGraph,
     constEdgeLabeler,
     unitEdgeLabeler,
 
@@ -209,11 +210,10 @@ module FRP.FrABS (
     Continuous2DCoord,
 
     Continuous2d (..), -- TODO: hide data-constructor
-    -- Continuous2dNetwork (..),
     
     createContinuous2d,
     
-    environmentDimensionsCont2D,
+    randomCoord,
 
     distanceManhattanCont2D,
     distanceEuclideanCont2D,
@@ -310,6 +310,7 @@ import FRP.FrABS.Environment.Continuous
 import FRP.FrABS.Environment.Network
 import FRP.FrABS.Environment.Definitions
 import FRP.FrABS.Environment.Spatial
+import FRP.FrABS.Environment.Utils
 import FRP.FrABS.Simulation.Simulation
 import FRP.FrABS.Simulation.Init
 import FRP.FrABS.Simulation.Replication

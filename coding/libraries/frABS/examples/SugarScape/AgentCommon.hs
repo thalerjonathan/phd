@@ -20,6 +20,7 @@ module SugarScape.AgentCommon (
     occupierCombatable,
     occupierRetaliator,
     cellPayoff,
+    poluteCell,
     agentTradeIncreaseWelfare,
     agentTradeExchange,
     agentMRS,
@@ -163,7 +164,7 @@ createNewBorn idCoord
 -- CHAPTER III
 ------------------------------------------------------------------------------------------------------------------------
 filterTargetCell :: (SugarScapeEnvCellOccupier -> Bool) -> (Discrete2dCoord, SugarScapeEnvCell) -> Bool
-filterTargetCell f (coord, cell) = maybe True f mayOccupier
+filterTargetCell f (_, cell) = maybe True f mayOccupier
     where
         mayOccupier = sugEnvOccupier cell
 
@@ -195,6 +196,14 @@ cellPayoff (c, cell) = ((c, cell), payoff)
         mayOccupier = sugEnvOccupier cell
         sugarLevel = sugEnvSugarLevel cell
         payoff = maybe sugarLevel (\occupier -> sugarLevel + (min combatReward (sugEnvOccWealth occupier))) mayOccupier
+
+poluteCell :: Double -> Discrete2dCoord -> SugarScapeEnvironment -> SugarScapeEnvironment
+poluteCell polutionIncrease coord e 
+    | polutionEnabled = changeCellAt coord cellAfterPolution e
+    | otherwise = e
+    where
+        cell = cellAt coord e
+        cellAfterPolution = cell { sugEnvPolutionLevel = polutionIncrease + sugEnvPolutionLevel cell }
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -21,15 +21,17 @@ import Control.Monad.Trans.State
 ------------------------------------------------------------------------------------------------------------------------
 -- Chapter II: Life And Death On The Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
-agentDiesM :: State SugarScapeAgentOut ()
-agentDiesM = unoccupyPositionM >> killM
+agentDiesM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
+agentDiesM e = unoccupyPositionM e >>= (\e' -> killM >> return e')
 
-unoccupyPositionM :: State SugarScapeAgentOut ()
-unoccupyPositionM = 
+
+unoccupyPositionM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
+unoccupyPositionM e = 
     do
-        (cellCoord, cell) <- agentCellOnPosM
+        coord <- domainStateFieldM sugAgCoord
+        let cell = cellAt coord e
         let cellUnoccupied = cell { sugEnvOccupier = Nothing }
-        runEnvironmentM $ changeCellAtM cellCoord cellUnoccupied
+        return $ changeCellAt coord cellUnoccupied e
 
 passWealthOnM :: State SugarScapeAgentOut ()
 passWealthOnM =
@@ -42,7 +44,7 @@ passWealthOnM =
         when hasChildren $
             do 
                 let childrenCount = length childrenIds
-                let childrenSugarShare = sugarLevel / (fromRational $ toRational $ fromIntegral childrenCount)
+                let childrenSugarShare = sugarLevel / fromIntegral childrenCount
                 broadcastMessageM (InheritSugar childrenSugarShare) childrenIds
 
 starvedToDeathM :: State SugarScapeAgentOut Bool
@@ -53,8 +55,8 @@ starvedToDeathM =
         return $ (sugar <= 0) || (spice <= 0)
 
 
-agentMetabolismM :: State SugarScapeAgentOut ()
-agentMetabolismM =
+agentMetabolismM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
+agentMetabolismM e =
     do
         s <- getDomainStateM
         let (sugarMetab, spiceMetab) = metabolismAmount s
@@ -70,71 +72,61 @@ agentMetabolismM =
         -- NOTE: for now the metabolism (and harvest) of spice does not cause any polution
         let pol = sugarMetab * polutionMetabolismFactor
         
-        cell <- agentCellOnPosM
-        agentPoluteCellM pol cell
+        coord <- domainStateFieldM sugAgCoord
+        let e' = poluteCell pol coord e
 
-        whenM starvedToDeathM agentDiesM
+        ifThenElseM
+            starvedToDeathM
+            (agentDiesM e')
+            (return e')
 
-agentPoluteCellM :: Double -> (EnvCoord, SugarScapeEnvCell) -> State SugarScapeAgentOut ()
-agentPoluteCellM polutionIncrease (cellCoord, cell)
-    | polutionEnabled = 
-        do
-            let cellAfterPolution = cell { sugEnvPolutionLevel = polutionIncrease + (sugEnvPolutionLevel cell) }
-            runEnvironmentM $ changeCellAtM cellCoord cellAfterPolution
-    | otherwise = return ()
-
-agentNonCombatMoveM :: State SugarScapeAgentOut ()
-agentNonCombatMoveM = 
+agentNonCombatMoveM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
+agentNonCombatMoveM e = 
     do
-        cellsInSight <- agentLookoutM
-        pos <- environmentPositionM
+        cellsInSight <- agentLookoutM e
+        coord <- domainStateFieldM sugAgCoord
 
         let unoccupiedCells = filter (cellUnoccupied . snd) cellsInSight
-        let bestCells = selectBestCells bestMeasureSugarLevel pos unoccupiedCells
+        let bestCells = selectBestCells bestMeasureSugarLevel coord unoccupiedCells
 
-        (cellCoord, _) <- agentPickRandomM bestCells
+        (cellCoord, _) <- agentRandomPickM bestCells
 
-        ifThenElse (null unoccupiedCells)
-                    agentStayAndHarvestM
-                    (agentMoveAndHarvestCellM cellCoord)
+        ifThenElse 
+            (null unoccupiedCells)
+            (agentHarvestCellM coord e)  -- NOTE: stay and harvest
+            (agentMoveAndHarvestCellM cellCoord e)
 
-agentLookoutM :: State SugarScapeAgentOut [(EnvCoord, SugarScapeEnvCell)]
-agentLookoutM = 
+agentLookoutM :: SugarScapeEnvironment -> State SugarScapeAgentOut [(Discrete2dCoord, SugarScapeEnvCell)]
+agentLookoutM e = 
     do
         vis <- domainStateFieldM sugAgVision
-        pos <- environmentPositionM 
-        runEnvironmentM $ neighboursDistanceM pos vis
+        coord <- domainStateFieldM sugAgCoord
+        return $ neighbourInDistance coord vis e
 
-agentStayAndHarvestM :: State SugarScapeAgentOut ()
-agentStayAndHarvestM = 
+agentMoveAndHarvestCellM :: Discrete2dCoord -> SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
+agentMoveAndHarvestCellM cellCoord e = -- agentHarvestCellM cellCoord e >>= (\e' -> agentMoveToM cellCoord e')
     do
-        (cellCoord, _) <- agentCellOnPosM
-        agentHarvestCellM cellCoord
+        e' <- agentHarvestCellM cellCoord e
+        agentMoveToM cellCoord e'
 
-agentMoveAndHarvestCellM :: EnvCoord -> State SugarScapeAgentOut ()
-agentMoveAndHarvestCellM cellCoord = 
+agentMoveToM :: Discrete2dCoord -> SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
+agentMoveToM cellCoord e = 
     do
-        agentHarvestCellM cellCoord
-        agentMoveToM cellCoord
+        e' <- unoccupyPositionM e
 
-agentMoveToM :: EnvCoord -> State SugarScapeAgentOut ()
-agentMoveToM cellCoord = 
-    do
-        unoccupyPositionM
+        updateDomainStateM (\s -> s { sugAgCoord = cellCoord })
 
         s <- getDomainStateM
         aid <- agentIdM
-        cell <- runEnvironmentM $ cellAtM cellCoord
 
+        let cell = cellAt cellCoord e'
         let cellOccupied = cell { sugEnvOccupier = Just (cellOccupier aid s) }
+        return $ changeCellAt cellCoord cellOccupied e'
 
-        runEnvironmentM $ changeCellAtM cellCoord cellOccupied
-        changeEnvironmentPositionM cellCoord
-
-agentHarvestCellM :: EnvCoord -> State SugarScapeAgentOut ()
-agentHarvestCellM cellCoord = 
+agentHarvestCellM :: Discrete2dCoord -> SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
+agentHarvestCellM cellCoord e = 
     do
-        cell <- runEnvironmentM $ cellAtM cellCoord
+        let cell = cellAt cellCoord e
 
         sugarLevelAgent <- domainStateFieldM sugAgSugarLevel
         spiceLevelAgent <- domainStateFieldM sugAgSpiceLevel
@@ -148,39 +140,42 @@ agentHarvestCellM cellCoord =
         updateDomainStateM (\s -> s { sugAgSugarLevel = newSugarLevelAgent, sugAgSpiceLevel = newSpiceLevelAgent })
 
         let cellHarvested = cell { sugEnvSugarLevel = 0.0, sugEnvSpiceLevel = 0.0 }
-        runEnvironmentM $ changeCellAtM cellCoord cellHarvested
+        let e' = changeCellAt cellCoord cellHarvested e
        
         -- NOTE: at the moment harvesting SPICE does not influence the polution
         let pol = sugarLevelCell * polutionHarvestFactor 
-        agentPoluteCellM pol (cellCoord, cellHarvested)
+        return $ poluteCell pol cellCoord e'
 
-agentAgeingM :: Double -> State SugarScapeAgentOut ()
-agentAgeingM newAge =
+agentAgeingM :: Double -> SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
+agentAgeingM newAge e =
     do
         updateDomainStateM (\s -> s { sugAgAge = newAge })
 
-        whenM dieFromAgeM $ 
-            do
-                -- birthNewAgentM
+        ifThenElseM
+            dieFromAgeM
+            (do
+                birthNewAgentM e
                 passWealthOnM
-                agentDiesM
+                agentDiesM e)
+            (return e)
 
-birthNewAgentM :: State SugarScapeAgentOut ()
-birthNewAgentM = 
+birthNewAgentM :: SugarScapeEnvironment -> State SugarScapeAgentOut ()
+birthNewAgentM e = 
     do
         newAgentId <- agentIdM -- NOTE: we keep the old id
         newAgentCoord <- findUnoccpiedRandomPositionM
-        newAgentDef <- runAgentRandomM $ randomAgent (newAgentId, newAgentCoord) sugarScapeAgentBehaviourM sugarScapeAgentConversationM
+        newAgentDef <- agentRandomM $ randomAgent (newAgentId, newAgentCoord) sugarScapeAgentBehaviourM sugarScapeAgentConversationM
         createAgentM newAgentDef
 
     where
-        findUnoccpiedRandomPositionM :: State SugarScapeAgentOut EnvCoord
+        findUnoccpiedRandomPositionM :: State SugarScapeAgentOut Discrete2dCoord
         findUnoccpiedRandomPositionM =
             do
-                env <- environmentM
-                (c, coord) <- runAgentRandomM $ (randomCell env)
-
-                ifThenElse (cellOccupied c) findUnoccpiedRandomPositionM (return coord)
+                (c, coord) <- agentRandomM $ randomCell e
+                ifThenElse
+                    (cellOccupied c) 
+                    findUnoccpiedRandomPositionM 
+                    (return coord)
                 
 dieFromAgeM :: State SugarScapeAgentOut Bool
 dieFromAgeM = 
@@ -192,28 +187,29 @@ dieFromAgeM =
 ------------------------------------------------------------------------------------------------------------------------
 -- CHAPTER III: Sex, Culture, And Conflict: The Emergence Of History
 ------------------------------------------------------------------------------------------------------------------------
-agentSexM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
-agentSexM ain =
+agentSexM :: SugarScapeAgentIn -> SugarScapeEnvironment -> State SugarScapeAgentOut ()
+agentSexM ain e =
     do
         s <- getDomainStateM
-        pos <- environmentPositionM
-        env <- environmentM
+        coord <- domainStateFieldM sugAgCoord
 
-        neighbourCells <- runEnvironmentM $ neighboursM pos
-        nids <- neighbourIdsM 
+        let neighbourCells = neighbours coord e
+        nids <- neighbourIdsM e
 
         -- TODO: implement this as monadic
         -- NOTE: this calculates the cells which are in the initial neighbourhood and in the neighbourhood of all the neighbours
-        let  nncsDupl = foldr (\(coord, _) acc -> (neighbours coord env) ++ acc) neighbourCells neighbourCells
+        let  nncsDupl = foldr (\(coord, _) acc -> neighbours coord e ++ acc) neighbourCells neighbourCells
         -- NOTE: the nncs are not unique, remove duplicates
         let nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
         let nncsUnoccupied = filter (isNothing . sugEnvOccupier . snd) nncsUnique
 
-        when (isFertile s) (agentMatingConversationM nids nncsUnoccupied)
+        when 
+            (isFertile s) 
+            (agentMatingConversationM nids nncsUnoccupied)
 
     where
         agentMatingConversationM :: [AgentId]
-                                    -> [(EnvCoord, SugarScapeEnvCell)]
+                                    -> [(Discrete2dCoord, SugarScapeEnvCell)]
                                     -> State SugarScapeAgentOut ()
         agentMatingConversationM [] _ = conversationEndM
         agentMatingConversationM _ [] = conversationEndM
@@ -222,20 +218,23 @@ agentSexM ain =
                 s <- getDomainStateM
                 gender <- domainStateFieldM sugAgGender
 
-                ifThenElse (satisfiesWealthForChildBearing s)
+                ifThenElse 
+                    (satisfiesWealthForChildBearing s)
                     (conversationM 
-                        (receiverId, (MatingRequest gender)) 
+                        (receiverId, MatingRequest gender) 
                         (conversationReplyMonadicRunner agentMatingConversationsReplyM))
                     conversationEndM
-                
+
             where
-                agentMatingConversationsReplyM :: Maybe (AgentMessage SugarScapeMsg) -> State SugarScapeAgentOut ()
-                agentMatingConversationsReplyM Nothing = agentMatingConversationM otherAis allCoords  -- NOTE: the target was not found or does not have a handler, continue with the next
-                agentMatingConversationsReplyM (Just (_, MatingReplyNo)) = agentMatingConversationM otherAis allCoords
-                agentMatingConversationsReplyM (Just (senderId, (MatingReplyYes otherTup))) = 
+                agentMatingConversationsReplyM :: Maybe (AgentMessage SugarScapeMsg) 
+                                                    -> SugarScapeEnvironment
+                                                    -> State SugarScapeAgentOut SugarScapeEnvironment
+                agentMatingConversationsReplyM Nothing e = agentMatingConversationM otherAis allCoords >> return e  -- NOTE: the target was not found or does not have a handler, continue with the next
+                agentMatingConversationsReplyM (Just (_, MatingReplyNo)) e = agentMatingConversationM otherAis allCoords >> return e
+                agentMatingConversationsReplyM (Just (senderId, MatingReplyYes otherTup)) e = 
                     do
                         initialSugarEndow <- domainStateFieldM sugAgSugarInit
-                        aid <- agentIdM 
+                        -- aid <- agentIdM 
 
                         let mySugarContribution = initialSugarEndow / 2.0
                         mySugarMetab <- domainStateFieldM sugAgSugarMetab
@@ -246,7 +245,7 @@ agentSexM ain =
 
                         let newBornId = nextAgentId ain
 
-                        newBornDef <- runAgentRandomM
+                        newBornDef <- agentRandomM
                             (createNewBorn 
                                 (newBornId, coord)
                                 (mySugarContribution, mySugarMetab, mySpiceMetab, myVision, myCulturalTag, myImmuneSysBorn)
@@ -255,30 +254,32 @@ agentSexM ain =
                                 sugarScapeAgentConversationM)
 
                         let cell' = cell { sugEnvOccupier = Just (cellOccupier newBornId (adState newBornDef))}
-                        runEnvironmentM $ changeCellAtM coord cell'
+                        let e' = changeCellAt coord cell' e
 
-                        updateDomainStateM (\s -> s { sugAgSugarLevel = (sugAgSugarLevel s) - mySugarContribution,
-                                                      sugAgChildren = newBornId : (sugAgChildren s)})
+                        updateDomainStateM (\s -> s { sugAgSugarLevel = sugAgSugarLevel s - mySugarContribution,
+                                                      sugAgChildren = newBornId : sugAgChildren s})
                         
                         createAgentM newBornDef
 
                         conversationM 
-                            (receiverId, (MatingChild newBornId))
+                            (receiverId, MatingChild newBornId)
                             (conversationIgnoreReplyMonadicRunner (agentMatingConversationM otherAis cs))
                             --(\ao _ -> execState (agentMatingConversationM otherAis cs) ao)
-                    
-                agentMatingConversationsReplyM (Just (_, _)) = agentMatingConversationM otherAis allCoords  -- NOTE: unexpected/MatingChildAck reply, continue with the next
+
+                        return e'
+                        
+                agentMatingConversationsReplyM (Just (_, _)) e = agentMatingConversationM otherAis allCoords >> return e  -- NOTE: unexpected/MatingChildAck reply, continue with the next
 
 inheritSugarM :: SugarScapeAgentIn 
                     -> State SugarScapeAgentOut ()
 inheritSugarM ain = onMessageMState inheritSugarActionM ain
     where
         inheritSugarActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
-        inheritSugarActionM (_, (InheritSugar sug)) = updateDomainStateM (\s -> s { sugAgSugarLevel = (sugAgSugarLevel s) + sug})
+        inheritSugarActionM (_, InheritSugar sug) = updateDomainStateM (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + sug})
         inheritSugarActionM _ = return ()
 
 -- TODO: implement handleMatingConversation as monadic ?
-handleMatingConversationM :: (SugarScapeAgentGender)
+handleMatingConversationM :: SugarScapeAgentGender
                                 -> SugarScapeAgentIn
                                 -> (SugarScapeMsg, SugarScapeAgentIn)
 handleMatingConversationM otherGender ain 
@@ -380,7 +381,7 @@ agentCombatMoveM =
 
                 return $ (not . null) retaliatingCells
               
-        moveAndHarvestBestCellM :: ((EnvCoord, SugarScapeEnvCell), Double) -> State SugarScapeAgentOut ()
+        moveAndHarvestBestCellM :: ((Discrete2dCoord, SugarScapeEnvCell), Double) -> State SugarScapeAgentOut ()
         moveAndHarvestBestCellM ((cellCoord, cell), payoff) =
             do
                 sugarLevelAgent <- domainStateFieldM sugAgSugarLevel
@@ -701,8 +702,11 @@ sugarScapeAgentConversationM _ _ = Nothing
 ------------------------------------------------------------------------------------------------------------------------
 -- BEHAVIOUR-CONTROL
 ------------------------------------------------------------------------------------------------------------------------
-sugarScapeAgentBehaviourFuncM :: Double -> SugarScapeAgentIn -> State SugarScapeAgentOut ()
-sugarScapeAgentBehaviourFuncM age ain = 
+sugarScapeAgentBehaviourFuncM :: SugarScapeEnvironment 
+                                    -> Double 
+                                    -> SugarScapeAgentIn 
+                                    -> State SugarScapeAgentOut SugarScapeEnvironment
+sugarScapeAgentBehaviourFuncM e age ain = 
     do     
         agentKilledInCombatM ain
 

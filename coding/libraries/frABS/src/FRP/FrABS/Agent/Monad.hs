@@ -1,9 +1,6 @@
 {-# LANGUAGE Arrows #-}
 module FRP.FrABS.Agent.Monad (
     agentIdM,
-    -- environmentM,
-    -- environmentPositionM,
-    -- changeEnvironmentPositionM,
 
     createAgentM,
     killM,
@@ -24,8 +21,6 @@ module FRP.FrABS.Agent.Monad (
     getDomainStateM,
     setDomainStateM,
     domainStateFieldM,
-
-    -- runEnvironmentM,
 
     agentMonadic,
     agentMonadicReadEnv,
@@ -55,18 +50,6 @@ type AgentMonadicBehaviourNoEnv s m e = (Double -> AgentIn s m e -> State (Agent
 ------------------------------------------------------------------------------------------------------------------------
 agentIdM :: State (AgentOut s m e) AgentId
 agentIdM = state (\ao -> (aoId ao, ao))
-
-{-
-environmentM :: State (AgentOut s m e) e
-environmentM = state (\ao -> (aoEnv ao, ao))
-
-
-environmentPositionM :: State (AgentOut s m e) EnvCoord
-environmentPositionM = state (\ao -> (aoEnvPos ao, ao))
-
-changeEnvironmentPositionM :: EnvCoord -> State (AgentOut s m e) ()
-changeEnvironmentPositionM pos = state (\ao -> ((), ao { aoEnvPos = pos }))
--}
 
 sendMessageM :: AgentMessage m -> State (AgentOut s m e) ()
 sendMessageM msg = state (\ao -> ((), sendMessage msg ao))

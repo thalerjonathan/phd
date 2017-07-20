@@ -81,6 +81,9 @@ TODO: cite papers which discuss how to approximate a SD model by ABS
 - Borshchev, Filippov (2004) - From System Dynamics and Discrete Event to Practical Agent Based Modeling: Reasons, Techniques, Tools
 	-> its VERY IMPORTANT point is that we need to draw the illness-duration from an exponential-distribution because the illness-duration is proportional to the size of the infected. note: this is wrongly expressed, need to find the correct formulation
 
+TODO: the first (of two) contribution of this paper is: an explanation of one way of how ABS can be done in pure functional programming and its benefits: declarative style where the code looks very much like specification, fewer LoC, fewer Bugs, reasoning and proves
+
+TODO: main second contribution is: show that the SD and the ABS implementation of the SIR model are the same by proving that ABS solves the SD equation. this should be possible by now using reasoning techniques (and quickcheck?)
 
 So far, the pure functional paradigm hasn't got much attention in Agent-Based Simulation (ABS) where the dominant programming paradigm is object-orientation, with Java being its most prominent representative. We claim that pure functional programming using Haskell is very well suited to implement complex, real-world ABS. To prove that we implemented the library \textit{FrABMS} which allows to do Agent-Based Modelling \& Simulation the first time in the pure functional programming language Haskell. To achieve this we leverage the basic concepts of ABS with functional reactive programming using the library Yampa. The result is a surprisingly fresh approach to Agent-Based Modelling \& Simulation as it allows to incorporate discrete time-semantics similar to Discrete Event Simulation and continuous time-flows like System Dynamics. In this paper we will show the novel approach of FrABMS through the example of the SIR model and discuss implications and best practices.
 \end{abstract}

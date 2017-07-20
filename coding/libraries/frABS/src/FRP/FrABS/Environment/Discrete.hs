@@ -43,8 +43,8 @@ module FRP.FrABS.Environment.Discrete (
     wrapDisc2d,
     wrapDisc2dEnv,
     
-    pickRandomNeighbourCell,
-    pickRandomNeighbour
+    randomNeighbourCell,
+    randomNeighbour
   ) where
     
 import FRP.FrABS.Environment.Spatial
@@ -271,11 +271,11 @@ bottomRightDelta =   ( 1,  1)
 -------------------------------------------------------------------------------
 -- UTILITIES
 -------------------------------------------------------------------------------
-pickRandomNeighbourCell :: Discrete2dCoord -> Discrete2d c -> Rand StdGen c
-pickRandomNeighbourCell pos e = pickRandomNeighbour pos e >>= (\(_, c) -> return c)
+randomNeighbourCell :: Discrete2dCoord -> Discrete2d c -> Rand StdGen c
+randomNeighbourCell pos e = randomNeighbour pos e >>= (\(_, c) -> return c)
 
-pickRandomNeighbour :: Discrete2dCoord -> Discrete2d c -> Rand StdGen (Discrete2dCoord, c)
-pickRandomNeighbour pos e = 
+randomNeighbour :: Discrete2dCoord -> Discrete2d c -> Rand StdGen (Discrete2dCoord, c)
+randomNeighbour pos e = 
     do
         let ncc = neighbours pos e
         let l = length ncc 

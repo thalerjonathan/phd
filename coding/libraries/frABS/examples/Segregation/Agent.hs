@@ -258,12 +258,12 @@ localRandomCell :: SegEnvironment -> Int -> SegAgentOut -> (SegAgentOut, SegEnvC
 localRandomCell e radius ao = (ao', randCell, randCoord)
     where
         originCoord = segCoord $ aoState ao
-        ((randCell, randCoord), ao') = runAgentRandom (randomCellWithinRect originCoord radius e) ao
+        ((randCell, randCoord), ao') = agentRandom (randomCellWithinRect originCoord radius e) ao
 
 globalRandomCell :: SegEnvironment -> SegAgentOut -> (SegAgentOut, SegEnvCell, Discrete2dCoord)
 globalRandomCell e ao = (ao', randCell, randCoord)
     where
-        ((randCell, randCoord), ao') = runAgentRandom (randomCell e) ao
+        ((randCell, randCoord), ao') = agentRandom (randomCell e) ao
 ------------------------------------------------------------------------------------------------------------------------
 
 segAgentBehaviourFunc :: SegAgentPureBehaviour

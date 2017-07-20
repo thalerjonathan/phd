@@ -28,7 +28,7 @@ sirsDtM e t =
 infectAgentM :: Double -> State SIRSAgentOut ()
 infectAgentM t =
     do
-        doInfect <- drawBoolWithProbFromAgentM infectionProbability
+        doInfect <- agentRandomBoolProbM infectionProbability
         when doInfect $ updateDomainStateM (\s -> s { sirsState = Infected, sirsTime = t + infectedDuration } )
 
 handleInfectedAgentM :: SIRSEnvironment -> Double -> State SIRSAgentOut ()
@@ -51,7 +51,7 @@ randomContactM :: SIRSEnvironment -> State SIRSAgentOut ()
 randomContactM e = 
     do
         coord <- domainStateFieldM sirsCoord
-        randNeighId <- runAgentRandomM (pickRandomNeighbourCell coord e)
+        randNeighId <- agentRandomM (randomNeighbourCell coord e)
         sendMessageM (randNeighId, (Contact Infected))
 
 sirsAgentBehaviourFuncM :: SIRSAgentMonadicReadEnvBehaviour
@@ -85,7 +85,7 @@ infectAgent t ao
     | yes = updateDomainState (\s -> s { sirsState = Infected, sirsTime = t + infectedDuration }) ao'
     | otherwise = ao'
     where
-         (yes, ao') = drawBoolWithProbFromAgent infectionProbability ao
+         (yes, ao') = agentRandomBoolProb infectionProbability ao
 
 contactInfected :: Double -> AgentMessage SIRSMsg -> SIRSAgentOut -> SIRSAgentOut
 contactInfected t (_, Contact Infected) ao
@@ -113,7 +113,7 @@ randomContact :: SIRSEnvironment -> SIRSAgentOut -> SIRSAgentOut
 randomContact e ao = sendMessage (randNeigh, Contact Infected) ao'
     where
         coord = sirsCoord $ aoState ao
-        (randNeigh, ao') = runAgentRandom (pickRandomNeighbourCell coord e) ao
+        (randNeigh, ao') = agentRandom (randomNeighbourCell coord e) ao
 
 sirsAgentBehaviourFunc :: SIRSAgentPureReadEnvBehaviour
 sirsAgentBehaviourFunc e t ain ao = ao'

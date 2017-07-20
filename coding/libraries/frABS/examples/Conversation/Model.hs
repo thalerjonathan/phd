@@ -53,7 +53,7 @@ randomRangeCounter = (0, 10)
 agentTest :: ConversationAgentOut -> ConversationAgentOut
 agentTest ao = setDomainState n ao'
     where
-        (n, ao') = drawRandomRangeFromAgent (0, 10) ao
+        (n, ao') = agentRandomRange (0, 10) ao
 
 conversationHandler :: ConversationAgentConversation
 conversationHandler aie@(ain, e) (_, msg@(Hello n)) =
@@ -71,7 +71,7 @@ makeConversationWith n ao = conversation msg makeConversationWithAux ao
             | n > 5 = trace ("Agent " ++ (show $ aoId ao) ++ " receives reply: " ++ (show msg) ++ " but stoppin") (conversationEnd a1, e)
             | otherwise = trace ("Agent " ++ (show $ aoId ao) ++ " receives reply: " ++ (show msg) ++ " continuing") (makeConversationWith (n + 1) ao, e)
             where
-                (g, a0) = splitRandomFromAgent ao
+                (g, a0) = agentRandomSplit ao
 
                 s = 42
 

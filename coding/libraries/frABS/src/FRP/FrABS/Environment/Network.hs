@@ -18,7 +18,7 @@ module FRP.FrABS.Environment.Network (
     directLinkBetween,
     directLinkBetweenM,
 
-    pickRandomNeighbourNode
+    randomNeighbourNode
   ) where
 
 import FRP.FrABS.Agent.Agent
@@ -113,8 +113,8 @@ directLinkBetweenM n1 n2 = state (\e -> (directLinkBetween n1 n2 e, e))
 -------------------------------------------------------------------------------
 -- UTILITIES
 -------------------------------------------------------------------------------
-pickRandomNeighbourNode :: AgentId -> Network l -> Rand StdGen AgentId
-pickRandomNeighbourNode aid e = 
+randomNeighbourNode :: AgentId -> Network l -> Rand StdGen AgentId
+randomNeighbourNode aid e = 
     do
         let nn = neighbourNodes aid e
         let l = length nn 

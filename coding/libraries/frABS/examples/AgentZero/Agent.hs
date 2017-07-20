@@ -237,7 +237,7 @@ randomMove e ao
 	| otherwise = updateDomainState (\s -> s { azAgentCoord = newCoord }) ao'
 	where
 		coord = azAgentCoord $ aoState ao
-		(newCoord, ao') = runAgentRandom (randomCoord coord (azAgentSpace e) movementSpeed) ao
+		(newCoord, ao') = agentRandom (randomCoord coord (azAgentSpace e) movementSpeed) ao
 
 agentZeroAgentBehaviourFunc :: AgentZeroEnvironment 
 								-> Double 

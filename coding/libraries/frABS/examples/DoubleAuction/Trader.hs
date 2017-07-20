@@ -348,8 +348,8 @@ sendOfferingsM :: State DAAgentOut ()
 sendOfferingsM =
 	do
 		s <- getDomainStateM
-		bos <- runAgentRandomM (bidOfferings s)
-		aos <- runAgentRandomM (askOfferings s)
+		bos <- agentRandomM (bidOfferings s)
+		aos <- agentRandomM (askOfferings s)
 
 		sendMessageM (auctioneer, BidOffering bos)
 		sendMessageM (auctioneer, AskOffering aos)
@@ -374,8 +374,8 @@ sendOfferings ao = aAfterAsk
 	where
 		s = aoState ao
 
-		(bos, ao0) = runAgentRandom (bidOfferings s) ao 
-		(aos, ao1) = runAgentRandom (askOfferings s) ao0
+		(bos, ao0) = agentRandom (bidOfferings s) ao 
+		(aos, ao1) = agentRandom (askOfferings s) ao0
 
 		aAfterBid = sendMessage (auctioneer, BidOffering bos) ao1
 		aAfterAsk = sendMessage (auctioneer, AskOffering aos) aAfterBid

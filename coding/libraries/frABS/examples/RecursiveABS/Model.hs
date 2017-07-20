@@ -76,7 +76,7 @@ recursiveABSActNonRec aout ain
 recursiveABSRandomizeCounter :: RecursiveABSAgentOut -> RecursiveABSAgentOut
 recursiveABSRandomizeCounter aout = aout1
     where
-        (randInt, aout0) = drawRandomRangeFromAgent randomRangeCounter aout
+        (randInt, aout0) = agentRandomRange randomRangeCounter aout
         aout1 = setDomainState randInt aout0
 
 recursiveABSAgentBehaviour :: RecursiveABSAgentBehaviour

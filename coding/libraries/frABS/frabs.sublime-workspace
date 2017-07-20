@@ -84,7 +84,6 @@
 			"settings":
 			{
 				"buffer_size": 1530,
-				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		}
@@ -150,13 +149,26 @@
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Random.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Agent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/HeroesCowards/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Auctioneer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Trader.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Reactive.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Utils.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Discrete.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Network.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/HeroesCowards/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Continuous.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Utils.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Random.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Renderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Continuous2d.hs",
@@ -167,9 +179,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Simulation.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Discrete2D.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Reactive.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Utils.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Network.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Classes.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/FrABS.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/FrABS.hs",
@@ -213,7 +222,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/AgentUtils.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/AgentRandom.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/SimulationUtils.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/Utils.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Reactive.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeModel.hs",
@@ -268,20 +276,11 @@
 		"/C/Users/Jonathan Thaler/coding/ethaskell/src/    Variable not in scope",
 		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/Utils.hs",
 		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/Methods.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/ETHaskell.cabal",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/    Parse error in pattern",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/JsonRpc.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/Server.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/                             imported from `Prelude' at EthJsonRpc/Server.hs",
-		"/C/Users/Jonathan Thaler/phd/coding/libraries/frABS/examples/DoubleAuction/DAModel.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Devp2p/Devp2p.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/jsonrpc/JSONRpc.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/EthJsonRpc.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/TODO.txt"
+		"/C/Users/Jonathan Thaler/coding/ethaskell/ETHaskell.cabal"
 	],
 	"find":
 	{
-		"height": 23.0
+		"height": 34.0
 	},
 	"find_in_files":
 	{
@@ -489,8 +488,8 @@
 						"selection":
 						[
 							[
-								141,
-								141
+								0,
+								0
 							]
 						],
 						"settings":
@@ -500,7 +499,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 45.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,

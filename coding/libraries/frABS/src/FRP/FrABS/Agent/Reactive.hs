@@ -139,14 +139,14 @@ randomNeighbourNodeMsgSource :: m -> MessageSource s m (Network l)
 randomNeighbourNodeMsgSource m e ao = (ao', msg)
     where
         aid = aoId ao
-        (randNode, ao') = runAgentRandom (pickRandomNeighbourNode aid e) ao
+        (randNode, ao') = agentRandom (randomNeighbourNode aid e) ao
         msg = (randNode, m)
 
 randomNeighbourCellMsgSource :: (s -> Discrete2dCoord) -> m -> MessageSource s m (Discrete2d AgentId)
 randomNeighbourCellMsgSource posFunc m e ao = (ao', msg)
     where
         pos = posFunc $ aoState ao
-        (randCell, ao') = runAgentRandom (pickRandomNeighbourCell pos e) ao
+        (randCell, ao') = agentRandom (randomNeighbourCell pos e) ao
         msg = (randCell, m)
 -------------------------------------------------------------------------------
 
@@ -179,7 +179,7 @@ transitionWithUniProb p from to = switch (transitionWithUniProbAux from) (\_ -> 
         transitionWithUniProbAux from = proc aie ->
             do
                 (ao, e') <- from -< aie
-                let (evtFlag, ao') = runAgentRandom (drawRandomBoolM p) ao
+                let (evtFlag, ao') = agentRandom (randomBoolM p) ao
                 evt <- iEdge False -< evtFlag
                 returnA -< ((ao', e'), evt)
 
@@ -196,7 +196,7 @@ transitionWithExpProb lambda p from to = switch (transitionWithExpProbAux from) 
         transitionWithExpProbAux from = proc aie ->
             do
                 (ao, e) <- from -< aie
-                let (r, ao') = runAgentRandom (drawRandomExponentialM lambda) ao
+                let (r, ao') = agentRandom (randomExpM lambda) ao
                 evt <- iEdge False -< (p >= r)
                 returnA -< ((ao', e), evt)
 
@@ -265,7 +265,7 @@ transitionOnEventWithGuard evtSrc guardAction from to = switch (transitionEventW
             | guardAllowed = (ao', Event ())
             | otherwise = (ao', NoEvent)
             where
-                (guardAllowed, ao') = runAgentRandom guardAction ao
+                (guardAllowed, ao') = agentRandom guardAction ao
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------

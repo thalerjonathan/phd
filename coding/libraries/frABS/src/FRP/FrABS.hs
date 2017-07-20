@@ -112,27 +112,28 @@ module FRP.FrABS (
     ifThenElse,
     ifThenElseM,
 
-    runAgentRandom,
-    runAgentRandomM,
+    agentRandom,
+    agentRandomM,
     
-    drawRandomRangeFromAgent,
-    drawMultipleRandomRangeFromAgent,
-    drawBoolWithProbFromAgent,
-    drawBoolWithProbFromAgentM,
-    splitRandomFromAgent,
-    agentPickRandom,
-    agentPickRandomM,
-    agentPickRandomMultiple,
-    agentPickRandomMultipleM,
+    agentRandomRange,
+    agentRandomRanges,
+    agentRandomBoolProb,
+    agentRandomBoolProbM,
+    agentRandomSplit,
+    agentRandomPick,
+    agentRandomPickM,
+    agentRandomPicks,
+    agentRandomPickM,
 
-    drawRandomBool,
-    drawRandomBoolM,
-    drawRandomExponential,
-    drawRandomExponentialM,
+    randomBool,
+    randomBoolM,
+    randomExp,
+    randomExpM,
 
-    pickRandomNeighbourNode,
-    
-    pickRandomNeighbourCell,
+    avoid,
+
+    randomNeighbourNode,
+    randomNeighbourCell,
 
     agentRandomNeighbourNode,
     
@@ -159,9 +160,9 @@ module FRP.FrABS (
     directLinkBetween,
     directLinkBetweenM,
 
-    pickRandomNeighbourNode,
+    randomNeighbourNode,
 
-        Discrete2dDimension,
+    Discrete2dDimension,
     Discrete2dCoord,
     Discrete2dNeighbourhood,
 
@@ -204,8 +205,8 @@ module FRP.FrABS (
     wrapDisc2d,
     wrapDisc2dEnv,
     
-    pickRandomNeighbourCell,
-    pickRandomNeighbour,
+    randomNeighbourCell,
+    randomNeighbour,
     
     Continuous2DDimension,
     Continuous2DCoord,

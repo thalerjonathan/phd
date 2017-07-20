@@ -68,7 +68,7 @@ wildfireAgentLiving g initFuel = transitionOnMessage
 wildfireAgentLivingGuarded :: RandomGen g => g -> Double -> WildfireAgentBehaviour
 wildfireAgentLivingGuarded g initFuel = transitionOnEventWithGuard 
 											(messageEventSource Ignite)
-											(drawRandomBoolM initFuel)
+											(randomBoolM initFuel)
 											doNothing
 											(wildfireAgentBurning g initFuel)
 

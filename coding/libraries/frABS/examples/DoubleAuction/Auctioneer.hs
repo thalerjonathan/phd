@@ -123,7 +123,7 @@ auctioneerBehaviourFunc :: Double -> DAAgentIn -> DAAgentOut -> DAAgentOut
 auctioneerBehaviourFunc _ ain a = maybe a' (\firstMatch -> notifyTraders (fromJust $ firstMatch) a') mayFirstMatch
 	where
 		offerings = accumulateOfferings ain
-		(matches, a') = runAgentRandom (findMatches offerings) a 
+		(matches, a') = agentRandom (findMatches offerings) a 
 		mayFirstMatch = Data.List.find isJust matches
 
 auctioneerBehaviour :: DAAgentBehaviour

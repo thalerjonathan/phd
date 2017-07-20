@@ -25,7 +25,7 @@ gotInfected :: FrSIRSSpatialAgentIn -> Rand StdGen Bool
 gotInfected ain = onMessageM gotInfectedAux ain False
     where
         gotInfectedAux :: Bool -> AgentMessage FrSIRSSpatialMsg -> Rand StdGen Bool
-        gotInfectedAux False (_, Contact Infected) = drawRandomBoolM infectivity
+        gotInfectedAux False (_, Contact Infected) = randomBoolM infectivity
         gotInfectedAux False _ = return False
         gotInfectedAux True _ = return True
 ------------------------------------------------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ sirsAgentSuceptible g = transitionOnEvent
 sirsAgentInfectedEvent :: FrSIRSSpatialEventSource
 sirsAgentInfectedEvent = proc (ain, ao) ->
     do
-        let (isInfected, ao') = runAgentRandom (gotInfected ain) ao
+        let (isInfected, ao') = agentRandom (gotInfected ain) ao
         infectionEvent <- edge -< isInfected
         returnA -< (ao', infectionEvent)
 
@@ -102,6 +102,6 @@ sirsAgentBehaviour g Recovered = sirsAgentRecovered g
 sirsAgentBehaviourRandInfected :: RandomGen g => g -> SIRSState -> FrSIRSSpatialAgentBehaviour
 sirsAgentBehaviourRandInfected g Infected = sirsAgentInfected g' duration
     where
-        (duration, g') = drawRandomExponential g (1/illnessDuration)
+        (duration, g') = randomExp g (1/illnessDuration)
 sirsAgentBehaviourRandInfected g s = sirsAgentBehaviour g s
 ------------------------------------------------------------------------------------------------------------------------

@@ -14,7 +14,7 @@ updateStrat = Sequential -- NOTE: agent-zero works BOTH for parallel and sequent
 envCollapsing = Just agentZeroEnvironmentsCollapse
 envBeh = Just agentZeroEnvironmentBehaviour
 shuffleAgents = True
-rngSeed = 42
+rngSeed = 43
 samplingTimeDelta = 1.0
 frequency = 0
 

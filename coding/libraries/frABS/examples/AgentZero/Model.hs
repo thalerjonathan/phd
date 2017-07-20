@@ -86,5 +86,5 @@ memorySize :: Int
 memorySize = 10
 
 movementSpeed :: Double
-movementSpeed = 0.5
+movementSpeed = 1.0
 ------------------------------------------------------------------------------------------------------------------------

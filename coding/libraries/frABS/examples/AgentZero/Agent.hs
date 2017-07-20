@@ -26,6 +26,9 @@ onAttackingSite e s = isAttackingSite cell
 		coordPatch = agentCoordToPatchCoord e coord
 		cell = cellAt coordPatch (azWorldPatches e)
 
+onAttackingSiteM :: AgentZeroEnvironment -> State AgentZeroAgentOut Bool
+onAttackingSiteM e = getDomainStateM >>= \s -> return $ onAttackingSite e s
+	
 agentCoordToPatchCoord :: AgentZeroEnvironment -> Continuous2DCoord -> Discrete2dCoord
 agentCoordToPatchCoord e cc = cont2dTransDisc2d wp as cc
 	where
@@ -39,78 +42,63 @@ doesTakeAction :: AgentZeroAgentState -> Bool
 doesTakeAction s = azAgentDispo s > 0
 ------------------------------------------------------------------------------------------------------------------------
 
-{-
 ------------------------------------------------------------------------------------------------------------------------
 --  AGENT-BEHAVIOUR MONADIC implementation
 ------------------------------------------------------------------------------------------------------------------------
 agentZeroAgentBehaviourFuncM :: AgentZeroEnvironment 
 								-> Double 
 								-> AgentZeroAgentIn 
-								-> State AgentZeroAgentOut ()
+								-> State AgentZeroAgentOut AgentZeroEnvironment
 agentZeroAgentBehaviourFuncM e _ ain =
 	do
-		agentZeroRandomMoveM
-		agentZeroUpdateEventCountM
-		agentZeroUpdateAffectM
-		agentZeroUpdateProbM
-		agentZeroUpdateDispoM ain
+		randomMoveM e
+		updateEventCountM e
+		updateAffectM e
+		updateProbM e
+		updateDispoM e ain
 
-		whenM agentZeroTakeActionM agentZeroDestroyM
+		ifThenElseM 
+			takeActionM 
+			(destroyPatchesM e)
+			(return e)
 
-agentZeroRandomMoveM :: State AgentZeroAgentOut ()
-agentZeroRandomMoveM =
+randomMoveM :: AgentZeroEnvironment -> State AgentZeroAgentOut ()
+randomMoveM e =
 	do
 		aid <- agentIdM
-		when (aid /= 0) agentRandomMoveM
 
-agentZeroTakeActionM :: State AgentZeroAgentOut Bool
-agentZeroTakeActionM =
-	do
-		dispo <- domainStateFieldM azAgentDispo
-		return $ dispo > 0
+		when (aid < 0) 
+			(do
+				coord <- domainStateFieldM azAgentCoord
+				newCoord <- agentRandomM (randomCoord coord (azAgentSpace e) movementSpeed)
+				updateDomainStateM (\s -> s { azAgentCoord = newCoord }))
 
-agentZeroDestroyM :: State AgentZeroAgentOut ()
-agentZeroDestroyM =
-	do
-		coord <- domainStateFieldM azAgentCoord
-
-		runEnvironmentM $
-			do
-				cs <- cellsAroundRadiusM pos destructionRadius
-				foldM (\_ (coord, cell) -> changeCellAtM coord (cell { azCellState = Dead })) () cs
-
-onAttackingSiteM :: State AgentZeroAgentOut Bool
-onAttackingSiteM =
-	do
-		(_, cell) <- agentCellOnPosM
-		return $ isAttackingSite cell
-
-agentZeroUpdateEventCountM :: State AgentZeroAgentOut ()
-agentZeroUpdateEventCountM =
+updateEventCountM :: AgentZeroEnvironment -> State AgentZeroAgentOut ()
+updateEventCountM e =
 	do
 		evtCount <- domainStateFieldM azAgentEventCount
+		whenM (onAttackingSiteM e)
+			  (updateDomainStateM (\s -> s { azAgentEventCount = evtCount + 1} ))
 
-		whenM onAttackingSiteM (updateDomainStateM (\s -> s { azAgentEventCount = evtCount + 1} ))
-
-agentZeroUpdateAffectM :: State AgentZeroAgentOut ()
-agentZeroUpdateAffectM =
+updateAffectM :: AgentZeroEnvironment -> State AgentZeroAgentOut ()
+updateAffectM e =
 	do
 		affect <- domainStateFieldM azAgentAffect
 		learningRate <- domainStateFieldM azAgentLearningRate
 		delta <- domainStateFieldM azAgentDelta
 		lambda <- domainStateFieldM azAgentLambda
 
-		attackingSite <- onAttackingSiteM
-
-		ifThenElseM onAttackingSiteM
+		ifThenElseM (onAttackingSiteM e)
 						(updateDomainStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * (lambda - affect))}))
 						(updateDomainStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * extinctionRate * (0 - affect))}))
 
-agentZeroUpdateProbM :: State AgentZeroAgentOut ()
-agentZeroUpdateProbM =
+updateProbM :: AgentZeroEnvironment -> State AgentZeroAgentOut ()
+updateProbM e =
 	do
-		pos <- environmentPositionM
-		cs <- runEnvironmentM $ cellsAroundRadiusM pos sampleRadius
+		coord <- domainStateFieldM azAgentCoord
+		let coordDisc = agentCoordToPatchCoord e coord
+		let cs = cellsAroundRadius coordDisc sampleRadius (azWorldPatches e)
+
 		mem <- domainStateFieldM azAgentMemory
 
 		let csAttacking = filter (isAttackingSite . snd) cs
@@ -118,7 +106,7 @@ agentZeroUpdateProbM =
 		let mem' = localProb : init mem
 		let newProb = mean mem'
 
-		updateDomainStateM (\s -> s { azAgentProb = newProb, azAgentMemory = mem' } )
+		updateDomainStateM (\s -> s { azAgentProb = newProb, azAgentMemory = mem' })
 
 	where
 		mean :: (Fractional a) => [a] -> a
@@ -127,37 +115,36 @@ agentZeroUpdateProbM =
 		        s = sum xs
 		        n = fromIntegral $ length xs
 
-agentZeroUpdateDispoM :: AgentZeroAgentIn -> State AgentZeroAgentOut ()
-agentZeroUpdateDispoM ain =
+updateDispoM :: AgentZeroEnvironment -> AgentZeroAgentIn -> State AgentZeroAgentOut ()
+updateDispoM e ain =
 	do
-		aid <- agentIdM
-
 		affect <- domainStateFieldM azAgentAffect
 		prob <- domainStateFieldM azAgentProb
 		thresh <- domainStateFieldM azAgentThresh
-		linkIds <- runEnvironmentM $ neighbourNodesM aid
 
 		let dispoLocal = affect + prob
 
-		updateDomainStateM (\s -> s { azAgentDispo = dispoLocal - thresh})
+		updateDomainStateM (\s -> s { azAgentDispo = dispoLocal - thresh })
 		onMessageMState dispositionMessageHandleM ain
 		broadcastMessageM (Disposition dispoLocal) linkIds
 
 	where
+		aid = aiId ain
+		net = azAgentNetwork e
+		linkIds = neighbourNodes aid net
+
 		dispositionMessageHandleM :: AgentMessage AgentZeroMsg -> State AgentZeroAgentOut ()
-		dispositionMessageHandleM (senderId, Disposition d) =
-			do
-				aid <- agentIdM
+		dispositionMessageHandleM (senderId, Disposition d) = updateDomainStateM (\s -> s { azAgentDispo = azAgentDispo s + (d * weight)})
+			where
+				mayWeight = directLinkBetween senderId aid net
+				weight = fromMaybe 0 mayWeight
 
-				mayWeight <- runEnvironmentM $ directLinkBetweenM senderId aid
-				let weight = fromMaybe 0 mayWeight
+takeActionM :: State AgentZeroAgentOut Bool
+takeActionM = domainStateFieldM azAgentDispo >>= \dispo -> return $ dispo > 0
 
-				updateDomainStateM (\s -> s { azAgentDispo = azAgentDispo s + (d * weight)})
-
-		-- NOTE: pattern match is redundant because only Disposition message exists
-		-- dispositionMessageHandleM _ = return ()
+destroyPatchesM :: AgentZeroEnvironment -> State AgentZeroAgentOut AgentZeroEnvironment
+destroyPatchesM e = domainStateFieldM azAgentCoord >>= \coord -> return $ destroyPatches coord e
 ------------------------------------------------------------------------------------------------------------------------
--}
 
 ------------------------------------------------------------------------------------------------------------------------
 --  AGENT-BEHAVIOUR NON-MONADIC implementation
@@ -263,5 +250,5 @@ agentZeroAgentBehaviourFunc e _ ain ao
 		e' = destroyPatches coord e 
 
 agentZeroAgentBehaviour :: AgentZeroAgentBehaviour
-agentZeroAgentBehaviour = agentPure agentZeroAgentBehaviourFunc -- agentMonadic agentZeroAgentBehaviourFuncM  -- agentPure agentZeroAgentBehaviourFunc
+agentZeroAgentBehaviour = agentMonadic agentZeroAgentBehaviourFuncM  -- agentPure agentZeroAgentBehaviourFunc
 ------------------------------------------------------------------------------------------------------------------------

@@ -1,6 +1,32 @@
 \chapter{Aims and Objectives}
 \label{chap:aimsObj}
 
+TODO: after annual review: REWRITE THIS CHAPTER, it is too vague, too subjective, too many things mixed up, not clear enough. They want me to have a very short AIM with about 2 sentences and 4-6 objectives. So the whole chapter should be much shorter and much more precise in the end. MY CONCLUSION: get completely rid of category-theoretical approach, this is a COMPLETE different approach and opens up a very very different direction, I guess it will be enough to look into the things I describe below. My claiming that "reasoning" is only possible in Haskell was very much too vague for them, this was due to the problem, that I by myself have not really any knowledge about reasoning in Haskell. In the end I then could get my idea of reasoning about the equilibrium of decentralized bartering prices in an ABS setting across which they really liked and identified as a real contribution worthy of a PhD.
+The overall conclusion may be as well be that it is NOT well suited, but I need to back-up these claims with real hard evidence and strong arguments - whether the outcome is positive or negative does not matter, if it is done scientific it is worthy of a PhD
+
+From the annual review the following things become clear:
+- the aim is basically "Explore using Haskell for Agent-Based Simulation with its benefits and drawbacks".
+- The 3 major benefits of the approach I claim
+	1. code == spec
+	2. can rule out serious class of bugs
+	3. we can perform reasoning about the simulation in code
+	need to be metricated: e.g. this is really only possible in Haskell and not in Java. This needs thorough thinking about which metrics are used, how they can be aquired, how they can be compared,...
+- Why ACE and Social Simulation? Did i only pick these fields because they are easily applicable to the problems I want to solve? Which properties do they exhibit which make them interesting for my problem? Just to say that "Sugarscape and bilateral decentralized bartering is interesting and fascinates me" is not enough in a final viva/thesis/paper.
+- Reasoning must be very clear. So far I have 2 ideas for formal reasoning in code:
+	1. SIR
+		-> my emulation of SD using ABS is really an implementation of the SD model and follows it
+		-> my ABS implementation is the same as the SD emulation
+			=> thus if i can show that my SD emulation is equlas to the SD model
+			=> AND that the ABS implementation is the same as the SD emulation
+			=> THEN the ABS implementation is an SD implementation, and we have shown this in code for the first time in ABS
+
+	2. Decentralized Bilateral Bartering
+		-> can we reason about the equilibrium prices in an ABS setting? e.g. show formally why equilibrium prices are not reached, under which circumstance they are reached,...
+			-> need to combine General Equilibrium Theory
+			-> with Bilateral decentralized exchange
+			-> with Agent-Based Simulation 
+			
+
 \section{Aims}
 As has become evident from the reflections on the literature we advocate pure functional programming in Haskell and its category-theoretic foundations as a solution to the questions posed. The usage of pure functional programming in ABS is also a strong motivation for undertaking this research by itself as it - quite surprisingly - hasn't been done yet and deserves a thorough treatment on its own. Maybe this can be seen as a hint that ABS lacks a level of formalism which we hope to repair with our thesis. Also the current state-of-the-art seems to be susceptible to flaws and bugs due to the lack of powerful verification. Combining both issues forms the very basic motivation of our thesis: use pure functional programming and its underlying theoretical framework to develop new methods for specifying, implementing, verifying and validating ABS to create simulations which are more reliable, reproducible and shareable with the community.
 To do verification we need a form of formal specification which can be translated easily to the code. Being inspired by the previously mentioned work on a functional framework for agent-based models of exchange in \cite{botta_functional_2011} we opt for a similar direction. Having Haskell as the implementation language instead of an object-oriented one like Java allows us to build an EDSL for ABS which can act both as specification- and implementation-language, closing the gap between specification and implementation. This would give us a way of formally specifying the model but still in a more readable and tractable way than pure mathematics. This form of formal specification can then act easily as a medium for communication between team-members and to the scientific audience in papers as it is both specification- and implementation-language. This point seems to be quite ambitious, but seeing it as a hypothesis we will see how far we can get with it. Also central to our verification approach will be the QuickCheck library. We will use it to formulate model-specifications and specifications of the FrABS itself directly in code. 

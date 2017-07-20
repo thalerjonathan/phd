@@ -35,7 +35,7 @@ agentMove e role =
         let dt = 1.0 -- TODO: can we obtain it somehow?
         let stepWidth = stepWidthPerTimeUnit * dt
         let newPos = addCoord coord (multCoord stepWidth targetDir)
-        let newPosWrapped = wrapCont2DEnv e newPos
+        let newPosWrapped = wrapCont2dEnv e newPos
 
         updateDomainStateM (\s -> s { hacCoord = newPosWrapped })
 

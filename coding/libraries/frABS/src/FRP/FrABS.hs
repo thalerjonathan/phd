@@ -202,7 +202,8 @@ module FRP.FrABS (
     mooreSelf,
     wrapNeighbourhood,
     wrapDisc2d,
-
+    wrapDisc2dEnv,
+    
     pickRandomNeighbourCell,
     pickRandomNeighbour,
     
@@ -218,8 +219,8 @@ module FRP.FrABS (
     distanceManhattanCont2D,
     distanceEuclideanCont2D,
 
-    wrapCont2D,
-    wrapCont2DEnv,
+    wrapCont2d,
+    wrapCont2dEnv,
     
     multCoord,
     addCoord,

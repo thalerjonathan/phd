@@ -18,7 +18,9 @@ module AgentZero.Model (
     extinctionRate,
     destructionRadius,
     sampleRadius,
-    memorySize
+    memorySize,
+
+    movementSpeed
   ) where
 
 import           FRP.FrABS
@@ -82,4 +84,7 @@ sampleRadius = 5.0
 
 memorySize :: Int
 memorySize = 10
+
+movementSpeed :: Double
+movementSpeed = 0.5
 ------------------------------------------------------------------------------------------------------------------------

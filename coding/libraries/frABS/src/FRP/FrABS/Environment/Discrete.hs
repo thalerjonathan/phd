@@ -41,7 +41,8 @@ module FRP.FrABS.Environment.Discrete (
     mooreSelf,
     wrapNeighbourhood,
     wrapDisc2d,
-
+    wrapDisc2dEnv,
+    
     pickRandomNeighbourCell,
     pickRandomNeighbour
   ) where
@@ -237,6 +238,12 @@ mooreSelf = [topLeftDelta, topDelta, topRightDelta,
 
 wrapNeighbourhood :: Discrete2dDimension -> EnvironmentWrapping -> Discrete2dNeighbourhood -> Discrete2dNeighbourhood
 wrapNeighbourhood l w ns = map (wrapDisc2d l w) ns
+
+wrapDisc2dEnv :: Discrete2d c -> Discrete2dCoord -> Discrete2dCoord
+wrapDisc2dEnv e c = wrapDisc2d d w c
+    where
+        d = envDisc2dDims e
+        w = envDisc2dWrapping e
 
 wrapDisc2d :: Discrete2dDimension -> EnvironmentWrapping -> Discrete2dCoord -> Discrete2dCoord
 wrapDisc2d (maxX, maxY) ClipToMax (x, y) = (max 0 (min x (maxX - 1)), max 0 (min y (maxY - 1)))

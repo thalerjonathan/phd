@@ -13,7 +13,6 @@ module SugarScape.Model (
     SugarScapeEnvCellOccupier (..),
     SugarScapeEnvCell (..),
 
-    SugarScapeEnvLink,
     SugarScapeEnvironment,
     SugarScapeEnvironmentBehaviour,
 
@@ -130,6 +129,7 @@ data SugarScapeMsg =
     deriving (Show)
 
 data SugarScapeAgentState = SugarScapeAgentState {
+    sugAgCoord :: Discrete2dCoord,
     sugAgSugarMetab :: Double,              -- this amount of sugar will be consumed by the agent in each time-step
     sugAgSpiceMetab :: Double,              -- this amount of spice will be consumed by the agent in each time-step
 
@@ -178,19 +178,18 @@ data SugarScapeEnvCell = SugarScapeEnvCell {
     sugEnvOccupier :: Maybe SugarScapeEnvCellOccupier
 } deriving (Show)
 
-type SugarScapeEnvLink = ()
-type SugarScapeEnvironment = Environment SugarScapeEnvCell SugarScapeEnvLink
-type SugarScapeEnvironmentBehaviour = EnvironmentBehaviour SugarScapeEnvCell SugarScapeEnvLink
+type SugarScapeEnvironment = Discrete2d SugarScapeEnvCell
+type SugarScapeEnvironmentBehaviour = EnvironmentBehaviour SugarScapeEnvironment
 
-type SugarScapeAgentDef = AgentDef SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell SugarScapeEnvLink
-type SugarScapeAgentBehaviour = AgentBehaviour SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell SugarScapeEnvLink
-type SugarScapeAgentIn = AgentIn SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell SugarScapeEnvLink
-type SugarScapeAgentOut = AgentOut SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell SugarScapeEnvLink
+type SugarScapeAgentDef = AgentDef SugarScapeAgentState SugarScapeMsg SugarScapeEnvironment
+type SugarScapeAgentBehaviour = AgentBehaviour SugarScapeAgentState SugarScapeMsg SugarScapeEnvironment
+type SugarScapeAgentIn = AgentIn SugarScapeAgentState SugarScapeMsg SugarScapeEnvironment
+type SugarScapeAgentOut = AgentOut SugarScapeAgentState SugarScapeMsg SugarScapeEnvironment
 
-type SugarScapeAgentConversation = AgentConversationReceiver SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell SugarScapeEnvLink
-type SugarScapeAgentConversationSender = AgentConversationSender SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell SugarScapeEnvLink
+type SugarScapeAgentConversation = AgentConversationReceiver SugarScapeAgentState SugarScapeMsg SugarScapeEnvironment
+type SugarScapeAgentConversationSender = AgentConversationSender SugarScapeAgentState SugarScapeMsg SugarScapeEnvironment
 
-type SugarScapeSimParams = SimulationParams SugarScapeEnvCell SugarScapeEnvLink
+type SugarScapeSimParams = SimulationParams SugarScapeEnvironment
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -334,7 +333,7 @@ cultureContact :: SugarScapeCulturalTag
                     -> Rand StdGen SugarScapeCulturalTag
 cultureContact tagActive tagPassive = 
     do
-        randIdx <- getRandomR (0, tagLength-1)
+        randIdx <- getRandomR (0, tagLength - 1)
         return $ flipCulturalTag tagActive tagPassive randIdx
     where
         tagLength = length tagActive
@@ -399,7 +398,7 @@ hammingDistance as bs = length $ filter (==False) equals
         equals = map (\(a, b) -> a == b) (zip as bs)
 
 
-randomAgent :: (AgentId, EnvCoord)
+randomAgent :: (AgentId, Discrete2dCoord)
                 -> SugarScapeAgentBehaviour
                 -> SugarScapeAgentConversation
                 -> Rand StdGen SugarScapeAgentDef
@@ -433,6 +432,8 @@ randomAgent (agentId, coord) beh conv =
         rng <- getSplit
 
         let s = SugarScapeAgentState {
+            sugAgCoord = coord,
+
             sugAgSugarMetab = randSugarMetab,
             sugAgSpiceMetab = randSpiceMetab,
 
@@ -467,7 +468,6 @@ randomAgent (agentId, coord) beh conv =
         let adef = AgentDef {
            adId = agentId,
            adState = s,
-           adEnvPos = coord,
            adConversation = Just conv,
            adInitMessages = NoEvent,
            adBeh = beh,

@@ -58,18 +58,18 @@ metabolismAmount s = (sugarMetab + inc, spiceMetab + inc)
         inc = if isDiseased s then diseasedMetabolismIncrease else 0 
 
 selectBestCells :: BestCellMeasureFunc
-                    -> EnvCoord
-                    -> [(EnvCoord, SugarScapeEnvCell)]
-                    -> [(EnvCoord, SugarScapeEnvCell)]
+                    -> Discrete2dCoord
+                    -> [(Discrete2dCoord, SugarScapeEnvCell)]
+                    -> [(Discrete2dCoord, SugarScapeEnvCell)]
 selectBestCells measureFunc refCoord cs = bestShortestdistanceManhattanCells
     where
         cellsSortedByMeasure = sortBy (\c1 c2 -> compare (measureFunc $ snd c2) (measureFunc $ snd c1)) cs
         bestCellMeasure = measureFunc $ snd $ head cellsSortedByMeasure
         bestCells = filter ((==bestCellMeasure) . measureFunc . snd) cellsSortedByMeasure
 
-        shortestdistanceManhattanBestCells = sortBy (\c1 c2 -> compare (distanceManhattan refCoord (fst c1)) (distanceManhattan refCoord (fst c2))) bestCells
-        shortestdistanceManhattan = distanceManhattan refCoord (fst $ head shortestdistanceManhattanBestCells)
-        bestShortestdistanceManhattanCells = filter ((==shortestdistanceManhattan) . (distanceManhattan refCoord) . fst) shortestdistanceManhattanBestCells
+        shortestdistanceManhattanBestCells = sortBy (\c1 c2 -> compare (distanceManhattanDisc2d refCoord (fst c1)) (distanceManhattanDisc2d refCoord (fst c2))) bestCells
+        shortestdistanceManhattan = distanceManhattanDisc2d refCoord (fst $ head shortestdistanceManhattanBestCells)
+        bestShortestdistanceManhattanCells = filter ((==shortestdistanceManhattan) . (distanceManhattanDisc2d refCoord) . fst) shortestdistanceManhattanBestCells
 
 bestMeasureSugarLevel :: BestCellMeasureFunc
 bestMeasureSugarLevel c = sugEnvSugarLevel c
@@ -112,18 +112,17 @@ tooOldForChildren s = age > fertilityAgeMax
 withinRange :: (Ord a) => a -> (a, a) -> Bool
 withinRange a (l, u) = a >= l && a <= u
 
-neighbourIds :: SugarScapeAgentOut -> [AgentId]
-neighbourIds a = map (sugEnvOccId . fromJust . sugEnvOccupier . snd) occupiedCells
+neighbourIds :: SugarScapeEnvironment -> SugarScapeAgentOut -> [AgentId]
+neighbourIds e ao = map (sugEnvOccId . fromJust . sugEnvOccupier) occupiedCells
     where
-        env = aoEnv a
-        pos = aoEnvPos a
-        neighbourCells = neighbours pos env
-        occupiedCells = filter (isJust . sugEnvOccupier . snd) neighbourCells
+        coord = sugAgCoord $ aoState ao
+        ncs = neighbourCells coord e
+        occupiedCells = filter (isJust . sugEnvOccupier) ncs
 
-neighbourIdsM :: State SugarScapeAgentOut [AgentId]
-neighbourIdsM = state (\ao -> (neighbourIds ao, ao))
+neighbourIdsM :: SugarScapeEnvironment -> State SugarScapeAgentOut [AgentId]
+neighbourIdsM e = state (\ao -> (neighbourIds e ao, ao))
 
-createNewBorn :: (AgentId, EnvCoord)
+createNewBorn :: (AgentId, Discrete2dCoord)
                     -> (Double, Double, Double, Int, SugarScapeCulturalTag, SugarScapeImmuneSystem)
                     -> (Double, Double, Double, Int, SugarScapeCulturalTag, SugarScapeImmuneSystem)
                     -> SugarScapeAgentBehaviour
@@ -163,7 +162,7 @@ createNewBorn idCoord
 ------------------------------------------------------------------------------------------------------------------------
 -- CHAPTER III
 ------------------------------------------------------------------------------------------------------------------------
-filterTargetCell :: (SugarScapeEnvCellOccupier -> Bool) -> (EnvCoord, SugarScapeEnvCell) -> Bool
+filterTargetCell :: (SugarScapeEnvCellOccupier -> Bool) -> (Discrete2dCoord, SugarScapeEnvCell) -> Bool
 filterTargetCell f (coord, cell) = maybe True f mayOccupier
     where
         mayOccupier = sugEnvOccupier cell
@@ -190,7 +189,7 @@ occupierRetaliator referenceWealth myTribe occupier = differentTribe && moreWeal
         differentTribe = otherTribe /= myTribe
         moreWealthy = otherWealth > referenceWealth 
 
-cellPayoff :: (EnvCoord, SugarScapeEnvCell) -> ((EnvCoord, SugarScapeEnvCell), Double)
+cellPayoff :: (Discrete2dCoord, SugarScapeEnvCell) -> ((Discrete2dCoord, SugarScapeEnvCell), Double)
 cellPayoff (c, cell) = ((c, cell), payoff)
     where
         mayOccupier = sugEnvOccupier cell

@@ -25,16 +25,13 @@ cellUnoccupied = not . cellOccupied
 
 diffusePolution :: Double -> SugarScapeEnvironment -> SugarScapeEnvironment
 diffusePolution t env
-    | timeReached = updateEnvironmentCells
-                                           (\c -> c {
-                                               sugEnvPolutionLevel = 0.0})
-                                           env
+    | timeReached = updateCells (\c -> c { sugEnvPolutionLevel = 0.0 }) env
     | otherwise = env
     where
         timeReached = mod (floor t) diffusePolutionTime == 0
 
 regrowSugarByRate :: Double -> SugarScapeEnvironment -> SugarScapeEnvironment
-regrowSugarByRate rate env = updateEnvironmentCells
+regrowSugarByRate rate env = updateCells
                                 (\c -> c {
                                     sugEnvSugarLevel = (
                                         min
@@ -44,7 +41,7 @@ regrowSugarByRate rate env = updateEnvironmentCells
                                 env
 
 regrowSpiceByRate :: Double -> SugarScapeEnvironment -> SugarScapeEnvironment
-regrowSpiceByRate rate env = updateEnvironmentCells
+regrowSpiceByRate rate env = updateCells
                                 (\c -> c {
                                     sugEnvSpiceLevel = (
                                         min
@@ -54,23 +51,23 @@ regrowSpiceByRate rate env = updateEnvironmentCells
                                 env
 
 regrowSugarToMax ::  SugarScapeEnvironment -> SugarScapeEnvironment
-regrowSugarToMax env = updateEnvironmentCells
+regrowSugarToMax env = updateCells
                             (\c -> c {
                                 sugEnvSugarLevel = (sugEnvSugarCapacity c)})
                             env
 
 regrowSpiceToMax ::  SugarScapeEnvironment -> SugarScapeEnvironment
-regrowSpiceToMax env = updateEnvironmentCells
+regrowSpiceToMax env = updateCells
                             (\c -> c {
                                 sugEnvSpiceLevel = (sugEnvSpiceCapacity c)})
                             env
 
-regrowSugarByRateAndRegion :: (Int, Int) -> Double -> SugarScapeEnvironment -> SugarScapeEnvironment
-regrowSugarByRateAndRegion range rate env = updateEnvironmentCellsWithCoords
+regrowSugarByRateAndRegion :: Discrete2dDimension -> Double -> SugarScapeEnvironment -> SugarScapeEnvironment
+regrowSugarByRateAndRegion range rate env = updateCellsWithCoords
                                             (regrowCell range)
                                             env                          
     where
-        regrowCell :: (Int, Int) -> (EnvCoord, SugarScapeEnvCell) -> SugarScapeEnvCell
+        regrowCell :: Discrete2dDimension -> (Discrete2dCoord, SugarScapeEnvCell) -> SugarScapeEnvCell
         regrowCell (fromY, toY) ((_, y), c)
             | y >= fromY && y <= toY = c {
                                            sugEnvSugarLevel = (
@@ -80,12 +77,12 @@ regrowSugarByRateAndRegion range rate env = updateEnvironmentCellsWithCoords
                                                    }
             | otherwise = c
 
-regrowSpiceByRateAndRegion :: (Int, Int) -> Double -> SugarScapeEnvironment -> SugarScapeEnvironment
-regrowSpiceByRateAndRegion range rate env = updateEnvironmentCellsWithCoords
+regrowSpiceByRateAndRegion :: Discrete2dDimension -> Double -> SugarScapeEnvironment -> SugarScapeEnvironment
+regrowSpiceByRateAndRegion range rate env = updateCellsWithCoords
                                             (regrowCell range)
                                             env
     where
-        regrowCell :: (Int, Int) -> (EnvCoord, SugarScapeEnvCell) -> SugarScapeEnvCell
+        regrowCell :: Discrete2dDimension -> (Discrete2dCoord, SugarScapeEnvCell) -> SugarScapeEnvCell
         regrowCell (fromY, toY) ((_, y), c)
             | y >= fromY && y <= toY = c {
                                            sugEnvSpiceLevel = (
@@ -109,7 +106,7 @@ environmentSeasons t env = envWinterRegrow
         envWinterRegrow = regrowSpiceByRateAndRegion winterRange (spiceGrowbackUnits / winterSeasonSpiceGrowbackRate)
                             (regrowSugarByRateAndRegion winterRange (sugarGrowbackUnits / winterSeasonSugarGrowbackRate) envSummerRegrow)
 
-        (_, maxY) = envLimits env
+        (_, maxY) = envDisc2dDims env
         halfY = floor ((toRational $ fromIntegral maxY) / 2.0 )
 
 sugarScapeEnvironmentBehaviour :: SugarScapeEnvironmentBehaviour

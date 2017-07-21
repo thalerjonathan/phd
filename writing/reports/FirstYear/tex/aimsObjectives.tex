@@ -1,9 +1,6 @@
 \chapter{Aims and Objectives}
 \label{chap:aimsObj}
 
-TODO: after annual review: REWRITE THIS CHAPTER, it is too vague, too subjective, too many things mixed up, not clear enough. They want me to have a very short AIM with about 2 sentences and 4-6 objectives. So the whole chapter should be much shorter and much more precise in the end. MY CONCLUSION: get completely rid of category-theoretical approach, this is a COMPLETE different approach and opens up a very very different direction, I guess it will be enough to look into the things I describe below. My claiming that "reasoning" is only possible in Haskell was very much too vague for them, this was due to the problem, that I by myself have not really any knowledge about reasoning in Haskell. In the end I then could get my idea of reasoning about the equilibrium of decentralized bartering prices in an ABS setting across which they really liked and identified as a real contribution worthy of a PhD.
-The overall conclusion may be as well be that it is NOT well suited, but I need to back-up these claims with real hard evidence and strong arguments - whether the outcome is positive or negative does not matter, if it is done scientific it is worthy of a PhD
-
 From the annual review the following things become clear:
 - the aim is basically "Explore using Haskell for Agent-Based Simulation with its benefits and drawbacks".
 - The 3 major benefits of the approach I claim
@@ -25,18 +22,20 @@ From the annual review the following things become clear:
 			-> need to combine General Equilibrium Theory
 			-> with Bilateral decentralized exchange
 			-> with Agent-Based Simulation 
-			
 
-Objectives
-\begin{itemize}
+\section{Aims}
+The aim of this Ph.D is to explore the benefits and drawbacks using Haskell in  Agent-Based Simulation. First a library for general-purpose ABS in Haskell is built which serves as the primary object to study the benefits and drawbacks. After having investigated the benefits and drawbacks the library will be used to research  verification and reasoning in ABS in the context of decentralized bilateral bartering as specified in the Sugarscape model.
+
+\section{Objectives}
+\begin{enumerate}
 	\item Implement a library for general-purpose Agent-Based Simulation in Haskell 
 	\item Objectively and scientifically compare the usage of Haskell in ABS to the usage of Java in ABS: what are the benefits/drawbacks of Haskell and what are the benefits/drawbacks of Java? Are they orthogonal to each other e.g. are the weaknesses of one language the other languages strength?
 	\item Define scientific measures: e.g. Lines Of Code (show relation to Bugs \& Defects, which is an objective measure: http://www.stevemcconnell.com/est.htm, \url{https://softwareengineering.stackexchange.com/questions/185660/is-the-average-number-of-bugs-per-loc-the-same-for-different-programming-languag}, Book: Code Complete, \url{https://www.mayerdan.com/ruby/2012/11/11/bugs-per-line-of-code-ratio}), also experience reports by companies which show that Haskell has huge benefits when applied to the same domain of a previous implementation of a different language, post on stack overflow / research gate / reddit, read experience reports from \url{http://cufp.org/2015/}
 	\item Develop reasoning-techniques using Functional Programming in ABS by comparing the implementations of the SD- and ABS-model of the SIR compartment model in epidemiology.
 	\item Investigate the usage of STM for concurrent ABS
-\end{itemize}
+\end{enumerate}
 
-Research Questions
+\section{Research Questions}
 \begin{enumerate}
 	\item Which is the best / a valid / good working approach of implementing ABS in Haskell?
 	\item What are the benefits of using Haskell in ABS?
@@ -48,7 +47,7 @@ Research Questions
 	\item Can we run Agents concurrently in STM but still retain reproducibility of the simulation?
 \end{enumerate}
 
-Hypotheses
+\section{Hypotheses}
 \begin{enumerate}
 	\item Yampa is a valid / good approach of implementing ABS in Haskell.
 	\item Haskell benefits (which are not possible in java) are: Code == Spec, can statically rule out a major and very relevant class of bugs, can perform reasoning and proofing of properties of the program
@@ -56,92 +55,3 @@ Hypotheses
 	\item reproducibility of a system: lack of unpredictable side-effects statically enforced in the type-system
 	\item Unique to Haskell is that it enables STM.
 \end{enumerate}
-
-Papers
-1. The Art of Iteration - Update-Strategies in Agent-Based Simulation
-2. Functional Reactive ABS- Towards pure functional Agent-Based Simulation
-	-> reproducibility statically guaranteed
-	-> cannot mess around with dt
-	-> code == specification
-	-> rule out serious class of bugs
-	-> different time-sampling leads to different results e.g. in wildfire \& SIR but not in Prisoners Dilemma. why? probabilistic time-sampling?
-	-> reasoning about equivalence between SD and ABS implementation in the same framework
-
-3. Will it Equilibrate? Reasoning in pure functional ABS
-	-> purely reasoning about the bilateral trading in sugarscape.
-	-> explain bilateral decentralized bartering
-	-> general equilibrium theory
-	-> give reason in code for the failure of reaching equilibrium
-
-4. Deterministic Concurrency in ABS through Transactional Functional Reactive Agents
-	-> following the hypothesis that STM is the real unique thing which can be only done in Haskell and not in Java we ask if and how we can leverage on it?
-	-> introducing the concept of STM to ABS to support concurrent ABS
-	-> concurrency leads to non-reproducibility, is it still of use? e.g. what about replications in this context?
-	-> non-reproducible results are in some kind of way useless, can we find another definition of reproducibility? e.g. when using yampas time-semantics? or when using 
-
-5. The future of ABS - Metaphysics and Genesis according to Computer Science
-	-> simulate reality
-	-> free will \& consciousness 
-	-> reality as a simulation
-	-> metaphysics and creation of man explained from a computer-scientific perspective
-
-\section{Aims}
-As has become evident from the reflections on the literature we advocate pure functional programming in Haskell and its category-theoretic foundations as a solution to the questions posed. The usage of pure functional programming in ABS is also a strong motivation for undertaking this research by itself as it - quite surprisingly - hasn't been done yet and deserves a thorough treatment on its own. Maybe this can be seen as a hint that ABS lacks a level of formalism which we hope to repair with our thesis. Also the current state-of-the-art seems to be susceptible to flaws and bugs due to the lack of powerful verification. Combining both issues forms the very basic motivation of our thesis: use pure functional programming and its underlying theoretical framework to develop new methods for specifying, implementing, verifying and validating ABS to create simulations which are more reliable, reproducible and shareable with the community.
-To do verification we need a form of formal specification which can be translated easily to the code. Being inspired by the previously mentioned work on a functional framework for agent-based models of exchange in \cite{botta_functional_2011} we opt for a similar direction. Having Haskell as the implementation language instead of an object-oriented one like Java allows us to build an EDSL for ABS which can act both as specification- and implementation-language, closing the gap between specification and implementation. This would give us a way of formally specifying the model but still in a more readable and tractable way than pure mathematics. This form of formal specification can then act easily as a medium for communication between team-members and to the scientific audience in papers as it is both specification- and implementation-language. This point seems to be quite ambitious, but seeing it as a hypothesis we will see how far we can get with it. Also central to our verification approach will be the QuickCheck library. We will use it to formulate model-specifications and specifications of the FrABS itself directly in code. 
-It would be of interest to put pure functional ABS on a firm theoretical ground by developing a category-theoretical view on ABS. This could potentially, give a deeper insight into the structure of agents, agent-models and agent-based simulation and serves as the basis for the pure functional implementation and as a high-level specification tool for agent-models. In the literature-review we have seen that there exist category-theoretical views on models for verification, a direction definitely worth going to. Because of the category-theoretic foundations of Haskell it may be the case that we also close the gap between conceptual model and implementation thus making a huge advancement in validation.
-With the powerful verification tools developed we can approach verification from a new perspective. When implementing a simulation one follows roughly three steps: 1st observing the real-world example, 2nd create a formal model specification and 3rd implement the simulation. In verification we need to show that the implementation captures the essence of the aspect of the real-world sample we want to simulate. Our novel idea is that first we show that the implementation of the simulation is a correct implementation, following the formal model specification. This becomes trivial when the formal model-specification is already the implementation-language. Second we derive a category-theoretical representation both of the real-world example \textit{and} the model and then show that they are equal. The implication is that then the simulation implementation must be a faithful representation of the real-world example.
-Our aim is to primarily focus on the decentralized bilateral trading \& bartering process in Sugarscape, building on the functional model of exchange of \cite{botta_functional_2011} and research our new verification- and validation-methods based on this problem. This also bridges the gap to ACE and economics as it is a well researched topic with lots of formal theory to it. We may come to the conclusion that the Sugarscape approach to decentralized bilateral trading \& bartering may be too complicated and that we have to resort to a simpler model which is equal in explanatory power. This danger is indeed a real one because of the endogenous demand \& supply which is driven by sugar- and spice-harvesting which in turn depends on many additional properties and behaviour like vision, metabolism, environment,...
-
-\section{Hypotheses}
-Based upon our aim we derived the following hypotheses which will guide us as bold, motivating claims to drive forward our research.
-
-\subsection{Feasibility of functional ABS}
-\paragraph{Functional reactive programming (FRP) in the implementation of Yampa is a useful tool to implement pure functional ABS in Haskell.}
-\paragraph{Building on FRP it is possible to implement the Sugarscape and the Agent\_Zero models with less lines of code and more expressiveness than corresponding Java or NetLogo code} 
-\footnote{There exists a Java-implementation of SugarScape \url{http://sugarscape.sourceforge.net/} which will be subject of investigation during this PhD. NetLogo comes with three Sugarscape models which implement but only the first very basic features. We couldn't fine a \textit{full} NetLogo implementation freely available.}
-
-\subsection{Verification}
-\paragraph{We can develop an EDSL on top of the functional ABS library which is both specification- and implementation-language and thus closes the gap between specification and implementation. This EDSL can then be used to concisely specify and communicate a model with high expressiveness.}
-\paragraph{QuickCheck allows us to formulate specifications of a model directly in code, built on the EDSL and check them.}
-
-\subsection{Validation}
-\paragraph{If we find a category-theoretical description of the real-world concept and develop our functional ABS model after it or show that it follows this description as well, then it must follow that our implementation \textit{is} indeed equivalent to the real-world concept and thus implicitly valid.}
-\paragraph{QuickCheck can be used for validation as well.}
-
-
-
-\section{Objectives}
-Based upon the aims and hypotheses we define the following four objectives we want to achieve in our research. The objectives are ordered sequentially in the way they will be undertaken in the course of the remaining PhD.
-
-\subsection{Functional reactive ABS (FrABS)}
-The first goal is to implement a library for pure functional ABS in Haskell, building on the FRP paradigm using Yampa. We term the combination functional reactive agent-based modelling \& simulation: FrABS. The driving use-cases for building this library will be both the Sugarscape- and Agent\_Zero model. The resulting library implements a very rudimentary EDSL for FrABS and will show that functional ABS is indeed very possible, elegant and more concise than object-oriented solutions.
-
-\subsection{Functional Verification}
-The next step is to take the previously developed FrABS library and refine its EDSL to a point where it can be used as a specification language. We test this by giving specifications of all the full Sugarscape rules as described in the book \cite{epstein_growing_1996}. In the next step we will then turn towards an in-depth investigation of the decentralized bilateral trading \& bartering process. We investigate the potential of using QuickCheck for formulating and testing specifications and how far we can get with reasoning about dynamics and equilibria using our EDSL, QuickCheck and Haskell.
-
-\subsection{Category Theory view on ABMS}
-After having established the verification we try to derive an ABMS representation in category-theory. By mapping the concepts of ABS to category-theory we hope to gain a deeper understanding of the deeper structure behind agents, agent-based models and agent-based simulations.
-
-\subsection{Functional Validation}
-The final step is then an attempt to combine the previous steps to achieve formal validation of the decentralized bilateral bartering process. We will try to derive a category-theoretical model of real-world bartering and compare this to a category-theoretic view on our implementation. If they match, we have showed that the implemented model-specification - which is at the same time Haskell code - is a valid and faithful representation of the real-world process.
-
-\section{Research Questions}
-We present the research questions at the end of this chapter, because they contain the essence of the previously explained arguments and hypotheses. The questions are ordered according to their specific topics.
-
-\subsection{ABS}
-\begin{itemize}
-	\item Can we derive a category-theoretical view on functional ABS? 
-	\item Can we represent emergent properties of a real-world model in category-theory and encode this in Haskell, thus closing the validation-gap?
-\end{itemize}
-
-\subsection{Functional Programming}
-\begin{itemize}
-	\item How can FRP (as in Yampa) be applied implementing functional ABS?
-	\item How can QuickCheck be made of use to functional ABS verification and can it be used for validation as well?
-\end{itemize}
-
-\subsection{ABS \& Functional Programming}
-\begin{itemize}
-	\item How can we reason about the dynamics and equilibria of the decentralized bilateral trading \& bartering?
-	\item How does an EDSL for functional ABS, built on FRP looks like? Can we really close the gap between specification and implementation?
-\end{itemize}

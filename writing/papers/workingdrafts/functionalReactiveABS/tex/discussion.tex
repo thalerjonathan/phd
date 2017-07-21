@@ -13,8 +13,17 @@ advantages:
 	- can implement System Dynamics building on Yampas facilities with total ease	
 	- get replications for free without having to worry about side-effects and can even run them in parallel without headaches
 	- cant mess around with time because delta-time is hidden from you (intentional design-decision by Yampa). this would be only very difficult and cumbersome to achieve in an object-oriented approach. TODO: experiment with it in Java - how could we actually implement this? I think it is impossible: may only achieve this through complicated application of patterns and inheritance but then has the problem of how to update the dt and more important how to deal with functions like integral which accumulates a value through closures and continuations. We could do this in OO by having a general base-class e.g. ContinuousTime which provides functions like updateDt and integrate, but we could only accumulate a single integral value.
-		
+	- reproducibility statically guaranteed
+	- cannot mess around with dt
+	- code == specification
+	- rule out serious class of bugs
+	- different time-sampling leads to different results e.g. in wildfire \& SIR but not in Prisoners Dilemma. why? probabilistic time-sampling?
+	- reasoning about equivalence between SD and ABS implementation in the same framework
+	- recursive implementations
+	
 disadvantages:
+	- performance is low
+	- reasoning about performance is very difficult
 	- very steep learning curve for non-functional programmers
 	- learning a new EDSL
 	- think ABMS different: when to use async messages, when to use sync conversations

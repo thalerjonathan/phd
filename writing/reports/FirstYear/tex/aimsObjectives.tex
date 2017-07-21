@@ -29,23 +29,61 @@ From the annual review the following things become clear:
 
 Objectives
 \begin{itemize}
+	\item Implement a library for general-purpose Agent-Based Simulation in Haskell 
 	\item Objectively and scientifically compare the usage of Haskell in ABS to the usage of Java in ABS: what are the benefits/drawbacks of Haskell and what are the benefits/drawbacks of Java? Are they orthogonal to each other e.g. are the weaknesses of one language the other languages strength?
-	\item Define scientific measures: Lines Of Code (show relation to Bugs \& Defects, which is an objective measure), ?
+	\item Define scientific measures: e.g. Lines Of Code (show relation to Bugs \& Defects, which is an objective measure: http://www.stevemcconnell.com/est.htm, \url{https://softwareengineering.stackexchange.com/questions/185660/is-the-average-number-of-bugs-per-loc-the-same-for-different-programming-languag}, Book: Code Complete, \url{https://www.mayerdan.com/ruby/2012/11/11/bugs-per-line-of-code-ratio}), also experience reports by companies which show that Haskell has huge benefits when applied to the same domain of a previous implementation of a different language, post on stack overflow / research gate / reddit, read experience reports from \url{http://cufp.org/2015/}
 	\item Develop reasoning-techniques using Functional Programming in ABS by comparing the implementations of the SD- and ABS-model of the SIR compartment model in epidemiology.
-	\item 
+	\item Investigate the usage of STM for concurrent ABS
 \end{itemize}
+
+Research Questions
+\begin{enumerate}
+	\item Which is the best / a valid / good working approach of implementing ABS in Haskell?
+	\item What are the benefits of using Haskell in ABS?
+	\item What are the drawbacks of using Haskell in ABS?
+	\item Are there things which are unique when doing Haskell in ABS and cannot be done in a Java approach?
+	\item Both the System-Dynamics and Agent-Based implementation of the SIR compartment model in epidemiology lead to the same dynamics or put different: the Agent-Based implementation shows the same dynamics of the SD implementation when using replications. This is shown by plotting the dynamics as graphs. Can we show that they are equivalent through reasoning about the code?
+	\item In the Sugarscape model where Agents engage in bilateral decentralized bartering Equilibrium is only reached when neo-classical agents are used which don't die of natural age. The equilibrium is not reached when more realistic assumptions are made. This is shown by plotting the prices over time. Can we show that the equilibrium is reached / not reached when using neo-classical agents / realistic agents through reasoning in the code?
+	\item What and to which extent can we reason about an Agent-Based Simulation using my implementation in Haskell?
+	\item Can we run Agents concurrently in STM but still retain reproducibility of the simulation?
+\end{enumerate}
 
 Hypotheses
 \begin{enumerate}
-	\item Haskell benefits OVER JAVA are: Code == Spec, can statically rule out a major and very relevant class of bugs, can perform reasoning and proofing of properties of the program
-	\item Haskell drawbacks over java are: slower, potential for difficult to find space-leaks, steeper learning curve, think ABS different 
+	\item Yampa is a valid / good approach of implementing ABS in Haskell.
+	\item Haskell benefits (which are not possible in java) are: Code == Spec, can statically rule out a major and very relevant class of bugs, can perform reasoning and proofing of properties of the program
+	\item Haskell drawbacks over java are: slower, potential for difficult to find space-leaks, much more difficult to reason about performance in general, steeper learning curve, think ABS different 
+	\item reproducibility of a system: lack of unpredictable side-effects statically enforced in the type-system
+	\item Unique to Haskell is that it enables STM.
 \end{enumerate}
 
 Papers
 1. The Art of Iteration - Update-Strategies in Agent-Based Simulation
 2. Functional Reactive ABS- Towards pure functional Agent-Based Simulation
+	-> reproducibility statically guaranteed
+	-> cannot mess around with dt
+	-> code == specification
+	-> rule out serious class of bugs
+	-> different time-sampling leads to different results e.g. in wildfire \& SIR but not in Prisoners Dilemma. why? probabilistic time-sampling?
+	-> reasoning about equivalence between SD and ABS implementation in the same framework
+
 3. Will it Equilibrate? Reasoning in pure functional ABS
-4. The future of ABS - Metaphysics and Genesis according to Computer Science
+	-> purely reasoning about the bilateral trading in sugarscape.
+	-> explain bilateral decentralized bartering
+	-> general equilibrium theory
+	-> give reason in code for the failure of reaching equilibrium
+
+4. Deterministic Concurrency in ABS through Transactional Functional Reactive Agents
+	-> following the hypothesis that STM is the real unique thing which can be only done in Haskell and not in Java we ask if and how we can leverage on it?
+	-> introducing the concept of STM to ABS to support concurrent ABS
+	-> concurrency leads to non-reproducibility, is it still of use? e.g. what about replications in this context?
+	-> non-reproducible results are in some kind of way useless, can we find another definition of reproducibility? e.g. when using yampas time-semantics? or when using 
+
+5. The future of ABS - Metaphysics and Genesis according to Computer Science
+	-> simulate reality
+	-> free will \& consciousness 
+	-> reality as a simulation
+	-> metaphysics and creation of man explained from a computer-scientific perspective
 
 \section{Aims}
 As has become evident from the reflections on the literature we advocate pure functional programming in Haskell and its category-theoretic foundations as a solution to the questions posed. The usage of pure functional programming in ABS is also a strong motivation for undertaking this research by itself as it - quite surprisingly - hasn't been done yet and deserves a thorough treatment on its own. Maybe this can be seen as a hint that ABS lacks a level of formalism which we hope to repair with our thesis. Also the current state-of-the-art seems to be susceptible to flaws and bugs due to the lack of powerful verification. Combining both issues forms the very basic motivation of our thesis: use pure functional programming and its underlying theoretical framework to develop new methods for specifying, implementing, verifying and validating ABS to create simulations which are more reliable, reproducible and shareable with the community.

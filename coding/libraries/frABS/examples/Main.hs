@@ -17,8 +17,10 @@ import           Wildfire.Run
 
 {-
     TODOs
-    - refactor sugarscape 
+    - sugarscape 
+        -> 
         -> implement dynamics-exporter
+        -> need a mechanism to run chapters / rules separately
         -> reproduce results of all chapters
 
     - implement Graph-Renderer

@@ -324,21 +324,30 @@ import FRP.FrABS.Rendering.Continuous2d
 import FRP.FrABS.Rendering.Network
 import FRP.FrABS.Rendering.GlossSimulator
 
+{-
 ------------------------------------------------------------------------------------------------------------------------
 -- TODOs
 ------------------------------------------------------------------------------------------------------------------------
--- TODO create project structure according to put it on Hackage in september: tests, comments,...
--- TODO write unit-tests
--- TODO write QuickCheck tests
+- implement Graph-Renderer
+- run all rendering-stuff in IO?
+- AgentRenderer: Circle/Rectangle as shapes
+- GlossSimulator: pass Background-color as additional parameters (use currying)
 
--- Monadic Conversations
+- can we fix environment the same way as e.g. dt?
 
--- Use Dunai to run State Monad
+- write a agentBehaviour SF which can 'freeze' the state of an agent so we don't have do drag it always in AgentIn/Out around?
+    e.g. a new SF implementation: agent: agentBehaviour :: s -> SF (AgentIn, e, s) -> SF (AgentOut, e). allows to get rid of state in agentin. agentout state then simply becomes oberservable state
+    -> what happens then in the case of a conversation? the receiving agent cannot change the state? We would need to run the conversation within the original agentbehaviour 
+- instead of generic sequential-iteration implement specific for FrABS: this can prevent forwarding environments to all (but is this really expensive? due to haskells lazyness this should never matter)
+- just output the State instead of AgentOut in simulation-SF, would save lots of memory?
 
--- TODO: allow to be able to stop simulation when iteration.function returns True
+- allow to be able to stop simulation when iteration.function returns True
 
--- TODO: hide AgentIn and AgentOut same way as DTime is hidden, only generic state in/out
--- TODO  can we somehow restrict access to agentin/out? hiding dataconstructors? making them completely opaque?
-
--- TODO STM FrABS using Dunai?
+- clean-up
+    - imports: no unused imports
+    - lint: must be clear of warnings
+    - warnings: compilation with -w must show no warnings at all
+    
+- comment haskell code
 ------------------------------------------------------------------------------------------------------------------------
+-}

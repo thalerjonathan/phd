@@ -27,6 +27,26 @@ From the annual review the following things become clear:
 			-> with Agent-Based Simulation 
 			
 
+Objectives
+\begin{itemize}
+	\item Objectively and scientifically compare the usage of Haskell in ABS to the usage of Java in ABS: what are the benefits/drawbacks of Haskell and what are the benefits/drawbacks of Java? Are they orthogonal to each other e.g. are the weaknesses of one language the other languages strength?
+	\item Define scientific measures: Lines Of Code (show relation to Bugs \& Defects, which is an objective measure), ?
+	\item Develop reasoning-techniques using Functional Programming in ABS by comparing the implementations of the SD- and ABS-model of the SIR compartment model in epidemiology.
+	\item 
+\end{itemize}
+
+Hypotheses
+\begin{enumerate}
+	\item Haskell benefits OVER JAVA are: Code == Spec, can statically rule out a major and very relevant class of bugs, can perform reasoning and proofing of properties of the program
+	\item Haskell drawbacks over java are: slower, potential for difficult to find space-leaks, steeper learning curve, think ABS different 
+\end{enumerate}
+
+Papers
+1. The Art of Iteration - Update-Strategies in Agent-Based Simulation
+2. Functional Reactive ABS- Towards pure functional Agent-Based Simulation
+3. Will it Equilibrate? Reasoning in pure functional ABS
+4. The future of ABS - Metaphysics and Genesis according to Computer Science
+
 \section{Aims}
 As has become evident from the reflections on the literature we advocate pure functional programming in Haskell and its category-theoretic foundations as a solution to the questions posed. The usage of pure functional programming in ABS is also a strong motivation for undertaking this research by itself as it - quite surprisingly - hasn't been done yet and deserves a thorough treatment on its own. Maybe this can be seen as a hint that ABS lacks a level of formalism which we hope to repair with our thesis. Also the current state-of-the-art seems to be susceptible to flaws and bugs due to the lack of powerful verification. Combining both issues forms the very basic motivation of our thesis: use pure functional programming and its underlying theoretical framework to develop new methods for specifying, implementing, verifying and validating ABS to create simulations which are more reliable, reproducible and shareable with the community.
 To do verification we need a form of formal specification which can be translated easily to the code. Being inspired by the previously mentioned work on a functional framework for agent-based models of exchange in \cite{botta_functional_2011} we opt for a similar direction. Having Haskell as the implementation language instead of an object-oriented one like Java allows us to build an EDSL for ABS which can act both as specification- and implementation-language, closing the gap between specification and implementation. This would give us a way of formally specifying the model but still in a more readable and tractable way than pure mathematics. This form of formal specification can then act easily as a medium for communication between team-members and to the scientific audience in papers as it is both specification- and implementation-language. This point seems to be quite ambitious, but seeing it as a hypothesis we will see how far we can get with it. Also central to our verification approach will be the QuickCheck library. We will use it to formulate model-specifications and specifications of the FrABS itself directly in code. 

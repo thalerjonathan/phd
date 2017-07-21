@@ -4,6 +4,14 @@
 		"selected_items":
 		[
 			[
+				"if",
+				"ifThenElse"
+			],
+			[
+				"ifT",
+				"ifThenElseM"
+			],
+			[
 				"wrapCon",
 				"wrapCont2D"
 			],
@@ -147,6 +155,23 @@
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
+		},
+		{
+			"file": "examples/SugarScape/AgentMonadic.hs",
+			"settings":
+			{
+				"buffer_size": 36003,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/FRP/FrABS/Agent/Monad.hs",
+			"settings":
+			{
+				"buffer_size": 6550,
+				"line_ending": "Unix"
+			}
 		}
 	],
 	"build_system": "",
@@ -216,9 +241,14 @@
 	],
 	"file_history":
 	[
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Discrete.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Monad.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/AgentCommon.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/AgentMonadic.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Discrete.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Random.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Environment.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Network.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Definitions.hs",
@@ -228,8 +258,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Discrete2d.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Monad.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Random.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Continuous.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Utils.hs",
@@ -258,7 +286,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/HeroesCowards/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Utils.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Agent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/Stats.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/Agent.hs",
@@ -316,7 +343,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Renderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Agents2DDiscrete.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/AgentMonadic.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/AgentPure.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/frABSExamples.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/stack.yaml",
@@ -324,7 +350,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/frABS.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Init.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils/Sirs.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Env/Utils.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/ParIteration.hs",
@@ -362,6 +387,22 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"conversationReplyMonadicRunner",
+			"conversationM",
+			"neighbourIdsM",
+			"randomCell",
+			"agentRandomPick",
+			"poluteCell",
+			"changeEnvironmentPositionM",
+			"neighboursDistanceM",
+			"agentDiesM",
+			"poluteCell",
+			"agentPoluteCellM",
+			"metabolismAmount",
+			"isDeadM",
+			"isdeadM",
+			"isDeadM",
+			"EnvCoord",
 			"updateCells",
 			"envpo",
 			"sampleRadius",
@@ -473,23 +514,7 @@
 			"sugarScapeAgentConversationM",
 			"MRecursiveABSEnvironment",
 			"MetaABSAgentIn",
-			"MetaABSAgentOut",
-			"MetaABSAgentState",
-			"MetaABSMsg",
-			"MetaABSEnvCell",
-			"FrSIRSNetworkEnvLink",
-			"FrSIRSNetworkEnvCell",
-			"FrSIRSNetworkAgentState",
-			"FrSIRSNetworkMsg",
-			"FrSIRSNetworkEnvCell",
-			"FrSIRSNetworkEnvLink",
-			"FrSIRSNetworkEnvCell",
-			"network",
-			"FrSIRSNetworkAgentBehaviour",
-			"FrSIRSNetworkMsg",
-			"FrSIRSNetworkAgentIn",
-			"FrSIRSNetworkAgentOut",
-			"runagentrandom"
+			"MetaABSAgentOut"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -585,7 +610,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -601,8 +626,8 @@
 						"selection":
 						[
 							[
-								625,
-								625
+								809,
+								809
 							]
 						],
 						"settings":
@@ -615,7 +640,67 @@
 						"translation.y": 180.0,
 						"zoom_level": 1.0
 					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "examples/SugarScape/AgentMonadic.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 36003,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								9654,
+								9654
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3222.0,
+						"zoom_level": 1.0
+					},
 					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "src/FRP/FrABS/Agent/Monad.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6550,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2509,
+								2509
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 724.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
 					"type": "text"
 				}
 			]
@@ -714,7 +799,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 433.0,
+	"side_bar_width": 352.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

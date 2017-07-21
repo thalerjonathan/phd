@@ -9,26 +9,26 @@ import FRP.FrABS
 
 import qualified Graphics.Gloss as GLO
 
-type SugarScapeRenderFrame = RenderFrame SugarScapeAgentState SugarScapeMsg SugarScapeEnvCell SugarScapeEnvLink
-type SugarScapeAgentColorer = AgentCellColorer SugarScapeAgentState
-type SugarScapeEnvironmentRenderer = EnvironmentRenderer SugarScapeEnvCell
+type SugarScapeRenderFrame = RenderFrame SugarScapeAgentState SugarScapeEnvironment
+type SugarScapeAgentColorer = AgentCellColorerDisc2d SugarScapeAgentState
+type SugarScapeEnvironmentRenderer = EnvRendererDisc2d SugarScapeEnvCell
 
 renderSugarScapeFrame :: SugarScapeRenderFrame
-renderSugarScapeFrame wSize@(wx, wy) aouts env = GLO.Pictures $ (envPics ++ agentPics)
+renderSugarScapeFrame wSize@(wx, wy) ss e = GLO.Pictures $ (envPics ++ agentPics)
     where
-        (cx, cy) = envLimits env
-        cellWidth = (fromIntegral wx) / (fromIntegral cx)
-        cellHeight = (fromIntegral wy) / (fromIntegral cy)
+        (dx, dy) = envDisc2dDims e
+        cellWidth = fromIntegral wx / fromIntegral dx
+        cellHeight = fromIntegral wy / fromIntegral dy
 
-        cells = allCellsWithCoords env
+        cells = allCellsWithCoords e
 
         maxPolLevel = foldr (\(_, cell) maxLvl -> if sugEnvPolutionLevel cell > maxLvl then
                                                     sugEnvPolutionLevel cell
                                                     else
                                                         maxLvl ) 0.0 cells
 
-        agentPics = map (defaultAgentRenderer agentColorDiseased (cellWidth, cellHeight) wSize) aouts
-        envPics = (map (renderEnvCell maxPolLevel (cellWidth, cellHeight) wSize) cells)
+        agentPics = map (defaultAgentRendererDisc2d agentColorDiseased sugAgCoord (cellWidth, cellHeight) wSize) ss
+        envPics = map (renderEnvCell maxPolLevel (cellWidth, cellHeight) wSize) cells
 
 renderEnvCell :: Double -> SugarScapeEnvironmentRenderer
 renderEnvCell maxPolLevel (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = GLO.Pictures $ [polutionLevelRect, spiceLevelCircle, sugarLevelCircle]

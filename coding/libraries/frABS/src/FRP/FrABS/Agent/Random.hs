@@ -10,7 +10,7 @@ module FRP.FrABS.Agent.Random (
     agentRandomPick,
     agentRandomPickM,
     agentRandomPicks,
-    agentRandomPickM,
+    agentRandomPicksM,
 
     randomBool,
     randomBoolM,

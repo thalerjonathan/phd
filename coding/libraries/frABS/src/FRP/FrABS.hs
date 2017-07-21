@@ -65,8 +65,12 @@ module FRP.FrABS (
     conversationM,
     conversationEndM,
     conversationReplyMonadicRunner,
+    conversationIgnoreEnvReplyMonadicRunner,
     conversationIgnoreReplyMonadicRunner,
-
+    conversationIgnoreReplyMonadicRunner',
+    
+    bypassEnvironment,
+    
     updateDomainStateM,
     getDomainStateM,
     setDomainStateM,
@@ -123,7 +127,7 @@ module FRP.FrABS (
     agentRandomPick,
     agentRandomPickM,
     agentRandomPicks,
-    agentRandomPickM,
+    agentRandomPicksM,
 
     randomBool,
     randomBoolM,

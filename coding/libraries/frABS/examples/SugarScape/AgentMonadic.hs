@@ -1,6 +1,6 @@
 module SugarScape.AgentMonadic (
-    sugarScapeAgentConversationM,
-    sugarScapeAgentBehaviourM
+    sugarScapeAgentConversation,
+    sugarScapeAgentBehaviour
   ) where
 
 import SugarScape.AgentCommon
@@ -21,15 +21,20 @@ import Control.Monad.Trans.State
 ------------------------------------------------------------------------------------------------------------------------
 -- Chapter II: Life And Death On The Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
+agentCellOnCoordM :: SugarScapeEnvironment -> State SugarScapeAgentOut (Discrete2dCoord, SugarScapeEnvCell)
+agentCellOnCoordM e = 
+    do
+        coord <- domainStateFieldM sugAgCoord
+        let cell = cellAt coord e
+        return (coord, cell)
+
 agentDiesM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
 agentDiesM e = unoccupyPositionM e >>= (\e' -> killM >> return e')
-
 
 unoccupyPositionM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
 unoccupyPositionM e = 
     do
-        coord <- domainStateFieldM sugAgCoord
-        let cell = cellAt coord e
+        (coord, cell) <- agentCellOnCoordM e
         let cellUnoccupied = cell { sugEnvOccupier = Nothing }
         return $ changeCellAt coord cellUnoccupied e
 
@@ -93,7 +98,7 @@ agentNonCombatMoveM e =
 
         ifThenElse 
             (null unoccupiedCells)
-            (agentHarvestCellM coord e)  -- NOTE: stay and harvest
+            (agentStayAndHarvestM e)  -- NOTE: stay and harvest
             (agentMoveAndHarvestCellM cellCoord e)
 
 agentLookoutM :: SugarScapeEnvironment -> State SugarScapeAgentOut [(Discrete2dCoord, SugarScapeEnvCell)]
@@ -103,11 +108,11 @@ agentLookoutM e =
         coord <- domainStateFieldM sugAgCoord
         return $ neighbourInDistance coord vis e
 
+agentStayAndHarvestM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
+agentStayAndHarvestM e = domainStateFieldM sugAgCoord >>= (\coord -> agentHarvestCellM coord e)
+
 agentMoveAndHarvestCellM :: Discrete2dCoord -> SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
-agentMoveAndHarvestCellM cellCoord e = -- agentHarvestCellM cellCoord e >>= (\e' -> agentMoveToM cellCoord e')
-    do
-        e' <- agentHarvestCellM cellCoord e
-        agentMoveToM cellCoord e'
+agentMoveAndHarvestCellM cellCoord e = agentHarvestCellM cellCoord e >>= (\e' -> agentMoveToM cellCoord e')
 
 agentMoveToM :: Discrete2dCoord -> SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
 agentMoveToM cellCoord e = 
@@ -263,15 +268,13 @@ agentSexM ain e =
 
                         conversationM 
                             (receiverId, MatingChild newBornId)
-                            (conversationIgnoreReplyMonadicRunner (agentMatingConversationM otherAis cs))
-                            --(\ao _ -> execState (agentMatingConversationM otherAis cs) ao)
+                            (conversationIgnoreReplyMonadicRunner $ agentMatingConversationM otherAis cs) -- NOTE: bypass environemnt: ignore the incoming environment because we just want to continue without being actually interested in the 
 
                         return e'
                         
                 agentMatingConversationsReplyM (Just (_, _)) e = agentMatingConversationM otherAis allCoords >> return e  -- NOTE: unexpected/MatingChildAck reply, continue with the next
 
-inheritSugarM :: SugarScapeAgentIn 
-                    -> State SugarScapeAgentOut ()
+inheritSugarM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
 inheritSugarM ain = onMessageMState inheritSugarActionM ain
     where
         inheritSugarActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
@@ -305,12 +308,12 @@ handleMatingConversationM otherGender ain
         s' = s { sugAgSugarLevel = sugarLevel - mySugarContribution }
         ain' = ain { aiState = s'}
 
-agentCultureContactM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
-agentCultureContactM ain = 
+agentCultureContactM :: SugarScapeAgentIn -> SugarScapeEnvironment -> State SugarScapeAgentOut ()
+agentCultureContactM ain e = 
     do
         onMessageMState cultureContactActionM ain
 
-        nids <- neighbourIdsM
+        nids <- neighbourIdsM e
         culturalTag <- domainStateFieldM sugAgCulturalTag
 
         broadcastMessageM (CulturalContact culturalTag) nids 
@@ -320,7 +323,7 @@ agentCultureContactM ain =
         cultureContactActionM (_, (CulturalContact tagActive)) = 
             do
                 agentTag <- domainStateFieldM sugAgCulturalTag
-                agentTag' <- runAgentRandomM (cultureContact tagActive agentTag)
+                agentTag' <- agentRandomM (cultureContact tagActive agentTag)
                 
                 let tribe = calculateTribe agentTag'
 
@@ -335,19 +338,20 @@ agentKilledInCombatM ain = onMessageMState killedInCombatActionM ain
         killedInCombatActionM (_, KilledInCombat) = killM -- NOTE: don't unoccupie position (as in agentdies) because it is occupied by the killer already
         killedInCombatActionM _ = return ()
 
-agentCombatMoveM :: State SugarScapeAgentOut ()
-agentCombatMoveM =
+agentCombatMoveM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
+agentCombatMoveM e =
     do
-        cellsInSight <- agentLookoutM
+        cellsInSight <- agentLookoutM e
         myTribe <- domainStateFieldM sugAgTribe
         myWealth <- domainStateFieldM sugAgSugarLevel 
 
         let targetCells = filter (filterTargetCell (occupierCombatable myWealth myTribe)) cellsInSight
         
-        ifThenElse (null targetCells)
-            agentStayAndHarvestM
-            $ do
-                agentPos <- environmentPositionM
+        ifThenElse 
+            (null targetCells)
+            (agentStayAndHarvestM e)
+            (do
+                coord <- domainStateFieldM sugAgCoord
 
                 -- TODO: refactor this into common function (searching for the best)
                 let targeCellsWithPayoff = map cellPayoff targetCells
@@ -356,39 +360,43 @@ agentCombatMoveM =
                 let bestCellPayoff = snd $ head cellsSortedByPayoff
                 let bestCells = filter ((==bestCellPayoff) . snd) cellsSortedByPayoff
 
-                let shortestdistanceManhattanBestCells = sortBy (\c1 c2 -> compare (distanceManhattan agentPos (fst . fst $ c1)) (distanceManhattan agentPos (fst . fst $ c2))) bestCells
-                let shortestdistanceManhattan = distanceManhattan agentPos (fst . fst $ head shortestdistanceManhattanBestCells)
-                let bestShortestdistanceManhattanCells = filter ((==shortestdistanceManhattan) . (distanceManhattan agentPos) . fst . fst) shortestdistanceManhattanBestCells
+                let shortestdistanceManhattanBestCells = sortBy (\c1 c2 -> compare (distanceManhattanDisc2d coord (fst . fst $ c1)) (distanceManhattanDisc2d coord (fst . fst $ c2))) bestCells
+                let shortestdistanceManhattan = distanceManhattanDisc2d coord (fst . fst $ head shortestdistanceManhattanBestCells)
+                let bestShortestdistanceManhattanCells = filter ((==shortestdistanceManhattan) . (distanceManhattanDisc2d coord) . fst . fst) shortestdistanceManhattanBestCells
 
-                bestCell@((_,_), payoff) <- agentPickRandomM bestShortestdistanceManhattanCells
+                bestCell@((_,_), payoff) <- agentRandomPickM bestShortestdistanceManhattanCells
                 
-                ifThenElseM (vulnerableToRetaliationM payoff)
-                    agentStayAndHarvestM
-                    (moveAndHarvestBestCellM bestCell)
+                ifThenElseM 
+                    (vulnerableToRetaliationM payoff e)
+                    (agentStayAndHarvestM e)
+                    (moveAndHarvestBestCellM bestCell e)
+            )
 
     where
         -- NOTE: calculate if retalion is possible: is there an agent of the other tribe in my vision which is wealthier AFTER i have preyed on the current one?
         -- TODO: this is not very well specified in the SugarScape book. we don't know the vision of the other agent, and it is information we should not have access to
-        vulnerableToRetaliationM :: Double -> State SugarScapeAgentOut Bool
-        vulnerableToRetaliationM payoff =
+        vulnerableToRetaliationM :: Double -> SugarScapeEnvironment -> State SugarScapeAgentOut Bool
+        vulnerableToRetaliationM payoff e =
             do
                 sugarLevelAgent <- domainStateFieldM sugAgSugarLevel
-                cellsInSight <- agentLookoutM
+                cellsInSight <- agentLookoutM e
                 myTribe <- domainStateFieldM sugAgTribe
 
                 let futureSugarLevel = (payoff + sugarLevelAgent)
                 let retaliatingCells = filter (filterTargetCell (occupierRetaliator futureSugarLevel myTribe)) cellsInSight
 
                 return $ (not . null) retaliatingCells
-              
-        moveAndHarvestBestCellM :: ((Discrete2dCoord, SugarScapeEnvCell), Double) -> State SugarScapeAgentOut ()
-        moveAndHarvestBestCellM ((cellCoord, cell), payoff) =
+
+        moveAndHarvestBestCellM :: ((Discrete2dCoord, SugarScapeEnvCell), Double) 
+                                    -> SugarScapeEnvironment 
+                                    -> State SugarScapeAgentOut SugarScapeEnvironment
+        moveAndHarvestBestCellM ((cellCoord, cell), payoff) e =
             do
                 sugarLevelAgent <- domainStateFieldM sugAgSugarLevel
                 let newSugarLevelAgent = (payoff + sugarLevelAgent)
 
-                unoccupyPositionM
-                updateDomainStateM (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
+                e' <- unoccupyPositionM e
+                updateDomainStateM (\s -> s { sugAgSugarLevel = newSugarLevelAgent, sugAgCoord = cellCoord })
 
                 aid <- agentIdM
                 s <- getDomainStateM
@@ -398,11 +406,12 @@ agentCombatMoveM =
                         sugEnvOccupier = Just (cellOccupier aid s),
                         sugEnvPolutionLevel = 0
                 }
-                        
-                runEnvironmentM $ changeCellAtM cellCoord cellHarvestedAndOccupied
-                changeEnvironmentPositionM cellCoord
+
+                let e'' = changeCellAt cellCoord cellHarvestedAndOccupied e'
 
                 when (cellOccupied cell) (killOccupierOfCellM cell)
+
+                return e''
 
         killOccupierOfCellM :: SugarScapeEnvCell -> State SugarScapeAgentOut ()
         killOccupierOfCellM cell = sendMessageM (occupierId, KilledInCombat)
@@ -414,8 +423,8 @@ agentCombatMoveM =
 ------------------------------------------------------------------------------------------------------------------------
 -- Chapter IV: Sugar and Spice - Trade Comes to the Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
-agentTradingM :: State SugarScapeAgentOut ()
-agentTradingM = neighbourIdsM >>= agentTradingConversationM
+agentTradingM :: SugarScapeEnvironment -> State SugarScapeAgentOut ()
+agentTradingM e = neighbourIdsM e >>= agentTradingConversationM
     where
         agentTradingConversationM :: [AgentId]
                                     -> State SugarScapeAgentOut ()
@@ -426,7 +435,7 @@ agentTradingM = neighbourIdsM >>= agentTradingConversationM
                 let mrsSelf = agentMRS s
                 conversationM 
                     (receiverId, (TradingOffer mrsSelf)) 
-                    (conversationReplyMonadicRunner $ agentTradingConversationsReplyM mrsSelf)
+                    (conversationIgnoreEnvReplyMonadicRunner $ agentTradingConversationsReplyM mrsSelf)
             
             where
                 agentTradingConversationsReplyM :: Double
@@ -441,23 +450,24 @@ agentTradingM = neighbourIdsM >>= agentTradingConversationM
 
                         let welfareIncreases = agentTradeIncreaseWelfare s mrsOther
                         
-                        ifThenElse welfareIncreases
+                        ifThenElse 
+                            welfareIncreases
                             (do
                                 let s' = agentTradeExchange s mrsOther
                                 setDomainStateM s'
                                 conversationM 
                                     (senderId, TradingTransact mrsSelf) 
-                                    (conversationReplyMonadicRunner $ agentTradingConversationsReplyM mrsSelf))
+                                    (conversationIgnoreEnvReplyMonadicRunner $ agentTradingConversationsReplyM mrsSelf))
                             (agentTradingConversationM otherAis)
 
-agentCreditM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
-agentCreditM ain = agentRequestCreditM >> agentCheckCreditPaybackDueM >> agentCreditPaybackIncomingM ain >> agentCreditDeathIncomingM ain
+agentCreditM :: SugarScapeAgentIn -> SugarScapeEnvironment -> State SugarScapeAgentOut ()
+agentCreditM ain e = agentRequestCreditM e >> agentCheckCreditPaybackDueM >> agentCreditPaybackIncomingM ain >> agentCreditDeathIncomingM ain
 
 -- NOTE: for now only sugar is lended & borrowed, no spice
-agentRequestCreditM :: State SugarScapeAgentOut ()
-agentRequestCreditM =
+agentRequestCreditM :: SugarScapeEnvironment -> State SugarScapeAgentOut ()
+agentRequestCreditM e =
     do
-        nids <- neighbourIdsM
+        nids <- neighbourIdsM e
         let hasNeighbours = (not $ null nids)
         when hasNeighbours (agentCreditConversationM nids)
 
@@ -468,9 +478,11 @@ agentRequestCreditM =
         agentCreditConversationM (receiverId:otherAis) =
             do
                 s <- getDomainStateM
-                ifThenElse (isPotentialBorrower s)
+
+                ifThenElse 
+                    (isPotentialBorrower s)
                     (conversationM (receiverId, CreditRequest) 
-                        (conversationReplyMonadicRunner agentCreditConversationsReplyM))
+                        (conversationIgnoreEnvReplyMonadicRunner agentCreditConversationsReplyM))
                     conversationEndM
             where
                 agentCreditConversationsReplyM :: Maybe (AgentMessage SugarScapeMsg)
@@ -648,16 +660,16 @@ agentDiseaseContactM ain = onMessageMState diseaseContactActionM ain
         diseaseContactActionM (_, (DiseaseContact d)) = updateDomainStateM (\s -> s { sugAgDiseases = d : (sugAgDiseases s) } )
         diseaseContactActionM _ = return ()
 
-agentDiseasesTransmitM :: State SugarScapeAgentOut ()
-agentDiseasesTransmitM =
+agentDiseasesTransmitM :: SugarScapeEnvironment -> State SugarScapeAgentOut ()
+agentDiseasesTransmitM e =
     do
         diseases <- domainStateFieldM sugAgDiseases
 
         when (not . null $ diseases)
             $ do
-                nids <- neighbourIdsM
+                nids <- neighbourIdsM e
                 let neighbourCount = length nids
-                randDisease <- agentPickRandomMultipleM diseases neighbourCount
+                randDisease <- agentRandomPicksM diseases neighbourCount
 
                 let msgs = map (\(receiverId, disease) -> (receiverId, DiseaseContact disease)) (zip nids randDisease)
                 let hasNeighbours = (not . null) nids
@@ -675,8 +687,8 @@ agentImmunizeM =
         updateDomainStateM (\s -> s { sugAgImmuneSys = immuneSystem',
                                       sugAgDiseases = diseases' })
 
-agentDiseaseProcessesM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
-agentDiseaseProcessesM ain = agentDiseaseContactM ain >> agentDiseasesTransmitM >> agentImmunizeM
+agentDiseaseProcessesM :: SugarScapeAgentIn -> SugarScapeEnvironment -> State SugarScapeAgentOut ()
+agentDiseaseProcessesM ain e = agentDiseaseContactM ain >> agentDiseasesTransmitM e >> agentImmunizeM
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -684,18 +696,23 @@ agentDiseaseProcessesM ain = agentDiseaseContactM ain >> agentDiseasesTransmitM 
 ------------------------------------------------------------------------------------------------------------------------
 -- TODO: monadic-refactoring
 sugarScapeAgentConversationM :: SugarScapeAgentConversation
-sugarScapeAgentConversationM ain (_, (MatingRequest tup)) = Just $ handleMatingConversationM tup ain
-sugarScapeAgentConversationM ain (_, (MatingChild childId)) = Just (MatingChildAck, ain')
+sugarScapeAgentConversationM (ain, e) (_, (MatingRequest tup)) = Just (m, (ain', e))
+    where
+        (m, ain') = handleMatingConversationM tup ain
+sugarScapeAgentConversationM (ain, e) (_, (MatingChild childId)) = Just (MatingChildAck, (ain', e))
     where
         s = aiState ain
         s' = s { sugAgChildren = childId : (sugAgChildren s)}
         ain' = ain { aiState = s' }
-
-sugarScapeAgentConversationM ain (_, (TradingOffer mrs)) = Just $ handleTradingOfferM mrs ain
-sugarScapeAgentConversationM ain (_, (TradingTransact mrs)) = Just $ handleTradingTransactM mrs ain
-
-sugarScapeAgentConversationM ain (borrowerId, CreditRequest) = Just $ handleCreditRequestM ain borrowerId
-
+sugarScapeAgentConversationM (ain, e) (_, (TradingOffer mrs)) = Just (m, (ain', e))
+    where
+        (m, ain') = handleTradingOfferM mrs ain
+sugarScapeAgentConversationM (ain, e) (_, (TradingTransact mrs)) = Just (m, (ain', e))
+    where
+        (m, ain') = handleTradingTransactM mrs ain
+sugarScapeAgentConversationM (ain, e) (borrowerId, CreditRequest) = Just (m, (ain', e))
+    where
+        (m, ain') = handleCreditRequestM ain borrowerId
 sugarScapeAgentConversationM _ _ = Nothing
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -710,24 +727,28 @@ sugarScapeAgentBehaviourFuncM e age ain =
     do     
         agentKilledInCombatM ain
 
-        ifThenElseM isDeadM
-            agentDeathHandleCreditsM
+        ifThenElseM 
+            isDeadM
+            (agentDeathHandleCreditsM >> return e)
             $ do
-                agentAgeingM age
-                ifThenElseM isDeadM
-                    agentDeathHandleCreditsM
+                e0 <- agentAgeingM age e
+                ifThenElseM 
+                    isDeadM
+                    (agentDeathHandleCreditsM >> return e)
                     $ do
-                        agentMetabolismM
-                        ifThenElseM isDeadM
-                            agentDeathHandleCreditsM
+                        e1 <- agentMetabolismM e0
+                        ifThenElseM 
+                            isDeadM
+                            (agentDeathHandleCreditsM >> return e)
                             $ do
-                                agentNonCombatMoveM
+                                e2 <- agentNonCombatMoveM e1
                                 inheritSugarM ain
-                                agentCultureContactM  ain
-                                agentSexM ain
-                                agentTradingM
-                                agentCreditM ain
-                                agentDiseaseProcessesM ain
+                                agentCultureContactM ain e2
+                                agentSexM ain e2
+                                agentTradingM e2
+                                agentCreditM ain e2
+                                agentDiseaseProcessesM ain e2
+                                return e2
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

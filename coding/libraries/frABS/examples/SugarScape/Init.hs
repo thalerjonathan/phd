@@ -17,17 +17,17 @@ import Control.Monad.Random
 
 
 createSugarScape :: Int 
-                    -> EnvLimits 
+                    -> Discrete2dDimension 
                     -> SugarScapeSimParams
                     -> IO ([SugarScapeAgentDef], SugarScapeEnvironment)
-createSugarScape agentCount l params = 
+createSugarScape agentCount dims params = 
     do
-        randCoords <- drawRandomCoords (0,0) l agentCount
+        randCoords <- randomCoords (0,0) dims agentCount
 
-        as <- mapM (randomAgentIO params) randCoords
-        let occupations = map (\a -> (adEnvPos a, (adId a, adState a))) as
+        adefs <- mapM (randomAgentIO params) randCoords
+        let occupations = map (\a -> (sugAgCoord $ adState a, (adId a, adState a))) adefs
 
-        initRandomCells <- createCells l occupations
+        initRandomCells <- createCells dims occupations
 
         let cellsWithSugarLevel1 = initSugar initRandomCells (circlesSugar 1 [((35, 35), 20.0), ((15, 15), 20.0)])
         let cellsWithSugarLevel2 = initSugar cellsWithSugarLevel1 (circlesSugar 2 [((35, 35), 15.0), ((15, 15), 15.0)])
@@ -41,56 +41,57 @@ createSugarScape agentCount l params =
 
         rng <- newStdGen
 
-        let env = createEnvironment
-                              (Just sugarScapeEnvironmentBehaviour)
-                              l
-                              neumann
-                              WrapBoth
-                              cellsWithSpiceLevel4
-                              rng
-                              Nothing
-        return (as, env)
+        let e = createDiscrete2d
+                    dims
+                    neumann
+                    WrapBoth
+                    cellsWithSpiceLevel4
+                    rng
 
-initSugar :: [(EnvCoord, SugarScapeEnvCell)]
-                    -> ((EnvCoord, SugarScapeEnvCell) -> Double)
-                    -> [(EnvCoord, SugarScapeEnvCell)]
+        return (adefs, e)
+
+initSugar :: [(Discrete2dCoord, SugarScapeEnvCell)]
+                -> ((Discrete2dCoord, SugarScapeEnvCell) -> Double)
+                -> [(Discrete2dCoord, SugarScapeEnvCell)]
 initSugar cs sugarFunc = map (initSugarAux sugarFunc) cs
     where
-        initSugarAux :: ((EnvCoord, SugarScapeEnvCell) -> Double)
-                                -> (EnvCoord, SugarScapeEnvCell)
-                                -> (EnvCoord, SugarScapeEnvCell)
+        initSugarAux :: ((Discrete2dCoord, SugarScapeEnvCell) -> Double)
+                                -> (Discrete2dCoord, SugarScapeEnvCell)
+                                -> (Discrete2dCoord, SugarScapeEnvCell)
         initSugarAux sugarFunc cp@(coord, cell) = (coord, cell')
             where
                 sugar = sugarFunc cp
                 cell' = cell { sugEnvSugarLevel = sugar,
                                 sugEnvSugarCapacity = sugar }
 
-initSpice :: [(EnvCoord, SugarScapeEnvCell)]
-                    -> ((EnvCoord, SugarScapeEnvCell) -> Double)
-                    -> [(EnvCoord, SugarScapeEnvCell)]
+initSpice :: [(Discrete2dCoord, SugarScapeEnvCell)]
+                -> ((Discrete2dCoord, SugarScapeEnvCell) -> Double)
+                -> [(Discrete2dCoord, SugarScapeEnvCell)]
 initSpice cs spiceFunc = map (initSpiceAux spiceFunc) cs
     where
-        initSpiceAux :: ((EnvCoord, SugarScapeEnvCell) -> Double)
-                                -> (EnvCoord, SugarScapeEnvCell)
-                                -> (EnvCoord, SugarScapeEnvCell)
+        initSpiceAux :: ((Discrete2dCoord, SugarScapeEnvCell) -> Double)
+                                -> (Discrete2dCoord, SugarScapeEnvCell)
+                                -> (Discrete2dCoord, SugarScapeEnvCell)
         initSpiceAux spiceFunc cp@(coord, cell) = (coord, cell')
             where
                 spice = spiceFunc cp
                 cell' = cell { sugEnvSpiceLevel = spice,
                                 sugEnvSpiceCapacity = spice }
 
-createCells :: EnvLimits
-                -> [(EnvCoord, (AgentId, SugarScapeAgentState))]
-                -> IO [(EnvCoord, SugarScapeEnvCell)]
+createCells :: Discrete2dDimension
+                -> [(Discrete2dCoord, (AgentId, SugarScapeAgentState))]
+                -> IO [(Discrete2dCoord, SugarScapeEnvCell)]
 createCells (maxX, maxY) occupations = mapM (initRandomCell occupations) coords
     where
         coords = [ (x, y) | x <- [0..maxX-1], y <- [0..maxY-1] ]
 
-initRandomCell :: [(EnvCoord, (AgentId, SugarScapeAgentState))] -> EnvCoord -> IO (EnvCoord, SugarScapeEnvCell)
+initRandomCell :: [(Discrete2dCoord, (AgentId, SugarScapeAgentState))] 
+                    -> Discrete2dCoord 
+                    -> IO (Discrete2dCoord, SugarScapeEnvCell)
 initRandomCell os coord = 
     do
-        randSugarCap <- getStdRandom $ randomR sugarCapacityRange
-        randSpiceCap <- getStdRandom $ randomR spiceCapacityRange
+        randSugarCap <- randomRIO sugarCapacityRange
+        randSpiceCap <- randomRIO spiceCapacityRange
 
         let mayOccupier = Data.List.find ((==coord) . fst) os
 
@@ -109,20 +110,20 @@ initRandomCell os coord =
         return (coord, c)
 
 -- NOTE: will draw random-coords within (0,0) and limits WITHOUT repeating any coordinate
-drawRandomCoords :: EnvLimits -> EnvLimits -> Int -> IO [EnvCoord]
-drawRandomCoords lower@(minX, minY) upper@(maxX, maxY) n
+randomCoords :: Discrete2dDimension -> Discrete2dDimension -> Int -> IO [Discrete2dCoord]
+randomCoords lower@(minX, minY) upper@(maxX, maxY) n
     | n > totalCoords = error "Logical error: can't draw more elements from a finite set than there are elements in the set"
     | otherwise = drawRandomCoordsAux lower upper n []
     where
         totalCoords = (maxX - minX) * (maxY - minY)
 
         -- NOTE: using accumulator, must faster
-        drawRandomCoordsAux :: EnvLimits -> EnvLimits -> Int -> [EnvCoord] -> IO [EnvCoord]
+        drawRandomCoordsAux :: Discrete2dDimension -> Discrete2dDimension -> Int -> [Discrete2dCoord] -> IO [Discrete2dCoord]
         drawRandomCoordsAux _ _ 0 acc = return acc
         drawRandomCoordsAux lower@(minX, minY) upper@(maxX, maxY) n acc =
             do
-              randX <- getStdRandom (randomR(minX, maxX - 1))
-              randY <- getStdRandom (randomR(minY, maxY - 1))
+              randX <- randomRIO (minX, maxX - 1)
+              randY <- randomRIO (minY, maxY - 1)
 
               let c = (randX, randY)
               if elem c acc then
@@ -130,7 +131,7 @@ drawRandomCoords lower@(minX, minY) upper@(maxX, maxY) n
                   else
                     drawRandomCoordsAux lower upper (n-1) (c : acc)
 
-randomAgentIO :: SugarScapeSimParams -> EnvCoord -> IO SugarScapeAgentDef
+randomAgentIO :: SugarScapeSimParams -> Discrete2dCoord -> IO SugarScapeAgentDef
 randomAgentIO params coord = 
     do
         std <- getStdGen
@@ -144,19 +145,19 @@ randomAgentIO params coord =
 
         return adef
 
-allZeroSugar :: (EnvCoord, SugarScapeEnvCell) -> Double
+allZeroSugar :: (Discrete2dCoord, SugarScapeEnvCell) -> Double
 allZeroSugar _ = 0.0
 
-circlesSugar :: Double -> [(EnvCoord, Double)] -> (EnvCoord, SugarScapeEnvCell) -> Double
+circlesSugar :: Double -> [(Discrete2dCoord, Double)] -> (Discrete2dCoord, SugarScapeEnvCell) -> Double
 circlesSugar sugarLevel circles (coord, cell)
     | withinRadius = sugarLevel
     | otherwise = sugEnvSugarLevel cell -- NOTE: keep the level of before
         where
-            withinRadius = any (\(p, r) -> distanceEuclidean p coord <= r) circles
+            withinRadius = any (\(p, r) -> distanceEuclideanDisc2d p coord <= r) circles
 
-circlesSpice :: Double -> [(EnvCoord, Double)] -> (EnvCoord, SugarScapeEnvCell) -> Double
+circlesSpice :: Double -> [(Discrete2dCoord, Double)] -> (Discrete2dCoord, SugarScapeEnvCell) -> Double
 circlesSpice spiceLevel circles (coord, cell)
     | withinRadius = spiceLevel
     | otherwise = sugEnvSpiceLevel cell -- NOTE: keep the level of before
         where
-            withinRadius = any (\(p, r) -> distanceEuclidean p coord <= r) circles
+            withinRadius = any (\(p, r) -> distanceEuclideanDisc2d p coord <= r) circles

@@ -15,7 +15,11 @@ module FRP.FrABS.Agent.Monad (
     conversationM,
     conversationEndM,
     conversationReplyMonadicRunner,
+    conversationIgnoreEnvReplyMonadicRunner,
     conversationIgnoreReplyMonadicRunner,
+    conversationIgnoreReplyMonadicRunner',
+
+    bypassEnvironment,
 
     updateDomainStateM,
     getDomainStateM,
@@ -78,16 +82,30 @@ broadcastMessageM m receiverIds = state (broadcastMessageMAux m)
 createAgentM :: AgentDef s m e -> State (AgentOut s m e) ()
 createAgentM newDef = state (\ao -> ((),createAgent newDef ao))
 
-conversationReplyMonadicRunner :: (Maybe (AgentMessage m) -> e -> State (AgentOut s m e) e) 
-                                    -> AgentConversationSender s m e
+conversationReplyMonadicRunner :: (Maybe (AgentMessage m) -> e -> State (AgentOut s m e) e) -> AgentConversationSender s m e
 conversationReplyMonadicRunner replyAction (ao, e) mayReply = (ao', e')
     where
         (e', ao') = runState (replyAction mayReply e) ao
 
-conversationIgnoreReplyMonadicRunner :: (e -> State (AgentOut s m e) e) -> AgentConversationSender s m e
-conversationIgnoreReplyMonadicRunner replyAction (ao, e) _ = (ao', e')
+conversationIgnoreEnvReplyMonadicRunner :: (Maybe (AgentMessage m) -> State (AgentOut s m e) ()) -> AgentConversationSender s m e
+conversationIgnoreEnvReplyMonadicRunner replyAction (ao, e) mayReply = (ao', e)
+    where
+        (_, ao') = runState (replyAction mayReply) ao
+
+-- NOTE: when ignoring the reply it makes also sense to bypass the environment
+conversationIgnoreReplyMonadicRunner :: State (AgentOut s m e) () -> AgentConversationSender s m e
+conversationIgnoreReplyMonadicRunner replyAction (ao, e) _ = (ao', e)
+    where
+        (_, ao') = runState replyAction ao
+
+-- NOTE: for the case one does not want to bypass the environment
+conversationIgnoreReplyMonadicRunner' :: (e -> State (AgentOut s m e) e) -> AgentConversationSender s m e
+conversationIgnoreReplyMonadicRunner' replyAction (ao, e) _ = (ao', e')
     where
         (e', ao') = runState (replyAction e) ao
+
+bypassEnvironment :: State (AgentOut s m e) () -> e -> State (AgentOut s m e) e
+bypassEnvironment a e = a >> return e
 
 killM :: State (AgentOut s m e) ()
 killM = state (\ao -> ((), ao { aoKill = Event () }))

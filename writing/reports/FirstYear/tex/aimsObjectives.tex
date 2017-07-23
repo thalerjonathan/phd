@@ -1,46 +1,8 @@
 \chapter{Aims and Objectives}
 \label{chap:aimsObj}
 
-WARNING:
+TODO:
 STM is possible in other languages as well!! rework this in the report. only haskell can guarantee specific things already statically at compile time
-
-
-
-
-
-From the annual review the following things become clear:
-- the aim is basically "Explore using Haskell for Agent-Based Simulation with its benefits and drawbacks".
-- The 3 major benefits of the approach I claim
-	1. code == spec
-	2. can rule out serious class of bugs
-	3. we can perform reasoning about the simulation in code
-	need to be metricated: e.g. this is really only possible in Haskell and not in Java. This needs thorough thinking about which metrics are used, how they can be aquired, how they can be compared,...
-- Why ACE and Social Simulation? Did i only pick these fields because they are easily applicable to the problems I want to solve? Which properties do they exhibit which make them interesting for my problem? Just to say that "Sugarscape and bilateral decentralized bartering is interesting and fascinates me" is not enough in a final viva/thesis/paper.
-- Reasoning must be very clear. So far I have 2 ideas for formal reasoning in code:
-	1. SIR
-		-> my emulation of SD using ABS is really an implementation of the SD model and follows it - they are equivalent
-		-> my ABS implementation is the same as / equivalent to the SD emulation
-			=> thus if i can show that my SD emulation is equlas to the SD model
-			=> AND that the ABS implementation is the same as the SD emulation
-			=> THEN the ABS implementation is an SD implementation, and we have shown this in code for the first time in ABS
-
-	2. Decentralized Bilateral Bartering
-		-> can we reason about the equilibrium prices in an ABS setting? e.g. show formally why equilibrium prices are not reached, under which circumstance they are reached,...
-			-> need to combine General Equilibrium Theory
-			-> with Bilateral decentralized exchange
-			-> with Agent-Based Simulation 
-			
-- STILL I NEED TO SHOW HOW I CAN MAKE HASKELL RELEVANT IN THE FIELD OF ABS
-	-> as far as I know so far no reasoning has been done in the way I intend to do it in the field of ABS. My hypothesis is that it is really only possible in Haskell due to its explicit side-effects, type-system, declarative style,... 
-		-> TODO: need to check if this is really unique to haskell
-	-> the functional-reactive approach seems to bring a new view to ABS with an embedded language for explicit time-semantics. Together with parallel/sequential updating this allows implementing System-Dynamics and agents which rely on continuous time-semantics e.g. SIR-Agents. Maybe i invented a hybrid between SD and ABS? Also what about time-traveling? The problem is that this is not really clear as i hypothesize that is completely novel approach to ABS - again I need to check this!
-		-> TODO: is this really unique to functional reactive? E.g. what about Repast, NetLogo, AnyLogic, other Java-Frameworks? 
-	-> maybe i have to admit that its not as unique as thought
-
-In General i need to show that
-- Haskells general benefits \& drawbacks over other Languages in the Field of ABS (e.g. Java, NetLogo, Repast) e.g. declarative style, reasoning, explicit about side-effects, performance, difficult to reason about performance, space-leaks difficult. So this focuses on the general comparison between the established technologies of ABS and Haskell but not yet on Haskells suitability in comparison to these other technologies. Here we talk about reasoning, side-effects, performance IN GENERAL TERMS, NOT SPECIFIC TO ABS
-- Haskells suitability to implement ABS in comparison to other languages and technologies in the Field of. Here the focus is on general problems in ABS and how they can and are solved using Haskell.
-- Why using Haskell in ABS - do the general benefits / drawbacks apply equally well? Are there unique advantages? Can we do things in Haskell which are not possible in other technologies or just very hard? E.g. the hybrid-approach I created with FRP: how unique is it e.g. can other technologies easily implement it as well? Other potential advantages: recursive simulation. Here we DO NOT concentrate on general technicalities but see how they apply when using it for ABS and if they create a unique benefit for Haskell in ABS.
 
 \section{Aims}
 The aim of this Ph.D is to explore the benefits and drawbacks using Haskell in  Agent-Based Simulation. First a library for general-purpose ABS in Haskell is built which serves as the primary object to study the benefits and drawbacks. After having investigated the benefits and drawbacks the library will be used to research  verification and reasoning in ABS in the context of decentralized bilateral bartering as specified in the Sugarscape model.
@@ -49,7 +11,7 @@ The aim of this Ph.D is to explore the benefits and drawbacks using Haskell in  
 \begin{enumerate}
 	\item Implement a library for general-purpose Agent-Based Simulation in Haskell 
 	\item Objectively and scientifically compare the usage of Haskell in ABS to the usage of Java in ABS: what are the benefits/drawbacks of Haskell and what are the benefits/drawbacks of Java? Are they orthogonal to each other e.g. are the weaknesses of one language the other languages strength?
-	\item Define scientific measures: e.g. Lines Of Code (show relation to Bugs \& Defects, which is an objective measure: http://www.stevemcconnell.com/est.htm, \url{https://softwareengineering.stackexchange.com/questions/185660/is-the-average-number-of-bugs-per-loc-the-same-for-different-programming-languag}, Book: Code Complete, \url{https://www.mayerdan.com/ruby/2012/11/11/bugs-per-line-of-code-ratio}), also experience reports by companies which show that Haskell has huge benefits when applied to the same domain of a previous implementation of a different language, post on stack overflow / research gate / reddit, read experience reports from \url{http://cufp.org/2015/}
+	\item Define scientific measures: e.g. Lines Of Code (show relation to Bugs \& Defects, which is an objective measure: http://www.stevemcconnell.com/est.htm, \url{https://softwareengineering.stackexchange.com/questions/185660/is-the-average-number-of-bugs-per-loc-the-same-for-different-programming-languag}, Book: Code Complete, \url{https://www.mayerdan.com/ruby/2012/11/11/bugs-per-line-of-code-ratio}), also experience reports by companies which show that Haskell has huge benefits when applied to the same domain of a previous implementation of a different language, post on stack overflow / research gate / reddit, read experience reports from \url{http://cufp.org/2015/} Also need to show the problem of operational reasoning as opposed to denotational reasoning
 	\item Develop reasoning-techniques using Functional Programming in ABS by comparing the implementations of the SD- and ABS-model of the SIR compartment model in epidemiology.
 	\item Investigate the usage of STM for concurrent ABS
 \end{enumerate}

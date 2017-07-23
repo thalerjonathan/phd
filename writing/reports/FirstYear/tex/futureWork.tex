@@ -1,13 +1,67 @@
 \chapter{Future Work Plan}
 \label{chap:future}
 
+TODO: needs complete revision. in this chapter i discuss how best to approach the aims & objectsives including the research-questions and hypotheses. I am discussing my methods and methodology here.
+
+
+
+From the annual review the following things become clear:
+- the aim is basically "Explore using Haskell for Agent-Based Simulation with its benefits and drawbacks".
+- The 3 major benefits of the approach I claim
+	1. code == spec
+	2. can rule out serious class of bugs
+	3. we can perform reasoning about the simulation in code
+	need to be metricated: e.g. this is really only possible in Haskell and not in Java. This needs thorough thinking about which metrics are used, how they can be aquired, how they can be compared,...
+- Why ACE and Social Simulation? Did i only pick these fields because they are easily applicable to the problems I want to solve? Which properties do they exhibit which make them interesting for my problem? Just to say that "Sugarscape and bilateral decentralized bartering is interesting and fascinates me" is not enough in a final viva/thesis/paper.
+- Reasoning must be very clear. So far I have 2 ideas for formal reasoning in code:
+	1. SIR
+		-> my emulation of SD using ABS is really an implementation of the SD model and follows it - they are equivalent
+		-> my ABS implementation is the same as / equivalent to the SD emulation
+			=> thus if i can show that my SD emulation is equlas to the SD model
+			=> AND that the ABS implementation is the same as the SD emulation
+			=> THEN the ABS implementation is an SD implementation, and we have shown this in code for the first time in ABS
+
+	2. Decentralized Bilateral Bartering
+		-> can we reason about the equilibrium prices in an ABS setting? e.g. show formally why equilibrium prices are not reached, under which circumstance they are reached,...
+			-> need to combine General Equilibrium Theory
+			-> with Bilateral decentralized exchange
+			-> with Agent-Based Simulation 
+			
+- STILL I NEED TO SHOW HOW I CAN MAKE HASKELL RELEVANT IN THE FIELD OF ABS
+	-> as far as I know so far no reasoning has been done in the way I intend to do it in the field of ABS. My hypothesis is that it is really only possible in Haskell due to its explicit side-effects, type-system, declarative style,... 
+		-> TODO: need to check if this is really unique to haskell
+	-> the functional-reactive approach seems to bring a new view to ABS with an embedded language for explicit time-semantics. Together with parallel/sequential updating this allows implementing System-Dynamics and agents which rely on continuous time-semantics e.g. SIR-Agents. Maybe i invented a hybrid between SD and ABS? Also what about time-traveling? The problem is that this is not really clear as i hypothesize that is completely novel approach to ABS - again I need to check this!
+		-> TODO: is this really unique to functional reactive? E.g. what about Repast, NetLogo, AnyLogic, other Java-Frameworks? 
+	-> maybe i have to admit that its not as unique as thought
+
+In General i need to show that
+- Haskells general benefits \& drawbacks over other Languages in the Field of ABS (e.g. Java, NetLogo, Repast) e.g. declarative style, reasoning, explicit about side-effects, performance, difficult to reason about performance, space-leaks difficult. So this focuses on the general comparison between the established technologies of ABS and Haskell but not yet on Haskells suitability in comparison to these other technologies. Here we talk about reasoning, side-effects, performance IN GENERAL TERMS, NOT SPECIFIC TO ABS. We need to distinguish between 
+	-> general technicalities e.g. lambda-calculus (denotational formalism) or turing-machine (operational formalism) foundations, declarative style, lazy-evaluation allows to split the producer from the consumer, explicit about side-effects, not possible for in-order updates,...
+	-> and in what they result e.g. fewer lines of code, ruling out of bugs, reasoning, lower performance, difficult to reason about space-time 
+	
+- Haskells suitability to implement ABS in comparison to other languages and technologies in the Field. Here the focus is on general problems in ABS and how they can and are solved using Haskell e.g. send message, changing environment, handling of time, replications, parallelism/concurrency,...
+
+- Why using Haskell in ABS - do the general benefits / drawbacks apply equally well? Are there unique advantages? Can we do things in Haskell which are not possible in other technologies or just very hard? E.g. the hybrid-approach I created with FRP: how unique is it e.g. can other technologies easily implement it as well? Other potential advantages: recursive simulation. Here we DO NOT concentrate on general technicalities but see how they apply when using it for ABS and if they create a unique benefit for Haskell in ABS.
+
+i need to show that different programming languages and paradigms have different power and are differently well suited to specific problems: the ultimate claim i need to show is that haskell is more powerful than java or C++ - the question is if this also makes it superior in applying it to problems: being more powerful, can all problems of java be solved better in haskell as well? this is i believe not the case e.g. gui- or game- programming. the question then is: what is the power of a programming language? can we measure it?
+
+so what i need to show is how well haskell and its power are suited for implementing ABS. does the fact that haskell is much more powerful than existing technologies in ABS lead to the point that it is better suited for ABS? in fact it is power vs. better suited
+
+
+
+
+TODO: rework old introduction
 In this chapter we break down the the four main objectives we have identified in Chapter \ref{chap:aimsObj} into small working packages, present mile-stones and holidays, relevant conferences, papers we want to publish (either conference or journal). A Gantt-Chart, reflecting all the details is found at the end of this chapter in Figure \ref{fig:gantt}.
 
 \section{Planned Papers}
-We plan for three papers with at least one of them to be submitted to a journal.
+TODO: this is real delicate part. how do we split up our objectives and research-questions in to papers? do they all have to be tretated in papers? 
+TODO: after having finalized the objectives and research-questions, only THEN split it into papers. A maximum of 4 papers will leave about 6 months for each paper to work on - is this realistic or should we aim for 3 papers?
+
+\subsection{Programming Paradigms in ABS}
+This paper will build on the insights of the sketch paper on Programming Paradigms (TODO: be more precise, I already mentioned it)
 
 \subsection{FrABS - Towards pure functional programming in ABS}
-This paper will present the pure functional approach to ABS we have taken and outlined in Appendix \ref{app:frABS}. It will describe the combination of FRP \& ABS, the EDSL built on top and gives some examples of specification and implementation of the SIRS and Sugarscape model.
+This paper will present the pure functional approach to ABS we have taken and outlined in Appendix \ref{app:frABS}. It will describe the combination of FRP \& ABS, the EDSL built on top and discusses its benefits using the SIR model which is implemented both as a ABS and a System-Dynamcis solution. We will show that both implementations are qualitatively the same by reasoning about the simulation. Also implement an STM version of FrABS and look into it.
 
 \subsection{Will it Equilibrate? Reasoning in pure functional ABS}
 In this paper we will discuss the verification method we have developed using our FrABS implementation and QuickCheck. We describe the decentralized bilateral bartering process of the Sugarscape model and verify it.
@@ -16,12 +70,9 @@ In this paper we will discuss the verification method we have developed using ou
 	-> general equilibrium theory
 	-> give reason in code for the failure of reaching equilibrium
 
-\subsection{Deterministic Concurrency in ABS through Transactional Functional Reactive Agents}
-	-> following the hypothesis that STM is the real unique thing which can be only done in Haskell and not in Java we ask if and how we can leverage on it?
-	-> introducing the concept of STM to ABS to support concurrent ABS
-	-> concurrency leads to non-reproducibility, is it still of use? e.g. what about replications in this context?
-	-> non-reproducible results are in some kind of way useless, can we find another definition of reproducibility? e.g. when using yampas time-semantics? or when using 
-
+\subsection{Time-travel in ABS}
+	-> this paper looks into the specifics of the hybrid approach of FrABS: how time can be used. It asks if time can be turned back e.g. that time-travel may become possible. This facility would pose interesting new mechanisms for investigating the dynamics of Agent-Based Simulations: halting time, fast-forward and fast-backward. The backward-going is a novelty. Could we inject new random-seeds during execution? 
+	
 \section{Years Overview}
 
 \subsection{1st Year}
@@ -54,7 +105,6 @@ Tocus on cleaning up the research and writing the final thesis. The plan is to s
 	\item 2019 30th September - official end of PhD
 	\item 2020 30th September - end of pending-period
 \end{itemize}
-
 
 \label{app:gantt}
 \begin{landscape}

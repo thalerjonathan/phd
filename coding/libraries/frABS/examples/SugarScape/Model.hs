@@ -15,6 +15,7 @@ module SugarScape.Model (
 
     SugarScapeEnvironment,
     SugarScapeEnvironmentBehaviour,
+    SugarScapeEnvironmentMonadicBehaviour,
 
     SugarScapeAgentDef,
     SugarScapeAgentBehaviour,
@@ -25,16 +26,22 @@ module SugarScape.Model (
     SugarScapeAgentConversationSender,
     SugarScapeSimParams,
 
+    _enablePolution_,
+    _enableSpice_,
+    _enableBirthAgentOnAgeDeath_,
+    _enablePassWealthOnDeath_,
+    _enableDiseases_,
+    _enableSeasons_,
+
     sugarGrowbackUnits,
-    summerSeasonSugarGrowbackRate, 
-    winterSeasonSugarGrowbackRate,
+    summerSeasonSugarGrowbackRatio, 
+    winterSeasonSugarGrowbackRatio,
     seasonDuration,
     sugarCapacityRange,
     sugarEndowmentRange,
     sugarMetabolismRange,
     visionRange,
     ageRange,
-    polutionEnabled,
     polutionMetabolismFactor,
     polutionHarvestFactor,
     diffusePolutionTime,
@@ -48,42 +55,19 @@ module SugarScape.Model (
     spiceCapacityRange,
     spiceEndowmentRange,
     spiceGrowbackUnits,
-    summerSeasonSpiceGrowbackRate,
-    winterSeasonSpiceGrowbackRate,
+    summerSeasonSpiceGrowbackRatio,
+    winterSeasonSpiceGrowbackRatio,
     lendingCreditDuration,
     lendingCreditInterestRate,
     immuneSystemLength,
     diseaseLength,
     diseasesInitial,
-    diseasedMetabolismIncrease,
-
-    cellOccupier,
-    calculateTribe,
-    cultureContact,
-    flipCulturalTag,
-    crossoverBools,
-    crossover,
-    flipBoolAtIdx,
-    findFirstDiffIdx,
-    findMinWithIdx,
-    calculateHammingDistances,
-    hammingDistance,
-    randomAgent
+    diseasedMetabolismIncrease
   ) where
 
 import FRP.FrABS
 
-import FRP.Yampa
-
-import System.Random
-import Control.Monad.Random
-import Data.List.Split
-import Data.List
-import Data.Maybe
-
 -- TODO: when sex is turned on the number of agents is constantly increasing which should not be possible because more agents compete for less ressources which should reduce the population. Probably we are leaking wealth
-
--- TODO: export dynamics in a text file with matlab format of the data: wealth distribution, number of agents, mean vision/metabolism, mean age,
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
@@ -180,6 +164,7 @@ data SugarScapeEnvCell = SugarScapeEnvCell {
 
 type SugarScapeEnvironment = Discrete2d SugarScapeEnvCell
 type SugarScapeEnvironmentBehaviour = EnvironmentBehaviour SugarScapeEnvironment
+type SugarScapeEnvironmentMonadicBehaviour = EnvironmentMonadicBehaviour SugarScapeEnvironment
 
 type SugarScapeAgentDef = AgentDef SugarScapeAgentState SugarScapeMsg SugarScapeEnvironment
 type SugarScapeAgentBehaviour = AgentBehaviour SugarScapeAgentState SugarScapeMsg SugarScapeEnvironment
@@ -193,20 +178,43 @@ type SugarScapeSimParams = SimulationParams SugarScapeEnvironment
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
--- MODEL-PARAMETERS
+-- CONFIGURATION
+------------------------------------------------------------------------------------------------------------------------
+_enablePolution_ :: Bool
+_enablePolution_ = False
+
+_enableSpice_ :: Bool
+_enableSpice_ = False
+
+_enableBirthAgentOnAgeDeath_ :: Bool
+_enableBirthAgentOnAgeDeath_ = False
+
+_enablePassWealthOnDeath_ :: Bool
+_enablePassWealthOnDeath_ = False
+
+_enableDiseases_ :: Bool
+_enableDiseases_ = False
+
+_enableSeasons_ :: Bool
+_enableSeasons_ = False
 ------------------------------------------------------------------------------------------------------------------------
 
+
+------------------------------------------------------------------------------------------------------------------------
+-- MODEL-PARAMETERS
+------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 -- CHAPTER II: Life And Death On The Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
+-- NOTE: < 0 is treated as grow back to max
 sugarGrowbackUnits :: Double
 sugarGrowbackUnits = 1.0
 
-summerSeasonSugarGrowbackRate :: Double
-summerSeasonSugarGrowbackRate = 1.0
+summerSeasonSugarGrowbackRatio :: Double
+summerSeasonSugarGrowbackRatio = 1.0
 
-winterSeasonSugarGrowbackRate :: Double
-winterSeasonSugarGrowbackRate = 8.0
+winterSeasonSugarGrowbackRatio :: Double
+winterSeasonSugarGrowbackRatio = 8.0
 
 seasonDuration :: Double
 seasonDuration = 10.0
@@ -222,14 +230,16 @@ sugarMetabolismRange :: (Double, Double)
 sugarMetabolismRange = (1.0, 5.0)
 
 visionRange :: (Int, Int)
-visionRange = (1, 10)
+visionRange = visionRangeSeasons
+-- NOTE: set to 1-6 on page 24
+visionRangeStandard = (1, 6)
+-- NOTE: for Migration set to 1-10 on page 44
+visionRangeSeasons = (1, 10)
 
 ageRange :: (Double, Double)
-ageRange = (60, 100)
-
-
-polutionEnabled :: Bool
-polutionEnabled = False
+ageRange = ageRangeStandard
+ageRangeStandard = (60, 100)
+ageRangeInf = (1/0, 1/0)
 
 polutionMetabolismFactor :: Double
 polutionMetabolismFactor = 1.0
@@ -274,14 +284,15 @@ spiceCapacityRange = (0.0, 4.0)
 spiceEndowmentRange :: (Double, Double)
 spiceEndowmentRange = (5.0, 25.0)
 
+-- NOTE: < 0 is treated as grow back to max
 spiceGrowbackUnits :: Double
 spiceGrowbackUnits = 1.0
 
-summerSeasonSpiceGrowbackRate :: Double
-summerSeasonSpiceGrowbackRate = 1.0
+summerSeasonSpiceGrowbackRatio :: Double
+summerSeasonSpiceGrowbackRatio = 1.0
 
-winterSeasonSpiceGrowbackRate :: Double
-winterSeasonSpiceGrowbackRate = 8.0
+winterSeasonSpiceGrowbackRatio :: Double
+winterSeasonSpiceGrowbackRatio = 8.0
 
 lendingCreditDuration :: Double
 lendingCreditDuration = 10
@@ -309,168 +320,3 @@ diseasesInitial = 4
 diseasedMetabolismIncrease :: Double
 diseasedMetabolismIncrease = 1.0
 ------------------------------------------------------------------------------------------------------------------------
-
-cellOccupier :: AgentId -> SugarScapeAgentState -> SugarScapeEnvCellOccupier
-cellOccupier aid s = SugarScapeEnvCellOccupier {
-                        sugEnvOccId = aid,
-                        sugEnvOccTribe = sugAgTribe s,
-                        sugEnvOccWealth = wealth
-                    }
-    where
-        wealth = (sugAgSugarLevel s) + (sugAgSpiceLevel s)
-
-calculateTribe :: SugarScapeCulturalTag -> SugarScapeTribe
-calculateTribe tag
-    | falseCount >= trueCount = Blue
-    | otherwise = Red
-    where
-        falseCount = length $ filter (==False) tag 
-        trueCount = length $ filter (==True) tag 
-       
--- NOTE: the tags must have same length, this could be enforced statically through types if we had a dependent type-system
-cultureContact :: SugarScapeCulturalTag 
-                    -> SugarScapeCulturalTag 
-                    -> Rand StdGen SugarScapeCulturalTag
-cultureContact tagActive tagPassive = 
-    do
-        randIdx <- getRandomR (0, tagLength - 1)
-        return $ flipCulturalTag tagActive tagPassive randIdx
-    where
-        tagLength = length tagActive
-        
--- NOTE: the tags must have same length, this could be enforced statically through types if we had a dependent type-system
-flipCulturalTag :: SugarScapeCulturalTag 
-                    -> SugarScapeCulturalTag 
-                    -> Int 
-                    -> SugarScapeCulturalTag
-flipCulturalTag tagActive tagPassive idx = map (\(i, a, p) -> if i == idx then a else p) (zip3 [0..len-1] tagActive tagPassive) 
-    where
-        len = length tagActive
-
-crossoverBools :: [Bool] 
-                    -> [Bool]  
-                    -> Rand StdGen [Bool] 
-crossoverBools ts1 ts2 = 
-    do
-        randTags <- replicateM (length ts1) (getRandomR (True, False))
-        return $ map (\(t1, t2, randT) -> if t1 == t2 then t1 else randT) (zip3 ts1 ts2 randTags)
-
-crossover :: (a, a) -> Rand StdGen a
-crossover (x, y) =
-    do
-        takeX <- getRandomR (True, False)
-        if takeX then
-            return x
-            else
-                return y
-
-
-flipBoolAtIdx :: [Bool] -> Int -> [Bool]
-flipBoolAtIdx as idx = front ++ (flippedElem : backNoElem)
-    where
-        (front, back) = splitAt idx as  -- NOTE: back includes the element with the index
-        elemAtIdx = as !! idx
-        flippedElem = not elemAtIdx
-        backNoElem = tail back
-
-findFirstDiffIdx :: (Eq a) => [a] -> [a] -> (Int)
-findFirstDiffIdx as bs = firstNotEqualIdx
-    where
-        notEquals = map (\(a, b) -> a /= b) (zip as bs)
-        firstNotEqualIdx = fromJust $ findIndex (==True) notEquals
-
-findMinWithIdx :: (Ord a) => [a] -> (a, Int)
-findMinWithIdx as = (minA, minAIdx)
-    where
-        minA = minimum as
-        minAIdx = fromJust $ findIndex (==minA) as
-
-calculateHammingDistances :: [Bool] -> [Bool] -> [Int]
-calculateHammingDistances i d = map (\is -> hammingDistance is d) isubs
-    where
-        dLen = length d
-        isubs = Data.List.Split.divvy dLen 1 i
-
--- NOTE: both must have the same length
-hammingDistance :: [Bool] -> [Bool] -> Int
-hammingDistance as bs = length $ filter (==False) equals
-    where
-        equals = map (\(a, b) -> a == b) (zip as bs)
-
-
-randomAgent :: (AgentId, Discrete2dCoord)
-                -> SugarScapeAgentBehaviour
-                -> SugarScapeAgentConversation
-                -> Rand StdGen SugarScapeAgentDef
-randomAgent (agentId, coord) beh conv = 
-    do
-        randSugarMetab <- getRandomR sugarMetabolismRange
-        randSpiceMetab <- getRandomR spiceMetabolismRange
-        randVision <- getRandomR  visionRange
-        randSugarEndowment <- getRandomR sugarEndowmentRange
-        randSpiceEndowment <- getRandomR spiceEndowmentRange
-        -- randSugarEndowment <- getRandomR sexualReproductionInitialEndowmentRange
-        randMaxAge <- getRandomR  ageRange
-        randMale <- getRandomR (True, False)
-        randMinFert <- getRandomR childBearingMinAgeRange
-        randCulturalTagInf <- getRandoms 
-        randImmuneSystemInf <- getRandoms
-        randDiseasesInitialInf <- getRandoms 
-
-        let randCulturalTag = take culturalTagLength randCulturalTagInf
-        let randImmuneSystem = take immuneSystemLength randImmuneSystemInf
-
-        let diseasesStrLen = (diseaseLength * diseasesInitial) :: Int
-        let randDiseasesInitialStr = take diseasesStrLen randDiseasesInitialInf
-        let randDiseasesInitialChunks = Data.List.Split.chunksOf diseaseLength randDiseasesInitialStr
-
-        let randGender = if randMale then Male else Female
-        let fertilityMaxRange = if randMale then childBearingMaleMaxAgeRange else childBearingFemaleMaxAgeRange
-
-        randMaxFert <- getRandomR fertilityMaxRange
-
-        rng <- getSplit
-
-        let s = SugarScapeAgentState {
-            sugAgCoord = coord,
-
-            sugAgSugarMetab = randSugarMetab,
-            sugAgSpiceMetab = randSpiceMetab,
-
-            sugAgVision = randVision,
-
-            sugAgSugarLevel = randSugarEndowment,
-            sugAgSugarInit = randSugarEndowment,
-
-            sugAgSpiceInit = randSpiceEndowment,
-            sugAgSpiceLevel = randSpiceEndowment,
-
-            sugAgMaxAge = randMaxAge,
-
-            sugAgGender = randGender,
-            sugAgFertAgeRange = (randMinFert, randMaxFert),
-
-            sugAgChildren = [],
-
-            sugAgAge = 0.0,
-
-            sugAgCulturalTag = randCulturalTag,
-            sugAgTribe = calculateTribe randCulturalTag,
-
-            sugAgBorrowingCredits = [],
-            sugAgLendingCredits = [],
-
-            sugAgImmuneSys = randImmuneSystem,
-            sugAgImmuneSysBorn = randImmuneSystem,
-            sugAgDiseases = randDiseasesInitialChunks
-        }
-
-        let adef = AgentDef {
-           adId = agentId,
-           adState = s,
-           adConversation = Just conv,
-           adInitMessages = NoEvent,
-           adBeh = beh,
-           adRng = rng }
-
-        return adef

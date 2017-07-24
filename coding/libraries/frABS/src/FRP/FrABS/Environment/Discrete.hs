@@ -8,9 +8,13 @@ module FRP.FrABS.Environment.Discrete (
     
     createDiscrete2d,
  
+    envDimsDisc2dM,
+
     allCellsWithCoords,
     updateCells,
+    updateCellsM,
     updateCellsWithCoords,
+    updateCellsWithCoordsM,
     changeCellAt,
     changeCellAtM,
     cellsAroundRadius,
@@ -84,14 +88,23 @@ createDiscrete2d d@(xLimit, yLimit) n w cs rng
         arr = array ((0, 0), (xLimit - 1, yLimit - 1)) cs
 
 
+envDimsDisc2dM :: State (Discrete2d c) Discrete2dDimension
+envDimsDisc2dM = state (\e -> (envDisc2dDims e, e))
+
 allCellsWithCoords :: Discrete2d c -> [(Discrete2dCoord, c)]
 allCellsWithCoords e = assocs $ envDisc2dCells e
+
+updateCellsM :: (c -> c) -> State (Discrete2d c) ()
+updateCellsM f = state (\e -> ((), updateCells f e))
 
 updateCells :: (c -> c) -> Discrete2d c -> Discrete2d c
 updateCells f e = e { envDisc2dCells = ec' }
     where
         ec = envDisc2dCells e
         ec' = amap f ec
+
+updateCellsWithCoordsM :: ((Discrete2dCoord, c) -> c) -> State (Discrete2d c) ()
+updateCellsWithCoordsM f = state (\e -> ((), updateCellsWithCoords f e))
 
 updateCellsWithCoords :: ((Discrete2dCoord, c) -> c) -> Discrete2d c -> Discrete2d c
 updateCellsWithCoords f e = e'

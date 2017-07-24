@@ -15,6 +15,8 @@ import Control.Monad
 import Control.Monad.IfElse
 import Control.Monad.Trans.State
 
+import Debug.Trace
+
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR MONADIC 
 ------------------------------------------------------------------------------------------------------------------------
@@ -39,31 +41,37 @@ unoccupyPositionM e =
         return $ changeCellAt coord cellUnoccupied e
 
 passWealthOnM :: State SugarScapeAgentOut ()
-passWealthOnM =
-    do
-        sugarLevel <- domainStateFieldM sugAgSugarLevel
-        childrenIds <- domainStateFieldM sugAgChildren
+passWealthOnM
+    | _enablePassWealthOnDeath_ =
+        do
+            sugarLevel <- domainStateFieldM sugAgSugarLevel
+            childrenIds <- domainStateFieldM sugAgChildren
 
-        let hasChildren = (not . null) childrenIds
+            let hasChildren = (not . null) childrenIds
 
-        when hasChildren $
-            do 
-                let childrenCount = length childrenIds
-                let childrenSugarShare = sugarLevel / fromIntegral childrenCount
-                broadcastMessageM (InheritSugar childrenSugarShare) childrenIds
+            when hasChildren $
+                do 
+                    let childrenCount = length childrenIds
+                    let childrenSugarShare = sugarLevel / fromIntegral childrenCount
+                    broadcastMessageM (InheritSugar childrenSugarShare) childrenIds
+    | otherwise = return ()
 
 starvedToDeathM :: State SugarScapeAgentOut Bool
 starvedToDeathM = 
     do
         sugar <- domainStateFieldM sugAgSugarLevel
         spice <- domainStateFieldM sugAgSpiceLevel
-        return $ (sugar <= 0) || (spice <= 0)
 
+        if _enableSpice_ then
+            return $ (sugar <= 0) || (spice <= 0)
+            else
+                return $ sugar <= 0
 
 agentMetabolismM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
 agentMetabolismM e =
     do
         s <- getDomainStateM
+        aid <- agentIdM
         let (sugarMetab, spiceMetab) = metabolismAmount s
 
         sugarLevel <- domainStateFieldM sugAgSugarLevel
@@ -92,14 +100,14 @@ agentNonCombatMoveM e =
         coord <- domainStateFieldM sugAgCoord
 
         let unoccupiedCells = filter (cellUnoccupied . snd) cellsInSight
-        let bestCells = selectBestCells bestMeasureSugarLevel coord unoccupiedCells
-
-        (cellCoord, _) <- agentRandomPickM bestCells
 
         ifThenElse 
             (null unoccupiedCells)
-            (agentStayAndHarvestM e)  -- NOTE: stay and harvest
-            (agentMoveAndHarvestCellM cellCoord e)
+            (agentStayAndHarvestM e)
+            (do
+                let bestCells = selectBestCells bestMeasureSugarLevel coord unoccupiedCells
+                (cellCoord, _) <- agentRandomPickM bestCells
+                agentMoveAndHarvestCellM cellCoord e)
 
 agentLookoutM :: SugarScapeEnvironment -> State SugarScapeAgentOut [(Discrete2dCoord, SugarScapeEnvCell)]
 agentLookoutM e = 
@@ -165,23 +173,25 @@ agentAgeingM newAge e =
             (return e)
 
 birthNewAgentM :: SugarScapeEnvironment -> State SugarScapeAgentOut ()
-birthNewAgentM e = 
-    do
-        newAgentId <- agentIdM -- NOTE: we keep the old id
-        newAgentCoord <- findUnoccpiedRandomPositionM
-        newAgentDef <- agentRandomM $ randomAgent (newAgentId, newAgentCoord) sugarScapeAgentBehaviour sugarScapeAgentConversationM
-        createAgentM newAgentDef
+birthNewAgentM e
+    | not _enableBirthAgentOnAgeDeath_ = return ()
+    | otherwise =
+        do
+            newAgentId <- agentIdM -- NOTE: in this case we keep the old id
+            newAgentCoord <- findUnoccpiedRandomPositionM   -- NOTE: why not take the same position?
+            newAgentDef <- agentRandomM $ randomAgent (newAgentId, newAgentCoord) sugarScapeAgentBehaviour sugarScapeAgentConversationM
+            createAgentM newAgentDef
 
-    where
-        findUnoccpiedRandomPositionM :: State SugarScapeAgentOut Discrete2dCoord
-        findUnoccpiedRandomPositionM =
-            do
-                (c, coord) <- agentRandomM $ randomCell e
-                ifThenElse
-                    (cellOccupied c) 
-                    findUnoccpiedRandomPositionM 
-                    (return coord)
-                
+        where
+            findUnoccpiedRandomPositionM :: State SugarScapeAgentOut Discrete2dCoord
+            findUnoccpiedRandomPositionM =
+                do
+                    (c, coord) <- agentRandomM $ randomCell e
+                    ifThenElse
+                        (cellOccupied c) 
+                        findUnoccpiedRandomPositionM 
+                        (return coord)
+
 dieFromAgeM :: State SugarScapeAgentOut Bool
 dieFromAgeM = 
     do
@@ -719,11 +729,30 @@ sugarScapeAgentConversationM _ _ = Nothing
 ------------------------------------------------------------------------------------------------------------------------
 -- BEHAVIOUR-CONTROL
 ------------------------------------------------------------------------------------------------------------------------
-sugarScapeAgentBehaviourFuncM :: SugarScapeEnvironment 
-                                    -> Double 
-                                    -> SugarScapeAgentIn 
-                                    -> State SugarScapeAgentOut SugarScapeEnvironment
-sugarScapeAgentBehaviourFuncM e age ain = 
+chapterII :: SugarScapeEnvironment 
+                -> Double 
+                -> SugarScapeAgentIn 
+                -> State SugarScapeAgentOut SugarScapeEnvironment
+chapterII e age ain =
+    do     
+        e0 <- agentAgeingM age e
+        ifThenElseM 
+            isDeadM
+            (return e0)
+            $ do
+                e1 <- agentMetabolismM e0
+                ifThenElseM 
+                    isDeadM
+                    (return e1)
+                    $ do
+                        e2 <- agentNonCombatMoveM e1
+                        return e2
+
+chapterV :: SugarScapeEnvironment 
+            -> Double 
+            -> SugarScapeAgentIn 
+            -> State SugarScapeAgentOut SugarScapeEnvironment
+chapterV e age ain = 
     do     
         agentKilledInCombatM ain
 
@@ -734,12 +763,12 @@ sugarScapeAgentBehaviourFuncM e age ain =
                 e0 <- agentAgeingM age e
                 ifThenElseM 
                     isDeadM
-                    (agentDeathHandleCreditsM >> return e)
+                    (agentDeathHandleCreditsM >> return e0)
                     $ do
                         e1 <- agentMetabolismM e0
                         ifThenElseM 
                             isDeadM
-                            (agentDeathHandleCreditsM >> return e)
+                            (agentDeathHandleCreditsM >> return e1)
                             $ do
                                 e2 <- agentNonCombatMoveM e1
                                 inheritSugarM ain
@@ -753,7 +782,7 @@ sugarScapeAgentBehaviourFuncM e age ain =
 
 ------------------------------------------------------------------------------------------------------------------------
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour
-sugarScapeAgentBehaviour = agentMonadic sugarScapeAgentBehaviourFuncM
+sugarScapeAgentBehaviour = agentMonadic chapterII
 
 sugarScapeAgentConversation :: SugarScapeAgentConversation
 sugarScapeAgentConversation = sugarScapeAgentConversationM

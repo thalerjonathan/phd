@@ -18,7 +18,6 @@ import           Wildfire.Run
 {-
     TODOs
     - sugarscape 
-        -> 
         -> implement dynamics-exporter
         -> need a mechanism to run chapters / rules separately
         -> reproduce results of all chapters
@@ -28,6 +27,7 @@ import           Wildfire.Run
     - AgentRenderer: Circle/Rectangle as shapes
     - GlossSimulator: pass Background-color as additional parameters (use currying)
 
+    - return only a (AgentId, s) instead of the whole AgentOut? We don't need the other stuff of AgentOut anyway
     - can we fix environment the same way as e.g. dt?
 
     - write a agentBehaviour SF which can 'freeze' the state of an agent so we don't have do drag it always in AgentIn/Out around?

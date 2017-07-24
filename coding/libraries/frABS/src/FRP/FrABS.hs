@@ -142,10 +142,13 @@ module FRP.FrABS (
     agentRandomNeighbourNode,
     
     EnvironmentBehaviour,
+    EnvironmentMonadicBehaviour,
     EnvironmentCollapsing,
 
     EnvironmentWrapping (..),
 
+    environmentMonadic,
+    
     NetworkType (..),
     Network (..), -- TODO: hide data-constructor
 
@@ -174,9 +177,13 @@ module FRP.FrABS (
 
     createDiscrete2d,
  
+    envDimsDisc2dM,
+    
     allCellsWithCoords,
     updateCells,
+    updateCellsM,
     updateCellsWithCoords,
+    updateCellsWithCoordsM,
     changeCellAt,
     changeCellAtM,
     cellsAroundRadius,

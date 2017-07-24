@@ -4,6 +4,7 @@ module SugarScape.Init (
 
 import SugarScape.Model
 import SugarScape.Agent
+import SugarScape.AgentCommon
 import SugarScape.Environment
 
 import FRP.FrABS
@@ -20,35 +21,49 @@ createSugarScape :: Int
                     -> Discrete2dDimension 
                     -> SugarScapeSimParams
                     -> IO ([SugarScapeAgentDef], SugarScapeEnvironment)
-createSugarScape agentCount dims params = 
+createSugarScape agentCount dims@(dx, dy) params = 
     do
-        randCoords <- randomCoords (0,0) dims agentCount
+        let hdx = floor $ fromIntegral dx * 0.5
+        let hdy = floor $ fromIntegral dy * 0.5
+
+        --randCoords <- randomCoords (0,0) dims agentCount
+        randCoords <- randomCoords (0,0) (hdx, hdy) agentCount
 
         adefs <- mapM (randomAgentIO params) randCoords
         let occupations = map (\a -> (sugAgCoord $ adState a, (adId a, adState a))) adefs
 
         initRandomCells <- createCells dims occupations
 
-        let cellsWithSugarLevel1 = initSugar initRandomCells (circlesSugar 1 [((35, 35), 20.0), ((15, 15), 20.0)])
-        let cellsWithSugarLevel2 = initSugar cellsWithSugarLevel1 (circlesSugar 2 [((35, 35), 15.0), ((15, 15), 15.0)])
-        let cellsWithSugarLevel3 = initSugar cellsWithSugarLevel2 (circlesSugar 3 [((35, 35), 10.0), ((15, 15), 10.0)])
-        let cellsWithSugarLevel4 = initSugar cellsWithSugarLevel3 (circlesSugar 4 [((35, 35), 5.0), ((15, 15), 5.0)])
-
-        let cellsWithSpiceLevel1 = initSpice cellsWithSugarLevel4 (circlesSpice 1 [((15, 35), 20.0), ((35, 15), 20.0)])
-        let cellsWithSpiceLevel2 = initSpice cellsWithSpiceLevel1 (circlesSpice 2 [((15, 35), 15.0), ((35, 15), 15.0)])
-        let cellsWithSpiceLevel3 = initSpice cellsWithSpiceLevel2 (circlesSpice 3 [((15, 35), 10.0), ((35, 15), 10.0)])
-        let cellsWithSpiceLevel4 = initSpice cellsWithSpiceLevel3 (circlesSpice 4 [((15, 35), 5.0), ((35, 15), 5.0)])
-
+        let cells' = addSpice $ addSugar $ initRandomCells
+        
         rng <- newStdGen
 
         let e = createDiscrete2d
                     dims
-                    neumann
+                    neumannSelf
                     WrapBoth
-                    cellsWithSpiceLevel4
+                    cells'
                     rng
 
         return (adefs, e)
+
+addSugar :: [(Discrete2dCoord, SugarScapeEnvCell)] -> [(Discrete2dCoord, SugarScapeEnvCell)]
+addSugar cells = cellsWithSugarLevel4
+    where
+        cellsWithSugarLevel1 = initSugar cells (circlesSugar 1 [((35, 35), 20.0), ((15, 15), 20.0)])
+        cellsWithSugarLevel2 = initSugar cellsWithSugarLevel1 (circlesSugar 2 [((35, 35), 15.0), ((15, 15), 15.0)])
+        cellsWithSugarLevel3 = initSugar cellsWithSugarLevel2 (circlesSugar 3 [((35, 35), 10.0), ((15, 15), 10.0)])
+        cellsWithSugarLevel4 = initSugar cellsWithSugarLevel3 (circlesSugar 4 [((35, 35), 5.0), ((15, 15), 5.0)])
+
+addSpice :: [(Discrete2dCoord, SugarScapeEnvCell)] -> [(Discrete2dCoord, SugarScapeEnvCell)]
+addSpice cells 
+    | _enableSpice_ = cellsWithSpiceLevel4
+    | otherwise = cells
+    where
+        cellsWithSpiceLevel1 = initSpice cells (circlesSpice 1 [((15, 35), 20.0), ((35, 15), 20.0)])
+        cellsWithSpiceLevel2 = initSpice cellsWithSpiceLevel1 (circlesSpice 2 [((15, 35), 15.0), ((35, 15), 15.0)])
+        cellsWithSpiceLevel3 = initSpice cellsWithSpiceLevel2 (circlesSpice 3 [((15, 35), 10.0), ((35, 15), 10.0)])
+        cellsWithSpiceLevel4 = initSpice cellsWithSpiceLevel3 (circlesSpice 4 [((15, 35), 5.0), ((35, 15), 5.0)])
 
 initSugar :: [(Discrete2dCoord, SugarScapeEnvCell)]
                 -> ((Discrete2dCoord, SugarScapeEnvCell) -> Double)
@@ -117,7 +132,7 @@ randomCoords lower@(minX, minY) upper@(maxX, maxY) n
     where
         totalCoords = (maxX - minX) * (maxY - minY)
 
-        -- NOTE: using accumulator, must faster
+        -- NOTE: using accumulator, much faster
         drawRandomCoordsAux :: Discrete2dDimension -> Discrete2dDimension -> Int -> [Discrete2dCoord] -> IO [Discrete2dCoord]
         drawRandomCoordsAux _ _ 0 acc = return acc
         drawRandomCoordsAux lower@(minX, minY) upper@(maxX, maxY) n acc =
@@ -134,14 +149,11 @@ randomCoords lower@(minX, minY) upper@(maxX, maxY) n
 randomAgentIO :: SugarScapeSimParams -> Discrete2dCoord -> IO SugarScapeAgentDef
 randomAgentIO params coord = 
     do
-        std <- getStdGen
         let aid = newAgentId params
-
-        let (adef, std') = runRand (randomAgent
-                                        (aid, coord)
-                                        sugarScapeAgentBehaviour
-                                        sugarScapeAgentConversation)
-                                        std
+        adef <- evalRandIO (randomAgent
+                                (aid, coord)
+                                sugarScapeAgentBehaviour
+                                sugarScapeAgentConversation)
 
         return adef
 

@@ -11,7 +11,7 @@ The aim of this Ph.D is to explore the benefits and drawbacks using Haskell in i
 \begin{enumerate}
 	\item Implement a library for general-purpose Agent-Based Simulation in Haskell 
 	\item Compare the usage of Haskell in ABS to the usage of Java and other implementation techniques in ABS: what are the benefits/drawbacks of Haskell and what are the benefits/drawbacks of Java? Are they orthogonal to each other e.g. are the weaknesses of one language the other languages strength?
-
+	\item familiarize with existing state-of-the-art technologies in the field of ABMS AnyLogic, NetLogo and RePast and compare Haskell and FrABS approach to them
 	\item Develop reasoning-techniques using Functional Programming in ABS by comparing the implementations of the SD- and ABS-model of the SIR compartment model in epidemiology.
 	\item Apply reasoning to the bilateral decentralized bartering process in the Sugarscape model and find out how far reasoning can be utilized and to what extent one can reason about e.g. equilibrium and dynamics in a pure functional ABS and if it is possible at all.
 \end{enumerate}
@@ -32,5 +32,7 @@ The aim of this Ph.D is to explore the benefits and drawbacks using Haskell in i
 	\item Yampa is a valid / good approach of implementing ABS in Haskell.
 	\item Haskell benefits (which are not possible in java) are: Code == Spec, can statically rule out a major and very relevant class of bugs, can perform reasoning and proofing of properties of the program
 	\item Haskell drawbacks over java are: slower, potential for difficult to find space-leaks, much more difficult to reason about performance in general, steeper learning curve, think ABS different 
+	\item haskell allows to test ABS in a new way, creating more robust and correcter simulations using smallcheck and quickcheck (can you write unit tests in anylogic, repast, netlogo? could you even think of writing specification tests? i very doubt so)
 	\item reproducibility of a system: lack of unpredictable side-effects statically enforced in the type-system
+	\item advantages: time-semantics, recursive simulation, correctness, verification, composability, testability?
 \end{enumerate}

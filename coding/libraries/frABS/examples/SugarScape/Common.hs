@@ -1,4 +1,4 @@
-module SugarScape.AgentCommon (
+module SugarScape.Common (
     isDiseased,
     metabolismAmount,
 

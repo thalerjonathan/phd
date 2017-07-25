@@ -151,62 +151,36 @@
 			"file": "examples/Main.hs",
 			"settings":
 			{
-				"buffer_size": 2669,
+				"buffer_size": 2773,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "examples/SugarScape/Run.hs",
+			"file": "examples/frABSExamples.cabal",
 			"settings":
 			{
-				"buffer_size": 3166,
+				"buffer_size": 1418,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "examples/SugarScape/AgentCommon.hs",
+			"file": "examples/SugarScape/Tests/Test.hs",
 			"settings":
 			{
-				"buffer_size": 20310,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "examples/SugarScape/Model.hs",
-			"settings":
-			{
-				"buffer_size": 12530,
+				"buffer_size": 1515,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "examples/SugarScape/Environment.hs",
+			"file": "examples/SugarScape/Tests/Common.hs",
 			"settings":
 			{
-				"buffer_size": 5765,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "examples/SugarScape/Init.hs",
-			"settings":
-			{
-				"buffer_size": 7212,
+				"buffer_size": 967,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "examples/SugarScape/Agent.hs",
-			"settings":
-			{
-				"buffer_size": 38133,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
 			}
 		}
 	],
@@ -217,8 +191,8 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 152.0,
-		"last_filter": "stack",
+		"height": 392.0,
+		"last_filter": "",
 		"selected_items":
 		[
 			[
@@ -265,10 +239,12 @@
 	"expanded_folders":
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
+		"/home/jonathan/phd/coding/libraries/frABS/Yampa",
+		"/home/jonathan/phd/coding/libraries/frABS/Yampa/examples",
+		"/home/jonathan/phd/coding/libraries/frABS/Yampa/examples/TailgatingDetector",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape",
-		"/home/jonathan/phd/coding/libraries/frABS/src",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Tests",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent",
@@ -277,29 +253,34 @@
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Tests/Test.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Tests/Main.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Tests/Common.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Run.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Init.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Renderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/Yampa/Yampa.cabal",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Common.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Environment.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/AgentCommon.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Exporter.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Init.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Environment.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/sugarscape_carryingcapacity.m",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Definitions.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/        Actual type",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Discrete.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Reactive.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/AgentCommon.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Monad.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/    • Found hole",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/    Not in scope",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Model.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Simulation.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/AgentMonadic.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/AgentPure.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Discrete2d.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Renderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Random.hs",
@@ -399,12 +380,7 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentMonadic.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentPure.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeEnvironment.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeModel.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeRenderer.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentCommon.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRenderer.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireModel.hs"
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeEnvironment.hs"
 	],
 	"find":
 	{
@@ -648,7 +624,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 3,
 			"sheets":
 			[
 				{
@@ -657,15 +633,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2669,
+						"buffer_size": 2773,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1031,
-								1031
+								483,
+								483
 							]
 						],
 						"settings":
@@ -675,147 +651,87 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 180.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "examples/SugarScape/Run.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 3166,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								732,
-								732
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 289.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "examples/SugarScape/AgentCommon.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 20310,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2920,
-								2920
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1047.0,
+						"translation.y": 360.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 3,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
-					"file": "examples/SugarScape/Model.hs",
+					"buffer": 1,
+					"file": "examples/frABSExamples.cabal",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 12530,
+						"buffer_size": 1418,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								7792,
-								7792
+								1205,
+								1205
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Cabal.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2662.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 2,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "examples/SugarScape/Environment.hs",
+					"buffer": 2,
+					"file": "examples/SugarScape/Tests/Test.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 5765,
+						"buffer_size": 1515,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4707,
-								4707
+								152,
+								152
 							]
 						],
 						"settings":
 						{
 							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
+							"tab_size": 2,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1125.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
-					"buffer": 5,
-					"file": "examples/SugarScape/Init.hs",
+					"buffer": 3,
+					"file": "examples/SugarScape/Tests/Common.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 7212,
+						"buffer_size": 967,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								601,
-								601
+								38,
+								38
 							]
 						],
 						"settings":
@@ -825,40 +741,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 90.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "examples/SugarScape/Agent.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 38133,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								3869,
-								3869
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1272.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 6,
+					"stack_index": 0,
 					"type": "text"
 				}
 			]

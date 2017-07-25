@@ -3,7 +3,7 @@ module SugarScape.Renderer (
   ) where
 
 import SugarScape.Model
-import SugarScape.AgentCommon
+import SugarScape.Common
 
 import FRP.FrABS
 

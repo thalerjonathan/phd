@@ -3,7 +3,7 @@ module SugarScape.Agent (
     sugarScapeAgentBehaviour
   ) where
 
-import SugarScape.AgentCommon
+import SugarScape.Common
 import SugarScape.Model
 import SugarScape.Environment
 

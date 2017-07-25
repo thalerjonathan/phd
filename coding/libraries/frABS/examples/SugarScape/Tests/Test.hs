@@ -16,10 +16,11 @@ main = defaultMain tests
 tests :: TestTree
 tests = testGroup "Sugarscape Tests" [unitTests]
 
+unitTests :: TestTree
 unitTests = 
   testGroup 
     "Sugarscape Unit tests"
-      [ test_selectBestCells_group]
+      [test_selectBestCells_group]
 
 {-
 properties :: TestTree

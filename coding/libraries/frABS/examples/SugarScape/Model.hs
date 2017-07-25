@@ -232,9 +232,9 @@ sugarMetabolismRange = (1.0, 5.0)
 visionRange :: (Int, Int)
 visionRange = visionRangeSeasons
 -- NOTE: set to 1-6 on page 24
-visionRangeStandard = (1, 6)
+visionRangeStandard = (1, 1)
 -- NOTE: for Migration set to 1-10 on page 44
-visionRangeSeasons = (1, 10)
+visionRangeSeasons = (1, 1)
 
 ageRange :: (Double, Double)
 ageRange = ageRangeStandard

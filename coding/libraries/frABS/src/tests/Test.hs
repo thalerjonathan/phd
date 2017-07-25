@@ -11,9 +11,16 @@ main :: IO ()
 main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "FrABS Tests" [unitTests]
+tests = testGroup "FrABS Tests" [unitTests, propTests]
 
+unitTests :: TestTree
 unitTests = 
   testGroup 
     "FrABS Unit tests"
-      [test_environment_discrete_group]
+      [test_environment_discrete_unitgroup]
+
+propTests :: TestTree
+propTests = 
+  testGroup 
+    "FrABS Property tests"
+      [test_environment_discrete_quickgroup]

@@ -194,14 +194,16 @@ module FRP.FrABS (
     cellAtM,
     randomCell,
     randomCellWithinRect,
-    neighbourCellsInDistance,
-    neighbourCellsInDistanceM,
-    neighbourCells,
-    neighbourCellsM,
-    neighbourInDistance,
-    neighbourInDistanceM,
+
     neighbours,
     neighboursM,
+    neighbourCells,
+    neighbourCellsM,
+
+    neighboursInNeumannDistance,
+    neighboursInNeumannDistanceM,
+    neighboursCellsInNeumannDistance,
+    neighboursCellsInNeumannDistanceM,
 
     distanceManhattanDisc2d,
     distanceEuclideanDisc2d,

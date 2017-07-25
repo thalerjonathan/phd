@@ -114,7 +114,7 @@ agentLookoutM e =
     do
         vis <- domainStateFieldM sugAgVision
         coord <- domainStateFieldM sugAgCoord
-        return $ neighbourInDistance coord vis e
+        return $ neighboursInNeumannDistance coord vis e
 
 agentStayAndHarvestM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
 agentStayAndHarvestM e = domainStateFieldM sugAgCoord >>= (\coord -> agentHarvestCellM coord e)

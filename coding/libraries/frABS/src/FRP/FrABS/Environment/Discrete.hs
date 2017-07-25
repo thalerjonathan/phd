@@ -25,14 +25,16 @@ module FRP.FrABS.Environment.Discrete (
     cellAtM,
     randomCell,
     randomCellWithinRect,
-    neighbourCellsInDistance,
-    neighbourCellsInDistanceM,
-    neighbourCells,
-    neighbourCellsM,
-    neighbourInDistance,
-    neighbourInDistanceM,
+
     neighbours,
     neighboursM,
+    neighbourCells,
+    neighbourCellsM,
+
+    neighboursInNeumannDistance,
+    neighboursInNeumannDistanceM,
+    neighboursCellsInNeumannDistance,
+    neighboursCellsInNeumannDistanceM,
 
     distanceManhattanDisc2d,
     distanceEuclideanDisc2d,
@@ -179,10 +181,11 @@ randomCellWithinRect (x, y) r e =
 
         return (randCell, randCoordWrapped)
 
-neighbourInDistance :: Discrete2dCoord -> Int -> Discrete2d c -> [(Discrete2dCoord, c)]
-neighbourInDistance coord dist e = zip wrappedNs cells
+-- NOTE: this function does only work for neumann-neighbourhood, it ignores the environments neighbourhood. also it does not include the coord itself
+neighboursInNeumannDistance :: Discrete2dCoord -> Int -> Discrete2d c -> [(Discrete2dCoord, c)]
+neighboursInNeumannDistance coord dist e = zip wrappedNs cells
     where
-        n = envDisc2dNeighbourhood e
+        n = neumann
         coordDeltas = foldr (\v acc -> acc ++ neighbourhoodScale n v) [] [1 .. dist]
         l = envDisc2dDims e
         w = envDisc2dWrapping e
@@ -190,25 +193,31 @@ neighbourInDistance coord dist e = zip wrappedNs cells
         wrappedNs = wrapNeighbourhood l w ns
         cells = cellsAt wrappedNs e
 
-neighbourInDistanceM :: Discrete2dCoord -> Int -> State (Discrete2d c) [(Discrete2dCoord, c)]
-neighbourInDistanceM coord dist = state (\e -> (neighbourInDistance coord dist e, e))
+neighboursInNeumannDistanceM :: Discrete2dCoord -> Int -> State (Discrete2d c) [(Discrete2dCoord, c)]
+neighboursInNeumannDistanceM coord dist = state (\e -> (neighboursInNeumannDistance coord dist e, e))
+
+neighboursCellsInNeumannDistance :: Discrete2dCoord -> Int -> Discrete2d c -> [c]
+neighboursCellsInNeumannDistance coord dist e = map snd (neighboursInNeumannDistance coord dist e)
+
+neighboursCellsInNeumannDistanceM :: Discrete2dCoord -> Int -> State (Discrete2d c) [c]
+neighboursCellsInNeumannDistanceM coord dist = state (\e -> (neighboursCellsInNeumannDistance coord dist e, e))
+
 
 neighbours :: Discrete2dCoord -> Discrete2d c -> [(Discrete2dCoord, c)]
-neighbours coord e = neighbourInDistance coord 1 e
+neighbours coord e = zip wrappedNs cells
+    where
+        n = envDisc2dNeighbourhood e
+        l = envDisc2dDims e
+        w = envDisc2dWrapping e
+        ns = neighbourhoodOf coord n
+        wrappedNs = wrapNeighbourhood l w ns
+        cells = cellsAt wrappedNs e
 
 neighboursM :: Discrete2dCoord -> State (Discrete2d c) [(Discrete2dCoord, c)]
 neighboursM coord = state (\e -> (neighbours coord e, e))
 
-
-
-neighbourCellsInDistance :: Discrete2dCoord -> Int -> Discrete2d c -> [c]
-neighbourCellsInDistance coord dist e = map snd (neighbourInDistance coord dist e)
-
-neighbourCellsInDistanceM :: Discrete2dCoord -> Int -> State (Discrete2d c) [c]
-neighbourCellsInDistanceM coord dist = state (\e -> (neighbourCellsInDistance coord dist e, e))
-
 neighbourCells :: Discrete2dCoord -> Discrete2d c -> [c]
-neighbourCells coord e = neighbourCellsInDistance coord 1 e
+neighbourCells coord e = map snd (neighbours coord e)
 
 neighbourCellsM :: Discrete2dCoord -> State (Discrete2d c) [c]
 neighbourCellsM coord = state (\e -> (neighbourCells coord e, e))

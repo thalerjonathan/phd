@@ -151,16 +151,7 @@
 			"file": "examples/Main.hs",
 			"settings":
 			{
-				"buffer_size": 2773,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "examples/SugarScape/Model.hs",
-			"settings":
-			{
-				"buffer_size": 12528,
+				"buffer_size": 1593,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -169,7 +160,16 @@
 			"file": "examples/SugarScape/Init.hs",
 			"settings":
 			{
-				"buffer_size": 7207,
+				"buffer_size": 7208,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "examples/SugarScape/Model.hs",
+			"settings":
+			{
+				"buffer_size": 12527,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -230,23 +230,39 @@
 	"expanded_folders":
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
-		"/home/jonathan/phd/coding/libraries/frABS/Yampa/examples/TailgatingDetector",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape"
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Tests",
+		"/home/jonathan/phd/coding/libraries/frABS/src",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment",
+		"/home/jonathan/phd/coding/libraries/frABS/src/tests",
+		"/home/jonathan/phd/coding/libraries/frABS/src/tests/Environment"
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Discrete.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/tests/Environment/Discrete.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/tests/Test.hs",
+		"/home/jonathan/.config/sublime-text-3/Packages/SublimeHaskell/Settings/SublimeHaskell.sublime-settings",
+		"/home/jonathan/.config/sublime-text-3/Packages/User/SublimeHaskell.sublime-settings",
+		"/home/jonathan/.config/sublime-text-3/Packages/User/SublimeREPL.sublime-settings",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Tests/Test.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/FrABS.cabal",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Init.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Run.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/tests/Discrete2d.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/frABSExamples.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Common.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Tests/Common.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Tests/Test.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/frABSExamples.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Tests/Main.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Agent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Run.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Renderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/Yampa/Yampa.cabal",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Environment.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/AgentCommon.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/Run.hs",
@@ -254,8 +270,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/sugarscape_carryingcapacity.m",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Definitions.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/        Actual type",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Discrete.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Reactive.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Monad.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/    • Found hole",
@@ -282,7 +296,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Network.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/FrABS.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Spatial.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Environment.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Renderer.hs",
@@ -357,13 +370,7 @@
 		"/home/jonathan/phd/coding/libraries/frABS/frABS.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils/Sirs.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Env/Utils.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/ParIteration.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Misc/YampaSwitchTest.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Misc/YampaSeqTest.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentMonadic.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentPure.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeEnvironment.hs"
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/ParIteration.hs"
 	],
 	"find":
 	{
@@ -382,6 +389,11 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"neighbourIn",
+			"neighboursIn",
+			"Discrete2dNeighbourhood",
+			"envDisc2dNeighbourhood",
+			"neighbourInDistance",
 			"SugarScapeEnvCell",
 			"selectBestCells",
 			"SugarScapeEnvironmentMonadicBehaviour",
@@ -504,12 +516,7 @@
 			"agentMonadic",
 			"conversation",
 			"AgentConversationReceiver",
-			"envCont2dBehaviour",
-			"ec l",
-			"addEnvToAins",
-			"AgentConversationSender",
-			"allowsRecOthers",
-			"agentOutFromIn"
+			"envCont2dBehaviour"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -616,15 +623,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2773,
+						"buffer_size": 1593,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								496,
-								496
+								118,
+								118
 							]
 						],
 						"settings":
@@ -642,19 +649,19 @@
 				},
 				{
 					"buffer": 1,
-					"file": "examples/SugarScape/Model.hs",
+					"file": "examples/SugarScape/Init.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 12528,
+						"buffer_size": 7208,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								9250,
-								9250
+								617,
+								617
 							]
 						],
 						"settings":
@@ -664,7 +671,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 3105.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -672,19 +679,19 @@
 				},
 				{
 					"buffer": 2,
-					"file": "examples/SugarScape/Init.hs",
+					"file": "examples/SugarScape/Model.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 7207,
+						"buffer_size": 12527,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								673,
-								673
+								9368,
+								9368
 							]
 						],
 						"settings":
@@ -693,8 +700,8 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": 0.0,
-						"translation.y": 270.0,
+						"translation.x": -0.0,
+						"translation.y": 3150.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 2,
@@ -796,7 +803,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 352.0,
+	"side_bar_width": 355.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

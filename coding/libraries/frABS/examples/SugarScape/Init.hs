@@ -26,8 +26,8 @@ createSugarScape agentCount dims@(dx, dy) params =
         let hdx = floor $ fromIntegral dx * 0.5
         let hdy = floor $ fromIntegral dy * 0.5
 
-        --randCoords <- randomCoords (0,0) dims agentCount
-        randCoords <- randomCoords (0,0) (hdx, hdy) agentCount
+        randCoords <- randomCoords (0,0) dims agentCount
+        --randCoords <- randomCoords (0,0) (hdx, hdy) agentCount
 
         adefs <- mapM (randomAgentIO params) randCoords
         let occupations = map (\a -> (sugAgCoord $ adState a, (adId a, adState a))) adefs

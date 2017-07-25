@@ -42,3 +42,22 @@ library
     FRP.FrABS.Rendering.GlossSimulator
 
 -- unclear why ParIteration, SeqIteration & FrABS.Simulation.Utils need to be exposed. if not it leads to undefined symbol 
+
+Test-Suite test
+  default-language:
+    Haskell2010
+  type:
+    exitcode-stdio-1.0
+  hs-source-dirs:
+    .,
+    src/tests/,
+    src/
+  main-is: Test.hs
+  build-depends:
+      base
+    , tasty
+    , tasty-hunit
+    , tasty-smallcheck
+    , tasty-quickcheck
+  ghc-options:    -main-is Test 
+  -- why the FUCK is main-is not working???

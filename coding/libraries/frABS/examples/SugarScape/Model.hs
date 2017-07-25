@@ -187,7 +187,7 @@ _enableSpice_ :: Bool
 _enableSpice_ = False
 
 _enableBirthAgentOnAgeDeath_ :: Bool
-_enableBirthAgentOnAgeDeath_ = False
+_enableBirthAgentOnAgeDeath_ = True
 
 _enablePassWealthOnDeath_ :: Bool
 _enablePassWealthOnDeath_ = False
@@ -196,7 +196,7 @@ _enableDiseases_ :: Bool
 _enableDiseases_ = False
 
 _enableSeasons_ :: Bool
-_enableSeasons_ = False
+_enableSeasons_ = True
 ------------------------------------------------------------------------------------------------------------------------
 
 
@@ -217,7 +217,7 @@ winterSeasonSugarGrowbackRatio :: Double
 winterSeasonSugarGrowbackRatio = 8.0
 
 seasonDuration :: Double
-seasonDuration = 10.0
+seasonDuration = 50.0
 
 sugarCapacityRange :: (Double, Double)
 sugarCapacityRange = (0.0, 4.0)

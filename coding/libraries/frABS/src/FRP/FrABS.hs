@@ -184,6 +184,7 @@ module FRP.FrABS (
     updateCellsM,
     updateCellsWithCoords,
     updateCellsWithCoordsM,
+    updateCellAt,
     changeCellAt,
     changeCellAtM,
     cellsAroundRadius,

@@ -12,9 +12,13 @@ module SugarScape.Common (
     bestMeasureSugarAndSpicePolutionRatio,
     bestMeasureSugarAndSpiceLevelWelfareChange,
 
+    unoccupiedNeighbourhoodOfNeighbours,
+
     excessAmountToChildBearing,
     satisfiesWealthForChildBearing,
+    satisfiesWealthForChildBearingM,
     isFertile,
+    isFertileM,
     tooOldForChildren,
     withinRange,
     neighbourIds,
@@ -99,6 +103,15 @@ selectBestCells measureFunc refCoord cs = bestShortestdistanceManhattanCells
         shortestdistanceManhattan = distanceManhattanDisc2d refCoord (fst $ head shortestdistanceManhattanBestCells)
         bestShortestdistanceManhattanCells = filter ((==shortestdistanceManhattan) . (distanceManhattanDisc2d refCoord) . fst) shortestdistanceManhattanBestCells
 
+unoccupiedNeighbourhoodOfNeighbours :: Discrete2dCoord -> SugarScapeEnvironment -> [(Discrete2dCoord, SugarScapeEnvCell)]
+unoccupiedNeighbourhoodOfNeighbours coord e = filter (isNothing . sugEnvOccupier . snd) nncsUnique
+    where
+        neighbourCells = neighbours coord e
+        -- NOTE: this calculates the cells which are in the initial neighbourhood and in the neighbourhood of all the neighbours
+        nncsDupl = foldr (\(coord, _) acc -> neighbours coord e ++ acc) neighbourCells neighbourCells
+        -- NOTE: the nncs are not unique, remove duplicates
+        nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
+
 bestMeasureSugarLevel :: BestCellMeasureFunc
 bestMeasureSugarLevel c = sugEnvSugarLevel c
 
@@ -141,11 +154,17 @@ satisfiesWealthForChildBearing s = excessAmount >= 0
     where
         excessAmount = excessAmountToChildBearing s
 
+satisfiesWealthForChildBearingM ::State SugarScapeAgentOut Bool
+satisfiesWealthForChildBearingM = state (\ao -> (satisfiesWealthForChildBearing $ aoState ao, ao))
+
 isFertile :: SugarScapeAgentState -> Bool
 isFertile s = withinRange age fertilityAgeRange
     where
         age = sugAgAge s
         fertilityAgeRange = sugAgFertAgeRange s
+
+isFertileM :: State SugarScapeAgentOut Bool
+isFertileM = state (\ao -> (isFertile $ aoState ao, ao))
 
 tooOldForChildren :: SugarScapeAgentState -> Bool
 tooOldForChildren s = age > fertilityAgeMax 
@@ -194,6 +213,7 @@ createNewBorn idCoord
         let newBornState' = (adState newBornDef) { sugAgSugarMetab = newBornSugarMetab,
                                                    sugAgSpiceMetab = newBornSpiceMetab,
                                                    sugAgVision = newBornVision,
+                                                   sugAgSugarLevel = newBornSugarEndow,
                                                    sugAgSugarInit = newBornSugarEndow,
                                                    sugAgCulturalTag = newBornCulturalTag,
                                                    sugAgTribe = calculateTribe newBornCulturalTag,
@@ -463,7 +483,6 @@ randomAgent (agentId, coord) beh conv =
         randVision <- getRandomR  visionRange
         randSugarEndowment <- getRandomR sugarEndowmentRange
         randSpiceEndowment <- getRandomR spiceEndowmentRange
-        -- randSugarEndowment <- getRandomR sexualReproductionInitialEndowmentRange
         randMaxAge <- getRandomR ageRange
         randMale <- getRandomR (True, False)
         randMinFert <- getRandomR childBearingMinAgeRange

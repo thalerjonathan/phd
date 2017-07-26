@@ -7,6 +7,7 @@ module SugarScape.Model (
     SugarScapeImmuneSystem,
     SugarScapeDisease,
     SugarScapeMsg (..),
+    MatingReplyTuple,
 
     SugarScapeAgentState (..),
 
@@ -26,12 +27,14 @@ module SugarScape.Model (
     SugarScapeAgentConversationSender,
     SugarScapeSimParams,
 
+    AgentColoring (..),
     _enablePolution_,
     _enableSpice_,
     _enableBirthAgentOnAgeDeath_,
     _enablePassWealthOnDeath_,
     _enableDiseases_,
     _enableSeasons_,
+    _agentColoring_,
 
     sugarGrowbackUnits,
     summerSeasonSugarGrowbackRatio, 
@@ -67,8 +70,6 @@ module SugarScape.Model (
 
 import FRP.FrABS
 
--- TODO: when sex is turned on the number of agents is constantly increasing which should not be possible because more agents compete for less ressources which should reduce the population. Probably we are leaking wealth
-
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
@@ -83,10 +84,12 @@ type SugarScapeCreditInfo = (AgentId, Double, SugarScapeCredit)    -- lender id,
 type SugarScapeImmuneSystem = [Bool]
 type SugarScapeDisease = [Bool]
 
+type MatingReplyTuple = (Double, Double, Double, Int, SugarScapeCulturalTag, SugarScapeImmuneSystem) -- SugarContribution, SugarMetabolism, SpiceMetabolism, Vision
+
 data SugarScapeMsg =
     MatingRequest SugarScapeAgentGender
     | MatingReplyNo
-    | MatingReplyYes (Double, Double, Double, Int, SugarScapeCulturalTag, SugarScapeImmuneSystem) -- SugarContribution, SugarMetabolism, SpiceMetabolism, Vision
+    | MatingReplyYes MatingReplyTuple 
     | MatingChild AgentId
     | MatingChildAck
 
@@ -180,6 +183,8 @@ type SugarScapeSimParams = SimulationParams SugarScapeEnvironment
 ------------------------------------------------------------------------------------------------------------------------
 -- CONFIGURATION
 ------------------------------------------------------------------------------------------------------------------------
+data AgentColoring = Undefined | Gender | Diseased | Tribe | IdGE Int | VisionGE Int deriving (Eq)
+
 _enablePolution_ :: Bool
 _enablePolution_ = False
 
@@ -197,6 +202,9 @@ _enableDiseases_ = False
 
 _enableSeasons_ :: Bool
 _enableSeasons_ = False
+
+_agentColoring_ :: AgentColoring
+_agentColoring_ = VisionGE 4 -- Undefined -- IdGE 401
 ------------------------------------------------------------------------------------------------------------------------
 
 
@@ -222,9 +230,12 @@ seasonDuration = 50.0
 sugarCapacityRange :: (Double, Double)
 sugarCapacityRange = (0.0, 4.0)
 
--- NOTE: this is specified in book page 33 where the initial endowments are set to 5-25
 sugarEndowmentRange :: (Double, Double)
-sugarEndowmentRange = (5.0, 25.0)
+sugarEndowmentRange = sugarEndowmentRangeBirthing
+-- NOTE: this is specified in book page 33 where the initial endowments are set to 5-25
+sugarEndowmentRangeStandard = (5.0, 25.0)
+-- NOTE: this is specified in book on page 57
+sugarEndowmentRangeBirthing = (50.0, 100.0)
 
 sugarMetabolismRange :: (Double, Double)
 sugarMetabolismRange = (1.0, 5.0)
@@ -237,7 +248,7 @@ visionRangeStandard = (1, 6)
 visionRangeSeasons = (1, 10)
 
 ageRange :: (Double, Double)
-ageRange = ageRangeInf
+ageRange = ageRangeStandard
 ageRangeStandard = (60, 100)
 ageRangeInf = (1/0, 1/0)
 

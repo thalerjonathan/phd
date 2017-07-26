@@ -1,0 +1,61 @@
+\documentclass[oneside]{book}
+
+\setcounter{tocdepth}{1}
+\setcounter{secnumdepth}{3}
+
+\usepackage[toc,page]{appendix}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} % Required for the inclusion of images
+\usepackage{amsmath} % Required for some math elements 
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\usepackage{listings}
+\usepackage{pdfpages}
+\usepackage{amssymb}
+\usepackage{pdflscape}
+
+\begin{document}
+
+\begin{titlepage}
+	\centering
+	\includegraphics[width=0.60\textwidth]{../../logo/UoN_Primary_Logo_RGB.png}\par\vspace{1cm}
+	\vspace{1.5cm}
+	{\huge\bfseries Replicating the Sugarscape Model in FrABS \par}
+	\vspace{2cm}
+	{\Large\itshape jonathan.thaler@nottingham.ac.uk \par}
+	\vfill
+	
+	\vfill
+
+	{\large \today\par}
+\end{titlepage}
+
+\cleardoublepage
+
+\section*{Abstract}
+This report describes the work and results done to replicate the Sugarscape Model as presented in the book "Growing Artificial Societies - Social Sciences from the bottom up" by Joshua M. Epstein and Robert Axtell \cite{epstein_growing_1996}.
+
+\clearpage
+\tableofcontents
+\clearpage
+
+\input{./tex/introduction.tex}
+
+\input{./tex/chapterII.tex}
+
+\input{./tex/chapterIII.tex}
+
+%\input{./tex/chapterIV.tex}
+
+%\input{./tex/chapterV.tex}
+
+\renewcommand\bibname{References}
+
+\bibliographystyle{acm}
+\bibliography{../../references/phdReferences}
+
+\end{document}

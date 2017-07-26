@@ -15,6 +15,7 @@ module FRP.FrABS.Environment.Discrete (
     updateCellsM,
     updateCellsWithCoords,
     updateCellsWithCoordsM,
+    updateCellAt,
     changeCellAt,
     changeCellAtM,
     cellsAroundRadius,
@@ -115,6 +116,14 @@ updateCellsWithCoords f e = e'
         cs = map f ecs
         ecCoords = map fst ecs
         e' = foldr (\(coord, c) accEnv -> changeCellAt coord c accEnv) e (zip ecCoords cs)
+
+updateCellAt :: Discrete2dCoord -> (c -> c) -> Discrete2d c -> Discrete2d c
+updateCellAt coord f e = e { envDisc2dCells = arr' }
+    where
+        arr = envDisc2dCells e
+        c = arr ! coord
+        c' = f c
+        arr' = arr // [(coord, c')]
 
 changeCellAt :: Discrete2dCoord -> c -> Discrete2d c -> Discrete2d c
 changeCellAt coord c e = e { envDisc2dCells = arr' }

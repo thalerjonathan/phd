@@ -64,12 +64,30 @@ sugarscapeAgentRenderer :: SugarScapeAgentRenderer
 sugarscapeAgentRenderer r@(rw, rh) w (aid, s) = GLO.Pictures [circle, txt]
     where
         coord = sugAgCoord s
-        color = agentColorDiseased s
+        color = agentColoring _agentColoring_ aid s
 
         (x, y) = transformToWindow r w coord 
 
         circle = GLO.color color $ GLO.translate x y $ GLO.ThickCircle 0 rw
         txt = GLO.color GLO.white $ GLO.translate (x - (rw * 0.3)) (y - (rh * 0.1)) $ GLO.scale 0.05 0.05 $ GLO.Text (show aid)
+
+agentColoring :: AgentColoring -> AgentId -> SugarScapeAgentColorer
+agentColoring Undefined _ = defaultAgentColorerDisc2d GLO.blue
+agentColoring Gender _ = agentColorGender
+agentColoring Diseased _ = agentColorDiseased
+agentColoring Tribe _ = agentColorTribe
+agentColoring (IdGE x) aid = agentColorId x aid
+agentColoring (VisionGE x) _ = agentColorVision x
+
+agentColorVision :: Int -> SugarScapeAgentColorer
+agentColorVision x s
+    | sugAgVision s >= x = GLO.red
+    | otherwise = GLO.blue
+
+agentColorId :: AgentId -> AgentId -> SugarScapeAgentColorer
+agentColorId x aid _
+    | aid >= x = GLO.red
+    | otherwise = GLO.blue
 
 agentColorDiseased :: SugarScapeAgentColorer
 agentColorDiseased s

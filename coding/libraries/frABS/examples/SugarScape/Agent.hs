@@ -201,95 +201,79 @@ dieFromAgeM =
 -- CHAPTER III: Sex, Culture, And Conflict: The Emergence Of History
 ------------------------------------------------------------------------------------------------------------------------
 agentSexM :: SugarScapeAgentIn -> SugarScapeEnvironment -> State SugarScapeAgentOut ()
-agentSexM ain e =
+agentSexM ain e = 
+    whenM 
+        isFertileM
+            (do
+                coord <- domainStateFieldM sugAgCoord
+                nids <- neighbourIdsM e
+                let unncs = map fst (unoccupiedNeighbourhoodOfNeighbours coord e)
+                agentMatingConversationM ain nids unncs)
+
+agentMatingConversationM :: SugarScapeAgentIn 
+                            -> [AgentId]
+                            -> [Discrete2dCoord]
+                            -> State SugarScapeAgentOut ()
+agentMatingConversationM _ [] _ = conversationEndM
+agentMatingConversationM _ _ [] = conversationEndM
+agentMatingConversationM ain (receiverId:ais) allCs@(coord:cs) =
     do
-        s <- getDomainStateM
-        coord <- domainStateFieldM sugAgCoord
+        gender <- domainStateFieldM sugAgGender
 
-        let neighbourCells = neighbours coord e
-        nids <- neighbourIdsM e
-
-        -- TODO: implement this as monadic
-        -- NOTE: this calculates the cells which are in the initial neighbourhood and in the neighbourhood of all the neighbours
-        let  nncsDupl = foldr (\(coord, _) acc -> neighbours coord e ++ acc) neighbourCells neighbourCells
-        -- NOTE: the nncs are not unique, remove duplicates
-        let nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
-        let nncsUnoccupied = filter (isNothing . sugEnvOccupier . snd) nncsUnique
-
-        when 
-            (isFertile s) 
-            (agentMatingConversationM nids nncsUnoccupied)
+        ifThenElseM
+            satisfiesWealthForChildBearingM
+            (conversationM 
+                (receiverId, MatingRequest gender) 
+                (conversationReplyMonadicRunner agentMatingConversationsReplyM))
+            conversationEndM
 
     where
-        agentMatingConversationM :: [AgentId]
-                                    -> [(Discrete2dCoord, SugarScapeEnvCell)]
-                                    -> State SugarScapeAgentOut ()
-        agentMatingConversationM [] _ = conversationEndM
-        agentMatingConversationM _ [] = conversationEndM
-        agentMatingConversationM (receiverId:otherAis) allCoords@((coord, cell):cs) =
+        agentMatingConversationsReplyM :: Maybe (AgentMessage SugarScapeMsg) 
+                                            -> SugarScapeEnvironment
+                                            -> State SugarScapeAgentOut SugarScapeEnvironment
+        agentMatingConversationsReplyM Nothing e = agentMatingConversationM ain ais allCs >> return e  -- NOTE: the target was not found or does not have a handler, continue with the next
+        agentMatingConversationsReplyM (Just (_, MatingReplyNo)) e = agentMatingConversationM ain ais allCs >> return e
+        agentMatingConversationsReplyM (Just (senderId, MatingReplyYes otherTup)) e = mate otherTup e
+        agentMatingConversationsReplyM (Just _) e = agentMatingConversationM ain ais allCs >> return e  -- NOTE: unexpected/MatingChildAck reply, continue with the next
+
+        mate :: MatingReplyTuple
+                -> SugarScapeEnvironment 
+                -> State SugarScapeAgentOut SugarScapeEnvironment
+        mate otherTup e =
             do
-                s <- getDomainStateM
-                gender <- domainStateFieldM sugAgGender
+                initialSugarEndow <- domainStateFieldM sugAgSugarInit
 
-                ifThenElse 
-                    (satisfiesWealthForChildBearing s)
-                    (conversationM 
-                        (receiverId, MatingRequest gender) 
-                        (conversationReplyMonadicRunner agentMatingConversationsReplyM))
-                    conversationEndM
+                let mySugarContribution = initialSugarEndow * 0.5
+                mySugarMetab <- domainStateFieldM sugAgSugarMetab
+                mySpiceMetab <- domainStateFieldM sugAgSpiceMetab
+                myVision <- domainStateFieldM sugAgVision
+                myCulturalTag <- domainStateFieldM sugAgCulturalTag
+                myImmuneSysBorn <- domainStateFieldM sugAgImmuneSysBorn
 
-            where
-                agentMatingConversationsReplyM :: Maybe (AgentMessage SugarScapeMsg) 
-                                                    -> SugarScapeEnvironment
-                                                    -> State SugarScapeAgentOut SugarScapeEnvironment
-                agentMatingConversationsReplyM Nothing e = agentMatingConversationM otherAis allCoords >> return e  -- NOTE: the target was not found or does not have a handler, continue with the next
-                agentMatingConversationsReplyM (Just (_, MatingReplyNo)) e = agentMatingConversationM otherAis allCoords >> return e
-                agentMatingConversationsReplyM (Just (senderId, MatingReplyYes otherTup)) e = 
-                    do
-                        initialSugarEndow <- domainStateFieldM sugAgSugarInit
-                        -- aid <- agentIdM 
+                let newBornId = nextAgentId ain
 
-                        let mySugarContribution = initialSugarEndow / 2.0
-                        mySugarMetab <- domainStateFieldM sugAgSugarMetab
-                        mySpiceMetab <- domainStateFieldM sugAgSpiceMetab
-                        myVision <- domainStateFieldM sugAgVision
-                        myCulturalTag <- domainStateFieldM sugAgCulturalTag
-                        myImmuneSysBorn <- domainStateFieldM sugAgImmuneSysBorn
+                newBornDef <- 
+                    agentRandomM
+                        (createNewBorn 
+                            (newBornId, coord)
+                            (mySugarContribution, mySugarMetab, mySpiceMetab, myVision, myCulturalTag, myImmuneSysBorn)
+                            otherTup
+                            sugarScapeAgentBehaviour
+                            sugarScapeAgentConversationM)
 
-                        let newBornId = nextAgentId ain
+                let e' = updateCellAt coord (\c -> c { sugEnvOccupier = Just (cellOccupier newBornId (adState newBornDef)) }) e
+                
+                updateDomainStateM (\s -> s { sugAgSugarLevel = sugAgSugarLevel s - mySugarContribution,
+                                              sugAgChildren = newBornId : sugAgChildren s})
+                
+                createAgentM newBornDef
 
-                        newBornDef <- agentRandomM
-                            (createNewBorn 
-                                (newBornId, coord)
-                                (mySugarContribution, mySugarMetab, mySpiceMetab, myVision, myCulturalTag, myImmuneSysBorn)
-                                otherTup
-                                sugarScapeAgentBehaviour
-                                sugarScapeAgentConversationM)
+                conversationM 
+                    (receiverId, MatingChild newBornId)
+                    (conversationIgnoreReplyMonadicRunner $ agentMatingConversationM ain ais cs) -- NOTE: ignore the incoming environment because we just want to continue without being actually interested in the 
 
-                        let cell' = cell { sugEnvOccupier = Just (cellOccupier newBornId (adState newBornDef))}
-                        let e' = changeCellAt coord cell' e
+                return e'
 
-                        updateDomainStateM (\s -> s { sugAgSugarLevel = sugAgSugarLevel s - mySugarContribution,
-                                                      sugAgChildren = newBornId : sugAgChildren s})
-                        
-                        createAgentM newBornDef
-
-                        conversationM 
-                            (receiverId, MatingChild newBornId)
-                            (conversationIgnoreReplyMonadicRunner $ agentMatingConversationM otherAis cs) -- NOTE: bypass environemnt: ignore the incoming environment because we just want to continue without being actually interested in the 
-
-                        return e'
-                        
-                agentMatingConversationsReplyM (Just (_, _)) e = agentMatingConversationM otherAis allCoords >> return e  -- NOTE: unexpected/MatingChildAck reply, continue with the next
-
-inheritSugarM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
-inheritSugarM ain = onMessageMState inheritSugarActionM ain
-    where
-        inheritSugarActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
-        inheritSugarActionM (_, InheritSugar sug) = updateDomainStateM (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + sug})
-        inheritSugarActionM _ = return ()
-
--- TODO: implement handleMatingConversation as monadic ?
 handleMatingConversationM :: SugarScapeAgentGender
                                 -> SugarScapeAgentIn
                                 -> (SugarScapeMsg, SugarScapeAgentIn)
@@ -315,6 +299,13 @@ handleMatingConversationM otherGender ain
 
         s' = s { sugAgSugarLevel = sugarLevel - mySugarContribution }
         ain' = ain { aiState = s'}
+
+inheritSugarM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
+inheritSugarM ain = onMessageMState inheritSugarActionM ain
+    where
+        inheritSugarActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
+        inheritSugarActionM (_, InheritSugar sug) = updateDomainStateM (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + sug})
+        inheritSugarActionM _ = return ()
 
 agentCultureContactM :: SugarScapeAgentIn -> SugarScapeEnvironment -> State SugarScapeAgentOut ()
 agentCultureContactM ain e = 
@@ -746,6 +737,26 @@ chapterII e age ain =
                         e2 <- agentNonCombatMoveM e1
                         return e2
 
+chapterIII :: SugarScapeEnvironment 
+                -> Double 
+                -> SugarScapeAgentIn 
+                -> State SugarScapeAgentOut SugarScapeEnvironment
+chapterIII e age ain =
+    do     
+        e0 <- agentAgeingM age e
+        ifThenElseM 
+            isDeadM
+            (return e0)
+            $ do
+                e1 <- agentMetabolismM e0
+                ifThenElseM 
+                    isDeadM
+                    (return e1)
+                    $ do
+                        e2 <- agentNonCombatMoveM e1
+                        agentSexM ain e2
+                        return e2
+
 chapterV :: SugarScapeEnvironment 
             -> Double 
             -> SugarScapeAgentIn 
@@ -780,7 +791,7 @@ chapterV e age ain =
 
 ------------------------------------------------------------------------------------------------------------------------
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour
-sugarScapeAgentBehaviour = agentMonadic chapterII
+sugarScapeAgentBehaviour = agentMonadic chapterIII
 
 sugarScapeAgentConversation :: SugarScapeAgentConversation
 sugarScapeAgentConversation = sugarScapeAgentConversationM

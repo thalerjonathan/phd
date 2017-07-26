@@ -1,0 +1,33 @@
+\section{Introduction}
+The Sugarscape model was the most important use-case for driving the research on functional Agent-Based Simulation (ABS). To conduct the research we implemented a library called FrABS which allows to implement an ABS in the pure functional language Haskell. The library is a general-purpose library and thus supports implementing all kind of ABS where some of them may rely on specific time-semantics like the SIR model and others only focus on complex interactions of agents over discrete time-steps like Sugarscape.
+Especially for the last kind of models Sugarscape served as the primary use-case for developing the FrABS library and drove the development for implementing necessary features which were not present and required in other models:
+
+\begin{itemize}
+	\item Sequential Update-Strategy (as required by the Model)
+	\item Shuffling of Agents (as required by the Model)
+	\item Conversations for synchronized exchange (Mating, Trading, Warfare)
+	\item Complex Environment-Behaviour (regrowing of resources, seasons, pollution-diffusion)
+	\item Monadic programming style (make code more clear and towards a imperative style)
+\end{itemize}
+
+In a first step we just "roughly" implemented Sugarscape without aligning our results with the ones reported in the book \cite{epstein_growing_1996}. This work now tries to exactly replicate each \footnote{With the exception of a few minor cases} of the dynamics, shows the generated dynamics and discusses the difficulties encountered.
+
+The actual Sugarscape model is described in the book \cite{epstein_growing_1996} in the Chapters III to V:
+
+\begin{itemize}
+	\item Chapter II: Life And Death On The Sugarscape
+	\item Chapter III: Sex, Culture, And Conflict: The Emergence Of History
+	\item Chapter IV: Sugar and Spice - Trade Comes to the Sugarscape
+	\item Chapter V: Disease Processes
+\end{itemize}
+
+We structure this report in the same way and ignore the conclusions of the book where further results are given.
+
+\subsection{Related Work}
+Due to the importance and influence of the Sugarscape model, others have already tried to replicate the results.
+
+TODO: \cite{bigbee_replication_2007} Replication of Sugarscape Using MASON - Anthony Bigbee, Claudio Cioffi-Revilla, Sean Luke  \url{https://cs.gmu.edu/~eclab/projects/mason/publications/replication2007.pdf} 
+
+TODO: \cite{kehoe_specification_2015} The Specification of Sugarscape - Joseph Kehoe \url{https://arxiv.org/abs/1505.06012v3}
+
+TODO: implementation in netlogo: https://www.openabm.org/model/4688/version/2/view

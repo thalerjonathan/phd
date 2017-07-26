@@ -26,7 +26,7 @@ envCollapsing = Nothing
 envBeh = Just sugarScapeEnvironmentBehaviour
 samplingTimeDelta = 1.0
 frequency = 0
-steps = 0
+steps = 100
 
 runSugarScapeWithRendering :: IO ()
 runSugarScapeWithRendering = 

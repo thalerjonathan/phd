@@ -9,8 +9,6 @@ import SugarScape.Model
 
 import FRP.FrABS
 
-import FRP.Yampa
-
 import Data.Maybe
 import Debug.Trace
 import Control.Monad
@@ -27,7 +25,7 @@ cellUnoccupied = not . cellOccupied
 
 diffusePolution :: Double -> State SugarScapeEnvironment ()
 diffusePolution time 
-    | timeReached = updateCellsM (\c -> c { sugEnvPolutionLevel = 0.0 })
+    | timeReached && _enablePolution_ = updateCellsM (\c -> c { sugEnvPolutionLevel = 0.0 })
     | otherwise = return ()
     where
         timeReached = mod (floor time) diffusePolutionTime == 0
@@ -128,10 +126,8 @@ regrow time = ifThenElse _enableSeasons_ (regrowSeasons time) regrowRates
 behaviourM :: SugarScapeEnvironmentMonadicBehaviour
 behaviourM time = 
     do
-        if _enablePolution_ then diffusePolution time else return ()
-
+        diffusePolution time
         regrow time
-
         return $ trace ("Time = " ++ show time) ()
 
 sugarScapeEnvironmentBehaviour :: SugarScapeEnvironmentBehaviour

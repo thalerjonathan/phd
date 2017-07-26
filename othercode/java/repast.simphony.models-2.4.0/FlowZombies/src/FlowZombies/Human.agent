@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<agent version="1" agentcomment="This is an agent." agentclassname="Human" agentparentclassname="" agentinterfaces="" agentimports="">
+  <behaviorsteps>
+    <behaviorstep x="86" y="44" scheduleannotationstart="" scheduleannotationpick="" scheduleannotationinterval="" scheduleannotationpriority="" scheduleannotationduration="" scheduleannotationshuffle="0" watchannotationid="" watchannotationquery="within_vn 1" watchannotationtargetclassname="FlowZombies.Zombie" watchannotationtargetfieldnames="moved" watchannotationtriggercondition="" watchannotationtriggerschedule="0" watchannotationtriggerdelta="" watchannotationtriggerpriority="" watchannotationpick="" comment="This is the step behavior." visibility="0" returntype="def" compiledname="run" parameters="FlowZombies.Zombie watchedAgent" exceptions="">
+      <label x="86" y="29" text="Run"/>
+    </behaviorstep>
+  </behaviorsteps>
+  <tasksteps>
+    <taskstep x="86" y="166" comment="This is a task." command1="Grid grid = FindGrid(&quot;FlowZombies/grid&quot;)" command2="GridPoint pt = grid.getLocation(this)" command3="GridCellNgh nghCreator = new GridCellNgh(grid, pt, Zombie.class,1,1)" command4="List gridCells = nghCreator.getNeighborhood(true)" command5="SimUtilities.shuffle(gridCells, RandomHelper.getUniform())">
+      <label x="119" y="145" text="Grid Neighbors"/>
+    </taskstep>
+    <taskstep x="86" y="271" comment="This is a task." command1="GridPoint pointWithLeastZombies = null" command2="int minCount = Integer.MAX_VALUE" command3="" command4="" command5="">
+      <label x="122" y="248" text="Initialize loop"/>
+    </taskstep>
+    <taskstep x="348" y="386" comment="This is a task." command1="pointWithLeastZombies = cell.getPoint();" command2="minCount = cell.size();" command3="" command4="" command5="">
+      <label x="348" y="371" text="Point with least zombies"/>
+    </taskstep>
+    <taskstep x="176" y="597" comment="This is a task." command1="int x = pointWithLeastZombies.getX()" command2="int y = pointWithLeastZombies.getY()" command3="grid.moveTo(this,x,y)" command4="energy--" command5="">
+      <label x="210" y="578" text="Move"/>
+    </taskstep>
+    <taskstep x="15" y="599" comment="This is a task." command1="energy = startingEnergy" command2="" command3="" command4="" command5="">
+      <label x="62" y="584" text="Reset energy"/>
+    </taskstep>
+  </tasksteps>
+  <decisionsteps>
+    <decisionstep x="86" y="386" comment="This is a loop." criteria="GridCell cell in gridCells" branchType="while">
+      <label x="118" y="366" text="Loop over neighbors"/>
+    </decisionstep>
+    <decisionstep x="224" y="386" comment="This is an agent decision." criteria="cell.size() &lt; minCount" branchType="if">
+      <label x="224" y="371" text="Check count"/>
+    </decisionstep>
+    <decisionstep x="86" y="504" comment="This is an agent decision." criteria="energy &gt; 0" branchType="if">
+      <label x="130" y="499" text="Check energy"/>
+    </decisionstep>
+  </decisionsteps>
+  <joinsteps>
+    <joinstep x="100" y="693"/>
+  </joinsteps>
+  <agentproperties>
+    <agentproperty x="220" y="41" comment="This is an agent property." visibility="0" compiledname="energy" type="int" defaultvalue="10">
+      <label x="225" y="26" text="Energy"/>
+    </agentproperty>
+    <agentproperty x="311" y="41" comment="This is an agent property." visibility="0" compiledname="startingEnergy" type="int" defaultvalue="10">
+      <label x="316" y="26" text="Start Energy"/>
+    </agentproperty>
+  </agentproperties>
+  <endsteps>
+    <endstep x="101" y="779"/>
+  </endsteps>
+  <connections>
+    <transitions>
+      <transition>
+        <transitionsource type="behavior" index="0" anchor="0"/>
+        <transitiontarget type="task" index="0" anchor="0"/>
+        <bendpoints/>
+      </transition>
+      <transition>
+        <transitionsource type="task" index="0" anchor="2"/>
+        <transitiontarget type="task" index="1" anchor="0"/>
+        <bendpoints/>
+      </transition>
+      <transition>
+        <transitionsource type="task" index="1" anchor="2"/>
+        <transitiontarget type="decision" index="0" anchor="0"/>
+        <bendpoints/>
+      </transition>
+      <transition>
+        <transitionsource type="task" index="3" anchor="2"/>
+        <transitiontarget type="join" index="0" anchor="3"/>
+        <bendpoints/>
+      </transition>
+      <transition>
+        <transitionsource type="task" index="4" anchor="2"/>
+        <transitiontarget type="join" index="0" anchor="1"/>
+        <bendpoints/>
+      </transition>
+      <transition>
+        <transitionsource type="join" index="0" anchor="2"/>
+        <transitiontarget type="end" index="0" anchor="0"/>
+        <bendpoints/>
+      </transition>
+    </transitions>
+    <booleantransitions>
+      <booleantransition value="true">
+        <transitionsource type="decision" index="0" anchor="3"/>
+        <transitiontarget type="decision" index="1" anchor="1"/>
+        <bendpoints/>
+      </booleantransition>
+      <booleantransition value="false">
+        <transitionsource type="decision" index="0" anchor="2"/>
+        <transitiontarget type="decision" index="2" anchor="0"/>
+        <bendpoints/>
+      </booleantransition>
+      <booleantransition value="true">
+        <transitionsource type="decision" index="1" anchor="3"/>
+        <transitiontarget type="task" index="2" anchor="1"/>
+        <bendpoints/>
+      </booleantransition>
+      <booleantransition value="true">
+        <transitionsource type="decision" index="2" anchor="3"/>
+        <transitiontarget type="task" index="3" anchor="0"/>
+        <bendpoints/>
+      </booleantransition>
+      <booleantransition value="false">
+        <transitionsource type="decision" index="2" anchor="1"/>
+        <transitiontarget type="task" index="4" anchor="0"/>
+        <bendpoints/>
+      </booleantransition>
+    </booleantransitions>
+  </connections>
+</agent>

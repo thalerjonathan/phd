@@ -1,0 +1,55 @@
+<repast.simphony.data2.engine.DataSetDescriptor>
+  <name>Counts</name>
+  <type>NON_AGGREGATE</type>
+  <sourceType>demo.MemoryGetter1_Epidemic</sourceType>
+  <inclTick>true</inclTick>
+  <inclBatchRun>false</inclBatchRun>
+  <inclRandomSeed>false</inclRandomSeed>
+  <scheduleParams>
+    <start>1.0</start>
+    <interval>1.0</interval>
+    <priority>-Infinity</priority>
+    <pType>LAST</pType>
+    <duration>-1.0</duration>
+    <frequency>REPEAT</frequency>
+    <hashCode>-362508551</hashCode>
+  </scheduleParams>
+  <atEnd>false</atEnd>
+  <methodDataSources class="linked-hash-map">
+    <entry>
+      <string>ID</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>ID</id>
+        <className>demo.MemoryGetter1_Epidemic</className>
+        <methodName>getID</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>Healthy</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>Healthy</id>
+        <className>demo.MemoryGetter1_Epidemic</className>
+        <methodName>get_Healthy</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>Infected</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>Infected</id>
+        <className>demo.MemoryGetter1_Epidemic</className>
+        <methodName>get_Infected</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>GettingSick</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>GettingSick</id>
+        <className>demo.MemoryGetter1_Epidemic</className>
+        <methodName>get_getting_sick</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+  </methodDataSources>
+  <countSources class="linked-hash-map"/>
+  <customNADataSources class="linked-hash-map"/>
+  <customAggDataSources class="linked-hash-map"/>
+</repast.simphony.data2.engine.DataSetDescriptor>

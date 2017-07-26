@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<parameters>
+		<parameter name="randomSeed" displayName="Default Random Seed" type="int" 
+						defaultValue="__NULL__"
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+									
+		/>
+		
+		<parameter name="targetParticleSize" displayName="Target Particle Size" type="double" 
+						defaultValue="1.5"
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+	
+		<parameter name="targetParticleMass" displayName="Target Particle Mass" type="double" 
+						defaultValue="1.0"
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+
+		<parameter name="projectileRadius" displayName="Projectile Radius" type="double" 
+						defaultValue="1.0"
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+		
+		<parameter name="projectileMass" displayName="Projectile Mass" type="double" 
+						defaultValue="10.0"
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+		
+		<parameter name="projectileVelocity" displayName="Projectile Velocity" type="double" 
+						defaultValue="200.0"
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+		
+		<parameter name="gravityOn" displayName="Gravity On" type="boolean" 
+						defaultValue="true"
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$BooleanConverter"
+									
+		/>
+		
+		<parameter name="platformOn" displayName="Platform On" type="boolean" 
+						defaultValue="true"
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$BooleanConverter"
+									
+		/>
+		
+</parameters>

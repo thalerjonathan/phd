@@ -1,0 +1,6 @@
+<model name="SimplePhysics">
+	<classpath>
+		<agents path="../bin" />
+		<entry path="../lib" />
+	</classpath>
+</model>

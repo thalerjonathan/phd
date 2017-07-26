@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<parameters>
+	<parameter name="randomSeed" displayName="Default Random Seed" type="int" 
+		defaultValue="__NULL__" isReadOnly="false" 
+		converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+	/>
+	<parameter name="gridHeight" displayName="Grid Height" type="int" 
+		defaultValue="100" isReadOnly="false" 
+		converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+	/>
+	<parameter name="gridWidth" displayName="Grid Width" type="int" 
+		defaultValue="100" isReadOnly="false" 
+		converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+	/>
+	<parameter name="centerSeedWidth" displayName="Center Seed Width" type="int" 
+		defaultValue="10" isReadOnly="false" 
+		converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+	/>
+</parameters>
+
+

@@ -1,0 +1,75 @@
+
+0 EQN: memory.NAREPLACEMENT=0.0000001
+ LHS: NAREPLACEMENT
+     None
+
+1 EQN: memory.FINAL_TIME=50.0
+ LHS: FINAL TIME
+     None
+
+2 EQN: memory.rate_that_people_contact_other_people=5
+ LHS: rate that people contact other people
+     None
+
+3 EQN: memory.initial_susceptible=1000000.0
+ LHS: initial susceptible
+     None
+
+4 EQN: memory.Time=0.0
+ LHS: Time
+     None
+
+5 EQN: memory.INITIAL_TIME=0.0
+ LHS: INITIAL TIME
+     None
+
+6 EQN: memory.initial_infected=10
+ LHS: initial infected
+     None
+
+7 EQN: memory.TIME_STEP=1.0
+ LHS: TIME STEP
+     None
+
+8 EQN: memory.fraction_infected_from_contact=0.1
+ LHS: fraction infected from contact
+     None
+
+9 EQN: memory.SAVEPER=1.0
+ LHS: SAVEPER
+     None
+
+10 EQN: memory.Healthy=sdFunctions.INTEG("Healthy",memory.Healthy, time, timeStep, -memory.getting_sick,memory.initial_susceptible)
+ LHS: Healthy
+     <getting sick> 16 <<<<<<<<
+     <initial susceptible> 3
+
+11 EQN: memory.Infected=sdFunctions.INTEG("Infected",memory.Infected, time, timeStep, memory.getting_sick,memory.initial_infected)
+ LHS: Infected
+     <initial infected> 6
+     <getting sick> 16 <<<<<<<<
+
+12 EQN: memory.rate_of_potential_infectious_contacts=memory.Healthy*memory.rate_that_people_contact_other_people
+ LHS: rate of potential infectious contacts
+     <rate that people contact other people> 2
+     <Healthy> 10
+
+13 EQN: memory.total_population=memory.Healthy+memory.Infected
+ LHS: total population
+     <Healthy> 10
+     <Infected> 11
+
+14 EQN: memory.Fraction_of_population_infected=memory.Infected/memory.total_population
+ LHS: Fraction of population infected
+     <total population> 13
+     <Infected> 11
+
+15 EQN: memory.Contacts_between_infected_and_unaffected=memory.rate_of_potential_infectious_contacts*memory.Fraction_of_population_infected
+ LHS: Contacts between infected and unaffected
+     <rate of potential infectious contacts> 12
+     <Fraction of population infected> 14
+
+16 EQN: memory.getting_sick=memory.Contacts_between_infected_and_unaffected*memory.fraction_infected_from_contact
+ LHS: getting sick
+     <Contacts between infected and unaffected> 15
+     <fraction infected from contact> 8

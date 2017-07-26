@@ -1,0 +1,30 @@
+Name,Legal Name
+rate of potential infectious contacts,rate_of_potential_infectious_contacts
+Fraction of population infected,Fraction_of_population_infected
+NAREPLACEMENT,NAREPLACEMENT
+FINAL TIME,FINAL_TIME
+rate that people contact other people,rate_that_people_contact_other_people
+Fraction_of_population_infected,Fraction_of_population_infected
+Healthy,Healthy
+TIME_STEP,TIME_STEP
+Time,Time
+INITIAL TIME,INITIAL_TIME
+initial infected,initial_infected
+getting_sick,getting_sick
+fraction_infected_from_contact,fraction_infected_from_contact
+initial_infected,initial_infected
+fraction infected from contact,fraction_infected_from_contact
+initial_susceptible,initial_susceptible
+INITIAL_TIME,INITIAL_TIME
+SAVEPER,SAVEPER
+Contacts_between_infected_and_unaffected,Contacts_between_infected_and_unaffected
+FINAL_TIME,FINAL_TIME
+rate_that_people_contact_other_people,rate_that_people_contact_other_people
+total population,total_population
+Contacts between infected and unaffected,Contacts_between_infected_and_unaffected
+getting sick,getting_sick
+initial susceptible,initial_susceptible
+total_population,total_population
+TIME STEP,TIME_STEP
+Infected,Infected
+rate_of_potential_infectious_contacts,rate_of_potential_infectious_contacts

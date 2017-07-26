@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Scenario>
+<repast.simphony.dataLoader.engine.ClassNameDataLoaderAction context="Epidemic_ODESolverCompatible" file="repast.simphony.dataLoader.engine.ClassNameDataLoaderAction_1.xml" />
+</Scenario>

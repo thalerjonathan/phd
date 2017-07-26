@@ -1,0 +1,1 @@
+This is the GridGameOfLife model. Please contact the developers for more information.

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<sweep runs="1">
+  <parameter name="maxMetabolism" type="constant" constant_type="number" value="4"/>
+  <parameter name="maxVision" type="constant" constant_type="number" value="6"/>
+  <parameter name="maxInitialSugar" type="constant" constant_type="number" value="25"/>
+  <parameter name="minInitialSugar" type="constant" constant_type="number" value="5"/>
+  <parameter name="minDeathAge" type="constant" constant_type="number" value="60"/>
+  <parameter name="maxDeathAge" type="constant" constant_type="number" value="100"/>
+  <parameter name="initialNumAgents" type="constant" constant_type="number" value="400"/>
+  <parameter name="sugarGrowRate" type="constant" constant_type="number" value="1"/>
+  <parameter name="worldHeight"  type="constant" constant_type="number" value="50"/>
+  <parameter name="worldWidth" type="constant" constant_type="number" value="50"/>
+</sweep>

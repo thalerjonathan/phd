@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<parameters>
+					<parameter name="preyAcceleration" displayName="Prey Acceleration" type="double" 
+						defaultValue="1.0" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+				<parameter name="randomSeed" displayName="Default Random Seed" type="int" 
+						defaultValue="__NULL__"
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+									
+		/>
+				<parameter name="preyFearForce" displayName="Prey Fear Force" type="double" 
+						defaultValue="-500000.0" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+				<parameter name="predMaxSpeed" displayName="Predator Max Speed" type="double" 
+						defaultValue="300.0" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+				<parameter name="preyAttractForce" displayName="Prey Attract Force" type="double" 
+						defaultValue="60.0" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+				<parameter name="timeScale" displayName="Time scale" type="double" 
+						defaultValue="0.075" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+				<parameter name="initialPreyNeighborDistance" displayName="Initial prey neighbor distance" type="int" 
+						defaultValue="20" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+									
+		/>
+				<parameter name="preyRepelForce" displayName="Prey Repel Force" type="double" 
+						defaultValue="-80.0" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+				<parameter name="preyFearRadius" displayName="Prey Fear Radius" type="double" 
+						defaultValue="80.0" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+				<parameter name="initialNumPrey" displayName="Initial Number of Prey" type="int" 
+						defaultValue="7000" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+									
+		/>
+				<parameter name="preyMaxSpeed" displayName="Prey Max Speed" type="double" 
+						defaultValue="70.0" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+				<parameter name="maxPreyNeighbors" displayName="Max prey neighbors" type="int" 
+						defaultValue="7" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+									
+		/>
+				<parameter name="preySpacing" displayName="Prey Spacing" type="double" 
+						defaultValue="8.0" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+				<parameter name="initialNumPred" displayName="Initial Number of Predators" type="int" 
+						defaultValue="4" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+									
+		/>
+				<parameter name="predAcceleration" displayName="Predator Acceleration" type="double" 
+						defaultValue="3.0" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+				<parameter name="killRadius" displayName="Predator Kill Radius" type="double" 
+						defaultValue="10.0" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+				<parameter name="borderType" displayName="Space Boundary Type" type="String" 
+						defaultValue="Infinite" 
+						values="Bouncy Infinite Wrap_Around Sticky" 
+		/>
+				<parameter name="threadType" displayName="Simulation Threads" type="String" 
+						defaultValue="Multi-thread" 
+						values="Multi-thread Single-thread" 
+		/>
+		
+		</parameters>
+
+

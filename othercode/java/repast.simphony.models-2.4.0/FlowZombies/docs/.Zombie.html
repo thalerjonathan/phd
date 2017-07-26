@@ -1,0 +1,169 @@
+<HTML><FONT FACE=Verdana, Arial, Sans><TITLE>Zombie.agent</TITLE><BODY><STYLE TYPE="text/css"><!--.centeralign <BLOCKQUOTE>text-align:center</BLOCKQUOTE>--></STYLE><HEAD><P CLASS="centeralign">Zombie.agent</P></HEAD>The package name is "bin.FlowZombies".</p>
+The following external code is referenced:<BLOCKQUOTE></p>
+<li>Components from java.io.*</li></p>
+<li>Components from java.math.*</li></p>
+<li>Components from java.util.*</li></p>
+<li>Components from javax.measure.unit.*</li></p>
+<li>Components from org.jscience.mathematics.number.*</li></p>
+<li>Components from org.jscience.mathematics.vector.*</li></p>
+<li>Components from org.jscience.physics.amount.*</li></p>
+<li>Components from repast.simphony.adaptation.neural.*</li></p>
+<li>Components from repast.simphony.adaptation.regression.*</li></p>
+<li>Components from repast.simphony.context.*</li></p>
+<li>Components from repast.simphony.context.space.continuous.*</li></p>
+<li>Components from repast.simphony.context.space.gis.*</li></p>
+<li>Components from repast.simphony.context.space.graph.*</li></p>
+<li>Components from repast.simphony.context.space.grid.*</li></p>
+<li>Components from repast.simphony.engine.environment.*</li></p>
+<li>Components from repast.simphony.engine.schedule.*</li></p>
+<li>Components from repast.simphony.engine.watcher.*</li></p>
+<li>Components from repast.simphony.groovy.math.*</li></p>
+<li>Components from repast.simphony.integration.*</li></p>
+<li>Components from repast.simphony.matlab.link.*</li></p>
+<li>Components from repast.simphony.query.*</li></p>
+<li>Components from repast.simphony.query.space.continuous.*</li></p>
+<li>Components from repast.simphony.query.space.gis.*</li></p>
+<li>Components from repast.simphony.query.space.graph.*</li></p>
+<li>Components from repast.simphony.query.space.grid.*</li></p>
+<li>Components from repast.simphony.query.space.projection.*</li></p>
+<li>Components from repast.simphony.parameter.*</li></p>
+<li>Components from repast.simphony.random.*</li></p>
+<li>Components from repast.simphony.space.continuous.*</li></p>
+<li>Components from repast.simphony.space.gis.*</li></p>
+<li>Components from repast.simphony.space.graph.*</li></p>
+<li>Components from repast.simphony.space.grid.*</li></p>
+<li>Components from repast.simphony.space.projection.*</li></p>
+<li>Components from repast.simphony.ui.probe.*</li></p>
+<li>Components from repast.simphony.util.*</li></p>
+<li>Components from simphony.util.messages.*</li></p>
+<li>Components from static java.lang.Math.*</li></p>
+<li>Components from static repast.simphony.essentials.RepastEssentials.*</li></p>
+</BLOCKQUOTE><P></p>
+The class "Zombie" is defined with visibility "public" . This is an agent.</p>
+ <BLOCKQUOTE></p>
+</p>
+    <li>There is a field named "moved" with visibility "public" of type "boolean" and default value false. This is an agent property. The block is tagged with the name "Moved".</li></p>
+</p>
+    </p>
+    </p>
+        <li>There is a method named "step" method has visibility     "public" has return type "def". This is the step behavior. The block is tagged with the name "Step".</li></p>
+    </p>
+    </p>
+    <BLOCKQUOTE>The step method is statically scheduled as follows:<BLOCKQUOTE></p>
+        <li>start = 1d</li></p>
+        <li>interval = 1d</li></p>
+        <li>shuffle = true</li></p>
+    </BLOCKQUOTE></BLOCKQUOTE></p>
+ <BLOCKQUOTE>The code for the "step" method is as follows:<BLOCKQUOTE><CODE></p>
+</p>
+</p>
+         Define the return value variable.</p>
+        def returnValue</p>
+</p>
+         Note the simulation time.</p>
+        def time = GetTickCountInTimeUnits()</p>
+</p>
+         This is a task.</p>
+        Grid grid = FindGrid("FlowZombies/grid")</p>
+        GridPoint pt = grid.getLocation(this)</p>
+        GridCellNgh nghCreator = new GridCellNgh(grid, pt, Human.class, 1, 1)</p>
+        List gridCells = nghCreator.getNeighborhood(true)</p>
+        SimUtilities.shuffle(gridCells, RandomHelper.getUniform())</p>
+         This is a task.</p>
+        GridPoint pointWithMostHumans = null</p>
+        int maxCount = -1</p>
+</p>
+         This is a loop.</p>
+        for (GridCell cell in gridCells) <BLOCKQUOTE></p>
+</p>
+</p>
+             This is an agent decision.</p>
+            if (cell.size() > maxCount) <BLOCKQUOTE></p>
+</p>
+                 This is a task.</p>
+                pointWithMostHumans = cell.getPoint()</p>
+                maxCount = cell.size()</p>
+</p>
+            </BLOCKQUOTE> else  <BLOCKQUOTE></p>
+</p>
+</p>
+            </BLOCKQUOTE></p>
+</p>
+        </BLOCKQUOTE></p>
+</p>
+         This is a task.</p>
+        int x = pointWithMostHumans.getX()</p>
+        int y = pointWithMostHumans.getY()</p>
+        grid.moveTo(this,x,y)</p>
+        setMoved(true)</p>
+        infect()</p>
+         Return the results.</p>
+        return returnValue</p>
+</p>
+    </BLOCKQUOTE></BLOCKQUOTE></CODE></p>
+</p>
+</p>
+    </p>
+    </p>
+        <li>There is a method named "infect" method has visibility     "public" has return type "def". This is the step behavior. The block is tagged with the name "Infect".</li></p>
+    </p>
+    </p>
+ <BLOCKQUOTE>The code for the "infect" method is as follows:<BLOCKQUOTE><CODE></p>
+</p>
+</p>
+         Define the return value variable.</p>
+        def returnValue</p>
+</p>
+         Note the simulation time.</p>
+        def time = GetTickCountInTimeUnits()</p>
+</p>
+         This is a task.</p>
+        Grid grid = FindGrid("FlowZombies/grid")</p>
+        GridPoint pt = grid.getLocation(this)</p>
+        List humans = new ArrayList();</p>
+        Iterable objects = grid.getObjectsAt(pt.getX(), pt.getY())</p>
+</p>
+         This is a loop.</p>
+        while (objects.hasNext()) <BLOCKQUOTE></p>
+</p>
+             This is a task.</p>
+            Object o = objects.next()</p>
+</p>
+             This is an agent decision.</p>
+            if (o instanceof Human) <BLOCKQUOTE></p>
+</p>
+                 This is a task.</p>
+                humans.add(o)</p>
+</p>
+            </BLOCKQUOTE> else  <BLOCKQUOTE></p>
+</p>
+</p>
+            </BLOCKQUOTE></p>
+</p>
+        </BLOCKQUOTE></p>
+</p>
+</p>
+         Found Humans?</p>
+        if (humans.size() > 0) <BLOCKQUOTE></p>
+</p>
+             This is a task.</p>
+            int index = RandomHelper.nextIntFromTo(0, humans.size() - 1)</p>
+            Object human = humans.get(index)</p>
+            Context context = RemoveAgentFromContext("FlowZombies", human)</p>
+            Object zombie = CreateAgents("FlowZombies", "FlowZombies.Zombie", 1)</p>
+            MoveAgent("FlowZombies/grid", zombie, pt.getX(), pt.getY())</p>
+</p>
+        </BLOCKQUOTE> else  <BLOCKQUOTE></p>
+</p>
+</p>
+        </BLOCKQUOTE></p>
+         Return the results.</p>
+        return returnValue</p>
+</p>
+    </BLOCKQUOTE></BLOCKQUOTE></CODE></p>
+</p>
+</p>
+</p>
+</BLOCKQUOTE></p>
+</p>
+</BODY></HTML>

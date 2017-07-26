@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<parameters>
+<parameter name="randomSeed" displayName="Default Random Seed" type="int"
+	defaultValue="__NULL__"
+	isReadOnly="false" 
+	converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+/>
+<parameter name="fraction_infected_from_contact" displayName="fraction infected from contact" type="double" 
+	defaultValue="0.1" 
+	isReadOnly="false" 
+	converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+/>
+<parameter name="initial_susceptible" displayName="initial susceptible" type="double" 
+	defaultValue="1000000.0" 
+	isReadOnly="false" 
+	converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+/>
+<parameter name="TIME_STEP" displayName="TIME STEP" type="double" 
+	defaultValue="1.0" 
+	isReadOnly="false" 
+	converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+/>
+<parameter name="initial_infected" displayName="initial infected" type="double" 
+	defaultValue="10.0" 
+	isReadOnly="false" 
+	converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+/>
+<parameter name="rate_that_people_contact_other_people" displayName="rate that people contact other people" type="double" 
+	defaultValue="5.0" 
+	isReadOnly="false" 
+	converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+/>
+<parameter name="INITIAL_TIME" displayName="INITIAL TIME" type="double" 
+	defaultValue="0.0" 
+	isReadOnly="false" 
+	converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+/>
+<parameter name="SAVEPER" displayName="SAVEPER" type="double" 
+	defaultValue="1.0" 
+	isReadOnly="false" 
+	converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+/>
+<parameter name="FINAL_TIME" displayName="FINAL TIME" type="double" 
+	defaultValue="50.0" 
+	isReadOnly="false" 
+	converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+/>
+</parameters>

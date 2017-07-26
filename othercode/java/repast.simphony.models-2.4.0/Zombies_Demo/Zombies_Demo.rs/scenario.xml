@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Scenario>
+<repast.simphony.dataLoader.engine.ClassNameDataLoaderAction context="Zombies_Demo" file="repast.simphony.dataLoader.engine.ClassNameDataLoaderAction_0.xml" />
+<repast.simphony.action.data_set context="Zombies_Demo" file="repast.simphony.action.data_set_1.xml" />
+<repast.simphony.action.file_sink context="Zombies_Demo" file="repast.simphony.action.file_sink_2.xml" />
+<repast.simphony.action.time_series_chart context="Zombies_Demo" file="repast.simphony.action.time_series_chart_3.xml" />
+<repast.simphony.userpanel.ui.DefaultUserPanelDescriptorAction context="Zombies_Demo" file="repast.simphony.userpanel.ui.DefaultUserPanelDescriptorAction_4.xml" />
+<repast.simphony.action.display context="default_observer_context" file="repast.simphony.action.display_5.xml" />
+<model.initializer class="repast.simphony.relogo.ReLogoInitializer" />
+</Scenario>

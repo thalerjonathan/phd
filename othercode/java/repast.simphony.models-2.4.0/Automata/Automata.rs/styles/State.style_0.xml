@@ -1,0 +1,33 @@
+<repast.simphony.visualization.editedStyle.DefaultEditedValueLayerStyleData2D>
+  <color>
+    <float>0.0</float>
+    <float>0.0</float>
+    <float>0.0</float>
+  </color>
+  <colorMax>
+    <float>1.0</float>
+    <float>1.0</float>
+    <float>1.0</float>
+  </colorMax>
+  <colorMin>
+    <float>0.0</float>
+    <float>0.0</float>
+    <float>0.0</float>
+  </colorMin>
+  <colorScale>
+    <float>1.0</float>
+    <float>1.0</float>
+    <float>1.0</float>
+  </colorScale>
+  <colorValue>
+    <boolean>false</boolean>
+    <boolean>false</boolean>
+    <boolean>true</boolean>
+  </colorValue>
+  <y>0.0</y>
+  <yMin>0.0</yMin>
+  <yMax>0.0</yMax>
+  <yScale>0.0</yScale>
+  <yValue>false</yValue>
+  <cellSize>5.0</cellSize>
+</repast.simphony.visualization.editedStyle.DefaultEditedValueLayerStyleData2D>

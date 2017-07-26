@@ -1,0 +1,1 @@
+This is the Schelling model. Please contact the developers for more information.

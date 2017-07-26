@@ -1,0 +1,5 @@
+<context id="Schelling Model" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://repast.org/scenario/context">
+
+	<projection id="Grid" type="grid" />
+	
+</context>

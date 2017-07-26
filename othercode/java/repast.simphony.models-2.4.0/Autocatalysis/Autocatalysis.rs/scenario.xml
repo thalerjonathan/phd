@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Scenario>
+<repast.simphony.action.data_set context="Autocatalysis" file="repast.simphony.action.data_set_0.xml" />
+<repast.simphony.dataLoader.engine.ClassNameDataLoaderAction context="Autocatalysis" file="repast.simphony.dataLoader.engine.ClassNameDataLoaderAction_1.xml" />
+<repast.simphony.action.display context="Autocatalysis" file="repast.simphony.action.display_2.xml" />
+<repast.simphony.action.display context="Autocatalysis" file="repast.simphony.action.display_3.xml" />
+<repast.simphony.action.time_series_chart context="Autocatalysis" file="repast.simphony.action.time_series_chart_4.xml" />
+</Scenario>

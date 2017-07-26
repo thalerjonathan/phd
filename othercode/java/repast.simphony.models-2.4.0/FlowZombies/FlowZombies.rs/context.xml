@@ -1,0 +1,8 @@
+<context id="FlowZombies" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://repast.org/scenario/context">
+	<projection id="grid" type="grid">
+		<attribute id="width" type="int" value="50" />
+		<attribute id="height" type="int" value="50" />
+		<attribute id="border rule" type="string" value="periodic" />
+		<attribute id="allows multi" type="boolean" value="true" />
+	</projection>
+</context>

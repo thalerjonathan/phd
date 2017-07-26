@@ -187,7 +187,7 @@ _enableSpice_ :: Bool
 _enableSpice_ = False
 
 _enableBirthAgentOnAgeDeath_ :: Bool
-_enableBirthAgentOnAgeDeath_ = True
+_enableBirthAgentOnAgeDeath_ = False
 
 _enablePassWealthOnDeath_ :: Bool
 _enablePassWealthOnDeath_ = False
@@ -196,7 +196,7 @@ _enableDiseases_ :: Bool
 _enableDiseases_ = False
 
 _enableSeasons_ :: Bool
-_enableSeasons_ = True
+_enableSeasons_ = False
 ------------------------------------------------------------------------------------------------------------------------
 
 
@@ -230,14 +230,14 @@ sugarMetabolismRange :: (Double, Double)
 sugarMetabolismRange = (1.0, 5.0)
 
 visionRange :: (Int, Int)
-visionRange = visionRangeSeasons
+visionRange = visionRangeStandard
 -- NOTE: set to 1-6 on page 24
-visionRangeStandard = (1, 1)
+visionRangeStandard = (1, 6)
 -- NOTE: for Migration set to 1-10 on page 44
-visionRangeSeasons = (1, 1)
+visionRangeSeasons = (1, 10)
 
 ageRange :: (Double, Double)
-ageRange = ageRangeStandard
+ageRange = ageRangeInf
 ageRangeStandard = (60, 100)
 ageRangeInf = (1/0, 1/0)
 
@@ -248,7 +248,7 @@ polutionHarvestFactor :: Double
 polutionHarvestFactor = 1.0
 
 diffusePolutionTime :: Int
-diffusePolutionTime = 12
+diffusePolutionTime = 50
 
 ------------------------------------------------------------------------------------------------------------------------
 -- CHAPTER III: Sex, Culture, And Conflict: The Emergence Of History

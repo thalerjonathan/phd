@@ -18,7 +18,7 @@ import SugarScape.Model
 winSize = (800, 800)
 winTitle = "SugarScape"
 rngSeed = 42
-agentCount = 550
+agentCount = 400
 envSize = (50, 50)
 updateStrat = Sequential    -- Sugarscape works ONLY with Sequential AND must be shuffled
 shuffleAgents = True        -- Sugarscape works ONLY with Sequential AND must be shuffled
@@ -26,7 +26,7 @@ envCollapsing = Nothing
 envBeh = Just sugarScapeEnvironmentBehaviour
 samplingTimeDelta = 1.0
 frequency = 0
-steps = 1
+steps = 0
 
 runSugarScapeWithRendering :: IO ()
 runSugarScapeWithRendering = 

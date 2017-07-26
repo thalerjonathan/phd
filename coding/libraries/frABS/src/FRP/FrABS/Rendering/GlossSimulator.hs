@@ -18,10 +18,10 @@ import FRP.Yampa
 
 import Data.IORef
 
-type RenderFrame s e = ((Int, Int) -> [s] -> e -> GLO.Picture)
-type StepCallback s e = (([s], e) -> ([s], e) -> IO ())
+type RenderFrame s e = ((Int, Int) -> [(AgentId, s)] -> e -> GLO.Picture)
+type StepCallback s e = (([(AgentId, s)], e) -> ([(AgentId, s)], e) -> IO ())
 
-type RenderFrameInternal s e = ([s] -> e -> GLO.Picture)
+type RenderFrameInternal s e = ([(AgentId, s)] -> e -> GLO.Picture)
 
 simulateAndRender :: [AgentDef s m e] 
 						-> e 
@@ -85,7 +85,7 @@ simulateStepsAndRender initAdefs
 	do
 		let ass = processSteps initAdefs e params dt steps
 		let (finalAous, finalEnv) = last ass
-		let ss = map aoState finalAous
+		let ss = map (\ao -> (aoId ao, aoState ao)) finalAous
 		let pic = renderFunc winSize ss finalEnv 
 
 		GLO.display (displayGlossWindow winTitle winSize)
@@ -102,8 +102,8 @@ nextIteration (Just clbk) outRef _ _ curr@(currAo, currEnv) =
     do
     	(prevAo, prevEnv) <- readIORef outRef
 
-    	let ssPrev = map aoState prevAo
-    	let ssCurr = map aoState currAo
+    	let ssPrev = map (\ao -> (aoId ao, aoState ao)) prevAo
+    	let ssCurr = map (\ao -> (aoId ao, aoState ao)) currAo
     	
     	clbk (ssPrev, prevEnv) (ssCurr, currEnv)
         writeIORef outRef curr
@@ -140,7 +140,7 @@ modelToPicture :: RenderFrameInternal s e
 					-> IO GLO.Picture
 modelToPicture renderFunc (aouts, e) = 
     do
-    	let ss = map aoState aouts
+    	let ss = map (\ao -> (aoId ao, aoState ao)) aouts
         return $ renderFunc ss e
 
 displayGlossWindow :: String -> (Int, Int) -> GLO.Display

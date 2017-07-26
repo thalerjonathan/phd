@@ -4,9 +4,14 @@ module SugarScape.Common (
 
     BestCellMeasureFunc,
     selectBestCells,
+    bestCellFunc,
     bestMeasureSugarLevel,
+    bestMeasureSpiceLevel,
     bestMeasureSugarAndSpiceLevel,
     bestMeasureSugarPolutionRatio,
+    bestMeasureSugarAndSpicePolutionRatio,
+    bestMeasureSugarAndSpiceLevelWelfareChange,
+
     excessAmountToChildBearing,
     satisfiesWealthForChildBearing,
     isFertile,
@@ -75,6 +80,11 @@ metabolismAmount s = (sugarMetab + inc, spiceMetab + inc)
         spiceMetab = sugAgSpiceMetab s
         inc = if isDiseased s then diseasedMetabolismIncrease else 0 
 
+bestCellFunc :: BestCellMeasureFunc
+bestCellFunc
+    | _enablePolution_ = if _enableSpice_ then bestMeasureSugarAndSpicePolutionRatio else bestMeasureSugarPolutionRatio
+    | otherwise = if _enableSpice_ then bestMeasureSugarAndSpiceLevel else bestMeasureSugarLevel
+
 selectBestCells :: BestCellMeasureFunc
                     -> Discrete2dCoord
                     -> [(Discrete2dCoord, SugarScapeEnvCell)]
@@ -92,17 +102,33 @@ selectBestCells measureFunc refCoord cs = bestShortestdistanceManhattanCells
 bestMeasureSugarLevel :: BestCellMeasureFunc
 bestMeasureSugarLevel c = sugEnvSugarLevel c
 
-bestMeasureSugarAndSpiceLevel :: SugarScapeAgentState -> BestCellMeasureFunc
-bestMeasureSugarAndSpiceLevel s c = agentWelfareChange s (x1, x2)
+bestMeasureSpiceLevel :: BestCellMeasureFunc
+bestMeasureSpiceLevel c = sugEnvSpiceLevel c
+
+bestMeasureSugarAndSpiceLevel :: BestCellMeasureFunc
+bestMeasureSugarAndSpiceLevel c = sugLvl + spiLvl
     where
-        x1 = sugEnvSugarLevel c
-        x2 = sugEnvSpiceLevel c
+        sugLvl = sugEnvSugarLevel c
+        spiLvl = sugEnvSugarLevel c
 
 bestMeasureSugarPolutionRatio :: BestCellMeasureFunc
 bestMeasureSugarPolutionRatio c = sugLvl / (1 + polLvl)
     where
         sugLvl = sugEnvSugarLevel c
         polLvl = sugEnvPolutionLevel c
+
+bestMeasureSugarAndSpicePolutionRatio :: BestCellMeasureFunc
+bestMeasureSugarAndSpicePolutionRatio c = (sugLvl + spiLvl) / (1 + polLvl)
+    where
+        sugLvl = sugEnvSugarLevel c
+        spiLvl = sugEnvSugarLevel c
+        polLvl = sugEnvPolutionLevel c
+
+bestMeasureSugarAndSpiceLevelWelfareChange :: SugarScapeAgentState -> BestCellMeasureFunc
+bestMeasureSugarAndSpiceLevelWelfareChange s c = agentWelfareChange s (sg, sp) -- TODO: why is there welfarechange included? need to give a different name
+    where
+        sg = sugEnvSugarLevel c
+        sp = sugEnvSpiceLevel c
 
 excessAmountToChildBearing :: SugarScapeAgentState -> Double
 excessAmountToChildBearing s = currSugar - initSugar

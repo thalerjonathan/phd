@@ -13,17 +13,20 @@ module FRP.FrABS.Rendering.Discrete2d (
 
     defaultAgentRendererDisc2d,
     defaultAgentColorerDisc2d,
-    voidAgentRendererDisc2d
+    voidAgentRendererDisc2d,
+
+    transformToWindow
   ) where
 
 import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Environment.Discrete
+import FRP.FrABS.Rendering.GlossSimulator
 
 import qualified Graphics.Gloss as GLO
  
 type AgentRendererDisc2d s = (Float, Float) 
                                 -> (Int, Int) 
-                                -> s
+                                -> (AgentId, s)
                                 -> GLO.Picture
 type AgentCellColorerDisc2d s = s -> GLO.Color
 type AgentCoordDisc2d s = (s -> Discrete2dCoord)
@@ -33,10 +36,7 @@ type EnvCellColorerDisc2d c = c -> GLO.Color
 
 renderFrameDisc2d :: AgentRendererDisc2d s
                         -> EnvRendererDisc2d c
-                        -> (Int, Int) 
-                        -> [s]
-                        -> Discrete2d c 
-                        -> GLO.Picture
+                        -> RenderFrame s (Discrete2d c)
 renderFrameDisc2d ar er wSize@(wx, wy) ss e = GLO.Pictures (envPics ++ agentPics)
     where
         (cx, cy) = envDisc2dDims e
@@ -49,17 +49,11 @@ renderFrameDisc2d ar er wSize@(wx, wy) ss e = GLO.Pictures (envPics ++ agentPics
         envPics = map (er (cellWidth, cellHeight) wSize) cells -- TODO: is this expensive when we are doing void-rendering? should we use a maybe?
 
 defaultEnvRendererDisc2d :: EnvCellColorerDisc2d c -> EnvRendererDisc2d c
-defaultEnvRendererDisc2d cc (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = GLO.Pictures [cellRect]
+defaultEnvRendererDisc2d cc r@(rw, rh) w (coord, cell) = GLO.Pictures [cellRect]
     where
-        halfXSize = fromRational $ toRational wx / 2.0
-        halfYSize = fromRational $ toRational wy / 2.0
-
-        xPix = fromRational (toRational (fromIntegral x * rectWidth)) - halfXSize
-        yPix = fromRational (toRational (fromIntegral y * rectHeight)) - halfYSize
-
+        (x, y) = transformToWindow r w coord
         color = cc cell
-
-        cellRect = GLO.color color $ GLO.translate xPix yPix $ GLO.rectangleSolid rectWidth rectHeight
+        cellRect = GLO.color color $ GLO.translate x y $ GLO.rectangleSolid rw rh
 
 voidEnvRendererDisc2d :: EnvRendererDisc2d ec
 voidEnvRendererDisc2d _ _ _ = GLO.Blank
@@ -70,19 +64,26 @@ defaultEnvColorerDisc2d color _ = color
 defaultAgentRendererDisc2d :: AgentCellColorerDisc2d s 
                                 -> AgentCoordDisc2d s 
                                 -> AgentRendererDisc2d s
-defaultAgentRendererDisc2d acf apf (rectWidth, rectHeight) (wx, wy) s = GLO.color color $ GLO.translate xPix yPix $ GLO.ThickCircle 0 rectWidth
+defaultAgentRendererDisc2d acf apf r@(rw, _) w (_, s) = GLO.color color $ GLO.translate x y $ GLO.ThickCircle 0 rw
     where
-        (x, y) = apf s
+        coord = apf s
         color = acf s
-
-        halfXSize = fromRational (toRational wx / 2.0)
-        halfYSize = fromRational (toRational wy / 2.0)
-
-        xPix = fromRational (toRational (fromIntegral x * rectWidth)) - halfXSize
-        yPix = fromRational (toRational (fromIntegral y * rectHeight)) - halfYSize
+        (x, y) = transformToWindow r w coord
 
 voidAgentRendererDisc2d :: AgentRendererDisc2d s
 voidAgentRendererDisc2d _ _ _ = GLO.Blank
 
 defaultAgentColorerDisc2d :: GLO.Color -> AgentCellColorerDisc2d s
 defaultAgentColorerDisc2d color _ = color
+
+transformToWindow :: (Float, Float)
+                        -> (Int, Int) 
+                        -> Discrete2dCoord 
+                        -> (Float, Float)
+transformToWindow (rw, rh) (wx, wy) (x, y) = (x', y')
+    where
+        halfXSize = fromRational (toRational wx / 2.0)
+        halfYSize = fromRational (toRational wy / 2.0)
+
+        x' = fromRational (toRational (fromIntegral x * rw)) - halfXSize
+        y' = fromRational (toRational (fromIntegral y * rh)) - halfYSize

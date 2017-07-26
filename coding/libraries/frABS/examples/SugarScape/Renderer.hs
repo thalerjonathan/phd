@@ -12,6 +12,7 @@ import qualified Graphics.Gloss as GLO
 type SugarScapeRenderFrame = RenderFrame SugarScapeAgentState SugarScapeEnvironment
 type SugarScapeAgentColorer = AgentCellColorerDisc2d SugarScapeAgentState
 type SugarScapeEnvironmentRenderer = EnvRendererDisc2d SugarScapeEnvCell
+type SugarScapeAgentRenderer = AgentRendererDisc2d SugarScapeAgentState
 
 renderSugarScapeFrame :: SugarScapeRenderFrame
 renderSugarScapeFrame wSize@(wx, wy) ss e = GLO.Pictures $ (envPics ++ agentPics)
@@ -27,11 +28,12 @@ renderSugarScapeFrame wSize@(wx, wy) ss e = GLO.Pictures $ (envPics ++ agentPics
                                                     else
                                                         maxLvl ) 0.0 cells
 
-        agentPics = map (defaultAgentRendererDisc2d agentColorDiseased sugAgCoord (cellWidth, cellHeight) wSize) ss
+        -- agentPics = map (defaultAgentRendererDisc2d agentColorDiseased sugAgCoord (cellWidth, cellHeight) wSize) ss
+        agentPics = map (sugarscapeAgentRenderer (cellWidth, cellHeight) wSize) ss
         envPics = map (renderEnvCell maxPolLevel (cellWidth, cellHeight) wSize) cells
 
 renderEnvCell :: Double -> SugarScapeEnvironmentRenderer
-renderEnvCell maxPolLevel (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = GLO.Pictures $ [polutionLevelRect, spiceLevelCircle, sugarLevelCircle]
+renderEnvCell maxPolLevel r@(rw, rh) w (coord, cell) = GLO.Pictures $ [polutionLevelRect, spiceLevelCircle, sugarLevelCircle]
     where
         polLevel = sugEnvPolutionLevel cell
         --polGreenShadeRelative = (realToFrac (polLevel / maxPolLevel))
@@ -42,11 +44,7 @@ renderEnvCell maxPolLevel (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = GLO.
         spiceColor = GLO.makeColor (realToFrac 0.9) (realToFrac 0.7) (realToFrac 0.0) 1.0
         polutionColor = if polLevel == 0.0 then GLO.white else GLO.makeColor (realToFrac 0.0) polGreenShade (realToFrac 0.0) 1.0
 
-        halfXSize = fromRational (toRational wx / 2.0)
-        halfYSize = fromRational (toRational wy / 2.0)
-
-        xPix = fromRational (toRational (fromIntegral x * rectWidth)) - halfXSize
-        yPix = fromRational (toRational (fromIntegral y * rectHeight)) - halfYSize
+        (x, y) = transformToWindow r w coord
 
         sugarLevel = sugEnvSugarLevel cell
         sugarRatio = sugarLevel / (snd sugarCapacityRange)
@@ -54,13 +52,24 @@ renderEnvCell maxPolLevel (rectWidth, rectHeight) (wx, wy) ((x, y), cell) = GLO.
         spiceLevel = sugEnvSpiceLevel cell
         spiceRatio = spiceLevel / (snd spiceCapacityRange)
 
-        sugarRadius = rectWidth * (realToFrac sugarRatio)
-        sugarLevelCircle = GLO.color sugarColor $ GLO.translate xPix yPix $ GLO.ThickCircle 0 sugarRadius
+        sugarRadius = rw * (realToFrac sugarRatio)
+        sugarLevelCircle = GLO.color sugarColor $ GLO.translate x y $ GLO.ThickCircle 0 sugarRadius
 
-        spiceRadius = rectWidth * (realToFrac spiceRatio)
-        spiceLevelCircle = GLO.color spiceColor $ GLO.translate xPix yPix $ GLO.ThickCircle 0 spiceRadius
+        spiceRadius = rw * (realToFrac spiceRatio)
+        spiceLevelCircle = GLO.color spiceColor $ GLO.translate x y $ GLO.ThickCircle 0 spiceRadius
 
-        polutionLevelRect = GLO.color polutionColor $ GLO.translate xPix yPix $ GLO.rectangleSolid rectWidth rectHeight
+        polutionLevelRect = GLO.color polutionColor $ GLO.translate x y $ GLO.rectangleSolid rw rh
+
+sugarscapeAgentRenderer :: SugarScapeAgentRenderer
+sugarscapeAgentRenderer r@(rw, rh) w (aid, s) = GLO.Pictures [circle, txt]
+    where
+        coord = sugAgCoord s
+        color = agentColorDiseased s
+
+        (x, y) = transformToWindow r w coord 
+
+        circle = GLO.color color $ GLO.translate x y $ GLO.ThickCircle 0 rw
+        txt = GLO.color GLO.white $ GLO.translate (x - (rw * 0.3)) (y - (rh * 0.1)) $ GLO.scale 0.05 0.05 $ GLO.Text (show aid)
 
 agentColorDiseased :: SugarScapeAgentColorer
 agentColorDiseased s

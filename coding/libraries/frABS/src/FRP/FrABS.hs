@@ -299,7 +299,8 @@ module FRP.FrABS (
     defaultAgentRendererCont2d,
     defaultAgentColorerCont2d,
     voidAgentRendererCont2d,
-
+    transformToWindow,
+    
     AgentRendererNetwork,
     AgentColorerNetwork,
 

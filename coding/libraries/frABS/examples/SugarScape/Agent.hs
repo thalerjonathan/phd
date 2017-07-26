@@ -83,10 +83,8 @@ agentMetabolismM e =
         updateDomainStateM (\s -> s { sugAgSugarLevel = newSugarLevel, sugAgSpiceLevel = newSpiceLevel })
 
         -- NOTE: for now the metabolism (and harvest) of spice does not cause any polution
-        let pol = sugarMetab * polutionMetabolismFactor
-        
         coord <- domainStateFieldM sugAgCoord
-        let e' = poluteCell pol coord e
+        let e' = poluteCell (sugarMetab * polutionMetabolismFactor) coord e
 
         ifThenElseM
             starvedToDeathM
@@ -105,7 +103,8 @@ agentNonCombatMoveM e =
             (null unoccupiedCells)
             (agentStayAndHarvestM e)
             (do
-                let bestCells = selectBestCells bestMeasureSugarLevel coord unoccupiedCells
+                let bf = bestCellFunc
+                let bestCells = selectBestCells bf coord unoccupiedCells
                 (cellCoord, _) <- agentRandomPickM bestCells
                 agentMoveAndHarvestCellM cellCoord e)
 
@@ -156,8 +155,7 @@ agentHarvestCellM cellCoord e =
         let e' = changeCellAt cellCoord cellHarvested e
        
         -- NOTE: at the moment harvesting SPICE does not influence the polution
-        let pol = sugarLevelCell * polutionHarvestFactor 
-        return $ poluteCell pol cellCoord e'
+        return $ poluteCell (sugarLevelCell * polutionHarvestFactor ) cellCoord e'
 
 agentAgeingM :: Double -> SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
 agentAgeingM newAge e =

@@ -25,7 +25,7 @@ module SugarScape.Common (
     neighbourIdsM,
     createNewBorn,
 
-    filterTargetCell,
+    filterOccupiers,
     occupierCombatable,
     occupierRetaliator,
     cellPayoff,
@@ -226,21 +226,22 @@ createNewBorn idCoord
 ------------------------------------------------------------------------------------------------------------------------
 -- CHAPTER III
 ------------------------------------------------------------------------------------------------------------------------
-filterTargetCell :: (SugarScapeEnvCellOccupier -> Bool) -> (Discrete2dCoord, SugarScapeEnvCell) -> Bool
-filterTargetCell f (_, cell) = maybe True f mayOccupier
+filterOccupiers :: (SugarScapeEnvCellOccupier -> Bool) -> [(Discrete2dCoord, SugarScapeEnvCell)] -> [(Discrete2dCoord, SugarScapeEnvCell)] 
+filterOccupiers f cs = filter filterOccupiersAux cs
     where
-        mayOccupier = sugEnvOccupier cell
+        filterOccupiersAux :: (Discrete2dCoord, SugarScapeEnvCell) -> Bool
+        filterOccupiersAux (_, cell) = maybe True f (sugEnvOccupier cell)
 
 occupierCombatable :: Double
                         -> SugarScapeTribe 
                         -> SugarScapeEnvCellOccupier
                         -> Bool
-occupierCombatable myWealth myTribe occupier= differentTribe && lessWealthy
+occupierCombatable myWealth myTribe occupier = differentTribe && lessWealthy
     where
         otherTribe = sugEnvOccTribe occupier
         otherWealth = sugEnvOccWealth occupier
         differentTribe = otherTribe /= myTribe
-        lessWealthy = otherWealth <myWealth 
+        lessWealthy = otherWealth < myWealth 
 
 occupierRetaliator :: Double 
                         -> SugarScapeTribe 
@@ -415,6 +416,7 @@ flipCulturalTag :: SugarScapeCulturalTag
                     -> SugarScapeCulturalTag 
                     -> Int 
                     -> SugarScapeCulturalTag
+flipCulturalTag [] [] _ = []
 flipCulturalTag tagActive tagPassive idx = map (\(i, a, p) -> if i == idx then a else p) (zip3 [0..len-1] tagActive tagPassive) 
     where
         len = length tagActive

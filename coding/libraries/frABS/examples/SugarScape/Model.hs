@@ -31,7 +31,9 @@ module SugarScape.Model (
     _enablePolution_,
     _enableSpice_,
     _enableBirthAgentOnAgeDeath_,
-    _enablePassWealthOnDeath_,
+    _enableInheritance_,
+    _enableSex_,
+    _enableCombat_,
     _enableDiseases_,
     _enableSeasons_,
     _agentColoring_,
@@ -192,10 +194,10 @@ _enableSpice_ :: Bool
 _enableSpice_ = False
 
 _enableBirthAgentOnAgeDeath_ :: Bool
-_enableBirthAgentOnAgeDeath_ = False
+_enableBirthAgentOnAgeDeath_ = True
 
-_enablePassWealthOnDeath_ :: Bool
-_enablePassWealthOnDeath_ = False
+_enableInheritance_ :: Bool
+_enableInheritance_ = False
 
 _enableDiseases_ :: Bool
 _enableDiseases_ = False
@@ -203,8 +205,14 @@ _enableDiseases_ = False
 _enableSeasons_ :: Bool
 _enableSeasons_ = False
 
+_enableSex_ :: Bool
+_enableSex_ = False
+
+_enableCombat_ :: Bool
+_enableCombat_ = True
+
 _agentColoring_ :: AgentColoring
-_agentColoring_ = VisionGE 4 -- Undefined -- IdGE 401
+_agentColoring_ = Tribe -- VisionGE 4 -- Undefined -- IdGE 401
 ------------------------------------------------------------------------------------------------------------------------
 
 

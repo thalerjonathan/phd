@@ -42,7 +42,7 @@ unoccupyPositionM e =
 
 passWealthOnM :: State SugarScapeAgentOut ()
 passWealthOnM
-    | _enablePassWealthOnDeath_ =
+    | _enableInheritance_ =
         do
             sugarLevel <- domainStateFieldM sugAgSugarLevel
             childrenIds <- domainStateFieldM sugAgChildren
@@ -201,14 +201,16 @@ dieFromAgeM =
 -- CHAPTER III: Sex, Culture, And Conflict: The Emergence Of History
 ------------------------------------------------------------------------------------------------------------------------
 agentSexM :: SugarScapeAgentIn -> SugarScapeEnvironment -> State SugarScapeAgentOut ()
-agentSexM ain e = 
-    whenM 
-        isFertileM
-            (do
-                coord <- domainStateFieldM sugAgCoord
-                nids <- neighbourIdsM e
-                let unncs = map fst (unoccupiedNeighbourhoodOfNeighbours coord e)
-                agentMatingConversationM ain nids unncs)
+agentSexM ain e 
+    | not _enableSex_ = return ()
+    | otherwise =
+        whenM 
+            isFertileM
+                (do
+                    coord <- domainStateFieldM sugAgCoord
+                    nids <- neighbourIdsM e
+                    let unncs = map fst (unoccupiedNeighbourhoodOfNeighbours coord e)
+                    agentMatingConversationM ain nids unncs)
 
 agentMatingConversationM :: SugarScapeAgentIn 
                             -> [AgentId]
@@ -304,7 +306,7 @@ inheritSugarM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
 inheritSugarM ain = onMessageMState inheritSugarActionM ain
     where
         inheritSugarActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
-        inheritSugarActionM (_, InheritSugar sug) = updateDomainStateM (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + sug})
+        inheritSugarActionM (_, InheritSugar sug) = updateDomainStateM (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + sug })
         inheritSugarActionM _ = return ()
 
 agentCultureContactM :: SugarScapeAgentIn -> SugarScapeEnvironment -> State SugarScapeAgentOut ()
@@ -344,7 +346,7 @@ agentCombatMoveM e =
         myTribe <- domainStateFieldM sugAgTribe
         myWealth <- domainStateFieldM sugAgSugarLevel 
 
-        let targetCells = filter (filterTargetCell (occupierCombatable myWealth myTribe)) cellsInSight
+        let targetCells = filterOccupiers (occupierCombatable myWealth myTribe) cellsInSight
         
         ifThenElse 
             (null targetCells)
@@ -352,7 +354,7 @@ agentCombatMoveM e =
             (do
                 coord <- domainStateFieldM sugAgCoord
 
-                -- TODO: refactor this into common function (searching for the best)
+                -- TODO: refactor this into common function (searching for the best)?
                 let targeCellsWithPayoff = map cellPayoff targetCells
 
                 let cellsSortedByPayoff = sortBy (\c1 c2 -> compare (snd c2) (snd c1)) targeCellsWithPayoff
@@ -382,7 +384,7 @@ agentCombatMoveM e =
                 myTribe <- domainStateFieldM sugAgTribe
 
                 let futureSugarLevel = (payoff + sugarLevelAgent)
-                let retaliatingCells = filter (filterTargetCell (occupierRetaliator futureSugarLevel myTribe)) cellsInSight
+                let retaliatingCells = filterOccupiers (occupierRetaliator futureSugarLevel myTribe) cellsInSight
 
                 return $ (not . null) retaliatingCells
 
@@ -718,6 +720,11 @@ sugarScapeAgentConversationM _ _ = Nothing
 ------------------------------------------------------------------------------------------------------------------------
 -- BEHAVIOUR-CONTROL
 ------------------------------------------------------------------------------------------------------------------------
+agentMoveM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
+agentMoveM e
+    | _enableCombat_ = agentCombatMoveM e
+    | otherwise = agentNonCombatMoveM e
+
 chapterII :: SugarScapeEnvironment 
                 -> Double 
                 -> SugarScapeAgentIn 
@@ -734,7 +741,7 @@ chapterII e age ain =
                     isDeadM
                     (return e1)
                     $ do
-                        e2 <- agentNonCombatMoveM e1
+                        e2 <- agentMoveM e1
                         return e2
 
 chapterIII :: SugarScapeEnvironment 
@@ -742,7 +749,7 @@ chapterIII :: SugarScapeEnvironment
                 -> SugarScapeAgentIn 
                 -> State SugarScapeAgentOut SugarScapeEnvironment
 chapterIII e age ain =
-    do     
+    do
         e0 <- agentAgeingM age e
         ifThenElseM 
             isDeadM
@@ -753,8 +760,10 @@ chapterIII e age ain =
                     isDeadM
                     (return e1)
                     $ do
-                        e2 <- agentNonCombatMoveM e1
+                        e2 <- agentMoveM e1
                         agentSexM ain e2
+                        inheritSugarM ain -- TODO: at which point should we do this inhertiance? should not have a big impact in general 
+                        agentCultureContactM ain e2
                         return e2
 
 chapterV :: SugarScapeEnvironment 
@@ -779,7 +788,7 @@ chapterV e age ain =
                             isDeadM
                             (agentDeathHandleCreditsM >> return e1)
                             $ do
-                                e2 <- agentNonCombatMoveM e1
+                                e2 <- agentMoveM e1
                                 inheritSugarM ain
                                 agentCultureContactM ain e2
                                 agentSexM ain e2

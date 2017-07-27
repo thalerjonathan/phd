@@ -20,7 +20,8 @@ unitTests :: TestTree
 unitTests = 
   testGroup 
     "Sugarscape Unit tests"
-      [test_selectBestCells_group]
+      [test_selectBestCells_group,
+       test_culturalComputation_group]
 
 {-
 properties :: TestTree

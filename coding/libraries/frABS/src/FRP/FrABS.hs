@@ -230,7 +230,8 @@ module FRP.FrABS (
     
     createContinuous2d,
     
-    randomCoord,
+    stepTo,
+    stepRandom,
 
     distanceManhattanCont2D,
     distanceEuclideanCont2D,

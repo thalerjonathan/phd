@@ -6,7 +6,8 @@ module FRP.FrABS.Environment.Continuous (
     
     createContinuous2d,
     
-    randomCoord,
+    stepTo,
+    stepRandom,
 
     distanceManhattanCont2D,
     distanceEuclideanCont2D,
@@ -41,11 +42,17 @@ createContinuous2d d w = Continuous2d {
                             envCont2dDims = d,
                             envCont2dWrapping = w }
 
-randomCoord :: Continuous2DCoord 
+stepTo :: Continuous2d -> Double -> Continuous2DCoord -> Continuous2DCoord -> Continuous2DCoord
+stepTo e step from to = wrapCont2dEnv e from'
+    where
+        dir = vecNorm $ vecFromCoord from to
+        from' = from `addCoord` (multCoord step dir)
+
+stepRandom :: Continuous2DCoord 
                 -> Continuous2d 
                 -> Double 
                 -> Rand StdGen Continuous2DCoord
-randomCoord (ox, oy) e step =  
+stepRandom (ox, oy) e step =  
     do
         --randAngle <- getRandomR ((0, 360) :: (Double, Double))
         --let rad = randAngle * (pi / 180) 

@@ -19,6 +19,11 @@ module Zombies.Model (
     humanInitEnergyRange,
     gridDimensions,
 
+    incHuman,
+    decHuman,
+    incZombie,
+    decZombie,
+
     isHuman,
     isZombie
   ) where
@@ -50,7 +55,7 @@ data ZombiesEnvironment = ZombiesEnvironment {
 }
 
 type ZombiesNetwork = Network ()
-type ZombiesPatch = Int
+type ZombiesPatch = (Int, Int)  -- fst: number of humans on this patch, snd number of zombies on this patch
 type ZombiesPatches = Discrete2d ZombiesPatch
 
 type ZombiesAgentDef = AgentDef ZombiesAgentState ZombiesMsg ZombiesEnvironment
@@ -63,7 +68,7 @@ type ZombiesAgentOut = AgentOut ZombiesAgentState ZombiesMsg ZombiesEnvironment
 -- MODEL-PARAMETERS
 ------------------------------------------------------------------------------------------------------------------------
 humanCount :: Int
-humanCount = 100
+humanCount = 10
 
 zombieCount :: Int
 zombieCount = 5
@@ -78,6 +83,18 @@ gridDimensions = (5, 5)
 ------------------------------------------------------------------------------------------------------------------------
 -- UTILITIES
 ------------------------------------------------------------------------------------------------------------------------
+incHuman :: ZombiesPatch -> ZombiesPatch
+incHuman (h, z) = (h+1, z)
+
+decHuman :: ZombiesPatch -> ZombiesPatch
+decHuman (h, z) = (h-1, z)
+
+incZombie :: ZombiesPatch -> ZombiesPatch
+incZombie (h, z) = (h, z+1)
+
+decZombie :: ZombiesPatch -> ZombiesPatch
+decZombie (h, z) = (h, z-1)
+
 isHuman :: ZombiesAgentState -> Bool
 isHuman (HumanState {}) = True
 isHuman _ = False

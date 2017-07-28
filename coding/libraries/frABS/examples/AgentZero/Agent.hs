@@ -70,7 +70,7 @@ randomMoveM e =
 		when (aid < 0) 
 			(do
 				coord <- domainStateFieldM azAgentCoord
-				newCoord <- agentRandomM (randomCoord coord (azAgentSpace e) movementSpeed)
+				newCoord <- agentRandomM (stepRandom coord (azAgentSpace e) movementSpeed)
 				updateDomainStateM (\s -> s { azAgentCoord = newCoord }))
 
 updateEventCountM :: AgentZeroEnvironment -> State AgentZeroAgentOut ()
@@ -224,7 +224,7 @@ randomMove e ao
 	| otherwise = updateDomainState (\s -> s { azAgentCoord = newCoord }) ao'
 	where
 		coord = azAgentCoord $ aoState ao
-		(newCoord, ao') = agentRandom (randomCoord coord (azAgentSpace e) movementSpeed) ao
+		(newCoord, ao') = agentRandom (stepRandom coord (azAgentSpace e) movementSpeed) ao
 
 agentZeroAgentBehaviourFunc :: AgentZeroEnvironment 
 								-> Double 

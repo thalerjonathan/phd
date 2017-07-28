@@ -71,7 +71,7 @@ humanCount :: Int
 humanCount = 10
 
 zombieCount :: Int
-zombieCount = 5
+zombieCount = 100
 
 humanInitEnergyRange :: (Int, Int)
 humanInitEnergyRange = (4, 10)

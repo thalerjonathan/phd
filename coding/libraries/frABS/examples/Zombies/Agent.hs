@@ -27,21 +27,25 @@ humanBehaviourM e _ ain =
         coord <- domainStateFieldM zAgentCoord
 
         let ns = neighbours (cont2dToDisc2d coord) p
-        let sortedNs = sortBy (\(_, (_, z1)) (_, (_, z2)) -> compare z2 z1) ns
-        let (fewestZombiesCoord, _) = head sortedNs
+        let sortedNs = sortBy (\(_, (_, z1)) (_, (_, z2)) -> compare z1 z2) ns
+        let (fewestZombiesCoord, (_, fewestZombiesCount)) = head sortedNs
         let (_, (_, maxZombiesCount)) = last sortedNs
-
-        let coord' = trace ("maxZombiesCount = " ++ (show maxZombiesCount)) (stepTo (zAgentSpace e) 0.01 coord (disc2dToCont2d fewestZombiesCoord))
-
+        
         ifThenElse
             (maxZombiesCount > 0)
             (do
-                let p0 = updateCellAt (cont2dToDisc2d coord) decHuman p
-                let p1 = updateCellAt (cont2dToDisc2d coord') incHuman p0
+                let coord' = trace ("fewestZombiesCount = " ++ (show fewestZombiesCount)) (stepTo (zAgentSpace e) 0.01 coord (disc2dToCont2d fewestZombiesCoord))
 
-                updateDomainStateM (\s -> s { zAgentCoord = coord' })
+                ifThenElse
+                    (coord /= coord')
+                    (do
+                        let p0 = updateCellAt (cont2dToDisc2d coord) decHuman p
+                        let p1 = updateCellAt (cont2dToDisc2d coord') incHuman p0
 
-                return e { zAgentPatches = p1 })
+                        updateDomainStateM (\s -> s { zAgentCoord = coord' })
+
+                        return e { zAgentPatches = p1 })
+                    (return e))
             (return e)
 
 zombieBehaviourM :: ZombiesEnvironment 

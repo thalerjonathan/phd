@@ -1,6 +1,7 @@
 module Common (
     test_selectBestCells_group,
-    test_culturalComputation_group
+    test_culturalComputation_group,
+    test_immunization_group
   ) where 
 
 import FRP.FrABS

@@ -339,6 +339,11 @@ agentKilledInCombatM ain = onMessageMState killedInCombatActionM ain
         killedInCombatActionM (_, KilledInCombat) = killM -- NOTE: don't unoccupie position (as in agentdies) because it is occupied by the killer already
         killedInCombatActionM _ = return ()
 
+agentMoveM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
+agentMoveM e
+    | _enableCombat_ = agentCombatMoveM e
+    | otherwise = agentNonCombatMoveM e
+
 agentCombatMoveM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
 agentCombatMoveM e =
     do
@@ -350,7 +355,7 @@ agentCombatMoveM e =
         
         ifThenElse 
             (null targetCells)
-            (agentStayAndHarvestM e)
+            (agentNonCombatMoveM e)--(agentStayAndHarvestM e)
             (do
                 coord <- domainStateFieldM sugAgCoord
 
@@ -369,13 +374,14 @@ agentCombatMoveM e =
                 
                 ifThenElseM 
                     (vulnerableToRetaliationM payoff e)
-                    (agentStayAndHarvestM e)
-                    (moveAndHarvestBestCellM bestCell e)
+                    (agentNonCombatMoveM e)-- (agentStayAndHarvestM e)
+                    (moveAndHarvestAndKillM bestCell e)
             )
 
     where
         -- NOTE: calculate if retalion is possible: is there an agent of the other tribe in my vision which is wealthier AFTER i have preyed on the current one?
-        -- TODO: this is not very well specified in the SugarScape book. we don't know the vision of the other agent, and it is information we should not have access to
+        --       this is not very well specified in the SugarScape book. we don't know the vision of the other agent, and it is information we should not have access to
+        --       but it reads in the book like the vision of the other agent does not matter, it is just a question of one owns vision
         vulnerableToRetaliationM :: Double -> SugarScapeEnvironment -> State SugarScapeAgentOut Bool
         vulnerableToRetaliationM payoff e =
             do
@@ -388,10 +394,10 @@ agentCombatMoveM e =
 
                 return $ (not . null) retaliatingCells
 
-        moveAndHarvestBestCellM :: ((Discrete2dCoord, SugarScapeEnvCell), Double) 
+        moveAndHarvestAndKillM :: ((Discrete2dCoord, SugarScapeEnvCell), Double) 
                                     -> SugarScapeEnvironment 
                                     -> State SugarScapeAgentOut SugarScapeEnvironment
-        moveAndHarvestBestCellM ((cellCoord, cell), payoff) e =
+        moveAndHarvestAndKillM ((cellCoord, cell), payoff) e =
             do
                 sugarLevelAgent <- domainStateFieldM sugAgSugarLevel
                 let newSugarLevelAgent = (payoff + sugarLevelAgent)
@@ -410,7 +416,9 @@ agentCombatMoveM e =
 
                 let e'' = changeCellAt cellCoord cellHarvestedAndOccupied e'
 
-                when (cellOccupied cell) (killOccupierOfCellM cell)
+                when 
+                    (cellOccupied cell) 
+                        (killOccupierOfCellM cell)
 
                 return e''
 
@@ -425,7 +433,9 @@ agentCombatMoveM e =
 -- Chapter IV: Sugar and Spice - Trade Comes to the Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
 agentTradingM :: SugarScapeEnvironment -> State SugarScapeAgentOut ()
-agentTradingM e = neighbourIdsM e >>= agentTradingConversationM
+agentTradingM e 
+    | _enableTrading_ = neighbourIdsM e >>= agentTradingConversationM
+    | otherwise = return ()
     where
         agentTradingConversationM :: [AgentId]
                                     -> State SugarScapeAgentOut ()
@@ -462,7 +472,9 @@ agentTradingM e = neighbourIdsM e >>= agentTradingConversationM
                             (agentTradingConversationM otherAis)
 
 agentCreditM :: SugarScapeAgentIn -> SugarScapeEnvironment -> State SugarScapeAgentOut ()
-agentCreditM ain e = agentRequestCreditM e >> agentCheckCreditPaybackDueM >> agentCreditPaybackIncomingM ain >> agentCreditDeathIncomingM ain
+agentCreditM ain e 
+    | _enableCredit_ = agentRequestCreditM e >> agentCheckCreditPaybackDueM >> agentCreditPaybackIncomingM ain >> agentCreditDeathIncomingM ain
+    | otherwise = return ()
 
 -- NOTE: for now only sugar is lended & borrowed, no spice
 agentRequestCreditM :: SugarScapeEnvironment -> State SugarScapeAgentOut ()
@@ -665,17 +677,17 @@ agentDiseasesTransmitM :: SugarScapeEnvironment -> State SugarScapeAgentOut ()
 agentDiseasesTransmitM e =
     do
         diseases <- domainStateFieldM sugAgDiseases
+        nids <- neighbourIdsM e
 
-        when (not . null $ diseases)
-            $ do
-                nids <- neighbourIdsM e
-                let neighbourCount = length nids
-                randDisease <- agentRandomPicksM diseases neighbourCount
+        let hasDiseases = (not . null) diseases
+        let hasNeighbours = (not . null) nids
 
+        when
+            (hasDiseases && hasNeighbours)
+            (do
+                randDisease <- agentRandomPicksM diseases (length nids)
                 let msgs = map (\(receiverId, disease) -> (receiverId, DiseaseContact disease)) (zip nids randDisease)
-                let hasNeighbours = (not . null) nids
-
-                when hasNeighbours $ sendMessagesM msgs
+                sendMessagesM msgs)
 
 agentImmunizeM :: State SugarScapeAgentOut ()
 agentImmunizeM =
@@ -719,12 +731,8 @@ sugarScapeAgentConversationM _ _ = Nothing
 
 ------------------------------------------------------------------------------------------------------------------------
 -- BEHAVIOUR-CONTROL
+-- NOTE: although we could configure each chapter separately we also provide separate chapter-functions which never call given functions
 ------------------------------------------------------------------------------------------------------------------------
-agentMoveM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
-agentMoveM e
-    | _enableCombat_ = agentCombatMoveM e
-    | otherwise = agentNonCombatMoveM e
-
 chapterII :: SugarScapeEnvironment 
                 -> Double 
                 -> SugarScapeAgentIn 
@@ -740,9 +748,7 @@ chapterII e age ain =
                 ifThenElseM 
                     isDeadM
                     (return e1)
-                    $ do
-                        e2 <- agentMoveM e1
-                        return e2
+                    (agentMoveM e1)
 
 chapterIII :: SugarScapeEnvironment 
                 -> Double 
@@ -750,21 +756,55 @@ chapterIII :: SugarScapeEnvironment
                 -> State SugarScapeAgentOut SugarScapeEnvironment
 chapterIII e age ain =
     do
-        e0 <- agentAgeingM age e
-        ifThenElseM 
+        agentKilledInCombatM ain
+        ifThenElseM
             isDeadM
-            (return e0)
+            (return e)
             $ do
-                e1 <- agentMetabolismM e0
+                e0 <- agentAgeingM age e
                 ifThenElseM 
                     isDeadM
-                    (return e1)
+                    (return e0)
                     $ do
-                        e2 <- agentMoveM e1
-                        agentSexM ain e2
-                        inheritSugarM ain -- TODO: at which point should we do this inhertiance? should not have a big impact in general 
-                        agentCultureContactM ain e2
-                        return e2
+                        e1 <- agentMetabolismM e0
+                        ifThenElseM 
+                            isDeadM
+                            (return e1)
+                            $ do
+                                e2 <- agentMoveM e1
+                                agentSexM ain e2
+                                inheritSugarM ain
+                                agentCultureContactM ain e2
+                                return e2
+
+chapterIV :: SugarScapeEnvironment 
+                -> Double 
+                -> SugarScapeAgentIn 
+                -> State SugarScapeAgentOut SugarScapeEnvironment
+chapterIV e age ain = 
+    do     
+        agentKilledInCombatM ain
+        ifThenElseM
+            isDeadM
+            (return e)
+            $ do
+                e0 <- agentAgeingM age e
+                ifThenElseM 
+                    isDeadM
+                    (return e0)
+                    $ do
+                        e1 <- agentMetabolismM e0
+                        ifThenElseM 
+                            isDeadM
+                            (return e1)
+                            $ do
+                                e2 <- agentMoveM e1
+                                agentSexM ain e2
+                                inheritSugarM ain
+                                agentCultureContactM ain e2
+                                agentTradingM e2
+                                agentCreditM ain e2
+                                return e2
 
 chapterV :: SugarScapeEnvironment 
             -> Double 
@@ -773,25 +813,24 @@ chapterV :: SugarScapeEnvironment
 chapterV e age ain = 
     do     
         agentKilledInCombatM ain
-
-        ifThenElseM 
+        ifThenElseM
             isDeadM
-            (agentDeathHandleCreditsM >> return e)
+            (return e)
             $ do
                 e0 <- agentAgeingM age e
                 ifThenElseM 
                     isDeadM
-                    (agentDeathHandleCreditsM >> return e0)
+                    (return e0)
                     $ do
                         e1 <- agentMetabolismM e0
                         ifThenElseM 
                             isDeadM
-                            (agentDeathHandleCreditsM >> return e1)
+                            (return e1)
                             $ do
                                 e2 <- agentMoveM e1
+                                agentSexM ain e2
                                 inheritSugarM ain
                                 agentCultureContactM ain e2
-                                agentSexM ain e2
                                 agentTradingM e2
                                 agentCreditM ain e2
                                 agentDiseaseProcessesM ain e2
@@ -800,7 +839,7 @@ chapterV e age ain =
 
 ------------------------------------------------------------------------------------------------------------------------
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour
-sugarScapeAgentBehaviour = agentMonadic chapterIII
+sugarScapeAgentBehaviour = agentMonadic chapterV
 
 sugarScapeAgentConversation :: SugarScapeAgentConversation
 sugarScapeAgentConversation = sugarScapeAgentConversationM

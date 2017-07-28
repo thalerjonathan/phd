@@ -17,11 +17,6 @@ import           Wildfire.Run
 
 {-
     TODOs
-    - sugarscape 
-        -> explore unit-testing using HUnit and property/specification testing using quickcheck and smallcheck. as testing-framework use tasty
-        -> need a mechanism to run chapters / rules separately
-        -> reproduce results of all chapters
-
     - environments
         implement an genericobject-to-position map in continuous2d
             -> supply standard implementations for AgentId:

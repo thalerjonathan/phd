@@ -36,6 +36,8 @@ module SugarScape.Model (
     _enableCombat_,
     _enableDiseases_,
     _enableSeasons_,
+    _enableTrading_,
+    _enableCredit_,
     _agentColoring_,
 
     sugarGrowbackUnits,
@@ -194,13 +196,10 @@ _enableSpice_ :: Bool
 _enableSpice_ = False
 
 _enableBirthAgentOnAgeDeath_ :: Bool
-_enableBirthAgentOnAgeDeath_ = True
+_enableBirthAgentOnAgeDeath_ = False
 
 _enableInheritance_ :: Bool
 _enableInheritance_ = False
-
-_enableDiseases_ :: Bool
-_enableDiseases_ = False
 
 _enableSeasons_ :: Bool
 _enableSeasons_ = False
@@ -209,10 +208,19 @@ _enableSex_ :: Bool
 _enableSex_ = False
 
 _enableCombat_ :: Bool
-_enableCombat_ = True
+_enableCombat_ = False
+
+_enableTrading_ :: Bool
+_enableTrading_ = False
+
+_enableCredit_ :: Bool
+_enableCredit_ = False
+
+_enableDiseases_ :: Bool
+_enableDiseases_ = True
 
 _agentColoring_ :: AgentColoring
-_agentColoring_ = Tribe -- VisionGE 4 -- Undefined -- IdGE 401
+_agentColoring_ = Diseased -- Tribe -- VisionGE 4 -- Undefined -- IdGE 401
 ------------------------------------------------------------------------------------------------------------------------
 
 
@@ -256,7 +264,7 @@ visionRangeStandard = (1, 6)
 visionRangeSeasons = (1, 10)
 
 ageRange :: (Double, Double)
-ageRange = ageRangeStandard
+ageRange = ageRangeInf
 ageRangeStandard = (60, 100)
 ageRangeInf = (1/0, 1/0)
 
@@ -334,7 +342,7 @@ diseaseLength :: Int
 diseaseLength = 10
 
 diseasesInitial :: Int
-diseasesInitial = 4
+diseasesInitial = 25
 
 diseasedMetabolismIncrease :: Double
 diseasedMetabolismIncrease = 1.0

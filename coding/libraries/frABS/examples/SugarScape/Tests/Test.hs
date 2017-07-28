@@ -21,7 +21,8 @@ unitTests =
   testGroup 
     "Sugarscape Unit tests"
       [test_selectBestCells_group,
-       test_culturalComputation_group]
+       test_culturalComputation_group,
+       test_immunization_group]
 
 {-
 properties :: TestTree

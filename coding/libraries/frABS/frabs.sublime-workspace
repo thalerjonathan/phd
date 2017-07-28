@@ -151,7 +151,7 @@
 			"file": "examples/Main.hs",
 			"settings":
 			{
-				"buffer_size": 1593,
+				"buffer_size": 2175,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -635,7 +635,7 @@
 	"groups":
 	[
 		{
-			"selected": 3,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -644,15 +644,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1593,
+						"buffer_size": 2175,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								486,
-								486
+								403,
+								403
 							]
 						],
 						"settings":
@@ -665,7 +665,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
@@ -725,7 +725,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
@@ -755,7 +755,7 @@
 						"translation.y": 3060.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
@@ -785,7 +785,7 @@
 						"translation.y": 5086.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 2,
 					"type": "text"
 				}
 			]

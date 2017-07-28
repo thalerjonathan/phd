@@ -1,0 +1,61 @@
+\documentclass[oneside]{book}
+
+\setcounter{tocdepth}{1}
+\setcounter{secnumdepth}{3}
+
+\usepackage[toc,page]{appendix}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} % Required for the inclusion of images
+\usepackage{amsmath} % Required for some math elements 
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\usepackage{listings}
+\usepackage{pdfpages}
+\usepackage{amssymb}
+\usepackage{pdflscape}
+
+\begin{document}
+
+\begin{titlepage}
+	\centering
+	\includegraphics[width=0.60\textwidth]{../../logo/UoN_Primary_Logo_RGB.png}\par\vspace{1cm}
+	\vspace{1.5cm}
+	{\huge\bfseries Comparing Repast Java and Functional Reactive ABS \par}
+	\vspace{2cm}
+	{\Large\itshape jonathan.thaler@nottingham.ac.uk \par}
+	\vfill
+	
+	\vfill
+
+	{\large \today\par}
+\end{titlepage}
+
+\cleardoublepage
+
+\section*{Abstract}
+This study we compares the Agent-Based Simulation programming libraries Repast and FrABS. As both are of fundamentally different programming paradigms - Repast uses Java, FrABS Haskell - both propagate fundamental different approaches in implementing ABS. In this document we seek to precicesly identify these fundamental differences, compare them and also look into general benefits and drawbacks of each approach.
+
+\clearpage
+\tableofcontents
+\clearpage
+
+\input{./tex/introduction.tex}
+
+\input{./tex/jzombies.tex}
+
+\input{./tex/sirSD.tex}
+
+\input{./tex/sirABS.tex}
+
+\input{./tex/sugarscape.tex}
+
+\renewcommand\bibname{References}
+
+\bibliographystyle{acm}
+\bibliography{../../references/phdReferences}
+
+\end{document}

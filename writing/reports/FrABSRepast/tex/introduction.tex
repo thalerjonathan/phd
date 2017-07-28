@@ -1,0 +1,23 @@
+\section{Introduction}
+
+\subsection{FrABS}
+This library was developed as a tool to investigate the benefits and drawbacks of implementing ABS in the pure functional programming paradigm. As implementation language Haskell was chosen and the library was built leveraging on the Functional Reactive Programming paradigm in the implementation of the library Yampa.
+
+\subsection{Repast Java}
+
+
+\subsection{Use-Cases}
+As use-cases on which we conduct the study we implement the following models in \textit{both} libraries:
+
+\begin{itemize}
+	\item JZombies - the 'Getting Started' example from Repast Java \footnote{\url{https://repast.github.io/docs/RepastJavaGettingStarted.pdf}} - a first, very easy model, as there exists code-listing for Repast Java there is a 'standard' implementation, so comparison can be straight-forward and will serve as a first starting point.
+	
+	\item System-Dynamics SIR - study how the libraries deal with continuous time-flow.
+	
+	\item ABS SIR - study how the libraries support time-semantics.
+	
+	\item Sugarscape Model as presented in the book "Growing Artificial Societies - Social Sciences from the bottom up" by Joshua M. Epstein and Robert Axtell \cite{epstein_growing_1996} - this highly complex model serves as a use-case for investigating how the libraries deal with a much more complex model with a big number of features. In this model there are no explicit time-semantics like in the SIR model: agents move in every time-step where the model is advanced in discrete time-steps.
+\end{itemize}
+
+\subsection{Method}
+We don't compare library-features isolated but always directly using the use-cases as desribed above.

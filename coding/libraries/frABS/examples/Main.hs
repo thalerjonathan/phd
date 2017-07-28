@@ -22,6 +22,20 @@ import           Wildfire.Run
         -> need a mechanism to run chapters / rules separately
         -> reproduce results of all chapters
 
+    - environments
+        implement an genericobject-to-position map in continuous2d
+            -> supply standard implementations for AgentId:
+                -> add / remove / update
+                -> find within distance
+                -> update by move
+
+        implement standard-cells in discrete2d:
+            -> empty / non-empty with single / multiple occupier
+            -> supply helper-functions
+                -> occupy / unoccupy / isoccupied
+                -> allOccupiers
+            -> supply functions which construct these discrete2d with standard-cells
+
     - clean-up
         - imports: no unused imports
         - lint: must be clear of warnings

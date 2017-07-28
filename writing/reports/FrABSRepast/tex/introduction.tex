@@ -1,10 +1,16 @@
 \section{Introduction}
 
+TODO
+
 \subsection{FrABS}
 This library was developed as a tool to investigate the benefits and drawbacks of implementing ABS in the pure functional programming paradigm. As implementation language Haskell was chosen and the library was built leveraging on the Functional Reactive Programming paradigm in the implementation of the library Yampa.
 
 \subsection{Repast Java}
 This library TODO:
+
+\subsection{Focus}
+One of the main benefits of Repast is its high usability. It has a User-Interface, allows to customize the appearance of the simulation with a few clicks and exporting of data created by the simulation. Clearly usability is FrABS major weakness: it completely lacks a user-interface \footnote{So far there are no plans to add one, also because GUI-programming in Haskell is not straight-forward, constitutes its own art and would in general amount to a substantial amount of additional work for which we just don't have the time.} and although FrABS allows to customize the appearance of the simulation and exporting of data through primitive file-output (e.g. constructing a matlab-file), everything needs to be programmed and configured directly in the code. So from the perspective of usability, Repast is just very much better and thus we won't spend more time in investigating this and just state that so far usability is the big weakness of FrABS. 
+Instead the main focus will be now in comparing how to implement the models directly in code and to see if there are fundamental differences and if yes which they are. Note that we refrain from comparing library-features isolated and instead look at them always directly in the context of the use-cases as described below.
 
 \subsection{Use-Cases}
 As use-cases on which we conduct the study we implement the following models in \textit{both} libraries:
@@ -18,6 +24,3 @@ As use-cases on which we conduct the study we implement the following models in 
 	
 	\item Sugarscape Model as presented in the book "Growing Artificial Societies - Social Sciences from the bottom up" by Joshua M. Epstein and Robert Axtell \cite{epstein_growing_1996} - this highly complex model serves as a use-case for investigating how the libraries deal with a much more complex model with a big number of features. In this model there are no explicit time-semantics like in the SIR model: agents move in every time-step where the model is advanced in discrete time-steps.
 \end{itemize}
-
-\subsection{Method}
-We don't compare library-features isolated but always directly using the use-cases as desribed above.

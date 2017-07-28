@@ -49,7 +49,7 @@ renderFrameDisc2d ar er wSize@(wx, wy) ss e = GLO.Pictures (envPics ++ agentPics
         envPics = map (er (cellWidth, cellHeight) wSize) cells -- TODO: is this expensive when we are doing void-rendering? should we use a maybe?
 
 defaultEnvRendererDisc2d :: EnvCellColorerDisc2d c -> EnvRendererDisc2d c
-defaultEnvRendererDisc2d cc r@(rw, rh) w (coord, cell) = GLO.Pictures [cellRect]
+defaultEnvRendererDisc2d cc r@(rw, rh) w (coord, cell) = cellRect
     where
         (x, y) = transformToWindow r w coord
         color = cc cell

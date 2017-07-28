@@ -153,6 +153,7 @@ module FRP.FrABS (
     Network (..), -- TODO: hide data-constructor
 
     createNetwork,
+    createEmptyNetwork,
     createNetworkWithGraph,
     constEdgeLabeler,
     unitEdgeLabeler,

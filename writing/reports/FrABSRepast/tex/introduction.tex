@@ -1,18 +1,35 @@
-\section{Introduction}
+\chapter{Introduction}
 
 TODO
 
-\subsection{FrABS}
+\section{FrABS}
 This library was developed as a tool to investigate the benefits and drawbacks of implementing ABS in the pure functional programming paradigm. As implementation language Haskell was chosen and the library was built leveraging on the Functional Reactive Programming paradigm in the implementation of the library Yampa.
 
-\subsection{Repast Java}
+\section{Repast Java}
 This library TODO:
 
-\subsection{Focus}
-One of the main benefits of Repast is its high usability. It has a user-Interface which allows to customize the appearance and parameters of the simulation with a few clicks and visualize and exporting of data created by the simulation. Clearly usability is FrABS major weakness: it completely lacks a user-interface \footnote{So far there are no plans to add one, also because GUI-programming in Haskell is not straight-forward, constitutes its own art and would in general amount to a substantial amount of additional work for which we just don't have the time.} and although FrABS allows to customize the appearance of the visualization and allows exporting of data through primitive file-output (e.g. constructing a matlab-file), everything needs to be programmed and configured directly in the code. So from the perspective of usability, Repast is just very much better and thus we won't spend more time in investigating this and just state that so far usability is the big weakness of FrABS. 
-Instead the main focus will be now in comparing how to implement the models directly in code and to see if there are fundamental differences and if yes which they are. Note that we refrain from comparing library-features isolated and instead look at them always directly in the context of the use-cases as described below.
+\section{Focus}
+We have to be very clear about a thing: there is a huge difference between Repast and FrABS. To paraphrase Fred Brooks \cite{jr_mythical_1995}: Repast is a final \textit{programming system \textbf{product}} whereas FrABS is merely a (yet unfinished)  \textit{programming system}. Repast easily surpases FrABS features-set and this is probably best reflected in Repasts high usability. It has a user-Interface which allows to customize the appearance and parameters of the simulation with a few clicks and visualize and exporting of data created by the simulation. Clearly usability is FrABS major weakness: it completely lacks a user-interface \footnote{So far there are no plans to add one, also because GUI-programming in Haskell is not straight-forward, constitutes its own art and would in general amount to a substantial amount of additional work for which we just don't have the time.} and although FrABS allows to customize the appearance of the visualization and allows exporting of data through primitive file-output (e.g. constructing a matlab-file), everything needs to be programmed and configured directly in the code. So from the perspective of usability, Repast is just very much better and thus we won't spend more time in investigating this and just state that so far usability is the big weakness of FrABS.
+So considering the big conceptual difference between the two libraries and their different feature-sets, the question is then, how to compare them, on what to focus. It is important to emphasize that ultimately both libraries provide support in programming ABS and thus this is what we will focus on: compare how to implement agent-based models directly in code and to see if there are fundamental differences and if yes which they are. Note that we refrain from comparing library-features isolated and instead look at them always directly in the context of the use-cases as described below.
 
-\subsection{Use-Cases}
+\section{Evolution}
+It is important to note that during conducting this study we sometimes slightly extended and refactored FrABS to express problems easier. One could say that this is cheating as Repast does not has this advantage but we argue that this is a legitimate approach because:
+
+\begin{itemize}
+	\item The fundamental differences are already set and cannot be changed due to the fundamental differences of the programming paradigms and the resulting different approach to implementing ABS.
+	\item Repast can be considered to a finished product with more features, whereas FrABS is still in its Alpha-Phase.
+	\item It shows how easily and quickly (or not) FrABS is able to adapt features already available in Repast.
+\end{itemize}
+
+Most notable additions were:
+\begin{itemize}
+	\item Introduction of single/multi occupant/non-occupant cells in the Discrete2D environment and supporting functions for accessing these.
+	\item Introduction of a mapping of a generic type to 2d-continuous positions in the Continuous2d environment and supporting functions for accessing / changing these.
+\end{itemize}
+
+These functionalities existed already in part in other examples (e.g. Agent\_Zero, Sugarscape) and were thus only refactored back into the FrABS library.
+
+\section{Use-Cases}
 As use-cases on which we conduct the study we implement the following models in \textit{both} libraries:
 
 \begin{itemize}

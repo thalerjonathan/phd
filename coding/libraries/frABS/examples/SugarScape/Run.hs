@@ -24,7 +24,7 @@ updateStrat = Sequential    -- Sugarscape works ONLY with Sequential AND must be
 shuffleAgents = True        -- Sugarscape works ONLY with Sequential AND must be shuffled
 envCollapsing = Nothing
 envBeh = Just sugarScapeEnvironmentBehaviour
-samplingTimeDelta = 1.0
+samplingTimeDelta = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
 frequency = 0
 steps = 0
 

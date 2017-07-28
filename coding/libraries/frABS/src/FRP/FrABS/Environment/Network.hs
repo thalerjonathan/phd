@@ -3,6 +3,7 @@ module FRP.FrABS.Environment.Network (
     Network (..), -- TODO: hide data-constructor
 
     createNetwork,
+    createEmptyNetwork,
     createNetworkWithGraph,
 
     constEdgeLabeler,
@@ -53,6 +54,12 @@ createNetwork t l =
         return Network {
             envNetRng = rng,
             envNetGraph = gr
+        }
+
+createEmptyNetwork :: StdGen -> Network l
+createEmptyNetwork rng = Network {
+            envNetRng = rng,
+            envNetGraph = empty
         }
 
 createNetworkWithGraph :: Gr () l -> StdGen -> Network l

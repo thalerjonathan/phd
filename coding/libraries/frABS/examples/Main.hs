@@ -14,6 +14,7 @@ import           SIRS.Run
 import           SugarScape.Run
 import           SysDynSIR.Run
 import           Wildfire.Run
+import           Zombies.Run
 
 {-
     TODOs
@@ -40,7 +41,8 @@ import           Wildfire.Run
 -}
 
 main :: IO ()
-main = runSugarScapeWithRendering
+main = runZombiesWithRendering
+
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile
     -- runSysDynSIRStepsAndWriteToFile

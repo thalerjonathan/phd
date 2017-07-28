@@ -1,5 +1,6 @@
 module Common (
-    test_selectBestCells_group
+    test_selectBestCells_group,
+    test_culturalComputation_group
   ) where 
 
 import FRP.FrABS
@@ -9,6 +10,27 @@ import SugarScape.Common
 
 import Test.Tasty
 import Test.Tasty.HUnit
+import Test.Tasty.QuickCheck as QC
+
+-------------------------------------------------------------------------------
+-- cultural computation
+-------------------------------------------------------------------------------
+test_culturalComputation_group =
+    testGroup "flipCulturalTag"
+        [test_calculateTribe]
+
+test_calculateTribe = QC.testProperty "flipCulturalTag " $ test_calculateTribeAux
+test_calculateTribeAux tagActive tagPassive i = 
+    -- TODO: QuickCheck is giving up because pre-conditions too strong, need to generate test-data somehow different
+    (length tagActive == length tagPassive && i >= 0 && i < length tagActive) ==>
+        flipCulturalTag tagActive tagPassive i == tagRequiredResult
+
+    where
+        tagPassiveFront = take i tagPassive 
+        tagPassiveBack = drop (i+1) tagPassive
+        tagActiveAtIdx = tagActive !! i
+        tagRequiredResult = tagPassiveFront ++ [tagActiveAtIdx] ++ tagPassiveBack
+-------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- selectBestCells

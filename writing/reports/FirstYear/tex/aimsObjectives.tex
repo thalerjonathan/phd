@@ -4,26 +4,26 @@
 This chapter gives a very brief and concise overview of the aims and objectives by just stating them without giving further substantiation. Chapter \ref{chap:future} will give then more details in how we plan approaching the aim in general and the objectives in particular.
 
 \section{Aims}
-The aim of this Ph.D. is to explore the benefits and drawbacks using the functional programming paradigm for implementing Agent-Based Simulations. 
+The aim of this Ph.D. is to explore the benefits and drawbacks using the pure functional programming paradigm in Agent-Based Simulations. 
 
 \section{Hypotheses}
 \begin{enumerate}
-	\item The only real advantage is that we can approach the issue of the "Correctness" of an ABS implementation in an unprecedented depth and direction. Probably we cannot ensure the total correctness but we can get to levels which were not possible before.
+	\item The only real advantage is that we can approach the issue of the "Correctness" of an ABS implementation in an unprecedented depth and direction when using pure functional programming paradigm. Probably we cannot ensure the total correctness but we can get to levels which were not possible before.
 	
 	\item Yampa is a valid / good approach of implementing ABS in Haskell.
 	
 	\item Haskell benefits (which are not possible in java) are: Code == Spec, can statically rule out a major and very relevant class of bugs, can perform reasoning and proofing of properties of the program. The main advantages are: time-semantics, recursive simulation, correctness, verification, composability, testability?
 
-	\item Haskell drawbacks over java are: slower, potential for difficult to find space-leaks, much more difficult to reason about performance in general, steeper learning curve, think ABS different 
+	\item Haskell drawbacks over Java are: slower, potential for difficult to find space-leaks, much more difficult to reason about performance in general, steeper learning curve, think ABS different 
 	
-	\item haskell allows to test ABS in a new way, creating more robust and correcter simulations using smallcheck and quickcheck (can you write unit tests in anylogic, repast, netlogo? could you even think of writing specification tests? i very doubt so)
+	\item Haskell allows to test ABS in a new way, creating more robust and correcter simulations using smallcheck and quickcheck (can you write unit tests in Repast? could you even think of writing specification tests? i very doubt so)
 	
 	\item Reproducibility of a system is much stronger in Haskell: unpredictable side-effects can be guaranteed to not show up because it is statically enforced through the type-system already at compile-time.
 \end{enumerate}
 
 \section{Objectives}
 \begin{enumerate}
-	\item Implement a library for general-purpose Agent-Based Simulation in Haskell which will serve as the tool for conducting the research 
+	\item Implement a library for general-purpose Agent-Based Simulation in Haskell which will serve as the tool for conducting the research. This library is then a concrete instance of the pure functional programming paradigm.
 	
 	\item Compare the potential benefits and drawbacks of Haskell and Java in general to implementing ABS.
 	

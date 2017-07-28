@@ -12,20 +12,37 @@ To explore the further potential of formal reasoning and verification in functio
 
 TODO:
 - Why ACE and Social Simulation? Did i only pick these fields because they are easily applicable to the problems I want to solve? Which properties do they exhibit which make them interesting for my problem? Just to say that "Sugarscape and bilateral decentralized bartering is interesting and fascinates me" is not enough in a final viva/thesis/paper.	
-\\
+
+TODO:
+instead of writing a paper on every bit of research conducted we will write a report on the following studies which need to be conducted:
+
+\begin{itemize}
+	\item Comparing the pure functional and object oriented paradigm to implement ABS
+	\item Comparing Repast Java and Functional Reactive ABS
+	\item Replicating \& aligning Sugarscape in FrABS 
+\end{itemize}
+
+Out of these reports then papers can be condensed as required. We do not yet know exactly which papers we will write but we plan for up to 3 papers targeted as journal papers.
+
+\begin{enumerate}
+	\item Towards pure functional programming in ABS - introduces the new approach, reports benefits and drawbacks and shows examples.
+	\item Levels of Correctness of Agent-Based Simulations - introduces the real power of the FrABS approach: ability to reason about ABS, specification-testing using QuickCheck, guaranteed absence of bugs,... to show how far we can go in asserting the correctness of an ABS (the hypothesis: further than in approaches so far)
+\end{enumerate}
 
 \subsection{Objectives}
 
 
 \section{Years Overview}
 
-\subsection{1st Year: foundations}
+\subsection{1st Year: foundations - building the tool}
 In the first year, all was about orientation, prototyping, experimenting and finding out what the PhD is \textit{really} going to be about. Foundational work was layed out, which in the paper on update-strategies and the ommited part on programming paradigms. By now we have a properly working prototype of the library with a few good, diverse examples of implemented ABS including SugarScape and Agent\_Zero. At this point we have gathered enough information, experience and the library is sufficiently advanced to know that Haskell is definitely not a dead end.
 
-\subsection{2nd Year: Shaping the new approach}
-In the 2nd year the aim is to scientifically show the benefits and drawbacks of using Haskell implementing ABS in comparison to the existing technologies in the field like NetLogo, AnyLogic, Repast and plain Java. The goal is to write two papers, one which treats general questions in how Haskell can be used in ABS and its potential benefits and drawbacks. The other paper will describe the novel approach, called functional reactive ABS, implemented in the library. 
+\subsection{2nd Year: Shaping the new approach - comparing the tool}
+In the 2nd year the aim is to scientifically show the benefits and drawbacks of using Haskell implementing ABS in comparison to the existing technologies in the field like Repast and plain Java. The goal is to write two papers, one which treats general questions in how Haskell can be used in ABS and its potential benefits and drawbacks. The other paper will describe the novel approach, called functional reactive ABS, implemented in the library. 
 
-\subsection{3rd Year: Selling the new approach}
+\subsection{3rd Year: Selling the new approach - new methods through the tool}
+ITS ALL ABOUT CORRECTNESS (this is probaly the only thing that FrABS really shines)
+
 In the final year we want to focus on how Haskells unique reasoning abilities can be made of use in the field of ABS by looking into reasoning about the bilateral decentralized bartering process as it occurs in the Sugarscape model.
 The remainder of the year is to focus on cleaning up the research and writing the final thesis. The plan is to start the writing of the final thesis around April 2019 with a 5-months writing-window and to submit on-time at end of September 2019.
 

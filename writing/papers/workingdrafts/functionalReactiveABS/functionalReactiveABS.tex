@@ -86,6 +86,12 @@ TODO: cite papers which discuss how to approximate a SD model by ABS
 - Borshchev, Filippov (2004) - From System Dynamics and Discrete Event to Practical Agent Based Modeling: Reasons, Techniques, Tools
 	-> its VERY IMPORTANT point is that we need to draw the illness-duration from an exponential-distribution because the illness-duration is proportional to the size of the infected. note: this is wrongly expressed, need to find the correct formulation
 
+		-> my emulation of SD using ABS is really an implementation of the SD model and follows it - they are equivalent
+		-> my ABS implementation is the same as / equivalent to the SD emulation
+			=> thus if i can show that my SD emulation is equlas to the SD model
+			=> AND that the ABS implementation is the same as the SD emulation
+			=> THEN the ABS implementation is an SD implementation, and we have shown this in code for the first time in ABS
+			
 TODO: the first (of two) contribution of this paper is: an explanation of one way of how ABS can be done in pure functional programming and its benefits: declarative style where the code looks very much like specification, fewer LoC, fewer Bugs, reasoning and proves
 
 TODO: main second contribution is: show that the SD and the ABS implementation of the SIR model are the same by proving that ABS solves the SD equation. this should be possible by now using reasoning techniques (and quickcheck?)

@@ -1,80 +1,77 @@
 \chapter{Future Work Plan}
 \label{chap:future}
 
-In this chapter we briefly discuss how we plan to approach the aim, objectives and research questions as stated in Chapter \ref{chap:aimsObj}. We give a broad overview in terms of the years of the PhD, the planned papers treating the objectives and research questions. Further we present important milestones, relevant conferences and a Gantt-Chart reflecting all the details \ref{fig:gantt}.
+TODO: Gantt-Chart
+TODO: Why ACE and Social Simulation? Did i only pick these fields because they are easily applicable to the problems I want to solve? Which properties do they exhibit which make them interesting for my problem? Just to say that "Sugarscape and bilateral decentralized bartering is interesting and fascinates me" is not enough in a final viva/thesis/paper.	
 
-TODO: IMPORTANT is to note that the benefits do NOT come from my library but from the usage of the pure functional paradigm. the library just puts it into a more convenient form. So the library is again just a tool which allows us to research how far we can get in robustness, verification and correctness in ABS when pure functional programming as compared to the approach of object-oriented Java in the form of Repast.
+In this chapter we discuss in more detail how we plan to approach the aim and objectives stated in Chapter \ref{chap:aimsObj}. Further we present important milestones, relevant conferences and a Gantt-Chart \ref{fig:gantt} reflecting the most important activities.
 
-\section{Overall Approach}
+\section{Approaching the Objectives}
 
-\subsection{Aim}
-First a library for general-purpose ABS in Haskell is built which serves as the primary object to study the benefits and drawbacks. \footnote{Note that - despite it takes quite some effort - this library in itself is no the contribution of this Ph.D. but just a means to an end which allows to research and investigate the objectives and research questions and substantiate the hypotheses.}
+\subsection{Tools and foundations}
+In the first year a prototype of the library should be implemented with a few examples to early gain a good understanding of the topic and to be able to judge whether it is a dead-end or not. This has already successfully happened: the library prototype exists with a number of non-trivial examples including a full implementation of the Sugarscape model. The library is termed FrABS \footnote{Note that - despite it took quite some effort - this library in itself is no the contribution of this Ph.D. but just a means to an end which allows to research and investigate the objectives and research questions and substantiate the hypotheses.} and is described in Appendix \ref{app:frABS}.
 
-To explore the further potential of formal reasoning and verification in functional ABS on the example of Sugarscape requires the implementation of Sugarscape in the Haskell ABS library and to replicate and align the dynamics with the one given in the original model. Apply reasoning to the bilateral decentralized bartering process in the Sugarscape model and find out how far reasoning can be utilized and to what extent one can reason about e.g. equilibrium and dynamics in a pure functional ABS and if it is possible at all.
+To be able to compare our approach to the existing state-of-the-art in the field of ABS we will use the existing library Repast Java. This will allow us to compare the dominant object-oriented paradigm in the field to our approach, discuss similarities and differences and identify draw benefits and drawbacks. 
 
-TODO:
-- Why ACE and Social Simulation? Did i only pick these fields because they are easily applicable to the problems I want to solve? Which properties do they exhibit which make them interesting for my problem? Just to say that "Sugarscape and bilateral decentralized bartering is interesting and fascinates me" is not enough in a final viva/thesis/paper.	
+Clarification on the fundamental challenges in implementing ABS from a programming-paradigm agnostic perspective must be done. This was already conducted in the first paper on Update-Strategies in ABS, which is now accepted at SSC2017 and can be found in Appendix \ref{app:updateStrategies}
 
-TODO:
-instead of writing a paper on every bit of research conducted we will write a report on the following studies which need to be conducted:
-
+\subsection{Pure functional and object-oriented paradigms}
+The next objective is then to investigate the fundamental differences between the pure functional and object-oriented paradigms in implementing ABS with their respective incarnations Haskell and Java. This research should be conducted in the form of a report because as it imposes no limits on content-size, is easier to be incorporated in the thesis than a paper and if required a paper can be condensed out of it.
+This work should pick up the work of the Update-Strategies paper and broaden and deepen its approach: show in more depth and in more detail which problems need to be solved when implementing an ABS and how both paradigms can be used in their way to solve them and identify potential benefits and drawbacks. There exists already code in Haskell and Java without any additional libraries (except JDK and Haskells standard library called Prelude) produced for the Update-Strategies paper which can be used for this work.
+In the next step we need to go up the abstraction ladder and investigate how FrABS and Repast Java approach these problems and compare them from a programing paradigm perspective and identify potential benefits and drawbacks.
+As examples the SIR compartment model in epidemiology should be implemented both as a System-Dynamics and ABS 2D-spatial/network model. Also a full implementation of Sugarscape should be attempted in Repast Java \footnote{There exists already an implementation of Chapter II in the Repast Java Demo library upon which we can build.}.
+The questions we want to answer in this objective are
 \begin{itemize}
-	\item Comparing the pure functional and object oriented paradigm to implement ABS
-	\item Comparing Repast Java and Functional Reactive ABS
-	\item Replicating \& aligning Sugarscape in FrABS 
+	\item What are the approaches of pure functional and object-oriented programming to ABS?
+	\item What are the benefits/drawbacks of Haskell and what are the benefits/drawbacks of Java in implementing ABS?
+	\item Are the benefits/drawbacks orthogonal to each other e.g. are the weaknesses of one language the other languages strength?
+	\item Are there things which are unique when doing Haskell in ABS and cannot be done in a Java approach and vice versa?
 \end{itemize}
 
-Out of these reports then papers can be condensed as required. We do not yet know exactly which papers we will write but we plan for up to 3 papers targeted as journal papers.
+At least half of the second year will be allocated to this very important research as it lays the very foundations. We conjecture that the conclusion of this research will be that both approaches - paradigms and libraries - though solving specific problems different, are basically equally powerful in implementing the given examples and ABS in general with no fundamental impossibilities on either side. The main noteable (but not fundamental) differences will be performance and memory-consuption, lines-of-code, expressiveness, usability, learning curve and they way to think about ABS.
+The question is then: why go through all the pain? Is there a difference? Can't we build somehow on the promised benefits of pure functional programming as in Haskell \footnote{Explicit about side-effects, strong static type-system, algebraic reasoning, declarative style, lambda calculus}?
 
-\begin{enumerate}
-	\item Towards pure functional programming in ABS - introduces the new approach, reports benefits and drawbacks and shows examples.
-	\item Levels of Correctness of Agent-Based Simulations - introduces the real power of the FrABS approach: ability to reason about ABS, specification-testing using QuickCheck, guaranteed absence of bugs,... to show how far we can go in asserting the correctness of an ABS (the hypothesis: further than in approaches so far)
-\end{enumerate}
+\subsection{Robustness and correctness}
+The answer to the previous question is attempted in a second study, which will look into how pure functional programming can increase robustness, testability, verification and correctness of Agent-Based Simulations. Again the approach will be in writing a report so not to restrict the size of the content, make it easier to incorporate it in the final thesis and condense a paper out of it if required.
+Again Repast Java and FrABS Haskell will be used as tools to investigate the research question by investigating the examples implemented in the previous report. The following investigations should be made:
 
-\subsection{Objectives}
+\begin{itemize}
+	\item Compare the potential for bugs at runtime e.g. which are not possible to detect at compile time. 
+	\item Reproducibility robustness: can unpredictable side-effects affect the systems behaviour? Can such side-effects be guaranteed to not show up? 
+	\item Testing and testability of an implementation: how well can we test it using automated tests e.g. unit-tests, property-tests?
+	\item Verification of an implementation: can we verify the correctness of a model or at least of parts of the specification?
+	\item Can we establish a measure of correctness?
+\end{itemize}
 
+The second half of the 2nd year is allocated to this work.
 
-\section{Years Overview}
+We conjecture that this research will come to the conclusion that pure functional programming dramatically increases the robustness and correctness of an ABS and that it allows for easier and clearer approach to verification using specification testing in QuickCheck and automated testing using Unit- and Property-Testing.
 
-\subsection{1st Year: foundations - building the tool}
-In the first year, all was about orientation, prototyping, experimenting and finding out what the PhD is \textit{really} going to be about. Foundational work was layed out, which in the paper on update-strategies and the ommited part on programming paradigms. By now we have a properly working prototype of the library with a few good, diverse examples of implemented ABS including SugarScape and Agent\_Zero. At this point we have gathered enough information, experience and the library is sufficiently advanced to know that Haskell is definitely not a dead end.
+\subsection{Reasoning about dynamics}
+This objective investigates how far we can get using the pure functional paradigms ability to reason about a program when applying it to reason about the dynamics of an ABS. As use-cases the idea is to look into reasoning about the equivalence of SD- and ABS-implementation of the SIR compartment model in epidemiology and about the equilibrium dynamics of the bilateral decentralized bartering in Sugarscape.
 
-\subsection{2nd Year: Shaping the new approach - comparing the tool}
-In the 2nd year the aim is to scientifically show the benefits and drawbacks of using Haskell implementing ABS in comparison to the existing technologies in the field like Repast and plain Java. The goal is to write two papers, one which treats general questions in how Haskell can be used in ABS and its potential benefits and drawbacks. The other paper will describe the novel approach, called functional reactive ABS, implemented in the library. 
+Both the System-Dynamics and Agent-Based implementation of the SIR compartment model in epidemiology lead to the same dynamics or put different: the Agent-Based implementation shows the same dynamics of the SD implementation when using replications. This is shown by plotting the dynamics as graphs. 
 
-\subsection{3rd Year: Selling the new approach - new methods through the tool}
-ITS ALL ABOUT CORRECTNESS (this is probaly the only thing that FrABS really shines)
+In the Sugarscape model where agents engage in bilateral decentralized bartering Equilibrium is only reached when neo-classical agents are used which don't die of natural age. The equilibrium is not reached when more realistic assumptions are made. This is shown by plotting the prices over time. 
 
-In the final year we want to focus on how Haskells unique reasoning abilities can be made of use in the field of ABS by looking into reasoning about the bilateral decentralized bartering process as it occurs in the Sugarscape model.
-The remainder of the year is to focus on cleaning up the research and writing the final thesis. The plan is to start the writing of the final thesis around April 2019 with a 5-months writing-window and to submit on-time at end of September 2019.
+In this part of the Ph.D. we want to answer the following questions:
+\begin{itemize}
+	\item What and to which extent can we reason about an Agent-Based Simulation in pure functional programming in general and using FrABS in particular?
+	\item Can we show that the SD and ABS implementations are equivalent through reasoning about the code?
+	\item Can we show that the equilibrium in the decentralized bilateral bartering of Sugarscape is reached / not reached when using neo-classical agents / realistic agents through reasoning about the code?
+\end{itemize}
+
+We are very well aware that this topic alone could justify a Ph.D. on its own and it is unsure if we would could make it this far e.g. if the previous research takes longer than anticipated. Still we want to explicitly have clearly stated these objectives and outlined how to approach them - the worst which can happen is that they merely serve as a very in-depth outlook on future research.
+Thus the outcome of this research is highly uncertain but the conjecture is that we come to the following conclusion: it highly depends on the complexity and semantics of the model. In the case of the SIR compartment model we expect a success. In the case of the bilateral decentralized bartering in Sugarscape we probably will gain some insights but that at some point due to the interlocking of so many mechanisms it would get too complicated and a full and formal treatment is out of the scope of this Ph.D.
+We allocate the first half of the 3rd year to this work.
+
+\section{Thesis}
+We leave the following question to be answered in the final thesis:
+Do the findings on using the pure functional programming paradigm in ABS apply only to the field of Agent-Based Social Simulation and Agent-Based Computational Economics or to ABS in general?
 
 \section{Planned Papers}
-For the remainder of the PhD we planned for three papers where the first one is targeted as a research-paper with no intention of publishing and the other two papers to be targeted as journal papers.
+For the remainder of the PhD we planned for two more papers with one targeted as another conference paper and the second one as a journal paper.
 
-\subsection{Towards pure functional programming in ABS Part I: Suitability of Haskell}
-
-\subsection{Towards pure functional programming in ABS Part II: Functional Reactive ABS}
--> this paper looks into the specifics of the hybrid approach of FrABS: how time can be used. It asks if time can be turned back e.g. that time-travel may become possible. This facility would pose interesting new mechanisms for investigating the dynamics of Agent-Based Simulations: halting time, fast-forward and fast-backward. The backward-going is a novelty. Could we inject new random-seeds during execution? 
-
--> also it contains first hint at reasoning possibilities about the simple SIR model
-		-> my emulation of SD using ABS is really an implementation of the SD model and follows it - they are equivalent
-		-> my ABS implementation is the same as / equivalent to the SD emulation
-			=> thus if i can show that my SD emulation is equlas to the SD model
-			=> AND that the ABS implementation is the same as the SD emulation
-			=> THEN the ABS implementation is an SD implementation, and we have shown this in code for the first time in ABS
-
-\subsection{Will it Equilibrate? Reasoning about dynamics in ABS}
-In this paper we will discuss the verification method we have developed using our FrABS implementation and QuickCheck. We describe the decentralized bilateral bartering process of the Sugarscape model and verify it.
--> purely reasoning about the bilateral trading in sugarscape.
-	-> explain bilateral decentralized bartering
-	-> general equilibrium theory
-	-> give reason in code for the failure of reaching equilibrium
-
--> can we reason about the equilibrium prices in an ABS setting? e.g. show formally why equilibrium prices are not reached, under which circumstance they are reached,...
-			-> need to combine General Equilibrium Theory
-			-> with Bilateral decentralized exchange
-			-> with Agent-Based Simulation 
-			
 \section{Conferences}
 \begin{itemize}
 	\item \textbf{Multi-Agent Systems AAMS} - General Multi-Agent Systems and Agent-Based Modelling \& Simulation, Deadline in November
@@ -84,15 +81,15 @@ In this paper we will discuss the verification method we have developed using ou
 
 \section{Mile-Stones}
 \begin{itemize}
-	\item 2017 31st March - finished and submit Paper 
-	\item 2017 18th June - Finished writing 1st year report 
-	\item 2017 21st July - 1st Annual Review
-	\item 2017 October - 2nd year starts
-	\item 2018 May - Submit Paper on FrABS
-	\item 2018 October - 3rd year starts
-	\item 2019 February - Submit Paper on Verification
-	\item 2019 April - Begin of thesis-writing
-	\item 2019 September - Submit Thesis
+	\item 2017 31st March - finished and submit 1st paper 
+	\item 2017 21st July - 1st annual review
+	\item 2017 October - 2nd year starts, investigate programming paradigms
+	\item 2017 Februaray - finished programming paradigms, start robustness and correctness
+	\item 2017 September - finished robustness and correctness
+	\item 2018 October - 3rd year starts, investigate reasoning
+	\item 2018 March - finished reasoning
+	\item 2019 April - Begining of thesis-writing
+	\item 2019 September - Submit thesis
 	\item 2019 30th September - official end of PhD
 	\item 2020 30th September - end of pending-period
 \end{itemize}

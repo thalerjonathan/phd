@@ -1,2 +1,11 @@
 \section{Introduction}
 TODO: there is already a low-level haskell/java comparison there: in the code of the update-strategies paper. Also make direct use of this paper as it discusses some of the fundamental challenges implementing ABS in an language- and paradigm-agnostic way
+
+[ ] start with the question: all these programming languages are turing complete, why then not implement directly in turing machine or lambda calculus and why bother about different paradigms? the power is there isnt it?
+[ ] then look into the very foundations of conputation: turing model vs. lambda calculu denotational
+[ ] then make it clear that we dont program in a turing machine or lambda calculus (actually haskell is much much closer to lambda calculus than e.g. java or even is to a turing machine) because the raw power becomes unmanagable, we loose control. why? because we think problems which are more complex than operations on natural numbers very different and these lowlevel computational languages dont allow us to express this - they are not very expressive: too abstract.
+[ ] thus we arrive at a first conclusion: TM in theory yes but its not practical because we think about problems different and TM does not allow us directly to express in the way we think, we need to build  more mechanisms on top of this concept. so we have introduced the concept of expressivity. how can we express e.g. an if statement or a loop in a TM? 
+[ ] for the lambda calculus it is about the same with the difference that it is much more expressive than a TM
+[ ] so then the argumentation continues: we build up more and more levels of abstractions where each depends on preceeding ones. the point is that some languages stop at some level of abstraction and others continue.
+[ ] also there are different types of abstraction depending if we come either from lambda or turing direction 
+[ ] the question is then: which level of abstraction is necessary for ABS? how provide FP and OOP these?

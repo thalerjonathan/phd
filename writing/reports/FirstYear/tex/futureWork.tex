@@ -1,23 +1,34 @@
 \chapter{Future Work Plan}
 \label{chap:future}
 
-TODO: finalize fields of application
-TODO: talk a little bit more in the section on planned papers: first do the studies in the reports and then condense papers out of it as requested
-TODO: rework the Gantt-Chart
-TODO: rewrite Abstract
-TODO: read all again and rework parts which are in strong contrast to the new objectives
+%TODO: rework the Gantt-Chart
 
-major changes
-	- as requested, completely reconsidered the aims \& objectives and rewrote the chapter on it which is now much shorter, more concise and scientifically approachable.
-	- although not requested, completely rewrote chapter on future work which gives a detailed plan for the research to undertake in the 2nd year, which will focus on the missing "metrication" of my research conducted so far and of the aim in general. the 3rd year research is only outlined in small detail and can still be subject to change.
-	- added a section on Fields of Application in the chapter on Reflecting the Literature in which I - also as requested - shortly discuss why the fields of ACE and ABSS were selected as the use-cases in which to conduct the research
-	- reworked the Gantt-chart which is much smaller and contains only the mile-stones of the future work chapter
-	
-minor changes
-	- abstract rewritten
-	- small changes throughout the text when the content was in to strong contrst to the new objectives
+%\section{Mile-Stones}
+%\begin{itemize}
+%	\item 2017 31st March - finished and submit 1st paper 
+%	\item 2017 21st July - 1st annual review
+%	\item 2017 October - 2nd year starts, investigate programming paradigms
+%	\item 2017 Februaray - finished programming paradigms, start robustness and correctness
+%	\item 2017 September - finished robustness and correctness
+%	\item 2018 October - 3rd year starts, investigate reasoning
+%	\item 2018 March - finished reasoning
+%	\item 2019 April - Begining of thesis-writing
+%	\item 2019 September - Submit thesis
+%	\item 2019 30th September - official end of PhD
+%	\item 2020 30th September - end of pending-period
+%\end{itemize}
 
-In this chapter we discuss in more detail how we plan to approach the aim and objectives stated in Chapter \ref{chap:aimsObj}. Further we present important milestones, relevant conferences and a Gantt-Chart \ref{fig:gantt} reflecting the most important activities.
+%
+%major changes
+%	- as requested, completely reconsidered the aims \& objectives and rewrote the chapter on it which is now much shorter, more concise and scientifically approachable.
+%	- although not requested, completely rewrote chapter on future work which gives a detailed plan for the research to undertake in the 2nd year, which will focus on the missing "metrication" of my research conducted so far and of the aim in general. the 3rd year research is only outlined in small detail and can still be subject to change.
+%	- added a section on Fields of Application in the chapter on Reflecting the Literature in which I - also as requested - shortly discuss why the fields of ACE and ABSS were selected as the use-cases in which to conduct the research
+%	- reworked the Gantt-chart which is much smaller and contains only the mile-stones of the future work chapter
+%	
+%minor changes
+%	- abstract rewritten
+
+In this chapter we discuss in more detail how we plan to approach the aim and objectives stated in Chapter \ref{chap:aimsObj}. Further we give a short overview of planned papers and present a Gantt-Chart \ref{fig:gantt} reflecting the most important activities and relevant milestones.
 
 \section{Approaching the Objectives}
 
@@ -29,7 +40,7 @@ To be able to compare our approach to the existing state-of-the-art in the field
 Clarification on the fundamental challenges in implementing ABS from a programming-paradigm agnostic perspective must be done. This was already conducted in the first paper on Update-Strategies in ABS, which is now accepted at SSC2017 and can be found in Appendix \ref{app:updateStrategies}
 
 \subsection{Pure functional and object-oriented paradigms}
-The next objective is then to investigate the fundamental differences between the pure functional and object-oriented paradigms in implementing ABS with their respective incarnations Haskell and Java. This research should be conducted in the form of a report because as it imposes no limits on content-size, is easier to be incorporated in the thesis than a paper and if required a paper can be condensed out of it.
+The next objective is then to investigate the fundamental differences between the pure functional and object-oriented paradigms in implementing ABS with their respective incarnations Haskell and Java. This research will be conducted in the form of a report because it imposes no limits on content-size, is easier to be incorporated in the thesis than a paper and if required a paper can be condensed out of it.
 This work should pick up the work of the Update-Strategies paper and broaden and deepen its approach: show in more depth and in more detail which problems need to be solved when implementing an ABS and how both paradigms can be used in their way to solve them and identify potential benefits and drawbacks. There exists already code in Haskell and Java without any additional libraries (except JDK and Haskells standard library called Prelude) produced for the Update-Strategies paper which can be used for this work.
 In the next step we need to go up the abstraction ladder and investigate how FrABS and Repast Java approach these problems and compare them from a programing paradigm perspective and identify potential benefits and drawbacks.
 As examples the SIR compartment model in epidemiology should be implemented both as a System-Dynamics and ABS 2D-spatial/network model. Also a full implementation of Sugarscape should be attempted in Repast Java \footnote{There exists already an implementation of Chapter II in the Repast Java Demo library upon which we can build.}.
@@ -61,11 +72,11 @@ The second half of the 2nd year is allocated to this work.
 We conjecture that this research will come to the conclusion that pure functional programming dramatically increases the robustness and correctness of an ABS and that it allows for easier and clearer approach to verification using specification testing in QuickCheck and automated testing using Unit- and Property-Testing.
 
 \subsection{Reasoning about dynamics}
-This objective investigates how far we can get using the pure functional paradigms ability to reason about a program when applying it to reason about the dynamics of an ABS. As use-cases the idea is to look into reasoning about the equivalence of SD- and ABS-implementation of the SIR compartment model in epidemiology and about the equilibrium dynamics of the bilateral decentralized bartering in Sugarscape.
+This objective investigates how far we can get using the pure functional paradigms' ability to reason about a program when applying it to reason about the dynamics of an ABS. As use-cases the idea is to look into reasoning about the equivalence of SD- and ABS-implementation of the SIR compartment model in epidemiology and about the equilibrium dynamics of the bilateral decentralized bartering in Sugarscape.
 
 Both the System-Dynamics and Agent-Based implementation of the SIR compartment model in epidemiology lead to the same dynamics or put different: the Agent-Based implementation shows the same dynamics of the SD implementation when using replications. This is shown by plotting the dynamics as graphs. 
 
-In the Sugarscape model where agents engage in bilateral decentralized bartering Equilibrium is only reached when neo-classical agents are used which don't die of natural age. The equilibrium is not reached when more realistic assumptions are made. This is shown by plotting the prices over time. 
+In the Sugarscape model where agents engage in bilateral decentralized bartering equilibrium is only reached when neo-classical agents are used which don't die of natural age. The equilibrium is not reached when more realistic assumptions are made. This is shown by plotting the prices over time. 
 
 In this part of the Ph.D. we want to answer the following questions:
 \begin{itemize}
@@ -74,38 +85,14 @@ In this part of the Ph.D. we want to answer the following questions:
 	\item Can we show that the equilibrium in the decentralized bilateral bartering of Sugarscape is reached / not reached when using neo-classical agents / realistic agents through reasoning about the code?
 \end{itemize}
 
-We are very well aware that this topic alone could justify a Ph.D. on its own and it is unsure if we would could make it this far e.g. if the previous research takes longer than anticipated. Still we want to explicitly have clearly stated these objectives and outlined how to approach them - the worst which can happen is that they merely serve as a very in-depth outlook on future research.
+We are very well aware that this topic alone could justify a Ph.D. on its own and it is unsure if we would could make it this far (if the previous research takes longer than anticipated). Still we want to explicitly have clearly stated these objectives and outlined how to approach them - the worst which can happen is that they merely serve as a very in-depth outlook on future research.
 Thus the outcome of this research is highly uncertain but the conjecture is that we come to the following conclusion: it highly depends on the complexity and semantics of the model. In the case of the SIR compartment model we expect a success. In the case of the bilateral decentralized bartering in Sugarscape we probably will gain some insights but that at some point due to the interlocking of so many mechanisms it would get too complicated and a full and formal treatment is out of the scope of this Ph.D.
 We allocate the first half of the 3rd year to this work.
 
-\section{Thesis}
-We leave the following question to be answered in the final thesis:
-Do the findings on using the pure functional programming paradigm in ABS apply only to the field of Agent-Based Social Simulation and Agent-Based Computational Economics or to ABS in general?
-
 \section{Planned Papers}
-For the remainder of the PhD we planned for two more papers with one targeted as another conference paper and the second one as a journal paper.
-
-\section{Conferences}
-\begin{itemize}
-	\item \textbf{Multi-Agent Systems AAMS} - General Multi-Agent Systems and Agent-Based Modelling \& Simulation, Deadline in November
-	\item \textbf{Social Simulation Conference SSC} - New Methods and models in simulation, Deadline in March
-	\item \textbf{Symposium on Trends in Functional Programming} - Functional programming stuff, Deadline in May
-\end{itemize}
-
-\section{Mile-Stones}
-\begin{itemize}
-	\item 2017 31st March - finished and submit 1st paper 
-	\item 2017 21st July - 1st annual review
-	\item 2017 October - 2nd year starts, investigate programming paradigms
-	\item 2017 Februaray - finished programming paradigms, start robustness and correctness
-	\item 2017 September - finished robustness and correctness
-	\item 2018 October - 3rd year starts, investigate reasoning
-	\item 2018 March - finished reasoning
-	\item 2019 April - Begining of thesis-writing
-	\item 2019 September - Submit thesis
-	\item 2019 30th September - official end of PhD
-	\item 2020 30th September - end of pending-period
-\end{itemize}
+For the remainder of the PhD we planned for two more papers.
+The first one will be focused on the pure functional approach to ABS, and targeted as a conference paper. Because we are doing interdisciplinary research which is a cross-over between the fields of ABMS and functional programming in the theoretical computer sciences, we plan to write two papers on this same topic but for different audiences: one for the ABMS community and one for the field of functional programming. This would allow us to present our new concepts to two different groups and explain the same thing from two different perspectives. Also it would introduce the two groups to the ideas of the other group and may result in a cross-fertilization.
+The second paper we target as a journal paper and will focus on testing, verification and correctness in the functional approach to ABS. This paper will be written for the ABMS community and released in an ABMS journal. 
 
 \label{app:gantt}
 \begin{landscape}

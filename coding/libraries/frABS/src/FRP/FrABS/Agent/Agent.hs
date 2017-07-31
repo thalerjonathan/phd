@@ -21,6 +21,7 @@ module FRP.FrABS.Agent.Agent (
     startingAgentInFromAgentDef,
 
     sendMessage,
+    sendMessageTo,
     sendMessages,
     broadcastMessage,
     hasMessage,
@@ -153,6 +154,9 @@ sendMessage msg ao = ao { aoMessages = mergedMsgs }
         newMsgEvent = Event [msg]
         existingMsgEvent = aoMessages ao
         mergedMsgs = mergeMessages existingMsgEvent newMsgEvent
+
+sendMessageTo :: AgentId -> m -> AgentOut s m e -> AgentOut s m e
+sendMessageTo aid msg ao = sendMessage (aid, msg) ao
 
 sendMessages :: [AgentMessage m] -> AgentOut s m e ->  AgentOut s m e
 sendMessages msgs ao = foldr sendMessage ao msgs

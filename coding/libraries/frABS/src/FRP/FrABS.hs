@@ -19,6 +19,7 @@ module FRP.FrABS (
     agentOutFromIn,
 
     sendMessage,
+    sendMessageTo,
     sendMessages,
     broadcastMessage,
     hasMessage,
@@ -57,6 +58,7 @@ module FRP.FrABS (
     isDeadM,
 
     sendMessageM,
+    sendMessageToM,
     sendMessagesM,
     broadcastMessageM,
     onMessageM,
@@ -173,7 +175,8 @@ module FRP.FrABS (
     Discrete2dDimension,
     Discrete2dCoord,
     Discrete2dNeighbourhood,
-
+    Discrete2dCell,
+    
     Discrete2d (..), -- TODO: hide data-constructor
 
     createDiscrete2d,

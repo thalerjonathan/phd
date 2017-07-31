@@ -16,55 +16,128 @@ import Control.Monad.IfElse
 
 import Debug.Trace
 
+agentCoordToPatchCoord :: ZombiesEnvironment -> Continuous2DCoord -> Discrete2dCoord
+agentCoordToPatchCoord (as, ap, _) cc = cont2dTransDisc2d ap as cc
+
 humanBehaviourM :: ZombiesEnvironment 
                     -> Double 
                     -> ZombiesAgentIn 
-                    -> State ZombiesAgentOut ZombiesEnvironment     
-humanBehaviourM e _ ain = 
+                    -> State ZombiesAgentOut ZombiesEnvironment
+humanBehaviourM e@(as, ap, an) _ ain = 
     do
-        let p = zAgentPatches e
-
+        updateDomainStateM (\s -> s { zAgentRole = Human })
         coord <- domainStateFieldM zAgentCoord
+        let coordPatch = agentCoordToPatchCoord e coord
 
-        let ns = neighbours (cont2dToDisc2d coord) True p
-        let sortedNs = sortBy (\(_, (_, z1)) (_, (_, z2)) -> compare z1 z2) ns
-        let (fewestZombiesCoord, (_, fewestZombiesCount)) = head sortedNs
+        let ns = neighbours coordPatch True ap
+        let sortedNs = sortBy sortPatchesByZombies ns
         let (_, (_, maxZombiesCount)) = last sortedNs
         
         ifThenElse
-            (maxZombiesCount > 0)
+            (maxZombiesCount > 0) -- read: any zombies within neighbourhood
             (do
-                let coord' = trace ("fewestZombiesCount = " ++ (show fewestZombiesCount)) (stepTo (zAgentSpace e) 0.01 coord (disc2dToCont2d fewestZombiesCoord))
+                let (fewestZombiesPatch, _) = head sortedNs
 
+                energy <- domainStateFieldM zHumanEnergyLevel
                 ifThenElse
-                    (coord /= coord')
-                    (do
-                        let p0 = updateCellAt (cont2dToDisc2d coord) decHuman p
-                        let p1 = updateCellAt (cont2dToDisc2d coord') incHuman p0
-
-                        updateDomainStateM (\s -> s { zAgentCoord = coord' })
-
-                        return e { zAgentPatches = p1 })
-                    (return e))
+                    (energy > 0)
+                    (flee coordPatch fewestZombiesPatch e)
+                    (resetEnergy >> return e))
             (return e)
+    where
+        aid = aiId ain
+
+        resetEnergy :: State ZombiesAgentOut ()
+        resetEnergy = updateDomainStateM (\s -> s { zHumanEnergyLevel = zHumanEnergyInit s })
+
+        reduceEnergy :: State ZombiesAgentOut ()
+        reduceEnergy = updateDomainStateM (\s -> s { zHumanEnergyLevel = zHumanEnergyLevel s - 1 })
+
+        flee :: Discrete2dCoord -> Discrete2dCoord -> ZombiesEnvironment -> State ZombiesAgentOut ZombiesEnvironment
+        flee coordPatch targetPatch e@(as, ap, an)
+            | coordPatch == targetPatch = return e
+            | otherwise =
+                do
+                    coord <- domainStateFieldM zAgentCoord
+                    let coord' = stepTo as humanSpeed coord (disc2dToCont2d targetPatch)
+                    updateDomainStateM (\s -> s { zAgentCoord = coord' })
+                    reduceEnergy
+
+                    let ap0 = updateCellAt coordPatch (removeHuman aid) ap
+                    let ap1 = updateCellAt targetPatch (addHuman aid) ap0
+                    return (as, ap1, an)
 
 zombieBehaviourM :: ZombiesEnvironment 
                     -> Double 
                     -> ZombiesAgentIn 
-                    -> State ZombiesAgentOut ZombiesEnvironment     
-zombieBehaviourM e _ ain = 
+                    -> State ZombiesAgentOut ZombiesEnvironment
+zombieBehaviourM e@(as, ap, an) _ ain = 
     do
-        
-        return e
+        updateDomainStateM (\s -> s { zAgentRole = Zombie })
+        coord <- domainStateFieldM zAgentCoord
+        let coordPatch = agentCoordToPatchCoord e coord
+
+        let ns = neighbours coordPatch True ap
+        let sortedNs = sortBy sortPatchesByHumans ns
+        let patch@(maxHumanCoord, (hs, _)) = last sortedNs
+
+        e' <- moveTowards coordPatch maxHumanCoord e
+        infect patch e'
+
+    where
+        moveTowards :: Discrete2dCoord -> Discrete2dCoord -> ZombiesEnvironment -> State ZombiesAgentOut ZombiesEnvironment
+        moveTowards coordPatch targetPatch e 
+            | coordPatch == targetPatch = return e
+            | otherwise =
+                do
+                    coord <- domainStateFieldM zAgentCoord
+                    let coord' = stepTo as zombieSpeed coord (disc2dToCont2d targetPatch)
+                    updateDomainStateM (\s -> s { zAgentCoord = coord' })
+
+                    let ap0 = updateCellAt coordPatch decZombie ap
+                    let ap1 = updateCellAt targetPatch incZombie ap0
+                    return (as, ap1, an)
+
+        infect :: Discrete2dCell ZombiesPatch -> ZombiesEnvironment -> State ZombiesAgentOut ZombiesEnvironment
+        infect (_, ([], _)) e = return e
+        infect (coord, (hs, _)) e@(as, ap, an) =
+            do
+                h <- agentRandomPickM hs
+                trace ("infecting " ++ (show h)) sendMessageToM h Infect
+
+                let ap0 = updateCellAt coord (removeHuman h) ap
+                let ap1 = updateCellAt coord incZombie ap0
+
+                return (as, ap1, an)
 
 ------------------------------------------------------------------------------------------------------------------------
 -- BEHAVIOURS
 ------------------------------------------------------------------------------------------------------------------------
+{-
 human :: ZombiesAgentBehaviour
 human = transitionOnMessage
                 Infect
                 (agentMonadic humanBehaviourM)
                 (agentMonadic zombieBehaviourM)
+-}
+
+human :: ZombiesAgentBehaviour
+human = agentMonadic human'
+    where
+        human' :: ZombiesEnvironment 
+                    -> Double 
+                    -> ZombiesAgentIn 
+                    -> State ZombiesAgentOut ZombiesEnvironment
+        human' e t ain =
+            do
+                role <- domainStateFieldM zAgentRole 
+                if (role == Human) then
+                    ifThenElse 
+                        (hasMessage Infect ain)
+                        (zombieBehaviourM e t ain)
+                        (humanBehaviourM e t ain)
+                    else
+                        zombieBehaviourM e t ain
 
 zombie :: ZombiesAgentBehaviour
 zombie = agentMonadic zombieBehaviourM

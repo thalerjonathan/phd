@@ -10,12 +10,12 @@ import           FRP.FrABS
 
 winSize = (800, 800)
 winTitle = "Zombies"
-updateStrat = Sequential -- TODO: implement both so that Parallel is also possible
-envCollapsing = Just zombiesEnvironmentsCollapse
-shuffleAgents = True
+updateStrat = Parallel
+envCollapsing = Nothing
+shuffleAgents = False
 rngSeed = 42
 samplingTimeDelta = 1.0  -- NOTE: this model has no time-semantics (it does not matter if it is 1.0 or 0.1)
-frequency = 0
+frequency = 1
 
 runZombiesWithRendering :: IO ()
 runZombiesWithRendering =

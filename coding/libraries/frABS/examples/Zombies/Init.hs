@@ -21,7 +21,7 @@ initZombies =
     let dimsCont2d = disc2dToCont2d dimsDisc2d
 
     let coords = [ (x, y) | x <- [0..dx-1], y <- [0..dy-1] ]
-    let cells = map (swap . ((,) (0, 0))) coords
+    let cells = map (swap . ((,) ([], 0))) coords
 
     humans <- mapM (createHuman dimsCont2d) [0..humanCount - 1]
     zombies <- mapM (createZombie dimsCont2d) [humanCount..humanCount + zombieCount - 1]
@@ -42,12 +42,7 @@ initZombies =
     let as = createContinuous2d dimsCont2d WrapBoth
 
     let ap' = updatePatches adefs ap
-
-    let e = ZombiesEnvironment {
-      zAgentNetwork = an,
-      zAgentSpace = as,
-      zAgentPatches = ap'
-    }
+    let e = (as, ap', an)
 
     return (adefs, e)
 
@@ -61,9 +56,10 @@ updatePatches zombies e = foldr updateEnvWithZombiesAux e zombies
 
     updateEnvWithZombiesAux :: ZombiesAgentDef -> ZombiesPatches -> ZombiesPatches
     updateEnvWithZombiesAux adef accEnv 
-      | isHuman s = updateCellAt coord incHuman accEnv
+      | isHuman s = updateCellAt coord (addHuman aid) accEnv
       | otherwise = updateCellAt coord incZombie accEnv
       where
+        aid = adId adef
         s = adState adef
         coord = wrapDisc2d dims ClipToMax (cont2dToDisc2d (zAgentCoord s))
 
@@ -76,6 +72,7 @@ createZombie dims@(dx, dy) aid =
     ry <- getRandomR (0, dy)
 
     let s = ZombiesState {
+      zAgentRole = Zombie,
       zAgentCoord = (rx, ry)
     }
 
@@ -97,8 +94,10 @@ createHuman dims@(dx, dy) aid =
     re <- getRandomR humanInitEnergyRange
 
     let s = HumanState {
+      zAgentRole = Human,
       zAgentCoord = (rx, ry),
-      zHumanEnergy = re
+      zHumanEnergyLevel = re,
+      zHumanEnergyInit = re
     }
 
     return AgentDef {

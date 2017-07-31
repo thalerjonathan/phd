@@ -7,6 +7,7 @@ module FRP.FrABS.Agent.Monad (
     isDeadM,
 
     sendMessageM,
+    sendMessageToM,
     sendMessagesM,
     broadcastMessageM,
     onMessageM,
@@ -57,6 +58,10 @@ agentIdM = state (\ao -> (aoId ao, ao))
 
 sendMessageM :: AgentMessage m -> State (AgentOut s m e) ()
 sendMessageM msg = state (\ao -> ((), sendMessage msg ao))
+
+sendMessageToM :: AgentId -> m -> State (AgentOut s m e) ()
+sendMessageToM receiver msg = state (\ao -> ((), sendMessageTo receiver msg ao))
+
 
 conversationM :: AgentMessage m
                 -> AgentConversationSender s m e

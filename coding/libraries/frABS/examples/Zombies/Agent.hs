@@ -29,14 +29,15 @@ humanBehaviourM e@(as, ap, an) _ ain =
         coord <- domainStateFieldM zAgentCoord
         let coordPatch = agentCoordToPatchCoord e coord
 
-        let ns = neighbours coordPatch True ap
-        let sortedNs = sortBy sortPatchesByZombies ns
+        let ns = neighbours coordPatch False ap
+        ns' <- agentRandomShuffleM ns
+        let sortedNs = sortBy sortPatchesByZombies ns'
         let (_, (_, maxZombiesCount)) = last sortedNs
         
         ifThenElse
             (maxZombiesCount > 0) -- read: any zombies within neighbourhood
             (do
-                let (fewestZombiesPatch, _) = head sortedNs
+                let fewestZombiesPatch = fst . head $ sortedNs
 
                 energy <- domainStateFieldM zHumanEnergyLevel
                 ifThenElse
@@ -78,7 +79,8 @@ zombieBehaviourM e@(as, ap, an) _ ain =
         let coordPatch = agentCoordToPatchCoord e coord
 
         let ns = neighbours coordPatch True ap
-        let sortedNs = sortBy sortPatchesByHumans ns
+        ns' <- agentRandomShuffleM ns
+        let sortedNs = sortBy sortPatchesByHumans ns'
         let patch@(maxHumanCoord, (hs, _)) = last sortedNs
 
         e' <- moveTowards coordPatch maxHumanCoord e
@@ -103,7 +105,7 @@ zombieBehaviourM e@(as, ap, an) _ ain =
         infect (coord, (hs, _)) e@(as, ap, an) =
             do
                 h <- agentRandomPickM hs
-                trace ("infecting " ++ (show h)) sendMessageToM h Infect
+                sendMessageToM h Infect
 
                 let ap0 = updateCellAt coord (removeHuman h) ap
                 let ap1 = updateCellAt coord incZombie ap0

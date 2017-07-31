@@ -130,12 +130,15 @@ module FRP.FrABS (
     agentRandomPickM,
     agentRandomPicks,
     agentRandomPicksM,
+    agentRandomShuffle,
+    agentRandomShuffleM,
 
     randomBool,
     randomBoolM,
     randomExp,
     randomExpM,
-
+    randomShuffle,
+    
     avoid,
 
     randomNeighbourNode,

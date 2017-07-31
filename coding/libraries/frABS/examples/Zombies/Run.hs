@@ -14,7 +14,7 @@ updateStrat = Sequential
 shuffleAgents = True
 rngSeed = 42
 samplingTimeDelta = 1.0  -- NOTE: this model has no time-semantics (it does not matter if it is 1.0 or 0.1)
-frequency = 1
+frequency = 0
 
 runZombiesWithRendering :: IO ()
 runZombiesWithRendering =

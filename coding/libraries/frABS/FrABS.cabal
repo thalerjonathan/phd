@@ -19,6 +19,7 @@ library
   build-depends:   base, Yampa, gloss, random, containers, array, MonadRandom, split, fgl, transformers, parallel, stm
   exposed-modules:
     FRP.FrABS
+    FRP.FrABS.Utils
     FRP.FrABS.Agent.Agent
     FRP.FrABS.Agent.Utils
     FRP.FrABS.Agent.Random

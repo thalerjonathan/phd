@@ -11,16 +11,20 @@ module FRP.FrABS.Agent.Random (
     agentRandomPickM,
     agentRandomPicks,
     agentRandomPicksM,
+    agentRandomShuffle,
+    agentRandomShuffleM,
 
     randomBool,
     randomBoolM,
     randomExp,
     randomExpM,
+    randomShuffle,
 
     avoid
   ) where
 
 import FRP.FrABS.Agent.Agent
+import FRP.FrABS.Utils
 
 import System.Random
 import Control.Monad.Random
@@ -31,11 +35,11 @@ import Control.Monad.Trans.State
 -------------------------------------------------------------------------------
 -- NOTE: beware of a = AgentOut (randomly manipulating AgentOut) because one will end up with 2 versions of AgentOut which need to be merged
 agentRandom :: Rand StdGen a -> AgentOut s m e -> (a, AgentOut s m e)
-agentRandom f a = (ret, a')
+agentRandom f ao = (ret, ao')
     where
-        g = aoRng a
+        g = aoRng ao
         (ret, g') = runRand f g
-        a' = a {aoRng = g'}
+        ao' = ao {aoRng = g'}
 
 agentRandomM :: Rand StdGen a -> State (AgentOut s m e) a
 agentRandomM f = state (runAgentRandomMAux f)
@@ -51,12 +55,9 @@ agentRandomRange :: (Random a) => (a, a) -> AgentOut s m e -> (a, AgentOut s m e
 agentRandomRange r a = agentRandom (getRandomR r) a 
 
 agentRandomRanges :: (Random a) => (a, a) -> Int -> AgentOut s m e -> ([a], AgentOut s m e)
-agentRandomRanges r n a = agentRandom blub a 
+agentRandomRanges r n ao = agentRandom agentRandomRangesAux ao 
     where
-        blub = do
-                infRand <- getRandomRs r
-                let nRand = take n infRand
-                return nRand
+        agentRandomRangesAux = getRandomRs r >>= (\infRand -> return $ take n infRand)
 
 agentRandomBoolProb :: Double -> AgentOut s m e -> (Bool, AgentOut s m e)
 agentRandomBoolProb p ao = agentRandom (randomBoolM p) ao
@@ -68,31 +69,41 @@ agentRandomBoolProbM p = state agentRandomBoolProbMAux
         agentRandomBoolProbMAux ao = agentRandomBoolProb p ao
 
 agentRandomSplit :: AgentOut s m e -> (StdGen, AgentOut s m e)
-agentRandomSplit a = agentRandom getSplit a 
+agentRandomSplit ao = agentRandom getSplit ao 
 
 agentRandomPick :: [a] -> AgentOut s m e -> (a, AgentOut s m e)
-agentRandomPick xs a 
+agentRandomPick xs ao 
     | null xs = error "cannot draw single random element from empty list"
-    | otherwise = (randElem, a')
+    | otherwise = (randElem, ao')
     where
         cellCount = length xs
-        (randIdx, a') = agentRandomRange (0, cellCount - 1) a 
+        (randIdx, ao') = agentRandomRange (0, cellCount - 1) ao 
         randElem = xs !! randIdx
 
 agentRandomPickM :: [a] -> State (AgentOut s m e) a
 agentRandomPickM xs = state (\ao -> agentRandomPick xs ao)
 
 agentRandomPicks :: [a] -> Int -> AgentOut s m e -> ([a], AgentOut s m e)
-agentRandomPicks xs n a 
+agentRandomPicks xs n ao 
     | null xs = error "cannot draw multiple random elements from empty list"
-    | otherwise = (randElems, a')
+    | otherwise = (randElems, ao')
     where
         cellCount = length xs
-        (randIndices, a') = agentRandomRanges (0, cellCount - 1) n a 
+        (randIndices, ao') = agentRandomRanges (0, cellCount - 1) n ao 
         randElems = foldr (\idx acc -> (xs !! idx) : acc) [] randIndices  
 
 agentRandomPicksM :: [a] -> Int -> State (AgentOut s m e) [a]
 agentRandomPicksM xs n = state (\ao -> agentRandomPicks xs n ao)
+
+agentRandomShuffle :: [a] -> AgentOut s m e -> ([a], AgentOut s m e)
+agentRandomShuffle xs ao = (xs', ao')
+    where
+        g = aoRng ao
+        (xs', g') = randomShuffle g xs
+        ao' = ao {aoRng = g'}
+
+agentRandomShuffleM :: [a] -> State (AgentOut s m e) [a]
+agentRandomShuffleM xs = state (\ao -> agentRandomShuffle xs ao)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -120,4 +131,7 @@ avoid x =
             avoid x
             else
                 return r
+
+randomShuffle :: RandomGen g => g -> [a] -> ([a], g)
+randomShuffle = fisherYatesShuffle
 -------------------------------------------------------------------------------

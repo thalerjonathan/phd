@@ -45,7 +45,7 @@ createContinuous2d d w = Continuous2d {
 stepTo :: Continuous2d -> Double -> Continuous2DCoord -> Continuous2DCoord -> Continuous2DCoord
 stepTo e step from to = wrapCont2dEnv e from'
     where
-        dir = vecNorm $ vecFromCoord to from
+        dir = vecNorm $ vecFromCoord from to
         from' = addCoord from (multCoord step dir)
 
 stepRandom :: Continuous2DCoord 

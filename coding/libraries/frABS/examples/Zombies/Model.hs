@@ -76,22 +76,22 @@ type ZombiesAgentOut = AgentOut ZombiesAgentState ZombiesMsg ZombiesEnvironment
 -- MODEL-PARAMETERS
 ------------------------------------------------------------------------------------------------------------------------
 humanCount :: Int
-humanCount = 10
+humanCount = 100
 
 zombieCount :: Int
-zombieCount = 1
+zombieCount = 5
 
 humanInitEnergyRange :: (Int, Int)
 humanInitEnergyRange = (4, 10)
 
 gridDimensions :: Discrete2dDimension
-gridDimensions = (1, 1)
+gridDimensions = (50, 50)
 
 zombieSpeed :: Double
-zombieSpeed = 0.1
+zombieSpeed = 0.5
 
 humanSpeed :: Double
-humanSpeed = 0.2
+humanSpeed = 1.0
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

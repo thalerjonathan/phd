@@ -120,7 +120,7 @@ simulateSeq initSfs initParams = SF { sfTF = tf0 }
 
         -- NOTE: here we create recursively a new continuation
         -- ins are the old inputs from which outs resulted, together with their sfs
-        -- simulateSeqAux :: -> SimulationParams e -> [AgentBehaviour s m e] -> [(AgentIn s m e, e)] -> e -> ?
+        -- simulateSeqAux :: SimulationParams e -> [AgentBehaviour s m e] -> [(AgentIn s m e, e)] -> e -> ?
         simulateSeqAux params sfs insWithEnv e = SF' tf
             where
                 -- NOTE: this is a function definition
@@ -253,8 +253,7 @@ seqCallback params
 
         handleAgent :: [(AgentIn s m e, e)]
                         -> (AgentBehaviour s m e, (AgentIn s m e, e), (AgentOut s m e, e))
-                        -> ([(AgentIn s m e, e)],
-                             Maybe (AgentBehaviour s m e, (AgentIn s m e, e), (AgentOut s m e, e)))
+                        -> ([(AgentIn s m e, e)], Maybe (AgentBehaviour s m e, (AgentIn s m e, e), (AgentOut s m e, e)))
         handleAgent otherIns a@(sf, oldIn, newOut) = (otherIns'', mayAgent)
             where
                 (otherIns', newOut') = handleConversation otherIns newOut
@@ -306,7 +305,6 @@ seqCallback params
             where
                 killAgent = isEvent $ aoKill $ fst newOut
                 newIn = newAgentIn oldIn newOut
-
                 -- NOTE: need to handle sending messages to itself because the input of this agent is not in the list of all inputs because it will be replaced anyway by newIn
                 newIn' = collectMessagesFor [newOut] newIn
 
@@ -543,9 +541,10 @@ distributeMessagesFast ains aouts = map (distributeMessagesAux allMsgs) ains
         distributeMessagesAux allMsgs (ain, e) = (ain', e) 
             where
                 receiverId = aiId ain
-                mayReceiverMsgs = Map.lookup receiverId allMsgs
+                msgs = aiMessages ain -- NOTE: ain may have already messages, they would be overridden if not incorporating them
 
-                msgsEvt = maybe NoEvent (\receiverMsgs -> Event receiverMsgs) mayReceiverMsgs
+                mayReceiverMsgs = Map.lookup receiverId allMsgs
+                msgsEvt = maybe msgs (\receiverMsgs -> mergeMessages (Event receiverMsgs) msgs) mayReceiverMsgs
 
                 ain' = ain { aiMessages = msgsEvt }
 

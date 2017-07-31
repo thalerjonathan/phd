@@ -41,8 +41,6 @@ import FRP.Yampa
 
 import Control.Monad.Random
 
-import Debug.Trace
-
 -- TODO: is access to environment necesssary here?
 type EventSource s m e = SF (AgentIn s m e, AgentOut s m e) (AgentOut s m e, Event ())
 type MessageSource s m e = (e -> AgentOut s m e -> (AgentOut s m e, AgentMessage m))
@@ -207,7 +205,7 @@ transitionOnEvent :: EventSource s m e
                     -> AgentBehaviour s m e
                     -> AgentBehaviour s m e
                     -> AgentBehaviour s m e
-transitionOnEvent evtSrc from to = switch (transitionEventAux evtSrc from) (\_ -> trace ("event switch occured") to)
+transitionOnEvent evtSrc from to = switch (transitionEventAux evtSrc from) (\_ -> to)
     where
         transitionEventAux :: EventSource s m e
                                 -> AgentBehaviour s m e
@@ -277,7 +275,6 @@ transitionOnEventWithGuard evtSrc guardAction from to = switch (transitionEventW
 messageEventSource :: (Eq m) => m -> EventSource s m e
 messageEventSource msg = proc (ain, ao) ->
     do
-        --evt <- iEdge False -< hasMessage msg ain
-        evt <- edge -< hasMessage msg ain
+        evt <- iEdge False -< hasMessage msg ain
         returnA -< (ao, evt)
 -------------------------------------------------------------------------------

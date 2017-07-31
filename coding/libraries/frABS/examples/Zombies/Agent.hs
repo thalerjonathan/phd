@@ -113,31 +113,12 @@ zombieBehaviourM e@(as, ap, an) _ ain =
 ------------------------------------------------------------------------------------------------------------------------
 -- BEHAVIOURS
 ------------------------------------------------------------------------------------------------------------------------
-{-
+
 human :: ZombiesAgentBehaviour
 human = transitionOnMessage
                 Infect
                 (agentMonadic humanBehaviourM)
                 (agentMonadic zombieBehaviourM)
--}
-
-human :: ZombiesAgentBehaviour
-human = agentMonadic human'
-    where
-        human' :: ZombiesEnvironment 
-                    -> Double 
-                    -> ZombiesAgentIn 
-                    -> State ZombiesAgentOut ZombiesEnvironment
-        human' e t ain =
-            do
-                role <- domainStateFieldM zAgentRole 
-                if (role == Human) then
-                    ifThenElse 
-                        (hasMessage Infect ain)
-                        (zombieBehaviourM e t ain)
-                        (humanBehaviourM e t ain)
-                    else
-                        zombieBehaviourM e t ain
 
 zombie :: ZombiesAgentBehaviour
 zombie = agentMonadic zombieBehaviourM

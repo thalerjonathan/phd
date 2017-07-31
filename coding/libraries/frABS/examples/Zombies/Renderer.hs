@@ -20,7 +20,7 @@ renderZombiesFrame wSize@(wx, wy) ss (as, ap, an) = GLO.Pictures [patchesPic, ag
     where
         patchesPic = renderFrameDisc2d 
                         voidAgentRendererDisc2d
-                        zombiesEnvRenderer -- voidEnvRendererDisc2d
+                        voidEnvRendererDisc2d -- zombiesEnvRenderer -- voidEnvRendererDisc2d
                         wSize
                         []
                         ap
@@ -33,7 +33,7 @@ renderZombiesFrame wSize@(wx, wy) ss (as, ap, an) = GLO.Pictures [patchesPic, ag
                         as
 
 zombiesEnvRenderer :: ZombiesEnvRenderer
-zombiesEnvRenderer r@(rw, rh) w (coord, cell) = GLO.color GLO.white $ GLO.translate x y $ GLO.scale 0.05 0.05 $ GLO.Text (show (zombieCount, humans))
+zombiesEnvRenderer r@(rw, rh) w (coord, cell) = GLO.color GLO.white $ GLO.translate x y $ GLO.scale 0.1 0.1 $ GLO.Text (show (zombieCount, humans))
     where
         (x, y) = transformToWindow r w coord
         zombieCount = snd cell

@@ -41,7 +41,7 @@ import           Zombies.Run
 -}
 
 main :: IO ()
-main = runZombiesWithRendering
+main = runFrSIRSSpatialWithRendering
 
     -- runZombiesWithRendering
     -- runPolicyEffectsWithRendering

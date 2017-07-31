@@ -10,9 +10,8 @@ import           FRP.FrABS
 
 winSize = (800, 800)
 winTitle = "Zombies"
-updateStrat = Parallel
-envCollapsing = Nothing
-shuffleAgents = False
+updateStrat = Sequential
+shuffleAgents = True
 rngSeed = 42
 samplingTimeDelta = 1.0  -- NOTE: this model has no time-semantics (it does not matter if it is 1.0 or 0.1)
 frequency = 1
@@ -20,7 +19,7 @@ frequency = 1
 runZombiesWithRendering :: IO ()
 runZombiesWithRendering =
     do
-        params <- initSimulation updateStrat Nothing envCollapsing shuffleAgents (Just rngSeed)
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- initZombies
 
         simulateAndRender initAdefs

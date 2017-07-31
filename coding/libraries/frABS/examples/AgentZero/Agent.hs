@@ -67,7 +67,7 @@ randomMoveM e =
 	do
 		aid <- agentIdM
 
-		when (aid < 0) 
+		when (aid /= 0) 
 			(do
 				coord <- domainStateFieldM azAgentCoord
 				newCoord <- agentRandomM (stepRandom coord (azAgentSpace e) movementSpeed)

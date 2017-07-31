@@ -142,11 +142,11 @@ randomNeighbourNodeMsgSource m e ao = (ao', msg)
         (randNode, ao') = agentRandom (randomNeighbourNode aid e) ao
         msg = (randNode, m)
 
-randomNeighbourCellMsgSource :: (s -> Discrete2dCoord) -> m -> MessageSource s m (Discrete2d AgentId)
-randomNeighbourCellMsgSource posFunc m e ao = (ao', msg)
+randomNeighbourCellMsgSource :: (s -> Discrete2dCoord) -> m -> Bool -> MessageSource s m (Discrete2d AgentId)
+randomNeighbourCellMsgSource posFunc m ic e ao = (ao', msg)
     where
         pos = posFunc $ aoState ao
-        (randCell, ao') = agentRandom (randomNeighbourCell pos e) ao
+        (randCell, ao') = agentRandom (randomNeighbourCell pos ic e) ao
         msg = (randCell, m)
 -------------------------------------------------------------------------------
 

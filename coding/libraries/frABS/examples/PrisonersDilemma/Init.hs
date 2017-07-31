@@ -28,7 +28,7 @@ initPrisonersDilemma dims@(maxX, maxY) =
     envRng <- newStdGen 
     let e = createDiscrete2d
               dims
-              mooreSelf   -- NOTE: include self otherwise won't get the desired results
+              moore 
               ClipToMax
               cells
               envRng

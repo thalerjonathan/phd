@@ -51,7 +51,7 @@ randomContactM :: SIRSEnvironment -> State SIRSAgentOut ()
 randomContactM e = 
     do
         coord <- domainStateFieldM sirsCoord
-        randNeighId <- agentRandomM (randomNeighbourCell coord e)
+        randNeighId <- agentRandomM (randomNeighbourCell coord False e)
         sendMessageM (randNeighId, (Contact Infected))
 
 sirsAgentBehaviourFuncM :: SIRSAgentMonadicReadEnvBehaviour
@@ -113,7 +113,7 @@ randomContact :: SIRSEnvironment -> SIRSAgentOut -> SIRSAgentOut
 randomContact e ao = sendMessage (randNeigh, Contact Infected) ao'
     where
         coord = sirsCoord $ aoState ao
-        (randNeigh, ao') = agentRandom (randomNeighbourCell coord e) ao
+        (randNeigh, ao') = agentRandom (randomNeighbourCell coord False e) ao
 
 sirsAgentBehaviourFunc :: SIRSAgentPureReadEnvBehaviour
 sirsAgentBehaviourFunc e t ain ao = ao'

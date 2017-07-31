@@ -32,7 +32,6 @@ createFrSIRSNetworkNumInfected :: Int
                                     -> IO ([FrSIRSNetworkAgentDef], FrSIRSNetworkEnvironment)
 createFrSIRSNetworkNumInfected numInfected network =
     do
-        rng <- newStdGen
         e <- evalRandIO $ createNetwork network unitEdgeLabeler
 
         let degs = networkDegrees e

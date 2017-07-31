@@ -96,7 +96,7 @@ satisfactionOn e s targetCoord
     | otherwise = greenFraction
     where
         party = segParty s
-        cs = neighbours targetCoord e
+        cs = neighbours targetCoord False e
         (reds, greens) = countOccupied cs
 
         -- NOTE: if the agent is in the neighbourhood then don't include itself, otherwise include itself (although it might be on the targetcoord, the targetCoord itself is not included)

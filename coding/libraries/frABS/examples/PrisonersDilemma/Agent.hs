@@ -26,7 +26,7 @@ broadcastLocalAction e ao = broadcastMessage (NeighbourAction curr) ns ao
 		coord = pdCoord s
 		curr = pdCurrAction s
 
-		ns = neighbourCells coord e
+		ns = neighbourCells coord True e -- NOTE: include self, otherwise will lead to wrong results
 
 broadcastLocalPayoff :: PDEnvironment -> PDAgentOut -> PDAgentOut
 broadcastLocalPayoff e ao = broadcastMessage (NeighbourPayoff (currAct, currPo)) ns ao
@@ -37,7 +37,7 @@ broadcastLocalPayoff e ao = broadcastMessage (NeighbourPayoff (currAct, currPo))
 		currAct = pdCurrAction s
 		currPo = pdLocalPo s
 
-		ns = neighbourCells coord e
+		ns = neighbourCells coord True e -- NOTE: include self, otherwise will lead to wrong results
 
 handleNeighbourAction :: PDAgentIn -> PDAgentOut -> PDAgentOut
 handleNeighbourAction ain ao = onMessage handleNeighbourActionAux ain ao

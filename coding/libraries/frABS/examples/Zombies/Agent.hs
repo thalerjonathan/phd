@@ -26,7 +26,7 @@ humanBehaviourM e _ ain =
 
         coord <- domainStateFieldM zAgentCoord
 
-        let ns = neighbours (cont2dToDisc2d coord) p
+        let ns = neighbours (cont2dToDisc2d coord) True p
         let sortedNs = sortBy (\(_, (_, z1)) (_, (_, z2)) -> compare z1 z2) ns
         let (fewestZombiesCoord, (_, fewestZombiesCount)) = head sortedNs
         let (_, (_, maxZombiesCount)) = last sortedNs

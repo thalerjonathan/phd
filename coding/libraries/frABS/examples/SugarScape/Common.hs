@@ -106,9 +106,9 @@ selectBestCells measureFunc refCoord cs = bestShortestdistanceManhattanCells
 unoccupiedNeighbourhoodOfNeighbours :: Discrete2dCoord -> SugarScapeEnvironment -> [(Discrete2dCoord, SugarScapeEnvCell)]
 unoccupiedNeighbourhoodOfNeighbours coord e = filter (isNothing . sugEnvOccupier . snd) nncsUnique
     where
-        neighbourCells = neighbours coord e
+        neighbourCells = neighbours coord False e
         -- NOTE: this calculates the cells which are in the initial neighbourhood and in the neighbourhood of all the neighbours
-        nncsDupl = foldr (\(coord, _) acc -> neighbours coord e ++ acc) neighbourCells neighbourCells
+        nncsDupl = foldr (\(coord, _) acc -> neighbours coord False e ++ acc) neighbourCells neighbourCells
         -- NOTE: the nncs are not unique, remove duplicates
         nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
 
@@ -179,7 +179,7 @@ neighbourIds :: SugarScapeEnvironment -> SugarScapeAgentOut -> [AgentId]
 neighbourIds e ao = map (sugEnvOccId . fromJust . sugEnvOccupier) occupiedCells
     where
         coord = sugAgCoord $ aoState ao
-        ncs = neighbourCells coord e
+        ncs = neighbourCells coord False e -- NOTE: this includes only neighbours, never self, never required in this function
         occupiedCells = filter (isJust . sugEnvOccupier) ncs
 
 neighbourIdsM :: SugarScapeEnvironment -> State SugarScapeAgentOut [AgentId]

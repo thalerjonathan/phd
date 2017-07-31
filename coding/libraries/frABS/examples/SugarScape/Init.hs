@@ -40,7 +40,7 @@ createSugarScape agentCount dims@(dx, dy) params =
 
         let e = createDiscrete2d
                     dims
-                    neumannSelf
+                    neumann
                     WrapBoth
                     cells'
                     rng

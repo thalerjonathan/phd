@@ -55,7 +55,7 @@ sirsAgentSusceptibleBehaviour g = proc (ain, e) ->
         ao1 <- sendMessageOccasionallySrc 
                     g 
                     (1 / contactRate) 
-                    (randomNeighbourCellMsgSource sirsCoord (Contact Susceptible)) -< (ao0, e)
+                    (randomNeighbourCellMsgSource sirsCoord (Contact Susceptible) False) -< (ao0, e)
         returnA -< (ao1, e)
 
 -- INFECTED
@@ -75,7 +75,7 @@ sirsAgentInfectedBehaviour g = proc (ain, e) ->
         ao2 <- sendMessageOccasionallySrc 
                     g 
                     (1 / contactRate) 
-                    (randomNeighbourCellMsgSource sirsCoord (Contact Infected)) -< (ao1, e)
+                    (randomNeighbourCellMsgSource sirsCoord (Contact Infected) False) -< (ao1, e)
 
         returnA -< (ao2, e)
 

@@ -43,9 +43,7 @@ module FRP.FrABS.Environment.Discrete (
     neighbourhoodScale,
     wrapCells,
     neumann,
-    neumannSelf,
     moore,
-    mooreSelf,
     wrapNeighbourhood,
     wrapDisc2d,
     wrapDisc2dEnv,
@@ -135,7 +133,7 @@ changeCellAtM :: Discrete2dCoord -> c -> State (Discrete2d c) ()
 changeCellAtM coord c = state (\e -> ((), changeCellAt coord c e))
 
 cellsAroundRadius :: Discrete2dCoord -> Double -> Discrete2d c -> [(Discrete2dCoord, c)]
-cellsAroundRadius  pos r e = filter (\(coord, _) -> r >= distanceEuclideanDisc2d pos coord) ecs 
+cellsAroundRadius  pos r e = filter (\(coord, _) -> r >= distanceEuclideanDisc2d pos coord) ecs
     where
         ecs = allCellsWithCoords e
         -- TODO: does not yet wrap around boundaries
@@ -191,45 +189,45 @@ randomCellWithinRect (x, y) r e =
         return (randCell, randCoordWrapped)
 
 -- NOTE: this function does only work for neumann-neighbourhood, it ignores the environments neighbourhood. also it does not include the coord itself
-neighboursInNeumannDistance :: Discrete2dCoord -> Int -> Discrete2d c -> [(Discrete2dCoord, c)]
-neighboursInNeumannDistance coord dist e = zip wrappedNs cells
+neighboursInNeumannDistance :: Discrete2dCoord -> Int -> Bool -> Discrete2d c -> [(Discrete2dCoord, c)]
+neighboursInNeumannDistance coord dist ic e = zip wrappedNs cells
     where
         n = neumann
         coordDeltas = foldr (\v acc -> acc ++ neighbourhoodScale n v) [] [1 .. dist]
         l = envDisc2dDims e
         w = envDisc2dWrapping e
-        ns = neighbourhoodOf coord coordDeltas
+        ns = neighbourhoodOf coord ic coordDeltas
         wrappedNs = wrapNeighbourhood l w ns
         cells = cellsAt wrappedNs e
 
-neighboursInNeumannDistanceM :: Discrete2dCoord -> Int -> State (Discrete2d c) [(Discrete2dCoord, c)]
-neighboursInNeumannDistanceM coord dist = state (\e -> (neighboursInNeumannDistance coord dist e, e))
+neighboursInNeumannDistanceM :: Discrete2dCoord -> Int -> Bool -> State (Discrete2d c) [(Discrete2dCoord, c)]
+neighboursInNeumannDistanceM coord dist ic = state (\e -> (neighboursInNeumannDistance coord dist ic e, e))
 
-neighboursCellsInNeumannDistance :: Discrete2dCoord -> Int -> Discrete2d c -> [c]
-neighboursCellsInNeumannDistance coord dist e = map snd (neighboursInNeumannDistance coord dist e)
+neighboursCellsInNeumannDistance :: Discrete2dCoord -> Int -> Bool -> Discrete2d c -> [c]
+neighboursCellsInNeumannDistance coord dist ic e = map snd (neighboursInNeumannDistance coord dist ic e)
 
-neighboursCellsInNeumannDistanceM :: Discrete2dCoord -> Int -> State (Discrete2d c) [c]
-neighboursCellsInNeumannDistanceM coord dist = state (\e -> (neighboursCellsInNeumannDistance coord dist e, e))
+neighboursCellsInNeumannDistanceM :: Discrete2dCoord -> Int -> Bool -> State (Discrete2d c) [c]
+neighboursCellsInNeumannDistanceM coord dist ic = state (\e -> (neighboursCellsInNeumannDistance coord dist ic e, e))
 
 
-neighbours :: Discrete2dCoord -> Discrete2d c -> [(Discrete2dCoord, c)]
-neighbours coord e = zip wrappedNs cells
+neighbours :: Discrete2dCoord -> Bool -> Discrete2d c -> [(Discrete2dCoord, c)]
+neighbours coord ic e = zip wrappedNs cells
     where
         n = envDisc2dNeighbourhood e
         l = envDisc2dDims e
         w = envDisc2dWrapping e
-        ns = neighbourhoodOf coord n
+        ns = neighbourhoodOf coord ic n
         wrappedNs = wrapNeighbourhood l w ns
         cells = cellsAt wrappedNs e
 
-neighboursM :: Discrete2dCoord -> State (Discrete2d c) [(Discrete2dCoord, c)]
-neighboursM coord = state (\e -> (neighbours coord e, e))
+neighboursM :: Discrete2dCoord -> Bool -> State (Discrete2d c) [(Discrete2dCoord, c)]
+neighboursM coord ic = state (\e -> (neighbours coord ic e, e))
 
-neighbourCells :: Discrete2dCoord -> Discrete2d c -> [c]
-neighbourCells coord e = map snd (neighbours coord e)
+neighbourCells :: Discrete2dCoord -> Bool -> Discrete2d c -> [c]
+neighbourCells coord ic e = map snd (neighbours coord ic e)
 
-neighbourCellsM :: Discrete2dCoord -> State (Discrete2d c) [c]
-neighbourCellsM coord = state (\e -> (neighbourCells coord e, e))
+neighbourCellsM :: Discrete2dCoord -> Bool -> State (Discrete2d c) [c]
+neighbourCellsM coord ic = state (\e -> (neighbourCells coord ic e, e))
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -242,8 +240,12 @@ distanceEuclideanDisc2d (x1, y1) (x2, y2) = sqrt (xDelta*xDelta + yDelta*yDelta)
         xDelta = fromRational $ toRational (x2 - x1)
         yDelta = fromRational $ toRational (y2 - y1)
 
-neighbourhoodOf :: Discrete2dCoord -> Discrete2dNeighbourhood -> Discrete2dNeighbourhood
-neighbourhoodOf (x,y) ns = map (\(x', y') -> (x + x', y + y')) ns
+neighbourhoodOf :: Discrete2dCoord -> Bool -> Discrete2dNeighbourhood -> Discrete2dNeighbourhood
+neighbourhoodOf coord@(x,y) includeCoord ns 
+    | includeCoord = coord : ns'
+    | otherwise = ns'
+        where
+            ns' = map (\(x', y') -> (x + x', y + y')) ns
 
 neighbourhoodScale :: Discrete2dNeighbourhood -> Int -> Discrete2dNeighbourhood
 neighbourhoodScale ns s = map (\(x,y) -> (x * s, y * s)) ns
@@ -254,18 +256,10 @@ wrapCells = wrapNeighbourhood
 neumann :: Discrete2dNeighbourhood
 neumann = [topDelta, leftDelta, rightDelta, bottomDelta]
 
-neumannSelf :: Discrete2dNeighbourhood
-neumannSelf = [topDelta, leftDelta, centerDelta, rightDelta, bottomDelta]
-
 moore :: Discrete2dNeighbourhood
 moore = [topLeftDelta, topDelta, topRightDelta,
          leftDelta, rightDelta,
          bottomLeftDelta, bottomDelta, bottomRightDelta]
-
-mooreSelf :: Discrete2dNeighbourhood
-mooreSelf = [topLeftDelta, topDelta, topRightDelta,
-             leftDelta, centerDelta, rightDelta,
-             bottomLeftDelta, bottomDelta, bottomRightDelta]
 
 wrapNeighbourhood :: Discrete2dDimension -> EnvironmentWrapping -> Discrete2dNeighbourhood -> Discrete2dNeighbourhood
 wrapNeighbourhood l w ns = map (wrapDisc2d l w) ns
@@ -288,27 +282,34 @@ wrapDisc2d l@(_, maxY) WrapVertical (x, y)
     | otherwise = (x, y)
 wrapDisc2d l WrapBoth c = wrapDisc2d l WrapHorizontal $ wrapDisc2d l WrapVertical  c
 
+topLeftDelta :: Discrete2dCoord
 topLeftDelta =       (-1, -1)
+topDelta :: Discrete2dCoord
 topDelta =           ( 0, -1)
+topRightDelta :: Discrete2dCoord
 topRightDelta =      ( 1, -1)
+leftDelta :: Discrete2dCoord
 leftDelta =          (-1,  0)
-centerDelta =        ( 0,  0)
+rightDelta :: Discrete2dCoord
 rightDelta =         ( 1,  0)
+bottomLeftDelta :: Discrete2dCoord
 bottomLeftDelta =    (-1,  1)
+bottomDelta :: Discrete2dCoord
 bottomDelta =        ( 0,  1)
+bottomRightDelta :: Discrete2dCoord
 bottomRightDelta =   ( 1,  1)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- UTILITIES
 -------------------------------------------------------------------------------
-randomNeighbourCell :: Discrete2dCoord -> Discrete2d c -> Rand StdGen c
-randomNeighbourCell pos e = randomNeighbour pos e >>= (\(_, c) -> return c)
+randomNeighbourCell :: Discrete2dCoord -> Bool -> Discrete2d c -> Rand StdGen c
+randomNeighbourCell pos ic e = randomNeighbour pos ic e >>= (\(_, c) -> return c)
 
-randomNeighbour :: Discrete2dCoord -> Discrete2d c -> Rand StdGen (Discrete2dCoord, c)
-randomNeighbour pos e = 
+randomNeighbour :: Discrete2dCoord -> Bool -> Discrete2d c -> Rand StdGen (Discrete2dCoord, c)
+randomNeighbour pos ic e = 
     do
-        let ncc = neighbours pos e
+        let ncc = neighbours pos ic e
         let l = length ncc 
 
         randIdx <- getRandomR (0, l - 1)

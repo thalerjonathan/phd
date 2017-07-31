@@ -217,10 +217,10 @@ _enableCredit_ :: Bool
 _enableCredit_ = False
 
 _enableDiseases_ :: Bool
-_enableDiseases_ = True
+_enableDiseases_ = False
 
 _agentColoring_ :: AgentColoring
-_agentColoring_ = Diseased -- Tribe -- VisionGE 4 -- Undefined -- IdGE 401
+_agentColoring_ = Undefined -- Tribe -- VisionGE 4 -- Undefined -- IdGE 401
 ------------------------------------------------------------------------------------------------------------------------
 
 

@@ -55,7 +55,7 @@ igniteNeighbours :: RandomGen g => g -> SF (WildfireAgentOut, WildfireEnvironmen
 igniteNeighbours g = sendMessageOccasionallySrc 
 							g 
 							(1 / ignitions)
-							(randomNeighbourCellMsgSource wfCoord Ignite)
+							(randomNeighbourCellMsgSource wfCoord Ignite False)
 
 -- LIVING
 wildfireAgentLiving :: RandomGen g => g -> Double -> WildfireAgentBehaviour

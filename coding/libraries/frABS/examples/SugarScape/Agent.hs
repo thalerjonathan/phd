@@ -103,8 +103,13 @@ agentNonCombatMoveM e =
             (null unoccupiedCells)
             (agentStayAndHarvestM e)
             (do
+                -- NOTE included self but this will be always kicked out because self is occupied by self, need to somehow add this
+                --       what we want is that in case of same sugar on all fields (including self), the agent does not move because staying is the lowest distance (=0)
+                let selfCell = cellAt coord e
+                let unoccupiedCells' = (coord, selfCell) : unoccupiedCells
+
                 let bf = bestCellFunc
-                let bestCells = selectBestCells bf coord unoccupiedCells
+                let bestCells = selectBestCells bf coord unoccupiedCells'
                 (cellCoord, _) <- agentRandomPickM bestCells
                 agentMoveAndHarvestCellM cellCoord e)
 
@@ -113,7 +118,7 @@ agentLookoutM e =
     do
         vis <- domainStateFieldM sugAgVision
         coord <- domainStateFieldM sugAgCoord
-        return $ neighboursInNeumannDistance coord vis e
+        return $ neighboursInNeumannDistance coord vis False e
 
 agentStayAndHarvestM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
 agentStayAndHarvestM e = domainStateFieldM sugAgCoord >>= (\coord -> agentHarvestCellM coord e)

@@ -43,6 +43,7 @@ import           Zombies.Run
 main :: IO ()
 main = runZombiesWithRendering
 
+    -- runZombiesWithRendering
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile
     -- runSysDynSIRStepsAndWriteToFile

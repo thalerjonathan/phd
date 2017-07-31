@@ -34,7 +34,7 @@ initZombies =
     let an = createEmptyNetwork netRng 
     let ap = createDiscrete2d
                         dimsDisc2d
-                        mooreSelf
+                        moore
                         WrapBoth
                         cells
                         discRng

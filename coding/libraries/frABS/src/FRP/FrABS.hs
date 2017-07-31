@@ -182,6 +182,11 @@ module FRP.FrABS (
     
     Discrete2d (..), -- TODO: hide data-constructor
 
+    SingleOccupantCell,
+    SingleOccupantDiscrete2d,
+    MultiOccupantCell,
+    MultiOccupantDiscrete2d,
+
     createDiscrete2d,
  
     envDimsDisc2dM,
@@ -227,18 +232,29 @@ module FRP.FrABS (
     randomNeighbourCell,
     randomNeighbour,
     
-    Continuous2DDimension,
-    Continuous2DCoord,
+    occupied,
+    unoccupy,
+    occupy,
+    occupier,
+    addOccupant,
+    removeOccupant,
+    hasOccupiers,
+    occupiers,
+
+    Continuous2dDimension,
+    Continuous2dCoord,
 
     Continuous2d (..), -- TODO: hide data-constructor
+    
+    Continuous2dEmpty,
     
     createContinuous2d,
     
     stepTo,
     stepRandom,
 
-    distanceManhattanCont2D,
-    distanceEuclideanCont2D,
+    distanceManhattanCont2d,
+    distanceEuclideanCont2d,
 
     wrapCont2d,
     wrapCont2dEnv,

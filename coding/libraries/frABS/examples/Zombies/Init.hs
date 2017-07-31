@@ -63,7 +63,7 @@ updatePatches zombies e = foldr updateEnvWithZombiesAux e zombies
         s = adState adef
         coord = wrapDisc2d dims ClipToMax (cont2dToDisc2d (zAgentCoord s))
 
-createZombie :: Continuous2DDimension -> AgentId -> IO ZombiesAgentDef
+createZombie :: Continuous2dDimension -> AgentId -> IO ZombiesAgentDef
 createZombie dims@(dx, dy) aid =
   do
     rng <- newStdGen
@@ -84,7 +84,7 @@ createZombie dims@(dx, dy) aid =
        adBeh = zombie,
        adRng = rng }
 
-createHuman :: Continuous2DDimension -> AgentId -> IO ZombiesAgentDef
+createHuman :: Continuous2dDimension -> AgentId -> IO ZombiesAgentDef
 createHuman dims@(dx, dy) aid =
   do
     rng <- newStdGen

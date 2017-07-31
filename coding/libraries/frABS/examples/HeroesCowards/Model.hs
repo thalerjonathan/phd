@@ -21,20 +21,20 @@ import FRP.FrABS
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
 data HACRole = Hero | Coward deriving (Eq, Show)
-data HACMsg = PositionRequest | PositionUpdate Continuous2DCoord deriving (Eq, Show)
+data HACMsg = PositionRequest | PositionUpdate Continuous2dCoord deriving (Eq, Show)
 
 data HACAgentState = HACAgentState {
     hacRole :: HACRole,
-    hacCoord :: Continuous2DCoord,
+    hacCoord :: Continuous2dCoord,
 
-    hacFriendCoord :: Continuous2DCoord,
-    hacEnemyCoord :: Continuous2DCoord,
+    hacFriendCoord :: Continuous2dCoord,
+    hacEnemyCoord :: Continuous2dCoord,
 
     hacFriend :: AgentId,
     hacEnemy :: AgentId
 }
 
-type HACEnvironment = Continuous2d
+type HACEnvironment = Continuous2dEmpty
 
 type HACAgentDef = AgentDef HACAgentState HACMsg HACEnvironment
 type HACAgentBehaviour = AgentBehaviour HACAgentState HACMsg HACEnvironment

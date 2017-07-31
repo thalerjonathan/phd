@@ -73,7 +73,7 @@ initAgentZeroEpstein =
 
     return ([a0, a1, a2], e)
 
-createAgentZero :: (AgentId, Continuous2DCoord) -> IO AgentZeroAgentDef
+createAgentZero :: (AgentId, Continuous2dCoord) -> IO AgentZeroAgentDef
 createAgentZero (aid, coord) =
   do
     rng <- newStdGen

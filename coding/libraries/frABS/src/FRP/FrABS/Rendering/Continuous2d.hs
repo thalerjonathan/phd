@@ -20,18 +20,18 @@ import FRP.FrABS.Rendering.GlossSimulator
 
 import qualified Graphics.Gloss as GLO
  
-type AgentRendererCont2d s = Continuous2DDimension
+type AgentRendererCont2d s = Continuous2dDimension
                                 -> (Int, Int)
                                 -> (AgentId, s)
                                 -> GLO.Picture
 type AgentColorerCont2d s = s -> GLO.Color
-type AgentCoordCont2d s = (s -> Continuous2DCoord)
+type AgentCoordCont2d s = (s -> Continuous2dCoord)
 
-type EnvRendererCont2d = (Int, Int) -> Continuous2d -> GLO.Picture
+type EnvRendererCont2d c = (Int, Int) -> Continuous2d c -> GLO.Picture
 
 renderFrameCont2d :: AgentRendererCont2d s
-                        -> EnvRendererCont2d
-                        -> RenderFrame s Continuous2d
+                        -> EnvRendererCont2d c
+                        -> RenderFrame s (Continuous2d c)
 renderFrameCont2d ar er winSize@(wx, wy) ss e = GLO.Pictures (envPic : agentPics)
     where
         (dx, dy) = envCont2dDims e
@@ -42,10 +42,10 @@ renderFrameCont2d ar er winSize@(wx, wy) ss e = GLO.Pictures (envPic : agentPics
         agentPics = map (ar (scaleX, scaleY) winSize) ss
         envPic = er winSize e
 
-defaultEnvRendererCont2d :: EnvRendererCont2d
+defaultEnvRendererCont2d :: EnvRendererCont2d c
 defaultEnvRendererCont2d = voidEnvRendererCont2d
 
-voidEnvRendererCont2d :: EnvRendererCont2d
+voidEnvRendererCont2d :: EnvRendererCont2d c
 voidEnvRendererCont2d _ _ = GLO.Blank
 
 defaultAgentRendererCont2d :: Float -> AgentColorerCont2d s -> AgentCoordCont2d s -> AgentRendererCont2d s

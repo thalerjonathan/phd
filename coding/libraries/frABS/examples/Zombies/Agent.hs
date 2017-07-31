@@ -16,7 +16,7 @@ import Control.Monad.IfElse
 
 import Debug.Trace
 
-agentCoordToPatchCoord :: ZombiesEnvironment -> Continuous2DCoord -> Discrete2dCoord
+agentCoordToPatchCoord :: ZombiesEnvironment -> Continuous2dCoord -> Discrete2dCoord
 agentCoordToPatchCoord (as, ap, _) cc = cont2dTransDisc2d ap as cc
 
 humanBehaviourM :: ZombiesEnvironment 

@@ -12,9 +12,6 @@ import SugarScape.Exporter
 
 import FRP.FrABS
 
-import SugarScape.Common
-import SugarScape.Model
-
 winSize = (800, 800)
 winTitle = "SugarScape"
 rngSeed = 42

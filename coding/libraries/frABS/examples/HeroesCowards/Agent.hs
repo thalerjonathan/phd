@@ -12,7 +12,7 @@ import Control.Monad.Trans.State
 -------------------------------------------------------------------------------
 -- Monadic implementation
 -------------------------------------------------------------------------------
-decidePosition :: Continuous2DCoord -> Continuous2DCoord -> HACRole -> Continuous2DCoord
+decidePosition :: Continuous2dCoord -> Continuous2dCoord -> HACRole -> Continuous2dCoord
 decidePosition friendCoord enemyCoord role
     | Hero == role = coverPosition
     | otherwise = hidePosition

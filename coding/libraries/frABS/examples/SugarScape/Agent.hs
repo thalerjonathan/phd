@@ -14,9 +14,6 @@ import Data.List
 import Control.Monad
 import Control.Monad.IfElse
 import Control.Monad.Trans.State
-
-import Debug.Trace
-
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR MONADIC 
 ------------------------------------------------------------------------------------------------------------------------

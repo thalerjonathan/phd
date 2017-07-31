@@ -5,8 +5,12 @@ module FRP.FrABS.Environment.Discrete (
     Discrete2dCell,
 
     Discrete2d (..), -- TODO: hide data-constructor
-    -- Discrete2dNetwork (..),
-    
+
+    SingleOccupantCell,
+    SingleOccupantDiscrete2d,
+    MultiOccupantCell,
+    MultiOccupantDiscrete2d,
+
     createDiscrete2d,
  
     envDimsDisc2dM,
@@ -50,12 +54,24 @@ module FRP.FrABS.Environment.Discrete (
     wrapDisc2dEnv,
     
     randomNeighbourCell,
-    randomNeighbour
+    randomNeighbour,
+
+    occupied,
+    unoccupy,
+    occupy,
+    occupier,
+    addOccupant,
+    removeOccupant,
+    hasOccupiers,
+    occupiers
   ) where
     
+import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Environment.Spatial
 
 import Data.Array.IArray
+import Data.List
+import Data.Maybe
 import Control.Monad.Random
 import Control.Monad.Trans.State
 
@@ -73,6 +89,12 @@ data Discrete2d c = Discrete2d {
     envDisc2dCells :: Array Discrete2dCoord c,
     envDisc2dRng :: StdGen
 }
+
+type SingleOccupantCell c = Maybe c
+type SingleOccupantDiscrete2d c = Discrete2d (SingleOccupantCell c)
+
+type MultiOccupantCell c = [c]
+type MultiOccupantDiscrete2d c = Discrete2d (MultiOccupantCell c)
 
 createDiscrete2d :: Discrete2dDimension
                     -> Discrete2dNeighbourhood
@@ -318,4 +340,32 @@ randomNeighbour pos ic e =
         randIdx <- getRandomR (0, l - 1)
 
         return (ncc !! randIdx)
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+-- OCCUPIERS
+-------------------------------------------------------------------------------
+occupied :: Discrete2dCoord -> SingleOccupantDiscrete2d c -> Bool
+occupied coord e = isJust $ cellAt coord e
+
+unoccupy :: Discrete2dCoord -> SingleOccupantDiscrete2d c -> SingleOccupantDiscrete2d c
+unoccupy coord e = changeCellAt coord Nothing e
+
+occupy :: Discrete2dCoord -> c -> SingleOccupantDiscrete2d c -> SingleOccupantDiscrete2d c
+occupy coord c e = changeCellAt coord (Just c) e
+
+occupier :: Discrete2dCoord -> SingleOccupantDiscrete2d c -> c
+occupier coord e = fromJust $ cellAt coord e
+
+addOccupant :: Discrete2dCoord -> c -> MultiOccupantDiscrete2d c -> MultiOccupantDiscrete2d c
+addOccupant coord c e = updateCellAt coord (\cs -> c : cs) e
+
+removeOccupant :: (Eq c) => Discrete2dCoord -> c -> MultiOccupantDiscrete2d c -> MultiOccupantDiscrete2d c
+removeOccupant coord c e = updateCellAt coord (\cs -> delete c cs) e
+
+hasOccupiers :: Discrete2dCoord -> MultiOccupantDiscrete2d c -> Bool
+hasOccupiers coord e = not . null $ cellAt coord e
+
+occupiers :: Discrete2dCoord -> MultiOccupantDiscrete2d c -> [c]
+occupiers = cellAt
 -------------------------------------------------------------------------------

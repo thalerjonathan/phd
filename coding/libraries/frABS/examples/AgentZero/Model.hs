@@ -44,7 +44,7 @@ data AgentZeroAgentState = AgentZeroAgentState {
   azAgentDispo        :: Double,
   azAgentProb         :: Double,
   azAgentMemory       :: [Double],
-  azAgentCoord        :: Continuous2DCoord
+  azAgentCoord        :: Continuous2dCoord
 } deriving (Show)
 
 data AgentZeroCellState = Friendly | Attack | Dead deriving (Eq, Show)
@@ -56,7 +56,7 @@ data AgentZeroEnvCell = AgentZeroEnvCell {
 
 data AgentZeroEnvironment = AgentZeroEnvironment {
   azAgentNetwork :: AgentZeroNetwork,
-  azAgentSpace :: Continuous2d,
+  azAgentSpace :: Continuous2dEmpty,
   azWorldPatches :: AgentZeroWorldPatches
 }
 

@@ -5,7 +5,6 @@ module SugarScape.Init (
 import SugarScape.Model
 import SugarScape.Agent
 import SugarScape.Common
-import SugarScape.Environment
 
 import FRP.FrABS
 

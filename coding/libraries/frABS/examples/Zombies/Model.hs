@@ -51,11 +51,11 @@ data Role = Human | Zombie deriving (Eq, Show)
 data ZombiesAgentState = 
     ZombiesState {
       zAgentRole :: Role,
-      zAgentCoord :: Continuous2DCoord
+      zAgentCoord :: Continuous2dCoord
     }
   | HumanState {
       zAgentRole :: Role,
-      zAgentCoord :: Continuous2DCoord,
+      zAgentCoord :: Continuous2dCoord,
       zHumanEnergyLevel :: Int,
       zHumanEnergyInit :: Int
   } deriving (Show)
@@ -64,7 +64,7 @@ type ZombiesPatch = ([AgentId], Int)  -- fst: agentids of human on this patch, s
 
 type ZombiesNetwork = Network ()
 type ZombiesPatches = Discrete2d ZombiesPatch
-type ZombiesEnvironment = (Continuous2d, ZombiesPatches, ZombiesNetwork)
+type ZombiesEnvironment = (Continuous2dEmpty, ZombiesPatches, ZombiesNetwork)
 
 type ZombiesAgentDef = AgentDef ZombiesAgentState ZombiesMsg ZombiesEnvironment
 type ZombiesAgentBehaviour = AgentBehaviour ZombiesAgentState ZombiesMsg ZombiesEnvironment

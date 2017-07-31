@@ -10,7 +10,6 @@ import FRP.FrABS
 import FRP.Yampa
 
 import System.Random
-import Control.Monad.Random
 
 initWildfire :: (Int, Int) -> IO ([WildfireAgentDef], WildfireEnvironment)
 initWildfire dims@(maxX, maxY) = 

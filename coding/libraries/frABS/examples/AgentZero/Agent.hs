@@ -29,7 +29,7 @@ onAttackingSite e s = isAttackingSite cell
 onAttackingSiteM :: AgentZeroEnvironment -> State AgentZeroAgentOut Bool
 onAttackingSiteM e = getDomainStateM >>= \s -> return $ onAttackingSite e s
 	
-agentCoordToPatchCoord :: AgentZeroEnvironment -> Continuous2DCoord -> Discrete2dCoord
+agentCoordToPatchCoord :: AgentZeroEnvironment -> Continuous2dCoord -> Discrete2dCoord
 agentCoordToPatchCoord e cc = cont2dTransDisc2d wp as cc
 	where
 		wp = azWorldPatches e
@@ -207,7 +207,7 @@ updateDispo e ain ao = broadcastMessage (Disposition dispoLocal) linkIds aDispoF
 				mayWeight = directLinkBetween senderId aid net
 				weight = fromMaybe 0 mayWeight
 
-destroyPatches :: Continuous2DCoord -> AgentZeroEnvironment -> AgentZeroEnvironment
+destroyPatches :: Continuous2dCoord -> AgentZeroEnvironment -> AgentZeroEnvironment
 destroyPatches coordCont e = e { azWorldPatches = wp' }
 	where
 		wp = azWorldPatches e

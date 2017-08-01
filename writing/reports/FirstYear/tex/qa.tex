@@ -53,3 +53,17 @@ Yes. Let me give you an example: I guess you would agree that Machine Language i
 With powerful i mean: how easily the language let me express abstractions and solve problems \textit{in a specific domain}. 
 
 \paragraph{But wait... Java supports now lambda expressions, so you can do functional programming in Java now!} Well... no. Just adding lambdas to a language does not make it functional. The main criterion to classify a language as functional is whether it is based on the lambda calculus or not - this is clearly not the case in Java as it still remains an imperative language with features for object-oriented programming. Of course, by adding lambdas, programming in a functional \textit{style} is now much easier but you have to very clearly distinguish between a functional \textit{style} and actual functional programming. After all, it is possible to program in an object-oriented style in both C and Haskell but that does not make those language object-oriented!
+So coming back to your question: Java added a few features in Version 8 which support programming in the functional style: Lambdas, Method References and Aggregate Operation. All come with quite lots of ceremony - as is usual for Java - but are indeed an important step towards functional style programming.
+So having these mechanisms at hand allows one to program functionally in Java? Yes, I looked at quite a number of Blogs, Tutorials, Java Documentation, JDK,
+\footnote{
+	\begin{itemize}
+		\item Introduction to functional programmin in Java 8 Part 0 - 4: \url{https://flyingbytes.github.io/programming/java8/functional/part0/2017/01/16/Java8-Part0.html}
+		\item https://dzone.com/articles/functional-programming-java-8
+		\item Oracle Tutorial on Lambda Expressions: \url{https://docs.oracle.com/javase/tutorial/java/javaOO/lambdaexpressions.html}
+		\item Oracle Tutorial on Method Reference: \url{https://docs.oracle.com/javase/tutorial/java/javaOO/methodreferences.html}
+		\item Oracle Tutorial on Aggregate Operations: \url{https://docs.oracle.com/javase/tutorial/collections/streams/index.html}
+	\end{itemize}
+}
+
+My conclusion is the following: the Aggregate Operations in combination with the Lambdas are a real nice and powerful way to concisely operate on collections, which was always tedious in Java (and OOP in general). Apart from that, emulating a (pure) functional style in Java becomes very messy and ugly and needs still lots of ceremony (funny enough as one expects to reduce ceremony by the use of lambdas) - for obvious reasons: the language is still imperative OOP.
+So finally: use the Aggregate Operations to manipulate Collections and stick to established OO techniques otherwise or completely switch to Haskell if you really want to go functional.

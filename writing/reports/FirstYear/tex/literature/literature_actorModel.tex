@@ -1,4 +1,4 @@
-\section{Actor Model}
+\subsection{Actor Model}
 The Actor-Model, a model of concurrency, was initially conceived by Hewitt in 1973 \cite{hewitt_universal_1973} and refined later on \cite{hewitt_what_2007}, \cite{hewitt_actor_2010}. It was a major influence in designing the concept of agents and although there are important differences between actors and agents there are huge similarities thus the idea to use actors to build agent-based simulations comes quite natural. The theory was put on firm semantic grounds first through Irene Greif by defining its operational semantics \cite{grief_semantics_1975} and then Will Clinger by defining denotational semantics \cite{clinger_foundations_1981}. In the seminal work of Agha \cite{agha_actors:_1986} he developed a semantic mode, he termed \textit{actors} which was then developed further \cite{agha_foundation_1997} into an actor language with operational semantics which made connections to process calculi and functional programming languages (see both below). 
 
 An actor is a uniquely addressable entity which can do the following \textit{in response to a message}
@@ -10,7 +10,7 @@ An actor is a uniquely addressable entity which can do the following \textit{in 
 
 In the actor model theory there is no restriction on the order of the above actions and so an actor can do all the things above in parallel and concurrently at the same time. This property and that actors are reactive and not pro-active is the fundamental difference between actors and agents, so an agent is \textit{not} an actor but conceptually nearly identical and definitely much closer to an agent in comparison to an object. There have been a few attempts on implementing the actor model in real programming languages where the most notable ones are Erlang and Scala \footnote{The paper of \cite{jennings_agent-based_2000} gives an excellent overview over the strengths and weaknesses of agent-based software-engineering, which can be directly applied to both of these languages.}.
 
-\subsection{Erlang}
+\subsubsection{Erlang}
 The programming-model of actors \cite{agha_actors:_1986} was the inspiration for the Erlang programming language \cite{armstrong_erlang_2010} which was created in the 1980's by Joe Armstrong for Eriksson for developing distributed high reliability software in telecommunications. There exists very little research in using Erlang for ABS where the following papers are all what could be found on this topic.
 
 In \cite{varela_modelling_2004} the authors introduce reflexive action - sending messages to itself - to make the passive actors pro-active, thus rendering them in fact being agents. Although their work is rather focused on the field of MAS, it is also applicable to ABS where the main contribution of the authors is the implementation of a Belief-Desire-Intention (BDI) architecture for agents built on top of Erlang. 
@@ -18,7 +18,7 @@ The work of \cite{sher_agent-based_2013} emphasises the conceptual gap between t
 In \cite{bezirgiannis_improving_2013} a naive clone of NetLogo in the Erlang programming language is briefly discussed where each agent is represented as an Erlang process. Although the author does not go into much detail, the synchronization problems caused by the inherent asynchronous nature of the actor model become apparent when mapping ABS to the actor model.
 The authors of \cite{di_stefano_using_2005} and \cite{di_stefano_exat:_2007} focus more on using Erlang to implement MAS applications instead of ABS and propose a new agent platform called eXAT in Erlang. Besides claiming to be a more natural approach to agent-programming they mention better readability as compared to Java implementations.
 
-\subsection{Scala}
+\subsubsection{Scala}
 Scala is a multi-paradigm language which also comes with an implementation of the actor-model as a library which enables to do actor-programming in the way of Erlang. It was developed in 2004 and became popular in recent years due to the increased availability of multi-core CPUs which emphasised the distributed, parallel and concurrent programming for which the actor-model is highly suited.
 As for Erlang, there exists even less research in using Scala \& Actors for ABS. 
 

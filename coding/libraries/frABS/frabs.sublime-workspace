@@ -213,10 +213,21 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
-		"/home/jonathan/phd/coding/libraries/frABS/src"
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies",
+		"/home/jonathan/phd/coding/libraries/frABS/src",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering"
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Run.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/Run.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Renderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Discrete2d.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Continuous.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Utils.hs",
@@ -226,8 +237,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/HeroesCowards/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/HeroesCowards/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Init.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Agent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Agent.hs",
@@ -235,13 +244,11 @@
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Continuous2d.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Utils.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Discrete.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/FrABS.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Random.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Simulation.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Agent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Renderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Reactive.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Agent.hs",
@@ -258,7 +265,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Environment.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Discrete2d.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Network.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Tests/Common.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Tests/Test.hs",
@@ -269,7 +275,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Network.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/Stats.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Renderer.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/GlossSimulator.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Renderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/tests/Test.hs",
@@ -363,6 +368,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"coordPatch",
 			"Continuous2DCoord",
 			"Continuous2DDimension",
 			"cellAt",
@@ -489,8 +495,7 @@
 			"conversationIgnoreE",
 			"conversationReplyMonadicRunner",
 			"neighbourIdsM",
-			"conversationIgnoreReplyMonadicRunner",
-			"conversation"
+			"conversationIgnoreReplyMonadicRunner"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -498,6 +503,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"originPatch",
 			"Continuous2dCoord",
 			"Continuous2dDimension",
 			"Discrete2dCell c",
@@ -607,8 +613,8 @@
 						"selection":
 						[
 							[
-								728,
-								728
+								480,
+								480
 							]
 						],
 						"settings":

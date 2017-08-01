@@ -15,3 +15,20 @@ needed to implement standard-cells in discrete2d:
 	-> supply functions which construct these discrete2d with standard-cells
 
 agents are implemented as the union of ADT
+
+\subsection{Comparing dynamics}
+Both use the same parameters, the one specified in the Repast Example.
+
+FrABS leads much faster to a full infection: in case of using shuffling we arrive at full infection around 80 steps. When NOT using shuffling, is is happening around 140 steps.
+
+Repast Java leads to a full infection after around 200 steps.
+
+I think the reason for this is a different scheduling for the human agents. The zombies agents move in every time step but the humans have a watch added which gets triggered as soon as a zombie enters their moore-neighbourhood:
+$
+		@Watch(watcheeClassName = "jzombies.Zombie", 
+			watcheeFieldNames = "moved",
+			query = "within_moore 1", 
+			whenToTrigger = WatcherTriggerSchedule.IMMEDIATE)$
+Thus humans are scheduled right after an approaching zombie which allows them to flee thus prolonging the time until all humans are infected thus impacting the dynamics. In the case of FrABS the result is that although this specific zombie who enters the moore-neighbourhood does not directly pose a threat for the human as this human is still on another patch, until the human is scheduled, other zombies can close in thus reducing the action-radius of the human considerably.
+
+This Watcher-Mechanism is not possible in FrABS and there are no plans to implement such as it would need a completely different approach. Also we cannot think of a mechnism which allows to specify such a meta-programming construct in Haskell.

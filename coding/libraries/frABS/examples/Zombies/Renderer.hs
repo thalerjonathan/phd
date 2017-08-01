@@ -16,14 +16,16 @@ agentSize = 15
 agentColor = GLO.makeColor (realToFrac 0.0) (realToFrac 0.3) (realToFrac 0.6) 1.0
 
 renderZombiesFrame :: ZombiesRenderFrame
-renderZombiesFrame wSize@(wx, wy) ss (as, ap, an) = GLO.Pictures [patchesPic, agentsPic]
+renderZombiesFrame wSize@(wx, wy) ss (as, ap, an) = agentsPic -- GLO.Pictures [patchesPic, agentsPic]
     where
+        {-
         patchesPic = renderFrameDisc2d 
                         voidAgentRendererDisc2d
                         voidEnvRendererDisc2d -- zombiesEnvRenderer -- voidEnvRendererDisc2d
                         wSize
                         []
                         ap
+        -}
 
         agentsPic = renderFrameCont2d 
                         (defaultAgentRendererCont2d agentSize zombiesAgentColorer zAgentCoord)

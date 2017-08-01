@@ -16,8 +16,8 @@ import Control.Monad.IfElse
 
 import Debug.Trace
 
-agentCoordToPatchCoord :: ZombiesEnvironment -> Continuous2dCoord -> Discrete2dCoord
-agentCoordToPatchCoord (as, ap, _) cc = cont2dTransDisc2d ap as cc
+agentCoordToPatchCoord :: ZombiesEnvironment -> State ZombiesAgentOut Discrete2dCoord
+agentCoordToPatchCoord (as, ap, _) = domainStateFieldM zAgentCoord >>= \coord -> return $ cont2dTransDisc2d ap as coord
 
 humanBehaviourM :: ZombiesEnvironment 
                     -> Double 
@@ -26,10 +26,9 @@ humanBehaviourM :: ZombiesEnvironment
 humanBehaviourM e@(as, ap, an) _ ain = 
     do
         updateDomainStateM (\s -> s { zAgentRole = Human })
-        coord <- domainStateFieldM zAgentCoord
-        let coordPatch = agentCoordToPatchCoord e coord
+        originPatch <- agentCoordToPatchCoord e
 
-        let ns = neighbours coordPatch False ap
+        let ns = neighbours originPatch True ap
         ns' <- agentRandomShuffleM ns
         let sortedNs = sortBy sortPatchesByZombies ns'
         let (_, (_, maxZombiesCount)) = last sortedNs
@@ -42,7 +41,7 @@ humanBehaviourM e@(as, ap, an) _ ain =
                 energy <- domainStateFieldM zHumanEnergyLevel
                 ifThenElse
                     (energy > 0)
-                    (flee coordPatch fewestZombiesPatch e)
+                    (flee originPatch fewestZombiesPatch e)
                     (resetEnergy >> return e))
             (return e)
     where
@@ -55,8 +54,8 @@ humanBehaviourM e@(as, ap, an) _ ain =
         reduceEnergy = updateDomainStateM (\s -> s { zHumanEnergyLevel = zHumanEnergyLevel s - 1 })
 
         flee :: Discrete2dCoord -> Discrete2dCoord -> ZombiesEnvironment -> State ZombiesAgentOut ZombiesEnvironment
-        flee coordPatch targetPatch e@(as, ap, an)
-            | coordPatch == targetPatch = return e
+        flee originPatch targetPatch e@(as, ap, an)
+            | originPatch == targetPatch = return e
             | otherwise =
                 do
                     coord <- domainStateFieldM zAgentCoord
@@ -64,7 +63,7 @@ humanBehaviourM e@(as, ap, an) _ ain =
                     updateDomainStateM (\s -> s { zAgentCoord = coord' })
                     reduceEnergy
 
-                    let ap0 = updateCellAt coordPatch (removeHuman aid) ap
+                    let ap0 = updateCellAt originPatch (removeHuman aid) ap
                     let ap1 = updateCellAt targetPatch (addHuman aid) ap0
                     return (as, ap1, an)
 
@@ -76,32 +75,32 @@ zombieBehaviourM e@(as, ap, an) _ ain =
     do
         updateDomainStateM (\s -> s { zAgentRole = Zombie })
         coord <- domainStateFieldM zAgentCoord
-        let coordPatch = agentCoordToPatchCoord e coord
+        originPatch <- agentCoordToPatchCoord e
 
-        let ns = neighbours coordPatch True ap
+        let ns = neighbours originPatch True ap
         ns' <- agentRandomShuffleM ns
         let sortedNs = sortBy sortPatchesByHumans ns'
         let patch@(maxHumanCoord, (hs, _)) = last sortedNs
 
-        e' <- moveTowards coordPatch maxHumanCoord e
+        e' <- moveTowards originPatch maxHumanCoord e
         infect patch e'
 
     where
         moveTowards :: Discrete2dCoord -> Discrete2dCoord -> ZombiesEnvironment -> State ZombiesAgentOut ZombiesEnvironment
-        moveTowards coordPatch targetPatch e 
-            | coordPatch == targetPatch = return e
+        moveTowards originPatch targetPatch e 
+            | originPatch == targetPatch = return e
             | otherwise =
                 do
                     coord <- domainStateFieldM zAgentCoord
                     let coord' = stepTo as zombieSpeed coord (disc2dToCont2d targetPatch)
                     updateDomainStateM (\s -> s { zAgentCoord = coord' })
 
-                    let ap0 = updateCellAt coordPatch decZombie ap
+                    let ap0 = updateCellAt originPatch decZombie ap
                     let ap1 = updateCellAt targetPatch incZombie ap0
                     return (as, ap1, an)
 
         infect :: Discrete2dCell ZombiesPatch -> ZombiesEnvironment -> State ZombiesAgentOut ZombiesEnvironment
-        infect (_, ([], _)) e = return e
+        infect (_, ([], _)) e = return e -- no humans on this patch
         infect (coord, (hs, _)) e@(as, ap, an) =
             do
                 h <- agentRandomPickM hs
@@ -115,7 +114,6 @@ zombieBehaviourM e@(as, ap, an) _ ain =
 ------------------------------------------------------------------------------------------------------------------------
 -- BEHAVIOURS
 ------------------------------------------------------------------------------------------------------------------------
-
 human :: ZombiesAgentBehaviour
 human = transitionOnMessage
                 Infect

@@ -76,7 +76,7 @@ type ZombiesAgentOut = AgentOut ZombiesAgentState ZombiesMsg ZombiesEnvironment
 -- MODEL-PARAMETERS
 ------------------------------------------------------------------------------------------------------------------------
 humanCount :: Int
-humanCount = 100
+humanCount = 200
 
 zombieCount :: Int
 zombieCount = 5

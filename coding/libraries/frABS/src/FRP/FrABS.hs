@@ -365,6 +365,19 @@ import FRP.FrABS.Rendering.GlossSimulator
 ------------------------------------------------------------------------------------------------------------------------
 -- TODOs
 ------------------------------------------------------------------------------------------------------------------------
+- adding a scheduling language in AgentDef?
+    e.g. allows to schedule in case of specific events like the watchee construct of repast. 
+    benefit: statically typed. but how to implement? dont want too tight coupling between environments, 
+    should be as generic as possible. functions as parameters could solve this. only in case if sequential 
+    update strategy. does this imply that an agent is then scheduled more often? yes. zombies would specify: 
+    randomorder with a given dt, humans: event-driven
+
+    simparams: introduce different scheduling orderings: e.g. ascending/descebdibg by e.g. agentid or 
+        random or in order or reverse order
+
+     but arent we then working towards a DES? does it still allow SD and continuous ABS with time-semantics? 
+        if yes then we have a combination of all
+
 - implement Graph-Renderer
 - run all rendering-stuff in IO?
 - AgentRenderer: Circle/Rectangle as shapes

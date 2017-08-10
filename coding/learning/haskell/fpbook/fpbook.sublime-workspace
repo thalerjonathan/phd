@@ -83,7 +83,7 @@
 			"file": "Chapter1.hs",
 			"settings":
 			{
-				"buffer_size": 337,
+				"buffer_size": 1403,
 				"encoding": "UTF-8",
 				"line_ending": "Unix",
 				"name": "module Main where"
@@ -472,15 +472,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 337,
+						"buffer_size": 1403,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								311,
-								311
+								234,
+								234
 							]
 						],
 						"settings":

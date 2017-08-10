@@ -10,7 +10,7 @@ main =
 
         print $ addition' (-1) (2)
 
-        print $ division 9 3
+        print $ division 100 3
 
 
 multInt :: Int -> Int -> Int
@@ -44,4 +44,4 @@ addition' n m
 division :: Int -> Int -> Int
 division n m 
     | n < m = 0
-    | n >= m = 1 + (division (n-m) m)
+    | n >= m = 1 + (division (addition' n (-m)) m)

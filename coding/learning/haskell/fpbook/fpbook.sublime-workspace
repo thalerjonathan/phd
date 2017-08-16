@@ -79,16 +79,6 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "Chapter1.hs",
-			"settings":
-			{
-				"buffer_size": 1403,
-				"encoding": "UTF-8",
-				"line_ending": "Unix",
-				"name": "module Main where"
-			}
-		}
 	],
 	"build_system": "",
 	"build_system_choices":
@@ -140,6 +130,8 @@
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/learning/haskell/fpbook/Chapter3.hs",
+		"/home/jonathan/phd/coding/learning/haskell/fpbook/Chapter1.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Random.hs",
@@ -265,9 +257,7 @@
 		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Rpc/Json.hs",
 		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Rpc/JsonRpc.hs",
 		"/C/Users/Jonathan Thaler/coding/ethaskell/src/    Variable not in scope",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/Utils.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/Methods.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/ETHaskell.cabal"
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/EthJsonRpc/Utils.hs"
 	],
 	"find":
 	{
@@ -463,38 +453,8 @@
 	"groups":
 	[
 		{
-			"selected": 0,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "Chapter1.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1403,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								234,
-								234
-							]
-						],
-						"settings":
-						{
-							"auto_name": "module Main where",
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				}
 			]
 		}
 	],

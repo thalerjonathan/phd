@@ -45,3 +45,4 @@ division :: Int -> Int -> Int
 division n m 
     | n < m = 0
     | n >= m = 1 + (division (addition' n (-m)) m)
+

@@ -16,6 +16,8 @@ Notes on Content:
 
 - when references are not allowed and implicit mutable date not available then messaging will always take time. whether this is desiarble depends on your model semantics 
 
+- in case of actor: time becomes relative as every agent iterates with its own speed which of course depends on the scheduling and hardware. the question is how does this relate to reality?
+
 Structure
 Part 1: introduction 
 	- agents & agent-based simulation

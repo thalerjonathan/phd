@@ -8,6 +8,31 @@
 
 - UoN Templae
 
-Content:
+Notes on Content:
+- agents are a metaphor (proactive, messaging, environment) but when we actually want to simulate agent-based models we must ask "how can agents be raises to existence in computing environments?". thus we move from a perfect modelling world / perfect theoretical world to the real world thus our task becomes an engineering problem
+
 - pro-activity requires "to be" / existence.  a program is / exists when it is executed. humans differ from programs that they can observe and alter their own execution - they are self concious and have free will
 - what is it with 'parallel' universes which are spawned when acting in parallel on the same environment? we need to find a consensus into how to collapse these parallel universes into one onto which to act in the next step
+
+- when references are not allowed and implicit mutable date not available then messaging will always take time. whether this is desiarble depends on your model semantics 
+
+Structure
+Part 1: introduction 
+	- agents & agent-based simulation
+	- the agent-metaphor
+	- how can agents become existent in a computing environment?
+
+Part 2: deriving properties
+
+Part 3: the strategies
+	- sequential
+	- parallel
+	- concurrent
+	- actor
+
+Part 4: programming paradigms & strategies
+	- oop: java
+	- pure functional: haskell
+	- mixed: scala
+
+Part 5: conclusions

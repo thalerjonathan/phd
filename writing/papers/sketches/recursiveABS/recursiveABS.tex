@@ -32,6 +32,9 @@ TODO: important difference to game theory: the initiating agent makes no assumpt
 TODO:  what if we let 2 agents play the prisoners dilemma recursively? which strategy does emerge? does tit-for-tat? problem: we need some strategy for the agents because we let them simulate the others, it is NOT a game-theoretic approach where an agent systematically plays through the opponents options. But is there a way to let tit-for-tat emerge? e.g. do random-bidding and then see what the other agent does and bid the payoff which is the highest in total? it makes a difference if the agent optimizes for best payoff alone or best payoff combined!
 
 The main contribution of this paper is the introduction of recursive agent-based simulation, a completely new method in ABS, which we termed MetaABS.
+
+[ ] find a killer example (model) for recursive ABS: must itself be recursive. search terms "recursive simulation", "recursive models".
+[ ] what about each agent itself a full ABS? then its kind of a hierarchical ABS. but an ABS is a set if agents not a single agent? how can we abstract that? how can we see a many as a single? the messages and the environment for the containing (root) agent are simply distributed and forwarded to the subagents which are then simulated and reply with messages and changes in the environment. these subagents are simple replicas of the same agent but they must be hererogenous in some way otherwise they end up all with the same actions. maybe different time-sampling? maybe different rngs?
 \end{abstract}
 
 \input{./tex/introduction.tex}

@@ -12,23 +12,7 @@ computation to language paradigms to concrete languages to libraries: turing mac
 [ ] also there are different types of abstraction depending if we come either from lambda or turing direction 
 [ ] the question is then: which level of abstraction is necessary for ABS? how provide FP and OOP these?
 
-\section{Programming Paradigms}
-define what is functional programming
-define what is imperative programming
-define what is object-oriented programming
-
-make it clear that just because java has now lambdas does not make it functional. 
 distinguish between functional style and functional programming. when using a specific style one abuses language features to emulate a different paradigm than the one of the host language - so it is also possible to emulate oop in C or Haskell but this does not make them oop languages, one just emulate a programming-style (with potentially disastrous consequences as the code will probably become quite unreadable)
-
-[ ] java lambdas are syntactic sugar for anonymous classes to resemble a more functional style of programming. sideeffects still possible
-[ ] look into the aggregate functions of java. also support functional style of programming.
-[ ] same for method references as above: it is impressive how much bulk was added to the language to introduce these concepts which work out of the box in Haskell with higher order functions, currying and lambdas 
-
-TODO: investigate lambdas in java
-
-TODO: there is already a low-level haskell/java comparison there: in the code of the update-strategies paper. Also make direct use of this paper as it discusses some of the fundamental challenges implementing ABS in an language- and paradigm-agnostic way
-
-haskells real power: side-effect polymorph. enabled through monadic progranming which becomes possible through type parameters, typeclasses, higher-order functions, lambdas and pattern matching
 
 \section{Challenges}
 The challenges one faces when implementing an Agent-Based Simulation (ABS) plain, without support from a library (e.g. Repast) are manifold. In the paper on update-strategies (TODO: cite) we've discussed already in a very general, programming language agnostic way, the fundamental things to consider. Here we will look at the problem in a much more technical way by precisely defining what problems need to be solved and what approaches are from a programming paradigm view-point - where we focus on the pure functional (FP) and imperative object-oriented (OO) paradigms.
@@ -46,3 +30,5 @@ Generally one faces the following challenges:
 \end{enumerate}
 
 It is important to note that we are facing a non-trivial software-engineering problem which implies that there are no binary correct \ wrong approaches - whatever works good enough is OK. This implies that the challenges as discussed below, can be also approached in different ways but we tried to stick as close as possible to the \textit{best practices} of the respective paradigm.
+
+TODO: there is already a low-level haskell/java comparison there: in the code of the update-strategies paper. Also make direct use of this paper as it discusses some of the fundamental challenges implementing ABS in an language- and paradigm-agnostic way

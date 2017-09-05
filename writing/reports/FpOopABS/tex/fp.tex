@@ -33,4 +33,24 @@ TODO: The question is then if we could implement in a functional style in an imp
 \cite{maclennan_functional_1990} defines functional programming as applicative programming with \textit{higher-order} functions. These are functions which operate themselves on functions: they can take functions as arguments, construct new functions and return them as values. This is in stark contrast to the \textit{first-order} functions as used in applicative or imperative programming which just operate on data alone.
 Higher-order functions allow to capture frequently recurring patterns in functional programming in the same way like imperative languages captured patterns like GOTO, while-do, if-then-else, for. Common patterns in functional programming are the map, fold, zip, operators.
 
+TODO: discuss function-composition, which is the equivalent of the ; operator in imperative languages. Function composition has no side-effects as opposed to the imperative ; operator which simply composes destructive assignment statements which are executed after another resulting in side-effects.
+At the heart of modern functional programming is monadic programming which is polymorphic function composition: one can implement a user-defined function composition by allowing to run some code in-between function composition (TODO: explain using some code) - this code of course depends on the type of the Monad one runs in. This allows to emulate all kind of effectful programming in an imperative style within a pure functional language. Although it might seem strange wanting to have imperative style in a pure functional language, some problems are inherently imperative in the way that computations need to be executed in a given sequence with some effects. Also a pure functional language needs to have some way to deal with effects otherewise it would never be able to interact with the outside-world and would be practically useless. The real benefit of monadic programming is that it is explicit about side-effects and allows only effects which are fixed by the type of the monad - the side-effects which are possible are determined statically during compile-time by the type-system. Some general patterns can be extracted e.g. a map, zip, fold over monads which results in polymorphic behaviour - this is the meaning when one says that a language is polymorphic in its side-effects.
+
 TODO: so functional programming is not really possible in this way in classic imperative languages e.g. C as you cannot construct new functions and return them as results from functions. The question is if it is possible in OO by using some OO features to work around the limitations of procedural languages.
+
+TODO: algebraic reasoning. \cite{maclennan_functional_1990} page 233: "Much of the power of functional programming derives from its ability to manipulate programs algebraically by means of identities such as Eq. (6.6)"
+
+\cite{allen_haskell_2016} defines Functional Programming as "a computer programming paradigm that relies on functions modelled on mathematical functions." Further they explicate that it is 
+\begin{itemize}
+	\item in Functional programming programs are combinations of expressions
+	\item Functions are \textit{first-class} which means the can be treated like values, passed as arguments and returned from functions.
+\end{itemize}
+
+
+
+\section{Haskell}
+The language of choice for discussing real implementations of ABS in the pure functional programming paradigm we select Haskell. The reason is that it is a mature language with lots of useful and stable libraries and because it has been proved to be useful in Real-World applications as well (TODO: take from 1st year report). Also the reason why selecting Haskell over e.g. Scala, Clojure is its purity, strong static type-system, non-strictness.
+
+Being \textit{pure} describes that all Haskells features are directly translatable to the Lambda-Calculus. Other functional languages (e.g. Scala), although also based on the Lambda-Calculus like all functional languages, have features which are not directly translatable into the Lambda-Calculus and are thus considered to be impure. Another meaning of \textit{pure} in the context of Haskell and of functional programming can be understood as \textit{free from side-effects} or more precisely as having the property of \textit{referential transparency}. 
+
+haskells real power: side-effect polymorph. enabled through monadic progranming which becomes possible through type parameters, typeclasses, higher-order functions, lambdas and pattern matching

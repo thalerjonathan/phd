@@ -1,0 +1,8 @@
+\chapter{Environment Representation}
+
+\section{OO}
+An Environment can be represented quite arbitrarily in OO and shared between the Agents using references. The downside is that it must be protected in case of parallel or concurrent access.
+
+\section{FP}
+Here we can go again two ways: stay pure or use explicit side-effects using IO or STM references. When staying pure the environment must be passed in through the behaviour function - and returned if it has changed. This allows us to easily reason which functions only read the environment, change it or don't need it at all: its visible from the type of the function and we can guarantee it statically at compile-time.
+Things are not so when using references (either STM or IO) as reading or writing both requires to run in the Monad thus making it not possible any more to tell at compile-time and rather from the type if its a read or write operation - we can only tell that the environment is touched or not. Also the behaviour-function must run in the respective monad although the environment is never accessed, thus removing further abilities to reason.

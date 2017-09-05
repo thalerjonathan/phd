@@ -22,10 +22,15 @@ MacLennan \cite{maclennan_functional_1990} defines properties of pure expression
 	\item Effects to an operation are obvious from the written form.
 \end{itemize}
 
-TODO: The question is then if we could implement in a functional style in an imperative object-oriented programming language? Or put otherwise: are these properties unique to functional programming or can we program functional in an imperative language (be it OO or not)?
-
 Thus functional programming is identified as programming without the assignment operator and with pure expressions instead. Further characteristics are the missing of orderings as in imperative programming, caused by assignments: in functional programming the style is applicative which means we apply values to functions. The fundamental theoretical root is in the lambda calculus.
 
-TODO: make distinction between 'applicative programming (style)', which is easily possible in imperative languages as well and 'functional programming' which is not possible in procedural languages. The question is if it is possible in OO by using some OO features to work around the limitations of procedural languages.
-
 - cite critics
+
+\section{Applicative Programming}
+TODO: The question is then if we could implement in a functional style in an imperative object-oriented programming language? Or put otherwise: are these properties unique to functional programming or can we program functional in an imperative language (be it OO or not)? We can say that the functional style can be described as applicative programming: applying values to functions as described above. This functional style or applicative style applies to imperative languages as well and is not restricted to functional languages alone
+
+\section{Functional Programming}
+\cite{maclennan_functional_1990} defines functional programming as applicative programming with \textit{higher-order} functions. These are functions which operate themselves on functions: they can take functions as arguments, construct new functions and return them as values. This is in stark contrast to the \textit{first-order} functions as used in applicative or imperative programming which just operate on data alone.
+Higher-order functions allow to capture frequently recurring patterns in functional programming in the same way like imperative languages captured patterns like GOTO, while-do, if-then-else, for. Common patterns in functional programming are the map, fold, zip, operators.
+
+TODO: so functional programming is not really possible in this way in classic imperative languages e.g. C as you cannot construct new functions and return them as results from functions. The question is if it is possible in OO by using some OO features to work around the limitations of procedural languages.

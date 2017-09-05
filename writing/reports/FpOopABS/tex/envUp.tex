@@ -1,0 +1,7 @@
+\chapter{Environment Updating}
+
+\section{OO}
+The ABS system holds a reference to the Environment which will be accessed and changed by the Agents through references. The Environment class can implement some update-function which can then be called by the ABS system in every step, allowing the environment to update itself (e.g. regrowing some resource)
+
+\section{FP}
+In the FP version the ABS holds also an instance of an environment data-structure and if the environment should be able to update itself (e.g. regrowing some resource) then simply a environment-behaviour function must be provided which just maps the environment-type to the environment-type and has some time-input: (Double -> e -> e)

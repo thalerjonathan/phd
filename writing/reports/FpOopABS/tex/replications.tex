@@ -1,0 +1,7 @@
+\chapter{Replications}
+
+\section{OO}
+Replications need careful considerations in OO especially when using global references and data \textit{when running them in parallel \footnote{If not then one does not need to care further}}. All objects which have mutable state need to be accessed only by one replication thus one might to change the implementation to allow parallel replication.
+
+\section{FP}
+In FP running Replications in parallel or not makes to difference from a programming perspective: because of the nature of FP we can execute multiple simulations in parallel. Of course copying the initial agents and environment is necessary but that is very easily done in FP.

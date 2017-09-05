@@ -1,0 +1,31 @@
+\chapter{Functional Programming}
+MacLennan \cite{maclennan_functional_1990} defines Functional Programming as a methodology and identifies it with the following properties:
+
+\begin{enumerate}
+	\item It is programming without the assignment-operator.
+	\item It allows for higher levels of abstraction.
+	\item It allows to develop executable specifications and prototype implementations.
+	\item It is connected to computer science theory.
+	\item Parallel Programming.
+	\item Suitable for AI.
+\end{enumerate}
+
+The last two points don't weight as heavy today as back in 1990 as other languages came up with features for better parallel programming but they all do it by introducing functional features.
+
+MacLennan \cite{maclennan_functional_1990} defines properties of pure expressions 
+\begin{itemize}
+	\item Value is independent of the evaluation order.
+	\item Expressions can be evaluated in parallel.
+	\item Referential transparency.
+	\item No side effects.
+	\item Inputs to an operation are obvious from the written form.
+	\item Effects to an operation are obvious from the written form.
+\end{itemize}
+
+TODO: The question is then if we could implement in a functional style in an imperative object-oriented programming language? Or put otherwise: are these properties unique to functional programming or can we program functional in an imperative language (be it OO or not)?
+
+Thus functional programming is identified as programming without the assignment operator and with pure expressions instead. Further characteristics are the missing of orderings as in imperative programming, caused by assignments: in functional programming the style is applicative which means we apply values to functions. The fundamental theoretical root is in the lambda calculus.
+
+TODO: make distinction between 'applicative programming (style)', which is easily possible in imperative languages as well and 'functional programming' which is not possible in procedural languages. The question is if it is possible in OO by using some OO features to work around the limitations of procedural languages.
+
+- cite critics

@@ -148,21 +148,13 @@
 	"buffers":
 	[
 		{
-			"file": "examples/Main.hs",
+			"contents": "GHCi, version 8.0.2: http://www.haskell.org/ghc/  :? for help\nPrelude> ",
 			"settings":
 			{
-				"buffer_size": 1381,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "examples/FrSIRSNetwork/Run.hs",
-			"settings":
-			{
-				"buffer_size": 5161,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
+				"buffer_size": 71,
+				"line_ending": "Unix",
+				"name": "*REPL* [haskell]",
+				"scratch": true
 			}
 		}
 	],
@@ -232,6 +224,8 @@
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Run.hs",
@@ -305,7 +299,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/AgentMonadic.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/AgentPure.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/StockFlow.hs",
@@ -313,7 +306,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Environment.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Renderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Model.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/frSIRSNetworkDynamics_1024agents_1000steps_0.1dt.m",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Init.hs",
@@ -612,62 +604,55 @@
 			[
 				{
 					"buffer": 0,
-					"file": "examples/Main.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1381,
+						"buffer_size": 71,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								71,
+								71
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
+							"auto_complete": true,
+							"auto_indent": false,
+							"detect_indentation": false,
+							"gutter": false,
+							"history_arrows": true,
+							"indent_subsequent_lines": false,
+							"line_numbers": false,
+							"repl": true,
+							"repl_external_id": "haskell",
+							"repl_id": "dd38f55eff36411eb97a77dbf5b8458b",
+							"repl_restart_args":
+							{
+								"cmd":
+								[
+									"ghci"
+								],
+								"cwd": "$file_path",
+								"encoding": "utf8",
+								"external_id": "haskell",
+								"syntax": "Packages/Haskell/Haskell.tmLanguage",
+								"type": "sublime_haskell"
+							},
+							"repl_sublime2": false,
+							"smart_indent": false,
+							"spell_check": false,
+							"syntax": "Packages/Haskell/Haskell.tmLanguage",
+							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 90.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "examples/FrSIRSNetwork/Run.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 5161,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 180.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
 					"type": "text"
 				}
 			]

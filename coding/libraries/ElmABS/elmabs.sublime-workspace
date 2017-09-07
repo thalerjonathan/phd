@@ -83,7 +83,7 @@
 			"file": "src/Main.elm",
 			"settings":
 			{
-				"buffer_size": 44,
+				"buffer_size": 64,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -120,10 +120,14 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 92.0,
-		"last_filter": "Package Control: insta",
+		"height": 392.0,
+		"last_filter": "repl",
 		"selected_items":
 		[
+			[
+				"repl",
+				"SublimeREPL: Elm"
+			],
 			[
 				"Package Control: insta",
 				"Package Control: Install Package"
@@ -496,15 +500,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 44,
+						"buffer_size": 64,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								44,
-								44
+								51,
+								51
 							]
 						],
 						"settings":

@@ -83,7 +83,7 @@
 			"file": "src/Main.elm",
 			"settings":
 			{
-				"buffer_size": 64,
+				"buffer_size": 1537,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -113,11 +113,11 @@
 			],
 			[
 				"Packages/Elm Language Support/Build Systems/Elm Make.sublime-build",
-				""
+				"Run"
 			]
 		]
 	],
-	"build_varint": "",
+	"build_varint": "Run",
 	"command_palette":
 	{
 		"height": 392.0,
@@ -164,10 +164,13 @@
 	"expanded_folders":
 	[
 		"/home/jonathan/phd/coding/libraries/ElmABS",
+		"/home/jonathan/phd/coding/libraries/ElmABS/build",
 		"/home/jonathan/phd/coding/libraries/ElmABS/src"
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/ElmABS/build/Main.html",
+		"/home/jonathan/phd/coding/libraries/ElmABS/elm-package.json",
 		"/home/jonathan/phd/coding/reports/fpOopAbs/Examples.hs",
 		"/home/jonathan/phd/coding/learning/haskell/fpbook/Chapter3.hs",
 		"/home/jonathan/phd/coding/learning/haskell/fpbook/Chapter1.hs",
@@ -293,9 +296,7 @@
 		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Rpc/Server.hs",
 		"/C/Users/Jonathan Thaler/coding/ethaskell/src/p2p/P2P.hs",
 		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Rpc/Methods.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Rpc/Json.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Rpc/JsonRpc.hs",
-		"/C/Users/Jonathan Thaler/coding/ethaskell/src/    Variable not in scope"
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Rpc/Json.hs"
 	],
 	"find":
 	{
@@ -500,15 +501,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 64,
+						"buffer_size": 1537,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								51,
-								51
+								1537,
+								1537
 							]
 						],
 						"settings":

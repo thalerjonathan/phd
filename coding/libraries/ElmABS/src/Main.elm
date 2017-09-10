@@ -51,12 +51,15 @@ createSimulation =
         a6 = { aid = 6, counter = 0, sir = Susceptible, pos = (0, 2)}
         a7 = { aid = 7, counter = 0, sir = Susceptible, pos = (1, 2)}
         a8 = { aid = 8, counter = 0, sir = Susceptible, pos = (2, 2)}
-        allAgents = [a0, a1, a2, a3, a4, a5, a6, a7, a8]
+        agentStates = [a0, a1, a2, a3, a4, a5, a6, a7, a8]
 
-        agentConts = Dict.empty
+        agentConts = List.foldr (\s acc -> Dict.insert s.aid (agentStateToCont s) acc) Dict.empty agentStates
+
+        agentStateToCont : AgentState -> AgentCont
+        agentStateToCont s = Continue ({ observable = s, msgs = []}, agentBehaviour s)
     in
         { time = 0.0
-        , agents = 
+        , agents = agentConts
         , neighbourhood = Dict.empty }
 
 init : (Simulation, Cmd Msg)
@@ -78,7 +81,7 @@ agentBehaviour s0 ain =
         ao = { observable = s1, msgs = [] }
 
     in
-        if s1.counter > 42 then 
+        if s1.counter > 10 then 
             Terminate
             else
                 Continue (ao, (agentBehaviour s1))
@@ -110,13 +113,31 @@ update : Msg -> Simulation -> (Simulation, Cmd Msg)
 update msg model =
   case msg of
     Tick newTime ->
-      ({ model | time = newTime }, Cmd.none)
+      ({ model | time = newTime }, executAgents model)
 
     AgentTerminated aid ->
         (model, Cmd.none)
 
     AgentUpdate (aid, cont) ->
-        (model, Cmd.none)
+        ({ model | agents = Dict.insert aid (Continue cont) model.agents }, Cmd.none)
+
+executAgents : Simulation -> Cmd Msg
+executAgents model = 
+    let
+        aid = 0
+        am = Dict.get aid model.agents
+        ain = { msgs = [] }
+
+    in 
+        case am of
+            Nothing -> Cmd.none
+            Just ac -> execAgent aid ain ac
+
+execAgent : AgentId -> AgentIn -> AgentCont -> Cmd Msg
+execAgent aid ain ac =
+    case ac of 
+        Terminate -> Cmd.none
+        Continue (_, act) -> agentPerform aid (agentTask ain act)
 
 -- SUBSCRIPTIONS
 subscriptions : Simulation -> Sub Msg
@@ -127,8 +148,11 @@ subscriptions model =
 view : Simulation -> Html Msg
 view { time, agents, neighbourhood } =
   let
-    agentsSvg = List.map renderAgent (Dict.values agents)
-
+    agentsSvg = Dict.foldr agentRender [] agents 
+    agentRender k a acc =
+        case a of
+            Terminate -> acc
+            Continue cont -> (renderAgent <| (.observable << Tuple.first) cont) :: acc
   in
     svg [ viewBox "0 0 100 100", width "300px" ] agentsSvg
 

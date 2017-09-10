@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"msg",
+				"msgs"
+			],
+			[
 				"igni",
 				"ignitionEvent"
 			],
@@ -83,7 +87,7 @@
 			"file": "src/Main.elm",
 			"settings":
 			{
-				"buffer_size": 1537,
+				"buffer_size": 5095,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -117,7 +121,7 @@
 			]
 		]
 	],
-	"build_varint": "Run",
+	"build_varint": "",
 	"command_palette":
 	{
 		"height": 392.0,
@@ -300,7 +304,7 @@
 	],
 	"find":
 	{
-		"height": 23.0
+		"height": 34.0
 	},
 	"find_in_files":
 	{
@@ -501,15 +505,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1537,
+						"buffer_size": 5095,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1537,
-								1537
+								3189,
+								3189
 							]
 						],
 						"settings":
@@ -517,7 +521,7 @@
 							"syntax": "Packages/Elm Language Support/Syntaxes/Elm.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 1518.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -563,7 +567,7 @@
 	},
 	"output.exec":
 	{
-		"height": 273.0
+		"height": 203.0
 	},
 	"output.find_results":
 	{

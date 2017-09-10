@@ -4,15 +4,17 @@ import Svg.Attributes exposing (..)
 import Time exposing (Time, second)
 import Dict
 import Task
+import TimeTravel.Html as TimeTravel
 
-main : Program Never Simulation Msg
+-- main : Program Never Simulation Msg
 main =
-  Html.program
-    { init = init
-    , view = view
-    , update = update
-    , subscriptions = subscriptions
-    }
+    --Html.program
+    TimeTravel.program
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
 
 -- MODEL
 type SIR = Susceptible | Infected | Recovered

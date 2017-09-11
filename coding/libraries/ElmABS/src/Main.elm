@@ -1,173 +1,242 @@
 import Html exposing (Html)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
-import Time exposing (Time, second)
 import Dict
 import Task
 import TimeTravel.Html as TimeTravel
 
--- main : Program Never Simulation Msg
+{--}
+main : Program Never Simulation Msg
+main = 
+    Html.program
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
+--}
+
+{--
+-- main : Program Never (TimeTravel.Internal.Model.Model Simulation Msg) (TimeTravel.Html.Msg Msg)
 main =
-    --Html.program
     TimeTravel.program
         { init = init
         , view = view
         , update = update
         , subscriptions = subscriptions
         }
+--}
 
 -- MODEL
+gridSize : (Int, Int)
+gridSize = (10, 10)
+
+agentSize : Int
+agentSize = 10
+
+dt : SimTime
+dt = 1.0
+
+type alias SimTime = Float
+
 type SIR = Susceptible | Infected | Recovered
-type Message = Infect
+type Message = Contact SIR
+
+type alias AgentMessage = (AgentId, Message)
 
 type alias AgentId = Int
 type alias Position = (Int, Int)
 
-type alias AgentState =
-    { aid: AgentId
-    , sir: SIR
-    , counter: Int
-    , pos: Position }
-
-type alias AgentIn =
-    { msgs: List (AgentId, Message) }
-
-type alias AgentOut =
-    { observable: AgentState
-    , msgs: List (AgentId, Message) }
-
-type alias Simulation =
-    { time : Float
-    , agents : Dict.Dict AgentId AgentCont
-    , neighbourhood : Dict.Dict AgentId (List AgentId) }
-
-createSimulation : Simulation
-createSimulation = 
-    let 
-        a0 = { aid = 0, counter = 0, sir = Susceptible, pos = (0, 0)}
-        a1 = { aid = 1, counter = 0, sir = Susceptible, pos = (1, 0)}
-        a2 = { aid = 2, counter = 0, sir = Susceptible, pos = (2, 0)}
-        a3 = { aid = 3, counter = 0, sir = Susceptible, pos = (0, 1)}
-        a4 = { aid = 4, counter = 0, sir = Infected, pos = (1, 1)}
-        a5 = { aid = 5, counter = 0, sir = Susceptible, pos = (2, 1)}
-        a6 = { aid = 6, counter = 0, sir = Susceptible, pos = (0, 2)}
-        a7 = { aid = 7, counter = 0, sir = Susceptible, pos = (1, 2)}
-        a8 = { aid = 8, counter = 0, sir = Susceptible, pos = (2, 2)}
-        agentStates = [a0, a1, a2, a3, a4, a5, a6, a7, a8]
-
-        agentConts = List.foldr (\s acc -> Dict.insert s.aid (agentStateToCont s) acc) Dict.empty agentStates
-
-        agentStateToCont : AgentState -> AgentCont
-        agentStateToCont s = Continue ({ observable = s, msgs = []}, agentBehaviour s)
-    in
-        { time = 0.0
-        , agents = agentConts
-        , neighbourhood = Dict.empty }
-
-init : (Simulation, Cmd Msg)
-init =
-    (createSimulation, Cmd.none)
-
-
-type alias AgentAction = (AgentIn -> AgentCont)
+type alias AgentAction = (AgentIn -> Neighbourhood -> AgentCont)
 type alias Continuation = (AgentOut, AgentAction)
+
+type alias Neighbourhood = Dict.Dict AgentId (List AgentId)
 
 type AgentCont = 
     Terminate
     | Continue Continuation
 
-agentBehaviour : AgentState -> AgentAction
-agentBehaviour s0 ain = 
+type alias AgentState =
+    { aid: AgentId
+    , sir: SIR
+    , pos: Position }
+
+type alias AgentObservable =
+    { sir: SIR
+    , pos: Position }
+
+type alias AgentIn =
+    { msgs: List AgentMessage }
+
+type alias AgentOut =
+    { observable: AgentObservable
+    , msgs: List AgentMessage }
+
+type alias Simulation =
+    { time : SimTime
+    , agents : Dict.Dict AgentId Continuation
+    , env : Neighbourhood }
+
+type Msg = 
+    Step SimTime
+    | AgentsUpdated (List (AgentId, AgentCont))
+
+createSimulation : Simulation
+createSimulation = 
     let 
-        s1 = { s0 | counter = s0.counter + 1 }
-        ao = { observable = s1, msgs = [] }
+        agentStates = createAgentStates gridSize
 
+        createAgentStates : (Int, Int) -> List AgentState
+        createAgentStates (dx, dy) =
+            let
+                xs = List.range 0 (dx - 1)
+                ys = List.range 0 (dy - 1)
+                aids = List.range 0 (dx * dy - 1)
+                coords = List.foldr (\x acc -> List.append (List.map (\y -> (x, y)) ys) acc) [] xs 
+
+                agents = List.map (\(aid, coord) -> { aid = aid, sir = Susceptible, pos = coord}) (List.map2 (,) aids coords)
+            in
+                agents
+
+        agentConts = List.foldr (\s acc -> Dict.insert s.aid (agentStateToCont s) acc) Dict.empty agentStates
+
+        agentStateToCont : AgentState -> Continuation
+        agentStateToCont s = ({ observable = agentStateToObservable s, msgs = []}, agentBehaviour s)
     in
-        if s1.counter > 10 then 
-            Terminate
-            else
-                Continue (ao, (agentBehaviour s1))
+        { time = 0.0
+        , agents = agentConts
+        , env = Dict.empty }
 
-agentTask : AgentIn -> AgentAction -> Task.Task Never AgentCont
-agentTask ain af = Task.succeed (af ain)
+init : (Simulation, Cmd Msg)
+init =
+    (createSimulation, nextStep)
 
-agentPerform : AgentId -> Task.Task Never AgentCont -> Cmd Msg
-agentPerform aid agentTask = 
+agentStateToObservable : AgentState -> AgentObservable
+agentStateToObservable s = { sir = s.sir, pos = s.pos }
+
+agentTask : AgentId -> AgentIn -> Neighbourhood -> AgentAction -> Task.Task Never (AgentId, AgentCont)
+agentTask aid ain env af = Task.succeed (aid, af ain env)
+
+agentBehaviour : AgentState -> AgentAction
+agentBehaviour s ain env =
+    case s.sir of
+        Susceptible -> susceptibleBehaviour s ain env
+        Infected -> susceptibleBehaviour s ain env
+        Recovered -> susceptibleBehaviour s ain env
+
+susceptibleBehaviour : AgentState -> AgentAction
+susceptibleBehaviour s0 ain env = 
     let
-        contFunc ret = 
-            case ret of
-                Terminate ->
-                    AgentTerminated aid
-
-                Continue cont -> 
-                    AgentUpdate (aid, cont)
-    
+        s1 = onMessage (Contact Infected) ain (\s -> { s | sir = Infected }) s0
+        obs = agentStateToObservable s1
+        
+        ao0 = { observable = obs, msgs = [] }
+        ao1 = contactRandomNeighbour env ao0
     in
-        Task.perform contFunc agentTask
+        Continue (ao1, (agentBehaviour s1))
+
+contactRandomNeighbour : Neighbourhood -> AgentOut -> AgentOut
+contactRandomNeighbour env ao = ao
+
+sendMessage : AgentMessage -> AgentOut -> AgentOut
+sendMessage msg ao = { ao | msgs = msg :: ao.msgs }
+
+onMessage : Message -> AgentIn -> (AgentState -> AgentState) -> AgentState -> AgentState
+onMessage m ain f sInit = 
+    let
+        msgs = ain.msgs
+        s1 = List.foldr (\(_, msg) s0 -> 
+            if m == msg then 
+                f s0
+                else
+                    s0) sInit msgs
+    in
+        s1
 
 -- UPDATE
-type Msg = 
-    Tick Time
-    | AgentTerminated AgentId
-    | AgentUpdate (AgentId, Continuation)
+nextStep : Cmd Msg
+nextStep = Task.perform (\_ -> Step dt) (Task.succeed ())
 
 update : Msg -> Simulation -> (Simulation, Cmd Msg)
 update msg model =
   case msg of
-    Tick newTime ->
-      ({ model | time = newTime }, executAgents model)
+    Step dt ->
+        ({ model | time = model.time + dt }, executeAgentsSequential model)
 
-    AgentTerminated aid ->
-        (model, Cmd.none)
+    AgentsUpdated acs ->
+        let
+            model0 = updateModel acs model
+            cmd = 
+                if Dict.isEmpty model0.agents then
+                    Cmd.none
+                    else
+                        nextStep
+        in
+            (model0, cmd)
 
-    AgentUpdate (aid, cont) ->
-        ({ model | agents = Dict.insert aid (Continue cont) model.agents }, Cmd.none)
+updateModel : List (AgentId, AgentCont) -> Simulation -> Simulation
+updateModel acs model =
+    let 
+        agents0 = model.agents
+        agents1 = List.foldr updateAgent agents0 acs
 
-executAgents : Simulation -> Cmd Msg
-executAgents model = 
+        updateAgent : (AgentId, AgentCont) -> Dict.Dict AgentId Continuation -> Dict.Dict AgentId Continuation
+        updateAgent (aid, ac) acc =
+            case ac of
+                Terminate -> Dict.remove aid acc
+                Continue cont -> Dict.insert aid cont acc
+    in
+        { model | agents = agents1 }
+
+executeAgentsSequential : Simulation -> Cmd Msg
+executeAgentsSequential model = 
     let
-        aid = 0
-        am = Dict.get aid model.agents
-        ain = { msgs = [] }
+        ats = List.foldr (\(aid, (_, act)) acc -> (agentTask aid (agentIn aid model) model.env act) :: acc) [] (Dict.toList model.agents)
 
-    in 
-        case am of
-            Nothing -> Cmd.none
-            Just ac -> execAgent aid ain ac
+        ts = Task.sequence ats
 
-execAgent : AgentId -> AgentIn -> AgentCont -> Cmd Msg
-execAgent aid ain ac =
-    case ac of 
-        Terminate -> Cmd.none
-        Continue (_, act) -> agentPerform aid (agentTask ain act)
+        taskFunc acs = AgentsUpdated acs
+    in
+        Task.perform taskFunc ts
+
+agentIn : AgentId -> Simulation -> AgentIn
+agentIn aid model =
+    let
+        msgs = List.foldr (\(senderId, sender) acc -> collectFrom senderId (Tuple.first sender) acc) [] (Dict.toList model.agents)
+
+        collectFrom : AgentId -> AgentOut -> List (AgentId, Message) -> List (AgentId, Message)
+        collectFrom senderId ao acc = 
+            let
+                filteredMessages = List.filter (\(receiverId, _) -> receiverId == aid) ao.msgs
+                ms = List.map (\(_, m) -> (senderId, m)) filteredMessages
+            in
+                List.append ms acc
+    in
+        { msgs = msgs }
 
 -- SUBSCRIPTIONS
 subscriptions : Simulation -> Sub Msg
-subscriptions model =
-    Time.every second Tick
+subscriptions model = Sub.none
 
 -- VIEW
 view : Simulation -> Html Msg
-view { time, agents, neighbourhood } =
+view { time, agents, env } =
   let
     agentsSvg = Dict.foldr agentRender [] agents 
-    agentRender k a acc =
-        case a of
-            Terminate -> acc
-            Continue cont -> (renderAgent <| (.observable << Tuple.first) cont) :: acc
+    agentRender k cont acc = (renderAgent <| (.observable << Tuple.first) cont) :: acc
   in
-    svg [ viewBox "0 0 100 100", width "300px" ] agentsSvg
+    svg [ viewBox "0 0 500 500", width "800px" ] agentsSvg
 
-renderAgent : AgentState -> Svg.Svg msg
-renderAgent { sir, counter, pos } = 
+renderAgent : AgentObservable -> Svg.Svg msg
+renderAgent { sir, pos } = 
     let
-        xc = 10 * Tuple.first pos 
+        xc = agentSize * Tuple.first pos 
 
-        yc = 10 * Tuple.second pos
+        yc = agentSize * Tuple.second pos
 
         xcTxt = xc
 
-        ycTxt = 10 + yc
+        ycTxt = agentSize + yc
 
         xPos = 
             toString xc
@@ -181,19 +250,23 @@ renderAgent { sir, counter, pos } =
         yPosTxt = 
             toString ycTxt
 
-        w = "10"
+        w = 
+            toString agentSize
 
-        h = "10"
+        h = 
+            toString agentSize
 
         c = 
             sirColor sir
 
-        txt =
-            toString counter
+        txt = "0"
+
+        fs = 
+            toString agentSize
     in 
         g [] [
             rect [ x xPos , y yPos, width w, height h, fill c ] []
-            , Svg.text_ [ x xPosTxt, y yPosTxt, fontSize "10", fill "white" ] [ Svg.text txt ] ]
+            , Svg.text_ [ x xPosTxt, y yPosTxt, fontSize fs, fill "white" ] [ Svg.text txt ] ]
 
 sirColor : SIR -> String
 sirColor sir =

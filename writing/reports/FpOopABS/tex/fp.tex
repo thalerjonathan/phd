@@ -29,6 +29,8 @@ Thus functional programming is identified as programming without the assignment 
 \section{Applicative Programming}
 TODO: The question is then if we could implement in a functional style in an imperative object-oriented programming language? Or put otherwise: are these properties unique to functional programming or can we program functional in an imperative language (be it OO or not)? We can say that the functional style can be described as applicative programming: applying values to functions as described above. This functional style or applicative style applies to imperative languages as well and is not restricted to functional languages alone
 
+distinguish between functional style and functional programming. when using a specific style one abuses language features to emulate a different paradigm than the one of the host language - so it is also possible to emulate oop in C or Haskell but this does not make them oop languages, one just emulate a programming-style (with potentially disastrous consequences as the code will probably become quite unreadable)
+
 \section{Functional Programming}
 \cite{maclennan_functional_1990} defines functional programming as applicative programming with \textit{higher-order} functions. These are functions which operate themselves on functions: they can take functions as arguments, construct new functions and return them as values. This is in stark contrast to the \textit{first-order} functions as used in applicative or imperative programming which just operate on data alone.
 Higher-order functions allow to capture frequently recurring patterns in functional programming in the same way like imperative languages captured patterns like GOTO, while-do, if-then-else, for. Common patterns in functional programming are the map, fold, zip, operators.
@@ -46,11 +48,21 @@ TODO: algebraic reasoning. \cite{maclennan_functional_1990} page 233: "Much of t
 	\item Functions are \textit{first-class} which means the can be treated like values, passed as arguments and returned from functions.
 \end{itemize}
 
-
-
 \section{Haskell}
 The language of choice for discussing real implementations of ABS in the pure functional programming paradigm we select Haskell. The reason is that it is a mature language with lots of useful and stable libraries and because it has been proved to be useful in Real-World applications as well (TODO: take from 1st year report). Also the reason why selecting Haskell over e.g. Scala, Clojure is its purity, strong static type-system, non-strictness.
 
 Being \textit{pure} describes that all Haskells features are directly translatable to the Lambda-Calculus. Other functional languages (e.g. Scala), although also based on the Lambda-Calculus like all functional languages, have features which are not directly translatable into the Lambda-Calculus and are thus considered to be impure. Another meaning of \textit{pure} in the context of Haskell and of functional programming can be understood as \textit{free from side-effects} or more precisely as having the property of \textit{referential transparency}. 
 
 haskells real power: side-effect polymorph. enabled through monadic progranming which becomes possible through type parameters, typeclasses, higher-order functions, lambdas and pattern matching
+
+\section{Theoretical Foundation}
+The theoretical foundation of Functional Programming is the Lambda Calculus, which was introduced by Alonzo Church in the 1930s. After some revision due to logical inconsistencies which were shown by Kleene and Rosser, Church published the untyped Lambda Calculus in 1936 which, together with a type-system (e.g. Hindler-Milner like in Haskell) on top is taken as the foundation of functional programming today.
+
+\subsection{Lambda Calculus}
+TODO: short explanation of how the lambda calculus works: alpha-equivalence/conversion, beta-reduction, eta-conversion, free variables. Explanation mostly inspired from \cite{maclennan_functional_1990} and \cite{allen_haskell_2016} with a bit of \url{https://en.wikipedia.org/wiki/Lambda_calculus}
+
+\subsection{Functional Type System}
+TODO: look into Haskell's Type-System
+
+\subsection{An Example: arithmetic operations}
+TODO: addition and multiplication in the Lambda Calculus

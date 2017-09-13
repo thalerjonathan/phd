@@ -60,7 +60,7 @@ The theoretical foundation of Functional Programming is the Lambda Calculus, whi
 
 %TODO: short explanation of how the lambda calculus works: alpha-equivalence/conversion, beta-reduction, eta-conversion, free variables. Explanation mostly inspired from \cite{maclennan_functional_1990} and \cite{allen_haskell_2016} with a bit of \url{https://en.wikipedia.org/wiki/Lambda_calculus}
 
-\cite{maclennan_functional_1990} defines a calculus to be "... a notation that can be manipulated mechanically to achieve some end;...". The Lambda Calculus can thus be understood to be a notation for expressing computation based on the concepts of \textit{function abstraction}, \textit{function application}, \textit{variable binding} and \textit{variable substitution}. It is fundamentally different from the notation of a Turing Machine in the way it is applicative whereas the Turing Machine is imperative / operative. To give a complete definition is out of the scope of this text, thus we will only give a basic overview of the concepts and how the Lambda Calculus works. For an exhaustive discussion of the Lambda Calculus we refer to \cite{maclennan_functional_1990} and \cite{barendregt_lambda_1984}. The explanation is drawn mostly from \cite{maclennan_functional_1990}.
+\cite{maclennan_functional_1990} defines a calculus to be "... a notation that can be manipulated mechanically to achieve some end;...". The Lambda Calculus can thus be understood to be a notation for expressing computation based on the concepts of \textit{function abstraction}, \textit{function application}, \textit{variable binding} and \textit{variable substitution}. It is fundamentally different from the notation of a Turing Machine in the way it is applicative whereas the Turing Machine is imperative / operative. To give a complete definition is out of the scope of this text, thus we will only give a basic overview of the concepts and how the Lambda Calculus works. For an exhaustive discussion of the Lambda Calculus we refer to \cite{maclennan_functional_1990} and \cite{barendregt_lambda_1984}.
 
 \paragraph{Function Abstraction}
 Function abstraction allows to define functions in the Lambda Calculus. If we take for example the function $f(x) = x^2 - 3x + a$ we can translate this into the Lambda Calculus where it denotes: $\lambda x.x^2 - 3x + a$. The $\lambda$ symbol denotes an expression of a function which takes exactly one argument which is used in the body-expression of the function to calculate something which is then the result. Functions with more than one argument are defined by using nested $\lambda$ expressions. The function $f(x, y) = x^2 + y^2$ is written in the Lambda Calculus as $\lambda x.\lambda y.x^2 + y^2$.
@@ -72,13 +72,43 @@ When wants to get the result of a function then one applies arguments to the fun
 In the function $f(x) = x^2 - 3x + a$ the variable $x$ is \textit{bound} in the body of the function whereas $a$ is said to be \textit{free}. The same applies to the lambda expression of $\lambda x.x^2 - 3x + a$. An important property is that bound variables can be renamed within their scope without changing the meaning of the expression: $\lambda y.y^2 - 3y + a$ has the same meaning as the expression $\lambda x.x^2 - 3x + a$. Note that free variable \textit{must not be renamed} as this would change the meaning of the expression. This process is called $\alpha$-conversion and it becomes sometimes necessary to avoid name-conflicts in variable substitution.
 
 \paragraph{Variable Substitution}
+To compute the result of a Lambda Expression - also called evaluating the expression - it is necessary to substitute the bound variable by the argument to the function. This process is called $\beta$-reduction and works as follows. When we want to evaluate the expression $((\lambda x.\lambda y.x^2 + y^2) 3) 4$ we first substitute 4 for x, rendering $(\lambda y.4^2 + y^2) 3$ and then 3 for y, resulting in $(4^2 + 3^2)$ which then ultimately evaluates to 25. Sometimes $\alpha$-conversion becomes necessary e.g. in the case of the expression $((\lambda x.\lambda y.x^2 + y^2) 3) y$ we must not substitute y directly for x. The result would be $(\lambda y.y^2 + y^2) 3 = 3^2 + 3^2 = 18$ - clearly a different meaning than intended (the first y value is simply thrown away). Here we have to perform $\alpha$-conversion before substituting y for x. \\ 
+$((\lambda x.\lambda y.x^2 + y^2) 3) y = ((\lambda x.\lambda z.x^2 + z^2) 3) y$ and now we can substitute safely without risking a name-clash: $((\lambda x.\lambda z.x^2 + z^2) 3) y = (\lambda z.y^2 + z^2) 3) = (y^2 + 3^2) 3) = y^2 + 9$ where y occurs free.
 
+\subsection*{Examples}
+$(\lambda x.x)$ denotes the identity function - it simply evaluates to the argument. 
 
-\subsection{An Example: arithmetic operations}
-TODO: addition and multiplication in the Lambda Calculus
+\medskip
 
-\subsection{Conclusions}
-- Very close to mathematical notation
+$(\lambda x.y)$ denotes the constant function - it throws away the argument and evaluates to the free variable $y$. 
+
+\medskip
+
+$(\lambda x.x)(\lambda x.x)$ applies the identity function to itself (note that functions can be passed as arguments to functions - they are \textit{first class} in the Lambda Calculus) - this results in the same expression again and is thus a non-terminating expression.
+
+\medskip
+
+We can formulate simple arithmetic operations like addition of natural numbers using the Lambda Calculus. For this we need to find a way how to express natural numbers. This problem was already solved by Alonzo Church by introducing the Church numerals: a natural number is a function of an n-fold composition of an arbitrary function f. The number 0 would be encoded as $0 = \lambda f . \lambda x.x$, 1 would be encoded as $1 = \lambda f . \lambda x . f x$ and so on.
+When we want to add two such encoded numbers we make use of the identity $f^{(m+n)}(x) = f^m(f^n(x))$. Adding 2 to 3 gives us the following lambda expressions (note that we are using a sugared version allowing multiple arguments to a function abstraction) and reduces after 7 steps to the final result:
+
+\medskip
+
+$2 = \lambda f x . f(f x)$ \\
+$3 = \lambda f x . f(f(f x))$ \\
+$ADD = \lambda m n f x . m f (n f x)$ \\
+
+ADD 2 3 \\
+$1: (\lambda m n f x. m f (n f x)) (\lambda f x.f(f(f x))) (\lambda f x.f(f x))$ \\
+$2:  (\lambda n f x. (\lambda f x.f(f(f x))) f (n f x))   (\lambda f x.f(f x))$ \\
+$3:     (\lambda f x. (\lambda f x.f(f(f x))) f ((\lambda f x.f(f x)) f x)) $ \\ 
+$4:     (\lambda f x.   (\lambda x.f(f(f x)))   ((\lambda f x.f(f x)) f x)) $ \\
+$5:     (\lambda f x.       f(f(f(\lambda f x.f(f x)) f x)))))$ \\
+$6:     (\lambda f x.       f(f(f  (\lambda x.f(f x)) x)))))$ \\
+$7:     (\lambda f x.       f(f(f     (f(f x))  )))))$
 
 \section{Theoretical Foundation: Types}
 TODO: look into Haskell's Type-System
+
+\section{Conclusions}
+- lambda calculus very close to mathematical notation
+- static strong type system 

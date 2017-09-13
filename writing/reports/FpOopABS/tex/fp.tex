@@ -58,8 +58,6 @@ haskells real power: side-effect polymorph. enabled through monadic progranming 
 \section{Theoretical Foundation: Lambda Calculus}
 The theoretical foundation of Functional Programming is the Lambda Calculus, which was introduced by Alonzo Church in the 1930s. After some revision due to logical inconsistencies which were shown by Kleene and Rosser, Church published the untyped Lambda Calculus in 1936 which, together with a type-system (e.g. Hindler-Milner like in Haskell) on top is taken as the foundation of functional programming today.
 
-%TODO: short explanation of how the lambda calculus works: alpha-equivalence/conversion, beta-reduction, eta-conversion, free variables. Explanation mostly inspired from \cite{maclennan_functional_1990} and \cite{allen_haskell_2016} with a bit of \url{https://en.wikipedia.org/wiki/Lambda_calculus}
-
 \cite{maclennan_functional_1990} defines a calculus to be "... a notation that can be manipulated mechanically to achieve some end;...". The Lambda Calculus can thus be understood to be a notation for expressing computation based on the concepts of \textit{function abstraction}, \textit{function application}, \textit{variable binding} and \textit{variable substitution}. It is fundamentally different from the notation of a Turing Machine in the way it is applicative whereas the Turing Machine is imperative / operative. To give a complete definition is out of the scope of this text, thus we will only give a basic overview of the concepts and how the Lambda Calculus works. For an exhaustive discussion of the Lambda Calculus we refer to \cite{maclennan_functional_1990} and \cite{barendregt_lambda_1984}.
 
 \paragraph{Function Abstraction}
@@ -84,11 +82,11 @@ $(\lambda x.y)$ denotes the constant function - it throws away the argument and 
 
 \medskip
 
-$(\lambda x.x)(\lambda x.x)$ applies the identity function to itself (note that functions can be passed as arguments to functions - they are \textit{first class} in the Lambda Calculus) - this results in the same expression again and is thus a non-terminating expression.
+$(\lambda x.xx)(\lambda x.xx)$ applies the function to itself (note that functions can be passed as arguments to functions - they are \textit{first class} in the Lambda Calculus) - this results in the same expression again and is thus a non-terminating expression.
 
 \medskip
 
-We can formulate simple arithmetic operations like addition of natural numbers using the Lambda Calculus. For this we need to find a way how to express natural numbers. This problem was already solved by Alonzo Church by introducing the Church numerals: a natural number is a function of an n-fold composition of an arbitrary function f. The number 0 would be encoded as $0 = \lambda f . \lambda x.x$, 1 would be encoded as $1 = \lambda f . \lambda x . f x$ and so on.
+We can formulate simple arithmetic operations like addition of natural numbers using the Lambda Calculus. For this we need to find a way how to express natural numbers \footnote{In the short introduction for sake of simplicity we assumed the existence of natural numbers and the operations on them but in a pure lambda calculus they are not available. In programming languages which build on the Lambda Calculus e.g. Haskell, (natural) numbers and operations on them are built into the language and map to machine-instructions, primarily for performance reasons.}. This problem was already solved by Alonzo Church by introducing the Church numerals: a natural number is a function of an n-fold composition of an arbitrary function f. The number 0 would be encoded as $0 = \lambda f . \lambda x.x$, 1 would be encoded as $1 = \lambda f . \lambda x . f x$ and so on. This is a way of \textit{unary notation}: the natural number n is represented by n function compositions - n things denote the natural number of n.
 When we want to add two such encoded numbers we make use of the identity $f^{(m+n)}(x) = f^m(f^n(x))$. Adding 2 to 3 gives us the following lambda expressions (note that we are using a sugared version allowing multiple arguments to a function abstraction) and reduces after 7 steps to the final result:
 
 \medskip

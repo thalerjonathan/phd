@@ -1,18 +1,23 @@
 \chapter{Functional Programming}
-MacLennan \cite{maclennan_functional_1990} defines Functional Programming as a methodology and identifies it with the following properties:
+MacLennan \cite{maclennan_functional_1990} defines Functional Programming as a methodology and identifies it with the following properties (amongst others):
 
 \begin{enumerate}
 	\item It is programming without the assignment-operator.
 	\item It allows for higher levels of abstraction.
 	\item It allows to develop executable specifications and prototype implementations.
 	\item It is connected to computer science theory.
-	\item Parallel Programming.
-	\item Suitable for AI.
+	\item Suitable for Parallel Programming.
+	\item Algebraic reasoning.
 \end{enumerate}
 
-The last two points don't weight as heavy today as back in 1990 as other languages came up with features for better parallel programming but they all do it by introducing functional features.
+\cite{allen_haskell_2016} defines Functional Programming as "a computer programming paradigm that relies on functions modelled on mathematical functions." Further they explicate that it is 
+\begin{itemize}
+	\item in Functional programming programs are combinations of expressions
+	\item Functions are \textit{first-class} which means the can be treated like values, passed as arguments and returned from functions.
+\end{itemize}
 
-MacLennan \cite{maclennan_functional_1990} defines properties of pure expressions 
+\cite{maclennan_functional_1990} makes the subtle distinction between \textit{applicative} and \textit{functional} programming. Applicative programming can be understood as applying values to functions where one deals with pure expressions:
+
 \begin{itemize}
 	\item Value is independent of the evaluation order.
 	\item Expressions can be evaluated in parallel.
@@ -22,29 +27,11 @@ MacLennan \cite{maclennan_functional_1990} defines properties of pure expression
 	\item Effects to an operation are obvious from the written form.
 \end{itemize}
 
-Thus functional programming is identified as programming without the assignment operator and with pure expressions instead. Further characteristics are the missing of orderings as in imperative programming, caused by assignments: in functional programming the style is applicative which means we apply values to functions. The fundamental theoretical root is in the lambda calculus.
+Note that applicative programming is not necessarily unique to the functional programming paradigm but can be emulated in an imperative language e.g. C as well. Functional programming is then defined by \cite{maclennan_functional_1990} as applicative programming with \textit{higher-order} functions. These are functions which operate themselves on functions: they can take functions as arguments, construct new functions and return them as values. This is in stark contrast to the \textit{first-order} functions as used in applicative or imperative programming which just operate on data alone. Higher-order functions allow to capture frequently recurring patterns in functional programming in the same way like imperative languages captured patterns like GOTO, while-do, if-then-else, for. Common patterns in functional programming are the map, fold, zip, operators.
+So functional programming is not really possible in this way in classic imperative languages e.g. C as you cannot construct new functions and return them as results from functions \footnote{Object-Oriented languages like Java let you to partially work around this limitation but are still far from \textit{pure} functional programming.}.
 
-- cite critics
-
-TODO: The question is then if we could implement in a functional style in an imperative object-oriented programming language? Or put otherwise: are these properties unique to functional programming or can we program functional in an imperative language (be it OO or not)? We can say that the functional style can be described as applicative programming: applying values to functions as described above. This functional style or applicative style applies to imperative languages as well and is not restricted to functional languages alone
-
-distinguish between functional style and functional programming. when using a specific style one abuses language features to emulate a different paradigm than the one of the host language - so it is also possible to emulate oop in C or Haskell but this does not make them oop languages, one just emulate a programming-style (with potentially disastrous consequences as the code will probably become quite unreadable)
-
-\cite{maclennan_functional_1990} defines functional programming as applicative programming with \textit{higher-order} functions. These are functions which operate themselves on functions: they can take functions as arguments, construct new functions and return them as values. This is in stark contrast to the \textit{first-order} functions as used in applicative or imperative programming which just operate on data alone.
-Higher-order functions allow to capture frequently recurring patterns in functional programming in the same way like imperative languages captured patterns like GOTO, while-do, if-then-else, for. Common patterns in functional programming are the map, fold, zip, operators.
-
-TODO: discuss function-composition, which is the equivalent of the ; operator in imperative languages. Function composition has no side-effects as opposed to the imperative ; operator which simply composes destructive assignment statements which are executed after another resulting in side-effects.
-At the heart of modern functional programming is monadic programming which is polymorphic function composition: one can implement a user-defined function composition by allowing to run some code in-between function composition (TODO: explain using some code) - this code of course depends on the type of the Monad one runs in. This allows to emulate all kind of effectful programming in an imperative style within a pure functional language. Although it might seem strange wanting to have imperative style in a pure functional language, some problems are inherently imperative in the way that computations need to be executed in a given sequence with some effects. Also a pure functional language needs to have some way to deal with effects otherewise it would never be able to interact with the outside-world and would be practically useless. The real benefit of monadic programming is that it is explicit about side-effects and allows only effects which are fixed by the type of the monad - the side-effects which are possible are determined statically during compile-time by the type-system. Some general patterns can be extracted e.g. a map, zip, fold over monads which results in polymorphic behaviour - this is the meaning when one says that a language is polymorphic in its side-effects.
-
-TODO: so functional programming is not really possible in this way in classic imperative languages e.g. C as you cannot construct new functions and return them as results from functions. The question is if it is possible in OO by using some OO features to work around the limitations of procedural languages.
-
-TODO: algebraic reasoning. \cite{maclennan_functional_1990} page 233: "Much of the power of functional programming derives from its ability to manipulate programs algebraically by means of identities such as Eq. (6.6)"
-
-\cite{allen_haskell_2016} defines Functional Programming as "a computer programming paradigm that relies on functions modelled on mathematical functions." Further they explicate that it is 
-\begin{itemize}
-	\item in Functional programming programs are combinations of expressions
-	\item Functions are \textit{first-class} which means the can be treated like values, passed as arguments and returned from functions.
-\end{itemize}
+The equivalence in functional programming to to the \textit{;} operator of imperative programming which allows to compose imperative statements is function composition. Function composition has no side-effects as opposed to the imperative ; operator which simply composes destructive assignment statements which are executed after another resulting in side-effects.
+At the heart of modern functional programming is monadic programming which is polymorphic function composition: one can implement a user-defined function composition by allowing to run some code in-between function composition - this code of course depends on the type of the Monad one runs in. This allows to emulate all kind of effectful programming in an imperative style within a pure functional language. Although it might seem strange wanting to have imperative style in a pure functional language, some problems are inherently imperative in the way that computations need to be executed in a given sequence with some effects. Also a pure functional language needs to have some way to deal with effects otherwise it would never be able to interact with the outside-world and would be practically useless. The real benefit of monadic programming is that it is explicit about side-effects and allows only effects which are fixed by the type of the monad - the side-effects which are possible are determined statically during compile-time by the type-system. Some general patterns can be extracted e.g. a map, zip, fold over monads which results in polymorphic behaviour - this is the meaning when one says that a language is polymorphic in its side-effects.
 
 \section{Theoretical Foundation}
 The theoretical foundation of Functional Programming is the Lambda Calculus, which was introduced by Alonzo Church in the 1930s. After some revision due to logical inconsistencies which were shown by Kleene and Rosser, Church published the untyped Lambda Calculus in 1936 which, together with a type-system (e.g. Hindler-Milner like in Haskell) on top is taken as the foundation of functional programming today.

@@ -83,7 +83,7 @@
 			"file": "Main.hs",
 			"settings":
 			{
-				"buffer_size": 4010,
+				"buffer_size": 5494,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -501,15 +501,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 4010,
+						"buffer_size": 5494,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1727,
-								1727
+								217,
+								217
 							]
 						],
 						"settings":
@@ -517,7 +517,7 @@
 							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 630.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,

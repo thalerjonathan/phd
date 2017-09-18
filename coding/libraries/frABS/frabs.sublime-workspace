@@ -147,16 +147,6 @@
 	},
 	"buffers":
 	[
-		{
-			"contents": "GHCi, version 8.0.2: http://www.haskell.org/ghc/  :? for help\nPrelude> ",
-			"settings":
-			{
-				"buffer_size": 71,
-				"line_ending": "Unix",
-				"name": "*REPL* [haskell]",
-				"scratch": true
-			}
-		}
 	],
 	"build_system": "",
 	"build_system_choices":
@@ -212,15 +202,7 @@
 	},
 	"expanded_folders":
 	[
-		"/home/jonathan/phd/coding/libraries/frABS",
-		"/home/jonathan/phd/coding/libraries/frABS/examples",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies",
-		"/home/jonathan/phd/coding/libraries/frABS/src",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering"
+		"/home/jonathan/phd/coding/libraries/frABS"
 	],
 	"file_history":
 	[
@@ -355,7 +337,7 @@
 	],
 	"find":
 	{
-		"height": 34.0
+		"height": 23.0
 	},
 	"find_in_files":
 	{
@@ -599,62 +581,8 @@
 	"groups":
 	[
 		{
-			"selected": 0,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 71,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								71,
-								71
-							]
-						],
-						"settings":
-						{
-							"auto_complete": true,
-							"auto_indent": false,
-							"detect_indentation": false,
-							"gutter": false,
-							"history_arrows": true,
-							"indent_subsequent_lines": false,
-							"line_numbers": false,
-							"repl": true,
-							"repl_external_id": "haskell",
-							"repl_id": "dd38f55eff36411eb97a77dbf5b8458b",
-							"repl_restart_args":
-							{
-								"cmd":
-								[
-									"ghci"
-								],
-								"cwd": "$file_path",
-								"encoding": "utf8",
-								"external_id": "haskell",
-								"syntax": "Packages/Haskell/Haskell.tmLanguage",
-								"type": "sublime_haskell"
-							},
-							"repl_sublime2": false,
-							"smart_indent": false,
-							"spell_check": false,
-							"syntax": "Packages/Haskell/Haskell.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				}
 			]
 		}
 	],
@@ -713,7 +641,7 @@
 	"project": "frabs.sublime-project",
 	"replace":
 	{
-		"height": 62.0
+		"height": 42.0
 	},
 	"save_all_on_build": true,
 	"select_file":

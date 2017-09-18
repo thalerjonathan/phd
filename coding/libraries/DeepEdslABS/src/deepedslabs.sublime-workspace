@@ -1,0 +1,627 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"igni",
+				"ignitionEvent"
+			],
+			[
+				"init",
+				"initIgnite"
+			],
+			[
+				"extractParamFrom",
+				"extractParamFromVector ∷ Value → Int → Maybe Value\tRpc.Utils"
+			],
+			[
+				"exc",
+				"extractParam ∷ Value → Int → Text → Maybe Value\tRpc.Utils"
+			],
+			[
+				"encod",
+				"encodeQuantity ∷ Int → String\tRpc.Utils"
+			],
+			[
+				"JsonRpcRe",
+				"JsonRpcResponse \tEthJsonRpc.Methods"
+			],
+			[
+				"server",
+				"serverLoop"
+			],
+			[
+				"et",
+				"ethJsonRpcPort"
+			],
+			[
+				"SockA",
+				"SockAddrInet"
+			],
+			[
+				"receivi",
+				"receivingIdx"
+			],
+			[
+				"rece",
+				"receivingIn"
+			],
+			[
+				"may",
+				"mayIdx"
+			],
+			[
+				"handleCon",
+				"handleConversationAux"
+			],
+			[
+				"mayb",
+				"maybeFunc1"
+			],
+			[
+				"SugarScapeC",
+				"SugarScapeEnvCell \tSugarScape.SugarScapeModel"
+			],
+			[
+				"sugEnv",
+				"sugEnvSugarLevel ∷ SugarScapeEnvCell → Double\tSugarScape.SugarScapeModel"
+			],
+			[
+				"sugAgSug",
+				"sugAgSugarLevel ∷ SugarScapeAgentState → Double\tSugarScape.SugarScapeModel"
+			],
+			[
+				"Cultur",
+				"SugarScapeCulturalTag \tSugarScape.SugarScapeModel"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "Main.hs",
+			"settings":
+			{
+				"buffer_size": 4010,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "Packages/Elm Language Support/Build Systems/Elm Make.sublime-build",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Packages/Elm Language Support/Build Systems/Elm Make.sublime-build",
+					""
+				],
+				[
+					"Packages/Elm Language Support/Build Systems/Elm Make.sublime-build",
+					"Run"
+				],
+				[
+					"Packages/Elm Language Support/Build Systems/Elm Make.sublime-build",
+					"Ignore Warnings"
+				],
+				[
+					"Packages/Elm Language Support/Build Systems/Elm Make.sublime-build",
+					"Run - Ignore Warnings"
+				]
+			],
+			[
+				"Packages/Elm Language Support/Build Systems/Elm Make.sublime-build",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"last_filter": "repl",
+		"selected_items":
+		[
+			[
+				"repl",
+				"SublimeREPL: Elm"
+			],
+			[
+				"Package Control: insta",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: install",
+				"Package Control: Install Package"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 485.0
+	},
+	"console":
+	{
+		"height": 289.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = 'df21e130d211cfc94d9b0905775a7c0f' + '1e3d39e33b79698005270310898eea76'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by) ",
+			"import urllib.request,os; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); open(os.path.join(ipp, pf), 'wb').write(urllib.request.urlopen( 'http://sublime.wbond.net/' + pf.replace(' ','%20')).read())"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/home/jonathan/phd/coding/libraries/DeepEdslABS",
+		"/home/jonathan/phd/coding/libraries/DeepEdslABS/src"
+	],
+	"file_history":
+	[
+		"/home/jonathan/phd/coding/learning/haskell/haskellFirstPrinciples/typeclasses/EqInstances.hs",
+		"/home/jonathan/phd/coding/libraries/ElmABS/src/Main.elm",
+		"/home/jonathan/phd/coding/libraries/ElmABS/build/Main.html",
+		"/home/jonathan/phd/coding/reports/fpOopAbs/Examples.hs",
+		"/home/jonathan/phd/coding/learning/haskell/fpbook/Chapter3.hs",
+		"/home/jonathan/phd/coding/learning/haskell/fpbook/Chapter1.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Random.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Auctioneer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Trader.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Reactive.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Utils.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Discrete.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Network.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/HeroesCowards/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Continuous.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Utils.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Renderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Continuous2d.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/HeroesCowards/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Discrete2d.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/HeroesCowards/Renderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Definitions.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Simulation.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Discrete2D.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Classes.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/FrABS.cabal",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/FrABS.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/ConversationRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/ConversationModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DARun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DAInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DAAuctioneer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DATrader.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/FrSIRSNetworkAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/FrSIRSSpatialRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/FrSIRSSpatialAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/RecursiveABSRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/RecursiveABSModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/SegregationRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/SegregationAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentPure.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentMonadic.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentCommon.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/SysDynSIRRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/SysDynSIRStock.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/ParIteration.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/SeqIteration.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/Simulation.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Monad.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/frABS.cabal",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Env/Utils.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/AgentUtils.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/AgentRandom.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/SimulationUtils.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/Utils.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Agent/Reactive.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeModel.hs",
+		"/home/jonathan/Main.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/FrSIRSRun.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/FrSIRSAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Rendering/GlossSimulator.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRS/FrSIRSRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Env/Environment.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils/Utils.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/frABSExamples.cabal",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeAgentM.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeEnvironmentM.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroEnvironment.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/        Actual type",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/DAModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/SIRSModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Utils.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/SegregationModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/SegregationStats.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/SegregationInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/SegregationRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/AgentZeroRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/SugarScapeRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireRenderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Rendering/Agents2DDiscrete.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FrABS/Simulation/SimulationHelper.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/RunSIRS.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/PDInit.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireModel.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/    Saw",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WildfireEnvironment.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/WilidfireRun.hs",
+		"/home/jonathan/ethereum/ethaskell/src/Rpc/Server.hs",
+		"/home/jonathan/ethereum/ethaskell/src/Rpc/Methods.hs",
+		"/home/jonathan/ethereum/ethaskell/src/Rpc/CURL_TEST.txt",
+		"/home/jonathan/ethereum/ethaskell/ETHaskell.cabal",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Rpc/Utils.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Rpc/CURL_TEST.txt",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/p2p/Server.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Rpc/Server.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/p2p/P2P.hs",
+		"/C/Users/Jonathan Thaler/coding/ethaskell/src/Rpc/Methods.hs"
+	],
+	"find":
+	{
+		"height": 38.0
+	},
+	"find_in_files":
+	{
+		"height": 90.0,
+		"where_history":
+		[
+			"C:\\Users\\Jonathan Thaler\\phd\\coding\\libraries\\frABS\\src,*.hs"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"AgentDef m",
+			"subscriptions",
+			"wrapCont2dEnv",
+			"wrapCont2D",
+			"wrapCont2dEnv",
+			"runEnv",
+			"runEnv ",
+			" ",
+			"Discrete2DCoord",
+			"Discrete2DNeighbourhood",
+			"wrapDisc2D",
+			"Discrete2DDimension",
+			"Discrete2DCoord",
+			"Node",
+			"wrap",
+			"envlimit",
+			"limit",
+			"EnvironmentDiscrete2D",
+			"EnvironmentNetwork",
+			"pickRandomNeighbourCell",
+			"state",
+			"agentSex",
+			"todo",
+			"trace",
+			"handleCreateAgents",
+			"seqCallbackIteration",
+			"handleCreateAgents",
+			"createStartingAgentIn",
+			"randomagent",
+			"agentid",
+			"todo",
+			"createNewBorn",
+			"agentPickRandomMultiple",
+			"agentImmunizeAux",
+			"isDiseased",
+			"cellOccupiedM",
+			"filterTargetCell",
+			"occupierCombatable",
+			"occupierRetaliator",
+			"agentCombatMove",
+			"filterTargetCell",
+			"inheritSugar",
+			"changeCellAt",
+			"createNewBorn",
+			"neighbourIds",
+			"conversation",
+			"isFertile",
+			"ifelsem",
+			"when",
+			"neighbourNodes",
+			"foldM",
+			"agentCell",
+			"unoccu",
+			"sirsAgentBehaviourFuncM",
+			"onmessage",
+			"todo",
+			"updatedomainStateFieldM",
+			"domainStateM",
+			"updateStateM",
+			"PDAgentOut",
+			"updateState",
+			"onMessage",
+			"sirsAgentBehaviourFuncM",
+			"burndown",
+			"sirsCoord",
+			"hasmess",
+			"drawBoolWithProbFromAgent",
+			"runSeqSF",
+			"runSeqInternal",
+			"internal",
+			"calculate",
+			"distance",
+			"cellsAround",
+			"renderCircles",
+			"renderFrame",
+			"dt ",
+			"nvironment",
+			"WildfireEnvironment",
+			"WildfireAgentOut",
+			"WildfireAgentIn",
+			"WildfireAgentDef",
+			"sirsAgentBehaviourFuncM",
+			"WildfireAgentState",
+			"WildfireAgentIn",
+			"WildfireAgentOut",
+			"WildfireEnvironment",
+			"WildfireMsg",
+			"WildfireLinkLabel",
+			"WildfireCell",
+			"kill",
+			"AgentZeroAgentOut",
+			"AgentZeroAgentIn",
+			"AgentZeroEnvironment",
+			"extractParam",
+			"decodeUnformattedData",
+			"alphaNumToHex",
+			"-------------------------------------------------------------------------------------------",
+			"contactInfected",
+			"onMessage",
+			"randomCellWithRadius",
+			"runrandom",
+			"rand",
+			"random",
+			"agentNonCombatMove",
+			"inheritSugar",
+			"agentCultureContact",
+			"agentSex",
+			"polute",
+			"agentPoluteCell",
+			"unoccupyPosition",
+			"agentCell",
+			"agentPolutingCell",
+			"moveAndHarvestBestCell",
+			"agentStayAndHarvest",
+			"agentMetabolism",
+			"agentLookout",
+			"combatReward",
+			"unoccupyPosition",
+			"agentAgeing",
+			"unoccupyPosition",
+			"agentAgeing",
+			"agentAction",
+			"agentMoveAndHarvestCell",
+			"agentPickRandom",
+			"selectBestCells",
+			"refCoord",
+			"selectBestCells",
+			"randomAgentIO"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"AgentDef s m",
+			"wrapCont2d",
+			"Discrete2dCoord",
+			"Discrete2dNeighbourhood",
+			"wrapDisc2d",
+			"Discrete2dDimension",
+			"Discrete2dCoord",
+			"AgentId",
+			"EnvDisc2d",
+			"EnvNet",
+			"agentCellOnPos",
+			"updateDomainStateM",
+			"domainStateFieldM",
+			"updateDomainStateM",
+			"updateDomainState",
+			"distanceManhattan",
+			"Environment",
+			"nvironment ec l ",
+			"AgentOut s m ec l",
+			"AgentIn s m ec l",
+			"AgentDef s m ec l",
+			"PDAgentState",
+			"PDAgentIn",
+			"PDAgentOut",
+			"PDEnvironment",
+			"PDMsg",
+			"PDLinkLabel",
+			"PDCell",
+			"WildfireAgentOut",
+			"WildfireAgentIn",
+			"WildfireEnvironment",
+			"hexLitToInt",
+			"-------------------------------------------------------------------------------"
+		],
+		"reverse": false,
+		"show_context": false,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "Main.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4010,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1727,
+								1727
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 630.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 23.0
+	},
+	"input":
+	{
+		"height": 34.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.elm_type":
+	{
+		"height": 0.0
+	},
+	"output.exec":
+	{
+		"height": 273.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.sublime_haskell_error_panel":
+	{
+		"height": 118.0
+	},
+	"output.sublime_haskell_output_panel":
+	{
+		"height": 248.0
+	},
+	"pinned_build_system": "Packages/Haskell/Haskell.sublime-build",
+	"project": "deepedslabs.sublime-project",
+	"replace":
+	{
+		"height": 68.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 314.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

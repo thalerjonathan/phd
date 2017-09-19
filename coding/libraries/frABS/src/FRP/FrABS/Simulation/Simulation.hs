@@ -63,13 +63,13 @@ processSteps :: [AgentDef s m e]
                 -> Double
                 -> Int
                 -> [([AgentOut s m e], e)]
-processSteps adefs e params dt steps = embed
-                                            (process adefs params)
-                                            ((ains, e), sts)
+processSteps adefs e params dt steps = embed sf ((), sts)
     where
-        sts = replicate steps (dt, Nothing)
+        sts   = replicate steps (dt, Nothing)
         idGen = simIdGen params
-        ains = createStartingAgentIn adefs idGen
+        ains  = createStartingAgentIn adefs idGen
+     -- sf    :: SF () ([AgentOut s m e], e)
+        sf    = constant (ains, e) >>> process adefs params
 ----------------------------------------------------------------------------------------------------------------------
 
 

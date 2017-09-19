@@ -8,7 +8,7 @@ executable frABSExamples
   -- hs-source-dirs:  src
   build-depends:   base, 
                     FrABS, 
-                    Yampa,
+                    Yampa, 
                     gloss,
                     random,
                     containers,
@@ -19,6 +19,8 @@ executable frABSExamples
                     mtl,
                     transformers,
                     IfElse
+
+-- install Yampa from https://github.com/ivanperez-keera/Yampa build using -fexpose-core
 
   ghc-options:      -O2
                     -W
@@ -55,4 +57,4 @@ Test-Suite test_sugarscape
     , QuickCheck
     , HUnit
   ghc-options:    -main-is Test 
-  -- why the FUCK is main-is not working???
+  -- why the F*** is main-is not working???

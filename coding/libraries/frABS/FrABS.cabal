@@ -16,7 +16,21 @@ build-type:        Simple
 library
   hs-source-dirs:  src
   ghc-options :    -O3 -Wall -fwarn-tabs -fno-warn-name-shadowing -threaded 
-  build-depends:   base, Yampa, gloss, random, containers, array, MonadRandom, split, fgl, transformers, parallel, stm
+  build-depends:   base, 
+                    Yampa,
+                    gloss, 
+                    random, 
+                    containers, 
+                    array, 
+                    MonadRandom, 
+                    split, 
+                    fgl, 
+                    transformers,
+                    stm,
+                    parallel
+
+  -- install Yampa from https://github.com/ivanperez-keera/Yampa build using -fexpose-core
+
   exposed-modules:
     FRP.FrABS
     FRP.FrABS.Utils
@@ -61,4 +75,4 @@ Test-Suite test
     , tasty-smallcheck
     , tasty-quickcheck
   ghc-options:    -main-is Test 
-  -- why the FUCK is main-is not working???
+  -- why the F*** is main-is not working???

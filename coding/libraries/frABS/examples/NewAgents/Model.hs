@@ -1,5 +1,5 @@
 module NewAgents.Model (
-    NewAgentState (..),
+    NewAgentState,
     NewAgentMsg (..),
 
     NewAgentEnvironment,
@@ -17,7 +17,7 @@ import FRP.FrABS
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
-data NewAgentState = NewAgentState { value :: Int }
+type NewAgentState = Int
 data NewAgentMsg = None
 
 type NewAgentEnvironment = ()

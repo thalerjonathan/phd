@@ -14,7 +14,7 @@ import System.IO
 rngSeed = 42
 samplingTimeDelta = 1.0
 agentCount = 1
-steps = 1
+steps = 10
 updateStrat = Parallel -- NOTE: would not work correctly when using Sequential traversion
 shuffleAgents = False
 
@@ -37,5 +37,5 @@ printNewAgent :: NewAgentOut -> IO ()
 printNewAgent ao =
     do
         let aid = aoId ao
-        let s = value $ aoState ao
+        let s = aoState ao
         putStrLn $ "Agent " ++ show aid ++ ": state = " ++ show s

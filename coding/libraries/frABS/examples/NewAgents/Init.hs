@@ -24,9 +24,7 @@ createNewAgent aid =
         rng <- getSplit
         randValue <- getRandomR (0, 43)
 
-        let s = NewAgentState {
-          value = randValue
-        }
+        let s = randValue
 
         let adef = AgentDef {
            adId = aid,

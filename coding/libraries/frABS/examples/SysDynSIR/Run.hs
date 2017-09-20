@@ -40,15 +40,15 @@ runSysDynSIRStepsAndWriteToFile =
 --          stock id 1: Infectious
 --          stock id 2: Recovered
 --          the remaining items are the flows
-calculateDynamics :: [SysDynSIROut] -> (Double, Double, Double)
+calculateDynamics :: [SysDynSIRObservable] -> (Double, Double, Double)
 calculateDynamics unsortedStocks = (susceptibleCount, infectedCount, recoveredCount) -- (susceptibleRatio, infectedRatio, recoveredRatio)
     where
-        stocks = sortBy (\s1 s2 -> compare (aoId s1) (aoId s2)) unsortedStocks
+        stocks = sortBy (\s1 s2 -> compare (fst s1) (fst s2)) unsortedStocks
         (susceptibleStock : infectiousStock : recoveredStock : remainingFlows) = stocks
 
-        susceptibleCount = aoState susceptibleStock
-        infectedCount = aoState infectiousStock
-        recoveredCount = aoState recoveredStock
+        susceptibleCount = snd susceptibleStock
+        infectedCount = snd infectiousStock
+        recoveredCount = snd recoveredStock
 
         totalCount = susceptibleCount + infectedCount + recoveredCount 
 

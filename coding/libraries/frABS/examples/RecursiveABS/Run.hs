@@ -30,6 +30,6 @@ runRecursiveABSSteps =
         let (as', _) = last ass
 
         putStrLn "Final Agents:"
-        mapM (putStrLn . show . aoState) as'
+        mapM (putStrLn . show . snd) as'
 
         return ()

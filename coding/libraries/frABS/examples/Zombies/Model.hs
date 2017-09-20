@@ -13,7 +13,8 @@ module Zombies.Model (
     ZombiesAgentBehaviour,
     ZombiesAgentIn,
     ZombiesAgentOut,
-
+    ZombiesAgentObservable,
+    
     humanCount,
     zombieCount,
     zombieSpeed,
@@ -70,6 +71,7 @@ type ZombiesAgentDef = AgentDef ZombiesAgentState ZombiesMsg ZombiesEnvironment
 type ZombiesAgentBehaviour = AgentBehaviour ZombiesAgentState ZombiesMsg ZombiesEnvironment
 type ZombiesAgentIn = AgentIn ZombiesAgentState ZombiesMsg ZombiesEnvironment
 type ZombiesAgentOut = AgentOut ZombiesAgentState ZombiesMsg ZombiesEnvironment
+type ZombiesAgentObservable = AgentObservable ZombiesAgentState
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

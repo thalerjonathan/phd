@@ -11,6 +11,8 @@ module FRP.FrABS (
     AgentIn (..),
     AgentOut (..),
 
+    AgentObservable,
+    
     agentIdM,
     createAgent,
     kill,

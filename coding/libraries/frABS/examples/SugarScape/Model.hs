@@ -22,7 +22,8 @@ module SugarScape.Model (
     SugarScapeAgentBehaviour,
     SugarScapeAgentIn,
     SugarScapeAgentOut,
-
+    SugarScapeAgentObservable,
+    
     SugarScapeAgentConversation,
     SugarScapeAgentConversationSender,
     SugarScapeSimParams,
@@ -177,6 +178,7 @@ type SugarScapeAgentDef = AgentDef SugarScapeAgentState SugarScapeMsg SugarScape
 type SugarScapeAgentBehaviour = AgentBehaviour SugarScapeAgentState SugarScapeMsg SugarScapeEnvironment
 type SugarScapeAgentIn = AgentIn SugarScapeAgentState SugarScapeMsg SugarScapeEnvironment
 type SugarScapeAgentOut = AgentOut SugarScapeAgentState SugarScapeMsg SugarScapeEnvironment
+type SugarScapeAgentObservable = AgentObservable SugarScapeAgentState
 
 type SugarScapeAgentConversation = AgentConversationReceiver SugarScapeAgentState SugarScapeMsg SugarScapeEnvironment
 type SugarScapeAgentConversationSender = AgentConversationSender SugarScapeAgentState SugarScapeMsg SugarScapeEnvironment

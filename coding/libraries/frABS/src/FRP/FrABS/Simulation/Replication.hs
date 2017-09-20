@@ -40,7 +40,7 @@ runReplications :: [AgentDef s m e]
                     -> Double
                     -> Int
                     -> ReplicationConfig s m e
-                    -> [[([AgentOut s m e], e)]]
+                    -> [[([AgentObservable s], e)]]
 runReplications ads e params dt steps replCfg = result
     where
         replCount = replCfgCount replCfg
@@ -53,7 +53,7 @@ runReplications ads e params dt steps replCfg = result
                                 -> e
                                 -> SimulationParams e
                                 -> StdGen 
-                                -> [([AgentOut s m e], e)]
+                                -> [([AgentObservable s], e)]
         runReplicationsAux ads e params replRng = processSteps ads' e (params { simRng = replRng' }) dt steps
             where
                 (ads', replRng') = foldr adsFoldAux ([], replRng) ads

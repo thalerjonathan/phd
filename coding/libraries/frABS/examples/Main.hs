@@ -16,6 +16,7 @@ import           SysDynSIR.Run
 import           Wildfire.Run
 import           Zombies.Run
 import           NewAgents.Run
+
 {-
     TODOs
     - clean-up
@@ -27,7 +28,7 @@ import           NewAgents.Run
 -}
 
 main :: IO ()
-main = runNewAgentsSteps
+main = runSugarScapeWithRendering
 
     -- runZombiesWithRendering
     -- runPolicyEffectsWithRendering

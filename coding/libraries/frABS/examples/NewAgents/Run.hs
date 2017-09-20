@@ -33,9 +33,5 @@ runNewAgentsSteps =
 
         return ()
 
-printNewAgent :: NewAgentOut -> IO ()
-printNewAgent ao =
-    do
-        let aid = aoId ao
-        let s = aoState ao
-        putStrLn $ "Agent " ++ show aid ++ ": state = " ++ show s
+printNewAgent :: NewAgentObservable -> IO ()
+printNewAgent (aid, s) = putStrLn $ "Agent " ++ show aid ++ ": state = " ++ show s

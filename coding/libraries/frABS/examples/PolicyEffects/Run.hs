@@ -98,20 +98,21 @@ runPolicyEffectsReplicationsAndWriteToFile =
         writeDynamicsFile fileName steps (replCfgCount replCfg) dynamics
 
 
-calculateDynamics :: [PolicyEffectsAgentOut] -> (Double, Double, Double)
-calculateDynamics aos = (minWealth, maxWealth, std)
+calculateDynamics :: [PolicyEffectsAgentObservable] -> (Double, Double, Double)
+calculateDynamics aobs = (minWealth, maxWealth, std)
     where
-        n = length aos
-        s = foldr (\ao m -> aoState ao + m) 0 aos
+        n = length aobs
+        s = foldr (\ao m -> snd ao + m) 0 aobs
 
-        maxWealth = foldr (\ao m -> if (aoState ao > m) then aoState ao else m) 0 aos
-        minWealth = foldr (\ao m -> if (aoState ao < m) then aoState ao else m) (initialWealth * fromIntegral agentCount) aos
+        maxWealth = foldr (\ao m -> if (snd ao > m) then snd ao else m) 0 aobs
+        minWealth = foldr (\ao m -> if (snd ao < m) then snd ao else m) (initialWealth * fromIntegral agentCount) aobs
 
         mean = s / fromIntegral n
-        dev = sum $ map (\ao -> (aoState ao - mean)^2) aos
+        dev = sum $ map (\ao -> (snd ao - mean)^2) aobs
         std = sqrt dev
 
-calculateSingleReplicationDynamic :: [([PolicyEffectsAgentOut], PolicyEffectsEnvironment)] -> [(Double, Double, Double)]
+calculateSingleReplicationDynamic :: [([PolicyEffectsAgentObservable], PolicyEffectsEnvironment)] 
+                                    -> [(Double, Double, Double)]
 calculateSingleReplicationDynamic = map (calculateDynamics . fst)
 
 dynamicsReplMean :: [[(Double, Double, Double)]] -> [(Double, Double, Double)]
@@ -135,11 +136,11 @@ dynamicsToString dynamics =
     where
         (minWealth, maxWealth, std) = dynamics 
 
-agentWealthToString :: PolicyEffectsAgentOut -> String
+agentWealthToString :: PolicyEffectsAgentObservable -> String
 agentWealthToString ao = 
                 printf "%.1f" wealth ++ ";" 
     where
-        wealth = aoState ao
+        wealth = snd ao
 
 writeDynamicsFile :: String 
                         -> Int
@@ -175,15 +176,15 @@ writeDynamicsFile fileName steps replications dynamics =
 writeHistogramFile :: String 
                         -> Int
                         -> Int
-                        -> [PolicyEffectsAgentOut] -> IO ()
-writeHistogramFile fileName steps replications aos =
+                        -> [PolicyEffectsAgentObservable] -> IO ()
+writeHistogramFile fileName steps replications aobs =
     do
         fileHdl <- openFile fileName WriteMode
         hPutStrLn fileHdl ("steps = " ++ show steps ++ ";")
         hPutStrLn fileHdl ("replications = " ++ show replications ++ ";")
         
         hPutStrLn fileHdl "agentsWealth = ["
-        mapM_ (hPutStrLn fileHdl . agentWealthToString) aos
+        mapM_ (hPutStrLn fileHdl . agentWealthToString) aobs
         hPutStrLn fileHdl "];"
 
         hPutStrLn fileHdl "hist(agentsWealth);"

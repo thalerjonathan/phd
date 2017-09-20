@@ -9,14 +9,14 @@ import SugarScape.Model
 import System.IO
 import Text.Printf
 
-writeSugarscapeDynamics :: [([SugarScapeAgentOut], SugarScapeEnvironment)] -> IO ()
+writeSugarscapeDynamics :: [([SugarScapeAgentObservable], SugarScapeEnvironment)] -> IO ()
 writeSugarscapeDynamics dynamics =
     do
         writeWealthDistribution dynamics
         writeCarryingCapacity dynamics
         writeCulturalDynamics dynamics
 
-writeWealthDistribution :: [([SugarScapeAgentOut], SugarScapeEnvironment)] -> IO ()
+writeWealthDistribution :: [([SugarScapeAgentObservable], SugarScapeEnvironment)] -> IO ()
 writeWealthDistribution dynamics =
     do
         let steps = length dynamics 
@@ -25,7 +25,7 @@ writeWealthDistribution dynamics =
         fileHdl <- openFile "sugarscape_wealthDist.m" WriteMode
         
         hPutStrLn fileHdl "wealthDist = ["
-        mapM_ (hPutStrLn fileHdl . (\ao -> show $ sugAgSugarLevel $ aoState ao)) finalAos
+        mapM_ (hPutStrLn fileHdl . (\ao -> show $ sugAgSugarLevel $ snd ao)) finalAos
         hPutStrLn fileHdl "];"
 
         hPutStrLn fileHdl "figure;"
@@ -36,7 +36,7 @@ writeWealthDistribution dynamics =
 
         hClose fileHdl
 
-writeCarryingCapacity :: [([SugarScapeAgentOut], SugarScapeEnvironment)] -> IO ()
+writeCarryingCapacity :: [([SugarScapeAgentObservable], SugarScapeEnvironment)] -> IO ()
 writeCarryingCapacity dynamics =
     do
         let steps = length dynamics 
@@ -55,7 +55,7 @@ writeCarryingCapacity dynamics =
 
         hClose fileHdl
 
-writeCulturalDynamics :: [([SugarScapeAgentOut], SugarScapeEnvironment)] -> IO ()
+writeCulturalDynamics :: [([SugarScapeAgentObservable], SugarScapeEnvironment)] -> IO ()
 writeCulturalDynamics dynamics =
     do
         let steps = length dynamics 
@@ -81,11 +81,11 @@ writeCulturalDynamics dynamics =
         hClose fileHdl
 
     where
-        tribeFractions :: [SugarScapeAgentOut] -> (Double, Double)
-        tribeFractions aos = (redTribeFract, blueTribeFract)
+        tribeFractions :: [SugarScapeAgentObservable] -> (Double, Double)
+        tribeFractions aobs = (redTribeFract, blueTribeFract)
             where
-                redTribesCount = length $ filter (\ao -> Red == (sugAgTribe $ aoState ao)) aos
-                blueTribesCount = length $ filter (\ao -> Blue == (sugAgTribe $ aoState ao)) aos
+                redTribesCount = length $ filter (\ao -> Red == (sugAgTribe $ snd ao)) aobs
+                blueTribesCount = length $ filter (\ao -> Blue == (sugAgTribe $ snd ao)) aobs
 
                 redTribeFract = fromIntegral redTribesCount / fromIntegral (redTribesCount + blueTribesCount)
                 blueTribeFract = fromIntegral blueTribesCount / fromIntegral (redTribesCount + blueTribesCount)

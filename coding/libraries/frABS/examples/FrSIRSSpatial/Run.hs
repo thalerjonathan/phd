@@ -110,12 +110,12 @@ runFrSIRSSpatialReplicationsAndWriteToFile =
 agentsToDynamics = (calculateDynamics . fst)
 printAgentDynamics = (putStrLn . sirsDynamicToString . agentsToDynamics)
 
-calculateDynamics :: [FrSIRSSpatialAgentOut] -> (Double, Double, Double)
-calculateDynamics aos = (susceptibleCount, infectedCount, recoveredCount)
+calculateDynamics :: [FrSIRSSpatialAgentObservable] -> (Double, Double, Double)
+calculateDynamics aobs = (susceptibleCount, infectedCount, recoveredCount)
     where
-        susceptibleCount = fromIntegral $ length $ filter ((Susceptible==) . sirsState . aoState) aos
-        infectedCount = fromIntegral $ length $ filter ((Infected==) . sirsState . aoState) aos
-        recoveredCount = fromIntegral $ length $ filter ((Recovered==) . sirsState . aoState) aos
+        susceptibleCount = fromIntegral $ length $ filter ((Susceptible==) . sirsState . snd) aobs
+        infectedCount = fromIntegral $ length $ filter ((Infected==) . sirsState . snd) aobs
+        recoveredCount = fromIntegral $ length $ filter ((Recovered==) . sirsState . snd) aobs
 
         totalCount = susceptibleCount + infectedCount + recoveredCount
 
@@ -123,5 +123,5 @@ calculateDynamics aos = (susceptibleCount, infectedCount, recoveredCount)
         infectedRatio = infectedCount / totalCount 
         recoveredRatio = recoveredCount / totalCount
 
-calculateSingleReplicationDynamic :: [([FrSIRSSpatialAgentOut], FrSIRSSpatialEnvironment)] -> [(Double, Double, Double)]
-calculateSingleReplicationDynamic  aoss = map (calculateDynamics . fst) aoss
+calculateSingleReplicationDynamic :: [([FrSIRSSpatialAgentObservable], FrSIRSSpatialEnvironment)] -> [(Double, Double, Double)]
+calculateSingleReplicationDynamic = map (calculateDynamics . fst)

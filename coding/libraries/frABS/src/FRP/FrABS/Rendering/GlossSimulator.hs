@@ -18,10 +18,10 @@ import FRP.Yampa
 
 import Data.IORef
 
-type RenderFrame s e = ((Int, Int) -> [(AgentId, s)] -> e -> GLO.Picture)
-type StepCallback s e = (([(AgentId, s)], e) -> ([(AgentId, s)], e) -> IO ())
+type RenderFrame s e = ((Int, Int) -> [AgentObservable s] -> e -> GLO.Picture)
+type StepCallback s e = (([AgentObservable s], e) -> ([AgentObservable s], e) -> IO ())
 
-type RenderFrameInternal s e = ([(AgentId, s)] -> e -> GLO.Picture)
+type RenderFrameInternal s e = ([AgentObservable s] -> e -> GLO.Picture)
 
 simulateAndRender :: [AgentDef s m e] 
 						-> e 
@@ -43,7 +43,7 @@ simulateAndRender initAdefs
 					  renderFunc
 					  mayClbk =
 	do
-		outRef <- newIORef (initEmptyAgentOuts, e) -- :: IO (IORef ([AgentOut s m e], Environment e))
+		outRef <- newIORef (initEmptyAgentObs, e) -- :: IO (IORef ([AgentObservable s], e))
 		hdl <- processIOInit initAdefs e params (nextIteration mayClbk outRef)
 
 		if freq > 0 then
@@ -62,8 +62,8 @@ simulateAndRender initAdefs
 
 		where
 			-- NOTE: need this function otherwise would get a compilation error when creating newIORef (see above)
-			initEmptyAgentOuts :: [AgentOut s m e]
-			initEmptyAgentOuts = []
+			initEmptyAgentObs :: [AgentObservable s]
+			initEmptyAgentObs = []
 
 simulateStepsAndRender :: [AgentDef s m e] 
 							-> e  
@@ -84,64 +84,56 @@ simulateStepsAndRender initAdefs
 				       renderFunc =
 	do
 		let ass = processSteps initAdefs e params dt steps
-		let (finalAous, finalEnv) = last ass
-		let ss = map (\ao -> (aoId ao, aoState ao)) finalAous
-		let pic = renderFunc winSize ss finalEnv 
+		let (finalAobs, finalEnv) = last ass
+		let pic = renderFunc winSize finalAobs finalEnv 
 
 		GLO.display (displayGlossWindow winTitle winSize)
 				GLO.black
 				pic
 
 nextIteration :: Maybe (StepCallback s e)
-					-> IORef ([AgentOut s m e], e)
-                    -> ReactHandle () ([AgentOut s m e], e)
+					-> IORef ([AgentObservable s], e)
+                    -> ReactHandle () ([AgentObservable s], e)
 					-> Bool
-					-> ([AgentOut s m e], e)
+					-> ([AgentObservable s], e)
 					-> IO Bool
-nextIteration (Just clbk) outRef _ _ curr@(currAo, currEnv) = 
+nextIteration (Just clbk) obsRef _ _ curr@(currAobs, currEnv) = 
     do
-    	(prevAo, prevEnv) <- readIORef outRef
-
-    	let ssPrev = map (\ao -> (aoId ao, aoState ao)) prevAo
-    	let ssCurr = map (\ao -> (aoId ao, aoState ao)) currAo
-    	
-    	clbk (ssPrev, prevEnv) (ssCurr, currEnv)
-        writeIORef outRef curr
+    	(prevAobs, prevEnv) <- readIORef obsRef
+    	clbk (prevAobs, prevEnv) (currAobs, currEnv)
+        writeIORef obsRef curr
         return False
-nextIteration Nothing outRef _ _ curr = writeIORef outRef curr >> return False
+nextIteration Nothing obsRef _ _ curr = writeIORef obsRef curr >> return False
 
 nextFrameSimulateWithTime :: Double 
-								-> ReactHandle () ([AgentOut s m e], e)
-	                            -> IORef ([AgentOut s m e], e)
+								-> ReactHandle () ([AgentObservable s], e)
+	                            -> IORef ([AgentObservable s], e)
 	                            -> ViewPort
 	                            -> Float
-	                            -> ([AgentOut s m e], e)
-	                            -> IO ([AgentOut s m e], e)
-nextFrameSimulateWithTime dt hdl outRef _ _ _ = 
+	                            -> ([AgentObservable s], e)
+	                            -> IO ([AgentObservable s], e)
+nextFrameSimulateWithTime dt hdl obsRef _ _ _ = 
     do
         react hdl (dt, Nothing)  -- NOTE: will result in call to nextIteration
-        aouts <- readIORef outRef
-        return aouts
+        aobs <- readIORef obsRef
+        return aobs
 
 nextFrameSimulateNoTime :: RenderFrameInternal s e
                             -> Double
-                            -> ReactHandle () ([AgentOut s m e], e)
-                            -> IORef ([AgentOut s m e], e)
+                            -> ReactHandle () ([AgentObservable s], e)
+                            -> IORef ([AgentObservable s], e)
                             -> Float
                             -> IO Picture
-nextFrameSimulateNoTime renderFunc dt hdl outRef _ = 
+nextFrameSimulateNoTime renderFunc dt hdl obsRef _ = 
     do
         react hdl (dt, Nothing)  -- NOTE: will result in call to nextIteration
-        aouts <- readIORef outRef
-        modelToPicture renderFunc aouts
+        aobs <- readIORef obsRef
+        modelToPicture renderFunc aobs
 
 modelToPicture :: RenderFrameInternal s e
-					-> ([AgentOut s m e], e) 
+					-> ([AgentObservable s], e) 
 					-> IO GLO.Picture
-modelToPicture renderFunc (aouts, e) = 
-    do
-    	let ss = map (\ao -> (aoId ao, aoState ao)) aouts
-        return $ renderFunc ss e
+modelToPicture renderFunc (aobs, e) = return $ renderFunc aobs e
 
 displayGlossWindow :: String -> (Int, Int) -> GLO.Display
 displayGlossWindow title winSize = (GLO.InWindow title winSize (0, 0))

@@ -14,6 +14,7 @@ module DoubleAuction.Model (
     DAAgentBehaviour,
     DAAgentIn,
     DAAgentOut,
+    DAAgentObservable,
 
     pU,
     pD,
@@ -97,6 +98,7 @@ type DAAgentDef = AgentDef DAAgentState DoubleAuctionMsg DAEnvironment
 type DAAgentBehaviour = AgentBehaviour DAAgentState DoubleAuctionMsg DAEnvironment
 type DAAgentIn = AgentIn DAAgentState DoubleAuctionMsg DAEnvironment
 type DAAgentOut = AgentOut DAAgentState DoubleAuctionMsg DAEnvironment
+type DAAgentObservable = AgentObservable DAAgentState
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

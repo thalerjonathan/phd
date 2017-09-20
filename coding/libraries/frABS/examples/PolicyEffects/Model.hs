@@ -8,7 +8,8 @@ module PolicyEffects.Model (
     PolicyEffectsAgentBehaviour,
     PolicyEffectsAgentIn,
     PolicyEffectsAgentOut,
-
+    PolicyEffectsAgentObservable,
+    
     PolicyEffectsEnvironmentReplicator
   ) where
 
@@ -30,6 +31,7 @@ type PolicyEffectsAgentDef = AgentDef PolicyEffectsState PolicyEffectsMsg Policy
 type PolicyEffectsAgentBehaviour = AgentBehaviour PolicyEffectsState PolicyEffectsMsg PolicyEffectsEnvironment 
 type PolicyEffectsAgentIn = AgentIn PolicyEffectsState PolicyEffectsMsg PolicyEffectsEnvironment 
 type PolicyEffectsAgentOut = AgentOut PolicyEffectsState PolicyEffectsMsg PolicyEffectsEnvironment 
+type PolicyEffectsAgentObservable = AgentObservable PolicyEffectsState
 
 type PolicyEffectsEnvironmentReplicator = EnvironmentReplicator PolicyEffectsEnvironment 
 ------------------------------------------------------------------------------------------------------------------------

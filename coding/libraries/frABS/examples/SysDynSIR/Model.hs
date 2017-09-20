@@ -8,7 +8,8 @@ module SysDynSIR.Model (
     SysDynSIRBehaviour,
     SysDynSIRIn,
     SysDynSIROut,
-
+    SysDynSIRObservable,
+    
     SysDynSIRFlowBehaviour,
     SysDynSIRStockBehaviour,
 
@@ -38,6 +39,7 @@ type SysDynSIRDef = AgentDef SysDynSIRStockState SysDynSIRMsg SysDynSIREnvironme
 type SysDynSIRBehaviour = ReactiveBehaviourIgnoreEnv SysDynSIRStockState SysDynSIRMsg SysDynSIREnvironment 
 type SysDynSIRIn = AgentIn SysDynSIRStockState SysDynSIRMsg SysDynSIREnvironment 
 type SysDynSIROut = AgentOut SysDynSIRStockState SysDynSIRMsg SysDynSIREnvironment 
+type SysDynSIRObservable = AgentObservable SysDynSIRStockState
 
 type SysDynSIRFlowBehaviour = SysDynSIRBehaviour
 type SysDynSIRStockBehaviour = Double -> SysDynSIRBehaviour

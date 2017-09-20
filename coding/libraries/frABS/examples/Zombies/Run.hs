@@ -47,7 +47,7 @@ runZombiesStepsAndWriteToFile =
 
         writeDynamics asenv
 
-writeDynamics :: [([ZombiesAgentOut], ZombiesEnvironment)] -> IO ()
+writeDynamics :: [([ZombiesAgentObservable], ZombiesEnvironment)] -> IO ()
 writeDynamics dynamics =
     do
         let fileName = "zombies_dynamics.m"
@@ -72,18 +72,18 @@ writeDynamics dynamics =
         hClose fileHdl
 
     where
-        writeDynamicsAux :: ([ZombiesAgentOut], ZombiesEnvironment) -> String
+        writeDynamicsAux :: ([ZombiesAgentObservable], ZombiesEnvironment) -> String
         writeDynamicsAux (aos, _) = show humanCount ++ "," ++ show zombieCount ++ ";"
             where
-                humanCount = length $ filter (\ao -> isHuman $ aoState ao) aos
-                zombieCount = length $ filter (\ao -> isZombie $ aoState ao) aos
+                humanCount = length $ filter (isHuman . snd) aos
+                zombieCount = length $ filter (isZombie . snd) aos
 
-printDynamics :: ([(AgentId, ZombiesAgentState)], ZombiesEnvironment)
-                    ->([(AgentId, ZombiesAgentState)], ZombiesEnvironment)
+printDynamics :: ([ZombiesAgentObservable], ZombiesEnvironment)
+                    ->([ZombiesAgentObservable], ZombiesEnvironment)
                     -> IO ()
-printDynamics (aoutsPrev, _) (aoutsCurr, _) = 
+printDynamics (_, _) (aobsCurr, _) = 
     do
-        let humanCount = length $ filter (\(_, s) -> isHuman s) aoutsCurr
-        let zombieCount = length $ filter (\(_, s) -> isZombie s) aoutsCurr
+        let humanCount = length $ filter (isHuman . snd) aobsCurr
+        let zombieCount = length $ filter (isZombie . snd) aobsCurr
         putStrLn (show humanCount ++ "," ++ show zombieCount ++ ";")
 

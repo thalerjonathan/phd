@@ -60,4 +60,4 @@ runPDSteps =
         
         let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
         let finalAs = fst $ last asenv
-        mapM_ (\ao -> putStrLn $ (show $ pdCurrAction $ aoState ao)) finalAs
+        mapM_ (putStrLn . (show . pdCurrAction . snd))finalAs

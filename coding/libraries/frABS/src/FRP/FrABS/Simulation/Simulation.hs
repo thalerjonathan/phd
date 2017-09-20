@@ -24,7 +24,6 @@ import System.Random
 import qualified Data.Map as Map
 import Control.Concurrent.STM.TVar
 
-
 data UpdateStrategy = Sequential | Parallel deriving (Eq)
 
 data SimulationParams e = SimulationParams {
@@ -42,11 +41,11 @@ data SimulationParams e = SimulationParams {
 processIOInit :: [AgentDef s m e]
                     -> e
                     -> SimulationParams e
-                    -> (ReactHandle () ([AgentOut s m e], e)
+                    -> (ReactHandle () ([AgentObservable s], e)
                             -> Bool
-                            -> ([AgentOut s m e], e)
+                            -> ([AgentObservable s], e)
                             -> IO Bool)
-                    -> IO (ReactHandle () ([AgentOut s m e], e))
+                    -> IO (ReactHandle () ([AgentObservable s], e))
 processIOInit adefs e params iterFunc = reactInit
                                                 (return ())
                                                 iterFunc
@@ -61,7 +60,7 @@ processSteps :: [AgentDef s m e]
                 -> SimulationParams e
                 -> Double
                 -> Int
-                -> [([AgentOut s m e], e)]
+                -> [([AgentObservable s], e)]
 processSteps adefs e params dt steps = embed
                                             (process params adefs e)
                                             ((), sts)
@@ -74,13 +73,18 @@ processSteps adefs e params dt steps = embed
 process :: SimulationParams e
             -> [AgentDef s m e]
             -> e
-            -> SF () ([AgentOut s m e], e)
-process params adefs e = iterationStrategy params asfs ais e 
+            -> SF () ([AgentObservable s], e)
+process params adefs e = sf >>> agentOutToObservableSF
     where
         asfs = map adBeh adefs
         idGen = simIdGen params
         ais = createStartingAgentIn adefs idGen
+        sf = iterationStrategy params asfs ais e 
 
+----------------------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------------------------
+-- NOTE: this is used for internal, recursive simulation and can be requested by agents in SEQUENTIAL strategy ONLY
 simulate :: ([AgentIn s m e], e)
             -> [AgentBehaviour s m e]
             -> SimulationParams e
@@ -91,7 +95,9 @@ simulate (ais, e) asfs params dt steps = embed sfStrat ((), sts)
     where
         sts = replicate steps (dt, Nothing)
         sfStrat = iterationStrategy params asfs ais e
+----------------------------------------------------------------------------------------------------------------------
 
+----------------------------------------------------------------------------------------------------------------------
 iterationStrategy :: SimulationParams e
                         -> [AgentBehaviour s m e]
                         -> [AgentIn s m e]

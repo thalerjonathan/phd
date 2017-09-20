@@ -12,6 +12,8 @@ module FRP.FrABS.Agent.Agent (
     AgentIn (..),
     AgentOut (..),
 
+    AgentObservable,
+
     createAgent,
     kill,
     isDead,
@@ -55,7 +57,9 @@ module FRP.FrABS.Agent.Agent (
     agentPureIgnoreEnv,
     AgentPureBehaviour,
     AgentPureBehaviourReadEnv,
-    AgentPureBehaviourNoEnv
+    AgentPureBehaviourNoEnv,
+
+    agentOutToObservableSF
   ) where
 
 import FRP.FrABS.Simulation.Internal
@@ -118,6 +122,8 @@ data AgentOut s m e = AgentOut {
     aoRecOthersAllowed :: Bool,
     aoRng :: StdGen
 }
+
+type AgentObservable s = (AgentId, s)
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Agent Functions
@@ -299,3 +305,16 @@ agentPureIgnoreEnv f = proc (ain, e) ->
         let ao' = f age ain ao
         
         returnA -< (ao', e)
+
+agentOutToObservableSF :: SF ([AgentOut s m e], e) ([AgentObservable s], e) 
+agentOutToObservableSF = proc (aos, e) ->
+    do
+        let aobs = map agentOutToObservable aos
+        returnA -< (aobs, e)
+
+        where
+            agentOutToObservable :: AgentOut s m e -> AgentObservable s
+            agentOutToObservable ao = (aid, s)
+                where
+                    aid = aoId ao
+                    s = aoState ao

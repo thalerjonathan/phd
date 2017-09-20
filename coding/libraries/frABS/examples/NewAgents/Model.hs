@@ -9,7 +9,8 @@ module NewAgents.Model (
     NewAgentDef,
     NewAgentBehaviour,
     NewAgentIn,
-    NewAgentOut
+    NewAgentOut,
+    NewAgentObservable
   ) where
 
 import FRP.FrABS
@@ -28,4 +29,5 @@ type NewAgentDef = AgentDef NewAgentState NewAgentMsg NewAgentEnvironment
 type NewAgentBehaviour = AgentBehaviour NewAgentState NewAgentMsg NewAgentEnvironment
 type NewAgentIn = AgentIn NewAgentState NewAgentMsg NewAgentEnvironment
 type NewAgentOut = AgentOut NewAgentState NewAgentMsg NewAgentEnvironment
+type NewAgentObservable = AgentObservable NewAgentState
 ------------------------------------------------------------------------------------------------------------------------

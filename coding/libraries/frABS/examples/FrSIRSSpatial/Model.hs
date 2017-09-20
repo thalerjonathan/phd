@@ -9,7 +9,8 @@ module FrSIRSSpatial.Model (
     FrSIRSSpatialAgentBehaviour,
     FrSIRSSpatialAgentIn,
     FrSIRSSpatialAgentOut,
-
+    FrSIRSSpatialAgentObservable,
+    
     FrSIRSSpatialEventSource,
     FrSIRSSpatialMessageSource,
     
@@ -39,6 +40,7 @@ type FrSIRSSpatialAgentDef = AgentDef FrSIRSSpatialAgentState FrSIRSSpatialMsg F
 type FrSIRSSpatialAgentBehaviour = AgentBehaviour FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
 type FrSIRSSpatialAgentIn = AgentIn FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
 type FrSIRSSpatialAgentOut = AgentOut FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
+type FrSIRSSpatialAgentObservable = AgentObservable FrSIRSSpatialAgentState
 
 type FrSIRSSpatialEventSource = EventSource FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
 type FrSIRSSpatialMessageSource = MessageSource FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment

@@ -33,13 +33,10 @@ runDoubleAuctionSteps =
 
         return ()
 
-printTraderAgent :: DAAgentOut -> IO ()
-printTraderAgent a 
-    | isTrader $ aoState a = 
+printTraderAgent :: DAAgentObservable -> IO ()
+printTraderAgent (aid, s)
+    | isTrader $ s = 
         do
-            let aid = aoId a
-
-            let s = aoState a
             let cash = daTraderCash s
             let assets = daTraderAssets s
             let loansTaken = daTraderLoansTaken s

@@ -9,7 +9,8 @@ module FrSIRSNetwork.Model (
     FrSIRSNetworkAgentBehaviour,
     FrSIRSNetworkAgentIn,
     FrSIRSNetworkAgentOut,
-
+    FrSIRSNetworkAgentObservable,
+    
     FrSIRSNetworkEventSource,
     FrSIRSNetworkMessageSource,
     
@@ -36,6 +37,7 @@ type FrSIRSNetworkAgentDef = AgentDef FrSIRSNetworkAgentState FrSIRSNetworkMsg F
 type FrSIRSNetworkAgentBehaviour = AgentBehaviour FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvironment
 type FrSIRSNetworkAgentIn = AgentIn FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvironment
 type FrSIRSNetworkAgentOut = AgentOut FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvironment
+type FrSIRSNetworkAgentObservable = AgentObservable FrSIRSNetworkAgentState
 
 type FrSIRSNetworkEventSource = EventSource FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvironment
 type FrSIRSNetworkMessageSource = MessageSource FrSIRSNetworkAgentState FrSIRSNetworkMsg FrSIRSNetworkEnvironment

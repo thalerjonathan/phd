@@ -163,8 +163,7 @@
 	},
 	"expanded_folders":
 	[
-		"/home/jonathan/phd/coding/libraries/DeepEdslABS",
-		"/home/jonathan/phd/coding/libraries/DeepEdslABS/src"
+		"/home/jonathan/phd/coding/libraries/DeepEdslABS"
 	],
 	"file_history":
 	[
@@ -299,7 +298,7 @@
 	],
 	"find":
 	{
-		"height": 38.0
+		"height": 23.0
 	},
 	"find_in_files":
 	{
@@ -508,16 +507,18 @@
 						"selection":
 						[
 							[
-								217,
-								217
+								1476,
+								1476
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 585.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -581,7 +582,7 @@
 	"project": "deepedslabs.sublime-project",
 	"replace":
 	{
-		"height": 68.0
+		"height": 42.0
 	},
 	"save_all_on_build": true,
 	"select_file":

@@ -66,7 +66,6 @@ module FRP.FrABS.Environment.Discrete (
     occupiers
   ) where
     
-import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Environment.Spatial
 
 import Data.Array.IArray

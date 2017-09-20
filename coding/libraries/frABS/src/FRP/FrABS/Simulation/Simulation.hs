@@ -19,9 +19,11 @@ import FRP.Yampa.InternalCore
 
 import Data.Maybe
 import Data.List
+import Data.Tuple
 import System.Random
 import qualified Data.Map as Map
 import Control.Concurrent.STM.TVar
+
 
 data UpdateStrategy = Sequential | Parallel deriving (Eq)
 
@@ -40,18 +42,15 @@ data SimulationParams e = SimulationParams {
 processIOInit :: [AgentDef s m e]
                     -> e
                     -> SimulationParams e
-                    -> (ReactHandle ([AgentIn s m e], e) ([AgentOut s m e], e)
+                    -> (ReactHandle () ([AgentOut s m e], e)
                             -> Bool
                             -> ([AgentOut s m e], e)
                             -> IO Bool)
-                    -> IO (ReactHandle ([AgentIn s m e], e) ([AgentOut s m e], e))
+                    -> IO (ReactHandle () ([AgentOut s m e], e))
 processIOInit adefs e params iterFunc = reactInit
-                                                (return (ains, e))
+                                                (return ())
                                                 iterFunc
-                                                (process adefs params)
-    where
-        idGen = simIdGen params
-        ains = createStartingAgentIn adefs idGen
+                                                (process params adefs e)
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -64,22 +63,23 @@ processSteps :: [AgentDef s m e]
                 -> Int
                 -> [([AgentOut s m e], e)]
 processSteps adefs e params dt steps = embed
-                                            (process adefs params)
-                                            ((ains, e), sts)
+                                            (process params adefs e)
+                                            ((), sts)
     where
         sts = replicate steps (dt, Nothing)
-        idGen = simIdGen params
-        ains = createStartingAgentIn adefs idGen
 ----------------------------------------------------------------------------------------------------------------------
 
 
 ----------------------------------------------------------------------------------------------------------------------
-process :: [AgentDef s m e]
-            -> SimulationParams e
-            -> SF ([AgentIn s m e], e) ([AgentOut s m e], e)
-process adefs params = iterationStrategy asfs params
+process :: SimulationParams e
+            -> [AgentDef s m e]
+            -> e
+            -> SF () ([AgentOut s m e], e)
+process params adefs e = iterationStrategy params asfs ais e 
     where
         asfs = map adBeh adefs
+        idGen = simIdGen params
+        ais = createStartingAgentIn adefs idGen
 
 simulate :: ([AgentIn s m e], e)
             -> [AgentBehaviour s m e]
@@ -87,17 +87,19 @@ simulate :: ([AgentIn s m e], e)
             -> Double
             -> Int
             -> [([AgentOut s m e], e)]
-simulate ains asfs params dt steps = embed sfStrat (ains, sts)
+simulate (ais, e) asfs params dt steps = embed sfStrat ((), sts)
     where
         sts = replicate steps (dt, Nothing)
-        sfStrat = iterationStrategy asfs params
+        sfStrat = iterationStrategy params asfs ais e
 
-iterationStrategy :: [AgentBehaviour s m e]
-                        -> SimulationParams e
-                        -> SF ([AgentIn s m e], e) ([AgentOut s m e], e)
-iterationStrategy asfs params 
-    | Sequential == strategy = simulateSeq asfs params
-    | Parallel == strategy = simulatePar asfs params
+iterationStrategy :: SimulationParams e
+                        -> [AgentBehaviour s m e]
+                        -> [AgentIn s m e]
+                        -> e
+                        -> SF () ([AgentOut s m e], e)
+iterationStrategy params asfs ais e
+    | Sequential == strategy = simulateSeq params asfs ais e
+    | Parallel == strategy = simulatePar params asfs ais e
     where
         strategy = simStrategy params
 ----------------------------------------------------------------------------------------------------------------------
@@ -105,18 +107,20 @@ iterationStrategy asfs params
 ----------------------------------------------------------------------------------------------------------------------
 -- SEQUENTIAL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
-simulateSeq :: [AgentBehaviour s m e]
-                -> SimulationParams e
-                -> SF ([AgentIn s m e], e) ([AgentOut s m e], e)
-simulateSeq initSfs initParams = SF { sfTF = tf0 }
+simulateSeq :: SimulationParams e
+                -> [AgentBehaviour s m e]
+                -> [AgentIn s m e]
+                -> e
+                -> SF () ([AgentOut s m e], e)
+simulateSeq initParams initSfs initAins initEnv = SF { sfTF = tf0 }
     where
-        tf0 (initInputs, initEnv) = (tfCont, (initOuts, initEnv))
+        tf0 _ = (tfCont, (initOuts, initEnv))
             where
                 -- NOTE: to prevent undefined outputs we create outputs based on the initials
-                initOuts = map agentOutFromIn initInputs
+                initOuts = map agentOutFromIn initAins
                 --(nextSfs, initOs, nextIns) = runSeqInternal initSfs initInput clbk 0.0
                 -- NOTE: in SEQ we need already to know the dt for the NEXT step because we are iterating in sequence => ommit first output => need 1 step more
-                initInputsWithEnv = addEnvToAins initEnv initInputs
+                initInputsWithEnv = addEnvToAins initEnv initAins
                 tfCont = simulateSeqAux initParams initSfs initInputsWithEnv initEnv
 
         -- NOTE: here we create recursively a new continuation
@@ -324,16 +328,18 @@ seqCallback params
 ----------------------------------------------------------------------------------------------------------------------
 -- PARALLEL STRATEGY
 ----------------------------------------------------------------------------------------------------------------------
-simulatePar :: [AgentBehaviour s m e]
-                -> SimulationParams e
-                -> SF ([AgentIn s m e], e) ([AgentOut s m e], e)
-simulatePar initSfs initParams = SF { sfTF = tf0 }
+simulatePar :: SimulationParams e
+                -> [AgentBehaviour s m e]
+                -> [AgentIn s m e]
+                -> e
+                -> SF () ([AgentOut s m e], e)
+simulatePar initParams initSfs initAis initEnv = SF { sfTF = tf0 }
     where
-        tf0 (initInputs, initEnv) = (tfCont, (initOuts, initEnv))
+        tf0 _ = (tfCont, (initOuts, initEnv))
             where
                 -- NOTE: to prevent undefined outputs we create outputs based on the initials
-                initOuts = map agentOutFromIn initInputs
-                initInputsWithEnv = addEnvToAins initEnv initInputs
+                initOuts = map agentOutFromIn initAis
+                initInputsWithEnv = addEnvToAins initEnv initAis
                 tfCont = simulateParAux initParams initSfs initInputsWithEnv initEnv
 
         -- NOTE: here we create recursively a new continuation
@@ -425,7 +431,9 @@ parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
 ----------------------------------------------------------------------------------------------------------------------
 -- utils
 ----------------------------------------------------------------------------------------------------------------------
-newAgentIn :: (AgentIn s m e, e) -> (AgentOut s m e, e) -> (AgentIn s m e, e)
+newAgentIn :: (AgentIn s m e, e) 
+                -> (AgentOut s m e, e) 
+                -> (AgentIn s m e, e)
 newAgentIn (oldIn, _) (newOut, e') = (newIn, e')
     where
         newIn = oldIn { aiStart = NoEvent,
@@ -434,9 +442,9 @@ newAgentIn (oldIn, _) (newOut, e') = (newIn, e')
                         aiRng = aoRng newOut }
 
 shuffleAgents :: SimulationParams e 
-                    -> [AgentBehaviour s m e] 
-                    -> [(AgentIn s m e, e)] 
-                    -> (SimulationParams e, [AgentBehaviour s m e], [(AgentIn s m e, e)])
+                -> [AgentBehaviour s m e] 
+                -> [(AgentIn s m e, e)] 
+                -> (SimulationParams e, [AgentBehaviour s m e], [(AgentIn s m e, e)])
 shuffleAgents params sfs ins 
     | doShuffle = (params', sfs', ins')
     | otherwise = (params, sfs, ins)
@@ -456,9 +464,6 @@ addEnvToAins e ains = map (swap . ((,) e)) ains
 
 replaceEnvOfAins :: e ->  [(AgentIn s m e, e)] -> [(AgentIn s m e, e)]
 replaceEnvOfAins e ains = map (swap . ((,) e) . fst) ains
-
-swap :: (a, b) -> (b, a)
-swap (a, b) = (b, a)
 -----------------------------------------------------------------------------------
 
 runEnv :: DTime -> SimulationParams e -> e -> (e, SimulationParams e)

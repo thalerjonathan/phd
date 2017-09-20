@@ -94,7 +94,7 @@ simulateStepsAndRender initAdefs
 
 nextIteration :: Maybe (StepCallback s e)
 					-> IORef ([AgentOut s m e], e)
-                    -> ReactHandle ([AgentIn s m e], e) ([AgentOut s m e], e)
+                    -> ReactHandle () ([AgentOut s m e], e)
 					-> Bool
 					-> ([AgentOut s m e], e)
 					-> IO Bool
@@ -111,7 +111,7 @@ nextIteration (Just clbk) outRef _ _ curr@(currAo, currEnv) =
 nextIteration Nothing outRef _ _ curr = writeIORef outRef curr >> return False
 
 nextFrameSimulateWithTime :: Double 
-								-> ReactHandle ([AgentIn s m e], e) ([AgentOut s m e], e)
+								-> ReactHandle () ([AgentOut s m e], e)
 	                            -> IORef ([AgentOut s m e], e)
 	                            -> ViewPort
 	                            -> Float
@@ -124,11 +124,11 @@ nextFrameSimulateWithTime dt hdl outRef _ _ _ =
         return aouts
 
 nextFrameSimulateNoTime :: RenderFrameInternal s e
-							-> Double
-							-> ReactHandle ([AgentIn s m e], e) ([AgentOut s m e], e)
-			                -> IORef ([AgentOut s m e], e)
-			                -> Float
-			                -> IO Picture
+                            -> Double
+                            -> ReactHandle () ([AgentOut s m e], e)
+                            -> IORef ([AgentOut s m e], e)
+                            -> Float
+                            -> IO Picture
 nextFrameSimulateNoTime renderFunc dt hdl outRef _ = 
     do
         react hdl (dt, Nothing)  -- NOTE: will result in call to nextIteration

@@ -147,6 +147,33 @@
 	},
 	"buffers":
 	[
+		{
+			"file": "examples/Main.hs",
+			"settings":
+			{
+				"buffer_size": 1405,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "examples/NewAgents/Run.hs",
+			"settings":
+			{
+				"buffer_size": 959,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "examples/NewAgents/Agent.hs",
+			"settings":
+			{
+				"buffer_size": 641,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		}
 	],
 	"build_system": "",
 	"build_system_choices":
@@ -202,10 +229,34 @@
 	},
 	"expanded_folders":
 	[
-		"/home/jonathan/phd/coding/libraries/frABS"
+		"/home/jonathan/phd/coding/libraries/frABS",
+		"/home/jonathan/phd/coding/libraries/frABS/examples",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgents",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape",
+		"/home/jonathan/phd/coding/libraries/frABS/src",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation"
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgents/Init.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgents/Run.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgents/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgents/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Init.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgent/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgent/Init.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgent/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Simulation.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/GlossSimulator.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Discrete.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Agent.hs",
@@ -229,12 +280,8 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Continuous2d.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Utils.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Discrete.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/FrABS.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Random.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Init.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Simulation.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Reactive.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Agent.hs",
@@ -261,7 +308,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Network.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/Stats.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Renderer.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/GlossSimulator.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Renderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/tests/Test.hs",
 		"/home/jonathan/.config/sublime-text-3/Packages/SublimeHaskell/Settings/SublimeHaskell.sublime-settings",
@@ -318,22 +364,13 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Trader.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/Model.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Run.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Internal.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Replication.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/SeqIteration.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Env/Environment.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Env/Continuous.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Env/Network.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/HerosCowards/Run.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/HerosCowards/Agent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/HerosCowards/Init.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/HerosCowards/Model.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/HerosCowards/Renderer.hs"
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Env/Environment.hs"
 	],
 	"find":
 	{
@@ -352,6 +389,10 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"agentPureIgnoreEnv",
+			"DAEnvironment",
+			"DoubleAuctionMsg",
+			"DAAgentState",
 			"coordPatch",
 			"Continuous2DCoord",
 			"Continuous2DDimension",
@@ -475,11 +516,7 @@
 			"AgentConversationReceiver",
 			"SugarScapeAgentConversation",
 			"agentconver",
-			"SugarScapeAgentConversation",
-			"conversationIgnoreE",
-			"conversationReplyMonadicRunner",
-			"neighbourIdsM",
-			"conversationIgnoreReplyMonadicRunner"
+			"SugarScapeAgentConversation"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -487,6 +524,9 @@
 		"regex": false,
 		"replace_history":
 		[
+			"NewAgentEnvironment",
+			"NewAgentMsg",
+			"NewAgentState",
 			"originPatch",
 			"Continuous2dCoord",
 			"Continuous2dDimension",
@@ -581,8 +621,97 @@
 	"groups":
 	[
 		{
+			"selected": 2,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "examples/Main.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1405,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								545,
+								545
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "examples/NewAgents/Run.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 959,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								219,
+								219
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 135.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "examples/NewAgents/Agent.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 641,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								425,
+								425
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
 			]
 		}
 	],
@@ -592,7 +721,7 @@
 	},
 	"input":
 	{
-		"height": 34.0
+		"height": 35.0
 	},
 	"layout":
 	{

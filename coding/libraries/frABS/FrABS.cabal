@@ -27,7 +27,8 @@ library
                     fgl, 
                     transformers,
                     stm,
-                    parallel
+                    parallel,
+                    titan-yampa-debugger
 
   -- install Yampa from https://github.com/ivanperez-keera/Yampa build using -fexpose-core
 

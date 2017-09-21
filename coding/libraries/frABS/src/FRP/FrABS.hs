@@ -294,7 +294,8 @@ module FRP.FrABS (
 
     processIOInit,
     processSteps,
-
+    processDebug,
+    
     AgentRendererDisc2d,
     AgentCellColorerDisc2d,
     AgentCoordDisc2d,

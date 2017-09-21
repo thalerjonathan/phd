@@ -1,10 +1,19 @@
+{-# LANGUAGE AllowAmbiguousTypes               #-}
+{-# LANGUAGE FlexibleInstances                 #-}
+{-# LANGUAGE FunctionalDependencies            #-}
+{-# LANGUAGE MultiParamTypeClasses             #-}
+{-# LANGUAGE MultiWayIf                        #-}
+{-# LANGUAGE ScopedTypeVariables               #-}
+{-# LANGUAGE TypeSynonymInstances              #-}
 module FRP.FrABS.Simulation.Simulation (
     UpdateStrategy (..),
     EnvironmentCollapsing,
     SimulationParams (..),
 
     processIOInit,
-    processSteps
+    processSteps,
+
+    processDebug
   ) where
 
 import FRP.FrABS.Simulation.SeqIteration
@@ -16,6 +25,9 @@ import FRP.FrABS.Utils
 
 import FRP.Yampa
 import FRP.Yampa.InternalCore
+
+import FRP.Titan.Debug.Core
+import FRP.Titan.Debug.CommTCP
 
 import Data.Maybe
 import Data.List
@@ -66,6 +78,36 @@ processSteps adefs e params dt steps = embed
                                             ((), sts)
     where
         sts = replicate steps (dt, Nothing)
+----------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+-- DEBUGING THE SIMULATION USING HASKELL-TITAN
+------------------------------------------------------------------------------------------------------------------------
+processDebug :: (Show s, Read s, Show e, Read e)
+                => [AgentDef s m e]
+                -> e
+                -> SimulationParams e
+                -> Double
+                -> (Bool -> ([AgentObservable s], e) -> IO Bool)
+                -> IO ()
+processDebug adefs e params dt renderFunc = 
+    do
+        bridge <- mkTitanCommTCPBridge
+
+        reactimateControl
+            bridge                                   -- Communication channels
+            defaultPreferences                       -- Simulation preferences
+            [Pause] -- ([] :: [Command FooPred])     -- Initial command queue
+            return ()                                -- IO a: Initial sensing action
+            (\_ -> return (dt, Nothing))             -- (Bool -> IO (DTime, Maybe a)): Continued sensing action
+            renderFunc                               -- (Bool -> b -> IO Bool): Rendering/consumption action
+            (process params adefs e)                 -- SF a b: Signal Function that defines the program
+
+newtype FooPred = FooPred { foo :: Bool }
+    deriving (Read, Show)
+
+instance Pred FooPred () ([AgentObservable s], e) where
+    evalPred p dt i (obs, e) = True
 ----------------------------------------------------------------------------------------------------------------------
 
 

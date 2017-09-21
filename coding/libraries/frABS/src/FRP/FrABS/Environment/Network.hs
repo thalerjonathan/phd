@@ -38,7 +38,7 @@ data NetworkType = Complete Int | ErdosRenyi Int Double | BarbasiAlbert Int Int 
 data Network l = Network {
     envNetRng :: StdGen,
     envNetGraph :: Gr () l
-}
+} deriving (Show, Read)
 
 -------------------------------------------------------------------------------
 -- Network implementation

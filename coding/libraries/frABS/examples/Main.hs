@@ -19,23 +19,24 @@ import           NewAgents.Run
 
 {-
     TODOs
-    - clean-up
+    - no warnings
         - imports: no unused imports
         - lint: must be clear of warnings
         - warnings: compilation with -w must show no warnings at all
         
+    - clean-up and consistent style: indentation, imports, type-annotations, do-syntax
     - comment haskell code
 -}
 
 main :: IO ()
-main = runSugarScapeWithRendering
+main = runDoubleAuctionDebug
 
     -- runZombiesWithRendering
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile
     -- runSysDynSIRStepsAndWriteToFile
     -- runFrSIRSSpatialWithRendering -- runFrSIRSSpatialStepsAndPrint -- runFrSIRSSpatialStepsAndWriteToFile
-    -- runDoubleAuctionSteps
+    -- runDoubleAuctionSteps runDoubleAuctionDebug
     -- runSIRSWithRendering
     -- runPDWithRendering
     -- runWildfireWithRendering

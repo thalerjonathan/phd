@@ -81,34 +81,33 @@ processSteps adefs e params dt steps = embed
 ----------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
--- DEBUGING THE SIMULATION USING HASKELL-TITAN
+-- DEBUGGING THE SIMULATION USING HASKELL-TITAN
 ------------------------------------------------------------------------------------------------------------------------
-processDebug :: --forall p s e .
-                (Show s, Read s, Show e, Read e, Pred p () ([AgentObservable s], e))
+processDebug :: forall s e m .
+                (Show s, Read s, Show e, Read e)
                 => [AgentDef s m e]
                 -> e
                 -> SimulationParams e
                 -> Double
-                -> p
                 -> (Bool -> ([AgentObservable s], e) -> IO Bool)
                 -> IO ()
-processDebug adefs e params dt initCmd renderFunc = 
+processDebug adefs e params dt renderFunc = 
     do
         bridge <- mkTitanCommTCPBridge
 
         reactimateControl
             bridge                                   -- Communication channels
             defaultPreferences                       -- Simulation preferences
-            ([] :: [Command p]) --[Pause] -- ([] :: [Command FooPred])     -- Initial command queue
-            return ()                                -- IO a: Initial sensing action
+            ([Pause] :: [Command (FooPred s e)]) --[Pause] -- ([] :: [Command FooPred])     -- Initial command queue
+            (return ())                                -- IO a: Initial sensing action
             (\_ -> return (dt, Nothing))             -- (Bool -> IO (DTime, Maybe a)): Continued sensing action
             renderFunc                               -- (Bool -> b -> IO Bool): Rendering/consumption action
             (process params adefs e)                 -- SF a b: Signal Function that defines the program
 
---data FooPred = FooPred deriving (Read, Show)
+data FooPred s e = FooPred deriving (Read, Show)
 
---instance (Show o) => Pred FooPred () o where
---    evalPred p dt i o = True
+instance Pred (FooPred s e) () ([AgentObservable s], e) where
+    evalPred p dt i o = True
 ----------------------------------------------------------------------------------------------------------------------
 
 

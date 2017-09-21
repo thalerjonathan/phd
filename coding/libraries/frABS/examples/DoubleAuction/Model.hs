@@ -88,7 +88,7 @@ data DAAgentState =
     	daTraderLoansGiven :: Double 			-- the amount of loans bought from other agents for cash or assets. is the amount of UN-collateralized assets
 	} 
   | AuctioneerState     -- NOTE: the auctioneer has no domain-specific state
-    deriving (Show)
+    deriving (Show, Read)
 
 type DAEnvironment = Network ()
 type DAEnvironmentBehaviour = EnvironmentBehaviour DAEnvironment

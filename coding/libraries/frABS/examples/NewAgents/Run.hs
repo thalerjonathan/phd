@@ -1,5 +1,7 @@
 module NewAgents.Run (
-    runNewAgentsSteps
+    runNewAgentsSteps,
+
+    runNewAgentsDebug
   ) where
 
 import NewAgents.Model
@@ -32,6 +34,20 @@ runNewAgentsSteps =
         mapM printNewAgent asFinal
 
         return ()
+
+runNewAgentsDebug :: IO ()
+runNewAgentsDebug = 
+    do
+        hSetBuffering stdout NoBuffering
+
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
+        (initAdefs, initEnv) <- initNewAgents agentCount
+        
+        processDebug initAdefs initEnv params samplingTimeDelta renderFunc
+
+    where
+        renderFunc :: Bool -> ([NewAgentObservable], NewAgentEnvironment) -> IO Bool
+        renderFunc _ (aobs, env) = mapM_ printNewAgent aobs >> (return False)
 
 printNewAgent :: NewAgentObservable -> IO ()
 printNewAgent (aid, s) = putStrLn $ "Agent " ++ show aid ++ ": state = " ++ show s

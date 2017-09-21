@@ -1,5 +1,6 @@
 module DoubleAuction.Run (
-    runDoubleAuctionSteps
+    runDoubleAuctionSteps,
+    runDoubleAuctionDebug
   ) where
 
 import DoubleAuction.Model
@@ -32,6 +33,20 @@ runDoubleAuctionSteps =
         mapM printTraderAgent asFinal
 
         return ()
+
+runDoubleAuctionDebug :: IO ()
+runDoubleAuctionDebug = 
+    do
+        hSetBuffering stdout NoBuffering
+
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
+        (initAdefs, initEnv) <- initDoubleAuction agentCount
+        
+        processDebug initAdefs initEnv params samplingTimeDelta renderFunc
+
+    where
+        renderFunc :: Bool -> ([DAAgentObservable], DAEnvironment) -> IO Bool
+        renderFunc _ (aobs, env) = mapM_ printTraderAgent aobs >> (return False)
 
 printTraderAgent :: DAAgentObservable -> IO ()
 printTraderAgent (aid, s)

@@ -83,31 +83,32 @@ processSteps adefs e params dt steps = embed
 ------------------------------------------------------------------------------------------------------------------------
 -- DEBUGING THE SIMULATION USING HASKELL-TITAN
 ------------------------------------------------------------------------------------------------------------------------
-processDebug :: (Show s, Read s, Show e, Read e)
+processDebug :: --forall p s e .
+                (Show s, Read s, Show e, Read e, Pred p () ([AgentObservable s], e))
                 => [AgentDef s m e]
                 -> e
                 -> SimulationParams e
                 -> Double
+                -> p
                 -> (Bool -> ([AgentObservable s], e) -> IO Bool)
                 -> IO ()
-processDebug adefs e params dt renderFunc = 
+processDebug adefs e params dt initCmd renderFunc = 
     do
         bridge <- mkTitanCommTCPBridge
 
         reactimateControl
             bridge                                   -- Communication channels
             defaultPreferences                       -- Simulation preferences
-            [Pause] -- ([] :: [Command FooPred])     -- Initial command queue
+            ([] :: [Command p]) --[Pause] -- ([] :: [Command FooPred])     -- Initial command queue
             return ()                                -- IO a: Initial sensing action
             (\_ -> return (dt, Nothing))             -- (Bool -> IO (DTime, Maybe a)): Continued sensing action
             renderFunc                               -- (Bool -> b -> IO Bool): Rendering/consumption action
             (process params adefs e)                 -- SF a b: Signal Function that defines the program
 
-newtype FooPred = FooPred { foo :: Bool }
-    deriving (Read, Show)
+--data FooPred = FooPred deriving (Read, Show)
 
-instance Pred FooPred () ([AgentObservable s], e) where
-    evalPred p dt i (obs, e) = True
+--instance (Show o) => Pred FooPred () o where
+--    evalPred p dt i o = True
 ----------------------------------------------------------------------------------------------------------------------
 
 

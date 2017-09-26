@@ -26,13 +26,13 @@ import FRP.FrABS
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
-data SIRSState = Susceptible | Infected | Recovered deriving (Eq, Show)
-data FrSIRSSpatialMsg = Contact SIRSState deriving (Eq, Show)
+data SIRSState = Susceptible | Infected | Recovered deriving (Eq, Show, Read)
+data FrSIRSSpatialMsg = Contact SIRSState deriving (Eq, Show, Read)
 
 data FrSIRSSpatialAgentState = FrSIRSSpatialAgentState {
     sirsState :: SIRSState,
     sirsCoord :: Discrete2dCoord
-}
+} deriving (Show, Read)
 
 type FrSIRSSpatialEnvironment = Discrete2d AgentId
 

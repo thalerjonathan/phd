@@ -29,7 +29,7 @@ import           NewAgents.Run
 -}
 
 main :: IO ()
-main = runDoubleAuctionDebug
+main = debugFrSIRSSpatialWithRendering
 
     -- runZombiesWithRendering
     -- runPolicyEffectsWithRendering

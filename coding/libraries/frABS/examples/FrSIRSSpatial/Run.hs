@@ -2,7 +2,9 @@ module FrSIRSSpatial.Run (
     runFrSIRSSpatialWithRendering,
     runFrSIRSSpatialStepsAndRender,
     runFrSIRSSpatialStepsAndWriteToFile,
-    runFrSIRSSpatialReplicationsAndWriteToFile
+    runFrSIRSSpatialReplicationsAndWriteToFile,
+
+    debugFrSIRSSpatialWithRendering
   ) where
 
 import FrSIRSSpatial.Init
@@ -32,6 +34,8 @@ replCfg = ReplicationConfig {
     replCfgEnvReplicator = defaultEnvReplicator
 }
 
+
+
 runFrSIRSSpatialWithRendering :: IO ()
 runFrSIRSSpatialWithRendering =
     do
@@ -49,6 +53,23 @@ runFrSIRSSpatialWithRendering =
                             winSize
                             renderFrSIRSSpatialFrame
                             Nothing --(Just (\_ asenv -> printAgentDynamics asenv))
+
+debugFrSIRSSpatialWithRendering :: IO ()
+debugFrSIRSSpatialWithRendering =
+    do
+        params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
+
+        -- (initAdefs, initEnv) <- createFrSIRSSpatialRandomInfected agentDimensions initialInfectionProb
+        (initAdefs, initEnv) <- createFrSIRSSpatialSingleInfected agentDimensions
+        
+        debugAndRender initAdefs
+                            initEnv
+                            params
+                            samplingTimeDelta
+                            frequency
+                            winTitle
+                            winSize
+                            renderFrSIRSSpatialFrame
 
 runFrSIRSSpatialStepsAndRender :: IO ()
 runFrSIRSSpatialStepsAndRender =

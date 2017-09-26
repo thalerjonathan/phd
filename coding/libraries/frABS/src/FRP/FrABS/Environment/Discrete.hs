@@ -87,7 +87,7 @@ data Discrete2d c = Discrete2d {
     envDisc2dWrapping :: EnvironmentWrapping,
     envDisc2dCells :: Array Discrete2dCoord c,
     envDisc2dRng :: StdGen
-}
+} deriving (Show, Read)
 
 type SingleOccupantCell c = Maybe c
 type SingleOccupantDiscrete2d c = Discrete2d (SingleOccupantCell c)

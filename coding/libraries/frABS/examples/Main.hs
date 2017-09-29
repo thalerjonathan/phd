@@ -17,15 +17,18 @@ import           Wildfire.Run
 import           Zombies.Run
 import           NewAgents.Run
 
-{-
-    TODOs
-    - no warnings
-        - imports: no unused imports
-        - lint: must be clear of warnings
-        - warnings: compilation with -w must show no warnings at all
-        
-    - clean-up and consistent style: indentation, imports, type-annotations, do-syntax
-    - comment haskell code
+{- TODOs
+	- implememt parallelstrategy using SF instead my own implementation
+	- make current simulation time to rendering and step callbacks
+	- better support SD programming: an own module with the typesynonyms and functions defined
+		-> define separate module SD with Stock & Flow definitions. Also top-level function which runs SD: e.g. runSD without graphical output (for now)
+	- different build targets: with/without time-traveling, gloss rendering
+	- add how-to get FrABS examples running on github in a sandbox: need yampa with exposed core, haskell-titan, install FrABS
+	
+	- clean-up, can all be done in one rush through ALL the files:
+		-> STYLE, INDENTATIONS & COMMENTS:		https://github.com/tibbe/haskell-style-guide/blob/master/haskell-style.md
+		-> WARNINGS:							no warnings with -Wall -Werror
+	
 -}
 
 main :: IO ()

@@ -1,0 +1,7 @@
+This textfile contains ideas and small changes which should be added to the paper if it is gonna be published somewhere
+
+-  endogenous update strategy: the current updating agent inflences/decides which agent executes next. can be represented by sequential strategy but need a bit different diagram
+
+- add concept of environment collapsing to parallel
+
+- add pictures from presentation to paper

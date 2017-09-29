@@ -1,10 +1,6 @@
-{-# LANGUAGE AllowAmbiguousTypes               #-}
 {-# LANGUAGE FlexibleInstances                 #-}
-{-# LANGUAGE FunctionalDependencies            #-}
 {-# LANGUAGE MultiParamTypeClasses             #-}
-{-# LANGUAGE MultiWayIf                        #-}
 {-# LANGUAGE ScopedTypeVariables               #-}
-{-# LANGUAGE TypeSynonymInstances              #-}
 module FRP.FrABS.Simulation.Simulation (
     UpdateStrategy (..),
     EnvironmentCollapsing,
@@ -13,7 +9,8 @@ module FRP.FrABS.Simulation.Simulation (
     processIOInit,
     processSteps,
 
-    processDebug
+    processDebug,
+    processDebugInternal
   ) where
 
 import FRP.FrABS.Simulation.SeqIteration
@@ -92,6 +89,22 @@ processDebug :: forall s e m .
                 -> (Bool -> ([AgentObservable s], e) -> IO Bool)
                 -> IO ()
 processDebug adefs e params dt renderFunc = 
+    processDebugInternal
+        adefs
+        e
+        params
+        (\_ -> return (dt, Nothing))
+        renderFunc
+
+processDebugInternal :: forall s e m .
+                        (Show s, Read s, Show e, Read e)
+                        => [AgentDef s m e]
+                        -> e
+                        -> SimulationParams e
+                        -> (Bool -> IO (DTime, Maybe ()))
+                        -> (Bool -> ([AgentObservable s], e) -> IO Bool)
+                        -> IO ()
+processDebugInternal adefs e params inputFunc renderFunc = 
     do
         bridge <- mkTitanCommTCPBridge
 
@@ -100,9 +113,9 @@ processDebug adefs e params dt renderFunc =
             defaultPreferences                       -- Simulation preferences
             ([Pause] :: [Command (FooPred s e)]) --[Pause] -- ([] :: [Command FooPred])     -- Initial command queue
             (return ())                                -- IO a: Initial sensing action
-            (\_ -> return (dt, Nothing))             -- (Bool -> IO (DTime, Maybe a)): Continued sensing action
+            inputFunc             -- (Bool -> IO (DTime, Maybe a)): Continued sensing action
             renderFunc                               -- (Bool -> b -> IO Bool): Rendering/consumption action
-            (process params adefs e)                 -- SF a b: Signal Function that defines the program
+            (process params adefs e)                 -- SF a b: Signal Function that defines the program 
 
 data FooPred s e = FooPred deriving (Read, Show)
 

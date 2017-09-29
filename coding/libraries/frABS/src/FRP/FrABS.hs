@@ -271,6 +271,8 @@ module FRP.FrABS (
     simulateAndRender,
     simulateStepsAndRender,
     
+    debugAndRender,
+    
     StepCallback,
     RenderFrame,
 

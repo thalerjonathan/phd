@@ -1,12 +1,13 @@
 \section{The formal Agent-Model}
-Functional programming in Haskell with its strong static type-system can be seen as to be much more formal than object-oriented programming in Java and C++. Where in the latter one e.g. a Class-Diagram in UML would be created, in our functional approach we create a formal model of our agent which can then be easily translated to Haskell.
+TODO: what are the difficulties when implementing an ABS?
 
-An agent can be seen as a tuple $<id, s, m, ec, b>$.
+
+An agent can be seen as a tuple $<id, s, m, e, b>$.
 \begin{itemize}
 	\item \textbf{id} - the unique identifier of the agent
 	\item \textbf{s} - the generic state of the agent
 	\item \textbf{m} - the set of messages the agent understands
-	\item \textbf{ec} - the \textit{type} of the environment-cells the agent may act upon
+	\item \textbf{e} - the \textit{type} of the environment-cells the agent may act upon
 	\item \textbf{b} - the behaviour of the agent
 \end{itemize}
 
@@ -46,6 +47,8 @@ AgentIn provides the necessary data to the agent-behaviour: its id, incoming mes
 AgentOut allows the agent to communicate changes out of the behaviour: kill itself, create new agents, sending messages, state s, environment (made ouf of the cells ec), environment-position and random-number generator. 
 
 \section{Environment}
+TODO: update, we have now also 2d-continuous AND networks!
+
 So far we only implemented a 2d-discrete environment. It can be understood to be a tuple of $<b, d, n, w, cs>$.
 \begin{itemize}
 	\item \textbf{b} - the optional behaviour of the environment

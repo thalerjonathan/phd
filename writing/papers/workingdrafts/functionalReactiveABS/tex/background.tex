@@ -1,42 +1,5 @@
 \section{Background}
 
-[ ] time in FrABS: when 0dt then still actions can occur when not relying on time semantics
-[ ] what about time-travel in abms for introspection during running it? this is much easier in FrABS
-
-TODO: reasoning about dynamics in code would allow us to cut substantial calculations: can make assumptions about dynamics without actually running it. is it even possible?
-
-TODO: property-based and unit testing of a model
-
-TODO: modular testing of agents
-
-TODO: also solve the SIR with an algebra system to have a bullet-proof "proof" that we reproduce the same dynamics. this is only partially a proof our system is correct, but it is not a formal proof, this needs to be done different
-
-TODO: don't sell this paper as an opposing view against OOP (e.g. OOP is bad) but as a positive view: "for the first time it is possible to do ABMS in pure functional programming".
-
-TODO: publishing: 1st version write for a journal in the ABMS community, 2nd version write for a conference in the functional programming community e.g. for the TFP in Kent 2018
-
-TODO: It should be possible to formally show that spatial SIR and WildFire are the same model. NOTE: they are NOT the same, the fundamental difference is that in the WildFire model only the burning cells initiate the ignition - if we compare this to the SIR, the burning cells would be infected agents and although in the spatial SIR model the infected agents make contact with other agents, so do the susceptible ones which does NOT occur in wildfire
-
-TODO: cite my own work on update-strategies
-
-TODO: can we formally show that the SIR approximates the SD model?
-
-TODO: cite papers which discuss how to approximate a SD model by ABS
-- Macal (2010) - To Agent-Based Simulation From System Dynamics 
-	-> i am very unhappy with this paper: first it does not give concrete parameters for the SD model so it is impossible to replicate. Also i think it has a systematical error as the infected agents make no contact but this is required as evident from the SD-models infection-rate which also incorporates. TODO: write an email to this guy: why are the infectious not contacting the other agents? this seems to be a systematical error
-- Borshchev, Filippov (2004) - From System Dynamics and Discrete Event to Practical Agent Based Modeling: Reasons, Techniques, Tools
-	-> its VERY IMPORTANT point is that we need to draw the illness-duration from an exponential-distribution because the illness-duration is proportional to the size of the infected. note: this is wrongly expressed, need to find the correct formulation
-
-		-> my emulation of SD using ABS is really an implementation of the SD model and follows it - they are equivalent
-		-> my ABS implementation is the same as / equivalent to the SD emulation
-			=> thus if i can show that my SD emulation is equlas to the SD model
-			=> AND that the ABS implementation is the same as the SD emulation
-			=> THEN the ABS implementation is an SD implementation, and we have shown this in code for the first time in ABS
-			
-TODO: the first (of two) contribution of this paper is: an explanation of one way of how ABS can be done in pure functional programming and its benefits: declarative style where the code looks very much like specification, fewer LoC, fewer Bugs, reasoning and proves
-
-TODO: main second contribution is: show that the SD and the ABS implementation of the SIR model are the same by proving that ABS solves the SD equation. this should be possible by now using reasoning techniques (and quickcheck?)
-
 \subsection{Agent Based Simulation}
 We understand ABS as a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is of knowledge. Those parts, called agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. So the central aspect of ABS is the concept of an agent which can be understood as a metaphor for a pro-active unit, situated in an environment, able to spawn new agents and interacting with other agents in a network of neighbours by exchange of messages \cite{wooldridge_introduction_2009}. It is important to note that we focus our understanding of ABS on a very specific kind of agents where the focus is on communicating entities with individual, localized behaviour from out of which the global behaviour of the system emerges. We informally assume the following about our agents:
 
@@ -47,75 +10,21 @@ We understand ABS as a method of modelling and simulating a system where the glo
 	\item They can interact with other agents which are situated in the same environment by means of message-passing.
 \end{itemize} 
 
-Epstein \cite{epstein_generative_2012} identifies ABS to be especially applicable for analyzing \textit{"spatially distributed systems of heterogeneous autonomous actors with bounded information and computing capacity"}. Thus in the line of the simulation models Statistical $^\dagger$, Markov$^\ddagger$, System Dynamics \Ankh, Discrete Event \Cross, ABS is the most powerful one as it allows to incorporate / model the following:
+Epstein \cite{epstein_generative_2012} identifies ABS to be especially applicable for analyzing \textit{"spatially distributed systems of heterogeneous autonomous actors with bounded information and computing capacity"}. Thus in the line of the simulation models \textit{Statistical} $^\dag$, \textit{Markov} $^\ddag$, \textit{System Dynamics} $^\S$, \textit{Discrete Event} $^\mp$, ABS is the most powerful one as it allows to model  the following:
 
 \begin{itemize}
-	\item Linearity \& Non-Linearity - the dynamics of the simulation can exhibit both linear and non-linear behaviour. 
-	\item Time - agents act over time, time is also the source of pro-activity.
-	\item States - agents encapsulate some state which can be accessed and changed during the simulation.
-	\item Feedback-Loops - because agents act continuously and their actions influence each other and themselves, feedback-loops are very common in ABS. 
-	\item Heterogeneity - although agents can have same properties like height, sex,... the value can be randomly distributed over the population, making it a heterogenous one. This is 
-	\item Interactions
-	\item Spatiality \& Networks
+	\item Linearity \& Non-Linearity $^{\dag \ddag \S \mp}$ - the dynamics of the simulation can exhibit both linear and non-linear behaviour. 
+	\item Time $^{\dag \ddag \S \mp}$ - agents act over time, time is also the source of pro-activity.
+	\item States $^{\ddag \S \mp}$ - agents encapsulate some state which can be accessed and changed during the simulation.
+	\item Feedback-Loops $^{\S \mp}$ - because agents act continuously and their actions influence each other and themselves, feedback-loops are the norm in ABS. 
+	\item Heterogeneity $^{\mp}$ - although agents can have same properties like height, sex,... the actual values can vary arbitrarily between agents.
+	\item Interactions - agents can be modeled after interactions with an environment or other agents, making this a unique feature of ABS, not possible in the other simulation models.
+	\item Spatiality \& Networks - agents can be situated within e.g. a spatial (discrete 2d, continuous 3d,...) or network environment, making this also a unique feature of ABS, not possible in the other simulation models.
 \end{itemize}
 
-
 \subsection{Functional Reactive Programming}
-So far we have considered only quite low-level approaches to structuring and composing functional programming: higher-order functions, laziness, monads and arrows. What we need is a programming paradigm built into pure functional programming which we can leverage to implement ABS. As already mentioned above, functional reactive programming (FRP) seems to be a highly promising approach. It is rather a lucky coincidence that Henrik Nilsson, one of the major contributor to the library Yampa, an implementation of FRP, is situated at the School of Computer Science of the University of Nottingham.
-
 FRP is a paradigm for programming hybrid systems which combine continuous and discrete components. Time is explicitly modelled: there is a continuous and synchronous time flow. There have been many attempts to implement FRP in libraries which each has its benefits and deficits. The very first functional reactive language was Fran, a domain specific language for graphics and animation. At Yale FAL, Frob, Fvision and Fruit were developed. The ideas of them all have then culminated in Yampa, the most recent FRP library \cite{nilsson_functional_2002}. The essence of FRP with Yampa is that one describes the system in terms of signal functions in a declarative manner using the EDSL of Yampa. During execution the top level signal functions will then be evaluated and return new signal functions which act as continuations. A major design goal for FRP is to free the programmer from 'presentation' details by providing the ability to think in terms of 'modeling'. It is common that an FRP program is concise enough to also serve as a specification for the problem it solves \cite{wan_functional_2000}.
 
 Yampa has been used in multiple agent-based applications: \cite{hudak_arrows_2003} uses Yampa for implementing a robot-simulation, \cite{courtney_yampa_2003} implement the classical Space Invaders game using Yampa, \cite{nilsson_declarative_2014} implements a Pong-clone, the thesis of \cite{meisinger_game-engine-architektur_2010} shows how Yampa can be used for implementing a Game-Engine, \cite{mun_hon_functional_2005} implemented a 3D first-person shooter game with the style of Quake 3 in Yampa. Note that although all these applications don't focus explicitly on agents all of them inherently deal with kinds of agents which share properties of classical agents: game-entities, robots,... Other fields in which Yampa was successfully used were programming of synthesizers, network routers, computer music development and has been successfully combined with monads \cite{perez_functional_2016}.
 
 This leads to the conclusion that Yampa is mature, stable and suitable to be used in functional ABS. This and the reason that we have the in-house knowledge lets us focus on Yampa. Also it is out-of-scope to do a in-depth comparison of the many existing FRP libraries.
-
-FRP papers
-Functional Reactive Programming from First Principles (2000) - \cite{wan_functional_2000}
-Functional Reactive Programming Continued (2002) - \cite{nilsson_functional_2002}
-Arrows, Robots, and Functional Reactive Programming (2003) - \cite{hudak_arrows_2003}
-Functional Reactive Programming Refactored (2016) - \cite{perez_functional_2016}
-
-\subsubsection{Yampa}
-The central concept of Yampa is the one of a signal-function which can be understood of a mapping from an input-signal to an output-signal. Whether the signal is discrete or continuous does not matter, Yampa is suited equally well to both kinds. Signal-functions are implemented in Yampa using continuations which allow to freeze program-state e.g. through closures and partial applications in functions which can be continued later:
-\begin{lstlisting}[]
-type DTime = Double
-
-data SF a b = SF { sfTF :: DTime -> a -> (SF a b, b) }
-\end{lstlisting}
-Such a signal-function, which is called a \textit{transition function} in Yampa, takes the amount of time which has passed since the previous time step and the current input signal (a). It returns a \textit{continuation} of type SF a b determining the behaviour of the signal function on the next step and an output signal (b) of the current time-step. 
-
-Yampa provides a top-level function, running in the IO-Monad, which drives a signal-function by providing both input-values and time-deltas from callbacks. It is important to note that when visualizing a simulation one has in fact two flows of time: the one of the user-interface which always follows real-time flow, and the one of the simulation which could be sped up or slowed down. Thus it is important to note that if I/O of the user-interface (rendering, user-input) occurs within the simulations time-frame then the user-interfaces real-time flow becomes the limiting factor. Yampa provides the function embedSync which allows to embed a signal function within another one which is then run at a given ratio of the outer SF. This allows to give the simulation its own time-flow which is independent of the user-interface. We utilized this in the implementation of Recursive ABS (see Chapter \ref{chap:work}).
-
-Additional functionality which Yampa provides is the concept of Events which allow to implement changing behaviour of signal-functions at given points in time. An event can be understood to be similar to the Maybe-type of Haskell which either is an event with a given type or is simply NoEvent. Yampa provides facilities to detect if an event has fired and also provides functions to switch the signal-function into a new signal-function with changed behaviour. Another feature of Yampa is its EDSL for time-semantics: integration over time, delay, accumulation, holding, firing events after/now/repeatedly.
-
-Yampa programming papers:
-The Yampa Arcade (2003) - \cite{courtney_yampa_2003}
-Functional Programming and 3D Games - \cite{mun_hon_functional_2005}
-Game-Engine-Architectur (2010) - \cite{meisinger_game-engine-architektur_2010}
-
-\subsubsection{Arrowized Programming}
-Yampa makes heavy use of Arrows, a generalization of Monads, introduced by Hughes \cite{hughes_generalising_2000}. Arrows allow to parameterise over the input-type as well, which Monads do not allow: they only parameterise over the output-type. This allows to add static parts to an input of a function e.g. a time-delta. Also Arrows can be seen as processes TODO: explain. Both these properties of Arrows are the reason why Yampa is using Arrows (TODO: support by through the papers): it prevents time-leaks which occur when the time-delta parameter shows up visible to the function which then can be changed. Arrowized programming allows to hide exactly this time-delta parameter by passing it along in a point-free style and makes it thus impossible to mess around by the agent-implementer. Fortunately there has been developed a special notation, similar to the monad do-notation, for arrowized programming to increase readability \cite{paterson_new_2001}. The paper \cite{hughes_programming_2005} gives a more in-depth explanation of Arrows, how to program with them and how to use the special arrow-notation. This being a paper for the ABS community, we won't go into depth about arrowized programming as it would be out of the scope of this paper but the concept should become clear from the code-examples in the later sections.
-
-\subsection{NetLogo}
-One can look at NetLogo as a functional approach to ABMS which comes with its own EDSL. Our approach differs fundamentally in the following way
-	- untyped
-	- no side-effects possible
-	- no direct access to other agents, communication happens through asynchronous messages or synchronized conversations
-	- powerful time-semantics which NetLogo completely lacks 
-	
-\subsection{Examples}
-
-\subsubsection{SIRS}
-[ ] SIRS: timed transitions using after, occasionally sending messages, transitions on messages
-$\frac{\mathrm d S}{\mathrm d t} = -infectionRate$ \\
-$\frac{\mathrm d I}{\mathrm d t} = infectionRate - recoveryRate$ \\
-$\frac{\mathrm d R}{\mathrm d t} = recoveryRate$ \\
-
-$S(t) = N + \int_0^t -infectionRate\, \mathrm{d}t$ \\
-$I(t) = 1 + \int_0^t infectionRate - recoveryRate\, \mathrm{d}t$ \\
-$R(t) = \int_0^t recoveryRate\, \mathrm{d}t$ \\
-
-$infectionRate = \frac{I \beta S \gamma}{N}$ \\
-$recoveryRate = \frac{I}{\delta}$ \\
-\subsubsection{Wildfire}
-[ ] WildFire: rate transitions, occasionally sending messages, transition on messages

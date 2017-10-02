@@ -21,6 +21,8 @@ advantages:
 	- reasoning about equivalence between SD and ABS implementation in the same framework
 	- recursive implementations
 	
+	- we can statically guarantee the reproducibility of the simulation because: no side effects possible within the agents which would result in differences between same runs (e.g. file access, networking, threading), also timedeltas are fixed and do not depend on rendering performance or userinput	
+	
 disadvantages:
 	- performance is low
 	- reasoning about performance is very difficult

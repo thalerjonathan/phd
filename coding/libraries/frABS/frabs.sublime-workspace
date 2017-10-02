@@ -155,6 +155,15 @@
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
+		},
+		{
+			"file": "examples/SysDynSIR/Run.hs",
+			"settings":
+			{
+				"buffer_size": 2222,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
 		}
 	],
 	"build_system": "",
@@ -213,7 +222,8 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR",
 		"/home/jonathan/phd/coding/libraries/frABS/src",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS",
@@ -221,6 +231,9 @@
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Run.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgents/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgents/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Model.hs",
@@ -233,16 +246,13 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Run.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/Run.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Agent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Run.hs",
@@ -352,7 +362,7 @@
 	],
 	"find":
 	{
-		"height": 23.0
+		"height": 38.0
 	},
 	"find_in_files":
 	{
@@ -600,7 +610,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -616,12 +626,46 @@
 						"selection":
 						[
 							[
-								552,
-								552
+								2193,
+								2193
 							]
 						],
 						"settings":
 						{
+							"subhask_project_dir": "/home/jonathan/phd/coding/libraries/frABS/examples",
+							"subhask_project_name": "frABSExamples",
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 315.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "examples/SysDynSIR/Run.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2222,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								603,
+								603
+							]
+						],
+						"settings":
+						{
+							"subhask_project_dir": "/home/jonathan/phd/coding/libraries/frABS/examples",
+							"subhask_project_name": "frABSExamples",
 							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
@@ -729,7 +773,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 355.0,
+	"side_bar_width": 517.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

@@ -12,7 +12,7 @@ import FRP.FrABS
 import Data.List
 
 samplingTimeDelta = 0.1
-steps = 1000
+steps = 1500
 
 runSysDynSIRStepsAndWriteToFile :: IO ()
 runSysDynSIRStepsAndWriteToFile =

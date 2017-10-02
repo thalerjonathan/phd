@@ -41,7 +41,7 @@ import           NewAgents.Run
 -}
 
 main :: IO ()
-main = debugFrSIRSSpatialWithRendering
+main = runSysDynSIRStepsAndWriteToFile
 
     -- runZombiesWithRendering
     -- runPolicyEffectsWithRendering

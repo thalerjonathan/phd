@@ -1,0 +1,175 @@
+\section{Examples}
+In this appendix we give a list of all the examples we have implemented and discuss implementation details relevant \footnote{The examples are freely available under \url{https://github.com/thalerjonathan/phd/tree/master/coding/libraries/frABS/examples}}. The examples were implemented as use-cases to drive the development of \textit{FrABS} and to give code samples of known models which show how to use this new approach. Note that we do not give an explanation of each model as this would be out of scope of this paper but instead give the major references from which an understanding of the model can be obtained.
+
+We distinguish between the following attributes
+\begin{itemize}
+	\item Implementation - Which style was used? Either Pure, Monadic or Reactive. Examples could have been implemented in all of them.
+	\item Yampa Time-Semantics - Does the implemented model make use of Yampas time-semantics e.g. occasional, after,...? Yes / No.
+	\item Update-Strategy - Which update-strategy is required for the given example? It is either Sequential or Parallel or both. In the case of Sequential Agents may be shuffled or not.
+	\item Environment - Which kind of environment is used in the given example? Possibilities are 2D/3D Discrete/Continuous or Network. In case of a Parallel Update-Strategy, collapsing may become necessary, depending on the semantics of the model. Also it is noted if the environment has behaviour. Note that an implementation may also have no environment which is noted as None. Although every model implemented in \textit{FrABs} needs to set up some environment, it is not required to use it in the implementation.
+	\item Recursive - Is this implementation making use of the recursive features of \textit{FrABS} Yes/No (only available in sequential updating)?
+	\item Conversations - Is this implementation making use of the conversations features of \textit{FrABS} Yes/No (only available in sequential updating)?
+\end{itemize}
+
+\subsection{Sugarscape}
+This is a full implementation of the famous Sugarscape model as described by Epstein \& Axtell in their book \cite{epstein_growing_1996}. The model description itself has no real time-semantics, the agents act in every time-step. Only the environment may change its behaviour after a given number of steps but this is easily expressed without time-semantics as described in the model by Epstein \& Axtell \footnote{Note that this implementation has about 2600 lines of code which - although it includes both a pure and monadic implementation - is significant lower than e.g. the Java-implementation \url{http://sugarscape.sourceforge.net/} with about 6000. Of course it is difficult to compare such measures as we do not include FrABS itself into our measure.}.
+
+\begin{center}
+\begin{tabular}{l || l }
+\textbf{Implementation}			& Pure, Monadic \\
+\textbf{Yampa Time-Semantics}	& No \\
+\textbf{Update-Strategy}		& Sequential, shuffling \\
+\textbf{Environment}			& 2D Discrete, behaviour \\
+\textbf{Recursive}				& No \\
+\textbf{Conversations}			& Yes \\
+\end{tabular}
+\end{center}
+
+\subsection{Agent\_Zero}
+This is an implementation of the \textit{Parable 1} from the book of Epstein \cite{epstein_agent_zero:_2014}.
+
+\begin{center}
+\begin{tabular}{l || l }
+\textbf{Implementation}			& Pure, Monadic \\
+\textbf{Yampa Time-Semantics}	& No \\
+\textbf{Update-Strategy}		& Parallel, Sequential, shuffling \\
+\textbf{Environment}			& 2D Discrete, behaviour, collapsing \\
+\textbf{Recursive}				& No \\
+\textbf{Conversations}			& No \\
+\end{tabular}
+\end{center}
+
+\subsection{Schelling Segregation}
+This is an implementation of \cite{schelling_dynamic_1971} with extended agent-behaviour which allows to study dynamics of different optimization behaviour: local or global, nearest/random, increasing/binary/future. This is also the only 'real' model in which the recursive features were applied \footnote{The example of Recursive ABS is just a plain how-to example without any real deeper implications.}.
+
+\begin{center}
+\begin{tabular}{l || l }
+\textbf{Implementation}			& Pure \\
+\textbf{Yampa Time-Semantics}	& No \\
+\textbf{Update-Strategy}		& Sequential, shuffling \\
+\textbf{Environment}			& 2D Discrete \\
+\textbf{Recursive}				& Yes (optional) \\
+\textbf{Conversations}			& No \\
+\end{tabular}
+\end{center}
+
+\subsection{Prisoners Dilemma}
+This is an implementation of the Prisoners Dilemma on a 2D Grid as discussed in the papers of \cite{nowak_evolutionary_1992}, \cite{huberman_evolutionary_1993} and TODO: cite my own paper on update-strategies.
+
+TODO: implement
+
+\subsection{Heroes \& Cowards}
+This is an implementation of the Heroes \& Cowards Game as introduced in \cite{wilensky_introduction_2015} and discussed more in depth in TODO: cite my own paper on update-strategies.
+
+TODO: implement
+
+\subsection{SIRS}
+This is an early, non-reactive implementation of a spatial version of the SIRS compartment model found in epidemiology. Note that although the SIRS model itself includes time-semantics, in this implementation no use of Yampas facilities were made. Timed transitions and making contact was implemented directly into the model which results in contacts being made on every iteration, independent of the sampling time. Also in this sample only the infected agents make contact with others, which is not quite correct when wanting to approximate the System Dynamics model (see below). It is primarily included as a comparison to the later implementations (Fr*SIRS) of the same model  which make full use of \textit{FrABS} and to see the huge differences the usage of Yampas time-semantics can make.
+
+\begin{center}
+\begin{tabular}{l || l }
+\textbf{Implementation}			& Pure, Monadic \\
+\textbf{Yampa Time-Semantics}	& No \\
+\textbf{Update-Strategy}		& Parallel, Sequential with shuffling \\
+\textbf{Environment}			& 2D Discrete \\
+\textbf{Recursive}				& No \\
+\textbf{Conversations}			& No \\
+\end{tabular}
+\end{center}
+
+\subsection{Reactive SIRS}
+This is the reactive implementations of both 2D spatial and network (complete graph, Erdos-Renyi and Barbasi-Albert) versions of the SIRS compartment model. Unlike SIRS these examples make full use of the time-semantics provided by Yampa and show the real strength provided by \textit{FrABS}.
+
+\begin{center}
+\begin{tabular}{l || l }
+\textbf{Implementation}			& Reactive \\
+\textbf{Yampa Time-Semantics}	& Yes \\
+\textbf{Update-Strategy}		& Parallel \\
+\textbf{Environment}			& 2D Discrete, Network \\
+\textbf{Recursive}				& No \\
+\textbf{Conversations}			& No \\
+\end{tabular}
+\end{center}
+
+\subsection{System Dynamics SIR}
+This is an emulation of the System Dynamics model of the SIR compartment model in epidemiology. It was implemented as a proof-of-concept to show that \textit{FrABS} is able to implement even System Dynamic models because of its continuous-time and time-semantic features. Connections between stocks \& flows are hardcoded, after all System Dynamics completely lacks the concept of spatial- or network-effects. Note that describing the implementation as Reactive may seem not appropriate as in System Dynamics we are not dealing with any events or reactions to it - it is all about a continuous flow between stocks. In this case we wanted to express with Reactive that it is implemented using the Arrowized notion of Yampa which is required when one wants to use Yampas time-semantics anyway.
+
+\begin{center}
+\begin{tabular}{l || l }
+\textbf{Implementation}			& Reactive \\
+\textbf{Yampa Time-Semantics}	& Yes \\
+\textbf{Update-Strategy}		& Parallel \\
+\textbf{Environment}			& None \\
+\textbf{Recursive}				& No \\
+\textbf{Conversations}			& No \\
+\end{tabular}
+\end{center}
+
+\subsection{WildFire}
+This is an implementation of a very simple Wildfire model inspired by an example from AnyLogic\texttrademark with the same name.
+
+\begin{center}
+\begin{tabular}{l || l }
+\textbf{Implementation}			& Reactive \\
+\textbf{Yampa Time-Semantics}	& Yes \\
+\textbf{Update-Strategy}		& Parallel \\
+\textbf{Environment}			& 2D Discrete \\
+\textbf{Recursive}				& No \\
+\textbf{Conversations}			& No \\
+\end{tabular}
+\end{center}
+
+\subsection{Double Auction}
+This is a basic implementation of a double-auction process of a model described by \cite{breuer_endogenous_2015}. This model is not relying on any environment at the moment but could make use of networks in the future for matching offers.
+
+\begin{center}
+\begin{tabular}{l || l }
+\textbf{Implementation}			& Pure, Monadic \\
+\textbf{Yampa Time-Semantics}	& No \\
+\textbf{Update-Strategy}		& Parallel \\
+\textbf{Environment}			& None \\
+\textbf{Recursive}				& No \\
+\textbf{Conversations}			& No \\
+\end{tabular}
+\end{center}
+
+\subsection{Policy Effects}
+This is an implementation of a model inspired by Uri Wilensky \footnote{\url{http://www.decisionsciencenews.com/2017/06/19/counterintuitive-problem-everyone-room-keeps-giving-dollars-random-others-youll-never-guess-happens-next/}}: "Imagine a room full of 100 people with 100 dollars each. With every tick of the clock, every person with money gives a dollar to one randomly chosen other person. After some time progresses, how will the money be distributed?"
+
+\begin{center}
+\begin{tabular}{l || l }
+\textbf{Implementation}			& Monadic \\
+\textbf{Yampa Time-Semantics}	& No \\
+\textbf{Update-Strategy}		& Parallel \\
+\textbf{Environment}			& Network \\
+\textbf{Recursive}				& No \\
+\textbf{Conversations}			& No \\
+\end{tabular}
+\end{center}
+
+\subsection{Proof of concepts}
+\subsubsection{Recursive ABS} This example shows the very basics of how to implement a recursive ABS using \textit{FrABS}. Note that recursive features only work within the sequential strategy.
+
+\begin{center}
+\begin{tabular}{l || l }
+\textbf{Implementation}			& Pure \\
+\textbf{Yampa Time-Semantics}	& No \\
+\textbf{Update-Strategy}		& Sequential \\
+\textbf{Environment}			& None \\
+\textbf{Recursive}				& Yes \\
+\textbf{Conversations}			& No \\
+\end{tabular}
+\end{center}
+
+\subsubsection{Conversation} This example shows the very basics of how to implement conversations in \textit{FrABS}. Note that conversations only work within the sequential strategy.
+
+\begin{center}
+\begin{tabular}{l || l }
+\textbf{Implementation}			& Pure \\
+\textbf{Yampa Time-Semantics}	& No \\
+\textbf{Update-Strategy}		& Sequential \\
+\textbf{Environment}			& None \\
+\textbf{Recursive}				& No \\
+\textbf{Conversations}			& Yes \\
+\end{tabular}
+\end{center}

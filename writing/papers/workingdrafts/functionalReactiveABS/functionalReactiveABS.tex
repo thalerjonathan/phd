@@ -16,7 +16,7 @@
 
 \font\subtitlefont=cmr12 at 18pt
 
-\title{Functional Reactive Agent-Based Simulation\\{\subtitlefont Towards pure functional Agent-Based Simulation}}
+\title{Functional Reactive Agent-Based Simulation}
 
 % IEEEtran journal authors
 %\author{Jonathan Thaler, ̃Peer-Olaf Siebers \\ School of Computer Science \\ University of Nottingham%
@@ -37,13 +37,6 @@
 	\IEEEauthorblockA{School of Computer Science\\
 		University of Nottingham\\
 		thorsten.altenkirch@nottingham.ac.uk}
-		
-	\and
-		
-	\IEEEauthorblockN{Peer-Olaf Siebers}
-	\IEEEauthorblockA{School of Computer Science\\
-		University of Nottingham\\
-		peer-olaf.siebers@nottingham.ac.uk}
 }
 
 %\IEEEpubid{0000--0000/00\$00.00 ̃\copyright ̃2015 IEEE}
@@ -73,6 +66,8 @@
 \maketitle 
 
 \begin{abstract}
+TODO: consider writing a different abstract which is more tailored towards the functional programming community: this abstract is written for the ABS community.
+
 So far, the pure functional paradigm hasn't got much attention in Agent-Based Simulation (ABS) where the dominant programming paradigm is object-orientation, with Java, Python and C++ being its most prominent representatives. We claim that pure functional programming using Haskell is very well suited to implement complex, real-world agent-based models and brings with it a number of benefits. To show that we implemented the library \textit{FrABS} which allows to do ABS the first time in the pure functional programming language Haskell. To achieve this we leverage the basic concepts of ABS with functional reactive programming using Yampa. The result is a surprisingly fresh approach to ABS as it allows to incorporate discrete time-semantics similar to Discrete Event Simulation and continuous time-flows as in System Dynamics. In this paper we will show the novel approach of FrABS through the example of the SIR model, discuss implications, benefits and best practices.
 \end{abstract}
 
@@ -92,8 +87,6 @@ Functional Reactive Programming, Agent-Based Simulation
 
 \input{./tex/discussion.tex}
 
-\input{./tex/testing.tex}
-
 \input{./tex/relatedResearch.tex}
 
 \input{./tex/conclusion.tex}
@@ -102,13 +95,5 @@ Functional Reactive Programming, Agent-Based Simulation
 
 \bibliographystyle{../../templates/IEEEtran/bibtex/IEEEtran}
 \bibliography{../../../references/phdReferences.bib}
-
-\appendices
-
-\newpage
-\input{./tex/appendices/examples.tex}
-
-\newpage
-\input{./tex/appendices/recursiveABS.tex}
 
 \end{document}

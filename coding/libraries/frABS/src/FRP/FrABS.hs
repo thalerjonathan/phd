@@ -108,6 +108,7 @@ module FRP.FrABS (
     randomNeighbourCellMsgSource,
     
     transitionAfter,
+    transitionAfterExp,
     transitionWithUniProb,
     transitionWithExpProb,
     transitionOnEvent,

@@ -22,7 +22,7 @@ shuffleAgents = False
 
 rngSeed = 42
 
-agentDimensions = (32, 32)
+agentDimensions = (52, 52)
 frequency = 0
 
 samplingTimeDelta = 0.1

@@ -26,12 +26,13 @@ samplingTimeDelta = 0.1
 steps = 1000
 
 replCfg = ReplicationConfig {
-    replCfgCount = 8,
+    replCfgCount = 16,
     replCfgAgentReplicator = defaultAgentReplicator,
     replCfgEnvReplicator = defaultEnvReplicator
 }
 
-agentCount = 32 * 32 :: Int
+--agentCount = 32 * 32 :: Int
+agentCount = 1000
 numInfected = 1
 
 completeNetwork = Complete agentCount

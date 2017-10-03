@@ -56,7 +56,7 @@ immuneDuration = 3000.0
 
 -- average number of contacts per time-unit
 contactRate :: Double
-contactRate = 7
+contactRate = 5
 
 -- average probability of getting infected 
 infectivity :: Double

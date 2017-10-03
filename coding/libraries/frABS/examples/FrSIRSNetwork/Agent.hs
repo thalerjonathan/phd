@@ -1,7 +1,7 @@
 {-# LANGUAGE Arrows #-}
 module FrSIRSNetwork.Agent (
     sirsNetworkAgentBehaviour,
-    sirsNetworkAgentBehaviourRandInfected
+    -- sirsNetworkAgentBehaviourRandInfected
   ) where
 
 import FrSIRSNetwork.Model
@@ -38,7 +38,7 @@ sirsAgentSuceptible :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
 sirsAgentSuceptible g = transitionOnEvent
                             sirsAgentInfectedEvent
                             (sirsAgentSusceptibleBehaviour g)
-                            (sirsNetworkAgentBehaviourRandInfected g Infected)
+                            (sirsAgentInfected g illnessDuration)
 
 sirsAgentInfectedEvent :: FrSIRSNetworkEventSource
 sirsAgentInfectedEvent = proc (ain, ao) ->
@@ -60,7 +60,8 @@ sirsAgentSusceptibleBehaviour g = proc (ain, e) ->
 
 -- INFECTED
 sirsAgentInfected :: RandomGen g => g -> Double -> FrSIRSNetworkAgentBehaviour
-sirsAgentInfected g duration = transitionAfter 
+sirsAgentInfected g duration = transitionAfterExp
+                                    g
                                     duration 
                                     (sirsAgentInfectedBehaviour g) 
                                     (sirsAgentRecovered g)
@@ -99,9 +100,12 @@ sirsNetworkAgentBehaviour g Susceptible = sirsAgentSuceptible g
 sirsNetworkAgentBehaviour g Infected = sirsAgentInfected g illnessDuration
 sirsNetworkAgentBehaviour g Recovered = sirsAgentRecovered g
 
+{-
+-- TODO: replace this by transitionAfterExp: need to implement our own afterExp SF
 sirsNetworkAgentBehaviourRandInfected :: RandomGen g => g -> SIRSState -> FrSIRSNetworkAgentBehaviour
 sirsNetworkAgentBehaviourRandInfected g Infected = sirsAgentInfected g' duration
     where
-        (duration, g') = randomExp g (1/illnessDuration)
+        (duration, g') = randomExp g (1 / illnessDuration)
 sirsNetworkAgentBehaviourRandInfected g s = sirsNetworkAgentBehaviour g s
+-}
 ------------------------------------------------------------------------------------------------------------------------

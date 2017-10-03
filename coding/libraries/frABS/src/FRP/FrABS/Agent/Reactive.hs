@@ -21,6 +21,7 @@ module FRP.FrABS.Agent.Reactive (
     randomNeighbourCellMsgSource,
     
     transitionAfter,
+    transitionAfterExp,
     transitionWithUniProb,
     transitionWithExpProb,
     transitionOnEvent,
@@ -38,6 +39,7 @@ import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Agent.Random
 
 import FRP.Yampa
+import FRP.Yampa.InternalCore
 
 import Control.Monad.Random
 
@@ -157,15 +159,61 @@ transitionAfter :: Double
                     -> AgentBehaviour s m e
                     -> AgentBehaviour s m e
                     -> AgentBehaviour s m e
-transitionAfter dt from to = switch (transitionAfterAux from) (\_ -> to)
+transitionAfter t from to = switch (transitionAfterAux t from) (\_ -> to)
     where
-        transitionAfterAux :: AgentBehaviour s m e 
+        transitionAfterAux :: Double 
+                                -> AgentBehaviour s m e 
                                 -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
-        transitionAfterAux from = proc aie ->
+        transitionAfterAux t from = proc aie ->
             do
                 aoe <- from -< aie
-                timeoutEvent <- after dt () -< ()
+                timeoutEvent <- after t () -< ()
                 returnA -< (aoe, timeoutEvent)
+
+
+transitionAfterExp :: RandomGen g =>
+                    g 
+                    -> Double
+                    -> AgentBehaviour s m e
+                    -> AgentBehaviour s m e
+                    -> AgentBehaviour s m e
+transitionAfterExp g t from to = switch (transitionAfterExpAux t from) (\_ -> to)
+    where
+        transitionAfterExpAux :: Double 
+                                -> AgentBehaviour s m e 
+                                -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
+        transitionAfterExpAux t from = proc aie ->
+            do
+                aoe <- from -< aie
+                timeoutEvent <- afterExp g t () -< ()
+                returnA -< (aoe, timeoutEvent)
+
+--noiseR :: (RandomGen g, Random b) => (b, b) -> g -> SF a b
+--r <- noiseR (0.0, 1.0) g -< ()
+--r <- noise g -< ()
+
+-- sirsNetworkAgentBehaviourRandInfected g Infected = sirsAgentInfected g' duration
+--    where
+--        (duration, g') = randomExp g (1 / illnessDuration)
+
+afterExp :: RandomGen g => g -> DTime -> b -> SF a (Event b)
+afterExp g t b = SF { sfTF = tf0 }
+    where
+        (t', g') = randomExp g (1 / t)
+
+        -- there can be no event at time of switching
+        tf0 _ = (tfCont, NoEvent)
+            where
+                tfCont = afterExpAux 0 t'
+
+        afterExpAux tCurr tEvt = SF' tf
+            where
+                tf dt _ 
+                    | tCurr' >= tEvt = (tf', Event b)
+                    | otherwise = (tf', NoEvent)
+                    where
+                        tCurr' = (tCurr + dt)
+                        tf' = afterExpAux tCurr' tEvt
 
 
 transitionWithUniProb :: Double

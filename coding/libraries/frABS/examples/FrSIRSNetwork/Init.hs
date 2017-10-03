@@ -72,7 +72,7 @@ randomFrSIRSNetworkAgent p aid =
         let isInfected = r <= p
         let initS = if isInfected then Infected else Susceptible
 
-        let beh = sirsNetworkAgentBehaviourRandInfected rng initS
+        let beh = sirsNetworkAgentBehaviour rng initS
 
         return $ createFrSIRSNetworkDef aid initS beh rng 
 

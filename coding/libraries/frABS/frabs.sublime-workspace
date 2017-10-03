@@ -151,16 +151,28 @@
 			"file": "examples/Main.hs",
 			"settings":
 			{
-				"buffer_size": 2862,
+				"buffer_size": 2957,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "examples/SysDynSIR/Run.hs",
+			"file": "examples/FrSIRSNetwork/Run.hs",
 			"settings":
 			{
-				"buffer_size": 2222,
+				"buffer_size": 5188,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "{-# LANGUAGE Arrows #-}\nmodule FrSIRSNetwork.Agent (\n    sirsNetworkAgentBehaviour\n  ) where\n\nimport FrSIRSNetwork.Model\n\nimport FRP.Yampa\n\nimport FRP.FrABS\n\nimport Control.Monad.Random\n\n------------------------------------------------------------------------------------------------------------------------\n-- Non-Reactive Functions\n------------------------------------------------------------------------------------------------------------------------\nrespondToContactWith :: SIRSState -> FrSIRSNetworkAgentIn -> FrSIRSNetworkAgentOut -> FrSIRSNetworkAgentOut\nrespondToContactWith state ain ao = onMessage respondToContactWithAux ain ao\n    where\n        respondToContactWithAux :: AgentMessage FrSIRSNetworkMsg -> FrSIRSNetworkAgentOut -> FrSIRSNetworkAgentOut\n        respondToContactWithAux (senderId, Contact _) ao = sendMessage (senderId, Contact state) ao\n\ngotInfected :: FrSIRSNetworkAgentIn -> Rand StdGen Bool\ngotInfected ain = onMessageM gotInfectedAux ain False\n    where\n        gotInfectedAux :: Bool -> AgentMessage FrSIRSNetworkMsg -> Rand StdGen Bool\n        gotInfectedAux False (_, Contact Infected) = randomBoolM infectivity\n        gotInfectedAux False _ = return False\n        gotInfectedAux True _ = return True\n------------------------------------------------------------------------------------------------------------------------\n\n------------------------------------------------------------------------------------------------------------------------\n-- Reactive Functions\n------------------------------------------------------------------------------------------------------------------------\n-- SUSCEPTIBLE\nsirsAgentSuceptible :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour\nsirsAgentSuceptible g = transitionOnEvent\n                            sirsAgentInfectedEvent\n                            (sirsAgentSusceptibleBehaviour g)\n                            (sirsAgentInfected g illnessDuration)\n\nsirsAgentInfectedEvent :: FrSIRSNetworkEventSource\nsirsAgentInfectedEvent = proc (ain, ao) ->\n    do\n        let (isInfected, ao') = agentRandom (gotInfected ain) ao\n        infectionEvent <- edge -< isInfected\n        returnA -< (ao', infectionEvent)\n\nsirsAgentSusceptibleBehaviour :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour\nsirsAgentSusceptibleBehaviour g = proc (ain, e) ->\n    do\n        let ao = agentOutFromIn ain\n        ao0 <- doOnce (setDomainState Susceptible) -< ao\n        ao1 <- sendMessageOccasionallySrc \n                    g \n                    (1 / contactRate) \n                    (randomNeighbourNodeMsgSource (Contact Susceptible)) -< (ao0, e)\n        returnA -< (ao1, e)\n\n-- INFECTED\nsirsAgentInfected :: RandomGen g => g -> Double -> FrSIRSNetworkAgentBehaviour\nsirsAgentInfected g duration = transitionAfterExp\n                                    g\n                                    duration \n                                    (sirsAgentInfectedBehaviour g) \n                                    (sirsAgentRecovered g)\n\nsirsAgentInfectedBehaviour :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour\nsirsAgentInfectedBehaviour g = proc (ain, e) ->\n    do\n        let ao = agentOutFromIn ain\n        let ao0 = respondToContactWith Infected ain ao\n\n        ao1 <- doOnce (setDomainState Infected) -< ao0\n        ao2 <- sendMessageOccasionallySrc \n                    g \n                    (1 / contactRate) \n                    (randomNeighbourNodeMsgSource (Contact Infected)) -< (ao1, e)\n\n        returnA -< (ao2, e)\n\n-- RECOVERED\nsirsAgentRecovered :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour\nsirsAgentRecovered g = transitionAfter \n                            immuneDuration \n                            sirsAgentRecoveredBehaviour\n                            (sirsAgentSuceptible g)\n\nsirsAgentRecoveredBehaviour :: FrSIRSNetworkAgentBehaviour\nsirsAgentRecoveredBehaviour = proc (ain, e) ->\n    do\n        let ao = agentOutFromIn ain\n        ao' <- doOnce (setDomainState Recovered) -< ao\n        returnA -< (ao', e)\n\n-- INITIAL CASES\nsirsNetworkAgentBehaviour :: RandomGen g => g -> SIRSState -> FrSIRSNetworkAgentBehaviour\nsirsNetworkAgentBehaviour g Susceptible = sirsAgentSuceptible g\nsirsNetworkAgentBehaviour g Infected = sirsAgentInfected g illnessDuration\nsirsNetworkAgentBehaviour g Recovered = sirsAgentRecovered g\n------------------------------------------------------------------------------------------------------------------------",
+			"file": "examples/FrSIRSNetwork/Agent.hs",
+			"file_size": 4883,
+			"file_write_time": 131515097148105667,
+			"settings":
+			{
+				"buffer_size": 4421,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -222,43 +234,53 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Yampa",
 		"/home/jonathan/phd/coding/libraries/frABS/src",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment"
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation"
 	],
 	"file_history":
 	[
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Run.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Init.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Reactive.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Random.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Simulation.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Yampa/src/FRP/Yampa/EventS.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Yampa/src/FRP/Yampa/Utilities.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Yampa/src/FRP/Yampa/Random.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Yampa/src/FRP/Yampa/Delays.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Run.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgents/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgents/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Network.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Simulation.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Exporter.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Run.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Model.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Agent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Replication.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/GlossSimulator.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Reactive.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Monad.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Auctioneer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgents/Agent.hs",
@@ -286,12 +308,9 @@
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Continuous2d.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Utils.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/FrABS.cabal",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Random.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Run.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Spatial.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Common.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/Init.hs",
@@ -354,11 +373,7 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Trader.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/Init.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/Model.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Internal.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/Init.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/SeqIteration.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Env/Environment.hs"
+		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/Model.hs"
 	],
 	"find":
 	{
@@ -377,6 +392,8 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"after",
+			"randomBoolM",
 			"SugarScapeAgentObservable",
 			"AGentOut",
 			"(AgentId, s)",
@@ -502,9 +519,7 @@
 			"agentCreditM",
 			"agentTradingM",
 			"agentSexM",
-			"agentCultureContactM",
-			"inheritSugarM",
-			"agentMetabolismM"
+			"agentCultureContactM"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -619,47 +634,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2862,
+						"buffer_size": 2957,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2193,
-								2193
-							]
-						],
-						"settings":
-						{
-							"subhask_project_dir": "/home/jonathan/phd/coding/libraries/frABS/examples",
-							"subhask_project_name": "frABSExamples",
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 315.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "examples/SysDynSIR/Run.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2222,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								603,
-								603
+								2247,
+								2247
 							]
 						],
 						"settings":
@@ -674,7 +657,71 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "examples/FrSIRSNetwork/Run.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5188,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								457,
+								457
+							]
+						],
+						"settings":
+						{
+							"subhask_project_dir": "/home/jonathan/phd/coding/libraries/frABS/examples",
+							"subhask_project_name": "frABSExamples",
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 270.0,
+						"zoom_level": 1.0
+					},
 					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "examples/FrSIRSNetwork/Agent.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4421,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2775,
+								2775
+							]
+						],
+						"settings":
+						{
+							"subhask_project_dir": "/home/jonathan/phd/coding/libraries/frABS/examples",
+							"subhask_project_name": "frABSExamples",
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 675.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
 					"type": "text"
 				}
 			]
@@ -773,7 +820,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 517.0,
+	"side_bar_width": 568.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

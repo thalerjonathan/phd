@@ -28,8 +28,17 @@ steps = 1000
 replCfg = ReplicationConfig {
     replCfgCount = 8,
     replCfgAgentReplicator = defaultAgentReplicator,
-    replCfgEnvReplicator = defaultEnvReplicator
+    replCfgEnvReplicator = defaultEnvReplicator,
+    replCfgFilter = Just validReplication
 }
+
+validReplication :: Replication FrSIRSNetworkAgentState FrSIRSNetworkEnvironment -> Bool
+validReplication repl = True -- TODO: any > 1
+    where
+        recoveredCounts = map (countRecovered . fst) repl
+
+        countRecovered :: [FrSIRSNetworkAgentObservable] -> Int
+        countRecovered aobs = fromIntegral $ length $ filter ((Recovered==) . snd) aobs
 
 --agentCount = 32 * 32 :: Int
 agentCount = 1000

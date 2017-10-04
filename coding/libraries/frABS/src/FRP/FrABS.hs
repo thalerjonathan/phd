@@ -283,7 +283,8 @@ module FRP.FrABS (
 
     AgentDefReplicator,
     EnvironmentReplicator,
-
+    Replication,
+    
     ReplicationConfig (..),
 
     defaultEnvReplicator,

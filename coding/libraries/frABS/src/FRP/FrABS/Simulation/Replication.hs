@@ -1,7 +1,8 @@
 module FRP.FrABS.Simulation.Replication (
     AgentDefReplicator,
     EnvironmentReplicator,
-
+    Replication,
+    
     ReplicationConfig (..),
 
     defaultEnvReplicator,
@@ -18,11 +19,13 @@ import Control.Parallel.Strategies
 
 type AgentDefReplicator s m e = (StdGen -> AgentDef s m e -> (AgentDef s m e, StdGen))
 type EnvironmentReplicator e = (StdGen -> e -> (e, StdGen))
+type Replication s e = [([AgentObservable s], e)]
 
 data ReplicationConfig s m e = ReplicationConfig {
     replCfgCount :: Int,
     replCfgAgentReplicator :: AgentDefReplicator s m e,
-    replCfgEnvReplicator :: EnvironmentReplicator e
+    replCfgEnvReplicator :: EnvironmentReplicator e,
+    replCfgFilter :: Maybe (Replication s e -> Bool)
 }
 
 defaultEnvReplicator :: EnvironmentReplicator e
@@ -40,20 +43,21 @@ runReplications :: [AgentDef s m e]
                     -> Double
                     -> Int
                     -> ReplicationConfig s m e
-                    -> [[([AgentObservable s], e)]]
-runReplications ads e params dt steps replCfg = result
+                    -> [Replication s e]
+runReplications ads e params dt steps replCfg = result'
     where
         replCount = replCfgCount replCfg
         (replRngs, _) = duplicateRng replCount (simRng params)
 
         -- NOTE: replace by rseq if no hardware-parallelism should be used
         result = parMap rpar (runReplicationsAux ads e params) replRngs
-        
+        result' = maybe result (\f -> filter f result) (replCfgFilter replCfg)
+
         runReplicationsAux :: [AgentDef s m e]
                                 -> e
                                 -> SimulationParams e
                                 -> StdGen 
-                                -> [([AgentObservable s], e)]
+                                -> Replication s e
         runReplicationsAux ads e params replRng = processSteps ads' e (params { simRng = replRng' }) dt steps
             where
                 (ads', replRng') = foldr adsFoldAux ([], replRng) ads

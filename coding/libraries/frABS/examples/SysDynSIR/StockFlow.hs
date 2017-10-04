@@ -18,7 +18,7 @@ import FRP.FrABS
 -- STOCKS
 -- NOTE: stocks state depends only on its initial value and the integral over incoming and outgoing rates
 ------------------------------------------------------------------------------------------------------------------------
-susceptibleStock :: SysDynSIRStockBehaviour
+susceptibleStock :: Stock
 susceptibleStock initValue = proc ain ->
     do
         let infectionRate = flowInFrom infectionRateFlowId ain
@@ -31,7 +31,7 @@ susceptibleStock initValue = proc ain ->
 
         returnA -< ao1
 
-infectiousStock :: SysDynSIRStockBehaviour
+infectiousStock :: Stock
 infectiousStock initValue = proc ain ->
     do
         let infectionRate = flowInFrom infectionRateFlowId ain
@@ -46,7 +46,7 @@ infectiousStock initValue = proc ain ->
         
         returnA -< ao2
 
-recoveredStock :: SysDynSIRStockBehaviour
+recoveredStock :: Stock
 recoveredStock initValue = proc ain ->
     do
         let recoveryRate = flowInFrom recoveryRateFlowId ain
@@ -63,7 +63,7 @@ recoveredStock initValue = proc ain ->
 -- FLOWS
 -- NOTE: flows are inherently stateless
 ------------------------------------------------------------------------------------------------------------------------
-infectionRateFlow :: SysDynSIRFlowBehaviour
+infectionRateFlow :: Flow
 infectionRateFlow = proc ain ->
     do
         let susceptible = stockInFrom susceptibleStockId ain 
@@ -78,7 +78,7 @@ infectionRateFlow = proc ain ->
         returnA -< ao''
 
 -- NOTE: flows are inherently stateless
-recoveryRateFlow :: SysDynSIRFlowBehaviour
+recoveryRateFlow :: Flow
 recoveryRateFlow = proc ain ->
     do
         let infectious = stockInFrom infectiousStockId ain
@@ -90,24 +90,4 @@ recoveryRateFlow = proc ain ->
         let ao'' = flowOutTo flowValue recoveredStockId ao'
 
         returnA -< ao''
-------------------------------------------------------------------------------------------------------------------------
-
-
-------------------------------------------------------------------------------------------------------------------------
--- UTILS
-------------------------------------------------------------------------------------------------------------------------
-filterMessageValue :: (AgentMessage SysDynSIRMsg) -> Double -> Double
-filterMessageValue (_, Value v) initValue = v
-
-valueInFrom :: AgentId -> SysDynSIRIn -> Double
-valueInFrom senderId ain = onMessageFrom senderId filterMessageValue ain 0.0 
-
-valueOutTo :: Double -> AgentId -> SysDynSIROut -> SysDynSIROut
-valueOutTo value receiverId ao = sendMessage (receiverId, Value value) ao
-
-flowInFrom = valueInFrom
-stockInFrom = valueInFrom
-
-flowOutTo = valueOutTo
-stockOutTo = valueOutTo
 ------------------------------------------------------------------------------------------------------------------------

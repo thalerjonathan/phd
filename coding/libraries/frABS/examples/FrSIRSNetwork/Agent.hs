@@ -73,12 +73,13 @@ sirsAgentInfectedBehaviour g = proc (ain, e) ->
         let ao0 = respondToContactWith Infected ain ao
 
         ao1 <- doOnce (setDomainState Infected) -< ao0
+        {-
         ao2 <- sendMessageOccasionallySrc 
                     g 
                     (1 / contactRate) 
-                    (randomNeighbourNodeMsgSource (Contact Infected)) -< (ao1, e)
+                    (randomNeighbourNodeMsgSource (Contact Infected)) -< (ao1, e) -}
 
-        returnA -< (ao2, e)
+        returnA -< (ao1, e)
 
 -- RECOVERED
 sirsAgentRecovered :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour

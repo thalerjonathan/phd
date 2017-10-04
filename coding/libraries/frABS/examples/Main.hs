@@ -18,10 +18,10 @@ import           Zombies.Run
 import           NewAgents.Run
 
 {- TODOs
+    - need to be able to reject invalid replications
+
 	- implememt parallelstrategy using SF instead my own implementation
 	- make current simulation time to rendering and step callbacks
-	- better support SD programming: an own module with the typesynonyms and functions defined
-		-> define separate module SD with Stock & Flow definitions. Also top-level function which runs SD: e.g. runSD without graphical output (for now)
 	- different build targets: with/without time-traveling, gloss rendering
 	- add how-to get FrABS examples running on github in a sandbox: need yampa with exposed core, haskell-titan, install FrABS
 	
@@ -41,7 +41,7 @@ import           NewAgents.Run
 -}
 
 main :: IO ()
-main = runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkStepsAndWriteToFile --runFrSIRSNetworkReplicationsAndWriteToFile
+main = runSysDynSIRStepsAndWriteToFile -- runFrSIRSNetworkStepsAndWriteToFile --runFrSIRSNetworkReplicationsAndWriteToFile
 
     -- runZombiesWithRendering
     -- runPolicyEffectsWithRendering

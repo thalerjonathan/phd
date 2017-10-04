@@ -342,7 +342,22 @@ module FRP.FrABS (
     disc2dToCont2d,
 
     cont2dTransDisc2d,
-    disc2dTransCont2d
+    disc2dTransCont2d,
+
+    Stock,
+    Flow,
+    SDObservable,
+    SDDef,
+    
+    runSD,
+
+    createStock,
+    createFlow,
+
+    flowInFrom,
+    stockInFrom,
+    flowOutTo,
+    stockOutTo
   ) where
 
 import FRP.FrABS.Agent.Agent
@@ -366,6 +381,7 @@ import FRP.FrABS.Rendering.Discrete2d
 import FRP.FrABS.Rendering.Continuous2d
 import FRP.FrABS.Rendering.Network
 import FRP.FrABS.Rendering.GlossSimulator
+import FRP.FrABS.SD.Definitions
 
 {-
 ------------------------------------------------------------------------------------------------------------------------

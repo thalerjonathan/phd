@@ -1,18 +1,4 @@
 module SysDynSIR.Model (
-    SysDynSIRMsg (..),
-    SysDynSIRStockState (..),
-
-    SysDynSIREnvironment,
-
-    SysDynSIRDef,
-    SysDynSIRBehaviour,
-    SysDynSIRIn,
-    SysDynSIROut,
-    SysDynSIRObservable,
-    
-    SysDynSIRFlowBehaviour,
-    SysDynSIRStockBehaviour,
-
     totalPopulation,
     infectivity,
     contactRate,
@@ -26,24 +12,6 @@ module SysDynSIR.Model (
   ) where
 
 import FRP.FrABS
-
-------------------------------------------------------------------------------------------------------------------------
--- DOMAIN-SPECIFIC AGENT-DEFINITIONS
-------------------------------------------------------------------------------------------------------------------------
-data SysDynSIRMsg = Value Double deriving (Eq, Show)
-type SysDynSIRStockState = Double
-
-type SysDynSIREnvironment = ()
-
-type SysDynSIRDef = AgentDef SysDynSIRStockState SysDynSIRMsg SysDynSIREnvironment 
-type SysDynSIRBehaviour = ReactiveBehaviourIgnoreEnv SysDynSIRStockState SysDynSIRMsg SysDynSIREnvironment 
-type SysDynSIRIn = AgentIn SysDynSIRStockState SysDynSIRMsg SysDynSIREnvironment 
-type SysDynSIROut = AgentOut SysDynSIRStockState SysDynSIRMsg SysDynSIREnvironment 
-type SysDynSIRObservable = AgentObservable SysDynSIRStockState
-
-type SysDynSIRFlowBehaviour = SysDynSIRBehaviour
-type SysDynSIRStockBehaviour = Double -> SysDynSIRBehaviour
-------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
 -- MODEL-PARAMETERS 

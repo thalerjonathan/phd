@@ -1,4 +1,7 @@
 \section{Reasoning}
+[ ] reasoning: sd is always reproducible because all runs outside the io moand. this means that potential RNG seeds are always the same and do not depend on outside states e.g. time
+[ ] for the agents this means that repeated runs with the same seed are guaranteed to result in the same dynamics as there are again no possibilities to introduce e.g. random seeds or values from the outside which may change between runs like time, files,...
+
 i need to get a deep understanding in writing correct code and reasoning about correctness in Haskell - look into papers:
 \url{https://wiki.haskell.org/Research_papers/Testing_and_correctness}
 \url{https://www.reddit.com/r/haskell/comments/4tagq3/examples_of_realworld_haskell_usage_where/}

@@ -4,7 +4,7 @@
 	         AnyLogic Project File 
 *************************************************	         
 -->
-<AnyLogicWorkspace WorkspaceVersion="1.9" AnyLogicVersion="8.1.0.201706211703" AlpVersion="8.0.4">
+<AnyLogicWorkspace WorkspaceVersion="1.9" AnyLogicVersion="8.1.0.201706091042" AlpVersion="8.0.4">
 <Model>
 	<Id>1163616625032</Id>
 	<Name><![CDATA[SIR Agent Based]]></Name>
@@ -446,15 +446,15 @@ people.get(0).onReceive( "Infection", null );]]></StartupCode>
 						<Unit Class="TimeUnits"><![CDATA[DAY]]></Unit>
 					</RecurrenceCode>
 					<EmbeddedIcon>false</EmbeddedIcon>
-					<Width>780</Width>
-					<Height>470</Height>
+					<Width>800</Width>
+					<Height>800</Height>
 					<BackgroundColor/>
 					<BorderColor/>
 					<ChartArea>
 						<XOffset>50</XOffset>
 						<YOffset>30</YOffset>
-						<Width>700</Width>
-						<Height>380</Height>
+						<Width>720</Width>
+						<Height>710</Height>
 						<BackgroundColor>-1</BackgroundColor>
 						<BorderColor>-16777216</BorderColor>
 						<GridColor>-12566464</GridColor>
@@ -1019,7 +1019,7 @@ for (int i = 0; i < 150; i++) {
 			<BeforeEachExperimentRunCode><![CDATA[//System.out.println("Before experiment run");]]></BeforeEachExperimentRunCode>
 			<BeforeSimulationRunCode><![CDATA[//System.out.println("Before simulation run");]]></BeforeSimulationRunCode>
 			<AfterSimulationRunCode><![CDATA[//System.out.println("After simulation run");
-if (root.nRecovered == 1.0) {
+if (root.nRecovered <= 1.0) {
 	System.out.println("Invalid run");
 	invalidRunCount++;
 	return;

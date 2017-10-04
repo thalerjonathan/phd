@@ -173,7 +173,6 @@
 			"settings":
 			{
 				"buffer_size": 4421,
-				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		}
@@ -234,8 +233,6 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Yampa",
 		"/home/jonathan/phd/coding/libraries/frABS/src",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
@@ -377,7 +374,7 @@
 	],
 	"find":
 	{
-		"height": 38.0
+		"height": 23.0
 	},
 	"find_in_files":
 	{
@@ -649,7 +646,7 @@
 						{
 							"subhask_project_dir": "/home/jonathan/phd/coding/libraries/frABS/examples",
 							"subhask_project_name": "frABSExamples",
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"syntax": "Packages/Text/Plain text.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
@@ -681,7 +678,7 @@
 						{
 							"subhask_project_dir": "/home/jonathan/phd/coding/libraries/frABS/examples",
 							"subhask_project_name": "frABSExamples",
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"syntax": "Packages/Text/Plain text.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
@@ -713,12 +710,12 @@
 						{
 							"subhask_project_dir": "/home/jonathan/phd/coding/libraries/frABS/examples",
 							"subhask_project_name": "frABSExamples",
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
+							"syntax": "Packages/Text/Plain text.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 675.0,
+						"translation.y": 28530.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 2,
@@ -820,7 +817,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 568.0,
+	"side_bar_width": 382.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

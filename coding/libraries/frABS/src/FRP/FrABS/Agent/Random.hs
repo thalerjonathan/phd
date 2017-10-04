@@ -118,6 +118,7 @@ randomBool g p = runRand (randomBoolM p) g
 -- NOTE: THIS CODE INSPIRED BY Euterpea-1.0.0 (I didn't want to create dependencies and their implementation seems neat and tidy)
 randomExpM :: (RandomGen g) => Double -> Rand g Double
 randomExpM lambda = avoid 0 >>= (\r -> return $ ((-log r) / lambda))
+--randomExpM lambda = avoid 0 >>= (\r -> 1 - exp (-(dt/t_avg)))
 
 randomExp :: (RandomGen g) => g -> Double -> (Double, g)
 randomExp g lambda = runRand (randomExpM lambda) g

@@ -185,16 +185,9 @@ transitionAfterExp g t from to = switch (transitionAfterExpAux t from) (\_ -> to
         transitionAfterExpAux t from = proc aie ->
             do
                 aoe <- from -< aie
-                timeoutEvent <- afterExp g t () -< ()
+                --timeoutEvent <- afterExp g t () -< ()
+                timeoutEvent <- occasionally g t () -< ()
                 returnA -< (aoe, timeoutEvent)
-
---noiseR :: (RandomGen g, Random b) => (b, b) -> g -> SF a b
---r <- noiseR (0.0, 1.0) g -< ()
---r <- noise g -< ()
-
--- sirsNetworkAgentBehaviourRandInfected g Infected = sirsAgentInfected g' duration
---    where
---        (duration, g') = randomExp g (1 / illnessDuration)
 
 afterExp :: RandomGen g => g -> DTime -> b -> SF a (Event b)
 afterExp g t b = SF { sfTF = tf0 }

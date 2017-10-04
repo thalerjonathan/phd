@@ -17,13 +17,13 @@ winSize = (800, 800)
 winTitle = "FrSIRS Network (2D Rendering)"
 frequency = 0
 
-updateStrat = Parallel
+updateStrat = Sequential
 shuffleAgents = False
 
 rngSeed = 42
 
 samplingTimeDelta = 0.1
-steps = 1000
+steps = 100
 
 replCfg = ReplicationConfig {
     replCfgCount = 16,

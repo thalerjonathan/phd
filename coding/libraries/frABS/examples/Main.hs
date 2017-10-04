@@ -41,7 +41,7 @@ import           NewAgents.Run
 -}
 
 main :: IO ()
-main = runFrSIRSNetworkReplicationsAndWriteToFile -- runFrSIRSNetworkStepsAndWriteToFile --runFrSIRSNetworkReplicationsAndWriteToFile
+main = runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkStepsAndWriteToFile --runFrSIRSNetworkReplicationsAndWriteToFile
 
     -- runZombiesWithRendering
     -- runPolicyEffectsWithRendering

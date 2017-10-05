@@ -151,7 +151,7 @@
 			"file": "examples/Main.hs",
 			"settings":
 			{
-				"buffer_size": 1892,
+				"buffer_size": 1899,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -160,7 +160,7 @@
 			"file": "examples/FrSIRSNetwork/Run.hs",
 			"settings":
 			{
-				"buffer_size": 5639,
+				"buffer_size": 5640,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -627,7 +627,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -636,15 +636,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1892,
+						"buffer_size": 1899,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1178,
-								1178
+								1185,
+								1185
 							]
 						],
 						"settings":
@@ -659,7 +659,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
@@ -668,15 +668,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 5639,
+						"buffer_size": 5640,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								695,
-								695
+								496,
+								496
 							]
 						],
 						"settings":
@@ -688,10 +688,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 90.0,
+						"translation.y": 180.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{

@@ -26,8 +26,7 @@ gotInfected ain = onMessageM gotInfectedAux ain False
     where
         gotInfectedAux :: Bool -> AgentMessage FrSIRSNetworkMsg -> Rand StdGen Bool
         gotInfectedAux False (_, Contact Infected) = randomBoolM infectivity
-        gotInfectedAux False _ = return False
-        gotInfectedAux True _ = return True
+        gotInfectedAux x _ = return x
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -52,11 +51,13 @@ sirsAgentSusceptibleBehaviour g = proc (ain, e) ->
     do
         let ao = agentOutFromIn ain
         ao0 <- doOnce (setDomainState Susceptible) -< ao
+        {-
         ao1 <- sendMessageOccasionallySrc 
                     g 
                     (1 / contactRate) 
                     (randomNeighbourNodeMsgSource (Contact Susceptible)) -< (ao0, e)
-        returnA -< (ao1, e)
+                    -}
+        returnA -< (ao0, e)
 
 -- INFECTED
 sirsAgentInfected :: RandomGen g => g -> Double -> FrSIRSNetworkAgentBehaviour
@@ -70,16 +71,15 @@ sirsAgentInfectedBehaviour :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
 sirsAgentInfectedBehaviour g = proc (ain, e) ->
     do
         let ao = agentOutFromIn ain
-        let ao0 = respondToContactWith Infected ain ao
+        -- let ao0 = respondToContactWith Infected ain ao
 
-        ao1 <- doOnce (setDomainState Infected) -< ao0
-        {-
+        ao1 <- doOnce (setDomainState Infected) -< ao
         ao2 <- sendMessageOccasionallySrc 
                     g 
                     (1 / contactRate) 
-                    (randomNeighbourNodeMsgSource (Contact Infected)) -< (ao1, e) -}
+                    (randomNeighbourNodeMsgSource (Contact Infected)) -< (ao1, e)
 
-        returnA -< (ao1, e)
+        returnA -< (ao2, e)
 
 -- RECOVERED
 sirsAgentRecovered :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour

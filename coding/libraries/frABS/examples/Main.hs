@@ -18,9 +18,7 @@ import           Zombies.Run
 import           NewAgents.Run
 
 {- TODOs
-    - need to be able to reject invalid replications
-
-	- implememt parallelstrategy using SF instead my own implementation
+    - implememt parallelstrategy using SF instead my own implementation
 	- make current simulation time to rendering and step callbacks
 	- different build targets: with/without time-traveling, gloss rendering
 	- add how-to get FrABS examples running on github in a sandbox: need yampa with exposed core, haskell-titan, install FrABS
@@ -32,7 +30,6 @@ import           NewAgents.Run
         -> testing: an infected agent recovering after (same as falling ball?)
         -> testing: a susceptible agent gets infected after infect contact
         -> testing: can we measure the occasional distribution to verify?
-        -> testing: maybe our FrABS solution is even smoother and closer to the analytical solution
 
 	- clean-up, can all be done in one rush through ALL the files:
 		-> STYLE, INDENTATIONS & COMMENTS:		https://github.com/tibbe/haskell-style-guide/blob/master/haskell-style.md

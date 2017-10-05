@@ -20,20 +20,20 @@ frequency = 0
 updateStrat = Parallel
 shuffleAgents = False
 
-rngSeed = 42
+rngSeed = 43
 
 samplingTimeDelta = 0.1
 steps = 1000
 
 replCfg = ReplicationConfig {
-    replCfgCount = 8,
+    replCfgCount = 32,
     replCfgAgentReplicator = defaultAgentReplicator,
     replCfgEnvReplicator = defaultEnvReplicator,
     replCfgFilter = Just validReplication
 }
 
 validReplication :: Replication FrSIRSNetworkAgentState FrSIRSNetworkEnvironment -> Bool
-validReplication repl = True -- TODO: any > 1
+validReplication repl = True -- any (> floor ((fromIntegral agentCount * 0.1))) recoveredCounts
     where
         recoveredCounts = map (countRecovered . fst) repl
 
@@ -41,7 +41,7 @@ validReplication repl = True -- TODO: any > 1
         countRecovered aobs = fromIntegral $ length $ filter ((Recovered==) . snd) aobs
 
 --agentCount = 32 * 32 :: Int
-agentCount = 1000
+agentCount = 100
 numInfected = 1
 
 completeNetwork = Complete agentCount

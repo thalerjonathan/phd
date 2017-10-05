@@ -22,8 +22,8 @@ shuffleAgents = False
 
 rngSeed = 42
 
-samplingTimeDelta = 0.1
-steps = 1000
+samplingTimeDelta = 0.05
+steps = 3000
 
 replCfg = ReplicationConfig {
     replCfgCount = 16,

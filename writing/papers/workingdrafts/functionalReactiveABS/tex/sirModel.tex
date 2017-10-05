@@ -28,7 +28,7 @@ There exist a huge number of software-packages which allow to conveniently expre
 \begin{figure}
 	\centering
 	\includegraphics[width=.4\textwidth, angle=0]{./fig/SIR_SD_STOCKFLOW_DIAGRAMM.png}
-	\caption{A visual representation of the stocks and flows in the SIR compartment model (Image courtesy of AnyLogic Company).}
+	\caption{A visual representation of the stocks and flows of the SIR compartment model in the AnyLogic Software.}
 	\label{fig:sir_sd_stockflow_diagramm}
 \end{figure}
 
@@ -37,7 +37,7 @@ Running the SD simulation over time results in the dynamics as shown in Figure \
 \begin{figure}
 	\centering
 	\includegraphics[width=.4\textwidth, angle=0]{./fig/SIR_SD_DYNAMICS_ANYLOGIC.png}
-	\caption{Dynamics of the SIR compartment model using the System Dynamics approach generated with the AnyLogic Personal Learning Edition 8.1.0. Population Size $N$ = 1000, contact rate $\beta = 1/5$, infection probability $\gamma = 0.05$, illness duration $\delta = 15$.}
+	\caption{Dynamics of the SIR compartment model using the System Dynamics approach. Population Size $N$ = 1000, contact rate $\beta = 1/5$, infection probability $\gamma = 0.05$, illness duration $\delta = 15$. 1 initially infected agent. Simulation run of 150 time-steps. Dynamics generated with AnyLogic Personal Learning Edition 8.1.0.}
 	\label{fig:sir_sd_dynamics_anylogic}
 \end{figure}
 
@@ -59,18 +59,46 @@ The SD approach is inherently Top-Down because the emergent property of the syst
 	\item Infected to Recovered: a person recovers \textit{on average} after $\delta$ time unites. This is implemented by drawing the duration from an exponential distribution (TODO: borchschev) with $\lambda = \frac{1}{\delta}$ and making the transition after this duration.
 \end{itemize}
 
-We will discuss the implementation of this approach in the following sections and as will be shown FrABS will allow us to express this behaviour very explicitly looking very much like a formal ABS specification of the problem. For now we will give the resulting dynamics in Figure TODO
+We will discuss the implementation of this approach in the following sections and as will be shown FrABS will allow us to express this behaviour very explicitly looking very much like a formal ABS specification of the problem. In Figure \ref{fig:sir_abs_anylogic_agents} we give the dynamics simulating the SIR model with the agent-based approach. 
+\begin{figure*}
+\begin{center}
 
-TODO: 100 vs. 1000 vs. 5.000 agents with / without replications in anylogic
+	\begin{tabular}{c c c}
+		\begin{subfigure}[b]{0.3\textwidth}
+			\centering
+			\includegraphics[width=.7\textwidth, angle=0]{./fig/SIR_ABS_ANYLOGIC_100Agents.png}
+			\caption{100 Agents}
+			\label{fig:pd_seq}
+		\end{subfigure}
+    	&
+		\begin{subfigure}[b]{0.3\textwidth}
+			\centering
+			\includegraphics[width=.7\textwidth, angle=0]{./fig/SIR_ABS_ANYLOGIC_1000Agents.png}
+			\caption{1000 Agents}
+			\label{fig:pd_seq}
+		\end{subfigure}
+    	&
+		\begin{subfigure}[b]{0.3\textwidth}
+			\centering
+			\includegraphics[width=.7\textwidth, angle=0]{./fig/SIR_ABS_ANYLOGIC_10000Agents.png}
+			\caption{10,000 Agents}
+			\label{fig:hac_seq}
+		\end{subfigure}
+	\end{tabular}
+	
+	\caption{\small Approximating the continuous dynamics of the SD simulation using the agent-based approach. Model-parameters are the same ($\beta = 1/5$, $\gamma = 0.05$, $\delta = 15$, 1 initially infected agent) except population size. All Simulations run for 150 time-steps. Dynamics generated with AnyLogic Personal Learning Edition 8.1.0.} 
+	\label{fig:sir_abs_anylogic_agents}
+\end{center}
+\end{figure*}
 
-TODO: agent-based simulation - at least this model - is an inherent stochastic process where we draw from random-distributions all the time => replications are required
+As previously mentioned the agent-based approach is a rather discrete one which means that with increasing number of agents, the discrete dynamics aproximate the continuous dynamics of the SD simulation. Still the dynamics of 10,000 Agents do not match the dynamics of the SD simulation to a satisfactory level as the Susceptibles in SD fall off earlier and the peak is reached a bit eralier. This is because as opposed to the SD simulation the agent-based approach is inherently a stochastic one as we continuously draw from random-distributions which drive our state-transitions. What we see in Figure \ref{fig:sir_abs_anylogic_agents} is then just a single run where the dynamics would result in slightly different shapes when run with a different random-number generator seed. The agent-based approach thus generates a distribution of dynamics over which ones needs to average to arrive at the correct solution. This can be done using replications in which the simulation is run with the exact same parameteres multiple times but each with a different random-number generator see. The resulting dynamics are then averaged and the result is then regarded as the correct dynamics. We have done this as can be seen in Figure \ref{fig:sir_abs_anylogic_agents_repls}, using 1000 replications, which now completely matches the SD dynamics. \footnote{Note that in the replications we are using 10 initially infected agents to ensure that no simulation run will terminate too early (meaning that the disease gets exstinct after a few time steps) which would offset the dynamics completely. This happens due to "unlucky" random distributions which can be repaired by introducing more initially infected agents which increases the probability of spreading the disease in the very early stage of the simulation drastically. We found that when using 10 initially infected agents in a population of 10,000 (which amounts to (0.1\%)) is enough to never result in an early terminating simulation.}
 
-\subsection{Blub}
-TODO: It should be possible to formally show that spatial SIR and WildFire are the same model. NOTE: they are NOT the same, the fundamental difference is that in the WildFire model only the burning cells initiate the ignition - if we compare this to the SIR, the burning cells would be infected agents and although in the spatial SIR model the infected agents make contact with other agents, so do the susceptible ones which does NOT occur in wildfire
-
-TODO: cite my own work on update-strategies
-
-TODO: can we formally show that the SIR approximates the SD model?
+\begin{figure}
+	\centering
+	\includegraphics[width=.4\textwidth, angle=0]{./fig/SIR_ABS_ANYLOGIC_10000Agents_10Init_1000Repls.png}
+	\caption{Dynamics of the SIR compartment model using the agent-based approach with same parameters as in SD ($\beta = 1/5$, $\gamma = 0.05$, $\delta = 15$) but with a population of 10,000 where 10 are initially infected and the dynamics averaged over 1000 replications. Dynamics generated with AnyLogic Personal Learning Edition 8.1.0.}
+	\label{fig:sir_abs_anylogic_agents_repls}
+\end{figure}
 
 TODO: cite papers which discuss how to approximate a SD model by ABS: Borshchev, Filippov (2004), Macal (2010)
 - Macal (2010) - To Agent-Based Simulation From System Dynamics 
@@ -78,10 +106,3 @@ TODO: cite papers which discuss how to approximate a SD model by ABS: Borshchev,
 
 - Borshchev, Filippov (2004) - From System Dynamics and Discrete Event to Practical Agent Based Modeling: Reasons, Techniques, Tools
 	-> its VERY IMPORTANT point is that we need to draw the illness-duration from an exponential-distribution because the illness-duration is proportional to the size of the infected. note: this is wrongly expressed, need to find the correct formulation
-
-		-> my emulation of SD using ABS is really an implementation of the SD model and follows it - they are equivalent
-		-> my ABS implementation is the same as / equivalent to the SD emulation
-			=> thus if i can show that my SD emulation is equlas to the SD model
-			=> AND that the ABS implementation is the same as the SD emulation
-			=> THEN the ABS implementation is an SD implementation, and we have shown this in code for the first time in ABS
-			

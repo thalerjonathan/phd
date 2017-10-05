@@ -4,7 +4,7 @@
 	         AnyLogic Project File 
 *************************************************	         
 -->
-<AnyLogicWorkspace WorkspaceVersion="1.9" AnyLogicVersion="8.1.0.201706091042" AlpVersion="8.0.4">
+<AnyLogicWorkspace WorkspaceVersion="1.9" AnyLogicVersion="8.1.0.201706211703" AlpVersion="8.0.4">
 <Model>
 	<Id>1163616625032</Id>
 	<Name><![CDATA[SIR Agent Based]]></Name>
@@ -21,7 +21,9 @@
 			<PresentationTopGroupPersistent>true</PresentationTopGroupPersistent>
 			<IconTopGroupPersistent>false</IconTopGroupPersistent>
 			<StartupCode><![CDATA[//environment.deliverToRandom( "Infection" );
-people.get(0).onReceive( "Infection", null );]]></StartupCode>
+for (int i = 0; i < InitiallyInfected; i++)
+	people.get(i).onReceive( "Infection", null );
+]]></StartupCode>
 			<Generic>false</Generic>
 			<GenericParameter>
 				<Id>1413229661737</Id>
@@ -231,6 +233,31 @@ people.get(0).onReceive( "Infection", null );]]></StartupCode>
 						</DefaultValue>
 						<ParameterEditor>
 							<Id>0</Id>
+							<Label><![CDATA[TotalPopulation]]></Label>
+							<EditorContolType>TEXT_BOX</EditorContolType>
+							<MinSliderValue><![CDATA[0]]></MinSliderValue>
+							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
+							<DelimeterType>NO_DELIMETER</DelimeterType>
+						</ParameterEditor>
+					</Properties>                 
+				</Variable>
+				<Variable Class="Parameter">
+					<Id>1507194612631</Id>
+					<Name><![CDATA[InitiallyInfected]]></Name>
+					<X>50</X><Y>100</Y>
+					<Label><X>20</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
+						<Type><![CDATA[int]]></Type>
+						<UnitType><![CDATA[NONE]]></UnitType>
+						<SdArray>false</SdArray>
+						<DefaultValue Class="CodeValue">
+							<Code><![CDATA[10]]></Code>
+						</DefaultValue>
+						<ParameterEditor>
+							<Id>1507194612629</Id>
 							<Label><![CDATA[TotalPopulation]]></Label>
 							<EditorContolType>TEXT_BOX</EditorContolType>
 							<MinSliderValue><![CDATA[0]]></MinSliderValue>
@@ -883,7 +910,7 @@ people.get(0).onReceive( "Infection", null );]]></StartupCode>
 			<IconTopGroupPersistent>true</IconTopGroupPersistent>
 			<CommandLineArguments><![CDATA[]]></CommandLineArguments>
 			<MaximumMemory>512</MaximumMemory>
-			<RandomNumberGenerationType>fixedSeed</RandomNumberGenerationType>
+			<RandomNumberGenerationType>randomSeed</RandomNumberGenerationType>
 			<CustomGeneratorCode>new Random()</CustomGeneratorCode>
 			<SeedValue>1</SeedValue>
 			<SelectionModeForSimultaneousEvents>LIFO</SelectionModeForSimultaneousEvents>
@@ -957,6 +984,9 @@ getPresentation().setPresentable( getEngine().getRoot() );]]></ActionCode>
 				</Parameter>
 				<Parameter>
 					<ParameterName><![CDATA[TotalPopulation]]></ParameterName>
+				</Parameter>
+				<Parameter>
+					<ParameterName><![CDATA[InitiallyInfected]]></ParameterName>
 				</Parameter>
 			</Parameters>			
 			<PresentationProperties 
@@ -1558,15 +1588,15 @@ synchronized (syncMonitor) {
 						<Unit Class="TimeUnits"><![CDATA[DAY]]></Unit>
 					</RecurrenceCode>
 					<EmbeddedIcon>false</EmbeddedIcon>
-					<Width>790</Width>
-					<Height>420</Height>
+					<Width>800</Width>
+					<Height>800</Height>
 					<BackgroundColor/>
 					<BorderColor/>
 					<ChartArea>
 						<XOffset>50</XOffset>
 						<YOffset>30</YOffset>
-						<Width>710</Width>
-						<Height>330</Height>
+						<Width>720</Width>
+						<Height>710</Height>
 						<BackgroundColor>-1</BackgroundColor>
 						<BorderColor>-16777216</BorderColor>
 						<GridColor>-12566464</GridColor>
@@ -1651,6 +1681,9 @@ for (int i = 0; i < susceptibleAggregate.size(); i++) {
 			<FreeformParamValue>	
 				<Id>1163673083289</Id>
 			</FreeformParamValue>
+			<FreeformParamValue>	
+				<Id>1507194612631</Id>
+			</FreeformParamValue>
 			<RangeVariationParamValue>	
 				<Id>1163671985842</Id>
 				<Type>FIXED</Type>
@@ -1665,6 +1698,10 @@ for (int i = 0; i < susceptibleAggregate.size(); i++) {
 			</RangeVariationParamValue>
 			<RangeVariationParamValue>	
 				<Id>1163673083289</Id>
+				<Type>FIXED</Type>
+			</RangeVariationParamValue>
+			<RangeVariationParamValue>	
+				<Id>1507194612631</Id>
 				<Type>FIXED</Type>
 			</RangeVariationParamValue>
 			<ModelTimeProperties>

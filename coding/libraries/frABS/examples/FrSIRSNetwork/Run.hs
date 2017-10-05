@@ -20,13 +20,13 @@ frequency = 0
 updateStrat = Parallel
 shuffleAgents = False
 
-rngSeed = 43
+rngSeed = 42
 
 samplingTimeDelta = 0.1
 steps = 1000
 
 replCfg = ReplicationConfig {
-    replCfgCount = 32,
+    replCfgCount = 16,
     replCfgAgentReplicator = defaultAgentReplicator,
     replCfgEnvReplicator = defaultEnvReplicator,
     replCfgFilter = Just validReplication
@@ -41,8 +41,8 @@ validReplication repl = True -- any (> floor ((fromIntegral agentCount * 0.1))) 
         countRecovered aobs = fromIntegral $ length $ filter ((Recovered==) . snd) aobs
 
 --agentCount = 32 * 32 :: Int
-agentCount = 100
-numInfected = 1
+agentCount = 1000
+numInfected = 10
 
 completeNetwork = Complete agentCount
 erdosRenyiNetwork = ErdosRenyi agentCount 0.2

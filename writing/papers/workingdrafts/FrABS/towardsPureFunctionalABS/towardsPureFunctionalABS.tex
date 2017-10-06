@@ -1,5 +1,5 @@
 %\documentclass[a4paper, 10pt, conference]{../../templates/IEEEconf/IEEEconf}
-\documentclass[10pt, onecolumn, conference]{../../templates/IEEEtran/IEEEtran}
+\documentclass[10pt, onecolumn, conference]{../../../templates/IEEEtran/IEEEtran}
 %\documentclass[10pt, journal]{../../templates/IEEEtran/IEEEtran}
 
 \usepackage{graphicx}
@@ -16,7 +16,7 @@
 
 \font\subtitlefont=cmr12 at 18pt
 
-\title{Towards pure functional Agent-Based Simulation in Haskell}
+\title{Towards pure functional Agent-Based Simulation \\ in Haskell}
 
 % IEEEtran journal authors
 %\author{Jonathan Thaler, ̃Peer-Olaf Siebers \\ School of Computer Science \\ University of Nottingham%
@@ -87,8 +87,10 @@ Haskell, Functional Programming, Verification
 
 \input{./tex/discussion.tex}
 
-\bibliographystyle{../../templates/IEEEtran/bibtex/IEEEtran}
-\bibliography{../../../references/phdReferences.bib}
+\input{./../shared/tex/acknowledgments.tex}
+
+\bibliographystyle{../../../templates/IEEEtran/bibtex/IEEEtran}
+\bibliography{../../../../references/phdReferences.bib}
 
 \appendices
 

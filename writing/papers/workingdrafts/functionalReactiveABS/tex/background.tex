@@ -1,4 +1,6 @@
-\section{Agent Based Simulation}
+\section{Background}
+
+\subsection{Agent Based Simulation}
 We understand ABS as a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is of knowledge. Those parts, called agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. So the central aspect of ABS is the concept of an agent which can be understood as a metaphor for a pro-active unit, situated in an environment, able to spawn new agents and interacting with other agents in a network of neighbours by exchange of messages \cite{wooldridge_introduction_2009}. It is important to note that we focus our understanding of ABS on a very specific kind of agents where the focus is on communicating entities with individual, localized behaviour from out of which the global behaviour of the system emerges. We informally assume the following about our agents:
 
 \begin{itemize}
@@ -19,3 +21,7 @@ Epstein \cite{epstein_generative_2012} identifies ABS to be especially applicabl
 	\item Interactions - agents can be modelled after interactions with an environment or other agents, making this a unique feature of ABS, not possible in the other simulation models.
 	\item Spatiality \& Networks - agents can be situated within e.g. a spatial (discrete 2d, continuous 3d,...) or network environment, making this also a unique feature of ABS, not possible in the other simulation models.
 \end{itemize}
+
+\subsection{Functional Reactive Programming}
+TODO: short introduction, following all the other papers which is basically useless because it only scratches the surface...
+For a good introduction into FRP using Yampa we refer to the papers of \cite{hudak_arrows_2003}, \cite{courtney_yampa_2003} and \cite{nilsson_functional_2002}.

@@ -1,5 +1,28 @@
 \section{Discussion}
 
+\subsection{Other Models}
+TODO: mention that we have also implemented other models, which also work without time-semantics (all agents make a move at discrete time-steps and do not really rely on some notion of time). 
+
+\subsection{Time-Semantics}
+The main reason for building our pure functional ABMS approach on top of Yampa was to leverage the powerful time-semantics of Yampa which allows us to implement important concepts of ABMS:
+
+state-chart: agents are at all time of their life-cycle in one state and can switch between multiple states using transitions 
+timed transitions: transition to another state/behaviour happens at a discrete time
+rate transitions: transition happens with a given rate
+message transition: transition upon receiving a given message 
+
+\subsection{Agents as Signals}
+Due to the underlying nature and motivation of Functional Reactive Programming (und im speziellen) Yampa, Agents can be seen as Signals which is generated and consumed by a Signal-Function which is the behaviour of an Agent. If an Agent does not change the OUTPUT-signal is constant, if the agent changes e.g. by sending a message, changing its state,... the OUTPUT signal changes. A dead agent has no signal at all.
+
+\subsection{Time-Sampling}
+sampling rate depends on the transition times \& rates of the model. when e.g. the contact rate is 5 then the sampling dt should be below 0.2
+
+\subsection{System Dynamics}
+can emulate system dynamics due to the parallel update-strategy and continuous time-flow semantics
+
+\subsection{Discrete Event Simulation}
+DES in FrABMS? how easily can we implement server/queue systems? do they also look like a specification? potential problem: ordering of messages is not guaranteed by now
+
 advantages:
 	- no side-effects within agents leads to much safer code
 	- edsl for time-semantics

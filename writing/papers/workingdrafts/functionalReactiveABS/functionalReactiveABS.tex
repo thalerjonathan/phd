@@ -1,5 +1,5 @@
 %\documentclass[a4paper, 10pt, conference]{../../templates/IEEEconf/IEEEconf}
-\documentclass[10pt, conference]{../../templates/IEEEtran/IEEEtran}
+\documentclass[10pt, conference, onecolumn]{../../templates/IEEEtran/IEEEtran}
 %\documentclass[10pt, journal]{../../templates/IEEEtran/IEEEtran}
 
 \usepackage{graphicx}
@@ -13,6 +13,7 @@
 \usepackage[autostyle=true]{csquotes}
 \usepackage{amsmath}
 \usepackage{marvosym}
+\usepackage{minted}
 
 \font\subtitlefont=cmr12 at 18pt
 
@@ -79,9 +80,7 @@ Functional Reactive Programming, Agent-Based Simulation
 
 \input{./tex/sirModel.tex}
 
-\input{./tex/formalAgentModel.tex}
-
-\input{./tex/functionalReactiveABS.tex}
+\input{./tex/functionalReactiveSIR.tex}
 
 \input{./tex/discussion.tex}
 

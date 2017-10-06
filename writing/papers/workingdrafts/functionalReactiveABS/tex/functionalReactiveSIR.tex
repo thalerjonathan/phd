@@ -1,0 +1,113 @@
+\section{Functional Reactive SIR}
+The challenges one faces when implementing an ABS plain, without support from a library are manifold. In the paper (TODO: cite my own paper on update-strategies) the authors discuss already the fundamental things to consider in a programming language agnostic way.  Generally one faces the following challenges:
+
+\begin{itemize}
+	\item Agent Representation - how do we represent an agent? The ABS community implements agents as objects (as in Java, Python or C++) as they claim that the mapping of an agent on an object is natural. The question is how to represent an agent in Haskell?
+	\item Agent-Agent Interaction - how can agents interact with other agents? In object-orientation we have method-calls which allows to call other objects and mutate their state. Also this is not available in Haskell, so how do we solve this problem without resorting to the IO monad?
+	\item Environment representation - how can we represent an environment? Also an environment must have the ability to update itself e.g. regrow some resources.
+	\item Agent-Environment interaction - how can agents interact (read / write) with the environment they are situated in?
+	\item Agent Updating - how is the set of agents organised, how are they updated and how is it managed (deleting, adding during simulation)? In object-oriented implementations due to side-effects and mutable data in-order updates are easily done but this is not available in Haskell.
+\end{itemize}
+
+In the next subsections we will discuss each point by deriving a functional reactive implementation of the agent-based SIR model. For us it is absolutely paramount that the simulation should be pure and never run in the IO Monad (except of course the surrounding Yampa loop which allows rendering and output). The complete source-code can be seen in Appendix TODO: ref. 
+
+\subsection{Agent Representation}
+An agent can be seen as a tuple $<id, s, m, e, b>$.
+\begin{itemize}
+	\item \textbf{id} - the unique identifier of the agent
+	\item \textbf{s} - the generic state of the agent
+	\item \textbf{m} - the set of messages the agent understands
+	\item \textbf{e} - the type of the environment the agent is situated in an can interact with
+	\item \textbf{b} - the behaviour of the agent
+\end{itemize}
+
+The id is simply represented as an Integer and must be unique for all currently existing agents in the system as it is used for message-delivery. A stronger requirement would be that the id of an agent is unique for the whole simulation-run and will never be reused - this would support replications and operations requiring unique agent-ids.
+
+Each agent may have a generic state which could be any data type or compound data. A SIR agent's state can be represented using the sum type as follows:
+\begin{minted}{haskell}
+data SIRState = Susceptible | Infected | Recovered
+\end{minted}
+
+The behaviour of the agent is a signal-function which maps an AgentIn-Signal to an AgentOut-Signal. It has the following signature: 
+\begin{minted}{haskell}
+type AgentBehaviour s m e = SF (AgentIn s m e) (AgentOut s m e)
+\end{minted}
+
+AgentIn provides the necessary data to the agent-behaviour: its id, incoming messages, the current state s, the environment (made out of the cells ec), its position in the environment and a random-number generator. 
+
+AgentOut allows the agent to communicate changes out of the behaviour: kill itself, create new agents, sending messages, state s, environment (made ouf of the cells ec), environment-position and random-number generator. 
+
+The agent needs to know the generic type of the cells the environment is made of to be able to act upon the environment. Note that at the moment we only implemented a discrete 2d environment and provide only access and manipulation to the cells in a 2d discrete fashion. In the case of a continuous n-dimensional environment this approach needs to be thoroughly revised. It is important to understand that it is the \textit{type} of the cells and not the environment itself.
+
+\subsection{Agent-Agent Interaction}
+Agents communicate with each other through messages (see below) and thus need to have an agreed set of messages they understand. This is usually implemented as an ADT.
+
+\subsubsection{Messaging}
+As discussed in the literature reflection in Chapter \ref{chap:refl}, inspired by the actor model we will resort to synchronized, reliable message passing with share nothing semantics to implement agent-agent interactions. Each Agent can send a message to an other agent through AgentOut-Signal where the messages are queued in the AgentIn-Signal and can be processed when the agent is updated the next time. The agent is free to ignore the messages and if it does not process them they will be simply lost.
+Note that due to the fact we don't have method-calls in FP, messaging will always take some time, which depends on the sampling interval of the system. This was not obviously clear when implementing ABS in an object-oriented way because there we can communicate through method calls which are a way of interaction which takes no simulation-time.
+
+%TODO: Push vs. Pull. we need push because we need to 'sample' the system at regular time-intervals because agent-behaviour can depend on time as well (pro-active) and not only on messaging. if we had only the latter, a pull approach would suffice.
+
+% my wrongthinking: messaging ALWAYS takes time e.g. send/response roundtrip. conversations dont take time but are restricted for the receiver e.g. the receiver cannot send messages to others or change the environment in a conversation
+
+% because an agent cannot reply within the same timestep sampling interval becomes an issue: if we need a reply within a given time then the sampling interval needs to be at least twice as much
+% difference between discrete and continuous: the successor of discrete is defined whereas in the case of continuous it is not? how is the successor defined in the case of continuous time?
+
+\subsubsection{Conversations}
+The messaging as implemented above works well for one-directional, virtual asynchronous interaction where we don't need a reply at the same time. A perfect use-case for messaging is making contact with neighbours in the SIRS-model: the agent sends the contact message but does not need any response from the receiver, the receiver handles the message and may get infected but does not need to communicate this back to the sender. 
+A different case is when agents need to transact in the time-step one or multiple times: agent A interacts with agent B where the semantics of the model (and thus messaging) need an immediate response from agent B - which can lead to further interactions initiated by agent A. The Sugarscape model has three use-cases for this: sex, warfare and trading amongst agents all need an immediate response (e.g. wanna mate with me?, I just killed you, wanna trade for this price?). The reason is that we need to transact now as all of the actions only work on a 1:1 relationship and could violate ressource-constraints.
+For this we introduce the concept of a conversation between agents. This allows an agent A to initiate a conversation with another agent B in which the simulation is virtually halted and both can exchange an arbitrary number of messages through calling and responding without time passing (something not possible without this concept because in each iteration the time advances). After either one agent has finished with the conversation it will terminate it and the simulation will continue with the updated agents (note the importance here: \textit{both} agents can change their state in a conversation). The conversation-concept is implemented at the moment in the way that the initiating agent A has all the freedom in sending messages, starting a new conversation,... but that the receiving agent B is only able to change its state but is not allowed to send messages or start conversations in this process. Technically speaking: agent A can manipulate an AgentOut whereas agent B can only manipulate its next AgentIn.
+When looking at conversations they may look like an emulation of method-calls but they are more powerful: a receiver can be unavailable to conversations or simply refuse to handle this conversation. This follows the concept of an active actor which can decide what happens with the incoming interaction-request, instead of the passive object which cannot decide whether the method-call is really executed or not.
+
+\begin{minted}{haskell}
+data SIRMsg = Contact SIRState
+\end{minted}
+
+\subsection{Environment representation}
+TODO: update, we have now also 2d-continuous AND networks!
+
+So far we only implemented a 2d-discrete environment. It can be understood to be a tuple of $<b, d, n, w, cs>$.
+\begin{itemize}
+	\item \textbf{b} - the optional behaviour of the environment
+	\item \textbf{d} - the dimensions of the environment: its maximum boundary extending from (0,0)
+	\item \textbf{n} - the neighbourhood of the environment (Neumann, Moore)
+	\item \textbf{w} - the wrapping-type of the environment (clipping, horizontal, vertical, both)
+	\item \textbf{cs} - the cells of the environment of type c
+\end{itemize}
+
+We represent the environment-behaviour as a signal-function as well but one which maps an environment to itself. It has the following signature:
+\begin{minted}{haskell}
+type EnvironmentBehaviour c = SF (Environment c) (Environment c)
+\end{minted}
+
+This is a regular SF thus having also the time of the simulation available and is called after all agents are updated. Note that the environment cannot send messages to agents because it is not an agent itself. An example of an environment behaviour would be to regrow some good on each cell according to some rate per time-unit (inspired by SugarScape regrowing of Sugar).
+
+The cells are represented as a 2-dimensional array with indices from (0,0) to limit and a cell of type c at every position. Note that the cell-type c is the same environment-cell type ec of the agent.
+
+Each agent has a copy of the environment passed in through the AgentIn and can change it by passing a changed version of the environment out through AgentOut.
+
+\subsection{Agent-Environment interaction}
+TODO: again cite my own work where I discussed the problem of environments
+
+Each agent has a copy of the environment passed in through the AgentIn and can change it by passing a changed version of the environment out through AgentOut. 
+In the sequential update-strategy the environment of the agent i will then be passed to all agents i + 1 AgentIn in the current iteration and override their old environment. Thus all steps of changes made to the environment are visible in the AgentOuts. The last environment is then the final environment int he current iteration and will be returned by the callback function together with the current AgentOuts.
+In the parallel update-strategy the environment is duplicated to each agent and then each agent can work on it and return the changed environment. Thus after one iteration there are n versions of environments where n is equals to the number of agents. These environments must then be collapsed into a final one which is always domain-specific thus needs to be done through a function provided in the environment itself.
+In both the sequential and parallel update-strategy after one iteration there is one single environment left. An environment can have an optional behaviour which allows the environment to update its cells. This is a regular SF thus having also the time of the simulation available. Note that the environment cannot send messages to agents because it is not an agent itself. An example of an environment behaviour would be to regrow some good on each cell according to some rate per time-unit (inspired by SugarScape regrowing of Sugar).
+
+
+\subsection{Agent Updating}
+need to be updated for pro-activity. also need to run the behaviour regularly because they.
+important in our approach: a single behaviour function which means we merge both pro-activity (time-depenent behaviour) and message-receiving behaviour (exception are conversations)
+
+Building on the foundations laid out in my paper about iteration-strategies in Appendix \ref{app:updateStrategies}, we implement two of the four strategies: sequential- and parallel-strategy. We deliberately ignore the concurrent- and actor-strategy for now and leave this for further research \footnote{Also both strategies would require running in the STM-Monad, which is not possible with Yampa. The work of Ivan Perez in \cite{perez_functional_2016} implemented a library called Dunai, which is the same as Yampa but capable of running in an arbitrary Monad.}.
+Implementing iteration-strategies using Haskell and FRP is not as straight-forward as in e.g. Java because one does not have mutable data which can be updated in-place. Although my work on programming paradigms in Appendix \ref{app:paradigms} did not take FRP into account, general concepts apply equally as well.
+
+\subsubsection{Sequential}
+In this strategy the agents are updated one after another where the changes (messages sent, environment changed,...) of one agent are visible to agents updated after. Basically this strategy is implemented as a variant of fold which allows to feed output of one agent (e.g. messages and the environment) forward to the other agents while iterating over the list of agents. For each agent the agent-behaviour signal-function is called with the current AgentIn as input to retrieve the according AgentOut. The messages of the AgentOut are then distributed to the receivers AgentIn.
+The environment of the agent, which is passed in through AgentIn and returned through AgentOut will then be passed forward to all agents i + 1 AgentIn in the current iteration and override their old environment. Thus all steps of changes made to the environment are visible in the AgentOuts. The last environment is then the final environment in the current iteration and will be returned by the callback function together with the current AgentOuts.
+
+\subsubsection{Parallel}
+The parallel strategy is \textit{much} easier to implement than the sequential but is of course not applicable to all models because of it different semantics. Basically this strategy is implemented as a map over all agents which calls each agent-behaviour signal-function with the agents AgentIn to retrieve the new AgentOut. Then the messages are distributed amongst all agents.
+A problem in this strategy is that the environment is duplicated to each agent and then each agent can work on it and return a changed environment. Thus after one iteration there are n versions of environments where n is equals to the number of agents. These environments must then be collapsed into a final one which is always domain-specific thus needs to be done through a function provided in the environment itself.
+
+%TODO: functionsl approach to ABS: parallel application to previous states where only one agent is acting and the others are fixed. per step we have n results. for a full iteration we need $(n-1)^2$ applicatioms

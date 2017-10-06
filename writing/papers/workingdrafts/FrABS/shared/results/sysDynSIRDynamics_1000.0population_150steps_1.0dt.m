@@ -176,4 +176,4 @@ xlabel ('Time');
 ylabel ('Population Ratio');
 legend('Susceptible','Infected', 'Recovered');
 titleStr = sprintf('SIR Dynamics of %i agents, with 1.00 dt, 150 steps, 0 replications', totalPopulation)
-title (titleStr);
+%title (titleStr);

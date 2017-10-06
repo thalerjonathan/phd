@@ -4,7 +4,7 @@
 	         AnyLogic Project File 
 *************************************************	         
 -->
-<AnyLogicWorkspace WorkspaceVersion="1.9" AnyLogicVersion="8.1.0.201706091042" AlpVersion="8.0.4">
+<AnyLogicWorkspace WorkspaceVersion="1.9" AnyLogicVersion="8.1.0.201706211703" AlpVersion="8.0.4">
 <Model>
 	<Id>1153899478771</Id>
 	<Name><![CDATA[SIR]]></Name>
@@ -903,7 +903,7 @@ getEngine().getExperiment().stop();]]></ActionCode>
 					<Expression2><![CDATA[Susceptible]]></Expression2>
 					<Expression2Flag>true</Expression2Flag>
 						<PointStyle>NONE</PointStyle>
-						<LineWidth>2.0</LineWidth>
+						<LineWidth>3.0</LineWidth>
 					</DatasetExpression>
 					<DatasetExpression>  
 						<Title><![CDATA[Infected]]></Title>
@@ -912,7 +912,7 @@ getEngine().getExperiment().stop();]]></ActionCode>
 					<Expression2><![CDATA[Infectious]]></Expression2>
 					<Expression2Flag>true</Expression2Flag>
 						<PointStyle>NONE</PointStyle>
-						<LineWidth>2.0</LineWidth>
+						<LineWidth>3.0</LineWidth>
 					</DatasetExpression>
 					<DatasetExpression>  
 						<Title><![CDATA[Recovered]]></Title>
@@ -921,7 +921,7 @@ getEngine().getExperiment().stop();]]></ActionCode>
 					<Expression2><![CDATA[Recovered]]></Expression2>
 					<Expression2Flag>true</Expression2Flag>
 						<PointStyle>NONE</PointStyle>
-						<LineWidth>2.0</LineWidth>
+						<LineWidth>3.0</LineWidth>
 					</DatasetExpression>
 					<SamplesToKeep>150</SamplesToKeep>
 					<TimeWindowExpression><![CDATA[150]]></TimeWindowExpression>

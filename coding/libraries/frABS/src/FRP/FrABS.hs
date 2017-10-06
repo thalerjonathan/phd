@@ -291,13 +291,16 @@ module FRP.FrABS (
     defaultAgentReplicator,
 
     runReplications,
-
+    runReplicationsWithAggregation,
+    
     UpdateStrategy (..),
     EnvironmentCollapsing,
     SimulationParams (..),
 
     processIOInit,
     processSteps,
+    processAndAggregateSteps,
+    
     processDebug,
     
     AgentRendererDisc2d,

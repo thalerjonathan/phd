@@ -5,9 +5,12 @@ module FRP.FrABS.Simulation.Simulation (
     UpdateStrategy (..),
     EnvironmentCollapsing,
     SimulationParams (..),
-
+    AgentObservableAggregator,
+    
     processIOInit,
+    
     processSteps,
+    processAndAggregateSteps,
 
     processDebug,
     processDebugInternal
@@ -44,6 +47,8 @@ data SimulationParams e = SimulationParams {
     simIdGen :: TVar Int
 }
 
+type AgentObservableAggregator s e a = (([AgentObservable s], e) -> a) 
+
 ------------------------------------------------------------------------------------------------------------------------
 -- RUNNING SIMULATION FROM AN OUTER LOOP
 ------------------------------------------------------------------------------------------------------------------------
@@ -75,6 +80,20 @@ processSteps adefs e params dt steps = embed
                                             ((), sts)
     where
         sts = replicate steps (dt, Nothing)
+
+processAndAggregateSteps :: [AgentDef s m e]
+                            -> e
+                            -> SimulationParams e
+                            -> Double
+                            -> Int
+                            -> AgentObservableAggregator s e a
+                            -> [a]
+processAndAggregateSteps adefs e params dt steps aggrFun = agrs
+    where
+        sts = replicate steps (dt, Nothing)
+        agrSf = arr aggrFun
+        sf = process params adefs e >>> agrSf
+        agrs = embed sf ((), sts)
 ----------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -129,13 +148,13 @@ process :: SimulationParams e
             -> [AgentDef s m e]
             -> e
             -> SF () ([AgentObservable s], e)
-process params adefs e = sf >>> agentOutToObservableSF
+process params adefs e = sf >>> outToObs'
     where
         asfs = map adBeh adefs
         idGen = simIdGen params
         ais = createStartingAgentIn adefs idGen
         sf = iterationStrategy params asfs ais e 
-
+        outToObs' = first (arr $ map agentOutToObservable)
 ----------------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------------------------------------------------------------------------------------

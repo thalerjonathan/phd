@@ -24,6 +24,7 @@ executable frABSExamples
 
   ghc-options:      -O2
                     -W
+                    -threaded
                     -- -Wall
                     -- -fwarn-tabs
                     -- -fno-warn-tabs

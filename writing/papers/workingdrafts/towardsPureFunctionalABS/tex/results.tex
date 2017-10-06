@@ -1,10 +1,15 @@
 \section{Results}
+
+\subsection{System Dynamics SIR Simulation}
 TODO: SIR dynamics using SD with FrABS, using 1.0, 0.5, 0.1 and 0.01 sampling 
+
+\subsection{Agent-based SIR Simulation}
 TODO: SIR dynamics using ABS with FrABS, using 1.0, 0.5, 0.1 and 0.05 sampling with 1000 agents
 
 TODO: need to do the same thing as AnyLogic. maybe the problem is sampling as well as replications as number of agents, which leaves us in a pretty bad shape performance wise.
 	-> how many agents? are 1000 enough?
 	-> how many replications? are 32 enough?
 	-> what is the sampling interval? 0.1 enough or do we have to go below?
-	
 	1000 agents with 16 replications and 0.05 dt seems to deliver pretty good results
+	need enough initially infected agents, otherwise wouldn't work
+

@@ -59,7 +59,7 @@ module FRP.FrABS.Agent.Agent (
     AgentPureBehaviourReadEnv,
     AgentPureBehaviourNoEnv,
 
-    agentOutToObservableSF
+    agentOutToObservable
   ) where
 
 import FRP.FrABS.Simulation.Internal
@@ -142,6 +142,12 @@ agentOutFromIn ai = AgentOut{   aoId = aiId ai,
                                 aoRecOthersAllowed = True,
                                 aoRng = aiRng ai }
 
+agentOutToObservable :: AgentOut s m e -> AgentObservable s
+agentOutToObservable ao = (aid, s)
+    where
+        aid = aoId ao
+        s = aoState ao
+        
 hasConversation :: AgentOut s m e -> Bool
 hasConversation = isEvent . aoConversation
 
@@ -305,16 +311,3 @@ agentPureIgnoreEnv f = proc (ain, e) ->
         let ao' = f age ain ao
         
         returnA -< (ao', e)
-
-agentOutToObservableSF :: SF ([AgentOut s m e], e) ([AgentObservable s], e) 
-agentOutToObservableSF = proc (aos, e) ->
-    do
-        let aobs = map agentOutToObservable aos
-        returnA -< (aobs, e)
-
-        where
-            agentOutToObservable :: AgentOut s m e -> AgentObservable s
-            agentOutToObservable ao = (aid, s)
-                where
-                    aid = aoId ao
-                    s = aoState ao

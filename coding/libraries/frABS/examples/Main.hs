@@ -3,6 +3,7 @@ module Main where
 import           AgentZero.Run
 import           Conversation.Run
 import           DoubleAuction.Run
+import           FrSIR.Run
 import           FrSIRSNetwork.Run
 import           FrSIRSSpatial.Run
 import           HeroesCowards.Run
@@ -30,8 +31,9 @@ import           NewAgents.Run
 -}
 
 main :: IO ()
-main = runFrSIRSNetworkReplicationsAndWriteToFile -- runFrSIRSNetworkStepsAndWriteToFile --runFrSIRSNetworkReplicationsAndWriteToFile
+main = runFrSIRStepsAndWriteToFile -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
 
+    -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
     -- runZombiesWithRendering
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile

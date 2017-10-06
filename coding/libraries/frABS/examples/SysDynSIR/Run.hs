@@ -1,36 +1,35 @@
-module SysDynSIR.Run ( 
-    runSysDynSIRStepsAndWriteToFile
-  ) where
-
-import SysDynSIR.Init
-import SysDynSIR.Model
-
-import Utils.Sirs
-
-import FRP.FrABS
+module SysDynSIR.Run 
+    ( 
+      runSysDynSIRStepsAndWriteToFile
+    ) where
 
 import Data.List
 
-samplingTimeDelta = 0.1
-steps = 1500
+import FRP.Yampa
+import FRP.FrABS
+
+import SysDynSIR.Init
+import SysDynSIR.Model
+import Utils.Sirs
+
+samplingTimeDelta :: DTime
+samplingTimeDelta = 0.05
+
+steps :: Int
+steps = 3000
 
 runSysDynSIRStepsAndWriteToFile :: IO ()
-runSysDynSIRStepsAndWriteToFile =
-    do
-        let sdDefs = createSysDynSIR
-        
-        let sdObs = runSD 
-                        sdDefs 
-                        samplingTimeDelta 
-                        steps
-                        
-        let dynamics = map calculateDynamics sdObs
-        let fileName = "sysDynSIRDynamics_" 
-                        ++ show totalPopulation ++ "population_"
-                        ++ show steps ++ "steps_" 
-                        ++ show samplingTimeDelta ++ "dt.m"
+runSysDynSIRStepsAndWriteToFile = writeSirsDynamicsFile fileName steps samplingTimeDelta 0 dynamics
+  where
+    sdDefs = createSysDynSIR
+    
+    sdObs = runSD sdDefs samplingTimeDelta steps         
+    dynamics = map calculateDynamics sdObs
 
-        writeSirsDynamicsFile fileName steps samplingTimeDelta 0 dynamics
+    fileName = "sysDynSIRDynamics_" 
+                    ++ show totalPopulation ++ "population_"
+                    ++ show steps ++ "steps_" 
+                    ++ show samplingTimeDelta ++ "dt.m"
 
 -------------------------------------------------------------------------------
 -- UTILS
@@ -41,17 +40,7 @@ runSysDynSIRStepsAndWriteToFile =
 --          stock id 2: Recovered
 --          the remaining items are the flows
 calculateDynamics :: [SDObservable] -> (Double, Double, Double)
-calculateDynamics unsortedStocks = (susceptibleCount, infectedCount, recoveredCount) -- (susceptibleRatio, infectedRatio, recoveredRatio)
-    where
-        stocks = sortBy (\s1 s2 -> compare (fst s1) (fst s2)) unsortedStocks
-        (susceptibleStock : infectiousStock : recoveredStock : remainingFlows) = stocks
-
-        susceptibleCount = snd susceptibleStock
-        infectedCount = snd infectiousStock
-        recoveredCount = snd recoveredStock
-
-        totalCount = susceptibleCount + infectedCount + recoveredCount 
-
-        susceptibleRatio = susceptibleCount / totalCount
-        infectedRatio = infectedCount / totalCount 
-        recoveredRatio = recoveredCount / totalCount
+calculateDynamics unsortedStocks = (susceptibleCount, infectedCount, recoveredCount) 
+  where
+    stocks = sortBy (\s1 s2 -> compare (fst s1) (fst s2)) unsortedStocks
+    ((_, susceptibleCount) : (_, infectedCount) : (_, recoveredCount) : _) = stocks

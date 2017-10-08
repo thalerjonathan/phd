@@ -1,0 +1,64 @@
+%\documentclass[a4paper, 10pt, conference]{../../templates/IEEEconf/IEEEconf}
+\documentclass[10pt, conference]{../../templates/IEEEtran/IEEEtran}
+%\documentclass[10pt, journal]{../../templates/IEEEtran/IEEEtran}
+
+\usepackage{graphicx}
+\usepackage{caption} 
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{hhline}
+\usepackage{float}
+\usepackage{amssymb}
+\usepackage[autostyle=true]{csquotes}
+\usepackage{amsmath}
+\usepackage{marvosym}
+
+\font\subtitlefont=cmr12 at 18pt
+
+\title{Agent-Based Simulations of Corner Kicks in Soccer}
+
+% IEEEtran conference authors
+\author{
+	\IEEEauthorblockN{Jonathan Thaler}
+	\IEEEauthorblockA{School of Computer Science\\
+		University of Nottingham\\
+		jonathan.thaler@nottingham.ac.uk}
+}
+
+\begin{document}
+\maketitle 
+
+- ball
+	-> need tight control over its curve: we need some mechanism to determine the flight-path and where it arrives
+		but also with a given random-distribution where the ball will land
+	-> use a physic-engine like BULLET would result in physical correct ball-physics but we would loose control over the direction of the ball or it would become extremely hard to steer the direction
+	-> problem: physical accuratness vs. controlability
+		it must have some physical reality but at the same time it must be controlable
+		
+	-> probably we need a formula for controlling the flight-path and destination area but
+		as soon as a player hits it, then physics engine could take over?
+
+- players
+	-> either zone- or man-marking
+	-> positioned somewhere with some movement-direction 
+	-> the real challenge is to model the movement
+		-> players movement is determined by the ball, other players and tactics
+	-> how do we simulate the shooting towards the goal? there are many variables in it
+		-> which direction
+		-> which player comes first?
+		-> how strong?
+		-> 
+
+\begin{abstract}
+Agent-Based Simulation (ABS) is a methodology in which a system is simulated in a bottom-up approach by modelling the interactions of its constituting parts, called agents, out of which interactions the global system behaviour emerges. So far, the Haskell community hasn't been much in contact with the community of ABS due to the latters primary focus on the object-oriented programming paradigm. This paper tries to bridge the gap between those two communities by introducing the Haskell community to the concepts of ABS using the simple SIR model from epidemiology. Further we present our library \textit{FrABS} which allows to implement ABS the first time in Haskell. In this library we leveraged the basic concepts of ABS with functional reactive programming using Yampa which results in a suprisingly powerful and convenient EDSL for formulating ABS.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Agent-Based Simulation, Sport Simulation, Soccer Tactics
+\end{IEEEkeywords}
+
+\bibliographystyle{../../templates/IEEEtran/bibtex/IEEEtran}
+\bibliography{../../../references/phdReferences.bib}
+
+\end{document}

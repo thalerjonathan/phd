@@ -36,7 +36,7 @@ barbasiAlbertNetwork = BarbasiAlbert barbasiAlbertM0 barbasiAlbertM agentCount
 barbasiAlbertM0 = 3
 barbasiAlbertM = 1
 
-network = erdosRenyiNetwork
+network = Random erdosRenyiNetwork
 
 replCfg = ReplicationConfig {
     replCfgCount = 4,

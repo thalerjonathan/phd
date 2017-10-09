@@ -28,10 +28,9 @@ initZombies =
 
     let adefs = humans ++ zombies
 
-    netRng <- newStdGen
     discRng <- newStdGen
 
-    let an = createEmptyNetwork netRng 
+    let an = createEmptyNetwork 
     let ap = createDiscrete2d
                         dimsDisc2d
                         moore

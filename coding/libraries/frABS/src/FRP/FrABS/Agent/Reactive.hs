@@ -19,6 +19,7 @@ module FRP.FrABS.Agent.Reactive (
     constMsgSource,
     randomNeighbourNodeMsgSource,
     randomNeighbourCellMsgSource,
+    randomAgentIdMsgSource,
     
     transitionAfter,
     transitionAfterExp,
@@ -150,6 +151,15 @@ randomNeighbourCellMsgSource posFunc m ic e ao = (ao', msg)
         pos = posFunc $ aoState ao
         (randCell, ao') = agentRandom (randomNeighbourCell pos ic e) ao
         msg = (randCell, m)
+
+randomAgentIdMsgSource :: m -> Bool -> MessageSource s m [AgentId]
+randomAgentIdMsgSource m ignoreSelf agentIds ao 
+    | aid == randAid && ignoreSelf = randomAgentIdMsgSource m ignoreSelf agentIds ao'
+    | otherwise = (ao', msg)
+    where
+        aid = aoId ao
+        (randAid, ao') = agentRandomPick agentIds ao
+        msg = (randAid, m)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -159,7 +169,7 @@ transitionAfter :: Double
                     -> AgentBehaviour s m e
                     -> AgentBehaviour s m e
                     -> AgentBehaviour s m e
-transitionAfter t from to = switch (transitionAfterAux t from) (\_ -> to)
+transitionAfter t from to = switch (transitionAfterAux t from) (const to)
     where
         transitionAfterAux :: Double 
                                 -> AgentBehaviour s m e 
@@ -177,7 +187,7 @@ transitionAfterExp :: RandomGen g =>
                     -> AgentBehaviour s m e
                     -> AgentBehaviour s m e
                     -> AgentBehaviour s m e
-transitionAfterExp g t from to = switch (transitionAfterExpAux t from) (\_ -> to)
+transitionAfterExp g t from to = switch (transitionAfterExpAux t from) (const to)
     where
         transitionAfterExpAux :: Double 
                                 -> AgentBehaviour s m e 
@@ -205,7 +215,7 @@ afterExp g t b = SF { sfTF = tf0 }
                     | tCurr' >= tEvt = (tf', Event b)
                     | otherwise = (tf', NoEvent)
                     where
-                        tCurr' = (tCurr + dt)
+                        tCurr' = tCurr + dt
                         tf' = afterExpAux tCurr' tEvt
 
 
@@ -213,7 +223,7 @@ transitionWithUniProb :: Double
                             -> AgentBehaviour s m e
                             -> AgentBehaviour s m e
                             -> AgentBehaviour s m e
-transitionWithUniProb p from to = switch (transitionWithUniProbAux from) (\_ -> to)
+transitionWithUniProb p from to = switch (transitionWithUniProbAux from)(const to)
     where
         transitionWithUniProbAux :: AgentBehaviour s m e
                                     -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
@@ -230,7 +240,7 @@ transitionWithExpProb :: Double
                         -> AgentBehaviour s m e
                         -> AgentBehaviour s m e
                         -> AgentBehaviour s m e
-transitionWithExpProb lambda p from to = switch (transitionWithExpProbAux from) (\_ -> to)
+transitionWithExpProb lambda p from to = switch (transitionWithExpProbAux from) (const to)
     where
         transitionWithExpProbAux :: AgentBehaviour s m e
                                     -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
@@ -246,7 +256,7 @@ transitionOnEvent :: EventSource s m e
                     -> AgentBehaviour s m e
                     -> AgentBehaviour s m e
                     -> AgentBehaviour s m e
-transitionOnEvent evtSrc from to = switch (transitionEventAux evtSrc from) (\_ -> to)
+transitionOnEvent evtSrc from to = switch (transitionEventAux evtSrc from) (const to)
     where
         transitionEventAux :: EventSource s m e
                                 -> AgentBehaviour s m e
@@ -262,7 +272,7 @@ transitionOnBoolState :: (s -> Bool)
                             -> AgentBehaviour s m e
                             -> AgentBehaviour s m e
                             -> AgentBehaviour s m e
-transitionOnBoolState boolStateFunc from to = switch (transitionOnBoolStateAux boolStateFunc from) (\_ -> to)
+transitionOnBoolState boolStateFunc from to = switch (transitionOnBoolStateAux boolStateFunc from) (const to)
     where
         transitionOnBoolStateAux :: (s -> Bool)
                                     -> AgentBehaviour s m e
@@ -288,7 +298,7 @@ transitionOnEventWithGuard :: EventSource s m e
                             -> AgentBehaviour s m e
                             -> AgentBehaviour s m e
                             -> AgentBehaviour s m e
-transitionOnEventWithGuard evtSrc guardAction from to = switch (transitionEventWithGuardAux evtSrc from) (\_ -> to)
+transitionOnEventWithGuard evtSrc guardAction from to = switch (transitionEventWithGuardAux evtSrc from) (const to)
     where
         transitionEventWithGuardAux :: EventSource s m e
                                         -> AgentBehaviour s m e 

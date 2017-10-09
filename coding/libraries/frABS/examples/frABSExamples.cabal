@@ -25,6 +25,11 @@ executable frABSExamples
   ghc-options:      -O2
                     -W
                     -threaded
+                    -- -prof
+                    -- "-with-rtsopts= -s -hy -p -i0.1 -K256M"
+                    -- -auto-all
+                    -- -caf-all
+                    -- -fforce-recomp
                     -- -Wall
                     -- -fwarn-tabs
                     -- -fno-warn-tabs
@@ -35,7 +40,6 @@ executable frABSExamples
                     -- -auto-all
                     -- -caf-all
                     -- -fforce-recomp
-                    -- "-with-rtsopts= -s -hy -p -i0.1 -K256M"
                     -- "-with-rtsopts=-N"
                       -- use hc, hd or hy
 

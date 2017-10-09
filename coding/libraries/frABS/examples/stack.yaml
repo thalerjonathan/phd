@@ -38,14 +38,20 @@ resolver: lts-8.22
 packages:
 - '.'
 - '../../frABS/'
-- '../Yampa/'
+- './Yampa/'
+- './haskell-titan/titan-yampa-debugger/'
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
-extra-deps: []
+extra-deps:
+  - SDL-0.6.5.1
+  - SDL-gfx-0.6.0.2
+
 
 # Override default flag values for local packages and extra-deps
-flags: {}
+flags:
+  Yampa:
+    expose-core: true
 
 # Extra package databases containing global packages
 extra-package-dbs: []

@@ -31,7 +31,10 @@ data FrSIRMsg = Contact SIRState deriving (Eq, Show)
 
 type FrSIRAgentState = SIRState
 
-type FrSIREnvironment = Network ()
+-- NOTE: here we are not interested in the network and their influences, instead we go for a fully-connected network
+-- We could implement this using Network () as the environment type but the underlying graph-library (FGL) cannot
+-- deal with big (>10.000 nodes) complete networks as it sucks up massive memory. 
+type FrSIREnvironment = [AgentId]
 
 type FrSIRAgentDef = AgentDef FrSIRAgentState FrSIRMsg FrSIREnvironment
 type FrSIRAgentBehaviour = AgentBehaviour FrSIRAgentState FrSIRMsg FrSIREnvironment

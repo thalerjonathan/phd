@@ -98,7 +98,7 @@ randomFrSIRSAgent p (coord, agentId) =
 
         return AgentDef { adId = agentId,
                             adState = s,
-                            adBeh = sirsAgentBehaviourRandInfected rng initS,
+                            adBeh = sirsAgentBehaviour rng initS,
                             adInitMessages = NoEvent,
                             adConversation = Nothing,
                             adRng = rng }

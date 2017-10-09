@@ -52,10 +52,9 @@ initAgentZeroEpstein =
 
     cells <- createCells dims
 
-    netRng <- newStdGen
     discRng <- newStdGen
 
-    let net = createNetworkWithGraph gr netRng 
+    let net = createNetworkWithGraph gr 
     let wp = createDiscrete2d
                         dims
                         neumann -- moore

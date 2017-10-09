@@ -1,8 +1,12 @@
 module FRP.FrABS.Environment.Network (
     NetworkType (..),
+    DeterministicNetwork (..),
+    RandomNetwork (..),
     Network (..), -- TODO: hide data-constructor
 
     createNetwork,
+    createDeterministicNetwork,
+    createRandomNetwork,
     createEmptyNetwork,
     createNetworkWithGraph,
 
@@ -33,12 +37,20 @@ import Data.Graph.Inductive.PatriciaTree
 
 type EdgeLabeler l = (AgentId -> AgentId -> l)
 
-data NetworkType = Complete Int | ErdosRenyi Int Double | BarbasiAlbert Int Int Int
+data NetworkType = Random RandomNetwork | Deterministic DeterministicNetwork
+data DeterministicNetwork = Complete Int
+data RandomNetwork = ErdosRenyi Int Double | BarbasiAlbert Int Int Int
 
 data Network l = Network {
-    envNetRng :: StdGen,
     envNetGraph :: Gr () l
 } deriving (Show, Read)
+
+-- NOTE: the underlying graph-library (FGL) can't deal with a fully-connected graph
+-- which is too big (>= 10.000 nodes) as the connections between the links
+-- grow exponentially with the number of nodes and consumes extreme amount of memory
+-- I killed a machine with 16GByte of memory when constructing a fully-connected graph
+-- with 10.000 nodes. 
+-- When wanting full connectivity with big number of nodes, use simply an array as environment
 
 -------------------------------------------------------------------------------
 -- Network implementation
@@ -46,27 +58,27 @@ data Network l = Network {
 createNetwork :: NetworkType 
                     -> EdgeLabeler l
                     -> Rand StdGen (Network l)
-createNetwork t l =
-    do
-        rng <- getSplit
-        gr <- createGraph t l
+createNetwork (Deterministic t) l = return $ createDeterministicNetwork t l
+createNetwork (Random t) l = createRandomNetwork t l
 
-        return Network {
-            envNetRng = rng,
-            envNetGraph = gr
-        }
+createDeterministicNetwork :: DeterministicNetwork 
+                                -> EdgeLabeler l
+                                -> Network l
+createDeterministicNetwork (Complete n) l = Network { envNetGraph = gr }
+    where
+        gr = createCompleteGraph l n
 
-createEmptyNetwork :: StdGen -> Network l
-createEmptyNetwork rng = Network {
-            envNetRng = rng,
-            envNetGraph = empty
-        }
+createRandomNetwork :: RandomNetwork 
+                    -> EdgeLabeler l
+                    -> Rand StdGen (Network l)
+createRandomNetwork (ErdosRenyi n p) l = createErdosRenyiGraph l n p >>= (\gr -> return Network { envNetGraph = gr })
+createRandomNetwork (BarbasiAlbert m0 m n) l = createBarbasiAlbertGraph l n m0 m >>= (\gr -> return Network { envNetGraph = gr })
 
-createNetworkWithGraph :: Gr () l -> StdGen -> Network l
-createNetworkWithGraph gr rng = Network {
-                                    envNetRng = rng,
-                                    envNetGraph = gr
-                                }
+createEmptyNetwork :: Network l
+createEmptyNetwork = Network { envNetGraph = empty }
+
+createNetworkWithGraph :: Gr () l -> Network l
+createNetworkWithGraph gr = Network { envNetGraph = gr }
 
 constEdgeLabeler :: l -> EdgeLabeler l
 constEdgeLabeler l _ _ = l
@@ -95,9 +107,7 @@ neighbourEdges aid e = map fst ls
         ls = neighbourLinks aid e
 
 neighbourAgentIds :: AgentId -> Network l -> [AgentId]
-neighbourAgentIds aid e = map snd ls
-    where
-        ls = neighbourLinks aid e
+neighbourAgentIds = neighbourNodes
 
 neighbourAgentIdsM :: AgentId -> State (Network l) [AgentId]
 neighbourAgentIdsM aid = state (\e -> (neighbourAgentIds aid e, e))
@@ -132,21 +142,30 @@ randomNeighbourNode aid e =
 -------------------------------------------------------------------------------
 -- PRIVATE
 -------------------------------------------------------------------------------
-createGraph :: NetworkType -> EdgeLabeler l -> Rand StdGen (Gr () l)
-createGraph (Complete n) l = createCompleteGraph l n
-createGraph (ErdosRenyi n p) l = createErdosRenyiGraph l n p
-createGraph (BarbasiAlbert m0 m n) l = createBarbasiAlbertGraph l n m0 m
-
-createCompleteGraph :: EdgeLabeler l -> Int -> Rand StdGen (Gr () l)
-createCompleteGraph l n = 
-    do
-        let gr = mkGraph nodes edges -- :: Gr () l
-        return gr
+createCompleteGraph :: EdgeLabeler l -> Int -> Gr () l
+createCompleteGraph l n = mkGraph nodes edges
     where
+
         nodes = allNodes n
         edges = allEdges l n
-        
 
+{-
+createCompleteGraph :: EdgeLabeler l -> Int -> Gr () l
+createCompleteGraph l n = foldr (createCompleteGraphAux l) gr [0..(n - 1)]
+    where
+        -- NOTE: need to insert nodes this way, because when using empty list [] as well, haskell will infer a different type
+        -- which will result in a directed graph (i think this is one of the very few examples where i got really f***** up by the type-system)
+        nodes = allNodes n
+        gr = mkGraph nodes []
+
+        createCompleteGraphAux :: EdgeLabeler l 
+                                    -> AgentId 
+                                    -> Gr () l 
+                                    -> Gr () l
+        createCompleteGraphAux l aid gr = insEdges edges gr
+            where
+                edges = map (createEdgeByLabeler l aid) [0.. (aid - 1)]
+-}
 createErdosRenyiGraph :: EdgeLabeler l -> Int -> Double -> Rand StdGen (Gr () l)
 createErdosRenyiGraph l n p = 
     do
@@ -170,7 +189,7 @@ createBarbasiAlbertGraph l n m0 m
     | otherwise = 
     do
         -- start with a fully connected graph of m0 AgentIds
-        initGr <- createCompleteGraph l m0
+        let initGr = createCompleteGraph l m0
         let initDegDist = buildDegreeDistr initGr
 
         -- add (n - m0) AgentIds, where each AgentId is connected to m existing AgentIds where the m existing AgentIds are picked at random

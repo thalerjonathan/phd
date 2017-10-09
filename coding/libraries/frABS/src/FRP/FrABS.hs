@@ -106,6 +106,7 @@ module FRP.FrABS (
     constMsgSource,
     randomNeighbourNodeMsgSource,
     randomNeighbourCellMsgSource,
+    randomAgentIdMsgSource,
     
     transitionAfter,
     transitionAfterExp,
@@ -158,9 +159,13 @@ module FRP.FrABS (
     environmentMonadic,
     
     NetworkType (..),
+    DeterministicNetwork (..),
+    RandomNetwork (..),
     Network (..), -- TODO: hide data-constructor
 
     createNetwork,
+    createDeterministicNetwork,
+    createRandomNetwork,
     createEmptyNetwork,
     createNetworkWithGraph,
     constEdgeLabeler,

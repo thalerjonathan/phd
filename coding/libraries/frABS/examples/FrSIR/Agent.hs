@@ -27,7 +27,7 @@ gotInfected ain = onMessageM gotInfectedAux ain False
 ------------------------------------------------------------------------------------------------------------------------
 -- SUSCEPTIBLE
 sirAgentSuceptible :: RandomGen g => g -> FrSIRAgentBehaviour
-sirAgentSuceptible g = transitionOnEvent sirAgentInfectedEvent sirAgentSusceptibleBehaviour (sirAgentInfected g illnessDuration)
+sirAgentSuceptible g = transitionOnEvent sirAgentInfectedEvent sirAgentSusceptibleBehaviour (sirAgentInfected g)
 
 sirAgentInfectedEvent :: FrSIREventSource
 sirAgentInfectedEvent = proc (ain, ao) -> do
@@ -38,18 +38,18 @@ sirAgentInfectedEvent = proc (ain, ao) -> do
 sirAgentSusceptibleBehaviour :: FrSIRAgentBehaviour
 sirAgentSusceptibleBehaviour = proc (ain, e) -> do
     let ao = agentOutFromIn ain
-    ao0 <- doOnce (setDomainState Susceptible) -< ao
-    returnA -< (ao0, e)
+    ao' <- doOnce (setDomainState Susceptible) -< ao
+    returnA -< (ao', e)
 
 -- INFECTED
-sirAgentInfected :: RandomGen g => g -> Double -> FrSIRAgentBehaviour
-sirAgentInfected g duration = transitionAfterExp g duration (sirAgentInfectedBehaviour g) sirAgentRecovered
+sirAgentInfected :: RandomGen g => g -> FrSIRAgentBehaviour
+sirAgentInfected g = transitionAfterExp g illnessDuration (sirAgentInfectedBehaviour g) sirAgentRecovered
 
 sirAgentInfectedBehaviour :: RandomGen g => g -> FrSIRAgentBehaviour
 sirAgentInfectedBehaviour g = proc (ain, e) -> do
     let ao = agentOutFromIn ain
     ao1 <- doOnce (setDomainState Infected) -< ao
-    ao2 <- sendMessageOccasionallySrc g (1 / contactRate) (randomNeighbourNodeMsgSource (Contact Infected)) -< (ao1, e)
+    ao2 <- sendMessageOccasionallySrc g (1 / contactRate) (randomAgentIdMsgSource (Contact Infected) True) -< (ao1, e)
     returnA -< (ao2, e)
 
 -- RECOVERED
@@ -62,6 +62,6 @@ sirAgentRecovered = proc (ain, e) -> do
 -- INITIAL CASES
 sirAgentBehaviour :: RandomGen g => g -> SIRState -> FrSIRAgentBehaviour
 sirAgentBehaviour g Susceptible = sirAgentSuceptible g
-sirAgentBehaviour g Infected = sirAgentInfected g illnessDuration
+sirAgentBehaviour g Infected = sirAgentInfected g
 sirAgentBehaviour _ Recovered = sirAgentRecovered
 ------------------------------------------------------------------------------------------------------------------------

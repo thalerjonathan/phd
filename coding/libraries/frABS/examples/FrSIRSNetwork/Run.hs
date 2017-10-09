@@ -26,7 +26,7 @@ samplingTimeDelta = 0.05
 steps = 3000
 
 replCfg = ReplicationConfig {
-    replCfgCount = 16,
+    replCfgCount = 4,
     replCfgAgentReplicator = defaultAgentReplicator,
     replCfgEnvReplicator = defaultEnvReplicator
 }
@@ -41,7 +41,7 @@ barbasiAlbertNetwork = BarbasiAlbert barbasiAlbertM0 barbasiAlbertM agentCount
 barbasiAlbertM0 = 3
 barbasiAlbertM = 1
 
-network = completeNetwork
+network = Deterministic completeNetwork
 
 runFrSIRSNetworkWithRendering :: IO ()
 runFrSIRSNetworkWithRendering =

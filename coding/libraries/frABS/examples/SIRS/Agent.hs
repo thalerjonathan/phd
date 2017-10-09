@@ -29,7 +29,8 @@ infectAgentM :: Double -> State SIRSAgentOut ()
 infectAgentM t =
     do
         doInfect <- agentRandomBoolProbM infectionProbability
-        when doInfect $ updateDomainStateM (\s -> s { sirsState = Infected, sirsTime = t + infectedDuration } )
+        expInfectedDuration <- agentRandomM (randomExpM infectedDuration)
+        when doInfect $ updateDomainStateM (\s -> s { sirsState = Infected, sirsTime = t + expInfectedDuration } )
 
 handleInfectedAgentM :: SIRSEnvironment -> Double -> State SIRSAgentOut ()
 handleInfectedAgentM e t = 
@@ -37,7 +38,9 @@ handleInfectedAgentM e t =
         timeOfRecovery <- domainStateFieldM sirsTime
         -- NOTE: if agent has just recovered, don't send infection-contact to others
         ifThenElse (t >= timeOfRecovery) 
-                    (updateDomainStateM (\s -> s { sirsState = Recovered, sirsTime = t + immuneDuration} ))
+                    (do
+                        expImmuneDuration <- agentRandomM (randomExpM immuneDuration)
+                        updateDomainStateM (\s -> s { sirsState = Recovered, sirsTime = t + expImmuneDuration} ))
                     (randomContactM e)
 
 handleRecoveredAgentM :: Double -> State SIRSAgentOut ()
@@ -52,7 +55,7 @@ randomContactM e =
     do
         coord <- domainStateFieldM sirsCoord
         randNeighId <- agentRandomM (randomNeighbourCell coord False e)
-        sendMessageM (randNeighId, (Contact Infected))
+        sendMessageM (randNeighId, Contact Infected)
 
 sirsAgentBehaviourFuncM :: SIRSAgentMonadicReadEnvBehaviour
 sirsAgentBehaviourFuncM e t ain = 
@@ -82,10 +85,11 @@ sirsDt e t ao
 
 infectAgent :: Double -> SIRSAgentOut -> SIRSAgentOut
 infectAgent t ao
-    | yes = updateDomainState (\s -> s { sirsState = Infected, sirsTime = t + infectedDuration }) ao'
+    | yes = updateDomainState (\s -> s { sirsState = Infected, sirsTime = t + expInfectedDuration }) ao''
     | otherwise = ao'
     where
          (yes, ao') = agentRandomBoolProb infectionProbability ao
+         (expInfectedDuration, ao'') = agentRandom (randomExpM immuneDuration) ao'
 
 contactInfected :: Double -> AgentMessage SIRSMsg -> SIRSAgentOut -> SIRSAgentOut
 contactInfected t (_, Contact Infected) ao
@@ -99,7 +103,8 @@ handleInfectedAgent e t ao
     | otherwise = randomContact e ao
     where
         timeOfRecovery = sirsTime $ aoState ao
-        recoveredAgent = updateDomainState (\s -> s { sirsState = Recovered, sirsTime = t + immuneDuration}) ao
+        (expImmuneDuration, ao') = agentRandom (randomExpM immuneDuration) ao
+        recoveredAgent = updateDomainState (\s -> s { sirsState = Recovered, sirsTime = t + expImmuneDuration}) ao'
 
 handleRecoveredAgent :: Double -> SIRSAgentOut -> SIRSAgentOut
 handleRecoveredAgent t ao 

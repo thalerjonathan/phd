@@ -18,7 +18,7 @@ initDoubleAuction n =
   do
     auctioneer <- evalRandIO (createDAAuctioneer auctioneer)
     traders <- evalRandIO $ mapM (createDATrader n) [1..n]
-    envNet <- evalRandIO $ createNetwork (Complete n) unitEdgeLabeler
+    let envNet = createDeterministicNetwork (Complete n) unitEdgeLabeler
 
     return (auctioneer : traders, envNet)
 

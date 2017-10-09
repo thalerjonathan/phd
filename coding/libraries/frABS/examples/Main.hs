@@ -30,8 +30,10 @@ import           NewAgents.Run
 	
 -}
 
+import YampaTests
+
 main :: IO ()
-main = runFrSIRReplicationsAndWriteToFile -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
+main = testOccasionally -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
 
     -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
     -- runZombiesWithRendering

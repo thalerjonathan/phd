@@ -63,3 +63,25 @@ Test-Suite test_sugarscape
     , HUnit
   ghc-options:    -main-is Test 
   -- why the F*** is main-is not working???
+
+Test-Suite test_frSIR
+  default-language:
+    Haskell2010
+  type:
+    exitcode-stdio-1.0
+  hs-source-dirs:
+    .,
+    FrSIR/Tests/
+  main-is: Test.hs
+  build-depends:
+      base
+    , tasty
+    , tasty-hunit
+    , tasty-smallcheck
+    , tasty-quickcheck
+    , FrABS
+    , QuickCheck
+    , HUnit
+    , stm
+  ghc-options:    -main-is Test 
+  -- why the F*** is main-is not working???

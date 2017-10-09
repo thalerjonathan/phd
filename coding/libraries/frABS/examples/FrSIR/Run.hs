@@ -21,20 +21,20 @@ rngSeed :: Int
 rngSeed = 42
 
 samplingTimeDelta :: DTime
-samplingTimeDelta = 0.05
+samplingTimeDelta = 0.1
 
 steps :: Int
-steps = 3000
+steps = 1500
 
 agentCount :: Int
-agentCount = 1000
+agentCount = 10000
 
 numInfected :: Int
-numInfected = 10
+numInfected = 20
 
 replCfg :: FrSIRReplicationConfig
 replCfg = ReplicationConfig {
-    replCfgCount = 20,
+    replCfgCount = 10,
     replCfgAgentReplicator = defaultAgentReplicator,
     replCfgEnvReplicator = defaultEnvReplicator
 }

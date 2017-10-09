@@ -1,27 +1,26 @@
 module Test where
 
+import Data.List
+import Data.Ord
+
 import Test.Tasty
 import Test.Tasty.SmallCheck as SC
 import Test.Tasty.QuickCheck as QC
 import Test.Tasty.HUnit
 
-import Common
-
-import Data.List
-import Data.Ord
+import Agent
 
 main :: IO ()
 main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "Sugarscape Tests" [unitTests]
+tests = testGroup "FrSIR Tests" [unitTests]
 
 unitTests :: TestTree
 unitTests = 
   testGroup 
-    "Sugarscape Unit tests"
-      [test_selectBestCells_group,
-       test_culturalComputation_group]
+    "FrSIR Agent tests"
+      [test_agent_group]
 
 {-
 properties :: TestTree

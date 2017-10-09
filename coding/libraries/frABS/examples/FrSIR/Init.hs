@@ -13,7 +13,6 @@ import FrSIR.Model
 
 createFrSIRNumInfected :: Int -> Int -> IO ([FrSIRAgentDef], FrSIREnvironment)
 createFrSIRNumInfected agentCount numInfected = do
-    --let e = createDeterministicNetwork (Complete agentCount) unitEdgeLabeler
     let agentIds = [0 .. (agentCount-1)]
     let infectedIds = take numInfected agentIds
     let susceptibleIds = drop numInfected agentIds

@@ -195,8 +195,8 @@ transitionAfterExp g t from to = switch (transitionAfterExpAux t from) (const to
         transitionAfterExpAux t from = proc aie ->
             do
                 aoe <- from -< aie
-                --timeoutEvent <- afterExp g t () -< ()
-                timeoutEvent <- occasionally g t () -< ()
+                timeoutEvent <- afterExp g t () -< ()
+                --timeoutEvent <- occasionally g t () -< ()
                 returnA -< (aoe, timeoutEvent)
 
 afterExp :: RandomGen g => g -> DTime -> b -> SF a (Event b)

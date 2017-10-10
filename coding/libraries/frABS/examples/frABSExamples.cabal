@@ -43,8 +43,6 @@ executable frABSExamples
                     -- "-with-rtsopts=-N"
                       -- use hc, hd or hy
 
--- TODO: executable for each example
-
 executable SamplingTests
   main-is:         Main.hs
   hs-source-dirs:  SamplingTests/

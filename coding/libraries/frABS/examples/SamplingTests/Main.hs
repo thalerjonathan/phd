@@ -1,5 +1,6 @@
 import AfterExp 
 import Occasionally 
+import SuperSampling
 
 main :: IO ()
-main = testAfterExp
+main = testSuperSampling

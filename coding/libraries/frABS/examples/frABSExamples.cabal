@@ -43,6 +43,22 @@ executable frABSExamples
                     -- "-with-rtsopts=-N"
                       -- use hc, hd or hy
 
+-- TODO: executable for each example
+
+executable SamplingTests
+  main-is:         Main.hs
+  hs-source-dirs:  SamplingTests/
+
+  build-depends:   base, 
+                    FrABS, 
+                    Yampa,
+                    parallel
+
+  ghc-options:      -O2
+                    -W
+                    -threaded
+              
+
 Test-Suite test_sugarscape
   default-language:
     Haskell2010

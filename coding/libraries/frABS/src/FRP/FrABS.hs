@@ -99,6 +99,8 @@ module FRP.FrABS (
     doOnce,
     doNothing,
     
+    afterExp,
+    
     sendMessageOccasionallySrc,
     sendMessageOccasionally,
 

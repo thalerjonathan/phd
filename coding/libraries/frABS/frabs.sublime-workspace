@@ -147,15 +147,6 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "examples/Main.hs",
-			"settings":
-			{
-				"buffer_size": 1987,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		}
 	],
 	"build_system": "",
 	"build_system_choices":
@@ -212,31 +203,27 @@
 	"expanded_folders":
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
-		"/home/jonathan/phd/coding/libraries/frABS/src",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation"
+		"/home/jonathan/phd/coding/libraries/frABS/examples"
 	],
 	"file_history":
 	[
-		"/home/jonathan/phd/coding/libraries/frABS/examples/YampaTests.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Simulation.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Run.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Reactive.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Run.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Internal.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Random.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Yampa/src/FRP/Yampa/Event.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/frABSExamples.cabal",
+		"/home/jonathan/phd/coding/libraries/frABS/FrABS.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/StockFlow.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Init.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/frABSExamples.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Tests/Test.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Tests/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/SD/Definitions.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Random.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Tests/Test.hs",
@@ -254,6 +241,7 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Auctioneer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Network.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Init.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Utils.hs",
@@ -262,17 +250,17 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/frSIRDynamics_1000agents_10steps_5.0e-2dt.m",
-		"/home/jonathan/phd/coding/libraries/frABS/FrABS.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/stack.yaml",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/cabal.sandbox.config",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/frSIRDynamics_1000agents_3000steps_5.0e-2dt.m",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Replication.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Simulation.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils/Sirs.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/frSIRDynamics_1000agents_1000steps_0.1dt.m",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Renderer.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Renderer.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Internal.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Utils.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Continuous2d.hs",
@@ -365,6 +353,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"sendMessageOccasionallySrc",
 			"transitionAfterExp",
 			"agentRandomBoolProb",
 			"agentRandomPick",
@@ -491,8 +480,7 @@
 			"agentAgeingM",
 			"unoccupyPositionM",
 			"sugarScapeAgentBehaviour",
-			"sugarScapeAgentBehaviourM",
-			"sugarScapeAgentConversation"
+			"sugarScapeAgentBehaviourM"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -600,41 +588,8 @@
 	"groups":
 	[
 		{
-			"selected": 0,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "examples/Main.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1987,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								923,
-								923
-							]
-						],
-						"settings":
-						{
-							"subhask_project_dir": "/home/jonathan/phd/coding/libraries/frABS/examples",
-							"subhask_project_name": "frABSExamples",
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 300.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				}
 			]
 		}
 	],
@@ -687,7 +642,7 @@
 	},
 	"output.sublime_haskell_output_panel":
 	{
-		"height": 298.0
+		"height": 302.0
 	},
 	"pinned_build_system": "Packages/Haskell/Haskell.sublime-build",
 	"project": "frabs.sublime-project",
@@ -731,7 +686,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 362.0,
+	"side_bar_width": 530.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

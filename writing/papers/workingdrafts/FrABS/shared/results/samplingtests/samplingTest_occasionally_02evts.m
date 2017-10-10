@@ -1,0 +1,36 @@
+dtAvgs = [
+5.000,126.240;
+2.000,163.830;
+1.000,181.780;
+0.500,188.210;
+0.200,196.290;
+0.100,197.440;
+0.050,197.230;
+0.020,199.480;
+0.010,199.040;
+];
+ecsTheory = 200.0;
+dt = dtAvgs (:, 1);
+avg = dtAvgs (:, 2);
+minDt = min(dt);
+maxDt = max(dt);
+n = length (dt);
+ecsTheoryLinePoints = n + 1;
+ecsTheoryLineX = [0; dt];
+ecsTheoryLineY = ones(ecsTheoryLinePoints, 1) * ecsTheory;
+figure;
+semilogx (dt, avg, 'color', 'blue', 'linewidth', 2);
+hold on
+plot (ecsTheoryLineX, ecsTheoryLineY, 'color', 'red', 'linewidth', 2);
+yTickUpperLimit = ecsTheory * 1.1;
+%axis ([0 maxDt 0 yTickUpperLimit]);
+%axis ('auto x');
+xLabels = cellstr(num2str(dt));
+%set(gca,'YTick', 0:500:yTickUpperLimit);
+%set(gca,'YTick', avg);
+set(gca,'XTick', dt);
+set(gca, 'xticklabel', xLabels);
+xlabel ('Time-Deltas');
+ylabel ('Average Events');
+legend ('Average Events per Time-Deltas', 'Theoretical Maximum');
+title ('Sampling occasionally with 0.2 events per time-unit');

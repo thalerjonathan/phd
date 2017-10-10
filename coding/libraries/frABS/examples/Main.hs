@@ -17,7 +17,6 @@ import           SysDynSIR.Run
 import           Wildfire.Run
 import           Zombies.Run
 import           NewAgents.Run
-import           YampaTests
 
 {- TODOs
   - implememt parallelstrategy using SF instead my own implementation

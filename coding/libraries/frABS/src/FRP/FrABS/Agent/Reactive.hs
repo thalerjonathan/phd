@@ -12,6 +12,8 @@ module FRP.FrABS.Agent.Reactive (
     doOnce,
     doNothing,
     
+    afterExp,
+    
     sendMessageOccasionallySrc,
     sendMessageOccasionally,
 

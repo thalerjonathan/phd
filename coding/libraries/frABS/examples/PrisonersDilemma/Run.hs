@@ -17,9 +17,9 @@ updateStrat = Parallel
 shuffleAgents = False
 rngSeed = 42
 envSize = (59, 59)
-samplingTimeDelta = 0.2
+dt = 0.2
 frequency = 0
-steps = 545
+t = 545 * dt
 
 runPDWithRendering :: IO ()
 runPDWithRendering = 
@@ -30,7 +30,7 @@ runPDWithRendering =
         simulateAndRender initAdefs
                             initEnv
                             params
-                            samplingTimeDelta
+                            dt
                             frequency
                             winTitle
                             winSize
@@ -46,8 +46,8 @@ runPDStepsAndRender =
         simulateStepsAndRender initAdefs
                             initEnv
                             params
-                            samplingTimeDelta
-                            steps
+                            dt
+                            t
                             winTitle
                             winSize
                             renderPDFrame
@@ -58,6 +58,6 @@ runPDSteps =
         params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- initPrisonersDilemma envSize
         
-        let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
+        let asenv = simulateTime initAdefs initEnv params dt t
         let finalAs = fst $ last asenv
         mapM_ (putStrLn . (show . pdCurrAction . snd))finalAs

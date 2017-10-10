@@ -9,23 +9,14 @@ import Text.Printf
 import System.IO
 
 writeSirsDynamicsFile :: String 
-                        -> Int
                         -> Double
                         -> Int
                         -> [(Double, Double, Double)] -> IO ()
-writeSirsDynamicsFile fileName steps samplingTimeDelta replications dynamics = do
+writeSirsDynamicsFile fileName dt replications dynamics = do
     fileHdl <- openFile fileName WriteMode
     hPutStrLn fileHdl "dynamics = ["
     mapM_ (hPutStrLn fileHdl . sirsDynamicToString) dynamics
     hPutStrLn fileHdl "];"
-
-    hPutStrLn fileHdl ("steps = " ++ show steps ++ ";")
-    hPutStrLn fileHdl ("dt = " ++ show samplingTimeDelta ++ ";")
-    hPutStrLn fileHdl ("replications = " ++ show replications ++ ";")
-
-    hPutStrLn fileHdl "startingTime = 0;"
-    hPutStrLn fileHdl "endTime = steps * dt;"
-    hPutStrLn fileHdl "time = 0 : dt : endTime;"
 
     hPutStrLn fileHdl "susceptible = dynamics (:, 1);"
     hPutStrLn fileHdl "infected = dynamics (:, 2);"
@@ -35,6 +26,14 @@ writeSirsDynamicsFile fileName steps samplingTimeDelta replications dynamics = d
     hPutStrLn fileHdl "susceptibleRatio = susceptible ./ totalPopulation;"
     hPutStrLn fileHdl "infectedRatio = infected ./ totalPopulation;"
     hPutStrLn fileHdl "recoveredRatio = recovered ./ totalPopulation;"
+
+    hPutStrLn fileHdl "steps = length (susceptible);"
+    hPutStrLn fileHdl ("dt = " ++ show dt ++ ";")
+    hPutStrLn fileHdl ("replications = " ++ show replications ++ ";")
+
+    hPutStrLn fileHdl "startingTime = 0;"
+    hPutStrLn fileHdl "endTime = (steps - 1) * dt;"
+    hPutStrLn fileHdl "time = 0 : dt : endTime;"
 
     hPutStrLn fileHdl "figure"
     hPutStrLn fileHdl "plot (time, susceptibleRatio.', 'color', 'blue', 'linewidth', 3);"
@@ -51,9 +50,8 @@ writeSirsDynamicsFile fileName steps samplingTimeDelta replications dynamics = d
     hPutStrLn fileHdl "legend('Susceptible','Infected', 'Recovered');"
 
     hPutStrLn fileHdl ("titleStr = sprintf('SIR Dynamics of %i agents, with "
-        ++ printf "%.2f" samplingTimeDelta ++ " dt, " 
-        ++ show steps ++ " steps, " 
-        ++ show replications ++ " replications', totalPopulation)");
+        ++ printf "%.2f" dt ++ " dt, %i steps, " 
+        ++ show replications ++ " replications', totalPopulation, steps)");
 
     hPutStrLn fileHdl "title (titleStr);"
 

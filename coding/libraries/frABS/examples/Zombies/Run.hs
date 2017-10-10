@@ -17,9 +17,9 @@ winTitle = "Zombies"
 updateStrat = Sequential
 shuffleAgents = False
 rngSeed = 42
-samplingTimeDelta = 1.0  -- NOTE: this model has no time-semantics (it does not matter if it is 1.0 or 0.1)
+dt = 1.0  -- NOTE: this model has no time-semantics (it does not matter if it is 1.0 or 0.1)
 frequency = 0
-steps = 200
+t = 200
 
 runZombiesWithRendering :: IO ()
 runZombiesWithRendering =
@@ -30,7 +30,7 @@ runZombiesWithRendering =
         simulateAndRender initAdefs
                             initEnv
                             params
-                            samplingTimeDelta
+                            dt
                             frequency
                             winTitle
                             winSize
@@ -43,7 +43,7 @@ runZombiesStepsAndWriteToFile =
         params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- initZombies
 
-        let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
+        let asenv = simulateTime initAdefs initEnv params dt t
 
         writeDynamics asenv
 

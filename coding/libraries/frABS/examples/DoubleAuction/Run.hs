@@ -13,9 +13,9 @@ import Text.Printf
 import System.IO
 
 rngSeed = 42
-samplingTimeDelta = 1.0
+t = 1.0
 agentCount = 10
-steps = 1000
+dt = 1000
 updateStrat = Parallel -- NOTE: would not work correctly when using Sequential traversion
 shuffleAgents = False
 
@@ -27,7 +27,7 @@ runDoubleAuctionSteps =
         params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- initDoubleAuction agentCount
         
-        let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
+        let asenv = simulateTime initAdefs initEnv params dt t
 
         let (asFinal, envFinal) = last asenv
         mapM printTraderAgent asFinal
@@ -42,7 +42,7 @@ runDoubleAuctionDebug =
         params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- initDoubleAuction agentCount
         
-        processDebug initAdefs initEnv params samplingTimeDelta renderFunc
+        simulateDebug initAdefs initEnv params dt renderFunc
 
     where
         renderFunc :: Bool -> ([DAAgentObservable], DAEnvironment) -> IO Bool

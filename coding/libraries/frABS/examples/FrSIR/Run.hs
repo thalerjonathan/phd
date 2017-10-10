@@ -20,14 +20,14 @@ shuffleAgents = False
 rngSeed :: Int
 rngSeed = 42
 
-samplingTimeDelta :: DTime
-samplingTimeDelta = 0.1
+dt :: DTime
+dt = 0.1
 
-steps :: Int
-steps = 1500
+t :: DTime
+t = 150
 
 agentCount :: Int
-agentCount = 10000
+agentCount = 1000
 
 numInfected :: Int
 numInfected = 20
@@ -45,13 +45,13 @@ runFrSIRStepsAndWriteToFile = do
     
     (initAdefs, initEnv) <- createFrSIRNumInfected agentCount numInfected
     
-    let dynamics = processAndAggregateSteps initAdefs initEnv params samplingTimeDelta steps aggregate
+    let dynamics = simulateAggregateTime initAdefs initEnv params dt t aggregate
     let fileName = "frSIRDynamics_" 
                     ++ show agentCount ++ "agents_" 
-                    ++ show steps ++ "steps_" 
-                    ++ show samplingTimeDelta ++ "dt.m"
+                    ++ show t ++ "time_" 
+                    ++ show dt ++ "dt.m"
 
-    writeSirsDynamicsFile fileName steps samplingTimeDelta 0 dynamics
+    writeSirsDynamicsFile fileName dt 0 dynamics
 
 runFrSIRReplicationsAndWriteToFile :: IO ()
 runFrSIRReplicationsAndWriteToFile = do
@@ -59,16 +59,16 @@ runFrSIRReplicationsAndWriteToFile = do
     
     (initAdefs, initEnv) <- createFrSIRNumInfected agentCount numInfected
 
-    let replicationDynamics = runReplicationsWithAggregation initAdefs initEnv params samplingTimeDelta steps replCfg aggregate
+    let replicationDynamics = runReplicationsWithAggregation initAdefs initEnv params dt t replCfg aggregate
     let dynamics = sirsDynamicsReplMean replicationDynamics
 
     let fileName = "frSIRDynamics_" 
                     ++ show agentCount ++ "agents_" 
-                    ++ show steps ++ "steps_" 
-                    ++ show samplingTimeDelta ++ "dt_" 
+                    ++ show t ++ "time_" 
+                    ++ show dt ++ "dt_" 
                     ++ show (replCfgCount replCfg) ++ "replications.m"
 
-    writeSirsDynamicsFile fileName steps samplingTimeDelta (replCfgCount replCfg) dynamics
+    writeSirsDynamicsFile fileName dt (replCfgCount replCfg) dynamics
 
 -------------------------------------------------------------------------------
 -- UTILS

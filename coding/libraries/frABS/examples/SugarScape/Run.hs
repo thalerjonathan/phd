@@ -21,9 +21,9 @@ updateStrat = Sequential    -- Sugarscape works ONLY with Sequential AND must be
 shuffleAgents = True        -- Sugarscape works ONLY with Sequential AND must be shuffled
 envCollapsing = Nothing
 envBeh = Just sugarScapeEnvironmentBehaviour
-samplingTimeDelta = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
+dt = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
 frequency = 0
-steps = 200
+time = 200
 
 runSugarScapeWithRendering :: IO ()
 runSugarScapeWithRendering = 
@@ -34,7 +34,7 @@ runSugarScapeWithRendering =
         simulateAndRender initAdefs
                             initEnv
                             params
-                            samplingTimeDelta
+                            dt
                             frequency
                             winTitle
                             winSize
@@ -50,8 +50,8 @@ runSugarScapeStepsAndRender =
         simulateStepsAndRender initAdefs
                                 initEnv
                                 params
-                                samplingTimeDelta
-                                steps
+                                dt
+                                time
                                 winTitle
                                 winSize
                                 renderSugarScapeFrame
@@ -62,5 +62,5 @@ runSugarScapeStepsAndExport =
         params <- initSimulation updateStrat envBeh envCollapsing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- createSugarScape agentCount envSize params
         
-        let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
+        let asenv = simulateTime initAdefs initEnv params dt time
         writeSugarscapeDynamics asenv

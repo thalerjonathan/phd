@@ -12,24 +12,24 @@ import SysDynSIR.Init
 import SysDynSIR.Model
 import Utils.Sirs
 
-samplingTimeDelta :: DTime
-samplingTimeDelta = 0.05
+dt :: DTime
+dt = 0.05
 
-steps :: Int
-steps = 3000
+t :: DTime
+t = 150
 
 runSysDynSIRStepsAndWriteToFile :: IO ()
-runSysDynSIRStepsAndWriteToFile = writeSirsDynamicsFile fileName steps samplingTimeDelta 0 dynamics
+runSysDynSIRStepsAndWriteToFile = writeSirsDynamicsFile fileName dt 0 dynamics
   where
     sdDefs = createSysDynSIR
     
-    sdObs = runSD sdDefs samplingTimeDelta steps         
+    sdObs = runSD sdDefs dt t         
     dynamics = map calculateDynamics sdObs
 
     fileName = "sysDynSIRDynamics_" 
                     ++ show totalPopulation ++ "population_"
-                    ++ show steps ++ "steps_" 
-                    ++ show samplingTimeDelta ++ "dt.m"
+                    ++ show t ++ "time_" 
+                    ++ show dt ++ "dt.m"
 
 -------------------------------------------------------------------------------
 -- UTILS

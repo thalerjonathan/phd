@@ -16,6 +16,8 @@ module FRP.FrABS.Simulation.Replication
 import Control.Monad.Random
 import Control.Parallel.Strategies
 
+import FRP.Yampa
+
 import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Simulation.Simulation
 
@@ -42,12 +44,12 @@ defaultAgentReplicator rng adef = (adef', rng'')
 runReplicationsWithAggregation :: [AgentDef s m e]
                                 -> e
                                 -> SimulationParams e
-                                -> Double
-                                -> Int
+                                -> DTime
+                                -> DTime
                                 -> ReplicationConfig s m e
                                 -> AgentObservableAggregator s e a
                                 -> [ReplicationAggregate a]
-runReplicationsWithAggregation ads e params dt steps replCfg aggrFunc = result
+runReplicationsWithAggregation ads e params dt t replCfg aggrFunc = result
   where
     replCount = replCfgCount replCfg
     (replRngs, _) = duplicateRng replCount (simRng params)
@@ -61,18 +63,19 @@ runReplicationsWithAggregation ads e params dt steps replCfg aggrFunc = result
                                         -> AgentObservableAggregator s e a
                                         -> StdGen 
                                         -> ReplicationAggregate a
-    runReplicationsWithAggregationAux ads e params aggrFunc replRng = processAndAggregateSteps ads' e (params { simRng = replRng' }) dt steps aggrFunc
+    runReplicationsWithAggregationAux ads e params aggrFunc replRng = 
+        simulateAggregateTime ads' e (params { simRng = replRng' }) dt t aggrFunc
       where
         (ads', replRng') = foldr adsFoldAux ([], replRng) ads
 
 runReplications :: [AgentDef s m e]
                     -> e
                     -> SimulationParams e
-                    -> Double
-                    -> Int
+                    -> DTime
+                    -> DTime
                     -> ReplicationConfig s m e
                     -> [Replication s e]
-runReplications ads e params dt steps replCfg = result
+runReplications ads e params dt t replCfg = result
   where
     replCount = replCfgCount replCfg
     (replRngs, _) = duplicateRng replCount (simRng params)
@@ -85,7 +88,7 @@ runReplications ads e params dt steps replCfg = result
                             -> SimulationParams e
                             -> StdGen 
                             -> Replication s e
-    runReplicationsAux ads e params replRng = processSteps ads' e (params { simRng = replRng' }) dt steps
+    runReplicationsAux ads e params replRng = simulateTime ads' e (params { simRng = replRng' }) dt t
       where
         (ads', replRng') = foldr adsFoldAux ([], replRng) ads
 

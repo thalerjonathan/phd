@@ -302,11 +302,13 @@ module FRP.FrABS (
     EnvironmentCollapsing,
     SimulationParams (..),
 
-    processIOInit,
-    processSteps,
-    processAndAggregateSteps,
+    simulateIOInit,
     
-    processDebug,
+    simulateTime,
+    simulateAggregateTime,
+
+    simulateDebug,
+    simulateDebugInternal,
     
     AgentRendererDisc2d,
     AgentCellColorerDisc2d,

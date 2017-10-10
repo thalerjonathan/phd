@@ -14,9 +14,9 @@ import Text.Printf
 import System.IO
 
 rngSeed = 42
-samplingTimeDelta = 1.0
+dt = 1.0
 agentCount = 1
-steps = 10
+t = 10
 updateStrat = Parallel -- NOTE: would not work correctly when using Sequential traversion
 shuffleAgents = False
 
@@ -28,7 +28,7 @@ runNewAgentsSteps =
         params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- initNewAgents agentCount
         
-        let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
+        let asenv = simulateTime initAdefs initEnv params dt t
 
         let (asFinal, envFinal) = last asenv
         mapM printNewAgent asFinal
@@ -43,7 +43,7 @@ runNewAgentsDebug =
         params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- initNewAgents agentCount
         
-        processDebug initAdefs initEnv params samplingTimeDelta renderFunc
+        simulateDebug initAdefs initEnv params dt renderFunc
 
     where
         renderFunc :: Bool -> ([NewAgentObservable], NewAgentEnvironment) -> IO Bool

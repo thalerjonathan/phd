@@ -51,7 +51,7 @@ simulateAndRender initAdefs
 					  mayClbk =
 	do
 		outRef <- newIORef (initEmptyAgentObs, e) -- :: IO (IORef ([AgentObservable s], e))
-		hdl <- processIOInit initAdefs e params (nextIteration mayClbk outRef)
+		hdl <- simulateIOInit initAdefs e params (nextIteration mayClbk outRef)
 
 		if freq > 0 then
 			simulateIO (displayGlossWindow winTitle winSize)
@@ -75,8 +75,8 @@ simulateAndRender initAdefs
 simulateStepsAndRender :: [AgentDef s m e] 
 							-> e  
 							-> SimulationParams e
-							-> Double
-							-> Int
+							-> DTime
+							-> DTime
 							-> String
 							-> (Int, Int)
 							-> RenderFrame s e
@@ -85,12 +85,12 @@ simulateStepsAndRender initAdefs
 				       e 
 				       params 
 				       dt 
-				       steps 
+				       t 
 				       winTitle 
 				       winSize
 				       renderFunc =
 	do
-		let ass = processSteps initAdefs e params dt steps
+		let ass = simulateTime initAdefs e params dt t
 		let (finalAobs, finalEnv) = last ass
 		let pic = renderFunc winSize finalAobs finalEnv 
 
@@ -124,7 +124,7 @@ debugAndRender initAdefs
         renderOutputRef <- newIORef initPic
         nextStepVar <- newEmptyMVar
 
-        _ <- forkIO $ processDebugInternal 
+        _ <- forkIO $ simulateDebugInternal 
                         initAdefs e params (\_ -> takeMVar nextStepVar) (outputRender renderOutputRef)
 
         if freq > 0 then

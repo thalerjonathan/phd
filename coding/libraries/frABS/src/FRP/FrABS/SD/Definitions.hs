@@ -68,15 +68,15 @@ stockInFrom = valueInFrom
 flowOutTo = valueOutTo
 stockOutTo = valueOutTo
 
-runSD :: [SDDef] -> Double -> Int -> [[SDObservable]]
-runSD initSdDefs samplingTimeDelta steps = map fst sdObsEnv
+runSD :: [SDDef] -> DTime -> DTime -> [[SDObservable]]
+runSD initSdDefs dt t = map fst sdObsEnv
   where
-    sdObsEnv = processSteps 
+    sdObsEnv = simulateTime 
                   initSdDefs 
                   () 
                   params 
-                  samplingTimeDelta 
-                  steps
+                  dt 
+                  t
 
     -- SystemDynamics MUST NOT rely on RNGs at all, so no need to initialize it
     -- SystemDynamics MUST ABSOLUTELY only run Parllel and there is no need to shuffle the agents (=stocks)

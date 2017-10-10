@@ -151,7 +151,7 @@
 			"file": "examples/Main.hs",
 			"settings":
 			{
-				"buffer_size": 1969,
+				"buffer_size": 1987,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -212,11 +212,15 @@
 	"expanded_folders":
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
-		"/home/jonathan/phd/coding/libraries/frABS/examples"
+		"/home/jonathan/phd/coding/libraries/frABS/src",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation"
 	],
 	"file_history":
 	[
 		"/home/jonathan/phd/coding/libraries/frABS/examples/YampaTests.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Simulation.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Reactive.hs",
@@ -264,7 +268,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/frSIRDynamics_1000agents_3000steps_5.0e-2dt.m",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Replication.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Simulation.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils/Sirs.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/frSIRDynamics_1000agents_1000steps_0.1dt.m",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Renderer.hs",
@@ -606,15 +609,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1969,
+						"buffer_size": 1987,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1198,
-								1198
+								923,
+								923
 							]
 						],
 						"settings":

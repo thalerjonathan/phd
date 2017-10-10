@@ -17,9 +17,10 @@ import           SysDynSIR.Run
 import           Wildfire.Run
 import           Zombies.Run
 import           NewAgents.Run
+import           YampaTests
 
 {- TODOs
-    - implememt parallelstrategy using SF instead my own implementation
+  - implememt parallelstrategy using SF instead my own implementation
 	- make current simulation time to rendering and step callbacks
 	- different build targets: with/without time-traveling, gloss rendering
 	- add how-to get FrABS examples running on github in a sandbox: need yampa with exposed core, haskell-titan, install FrABS
@@ -30,10 +31,10 @@ import           NewAgents.Run
 	
 -}
 
-import YampaTests
+
 
 main :: IO ()
-main = testYampa -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
+main = runFrSIRStepsAndWriteToFile -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
 
     -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
     -- runZombiesWithRendering

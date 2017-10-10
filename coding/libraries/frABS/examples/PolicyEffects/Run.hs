@@ -27,8 +27,11 @@ agentCount = 100 :: Int
 initialWealth :: Double
 initialWealth = 100
 
-samplingTimeDelta = 1.0
-steps = 500
+dt :: Double
+dt = 1.0
+
+t :: Double
+t = 500
 
 completeNetwork = Complete agentCount
 erdosRenyiNetwork = ErdosRenyi agentCount 0.2
@@ -53,7 +56,7 @@ runPolicyEffectsWithRendering =
         simulateAndRender initAdefs
                             initEnv
                             params
-                            samplingTimeDelta
+                            dt
                             frequency
                             winTitle
                             winSize
@@ -66,19 +69,19 @@ runPolicyEffectsStepsAndWriteToFile =
         params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- createPolicyEffects initialWealth network
 
-        let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
+        let asenv = simulateTime initAdefs initEnv params dt t
         let dynamics = map (calculateDynamics . fst) asenv
         let dynamicsFileName = "policyEffectsDynamics_" 
                                 ++ show agentCount ++ "agents_" 
-                                ++ show steps ++ "steps.m" 
+                                ++ show t ++ "time.m" 
 
         let finalAgents = (fst . last) asenv
         let histFileName = "policyEffectsHistogram_" 
                                 ++ show agentCount ++ "agents_" 
-                                ++ show steps ++ "steps.m" 
+                                ++ show t ++ "time.m" 
 
-        writeDynamicsFile dynamicsFileName steps 0 dynamics
-        writeHistogramFile histFileName steps 0 finalAgents
+        writeDynamicsFile dynamicsFileName t 0 dynamics
+        writeHistogramFile histFileName t 0 finalAgents
 
 runPolicyEffectsReplicationsAndWriteToFile :: IO ()
 runPolicyEffectsReplicationsAndWriteToFile =
@@ -86,16 +89,16 @@ runPolicyEffectsReplicationsAndWriteToFile =
         params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
         (initAdefs, initEnv) <- createPolicyEffects initialWealth network
 
-        let assenv = runReplications initAdefs initEnv params samplingTimeDelta steps replCfg
+        let assenv = runReplications initAdefs initEnv params dt t replCfg
         let replicationDynamics = map calculateSingleReplicationDynamic assenv
         let dynamics = dynamicsReplMean replicationDynamics
 
         let fileName = "policyEffectsDynamics_" 
                         ++ show agentCount ++ "agents_" 
-                        ++ show steps ++ "steps_" 
+                        ++ show t ++ "time_" 
                         ++ show (replCfgCount replCfg) ++ "replications.m"
 
-        writeDynamicsFile fileName steps (replCfgCount replCfg) dynamics
+        writeDynamicsFile fileName t (replCfgCount replCfg) dynamics
 
 
 calculateDynamics :: [PolicyEffectsAgentObservable] -> (Double, Double, Double)
@@ -143,13 +146,13 @@ agentWealthToString ao =
         wealth = snd ao
 
 writeDynamicsFile :: String 
-                        -> Int
+                        -> Double
                         -> Int
                         -> [(Double, Double, Double)] -> IO ()
-writeDynamicsFile fileName steps replications dynamics =
+writeDynamicsFile fileName t replications dynamics =
     do
         fileHdl <- openFile fileName WriteMode
-        hPutStrLn fileHdl ("steps = " ++ show steps ++ ";")
+        hPutStrLn fileHdl ("time = " ++ show t ++ ";")
         hPutStrLn fileHdl ("replications = " ++ show replications ++ ";")
         
         hPutStrLn fileHdl "dynamics = ["
@@ -169,18 +172,18 @@ writeDynamicsFile fileName steps replications dynamics =
         hPutStrLn fileHdl "xlabel ('Time');"
         hPutStrLn fileHdl "ylabel ('Wealth');"
         hPutStrLn fileHdl "legend('Min Wealth','Max Wealth', 'Std');"
-        hPutStrLn fileHdl ("title ('Policy Effects over " ++ show steps ++ " steps, " ++  (show replications) ++ " replications');")
+        hPutStrLn fileHdl ("title ('Policy Effects over " ++ show t ++ " time, " ++  (show replications) ++ " replications');")
 
         hClose fileHdl
 
 writeHistogramFile :: String 
-                        -> Int
+                        -> Double
                         -> Int
                         -> [PolicyEffectsAgentObservable] -> IO ()
-writeHistogramFile fileName steps replications aobs =
+writeHistogramFile fileName t replications aobs =
     do
         fileHdl <- openFile fileName WriteMode
-        hPutStrLn fileHdl ("steps = " ++ show steps ++ ";")
+        hPutStrLn fileHdl ("time = " ++ show t ++ ";")
         hPutStrLn fileHdl ("replications = " ++ show replications ++ ";")
         
         hPutStrLn fileHdl "agentsWealth = ["

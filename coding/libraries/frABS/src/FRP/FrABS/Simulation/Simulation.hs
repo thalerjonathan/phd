@@ -7,13 +7,13 @@ module FRP.FrABS.Simulation.Simulation (
     SimulationParams (..),
     AgentObservableAggregator,
     
-    processIOInit,
+    simulateIOInit,
     
-    processSteps,
-    processAndAggregateSteps,
+    simulateTime,
+    simulateAggregateTime,
 
-    processDebug,
-    processDebugInternal
+    simulateDebug,
+    simulateDebugInternal
   ) where
 
 import FRP.FrABS.Simulation.SeqIteration
@@ -49,10 +49,10 @@ data SimulationParams e = SimulationParams {
 
 type AgentObservableAggregator s e a = (([AgentObservable s], e) -> a) 
 
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- RUNNING SIMULATION FROM AN OUTER LOOP
-------------------------------------------------------------------------------------------------------------------------
-processIOInit :: [AgentDef s m e]
+-------------------------------------------------------------------------------
+simulateIOInit :: [AgentDef s m e]
                     -> e
                     -> SimulationParams e
                     -> (ReactHandle () ([AgentObservable s], e)
@@ -60,46 +60,46 @@ processIOInit :: [AgentDef s m e]
                             -> ([AgentObservable s], e)
                             -> IO Bool)
                     -> IO (ReactHandle () ([AgentObservable s], e))
-processIOInit adefs e params iterFunc = reactInit
+simulateIOInit adefs e params iterFunc = reactInit
                                                 (return ())
                                                 iterFunc
-                                                (process params adefs e)
-------------------------------------------------------------------------------------------------------------------------
+                                                (simulate params adefs e)
+-------------------------------------------------------------------------------
 
-------------------------------------------------------------------------------------------------------------------------
--- CALCULATING A FIXED NUMBER OF STEPS OF THE SIMULATION
-------------------------------------------------------------------------------------------------------------------------
-processSteps :: [AgentDef s m e]
+-------------------------------------------------------------------------------
+-- RUN THE SIMULATION FOR A FIXED TIME
+-------------------------------------------------------------------------------
+simulateTime :: [AgentDef s m e]
                 -> e
                 -> SimulationParams e
-                -> Double
-                -> Int
+                -> DTime
+                -> DTime
                 -> [([AgentObservable s], e)]
-processSteps adefs e params dt steps = embed
-                                            (process params adefs e)
-                                            ((), sts)
+simulateTime adefs e params dt t = embed (simulate params adefs e) ((), sts)
     where
+        steps = floor $ t / dt
         sts = replicate steps (dt, Nothing)
 
-processAndAggregateSteps :: [AgentDef s m e]
+simulateAggregateTime :: [AgentDef s m e]
                             -> e
                             -> SimulationParams e
-                            -> Double
-                            -> Int
+                            -> DTime
+                            -> DTime
                             -> AgentObservableAggregator s e a
                             -> [a]
-processAndAggregateSteps adefs e params dt steps aggrFun = agrs
+simulateAggregateTime adefs e params dt t aggrFun = agrs
     where
+        steps = floor $ t / dt
         sts = replicate steps (dt, Nothing)
         agrSf = arr aggrFun
-        sf = process params adefs e >>> agrSf
+        sf = simulate params adefs e >>> agrSf
         agrs = embed sf ((), sts)
 ----------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DEBUGGING THE SIMULATION USING HASKELL-TITAN
 ------------------------------------------------------------------------------------------------------------------------
-processDebug :: forall s e m .
+simulateDebug :: forall s e m .
                 (Show s, Read s, Show e, Read e)
                 => [AgentDef s m e]
                 -> e
@@ -107,15 +107,15 @@ processDebug :: forall s e m .
                 -> Double
                 -> (Bool -> ([AgentObservable s], e) -> IO Bool)
                 -> IO ()
-processDebug adefs e params dt renderFunc = 
-    processDebugInternal
+simulateDebug adefs e params dt renderFunc = 
+    simulateDebugInternal
         adefs
         e
         params
         (\_ -> return (dt, Nothing))
         renderFunc
 
-processDebugInternal :: forall s e m .
+simulateDebugInternal :: forall s e m .
                         (Show s, Read s, Show e, Read e)
                         => [AgentDef s m e]
                         -> e
@@ -123,7 +123,7 @@ processDebugInternal :: forall s e m .
                         -> (Bool -> IO (DTime, Maybe ()))
                         -> (Bool -> ([AgentObservable s], e) -> IO Bool)
                         -> IO ()
-processDebugInternal adefs e params inputFunc renderFunc = 
+simulateDebugInternal adefs e params inputFunc renderFunc = 
     do
         bridge <- mkTitanCommTCPBridge
 
@@ -134,7 +134,7 @@ processDebugInternal adefs e params inputFunc renderFunc =
             (return ())                                -- IO a: Initial sensing action
             inputFunc             -- (Bool -> IO (DTime, Maybe a)): Continued sensing action
             renderFunc                               -- (Bool -> b -> IO Bool): Rendering/consumption action
-            (process params adefs e)                 -- SF a b: Signal Function that defines the program 
+            (simulate params adefs e)                 -- SF a b: Signal Function that defines the program 
 
 data FooPred s e = FooPred deriving (Read, Show)
 
@@ -144,11 +144,11 @@ instance Pred (FooPred s e) () ([AgentObservable s], e) where
 
 
 ----------------------------------------------------------------------------------------------------------------------
-process :: SimulationParams e
+simulate :: SimulationParams e
             -> [AgentDef s m e]
             -> e
             -> SF () ([AgentObservable s], e)
-process params adefs e = sf >>> outToObs'
+simulate params adefs e = sf >>> outToObs'
     where
         asfs = map adBeh adefs
         idGen = simIdGen params
@@ -159,13 +159,13 @@ process params adefs e = sf >>> outToObs'
 
 ----------------------------------------------------------------------------------------------------------------------
 -- NOTE: this is used for internal, recursive simulation and can be requested by agents in SEQUENTIAL strategy ONLY
-simulate :: ([AgentIn s m e], e)
-            -> [AgentBehaviour s m e]
-            -> SimulationParams e
-            -> Double
-            -> Int
-            -> [([AgentOut s m e], e)]
-simulate (ais, e) asfs params dt steps = embed sfStrat ((), sts)
+simulateRecursive :: ([AgentIn s m e], e)
+                    -> [AgentBehaviour s m e]
+                    -> SimulationParams e
+                    -> Double
+                    -> Int
+                    -> [([AgentOut s m e], e)]
+simulateRecursive (ais, e) asfs params dt steps = embed sfStrat ((), sts)
     where
         sts = replicate steps (dt, Nothing)
         sfStrat = iterationStrategy params asfs ais e
@@ -320,7 +320,7 @@ seqCallback params
                 -- TODO: when running for multiple steps it makes sense to specify WHEN the agent of oldSF runs
                 -- NOTE: when setting steps to > 1 we end up in an infinite loop
                 -- TODO: only running in sequential for now
-                allStepsRecOuts = simulate (map fst allAins, env) allAsfs params 1.0 1
+                allStepsRecOuts = simulateRecursive (map fst allAins, env) allAsfs params 1.0 1
 
                 (lastStepRecOuts, lastStepRecEnv) = last allStepsRecOuts
                 mayRecOut = Data.List.find (\ao -> (aoId ao) == (aiId $ fst oldIn)) lastStepRecOuts

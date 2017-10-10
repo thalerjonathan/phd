@@ -10,8 +10,8 @@ import System.IO
 
 rngSeed = 42
 agentCount = 2
-samplingTimeDelta = 1.0
-steps = 2
+dt = 1.0
+t = 2
 updateStrat = Sequential
 shuffleAgents = True
 
@@ -26,7 +26,7 @@ runConversationSteps =
         putStrLn "Initial Agents:"
         mapM_ (putStrLn . show . adState) initAdefs
 
-        let ass = processSteps initAdefs initEnv params samplingTimeDelta steps
+        let ass = simulateTime initAdefs initEnv params dt t
         let (as', _) = last ass
 
         putStrLn "Final Agents:"

@@ -22,8 +22,8 @@ shuffleAgents = False
 
 rngSeed = 42
 
-samplingTimeDelta = 0.05
-steps = 3000
+dt = 0.05
+t = 150
 
 replCfg = ReplicationConfig {
     replCfgCount = 4,
@@ -54,7 +54,7 @@ runFrSIRSNetworkWithRendering =
         simulateAndRender initAdefs
                             initEnv
                             params
-                            samplingTimeDelta
+                            dt
                             frequency
                             winTitle
                             winSize
@@ -72,8 +72,8 @@ runFrSIRSNetworkStepsAndRender =
         simulateStepsAndRender initAdefs
                             initEnv
                             params
-                            samplingTimeDelta
-                            steps
+                            dt
+                            t
                             winTitle
                             winSize
                             renderFrSIRSNetworkFrame
@@ -86,14 +86,14 @@ runFrSIRSNetworkStepsAndWriteToFile =
         (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected numInfected network
         --(initAdefs, initEnv) <- createFrSIRSNetworkRandInfected initialInfectionProb network
 
-        let asenv = processSteps initAdefs initEnv params samplingTimeDelta steps
+        let asenv = simulateTime initAdefs initEnv params dt t
         let dynamics = map (calculateDynamics . fst) asenv
         let fileName = "frSIRSNetworkDynamics_" 
                         ++ show agentCount ++ "agents_" 
-                        ++ show steps ++ "steps_" 
-                        ++ show samplingTimeDelta ++ "dt.m"
+                        ++ show t ++ "time_" 
+                        ++ show dt ++ "dt.m"
 
-        writeSirsDynamicsFile fileName steps samplingTimeDelta 0 dynamics
+        writeSirsDynamicsFile fileName dt 0 dynamics
 
 runFrSIRSNetworkReplicationsAndWriteToFile :: IO ()
 runFrSIRSNetworkReplicationsAndWriteToFile =
@@ -103,18 +103,18 @@ runFrSIRSNetworkReplicationsAndWriteToFile =
         (initAdefs, initEnv) <- createFrSIRSNetworkNumInfected numInfected network
         --(initAdefs, initEnv) <- createFrSIRSNetworkRandInfected initialInfectionProb network
 
-        let assenv = runReplications initAdefs initEnv params samplingTimeDelta steps replCfg
+        let assenv = runReplications initAdefs initEnv params dt t replCfg
         let replicationDynamics = map calculateSingleReplicationDynamic assenv
         let dynamics = sirsDynamicsReplMean replicationDynamics
 
 
         let fileName = "frSIRSNetworkDynamics_" 
                         ++ show agentCount ++ "agents_" 
-                        ++ show steps ++ "steps_" 
-                        ++ show samplingTimeDelta ++ "dt_" 
+                        ++ show t ++ "time_" 
+                        ++ show dt ++ "dt_" 
                         ++ show (replCfgCount replCfg) ++ "replications.m"
 
-        writeSirsDynamicsFile fileName steps samplingTimeDelta (replCfgCount replCfg) dynamics
+        writeSirsDynamicsFile fileName dt (replCfgCount replCfg) dynamics
 
 -------------------------------------------------------------------------------
 -- UTILS

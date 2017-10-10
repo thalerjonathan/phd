@@ -1,6 +1,7 @@
 module YampaTests 
     (
-      testOccasionally
+      testYampa
+    , testOccasionally
     , testAfterExp
     ) where
 
@@ -13,59 +14,81 @@ import FRP.Yampa
 import FRP.Yampa.InternalCore
 import FRP.FrABS
 
+testYampa :: IO ()
+testYampa = testOccasionally >> testAfterExp
+
 testOccasionally :: IO ()
 testOccasionally = do
-    let eventFreq = 1 / 3       :: DTime
-    let samplingFreq = 1 / 10  :: DTime
-    let reps = 10000
+    let eventFreq = 1 / 5   :: DTime
+    let dt = 1 / 20         :: DTime
+    let t = 1000            :: DTime
 
-    rs <- mapM (runOccasionally eventFreq samplingFreq 1000) [1..reps]
+    let eventsPerTimeUnit = 1 / eventFreq
+    let ecsTheory = t * eventsPerTimeUnit
 
-    let avgRs = sum rs / fromIntegral (length rs)
-    print $ "average ratios = " ++ printf "%.3f" avgRs
+    let reps = 1
+    let steps = floor (t / dt) :: Int
 
+    ecs <- mapM (runOccasionally eventFreq dt steps) [1..reps]
+
+    let ecAvg = fromIntegral (sum ecs) / fromIntegral reps :: Double
+
+    let ecsRatios = map (\ec -> fromIntegral ec / fromIntegral steps) ecs
+    let avgRatio = sum ecsRatios / fromIntegral reps :: Double
+    let avgRatioTheory = dt / eventFreq
+    
+    print $ "running with dt of " 
+            ++ printf "%.3f" dt ++ " for " 
+            ++ show steps ++ " steps with "
+            ++ show eventsPerTimeUnit ++ " events per time-unit"
+            ++ " for a total time of " ++ show t
+    print $ "average event-count = " ++ printf "%.2f" ecAvg ++ ", theoretical average = " ++ printf "%.2f" ecsTheory
+    -- print $ "average event-ratio = " ++ printf "%.3f" avgRatio ++ ", theoretical average = " ++ printf "%.3f" avgRatioTheory
+    
 testAfterExp :: IO ()
 testAfterExp = do
     let eventTime = 15       :: DTime
-    let samplingFreq = 1 / 10  :: DTime
-    let reps = 1000
+    let dt = 1 / 10  :: DTime
+    let reps = 10000
 
-    ts <- mapM (runAfterExp eventTime samplingFreq) [1..reps]
+    ts <- mapM (runAfterExp eventTime dt) [1..reps]
 
     let avgTs = sum ts / fromIntegral (length ts)
 
-    print $ "event occured on average after = " ++ show avgTs  
+    print $ "event occured on average after = " 
+            ++ printf "%.3f" avgTs  
+            ++ ", theoretical time: " ++ show eventTime
 
-runOccasionally :: DTime -> DTime -> Int ->  Int -> IO Double
-runOccasionally eventFreq samplingFreq steps _seed = do
+runOccasionally :: DTime -> DTime -> Int ->  Int -> IO Int
+runOccasionally eventFreq dt steps _seed = do
     --let g = mkStdGen 0
     g <- newStdGen
     let sf = occasionally g eventFreq () -- RandomGen g => g -> Time -> b -> SF a (Event b)
 
-    let deltas = replicate steps (samplingFreq, Nothing)
+    let deltas = replicate steps (dt, Nothing)
     let bs = embed sf ((), deltas) -- SF a b -> (a, [(DTime, Maybe a)]) -> [b]
 
     let eventCount = (length . filter isEvent) bs
     let totalCount = length bs
     let ratio = (fromIntegral eventCount / fromIntegral totalCount) :: Double
     --print (show steps ++ " steps, eventFreq = " ++ show eventFreq 
-    --        ++ " samplingFreq = " ++ show samplingFreq 
+    --        ++ " dt = " ++ show dt 
     --        ++ " ratio = " ++ printf "%.3f" ratio)
 
-    return ratio
+    return eventCount
 
 runAfterExp :: DTime -> DTime -> Int -> IO DTime
-runAfterExp expEventTime samplingFreq _seed = do
+runAfterExp expEventTime dt _seed = do
     g <- newStdGen
     --let g = mkStdGen _seed
     let sf = afterExp g expEventTime ()
 
-    let deltas = repeat (samplingFreq, Nothing)
+    let deltas = repeat (dt, Nothing)
     let bs = embed sf ((), deltas) -- SF a b -> (a, [(DTime, Maybe a)]) -> [b]
 
     let firstEventIdx = fromIntegral $ fromJust $ findIndex isEvent bs
 
-    let actualEventime = samplingFreq * firstEventIdx
+    let actualEventime = dt * firstEventIdx
     return actualEventime
 
 afterExp :: RandomGen g => g -> DTime -> b -> SF a (Event b)

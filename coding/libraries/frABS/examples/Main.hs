@@ -33,7 +33,7 @@ import           NewAgents.Run
 import YampaTests
 
 main :: IO ()
-main = testOccasionally -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
+main = testYampa -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
 
     -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
     -- runZombiesWithRendering

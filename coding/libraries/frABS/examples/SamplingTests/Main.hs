@@ -2,4 +2,4 @@ import AfterExp
 import Occasionally 
 
 main :: IO ()
-main = testOccasionally
+main = testAfterExp

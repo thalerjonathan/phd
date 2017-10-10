@@ -151,7 +151,7 @@
 			"file": "examples/Main.hs",
 			"settings":
 			{
-				"buffer_size": 1976,
+				"buffer_size": 1969,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -212,21 +212,16 @@
 	"expanded_folders":
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
-		"/home/jonathan/phd/coding/libraries/frABS/examples",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction",
-		"/home/jonathan/phd/coding/libraries/frABS/src",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation"
+		"/home/jonathan/phd/coding/libraries/frABS/examples"
 	],
 	"file_history":
 	[
 		"/home/jonathan/phd/coding/libraries/frABS/examples/YampaTests.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Reactive.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Internal.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Agent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/StockFlow.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Model.hs",
@@ -611,15 +606,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1976,
+						"buffer_size": 1969,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1205,
-								1205
+								1198,
+								1198
 							]
 						],
 						"settings":
@@ -689,7 +684,7 @@
 	},
 	"output.sublime_haskell_output_panel":
 	{
-		"height": 295.0
+		"height": 298.0
 	},
 	"pinned_build_system": "Packages/Haskell/Haskell.sublime-build",
 	"project": "frabs.sublime-project",

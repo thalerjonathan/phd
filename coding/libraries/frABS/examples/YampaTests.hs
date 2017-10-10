@@ -15,12 +15,12 @@ import FRP.Yampa.InternalCore
 import FRP.FrABS
 
 testYampa :: IO ()
-testYampa = testOccasionally >> testAfterExp
+testYampa = testOccasionally
 
 testOccasionally :: IO ()
 testOccasionally = do
-    let eventFreq = 1 / 5   :: DTime
-    let dt = 1 / 20         :: DTime
+    let eventFreq = 5   :: DTime
+    let dt = 1 / 1         :: DTime
     let t = 1000            :: DTime
 
     let eventsPerTimeUnit = 1 / eventFreq
@@ -47,8 +47,8 @@ testOccasionally = do
     
 testAfterExp :: IO ()
 testAfterExp = do
-    let eventTime = 15       :: DTime
-    let dt = 1 / 10  :: DTime
+    let eventTime = 1 / 5      :: DTime
+    let dt = 1 / 1         :: DTime
     let reps = 10000
 
     ts <- mapM (runAfterExp eventTime dt) [1..reps]

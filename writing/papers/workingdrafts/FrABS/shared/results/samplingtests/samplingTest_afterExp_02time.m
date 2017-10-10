@@ -1,0 +1,32 @@
+dtAvgs = [
+5.000,5.000;
+2.000,2.000;
+1.000,1.007;
+0.500,0.544;
+0.200,0.316;
+0.100,0.254;
+0.050,0.226;
+0.020,0.210;
+0.010,0.205;
+];
+eventTime = 0.2;
+dt = dtAvgs (:, 1);
+avg = dtAvgs (:, 2);
+n = length (dt);
+ecsTheoryLinePoints = n + 1;
+ecsTheoryLineX = [0; dt];
+ecsTheoryLineY = ones(ecsTheoryLinePoints, 1) * eventTime;
+figure;
+semilogx (dt, avg, 'color', 'blue', 'linewidth', 2);
+hold on
+plot (ecsTheoryLineX, ecsTheoryLineY, 'color', 'red', 'linewidth', 2);
+xLabels = cellstr(num2str(dt));
+yLabels = cellstr(num2str(avg));
+set(gca,'YTick', avg);
+set(gca,'XTick', dt);
+set(gca, 'xticklabel', xLabels);
+set(gca, 'yticklabel', yLabels);
+xlabel ('Time-Deltas');
+ylabel ('Average Time-Out');
+legend ('Average Time-Out per Time-Deltas', 'Theoretical Maximum');
+title ('Sampling afterExp with average timeout of 0.2 time-units');

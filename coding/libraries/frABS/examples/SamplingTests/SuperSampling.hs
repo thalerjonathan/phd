@@ -3,32 +3,92 @@ module SuperSampling
       testSuperSampling
     ) where
 
-import Data.Maybe
-
+import FRP.Yampa
 import FRP.Yampa.InternalCore
-
-
+import System.Random
+import FRP.FrABS
+import Data.Maybe
+import Data.List
 
 testSuperSampling :: IO ()
-testSuperSampling = print "testSuperSampling"
+testSuperSampling = superSampleAfterExp
+    
+superSampleAfterExp :: IO ()
+superSampleAfterExp = do
+    let steps = 10
+    let dt = 1.0
+    let expEventTime = 5
+    let g = mkStdGen 42
+    let superSamples = 1
 
--- NOTE: this is modified version of embed taken from Yampa
-superSampling :: SF a b -> (a, [(DTime, Maybe a)]) -> ([b], SF a b)
-superSampling sf0 (a0, dtas) = (b0 : bs, sfFrozen)
+    -- RandomGen g => g -> Time -> b -> SF a (Event b)
+    let sf = afterExp g expEventTime () -- RandomGen g => g -> DTime -> b -> SF a (Event b)
+    let ssSf = superSampling superSamples sf
+
+    let dts = repeat (dt, Nothing)
+    let bss = embed ssSf ((), dts) -- SF a b -> (a, [(DTime, Maybe a)]) -> [b]
+
+    let bs = flatten bss
+    let firstEventIdx = fromIntegral $ fromJust $ findIndex isEvent bs 
+    let actualEventime = dt * firstEventIdx -- TODO: this is of course the wrong way to calculate it when using supersampling
+
+    let bs = flatten bss
+
+    print $ "actualEventime = " ++ show actualEventime
+
+
+superSampleOccasionally :: IO ()
+superSampleOccasionally = do
+    let steps = 10
+    let dt = 1.0
+    let eventFreq = 1 / 5
+    let g = mkStdGen 42
+    let superSamples = 100
+
+    -- RandomGen g => g -> Time -> b -> SF a (Event b)
+    let sf = occasionally g eventFreq () 
+    let ssSf = superSampling superSamples sf
+
+    let dts = replicate steps (dt, Nothing)
+    let bss = embed ssSf ((), dts) -- SF a b -> (a, [(DTime, Maybe a)]) -> [b]
+
+    let bs = flatten bss
+    
+    --print bss
+    --print bs
+    
+    print $ "length bs = " ++ show (length bs)
+    print $ "length bss = " ++ show (length bss)
+
+flatten :: [[a]] -> [a]
+flatten = foldr (\acc as -> acc ++ as) []
+
+superSampling :: Int -> SF a b -> SF a [b]
+superSampling n sf0 = SF { sfTF = tf0 }
     where
-        (sf, b0) = (sfTF sf0) a0
-        (bs, sfUnfrozen) = loop a0 sf dtas
-
-        lastDt = 0 --TODO: this is not correct yet
-        sfFrozen = freeze sfUnfrozen 0
-
-        loop _ sf [] = ([], sf)
-        loop a_prev sf ((dt, ma) : dtas) = (b : bs', sf'')
+        -- NOTE: no supersampling at time 0
+        tf0 a0 = (tfCont, [b0])
             where
-                a        = fromMaybe a_prev ma
-                (sf', b) = (sfTF' sf) dt a
-                (bs', sf'') = (a `seq` b `seq` loop a sf' dtas)
+                (sf', b0) = sfTF sf0 a0
+                tfCont = superSamplingAux sf'
 
--- TODO: this was taken from Yampa, remove if Yampa exposes it
-freeze :: SF' a b -> DTime -> SF a b
-freeze sf dt = SF {sfTF = (sfTF' sf) dt}
+        superSamplingAux sf' = SF' tf
+            where
+                tf dt a = (tf', bs)
+                    where
+                        (sf'', bs) = superSampleRun n dt sf' a
+                        tf' = superSamplingAux sf''
+
+        superSampleRun :: Int -> DTime -> SF' a b -> a -> (SF' a b, [b])
+        superSampleRun n dt sf a 
+            | n <= 1 = superSampleMulti 1 dt sf a []
+            | otherwise = (sf', reverse bs)  -- NOTE: need to reverse because need to respect order, use of accumulator reverses them initially
+            where
+                superDt = dt / fromIntegral n
+                (sf', bs) = superSampleMulti n superDt sf a []
+
+        superSampleMulti :: Int -> DTime -> SF' a b -> a -> [b] -> (SF' a b, [b])
+        superSampleMulti 0 _ sf _ acc = (sf, acc)
+        superSampleMulti n dt sf a acc = superSampleMulti (n-1) dt sf' a (b:acc) 
+            where
+                (sf', b) = sfTF' sf dt a

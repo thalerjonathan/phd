@@ -3,4 +3,4 @@ import Occasionally
 import SuperSampling
 
 main :: IO ()
-main = testSuperSampling
+main = testOccasionallySuperSampling

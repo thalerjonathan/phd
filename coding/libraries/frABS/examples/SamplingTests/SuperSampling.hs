@@ -1,6 +1,8 @@
 module SuperSampling 
     (
-      testSuperSampling
+        testSuperSampleAfterExp
+      , testSuperSampleOccasionally
+      , superSampling
     ) where
 
 import FRP.Yampa
@@ -10,12 +12,8 @@ import FRP.FrABS
 import Data.Maybe
 import Data.List
 
-testSuperSampling :: IO ()
-testSuperSampling = superSampleAfterExp
-    
-superSampleAfterExp :: IO ()
-superSampleAfterExp = do
-    let steps = 10
+testSuperSampleAfterExp :: IO ()
+testSuperSampleAfterExp = do
     let dt = 1.0
     let expEventTime = 5
     let g = mkStdGen 42
@@ -28,17 +26,15 @@ superSampleAfterExp = do
     let dts = repeat (dt, Nothing)
     let bss = embed ssSf ((), dts) -- SF a b -> (a, [(DTime, Maybe a)]) -> [b]
 
-    let bs = flatten bss
-    let firstEventIdx = fromIntegral $ fromJust $ findIndex isEvent bs 
-    let actualEventime = dt * firstEventIdx -- TODO: this is of course the wrong way to calculate it when using supersampling
-
-    let bs = flatten bss
+    let bs = concat bss
+    let firstEventIdx = fromJust $ findIndex isEvent bs
+    let firstEventIdxSSAdjusted = fromIntegral firstEventIdx / fromIntegral superSamples 
+    let actualEventime = dt * firstEventIdxSSAdjusted
 
     print $ "actualEventime = " ++ show actualEventime
 
-
-superSampleOccasionally :: IO ()
-superSampleOccasionally = do
+testSuperSampleOccasionally :: IO ()
+testSuperSampleOccasionally = do
     let steps = 10
     let dt = 1.0
     let eventFreq = 1 / 5
@@ -52,16 +48,13 @@ superSampleOccasionally = do
     let dts = replicate steps (dt, Nothing)
     let bss = embed ssSf ((), dts) -- SF a b -> (a, [(DTime, Maybe a)]) -> [b]
 
-    let bs = flatten bss
+    let bs = concat bss
     
     --print bss
     --print bs
     
     print $ "length bs = " ++ show (length bs)
     print $ "length bss = " ++ show (length bss)
-
-flatten :: [[a]] -> [a]
-flatten = foldr (\acc as -> acc ++ as) []
 
 superSampling :: Int -> SF a b -> SF a [b]
 superSampling n sf0 = SF { sfTF = tf0 }

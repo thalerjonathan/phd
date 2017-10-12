@@ -1,0 +1,33 @@
+dtAvgs = [
+1,17.750;
+2,17.920;
+5,19.740;
+10,19.780;
+100,20.220;
+1000,19.980;
+];
+ecsTheory = 20.0;
+dt = dtAvgs (:, 1);
+avg = dtAvgs (:, 2);
+minDt = min(dt);
+maxDt = max(dt);
+n = length (dt);
+ecsTheoryLinePoints = n + 1;
+ecsTheoryLineX = [0; dt];
+ecsTheoryLineY = ones(ecsTheoryLinePoints, 1) * ecsTheory;
+figure;
+semilogx (dt, avg, 'color', 'blue', 'linewidth', 2);
+hold on
+plot (ecsTheoryLineX, ecsTheoryLineY, 'color', 'red', 'linewidth', 2);
+yTickUpperLimit = ecsTheory * 1.1;
+axis ([0 maxDt 0 yTickUpperLimit]);
+axis ('auto x');
+xLabels = cellstr(num2str(dt));
+set(gca,'YTick', 0:500:yTickUpperLimit);
+set(gca,'YTick', avg);
+set(gca,'XTick', dt);
+set(gca, 'xticklabel', xLabels);
+xlabel ('Super Samples');
+ylabel ('Average Events');
+legend ('Average Events per Super Samples', 'Theoretical maximum');
+title ('Super-Sampling occasionally using time-delta of 1.0 with 0.2 events per time-unit');

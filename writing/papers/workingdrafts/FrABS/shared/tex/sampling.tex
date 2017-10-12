@@ -40,7 +40,7 @@ of course performance is a big issue and it decreases as time-deltas get smaller
 
 formula of calculating-steps = steps per time-unit * time-to-run-the-simulation
 
-We implemented a new signal-function which allows us to super-sample another signal-function.
+The problem is that \textit{embed} does not really help because when running a sf with it, the signal-functions time does not advance. Thus we implemented a new signal-function which allows us to super-sample another signal-function.
 
 \begin{minted}{haskell}
 superSampling :: Int -> SF a b -> SF a [b]

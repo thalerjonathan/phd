@@ -11,6 +11,9 @@ import FRP.Yampa
 
 import FrSIR.Model
 
+samples :: Int
+samples = 100
+
 ------------------------------------------------------------------------------------------------------------------------
 -- Non-Reactive Functions
 ------------------------------------------------------------------------------------------------------------------------
@@ -43,13 +46,13 @@ sirAgentSusceptibleBehaviour = proc (ain, e) -> do
 
 -- INFECTED
 sirAgentInfected :: RandomGen g => g -> FrSIRAgentBehaviour
-sirAgentInfected g = transitionAfterExp g illnessDuration (sirAgentInfectedBehaviour g) sirAgentRecovered
+sirAgentInfected g = transitionAfterExpSS g illnessDuration samples (sirAgentInfectedBehaviour g) sirAgentRecovered
 
 sirAgentInfectedBehaviour :: RandomGen g => g -> FrSIRAgentBehaviour
 sirAgentInfectedBehaviour g = proc (ain, e) -> do
     let ao = agentOutFromIn ain
     ao1 <- doOnce (setDomainState Infected) -< ao
-    ao2 <- sendMessageOccasionallySrc g (1 / contactRate) (randomAgentIdMsgSource (Contact Infected) True) -< (ao1, e)
+    ao2 <- sendMessageOccasionallySrcSS g (1 / contactRate) samples (randomAgentIdMsgSource (Contact Infected) True) -< (ao1, e)
     returnA -< (ao2, e)
 
 -- RECOVERED

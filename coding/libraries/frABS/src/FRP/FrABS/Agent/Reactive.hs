@@ -12,10 +12,11 @@ module FRP.FrABS.Agent.Reactive (
     doOnce,
     doNothing,
     
-    afterExp,
-    
     sendMessageOccasionallySrc,
     sendMessageOccasionally,
+
+    sendMessageOccasionallySrcSS,
+    sendMessageOccasionallySS,
 
     constMsgReceiverSource,
     constMsgSource,
@@ -25,6 +26,7 @@ module FRP.FrABS.Agent.Reactive (
     
     transitionAfter,
     transitionAfterExp,
+    transitionAfterExpSS,
     transitionWithUniProb,
     transitionWithExpProb,
     transitionOnEvent,
@@ -32,7 +34,10 @@ module FRP.FrABS.Agent.Reactive (
     transitionOnEventWithGuard,
     transitionOnBoolState,
 
-    messageEventSource
+    messageEventSource,
+
+    afterExp,
+    superSampling
   ) where
 
 import FRP.FrABS.Environment.Discrete
@@ -103,10 +108,11 @@ doNothing = proc (ain, e) ->
 -- TODO: sendMessageOnMessageReceived
 
 sendMessageOccasionally :: RandomGen g => g 
-                                        -> Double
-                                        -> AgentMessage m
-                                        -> SF (AgentOut s m e, e) (AgentOut s m e)
+                            -> Double
+                            -> AgentMessage m
+                            -> SF (AgentOut s m e, e) (AgentOut s m e)
 sendMessageOccasionally g rate msg = sendMessageOccasionallySrc g rate (constMsgSource msg)
+
 
 sendMessageOccasionallySrc :: RandomGen g => g 
                                         -> Double
@@ -127,6 +133,35 @@ sendMessageOccasionallySrc g rate msgSrc = proc aoe ->
         sendMessageOccasionallyAux msgSrc (Event ()) (ao, e) = sendMessage msg ao'
             where
                 (ao', msg) = msgSrc e ao
+
+sendMessageOccasionallySS :: RandomGen g => g 
+                            -> Double
+                            -> Int
+                            -> AgentMessage m
+                            -> SF (AgentOut s m e, e) (AgentOut s m e)
+sendMessageOccasionallySS g rate ss msg = sendMessageOccasionallySrcSS g rate ss (constMsgSource msg)
+
+
+sendMessageOccasionallySrcSS :: RandomGen g => g 
+                                -> Double
+                                -> Int
+                                -> MessageSource s m e 
+                                -> SF (AgentOut s m e, e) (AgentOut s m e)
+sendMessageOccasionallySrcSS g rate ss msgSrc = proc (ao, e) ->
+    do
+        sendEvts <- superSampling ss (occasionally g rate ()) -< ()
+        let ao' = foldr (sendMessageOccasionallyAux (msgSrc e)) ao sendEvts 
+        returnA -< ao'
+
+    where
+        sendMessageOccasionallyAux :: (AgentOut s m e -> (AgentOut s m e, AgentMessage m))
+                                        -> Event ()
+                                        -> AgentOut s m e
+                                        -> AgentOut s m e
+        sendMessageOccasionallyAux _ NoEvent ao = ao
+        sendMessageOccasionallyAux msgSrc (Event ()) ao = sendMessage msg ao'
+            where
+                (ao', msg) = msgSrc ao
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -182,6 +217,25 @@ transitionAfter t from to = switch (transitionAfterAux t from) (const to)
                 timeoutEvent <- after t () -< ()
                 returnA -< (aoe, timeoutEvent)
 
+transitionAfterExpSS :: RandomGen g =>
+                    g 
+                    -> Double
+                    -> Int
+                    -> AgentBehaviour s m e
+                    -> AgentBehaviour s m e
+                    -> AgentBehaviour s m e
+transitionAfterExpSS g t ss from to = switch (transitionAfterExpSSAux t from) (const to)
+    where
+        transitionAfterExpSSAux :: Double 
+                                -> AgentBehaviour s m e 
+                                -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
+        transitionAfterExpSSAux t from = proc aie ->
+            do
+                aoe <- from -< aie
+                timeoutEvents <- superSampling ss (afterExp g t ()) -< ()
+                let hasEvent = any isEvent timeoutEvents
+                let timeoutOccurred = if hasEvent then Event () else NoEvent
+                returnA -< (aoe, timeoutOccurred)
 
 transitionAfterExp :: RandomGen g =>
                     g 
@@ -198,28 +252,7 @@ transitionAfterExp g t from to = switch (transitionAfterExpAux t from) (const to
             do
                 aoe <- from -< aie
                 timeoutEvent <- afterExp g t () -< ()
-                --timeoutEvent <- occasionally g t () -< ()
                 returnA -< (aoe, timeoutEvent)
-
-afterExp :: RandomGen g => g -> DTime -> b -> SF a (Event b)
-afterExp g t b = SF { sfTF = tf0 }
-    where
-        (t', g') = randomExp g (1 / t)
-
-        -- there can be no event at time of switching
-        tf0 _ = (tfCont, NoEvent)
-            where
-                tfCont = afterExpAux 0 t'
-
-        afterExpAux tCurr tEvt = SF' tf
-            where
-                tf dt _ 
-                    | tCurr' >= tEvt = (tf', Event b)
-                    | otherwise = (tf', NoEvent)
-                    where
-                        tCurr' = tCurr + dt
-                        tf' = afterExpAux tCurr' tEvt
-
 
 transitionWithUniProb :: Double
                             -> AgentBehaviour s m e
@@ -330,4 +363,57 @@ messageEventSource msg = proc (ain, ao) ->
     do
         evt <- iEdge False -< hasMessage msg ain
         returnA -< (ao, evt)
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+-- ADDITIONAL SIGNAL-FUNCTIONS
+-------------------------------------------------------------------------------
+afterExp :: RandomGen g => g -> DTime -> b -> SF a (Event b)
+afterExp g t b = SF { sfTF = tf0 }
+    where
+        (t', g') = randomExp g (1 / t)
+
+        -- there can be no event at time of switching
+        tf0 _ = (tfCont, NoEvent)
+            where
+                tfCont = afterExpAux 0 t'
+
+        afterExpAux tCurr tEvt = SF' tf
+            where
+                tf dt _ 
+                    | tCurr' >= tEvt = (tf', Event b)
+                    | otherwise = (tf', NoEvent)
+                    where
+                        tCurr' = tCurr + dt
+                        tf' = afterExpAux tCurr' tEvt
+
+superSampling :: Int -> SF a b -> SF a [b]
+superSampling n sf0 = SF { sfTF = tf0 }
+    where
+        -- NOTE: no supersampling at time 0
+        tf0 a0 = (tfCont, [b0])
+            where
+                (sf', b0) = sfTF sf0 a0
+                tfCont = superSamplingAux sf'
+
+        superSamplingAux sf' = SF' tf
+            where
+                tf dt a = (tf', bs)
+                    where
+                        (sf'', bs) = superSampleRun n dt sf' a
+                        tf' = superSamplingAux sf''
+
+        superSampleRun :: Int -> DTime -> SF' a b -> a -> (SF' a b, [b])
+        superSampleRun n dt sf a 
+            | n <= 1 = superSampleMulti 1 dt sf a []
+            | otherwise = (sf', reverse bs)  -- NOTE: need to reverse because need to respect order, use of accumulator reverses them initially
+            where
+                superDt = dt / fromIntegral n
+                (sf', bs) = superSampleMulti n superDt sf a []
+
+        superSampleMulti :: Int -> DTime -> SF' a b -> a -> [b] -> (SF' a b, [b])
+        superSampleMulti 0 _ sf _ acc = (sf, acc)
+        superSampleMulti n dt sf a acc = superSampleMulti (n-1) dt sf' a (b:acc) 
+            where
+                (sf', b) = sfTF' sf dt a
 -------------------------------------------------------------------------------

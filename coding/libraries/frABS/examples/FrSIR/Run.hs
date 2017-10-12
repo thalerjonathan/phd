@@ -21,7 +21,7 @@ rngSeed :: Int
 rngSeed = 42
 
 dt :: DTime
-dt = 0.01
+dt = 1.0
 
 t :: DTime
 t = 150
@@ -34,7 +34,7 @@ numInfected = 10
 
 replCfg :: FrSIRReplicationConfig
 replCfg = ReplicationConfig {
-    replCfgCount = 4,
+    replCfgCount = 10,
     replCfgAgentReplicator = defaultAgentReplicator,
     replCfgEnvReplicator = defaultEnvReplicator
 }

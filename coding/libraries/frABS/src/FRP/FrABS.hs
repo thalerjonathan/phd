@@ -100,9 +100,12 @@ module FRP.FrABS (
     doNothing,
     
     afterExp,
+    superSampling,
     
     sendMessageOccasionallySrc,
     sendMessageOccasionally,
+    sendMessageOccasionallySrcSS,
+    sendMessageOccasionallySS,
 
     constMsgReceiverSource,
     constMsgSource,
@@ -112,6 +115,7 @@ module FRP.FrABS (
     
     transitionAfter,
     transitionAfterExp,
+    transitionAfterExpSS,
     transitionWithUniProb,
     transitionWithExpProb,
     transitionOnEvent,

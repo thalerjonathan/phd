@@ -39,10 +39,7 @@ sirAgentInfectedEvent = proc (ain, ao) -> do
     returnA -< (ao', infectionEvent)
 
 sirAgentSusceptibleBehaviour :: FrSIRAgentBehaviour
-sirAgentSusceptibleBehaviour = proc (ain, e) -> do
-    let ao = agentOutFromIn ain
-    ao' <- doOnce (setDomainState Susceptible) -< ao
-    returnA -< (ao', e)
+sirAgentSusceptibleBehaviour = setDomainStateReact Susceptible
 
 -- INFECTED
 sirAgentInfected :: RandomGen g => g -> FrSIRAgentBehaviour
@@ -57,10 +54,7 @@ sirAgentInfectedBehaviour g = proc (ain, e) -> do
 
 -- RECOVERED
 sirAgentRecovered :: FrSIRAgentBehaviour
-sirAgentRecovered = proc (ain, e) -> do
-    let ao = agentOutFromIn ain
-    ao' <- doOnce (setDomainState Recovered) -< ao
-    returnA -< (ao', e)
+sirAgentRecovered = setDomainStateReact Recovered
 
 -- INITIAL CASES
 sirAgentBehaviour :: RandomGen g => g -> SIRState -> FrSIRAgentBehaviour

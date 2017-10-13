@@ -98,6 +98,9 @@ module FRP.FrABS (
 
     doOnce,
     doNothing,
+
+    setDomainStateReact,
+    updateDomainStateReact,
     
     afterExp,
     superSampling,

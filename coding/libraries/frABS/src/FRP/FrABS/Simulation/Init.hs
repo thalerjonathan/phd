@@ -1,16 +1,29 @@
 module FRP.FrABS.Simulation.Init (
+    SimulationParams (..),
+    UpdateStrategy (..),
+
     initSimulation,
     initSimNoEnv,
     newAgentId
   ) where
 
 import FRP.FrABS.Agent.Agent
-import FRP.FrABS.Simulation.Simulation
 import FRP.FrABS.Simulation.Internal
 import FRP.FrABS.Environment.Definitions
 
 import Control.Monad.Random
 import Control.Concurrent.STM.TVar
+
+data UpdateStrategy = Sequential | Parallel deriving (Eq)
+
+data SimulationParams e = SimulationParams {
+    simStrategy :: UpdateStrategy,
+    simEnvBehaviour :: Maybe (EnvironmentBehaviour e),
+    simEnvCollapse :: Maybe (EnvironmentCollapsing e),
+    simShuffleAgents :: Bool,
+    simRng :: StdGen,
+    simIdGen :: TVar Int
+}
 
 initSimulation :: UpdateStrategy
                     -> Maybe (EnvironmentBehaviour e)

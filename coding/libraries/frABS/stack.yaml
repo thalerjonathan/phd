@@ -41,13 +41,14 @@ packages:
 - location: 
     git: git://github.com/ivanperez-keera/Yampa.git
     commit: c189d7385990fe7b138bcac8daa8db60b05b026c
+    extra-dep: true
 # -fexpose-core
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 # NOTE by Jonathan: this is needed because the Yampa version from GitHub requires 
 # these and Stack seems to be unable to see that it is only required for the examples but not for the library
-extra-deps: []
+extra-deps:
 
 # Override default flag values for local packages and extra-deps
 flags:

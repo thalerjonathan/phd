@@ -20,7 +20,7 @@ import           NewAgents.Run
 
 {- TODOs
   - implememt parallelstrategy using SF instead my own implementation
-	- make current simulation time to rendering and step callbacks
+	- make current simulation time available to rendering and step callbacks
 	- different build targets: with/without time-traveling, gloss rendering
 	- add how-to get FrABS examples running on github in a sandbox: need yampa with exposed core, haskell-titan, install FrABS
 	
@@ -29,8 +29,6 @@ import           NewAgents.Run
 		-> WARNINGS:							no warnings with -Wall -Werror
 	
 -}
-
-
 
 main :: IO ()
 main = runFrSIRStepsAndWriteToFile -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile

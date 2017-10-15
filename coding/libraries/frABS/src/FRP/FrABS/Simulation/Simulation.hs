@@ -51,11 +51,12 @@ simulateTime :: [AgentDef s m e]
                 -> DTime
                 -> DTime
                 -> [([AgentObservable s], e)]
-simulateTime adefs e params dt t = embed (simulate params adefs e) ((), sts)
+simulateTime adefs e params dt t = obs
     where
         steps = floor $ t / dt
         sts = replicate steps (dt, Nothing)
-
+        obs = embed (simulate params adefs e) ((), sts)
+        
 simulateAggregateTime :: [AgentDef s m e]
                             -> e
                             -> SimulationParams e
@@ -63,7 +64,7 @@ simulateAggregateTime :: [AgentDef s m e]
                             -> DTime
                             -> AgentObservableAggregator s e a
                             -> [a]
-simulateAggregateTime adefs e params dt t aggrFun = agrs
+simulateAggregateTime adefs e params dt t aggrFun = seq agrs agrs
     where
         steps = floor $ t / dt
         sts = replicate steps (dt, Nothing)

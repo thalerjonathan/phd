@@ -91,12 +91,15 @@ iterateAgents dt sfs ins e msgs = foldr iterateAgentsAux ([], [], e, msgs) (zip 
                                     -> AgentMessage m
                                     -> MessageAccumulator m
                                     -> MessageAccumulator m
-            distributeMessagesAux senderId (receiverId, m) accMsgs = Map.insert receiverId newMsgs accMsgs
+            distributeMessagesAux senderId (receiverId, m) accMsgs = accMsgs'
               where
+                  msg = (senderId, m)                
                   mayReceiverMsgs = Map.lookup receiverId accMsgs
-                  msg = (senderId, m)
-
                   newMsgs = maybe [msg] (\receiverMsgs -> (msg : receiverMsgs)) mayReceiverMsgs
+
+                  -- NOTE: force evaluation of messages, will reduce memory-overhead EXTREMELY
+                  accMsgs' = seq newMsgs (Map.insert receiverId newMsgs accMsgs)
+                  
 
 maybeToEvent :: Maybe a -> Event a
 maybeToEvent Nothing  = NoEvent

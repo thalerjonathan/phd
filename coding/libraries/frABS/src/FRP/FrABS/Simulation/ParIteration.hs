@@ -233,12 +233,15 @@ collectAllMessages aos = foldr collectAllMessagesAux Map.empty aos
                 collectAllMessagesAuxAux :: AgentMessage m
                                             -> Map.Map AgentId [AgentMessage m]
                                             -> Map.Map AgentId [AgentMessage m]
-                collectAllMessagesAuxAux (receiverId, m) accMsgs = Map.insert receiverId newMsgs accMsgs
+                collectAllMessagesAuxAux (receiverId, m) accMsgs = accMsgs'
                     where
-                        mayReceiverMsgs = Map.lookup receiverId accMsgs
                         msg = (senderId, m)
-
+                        mayReceiverMsgs = Map.lookup receiverId accMsgs
                         newMsgs = maybe [msg] (\receiverMsgs -> (msg : receiverMsgs)) mayReceiverMsgs
+
+                        -- NOTE: force evaluation of messages, will reduce memory-overhead EXTREMELY
+                        accMsgs' = seq newMsgs (Map.insert receiverId newMsgs accMsgs)
+
 ----------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -12,10 +12,10 @@ import FrSIR.Model
 import Utils.Sirs
 
 updateStrat :: UpdateStrategy
-updateStrat = Parallel
+updateStrat = Sequential
 
 shuffleAgents :: Bool
-shuffleAgents = False
+shuffleAgents = True
 
 rngSeed :: Int
 rngSeed = 42
@@ -27,14 +27,14 @@ t :: DTime
 t = 150
 
 agentCount :: Int
-agentCount = 1000
+agentCount = 10000
 
 numInfected :: Int
 numInfected = 10
 
 replCfg :: FrSIRReplicationConfig
 replCfg = ReplicationConfig {
-    replCfgCount = 2,
+    replCfgCount = 8,
     replCfgAgentReplicator = defaultAgentReplicator,
     replCfgEnvReplicator = defaultEnvReplicator
 }

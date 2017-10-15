@@ -47,6 +47,7 @@ library
     FRP.FrABS.Environment.Network
     FRP.FrABS.Environment.Utils
     FRP.FrABS.Simulation.Simulation
+    FRP.FrABS.Simulation.Common
     FRP.FrABS.Simulation.Init
     FRP.FrABS.Simulation.Replication
     FRP.FrABS.Simulation.ParIteration      

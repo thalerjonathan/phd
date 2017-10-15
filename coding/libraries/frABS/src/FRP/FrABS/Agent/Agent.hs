@@ -91,36 +91,36 @@ type AgentPureBehaviourReadEnv s m e = (e -> Double -> AgentIn s m e -> AgentOut
 type AgentPureBehaviourNoEnv s m e = (Double -> AgentIn s m e -> AgentOut s m e -> AgentOut s m e)
 
 data AgentDef s m e = AgentDef {
-    adId :: AgentId,
-    adState :: s,
+    adId :: !AgentId,
+    adState :: !s,
     adBeh :: AgentBehaviour s m e,
-    adConversation :: Maybe (AgentConversationReceiver s m e),
-    adInitMessages :: Event [AgentMessage m],     -- AgentId identifies sender
-    adRng :: StdGen
+    adConversation :: !(Maybe (AgentConversationReceiver s m e)),
+    adInitMessages :: !(Event [AgentMessage m]),     -- AgentId identifies sender
+    adRng :: !StdGen
 }
 
 data AgentIn s m e = AgentIn {
-    aiId :: AgentId,
-    aiMessages :: Event [AgentMessage m],     -- AgentId identifies sender
-    aiConversation :: Maybe (AgentConversationReceiver s m e),
-    aiStart :: Event (),
-    aiState :: s,
-    aiRec :: Event [(AgentOut s m e, e)],
-    aiRecInitAllowed :: Bool,
-    aiRng :: StdGen,
-    aiIdGen :: TVar Int
+    aiId :: !AgentId,
+    aiMessages :: !(Event [AgentMessage m]),     -- AgentId identifies sender
+    aiConversation :: !(Maybe (AgentConversationReceiver s m e)),
+    aiStart :: !(Event ()),
+    aiState :: !s,
+    aiRec :: !(Event [(AgentOut s m e, e)]),
+    aiRecInitAllowed :: !Bool,
+    aiRng :: !StdGen,
+    aiIdGen :: !(TVar Int)
 }
 
 data AgentOut s m e = AgentOut {
-    aoId :: AgentId,    
-    aoKill :: Event (),
-    aoCreate :: Event [AgentDef s m e],
-    aoMessages :: Event [AgentMessage m],     -- AgentId identifies receiver
-    aoConversation :: Event (AgentMessage m, AgentConversationSender s m e),
-    aoState :: s,
-    aoRec :: Event (),
-    aoRecOthersAllowed :: Bool,
-    aoRng :: StdGen
+    aoId :: !AgentId,    
+    aoKill :: !(Event ()),
+    aoCreate :: !(Event [AgentDef s m e]),
+    aoMessages :: !(Event [AgentMessage m]),     -- AgentId identifies receiver
+    aoConversation :: !(Event (AgentMessage m, AgentConversationSender s m e)),
+    aoState :: !s,
+    aoRec :: !(Event ()),
+    aoRecOthersAllowed :: !Bool,
+    aoRng :: !StdGen
 }
 
 type AgentObservable s = (AgentId, s)

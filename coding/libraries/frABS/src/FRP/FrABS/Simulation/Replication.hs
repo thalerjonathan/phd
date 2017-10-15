@@ -20,6 +20,7 @@ import FRP.Yampa
 
 import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Simulation.Simulation
+import FRP.FrABS.Simulation.Init
 
 type AgentDefReplicator s m e = (StdGen -> AgentDef s m e -> (AgentDef s m e, StdGen))
 type EnvironmentReplicator e = (StdGen -> e -> (e, StdGen))

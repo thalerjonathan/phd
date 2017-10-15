@@ -24,6 +24,7 @@ import FRP.Yampa
 import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Agent.Reactive
 import FRP.FrABS.Simulation.Simulation
+import FRP.FrABS.Simulation.Init
 
 data SDMsg = Value Double deriving (Eq, Show)
 type SDStockState = Double

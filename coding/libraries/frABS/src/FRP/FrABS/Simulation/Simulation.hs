@@ -17,21 +17,11 @@ import FRP.FrABS.Simulation.Init
 import FRP.FrABS.Simulation.SeqIteration
 import FRP.FrABS.Simulation.ParIteration
 import FRP.FrABS.Agent.Agent
---import FRP.FrABS.Environment.Definitions
---import FRP.FrABS.Utils
 
 import FRP.Yampa
---import FRP.Yampa.InternalCore
 
 import FRP.Titan.Debug.Core
 import FRP.Titan.Debug.CommTCP
-
---import Data.Maybe
---import Data.List
---import Data.Tuple
---import System.Random
---import qualified Data.Map as Map
---import Control.Concurrent.STM.TVar
 
 type AgentObservableAggregator s e a = (([AgentObservable s], e) -> a) 
 
@@ -149,7 +139,7 @@ iterationStrategy :: SimulationParams e
                         -> e
                         -> SF () ([AgentOut s m e], e)
 iterationStrategy params asfs ais e
-    | Sequential == strategy = simulateSeqNew params asfs ais e
+    | Sequential == strategy = simulateSeq params asfs ais e
     | Parallel == strategy = simulatePar params asfs ais e
     where
         strategy = simStrategy params

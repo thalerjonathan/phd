@@ -14,7 +14,7 @@ import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Simulation.Init
 import FRP.FrABS.Simulation.Internal
 import FRP.FrABS.Utils
-import FRP.FrABS.Environment.Definitions
+import FRP.FrABS.Simulation.Common
 
 ----------------------------------------------------------------------------------------------------------------------
 -- PARALLEL STRATEGY
@@ -42,13 +42,10 @@ simulatePar initParams initSfs initAis initEnv = SF { sfTF = tf0 }
                 tf dt _ =  (tf', (outs, e'))
                     where
                          -- run the next step with the new sfs and inputs to get the sf-contintuations and their outputs
-                        (sfs', outsWithEnv) = runParInternal sfs insWithEnv
-
-                        -- freezing the collection of SF' to 'promote' them back to SF
-                        frozenSfs = freezeCol sfs' dt
+                        (sfs', outsWithEnv) = iterateAgents dt sfs insWithEnv
 
                         -- using the callback to create the next inputs and allow changing of the SF-collection
-                        (sfs'', insWithEnv') = parCallback insWithEnv outsWithEnv frozenSfs
+                        (sfs'', insWithEnv') = nextStep insWithEnv outsWithEnv sfs'
 
                         (e', params') = collapseEnvironments dt params outsWithEnv e 
                         insWithEnv'' = distributeEnvironment params' insWithEnv' e'
@@ -82,11 +79,17 @@ simulatePar initParams initSfs initAis initEnv = SF { sfTF = tf0 }
             where
                 isCollapsingEnv = isJust $ simEnvCollapse params
 
-parCallback :: [(AgentIn s m e, e)]
+iterateAgents :: DTime -> [AgentBehaviour s m e] -> [(AgentIn s m e, e)] -> ([AgentBehaviour s m e], [(AgentOut s m e, e)])
+iterateAgents dt sfs ins = unzip sfsWithOuts
+    where
+        sfInPairs = zip sfs ins
+        sfsWithOuts = map (\(sf, ain) -> runAndFreezeSF sf ain dt) sfInPairs
+
+nextStep :: [(AgentIn s m e, e)]
                 -> [(AgentOut s m e, e)]
                 -> [AgentBehaviour s m e]
                 -> ([AgentBehaviour s m e], [(AgentIn s m e, e)])
-parCallback oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
+nextStep oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
     where
         (asfs', newAgentIns) = processAgents asfs oldAgentIns newAgentOuts
         newAgentIns' = distributeMessages newAgentIns newAgentOuts
@@ -157,17 +160,6 @@ replaceEnvOfAins :: e ->  [(AgentIn s m e, e)] -> [(AgentIn s m e, e)]
 replaceEnvOfAins e ains = map (swap . ((,) e) . fst) ains
 -----------------------------------------------------------------------------------
 
-runEnv :: DTime -> SimulationParams e -> e -> (e, SimulationParams e)
-runEnv dt params e = maybe (e, params) (runEnvAux params e) mayEnvBeh
-    where
-        mayEnvBeh = simEnvBehaviour params
-
-        runEnvAux :: SimulationParams e -> e -> EnvironmentBehaviour e -> (e, SimulationParams e)
-        runEnvAux params e envBeh = (e', params')
-            where
-                (envBeh', e') = runAndFreezeSF envBeh e dt
-                params' = params { simEnvBehaviour = Just envBeh' }
-
 handleCreateAgents :: TVar Int
                         -> (AgentOut s m e, e)
                         -> ([AgentBehaviour s m e], [(AgentIn s m e, e)])
@@ -183,6 +175,7 @@ handleCreateAgents idGen (ao, e) acc@(asfsAcc, ainsAcc)
         newAis = map (startingAgentInFromAgentDef idGen) newAgentDefs
         newAisWithEnv = addEnvToAins e newAis
 
+{-
 collectMessagesFor :: [(AgentOut s m e, e)] -> (AgentIn s m e, e) -> (AgentIn s m e, e)
 collectMessagesFor aouts (ain, e) = (ain', e)
     where
@@ -204,14 +197,10 @@ collectMessagesFrom aid (ao, _) = foldr collectMessagesFromAux NoEvent msgs
         collectMessagesFromAux (receiverId, m) accMsgs
             | receiverId == aid = mergeMessages (Event [(senderId, m)]) accMsgs
             | otherwise = accMsgs
+-}
 
-distributeMessages = distributeMessagesFast
-
-distributeMessagesSlow :: [(AgentIn s m e, e)] -> [(AgentOut s m e, e)] -> [(AgentIn s m e, e)]
-distributeMessagesSlow ains aouts = map (collectMessagesFor aouts) ains
-
-distributeMessagesFast :: [(AgentIn s m e, e)] -> [(AgentOut s m e, e)] -> [(AgentIn s m e, e)]
-distributeMessagesFast ains aouts = map (distributeMessagesAux allMsgs) ains
+distributeMessages :: [(AgentIn s m e, e)] -> [(AgentOut s m e, e)] -> [(AgentIn s m e, e)]
+distributeMessages ains aouts = map (distributeMessagesAux allMsgs) ains
     where
         allMsgs = collectAllMessages aouts
 
@@ -252,18 +241,4 @@ collectAllMessages aos = foldr collectAllMessagesAux Map.empty aos
                         newMsgs = maybe [msg] (\receiverMsgs -> (msg : receiverMsgs)) mayReceiverMsgs
 ----------------------------------------------------------------------------------------------------------------------
 
-runParInternal :: [SF i o]
-                    -> [i]
-                    -> ([SF' i o], [o])
-runParInternal sfs oldIns = (sfs', newOuts)
-    where
-        sfInPairs = zip sfs oldIns
-        (sfs', newOuts) = foldr runSFHelper ([], []) sfInPairs
-
-        runSFHelper :: (SF i o, i)
-                        -> ([SF' i o], [o])
-                        -> ([SF' i o], [o])
-        runSFHelper (sf, i) (accSfs, accOs) = (sf' : accSfs, o : accOs)
-            where
-                (sf', o) = (sfTF sf) i
 ------------------------------------------------------------------------------------------------------------------------

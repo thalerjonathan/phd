@@ -14,6 +14,7 @@ import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Utils
 import FRP.FrABS.Simulation.Init
 import FRP.FrABS.Simulation.Internal
+import FRP.FrABS.Simulation.Common
 
 simulateSeq:: SimulationParams e
                 -> [AgentBehaviour s m e]
@@ -126,6 +127,7 @@ shuffleAgentsSeq params sfs ins
         params' = params { simRng = g' }
         (sfs', ins') = unzip shuffledSfsIns
 
+{--
 ----------------------------------------------------------------------------------------------------------------------
 -- NOTE: this is used for internal, recursive simulation and can be requested by agents in SEQUENTIAL strategy ONLY
 simulateRecursive :: ([AgentIn s m e], e)
@@ -455,3 +457,5 @@ runSeqInternal sfs ins clbkSeq clbkIter dt = (sfs' ++ newSfs, ins' ++ newSfsIns,
                         where
                             (sf, newIn, changedOut) = fromJust mayCont
 ------------------------------------------------------------------------------------------------------------------------
+
+-}

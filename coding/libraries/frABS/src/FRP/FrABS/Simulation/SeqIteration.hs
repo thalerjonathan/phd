@@ -16,6 +16,28 @@ import FRP.FrABS.Simulation.Init
 import FRP.FrABS.Simulation.Internal
 import FRP.FrABS.Simulation.Common
 
+type MessageAccumulator m = Map.Map AgentId [AgentMessage m]
+
+-- | Steps the simulation using a sequential update-strategy. 
+-- Conversations and Recursive Simulation is only possible using this strategy.
+-- In this strategy each agents SF is run after another where 
+-- the actions of previous agents are seen by later ones. This makes
+-- this strategy work basically as a fold (as opposed to map in the parallel case).
+-- No assumption is made on the order of the iteration but agents can be shuffled 
+-- to ensure a uniform distribution of the probability of being at a given position.
+--
+-- An agent which kills itself will still have all its output processed
+-- meaning that newly created agents and sent messages are not discharged.
+--
+-- An agent spawned by an existing one can receive already messages
+-- but will run for the first time only in the next iteration.
+--
+-- It is not possible to send messages to currently non-existing agents,
+-- also not to agents which may exist in the future. Messages which
+-- have as receiver a non-existing agent are discharged without any notice
+-- (a minor exception is the sending of messages to newly spawned agents
+-- within the iteration when they were created: although they are not running
+-- yet, they are known already to the system and will run in the next step).
 simulateSeq:: SimulationParams e
                 -> [AgentBehaviour s m e]
                 -> [AgentIn s m e]
@@ -25,25 +47,29 @@ simulateSeq initParams initSfs initIns initEnv = SF { sfTF = tf0 }
     where
         tf0 _ = (tfCont, (initOuts, initEnv))
             where
-                initMsgs = Map.empty
+                -- NOTE: start with an entry for all agents, to determine if messages
+                -- are distributed to non-existing ones
+                initMsgs = Map.empty  -- insertEmptyEntries (map aiId initIns) Map.empty 
                 initOuts = map agentOutFromIn initIns
 
                 tfCont = simulateSeqNewAux initParams initSfs initIns initEnv initMsgs
 
         simulateSeqNewAux params sfs ins e msgs = SF' tf
             where
+                idGen = simIdGen params
+
                 tf dt _ = (tf', (outs, e'))
                     where
+                        -- iterates over the existing agents
                         (sfs', outs, e', msgs') = iterateAgents dt sfs ins e msgs
-
-                        ins' = map newAgentInSeq (zip ins outs)
-
-                        (e'', params') = runEnv dt params e'
-                        (params'', sfsShuffled, insShuffled) = shuffleAgentsSeq params' sfs' ins'
-
+                        -- adds/removes new/killed agents
+                        (sfs'', ins') = liveKillAndSpawn idGen (zip3 sfs' ins outs)
+                        -- shuffles agents (if requested by params)
+                        (params', sfsShuffled, insShuffled) = shuffleAgentsSeq params sfs'' ins'
+                        -- runs the environment (if requested by params)
+                        (e'', params'') = runEnv dt params' e'
+                        -- create the continuation
                         tf' = simulateSeqNewAux params'' sfsShuffled insShuffled e'' msgs'
-
-type MessageAccumulator m = Map.Map AgentId [AgentMessage m]
 
 -- TODO: implement conversations
 -- TODO: implement recursion
@@ -53,60 +79,119 @@ iterateAgents :: DTime
                   -> e
                   -> MessageAccumulator m
                   -> ([AgentBehaviour s m e], [AgentOut s m e], e, MessageAccumulator m)
-iterateAgents dt sfs ins e msgs = foldr iterateAgentsAux ([], [], e, msgs) (zip sfs ins)
+iterateAgents dt sfs ins e msgs = foldr handleAgent ([], [], e, msgs) (zip sfs ins)
   where
-    iterateAgentsAux :: (AgentBehaviour s m e, AgentIn s m e)
-                          -> ([AgentBehaviour s m e], [AgentOut s m e], e, MessageAccumulator m)
-                          -> ([AgentBehaviour s m e], [AgentOut s m e], e, MessageAccumulator m)
-    iterateAgentsAux (sf, ain) (accSfs, accOuts, env, msgs) = (accSfs', accOuts', env', msgs'')
+    handleAgent :: (AgentBehaviour s m e, AgentIn s m e)
+                    -> ([AgentBehaviour s m e], [AgentOut s m e], e, MessageAccumulator m)
+                    -> ([AgentBehaviour s m e], [AgentOut s m e], e, MessageAccumulator m)
+    handleAgent (sf, ain) (accSfs, accOuts, env, msgs) = (accSfs', accOuts', env', msgs''')
       where
-        (msgs', ain') = collectMessages msgs ain
+        -- collecting existing messages from other agents
+        ain' = collectMessages msgs ain
+
         (sf', (ao, env')) = runAndFreezeSF sf (ain', env) dt
-        msgs'' = distributeMessages ao msgs'
-        -- TODO: handle kill
         accSfs' = sf' : accSfs
         accOuts' = ao : accOuts
 
-        collectMessages :: MessageAccumulator m -> AgentIn s m e -> (MessageAccumulator m, AgentIn s m e)
+        -- NOTE: when there are new agents to spawn, add entry in messageaccumulator BEFORE distributing the messages, could send to them
+        msgs' = addNewAgentsEntries ao msgs
+        -- NOTE: distributing the messages to all other agents
+        msgs'' = distributeMessages ao msgs'
+        -- NOTE: in case of kill delete from messageaccumulator AFTER having distributed the messages (could have sent to itself)
+        msgs''' = resetOrDeleteMessages ao msgs'' 
+
+        collectMessages :: MessageAccumulator m -> AgentIn s m e -> AgentIn s m e
         collectMessages msgAcc ain
-          | isEvent msgs = (msgAcc', ain')
-          | otherwise = (msgAcc, ain)
+          | isEvent msgs = ain'
+          | otherwise = ain
           where
             aid = aiId ain
             msgs = maybeToEvent $ Map.lookup aid msgAcc 
-
-            msgAcc' = Map.delete aid msgAcc
             ain' = ain { aiMessages = msgs } 
+
+        addNewAgentsEntries :: AgentOut s m e -> MessageAccumulator m -> MessageAccumulator m
+        addNewAgentsEntries ao msgAcc 
+            | isEvent $ aoCreate ao = insertEmptyEntries ids msgAcc
+            | otherwise = msgAcc
+            where
+                adefs = fromEvent $ aoCreate ao
+                ids = map adId adefs
 
         distributeMessages :: AgentOut s m e -> MessageAccumulator m -> MessageAccumulator m
         distributeMessages ao msgAcc = 
             event 
               msgAcc 
-              (foldr (distributeMessagesAux senderId) msgAcc)
+              (foldr (distributeMessageTo senderId) msgAcc)
               (aoMessages ao)
           where
             senderId = aoId ao
 
-            distributeMessagesAux :: AgentId
+            distributeMessageTo :: AgentId
                                     -> AgentMessage m
                                     -> MessageAccumulator m
                                     -> MessageAccumulator m
-            distributeMessagesAux senderId (receiverId, m) accMsgs = accMsgs'
-              where
-                  msg = (senderId, m)                
-                  mayReceiverMsgs = Map.lookup receiverId accMsgs
-                  newMsgs = maybe [msg] (\receiverMsgs -> (msg : receiverMsgs)) mayReceiverMsgs
+            distributeMessageTo senderId (receiverId, m) accMsgs 
+                | isJust mayReceiverMsgs = accMsgs'
+                | otherwise = accMsgs -- NOTE: if not found, discharge message
+                where 
+                    mayReceiverMsgs = Map.lookup receiverId accMsgs
 
-                  -- NOTE: force evaluation of messages, will reduce memory-overhead EXTREMELY
-                  accMsgs' = seq newMsgs (Map.insert receiverId newMsgs accMsgs)
+                    msg = (senderId, m)                
+                    receiverMsgs = fromJust mayReceiverMsgs
+                    newMsgs = msg : receiverMsgs
+
+                    -- NOTE: force evaluation of messages, will reduce memory-overhead EXTREMELY
+                    accMsgs' = seq newMsgs (Map.insert receiverId newMsgs accMsgs)
                   
+        resetOrDeleteMessages :: AgentOut s m e 
+                                    -> MessageAccumulator m 
+                                    -> MessageAccumulator m
+        resetOrDeleteMessages ao msgAcc
+            | isDead ao = Map.delete aid msgAcc
+            | otherwise = emptyEntry aid msgAcc
+            where
+                aid = aiId ain
+
+liveKillAndSpawn :: TVar Int
+                    -> [(AgentBehaviour s m e, AgentIn s m e, AgentOut s m e)]
+                    -> ([AgentBehaviour s m e], [AgentIn s m e])
+liveKillAndSpawn idGen as = foldr (liveKillAndSpawnAux idGen) ([], []) as
+    where
+        liveKillAndSpawnAux :: TVar Int
+                                -> (AgentBehaviour s m e, AgentIn s m e, AgentOut s m e)
+                                -> ([AgentBehaviour s m e], [AgentIn s m e])
+                                -> ([AgentBehaviour s m e], [AgentIn s m e])
+        liveKillAndSpawnAux idGen (sf, ain, ao) (accSfs, accAins)
+            | isDead ao = (accSfs', accAins')
+            | otherwise = (sf : accSfs', ain' : accAins')
+            where
+                (newSfs, newAins) = handleSpawns idGen ao
+
+                accSfs' = accSfs ++ newSfs
+                accAins' = accAins ++ newAins
+
+                ain' = newAgentInSeq ain ao
+
+        handleSpawns :: TVar Int -> AgentOut s m e -> ([AgentBehaviour s m e], [AgentIn s m e])
+        handleSpawns idGen ao 
+            | isEvent $ aoCreate ao = (sfs, ains)
+            | otherwise = ([], [])
+            where
+                adefs = fromEvent $ aoCreate ao
+                (sfs, ains) = createStartingAgent adefs idGen
+
+insertEmptyEntries :: [AgentId] -> MessageAccumulator m -> MessageAccumulator m
+insertEmptyEntries ids msgAcc = foldr emptyEntry msgAcc ids
+
+emptyEntry :: AgentId -> MessageAccumulator m -> MessageAccumulator m
+emptyEntry aid msgAcc = Map.insert aid [] msgAcc
 
 maybeToEvent :: Maybe a -> Event a
 maybeToEvent Nothing  = NoEvent
 maybeToEvent (Just a) = Event a
 
-newAgentInSeq :: (AgentIn s m e, AgentOut s m e) -> AgentIn s m e
-newAgentInSeq (oldIn, newOut) = newIn
+newAgentInSeq :: AgentIn s m e -> AgentOut s m e -> AgentIn s m e
+newAgentInSeq oldIn newOut = newIn
     where
         newIn = oldIn { aiStart = NoEvent,
                         aiState = aoState newOut,

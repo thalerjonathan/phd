@@ -27,14 +27,14 @@ t :: DTime
 t = 150
 
 agentCount :: Int
-agentCount = 1000
+agentCount = 10000
 
 numInfected :: Int
 numInfected = 10
 
 replCfg :: FrSIRReplicationConfig
 replCfg = ReplicationConfig {
-    replCfgCount = 16,
+    replCfgCount = 20,
     replCfgAgentReplicator = defaultAgentReplicator,
     replCfgEnvReplicator = defaultEnvReplicator
 }
@@ -48,8 +48,9 @@ runFrSIRStepsAndWriteToFile = do
     let dynamics = simulateAggregateTime initAdefs initEnv params dt t aggregate
     let fileName = "frSIRDynamics_" 
                     ++ show agentCount ++ "agents_" 
-                    ++ show t ++ "time_" 
-                    ++ show dt ++ "dt.m"
+                    ++ show t ++ "time_"
+                    ++ show dt ++ "dt_"
+                    ++ show updateStrat ++ ".m"
 
     writeSirsDynamicsFile fileName dt 0 dynamics
 
@@ -64,8 +65,9 @@ runFrSIRReplicationsAndWriteToFile = do
 
     let fileName = "frSIRDynamics_" 
                     ++ show agentCount ++ "agents_" 
-                    ++ show t ++ "time_" 
-                    ++ show dt ++ "dt_" 
+                    ++ show t ++ "time_"
+                    ++ show dt ++ "dt_"
+                    ++ show updateStrat ++ "_"
                     ++ show (replCfgCount replCfg) ++ "replications.m"
 
     writeSirsDynamicsFile fileName dt (replCfgCount replCfg) dynamics

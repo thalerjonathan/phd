@@ -19,6 +19,7 @@ module FRP.FrABS.Agent.Agent (
     isDead,
 
     createStartingAgentIn,
+    createStartingAgent,
     agentOutFromIn,
     startingAgentInFromAgentDef,
 
@@ -265,7 +266,13 @@ isRecursive :: AgentIn s m e -> Bool
 isRecursive ain = isEvent $ aiRec ain
 
 createStartingAgentIn :: [AgentDef s m e] -> TVar Int -> [AgentIn s m e]
-createStartingAgentIn as idGen = map (startingAgentInFromAgentDef idGen) as
+createStartingAgentIn adefs idGen = map (startingAgentInFromAgentDef idGen) adefs
+
+createStartingAgent :: [AgentDef s m e] -> TVar Int -> ([AgentBehaviour s m e], [AgentIn s m e])
+createStartingAgent adefs idGen = (sfs, ains)
+    where
+        ains = createStartingAgentIn adefs idGen
+        sfs = map adBeh adefs 
 
 startingAgentInFromAgentDef :: TVar Int -> AgentDef s m e -> AgentIn s m e
 startingAgentInFromAgentDef idGen ad = AgentIn { aiId = adId ad,

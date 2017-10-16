@@ -14,7 +14,7 @@ import FRP.FrABS.Environment.Definitions
 import Control.Monad.Random
 import Control.Concurrent.STM.TVar
 
-data UpdateStrategy = Sequential | Parallel deriving (Eq)
+data UpdateStrategy = Sequential | Parallel deriving (Eq, Show)
 
 data SimulationParams e = SimulationParams {
     simStrategy :: UpdateStrategy,

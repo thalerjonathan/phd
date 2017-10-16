@@ -65,7 +65,7 @@ simulateSeq initParams initSfs initIns initEnv = SF { sfTF = tf0 }
                         -- adds/removes new/killed agents
                         (sfs'', ins') = liveKillAndSpawn idGen (zip3 sfs' ins outs)
                         -- shuffles agents (if requested by params)
-                        (params', sfsShuffled, insShuffled) = shuffleAgentsSeq params sfs'' ins'
+                        (params', sfsShuffled, insShuffled) = shuffleAgents params sfs'' ins'
                         -- runs the environment (if requested by params)
                         (e'', params'') = runEnv dt params' e'
                         -- create the continuation
@@ -170,7 +170,7 @@ liveKillAndSpawn idGen as = foldr (liveKillAndSpawnAux idGen) ([], []) as
                 accSfs' = accSfs ++ newSfs
                 accAins' = accAins ++ newAins
 
-                ain' = newAgentInSeq ain ao
+                ain' = newAgentIn ain ao
 
         handleSpawns :: TVar Int -> AgentOut s m e -> ([AgentBehaviour s m e], [AgentIn s m e])
         handleSpawns idGen ao 
@@ -189,31 +189,6 @@ emptyEntry aid msgAcc = Map.insert aid [] msgAcc
 maybeToEvent :: Maybe a -> Event a
 maybeToEvent Nothing  = NoEvent
 maybeToEvent (Just a) = Event a
-
-newAgentInSeq :: AgentIn s m e -> AgentOut s m e -> AgentIn s m e
-newAgentInSeq oldIn newOut = newIn
-    where
-        newIn = oldIn { aiStart = NoEvent,
-                        aiState = aoState newOut,
-                        aiMessages = NoEvent,
-                        aiRng = aoRng newOut }
-
-shuffleAgentsSeq :: SimulationParams e 
-                  -> [AgentBehaviour s m e] 
-                  -> [AgentIn s m e] 
-                  -> (SimulationParams e, [AgentBehaviour s m e], [AgentIn s m e])
-shuffleAgentsSeq params sfs ins 
-    | doShuffle = (params', sfs', ins')
-    | otherwise = (params, sfs, ins)
-    where
-        doShuffle = simShuffleAgents params
-        g = simRng params 
-
-        sfsIns = zip sfs ins
-        (shuffledSfsIns, g') = fisherYatesShuffle g sfsIns
-
-        params' = params { simRng = g' }
-        (sfs', ins') = unzip shuffledSfsIns
 
 {--
 ----------------------------------------------------------------------------------------------------------------------

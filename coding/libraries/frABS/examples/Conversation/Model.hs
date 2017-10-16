@@ -56,9 +56,9 @@ agentTest ao = setDomainState n ao'
         (n, ao') = agentRandomRange (0, 10) ao
 
 conversationHandler :: ConversationAgentConversation
-conversationHandler aie@(ain, e) (_, msg@(Hello n)) =
+conversationHandler ain e (_, msg@(Hello n)) =
     trace ("Agent " ++ (show $ aiId ain) ++ " receives conversation: " ++ (show msg))
-        Just (Hello (n+1), aie)
+        Just (Hello (n+1), ain, e)
 
 makeConversationWith :: Int -> ConversationAgentOut -> ConversationAgentOut
 makeConversationWith n ao = conversation msg makeConversationWithAux ao 
@@ -67,7 +67,7 @@ makeConversationWith n ao = conversation msg makeConversationWithAux ao
         msg =  trace ("makeConversationWith " ++ (show n) ++ " receiverId = " ++ (show receiverId))  (receiverId, Hello n)
 
         makeConversationWithAux :: ConversationAgentSender
-        makeConversationWithAux (ao, e) (Just (senderId, msg@(Hello n)))
+        makeConversationWithAux ao e (Just (senderId, msg@(Hello n)))
             | n > 5 = trace ("Agent " ++ (show $ aoId ao) ++ " receives reply: " ++ (show msg) ++ " but stoppin") (conversationEnd a1, e)
             | otherwise = trace ("Agent " ++ (show $ aoId ao) ++ " receives reply: " ++ (show msg) ++ " continuing") (makeConversationWith (n + 1) ao, e)
             where
@@ -84,7 +84,7 @@ makeConversationWith n ao = conversation msg makeConversationWithAux ao
 
                 a1 = createAgent adef a0
 
-        makeConversationWithAux (ao, e) _ = trace ("Agent " ++ (show $ aoId ao) ++ " receives Nothing -> stopping") (conversationEnd ao, e)
+        makeConversationWithAux ao e _ = trace ("Agent " ++ (show $ aoId ao) ++ " receives Nothing -> stopping") (conversationEnd ao, e)
 
 conversationAgentBehaviour :: ConversationAgentBehaviour
 conversationAgentBehaviour = proc (ain, e) ->

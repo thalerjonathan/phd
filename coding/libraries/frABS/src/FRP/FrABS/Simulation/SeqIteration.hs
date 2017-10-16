@@ -17,6 +17,7 @@ import FRP.FrABS.Simulation.Internal
 import FRP.FrABS.Simulation.Common
 
 type MessageAccumulator m = Map.Map AgentId [AgentMessage m]
+type AgentInMap s m e = Map.Map AgentId (AgentIn s m e)
 
 -- | Steps the simulation using a sequential update-strategy. 
 -- Conversations and Recursive Simulation is only possible using this strategy.
@@ -70,8 +71,7 @@ simulateSeq initParams initSfs initIns initEnv = SF { sfTF = tf0 }
                         (e'', params'') = runEnv dt params' e'
                         -- create the continuation
                         tf' = simulateSeqNewAux params'' sfsShuffled insShuffled e'' msgs'
-
--- TODO: implement conversations
+     
 -- TODO: implement recursion
 iterateAgents :: DTime
                   -> [AgentBehaviour s m e]
@@ -79,19 +79,30 @@ iterateAgents :: DTime
                   -> e
                   -> MessageAccumulator m
                   -> ([AgentBehaviour s m e], [AgentOut s m e], e, MessageAccumulator m)
-iterateAgents dt sfs ins e msgs = foldr handleAgent ([], [], e, msgs) (zip sfs ins)
+iterateAgents dt sfs ins e msgs = (sfs', outs, e', msgs')
   where
-    handleAgent :: (AgentBehaviour s m e, AgentIn s m e)
-                    -> ([AgentBehaviour s m e], [AgentOut s m e], e, MessageAccumulator m)
-                    -> ([AgentBehaviour s m e], [AgentOut s m e], e, MessageAccumulator m)
-    handleAgent (sf, ain) (accSfs, accOuts, env, msgs) = (accSfs', accOuts', env', msgs''')
+    ais = map aiId ins
+    ainMap = foldr (\ain acc -> Map.insert (aiId ain) ain acc) Map.empty ins
+
+    (sfs', outs, e', msgs', _) = foldr handleAgent ([], [], e, msgs, ainMap) (zip sfs ais)
+
+    handleAgent :: (AgentBehaviour s m e, AgentId)
+                    -> ([AgentBehaviour s m e], [AgentOut s m e], e, MessageAccumulator m, AgentInMap s m e)
+                    -> ([AgentBehaviour s m e], [AgentOut s m e], e, MessageAccumulator m, AgentInMap s m e)
+    handleAgent (sf, aid) (accSfs, accOuts, env, msgs, insMap) = (accSfs', accOuts', env'', msgs''', insMap')
       where
+        -- NOTE: we can asume that all lookups are valid
+        ain = fromJust $ Map.lookup aid insMap
         -- collecting existing messages from other agents
         ain' = collectMessages msgs ain
 
         (sf', (ao, env')) = runAndFreezeSF sf (ain', env) dt
+
+        -- NOTE: handle conversation here
+        (ao', env'', insMap') = handleConversation ao env' insMap
+
         accSfs' = sf' : accSfs
-        accOuts' = ao : accOuts
+        accOuts' = ao' : accOuts
 
         -- NOTE: when there are new agents to spawn, add entry in messageaccumulator BEFORE distributing the messages, could send to them
         msgs' = addNewAgentsEntries ao msgs
@@ -151,6 +162,39 @@ iterateAgents dt sfs ins e msgs = foldr handleAgent ([], [], e, msgs) (zip sfs i
             | otherwise = emptyEntry aid msgAcc
             where
                 aid = aiId ain
+
+        handleConversation :: AgentOut s m e
+                        -> e
+                        -> AgentInMap s m e
+                        -> (AgentOut s m e, e, AgentInMap s m e)
+        handleConversation ao e insMap
+            | hasConversation ao = handleConversation ao' e' insMap'
+            | otherwise = (ao, e, insMap)
+            where
+                conv@(_, senderReplyFunc) = fromEvent $ aoConversation ao
+
+                -- NOTE: it is possible that agents which are just newly created are already target of a conversation because
+                --       their position in the environment was occupied using their id which exposes them to potential messages
+                --       and conversations. These newly created agents are not yet available in the current iteration and can
+                --       only fully participate in the next one. Thus we ignore conversation-requests
+
+                mayRepl = conversationReply ao e insMap conv
+                (noReplyAo, noReplyEnv) = senderReplyFunc ao e Nothing
+                (ao', e', insMap') = fromMaybe (noReplyAo, noReplyEnv, insMap) mayRepl
+
+                conversationReply :: AgentOut s m e
+                                        -> e
+                                        -> AgentInMap s m e
+                                        -> (AgentMessage m, AgentConversationSender s m e)
+                                        -> Maybe (AgentOut s m e, e, AgentInMap s m e)
+                conversationReply ao e insMap ((receiverId, receiverMsg), senderReplyFunc) = do
+                    receiver <- Map.lookup receiverId insMap
+                    convHandler <- aiConversation receiver
+                    let msg = (aoId ao, receiverMsg)
+                    (replyMsg, receiver', e') <- convHandler receiver e msg
+                    let insMap' = Map.insert receiverId receiver' insMap
+                    let (ao', e') = senderReplyFunc ao e (Just (receiverId, replyMsg))
+                    return (ao', e', insMap)
 
 liveKillAndSpawn :: TVar Int
                     -> [(AgentBehaviour s m e, AgentIn s m e, AgentOut s m e)]

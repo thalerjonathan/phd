@@ -5,7 +5,6 @@ module FRP.FrABS.Simulation.ParIteration (
 import qualified Data.Map as Map
 import Data.Maybe
 import Control.Concurrent.STM.TVar
-import Data.Tuple
 
 import FRP.Yampa
 import FRP.Yampa.InternalCore
@@ -13,7 +12,6 @@ import FRP.Yampa.InternalCore
 import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Simulation.Init
 import FRP.FrABS.Simulation.Internal
-import FRP.FrABS.Utils
 import FRP.FrABS.Simulation.Common
 
 
@@ -91,11 +89,12 @@ iterateAgents :: DTime
                 -> ([AgentBehaviour s m e], [AgentOut s m e], [e])
 iterateAgents dt sfs ins e = unzip3 sfsOutsEnvs
     where
-        sfsOutsEnvs = map iterateAgentsAux (zip sfs ins)
+        sfsOutsEnvs = map (iterateAgentsAux e) (zip sfs ins)
 
-        iterateAgentsAux :: (AgentBehaviour s m e, AgentIn s m e)
+        iterateAgentsAux :: e
+                            -> (AgentBehaviour s m e, AgentIn s m e)
                             -> (AgentBehaviour s m e, AgentOut s m e, e)
-        iterateAgentsAux (sf, ain) = (sf', ao, e')
+        iterateAgentsAux e (sf, ain) = (sf', ao, e')
             where
                 (sf', (ao, e')) = runAndFreezeSF sf (ain, e) dt
 
@@ -135,7 +134,7 @@ nextStep oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
                         newIn = newAgentIn oldIn newOut
 
 handleCreateAgents :: TVar Int
-                        -> AgentOut s m e, e
+                        -> AgentOut s m e
                         -> ([AgentBehaviour s m e], [AgentIn s m e])
                         -> ([AgentBehaviour s m e], [AgentIn s m e])
 handleCreateAgents idGen ao acc@(asfsAcc, ainsAcc) 
@@ -148,15 +147,15 @@ handleCreateAgents idGen ao acc@(asfsAcc, ainsAcc)
         newSfs = map adBeh newAgentDefs
         newAis = map (startingAgentInFromAgentDef idGen) newAgentDefs
 
-distributeMessages :: [(AgentIn s m e, e)] -> [(AgentOut s m e, e)] -> [(AgentIn s m e, e)]
+distributeMessages :: [AgentIn s m e] -> [AgentOut s m e] -> [AgentIn s m e]
 distributeMessages ains aouts = map (distributeMessagesAux allMsgs) ains
     where
         allMsgs = collectAllMessages aouts
 
         distributeMessagesAux :: Map.Map AgentId [AgentMessage m]
-                                    -> (AgentIn s m e, e)
-                                    -> (AgentIn s m e, e)
-        distributeMessagesAux allMsgs (ain, e) = (ain', e) 
+                                    -> AgentIn s m e
+                                    -> AgentIn s m e
+        distributeMessagesAux allMsgs ain = ain'
             where
                 receiverId = aiId ain
                 msgs = aiMessages ain -- NOTE: ain may have already messages, they would be overridden if not incorporating them
@@ -166,13 +165,13 @@ distributeMessages ains aouts = map (distributeMessagesAux allMsgs) ains
 
                 ain' = ain { aiMessages = msgsEvt }
 
-collectAllMessages :: [(AgentOut s m e, e)] -> Map.Map AgentId [AgentMessage m]
+collectAllMessages :: [AgentOut s m e] -> Map.Map AgentId [AgentMessage m]
 collectAllMessages aos = foldr collectAllMessagesAux Map.empty aos
     where
-        collectAllMessagesAux :: (AgentOut s m e, e)
+        collectAllMessagesAux :: AgentOut s m e
                                     -> Map.Map AgentId [AgentMessage m]
                                     -> Map.Map AgentId [AgentMessage m]
-        collectAllMessagesAux (ao, _) accMsgs 
+        collectAllMessagesAux ao accMsgs 
             | isEvent msgsEvt = foldr collectAllMessagesAuxAux accMsgs (fromEvent msgsEvt)
             | otherwise = accMsgs
             where

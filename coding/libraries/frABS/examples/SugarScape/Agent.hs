@@ -711,24 +711,24 @@ agentDiseaseProcessesM ain e = agentDiseaseContactM ain >> agentDiseasesTransmit
 ------------------------------------------------------------------------------------------------------------------------
 -- TODO: monadic-refactoring
 sugarScapeAgentConversationM :: SugarScapeAgentConversation
-sugarScapeAgentConversationM (ain, e) (_, (MatingRequest tup)) = Just (m, (ain', e))
+sugarScapeAgentConversationM ain e (_, (MatingRequest tup)) = Just (m, ain', e)
     where
         (m, ain') = handleMatingConversationM tup ain
-sugarScapeAgentConversationM (ain, e) (_, (MatingChild childId)) = Just (MatingChildAck, (ain', e))
+sugarScapeAgentConversationM ain e (_, (MatingChild childId)) = Just (MatingChildAck, ain', e)
     where
         s = aiState ain
         s' = s { sugAgChildren = childId : (sugAgChildren s)}
         ain' = ain { aiState = s' }
-sugarScapeAgentConversationM (ain, e) (_, (TradingOffer mrs)) = Just (m, (ain', e))
+sugarScapeAgentConversationM ain e (_, (TradingOffer mrs)) = Just (m, ain', e)
     where
         (m, ain') = handleTradingOfferM mrs ain
-sugarScapeAgentConversationM (ain, e) (_, (TradingTransact mrs)) = Just (m, (ain', e))
+sugarScapeAgentConversationM ain e (_, (TradingTransact mrs)) = Just (m, ain', e)
     where
         (m, ain') = handleTradingTransactM mrs ain
-sugarScapeAgentConversationM (ain, e) (borrowerId, CreditRequest) = Just (m, (ain', e))
+sugarScapeAgentConversationM ain e (borrowerId, CreditRequest) = Just (m, ain', e)
     where
         (m, ain') = handleCreditRequestM ain borrowerId
-sugarScapeAgentConversationM _ _ = Nothing
+sugarScapeAgentConversationM _ _ _ = Nothing
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

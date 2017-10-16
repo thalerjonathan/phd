@@ -2,6 +2,8 @@ module FRP.FrABS.Simulation.Common where
 
 import FRP.Yampa
 
+import FRP.FrABS.Utils
+import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Environment.Definitions
 import FRP.FrABS.Simulation.Init
 import FRP.FrABS.Simulation.Internal

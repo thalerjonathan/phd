@@ -77,13 +77,15 @@ type AgentMessage m = (AgentId, m)
 type AgentBehaviour s m e = SF (AgentIn s m e, e) (AgentOut s m e, e)
 type MessageFilter m = (AgentMessage m -> Bool)
 
-type AgentConversationReply s m e = Maybe (m, (AgentIn s m e, e))
+type AgentConversationReply s m e = Maybe (m, AgentIn s m e, e)
 
-type AgentConversationReceiver s m e = ((AgentIn s m e, e)
+type AgentConversationReceiver s m e = (AgentIn s m e
+                                            -> e
                                             -> AgentMessage m
                                             -> AgentConversationReply s m e) -- NOTE: the receiver MUST reply, otherwise we could've used the normal messaging
 
-type AgentConversationSender s m e = ((AgentOut s m e, e)
+type AgentConversationSender s m e = (AgentOut s m e
+                                        -> e
                                         -> Maybe (AgentMessage m)   -- NOTE: this will be Nothing in case the conversation with the target was not established e.g. id not found, target got no receiving handler
                                         -> (AgentOut s m e, e))
 

@@ -841,7 +841,7 @@ chapterV e age ain =
 
 ------------------------------------------------------------------------------------------------------------------------
 sugarScapeAgentBehaviour :: SugarScapeAgentBehaviour
-sugarScapeAgentBehaviour = agentMonadic chapterV
+sugarScapeAgentBehaviour = agentMonadic chapterII
 
 sugarScapeAgentConversation :: SugarScapeAgentConversation
 sugarScapeAgentConversation = sugarScapeAgentConversationM

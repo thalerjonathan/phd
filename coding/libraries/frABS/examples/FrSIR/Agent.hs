@@ -11,9 +11,6 @@ import FRP.Yampa
 
 import FrSIR.Model
 
-samples :: Int
-samples = 100
-
 ------------------------------------------------------------------------------------------------------------------------
 -- Non-Reactive Functions
 ------------------------------------------------------------------------------------------------------------------------
@@ -23,6 +20,12 @@ gotInfected ain = onMessageM gotInfectedAux ain False
     gotInfectedAux :: Bool -> AgentMessage FrSIRMsg -> Rand StdGen Bool
     gotInfectedAux False (_, Contact Infected) = randomBoolM infectivity
     gotInfectedAux x _ = return x
+
+respondToContactWith :: SIRState -> FrSIRAgentIn -> FrSIRAgentOut -> FrSIRAgentOut
+respondToContactWith state ain ao = onMessage respondToContactWithAux ain ao
+  where
+    respondToContactWithAux :: AgentMessage FrSIRMsg -> FrSIRAgentOut -> FrSIRAgentOut
+    respondToContactWithAux (senderId, Contact _) ao = sendMessage (senderId, Contact state) ao
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -30,7 +33,7 @@ gotInfected ain = onMessageM gotInfectedAux ain False
 ------------------------------------------------------------------------------------------------------------------------
 -- SUSCEPTIBLE
 sirAgentSuceptible :: RandomGen g => g -> FrSIRAgentBehaviour
-sirAgentSuceptible g = transitionOnEvent sirAgentInfectedEvent sirAgentSusceptibleBehaviour (sirAgentInfected g)
+sirAgentSuceptible g = transitionOnEvent sirAgentInfectedEvent (sirAgentSusceptibleBehaviour g) (sirAgentInfected g)
 
 sirAgentInfectedEvent :: FrSIREventSource
 sirAgentInfectedEvent = proc (ain, ao) -> do
@@ -38,18 +41,22 @@ sirAgentInfectedEvent = proc (ain, ao) -> do
     infectionEvent <- edge -< isInfected
     returnA -< (ao', infectionEvent)
 
-sirAgentSusceptibleBehaviour :: FrSIRAgentBehaviour
-sirAgentSusceptibleBehaviour = setDomainStateReact Susceptible
+sirAgentSusceptibleBehaviour :: RandomGen g => g ->FrSIRAgentBehaviour
+sirAgentSusceptibleBehaviour g = proc (ain, e) -> do
+    let ao = agentOutFromIn ain
+    ao1 <- doOnce (setDomainState Susceptible) -< ao
+    ao2 <- sendMessageOccasionallySrcSS g (1 / contactRate) contactSS (randomAgentIdMsgSource (Contact Susceptible) True) -< (ao1, e)
+    returnA -< (ao2, e)
 
 -- INFECTED
 sirAgentInfected :: RandomGen g => g -> FrSIRAgentBehaviour
-sirAgentInfected g = transitionAfterExpSS g illnessDuration samples (sirAgentInfectedBehaviour g) sirAgentRecovered
+sirAgentInfected g = transitionAfterExpSS g illnessDuration illnessTimeoutSS (sirAgentInfectedBehaviour g) sirAgentRecovered
 
 sirAgentInfectedBehaviour :: RandomGen g => g -> FrSIRAgentBehaviour
 sirAgentInfectedBehaviour g = proc (ain, e) -> do
     let ao = agentOutFromIn ain
     ao1 <- doOnce (setDomainState Infected) -< ao
-    ao2 <- sendMessageOccasionallySrcSS g (1 / contactRate) samples (randomAgentIdMsgSource (Contact Infected) True) -< (ao1, e)
+    let ao2 = respondToContactWith Infected ain ao1
     returnA -< (ao2, e)
 
 -- RECOVERED

@@ -19,10 +19,9 @@ import           Zombies.Run
 import           NewAgents.Run
 
 {- TODOs
-  - implememt parallelstrategy using SF instead my own implementation
 	- make current simulation time available to rendering and step callbacks
 	- different build targets: with/without time-traveling, gloss rendering
-	- add how-to get FrABS examples running on github in a sandbox: need yampa with exposed core, haskell-titan, install FrABS
+	- add HOW-TO of FrABS examples running on github in a sandbox: need yampa with exposed core, haskell-titan, install FrABS
 	
 	- clean-up, can all be done in one rush through ALL the files:
 		-> STYLE, INDENTATIONS & COMMENTS:		https://github.com/tibbe/haskell-style-guide/blob/master/haskell-style.md
@@ -31,7 +30,7 @@ import           NewAgents.Run
 -}
 
 main :: IO ()
-main = runWildfireWithRendering -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
+main = runFrSIRStepsAndWriteToFile -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
 
     -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
     -- runZombiesWithRendering

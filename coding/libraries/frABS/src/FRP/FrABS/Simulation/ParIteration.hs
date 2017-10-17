@@ -53,17 +53,15 @@ simulatePar initParams initSfs initIns initEnv = SF { sfTF = tf0 }
             where
                 tf dt _ =  (tf', (outs, e'))
                     where
-                         -- run the next step with the new sfs and inputs to get the sf-contintuations and their outputs
+                        -- iterate agents in parallel
                         (sfs', outs, envs) = iterateAgents dt sfs ins e
-
-                        -- using the callback to create the next inputs and allow changing of the SF-collection
+                        -- create next inputs and sfs (distribute messages and add/remove new/killed agents)
                         (sfs'', ins') = nextStep ins outs sfs'
-
+                        -- collapse all environments into one
                         (e', params') = collapseEnvironments dt params envs e 
-                        
                         -- NOTE: shuffling may seem strange in parallel but this will ensure random message-distribution when required
                         (params'', sfsShuffled, insShuffled) = shuffleAgents params' sfs'' ins'
-                        
+                        -- create continuation
                         tf' = simulateParAux params'' sfsShuffled insShuffled e'
 
         collapseEnvironments :: Double 

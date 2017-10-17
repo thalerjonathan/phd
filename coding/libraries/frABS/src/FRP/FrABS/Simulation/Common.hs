@@ -20,21 +20,21 @@ runEnv dt params e = maybe (e, params) (runEnvAux params e) mayEnvBeh
                 params' = params { simEnvBehaviour = Just envBeh' }
 
 shuffleAgents :: SimulationParams e 
-                -> [AgentBehaviour s m e] 
-                -> [AgentIn s m e] 
-                -> (SimulationParams e, [AgentBehaviour s m e], [AgentIn s m e])
-shuffleAgents params sfs ins 
-    | doShuffle = (params', sfs', ins')
-    | otherwise = (params, sfs, ins)
+                -> [a] 
+                -> [b] 
+                -> (SimulationParams e, [a], [b])
+shuffleAgents params as bs 
+    | doShuffle = (params', as', bs')
+    | otherwise = (params, as, bs)
     where
         doShuffle = simShuffleAgents params
         g = simRng params 
 
-        sfsIns = zip sfs ins
+        sfsIns = zip as bs
         (shuffledSfsIns, g') = fisherYatesShuffle g sfsIns
 
         params' = params { simRng = g' }
-        (sfs', ins') = unzip shuffledSfsIns
+        (as', bs') = unzip shuffledSfsIns
 
 newAgentIn :: AgentIn s m e
                 -> AgentOut s m e

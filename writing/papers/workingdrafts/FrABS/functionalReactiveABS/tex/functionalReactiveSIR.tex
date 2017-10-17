@@ -6,7 +6,7 @@ The challenges one faces when implementing an ABS plain, without support from a 
 	\item Agent-Agent Interaction - how can agents interact with other agents? In object-orientation we have method-calls which allows to call other objects and mutate their state. Also this is not available in Haskell, so how do we solve this problem without resorting to the IO monad?
 	\item Environment representation - how can we represent an environment? Also an environment must have the ability to update itself e.g. regrow some resources.
 	\item Agent-Environment interaction - how can agents interact (read / write) with the environment they are situated in?
-	\item Agent Updating - how is the set of agents organised, how are they updated and how is it managed (deleting, adding during simulation)? In object-oriented implementations due to side-effects and mutable data in-order updates are easily done but this is not available in Haskell.
+	\item Agent Updating - how is the set of agents organised, how are they updated and how is it managed (deleting, adding during simulation)? In object-oriented implementations due to side-effects and mutable data in-order updates are easily done but this is not available in Haskell without resorting to the IO monad.
 \end{itemize}
 
 In the next subsections we will discuss each point by deriving a functional reactive implementation of the agent-based SIR model. For us it is absolutely paramount that the simulation should be pure and never run in the IO Monad (except of course the surrounding Yampa loop which allows rendering and output). The complete source-code can be seen in Appendix TODO: ref. 
@@ -17,34 +17,81 @@ An agent can be seen as a tuple $<id, s, m, e, b>$.
 	\item \textbf{id} - the unique identifier of the agent
 	\item \textbf{s} - the generic state of the agent
 	\item \textbf{m} - the set of messages the agent understands
-	\item \textbf{e} - the type of the environment the agent is situated in an can interact with
+	\item \textbf{e} - the type of the environment the agent is situated in and can interact with
 	\item \textbf{b} - the behaviour of the agent
 \end{itemize}
 
 The id is simply represented as an Integer and must be unique for all currently existing agents in the system as it is used for message-delivery. A stronger requirement would be that the id of an agent is unique for the whole simulation-run and will never be reused - this would support replications and operations requiring unique agent-ids.
 
-Each agent may have a generic state which could be any data type or compound data. A SIR agent's state can be represented using the sum type as follows:
-\begin{minted}{haskell}
+Each agent may have a generic state which could be any data type or compound data. A SIR agent's state can be represented using the an AGDT as follows:
+\begin{minted}[fontsize=\footnotesize]{haskell}
 data SIRState = Susceptible | Infected | Recovered
 \end{minted}
 
-The behaviour of the agent is a signal-function which maps an AgentIn-Signal to an AgentOut-Signal. It has the following signature: 
-\begin{minted}{haskell}
-type AgentBehaviour s m e = SF (AgentIn s m e) (AgentOut s m e)
+The behaviour of the agent is a signal-function which maps a tuple of an AgentIn and the environment to an AgentOut and the environment. It has the following signature: 
+\begin{minted}[fontsize=\footnotesize]{haskell}
+type AgentBehaviour s m e = SF (AgentIn s m e, e) (AgentOut s m e, e)
 \end{minted}
 
-AgentIn provides the necessary data to the agent-behaviour: its id, incoming messages, the current state s, the environment (made out of the cells ec), its position in the environment and a random-number generator. 
+AgentIn provides the necessary data to the agent-behaviour: its id, incoming messages, the current state s and a random-number generator. 
 
-AgentOut allows the agent to communicate changes out of the behaviour: kill itself, create new agents, sending messages, state s, environment (made ouf of the cells ec), environment-position and random-number generator. 
+AgentOut allows the agent to communicate changes: kill itself, create new agents, sending messages, an updated state s and a changed random-number generator.
 
-The agent needs to know the generic type of the cells the environment is made of to be able to act upon the environment. Note that at the moment we only implemented a discrete 2d environment and provide only access and manipulation to the cells in a 2d discrete fashion. In the case of a continuous n-dimensional environment this approach needs to be thoroughly revised. It is important to understand that it is the \textit{type} of the cells and not the environment itself.
+The behaviour also gets the environment passed in, which the agent can read and also write by changing it and returning it along side the AgentOut. It is important to note, that the environment is completely generic and we do not induce any type-bounds on it.
+
+Obviously AgentIn is read-only \footnote{Of course one could change it, but the changes are never propagated out of the function thus ultimately making them never happen due to lazy evaluation.} whereas AgentOut is both read- and write-able. The first thing an agent-behaviour does is creating the default AgentOut from the existing AgentIn using the function.
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+agentOutFromIn :: AgentIn s m e -> AgentOut s m e
+\end{minted}
+
+This will copy the relevant fields over to AgentOut on which one now primarily acts. The read-only and read/write character of both types is also reflected in the EDSL where most of the functions implemented also work that way: they may read the AgentIn and read/write an AgentOut.
+
+Relevant functions for working on the agent-definition are:
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+kill :: AgentOut s m e -> AgentOut s m e
+isDead :: AgentOut s m e -> Bool
+onStart :: (AgentOut s m e -> AgentOut s m e) -> AgentIn s m e -> AgentOut s m e -> AgentOut s m e
+
+setDomainState :: s -> AgentOut s m e -> AgentOut s m e
+updateDomainState :: (s -> s) -> AgentOut s m e ->  AgentOut s m e
+
+createAgent :: AgentDef s m e -> AgentOut s m e -> AgentOut s m e
+\end{minted}
+
+The function \textit{kill} marks an agent for removal after the current iteration. The function \textit{isDead} checks if the agent is marked for removal. The function \textit{onStart} allows to change the AgentOut in the case of the start-event which happens on the very first time the agent runs.
+The function \textit{setDomainState} allows to change the state of the agent by overriding it and \textit{updateDomainState} allows to change it by keeping parts of it.
+The function \textit{createAgent} allows to add an agent-definition \footnote{AgentDef simply contains the initial state, behaviour and id of the agent (amongst others).} to the AgentOut which results in creating a new agent from the given definition which will be active in the next iteration of the simulation. 
+
+TODO: introduce reactive functions which allow implementing time-semantics and reactions on events in a model
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+setDomainStateR :: s -> AgentBehaviour s m e
+updateDomainStateR :: (s -> s) -> AgentBehaviour s m e
+
+transitionAfterExp :: RandomGen g => g -> Double -> AgentBehaviour s m e -> AgentBehaviour s m e -> AgentBehaviour s m e
+
+type EventSource s m e = SF (AgentIn s m e, AgentOut s m e) (AgentOut s m e, Event ())
+transitionOnEvent :: EventSource s m e -> AgentBehaviour s m e -> AgentBehaviour s m e -> AgentBehaviour s m e
+\end{minted}
+
+TODO: explain the functions
+
+We also introduce a wrapper which wraps a signal-function which is the same as agent-behaviour but omits the environment from the in-/out tuples. When this wrapper is used one can guarantee statically at compile-time that the environment will not be accessed by the agent-behaviour.
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+ignoreEnv :: SF (AgentIn s m e) (AgentOut s m e) -> AgentBehaviour s m e 
+\end{minted}
 
 \subsection{Agent-Agent Interaction}
-Agents communicate with each other through messages (see below) and thus need to have an agreed set of messages they understand. This is usually implemented as an ADT.
+TODO: general introduction (object-oriented approach uses methods). we need both: asynchronous messaging and synchronous conversations
 
 \subsubsection{Messaging}
 As discussed in the literature reflection in Chapter \ref{chap:refl}, inspired by the actor model we will resort to synchronized, reliable message passing with share nothing semantics to implement agent-agent interactions. Each Agent can send a message to an other agent through AgentOut-Signal where the messages are queued in the AgentIn-Signal and can be processed when the agent is updated the next time. The agent is free to ignore the messages and if it does not process them they will be simply lost.
 Note that due to the fact we don't have method-calls in FP, messaging will always take some time, which depends on the sampling interval of the system. This was not obviously clear when implementing ABS in an object-oriented way because there we can communicate through method calls which are a way of interaction which takes no simulation-time.
+
+Agents communicate with each other through messages and thus need to have an agreed set of messages they understand. This is usually implemented as an AGDT.
 
 %TODO: Push vs. Pull. we need push because we need to 'sample' the system at regular time-intervals because agent-behaviour can depend on time as well (pro-active) and not only on messaging. if we had only the latter, a pull approach would suffice.
 
@@ -53,15 +100,54 @@ Note that due to the fact we don't have method-calls in FP, messaging will alway
 % because an agent cannot reply within the same timestep sampling interval becomes an issue: if we need a reply within a given time then the sampling interval needs to be at least twice as much
 % difference between discrete and continuous: the successor of discrete is defined whereas in the case of continuous it is not? how is the successor defined in the case of continuous time?
 
+\begin{minted}[fontsize=\footnotesize]{haskell}
+data SIRMsg = Contact SIRState
+\end{minted}
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+type AgentMessage m = (AgentId, m)
+
+sendMessage :: AgentMessage m -> AgentOut s m e -> AgentOut s m e
+sendMessageTo :: AgentId -> m -> AgentOut s m e -> AgentOut s m e
+sendMessages :: [AgentMessage m] -> AgentOut s m e ->  AgentOut s m e
+broadcastMessage :: m -> [AgentId] -> AgentOut s m e -> AgentOut s m e
+
+hasMessage :: (Eq m) => m -> AgentIn s m e -> Bool
+onMessage :: (AgentMessage m -> acc -> acc) -> AgentIn s m e -> acc -> acc
+onFilterMessage :: MessageFilter m -> (AgentMessage m -> acc -> acc) -> AgentIn s m e -> acc -> acc
+onMessageFrom :: AgentId -> (AgentMessage m -> acc -> acc) -> AgentIn s m e -> acc -> acc
+onMessageType :: (Eq m) => m -> (AgentMessage m -> acc -> acc) -> AgentIn s m e -> acc -> acc
+\end{minted}
+
+TODO: explain
+The type-variables m are then usually replaced by \textit{SIRMsg}.
+
+TODO: we also have reactive message signale-functions
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+type MessageSource s m e = (e -> AgentOut s m e -> (AgentOut s m e, AgentMessage m))
+
+sendMessageOccasionallySrcSS :: RandomGen g => g 
+                                -> Double
+                                -> Int
+                                -> MessageSource s m e 
+                                -> SF (AgentOut s m e, e) (AgentOut s m e)
+
+constMsgReceiverSource :: m -> AgentId -> MessageSource s m e
+randomNeighbourNodeMsgSource :: m -> MessageSource s m (Network l)
+randomNeighbourCellMsgSource :: (s -> Discrete2dCoord) -> m -> Bool -> MessageSource s m (Discrete2d AgentId)
+randomAgentIdMsgSource :: m -> Bool -> MessageSource s m [AgentId]
+
+transitionOnMessage :: (Eq m) => m -> AgentBehaviour s m e -> AgentBehaviour s m e -> AgentBehaviour s m e
+\end{minted}
+
 \subsubsection{Conversations}
 The messaging as implemented above works well for one-directional, virtual asynchronous interaction where we don't need a reply at the same time. A perfect use-case for messaging is making contact with neighbours in the SIRS-model: the agent sends the contact message but does not need any response from the receiver, the receiver handles the message and may get infected but does not need to communicate this back to the sender. 
 A different case is when agents need to transact in the time-step one or multiple times: agent A interacts with agent B where the semantics of the model (and thus messaging) need an immediate response from agent B - which can lead to further interactions initiated by agent A. The Sugarscape model has three use-cases for this: sex, warfare and trading amongst agents all need an immediate response (e.g. wanna mate with me?, I just killed you, wanna trade for this price?). The reason is that we need to transact now as all of the actions only work on a 1:1 relationship and could violate ressource-constraints.
 For this we introduce the concept of a conversation between agents. This allows an agent A to initiate a conversation with another agent B in which the simulation is virtually halted and both can exchange an arbitrary number of messages through calling and responding without time passing (something not possible without this concept because in each iteration the time advances). After either one agent has finished with the conversation it will terminate it and the simulation will continue with the updated agents (note the importance here: \textit{both} agents can change their state in a conversation). The conversation-concept is implemented at the moment in the way that the initiating agent A has all the freedom in sending messages, starting a new conversation,... but that the receiving agent B is only able to change its state but is not allowed to send messages or start conversations in this process. Technically speaking: agent A can manipulate an AgentOut whereas agent B can only manipulate its next AgentIn.
 When looking at conversations they may look like an emulation of method-calls but they are more powerful: a receiver can be unavailable to conversations or simply refuse to handle this conversation. This follows the concept of an active actor which can decide what happens with the incoming interaction-request, instead of the passive object which cannot decide whether the method-call is really executed or not.
 
-\begin{minted}{haskell}
-data SIRMsg = Contact SIRState
-\end{minted}
+
 
 \subsection{Environment representation}
 TODO: update, we have now also 2d-continuous AND networks!

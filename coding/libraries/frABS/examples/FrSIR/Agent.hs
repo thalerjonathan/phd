@@ -41,7 +41,7 @@ sirAgentInfectedEvent = proc (ain, ao) -> do
     infectionEvent <- edge -< isInfected
     returnA -< (ao', infectionEvent)
 
-sirAgentSusceptibleBehaviour :: RandomGen g => g ->FrSIRAgentBehaviour
+sirAgentSusceptibleBehaviour :: RandomGen g => g -> FrSIRAgentBehaviour
 sirAgentSusceptibleBehaviour g = proc (ain, e) -> do
     let ao = agentOutFromIn ain
     ao1 <- doOnce (setDomainState Susceptible) -< ao
@@ -57,6 +57,7 @@ sirAgentInfectedBehaviour g = proc (ain, e) -> do
     let ao = agentOutFromIn ain
     ao1 <- doOnce (setDomainState Infected) -< ao
     let ao2 = respondToContactWith Infected ain ao1
+    --ao2 <- sendMessageOccasionallySrcSS g (1 / contactRate) contactSS (randomAgentIdMsgSource (Contact Infected) True) -< (ao1, e)
     returnA -< (ao2, e)
 
 -- RECOVERED

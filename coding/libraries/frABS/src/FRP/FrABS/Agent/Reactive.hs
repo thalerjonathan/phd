@@ -101,11 +101,11 @@ doNothing = proc (ain, e) ->
         let aout = agentOutFromIn ain
         returnA -< (aout, e)
 
-setDomainStateReact :: s -> AgentBehaviour s m e
-setDomainStateReact s = first $ (arr agentOutFromIn) >>> doOnce (setDomainState s)
+setDomainStateR :: s -> AgentBehaviour s m e
+setDomainStateR s = first $ arr agentOutFromIn >>> doOnce (setDomainState s)
 
-updateDomainStateReact :: (s -> s) -> AgentBehaviour s m e
-updateDomainStateReact s = first $ (arr agentOutFromIn) >>> doOnce (updateDomainState s)
+updateDomainStateR :: (s -> s) -> AgentBehaviour s m e
+updateDomainStateR s = first $ arr agentOutFromIn >>> doOnce (updateDomainState s)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------

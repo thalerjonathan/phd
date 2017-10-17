@@ -1,2 +1,51 @@
 \section{Non-Reactive Features}
 TODO: discuss non-reactive features of FrABS: pure \& monadic approach and mixes of pure, monadic \& reactive
+
+Not all models have such explicit time-semantics as the SIR model. Such models just assume that the agents act in some order but don't rely on any time-outs, timed transitions or rates. These models are more of imperative nature and map therefore naturally to a monadic style of programming using the do-notation. Unfortunately we don't have this functionality available within a SF thus to support the programming of such imperative models, we implemented wrapper-functions which allow to provide both non-monadic and monadic functionality which runs within a wrapper-signal function.
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+type AgentBehaviour s m e = SF (AgentIn s m e, e) (AgentOut s m e, e)
+\end{minted}
+
+\subsection{Non-monadic \textit{pure} wrappers}
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+agentPure :: (e -> Double -> AgentIn s m e -> AgentOut s m e -> (AgentOut s m e, e)) -> AgentBehaviour s m e
+agentPureReadEnv :: (e -> Double -> AgentIn s m e -> AgentOut s m e -> AgentOut s m e) -> AgentBehaviour s m e
+agentPureIgnoreEnv :: (Double -> AgentIn s m e -> AgentOut s m e -> AgentOut s m e) -> AgentBehaviour s m e
+\end{minted}
+
+The function \textit{agentPure} wraps a non-monadic (pure) function and wraps it in a SF. This pure function has the following arguments: the environment, the current local time of the agent, the AgentIn, a default AgentOut and must return the tuple of AgentOut and the environment.
+
+The function \textit{agentPureReadEnv} works the same as \textit{agentPure} but omits the environment from the return-type thus ensuring statically at compile-time that an agent which implements its behaviour in this way can only read the environment but never change it.
+
+The function \textit{agentPureIgnoreEnv} is an even stricter version of \textit{agentPureReadEnv} and omits environment from the agents behaviour altogether thus ensuring statically at compile-time  that an agent which wraps its behaviour in this function will never access the environment.
+
+\subsection{Monadic wrapping}
+The monadic wrappers work basically the same way as the pure version, with the difference that they run within the state-monad with AgentOut being the state to pass around.
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+agentMonadic :: (e -> Double -> AgentIn s m e -> State (AgentOut s m e) e) -> AgentBehaviour s m e
+agentMonadicReadEnv :: (e -> Double -> AgentIn s m e -> State (AgentOut s m e) ()) -> AgentBehaviour s m e
+agentMonadicIgnoreEnv :: (Double -> AgentIn s m e -> State (AgentOut s m e) ()) -> AgentBehaviour s m e
+\end{minted}
+
+We also provide monadic versions of the previously mentioned functions which build our EDSL.
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+agentIdM :: State (AgentOut s m e) AgentId
+
+sendMessageM :: AgentMessage m -> State (AgentOut s m e) ()
+sendMessageToM :: AgentId -> m -> State (AgentOut s m e) ()
+onMessageM :: (Monad mon) => (acc -> AgentMessage m -> mon acc) -> AgentIn s m e -> acc -> mon acc
+
+createAgentM :: AgentDef s m e -> State (AgentOut s m e) ()
+
+killM :: State (AgentOut s m e) ()
+isDeadM :: State (AgentOut s m e) Bool
+
+getDomainStateM :: State (AgentOut s m e) s
+updateDomainStateM :: (s -> s) -> State (AgentOut s m e) ()
+setDomainStateM :: s -> State (AgentOut s m e) ()
+domainStateFieldM :: (s -> t) -> State (AgentOut s m e) t
+\end{minted}

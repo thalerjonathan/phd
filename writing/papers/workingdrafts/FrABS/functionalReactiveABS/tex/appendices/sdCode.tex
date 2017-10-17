@@ -1,0 +1,140 @@
+\section{FrSD SIR Code}
+
+\begin{minted}[fontsize=\footnotesize, linenos]{haskell}
+totalPopulation :: Double
+totalPopulation = 1000
+
+infectivity :: Double
+infectivity = 0.05
+
+contactRate :: Double
+contactRate = 5
+
+avgIllnessDuration :: Double
+avgIllnessDuration = 15
+
+-- Hard-coded ids for stocks & flows interaction
+susceptibleStockId :: AgentId
+susceptibleStockId = 0
+
+infectiousStockId :: AgentId
+infectiousStockId = 1
+
+recoveredStockId :: AgentId
+recoveredStockId = 2
+
+infectionRateFlowId :: AgentId
+infectionRateFlowId = 3
+
+recoveryRateFlowId :: AgentId
+recoveryRateFlowId = 4
+
+-------------------------------------------------------------------------------
+-- STOCKS
+susceptibleStock :: Stock
+susceptibleStock initValue = proc ain -> do
+    let infectionRate = flowInFrom infectionRateFlowId ain
+
+    stockValue <- (initValue+) ^<< integral -< (-infectionRate)
+    
+    let ao = agentOutFromIn ain
+    let ao0 = setDomainState stockValue ao
+    let ao1 = stockOutTo stockValue infectionRateFlowId ao0
+
+    returnA -< ao1
+
+infectiousStock :: Stock
+infectiousStock initValue = proc ain -> do
+    let infectionRate = flowInFrom infectionRateFlowId ain
+    let recoveryRate = flowInFrom recoveryRateFlowId ain
+
+    stockValue <- (initValue+) ^<< integral -< (infectionRate - recoveryRate)
+    
+    let ao = agentOutFromIn ain
+    let ao0 = setDomainState stockValue ao
+    let ao1 = stockOutTo stockValue infectionRateFlowId ao0 
+    let ao2 = stockOutTo stockValue recoveryRateFlowId ao1
+    
+    returnA -< ao2
+
+recoveredStock :: Stock
+recoveredStock initValue = proc ain -> do
+    let recoveryRate = flowInFrom recoveryRateFlowId ain
+
+    stockValue <- (initValue+) ^<< integral -< recoveryRate
+    
+    let ao = agentOutFromIn ain
+    let ao' = setDomainState stockValue ao
+
+    returnA -< ao'
+
+-------------------------------------------------------------------------------
+-- FLOWS
+infectionRateFlow :: Flow
+infectionRateFlow = proc ain -> do
+    let susceptible = stockInFrom susceptibleStockId ain 
+    let infectious = stockInFrom infectiousStockId ain
+
+    let flowValue = (infectious * contactRate * susceptible * infectivity) / totalPopulation
+    
+    let ao = agentOutFromIn ain
+    let ao' = flowOutTo flowValue susceptibleStockId ao
+    let ao'' = flowOutTo flowValue infectiousStockId ao'
+
+    returnA -< ao''
+
+recoveryRateFlow :: Flow
+recoveryRateFlow = proc ain -> do
+    let infectious = stockInFrom infectiousStockId ain
+
+    let flowValue = infectious / avgIllnessDuration
+    
+    let ao = agentOutFromIn ain
+    let ao' = flowOutTo flowValue infectiousStockId ao
+    let ao'' = flowOutTo flowValue recoveredStockId ao'
+
+    returnA -< ao''
+
+-------------------------------------------------------------------------------
+createSysDynSIR :: [SDDef]
+createSysDynSIR = 
+    [ susStock
+    , infStock
+    , recStock
+    , infRateFlow
+    , recRateFlow
+    ]
+  where
+    initialSusceptibleStockValue = totalPopulation - 1
+    initialInfectiousStockValue = 1
+    initialRecoveredStockValue = 0
+
+    susStock = createStock susceptibleStockId initialSusceptibleStockValue susceptibleStock
+    infStock = createStock infectiousStockId initialInfectiousStockValue infectiousStock
+    recStock = createStock recoveredStockId initialRecoveredStockValue recoveredStock
+
+    infRateFlow = createFlow infectionRateFlowId infectionRateFlow
+    recRateFlow = createFlow recoveryRateFlowId recoveryRateFlow
+
+-------------------------------------------------------------------------------
+runSysDynSIRSteps :: IO ()
+runSysDynSIRSteps = print dynamics
+  where
+    -- SD run completely deterministic, this is reflected also in the types of 
+    -- the createSysDynSIR and runSD functions which are pure-functions  
+    sdDefs = createSysDynSIR
+    sdObs = runSD sdDefs dt t 
+            
+    dynamics = map calculateDynamics sdObs
+    
+-- NOTE: here we rely on the fact the we have exactly three stocks and sort them by their id to access them
+--          stock id 0: Susceptible
+--          stock id 1: Infectious
+--          stock id 2: Recovered
+--          the remaining items are the flows
+calculateDynamics :: [SDObservable] -> (Double, Double, Double)
+calculateDynamics unsortedStocks = (susceptibleCount, infectedCount, recoveredCount) 
+  where
+    stocks = sortBy (\s1 s2 -> compare (fst s1) (fst s2)) unsortedStocks
+    ((_, susceptibleCount) : (_, infectedCount) : (_, recoveredCount) : _) = stocks
+\end{minted}

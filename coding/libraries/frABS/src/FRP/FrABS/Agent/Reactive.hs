@@ -12,8 +12,8 @@ module FRP.FrABS.Agent.Reactive (
     doOnce,
     doNothing,
 
-    setDomainStateReact,
-    updateDomainStateReact,
+    setDomainStateR,
+    updateDomainStateR,
     
     sendMessageOccasionallySrc,
     sendMessageOccasionally,

@@ -12,10 +12,10 @@ import FrSIR.Model
 import Utils.Sirs
 
 updateStrat :: UpdateStrategy
-updateStrat = Sequential
+updateStrat = Parallel
 
 shuffleAgents :: Bool
-shuffleAgents = True
+shuffleAgents = False
 
 rngSeed :: Int
 rngSeed = 42
@@ -27,7 +27,7 @@ t :: DTime
 t = 150
 
 agentCount :: Int
-agentCount = 1000
+agentCount = 10000
 
 numInfected :: Int
 numInfected = 10

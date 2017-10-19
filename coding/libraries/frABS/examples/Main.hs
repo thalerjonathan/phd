@@ -30,7 +30,7 @@ import           NewAgents.Run
 -}
 
 main :: IO ()
-main = runFrSIRReplicationsAndWriteToFile -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
+main = runFrSIRStepsAndWriteToFile -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
 
     -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
     -- runZombiesWithRendering

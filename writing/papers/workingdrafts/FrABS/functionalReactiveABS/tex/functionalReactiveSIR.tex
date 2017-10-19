@@ -1,4 +1,6 @@
-\section{Functional Reactive SIR}
+\section{Functional Reactive ABS}
+TODO: cross reference to the code in the appendix by giving line-numbers e.g. the full implementation of a susceptible agent can be seen in
+
 The challenges one faces when implementing an ABS plain, without support from a library are manifold. In the paper (TODO: cite my own paper on update-strategies) the authors discuss already the fundamental things to consider in a programming language agnostic way.  Generally one faces the following challenges:
 
 \begin{itemize}
@@ -64,45 +66,59 @@ The function \textit{kill} marks an agent for removal after the current iteratio
 The function \textit{setDomainState} allows to change the state of the agent by overriding it and \textit{updateDomainState} allows to change it by keeping parts of it.
 The function \textit{createAgent} allows to add an agent-definition \footnote{AgentDef simply contains the initial state, behaviour and id of the agent (amongst others).} to the AgentOut which results in creating a new agent from the given definition which will be active in the next iteration of the simulation. 
 
-TODO: introduce reactive functions which allow implementing time-semantics and reactions on events in a model
+Having these functions we build some reactive primitives into our EDSL meaning that they return signal-functions themselves. We start with the following functions:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
+doOnce :: (AgentOut s m e -> AgentOut s m e) -> SF (AgentOut s m e) (AgentOut s m e)
+doNothing :: AgentBehaviour s m e
+
 setDomainStateR :: s -> AgentBehaviour s m e
 updateDomainStateR :: (s -> s) -> AgentBehaviour s m e
+\end{minted}
 
-transitionAfterExp :: RandomGen g => g -> Double -> AgentBehaviour s m e -> AgentBehaviour s m e -> AgentBehaviour s m e
+The \textit{doOnce} function may seem strange at first but allows conveniently make actions (which are changinge the agent-out) only once e.g. when making the transition from Susceptible to Infected changing the state to Infected just once. A more striking example would be to send a message just once after a transition. The function \textit{doNothing} provides a convenient way of an agent-sink which is basically an agent which does literally nothing - the resulting agent-behaviour just transforms the agent-in to agent-out using the previously mentioned function \textit{agentOutFromIn}.
 
+Often we want some more reactive behaviour e.g. making a transition from one behaviour to another on a given event. For this we provide the following:
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
 type EventSource s m e = SF (AgentIn s m e, AgentOut s m e) (AgentOut s m e, Event ())
 transitionOnEvent :: EventSource s m e -> AgentBehaviour s m e -> AgentBehaviour s m e -> AgentBehaviour s m e
 \end{minted}
 
-TODO: explain the functions
+The function \textit{transitionOnEvent} takes an event-source which creates the event, an agent-behaviour which is run until the event hits and an agent-behaviour which is run at the event and after. The event-source is a signal-function itself to allow maximum of flexibility and gets both agent-in and agent-out and returns a (potentially changed) agent-out and the event upon to switch. 
+The workings of this functionality can be seen for implementing the susceptible agent where we use a \textit{transitionOnEvent} and a specific event-source which generates an event when the susceptible agent got infected.
 
-We also introduce a wrapper which wraps a signal-function which is the same as agent-behaviour but omits the environment from the in-/out tuples. When this wrapper is used one can guarantee statically at compile-time that the environment will not be accessed by the agent-behaviour.
+Sometimes we need our transition event to rely on time-semantics e.g. in SIR where an infected agent recovers \textit{on average} after $\delta$ time-units. For this we provide the following function
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+transitionAfterExp :: RandomGen g => g -> Double -> AgentBehaviour s m e -> AgentBehaviour s m e -> AgentBehaviour s m e
+\end{minted}
+
+It takes a random-number generator, the \textit{average} time-out, the behaviour to run before the time-out and the behaviour to run after the time-out where the function will return then the according behaviour. For implementing this behaviour we initially used Yampas \textit{after} function which generates an event after given time-units but this would not result in the correct dynamics as we rather need to create a random-distribution of time-outs than a deterministic time-out which occurs always after the same time. For this we implemented our own function, called \textit{afterExp}, which now takes a random-number generator a time-out and some value of type b and creates a signal-function which ignores its input and creates an event \textit{on average} after DTime.
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+afterExp :: RandomGen g => g -> DTime -> b -> SF a (Event b)
+\end{minted}
+
+Finally we also introduce a wrapper which wraps a signal-function which is the same as agent-behaviour but omits the environment from the in-/out tuples. When this wrapper is used one can guarantee statically at compile-time that the environment will not be accessed by the agent-behaviour.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 ignoreEnv :: SF (AgentIn s m e) (AgentOut s m e) -> AgentBehaviour s m e 
 \end{minted}
 
 \subsection{Agent-Agent Interaction}
-TODO: general introduction (object-oriented approach uses methods). we need both: asynchronous messaging and synchronous conversations
+Agent-agent interaction is the means of an agent to directly address another agent and vice versa. Inspired by the actor model we implement a  \textit{messaging} with share nothing semantics. In this case the agent send messages which will arrive in the next step of the simulation at the receiver thus being kind of asynchronous - a round-trip would always take at least two steps, independent of the sampling time. Depending on the semantics of the model we sometimes need synchronous interactions e.g. when only one agent can change the environment or decisions need to be made within one step - this wouldn't be possible with the asynchronous messaging. For this we introduced the concept of \textit{conversations} which allow two agents to interact with each other for an arbitrary number of requests and replies without the simulation being advanced - time is halted and only the two agents are active until they finish their conversation.
 
 \subsubsection{Messaging}
-As discussed in the literature reflection in Chapter \ref{chap:refl}, inspired by the actor model we will resort to synchronized, reliable message passing with share nothing semantics to implement agent-agent interactions. Each Agent can send a message to an other agent through AgentOut-Signal where the messages are queued in the AgentIn-Signal and can be processed when the agent is updated the next time. The agent is free to ignore the messages and if it does not process them they will be simply lost.
+Each Agent can send a message to an other agent through AgentOut-Signal where incoming messages are queued in the AgentIn-Signal and can be processed when the agent is active the next time. The agent is free to ignore the messages and if it does not process them they will simply be lost. This is in fundamental contrast to the actor model where messages stay in the message-box of the receiving actor until the actor has processed them. We chose a different approach as time has a different meaning in ABS than in a system of actors where there is basically no global notion of time.
 Note that due to the fact we don't have method-calls in FP, messaging will always take some time, which depends on the sampling interval of the system. This was not obviously clear when implementing ABS in an object-oriented way because there we can communicate through method calls which are a way of interaction which takes no simulation-time.
-
-Agents communicate with each other through messages and thus need to have an agreed set of messages they understand. This is usually implemented as an AGDT.
-
-%TODO: Push vs. Pull. we need push because we need to 'sample' the system at regular time-intervals because agent-behaviour can depend on time as well (pro-active) and not only on messaging. if we had only the latter, a pull approach would suffice.
-
-% my wrongthinking: messaging ALWAYS takes time e.g. send/response roundtrip. conversations dont take time but are restricted for the receiver e.g. the receiver cannot send messages to others or change the environment in a conversation
-
-% because an agent cannot reply within the same timestep sampling interval becomes an issue: if we need a reply within a given time then the sampling interval needs to be at least twice as much
-% difference between discrete and continuous: the successor of discrete is defined whereas in the case of continuous it is not? how is the successor defined in the case of continuous time?
+We need a set of messages \textit{m} the agents understand. In the case of the SIR model we simply use the following:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 data SIRMsg = Contact SIRState
 \end{minted}
+
+In addition we provide the following functions in our EDSL to support messaging.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 type AgentMessage m = (AgentId, m)
@@ -114,22 +130,25 @@ broadcastMessage :: m -> [AgentId] -> AgentOut s m e -> AgentOut s m e
 
 hasMessage :: (Eq m) => m -> AgentIn s m e -> Bool
 onMessage :: (AgentMessage m -> acc -> acc) -> AgentIn s m e -> acc -> acc
-onFilterMessage :: MessageFilter m -> (AgentMessage m -> acc -> acc) -> AgentIn s m e -> acc -> acc
 onMessageFrom :: AgentId -> (AgentMessage m -> acc -> acc) -> AgentIn s m e -> acc -> acc
 onMessageType :: (Eq m) => m -> (AgentMessage m -> acc -> acc) -> AgentIn s m e -> acc -> acc
 \end{minted}
 
-TODO: explain
-The type-variables m are then usually replaced by \textit{SIRMsg}.
+Most of the functions are pretty self-explanatory, we will shortly explain the \textit{onMessage*}. The function \textit{onMessage} provides a way to react to incoming messages by using a callback function which manipulates an accumulator, thus resembling the workings of fold. The functions \textit{onMessageFrom} and \textit{onMessageType} provide the same functionality but filter the messages accordingly. We can now write a function which allows an agent to reply to an incoming Contact message with another contact message of a given SIRstate. TODO: refer to the appendix and give line-numbers instead of inserting it here.
 
-TODO: we also have reactive message signale-functions
+Sometimes we also need discrete semantics like changing the behaviour of an agent on reception of a specific message. For this we provide the function \textit{transitionOnMessage} which works the same way as \textit{transitionOnEvent} but now on a message instead.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-type MessageSource s m e = (e -> AgentOut s m e -> (AgentOut s m e, AgentMessage m))
+transitionOnMessage :: (Eq m) => m -> AgentBehaviour s m e -> AgentBehaviour s m e -> AgentBehaviour s m e
+\end{minted}
 
-sendMessageOccasionallySrcSS :: RandomGen g => g 
+Of course messaging sometimes may have specific time-semantics as in our SIR model. There susceptible agents make contact with n other agents on average \textit{per time unit}. To implement this we randomly need to generate messages with a given frequency within some time-interval by drawing from the exponential random-distribution. This is already supported by Yampa using \textit{occasionally} and we have built on it a the following:
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+type MessageSource s m e = e -> AgentOut s m e -> (AgentOut s m e, AgentMessage m)
+
+sendMessageOccasionallySrc :: RandomGen g => g 
                                 -> Double
-                                -> Int
                                 -> MessageSource s m e 
                                 -> SF (AgentOut s m e, e) (AgentOut s m e)
 
@@ -137,17 +156,39 @@ constMsgReceiverSource :: m -> AgentId -> MessageSource s m e
 randomNeighbourNodeMsgSource :: m -> MessageSource s m (Network l)
 randomNeighbourCellMsgSource :: (s -> Discrete2dCoord) -> m -> Bool -> MessageSource s m (Discrete2d AgentId)
 randomAgentIdMsgSource :: m -> Bool -> MessageSource s m [AgentId]
-
-transitionOnMessage :: (Eq m) => m -> AgentBehaviour s m e -> AgentBehaviour s m e -> AgentBehaviour s m e
 \end{minted}
+
+The function \textit{sendMessageOccasionallySrc} takes a random-number generator, the frequency of messages to generate \textit{on average per time-unit} a message-source and returns a signal-function which takes a tuple of an agent-out and environment and returns an agent-out. This signal-function which performs the actual generating of the messages needs to be fed in the tuple but only returns the changed agent-out but not the environment - this guarantees statically at compile-time that the environment cannot be changed in this process. This is also directly reflected in the type of MessageSource which takes an environment and agent-out and returns a tuple with a changed agent-out and a message. We provide pre-defined messages-sources like \textit{constMsgReceiverSource} which always generates the same message, \textit{randomNeighbourNodeMsgSource} which picks a random neighbour from a network-environment (see below), \textit{randomNeighbourCellMsgSource} which picks a random neighbour from a discrete 2d-grid environment (see below) and \textit{randomAgentIdMsgSource} which randomly picks an element from an environment which is a list of AgentIds (omitting the sender True/False).
+As can be seen in TODO: refer to appendix the susceptible agent makes use of this function.
 
 \subsubsection{Conversations}
 The messaging as implemented above works well for one-directional, virtual asynchronous interaction where we don't need a reply at the same time. A perfect use-case for messaging is making contact with neighbours in the SIRS-model: the agent sends the contact message but does not need any response from the receiver, the receiver handles the message and may get infected but does not need to communicate this back to the sender. 
-A different case is when agents need to transact in the time-step one or multiple times: agent A interacts with agent B where the semantics of the model (and thus messaging) need an immediate response from agent B - which can lead to further interactions initiated by agent A. The Sugarscape model has three use-cases for this: sex, warfare and trading amongst agents all need an immediate response (e.g. wanna mate with me?, I just killed you, wanna trade for this price?). The reason is that we need to transact now as all of the actions only work on a 1:1 relationship and could violate ressource-constraints.
+A different case is when agents need to transact in the time-step one or multiple times: agent A interacts with agent B where the semantics of the model (and thus messaging) need an immediate response from agent B - which can lead to further interactions initiated by agent A. The Sugarscape model has three use-cases for this: sex, warfare and trading amongst agents all need an immediate response (e.g. wanna mate with me?, I just killed you, wanna trade for this price?). The reason is that we need to transact now as all of the actions only work on a 1:1 relationship and could violate resource-constraints.
 For this we introduce the concept of a conversation between agents. This allows an agent A to initiate a conversation with another agent B in which the simulation is virtually halted and both can exchange an arbitrary number of messages through calling and responding without time passing (something not possible without this concept because in each iteration the time advances). After either one agent has finished with the conversation it will terminate it and the simulation will continue with the updated agents (note the importance here: \textit{both} agents can change their state in a conversation). The conversation-concept is implemented at the moment in the way that the initiating agent A has all the freedom in sending messages, starting a new conversation,... but that the receiving agent B is only able to change its state but is not allowed to send messages or start conversations in this process. Technically speaking: agent A can manipulate an AgentOut whereas agent B can only manipulate its next AgentIn.
 When looking at conversations they may look like an emulation of method-calls but they are more powerful: a receiver can be unavailable to conversations or simply refuse to handle this conversation. This follows the concept of an active actor which can decide what happens with the incoming interaction-request, instead of the passive object which cannot decide whether the method-call is really executed or not.
 
+\begin{minted}[fontsize=\footnotesize]{haskell}
+type AgentConversationReply s m e = Maybe (m, AgentIn s m e, e)
 
+type AgentConversationReceiver s m e = (AgentIn s m e
+                                            -> e
+                                            -> AgentMessage m
+                                            -> AgentConversationReply s m e)
+
+type AgentConversationSender s m e = (AgentOut s m e
+                                        -> e
+                                        -> Maybe (AgentMessage m)  
+                                        -> (AgentOut s m e, e))
+                                        
+conversation :: AgentMessage m
+                -> AgentConversationSender s m e
+                -> AgentOut s m e
+                -> AgentOut s m e
+
+conversationEnd :: AgentOut s m e -> AgentOut s m e
+\end{minted}
+
+The agent-conversations sender is the initiator of the conversation which can only be an agent which is just run and has started a conversation with a call to the function \textit{conversation}. After the agent has run, the simulation-system will detect the request for a conversation and start processing it by looking up the receiver and calling the functions with passing the values back and forth. While a conversation is active, time does not advance and other agents do not act. Note that conversations are only available when using the \textit{sequential} update-strategy (see below).
 
 \subsection{Environment representation}
 TODO: update, we have now also 2d-continuous AND networks!

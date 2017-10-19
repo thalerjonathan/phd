@@ -73,11 +73,11 @@ We ran tests super-sampling both \textit{occasionally} (Figure \ref{fig:sampling
 
 \begin{figure}
 	\centering
-	\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/samplingTest_afterExp_5time.png}
+	\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/samplingTest_afterExp_02time.png}
 	\caption{Super-Sampling the \textit{afterExp} function to visualize the influence of increasing number of super-samples on the average time-out. Average time-out of 0.2 with time-delta of 1, with super-samples of [1, 2, 5, 10, 100, 1000], running 10,000 replications.}
 	\label{fig:sampling_afterExp_ss_02time}
 \end{figure}
 
 At first this might not seem to be a real win as we still need to calculate a big number of samples every time. The big win comes though when these super-sampled signal-functions are embedded in a larger system which could run on a comparatively low frequency of e.g. 1 dt. So we are then increasing the sampling-frequency just where we need it and keep the frequency low where it is not required.
 
-TODO: report results of using it in FrSIR
+TODO: report results of using it in FrSIR ABS and discuss the *SS functions 

@@ -35,7 +35,8 @@ respondToContactWith state ain ao = onMessage respondToContactWithAux ain ao
 ------------------------------------------------------------------------------------------------------------------------
 -- SUSCEPTIBLE
 sirAgentSuceptible :: RandomGen g => g -> FrSIRAgentBehaviour
-sirAgentSuceptible g = transitionOnEvent sirAgentInfectedEvent (sirAgentSusceptibleBehaviour g) (sirAgentInfected g)
+sirAgentSuceptible g = 
+  transitionOnEvent sirAgentInfectedEvent (readEnv $ sirAgentSusceptibleBehaviour g) (sirAgentInfected g)
 
 sirAgentInfectedEvent :: FrSIREventSource
 sirAgentInfectedEvent = proc (ain, ao) -> do
@@ -43,28 +44,29 @@ sirAgentInfectedEvent = proc (ain, ao) -> do
     infectionEvent <- edge -< isInfected
     returnA -< (ao', infectionEvent)
 
-sirAgentSusceptibleBehaviour :: RandomGen g => g -> FrSIRAgentBehaviour
+sirAgentSusceptibleBehaviour :: RandomGen g => g -> FrSIRAgentBehaviourReadEnv
 sirAgentSusceptibleBehaviour g = proc (ain, e) -> do
     let ao = agentOutFromIn ain
     ao1 <- doOnce (setDomainState Susceptible) -< ao
     ao2 <- sendMessageOccasionallySrcSS g (1 / contactRate) contactSS (randomAgentIdMsgSource (Contact Susceptible) True) -< (ao1, e)
-    returnA -< (ao2, e)
+    returnA -< ao2
 
 -- INFECTED
 sirAgentInfected :: RandomGen g => g -> FrSIRAgentBehaviour
-sirAgentInfected g = transitionAfterExpSS g illnessDuration illnessTimeoutSS (sirAgentInfectedBehaviour g) sirAgentRecovered
+sirAgentInfected g = 
+  transitionAfterExpSS g illnessDuration illnessTimeoutSS (ignoreEnv $ sirAgentInfectedBehaviour g) sirAgentRecovered
 
-sirAgentInfectedBehaviour :: RandomGen g => g -> FrSIRAgentBehaviour
-sirAgentInfectedBehaviour g = proc (ain, e) -> do
+sirAgentInfectedBehaviour :: RandomGen g => g -> FrSIRAgentBehaviourIgnoreEnv
+sirAgentInfectedBehaviour g = proc ain -> do
     let ao = agentOutFromIn ain
     ao1 <- doOnce (setDomainState Infected) -< ao
     let ao2 = respondToContactWith Infected ain ao1
     --ao2 <- sendMessageOccasionallySrcSS g (1 / contactRate) contactSS (randomAgentIdMsgSource (Contact Infected) True) -< (ao1, e)
-    returnA -< (ao2, e)
+    returnA -< ao2
 
 -- RECOVERED
 sirAgentRecovered :: FrSIRAgentBehaviour
-sirAgentRecovered = setDomainStateReact Recovered
+sirAgentRecovered = setDomainStateR Recovered
 
 -- INITIAL CASES
 sirAgentBehaviour :: RandomGen g => g -> SIRState -> FrSIRAgentBehaviour

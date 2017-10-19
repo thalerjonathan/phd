@@ -90,12 +90,14 @@ module FRP.FrABS (
     drain,
     
     ignoreEnv,
-    
+    readEnv,
+
     EventSource,
     MessageSource,
 
     ReactiveBehaviourIgnoreEnv,
-
+    ReactiveBehaviourReadEnv,
+    
     doOnce,
     doNothing,
 
@@ -364,6 +366,9 @@ module FRP.FrABS (
     cont2dTransDisc2d,
     disc2dTransCont2d,
 
+    StockId,
+    FlowId,
+    
     Stock,
     Flow,
     SDObservable,

@@ -1,4 +1,4 @@
-\section{FrSD SIR Code}
+\section{Functional-Reactive code of the System-Dynamics SIR model}
 
 \begin{minted}[fontsize=\footnotesize, linenos]{haskell}
 totalPopulation :: Double
@@ -14,19 +14,19 @@ avgIllnessDuration :: Double
 avgIllnessDuration = 15
 
 -- Hard-coded ids for stocks & flows interaction
-susceptibleStockId :: AgentId
+susceptibleStockId :: StockId
 susceptibleStockId = 0
 
-infectiousStockId :: AgentId
+infectiousStockId :: StockId
 infectiousStockId = 1
 
-recoveredStockId :: AgentId
+recoveredStockId :: StockId
 recoveredStockId = 2
 
-infectionRateFlowId :: AgentId
+infectionRateFlowId :: FlowId
 infectionRateFlowId = 3
 
-recoveryRateFlowId :: AgentId
+recoveryRateFlowId :: FlowId
 recoveryRateFlowId = 4
 
 -------------------------------------------------------------------------------
@@ -121,7 +121,7 @@ runSysDynSIRSteps :: IO ()
 runSysDynSIRSteps = print dynamics
   where
     -- SD run completely deterministic, this is reflected also in the types of 
-    -- the createSysDynSIR and runSD functions which are pure-functions  
+    -- the createSysDynSIR and runSD functions which are pure functions  
     sdDefs = createSysDynSIR
     sdObs = runSD sdDefs dt t 
             

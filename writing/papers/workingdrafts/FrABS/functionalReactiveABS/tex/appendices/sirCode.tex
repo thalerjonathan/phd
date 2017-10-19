@@ -1,22 +1,22 @@
-\section{FrABS SIR Code}
+\section{Functional-Reactive code of the agent-based SIR model}
 
 \begin{minted}[fontsize=\footnotesize, linenos]{haskell}
-data SIRState = Susceptible | Infected | Recovered deriving (Eq, Show)
-data FrSIRMsg = Contact SIRState deriving (Eq, Show)
+data SIRState = Susceptible | Infected | Recovered deriving (Eq)
+data SIRMsg = Contact SIRState deriving (Eq)
 
-type FrSIRAgentState = SIRState
+type SIRAgentState = SIRState
 
-type FrSIREnvironment = [AgentId]
+type SIREnvironment = [AgentId]
 
-type FrSIRAgentDef = AgentDef FrSIRAgentState FrSIRMsg FrSIREnvironment
-type FrSIRAgentBehaviour = AgentBehaviour FrSIRAgentState FrSIRMsg FrSIREnvironment
-type FrSIRAgentIn = AgentIn FrSIRAgentState FrSIRMsg FrSIREnvironment
-type FrSIRAgentOut = AgentOut FrSIRAgentState FrSIRMsg FrSIREnvironment
-type FrSIRAgentObservable = AgentObservable FrSIRAgentState
+type SIRAgentDef = AgentDef SIRAgentState SIRMsg SIREnvironment
+type SIRAgentBehaviour = AgentBehaviour SIRAgentState SIRMsg SIREnvironment
+type SIRAgentBehaviourReadEnv = ReactiveBehaviourReadEnv SIRAgentState SIRMsg SIREnvironment
+type SIRAgentBehaviourIgnoreEnv = ReactiveBehaviourIgnoreEnv SIRAgentState SIRMsg SIREnvironment
+type SIRAgentIn = AgentIn SIRAgentState SIRMsg SIREnvironment
+type SIRAgentOut = AgentOut SIRAgentState SIRMsg SIREnvironment
+type SIRAgentObservable = AgentObservable SIRAgentState
 
-type FrSIREventSource = EventSource FrSIRAgentState FrSIRMsg FrSIREnvironment
-type FrSIRMessageSource = MessageSource FrSIRAgentState FrSIRMsg FrSIREnvironment
-type FrSIRReplicationConfig = ReplicationConfig FrSIRAgentState FrSIRMsg FrSIREnvironment
+type SIREventSource = EventSource SIRAgentState SIRMsg SIREnvironment
 
 -------------------------------------------------------------------------------
 infectivity :: Double
@@ -35,19 +35,19 @@ illnessTimeoutSS :: Int
 illnessTimeoutSS = 2
 
 -------------------------------------------------------------------------------
-createFrSIRNumInfected :: Int -> Int -> IO ([FrSIRAgentDef], FrSIREnvironment)
-createFrSIRNumInfected agentCount numInfected = do
+createSIRNumInfected :: Int -> Int -> IO ([SIRAgentDef], SIREnvironment)
+createSIRNumInfected agentCount numInfected = do
     let agentIds = [0 .. (agentCount-1)]
     let infectedIds = take numInfected agentIds
     let susceptibleIds = drop numInfected agentIds
 
-    adefsSusceptible <- mapM (frSIRAgent Susceptible) susceptibleIds
-    adefsInfected <- mapM (frSIRAgent Infected) infectedIds
+    adefsSusceptible <- mapM (sirAgent Susceptible) susceptibleIds
+    adefsInfected <- mapM (sirAgent Infected) infectedIds
 
     return (adefsSusceptible ++ adefsInfected, agentIds)
 
-frSIRAgent :: SIRState -> AgentId -> IO FrSIRAgentDef
-frSIRAgent initS aid = do
+sirAgent :: SIRState -> AgentId -> IO SIRAgentDef
+sirAgent initS aid = do
     rng <- newStdGen
     let beh = sirAgentBehaviour rng initS
     let adef = AgentDef { 
@@ -63,34 +63,34 @@ frSIRAgent initS aid = do
    
 -------------------------------------------------------------------------------
 -- UTILITIES
-gotInfected :: FrSIRAgentIn -> Rand StdGen Bool
+gotInfected :: SIRAgentIn -> Rand StdGen Bool
 gotInfected ain = onMessageM gotInfectedAux ain False
   where
-    gotInfectedAux :: Bool -> AgentMessage FrSIRMsg -> Rand StdGen Bool
+    gotInfectedAux :: Bool -> AgentMessage SIRMsg -> Rand StdGen Bool
     gotInfectedAux False (_, Contact Infected) = randomBoolM infectivity
     gotInfectedAux x _ = return x
 
-respondToContactWith :: SIRState -> FrSIRAgentIn -> FrSIRAgentOut -> FrSIRAgentOut
+respondToContactWith :: SIRState -> SIRAgentIn -> SIRAgentOut -> SIRAgentOut
 respondToContactWith state ain ao = onMessage respondToContactWithAux ain ao
   where
-    respondToContactWithAux :: AgentMessage FrSIRMsg -> FrSIRAgentOut -> FrSIRAgentOut
+    respondToContactWithAux :: AgentMessage SIRMsg -> SIRAgentOut -> SIRAgentOut
     respondToContactWithAux (senderId, Contact _) ao = sendMessage (senderId, Contact state) ao
 
 -- SUSCEPTIBLE
-sirAgentSuceptible :: RandomGen g => g -> FrSIRAgentBehaviour
+sirAgentSuceptible :: RandomGen g => g -> SIRAgentBehaviour
 sirAgentSuceptible g = 
 	transitionOnEvent 
 		sirAgentInfectedEvent 
-		(sirAgentSusceptibleBehaviour g) 
+		(readEnv $ sirAgentSusceptibleBehaviour g) 
 		(sirAgentInfected g)
 
-sirAgentInfectedEvent :: FrSIREventSource
+sirAgentInfectedEvent :: SIREventSource
 sirAgentInfectedEvent = proc (ain, ao) -> do
     let (isInfected, ao') = agentRandom (gotInfected ain) ao
     infectionEvent <- edge -< isInfected
     returnA -< (ao', infectionEvent)
 
-sirAgentSusceptibleBehaviour :: RandomGen g => g -> FrSIRAgentBehaviour
+sirAgentSusceptibleBehaviour :: RandomGen g => g -> SIRAgentBehaviourReadEnv
 sirAgentSusceptibleBehaviour g = proc (ain, e) -> do
     let ao = agentOutFromIn ain
     ao1 <- doOnce (setDomainState Susceptible) -< ao
@@ -99,48 +99,45 @@ sirAgentSusceptibleBehaviour g = proc (ain, e) -> do
     		(1 / contactRate)
     		contactSS
     		(randomAgentIdMsgSource (Contact Susceptible) True) -< (ao1, e)
-    returnA -< (ao2, e)
+    returnA -< ao2
 
 -- INFECTED
-sirAgentInfected :: RandomGen g => g -> FrSIRAgentBehaviour
+sirAgentInfected :: RandomGen g => g -> SIRAgentBehaviour
 sirAgentInfected g = 
 	transitionAfterExpSS 
 		g 
 		illnessDuration 
 		illnessTimeoutSS 
-		(sirAgentInfectedBehaviour g) 
+		(ignoreEnv $ sirAgentInfectedBehaviour g) 
 		sirAgentRecovered
 
-sirAgentInfectedBehaviour :: RandomGen g => g -> FrSIRAgentBehaviour
-sirAgentInfectedBehaviour g = proc (ain, e) -> do
+sirAgentInfectedBehaviour :: RandomGen g => g -> SIRAgentBehaviourIgnoreEnv
+sirAgentInfectedBehaviour g = proc ain -> do
     let ao = agentOutFromIn ain
     ao1 <- doOnce (setDomainState Infected) -< ao
     let ao2 = respondToContactWith Infected ain ao1
-    returnA -< (ao2, e)
+    returnA -< ao2
 
 -- RECOVERED
-sirAgentRecovered :: FrSIRAgentBehaviour
+sirAgentRecovered :: SIRAgentBehaviour
 sirAgentRecovered = setDomainStateReact Recovered
 
 -- INITIAL CASES
-sirAgentBehaviour :: RandomGen g => g -> SIRState -> FrSIRAgentBehaviour
+sirAgentBehaviour :: RandomGen g => g -> SIRState -> SIRAgentBehaviour
 sirAgentBehaviour g Susceptible = sirAgentSuceptible g
 sirAgentBehaviour g Infected = sirAgentInfected g
 sirAgentBehaviour _ Recovered = sirAgentRecovered
 
 -------------------------------------------------------------------------------
-runFrSIRSteps :: IO ()
-runFrSIRSteps = do
-	-- no collapsing/updating of environment
+runSIRSteps :: IO ()
+runSIRSteps = do
+    -- no collapsing/updating of environment
     params <- initSimulation updateStrategy Nothing Nothing shuffleAgents (Just rngSeed)
-    
-    (initAdefs, initEnv) <- createFrSIRNumInfected agentCount numInfected
-    
+    (initAdefs, initEnv) <- createSIRNumInfected agentCount numInfected
     let dynamics = simulateAggregateTime initAdefs initEnv params dt t aggregate
-
-	print dynamics
+    print dynamics
 	
-aggregate :: ([FrSIRAgentObservable], FrSIREnvironment) -> (Double, Double, Double)
+aggregate :: ([SIRAgentObservable], SIREnvironment) -> (Double, Double, Double)
 aggregate (aobs, _) = (susceptibleCount, infectedCount, recoveredCount)
   where
     susceptibleCount = fromIntegral $ length $ filter ((Susceptible==) . snd) aobs

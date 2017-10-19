@@ -4,9 +4,11 @@ module FRP.FrABS.Agent.Reactive (
     MessageSource,
 
     ReactiveBehaviourIgnoreEnv,
+    ReactiveBehaviourReadEnv,
 
     ignoreEnv,
-
+    readEnv,
+    
     drain,
     
     doOnce,
@@ -59,6 +61,7 @@ type EventSource s m e = SF (AgentIn s m e, AgentOut s m e) (AgentOut s m e, Eve
 type MessageSource s m e = (e -> AgentOut s m e -> (AgentOut s m e, AgentMessage m))
 
 type ReactiveBehaviourIgnoreEnv s m e = SF (AgentIn s m e) (AgentOut s m e)
+type ReactiveBehaviourReadEnv s m e = SF (AgentIn s m e, e) (AgentOut s m e)
 
 -------------------------------------------------------------------------------
 -- MISC
@@ -67,6 +70,12 @@ ignoreEnv :: ReactiveBehaviourIgnoreEnv s m e -> AgentBehaviour s m e
 ignoreEnv f = proc (ain, e) ->
     do
         ao <- f -< ain
+        returnA -< (ao, e)
+
+readEnv :: ReactiveBehaviourReadEnv s m e -> AgentBehaviour s m e 
+readEnv f = proc (ain, e) ->
+    do
+        ao <- f -< (ain, e)
         returnA -< (ao, e)
 -------------------------------------------------------------------------------
 

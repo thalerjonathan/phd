@@ -1,6 +1,4 @@
 \section{Non-Reactive Features}
-TODO: discuss non-reactive features of FrABS: pure \& monadic approach and mixes of pure, monadic \& reactive
-
 Not all models have such explicit time-semantics as the SIR model. Such models just assume that the agents act in some order but don't rely on any time-outs, timed transitions or rates. These models are more of imperative nature and map therefore naturally to a monadic style of programming using the do-notation. Unfortunately we don't have this functionality available within a SF thus to support the programming of such imperative models, we implemented wrapper-functions which allow to provide both non-monadic and monadic functionality which runs within a wrapper-signal function.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
@@ -49,3 +47,13 @@ updateDomainStateM :: (s -> s) -> State (AgentOut s m e) ()
 setDomainStateM :: s -> State (AgentOut s m e) ()
 domainStateFieldM :: (s -> t) -> State (AgentOut s m e) t
 \end{minted}
+
+For the environment-behaviour we provide the same
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+type EnvironmentMonadicBehaviour e = (Double -> State e ())
+environmentMonadic :: EnvironmentMonadicBehaviour e -> EnvironmentBehaviour e
+\end{minted}
+
+\subsection{Mixing}
+TODO: we should be able to mix these things: start with a reactive SF and then use agentMonadic within 

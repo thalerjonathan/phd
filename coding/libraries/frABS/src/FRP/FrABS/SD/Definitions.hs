@@ -1,4 +1,7 @@
 module FRP.FrABS.SD.Definitions (
+  StockId,
+  FlowId,
+  
   Stock,
   Flow,
   SDObservable,
@@ -28,8 +31,9 @@ import FRP.FrABS.Simulation.Init
 
 data SDMsg = Value Double deriving (Eq, Show)
 type SDStockState = Double
-
 type SDEnvironment = ()
+type StockId = AgentId
+type FlowId = AgentId
 
 type SDDef = AgentDef SDStockState SDMsg SDEnvironment 
 type SDBehaviour = ReactiveBehaviourIgnoreEnv SDStockState SDMsg SDEnvironment 

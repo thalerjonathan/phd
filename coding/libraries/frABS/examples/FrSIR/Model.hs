@@ -8,12 +8,13 @@ module FrSIR.Model
 
     , FrSIRAgentDef
     , FrSIRAgentBehaviour
+    , FrSIRAgentBehaviourReadEnv
+    , FrSIRAgentBehaviourIgnoreEnv
     , FrSIRAgentIn
     , FrSIRAgentOut
     , FrSIRAgentObservable
     
     , FrSIREventSource
-    , FrSIRMessageSource
     , FrSIRReplicationConfig
     
     , infectivity
@@ -41,6 +42,8 @@ type FrSIREnvironment = [AgentId]
 
 type FrSIRAgentDef = AgentDef FrSIRAgentState FrSIRMsg FrSIREnvironment
 type FrSIRAgentBehaviour = AgentBehaviour FrSIRAgentState FrSIRMsg FrSIREnvironment
+type FrSIRAgentBehaviourReadEnv = ReactiveBehaviourReadEnv FrSIRAgentState FrSIRMsg FrSIREnvironment
+type FrSIRAgentBehaviourIgnoreEnv = ReactiveBehaviourIgnoreEnv FrSIRAgentState FrSIRMsg FrSIREnvironment
 type FrSIRAgentIn = AgentIn FrSIRAgentState FrSIRMsg FrSIREnvironment
 type FrSIRAgentOut = AgentOut FrSIRAgentState FrSIRMsg FrSIREnvironment
 type FrSIRAgentObservable = AgentObservable FrSIRAgentState

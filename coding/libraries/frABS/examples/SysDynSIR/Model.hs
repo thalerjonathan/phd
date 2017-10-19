@@ -34,18 +34,18 @@ avgIllnessDuration = 15
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Hard-coded ids for stocks & flows interaction (sending messages)
-susceptibleStockId :: AgentId
+susceptibleStockId :: StockId
 susceptibleStockId = 0
 
-infectiousStockId :: AgentId
+infectiousStockId :: StockId
 infectiousStockId = 1
 
-recoveredStockId :: AgentId
+recoveredStockId :: StockId
 recoveredStockId = 2
 
-infectionRateFlowId :: AgentId
+infectionRateFlowId :: FlowId
 infectionRateFlowId = 3
 
-recoveryRateFlowId :: AgentId
+recoveryRateFlowId :: FlowId
 recoveryRateFlowId = 4
 ------------------------------------------------------------------------------------------------------------------------

@@ -155,6 +155,14 @@
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
+		},
+		{
+			"file": "src/FRP/FrABS/Agent/Reactive.hs",
+			"settings":
+			{
+				"buffer_size": 17388,
+				"line_ending": "Unix"
+			}
 		}
 	],
 	"build_system": "",
@@ -604,7 +612,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -634,6 +642,34 @@
 						},
 						"translation.x": 0.0,
 						"translation.y": 315.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "src/FRP/FrABS/Agent/Reactive.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 17388,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								9173,
+								9173
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 3105.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,

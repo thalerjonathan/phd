@@ -91,7 +91,11 @@ The workings of this functionality can be seen for implementing the susceptible 
 Sometimes we need our transition event to rely on time-semantics e.g. in SIR where an infected agent recovers \textit{on average} after $\delta$ time-units. For this we provide the following function
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-transitionAfterExp :: RandomGen g => g -> Double -> AgentBehaviour s m e -> AgentBehaviour s m e -> AgentBehaviour s m e
+transitionAfterExp :: RandomGen g => g
+						 -> Double 
+						 -> AgentBehaviour s m e 
+						 -> AgentBehaviour s m e 
+						 -> AgentBehaviour s m e
 \end{minted}
 
 It takes a random-number generator, the \textit{average} time-out, the behaviour to run before the time-out and the behaviour to run after the time-out where the function will return then the according behaviour. For implementing this behaviour we initially used Yampas \textit{after} function which generates an event after given time-units but this would not result in the correct dynamics as we rather need to create a random-distribution of time-outs than a deterministic time-out which occurs always after the same time. For this we implemented our own function, called \textit{afterExp}, which now takes a random-number generator a time-out and some value of type b and creates a signal-function which ignores its input and creates an event \textit{on average} after DTime.

@@ -43,21 +43,19 @@ To show that occasionally is not vulnerable to very low frequencies of e.g. one 
 	\end{tabular}
 	
 	\caption{Sampling the \textit{afterExp} and \textit{occasional} functions to visualize the influence of sampling frequencies on the occurrence of the respective events. Time-deltas are [ 5, 2, 1, $\frac{1}{2}$, $\frac{1}{5}$, $\frac{1}{10}$, $\frac{1}{20}$, $\frac{1}{50}$, $\frac{1}{100}$ ]. The experiments for \textit{afterExp} used 10,000 replications. The experiments for \textit{occasional} ran for 1000 time-units with 100 replications.} 
-	\label{fig:bla}
+	\label{fig:sampling_tests}
 \end{center}
 \end{figure*}
 
-\subsection{Frequency of an ABS}
-TODO: can we derive a formula to calculate the optimal time-delta for a given agent-based model?
-
 \subsection{Super-Sampling}
 of course performance is a big issue and it decreases as time-deltas get smaller and smaller. if we could perform subsampling just for the given high-frequency function with the remaining system running in lower frequency then we could achieve substantial performance-increase.
+TODO: talk a little bit more about the costs of too small time-deltas: need to go through all agents all the time
 
 formula of calculating-steps = steps per time-unit * time-to-run-the-simulation
 
 The problem is that \textit{embed} does not really help because when running a sf with it, the signal-functions time does not advance. Thus we implemented a new signal-function which allows us to super-sample another signal-function.
 
-\begin{minted}{haskell}
+\begin{minted}[fontsize=\footnotesize]{haskell}
 superSampling :: Int -> SF a b -> SF a [b]
 \end{minted}
 
@@ -65,34 +63,68 @@ It takes the number of super-samples \textit{n} and the signal-function \textit{
 
 We ran tests super-sampling both \textit{occasionally} (Figure \ref{fig:sampling_occasionally_ss_02evts}, Figure \ref{fig:sampling_occasionally_ss_5evts}) and \textit{afterExp} (Figure ). They work the same way as above except that now the time-delta is fixed to 1.0 but using increasing numbers of super-samples. The results are as expected: as the number of super-samples increase, so increases the accuracy.
 
-\begin{figure}
-	\centering
-	\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/samplingTest_occasionally_ss_02evts.png}
-	\caption{Super-Sampling the \textit{occasional} function to visualize the influence of increasing number of super-samples on the event occurrence. Event-frequency of 5 (average of 0.2 events per time-unit) with time-delta of 1, with super-samples of [1, 2, 5, 10, 100, 1000] running for 100 time-units with 100 replications. The theoretical average is 20 event within this time-frame.}
-	\label{fig:sampling_occasionally_ss_02evts}
-\end{figure}
+\begin{figure*}
+\begin{center}
+	\begin{tabular}{c c}
+		\begin{subfigure}[b]{0.5\textwidth}
+			\centering
+			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/samplingTest_occasionally_ss_02evts.png}
+			\caption{Super-Sampling the \textit{occasional} function with event-frequency of 5 (average of 0.2 events per time-unit). The theoretical average is 20 event within this time-frame.}
+			\label{fig:sampling_occasionally_ss_02evts}
+		\end{subfigure}
+	
+		&
+		
+		\begin{subfigure}[b]{0.5\textwidth}
+			\centering
+			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/samplingTest_occasionally_ss_5evts.png}
+			\caption{Super-Sampling the \textit{occasional} function with event-frequency of $\frac{1}{5}$ (average of 5 events per time-unit). The theoretical average is 500 event within this time-frame.}
+			\label{fig:sampling_occasionally_ss_5evts}
+		\end{subfigure}
 
-\begin{figure}
-	\centering
-	\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/samplingTest_occasionally_ss_5evts.png}
-	\caption{Super-Sampling the \textit{occasional} function to visualize the influence of increasing number of super-samples on the event occurrence. Event-frequency of $\frac{1}{5}$ (average of 5 events per time-unit) with time-delta of 1, with super-samples of [1, 2, 5, 10, 100, 1000] running for 100 time-units with 100 replications. The theoretical average is 20 event within this time-frame.}
-	\label{fig:sampling_occasionally_ss_5evts}
-\end{figure}
+		\\
+		
+		\begin{subfigure}[b]{0.5\textwidth}
+			\centering
+			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/samplingTest_afterExp_5time.png}
+			\caption{Super-Sampling the \textit{afterExp} function with average time-out of 5.}
+			\label{fig:sampling_afterExp_ss_5time}
+		\end{subfigure}
 
-\begin{figure}
-	\centering
-	\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/samplingTest_afterExp_5time.png}
-	\caption{Super-Sampling the \textit{afterExp} function to visualize the influence of increasing number of super-samples on the average time-out. Average time-out of 5 with time-delta of 1, with super-samples of [1, 2, 5, 10, 100, 1000], running 10,000 replications.}
-	\label{fig:sampling_afterExp_ss_5time}
-\end{figure}
-
-\begin{figure}
-	\centering
-	\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/samplingTest_afterExp_02time.png}
-	\caption{Super-Sampling the \textit{afterExp} function to visualize the influence of increasing number of super-samples on the average time-out. Average time-out of 0.2 with time-delta of 1, with super-samples of [1, 2, 5, 10, 100, 1000], running 10,000 replications.}
-	\label{fig:sampling_afterExp_ss_02time}
-\end{figure}
+		&
+		
+		\begin{subfigure}[b]{0.5\textwidth}
+			\centering
+			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/samplingTest_afterExp_02time.png}
+			\caption{Super-Sampling the \textit{afterExp} function with average time-out of 0.2.}
+			\label{fig:sampling_afterExp_ss_02time}
+		\end{subfigure}
+	\end{tabular}
+	
+	\caption{Super-Sampling the \textit{afterExp} and \textit{occasional} functions to visualize the influence of increasing number of super-samples on the average occurrence of the respective events. The time-delta is fixed to 1.0 in both cases with super-samples of [1, 2, 5, 10, 100, 1000]. The experiments for \textit{afterExp} used 10,000 replications. The experiments for \textit{occasional} ran for 100 time-units with 100 replications.} 
+	\label{fig:supersampling_tests}
+\end{center}
+\end{figure*}
 
 At first this might not seem to be a real win as we still need to calculate a big number of samples every time. The big win comes though when these super-sampled signal-functions are embedded in a larger system which could run on a comparatively low frequency of e.g. 1 dt. So we are then increasing the sampling-frequency just where we need it and keep the frequency low where it is not required.
 
-TODO: report results of using it in FrSIR ABS and discuss the *SS functions 
+\subsubsection{Super Sampling in SIR}
+We are using super-sampling in our SIR implementation to increase performance. We do this by keeping the time-delta at 1.0 and super-sampling the relevant functions with time-semantics which are \textit{transitionAfterExp} and \textit{sendMessageOccationallySrc}. For both we provide in our EDSL versions which support super-sampling:
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+sendMessageOccasionallySrcSS :: RandomGen g => g 
+                                -> Double
+                                -> Int
+                                -> MessageSource s m e 
+                                -> SF (AgentOut s m e, e) (AgentOut s m e)
+                                
+transitionAfterExpSS :: RandomGen g =>
+                    g 
+                    -> Double
+                    -> Int
+                    -> AgentBehaviour s m e
+                    -> AgentBehaviour s m e
+                    -> AgentBehaviour s m e
+\end{minted}
+
+Both now take an additional parameter which determines the number of super-samples to be calculated. According to the above observations of the \textit{occasionally} and \textit{afterExp} functions which are the foundations of both of the functions we sample \textit{sendMessageOccasionallySrcSS} with 20 super-samples and \textit{transitionAfterExpSS} with 2. This will ensure that by using a time-delta of 1.0 we only calculate t steps when running a simulation for t time but that we sample our relevant functions with enough resolution to capture its frequencies. Optimally we should increase the number of super-samples for \textit{sendMessageOccasionallySrcSS} to about 100 this will result in lower performance as \textit{every} agent will perform this super-sampling, which will also result in a performance decrease. So in the end it is a struggle of performance vs. sufficiently close approximation.

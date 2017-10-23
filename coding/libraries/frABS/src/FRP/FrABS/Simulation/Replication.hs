@@ -24,7 +24,7 @@ import FRP.FrABS.Simulation.Init
 
 type AgentDefReplicator s m e = (StdGen -> AgentDef s m e -> (AgentDef s m e, StdGen))
 type EnvironmentReplicator e = (StdGen -> e -> (e, StdGen))
-type Replication s e = [([AgentObservable s], e)]
+type Replication s e = [SimulationStepOut s e]
 type ReplicationAggregate a = [a]
 
 data ReplicationConfig s m e = ReplicationConfig {
@@ -46,7 +46,7 @@ runReplicationsWithAggregation :: [AgentDef s m e]
                                 -> e
                                 -> SimulationParams e
                                 -> DTime
-                                -> DTime
+                                -> Time
                                 -> ReplicationConfig s m e
                                 -> AgentObservableAggregator s e a
                                 -> [ReplicationAggregate a]
@@ -73,7 +73,7 @@ runReplications :: [AgentDef s m e]
                     -> e
                     -> SimulationParams e
                     -> DTime
-                    -> DTime
+                    -> Time
                     -> ReplicationConfig s m e
                     -> [Replication s e]
 runReplications ads e params dt t replCfg = result

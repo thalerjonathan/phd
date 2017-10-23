@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses             #-}
 {-# LANGUAGE ScopedTypeVariables               #-}
 module FRP.FrABS.Simulation.Simulation (
+    SimulationStepOut,
     AgentObservableAggregator,
     
     simulateIOInit,

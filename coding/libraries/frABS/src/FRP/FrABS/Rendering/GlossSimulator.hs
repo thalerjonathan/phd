@@ -26,10 +26,10 @@ import Data.IORef
 import Control.Concurrent
 import Control.Monad
 
-type RenderFrame s e = ((Int, Int) -> [AgentObservable s] -> e -> GLO.Picture)
-type StepCallback s e = (([AgentObservable s], e) -> ([AgentObservable s], e) -> IO ())
+type RenderFrame s e = ((Int, Int) -> Time -> [AgentObservable s] -> e -> GLO.Picture)
+type StepCallback s e = (SimulationStepOut s e -> SimulationStepOut s e -> IO ())
 
-type RenderFrameInternal s e = ([AgentObservable s] -> e -> GLO.Picture)
+type RenderFrameInternal s e = (Time -> [AgentObservable s] -> e -> GLO.Picture)
 
 simulateAndRender :: [AgentDef s m e] 
 						-> e 
@@ -51,14 +51,14 @@ simulateAndRender initAdefs
 					  renderFunc
 					  mayClbk =
 	do
-		outRef <- newIORef (initEmptyAgentObs, e) -- :: IO (IORef ([AgentObservable s], e))
+		outRef <- newIORef (0, initEmptyAgentObs, e) -- :: IO (IORef ([AgentObservable s], e))
 		hdl <- simulateIOInit initAdefs e params (nextIteration mayClbk outRef)
 
 		if freq > 0 then
 			simulateIO (displayGlossWindow winTitle winSize)
 				GLO.black
 				freq
-				([], e)
+				(0, [], e)
 				(modelToPicture (renderFunc winSize))
 				(nextFrameSimulateWithTime dt hdl outRef)
 			else
@@ -77,7 +77,7 @@ simulateStepsAndRender :: [AgentDef s m e]
 							-> e  
 							-> SimulationParams e
 							-> DTime
-							-> DTime
+							-> Time
 							-> String
 							-> (Int, Int)
 							-> RenderFrame s e
@@ -92,8 +92,8 @@ simulateStepsAndRender initAdefs
 				       renderFunc =
 	do
 		let ass = simulateTime initAdefs e params dt t
-		let (finalAobs, finalEnv) = last ass
-		let pic = renderFunc winSize finalAobs finalEnv 
+		let (finalTime, finalAobs, finalEnv) = last ass
+		let pic = renderFunc winSize finalTime finalAobs finalEnv 
 
 		GLO.display (displayGlossWindow winTitle winSize)
 				GLO.black
@@ -104,7 +104,7 @@ debugAndRender :: forall s e m .
                 => [AgentDef s m e] 
                 -> e 
                 -> SimulationParams e
-                -> Double
+                -> DTime
                 -> Int
                 -> String
                 -> (Int, Int)
@@ -120,7 +120,7 @@ debugAndRender initAdefs
                   renderFunc =
     do
         let initAobs = map (\ad -> (adId ad, adState ad)) initAdefs
-        initPic <- modelToPicture (renderFunc winSize) (initAobs, e)
+        initPic <- modelToPicture (renderFunc winSize) (0, initAobs, e)
 
         renderOutputRef <- newIORef initPic
         nextStepVar <- newEmptyMVar
@@ -149,7 +149,7 @@ debugAndRender initAdefs
             initEmptyAgentObs :: [AgentObservable s]
             initEmptyAgentObs = []
 
-            outputRender :: IORef Picture -> Bool -> ([AgentObservable s], e) -> IO Bool
+            outputRender :: IORef Picture -> Bool -> SimulationStepOut s e -> IO Bool
             outputRender renderOutputRef updated out = 
                 when updated 
                     (do
@@ -158,10 +158,10 @@ debugAndRender initAdefs
                         
 
 nextIteration :: Maybe (StepCallback s e)
-					-> IORef ([AgentObservable s], e)
-                    -> ReactHandle () ([AgentObservable s], e)
+					-> IORef (SimulationStepOut s e)
+                    -> ReactHandle () (SimulationStepOut s e)
 					-> Bool
-					-> ([AgentObservable s], e)
+					-> SimulationStepOut s e
 					-> IO Bool
 nextIteration (Just clbk) obsRef _ _ curr@(currAobs, currEnv) = 
     do
@@ -172,12 +172,12 @@ nextIteration (Just clbk) obsRef _ _ curr@(currAobs, currEnv) =
 nextIteration Nothing obsRef _ _ curr = writeIORef obsRef curr >> return False
 
 nextFrameSimulateWithTime :: Double 
-								-> ReactHandle () ([AgentObservable s], e)
-	                            -> IORef ([AgentObservable s], e)
+								-> ReactHandle () (SimulationStepOut s e)
+	                            -> IORef (SimulationStepOut s e)
 	                            -> ViewPort
 	                            -> Float
-	                            -> ([AgentObservable s], e)
-	                            -> IO ([AgentObservable s], e)
+	                            -> (SimulationStepOut s e)
+	                            -> IO (SimulationStepOut s e)
 nextFrameSimulateWithTime dt hdl obsRef _ _ _ = 
     do
         react hdl (dt, Nothing)  -- NOTE: will result in call to nextIteration
@@ -186,8 +186,8 @@ nextFrameSimulateWithTime dt hdl obsRef _ _ _ =
 
 nextFrameSimulateNoTime :: RenderFrameInternal s e
                             -> Double
-                            -> ReactHandle () ([AgentObservable s], e)
-                            -> IORef ([AgentObservable s], e)
+                            -> ReactHandle () (SimulationStepOut s e)
+                            -> IORef (SimulationStepOut s e)
                             -> Float
                             -> IO Picture
 nextFrameSimulateNoTime renderFunc dt hdl obsRef _ = 
@@ -197,9 +197,9 @@ nextFrameSimulateNoTime renderFunc dt hdl obsRef _ =
         modelToPicture renderFunc aobs
 
 modelToPicture :: RenderFrameInternal s e
-					-> ([AgentObservable s], e) 
+					-> (SimulationStepOut s e) 
 					-> IO GLO.Picture
-modelToPicture renderFunc (aobs, e) = return $ renderFunc aobs e
+modelToPicture renderFunc (t, aobs, e) = return $ renderFunc t aobs e
 
 displayGlossWindow :: String -> (Int, Int) -> GLO.Display
 displayGlossWindow title winSize = (GLO.InWindow title winSize (0, 0))

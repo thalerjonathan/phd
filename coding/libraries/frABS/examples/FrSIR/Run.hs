@@ -27,7 +27,7 @@ t :: DTime
 t = 150
 
 agentCount :: Int
-agentCount = 100
+agentCount = 1000
 
 numInfected :: Int
 numInfected = 10

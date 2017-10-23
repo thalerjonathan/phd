@@ -20,22 +20,20 @@ writeSirsDynamicsFile fileName dt replications dynamics = do
     mapM_ (hPutStrLn fileHdl . sirsDynamicToString) dynamics
     hPutStrLn fileHdl "];"
 
-    hPutStrLn fileHdl "susceptible = dynamics (:, 1);"
-    hPutStrLn fileHdl "infected = dynamics (:, 2);"
-    hPutStrLn fileHdl "recovered = dynamics (:, 3);"
+    hPutStrLn fileHdl "time = dynamics (:, 1);"
+    hPutStrLn fileHdl "susceptible = dynamics (:, 2);"
+    hPutStrLn fileHdl "infected = dynamics (:, 3);"
+    hPutStrLn fileHdl "recovered = dynamics (:, 4);"
     hPutStrLn fileHdl "totalPopulation = susceptible(1) + infected(1) + recovered(1);"
 
     hPutStrLn fileHdl "susceptibleRatio = susceptible ./ totalPopulation;"
     hPutStrLn fileHdl "infectedRatio = infected ./ totalPopulation;"
     hPutStrLn fileHdl "recoveredRatio = recovered ./ totalPopulation;"
 
-    hPutStrLn fileHdl "steps = length (susceptible);"
-    hPutStrLn fileHdl ("dt = " ++ show dt ++ ";")
-    hPutStrLn fileHdl ("replications = " ++ show replications ++ ";")
+    hPutStrLn fileHdl "steps = length (time);"
+    hPutStrLn fileHdl "endTime = time(steps);"
 
-    hPutStrLn fileHdl "startingTime = 0;"
-    hPutStrLn fileHdl "endTime = (steps - 1) * dt;"
-    hPutStrLn fileHdl "time = 0 : dt : endTime;"
+    hPutStrLn fileHdl ("replications = " ++ show replications ++ ";")
 
     hPutStrLn fileHdl "figure"
     hPutStrLn fileHdl "plot (time, susceptibleRatio.', 'color', 'blue', 'linewidth', 3);"

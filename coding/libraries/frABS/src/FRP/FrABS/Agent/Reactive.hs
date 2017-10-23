@@ -115,6 +115,15 @@ setDomainStateR s = first $ arr agentOutFromIn >>> doOnce (setDomainState s)
 
 updateDomainStateR :: (s -> s) -> AgentBehaviour s m e
 updateDomainStateR s = first $ arr agentOutFromIn >>> doOnce (updateDomainState s)
+
+doRepeatedlyEvery :: Time -> AgentBehaviour s m e -> AgentBehaviour s m e
+doRepeatedlyEvery t sf = proc (ain, e) -> do
+    do
+        let aout = agentOutFromIn ain
+        doEvt <- repeatedly t (aout, e) -< ()
+        if (isEvent doEvt)
+            (aout', e') <- sf -< (ain, e)
+            returnA -< (aout, e)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------

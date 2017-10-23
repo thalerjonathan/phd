@@ -8,6 +8,8 @@ module FRP.FrABS.Simulation.Simulation (
     simulateIOInit,
     
     simulateTime,
+    simulateTimeDeltas,
+    simulateAggregateTimeDeltas,
     simulateAggregateTime,
 
     simulateDebug,
@@ -51,14 +53,37 @@ simulateTime :: [AgentDef s m e]
                 -> e
                 -> SimulationParams e
                 -> DTime
-                -> DTime
+                -> Time
                 -> [SimulationStepOut s e]
 simulateTime adefs e params dt t = obs
     where
         steps = floor $ t / dt
         sts = replicate steps (dt, Nothing)
         obs = embed (simulate params adefs e) ((), sts)
-        
+
+simulateTimeDeltas :: [AgentDef s m e]
+                      -> e
+                      -> SimulationParams e
+                      -> [DTime]
+                      -> [SimulationStepOut s e]
+simulateTimeDeltas adefs e params dts = obs
+    where
+        sts = zip dts (repeat Nothing) 
+        obs = embed (simulate params adefs e) ((), sts)
+
+simulateAggregateTimeDeltas :: [AgentDef s m e]
+                              -> e
+                              -> SimulationParams e
+                              -> [DTime]
+                              -> AgentObservableAggregator s e a
+                              -> [a]
+simulateAggregateTimeDeltas adefs e params dts aggrFun = seq agrs agrs -- optimization
+    where
+        sts = zip dts (repeat Nothing) 
+        agrSf = arr aggrFun
+        sf = simulate params adefs e >>> agrSf
+        agrs = embed sf ((), sts)
+
 simulateAggregateTime :: [AgentDef s m e]
                             -> e
                             -> SimulationParams e
@@ -66,7 +91,7 @@ simulateAggregateTime :: [AgentDef s m e]
                             -> Time
                             -> AgentObservableAggregator s e a
                             -> [a]
-simulateAggregateTime adefs e params dt t aggrFun = seq agrs agrs
+simulateAggregateTime adefs e params dt t aggrFun = seq agrs agrs -- optimization
     where
         steps = floor $ t / dt
         sts = replicate steps (dt, Nothing)

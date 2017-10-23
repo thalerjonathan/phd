@@ -316,8 +316,10 @@ module FRP.FrABS (
     simulateIOInit,
     
     simulateTime,
+    simulateTimeDeltas,
     simulateAggregateTime,
-
+    simulateAggregateTimeDeltas,
+    
     simulateDebug,
     simulateDebugInternal,
     

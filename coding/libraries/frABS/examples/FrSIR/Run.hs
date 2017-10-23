@@ -1,8 +1,9 @@
 module FrSIR.Run 
-    ( 
+  ( 
       runFrSIRStepsAndWriteToFile
+    , runFrSIRDeltasAndWriteToFile
     , runFrSIRReplicationsAndWriteToFile
-    ) where
+  ) where
 
 import FRP.Yampa
 import FRP.FrABS
@@ -46,6 +47,26 @@ runFrSIRStepsAndWriteToFile = do
     (initAdefs, initEnv) <- createFrSIRNumInfected agentCount numInfected
     
     let dynamics = simulateAggregateTime initAdefs initEnv params dt t aggregate
+    let fileName = "frSIRDynamics_" 
+                    ++ show agentCount ++ "agents_" 
+                    ++ show t ++ "time_"
+                    ++ show dt ++ "dt_"
+                    ++ show updateStrat ++ ".m"
+
+    writeSirsDynamicsFile fileName dt 0 dynamics
+
+runFrSIRDeltasAndWriteToFile :: IO ()
+runFrSIRDeltasAndWriteToFile = do
+    params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
+    
+    (initAdefs, initEnv) <- createFrSIRNumInfected agentCount numInfected
+    
+    let deltasBefore = replicate 50 dt
+    let deltasZero = replicate 50 0 -- NOTE: this is like halting time, SIR agents won't change as they completely rely on advancing time
+    let deltasAfter = replicate 100 dt
+    let deltas = deltasBefore ++ deltasZero ++ deltasAfter
+
+    let dynamics = simulateAggregateTimeDeltas initAdefs initEnv params deltas aggregate
     let fileName = "frSIRDynamics_" 
                     ++ show agentCount ++ "agents_" 
                     ++ show t ++ "time_"

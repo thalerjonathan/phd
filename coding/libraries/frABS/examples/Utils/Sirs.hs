@@ -5,13 +5,15 @@ module Utils.Sirs
     , sirsDynamicsReplMean
     ) where
 
+import FRP.Yampa
+
 import Text.Printf
 import System.IO
 
 writeSirsDynamicsFile :: String 
                         -> Double
                         -> Int
-                        -> [(Double, Double, Double)] -> IO ()
+                        -> [(Time, Double, Double, Double)] -> IO ()
 writeSirsDynamicsFile fileName dt replications dynamics = do
     fileHdl <- openFile fileName WriteMode
     hPutStrLn fileHdl "dynamics = ["
@@ -57,23 +59,22 @@ writeSirsDynamicsFile fileName dt replications dynamics = do
 
     hClose fileHdl
 
-sirsDynamicToString :: (Double, Double, Double) -> String
-sirsDynamicToString dynamics = 
-    printf "%.3f" susceptibleRatio 
+sirsDynamicToString :: (Time, Double, Double, Double) -> String
+sirsDynamicToString (t, susceptibleRatio, infectedRatio, recoveredRatio) = 
+    printf "%.2f" t 
+        ++ "," ++ printf "%.3f" susceptibleRatio 
         ++ "," ++ printf "%.3f" infectedRatio
         ++ "," ++ printf "%.3f" recoveredRatio
         ++ ";" 
-  where
-    (susceptibleRatio, infectedRatio, recoveredRatio) = dynamics 
 
-sirsDynamicsReplMean :: [[(Double, Double, Double)]] -> [(Double, Double, Double)]
+sirsDynamicsReplMean :: [[(Time, Double, Double, Double)]] -> [(Time, Double, Double, Double)]
 sirsDynamicsReplMean [] = []
 sirsDynamicsReplMean replDynamics@(initRepl:tailRepls) = replDynamicsRatio
   where
     replCountRational = fromIntegral $ length replDynamics :: Double
 
     replDynamicsSum = foldr sumDyns initRepl tailRepls
-    replDynamicsRatio = map (\(s, i, r) -> (s / replCountRational, i / replCountRational, r / replCountRational)) replDynamicsSum
+    replDynamicsRatio = map (\(t, s, i, r) -> (t, s / replCountRational, i / replCountRational, r / replCountRational)) replDynamicsSum
 
-    sumDyns :: [(Double, Double, Double)] -> [(Double, Double, Double)] -> [(Double, Double, Double)]
-    sumDyns ds1 ds2 = map (\((s1, i1, r1), (s2, i2, r2)) -> (s1+s2, i1+i2, r1+r2)) (zip ds1 ds2)
+    sumDyns :: [(Time, Double, Double, Double)] -> [(Time, Double, Double, Double)] -> [(Time, Double, Double, Double)]
+    sumDyns ds1 ds2 = map (\((t1, s1, i1, r1), (_, s2, i2, r2)) -> (t1, s1+s2, i1+i2, r1+r2)) (zip ds1 ds2)

@@ -7,6 +7,8 @@ module FrSIRSSpatial.Run (
     debugFrSIRSSpatialWithRendering
   ) where
 
+import FRP.Yampa
+
 import FrSIRSSpatial.Init
 import FrSIRSSpatial.Model
 import FrSIRSSpatial.Renderer
@@ -126,11 +128,14 @@ runFrSIRSSpatialReplicationsAndWriteToFile =
 -------------------------------------------------------------------------------
 -- UTILS
 -------------------------------------------------------------------------------
-agentsToDynamics = (calculateDynamics . fst)
+agentsToDynamics :: (Time, [FrSIRSSpatialAgentObservable], FrSIRSSpatialEnvironment) -> (Time, Double, Double, Double)
+agentsToDynamics (t, obs, _) = calculateDynamics (t, obs)
+
+printAgentDynamics :: (Time, [FrSIRSSpatialAgentObservable], FrSIRSSpatialEnvironment) -> IO ()
 printAgentDynamics = (putStrLn . sirsDynamicToString . agentsToDynamics)
 
-calculateDynamics :: [FrSIRSSpatialAgentObservable] -> (Double, Double, Double)
-calculateDynamics aobs = (susceptibleCount, infectedCount, recoveredCount)
+calculateDynamics :: (Time, [FrSIRSSpatialAgentObservable]) -> (Time, Double, Double, Double)
+calculateDynamics (t, aobs) = (t, susceptibleCount, infectedCount, recoveredCount)
     where
         susceptibleCount = fromIntegral $ length $ filter ((Susceptible==) . sirsState . snd) aobs
         infectedCount = fromIntegral $ length $ filter ((Infected==) . sirsState . snd) aobs
@@ -142,5 +147,5 @@ calculateDynamics aobs = (susceptibleCount, infectedCount, recoveredCount)
         infectedRatio = infectedCount / totalCount 
         recoveredRatio = recoveredCount / totalCount
 
-calculateSingleReplicationDynamic :: [([FrSIRSSpatialAgentObservable], FrSIRSSpatialEnvironment)] -> [(Double, Double, Double)]
-calculateSingleReplicationDynamic = map (calculateDynamics . fst)
+calculateSingleReplicationDynamic :: [(Time, [FrSIRSSpatialAgentObservable], FrSIRSSpatialEnvironment)] -> [(Time, Double, Double, Double)]
+calculateSingleReplicationDynamic = map (\(t, obs, _) -> calculateDynamics (t, obs))

@@ -2,25 +2,25 @@ module SugarScape.Exporter (
     writeSugarscapeDynamics
   ) where
 
-import FRP.FrABS
+import FRP.Yampa
 
 import SugarScape.Model
 
 import System.IO
 import Text.Printf
 
-writeSugarscapeDynamics :: [([SugarScapeAgentObservable], SugarScapeEnvironment)] -> IO ()
+writeSugarscapeDynamics :: [(Time, [SugarScapeAgentObservable], SugarScapeEnvironment)] -> IO ()
 writeSugarscapeDynamics dynamics =
     do
         writeWealthDistribution dynamics
         writeCarryingCapacity dynamics
         writeCulturalDynamics dynamics
 
-writeWealthDistribution :: [([SugarScapeAgentObservable], SugarScapeEnvironment)] -> IO ()
+writeWealthDistribution :: [(Time, [SugarScapeAgentObservable], SugarScapeEnvironment)] -> IO ()
 writeWealthDistribution dynamics =
     do
         let steps = length dynamics 
-        let (finalAos, _) = last dynamics
+        let (_, finalAos, _) = last dynamics
 
         fileHdl <- openFile "sugarscape_wealthDist.m" WriteMode
         
@@ -36,7 +36,7 @@ writeWealthDistribution dynamics =
 
         hClose fileHdl
 
-writeCarryingCapacity :: [([SugarScapeAgentObservable], SugarScapeEnvironment)] -> IO ()
+writeCarryingCapacity :: [(Time, [SugarScapeAgentObservable], SugarScapeEnvironment)] -> IO ()
 writeCarryingCapacity dynamics =
     do
         let steps = length dynamics 
@@ -44,7 +44,7 @@ writeCarryingCapacity dynamics =
         fileHdl <- openFile "sugarscape_carryingcapacity.m" WriteMode
         
         hPutStrLn fileHdl "carryingcapacity = ["
-        mapM_ (hPutStrLn fileHdl . (\(aos, _) -> show $ length aos)) dynamics
+        mapM_ (hPutStrLn fileHdl . (\(t, aos, _) -> "" ++ show t ++ "," ++ (show $ length aos))) dynamics
         hPutStrLn fileHdl "];"
 
         hPutStrLn fileHdl "figure;"
@@ -55,7 +55,7 @@ writeCarryingCapacity dynamics =
 
         hClose fileHdl
 
-writeCulturalDynamics :: [([SugarScapeAgentObservable], SugarScapeEnvironment)] -> IO ()
+writeCulturalDynamics :: [(Time, [SugarScapeAgentObservable], SugarScapeEnvironment)] -> IO ()
 writeCulturalDynamics dynamics =
     do
         let steps = length dynamics 
@@ -63,7 +63,7 @@ writeCulturalDynamics dynamics =
         fileHdl <- openFile "sugarscape_culturaldynamics.m" WriteMode
         
         hPutStrLn fileHdl "dynamics = ["
-        mapM_ (hPutStrLn fileHdl . (tupleToString . tribeFractions . fst)) dynamics
+        mapM_ (hPutStrLn fileHdl . (tupleToString . tribeFractions . (\(_, aos, _) -> aos))) dynamics
         hPutStrLn fileHdl "];"
 
         hPutStrLn fileHdl "redFract = dynamics (:, 1);"

@@ -3,6 +3,8 @@ module Segregation.Run (
     runSegStepsAndRender
   ) where
 
+import FRP.Yampa
+
 import Segregation.Model
 import Segregation.Init
 import Segregation.Stats
@@ -55,10 +57,10 @@ runSegStepsAndRender =
                             winSize
                             renderSegFrame
 
-printDynamics :: ([(AgentId, SegAgentState)], SegEnvironment)
-                    ->([(AgentId, SegAgentState)], SegEnvironment)
+printDynamics :: (Time, [(AgentId, SegAgentState)], SegEnvironment)
+                    ->(Time, [(AgentId, SegAgentState)], SegEnvironment)
                     -> IO ()
-printDynamics (aoutsPrev, _) (aoutsCurr, _) = 
+printDynamics (_, aoutsPrev, _) (_, aoutsCurr, _) = 
     do
         let maxSimilarity = fromInteger $ fromIntegral totalCount -- NOTE: an agent can reach a maximum of 1.0
         let currSimilarity = totalSatisfaction aoutsCurr

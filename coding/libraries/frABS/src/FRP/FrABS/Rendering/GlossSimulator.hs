@@ -12,7 +12,6 @@ module FRP.FrABS.Rendering.GlossSimulator (
   ) where
 
 import FRP.FrABS.Agent.Agent
-import FRP.FrABS.Environment.Discrete
 import FRP.FrABS.Simulation.Simulation
 import FRP.FrABS.Simulation.Init
 
@@ -26,10 +25,10 @@ import Data.IORef
 import Control.Concurrent
 import Control.Monad
 
-type RenderFrame s e = ((Int, Int) -> Time -> [AgentObservable s] -> e -> GLO.Picture)
-type StepCallback s e = (SimulationStepOut s e -> SimulationStepOut s e -> IO ())
+type RenderFrame s e = (Int, Int) -> Time -> [AgentObservable s] -> e -> GLO.Picture
+type StepCallback s e = SimulationStepOut s e -> SimulationStepOut s e -> IO ()
 
-type RenderFrameInternal s e = (Time -> [AgentObservable s] -> e -> GLO.Picture)
+type RenderFrameInternal s e = Time -> [AgentObservable s] -> e -> GLO.Picture
 
 simulateAndRender :: [AgentDef s m e] 
 						-> e 
@@ -145,10 +144,6 @@ debugAndRender initAdefs
         -- return ()
 
         where
-            -- NOTE: need this function otherwise would get a compilation error when creating newIORef (see above)
-            initEmptyAgentObs :: [AgentObservable s]
-            initEmptyAgentObs = []
-
             outputRender :: IORef Picture -> Bool -> SimulationStepOut s e -> IO Bool
             outputRender renderOutputRef updated out = 
                 when updated 
@@ -156,33 +151,30 @@ debugAndRender initAdefs
                         pic <- modelToPicture (renderFunc winSize) out
                         writeIORef renderOutputRef pic) >> return False
                         
-
 nextIteration :: Maybe (StepCallback s e)
-					-> IORef (SimulationStepOut s e)
-                    -> ReactHandle () (SimulationStepOut s e)
-					-> Bool
-					-> SimulationStepOut s e
-					-> IO Bool
-nextIteration (Just clbk) obsRef _ _ curr@(currAobs, currEnv) = 
-    do
-    	(prevAobs, prevEnv) <- readIORef obsRef
-    	clbk (prevAobs, prevEnv) (currAobs, currEnv)
-        writeIORef obsRef curr
-        return False
+      					-> IORef (SimulationStepOut s e)
+                -> ReactHandle () (SimulationStepOut s e)
+      					-> Bool
+      					-> SimulationStepOut s e
+      					-> IO Bool
+nextIteration (Just clbk) obsRef _ _ curr = do
+  prev <- readIORef obsRef
+  clbk prev curr
+  writeIORef obsRef curr
+  return False
 nextIteration Nothing obsRef _ _ curr = writeIORef obsRef curr >> return False
 
 nextFrameSimulateWithTime :: Double 
-								-> ReactHandle () (SimulationStepOut s e)
-	                            -> IORef (SimulationStepOut s e)
-	                            -> ViewPort
-	                            -> Float
-	                            -> (SimulationStepOut s e)
-	                            -> IO (SimulationStepOut s e)
-nextFrameSimulateWithTime dt hdl obsRef _ _ _ = 
-    do
-        react hdl (dt, Nothing)  -- NOTE: will result in call to nextIteration
-        aobs <- readIORef obsRef
-        return aobs
+							              -> ReactHandle () (SimulationStepOut s e)
+                            -> IORef (SimulationStepOut s e)
+                            -> ViewPort
+                            -> Float
+                            -> (SimulationStepOut s e)
+                            -> IO (SimulationStepOut s e)
+nextFrameSimulateWithTime dt hdl obsRef _ _ _ = do
+  _ <- react hdl (dt, Nothing)  -- NOTE: will result in call to nextIteration
+  aobs <- readIORef obsRef
+  return aobs
 
 nextFrameSimulateNoTime :: RenderFrameInternal s e
                             -> Double
@@ -190,11 +182,10 @@ nextFrameSimulateNoTime :: RenderFrameInternal s e
                             -> IORef (SimulationStepOut s e)
                             -> Float
                             -> IO Picture
-nextFrameSimulateNoTime renderFunc dt hdl obsRef _ = 
-    do
-        react hdl (dt, Nothing)  -- NOTE: will result in call to nextIteration
-        aobs <- readIORef obsRef
-        modelToPicture renderFunc aobs
+nextFrameSimulateNoTime renderFunc dt hdl obsRef _ = do
+  _ <- react hdl (dt, Nothing)  -- NOTE: will result in call to nextIteration
+  aobs <- readIORef obsRef
+  modelToPicture renderFunc aobs
 
 modelToPicture :: RenderFrameInternal s e
 					-> (SimulationStepOut s e) 

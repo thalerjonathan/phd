@@ -39,8 +39,8 @@ runSysDynSIRStepsAndWriteToFile = writeSirsDynamicsFile fileName dt 0 dynamics
 --          stock id 1: Infectious
 --          stock id 2: Recovered
 --          the remaining items are the flows
-calculateDynamics :: [SDObservable] -> (Double, Double, Double)
-calculateDynamics unsortedStocks = (susceptibleCount, infectedCount, recoveredCount) 
+calculateDynamics :: (Time, [SDObservable]) -> (Time, Double, Double, Double)
+calculateDynamics (t, unsortedStocks) = (t, susceptibleCount, infectedCount, recoveredCount) 
   where
     stocks = sortBy (\s1 s2 -> compare (fst s1) (fst s2)) unsortedStocks
     ((_, susceptibleCount) : (_, infectedCount) : (_, recoveredCount) : _) = stocks

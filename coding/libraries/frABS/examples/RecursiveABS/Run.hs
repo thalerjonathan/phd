@@ -27,9 +27,7 @@ runRecursiveABSSteps =
         mapM_ (putStrLn . show . adState) initAdefs
 
         let ass = simulateTime initAdefs initEnv params dt time
-        let (as', _) = last ass
+        let (_, as', _) = last ass
 
         putStrLn "Final Agents:"
-        mapM (putStrLn . show . snd) as'
-
-        return ()
+        mapM_ (putStrLn . show . snd) as'

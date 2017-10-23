@@ -3,6 +3,8 @@ module Zombies.Run (
     runZombiesStepsAndWriteToFile
   ) where
 
+import FRP.Yampa
+
 import Zombies.Environment
 import Zombies.Init
 import Zombies.Renderer 
@@ -47,7 +49,7 @@ runZombiesStepsAndWriteToFile =
 
         writeDynamics asenv
 
-writeDynamics :: [([ZombiesAgentObservable], ZombiesEnvironment)] -> IO ()
+writeDynamics :: [(Time, [ZombiesAgentObservable], ZombiesEnvironment)] -> IO ()
 writeDynamics dynamics =
     do
         let fileName = "zombies_dynamics.m"
@@ -72,16 +74,16 @@ writeDynamics dynamics =
         hClose fileHdl
 
     where
-        writeDynamicsAux :: ([ZombiesAgentObservable], ZombiesEnvironment) -> String
-        writeDynamicsAux (aos, _) = show humanCount ++ "," ++ show zombieCount ++ ";"
+        writeDynamicsAux :: (Time, [ZombiesAgentObservable], ZombiesEnvironment) -> String
+        writeDynamicsAux (t, aos, _) = show t ++ ", " ++ show humanCount ++ "," ++ show zombieCount ++ ";"
             where
                 humanCount = length $ filter (isHuman . snd) aos
                 zombieCount = length $ filter (isZombie . snd) aos
 
-printDynamics :: ([ZombiesAgentObservable], ZombiesEnvironment)
-                    ->([ZombiesAgentObservable], ZombiesEnvironment)
+printDynamics :: (Time, [ZombiesAgentObservable], ZombiesEnvironment)
+                    ->(Time, [ZombiesAgentObservable], ZombiesEnvironment)
                     -> IO ()
-printDynamics (_, _) (aobsCurr, _) = 
+printDynamics (_, _, _) (_, aobsCurr, _) = 
     do
         let humanCount = length $ filter (isHuman . snd) aobsCurr
         let zombieCount = length $ filter (isZombie . snd) aobsCurr

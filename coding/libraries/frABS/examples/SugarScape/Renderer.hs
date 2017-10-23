@@ -15,7 +15,7 @@ type SugarScapeEnvironmentRenderer = EnvRendererDisc2d SugarScapeEnvCell
 type SugarScapeAgentRenderer = AgentRendererDisc2d SugarScapeAgentState
 
 renderSugarScapeFrame :: SugarScapeRenderFrame
-renderSugarScapeFrame wSize@(wx, wy) ss e = GLO.Pictures $ (envPics ++ agentPics)
+renderSugarScapeFrame wSize@(wx, wy) t ss e = GLO.Pictures $ (envPics ++ agentPics ++ [timeStepTxt])
     where
         (dx, dy) = envDisc2dDims e
         cellWidth = fromIntegral wx / fromIntegral dx
@@ -29,11 +29,16 @@ renderSugarScapeFrame wSize@(wx, wy) ss e = GLO.Pictures $ (envPics ++ agentPics
                                                         maxLvl ) 0.0 cells
 
         -- agentPics = map (defaultAgentRendererDisc2d agentColorDiseased sugAgCoord (cellWidth, cellHeight) wSize) ss
-        agentPics = map (sugarscapeAgentRenderer (cellWidth, cellHeight) wSize) ss
-        envPics = map (renderEnvCell maxPolLevel (cellWidth, cellHeight) wSize) cells
+        agentPics = map (sugarscapeAgentRenderer (cellWidth, cellHeight) wSize t) ss
+        envPics = map (renderEnvCell maxPolLevel (cellWidth, cellHeight) wSize t) cells
+
+        timeStepTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY - 20) $ GLO.scale 0.1 0.1 $ GLO.Text (show t)
+
+        halfWSizeX = fromIntegral wx / 2.0 
+        halfWSizeY = fromIntegral wy / 2.0 
 
 renderEnvCell :: Double -> SugarScapeEnvironmentRenderer
-renderEnvCell maxPolLevel r@(rw, rh) w (coord, cell) = GLO.Pictures $ [polutionLevelRect, spiceLevelCircle, sugarLevelCircle]
+renderEnvCell maxPolLevel r@(rw, rh) w _t (coord, cell) = GLO.Pictures $ [polutionLevelRect, spiceLevelCircle, sugarLevelCircle]
     where
         polLevel = sugEnvPolutionLevel cell
         --polGreenShadeRelative = (realToFrac (polLevel / maxPolLevel))
@@ -61,7 +66,7 @@ renderEnvCell maxPolLevel r@(rw, rh) w (coord, cell) = GLO.Pictures $ [polutionL
         polutionLevelRect = GLO.color polutionColor $ GLO.translate x y $ GLO.rectangleSolid rw rh
 
 sugarscapeAgentRenderer :: SugarScapeAgentRenderer
-sugarscapeAgentRenderer r@(rw, rh) w (aid, s) = GLO.Pictures [circle, txt]
+sugarscapeAgentRenderer r@(rw, rh) w _t (aid, s) = GLO.Pictures [circle, txt]
     where
         coord = sugAgCoord s
         color = agentColoring _agentColoring_ aid s

@@ -19,7 +19,6 @@ import           Zombies.Run
 import           NewAgents.Run
 
 {- TODOs
-	- make current simulation time available to rendering and step callbacks
 	- different build targets: with/without time-traveling, gloss rendering
 	- add HOW-TO of FrABS examples running on github in a sandbox: need yampa with exposed core, haskell-titan, install FrABS
 	

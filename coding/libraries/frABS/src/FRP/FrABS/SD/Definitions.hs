@@ -73,8 +73,8 @@ stockInFrom = valueInFrom
 flowOutTo = valueOutTo
 stockOutTo = valueOutTo
 
-runSD :: [SDDef] -> DTime -> Time -> [[SDObservable]]
-runSD initSdDefs dt t = map fst sdObsEnv
+runSD :: [SDDef] -> DTime -> Time -> [(Time, [SDObservable])]
+runSD initSdDefs dt t = map (\(t, outs, _) -> (t, outs)) sdObsEnv
   where
     sdObsEnv = simulateTime 
                   initSdDefs 

@@ -16,7 +16,7 @@ agentSize = 15
 agentColor = GLO.makeColor (realToFrac 0.0) (realToFrac 0.3) (realToFrac 0.6) 1.0
 
 renderAgentZeroFrame :: AgentZeroRenderFrame
-renderAgentZeroFrame wSize@(wx, wy) ss e = GLO.Pictures [patchesPic, agentsPic]
+renderAgentZeroFrame wSize@(wx, wy) t ss e = GLO.Pictures [patchesPic, agentsPic]
     where
         wp = azWorldPatches e
         as = azAgentSpace e
@@ -25,6 +25,7 @@ renderAgentZeroFrame wSize@(wx, wy) ss e = GLO.Pictures [patchesPic, agentsPic]
                         voidAgentRendererDisc2d --(defaultAgentRendererDisc2d (defaultAgentColorerDisc2d agentColor) agentZeroDiscCoord) -- voidAgentRendererDisc2d
                         (defaultEnvRendererDisc2d agentZeroEnvCellColor)
                         wSize
+                        t
                         [] -- ss
                         wp
 
@@ -32,6 +33,7 @@ renderAgentZeroFrame wSize@(wx, wy) ss e = GLO.Pictures [patchesPic, agentsPic]
                         (defaultAgentRendererCont2d agentSize (defaultAgentColorerCont2d agentColor) azAgentCoord)
                         voidEnvRendererCont2d
                         wSize
+                        t
                         ss
                         as
 

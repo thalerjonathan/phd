@@ -4,6 +4,8 @@ module PolicyEffects.Run (
     runPolicyEffectsReplicationsAndWriteToFile
   ) where
 
+import FRP.Yampa
+
 import PolicyEffects.Init
 import PolicyEffects.Model
 import PolicyEffects.Renderer
@@ -70,12 +72,12 @@ runPolicyEffectsStepsAndWriteToFile =
         (initAdefs, initEnv) <- createPolicyEffects initialWealth network
 
         let asenv = simulateTime initAdefs initEnv params dt t
-        let dynamics = map (calculateDynamics . fst) asenv
+        let dynamics = map (\(_, as, _) -> calculateDynamics as) asenv
         let dynamicsFileName = "policyEffectsDynamics_" 
                                 ++ show agentCount ++ "agents_" 
                                 ++ show t ++ "time.m" 
 
-        let finalAgents = (fst . last) asenv
+        let (_, finalAgents, _) = last asenv
         let histFileName = "policyEffectsHistogram_" 
                                 ++ show agentCount ++ "agents_" 
                                 ++ show t ++ "time.m" 
@@ -114,9 +116,9 @@ calculateDynamics aobs = (minWealth, maxWealth, std)
         dev = sum $ map (\ao -> (snd ao - mean)^2) aobs
         std = sqrt dev
 
-calculateSingleReplicationDynamic :: [([PolicyEffectsAgentObservable], PolicyEffectsEnvironment)] 
+calculateSingleReplicationDynamic :: [(Time, [PolicyEffectsAgentObservable], PolicyEffectsEnvironment)] 
                                     -> [(Double, Double, Double)]
-calculateSingleReplicationDynamic = map (calculateDynamics . fst)
+calculateSingleReplicationDynamic = map (\(_, as, _) -> calculateDynamics as)
 
 dynamicsReplMean :: [[(Double, Double, Double)]] -> [(Double, Double, Double)]
 dynamicsReplMean [] = []

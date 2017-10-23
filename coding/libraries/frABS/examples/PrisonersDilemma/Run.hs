@@ -59,5 +59,5 @@ runPDSteps =
         (initAdefs, initEnv) <- initPrisonersDilemma envSize
         
         let asenv = simulateTime initAdefs initEnv params dt t
-        let finalAs = fst $ last asenv
+        let (_, finalAs, _) = last asenv
         mapM_ (putStrLn . (show . pdCurrAction . snd))finalAs

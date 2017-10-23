@@ -3,6 +3,8 @@ module DoubleAuction.Run (
     runDoubleAuctionDebug
   ) where
 
+import FRP.Yampa
+
 import DoubleAuction.Model
 import DoubleAuction.Init
 
@@ -29,7 +31,7 @@ runDoubleAuctionSteps =
         
         let asenv = simulateTime initAdefs initEnv params dt t
 
-        let (asFinal, envFinal) = last asenv
+        let (_, asFinal, _) = last asenv
         mapM printTraderAgent asFinal
 
         return ()
@@ -45,8 +47,8 @@ runDoubleAuctionDebug =
         simulateDebug initAdefs initEnv params dt renderFunc
 
     where
-        renderFunc :: Bool -> ([DAAgentObservable], DAEnvironment) -> IO Bool
-        renderFunc _ (aobs, env) = mapM_ printTraderAgent aobs >> (return False)
+        renderFunc :: Bool -> (Time, [DAAgentObservable], DAEnvironment) -> IO Bool
+        renderFunc _ (_, aobs, env) = mapM_ printTraderAgent aobs >> (return False)
 
 printTraderAgent :: DAAgentObservable -> IO ()
 printTraderAgent (aid, s)

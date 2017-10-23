@@ -4,12 +4,12 @@ module NewAgents.Run (
     runNewAgentsDebug
   ) where
 
+import FRP.Yampa
+
 import NewAgents.Model
 import NewAgents.Init
 
 import FRP.FrABS
-
-import Text.Printf
 
 import System.IO
 
@@ -30,10 +30,8 @@ runNewAgentsSteps =
         
         let asenv = simulateTime initAdefs initEnv params dt t
 
-        let (asFinal, envFinal) = last asenv
-        mapM printNewAgent asFinal
-
-        return ()
+        let (_, asFinal, _) = last asenv
+        mapM_ printNewAgent asFinal
 
 runNewAgentsDebug :: IO ()
 runNewAgentsDebug = 
@@ -46,8 +44,8 @@ runNewAgentsDebug =
         simulateDebug initAdefs initEnv params dt renderFunc
 
     where
-        renderFunc :: Bool -> ([NewAgentObservable], NewAgentEnvironment) -> IO Bool
-        renderFunc _ (aobs, env) = mapM_ printNewAgent aobs >> (return False)
+        renderFunc :: Bool -> (Time, [NewAgentObservable], NewAgentEnvironment) -> IO Bool
+        renderFunc _ (_, aobs, _) = mapM_ printNewAgent aobs >> (return False)
 
 printNewAgent :: NewAgentObservable -> IO ()
 printNewAgent (aid, s) = putStrLn $ "Agent " ++ show aid ++ ": state = " ++ show s

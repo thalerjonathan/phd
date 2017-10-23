@@ -27,7 +27,7 @@ t :: DTime
 t = 150
 
 agentCount :: Int
-agentCount = 10000
+agentCount = 100
 
 numInfected :: Int
 numInfected = 10
@@ -75,8 +75,8 @@ runFrSIRReplicationsAndWriteToFile = do
 -------------------------------------------------------------------------------
 -- UTILS
 -------------------------------------------------------------------------------
-aggregate :: ([FrSIRAgentObservable], FrSIREnvironment) -> (Double, Double, Double)
-aggregate (aobs, _) = (susceptibleCount, infectedCount, recoveredCount)
+aggregate :: (Time, [FrSIRAgentObservable], FrSIREnvironment) -> (Time, Double, Double, Double)
+aggregate (t, aobs, _) = (t, susceptibleCount, infectedCount, recoveredCount)
   where
     susceptibleCount = fromIntegral $ length $ filter ((Susceptible==) . snd) aobs
     infectedCount = fromIntegral $ length $ filter ((Infected==) . snd) aobs

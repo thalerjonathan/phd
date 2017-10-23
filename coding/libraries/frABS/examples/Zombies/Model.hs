@@ -38,10 +38,7 @@ module Zombies.Model (
 
 import FRP.FrABS
 
-import FRP.Yampa
-
 import Data.List
-import Control.Monad.Random
 
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS

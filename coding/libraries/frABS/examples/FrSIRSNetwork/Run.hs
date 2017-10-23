@@ -6,6 +6,8 @@ module FrSIRSNetwork.Run (
     runFrSIRSNetworkReplicationsAndWriteToFile
   ) where
 
+import FRP.Yampa
+
 import FrSIRSNetwork.Init
 import FrSIRSNetwork.Model
 import FrSIRSNetwork.Renderer
@@ -87,7 +89,7 @@ runFrSIRSNetworkStepsAndWriteToFile =
         --(initAdefs, initEnv) <- createFrSIRSNetworkRandInfected initialInfectionProb network
 
         let asenv = simulateTime initAdefs initEnv params dt t
-        let dynamics = map (calculateDynamics . fst) asenv
+        let dynamics = map calculateDynamics asenv
         let fileName = "frSIRSNetworkDynamics_" 
                         ++ show agentCount ++ "agents_" 
                         ++ show t ++ "time_" 
@@ -119,8 +121,8 @@ runFrSIRSNetworkReplicationsAndWriteToFile =
 -------------------------------------------------------------------------------
 -- UTILS
 -------------------------------------------------------------------------------
-calculateDynamics :: [FrSIRSNetworkAgentObservable] -> (Double, Double, Double)
-calculateDynamics aobs = (susceptibleCount, infectedCount, recoveredCount)
+calculateDynamics :: (Time, [FrSIRSNetworkAgentObservable], FrSIRSNetworkEnvironment) -> (Time, Double, Double, Double)
+calculateDynamics (t, aobs, _) = (t, susceptibleCount, infectedCount, recoveredCount)
     where
         susceptibleCount = fromIntegral $ length $ filter ((Susceptible==) . snd) aobs
         infectedCount = fromIntegral $ length $ filter ((Infected==) . snd) aobs
@@ -132,5 +134,5 @@ calculateDynamics aobs = (susceptibleCount, infectedCount, recoveredCount)
         infectedRatio = infectedCount / totalCount 
         recoveredRatio = recoveredCount / totalCount
 
-calculateSingleReplicationDynamic :: [([FrSIRSNetworkAgentObservable], FrSIRSNetworkEnvironment)] -> [(Double, Double, Double)]
-calculateSingleReplicationDynamic = map (calculateDynamics . fst)
+calculateSingleReplicationDynamic :: [(Time, [FrSIRSNetworkAgentObservable], FrSIRSNetworkEnvironment)] -> [(Time, Double, Double, Double)]
+calculateSingleReplicationDynamic = map calculateDynamics

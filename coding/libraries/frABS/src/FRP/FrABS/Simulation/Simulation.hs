@@ -23,7 +23,8 @@ import FRP.Yampa
 import FRP.Titan.Debug.Core
 import FRP.Titan.Debug.CommTCP
 
-type AgentObservableAggregator s e a = (([AgentObservable s], e) -> a) 
+type SimulationStepOut s e = (Time, [AgentObservable s], e)
+type AgentObservableAggregator s e a = SimulationStepOut s e -> a
 
 -------------------------------------------------------------------------------
 -- RUNNING SIMULATION FROM AN OUTER LOOP
@@ -31,11 +32,11 @@ type AgentObservableAggregator s e a = (([AgentObservable s], e) -> a)
 simulateIOInit :: [AgentDef s m e]
                     -> e
                     -> SimulationParams e
-                    -> (ReactHandle () ([AgentObservable s], e)
+                    -> (ReactHandle () (SimulationStepOut s e)
                             -> Bool
-                            -> ([AgentObservable s], e)
+                            -> SimulationStepOut s e
                             -> IO Bool)
-                    -> IO (ReactHandle () ([AgentObservable s], e))
+                    -> IO (ReactHandle () (SimulationStepOut s e))
 simulateIOInit adefs e params iterFunc = reactInit
                                                 (return ())
                                                 iterFunc
@@ -50,7 +51,7 @@ simulateTime :: [AgentDef s m e]
                 -> SimulationParams e
                 -> DTime
                 -> DTime
-                -> [([AgentObservable s], e)]
+                -> [SimulationStepOut s e]
 simulateTime adefs e params dt t = obs
     where
         steps = floor $ t / dt
@@ -61,7 +62,7 @@ simulateAggregateTime :: [AgentDef s m e]
                             -> e
                             -> SimulationParams e
                             -> DTime
-                            -> DTime
+                            -> Time
                             -> AgentObservableAggregator s e a
                             -> [a]
 simulateAggregateTime adefs e params dt t aggrFun = seq agrs agrs
@@ -82,7 +83,7 @@ simulateDebug :: forall s e m .
                 -> e
                 -> SimulationParams e
                 -> Double
-                -> (Bool -> ([AgentObservable s], e) -> IO Bool)
+                -> (Bool -> SimulationStepOut s e -> IO Bool)
                 -> IO ()
 simulateDebug adefs e params dt renderFunc = 
     simulateDebugInternal
@@ -98,7 +99,7 @@ simulateDebugInternal :: forall s e m .
                         -> e
                         -> SimulationParams e
                         -> (Bool -> IO (DTime, Maybe ()))
-                        -> (Bool -> ([AgentObservable s], e) -> IO Bool)
+                        -> (Bool -> SimulationStepOut s e -> IO Bool)
                         -> IO ()
 simulateDebugInternal adefs e params inputFunc renderFunc = 
     do
@@ -115,7 +116,7 @@ simulateDebugInternal adefs e params inputFunc renderFunc =
 
 data FooPred s e = FooPred deriving (Read, Show)
 
-instance Pred (FooPred s e) () ([AgentObservable s], e) where
+instance Pred (FooPred s e) () (SimulationStepOut s e) where
     evalPred p dt i o = True
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -123,14 +124,19 @@ instance Pred (FooPred s e) () ([AgentObservable s], e) where
 simulate :: SimulationParams e
             -> [AgentDef s m e]
             -> e
-            -> SF () ([AgentObservable s], e)
-simulate params adefs e = sf >>> outToObs'
+            -> SF () (SimulationStepOut s e)
+simulate params adefs e = sf >>> outToObsSf
     where
         asfs = map adBeh adefs
         idGen = simIdGen params
         ais = createStartingAgentIn adefs idGen
         sf = iterationStrategy params asfs ais e 
-        outToObs' = first (arr $ map agentOutToObservable)
+        outToObsSf = arr outToObs
+
+        outToObs :: (Time, [AgentOut s m e], e) -> SimulationStepOut s e 
+        outToObs (t, os, e) = (t, obs, e)
+          where
+            obs = map agentOutToObservable os
 ----------------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------------------------------------------------------------------------------------
@@ -138,10 +144,10 @@ iterationStrategy :: SimulationParams e
                         -> [AgentBehaviour s m e]
                         -> [AgentIn s m e]
                         -> e
-                        -> SF () ([AgentOut s m e], e)
+                        -> SF () (Time, [AgentOut s m e], e)
 iterationStrategy params asfs ais e
     | Sequential == strategy = simulateSeq params asfs ais e
-    | Parallel == strategy = simulatePar params asfs ais e
+    | otherwise = simulatePar params asfs ais e
     where
         strategy = simStrategy params
 ----------------------------------------------------------------------------------------------------------------------

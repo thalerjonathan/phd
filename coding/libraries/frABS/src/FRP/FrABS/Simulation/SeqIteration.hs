@@ -3,7 +3,6 @@ module FRP.FrABS.Simulation.SeqIteration (
   ) where
 
 import Data.Maybe
-import Data.List
 import qualified Data.Map as Map
 import Control.Concurrent.STM.TVar
 
@@ -11,7 +10,6 @@ import FRP.Yampa
 import FRP.Yampa.InternalCore
 
 import FRP.FrABS.Agent.Agent
-import FRP.FrABS.Utils
 import FRP.FrABS.Simulation.Init
 import FRP.FrABS.Simulation.Internal
 import FRP.FrABS.Simulation.Common
@@ -43,30 +41,33 @@ simulateSeq:: SimulationParams e
                 -> [AgentBehaviour s m e]
                 -> [AgentIn s m e]
                 -> e
-                -> SF () ([AgentOut s m e], e)
+                -> SF () (Time, [AgentOut s m e], e)
 simulateSeq initParams initSfs initIns initEnv = SF { sfTF = tf0 }
     where
-        tf0 _ = (tfCont, (initOuts, initEnv))
+        tf0 _ = (tfCont, (initTime, initOuts, initEnv))
             where
                 initOuts = map agentOutFromIn initIns
 
                 initInsMap = insertIntoMap initIns Map.empty
                 initAis = map aiId initIns
                 initMsgs = insertEmptyEntries initAis Map.empty 
+                initTime = 0
 
-                tfCont = simulateSeqNewAux initParams initSfs initInsMap initAis initEnv initMsgs
+                tfCont = simulateSeqNewAux initParams initSfs initInsMap initAis initEnv initMsgs initTime
 
         -- NOTE: we are using a Map (Map.Map AgentId (AgentIn s m e)) to keep track of the agentins
         -- problem is that we need to update them while iterating over them where changes might only
         -- be visible in the next iteration. Thus we utilize a map which allows us to update them
         -- and keep track of agent-ids for iterating over the map. This saves us from creating the
         -- list using keys of map - also easier to keep our own order and easy shuffling.
-        simulateSeqNewAux params sfs insMap ais e msgs = SF' tf
+        simulateSeqNewAux params sfs insMap ais e msgs t = SF' tf
             where
                 idGen = simIdGen params
 
-                tf dt _ = (tf', (outs, e'))
+                tf dt _ = (tf', (t', outs, e'))
                     where
+                        -- accumulate global simulation-time
+                        t' = t + dt
                         -- iterates over the existing agents
                         (sfs', outs, insMap', e', msgs') = iterateAgents dt sfs insMap ais e msgs
                         -- adds/removes new/killed agents
@@ -76,7 +77,7 @@ simulateSeq initParams initSfs initIns initEnv = SF { sfTF = tf0 }
                         -- runs the environment (if requested by params)
                         (e'', params'') = runEnv dt params' e'
                         -- create the continuation
-                        tf' = simulateSeqNewAux params'' sfsShuffled insMap'' aisShuffled e'' msgs'
+                        tf' = simulateSeqNewAux params'' sfsShuffled insMap'' aisShuffled e'' msgs' t'
 
 -- TODO: implement recursion
 iterateAgents :: DTime
@@ -195,8 +196,8 @@ iterateAgents dt sfs insMap ais e msgs = foldr handleAgent ([], [], insMap, e, m
                     let msg = (aoId ao, receiverMsg)
                     (replyMsg, receiver', e') <- convHandler receiver e msg
                     let insMap' = Map.insert receiverId receiver' insMap
-                    let (ao', e') = senderReplyFunc ao e (Just (receiverId, replyMsg))
-                    return (ao', e', insMap)
+                    let (ao', e'') = senderReplyFunc ao e' (Just (receiverId, replyMsg))
+                    return (ao', e'', insMap')
 
 liveKillAndSpawn :: TVar Int
                     -> AgentInMap s m e

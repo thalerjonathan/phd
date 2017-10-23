@@ -39,20 +39,22 @@ simulatePar :: SimulationParams e
                 -> [AgentBehaviour s m e]
                 -> [AgentIn s m e]
                 -> e
-                -> SF () ([AgentOut s m e], e)
+                -> SF () (Time, [AgentOut s m e], e)
 simulatePar initParams initSfs initIns initEnv = SF { sfTF = tf0 }
     where
-        tf0 _ = (tfCont, (initOuts, initEnv))
+        tf0 _ = (tfCont, (initTime, initOuts, initEnv))
             where
                 -- NOTE: to prevent undefined outputs we create outputs based on the initials
                 initOuts = map agentOutFromIn initIns
-                --initInputsWithEnv = addEnvToAins initEnv initAis
-                tfCont = simulateParAux initParams initSfs initIns initEnv
+                initTime = 0
+                tfCont = simulateParAux initParams initSfs initIns initEnv initTime
 
-        simulateParAux params sfs ins e = SF' tf
+        simulateParAux params sfs ins e t = SF' tf
             where
-                tf dt _ =  (tf', (outs, e'))
+                tf dt _ =  (tf', (t', outs, e'))
                     where
+                        -- accumulate global simulation-time
+                        t' = t + dt
                         -- iterate agents in parallel
                         (sfs', outs, envs) = iterateAgents dt sfs ins e
                         -- create next inputs and sfs (distribute messages and add/remove new/killed agents)
@@ -62,7 +64,7 @@ simulatePar initParams initSfs initIns initEnv = SF { sfTF = tf0 }
                         -- NOTE: shuffling may seem strange in parallel but this will ensure random message-distribution when required
                         (params'', sfsShuffled, insShuffled) = shuffleAgents params' sfs'' ins'
                         -- create continuation
-                        tf' = simulateParAux params'' sfsShuffled insShuffled e'
+                        tf' = simulateParAux params'' sfsShuffled insShuffled e' t'
 
         collapseEnvironments :: Double 
                                 -> SimulationParams e 

@@ -16,8 +16,10 @@ Due to the underlying nature and motivation of Functional Reactive Programming (
 
 TODO: the FrSIR agents are true signals: they don't change when time does not change, this means they are completely time-dependent and only implemented using time-semantics. Agents of non-time semantic models like in the Schelling Segregation model won't exhibit this behaviour, they just act on every update and don't care about the time-delta and just assume that every update occurs after 1.0 dt.
 
-TODO: We implemented the function \textit{doRepeatedlyEvery} which transforms a non-time semantic agent-behaviour into one. It is built on Yampas \textit{repeatedly} function and has the following signature:
+TODO: the dynamics stay constant with a minor delay e.g. infected increases a bit while susceptible decreases. This is due to the delay of message delivery which takes one time-delta, independent of its value - messages are also delivered when time-delta is 0. Only message-generating functions which depend on non-zero dt to generate messages will then stop generate messages. Reactive functions which act on incoming messages can still create change as they do not rely on time-semantics but just on the discrete event of a message-arrival.
 
+
+TODO: We implemented the function \textit{doRepeatedlyEvery} which transforms a non-time semantic agent-behaviour into one. It is built on Yampas \textit{repeatedly} function and has the following signature:
 
 
 \subsection{Time-Sampling}

@@ -1,7 +1,7 @@
 module FrSIRSSpatial.Run ( 
     runFrSIRSSpatialWithRendering,
-    runFrSIRSSpatialStepsAndRender,
-    runFrSIRSSpatialStepsAndWriteToFile,
+    runFrSIRSSpatialTimeAndRender,
+    runFrSIRSSpatialTimeAndWriteToFile,
     runFrSIRSSpatialReplicationsAndWriteToFile,
 
     debugFrSIRSSpatialWithRendering
@@ -24,11 +24,11 @@ shuffleAgents = False
 
 rngSeed = 42
 
-agentDimensions = (52, 52)
+agentDimensions = (32, 32)
 frequency = 0
 
 dt = 1.0
-t = 75
+t = 200
 
 replCfg = ReplicationConfig {
     replCfgCount = 4,
@@ -71,8 +71,8 @@ debugFrSIRSSpatialWithRendering =
                             winSize
                             renderFrSIRSSpatialFrame
 
-runFrSIRSSpatialStepsAndRender :: IO ()
-runFrSIRSSpatialStepsAndRender =
+runFrSIRSSpatialTimeAndRender :: IO ()
+runFrSIRSSpatialTimeAndRender =
     do
         params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
 
@@ -88,8 +88,8 @@ runFrSIRSSpatialStepsAndRender =
                             winSize
                             renderFrSIRSSpatialFrame
 
-runFrSIRSSpatialStepsAndWriteToFile :: IO ()
-runFrSIRSSpatialStepsAndWriteToFile =
+runFrSIRSSpatialTimeAndWriteToFile :: IO ()
+runFrSIRSSpatialTimeAndWriteToFile =
     do
         params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)
 

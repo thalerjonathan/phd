@@ -1,4 +1,4 @@
-\section{Discussion}
+\section{Results and Discussion}
 
 \subsection{Emulating System Dynamics}
 Due to the continuous time-semantics which can be expressed in our ABS approach we can also emulate system dynamics. Every stock and flow is then just an agent which exchange messages where the simulation is stepped using the \textit{parallel} update-strategy. We add wrappers and type-definitions for convenience which increases the expressivity of the code, resembling system dynamics specifications. As a proof-of-concept we emulated the system dynamics of the SIR model, the code can be seen in Appendix \ref{app:sd_code}. Note that the code really looks like a system dynamics specification with the integrals of the mathematical specification directly showing up in the code - the implementation is correct per definition. Due to the internal implementation of the \textit{integral} function of Yampa which uses the rectangle-rule to integrate, one must ensure to sample the system dynamics with small enough $t\Delta$ as can be seen in Figure \ref{fig:sd_plots}.
@@ -123,6 +123,53 @@ doRepeatedlyEvery :: Time -> AgentBehaviour s m e -> AgentBehaviour s m e
 
 This function takes a time interval and an agent-behaviour signal-function and returns a new agent-behaviour signal-function which runs the argument signal-function every time-interval. Note that this function is subject to sampling-issues too e.g. when the time-interval is very small one needs to run the simulation with a $t\Delta \leq Time$ otherwise the dynamics would show delayed activation of the agent-behaviour.
 
+\subsection{Reproducibility}
+It is important to note that if we disable super-sampling and run the simulation for a given time \textit{t} but with e.g. two different $t\Delta$ we would end up with two different results, even if the $t\Delta$ are small enough to sample the time-dependent functions sufficiently.
+The reason for this behaviour is that all these time-dependent functions ultimately build upon drawing from random-distributions. With different $t\Delta$ we are generating random-samples to a greater or lesser extent, which would result in different random-number sequences which in turn ultimately leads to slightly different dynamics. When generating a plot of the dynamics this is not as visible, also this is the reason why one generates multiple replications, but this behaviour becomes strikingly apparent when simulating the SIR model on a 2d-grid as can be seen in Figure \ref{fig:sir_abs_timeDeltas_reproduce}.
+
+\begin{figure*}
+\begin{center}
+	\begin{tabular}{c c}
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/SIR_32x32_200time_01delta_noSS.png}
+			\caption{$t\Delta = 0.1$, no super-sampling}
+			\label{fig:sir_abs_timeDeltas_reproduce_dt01}
+		\end{subfigure}
+	
+		& 
+		
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/SIR_32x32_200time_001delta_noSS.png}
+			\caption{$t\Delta = 0.01$, no super-sampling}
+			\label{fig:sir_abs_timeDeltas_reproduce_dt001}
+		\end{subfigure}
+		
+		\\
+
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/SIR_32x32_200time_10delta_ss10.png}
+			\caption{$t\Delta = 1.0$ with 10 super-samples}
+			\label{fig:sir_abs_timeDeltas_reproduce_dt10_ss10}
+		\end{subfigure}
+		
+		&
+		
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/SIR_32x32_200time_10delta_ss100.png}
+			\caption{$t\Delta = 1.0$ with 100 super-samples}
+			\label{fig:sir_abs_timeDeltas_reproduce_dt10_ss100}
+		\end{subfigure}
+	\end{tabular}
+	
+	\caption{Comparing results on 32x32 grid after $t = 200$ but with different $t\Delta$ and different number of super-samples. Note that a $t\Delta = 0.1$ is clearly not enough, whereas the others result in much more recovered agents.}
+	\label{fig:sir_abs_timeDeltas_reproduce}
+\end{center}
+\end{figure*}
+
 \subsection{Advantages}
 	- no side-effects within agents leads to much safer code
 	- edsl for time-semantics
@@ -152,7 +199,4 @@ disadvantages:
 	- reasoning about performance is very difficult
 	- very steep learning curve for non-functional programmers
 	- learning a new EDSL
-	- think ABMS different: when to use async messages, when to use sync conversations
-
-
-[ ] important: increasing sampling freqzency and increasing number of steps so that the same number of simulation steps are executed should lead to same results. but it doesnt. why?
+	- think ABMS different: continuous, time-semantics, when to use async messages, when to use sync conversations

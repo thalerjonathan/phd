@@ -1,20 +1,15 @@
 \section{Conclusion and future research}
 
-
-TODO: don't sell this paper as an opposing view against OOP (e.g. OOP is bad) but as a positive view: "for the first time it is possible to do ABMS in pure functional programming".
-
-TODO: the first (of two) contribution of this paper is: an explanation of one way of how ABS can be done in pure functional programming and its benefits: declarative style where the code looks very much like specification, fewer LoC, fewer Bugs, reasoning and proves
-
-TODO: main second contribution is: show that the SD and the ABS implementation of the SIR model are the same by proving that ABS solves the SD equation. this should be possible by now using reasoning techniques (and quickcheck?)
-
 further research
 	- verification \& validation
 	- switch to Dunai to allow usage of Monadic programming in the arrows
 	- use dunai to implement concurrent \& actor strategy by running in the STM monad
+	- reasoning about correctness
+	- testing a functional reactive agent-based simulation using quickcheck and unit-tests
 	
 In his 1st year report about Functional Reactive GUI programming, Ivan Perez writes: "FRP tries to shift the direction of data-flow, from message passing onto data dependency. This helps reason about what things are over time, as opposed to how changes propagate". This of course raises the question whether FRP is \textit{really} the right approach, because the way we implement ABS, message-passing is an essential concept. It is important to emphasis that agent-relations in interactions are never fixed in advance and are completely dynamic, forming a network. Maybe one has to look at message passing in a different way in FRP, and to view and model it as a data-dependency but it is not clear how this can be done. The question is whether there is a mechanism in which we have explicit data-dependency but which is dynamic like message-passing but does not try to fake method-calls? Maybe the concept of conversations (see above) are a way to go but we leave this for further research at the moment.
-
 
 future research: STM in FrABS: run them in parallel but concurrently and advance time through a separate STM loop in the main loop. constant time should then keep the agents constant unless some discrete event happens e.g. message arrives. sugarscape wouldnt work but FrSIR. but still we have random results. also i could implement this in java unless i use STM specific stuff
 
 random local time-steps: we can emulate the behaviour of actors but with reproducible results by using dunai and letting each agent do its own time-sampling with random intervals in a given range: should use parallel strategy
+

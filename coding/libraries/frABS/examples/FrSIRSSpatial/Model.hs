@@ -75,13 +75,13 @@ initialInfectionProb = 0.2
 
 -- number of super-samples for contact-rate: because of high contact rate per time-unit we need an even higher number of samples
 contactSS :: Int
-contactSS = 20
+contactSS = 100
 
 -- number of super-samples for illness duration time-out: because the duration is quite long on average we can sample it with low frequency (low number of samples)
 illnessTimeoutSS :: Int
-illnessTimeoutSS = 2
+illnessTimeoutSS = 100
 
 -- number of super-samples for immune duration time-out: because the duration is quite long on average we can sample it with low frequency (low number of samples)
 immuneTimeoutSS :: Int
-immuneTimeoutSS = 2
+immuneTimeoutSS = 100
 ------------------------------------------------------------------------------------------------------------------------

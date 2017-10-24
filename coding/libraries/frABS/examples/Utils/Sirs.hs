@@ -31,19 +31,19 @@ writeSirsDynamicsFile fileName dt replications dynamics = do
     hPutStrLn fileHdl "recoveredRatio = recovered ./ totalPopulation;"
 
     hPutStrLn fileHdl "steps = length (time);"
-    hPutStrLn fileHdl "endTime = time(steps);"
+    hPutStrLn fileHdl "indices = 0 : steps - 1;"
 
     hPutStrLn fileHdl ("replications = " ++ show replications ++ ";")
 
     hPutStrLn fileHdl "figure"
-    hPutStrLn fileHdl "plot (time, susceptibleRatio.', 'color', 'blue', 'linewidth', 3);"
+    hPutStrLn fileHdl "plot (indices, susceptibleRatio.', 'color', 'blue', 'linewidth', 3);"
     hPutStrLn fileHdl "hold on"
-    hPutStrLn fileHdl "plot (time, infectedRatio.', 'color', 'red', 'linewidth', 3);"
+    hPutStrLn fileHdl "plot (indices, infectedRatio.', 'color', 'red', 'linewidth', 3);"
     hPutStrLn fileHdl "hold on"
-    hPutStrLn fileHdl "plot (time, recoveredRatio.', 'color', 'green', 'linewidth', 3);"
+    hPutStrLn fileHdl "plot (indices, recoveredRatio.', 'color', 'green', 'linewidth', 3);"
 
-    hPutStrLn fileHdl "set(gca,'YTick',0:0.05:1.0)"
-    hPutStrLn fileHdl "set(gca,'XTick',0:10:endTime)"
+    hPutStrLn fileHdl "set(gca,'YTick',0:0.05:1.0);"
+    hPutStrLn fileHdl "set(gca,'XTick', indices(1:10:end), 'xticklabel', time(1:10:end));"
 
     hPutStrLn fileHdl "xlabel ('Time');"
     hPutStrLn fileHdl "ylabel ('Population Ratio');"

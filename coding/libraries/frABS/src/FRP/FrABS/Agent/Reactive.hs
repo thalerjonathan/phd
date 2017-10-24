@@ -120,9 +120,11 @@ doRepeatedlyEvery :: Time -> AgentBehaviour s m e -> AgentBehaviour s m e
 doRepeatedlyEvery t sf = proc (ain, e) -> do
     do
         let aout = agentOutFromIn ain
-        doEvt <- repeatedly t (aout, e) -< ()
-        if (isEvent doEvt)
-            (aout', e') <- sf -< (ain, e)
+        doEvt <- repeatedly t () -< ()
+        if (isEvent doEvt) then (do
+          (aout', e') <- sf -< (ain, e)
+          returnA -< (aout', e))
+          else 
             returnA -< (aout, e)
 -------------------------------------------------------------------------------
 

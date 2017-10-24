@@ -22,16 +22,16 @@ createNewAgent :: AgentId -> Rand StdGen NewAgentDef
 createNewAgent aid = 
     do
         rng <- getSplit
-        randValue <- getRandomR (0, 43)
+        --randValue <- getRandomR (0, 43)
 
-        let s = randValue
+        let s = 0
 
         let adef = AgentDef {
            adId = aid,
            adState = s,
            adConversation = Nothing,
            adInitMessages = NoEvent,
-           adBeh = (newAgentBehaviour s),
+           adBeh = newAgentBehaviour,
            adRng = rng 
         }
 

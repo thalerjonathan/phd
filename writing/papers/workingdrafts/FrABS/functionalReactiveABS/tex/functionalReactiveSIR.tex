@@ -70,13 +70,14 @@ Having these functions we build some reactive primitives into our EDSL meaning t
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 doOnce :: (AgentOut s m e -> AgentOut s m e) -> SF (AgentOut s m e) (AgentOut s m e)
+doOnceR :: AgentBehaviour s m e -> AgentBehaviour s m e
 doNothing :: AgentBehaviour s m e
 
 setDomainStateR :: s -> AgentBehaviour s m e
 updateDomainStateR :: (s -> s) -> AgentBehaviour s m e
 \end{minted}
 
-The \textit{doOnce} function may seem strange at first but allows conveniently make actions (which are changinge the agent-out) only once e.g. when making the transition from Susceptible to Infected changing the state to Infected just once. A more striking example would be to send a message just once after a transition. The function \textit{doNothing} provides a convenient way of an agent-sink which is basically an agent which does literally nothing - the resulting agent-behaviour just transforms the agent-in to agent-out using the previously mentioned function \textit{agentOutFromIn}.
+The \textit{doOnce} function may seem strange at first but allows conveniently make actions (which are changing the agent-out) only once e.g. when making the transition from Susceptible to Infected changing the state to Infected just once. A more striking example would be to send a message just once after a transition. The \textit{doOnceR} function is the reactive version, which allows to do a complete agent-behaviour only once. The function \textit{doNothing} provides a convenient way of an agent-sink which is basically an agent which does literally nothing - the resulting agent-behaviour just transforms the agent-in to agent-out using the previously mentioned function \textit{agentOutFromIn}.
 
 Often we want some more reactive behaviour e.g. making a transition from one behaviour to another on a given event. For this we provide the following:
 

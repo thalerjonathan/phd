@@ -38,8 +38,7 @@ wildfireAgentBurning g initFuel = transitionOnBoolState
 wildfireAgentBurningBehaviour :: RandomGen g => g -> Double -> WildfireAgentBehaviour
 wildfireAgentBurningBehaviour g initFuel = proc (ain, e) -> 
 	do
-		let ao = agentOutFromIn ain
-		ao0 <- doOnce (updateDomainState (\s -> s { wfLifeState = Burning })) -< ao
+		(ao0, _) <- doOnceR $ updateDomainStateR (\s -> s { wfLifeState = Burning }) -< (ain, e)
 		ao1 <- burndown initFuel -< ao0
 		ao2 <- igniteNeighbours g -< (ao1, e)
 		returnA -< (ao2, e)

@@ -66,7 +66,7 @@ sirAgentInfectedBehaviour g = proc ain -> do
 
 -- RECOVERED
 sirAgentRecovered :: FrSIRAgentBehaviour
-sirAgentRecovered = setDomainStateR Recovered
+sirAgentRecovered = doOnceR $ setDomainStateR Recovered
 
 -- INITIAL CASES
 sirAgentBehaviour :: RandomGen g => g -> SIRState -> FrSIRAgentBehaviour

@@ -1,9 +1,36 @@
 \section{Discussion}
 
+\subsection{Emulating System Dynamics}
+Due to the continuous time-semantics which can be expressed in our ABS approach we can also emulate system dynamics. Every stock and flow is then just an agent which exchange messages where the simulation is stepped using the \textit{parallel} update-strategy. We add wrappers and type-definitions for convenience which increases the expressivity of the code, resembling system dynamics specifications. As a proof-of-concept we emulated the system dynamics of the SIR model, the code can be seen in Appendix \ref{app:sd_code}. Note that the code really looks like a system dynamics specification with the integrals of the mathematical specification directly showing up in the code - the implementation is correct per definition. Due to the internal implementation of the \textit{integral} function of Yampa which uses the rectangle-rule to integrate, one must ensure to sample the system dynamics with small enough $t\Delta$ as can be seen in Figure \ref{fig:sd_plots}.
+
+\begin{figure*}
+\begin{center}
+	\begin{tabular}{c c}
+		\begin{subfigure}[b]{0.5\textwidth}
+			\centering
+			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/SIR_SD_DYNAMICS_1000Agents_10dt.png}
+			\caption{$t\Delta = 1.0$}
+			\label{fig:sd_plot_10dt}
+		\end{subfigure}
+	
+		& 
+		
+		\begin{subfigure}[b]{0.5\textwidth}
+			\centering
+			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/SIR_SD_DYNAMICS_1000Agents_001dt.png}
+			\caption{$t\Delta = 0.01$}
+			\label{fig:sd_plot_0.01dt}
+		\end{subfigure}
+	\end{tabular}
+	
+	\caption{Simulating the SIR model with our system dynamics emulation. Note the difference between the two time-deltas, where only $t\Delta = 0.01$ approaches the dynamics as shown in Figure \ref{fig:sir_sd_dynamics_anylogic}.}
+	\label{fig:sd_plots}
+\end{center}
+\end{figure*}
+
 \subsection{Spatiality and Networks}
-When trying to emulate the dynamics of the SIR model using an agent-based approach the question arises what we ultimately gain from doing so when we could have generated the dynamics much quicker and smoother using the system-approach. The difference is that the agent-based approach is a stochastic one and can thus also generate "degenerated" dynamics e.g. in which the disease dies out after a few steps or even can't spread from patient zero - in this case ABS is clearly a benefit as it allows to investigate \textit{alternative futures}, something not possible with system-dynamics in which the disease will never die out prematurely. 
-The real benefits of ABS over the system-dynamics approach is that agents can be heterogeneous and make use of spatial- and/or network-information defining the neighbourhood. We can thus simulate the spread of the disease throughout a population which is laid out on e.g. a 2d-grid with holes in it or one can investigate spreading of the disease throughout a network of agents where some are vaccinated.
-We provide already suitable environments to simulate these cases and show an example of spreading a disease on a 2d-grid in Figure \ref{fig:sir_spatial}.  
+When trying to emulate the dynamics of the SIR model using an agent-based approach the question arises what we ultimately gain from doing so when we could have generated the dynamics much quicker and smoother using the system-approach. The difference is that the agent-based approach is a stochastic one and can thus also generate "degenerated" dynamics e.g. in which the disease dies out after a few steps or even can't spread from patient zero - in this case ABS is clearly a benefit as it allows to investigate \textit{alternative futures}, something not possible with system-dynamics in which the disease will never die out prematurely. \\
+Another advantage of ABS over the system-dynamics approach is that agents can be heterogeneous and make use of spatial- and/or network-information defining the neighbourhood. We can thus simulate the spread of the disease throughout a population which is laid out on a 2d-grid or one can investigate spreading of the disease throughout a network of agents where some are vaccinated and others not. We provide already suitable environments to simulate these cases and show an example of spreading the disease on a 2d-grid in Figure \ref{fig:sir_spatial}.  
 
 \begin{figure*}
 \begin{center}
@@ -48,41 +75,55 @@ We provide already suitable environments to simulate these cases and show an exa
 \end{center}
 \end{figure*}
 
-When using a 2d-grid or network one needs to setup them up in the initialization code so there is a little more work to do there but the implementation of the agents differ just in one single line, which is where the neighbourhood is picked TODO: refer to appendix code. Instead of \textit{randomAgentIdMsgSource} one uses either \textit{randomNeighbourNodeMsgSource} in the case of a network or \textit{randomNeighbourCellMsgSource} in case of a 2d-grid.
-
-\subsection{Other Models}
-TODO: mention that we have also implemented other models, which also work without time-semantics (all agents make a move at discrete time-steps and do not really rely on some notion of time). 
-
-\subsection{Time-Semantics}
-The main reason for building our pure functional ABMS approach on top of Yampa was to leverage the powerful time-semantics of Yampa which allows us to implement important concepts of ABMS:
-
-state-chart: agents are at all time of their life-cycle in one state and can switch between multiple states using transitions 
-timed transitions: transition to another state/behaviour happens at a discrete time
-rate transitions: transition happens with a given rate
-message transition: transition upon receiving a given message 
+When using a 2d-grid or network one needs to set them up in the initialization code so there is a little more work to do there but the implementation of the agents differ just in one single line, which is where the neighbourhood is picked TODO: refer to appendix code. Instead of \textit{randomAgentIdMsgSource} one uses either \textit{randomNeighbourNodeMsgSource} in the case of a network or \textit{randomNeighbourCellMsgSource} in case of a 2d-grid.
 
 \subsection{Agents as Signals}
-Due to the underlying nature and motivation of Functional Reactive Programming (und im speziellen) Yampa, Agents can be seen as Signals which is generated and consumed by a Signal-Function which is the behaviour of an Agent. If an Agent does not change the OUTPUT-signal is constant, if the agent changes e.g. by sending a message, changing its state,... the OUTPUT signal changes. A dead agent has no signal at all.
+Due to the underlying nature and motivation of Functional Reactive Programming and Yampa, agents can be seen as signals which are generated and consumed by a Signal-Function which is the behaviour of an agent.  If an agent does not change the output-signal is constant, if the agent changes e.g. by sending a message, changing its state,... it changes and a dead agent has no signal at all.
+The question is if the agents of our agent-based SIR implementation are true signals: do the dynamics change when we sample the system with $t\Delta = 0$? We hypothesize that our agents are true signals, thus they should not change when time does not change because they are completely time-dependent and rely completely on time-semantics. When actually running the simulation with $t\Delta = 0$ one gets the results as in \ref{fig:sir_abs_zero_dt}.
 
-TODO: the FrSIR agents are true signals: they don't change when time does not change, this means they are completely time-dependent and only implemented using time-semantics. Agents of non-time semantic models like in the Schelling Segregation model won't exhibit this behaviour, they just act on every update and don't care about the time-delta and just assume that every update occurs after 1.0 dt.
+\begin{figure*}
+\begin{center}
+	\begin{tabular}{c c}
+		\begin{subfigure}[b]{0.5\textwidth}
+			\centering
+			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/SIR_ABS_zeroDt_start.png}
+			\caption{$t\Delta = 0$ from step 0 to 50.}
+			\label{fig:sd_plot_10dt}
+		\end{subfigure}
+	
+		& 
+		
+		\begin{subfigure}[b]{0.5\textwidth}
+			\centering
+			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/SIR_ABS_zeroDt_mid.png}
+			\caption{$t\Delta = 0$ from step 51 to 101.}
+			\label{fig:sd_plot_0.01dt}
+		\end{subfigure}
+	\end{tabular}
+	
+	\caption{Dynamics of agent-based SIR implementation of 1000 agents with ranges of $t\Delta = 0$ marked with two vertical black lines.}
+	\label{fig:sir_abs_zero_dt}
+\end{center}
+\end{figure*}
 
-TODO: the dynamics stay constant with a minor delay e.g. infected increases a bit while susceptible decreases. This is due to the delay of message delivery which takes one time-delta, independent of its value - messages are also delivered when time-delta is 0. Only message-generating functions which depend on non-zero dt to generate messages will then stop generate messages. Reactive functions which act on incoming messages can still create change as they do not rely on time-semantics but just on the discrete event of a message-arrival.
+As can be seen  the dynamics are becoming constant \textit{but} with a minor delay: infected increases a bit while susceptible decreases as can be seen in Figure \ref{fig:sir_abs_zero_dt_zoom}. This is due to the delay of message delivery which takes one $t\Delta$, independent of its value - messages are also delivered when $t\Delta = 0$. Only message-generating functions which depend on non-zero $t\Delta$ to generate messages will then stop generate messages. Reactive functions which act on incoming messages can still create change as they do not rely on time-semantics but just on the discrete event of a message-arrival - which is the case in the transition from susceptible to infected.
 
+\begin{figure}
+	\centering
+	\includegraphics[width=.4\textwidth, angle=0]{./../shared/fig/SIR_ABS_zeroDt_mid_zoom.png}
+	\caption{Zoom-in to step 51, marked with the black line from where on $t\Delta = 0$ for the next 50 steps. The recovered ratio stays constant but a few agents get infected even \textit{after} having switched to $t\Delta = 0$ which happens due to the message-delivery lag. After all messages have been delivered, the signal stays constant until non-zero $t\Delta$ are turned on again.}
+	\label{fig:sir_abs_zero_dt_zoom}
+\end{figure}
 
-TODO: We implemented the function \textit{doRepeatedlyEvery} which transforms a non-time semantic agent-behaviour into one. It is built on Yampas \textit{repeatedly} function and has the following signature:
+Note that agents of non-time semantic models won't exhibit this behaviour - the dynamics will change even in case of a $t\Delta = 0$ - they just act on every update and don't care about the time-delta and just assume that every update occurs after a $t\Delta$ independent of the actual value of it. We implemented the function \textit{doRepeatedlyEvery} which allows to transform a non-time semantic agent-behaviour into one. It is built on Yampas \textit{repeatedly} function and has the following signature:
 
+\begin{minted}[fontsize=\footnotesize]{haskell}
+doRepeatedlyEvery :: Time -> AgentBehaviour s m e -> AgentBehaviour s m e
+\end{minted}
 
-\subsection{Time-Sampling}
-sampling rate depends on the transition times \& rates of the model. when e.g. the contact rate is 5 then the sampling dt should be below 0.2
-
-\subsection{System Dynamics}
-can emulate system dynamics due to the parallel update-strategy and continuous time-flow semantics
-
-\subsection{Discrete Event Simulation}
-DES in FrABMS? how easily can we implement server/queue systems? do they also look like a specification? potential problem: ordering of messages is not guaranteed by now
+This function takes a time interval and an agent-behaviour signal-function and returns a new agent-behaviour signal-function which runs the argument signal-function every time-interval. Note that this function is subject to sampling-issues too e.g. when the time-interval is very small one needs to run the simulation with a $t\Delta \leq Time$ otherwise the dynamics would show delayed activation of the agent-behaviour.
 
 \subsection{Advantages}
-advantages:
 	- no side-effects within agents leads to much safer code
 	- edsl for time-semantics
 	- declarative style: agent-implementation looks like a model-specification
@@ -115,7 +156,3 @@ disadvantages:
 
 
 [ ] important: increasing sampling freqzency and increasing number of steps so that the same number of simulation steps are executed should lead to same results. but it doesnt. why?
-[ ] hypothesis: if time-semantics are involved then event ordering becomes relevant for emergent patterns. there are no tine semantics in heroes and cowards but in the prisoners dilemma
-[ ] can we implement different types of agents interacting with each other in the same simulation ? with different behaviour funcs, digferent state? yes, also not possible in NetLogo to my knowledge. but they must have the same messages, emvironment 
-
-[ ] Hypothesis: we can combine with FrABS agent-based simulation and system dynamics (this has been proved by example!)

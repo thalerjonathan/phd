@@ -14,9 +14,9 @@ import FRP.FrABS
 import System.IO
 
 rngSeed = 42
-dt = 1.0
+dt = 0.2
 agentCount = 1
-t = 10
+t = 11
 updateStrat = Parallel -- NOTE: would not work correctly when using Sequential traversion
 shuffleAgents = False
 
@@ -30,8 +30,9 @@ runNewAgentsSteps =
         
         let asenv = simulateTime initAdefs initEnv params dt t
 
-        let (_, asFinal, _) = last asenv
+        let (t, asFinal, _) = last asenv
         mapM_ printNewAgent asFinal
+        print t
 
 runNewAgentsDebug :: IO ()
 runNewAgentsDebug = 

@@ -64,7 +64,7 @@ runFrSIRDeltasAndWriteToFile = do
     let deltasBefore = replicate 50 dt
     let deltasZero = replicate 50 0 -- NOTE: this is like halting time, SIR agents won't change as they completely rely on advancing time
     let deltasAfter = replicate 100 dt
-    let deltas = deltasBefore ++ deltasZero ++ deltasAfter
+    let deltas = deltasZero ++ deltasBefore ++ deltasAfter
 
     let dynamics = simulateAggregateTimeDeltas initAdefs initEnv params deltas aggregate
     let fileName = "frSIRDynamics_" 

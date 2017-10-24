@@ -12,7 +12,9 @@ module FRP.FrABS.Agent.Reactive (
     drain,
     
     doOnce,
+    doOnceR,
     doNothing,
+    doRepeatedlyEvery,
 
     setDomainStateR,
     updateDomainStateR,
@@ -94,27 +96,31 @@ drain initValue = proc rate ->
 -- Actions
 -------------------------------------------------------------------------------
 doOnce :: (AgentOut s m e -> AgentOut s m e) -> SF (AgentOut s m e) (AgentOut s m e)
-doOnce f = proc ao ->
-    do
-        -- TODO: is this actually evaluated EVERYTIME or due to Haskells laziness just once?
-        -- TODO: why is this not firing the first time?
-        aoOnceEvt <- once -< (Event . f) ao
-        -- this seems to be a bit unelegant, can we formulate this more elegant?
-        let ao' = event ao id aoOnceEvt
-        returnA -< ao'
+doOnce f = proc ao -> do
+  -- TODO: is this actually evaluated EVERYTIME or due to Haskells laziness just once?
+  -- TODO: why is this not firing the first time?
+  aoOnceEvt <- once -< (Event . f) ao
+  -- this seems to be a bit unelegant, can we formulate this more elegant?
+  let ao' = event ao id aoOnceEvt
+  returnA -< ao'
 
--- TODO: can we formulate this in one line, point-free?
+doOnceR :: AgentBehaviour s m e -> AgentBehaviour s m e
+doOnceR sf = proc (ain, e) -> do
+  doEvt <- once -< (Event ())
+  if (isEvent doEvt) then (do
+    (aout, e') <- sf -< (ain, e)
+    returnA -< (aout, e))
+    else 
+      returnA -< (agentOutFromIn ain, e)
+
 doNothing :: AgentBehaviour s m e
-doNothing = proc (ain, e) ->
-    do
-        let aout = agentOutFromIn ain
-        returnA -< (aout, e)
+doNothing = first $ arr agentOutFromIn
 
 setDomainStateR :: s -> AgentBehaviour s m e
-setDomainStateR s = first $ arr agentOutFromIn >>> doOnce (setDomainState s)
+setDomainStateR s = first $ arr ((setDomainState s) . agentOutFromIn)
 
 updateDomainStateR :: (s -> s) -> AgentBehaviour s m e
-updateDomainStateR s = first $ arr agentOutFromIn >>> doOnce (updateDomainState s)
+updateDomainStateR s = first $ arr ((updateDomainState s) . agentOutFromIn)
 
 doRepeatedlyEvery :: Time -> AgentBehaviour s m e -> AgentBehaviour s m e
 doRepeatedlyEvery t sf = proc (ain, e) -> do

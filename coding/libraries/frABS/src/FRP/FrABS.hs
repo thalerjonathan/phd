@@ -99,8 +99,10 @@ module FRP.FrABS (
     ReactiveBehaviourReadEnv,
     
     doOnce,
+    doOnceR,
     doNothing,
-
+    doRepeatedlyEvery,
+    
     setDomainStateR,
     updateDomainStateR,
     

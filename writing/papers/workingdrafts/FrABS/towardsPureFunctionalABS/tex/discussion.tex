@@ -1,6 +1,9 @@
 \section{Discussion}
 
-advantages:
+\subsection{Different Agent-Types}
+[ ] can we implement different types of agents interacting with each other in the same simulation ? with different behaviour funcs, digferent state? yes, also not possible in NetLogo to my knowledge. but they must have the same messages, emvironment 
+
+\subsection{Advantages}
 	- no side-effects within agents leads to much safer code
 	- edsl for time-semantics
 	- declarative style: agent-implementation looks like a model-specification
@@ -23,7 +26,7 @@ advantages:
 	
 	- we can statically guarantee the reproducibility of the simulation because: no side effects possible within the agents which would result in differences between same runs (e.g. file access, networking, threading), also timedeltas are fixed and do not depend on rendering performance or userinput	
 	
-disadvantages:
+\subsection{Disadvantages}
 	- performance is low
 	- reasoning about performance is very difficult
 	- very steep learning curve for non-functional programmers

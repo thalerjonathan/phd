@@ -73,7 +73,7 @@ sirsAgentInfectedBehaviour = proc ain -> do
 
 -- RECOVERED
 sirsAgentRecovered :: RandomGen g => g -> FrSIRSSpatialAgentBehaviour
-sirsAgentRecovered _ = updateDomainStateR (\s -> s { sirsState = Recovered })
+sirsAgentRecovered _ = doOnceR $ updateDomainStateR (\s -> s { sirsState = Recovered })
 {--
 sirsAgentRecovered :: RandomGen g => g -> FrSIRSSpatialAgentBehaviour
 sirsAgentRecovered g = transitionAfterExpSS 

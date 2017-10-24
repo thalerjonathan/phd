@@ -27,8 +27,8 @@ rngSeed = 42
 agentDimensions = (52, 52)
 frequency = 0
 
-dt = 0.1
-t = 150
+dt = 1.0
+t = 75
 
 replCfg = ReplicationConfig {
     replCfgCount = 4,

@@ -28,15 +28,22 @@ import           NewAgents.Run
 	
 -}
 
+
+-- 92: initial spread
+
+-- 440: seems to be died out nearly
+
+-- 873: still it takes until here until it completely dies out
+
 main :: IO ()
-main = runFrSIRDeltasAndWriteToFile -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
+main = runFrSIRSSpatialStepsAndRender -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
 
     -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
     -- runZombiesWithRendering
     -- runPolicyEffectsWithRendering
     -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile
     -- runSysDynSIRStepsAndWriteToFile
-    -- runFrSIRSSpatialWithRendering -- runFrSIRSSpatialStepsAndPrint -- runFrSIRSSpatialStepsAndWriteToFile
+    -- runFrSIRSSpatialWithRendering -- runFrSIRSSpatialStepsAndPrint -- runFrSIRSSpatialStepsAndWriteToFile -- runFrSIRSSpatialStepsAndRender
     -- runDoubleAuctionSteps runDoubleAuctionDebug
     -- runSIRSWithRendering
     -- runPDWithRendering

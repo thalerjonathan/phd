@@ -1,5 +1,55 @@
 \section{Discussion}
 
+\subsection{Spatiality and Networks}
+When trying to emulate the dynamics of the SIR model using an agent-based approach the question arises what we ultimately gain from doing so when we could have generated the dynamics much quicker and smoother using the system-approach. The difference is that the agent-based approach is a stochastic one and can thus also generate "degenerated" dynamics e.g. in which the disease dies out after a few steps or even can't spread from patient zero - in this case ABS is clearly a benefit as it allows to investigate \textit{alternative futures}, something not possible with system-dynamics in which the disease will never die out prematurely. 
+The real benefits of ABS over the system-dynamics approach is that agents can be heterogeneous and make use of spatial- and/or network-information defining the neighbourhood. We can thus simulate the spread of the disease throughout a population which is laid out on e.g. a 2d-grid with holes in it or one can investigate spreading of the disease throughout a network of agents where some are vaccinated.
+We provide already suitable environments to simulate these cases and show an example of spreading a disease on a 2d-grid in Figure \ref{fig:sir_spatial}.  
+
+\begin{figure*}
+\begin{center}
+	\begin{tabular}{c c}
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/SIR_spatial_52x52_92time.png}
+			\caption{$t = 92$}
+			\label{fig:sir_spatial_92}
+		\end{subfigure}
+
+		& 
+
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/SIR_spatial_52x52_200time.png}
+			\caption{$t = 200$}
+			\label{fig:sir_spatial_200}
+		\end{subfigure}
+
+		\\
+		
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/SIR_spatial_52x52_440time.png}
+			\caption{$t = 440$}
+			\label{fig:sir_spatial_440}
+		\end{subfigure}
+		
+		& 
+		
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/SIR_spatial_52x52_873time.png}
+			\caption{$t = 873$}
+			\label{fig:sir_spatial_873}
+		\end{subfigure}
+	\end{tabular}
+	
+	\caption{Simulating SIR on a 52x52 grid with Moore neighbourhood. Blue are susceptible, red are infected, green are recovered. The green areas act as protection as infected cannot cross the recovered border: this is particularly visible in the lower right corner of \ref{fig:sir_spatial_440} where the disease has been contained in the blue island and has no means to escape. It may seem that the few remaining infected agents in the top left corner of \ref{fig:sir_spatial_440} will die out soon but still it needs more than the already running simulation-time until the disease actually dies out with the last patient recovering at center top of \ref{fig:sir_spatial_873} at $t = 873$.} 
+	\label{fig:sir_spatial}
+\end{center}
+\end{figure*}
+
+When using a 2d-grid or network one needs to setup them up in the initialization code so there is a little more work to do there but the implementation of the agents differ just in one single line, which is where the neighbourhood is picked TODO: refer to appendix code. Instead of \textit{randomAgentIdMsgSource} one uses either \textit{randomNeighbourNodeMsgSource} in the case of a network or \textit{randomNeighbourCellMsgSource} in case of a 2d-grid.
+
 \subsection{Other Models}
 TODO: mention that we have also implemented other models, which also work without time-semantics (all agents make a move at discrete time-steps and do not really rely on some notion of time). 
 

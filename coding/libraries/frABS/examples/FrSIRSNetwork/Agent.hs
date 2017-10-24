@@ -21,6 +21,12 @@ gotInfected ain = onMessageM gotInfectedAux ain False
         gotInfectedAux :: Bool -> AgentMessage FrSIRSNetworkMsg -> Rand StdGen Bool
         gotInfectedAux False (_, Contact Infected) = randomBoolM infectivity
         gotInfectedAux x _ = return x
+
+respondToContactWith :: SIRSState -> FrSIRSNetworkAgentIn -> FrSIRSNetworkAgentOut -> FrSIRSNetworkAgentOut
+respondToContactWith state ain ao = onMessage respondToContactWithAux ain ao
+  where
+    respondToContactWithAux :: AgentMessage FrSIRSNetworkMsg -> FrSIRSNetworkAgentOut -> FrSIRSNetworkAgentOut
+    respondToContactWithAux (senderId, Contact _) ao = sendMessage (senderId, Contact state) ao
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -30,56 +36,57 @@ gotInfected ain = onMessageM gotInfectedAux ain False
 sirsAgentSuceptible :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
 sirsAgentSuceptible g = transitionOnEvent
                             sirsAgentInfectedEvent
-                            sirsAgentSusceptibleBehaviour
+                            (readEnv $ sirsAgentSusceptibleBehaviour g)
                             (sirsAgentInfected g)
 
 sirsAgentInfectedEvent :: FrSIRSNetworkEventSource
-sirsAgentInfectedEvent = proc (ain, ao) ->
-    do
-        let (isInfected, ao') = agentRandom (gotInfected ain) ao
-        infectionEvent <- edge -< isInfected
-        returnA -< (ao', infectionEvent)
+sirsAgentInfectedEvent = proc (ain, ao) -> do
+  let (isInfected, ao') = agentRandom (gotInfected ain) ao
+  infectionEvent <- edge -< isInfected
+  returnA -< (ao', infectionEvent)
 
-sirsAgentSusceptibleBehaviour :: FrSIRSNetworkAgentBehaviour
-sirsAgentSusceptibleBehaviour = proc (ain, e) ->
-    do
-        let ao = agentOutFromIn ain
-        ao0 <- doOnce (setDomainState Susceptible) -< ao
-        returnA -< (ao0, e)
+sirsAgentSusceptibleBehaviour :: RandomGen g => g -> FrSIRSNetworkAgentBehaviourReadEnv
+sirsAgentSusceptibleBehaviour g = proc (ain, e) -> do
+  let ao = agentOutFromIn ain
+  ao1 <- doOnce (setDomainState Susceptible) -< ao
+  ao2 <- sendMessageOccasionallySrcSS 
+          g 
+          (1 / contactRate) 
+          contactSS 
+          (randomNeighbourNodeMsgSource (Contact Susceptible)) -< (ao1, e)
+  returnA -< ao2
 
 -- INFECTED
 sirsAgentInfected :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
-sirsAgentInfected g = transitionAfterExp
+sirsAgentInfected g = transitionAfterExpSS
                         g
                         illnessDuration 
-                        (sirsAgentInfectedBehaviour g) 
-                        (sirsAgentRecoveredBehaviour)
+                        illnessTimeoutSS
+                        (ignoreEnv $ sirsAgentInfectedBehaviour g) 
+                        (sirsAgentRecovered g)
 
-sirsAgentInfectedBehaviour :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
-sirsAgentInfectedBehaviour g = proc (ain, e) ->
-    do
-        let ao = agentOutFromIn ain
-        ao0 <- doOnce (setDomainState Infected) -< ao
-        ao1 <- sendMessageOccasionallySrc 
-                    g 
-                    (1 / contactRate) 
-                    (randomNeighbourNodeMsgSource (Contact Infected)) -< (ao0, e)
-        returnA -< (ao1, e)
+sirsAgentInfectedBehaviour :: RandomGen g => g -> FrSIRSNetworkAgentBehaviourIgnoreEnv
+sirsAgentInfectedBehaviour g = proc ain -> do
+    let ao = agentOutFromIn ain
+    ao1 <- doOnce (setDomainState Infected) -< ao
+    let ao2 = respondToContactWith Infected ain ao1
+    returnA -< ao2
 
 -- RECOVERED
 sirsAgentRecovered :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
-sirsAgentRecovered g = transitionAfterExp
+sirsAgentRecovered _ = setDomainStateR Recovered
+{--
+sirsAgentRecovered :: RandomGen g => g -> FrSIRSNetworkAgentBehaviour
+sirsAgentRecovered g = transitionAfterExpSS
                             g 
                             immuneDuration 
+                            immuneTimeoutSS
                             sirsAgentRecoveredBehaviour
                             (sirsAgentSuceptible g)
 
 sirsAgentRecoveredBehaviour :: FrSIRSNetworkAgentBehaviour
-sirsAgentRecoveredBehaviour = proc (ain, e) ->
-    do
-        let ao = agentOutFromIn ain
-        ao' <- doOnce (setDomainState Recovered) -< ao
-        returnA -< (ao', e)
+sirsAgentRecoveredBehaviour = setDomainStateR Recovered
+-}
 
 -- INITIAL CASES
 sirsNetworkAgentBehaviour :: RandomGen g => g -> SIRSState -> FrSIRSNetworkAgentBehaviour

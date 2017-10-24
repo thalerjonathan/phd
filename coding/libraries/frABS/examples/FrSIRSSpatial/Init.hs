@@ -52,7 +52,7 @@ createFrSIRSSpatialSingleInfected dims@(maxX, maxY) =
 
         let e = createDiscrete2d
                         dims
-                        neumann -- moore
+                        moore -- neumann -- moore
                         ClipToMax
                         cells
                         rng

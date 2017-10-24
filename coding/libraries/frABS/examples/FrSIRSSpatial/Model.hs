@@ -7,6 +7,8 @@ module FrSIRSSpatial.Model (
 
     FrSIRSSpatialAgentDef,
     FrSIRSSpatialAgentBehaviour,
+    FrSIRSSpatialAgentBehaviourReadEnv,
+    FrSIRSSpatialAgentBehaviourIgnoreEnv,
     FrSIRSSpatialAgentIn,
     FrSIRSSpatialAgentOut,
     FrSIRSSpatialAgentObservable,
@@ -18,7 +20,11 @@ module FrSIRSSpatial.Model (
     immuneDuration,
     contactRate,
     infectivity,
-    initialInfectionProb
+    initialInfectionProb,
+
+    contactSS,
+    illnessTimeoutSS,
+    immuneTimeoutSS
   ) where
 
 import FRP.FrABS
@@ -38,6 +44,8 @@ type FrSIRSSpatialEnvironment = Discrete2d AgentId
 
 type FrSIRSSpatialAgentDef = AgentDef FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
 type FrSIRSSpatialAgentBehaviour = AgentBehaviour FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
+type FrSIRSSpatialAgentBehaviourReadEnv = ReactiveBehaviourReadEnv FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
+type FrSIRSSpatialAgentBehaviourIgnoreEnv = ReactiveBehaviourIgnoreEnv FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
 type FrSIRSSpatialAgentIn = AgentIn FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
 type FrSIRSSpatialAgentOut = AgentOut FrSIRSSpatialAgentState FrSIRSSpatialMsg FrSIRSSpatialEnvironment
 type FrSIRSSpatialAgentObservable = AgentObservable FrSIRSSpatialAgentState
@@ -64,4 +72,16 @@ infectivity = 0.05
 
 initialInfectionProb :: Double
 initialInfectionProb = 0.2
+
+-- number of super-samples for contact-rate: because of high contact rate per time-unit we need an even higher number of samples
+contactSS :: Int
+contactSS = 20
+
+-- number of super-samples for illness duration time-out: because the duration is quite long on average we can sample it with low frequency (low number of samples)
+illnessTimeoutSS :: Int
+illnessTimeoutSS = 2
+
+-- number of super-samples for immune duration time-out: because the duration is quite long on average we can sample it with low frequency (low number of samples)
+immuneTimeoutSS :: Int
+immuneTimeoutSS = 2
 ------------------------------------------------------------------------------------------------------------------------

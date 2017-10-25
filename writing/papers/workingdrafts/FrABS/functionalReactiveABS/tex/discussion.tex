@@ -170,22 +170,19 @@ The reason for this behaviour is that all these time-dependent functions ultimat
 \end{center}
 \end{figure*}
 
+\subsection{Recursive ABS}
+Shortly discuss here
+
 \subsection{Advantages}
 We now look at a number of advantages this functional reactive approach to ABS has over to the traditional imperative, object-oriented implementation approaches done in Phyton, Java, C++.
 
 \subsubsection{Code close to specification}
-EDSL
-powerful time-semantics
-declarative style: agent-implementation looks like a model-specification, correct by definition
+As becomes directly evident when looking at the code of the agent-based implementation in Appendix \ref{app:abs_code} and system dynamics implementation in Appendix \ref{app:sd_code}, it looks very much like a specification. By creating this EDSL which allows to express powerful time-semantics it is possible to now create an ABS in a declarative style in Haskell where agent-implementation looks like a model-specification thus being correct by definition.
 
-\subsubsection{Safer code}
-no side-effects within agents leads to much safer code
-rule out serious class of bugs
-
-\subsubsection{Reproducibility statically guaranteed}
-we can statically guarantee the reproducibility of the simulation because: no side effects possible within the agents which would result in differences between same runs (e.g. file access, networking, threading), also timedeltas are fixed and do not depend on rendering performance or userinput.
-This means that after the initialization phase, which \textit{could} run in the IO Monad the simulation itself runs completely deterministic: each agent initially receives its own random-number generator which is derived from an initial seed, and only this initial seed can be non-deterministic e.g. being the current system time.
-We provide functionality to render the output to a window (using gloss) or writing to a text-file, meaning, parts of the simulation would run in the IO Monad. Here we but rely on Yampas \textit{reactimate} function which provides a well-defined way of communicating with the world in such a system. This function provides the $t\Delta$ for the next step, which \textit{could} come from IO Monad but we keep the $t\Delta$ always fixed, thus removing another source of non-reproducibility where e.g. $t\Delta$ is influenced by rendering-performance every step as happens in games or described by \cite{perez_testing_2017} in the context of FRP.
+\subsubsection{Being pure}
+Because no part of the simulation runs in the IO monad \footnote{Except when using graphical rendering, but then only the rendering happens in the IO Monad - the simulation step is always a pure computation} and we do not use unsafePerformIO \footnote{We actually do use it for generating unique agent-ids for newly created agents. This is necessary because need to guarantee that two invocations will result in two different ids, which would be difficult / impossible when running the simulation in the \textit{parallel} update-strategy. This is not a problem as long as an agent does not rely on the absolute value of an agent-id but just uses it as an opaque identifier for sending/receiving.} we can rule out a serious class of bugs caused by implicit data-dependencies and side-effects which can occur in traditional imperative implementations.
+Also we can statically guarantee the reproducibility of the simulation because of that. There are no side effects possible within the agents which would result in differences between same runs (e.g. file access, networking, threading). Every agent has access to its own random-number generator, allowing randomness to occur in the simulation but the random-generator seed is fixed in the beginning and can never be changed within an agent to come from e.g. the current system time, which would require to run within the IO Monad. This means that after initialising the agents, which \textit{could} run in the IO Monad, the simulation itself runs completely deterministic.
+We provide functionality to render the output to a window (using the library Gloss) or writing to a text-file, meaning, parts of the simulation would run in the IO Monad. Here we rely on Yampas \textit{reactimate} function which provides a well-defined way of communicating with the world in such a system. This function provides the $t\Delta$ for the next step, which \textit{could} come from IO Monad but we keep the $t\Delta$ always fixed, thus removing another source of non-reproducibility where e.g. $t\Delta$ is influenced by sytem-dependent non-deterministic rendering-performance every step as happens in games or described by \cite{perez_testing_2017} in the context of FRP.
 
 \subsubsection{$t\Delta$ is never visible}
 cant mess around with time because delta-time is hidden from you (intentional design-decision by Yampa). this would be only very difficult and cumbersome to achieve in an object-oriented approach. TODO: experiment with it in Java - how could we actually implement this? I think it is impossible: may only achieve this through complicated application of patterns and inheritance but then has the problem of how to update the dt and more important how to deal with functions like integral which accumulates a value through closures and continuations. We could do this in OO by having a general base-class e.g. ContinuousTime which provides functions like updateDt and integrate, but we could only accumulate a single integral value.
@@ -195,12 +192,9 @@ TODO: this is also the case in e.g. RePast simphony in which one never deals wit
 arrowized programming is optional and only required when utilizing yampas time-semantics. if the model does not rely on time-semantics, it can use monadic-programming by building on the existing monadic functions in the EDSL which allow to run in the State-Monad which simplifies things very much
 	- when to use yampas arrowized programing: time-semantics, simple state-chart agents 
 	- when not using yampas facilities: in all the other cases e.g. SugarScape is such a case as it proceeds in unit time-steps and all agents act in every time-step
-	
+
 \subsubsection{Replications}
 get replications for free without having to worry about side-effects and can even run them in parallel without headaches. TODO: need a little bit of discussion here as it is not that easy: we need to swap random-number generators out for new one in every replication, both in agents and environments
-
-\subsubsection{Recursive ABS}
-TODO: should we really discuss this here?
 
 \subsection{Disadvantages}
 We identify two main disadvantages and discuss them below.

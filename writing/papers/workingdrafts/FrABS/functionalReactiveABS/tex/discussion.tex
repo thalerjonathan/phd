@@ -32,7 +32,6 @@ Due to the continuous time-semantics which can be expressed in our ABS approach 
 When trying to emulate the dynamics of the SIR model using an agent-based approach the question arises what we ultimately gain from doing so when we could have generated the dynamics much quicker and smoother using the system-approach. The difference is that the agent-based approach is a stochastic one and can thus also generate "degenerated" dynamics e.g. in which the disease dies out after a few steps or even can't spread from patient zero - in this case ABS is clearly a benefit as it allows to investigate \textit{alternative futures}, something not possible with system-dynamics in which the disease will never die out prematurely. \\
 Another advantage of ABS over the system-dynamics approach is that agents can be heterogeneous and make use of spatial- and/or network-information defining the neighbourhood. We can thus simulate the spread of the disease throughout a population which is laid out on a 2d-grid or one can investigate spreading of the disease throughout a network of agents where some are vaccinated and others not. We provide already suitable environments to simulate these cases and show an example of spreading the disease on a 2d-grid in Figure \ref{fig:sir_spatial}.  
 
-TODO: re-render figures with dt of 0.1
 \begin{figure*}
 \begin{center}
 	\begin{tabular}{c c}
@@ -71,7 +70,7 @@ TODO: re-render figures with dt of 0.1
 		\end{subfigure}
 	\end{tabular}
 	
-	\caption{Simulating SIR on a 52x52 grid with Moore neighbourhood. Blue are susceptible, red are infected, green are recovered. The green areas act as protection as infected cannot cross the recovered border: this is particularly visible in the lower right corner of \ref{fig:sir_spatial_440} where the disease has been contained in the blue island and has no means to escape. It may seem that the few remaining infected agents in the top left corner of \ref{fig:sir_spatial_440} will die out soon but still it needs more than the already running simulation-time until the disease actually dies out with the last patient recovering at center top of \ref{fig:sir_spatial_873} at $t = 873$.} 
+	\caption{Simulating SIR on a 52x52 grid with Moore neighbourhood using $t\Delta = 1$. Blue are susceptible, red are infected, green are recovered. The green areas act as protection as infected cannot cross the recovered border: this is particularly visible in the lower right corner of \ref{fig:sir_spatial_440} where the disease has been contained in the blue island and has no means to escape. It may seem that the few remaining infected agents in the top left corner of \ref{fig:sir_spatial_440} will die out soon but still it needs more than the already running simulation-time until the disease actually dies out with the last patient recovering at center top of \ref{fig:sir_spatial_873} at $t = 873$.} 
 	\label{fig:sir_spatial}
 \end{center}
 \end{figure*}
@@ -81,8 +80,6 @@ When using a 2d-grid or network one needs to set them up in the initialization c
 \subsection{Agents as Signals}
 Due to the underlying nature and motivation of Functional Reactive Programming and Yampa, agents can be seen as signals which are generated and consumed by a Signal-Function which is the behaviour of an agent.  If an agent does not change the output-signal is constant, if the agent changes e.g. by sending a message, changing its state,... it changes and a dead agent has no signal at all.
 The question is if the agents of our agent-based SIR implementation are true signals: do the dynamics change when we sample the system with $t\Delta = 0$? We hypothesize that our agents are true signals, thus they should not change when time does not change because they are completely time-dependent and rely completely on time-semantics. When actually running the simulation with $t\Delta = 0$ one gets the results as in \ref{fig:sir_abs_zero_dt}.
-
-TODO: re-render figures using dt of 0.1
 
 \begin{figure*}
 \begin{center}
@@ -104,14 +101,12 @@ TODO: re-render figures using dt of 0.1
 		\end{subfigure}
 	\end{tabular}
 	
-	\caption{Dynamics of agent-based SIR implementation of 1000 agents with ranges of $t\Delta = 0$ marked with two vertical black lines.}
+	\caption{Dynamics of agent-based SIR implementation of 1000 agents running with $t\Delta = 1$ with ranges of $t\Delta = 0$ marked with two vertical black lines.}
 	\label{fig:sir_abs_zero_dt}
 \end{center}
 \end{figure*}
 
 As can be seen  the dynamics are becoming constant \textit{but} with a minor delay: infected increases a bit while susceptible decreases as can be seen in Figure \ref{fig:sir_abs_zero_dt_zoom}. This is due to the delay of message delivery which takes one $t\Delta$, independent of its value - messages are also delivered when $t\Delta = 0$. Only message-generating functions which depend on non-zero $t\Delta$ to generate messages will then stop generate messages. Reactive functions which act on incoming messages can still create change as they do not rely on time-semantics but just on the discrete event of a message-arrival - which is the case in the transition from susceptible to infected.
-
-TODO: re-render figures using dt of 0.1
 
 \begin{figure}
 	\centering
@@ -128,11 +123,9 @@ doRepeatedlyEvery :: Time -> AgentBehaviour s m e -> AgentBehaviour s m e
 
 This function takes a time interval and an agent-behaviour signal-function and returns a new agent-behaviour signal-function which runs the argument signal-function every time-interval. Note that this function is subject to sampling-issues too e.g. when the time-interval is very small one needs to run the simulation with a $t\Delta \leq Time$ otherwise the dynamics would show delayed activation of the agent-behaviour.
 
-\subsection{Reproducibility}
+\subsection{Randomness}
 It is important to note that if we disable super-sampling and run the simulation for a given time \textit{t} but with e.g. two different $t\Delta$ we would end up with two different results, even if the $t\Delta$ are small enough to sample the time-dependent functions sufficiently. Also if we use super-sampling with $t\Delta = 1.0$ and create the exact same number of samples as when using no super-sampling but smaller $t\Delta$, then we also end up with different results.
 The reason for this behaviour is that all these time-dependent functions ultimately build upon drawing from random-distributions. With different $t\Delta$ we are generating random-samples to a greater or lesser extent, which would result in different random-number sequences which in turn ultimately leads to slightly different dynamics. When generating a plot of the dynamics this is not as visible, also this is the reason why one generates multiple replications, but this behaviour becomes strikingly apparent when simulating the SIR model on a 2d-grid as can be seen in Figure \ref{fig:sir_abs_timeDeltas_reproduce}.
-
-TODO: re-render figures using dt of 0.1
 
 \begin{figure*}
 \begin{center}
@@ -141,7 +134,7 @@ TODO: re-render figures using dt of 0.1
 			\centering
 			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/randomness/SIR_32x32_200time_01delta_noSS.png}
 			\caption{$t\Delta = 0.1$, no super-sampling}
-			\label{fig:sir_abs_timeDeltas_reproduce_dt01}
+			\label{fig:sir_abs_timeDeltas_randomness_dt01}
 		\end{subfigure}
 	
 		& 
@@ -150,7 +143,7 @@ TODO: re-render figures using dt of 0.1
 			\centering
 			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/randomness/SIR_32x32_200time_001delta_noSS.png}
 			\caption{$t\Delta = 0.01$, no super-sampling}
-			\label{fig:sir_abs_timeDeltas_reproduce_dt001}
+			\label{fig:sir_abs_timeDeltas_randomness_dt001}
 		\end{subfigure}
 		
 		\\
@@ -159,7 +152,7 @@ TODO: re-render figures using dt of 0.1
 			\centering
 			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/randomness/SIR_32x32_200time_10delta_ss10.png}
 			\caption{$t\Delta = 1.0$ with 10 super-samples}
-			\label{fig:sir_abs_timeDeltas_reproduce_dt10_ss10}
+			\label{fig:sir_abs_timeDeltas_randomness_dt10_ss10}
 		\end{subfigure}
 		
 		&
@@ -168,12 +161,12 @@ TODO: re-render figures using dt of 0.1
 			\centering
 			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/randomness/SIR_32x32_200time_10delta_ss100.png}
 			\caption{$t\Delta = 1.0$ with 100 super-samples}
-			\label{fig:sir_abs_timeDeltas_reproduce_dt10_ss100}
+			\label{fig:sir_abs_timeDeltas_randomness_dt10_ss100}
 		\end{subfigure}
 	\end{tabular}
 	
 	\caption{Comparing results on 32x32 grid after $t = 200$ but with different $t\Delta$ and different number of super-samples. Note that a $t\Delta = 0.1$ is clearly not enough, whereas the others result in much more recovered agents.}
-	\label{fig:sir_abs_timeDeltas_reproduce}
+	\label{fig:sir_abs_timeDeltas_randomness}
 \end{center}
 \end{figure*}
 
@@ -206,17 +199,10 @@ TODO: this is also the case in e.g. RePast simphony in which one never deals wit
 get replications for free without having to worry about side-effects and can even run them in parallel without headaches. TODO: need a little bit of discussion here as it is not that easy: we need to swap random-number generators out for new one in every replication, both in agents and environments
 
 \subsection{Disadvantages}
-We identify two main disadvantages and discuss them below.
+We identify two main disadvantages.
 
 \subsubsection{Performance}
-	- performance is low
-	- reasoning about performance is very difficult
-
-\subsubsection{}
-- thinking about how to sample the system: do we need time-semantics? how small should the time-delta be? where do we need super-sampling?
-- thinking about messaging: round-trip requires smaller time-deltas, when do we need sync conversations?
+Performance is currently no where near imperative object-oriented implementations. The reason for this is that we don't have in-place updates of data-structures and make no use of references. This results in lots of copying which is simply not necessary in the imperative languages with implicit effects. Also it is much more difficult to reason about time and space in our approach. Thus we see performance clearly as the main drawback of the functional approach and the only real advantage of the imperative approach over our.
 
 \subsubsection{Steep learning curve}
-	- very steep learning curve for non-functional programmers
-	- learning a new EDSL
-	- think ABMS different: continuous, time-semantics, when to use async messages, when to use sync conversations
+Our approach is quite advanced in three ways. First it builds on the already quite involved FRP paradigm. Second it forces one to think properly of time-semantics of the model, how to sample it, how small $t \Delta$ should be and whether one needs super-sampling or not and if yes how many samples one should take. Third it requires to think about agent-interaction and update-strategies, whether one should use conversations which forces one to run sequentially or if one can run agents in parallel and use normal messaging which but incurs a time-delay which in turn would need to be considered when setting the $t \Delta$.

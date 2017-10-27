@@ -13,7 +13,7 @@ import SysDynSIR.Model
 import Utils.Sirs
 
 dt :: DTime
-dt = 0.05
+dt = 0.01
 
 t :: DTime
 t = 150

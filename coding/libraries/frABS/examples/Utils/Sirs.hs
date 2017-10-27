@@ -36,11 +36,11 @@ writeSirsDynamicsFile fileName dt replications dynamics = do
     hPutStrLn fileHdl ("replications = " ++ show replications ++ ";")
 
     hPutStrLn fileHdl "figure"
-    hPutStrLn fileHdl "plot (indices, susceptibleRatio.', 'color', 'blue', 'linewidth', 3);"
+    hPutStrLn fileHdl "plot (indices, susceptibleRatio.', 'color', 'blue', 'linewidth', 2);"
     hPutStrLn fileHdl "hold on"
-    hPutStrLn fileHdl "plot (indices, infectedRatio.', 'color', 'red', 'linewidth', 3);"
+    hPutStrLn fileHdl "plot (indices, infectedRatio.', 'color', 'red', 'linewidth', 2);"
     hPutStrLn fileHdl "hold on"
-    hPutStrLn fileHdl "plot (indices, recoveredRatio.', 'color', 'green', 'linewidth', 3);"
+    hPutStrLn fileHdl "plot (indices, recoveredRatio.', 'color', 'green', 'linewidth', 2);"
 
     hPutStrLn fileHdl "set(gca,'YTick',0:0.05:1.0);"
     hPutStrLn fileHdl "set(gca,'XTick', indices(1:10:end), 'xticklabel', time(1:10:end));"

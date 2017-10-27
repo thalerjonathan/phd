@@ -8,7 +8,7 @@ Due to the continuous time-semantics which can be expressed in our ABS approach 
 	\begin{tabular}{c c}
 		\begin{subfigure}[b]{0.5\textwidth}
 			\centering
-			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/SIR_SD_DYNAMICS_1000Agents_10dt.png}
+			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/frsd/SIR_SD_1000agents_150t_1dt.png}
 			\caption{$t\Delta = 1.0$}
 			\label{fig:sd_plot_10dt}
 		\end{subfigure}
@@ -17,13 +17,13 @@ Due to the continuous time-semantics which can be expressed in our ABS approach 
 		
 		\begin{subfigure}[b]{0.5\textwidth}
 			\centering
-			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/SIR_SD_DYNAMICS_1000Agents_001dt.png}
-			\caption{$t\Delta = 0.01$}
-			\label{fig:sd_plot_0.01dt}
+			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/frsd/SIR_SD_1000agents_150t_01dt.png}
+			\caption{$t\Delta = 0.1$}
+			\label{fig:sd_plot_0.1dt}
 		\end{subfigure}
 	\end{tabular}
 	
-	\caption{Simulating the SIR model with our system dynamics emulation. Note the difference between the two time-deltas, where only $t\Delta = 0.01$ approaches the dynamics as shown in Figure \ref{fig:sir_sd_dynamics_anylogic}.}
+	\caption{Simulating the SIR model with our system dynamics emulation using different time-deltas. Note that although $t\Delta = 0.1$ might seem very close the system dynamic solution, there are still subtle differences to the initial Figure \ref{fig:sir_sd_dynamics} which uses $t\Delta = 0.01$.}
 	\label{fig:sd_plots}
 \end{center}
 \end{figure*}
@@ -32,12 +32,13 @@ Due to the continuous time-semantics which can be expressed in our ABS approach 
 When trying to emulate the dynamics of the SIR model using an agent-based approach the question arises what we ultimately gain from doing so when we could have generated the dynamics much quicker and smoother using the system-approach. The difference is that the agent-based approach is a stochastic one and can thus also generate "degenerated" dynamics e.g. in which the disease dies out after a few steps or even can't spread from patient zero - in this case ABS is clearly a benefit as it allows to investigate \textit{alternative futures}, something not possible with system-dynamics in which the disease will never die out prematurely. \\
 Another advantage of ABS over the system-dynamics approach is that agents can be heterogeneous and make use of spatial- and/or network-information defining the neighbourhood. We can thus simulate the spread of the disease throughout a population which is laid out on a 2d-grid or one can investigate spreading of the disease throughout a network of agents where some are vaccinated and others not. We provide already suitable environments to simulate these cases and show an example of spreading the disease on a 2d-grid in Figure \ref{fig:sir_spatial}.  
 
+TODO: re-render figures with dt of 0.1
 \begin{figure*}
 \begin{center}
 	\begin{tabular}{c c}
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
-			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/SIR_spatial_52x52_92time.png}
+			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/spatial/SIR_spatial_52x52_92time.png}
 			\caption{$t = 92$}
 			\label{fig:sir_spatial_92}
 		\end{subfigure}
@@ -46,7 +47,7 @@ Another advantage of ABS over the system-dynamics approach is that agents can be
 
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
-			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/SIR_spatial_52x52_200time.png}
+			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/spatial/SIR_spatial_52x52_200time.png}
 			\caption{$t = 200$}
 			\label{fig:sir_spatial_200}
 		\end{subfigure}
@@ -55,7 +56,7 @@ Another advantage of ABS over the system-dynamics approach is that agents can be
 		
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
-			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/SIR_spatial_52x52_440time.png}
+			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/spatial/SIR_spatial_52x52_440time.png}
 			\caption{$t = 440$}
 			\label{fig:sir_spatial_440}
 		\end{subfigure}
@@ -64,7 +65,7 @@ Another advantage of ABS over the system-dynamics approach is that agents can be
 		
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
-			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/SIR_spatial_52x52_873time.png}
+			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/spatial/SIR_spatial_52x52_873time.png}
 			\caption{$t = 873$}
 			\label{fig:sir_spatial_873}
 		\end{subfigure}
@@ -81,12 +82,14 @@ When using a 2d-grid or network one needs to set them up in the initialization c
 Due to the underlying nature and motivation of Functional Reactive Programming and Yampa, agents can be seen as signals which are generated and consumed by a Signal-Function which is the behaviour of an agent.  If an agent does not change the output-signal is constant, if the agent changes e.g. by sending a message, changing its state,... it changes and a dead agent has no signal at all.
 The question is if the agents of our agent-based SIR implementation are true signals: do the dynamics change when we sample the system with $t\Delta = 0$? We hypothesize that our agents are true signals, thus they should not change when time does not change because they are completely time-dependent and rely completely on time-semantics. When actually running the simulation with $t\Delta = 0$ one gets the results as in \ref{fig:sir_abs_zero_dt}.
 
+TODO: re-render figures using dt of 0.1
+
 \begin{figure*}
 \begin{center}
 	\begin{tabular}{c c}
 		\begin{subfigure}[b]{0.5\textwidth}
 			\centering
-			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/SIR_ABS_zeroDt_start.png}
+			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/dtzero/SIR_ABS_zeroDt_start.png}
 			\caption{$t\Delta = 0$ from step 0 to 50.}
 			\label{fig:sd_plot_10dt}
 		\end{subfigure}
@@ -95,7 +98,7 @@ The question is if the agents of our agent-based SIR implementation are true sig
 		
 		\begin{subfigure}[b]{0.5\textwidth}
 			\centering
-			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/SIR_ABS_zeroDt_mid.png}
+			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/dtzero/SIR_ABS_zeroDt_mid.png}
 			\caption{$t\Delta = 0$ from step 51 to 101.}
 			\label{fig:sd_plot_0.01dt}
 		\end{subfigure}
@@ -108,9 +111,11 @@ The question is if the agents of our agent-based SIR implementation are true sig
 
 As can be seen  the dynamics are becoming constant \textit{but} with a minor delay: infected increases a bit while susceptible decreases as can be seen in Figure \ref{fig:sir_abs_zero_dt_zoom}. This is due to the delay of message delivery which takes one $t\Delta$, independent of its value - messages are also delivered when $t\Delta = 0$. Only message-generating functions which depend on non-zero $t\Delta$ to generate messages will then stop generate messages. Reactive functions which act on incoming messages can still create change as they do not rely on time-semantics but just on the discrete event of a message-arrival - which is the case in the transition from susceptible to infected.
 
+TODO: re-render figures using dt of 0.1
+
 \begin{figure}
 	\centering
-	\includegraphics[width=.4\textwidth, angle=0]{./../shared/fig/SIR_ABS_zeroDt_mid_zoom.png}
+	\includegraphics[width=.4\textwidth, angle=0]{./../shared/fig/dtzero/SIR_ABS_zeroDt_mid_zoom.png}
 	\caption{Zoom-in to step 51, marked with the black line from where on $t\Delta = 0$ for the next 50 steps. The recovered ratio stays constant but a few agents get infected even \textit{after} having switched to $t\Delta = 0$ which happens due to the message-delivery lag. After all messages have been delivered, the signal stays constant until non-zero $t\Delta$ are turned on again.}
 	\label{fig:sir_abs_zero_dt_zoom}
 \end{figure}
@@ -127,12 +132,14 @@ This function takes a time interval and an agent-behaviour signal-function and r
 It is important to note that if we disable super-sampling and run the simulation for a given time \textit{t} but with e.g. two different $t\Delta$ we would end up with two different results, even if the $t\Delta$ are small enough to sample the time-dependent functions sufficiently. Also if we use super-sampling with $t\Delta = 1.0$ and create the exact same number of samples as when using no super-sampling but smaller $t\Delta$, then we also end up with different results.
 The reason for this behaviour is that all these time-dependent functions ultimately build upon drawing from random-distributions. With different $t\Delta$ we are generating random-samples to a greater or lesser extent, which would result in different random-number sequences which in turn ultimately leads to slightly different dynamics. When generating a plot of the dynamics this is not as visible, also this is the reason why one generates multiple replications, but this behaviour becomes strikingly apparent when simulating the SIR model on a 2d-grid as can be seen in Figure \ref{fig:sir_abs_timeDeltas_reproduce}.
 
+TODO: re-render figures using dt of 0.1
+
 \begin{figure*}
 \begin{center}
 	\begin{tabular}{c c}
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
-			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/SIR_32x32_200time_01delta_noSS.png}
+			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/randomness/SIR_32x32_200time_01delta_noSS.png}
 			\caption{$t\Delta = 0.1$, no super-sampling}
 			\label{fig:sir_abs_timeDeltas_reproduce_dt01}
 		\end{subfigure}
@@ -141,7 +148,7 @@ The reason for this behaviour is that all these time-dependent functions ultimat
 		
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
-			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/SIR_32x32_200time_001delta_noSS.png}
+			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/randomness/SIR_32x32_200time_001delta_noSS.png}
 			\caption{$t\Delta = 0.01$, no super-sampling}
 			\label{fig:sir_abs_timeDeltas_reproduce_dt001}
 		\end{subfigure}
@@ -150,7 +157,7 @@ The reason for this behaviour is that all these time-dependent functions ultimat
 
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
-			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/SIR_32x32_200time_10delta_ss10.png}
+			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/randomness/SIR_32x32_200time_10delta_ss10.png}
 			\caption{$t\Delta = 1.0$ with 10 super-samples}
 			\label{fig:sir_abs_timeDeltas_reproduce_dt10_ss10}
 		\end{subfigure}
@@ -159,7 +166,7 @@ The reason for this behaviour is that all these time-dependent functions ultimat
 		
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
-			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/SIR_32x32_200time_10delta_ss100.png}
+			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/randomness/SIR_32x32_200time_10delta_ss100.png}
 			\caption{$t\Delta = 1.0$ with 100 super-samples}
 			\label{fig:sir_abs_timeDeltas_reproduce_dt10_ss100}
 		\end{subfigure}

@@ -157,19 +157,10 @@
 			}
 		},
 		{
-			"file": "examples/FrSIRSSpatial/Model.hs",
-			"settings":
-			{
-				"buffer_size": 3541,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "examples/FrSIRSSpatial/Run.hs",
 			"settings":
 			{
-				"buffer_size": 5925,
+				"buffer_size": 5924,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -234,10 +225,19 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial",
 		"/home/jonathan/phd/coding/libraries/frABS/src",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS"
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation"
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Run.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils/Sirs.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Run.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Init.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Replication.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Run.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgents/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Agent.hs",
@@ -247,18 +247,13 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgents/Init.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Model.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Discrete2d.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Renderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Renderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Init.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Simulation.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils/Sirs.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Renderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Run.hs",
@@ -269,7 +264,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/Stats.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Exporter.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/SD/Definitions.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Renderer.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/GlossSimulator.hs",
@@ -278,7 +272,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Network.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Rendering/Continuous2d.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Replication.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Definitions.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Continuous.hs",
@@ -294,7 +287,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/frABSExamples.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/FrABS.cabal",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/StockFlow.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Tests/Test.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Tests/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SIRS/Model.hs",
@@ -369,7 +361,7 @@
 	],
 	"find":
 	{
-		"height": 23.0
+		"height": 38.0
 	},
 	"find_in_files":
 	{
@@ -384,6 +376,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"policyEffectsEnvReplicator",
 			"dooncer",
 			"updateDomainStateR",
 			"setDomainStateR",
@@ -510,8 +503,7 @@
 			"passWealthOnM",
 			"diseasedMetabolismIncrease",
 			"metabolismAmount",
-			"runSugarScapeStepsAndExport",
-			"birthNewAgentM"
+			"runSugarScapeStepsAndExport"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -620,7 +612,7 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -650,66 +642,32 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "examples/FrSIRSSpatial/Model.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 3541,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2999,
-								2999
-							]
-						],
-						"settings":
-						{
-							"subhask_project_dir": "/home/jonathan/phd/coding/libraries/frABS/examples",
-							"subhask_project_name": "frABSExamples",
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 405.0,
-						"zoom_level": 1.0
-					},
 					"stack_index": 1,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
+					"buffer": 1,
 					"file": "examples/FrSIRSSpatial/Run.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 5925,
+						"buffer_size": 5924,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								775,
-								775
+								548,
+								548
 							]
 						],
 						"settings":
 						{
-							"subhask_project_dir": "/home/jonathan/phd/coding/libraries/frABS/examples",
-							"subhask_project_name": "frABSExamples",
 							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 225.0,
+						"translation.y": 270.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -811,7 +769,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 427.0,
+	"side_bar_width": 546.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

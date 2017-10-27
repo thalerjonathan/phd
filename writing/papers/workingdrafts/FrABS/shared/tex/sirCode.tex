@@ -71,6 +71,8 @@ gotInfected ain = onMessageM gotInfectedAux ain False
     gotInfectedAux False (_, Contact Infected) = randomBoolM infectivity
     gotInfectedAux x _ = return x
 
+
+
 respondToContactWith :: SIRState -> SIRAgentIn -> SIRAgentOut -> SIRAgentOut
 respondToContactWith state ain ao = onMessage respondToContactWithAux ain ao
   where

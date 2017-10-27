@@ -170,6 +170,10 @@ The reason for this behaviour is that all these time-dependent functions ultimat
 \end{center}
 \end{figure*}
 
+\subsection{Message Round-trip Time}
+When reflecting on the messaging mechanism it becomes apparent that a round-trip from sender to receiver and back takes $2 t\Delta$. A round-trip happens in our agent-based SIR approach to implement the transition from infected to susceptible - susceptible agents send Contact Susceptible messages to random agents (except itself) where only infected agents reply with a Contact Infected message. This means that it takes $2 t\Delta$ until a susceptible agent might get infected. This becomes an issue if we want to match the dynamics of our agent-based approach to the system-dynamics one in which no time-delay happens - the agents act instantaneous with each other during one time-step. 
+We have two solutions for this problem: either we resort to \textit{conversations} or we increase the global sampling frequency of the system which matches the \textit{message frequency} of messages which are subject to round-trips. Implementing conversations is only available in the \textit{sequential} update-strategy and is much more cumbersome, so we followed the approach of increasing the frequency. We tried different frequencies and found that $t\Delta = 0.1$ results in a sufficiently good approximation to the system dynamics solution as can be seen in Figure TODO.
+
 \subsection{Recursive ABS}
 Due to the inherent recursive nature of functional programming we came up with the idea of \textit{recursive} ABS in which agents can recursively run the simulation within the simulation which would allow them to project their own actions into the future. So far it only exists as a proof-of-concept and we are currently only aware of a single model \cite{gilmer_recursive_2000} in the field of ABS which does recursive simulation. The implementation of recursive ABS is very natural due to the explicit data-flow and lack of side-effects which eases the task very much. Unfortunately we cannot go into detail of our approach as it is beyond the scope of the paper.
 
@@ -200,7 +204,11 @@ We identify two main disadvantages and discuss them below.
 \subsubsection{Performance}
 	- performance is low
 	- reasoning about performance is very difficult
-	
+
+\subsubsection{}
+- thinking about how to sample the system: do we need time-semantics? how small should the time-delta be? where do we need super-sampling?
+- thinking about messaging: round-trip requires smaller time-deltas, when do we need sync conversations?
+
 \subsubsection{Steep learning curve}
 	- very steep learning curve for non-functional programmers
 	- learning a new EDSL

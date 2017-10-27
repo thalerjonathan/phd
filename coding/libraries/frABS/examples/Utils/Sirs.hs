@@ -69,10 +69,10 @@ sirsDynamicsReplMean :: [[(Time, Double, Double, Double)]] -> [(Time, Double, Do
 sirsDynamicsReplMean [] = []
 sirsDynamicsReplMean replDynamics@(initRepl:tailRepls) = replDynamicsRatio
   where
-    replCountRational = fromIntegral $ length replDynamics :: Double
+    replCountRational = fromIntegral $ length replDynamics:: Double
 
     replDynamicsSum = foldr sumDyns initRepl tailRepls
     replDynamicsRatio = map (\(t, s, i, r) -> (t, s / replCountRational, i / replCountRational, r / replCountRational)) replDynamicsSum
 
     sumDyns :: [(Time, Double, Double, Double)] -> [(Time, Double, Double, Double)] -> [(Time, Double, Double, Double)]
-    sumDyns ds1 ds2 = map (\((t1, s1, i1, r1), (_, s2, i2, r2)) -> (t1, s1+s2, i1+i2, r1+r2)) (zip ds1 ds2)
+    sumDyns ds1 ds2 = map (\((t, s1, i1, r1), (_, s2, i2, r2)) -> (t, s1+s2, i1+i2, r1+r2)) (zip ds1 ds2)

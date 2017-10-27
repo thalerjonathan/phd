@@ -16,6 +16,7 @@ module FrSIR.Model
     
     , FrSIREventSource
     , FrSIRReplicationConfig
+    , FrSIRAgentDefReplicator
     
     , infectivity
     , contactRate
@@ -51,6 +52,7 @@ type FrSIRAgentObservable = AgentObservable FrSIRAgentState
 type FrSIREventSource = EventSource FrSIRAgentState FrSIRMsg FrSIREnvironment
 type FrSIRMessageSource = MessageSource FrSIRAgentState FrSIRMsg FrSIREnvironment
 type FrSIRReplicationConfig = ReplicationConfig FrSIRAgentState FrSIRMsg FrSIREnvironment
+type FrSIRAgentDefReplicator = AgentDefReplicator FrSIRAgentState FrSIRMsg FrSIREnvironment
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

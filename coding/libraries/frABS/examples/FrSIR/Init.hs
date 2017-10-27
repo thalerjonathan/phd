@@ -1,6 +1,7 @@
 module FrSIR.Init 
     (
-      createFrSIRNumInfected
+        createFrSIRNumInfected
+      , sirAgentDefReplicator
     ) where
 
 import Control.Monad.Random
@@ -36,4 +37,16 @@ frSIRAgent initS aid = do
         }
 
     return adef
+
+sirAgentDefReplicator :: FrSIRAgentDefReplicator
+sirAgentDefReplicator g ad = (ad', g')
+  where
+    (g', g'') = split g
+
+    initState = adState ad
+    -- NOTE: also need to overwrite behaviour with one with a different RNG!
+    beh = sirAgentBehaviour g' initState
+
+    ad' = ad { adRng = g',
+               adBeh = beh }
 ------------------------------------------------------------------------------------------------------------------------

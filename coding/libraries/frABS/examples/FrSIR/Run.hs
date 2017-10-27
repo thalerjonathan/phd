@@ -22,21 +22,21 @@ rngSeed :: Int
 rngSeed = 42
 
 dt :: DTime
-dt = 1.0
+dt = 0.1
 
 t :: DTime
 t = 150
 
 agentCount :: Int
-agentCount = 1000
+agentCount = 10000
 
 numInfected :: Int
 numInfected = 10
 
 replCfg :: FrSIRReplicationConfig
 replCfg = ReplicationConfig {
-    replCfgCount = 10,
-    replCfgAgentReplicator = defaultAgentReplicator,
+    replCfgCount = 4,
+    replCfgAgentReplicator = sirAgentDefReplicator,
     replCfgEnvReplicator = defaultEnvReplicator
 }
 

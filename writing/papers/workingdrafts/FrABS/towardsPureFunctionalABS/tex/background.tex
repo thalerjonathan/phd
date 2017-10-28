@@ -10,6 +10,17 @@ We understand ABS as a method of modelling and simulating a system where the glo
 	\item They can interact with other agents which are situated in the same environment by means of message-passing.
 \end{itemize} 
 
+\subsection{Implementation}
+The challenges one faces when implementing an ABS plain, without support from a library are manifold. Generally one faces the following challenges:
+
+\begin{itemize}
+	\item Agent Representation - how do we represent an agent? The ABS community implements agents as objects (as in Java, Python or C++) as they claim that the mapping of an agent on an object is natural. The question is how to represent an agent in Haskell?
+	\item Agent-Agent Interaction - how can agents interact with other agents? In object-orientation we have method-calls which allows to call other objects and mutate their state. Also this is not available in Haskell, so how do we solve this problem without resorting to the IO monad?
+	\item Environment representation - how can we represent an environment? Also an environment must have the ability to update itself e.g. regrow some resources.
+	\item Agent-Environment interaction - how can agents interact (read / write) with the environment they are situated in?
+	\item Agent Updating - how is the set of agents organised, how are they updated and how is it managed (deleting, adding during simulation)? In object-oriented implementations due to side-effects and mutable data in-order updates are easily done but this is not available in Haskell without resorting to the IO monad.
+\end{itemize}
+
 \subsection{SIR Model}
 - do not introduce SIR model in that length, also don't discuss SD and ABS, only minimal definition of what we understand as ABS, ignore definition of SD completely
 - good introduction to pure functional programming in Haskell: this is VERY difficult as it is a VAST topic where one can get lost quickly. focus on the central concepts: no assignment, recursion, pattern matching, static type-system with higher-kinded polymorphism

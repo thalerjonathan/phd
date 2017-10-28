@@ -1,17 +1,17 @@
 \section{Functional Reactive ABS}
-TODO: cross reference to the code in the appendix by giving line-numbers e.g. the full implementation of a susceptible agent can be seen in
+%TODO: cross reference to the code in the appendix by giving line-numbers e.g. the full implementation of a susceptible agent can be seen in
 
-The challenges one faces when implementing an ABS plain, without support from a library are manifold. In the paper (TODO: cite my own paper on update-strategies) the authors discuss already the fundamental things to consider in a programming language agnostic way.  Generally one faces the following challenges:
+The challenges one faces when implementing an ABS plain, without support from a library are manifold. Generally one faces the following challenges:
 
 \begin{itemize}
-	\item Agent Representation - how do we represent an agent? The ABS community implements agents as objects (as in Java, Python or C++) as they claim that the mapping of an agent on an object is natural. The question is how to represent an agent in Haskell?
-	\item Agent-Agent Interaction - how can agents interact with other agents? In object-orientation we have method-calls which allows to call other objects and mutate their state. Also this is not available in Haskell, so how do we solve this problem without resorting to the IO monad?
-	\item Environment representation - how can we represent an environment? Also an environment must have the ability to update itself e.g. regrow some resources.
+	\item Agent Representation - how do we represent an agent in Haskell?
+	\item Agent-Agent Interaction - how can agents interact with other agents in Haskell without resorting to the IO Monad?
+	\item Environment representation - how can we represent an environment which must have the ability to update itself e.g. regrow some resources?
 	\item Agent-Environment interaction - how can agents interact (read / write) with the environment they are situated in?
-	\item Agent Updating - how is the set of agents organised, how are they updated and how is it managed (deleting, adding during simulation)? In object-oriented implementations due to side-effects and mutable data in-order updates are easily done but this is not available in Haskell without resorting to the IO monad.
+	\item Agent Updating - how is the set of agents organised, how are they updated and how is it managed (deleting, adding during simulation) in Haskell without resorting to the IO Monad?
 \end{itemize}
 
-In the next subsections we will discuss each point by deriving a functional reactive implementation of the agent-based SIR model. For us it is absolutely paramount that the simulation should be pure and never run in the IO Monad (except of course the surrounding Yampa loop which allows rendering and output). The complete source-code can be seen in Appendix TODO: ref. 
+In the next subsections we will discuss each point by deriving a functional reactive implementation of the agent-based SIR model. For us it is absolutely paramount that the simulation should be pure and never run in the IO Monad (except of course the surrounding Yampa loop which allows rendering and output). The complete source-code can be seen in Appendix \ref{app:abs_code}.
 
 \subsection{Agent Representation}
 An agent can be seen as a tuple $<id, s, m, e, b>$.

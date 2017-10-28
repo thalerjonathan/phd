@@ -84,21 +84,21 @@ In Figure \ref{fig:sir_abs_anylogic_agents} we give the dynamics simulating the 
 	\begin{tabular}{c c c}
 		\begin{subfigure}[b]{0.3\textwidth}
 			\centering
-			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/frabs/SIR_100agents_150t_01dt_parallel.png}
+			\includegraphics[width=1\textwidth, angle=0]{./../shared/fig/frabs/SIR_100agents_150t_01dt_parallel.png}
 			\caption{100 Agents}
 			\label{fig:pd_seq}
 		\end{subfigure}
     	&
 		\begin{subfigure}[b]{0.3\textwidth}
 			\centering
-			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/frabs/SIR_1000agents_150t_01dt_parallel.png}
+			\includegraphics[width=1\textwidth, angle=0]{./../shared/fig/frabs/SIR_1000agents_150t_01dt_parallel.png}
 			\caption{1,000 Agents}
 			\label{fig:pd_seq}
 		\end{subfigure}
     	&
 		\begin{subfigure}[b]{0.3\textwidth}
 			\centering
-			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/frabs/SIR_10000agents_150t_01dt_parallel.png}
+			\includegraphics[width=1\textwidth, angle=0]{./../shared/fig/frabs/SIR_10000agents_150t_01dt_parallel.png}
 			\caption{10,000 Agents}
 			\label{fig:hac_seq}
 		\end{subfigure}
@@ -110,18 +110,38 @@ In Figure \ref{fig:sir_abs_anylogic_agents} we give the dynamics simulating the 
 \end{figure*}
 
 As previously mentioned the agent-based approach is a discrete one which means that with increasing number of agents, the discrete dynamics approximate the continuous dynamics of the SD simulation. Still the dynamics of 10,000 Agents do not match the dynamics of the SD simulation perfectly. This is because as opposed to the SD simulation the agent-based approach is inherently a stochastic one as we continuously draw from random-distributions which drive our state-transitions. What we see in Figure \ref{fig:sir_abs_anylogic_agents} is then just a single run where the dynamics would result in slightly different shapes when run with a different random-number generator seed. The agent-based approach thus generates a distribution of dynamics over which ones needs to average to arrive at the correct solution. This can be done using replications in which the simulation is run with the exact same parameters multiple times but each with a different random-number generator see. The resulting dynamics are then averaged and the result is then regarded as the correct dynamics.
-We have done this as can be seen in Figure \ref{fig:sir_abs_agents_repls}, using 4 replications, which matches the SD dynamics to a very satisfactory level \footnote{Note that in the replications we are using 10 initially infected agents to ensure that no simulation run will terminate too early (meaning that the disease gets extinct after a few time steps) which would offset the dynamics completely. This happens due to "unlucky" random distributions which can be repaired by introducing more initially infected agents which increases the probability of spreading the disease in the very early stage of the simulation drastically. We found that when using 10 initially infected agents in a population of 10,000 (which amounts to 0.1\%) is enough to never result in an early terminating simulation. This is also a fundamental difference between SD and ABS: the dynamics of the agent-based approach can result in a wide range of scenarios which includes also the one in which the disease gets extinct in the early stages (a lucky coincidence for mankind) - this is simply not possible in the SD approach. So we can argue that ABS is much closer to reality than SD as it allows to explore alternate futures in the dynamics.}.
+We have done this as can be seen in Figure \ref{fig:sir_abs_agents_repls}, using 10 replications, which matches the SD dynamics to a very satisfactory level \footnote{Note that in the replications we are using 10 initially infected agents to ensure that no simulation run will terminate too early (meaning that the disease gets extinct after a few time steps) which would offset the dynamics completely. This happens due to "unlucky" random distributions which can be repaired by introducing more initially infected agents which increases the probability of spreading the disease in the very early stage of the simulation drastically. We found that when using 10 initially infected agents in a population of 10,000 (which amounts to 0.1\%) is enough to never result in an early terminating simulation. This is also a fundamental difference between SD and ABS: the dynamics of the agent-based approach can result in a wide range of scenarios which includes also the one in which the disease gets extinct in the early stages (a lucky coincidence for mankind) - this is simply not possible in the SD approach. So we can argue that ABS is much closer to reality than SD as it allows to explore alternate futures in the dynamics.}.
 
-TODO: replace by my own pictures
-TODO: run replications with 1000 agents for 100 repls
-TODO: run replications with 10,000 agents for 10 repls
+\begin{figure*}
+\begin{center}
 
-\begin{figure}
-	\centering
-	\includegraphics[width=.3\textwidth, angle=0]{./../shared/fig/anylogic/SIR_ABS_ANYLOGIC_10000Agents_10Init_1000Repls.png}
-	\caption{TODO: replace by my own picture. Dynamics of the SIR compartment model using the agent-based approach with same parameters as in SD ($\beta = 1/5$, $\gamma = 0.05$, $\delta = 15$) but with a population of 10,000 where 10 are initially infected and the dynamics averaged over 4 replications.}
+	\begin{tabular}{c c c}
+		\begin{subfigure}[b]{0.3\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./../shared/fig/frabs/SIR_100agents_150t_01dt_parallel_10replications.png}
+			\caption{100 Agents}
+			\label{fig:sir_abs_agents_repls_100}
+		\end{subfigure}
+    	&
+		\begin{subfigure}[b]{0.3\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./../shared/fig/frabs/SIR_1000agents_150t_01dt_parallel_10replications.png}
+			\caption{1,000 Agents}
+			\label{fig:sir_abs_agents_repls_1000}
+		\end{subfigure}
+    	&
+		\begin{subfigure}[b]{0.3\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./../shared/fig/frabs/SIR_1000agents_150t_01dt_parallel_10replications.png}
+			\caption{TODO: create run with 10 replications of 10,000 Agents}
+			\label{fig:sir_abs_agents_repls_10000}
+		\end{subfigure}
+	\end{tabular}
+	
+	\caption{Dynamics of Figure \ref{fig:sir_abs_anylogic_agents} averaged over 10 replications with initially 10 infected agents.} 
 	\label{fig:sir_abs_agents_repls}
-\end{figure}
+\end{center}
+\end{figure*}
 
 For a more in-depth introduction of how to approximate an SD model by ABS see \cite{macal_agent-based_2010} who discusses a general approach and how to compare dynamics and \cite{borshchev_system_2004} which explain the need to draw the illness-duration from an exponential-distribution.
 

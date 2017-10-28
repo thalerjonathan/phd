@@ -28,14 +28,14 @@ t :: DTime
 t = 150
 
 agentCount :: Int
-agentCount = 1000
+agentCount = 100
 
 numInfected :: Int
-numInfected = 1
+numInfected = 10
 
 replCfg :: FrSIRReplicationConfig
 replCfg = ReplicationConfig {
-    replCfgCount = 4,
+    replCfgCount = 10,
     replCfgAgentReplicator = sirAgentDefReplicator,
     replCfgEnvReplicator = defaultEnvReplicator
 }

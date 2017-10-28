@@ -298,3 +298,8 @@ For the environment-behaviour we provide a monadic wrapper as well.
 type EnvironmentMonadicBehaviour e = (Double -> State e ())
 environmentMonadic :: EnvironmentMonadicBehaviour e -> EnvironmentBehaviour e
 \end{minted}
+
+\subsection{Randomness}
+Most of the ABS are inherent stochastic processes and so is the agent-based SIR implementation. This means that agents behaviour depends on random-numbers. So far the drawing from these random-number was hidden behind functions but sometimes an agent needs to draw a random-number directly. For this we provide each agent with its own random-number generator which must be initialized when creating the agent-definition. The agent can then draw random-numbers in a pure way without having to resort to the IO Monad. Still it can become very cumbersome because the changed random-number generator needs to be updated - for this we provide a few convenience functions and monadic implementations.
+
+TODO: discuss random functions for agents.

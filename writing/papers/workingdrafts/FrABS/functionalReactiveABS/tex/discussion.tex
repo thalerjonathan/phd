@@ -180,6 +180,9 @@ Due to the inherent recursive nature of functional programming we came up with t
 \subsection{Advantages}
 We now look at a number of advantages this functional reactive approach to ABS has over to the traditional imperative, object-oriented implementation approaches done in Phyton, Java, C++.
 
+\subsubsection{Continuous Time}
+It seems that in our approach we combine the benefits of SD and ABS: we have continuous time-semantics but with individual, heterogenous agents.
+
 \subsubsection{Code close to specification}
 As becomes directly evident when looking at the code of the agent-based implementation in Appendix \ref{app:abs_code} and system dynamics implementation in Appendix \ref{app:sd_code}, it looks very much like a specification. By creating this EDSL which allows to express powerful time-semantics it is possible to now create an ABS in a declarative style in Haskell where agent-implementation looks like a model-specification thus being correct by definition.
 arrowized programming is optional and only required when utilizing yampas time-semantics. if the model does not rely on time-semantics, it can use monadic-programming by building on the existing monadic functions in the EDSL which allow to run in the State-Monad which simplifies things very much

@@ -50,7 +50,6 @@ type FrSIRAgentOut = AgentOut FrSIRAgentState FrSIRMsg FrSIREnvironment
 type FrSIRAgentObservable = AgentObservable FrSIRAgentState
 
 type FrSIREventSource = EventSource FrSIRAgentState FrSIRMsg FrSIREnvironment
-type FrSIRMessageSource = MessageSource FrSIRAgentState FrSIRMsg FrSIREnvironment
 type FrSIRReplicationConfig = ReplicationConfig FrSIRAgentState FrSIRMsg FrSIREnvironment
 type FrSIRAgentDefReplicator = AgentDefReplicator FrSIRAgentState FrSIRMsg FrSIREnvironment
 ------------------------------------------------------------------------------------------------------------------------

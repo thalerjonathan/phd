@@ -1,5 +1,5 @@
 \section{The SIR Model}
-To explain the concepts of ABS and of our functional reactive approach to it, we introduce the SIR model as a motivating example. The SIR model is a a very well studied and understood compartment model from epidemiology which allows to simulate the dynamics of an infectious disease spreading through a population. In this model, people in a population of size $N$ can be in either one of three states \textit{Susceptible}, \textit{Infected} or \textit{Recovered} at a particular time, where it is assumed that initially there is at least one infected person in the population. People interact with each other \textit{on average} with a given rate $\beta$ per time-unit and get infected with a given probability $\gamma$ when interacting with an infected person. When infected, a person recovers \textit{on average} after $\delta$ time-units and is then immune to further infections. An infected person interaction with another infected one is never re-infected, thus interactions amongst infected people is not important in this model. This definition gives rise to three compartments with the transitions as seen in Figure \ref{fig:sir_transitions}.
+To explain the concepts of ABS and of our functional reactive approach to it, we introduce the SIR model as a motivating example. It is a very well studied and understood compartment model from epidemiology which allows to simulate the dynamics of an infectious disease spreading through a population. In this model, people in a population of size $N$ can be in either one of three states \textit{Susceptible}, \textit{Infected} or \textit{Recovered} at a particular time, where it is assumed that initially there is at least one infected person in the population. People interact with each other \textit{on average} with a given rate $\beta$ per time-unit and get infected with a given probability $\gamma$ when interacting with an infected person. When infected, a person recovers \textit{on average} after $\delta$ time-units and is then immune to further infections. An interaction between infected persons does not lead to re-infection, thus these interactions are ignored in this model. This definition gives rise to three compartments with the transitions as seen in Figure \ref{fig:sir_transitions}.
 
 \begin{figure}
 	\centering
@@ -29,7 +29,7 @@ I(t) &= 1 + \int_0^t infectionRate - recoveryRate\, \mathrm{d}t \\
 R(t) &= \int_0^t recoveryRate\, \mathrm{d}t
 \end{align*}
 
-There exist a huge number of software-packages which allow to conveniently express SD models using a visual approach like in Figure \ref{fig:sir_sd_stockflow_diagramm}.
+There exist a huge number of software packages which allow to conveniently express SD models using a visual approach like in Figure \ref{fig:sir_sd_stockflow_diagramm}.
 
 \begin{figure}
 	\centering
@@ -48,25 +48,24 @@ Running the SD simulation over time results in the dynamics as shown in Figure \
 \end{figure}
 
 \subsection*{An Agent-Based approach}
-The SD approach is inherently top-down because the emergent property of the system is formalized in differential equations. The question is if such a top-down behaviour can be emulated using ABS, which is inherently bottom-up. Also the question is if there are fundamental drawbacks and benefits when doing so using ABS. Indeed such questions were asked before and modelling the SD approach of the SIR model is possible using an agent-based approach. It is important to note that SD treats the population completely continuous which results in non-discrete values of stocks e.g. 3.1415 infected persons. Thus the fundamental approach to map the SIR model to an ABS is to discretize the population and model each person in the population as an individual agent. The transition  between the states are no longer happening according to continuous differential equations but due to discrete events caused both by interactions amongst the agents and time-outs.
+The SD approach is inherently top-down because the emergent property of the system is formalized in differential equations. The question is if such a top-down behaviour can be emulated using ABS, which is inherently bottom-up. Also the question is if there are fundamental drawbacks and benefits when doing so using ABS. Such questions were asked before and modelling the SIR model using an agent-based approach is indeed possible. It is important to note that SD treats the population completely continuous which results in non-discrete values of stocks e.g. 3.1415 infected persons. Thus the fundamental approach to map the SIR model to an ABS is to discretize the population and model each person in the population as an individual agent. The transition  between the states are no longer happening according to continuous differential equations but due to discrete events caused both by interactions amongst the agents and time-outs.
 
 \begin{itemize}
-	\item Every agent makes on average contact with $\beta$ random other agents per time unit. In ABS we can only contact discrete agents thus we model this by generating a random event on average every $\beta$ time units. Note that we need to sample from an exponential CDF because the rate is proportional to the size of the population as \cite{borshchev_system_2004} pointed out.
+	\item Every agent makes \textit{on average} contact with $\beta$ random other agents per time unit. In ABS we can only contact discrete agents thus we model this by generating a random event on average every $\beta$ time units. Note that we need to sample from an exponential CDF because the rate is proportional to the size of the population as \cite{borshchev_system_2004} pointed out.
 	
-	\item An agent does not know the other agents' state when making contact with it, thus we need a mechanism in which agents reveal their state in which they are in \textit{at the moment of making contact}. Obviously the already mentioned messaging-mechanism which allows agents to interact is perfectly suited to do this.
+	\item An agent does not know the other agents' state when making contact with it, thus we need a mechanism in which agents reveal their state in which they are in \textit{at the moment of making contact}. Obviously the already mentioned messaging which allows agents to interact is perfectly suited to do this.
 	\begin{itemize}
-		\item \textit{Susceptible} agent: there is actually no need for a susceptible agent to contact others as making contact with a susceptible agent has no influence on the state of the contacted agent.
-		\item \textit{Infected} agent: sends an "Infected" message to other agents as described above.
-		\item \textit{Recovered} agent: does not need to send messages because contacting it or being contacted by it has no influence on the state.
+		\item \textit{Susceptibles}: These agents make contact with other random agents (excluding themselves) with a "Susceptible" message. They can be seen to be the drivers of the dynamics.
+		\item \textit{Infected}: These agents only reply to incoming "Susceptible" messages with an "Infected" message to the sender. Note that they themselves do \textit{not} make contact pro-actively but only react to incoming one. 
+		\item \textit{Recovered}: These agents do not need to send messages because contacting it or being contacted by it has no influence on the state.
 	\end{itemize}
 	
-	\item Transition of susceptible to infected state - A susceptible agent needs to have made contact with an infected agent which happens when it receives an "Infected" message. If this happens an infection occurs with a probability of $\gamma$. The infection can be calculated by drawing $p$ from a uniform random-distribution between 0 and 1 - infection occurs in case of $\gamma >= p $. Note that this needs to be done for \textit{every} received "Infected" message.
+	\item Transition of susceptible to infected state - a susceptible agent needs to have made contact with an infected agent which happens when it receives an "Infected" message. If this happens an infection occurs with a probability of $\gamma$. The infection can be calculated by drawing $p$ from a uniform random-distribution between 0 and 1 - infection occurs in case of $\gamma >= p $. Note that this needs to be done for \textit{every} received "Infected" message.
 	
 	\item Transition of infected to recovered - a person recovers \textit{on average} after $\delta$ time unites. This is implemented by drawing the duration from an exponential distribution \cite{borshchev_system_2004} with $\lambda = \frac{1}{\delta}$ and making the transition after this duration.
 \end{itemize}
 
-We will derive the implementation of this approach in the following sections and finally present it in our FrABS library. As will be seen the library allows us express this behaviour very explicitly and is looking very much like a formal ABS specification of the problem. In Figure \ref{fig:sir_abs_anylogic_agents} we give the dynamics simulating the SIR model with the agent-based approach.
-
+In Figure \ref{fig:sir_abs_anylogic_agents} we give the dynamics simulating the SIR model with the agent-based approach.
 
 %TODO: replace these pictures with ones generated by FrABS
 %
@@ -110,17 +109,20 @@ We will derive the implementation of this approach in the following sections and
 \end{center}
 \end{figure*}
 
-TODO: rewrite this section as we don't run replications, as we arrive already at very very close approximation due to our approach of super-sampling
+As previously mentioned the agent-based approach is a discrete one which means that with increasing number of agents, the discrete dynamics approximate the continuous dynamics of the SD simulation. Still the dynamics of 10,000 Agents do not match the dynamics of the SD simulation perfectly. This is because as opposed to the SD simulation the agent-based approach is inherently a stochastic one as we continuously draw from random-distributions which drive our state-transitions. What we see in Figure \ref{fig:sir_abs_anylogic_agents} is then just a single run where the dynamics would result in slightly different shapes when run with a different random-number generator seed. The agent-based approach thus generates a distribution of dynamics over which ones needs to average to arrive at the correct solution. This can be done using replications in which the simulation is run with the exact same parameters multiple times but each with a different random-number generator see. The resulting dynamics are then averaged and the result is then regarded as the correct dynamics.
+We have done this as can be seen in Figure \ref{fig:sir_abs_agents_repls}, using 4 replications, which matches the SD dynamics to a very satisfactory level \footnote{Note that in the replications we are using 10 initially infected agents to ensure that no simulation run will terminate too early (meaning that the disease gets extinct after a few time steps) which would offset the dynamics completely. This happens due to "unlucky" random distributions which can be repaired by introducing more initially infected agents which increases the probability of spreading the disease in the very early stage of the simulation drastically. We found that when using 10 initially infected agents in a population of 10,000 (which amounts to 0.1\%) is enough to never result in an early terminating simulation. This is also a fundamental difference between SD and ABS: the dynamics of the agent-based approach can result in a wide range of scenarios which includes also the one in which the disease gets extinct in the early stages (a lucky coincidence for mankind) - this is simply not possible in the SD approach. So we can argue that ABS is much closer to reality than SD as it allows to explore alternate futures in the dynamics.}.
 
-As previously mentioned the agent-based approach is a discrete one which means that with increasing number of agents, the discrete dynamics approximate the continuous dynamics of the SD simulation. Still the dynamics of 10,000 Agents do not match the dynamics of the SD simulation to a satisfactory level as the susceptibles in SD fall off earlier and the peak is reached a bit earlier. This is because as opposed to the SD simulation the agent-based approach is inherently a stochastic one as we continuously draw from random-distributions which drive our state-transitions. What we see in Figure \ref{fig:sir_abs_anylogic_agents} is then just a single run where the dynamics would result in slightly different shapes when run with a different random-number generator seed. The agent-based approach thus generates a distribution of dynamics over which ones needs to average to arrive at the correct solution. This can be done using replications in which the simulation is run with the exact same parameters multiple times but each with a different random-number generator see. The resulting dynamics are then averaged and the result is then regarded as the correct dynamics. We have done this as can be seen in Figure \ref{fig:sir_abs_anylogic_agents_repls}, using 1000 replications, which matches the SD dynamics to a very satisfactory level \footnote{Note that in the replications we are using 10 initially infected agents to ensure that no simulation run will terminate too early (meaning that the disease gets extinct after a few time steps) which would offset the dynamics completely. This happens due to "unlucky" random distributions which can be repaired by introducing more initially infected agents which increases the probability of spreading the disease in the very early stage of the simulation drastically. We found that when using 10 initially infected agents in a population of 10,000 (which amounts to 0.1\%) is enough to never result in an early terminating simulation. This is also a fundamental difference between SD and ABS: the dynamics of the agent-based approach can result in a wide range of scenarios which includes also the one in which the disease gets extinct in the early stages (a lucky coincidence for mankind) - this is simply not possible in the SD approach. So we can argue that ABS is much closer to reality than SD as it allows to explore alternate futures in the dynamics.}.
+TODO: replace by my own pictures
+TODO: run replications with 1000 agents for 100 repls
+TODO: run replications with 10,000 agents for 10 repls
 
-%TODO: replace by my own pictures
-%
-%\begin{figure}
-%	\centering
-%	\includegraphics[width=.4\textwidth, angle=0]{./../shared/fig/SIR_ABS_ANYLOGIC_10000Agents_10Init_1000Repls.png}
-%	\caption{Dynamics of the SIR compartment model using the agent-based approach with same parameters as in SD ($\beta = 1/5$, $\gamma = 0.05$, $\delta = 15$) but with a population of 10,000 where 10 are initially infected and the dynamics averaged over 1000 replications. Dynamics generated with AnyLogic Personal Learning Edition 8.1.0.}
-%	\label{fig:sir_abs_anylogic_agents_repls}
-%\end{figure}
+\begin{figure}
+	\centering
+	\includegraphics[width=.3\textwidth, angle=0]{./../shared/fig/anylogic/SIR_ABS_ANYLOGIC_10000Agents_10Init_1000Repls.png}
+	\caption{TODO: replace by my own picture. Dynamics of the SIR compartment model using the agent-based approach with same parameters as in SD ($\beta = 1/5$, $\gamma = 0.05$, $\delta = 15$) but with a population of 10,000 where 10 are initially infected and the dynamics averaged over 4 replications.}
+	\label{fig:sir_abs_agents_repls}
+\end{figure}
 
 For a more in-depth introduction of how to approximate an SD model by ABS see \cite{macal_agent-based_2010} who discusses a general approach and how to compare dynamics and \cite{borshchev_system_2004} which explain the need to draw the illness-duration from an exponential-distribution.
+
+We will derive the implementation of this approach in the next section, with the complete code provided in Appendix \ref{app:abs_code}. As will be seen our approach allows us express this behaviour very explicitly and is looking very much like a formal ABS specification of the problem. 

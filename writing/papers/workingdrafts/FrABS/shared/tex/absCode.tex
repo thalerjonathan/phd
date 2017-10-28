@@ -123,7 +123,7 @@ sirAgentInfectedBehaviour g = proc ain -> do
 
 -- RECOVERED
 sirAgentRecovered :: SIRAgentBehaviour
-sirAgentRecovered = setDomainStateReact Recovered
+sirAgentRecovered = setDomainStateR Recovered
 
 -- INITIAL CASES
 sirAgentBehaviour :: RandomGen g => g -> SIRState -> SIRAgentBehaviour
@@ -132,16 +132,16 @@ sirAgentBehaviour g Infected = sirAgentInfected g
 sirAgentBehaviour _ Recovered = sirAgentRecovered
 
 -------------------------------------------------------------------------------
-runSIRSteps :: IO ()
-runSIRSteps = do
+runSIR :: IO ()
+runSIR = do
     -- no collapsing/updating of environment
     params <- initSimulation updateStrategy Nothing Nothing shuffleAgents (Just rngSeed)
     (initAdefs, initEnv) <- createSIRNumInfected agentCount numInfected
     let dynamics = simulateAggregateTime initAdefs initEnv params dt t aggregate
     print dynamics
 	
-aggregate :: ([SIRAgentObservable], SIREnvironment) -> (Double, Double, Double)
-aggregate (aobs, _) = (susceptibleCount, infectedCount, recoveredCount)
+aggregate :: (Time, [SIRAgentObservable], SIREnvironment) -> (Time, Double, Double, Double)
+aggregate (t, aobs, _) = (t, susceptibleCount, infectedCount, recoveredCount)
   where
     susceptibleCount = fromIntegral $ length $ filter ((Susceptible==) . snd) aobs
     infectedCount = fromIntegral $ length $ filter ((Infected==) . snd) aobs

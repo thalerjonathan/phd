@@ -148,20 +148,10 @@
 	"buffers":
 	[
 		{
-			"file": "examples/Main.hs",
+			"file": "examples/SysDynSIR/Run.hs",
 			"settings":
 			{
-				"buffer_size": 1867,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "examples/FrSIRSSpatial/Run.hs",
-			"settings":
-			{
-				"buffer_size": 5924,
-				"encoding": "UTF-8",
+				"buffer_size": 1431,
 				"line_ending": "Unix"
 			}
 		}
@@ -222,7 +212,7 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR",
 		"/home/jonathan/phd/coding/libraries/frABS/src",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS",
@@ -230,18 +220,19 @@
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Init.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SysDynSIR/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Utils/Sirs.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Run.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Simulation/Replication.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Model.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgents/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSSpatial/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIRSNetwork/Agent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgents/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Reactive.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Agent.hs",
@@ -279,7 +270,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Network.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Spatial.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Utils.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Monad.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Random.hs",
@@ -376,6 +366,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"FrSIRMessageSource",
 			"policyEffectsEnvReplicator",
 			"dooncer",
 			"updateDomainStateR",
@@ -502,8 +493,7 @@
 			"seasons",
 			"passWealthOnM",
 			"diseasedMetabolismIncrease",
-			"metabolismAmount",
-			"runSugarScapeStepsAndExport"
+			"metabolismAmount"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -612,62 +602,32 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 0,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "examples/Main.hs",
-					"semi_transient": false,
+					"file": "examples/SysDynSIR/Run.hs",
+					"semi_transient": true,
 					"settings":
 					{
-						"buffer_size": 1867,
+						"buffer_size": 1431,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1062,
-								1062
+								1117,
+								1123
 							]
 						],
 						"settings":
 						{
-							"subhask_project_dir": "/home/jonathan/phd/coding/libraries/frABS/examples",
-							"subhask_project_name": "frABSExamples",
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
+							"syntax": "Packages/Haskell/Haskell.sublime-syntax"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "examples/FrSIRSSpatial/Run.hs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 5924,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								548,
-								548
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 270.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -769,7 +729,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 546.0,
+	"side_bar_width": 444.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

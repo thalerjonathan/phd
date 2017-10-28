@@ -1,6 +1,16 @@
 \section{Background}
 
+\subsection{Agent-Based Simulation}
+We understand ABS as a method of modelling and simulating a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is of knowledge. Those parts, called agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. So the central aspect of ABS is the concept of an agent which can be understood as a metaphor for a pro-active unit, situated in an environment, able to spawn new agents and interacting with other agents in a network of neighbours by exchange of messages \cite{wooldridge_introduction_2009}. It is important to note that we focus our understanding of ABS on a very specific kind of agents where the focus is on communicating entities with individual, localized behaviour from out of which the global behaviour of the system emerges. We informally assume the following about our agents:
 
+\begin{itemize}
+	\item They are uniquely addressable entities with some internal state over which they have full, exclusive control.
+	\item They are pro-active which means they can initiate actions on their own e.g. change their internal state, send messages, create new agents, terminate themselves.
+	\item They are situated in an environment and can interact with it.
+	\item They can interact with other agents which are situated in the same environment by means of message-passing.
+\end{itemize} 
+
+\subsection{SIR Model}
 - do not introduce SIR model in that length, also don't discuss SD and ABS, only minimal definition of what we understand as ABS, ignore definition of SD completely
 - good introduction to pure functional programming in Haskell: this is VERY difficult as it is a VAST topic where one can get lost quickly. focus on the central concepts: no assignment, recursion, pattern matching, static type-system with higher-kinded polymorphism
 - focus on the benefits of the pure functional approach

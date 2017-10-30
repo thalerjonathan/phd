@@ -30,12 +30,12 @@ Each agent may have a generic state which could be represented by any data type 
 data SIRState = Susceptible | Infected | Recovered
 \end{minted}
 
-The behaviour of the agent is a signal-function which maps a tuple of an AgentIn and the environment to an AgentOut and the environment. It has the following signature \footnote{Note that we omit the type-parameters in the following code-listings as it would only lead to confusion and obscure the real meaning. Still it is important to keep in mind that all AgentIn and AgentOut are parameterised with \textit{s} representing the type of its state, \textit{m} representing the type of the messages and \textit{e} representing the type of environment.} 
+The behaviour of the agent is a signal-function which maps a tuple of an AgentIn and the environment to an AgentOut and the environment. It has the following signature \footnote{Note that we omit the type-parameters in the following code-listings unless it is needed for clarity. Still it is important to keep in mind that all AgentIn and AgentOut are parameterised with \textit{s} representing the type of its state, \textit{m} representing the type of the messages and \textit{e} representing the type of environment.} 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 type AgentBehaviour s m e = SF (AgentIn s m e, e) (AgentOut s m e, e)
 \end{minted}
 
-AgentIn provides the necessary data to the agent-behaviour: its id, incoming messages, the current state s and a random-number generator. AgentOut allows the agent to communicate changes: kill itself, create new agents, sending messages, an updated state s and a changed random-number generator. Both types are treated as opaque and access to them is only possible through the provided functions.
+AgentIn provides the necessary data to the agent-behaviour: its id, incoming messages, the current state s and a random-number generator. AgentOut allows the agent to communicate changes: kill itself, create new agents, sending messages, an updated state s and a changed random-number generator. Both types are opaque and access to them is only possible through the provided functions.
 
 The behaviour also gets the environment passed in, which the agent can read and also write by changing it and returning it along side the AgentOut. It is important to note, that the environment is completely generic and we do not induce any type-bounds on it.
 
@@ -57,7 +57,7 @@ onStart :: (AgentOut -> AgentOut) -> AgentIn -> AgentOut -> AgentOut
 
 agentState :: AgentOut -> s
 setAgentState :: s -> AgentOut -> AgentOut
-updateAgentState :: (s -> s) -> AgentOut ->  AgentOut
+updateAgentState :: (s -> s) -> AgentOut -> AgentOut
 
 createAgent :: AgentDef -> AgentOut -> AgentOut
 \end{minted}
@@ -69,12 +69,12 @@ The function \textit{createAgent} allows to add an agent-definition \footnote{Ag
 Having these functions we build some reactive primitives into our EDSL meaning that they return signal-functions themselves. We start with the following functions:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-doOnce :: (AgentOut s m e -> AgentOut s m e) -> SF (AgentOut s m e) (AgentOut s m e)
-doOnceR :: AgentBehaviour s m e -> AgentBehaviour s m e
-doNothing :: AgentBehaviour s m e
+doOnce :: (AgentOut -> AgentOut) -> SF AgentOut AgentOut
+doOnceR :: AgentBehaviour -> AgentBehaviour
+doNothing :: AgentBehaviour
 
-setDomainStateR :: s -> AgentBehaviour s m e
-updateDomainStateR :: (s -> s) -> AgentBehaviour s m e
+setDomainStateR :: s -> AgentBehaviour
+updateDomainStateR :: (s -> s) -> AgentBehaviour
 \end{minted}
 
 The \textit{doOnce} function may seem strange at first but allows conveniently make actions (which are changing the agent-out) only once e.g. when making the transition from Susceptible to Infected changing the state to Infected just once. A more striking example would be to send a message just once after a transition. The \textit{doOnceR} function is the reactive version, which allows to do a complete agent-behaviour only once. The function \textit{doNothing} provides a convenient way of an agent-sink which is basically an agent which does literally nothing - the resulting agent-behaviour just transforms the agent-in to agent-out using the previously mentioned function \textit{agentOutFromIn}.
@@ -82,8 +82,8 @@ The \textit{doOnce} function may seem strange at first but allows conveniently m
 Often we want some more reactive behaviour e.g. making a transition from one behaviour to another on a given event. For this we provide the following:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-type EventSource s m e = SF (AgentIn s m e, AgentOut s m e) (AgentOut s m e, Event ())
-transitionOnEvent :: EventSource s m e -> AgentBehaviour s m e -> AgentBehaviour s m e -> AgentBehaviour s m e
+type EventSource = SF (AgentIn, AgentOut) (AgentOut, Event ())
+transitionOnEvent :: EventSource -> AgentBehaviour -> AgentBehaviour -> AgentBehaviour
 \end{minted}
 
 The function \textit{transitionOnEvent} takes an event-source which creates the event, an agent-behaviour which is run until the event hits and an agent-behaviour which is run at the event and after. The event-source is a signal-function itself to allow maximum of flexibility and gets both agent-in and agent-out and returns a (potentially changed) agent-out and the event upon to switch. 
@@ -94,9 +94,9 @@ Sometimes we need our transition event to rely on time-semantics e.g. in SIR whe
 \begin{minted}[fontsize=\footnotesize]{haskell}
 transitionAfterExp :: RandomGen g => g
 						 -> Double 
-						 -> AgentBehaviour s m e 
-						 -> AgentBehaviour s m e 
-						 -> AgentBehaviour s m e
+						 -> AgentBehaviour
+						 -> AgentBehaviour
+						 -> AgentBehaviour
 \end{minted}
 
 It takes a random-number generator, the \textit{average} time-out, the behaviour to run before the time-out and the behaviour to run after the time-out where the function will return then the according behaviour. For implementing this behaviour we initially used Yampas \textit{after} function which generates an event after given time-units but this would not result in the correct dynamics as we rather need to create a random-distribution of time-outs than a deterministic time-out which occurs always after the same time. For this we implemented our own function, called \textit{afterExp}, which now takes a random-number generator a time-out and some value of type b and creates a signal-function which ignores its input and creates an event \textit{on average} after DTime.
@@ -122,15 +122,15 @@ In addition we provide the following functions in our EDSL to support messaging.
 \begin{minted}[fontsize=\footnotesize]{haskell}
 type AgentMessage m = (AgentId, m)
 
-sendMessage :: AgentMessage m -> AgentOut s m e -> AgentOut s m e
-sendMessageTo :: AgentId -> m -> AgentOut s m e -> AgentOut s m e
-sendMessages :: [AgentMessage m] -> AgentOut s m e ->  AgentOut s m e
-broadcastMessage :: m -> [AgentId] -> AgentOut s m e -> AgentOut s m e
+sendMessage :: AgentMessage -> AgentOut -> AgentOut
+sendMessageTo :: AgentId -> m -> AgentOut -> AgentOut
+sendMessages :: [AgentMessage m] -> AgentOut -> AgentOut
+broadcastMessage :: m -> [AgentId] -> AgentOut -> AgentOut
 
-hasMessage :: (Eq m) => m -> AgentIn s m e -> Bool
-onMessage :: (AgentMessage m -> acc -> acc) -> AgentIn s m e -> acc -> acc
-onMessageFrom :: AgentId -> (AgentMessage m -> acc -> acc) -> AgentIn s m e -> acc -> acc
-onMessageType :: (Eq m) => m -> (AgentMessage m -> acc -> acc) -> AgentIn s m e -> acc -> acc
+hasMessage :: (Eq m) => m -> AgentIn -> Bool
+onMessage :: (AgentMessage -> acc -> acc) -> AgentIn -> acc -> acc
+onMessageFrom :: AgentId -> (AgentMessage -> acc -> acc) -> AgentIn -> acc -> acc
+onMessageType :: (Eq m) => m -> (AgentMessage -> acc -> acc) -> AgentIn -> acc -> acc
 \end{minted}
 
 Most of the functions are pretty self-explanatory, we will shortly explain the \textit{onMessage*}. The function \textit{onMessage} provides a way to react to incoming messages by using a callback function which manipulates an accumulator, thus resembling the workings of fold. The functions \textit{onMessageFrom} and \textit{onMessageType} provide the same functionality but filter the messages accordingly. We can now write a function which allows an agent to reply to an incoming Contact message with another contact message of a given SIRstate. TODO: refer to the appendix and give line-numbers instead of inserting it here.
@@ -138,20 +138,20 @@ Most of the functions are pretty self-explanatory, we will shortly explain the \
 Sometimes we also need discrete semantics like changing the behaviour of an agent on reception of a specific message. For this we provide the function \textit{transitionOnMessage} which works the same way as \textit{transitionOnEvent} but now on a message instead.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-transitionOnMessage :: (Eq m) => m -> AgentBehaviour s m e -> AgentBehaviour s m e -> AgentBehaviour s m e
+transitionOnMessage :: (Eq m) => m -> AgentBehaviour -> AgentBehaviour -> AgentBehaviour
 \end{minted}
 
 Of course messaging sometimes may have specific time-semantics as in our SIR model. There susceptible agents make contact with n other agents on average \textit{per time unit}. To implement this we randomly need to generate messages with a given frequency within some time-interval by drawing from the exponential random-distribution. This is already supported by Yampa using \textit{occasionally} and we have built on it a the following:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-type MessageSource s m e = e -> AgentOut s m e -> (AgentOut s m e, AgentMessage m)
+type MessageSource m e = e -> AgentOut -> (AgentOut, AgentMessage m)
 
 sendMessageOccasionallySrc :: RandomGen g => g 
                                 -> Double
-                                -> MessageSource s m e 
-                                -> SF (AgentOut s m e, e) (AgentOut s m e)
+                                -> MessageSource  
+                                -> SF (AgentOut, e) AgentOut
 
-constMsgReceiverSource :: m -> AgentId -> MessageSource s m e
+constMsgReceiverSource :: m -> AgentId -> MessageSource 
 randomNeighbourNodeMsgSource :: m -> MessageSource s m (Network l)
 randomNeighbourCellMsgSource :: (s -> Discrete2dCoord) -> m -> Bool -> MessageSource s m (Discrete2d AgentId)
 randomAgentIdMsgSource :: m -> Bool -> MessageSource s m [AgentId]
@@ -167,25 +167,25 @@ For this we introduce the concept of a conversation between agents. This allows 
 When looking at conversations they may look like an emulation of method-calls but they are more powerful: a receiver can be unavailable to conversations or simply refuse to handle this conversation. This follows the concept of an active actor which can decide what happens with the incoming interaction-request, instead of the passive object which cannot decide whether the method-call is really executed or not.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-type AgentConversationReply s m e = Maybe (m, AgentIn s m e, e)
-
-type AgentConversationReceiver s m e = (AgentIn s m e
+type AgentConversationReceiver s m e = AgentIn
                                             -> e
                                             -> AgentMessage m
-                                            -> AgentConversationReply s m e)
+                                            -> Maybe (s, m, e)
 
-type AgentConversationSender s m e = (AgentOut s m e
+type AgentConversationSender m e = (AgentOut
                                         -> e
                                         -> Maybe (AgentMessage m)  
-                                        -> (AgentOut s m e, e))
+                                        -> (AgentOute, e))
                                         
 conversation :: AgentMessage m
-                -> AgentConversationSender s m e
-                -> AgentOut s m e
-                -> AgentOut s m e
+                -> AgentConversationSender
+                -> AgentOut
+                -> AgentOut
 
-conversationEnd :: AgentOut s m e -> AgentOut s m e
+conversationEnd :: AgentOut -> AgentOut 
 \end{minted}
+
+TODO: rewrite, because reply has changed 
 
 The agent-conversations sender is the initiator of the conversation which can only be an agent which is just run and has started a conversation with a call to the function \textit{conversation}. After the agent has run, the simulation-system will detect the request for a conversation and start processing it by looking up the receiver and calling the functions with passing the values back and forth. While a conversation is active, time does not advance and other agents do not act. Note that due to its nature, conversations are only available when using the \textit{sequential} update-strategy (see below).
 
@@ -237,11 +237,11 @@ Of course not all models have environments which can be changed and in the SIR m
 To make this more explicit we introduce a wrapper which wraps a signal-function which is the same as agent-behaviour but omits the environment from the out tuples. When this wrapper is used one can guarantee statically at compile-time that the environment cannot be changed by the agent-behaviour. We also provide a function which completely ignores the environment, which allows to reason already at compile time that no environment access will happen ever.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-type ReactiveBehaviourIgnoreEnv s m e = SF (AgentIn s m e) (AgentOut s m e)
-type ReactiveBehaviourReadEnv s m e = SF (AgentIn s m e, e) (AgentOut s m e)
+type ReactiveBehaviourIgnoreEnv = SF AgentIn AgentOut
+type ReactiveBehaviourReadEnv e = SF (AgentIn, e) AgentOut
 
-ignoreEnv :: ReactiveBehaviourIgnoreEnv s m e -> AgentBehaviour s m e 
-readEnv :: ReactiveBehaviourReadEnv s m e -> AgentBehaviour s m e 
+ignoreEnv :: ReactiveBehaviourIgnoreEnv -> AgentBehaviour
+readEnv :: ReactiveBehaviourReadEnv -> AgentBehaviour
 \end{minted}
 
 We use both functions in our SIR implementation TODO: refer to appendix.
@@ -252,24 +252,24 @@ Not all models have such explicit time-semantics as the SIR model. Such models j
 \subsubsection{Non-monadic (pure) wrapping}
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-agentPure :: (e -> Double -> AgentIn s m e -> AgentOut s m e -> (AgentOut s m e, e)) -> AgentBehaviour s m e
-agentPureReadEnv :: (e -> Double -> AgentIn s m e -> AgentOut s m e -> AgentOut s m e) -> AgentBehaviour s m e
-agentPureIgnoreEnv :: (Double -> AgentIn s m e -> AgentOut s m e -> AgentOut s m e) -> AgentBehaviour s m e
+agentPure :: (e -> Double -> AgentIn -> AgentOut -> (AgentOut, e)) -> AgentBehaviour
+agentPureReadEnv :: (e -> Double -> AgentIn -> AgentOut -> AgentOut) -> AgentBehaviour
+agentPureIgnoreEnv :: (Double -> AgentIn -> AgentOut -> AgentOut) -> AgentBehaviour
 \end{minted}
 
 The function \textit{agentPure} wraps a non-monadic (pure) function and wraps it in a SF. This pure function has the following arguments: the environment, the current local time of the agent, the AgentIn, a default AgentOut and must return the tuple of AgentOut and the environment.
 
 The function \textit{agentPureReadEnv} works the same as \textit{agentPure} but omits the environment from the return-type thus ensuring statically at compile-time that an agent which implements its behaviour in this way can only read the environment but never change it.
 
-The function \textit{agentPureIgnoreEnv} is an even stricter version of \textit{agentPureReadEnv} and omits environment from the agents behaviour altogether thus ensuring statically at compile-time  that an agent which wraps its behaviour in this function will never access the environment.
+The function \textit{agentPureIgnoreEnv} is an even stricter version of \textit{agentPureReadEnv} and omits environment from the agents behaviour altogether thus ensuring statically at compile-time that an agent which wraps its behaviour in this function will never access the environment.
 
 \subsubsection{Monadic wrapping}
 The monadic wrappers work basically the same way as the pure version, with the difference that they run within the state-monad with AgentOut being the state to pass around.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-agentMonadic :: (e -> Double -> AgentIn s m e -> State (AgentOut s m e) e) -> AgentBehaviour s m e
-agentMonadicReadEnv :: (e -> Double -> AgentIn s m e -> State (AgentOut s m e) ()) -> AgentBehaviour s m e
-agentMonadicIgnoreEnv :: (Double -> AgentIn s m e -> State (AgentOut s m e) ()) -> AgentBehaviour s m e
+agentMonadic :: (e -> Double -> AgentIn -> State AgentOut e) -> AgentBehaviour
+agentMonadicReadEnv :: (e -> Double -> AgentIn -> State AgentOut ()) -> AgentBehaviour
+agentMonadicIgnoreEnv :: (Double -> AgentIn -> State AgentOut ()) -> AgentBehaviour
 \end{minted}
 
 We also provide monadic versions of the pure primitives of our EDSL which work on AgentOut, discussed above. They run in the state-monad where the state is the agent-out as this is the data which is manipulated step-by-step for the final output. 
@@ -277,19 +277,19 @@ We also provide monadic versions of the pure primitives of our EDSL which work o
 \begin{minted}[fontsize=\footnotesize]{haskell}
 agentIdM :: State (AgentOut s m e) AgentId
 
-sendMessageM :: AgentMessage m -> State (AgentOut s m e) ()
-sendMessageToM :: AgentId -> m -> State (AgentOut s m e) ()
-onMessageM :: (Monad mon) => (acc -> AgentMessage m -> mon acc) -> AgentIn s m e -> acc -> mon acc
+sendMessageM :: AgentMessage m -> State AgentOut ()
+sendMessageToM :: AgentId -> m -> State AgentOut ()
+onMessageM :: (Monad mon) => (acc -> AgentMessage m -> mon acc) -> AgentIn -> acc -> mon acc
 
-createAgentM :: AgentDef s m e -> State (AgentOut s m e) ()
+createAgentM :: AgentDef -> State AgentOut ()
 
-killM :: State (AgentOut s m e) ()
-isDeadM :: State (AgentOut s m e) Bool
+killM :: State AgentOut ()
+isDeadM :: State AgentOut Bool
 
-getDomainStateM :: State (AgentOut s m e) s
-updateDomainStateM :: (s -> s) -> State (AgentOut s m e) ()
-setDomainStateM :: s -> State (AgentOut s m e) ()
-domainStateFieldM :: (s -> t) -> State (AgentOut s m e) t
+getDomainStateM :: State AgentOut s
+updateDomainStateM :: (s -> s) -> State AgentOut ()
+setDomainStateM :: s -> State AgentOut ()
+domainStateFieldM :: (s -> t) -> State AgentOut t
 \end{minted}
 
 For the environment-behaviour we provide a monadic wrapper as well.

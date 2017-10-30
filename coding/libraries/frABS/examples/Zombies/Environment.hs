@@ -1,7 +1,7 @@
 module Zombies.Environment (
-    ZombiesEnvironmentCollapsing,
+    ZombiesEnvironmentFolding,
 
-    zombiesEnvironmentsCollapse
+    zombiesEnvironmentsFold
   ) where
 
 import           Zombies.Model
@@ -11,9 +11,9 @@ import           FRP.FrABS
 ------------------------------------------------------------------------------------------------------------------------
 -- ENVIRONMENT-COLLAPSING (parallel strategy)
 ------------------------------------------------------------------------------------------------------------------------
-type ZombiesEnvironmentCollapsing = EnvironmentCollapsing ZombiesEnvironment
+type ZombiesEnvironmentFolding = EnvironmentFolding ZombiesEnvironment
 
-zombiesEnvironmentsCollapse :: ZombiesEnvironmentCollapsing
-zombiesEnvironmentsCollapse es = initEnv
+zombiesEnvironmentsFold :: ZombiesEnvironmentFolding
+zombiesEnvironmentsFold es = initEnv
     where
         initEnv = head es

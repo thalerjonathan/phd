@@ -3,8 +3,6 @@ module NewAgents.Model (
     NewAgentMsg (..),
 
     NewAgentEnvironment,
-    NewAgentEnvironmentBehaviour,
-    NewAgentEnvironmentCollapsing,
 
     NewAgentDef,
     NewAgentBehaviour,
@@ -22,8 +20,6 @@ type NewAgentState = Int
 data NewAgentMsg = None
 
 type NewAgentEnvironment = ()
-type NewAgentEnvironmentBehaviour = EnvironmentBehaviour NewAgentEnvironment
-type NewAgentEnvironmentCollapsing = EnvironmentCollapsing NewAgentEnvironment
 
 type NewAgentDef = AgentDef NewAgentState NewAgentMsg NewAgentEnvironment
 type NewAgentBehaviour = AgentBehaviour NewAgentState NewAgentMsg NewAgentEnvironment

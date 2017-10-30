@@ -13,7 +13,8 @@ module FRP.FrABS.Environment.Discrete (
 
     createDiscrete2d,
  
-    envDimsDisc2dM,
+    dimensionsDisc2d,
+    dimensionsDisc2dM,
 
     allCellsWithCoords,
     updateCells,
@@ -31,6 +32,7 @@ module FRP.FrABS.Environment.Discrete (
     cellAtM,
     randomCell,
     randomCellWithinRect,
+    environmentDisc2dRandom,
 
     neighbours,
     neighboursM,
@@ -112,9 +114,18 @@ createDiscrete2d d@(xLimit, yLimit) n w cs rng
     where
         arr = array ((0, 0), (xLimit - 1, yLimit - 1)) cs
 
+environmentDisc2dRandom :: Rand StdGen (Discrete2d c) -> Discrete2d c -> Discrete2d c
+environmentDisc2dRandom f e = e''
+    where
+        g = envDisc2dRng e
+        (e', g') = runRand f g
+        e'' = e' { envDisc2dRng = g' }
 
-envDimsDisc2dM :: State (Discrete2d c) Discrete2dDimension
-envDimsDisc2dM = state (\e -> (envDisc2dDims e, e))
+dimensionsDisc2d :: Discrete2d c -> Discrete2dDimension
+dimensionsDisc2d = envDisc2dDims
+
+dimensionsDisc2dM :: State (Discrete2d c) Discrete2dDimension
+dimensionsDisc2dM = state (\e -> (envDisc2dDims e, e))
 
 allCellsWithCoords :: Discrete2d c -> [Discrete2dCell c]
 allCellsWithCoords e = assocs $ envDisc2dCells e

@@ -80,7 +80,7 @@ module FRP.FrABS (
     bypassEnvironment,
     
     updateAgentStateM,
-    getAgentStateM,
+    agentStateM,
     setAgentStateM,
     agentStateFieldM,
 
@@ -169,7 +169,7 @@ module FRP.FrABS (
     
     EnvironmentBehaviour,
     EnvironmentMonadicBehaviour,
-    EnvironmentCollapsing,
+    EnvironmentFolding,
 
     EnvironmentWrapping (..),
 
@@ -178,7 +178,7 @@ module FRP.FrABS (
     NetworkType (..),
     DeterministicNetwork (..),
     RandomNetwork (..),
-    Network (..), -- TODO: hide data-constructor
+    Network,
 
     createNetwork,
     createDeterministicNetwork,
@@ -205,7 +205,7 @@ module FRP.FrABS (
     Discrete2dNeighbourhood,
     Discrete2dCell,
     
-    Discrete2d (..), -- TODO: hide data-constructor
+    Discrete2d,
 
     SingleOccupantCell,
     SingleOccupantDiscrete2d,
@@ -214,7 +214,8 @@ module FRP.FrABS (
 
     createDiscrete2d,
  
-    envDimsDisc2dM,
+    dimensionsDisc2d,
+    dimensionsDisc2dM,
     
     allCellsWithCoords,
     updateCells,
@@ -232,6 +233,7 @@ module FRP.FrABS (
     cellAtM,
     randomCell,
     randomCellWithinRect,
+    environmentDisc2dRandom,
 
     neighbours,
     neighboursM,
@@ -269,7 +271,7 @@ module FRP.FrABS (
     Continuous2dDimension,
     Continuous2dCoord,
 
-    Continuous2d (..), -- TODO: hide data-constructor
+    Continuous2d,
     
     Continuous2dEmpty,
     
@@ -316,8 +318,7 @@ module FRP.FrABS (
     runReplicationsWithAggregation,
     
     UpdateStrategy (..),
-    EnvironmentCollapsing,
-    SimulationParams (..),
+    SimulationParams,
 
     simulateIOInit,
     

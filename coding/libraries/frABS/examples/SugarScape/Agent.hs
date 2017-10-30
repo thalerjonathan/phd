@@ -67,7 +67,7 @@ starvedToDeathM =
 agentMetabolismM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
 agentMetabolismM e =
     do
-        s <- getAgentStateM
+        s <- agentStateM
         aid <- agentIdM
         let (sugarMetab, spiceMetab) = metabolismAmount s
 
@@ -130,7 +130,7 @@ agentMoveToM cellCoord e =
 
         updateAgentStateM (\s -> s { sugAgCoord = cellCoord })
 
-        s <- getAgentStateM
+        s <- agentStateM
         aid <- agentIdM
 
         let cell = cellAt cellCoord e'
@@ -406,7 +406,7 @@ agentCombatMoveM e =
                 updateAgentStateM (\s -> s { sugAgSugarLevel = newSugarLevelAgent, sugAgCoord = cellCoord })
 
                 aid <- agentIdM
-                s <- getAgentStateM
+                s <- agentStateM
 
                 let cellHarvestedAndOccupied = cell {
                         sugEnvSugarLevel = 0.0,
@@ -442,7 +442,7 @@ agentTradingM e
         agentTradingConversationM [] = conversationEndM
         agentTradingConversationM (receiverId:otherAis) = 
             do
-                s <- getAgentStateM
+                s <- agentStateM
                 let mrsSelf = agentMRS s
                 conversationM 
                     (receiverId, (TradingOffer mrsSelf)) 
@@ -457,7 +457,7 @@ agentTradingM e
                 agentTradingConversationsReplyM _ (Just (_, (TradingTransact _))) = agentTradingConversationM otherAis  -- NOTE: other agent has transacted, continue with next
                 agentTradingConversationsReplyM mrsSelf (Just (senderId, (TradingAccept mrsOther))) =
                     do
-                        s <- getAgentStateM
+                        s <- agentStateM
 
                         let welfareIncreases = agentTradeIncreaseWelfare s mrsOther
                         
@@ -490,7 +490,7 @@ agentRequestCreditM e =
         agentCreditConversationM [] = conversationEndM
         agentCreditConversationM (receiverId:otherAis) =
             do
-                s <- getAgentStateM
+                s <- agentStateM
 
                 ifThenElse 
                     (isPotentialBorrower s)

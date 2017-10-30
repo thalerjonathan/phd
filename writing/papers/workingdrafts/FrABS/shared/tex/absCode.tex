@@ -1,7 +1,6 @@
 \section{Functional-Reactive code of the agent-based SIR model}
 \label{app:abs_code}
 
-\begin{listing}
 \begin{minted}[fontsize=\footnotesize, linenos]{haskell}
 data SIRState = Susceptible | Infected | Recovered deriving (Eq)
 data SIRMsg = Contact SIRState deriving (Eq)
@@ -148,4 +147,3 @@ aggregate (t, aobs, _) = (t, susceptibleCount, infectedCount, recoveredCount)
     infectedCount = fromIntegral $ length $ filter ((Infected==) . snd) aobs
     recoveredCount = fromIntegral $ length $ filter ((Recovered==) . snd) aobs
 \end{minted}
-\end{listing}

@@ -7,7 +7,7 @@ The challenges one faces when implementing an ABS plain, without support from a 
 	\item Agent Representation - how do we represent an agent in Haskell?
 	\item Agent-Agent Interaction - how can agents interact with other agents in Haskell without resorting to the IO Monad?
 	\item Environment representation - how can we represent an environment which must have the ability to update itself e.g. regrow some resources?
-	\item Agent-Environment interaction - how can agents interact (read / write) with the environment they are situated in?
+	\item Agent-Environment interaction - how can agents interact (read / write) with the environment?
 	\item Agent Updating - how is the set of agents organised, how are they updated and how is it managed (deleting, adding during simulation) in Haskell without resorting to the IO Monad?
 \end{itemize}
 
@@ -19,7 +19,7 @@ An agent can be seen as a tuple $<id, s, m, e, b>$.
 	\item \textbf{id} - the unique identifier of the agent
 	\item \textbf{s} - the generic state of the agent
 	\item \textbf{m} - the messages the agent understands
-	\item \textbf{e} - the environment the agent is situated in and can interact with
+	\item \textbf{e} - the environment the agent can interact with
 	\item \textbf{b} - the behaviour of the agent
 \end{itemize}
 
@@ -35,21 +35,17 @@ The behaviour of the agent is a signal-function which maps a tuple of an AgentIn
 type AgentBehaviour s m e = SF (AgentIn s m e, e) (AgentOut s m e, e)
 \end{minted}
 
-AgentIn provides the necessary data to the agent-behaviour: its id, incoming messages, the current state s and a random-number generator. AgentOut allows the agent to communicate changes: kill itself, create new agents, sending messages, an updated state s and a changed random-number generator. Both types are opaque and access to them is only possible through the provided functions.
-
-The behaviour also gets the environment passed in, which the agent can read and also write by changing it and returning it along side the AgentOut. It is important to note, that the environment is completely generic and we do not induce any type-bounds on it.
-
-Obviously AgentIn is read-only \footnote{Of course one could change it, but the changes are never propagated out of the function thus ultimately making them never happen due to lazy evaluation.} whereas AgentOut is both read- and write-able. The first thing an agent-behaviour does is creating the default AgentOut from the existing AgentIn as is done in line 94 in Appendix \ref{app:abs_code}.
+\textit{AgentIn} provides the necessary data to the agent-behaviour: its \textit{id}, incoming messages, the current state \textit{s} and a random-number generator. \textit{AgentOut} allows the agent to communicate changes: kill itself, create new agents, sending messages, an updated state \textit{s} and a changed random-number generator. Both types are opaque and access to them is only possible through the provided functions. The behaviour also gets the environment passed in, which the agent can read and also write by changing it and returning it along side the \textit{AgentOut}. It is important to note that the environment is completely generic and we do not induce any type bounds on it. Obviously \textit{AgentIn} is read-only whereas \textit{AgentOut} is both read- and write-able. The first thing an agent-behaviour does is creating the default AgentOut from the existing AgentIn as is done in line 94 in Appendix \ref{app:abs_code}.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 agentOutFromIn :: AgentIn -> AgentOut
 \end{minted}
 
-This will copy the relevant fields over to AgentOut on which one now primarily acts. The read-only and read/write character of both types is also reflected in the EDSL where most of the functions implemented also work that way: they may read the AgentIn and read/write an AgentOut.
-
-Relevant functions for working on the agent-definition are:
+This will copy the relevant fields over to \textit{AgentOut} on which one now primarily acts. The read-only and read/write character of both types is also reflected in the EDSL where most of the functions implemented also work that way: they may read the \textit{AgentIn} and read/write an \textit{AgentOut}. Relevant functions for working on the agent-definition are:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
+type AgentId = Int
+
 agentId :: AgentIn -> AgentId
 kill :: AgentOut -> AgentOut
 isDead :: AgentOut -> Bool
@@ -62,9 +58,7 @@ updateAgentState :: (s -> s) -> AgentOut -> AgentOut
 createAgent :: AgentDef -> AgentOut -> AgentOut
 \end{minted}
 
-The function \textit{kill} marks an agent for removal after the current iteration. The function \textit{isDead} checks if the agent is marked for removal. The function \textit{onStart} allows to change the AgentOut in the case of the start-event which happens on the very first time the agent runs.
-The function \textit{setDomainState} allows to change the state of the agent by overriding it and \textit{updateDomainState} allows to change it by keeping parts of it.
-The function \textit{createAgent} allows to add an agent-definition \footnote{AgentDef simply contains the initial state, behaviour and id of the agent (amongst others).} to the AgentOut which results in creating a new agent from the given definition which will be active in the next iteration of the simulation. 
+The function \textit{kill} marks an agent for removal after the current iteration. The function \textit{isDead} checks if the agent is marked for removal. The function \textit{onStart} allows to change the \textit{AgentOut} in the case of the start-event which happens on the very first time the agent runs. The function \textit{agentState} returns the agents' state \textit{s}, \textit{setAgentState} allows to change the state of the agent by overriding it and \textit{updateAgentState} allows to change it by keeping parts of it. The function \textit{createAgent} allows to add an agent-definition \footnote{AgentDef simply contains the initial state, behaviour and id of the agent (amongst others). See line 50 - 57 in Appendix \ref{app:abs_code}.} to the AgentOut which results in creating a new agent from the given definition which will be active in the next iteration of the simulation. 
 
 Having these functions we build some reactive primitives into our EDSL meaning that they return signal-functions themselves. We start with the following functions:
 
@@ -73,11 +67,11 @@ doOnce :: (AgentOut -> AgentOut) -> SF AgentOut AgentOut
 doOnceR :: AgentBehaviour -> AgentBehaviour
 doNothing :: AgentBehaviour
 
-setDomainStateR :: s -> AgentBehaviour
-updateDomainStateR :: (s -> s) -> AgentBehaviour
+setAgentStateR :: s -> AgentBehaviour
+updateAgentStateR :: (s -> s) -> AgentBehaviour
 \end{minted}
 
-The \textit{doOnce} function may seem strange at first but allows conveniently make actions (which are changing the agent-out) only once e.g. when making the transition from Susceptible to Infected changing the state to Infected just once. A more striking example would be to send a message just once after a transition. The \textit{doOnceR} function is the reactive version, which allows to do a complete agent-behaviour only once. The function \textit{doNothing} provides a convenient way of an agent-sink which is basically an agent which does literally nothing - the resulting agent-behaviour just transforms the agent-in to agent-out using the previously mentioned function \textit{agentOutFromIn}.
+The \textit{doOnce} function may seem strange at first but allows conveniently make actions (which are changing the \textit{AgentOut}) only once e.g. when making the transition from Susceptible to Infected changing the state to Infected just once as can be seen in line 114 of Appendix \ref{app:abs_code}. A more striking example would be to send a message just once after a transition. The \textit{doOnceR} function is the reactive version, which allows to run an agent behaviour only once. The function \textit{doNothing} provides a convenient way of an agent sink which is basically an agent which does literally nothing - the resulting agent behaviour just transforms the \textit{AgentIn} to \textit{AgentOut} using the previously mentioned function \textit{agentOutFromIn}.
 
 Often we want some more reactive behaviour e.g. making a transition from one behaviour to another on a given event. For this we provide the following:
 
@@ -86,17 +80,13 @@ type EventSource = SF (AgentIn, AgentOut) (AgentOut, Event ())
 transitionOnEvent :: EventSource -> AgentBehaviour -> AgentBehaviour -> AgentBehaviour
 \end{minted}
 
-The function \textit{transitionOnEvent} takes an event-source which creates the event, an agent-behaviour which is run until the event hits and an agent-behaviour which is run at the event and after. The event-source is a signal-function itself to allow maximum of flexibility and gets both agent-in and agent-out and returns a (potentially changed) agent-out and the event upon to switch. 
-The workings of this functionality can be seen for implementing the susceptible agent where we use a \textit{transitionOnEvent} and a specific event-source which generates an event when the susceptible agent got infected.
+The function \textit{transitionOnEvent} takes an event-source which creates the event, an agent behaviour which is run until the event hits and an agent behaviour which is run at the event and after. The event-source is a signal-function itself to allow maximum of flexibility and gets both \textit{AgentIn} and \textit{AgentOut} and returns a (potentially changed) \textit{AgentOut} and the event upon to switch. 
+This function is used for implementing the susceptible agent where we use a \textit{transitionOnEvent} and a specific event-source which generates an event when the susceptible agent got infected as can be seen in lines 81-90 in Appendix \ref{app:abs_code}.
 
-Sometimes we need our transition event to rely on time-semantics e.g. in SIR where an infected agent recovers \textit{on average} after $\delta$ time-units. For this we provide the following function
+Sometimes we need our transition event to rely on time-semantics e.g. in SIR where an infected agent recovers \textit{on average} after $\delta$ time-units. For this we provide the following function which can be seen in line 106 in Appendix \ref{app:abs_code}:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-transitionAfterExp :: RandomGen g => g
-						 -> Double 
-						 -> AgentBehaviour
-						 -> AgentBehaviour
-						 -> AgentBehaviour
+transitionAfterExp :: RandomGen g => g -> Double -> AgentBehaviour -> AgentBehaviour -> AgentBehaviour
 \end{minted}
 
 It takes a random-number generator, the \textit{average} time-out, the behaviour to run before the time-out and the behaviour to run after the time-out where the function will return then the according behaviour. For implementing this behaviour we initially used Yampas \textit{after} function which generates an event after given time-units but this would not result in the correct dynamics as we rather need to create a random-distribution of time-outs than a deterministic time-out which occurs always after the same time. For this we implemented our own function, called \textit{afterExp}, which now takes a random-number generator a time-out and some value of type b and creates a signal-function which ignores its input and creates an event \textit{on average} after DTime.
@@ -106,12 +96,12 @@ afterExp :: RandomGen g => g -> DTime -> b -> SF a (Event b)
 \end{minted}
 
 \subsection{Agent-Agent Interaction}
-Agent-agent interaction is the means of an agent to directly address another agent and vice versa. Inspired by the actor model we implement a  \textit{messaging} with share nothing semantics. In this case the agent send messages which will arrive in the next step of the simulation at the receiver thus being kind of asynchronous - a round-trip would always take at least two steps, independent of the sampling time. Depending on the semantics of the model we sometimes need synchronous interactions e.g. when only one agent can change the environment or decisions need to be made within one step - this wouldn't be possible with the asynchronous messaging. For this we introduced the concept of \textit{conversations} which allow two agents to interact with each other for an arbitrary number of requests and replies without the simulation being advanced - time is halted and only the two agents are active until they finish their conversation.
+Agent-agent interaction is the means of an agent to directly address another agent and vice versa. Inspired by the actor model we implement  \textit{messaging} with share-nothing semantics. In this case the agent sends messages which will arrive at the receiver in the next step of the simulation, thus being kind of asynchronous - a round-trip would always take at least two steps, independent of the sampling time. Depending on the semantics of the model we sometimes need synchronous interactions e.g. when only one agent can change the environment or decisions need to be made within one step - this wouldn't be possible with the asynchronous messaging. For this we introduced the concept of \textit{conversations} which allow two agents to interact with each other for an arbitrary number of requests and replies without the simulation being advanced - time is halted and only the two agents are active until they finish their conversation.
 
 \subsubsection{Messaging}
-Each Agent can send a message to an other agent through AgentOut-Signal where incoming messages are queued in the AgentIn-Signal and can be processed when the agent is active the next time. The agent is free to ignore the messages and if it does not process them they will simply be lost. This is in fundamental contrast to the actor model where messages stay in the message-box of the receiving actor until the actor has processed them. We chose a different approach as time has a different meaning in ABS than in a system of actors where there is basically no global notion of time.
+Each Agent can send a message to another agent through \textit{AgentOut} where incoming messages are queued in the \textit{AgentIn} in unspecified order and can be processed when the agent is running the next time. The agent is free to ignore the messages and if it does not process them in the current step, they will simply be lost. This is in fundamental contrast to the actor model where messages stay in the message-box of the receiving actor until the actor has processed them. We chose a different approach as time has a different meaning in ABS than in a system of actors where there is basically no global notion of time.
 Note that due to the fact we don't have method-calls in FP, messaging will always take some time, which depends on the sampling interval of the system. This was not obviously clear when implementing ABS in an object-oriented way because there we can communicate through method calls which are a way of interaction which takes no simulation-time.
-We need a set of messages \textit{m} the agents understand. In the case of the SIR model we simply use the following:
+For messaging, we need a set of messages \textit{m} the agents understand. In the case of the SIR model we simply use the following:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 data SIRMsg = Contact SIRState
@@ -122,7 +112,7 @@ In addition we provide the following functions in our EDSL to support messaging.
 \begin{minted}[fontsize=\footnotesize]{haskell}
 type AgentMessage m = (AgentId, m)
 
-sendMessage :: AgentMessage -> AgentOut -> AgentOut
+sendMessage :: AgentMessage m -> AgentOut -> AgentOut
 sendMessageTo :: AgentId -> m -> AgentOut -> AgentOut
 sendMessages :: [AgentMessage m] -> AgentOut -> AgentOut
 broadcastMessage :: m -> [AgentId] -> AgentOut -> AgentOut
@@ -133,7 +123,7 @@ onMessageFrom :: AgentId -> (AgentMessage -> acc -> acc) -> AgentIn -> acc -> ac
 onMessageType :: (Eq m) => m -> (AgentMessage -> acc -> acc) -> AgentIn -> acc -> acc
 \end{minted}
 
-Most of the functions are pretty self-explanatory, we will shortly explain the \textit{onMessage*}. The function \textit{onMessage} provides a way to react to incoming messages by using a callback function which manipulates an accumulator, thus resembling the workings of fold. The functions \textit{onMessageFrom} and \textit{onMessageType} provide the same functionality but filter the messages accordingly. We can now write a function which allows an agent to reply to an incoming Contact message with another contact message of a given SIRstate. TODO: refer to the appendix and give line-numbers instead of inserting it here.
+Most of the functions are pretty self-explanatory, we will shortly explain the \textit{onMessage*}. The function \textit{onMessage} provides a way to react to incoming messages by using a callback function which manipulates an accumulator, thus resembling the workings of fold. The functions \textit{onMessageFrom} and \textit{onMessageType} provide the same functionality but filter the messages accordingly. We can now write implement the functionality of an infected agent which replies to an incoming \textit{Contact} message with another \textit{Contact Infected} message as can be seen in line 73 of Appendix \ref{app:abs_code}.
 
 Sometimes we also need discrete semantics like changing the behaviour of an agent on reception of a specific message. For this we provide the function \textit{transitionOnMessage} which works the same way as \textit{transitionOnEvent} but now on a message instead.
 
@@ -141,15 +131,12 @@ Sometimes we also need discrete semantics like changing the behaviour of an agen
 transitionOnMessage :: (Eq m) => m -> AgentBehaviour -> AgentBehaviour -> AgentBehaviour
 \end{minted}
 
-Of course messaging sometimes may have specific time-semantics as in our SIR model. There susceptible agents make contact with n other agents on average \textit{per time unit}. To implement this we randomly need to generate messages with a given frequency within some time-interval by drawing from the exponential random-distribution. This is already supported by Yampa using \textit{occasionally} and we have built on it a the following:
+Of course messaging sometimes may have specific time-semantics as in our SIR model. There susceptible agents make contact with $\beta$ other agents on average \textit{per time unit}. To implement this we randomly need to generate messages with a given frequency within some time-interval by drawing from the exponential random-distribution. This is already supported by Yampa using \textit{occasionally} and we have built on it a the following:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 type MessageSource m e = e -> AgentOut -> (AgentOut, AgentMessage m)
 
-sendMessageOccasionallySrc :: RandomGen g => g 
-                                -> Double
-                                -> MessageSource  
-                                -> SF (AgentOut, e) AgentOut
+sendMessageOccasionallySrc :: RandomGen g => g -> Double -> MessageSource -> SF (AgentOut, e) AgentOut
 
 constMsgReceiverSource :: m -> AgentId -> MessageSource 
 randomNeighbourNodeMsgSource :: m -> MessageSource s m (Network l)
@@ -157,84 +144,68 @@ randomNeighbourCellMsgSource :: (s -> Discrete2dCoord) -> m -> Bool -> MessageSo
 randomAgentIdMsgSource :: m -> Bool -> MessageSource s m [AgentId]
 \end{minted}
 
-The function \textit{sendMessageOccasionallySrc} takes a random-number generator, the frequency of messages to generate \textit{on average per time-unit} a message-source and returns a signal-function which takes a tuple of an agent-out and environment and returns an agent-out. This signal-function which performs the actual generating of the messages needs to be fed in the tuple but only returns the changed agent-out but not the environment - this guarantees statically at compile-time that the environment cannot be changed in this process. This is also directly reflected in the type of MessageSource which takes an environment and agent-out and returns a tuple with a changed agent-out and a message. We provide pre-defined messages-sources like \textit{constMsgReceiverSource} which always generates the same message, \textit{randomNeighbourNodeMsgSource} which picks a random neighbour from a network-environment (see below), \textit{randomNeighbourCellMsgSource} which picks a random neighbour from a discrete 2d-grid environment (see below) and \textit{randomAgentIdMsgSource} which randomly picks an element from an environment which is a list of AgentIds (omitting the sender True/False).
-As can be seen in TODO: refer to appendix the susceptible agent makes use of this function.
+The function \textit{sendMessageOccasionallySrc} takes a random-number generator, the frequency of messages to generate \textit{on average per time-unit} a message-source and returns a signal-function which takes a tuple of an \textit{AgentOut} and environment and returns an \textit{AgentOut}. This signal-function which performs the actual generating of the messages needs to be fed in the tuple but only returns the changed \textit{AgentOut} but not the environment - this guarantees statically at compile-time that the environment cannot be changed in this process. This is also directly reflected in the type of \textit{MessageSource} which takes an environment and \textit{AgentOut} and returns a tuple with a changed \textit{AgentOut} and a message. We provide pre-defined messages-sources like \textit{constMsgReceiverSource} which always generates the same message, \textit{randomNeighbourNodeMsgSource} which picks a random neighbour from a network-environment (see below), \textit{randomNeighbourCellMsgSource} which picks a random neighbour from a discrete 2D grid environment (see below) and \textit{randomAgentIdMsgSource} which randomly picks an element from an environment which is a list of \textit{AgentId} (omitting the sender True/False). The susceptible agent builds on this function to make contact with other agents as can be seen in line 96-100 of Appendix \ref{app:abs_code}.
 
 \subsubsection{Conversations}
 The messaging as implemented above works well for one-directional, virtual asynchronous interaction where we don't need a reply at the same time. A perfect use-case for messaging is making contact with neighbours in the SIRS-model: the agent sends the contact message but does not need any response from the receiver, the receiver handles the message and may get infected but does not need to communicate this back to the sender. 
-A different case is when agents need to transact in the time-step one or multiple times: agent A interacts with agent B where the semantics of the model (and thus messaging) need an immediate response from agent B - which can lead to further interactions initiated by agent A. The Sugarscape model has three use-cases for this: sex, warfare and trading amongst agents all need an immediate response (e.g. wanna mate with me?, I just killed you, wanna trade for this price?). The reason is that we need to transact now as all of the actions only work on a 1:1 relationship and could violate resource-constraints.
-For this we introduce the concept of a conversation between agents. This allows an agent A to initiate a conversation with another agent B in which the simulation is virtually halted and both can exchange an arbitrary number of messages through calling and responding without time passing (something not possible without this concept because in each iteration the time advances). After either one agent has finished with the conversation it will terminate it and the simulation will continue with the updated agents (note the importance here: \textit{both} agents can change their state in a conversation). The conversation-concept is implemented at the moment in the way that the initiating agent A has all the freedom in sending messages, starting a new conversation,... but that the receiving agent B is only able to change its state but is not allowed to send messages or start conversations in this process. Technically speaking: agent A can manipulate an AgentOut whereas agent B can only manipulate its next AgentIn.
+A different case is when agents need to transact in the same time-step or interact over multiple steps: agent A interacts with agent B where the semantics of the model need an immediate response from agent B - which can lead to further interactions initiated by agent A. An example would be negotiating a trading price between two agents to buy and sell goods between each other and then execute the trade. This must happen in the same time-step as constraints need to be considered which could be violated in asynchronous interactions. Basically the concept is always the same and is rooted in the fact that these interactions needs to transact in the current time-step as all of the actions only work on a 1:1 relationship and could violate resource-constraints.
+For this we introduce the concept of a \textit{conversation} between agents. It allows an agent A to initiate a conversation with another agent B in which the simulation is virtually halted and both can exchange an arbitrary number of messages through calling and responding without time passing, something not possible without this concept because in each iteration the time advances. After either one agent has finished with the conversation it will terminate it and the simulation will continue with the updated agents. It is important to understand that \textit{both} agents can change their state and the envirionment in a conversation. The conversation concept is implemented at the moment in the way that the initiating agent A has all the freedom in sending messages, starting a new conversation,... but that the receiving agent B is only able to change its state but is not allowed to send messages or start conversations in this process. Technically speaking: agent A can manipulate an \textit{AgentOut} whereas agent B can only read its \textit{AgentIn} and manipulate its state.
 When looking at conversations they may look like an emulation of method-calls but they are more powerful: a receiver can be unavailable to conversations or simply refuse to handle this conversation. This follows the concept of an active actor which can decide what happens with the incoming interaction-request, instead of the passive object which cannot decide whether the method-call is really executed or not.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-type AgentConversationReceiver s m e = AgentIn
-                                            -> e
-                                            -> AgentMessage m
-                                            -> Maybe (s, m, e)
-
-type AgentConversationSender m e = (AgentOut
-                                        -> e
-                                        -> Maybe (AgentMessage m)  
-                                        -> (AgentOute, e))
+type AgentConversationReceiver s m e = AgentIn -> e -> AgentMessage m -> Maybe (s, m, e)
+type AgentConversationSender m e = AgentOut -> e -> Maybe (AgentMessage m) -> (AgentOute, e)
                                         
-conversation :: AgentMessage m
-                -> AgentConversationSender
-                -> AgentOut
-                -> AgentOut
-
+conversation :: AgentMessage m -> AgentConversationSender -> AgentOut -> AgentOut
 conversationEnd :: AgentOut -> AgentOut 
 \end{minted}
 
-TODO: rewrite, because reply has changed 
-
-The agent-conversations sender is the initiator of the conversation which can only be an agent which is just run and has started a conversation with a call to the function \textit{conversation}. After the agent has run, the simulation-system will detect the request for a conversation and start processing it by looking up the receiver and calling the functions with passing the values back and forth. While a conversation is active, time does not advance and other agents do not act. Note that due to its nature, conversations are only available when using the \textit{sequential} update-strategy (see below).
+The conversation sender is the initiator of the conversation which can only be an agent which is just run and has started a conversation with a call to the function \textit{conversation}. After the agent has run, the simulation system will detect the request for a conversation and start processing it by looking up the receiver and calling the functions with passing the values back and forth. While a conversation is active, time does not advance and other agents do not act. Note that due to its nature, conversations are only available when using the \textit{sequential} update-strategy (see below). Note that conversations are inherently non-reactive because they are synchronous interactions, involve no time-semantics because time is halted, thus it makes no sense to implement conversations as signal-functions.
 
 \subsection{Environment representation}
-Agents are situated within an environment which itself is \textit{not} an agent - although it can have its own behaviour e.g. regrowing resources, it cannot send or receive messages from agents. Thus we treat the environment completely generic by allowing any given type captured in the type-variable \textit{e}. Environment behaviour is optional but if required, implemented using a signal-function which simply maps \textit{e} to \textit{e}:
+Agents have access to an environment which itself is \textit{not} an agent - although it can have its own behaviour e.g. regrowing resources, it cannot send or receive messages from agents. Thus we treat the environment completely generic by allowing any given type captured in the type-variable \textit{e}. Environment behaviour is optional but if required, implemented using a signal-function which simply maps \textit{e} to \textit{e}:
 
-\begin{minted}{haskell}
+\begin{minted}[fontsize=\footnotesize]{haskell}
 type EnvironmentBehaviour e = SF e e
 \end{minted}
 
-By allowing a signal-function as the environment behaviour gives us the opportunity to implement reactive behaviour and time-semantics in environments as well. Again it is essential to note that throughout the whole simulation implementation we never put any bounds on the environment nor make assumptions about its type (except for providing utility-functions which allow agents to operate on existing environment implementations).
+By allowing a signal-function as the environment behaviour gives us the opportunity to implement reactive behaviour and time-semantics in environments as well. Again it is essential to note that throughout the whole simulation implementation we never put any bounds on the environment nor make assumptions about its type \footnote{Exceptions in case when providing utility-functions which allow agents to operate on existing environment implementations}.
 
-Although environments can be anything (even be of unit-type, if no environment is required at all), there exist a few standard environments in ABS which are provided in all ABS packages. We provide implementations for them and discuss them below. Note that we don't provide the APIs of the environments here as it is out-of-scope of this paper.
+Although environments can be anything, even be of unit-type \textit{()} if no environment is required at all, there exist a few standard environments in ABS which are provided in all ABS packages. We provide implementations for them and discuss them below. Note that we don't provide the APIs of the environments here as it is out of the scope of this paper.
 
 \subsubsection{Network}
 A network environment gives agents access to a network, represented by a graph where the nodes are agent-ids and the edges represent neighbourhood information. We implemented fully-connected, Erdos-Renyi and Barbasi-Albert networks. In our case the networks are undirected and the labels can be labelled, carrying arbitrary data or being unlabelled, having unit-type. Agents can then perform the usual graph algorithms on these networks. 
 
 \subsubsection{Discrete 2D}
-A discrete 2d environment gives agents access to a 2d-grid with dimensions of $N \times M \in \mathbb{N}$ cells. The cells are of a generic type $c$ and can thus be anything from AgentIds to resource-sites with single or multiple occupants. Such an environment has a defined neighbourhood of either Moore (8 neighbours) or Von-Neumann (4 neighbours). Agents can then query the environment for cells using neighbourhoods, radius or specific positions, change the cells and update them in the environment.
+A discrete 2d environment gives agents access to a 2D grid with dimensions of $N \times M \in \mathbb{N}$ cells. The cells are of a generic type $c$ and can thus be anything from \textit{AgentId} to resource-sites with single or multiple occupants. Such an environment has a defined neighbourhood of either Moore (8 neighbours) or Von-Neumann (4 neighbours). Agents can then query the environment for cells using neighbourhoods, radius or specific positions, change the cells and update them in the environment.
 
 \subsubsection{Continuous 2D}
-A continuous 2d environment gives agents access to a continuous 2d-space with dimensions of $N \times M \in \mathbb{R}$. This space can contain an arbitrary number of objects of the generic type \textit{o} where each of them has a coordinate within this space. Agents can query for objects within a given radius, add, remove and update them. Also we provide functions to move objects either in a given or random direction.
+A continuous 2d environment gives agents access to a continuous 2D space with dimensions of $N \times M \in \mathbb{R}$. This space can contain an arbitrary number of objects of the generic type \textit{o} where each of them has a coordinate within this space. Agents can query for objects within a given radius, add, remove and update them. Also we provide functions to move objects either in a given or random direction.
 
 \subsection{Agent-Environment interaction}
-In ABS agents almost always are situated within an environment. We follow a subtle different approach and implement it in a way that agents have access to a generic environment of type $e$ as discussed above instead of being situated within. It is important to note the subtle difference of agents \textit{having access} to the environments instead of \textit{being situated} within them. This allows to free us making assumptions within an environment how agents use these environments and also allows us to stack multiple environments e.g. agents moving on a discrete 2d-grid but relying on neighbourhood from a network.
-Our SIR implementation uses a list of all AgentIds as the environment which means that every agent knows all the existing agents of the simulation and can address them. We could have used a Network environment using a fully-connected graph but the memory-consumptions of the library FGL we are using for graphs are unacceptable in case of fully-connected networks of a larger numbers of agents (10,000).
-Each agent gets the environment passed in through the AgentIn and can change it by passing a changed version of the environment out through AgentOut. 
+In ABS agents almost always are \textit{situated within} an environment. We follow a subtle different approach and implement it in a way that agents have access to a generic environment of type $e$ as discussed above instead of being situated within. It is important to note the subtle difference of agents having \textit{access to} the environments instead of \textit{being situated} within them. This allows to free us making assumptions within an environment how agents use these environments and also allows us to stack multiple environments e.g. agents moving on a discrete 2D grid but relying on neighbourhood from a network.
+Our SIR implementation uses a list of all \textit{AgentId} as the environment which means that every agent knows all the existing agents of the simulation and can address them - see line 6 in \ref{app:abs_code}. We could have used a Network environment using a fully-connected graph but the memory-consumptions of the library \textit{FGL} we are using for graphs are unacceptable in case of fully-connected networks of a larger numbers of agents (10,000). Each agent gets the environment passed in through the \textit{AgentIn} and can change it by passing a changed version of the environment out through \textit{AgentOut}. 
 
 \subsection{Agent Updating}
-For agents to be pro-active, they need to be able to perceive time. Also agents must have the opportunity to react to incoming messages and manipulate the environment. The work of (TODO: cite our own paper on update-strategies) identified four possible ways of doing this where we only implemented the \textit{sequential-} and \textit{parallel-strategy} \footnote{The other two strategies being the  \textit{concurrent-} and \textit{actor-strategy}, both requiring to run within the STM-Monad, which is not possible with Yampa. The work of Ivan Perez in \cite{perez_functional_2016} implemented a library called Dunai, which is the same as Yampa but capable of running in an arbitrary Monad. We leave this for further research.}. Implementing these iteration-strategies using Haskell and FRP is not as straight-forward as in e.g. Java because one does not have mutable data which can be updated in-place. 
-We implement both update-strategies basically by running all agents behaviour signal-functions every $\delta t$, so when running a simulation for a duration of \textit{t} the number of steps is $\frac{t}{\delta t}$. It is important to realise that in our approach of a single behaviour function we merge both pro-activity, time-dependent behaviour and message-receiving behaviour. A different approach would be to have callbacks for messages in addition to the normal agent-behaviour but this would be quite cluttered and unelegant.
+For agents to be pro-active, they need to be able to perceive time. Also agents must have the opportunity to react to incoming messages and manipulate the environment. The work of (TODO: cite our own paper on update-strategies) identifies four possible ways of doing this where we only implemented the \textit{sequential-} and \textit{parallel-strategy} \footnote{The other two strategies being the  \textit{concurrent-} and \textit{actor-strategy}, both requiring to run within the STM-Monad, which is not possible with Yampa. Ivan Perez \cite{perez_functional_2016} implemented a library called \textit{Dunai}, which is the same as Yampa but capable of running in an arbitrary Monad. We leave this for further research.}. Implementing these iteration-strategies using Haskell and FRP is not as straight-forward as in imperative effectful languages because one does not have mutable data which can be updated in-place. 
+We implement both update-strategies basically by running all agents behaviour signal-functions every $\Delta t$, so when running a simulation for a duration of \textit{t} the number of steps is $\frac{t}{\Delta t}$. It is important to realise that in our approach of a single behaviour function we merge pro-activity, time-dependent behaviour and message receiving behaviour. A different approach would be to have callbacks for messages in addition to the normal agent-behaviour but this would be quite cluttered and inelegant.
 
-In both the sequential and parallel update-strategy after one iteration there is one single environment left. An environment can have an optional behaviour which allows the environment to update its cells. This is a regular SF thus having also the time of the simulation available. Note that the environment cannot send messages to agents because it is not an agent itself. An example of an environment behaviour would be to regrow some good on each cell according to some rate per time-unit (inspired by SugarScape regrowing of Sugar).
+In both the sequential and parallel update-strategy each iteration must also output a potentially changed environment. As already discussed this is implemented as a signal-function which, when available, is then run after each iteration, to make the environment pro-active as well. An example of an environment behaviour would be to regrow some good on each cell according to some rate per time-unit.
 
 \subsubsection{Sequential}
-In this strategy the agents are updated one after another where the changes (messages sent, environment changed,...) of one agent are visible to agents updated after. Basically this strategy is implemented as a variant of fold which allows to feed output of one agent (e.g. messages and the environment) forward to the other agents while iterating over the list of agents. For each agent the agent-behaviour signal-function is called with the current AgentIn as input to retrieve the according AgentOut. The messages of the AgentOut are then distributed to the receivers AgentIn.
-The environment of the agent, which is passed in through AgentIn and returned through AgentOut will then be passed forward to the next agent i + 1 AgentIn in the current iteration. The last environment is then the final environment in the current iteration and will be returned by the callback function together with the current AgentOuts.
-As previously mentioned, conversations are \textit{only} possible within this update-strategy because only in this strategy agents act after another which is a fundamental requirement for conversations to make sense and work correctly.
+In this strategy the agents are updated one after another where the changes (messages sent, environment changed,...) of one agent are visible to agents updated after. Basically this strategy is implemented as a variant of \textit{fold} which allows to feed output of one agent (e.g. messages and the environment) forward to the other agents while iterating over the list of agents. For each agent the agent behaviour signal-function is called with the current \textit{AgentIn} as input to retrieve the according \textit{AgentOut}. The messages of the \textit{AgentOut} are then distributed to the \textit{AgentIn} of the receiving agents.
+The environment which is passed in and returned as well, will then be passed forward to the next agent$_{i + 1}$ in the current iteration. The last environment is then the final environment in the current iteration and will be returned together with the current list of \textit{AgentOut} (see below). As previously mentioned, conversations are \textit{only} possible within this update-strategy because only in this strategy agents act after another which is a fundamental requirement for conversations to make sense and work correctly.
 
 \subsubsection{Parallel}
-The parallel strategy is \textit{much} easier to implement than the sequential but is of course not applicable to all models because of it different semantics. Basically this strategy is implemented as a map over all agents which calls each agent-behaviour signal-function with the agents AgentIn to retrieve the new AgentOut. Then the messages are distributed amongst all agents.
-Each agent receives a copy of the environment upon which it can work and return a changed one. Thus after one iteration there are n versions of environments where n is equals to the number of agents. These environments must then be collapsed into a final one which is always domain-specific thus the model implementer needs to provide a corresponding function.
+The parallel strategy is \textit{much} easier to implement than the sequential but is of course not applicable to all models because of its different semantics. Basically this strategy is implemented as a \textit{map} over all agents which calls each agent behaviour signal-function with the agents \textit{AgentIn} to retrieve the new \textit{AgentOut}. Then the messages are distributed amongst all agents.
+Each agent receives a copy of the environment upon which it can work and return a changed one. Thus after one iteration there are \textit{N} versions of environments where \textit{N} is equals to the number of agents. These environments must then be folded into a final one which is always domain-specific thus the model implementer needs to provide a corresponding function.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-type EnvironmentCollapsing e = [e] -> e
+type EnvironmentFolding e = [e] -> e
 \end{minted}
 
-Of course not all models have environments which can be changed and in the SIR model we indeed use a list of AgentIds which won't change during execution (meaning, the agents only read it). Because of this environment-collapsing functions are optional and when none is provided the environments returned by the agents are ignored and always the initial one is provided.
-To make this more explicit we introduce a wrapper which wraps a signal-function which is the same as agent-behaviour but omits the environment from the out tuples. When this wrapper is used one can guarantee statically at compile-time that the environment cannot be changed by the agent-behaviour. We also provide a function which completely ignores the environment, which allows to reason already at compile time that no environment access will happen ever.
+Of course not all models have environments which can be changed and in the SIR model we indeed use a list of AgentIds which won't change during execution, meaning the agents only read it. Because of this, the environment folding function is optional and when none is provided the environments returned by the agents are ignored and always the initial one is provided.
+To make this more explicit we introduce a wrapper which wraps a signal-function which is the same as agent-behaviour but omits the environment from the out tuples. When this wrapper is used one can guarantee statically at compile-time that the environment cannot be changed by the agent-behaviour. We also provide a function which completely ignores the environment, which allows to reason already at compile time that no environment access will happen ever in the given signal-function.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 type ReactiveBehaviourIgnoreEnv = SF AgentIn AgentOut
@@ -244,10 +215,10 @@ ignoreEnv :: ReactiveBehaviourIgnoreEnv -> AgentBehaviour
 readEnv :: ReactiveBehaviourReadEnv -> AgentBehaviour
 \end{minted}
 
-We use both functions in our SIR implementation TODO: refer to appendix.
+We use both functions in our SIR implementation. The function \textit{readEnv} is used in line 83 of Appendix \ref{app:abs_code} to make sure the behaviour of a susceptible agent can read the environment but never change it. The function \textit{ignoreEnv} is used in line 110 of Appendix \ref{app:abs_code} to make sure the behaviour of an infected agent never accesses the environment.
 
 \subsection{Non-Reactive Features}
-Not all models have such explicit time-semantics as the SIR model. Such models just assume that the agents act in some order but don't rely on any time-outs, timed transitions or rates. These models are more of imperative nature and map therefore naturally to a monadic style of programming using the do-notation. Unfortunately we don't have this functionality available within a SF thus to support the programming of such imperative models, we implemented wrapper-functions which allow to provide both non-monadic and monadic functionality which runs within a wrapper-signal function.
+Not all models have such explicit time-semantics as the SIR model. Such models just assume that the agents act in some order but don't rely on any time-outs, timed transitions or rates. These models are more of an imperative nature and map therefore naturally to a monadic style of programming using the \textit{do} notation. Unfortunately it is not possible to do monadic programming within a signal-function, thus to support the programming of such imperative models, we implemented wrapper-functions which allow to provide both non-monadic and monadic functionality which runs within a wrapper signal-function.
 
 \subsubsection{Non-monadic (pure) wrapping}
 
@@ -257,14 +228,12 @@ agentPureReadEnv :: (e -> Double -> AgentIn -> AgentOut -> AgentOut) -> AgentBeh
 agentPureIgnoreEnv :: (Double -> AgentIn -> AgentOut -> AgentOut) -> AgentBehaviour
 \end{minted}
 
-The function \textit{agentPure} wraps a non-monadic (pure) function and wraps it in a SF. This pure function has the following arguments: the environment, the current local time of the agent, the AgentIn, a default AgentOut and must return the tuple of AgentOut and the environment.
-
-The function \textit{agentPureReadEnv} works the same as \textit{agentPure} but omits the environment from the return-type thus ensuring statically at compile-time that an agent which implements its behaviour in this way can only read the environment but never change it.
-
-The function \textit{agentPureIgnoreEnv} is an even stricter version of \textit{agentPureReadEnv} and omits environment from the agents behaviour altogether thus ensuring statically at compile-time that an agent which wraps its behaviour in this function will never access the environment.
+The function \textit{agentPure} wraps a non-monadic (pure) function and wraps it in a signal-function. This pure function has the environment, the current local time of the agent, the \textit{AgentIn} and a default \textit{AgentOut} as arguments and must return the tuple of \textit{AgentOut} and the environment.
+The function \textit{agentPureReadEnv} works the same as \textit{agentPure} but omits the environment from the return type thus ensuring statically at compile-time that an agent which implements its behaviour in this way can only read the environment but never change it.
+The function \textit{agentPureIgnoreEnv} is an even more restrictive version and omits environment from the agents behaviour altogether thus ensuring statically at compile-time that an agent which wraps its behaviour in this function will never access the environment.
 
 \subsubsection{Monadic wrapping}
-The monadic wrappers work basically the same way as the pure version, with the difference that they run within the state-monad with AgentOut being the state to pass around.
+The monadic wrappers work basically the same way as the pure version, with the difference that they run within the state-monad with \textit{AgentOut} being the state to pass around.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 agentMonadic :: (e -> Double -> AgentIn -> State AgentOut e) -> AgentBehaviour
@@ -272,7 +241,7 @@ agentMonadicReadEnv :: (e -> Double -> AgentIn -> State AgentOut ()) -> AgentBeh
 agentMonadicIgnoreEnv :: (Double -> AgentIn -> State AgentOut ()) -> AgentBehaviour
 \end{minted}
 
-We also provide monadic versions of the pure primitives of our EDSL which work on AgentOut, discussed above. They run in the state-monad where the state is the agent-out as this is the data which is manipulated step-by-step for the final output. 
+We also provide monadic versions of the pure primitives of our EDSL which work on \textit{AgentOut} as discussed above. They run in the State Monad where the state is the \textit{AgentOut} as this is the data which is manipulated step-by-step for the final output. 
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 agentIdM :: State (AgentOut s m e) AgentId
@@ -286,20 +255,86 @@ createAgentM :: AgentDef -> State AgentOut ()
 killM :: State AgentOut ()
 isDeadM :: State AgentOut Bool
 
-getDomainStateM :: State AgentOut s
-updateDomainStateM :: (s -> s) -> State AgentOut ()
-setDomainStateM :: s -> State AgentOut ()
-domainStateFieldM :: (s -> t) -> State AgentOut t
+agentStateM :: State AgentOut s
+updateAgentStateM :: (s -> s) -> State AgentOut ()
+setAgentStateM :: s -> State AgentOut ()
+agentStateFieldM :: (s -> t) -> State AgentOut t
 \end{minted}
 
 For the environment-behaviour we provide a monadic wrapper as well.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-type EnvironmentMonadicBehaviour e = (Double -> State e ())
+type EnvironmentMonadicBehaviour e = Double -> State e ()
 environmentMonadic :: EnvironmentMonadicBehaviour e -> EnvironmentBehaviour e
 \end{minted}
 
 \subsection{Randomness}
-Most of the ABS are inherent stochastic processes and so is the agent-based SIR implementation. This means that agents behaviour depends on random-numbers. So far the drawing from these random-number was hidden behind functions but sometimes an agent needs to draw a random-number directly. For this we provide each agent with its own random-number generator which must be initialized when creating the agent-definition. The agent can then draw random-numbers in a pure way without having to resort to the IO Monad. Still it can become very cumbersome because the changed random-number generator needs to be updated - for this we provide a few convenience functions and monadic implementations.
+Most of the ABS are inherent stochastic processes and so is the agent-based SIR implementation. This means that agents behaviour depends on random-numbers. So far the drawing from these random-number was hidden behind functions but sometimes an agent needs to draw a random-number directly. For this we provide each agent with its own random-number generator which must be initialized when creating the agent-definition as seen in line 48-59 of Appendix \ref{app:abs_code}. The agent can then draw random-numbers in a pure way without having to resort to the IO Monad. Still it can become very cumbersome because the changed random-number generator needs to be updated in the opaque \textit{AgentOut} - for this we provide a few convenience functions and monadic implementations.
 
-TODO: discuss random functions for agents.
+\begin{minted}[fontsize=\footnotesize]{haskell}
+agentRandom :: Rand StdGen a -> AgentOut -> (a, AgentOut)
+agentRandomM :: Rand StdGen a -> State AgentOut a
+
+randomBoolM :: (RandomGen g) => Double -> Rand g Bool
+\end{minted}
+
+Both functions \textit{agentRandom} and \textit{agentRandomM} allow to run a random action implemented in the Rand Monad acting on a StdGen generator. Both need an instance of an \textit{AgentOut} which runs the random action on the agents random-number generator, updates it and returns the random value.
+The function \textit{randomBoolM} is such a random action implemented in the Rand Monad and draws a random boolean which is True with a given probability. It is use to randomly determine if a susceptible agent got infected in case of a \textit{Contact Infected} message as can be seen in line 67 of Appendix \ref{app:abs_code}. Note that this random action runs in \textit{onMessageM} which allows to run on a generic monad. Note there exist more random action e.g. to pick at random from a list, to randomly generate within a range, to shuffle a list and to draw from a random distribution. We didn't discuss them here as they follow the same principle.
+
+\subsection{Running the Simulation}
+For actually running the simulation we provide three different approaches. 
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+type AgentObservable s = (AgentId, s)
+type SimulationStepOut s e = (Time, [AgentObservable s], e)
+type AgentObservableAggregator s e a = SimulationStepOut s e -> a
+
+simulateIOInit :: [AgentDef] 
+					-> e 
+					-> SimulationParams e
+                    -> (ReactHandle () (SimulationStepOut s e) -> Bool -> SimulationStepOut s e -> IO Bool)
+                    -> IO (ReactHandle () (SimulationStepOut s e))
+                    
+simulateTime :: [AgentDef] -> e -> SimulationParams e -> DTime -> Time -> [SimulationStepOut s e]
+                
+simulateTimeDeltas :: [AgentDef] -> e -> SimulationParams e -> [DTime] -> [SimulationStepOut s e]
+\end{minted}
+
+The first one \textit{simulateIOInit} allows for output in the IO Monad, which is useful when one wants to run the simulation for an undefined number of steps and visualise each step by rendering it to a window using a rendering library e.g. \textit{Gloss} \footnote{Note that we provide substantial rendering functionality for the environments but don't discuss it here as it is out of the scope of the paper.}. The \textit{ReactHandle} is part of Yampas function \textit{reactinit} and we refer to Yampas documentation for further details. The second approach \textit{simulateTime} runs the simulation for a given time with given $\Delta t$ and then returns the output for all $\Delta t$. The third approach \textit{simulateTimeDeltas} works basically the same as the second one but one can provide a list of all $\Delta t$. In all approaches at every $\Delta t$ we output a tuple of the current global simulation time, a list of \textit{AgentId} with their states \textit{s} and the environment \textit{e}. All approaches take a list of initial agent definitions, the initial environment and simulation parameters which are obtained calling the function \textit{initSimulation}:
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+data UpdateStrategy = Sequential | Parallel deriving (Eq)
+
+initSimulation :: UpdateStrategy
+                    -> Maybe (EnvironmentBehaviour e)
+                    -> Maybe (EnvironmentFolding e)
+                    -> Bool
+                    -> Maybe Int
+                    -> IO (SimulationParams e)
+\end{minted}
+
+This function takes as parameters the update-strategy with which to run this simulation, an optional environment behaviour, an optional environment folding, a boolean which determines whether the agents are shuffled after each iteration \footnote{This is necessary in some models which run in the sequential strategy to uniformly distribute the probability of an agent to run at a fixed position.} and an optional initial random-number generator seed.
+
+\subsection{Replications}
+TODO: describe how replications work
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+type Replication s e = [SimulationStepOut s e]
+
+type AgentDefReplicator = StdGen -> AgentDef -> (AgentDef, StdGen)
+type EnvironmentReplicator e = StdGen -> e -> (e, StdGen)
+
+data ReplicationConfig s m e = ReplicationConfig {
+    replCfgCount :: Int,
+    replCfgAgentReplicator :: AgentDefReplicator,
+    replCfgEnvReplicator :: EnvironmentReplicator e
+}
+
+runReplications :: [AgentDef]
+                    -> e
+                    -> SimulationParams e
+                    -> DTime
+                    -> Time
+                    -> ReplicationConfig s m e
+                    -> [Replication s e]
+\end{minted}

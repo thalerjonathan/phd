@@ -17,7 +17,7 @@ receive ain = onMessageMState receiveHandler ain
 
 spend :: PolicyEffectsEnvironment -> Double -> State PolicyEffectsAgentOut ()
 spend e amount = do
-  wealth <- getAgentStateM
+  wealth <- agentStateM
   when (wealth >= amount) (do
     randNeighbour <- agentRandomNeighbourNode e
     sendMessageM (randNeighbour, Spend amount)

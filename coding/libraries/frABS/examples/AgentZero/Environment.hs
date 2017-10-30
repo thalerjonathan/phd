@@ -1,8 +1,7 @@
 {-# LANGUAGE Arrows #-}
 module AgentZero.Environment (
-	AgentZeroEnvironmentCollapsing,
-
-	agentZeroEnvironmentsCollapse,
+    AgentZeroEnvironmentFolding,
+    agentZeroEnvironmentsFold,
   	agentZeroEnvironmentBehaviour
   ) where
 
@@ -18,18 +17,18 @@ import           Debug.Trace
 ------------------------------------------------------------------------------------------------------------------------
 -- ENVIRONMENT-COLLAPSING (parallel strategy)
 ------------------------------------------------------------------------------------------------------------------------
-type AgentZeroEnvironmentCollapsing = EnvironmentCollapsing AgentZeroEnvironment
+type AgentZeroEnvironmentFolding = EnvironmentFolding AgentZeroEnvironment
 
-agentZeroEnvironmentsCollapse :: AgentZeroEnvironmentCollapsing
-agentZeroEnvironmentsCollapse envs = initEnv { azWorldPatches = wpc }
+agentZeroEnvironmentsFold :: AgentZeroEnvironmentFolding
+agentZeroEnvironmentsFold envs = initEnv { azWorldPatches = wpc }
 	where
 		initEnv = head envs
 
 		wpes = map azWorldPatches envs
-		wpc = agentZeroEnvironmentsCollapse' wpes
+		wpc = agentZeroEnvironmentsFold' wpes
 
-agentZeroEnvironmentsCollapse' :: [AgentZeroWorldPatches] -> AgentZeroWorldPatches
-agentZeroEnvironmentsCollapse' envs = foldr mergeEnvs initEnv envs
+agentZeroEnvironmentsFold' :: [AgentZeroWorldPatches] -> AgentZeroWorldPatches
+agentZeroEnvironmentsFold' envs = foldr mergeEnvs initEnv envs
 	where
 		initEnv = head envs
 
@@ -113,10 +112,8 @@ agentZeroEnvironmentBehaviour = proc e ->
         t <- time -< 0
 
         let wp = azWorldPatches e
-        let g = envDisc2dRng wp
+ 
+        let wp' = environmentDisc2dRandom (randomAttack wp) wp
 
-        let (wp', g') = runRand (randomAttack wp) g
-        let wp'' = wp' { envDisc2dRng = g' }
-
-        let e' = e { azWorldPatches = wp'' }
+        let e' = e { azWorldPatches = wp' }
         returnA -< trace ("Time = " ++ show t) e'

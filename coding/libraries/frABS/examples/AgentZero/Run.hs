@@ -11,7 +11,7 @@ import           FRP.FrABS
 winSize = (800, 800)
 winTitle = "Agent_Zero"
 updateStrat = Sequential -- NOTE: agent-zero works BOTH for parallel and sequential, parallel is slower because collapsing the environments is a very expensive operation
-envCollapsing = Just agentZeroEnvironmentsCollapse
+envCollapsing = Just agentZeroEnvironmentsFold
 envBeh = Just agentZeroEnvironmentBehaviour
 shuffleAgents = True
 rngSeed = 43

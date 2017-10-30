@@ -23,7 +23,7 @@ module FRP.FrABS.Agent.Monad (
     bypassEnvironment,
 
     updateAgentStateM,
-    getAgentStateM,
+    agentStateM,
     setAgentStateM,
     agentStateFieldM,
 
@@ -152,11 +152,8 @@ agentStateFieldM f = state (agentStateFieldMAux f)
             where
                 s = aoState ao
 
-getAgentStateM :: State (AgentOut s m e) s
-getAgentStateM = 
-    do
-        ao <- get
-        return $ aoState ao
+agentStateM :: State (AgentOut s m e) s
+agentStateM = get >>= (\ao -> return $ aoState ao)
 
 agentMonadic :: AgentMonadicBehaviour s m e -> AgentBehaviour s m e
 agentMonadic f = proc (ain, e) ->

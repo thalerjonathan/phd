@@ -27,7 +27,7 @@ onAttackingSite e s = isAttackingSite cell
 		cell = cellAt coordPatch (azWorldPatches e)
 
 onAttackingSiteM :: AgentZeroEnvironment -> State AgentZeroAgentOut Bool
-onAttackingSiteM e = getAgentStateM >>= \s -> return $ onAttackingSite e s
+onAttackingSiteM e = agentStateM >>= \s -> return $ onAttackingSite e s
 	
 agentCoordToPatchCoord :: AgentZeroEnvironment -> Continuous2dCoord -> Discrete2dCoord
 agentCoordToPatchCoord e cc = cont2dTransDisc2d wp as cc

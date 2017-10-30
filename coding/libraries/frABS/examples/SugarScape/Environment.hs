@@ -93,7 +93,7 @@ regrowSpiceByRateAndRegion range rate = updateCellsWithCoordsM (regrowCell range
 regrowSeasons :: Double -> State SugarScapeEnvironment ()
 regrowSeasons time = 
     do
-        (_, maxY) <- envDimsDisc2dM
+        (_, maxY) <- dimensionsDisc2dM
         
         let halfY = floor ((toRational $ fromIntegral maxY) / 2.0 )
         let summerRange = if summerOnTop then (1, halfY) else (halfY + 1, maxY)

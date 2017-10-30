@@ -347,7 +347,7 @@ traderBehaviourFuncM _ ain =
 sendOfferingsM :: State DAAgentOut ()
 sendOfferingsM =
 	do
-		s <- getAgentStateM
+		s <- agentStateM
 		bos <- agentRandomM (bidOfferings s)
 		aos <- agentRandomM (askOfferings s)
 

@@ -17,7 +17,7 @@ type SugarScapeAgentRenderer = AgentRendererDisc2d SugarScapeAgentState
 renderSugarScapeFrame :: SugarScapeRenderFrame
 renderSugarScapeFrame wSize@(wx, wy) t ss e = GLO.Pictures $ (envPics ++ agentPics ++ [timeStepTxt])
     where
-        (dx, dy) = envDisc2dDims e
+        (dx, dy) = dimensionsDisc2d e
         cellWidth = fromIntegral wx / fromIntegral dx
         cellHeight = fromIntegral wy / fromIntegral dy
 

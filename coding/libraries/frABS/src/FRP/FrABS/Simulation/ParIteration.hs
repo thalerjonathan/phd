@@ -60,27 +60,27 @@ simulatePar initParams initSfs initIns initEnv = SF { sfTF = tf0 }
                         -- create next inputs and sfs (distribute messages and add/remove new/killed agents)
                         (sfs'', ins') = nextStep ins outs sfs'
                         -- collapse all environments into one
-                        (e', params') = collapseEnvironments dt params envs e 
+                        (e', params') = foldEnvironments dt params envs e 
                         -- NOTE: shuffling may seem strange in parallel but this will ensure random message-distribution when required
                         (params'', sfsShuffled, insShuffled) = shuffleAgents params' sfs'' ins'
                         -- create continuation
                         tf' = simulateParAux params'' sfsShuffled insShuffled e' t'
 
-        collapseEnvironments :: Double 
+        foldEnvironments :: Double 
                                 -> SimulationParams e 
                                 -> [e] 
                                 -> e 
                                 -> (e, SimulationParams e)
-        collapseEnvironments dt params allEnvs defaultEnv
-            | isCollapsingEnv = runEnv dt params collapsedEnv 
+        foldEnvironments dt params allEnvs defaultEnv
+            | isFoldingEnv = runEnv dt params foldedEnv 
             | otherwise = (defaultEnv, params)
             where
-                isCollapsingEnv = isJust mayEnvCollapFun
+                isFoldingEnv = isJust mayEnvFoldFun
 
-                mayEnvCollapFun = simEnvCollapse params
-                envCollapFun = fromJust mayEnvCollapFun
+                mayEnvFoldFun = simEnvFold params
+                envFoldFun = fromJust mayEnvFoldFun
 
-                collapsedEnv = envCollapFun allEnvs 
+                foldedEnv = envFoldFun allEnvs 
 
 iterateAgents :: DTime 
                 -> [AgentBehaviour s m e] 

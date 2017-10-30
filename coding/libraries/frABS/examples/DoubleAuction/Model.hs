@@ -7,8 +7,6 @@ module DoubleAuction.Model (
     DAAgentState (..),
 
     DAEnvironment,
-    DAEnvironmentBehaviour,
-    DAEnvironmentCollapsing,
 
     DAAgentDef,
     DAAgentBehaviour,
@@ -91,8 +89,6 @@ data DAAgentState =
     deriving (Show, Read)
 
 type DAEnvironment = Network ()
-type DAEnvironmentBehaviour = EnvironmentBehaviour DAEnvironment
-type DAEnvironmentCollapsing = EnvironmentCollapsing DAEnvironment
 
 type DAAgentDef = AgentDef DAAgentState DoubleAuctionMsg DAEnvironment
 type DAAgentBehaviour = AgentBehaviour DAAgentState DoubleAuctionMsg DAEnvironment

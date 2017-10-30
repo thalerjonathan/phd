@@ -19,7 +19,7 @@ data UpdateStrategy = Sequential | Parallel deriving (Eq, Show)
 data SimulationParams e = SimulationParams {
     simStrategy :: UpdateStrategy,
     simEnvBehaviour :: Maybe (EnvironmentBehaviour e),
-    simEnvCollapse :: Maybe (EnvironmentCollapsing e),
+    simEnvFold :: Maybe (EnvironmentFolding e),
     simShuffleAgents :: Bool,
     simRng :: StdGen,
     simIdGen :: TVar Int
@@ -27,11 +27,11 @@ data SimulationParams e = SimulationParams {
 
 initSimulation :: UpdateStrategy
                     -> Maybe (EnvironmentBehaviour e)
-                    -> Maybe (EnvironmentCollapsing e)
+                    -> Maybe (EnvironmentFolding e)
                     -> Bool
                     -> Maybe Int
                     -> IO (SimulationParams e)
-initSimulation updtStrat beh collFunc shuffAs rngSeed = 
+initSimulation updtStrat beh foldEnvFun shuffAs rngSeed = 
     do
         initRng rngSeed
 
@@ -41,7 +41,7 @@ initSimulation updtStrat beh collFunc shuffAs rngSeed =
         return SimulationParams {
             simStrategy = updtStrat,
             simEnvBehaviour = beh,
-            simEnvCollapse = collFunc,
+            simEnvFold = foldEnvFun,
             simShuffleAgents = shuffAs,
             simRng = rng,
             simIdGen = agentIdVar

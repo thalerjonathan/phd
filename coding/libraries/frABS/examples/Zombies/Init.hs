@@ -51,7 +51,7 @@ initZombies =
 updatePatches :: [ZombiesAgentDef] -> ZombiesPatches -> ZombiesPatches
 updatePatches zombies e = foldr updateEnvWithZombiesAux e zombies
   where
-    dims = envDisc2dDims e
+    dims = dimensionsDisc2d e
 
     updateEnvWithZombiesAux :: ZombiesAgentDef -> ZombiesPatches -> ZombiesPatches
     updateEnvWithZombiesAux adef accEnv 

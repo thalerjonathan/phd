@@ -51,7 +51,7 @@ randomRangeCounter = (0, 10)
 -- MODEL IMPLEMENTATION
 ------------------------------------------------------------------------------------------------------------------------
 agentTest :: ConversationAgentOut -> ConversationAgentOut
-agentTest ao = setDomainState n ao'
+agentTest ao = setAgentState n ao'
     where
         (n, ao') = agentRandomRange (0, 10) ao
 

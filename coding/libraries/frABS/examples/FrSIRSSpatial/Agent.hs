@@ -47,7 +47,7 @@ sirsAgentInfectedEvent = proc (ain, ao) -> do
 sirsAgentSusceptibleBehaviour :: RandomGen g => g -> FrSIRSSpatialAgentBehaviourReadEnv
 sirsAgentSusceptibleBehaviour g = proc (ain, e) -> do
     let ao = agentOutFromIn ain
-    ao1 <- doOnce (updateDomainState (\s -> s { sirsState = Susceptible})) -< ao
+    ao1 <- doOnce (updateAgentState (\s -> s { sirsState = Susceptible})) -< ao
     ao2 <- sendMessageOccasionallySrcSS 
                 g 
                 (1 / contactRate) 
@@ -67,13 +67,13 @@ sirsAgentInfected g = transitionAfterExpSS
 sirsAgentInfectedBehaviour :: FrSIRSSpatialAgentBehaviourIgnoreEnv
 sirsAgentInfectedBehaviour = proc ain -> do
     let ao = agentOutFromIn ain
-    ao1 <- doOnce (updateDomainState (\s -> s { sirsState = Infected })) -< ao
+    ao1 <- doOnce (updateAgentState (\s -> s { sirsState = Infected })) -< ao
     let ao2 = respondToContactWith Infected ain ao1
     returnA -< ao2
 
 -- RECOVERED
 sirsAgentRecovered :: RandomGen g => g -> FrSIRSSpatialAgentBehaviour
-sirsAgentRecovered _ = doOnceR $ updateDomainStateR (\s -> s { sirsState = Recovered })
+sirsAgentRecovered _ = doOnceR $ updateAgentStateR (\s -> s { sirsState = Recovered })
 {--
 sirsAgentRecovered :: RandomGen g => g -> FrSIRSSpatialAgentBehaviour
 sirsAgentRecovered g = transitionAfterExpSS 
@@ -84,7 +84,7 @@ sirsAgentRecovered g = transitionAfterExpSS
                             (sirsAgentSuceptible g)
 
 sirsAgentRecoveredBehaviour :: FrSIRSSpatialAgentBehaviour
-sirsAgentRecoveredBehaviour = updateDomainStateR (\s -> s { sirsState = Recovered })
+sirsAgentRecoveredBehaviour = updateAgentStateR (\s -> s { sirsState = Recovered })
 -}
 
 -- INITIAL CASES

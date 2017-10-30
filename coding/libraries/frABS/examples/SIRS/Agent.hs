@@ -16,7 +16,7 @@ import Control.Monad.IfElse
 isM :: SIRSState -> State SIRSAgentOut Bool
 isM sirsStateComp = 
     do
-        ss <- domainStateFieldM sirsState
+        ss <- agentStateFieldM sirsState
         return $ ss == sirsStateComp
 
 sirsDtM :: SIRSEnvironment -> Double -> State SIRSAgentOut ()
@@ -30,30 +30,30 @@ infectAgentM t =
     do
         doInfect <- agentRandomBoolProbM infectionProbability
         expInfectedDuration <- agentRandomM (randomExpM infectedDuration)
-        when doInfect $ updateDomainStateM (\s -> s { sirsState = Infected, sirsTime = t + expInfectedDuration } )
+        when doInfect $ updateAgentStateM (\s -> s { sirsState = Infected, sirsTime = t + expInfectedDuration } )
 
 handleInfectedAgentM :: SIRSEnvironment -> Double -> State SIRSAgentOut ()
 handleInfectedAgentM e t = 
     do
-        timeOfRecovery <- domainStateFieldM sirsTime
+        timeOfRecovery <- agentStateFieldM sirsTime
         -- NOTE: if agent has just recovered, don't send infection-contact to others
         ifThenElse (t >= timeOfRecovery) 
                     (do
                         expImmuneDuration <- agentRandomM (randomExpM immuneDuration)
-                        updateDomainStateM (\s -> s { sirsState = Recovered, sirsTime = t + expImmuneDuration} ))
+                        updateAgentStateM (\s -> s { sirsState = Recovered, sirsTime = t + expImmuneDuration} ))
                     (randomContactM e)
 
 handleRecoveredAgentM :: Double -> State SIRSAgentOut ()
 handleRecoveredAgentM t = 
     do
-        timeOfImmunityLost <- domainStateFieldM sirsTime
+        timeOfImmunityLost <- agentStateFieldM sirsTime
         when (t >= timeOfImmunityLost)
-                    (updateDomainStateM (\s -> s { sirsState = Susceptible, sirsTime = 0.0 } ))
+                    (updateAgentStateM (\s -> s { sirsState = Susceptible, sirsTime = 0.0 } ))
 
 randomContactM :: SIRSEnvironment -> State SIRSAgentOut ()
 randomContactM e = 
     do
-        coord <- domainStateFieldM sirsCoord
+        coord <- agentStateFieldM sirsCoord
         randNeighId <- agentRandomM (randomNeighbourCell coord False e)
         sendMessageM (randNeighId, Contact Infected)
 
@@ -85,7 +85,7 @@ sirsDt e t ao
 
 infectAgent :: Double -> SIRSAgentOut -> SIRSAgentOut
 infectAgent t ao
-    | yes = updateDomainState (\s -> s { sirsState = Infected, sirsTime = t + expInfectedDuration }) ao''
+    | yes = updateAgentState (\s -> s { sirsState = Infected, sirsTime = t + expInfectedDuration }) ao''
     | otherwise = ao'
     where
          (yes, ao') = agentRandomBoolProb infectionProbability ao
@@ -104,7 +104,7 @@ handleInfectedAgent e t ao
     where
         timeOfRecovery = sirsTime $ aoState ao
         (expImmuneDuration, ao') = agentRandom (randomExpM immuneDuration) ao
-        recoveredAgent = updateDomainState (\s -> s { sirsState = Recovered, sirsTime = t + expImmuneDuration}) ao'
+        recoveredAgent = updateAgentState (\s -> s { sirsState = Recovered, sirsTime = t + expImmuneDuration}) ao'
 
 handleRecoveredAgent :: Double -> SIRSAgentOut -> SIRSAgentOut
 handleRecoveredAgent t ao 
@@ -112,7 +112,7 @@ handleRecoveredAgent t ao
     | otherwise = ao
     where
         timeOfImmunityLost = sirsTime $ aoState ao
-        susceptibleAgent = updateDomainState (\s -> s { sirsState = Susceptible, sirsTime = 0.0 }) ao
+        susceptibleAgent = updateAgentState (\s -> s { sirsState = Susceptible, sirsTime = 0.0 }) ao
 
 randomContact :: SIRSEnvironment -> SIRSAgentOut -> SIRSAgentOut
 randomContact e ao = sendMessage (randNeigh, Contact Infected) ao'

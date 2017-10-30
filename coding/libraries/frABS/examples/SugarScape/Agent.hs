@@ -23,7 +23,7 @@ import Control.Monad.Trans.State
 agentCellOnCoordM :: SugarScapeEnvironment -> State SugarScapeAgentOut (Discrete2dCoord, SugarScapeEnvCell)
 agentCellOnCoordM e = 
     do
-        coord <- domainStateFieldM sugAgCoord
+        coord <- agentStateFieldM sugAgCoord
         let cell = cellAt coord e
         return (coord, cell)
 
@@ -41,8 +41,8 @@ passWealthOnM :: State SugarScapeAgentOut ()
 passWealthOnM
     | _enableInheritance_ =
         do
-            sugarLevel <- domainStateFieldM sugAgSugarLevel
-            childrenIds <- domainStateFieldM sugAgChildren
+            sugarLevel <- agentStateFieldM sugAgSugarLevel
+            childrenIds <- agentStateFieldM sugAgChildren
 
             let hasChildren = (not . null) childrenIds
 
@@ -56,8 +56,8 @@ passWealthOnM
 starvedToDeathM :: State SugarScapeAgentOut Bool
 starvedToDeathM = 
     do
-        sugar <- domainStateFieldM sugAgSugarLevel
-        spice <- domainStateFieldM sugAgSpiceLevel
+        sugar <- agentStateFieldM sugAgSugarLevel
+        spice <- agentStateFieldM sugAgSpiceLevel
 
         if _enableSpice_ then
             return $ (sugar <= 0) || (spice <= 0)
@@ -67,20 +67,20 @@ starvedToDeathM =
 agentMetabolismM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
 agentMetabolismM e =
     do
-        s <- getDomainStateM
+        s <- getAgentStateM
         aid <- agentIdM
         let (sugarMetab, spiceMetab) = metabolismAmount s
 
-        sugarLevel <- domainStateFieldM sugAgSugarLevel
-        spiceLevel <- domainStateFieldM sugAgSpiceLevel
+        sugarLevel <- agentStateFieldM sugAgSugarLevel
+        spiceLevel <- agentStateFieldM sugAgSpiceLevel
 
         let newSugarLevel = max 0 (sugarLevel - sugarMetab)
         let newSpiceLevel = max 0 (spiceLevel - spiceMetab)
 
-        updateDomainStateM (\s -> s { sugAgSugarLevel = newSugarLevel, sugAgSpiceLevel = newSpiceLevel })
+        updateAgentStateM (\s -> s { sugAgSugarLevel = newSugarLevel, sugAgSpiceLevel = newSpiceLevel })
 
         -- NOTE: for now the metabolism (and harvest) of spice does not cause any polution
-        coord <- domainStateFieldM sugAgCoord
+        coord <- agentStateFieldM sugAgCoord
         let e' = poluteCell (sugarMetab * polutionMetabolismFactor) coord e
 
         ifThenElseM
@@ -92,7 +92,7 @@ agentNonCombatMoveM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarSc
 agentNonCombatMoveM e = 
     do
         cellsInSight <- agentLookoutM e
-        coord <- domainStateFieldM sugAgCoord
+        coord <- agentStateFieldM sugAgCoord
 
         let unoccupiedCells = filter (cellUnoccupied . snd) cellsInSight
 
@@ -113,12 +113,12 @@ agentNonCombatMoveM e =
 agentLookoutM :: SugarScapeEnvironment -> State SugarScapeAgentOut [(Discrete2dCoord, SugarScapeEnvCell)]
 agentLookoutM e = 
     do
-        vis <- domainStateFieldM sugAgVision
-        coord <- domainStateFieldM sugAgCoord
+        vis <- agentStateFieldM sugAgVision
+        coord <- agentStateFieldM sugAgCoord
         return $ neighboursInNeumannDistance coord vis False e
 
 agentStayAndHarvestM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
-agentStayAndHarvestM e = domainStateFieldM sugAgCoord >>= (\coord -> agentHarvestCellM coord e)
+agentStayAndHarvestM e = agentStateFieldM sugAgCoord >>= (\coord -> agentHarvestCellM coord e)
 
 agentMoveAndHarvestCellM :: Discrete2dCoord -> SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
 agentMoveAndHarvestCellM cellCoord e = agentHarvestCellM cellCoord e >>= (\e' -> agentMoveToM cellCoord e')
@@ -128,9 +128,9 @@ agentMoveToM cellCoord e =
     do
         e' <- unoccupyPositionM e
 
-        updateDomainStateM (\s -> s { sugAgCoord = cellCoord })
+        updateAgentStateM (\s -> s { sugAgCoord = cellCoord })
 
-        s <- getDomainStateM
+        s <- getAgentStateM
         aid <- agentIdM
 
         let cell = cellAt cellCoord e'
@@ -142,8 +142,8 @@ agentHarvestCellM cellCoord e =
     do
         let cell = cellAt cellCoord e
 
-        sugarLevelAgent <- domainStateFieldM sugAgSugarLevel
-        spiceLevelAgent <- domainStateFieldM sugAgSpiceLevel
+        sugarLevelAgent <- agentStateFieldM sugAgSugarLevel
+        spiceLevelAgent <- agentStateFieldM sugAgSpiceLevel
 
         let sugarLevelCell = sugEnvSugarLevel cell
         let spiceLevelCell = sugEnvSpiceLevel cell
@@ -151,7 +151,7 @@ agentHarvestCellM cellCoord e =
         let newSugarLevelAgent = sugarLevelCell + sugarLevelAgent
         let newSpiceLevelAgent = spiceLevelCell + spiceLevelAgent
 
-        updateDomainStateM (\s -> s { sugAgSugarLevel = newSugarLevelAgent, sugAgSpiceLevel = newSpiceLevelAgent })
+        updateAgentStateM (\s -> s { sugAgSugarLevel = newSugarLevelAgent, sugAgSpiceLevel = newSpiceLevelAgent })
 
         let cellHarvested = cell { sugEnvSugarLevel = 0.0, sugEnvSpiceLevel = 0.0 }
         let e' = changeCellAt cellCoord cellHarvested e
@@ -162,7 +162,7 @@ agentHarvestCellM cellCoord e =
 agentAgeingM :: Double -> SugarScapeEnvironment -> State SugarScapeAgentOut SugarScapeEnvironment
 agentAgeingM newAge e =
     do
-        updateDomainStateM (\s -> s { sugAgAge = newAge })
+        updateAgentStateM (\s -> s { sugAgAge = newAge })
 
         ifThenElseM
             dieFromAgeM
@@ -195,8 +195,8 @@ birthNewAgentM e
 dieFromAgeM :: State SugarScapeAgentOut Bool
 dieFromAgeM = 
     do
-        age <- domainStateFieldM sugAgAge
-        maxAge <- domainStateFieldM sugAgMaxAge
+        age <- agentStateFieldM sugAgAge
+        maxAge <- agentStateFieldM sugAgMaxAge
         return $ age > maxAge
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -209,7 +209,7 @@ agentSexM ain e
         whenM 
             isFertileM
                 (do
-                    coord <- domainStateFieldM sugAgCoord
+                    coord <- agentStateFieldM sugAgCoord
                     nids <- neighbourIdsM e
                     let unncs = map fst (unoccupiedNeighbourhoodOfNeighbours coord e)
                     agentMatingConversationM ain nids unncs)
@@ -222,7 +222,7 @@ agentMatingConversationM _ [] _ = conversationEndM
 agentMatingConversationM _ _ [] = conversationEndM
 agentMatingConversationM ain (receiverId:ais) allCs@(coord:cs) =
     do
-        gender <- domainStateFieldM sugAgGender
+        gender <- agentStateFieldM sugAgGender
 
         ifThenElseM
             satisfiesWealthForChildBearingM
@@ -245,14 +245,14 @@ agentMatingConversationM ain (receiverId:ais) allCs@(coord:cs) =
                 -> State SugarScapeAgentOut SugarScapeEnvironment
         mate otherTup e =
             do
-                initialSugarEndow <- domainStateFieldM sugAgSugarInit
+                initialSugarEndow <- agentStateFieldM sugAgSugarInit
 
                 let mySugarContribution = initialSugarEndow * 0.5
-                mySugarMetab <- domainStateFieldM sugAgSugarMetab
-                mySpiceMetab <- domainStateFieldM sugAgSpiceMetab
-                myVision <- domainStateFieldM sugAgVision
-                myCulturalTag <- domainStateFieldM sugAgCulturalTag
-                myImmuneSysBorn <- domainStateFieldM sugAgImmuneSysBorn
+                mySugarMetab <- agentStateFieldM sugAgSugarMetab
+                mySpiceMetab <- agentStateFieldM sugAgSpiceMetab
+                myVision <- agentStateFieldM sugAgVision
+                myCulturalTag <- agentStateFieldM sugAgCulturalTag
+                myImmuneSysBorn <- agentStateFieldM sugAgImmuneSysBorn
 
                 let newBornId = nextAgentId ain
 
@@ -267,7 +267,7 @@ agentMatingConversationM ain (receiverId:ais) allCs@(coord:cs) =
 
                 let e' = updateCellAt coord (\c -> c { sugEnvOccupier = Just (cellOccupier newBornId (adState newBornDef)) }) e
                 
-                updateDomainStateM (\s -> s { sugAgSugarLevel = sugAgSugarLevel s - mySugarContribution,
+                updateAgentStateM (\s -> s { sugAgSugarLevel = sugAgSugarLevel s - mySugarContribution,
                                               sugAgChildren = newBornId : sugAgChildren s})
                 
                 createAgentM newBornDef
@@ -308,7 +308,7 @@ inheritSugarM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
 inheritSugarM ain = onMessageMState inheritSugarActionM ain
     where
         inheritSugarActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
-        inheritSugarActionM (_, InheritSugar sug) = updateDomainStateM (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + sug })
+        inheritSugarActionM (_, InheritSugar sug) = updateAgentStateM (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + sug })
         inheritSugarActionM _ = return ()
 
 agentCultureContactM :: SugarScapeAgentIn -> SugarScapeEnvironment -> State SugarScapeAgentOut ()
@@ -317,7 +317,7 @@ agentCultureContactM ain e =
         onMessageMState cultureContactActionM ain
 
         nids <- neighbourIdsM e
-        culturalTag <- domainStateFieldM sugAgCulturalTag
+        culturalTag <- agentStateFieldM sugAgCulturalTag
 
         broadcastMessageM (CulturalContact culturalTag) nids 
 
@@ -325,12 +325,12 @@ agentCultureContactM ain e =
         cultureContactActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
         cultureContactActionM (_, (CulturalContact tagActive)) = 
             do
-                agentTag <- domainStateFieldM sugAgCulturalTag
+                agentTag <- agentStateFieldM sugAgCulturalTag
                 agentTag' <- agentRandomM (cultureContact tagActive agentTag)
                 
                 let tribe = calculateTribe agentTag'
 
-                updateDomainStateM (\s -> s { sugAgCulturalTag = agentTag',
+                updateAgentStateM (\s -> s { sugAgCulturalTag = agentTag',
                                               sugAgTribe = tribe})
         cultureContactActionM _ = return ()
 
@@ -350,8 +350,8 @@ agentCombatMoveM :: SugarScapeEnvironment -> State SugarScapeAgentOut SugarScape
 agentCombatMoveM e =
     do
         cellsInSight <- agentLookoutM e
-        myTribe <- domainStateFieldM sugAgTribe
-        myWealth <- domainStateFieldM sugAgSugarLevel 
+        myTribe <- agentStateFieldM sugAgTribe
+        myWealth <- agentStateFieldM sugAgSugarLevel 
 
         let targetCells = filterOccupiers (occupierCombatable myWealth myTribe) cellsInSight
         
@@ -359,7 +359,7 @@ agentCombatMoveM e =
             (null targetCells)
             (agentNonCombatMoveM e)--(agentStayAndHarvestM e)
             (do
-                coord <- domainStateFieldM sugAgCoord
+                coord <- agentStateFieldM sugAgCoord
 
                 -- TODO: refactor this into common function (searching for the best)?
                 let targeCellsWithPayoff = map cellPayoff targetCells
@@ -387,9 +387,9 @@ agentCombatMoveM e =
         vulnerableToRetaliationM :: Double -> SugarScapeEnvironment -> State SugarScapeAgentOut Bool
         vulnerableToRetaliationM payoff e =
             do
-                sugarLevelAgent <- domainStateFieldM sugAgSugarLevel
+                sugarLevelAgent <- agentStateFieldM sugAgSugarLevel
                 cellsInSight <- agentLookoutM e
-                myTribe <- domainStateFieldM sugAgTribe
+                myTribe <- agentStateFieldM sugAgTribe
 
                 let futureSugarLevel = (payoff + sugarLevelAgent)
                 let retaliatingCells = filterOccupiers (occupierRetaliator futureSugarLevel myTribe) cellsInSight
@@ -401,14 +401,14 @@ agentCombatMoveM e =
                                     -> State SugarScapeAgentOut SugarScapeEnvironment
         moveAndHarvestAndKillM ((cellCoord, cell), payoff) e =
             do
-                sugarLevelAgent <- domainStateFieldM sugAgSugarLevel
+                sugarLevelAgent <- agentStateFieldM sugAgSugarLevel
                 let newSugarLevelAgent = (payoff + sugarLevelAgent)
 
                 e' <- unoccupyPositionM e
-                updateDomainStateM (\s -> s { sugAgSugarLevel = newSugarLevelAgent, sugAgCoord = cellCoord })
+                updateAgentStateM (\s -> s { sugAgSugarLevel = newSugarLevelAgent, sugAgCoord = cellCoord })
 
                 aid <- agentIdM
-                s <- getDomainStateM
+                s <- getAgentStateM
 
                 let cellHarvestedAndOccupied = cell {
                         sugEnvSugarLevel = 0.0,
@@ -444,7 +444,7 @@ agentTradingM e
         agentTradingConversationM [] = conversationEndM
         agentTradingConversationM (receiverId:otherAis) = 
             do
-                s <- getDomainStateM
+                s <- getAgentStateM
                 let mrsSelf = agentMRS s
                 conversationM 
                     (receiverId, (TradingOffer mrsSelf)) 
@@ -459,7 +459,7 @@ agentTradingM e
                 agentTradingConversationsReplyM _ (Just (_, (TradingTransact _))) = agentTradingConversationM otherAis  -- NOTE: other agent has transacted, continue with next
                 agentTradingConversationsReplyM mrsSelf (Just (senderId, (TradingAccept mrsOther))) =
                     do
-                        s <- getDomainStateM
+                        s <- getAgentStateM
 
                         let welfareIncreases = agentTradeIncreaseWelfare s mrsOther
                         
@@ -467,7 +467,7 @@ agentTradingM e
                             welfareIncreases
                             (do
                                 let s' = agentTradeExchange s mrsOther
-                                setDomainStateM s'
+                                setAgentStateM s'
                                 conversationM 
                                     (senderId, TradingTransact mrsSelf) 
                                     (conversationIgnoreEnvReplyMonadicRunner $ agentTradingConversationsReplyM mrsSelf))
@@ -492,7 +492,7 @@ agentRequestCreditM e =
         agentCreditConversationM [] = conversationEndM
         agentCreditConversationM (receiverId:otherAis) =
             do
-                s <- getDomainStateM
+                s <- getAgentStateM
 
                 ifThenElse 
                     (isPotentialBorrower s)
@@ -506,12 +506,12 @@ agentRequestCreditM e =
                 agentCreditConversationsReplyM (Just (_, CreditRequestRefuse)) = agentCreditConversationM otherAis 
                 agentCreditConversationsReplyM (Just (lenderId, CreditOffer credit)) = 
                     do
-                        age <- domainStateFieldM sugAgAge
+                        age <- agentStateFieldM sugAgAge
 
                         let (faceValue, creditDuration, creditInterestRate) = credit
                         let creditDueAge = age + creditDuration 
                         let creditInfo = (lenderId, creditDueAge, credit)
-                        updateDomainStateM (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + faceValue,
+                        updateAgentStateM (\s -> s { sugAgSugarLevel = sugAgSugarLevel s + faceValue,
                                                         sugAgBorrowingCredits = creditInfo : sugAgBorrowingCredits s })
 
                         agentCreditConversationM otherAis
@@ -522,8 +522,8 @@ agentRequestCreditM e =
 agentDeathHandleCreditsM :: State SugarScapeAgentOut ()
 agentDeathHandleCreditsM = 
     do
-        borrowedCredits <- domainStateFieldM sugAgBorrowingCredits
-        borrowerIds <- domainStateFieldM sugAgLendingCredits
+        borrowedCredits <- agentStateFieldM sugAgBorrowingCredits
+        borrowerIds <- agentStateFieldM sugAgLendingCredits
 
         let lenderIds = map (\(lid, _, _) -> lid) borrowedCredits
         
@@ -542,17 +542,17 @@ agentCreditDeathIncomingM ain = onMessageMState creditDeathActionM ain
         borrowerDiedM :: AgentId -> State SugarScapeAgentOut ()
         borrowerDiedM borrowerId = 
             do
-                borrowers <- domainStateFieldM sugAgLendingCredits
+                borrowers <- agentStateFieldM sugAgLendingCredits
                 let borrowersRemoved = filter (/=borrowerId) borrowers
-                updateDomainStateM (\s -> s { sugAgLendingCredits = borrowersRemoved } )
+                updateAgentStateM (\s -> s { sugAgLendingCredits = borrowersRemoved } )
 
         -- NOTE: the lender could have lended multiple times to this borrower, remove ALL credits
         lenderDiedM :: AgentId -> State SugarScapeAgentOut ()
         lenderDiedM lenderId = 
             do
-                borrowedCredits <- domainStateFieldM sugAgBorrowingCredits
+                borrowedCredits <- agentStateFieldM sugAgBorrowingCredits
                 let borrowersRemoved = filter (\(lId, _, _) -> lId /= lenderId) borrowedCredits
-                updateDomainStateM (\s -> s { sugAgBorrowingCredits = borrowersRemoved } )
+                updateAgentStateM (\s -> s { sugAgBorrowingCredits = borrowersRemoved } )
 
 agentCreditPaybackIncomingM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
 agentCreditPaybackIncomingM ain = onMessageMState creditPaybackActionM ain
@@ -570,21 +570,21 @@ agentCreditPaybackIncomingM ain = onMessageMState creditPaybackActionM ain
         fullCreditPaybackM :: AgentId -> Double -> State SugarScapeAgentOut ()
         fullCreditPaybackM borrowerId amount = 
             do
-                borrowers <- domainStateFieldM sugAgLendingCredits
+                borrowers <- agentStateFieldM sugAgLendingCredits
                 let borrowersFirstRemoved = delete borrowerId borrowers
-                updateDomainStateM (\s -> s { sugAgLendingCredits = borrowersFirstRemoved } )
+                updateAgentStateM (\s -> s { sugAgLendingCredits = borrowersFirstRemoved } )
                 agentChangeSugarWealthM amount
 
 agentChangeSugarWealthM :: Double -> State SugarScapeAgentOut ()
-agentChangeSugarWealthM amount = updateDomainStateM (\s -> s { sugAgSugarLevel = (sugAgSugarLevel s) + amount } )
+agentChangeSugarWealthM amount = updateAgentStateM (\s -> s { sugAgSugarLevel = (sugAgSugarLevel s) + amount } )
 
 agentCheckCreditPaybackDueM :: State SugarScapeAgentOut ()
 agentCheckCreditPaybackDueM = 
     do
-        borrowedCredits <- domainStateFieldM sugAgBorrowingCredits
+        borrowedCredits <- agentStateFieldM sugAgBorrowingCredits
 
         borrowedCredits' <- foldM agentCheckCreditPaybackAuxM [] borrowedCredits
-        updateDomainStateM (\s -> s { sugAgBorrowingCredits = borrowedCredits'})
+        updateAgentStateM (\s -> s { sugAgBorrowingCredits = borrowedCredits'})
 
     where
         agentCheckCreditPaybackAuxM :: [SugarScapeCreditInfo] 
@@ -592,7 +592,7 @@ agentCheckCreditPaybackDueM =
                                         -> State SugarScapeAgentOut [SugarScapeCreditInfo]
         agentCheckCreditPaybackAuxM accCredits creditInfo@(lenderId, ageDue, credit) =
             do
-                age <- domainStateFieldM sugAgAge
+                age <- agentStateFieldM sugAgAge
                 let creditDue = ageDue >= age
 
                 ifThenElse creditDue
@@ -603,7 +603,7 @@ agentCheckCreditPaybackDueM =
                 paybackCredit :: Double -> State SugarScapeAgentOut [SugarScapeCreditInfo]
                 paybackCredit age =
                     do
-                        wealth <- domainStateFieldM sugAgSugarLevel
+                        wealth <- agentStateFieldM sugAgSugarLevel
 
                         let (faceValue, creditDuration, creditInterestRate) = credit
                         let dueAmount = faceValue + (faceValue * (creditInterestRate / 100))
@@ -672,13 +672,13 @@ agentDiseaseContactM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
 agentDiseaseContactM ain = onMessageMState diseaseContactActionM ain
     where
         diseaseContactActionM :: AgentMessage SugarScapeMsg -> State SugarScapeAgentOut ()
-        diseaseContactActionM (_, (DiseaseContact d)) = updateDomainStateM (\s -> s { sugAgDiseases = d : (sugAgDiseases s) } )
+        diseaseContactActionM (_, (DiseaseContact d)) = updateAgentStateM (\s -> s { sugAgDiseases = d : (sugAgDiseases s) } )
         diseaseContactActionM _ = return ()
 
 agentDiseasesTransmitM :: SugarScapeEnvironment -> State SugarScapeAgentOut ()
 agentDiseasesTransmitM e =
     do
-        diseases <- domainStateFieldM sugAgDiseases
+        diseases <- agentStateFieldM sugAgDiseases
         nids <- neighbourIdsM e
 
         let hasDiseases = (not . null) diseases
@@ -694,12 +694,12 @@ agentDiseasesTransmitM e =
 agentImmunizeM :: State SugarScapeAgentOut ()
 agentImmunizeM =
     do
-        immuneSystem <- domainStateFieldM sugAgImmuneSys
-        diseases <- domainStateFieldM sugAgDiseases
+        immuneSystem <- agentStateFieldM sugAgImmuneSys
+        diseases <- agentStateFieldM sugAgDiseases
 
         let (immuneSystem', diseases') = foldr agentImmunizeAux (immuneSystem, []) diseases
 
-        updateDomainStateM (\s -> s { sugAgImmuneSys = immuneSystem',
+        updateAgentStateM (\s -> s { sugAgImmuneSys = immuneSystem',
                                       sugAgDiseases = diseases' })
 
 agentDiseaseProcessesM :: SugarScapeAgentIn -> SugarScapeEnvironment -> State SugarScapeAgentOut ()

@@ -37,8 +37,8 @@ module FRP.FrABS.Agent.Agent (
     conversation,
     conversationEnd,
 
-    updateDomainState,
-    setDomainState,
+    updateAgentState,
+    setAgentState,
 
     nextAgentId,
 
@@ -246,14 +246,14 @@ onMessageType m msgHdl ai acc = onFilterMessage filterByMsgType msgHdl ai acc
     where
         filterByMsgType = (==m) . snd --(\(_, m') -> m == m' )
 
-updateDomainState :: (s -> s) -> AgentOut s m e ->  AgentOut s m e
-updateDomainState f ao = ao { aoState = s' }
+updateAgentState :: (s -> s) -> AgentOut s m e ->  AgentOut s m e
+updateAgentState f ao = ao { aoState = s' }
     where
         s = aoState ao
         s' = f s
     
-setDomainState :: s -> AgentOut s m e -> AgentOut s m e
-setDomainState s ao = updateDomainState (\_ -> s) ao
+setAgentState :: s -> AgentOut s m e -> AgentOut s m e
+setAgentState s ao = updateAgentState (\_ -> s) ao
 
 allowsRecOthers :: AgentOut s m e -> Bool
 allowsRecOthers = aoRecOthersAllowed

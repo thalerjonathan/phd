@@ -17,7 +17,7 @@ import Control.Monad.IfElse
 import Debug.Trace
 
 agentCoordToPatchCoord :: ZombiesEnvironment -> State ZombiesAgentOut Discrete2dCoord
-agentCoordToPatchCoord (as, ap, _) = domainStateFieldM zAgentCoord >>= \coord -> return $ cont2dTransDisc2d ap as coord
+agentCoordToPatchCoord (as, ap, _) = agentStateFieldM zAgentCoord >>= \coord -> return $ cont2dTransDisc2d ap as coord
 
 humanBehaviourM :: ZombiesEnvironment 
                     -> Double 
@@ -25,7 +25,7 @@ humanBehaviourM :: ZombiesEnvironment
                     -> State ZombiesAgentOut ZombiesEnvironment
 humanBehaviourM e@(as, ap, an) _ ain = 
     do
-        updateDomainStateM (\s -> s { zAgentRole = Human })
+        updateAgentStateM (\s -> s { zAgentRole = Human })
         originPatch <- agentCoordToPatchCoord e
 
         let ns = neighbours originPatch True ap
@@ -38,7 +38,7 @@ humanBehaviourM e@(as, ap, an) _ ain =
             (do
                 let fewestZombiesPatch = fst . head $ sortedNs
 
-                energy <- domainStateFieldM zHumanEnergyLevel
+                energy <- agentStateFieldM zHumanEnergyLevel
                 ifThenElse
                     (energy > 0)
                     (flee originPatch fewestZombiesPatch e)
@@ -48,19 +48,19 @@ humanBehaviourM e@(as, ap, an) _ ain =
         aid = aiId ain
 
         resetEnergy :: State ZombiesAgentOut ()
-        resetEnergy = updateDomainStateM (\s -> s { zHumanEnergyLevel = zHumanEnergyInit s })
+        resetEnergy = updateAgentStateM (\s -> s { zHumanEnergyLevel = zHumanEnergyInit s })
 
         reduceEnergy :: State ZombiesAgentOut ()
-        reduceEnergy = updateDomainStateM (\s -> s { zHumanEnergyLevel = zHumanEnergyLevel s - 1 })
+        reduceEnergy = updateAgentStateM (\s -> s { zHumanEnergyLevel = zHumanEnergyLevel s - 1 })
 
         flee :: Discrete2dCoord -> Discrete2dCoord -> ZombiesEnvironment -> State ZombiesAgentOut ZombiesEnvironment
         flee originPatch targetPatch e@(as, ap, an)
             | originPatch == targetPatch = return e
             | otherwise =
                 do
-                    coord <- domainStateFieldM zAgentCoord
+                    coord <- agentStateFieldM zAgentCoord
                     let coord' = stepTo as humanSpeed coord (disc2dToCont2d targetPatch)
-                    updateDomainStateM (\s -> s { zAgentCoord = coord' })
+                    updateAgentStateM (\s -> s { zAgentCoord = coord' })
                     reduceEnergy
 
                     let ap0 = updateCellAt originPatch (removeHuman aid) ap
@@ -73,8 +73,8 @@ zombieBehaviourM :: ZombiesEnvironment
                     -> State ZombiesAgentOut ZombiesEnvironment
 zombieBehaviourM e@(as, ap, an) _ ain = 
     do
-        updateDomainStateM (\s -> s { zAgentRole = Zombie })
-        coord <- domainStateFieldM zAgentCoord
+        updateAgentStateM (\s -> s { zAgentRole = Zombie })
+        coord <- agentStateFieldM zAgentCoord
         originPatch <- agentCoordToPatchCoord e
 
         let ns = neighbours originPatch True ap
@@ -91,9 +91,9 @@ zombieBehaviourM e@(as, ap, an) _ ain =
             | originPatch == targetPatch = return e
             | otherwise =
                 do
-                    coord <- domainStateFieldM zAgentCoord
+                    coord <- agentStateFieldM zAgentCoord
                     let coord' = stepTo as zombieSpeed coord (disc2dToCont2d targetPatch)
-                    updateDomainStateM (\s -> s { zAgentCoord = coord' })
+                    updateAgentStateM (\s -> s { zAgentCoord = coord' })
 
                     let ap0 = updateCellAt originPatch decZombie ap
                     let ap1 = updateCellAt targetPatch incZombie ap0

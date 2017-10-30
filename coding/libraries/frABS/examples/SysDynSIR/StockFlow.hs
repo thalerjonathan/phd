@@ -24,7 +24,7 @@ susceptibleStock initValue = proc ain -> do
     stockValue <- (initValue+) ^<< integral -< (-infectionRate)
     
     let ao = agentOutFromIn ain
-    let ao0 = setDomainState stockValue ao
+    let ao0 = setAgentState stockValue ao
     let ao1 = stockOutTo stockValue infectionRateFlowId ao0
 
     returnA -< ao1
@@ -37,7 +37,7 @@ infectiousStock initValue = proc ain -> do
     stockValue <- (initValue+) ^<< integral -< (infectionRate - recoveryRate)
     
     let ao = agentOutFromIn ain
-    let ao0 = setDomainState stockValue ao
+    let ao0 = setAgentState stockValue ao
     let ao1 = stockOutTo stockValue infectionRateFlowId ao0 
     let ao2 = stockOutTo stockValue recoveryRateFlowId ao1
     
@@ -50,7 +50,7 @@ recoveredStock initValue = proc ain -> do
     stockValue <- (initValue+) ^<< integral -< recoveryRate
     
     let ao = agentOutFromIn ain
-    let ao' = setDomainState stockValue ao
+    let ao' = setAgentState stockValue ao
 
     returnA -< ao'
 ------------------------------------------------------------------------------------------------------------------------

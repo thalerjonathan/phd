@@ -18,33 +18,31 @@ An agent can be seen as a tuple $<id, s, m, e, b>$.
 \begin{itemize}
 	\item \textbf{id} - the unique identifier of the agent
 	\item \textbf{s} - the generic state of the agent
-	\item \textbf{m} - the set of messages the agent understands
-	\item \textbf{e} - the type of the environment the agent is situated in and can interact with
+	\item \textbf{m} - the messages the agent understands
+	\item \textbf{e} - the environment the agent is situated in and can interact with
 	\item \textbf{b} - the behaviour of the agent
 \end{itemize}
 
-The id is simply represented as an Integer and must be unique for all currently existing agents in the system as it is used for message-delivery. A stronger requirement would be that the id of an agent is unique for the whole simulation-run and will never be reused - this would support replications and operations requiring unique agent-ids.
+The id is simply represented as an Integer and must be unique for all currently existing agents in the system as it is used for message delivery. %A stronger requirement would be that the id of an agent is unique for the whole simulation-run and will never be reused - this would support replications and operations requiring unique agent-ids.
 
-Each agent may have a generic state which could be any data type or compound data. A SIR agent's state can be represented using the an AGDT as follows:
+Each agent may have a generic state which could be represented by any data type or compound data. A SIR agent's state can be represented using the an Algebraic Data Type (ADT) as follows:
 \begin{minted}[fontsize=\footnotesize]{haskell}
 data SIRState = Susceptible | Infected | Recovered
 \end{minted}
 
-The behaviour of the agent is a signal-function which maps a tuple of an AgentIn and the environment to an AgentOut and the environment. It has the following signature: 
+The behaviour of the agent is a signal-function which maps a tuple of an AgentIn and the environment to an AgentOut and the environment. It has the following signature \footnote{Note that we omit the type-parameters in the following code-listings as it would only lead to confusion and obscure the real meaning. Still it is important to keep in mind that all AgentIn and AgentOut are parameterised with \textit{s} representing the type of its state, \textit{m} representing the type of the messages and \textit{e} representing the type of environment.} 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 type AgentBehaviour s m e = SF (AgentIn s m e, e) (AgentOut s m e, e)
 \end{minted}
 
-AgentIn provides the necessary data to the agent-behaviour: its id, incoming messages, the current state s and a random-number generator. 
-
-AgentOut allows the agent to communicate changes: kill itself, create new agents, sending messages, an updated state s and a changed random-number generator.
+AgentIn provides the necessary data to the agent-behaviour: its id, incoming messages, the current state s and a random-number generator. AgentOut allows the agent to communicate changes: kill itself, create new agents, sending messages, an updated state s and a changed random-number generator. Both types are treated as opaque and access to them is only possible through the provided functions.
 
 The behaviour also gets the environment passed in, which the agent can read and also write by changing it and returning it along side the AgentOut. It is important to note, that the environment is completely generic and we do not induce any type-bounds on it.
 
-Obviously AgentIn is read-only \footnote{Of course one could change it, but the changes are never propagated out of the function thus ultimately making them never happen due to lazy evaluation.} whereas AgentOut is both read- and write-able. The first thing an agent-behaviour does is creating the default AgentOut from the existing AgentIn using the function.
+Obviously AgentIn is read-only \footnote{Of course one could change it, but the changes are never propagated out of the function thus ultimately making them never happen due to lazy evaluation.} whereas AgentOut is both read- and write-able. The first thing an agent-behaviour does is creating the default AgentOut from the existing AgentIn as is done in line 94 in Appendix \ref{app:abs_code}.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-agentOutFromIn :: AgentIn s m e -> AgentOut s m e
+agentOutFromIn :: AgentIn -> AgentOut
 \end{minted}
 
 This will copy the relevant fields over to AgentOut on which one now primarily acts. The read-only and read/write character of both types is also reflected in the EDSL where most of the functions implemented also work that way: they may read the AgentIn and read/write an AgentOut.
@@ -52,14 +50,15 @@ This will copy the relevant fields over to AgentOut on which one now primarily a
 Relevant functions for working on the agent-definition are:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-kill :: AgentOut s m e -> AgentOut s m e
-isDead :: AgentOut s m e -> Bool
-onStart :: (AgentOut s m e -> AgentOut s m e) -> AgentIn s m e -> AgentOut s m e -> AgentOut s m e
+kill :: AgentOut -> AgentOut
+isDead :: AgentOut -> Bool
+onStart :: (AgentOut -> AgentOut) -> AgentIn -> AgentOut -> AgentOut
 
-setDomainState :: s -> AgentOut s m e -> AgentOut s m e
-updateDomainState :: (s -> s) -> AgentOut s m e ->  AgentOut s m e
+getAgentState :: AgentOut -> s
+setAgentState :: s -> AgentOut -> AgentOut
+updateAgentState :: (s -> s) -> AgentOut ->  AgentOut
 
-createAgent :: AgentDef s m e -> AgentOut s m e -> AgentOut s m e
+createAgent :: AgentDef -> AgentOut -> AgentOut
 \end{minted}
 
 The function \textit{kill} marks an agent for removal after the current iteration. The function \textit{isDead} checks if the agent is marked for removal. The function \textit{onStart} allows to change the AgentOut in the case of the start-event which happens on the very first time the agent runs.

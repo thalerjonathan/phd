@@ -43,7 +43,7 @@ handleNeighbourAction :: PDAgentIn -> PDAgentOut -> PDAgentOut
 handleNeighbourAction ain ao = onMessage handleNeighbourActionAux ain ao
 	where
 		handleNeighbourActionAux :: AgentMessage PDMsg -> PDAgentOut -> PDAgentOut
-		handleNeighbourActionAux (_, NeighbourAction act) ao = updateDomainState (\s -> s { pdLocalPo = pdLocalPo s + po }) ao
+		handleNeighbourActionAux (_, NeighbourAction act) ao = updateAgentState (\s -> s { pdLocalPo = pdLocalPo s + po }) ao
 			where
 				curr = pdCurrAction $ aoState ao
 				po = payoff curr act
@@ -54,7 +54,7 @@ handleNeighbourPayoff ain ao = onMessage handleNeighbourPayoffAux ain ao
 	where
 		handleNeighbourPayoffAux :: AgentMessage PDMsg -> PDAgentOut -> PDAgentOut
 		handleNeighbourPayoffAux (_, NeighbourPayoff po@(poAct, poValue)) ao
-			| poValue > localBestPoValue = updateDomainState (\s -> s { pdBestPo = po }) ao
+			| poValue > localBestPoValue = updateAgentState (\s -> s { pdBestPo = po }) ao
 			| otherwise = ao
 			where
 				s = aoState ao
@@ -64,7 +64,7 @@ handleNeighbourPayoff ain ao = onMessage handleNeighbourPayoffAux ain ao
 
 switchToBestPayoff :: PDAgentOut -> PDAgentOut
 switchToBestPayoff ao = 
-	updateDomainState (\s -> s { 
+	updateAgentState (\s -> s { 
 		pdCurrAction = bestAction,
     	pdPrevAction = oldAction,
     	pdLocalPo = 0.0,

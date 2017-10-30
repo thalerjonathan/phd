@@ -10,5 +10,5 @@ import FRP.Yampa
 
 ------------------------------------------------------------------------------------------------------------------------
 newAgentBehaviour :: NewAgentBehaviour
-newAgentBehaviour = doRepeatedlyEvery 1.0 (updateDomainStateR (+1))
+newAgentBehaviour = doRepeatedlyEvery 1.0 (updateAgentStateR (+1))
 ------------------------------------------------------------------------------------------------------------------------

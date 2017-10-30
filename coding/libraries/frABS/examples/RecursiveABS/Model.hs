@@ -77,7 +77,7 @@ recursiveABSRandomizeCounter :: RecursiveABSAgentOut -> RecursiveABSAgentOut
 recursiveABSRandomizeCounter aout = aout1
     where
         (randInt, aout0) = agentRandomRange randomRangeCounter aout
-        aout1 = setDomainState randInt aout0
+        aout1 = setAgentState randInt aout0
 
 recursiveABSAgentBehaviour :: RecursiveABSAgentBehaviour
 recursiveABSAgentBehaviour = proc (ain, e) ->

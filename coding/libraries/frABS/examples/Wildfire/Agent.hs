@@ -24,7 +24,7 @@ wildfireAgentDie :: WildfireAgentBehaviour
 wildfireAgentDie = proc (ain, e) ->
 	do
 		let aout = agentOutFromIn ain
-		let aout0 = updateDomainState (\s -> s { wfLifeState = Dead }) aout
+		let aout0 = updateAgentState (\s -> s { wfLifeState = Dead }) aout
 		let aout1 = kill aout0 -- NOTE: killing leads to increased performance but leaves the patch in the color of the background
 		returnA -<  (aout1, e)
 
@@ -38,7 +38,7 @@ wildfireAgentBurning g initFuel = transitionOnBoolState
 wildfireAgentBurningBehaviour :: RandomGen g => g -> Double -> WildfireAgentBehaviour
 wildfireAgentBurningBehaviour g initFuel = proc (ain, e) -> 
 	do
-		(ao0, _) <- doOnceR $ updateDomainStateR (\s -> s { wfLifeState = Burning }) -< (ain, e)
+		(ao0, _) <- doOnceR $ updateAgentStateR (\s -> s { wfLifeState = Burning }) -< (ain, e)
 		ao1 <- burndown initFuel -< ao0
 		ao2 <- igniteNeighbours g -< (ao1, e)
 		returnA -< (ao2, e)
@@ -47,7 +47,7 @@ burndown :: Double -> SF WildfireAgentOut WildfireAgentOut
 burndown initFuel = proc ao ->	
 	do
 		currFuel <- drain initFuel -< wfFuelRate $ aoState ao
-		let ao' = updateDomainState (\s -> s { wfFuelCurr = currFuel }) ao
+		let ao' = updateAgentState (\s -> s { wfFuelCurr = currFuel }) ao
 		returnA -< ao'
 
 igniteNeighbours :: RandomGen g => g -> SF (WildfireAgentOut, WildfireEnvironment) WildfireAgentOut

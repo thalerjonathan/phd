@@ -16,8 +16,8 @@ module FRP.FrABS.Agent.Reactive (
     doNothing,
     doRepeatedlyEvery,
 
-    setDomainStateR,
-    updateDomainStateR,
+    setAgentStateR,
+    updateAgentStateR,
     
     sendMessageOccasionallySrc,
     sendMessageOccasionally,
@@ -116,11 +116,11 @@ doOnceR sf = proc (ain, e) -> do
 doNothing :: AgentBehaviour s m e
 doNothing = first $ arr agentOutFromIn
 
-setDomainStateR :: s -> AgentBehaviour s m e
-setDomainStateR s = first $ arr ((setDomainState s) . agentOutFromIn)
+setAgentStateR :: s -> AgentBehaviour s m e
+setAgentStateR s = first $ arr ((setAgentState s) . agentOutFromIn)
 
-updateDomainStateR :: (s -> s) -> AgentBehaviour s m e
-updateDomainStateR s = first $ arr ((updateDomainState s) . agentOutFromIn)
+updateAgentStateR :: (s -> s) -> AgentBehaviour s m e
+updateAgentStateR s = first $ arr ((updateAgentState s) . agentOutFromIn)
 
 doRepeatedlyEvery :: Time -> AgentBehaviour s m e -> AgentBehaviour s m e
 doRepeatedlyEvery t sf = proc (ain, e) -> do

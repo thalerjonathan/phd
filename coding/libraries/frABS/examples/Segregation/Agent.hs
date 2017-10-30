@@ -83,7 +83,7 @@ segMovement e ao
         ao' = updateSatisfactionLevel e ao
 
 updateSatisfactionLevel :: SegEnvironment -> SegAgentOut -> SegAgentOut
-updateSatisfactionLevel e ao = updateDomainState (\s -> s { segSatisfactionLevel = updatedSatisfactionLevel }) ao
+updateSatisfactionLevel e ao = updateAgentState (\s -> s { segSatisfactionLevel = updatedSatisfactionLevel }) ao
     where
         s = aoState ao
         agentPos = segCoord s
@@ -138,7 +138,7 @@ moveTo e newCoord ao = (ao', e'')
         e' = changeCellAt oldCoord Nothing e
         e'' = changeCellAt newCoord (Just c) e'
 
-        ao' = updateDomainState (\s -> s { segCoord = newCoord }) ao
+        ao' = updateAgentState (\s -> s { segCoord = newCoord }) ao
 
 findMove :: SegOptStrategy
                 -> SegMoveStrategy

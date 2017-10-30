@@ -34,8 +34,8 @@ module FRP.FrABS (
     conversation,
     conversationEnd,
 
-    updateDomainState,
-    setDomainState,
+    updateAgentState,
+    setAgentState,
 
     nextAgentId,
 
@@ -75,10 +75,10 @@ module FRP.FrABS (
     
     bypassEnvironment,
     
-    updateDomainStateM,
-    getDomainStateM,
-    setDomainStateM,
-    domainStateFieldM,
+    updateAgentStateM,
+    getAgentStateM,
+    setAgentStateM,
+    agentStateFieldM,
 
     agentMonadic,
     agentMonadicReadEnv,
@@ -103,8 +103,8 @@ module FRP.FrABS (
     doNothing,
     doRepeatedlyEvery,
     
-    setDomainStateR,
-    updateDomainStateR,
+    setAgentStateR,
+    updateAgentStateR,
     
     afterExp,
     superSampling,

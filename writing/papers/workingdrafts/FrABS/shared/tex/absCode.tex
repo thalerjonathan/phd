@@ -1,6 +1,7 @@
 \section{Functional-Reactive code of the agent-based SIR model}
 \label{app:abs_code}
 
+\begin{listing}
 \begin{minted}[fontsize=\footnotesize, linenos]{haskell}
 data SIRState = Susceptible | Infected | Recovered deriving (Eq)
 data SIRMsg = Contact SIRState deriving (Eq)
@@ -89,14 +90,14 @@ sirAgentSuceptible g =
 
 sirAgentInfectedEvent :: SIREventSource
 sirAgentInfectedEvent = proc (ain, ao) -> do
-    let (isInfected, ao') = agentRandom (gotInfected ain) ao
+    let (isInfected, ao') = agentRandom (gotInfected ain) ao 
     infectionEvent <- edge -< isInfected
     returnA -< (ao', infectionEvent)
 
 sirAgentSusceptibleBehaviour :: RandomGen g => g -> SIRAgentBehaviourReadEnv
 sirAgentSusceptibleBehaviour g = proc (ain, e) -> do
-    let ao = agentOutFromIn ain
-    ao1 <- doOnce (setDomainState Susceptible) -< ao
+    let ao = agentOutFromIn ain \label{line_agentOutFromIn}
+    ao1 <- doOnce (setAgentState Susceptible) -< ao
     ao2 <- sendMessageOccasionallySrcSS 
     		g
     		(1 / contactRate)
@@ -117,13 +118,13 @@ sirAgentInfected g =
 sirAgentInfectedBehaviour :: RandomGen g => g -> SIRAgentBehaviourIgnoreEnv
 sirAgentInfectedBehaviour g = proc ain -> do
     let ao = agentOutFromIn ain
-    ao1 <- doOnce (setDomainState Infected) -< ao
+    ao1 <- doOnce (setAgentState Infected) -< ao
     let ao2 = respondToContactWith Infected ain ao1
     returnA -< ao2
 
 -- RECOVERED
 sirAgentRecovered :: SIRAgentBehaviour
-sirAgentRecovered = setDomainStateR Recovered
+sirAgentRecovered = setAgentStateR Recovered
 
 -- INITIAL CASES
 sirAgentBehaviour :: RandomGen g => g -> SIRState -> SIRAgentBehaviour
@@ -147,3 +148,4 @@ aggregate (t, aobs, _) = (t, susceptibleCount, infectedCount, recoveredCount)
     infectedCount = fromIntegral $ length $ filter ((Infected==) . snd) aobs
     recoveredCount = fromIntegral $ length $ filter ((Recovered==) . snd) aobs
 \end{minted}
+\end{listing}

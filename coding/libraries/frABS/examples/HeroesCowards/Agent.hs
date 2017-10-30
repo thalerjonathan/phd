@@ -25,9 +25,9 @@ decidePosition friendCoord enemyCoord role
 agentMove :: HACEnvironment -> HACRole -> State HACAgentOut ()
 agentMove e role = 
     do
-        coord <- domainStateFieldM hacCoord
-        friendCoord <- domainStateFieldM hacFriendCoord
-        enemyCoord <- domainStateFieldM hacEnemyCoord
+        coord <- agentStateFieldM hacCoord
+        friendCoord <- agentStateFieldM hacFriendCoord
+        enemyCoord <- agentStateFieldM hacEnemyCoord
 
         let target = decidePosition friendCoord enemyCoord role
         let targetDir = vecNorm $ vecFromCoord coord target
@@ -37,7 +37,7 @@ agentMove e role =
         let newPos = addCoord coord (multCoord stepWidth targetDir)
         let newPosWrapped = wrapCont2dEnv e newPos
 
-        updateDomainStateM (\s -> s { hacCoord = newPosWrapped })
+        updateAgentStateM (\s -> s { hacCoord = newPosWrapped })
 
 hacAgent :: HACRole -> HACAgentBehaviourReadEnv
 hacAgent role e _ ain = 
@@ -50,24 +50,24 @@ hacAgent role e _ ain =
 handlePositionUpdate :: AgentMessage HACMsg -> State HACAgentOut ()
 handlePositionUpdate (senderId, PositionUpdate coord) =
     do
-        friend <- domainStateFieldM hacFriend
-        enemy <- domainStateFieldM hacEnemy
-        when (senderId == friend) (updateDomainStateM (\s -> s { hacFriendCoord = coord }))
-        when (senderId == enemy) (updateDomainStateM (\s -> s { hacEnemyCoord = coord }))
+        friend <- agentStateFieldM hacFriend
+        enemy <- agentStateFieldM hacEnemy
+        when (senderId == friend) (updateAgentStateM (\s -> s { hacFriendCoord = coord }))
+        when (senderId == enemy) (updateAgentStateM (\s -> s { hacEnemyCoord = coord }))
 handlePositionUpdate _ = return ()
 
 handlePositionRequest :: AgentMessage HACMsg -> State HACAgentOut () 
 handlePositionRequest (senderId, PositionRequest) = 
     do
-        coord <- domainStateFieldM hacCoord
+        coord <- agentStateFieldM hacCoord
         sendMessageM (senderId, PositionUpdate coord)
 handlePositionRequest _ = return ()
 
 broadcastCurrentPosition :: State HACAgentOut () 
 broadcastCurrentPosition = 
     do
-        friend <- domainStateFieldM hacFriend
-        enemy <- domainStateFieldM hacEnemy
+        friend <- agentStateFieldM hacFriend
+        enemy <- agentStateFieldM hacEnemy
         broadcastMessageM PositionRequest [friend, enemy]
 
 heroesCowardsAgentBehaviour :: HACRole -> HACAgentBehaviour

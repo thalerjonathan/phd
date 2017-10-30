@@ -22,10 +22,10 @@ module FRP.FrABS.Agent.Monad (
 
     bypassEnvironment,
 
-    updateDomainStateM,
-    getDomainStateM,
-    setDomainStateM,
-    domainStateFieldM,
+    updateAgentStateM,
+    getAgentStateM,
+    setAgentStateM,
+    agentStateFieldM,
 
     agentMonadic,
     agentMonadicReadEnv,
@@ -131,50 +131,32 @@ onMessageM msgHdl ai acc
         hasMessages = isEvent msgsEvt
         msgs = fromEvent msgsEvt
     
-updateDomainStateM :: (s -> s) -> State (AgentOut s m e) ()
-updateDomainStateM f = state (updateDomainStateMAux f)
+updateAgentStateM :: (s -> s) -> State (AgentOut s m e) ()
+updateAgentStateM f = state (updateAgentStateMAux f)
     where
-        updateDomainStateMAux :: (s -> s) 
+        updateAgentStateMAux :: (s -> s) 
                             -> AgentOut s m e 
                             -> ((), AgentOut s m e)
-        updateDomainStateMAux f ao = ((), updateDomainState f ao)
+        updateAgentStateMAux f ao = ((), updateAgentState f ao)
 
-setDomainStateM :: s -> State (AgentOut s m e) ()
-setDomainStateM s = state (\ao -> ((), setDomainState s ao))
+setAgentStateM :: s -> State (AgentOut s m e) ()
+setAgentStateM s = state (\ao -> ((), setAgentState s ao))
 
-domainStateFieldM :: (s -> t) -> State (AgentOut s m e) t
-domainStateFieldM f = state (domainStateFieldMAux f)
+agentStateFieldM :: (s -> t) -> State (AgentOut s m e) t
+agentStateFieldM f = state (agentStateFieldMAux f)
     where
-        domainStateFieldMAux :: (s -> t) 
+        agentStateFieldMAux :: (s -> t) 
                             -> AgentOut s m e
                             -> (t, AgentOut s m e)
-        domainStateFieldMAux f ao = (f s, ao)
+        agentStateFieldMAux f ao = (f s, ao)
             where
                 s = aoState ao
 
-{- TODO: this stuff should go into Environment.Monadic
-runEnvironmentM :: State e a -> State (AgentOut s m e) a
-runEnvironmentM envStateTrans =
-    do
-        env <- environmentM 
-        let (a, env') = runState envStateTrans env
-        setEnvironmentM env'
-        return a
-
-
-setEnvironmentM :: e -> State (AgentOut s m e) ()
-setEnvironmentM env =
-    do
-        ao <- get 
-        put $ ao { aoEnv = env }
--}
-
-getDomainStateM :: State (AgentOut s m e) s
-getDomainStateM = 
+getAgentStateM :: State (AgentOut s m e) s
+getAgentStateM = 
     do
         ao <- get
-        let domainState = aoState ao 
-        return domainState
+        return $ aoState ao
 
 agentMonadic :: AgentMonadicBehaviour s m e -> AgentBehaviour s m e
 agentMonadic f = proc (ain, e) ->

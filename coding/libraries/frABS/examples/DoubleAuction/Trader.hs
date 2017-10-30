@@ -347,7 +347,7 @@ traderBehaviourFuncM _ ain =
 sendOfferingsM :: State DAAgentOut ()
 sendOfferingsM =
 	do
-		s <- getDomainStateM
+		s <- getAgentStateM
 		bos <- agentRandomM (bidOfferings s)
 		aos <- agentRandomM (askOfferings s)
 
@@ -358,8 +358,8 @@ receiveTransactionsM :: DAAgentIn -> State DAAgentOut ()
 receiveTransactionsM ain = onMessageMState handleTxMsgM ain
 	where
 		handleTxMsgM :: AgentMessage DoubleAuctionMsg -> State DAAgentOut ()
-		handleTxMsgM (_, (SellTx m o)) = updateDomainStateM (transactSell m o)
-		handleTxMsgM (_, (BuyTx m o)) = updateDomainStateM (transactBuy m o)
+		handleTxMsgM (_, (SellTx m o)) = updateAgentStateM (transactSell m o)
+		handleTxMsgM (_, (BuyTx m o)) = updateAgentStateM (transactBuy m o)
 		handleTxMsgM _ = return ()
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -384,8 +384,8 @@ receiveTransactions :: DAAgentIn -> DAAgentOut -> DAAgentOut
 receiveTransactions ain ao = onMessage handleTxMsg ain ao
 	where
 		handleTxMsg :: AgentMessage DoubleAuctionMsg -> DAAgentOut -> DAAgentOut
-		handleTxMsg (_, (SellTx m o)) ao = updateDomainState (transactSell m o) ao
-		handleTxMsg (_, (BuyTx m o)) ao = updateDomainState (transactBuy m o) ao
+		handleTxMsg (_, (SellTx m o)) ao = updateAgentState (transactSell m o) ao
+		handleTxMsg (_, (BuyTx m o)) ao = updateAgentState (transactBuy m o) ao
 		handleTxMsg _ ao = ao
 ------------------------------------------------------------------------------------------------------------------------
 

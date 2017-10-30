@@ -57,19 +57,19 @@ agentTest ao = setAgentState n ao'
 
 conversationHandler :: ConversationAgentConversation
 conversationHandler ain e (_, msg@(Hello n)) =
-    trace ("Agent " ++ (show $ aiId ain) ++ " receives conversation: " ++ (show msg))
-        Just (Hello (n+1), ain, e)
+    trace ("Agent " ++ (show $ agentId ain) ++ " receives conversation: " ++ (show msg))
+        Just (agentStateIn ain, Hello (n+1), e)
 
 makeConversationWith :: Int -> ConversationAgentOut -> ConversationAgentOut
 makeConversationWith n ao = conversation msg makeConversationWithAux ao 
     where
-        receiverId = if aoId ao == 0 then 1 else 0
+        receiverId = if agentIdOut ao == 0 then 1 else 0
         msg =  trace ("makeConversationWith " ++ (show n) ++ " receiverId = " ++ (show receiverId))  (receiverId, Hello n)
 
         makeConversationWithAux :: ConversationAgentSender
         makeConversationWithAux ao e (Just (senderId, msg@(Hello n)))
-            | n > 5 = trace ("Agent " ++ (show $ aoId ao) ++ " receives reply: " ++ (show msg) ++ " but stoppin") (conversationEnd a1, e)
-            | otherwise = trace ("Agent " ++ (show $ aoId ao) ++ " receives reply: " ++ (show msg) ++ " continuing") (makeConversationWith (n + 1) ao, e)
+            | n > 5 = trace ("Agent " ++ (show $ agentIdOut ao) ++ " receives reply: " ++ (show msg) ++ " but stoppin") (conversationEnd a1, e)
+            | otherwise = trace ("Agent " ++ (show $ agentIdOut ao) ++ " receives reply: " ++ (show msg) ++ " continuing") (makeConversationWith (n + 1) ao, e)
             where
                 (g, a0) = agentRandomSplit ao
 
@@ -84,7 +84,7 @@ makeConversationWith n ao = conversation msg makeConversationWithAux ao
 
                 a1 = createAgent adef a0
 
-        makeConversationWithAux ao e _ = trace ("Agent " ++ (show $ aoId ao) ++ " receives Nothing -> stopping") (conversationEnd ao, e)
+        makeConversationWithAux ao e _ = trace ("Agent " ++ (show $ agentIdOut ao) ++ " receives Nothing -> stopping") (conversationEnd ao, e)
 
 conversationAgentBehaviour :: ConversationAgentBehaviour
 conversationAgentBehaviour = proc (ain, e) ->

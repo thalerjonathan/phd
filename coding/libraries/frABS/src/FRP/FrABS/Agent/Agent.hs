@@ -4,7 +4,6 @@ module FRP.FrABS.Agent.Agent (
     AgentMessage,
     AgentBehaviour,
 
-    AgentConversationReply,
     AgentConversationReceiver,
     AgentConversationSender,
     
@@ -14,6 +13,8 @@ module FRP.FrABS.Agent.Agent (
 
     AgentObservable,
 
+    agentId,
+    agentIdOut,
     createAgent,
     kill,
     isDead,
@@ -37,6 +38,8 @@ module FRP.FrABS.Agent.Agent (
     conversation,
     conversationEnd,
 
+    agentStateIn,
+    agentState,
     updateAgentState,
     setAgentState,
 
@@ -50,7 +53,8 @@ module FRP.FrABS.Agent.Agent (
     recursive,
     unrecursive,
     isRecursive,
-
+    agentRecursions,
+    
     mergeMessages,
 
     agentPure,
@@ -77,12 +81,10 @@ type AgentMessage m = (AgentId, m)
 type AgentBehaviour s m e = SF (AgentIn s m e, e) (AgentOut s m e, e)
 type MessageFilter m = (AgentMessage m -> Bool)
 
-type AgentConversationReply s m e = Maybe (m, AgentIn s m e, e)
-
 type AgentConversationReceiver s m e = (AgentIn s m e
                                             -> e
                                             -> AgentMessage m
-                                            -> AgentConversationReply s m e) -- NOTE: the receiver MUST reply, otherwise we could've used the normal messaging
+                                            -> Maybe (s, m, e)) -- NOTE: the receiver MUST reply, otherwise we could've used the normal messaging
 
 type AgentConversationSender s m e = (AgentOut s m e
                                         -> e
@@ -131,6 +133,15 @@ type AgentObservable s = (AgentId, s)
 ------------------------------------------------------------------------------------------------------------------------
 -- Agent Functions
 ------------------------------------------------------------------------------------------------------------------------
+agentId :: AgentIn s m e -> AgentId
+agentId = aiId 
+
+agentIdOut :: AgentOut s m e -> AgentId
+agentIdOut = aoId 
+
+agentRecursions :: AgentIn s m e -> Event [(AgentOut s m e, e)]
+agentRecursions = aiRec
+
 recInitAllowed :: AgentIn s m e -> Bool
 recInitAllowed = aiRecInitAllowed
 
@@ -245,6 +256,12 @@ onMessageType :: (Eq m) => m -> (AgentMessage m -> acc -> acc) -> AgentIn s m e 
 onMessageType m msgHdl ai acc = onFilterMessage filterByMsgType msgHdl ai acc
     where
         filterByMsgType = (==m) . snd --(\(_, m') -> m == m' )
+
+agentStateIn :: AgentIn s m e -> s
+agentStateIn = aiState
+
+agentState :: AgentOut s m e -> s
+agentState = aoState
 
 updateAgentState :: (s -> s) -> AgentOut s m e ->  AgentOut s m e
 updateAgentState f ao = ao { aoState = s' }

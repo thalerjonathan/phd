@@ -39,7 +39,7 @@ agentRandom f ao = (ret, ao')
     where
         g = aoRng ao
         (ret, g') = runRand f g
-        ao' = ao {aoRng = g'}
+        ao' = ao { aoRng = g' }
 
 agentRandomM :: Rand StdGen a -> State (AgentOut s m e) a
 agentRandomM f = state (runAgentRandomMAux f)

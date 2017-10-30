@@ -113,7 +113,7 @@ bypassEnvironment :: State (AgentOut s m e) () -> e -> State (AgentOut s m e) e
 bypassEnvironment a e = a >> return e
 
 killM :: State (AgentOut s m e) ()
-killM = state (\ao -> ((), ao { aoKill = Event () }))
+killM = state (\ao -> ((), kill ao))
 
 isDeadM :: State (AgentOut s m e) Bool
 isDeadM = state (\ao -> (isDead ao, ao))

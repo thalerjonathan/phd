@@ -155,7 +155,7 @@ satisfiesWealthForChildBearing s = excessAmount >= 0
         excessAmount = excessAmountToChildBearing s
 
 satisfiesWealthForChildBearingM ::State SugarScapeAgentOut Bool
-satisfiesWealthForChildBearingM = state (\ao -> (satisfiesWealthForChildBearing $ aoState ao, ao))
+satisfiesWealthForChildBearingM = state (\ao -> (satisfiesWealthForChildBearing $ agentState ao, ao))
 
 isFertile :: SugarScapeAgentState -> Bool
 isFertile s = withinRange age fertilityAgeRange
@@ -164,7 +164,7 @@ isFertile s = withinRange age fertilityAgeRange
         fertilityAgeRange = sugAgFertAgeRange s
 
 isFertileM :: State SugarScapeAgentOut Bool
-isFertileM = state (\ao -> (isFertile $ aoState ao, ao))
+isFertileM = state (\ao -> (isFertile $ agentState ao, ao))
 
 tooOldForChildren :: SugarScapeAgentState -> Bool
 tooOldForChildren s = age > fertilityAgeMax 
@@ -178,7 +178,7 @@ withinRange a (l, u) = a >= l && a <= u
 neighbourIds :: SugarScapeEnvironment -> SugarScapeAgentOut -> [AgentId]
 neighbourIds e ao = map (sugEnvOccId . fromJust . sugEnvOccupier) occupiedCells
     where
-        coord = sugAgCoord $ aoState ao
+        coord = sugAgCoord $ agentState ao
         ncs = neighbourCells coord False e -- NOTE: this includes only neighbours, never self, never required in this function
         occupiedCells = filter (isJust . sugEnvOccupier) ncs
 

@@ -2,17 +2,18 @@ module FRP.FrABS (
     AgentId,
     AgentMessage,
     AgentBehaviour,
-
-    AgentConversationReply,
+    
     AgentConversationReceiver,
     AgentConversationSender,
     
     AgentDef (..),
-    AgentIn (..),
-    AgentOut (..),
+    AgentIn,
+    AgentOut,
 
     AgentObservable,
     
+    agentId,
+    agentIdOut,
     agentIdM,
     createAgent,
     kill,
@@ -34,6 +35,8 @@ module FRP.FrABS (
     conversation,
     conversationEnd,
 
+    agentStateIn,
+    agentState,
     updateAgentState,
     setAgentState,
 
@@ -47,7 +50,8 @@ module FRP.FrABS (
     recursive,
     unrecursive,
     isRecursive,
-
+    agentRecursions,
+    
     agentPure,
     agentPureReadEnv,
     agentPureIgnoreEnv,

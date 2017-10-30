@@ -194,7 +194,8 @@ iterateAgents dt sfs insMap ais e msgs = foldr handleAgent ([], [], insMap, e, m
                     receiver <- Map.lookup receiverId insMap
                     convHandler <- aiConversation receiver
                     let msg = (aoId ao, receiverMsg)
-                    (replyMsg, receiver', e') <- convHandler receiver e msg
+                    (receiverState, replyMsg, e') <- convHandler receiver e msg
+                    let receiver' = receiver { aiState = receiverState }
                     let insMap' = Map.insert receiverId receiver' insMap
                     let (ao', e'') = senderReplyFunc ao e' (Just (receiverId, replyMsg))
                     return (ao', e'', insMap')

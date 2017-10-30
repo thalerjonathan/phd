@@ -45,8 +45,6 @@ humanBehaviourM e@(as, ap, an) _ ain =
                     (resetEnergy >> return e))
             (return e)
     where
-        aid = aiId ain
-
         resetEnergy :: State ZombiesAgentOut ()
         resetEnergy = updateAgentStateM (\s -> s { zHumanEnergyLevel = zHumanEnergyInit s })
 
@@ -63,6 +61,7 @@ humanBehaviourM e@(as, ap, an) _ ain =
                     updateAgentStateM (\s -> s { zAgentCoord = coord' })
                     reduceEnergy
 
+                    aid <- agentIdM
                     let ap0 = updateCellAt originPatch (removeHuman aid) ap
                     let ap1 = updateCellAt targetPatch (addHuman aid) ap0
                     return (as, ap1, an)

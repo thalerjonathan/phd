@@ -46,7 +46,7 @@ wildfireAgentBurningBehaviour g initFuel = proc (ain, e) ->
 burndown :: Double -> SF WildfireAgentOut WildfireAgentOut
 burndown initFuel = proc ao ->	
 	do
-		currFuel <- drain initFuel -< wfFuelRate $ aoState ao
+		currFuel <- drain initFuel -< wfFuelRate $ agentState ao
 		let ao' = updateAgentState (\s -> s { wfFuelCurr = currFuel }) ao
 		returnA -< ao'
 

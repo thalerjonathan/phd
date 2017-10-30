@@ -21,7 +21,7 @@ payoff Cooperator Cooperator = rParam
 broadcastLocalAction :: PDEnvironment -> PDAgentOut -> PDAgentOut
 broadcastLocalAction e ao = broadcastMessage (NeighbourAction curr) ns ao
 	where
-		s = aoState ao
+		s = agentState ao
 
 		coord = pdCoord s
 		curr = pdCurrAction s
@@ -31,7 +31,7 @@ broadcastLocalAction e ao = broadcastMessage (NeighbourAction curr) ns ao
 broadcastLocalPayoff :: PDEnvironment -> PDAgentOut -> PDAgentOut
 broadcastLocalPayoff e ao = broadcastMessage (NeighbourPayoff (currAct, currPo)) ns ao
 	where
-		s = aoState ao
+		s = agentState ao
 
 		coord = pdCoord s
 		currAct = pdCurrAction s
@@ -45,7 +45,7 @@ handleNeighbourAction ain ao = onMessage handleNeighbourActionAux ain ao
 		handleNeighbourActionAux :: AgentMessage PDMsg -> PDAgentOut -> PDAgentOut
 		handleNeighbourActionAux (_, NeighbourAction act) ao = updateAgentState (\s -> s { pdLocalPo = pdLocalPo s + po }) ao
 			where
-				curr = pdCurrAction $ aoState ao
+				curr = pdCurrAction $ agentState ao
 				po = payoff curr act
 		handleNeighbourActionAux _ ao = ao
 
@@ -57,7 +57,7 @@ handleNeighbourPayoff ain ao = onMessage handleNeighbourPayoffAux ain ao
 			| poValue > localBestPoValue = updateAgentState (\s -> s { pdBestPo = po }) ao
 			| otherwise = ao
 			where
-				s = aoState ao
+				s = agentState ao
 				(_, localBestPoValue) = pdBestPo s
 
 		handleNeighbourPayoffAux _ ao = ao
@@ -72,7 +72,7 @@ switchToBestPayoff ao =
 		ao
 
 	where
-		s = aoState ao
+		s = agentState ao
 		oldAction = pdCurrAction s
 		(bestAction, _) = pdBestPo s
 

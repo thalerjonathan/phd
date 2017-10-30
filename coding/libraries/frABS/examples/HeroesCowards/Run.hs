@@ -11,10 +11,10 @@ import FRP.FrABS
 winSize = (800, 800)
 winTitle = "Heroes & Cowards"
 frequency = 0
-updateStrat = Parallel
-shuffleAgents = False
+updateStrat = Sequential
+shuffleAgents = True
 rngSeed = 42
-agentCount = 10000
+agentCount = 500
 samplingTimeDelta = 1.0
 
 runHeroesCowardsWithRendering :: IO ()

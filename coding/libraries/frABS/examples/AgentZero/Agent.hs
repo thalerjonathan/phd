@@ -129,7 +129,7 @@ updateDispoM e ain =
 		broadcastMessageM (Disposition dispoLocal) linkIds
 
 	where
-		aid = aiId ain
+		aid = agentId ain
 		net = azAgentNetwork e
 		linkIds = neighbourNodes aid net
 
@@ -187,9 +187,9 @@ updateProb e s = s { azAgentProb = newProb, azAgentMemory = mem' }
 updateDispo :: AgentZeroEnvironment -> AgentZeroAgentIn -> AgentZeroAgentOut -> AgentZeroAgentOut
 updateDispo e ain ao = broadcastMessage (Disposition dispoLocal) linkIds aDispoFinal
 	where
-		aid = aoId ao
+		aid = agentId ain
+		s = agentState ao
 
-		s = aoState ao
 		affect = azAgentAffect s
 		prob = azAgentProb s
 		thresh = azAgentThresh s
@@ -220,10 +220,10 @@ destroyPatches coordCont e = e { azWorldPatches = wp' }
 
 randomMove :: AgentZeroEnvironment -> AgentZeroAgentOut -> AgentZeroAgentOut
 randomMove e ao 
-	| aoId ao == 0 = ao 
+	| agentIdOut ao == 0 = ao 
 	| otherwise = updateAgentState (\s -> s { azAgentCoord = newCoord }) ao'
 	where
-		coord = azAgentCoord $ aoState ao
+		coord = azAgentCoord $ agentState ao
 		(newCoord, ao') = agentRandom (stepRandom coord (azAgentSpace e) movementSpeed) ao
 
 agentZeroAgentBehaviourFunc :: AgentZeroEnvironment 
@@ -239,12 +239,12 @@ agentZeroAgentBehaviourFunc e _ ain ao
 
 		s0 = updateProb e $
 				updateAffect e $
-				updateEventCount e (aoState ao0)
+				updateEventCount e (agentState ao0)
 
 		ao1 = setAgentState s0 ao0
 		ao2 = updateDispo e ain ao1
 
-		s2 = aoState ao2
+		s2 = agentState ao2
 		coord = azAgentCoord s2
 
 		e' = destroyPatches coord e 

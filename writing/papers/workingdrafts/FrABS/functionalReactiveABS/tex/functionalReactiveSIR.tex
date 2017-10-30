@@ -50,11 +50,12 @@ This will copy the relevant fields over to AgentOut on which one now primarily a
 Relevant functions for working on the agent-definition are:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
+agentId :: AgentIn -> AgentId
 kill :: AgentOut -> AgentOut
 isDead :: AgentOut -> Bool
 onStart :: (AgentOut -> AgentOut) -> AgentIn -> AgentOut -> AgentOut
 
-getAgentState :: AgentOut -> s
+agentState :: AgentOut -> s
 setAgentState :: s -> AgentOut -> AgentOut
 updateAgentState :: (s -> s) -> AgentOut ->  AgentOut
 

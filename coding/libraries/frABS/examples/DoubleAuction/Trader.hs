@@ -372,7 +372,7 @@ traderBehaviourFunc _ ain ao = sendOfferings $ receiveTransactions ain ao
 sendOfferings :: DAAgentOut -> DAAgentOut
 sendOfferings ao = aAfterAsk
 	where
-		s = aoState ao
+		s = agentState ao
 
 		(bos, ao0) = agentRandom (bidOfferings s) ao 
 		(aos, ao1) = agentRandom (askOfferings s) ao0

@@ -48,27 +48,27 @@ allowRecursionToOthers = False
 
 recursiveABSStep :: RecursiveABSAgentOut -> RecursiveABSAgentIn -> RecursiveABSAgentOut
 recursiveABSStep aout ain
-    | isRecursive ain = trace ("agent " ++ (show $ aiId ain) ++ ": RECURSIVE with state: " ++ (show $ aoState aout)) recursiveABSActRecursive aout ain
-    | otherwise = trace ("agent " ++ (show $ aiId ain) ++ ": NORMAL with state: " ++ (show $ aoState aout)) recursiveABSActNonRec aout ain
+    | isRecursive ain = trace ("agent " ++ (show $ agentId ain) ++ ": RECURSIVE with state: " ++ (show $ agentState aout)) recursiveABSActRecursive aout ain
+    | otherwise = trace ("agent " ++ (show $ agentId ain) ++ ": NORMAL with state: " ++ (show $ agentState aout)) recursiveABSActNonRec aout ain
 
 recursiveABSActRecursive :: RecursiveABSAgentOut -> RecursiveABSAgentIn -> RecursiveABSAgentOut
 recursiveABSActRecursive aout ain
-    | length recursiveOuts < 2 = trace ("agent " ++ (show $ aiId ain) ++ ":  continuing recursive simulation, generating state " ++ (show $ aoState aoutRec)) aoutRec
-    | otherwise = trace ("agent " ++ (show $ aiId ain) ++ ":  stopping recursive simulation, returning state " ++ (show $ aoState aoutUnRec)) aoutUnRec
+    | length recursiveOuts < 2 = trace ("agent " ++ (show $ agentId ain) ++ ":  continuing recursive simulation, generating state " ++ (show $ agentState aoutRec)) aoutRec
+    | otherwise = trace ("agent " ++ (show $ agentId ain) ++ ":  stopping recursive simulation, returning state " ++ (show $ agentState aoutUnRec)) aoutUnRec
     where
-        recursiveOuts = fromEvent $ aiRec ain
-        recursiveStates = map (aoState . fst) recursiveOuts
+        recursiveOuts = fromEvent $ agentRecursions ain
+        recursiveStates = map (agentState . fst) recursiveOuts
 
-        aout' = trace ("agent " ++ (show $ aiId ain) ++ ":  has recursiveOuts: " ++ (show recursiveStates)) (recursiveABSRandomizeCounter aout)
+        aout' = trace ("agent " ++ (show $ agentId ain) ++ ":  has recursiveOuts: " ++ (show recursiveStates)) (recursiveABSRandomizeCounter aout)
         aoutRec = recursive allowRecursionToOthers aout'
 
-        aoutSelected = trace ("agent " ++ (show $ aiId ain) ++ ":  has recursiveOuts: " ++ (show recursiveStates)) (recursiveOuts !! 0)
+        aoutSelected = trace ("agent " ++ (show $ agentId ain) ++ ":  has recursiveOuts: " ++ (show recursiveStates)) (recursiveOuts !! 0)
         aoutUnRec = unrecursive $ fst aoutSelected
 
 recursiveABSActNonRec :: RecursiveABSAgentOut -> RecursiveABSAgentIn -> RecursiveABSAgentOut
 recursiveABSActNonRec aout ain
-    | recInitAllowed ain = trace ("agent " ++ (show $ aiId ain) ++ ": recursion is allowed, requests recursion, generating state " ++ (show $ aoState aoutRec)) aoutRec
-    | otherwise = trace ("agent " ++ (show $ aiId ain) ++ ": recursion is forbidden, generating state " ++ (show $ aoState aout')) aout'
+    | recInitAllowed ain = trace ("agent " ++ (show $ agentId ain) ++ ": recursion is allowed, requests recursion, generating state " ++ (show $ agentState aoutRec)) aoutRec
+    | otherwise = trace ("agent " ++ (show $ agentId ain) ++ ": recursion is forbidden, generating state " ++ (show $ agentState aout')) aout'
     where
         aout' = recursiveABSRandomizeCounter aout
         aoutRec = recursive allowRecursionToOthers aout'
@@ -84,5 +84,5 @@ recursiveABSAgentBehaviour = proc (ain, e) ->
     do
         let ao = agentOutFromIn ain
         t <- time -< 0.0
-        let ao' = trace ("agent " ++ (show $ aiId ain) ++ ": at time = " ++ (show t) ++ " has " ++ (show $ aoState ao)) (recursiveABSStep ao ain)
+        let ao' = trace ("agent " ++ (show $ agentId ain) ++ ": at time = " ++ (show t) ++ " has " ++ (show $ agentState ao)) (recursiveABSStep ao ain)
         returnA -< (ao', e)

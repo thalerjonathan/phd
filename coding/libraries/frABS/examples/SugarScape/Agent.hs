@@ -279,15 +279,14 @@ agentMatingConversationM ain (receiverId:ais) allCs@(coord:cs) =
                 return e'
 
 handleMatingConversationM :: SugarScapeAgentGender
-                                -> SugarScapeAgentIn
-                                -> (SugarScapeMsg, SugarScapeAgentIn)
-handleMatingConversationM otherGender ain 
+                                -> SugarScapeAgentState
+                                -> (SugarScapeMsg, SugarScapeAgentState)
+handleMatingConversationM otherGender s 
     | isFertile s &&
         satisfiesWealthForChildBearing s &&
-        differentGender = (MatingReplyYes (mySugarContribution, mySugarMetab, mySpiceMetab, myVision, myCulturalTag, myImmuneSysBorn), ain')
-    | otherwise = (MatingReplyNo, ain)
+        differentGender = (MatingReplyYes (mySugarContribution, mySugarMetab, mySpiceMetab, myVision, myCulturalTag, myImmuneSysBorn), s')
+    | otherwise = (MatingReplyNo, s)
     where
-        s = aiState ain
         myGender = sugAgGender s
         differentGender = myGender /= otherGender
 
@@ -302,7 +301,6 @@ handleMatingConversationM otherGender ain
         myImmuneSysBorn = sugAgImmuneSysBorn s
 
         s' = s { sugAgSugarLevel = sugarLevel - mySugarContribution }
-        ain' = ain { aiState = s'}
 
 inheritSugarM :: SugarScapeAgentIn -> State SugarScapeAgentOut ()
 inheritSugarM ain = onMessageMState inheritSugarActionM ain
@@ -627,31 +625,28 @@ agentCheckCreditPaybackDueM =
 --       which probably would occur in their oo-implementation because of direct method-calls
 -- TODO: monadic-refactoring
 handleTradingOfferM :: Double
-                        -> SugarScapeAgentIn
-                        -> (SugarScapeMsg, SugarScapeAgentIn)
-handleTradingOfferM mrsOther ain 
-    | welfareIncreases = (TradingAccept mrsSelf, ain)     -- This makes the agent better off
-    | otherwise = (TradingRefuse, ain)                      -- This trade would make the agent worse off, refuse the trade
+                        -> SugarScapeAgentState
+                        -> SugarScapeMsg
+handleTradingOfferM mrsOther s 
+    | welfareIncreases = TradingAccept mrsSelf     -- This makes the agent better off
+    | otherwise = TradingRefuse                    -- This trade would make the agent worse off, refuse the trade
     where
-        s = aiState ain
         mrsSelf = agentMRS s
         welfareIncreases = agentTradeIncreaseWelfare s mrsOther
 
 -- TODO: monadic-refactoring
 handleTradingTransactM :: Double
-                            -> SugarScapeAgentIn
-                            -> (SugarScapeMsg, SugarScapeAgentIn)
-handleTradingTransactM mrsOther ain = (TradingTransact mrsOther, ainAfterTrade) -- NOTE: simply reply with the same transaction-message
+                            -> SugarScapeAgentState
+                            -> (SugarScapeMsg, SugarScapeAgentState)
+handleTradingTransactM mrsOther s = (TradingTransact mrsOther, s') -- NOTE: simply reply with the same transaction-message
     where
-        s = aiState ain
         s' = agentTradeExchange s mrsOther
-        ainAfterTrade = ain { aiState = s' }
 
 -- TODO: monadic-refactoring
-handleCreditRequestM :: SugarScapeAgentIn -> AgentId -> (SugarScapeMsg, SugarScapeAgentIn)
-handleCreditRequestM ain borrowerId
-    | isLender = (CreditOffer credit, ainAfterCreditOffer)
-    | otherwise = (CreditRequestRefuse, ain)
+handleCreditRequestM :: SugarScapeAgentState -> AgentId -> (SugarScapeMsg, SugarScapeAgentState)
+handleCreditRequestM s borrowerId
+    | isLender = (CreditOffer credit, s')
+    | otherwise = (CreditRequestRefuse, s)
     where
         mayFaceValue = potentialLender s
         isLender = isJust mayFaceValue
@@ -659,10 +654,8 @@ handleCreditRequestM ain borrowerId
         faceValue = fromJust mayFaceValue
         credit = (faceValue, lendingCreditDuration, lendingCreditInterestRate)
 
-        s = aiState ain
         s' = s { sugAgSugarLevel = (sugAgSugarLevel s) - faceValue,
                 sugAgLendingCredits = borrowerId : (sugAgLendingCredits s) }
-        ainAfterCreditOffer = ain { aiState = s' }
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -711,23 +704,26 @@ agentDiseaseProcessesM ain e = agentDiseaseContactM ain >> agentDiseasesTransmit
 ------------------------------------------------------------------------------------------------------------------------
 -- TODO: monadic-refactoring
 sugarScapeAgentConversationM :: SugarScapeAgentConversation
-sugarScapeAgentConversationM ain e (_, (MatingRequest tup)) = Just (m, ain', e)
+sugarScapeAgentConversationM ain e (_, (MatingRequest tup)) = Just (s', m, e)
     where
-        (m, ain') = handleMatingConversationM tup ain
-sugarScapeAgentConversationM ain e (_, (MatingChild childId)) = Just (MatingChildAck, ain', e)
+        s = agentStateIn ain
+        (m, s') = handleMatingConversationM tup s
+sugarScapeAgentConversationM ain e (_, (MatingChild childId)) = Just (s', MatingChildAck, e)
     where
-        s = aiState ain
+        s = agentStateIn ain
         s' = s { sugAgChildren = childId : (sugAgChildren s)}
-        ain' = ain { aiState = s' }
-sugarScapeAgentConversationM ain e (_, (TradingOffer mrs)) = Just (m, ain', e)
+sugarScapeAgentConversationM ain e (_, (TradingOffer mrs)) = Just (s, m, e)
     where
-        (m, ain') = handleTradingOfferM mrs ain
-sugarScapeAgentConversationM ain e (_, (TradingTransact mrs)) = Just (m, ain', e)
+        s = agentStateIn ain
+        m = handleTradingOfferM mrs s
+sugarScapeAgentConversationM ain e (_, (TradingTransact mrs)) = Just (s', m, e)
     where
-        (m, ain') = handleTradingTransactM mrs ain
-sugarScapeAgentConversationM ain e (borrowerId, CreditRequest) = Just (m, ain', e)
+        s = agentStateIn ain
+        (m, s') = handleTradingTransactM mrs s
+sugarScapeAgentConversationM ain e (borrowerId, CreditRequest) = Just (s', m, e)
     where
-        (m, ain') = handleCreditRequestM ain borrowerId
+        s = agentStateIn ain
+        (m, s') = handleCreditRequestM s borrowerId
 sugarScapeAgentConversationM _ _ _ = Nothing
 ------------------------------------------------------------------------------------------------------------------------
 

@@ -75,7 +75,7 @@ sirsAgentBehaviourFuncM e t ain =
 is :: SIRSState -> SIRSAgentOut -> Bool
 is ss ao = (sirsState s) == ss
     where
-        s = aoState ao
+        s = agentState ao
 
 sirsDt :: SIRSEnvironment -> Double -> SIRSAgentOut -> SIRSAgentOut
 sirsDt e t ao
@@ -102,7 +102,7 @@ handleInfectedAgent e t ao
     | t >= timeOfRecovery = recoveredAgent           -- NOTE: agent has just recovered, don't send infection-contact to others
     | otherwise = randomContact e ao
     where
-        timeOfRecovery = sirsTime $ aoState ao
+        timeOfRecovery = sirsTime $ agentState ao
         (expImmuneDuration, ao') = agentRandom (randomExpM immuneDuration) ao
         recoveredAgent = updateAgentState (\s -> s { sirsState = Recovered, sirsTime = t + expImmuneDuration}) ao'
 
@@ -111,13 +111,13 @@ handleRecoveredAgent t ao
     | t >= timeOfImmunityLost = susceptibleAgent
     | otherwise = ao
     where
-        timeOfImmunityLost = sirsTime $ aoState ao
+        timeOfImmunityLost = sirsTime $ agentState ao
         susceptibleAgent = updateAgentState (\s -> s { sirsState = Susceptible, sirsTime = 0.0 }) ao
 
 randomContact :: SIRSEnvironment -> SIRSAgentOut -> SIRSAgentOut
 randomContact e ao = sendMessage (randNeigh, Contact Infected) ao'
     where
-        coord = sirsCoord $ aoState ao
+        coord = sirsCoord $ agentState ao
         (randNeigh, ao') = agentRandom (randomNeighbourCell coord False e) ao
 
 sirsAgentBehaviourFunc :: SIRSAgentPureReadEnvBehaviour

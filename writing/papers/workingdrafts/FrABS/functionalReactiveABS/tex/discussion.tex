@@ -1,7 +1,7 @@
 \section{Results and Discussion}
 
 \subsection{Emulating System Dynamics}
-Due to the continuous time-semantics which can be expressed in our ABS approach we can also emulate system dynamics. Every stock and flow is then just an agent which exchange messages where the simulation is stepped using the \textit{parallel} update-strategy. We add wrappers and type-definitions for convenience which increases the expressivity of the code, resembling system dynamics specifications. As a proof-of-concept we emulated the system dynamics of the SIR model, the code can be seen in Appendix \ref{app:sd_code}. Note that the code really looks like a system dynamics specification with the integrals of the mathematical specification directly showing up in the code - the implementation is correct per definition. Due to the internal implementation of the \textit{integral} function of Yampa which uses the rectangle-rule to integrate, one must ensure to sample the system dynamics with small enough $t\Delta$ as can be seen in Figure \ref{fig:sd_plots}.
+Due to the continuous time-semantics which can be expressed in our agent-based approach we can also emulate SD. Every stock and flow is then just an agent which exchange messages where the simulation is stepped using the \textit{parallel} update-strategy. We add wrappers and type-definitions for convenience which increases the expressivity of the code, resembling system dynamics specifications. As a proof-of-concept we emulated the system dynamics of the SIR model, the code can be seen in Appendix \ref{app:sd_code}. Note that the code really looks like a SD specification with the integrals of the mathematical specification directly showing up in the code - the implementation is correct per definition. Due to the internal implementation of the \textit{integral} function of Yampa which uses the rectangle-rule to integrate, one must ensure to sample the system dynamics with small enough $\Delta t$ as becomes apparent in Figure \ref{fig:sd_plots}.
 
 \begin{figure*}
 \begin{center}
@@ -9,7 +9,7 @@ Due to the continuous time-semantics which can be expressed in our ABS approach 
 		\begin{subfigure}[b]{0.5\textwidth}
 			\centering
 			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/frsd/SIR_SD_1000agents_150t_1dt.png}
-			\caption{$t\Delta = 1.0$}
+			\caption{$\Delta t = 1.0$}
 			\label{fig:sd_plot_10dt}
 		\end{subfigure}
 	
@@ -18,19 +18,19 @@ Due to the continuous time-semantics which can be expressed in our ABS approach 
 		\begin{subfigure}[b]{0.5\textwidth}
 			\centering
 			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/frsd/SIR_SD_1000agents_150t_01dt.png}
-			\caption{$t\Delta = 0.1$}
+			\caption{$\Delta t = 0.1$}
 			\label{fig:sd_plot_0.1dt}
 		\end{subfigure}
 	\end{tabular}
 	
-	\caption{Simulating the SIR model with our system dynamics emulation using different time-deltas. Note that although $t\Delta = 0.1$ might seem very close the system dynamic solution, there are still subtle differences to the initial Figure \ref{fig:sir_sd_dynamics} which uses $t\Delta = 0.01$.}
+	\caption{Simulating the SIR model with our SD emulation using different $\Delta t $. Note that although $\Delta t = 0.1$ might seem very close the system dynamic solution, there are still subtle differences to the initial Figure \ref{fig:sir_sd_dynamics} which uses $\Delta t = 0.01$.}
 	\label{fig:sd_plots}
 \end{center}
 \end{figure*}
 
 \subsection{Spatiality and Networks}
-When trying to emulate the dynamics of the SIR model using an agent-based approach the question arises what we ultimately gain from doing so when we could have generated the dynamics much quicker and smoother using the system-approach. The difference is that the agent-based approach is a stochastic one and can thus also generate "degenerated" dynamics e.g. in which the disease dies out after a few steps or even can't spread from patient zero - in this case ABS is clearly a benefit as it allows to investigate \textit{alternative futures}, something not possible with system-dynamics in which the disease will never die out prematurely. \\
-Another advantage of ABS over the system-dynamics approach is that agents can be heterogeneous and make use of spatial- and/or network-information defining the neighbourhood. We can thus simulate the spread of the disease throughout a population which is laid out on a 2d-grid or one can investigate spreading of the disease throughout a network of agents where some are vaccinated and others not. We provide already suitable environments to simulate these cases and show an example of spreading the disease on a 2d-grid in Figure \ref{fig:sir_spatial}.  
+When emulating the dynamics of the SIR model using an agent-based approach the question arises what we ultimately gain from doing so when we could have generated the dynamics much quicker and smoother using the SD approach. The difference is that the agent-based approach is a stochastic one and can thus also generate "degenerated" dynamics e.g. in which the disease dies out after a few steps or even can't spread from patient zero - in this case ABS is clearly a benefit as it allows to investigate \textit{alternative futures}, something not possible with SD in which the disease will never die out prematurely when there are non-zero infected agents. \\
+Another advantage of ABS over the system-dynamics approach is that agents can be heterogeneous and make use of spatial- and/or network-information defining the neighbourhood. We can thus simulate the spread of the disease throughout a population which is laid out on a 2D grid or one can investigate spreading of the disease throughout a network of agents where some are vaccinated and others not. We provide already suitable environments to simulate these cases and show an example of spreading the disease on a 2D grid in Figure \ref{fig:sir_spatial}.  
 
 \begin{figure*}
 \begin{center}
@@ -70,16 +70,16 @@ Another advantage of ABS over the system-dynamics approach is that agents can be
 		\end{subfigure}
 	\end{tabular}
 	
-	\caption{Simulating SIR on a 52x52 grid with Moore neighbourhood using $t\Delta = 1$. Blue are susceptible, red are infected, green are recovered. The green areas act as protection as infected cannot cross the recovered border: this is particularly visible in the lower right corner of \ref{fig:sir_spatial_440} where the disease has been contained in the blue island and has no means to escape. It may seem that the few remaining infected agents in the top left corner of \ref{fig:sir_spatial_440} will die out soon but still it needs more than the already running simulation-time until the disease actually dies out with the last patient recovering at center top of \ref{fig:sir_spatial_873} at $t = 873$.} 
+	\caption{Simulating SIR on a 52x52 grid with Moore neighbourhood using $\Delta t = 1$. Blue are susceptible, red are infected, green are recovered. The green areas act as protection as infected cannot cross the recovered border: this is particularly visible in the lower right corner of \ref{fig:sir_spatial_440} where the disease has been contained in the blue island and has no means to escape. It may seem that the few remaining infected agents in the top left corner of \ref{fig:sir_spatial_440} will die out soon but still it needs more than the already running simulation-time until the disease actually dies out with the last patient recovering at center top of \ref{fig:sir_spatial_873} at $t = 873$.} 
 	\label{fig:sir_spatial}
 \end{center}
 \end{figure*}
 
-When using a 2d-grid or network one needs to set them up in the initialization code so there is a little more work to do there but the implementation of the agents differ just in one single line, which is where the neighbourhood is picked TODO: refer to appendix code. Instead of \textit{randomAgentIdMsgSource} one uses either \textit{randomNeighbourNodeMsgSource} in the case of a network or \textit{randomNeighbourCellMsgSource} in case of a 2d-grid.
+When using a 2D grid or network one needs to set them up in the initialization code so there is a little more work to do there but the implementation of the agents differ just in one single line, which is where the neighbourhood is picked (see line 100 of Appendix \ref{app:abs_code}). Instead of \textit{randomAgentIdMsgSource} one uses either \textit{randomNeighbourNodeMsgSource} in the case of a network or \textit{randomNeighbourCellMsgSource} in case of a 2D grid.
 
 \subsection{Agents as Signals}
-Due to the underlying nature and motivation of Functional Reactive Programming and Yampa, agents can be seen as signals which are generated and consumed by a Signal-Function which is the behaviour of an agent.  If an agent does not change the output-signal is constant, if the agent changes e.g. by sending a message, changing its state,... it changes and a dead agent has no signal at all.
-The question is if the agents of our agent-based SIR implementation are true signals: do the dynamics change when we sample the system with $t\Delta = 0$? We hypothesize that our agents are true signals, thus they should not change when time does not change because they are completely time-dependent and rely completely on time-semantics. When actually running the simulation with $t\Delta = 0$ one gets the results as in \ref{fig:sir_abs_zero_dt}.
+Due to the underlying nature and motivation of FRP and Yampa, agents can be seen as signals which are generated and consumed by a signal-function which is the behaviour of an agent.  If an agent does not change, the output-signal should be constant amd if the agent changes e.g. by sending a message, changing its state,... the output-signal should change as well. A dead agent then should have no signal at all.
+The question is if the agents of our agent-based SIR implementation are true signals: do the dynamics stay constant when we sample the system with $\Delta t = 0$? We hypothesize that our agents are true signals, thus they should not change when time does not change because they are completely time-dependent and rely completely on time-semantics. When actually running the simulation with $\Delta t = 0$ one gets the results as seen in Figure \ref{fig:sir_abs_zero_dt}.
 
 \begin{figure*}
 \begin{center}

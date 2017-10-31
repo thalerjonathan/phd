@@ -287,20 +287,16 @@ For actually running the simulation we provide three different approaches.
 \begin{minted}[fontsize=\footnotesize]{haskell}
 type AgentObservable s = (AgentId, s)
 type SimulationStepOut s e = (Time, [AgentObservable s], e)
-type AgentObservableAggregator s e a = SimulationStepOut s e -> a
 
-simulateIOInit :: [AgentDef] 
-					-> e 
-					-> SimulationParams e
+simulateIOInit :: [AgentDef] -> e -> SimulationParams e
                     -> (ReactHandle () (SimulationStepOut s e) -> Bool -> SimulationStepOut s e -> IO Bool)
                     -> IO (ReactHandle () (SimulationStepOut s e))
                     
 simulateTime :: [AgentDef] -> e -> SimulationParams e -> DTime -> Time -> [SimulationStepOut s e]
-                
 simulateTimeDeltas :: [AgentDef] -> e -> SimulationParams e -> [DTime] -> [SimulationStepOut s e]
 \end{minted}
 
-The first one \textit{simulateIOInit} allows for output in the IO Monad, which is useful when one wants to run the simulation for an undefined number of steps and visualise each step by rendering it to a window using a rendering library e.g. \textit{Gloss} \footnote{Note that we provide substantial rendering functionality for the environments but don't discuss it here as it is out of the scope of the paper.}. The \textit{ReactHandle} is part of Yampas function \textit{reactinit} and we refer to Yampas documentation for further details. The second approach \textit{simulateTime} runs the simulation for a given time with given $\Delta t$ and then returns the output for all $\Delta t$. The third approach \textit{simulateTimeDeltas} works basically the same as the second one but one can provide a list of all $\Delta t$. In all approaches at every $\Delta t$ we output a tuple of the current global simulation time, a list of \textit{AgentId} with their states \textit{s} and the environment \textit{e}. All approaches take a list of initial agent definitions, the initial environment and simulation parameters which are obtained calling the function \textit{initSimulation}:
+The first one \textit{simulateIOInit} allows for output in the IO Monad, which is useful when one wants to run the simulation for an undefined number of steps and visualise each step by rendering it to a window using a rendering library e.g. \textit{Gloss} \footnote{Note that we provide substantial rendering functionality for the environments but don't discuss it here as it is out of the scope of the paper.}. The \textit{ReactHandle} is part of Yampas function \textit{reactinit} and we refer to Yampas documentation for further details. The second approach \textit{simulateTime} runs the simulation for a given time with given $\Delta t$ and then returns the output for all $\Delta t$. The third approach \textit{simulateTimeDeltas} works the same as the second one but one can provide a list of all $\Delta t$. In all approaches at every $\Delta t$ we output a tuple of the current global simulation time, a list of \textit{AgentId} with their states \textit{s} and the environment \textit{e}. All approaches take a list of initial agent definitions, the initial environment and simulation parameters which are obtained calling the function \textit{initSimulation}:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 data UpdateStrategy = Sequential | Parallel deriving (Eq)
@@ -316,25 +312,20 @@ initSimulation :: UpdateStrategy
 This function takes as parameters the update-strategy with which to run this simulation, an optional environment behaviour, an optional environment folding, a boolean which determines whether the agents are shuffled after each iteration \footnote{This is necessary in some models which run in the sequential strategy to uniformly distribute the probability of an agent to run at a fixed position.} and an optional initial random-number generator seed.
 
 \subsection{Replications}
-TODO: describe how replications work
+As already described in the previous sections, sometimes it is necessary to run replications. This means running the same simulation multiple times but each with a different random-number generator and averaging the results. For this we provide replicators for agents and environments which can create a new \textit{AgentDef} and environment \textit{e} from the initial ones using the provided random-number generator for the current replication. Although it would be possible to use a default agent replicator which only replaces the random-number generator in \textit{AgentDef}, in the case of our SIR implementation we also need to replace the behaviour signal-function which takes a random-number generator as well.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-type Replication s e = [SimulationStepOut s e]
-
 type AgentDefReplicator = StdGen -> AgentDef -> (AgentDef, StdGen)
 type EnvironmentReplicator e = StdGen -> e -> (e, StdGen)
 
-data ReplicationConfig s m e = ReplicationConfig {
-    replCfgCount :: Int,
-    replCfgAgentReplicator :: AgentDefReplicator,
-    replCfgEnvReplicator :: EnvironmentReplicator e
+data ReplicationConfig e = ReplicationConfig {
+    replCfgCount            :: Int,
+    replCfgAgentReplicator  :: AgentDefReplicator,
+    replCfgEnvReplicator    :: EnvironmentReplicator e
 }
 
-runReplications :: [AgentDef]
-                    -> e
-                    -> SimulationParams e
-                    -> DTime
-                    -> Time
-                    -> ReplicationConfig s m e
-                    -> [Replication s e]
+runReplications :: [AgentDef] -> e -> SimulationParams e -> DTime
+                    -> Time -> ReplicationConfig s m e -> [[SimulationStepOut s e]]
 \end{minted}
+
+The function \textit{runReplications} works the same way as the previously mentioned \textit{simulateTime} but takes an additional replication configuration and returns lists of \textit{SimulationStepOut} of length \textit{replCfgCount}.

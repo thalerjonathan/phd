@@ -23,5 +23,13 @@ Epstein \cite{epstein_generative_2012} identifies ABS to be especially applicabl
 \end{itemize}
 
 \subsection{Functional Reactive Programming}
-TODO: short introduction, following all the other papers which is basically useless because it only scratches the surface...
-For a good introduction into FRP using Yampa we refer to the papers of \cite{hudak_arrows_2003}, \cite{courtney_yampa_2003} and \cite{nilsson_functional_2002}.
+Functional Reactive Programming (FRP) is a way to implement systems with continuous and discrete time-semantics in pure functional languages. There are many different approaches and implementations but in our paper we use \textit{arrowized} FRP as implemented in the library Yampa which we will introduce shortly. For an in-depth introduction into FRP using Yampa we refer to the papers of \cite{hudak_arrows_2003}, \cite{courtney_yampa_2003} and \cite{nilsson_functional_2002}.
+The central concept in arrowized FRP is the Signal Function (SF) which can be understood as a mapping from an input- to an output-signal. A signal can be understood as a value which varies over time.
+
+\begin{flalign*}
+Signal \, \alpha \approx Time \rightarrow a \\
+SF \, \alpha \, \beta \approx Signal \, \alpha \rightarrow Signal \, \beta 
+\end{flalign*}
+
+Signal functions are implemented as continuations which don't take a $\Delta t$ at $t = 0$ but then change their signature into one which takes a $\Delta t$ for $t > 0$. This allows to hide $\Delta t$ completely from the types which makes them much more suitable for declarative programming. We also make use of Patersons do-notation for arrows \cite{paterson_new_2001} which makes the code much more readable.
+TODO: this section needs to be more refined but we cannot spend too much space on FRP as it is out of scope of the paper and we only need a rough understanding of the signal function concept because agents are implemented as signal functions.

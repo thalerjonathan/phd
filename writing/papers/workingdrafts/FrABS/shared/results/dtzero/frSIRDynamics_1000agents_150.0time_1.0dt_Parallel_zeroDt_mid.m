@@ -225,9 +225,9 @@ x = 101;
 plot([x,x],[0,1], 'color', 'black', 'linewidth', 2);
 
 set(gca,'YTick',0:0.05:1.0);
-set(gca,'XTick', indices(1:10:end), 'xticklabel', time(1:10:end));
+set(gca,'XTick', indices(1:1:end), 'xticklabel', time(1:1:end));
 xlabel ('Time');
 ylabel ('Population Ratio');
 legend('Susceptible','Infected', 'Recovered', 'Ranges of dt=0');
-titleStr = sprintf('SIR Dynamics of %i agents, with 1.00 dt, %i steps, 0 replications', totalPopulation, steps)
-title (titleStr);
+%titleStr = sprintf('SIR Dynamics of %i agents, with 1.00 dt, %i steps, 0 replications', totalPopulation, steps)
+%title (titleStr);

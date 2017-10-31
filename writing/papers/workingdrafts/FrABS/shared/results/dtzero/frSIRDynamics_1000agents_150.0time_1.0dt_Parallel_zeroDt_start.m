@@ -229,5 +229,5 @@ set(gca,'XTick', indices(1:10:end), 'xticklabel', time(1:10:end));
 xlabel ('Time');
 ylabel ('Population Ratio');
 legend('Susceptible','Infected', 'Recovered', 'Ranges of dt=0');
-titleStr = sprintf('SIR Dynamics of %i agents, with 1.00 dt, %i steps, 0 replications', totalPopulation, steps)
-title (titleStr);
+%titleStr = sprintf('SIR Dynamics of %i agents, with 1.00 dt, %i steps, 0 replications', totalPopulation, steps)
+%title (titleStr);

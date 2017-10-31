@@ -87,7 +87,7 @@ The question is if the agents of our agent-based SIR implementation are true sig
 		\begin{subfigure}[b]{0.5\textwidth}
 			\centering
 			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/dtzero/SIR_ABS_zeroDt_start.png}
-			\caption{$t\Delta = 0$ from step 0 to 50.}
+			\caption{$\Delta t = 0$ from step 0 to 50.}
 			\label{fig:sd_plot_10dt}
 		\end{subfigure}
 	
@@ -96,36 +96,36 @@ The question is if the agents of our agent-based SIR implementation are true sig
 		\begin{subfigure}[b]{0.5\textwidth}
 			\centering
 			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/dtzero/SIR_ABS_zeroDt_mid.png}
-			\caption{$t\Delta = 0$ from step 51 to 101.}
+			\caption{$\Delta t = 0$ from step 51 to 101.}
 			\label{fig:sd_plot_0.01dt}
 		\end{subfigure}
 	\end{tabular}
 	
-	\caption{Dynamics of agent-based SIR implementation of 1000 agents running with $t\Delta = 1$ with ranges of $t\Delta = 0$ marked with two vertical black lines.}
+	\caption{Dynamics of agent-based SIR implementation of 1,000 agents running with $\Delta t = 1$ with ranges of $\Delta t = 0$ marked with two vertical black lines.}
 	\label{fig:sir_abs_zero_dt}
 \end{center}
 \end{figure*}
 
-As can be seen  the dynamics are becoming constant \textit{but} with a minor delay: infected increases a bit while susceptible decreases as can be seen in Figure \ref{fig:sir_abs_zero_dt_zoom}. This is due to the delay of message delivery which takes one $t\Delta$, independent of its value - messages are also delivered when $t\Delta = 0$. Only message-generating functions which depend on non-zero $t\Delta$ to generate messages will then stop generate messages. Reactive functions which act on incoming messages can still create change as they do not rely on time-semantics but just on the discrete event of a message-arrival - which is the case in the transition from susceptible to infected.
+As can be seen  the dynamics are becoming constant \textit{but} with a minor delay: infected increases a bit while susceptible decreases as can be seen in Figure \ref{fig:sir_abs_zero_dt_zoom}. This is due to the delay of message delivery which takes one $\Delta t$, independent of its value - messages are also delivered when $\Delta t = 0$. Only message-generating functions, which depend on non-zero $\Delta t$ to generate messages, will then stop generating messages. Reactive functions which act on incoming messages can still create change as they do not rely on time-semantics but just on the discrete event of a message arrival - which is the case in the transition from susceptible to infected.
 
 \begin{figure}
 	\centering
 	\includegraphics[width=.4\textwidth, angle=0]{./../shared/fig/dtzero/SIR_ABS_zeroDt_mid_zoom.png}
-	\caption{Zoom-in to step 51, marked with the black line from where on $t\Delta = 0$ for the next 50 steps. The recovered ratio stays constant but a few agents get infected even \textit{after} having switched to $t\Delta = 0$ which happens due to the message-delivery lag. After all messages have been delivered, the signal stays constant until non-zero $t\Delta$ are turned on again.}
+	\caption{Zoom-in to step 51, marked with the black line from where on $\Delta t = 0$ for the next 50 steps. The recovered ratio stays constant but a few agents get infected even \textit{after} having switched to $\Delta t = 0$ which happens due to the message delivery lag. After all messages have been delivered, the signal stays constant until non-zero $\Delta t$ are turned on again.}
 	\label{fig:sir_abs_zero_dt_zoom}
 \end{figure}
 
-Note that agents of non-time semantic models won't exhibit this behaviour - the dynamics will change even in case of a $t\Delta = 0$ - they just act on every update and don't care about the time-delta and just assume that every update occurs after a $t\Delta$ independent of the actual value of it. We implemented the function \textit{doRepeatedlyEvery} which allows to transform a non-time semantic agent-behaviour into one. It is built on Yampas \textit{repeatedly} function and has the following signature:
+Note that agents of models with no time-semantics won't exhibit this behaviour - the dynamics will change even in case of $\Delta t = 0$ as agents act on every update and don't care about $\Delta t$ and just assume that every update occurs after $\Delta t$ independent of the actual value of it. We implemented the function \textit{doRepeatedlyEvery} which allows to transform a time-agnostic agent-behaviour into one. It is built on Yampas \textit{repeatedly} function and has the following signature:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-doRepeatedlyEvery :: Time -> AgentBehaviour s m e -> AgentBehaviour s m e
+doRepeatedlyEvery :: Time -> AgentBehaviour -> AgentBehaviour
 \end{minted}
 
-This function takes a time interval and an agent-behaviour signal-function and returns a new agent-behaviour signal-function which runs the argument signal-function every time-interval. Note that this function is subject to sampling-issues too e.g. when the time-interval is very small one needs to run the simulation with a $t\Delta \leq Time$ otherwise the dynamics would show delayed activation of the agent-behaviour.
+This function takes a time interval and an agent behaviour signal-function and returns a new agent behaviour signal-function which runs the argument signal-function every time-interval. Note that this function is subject to sampling issues too e.g. when the time-interval is very small one needs to run the simulation with a $\Delta t \leq Time$ otherwise the dynamics would show delayed activation of the agent behaviour.
 
 \subsection{Randomness}
-It is important to note that if we disable super-sampling and run the simulation for a given time \textit{t} but with e.g. two different $t\Delta$ we would end up with two different results, even if the $t\Delta$ are small enough to sample the time-dependent functions sufficiently. Also if we use super-sampling with $t\Delta = 1.0$ and create the exact same number of samples as when using no super-sampling but smaller $t\Delta$, then we also end up with different results.
-The reason for this behaviour is that all these time-dependent functions ultimately build upon drawing from random-distributions. With different $t\Delta$ we are generating random-samples to a greater or lesser extent, which would result in different random-number sequences which in turn ultimately leads to slightly different dynamics. When generating a plot of the dynamics this is not as visible, also this is the reason why one generates multiple replications, but this behaviour becomes strikingly apparent when simulating the SIR model on a 2d-grid as can be seen in Figure \ref{fig:sir_abs_timeDeltas_randomness}.
+It is important to note that if we disable super-sampling and run the simulation for a given time \textit{t} but with two different $\Delta t$ we would end up with two different results, even if the $\Delta t$ are small enough to sample the time-dependent functions sufficiently. Also if we use super-sampling with $\Delta t = 1.0$ and create the exact same number of samples as when using no super-sampling but smaller $\Delta t$, then we also end up with different results.
+The reason for this behaviour is that most of the time-dependent functions ultimately build upon drawing from random-distributions. With different $\Delta t$ we are generating a different number of random-samples, which would result in different random-number sequences which in turn ultimately leads to slightly different dynamics. When generating a plot of the dynamics this is not as visible, also this is the reason why one generates multiple replications, but this behaviour becomes strikingly apparent when simulating the SIR model on a 2D grid as can be seen in Figure \ref{fig:sir_abs_timeDeltas_randomness}.
 
 \begin{figure*}
 \begin{center}
@@ -133,7 +133,7 @@ The reason for this behaviour is that all these time-dependent functions ultimat
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
 			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/randomness/SIR_32x32_200time_01delta_noSS.png}
-			\caption{$t\Delta = 0.1$, no super-sampling}
+			\caption{$\Delta t = 0.1$, no super-sampling}
 			\label{fig:sir_abs_timeDeltas_randomness_dt01}
 		\end{subfigure}
 	
@@ -142,7 +142,7 @@ The reason for this behaviour is that all these time-dependent functions ultimat
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
 			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/randomness/SIR_32x32_200time_001delta_noSS.png}
-			\caption{$t\Delta = 0.01$, no super-sampling}
+			\caption{$\Delta t = 0.01$, no super-sampling}
 			\label{fig:sir_abs_timeDeltas_randomness_dt001}
 		\end{subfigure}
 		
@@ -151,7 +151,7 @@ The reason for this behaviour is that all these time-dependent functions ultimat
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
 			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/randomness/SIR_32x32_200time_10delta_ss10.png}
-			\caption{$t\Delta = 1.0$ with 10 super-samples}
+			\caption{$\Delta t = 1.0$ with 10 super-samples}
 			\label{fig:sir_abs_timeDeltas_randomness_dt10_ss10}
 		\end{subfigure}
 		
@@ -160,12 +160,12 @@ The reason for this behaviour is that all these time-dependent functions ultimat
 		\begin{subfigure}[b]{0.4\textwidth}
 			\centering
 			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/randomness/SIR_32x32_200time_10delta_ss100.png}
-			\caption{$t\Delta = 1.0$ with 100 super-samples}
+			\caption{$\Delta t = 1.0$ with 100 super-samples}
 			\label{fig:sir_abs_timeDeltas_randomness_dt10_ss100}
 		\end{subfigure}
 	\end{tabular}
 	
-	\caption{Comparing results on 32x32 grid after $t = 200$ but with different $t\Delta$ and different number of super-samples. Note that a $t\Delta = 0.1$ is clearly not enough, whereas the others result in much more recovered agents.}
+	\caption{Comparing results on 32x32 grid after $t = 200$ but with different $\Delta t$ and different number of super-samples.}
 	\label{fig:sir_abs_timeDeltas_randomness}
 \end{center}
 \end{figure*}
@@ -180,22 +180,19 @@ We now look at a number of advantages this functional reactive approach to ABS h
 It seems that in our approach we combine the benefits of SD and ABS: we have continuous time-semantics but with individual, heterogenous agents.
 
 \subsubsection{Code close to specification}
-As becomes directly evident when looking at the code of the agent-based implementation in Appendix \ref{app:abs_code} and system dynamics implementation in Appendix \ref{app:sd_code}, it looks very much like a specification. By creating this EDSL which allows to express powerful time-semantics it is possible to now create an ABS in a declarative style in Haskell where agent-implementation looks like a model-specification thus being correct by definition.
-arrowized programming is optional and only required when utilizing yampas time-semantics. if the model does not rely on time-semantics, it can use monadic-programming by building on the existing monadic functions in the EDSL which allow to run in the State-Monad which simplifies things very much
-	- when to use yampas arrowized programing: time-semantics, simple state-chart agents 
-	- when not using yampas facilities: in all the other cases e.g. SugarScape is such a case as it proceeds in unit time-steps and all agents act in every time-step
-	
+When looking at the code of the agent-based implementation in Appendix \ref{app:abs_code} and SD implementation in Appendix \ref{app:sd_code}, both look very much like a specification. By creating this EDSL which allows to express powerful time-semantics it is possible to now create an ABS in a declarative style in Haskell where the agent-implementation looks very much like a model-specification thus being correct by definition.
+We claim that this is not only true for models with time-semantics but also with models which lack time-semantics and resemble a more imperative style of behaviour. We can also capture this using monadic programming using the State Monad for which we provide EDSL primitives as well which support all necessary operations in a monadic context.
+
 \subsubsection{Being pure}
-Because no part of the simulation runs in the IO monad \footnote{Except when using graphical rendering, but then only the rendering happens in the IO Monad - the simulation step is always a pure computation} and we do not use unsafePerformIO \footnote{We actually do use it for generating unique agent-ids for newly created agents. This is necessary because need to guarantee that two invocations will result in two different ids, which would be difficult / impossible when running the simulation in the \textit{parallel} update-strategy. This is not a problem as long as an agent does not rely on the absolute value of an agent-id but just uses it as an opaque identifier for sending/receiving.} we can rule out a serious class of bugs caused by implicit data-dependencies and side-effects which can occur in traditional imperative implementations.
-Also we can statically guarantee the reproducibility of the simulation because of that. There are no side effects possible within the agents which would result in differences between same runs (e.g. file access, networking, threading). Every agent has access to its own random-number generator, allowing randomness to occur in the simulation but the random-generator seed is fixed in the beginning and can never be changed within an agent to come from e.g. the current system time, which would require to run within the IO Monad. This means that after initialising the agents, which \textit{could} run in the IO Monad, the simulation itself runs completely deterministic.
-We provide functionality to render the output to a window (using the library Gloss) or writing to a text-file, meaning, parts of the simulation would run in the IO Monad. Here we rely on Yampas \textit{reactimate} function which provides a well-defined way of communicating with the world in such a system. This function provides the $t\Delta$ for the next step, which \textit{could} come from IO Monad but we keep the $t\Delta$ always fixed, thus removing another source of non-reproducibility where e.g. $t\Delta$ is influenced by sytem-dependent non-deterministic rendering-performance every step as happens in games or described by \cite{perez_testing_2017} in the context of FRP.
+Because no part of the simulation runs in the IO monad \footnote{Except when using graphical rendering, but then only the rendering happens in the IO Monad - the simulation step is always a pure computation} and we do not use unsafePerformIO \footnote{We actually do use it when one wants to generate unique agent-ids for new agents which are created during the simulation. This is necessary because in this case we need to guarantee that two invocations will result in two different ids, which would be difficult / impossible when running the simulation in the \textit{parallel} update-strategy. This is not a problem as long as an agent does not rely on the absolute value of an agent-id but just uses it as an opaque identifier for messaging.} we can rule out a serious class of bugs caused by implicit data-dependencies and side-effects which can occur in traditional imperative implementations.
+Also we can statically guarantee the reproducibility of the simulation. Within the agents there are no side effects possible which could result in differences between same runs (e.g. file access, networking, threading, random-number seeding). Every agent has access to its own random-number generator, allowing randomness to occur in the simulation but the random-generator seed is fixed in the beginning and can never be changed within an agent to come from e.g. the current system time, which would require to run within the IO Monad. This means that after initialising the agents, which \textit{could} run in the IO Monad, the simulation itself runs completely deterministic.
+We provide functionality to render the output to a window (using the Gloss library) or writing to a text-file, meaning, parts of the simulation would run in the IO Monad. Here we rely on Yampas \textit{reactimate} function which provides a well-defined way of communicating with the world in such a system. This function provides the $\Delta t$ for the next step, which \textit{could} come from IO Monad but we forbid this and keep the $\Delta t$ always fixed, thus removing another source of non-reproducibility where $\Delta t$ is influenced by sytem dependent non deterministic rendering-performance every step as happens in games or described by \cite{perez_testing_2017} in the context of FRP.
 
 \subsubsection{Robust time handling}
-cant mess around with time because delta-time is hidden from you (intentional design-decision by Yampa). this would be only very difficult and cumbersome to achieve in an object-oriented approach. TODO: experiment with it in Java - how could we actually implement this? I think it is impossible: may only achieve this through complicated application of patterns and inheritance but then has the problem of how to update the dt and more important how to deal with functions like integral which accumulates a value through closures and continuations. We could do this in OO by having a general base-class e.g. ContinuousTime which provides functions like updateDt and integrate, but we could only accumulate a single integral value.
-TODO: this is also the case in e.g. RePast simphony in which one never deals with time-deltas but interacts with the scheduler through anotations
+The actual $\Delta t$ is never visible leads to an even more declarative style and supports the EDSL greatly. This also makes it impossible to mess around with time.
 
 \subsubsection{Replications}
-get replications for free without having to worry about side-effects and can even run them in parallel without headaches. TODO: need a little bit of discussion here as it is not that easy: we need to swap random-number generators out for new one in every replication, both in agents and environments
+We nearly get replications for free without having to worry about side-effects and can even run them in parallel without headaches.
 
 \subsection{Disadvantages}
 We identify two main disadvantages.
@@ -204,4 +201,4 @@ We identify two main disadvantages.
 Performance is currently no where near imperative object-oriented implementations. The reason for this is that we don't have in-place updates of data-structures and make no use of references. This results in lots of copying which is simply not necessary in the imperative languages with implicit effects. Also it is much more difficult to reason about time and space in our approach. Thus we see performance clearly as the main drawback of the functional approach and the only real advantage of the imperative approach over our.
 
 \subsubsection{Steep learning curve}
-Our approach is quite advanced in three ways. First it builds on the already quite involved FRP paradigm. Second it forces one to think properly of time-semantics of the model, how to sample it, how small $t \Delta$ should be and whether one needs super-sampling or not and if yes how many samples one should take. Third it requires to think about agent-interaction and update-strategies, whether one should use conversations which forces one to run sequentially or if one can run agents in parallel and use normal messaging which but incurs a time-delay which in turn would need to be considered when setting the $t \Delta$.
+Our approach is quite advanced in three ways. First it builds on the already quite involved FRP paradigm. Second it forces one to think properly of time-semantics of the model, how to sample it, how small $\Delta t$ should be and whether one needs super-sampling or not and if yes how many samples one should take. Third it requires to think about agent-interaction and update-strategies, whether one should use conversations which forces one to run sequentially or if one can run agents in parallel and use normal messaging which incurs a time-delay which in turn would need to be considered when setting the $\Delta t$.

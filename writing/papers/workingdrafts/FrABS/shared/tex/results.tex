@@ -1,6 +1,9 @@
-\section{Sampling the System}
-TODO: need a hypothesis here e.g. why do we need to sample the system? because its functional reactive and continuous, thus we run into sampling problems
+\section{Results}
+TODO: show results with dt = 1.0 and 10,000 agents
 
+TODO: can now introduce hypothesis here why we need to sample the system? because its functional reactive and continuous, thus we run into sampling problems
+
+\subsection{Sampling the System}
 When sampling the system, the correct $\Delta t$ must be selected which depends on the highest frequency which occurs in a time-reactive function in the whole system. For example in the SIR model we want infected agents to make on average contact with $\beta = 5$ other agents per time-unit, which means with a frequency of $\frac{1}{5}$. This functionality is built on Yampas function \textit{occasionally} which behaviour we investigated under differing $\Delta t$ with the above frequency. In this investigation we simply sampled occasionally with different $\Delta t$ for a duration of $t = 1,000$ and the event-frequency of $\frac{1}{5}$. The result can be seen in Figure \ref{fig:sampling_occasionally_5evts} and is quite striking. The plot clearly shows that occasionally needs a quite high sampling frequency even for a comparatively low event-frequency, which becomes of course worse for higher event-frequencies.
 
 The other time-reactive function which occurs in the SIR model is the timed transition from infected to recovered which occurs on average with an exponential random-distribution after $\delta = 15$. This functionality is built on a custom implementation of Yampas \textit{after} which creates an event after a time-out of the passed in time-duration drawn from an exponential random-distribution. Clearly this function has different semantics as although it also continuously emit events over time - \textit{NoEvent} before the time was hit, and \textit{Event b} after the time hit - the relevant point is that it switches to Event at some discrete point in time. This is implemented as simply adding up the $\Delta t$ until the accumulator is greater of equal than the previously drawn exponential time-out. We also investigated the behaviour of this function under varying $\Delta t$ using a time-out of $\delta = 15$. Our approach was to sample the \textit{afterExp} until an event occurs and then see when it has occurred. We run this with 10,000 replications with different random-number seeds and average the resulting times. The results can be seen in Figure \ref{fig:sampling_afterExp_5time}. The result is striking in another way: this function seems to be pretty invariant to the time-deltas, for obvious reasons: we are basically just interested in the "after"-condition of the whole semantics whereas in occasionally we are interested in the "repeatedly"-conditions. If we under-sample the \textit{afterExp} then we can be off by one $\Delta t$. If we under-sample \textit{occasionally} we keep loosing events - the less difference between $\Delta t$ and event-frequency, the more events we lose. Of course \textit{afterExp} can also be used for very short time-outs e.g. $\frac{1}{5}$. We have investigated the behaviour of this function for various $\Delta t$ as well as seen in Figure \ref{fig:sampling_afterExp_02time}. Here the result is much more striking and shows that \textit{afterExp} is vulnerable to small time-outs as well as \textit{occasionally}.  
@@ -49,7 +52,7 @@ To show that \textit{occasionally} is not vulnerable to very low frequencies of 
 \end{center}
 \end{figure*}
 
-\subsection*{Super-Sampling}
+\subsection{Super-Sampling}
 Of course performance is a big issue and it decreases as $\Delta t$ get smaller and smaller. This is because when running a simulation for a duration of $t$ and sampling it with $\Delta t$ when the steps to calculate is $\frac{t}{\Delta t}$. In each step all agents are run, messages delivered and environments folded and updated which implies that the more steps the lower the performance. If we could perform super-sampling just for the given high-frequency functions with the whole system running in lower frequency then we could achieve a substantial performance boost. In Yampa there exists a function \textit{embed} which allows to run a given signal-function with provided $\Delta t$ but the problem is that this function does not really help because it does not return a signal-function. What we need is a signal-function which takes the number of super-samples \textit{n}, the signal-function \textit{sf} to sample and returns a new signal-function which performs super-sampling on it:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
@@ -105,7 +108,7 @@ We ran tests super-sampling both \textit{occasionally} Figure \ref{fig:sampling_
 
 At first this might not seem to be a real win as we still need to calculate a big number of samples every time. The big win comes though when these super-sampled signal-functions are embedded in a larger system which could run on a comparatively low frequency of $\Delta t = 1.0$. So we are then increasing the sampling-frequency just where we need it and keep the frequency low where it is not required.
 
-\subsection*{Super-Sampling in SIR}
+\subsection{Super-Sampling in SIR}
 We are using super-sampling in our SIR implementation to increase performance. We do this by setting $\Delta t = 1.0$ and super-sampling the relevant functions with time-semantics which are \textit{transitionAfterExp} and \textit{sendMessageOccationallySrc}. For both we provide in our EDSL versions which support super-sampling:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
@@ -118,7 +121,54 @@ transitionAfterExpSS :: RandomGen g => g -> Double -> Int
 
 Both now take an additional parameter which determines the number of super-samples to be calculated. According to the above observations of the \textit{occasionally} and \textit{afterExp} functions which are the foundations of both of the functions we sample \textit{sendMessageOccasionallySrcSS} with 20 super-samples and \textit{transitionAfterExpSS} with 2. This will ensure that by using $\Delta t = 1.0$ we only calculate $t$ steps when running a simulation for $t$ time but that we sample our relevant functions with enough resolution to capture its frequencies. Optimally we should increase the number of super-samples for \textit{sendMessageOccasionallySrcSS} to about 100. This will result in lower performance as \textit{every} agent will perform this super-sampling. So in the end it is a struggle of performance vs. sufficiently close approximation. We define the number of super-samples in lines 29 and 32 and use the functions in line 96 and 106 of Appendix \ref{app:abs_code}.
 
-\subsection*{Message Round-Trips}
+\subsection{Randomness and Super-Sampling}
+It is important to note that if we disable super-sampling and run the simulation for a given time \textit{t} but with two different $\Delta t$ we would end up with two different results, even if the $\Delta t$ are small enough to sample the time-dependent functions sufficiently. Also if we use super-sampling with $\Delta t = 1.0$ and create the exact same number of samples as when using no super-sampling but smaller $\Delta t$, then we also end up with different results.
+The reason for this behaviour is that most of the time-dependent functions ultimately build upon drawing from random-distributions. With different $\Delta t$ we are generating a different number of random-samples, which would result in different random-number sequences which in turn ultimately leads to slightly different dynamics. When generating a plot of the dynamics this is not as visible, also this is the reason why one generates multiple replications, but this behaviour becomes strikingly apparent when simulating the SIR model on a 2D grid as can be seen in Figure \ref{fig:sir_abs_timeDeltas_randomness}.
+
+\begin{figure*}
+\begin{center}
+	\begin{tabular}{c c}
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/randomness/SIR_32x32_200time_01delta_noSS.png}
+			\caption{$\Delta t = 0.1$, no super-sampling}
+			\label{fig:sir_abs_timeDeltas_randomness_dt01}
+		\end{subfigure}
+	
+		& 
+		
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/randomness/SIR_32x32_200time_001delta_noSS.png}
+			\caption{$\Delta t = 0.01$, no super-sampling}
+			\label{fig:sir_abs_timeDeltas_randomness_dt001}
+		\end{subfigure}
+		
+		\\
+
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/randomness/SIR_32x32_200time_10delta_ss10.png}
+			\caption{$\Delta t = 1.0$ with 10 super-samples}
+			\label{fig:sir_abs_timeDeltas_randomness_dt10_ss10}
+		\end{subfigure}
+		
+		&
+		
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=.7\textwidth, angle=0]{./../shared/fig/randomness/SIR_32x32_200time_10delta_ss100.png}
+			\caption{$\Delta t = 1.0$ with 100 super-samples}
+			\label{fig:sir_abs_timeDeltas_randomness_dt10_ss100}
+		\end{subfigure}
+	\end{tabular}
+	
+	\caption{Comparing results on 32x32 grid after $t = 200$ but with different $\Delta t$ and different number of super-samples.}
+	\label{fig:sir_abs_timeDeltas_randomness}
+\end{center}
+\end{figure*}
+
+\subsection{The final detail: Message Round-Trips}
 Unfortunately when setting $\Delta t = 1.0$ the dynamics of the agent-based approach won't approach the dynamics of the SD, despite using super-sampling as can be seen in Figure \ref{fig:sir_10000_1dt}.
 
 \begin{figure*}

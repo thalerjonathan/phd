@@ -1,0 +1,62 @@
+\section{Non-Reactive Features}
+Not all models have such explicit time-semantics as the SIR model. Such models just assume that the agents act in some order but don't rely on any time-outs, timed transitions or rates. These models are more of an imperative nature and map therefore naturally to a monadic style of programming using the \textit{do} notation. Unfortunately it is not possible to do monadic programming within a signal-function, thus to support the programming of such imperative models, we implemented wrapper-functions which allow to provide both non-monadic and monadic functionality which runs within a wrapper signal-function.
+
+\subsection{Non-monadic (pure) wrapping}
+\begin{minted}[fontsize=\footnotesize]{haskell}
+agentPure :: (e -> Double -> AgentIn -> AgentOut -> (AgentOut, e)) -> AgentBehaviour
+agentPureReadEnv :: (e -> Double -> AgentIn -> AgentOut -> AgentOut) -> AgentBehaviour
+agentPureIgnoreEnv :: (Double -> AgentIn -> AgentOut -> AgentOut) -> AgentBehaviour
+\end{minted}
+
+The function \textit{agentPure} wraps a non-monadic (pure) function and wraps it in a signal-function. This pure function has the environment, the current local time of the agent, the \textit{AgentIn} and a default \textit{AgentOut} as arguments and must return the tuple of \textit{AgentOut} and the environment.
+The function \textit{agentPureReadEnv} works the same as \textit{agentPure} but omits the environment from the return type thus ensuring statically at compile-time that an agent which implements its behaviour in this way can only read the environment but never change it.
+The function \textit{agentPureIgnoreEnv} is an even more restrictive version and omits environment from the agents behaviour altogether thus ensuring statically at compile-time that an agent which wraps its behaviour in this function will never access the environment.
+
+\subsection{Monadic wrapping}
+The monadic wrappers work basically the same way as the pure version, with the difference that they run within the state-monad with \textit{AgentOut} being the state to pass around.
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+agentMonadic :: (e -> Double -> AgentIn -> State AgentOut e) -> AgentBehaviour
+agentMonadicReadEnv :: (e -> Double -> AgentIn -> State AgentOut ()) -> AgentBehaviour
+agentMonadicIgnoreEnv :: (Double -> AgentIn -> State AgentOut ()) -> AgentBehaviour
+\end{minted}
+
+We also provide monadic versions of the pure primitives of our EDSL which work on \textit{AgentOut} as discussed above. They run in the State Monad where the state is the \textit{AgentOut} as this is the data which is manipulated step-by-step for the final output. 
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+agentIdM :: State (AgentOut s m e) AgentId
+
+sendMessageM :: AgentMessage m -> State AgentOut ()
+sendMessageToM :: AgentId -> m -> State AgentOut ()
+onMessageM :: (Monad mon) => (acc -> AgentMessage m -> mon acc) -> AgentIn -> acc -> mon acc
+
+createAgentM :: AgentDef -> State AgentOut ()
+
+killM :: State AgentOut ()
+isDeadM :: State AgentOut Bool
+
+agentStateM :: State AgentOut s
+updateAgentStateM :: (s -> s) -> State AgentOut ()
+setAgentStateM :: s -> State AgentOut ()
+agentStateFieldM :: (s -> t) -> State AgentOut t
+\end{minted}
+
+For the environment-behaviour we provide a monadic wrapper as well.
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+type EnvironmentMonadicBehaviour e = Double -> State e ()
+environmentMonadic :: EnvironmentMonadicBehaviour e -> EnvironmentBehaviour e
+\end{minted}
+
+\subsection{Randomness}
+Most of the ABS are inherent stochastic processes and so is the agent-based SIR implementation. This means that agents behaviour depends on random-numbers. So far the drawing from these random-number was hidden behind functions but sometimes an agent needs to draw a random-number directly. For this we provide each agent with its own random-number generator which must be initialized when creating the agent-definition as seen in line 48-59 of Appendix \ref{app:abs_code}. The agent can then draw random-numbers in a pure way without having to resort to the IO Monad. Still it can become very cumbersome because the changed random-number generator needs to be updated in the opaque \textit{AgentOut} - for this we provide a few convenience functions and monadic implementations.
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+agentRandom :: Rand StdGen a -> AgentOut -> (a, AgentOut)
+agentRandomM :: Rand StdGen a -> State AgentOut a
+
+randomBoolM :: (RandomGen g) => Double -> Rand g Bool
+\end{minted}
+
+Both functions \textit{agentRandom} and \textit{agentRandomM} allow to run a random action implemented in the Rand Monad acting on a StdGen generator. Both need an instance of an \textit{AgentOut} which runs the random action on the agents random-number generator, updates it and returns the random value.
+The function \textit{randomBoolM} is such a random action implemented in the Rand Monad and draws a random boolean which is True with a given probability. It is use to randomly determine if a susceptible agent got infected in case of a \textit{Contact Infected} message as can be seen in line 67 of Appendix \ref{app:abs_code}. Note that this random action runs in \textit{onMessageM} which allows to run on a generic monad. Note there exist more random action e.g. to pick at random from a list, to randomly generate within a range, to shuffle a list and to draw from a random distribution. We didn't discuss them here as they follow the same principle.

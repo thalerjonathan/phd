@@ -1,4 +1,4 @@
-\section{Functional Reactive ABS}
+\section{Functional Reactive SIR}
 In this section we will derive the implementation of the agent-based approach to the SIR model, with the complete code provided in Appendix \ref{app:abs_code}. As will be seen our approach allows us express the agent behaviour very explicitly and is looking very much like a formal ABS specification of the problem. The challenges one faces when implementing an ABS plain, without support from a library are manifold. Generally one faces the following challenges:
 
 TODO: this list does not reflect all the subsections below, add them somehow
@@ -188,7 +188,7 @@ In ABS agents almost always are \textit{situated within} an environment. We foll
 Our SIR implementation uses a list of all \textit{AgentId} as the environment which means that every agent knows all the existing agents of the simulation and can address them - see line 6 in \ref{app:abs_code}. We could have used a Network environment using a fully-connected graph but the memory-consumptions of the library \textit{FGL} we are using for graphs are unacceptable in case of fully-connected networks of a larger numbers of agents (10,000). Each agent gets the environment passed in through the \textit{AgentIn} and can change it by passing a changed version of the environment out through \textit{AgentOut}. 
 
 \subsection{Agent Updating}
-For agents to be pro-active, they need to be able to perceive time. Also agents must have the opportunity to react to incoming messages and manipulate the environment. The work of (TODO: cite our own paper on update-strategies) identifies four possible ways of doing this where we only implemented the \textit{sequential-} and \textit{parallel-strategy}. The other two strategies being the  \textit{concurrent-} and \textit{actor-strategy}, both requiring to run within the STM-Monad, which is not possible with Yampa. The author of \cite{perez_functional_2016} implemented a library called \textit{Dunai}, which is the same as Yampa but capable of running in an arbitrary Monad - we leave this for further research. Implementing these iteration-strategies using Haskell and FRP is not as straight-forward as in imperative effectful languages because one does not have mutable data which can be updated in-place. 
+For agents to be pro-active, they need to be able to perceive time. Also agents must have the opportunity to react to incoming messages and manipulate the environment. The work of (TODO: cite our own paper on update-strategies) identifies four possible ways of doing this where we only implemented the \textit{sequential-} and \textit{parallel-strategy}. The other two strategies being the  \textit{concurrent-} and \textit{actor-strategy}, both requiring to run within the STM-Monad, which is not possible with Yampa. The author of \cite{perez_functional_2016} implemented a library called \textit{Dunai}, which is the same as Yampa but capable of running in an arbitrary Monad - we leave this for further research. Implementing these iteration-strategies using Haskell and FRP is not as straight-forward as in imperative effectful languages because one does not have mutable data which can be updated in-place.
 We implement both update-strategies basically by running all agents behaviour signal-functions every $\Delta t$, so when running a simulation for a duration of \textit{t} the number of steps is $\frac{t}{\Delta t}$. It is important to realise that in our approach of a single behaviour function we merge pro-activity, time-dependent behaviour and message receiving behaviour. A different approach would be to have callbacks for messages in addition to the normal agent-behaviour but this would be quite cluttered and inelegant.
 
 In both the sequential and parallel update-strategy each iteration must also output a potentially changed environment. As already discussed this is implemented as a signal-function which, when available, is then run after each iteration, to make the environment pro-active as well. An example of an environment behaviour would be to regrow some good on each cell according to some rate per time-unit.
@@ -217,119 +217,3 @@ readEnv :: ReactiveBehaviourReadEnv -> AgentBehaviour
 \end{minted}
 
 We use both functions in our SIR implementation. The function \textit{readEnv} is used in line 83 of Appendix \ref{app:abs_code} to make sure the behaviour of a susceptible agent can read the environment but never change it. The function \textit{ignoreEnv} is used in line 110 of Appendix \ref{app:abs_code} to make sure the behaviour of an infected agent never accesses the environment.
-
-\subsection{Non-Reactive Features}
-Not all models have such explicit time-semantics as the SIR model. Such models just assume that the agents act in some order but don't rely on any time-outs, timed transitions or rates. These models are more of an imperative nature and map therefore naturally to a monadic style of programming using the \textit{do} notation. Unfortunately it is not possible to do monadic programming within a signal-function, thus to support the programming of such imperative models, we implemented wrapper-functions which allow to provide both non-monadic and monadic functionality which runs within a wrapper signal-function.
-
-\subsubsection{Non-monadic (pure) wrapping}
-
-\begin{minted}[fontsize=\footnotesize]{haskell}
-agentPure :: (e -> Double -> AgentIn -> AgentOut -> (AgentOut, e)) -> AgentBehaviour
-agentPureReadEnv :: (e -> Double -> AgentIn -> AgentOut -> AgentOut) -> AgentBehaviour
-agentPureIgnoreEnv :: (Double -> AgentIn -> AgentOut -> AgentOut) -> AgentBehaviour
-\end{minted}
-
-The function \textit{agentPure} wraps a non-monadic (pure) function and wraps it in a signal-function. This pure function has the environment, the current local time of the agent, the \textit{AgentIn} and a default \textit{AgentOut} as arguments and must return the tuple of \textit{AgentOut} and the environment.
-The function \textit{agentPureReadEnv} works the same as \textit{agentPure} but omits the environment from the return type thus ensuring statically at compile-time that an agent which implements its behaviour in this way can only read the environment but never change it.
-The function \textit{agentPureIgnoreEnv} is an even more restrictive version and omits environment from the agents behaviour altogether thus ensuring statically at compile-time that an agent which wraps its behaviour in this function will never access the environment.
-
-\subsubsection{Monadic wrapping}
-The monadic wrappers work basically the same way as the pure version, with the difference that they run within the state-monad with \textit{AgentOut} being the state to pass around.
-
-\begin{minted}[fontsize=\footnotesize]{haskell}
-agentMonadic :: (e -> Double -> AgentIn -> State AgentOut e) -> AgentBehaviour
-agentMonadicReadEnv :: (e -> Double -> AgentIn -> State AgentOut ()) -> AgentBehaviour
-agentMonadicIgnoreEnv :: (Double -> AgentIn -> State AgentOut ()) -> AgentBehaviour
-\end{minted}
-
-We also provide monadic versions of the pure primitives of our EDSL which work on \textit{AgentOut} as discussed above. They run in the State Monad where the state is the \textit{AgentOut} as this is the data which is manipulated step-by-step for the final output. 
-
-\begin{minted}[fontsize=\footnotesize]{haskell}
-agentIdM :: State (AgentOut s m e) AgentId
-
-sendMessageM :: AgentMessage m -> State AgentOut ()
-sendMessageToM :: AgentId -> m -> State AgentOut ()
-onMessageM :: (Monad mon) => (acc -> AgentMessage m -> mon acc) -> AgentIn -> acc -> mon acc
-
-createAgentM :: AgentDef -> State AgentOut ()
-
-killM :: State AgentOut ()
-isDeadM :: State AgentOut Bool
-
-agentStateM :: State AgentOut s
-updateAgentStateM :: (s -> s) -> State AgentOut ()
-setAgentStateM :: s -> State AgentOut ()
-agentStateFieldM :: (s -> t) -> State AgentOut t
-\end{minted}
-
-For the environment-behaviour we provide a monadic wrapper as well.
-
-\begin{minted}[fontsize=\footnotesize]{haskell}
-type EnvironmentMonadicBehaviour e = Double -> State e ()
-environmentMonadic :: EnvironmentMonadicBehaviour e -> EnvironmentBehaviour e
-\end{minted}
-
-\subsection{Randomness}
-Most of the ABS are inherent stochastic processes and so is the agent-based SIR implementation. This means that agents behaviour depends on random-numbers. So far the drawing from these random-number was hidden behind functions but sometimes an agent needs to draw a random-number directly. For this we provide each agent with its own random-number generator which must be initialized when creating the agent-definition as seen in line 48-59 of Appendix \ref{app:abs_code}. The agent can then draw random-numbers in a pure way without having to resort to the IO Monad. Still it can become very cumbersome because the changed random-number generator needs to be updated in the opaque \textit{AgentOut} - for this we provide a few convenience functions and monadic implementations.
-
-\begin{minted}[fontsize=\footnotesize]{haskell}
-agentRandom :: Rand StdGen a -> AgentOut -> (a, AgentOut)
-agentRandomM :: Rand StdGen a -> State AgentOut a
-
-randomBoolM :: (RandomGen g) => Double -> Rand g Bool
-\end{minted}
-
-Both functions \textit{agentRandom} and \textit{agentRandomM} allow to run a random action implemented in the Rand Monad acting on a StdGen generator. Both need an instance of an \textit{AgentOut} which runs the random action on the agents random-number generator, updates it and returns the random value.
-The function \textit{randomBoolM} is such a random action implemented in the Rand Monad and draws a random boolean which is True with a given probability. It is use to randomly determine if a susceptible agent got infected in case of a \textit{Contact Infected} message as can be seen in line 67 of Appendix \ref{app:abs_code}. Note that this random action runs in \textit{onMessageM} which allows to run on a generic monad. Note there exist more random action e.g. to pick at random from a list, to randomly generate within a range, to shuffle a list and to draw from a random distribution. We didn't discuss them here as they follow the same principle.
-
-\subsection{Running the Simulation}
-For actually running the simulation we provide three different approaches. 
-
-\begin{minted}[fontsize=\footnotesize]{haskell}
-type AgentObservable s = (AgentId, s)
-type SimulationStepOut s e = (Time, [AgentObservable s], e)
-type AgentObservableAggregator s e a = SimulationStepOut s e -> a
-
-simulateIOInit :: [AgentDef] -> e -> SimulationParams e
-                    -> (ReactHandle () (SimulationStepOut s e) -> Bool -> SimulationStepOut s e -> IO Bool)
-                    -> IO (ReactHandle () (SimulationStepOut s e))
-                    
-simulateTime :: [AgentDef] -> e -> SimulationParams e -> DTime -> Time -> [SimulationStepOut s e]
-simulateAggregateTime :: [AgentDef] -> e -> SimulationParams -> DTime -> Time -> AgentObservableAggregator a -> [a]
-simulateTimeDeltas :: [AgentDef] -> e -> SimulationParams e -> [DTime] -> [SimulationStepOut s e]
-\end{minted}
-
-The first one \textit{simulateIOInit} allows for output in the IO Monad, which is useful when one wants to run the simulation for an undefined number of steps and visualise each step by rendering it to a window using a rendering library e.g. \textit{Gloss}. Note that we provide substantial rendering functionality for the environments but don't discuss it here as it is out of the scope of the paper. The \textit{ReactHandle} is part of Yampas function \textit{reactinit} and we refer to Yampas documentation for further details. The second approach \textit{simulateTime} runs the simulation for a given time with given $\Delta t$ and then returns the output for all $\Delta t$. The third approach \textit{simulateTimeDeltas} works the same as the second one but one can provide a list of all $\Delta t$. The function \textit{simulateAggregateTime} allows to transform the output of each step into a different representation, as happens in our SIR implementation where we aggregate the list of all observable agent-outputs into a tuple holding the number of susceptible, infected an recovered agents (see line 136 and 139 - 144 of Appendix \ref{app:abs_code}).
-In all approaches at every $\Delta t$ we output a tuple of the current global simulation time, a list of \textit{AgentId} with their states \textit{s} and the environment \textit{e}. All approaches take a list of initial agent definitions, the initial environment and simulation parameters which are obtained calling the function \textit{initSimulation}:
-
-\begin{minted}[fontsize=\footnotesize]{haskell}
-data UpdateStrategy = Sequential | Parallel deriving (Eq)
-
-initSimulation :: UpdateStrategy
-                    -> Maybe (EnvironmentBehaviour e)
-                    -> Maybe (EnvironmentFolding e)
-                    -> Bool
-                    -> Maybe Int
-                    -> IO (SimulationParams e)
-\end{minted}
-
-This function takes as parameters the update-strategy with which to run this simulation, an optional environment behaviour, an optional environment folding, a boolean which determines whether the agents are shuffled after each iteration and an optional initial random-number generator seed. The shuffling is necessary in some models which run in the sequential strategy to uniformly distribute the probability of an agent to run at a fixed position.
-
-\subsection{Replications}
-As already described in the previous sections, sometimes it is necessary to run replications. This means running the same simulation multiple times but each with a different random-number generator and averaging the results. For this we provide replicators for agents and environments which can create a new \textit{AgentDef} and environment \textit{e} from the initial ones using the provided random-number generator for the current replication. Although it would be possible to use a default agent replicator which only replaces the random-number generator in \textit{AgentDef}, in the case of our SIR implementation we also need to replace the behaviour signal-function which takes a random-number generator as well.
-
-\begin{minted}[fontsize=\footnotesize]{haskell}
-type AgentDefReplicator = StdGen -> AgentDef -> (AgentDef, StdGen)
-type EnvironmentReplicator e = StdGen -> e -> (e, StdGen)
-
-data ReplicationConfig e = ReplicationConfig {
-    replCfgCount            :: Int,
-    replCfgAgentReplicator  :: AgentDefReplicator,
-    replCfgEnvReplicator    :: EnvironmentReplicator e
-}
-
-runReplications :: [AgentDef] -> e -> SimulationParams e -> DTime
-                    -> Time -> ReplicationConfig s m e -> [[SimulationStepOut s e]]
-\end{minted}
-
-The function \textit{runReplications} works the same way as the previously mentioned \textit{simulateTime} but takes an additional replication configuration and returns lists of \textit{SimulationStepOut} of length \textit{replCfgCount}.

@@ -1,4 +1,4 @@
-\section{Functional-Reactive code of the agent-based SIR model}
+\section{Functional reactive code of the agent-based SIR model}
 \label{app:abs_code}
 
 \begin{minted}[fontsize=\footnotesize, linenos]{haskell}
@@ -130,8 +130,8 @@ sirAgentBehaviour _ Recovered = sirAgentRecovered
 -------------------------------------------------------------------------------
 runSIR :: IO ()
 runSIR = do
-    -- no collapsing/updating of environment
-    params <- initSimulation updateStrategy Nothing Nothing shuffleAgents (Just rngSeed)
+    -- parallel strategy, no updating/folding of environment, no shuffling, rng-seed of 42
+    params <- initSimulation Parallel Nothing Nothing False (Just 42)
     (initAdefs, initEnv) <- createSIRNumInfected agentCount numInfected
     let dynamics = simulateAggregateTime initAdefs initEnv params dt t aggregate
     print dynamics

@@ -151,7 +151,28 @@
 			"file": "examples/Main.hs",
 			"settings":
 			{
-				"buffer_size": 1872,
+				"buffer_size": 1908,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "examples/BilateralTrade/Run.hs",
+			"settings":
+			{
+				"buffer_size": 481,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "module BilateralTrade.Init (\n      initBilateralTrade\n  ) where\n\nimport Control.Monad.Random\n\nimport BilateralTrade.Model\n\ninitBilateralTrade :: Rand StdGen ([BTAgentDef], BTEnvironment)\ninitBilateralTrade = undefined\n\ncreateBTAgentDef :: AgentId -> Rand StdGen BTAgentDef\ncreateBTAgentDef aid = do\n  rng <- getSplit\n\n  initPrices <- getRandomRs (0, 1)\n\n  let s = BTAgentState {\n      prices = take goods initPrices\n    , score = 0\n  }\n\n  let beh = sirAgentBehaviour rng initS\n  \n  let adef = AgentDef { \n        adId = aid\n      , adState = s\n      , adBeh = beh\n      , adInitMessages = NoEvent\n      , adConversation = Nothing\n      , adRng = rng \n      }\n\n  return adef",
+			"file": "examples/BilateralTrade/Init.hs",
+			"file_size": 691,
+			"file_write_time": 131544503291727226,
+			"settings":
+			{
+				"buffer_size": 673,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -160,24 +181,7 @@
 			"file": "examples/BilateralTrade/Model.hs",
 			"settings":
 			{
-				"buffer_size": 24,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "examples/FrSIR/Model.hs",
-			"settings":
-			{
-				"buffer_size": 3140,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "examples/BilateralTrade/Run.hs",
-			"settings":
-			{
-				"buffer_size": 0,
+				"buffer_size": 1352,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -240,13 +244,19 @@
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/BilateralTrade",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR"
 	],
 	"file_history":
 	[
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Run.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/BilateralTrade/Init.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Agent.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Trader.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Model.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/HeroesCowards/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Run.hs",
@@ -270,17 +280,13 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/frSIRDynamics_10000agents_150.0time_0.1dt_Parallel_4replications.m",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Agent.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Trader.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/PolicyEffects/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Monad.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Environment.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Run.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/NewAgents/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/SD/Definitions.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Environment/Definitions.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Init.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Conversation/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent/Agent.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/RecursiveABS/Model.hs",
@@ -370,8 +376,7 @@
 		"/home/jonathan/.config/sublime-text-3/Packages/SublimeHaskell/Settings/SublimeHaskell.sublime-settings",
 		"/home/jonathan/.config/sublime-text-3/Packages/User/SublimeHaskell.sublime-settings",
 		"/home/jonathan/.config/sublime-text-3/Packages/User/SublimeREPL.sublime-settings",
-		"/home/jonathan/phd/coding/libraries/frABS/src/tests/Discrete2d.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Tests/Main.hs"
+		"/home/jonathan/phd/coding/libraries/frABS/src/tests/Discrete2d.hs"
 	],
 	"find":
 	{
@@ -390,6 +395,10 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"FrSIR",
+			"FrSIREnvironment",
+			"FrSIRAgentState",
+			"FrSIRMsg",
 			"map ",
 			"map",
 			"environmentDisc2dRandomM",
@@ -513,11 +522,7 @@
 			"calculateHammingDistances",
 			"_enableDiseases_",
 			"isdis",
-			"Diseased",
-			"agentNonCombatMoveM",
-			"agentMoveM",
-			"agentKilledInCombatM",
-			"agentTradingM"
+			"Diseased"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -525,6 +530,10 @@
 		"regex": false,
 		"replace_history":
 		[
+			"BT",
+			"BTEnvironment",
+			"BTAgentState",
+			"BTMsg",
 			"agentStateM",
 			"agentState",
 			"setAgentState",
@@ -645,7 +654,7 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 3,
 			"sheets":
 			[
 				{
@@ -654,15 +663,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1872,
+						"buffer_size": 1908,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								85,
+								85
 							]
 						],
 						"settings":
@@ -682,19 +691,19 @@
 				},
 				{
 					"buffer": 1,
-					"file": "examples/BilateralTrade/Model.hs",
+					"file": "examples/BilateralTrade/Run.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 24,
+						"buffer_size": 481,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								24,
-								24
+								403,
+								403
 							]
 						],
 						"settings":
@@ -712,51 +721,47 @@
 				},
 				{
 					"buffer": 2,
-					"file": "examples/FrSIR/Model.hs",
+					"file": "examples/BilateralTrade/Init.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 3140,
+						"buffer_size": 673,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								724,
-								724
+								206,
+								206
 							]
 						],
 						"settings":
 						{
-							"subhask_project_dir": "/home/jonathan/phd/coding/libraries/frABS/examples",
-							"subhask_project_name": "frABSExamples",
-							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
 					"buffer": 3,
-					"file": "examples/BilateralTrade/Run.hs",
+					"file": "examples/BilateralTrade/Model.hs",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 0,
+						"buffer_size": 1352,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								669,
+								669
 							]
 						],
 						"settings":
@@ -766,10 +771,10 @@
 							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 45.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 0,
 					"type": "text"
 				}
 			]
@@ -830,7 +835,7 @@
 	"project": "frabs.sublime-project",
 	"replace":
 	{
-		"height": 42.0
+		"height": 68.0
 	},
 	"save_all_on_build": true,
 	"select_file":

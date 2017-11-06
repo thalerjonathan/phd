@@ -1,5 +1,37 @@
 \section{Discussion}
 
+\subsection{Emulating System Dynamics}
+Due to the continuous time-semantics which can be expressed in our agent-based approach we can also emulate SD. Every stock and flow is then just an agent which exchange messages where the simulation is stepped using the \textit{parallel} update-strategy. We add wrappers and type-definitions for convenience which increases the expressivity of the code, resembling system dynamics specifications. As a proof-of-concept we emulated the system dynamics of the SIR model, the code can be seen in Appendix \ref{app:sd_code}. Note that the code really looks like a SD specification with the integrals of the mathematical specification directly showing up in the code - the implementation is correct per definition. Due to the internal implementation of the \textit{integral} function of Yampa which uses the rectangle-rule to integrate, one must ensure to sample the system dynamics with small enough $\Delta t$ as becomes apparent in Figure \ref{fig:sd_plots}.
+
+\begin{figure*}
+\begin{center}
+	\begin{tabular}{c c}
+		\begin{subfigure}[b]{0.5\textwidth}
+			\centering
+			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/frsd/SIR_SD_1000agents_150t_1dt.png}
+			\caption{$\Delta t = 1.0$}
+			\label{fig:sd_plot_10dt}
+		\end{subfigure}
+	
+		& 
+		
+		\begin{subfigure}[b]{0.5\textwidth}
+			\centering
+			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/frsd/SIR_SD_1000agents_150t_01dt.png}
+			\caption{$\Delta t = 0.1$}
+			\label{fig:sd_plot_0.1dt}
+		\end{subfigure}
+	\end{tabular}
+	
+	\caption{Simulating the SIR model with our SD emulation using different $\Delta t $. Note that although $\Delta t = 0.1$ might seem very close the system dynamic solution, there are still subtle differences to the initial Figure \ref{fig:sir_sd_dynamics} which uses $\Delta t = 0.01$.}
+	\label{fig:sd_plots}
+\end{center}
+\end{figure*}
+
+\subsection{Recursive ABS}
+Due to the inherent recursive nature of functional programming we came up with the idea of \textit{recursive} ABS in which agents can recursively run the simulation within the simulation which would allow them to project their own actions into the future. So far it only exists as a proof-of-concept and we are currently only aware of a single model \cite{gilmer_recursive_2000} in the field of ABS which does recursive simulation. The implementation of recursive ABS is very natural due to the explicit data-flow and lack of side-effects which eases the task very much. Unfortunately we cannot go into detail of our approach as it is beyond the scope of the paper.
+
+
 \subsection{Different Agent-Types}
 [ ] can we implement different types of agents interacting with each other in the same simulation ? with different behaviour funcs, digferent state? yes, also not possible in NetLogo to my knowledge. but they must have the same messages, emvironment 
 

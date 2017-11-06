@@ -17,7 +17,7 @@
 
 \font\subtitlefont=cmr12 at 18pt
 
-\title{Functional Reactive Agent-Based Simulation}
+\title{Functional Reactive Agent-Based Simulation, TODO: consider a more descriptive title, this one is too generic and describes a whole research field.}
 
 % IEEEtran journal authors
 %\author{Jonathan Thaler, ̃Peer-Olaf Siebers \\ School of Computer Science \\ University of Nottingham%
@@ -67,6 +67,8 @@
 \maketitle 
 
 \begin{abstract}
+TODO: need to select the right journal for publication, something more practical functional programming
+
 Agent-Based Simulation (ABS) is a methodology in which a system is simulated in a bottom-up approach by modelling the micro interactions of its constituting parts, called agents, out of which the global macro system behaviour emerges. So far, the Haskell community hasn't been much in contact with the community of ABS due to the latter's primary focus on the object-oriented programming paradigm. This paper tries to bridge the gap between those two communities by introducing the Haskell community to the concepts of ABS. We do this by deriving an agent-based implementation for the simple SIR model from epidemiology. In our approach we leverage the basic concepts of ABS with functional reactive programming from Yampa which results in a surprisingly fresh, powerful and convenient EDSL for formulating ABS in Haskell.
 \end{abstract}
 
@@ -86,13 +88,11 @@ Functional Reactive Programming, Agent-Based Simulation
 
 \input{./tex/discussion.tex}
 
-\input{./tex/reasoning.tex}
-
 \input{./tex/relatedResearch.tex}
 
 \input{./tex/conclusion.tex}
 
-%\input{./../shared/tex/acknowledgments.tex}
+\input{./../shared/tex/acknowledgments.tex}
 
 \bibliographystyle{../../../templates/IEEEtran/bibtex/IEEEtran}
 \bibliography{../../../../references/phdReferences.bib}
@@ -101,8 +101,5 @@ Functional Reactive Programming, Agent-Based Simulation
 
 \newpage
 \input{./../shared/tex/absCode.tex}
-
-\newpage
-\input{./../shared/tex/sdCode.tex}
 
 \end{document}

@@ -4,4 +4,20 @@
 
 In Agent-Based Simulation (ABS) one models and simulates a system by modeling and implementing the pro-active constituting parts of the system, called \textit{Agents} and their local interactions. From these local interactions then the emergent property of the system emerges. ABS is still a young field, having emerged in the early-to-mid 90s primarily in the fields of social simulation and computational economics. 
 
+TODO: this section is too terse and should be a bit more exciting
+
+TODO: put FRP into introduction, 
+Functional Reactive Programming (FRP) is a way to implement systems with continuous and discrete time-semantics in pure functional languages. There are many different approaches and implementations but in our paper we use \textit{arrowized} FRP as implemented in the library Yampa which we will introduce shortly. For an in-depth introduction into FRP using Yampa we refer to the papers of \cite{hudak_arrows_2003}, \cite{courtney_yampa_2003} and \cite{nilsson_functional_2002}.
+The central concept in arrowized FRP is the Signal Function (SF) which can be understood as a mapping from an input- to an output-signal. A signal can be understood as a value which varies over time.
+
+\begin{flalign*}
+Signal \, \alpha \approx Time \rightarrow a \\
+SF \, \alpha \, \beta \approx Signal \, \alpha \rightarrow Signal \, \beta 
+\end{flalign*}
+
+Signal functions are implemented as continuations which don't take a $\Delta t$ at $t = 0$ but then change their signature into one which takes a $\Delta t$ for $t > 0$. This allows to hide $\Delta t$ completely from the types which makes them much more suitable for declarative programming. We also make use of Patersons do-notation for arrows \cite{paterson_new_2001} which makes the code much more readable.
+TODO: this section needs to be more refined but we cannot spend too much space on FRP as it is out of scope of the paper and we only need a rough understanding of the signal function concept because agents are implemented as signal functions.
+
+TODO: some more bla
+
 The aim of this paper is to show how ABS can be done in Haskell and what the benefits and drawbacks are. We do this by introducing the SIR model of epidemiology and derive an agent-based implementation for it based on Functional Reactive Programming. By doing this we give the reader a good understanding of what ABS is, what the challenges are when implementing it and how we solved these in our approach. We then discuss details which must be paid attention to in our approach and its benefits and drawbacks. The contribution is a novel approach to implementing ABS with powerful time-semantics and more emphasis on specification and possibilities to reason about the correctness of the simulation.

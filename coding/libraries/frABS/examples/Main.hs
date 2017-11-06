@@ -1,6 +1,7 @@
 module Main where
 
 import           AgentZero.Run
+import           BilateralTrade.Run
 import           Conversation.Run
 import           DoubleAuction.Run
 import           FrSIR.Run

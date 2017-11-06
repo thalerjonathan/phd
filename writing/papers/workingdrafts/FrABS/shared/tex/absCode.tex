@@ -95,14 +95,12 @@ sirAgentInfectedEvent = proc (ain, ao) -> do
 
 sirAgentSusceptibleBehaviour :: RandomGen g => g -> SIRAgentBehaviourReadEnv
 sirAgentSusceptibleBehaviour g = proc (ain, e) -> do
-    let ao = agentOutFromIn ain \label{line_agentOutFromIn}
-    ao1 <- doOnce (setAgentState Susceptible) -< ao
-    ao2 <- sendMessageOccasionallySrcSS 
-    		g
-    		(1 / contactRate)
-    		contactSS
-    		(randomAgentIdMsgSource (Contact Susceptible) True) -< (ao1, e)
-    returnA -< ao2
+    ao' <- doOnce (setAgentState Susceptible) -< agentOutFromIn ain
+    returnA -< sendMessageOccasionallySrcSS 
+    			g
+    			(1 / contactRate)
+    			contactSS
+    			(randomAgentIdMsgSource (Contact Susceptible) True) -< (ao', e)
 
 -- INFECTED
 sirAgentInfected :: RandomGen g => g -> SIRAgentBehaviour
@@ -116,10 +114,8 @@ sirAgentInfected g =
 
 sirAgentInfectedBehaviour :: RandomGen g => g -> SIRAgentBehaviourIgnoreEnv
 sirAgentInfectedBehaviour g = proc ain -> do
-    let ao = agentOutFromIn ain
-    ao1 <- doOnce (setAgentState Infected) -< ao
-    let ao2 = respondToContactWith Infected ain ao1
-    returnA -< ao2
+    ao' <- doOnce (setAgentState Infected) -< agentOutFromIn ain
+    returnA -< respondToContactWith Infected ain ao'
 
 -- RECOVERED
 sirAgentRecovered :: SIRAgentBehaviour

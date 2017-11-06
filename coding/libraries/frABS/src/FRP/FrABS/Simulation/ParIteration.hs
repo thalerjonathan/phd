@@ -5,6 +5,7 @@ module FRP.FrABS.Simulation.ParIteration (
 import qualified Data.Map as Map
 import Data.Maybe
 import Control.Concurrent.STM.TVar
+import Control.Parallel.Strategies
 
 import FRP.Yampa
 import FRP.Yampa.InternalCore
@@ -89,7 +90,8 @@ iterateAgents :: DTime
                 -> ([AgentBehaviour s m e], [AgentOut s m e], [e])
 iterateAgents dt sfs ins e = unzip3 sfsOutsEnvs
     where
-        sfsOutsEnvs = map (iterateAgentsAux e) (zip sfs ins)
+        -- NOTE: speedup by running in parallel (if +RTS -Nx)
+        sfsOutsEnvs = parMap rpar (iterateAgentsAux e) (zip sfs ins)
 
         iterateAgentsAux :: e
                             -> (AgentBehaviour s m e, AgentIn s m e)
@@ -148,7 +150,7 @@ handleCreateAgents idGen ao acc@(asfsAcc, ainsAcc)
         newAis = map (startingAgentInFromAgentDef idGen) newAgentDefs
 
 distributeMessages :: [AgentIn s m e] -> [AgentOut s m e] -> [AgentIn s m e]
-distributeMessages ains aouts = map (distributeMessagesAux allMsgs) ains
+distributeMessages ains aouts = parMap rpar (distributeMessagesAux allMsgs) ains -- NOTE: speedup by running in parallel (if +RTS -Nx)
     where
         allMsgs = collectAllMessages aouts
 

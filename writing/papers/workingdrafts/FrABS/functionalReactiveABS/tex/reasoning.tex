@@ -19,6 +19,32 @@ For our reference dynamics in Figure \ref{fig:sir_sd_dynamics} we used $\Delta t
 \subsection{Correctness of ABS implementation}
 The question is now what \textit{correctness} of an ABS implementation means. This is indeed a very non-trivial problem and is highly dependent on the model. In our case of the agent-based SIR implementation we define correctness to mean \textit{qualitatively approximating the SD dynamics}. This means that to show that our ABS implementation is correct, we need to show that it is equivalent to the SD implementation. TODO: this is a bit short, maybe we can say more about this. need to read a few papers and get better understanding on this topic
 
+Also we ask the question: why is it that the susceptible agents must make the contact and the infected only replying? can't just the infected agents make contact thus saving a round-trip? also why are not both making contact? When comparing the two contact-policies as seem in Figure \ref{fig:sir_abs_correctness_contactpolicies}, it is clear that both don't match neither the SD dynamics of Figure \ref{fig:sir_sd_dynamics} and ABM dynamics of Figure \ref{fig:sir_10000_01dt}.
+
+\begin{figure*}
+\begin{center}
+
+	\begin{tabular}{c c}
+		\begin{subfigure}[b]{0.5\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./../shared/fig/frabs/INFECTED_CONTACT_ONLY_SIR_10000agents_150t_01dt_parallel.png}
+			\caption{Infected agents make contact.}
+			\label{fig:sir_abs_correctness_contact_infected}
+		\end{subfigure}
+    	&
+		\begin{subfigure}[b]{0.5\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./../shared/fig/frabs/INFECTED_AND_SUSCEPTIBLE_CONTACT_SIR_10000agents_150t_01dt_parallel.png}
+			\caption{Susceptible and Infected agents make contact.}
+			\label{fig:sir_abs_correctness_contact_both}
+		\end{subfigure}
+	\end{tabular}
+	
+	\caption{Dynamics of different contact policies. Using same model parameters as in Figure \ref{fig:sir_10000_01dt}.} 
+	\label{fig:sir_abs_correctness_contactpolicies}
+\end{center}
+\end{figure*}
+
 \subsection{Equivalence}
 TODO: need to think about this very deeply, but basically it is all about probabilities which increase with number of messages which increase with number of infected. we need somehow to match the number of messages a susceptible receives to the stocks and flows formulas
 TODO: can we show why the infected themselves do not (and must not) make contact and only reply to incoming contacts?

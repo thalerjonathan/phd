@@ -2,12 +2,15 @@ module BilateralTrade.Init (
       initBilateralTrade
   ) where
 
+import FRP.FrABS
+import FRP.Yampa
 import Control.Monad.Random
 
 import BilateralTrade.Model
 
-initBilateralTrade :: Int -> Rand StdGen ([BTAgentDef], BTEnvironment)
-initBilateralTrade agentCount = undefined
+
+initBilateralTrade :: Rand StdGen ([BTAgentDef], BTEnvironment)
+initBilateralTrade = undefined
 
 createBTAgentDef :: AgentId -> Rand StdGen BTAgentDef
 createBTAgentDef aid = do
@@ -20,12 +23,12 @@ createBTAgentDef aid = do
     , score = 0
   }
 
-  let beh = sirAgentBehaviour rng initS
+  --let beh = sirAgentBehaviour rng initS
   
   let adef = AgentDef { 
         adId = aid
       , adState = s
-      , adBeh = beh
+      --, adBeh = beh
       , adInitMessages = NoEvent
       , adConversation = Nothing
       , adRng = rng 

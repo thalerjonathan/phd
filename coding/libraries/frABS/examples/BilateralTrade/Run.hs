@@ -3,6 +3,8 @@ module BilateralTrade.Run (
   ) where
 
 import Control.Monad.Random
+import FRP.Yampa
+import FRP.FrABS
 
 import BilateralTrade.Init
 import BilateralTrade.Model

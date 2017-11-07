@@ -1,6 +1,6 @@
 module BilateralTrade.Model (
       BTMsg
-    , BTAgentState
+    , BTAgentState (..)
     , BTEnvironment
 
     , BTAgentDef
@@ -18,13 +18,13 @@ import FRP.FrABS
 -------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 -------------------------------------------------------------------------------
-data BTMsg = BTMsgData
+data BTMsg = BTMsgData deriving (Eq, Show)
 data BTAgentState = BTAgentState 
   {
       prices    :: [Double]   -- price for each good, initially drawn uniform from 0,1
-      inventory :: [Double]   -- inventory for goods
+    , inventory :: [Double]   -- inventory for goods
     , score     :: Double     -- 
-  }
+  } deriving (Eq, Show)
 
 type BTEnvironment = ()
 

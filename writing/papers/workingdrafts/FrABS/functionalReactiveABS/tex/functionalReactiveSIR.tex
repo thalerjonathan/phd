@@ -1,20 +1,18 @@
 \section{Functional Reactive SIR}
 In this section we will derive the implementation of the agent-based approach to the SIR model, with the complete code provided in Appendix \ref{app:abs_code}. As will be seen our approach allows us express the agent behaviour very explicitly and is looking very much like a formal ABS specification of the problem. The challenges one faces when implementing an ABS plain, without support from a library are manifold. Generally one faces the following challenges:
 
-TODO: this list does not reflect all the subsections below, add them somehow
-TODO: make navigation points to the subsections which discuss the respective points
-
 \begin{itemize}
-	\item Agent Representation - how do we represent an agent in Haskell?
-	\item Agent-Agent Interaction - how can agents interact with other agents in Haskell without resorting to the IO Monad?
-	\item Environment representation - how can we represent an environment which must have the ability to update itself e.g. regrow some resources?
-	\item Agent-Environment interaction - how can agents interact (read / write) with the environment?
-	\item Agent Updating - how are the agents organised, how are they updated and how is it managed (deleting, adding during simulation) in Haskell without resorting to the IO Monad?
+	\item Agent Representation \ref{sub:agent_rep} - how do we represent an agent in Haskell?
+	\item Agent-Agent Interaction \ref{sub:agent_agent_inter} - how can agents interact with other agents in Haskell without resorting to the IO Monad?
+	\item Environment representation \ref{sub:env_rep} - how can we represent an environment which must have the ability to update itself e.g. regrow some resources?
+	\item Agent-Environment interaction \ref{sub:agent_env_inter} - how can agents interact (read / write) with the environment?
+	\item Agent Updating \ref{sub:agent_updt} - how are the agents organised, how are they updated and how is it managed (deleting, adding during simulation) in Haskell without resorting to the IO Monad?
 \end{itemize}
 
 In the next subsections we will discuss each point by deriving a functional reactive implementation of the agent-based SIR model. For us it is absolutely paramount that the simulation should be pure and never run in the IO Monad (except of course the surrounding Yampa loop which allows rendering and output). The complete source-code can be seen in Appendix \ref{app:abs_code}. For this research we implemented a prototype library called \textit{FrABS} which is available under \url{https://github.com/thalerjonathan/phd/tree/master/coding/libraries/frABS}. We plan on releasing it on Hackage in the future.
 
 \subsection{Agent Representation}
+\label{sub:agent_rep}
 An agent can be seen as a tuple $<id, s, m, e, b>$.
 \begin{itemize}
 	\item \textbf{id} - the unique identifier of the agent
@@ -97,6 +95,8 @@ afterExp :: RandomGen g => g -> DTime -> b -> SF a (Event b)
 \end{minted}
 
 \subsection{Agent-Agent Interaction}
+\label{sub:agent_agent_inter}
+
 Agent-agent interaction is the means of an agent to directly address another agent and vice versa. Inspired by the actor model we implement  \textit{messaging} with share-nothing semantics. In this case the agent sends messages which will arrive at the receiver in the next step of the simulation, thus being kind of asynchronous - a round-trip would always take at least two steps, independent of the sampling time. Depending on the semantics of the model we sometimes need synchronous interactions e.g. when only one agent can change the environment or decisions need to be made within one step - this wouldn't be possible with the asynchronous messaging. For this we introduced the concept of \textit{conversations} which allow two agents to interact with each other for an arbitrary number of requests and replies without the simulation being advanced - time is halted and only the two agents are active until they finish their conversation.
 
 \subsubsection{Messaging}
@@ -164,6 +164,8 @@ conversationEnd :: AgentOut -> AgentOut
 The conversation sender is the initiator of the conversation which can only be an agent which is just run and has started a conversation with a call to the function \textit{conversation}. After the agent has run, the simulation system will detect the request for a conversation and start processing it by looking up the receiver and calling the functions with passing the values back and forth. While a conversation is active, time does not advance and other agents do not act. Note that due to its nature, conversations are only available when using the \textit{sequential} update-strategy (see below). Note that conversations are inherently non-reactive because they are synchronous interactions, involve no time-semantics because time is halted, thus it makes no sense to implement conversations as signal-functions.
 
 \subsection{Environment representation}
+\label{sub:env_rep}
+
 Agents have access to an environment which itself is \textit{not} an agent - although it can have its own behaviour e.g. regrowing resources, it cannot send or receive messages from agents. Thus we treat the environment completely generic by allowing any given type captured in the type-variable \textit{e}. Environment behaviour is optional but if required, implemented using a signal-function which simply maps \textit{e} to \textit{e}:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
@@ -184,10 +186,12 @@ A discrete 2d environment gives agents access to a 2D grid with dimensions of $N
 A continuous 2d environment gives agents access to a continuous 2D space with dimensions of $N \times M \in \mathbb{R}$. This space can contain an arbitrary number of objects of the generic type \textit{o} where each of them has a coordinate within this space. Agents can query for objects within a given radius, add, remove and update them. Also we provide functions to move objects either in a given or random direction.
 
 \subsection{Agent-Environment interaction}
+\label{sub:agent_env_inter}
 In ABS agents almost always are \textit{situated within} an environment. We follow a subtle different approach and implement it in a way that agents have access to a generic environment of type $e$ as discussed above instead of being situated within. It is important to note the subtle difference of agents having \textit{access to} the environments instead of \textit{being situated} within them. This allows to free us making assumptions within an environment how agents use these environments and also allows us to stack multiple environments e.g. agents moving on a discrete 2D grid but relying on neighbourhood from a network.
 Our SIR implementation uses a list of all \textit{AgentId} as the environment which means that every agent knows all the existing agents of the simulation and can address them - see line 6 in \ref{app:abs_code}. We could have used a Network environment using a fully-connected graph but the memory-consumptions of the library \textit{FGL} we are using for graphs are unacceptable in case of fully-connected networks of a larger numbers of agents (10,000). Each agent gets the environment passed in through the \textit{AgentIn} and can change it by passing a changed version of the environment out through \textit{AgentOut}. 
 
 \subsection{Agent Updating}
+\label{sub:agent_updt}
 For agents to be pro-active, they need to be able to perceive time. Also agents must have the opportunity to react to incoming messages and manipulate the environment. The work of (TODO: cite our own paper on update-strategies) identifies four possible ways of doing this where we only implemented the \textit{sequential-} and \textit{parallel-strategy}. The other two strategies being the  \textit{concurrent-} and \textit{actor-strategy}, both requiring to run within the STM-Monad, which is not possible with Yampa. The author of \cite{perez_functional_2016} implemented a library called \textit{Dunai}, which is the same as Yampa but capable of running in an arbitrary Monad - we leave this for further research. Implementing these iteration-strategies using Haskell and FRP is not as straight-forward as in imperative effectful languages because one does not have mutable data which can be updated in-place.
 We implement both update-strategies basically by running all agents behaviour signal-functions every $\Delta t$, so when running a simulation for a duration of \textit{t} the number of steps is $\frac{t}{\Delta t}$. It is important to realise that in our approach of a single behaviour function we merge pro-activity, time-dependent behaviour and message receiving behaviour. A different approach would be to have callbacks for messages in addition to the normal agent-behaviour but this would be quite cluttered and inelegant.
 

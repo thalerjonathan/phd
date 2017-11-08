@@ -1,0 +1,7 @@
+<context id="Automata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://repast.org/scenario/context">
+
+	<projection id="State" type="value layer" />
+	<projection id="Grid" type="grid" />
+	
+
+</context>

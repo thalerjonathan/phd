@@ -1,0 +1,11 @@
+<context id="Geography" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://repast.org/scenario/context">
+  	 <projection id="Geography" type="geography" />	
+  	 
+  	 <projection id="My coverage" type="coverage layer" />	
+  	 
+  	 <projection id="My indexed coverage" type="coverage layer" />
+  	 
+  	 <projection id="My indexed coverage 2" type="coverage layer" />
+  	 
+  	 <projection id="Network" type="network" />		
+</context>

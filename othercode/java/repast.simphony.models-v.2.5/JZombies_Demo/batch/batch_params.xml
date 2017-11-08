@@ -1,0 +1,1 @@
+<?xml version="1.0" ?><sweep runs="1"><parameter name="randomSeed" type="constant" constant_type="int" value="1"></parameter><parameter name="human_count" type="constant" constant_type="int" value="200"></parameter><parameter name="zombie_count" type="number" number_type="int" start="10" end="15" step="1"></parameter></sweep>

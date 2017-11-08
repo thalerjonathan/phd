@@ -1,0 +1,6 @@
+Sound effects files from http://soundbible.com/royalty-free-sounds-1.html
+
+scream.wav			License: Attribution 3.0 | Recorded by Mike Koenig 
+zombiemoan.wav		License: Attribution 3.0 | Recorded by Mike Koenig 
+enragedzombies.wav	License: Attribution 3.0 | Recorded by Mike Koenig 
+

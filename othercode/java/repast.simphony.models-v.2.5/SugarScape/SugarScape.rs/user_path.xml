@@ -1,0 +1,6 @@
+<model name="SugarScape">
+	<classpath>
+		<agents path="../bin" />
+		<entry path="../lib" />
+	</classpath>
+</model>

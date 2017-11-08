@@ -1,0 +1,6 @@
+<model name="Schelling">
+	<classpath>
+		<agents path="../bin" />
+		<entry path="../lib" />
+	</classpath>
+</model>

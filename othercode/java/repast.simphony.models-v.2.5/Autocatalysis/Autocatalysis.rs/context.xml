@@ -1,0 +1,5 @@
+<context id="Autocatalysis" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://repast.org/scenario/context">
+		<projection id="Grid" type="grid" />
+		<projection id="Resource" type="value layer"/>
+		<projection id="Species" type="value layer"/>
+</context>

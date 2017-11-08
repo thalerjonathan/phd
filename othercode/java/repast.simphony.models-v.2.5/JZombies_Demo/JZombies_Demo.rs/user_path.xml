@@ -1,0 +1,5 @@
+<model name="jzombies">
+	<classpath>
+		<agents path="../bin" />
+	</classpath>
+</model>

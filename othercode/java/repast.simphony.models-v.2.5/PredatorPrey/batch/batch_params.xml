@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<sweep runs="4">
+	
+  <parameter name="initialnumberofwolves" type="constant" constant_type="number" value="50"/>
+	<parameter name="initialnumberofsheep" type="constant" constant_type="number" value="100"/>
+	<parameter name="wolfgainfromfood" type="constant" constant_type="number" value="20.01"/>
+	<parameter name="sheepgainfromfood" type="constant" constant_type="number" value="4.01"/>
+	<parameter name="wolfreproduce" type="constant" constant_type="number" value="5.01"/>
+	<parameter name="sheepreproduce" type="constant" constant_type="number" value="4.01"/>
+	
+	<parameter name="grassregrowthtime" type="constant" constant_type="number" value="30"/>
+	
+	<parameter name="runlength" type="constant" constant_type="number" value="400.01"/>
+</sweep>

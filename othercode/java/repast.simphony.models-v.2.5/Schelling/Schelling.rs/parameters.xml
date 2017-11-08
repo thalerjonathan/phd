@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<parameters>
+					<parameter name="randomSeed" displayName="Default Random Seed" type="int" 
+						defaultValue="__NULL__"
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+									
+		/>
+	
+	<parameter name="initialNumAgents" displayName="Initial Num Agents" type="int" 
+						defaultValue="2000"
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+									
+		/>
+	
+	<parameter name="minDeathAge" displayName="Min Death Age" type="int" 
+						defaultValue="80"
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+									
+		/>
+	
+		<parameter name="maxDeathAge" displayName="Max Death Age" type="int" 
+						defaultValue="100"
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+									
+		/>
+	
+		<parameter name="worldHeight" displayName="World Height" type="int" 
+						defaultValue="50"
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+									
+		/>
+	
+		<parameter name="worldWidth" displayName="World Width" type="int" 
+						defaultValue="50"
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+									
+		/>
+	
+			<parameter name="percentLikeNeighbors" displayName="Percent Like Neighbors" type="double" 
+						defaultValue="0.5"
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+	
+		</parameters>
+
+

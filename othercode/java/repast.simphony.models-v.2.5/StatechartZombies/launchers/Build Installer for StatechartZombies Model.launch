@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+<listAttribute key="org.eclipse.debug.ui.favoriteGroups">
+<listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>
+<listEntry value="org.eclipse.debug.ui.launchGroup.run"/>
+</listAttribute>
+<stringAttribute key="org.eclipse.jdt.launching.CLASSPATH_PROVIDER" value="org.eclipse.ant.ui.AntClasspathProvider"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.apache.tools.ant.launch.Launcher"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-buildfile &quot;${workspace_loc:StatechartZombies}/installer/installation_coordinator.xml&quot; -DoutputInstallationFile=&quot;${folder_prompt:the Folder to output the installer (setup.jar) file}/setup.jar&quot; -DEclipsePluginsDirectory=&quot;${eclipse_home}plugins&quot; -DGroovyHomeDirectory=&quot;${groovy_home}&quot; -DREPAST_VERSION=${REPAST_VERSION}"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="StatechartZombies"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xss10M -Xmx400M"/>
+</launchConfiguration>

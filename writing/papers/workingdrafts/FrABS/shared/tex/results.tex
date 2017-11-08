@@ -96,6 +96,7 @@ To show that \textit{occasionally} is not vulnerable to very low frequencies of 
 \end{center}
 \end{figure}
 
+\subsection{Increasing the frequency}
 Using these observation we run simulations with varying $\Delta t$ with $\Delta = 0.5$, $\Delta = 0.2$ and $\Delta = 0.1$ with the results visible in Figures \ref{fig:sir_abs_approximating_05dt}, \ref{fig:sir_abs_approximating_02dt} and \ref{fig:sir_abs_approximating_01dt} but still when decreasing $\Delta t$ we don't approach the SD dynamics. As previously mentioned the agent-based approach is a discrete one which means that with increasing number of agents, the discrete dynamics approximate the continuous dynamics of the SD simulation. We run further simulations with $\Delta = 0.1$ but with varying agent numbers to see the influence with the results seen in Figure \ref{fig:sir_abs_approximating}.
 
 \begin{figure}
@@ -137,8 +138,11 @@ Using these observation we run simulations with varying $\Delta t$ with $\Delta 
 \end{center}
 \end{figure}
 
-Still the dynamics of 10,000 Agents do not match the dynamics of the SD simulation perfectly. This is because as opposed to the SD simulation, which is deterministic, the agent-based approach is inherently a stochastic one as we continuously draw from random-distributions which drive our state-transitions. What we see in Figure \ref{fig:sir_abs_approximating} is then just a single run where the dynamics would result in slightly different shapes when run with a different random-number generator seed. The agent-based approach thus generates a distribution of dynamics over which ones needs to average to arrive at the correct solution. This can be done using replications in which the simulation is run with the exact same parameters multiple times but each with a different random-number generator see. The resulting dynamics are then averaged and the result is then regarded as the correct dynamics.
-We have done this as can be seen in Figure \ref{fig:sir_abs_agents_repls}, using 10 replications, which matches the SD dynamics to a very satisfactory level. Note that in the replications we are using 10 initially infected agents to ensure that no simulation run will terminate too early (meaning that the disease gets extinct after a few time steps) which would offset the dynamics completely. This happens due to "unlucky" random distributions which can be repaired by introducing more initially infected agents which increases the probability of spreading the disease in the very early stage of the simulation drastically. We found that when using 10 initially infected agents in a population of 5,000 (which amounts to 0.2\%) is enough to never result in an early terminating simulation. In the case of 100 agents 10 initially infected ones might be too much and distorts the dynamics but this is irrelevant in this case. This is also a fundamental difference between SD and ABS: the dynamics of the agent-based approach can result in a wide range of scenarios which includes also the one in which the disease gets extinct in the early stages (a lucky coincidence for mankind) - this is simply not possible in the SD approach. So we can argue that ABS is much closer to reality than SD as it allows to explore alternate futures in the dynamics.
+Although increasing the number of agents improves our approximation, still the dynamics of 10,000 Agents are still nowhere close to the SD dynamics. This is because as opposed to SD, which is deterministic, the agent-based approach is inherently a stochastic one as we continuously draw from random-distributions which drive our state-transitions. What we see in Figure \ref{fig:sir_abs_approximating} is then just a single run where the dynamics would result in slightly different shapes when run with a different random-number generator seed. The agent-based approach thus generates a distribution of dynamics over which ones needs to average to arrive at the correct solution. 
+
+\subsection{Adding replications}
+To average over multiple runs with different random-number seeds one uses replications in which the simulation is run with the exact same parameters multiple times but each with a different random-number generator seed. The resulting dynamics are then averaged which will result in much smother results.
+We have done this in Figure \ref{fig:sir_abs_agents_repls}, using 10 replications. The results are not yet matching the SD dynamics completely but we have increased our approximation considerably. Note that in the replications we are using 10 initially infected agents to ensure that no simulation run will terminate too early. An early termination means that the disease gets extinct after a few time steps which would offset the dynamics completely. This happens due to "unlucky" random distributions which can be repaired by introducing more initially infected agents which increases the probability of spreading the disease in the very early stage of the simulation drastically. We found that when using 10 initially infected agents in a population of thousands is enough to never result in an early terminating simulation. In the case of 100 agents, 10 initially infected ones might be too much and distorts the dynamics but this is irrelevant in this case. This is also a fundamental difference between SD and ABS: the dynamics of the agent-based approach can result in a wide range of scenarios which includes also the one in which the disease gets extinct in the early stages - a lucky coincidence for mankind. Though this is simply not possible in the SD approach because as soon as there are more than 0 infected agents at the start of the simulation, the dynamics will take off. Thus we argue that ABS is much closer to reality than SD as it allows to explore alternate futures in the dynamics.
 
 \begin{figure}
 \begin{center}
@@ -179,11 +183,11 @@ We have done this as can be seen in Figure \ref{fig:sir_abs_agents_repls}, using
 \end{center}
 \end{figure}
 
-When comparing the results of the dynamics of the agent-based approach from Figure \ref{fig:sir_abs_approximating} and Figure \ref{fig:sir_abs_agents_repls} to the SD dynamics of Figure \ref{fig:sir_sd_dynamics} it becomes apparent that by increasing the number of agents the dynamics approximate the SD dynamics with increasing accuracy. Still although using 5,000 agents and replications seem to be not enough yet, we need to increase our number of agents to 10,000
+%When comparing the results of the dynamics of the agent-based approach from Figure \ref{fig:sir_abs_approximating} and Figure \ref{fig:sir_abs_agents_repls} to the SD dynamics of Figure \ref{fig:sir_sd_dynamics} it becomes apparent that by increasing the number of agents the dynamics approximate the SD dynamics with increasing accuracy. Still although using 5,000 agents and replications seem to be not enough yet, we need to increase our number of agents to 10,000
 
-Still although using a quite small $\Delta t = 0.1$ and using replications we are nowhere close to the SD dynamics. The only option we have is to further decrease $\Delta t$. Of course performance is a big issue and it decreases as $\Delta t$ get smaller and smaller. This is because when running a simulation for a duration of $t$ and sampling it with $\Delta t$ when the steps to calculate is $\frac{t}{\Delta t}$. In each step all agents are run, messages delivered and environments folded and updated which implies that the more steps the lower the performance. If we could perform super-sampling just for the given high-frequency functions with the whole system running in lower frequency then we could achieve a substantial performance boost.
+Still although using a quite small $\Delta t = 0.1$ and using replications we are not yet approximating the SD dynamics to a satisfactory level. The only option we have is to further decrease $\Delta t$. Of course performance is a big issue and it decreases as $\Delta t$ get smaller and smaller. This is because when running a simulation for a duration of $t$ and sampling it with $\Delta t$ then the steps to calculate is $\frac{t}{\Delta t}$. In each step all agents are run, messages delivered and environments folded and updated which implies that the more steps the lower the performance. The problem is that not the whole system needs to run on a very high frequency, only the corresponding functions which need to be sampled at high frequency. If we could perform super-sampling just for the given high-frequency functions with the whole system running in lower frequency then we could achieve a substantial performance boost and make it feasible to sample parts at much higher frequencies.
 
-\subsection{Super-Sampling}
+\subsection{Adding Super-Sampling}
 In Yampa there exists a function \textit{embed} which allows to run a given signal-function with provided $\Delta t$ but the problem is that this function does not really help because it does not return a signal-function. What we need is a signal-function which takes the number of super-samples \textit{n}, the signal-function \textit{sf} to sample and returns a new signal-function which performs super-sampling on it:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
@@ -203,9 +207,7 @@ We ran tests super-sampling both \textit{occasionally} Figure \ref{fig:sampling_
 			\caption{Super-Sampling the \textit{occasional} function with event-frequency of 5 (average of 0.2 events per time-unit). The theoretical average is 20 event within this time-frame.}
 			\label{fig:sampling_occasionally_ss_02evts}
 		\end{subfigure}
-	
 		&
-		
 		\begin{subfigure}[b]{0.5\textwidth}
 			\centering
 			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/sampling/samplingTest_occasionally_ss_5evts.png}
@@ -221,9 +223,7 @@ We ran tests super-sampling both \textit{occasionally} Figure \ref{fig:sampling_
 			\caption{Super-Sampling the \textit{afterExp} function with average time-out of 5.}
 			\label{fig:sampling_afterExp_ss_5time}
 		\end{subfigure}
-
 		&
-		
 		\begin{subfigure}[b]{0.5\textwidth}
 			\centering
 			\includegraphics[width=.6\textwidth, angle=0]{./../shared/fig/sampling/samplingTest_afterExp_SS_02time.png}
@@ -249,8 +249,9 @@ transitionAfterExpSS :: RandomGen g => g -> Double -> Int
                         -> AgentBehaviour -> AgentBehaviour -> AgentBehaviour
 \end{minted}
 
-Both now take an additional parameter which determines the number of super-samples to be calculated. According to the above observations of the \textit{occasionally} and \textit{afterExp} functions which are the foundations of both of the functions we sample \textit{sendMessageOccasionallySrcSS} with 20 super-samples and \textit{transitionAfterExpSS} with 2. This will ensure that by using $\Delta t = 1.0$ we only calculate $t$ steps when running a simulation for $t$ time but that we sample our relevant functions with enough resolution to capture its frequencies. Optimally we should increase the number of super-samples for \textit{sendMessageOccasionallySrcSS} to about 100. This will result in lower performance as \textit{every} agent will perform this super-sampling. So in the end it is a struggle of performance vs. sufficiently close approximation. We define the number of super-samples in lines 29 and 32 and use the functions in line 96 and 106 of Appendix \ref{app:abs_code}.
+Both now take an additional parameter which determines the number of super-samples to be calculated. According to the above observations of the \textit{occasionally} and \textit{afterExp} functions which are the foundations of both of the functions we sample \textit{sendMessageOccasionallySrcSS} with 20 super-samples and \textit{transitionAfterExpSS} with 2. This will ensure that by using $\Delta t = 1.0$ we only calculate $t$ steps when running a simulation for $t$ time but that we sample our relevant functions with enough resolution to capture its frequencies. Optimally we should increase the number of super-samples for \textit{sendMessageOccasionallySrcSS} to about 100. This will result in lower performance as \textit{every} agent will perform this super-sampling. So in the end it is a struggle of performance vs. sufficiently close approximation. We define the number of super-samples in lines 29 and 32 and use the functions in line 95 and 104 of Appendix \ref{app:abs_code}.
 
+\subsection{The final detail: messaging delay}
 Unfortunately when setting $\Delta t = 1.0$ the dynamics of the agent-based approach won't approach the dynamics of the SD, despite using super-sampling as can be seen in Figure \ref{fig:sir_10000_1dt}.
 
 \begin{figure}
@@ -279,4 +280,4 @@ Unfortunately when setting $\Delta t = 1.0$ the dynamics of the agent-based appr
 \end{figure}
 
 When reflecting on the messaging mechanism it becomes apparent that a round-trip from sender to receiver and back takes $2 \Delta t$. A round-trip happens in our agent-based SIR approach to implement the transition from infected to susceptible - susceptible agents send \textit{Contact Susceptible} messages to random agents (except itself) where only infected agents reply with a \textit{Contact Infected} message. This means that it takes $2 \Delta t$ until a susceptible agent might get infected. This becomes an issue if we want to match the dynamics of our agent-based approach to the one of SD in which no time-delay happens - the agents act instantaneous with each other during one time-step. 
-We have two solutions for this problem: either we resort to \textit{conversations} or we increase the global sampling frequency of the system which matches the \textit{message frequency} of messages which are subject to round-trips. Implementing conversations is only available in the \textit{sequential} update-strategy and is much more involved, so we followed the approach of increasing the frequency. As can be seen in Figure \ref{fig:sir_10000_01dt} when setting $t\Delta = 0.1$ the resulting dynamics are a sufficiently good approximation to the SD solution.
+We have two solutions for this problem: either we resort to \textit{conversations} or we increase the global sampling frequency of the system which matches the \textit{message frequency} of messages which are subject to round-trips. Implementing conversations is only available in the \textit{sequential} update-strategy and is much more involved, so we followed the approach of increasing the frequency. As can be seen in Figure \ref{fig:sir_10000_01dt} when setting $t\Delta = 0.1$ the resulting dynamics are a sufficiently good approximation to the SD solution. It is important to note that these dynamics were generated without using replications but only with super-sampling and a sufficiently small $t\Delta t$.

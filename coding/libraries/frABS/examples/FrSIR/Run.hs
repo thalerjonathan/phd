@@ -35,7 +35,7 @@ numInfected = 10
 
 replCfg :: FrSIRReplicationConfig
 replCfg = ReplicationConfig {
-    replCfgCount = 10,
+    replCfgCount = 4,
     replCfgAgentReplicator = sirAgentDefReplicator,
     replCfgEnvReplicator = defaultEnvReplicator
 }

@@ -8,8 +8,6 @@ import repast.simphony.space.continuous.NdPoint;
 import repast.simphony.util.ContextUtils;
 
 public class Moon {
-
-	private final static FUCK = 5 * Math.PI /6;
 	
 	private String name;
   private float[] rot = {0,0,0,0};

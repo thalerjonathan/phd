@@ -1,7 +1,9 @@
 package socialForce;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class SocialForce {
 
@@ -13,6 +15,20 @@ public class SocialForce {
 	
 	private final static int roomNum = 1;
 
+	private double enterSpeed = 7;
+	private double totalTime;
+	
+	private void calcTime(double t) {
+		synchronized(this){
+			totalTime += t;
+			/*if(existTimes.size()>20){
+				totalTime -= existTimes.get(0);
+				existTimes.remove(0);
+			}
+			*/
+			}
+	}
+	
 	// TODO: cyclic recurring event, first occurence: time() which means NOW?, then every enterSpeed seconds
 	private void spawnVisitors() {
 		if(Utils.uniform()>group_spawn_rate){
@@ -79,4 +95,163 @@ public class SocialForce {
 	private List<Person> people;
 	private AdaptiveWall adaptiveWall;
 	
+	///////////////////////////////////////////////////////////////////////////
+	// k-means clustering
+	
+	private int finalClusterNum;
+	private int NUM_CLUSTERS = 4;
+	
+	private boolean isPlot = false;
+	private boolean isActive = true;
+	private boolean enableVisionArea = false;
+	
+	private List<Person> people_t;
+	private List<Cluster> clusters;
+	
+	private final static int CLUSTER_THRESH = 50;
+	
+	private void plotClusters() {
+		for (int i = 0; i < NUM_CLUSTERS; i++) {
+		    Cluster c = clusters.get(i);
+		    c.plotCluster();
+		}
+	}
+	
+	// TODO: cyclic event, first occurence after 5 seconds, then every 5 seconds
+	private void displayClusters() {
+		synchronized(this){
+			people_t.clear();
+			for(Person p:people){
+				if(!p.inState(p.reading) && !p.inState(p.moving)){
+					continue;
+				}
+				people_t.add(p);
+			}
+			clustering();
+			if(isPlot){plotClusters();}
+		}
+	}
+	
+	private void kmeans() {
+		for (int i = 0; i < NUM_CLUSTERS; i++) {
+		    Cluster cluster = new Cluster();
+		    cluster.id = i;
+		    Point centroid = createRandomPoint(topLeft,downRight,i);
+		    cluster.centroid = centroid;
+		    clusters.add(cluster);
+		}
+		boolean finish = false;
+			int iteration = 0;
+			while(!finish) {
+		    clearClusters();
+		    List<Point> lastCentroids = getCentroids();
+		    //Assign points to the closer cluster
+		    assignCluster();
+		    //Calculate new centroids.
+		    calculateCentroids();
+		    iteration++;
+			List<Point> currentCentroids = getCentroids();
+		    //Calculates total distance between new and old Centroids
+		    double distance = 0;
+		    for(int i = 0; i < lastCentroids.size(); i++) {
+		        distance += Utils.distance(lastCentroids.get(i),currentCentroids.get(i));
+		    }       	
+		    if(distance == 0) {
+		        finish = true;
+		    }
+		}
+	}
+	
+	private void clustering() {
+		calcBestClusters();
+		kmeans();
+		finalClusterNum = 0;
+		for(Cluster c : clusters){
+			if(c.points.size()>0){finalClusterNum++;}
+		}
+	}
+	
+	private void calcBestClusters() {
+		outerloop: 
+		for(int i = 7; i > 1; i--){
+			NUM_CLUSTERS = i;
+			kmeans();
+			boolean flag = true;
+			for(int j = 0; j < NUM_CLUSTERS-1; j++){
+				for(int k = j+1; k < NUM_CLUSTERS; k++){
+					if(Utils.distance(clusters.get(j).centroid, clusters.get(k).centroid)<clusterThresh){
+						flag = false;
+						continue outerloop;
+					}
+				}
+			}
+			if(flag){
+				return;
+			}
+		}
+	}
+	
+	private void clearClusters() {
+		for(Cluster cluster : clusters) {
+			cluster.clear();
+		}
+	}
+	
+	// NOTE: this does not involve any random element at the moment
+	private Point createRandomPoint(Point topLeft, Point bottomRight, int i) {
+		double x = 100;
+		double y = topLeft.getY() + (bottomRight.getY() - topLeft.getY())*i/NUM_CLUSTERS;
+		return new Point(x,y);
+	}
+	
+	private List<Point> getCentroids() {
+		List<Point> centroids = new ArrayList<Point>();
+		for(Cluster cluster : clusters) {
+		  	Point aux = cluster.centroid;
+		   	Point point = new Point(aux.getX(),aux.getY());
+		   	centroids.add(point);
+		}
+		return centroids;
+	}
+	
+	private void assignCluster() {
+		double max = Double.MAX_VALUE;
+		double min = max; 
+		int cluster = 0;                 
+		double distance = 0.0; 
+		for(Person p : people_t) {
+			min = max;
+			for(int i = 0; i < NUM_CLUSTERS; i++) {
+				Cluster c = clusters.get(i);
+				distance = distance(new Point(p.pxX, p.pxY), c.centroid);
+				if(distance < min){
+					min = distance;
+					cluster = i;
+				}
+			}
+			p.cluster_number = cluster;
+			clusters.get(cluster).points.add(p);
+		}
+	}
+	
+	private void calculateCentroids() {
+		for(Cluster cluster : clusters) {
+			double sumX = 0;
+			double sumY = 0;
+			List<Person> list = cluster.points;
+			int n_points = list.size();
+			for(Person point : list) {
+				sumX += point.pxX;
+				sumY += point.pxY;
+			}
+		            
+			Point centroid = cluster.centroid;
+			if(n_points > 0) {
+				double newX = sumX / n_points;
+				double newY = sumY / n_points;
+				centroid.x = newX;
+				centroid.y = newY;
+			}
+		}
+	}
 }

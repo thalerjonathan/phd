@@ -12,6 +12,10 @@ public class Utils {
 		return Math.sqrt(sqr(x1-x2) + sqr(y1-y2));
 	}
 	
+	public static double distance(Point p1, Point p2) {
+		return Math.sqrt(sqr(p1.getX()-p2.getX()) + sqr(p1.getY()-p2.getY()));
+	}
+	
 	public static double uniform() {
 		return RandomHelper.getUniform().nextDouble();
 	}

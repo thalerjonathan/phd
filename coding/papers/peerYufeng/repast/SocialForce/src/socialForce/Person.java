@@ -10,13 +10,14 @@ public class Person {
 	// Basic Properties
 	
 	private Color color = Color.WHITE;
+	private Color rectColor = Color.WHITE;
 	private double heading = INIT_HEADING;
 	
 	private double pxX = INIT_X;
 	private double pxY = INIT_Y;
 	
-	private double x = INIT_X / METER_2_PX;
-	private double y = INIT_Y / METER_2_PX;
+	private double x = INIT_X / SocialForce.METER_2_PX;
+	private double y = INIT_Y / SocialForce.METER_2_PX;
 	
 	private double speedX;
 	private double speedY;
@@ -27,7 +28,7 @@ public class Person {
 	
 	private boolean arrivedDest;
 	
-	private List<Person> belongedGroup;
+	private Group belongedGroup;
 	
 	private int clusterNumber;
 	
@@ -35,8 +36,6 @@ public class Person {
 	
 	private double destX;
 	private double destY;
-	
-	private final static double METER_2_PX = 1.0;
 	
 	private final static double INIT_HEADING = 0;
 	private final static double INIT_X = 0;
@@ -49,12 +48,12 @@ public class Person {
 	
 	private double calcvi0Horizontal() {
 		if(destX==x || vi0==0){return 0;}
-		return (destX-x)*vi0 / distance(x,y,destX,destY);
+		return (destX-x)*vi0 / Utils.distance(x,y,destX,destY);
 	}
 	
 	private double calcvi0Vertical() {
 		if(destY==y || vi0==0){return 0;}
-		return (destY-y)*vi0 / distance(x,y,destX,destY);
+		return (destY-y)*vi0 / Utils.distance(x,y,destX,destY);
 	}
 	
 	///////////////////////////////////////////////////////////////////////////
@@ -67,7 +66,6 @@ public class Person {
 	
 	private boolean applyPsy = true;
 	
-	private final static double UNIT_TIME = 0.01;
 	private final static double Ai = 2 * 100;
 	private final static double Bi = 0.2;
 	private final static double K = 1.2 * 100000;
@@ -77,11 +75,7 @@ public class Person {
 	private final static double AiWall = 2 * 100;
 	private final static double AiGrp = 5;
 	
-	private double sqr(double x) {
-		return x*x;
-	}
-	
-	// TODO: need to update it every 0.01 seconds (simulation time)
+	// TODO: cyclic event, first occurence at t = 0, then every 0.01 seconds
 	public void updateState() {
 		if(!arrivedDest){
 			if((destX-1<x && x<destX+1) && (destY-1<y && y<destY+1)){
@@ -90,7 +84,7 @@ public class Person {
 		}
 		calculatePpl();
 		calculateWall();
-		double totalForce = Math.sqrt(sqr(sumFijH)+sqr(sumFijV))+Math.sqrt(sqr(sumFiWH)+sqr(sumFiWV));
+		double totalForce = Math.sqrt(Utils.sqr(sumFijH)+sqr(sumFijV))+Math.sqrt(Utils.sqr(sumFiWH)+Utils.sqr(sumFiWV));
 		if(totalForce/2/Math.PI/ri >= 16000){
 			injured = true;
 			this.color=Color.BLACK;
@@ -99,17 +93,17 @@ public class Person {
 			speedY=0;
 			return;
 		}
-		speedX += accelerationHorizontal() * UNIT_TIME;
-		speedY += accelerationVertical() * UNIT_TIME;
+		speedX += accelerationHorizontal() * SocialForce.UNIT_TIME;
+		speedY += accelerationVertical() * SocialForce.UNIT_TIME;
 		if(this.inState(reading)){
 			heading = Math.atan2((destY-y),(destX-40/25-x)) + Math.PI/2;
 		}else{
 			heading = Math.atan2(speedY, speedX) + Math.PI/2;
 		}
-		x += (speedX * UNIT_TIME);
-		y += (speedY * UNIT_TIME);
-		pxX = x*METER_2_PX;
-		pxY = y*METER_2_PX;
+		x += (speedX * SocialForce.UNIT_TIME);
+		y += (speedY * SocialForce.UNIT_TIME);
+		pxX = x*SocialForce.METER_2_PX;
+		pxY = y*SocialForce.METER_2_PX;
 	}
 	
 	private void calculateWall() {
@@ -119,7 +113,7 @@ public class Person {
 			Point p = new Point();
 			double sqrdist = w.getNearestPoint(pxX,pxY,p);
 			double diW = -1;
-			if((diW = sqrt(sqrdist)/METER_2_PX) > connectionRange){continue;}
+			if((diW = Math.sqrt(sqrdist)/METER_2_PX) > connectionRange){continue;}
 			
 			double theta = atan2(p.getY()-y, p.getX()-x)-atan2(speedY,speedX);
 			double cosTheta = 1;
@@ -132,8 +126,8 @@ public class Person {
 			double deltavH, deltavV, deltav;
 			double fpsy,fbody,friction;
 			double fiWH,fiWV;
-			niW1 = (x==(p.getX()/METER_2_PX) ? 0:(x-(p.getX()/METER_2_PX))/diW);
-			niW2 = (y==(p.getY()/METER_2_PX) ? 0:(y-(p.getY()/METER_2_PX))/diW);
+			niW1 = (x==(p.getX()/SocialForce.METER_2_PX) ? 0:(x-(p.getX()/SocialForce.METER_2_PX))/diW);
+			niW2 = (y==(p.getY()/SocialForce.METER_2_PX) ? 0:(y-(p.getY()/SocialForce.METER_2_PX))/diW);
 			tiW1 = -niW2;
 			tiW2 = niW1;
 			gx = (diW>ri ? 0:(ri-diW));
@@ -156,14 +150,14 @@ public class Person {
 		for(Person j : get_Main().people){
 			if(this==j){continue;}
 			double dij = -1;
-			if((dij = distance(x,y,j.x,j.y)) > connectionRange){continue;}
+			if((dij = Utils.distance(x,y,j.x,j.y)) > connectionRange){continue;}
 			double I = 1;
 			if(belongedGroup != null){
 			if(belongedGroup.contains(j)){
 				I = -1;
 			}
 			}
-			double theta = Math.atan2(j.y-y, j.x-x)-atan2(speedY,speedX);
+			double theta = Math.atan2(j.y-y, j.x-x)-Math.atan2(speedY,speedX);
 			double cosTheta = 1;
 			if(theta<(-attentionAngle/2) || theta>(attentionAngle/2)){
 				if(get_Main().enableVisionArea){
@@ -210,9 +204,5 @@ public class Person {
 	private double accelerationHorizontal() {
 		return ((calcvi0Horizontal()-speedX)*mi/0.5 + sumFijH + sumFiWH)/mi;
 	}
-	
-	private double distance(double x1, double y1, double x2, double y2) {
-		return Math.sqrt(sqr(x1-x2) + sqr(y1-y2));
-		
-	}
+
 }

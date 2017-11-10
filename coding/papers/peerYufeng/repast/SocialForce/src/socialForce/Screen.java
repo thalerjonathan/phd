@@ -61,6 +61,7 @@ public class Screen {
 	private final static double K = 1.2*10;
 	
 	// TODO: cyclic event, first occurence at t = 0, then every UNIT_TIME seconds
+	@ScheduledMethod(start = 0, interval = SocialForce.UNIT_TIME)
 	private void action() {
 		socialForce();
 		double acceV = ((0.2-SPEED)/0.1 + sumFijV);
@@ -134,6 +135,7 @@ public class Screen {
 	}
 	
 	// TODO: cyclic event with first occurence after 5 seconds, then schedule every 0.5 seconds (model time)
+	@ScheduledMethod(start = 5, interval = 0.5)
 	private void monitoring() {
 		if(inState(hold)){
 			di = (Utils.uniform()>0.5? -1:1);

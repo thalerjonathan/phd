@@ -76,6 +76,7 @@ public class Person {
 	private final static double AiGrp = 5;
 	
 	// TODO: cyclic event, first occurence at t = 0, then every 0.01 seconds
+	@ScheduledMethod(start = 0, interval = SocialForce.UNIT_TIME)
 	public void updateState() {
 		if(!arrivedDest){
 			if((destX-1<x && x<destX+1) && (destY-1<y && y<destY+1)){

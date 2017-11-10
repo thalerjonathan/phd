@@ -29,6 +29,7 @@ public class AdaptiveWall {
 	private final static double K = 1.2*10;
 	
 	// TODO: cyclic event, first occurence t=0, then every UNIT_TIME seconds
+	@ScheduledMethod(start = 0, interval = SocialForce.UNIT_TIME)
 	private void action() {
 		socialForce();
 		double acceH = (sumFijH);

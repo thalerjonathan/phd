@@ -59,6 +59,7 @@ public class Room {
 	}
 	
 	// TODO: cyclic event, occurs at t=1 seconds and recurrs every 30 seconds
+	@ScheduledMethod(start = 1, interval = 30)
 	private void monitorScreens() {
 		for(int i = 0; i < screenNum; i++){
 			if(screenNum > initScreenNum){

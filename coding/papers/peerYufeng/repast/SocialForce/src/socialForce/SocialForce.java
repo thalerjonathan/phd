@@ -15,7 +15,7 @@ public class SocialForce {
 	
 	private final static int roomNum = 1;
 
-	private double enterSpeed = 7;
+	private final static double ENTER_SPEED = 7;
 	private double totalTime;
 	
 	private void calcTime(double t) {
@@ -30,6 +30,7 @@ public class SocialForce {
 	}
 	
 	// TODO: cyclic recurring event, first occurence: time() which means NOW?, then every enterSpeed seconds
+	@ScheduledMethod(start = 0, interval = ENTER_SPEED)
 	private void spawnVisitors() {
 		if(Utils.uniform()>group_spawn_rate){
 			add_people();
@@ -118,6 +119,7 @@ public class SocialForce {
 	}
 	
 	// TODO: cyclic event, first occurence after 5 seconds, then every 5 seconds
+	@ScheduledMethod(start = 5, interval = 5)
 	private void displayClusters() {
 		synchronized(this){
 			people_t.clear();

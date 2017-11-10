@@ -1,34 +1,36 @@
 package socialForce;
 
+import repast.simphony.engine.schedule.ScheduledMethod;
+
 public class Screen {
 	
 	///////////////////////////////////////////////////////////////////////////
 	// Basic Properties
 		
-	private double x;
-	private double y;
+	public double x;
+	public double y;
 	
-	private boolean isXaxis;
+	public boolean isXaxis;
 	
-	private double min;
-	private double max;
+	public double min;
+	public double max;
 	
-	private double ri;
+	public double ri;
 	
-	private double alliX;
-	private double alliY;
+	public double alliX;
+	public double alliY;
 	
-	private int roomNo;
-	private double rotation;
+	public int roomNo;
+	public double rotation;
 	
-	private final static double SPEED = 0;
+	public double speed = 0;
 	
-	private final static double RI_INIT = 20;
+	public final static double RI_INIT = 20;
 	
-	private void calcReadingNum() {
+	public int calcReadingNum() {
 		int sum = 0;
 		for(Person p:get_Main().people){
-			if(p.inState(p.reading) && p.destScreen == this){
+			if(p.isReading() && p.destScreen == this){
 				sum++;
 			}
 		}
@@ -36,41 +38,19 @@ public class Screen {
 	}
 	
 	///////////////////////////////////////////////////////////////////////////
-	// HAMMER implemenntation
-	
-	private int currNumOfClusters;
-	private int futureNumOfClusters;
-	
-	private boolean moveLeftFlag;
-	private boolean moveRightFlag;
-	
-	private double leftCFvalue;
-	private double rightCFvalue;
-	private double di;
-	
-	private double left2nearest;
-	private double right2nearest;
-	
-	private double sumFijV;
-	private double sumFijH;
-	
-	private final static double Ai = 5;
-	private final static double Bi = 5;
-	private final static double AiS = 200;
-	private final static double BiS = 0.1;
-	private final static double K = 1.2*10;
+	// Events
 	
 	// TODO: cyclic event, first occurence at t = 0, then every UNIT_TIME seconds
 	@ScheduledMethod(start = 0, interval = SocialForce.UNIT_TIME)
-	private void action() {
+	public void action() {
 		socialForce();
-		double acceV = ((0.2-SPEED)/0.1 + sumFijV);
+		double acceV = ((0.2-speed)/0.1 + sumFijV);
 		double acceH = (-(sumFijH)-15)/10;
-		double tSPEED = SPEED + acceV*SocialForce.UNIT_TIME;
+		double tSPEED = speed + acceV*SocialForce.UNIT_TIME;
 		if(tSPEED>-0.2 && tSPEED <0.2){
-			SPEED = tSPEED;
+			speed = tSPEED;
 		}
-		double ty = y + (SPEED*SocialForce.UNIT_TIME)*get_Main().meter2px;
+		double ty = y + (speed*SocialForce.UNIT_TIME)* SocialForce.METER_2_PX;
 		if(ty>min && ty<max){
 			y=ty;
 		}
@@ -84,12 +64,27 @@ public class Screen {
 			y=min+ri;
 		}
 	}
+		
+	///////////////////////////////////////////////////////////////////////////
+	// Social Force
+
+	public double left2nearest;
+	public double right2nearest;
 	
-	private void socialForce() {
+	public double sumFijV;
+	public double sumFijH;
+	
+	public final static double Ai = 5;
+	public final static double Bi = 5;
+	public final static double AiS = 200;
+	public final static double BiS = 0.1;
+	public final static double K = 1.2*10;
+	
+	public void socialForce() {
 		sumFijH = 0;
 		sumFijV = 0;
 		for(Person j : get_Main().people){
-			if(!j.inState(j.reading) && !j.inState(j.moving)){continue;}
+			if(!j.isReading() && !j.isMoving()){continue;}
 			double ax = (x+alliX)/SocialForce.METER_2_PX;
 			double aymin = (y+alliY-ri)/SocialForce.METER_2_PX;
 			double aymax = (y+alliY+ri)/SocialForce.METER_2_PX;
@@ -98,7 +93,7 @@ public class Screen {
 			if(j.y>aymin && j.y<aymax){
 				dij = j.x - ax;
 			}else{
-				dij = distance(ax,ay,j.x,j.y);
+				dij = Utils.distance(ax,ay,j.x,j.y);
 			}
 			double nij1,nij2;
 			double rij,gx;
@@ -115,17 +110,17 @@ public class Screen {
 
 			fijH = (fpsy)*nij1;
 			fijV = (fpsy)*nij2;
-			if(j.inState(j.reading)){
+			if(j.isReading()){
 				sumFijH += fijH;
 			}
 			sumFijV += fijV;
 		}
 		for(Screen j : get_Main().rooms.get(roomNo).screens){
 			if(j==this){continue;}
-			double dij = (y-j.y)/get_Main().meter2px;
+			double dij = (y-j.y)/ SocialForce.METER_2_PX;
 			double vict = (dij>0?1:-1);
 			dij = Math.abs(dij);
-			double rij = (ri+j.ri)/get_Main().meter2px;
+			double rij = (ri+j.ri)/SocialForce.METER_2_PX;
 			double fpsy = AiS*Math.exp((rij-dij)/BiS);
 			double gx = (dij>rij ? 0:(rij-dij));
 			double fbody = K*gx;
@@ -133,22 +128,35 @@ public class Screen {
 			sumFijV += fij;
 		}
 	}
+/*
+	///////////////////////////////////////////////////////////////////////////
+	// HAMMER implemenntation
+
+	public int currNumOfClusters;
+	public int futureNumOfClusters;
+	
+	public boolean moveLeftFlag;
+	public boolean moveRightFlag;
+	
+	public double leftCFvalue;
+	public double rightCFvalue;
+	public double di;
 	
 	// TODO: cyclic event with first occurence after 5 seconds, then schedule every 0.5 seconds (model time)
 	@ScheduledMethod(start = 5, interval = 0.5)
-	private void monitoring() {
+	public void monitoring() {
 		if(inState(hold)){
 			di = (Utils.uniform()>0.5? -1:1);
 		}
 		calcClusters();
 	}
 	
-	private void calcClusters() {
+	public void calcClusters() {
 		// TODO: why do we need synchronisation here?
 		synchronized(this){ 
 			get_Main().people_t.clear();
 			for(Person p:get_Main().people){
-				if(!p.inState(p.reading) && !p.inState(p.moving)){
+				if(!p.isReading() && !p.isMoving()){
 					continue;
 				}
 				get_Main().people_t.add(p);
@@ -162,12 +170,12 @@ public class Screen {
 				Person pt = new Person();
 				pt.pxX = p.pxX;
 				pt.pxY = p.pxY;
-				pt.cluster_number = p.cluster_number;
-				if(!p.inState(p.reading) && !p.inState(p.moving)){
+				pt.clusterNumber = p.clusterNumber;
+				if(!p.isReading() && !p.isMoving()){
 					continue;
 				}
 				if(p.destScreen == this){
-					pt.pxY += di*SPEED*10*SocialForce.UNIT_TIME;
+					pt.pxY += di*speed*10*SocialForce.UNIT_TIME;
 				}
 				get_Main().people_t.add(pt);
 			}
@@ -205,4 +213,5 @@ public class Screen {
 			}
 		}
 	}
+	*/
 }

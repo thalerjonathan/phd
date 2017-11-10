@@ -4,7 +4,7 @@ import java.util.List;
 
 public class Group {
 
-	private List<Person> people;
+	public List<Person> people;
 	
-	private boolean isUpdated;
+	public boolean isUpdated;
 }

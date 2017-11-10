@@ -4,31 +4,33 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import repast.simphony.engine.schedule.ScheduledMethod;
+
 public class Room {
 
 	///////////////////////////////////////////////////////////////////////////
 	// Basic Properties
 	
-	private Object alignment;
-	private Object exit;
-	private Object entrance;
+	public Object alignment;
+	public Object exit;
+	public Object entrance;
 	
-	private int roomNo;
-	private int screenNum;
+	public int roomNo;
+	public int screenNum;
 	
-	private double x;
-	private double y;
+	public double x;
+	public double y;
 	
-	private final static int CROWD_LVL = 5;
-	private final static int INIT_SCREEN_NUM = 2;
+	public final static int CROWD_LVL = 5;
+	public final static int INIT_SCREEN_NUM = 2;
 	
-	private List<Screen> screens;
+	public List<Screen> screens;
 	
 	///////////////////////////////////////////////////////////////////////////
 	// Events
 	
 	// TODO: occurs once at the start
-	private void initScreens() {
+	public void initScreens() {
 		x = alignment.getX();
 		y = alignment.getY();
 		for(int i = 0; i < screenNum; i++){
@@ -60,12 +62,12 @@ public class Room {
 	
 	// TODO: cyclic event, occurs at t=1 seconds and recurrs every 30 seconds
 	@ScheduledMethod(start = 1, interval = 30)
-	private void monitorScreens() {
+	public void monitorScreens() {
 		for(int i = 0; i < screenNum; i++){
-			if(screenNum > initScreenNum){
+			if(screenNum > INIT_SCREEN_NUM){
 				boolean del = true;
 				for(Person p :get_Main().people){
-					if((p.inState(p.moving) || (p.inState(p.reading))) && p.destScreen == screens.get(i)){
+					if((p.isMoving() || (p.isReading())) && p.destScreen == screens.get(i)){
 						del = false;
 						break;
 					}
@@ -85,7 +87,7 @@ public class Room {
 		}
 	}
 	
-	private void createScreen() {
+	public void createScreen() {
 		Map screenPos = new TreeMap();
 		for(Screen s: screens){
 			double k = s.y-s.ri;

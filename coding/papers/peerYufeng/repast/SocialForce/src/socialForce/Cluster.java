@@ -4,11 +4,11 @@ import java.awt.Color;
 import java.util.List;
 
 public class Cluster {
-	private int id;
+	public int id;
 	
-	private Point centroid;
+	public Point centroid;
 	
-	private List<Person> points;
+	public List<Person> points;
 	
 	public void clear() {
 		this.points.clear();

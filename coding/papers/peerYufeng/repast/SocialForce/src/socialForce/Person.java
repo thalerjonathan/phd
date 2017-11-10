@@ -1,57 +1,79 @@
 package socialForce;
 
-import java.util.List;
+import java.awt.Color;
 
-import com.sun.prism.paint.Color;
+import repast.simphony.engine.schedule.ScheduledMethod;
+import repast.simphony.ui.probe.ProbedProperty;
+import socialForce.chart.PersonStatechart;
 
 public class Person {
 	
 	///////////////////////////////////////////////////////////////////////////
 	// Basic Properties
 	
-	private Color color = Color.WHITE;
-	private Color rectColor = Color.WHITE;
-	private double heading = INIT_HEADING;
+	public Color color = Color.WHITE;
+	public Color rectColor = Color.WHITE;
+	public double heading = INIT_HEADING;
 	
-	private double pxX = INIT_X;
-	private double pxY = INIT_Y;
+	public double pxX = INIT_X;
+	public double pxY = INIT_Y;
 	
-	private double x = INIT_X / SocialForce.METER_2_PX;
-	private double y = INIT_Y / SocialForce.METER_2_PX;
+	public double x = INIT_X / SocialForce.METER_2_PX;
+	public double y = INIT_Y / SocialForce.METER_2_PX;
 	
-	private double speedX;
-	private double speedY;
+	public double speedX;
+	public double speedY;
 	
-	private boolean injured;
+	public boolean injured;
 	
-	private double vi0 = VI0_INIT;
+	public double vi0 = VI0_INIT;
 	
-	private boolean arrivedDest;
+	public boolean arrivedDest;
 	
-	private Group belongedGroup;
+	public Group belongedGroup;
 	
-	private int clusterNumber;
+	public int clusterNumber;
 	
-	private int roomNo;
+	public int roomNo;
 	
-	private double destX;
-	private double destY;
+	public double destX;
+	public double destY;
 	
-	private final static double INIT_HEADING = 0;
-	private final static double INIT_X = 0;
-	private final static double INIT_Y = 0;
-	private final static double VI0_INIT = 1.4;
-	private final static double VI0_READING = 0.25;
+	public double groupArrived;
+	
+	public Screen destScreen;
+	
+	public double readingTime = Utils.uniform(3, 90);
+	
+	@ProbedProperty(displayName="PersonStatechart")
+	PersonStatechart personStatechart = PersonStatechart.createStateChart(this, 0);
+	
+	private final static String READING_STATE = "reading";
+	private final static String MOVING_STATE = "moving";
+	
+	public boolean isMoving() {
+		return this.personStatechart.withinState(MOVING_STATE);
+	}
+	
+	public boolean isReading() {
+		return this.personStatechart.withinState(READING_STATE);
+	}
+	
+	public final static double INIT_HEADING = 0;
+	public final static double INIT_X = 0;
+	public final static double INIT_Y = 0;
+	public final static double VI0_INIT = 1.4;
+	public final static double VI0_READING = 0.25;
 			
-	private final static double ATTENTION_ANGLE = 5 * Math.PI / 6;
-	private final static double CONNECTION_RANGE = 10;
+	public final static double ATTENTION_ANGLE = 5 * Math.PI / 6;
+	public final static double CONNECTION_RANGE = 10;
 	
-	private double calcvi0Horizontal() {
+	public double calcvi0Horizontal() {
 		if(destX==x || vi0==0){return 0;}
 		return (destX-x)*vi0 / Utils.distance(x,y,destX,destY);
 	}
 	
-	private double calcvi0Vertical() {
+	public double calcvi0Vertical() {
 		if(destY==y || vi0==0){return 0;}
 		return (destY-y)*vi0 / Utils.distance(x,y,destX,destY);
 	}
@@ -59,21 +81,21 @@ public class Person {
 	///////////////////////////////////////////////////////////////////////////
 	// Social Force Model
 	
-	private double sumFiWH;
-	private double sumFiWV;
-	private double sumFijH;
-	private double sumFijV;
+	public double sumFiWH;
+	public double sumFiWV;
+	public double sumFijH;
+	public double sumFijV;
 	
-	private boolean applyPsy = true;
+	public boolean applyPsy = true;
 	
-	private final static double Ai = 2 * 100;
-	private final static double Bi = 0.2;
-	private final static double K = 1.2 * 100000;
-	private final static double k = 2.4 * 100000;
-	private final static double ri = 0; // TODO: uniform(0.15,0.25)
-	private final static double mi = 80;
-	private final static double AiWall = 2 * 100;
-	private final static double AiGrp = 5;
+	public final static double Ai = 2 * 100;
+	public final static double Bi = 0.2;
+	public final static double K = 1.2 * 100000;
+	public final static double k = 2.4 * 100000;
+	public final static double ri = 0; // TODO: uniform(0.15,0.25)
+	public final static double mi = 80;
+	public final static double AiWall = 2 * 100;
+	public final static double AiGrp = 5;
 	
 	// TODO: cyclic event, first occurence at t = 0, then every 0.01 seconds
 	@ScheduledMethod(start = 0, interval = SocialForce.UNIT_TIME)
@@ -85,7 +107,7 @@ public class Person {
 		}
 		calculatePpl();
 		calculateWall();
-		double totalForce = Math.sqrt(Utils.sqr(sumFijH)+sqr(sumFijV))+Math.sqrt(Utils.sqr(sumFiWH)+Utils.sqr(sumFiWV));
+		double totalForce = Math.sqrt(Utils.sqr(sumFijH)+Utils.sqr(sumFijV))+Math.sqrt(Utils.sqr(sumFiWH)+Utils.sqr(sumFiWV));
 		if(totalForce/2/Math.PI/ri >= 16000){
 			injured = true;
 			this.color=Color.BLACK;
@@ -96,7 +118,8 @@ public class Person {
 		}
 		speedX += accelerationHorizontal() * SocialForce.UNIT_TIME;
 		speedY += accelerationVertical() * SocialForce.UNIT_TIME;
-		if(this.inState(reading)){
+		
+		if(this.isReading()){
 			heading = Math.atan2((destY-y),(destX-40/25-x)) + Math.PI/2;
 		}else{
 			heading = Math.atan2(speedY, speedX) + Math.PI/2;
@@ -107,18 +130,18 @@ public class Person {
 		pxY = y*SocialForce.METER_2_PX;
 	}
 	
-	private void calculateWall() {
+	public void calculateWall() {
 		sumFiWH = 0;
 		sumFiWV = 0;
 		for(Wall w : get_Main().walls){
 			Point p = new Point();
 			double sqrdist = w.getNearestPoint(pxX,pxY,p);
 			double diW = -1;
-			if((diW = Math.sqrt(sqrdist)/METER_2_PX) > connectionRange){continue;}
+			if((diW = Math.sqrt(sqrdist)/SocialForce.METER_2_PX ) > CONNECTION_RANGE){continue;}
 			
-			double theta = atan2(p.getY()-y, p.getX()-x)-atan2(speedY,speedX);
+			double theta = Math.atan2(p.getY()-y, p.getX()-x)-Math.atan2(speedY,speedX);
 			double cosTheta = 1;
-			if(theta<(-attentionAngle/2) || theta>(attentionAngle/2)){
+			if(theta<(-ATTENTION_ANGLE/2) || theta>(ATTENTION_ANGLE/2)){
 				cosTheta = 0;
 			}
 			
@@ -145,22 +168,22 @@ public class Person {
 		}
 	}
 	
-	private void calculatePpl() {
+	public void calculatePpl() {
 		sumFijH = 0;
 		sumFijV = 0;
 		for(Person j : get_Main().people){
 			if(this==j){continue;}
 			double dij = -1;
-			if((dij = Utils.distance(x,y,j.x,j.y)) > connectionRange){continue;}
+			if((dij = Utils.distance(x,y,j.x,j.y)) > CONNECTION_RANGE){continue;}
 			double I = 1;
 			if(belongedGroup != null){
-			if(belongedGroup.contains(j)){
+			if(belongedGroup.people.contains(j)){
 				I = -1;
 			}
 			}
 			double theta = Math.atan2(j.y-y, j.x-x)-Math.atan2(speedY,speedX);
 			double cosTheta = 1;
-			if(theta<(-attentionAngle/2) || theta>(attentionAngle/2)){
+			if(theta<(-ATTENTION_ANGLE/2) || theta>(ATTENTION_ANGLE/2)){
 				if(get_Main().enableVisionArea){
 					cosTheta = 0;
 				}
@@ -198,12 +221,45 @@ public class Person {
 		}
 	}
 	
-	private double accelerationVertical() {
+	public double accelerationVertical() {
 		return ((calcvi0Vertical()-speedY)*mi/0.5 + sumFijV + sumFiWV)/mi;
 	}
 	
-	private double accelerationHorizontal() {
+	public double accelerationHorizontal() {
 		return ((calcvi0Horizontal()-speedX)*mi/0.5 + sumFijH + sumFiWH)/mi;
 	}
 
+	public Screen getNearestScreen() {
+		double deltaY = Double.POSITIVE_INFINITY;
+		for(Screen s : get_Main().rooms.get(roomNo).screens){
+			if(Math.abs(s.alliY + s.y - pxY) < deltaY){
+				deltaY = Math.abs(s.alliY + s.y - pxY);
+				destScreen = s;
+			}
+		}
+	}
+	
+	public boolean shouldWaiting() {
+		if(belongedGroup==null){
+			return false;
+		}
+		for(Person p: belongedGroup.people){
+			if (p.isReading()){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean withGroup() {
+		for(Person p: belongedGroup.people){
+			if(Utils.distance(x,y,p.x,p.y) > 2){
+				return false;
+			}
+		}
+		if(Utils.distance(x,y,destX,destY) > 3){
+			return false;
+		}
+		return true;
+	}
 }

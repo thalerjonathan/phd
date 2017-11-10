@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import repast.simphony.engine.schedule.ScheduledMethod;
+
 public class SocialForce {
 
 	public static final double METER_2_PX = 25.0;

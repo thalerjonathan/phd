@@ -1,9 +1,9 @@
-package socialForce;
+package socialForce.geom;
 
 public class Point {
 
-	private double x;
-	private double y;
+	public double x;
+	public double y;
 	
 	public Point() {
 	}

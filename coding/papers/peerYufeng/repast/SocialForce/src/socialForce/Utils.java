@@ -1,6 +1,7 @@
 package socialForce;
 
 import repast.simphony.random.RandomHelper;
+import socialForce.geom.Point;
 
 public class Utils {
 	

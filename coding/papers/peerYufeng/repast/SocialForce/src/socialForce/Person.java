@@ -5,7 +5,28 @@ import java.awt.Color;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.ui.probe.ProbedProperty;
 import socialForce.chart.PersonStatechart;
+import socialForce.geom.Point;
+import socialForce.markup.Wall;
 
+/**
+ * An proactive agent that chooses the destination by it
+ * self and move under social force it recieved. The name
+ * of social force variables are from the origional social 
+ * force model paper by Helbing.
+ * 
+ * Pixels displayed should be converted into real world 
+ * meter for social force calculation. In this class only 
+ * pxX and pxY representing the current pixel position 
+ * are pixel values.
+ * 
+ * Group behaviour is implemented as agents now get
+ * close to their group members and will wait for them
+ * before getting out.
+ * 
+ * @author		Yufeng Deng
+ * @since 		17/8/2017
+ *
+ */
 public class Person {
 	
 	///////////////////////////////////////////////////////////////////////////
@@ -13,20 +34,20 @@ public class Person {
 	
 	public Color color = Color.WHITE;
 	public Color rectColor = Color.WHITE;
-	public double heading = INIT_HEADING;
+	public double heading;
 	
-	public double pxX = INIT_X;
-	public double pxY = INIT_Y;
+	public double pxX;
+	public double pxY;
 	
-	public double x = INIT_X / SocialForce.METER_2_PX;
-	public double y = INIT_Y / SocialForce.METER_2_PX;
+	public double x;
+	public double y;
 	
 	public double speedX;
 	public double speedY;
 	
 	public boolean injured;
 	
-	public double vi0 = VI0_INIT;
+	public double vi0;
 	
 	public boolean arrivedDest;
 	
@@ -39,7 +60,7 @@ public class Person {
 	public double destX;
 	public double destY;
 	
-	public double groupArrived;
+	public int groupArrived;
 	
 	public Screen destScreen;
 	
@@ -48,35 +69,7 @@ public class Person {
 	@ProbedProperty(displayName="PersonStatechart")
 	PersonStatechart personStatechart = PersonStatechart.createStateChart(this, 0);
 	
-	private final static String READING_STATE = "reading";
-	private final static String MOVING_STATE = "moving";
-	
-	public boolean isMoving() {
-		return this.personStatechart.withinState(MOVING_STATE);
-	}
-	
-	public boolean isReading() {
-		return this.personStatechart.withinState(READING_STATE);
-	}
-	
-	public final static double INIT_HEADING = 0;
-	public final static double INIT_X = 0;
-	public final static double INIT_Y = 0;
-	public final static double VI0_INIT = 1.4;
-	public final static double VI0_READING = 0.25;
-			
-	public final static double ATTENTION_ANGLE = 5 * Math.PI / 6;
-	public final static double CONNECTION_RANGE = 10;
-	
-	public double calcvi0Horizontal() {
-		if(destX==x || vi0==0){return 0;}
-		return (destX-x)*vi0 / Utils.distance(x,y,destX,destY);
-	}
-	
-	public double calcvi0Vertical() {
-		if(destY==y || vi0==0){return 0;}
-		return (destY-y)*vi0 / Utils.distance(x,y,destX,destY);
-	}
+	public SocialForce main;
 	
 	///////////////////////////////////////////////////////////////////////////
 	// Social Force Model
@@ -88,14 +81,77 @@ public class Person {
 	
 	public boolean applyPsy = true;
 	
-	public final static double Ai = 2 * 100;
-	public final static double Bi = 0.2;
-	public final static double K = 1.2 * 100000;
-	public final static double k = 2.4 * 100000;
-	public final static double ri = 0; // TODO: uniform(0.15,0.25)
-	public final static double mi = 80;
-	public final static double AiWall = 2 * 100;
-	public final static double AiGrp = 5;
+	public double Ai = 2 * 100;
+	public double Bi = 0.2;
+	public double K = 1.2 * 100_000;
+	public double k = 2.4 * 100_000;
+	public double ri = Utils.uniform(0.15, 0.25);
+	public double mi = 80;
+	public double AiWall = 2 * 100;
+	public double AiGrp = 5;
+
+	private final static String READING_STATE = "reading";
+	private final static String MOVING_STATE = "moving";
+	private final static String RESTING_STATE = "resting";
+	
+	public final static double VI0_INIT = 1.4;
+	public final static double VI0_READING = 0.25;
+			
+	private double ATTENTION_ANGLE = 5 * Math.PI / 6;
+	private double CONNECTION_RANGE = 10;
+	
+	public Person(SocialForce main, double pre_ppl_psy, double pre_range, double pre_angle, double pre_wall_psy) {
+		this.main = main;
+		
+		this.pxX = main.getStartPoint().getX();
+		this.pxY = main.getStartPoint().getY();
+		this.x = this.pxX / SocialForce.METER_2_PX;
+		this.y = this.pxY / SocialForce.METER_2_PX;
+		
+		this.heading = 0;
+		
+		this.vi0 = VI0_INIT; 
+		this.Ai = 50 * Math.pow(2, pre_ppl_psy);
+		this.Bi = 0.2;
+		this.K = 1.2 * 100_000;
+		this.k = 2.4 * 100_000;
+		this.ri = Utils.uniform(0.15, 0.25);
+		this.mi = 80;
+		this.destX = 0;
+		this.destY = 0;
+		
+		this.CONNECTION_RANGE = pre_range;
+		this.ATTENTION_ANGLE = pre_angle;
+		
+		this.AiWall = 50 * Math.pow(2, pre_wall_psy);
+		this.AiGrp = 5;
+	}
+	
+	public boolean isMoving() {
+		return this.personStatechart.withinState(MOVING_STATE);
+	}
+	
+	public boolean isReading() {
+		return this.personStatechart.withinState(READING_STATE);
+	}
+	
+	public boolean isResting() {
+		return this.personStatechart.withinState(RESTING_STATE);
+	}
+	
+	public void sendResting() {
+		groupArrived++;
+	}
+	
+	public double calcvi0Horizontal() {
+		if(destX==x || vi0==0){return 0;}
+		return (destX-x)*vi0 / Utils.distance(x,y,destX,destY);
+	}
+	
+	public double calcvi0Vertical() {
+		if(destY==y || vi0==0){return 0;}
+		return (destY-y)*vi0 / Utils.distance(x,y,destX,destY);
+	}
 	
 	// TODO: cyclic event, first occurence at t = 0, then every 0.01 seconds
 	@ScheduledMethod(start = 0, interval = SocialForce.UNIT_TIME)
@@ -133,7 +189,7 @@ public class Person {
 	public void calculateWall() {
 		sumFiWH = 0;
 		sumFiWV = 0;
-		for(Wall w : get_Main().walls){
+		for(Wall w : main.getWalls()){
 			Point p = new Point();
 			double sqrdist = w.getNearestPoint(pxX,pxY,p);
 			double diW = -1;
@@ -171,7 +227,7 @@ public class Person {
 	public void calculatePpl() {
 		sumFijH = 0;
 		sumFijV = 0;
-		for(Person j : get_Main().people){
+		for(Person j : main.getPeople()){
 			if(this==j){continue;}
 			double dij = -1;
 			if((dij = Utils.distance(x,y,j.x,j.y)) > CONNECTION_RANGE){continue;}
@@ -184,7 +240,7 @@ public class Person {
 			double theta = Math.atan2(j.y-y, j.x-x)-Math.atan2(speedY,speedX);
 			double cosTheta = 1;
 			if(theta<(-ATTENTION_ANGLE/2) || theta>(ATTENTION_ANGLE/2)){
-				if(get_Main().enableVisionArea){
+				if(main.isEnableVisionArea()){
 					cosTheta = 0;
 				}
 			}
@@ -229,9 +285,9 @@ public class Person {
 		return ((calcvi0Horizontal()-speedX)*mi/0.5 + sumFijH + sumFiWH)/mi;
 	}
 
-	public Screen getNearestScreen() {
+	public void getNearestScreen() {
 		double deltaY = Double.POSITIVE_INFINITY;
-		for(Screen s : get_Main().rooms.get(roomNo).screens){
+		for(Screen s : main.getRooms().get(roomNo).screens){
 			if(Math.abs(s.alliY + s.y - pxY) < deltaY){
 				deltaY = Math.abs(s.alliY + s.y - pxY);
 				destScreen = s;

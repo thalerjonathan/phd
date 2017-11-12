@@ -3,6 +3,8 @@ package socialForce;
 import java.awt.Color;
 import java.util.List;
 
+import socialForce.geom.Point;
+
 public class Cluster {
 	public int id;
 	

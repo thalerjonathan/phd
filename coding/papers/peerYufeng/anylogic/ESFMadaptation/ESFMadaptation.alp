@@ -4,7 +4,7 @@
 	         AnyLogic Project File 
 *************************************************	         
 -->
-<AnyLogicWorkspace WorkspaceVersion="1.9" AnyLogicVersion="8.1.0.201706091042" AlpVersion="8.0.4">
+<AnyLogicWorkspace WorkspaceVersion="1.9" AnyLogicVersion="8.2.2.201711021514" AlpVersion="8.0.4">
 <Model>
 	<Id>1498209677595</Id>
 	<Name><![CDATA[ESFMadaptation]]></Name>
@@ -1231,6 +1231,18 @@ for(Cluster c : clusters){
 						</Parameter>
 						<Parameter>
 							<Name><![CDATA[initScreenNum]]></Name>
+							<Value Class="DatabaseQueryCodeValue">
+								<Type>SELECT_UNIQUE_VALUE</Type>
+								<TableReference>
+								</TableReference>
+								<Condition>
+									<ColumnReference>
+									</ColumnReference>
+									<Operator>EQUALS</Operator>
+								</Condition>
+								<ColumnReference>
+								</ColumnReference>
+							</Value>
 						</Parameter>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
@@ -1535,6 +1547,9 @@ for(Cluster c : clusters){
 						<Point><X>0</X><Y>0</Y><Z>0</Z></Point>
 						<Point><X>-25</X><Y>0</Y><Z>0</Z></Point>
 						<Point><X>25</X><Y>0</Y><Z>0</Z></Point>
+						<Point><X>64</X><Y>0</Y><Z>0</Z></Point>
+						<Point><X>39</X><Y>0</Y><Z>0</Z></Point>
+						<Point><X>89</X><Y>0</Y><Z>0</Z></Point>
 						<Point><X>400</X><Y>0</Y><Z>0</Z></Point>
 						<Point><X>375</X><Y>0</Y><Z>0</Z></Point>
 						<Point><X>120</X><Y>0</Y><Z>0</Z></Point>
@@ -3821,6 +3836,7 @@ if(isActive){
 					</DatasetExpression>
 					<SamplesToKeep>100</SamplesToKeep>
 					<TimeWindowExpression><![CDATA[100]]></TimeWindowExpression>
+					<FillAreaUnderLine>false</FillAreaUnderLine>
 					<LabelFormat>MODEL_TIME_UNITS</LabelFormat>
     			</TimePlot>
     			<TimePlot>
@@ -3886,6 +3902,7 @@ if(isActive){
 					</DatasetExpression>
 					<SamplesToKeep>100</SamplesToKeep>
 					<TimeWindowExpression><![CDATA[100]]></TimeWindowExpression>
+					<FillAreaUnderLine>false</FillAreaUnderLine>
 					<LabelFormat>MODEL_TIME_UNITS</LabelFormat>
     			</TimePlot>
 			</Charts>

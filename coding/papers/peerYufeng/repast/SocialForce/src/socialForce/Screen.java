@@ -27,9 +27,15 @@ public class Screen {
 	
 	public final static double RI_INIT = 20;
 	
+	private SocialForce main;
+	
+	public Screen(SocialForce main) {
+		this.main = main;
+	}
+	
 	public int calcReadingNum() {
 		int sum = 0;
-		for(Person p:get_Main().people){
+		for(Person p : main.getPeople()){
 			if(p.isReading() && p.destScreen == this){
 				sum++;
 			}
@@ -83,7 +89,7 @@ public class Screen {
 	public void socialForce() {
 		sumFijH = 0;
 		sumFijV = 0;
-		for(Person j : get_Main().people){
+		for(Person j : main.getPeople()){
 			if(!j.isReading() && !j.isMoving()){continue;}
 			double ax = (x+alliX)/SocialForce.METER_2_PX;
 			double aymin = (y+alliY-ri)/SocialForce.METER_2_PX;
@@ -115,7 +121,7 @@ public class Screen {
 			}
 			sumFijV += fijV;
 		}
-		for(Screen j : get_Main().rooms.get(roomNo).screens){
+		for(Screen j : main.getRooms().get(roomNo).screens){
 			if(j==this){continue;}
 			double dij = (y-j.y)/ SocialForce.METER_2_PX;
 			double vict = (dij>0?1:-1);

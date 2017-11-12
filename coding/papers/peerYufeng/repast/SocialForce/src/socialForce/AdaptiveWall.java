@@ -3,6 +3,7 @@ package socialForce;
 import java.util.List;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
+import socialForce.geom.Point;
 
 public class AdaptiveWall {
 	
@@ -24,11 +25,24 @@ public class AdaptiveWall {
 	
 	public double speed = 0;
 	
-	public final static double Ai = 5;
-	public final static double Bi = 5;
-	public final static double AiS = 200;
-	public final static double BiS = 0.1;
-	public final static double K = 1.2*10;
+	private double Ai = 5;
+	private double Bi = 5;
+	private double AiS = 200;
+	private double BiS = 0.1;
+	private double K = 1.2*10;
+	
+	private SocialForce main;
+	
+	public AdaptiveWall(SocialForce main) {
+		this.main = main;
+		
+		this.Ai = 5;
+		this.Bi = 5;
+		this.K = 1.2*10;
+		this.AiS = 200;
+		this.BiS = 0.1;
+		this.speed = 0;
+	}
 	
 	// TODO: cyclic event, first occurence t=0, then every UNIT_TIME seconds
 	@ScheduledMethod(start = 0, interval = SocialForce.UNIT_TIME)
@@ -61,7 +75,7 @@ public class AdaptiveWall {
 	
 	public void socialForce() {
 		sumFijH = 0;
-		for(Person j : get_Main().people){
+		for(Person j : main.getPeople()){
 			//if(!j.inState(j.reading) && !j.inState(j.moving)){continue;}
 			double ax = x/SocialForce.METER_2_PX;
 			double ay = y/SocialForce.METER_2_PX;

@@ -4,14 +4,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
+import repast.simphony.space.continuous.ContinuousSpace;
+import repast.simphony.util.ContextUtils;
+import socialForce.geom.Line;
 
 public class Room {
 
 	///////////////////////////////////////////////////////////////////////////
 	// Basic Properties
 	
-	public Object alignment;
+	public Line alignment;
 	public Object exit;
 	public Object entrance;
 	
@@ -21,38 +25,59 @@ public class Room {
 	public double x;
 	public double y;
 	
-	public final static int CROWD_LVL = 5;
-	public final static int INIT_SCREEN_NUM = 2;
+	public int crowdLvl = 5;
+	public int INIT_SCREEN_NUM = 2;
 	
 	public List<Screen> screens;
+	
+	private SocialForce main;
+	
+	public Room(SocialForce main, int crowdLvl, int initScreens) {
+		this.main = main;
+		this.crowdLvl = crowdLvl;
+		
+		
+	}
 	
 	///////////////////////////////////////////////////////////////////////////
 	// Events
 	
-	// TODO: occurs once at the start
+	private Screen addScreen() {
+		Screen screen = new Screen(this.main);
+		this.screens.add(screen);
+		
+		Context<Object> context = ContextUtils.getContext(this.main);
+		context.add(screen);
+		ContinuousSpace<Object> space = (ContinuousSpace<Object>) context.getProjection(SocialForceBuilder.SPACE_ID);
+		space.moveTo(screen, screen.x, screen.y); // TODO: are coordinates already set?
+		
+		return screen;
+	}
+	
+	// NOTE: occurs once at the start
 	public void initScreens() {
 		x = alignment.getX();
 		y = alignment.getY();
 		for(int i = 0; i < screenNum; i++){
-			add_screens();
+			Screen screen = addScreen();
 			boolean isXaxis = alignment.contains(x+1,y);
-			screens.get(i).roomNo = roomNo;
-			screens.get(i).alliY = y;
-			screens.get(i).alliX = x;
+			screen.roomNo = roomNo;
+			screen.alliY = y;
+			screen.alliX = x;
 			if(isXaxis){
-				screens.get(i).y = 0;
-				screens.get(i).isXaxis = true;
-				screens.get(i).rotation = -Math.PI / 2;
-				screens.get(i).min = 0;
-				screens.get(i).max = alignment.length();
-				screens.get(i).x = alignment.length()-50;
+				screen.y = 0;
+				screen.isXaxis = true;
+				screen.rotation = -Math.PI / 2;
+				screen.min = 0;
+				screen.max = alignment.length();
+				screen.x = alignment.length()-50;
 			}else{
-				screens.get(i).x = 0;
-				screens.get(i).isXaxis = false;
-				screens.get(i).rotation = 0;
-				screens.get(i).min = 0;
-				screens.get(i).max = alignment.length();
-				screens.get(i).y = alignment.length()-50*(i+1);
+				screen.x = 0;
+				screen.isXaxis = false;
+				screen.rotation = 0;
+				screen.min = 0;
+				screen.max = alignment.length();
+				screen.y = alignment.length()-50*(i+1);
 			}
 			if(roomNo==1){
 				screens.get(i).rotation = Math.PI;
@@ -60,20 +85,22 @@ public class Room {
 		}
 	}
 	
-	// TODO: cyclic event, occurs at t=1 seconds and recurrs every 30 seconds
+	// TODO: cyclic event, occurs at t=1 seconds and recurs every 30 seconds
 	@ScheduledMethod(start = 1, interval = 30)
 	public void monitorScreens() {
 		for(int i = 0; i < screenNum; i++){
 			if(screenNum > INIT_SCREEN_NUM){
 				boolean del = true;
-				for(Person p :get_Main().people){
+				for(Person p : main.getPeople()){
 					if((p.isMoving() || (p.isReading())) && p.destScreen == screens.get(i)){
 						del = false;
 						break;
 					}
 				}
 				if(del){
-					remove_screens(screens.get(i));
+					Context<Object> context = ContextUtils.getContext(this);
+					context.remove(screens.get(i));
+					this.screens.remove(i);
 					screenNum--;
 				}
 			}
@@ -87,7 +114,7 @@ public class Room {
 		}
 	}
 	
-	public void createScreen() {
+	private void createScreen() {
 		Map screenPos = new TreeMap();
 		for(Screen s: screens){
 			double k = s.y-s.ri;
@@ -111,7 +138,7 @@ public class Room {
 			Object largestDiff = emptySpace.lastKey();
 			Object ty = emptySpace.get(largestDiff);
 			double finalY = (double)ty + (double)largestDiff/2;
-			add_screens();
+			Screen screen = addScreen();
 			screenNum++;
 			screens.get(screenNum-1).roomNo = roomNo;
 			screens.get(screenNum-1).alliX = x;

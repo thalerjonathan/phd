@@ -112,6 +112,7 @@ public class Person {
 		this.x = this.pxX / SocialForce.METER_2_PX;
 		this.y = this.pxY / SocialForce.METER_2_PX;
 		
+		this.arrivedDest = false;
 		this.heading = 0;
 		
 		this.vi0 = VI0_INIT; 

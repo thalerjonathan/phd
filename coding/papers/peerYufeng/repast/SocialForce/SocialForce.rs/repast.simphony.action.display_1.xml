@@ -19,11 +19,11 @@
   <schedParams>
     <start>1.0</start>
     <interval>0.01</interval>
-    <priority>-Infinity</priority>
-    <pType>LAST</pType>
+    <priority>NaN</priority>
+    <pType>RANDOM</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-204541605</hashCode>
+    <hashCode>-1179392674</hashCode>
   </schedParams>
   <layoutClassName>foo.bar.baz</layoutClassName>
   <layoutProjection>SocialForceSpace</layoutProjection>
@@ -42,7 +42,7 @@
     </repast.simphony.scenario.data.ProjectionData>
   </projections>
   <visualizationProperties class="repast.simphony.visualization.UnitSizeLayoutProperties">
-    <unitSize>15.0</unitSize>
+    <unitSize>1.0</unitSize>
   </visualizationProperties>
   <projectionDescriptors>
     <entry>
@@ -59,7 +59,7 @@
               </entry>
               <entry>
                 <string>UNIT_SIZE</string>
-                <float>15.0</float>
+                <float>1.0</float>
               </entry>
               <entry>
                 <string>SHOW</string>

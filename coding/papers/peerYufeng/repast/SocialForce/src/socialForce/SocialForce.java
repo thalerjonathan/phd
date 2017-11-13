@@ -27,8 +27,6 @@ public class SocialForce {
 	private double pre_grp_psy = 5;
 	private double pre_wall_psy = 2;
 	
-	private double totalTime;
-	
 	private List<Group> groups;
 	private List<Room> rooms;
 	private List<Person> people;
@@ -145,25 +143,12 @@ public class SocialForce {
 		return this.startPoint;
 	}
 	
-	private void calcTime(double t) {
-		synchronized(this){
-			totalTime += t;
-			/*if(existTimes.size()>20){
-				totalTime -= existTimes.get(0);
-				existTimes.remove(0);
-			}
-			*/
-			}
-	}
-	
 	// TODO: cyclic recurring event, first occurence: time() which means NOW?, then every enterSpeed seconds
 	@ScheduledMethod(start = 0, interval = ENTER_SPEED)
 	public void spawnVisitors() {
 		if(Utils.uniform() > GROUP_SPAWNING){
-			System.out.println("addPeople");
 			addPeople();
 		}else{
-			System.out.println("addGroup");
 			addGroup();
 		}	
 	}

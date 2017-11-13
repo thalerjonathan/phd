@@ -1,6 +1,7 @@
 package socialForce;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
+import repast.simphony.space.continuous.ContinuousSpace;
 
 public class Screen {
 	
@@ -28,9 +29,11 @@ public class Screen {
 	public final static double RI_INIT = 20;
 	
 	private SocialForce main;
+	private ContinuousSpace<Object> space;
 	
-	public Screen(SocialForce main) {
+	public Screen(SocialForce main, ContinuousSpace<Object> space) {
 		this.main = main;
+		this.space = space;
 	}
 	
 	public int calcReadingNum() {
@@ -69,6 +72,10 @@ public class Screen {
 		}else if(y-ri<min){
 			y=min+ri;
 		}
+		
+		// NOTE: update position in space, otherwise won't get re-rendered
+		// NOTE: doing rendering in GLOBAL coordinates => set to 0/0 here
+		space.moveTo(this, 0, 0); 
 	}
 		
 	///////////////////////////////////////////////////////////////////////////

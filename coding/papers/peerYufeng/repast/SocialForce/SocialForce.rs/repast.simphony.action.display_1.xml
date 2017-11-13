@@ -16,7 +16,7 @@
     </entry>
     <entry>
       <string>socialForce.Person</string>
-      <string>repast.simphony.visualizationOGL2D.DefaultStyleOGL2D</string>
+      <string>socialForce.rendering.PersonRendering</string>
     </entry>
   </styles>
   <editedStyles>

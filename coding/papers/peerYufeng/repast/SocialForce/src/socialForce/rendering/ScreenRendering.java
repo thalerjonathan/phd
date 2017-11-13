@@ -24,6 +24,7 @@ public class ScreenRendering implements StyleOGL2D<Screen> {
 	@Override
 	public VSpatial getVSpatial(Screen s, VSpatial spatial) {
 		if (spatial == null) {
+			// NOTE: this rendering works in GLOBAL coordinate system and constructs a shape with GLOBAL COORDINATES (rotation would not work properly)!!!
 			Point ref = Utils.anylogicToRePast(new Point(s.x, s.y));
 			Point to = Utils.anylogicToRePast(new Point(s.min, s.max));
 			

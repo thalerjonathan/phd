@@ -24,6 +24,7 @@ public class AdaptiveWallRendering implements StyleOGL2D<AdaptiveWall> {
 	@Override
 	public VSpatial getVSpatial(AdaptiveWall w, VSpatial spatial) {
 		if (spatial == null) {
+			// NOTE: this rendering works in GLOBAL coordinate system and constructs a shape with GLOBAL COORDINATES (rotation would not work properly)!!!
 			// note: the positioning of the AdaptiveWall sets the x and y to the center of the wall
 			
 			double halfHeight = w.height * 0.5;

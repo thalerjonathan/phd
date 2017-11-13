@@ -189,7 +189,7 @@ public class Person {
 		y += (speedY * SocialForce.UNIT_TIME);
 		pxX = x*SocialForce.METER_2_PX;
 		pxY = y*SocialForce.METER_2_PX;
-		
+
 		updatePosition();
 	}
 	

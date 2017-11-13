@@ -163,6 +163,7 @@ public class SocialForce {
 		
 		Context<Object> context = ContextUtils.getContext(this);
 		context.add(p);
+		p.updatePosition();
 		
 		return p;
 	}
@@ -205,6 +206,7 @@ public class SocialForce {
 		p1.belongedGroup = g;
 		p1.destScreen = tdest;
 		p1.updatePosition();
+		
 		//other people in the group spawn with a certain rate
 		for(Point pn : groupPoints){
 			if(Utils.uniform()<0.6){continue;}	// TODO: name magic number

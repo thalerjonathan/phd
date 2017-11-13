@@ -43,6 +43,7 @@ public class WallRendering implements StyleOGL2D<Wall> {
 
 	public VSpatial getVSpatial(Wall w, VSpatial spatial) {
 		if (spatial == null) {
+			// NOTE: this rendering works in GLOBAL coordinate system and constructs a shape with GLOBAL COORDINATES (rotation would not work properly)!!!
 			Point[] points = w.getPoints();
 			Point pRef = Utils.anylogicToRePast(w.getRefPoint());
 			

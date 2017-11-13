@@ -15,6 +15,7 @@ import           Segregation.Run
 import           SIRS.Run
 import           SugarScape.Run
 import           SysDynSIR.Run
+import           SocialForce.Run
 import           Wildfire.Run
 import           Zombies.Run
 import           NewAgents.Run
@@ -30,7 +31,7 @@ import           NewAgents.Run
 -}
 
 main :: IO ()
-main = runFrSIRReplicationsAndWriteToFile -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
+main = runSocialForce -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
 
     -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
     -- runZombiesWithRendering

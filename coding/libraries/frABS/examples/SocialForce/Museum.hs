@@ -1,0 +1,2 @@
+module SocialForce.Museum (
+  ) where

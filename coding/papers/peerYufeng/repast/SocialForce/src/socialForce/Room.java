@@ -1,5 +1,6 @@
 package socialForce;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -36,17 +37,18 @@ public class Room {
 		this.main = main;
 		this.crowdLvl = crowdLvl;
 		
-		
+		this.screens = new ArrayList<Screen>();
+		this.screenNum = initScreens;
 	}
 	
 	///////////////////////////////////////////////////////////////////////////
 	// Events
 	
-	private Screen addScreen() {
+	private Screen addScreen(Context context) {
 		Screen screen = new Screen(this.main);
 		this.screens.add(screen);
 		
-		Context<Object> context = ContextUtils.getContext(this.main);
+		//Context<Object> context = ContextUtils.getContext(this.main);
 		context.add(screen);
 		ContinuousSpace<Object> space = (ContinuousSpace<Object>) context.getProjection(SocialForceBuilder.SPACE_ID);
 		space.moveTo(screen, screen.x, screen.y); // TODO: are coordinates already set?
@@ -55,11 +57,11 @@ public class Room {
 	}
 	
 	// NOTE: occurs once at the start
-	public void initScreens() {
+	public void initScreens(Context context) {
 		x = alignment.getX();
 		y = alignment.getY();
 		for(int i = 0; i < screenNum; i++){
-			Screen screen = addScreen();
+			Screen screen = addScreen(context);
 			boolean isXaxis = alignment.contains(x+1,y);
 			screen.roomNo = roomNo;
 			screen.alliY = y;
@@ -138,7 +140,7 @@ public class Room {
 			Object largestDiff = emptySpace.lastKey();
 			Object ty = emptySpace.get(largestDiff);
 			double finalY = (double)ty + (double)largestDiff/2;
-			Screen screen = addScreen();
+			Screen screen = addScreen(ContextUtils.getContext(this));
 			screenNum++;
 			screens.get(screenNum-1).roomNo = roomNo;
 			screens.get(screenNum-1).alliX = x;

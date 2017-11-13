@@ -3,6 +3,7 @@ package socialForce;
 import java.awt.Color;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
+import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.ui.probe.ProbedProperty;
 import socialForce.chart.PersonStatechart;
 import socialForce.geom.Point;
@@ -70,6 +71,7 @@ public class Person {
 	PersonStatechart personStatechart = PersonStatechart.createStateChart(this, 0);
 	
 	public SocialForce main;
+	private ContinuousSpace<Object> space;
 	
 	///////////////////////////////////////////////////////////////////////////
 	// Social Force Model
@@ -100,8 +102,10 @@ public class Person {
 	private double ATTENTION_ANGLE = 5 * Math.PI / 6;
 	private double CONNECTION_RANGE = 10;
 	
-	public Person(SocialForce main, double pre_ppl_psy, double pre_range, double pre_angle, double pre_wall_psy) {
+	
+	public Person(SocialForce main, ContinuousSpace<Object> space, double pre_ppl_psy, double pre_range, double pre_angle, double pre_wall_psy) {
 		this.main = main;
+		this.space = space;
 		
 		this.pxX = main.getStartPoint().getX();
 		this.pxY = main.getStartPoint().getY();
@@ -184,6 +188,12 @@ public class Person {
 		y += (speedY * SocialForce.UNIT_TIME);
 		pxX = x*SocialForce.METER_2_PX;
 		pxY = y*SocialForce.METER_2_PX;
+		
+		updatePosition();
+	}
+	
+	public void updatePosition() {
+		space.moveTo(this, this.pxX, this.pxY);
 	}
 	
 	public void calculateWall() {

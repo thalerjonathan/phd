@@ -15,7 +15,11 @@ import java.util.List;
  */
 public class Group {
 
-	public List<Person> people = new ArrayList<Person>();
+	public List<Person> people;
 	
 	public boolean isUpdated = false;
+	
+	public Group() {
+		this.people = new ArrayList<Person>();
+	}
 }

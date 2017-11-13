@@ -1,5 +1,6 @@
 package socialForce;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
@@ -21,7 +22,7 @@ public class AdaptiveWall {
 	public double sumFijV;
 	public double sumFijH;
 	
-	public List<Double> doorsX; // TODO: add door0x and door1x
+	public List<Double> doorsX; 
 	
 	public double speed = 0;
 	
@@ -35,6 +36,10 @@ public class AdaptiveWall {
 	
 	public AdaptiveWall(SocialForce main) {
 		this.main = main;
+		
+		this.doorsX = new ArrayList<Double>();
+		this.doorsX.add(this.door0x);
+		this.doorsX.add(this.door1x);
 		
 		this.Ai = 5;
 		this.Bi = 5;

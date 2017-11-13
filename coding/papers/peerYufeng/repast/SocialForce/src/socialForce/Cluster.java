@@ -1,6 +1,7 @@
 package socialForce;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.List;
 
 import socialForce.geom.Point;
@@ -11,6 +12,10 @@ public class Cluster {
 	public Point centroid;
 	
 	public List<Person> points;
+	
+	public Cluster() {
+		this.points = new ArrayList<Person>();
+	}
 	
 	public void clear() {
 		this.points.clear();

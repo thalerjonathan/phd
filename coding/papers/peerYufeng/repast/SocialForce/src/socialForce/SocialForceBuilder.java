@@ -9,8 +9,8 @@ import repast.simphony.space.continuous.RandomCartesianAdder;
 
 public class SocialForceBuilder implements ContextBuilder<Object> {
 
-	public final static String CONTEXT_ID = "socialforce";
-	public final static String SPACE_ID = "socialforcespace";
+	public final static String CONTEXT_ID = "SocialForce";
+	public final static String SPACE_ID = "SocialForceSpace";
 	
 	@Override
 	public Context build(Context<Object> context) {
@@ -24,7 +24,8 @@ public class SocialForceBuilder implements ContextBuilder<Object> {
 				50);
 
 		SocialForce main = new SocialForce(space);
-				
+		main.initAgents(context);
+		
 		context.add(main);
 		
 		return context;

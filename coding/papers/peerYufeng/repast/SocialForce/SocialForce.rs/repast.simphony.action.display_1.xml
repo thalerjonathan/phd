@@ -3,11 +3,35 @@
   <type>2D</type>
   <styles>
     <entry>
+      <string>socialForce.AdaptiveWall</string>
+      <string>socialForce.rendering.AdaptiveWallRendering</string>
+    </entry>
+    <entry>
+      <string>socialForce.markup.Wall</string>
+      <string>socialForce.rendering.WallRendering</string>
+    </entry>
+    <entry>
+      <string>socialForce.Screen</string>
+      <string>socialForce.rendering.ScreenRendering</string>
+    </entry>
+    <entry>
       <string>socialForce.Person</string>
       <string>repast.simphony.visualizationOGL2D.DefaultStyleOGL2D</string>
     </entry>
   </styles>
   <editedStyles>
+    <entry>
+      <string>socialForce.AdaptiveWall</string>
+      <null/>
+    </entry>
+    <entry>
+      <string>socialForce.markup.Wall</string>
+      <null/>
+    </entry>
+    <entry>
+      <string>socialForce.Screen</string>
+      <null/>
+    </entry>
     <entry>
       <string>socialForce.Person</string>
       <null/>
@@ -30,8 +54,20 @@
   <layoutInterval>0</layoutInterval>
   <layerOrder>
     <entry>
-      <string>socialForce.Person</string>
+      <string>socialForce.AdaptiveWall</string>
       <int>0</int>
+    </entry>
+    <entry>
+      <string>socialForce.markup.Wall</string>
+      <int>2</int>
+    </entry>
+    <entry>
+      <string>socialForce.Screen</string>
+      <int>1</int>
+    </entry>
+    <entry>
+      <string>socialForce.Person</string>
+      <int>3</int>
     </entry>
   </layerOrder>
   <projections>

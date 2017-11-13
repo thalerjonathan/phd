@@ -69,16 +69,15 @@ public class SocialForce {
 		
 		this.people_t = new ArrayList<Person>();
 		this.clusters = new ArrayList<Cluster>();
-		
-		initMarkups();
 	}
 	
 	public void initAgents(Context context) {
+		initMarkups(context);
 		initRoom(context);
 		initAdaptiveWall(context);
 	}
 	
-	private void initMarkups() {
+	private void initMarkups(Context context) {
 		this.restArea = new Rect(new Point(230, 160), 190, 180);
 		
 		this.startPoint = new Point(170, 520);
@@ -94,10 +93,10 @@ public class SocialForce {
 		this.topLeft = new Point(50, 50);
 		this.downRight = new Point(599, 450);
 		
-		initWalls();
+		initWalls(context);
 	}
 	
-	private void initWalls() {
+	private void initWalls(Context context) {
 		this.walls = new ArrayList<Wall>();
 		this.walls.add(new Wall(new Point(50, 450), new Point(100, 0)));	// wall0
 		this.walls.add(new Wall(new Point(205, 450), new Point(245, 0)));	// wall1
@@ -114,14 +113,19 @@ public class SocialForce {
 		this.walls.add(new Wall(new Point(70, 80), new Point(-19, 0)));	// wall8
 		this.walls.add(new Wall(new Point(70, 400), new Point(-19, 0)));	// wall9
 		this.walls.add(new Wall(new Point(599, 80), new Point(-19, 0)));	// wall
+		
+		for (Wall w : this.walls) {
+			context.add(w);
+			space.moveTo(w, 0, 0); // add at 0/0, the rendering will take care of rendering it at the correct position
+		}
 	}
 	
 	private void initAdaptiveWall(Context context) {
 		this.adaptiveWall = new AdaptiveWall(this);
 		
 		context.add(adaptiveWall);
-		space.moveTo(adaptiveWall, adaptiveWall.x, adaptiveWall.y);
-	}
+		space.moveTo(adaptiveWall, 0, 0); // add at 0/0, the rendering will take care of rendering it at the correct position
+	} 
 	
 	public List<Person> getPeople() {
 		return Collections.unmodifiableList(this.people);

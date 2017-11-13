@@ -5,9 +5,12 @@ import socialForce.geom.Point;
 
 public class Wall implements IMarkup {
 
+	private Point ref;
 	private Point[] points;
 	
 	public Wall(Point pRef, Point... ps) {
+		this.ref = pRef;
+		
 		this.points = new Point[ps.length + 1];
 		this.points[0] = pRef;
 		
@@ -15,6 +18,14 @@ public class Wall implements IMarkup {
 			Point p = ps[i];
 			this.points[i+1] = new Point(pRef.x + p.x, pRef.y + p.y);
 		}
+	}
+	
+	public Point getRefPoint() {
+		return this.ref;
+	}
+	
+	public Point[] getPoints() {
+		return this.points;
 	}
 	
 	@Override

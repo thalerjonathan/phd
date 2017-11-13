@@ -194,7 +194,8 @@ public class Person {
 	}
 	
 	public void updatePosition() {
-		space.moveTo(this, this.pxX, this.pxY);
+		Point p = Utils.anylogicToRePast(new Point(this.pxX, this.pxY));
+		space.moveTo(this, p.x, p.y);
 	}
 	
 	public void calculateWall() {

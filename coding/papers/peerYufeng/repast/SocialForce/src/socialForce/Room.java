@@ -51,7 +51,7 @@ public class Room {
 		//Context<Object> context = ContextUtils.getContext(this.main);
 		context.add(screen);
 		ContinuousSpace<Object> space = (ContinuousSpace<Object>) context.getProjection(SocialForceBuilder.SPACE_ID);
-		space.moveTo(screen, screen.x, screen.y); // TODO: are coordinates already set?
+		space.moveTo(screen, 0, 0); // add at 0/0, the renderer will take care of correctly rendering
 		
 		return screen;
 	}

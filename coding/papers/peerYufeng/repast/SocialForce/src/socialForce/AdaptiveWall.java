@@ -10,6 +10,7 @@ public class AdaptiveWall {
 	
 	public double x = 300;
 	public double y = 250;
+	public double height = 300;
 	
 	public double min = 250;
 	public double max = 400;

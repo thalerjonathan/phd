@@ -24,4 +24,8 @@ public class Utils {
 	public static double uniform(double from, double to) {
 		return RandomHelper.getUniform().nextDoubleFromTo(from, to);
 	}
+	
+	public static Point anylogicToRePast(Point p) {
+		return new Point(p.x, SocialForceBuilder.SPACE_HEIGHT - p.y);
+	}
 }

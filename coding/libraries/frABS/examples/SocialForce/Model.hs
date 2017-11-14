@@ -4,6 +4,7 @@ module SocialForce.Model (
     , SocialForceAgentState (..)
 
     , PersonColor
+    , PersonState (..)
 
     , SocialForceAgentDef
     , SocialForceAgentBehaviour
@@ -16,7 +17,7 @@ module SocialForce.Model (
     , SocialForceAgentMonadicBehaviourNoEnv
 
     , unitTime
-    
+
     , museumId
     , enterSpeed
     , groupSpawningProb
@@ -26,12 +27,14 @@ module SocialForce.Model (
     , pre_wall_psy
 
     , whiteColor
+    , blackColor
     , randomColor
   ) where
 
 import Control.Monad.Random
 
 import FRP.FrABS
+import FRP.Yampa
 
 import SocialForce.Markup
 
@@ -44,6 +47,16 @@ data SocialForceEnvironment = SocialForceEnvironment
 
 type PersonColor = (Int, Int, Int)
 
+data PersonState 
+  = GoingToEntrance 
+  | Moving
+  | Reading
+  | Waiting
+  | Resting
+  | Exiting
+  | FindingDoor
+  | Leaving deriving (Eq, Show)
+
 data SocialForceAgentState = 
     Museum 
     {
@@ -53,9 +66,16 @@ data SocialForceAgentState =
     }
   | Person
     {
-        perPos          :: Continuous2dCoord
-      , perArrivedDest  :: Bool
+        perState        :: PersonState
+      , perPos          :: Continuous2dCoord
+      , perSpeed        :: Continuous2dCoord
       , perHeading      :: Double
+
+      , perArrivedDest  :: Bool
+      , perDest         :: Continuous2dCoord
+
+      , perColor        :: PersonColor
+
       , perVi0          :: Double
       , perAi           :: Double
       , perBi           :: Double
@@ -63,14 +83,21 @@ data SocialForceAgentState =
       , perk            :: Double
       , perRi           :: Double
       , perMi           :: Double
-      , perDest         :: Continuous2dCoord
+      
       , perConRange     :: Double
       , perAttRange     :: Double
       , perAiWall       :: Double
       , perAiGrp        :: Double
-      , perColor        :: PersonColor
+    
       , perBelGroup     :: Maybe AgentId
       , perDestScreen   :: AgentId
+
+      , perSumFiWH      :: Double
+      , perSumFiWV      :: Double
+      , perSumFijH      :: Double
+      , perSumFijV      :: Double
+
+      , perInjured      :: Bool
     } deriving Show
 
 type SocialForceAgentDef = AgentDef SocialForceAgentState SocialForceMsg SocialForceEnvironment
@@ -106,6 +133,9 @@ pre_angle = 5 * pi / 6;
 
 pre_wall_psy :: Double
 pre_wall_psy = 2
+
+blackColor :: PersonColor
+blackColor = (0, 0, 0)
 
 whiteColor :: PersonColor
 whiteColor = (255, 255, 255)

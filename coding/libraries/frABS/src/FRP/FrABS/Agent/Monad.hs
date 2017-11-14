@@ -49,7 +49,6 @@ type AgentMonadicBehaviour s m e = (e -> Double -> AgentIn s m e -> State (Agent
 type AgentMonadicBehaviourReadEnv s m e = (e -> Double -> AgentIn s m e -> State (AgentOut s m e) ())
 type AgentMonadicBehaviourNoEnv s m e = (Double -> AgentIn s m e -> State (AgentOut s m e) ())
 
-
 ------------------------------------------------------------------------------------------------------------------------
 -- Monadic Agent Functions
 ------------------------------------------------------------------------------------------------------------------------

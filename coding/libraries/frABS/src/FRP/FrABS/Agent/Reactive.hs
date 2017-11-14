@@ -15,7 +15,8 @@ module FRP.FrABS.Agent.Reactive (
     doOnceR,
     doNothing,
     doRepeatedlyEvery,
-
+    doOccasionallyEvery,
+    
     setAgentStateR,
     updateAgentStateR,
     
@@ -127,6 +128,17 @@ doRepeatedlyEvery t sf = proc (ain, e) -> do
     do
         let aout = agentOutFromIn ain
         doEvt <- repeatedly t () -< ()
+        if (isEvent doEvt) then (do
+          (aout', e') <- sf -< (ain, e)
+          returnA -< (aout', e))
+          else 
+            returnA -< (aout, e)
+
+doOccasionallyEvery :: RandomGen g => g -> Time -> AgentBehaviour s m e -> AgentBehaviour s m e
+doOccasionallyEvery g t sf = proc (ain, e) -> do
+    do
+        let aout = agentOutFromIn ain
+        doEvt <- occasionally g t () -< ()
         if (isEvent doEvt) then (do
           (aout', e') <- sf -< (ain, e)
           returnA -< (aout', e))

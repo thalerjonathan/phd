@@ -2,12 +2,14 @@ module SocialForce.Run (
     runSocialForce
   ) where
 
+import Control.Monad.Random
+
 import FRP.FrABS
 import FRP.Yampa
-import Control.Monad.Random
 
 import SocialForce.Init
 import SocialForce.Renderer
+import SocialForce.Model 
 
 winSize :: (Int, Int)
 winSize = (1000, 600)
@@ -22,11 +24,11 @@ rngSeed :: Int
 rngSeed = 42
 
 dt :: DTime
-dt = 0.01
+dt = unitTime -- 0.1
 
 runSocialForce :: IO ()
 runSocialForce = do
-  params <- initSimulation Sequential Nothing Nothing False (Just rngSeed)
+  params <- initSimulation Sequential Nothing Nothing True (Just rngSeed)
     
   (initAdefs, initEnv) <- evalRandIO initSocialForce
 

@@ -106,6 +106,7 @@ module FRP.FrABS (
     doOnceR,
     doNothing,
     doRepeatedlyEvery,
+    doOccasionallyEvery,
     
     setAgentStateR,
     updateAgentStateR,

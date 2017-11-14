@@ -21,6 +21,7 @@ import           Zombies.Run
 import           NewAgents.Run
 
 {- TODOs
+  - BUG: if two agents have the same id, their states will get mixed-up when using the Sequential updating
 	- different build targets: with/without time-traveling, gloss rendering
 	- add HOW-TO of FrABS examples running on github in a sandbox: need yampa with exposed core, haskell-titan, install FrABS
 	

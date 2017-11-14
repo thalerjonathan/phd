@@ -23,7 +23,7 @@ spawnVisitors g = proc (ain, e) -> do
       returnA $ (agentMonadicIgnoreEnv spawnPerson) -< (ain, e)
 
 spawnPerson :: SocialForceAgentMonadicBehaviourNoEnv
-spawnPerson _ ain =  initPerson ain >>= (\p -> createAgentM p)
+spawnPerson _ ain = initPerson ain >>= (\p -> createAgentM p)
 
 spawnGroup :: SocialForceAgentMonadicBehaviourNoEnv
 spawnGroup _ ain = do

@@ -16,9 +16,10 @@ module SocialForce.Model (
     , SocialForceAgentMonadicBehaviourReadEnv
     , SocialForceAgentMonadicBehaviourNoEnv
 
+    , SocialForceSimulationParams
+
     , unitTime
 
-    , museumId
     , enterSpeed
     , groupSpawningProb
     , pre_ppl_psy 
@@ -110,11 +111,10 @@ type SocialForceAgentMonadicBehaviour = AgentMonadicBehaviour SocialForceAgentSt
 type SocialForceAgentMonadicBehaviourReadEnv = AgentMonadicBehaviourReadEnv SocialForceAgentState SocialForceMsg SocialForceEnvironment
 type SocialForceAgentMonadicBehaviourNoEnv = AgentMonadicBehaviourNoEnv SocialForceAgentState SocialForceMsg SocialForceEnvironment
 
+type SocialForceSimulationParams = SimulationParams SocialForceEnvironment
+
 unitTime :: DTime
 unitTime = 0.1
-
-museumId :: AgentId
-museumId = 0
 
 enterSpeed :: Double
 enterSpeed = 2 -- TODO: re-set to 7

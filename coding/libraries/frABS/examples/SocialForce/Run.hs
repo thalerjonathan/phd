@@ -30,7 +30,7 @@ runSocialForce :: IO ()
 runSocialForce = do
   params <- initSimulation Sequential Nothing Nothing True (Just rngSeed)
     
-  (initAdefs, initEnv) <- evalRandIO initSocialForce
+  (initAdefs, initEnv) <- evalRandIO $ initSocialForce params
 
   simulateAndRender 
     initAdefs

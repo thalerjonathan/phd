@@ -10,8 +10,14 @@ import FRP.Yampa
 
 import SocialForce.Model
 
+-------------------------------------------------------------------------------
+-- STATECHART
 personStateChart :: SocialForceAgentBehaviour
 personStateChart = undefined 
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+-- UPDATING
 
 personUpdate :: SocialForceAgentMonadicBehaviour
 personUpdate e t ain = do
@@ -110,8 +116,8 @@ updatePosition e = do
   (x, y) <- agentStateFieldM perPos
   (speedX, speedY) <- agentStateFieldM perSpeed
 
-  let x' = x + speedX * unitTime
-  let y' = y + speedY * unitTime
+  let x' = x + speedX * unitTime -- TODO: time-delta dependend value
+  let y' = y + speedY * unitTime -- TODO: time-delta dependend value
   
   updateAgentStateM (\s -> s { perPos = (x', y')})
 
@@ -122,11 +128,17 @@ inState :: PersonState -> State SocialForceAgentOut Bool
 inState ps = do
   ps' <- agentStateFieldM perState
   return $ ps == ps'
-
-personBehaviour :: SocialForceAgentBehaviour
-personBehaviour = doRepeatedlyEvery unitTime (agentMonadic personUpdate) -- TODO: do state-chart first and then do personupdate
+-------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
+-- REACTIVE BEHAVIOUR
+-- TODO: do state-chart first and then do personupdate
+personBehaviour :: SocialForceAgentBehaviour
+personBehaviour = (agentMonadic personUpdate) -- doRepeatedlyEvery unitTime (agentMonadic personUpdate) 
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+-- CREATION
 createPerson :: AgentId
                 -> Continuous2dCoord 
                 -> Rand StdGen SocialForceAgentDef
@@ -171,3 +183,4 @@ createPerson aid p = do
     adBeh = personBehaviour,
     adRng = rng 
   }
+-------------------------------------------------------------------------------

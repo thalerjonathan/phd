@@ -11,20 +11,21 @@ import SocialForce.Model
 import SocialForce.Markup
 import SocialForce.Museum
 
-initSocialForce :: Rand StdGen ([SocialForceAgentDef], SocialForceEnvironment)
-initSocialForce = do
+initSocialForce :: SocialForceSimulationParams -> Rand StdGen ([SocialForceAgentDef], SocialForceEnvironment)
+initSocialForce params = do
   let env = initEnvironment
-  adefs <- initAgents
+  adefs <- initAgents params
 
   return (adefs, env)
   
-initAgents :: Rand StdGen [SocialForceAgentDef]
-initAgents = do
-  museum <- initMuseum
+initAgents :: SocialForceSimulationParams -> Rand StdGen [SocialForceAgentDef]
+initAgents params = do
+  museum <- initMuseum params
   return [museum]
   
-initMuseum :: Rand StdGen SocialForceAgentDef
-initMuseum = do
+initMuseum :: SocialForceSimulationParams -> Rand StdGen SocialForceAgentDef
+initMuseum params = do
+  let aid = newAgentId params
   rng <- getSplit
 
   let s = Museum {
@@ -34,7 +35,7 @@ initMuseum = do
   }
 
   return AgentDef {
-    adId = museumId,
+    adId = aid,
     adState = s,
     adConversation = Nothing,
     adInitMessages = NoEvent,

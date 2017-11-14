@@ -9,6 +9,7 @@ import FRP.FrABS
 import FRP.Yampa
 
 import SocialForce.Model
+import SocialForce.Markup
 
 -------------------------------------------------------------------------------
 -- STATECHART
@@ -18,7 +19,6 @@ personStateChart = undefined
 
 -------------------------------------------------------------------------------
 -- UPDATING
-
 personUpdate :: SocialForceAgentMonadicBehaviour
 personUpdate e t ain = do
   checkDestination
@@ -30,9 +30,7 @@ personUpdate e t ain = do
 
   updateSpeed
   updateHeading
-  e' <- updatePosition e
-
-  return e'
+  updatePosition e
 
 checkDestination :: State SocialForceAgentOut ()
 checkDestination = do
@@ -48,12 +46,34 @@ checkDestination = do
 
 calculatePeople :: SocialForceEnvironment -> State SocialForceAgentOut ()
 calculatePeople e = do
+  -- TODO: implement
   return ()
 
 calculateWalls :: SocialForceEnvironment -> State SocialForceAgentOut ()
 calculateWalls e = do
-  return ()
+    pos <- agentStateFieldM perPos
+    cr <- agentStateFieldM perConRange
 
+    let ws = sfEnvWalls e
+    let (sumFiWH', sumFiWV') = foldr (calcWall pos cr) (0,0) ws
+
+    updateAgentStateM (\s -> s { perSumFiWH = sumFiWH', perSumFiWV = sumFiWV' })
+  
+  where
+    calcWall :: Continuous2dCoord
+                -> Double
+                -> Wall 
+                -> (Double, Double) 
+                -> (Double, Double)
+    calcWall pos connRange w (sumFiWH, sumFiWV) = do
+      let (dist, np) = nearestPointWall w pos
+
+      let ret = if dist > connRange
+                then (sumFiWH, sumFiWV)
+                else (sumFiWH, sumFiWV)
+
+      ret
+      
 checkInjured :: State SocialForceAgentOut ()
 checkInjured = do
   sumFiWH <- agentStateFieldM perSumFiWH

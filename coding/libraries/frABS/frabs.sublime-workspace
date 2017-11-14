@@ -173,7 +173,16 @@
 			"file": "examples/SocialForce/Person.hs",
 			"settings":
 			{
-				"buffer_size": 5804,
+				"buffer_size": 6468,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "examples/SocialForce/Markup.hs",
+			"settings":
+			{
+				"buffer_size": 372,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -235,9 +244,12 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SocialForce",
 		"/home/jonathan/phd/coding/libraries/frABS/src",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
-		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS"
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS",
+		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS/Agent"
 	],
 	"file_history":
 	[
@@ -372,7 +384,7 @@
 	],
 	"find":
 	{
-		"height": 51.0
+		"height": 38.0
 	},
 	"find_in_files":
 	{
@@ -387,6 +399,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"ifThenElse",
 			"museumBehaviour",
 			"personBehaviour",
 			"personUpdate",
@@ -513,8 +526,7 @@
 			"(discrete",
 			"(Discrete2dCoord, c)",
 			"cellAt",
-			"neighbourids",
-			"neighbourIdsM"
+			"neighbourids"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -678,7 +690,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
@@ -694,8 +706,8 @@
 						"selection":
 						[
 							[
-								486,
-								486
+								1820,
+								1831
 							]
 						],
 						"settings":
@@ -703,7 +715,7 @@
 							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 900.0,
+						"translation.y": 675.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
@@ -715,15 +727,45 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 5804,
+						"buffer_size": 6468,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3151,
-								3151
+								1255,
+								1255
+							]
+						],
+						"settings":
+						{
+							"subhask_project_dir": "/home/jonathan/phd/coding/libraries/frABS/examples",
+							"subhask_project_name": "frABSExamples",
+							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 599.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "examples/SocialForce/Markup.hs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 372,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								342,
+								342
 							]
 						],
 						"settings":
@@ -731,10 +773,10 @@
 							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 1530.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 2,
 					"type": "text"
 				}
 			]

@@ -1,11 +1,12 @@
-package socialForce;
+package socialForce.scenario.museum;
 
 import java.awt.Color;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.ui.probe.ProbedProperty;
-import socialForce.chart.PersonStatechart;
+import socialForce.Utils;
+import socialForce.chart.museum.PersonMuseumStatechart;
 import socialForce.geom.Point;
 import socialForce.markup.Wall;
 
@@ -68,9 +69,9 @@ public class Person {
 	public double readingTime = Utils.uniform(3, 90);
 	
 	@ProbedProperty(displayName="PersonStatechart")
-	PersonStatechart personStatechart = PersonStatechart.createStateChart(this, 0);
+	PersonMuseumStatechart personStatechart = PersonMuseumStatechart.createStateChart(this, 0);
 	
-	public SocialForce main;
+	public Museum main;
 	private ContinuousSpace<Object> space;
 	
 	///////////////////////////////////////////////////////////////////////////
@@ -103,14 +104,14 @@ public class Person {
 	private double CONNECTION_RANGE = 10;
 	
 	
-	public Person(SocialForce main, ContinuousSpace<Object> space, double pre_ppl_psy, double pre_range, double pre_angle, double pre_wall_psy) {
+	public Person(Museum main, ContinuousSpace<Object> space, double pre_ppl_psy, double pre_range, double pre_angle, double pre_wall_psy) {
 		this.main = main;
 		this.space = space;
 		
 		this.pxX = main.getStartPoint().getX();
 		this.pxY = main.getStartPoint().getY();
-		this.x = this.pxX / SocialForce.METER_2_PX;
-		this.y = this.pxY / SocialForce.METER_2_PX;
+		this.x = this.pxX / Museum.METER_2_PX;
+		this.y = this.pxY / Museum.METER_2_PX;
 		
 		this.arrivedDest = false;
 		this.heading = 0;
@@ -159,7 +160,7 @@ public class Person {
 	}
 	
 	// TODO: cyclic event, first occurence at t = 0, then every 0.01 seconds
-	@ScheduledMethod(start = 0, interval = SocialForce.UNIT_TIME)
+	@ScheduledMethod(start = 0, interval = Museum.UNIT_TIME)
 	public void updateState() {
 		if(!arrivedDest){
 			if((destX-1<x && x<destX+1) && (destY-1<y && y<destY+1)){
@@ -177,18 +178,18 @@ public class Person {
 			speedY=0;
 			return;
 		}
-		speedX += accelerationHorizontal() * SocialForce.UNIT_TIME;
-		speedY += accelerationVertical() * SocialForce.UNIT_TIME;
+		speedX += accelerationHorizontal() * Museum.UNIT_TIME;
+		speedY += accelerationVertical() * Museum.UNIT_TIME;
 		
 		if(this.isReading()){
 			heading = Math.atan2((destY-y),(destX-40/25-x)) + Math.PI/2;
 		}else{
 			heading = Math.atan2(speedY, speedX) + Math.PI/2;
 		}
-		x += (speedX * SocialForce.UNIT_TIME);
-		y += (speedY * SocialForce.UNIT_TIME);
-		pxX = x*SocialForce.METER_2_PX;
-		pxY = y*SocialForce.METER_2_PX;
+		x += (speedX * Museum.UNIT_TIME);
+		y += (speedY * Museum.UNIT_TIME);
+		pxX = x*Museum.METER_2_PX;
+		pxY = y*Museum.METER_2_PX;
 
 		updatePosition();
 	}
@@ -205,7 +206,7 @@ public class Person {
 			Point p = new Point();
 			double dist = w.getNearestPoint(pxX,pxY,p);
 			double diW = -1;
-			if((diW = dist/SocialForce.METER_2_PX ) > CONNECTION_RANGE){continue;}
+			if((diW = dist/Museum.METER_2_PX ) > CONNECTION_RANGE){continue;}
 			
 			double theta = Math.atan2(p.getY()-y, p.getX()-x)-Math.atan2(speedY,speedX);
 			double cosTheta = 1;
@@ -218,8 +219,8 @@ public class Person {
 			double deltavH, deltavV, deltav;
 			double fpsy,fbody,friction;
 			double fiWH,fiWV;
-			niW1 = (x==(p.getX()/SocialForce.METER_2_PX) ? 0:(x-(p.getX()/SocialForce.METER_2_PX))/diW);
-			niW2 = (y==(p.getY()/SocialForce.METER_2_PX) ? 0:(y-(p.getY()/SocialForce.METER_2_PX))/diW);
+			niW1 = (x==(p.getX()/Museum.METER_2_PX) ? 0:(x-(p.getX()/Museum.METER_2_PX))/diW);
+			niW2 = (y==(p.getY()/Museum.METER_2_PX) ? 0:(y-(p.getY()/Museum.METER_2_PX))/diW);
 			tiW1 = -niW2;
 			tiW2 = niW1;
 			gx = (diW>ri ? 0:(ri-diW));

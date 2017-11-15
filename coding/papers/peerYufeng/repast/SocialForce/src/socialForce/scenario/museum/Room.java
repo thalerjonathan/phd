@@ -1,4 +1,4 @@
-package socialForce;
+package socialForce.scenario.museum;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,9 +31,9 @@ public class Room {
 	
 	public List<Screen> screens;
 	
-	private SocialForce main;
+	private Museum main;
 	
-	public Room(SocialForce main, int crowdLvl, int initScreens) {
+	public Room(Museum main, int crowdLvl, int initScreens) {
 		this.main = main;
 		this.crowdLvl = crowdLvl;
 		
@@ -45,7 +45,7 @@ public class Room {
 	// Events
 	
 	private Screen addScreen(Context context) {
-		ContinuousSpace<Object> space = (ContinuousSpace<Object>) context.getProjection(SocialForceBuilder.SPACE_ID);
+		ContinuousSpace<Object> space = (ContinuousSpace<Object>) context.getProjection(MuseumBuilder.SPACE_ID);
 		
 		Screen screen = new Screen(this.main, space);
 		this.screens.add(screen);

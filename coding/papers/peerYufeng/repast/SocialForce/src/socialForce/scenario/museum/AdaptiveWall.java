@@ -1,10 +1,11 @@
-package socialForce;
+package socialForce.scenario.museum;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import repast.simphony.engine.schedule.ScheduledMethod;
+import socialForce.Utils;
 import socialForce.geom.Point;
+import repast.simphony.engine.schedule.ScheduledMethod;
 
 public class AdaptiveWall {
 	
@@ -33,9 +34,9 @@ public class AdaptiveWall {
 	private double BiS = 0.1;
 	private double K = 1.2*10;
 	
-	private SocialForce main;
+	private Museum main;
 	
-	public AdaptiveWall(SocialForce main) {
+	public AdaptiveWall(Museum main) {
 		this.main = main;
 		
 		this.doorsX = new ArrayList<Double>();
@@ -50,17 +51,16 @@ public class AdaptiveWall {
 		this.speed = 0;
 	}
 	
-	// TODO: cyclic event, first occurence t=0, then every UNIT_TIME seconds
-	@ScheduledMethod(start = 0, interval = SocialForce.UNIT_TIME)
+	@ScheduledMethod(start = 0, interval = Museum.UNIT_TIME)
 	public void action() {
-		socialForce();
+		Museum();
 		double acceH = (sumFijH);
-		double tspeed = speed + acceH*SocialForce.UNIT_TIME;
+		double tspeed = speed + acceH*Museum.UNIT_TIME;
 		//System.out.println(acceV);
 		if(tspeed>-0.1 && tspeed <0.1){
 			speed = tspeed;
 		}
-		double tx = x + (speed*SocialForce.UNIT_TIME)*SocialForce.METER_2_PX;
+		double tx = x + (speed*Museum.UNIT_TIME)*Museum.METER_2_PX;
 		if(tx>min && tx<max){
 			x=tx;
 		}
@@ -79,12 +79,12 @@ public class AdaptiveWall {
 		*/
 	}
 	
-	public void socialForce() {
+	public void Museum() {
 		sumFijH = 0;
 		for(Person j : main.getPeople()){
 			//if(!j.inState(j.reading) && !j.inState(j.moving)){continue;}
-			double ax = x/SocialForce.METER_2_PX;
-			double ay = y/SocialForce.METER_2_PX;
+			double ax = x/Museum.METER_2_PX;
+			double ay = y/Museum.METER_2_PX;
 			double dij = -1;
 			dij = Math.abs(ax-j.x);
 			double nij1,nij2;

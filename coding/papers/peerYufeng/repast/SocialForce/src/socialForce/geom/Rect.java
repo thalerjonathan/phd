@@ -13,8 +13,6 @@ public class Rect {
 	}
 	
 	public Point randomPointInside() {
-		Point p = null;
-		
 		double randX = this.p.getX() + Math.random() * width;
 		double randY = this.p.getY() + Math.random() * height;
 		

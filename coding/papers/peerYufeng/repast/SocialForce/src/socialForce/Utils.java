@@ -2,6 +2,7 @@ package socialForce;
 
 import repast.simphony.random.RandomHelper;
 import socialForce.geom.Point;
+import socialForce.scenario.museum.MuseumBuilder;
 
 public class Utils {
 	
@@ -26,6 +27,6 @@ public class Utils {
 	}
 	
 	public static Point anylogicToRePast(Point p) {
-		return new Point(p.x, SocialForceBuilder.SPACE_HEIGHT - p.y);
+		return new Point(p.x, MuseumBuilder.SPACE_HEIGHT - p.y);
 	}
 }

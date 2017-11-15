@@ -1,7 +1,8 @@
-package socialForce;
+package socialForce.scenario.museum;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
+import socialForce.Utils;
 
 public class Screen {
 	
@@ -28,10 +29,10 @@ public class Screen {
 	
 	public final static double RI_INIT = 20;
 	
-	private SocialForce main;
+	private Museum main;
 	private ContinuousSpace<Object> space;
 	
-	public Screen(SocialForce main, ContinuousSpace<Object> space) {
+	public Screen(Museum main, ContinuousSpace<Object> space) {
 		this.main = main;
 		this.space = space;
 	}
@@ -50,20 +51,20 @@ public class Screen {
 	// Events
 	
 	// TODO: cyclic event, first occurence at t = 0, then every UNIT_TIME seconds
-	@ScheduledMethod(start = 0, interval = SocialForce.UNIT_TIME)
+	@ScheduledMethod(start = 0, interval = Museum.UNIT_TIME)
 	public void action() {
 		socialForce();
 		double acceV = ((0.2-speed)/0.1 + sumFijV);
 		double acceH = (-(sumFijH)-15)/10;
-		double tSPEED = speed + acceV*SocialForce.UNIT_TIME;
+		double tSPEED = speed + acceV*Museum.UNIT_TIME;
 		if(tSPEED>-0.2 && tSPEED <0.2){
 			speed = tSPEED;
 		}
-		double ty = y + (speed*SocialForce.UNIT_TIME)* SocialForce.METER_2_PX;
+		double ty = y + (speed*Museum.UNIT_TIME)* Museum.METER_2_PX;
 		if(ty>min && ty<max){
 			y=ty;
 		}
-		double tri = ri + acceH*SocialForce.UNIT_TIME;
+		double tri = ri + acceH*Museum.UNIT_TIME;
 		if(tri>=20 && tri<=40){
 			ri = tri;
 		}
@@ -98,10 +99,10 @@ public class Screen {
 		sumFijV = 0;
 		for(Person j : main.getPeople()){
 			if(!j.isReading() && !j.isMoving()){continue;}
-			double ax = (x+alliX)/SocialForce.METER_2_PX;
-			double aymin = (y+alliY-ri)/SocialForce.METER_2_PX;
-			double aymax = (y+alliY+ri)/SocialForce.METER_2_PX;
-			double ay = (y+alliY)/SocialForce.METER_2_PX;
+			double ax = (x+alliX)/Museum.METER_2_PX;
+			double aymin = (y+alliY-ri)/Museum.METER_2_PX;
+			double aymax = (y+alliY+ri)/Museum.METER_2_PX;
+			double ay = (y+alliY)/Museum.METER_2_PX;
 			double dij = -1;
 			if(j.y>aymin && j.y<aymax){
 				dij = j.x - ax;
@@ -130,10 +131,10 @@ public class Screen {
 		}
 		for(Screen j : main.getRooms().get(roomNo).screens){
 			if(j==this){continue;}
-			double dij = (y-j.y)/ SocialForce.METER_2_PX;
+			double dij = (y-j.y)/ Museum.METER_2_PX;
 			double vict = (dij>0?1:-1);
 			dij = Math.abs(dij);
-			double rij = (ri+j.ri)/SocialForce.METER_2_PX;
+			double rij = (ri+j.ri)/Museum.METER_2_PX;
 			double fpsy = AiS*Math.exp((rij-dij)/BiS);
 			double gx = (dij>rij ? 0:(rij-dij));
 			double fbody = K*gx;

@@ -1,4 +1,4 @@
-package socialForce;
+package socialForce.scenario.pillarHall;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactory;
@@ -6,12 +6,12 @@ import repast.simphony.context.space.continuous.ContinuousSpaceFactoryFinder;
 import repast.simphony.dataLoader.ContextBuilder;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.SimpleCartesianAdder;
-import repast.simphony.space.continuous.StickyBorders;
+import repast.simphony.space.continuous.StrictBorders;
 
-public class SocialForceBuilder implements ContextBuilder<Object> {
+public class PillarHallBuilder implements ContextBuilder<Object> {
 
-	public final static String CONTEXT_ID = "SocialForce";
-	public final static String SPACE_ID = "SocialForceSpace";
+	public final static String CONTEXT_ID = "PillarHall";
+	public final static String SPACE_ID = "PillarHallSpace";
 	
 	public final static double SPACE_WIDTH = 1000;
 	public final static double SPACE_HEIGHT = 600;
@@ -29,10 +29,10 @@ public class SocialForceBuilder implements ContextBuilder<Object> {
 						SPACE_ID, 
 						context,
 						new SimpleCartesianAdder<Object>(),
-						new StickyBorders(), //StrictBorders(), // StickyBorders()
+						new StrictBorders(), //StickyBorders()
 						dimensions );
 
-		SocialForce main = new SocialForce(space);
+		PillarHall main = new PillarHall(space);
 		main.initAgents(context);
 		
 		context.add(main);

@@ -1,4 +1,4 @@
-package socialForce;
+package socialForce.scenario.museum;
 
 import java.awt.Color;
 import java.util.ArrayList;

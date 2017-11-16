@@ -30,6 +30,8 @@ public class Wall implements IMarkup {
 	
 	@Override
 	public double getNearestPoint(double x, double y, Point p) {
+		// TODO: implement: return squared distance
+		
 		int minIdx = -1;
 		double minDist = Double.POSITIVE_INFINITY;
 		Point from = new Point(x, y);

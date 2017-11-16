@@ -1,10 +1,13 @@
 package socialForce.scenario.pillarHall;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import repast.simphony.engine.schedule.ScheduledMethod;
 import socialForce.Utils;
 import socialForce.geom.Point;
+import socialForce.scenario.museum.Museum;
 
 public class AdaptiveWall {
 
@@ -66,6 +69,7 @@ public class AdaptiveWall {
 		this.doorsX.add(325.0);
 	}
 	
+	@ScheduledMethod(start = 0, interval = PillarHall.UNIT_TIME)
 	public void action() {
 		socialForce();
 		double acceV = (sumFijV);
@@ -78,6 +82,26 @@ public class AdaptiveWall {
 		if(ty>yMin && ty<yMax){
 			y=ty;
 		}
+	}
+	
+	public List<Double> getWalls() {
+		return Collections.unmodifiableList(this.doorsX);
+	}
+	
+	public List<Double> getWallWidths() {
+		return Collections.unmodifiableList(this.wallsWidth);
+	}
+	
+	public double getX() {
+		return this.x;
+	}
+	
+	public double getY() {
+		return this.y;
+	}
+	
+	public double getTotalWidth() {
+		return this.totalWidth;
 	}
 	
 	private void socialForce() {

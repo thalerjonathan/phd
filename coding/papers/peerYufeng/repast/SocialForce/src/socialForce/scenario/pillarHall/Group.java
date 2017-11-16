@@ -31,6 +31,10 @@ public class Group {
 		return this.readingTime;
 	}
 	
+	public boolean isMember(Person p) {
+		return this.people.contains(p);
+	}
+	
 	public void addPerson(Person p) {
 		p.setReadingTime(this.readingTime);
 		p.setColor(this.color);

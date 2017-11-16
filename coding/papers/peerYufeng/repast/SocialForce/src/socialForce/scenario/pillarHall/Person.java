@@ -1,10 +1,15 @@
 package socialForce.scenario.pillarHall;
 
 import java.awt.Color;
+import java.util.List;
 
+import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
+import repast.simphony.ui.probe.ProbedProperty;
 import socialForce.Utils;
+import socialForce.chart.museum.PersonMuseumStatechart;
 import socialForce.geom.Point;
+import socialForce.markup.Wall;
 
 public class Person {
 
@@ -14,35 +19,92 @@ public class Person {
 	private double pxX;
 	private double pxY;
 	
+	private double destX;
+	private double destY;
+	
+	private Point entry;
+	
+	private double heading;
+	
+	private double speedX;
+	private double speedY;
+	
+	private double attentionAngle;
+	private double connectionRange;
+	
 	private Color color;
 	
 	private Group belongedGroup;
 	
 	private double readingTime;
 	
+	private boolean injured;
+	
+	private boolean arrivedDest;
+	
+	private int cluster_number;
+	
+	private double AiWall;
+	private double AiGrp;
+	private double Bi;
+	private double Ai;
+	private double K;
+	private double k;
 	private double ri;
 	private double vi0;
+	private double mi;
+	
+	private boolean applyPsy;
+	
+	public double sumFiWH;
+	public double sumFiWV;
+	public double sumFijH;
+	public double sumFijV;
 	
 	private PillarHall main;
 	private ContinuousSpace<Object> space;
 	
+	@ProbedProperty(displayName="PersonHallStatechart")
+	PersonHallStatechart state = PersonHallStatechart.createStateChart(this, 0);
+	
 	// NOTE: start is in pixel-space
-	public Person(PillarHall main, ContinuousSpace<Object> space, Point start) {
+	public Person(PillarHall main, ContinuousSpace<Object> space, Point start, Point entry) {
 		this.main = main;
 		this.space = space;
+		
+		this.entry = entry;
 		
 		this.pxX = start.x;
 		this.pxY = start.y;
 		this.x = start.x / PillarHall.METER_2_PX;
 		this.y = start.y / PillarHall.METER_2_PX;
 		
+		this.heading = 0;
+		
+		this.attentionAngle = 5*Math.PI/6;
+		this.connectionRange = 10;
+		
+		this.speedX = 0;
+		this.speedY = 0;
+		
+		this.injured = false;
+		this.arrivedDest = false;
+		
 		this.color = Color.WHITE;
 		
 		this.readingTime = Utils.uniform(10,60);
 		
+		this.applyPsy = true;
+		
+		this.AiWall = 2*100;
+		this.AiGrp = 5;
+		this.Bi = 0.2;
+		this.Ai = 2*100;
+		this.K = 1.2*100_000;
+		this.k = 2.4*100_000;
 		this.ri = Utils.uniform(0.15,0.25);
 		this.vi0 = 1.4;
-		
+		this.mi = 80;
 	}
 
 	public double getX() {
@@ -77,8 +139,211 @@ public class Person {
 		this.readingTime = d;
 	}
 	
+	public boolean isAtDest() {
+		return this.arrivedDest;
+	}
+	
+	public void resetAtDest() {
+		this.arrivedDest = false;
+	}
+	
 	public void updatePosition() {
 		Point p = Utils.anylogicToRePast(new Point(this.pxX, this.pxY));
 		space.moveTo(this, p.x, p.y);
+	}
+	
+	public void destToEntry() {
+		this.destX = this.entry.x / PillarHall.METER_2_PX;
+		this.destY = this.entry.y / PillarHall.METER_2_PX;
+	}
+	
+	@ScheduledMethod(start = 0, interval = PillarHall.UNIT_TIME)
+	public void updateState() {
+		if(!arrivedDest){
+			if((destX-1<x && x<destX+1) && (destY-1<y && y<destY+1)){
+				arrivedDest = true;
+			}
+		}
+		calculatePpl();
+		calculateWall();
+		double totalForce = Math.sqrt(Utils.sqr(sumFijH)+Utils.sqr(sumFijV))+Math.sqrt(Utils.sqr(sumFiWH)+Utils.sqr(sumFiWV));
+		if(totalForce/2/Math.PI/ri >= 16000){
+			injured = true;
+			this.color=Color.BLACK;
+			vi0=0;
+			speedX=0;
+			speedY=0;
+			return;
+		}
+		speedX += accelerationHorizontal() * PillarHall.UNIT_TIME;
+		speedY += accelerationVertical() * PillarHall.UNIT_TIME;
+
+		heading = Math.atan2(speedY, speedX) + Math.PI/2;
+		x += (speedX * PillarHall.UNIT_TIME);
+		y += (speedY * PillarHall.UNIT_TIME);
+		pxX = x * PillarHall.METER_2_PX;
+		pxY = y * PillarHall.METER_2_PX;
+		
+		this.updatePosition();
+	}
+
+	private double accelerationVertical() {
+		return ((calcvi0Vertical()-speedY)*mi/0.5 + sumFijV + sumFiWV)/mi;
+	}
+
+	private double calcvi0Vertical() {
+		if(destY==y || vi0==0){return 0;}
+		return (destY-y)*vi0 / Utils.distance(x,y,destX,destY);
+	}
+
+	private double accelerationHorizontal() {
+		return ((calcvi0Horizontal()-speedX)*mi/0.5 + sumFijH + sumFiWH)/mi;
+	}
+
+	private double calcvi0Horizontal() {
+		if(destX==x || vi0==0){return 0;}
+		return (destX-x)*vi0 / Utils.distance(x,y,destX,destY);
+	}
+
+	private void calculateWall() {
+		sumFiWH = 0;
+		sumFiWV = 0;
+		for(Wall w : main.getWalls()) {
+			Point p = new Point();
+			double sqrdist = w.getNearestPoint(pxX,pxY,p);
+			double diW = -1;
+			if((diW = Math.sqrt(sqrdist)/PillarHall.METER_2_PX) > connectionRange){continue;}
+			
+			double theta = Math.atan2(p.getY()-y, p.getX()-x)-Math.atan2(speedY,speedX);
+			double cosTheta = 1;
+			if(theta<(-attentionAngle/2) || theta>(attentionAngle/2)){
+				cosTheta = 0;
+			}
+			
+			double niW1,niW2,tiW1,tiW2;
+			double gx;
+			double deltavH, deltavV, deltav;
+			double fpsy,fbody,friction;
+			double fiWH,fiWV;
+			niW1 = (x==(p.getX()/PillarHall.METER_2_PX) ? 0:(x-(p.getX()/PillarHall.METER_2_PX))/diW);
+			niW2 = (y==(p.getY()/PillarHall.METER_2_PX) ? 0:(y-(p.getY()/PillarHall.METER_2_PX))/diW);
+			tiW1 = -niW2;
+			tiW2 = niW1;
+			gx = (diW>ri ? 0:(ri-diW));
+			fpsy = AiWall*Math.exp((ri-diW)/Bi)*cosTheta;
+			fbody = K*gx;
+			deltavH = -speedX;
+			deltavV = -speedY;
+			deltav = deltavH*tiW1+deltavV*tiW2;
+			friction = k*gx*deltav;
+			fiWH = (fpsy+fbody)*niW1+friction*tiW1;
+			fiWV = (fpsy+fbody)*niW2+friction*tiW2;
+			sumFiWH += fiWH;
+			sumFiWV += fiWV;
+		}
+
+		AdaptiveWall w = main.getAdaptiveWall();
+		List<Double> adaptWalls = w.getWalls();
+		List<Double> wallWidths = w.getWallWidths();
+		for(int i = 0; i < adaptWalls.size(); i++){
+			Point p;
+			double xmin = w.getX()-w.getTotalWidth()/2+adaptWalls.get(i);
+			double xmax = xmin + wallWidths.get(i);
+			//System.out.println(i + " " + xmin + " " + xmax);
+			if(pxX > xmax){
+				p = new Point(xmax, w.getY());
+			}else if(pxX<xmin){
+				p = new Point(xmin,w.getY());
+			}else{
+				p = new Point(pxX,w.getY());
+			}
+			//System.out.println(i + " " + p.getX() + " " + p.getY());
+			
+			double sqrdist = (Utils.distance(pxX,pxY,p.getX(),p.getY()));
+			double diW = -1;
+			if((diW = (sqrdist)/PillarHall.METER_2_PX) > connectionRange){return;}
+			
+			double theta = Math.atan2(p.getY()-y, p.getX()-x)-Math.atan2(speedY,speedX);
+			double cosTheta = 1;
+			if(theta<(-attentionAngle/2) || theta>(attentionAngle/2)){
+				if(main.isEnableVisionArea()){
+					cosTheta = 0;
+				}
+			}
+			
+			double niW1,niW2,tiW1,tiW2;
+			double gx;
+			double deltavH, deltavV, deltav;
+			double fpsy,fbody,friction;
+			double fiWH,fiWV;
+			niW1 = (x==(p.getX()/PillarHall.METER_2_PX) ? 0:(x-(p.getX()/PillarHall.METER_2_PX))/diW);
+			niW2 = (y==(p.getY()/PillarHall.METER_2_PX) ? 0:(y-(p.getY()/PillarHall.METER_2_PX))/diW);
+			tiW1 = -niW2;
+			tiW2 = niW1;
+			gx = (diW>ri ? 0:(ri-diW));
+			fpsy = Ai*Math.exp((ri-diW)/Bi)*cosTheta;
+			fbody = K*gx;
+			deltavH = -speedX;
+			deltavV = -speedY;
+			deltav = deltavH*tiW1+deltavV*tiW2;
+			friction = k*gx*deltav;
+			fiWH = (fpsy+fbody)*niW1+friction*tiW1;
+			fiWV = (fpsy+fbody)*niW2+friction*tiW2;
+			sumFiWH += fiWH;
+			sumFiWV += fiWV;
+		}
+	}
+
+	private void calculatePpl() {
+		sumFijH = 0;
+		sumFijV = 0;
+		for(Person j : main.getPeople()) {
+			if(this==j){continue;}
+			double dij = -1;
+			if((dij = Utils.distance(x,y,j.x,j.y)) > connectionRange){continue;}
+			double I = 1;
+			if(belongedGroup != null){
+			if(belongedGroup.isMember(j)){
+				I = -1;
+			}
+			}
+			double theta = Math.atan2(j.y-y, j.x-x)-Math.atan2(speedY,speedX);
+			double cosTheta = 1;
+			if(theta<(-attentionAngle/2) || theta>(attentionAngle/2)){
+				if(main.isEnableVisionArea()){
+					cosTheta = 0;
+				}
+			}
+			
+			double nij1,nij2,tij1,tij2;
+			double rij,gx;
+			double deltavH, deltavV, deltav;
+			double fpsy,fbody,friction;
+			double fijH,fijV;
+			rij = ri+j.ri;
+			nij1 = (x==j.x ? 0:(x-j.x)/dij);
+			nij2 = (y==j.y ? 0:(y-j.y)/dij);
+			tij1 = -nij2;
+			tij2 = nij1;
+			gx = (dij>rij ? 0:(rij-dij));
+			fpsy = Ai*Math.exp((rij-dij)/Bi)*cosTheta;
+			if(I==-1){
+				if(applyPsy){
+					fpsy = -AiGrp*Math.exp((dij-rij)/2)*cosTheta;
+				}else{
+					fpsy = 0;
+				}
+			}
+			fbody = K*gx;
+
+			deltavH = j.speedX-speedX;
+			deltavV = j.speedY-speedY;
+			deltav = deltavH*tij1+deltavV*tij2;
+			friction = k*gx*deltav;
+			fijH = (fpsy+fbody)*nij1+friction*tij1;
+			fijV = (fpsy+fbody)*nij2+friction*tij2;
+			sumFijH += fijH;
+			sumFijV += fijV;
+		}
 	}
 }

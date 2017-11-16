@@ -1,6 +1,5 @@
 package socialForce.scenario.pillarHall;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -10,7 +9,6 @@ import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.util.ContextUtils;
 import socialForce.Utils;
-import socialForce.geom.Line;
 import socialForce.geom.Point;
 import socialForce.geom.Rect;
 import socialForce.markup.Wall;
@@ -26,11 +24,14 @@ public class PillarHall {
 	
 	private List<Point> bottomStartPoints;
 	private List<Point> topStartPoints;
-	private List<Point> entrancePoints;
+	private Point topEntrance;
+	private Point bottomEntrance;
 	private List<Point> exitPoints;
 	
 	private Rect area;
 	private Rect legalArea;
+	
+	private boolean enableVisionArea;
 	
 	private static final boolean ENABLE_VISION_AREA = false;
 	
@@ -49,12 +50,40 @@ public class PillarHall {
 		this.groups = new ArrayList<Group>();
 		this.people = new ArrayList<Person>();
 		
+		this.enableVisionArea = false;
+		
 		this.initPoints();
 	}
 	
 	public void initAgents(Context<Object> context) {
 		initMarkups(context);
 		initAdaptiveWall(context);
+	}
+	
+	public List<Person> getPeople() {
+		return Collections.unmodifiableList(this.people);
+	}
+	
+	public List<Wall> getWalls() {
+		return Collections.unmodifiableList(this.walls);
+	}
+	
+	public AdaptiveWall getAdaptiveWall() {
+		return this.adaptiveWall;
+	}
+	
+	@ScheduledMethod(start = 0, interval = SPAWNING_SPEED_TOP)
+	public void spawnEntryTop() {
+		spawn(true);
+	}
+	
+	public boolean isEnableVisionArea() {
+		return this.enableVisionArea;
+	}
+	
+	@ScheduledMethod(start = 0, interval = SPAWNING_SPEED_BOTTOM)
+	public void spawnEntryBottom() {
+		spawn(false);
 	}
 	
 	private void initMarkups(Context<Object> context) {
@@ -88,7 +117,6 @@ public class PillarHall {
 	private void initPoints() {
 		this.bottomStartPoints = new ArrayList<Point>();
 		this.topStartPoints = new ArrayList<Point>();
-		this.entrancePoints = new ArrayList<Point>();
 		this.exitPoints = new ArrayList<Point>();
 		
 		this.bottomStartPoints.add(new Point(280, 490));
@@ -103,8 +131,8 @@ public class PillarHall {
 		this.topStartPoints.add(new Point(330, 30));
 		this.topStartPoints.add(new Point(340, 60));
 		
-		this.entrancePoints.add(new Point(310, 140));
-		this.entrancePoints.add(new Point(310, 420));
+		this.topEntrance = new Point(310, 140);
+		this.bottomEntrance = new Point(310, 420);
 		
 		this.exitPoints.add(new Point(90, 110));
 		this.exitPoints.add(new Point(90, 440));
@@ -117,34 +145,16 @@ public class PillarHall {
 		space.moveTo(adaptiveWall, 0, 0); // add at 0/0, the rendering will take care of rendering it at the correct position
 	} 
 	
-	public List<Person> getPeople() {
-		return Collections.unmodifiableList(this.people);
-	}
-	
-	public List<Wall> getWalls() {
-		return Collections.unmodifiableList(this.walls);
-	}
-	
-	@ScheduledMethod(start = 0, interval = SPAWNING_SPEED_TOP)
-	public void spawnEntryTop() {
-		spawn(true);
-	}
-	
-	@ScheduledMethod(start = 0, interval = SPAWNING_SPEED_BOTTOM)
-	public void spawnEntryBottom() {
-		spawn(false);
-	}
-	
 	private void spawn(boolean top) {
 		if(Utils.uniform() > GROUP_SPAWNING){
-			addPerson(getStartPoints(top).get(0));
+			addPerson(getStartPoints(top).get(0), getEntrancePoint(top));
 		}else{
 			addGroup(top);
 		}	
 	}
 	
-	private Person addPerson(Point startPoint) {
-		Person p = new Person(this, space, startPoint);
+	private Person addPerson(Point startPoint, Point entryPoint) {
+		Person p = new Person(this, space, startPoint, entryPoint);
 		this.people.add( p );
 		
 		Context<Object> context = ContextUtils.getContext(this);
@@ -162,15 +172,23 @@ public class PillarHall {
 		}
 	}
 	
+	private Point getEntrancePoint(boolean top) {
+		if (top) {
+			return this.topEntrance;
+		} else {
+			return this.bottomEntrance;
+		}
+	}
 	
 	private void addGroup(boolean top) {
 		Group g = new Group();
 		this.groups.add(g);
 		
 		List<Point> startPoints = getStartPoints(top);
+		Point entrancePoint = getEntrancePoint(top);
 		
-		Person p0 = addPerson(startPoints.get(0));
-		Person p1 = addPerson(startPoints.get(1));
+		Person p0 = addPerson(startPoints.get(0), entrancePoint);
+		Person p1 = addPerson(startPoints.get(1), entrancePoint);
 		
 		g.addPerson(p0);
 		g.addPerson(p1);
@@ -181,7 +199,7 @@ public class PillarHall {
 				continue;
 			}
 			
-			Person p = addPerson(startPoints.get(i));
+			Person p = addPerson(startPoints.get(i), entrancePoint);
 
 			g.addPerson(p);
 			p.setRi(Utils.uniform(0.11,0.25));

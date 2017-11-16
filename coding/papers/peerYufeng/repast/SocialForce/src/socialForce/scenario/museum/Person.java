@@ -68,7 +68,7 @@ public class Person {
 	
 	public double readingTime = Utils.uniform(3, 90);
 	
-	@ProbedProperty(displayName="PersonStatechart")
+	@ProbedProperty(displayName="PersonMuseumStatechart")
 	PersonMuseumStatechart personStatechart = PersonMuseumStatechart.createStateChart(this, 0);
 	
 	public Museum main;

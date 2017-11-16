@@ -40,13 +40,13 @@ public class AdaptiveWall {
 		this.main = main;
 		this.space = space;
 		
-		this.x = 200;
-		this.y = 270;
+		this.x = 8;
+		this.y = 10.8;
 		
-		this.yMin = 225;
-		this.yMax = 400;
+		this.yMin = 9;
+		this.yMax = 16;
 		
-		this.totalWidth = 300;
+		this.totalWidth = 12;
 		
 		this.speed = 0;
 		
@@ -57,18 +57,18 @@ public class AdaptiveWall {
 		this.K = 1.2 * 10;
 		
 		this.wallsX = new ArrayList<Double>();
-		this.wallsX.add(50.0);
-		this.wallsX.add(100.0);
-		this.wallsX.add(200.0);
+		this.wallsX.add(2.0);
+		this.wallsX.add(4.0);
+		this.wallsX.add(8.0);
 		
 		this.wallsWidth = new ArrayList<Double>();
-		this.wallsWidth.add(50.0);
-		this.wallsWidth.add(100.0);
-		this.wallsWidth.add(50.0);
+		this.wallsWidth.add(2.0);
+		this.wallsWidth.add(4.0);
+		this.wallsWidth.add(2.0);
 		
 		this.doorsX = new ArrayList<Double>();
-		this.doorsX.add(75.0);
-		this.doorsX.add(325.0);
+		this.doorsX.add(3.0);
+		this.doorsX.add(13.0);
 	}
 	
 	@ScheduledMethod(start = 0, interval = PillarHall.UNIT_TIME)
@@ -80,7 +80,7 @@ public class AdaptiveWall {
 		if(tspeed>-0.1 && tspeed <0.1){
 			speed = tspeed;
 		}
-		double ty = y + (speed*PillarHall.UNIT_TIME)*PillarHall.METER_2_PX;
+		double ty = y + (speed*PillarHall.UNIT_TIME);
 		if(ty>yMin && ty<yMax){
 			y=ty;
 		}
@@ -121,8 +121,8 @@ public class AdaptiveWall {
 		sumFijV = 0;
 		for(Person j : main.getPeople()){
 			//if(!j.inState(j.reading) && !j.inState(j.moving)){continue;}
-			double ax = x/PillarHall.METER_2_PX;
-			double ay = y/PillarHall.METER_2_PX;
+			double ax = x;
+			double ay = y;
 			double dij = -1;
 			dij = Math.abs(ay-j.getY());
 			double nij1,nij2;

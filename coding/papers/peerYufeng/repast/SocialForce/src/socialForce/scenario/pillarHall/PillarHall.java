@@ -30,28 +30,22 @@ public class PillarHall {
 	private Point bottomExit;;
 	
 	private Rect movingArea;
-	private Rect legalArea;
-	
-	private boolean enableVisionArea;
-	
-	private static final boolean ENABLE_VISION_AREA = false;
-	
-	public static final double METER_2_PX = 25.0;
-	public final static double UNIT_TIME = 0.01;
 	
 	private final static double GROUP_SPAWNING = 0.3;
 	private final static double SPAWNING_SPEED_TOP = 5.0;
 	private final static double SPAWNING_SPEED_BOTTOM = 5.0;
 	
+	//public final static double METER_2_PX = 25.0;
+	public final static double UNIT_TIME = 0.01;
+	
 	public final static double EXIT_RATE = 0.5;
+	public final static boolean ENABLE_VISION_AREA = false;
 	
 	public PillarHall(ContinuousSpace<Object> space) {
 		this.space = space;
 	
 		this.groups = new ArrayList<Group>();
 		this.people = new ArrayList<Person>();
-		
-		this.enableVisionArea = false;
 		
 		this.initPoints();
 	}
@@ -81,35 +75,30 @@ public class PillarHall {
 	public void spawnEntryTop() {
 		spawn(true);
 	}
-	
-	public boolean isEnableVisionArea() {
-		return this.enableVisionArea;
-	}
-	
+
 	@ScheduledMethod(start = 0, interval = SPAWNING_SPEED_BOTTOM)
 	public void spawnEntryBottom() {
 		spawn(false);
 	}
 	
 	private void initMarkups(Context<Object> context) {
-		this.movingArea = new Rect(new Point(70, 130), 260, 290);
-		this.legalArea = new Rect(new Point(50, 30), 300, 490);
+		this.movingArea = new Rect(new Point(2.8, 5.2), 10.4, 11.6);
 		
 		initWalls(context);
 	}
 	
 	private void initWalls(Context<Object> context) {
 		this.walls = new ArrayList<Wall>();
-		this.walls.add(new Wall(new Point(50, 100), new Point(0, 350)));
-		this.walls.add(new Wall(new Point(50, 450), new Point(20, 0)));
-		this.walls.add(new Wall(new Point(120, 450), new Point(160, 0)));
-		this.walls.add(new Wall(new Point(350, 450), new Point(-20, 0)));
-		this.walls.add(new Wall(new Point(350, 450), new Point(0, -350)));
-		this.walls.add(new Wall(new Point(350, 100), new Point(0, -20)));
-		this.walls.add(new Wall(new Point(120, 100), new Point(160, 0)));
+		this.walls.add(new Wall(new Point(2, 4), new Point(0, 14)));
+		this.walls.add(new Wall(new Point(2, 18), new Point(0.8, 0)));
+		this.walls.add(new Wall(new Point(4.8, 18), new Point(6.4, 0)));
+		this.walls.add(new Wall(new Point(14, 18), new Point(-0.8, 0)));
+		this.walls.add(new Wall(new Point(14, 18), new Point(0, -14)));
+		this.walls.add(new Wall(new Point(14, 4), new Point(0, -0.8)));
+		this.walls.add(new Wall(new Point(4.8, 4), new Point(6.4, 0)));
 		
 		// Square Pillar
-		this.walls.add(new Wall(new Point(180, 180), new Point(0, 40), new Point(40, 40), new Point(40, 0), new Point(0, 0)));
+		this.walls.add(new Wall(new Point(7.2, 7.2), new Point(0, 1.6), new Point(1.6, 1.6), new Point(1.6, 0), new Point(0, 0)));
 		
 		for (Wall w : this.walls) {
 			context.add(w);
@@ -123,23 +112,23 @@ public class PillarHall {
 		this.bottomStartPoints = new ArrayList<Point>();
 		this.topStartPoints = new ArrayList<Point>();
 		
-		this.bottomStartPoints.add(new Point(280, 490));
-		this.bottomStartPoints.add(new Point(290, 520));
-		this.bottomStartPoints.add(new Point(310, 490));
-		this.bottomStartPoints.add(new Point(330, 520));
-		this.bottomStartPoints.add(new Point(340, 490));
+		this.bottomStartPoints.add(new Point(11.2, 19.6));
+		this.bottomStartPoints.add(new Point(11.6, 20.8));
+		this.bottomStartPoints.add(new Point(12.4, 19.6));
+		this.bottomStartPoints.add(new Point(13.2, 20.8));
+		this.bottomStartPoints.add(new Point(13.6, 19.6));
 		
-		this.topStartPoints.add(new Point(280, 60));
-		this.topStartPoints.add(new Point(290, 30));
-		this.topStartPoints.add(new Point(310, 60));
-		this.topStartPoints.add(new Point(330, 30));
-		this.topStartPoints.add(new Point(340, 60));
+		this.topStartPoints.add(new Point(11.2, 2.4));
+		this.topStartPoints.add(new Point(11.6, 1.2));
+		this.topStartPoints.add(new Point(12.4, 2.4));
+		this.topStartPoints.add(new Point(13.2, 1.2));
+		this.topStartPoints.add(new Point(13.6, 2.4));
 		
-		this.topEntrance = new Point(310, 140);
-		this.bottomEntrance = new Point(310, 420);
+		this.topEntrance = new Point(12.4, 5.6);
+		this.bottomEntrance = new Point(12.4, 16.8);
 		
-		this.topExit = new Point(90, 110);
-		this.bottomExit = new Point(90, 440);
+		this.topExit = new Point(3.6, 4.4);
+		this.bottomExit = new Point(3.6, 17.6);
 	}
 	
 	private void initAdaptiveWall(Context<Object> context) {

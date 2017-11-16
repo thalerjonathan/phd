@@ -15,10 +15,7 @@ public class Person {
 
 	private double x;
 	private double y;
-	
-	private double pxX;
-	private double pxY;
-	
+
 	private double destX;
 	private double destY;
 	
@@ -80,10 +77,8 @@ public class Person {
 		
 		this.entry = entry;
 		
-		this.pxX = start.x;
-		this.pxY = start.y;
-		this.x = start.x / PillarHall.METER_2_PX;
-		this.y = start.y / PillarHall.METER_2_PX;
+		this.x = start.x;
+		this.y = start.y;
 		
 		this.heading = 0;
 		
@@ -183,13 +178,12 @@ public class Person {
 	}
 	
 	public void updatePosition() {
-		Point p = Utils.anylogicToRePast(new Point(this.pxX, this.pxY));
-		space.moveTo(this, p.x, p.y);
+		space.moveTo(this, this.x, this.y);
 	}
 	
 	public void destToEntry() {
-		this.destX = this.entry.x / PillarHall.METER_2_PX;
-		this.destY = this.entry.y / PillarHall.METER_2_PX;
+		this.destX = this.entry.x;
+		this.destY = this.entry.y;
 	}
 	
 	public void resetVi0() {
@@ -228,8 +222,6 @@ public class Person {
 		heading = Math.atan2(speedY, speedX) + Math.PI/2;
 		x += (speedX * PillarHall.UNIT_TIME);
 		y += (speedY * PillarHall.UNIT_TIME);
-		pxX = x * PillarHall.METER_2_PX;
-		pxY = y * PillarHall.METER_2_PX;
 		
 		this.updatePosition();
 	}
@@ -257,9 +249,9 @@ public class Person {
 		sumFiWV = 0;
 		for(Wall w : main.getWalls()) {
 			Point p = new Point();
-			double sqrdist = w.getNearestPoint(pxX,pxY,p);
+			double sqrdist = w.getNearestPoint(x,y,p);
 			double diW = -1;
-			if((diW = Math.sqrt(sqrdist)/PillarHall.METER_2_PX) > connectionRange){continue;}
+			if((diW = Math.sqrt(sqrdist)) > connectionRange){continue;}
 			
 			double theta = Math.atan2(p.getY()-y, p.getX()-x)-Math.atan2(speedY,speedX);
 			double cosTheta = 1;
@@ -272,8 +264,8 @@ public class Person {
 			double deltavH, deltavV, deltav;
 			double fpsy,fbody,friction;
 			double fiWH,fiWV;
-			niW1 = (x==(p.getX()/PillarHall.METER_2_PX) ? 0:(x-(p.getX()/PillarHall.METER_2_PX))/diW);
-			niW2 = (y==(p.getY()/PillarHall.METER_2_PX) ? 0:(y-(p.getY()/PillarHall.METER_2_PX))/diW);
+			niW1 = (x==p.getX() ? 0:(x-p.getX())/diW);
+			niW2 = (y==p.getY() ? 0:(y-p.getY())/diW);
 			tiW1 = -niW2;
 			tiW2 = niW1;
 			gx = (diW>ri ? 0:(ri-diW));
@@ -297,23 +289,23 @@ public class Person {
 			double xmin = w.getX()-w.getTotalWidth()/2+adaptWalls.get(i);
 			double xmax = xmin + wallWidths.get(i);
 			//System.out.println(i + " " + xmin + " " + xmax);
-			if(pxX > xmax){
+			if(x > xmax){
 				p = new Point(xmax, w.getY());
-			}else if(pxX<xmin){
+			}else if(x<xmin){
 				p = new Point(xmin,w.getY());
 			}else{
-				p = new Point(pxX,w.getY());
+				p = new Point(x,w.getY());
 			}
 			//System.out.println(i + " " + p.getX() + " " + p.getY());
 			
-			double sqrdist = (Utils.distance(pxX,pxY,p.getX(),p.getY()));
+			double sqrdist = (Utils.distance(x,y,p.getX(),p.getY()));
 			double diW = -1;
-			if((diW = (sqrdist)/PillarHall.METER_2_PX) > connectionRange){return;}
+			if((diW = sqrdist) > connectionRange){return;}
 			
 			double theta = Math.atan2(p.getY()-y, p.getX()-x)-Math.atan2(speedY,speedX);
 			double cosTheta = 1;
 			if(theta<(-attentionAngle/2) || theta>(attentionAngle/2)){
-				if(main.isEnableVisionArea()){
+				if(PillarHall.ENABLE_VISION_AREA){
 					cosTheta = 0;
 				}
 			}
@@ -323,8 +315,8 @@ public class Person {
 			double deltavH, deltavV, deltav;
 			double fpsy,fbody,friction;
 			double fiWH,fiWV;
-			niW1 = (x==(p.getX()/PillarHall.METER_2_PX) ? 0:(x-(p.getX()/PillarHall.METER_2_PX))/diW);
-			niW2 = (y==(p.getY()/PillarHall.METER_2_PX) ? 0:(y-(p.getY()/PillarHall.METER_2_PX))/diW);
+			niW1 = (x==(p.getX()) ? 0:(x-(p.getX()))/diW);
+			niW2 = (y==(p.getY()) ? 0:(y-(p.getY()))/diW);
 			tiW1 = -niW2;
 			tiW2 = niW1;
 			gx = (diW>ri ? 0:(ri-diW));
@@ -357,7 +349,7 @@ public class Person {
 			double theta = Math.atan2(j.y-y, j.x-x)-Math.atan2(speedY,speedX);
 			double cosTheta = 1;
 			if(theta<(-attentionAngle/2) || theta>(attentionAngle/2)){
-				if(main.isEnableVisionArea()){
+				if(PillarHall.ENABLE_VISION_AREA){
 					cosTheta = 0;
 				}
 			}

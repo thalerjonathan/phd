@@ -53,6 +53,15 @@ public class Line implements IMarkup {
 
 	@Override
 	public double getNearestPoint(double x, double y, Point p) {
-		return 0;
+		double dist1 = Utils.distance(this.p1.getX(), this.p1.getY(), x, y);
+		double dist2 = Utils.distance(this.p2.getX(), this.p2.getY(), x, y);
+		
+		if ( dist1 >= dist2 ) {
+			p.override(this.p1.getX(), this.p1.getY());
+			return dist1;
+		} 
+		
+		p.override(this.p2.getX(), this.p2.getY());
+		return dist2;
 	}
 }

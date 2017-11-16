@@ -255,9 +255,9 @@ public class Person {
 		sumFiWV = 0;
 		for(Line w : main.getWalls()) {
 			Point p = new Point();
-			double sqrdist = w.getNearestPoint(x,y,p);
+			double dist = w.getNearestPoint(x,y,p);
 			double diW = -1;
-			if((diW = Math.sqrt(sqrdist)) > connectionRange){continue;}
+			if((diW = dist) > connectionRange){continue;}
 			
 			double theta = Math.atan2(p.getY()-y, p.getX()-x)-Math.atan2(speedY,speedX);
 			double cosTheta = 1;

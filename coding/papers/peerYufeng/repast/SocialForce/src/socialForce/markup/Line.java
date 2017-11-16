@@ -31,12 +31,8 @@ public class Line implements IMarkup {
 		return this.p2.getY();
 	}
 	
-	public double getFromToDiffX() {
-		return this.p1.getX() - this.p2.getX();
-	}
-	
-	public double getFromToDiffY() {
-		return this.p1.getY() - this.p2.getY();
+	public Point getVecFromTo() {
+		return new Point(p2.getX() - p1.getX(), p2.getY() - p1.getY());
 	}
 	
 	public double length() {

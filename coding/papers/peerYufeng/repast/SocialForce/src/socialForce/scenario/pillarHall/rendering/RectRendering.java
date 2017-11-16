@@ -8,7 +8,9 @@ import repast.simphony.visualizationOGL2D.StyleOGL2D;
 import saf.v3d.ShapeFactory2D;
 import saf.v3d.scene.Position;
 import saf.v3d.scene.VSpatial;
+import socialForce.markup.Point;
 import socialForce.markup.Rect;
+import socialForce.scenario.pillarHall.SocialForceToRePastTranslator;
 
 public class RectRendering implements StyleOGL2D<Rect> {
 
@@ -42,12 +44,15 @@ public class RectRendering implements StyleOGL2D<Rect> {
 	public VSpatial getVSpatial(Rect r, VSpatial spatial) {
 		if (spatial == null) {
 			// NOTE: we are working in LOCAL space
-			
+			Point topRight = SocialForceToRePastTranslator.scaleFromSocialForceMeterToRePastPixel(new Point(r.getWidth(), 0));
+			Point bottomRight = SocialForceToRePastTranslator.scaleFromSocialForceMeterToRePastPixel(new Point(r.getWidth(), r.getHeight()));
+			Point bottomLeft = SocialForceToRePastTranslator.scaleFromSocialForceMeterToRePastPixel(new Point(0, r.getHeight()));
+				
 			Path2D.Double wallPath = new Path2D.Double();
 			wallPath.moveTo(0, 0);
-			wallPath.lineTo(0, r.getWidth() * 25);
-			wallPath.lineTo(r.getHeight() * 25, r.getWidth() * 25);
-			wallPath.lineTo(r.getHeight() * 25, 0);
+			wallPath.lineTo(topRight.getX(), topRight.getY());
+			wallPath.lineTo(bottomRight.getX(), bottomRight.getY());
+			wallPath.lineTo(bottomLeft.getX(), bottomLeft.getY());
 			wallPath.lineTo(0, 0);
 			
 			return shapeFactory.createShape(wallPath);
@@ -73,12 +78,10 @@ public class RectRendering implements StyleOGL2D<Rect> {
 	}
 	
 	public float getLabelXOffset(Rect object) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	public float getLabelYOffset(Rect object) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 }

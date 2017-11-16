@@ -45,7 +45,7 @@ public class PersonRendering implements StyleOGL2D<Person> {
 
 	@Override
 	public Color getColor(Person p) {
-		return p.getColor();
+		return Color.BLACK; //p.getColor();
 	}
 
 	@Override

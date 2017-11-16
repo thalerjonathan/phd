@@ -10,6 +10,7 @@ import saf.v3d.scene.Position;
 import saf.v3d.scene.VSpatial;
 import socialForce.markup.Point;
 import socialForce.scenario.pillarHall.AdaptiveWall;
+import socialForce.scenario.pillarHall.SocialForceToRePastTranslator;
 
 public class AdaptiveWallRendering implements StyleOGL2D<AdaptiveWall> {
 
@@ -26,9 +27,9 @@ public class AdaptiveWallRendering implements StyleOGL2D<AdaptiveWall> {
 			// NOTE: we are working in LOCAL space
 			double halfWidth = w.getTotalWidth() * 0.5;
 			
-			 // NOTE: still need to transform from socialforce coordinates to RePast coordinates
-			Point from = new Point(-halfWidth * 25, 0);
-			Point to = new Point(halfWidth * 25, 0);
+			 // NOTE: still need to scale to RePast pixels
+			Point from = SocialForceToRePastTranslator.scaleFromSocialForceMeterToRePastPixel(new Point(-halfWidth, 0));
+			Point to = SocialForceToRePastTranslator.scaleFromSocialForceMeterToRePastPixel(new Point(halfWidth, 0));
 			
 			Line2D.Double adaptWallLine = new Line2D.Double(from.getX(), from.getY(), to.getX(), to.getY());
 			

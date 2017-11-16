@@ -35,7 +35,6 @@ public class PillarHall {
 	private final static double SPAWNING_SPEED_TOP = 5.0;
 	private final static double SPAWNING_SPEED_BOTTOM = 5.0;
 	
-	//public final static double METER_2_PX = 25.0;
 	public final static double UNIT_TIME = 0.01;
 	
 	public final static double EXIT_RATE = 0.5;

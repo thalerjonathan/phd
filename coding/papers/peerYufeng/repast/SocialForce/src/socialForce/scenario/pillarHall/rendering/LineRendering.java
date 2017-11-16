@@ -9,6 +9,8 @@ import saf.v3d.ShapeFactory2D;
 import saf.v3d.scene.Position;
 import saf.v3d.scene.VSpatial;
 import socialForce.markup.Line;
+import socialForce.markup.Point;
+import socialForce.scenario.pillarHall.SocialForceToRePastTranslator;
 
 public class LineRendering implements StyleOGL2D<Line> {
 	
@@ -42,10 +44,11 @@ public class LineRendering implements StyleOGL2D<Line> {
 	public VSpatial getVSpatial(Line w, VSpatial spatial) {
 		if (spatial == null) {
 			// NOTE: we are working in LOCAL space
+			Point p = SocialForceToRePastTranslator.scaleFromSocialForceMeterToRePastPixel(w.getVecFromTo());
 			
 			Path2D.Double wallPath = new Path2D.Double();
 			wallPath.moveTo(0, 0);
-			wallPath.lineTo(-w.getFromToDiffX() * 25, -w.getFromToDiffY() * 25);
+			wallPath.lineTo(p.getX(), p.getY());
 			
 			return shapeFactory.createShape(wallPath);
 		}
@@ -68,16 +71,12 @@ public class LineRendering implements StyleOGL2D<Line> {
 	public Position getLabelPosition(Line object) {
 		return Position.SOUTH;
 	}
-
 	
 	public float getLabelXOffset(Line object) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	public float getLabelYOffset(Line object) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
-
 }

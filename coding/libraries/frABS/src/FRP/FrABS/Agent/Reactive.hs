@@ -110,7 +110,7 @@ doOnceR sf = proc (ain, e) -> do
   doEvt <- once -< (Event ())
   if (isEvent doEvt) then (do
     (aout, e') <- sf -< (ain, e)
-    returnA -< (aout, e))
+    returnA -< (aout, e'))
     else 
       returnA -< (agentOutFromIn ain, e)
 
@@ -130,7 +130,7 @@ doRepeatedlyEvery t sf = proc (ain, e) -> do
         doEvt <- repeatedly t () -< ()
         if (isEvent doEvt) then (do
           (aout', e') <- sf -< (ain, e)
-          returnA -< (aout', e))
+          returnA -< (aout', e'))
           else 
             returnA -< (aout, e)
 
@@ -141,7 +141,7 @@ doOccasionallyEvery g t sf = proc (ain, e) -> do
         doEvt <- occasionally g t () -< ()
         if (isEvent doEvt) then (do
           (aout', e') <- sf -< (ain, e)
-          returnA -< (aout', e))
+          returnA -< (aout', e'))
           else 
             returnA -< (aout, e)
 -------------------------------------------------------------------------------
@@ -390,7 +390,7 @@ transitionOnEventWithGuard evtSrc guardAction from to = switch (transitionEventW
                 (ao, e') <- from -< aie
                 (ao0, evt) <- evtSrc -< (ain, ao)
                 let (ao1, transEvt) = guardEvent evt guardAction ao0
-                returnA -< ((ao1, e), transEvt)
+                returnA -< ((ao1, e'), transEvt)
 
         guardEvent :: Event () -> Rand StdGen Bool -> AgentOut s m e -> (AgentOut s m e, Event ())
         guardEvent NoEvent _ ao = (ao, NoEvent)

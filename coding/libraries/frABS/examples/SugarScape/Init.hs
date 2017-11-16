@@ -15,7 +15,6 @@ import Data.List
 import System.Random
 import Control.Monad.Random
 
-
 createSugarScape :: Int 
                     -> Discrete2dDimension 
                     -> SugarScapeSimParams
@@ -148,11 +147,11 @@ randomCoords lower@(minX, minY) upper@(maxX, maxY) n
 randomAgentIO :: SugarScapeSimParams -> Discrete2dCoord -> IO SugarScapeAgentDef
 randomAgentIO params coord = 
     do
-        let aid = newAgentId params
+        let aid = newAgentId params -- TODO: returns only 0 wtf!!
         adef <- evalRandIO (randomAgent
                                 (aid, coord)
                                 sugarScapeAgentBehaviour
-                                sugarScapeAgentConversation)
+                                sugarScapeAgentConversation))
 
         return adef
 

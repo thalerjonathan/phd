@@ -21,6 +21,7 @@ import           Zombies.Run
 import           NewAgents.Run
 
 {- TODOs
+  - BUG in SugarScape: all agents have id=0 because newAgentId seems not to hand out new ids...
   - BUG: if two agents have the same id, their states will get mixed-up when using the Sequential updating
 	- different build targets: with/without time-traveling, gloss rendering
 	- add HOW-TO of FrABS examples running on github in a sandbox: need yampa with exposed core, haskell-titan, install FrABS
@@ -32,20 +33,21 @@ import           NewAgents.Run
 -}
 
 main :: IO ()
-main = runSocialForce -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
+main = runSugarScapeWithRendering
 
-    -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
-    -- runZombiesWithRendering
-    -- runPolicyEffectsWithRendering
-    -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile
-    -- runSysDynSIRStepsAndWriteToFile
-    -- runFrSIRSSpatialWithRendering -- runFrSIRSSpatialStepsAndPrint -- runFrSIRSSpatialStepsAndWriteToFile -- runFrSIRSSpatialStepsAndRender
-    -- runDoubleAuctionSteps runDoubleAuctionDebug
-    -- runSIRSWithRendering
-    -- runPDWithRendering
-    -- runWildfireWithRendering
-    -- runAgentZeroWithRendering
-    -- runSugarScapeWithRendering
-    -- runConversationSteps
-    -- runMetaABSStepsAndPrint
-    -- runSegWithRendering
+  -- runSocialForce
+  -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile
+  -- runZombiesWithRendering
+  -- runPolicyEffectsWithRendering
+  -- runFrSIRSNetworkStepsAndWriteToFile -- runFrSIRSNetworkWithRendering -- runFrSIRSNetworkReplicationsAndWriteToFile
+  -- runSysDynSIRStepsAndWriteToFile
+  -- runFrSIRSSpatialWithRendering -- runFrSIRSSpatialStepsAndPrint -- runFrSIRSSpatialStepsAndWriteToFile -- runFrSIRSSpatialStepsAndRender
+  -- runDoubleAuctionSteps runDoubleAuctionDebug
+  -- runSIRSWithRendering
+  -- runPDWithRendering
+  -- runWildfireWithRendering
+  -- runAgentZeroWithRendering
+  -- runSugarScapeWithRendering
+  -- runConversationSteps
+  -- runMetaABSStepsAndPrint
+  -- runSegWithRendering

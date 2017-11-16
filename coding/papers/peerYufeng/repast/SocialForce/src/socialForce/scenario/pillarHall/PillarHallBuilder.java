@@ -6,7 +6,6 @@ import repast.simphony.context.space.continuous.ContinuousSpaceFactoryFinder;
 import repast.simphony.dataLoader.ContextBuilder;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.SimpleCartesianAdder;
-import repast.simphony.space.continuous.StrictBorders;
 
 public class PillarHallBuilder implements ContextBuilder<Object> {
 
@@ -29,7 +28,7 @@ public class PillarHallBuilder implements ContextBuilder<Object> {
 						SPACE_ID, 
 						context,
 						new SimpleCartesianAdder<Object>(),
-						new StrictBorders(), //StickyBorders()
+						new SocialForceToRePastTranslator(),
 						dimensions );
 
 		PillarHall main = new PillarHall(space);

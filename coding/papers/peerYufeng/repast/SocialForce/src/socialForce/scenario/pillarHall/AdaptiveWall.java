@@ -6,8 +6,6 @@ import java.util.List;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
-import socialForce.Utils;
-import socialForce.geom.Point;
 
 public class AdaptiveWall {
 
@@ -89,8 +87,7 @@ public class AdaptiveWall {
 	}
 	
 	public void updatePosition() {
-		Point p = Utils.anylogicToRePast(new Point(this.x, this.y));
-		space.moveTo(this, p.x, p.y);
+		space.moveTo(this, this.x, this.y);
 	}
 	
 	public List<Double> getWalls() {
@@ -137,11 +134,5 @@ public class AdaptiveWall {
 			fijV = (fpsy)*nij2;
 			sumFijV += fijV;
 		}
-	}
-	
-	private double getNearestPoint(double x1, double y1, Point p) {
-		p.x = x1;
-		p.y = this.y;
-		return Utils.sqr(y1 - this.y);
 	}
 }

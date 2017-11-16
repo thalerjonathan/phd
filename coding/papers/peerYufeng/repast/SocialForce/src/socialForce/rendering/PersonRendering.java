@@ -8,7 +8,7 @@ import repast.simphony.visualizationOGL2D.StyleOGL2D;
 import saf.v3d.ShapeFactory2D;
 import saf.v3d.scene.Position;
 import saf.v3d.scene.VSpatial;
-import socialForce.geom.Point;
+import socialForce.markup.Point;
 import socialForce.scenario.museum.Person;
 
 public class PersonRendering implements StyleOGL2D<Person> {
@@ -39,10 +39,10 @@ public class PersonRendering implements StyleOGL2D<Person> {
 			Point top = new Point(0, PERSON_SIZE);
 			
 			Path2D.Double personShape = new Path2D.Double();
-			personShape.moveTo(left.x, left.y);
-			personShape.lineTo(right.x, right.y);
-			personShape.lineTo(top.x, top.y);
-			personShape.lineTo(left.x, left.y);
+			personShape.moveTo(left.getX(), left.getY());
+			personShape.lineTo(right.getX(), right.getY());
+			personShape.lineTo(top.getX(), top.getY());
+			personShape.lineTo(left.getX(), left.getY());
 			
 			spatial = shapeFactory.createShape(personShape);
 

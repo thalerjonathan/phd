@@ -3,30 +3,38 @@
   <type>2D</type>
   <styles>
     <entry>
-      <string>socialForce.markup.Wall</string>
-      <string>socialForce.rendering.WallRendering</string>
+      <string>socialForce.markup.Line</string>
+      <string>socialForce.scenario.pillarHall.rendering.LineRendering</string>
     </entry>
     <entry>
       <string>socialForce.scenario.pillarHall.Person</string>
-      <string>repast.simphony.visualization.editedStyle.EditedStyle2D</string>
+      <string>socialForce.scenario.pillarHall.rendering.PersonRendering</string>
+    </entry>
+    <entry>
+      <string>socialForce.markup.Rect</string>
+      <string>socialForce.scenario.pillarHall.rendering.RectRendering</string>
     </entry>
     <entry>
       <string>socialForce.scenario.pillarHall.AdaptiveWall</string>
-      <string>repast.simphony.visualization.editedStyle.EditedStyle2D</string>
+      <string>socialForce.scenario.pillarHall.rendering.AdaptiveWallRendering</string>
     </entry>
   </styles>
   <editedStyles>
     <entry>
-      <string>socialForce.markup.Wall</string>
+      <string>socialForce.markup.Line</string>
       <null/>
     </entry>
     <entry>
       <string>socialForce.scenario.pillarHall.Person</string>
-      <string>socialForce.scenario.pillarHall.Person.style_1.xml</string>
+      <null/>
+    </entry>
+    <entry>
+      <string>socialForce.markup.Rect</string>
+      <null/>
     </entry>
     <entry>
       <string>socialForce.scenario.pillarHall.AdaptiveWall</string>
-      <string>socialForce.scenario.pillarHall.AdaptiveWall.style_1.xml</string>
+      <null/>
     </entry>
   </editedStyles>
   <netStyles/>
@@ -35,27 +43,31 @@
   <schedParams>
     <start>1.0</start>
     <interval>1.0</interval>
-    <priority>NaN</priority>
-    <pType>RANDOM</pType>
+    <priority>-Infinity</priority>
+    <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-1203922244</hashCode>
+    <hashCode>-332903595</hashCode>
   </schedParams>
   <layoutClassName>foo.bar.baz</layoutClassName>
   <layoutProjection>PillarHallSpace</layoutProjection>
   <layoutInterval>0</layoutInterval>
   <layerOrder>
     <entry>
-      <string>socialForce.markup.Wall</string>
-      <int>0</int>
-    </entry>
-    <entry>
-      <string>socialForce.scenario.pillarHall.Person</string>
+      <string>socialForce.markup.Line</string>
       <int>1</int>
     </entry>
     <entry>
-      <string>socialForce.scenario.pillarHall.AdaptiveWall</string>
+      <string>socialForce.scenario.pillarHall.Person</string>
       <int>2</int>
+    </entry>
+    <entry>
+      <string>socialForce.markup.Rect</string>
+      <int>0</int>
+    </entry>
+    <entry>
+      <string>socialForce.scenario.pillarHall.AdaptiveWall</string>
+      <int>3</int>
     </entry>
   </layerOrder>
   <projections>

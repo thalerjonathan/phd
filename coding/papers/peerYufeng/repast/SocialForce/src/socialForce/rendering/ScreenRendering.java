@@ -9,7 +9,7 @@ import saf.v3d.ShapeFactory2D;
 import saf.v3d.scene.Position;
 import saf.v3d.scene.VSpatial;
 import socialForce.Utils;
-import socialForce.geom.Point;
+import socialForce.markup.Point;
 import socialForce.scenario.museum.Screen;
 
 public class ScreenRendering implements StyleOGL2D<Screen> {
@@ -27,7 +27,7 @@ public class ScreenRendering implements StyleOGL2D<Screen> {
 			// NOTE: this rendering works in GLOBAL coordinate system and constructs a shape with GLOBAL COORDINATES (rotation would not work properly)!!!
 			Point ref = Utils.anylogicToRePast(new Point(s.x, s.y));
 			
-			Rectangle2D.Double screenRect = new Rectangle2D.Double(ref.x, ref.y, 50, s.max - s.y);
+			Rectangle2D.Double screenRect = new Rectangle2D.Double(ref.getX(), ref.getY(), 50, s.max - s.y);
 			
 			return shapeFactory.createShape(screenRect);
 		}

@@ -9,9 +9,9 @@ import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.util.ContextUtils;
 import socialForce.Utils;
-import socialForce.geom.Point;
-import socialForce.geom.Rect;
-import socialForce.markup.Wall;
+import socialForce.markup.Line;
+import socialForce.markup.Point;
+import socialForce.markup.Rect;
 
 public class PillarHall {
 	private ContinuousSpace<Object> space;
@@ -20,7 +20,7 @@ public class PillarHall {
 	private AdaptiveWall adaptiveWall;
 	private List<Group> groups;
 
-	private List<Wall> walls;
+	private List<Line> walls;
 	
 	private List<Point> bottomStartPoints;
 	private List<Point> topStartPoints;
@@ -59,7 +59,7 @@ public class PillarHall {
 		return Collections.unmodifiableList(this.people);
 	}
 	
-	public List<Wall> getWalls() {
+	public List<Line> getWalls() {
 		return Collections.unmodifiableList(this.walls);
 	}
 	
@@ -83,26 +83,31 @@ public class PillarHall {
 	
 	private void initMarkups(Context<Object> context) {
 		this.movingArea = new Rect(new Point(2.8, 5.2), 10.4, 11.6);
+		context.add(this.movingArea);
+		space.moveTo(this.movingArea, this.movingArea.getRef().getX(), this.movingArea.getRef().getY());
 		
 		initWalls(context);
 	}
 	
 	private void initWalls(Context<Object> context) {
-		this.walls = new ArrayList<Wall>();
-		this.walls.add(new Wall(new Point(2, 4), new Point(0, 14)));
-		this.walls.add(new Wall(new Point(2, 18), new Point(0.8, 0)));
-		this.walls.add(new Wall(new Point(4.8, 18), new Point(6.4, 0)));
-		this.walls.add(new Wall(new Point(14, 18), new Point(-0.8, 0)));
-		this.walls.add(new Wall(new Point(14, 18), new Point(0, -14)));
-		this.walls.add(new Wall(new Point(14, 4), new Point(0, -0.8)));
-		this.walls.add(new Wall(new Point(4.8, 4), new Point(6.4, 0)));
+		this.walls = new ArrayList<Line>();
+		this.walls.add(new Line(new Point(2, 4), new Point(2, 18)));
+		this.walls.add(new Line(new Point(2, 18), new Point(2.8, 18)));
+		this.walls.add(new Line(new Point(4.8, 18), new Point(11.2, 18)));
+		this.walls.add(new Line(new Point(14, 18), new Point(13.2, 18)));
+		this.walls.add(new Line(new Point(14, 18), new Point(14, 4)));
+		this.walls.add(new Line(new Point(14, 4), new Point(14, 3.2)));
+		this.walls.add(new Line(new Point(4.8, 4), new Point(11.2, 4)));
 		
 		// Square Pillar
-		this.walls.add(new Wall(new Point(7.2, 7.2), new Point(0, 1.6), new Point(1.6, 1.6), new Point(1.6, 0), new Point(0, 0)));
+		this.walls.add(new Line(new Point(7.2, 7.2), new Point(7.2, 8.8)));
+		this.walls.add(new Line(new Point(7.2, 8.8), new Point(8.8, 8.8)));
+		this.walls.add(new Line(new Point(8.8, 8.8), new Point(8.8, 7.2)));
+		this.walls.add(new Line(new Point(8.8, 7.2), new Point(7.2, 7.2)));
 		
-		for (Wall w : this.walls) {
+		for (Line w : this.walls) {
 			context.add(w);
-			space.moveTo(w, 0, 0); // add at 0/0, the rendering will take care of rendering it at the correct position
+			space.moveTo(w, w.getFromX(), w.getFromY());
 		}
 	}
 	
@@ -195,8 +200,8 @@ public class PillarHall {
 		g.addPerson(p1);
 		
 		//other people in the group spawn with a certain rate
-		for(int i = 2; i < 5; i++){
-			if(Utils.uniform()<0.6){
+		for(int i = 2; i < 5; i++) {
+			if(Utils.uniform() < 0.6) {
 				continue;
 			}
 			

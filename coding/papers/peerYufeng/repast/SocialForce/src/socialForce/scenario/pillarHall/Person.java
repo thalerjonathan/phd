@@ -8,8 +8,8 @@ import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.ui.probe.ProbedProperty;
 import socialForce.Utils;
 import socialForce.chart.pillarHall.PersonHallStatechart;
-import socialForce.geom.Point;
-import socialForce.markup.Wall;
+import socialForce.markup.Line;
+import socialForce.markup.Point;
 
 public class Person {
 
@@ -40,8 +40,6 @@ public class Person {
 	private boolean injured;
 	
 	private boolean arrivedDest;
-	
-	private int cluster_number;
 	
 	private double AiWall;
 	private double AiGrp;
@@ -77,8 +75,8 @@ public class Person {
 		
 		this.entry = entry;
 		
-		this.x = start.x;
-		this.y = start.y;
+		this.x = start.getX();
+		this.y = start.getY();
 		
 		this.heading = 0;
 		
@@ -140,6 +138,10 @@ public class Person {
 		this.color = c;
 	}
 	
+	public Color getColor() {
+		return this.color;
+	}
+	
 	public void setGroup(Group g) {
 		this.belongedGroup = g;
 	}
@@ -182,8 +184,8 @@ public class Person {
 	}
 	
 	public void destToEntry() {
-		this.destX = this.entry.x;
-		this.destY = this.entry.y;
+		this.destX = this.entry.getX();
+		this.destY = this.entry.getY();
 	}
 	
 	public void resetVi0() {
@@ -196,6 +198,10 @@ public class Person {
 	
 	public double getDestX() {
 		return this.destX;
+	}
+	
+	public double getHeading() {
+		return this.heading;
 	}
 	
 	@ScheduledMethod(start = 0, interval = PillarHall.UNIT_TIME)
@@ -247,7 +253,7 @@ public class Person {
 	private void calculateWall() {
 		sumFiWH = 0;
 		sumFiWV = 0;
-		for(Wall w : main.getWalls()) {
+		for(Line w : main.getWalls()) {
 			Point p = new Point();
 			double sqrdist = w.getNearestPoint(x,y,p);
 			double diW = -1;

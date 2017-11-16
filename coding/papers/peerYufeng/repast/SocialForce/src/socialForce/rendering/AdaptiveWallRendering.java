@@ -9,7 +9,7 @@ import saf.v3d.ShapeFactory2D;
 import saf.v3d.scene.Position;
 import saf.v3d.scene.VSpatial;
 import socialForce.Utils;
-import socialForce.geom.Point;
+import socialForce.markup.Point;
 import socialForce.scenario.museum.AdaptiveWall;
 
 public class AdaptiveWallRendering implements StyleOGL2D<AdaptiveWall> {
@@ -32,7 +32,7 @@ public class AdaptiveWallRendering implements StyleOGL2D<AdaptiveWall> {
 			Point from = Utils.anylogicToRePast(new Point(w.x, w.y - halfHeight));
 			Point to = Utils.anylogicToRePast(new Point(w.x, w.y + halfHeight));
 			
-			Line2D.Double adaptWallLine = new Line2D.Double(from.x, from.y, to.x, to.y);
+			Line2D.Double adaptWallLine = new Line2D.Double(from.getX(), from.getY(), to.getX(), to.getY());
 			
 			return shapeFactory.createShape(adaptWallLine);
 		}

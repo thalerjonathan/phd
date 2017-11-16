@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import socialForce.Utils;
-import socialForce.geom.Point;
+import socialForce.markup.Point;
 import repast.simphony.engine.schedule.ScheduledMethod;
 
 public class AdaptiveWall {

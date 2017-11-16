@@ -1,7 +1,7 @@
 package socialForce;
 
 import repast.simphony.random.RandomHelper;
-import socialForce.geom.Point;
+import socialForce.markup.Point;
 import socialForce.scenario.museum.MuseumBuilder;
 
 public class Utils {

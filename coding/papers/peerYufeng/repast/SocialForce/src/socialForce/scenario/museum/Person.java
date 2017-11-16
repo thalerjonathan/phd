@@ -7,7 +7,7 @@ import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.ui.probe.ProbedProperty;
 import socialForce.Utils;
 import socialForce.chart.museum.PersonMuseumStatechart;
-import socialForce.geom.Point;
+import socialForce.markup.Point;
 import socialForce.markup.Wall;
 
 /**

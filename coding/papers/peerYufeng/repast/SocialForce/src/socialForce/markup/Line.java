@@ -1,8 +1,8 @@
-package socialForce.geom;
+package socialForce.markup;
 
 import socialForce.Utils;
 
-public class Line {
+public class Line implements IMarkup {
 
 	private Point p1;
 	private Point p2;
@@ -14,13 +14,29 @@ public class Line {
 		
 		this.len = Utils.distance(p1, p2);
 	}
-	
-	public double getX() {
+
+	public double getFromX() {
 		return this.p1.getX();
 	}
 	
-	public double getY() {
+	public double getFromY() {
 		return this.p1.getY();
+	}
+	
+	public double getToX() {
+		return this.p2.getX();
+	}
+	
+	public double getToY() {
+		return this.p2.getY();
+	}
+	
+	public double getFromToDiffX() {
+		return this.p1.getX() - this.p2.getX();
+	}
+	
+	public double getFromToDiffY() {
+		return this.p1.getY() - this.p2.getY();
 	}
 	
 	public double length() {
@@ -37,5 +53,10 @@ public class Line {
 		double delta = Math.abs(dp1 - dp2);
 		
 		return delta < 0.01;
+	}
+
+	@Override
+	public double getNearestPoint(double x, double y, Point p) {
+		return 0;
 	}
 }

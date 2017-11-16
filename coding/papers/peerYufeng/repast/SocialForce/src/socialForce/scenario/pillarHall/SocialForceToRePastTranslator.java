@@ -16,7 +16,7 @@ public class SocialForceToRePastTranslator extends AbstractPointTranslator {
 	@Override
 	public void transform(double[] transformedLocation, double... targetLocation) {
 		for (int i=0; i< targetLocation.length; i++)
-			transformedLocation[i] = targetLocation[i];
+			transformedLocation[i] = targetLocation[i] * 25.0;
 	}
 
 	@Override

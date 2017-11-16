@@ -1,40 +1,32 @@
 <repast.simphony.visualization.engine.CartesianDisplayDescriptor simphonyVersion="2.5.0">
-  <name>SocialForceDisplay</name>
+  <name>PillarHall</name>
   <type>2D</type>
   <styles>
-    <entry>
-      <string>socialForce.AdaptiveWall</string>
-      <string>socialForce.rendering.AdaptiveWallRendering</string>
-    </entry>
     <entry>
       <string>socialForce.markup.Wall</string>
       <string>socialForce.rendering.WallRendering</string>
     </entry>
     <entry>
-      <string>socialForce.Screen</string>
-      <string>socialForce.rendering.ScreenRendering</string>
+      <string>socialForce.scenario.pillarHall.Person</string>
+      <string>repast.simphony.visualization.editedStyle.EditedStyle2D</string>
     </entry>
     <entry>
-      <string>socialForce.Person</string>
-      <string>socialForce.rendering.PersonRendering</string>
+      <string>socialForce.scenario.pillarHall.AdaptiveWall</string>
+      <string>repast.simphony.visualization.editedStyle.EditedStyle2D</string>
     </entry>
   </styles>
   <editedStyles>
-    <entry>
-      <string>socialForce.AdaptiveWall</string>
-      <null/>
-    </entry>
     <entry>
       <string>socialForce.markup.Wall</string>
       <null/>
     </entry>
     <entry>
-      <string>socialForce.Screen</string>
-      <null/>
+      <string>socialForce.scenario.pillarHall.Person</string>
+      <string>socialForce.scenario.pillarHall.Person.style_1.xml</string>
     </entry>
     <entry>
-      <string>socialForce.Person</string>
-      <null/>
+      <string>socialForce.scenario.pillarHall.AdaptiveWall</string>
+      <string>socialForce.scenario.pillarHall.AdaptiveWall.style_1.xml</string>
     </entry>
   </editedStyles>
   <netStyles/>
@@ -42,37 +34,33 @@
   <frequency>ON_MOVE</frequency>
   <schedParams>
     <start>1.0</start>
-    <interval>0.01</interval>
+    <interval>1.0</interval>
     <priority>NaN</priority>
     <pType>RANDOM</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-1179392674</hashCode>
+    <hashCode>-1203922244</hashCode>
   </schedParams>
   <layoutClassName>foo.bar.baz</layoutClassName>
-  <layoutProjection>SocialForceSpace</layoutProjection>
+  <layoutProjection>PillarHallSpace</layoutProjection>
   <layoutInterval>0</layoutInterval>
   <layerOrder>
     <entry>
-      <string>socialForce.AdaptiveWall</string>
+      <string>socialForce.markup.Wall</string>
       <int>0</int>
     </entry>
     <entry>
-      <string>socialForce.markup.Wall</string>
-      <int>2</int>
-    </entry>
-    <entry>
-      <string>socialForce.Screen</string>
+      <string>socialForce.scenario.pillarHall.Person</string>
       <int>1</int>
     </entry>
     <entry>
-      <string>socialForce.Person</string>
-      <int>3</int>
+      <string>socialForce.scenario.pillarHall.AdaptiveWall</string>
+      <int>2</int>
     </entry>
   </layerOrder>
   <projections>
     <repast.simphony.scenario.data.ProjectionData>
-      <id>SocialForceSpace</id>
+      <id>PillarHallSpace</id>
       <attributes/>
       <type>continuous space</type>
     </repast.simphony.scenario.data.ProjectionData>
@@ -82,7 +70,7 @@
   </visualizationProperties>
   <projectionDescriptors>
     <entry>
-      <string>SocialForceSpace</string>
+      <string>PillarHallSpace</string>
       <repast.simphony.visualization.continuous.ContinuousProjectionDescriptor>
         <proj reference="../../../../projections/repast.simphony.scenario.data.ProjectionData"/>
         <props>

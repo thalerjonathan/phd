@@ -7,7 +7,7 @@ import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.ui.probe.ProbedProperty;
 import socialForce.Utils;
-import socialForce.chart.museum.PersonMuseumStatechart;
+import socialForce.chart.pillarHall.PersonHallStatechart;
 import socialForce.geom.Point;
 import socialForce.markup.Wall;
 
@@ -21,6 +21,8 @@ public class Person {
 	
 	private double destX;
 	private double destY;
+	
+	private boolean top;
 	
 	private Point entry;
 	
@@ -56,21 +58,25 @@ public class Person {
 	
 	private boolean applyPsy;
 	
-	public double sumFiWH;
-	public double sumFiWV;
-	public double sumFijH;
-	public double sumFijV;
+	private double sumFiWH;
+	private double sumFiWV;
+	private double sumFijH;
+	private double sumFijV;
 	
 	private PillarHall main;
 	private ContinuousSpace<Object> space;
+	
+	public final static double VI0_INIT = 1.4;
 	
 	@ProbedProperty(displayName="PersonHallStatechart")
 	PersonHallStatechart state = PersonHallStatechart.createStateChart(this, 0);
 	
 	// NOTE: start is in pixel-space
-	public Person(PillarHall main, ContinuousSpace<Object> space, Point start, Point entry) {
+	public Person(PillarHall main, ContinuousSpace<Object> space, boolean top, Point start, Point entry) {
 		this.main = main;
 		this.space = space;
+		
+		this.top = top;
 		
 		this.entry = entry;
 		
@@ -103,12 +109,20 @@ public class Person {
 		this.K = 1.2*100_000;
 		this.k = 2.4*100_000;
 		this.ri = Utils.uniform(0.15,0.25);
-		this.vi0 = 1.4;
+		this.vi0 = VI0_INIT;
 		this.mi = 80;
 	}
 
+	public PillarHall getMain() {
+		return this.main;
+	}
+	
 	public double getX() {
 		return this.x;
+	}
+	
+	public boolean isTop() {
+		return this.top;
 	}
 	
 	public double getY() {
@@ -139,12 +153,33 @@ public class Person {
 		this.readingTime = d;
 	}
 	
+	public boolean isInGroup() {
+		return this.belongedGroup != null;
+	}
+	
+	public Group getGroup() {
+		return this.belongedGroup;
+	}
+	
 	public boolean isAtDest() {
 		return this.arrivedDest;
 	}
 	
 	public void resetAtDest() {
 		this.arrivedDest = false;
+	}
+	
+	public void setDest(double dx, double dy) {
+		this.destX = dx;
+		this.destY = dy;
+	}
+	
+	public double getReadingTime() {
+		return this.readingTime;
+	}
+	
+	public void flipTop() {
+		this.top = !this.top;
 	}
 	
 	public void updatePosition() {
@@ -155,6 +190,18 @@ public class Person {
 	public void destToEntry() {
 		this.destX = this.entry.x / PillarHall.METER_2_PX;
 		this.destY = this.entry.y / PillarHall.METER_2_PX;
+	}
+	
+	public void resetVi0() {
+		this.vi0 = VI0_INIT;
+	}
+	
+	public double getDestY() {
+		return this.destY;
+	}
+	
+	public double getDestX() {
+		return this.destX;
 	}
 	
 	@ScheduledMethod(start = 0, interval = PillarHall.UNIT_TIME)

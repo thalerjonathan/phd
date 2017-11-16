@@ -5,9 +5,9 @@ import java.util.Collections;
 import java.util.List;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
+import repast.simphony.space.continuous.ContinuousSpace;
 import socialForce.Utils;
 import socialForce.geom.Point;
-import socialForce.scenario.museum.Museum;
 
 public class AdaptiveWall {
 
@@ -34,9 +34,11 @@ public class AdaptiveWall {
 	private List<Double> doorsX;
 	
 	private PillarHall main;
+	private ContinuousSpace<Object> space;
 	
-	public AdaptiveWall(PillarHall main) {
+	public AdaptiveWall(PillarHall main, ContinuousSpace<Object> space) {
 		this.main = main;
+		this.space = space;
 		
 		this.x = 200;
 		this.y = 270;
@@ -82,14 +84,25 @@ public class AdaptiveWall {
 		if(ty>yMin && ty<yMax){
 			y=ty;
 		}
+		
+		this.updatePosition();
+	}
+	
+	public void updatePosition() {
+		Point p = Utils.anylogicToRePast(new Point(this.x, this.y));
+		space.moveTo(this, p.x, p.y);
 	}
 	
 	public List<Double> getWalls() {
-		return Collections.unmodifiableList(this.doorsX);
+		return Collections.unmodifiableList(this.wallsX);
 	}
 	
 	public List<Double> getWallWidths() {
 		return Collections.unmodifiableList(this.wallsWidth);
+	}
+	
+	public List<Double> getDoors() {
+		return Collections.unmodifiableList(this.doorsX);
 	}
 	
 	public double getX() {

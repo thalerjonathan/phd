@@ -35,6 +35,35 @@ public class Group {
 		return this.people.contains(p);
 	}
 	
+	public boolean isModified() {
+		return this.modified;
+	}
+	
+	public void setDest(double dx, double dy) {
+		this.destX = dx;
+		this.destY = dy;
+	}
+	
+	public void randomExit() {
+		this.exit = Utils.uniform(0,1) < PillarHall.EXIT_RATE;
+	}
+	
+	public boolean isExit() {
+		return this.exit;
+	}
+	
+	public void setModified() {
+		this.modified = true;
+	}
+	
+	public double getDestX() {
+		return this.destX;
+	}
+	
+	public double getDestY() {
+		return this.destY;
+	}
+	
 	public void addPerson(Person p) {
 		p.setReadingTime(this.readingTime);
 		p.setColor(this.color);

@@ -26,9 +26,10 @@ public class PillarHall {
 	private List<Point> topStartPoints;
 	private Point topEntrance;
 	private Point bottomEntrance;
-	private List<Point> exitPoints;
+	private Point topExit;
+	private Point bottomExit;;
 	
-	private Rect area;
+	private Rect movingArea;
 	private Rect legalArea;
 	
 	private boolean enableVisionArea;
@@ -42,7 +43,7 @@ public class PillarHall {
 	private final static double SPAWNING_SPEED_TOP = 5.0;
 	private final static double SPAWNING_SPEED_BOTTOM = 5.0;
 	
-	private final static double EXIT_RATE = 0.5;
+	public final static double EXIT_RATE = 0.5;
 	
 	public PillarHall(ContinuousSpace<Object> space) {
 		this.space = space;
@@ -68,6 +69,10 @@ public class PillarHall {
 		return Collections.unmodifiableList(this.walls);
 	}
 	
+	public Rect getMovingArea() {
+		return this.movingArea;
+	}
+	
 	public AdaptiveWall getAdaptiveWall() {
 		return this.adaptiveWall;
 	}
@@ -87,7 +92,7 @@ public class PillarHall {
 	}
 	
 	private void initMarkups(Context<Object> context) {
-		this.area = new Rect(new Point(70, 130), 260, 290);
+		this.movingArea = new Rect(new Point(70, 130), 260, 290);
 		this.legalArea = new Rect(new Point(50, 30), 300, 490);
 		
 		initWalls(context);
@@ -117,7 +122,6 @@ public class PillarHall {
 	private void initPoints() {
 		this.bottomStartPoints = new ArrayList<Point>();
 		this.topStartPoints = new ArrayList<Point>();
-		this.exitPoints = new ArrayList<Point>();
 		
 		this.bottomStartPoints.add(new Point(280, 490));
 		this.bottomStartPoints.add(new Point(290, 520));
@@ -134,27 +138,27 @@ public class PillarHall {
 		this.topEntrance = new Point(310, 140);
 		this.bottomEntrance = new Point(310, 420);
 		
-		this.exitPoints.add(new Point(90, 110));
-		this.exitPoints.add(new Point(90, 440));
+		this.topExit = new Point(90, 110);
+		this.bottomExit = new Point(90, 440);
 	}
 	
 	private void initAdaptiveWall(Context<Object> context) {
-		this.adaptiveWall = new AdaptiveWall(this);
+		this.adaptiveWall = new AdaptiveWall(this, space);
 		
 		context.add(adaptiveWall);
-		space.moveTo(adaptiveWall, 0, 0); // add at 0/0, the rendering will take care of rendering it at the correct position
+		this.adaptiveWall.updatePosition();
 	} 
 	
 	private void spawn(boolean top) {
 		if(Utils.uniform() > GROUP_SPAWNING){
-			addPerson(getStartPoints(top).get(0), getEntrancePoint(top));
+			addPerson(top, getStartPoints(top).get(0), getEntrancePoint(top));
 		}else{
 			addGroup(top);
 		}	
 	}
 	
-	private Person addPerson(Point startPoint, Point entryPoint) {
-		Person p = new Person(this, space, startPoint, entryPoint);
+	private Person addPerson(boolean top, Point startPoint, Point entryPoint) {
+		Person p = new Person(this, space, top, startPoint, entryPoint);
 		this.people.add( p );
 		
 		Context<Object> context = ContextUtils.getContext(this);
@@ -180,6 +184,14 @@ public class PillarHall {
 		}
 	}
 	
+	public Point getExitPoint(boolean top) {
+		if (top) {
+			return this.topExit;
+		} else {
+			return this.bottomExit;
+		}
+	}
+	
 	private void addGroup(boolean top) {
 		Group g = new Group();
 		this.groups.add(g);
@@ -187,8 +199,8 @@ public class PillarHall {
 		List<Point> startPoints = getStartPoints(top);
 		Point entrancePoint = getEntrancePoint(top);
 		
-		Person p0 = addPerson(startPoints.get(0), entrancePoint);
-		Person p1 = addPerson(startPoints.get(1), entrancePoint);
+		Person p0 = addPerson(top, startPoints.get(0), entrancePoint);
+		Person p1 = addPerson(top, startPoints.get(1), entrancePoint);
 		
 		g.addPerson(p0);
 		g.addPerson(p1);
@@ -199,7 +211,7 @@ public class PillarHall {
 				continue;
 			}
 			
-			Person p = addPerson(startPoints.get(i), entrancePoint);
+			Person p = addPerson(top, startPoints.get(i), entrancePoint);
 
 			g.addPerson(p);
 			p.setRi(Utils.uniform(0.11,0.25));

@@ -244,8 +244,7 @@
 	[
 		"/home/jonathan/phd/coding/libraries/frABS",
 		"/home/jonathan/phd/coding/libraries/frABS/examples",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SocialForce",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape",
 		"/home/jonathan/phd/coding/libraries/frABS/src",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP",
 		"/home/jonathan/phd/coding/libraries/frABS/src/FRP/FrABS",
@@ -253,6 +252,8 @@
 	],
 	"file_history":
 	[
+		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Init.hs",
+		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Main.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SocialForce/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/SocialForce/Museum.hs",
@@ -277,7 +278,6 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/BilateralTrade/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/FrSIR/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/DoubleAuction/Trader.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/SugarScape/Init.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/HeroesCowards/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Run.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Zombies/Run.hs",
@@ -379,12 +379,11 @@
 		"/home/jonathan/phd/coding/libraries/frABS/examples/AgentZero/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/HeroesCowards/Model.hs",
 		"/home/jonathan/phd/coding/libraries/frABS/examples/Wildfire/Init.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/Init.hs",
-		"/home/jonathan/phd/coding/libraries/frABS/examples/Segregation/Init.hs"
+		"/home/jonathan/phd/coding/libraries/frABS/examples/PrisonersDilemma/Init.hs"
 	],
 	"find":
 	{
-		"height": 38.0
+		"height": 23.0
 	},
 	"find_in_files":
 	{
@@ -734,8 +733,8 @@
 						"selection":
 						[
 							[
-								1255,
-								1255
+								1249,
+								1249
 							]
 						],
 						"settings":
@@ -745,7 +744,7 @@
 							"syntax": "Packages/SublimeHaskell/Syntaxes/Haskell-SublimeHaskell.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 599.0,
+						"translation.y": 135.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,

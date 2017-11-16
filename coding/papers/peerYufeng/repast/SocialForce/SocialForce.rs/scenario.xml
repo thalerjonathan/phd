@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Scenario simphonyVersion="2.5.0">
-<repast.simphony.dataLoader.engine.ClassNameDataLoaderAction context="SocialForce" file="repast.simphony.dataLoader.engine.ClassNameDataLoaderAction_0.xml" />
-<repast.simphony.action.display context="SocialForce" file="repast.simphony.action.display_1.xml" />
+<repast.simphony.dataLoader.engine.ClassNameDataLoaderAction context="PillarHall" file="repast.simphony.dataLoader.engine.ClassNameDataLoaderAction_0.xml" />
+<repast.simphony.action.display context="PillarHall" file="repast.simphony.action.display_1.xml" />
 </Scenario>

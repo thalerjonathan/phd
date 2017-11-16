@@ -1,6 +1,5 @@
 \section{Introduction}
 
-
 The authors of the seminal Sugarscape model \cite{epstein_growing_1996} explicitly advocate object-oriented programming as "a particularly natural development environment for Sugarscape specifically and artificial societies generally.". They implemented their simulation software in Object Pascal and C where they used the former for programming the agents and the latter for low-level graphics \cite{axtell_aligning_1996}. Axelrod \cite{axelrod_advancing_1997} recommends Java for experienced programmers and Visual Basic for beginners. Up until now most of the ABS community seems to have followed these suggestions and are implemented using programming languages of the object-oriented imperative paradigm.
 
 In this paper we challenge these suggestions and ask how agent-based simulation can be implemented in the pure functional programming language Haskell. 
@@ -69,3 +68,6 @@ Define scientific measures: e.g. Lines Of Code (show relation to Bugs \& Defects
 1st: Functional vs. Object Oriented
 2nd: Haskell vs. Java
 3rd: FrABS vs. Repast
+
+\subsection{Drawbacks}
+the way the statechart is implemente in RePast requires that agents expose data through public methods or variables which exposes much more information than really needed.

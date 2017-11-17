@@ -40,7 +40,6 @@ public class Line implements IMarkup {
 	}
 	
 	public boolean contains(double x, double y) {
-		// TODO: implement from anylogic:
 		// Test if the shape contains the point with the given coordinates (relative to this shape's container, i.e. in the same system with the coordinates of this shape, x and y)
 		
 		// NOTE: this also returns true if the point lies on the extension of the line-segment

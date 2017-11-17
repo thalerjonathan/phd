@@ -39,6 +39,7 @@ public class Person {
 	
 	private boolean injured;
 	
+	private boolean left;
 	private boolean arrivedDest;
 	
 	private double AiWall;
@@ -104,6 +105,17 @@ public class Person {
 		this.ri = Utils.uniform(0.15,0.25);
 		this.vi0 = VI0_INIT;
 		this.mi = 80;
+		
+		this.left = false;
+	}
+	
+	public void leave() {
+		this.left = true;
+		this.main.removePerson(this);
+	}
+	
+	public boolean hasLeft() {
+		return this.left;
 	}
 
 	public PillarHall getMain() {
@@ -348,9 +360,9 @@ public class Person {
 			if((dij = Utils.distance(x,y,j.x,j.y)) > connectionRange){continue;}
 			double I = 1;
 			if(belongedGroup != null){
-			if(belongedGroup.isMember(j)){
-				I = -1;
-			}
+				if(belongedGroup.isMember(j)){
+					I = -1;
+				}
 			}
 			double theta = Math.atan2(j.y-y, j.x-x)-Math.atan2(speedY,speedX);
 			double cosTheta = 1;

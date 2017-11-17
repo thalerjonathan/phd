@@ -70,8 +70,14 @@ public class PillarHall {
 		return this.adaptiveWall;
 	}
 	
+	double y = 0;
+	double x = 0;
+	
 	@ScheduledMethod(start = 0, interval = SPAWNING_SPEED_TOP)
 	public void spawnEntryTop() {
+		y += 0.01;
+		x += 0.01;
+		space.moveTo(this, x, y);
 		spawn(true);
 	}
 
@@ -80,12 +86,33 @@ public class PillarHall {
 		spawn(false);
 	}
 	
+	public void removePerson(Person p) {
+		@SuppressWarnings("unchecked")
+		Context<Object> context = ContextUtils.getContext(this);
+		context.remove(p);
+
+		this.people.remove(p);
+		
+		if (p.isInGroup()) {
+			Group g = p.getGroup();
+			if (g.groupHasLeft()) {
+				//System.out.println("Group has left");
+				this.groups.remove(g);
+			}
+		}
+	}
+	
 	private void initMarkups(Context<Object> context) {
 		this.movingArea = new Rect(new Point(2.8, 5.2), 10.4, 11.6);
 		context.add(this.movingArea);
 		space.moveTo(this.movingArea, this.movingArea.getRef().getX(), this.movingArea.getRef().getY());
 		
 		initWalls(context);
+		
+		for (Point p : this.topStartPoints) {
+			context.add(p);
+			space.moveTo(p, p.getX(), p.getY());
+		}
 	}
 	
 	private void initWalls(Context<Object> context) {
@@ -154,6 +181,7 @@ public class PillarHall {
 		Person p = new Person(this, space, top, startPoint, entryPoint);
 		this.people.add( p );
 		
+		@SuppressWarnings("unchecked")
 		Context<Object> context = ContextUtils.getContext(this);
 		context.add(p);
 		p.updatePosition();

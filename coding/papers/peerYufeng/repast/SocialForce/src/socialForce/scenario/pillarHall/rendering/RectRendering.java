@@ -44,16 +44,17 @@ public class RectRendering implements StyleOGL2D<Rect> {
 	public VSpatial getVSpatial(Rect r, VSpatial spatial) {
 		if (spatial == null) {
 			// NOTE: we are working in LOCAL space
-			Point topRight = SocialForceToRePastTranslator.scaleFromSocialForceMeterToRePastPixel(new Point(r.getWidth(), 0));
-			Point bottomRight = SocialForceToRePastTranslator.scaleFromSocialForceMeterToRePastPixel(new Point(r.getWidth(), r.getHeight()));
-			Point bottomLeft = SocialForceToRePastTranslator.scaleFromSocialForceMeterToRePastPixel(new Point(0, r.getHeight()));
+			Point topLeft = SocialForceToRePastTranslator.transformSocialForceMeterToRePastPixel(new Point(0, 0));
+			Point topRight = SocialForceToRePastTranslator.transformSocialForceMeterToRePastPixel(new Point(r.getWidth(), 0));
+			Point bottomRight = SocialForceToRePastTranslator.transformSocialForceMeterToRePastPixel(new Point(r.getWidth(), r.getHeight()));
+			Point bottomLeft = SocialForceToRePastTranslator.transformSocialForceMeterToRePastPixel(new Point(0, r.getHeight()));
 				
 			Path2D.Double wallPath = new Path2D.Double();
-			wallPath.moveTo(0, 0);
+			wallPath.moveTo(topLeft.getX(), topLeft.getY());
 			wallPath.lineTo(topRight.getX(), topRight.getY());
 			wallPath.lineTo(bottomRight.getX(), bottomRight.getY());
 			wallPath.lineTo(bottomLeft.getX(), bottomLeft.getY());
-			wallPath.lineTo(0, 0);
+			wallPath.lineTo(topLeft.getX(), topLeft.getY());
 			
 			return shapeFactory.createShape(wallPath);
 		}

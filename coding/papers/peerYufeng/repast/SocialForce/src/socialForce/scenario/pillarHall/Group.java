@@ -52,8 +52,8 @@ public class Group {
 		return this.exit;
 	}
 	
-	public void setModified() {
-		this.modified = true;
+	public void setModified(boolean flag) {
+		this.modified = flag;
 	}
 	
 	public double getDestX() {
@@ -62,6 +62,16 @@ public class Group {
 	
 	public double getDestY() {
 		return this.destY;
+	}
+	
+	public boolean groupHasLeft() {
+		for (Person p : this.people) {
+			if (false == p.hasLeft()) {
+				return false;
+			}
+		}
+		
+		return true;
 	}
 	
 	public void addPerson(Person p) {

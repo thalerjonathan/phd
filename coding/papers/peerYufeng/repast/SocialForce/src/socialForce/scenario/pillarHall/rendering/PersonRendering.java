@@ -13,7 +13,7 @@ import socialForce.scenario.pillarHall.Person;
 
 public class PersonRendering implements StyleOGL2D<Person> {
 
-	private final static double PERSON_SIZE = 10;
+	private final static double PERSON_SIZE = 5;
 	private ShapeFactory2D shapeFactory;
 	
 	@Override

@@ -7,19 +7,30 @@ import socialForce.markup.Point;
 public class SocialForceToRePastTranslator extends AbstractPointTranslator {
 
 	private final static double METER_2_PX = 25.0;
+	private static double[] transformedLocationTemp = new double[2];
+	private static double[] targetLocationTemp = new double[2];
 	
-	public static Point scaleFromSocialForceMeterToRePastPixel(Point p) {
-		return new Point(p.getX() * METER_2_PX, p.getY() * METER_2_PX);
+	public static Point transformSocialForceMeterToRePastPixel(Point p) {
+		targetLocationTemp[0] = p.getX();
+		targetLocationTemp[1] = p.getY();
+		
+		transformSocialForceMeterToRePastPixel(transformedLocationTemp, targetLocationTemp);
+
+		return new Point(transformedLocationTemp[0], transformedLocationTemp[1]);
 	}
 	
-	@Override
-	public void transform(double[] transformedLocation, double... targetLocation) {
+	public static void transformSocialForceMeterToRePastPixel(double[] transformedLocation, double... targetLocation) {
 		for (int i=0; i< targetLocation.length; i++)
 			transformedLocation[i] = targetLocation[i] * METER_2_PX;
 		
 		// NOTE: social-force model has its origin top left and extends both axes positive towards bottom right
 		// flip y-achsis
-		transformedLocation[1] = PillarHallBuilder.SPACE_HEIGHT - transformedLocation[1];
+		//transformedLocation[1] = PillarHallBuilder.SPACE_HEIGHT - transformedLocation[1];
+	}
+	
+	@Override
+	public void transform(double[] transformedLocation, double... targetLocation) {
+		transformSocialForceMeterToRePastPixel(transformedLocation, targetLocation);
 	}
 	
 	@Override

@@ -44,11 +44,12 @@ public class LineRendering implements StyleOGL2D<Line> {
 	public VSpatial getVSpatial(Line w, VSpatial spatial) {
 		if (spatial == null) {
 			// NOTE: we are working in LOCAL space
-			Point p = SocialForceToRePastTranslator.scaleFromSocialForceMeterToRePastPixel(w.getVecFromTo());
+			Point from = SocialForceToRePastTranslator.transformSocialForceMeterToRePastPixel(new Point(0, 0));
+			Point to = SocialForceToRePastTranslator.transformSocialForceMeterToRePastPixel(w.getVecFromTo());
 			
 			Path2D.Double wallPath = new Path2D.Double();
-			wallPath.moveTo(0, 0);
-			wallPath.lineTo(p.getX(), p.getY());
+			wallPath.moveTo(from.getX(), from.getY());
+			wallPath.lineTo(to.getX(), to.getY());
 			
 			return shapeFactory.createShape(wallPath);
 		}

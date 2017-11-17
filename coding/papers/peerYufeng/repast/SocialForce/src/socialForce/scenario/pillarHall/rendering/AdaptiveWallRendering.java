@@ -28,8 +28,8 @@ public class AdaptiveWallRendering implements StyleOGL2D<AdaptiveWall> {
 			double halfWidth = w.getTotalWidth() * 0.5;
 			
 			 // NOTE: still need to scale to RePast pixels
-			Point from = SocialForceToRePastTranslator.scaleFromSocialForceMeterToRePastPixel(new Point(-halfWidth, 0));
-			Point to = SocialForceToRePastTranslator.scaleFromSocialForceMeterToRePastPixel(new Point(halfWidth, 0));
+			Point from = SocialForceToRePastTranslator.transformSocialForceMeterToRePastPixel(new Point(-halfWidth, 0));
+			Point to = SocialForceToRePastTranslator.transformSocialForceMeterToRePastPixel(new Point(halfWidth, 0));
 			
 			Line2D.Double adaptWallLine = new Line2D.Double(from.getX(), from.getY(), to.getX(), to.getY());
 			

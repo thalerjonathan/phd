@@ -27,6 +27,6 @@ public class Utils {
 	}
 	
 	public static Point anylogicToRePast(Point p) {
-		return new Point(p.x, MuseumBuilder.SPACE_HEIGHT - p.y);
+		return new Point(p.getX(), MuseumBuilder.SPACE_HEIGHT - p.getY());
 	}
 }

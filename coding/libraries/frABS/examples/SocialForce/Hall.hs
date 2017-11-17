@@ -1,6 +1,6 @@
 {-# LANGUAGE Arrows #-}
-module SocialForce.Museum (
-    museumBehaviour
+module SocialForce.Hall (
+    hallBehaviour
   ) where
 
 import Control.Monad
@@ -62,5 +62,5 @@ initPerson ain = do
   let personPos = musStartPoint s
   agentRandomM (createPerson personId personPos)
 
-museumBehaviour :: RandomGen g => g -> SocialForceAgentBehaviour
-museumBehaviour g = doOccasionallyEvery g enterSpeed (spawnVisitors g)
+hallBehaviour :: RandomGen g => g -> SocialForceAgentBehaviour
+hallBehaviour g = doOccasionallyEvery g enterSpeed (spawnVisitors g)

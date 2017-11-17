@@ -9,7 +9,7 @@ import FRP.Yampa
 
 import SocialForce.Model
 import SocialForce.Markup
-import SocialForce.Museum
+import SocialForce.Hall
 
 initSocialForce :: SocialForceSimulationParams -> Rand StdGen ([SocialForceAgentDef], SocialForceEnvironment)
 initSocialForce params = do
@@ -20,15 +20,15 @@ initSocialForce params = do
   
 initAgents :: SocialForceSimulationParams -> Rand StdGen [SocialForceAgentDef]
 initAgents params = do
-  museum <- initMuseum params
-  return [museum]
+  hall <- initHall params
+  return [hall]
   
-initMuseum :: SocialForceSimulationParams -> Rand StdGen SocialForceAgentDef
-initMuseum params = do
+initHall :: SocialForceSimulationParams -> Rand StdGen SocialForceAgentDef
+initHall params = do
   let aid = newAgentId params
   rng <- getSplit
 
-  let s = Museum {
+  let s = Hall {
       musStartPoint = (170, 520)
     , musGroupPoint0 = (210, 510)
     , musGroupPoints = [(200, 540), (130, 510), (140, 540)]
@@ -39,7 +39,7 @@ initMuseum params = do
     adState = s,
     adConversation = Nothing,
     adInitMessages = NoEvent,
-    adBeh = museumBehaviour rng,
+    adBeh = hallBehaviour rng,
     adRng = rng 
   }
 

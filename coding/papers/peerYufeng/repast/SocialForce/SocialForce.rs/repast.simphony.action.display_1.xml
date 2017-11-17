@@ -3,10 +3,6 @@
   <type>2D</type>
   <styles>
     <entry>
-      <string>socialForce.markup.Point</string>
-      <string>repast.simphony.visualizationOGL2D.DefaultStyleOGL2D</string>
-    </entry>
-    <entry>
       <string>socialForce.markup.Line</string>
       <string>socialForce.scenario.pillarHall.rendering.LineRendering</string>
     </entry>
@@ -19,19 +15,11 @@
       <string>socialForce.scenario.pillarHall.rendering.RectRendering</string>
     </entry>
     <entry>
-      <string>socialForce.scenario.pillarHall.PillarHall</string>
-      <string>repast.simphony.visualizationOGL2D.DefaultStyleOGL2D</string>
-    </entry>
-    <entry>
       <string>socialForce.scenario.pillarHall.AdaptiveWall</string>
       <string>socialForce.scenario.pillarHall.rendering.AdaptiveWallRendering</string>
     </entry>
   </styles>
   <editedStyles>
-    <entry>
-      <string>socialForce.markup.Point</string>
-      <null/>
-    </entry>
     <entry>
       <string>socialForce.markup.Line</string>
       <null/>
@@ -42,10 +30,6 @@
     </entry>
     <entry>
       <string>socialForce.markup.Rect</string>
-      <null/>
-    </entry>
-    <entry>
-      <string>socialForce.scenario.pillarHall.PillarHall</string>
       <null/>
     </entry>
     <entry>
@@ -63,35 +47,27 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-1531560354</hashCode>
+    <hashCode>-1452274425</hashCode>
   </schedParams>
   <layoutClassName>foo.bar.baz</layoutClassName>
   <layoutProjection>PillarHallSpace</layoutProjection>
   <layoutInterval>0</layoutInterval>
   <layerOrder>
     <entry>
-      <string>socialForce.markup.Point</string>
+      <string>socialForce.markup.Line</string>
       <int>1</int>
     </entry>
     <entry>
-      <string>socialForce.markup.Line</string>
-      <int>3</int>
-    </entry>
-    <entry>
       <string>socialForce.scenario.pillarHall.Person</string>
-      <int>4</int>
-    </entry>
-    <entry>
-      <string>socialForce.markup.Rect</string>
       <int>2</int>
     </entry>
     <entry>
-      <string>socialForce.scenario.pillarHall.PillarHall</string>
+      <string>socialForce.markup.Rect</string>
       <int>0</int>
     </entry>
     <entry>
       <string>socialForce.scenario.pillarHall.AdaptiveWall</string>
-      <int>5</int>
+      <int>3</int>
     </entry>
   </layerOrder>
   <projections>

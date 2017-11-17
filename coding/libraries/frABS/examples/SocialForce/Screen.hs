@@ -1,2 +1,0 @@
-module SocialForce.Screen (
-  ) where

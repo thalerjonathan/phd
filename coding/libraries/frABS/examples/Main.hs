@@ -33,7 +33,7 @@ import           NewAgents.Run
 -}
 
 main :: IO ()
-main = runSugarScapeWithRendering
+main = runSocialForce
 
   -- runSocialForce
   -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile

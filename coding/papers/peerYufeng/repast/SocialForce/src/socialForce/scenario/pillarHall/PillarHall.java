@@ -27,7 +27,7 @@ public class PillarHall {
 	private Point topEntrance;
 	private Point bottomEntrance;
 	private Point topExit;
-	private Point bottomExit;;
+	private Point bottomExit;
 	
 	private Rect movingArea;
 	
@@ -70,14 +70,8 @@ public class PillarHall {
 		return this.adaptiveWall;
 	}
 	
-	double y = 0;
-	double x = 0;
-	
 	@ScheduledMethod(start = 0, interval = SPAWNING_SPEED_TOP)
 	public void spawnEntryTop() {
-		y += 0.01;
-		x += 0.01;
-		space.moveTo(this, x, y);
 		spawn(true);
 	}
 

@@ -43,7 +43,15 @@ data SocialForceMsg = SocialForceMsg
 
 data SocialForceEnvironment = SocialForceEnvironment
   {
-      sfEnvWalls :: [Wall]
+      sfEnvWalls        :: [Wall]
+    , sfEnvTopEntr      :: Continuous2dCoord
+    , sfEnvTopExit      :: Continuous2dCoord
+    , sfEnvBotEntr      :: Continuous2dCoord
+    , sfEnvBotExit      :: Continuous2dCoord
+    , sfEnvTopStart     :: [Continuous2dCoord]
+    , sfEnvBotStart     :: [Continuous2dCoord]
+    
+    , sfEnvMovingArea   :: Rect
   } deriving Show
 
 type PersonColor = (Int, Int, Int)
@@ -59,11 +67,9 @@ data PersonState
   | Leaving deriving (Eq, Show)
 
 data SocialForceAgentState = 
-    Museum 
+    Hall 
     {
-        musStartPoint   :: Continuous2dCoord
-      , musGroupPoint0  :: Continuous2dCoord
-      , musGroupPoints  :: [Continuous2dCoord]
+        
     }
   | Person
     {

@@ -1,3 +1,4 @@
+{-# LANGUAGE Arrows #-}
 module SocialForce.Person (
     createPerson
   ) where
@@ -15,8 +16,47 @@ import SocialForce.Markup
 
 -------------------------------------------------------------------------------
 -- STATECHART
-personStateChart :: SocialForceAgentBehaviour
-personStateChart = undefined 
+goingToEntranceState :: SocialForceAgentBehaviour
+goingToEntranceState = transitionOnEvent 
+                        isAtDest
+                        goingToEntrance
+                        movingState
+
+goingToEntrance :: SocialForceAgentBehaviour
+goingToEntrance = doOnceR $ ignoreEnv $ proc ain -> do
+  let ao = agentOutFromIn ain
+  let ao' = updateAgentState (\s -> s { perState = GoingToEntrance, perDest = (perEntry s) }) ao
+  returnA -< ao
+
+movingState :: SocialForceAgentBehaviour
+movingState = transitionOnEvent 
+                isAtDest
+                moving
+                holdingState
+
+moving :: SocialForceAgentBehaviour
+moving = proc (ain, e) -> do
+  let ao = agentOutFromIn ain
+  let ao' = setState Moving ao
+  returnA -< (ao', e)
+
+holdingState :: SocialForceAgentBehaviour
+holdingState = undefined
+
+holding :: SocialForceAgentBehaviour
+holding = proc (ain, e) -> do
+  let ao = agentOutFromIn ain
+  let ao' = setState Holding ao
+  returnA -< (ao', e)
+
+isAtDest :: SocialForceEventSource
+isAtDest = proc (ain, ao) -> do
+  let s = agentState ao
+  arrivedDestEvt <- edge -< perArrivedDest s
+  returnA -< (ao, arrivedDestEvt)
+
+setState :: PersonState -> SocialForceAgentOut -> SocialForceAgentOut
+setState state = updateAgentState (\s -> s { perState = state })
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------

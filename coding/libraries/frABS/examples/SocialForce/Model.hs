@@ -21,6 +21,10 @@ module SocialForce.Model (
     , SocialForceAgentMonadicBehaviourReadEnv
     , SocialForceAgentMonadicBehaviourNoEnv
 
+    , SocialForceReactiveBehaviourIgnoreEnv
+    , SocialForceReactiveBehaviourReadEnv
+
+    , SocialForceEventSource
     , SocialForceSimulationParams
 
     , isPerson
@@ -161,6 +165,10 @@ type SocialForceAgentMonadicBehaviour = AgentMonadicBehaviour SocialForceAgentSt
 type SocialForceAgentMonadicBehaviourReadEnv = AgentMonadicBehaviourReadEnv SocialForceAgentState SocialForceMsg SocialForceEnvironment
 type SocialForceAgentMonadicBehaviourNoEnv = AgentMonadicBehaviourNoEnv SocialForceAgentState SocialForceMsg SocialForceEnvironment
 
+type SocialForceReactiveBehaviourIgnoreEnv = ReactiveBehaviourIgnoreEnv SocialForceAgentState SocialForceMsg SocialForceEnvironment 
+type SocialForceReactiveBehaviourReadEnv = ReactiveBehaviourReadEnv SocialForceAgentState SocialForceMsg SocialForceEnvironment 
+
+type SocialForceEventSource = EventSource SocialForceAgentState SocialForceMsg SocialForceEnvironment
 type SocialForceSimulationParams = SimulationParams SocialForceEnvironment
 
 isPerson :: SocialForceAgentState -> Bool

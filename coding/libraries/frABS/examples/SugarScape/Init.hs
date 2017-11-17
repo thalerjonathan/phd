@@ -151,7 +151,7 @@ randomAgentIO params coord =
         adef <- evalRandIO (randomAgent
                                 (aid, coord)
                                 sugarScapeAgentBehaviour
-                                sugarScapeAgentConversation))
+                                sugarScapeAgentConversation)
 
         return adef
 

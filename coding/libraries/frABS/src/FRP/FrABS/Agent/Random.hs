@@ -3,6 +3,7 @@ module FRP.FrABS.Agent.Random (
     agentRandomM,
     
     agentRandomRange,
+    agentRandomRangeM,
     agentRandomRanges,
     agentRandomBoolProb,
     agentRandomBoolProbM,
@@ -53,6 +54,9 @@ agentRandomM f = state (runAgentRandomMAux f)
 -------------------------------------------------------------------------------
 agentRandomRange :: (Random a) => (a, a) -> AgentOut s m e -> (a, AgentOut s m e)
 agentRandomRange r a = agentRandom (getRandomR r) a 
+
+agentRandomRangeM :: (Random a) => (a, a) -> State (AgentOut s m e) a
+agentRandomRangeM r = state (\ao -> agentRandomRange r ao)
 
 agentRandomRanges :: (Random a) => (a, a) -> Int -> AgentOut s m e -> ([a], AgentOut s m e)
 agentRandomRanges r n ao = agentRandom agentRandomRangesAux ao 

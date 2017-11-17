@@ -17,7 +17,7 @@ decidePosition friendCoord enemyCoord role
     | Hero == role = coverPosition
     | otherwise = hidePosition
     where
-        enemyFriendVec = vecFromCoord friendCoord enemyCoord
+        enemyFriendVec = vecFromCoords friendCoord enemyCoord
         halfVec = multCoord 0.5 enemyFriendVec 
         coverPosition = addCoord friendCoord halfVec
         hidePosition = subCoord friendCoord halfVec
@@ -30,7 +30,7 @@ agentMove e role =
         enemyCoord <- agentStateFieldM hacEnemyCoord
 
         let target = decidePosition friendCoord enemyCoord role
-        let targetDir = vecNorm $ vecFromCoord coord target
+        let targetDir = vecNorm $ vecFromCoords coord target
 
         let dt = 1.0 -- TODO: can we obtain it somehow?
         let stepWidth = stepWidthPerTimeUnit * dt

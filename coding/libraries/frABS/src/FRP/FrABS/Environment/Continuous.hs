@@ -21,9 +21,10 @@ module FRP.FrABS.Environment.Continuous (
     multCoord,
     addCoord,
     subCoord,
-    vecFromCoord,
+    vecFromCoords,
     vecLen,
     vecNorm,
+    dotCoords,
 
     objectPresent,
     objectCoord,
@@ -62,7 +63,7 @@ createContinuous2d d w = Continuous2d {
 stepTo :: Continuous2d o -> Double -> Continuous2dCoord -> Continuous2dCoord -> Continuous2dCoord
 stepTo e step from to = wrapCont2dEnv e from'
     where
-        dir = vecNorm $ vecFromCoord from to
+        dir = vecNorm $ vecFromCoords from to
         from' = addCoord from (multCoord step dir)
 
 stepRandom :: Continuous2dCoord 
@@ -102,11 +103,14 @@ addCoord (x1, y1) (x2, y2) = (x1+x2, y1+y2)
 subCoord :: Continuous2dCoord -> Continuous2dCoord -> Continuous2dCoord
 subCoord (x1, y1) (x2, y2) = (x1-x2, y1-y2)
 
-vecFromCoord :: Continuous2dCoord -> Continuous2dCoord -> Continuous2dCoord
-vecFromCoord (x1, y1) (x2, y2) = (x2-x1, y2-y1)
+vecFromCoords :: Continuous2dCoord -> Continuous2dCoord -> Continuous2dCoord
+vecFromCoords (x1, y1) (x2, y2) = (x2-x1, y2-y1)
 
 vecLen :: Continuous2dCoord -> Double
 vecLen (x, y) = sqrt( x * x + y * y )
+
+dotCoords :: Continuous2dCoord -> Continuous2dCoord -> Double
+dotCoords (x1, y1) (x2, y2) = x1 * x2 + y1 * y2
 
 vecNorm :: Continuous2dCoord -> Continuous2dCoord
 vecNorm (x, y)

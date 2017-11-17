@@ -6,6 +6,11 @@ module SocialForce.Model (
     , PersonColor
     , PersonState (..)
 
+    , GroupId
+    , Group (..)
+
+    , PersonEnvObs (..)
+    
     , SocialForceAgentDef
     , SocialForceAgentBehaviour
     , SocialForceAgentIn
@@ -18,14 +23,24 @@ module SocialForce.Model (
 
     , SocialForceSimulationParams
 
+    , isPerson
     , unitTime
 
     , enterSpeed
     , groupSpawningProb
-    , pre_ppl_psy 
-    , pre_range
-    , pre_angle
-    , pre_wall_psy
+    , vi0Init
+    , enableVisionArea
+
+    , bottomStartPoints
+    , topStartPoints
+    , topEntrance
+    , bottomEntrance
+    , topExit
+    , bottomExit
+
+    , entrance
+    , exit
+    , startPoints
 
     , whiteColor
     , blackColor
@@ -33,6 +48,7 @@ module SocialForce.Model (
   ) where
 
 import Control.Monad.Random
+import qualified Data.Map.Strict as Map
 
 import FRP.FrABS
 import FRP.Yampa
@@ -44,14 +60,28 @@ data SocialForceMsg = SocialForceMsg
 data SocialForceEnvironment = SocialForceEnvironment
   {
       sfEnvWalls        :: [Line]
-    , sfEnvTopEntr      :: Continuous2dCoord
-    , sfEnvTopExit      :: Continuous2dCoord
-    , sfEnvBotEntr      :: Continuous2dCoord
-    , sfEnvBotExit      :: Continuous2dCoord
-    , sfEnvTopStart     :: [Continuous2dCoord]
-    , sfEnvBotStart     :: [Continuous2dCoord]
+    --, sfEnvTopEntr      :: Continuous2dCoord
+    --, sfEnvTopExit      :: Continuous2dCoord
+    --, sfEnvBotEntr      :: Continuous2dCoord
+    --, sfEnvBotExit      :: Continuous2dCoord
+    --, sfEnvTopStart     :: [Continuous2dCoord]
+    --, sfEnvBotStart     :: [Continuous2dCoord]
     
     , sfEnvMovingArea   :: Rect
+    , sfEnvPeos         :: Map.Map AgentId PersonEnvObs
+  } deriving Show
+
+type GroupId = AgentId
+
+data Group = Group
+  {
+      grpId           :: GroupId
+    , grpDest         :: Continuous2dCoord
+    , grpReadingTime  :: Double
+    , grpModified     :: Bool
+    , grpExit         :: Bool
+    , grpColor        :: PersonColor
+    , grpPersons      :: [AgentId]
   } deriving Show
 
 type PersonColor = (Int, Int, Int)
@@ -59,49 +89,66 @@ type PersonColor = (Int, Int, Int)
 data PersonState 
   = GoingToEntrance 
   | Moving
-  | Reading
-  | Waiting
-  | Resting
-  | Exiting
+  | Holding
   | FindingDoor
-  | Leaving deriving (Eq, Show)
+  | Exiting
+  | Leaving 
+  | Left deriving (Eq, Show)
+
+data PersonEnvObs = PersonEnvObs
+  {
+      peoPos    :: Continuous2dCoord
+    , peoSpeed  :: Continuous2dCoord
+    , peoRi     :: Double
+    , peoGroup  :: Maybe AgentId
+  } deriving Show
 
 data SocialForceAgentState = 
-    Hall -- NOTE: hall is completely stateless and only takes care of spawning/deleting agents/groups
+    Hall 
+    {
+      hallGroups :: [Group]
+    }
   | Person
     {
         perState        :: PersonState
+      , perTop          :: Bool  
+
       , perPos          :: Continuous2dCoord
+      , perDest         :: Continuous2dCoord
       , perSpeed        :: Continuous2dCoord
       , perHeading      :: Double
 
-      , perArrivedDest  :: Bool
-      , perDest         :: Continuous2dCoord
+      , perEntry        :: Continuous2dCoord
+
+      , perAttAngle     :: Double
+      , perConRange     :: Double
 
       , perColor        :: PersonColor
 
-      , perVi0          :: Double
-      , perAi           :: Double
+      , perGroup        :: Maybe AgentId
+
+      , perReadingTime  :: Double
+
+      , perInjured      :: Bool
+
+      , perArrivedDest  :: Bool
+
+      , perAiWall       :: Double
+      , perAiGrp        :: Double
       , perBi           :: Double
+      , perAi           :: Double
       , perK            :: Double
       , perk            :: Double
       , perRi           :: Double
+      , perVi0          :: Double
       , perMi           :: Double
-      
-      , perConRange     :: Double
-      , perAttRange     :: Double
-      , perAiWall       :: Double
-      , perAiGrp        :: Double
-    
-      , perBelGroup     :: Maybe AgentId
-      , perDestScreen   :: AgentId
+
+      , perApplyPsy     :: Bool
 
       , perSumFiWH      :: Double
       , perSumFiWV      :: Double
       , perSumFijH      :: Double
       , perSumFijV      :: Double
-
-      , perInjured      :: Bool
     } deriving Show
 
 type SocialForceAgentDef = AgentDef SocialForceAgentState SocialForceMsg SocialForceEnvironment
@@ -116,6 +163,10 @@ type SocialForceAgentMonadicBehaviourNoEnv = AgentMonadicBehaviourNoEnv SocialFo
 
 type SocialForceSimulationParams = SimulationParams SocialForceEnvironment
 
+isPerson :: SocialForceAgentState -> Bool
+isPerson (Person {}) = True
+isPerson _ = False
+
 unitTime :: DTime
 unitTime = 0.1
 
@@ -125,17 +176,29 @@ enterSpeed = 2 -- TODO: re-set to 7
 groupSpawningProb :: Double
 groupSpawningProb = 0.3
 
-pre_ppl_psy :: Double 
-pre_ppl_psy = 2
+vi0Init :: Double
+vi0Init = 1.4
 
-pre_range :: Double 
-pre_range = 10
+enableVisionArea :: Bool
+enableVisionArea = False
 
-pre_angle :: Double 
-pre_angle = 5 * pi / 6;
+bottomStartPoints :: [Continuous2dCoord]
+bottomStartPoints = [(11.2, 19.6), (11.6, 20.8), (12.4, 19.6), (13.2, 20.8), (13.6, 19.6)]
 
-pre_wall_psy :: Double
-pre_wall_psy = 2
+topStartPoints :: [Continuous2dCoord]
+topStartPoints = [(11.2, 2.4), (11.6, 1.2), (12.4, 2.4), (13.2, 1.2), (13.6, 2.4)]
+
+topEntrance :: Continuous2dCoord
+topEntrance = (12.4, 5.6)
+
+bottomEntrance :: Continuous2dCoord
+bottomEntrance = (12.4, 16.8)
+
+topExit :: Continuous2dCoord
+topExit = (3.6, 4.4)
+
+bottomExit :: Continuous2dCoord
+bottomExit = (3.6, 17.6)
 
 blackColor :: PersonColor
 blackColor = (0, 0, 0)
@@ -149,3 +212,15 @@ randomColor = do
   g <- getRandomR (0, 255)
   b <- getRandomR (0, 255)
   return (r, g, b)
+
+entrance :: Bool -> Continuous2dCoord
+entrance True = topEntrance
+entrance _ = bottomEntrance
+
+exit :: Bool -> Continuous2dCoord
+exit True = topExit
+exit _ = bottomExit
+
+startPoints :: Bool -> [Continuous2dCoord]
+startPoints True = topStartPoints
+startPoints _ = bottomStartPoints

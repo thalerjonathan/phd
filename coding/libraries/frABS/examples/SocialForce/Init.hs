@@ -3,6 +3,7 @@ module SocialForce.Init (
   ) where
 
 import Control.Monad.Random
+import qualified Data.Map.Strict as Map
 
 import FRP.FrABS
 import FRP.Yampa
@@ -28,9 +29,13 @@ initHall params = do
   let aid = newAgentId params
   rng <- getSplit
 
+  let s = Hall {
+    hallGroups = []
+  }
+
   return AgentDef {
     adId = aid,
-    adState = Hall, -- Hall has no state 
+    adState = s,
     adConversation = Nothing,
     adInitMessages = NoEvent,
     adBeh = hallBehaviour rng,
@@ -40,12 +45,15 @@ initHall params = do
 initEnvironment :: SocialForceEnvironment
 initEnvironment = 
     SocialForceEnvironment {
-      sfEnvWalls = ws
+        sfEnvWalls = ws
+      , sfEnvMovingArea = ma
+      , sfEnvPeos = Map.empty
     } 
   where
     ws = initWalls
+    ma = ((2.8, 5.2), 10.4, 11.6)
 
-initWalls :: [Wall]
+initWalls :: [Line]
 initWalls = [ wall0, wall1, wall2, wall3, wall4, wall5, wall6, wall7, wall8, wall9, wall10]
   where
     wall0 = line (2, 4) (2, 18)

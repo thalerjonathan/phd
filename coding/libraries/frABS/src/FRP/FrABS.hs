@@ -144,6 +144,7 @@ module FRP.FrABS (
     agentRandomM,
     
     agentRandomRange,
+    agentRandomRangeM,
     agentRandomRanges,
     agentRandomBoolProb,
     agentRandomBoolProbM,
@@ -290,10 +291,11 @@ module FRP.FrABS (
     multCoord,
     addCoord,
     subCoord,
-    vecFromCoord,
+    vecFromCoords,
     vecLen,
     vecNorm,
-
+    dotCoords,
+    
     simulateAndRender,
     simulateStepsAndRender,
     

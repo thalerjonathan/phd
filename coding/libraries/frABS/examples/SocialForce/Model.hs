@@ -43,7 +43,7 @@ data SocialForceMsg = SocialForceMsg
 
 data SocialForceEnvironment = SocialForceEnvironment
   {
-      sfEnvWalls        :: [Wall]
+      sfEnvWalls        :: [Line]
     , sfEnvTopEntr      :: Continuous2dCoord
     , sfEnvTopExit      :: Continuous2dCoord
     , sfEnvBotEntr      :: Continuous2dCoord
@@ -67,10 +67,7 @@ data PersonState
   | Leaving deriving (Eq, Show)
 
 data SocialForceAgentState = 
-    Hall 
-    {
-        
-    }
+    Hall -- NOTE: hall is completely stateless and only takes care of spawning/deleting agents/groups
   | Person
     {
         perState        :: PersonState

@@ -31,11 +31,6 @@ spawnGroup _ ain = do
   groupColor <- agentRandomM randomColor
   let groupId = nextAgentId ain
 
-  let tdest = -1
-  -- TODO: Screen tdest = rooms.get(0).screens.get((int)(Utils.uniform(0,rooms.get(0).screens.size())));
-  -- Group g = new Group();
-  -- this.groups.add(g);
-
   p0 <- initPerson ain
   p1 <- initPerson ain
 

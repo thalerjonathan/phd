@@ -1,13 +1,19 @@
 module SocialForce.Markup (
-      Wall
+      Line
+    , Rect
 
-    , nearestPointWall
+    , line
+    , nearestPointLine
   ) where
 
 import FRP.FrABS
 
-type Wall = (Continuous2dCoord, Continuous2dCoord)
+type Line = (Continuous2dCoord, Continuous2dCoord)
 type Rect = (Continuous2dCoord, Continuous2dDimension)
 
-nearestPointWall :: Wall -> Continuous2dCoord -> (Double, Continuous2dCoord)
-nearestPointWall (from, to) (x, y) = (0, (0, 0)) -- TODO: implement
+line :: Continuous2dCoord -> Continuous2dCoord -> Line
+line from to = (from, to)
+
+-- TODO: maybe consider implementing a type-class Markup
+nearestPointLine :: Line -> Continuous2dCoord -> (Double, Continuous2dCoord)
+nearestPointLine (from, to) (x, y) = (0, (0, 0)) -- TODO: implement

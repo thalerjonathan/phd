@@ -62,11 +62,11 @@ calculateWalls e = do
   where
     calcWall :: Continuous2dCoord
                 -> Double
-                -> Wall 
+                -> Line 
                 -> (Double, Double) 
                 -> (Double, Double)
     calcWall pos connRange w (sumFiWH, sumFiWV) = do
-      let (dist, np) = nearestPointWall w pos
+      let (dist, np) = nearestPointLine w pos
 
       let ret = if dist > connRange
                 then (sumFiWH, sumFiWV)

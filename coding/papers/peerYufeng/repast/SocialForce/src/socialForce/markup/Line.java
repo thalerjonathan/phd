@@ -4,35 +4,35 @@ import socialForce.Utils;
 
 public class Line implements IMarkup {
 
-	private Point p1;
-	private Point p2;
+	private Point from;
+	private Point to;
 	private double len;
 	
-	public Line(Point p1, Point p2) {
-		this.p1 = p1;
-		this.p2 = p2;
+	public Line(Point from, Point to) {
+		this.from = from;
+		this.to = to;
 		
-		this.len = Utils.distance(p1, p2);
+		this.len = Utils.distance(from, to);
 	}
 
 	public double getFromX() {
-		return this.p1.getX();
+		return this.from.getX();
 	}
 	
 	public double getFromY() {
-		return this.p1.getY();
+		return this.from.getY();
 	}
 	
 	public double getToX() {
-		return this.p2.getX();
+		return this.to.getX();
 	}
 	
 	public double getToY() {
-		return this.p2.getY();
+		return this.to.getY();
 	}
 	
 	public Point getVecFromTo() {
-		return new Point(p2.getX() - p1.getX(), p2.getY() - p1.getY());
+		return new Point(to.getX() - from.getX(), to.getY() - from.getY());
 	}
 	
 	public double length() {
@@ -43,24 +43,38 @@ public class Line implements IMarkup {
 		// Test if the shape contains the point with the given coordinates (relative to this shape's container, i.e. in the same system with the coordinates of this shape, x and y)
 		
 		// NOTE: this also returns true if the point lies on the extension of the line-segment
-		double dp1 = Utils.distance(p1, new Point(x, y));
-		double dp2 = Utils.distance(p2, new Point(x, y));
-		double delta = Math.abs(dp1 - dp2);
+		double dfrom = Utils.distance(from, new Point(x, y));
+		double dto = Utils.distance(to, new Point(x, y));
+		double delta = Math.abs(dfrom - dto);
 		
 		return delta < 0.01;
 	}
 
 	@Override
 	public double getNearestPoint(double x, double y, Point p) {
-		double dist1 = Utils.distance(this.p1.getX(), this.p1.getY(), x, y);
-		double dist2 = Utils.distance(this.p2.getX(), this.p2.getY(), x, y);
+		// NOTE: this is inspired by https://en.wikibooks.org/wiki/Linear_Algebra/Orthogonal_Projection_Onto_a_Line
+		
+		Point vecFromTo = getVecFromTo();
+		
+		double dotProdVecPoint = vecFromTo.getX() * x + vecFromTo.getY() * y;
+		double dotProdVecVec = vecFromTo.getX() * vecFromTo.getX() + vecFromTo.getY() * vecFromTo.getY();
+		double dotProdsDiv = dotProdVecPoint / dotProdVecVec;
+		Point proj = new Point(vecFromTo.getX() * dotProdsDiv, vecFromTo.getY() * dotProdsDiv);
+		
+		p.override(proj.getX(), proj.getY());
+		return Utils.distance(proj, new Point(x, y));
+		
+		/*
+		double dist1 = Utils.distance(this.from.getX(), this.from.getY(), x, y);
+		double dist2 = Utils.distance(this.to.getX(), this.to.getY(), x, y);
 		
 		if ( dist1 >= dist2 ) {
-			p.override(this.p1.getX(), this.p1.getY());
+			p.override(this.from.getX(), this.from.getY());
 			return dist1;
 		} 
 		
-		p.override(this.p2.getX(), this.p2.getY());
+		p.override(this.to.getX(), this.to.getY());
 		return dist2;
+		*/
 	}
 }

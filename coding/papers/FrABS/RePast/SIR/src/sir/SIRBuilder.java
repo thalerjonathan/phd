@@ -37,7 +37,7 @@ public class SIRBuilder implements ContextBuilder<ISIRAgent> {
 			if (stateChartAgents) 
 				a = new SIRStateChartAgent(infected, contacts, infectionProb, illnessDuration);
 			else
-				a = new SIRAgent();
+				a = new SIRSimpleAgent(infected, contacts, infectionProb, illnessDuration);
 			
 			context.add( a );
 			agents.add( a );

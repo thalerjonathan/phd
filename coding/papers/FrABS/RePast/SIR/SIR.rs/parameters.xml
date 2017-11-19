@@ -7,7 +7,7 @@
 									
 		/>
 				<parameter name="statechart_agents" displayName="Use StateChart Agents" type="boolean" 
-						defaultValue="true" 
+						defaultValue="false" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$BooleanConverter"
 									
@@ -31,7 +31,7 @@
 									
 		/>
 				<parameter name="agents" displayName="Agent Count" type="int" 
-						defaultValue="10000" 
+						defaultValue="1000" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									

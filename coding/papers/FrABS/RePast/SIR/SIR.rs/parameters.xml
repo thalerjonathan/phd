@@ -13,7 +13,7 @@
 									
 		/>
 				<parameter name="infected_agents" displayName="Infected Agents" type="int" 
-						defaultValue="200" 
+						defaultValue="10" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
@@ -31,7 +31,7 @@
 									
 		/>
 				<parameter name="agents" displayName="Agent Count" type="int" 
-						defaultValue="1000" 
+						defaultValue="10000" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									

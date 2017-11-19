@@ -9,18 +9,6 @@ public class SIRAgent implements ISIRAgent {
 	}
 
 	@Override
-	public void inContactWith(ISIRAgent a) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void infect() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	public boolean isSusceptible() {
 		// TODO Auto-generated method stub
 		return false;
@@ -37,23 +25,4 @@ public class SIRAgent implements ISIRAgent {
 		// TODO Auto-generated method stub
 		return false;
 	}
-
-	@Override
-	public double getInfectionProb() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public double getContactRate() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public double getIllnessDuration() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
 }

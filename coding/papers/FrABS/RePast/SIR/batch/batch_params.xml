@@ -1,3 +1,1 @@
-<?xml version="1.0"?>
-<sweep runs="1">
-</sweep>
+<?xml version="1.0" ?><sweep runs="1"><parameter name="statechart_agents" type="constant" constant_type="boolean" value="true"></parameter><parameter name="infected_agents" type="constant" constant_type="int" value="10"></parameter><parameter name="contacts" type="constant" constant_type="int" value="5"></parameter><parameter name="infection_probability" type="constant" constant_type="double" value="0.05"></parameter><parameter name="agents" type="constant" constant_type="int" value="1000"></parameter><parameter name="illness_duration" type="constant" constant_type="double" value="15.0"></parameter></sweep>

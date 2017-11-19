@@ -1,3 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<Scenario>
+<Scenario simphonyVersion="2.5.0">
+<repast.simphony.action.data_set context="SIR" file="repast.simphony.action.data_set_0.xml" />
+<repast.simphony.dataLoader.engine.ClassNameDataLoaderAction context="SIR" file="repast.simphony.dataLoader.engine.ClassNameDataLoaderAction_1.xml" />
+<repast.simphony.action.time_series_chart context="SIR" file="repast.simphony.action.time_series_chart_2.xml" />
 </Scenario>

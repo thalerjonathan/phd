@@ -5,5 +5,6 @@
 	<classpathentry exported="true" kind="con" path="GROOVY_SUPPORT"/>
 	<classpathentry exported="true" kind="con" path="GROOVY_DSL_SUPPORT"/>
 	<classpathentry kind="con" path="REPAST_SIMPHONY_SUPPORT"/>
+	<classpathentry kind="src" path="src-gen/"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -6,14 +6,16 @@
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
-				<parameter name="statechart_agents" displayName="Use StateChart Agents" type="boolean" 
+		
+		<parameter name="statechart_agents" displayName="Use StateChart Agents" type="boolean" 
 						defaultValue="true" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$BooleanConverter"
 									
 		/>
+		
 				<parameter name="infected_agents" displayName="Infected Agents" type="int" 
-						defaultValue="200" 
+						defaultValue="10" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									

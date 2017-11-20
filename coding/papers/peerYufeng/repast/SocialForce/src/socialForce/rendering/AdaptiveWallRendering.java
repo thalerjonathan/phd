@@ -23,6 +23,8 @@ public class AdaptiveWallRendering implements StyleOGL2D<AdaptiveWall> {
 	@Override
 	public VSpatial getVSpatial(AdaptiveWall w, VSpatial spatial) {
 		if (spatial == null) {
+			// TODO: get rid of this, should use normal line-rendering
+			
 			// NOTE: we are working in LOCAL space
 			double halfWidth = w.getTotalWidth() * 0.5;
 			

@@ -39,7 +39,7 @@ public class Vector implements Markup {
 
 	public Vector normalize() {
 		double len = this.length();
-		return new Vector(this.p.getX() / len, this.p.getY() / len);
+		return this.scale(1/len); // new Vector(this.p.getX() / len, this.p.getY() / len);
 	}
 	
 	public Vector scale(double s) {

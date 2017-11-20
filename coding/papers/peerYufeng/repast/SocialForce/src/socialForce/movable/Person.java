@@ -6,14 +6,14 @@ import java.util.List;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.ui.probe.ProbedProperty;
-import socialForce.chart.pillarHall.PersonHallStatechart;
+import socialForce.chart.hall.PersonHallStatechart;
 import socialForce.markup.Markup;
 import socialForce.markup.impl.Point;
 import socialForce.misc.Group;
 import socialForce.misc.Utils;
 import socialForce.scenario.hall.Hall;
 
-public class Person {
+public class Person implements Moveable {
 
 	private double x;
 	private double y;
@@ -219,7 +219,7 @@ public class Person {
 	}
 	
 	@ScheduledMethod(start = 0, interval = Hall.UNIT_TIME)
-	public void updateState() {
+	public void move() {
 		if(!arrivedDest){
 			if((destX-1<x && x<destX+1) && (destY-1<y && y<destY+1)){
 				arrivedDest = true;

@@ -8,7 +8,7 @@ import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import socialForce.scenario.hall.Hall;
 
-public class AdaptiveWall {
+public class AdaptiveWall implements Moveable {
 
 	private double x;
 	private double y;
@@ -71,7 +71,7 @@ public class AdaptiveWall {
 	}
 	
 	@ScheduledMethod(start = 0, interval = Hall.UNIT_TIME)
-	public void action() {
+	public void move() {
 		socialForce();
 		double acceV = (sumFijV);
 		double tspeed = speed + acceV*Hall.UNIT_TIME;

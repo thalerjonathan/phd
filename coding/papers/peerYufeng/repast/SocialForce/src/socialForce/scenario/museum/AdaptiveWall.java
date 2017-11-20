@@ -3,8 +3,8 @@ package socialForce.scenario.museum;
 import java.util.ArrayList;
 import java.util.List;
 
-import socialForce.Utils;
-import socialForce.markup.Point;
+import socialForce.markup.impl.Point;
+import socialForce.misc.Utils;
 import repast.simphony.engine.schedule.ScheduledMethod;
 
 public class AdaptiveWall {

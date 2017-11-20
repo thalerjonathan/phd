@@ -1,10 +1,12 @@
-package socialForce.scenario.pillarHall;
+package socialForce.misc;
 
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
-import socialForce.Utils;
+import socialForce.misc.Utils;
+import socialForce.movable.Person;
+import socialForce.scenario.hall.Hall;
 
 public class Group {
 
@@ -45,7 +47,7 @@ public class Group {
 	}
 	
 	public void randomExit() {
-		this.exit = Utils.uniform(0,1) < PillarHall.EXIT_RATE;
+		this.exit = Utils.uniform(0,1) < Hall.EXIT_RATE;
 	}
 	
 	public boolean isExit() {

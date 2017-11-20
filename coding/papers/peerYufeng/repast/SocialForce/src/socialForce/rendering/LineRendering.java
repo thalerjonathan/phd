@@ -1,4 +1,4 @@
-package socialForce.scenario.pillarHall.rendering;
+package socialForce.rendering;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -8,13 +8,12 @@ import repast.simphony.visualizationOGL2D.StyleOGL2D;
 import saf.v3d.ShapeFactory2D;
 import saf.v3d.scene.Position;
 import saf.v3d.scene.VSpatial;
-import socialForce.markup.Line;
-import socialForce.markup.Point;
-import socialForce.scenario.pillarHall.SocialForceToRePastTranslator;
+import socialForce.markup.impl.Line;
+import socialForce.markup.impl.Point;
+
 
 public class LineRendering implements StyleOGL2D<Line> {
 	
-	private Color PERU_COLOR = new Color(205, 133, 63);
 	private ShapeFactory2D shapeFactory;
 	
 	public void init(ShapeFactory2D shapeFactory) {
@@ -30,7 +29,7 @@ public class LineRendering implements StyleOGL2D<Line> {
 	}
 
 	public Color getColor(Line object) {
-		return PERU_COLOR;
+		return RenderingUtils.PERU_COLOR;
 	}
 
 	public float getRotation(Line object) {
@@ -45,7 +44,7 @@ public class LineRendering implements StyleOGL2D<Line> {
 		if (spatial == null) {
 			// NOTE: we are working in LOCAL space
 			Point from = SocialForceToRePastTranslator.transformSocialForceMeterToRePastPixel(new Point(0, 0));
-			Point to = SocialForceToRePastTranslator.transformSocialForceMeterToRePastPixel(w.getVecFromTo());
+			Point to = SocialForceToRePastTranslator.transformSocialForceMeterToRePastPixel(w.getVecFromTo().toPoint());
 			
 			Path2D.Double wallPath = new Path2D.Double();
 			wallPath.moveTo(from.getX(), from.getY());

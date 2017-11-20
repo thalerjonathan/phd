@@ -1,4 +1,4 @@
-package socialForce.scenario.pillarHall.rendering;
+package socialForce.rendering;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -8,13 +8,11 @@ import repast.simphony.visualizationOGL2D.StyleOGL2D;
 import saf.v3d.ShapeFactory2D;
 import saf.v3d.scene.Position;
 import saf.v3d.scene.VSpatial;
-import socialForce.markup.Point;
-import socialForce.markup.Rect;
-import socialForce.scenario.pillarHall.SocialForceToRePastTranslator;
+import socialForce.markup.impl.Point;
+import socialForce.markup.impl.Rect;
 
 public class RectRendering implements StyleOGL2D<Rect> {
 
-	private Color PERU_COLOR = new Color(205, 133, 63);
 	private ShapeFactory2D shapeFactory;
 	
 	public void init(ShapeFactory2D shapeFactory) {
@@ -30,7 +28,7 @@ public class RectRendering implements StyleOGL2D<Rect> {
 	}
 
 	public Color getColor(Rect object) {
-		return PERU_COLOR;
+		return RenderingUtils.PERU_COLOR;
 	}
 
 	public float getRotation(Rect object) {

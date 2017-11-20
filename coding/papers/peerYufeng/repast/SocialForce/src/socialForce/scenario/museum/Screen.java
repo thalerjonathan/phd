@@ -2,7 +2,7 @@ package socialForce.scenario.museum;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
-import socialForce.Utils;
+import socialForce.misc.Utils;
 
 public class Screen {
 	

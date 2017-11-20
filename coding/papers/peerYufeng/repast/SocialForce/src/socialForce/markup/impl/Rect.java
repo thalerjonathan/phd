@@ -1,6 +1,9 @@
-package socialForce.markup;
+package socialForce.markup.impl;
 
-public class Rect implements IMarkup {
+import socialForce.enterable.Enterable;
+import socialForce.markup.Markup;
+
+public class Rect implements Markup, Enterable {
 
 	private Point p;
 	private double width;
@@ -24,16 +27,23 @@ public class Rect implements IMarkup {
 		return this.height;
 	}
 	
-	public Point randomPointInside() {
+	@Override
+	public double getNearestPoint(double x, double y, Point p) {
+		// TODO implement
+		return 0;
+	}
+
+	@Override
+	public boolean contains(Point p) {
+		// TODO implement
+		return false;
+	}
+
+	@Override
+	public Point getRandomPointInside() {
 		double randX = this.p.getX() + Math.random() * width;
 		double randY = this.p.getY() + Math.random() * height;
 		
 		return new Point(randX, randY);
-	}
-
-	@Override
-	public double getNearestPoint(double x, double y, Point p) {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 }

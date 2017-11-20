@@ -1,5 +1,6 @@
 package socialForce.rendering;
 
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.geom.Path2D;
@@ -8,12 +9,12 @@ import repast.simphony.visualizationOGL2D.StyleOGL2D;
 import saf.v3d.ShapeFactory2D;
 import saf.v3d.scene.Position;
 import saf.v3d.scene.VSpatial;
-import socialForce.markup.Point;
-import socialForce.scenario.museum.Person;
+import socialForce.markup.impl.Point;
+import socialForce.movable.Person;
 
 public class PersonRendering implements StyleOGL2D<Person> {
 
-	private final static double PERSON_SIZE = 10;
+	private final static double PERSON_SIZE = 5;
 	private ShapeFactory2D shapeFactory;
 	
 	@Override
@@ -24,15 +25,6 @@ public class PersonRendering implements StyleOGL2D<Person> {
 	@Override
 	public VSpatial getVSpatial(Person person, VSpatial spatial) {
 		if (spatial == null) {
-			// NOTE: this constructs a shape in GLOBAL coordinate system (rotation would not work properly)!!!
-			/*
-			Point p = Utils.anylogicToRePast(new Point(person.pxX, person.pxY));
-			
-			Point left = Utils.anylogicToRePast(new Point(p.x - PERSON_SIZE, p.y));
-			Point right = Utils.anylogicToRePast(new Point(p.x + PERSON_SIZE, p.y));
-			Point top = Utils.anylogicToRePast(new Point(p.x, p.y + PERSON_SIZE));
-			*/
-			
 			// NOTE: this constructs a shape in LOCAL coordinate system 
 			Point left = new Point(-PERSON_SIZE, 0);
 			Point right = new Point(PERSON_SIZE, 0);
@@ -54,7 +46,7 @@ public class PersonRendering implements StyleOGL2D<Person> {
 
 	@Override
 	public Color getColor(Person p) {
-		return Color.BLACK; //;p.color;
+		return Color.BLACK; //p.getColor();
 	}
 
 	@Override
@@ -69,8 +61,8 @@ public class PersonRendering implements StyleOGL2D<Person> {
 
 	@Override
 	public float getRotation(Person p) {
-		double headinDegree = p.heading * (180.0/Math.PI); // NOTE: heading is in radians, need to translate it into degrees
-		return (float)headinDegree; 
+		double headinDegree = p.getHeading() * (180.0/Math.PI); // NOTE: heading is in radians, need to translate it into degrees
+		return (float) headinDegree; 
 	}
 
 	@Override

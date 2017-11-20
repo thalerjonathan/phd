@@ -1,4 +1,4 @@
-package socialForce.scenario.pillarHall;
+package socialForce.scenario.hall;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,19 +8,25 @@ import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.util.ContextUtils;
-import socialForce.Utils;
-import socialForce.markup.Line;
-import socialForce.markup.Point;
-import socialForce.markup.Rect;
+import socialForce.enterable.Enterable;
+import socialForce.markup.Markup;
+import socialForce.markup.impl.Circle;
+import socialForce.markup.impl.Line;
+import socialForce.markup.impl.Point;
+import socialForce.markup.impl.Rect;
+import socialForce.misc.Group;
+import socialForce.misc.Utils;
+import socialForce.movable.AdaptiveWall;
+import socialForce.movable.Person;
 
-public class PillarHall {
+public class Hall {
 	private ContinuousSpace<Object> space;
 	
 	private List<Person> people;
 	private AdaptiveWall adaptiveWall;
 	private List<Group> groups;
 
-	private List<Line> walls;
+	private List<Markup> markups;
 	
 	private List<Point> bottomStartPoints;
 	private List<Point> topStartPoints;
@@ -40,7 +46,7 @@ public class PillarHall {
 	public final static double EXIT_RATE = 0.5;
 	public final static boolean ENABLE_VISION_AREA = false;
 	
-	public PillarHall(ContinuousSpace<Object> space) {
+	public Hall(ContinuousSpace<Object> space) {
 		this.space = space;
 	
 		this.groups = new ArrayList<Group>();
@@ -58,11 +64,11 @@ public class PillarHall {
 		return Collections.unmodifiableList(this.people);
 	}
 	
-	public List<Line> getWalls() {
-		return Collections.unmodifiableList(this.walls);
+	public List<Markup> getMarkups() {
+		return Collections.unmodifiableList(this.markups);
 	}
 	
-	public Rect getMovingArea() {
+	public Enterable getMovingArea() {
 		return this.movingArea;
 	}
 	
@@ -103,32 +109,42 @@ public class PillarHall {
 		
 		initWalls(context);
 		
+		/*
 		for (Point p : this.topStartPoints) {
 			context.add(p);
 			space.moveTo(p, p.getX(), p.getY());
 		}
+		*/
+		
+		for (Markup m : this.markups) {
+			context.add(m);
+			space.moveTo(m, m.getRef().getX(), m.getRef().getY());
+		}
 	}
 	
 	private void initWalls(Context<Object> context) {
-		this.walls = new ArrayList<Line>();
-		this.walls.add(new Line(new Point(2, 4), new Point(2, 18)));
-		this.walls.add(new Line(new Point(2, 18), new Point(2.8, 18)));
-		this.walls.add(new Line(new Point(4.8, 18), new Point(11.2, 18)));
-		this.walls.add(new Line(new Point(14, 18), new Point(13.2, 18)));
-		this.walls.add(new Line(new Point(14, 18), new Point(14, 4)));
-		this.walls.add(new Line(new Point(14, 4), new Point(14, 3.2)));
-		this.walls.add(new Line(new Point(4.8, 4), new Point(11.2, 4)));
+		this.markups = new ArrayList<Markup>();
+		this.markups.add(new Line(new Point(2, 4), new Point(2, 18)));
+		this.markups.add(new Line(new Point(2, 18), new Point(2.8, 18)));
+		this.markups.add(new Line(new Point(4.8, 18), new Point(11.2, 18)));
+		this.markups.add(new Line(new Point(14, 18), new Point(13.2, 18)));
+		this.markups.add(new Line(new Point(14, 18), new Point(14, 4)));
+		this.markups.add(new Line(new Point(14, 4), new Point(14, 3.2)));
+		this.markups.add(new Line(new Point(4.8, 4), new Point(11.2, 4)));
 		
 		// Square Pillar
+		/*
 		this.walls.add(new Line(new Point(7.2, 7.2), new Point(7.2, 8.8)));
 		this.walls.add(new Line(new Point(7.2, 8.8), new Point(8.8, 8.8)));
 		this.walls.add(new Line(new Point(8.8, 8.8), new Point(8.8, 7.2)));
 		this.walls.add(new Line(new Point(8.8, 7.2), new Point(7.2, 7.2)));
+		*/
 		
-		for (Line w : this.walls) {
-			context.add(w);
-			space.moveTo(w, w.getFromX(), w.getFromY());
-		}
+		// Circle Pillar top
+		this.markups.add(new Circle(new Point(7.2, 7.2), 1.6));
+		
+		// Circle Pillar bottom
+		//this.markups.add(new Circle(new Point(7.2, 14.0), 1.6));
 	}
 	
 	// NOTE: points are not displayed, they just act as points to know where to spawn agents

@@ -9,7 +9,7 @@ import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.util.ContextUtils;
-import socialForce.markup.Line;
+import socialForce.markup.impl.Line;
 
 public class Room {
 

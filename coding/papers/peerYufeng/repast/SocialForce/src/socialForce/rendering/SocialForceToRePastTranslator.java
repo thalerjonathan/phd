@@ -1,8 +1,8 @@
-package socialForce.scenario.pillarHall;
+package socialForce.rendering;
 
 import repast.simphony.space.continuous.AbstractPointTranslator;
 import repast.simphony.space.continuous.NdPoint;
-import socialForce.markup.Point;
+import socialForce.markup.impl.Point;
 
 public class SocialForceToRePastTranslator extends AbstractPointTranslator {
 
@@ -19,9 +19,13 @@ public class SocialForceToRePastTranslator extends AbstractPointTranslator {
 		return new Point(transformedLocationTemp[0], transformedLocationTemp[1]);
 	}
 	
+	public static double scaleSocialForceMeterToRePastPixel(double v) {
+		return v * METER_2_PX;
+	}
+	
 	public static void transformSocialForceMeterToRePastPixel(double[] transformedLocation, double... targetLocation) {
 		for (int i=0; i< targetLocation.length; i++)
-			transformedLocation[i] = targetLocation[i] * METER_2_PX;
+			transformedLocation[i] = scaleSocialForceMeterToRePastPixel(targetLocation[i]);
 		
 		// NOTE: social-force model has its origin top left and extends both axes positive towards bottom right
 		// flip y-achsis

@@ -5,10 +5,10 @@ import java.awt.Color;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.ui.probe.ProbedProperty;
-import socialForce.Utils;
 import socialForce.chart.museum.PersonMuseumStatechart;
-import socialForce.markup.Point;
 import socialForce.markup.Wall;
+import socialForce.markup.impl.Point;
+import socialForce.misc.Utils;
 
 /**
  * An proactive agent that chooses the destination by it

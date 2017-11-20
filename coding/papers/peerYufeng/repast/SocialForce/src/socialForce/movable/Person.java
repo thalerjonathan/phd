@@ -1,4 +1,4 @@
-package socialForce.scenario.pillarHall;
+package socialForce.movable;
 
 import java.awt.Color;
 import java.util.List;
@@ -6,10 +6,12 @@ import java.util.List;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.ui.probe.ProbedProperty;
-import socialForce.Utils;
 import socialForce.chart.pillarHall.PersonHallStatechart;
-import socialForce.markup.Line;
-import socialForce.markup.Point;
+import socialForce.markup.Markup;
+import socialForce.markup.impl.Point;
+import socialForce.misc.Group;
+import socialForce.misc.Utils;
+import socialForce.scenario.hall.Hall;
 
 public class Person {
 
@@ -59,7 +61,7 @@ public class Person {
 	private double sumFijH;
 	private double sumFijV;
 	
-	private PillarHall main;
+	private Hall main;
 	private ContinuousSpace<Object> space;
 	
 	public final static double VI0_INIT = 1.4;
@@ -68,7 +70,7 @@ public class Person {
 	PersonHallStatechart state = PersonHallStatechart.createStateChart(this, 0);
 	
 	// NOTE: start is in pixel-space
-	public Person(PillarHall main, ContinuousSpace<Object> space, boolean top, Point start, Point entry) {
+	public Person(Hall main, ContinuousSpace<Object> space, boolean top, Point start, Point entry) {
 		this.main = main;
 		this.space = space;
 		
@@ -118,7 +120,7 @@ public class Person {
 		return this.left;
 	}
 
-	public PillarHall getMain() {
+	public Hall getMain() {
 		return this.main;
 	}
 	
@@ -216,7 +218,7 @@ public class Person {
 		return this.heading;
 	}
 	
-	@ScheduledMethod(start = 0, interval = PillarHall.UNIT_TIME)
+	@ScheduledMethod(start = 0, interval = Hall.UNIT_TIME)
 	public void updateState() {
 		if(!arrivedDest){
 			if((destX-1<x && x<destX+1) && (destY-1<y && y<destY+1)){
@@ -234,12 +236,12 @@ public class Person {
 			speedY=0;
 			return;
 		}
-		speedX += accelerationHorizontal() * PillarHall.UNIT_TIME;
-		speedY += accelerationVertical() * PillarHall.UNIT_TIME;
+		speedX += accelerationHorizontal() * Hall.UNIT_TIME;
+		speedY += accelerationVertical() * Hall.UNIT_TIME;
 
 		heading = Math.atan2(speedY, speedX) + Math.PI/2;
-		x += (speedX * PillarHall.UNIT_TIME);
-		y += (speedY * PillarHall.UNIT_TIME);
+		x += (speedX * Hall.UNIT_TIME);
+		y += (speedY * Hall.UNIT_TIME);
 		
 		this.updatePosition();
 	}
@@ -250,7 +252,7 @@ public class Person {
 
 	private double calcvi0Vertical() {
 		if(destY==y || vi0==0){return 0;}
-		return (destY-y)*vi0 / Utils.distance(x,y,destX,destY);
+		return (destY-y)*vi0 / Point.distance(x,y,destX,destY);
 	}
 
 	private double accelerationHorizontal() {
@@ -259,15 +261,15 @@ public class Person {
 
 	private double calcvi0Horizontal() {
 		if(destX==x || vi0==0){return 0;}
-		return (destX-x)*vi0 / Utils.distance(x,y,destX,destY);
+		return (destX-x)*vi0 / Point.distance(x,y,destX,destY);
 	}
 
 	private void calculateWall() {
 		sumFiWH = 0;
 		sumFiWV = 0;
-		for(Line w : main.getWalls()) {
+		for(Markup m : main.getMarkups()) {
 			Point p = new Point();
-			double dist = w.getNearestPoint(x,y,p);
+			double dist = m.getNearestPoint(x,y,p);
 			double diW = -1;
 			if((diW = dist) > connectionRange){continue;}
 			
@@ -316,14 +318,14 @@ public class Person {
 			}
 			//System.out.println(i + " " + p.getX() + " " + p.getY());
 			
-			double sqrdist = (Utils.distance(x,y,p.getX(),p.getY()));
+			double sqrdist = (Point.distance(x,y,p.getX(),p.getY()));
 			double diW = -1;
 			if((diW = sqrdist) > connectionRange){return;}
 			
 			double theta = Math.atan2(p.getY()-y, p.getX()-x)-Math.atan2(speedY,speedX);
 			double cosTheta = 1;
 			if(theta<(-attentionAngle/2) || theta>(attentionAngle/2)){
-				if(PillarHall.ENABLE_VISION_AREA){
+				if(Hall.ENABLE_VISION_AREA){
 					cosTheta = 0;
 				}
 			}
@@ -357,7 +359,7 @@ public class Person {
 		for(Person j : main.getPeople()) {
 			if(this==j){continue;}
 			double dij = -1;
-			if((dij = Utils.distance(x,y,j.x,j.y)) > connectionRange){continue;}
+			if((dij = Point.distance(x,y,j.x,j.y)) > connectionRange){continue;}
 			double I = 1;
 			if(belongedGroup != null){
 				if(belongedGroup.isMember(j)){
@@ -367,7 +369,7 @@ public class Person {
 			double theta = Math.atan2(j.y-y, j.x-x)-Math.atan2(speedY,speedX);
 			double cosTheta = 1;
 			if(theta<(-attentionAngle/2) || theta>(attentionAngle/2)){
-				if(PillarHall.ENABLE_VISION_AREA){
+				if(Hall.ENABLE_VISION_AREA){
 					cosTheta = 0;
 				}
 			}

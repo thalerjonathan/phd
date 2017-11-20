@@ -4,7 +4,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
-import socialForce.markup.Point;
+import socialForce.markup.impl.Point;
 
 public class Cluster {
 	public int id;

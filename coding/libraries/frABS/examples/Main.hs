@@ -33,7 +33,7 @@ import           NewAgents.Run
 -}
 
 main :: IO ()
-main = runSocialForce
+main = runSIRSWithRendering
 
   -- runSocialForce
   -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile

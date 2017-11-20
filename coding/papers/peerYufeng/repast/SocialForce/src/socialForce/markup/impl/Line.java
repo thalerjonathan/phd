@@ -1,8 +1,8 @@
-package socialForce.markup;
+package socialForce.markup.impl;
 
-import socialForce.Utils;
+import socialForce.markup.Markup;
 
-public class Line implements IMarkup {
+public class Line implements Markup {
 
 	private Point from;
 	private Point to;
@@ -12,9 +12,14 @@ public class Line implements IMarkup {
 		this.from = from;
 		this.to = to;
 		
-		this.len = Utils.distance(from, to);
+		this.len = Point.distance(from, to);
 	}
 
+	@Override
+	public Point getRef() {
+		return new Point(this.from);
+	}
+	
 	public double getFromX() {
 		return this.from.getX();
 	}
@@ -31,8 +36,8 @@ public class Line implements IMarkup {
 		return this.to.getY();
 	}
 	
-	public Point getVecFromTo() {
-		return new Point(to.getX() - from.getX(), to.getY() - from.getY());
+	public Vector getVecFromTo() {
+		return Vector.fromPoints(this.from, this.to);
 	}
 	
 	public double length() {
@@ -43,8 +48,8 @@ public class Line implements IMarkup {
 		// Test if the shape contains the point with the given coordinates (relative to this shape's container, i.e. in the same system with the coordinates of this shape, x and y)
 		
 		// NOTE: this also returns true if the point lies on the extension of the line-segment
-		double dfrom = Utils.distance(from, new Point(x, y));
-		double dto = Utils.distance(to, new Point(x, y));
+		double dfrom = Point.distance(from, new Point(x, y));
+		double dto = Point.distance(to, new Point(x, y));
 		double delta = Math.abs(dfrom - dto);
 		
 		return delta < 0.01;
@@ -54,7 +59,7 @@ public class Line implements IMarkup {
 	public double getNearestPoint(double x, double y, Point p) {
 		// NOTE: this is inspired by https://en.wikibooks.org/wiki/Linear_Algebra/Orthogonal_Projection_Onto_a_Line
 		
-		Point vecFromTo = getVecFromTo();
+		Vector vecFromTo = getVecFromTo();
 		
 		double dotProdVecPoint = vecFromTo.getX() * x + vecFromTo.getY() * y;
 		double dotProdVecVec = vecFromTo.getX() * vecFromTo.getX() + vecFromTo.getY() * vecFromTo.getY();
@@ -62,7 +67,7 @@ public class Line implements IMarkup {
 		Point proj = new Point(vecFromTo.getX() * dotProdsDiv, vecFromTo.getY() * dotProdsDiv);
 		
 		p.override(proj.getX(), proj.getY());
-		return Utils.distance(proj, new Point(x, y));
+		return Point.distance(proj, new Point(x, y));
 		
 		/*
 		double dist1 = Utils.distance(this.from.getX(), this.from.getY(), x, y);

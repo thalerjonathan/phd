@@ -9,10 +9,10 @@ import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.util.ContextUtils;
-import socialForce.Utils;
-import socialForce.markup.Line;
-import socialForce.markup.Point;
-import socialForce.markup.Rect;
+import socialForce.markup.impl.Line;
+import socialForce.markup.impl.Point;
+import socialForce.markup.impl.Rect;
+import socialForce.misc.Utils;
 
 public class Museum {
 

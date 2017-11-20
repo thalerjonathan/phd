@@ -1,4 +1,4 @@
-package socialForce.rendering;
+package socialForce.scenario.museum.rendering;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -8,8 +8,8 @@ import repast.simphony.visualizationOGL2D.StyleOGL2D;
 import saf.v3d.ShapeFactory2D;
 import saf.v3d.scene.Position;
 import saf.v3d.scene.VSpatial;
-import socialForce.Utils;
-import socialForce.markup.Point;
+import socialForce.markup.impl.Point;
+import socialForce.misc.Utils;
 import socialForce.scenario.museum.Screen;
 
 public class ScreenRendering implements StyleOGL2D<Screen> {

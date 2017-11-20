@@ -1,4 +1,4 @@
-package socialForce.scenario.pillarHall;
+package socialForce.movable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -6,6 +6,7 @@ import java.util.List;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
+import socialForce.scenario.hall.Hall;
 
 public class AdaptiveWall {
 
@@ -31,10 +32,10 @@ public class AdaptiveWall {
 	private List<Double> wallsWidth;
 	private List<Double> doorsX;
 	
-	private PillarHall main;
+	private Hall main;
 	private ContinuousSpace<Object> space;
 	
-	public AdaptiveWall(PillarHall main, ContinuousSpace<Object> space) {
+	public AdaptiveWall(Hall main, ContinuousSpace<Object> space) {
 		this.main = main;
 		this.space = space;
 		
@@ -69,16 +70,16 @@ public class AdaptiveWall {
 		this.doorsX.add(13.0);
 	}
 	
-	@ScheduledMethod(start = 0, interval = PillarHall.UNIT_TIME)
+	@ScheduledMethod(start = 0, interval = Hall.UNIT_TIME)
 	public void action() {
 		socialForce();
 		double acceV = (sumFijV);
-		double tspeed = speed + acceV*PillarHall.UNIT_TIME;
+		double tspeed = speed + acceV*Hall.UNIT_TIME;
 		//System.out.println(acceV);
 		if(tspeed>-0.1 && tspeed <0.1){
 			speed = tspeed;
 		}
-		double ty = y + (speed*PillarHall.UNIT_TIME);
+		double ty = y + (speed*Hall.UNIT_TIME);
 		if(ty>yMin && ty<yMax){
 			y=ty;
 		}

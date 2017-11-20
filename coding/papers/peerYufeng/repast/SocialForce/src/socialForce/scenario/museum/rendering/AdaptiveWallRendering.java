@@ -1,4 +1,4 @@
-package socialForce.scenario.pillarHall.rendering;
+package socialForce.scenario.museum.rendering;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -8,9 +8,9 @@ import repast.simphony.visualizationOGL2D.StyleOGL2D;
 import saf.v3d.ShapeFactory2D;
 import saf.v3d.scene.Position;
 import saf.v3d.scene.VSpatial;
-import socialForce.markup.Point;
-import socialForce.scenario.pillarHall.AdaptiveWall;
-import socialForce.scenario.pillarHall.SocialForceToRePastTranslator;
+import socialForce.markup.impl.Point;
+import socialForce.misc.Utils;
+import socialForce.scenario.museum.AdaptiveWall;
 
 public class AdaptiveWallRendering implements StyleOGL2D<AdaptiveWall> {
 
@@ -24,12 +24,13 @@ public class AdaptiveWallRendering implements StyleOGL2D<AdaptiveWall> {
 	@Override
 	public VSpatial getVSpatial(AdaptiveWall w, VSpatial spatial) {
 		if (spatial == null) {
-			// NOTE: we are working in LOCAL space
-			double halfWidth = w.getTotalWidth() * 0.5;
+			// NOTE: this rendering works in GLOBAL coordinate system and constructs a shape with GLOBAL COORDINATES (rotation would not work properly)!!!
+			// note: the positioning of the AdaptiveWall sets the x and y to the center of the wall
 			
-			 // NOTE: still need to scale to RePast pixels
-			Point from = SocialForceToRePastTranslator.transformSocialForceMeterToRePastPixel(new Point(-halfWidth, 0));
-			Point to = SocialForceToRePastTranslator.transformSocialForceMeterToRePastPixel(new Point(halfWidth, 0));
+			double halfHeight = w.height * 0.5;
+			
+			Point from = Utils.anylogicToRePast(new Point(w.x, w.y - halfHeight));
+			Point to = Utils.anylogicToRePast(new Point(w.x, w.y + halfHeight));
 			
 			Line2D.Double adaptWallLine = new Line2D.Double(from.getX(), from.getY(), to.getX(), to.getY());
 			

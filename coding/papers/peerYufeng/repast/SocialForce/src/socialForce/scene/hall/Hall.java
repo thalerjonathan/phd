@@ -1,4 +1,4 @@
-package socialForce.scenario.hall;
+package socialForce.scene.hall;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -144,7 +144,7 @@ public class Hall {
 		this.markups.add(new Circle(new Point(7.2, 7.2), 1.6));
 		
 		// Circle Pillar bottom
-		//this.markups.add(new Circle(new Point(7.2, 14.0), 1.6));
+		// this.markups.add(new Circle(new Point(7.2, 14.0), 1.6));
 	}
 	
 	// NOTE: points are not displayed, they just act as points to know where to spawn agents

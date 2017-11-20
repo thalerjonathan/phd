@@ -23,7 +23,7 @@ public class Vector implements Markup {
 	}
 	
 	public Point toPoint() {
-		return new Point(this.p.getX(), this.p.getY());
+		return new Point(this.p);
 	}
 	
 	@Override
@@ -47,7 +47,7 @@ public class Vector implements Markup {
 	}
 	
 	public double length() {
-		return Math.sqrt(p.getX() * p.getX() + p.getY() * p.getY());
+		return Math.sqrt((p.getX() * p.getX()) + (p.getY() * p.getY()));
 	}
 	
 	public static Vector fromPoints(Point p1, Point p2) {

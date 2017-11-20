@@ -1,4 +1,4 @@
-package socialForce.scenario.museum.rendering;
+package socialForce.scenario.scene.rendering;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -10,7 +10,7 @@ import saf.v3d.scene.Position;
 import saf.v3d.scene.VSpatial;
 import socialForce.markup.impl.Point;
 import socialForce.misc.Utils;
-import socialForce.scenario.museum.Screen;
+import socialForce.scene.museum.Screen;
 
 public class ScreenRendering implements StyleOGL2D<Screen> {
 

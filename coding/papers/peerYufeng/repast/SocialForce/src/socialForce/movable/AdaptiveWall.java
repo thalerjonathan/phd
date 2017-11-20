@@ -6,7 +6,7 @@ import java.util.List;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
-import socialForce.scenario.hall.Hall;
+import socialForce.scene.hall.Hall;
 
 public class AdaptiveWall implements Moveable {
 

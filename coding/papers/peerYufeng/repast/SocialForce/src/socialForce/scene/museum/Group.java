@@ -1,4 +1,4 @@
-package socialForce.scenario.museum;
+package socialForce.scene.museum;
 
 import java.util.ArrayList;
 import java.util.List;

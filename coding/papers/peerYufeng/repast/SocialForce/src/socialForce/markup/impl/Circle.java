@@ -15,7 +15,9 @@ public class Circle implements Markup {
 	@Override
 	public double getNearestPoint(double x, double y, Point p) {
 		Vector vec = Vector.fromPoints(c, new Point(x, y)).normalize().scale(this.r);
-		p.override(vec.getX(), vec.getY());
+		Point nearest = new Point(this.c.getX() + vec.getX(), this.c.getY() + vec.getY());
+		
+		p.override(nearest.getX(), nearest.getY());
 		
 		return this.r;
 	}

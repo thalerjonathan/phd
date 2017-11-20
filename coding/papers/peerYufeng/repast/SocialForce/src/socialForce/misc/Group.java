@@ -6,7 +6,7 @@ import java.util.List;
 
 import socialForce.misc.Utils;
 import socialForce.movable.Person;
-import socialForce.scenario.hall.Hall;
+import socialForce.scene.hall.Hall;
 
 public class Group {
 

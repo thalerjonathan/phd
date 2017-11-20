@@ -11,7 +11,7 @@ import socialForce.markup.Markup;
 import socialForce.markup.impl.Point;
 import socialForce.misc.Group;
 import socialForce.misc.Utils;
-import socialForce.scenario.hall.Hall;
+import socialForce.scene.hall.Hall;
 
 public class Person implements Moveable {
 

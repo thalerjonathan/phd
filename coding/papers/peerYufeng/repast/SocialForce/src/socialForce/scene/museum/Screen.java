@@ -1,4 +1,4 @@
-package socialForce.scenario.museum;
+package socialForce.scene.museum;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;

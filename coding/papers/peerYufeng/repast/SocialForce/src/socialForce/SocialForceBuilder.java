@@ -4,10 +4,13 @@ import repast.simphony.context.Context;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactory;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactoryFinder;
 import repast.simphony.dataLoader.ContextBuilder;
+import repast.simphony.engine.environment.RunEnvironment;
+import repast.simphony.parameter.Parameters;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.SimpleCartesianAdder;
 import socialForce.rendering.SocialForceToRePastTranslator;
-import socialForce.scenario.hall.Hall;
+import socialForce.scene.hall.Hall;
+import socialForce.scene.museum.Museum;
 
 public class SocialForceBuilder implements ContextBuilder<Object> {
 
@@ -16,6 +19,8 @@ public class SocialForceBuilder implements ContextBuilder<Object> {
 	
 	public final static double SPACE_WIDTH = 1000;
 	public final static double SPACE_HEIGHT = 600;
+	
+	private final static String HALLSCENE_PARAM_ID = "socialforce_hall_scene";
 	
 	@Override
 	public Context<Object> build(Context<Object> context) {
@@ -33,10 +38,18 @@ public class SocialForceBuilder implements ContextBuilder<Object> {
 						new SocialForceToRePastTranslator(),
 						dimensions );
 
-		Hall main = new Hall(space);
-		main.initAgents(context);
+		Parameters params = RunEnvironment.getInstance().getParameters();
+		boolean hallScene = (Boolean) params.getValue(HALLSCENE_PARAM_ID);
 		
-		context.add(main);
+		if (hallScene) {
+			Hall main = new Hall(space);
+			main.initAgents(context);
+			
+			context.add(main);
+		} else {
+			Museum museum = new Museum(space);
+			museum.initAgents(context);
+		}
 		
 		return context;
 	}

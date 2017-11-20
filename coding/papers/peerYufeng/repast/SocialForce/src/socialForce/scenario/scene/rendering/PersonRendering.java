@@ -1,4 +1,4 @@
-package socialForce.scenario.museum.rendering;
+package socialForce.scenario.scene.rendering;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -9,7 +9,7 @@ import saf.v3d.ShapeFactory2D;
 import saf.v3d.scene.Position;
 import saf.v3d.scene.VSpatial;
 import socialForce.markup.impl.Point;
-import socialForce.scenario.museum.Person;
+import socialForce.scene.museum.Person;
 
 public class PersonRendering implements StyleOGL2D<Person> {
 

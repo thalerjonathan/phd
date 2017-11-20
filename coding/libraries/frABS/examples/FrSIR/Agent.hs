@@ -1,8 +1,7 @@
 {-# LANGUAGE Arrows #-}
-module FrSIR.Agent 
-    (
-      sirAgentBehaviour
-    ) where
+module FrSIR.Agent (
+    sirAgentBehaviour
+  ) where
 
 import Control.Monad.Random
 

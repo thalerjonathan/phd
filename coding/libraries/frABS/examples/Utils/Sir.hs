@@ -1,23 +1,22 @@
-module Utils.Sirs 
-    (
-      writeSirsDynamicsFile
-    , sirsDynamicToString
-    , sirsDynamicsReplMean
-    ) where
-
-import FRP.Yampa
+module Utils.Sir (
+    writeSirDynamicsFile
+  , sirDynamicToString
+  , sirDynamicsReplMean
+  ) where
 
 import Text.Printf
 import System.IO
 
-writeSirsDynamicsFile :: String 
+import FRP.Yampa
+
+writeSirDynamicsFile :: String 
                         -> Double
                         -> Int
                         -> [(Time, Double, Double, Double)] -> IO ()
-writeSirsDynamicsFile fileName dt replications dynamics = do
+writeSirDynamicsFile fileName dt replications dynamics = do
     fileHdl <- openFile fileName WriteMode
     hPutStrLn fileHdl "dynamics = ["
-    mapM_ (hPutStrLn fileHdl . sirsDynamicToString) dynamics
+    mapM_ (hPutStrLn fileHdl . sirDynamicToString) dynamics
     hPutStrLn fileHdl "];"
 
     hPutStrLn fileHdl "time = dynamics (:, 1);"
@@ -57,17 +56,17 @@ writeSirsDynamicsFile fileName dt replications dynamics = do
 
     hClose fileHdl
 
-sirsDynamicToString :: (Time, Double, Double, Double) -> String
-sirsDynamicToString (t, susceptibleRatio, infectedRatio, recoveredRatio) = 
+sirDynamicToString :: (Time, Double, Double, Double) -> String
+sirDynamicToString (t, susceptibleRatio, infectedRatio, recoveredRatio) = 
     printf "%.2f" t 
         ++ "," ++ printf "%.3f" susceptibleRatio 
         ++ "," ++ printf "%.3f" infectedRatio
         ++ "," ++ printf "%.3f" recoveredRatio
         ++ ";" 
 
-sirsDynamicsReplMean :: [[(Time, Double, Double, Double)]] -> [(Time, Double, Double, Double)]
-sirsDynamicsReplMean [] = []
-sirsDynamicsReplMean replDynamics@(initRepl:tailRepls) = replDynamicsRatio
+sirDynamicsReplMean :: [[(Time, Double, Double, Double)]] -> [(Time, Double, Double, Double)]
+sirDynamicsReplMean [] = []
+sirDynamicsReplMean replDynamics@(initRepl:tailRepls) = replDynamicsRatio
   where
     replCountRational = fromIntegral $ length replDynamics:: Double
 

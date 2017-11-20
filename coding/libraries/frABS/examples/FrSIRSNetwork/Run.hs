@@ -11,7 +11,7 @@ import FRP.Yampa
 import FrSIRSNetwork.Init
 import FrSIRSNetwork.Model
 import FrSIRSNetwork.Renderer
-import Utils.Sirs
+import Utils.Sir
 
 import FRP.FrABS
 
@@ -95,7 +95,7 @@ runFrSIRSNetworkStepsAndWriteToFile =
                         ++ show t ++ "time_" 
                         ++ show dt ++ "dt.m"
 
-        writeSirsDynamicsFile fileName dt 0 dynamics
+        writeSirDynamicsFile fileName dt 0 dynamics
 
 runFrSIRSNetworkReplicationsAndWriteToFile :: IO ()
 runFrSIRSNetworkReplicationsAndWriteToFile =
@@ -107,7 +107,7 @@ runFrSIRSNetworkReplicationsAndWriteToFile =
 
         let assenv = runReplications initAdefs initEnv params dt t replCfg
         let replicationDynamics = map calculateSingleReplicationDynamic assenv
-        let dynamics = sirsDynamicsReplMean replicationDynamics
+        let dynamics = sirDynamicsReplMean replicationDynamics
 
 
         let fileName = "frSIRSNetworkDynamics_" 
@@ -116,7 +116,7 @@ runFrSIRSNetworkReplicationsAndWriteToFile =
                         ++ show dt ++ "dt_" 
                         ++ show (replCfgCount replCfg) ++ "replications.m"
 
-        writeSirsDynamicsFile fileName dt (replCfgCount replCfg) dynamics
+        writeSirDynamicsFile fileName dt (replCfgCount replCfg) dynamics
 
 -------------------------------------------------------------------------------
 -- UTILS

@@ -12,7 +12,7 @@ import           PolicyEffects.Run
 import           PrisonersDilemma.Run
 import           RecursiveABS.Run
 import           Segregation.Run
-import           SIRS.Run
+import           SIR.Run
 import           SugarScape.Run
 import           SysDynSIR.Run
 import           SocialForce.Run
@@ -33,7 +33,7 @@ import           NewAgents.Run
 -}
 
 main :: IO ()
-main = runSIRSWithRendering
+main = runSIRStepsAndWriteToFile
 
   -- runSocialForce
   -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile

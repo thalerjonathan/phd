@@ -228,7 +228,7 @@ hasMessage m ai
         hasMsg = Data.List.any ((==m) . snd) msgs
 
 onMessage :: (AgentMessage m -> acc -> acc) -> AgentIn s m e -> acc -> acc
-onMessage  msgHdl ai a 
+onMessage msgHdl ai a 
     | not hasMessages = a
     | otherwise = foldr (\msg acc'-> msgHdl msg acc') a msgs
     where

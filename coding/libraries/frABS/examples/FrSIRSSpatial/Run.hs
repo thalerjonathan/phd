@@ -12,7 +12,7 @@ import FRP.Yampa
 import FrSIRSSpatial.Init
 import FrSIRSSpatial.Model
 import FrSIRSSpatial.Renderer
-import Utils.Sirs
+import Utils.Sir
 
 import FRP.FrABS
 
@@ -103,7 +103,7 @@ runFrSIRSSpatialTimeAndWriteToFile =
                         ++ show t ++ "time_" 
                         ++ show dt ++ "dt.m"
 
-        writeSirsDynamicsFile fileName dt 0 dynamics
+        writeSirDynamicsFile fileName dt 0 dynamics
 
 runFrSIRSSpatialReplicationsAndWriteToFile :: IO ()
 runFrSIRSSpatialReplicationsAndWriteToFile =
@@ -115,7 +115,7 @@ runFrSIRSSpatialReplicationsAndWriteToFile =
 
         let assenv = runReplications initAdefs initEnv params dt t replCfg
         let replicationDynamics = map calculateSingleReplicationDynamic assenv
-        let dynamics = sirsDynamicsReplMean replicationDynamics
+        let dynamics = sirDynamicsReplMean replicationDynamics
 
         let fileName = "frSIRSSpatialDynamics_" 
                         ++ show agentDimensions ++ "agents_" 
@@ -123,7 +123,7 @@ runFrSIRSSpatialReplicationsAndWriteToFile =
                         ++ show dt ++ "dt_" 
                         ++ show (replCfgCount replCfg) ++ "replications.m"
 
-        writeSirsDynamicsFile fileName dt (replCfgCount replCfg) dynamics
+        writeSirDynamicsFile fileName dt (replCfgCount replCfg) dynamics
 
 -------------------------------------------------------------------------------
 -- UTILS
@@ -132,7 +132,7 @@ agentsToDynamics :: (Time, [FrSIRSSpatialAgentObservable], FrSIRSSpatialEnvironm
 agentsToDynamics (t, obs, _) = calculateDynamics (t, obs)
 
 printAgentDynamics :: (Time, [FrSIRSSpatialAgentObservable], FrSIRSSpatialEnvironment) -> IO ()
-printAgentDynamics = (putStrLn . sirsDynamicToString . agentsToDynamics)
+printAgentDynamics = (putStrLn . sirDynamicToString . agentsToDynamics)
 
 calculateDynamics :: (Time, [FrSIRSSpatialAgentObservable]) -> (Time, Double, Double, Double)
 calculateDynamics (t, aobs) = (t, susceptibleCount, infectedCount, recoveredCount)

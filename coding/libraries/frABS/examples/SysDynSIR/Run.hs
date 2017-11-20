@@ -1,7 +1,6 @@
-module SysDynSIR.Run 
-    ( 
-      runSysDynSIRStepsAndWriteToFile
-    ) where
+module SysDynSIR.Run ( 
+    runSysDynSIRStepsAndWriteToFile
+  ) where
 
 import Data.List
 
@@ -10,7 +9,7 @@ import FRP.FrABS
 
 import SysDynSIR.Init
 import SysDynSIR.Model
-import Utils.Sirs
+import Utils.Sir
 
 dt :: DTime
 dt = 0.01
@@ -19,7 +18,7 @@ t :: DTime
 t = 150
 
 runSysDynSIRStepsAndWriteToFile :: IO ()
-runSysDynSIRStepsAndWriteToFile = writeSirsDynamicsFile fileName dt 0 dynamics
+runSysDynSIRStepsAndWriteToFile = writeSirDynamicsFile fileName dt 0 dynamics
   where
     sdDefs = createSysDynSIR
     

@@ -1,30 +1,29 @@
-module FrSIR.Model 
-    (
-      SIRState (..)
-    , FrSIRMsg (..)
+module FrSIR.Model (
+    SIRState (..)
+  , FrSIRMsg (..)
 
-    , FrSIRAgentState
-    , FrSIREnvironment
+  , FrSIRAgentState
+  , FrSIREnvironment
 
-    , FrSIRAgentDef
-    , FrSIRAgentBehaviour
-    , FrSIRAgentBehaviourReadEnv
-    , FrSIRAgentBehaviourIgnoreEnv
-    , FrSIRAgentIn
-    , FrSIRAgentOut
-    , FrSIRAgentObservable
-    
-    , FrSIREventSource
-    , FrSIRReplicationConfig
-    , FrSIRAgentDefReplicator
-    
-    , infectivity
-    , contactRate
-    , illnessDuration
+  , FrSIRAgentDef
+  , FrSIRAgentBehaviour
+  , FrSIRAgentBehaviourReadEnv
+  , FrSIRAgentBehaviourIgnoreEnv
+  , FrSIRAgentIn
+  , FrSIRAgentOut
+  , FrSIRAgentObservable
+  
+  , FrSIREventSource
+  , FrSIRReplicationConfig
+  , FrSIRAgentDefReplicator
+  
+  , infectivity
+  , contactRate
+  , illnessDuration
 
-    , contactSS
-    , illnessTimeoutSS
-    ) where
+  , contactSS
+  , illnessTimeoutSS
+  ) where
 
 import FRP.FrABS
 

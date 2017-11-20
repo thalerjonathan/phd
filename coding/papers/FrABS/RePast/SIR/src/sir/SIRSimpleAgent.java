@@ -1,5 +1,6 @@
 package sir;
 
+import cern.jet.random.Exponential;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.random.RandomHelper;
 
@@ -11,20 +12,19 @@ public class SIRSimpleAgent implements ISIRAgent {
 	
 	private SirState state;
 	
-	private double contactRate;
 	private double infectionProb;
 	private double illnessDuration;
 	
-	private double illnessEnd;
+	private Exponential contactExp;
+	private Exponential illnessExp;
 	
 	private final static double SAMPLING_DELTA = 1.0;
 	
 	public SIRSimpleAgent(boolean initiallyInfected, double contactRate, double infectionProb, double illnessDuration) {
-		this.contactRate = contactRate;
 		this.infectionProb = infectionProb;
-		this.illnessDuration = illnessDuration;
-	
-		this.illnessEnd = 0;
+			
+		this.contactExp = RandomHelper.createExponential(SAMPLING_DELTA/contactRate);
+		this.illnessExp = RandomHelper.createExponential(SAMPLING_DELTA/illnessDuration);
 		
 		this.state = SirState.SUSCEPTIBLE;
 		if ( initiallyInfected ) {
@@ -43,8 +43,7 @@ public class SIRSimpleAgent implements ISIRAgent {
 	
 	@Override
 	public void makeContact() {
-		// TODO: draw from random-distribution, must be based upon SAMPLING_DELTA
-		int randomContacts = (int) contactRate;
+		int randomContacts = this.contactExp.nextInt();
 		
 		for (int i = 0; i < randomContacts; ++i) {
 			ISIRAgent a = SIRBuilder.getRandomAgent(this);
@@ -58,16 +57,15 @@ public class SIRSimpleAgent implements ISIRAgent {
 	}
 
 	private void infected() {
-		this.illnessEnd -= SAMPLING_DELTA;
-		if (this.illnessEnd <= 0) {
+		this.illnessDuration -= SAMPLING_DELTA;
+		if (this.illnessDuration <= 0) {
 			this.state = SirState.RECOVERED;
 		}
 	}
 	
 	private void infect() {
-		RandomHelper.createExponential(1/this.illnessDuration);
 		this.state = SirState.INFECTED;
-		this.illnessEnd = RandomHelper.getExponential().nextDouble();
+		this.illnessDuration = this.illnessExp.nextDouble();
 	}
 	
 	@Override

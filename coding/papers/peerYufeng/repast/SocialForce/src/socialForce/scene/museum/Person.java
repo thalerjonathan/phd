@@ -6,7 +6,6 @@ import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.ui.probe.ProbedProperty;
 import socialForce.chart.museum.PersonMuseumStatechart;
-import socialForce.markup.Wall;
 import socialForce.markup.impl.Point;
 import socialForce.misc.Utils;
 
@@ -202,7 +201,7 @@ public class Person {
 	public void calculateWall() {
 		sumFiWH = 0;
 		sumFiWV = 0;
-		for(Wall w : main.getWalls()){
+		for(Wall w : main.getMarkups()){
 			Point p = new Point();
 			double dist = w.getNearestPoint(pxX,pxY,p);
 			double diW = -1;

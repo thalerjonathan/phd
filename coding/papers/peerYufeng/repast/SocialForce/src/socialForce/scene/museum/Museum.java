@@ -9,6 +9,7 @@ import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.util.ContextUtils;
+import socialForce.markup.Markup;
 import socialForce.markup.impl.Line;
 import socialForce.markup.impl.Point;
 import socialForce.markup.impl.Rect;
@@ -32,26 +33,13 @@ public class Museum {
 	private List<Person> people;
 	public AdaptiveWall adaptiveWall;
 	
-	private List<Wall> walls;
+	private List<Markup> markups;
 	private List<Point> groupPoints;
 	private Point groupPoint0;
 	
 	public Rect restArea;
 	
-	private Point topLeft;
-	private Point downRight;
-	
-	private int finalClusterNum;
-	private int NUM_CLUSTERS = 4;
-	
-	private boolean isPlot = false;
-	private boolean isActive = true;
 	private boolean enableVisionArea = false;
-	
-	private List<Person> people_t;
-	private List<Cluster> clusters;
-	
-	private final static int CLUSTER_THRESH = 50;
 	
 	public static final double METER_2_PX = 25.0;
 	public final static double UNIT_TIME = 0.01;
@@ -66,18 +54,15 @@ public class Museum {
 		this.groups = new ArrayList<Group>();
 		this.rooms = new ArrayList<Room>();
 		this.people = new ArrayList<Person>();
-		
-		this.people_t = new ArrayList<Person>();
-		this.clusters = new ArrayList<Cluster>();
 	}
 	
-	public void initAgents(Context context) {
+	public void initAgents(Context<Object> context) {
 		initMarkups(context);
 		initRoom(context);
 		initAdaptiveWall(context);
 	}
 	
-	private void initMarkups(Context context) {
+	private void initMarkups(Context<Object> context) {
 		this.restArea = new Rect(new Point(230, 160), 190, 180);
 		
 		this.startPoint = new Point(170, 520);
@@ -90,41 +75,38 @@ public class Museum {
 		this.groupPoints.add(new Point(130, 510));
 		this.groupPoints.add(new Point(140, 540));
 		
-		this.topLeft = new Point(50, 50);
-		this.downRight = new Point(599, 450);
+		initWalls();
 		
-		initWalls(context);
-	}
-	
-	private void initWalls(Context context) {
-		this.walls = new ArrayList<Wall>();
-		this.walls.add(new Wall(new Point(50, 450), new Point(100, 0)));	// wall0
-		this.walls.add(new Wall(new Point(205, 450), new Point(245, 0)));	// wall1
-		this.walls.add(new Wall(new Point(599, 450), new Point(0, -400)));	// wall2
-		this.walls.add(new Wall(new Point(50, 50), new Point(60, 0), new Point(400, 0)));	// wall3
-		this.walls.add(new Wall(new Point(50, 50), new Point(0, 400)));	// wall4
-		this.walls.add(new Wall(new Point(506, 50), new Point(93, 0)));	// wall5
-		this.walls.add(new Wall(new Point(450, 450), new Point(149, 0)));	// wall6
-		
-		this.walls.add(new Wall(new Point(70, 80), new Point(0, 320)));	// room1Display
-		this.walls.add(new Wall(new Point(579, 80), new Point(0, 320)));	// room2Display
-		
-		this.walls.add(new Wall(new Point(600, 400), new Point(-19, 0)));	// wall7
-		this.walls.add(new Wall(new Point(70, 80), new Point(-19, 0)));	// wall8
-		this.walls.add(new Wall(new Point(70, 400), new Point(-19, 0)));	// wall9
-		this.walls.add(new Wall(new Point(599, 80), new Point(-19, 0)));	// wall
-		
-		for (Wall w : this.walls) {
-			context.add(w);
-			space.moveTo(w, 0, 0); // add at 0/0, the rendering will take care of rendering it at the correct position
+		for (Markup m : this.markups) {
+			context.add(m);
+			space.moveTo(m, m.getRef().getX(), m.getRef().getY());
 		}
 	}
 	
-	private void initAdaptiveWall(Context context) {
+	private void initWalls() {
+		this.markups = new ArrayList<Markup>();
+		this.markups.add(new Line(new Point(50, 450), new Point(100, 0)));	// wall0
+		this.markups.add(new Line(new Point(205, 450), new Point(245, 0)));	// wall1
+		this.markups.add(new Line(new Point(599, 450), new Point(0, -400)));	// wall2
+		this.markups.add(new Line(new Point(50, 50), new Point(60, 0), new Point(400, 0)));	// wall3
+		this.markups.add(new Line(new Point(50, 50), new Point(0, 400)));	// wall4
+		this.markups.add(new Line(new Point(506, 50), new Point(93, 0)));	// wall5
+		this.markups.add(new Line(new Point(450, 450), new Point(149, 0)));	// wall6
+		
+		this.markups.add(new Line(new Point(70, 80), new Point(0, 320)));	// room1Display
+		this.markups.add(new Line(new Point(579, 80), new Point(0, 320)));	// room2Display
+		
+		this.markups.add(new Line(new Point(600, 400), new Point(-19, 0)));	// wall7
+		this.markups.add(new Line(new Point(70, 80), new Point(-19, 0)));	// wall8
+		this.markups.add(new Line(new Point(70, 400), new Point(-19, 0)));	// wall9
+		this.markups.add(new Line(new Point(599, 80), new Point(-19, 0)));	// wall
+	}
+	
+	private void initAdaptiveWall(Context<Object> context) {
 		this.adaptiveWall = new AdaptiveWall(this);
 		
 		context.add(adaptiveWall);
-		space.moveTo(adaptiveWall, 0, 0); // add at 0/0, the rendering will take care of rendering it at the correct position
+		space.moveTo(adaptiveWall, 0, 0); // TODO: add at ref position
 	} 
 	
 	public List<Person> getPeople() {
@@ -135,8 +117,8 @@ public class Museum {
 		return Collections.unmodifiableList(this.rooms);
 	}
 	
-	public List<Wall> getWalls() {
-		return Collections.unmodifiableList(this.walls);
+	public List<Markup> getMarkups() {
+		return Collections.unmodifiableList(this.markups);
 	}
 	
 	public boolean isEnableVisionArea() {
@@ -157,6 +139,7 @@ public class Museum {
 		}	
 	}
 	
+	@SuppressWarnings("unchecked")
 	private Person addPeople() {
 		Person p = new Person(this, space, pre_ppl_psy, pre_range, pre_angle, pre_wall_psy);
 		this.people.add( p );
@@ -169,7 +152,7 @@ public class Museum {
 	}
 	
 	// NOTE: occurs once at time 0, but do this when constructing this object
-	private void initRoom(Context context) {
+	private void initRoom(Context<Object> context) {
 		Line roomAlignment = new Line( new Point(100, 80), new Point(100, 400));
 		
 		Room room = new Room(this, 5, 2);
@@ -222,152 +205,6 @@ public class Museum {
 			pt.vi0 = Utils.uniform(1.0,1.4);
 			pt.destScreen = tdest;
 			pt.updatePosition();
-		}
-	}
-	
-	private void plotClusters() {
-		for (int i = 0; i < NUM_CLUSTERS; i++) {
-		    Cluster c = clusters.get(i);
-		    c.plotCluster();
-		}
-	}
-	
-	// TODO: cyclic event, first occurence after 5 seconds, then every 5 seconds
-	@ScheduledMethod(start = 5, interval = 5)
-	public void displayClusters() {
-		synchronized(this){
-			people_t.clear();
-			for(Person p:people){
-				if(!p.isReading() && !p.isMoving()){
-					continue;
-				}
-				people_t.add(p);
-			}
-			clustering();
-			if(isPlot){plotClusters();}
-		}
-	}
-	
-	private void kmeans() {
-		for (int i = 0; i < NUM_CLUSTERS; i++) {
-		    Cluster cluster = new Cluster();
-		    cluster.id = i;
-		    Point centroid = createRandomPoint(topLeft,downRight,i);
-		    cluster.centroid = centroid;
-		    clusters.add(cluster);
-		}
-		boolean finish = false;
-			int iteration = 0;
-			while(!finish) {
-		    clearClusters();
-		    List<Point> lastCentroids = getCentroids();
-		    //Assign points to the closer cluster
-		    assignCluster();
-		    //Calculate new centroids.
-		    calculateCentroids();
-		    iteration++;
-			List<Point> currentCentroids = getCentroids();
-		    //Calculates total distance between new and old Centroids
-		    double distance = 0;
-		    for(int i = 0; i < lastCentroids.size(); i++) {
-		        distance += Utils.distance(lastCentroids.get(i),currentCentroids.get(i));
-		    }       	
-		    if(distance == 0) {
-		        finish = true;
-		    }
-		}
-	}
-	
-	private void clustering() {
-		calcBestClusters();
-		kmeans();
-		finalClusterNum = 0;
-		for(Cluster c : clusters){
-			if(c.points.size()>0){finalClusterNum++;}
-		}
-	}
-	
-	private void calcBestClusters() {
-		outerloop: 
-		for(int i = 7; i > 1; i--){
-			NUM_CLUSTERS = i;
-			kmeans();
-			boolean flag = true;
-			for(int j = 0; j < NUM_CLUSTERS-1; j++){
-				for(int k = j+1; k < NUM_CLUSTERS; k++){
-					if(Utils.distance(clusters.get(j).centroid, clusters.get(k).centroid)<CLUSTER_THRESH){
-						flag = false;
-						continue outerloop;
-					}
-				}
-			}
-			if(flag){
-				return;
-			}
-		}
-	}
-	
-	private void clearClusters() {
-		for(Cluster cluster : clusters) {
-			cluster.clear();
-		}
-	}
-	
-	// NOTE: this does not involve any random element at the moment
-	private Point createRandomPoint(Point topLeft, Point bottomRight, int i) {
-		double x = 100;
-		double y = topLeft.getY() + (bottomRight.getY() - topLeft.getY())*i/NUM_CLUSTERS;
-		return new Point(x,y);
-	}
-	
-	private List<Point> getCentroids() {
-		List<Point> centroids = new ArrayList<Point>();
-		for(Cluster cluster : clusters) {
-		  	Point aux = cluster.centroid;
-		   	Point point = new Point(aux.getX(),aux.getY());
-		   	centroids.add(point);
-		}
-		return centroids;
-	}
-	
-	private void assignCluster() {
-		double max = Double.MAX_VALUE;
-		double min = max; 
-		int cluster = 0;                 
-		double distance = 0.0; 
-		for(Person p : people_t) {
-			min = max;
-			for(int i = 0; i < NUM_CLUSTERS; i++) {
-				Cluster c = clusters.get(i);
-				distance = Utils.distance(new Point(p.pxX, p.pxY), c.centroid);
-				if(distance < min){
-					min = distance;
-					cluster = i;
-				}
-			}
-			p.clusterNumber = cluster;
-			clusters.get(cluster).points.add(p);
-		}
-	}
-	
-	private void calculateCentroids() {
-		for(Cluster cluster : clusters) {
-			double sumX = 0;
-			double sumY = 0;
-			List<Person> list = cluster.points;
-			int n_points = list.size();
-			for(Person point : list) {
-				sumX += point.pxX;
-				sumY += point.pxY;
-			}
-		            
-			Point centroid = cluster.centroid;
-			if(n_points > 0) {
-				double newX = sumX / n_points;
-				double newY = sumY / n_points;
-				centroid.x = newX;
-				centroid.y = newY;
-			}
 		}
 	}
 }

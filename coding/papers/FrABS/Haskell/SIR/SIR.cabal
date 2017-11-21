@@ -67,3 +67,4 @@ executable SIR
   -- Base language which the package is written in.
   default-language:    Haskell2010
   
+  ghc-options:         -O3 -Wall -fwarn-tabs -fno-warn-name-shadowing

@@ -2,6 +2,8 @@
 module Main where
 
 import Control.Monad.Random
+import Data.List
+import Data.Maybe
 import System.IO
 import Text.Printf
 
@@ -11,7 +13,9 @@ import FRP.Yampa
 data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
 
 type SIRAgent = (SIRState, Time)
-type SIRAgentProc = SF SIRAgent SIRAgent
+type SIRAgentProcIn = (SIRAgent, Agents)
+type SIRAgentProcOut = SIRAgent
+type SIRAgentProc = SF SIRAgentProcIn SIRAgentProcOut
 
 type Agents = [(SIRState, Time)]
 
@@ -25,7 +29,7 @@ illnessDuration :: Double
 illnessDuration = 15.0
 
 agentCount :: Int
-agentCount = 10000
+agentCount = 1000
 
 infectedCount :: Int
 infectedCount = 10
@@ -81,14 +85,14 @@ runSimulationUntil g t dt as = embed (sirSimulation sfs as) (as, dts)
 sirSimulation :: [SIRAgentProc] -> Agents -> SF Agents Agents
 sirSimulation sfs as = proc _ -> do -- ignoring input
     pSwitch 
-      (sirSimulationRoute)
+      sirSimulationRoute
       sfs
       (sirSimulationSwitchingEvent >>> notYet) -- if we switch immediately we end up in endless switching, so always wait for 'next'
       sirSimulationContinuation -< as
 
   where
-    sirSimulationRoute :: Agents -> [sf] -> [(SIRAgent, sf)]
-    sirSimulationRoute as sfs = zip as sfs
+    sirSimulationRoute :: Agents -> [sf] -> [(SIRAgentProcIn, sf)]
+    sirSimulationRoute as sfs = zipWith (\a sf -> ((a, as), sf)) as sfs
     
     sirSimulationSwitchingEvent :: SF (Agents, Agents) (Event Agents) 
     sirSimulationSwitchingEvent = proc (_oldAs, newAs) -> do
@@ -100,8 +104,8 @@ sirSimulation sfs as = proc _ -> do -- ignoring input
 sirAgent :: (RandomGen g) => g -> SIRAgentProc
 sirAgent g = switch sirAgentStateSwitch id
   where
-    sirAgentStateSwitch :: SF SIRAgent (SIRAgent, Event SIRAgentProc)
-    sirAgentStateSwitch = proc a -> do
+    sirAgentStateSwitch :: SF SIRAgentProcIn (SIRAgent, Event SIRAgentProc)
+    sirAgentStateSwitch = proc (a, _) -> do
       if is Susceptible a
         then returnA -< (a, Event $ susceptibleAgent g)
         else if is Infected a 
@@ -109,17 +113,38 @@ sirAgent g = switch sirAgentStateSwitch id
           else returnA -< (a, Event recoveredAgent)
 
 susceptibleAgent :: (RandomGen g) => g -> SIRAgentProc
-susceptibleAgent g = proc a -> do
-  -- randContCount <- noiseR (0, 1) g -< ()
-  randContCount <- randomExpSF g (1 / contactRate ) -< ()
+susceptibleAgent g = proc ain@(a, as) -> do
+    randContCount <- randomExpSF g (1 / contactRate) -< ()
+    aInfs <- par 
+              (\ain' sfs -> map (\sf -> (ain', sf)) sfs)
+              (replicate (floor contactRate) (susceptibleAgentContactSF g)) -< ain
+              --(replicate (floor randContCount) (susceptibleAgentContactSF g)) -< ain
 
-  returnA -< a
+    let mayInf = find (is Infected) aInfs
+    returnA -< fromMaybe susceptible mayInf
+
+  where
+    susceptibleAgentContactSF :: (RandomGen g) => g -> SIRAgentProc
+    susceptibleAgentContactSF g = proc (a, as) -> do
+      randCont <- drawRandomAgentSF g -< as
+      if (is Infected randCont) 
+        then infectSF g -< a
+        else returnA -< a
+     
+    infectSF :: (RandomGen g) => g -> SF SIRAgent SIRAgent
+    infectSF g = proc a -> do
+      doInfect <- randomBoolSF g infectionProb -< ()
+      t <- time -< ()
+      randIllDur <- randomExpSF g (1 / illnessDuration) -< ()
+      if doInfect
+        then returnA -< infected (t + randIllDur)
+        else returnA -< a
 
 infectedAgent :: SIRAgentProc
 infectedAgent = switch infectedAgentRecoveredEvent infectedAgentRecovers
   where
-    infectedAgentRecoveredEvent :: SF SIRAgent (SIRAgent, Event ())
-    infectedAgentRecoveredEvent = proc a@(_, st) -> do
+    infectedAgentRecoveredEvent :: SF SIRAgentProcIn (SIRAgent, Event ())
+    infectedAgentRecoveredEvent = proc (a@(_, st), _) -> do
       t <- time -< ()
       recEvt <- edge -< (t >= st)
       let a' = event a (\_ -> recovered) recEvt
@@ -129,7 +154,7 @@ infectedAgent = switch infectedAgentRecoveredEvent infectedAgentRecovers
     infectedAgentRecovers _ = recoveredAgent
 
 recoveredAgent :: SIRAgentProc
-recoveredAgent = arr id
+recoveredAgent = arr fst
 
 is :: SIRState -> SIRAgent -> Bool
 is s (s',_) = s == s'
@@ -152,6 +177,15 @@ randomExpSF g lambda = proc _ -> do
   if (r == 0)
     then randomExpSF (fst $ split g) lambda -< ()
     else returnA -< ((-log r) / lambda)
+
+drawRandomAgentSF :: (RandomGen g) => g -> SF Agents SIRAgent
+drawRandomAgentSF g = proc as -> do
+    r <- noiseR (0, 1) g -< ()
+
+    let len = length as
+    let idx = (len - 1) * r
+    
+    returnA -< as !! idx
 
 randomExpM :: (RandomGen g) => Double -> Rand g Double
 randomExpM lambda = avoid 0 >>= (\r -> return $ ((-log r) / lambda))

@@ -1,8 +1,8 @@
 module Main where
 
+import Control.Monad.Random
 import Data.List
 import Data.Maybe
-import Control.Monad.Random
 import System.Random
 import System.IO
 import Text.Printf
@@ -98,8 +98,8 @@ processAgent _ _ a@(Recovered, _) = return a
 susceptibleAgent :: (RandomGen g) => Agents -> Rand g SIRAgent
 susceptibleAgent as = do
     randContactCount <- randomExpM (1 / contactRate)
-    a <- doTimes (floor randContactCount) (susceptibleAgentAux as)
-    let mayInf = find (is Infected) a
+    aInfs <- doTimes (floor randContactCount) (susceptibleAgentAux as)
+    let mayInf = find (is Infected) aInfs
     return $ fromMaybe susceptible mayInf
 
   where

@@ -2,9 +2,9 @@ module FRP.FrABS.Simulation.SeqIteration (
     simulateSeq
   ) where
 
+import Control.Concurrent.STM.TVar
 import Data.Maybe
 import qualified Data.Map as Map
-import Control.Concurrent.STM.TVar
 
 import FRP.Yampa
 import FRP.Yampa.InternalCore
@@ -14,8 +14,8 @@ import FRP.FrABS.Simulation.Init
 import FRP.FrABS.Simulation.Internal
 import FRP.FrABS.Simulation.Common
 
-type MessageAccumulator m = Map.Map AgentId [AgentMessage m]
-type AgentInMap s m e = Map.Map AgentId (AgentIn s m e)
+type MessageAccumulator m   = Map.Map AgentId [AgentMessage m]
+type AgentInMap s m e       = Map.Map AgentId (AgentIn s m e)
 
 -- | Steps the simulation using a sequential update-strategy. 
 -- Conversations and Recursive Simulation is only possible using this strategy.
@@ -43,41 +43,41 @@ simulateSeq:: SimulationParams e
                 -> e
                 -> SF () (Time, [AgentOut s m e], e)
 simulateSeq initParams initSfs initIns initEnv = SF { sfTF = tf0 }
-    where
-        tf0 _ = (tfCont, (initTime, initOuts, initEnv))
-            where
-                initOuts = map agentOutFromIn initIns
+  where
+    tf0 _ = (tfCont, (initTime, initOuts, initEnv))
+      where
+        initOuts = map agentOutFromIn initIns
 
-                initInsMap = insertIntoMap initIns Map.empty
-                initAis = map aiId initIns
-                initMsgs = insertEmptyEntries initAis Map.empty 
-                initTime = 0
+        initInsMap = insertIntoMap initIns Map.empty
+        initAis = map aiId initIns
+        initMsgs = insertEmptyEntries initAis Map.empty 
+        initTime = 0
 
-                tfCont = simulateSeqNewAux initParams initSfs initInsMap initAis initEnv initMsgs initTime
+        tfCont = simulateSeqNewAux initParams initSfs initInsMap initAis initEnv initMsgs initTime
 
-        -- NOTE: we are using a Map (Map.Map AgentId (AgentIn s m e)) to keep track of the agentins
-        -- problem is that we need to update them while iterating over them where changes might only
-        -- be visible in the next iteration. Thus we utilize a map which allows us to update them
-        -- and keep track of agent-ids for iterating over the map. This saves us from creating the
-        -- list using keys of map - also easier to keep our own order and easy shuffling.
-        simulateSeqNewAux params sfs insMap ais e msgs t = SF' tf
-            where
-                idGen = simIdGen params
+    -- NOTE: we are using a Map (Map.Map AgentId (AgentIn s m e)) to keep track of the agentins
+    -- problem is that we need to update them while iterating over them where changes might only
+    -- be visible in the next iteration. Thus we utilize a map which allows us to update them
+    -- and keep track of agent-ids for iterating over the map. This saves us from creating the
+    -- list using keys of map - also easier to keep our own order and easy shuffling.
+    simulateSeqNewAux params sfs insMap ais e msgs t = SF' tf
+      where
+        idGen = simIdGen params
 
-                tf dt _ = (tf', (t', outs, e'))
-                    where
-                        -- accumulate global simulation-time
-                        t' = t + dt
-                        -- iterates over the existing agents
-                        (sfs', outs, insMap', e', msgs') = iterateAgents dt sfs insMap ais e msgs
-                        -- adds/removes new/killed agents
-                        (sfs'', ais', insMap'') = liveKillAndSpawn idGen insMap' (zip3 sfs' ais outs)
-                        -- shuffles agents (if requested by params)
-                        (params', sfsShuffled, aisShuffled) = shuffleAgents params sfs'' ais'
-                        -- runs the environment (if requested by params)
-                        (e'', params'') = runEnv dt params' e'
-                        -- create the continuation
-                        tf' = simulateSeqNewAux params'' sfsShuffled insMap'' aisShuffled e'' msgs' t'
+        tf dt _ = (tf', (t', outs, e'))
+          where
+            -- accumulate global simulation-time
+            t' = t + dt
+            -- iterates over the existing agents
+            (sfs', outs, insMap', e', msgs') = iterateAgents dt sfs insMap ais e msgs
+            -- adds/removes new/killed agents
+            (sfs'', ais', insMap'') = liveKillAndSpawn idGen insMap' (zip3 sfs' ais outs)
+            -- shuffles agents (if requested by params)
+            (params', sfsShuffled, aisShuffled) = shuffleAgents params sfs'' ais'
+            -- runs the environment (if requested by params)
+            (e'', params'') = runEnv dt params' e'
+            -- create the continuation
+            tf' = simulateSeqNewAux params'' sfsShuffled insMap'' aisShuffled e'' msgs' t'
 
 -- TODO: implement recursion
 iterateAgents :: DTime
@@ -116,8 +116,8 @@ iterateAgents dt sfs insMap ais e msgs = foldr handleAgent ([], [], insMap, e, m
 
         collectMessages :: MessageAccumulator m -> AgentIn s m e -> AgentIn s m e
         collectMessages msgAcc ain
-          | isEvent msgs = ain'
-          | otherwise = ain
+            | isEvent msgs = ain'
+            | otherwise = ain
           where
             aid = aiId ain
             msgs = maybeToEvent $ Map.lookup aid msgAcc 
@@ -127,9 +127,9 @@ iterateAgents dt sfs insMap ais e msgs = foldr handleAgent ([], [], insMap, e, m
         addNewAgentsEntries ao msgAcc 
             | isEvent $ aoCreate ao = insertEmptyEntries ids msgAcc
             | otherwise = msgAcc
-            where
-                adefs = fromEvent $ aoCreate ao
-                ids = map adId adefs
+          where
+            adefs = fromEvent $ aoCreate ao
+            ids = map adId adefs
 
         distributeMessages :: AgentOut s m e -> MessageAccumulator m -> MessageAccumulator m
         distributeMessages ao msgAcc = 
@@ -147,15 +147,15 @@ iterateAgents dt sfs insMap ais e msgs = foldr handleAgent ([], [], insMap, e, m
             distributeMessageTo senderId (receiverId, m) accMsgs 
                 | isJust mayReceiverMsgs = accMsgs'
                 | otherwise = accMsgs -- NOTE: if not found, discharge message
-                where 
-                    mayReceiverMsgs = Map.lookup receiverId accMsgs
+              where 
+                mayReceiverMsgs = Map.lookup receiverId accMsgs
 
-                    msg = (senderId, m)                
-                    receiverMsgs = fromJust mayReceiverMsgs
-                    newMsgs = msg : receiverMsgs
+                msg = (senderId, m)                
+                receiverMsgs = fromJust mayReceiverMsgs
+                newMsgs = msg : receiverMsgs
 
-                    -- NOTE: force evaluation of messages, will reduce memory-overhead EXTREMELY
-                    accMsgs' = seq newMsgs (Map.insert receiverId newMsgs accMsgs)
+                -- NOTE: force evaluation of messages, will reduce memory-overhead EXTREMELY
+                accMsgs' = seq newMsgs (Map.insert receiverId newMsgs accMsgs)
                   
         resetOrDeleteMessages :: AgentOut s m e 
                                     -> MessageAccumulator m 
@@ -163,8 +163,8 @@ iterateAgents dt sfs insMap ais e msgs = foldr handleAgent ([], [], insMap, e, m
         resetOrDeleteMessages ao msgAcc
             | isDead ao = Map.delete aid msgAcc
             | otherwise = emptyEntry aid msgAcc
-            where
-                aid = aiId ain
+          where
+              aid = aiId ain
 
         handleConversation :: AgentOut s m e
                               -> e
@@ -173,67 +173,67 @@ iterateAgents dt sfs insMap ais e msgs = foldr handleAgent ([], [], insMap, e, m
         handleConversation ao e insMap
             | hasConversation ao = handleConversation ao' e' insMap'
             | otherwise = (ao, e, insMap)
-            where
-                conv@(_, senderReplyFunc) = fromEvent $ aoConversation ao
+          where
+            conv@(_, senderReplyFunc) = fromEvent $ aoConversation ao
 
-                -- NOTE: it is possible that agents which are just newly created are already target of a conversation because
-                --       their position in the environment was occupied using their id which exposes them to potential messages
-                --       and conversations. These newly created agents are not yet available in the current iteration and can
-                --       only fully participate in the next one. Thus we ignore conversation-requests
+            -- NOTE: it is possible that agents which are just newly created are already target of a conversation because
+            --       their position in the environment was occupied using their id which exposes them to potential messages
+            --       and conversations. These newly created agents are not yet available in the current iteration and can
+            --       only fully participate in the next one. Thus we ignore conversation-requests
 
-                mayRepl = conversationReply ao e insMap conv
-                (noReplyAo, noReplyEnv) = senderReplyFunc ao e Nothing
-                (ao', e', insMap') = fromMaybe (noReplyAo, noReplyEnv, insMap) mayRepl
+            mayRepl = conversationReply ao e insMap conv
+            (noReplyAo, noReplyEnv) = senderReplyFunc ao e Nothing
+            (ao', e', insMap') = fromMaybe (noReplyAo, noReplyEnv, insMap) mayRepl
 
-                conversationReply :: AgentOut s m e
-                                        -> e
-                                        -> AgentInMap s m e
-                                        -> (AgentMessage m, AgentConversationSender s m e)
-                                        -> Maybe (AgentOut s m e, e, AgentInMap s m e)
-                conversationReply ao e insMap ((receiverId, receiverMsg), senderReplyFunc) = do
-                    receiver <- Map.lookup receiverId insMap
-                    convHandler <- aiConversation receiver
-                    let msg = (aoId ao, receiverMsg)
-                    (receiverState, replyMsg, e') <- convHandler receiver e msg
-                    let receiver' = receiver { aiState = receiverState }
-                    let insMap' = Map.insert receiverId receiver' insMap
-                    let (ao', e'') = senderReplyFunc ao e' (Just (receiverId, replyMsg))
-                    return (ao', e'', insMap')
+            conversationReply :: AgentOut s m e
+                                    -> e
+                                    -> AgentInMap s m e
+                                    -> (AgentMessage m, AgentConversationSender s m e)
+                                    -> Maybe (AgentOut s m e, e, AgentInMap s m e)
+            conversationReply ao e insMap ((receiverId, receiverMsg), senderReplyFunc) = do
+                receiver <- Map.lookup receiverId insMap
+                convHandler <- aiConversation receiver
+                let msg = (aoId ao, receiverMsg)
+                (receiverState, replyMsg, e') <- convHandler receiver e msg
+                let receiver' = receiver { aiState = receiverState }
+                let insMap' = Map.insert receiverId receiver' insMap
+                let (ao', e'') = senderReplyFunc ao e' (Just (receiverId, replyMsg))
+                return (ao', e'', insMap')
 
 liveKillAndSpawn :: TVar Int
                     -> AgentInMap s m e
                     -> [(AgentBehaviour s m e, AgentId, AgentOut s m e)]
                     -> ([AgentBehaviour s m e], [AgentId], AgentInMap s m e)
 liveKillAndSpawn idGen insMap as = foldr (liveKillAndSpawnAux idGen) ([], [], insMap) as
-    where
-        liveKillAndSpawnAux :: TVar Int
-                                -> (AgentBehaviour s m e, AgentId, AgentOut s m e)
-                                -> ([AgentBehaviour s m e], [AgentId], AgentInMap s m e)
-                                -> ([AgentBehaviour s m e], [AgentId], AgentInMap s m e)
-        liveKillAndSpawnAux idGen (sf, aid, ao) (accSfs, accAis, insMap)
-            | isDead ao = (accSfs', accAis', insMapDead)
-            | otherwise = (sf : accSfs', aid : accAis', insMapLive)
-            where
-                (newSfs, newAins) = handleSpawns idGen ao
+  where
+    liveKillAndSpawnAux :: TVar Int
+                            -> (AgentBehaviour s m e, AgentId, AgentOut s m e)
+                            -> ([AgentBehaviour s m e], [AgentId], AgentInMap s m e)
+                            -> ([AgentBehaviour s m e], [AgentId], AgentInMap s m e)
+    liveKillAndSpawnAux idGen (sf, aid, ao) (accSfs, accAis, insMap)
+        | isDead ao = (accSfs', accAis', insMapDead)
+        | otherwise = (sf : accSfs', aid : accAis', insMapLive)
+      where
+        (newSfs, newAins) = handleSpawns idGen ao
 
-                accSfs' = accSfs ++ newSfs
-                accAis' = accAis ++ (map aiId newAins)
-                insMap' = insertIntoMap newAins insMap
+        accSfs' = accSfs ++ newSfs
+        accAis' = accAis ++ (map aiId newAins)
+        insMap' = insertIntoMap newAins insMap
 
-                -- NOTE: we can asume that all lookups are valid
-                ain = fromJust $ Map.lookup aid insMap
-                ain' = newAgentIn ain ao
+        -- NOTE: we can asume that all lookups are valid
+        ain = fromJust $ Map.lookup aid insMap
+        ain' = newAgentIn ain ao
 
-                insMapDead = Map.delete aid insMap'
-                insMapLive = Map.insert aid ain' insMap'
+        insMapDead = Map.delete aid insMap'
+        insMapLive = Map.insert aid ain' insMap'
 
-        handleSpawns :: TVar Int -> AgentOut s m e -> ([AgentBehaviour s m e], [AgentIn s m e])
-        handleSpawns idGen ao 
-            | isEvent $ aoCreate ao = (sfs, ains)
-            | otherwise = ([], [])
-            where
-                adefs = fromEvent $ aoCreate ao
-                (sfs, ains) = createStartingAgent adefs idGen
+    handleSpawns :: TVar Int -> AgentOut s m e -> ([AgentBehaviour s m e], [AgentIn s m e])
+    handleSpawns idGen ao 
+        | isEvent $ aoCreate ao = (sfs, ains)
+        | otherwise = ([], [])
+      where
+        adefs = fromEvent $ aoCreate ao
+        (sfs, ains) = createStartingAgent adefs idGen
 
 insertEmptyEntries :: [AgentId] -> MessageAccumulator m -> MessageAccumulator m
 insertEmptyEntries ids msgAcc = foldr emptyEntry msgAcc ids

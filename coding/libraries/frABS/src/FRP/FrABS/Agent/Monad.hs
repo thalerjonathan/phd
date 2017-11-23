@@ -1,66 +1,67 @@
 {-# LANGUAGE Arrows #-}
-module FRP.FrABS.Agent.Monad (
-    agentIdM,
+module FRP.FrABS.Agent.Monad 
+  (
+    AgentMonadicBehaviour
+  , AgentMonadicBehaviourReadEnv
+  , AgentMonadicBehaviourNoEnv
 
-    createAgentM,
-    killM,
-    isDeadM,
+  --, agentIdM
 
-    sendMessageM,
-    sendMessageToM,
-    sendMessagesM,
-    broadcastMessageM,
-    onMessageM,
-    onMessageMState,
+  , createAgentM
+  , killM
+  , isDeadM
 
-    conversationM,
-    conversationEndM,
-    conversationReplyMonadicRunner,
-    conversationIgnoreEnvReplyMonadicRunner,
-    conversationIgnoreReplyMonadicRunner,
-    conversationIgnoreReplyMonadicRunner',
+  , sendMessageM
+  , sendMessageToM
+  , sendMessagesM
+  , broadcastMessageM
+  , onMessageM
+  , onMessageMState
 
-    bypassEnvironment,
+  , conversationM
+  , conversationEndM
+  , conversationReplyMonadicRunner
+  , conversationIgnoreEnvReplyMonadicRunner
+  , conversationIgnoreReplyMonadicRunner
+  , conversationIgnoreReplyMonadicRunner'
 
-    updateAgentStateM,
-    agentStateM,
-    setAgentStateM,
-    agentStateFieldM,
+  , bypassEnvironment
 
-    agentMonadic,
-    agentMonadicReadEnv,
-    agentMonadicIgnoreEnv,
-    AgentMonadicBehaviour,
-    AgentMonadicBehaviourReadEnv,
-    AgentMonadicBehaviourNoEnv,
-    
-    ifThenElse,
-    ifThenElseM
+  , updateAgentStateM
+  , agentStateM
+  , setAgentStateM
+  , agentStateFieldM
+
+  , agentMonadic
+  , agentMonadicReadEnv
+  , agentMonadicIgnoreEnv
+
+  , ifThenElse
+  , ifThenElseM
   ) where
-
-import FRP.FrABS.Agent.Agent
-
-import FRP.Yampa
 
 import Control.Monad
 import Control.Monad.Trans.State
 
-type AgentMonadicBehaviour s m e = (e -> Double -> AgentIn s m e -> State (AgentOut s m e) e)
-type AgentMonadicBehaviourReadEnv s m e = (e -> Double -> AgentIn s m e -> State (AgentOut s m e) ())
-type AgentMonadicBehaviourNoEnv s m e = (Double -> AgentIn s m e -> State (AgentOut s m e) ())
+import FRP.Yampa
+
+import FRP.FrABS.Agent.Agent
+
+type AgentMonadicBehaviour s m e          = e -> Double -> AgentIn s m e -> State (AgentOut s m e) e
+type AgentMonadicBehaviourReadEnv s m e   = e -> Double -> AgentIn s m e -> State (AgentOut s m e) ()
+type AgentMonadicBehaviourNoEnv s m e     = Double -> AgentIn s m e -> State (AgentOut s m e) ()
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Monadic Agent Functions
 ------------------------------------------------------------------------------------------------------------------------
-agentIdM :: State (AgentOut s m e) AgentId
-agentIdM = state (\ao -> (aoId ao, ao))
+--agentIdM :: State (AgentOut s m e) AgentId
+--agentIdM = state (\ao -> (aoId ao, ao))
 
 sendMessageM :: AgentMessage m -> State (AgentOut s m e) ()
 sendMessageM msg = state (\ao -> ((), sendMessage msg ao))
 
 sendMessageToM :: AgentId -> m -> State (AgentOut s m e) ()
 sendMessageToM receiver msg = state (\ao -> ((), sendMessageTo receiver msg ao))
-
 
 conversationM :: AgentMessage m
                 -> AgentConversationSender s m e
@@ -75,38 +76,38 @@ sendMessagesM msgs = state (\ao -> ((), sendMessages msgs ao))
 
 broadcastMessageM :: m -> [AgentId] -> State (AgentOut s m e) ()
 broadcastMessageM m receiverIds = state (broadcastMessageMAux m)
-    where
-        broadcastMessageMAux :: m -> AgentOut s m e -> ((), AgentOut s m e)
-        broadcastMessageMAux m ao = ((), sendMessages msgs ao)
-            where
-                n = length receiverIds
-                ms = replicate n m
-                msgs = zip receiverIds ms
+  where
+    broadcastMessageMAux :: m -> AgentOut s m e -> ((), AgentOut s m e)
+    broadcastMessageMAux m ao = ((), sendMessages msgs ao)
+      where
+        n = length receiverIds
+        ms = replicate n m
+        msgs = zip receiverIds ms
 
 createAgentM :: AgentDef s m e -> State (AgentOut s m e) ()
 createAgentM newDef = state (\ao -> ((),createAgent newDef ao))
 
 conversationReplyMonadicRunner :: (Maybe (AgentMessage m) -> e -> State (AgentOut s m e) e) -> AgentConversationSender s m e
 conversationReplyMonadicRunner replyAction ao e mayReply = (ao', e')
-    where
-        (e', ao') = runState (replyAction mayReply e) ao
+  where
+    (e', ao') = runState (replyAction mayReply e) ao
 
 conversationIgnoreEnvReplyMonadicRunner :: (Maybe (AgentMessage m) -> State (AgentOut s m e) ()) -> AgentConversationSender s m e
 conversationIgnoreEnvReplyMonadicRunner replyAction ao e mayReply = (ao', e)
-    where
-        (_, ao') = runState (replyAction mayReply) ao
+  where
+    (_, ao') = runState (replyAction mayReply) ao
 
 -- NOTE: when ignoring the reply it makes also sense to bypass the environment
 conversationIgnoreReplyMonadicRunner :: State (AgentOut s m e) () -> AgentConversationSender s m e
 conversationIgnoreReplyMonadicRunner replyAction ao e  _ = (ao', e)
-    where
-        (_, ao') = runState replyAction ao
+  where
+    (_, ao') = runState replyAction ao
 
 -- NOTE: for the case one does not want to bypass the environment
 conversationIgnoreReplyMonadicRunner' :: (e -> State (AgentOut s m e) e) -> AgentConversationSender s m e
 conversationIgnoreReplyMonadicRunner' replyAction ao e _ = (ao', e')
-    where
-        (e', ao') = runState (replyAction e) ao
+  where
+    (e', ao') = runState (replyAction e) ao
 
 bypassEnvironment :: State (AgentOut s m e) () -> e -> State (AgentOut s m e) e
 bypassEnvironment a e = a >> return e
@@ -125,64 +126,52 @@ onMessageM msgHdl ai acc
     | not hasMessages = return acc
     -- | otherwise = foldM (\acc msg -> msgHdl acc msg) acc msgs
     | otherwise = foldM msgHdl acc msgs
-    where
-        msgsEvt = aiMessages ai
-        hasMessages = isEvent msgsEvt
-        msgs = fromEvent msgsEvt
+  where
+    msgsEvt = aiMessages ai
+    hasMessages = isEvent msgsEvt
+    msgs = fromEvent msgsEvt
     
 updateAgentStateM :: (s -> s) -> State (AgentOut s m e) ()
 updateAgentStateM f = state (updateAgentStateMAux f)
-    where
-        updateAgentStateMAux :: (s -> s) 
-                            -> AgentOut s m e 
-                            -> ((), AgentOut s m e)
-        updateAgentStateMAux f ao = ((), updateAgentState f ao)
+  where
+    updateAgentStateMAux :: (s -> s) 
+                        -> AgentOut s m e 
+                        -> ((), AgentOut s m e)
+    updateAgentStateMAux f ao = ((), updateAgentState f ao)
 
 setAgentStateM :: s -> State (AgentOut s m e) ()
 setAgentStateM s = state (\ao -> ((), setAgentState s ao))
 
 agentStateFieldM :: (s -> t) -> State (AgentOut s m e) t
 agentStateFieldM f = state (agentStateFieldMAux f)
-    where
-        agentStateFieldMAux :: (s -> t) 
-                            -> AgentOut s m e
-                            -> (t, AgentOut s m e)
-        agentStateFieldMAux f ao = (f s, ao)
-            where
-                s = aoState ao
+  where
+    agentStateFieldMAux :: (s -> t) 
+                        -> AgentOut s m e
+                        -> (t, AgentOut s m e)
+    agentStateFieldMAux f ao = (f s, ao)
+      where
+        s = aoState ao
 
 agentStateM :: State (AgentOut s m e) s
 agentStateM = get >>= (\ao -> return $ aoState ao)
 
-agentMonadic :: AgentMonadicBehaviour s m e -> AgentBehaviour s m e
-agentMonadic f = proc (ain, e) ->
-    do
-        age <- time -< 0
+agentMonadic :: AgentMonadicBehaviour s m e -> AgentOut s m e -> AgentBehaviour s m e
+agentMonadic f ao = proc (ain, e) -> do
+  age <- time -< ()
+  let (e', ao') = runState (f e age ain) ao
+  returnA -< (ao', e')
 
-        let ao = agentOutFromIn ain
-        let (e', ao') = runState (f e age ain) ao
+agentMonadicReadEnv :: AgentMonadicBehaviourReadEnv s m e -> AgentOut s m e -> AgentBehaviour s m e
+agentMonadicReadEnv f ao = proc (ain, e) -> do
+  age <- time -< ()
+  let ao' = execState (f e age ain) ao
+  returnA -< (ao', e)
 
-        returnA -< (ao', e')
-
-agentMonadicReadEnv :: AgentMonadicBehaviourReadEnv s m e -> AgentBehaviour s m e
-agentMonadicReadEnv f = proc (ain, e) ->
-    do
-        age <- time -< 0
-
-        let ao = agentOutFromIn ain
-        let ao' = execState (f e age ain) ao
-
-        returnA -< (ao', e)
-
-agentMonadicIgnoreEnv :: AgentMonadicBehaviourNoEnv s m e -> AgentBehaviour s m e
-agentMonadicIgnoreEnv f = proc (ain, e) ->
-    do
-        age <- time -< 0
-
-        let ao = agentOutFromIn ain
-        let ao' = execState (f age ain) ao
-
-        returnA -< (ao', e)
+agentMonadicIgnoreEnv :: AgentMonadicBehaviourNoEnv s m e -> AgentOut s m e -> AgentBehaviour s m e
+agentMonadicIgnoreEnv f ao = proc (ain, e) -> do
+  age <- time -< ()
+  let ao' = execState (f age ain) ao
+  returnA -< (ao', e)
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Monadic Utility Functions

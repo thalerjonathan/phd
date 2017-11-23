@@ -1,14 +1,14 @@
 module NewAgents.Model (
-    NewAgentState,
-    NewAgentMsg (..),
+    NewAgentState
+  , NewAgentMsg (..)
 
-    NewAgentEnvironment,
+  , NewAgentEnvironment
 
-    NewAgentDef,
-    NewAgentBehaviour,
-    NewAgentIn,
-    NewAgentOut,
-    NewAgentObservable
+  , NewAgentDef
+  , NewAgentBehaviour
+  , NewAgentIn
+  , NewAgentOut
+  , NewAgentObservable
   ) where
 
 import FRP.FrABS

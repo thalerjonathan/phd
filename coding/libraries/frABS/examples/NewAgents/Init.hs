@@ -13,26 +13,24 @@ import System.Random
 import Control.Monad.Random
 
 initNewAgents :: Int -> IO ([NewAgentDef], NewAgentEnvironment)
-initNewAgents n = 
-  do
-    adefs <- evalRandIO $ mapM createNewAgent [0..(n-1)]
-    return (adefs, ())
+initNewAgents n = do
+  adefs <- evalRandIO $ mapM createNewAgent [0..(n-1)]
+  return (adefs, ())
 
 createNewAgent :: AgentId -> Rand StdGen NewAgentDef
-createNewAgent aid = 
-    do
-        rng <- getSplit
-        --randValue <- getRandomR (0, 43)
+createNewAgent aid = do
+  rng <- getSplit
+  --randValue <- getRandomR (0, 43)
 
-        let s = 0
+  let s = 1
 
-        let adef = AgentDef {
-           adId = aid,
-           adState = s,
-           adConversation = Nothing,
-           adInitMessages = NoEvent,
-           adBeh = newAgentBehaviour,
-           adRng = rng 
-        }
+  let adef = AgentDef {
+    adId = aid
+  , adState = s
+  , adConversation = Nothing
+  , adInitMessages = NoEvent
+  , adBeh = newAgentBehaviour s
+  , adRng = rng 
+  }
 
-        return adef
+  return adef

@@ -8,6 +8,7 @@ import           FrSIR.Run
 import           FrSIRSNetwork.Run
 import           FrSIRSSpatial.Run
 import           HeroesCowards.Run
+import           NewAgents.Run
 import           PolicyEffects.Run
 import           PrisonersDilemma.Run
 import           RecursiveABS.Run
@@ -18,7 +19,7 @@ import           SysDynSIR.Run
 import           SocialForce.Run
 import           Wildfire.Run
 import           Zombies.Run
-import           NewAgents.Run
+
 
 {- TODOs
   - BUG in SugarScape: all agents have id=0 because newAgentId seems not to hand out new ids...
@@ -33,7 +34,7 @@ import           NewAgents.Run
 -}
 
 main :: IO ()
-main = runSIRStepsAndWriteToFile
+main = runNewAgentsSteps
 
   -- runSocialForce
   -- runFrSIRReplicationsAndWriteToFile -- runFrSIRStepsAndWriteToFile

@@ -24,13 +24,13 @@ import           Zombies.Run
 {- TODOs
   - BUG in SugarScape: all agents have id=0 because newAgentId seems not to hand out new ids...
   - BUG: if two agents have the same id, their states will get mixed-up when using the Sequential updating
-	- different build targets: with/without time-traveling, gloss rendering
-	- add HOW-TO of FrABS examples running on github in a sandbox: need yampa with exposed core, haskell-titan, install FrABS
-	
-	- clean-up, can all be done in one rush through ALL the files:
-		-> STYLE, INDENTATIONS & COMMENTS:		https://github.com/tibbe/haskell-style-guide/blob/master/haskell-style.md
-		-> WARNINGS:							no warnings with -Wall -Werror
-	
+  - different build targets: with/without time-traveling, gloss rendering
+  - add HOW-TO of FrABS examples running on github in a sandbox: need yampa with exposed core, haskell-titan, install FrABS
+  
+  - clean-up, can all be done in one rush through ALL the files:
+    -> STYLE, INDENTATIONS & COMMENTS:		https://github.com/tibbe/haskell-style-guide/blob/master/haskell-style.md
+    -> WARNINGS:							no warnings with -Wall -Werror
+  
 -}
 
 main :: IO ()

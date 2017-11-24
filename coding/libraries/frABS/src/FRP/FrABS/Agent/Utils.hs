@@ -1,11 +1,11 @@
-module FRP.FrABS.Agent.Utils (
+module FRP.FrABS.Agent.Utils 
+  (
     agentRandomNeighbourNode
   ) where
 
 import Control.Monad.Trans.State
 
 import FRP.FrABS.Agent.Agent
-import FRP.FrABS.Agent.Monad
 import FRP.FrABS.Agent.Random
 import FRP.FrABS.Environment.Network
 

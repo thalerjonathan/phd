@@ -1,17 +1,17 @@
 module FRP.FrABS.Simulation.Replication 
-    (
-      AgentDefReplicator
-    , EnvironmentReplicator
-    , Replication
-    
-    , ReplicationConfig (..)
+  (
+    AgentDefReplicator
+  , EnvironmentReplicator
+  , Replication
+  
+  , ReplicationConfig (..)
 
-    , defaultEnvReplicator
-    , defaultAgentReplicator
+  , defaultEnvReplicator
+  , defaultAgentReplicator
 
-    , runReplications
-    , runReplicationsWithAggregation
-    ) where
+  , runReplications
+  , runReplicationsWithAggregation
+  ) where
 
 import Control.Monad.Random
 import Control.Parallel.Strategies
@@ -19,19 +19,21 @@ import Control.Parallel.Strategies
 import FRP.Yampa
 
 import FRP.FrABS.Agent.Agent
+import FRP.FrABS.Simulation.Common
 import FRP.FrABS.Simulation.Simulation
 import FRP.FrABS.Simulation.Init
 
-type AgentDefReplicator s m e = (StdGen -> AgentDef s m e -> (AgentDef s m e, StdGen))
-type EnvironmentReplicator e = (StdGen -> e -> (e, StdGen))
-type Replication s e = [SimulationStepOut s e]
-type ReplicationAggregate a = [a]
+type AgentDefReplicator s m e   = (StdGen -> AgentDef s m e -> (AgentDef s m e, StdGen))
+type EnvironmentReplicator e    = (StdGen -> e -> (e, StdGen))
+type Replication s e            = [SimulationStepOut s e]
+type ReplicationAggregate a     = [a]
 
-data ReplicationConfig s m e = ReplicationConfig {
-    replCfgCount :: Int,
-    replCfgAgentReplicator :: AgentDefReplicator s m e,
-    replCfgEnvReplicator :: EnvironmentReplicator e
-}
+data ReplicationConfig s m e = ReplicationConfig 
+  {
+    replCfgCount :: Int
+  , replCfgAgentReplicator :: AgentDefReplicator s m e
+  , replCfgEnvReplicator :: EnvironmentReplicator e
+  }
 
 defaultEnvReplicator :: EnvironmentReplicator e
 defaultEnvReplicator rng e = (e, rng)

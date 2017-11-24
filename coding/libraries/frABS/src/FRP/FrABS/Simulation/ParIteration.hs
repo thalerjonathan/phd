@@ -41,19 +41,19 @@ simulatePar :: SimulationParams e
                 -> [AgentBehaviour s m e]
                 -> [AgentIn s m e]
                 -> e
-                -> SF () (Time, [AgentOut s m e], e)
+                -> SF () (SimulationStepOut s e) -- (Time, [(AgentId, AgentObservable s)], e)
 simulatePar initParams initSfs initIns initEnv = SF { sfTF = tf0 }
   where
-    tf0 _ = (tfCont, (initTime, initOuts, initEnv))
+    tf0 _ = (tfCont, (initTime, initObs, initEnv))
       where
-        -- NOTE: there can be no output at time 0 => empty list
-        initOuts = [] -- map agentOutFromIn initIns
+        -- NOTE: there can be no observable output at time 0 => empty list
+        initObs = []
         initTime = 0
         tfCont = simulateParAux initParams initSfs initIns initEnv initTime
 
         simulateParAux params sfs ins e t = SF' tf
           where
-            tf dt _ =  (tf', (t', outs, e'))
+            tf dt _ =  (tf', (t', obs, e'))
               where
                 -- accumulate global simulation-time
                 t' = t + dt
@@ -62,7 +62,9 @@ simulatePar initParams initSfs initIns initEnv = SF { sfTF = tf0 }
                 -- create next inputs and sfs (distribute messages and add/remove new/killed agents)
                 (sfs'', ins') = nextStep ins outs sfs'
                 -- collapse all environments into one
-                (e', params') = foldEnvironments dt params envs e 
+                (e', params') = foldEnvironments dt params envs e
+                -- create observable outputs
+                obs = map (\(ai, ao) -> (aiId ai, aoState ao)) (zip ins outs)
                 -- NOTE: shuffling may seem strange in parallel but this will ensure random message-distribution when required
                 (params'', sfsShuffled, insShuffled) = shuffleAgents params' sfs'' ins'
                 -- create continuation

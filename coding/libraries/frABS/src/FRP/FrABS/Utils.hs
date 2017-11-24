@@ -10,8 +10,7 @@ import qualified Data.Map as Map
 --   /O(N)/
 fisherYatesShuffle :: RandomGen g => g -> [a] -> ([a], g)
 fisherYatesShuffle gen [] = ([], gen)
-fisherYatesShuffle gen l = 
-  toElems $ foldl fisherYatesStep (initial (head l) gen) (numerate (tail l))
+fisherYatesShuffle gen l = toElems $ foldl fisherYatesStep (initial (head l) gen) (numerate (tail l))
   where
     toElems (x, y) = (Map.elems x, y)
     numerate = zip [1..]

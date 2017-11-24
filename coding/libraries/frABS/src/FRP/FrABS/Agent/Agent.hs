@@ -65,8 +65,6 @@ module FRP.FrABS.Agent.Agent
   , agentPure
   , agentPureReadEnv
   , agentPureIgnoreEnv
-
-  , agentOutToObservable
   ) where
 
 import Control.Concurrent.STM.TVar
@@ -162,10 +160,7 @@ agentOut s ai =
             , aoRec = NoEvent
             , aoRecOthersAllowed = True
             , aoRng = aiRng ai 
-            }  
-
-agentOutToObservable :: AgentId -> AgentOut s m e -> AgentObservable s
-agentOutToObservable aid ao = (aid, aoState ao)
+            } 
  
 hasConversation :: AgentOut s m e -> Bool
 hasConversation = isEvent . aoConversationRequest

@@ -1,51 +1,52 @@
-module FRP.FrABS.Simulation.Init (
-    SimulationParams (..),
-    UpdateStrategy (..),
+module FRP.FrABS.Simulation.Init 
+  (
+    SimulationParams (..)
+  , UpdateStrategy (..)
 
-    initSimulation,
-    initSimNoEnv,
-    newAgentId
+  , initSimulation
+  , initSimNoEnv
+  , newAgentId
   ) where
 
-import FRP.FrABS.Agent.Agent
-import FRP.FrABS.Simulation.Internal
-import FRP.FrABS.Environment.Definitions
-
-import Control.Monad.Random
 import Control.Concurrent.STM.TVar
+import Control.Monad.Random
 
-data UpdateStrategy = Sequential | Parallel deriving (Eq, Show)
+import FRP.FrABS.Agent.Agent
+import FRP.FrABS.Environment.Definitions
+import FRP.FrABS.Simulation.Internal
 
-data SimulationParams e = SimulationParams {
-    simStrategy :: UpdateStrategy,
-    simEnvBehaviour :: Maybe (EnvironmentBehaviour e),
-    simEnvFold :: Maybe (EnvironmentFolding e),
-    simShuffleAgents :: Bool,
-    simRng :: StdGen,
-    simIdGen :: TVar Int
-}
+data UpdateStrategy      = Sequential | Parallel deriving (Eq, Show)
+
+data SimulationParams e = SimulationParams 
+  {
+    simStrategy       :: UpdateStrategy
+  , simEnvBehaviour   :: Maybe (EnvironmentBehaviour e)
+  , simEnvFold        :: Maybe (EnvironmentFolding e)
+  , simShuffleAgents  :: Bool
+  , simRng            :: StdGen
+  , simIdGen          :: TVar Int
+  }
 
 initSimulation :: UpdateStrategy
-                    -> Maybe (EnvironmentBehaviour e)
-                    -> Maybe (EnvironmentFolding e)
-                    -> Bool
-                    -> Maybe Int
-                    -> IO (SimulationParams e)
-initSimulation updtStrat beh foldEnvFun shuffAs rngSeed = 
-    do
-        initRng rngSeed
+                  -> Maybe (EnvironmentBehaviour e)
+                  -> Maybe (EnvironmentFolding e)
+                  -> Bool
+                  -> Maybe Int
+                  -> IO (SimulationParams e)
+initSimulation updtStrat beh foldEnvFun shuffAs rngSeed = do
+  initRng rngSeed
 
-        rng <- getSplit
-        agentIdVar <- newTVarIO 0
+  rng <- getSplit
+  agentIdVar <- newTVarIO 0
 
-        return SimulationParams {
-            simStrategy = updtStrat,
-            simEnvBehaviour = beh,
-            simEnvFold = foldEnvFun,
-            simShuffleAgents = shuffAs,
-            simRng = rng,
-            simIdGen = agentIdVar
-        }
+  return SimulationParams {
+      simStrategy = updtStrat
+    , simEnvBehaviour = beh
+    , simEnvFold = foldEnvFun
+    , simShuffleAgents = shuffAs
+    , simRng = rng
+    , simIdGen = agentIdVar
+    }
 
 initSimNoEnv :: UpdateStrategy
                 -> Bool

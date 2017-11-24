@@ -1,21 +1,22 @@
-module FRP.FrABS.SD.Definitions (
-  StockId,
-  FlowId,
-  
-  Stock,
-  Flow,
-  SDObservable,
-  SDDef,
-  
-  runSD,
-  
-  createStock,
-  createFlow,
+module FRP.FrABS.SD.Definitions 
+  (
+    StockId
+  , FlowId
 
-  flowInFrom,
-  stockInFrom,
-  flowOutTo,
-  stockOutTo
+  , Stock
+  , Flow
+  , SDObservable
+  , SDDef
+
+  , runSD
+
+  , createStock
+  , createFlow
+
+  , flowInFrom
+  , stockInFrom
+  , flowOutTo
+  , stockOutTo
 ) where
 
 import System.Random (StdGen, mkStdGen)
@@ -29,20 +30,20 @@ import FRP.FrABS.Agent.Reactive
 import FRP.FrABS.Simulation.Simulation
 import FRP.FrABS.Simulation.Init
 
-data SDMsg = Value Double deriving (Eq, Show)
-type SDStockState = Double
-type SDEnvironment = ()
-type StockId = AgentId
-type FlowId = AgentId
+data SDMsg          = Value Double deriving (Eq, Show)
+type SDStockState   = Double
+type SDEnvironment  = ()
+type StockId        = AgentId
+type FlowId         = AgentId
 
-type SDDef = AgentDef SDStockState SDMsg SDEnvironment 
-type SDBehaviour = ReactiveBehaviourIgnoreEnv SDStockState SDMsg SDEnvironment 
-type SDIn = AgentIn SDStockState SDMsg SDEnvironment 
-type SDOut = AgentOut SDStockState SDMsg SDEnvironment 
-type SDObservable = AgentObservable SDStockState
+type SDDef          = AgentDef SDStockState SDMsg SDEnvironment 
+type SDBehaviour    = ReactiveBehaviourIgnoreEnv SDStockState SDMsg SDEnvironment 
+type SDIn           = AgentIn SDStockState SDMsg SDEnvironment 
+type SDOut          = AgentOut SDStockState SDMsg SDEnvironment 
+type SDObservable   = AgentObservable SDStockState
 
-type Stock = Double -> SDBehaviour
-type Flow = SDBehaviour
+type Stock          = Double -> SDBehaviour
+type Flow           = SDBehaviour
 
 createStock :: AgentId 
               -> SDStockState
@@ -50,27 +51,35 @@ createStock :: AgentId
               -> SDDef
 createStock stockId stockState stockBeh = AgentDef { 
     adId = stockId
-  , adState = stockState
+  -- , adState = stockState
   , adBeh = ignoreEnv (stockBeh stockState)
   , adInitMessages = NoEvent
-  , adConversation = Nothing
-  , adRng = dummyRng }
+  -- , adConversation = Nothing
+  , adRng = dummyRng 
+  }
 
 createFlow :: AgentId 
               -> Flow
               -> SDDef
 createFlow flowId flowBeh = AgentDef { 
     adId = flowId
-  , adState = 0.0 -- NOTE: a flow does not has or use its state, set it to dummy value 0
+  -- , adState = 0.0 -- NOTE: a flow does not has or use its state, set it to dummy value 0
   , adBeh = ignoreEnv flowBeh
   , adInitMessages = NoEvent
-  , adConversation = Nothing
-  , adRng = dummyRng }
+  -- , adConversation = Nothing
+  , adRng = dummyRng 
+  }
 
+flowInFrom :: AgentId -> SDIn -> Double
 flowInFrom = valueInFrom
+
+stockInFrom :: AgentId -> SDIn -> Double
 stockInFrom = valueInFrom
 
+flowOutTo :: Double -> AgentId -> SDOut -> SDOut
 flowOutTo = valueOutTo
+
+stockOutTo :: Double -> AgentId -> SDOut -> SDOut
 stockOutTo = valueOutTo
 
 runSD :: [SDDef] -> DTime -> Time -> [(Time, [SDObservable])]
@@ -104,7 +113,7 @@ dummyRng :: StdGen
 dummyRng = mkStdGen 0
 
 filterMessageValue :: (AgentMessage SDMsg) -> Double -> Double
-filterMessageValue (_, Value v) initValue = v
+filterMessageValue (_, Value v) _ = v
 
 valueInFrom :: AgentId -> SDIn -> Double
 valueInFrom senderId ain = onMessageFrom senderId filterMessageValue ain 0.0 

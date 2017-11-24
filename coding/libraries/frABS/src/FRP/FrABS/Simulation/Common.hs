@@ -1,12 +1,21 @@
-module FRP.FrABS.Simulation.Common where
+module FRP.FrABS.Simulation.Common 
+  (
+    SimulationStepOut
+
+  , runEnv
+  , shuffleAgents
+  , newAgentIn
+  ) where
 
 import FRP.Yampa
 
-import FRP.FrABS.Utils
 import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Environment.Definitions
 import FRP.FrABS.Simulation.Init
 import FRP.FrABS.Simulation.Internal
+import FRP.FrABS.Utils
+
+type SimulationStepOut s e            = (Time, [AgentObservable s], e)
 
 runEnv :: DTime -> SimulationParams e -> e -> (e, SimulationParams e)
 runEnv dt params e = maybe (e, params) (runEnvAux params e) mayEnvBeh
@@ -44,5 +53,5 @@ newAgentIn oldIn newOut = newIn
     newIn = oldIn { aiStart = NoEvent
                   -- aiState = aoState newOut
                   , aiMessages = NoEvent
-                  , aiRng = aoRng newOut
+                  , aiRng = aoRng newOut -- TODO: want to get rid of this
                   }

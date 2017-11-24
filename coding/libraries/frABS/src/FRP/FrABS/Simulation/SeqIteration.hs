@@ -41,12 +41,13 @@ simulateSeq:: SimulationParams e
                 -> [AgentBehaviour s m e]
                 -> [AgentIn s m e]
                 -> e
-                -> SF () (Time, [AgentOut s m e], e)
+                -> SF () (SimulationStepOut s e) -- (Time, [(AgentId, AgentObservable s)], e)
 simulateSeq initParams initSfs initIns initEnv = SF { sfTF = tf0 }
   where
-    tf0 _ = (tfCont, (initTime, initOuts, initEnv))
+    tf0 _ = (tfCont, (initTime, initObs, initEnv))
       where
-        initOuts = map agentOutFromIn initIns
+        -- NOTE: at t = 0 there can be no observable output
+        initObs = []
 
         initInsMap = insertIntoMap initIns Map.empty
         initAis = map aiId initIns
@@ -64,12 +65,14 @@ simulateSeq initParams initSfs initIns initEnv = SF { sfTF = tf0 }
       where
         idGen = simIdGen params
 
-        tf dt _ = (tf', (t', outs, e'))
+        tf dt _ = (tf', (t', obs, e'))
           where
             -- accumulate global simulation-time
             t' = t + dt
             -- iterates over the existing agents
             (sfs', outs, insMap', e', msgs') = iterateAgents dt sfs insMap ais e msgs
+            -- create observable output
+            obs = map (\(aid, ao) -> (aid, aoState ao)) (zip ais outs)
             -- adds/removes new/killed agents
             (sfs'', ais', insMap'') = liveKillAndSpawn idGen insMap' (zip3 sfs' ais outs)
             -- shuffles agents (if requested by params)
@@ -110,7 +113,7 @@ iterateAgents dt sfs insMap ais e msgs = foldr handleAgent ([], [], insMap, e, m
         -- NOTE: when there are new agents to spawn, add entry in messageaccumulator BEFORE distributing the messages, could send to them
         msgs' = addNewAgentsEntries ao msgs
         -- NOTE: distributing the messages to all other agents
-        msgs'' = distributeMessages ao msgs'
+        msgs'' = distributeMessages (aid, ao) msgs'
         -- NOTE: in case of kill delete from messageaccumulator AFTER having distributed the messages (could have sent to itself)
         msgs''' = resetOrDeleteMessages ao msgs'' 
 
@@ -131,15 +134,9 @@ iterateAgents dt sfs insMap ais e msgs = foldr handleAgent ([], [], insMap, e, m
             adefs = fromEvent $ aoCreate ao
             ids = map adId adefs
 
-        distributeMessages :: AgentOut s m e -> MessageAccumulator m -> MessageAccumulator m
-        distributeMessages ao msgAcc = 
-            event 
-              msgAcc 
-              (foldr (distributeMessageTo senderId) msgAcc)
-              (aoMessages ao)
+        distributeMessages :: (AgentId, AgentOut s m e) -> MessageAccumulator m -> MessageAccumulator m
+        distributeMessages (senderId, ao) msgAcc = event msgAcc (foldr (distributeMessageTo senderId) msgAcc) (aoMessages ao)
           where
-            senderId = aoId ao
-
             distributeMessageTo :: AgentId
                                     -> AgentMessage m
                                     -> MessageAccumulator m
@@ -166,6 +163,12 @@ iterateAgents dt sfs insMap ais e msgs = foldr handleAgent ([], [], insMap, e, m
           where
               aid = aiId ain
 
+        handleConversation :: AgentOut s m e
+              -> e
+              -> AgentInMap s m e
+              -> (AgentOut s m e, e, AgentInMap s m e)
+        handleConversation ao e insMap = (ao, e, insMap) -- TODO: reimplement
+              {-
         handleConversation :: AgentOut s m e
                               -> e
                               -> AgentInMap s m e
@@ -199,6 +202,7 @@ iterateAgents dt sfs insMap ais e msgs = foldr handleAgent ([], [], insMap, e, m
                 let insMap' = Map.insert receiverId receiver' insMap
                 let (ao', e'') = senderReplyFunc ao e' (Just (receiverId, replyMsg))
                 return (ao', e'', insMap')
+                -}
 
 liveKillAndSpawn :: TVar Int
                     -> AgentInMap s m e

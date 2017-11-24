@@ -1,5 +1,6 @@
 {-# LANGUAGE Arrows #-}
-module FrSIR.Agent (
+module Agent 
+  (
     sirAgentBehaviour
   ) where
 
@@ -8,7 +9,7 @@ import Control.Monad.Random
 import FRP.FrABS
 import FRP.Yampa
 
-import FrSIR.Model
+import Model
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Non-Reactive Functions
@@ -43,10 +44,10 @@ sirAgentInfectedEvent = proc (ain, ao) -> do
 
 sirAgentSusceptibleBehaviour :: RandomGen g => g -> FrSIRAgentBehaviourReadEnv
 sirAgentSusceptibleBehaviour g = proc (ain, e) -> do
-    let ao = agentOutFromIn ain
-    ao1 <- doOnce (setAgentState Susceptible) -< ao
-    ao2 <- sendMessageOccasionallySrcSS g (1 / contactRate) contactSS (randomAgentIdMsgSource (Contact Susceptible) True) -< (ao1, e)
-    returnA -< ao2
+    let aid = agentId ain
+    let ao = agentOut Susceptible ain
+    ao' <- sendMessageOccasionallySrcSS g (1 / contactRate) contactSS (randomAgentIdMsgSource (Contact Susceptible) True) -< (ain, ao, e)
+    returnA -< ao'
 
 -- INFECTED
 sirAgentInfected :: RandomGen g => g -> FrSIRAgentBehaviour
@@ -55,15 +56,12 @@ sirAgentInfected g =
 
 sirAgentInfectedBehaviour :: RandomGen g => g -> FrSIRAgentBehaviourIgnoreEnv
 sirAgentInfectedBehaviour g = proc ain -> do
-    let ao = agentOutFromIn ain
-    ao1 <- doOnce (setAgentState Infected) -< ao
-    let ao2 = respondToContactWith Infected ain ao1
-    --ao2 <- sendMessageOccasionallySrcSS g (1 / contactRate) contactSS (randomAgentIdMsgSource (Contact Infected) True) -< (ao1, e)
-    returnA -< ao2
+    let ao = agentOut Infected ain
+    returnA -< respondToContactWith Infected ain ao
 
 -- RECOVERED
 sirAgentRecovered :: FrSIRAgentBehaviour
-sirAgentRecovered = doOnceR $ setAgentStateR Recovered
+sirAgentRecovered = doNothing Recovered
 
 -- INITIAL CASES
 sirAgentBehaviour :: RandomGen g => g -> SIRState -> FrSIRAgentBehaviour

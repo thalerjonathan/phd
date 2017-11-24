@@ -1,4 +1,5 @@
-module FrSIR.Init (
+module Init 
+  (
     createFrSIRNumInfected
   , sirAgentDefReplicator
   ) where
@@ -8,8 +9,8 @@ import Control.Monad.Random
 import FRP.FrABS
 import FRP.Yampa
 
-import FrSIR.Agent
-import FrSIR.Model
+import Agent
+import Model
 
 createFrSIRNumInfected :: Int -> Int -> IO ([FrSIRAgentDef], FrSIREnvironment)
 createFrSIRNumInfected agentCount numInfected = do
@@ -27,24 +28,21 @@ frSIRAgent initS aid = do
   rng <- newStdGen
   let beh = sirAgentBehaviour rng initS
   let adef = AgentDef { 
-        adId = aid
-      , adState = initS
-      , adBeh = beh
-      , adInitMessages = NoEvent
-      , adConversation = Nothing
-      , adRng = rng 
-      }
+    adId = aid
+  , adBeh = beh
+  , adInitMessages = NoEvent
+  , adRng = rng 
+  }
 
   return adef
 
-sirAgentDefReplicator :: FrSIRAgentDefReplicator
-sirAgentDefReplicator g ad = (ad', g')
+sirAgentDefReplicator :: Int -> FrSIRAgentDefReplicator
+sirAgentDefReplicator numInfected g ad = (ad', g')
   where
     (g', g'') = split g
-
-    initState = adState ad
+    s = if (adId ad) < numInfected then Infected else Susceptible 
     -- NOTE: also need to overwrite behaviour with one with a different RNG!
-    beh = sirAgentBehaviour g' initState
+    beh = sirAgentBehaviour g' s
 
     ad' = ad { adRng = g',
                adBeh = beh }

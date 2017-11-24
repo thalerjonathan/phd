@@ -1,26 +1,27 @@
-module SIR.Agent (
+module Agent 
+  (
     sirAgentBehaviour
   ) where
 
+import Control.Monad.IfElse
 import Control.Monad.Random
 import Control.Monad.Trans.State
-import Control.Monad.IfElse
 
 import FRP.FrABS
 
-import SIR.Model
+import Model
 
 ------------------------------------------------------------------------------------------------------------------------
 -- AGENT-BEHAVIOUR MONADIC implementation
 ------------------------------------------------------------------------------------------------------------------------
 isM :: SIRState -> State SIRAgentOut Bool
 isM ss = agentStateFieldM sirState >>= (\ss' -> return (ss == ss'))
-  
+
 susceptibleAgentM :: SIREnvironment -> Double -> SIRAgentIn -> State SIRAgentOut ()
 susceptibleAgentM e t ain = do
     onMessageMState contactByInfectedM ain
     randContacts <- agentRandomM (randomExpM (1 / contactRate))
-    forM_ [0..randContacts] (\_ -> (randomContactM Susceptible e))
+    forM_ [0..randContacts] (\_ -> (randomContactM (agentId ain) Susceptible e))
 
   where
     contactByInfectedM :: AgentMessage SIRMsg -> State SIRAgentOut ()
@@ -33,12 +34,11 @@ susceptibleAgentM e t ain = do
       expInfectedDuration <- agentRandomM (randomExpM (1 / illnessDuration))
       when doInfect $ updateAgentStateM (\s -> s { sirState = Infected, sirStateTime = t + expInfectedDuration })
 
-    randomContactM :: SIRState -> SIREnvironment -> State SIRAgentOut ()
-    randomContactM state e = do
-      aid <- agentIdM
+    randomContactM :: AgentId -> SIRState -> SIREnvironment -> State SIRAgentOut ()
+    randomContactM aid state e = do
       randNeighId <- agentRandomPickM e
       if randNeighId == aid
-        then randomContactM state e
+        then randomContactM aid state e
         else sendMessageM (randNeighId, Contact state)
 
 infectedAgentM :: Double -> SIRAgentIn -> State SIRAgentOut ()
@@ -107,14 +107,16 @@ infectedAgent t ain ao
         respondToContactWithAux :: AgentMessage SIRMsg -> SIRAgentOut -> SIRAgentOut
         respondToContactWithAux (senderId, Contact _) ao = sendMessage (senderId, Contact state) ao
 
-sirAgentBehaviourFunc :: SIRAgentPureReadEnvBehaviour
-sirAgentBehaviourFunc e t ain ao    
-  | is Susceptible ao = susceptibleAgent e t ain ao
-  | is Infected ao = infectedAgent t ain ao
-  | otherwise = ao
+sirAgentBehaviourFunc :: SIRState -> SIRAgentPureReadEnvBehaviour
+sirAgentBehaviourFunc s e t ain 
+    | is Susceptible ao = susceptibleAgent e t ain ao
+    | is Infected ao = infectedAgent t ain ao
+    | otherwise = ao
+  where
+    ao = agentOut 
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
-sirAgentBehaviour :: SIRAgentBehaviour
-sirAgentBehaviour = agentPureReadEnv sirAgentBehaviourFunc -- agentMonadicReadEnv sirAgentBehaviourFuncM  -- agentPureReadEnv sirAgentBehaviourFunc
+sirAgentBehaviour :: SIRState -> SIRAgentBehaviour
+sirAgentBehaviour s = agentPureReadEnv (sirAgentBehaviourFunc s) -- agentMonadicReadEnv sirAgentBehaviourFuncM  -- agentPureReadEnv sirAgentBehaviourFunc
 ------------------------------------------------------------------------------------------------------------------------

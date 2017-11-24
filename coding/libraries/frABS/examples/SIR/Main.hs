@@ -1,12 +1,12 @@
-module SIR.Run (
+module Main (
     runSIRStepsAndWriteToFile,
   )  where
 
 import FRP.Yampa
 import FRP.FrABS
 
-import SIR.Init
-import SIR.Model
+import Init
+import Model
 import Utils.Sir
 
 updateStrat :: UpdateStrategy
@@ -29,6 +29,9 @@ agentCount = 10000
 
 numInfected :: Int
 numInfected = 10
+
+main :: IO ()
+main = runSIRStepsAndWriteToFile
 
 runSIRStepsAndWriteToFile :: IO ()
 runSIRStepsAndWriteToFile = do

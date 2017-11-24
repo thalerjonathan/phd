@@ -1,5 +1,8 @@
-module FrSIR.Run ( 
-    runFrSIRStepsAndWriteToFile
+module Main 
+  ( 
+    main
+
+  , runFrSIRStepsAndWriteToFile
   , runFrSIRDeltasAndWriteToFile
   , runFrSIRReplicationsAndWriteToFile
   ) where
@@ -7,8 +10,8 @@ module FrSIR.Run (
 import FRP.Yampa
 import FRP.FrABS
 
-import FrSIR.Init
-import FrSIR.Model
+import Init
+import Model
 import Utils.Sir
 
 updateStrat :: UpdateStrategy
@@ -21,23 +24,27 @@ rngSeed :: Int
 rngSeed = 42
 
 dt :: DTime
-dt = 0.1 --0.1
+dt = 0.1
 
 t :: DTime
 t = 150
 
 agentCount :: Int
-agentCount = 10000
+agentCount = 1000
 
 numInfected :: Int
 numInfected = 10
 
 replCfg :: FrSIRReplicationConfig
-replCfg = ReplicationConfig {
-  replCfgCount = 4,
-  replCfgAgentReplicator = sirAgentDefReplicator,
-  replCfgEnvReplicator = defaultEnvReplicator
-}
+replCfg = ReplicationConfig 
+  {
+    replCfgCount = 4
+  , replCfgAgentReplicator = (sirAgentDefReplicator numInfected)
+  , replCfgEnvReplicator = defaultEnvReplicator
+  }
+
+main :: IO () 
+main = runFrSIRStepsAndWriteToFile
 
 runFrSIRStepsAndWriteToFile :: IO ()
 runFrSIRStepsAndWriteToFile = do

@@ -1,4 +1,5 @@
-module SIR.Model (
+module Model 
+  (
     SIRState (..)
   , SIRMsg (..)
   , SIRAgentState (..)
@@ -24,23 +25,24 @@ import FRP.FrABS
 ------------------------------------------------------------------------------------------------------------------------
 -- DOMAIN-SPECIFIC AGENT-DEFINITIONS
 ------------------------------------------------------------------------------------------------------------------------
-data SIRState = Susceptible | Infected | Recovered deriving (Eq, Show)
-data SIRMsg = Contact SIRState deriving (Eq, Show)
+data SIRState   = Susceptible | Infected | Recovered deriving (Eq, Show)
+data SIRMsg     = Contact SIRState deriving (Eq, Show)
 
-data SIRAgentState = SIRAgentState {
+data SIRAgentState = SIRAgentState 
+  {
     sirState      :: SIRState
   , sirStateTime  :: Double
-} deriving (Show)
+  } deriving (Show)
 
 type SIREnvironment = [AgentId]
 
-type SIRAgentDef = AgentDef SIRAgentState SIRMsg SIREnvironment
-type SIRAgentBehaviour = AgentBehaviour SIRAgentState SIRMsg SIREnvironment
-type SIRAgentIn = AgentIn SIRAgentState SIRMsg SIREnvironment
-type SIRAgentOut = AgentOut SIRAgentState SIRMsg SIREnvironment
+type SIRAgentDef        = AgentDef SIRAgentState SIRMsg SIREnvironment
+type SIRAgentBehaviour  = AgentBehaviour SIRAgentState SIRMsg SIREnvironment
+type SIRAgentIn         = AgentIn SIRAgentState SIRMsg SIREnvironment
+type SIRAgentOut        = AgentOut SIRAgentState SIRMsg SIREnvironment
 type SIRAgentObservable = AgentObservable SIRAgentState
 
-type SIRAgentPureReadEnvBehaviour = AgentPureBehaviourReadEnv SIRAgentState SIRMsg SIREnvironment
+type SIRAgentPureReadEnvBehaviour    = AgentPureBehaviourReadEnv SIRAgentState SIRMsg SIREnvironment
 type SIRAgentMonadicReadEnvBehaviour = AgentMonadicBehaviourReadEnv SIRAgentState SIRMsg SIREnvironment
 ------------------------------------------------------------------------------------------------------------------------
 

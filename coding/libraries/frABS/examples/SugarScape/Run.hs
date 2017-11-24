@@ -25,6 +25,8 @@ dt = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 w
 frequency = 0
 time = 200
 
+-- BUG: all agents have id=0 because newAgentId seems not to hand out new ids...
+
 runSugarScapeWithRendering :: IO ()
 runSugarScapeWithRendering = 
     do

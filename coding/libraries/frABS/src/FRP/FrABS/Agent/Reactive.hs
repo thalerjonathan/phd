@@ -32,7 +32,6 @@ module FRP.FrABS.Agent.Reactive
   , randomNeighbourNodeMsgSource
   , randomNeighbourCellMsgSource
   , randomAgentIdMsgSource
-  , randomAgentIdMsgSourceIgnore
 
   , transitionAfter
   , transitionAfterExp
@@ -62,7 +61,7 @@ import FRP.FrABS.Environment.Network
 
 -- TODO: is access to environment necesssary here?
 type EventSource s m e    = SF (AgentIn s m e, AgentOut s m e) (AgentOut s m e, Event ())
-type MessageSource s m e  = (e -> AgentOut s m e -> (AgentOut s m e, AgentMessage m))
+type MessageSource s m e  = AgentIn s m e -> e -> AgentOut s m e -> (AgentOut s m e, AgentMessage m)
 
 type ReactiveBehaviourIgnoreEnv s m e   = SF (AgentIn s m e) (AgentOut s m e)
 type ReactiveBehaviourReadEnv s m e     = SF (AgentIn s m e, e) (AgentOut s m e)
@@ -152,13 +151,13 @@ doOccasionallyEvery g t s sf = proc (ain, e) -> do
 sendMessageOccasionally :: RandomGen g => g 
                             -> Double
                             -> AgentMessage m
-                            -> SF (AgentOut s m e, e) (AgentOut s m e)
+                            -> SF (AgentIn s m e, AgentOut s m e, e) (AgentOut s m e)
 sendMessageOccasionally g rate msg = sendMessageOccasionallySrc g rate (constMsgSource msg)
 
 sendMessageOccasionallySrc :: RandomGen g => g 
                                         -> Double
                                         -> MessageSource s m e 
-                                        -> SF (AgentOut s m e, e) (AgentOut s m e)
+                                        -> SF (AgentIn s m e, AgentOut s m e, e) (AgentOut s m e)
 sendMessageOccasionallySrc g rate msgSrc = proc aoe -> do
     sendEvt <- occasionally g rate () -< ()
     let ao' = sendMessageOccasionallyAux msgSrc sendEvt aoe
@@ -166,28 +165,28 @@ sendMessageOccasionallySrc g rate msgSrc = proc aoe -> do
   where
       sendMessageOccasionallyAux :: MessageSource s m e 
                                       -> Event () 
-                                      -> (AgentOut s m e, e)
+                                      -> (AgentIn s m e, AgentOut s m e, e)
                                       -> AgentOut s m e
-      sendMessageOccasionallyAux _ NoEvent (ao, _) = ao
-      sendMessageOccasionallyAux msgSrc (Event ()) (ao, e) = sendMessage msg ao'
+      sendMessageOccasionallyAux _ NoEvent (_, ao, _) = ao
+      sendMessageOccasionallyAux msgSrc (Event ()) (ain, ao, e) = sendMessage msg ao'
         where
-            (ao', msg) = msgSrc e ao
+            (ao', msg) = msgSrc ain e ao
 
 sendMessageOccasionallySS :: RandomGen g => g 
                             -> Double
                             -> Int
                             -> AgentMessage m
-                            -> SF (AgentOut s m e, e) (AgentOut s m e)
+                            -> SF (AgentIn s m e, AgentOut s m e, e) (AgentOut s m e)
 sendMessageOccasionallySS g rate ss msg = sendMessageOccasionallySrcSS g rate ss (constMsgSource msg)
 
 sendMessageOccasionallySrcSS :: RandomGen g => g 
                                 -> Double
                                 -> Int
                                 -> MessageSource s m e 
-                                -> SF (AgentOut s m e, e) (AgentOut s m e)
-sendMessageOccasionallySrcSS g rate ss msgSrc = proc (ao, e) -> do
+                                -> SF (AgentIn s m e, AgentOut s m e, e) (AgentOut s m e)
+sendMessageOccasionallySrcSS g rate ss msgSrc = proc (ain, ao, e) -> do
     sendEvts <- superSampling ss (occasionally g rate ()) -< ()
-    let ao' = foldr (sendMessageOccasionallyAux (msgSrc e)) ao sendEvts 
+    let ao' = foldr (sendMessageOccasionallyAux (msgSrc ain e)) ao sendEvts 
     returnA -< ao'
   where
     sendMessageOccasionallyAux :: (AgentOut s m e -> (AgentOut s m e, AgentMessage m))
@@ -204,36 +203,33 @@ sendMessageOccasionallySrcSS g rate ss msgSrc = proc (ao, e) -> do
 -- MESSAGE-Sources
 -------------------------------------------------------------------------------
 constMsgReceiverSource :: m -> AgentId -> MessageSource s m e
-constMsgReceiverSource m receiver _ ao = (ao, msg)
+constMsgReceiverSource m receiver _ _ ao = (ao, msg)
   where
     msg = (receiver, m)
 
 constMsgSource :: AgentMessage m -> MessageSource s m e
-constMsgSource msg _ ao = (ao, msg)
+constMsgSource msg _ _ ao = (ao, msg)
 
-randomNeighbourNodeMsgSource :: AgentId -> m -> MessageSource s m (Network l)
-randomNeighbourNodeMsgSource aid m e ao = (ao', msg)
+randomNeighbourNodeMsgSource :: m -> MessageSource s m (Network l)
+randomNeighbourNodeMsgSource m ain e ao = (ao', msg)
   where
+    aid = agentId ain
     (randNode, ao') = agentRandom (randomNeighbourNode aid e) ao
     msg = (randNode, m)
 
 randomNeighbourCellMsgSource :: (s -> Discrete2dCoord) -> m -> Bool -> MessageSource s m (Discrete2d AgentId)
-randomNeighbourCellMsgSource posFunc m ic e ao = (ao', msg)
+randomNeighbourCellMsgSource posFunc m ic _ e ao = (ao', msg)
   where
     pos = posFunc $ aoState ao
     (randCell, ao') = agentRandom (randomNeighbourCell pos ic e) ao
     msg = (randCell, m)
 
-randomAgentIdMsgSourceIgnore :: AgentId -> m -> MessageSource s m [AgentId]
-randomAgentIdMsgSourceIgnore ignoreId m agentIds ao 
-    | ignoreId == randAid = randomAgentIdMsgSourceIgnore ignoreId m agentIds ao'
+randomAgentIdMsgSource :: m -> Bool -> MessageSource s m [AgentId]
+randomAgentIdMsgSource m ignoreSelf ain agentIds ao
+    | True == ignoreSelf && aid == randAid = randomAgentIdMsgSource m ignoreSelf ain agentIds ao'
     | otherwise = (ao', (randAid, m))
   where
-    (randAid, ao') = agentRandomPick agentIds ao
-
-randomAgentIdMsgSource :: m ->  MessageSource s m [AgentId]
-randomAgentIdMsgSource m agentIds ao = (ao', (randAid, m))
-  where
+    aid = agentId ain
     (randAid, ao') = agentRandomPick agentIds ao
 -------------------------------------------------------------------------------
 

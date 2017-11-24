@@ -165,9 +165,6 @@ module FRP.FrABS
 
   , avoid
 
-  , randomNeighbourNode
-  , randomNeighbourCell
-
   , agentRandomNeighbourNode
 
   , EnvironmentBehaviour
@@ -414,12 +411,9 @@ import FRP.FrABS.Rendering.Discrete2d
 import FRP.FrABS.Rendering.GlossSimulator
 import FRP.FrABS.Rendering.Network
 import FRP.FrABS.SD.Definitions
-import FRP.FrABS.Simulation.Init
-import FRP.FrABS.Simulation.Internal
-import FRP.FrABS.Simulation.ParIteration   
+import FRP.FrABS.Simulation.Init 
 import FRP.FrABS.Simulation.Replication   
 import FRP.FrABS.Simulation.Simulation
-import FRP.FrABS.Simulation.SeqIteration 
 
 {-
 ------------------------------------------------------------------------------------------------------------------------
@@ -430,8 +424,19 @@ import FRP.FrABS.Simulation.SeqIteration
   , e.g. a new SF implementation: agent: agentBehaviour :: s -> SF (AgentIn e s) -> SF (AgentOut e). allows to get rid of state in agentin. agentout state then simply becomes oberservable state
   , -> what happens then in the case of a conversation? the receiving agent cannot change the state? We would need to run the conversation within the original agentbehaviour 
 
+- should there be output at t=0?
+
 - can we get rid of RNG in AgentIn and AgentOut
 - get rid of AgentIn when constructing AgentOut using agentOut
+
+- BUG: if two agents have the same id, their states will get mixed-up when using the Sequential updating
+  
+- different build targets: with/without time-traveling, gloss rendering
+  - add HOW-TO of FrABS examples running on github in a sandbox: need yampa with exposed core, haskell-titan, install FrABS
+  
+  - clean-up, can all be done in one rush through ALL the files:
+    -> STYLE, INDENTATIONS & COMMENTS:		https://github.com/tibbe/haskell-style-guide/blob/master/haskell-style.md
+    -> WARNINGS:							no warnings with -Wall -Werror
 
 - replace simulatePar with yampa pSwitch instead of own SF
 

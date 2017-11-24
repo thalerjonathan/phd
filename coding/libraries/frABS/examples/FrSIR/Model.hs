@@ -1,4 +1,5 @@
-module FrSIR.Model (
+module Model 
+  (
     SIRState (..)
   , FrSIRMsg (..)
 
@@ -40,17 +41,17 @@ type FrSIRAgentState = SIRState
 -- deal with big (>10.000 nodes) complete networks as it sucks up massive memory. 
 type FrSIREnvironment = [AgentId]
 
-type FrSIRAgentDef = AgentDef FrSIRAgentState FrSIRMsg FrSIREnvironment
-type FrSIRAgentBehaviour = AgentBehaviour FrSIRAgentState FrSIRMsg FrSIREnvironment
-type FrSIRAgentBehaviourReadEnv = ReactiveBehaviourReadEnv FrSIRAgentState FrSIRMsg FrSIREnvironment
+type FrSIRAgentDef                = AgentDef FrSIRAgentState FrSIRMsg FrSIREnvironment
+type FrSIRAgentBehaviour          = AgentBehaviour FrSIRAgentState FrSIRMsg FrSIREnvironment
+type FrSIRAgentBehaviourReadEnv   = ReactiveBehaviourReadEnv FrSIRAgentState FrSIRMsg FrSIREnvironment
 type FrSIRAgentBehaviourIgnoreEnv = ReactiveBehaviourIgnoreEnv FrSIRAgentState FrSIRMsg FrSIREnvironment
-type FrSIRAgentIn = AgentIn FrSIRAgentState FrSIRMsg FrSIREnvironment
-type FrSIRAgentOut = AgentOut FrSIRAgentState FrSIRMsg FrSIREnvironment
-type FrSIRAgentObservable = AgentObservable FrSIRAgentState
+type FrSIRAgentIn                 = AgentIn FrSIRAgentState FrSIRMsg FrSIREnvironment
+type FrSIRAgentOut                = AgentOut FrSIRAgentState FrSIRMsg FrSIREnvironment
+type FrSIRAgentObservable         = AgentObservable FrSIRAgentState
 
-type FrSIREventSource = EventSource FrSIRAgentState FrSIRMsg FrSIREnvironment
-type FrSIRReplicationConfig = ReplicationConfig FrSIRAgentState FrSIRMsg FrSIREnvironment
-type FrSIRAgentDefReplicator = AgentDefReplicator FrSIRAgentState FrSIRMsg FrSIREnvironment
+type FrSIREventSource         = EventSource FrSIRAgentState FrSIRMsg FrSIREnvironment
+type FrSIRReplicationConfig   = ReplicationConfig FrSIRAgentState FrSIRMsg FrSIREnvironment
+type FrSIRAgentDefReplicator  = AgentDefReplicator FrSIRAgentState FrSIRMsg FrSIREnvironment
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

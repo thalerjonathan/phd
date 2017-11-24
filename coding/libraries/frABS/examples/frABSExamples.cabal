@@ -3,29 +3,84 @@ version:           1.0
 Build-Type:        Simple
 cabal-version:     >= 1.2
 
-executable frABSExamples
+-------------------------------------------------------------------------------
+-- EXECUTABLES 
+-------------------------------------------------------------------------------
+executable FrSIR
   main-is:         Main.hs
-  -- hs-source-dirs:  src
+  hs-source-dirs:  FrSIR/
+
   build-depends:   base, 
                     FrABS, 
-                    Yampa, 
-                    gloss,
-                    random,
-                    containers,
-                    array,
-                    MonadRandom,
-                    split,
-                    fgl,
-                    mtl,
-                    transformers,
-                    IfElse
+                    Yampa,
+                    parallel
+
+  hs-source-dirs:
+    .,
+    SIR/,
+    Utils
+    
+executable NewAgents
+  main-is:         Main.hs
+  hs-source-dirs:  NewAgents/
+
+  build-depends:   base, 
+                    FrABS, 
+                    Yampa,
+                    parallel
+
+  ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded
+            
+executable SamplingTests
+  main-is:         Main.hs
+  hs-source-dirs:  SamplingTests/
+
+  build-depends:   base, 
+                    FrABS, 
+                    Yampa,
+                    parallel
+
+  ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded
+
+executable SIR
+  main-is:         Main.hs
+  hs-source-dirs:  SIR/
+
+  build-depends:   base, 
+                    FrABS, 
+                    Yampa,
+                    parallel
+
+  hs-source-dirs:
+    .,
+    SIR/,
+    Utils
+
+  ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded
+ 
+--executable frABSExamples
+--  main-is:         Main.hs
+  -- hs-source-dirs:  src
+--  build-depends:   base, 
+ --                   FrABS, 
+  --                  Yampa, 
+   ----                 gloss,
+     --               random,
+      --              containers,
+       --             array,
+        --            MonadRandom,
+         --           split,
+          --          fgl,
+           --         mtl,
+            --        transformers,
+             --       IfElse
 
 -- install Yampa from https://github.com/ivanperez-keera/Yampa build using -fexpose-core
 
-  ghc-options:      -O2
-                    -Wall
-                    -Werror
-                    -threaded
+  --ghc-options:      -O2
+   ------                 -Wall
+      --              -Werror
+       --             -threaded
                     -- -prof
                     -- "-with-rtsopts= -s -hy -p -i0.1 -K256M"
                     -- -auto-all
@@ -44,29 +99,10 @@ executable frABSExamples
                     -- "-with-rtsopts=-N"
                       -- use hc, hd or hy
 
-executable SamplingTests
-  main-is:         Main.hs
-  hs-source-dirs:  SamplingTests/
-
-  build-depends:   base, 
-                    FrABS, 
-                    Yampa,
-                    parallel
-
-  ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded
-
-executable NewAgents
-  main-is:         Main.hs
-  hs-source-dirs:  NewAgents/
-
-  build-depends:   base, 
-                    FrABS, 
-                    Yampa,
-                    parallel
-
-  ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded
-             
-Test-Suite test_sugarscape
+-------------------------------------------------------------------------------
+-- TEST-SUITES
+-------------------------------------------------------------------------------
+Test-Suite test_SugarScape
   default-language:
     Haskell2010
   type:
@@ -87,7 +123,7 @@ Test-Suite test_sugarscape
   ghc-options:    -main-is Test 
   -- why the F*** is main-is not working???
 
-Test-Suite test_frSIR
+Test-Suite test_FrSIR
   default-language:
     Haskell2010
   type:

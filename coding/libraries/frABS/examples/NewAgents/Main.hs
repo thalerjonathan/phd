@@ -1,17 +1,17 @@
-module NewAgents.Run (
-runNewAgentsSteps,
-
-runNewAgentsDebug
+module Main
+  (
+    main
+  , runNewAgentsSteps
+  , runNewAgentsDebug
 ) where
 
-import FRP.Yampa
-
-import NewAgents.Model
-import NewAgents.Init
+import System.IO
 
 import FRP.FrABS
+import FRP.Yampa
 
-import System.IO
+import Model
+import Init
 
 rngSeed :: Int
 rngSeed = 42
@@ -30,6 +30,9 @@ updateStrat = Parallel
 
 shuffleAgents :: Bool
 shuffleAgents = False
+
+main :: IO ()
+main = runNewAgentsSteps
 
 runNewAgentsSteps :: IO ()
 runNewAgentsSteps = do
@@ -58,7 +61,7 @@ runNewAgentsDebug = do
     renderFunc _ (_, aobs, _) = mapM_ printNewAgent aobs >> (return False)
 
 printStep :: (Time, [NewAgentObservable], NewAgentEnvironment) -> IO ()
-printStep (t, as, e) = do
+printStep (t, as, _) = do
   putStr $ "t = " ++ show t ++ "\n   " 
   mapM_ printNewAgent as
 

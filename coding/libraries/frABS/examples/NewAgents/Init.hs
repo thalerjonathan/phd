@@ -1,16 +1,15 @@
-module NewAgents.Init (
+module Init 
+  (
     initNewAgents
   ) where
 
-import NewAgents.Model 
-import NewAgents.Agent
+import Control.Monad.Random
 
 import FRP.FrABS
-
 import FRP.Yampa
 
-import System.Random
-import Control.Monad.Random
+import Model 
+import Agent
 
 initNewAgents :: Int -> IO ([NewAgentDef], NewAgentEnvironment)
 initNewAgents n = do
@@ -26,8 +25,6 @@ createNewAgent aid = do
 
   let adef = AgentDef {
     adId = aid
-  , adState = s
-  , adConversation = Nothing
   , adInitMessages = NoEvent
   , adBeh = newAgentBehaviour s
   , adRng = rng 

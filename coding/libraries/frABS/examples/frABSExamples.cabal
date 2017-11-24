@@ -23,7 +23,8 @@ executable frABSExamples
 -- install Yampa from https://github.com/ivanperez-keera/Yampa build using -fexpose-core
 
   ghc-options:      -O2
-                    -W
+                    -Wall
+                    -Werror
                     -threaded
                     -- -prof
                     -- "-with-rtsopts= -s -hy -p -i0.1 -K256M"
@@ -52,11 +53,19 @@ executable SamplingTests
                     Yampa,
                     parallel
 
-  ghc-options:      -O2
-                    -W
-                    -threaded
-              
+  ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded
 
+executable NewAgents
+  main-is:         Main.hs
+  hs-source-dirs:  NewAgents/
+
+  build-depends:   base, 
+                    FrABS, 
+                    Yampa,
+                    parallel
+
+  ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded
+             
 Test-Suite test_sugarscape
   default-language:
     Haskell2010

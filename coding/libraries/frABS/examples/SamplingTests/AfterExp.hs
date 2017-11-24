@@ -14,8 +14,6 @@ import Control.Parallel.Strategies
 import FRP.FrABS
 import FRP.Yampa
 
-import SuperSampling
-
 testAfterExp :: IO ()
 testAfterExp = do
     let eventTime =  1 / 5      :: DTime

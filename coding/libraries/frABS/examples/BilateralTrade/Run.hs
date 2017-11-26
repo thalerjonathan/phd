@@ -18,6 +18,8 @@ dt = 0.1
 t :: DTime
 t = 150
 
+-- TODO: unfinished
+
 runBilateralTrade :: IO ()
 runBilateralTrade = do
   params <- initSimulation Sequential Nothing Nothing False (Just rngSeed)

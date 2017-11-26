@@ -26,6 +26,8 @@ rngSeed = 42
 dt :: DTime
 dt = unitTime -- 0.1
 
+-- TODO: unfinished
+
 runSocialForce :: IO ()
 runSocialForce = do
   params <- initSimulation Sequential Nothing Nothing True (Just rngSeed)

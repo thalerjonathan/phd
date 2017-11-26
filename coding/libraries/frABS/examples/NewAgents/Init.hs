@@ -18,7 +18,6 @@ initNewAgents n = do
 
 createNewAgent :: AgentId -> Rand StdGen NewAgentDef
 createNewAgent aid = do
-  rng <- getSplit
   --randValue <- getRandomR (0, 43)
 
   let s = 1
@@ -27,7 +26,6 @@ createNewAgent aid = do
     adId = aid
   , adInitMessages = NoEvent
   , adBeh = newAgentBehaviour s
-  , adRng = rng 
   }
 
   return adef

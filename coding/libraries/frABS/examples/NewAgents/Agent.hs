@@ -9,12 +9,12 @@ import FRP.FrABS
 import FRP.Yampa
 
 newAgentBehaviour :: Int -> NewAgentBehaviour
-newAgentBehaviour initialState = proc (ain, e) -> do
+newAgentBehaviour initialState = proc (_, e) -> do
   rec
     s' <- iPre initialState -< s
     let s = s' + 1
     
-  let ao = agentOut s' ain
+  let ao = agentOutObs s'
 
   returnA -< (ao, e)
 ------------------------------------------------------------------------------------------------------------------------

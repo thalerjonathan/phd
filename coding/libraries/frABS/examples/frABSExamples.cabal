@@ -47,7 +47,9 @@ executable SIR
   build-depends:   base, 
                     FrABS, 
                     Yampa,
-                    parallel
+                    parallel,
+                    IfElse,
+                    transformers
 
   hs-source-dirs:
     .,

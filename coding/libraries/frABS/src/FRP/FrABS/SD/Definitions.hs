@@ -51,11 +51,8 @@ createStock :: AgentId
               -> SDDef
 createStock stockId stockState stockBeh = AgentDef { 
     adId = stockId
-  -- , adState = stockState
   , adBeh = ignoreEnv (stockBeh stockState)
   , adInitMessages = NoEvent
-  -- , adConversation = Nothing
-  , adRng = dummyRng 
   }
 
 createFlow :: AgentId 
@@ -63,11 +60,8 @@ createFlow :: AgentId
               -> SDDef
 createFlow flowId flowBeh = AgentDef { 
     adId = flowId
-  -- , adState = 0.0 -- NOTE: a flow does not has or use its state, set it to dummy value 0
   , adBeh = ignoreEnv flowBeh
   , adInitMessages = NoEvent
-  -- , adConversation = Nothing
-  , adRng = dummyRng 
   }
 
 flowInFrom :: AgentId -> SDIn -> Double

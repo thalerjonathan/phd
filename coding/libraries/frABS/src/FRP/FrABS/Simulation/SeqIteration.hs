@@ -72,7 +72,8 @@ simulateSeq initParams initSfs initIns initEnv = SF { sfTF = tf0 }
             -- iterates over the existing agents
             (sfs', outs, insMap', e', msgs') = iterateAgents dt sfs insMap ais e msgs
             -- create observable output
-            obs = map (\(aid, ao) -> (aid, aoState ao)) (zip ais outs)
+            -- obs = map (\(aid, ao) -> (aid, aoState ao)) (zip ais outs)
+            obs = observableAgents ais outs
             -- adds/removes new/killed agents
             (sfs'', ais', insMap'') = liveKillAndSpawn idGen insMap' (zip3 sfs' ais outs)
             -- shuffles agents (if requested by params)
@@ -226,7 +227,7 @@ liveKillAndSpawn idGen insMap as = foldr (liveKillAndSpawnAux idGen) ([], [], in
 
         -- NOTE: we can asume that all lookups are valid
         ain = fromJust $ Map.lookup aid insMap
-        ain' = newAgentIn ain ao
+        ain' = newAgentIn ain
 
         insMapDead = Map.delete aid insMap'
         insMapLive = Map.insert aid ain' insMap'
@@ -237,7 +238,7 @@ liveKillAndSpawn idGen insMap as = foldr (liveKillAndSpawnAux idGen) ([], [], in
         | otherwise = ([], [])
       where
         adefs = fromEvent $ aoCreate ao
-        (sfs, ains) = createStartingAgent adefs idGen
+        (sfs, ains) = startingAgent adefs idGen
 
 insertEmptyEntries :: [AgentId] -> MessageAccumulator m -> MessageAccumulator m
 insertEmptyEntries ids msgAcc = foldr emptyEntry msgAcc ids

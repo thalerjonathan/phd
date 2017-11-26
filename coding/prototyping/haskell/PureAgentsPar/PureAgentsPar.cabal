@@ -8,9 +8,9 @@ executable PureAgentsPar
   hs-source-dirs:   src
   build-depends:    base, hashmap, gloss, random, monad-par, deepseq, parallel
   ghc-options:      -threaded
-                    -auto-all
-                    -caf-all
-                    -prof
-                    "-with-rtsopts=-N -p -s -i0.1 -hd -K256M"
+                    ---auto-all
+                    ---caf-all
+                    ---prof
+                    --"-with-rtsopts=-N -p -s -i0.1 -hd -K256M"
 
                     -- "-with-rtsopts=-N -p -s -h -i0.1 -hd -K256M"

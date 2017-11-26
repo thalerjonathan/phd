@@ -5,7 +5,10 @@ module FRP.FrABS.Simulation.Common
   , runEnv
   , shuffleAgents
   , newAgentIn
+  , observableAgents
   ) where
+
+import Data.Maybe
 
 import FRP.Yampa
 
@@ -45,13 +48,23 @@ shuffleAgents params as bs
     params' = params { simRng = g' }
     (as', bs') = unzip shuffledSfsIns
 
-newAgentIn :: AgentIn s m e
-                -> AgentOut s m e
-                -> AgentIn s m e
-newAgentIn oldIn newOut = newIn
+newAgentIn :: AgentIn s m e -> AgentIn s m e
+newAgentIn oldIn  = 
+  oldIn { 
+  aiStart = NoEvent
+  , aiMessages = NoEvent
+  }
+
+observableAgents :: [AgentId] 
+                    -> [AgentOut s m e] 
+                    -> [AgentObservable s]
+observableAgents ais aos = foldl observableAgents [] (zip ais aos)
   where
-    newIn = oldIn { aiStart = NoEvent
-                  -- aiState = aoState newOut
-                  , aiMessages = NoEvent
-                  , aiRng = aoRng newOut -- TODO: want to get rid of this
-                  }
+    observableAgents :: [AgentObservable s] 
+                        -> (AgentId, AgentOut s m e) 
+                        -> [AgentObservable s] 
+    observableAgents acc (aid, ao) 
+        | isJust mayObs = (aid, fromJust mayObs) : acc
+        | otherwise = acc
+      where
+        mayObs = aoState ao

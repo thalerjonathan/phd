@@ -7,4 +7,4 @@ import SIRS.RunSIRS
 import WildFire.RunWFStatic
 
 main :: IO ()
-main = stepSIRS
+main = runSIRS

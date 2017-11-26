@@ -1,5 +1,7 @@
+{-# LANGUAGE Arrows #-}
 module FRP.FrABS.Agent.Random 
   (
+    {-
     agentRandom
   , agentRandomM
 
@@ -15,22 +17,30 @@ module FRP.FrABS.Agent.Random
   , agentRandomPicksM
   , agentRandomShuffle
   , agentRandomShuffleM
+  -}
 
-  , randomBool
-  , randomBoolM
+  randomBool
   , randomExp
-  , randomExpM
   , randomShuffle
 
-  , avoid
+  , randomBoolM
+  , randomExpM
+  , avoidM
+
+  , randomSF
+  , randomBoolSF
+  , drawRandomElemSF
   ) where
 
 import Control.Monad.Random
-import Control.Monad.Trans.State
+-- import Control.Monad.Trans.State
 
-import FRP.FrABS.Agent.Agent
+import FRP.Yampa
+
+-- import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Utils
 
+{-
 -------------------------------------------------------------------------------
 -- RUNNING AGENT RANDOM-FUNCTION
 -------------------------------------------------------------------------------
@@ -109,32 +119,58 @@ agentRandomShuffle xs ao = (xs', ao')
 agentRandomShuffleM :: [a] -> State (AgentOut s m e) [a]
 agentRandomShuffleM xs = state (\ao -> agentRandomShuffle xs ao)
 -------------------------------------------------------------------------------
-
+-}
 -------------------------------------------------------------------------------
--- RANDOM-MONAD FUNCTIONS
+-- PURE RANDOM
 -------------------------------------------------------------------------------
-randomBoolM :: (RandomGen g) => Double -> Rand g Bool
-randomBoolM p = getRandomR (0.0, 1.0) >>= (\r -> return $ p >= r)
-
-randomBool :: (RandomGen g) => g -> Double -> (Bool, g)
+randomBool :: RandomGen g => g -> Double -> (Bool, g)
 randomBool g p = runRand (randomBoolM p) g
 
--- NOTE: THIS CODE INSPIRED BY Euterpea-1.0.0 (I didn't want to create dependencies and their implementation seems neat and tidy)
-randomExpM :: (RandomGen g) => Double -> Rand g Double
-randomExpM lambda = avoid 0 >>= (\r -> return $ ((-log r) / lambda))
---randomExpM lambda = avoid 0 >>= (\r -> 1 - exp (-(dt/t_avg)))
-
-randomExp :: (RandomGen g) => g -> Double -> (Double, g)
+randomExp :: RandomGen g => g -> Double -> (Double, g)
 randomExp g lambda = runRand (randomExpM lambda) g
-
--- NOTE: THIS CODE INSPIRED BY Euterpea-1.0.0 (I didn't want to create dependencies and their implementation seems neat and tidy)
-avoid :: (Random a, Eq a, RandomGen g) => a -> Rand g a
-avoid x = do
-  r <- getRandom
-  if (r == x) 
-    then avoid x
-    else return r
 
 randomShuffle :: RandomGen g => g -> [a] -> ([a], g)
 randomShuffle = fisherYatesShuffle
+
 -------------------------------------------------------------------------------
+-- MONADIC RANDOM
+-------------------------------------------------------------------------------
+randomBoolM :: RandomGen g => Double -> Rand g Bool
+randomBoolM p = getRandomR (0.0, 1.0) >>= (\r -> return $ p >= r)
+
+-- NOTE: THIS CODE INSPIRED BY Euterpea-1.0.0 (I didn't want to create dependencies and their implementation seems neat and tidy)
+randomExpM :: RandomGen g => Double -> Rand g Double
+randomExpM lambda = avoidM 0 >>= (\r -> return $ ((-log r) / lambda))
+--randomExpM lambda = avoid 0 >>= (\r -> 1 - exp (-(dt/t_avg)))
+
+-- NOTE: THIS CODE INSPIRED BY Euterpea-1.0.0 (I didn't want to create dependencies and their implementation seems neat and tidy)
+avoidM :: (Random a, Eq a, RandomGen g) => a -> Rand g a
+avoidM x = do
+  r <- getRandom
+  if (r == x) 
+    then avoidM x
+    else return r
+
+-------------------------------------------------------------------------------
+-- FRP RANDOM
+-------------------------------------------------------------------------------
+randomSF :: RandomGen g => g -> SF (Rand g a) a
+randomSF initRng = proc f -> do
+  rec
+    g' <- iPre initRng -< g
+    let (a, g) = runRand f g'
+
+  returnA -< a
+
+randomBoolSF :: (RandomGen g) => g -> Double -> SF () Bool
+randomBoolSF g p = proc _ -> do
+  r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
+  returnA -< (r <= p)
+
+drawRandomElemSF :: (RandomGen g, Show a) => g -> SF [a] a
+drawRandomElemSF g = proc as -> do
+  r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
+  let len = length as
+  let idx = (fromIntegral $ len) * r
+  let a =  as !! (floor idx)
+  returnA -< a

@@ -39,10 +39,7 @@ defaultEnvReplicator :: EnvironmentReplicator e
 defaultEnvReplicator rng e = (e, rng)
 
 defaultAgentReplicator :: AgentDefReplicator s m e
-defaultAgentReplicator rng adef = (adef', rng'')
-    where
-        (rng', rng'') = split rng
-        adef' = adef { adRng = rng' }
+defaultAgentReplicator rng adef = (adef, rng)
 
 runReplicationsWithAggregation :: [AgentDef s m e]
                                 -> e

@@ -5,7 +5,6 @@ module FRP.FrABS.Agent.Agent
   , AgentMessage
   , AgentBehaviour
 
-  -- AgentConversationReceiver
   , AgentConversationSender
 
   , AgentDef (..)
@@ -19,14 +18,14 @@ module FRP.FrABS.Agent.Agent
   , AgentPureBehaviourNoEnv
 
   , agentId
-  -- agentIdOut
   , createAgent
   , kill
   , isDead
-
-  , createStartingAgentIn
-  , createStartingAgent
   , agentOut
+  , agentOutObs
+  
+  , startingAgentIn
+  , startingAgent
   , startingAgentInFromAgentDef
 
   , sendMessage
@@ -43,7 +42,6 @@ module FRP.FrABS.Agent.Agent
   , conversation
   , conversationEnd
 
-  -- agentStateIn
   , agentState
   , updateAgentState
   , setAgentState
@@ -69,7 +67,7 @@ module FRP.FrABS.Agent.Agent
 
 import Control.Concurrent.STM.TVar
 import Data.List
-import System.Random
+import Data.Maybe
 
 import FRP.Yampa
 
@@ -99,81 +97,75 @@ type AgentPureBehaviourNoEnv s m e    = Double -> AgentIn s m e -> AgentOut s m 
 
 data AgentDef s m e = AgentDef
   { adId              :: !AgentId
-  -- adState        :: !s
   , adBeh             :: AgentBehaviour s m e
-  --adConversation  :: !(Maybe (AgentConversationReceiver s m e))
   , adInitMessages    :: !(Event [AgentMessage m])     -- AgentId identifies sender
-  , adRng             :: !StdGen
+  --, adRng             :: !StdGen
   }
 
 data AgentIn s m e = AgentIn 
   { aiId                    :: !AgentId
   , aiMessages              :: !(Event [AgentMessage m])     -- AgentId identifies sender
-  -- aiConversation       :: !(Maybe (AgentConversationReceiver s m e)),
   , aiConversationIncoming  :: !(Event (AgentMessage m))
   , aiStart                 :: !(Event ())
-  -- aiState              :: !s
   , aiRec                   :: !(Event [(AgentOut s m e, e)])
   , aiRecInitAllowed        :: !Bool
-  , aiRng                   :: !StdGen
+  --, aiRng                   :: !StdGen
   , aiIdGen                 :: !(TVar Int)
   }
 
 data AgentOut s m e = AgentOut 
-  { -- aoId :: !AgentId   
-    aoKill                  :: !(Event ())
+  { aoKill                  :: !(Event ())
   , aoCreate                :: !(Event [AgentDef s m e])
   , aoMessages              :: !(Event [AgentMessage m])     -- AgentId identifies receiver
-  --aoConversation        :: !(Event (AgentMessage m, AgentConversationSender s m e))
   , aoConversationRequest   :: !(Event (AgentMessage m, AgentConversationSender s m e))
   , aoConversationReply     :: !(Event (AgentMessage m))
-  , aoState                 :: !s -- observable state
+  , aoState                 :: !(Maybe s) -- OPTIONAL observable state
   , aoRec                   :: !(Event ())
   , aoRecOthersAllowed      :: !Bool
-  , aoRng                   :: !StdGen
+  --, aoRng                   :: !StdGen
   }
 
-------------------------------------------------------------------------------------------------------------------------
--- Agent Functions
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- GENERAL 
+-------------------------------------------------------------------------------
 agentId :: AgentIn s m e -> AgentId
 agentId = aiId 
 
--- agentIdOut :: AgentOut s m e -> AgentId
--- agentIdOut = aoId 
+createAgent :: AgentDef s m e -> AgentOut s m e -> AgentOut s m e
+createAgent newDef ao = ao { aoCreate = createEvt }
+  where
+    oldCreateEvt = aoCreate ao
+    createEvt = mergeBy (\leftCreate rightCreate -> leftCreate ++ rightCreate) (Event [newDef]) oldCreateEvt
 
-agentRecursions :: AgentIn s m e -> Event [(AgentOut s m e, e)]
-agentRecursions = aiRec
+agentOut:: AgentOut s m e
+agentOut = agentOutAux Nothing
 
-recInitAllowed :: AgentIn s m e -> Bool
-recInitAllowed = aiRecInitAllowed
+agentOutObs :: s -> AgentOut s m e
+agentOutObs s = agentOutAux (Just s)
 
--- TODO: how can we get rid of agentin? the rng is the problem as it is the only reference to ain
-agentOut :: s -> AgentIn s m e -> AgentOut s m e
-agentOut s ai = 
-  AgentOut {  aoKill = NoEvent
-            , aoCreate = NoEvent
-            , aoMessages = NoEvent
-            , aoConversationRequest = NoEvent
-            , aoConversationReply = NoEvent
-            , aoState = s
-            , aoRec = NoEvent
-            , aoRecOthersAllowed = True
-            , aoRng = aiRng ai 
-            } 
- 
-hasConversation :: AgentOut s m e -> Bool
-hasConversation = isEvent . aoConversationRequest
+nextAgentId :: AgentIn s m e -> AgentId
+nextAgentId AgentIn { aiIdGen = idGen } = incrementAtomicallyUnsafe idGen
 
-conversation :: AgentMessage m
-                -> AgentConversationSender s m e
-                -> AgentOut s m e
-                -> AgentOut s m e
-conversation msg replyHdl ao = ao { aoConversationRequest = Event (msg, replyHdl)}
+kill :: AgentOut s m e -> AgentOut s m e
+kill ao = ao { aoKill = Event () }
 
-conversationEnd :: AgentOut s m e -> AgentOut s m e
-conversationEnd ao = ao { aoConversationRequest = NoEvent }
+isDead :: AgentOut s m e -> Bool
+isDead = isEvent . aoKill
 
+-------------------------------------------------------------------------------
+-- EVENTS
+-------------------------------------------------------------------------------
+onStart :: (AgentOut s m e -> AgentOut s m e) -> AgentIn s m e -> AgentOut s m e -> AgentOut s m e
+onStart evtHdl ai ao = onEvent evtHdl startEvt ao
+  where
+    startEvt = aiStart ai
+
+onEvent :: (AgentOut s m e -> AgentOut s m e) -> Event () -> AgentOut s m e -> AgentOut s m e
+onEvent evtHdl evt ao = event ao (\_ -> evtHdl ao) evt
+
+-------------------------------------------------------------------------------
+-- MESSAGING
+-------------------------------------------------------------------------------
 sendMessage :: AgentMessage m -> AgentOut s m e -> AgentOut s m e
 sendMessage msg ao = ao { aoMessages = mergedMsgs }
   where
@@ -194,29 +186,6 @@ broadcastMessage m receiverIds ao = sendMessages msgs ao
     ms = replicate n m
     msgs = zip receiverIds ms
 
-createAgent :: AgentDef s m e -> AgentOut s m e -> AgentOut s m e
-createAgent newDef ao = ao { aoCreate = createEvt }
-  where
-    oldCreateEvt = aoCreate ao
-    createEvt = mergeBy (\leftCreate rightCreate -> leftCreate ++ rightCreate) (Event [newDef]) oldCreateEvt
-
-nextAgentId :: AgentIn s m e -> AgentId
-nextAgentId AgentIn { aiIdGen = idGen } = incrementAtomicallyUnsafe idGen
-
-kill :: AgentOut s m e -> AgentOut s m e
-kill ao = ao { aoKill = Event () }
-
-isDead :: AgentOut s m e -> Bool
-isDead = isEvent . aoKill
-
-onStart :: (AgentOut s m e -> AgentOut s m e) -> AgentIn s m e -> AgentOut s m e -> AgentOut s m e
-onStart evtHdl ai ao = onEvent evtHdl startEvt ao
-  where
-    startEvt = aiStart ai
-
-onEvent :: (AgentOut s m e -> AgentOut s m e) -> Event () -> AgentOut s m e -> AgentOut s m e
-onEvent evtHdl evt ao = event ao (\_ -> evtHdl ao) evt
-    
 hasMessage :: (Eq m) => m -> AgentIn s m e -> Bool
 hasMessage m ai
     | not hasAnyMessage = False
@@ -254,19 +223,45 @@ onMessageFrom senderId msgHdl ai acc = onFilterMessage filterBySender msgHdl ai 
 onMessageType :: (Eq m) => m -> (AgentMessage m -> acc -> acc) -> AgentIn s m e -> acc -> acc
 onMessageType m msgHdl ai acc = onFilterMessage filterByMsgType msgHdl ai acc
     where
-        filterByMsgType = (==m) . snd --(\(_, m') -> m == m' )
+        filterByMsgType = (==m) . snd 
 
--- agentStateIn :: AgentIn s m e -> s
--- agentStateIn = aiState
-
+-------------------------------------------------------------------------------
+-- OBSERVABLE STATE
+-------------------------------------------------------------------------------
+-- NOTE: assuming that state isJust
 agentState :: AgentOut s m e -> s
-agentState = aoState
+agentState = fromJust . aoState
 
+-- NOTE: assuming that state isJust
 updateAgentState :: (s -> s) -> AgentOut s m e -> AgentOut s m e
-updateAgentState f ao = ao { aoState = f $ aoState ao }
+updateAgentState f ao = ao { aoState = Just $ f $ fromJust $ aoState ao }
 
 setAgentState :: s -> AgentOut s m e -> AgentOut s m e
 setAgentState s ao = updateAgentState (const s) ao
+
+-------------------------------------------------------------------------------
+-- Conversations
+-------------------------------------------------------------------------------
+hasConversation :: AgentOut s m e -> Bool
+hasConversation = isEvent . aoConversationRequest
+
+conversation :: AgentMessage m
+                -> AgentConversationSender s m e
+                -> AgentOut s m e
+                -> AgentOut s m e
+conversation msg replyHdl ao = ao { aoConversationRequest = Event (msg, replyHdl)}
+
+conversationEnd :: AgentOut s m e -> AgentOut s m e
+conversationEnd ao = ao { aoConversationRequest = NoEvent }
+
+-------------------------------------------------------------------------------
+-- RECURSION
+-------------------------------------------------------------------------------
+agentRecursions :: AgentIn s m e -> Event [(AgentOut s m e, e)]
+agentRecursions = aiRec
+
+recInitAllowed :: AgentIn s m e -> Bool
+recInitAllowed = aiRecInitAllowed
 
 allowsRecOthers :: AgentOut s m e -> Bool
 allowsRecOthers = aoRecOthersAllowed
@@ -280,49 +275,66 @@ unrecursive aout = aout { aoRec = NoEvent }
 isRecursive :: AgentIn s m e -> Bool
 isRecursive ain = isEvent $ aiRec ain
 
-createStartingAgentIn :: [AgentDef s m e] -> TVar Int -> [AgentIn s m e]
-createStartingAgentIn adefs idGen = map (startingAgentInFromAgentDef idGen) adefs
-
-createStartingAgent :: [AgentDef s m e] -> TVar Int -> ([AgentBehaviour s m e], [AgentIn s m e])
-createStartingAgent adefs idGen = (sfs, ains)
-  where
-    ains = createStartingAgentIn adefs idGen
-    sfs = map adBeh adefs 
-
-startingAgentInFromAgentDef :: TVar Int -> AgentDef s m e -> AgentIn s m e
-startingAgentInFromAgentDef idGen ad = 
-  AgentIn { aiId = adId ad
-          , aiMessages = adInitMessages ad
-          -- aiConversation = adConversation ad
-          , aiConversationIncoming = NoEvent
-          , aiStart = Event ()
-          -- aiState = adState ad
-          , aiRec = NoEvent
-          , aiRecInitAllowed = True
-          , aiRng = adRng ad
-          , aiIdGen = idGen 
-          }
-
-mergeMessages :: Event [AgentMessage m] -> Event [AgentMessage m] -> Event [AgentMessage m]
-mergeMessages l r = mergeBy (\msgsLeft msgsRight -> msgsLeft ++ msgsRight) l r
-
+-------------------------------------------------------------------------------
+-- PURE WRAPPERS
+-------------------------------------------------------------------------------
 agentPure :: AgentPureBehaviour s m e -> AgentBehaviour s m e
 agentPure f = proc (ain, e) -> do
   t <- time -< ()
-  --let ao = agentOutFromIn ain
   let (ao, e') = f e t ain
   returnA -< (ao, e')
 
 agentPureReadEnv :: AgentPureBehaviourReadEnv s m e -> AgentBehaviour s m e
 agentPureReadEnv f = proc (ain, e) -> do
   t <- time -< ()
-  --let ao = agentOutFromIn ain
   let ao = f e t ain
   returnA -< (ao, e)
 
 agentPureIgnoreEnv :: AgentPureBehaviourNoEnv s m e -> AgentBehaviour s m e
 agentPureIgnoreEnv f = proc (ain, e) -> do
   t <- time -< ()
-  --let ao = agentOutFromIn ain
   let ao = f t ain
   returnA -< (ao, e)
+
+-------------------------------------------------------------------------------
+-- UTILS
+-------------------------------------------------------------------------------
+startingAgentIn :: [AgentDef s m e] -> TVar Int -> [AgentIn s m e]
+startingAgentIn adefs idGen = map (startingAgentInFromAgentDef idGen) adefs
+
+startingAgent :: [AgentDef s m e] -> TVar Int -> ([AgentBehaviour s m e], [AgentIn s m e])
+startingAgent adefs idGen = (sfs, ains)
+  where
+    ains = startingAgentIn adefs idGen
+    sfs = map adBeh adefs 
+
+startingAgentInFromAgentDef :: TVar Int -> AgentDef s m e -> AgentIn s m e
+startingAgentInFromAgentDef idGen ad = 
+  AgentIn { aiId = adId ad
+          , aiMessages = adInitMessages ad
+          , aiConversationIncoming = NoEvent
+          , aiStart = Event ()
+          , aiRec = NoEvent
+          , aiRecInitAllowed = True
+          --, aiRng = adRng ad
+          , aiIdGen = idGen 
+          }
+
+mergeMessages :: Event [AgentMessage m] -> Event [AgentMessage m] -> Event [AgentMessage m]
+mergeMessages l r = mergeBy (\msgsLeft msgsRight -> msgsLeft ++ msgsRight) l r
+
+-------------------------------------------------------------------------------
+-- PRIVATE
+-------------------------------------------------------------------------------
+agentOutAux :: Maybe s -> AgentOut s m e
+agentOutAux s = 
+  AgentOut {  aoKill = NoEvent
+            , aoCreate = NoEvent
+            , aoMessages = NoEvent
+            , aoConversationRequest = NoEvent
+            , aoConversationReply = NoEvent
+            , aoState = s
+            , aoRec = NoEvent
+            , aoRecOthersAllowed = True
+            -- , aoRng = aiRng ai 
+            } 

@@ -8,18 +8,16 @@ cabal-version:     >= 1.2
 -------------------------------------------------------------------------------
 executable FrSIR
   main-is:         Main.hs
-  hs-source-dirs:  FrSIR/
-
+  hs-source-dirs:
+    .,
+    FrSIR/,
+    Utils
   build-depends:   base, 
                     FrABS, 
                     Yampa,
-                    parallel
+                    parallel,
+                    MonadRandom
 
-  hs-source-dirs:
-    .,
-    SIR/,
-    Utils
-    
 executable NewAgents
   main-is:         Main.hs
   hs-source-dirs:  NewAgents/

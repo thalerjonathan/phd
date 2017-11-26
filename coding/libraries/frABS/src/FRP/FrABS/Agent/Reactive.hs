@@ -10,11 +10,10 @@ module FRP.FrABS.Agent.Reactive
   , ignoreEnv
   , readEnv
 
-  , drain
-
   , doOnce
   , doOnceR
   , doNothing
+  , doNothingObs
   , doRepeatedlyEvery
   , doOccasionallyEvery
 
@@ -50,6 +49,7 @@ module FRP.FrABS.Agent.Reactive
   ) where
 
 import Control.Monad.Random
+import Data.Maybe
 
 import FRP.Yampa
 import FRP.Yampa.InternalCore
@@ -58,10 +58,10 @@ import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Agent.Random
 import FRP.FrABS.Environment.Discrete
 import FRP.FrABS.Environment.Network
+import FRP.FrABS.Simulation.Internal
 
--- TODO: is access to environment necesssary here?
-type EventSource s m e    = SF (AgentIn s m e, AgentOut s m e) (AgentOut s m e, Event ())
-type MessageSource s m e  = AgentIn s m e -> e -> AgentOut s m e -> (AgentOut s m e, AgentMessage m)
+type EventSource s m e    = SF (AgentIn s m e, AgentOut s m e, e) (Event ())
+type MessageSource s m e  = SF (AgentIn s m e, AgentOut s m e, e) (AgentMessage m)
 
 type ReactiveBehaviourIgnoreEnv s m e   = SF (AgentIn s m e) (AgentOut s m e)
 type ReactiveBehaviourReadEnv s m e     = SF (AgentIn s m e, e) (AgentOut s m e)
@@ -81,27 +81,18 @@ readEnv f = proc (ain, e) -> do
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
--- Continuous Helpers
--------------------------------------------------------------------------------
-drain :: Double -> SF Double Double
-drain initValue = proc rate -> do
-  value <- (initValue-) ^<< integral -< rate
-  let value' = max value 0
-  returnA -< value'
--------------------------------------------------------------------------------
-
--------------------------------------------------------------------------------
 -- Actions
 -------------------------------------------------------------------------------
+-- TODO: this is rubbish and doesnt make sense because of agentOutObs
 doOnce :: (AgentOut s m e -> AgentOut s m e) -> SF (AgentOut s m e) (AgentOut s m e)
 doOnce f = proc ao -> do
   -- TODO: is this actually evaluated EVERYTIME or due to Haskells laziness just once?
   -- TODO: why is this not firing the first time?
   aoOnceEvt <- once -< (Event . f) ao
-  -- this seems to be a bit unelegant, can we formulate this more elegant?
   let ao' = event ao id aoOnceEvt
   returnA -< ao'
 
+-- TODO: this is rubbish and doesnt make sense because of agentOutObs
 doOnceR :: s -> AgentBehaviour s m e -> AgentBehaviour s m e
 doOnceR s sf = proc (ain, e) -> do
   doEvt <- once -< (Event ())
@@ -109,36 +100,41 @@ doOnceR s sf = proc (ain, e) -> do
     (aout, e') <- sf -< (ain, e)
     returnA -< (aout, e'))
     else 
-      returnA -< (agentOut s ain, e)
+      returnA -< (agentOutObs s, e)
 
-doNothing :: s -> AgentBehaviour s m e
-doNothing s = first $ arr (agentOut s)
+doNothing :: AgentBehaviour s m e
+doNothing = first $ arr (const agentOut)
 
+doNothingObs :: s -> AgentBehaviour s m e
+doNothingObs s = first $ arr (const $ agentOutObs s)
+
+-- TODO: this is rubbish and doesnt make sense because of agentOutObs
 setAgentStateR :: s -> AgentBehaviour s m e
-setAgentStateR s = first $ arr ((setAgentState s) . (agentOut s))
+setAgentStateR s = first $ arr ((setAgentState s) . (const $ agentOutObs s))
 
+-- TODO: this is rubbish and doesnt make sense because of agentOutObs
 updateAgentStateR :: s -> (s -> s) -> AgentBehaviour s m e
-updateAgentStateR s f = first $ arr ((updateAgentState f) . (agentOut s))
+updateAgentStateR s f = first $ arr ((updateAgentState f) . (const $ agentOutObs s))
 
+-- TODO: this is rubbish and doesnt make sense because of agentOutObs
 doRepeatedlyEvery :: Time -> s -> AgentBehaviour s m e -> AgentBehaviour s m e
 doRepeatedlyEvery t s sf = proc (ain, e) -> do
-  let aout = agentOut s ain
   doEvt <- repeatedly t () -< ()
   if (isEvent doEvt) then (do
     (aout', e') <- sf -< (ain, e)
     returnA -< (aout', e'))
     else 
-      returnA -< (aout, e)
+      returnA -< (agentOutObs s, e)
 
+-- TODO: this is rubbish and doesnt make sense because of agentOutObs
 doOccasionallyEvery :: RandomGen g => g -> Time -> s -> AgentBehaviour s m e -> AgentBehaviour s m e
 doOccasionallyEvery g t s sf = proc (ain, e) -> do
-  let aout = agentOut s ain
   doEvt <- occasionally g t () -< ()
   if (isEvent doEvt) then (do
     (aout', e') <- sf -< (ain, e)
     returnA -< (aout', e'))
     else 
-      returnA -< (aout, e)
+      returnA -< (agentOutObs s, e)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -149,28 +145,22 @@ doOccasionallyEvery g t s sf = proc (ain, e) -> do
 -- TODO: sendMessageOnEvent
 -- TODO: sendMessageOnMessageReceived
 sendMessageOccasionally :: RandomGen g => g 
-                            -> Double
-                            -> AgentMessage m
-                            -> SF (AgentIn s m e, AgentOut s m e, e) (AgentOut s m e)
+                          -> Double
+                          -> AgentMessage m
+                          -> SF (AgentIn s m e, AgentOut s m e, e) (AgentOut s m e)
 sendMessageOccasionally g rate msg = sendMessageOccasionallySrc g rate (constMsgSource msg)
 
 sendMessageOccasionallySrc :: RandomGen g => g 
-                                        -> Double
-                                        -> MessageSource s m e 
-                                        -> SF (AgentIn s m e, AgentOut s m e, e) (AgentOut s m e)
-sendMessageOccasionallySrc g rate msgSrc = proc aoe -> do
+                              -> Double
+                              -> MessageSource s m e 
+                              -> SF (AgentIn s m e, AgentOut s m e, e) (AgentOut s m e)
+sendMessageOccasionallySrc g rate msgSrc = proc (ain, ao, e) -> do
     sendEvt <- occasionally g rate () -< ()
-    let ao' = sendMessageOccasionallyAux msgSrc sendEvt aoe
-    returnA -< ao'
-  where
-      sendMessageOccasionallyAux :: MessageSource s m e 
-                                      -> Event () 
-                                      -> (AgentIn s m e, AgentOut s m e, e)
-                                      -> AgentOut s m e
-      sendMessageOccasionallyAux _ NoEvent (_, ao, _) = ao
-      sendMessageOccasionallyAux msgSrc (Event ()) (ain, ao, e) = sendMessage msg ao'
-        where
-            (ao', msg) = msgSrc ain e ao
+    if isEvent sendEvt 
+      then (do
+        msg <- msgSrc -< (ain, ao, e)
+        returnA -< sendMessage msg ao)
+      else returnA -< ao
 
 sendMessageOccasionallySS :: RandomGen g => g 
                             -> Double
@@ -184,53 +174,60 @@ sendMessageOccasionallySrcSS :: RandomGen g => g
                                 -> Int
                                 -> MessageSource s m e 
                                 -> SF (AgentIn s m e, AgentOut s m e, e) (AgentOut s m e)
-sendMessageOccasionallySrcSS g rate ss msgSrc = proc (ain, ao, e) -> do
+sendMessageOccasionallySrcSS g rate ss msgSrc = proc aoe -> do
     sendEvts <- superSampling ss (occasionally g rate ()) -< ()
-    let ao' = foldr (sendMessageOccasionallyAux (msgSrc ain e)) ao sendEvts 
+    (_, ao', _) <- foldrSF (sendMessageOccasionallySrcSSAux msgSrc) -< (aoe, sendEvts)
     returnA -< ao'
   where
-    sendMessageOccasionallyAux :: (AgentOut s m e -> (AgentOut s m e, AgentMessage m))
-                                    -> Event ()
-                                    -> AgentOut s m e
-                                    -> AgentOut s m e
-    sendMessageOccasionallyAux _ NoEvent ao = ao
-    sendMessageOccasionallyAux msgSrc (Event ()) ao = sendMessage msg ao'
-      where
-          (ao', msg) = msgSrc ao
+    sendMessageOccasionallySrcSSAux :: MessageSource s m e  
+                                     -> SF (Event (), (AgentIn s m e, AgentOut s m e, e)) (AgentIn s m e, AgentOut s m e, e)
+    sendMessageOccasionallySrcSSAux msgSrc = proc (evt, aoe@(ain, ao, e)) -> do
+      if isEvent evt
+        then (do
+          msg <- msgSrc -< aoe
+          let ao' = sendMessage msg ao
+          returnA -< (ain, ao', e))
+        else returnA -< aoe
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- MESSAGE-Sources
 -------------------------------------------------------------------------------
 constMsgReceiverSource :: m -> AgentId -> MessageSource s m e
-constMsgReceiverSource m receiver _ _ ao = (ao, msg)
-  where
-    msg = (receiver, m)
+constMsgReceiverSource m receiver = arr (const (receiver, m))
 
 constMsgSource :: AgentMessage m -> MessageSource s m e
-constMsgSource msg _ _ ao = (ao, msg)
+constMsgSource msg = arr (const msg)
 
-randomNeighbourNodeMsgSource :: m -> MessageSource s m (Network l)
-randomNeighbourNodeMsgSource m ain e ao = (ao', msg)
-  where
-    aid = agentId ain
-    (randNode, ao') = agentRandom (randomNeighbourNode aid e) ao
-    msg = (randNode, m)
+randomNeighbourNodeMsgSource :: RandomGen g => g 
+                                -> m 
+                                -> MessageSource s m (Network l)
+randomNeighbourNodeMsgSource g m = proc (ain, _, e) -> do
+    let aid = agentId ain
+    randNode <- randomSF g -< randomNeighbourNode aid e
+    returnA -< (randNode, m)
 
-randomNeighbourCellMsgSource :: (s -> Discrete2dCoord) -> m -> Bool -> MessageSource s m (Discrete2d AgentId)
-randomNeighbourCellMsgSource posFunc m ic _ e ao = (ao', msg)
-  where
-    pos = posFunc $ aoState ao
-    (randCell, ao') = agentRandom (randomNeighbourCell pos ic e) ao
-    msg = (randCell, m)
+-- NOTE: assumes state isJust
+randomNeighbourCellMsgSource :: RandomGen g => g 
+                                -> (s -> Discrete2dCoord) 
+                                -> m 
+                                -> Bool 
+                                -> MessageSource s m (Discrete2d AgentId)
+randomNeighbourCellMsgSource g posFunc m ic = proc (_, ao, e) -> do
+    let pos = posFunc $ fromJust $ aoState ao
+    randCell <- randomSF g -< randomNeighbourCell pos ic e
+    returnA -< (randCell, m)
 
-randomAgentIdMsgSource :: m -> Bool -> MessageSource s m [AgentId]
-randomAgentIdMsgSource m ignoreSelf ain agentIds ao
-    | True == ignoreSelf && aid == randAid = randomAgentIdMsgSource m ignoreSelf ain agentIds ao'
-    | otherwise = (ao', (randAid, m))
-  where
-    aid = agentId ain
-    (randAid, ao') = agentRandomPick agentIds ao
+randomAgentIdMsgSource :: RandomGen g => g 
+                          -> m 
+                          -> Bool 
+                          -> MessageSource s m [AgentId]
+randomAgentIdMsgSource g m ignoreSelf = proc aoe@(ain, _, agentIds) -> do
+    let aid = agentId ain
+    randAid <- drawRandomElemSF g -< agentIds
+    if True == ignoreSelf && aid == randAid
+      then randomAgentIdMsgSource (snd $ split g) m ignoreSelf -< aoe
+      else returnA -< (randAid, m)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -250,8 +247,7 @@ transitionAfter t from to = switch (transitionAfterAux t from) (const to)
       timeoutEvent <- after t () -< ()
       returnA -< (aoe, timeoutEvent)
 
-transitionAfterExpSS :: RandomGen g =>
-                    g 
+transitionAfterExpSS :: RandomGen g => g 
                     -> Double
                     -> Int
                     -> AgentBehaviour s m e
@@ -269,8 +265,7 @@ transitionAfterExpSS g t ss from to = switch (transitionAfterExpSSAux t from) (c
       let timeoutOccurred = if hasEvent then Event () else NoEvent
       returnA -< (aoe, timeoutOccurred)
 
-transitionAfterExp :: RandomGen g =>
-                    g 
+transitionAfterExp :: RandomGen g => g 
                     -> Double
                     -> AgentBehaviour s m e
                     -> AgentBehaviour s m e
@@ -285,34 +280,38 @@ transitionAfterExp g t from to = switch (transitionAfterExpAux t from) (const to
       timeoutEvent <- afterExp g t () -< ()
       returnA -< (aoe, timeoutEvent)
 
-transitionWithUniProb :: Double
-                            -> AgentBehaviour s m e
-                            -> AgentBehaviour s m e
-                            -> AgentBehaviour s m e
-transitionWithUniProb p from to = switch (transitionWithUniProbAux from)(const to)
+transitionWithUniProb :: RandomGen g => g 
+                          -> Double
+                          -> AgentBehaviour s m e
+                          -> AgentBehaviour s m e
+                          -> AgentBehaviour s m e
+transitionWithUniProb g p from to = switch (transitionWithUniProbAux from)(const to)
   where
     transitionWithUniProbAux :: AgentBehaviour s m e
                                 -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
     transitionWithUniProbAux from = proc aie -> do
-      (ao, e') <- from -< aie
-      let (evtFlag, ao') = agentRandom (randomBoolM p) ao
+      aie' <- from -< aie
+      --let (evtFlag, ao') = agentRandom (randomBoolM p) ao
+      evtFlag <- randomSF g -< randomBoolM p
       evt <- iEdge False -< evtFlag
-      returnA -< ((ao', e'), evt)
+      returnA -< (aie', evt)
 
-transitionWithExpProb :: Double
+transitionWithExpProb :: RandomGen g => g 
+                        -> Double
                         -> Double
                         -> AgentBehaviour s m e
                         -> AgentBehaviour s m e
                         -> AgentBehaviour s m e
-transitionWithExpProb lambda p from to = switch (transitionWithExpProbAux from) (const to)
+transitionWithExpProb g lambda p from to = switch (transitionWithExpProbAux from) (const to)
   where
     transitionWithExpProbAux :: AgentBehaviour s m e
                                 -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
     transitionWithExpProbAux from = proc aie -> do
-      (ao, e) <- from -< aie
-      let (r, ao') = agentRandom (randomExpM lambda) ao
+      aie' <- from -< aie
+      -- let (r, ao') = agentRandom (randomExpM lambda) ao
+      r <- randomSF g -< randomExpM lambda
       evt <- iEdge False -< (p >= r)
-      returnA -< ((ao', e), evt)
+      returnA -< (aie', evt)
 
 transitionOnEvent :: EventSource s m e
                     -> AgentBehaviour s m e
@@ -325,9 +324,10 @@ transitionOnEvent evtSrc from to = switch (transitionEventAux evtSrc from) (cons
                             -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
     transitionEventAux evtSrc from = proc aie@(ain, _) -> do
       (ao, e) <- from -< aie
-      (ao', evt) <- evtSrc -< (ain, ao)
-      returnA -< ((ao', e), evt)
+      evt <- evtSrc -< (ain, ao, e)
+      returnA -< ((ao, e), evt)
 
+-- NOTE: assumes state isJust
 transitionOnBoolState :: (s -> Bool)
                             -> AgentBehaviour s m e
                             -> AgentBehaviour s m e
@@ -339,7 +339,7 @@ transitionOnBoolState boolStateFunc from to = switch (transitionOnBoolStateAux b
                                 -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
     transitionOnBoolStateAux boolStateFunc from = proc aie -> do
       (ao, e) <- from -< aie
-      let state = aoState ao
+      let state = fromJust $ aoState ao
       let evtFlag = boolStateFunc state
       evt <- iEdge False -< evtFlag
       returnA -< ((ao, e), evt)
@@ -350,29 +350,25 @@ transitionOnMessage :: (Eq m) => m
                         -> AgentBehaviour s m e
 transitionOnMessage msg from to = transitionOnEvent (messageEventSource msg) from to
 
-transitionOnEventWithGuard :: EventSource s m e
-                            -> Rand StdGen Bool
+transitionOnEventWithGuard :: RandomGen g => g 
+                            -> EventSource s m e
+                            -> Rand g Bool
                             -> AgentBehaviour s m e
                             -> AgentBehaviour s m e
                             -> AgentBehaviour s m e
-transitionOnEventWithGuard evtSrc guardAction from to = switch (transitionEventWithGuardAux evtSrc from) (const to)
+transitionOnEventWithGuard g evtSrc guardAction from to = 
+    switch (transitionEventWithGuardAux evtSrc from) (const to)
   where
     transitionEventWithGuardAux :: EventSource s m e
                                     -> AgentBehaviour s m e 
                                     -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
     transitionEventWithGuardAux evtSrc from = proc aie@(ain, _) -> do
-      (ao, e') <- from -< aie
-      (ao0, evt) <- evtSrc -< (ain, ao)
-      let (ao1, transEvt) = guardEvent evt guardAction ao0
-      returnA -< ((ao1, e'), transEvt)
-
-    guardEvent :: Event () -> Rand StdGen Bool -> AgentOut s m e -> (AgentOut s m e, Event ())
-    guardEvent NoEvent _ ao = (ao, NoEvent)
-    guardEvent _ guardAction ao 
-        | guardAllowed = (ao', Event ())
-        | otherwise = (ao', NoEvent)
-      where
-        (guardAllowed, ao') = agentRandom guardAction ao
+      (ao, e) <- from -< aie
+      evt <- evtSrc -< (ain, ao, e)
+      flag <- randomSF g -< guardAction
+      if (isEvent evt && flag)
+        then returnA -< ((ao, e), Event())
+        else returnA -< ((ao, e), NoEvent)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -380,14 +376,34 @@ transitionOnEventWithGuard evtSrc guardAction from to = switch (transitionEventW
 -------------------------------------------------------------------------------
 -- TODO: how can we formulate this in point-free arrow style?
 messageEventSource :: (Eq m) => m -> EventSource s m e
-messageEventSource msg = proc (ain, ao) -> do
+messageEventSource msg = proc (ain, _, _) -> do
   evt <- iEdge False -< hasMessage msg ain
-  returnA -< (ao, evt)
+  returnA -< evt
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- ADDITIONAL SIGNAL-FUNCTIONS
 -------------------------------------------------------------------------------
+foldrSF :: Foldable t => SF (a, b) b -> SF (b, t a) b
+foldrSF sf = SF { sfTF = tf0 } 
+  where
+    tf0 (acc, as) = (tfCont, acc')
+      where
+        (acc', sf') = foldr (foldAndFreeze 0) (acc, sf) as
+        tfCont = foldrSFAux sf'
+
+    foldrSFAux sf = SF' tf
+      where
+        tf dt (acc, as) = (tf', acc')
+          where
+            (acc', sf') = foldr (foldAndFreeze dt) (acc, sf) as
+            tf' = foldrSFAux sf'
+  
+    foldAndFreeze :: DTime -> a -> (b, SF (a, b) b) -> (b, SF (a, b) b)
+    foldAndFreeze dt a (b, sf) = (b', sf')
+      where
+        (sf', b') = runAndFreezeSF sf (a, b) dt
+
 -- TODO: implement using exitsting after
 afterExp :: RandomGen g => g -> DTime -> b -> SF a (Event b)
 afterExp g t b = SF { sfTF = tf0 }
@@ -408,6 +424,7 @@ afterExp g t b = SF { sfTF = tf0 }
             tCurr' = tCurr + dt
             tf' = afterExpAux tCurr' tEvt
 
+-- TODO: implement different samling-strategies: random noise, triangle, uniform, predefined sampledistances
 superSampling :: Int -> SF a b -> SF a [b]
 superSampling n sf0 = SF { sfTF = tf0 }
   where

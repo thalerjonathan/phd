@@ -4,7 +4,6 @@ module FRP.FrABS
   , AgentMessage
   , AgentBehaviour
 
-  -- , AgentConversationReceiver
   , AgentConversationSender
 
   , AgentDef (..)
@@ -14,14 +13,13 @@ module FRP.FrABS
   , AgentObservable
 
   , agentId
-  -- , agentIdOut
-  -- , agentIdM
   , createAgent
   , kill
   , isDead
 
   , agentOut
-
+  , agentOutObs
+  
   , sendMessage
   , sendMessageTo
   , sendMessages
@@ -36,7 +34,6 @@ module FRP.FrABS
   , conversation
   , conversationEnd
 
-  -- , agentStateIn
   , agentState
   , updateAgentState
   , setAgentState
@@ -92,8 +89,6 @@ module FRP.FrABS
   , AgentMonadicBehaviourReadEnv
   , AgentMonadicBehaviourNoEnv
 
-  , drain
-
   , ignoreEnv
   , readEnv
 
@@ -106,6 +101,7 @@ module FRP.FrABS
   , doOnce
   , doOnceR
   , doNothing
+  , doNothingObs
   , doRepeatedlyEvery
   , doOccasionallyEvery
 
@@ -141,31 +137,17 @@ module FRP.FrABS
   , ifThenElse
   , ifThenElseM
 
-  , agentRandom
-  , agentRandomM
-
-  , agentRandomRange
-  , agentRandomRangeM
-  , agentRandomRanges
-  , agentRandomBoolProb
-  , agentRandomBoolProbM
-  , agentRandomSplit
-  , agentRandomPick
-  , agentRandomPickM
-  , agentRandomPicks
-  , agentRandomPicksM
-  , agentRandomShuffle
-  , agentRandomShuffleM
-
   , randomBool
-  , randomBoolM
   , randomExp
-  , randomExpM
   , randomShuffle
 
-  , avoid
+  , randomBoolM
+  , randomExpM
+  , avoidM
 
-  , agentRandomNeighbourNode
+  , randomSF
+  , randomBoolSF
+  , drawRandomElemSF
 
   , EnvironmentBehaviour
   , EnvironmentMonadicBehaviour
@@ -233,7 +215,6 @@ module FRP.FrABS
   , cellAtM
   , randomCell
   , randomCellWithinRect
-  , environmentDisc2dRandom
 
   , neighbours
   , neighboursM
@@ -399,7 +380,7 @@ import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Agent.Monad
 import FRP.FrABS.Agent.Random
 import FRP.FrABS.Agent.Reactive
-import FRP.FrABS.Agent.Utils
+-- import FRP.FrABS.Agent.Utils
 import FRP.FrABS.Environment.Continuous
 import FRP.FrABS.Environment.Definitions
 import FRP.FrABS.Environment.Discrete
@@ -425,9 +406,6 @@ import FRP.FrABS.Simulation.Simulation
   , -> what happens then in the case of a conversation? the receiving agent cannot change the state? We would need to run the conversation within the original agentbehaviour 
 
 - should there be output at t=0?
-
-- can we get rid of RNG in AgentIn and AgentOut
-- get rid of AgentIn when constructing AgentOut using agentOut
 
 - BUG: if two agents have the same id, their states will get mixed-up when using the Sequential updating
   

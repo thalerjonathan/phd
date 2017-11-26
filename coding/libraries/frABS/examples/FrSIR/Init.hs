@@ -31,7 +31,6 @@ frSIRAgent initS aid = do
     adId = aid
   , adBeh = beh
   , adInitMessages = NoEvent
-  , adRng = rng 
   }
 
   return adef
@@ -43,7 +42,5 @@ sirAgentDefReplicator numInfected g ad = (ad', g')
     s = if (adId ad) < numInfected then Infected else Susceptible 
     -- NOTE: also need to overwrite behaviour with one with a different RNG!
     beh = sirAgentBehaviour g' s
-
-    ad' = ad { adRng = g',
-               adBeh = beh }
+    ad' = ad { adBeh = beh }
 ------------------------------------------------------------------------------------------------------------------------

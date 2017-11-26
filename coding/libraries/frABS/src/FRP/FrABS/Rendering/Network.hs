@@ -28,13 +28,14 @@ type AgentColorerNetwork s      = s -> GLO.Color
 
 renderFrameNetwork :: AgentRendererNetwork s l
                       -> RenderFrame s (Network l)
-renderFrameNetwork ar winSize@(wx, wy) t ss e = GLO.Pictures [envPics, agentPics]
+renderFrameNetwork _ar _winSize@(_wx, _wy) _t _ss _e = GLO.Pictures [envPics, agentPics]
   where
     agentPics = GLO.Blank
     envPics = GLO.Blank
 
 defaultAgentRendererNetwork :: AgentColorerNetwork s -> AgentRendererNetwork s l
-defaultAgentRendererNetwork acf (x, y) size t (_, s) link = GLO.color color $ GLO.translate x y $ GLO.ThickCircle 0 size
+defaultAgentRendererNetwork acf (x, y) size _t (_, s) _link = 
+    GLO.color color $ GLO.translate x y $ GLO.ThickCircle 0 size
   where
     color = acf s
 

@@ -148,7 +148,7 @@ simulate params adefs e = sf
   where
     asfs = map adBeh adefs
     idGen = simIdGen params
-    ais = createStartingAgentIn adefs idGen
+    ais = startingAgentIn adefs idGen
     sf = iterationStrategy params asfs ais e 
 ----------------------------------------------------------------------------------------------------------------------
 

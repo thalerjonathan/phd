@@ -14,10 +14,10 @@ import Model
 ------------------------------------------------------------------------------------------------------------------------
 -- Non-Reactive Functions
 ------------------------------------------------------------------------------------------------------------------------
-gotInfected :: FrSIRAgentIn -> Rand StdGen Bool
+gotInfected :: RandomGen g => FrSIRAgentIn -> Rand g Bool
 gotInfected ain = onMessageM gotInfectedAux ain False
   where
-    gotInfectedAux :: Bool -> AgentMessage FrSIRMsg -> Rand StdGen Bool
+    gotInfectedAux :: RandomGen g => Bool -> AgentMessage FrSIRMsg -> Rand g Bool
     gotInfectedAux False (_, Contact Infected) = randomBoolM infectivity
     gotInfectedAux x _ = return x
 
@@ -34,19 +34,22 @@ respondToContactWith state ain ao = onMessage respondToContactWithAux ain ao
 -- SUSCEPTIBLE
 sirAgentSuceptible :: RandomGen g => g -> FrSIRAgentBehaviour
 sirAgentSuceptible g = 
-  transitionOnEvent sirAgentInfectedEvent (readEnv $ sirAgentSusceptibleBehaviour g) (sirAgentInfected g)
+  transitionOnEvent (sirAgentInfectedEvent g) (readEnv $ sirAgentSusceptibleBehaviour g) (sirAgentInfected g)
 
-sirAgentInfectedEvent :: FrSIREventSource
-sirAgentInfectedEvent = proc (ain, ao) -> do
-    let (isInfected, ao') = agentRandom (gotInfected ain) ao
+sirAgentInfectedEvent :: RandomGen g => g -> FrSIREventSource
+sirAgentInfectedEvent g = proc (ain, ao, e) -> do
+    isInfected <- randomSF g -< gotInfected ain
     infectionEvent <- edge -< isInfected
-    returnA -< (ao', infectionEvent)
+    returnA -< infectionEvent
 
 sirAgentSusceptibleBehaviour :: RandomGen g => g -> FrSIRAgentBehaviourReadEnv
 sirAgentSusceptibleBehaviour g = proc (ain, e) -> do
-    let aid = agentId ain
-    let ao = agentOut Susceptible ain
-    ao' <- sendMessageOccasionallySrcSS g (1 / contactRate) contactSS (randomAgentIdMsgSource (Contact Susceptible) True) -< (ain, ao, e)
+    let ao = agentOutObs Susceptible
+    ao' <- sendMessageOccasionallySrcSS 
+            g 
+            (1 / contactRate) 
+            contactSS 
+            (randomAgentIdMsgSource g (Contact Susceptible) True) -< (ain, ao, e)
     returnA -< ao'
 
 -- INFECTED
@@ -56,12 +59,12 @@ sirAgentInfected g =
 
 sirAgentInfectedBehaviour :: RandomGen g => g -> FrSIRAgentBehaviourIgnoreEnv
 sirAgentInfectedBehaviour g = proc ain -> do
-    let ao = agentOut Infected ain
+    let ao = agentOutObs Infected
     returnA -< respondToContactWith Infected ain ao
 
 -- RECOVERED
 sirAgentRecovered :: FrSIRAgentBehaviour
-sirAgentRecovered = doNothing Recovered
+sirAgentRecovered = doNothingObs Recovered
 
 -- INITIAL CASES
 sirAgentBehaviour :: RandomGen g => g -> SIRState -> FrSIRAgentBehaviour

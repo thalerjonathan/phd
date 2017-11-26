@@ -64,7 +64,8 @@ simulatePar initParams initSfs initIns initEnv = SF { sfTF = tf0 }
                 -- collapse all environments into one
                 (e', params') = foldEnvironments dt params envs e
                 -- create observable outputs
-                obs = map (\(ai, ao) -> (aiId ai, aoState ao)) (zip ins outs)
+                --obs = map (\(ai, ao) -> (aiId ai, aoState ao)) (zip ins outs)
+                obs = observableAgents (map aiId ins) outs
                 -- NOTE: shuffling may seem strange in parallel but this will ensure random message-distribution when required
                 (params'', sfsShuffled, insShuffled) = shuffleAgents params' sfs'' ins'
                 -- create continuation
@@ -138,7 +139,7 @@ nextStep oldAgentIns newAgentOuts asfs = (asfs', newAgentIns')
             | otherwise = (sf : asfsAcc, newIn : ainsAcc) 
           where
             killAgent = isEvent $ aoKill newOut
-            newIn = newAgentIn oldIn newOut
+            newIn = newAgentIn oldIn
 
 handleCreateAgents :: TVar Int
                         -> AgentOut s m e

@@ -1,49 +1,49 @@
-module FRP.FrABS.Environment.Network (
-    NetworkType (..),
-    DeterministicNetwork (..),
-    RandomNetwork (..),
-    Network (..), -- TODO: hide data-constructor
+module FRP.FrABS.Environment.Network 
+  (
+    NetworkType (..)
+  , DeterministicNetwork (..)
+  , RandomNetwork (..)
+  , Network (..)
 
-    createNetwork,
-    createDeterministicNetwork,
-    createRandomNetwork,
-    createEmptyNetwork,
-    createNetworkWithGraph,
+  , createNetwork
+  , createDeterministicNetwork
+  , createRandomNetwork
+  , createEmptyNetwork
+  , createNetworkWithGraph
 
-    constEdgeLabeler,
-    unitEdgeLabeler,
+  , constEdgeLabeler
+  , unitEdgeLabeler
 
-    nodesOfNetwork,
-    networkDegrees,
-    neighbourNodes,
-    neighbourEdges,
-    neighbourAgentIds,
-    neighbourAgentIdsM,
-    neighbourLinks,
-    directLinkBetween,
-    directLinkBetweenM,
+  , nodesOfNetwork
+  , networkDegrees
+  , neighbourNodes
+  , neighbourEdges
+  , neighbourAgentIds
+  , neighbourAgentIdsM
+  , neighbourLinks
+  , directLinkBetween
+  , directLinkBetweenM
 
-    randomNeighbourNode
+  , randomNeighbourNode
   ) where
-
-import FRP.FrABS.Agent.Agent
 
 import Control.Monad.Random
 import Control.Monad.Trans.State
-
 import Data.List
+
 import Data.Graph.Inductive.Graph
 import Data.Graph.Inductive.PatriciaTree
+import FRP.FrABS.Agent.Agent
 
-type EdgeLabeler l = (AgentId -> AgentId -> l)
+type EdgeLabeler l          = (AgentId -> AgentId -> l)
+data NetworkType            = Random RandomNetwork | Deterministic DeterministicNetwork
+data DeterministicNetwork   = Complete Int
+data RandomNetwork          = ErdosRenyi Int Double | BarbasiAlbert Int Int Int
 
-data NetworkType = Random RandomNetwork | Deterministic DeterministicNetwork
-data DeterministicNetwork = Complete Int
-data RandomNetwork = ErdosRenyi Int Double | BarbasiAlbert Int Int Int
-
-data Network l = Network {
+data Network l = Network 
+  {
     envNetGraph :: Gr () l
-} deriving (Show, Read)
+  } deriving (Show, Read)
 
 -- NOTE: the underlying graph-library (FGL) can't deal with a fully-connected graph
 -- which is too big (>= 10.000 nodes) as the connections between the links
@@ -55,22 +55,24 @@ data Network l = Network {
 -------------------------------------------------------------------------------
 -- Network implementation
 -------------------------------------------------------------------------------
-createNetwork :: NetworkType 
-                    -> EdgeLabeler l
-                    -> Rand StdGen (Network l)
+createNetwork :: RandomGen g =>
+                NetworkType 
+                -> EdgeLabeler l
+                -> Rand g (Network l)
 createNetwork (Deterministic t) l = return $ createDeterministicNetwork t l
 createNetwork (Random t) l = createRandomNetwork t l
 
 createDeterministicNetwork :: DeterministicNetwork 
-                                -> EdgeLabeler l
-                                -> Network l
+                              -> EdgeLabeler l
+                              -> Network l
 createDeterministicNetwork (Complete n) l = Network { envNetGraph = gr }
-    where
-        gr = createCompleteGraph l n
+  where
+    gr = createCompleteGraph l n
 
-createRandomNetwork :: RandomNetwork 
-                    -> EdgeLabeler l
-                    -> Rand StdGen (Network l)
+createRandomNetwork :: RandomGen g =>
+                      RandomNetwork 
+                      -> EdgeLabeler l
+                      -> Rand g (Network l)
 createRandomNetwork (ErdosRenyi n p) l = createErdosRenyiGraph l n p >>= (\gr -> return Network { envNetGraph = gr })
 createRandomNetwork (BarbasiAlbert m0 m n) l = createBarbasiAlbertGraph l n m0 m >>= (\gr -> return Network { envNetGraph = gr })
 
@@ -88,23 +90,23 @@ unitEdgeLabeler = constEdgeLabeler ()
 
 nodesOfNetwork :: Network l -> [AgentId]
 nodesOfNetwork e = nodes gr
-    where
-        gr = envNetGraph e
+  where
+    gr = envNetGraph e
 
 networkDegrees :: Network l -> [(AgentId, Int)]
 networkDegrees e = degrees gr
-    where
-        gr = envNetGraph e
+  where
+    gr = envNetGraph e
 
 neighbourNodes :: AgentId -> Network l -> [AgentId]
 neighbourNodes node e = map snd ls
-    where
-        ls = neighbourLinks node e
+  where
+    ls = neighbourLinks node e
 
 neighbourEdges :: AgentId -> Network l ->  [l]
 neighbourEdges aid e = map fst ls
-    where
-        ls = neighbourLinks aid e
+  where
+    ls = neighbourLinks aid e
 
 neighbourAgentIds :: AgentId -> Network l -> [AgentId]
 neighbourAgentIds = neighbourNodes
@@ -114,15 +116,14 @@ neighbourAgentIdsM aid = state (\e -> (neighbourAgentIds aid e, e))
 
 neighbourLinks :: AgentId -> Network l -> Adj l
 neighbourLinks aid e = lneighbors gr aid
-    where
-        gr = envNetGraph e
+  where
+    gr = envNetGraph e
 
 directLinkBetween :: AgentId -> AgentId -> Network l -> Maybe l
-directLinkBetween n1 n2 e = 
-    do
-        let ls = neighbourLinks n1 e
-        (linkLabel, _) <- Data.List.find ((==n2) . snd) ls
-        return linkLabel
+directLinkBetween n1 n2 e = do
+  let ls = neighbourLinks n1 e
+  (linkLabel, _) <- Data.List.find ((==n2) . snd) ls
+  return linkLabel
 
 directLinkBetweenM :: AgentId -> AgentId -> State (Network l) (Maybe l)
 directLinkBetweenM n1 n2 = state (\e -> (directLinkBetween n1 n2 e, e))
@@ -130,13 +131,12 @@ directLinkBetweenM n1 n2 = state (\e -> (directLinkBetween n1 n2 e, e))
 -------------------------------------------------------------------------------
 -- UTILITIES
 -------------------------------------------------------------------------------
-randomNeighbourNode :: AgentId -> Network l -> Rand StdGen AgentId
-randomNeighbourNode aid e = 
-    do
-        let nn = neighbourNodes aid e
-        let l = length nn 
-        randIdx <- getRandomR (0, l - 1)
-        return (nn !! randIdx)
+randomNeighbourNode :: RandomGen g => AgentId -> Network l -> Rand g AgentId
+randomNeighbourNode aid e = do
+  let nn = neighbourNodes aid e
+  let l = length nn 
+  randIdx <- getRandomR (0, l - 1)
+  return (nn !! randIdx)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -144,10 +144,9 @@ randomNeighbourNode aid e =
 -------------------------------------------------------------------------------
 createCompleteGraph :: EdgeLabeler l -> Int -> Gr () l
 createCompleteGraph l n = mkGraph nodes edges
-    where
-
-        nodes = allNodes n
-        edges = allEdges l n
+  where
+    nodes = allNodes n
+    edges = allEdges l n
 
 {-
 createCompleteGraph :: EdgeLabeler l -> Int -> Gr () l
@@ -166,78 +165,86 @@ createCompleteGraph l n = foldr (createCompleteGraphAux l) gr [0..(n - 1)]
             where
                 edges = map (createEdgeByLabeler l aid) [0.. (aid - 1)]
 -}
-createErdosRenyiGraph :: EdgeLabeler l -> Int -> Double -> Rand StdGen (Gr () l)
-createErdosRenyiGraph l n p = 
-    do
-        let boundary = (0.0, 1.0) :: (Double, Double) -- sometimes the type-system of Haskell is f**** anyoing...
+createErdosRenyiGraph :: RandomGen g => 
+                        EdgeLabeler l 
+                        -> Int 
+                        -> Double 
+                        -> Rand g (Gr () l)
+createErdosRenyiGraph l n p = do
+    let boundary = (0.0, 1.0) :: (Double, Double) -- sometimes the type-system of Haskell is f**** anyoing...
 
-        infRandomThreshs <- getRandomRs boundary
+    infRandomThreshs <- getRandomRs boundary
 
-        let randomThreshs = take (length edges) infRandomThreshs
-        let randomEdges = map fst $ filter ((<=p) . snd) (zip edges randomThreshs)
+    let randomThreshs = take (length edges) infRandomThreshs
+    let randomEdges = map fst $ filter ((<=p) . snd) (zip edges randomThreshs)
 
-        let gr = mkGraph nodes randomEdges -- :: Gr () l
-        return gr
+    let gr = mkGraph nodes randomEdges -- :: Gr () l
+    return gr
+  where
+    nodes = allNodes n
+    edges = allEdges l n
 
-    where
-        nodes = allNodes n
-        edges = allEdges l n
-
-createBarbasiAlbertGraph :: EdgeLabeler l -> Int -> Int -> Int -> Rand StdGen (Gr () l)
+createBarbasiAlbertGraph :: RandomGen g =>
+                            EdgeLabeler l 
+                            -> Int 
+                            -> Int 
+                            -> Int 
+                            -> Rand g (Gr () l)
 createBarbasiAlbertGraph l n m0 m 
     | m > m0 = error "Cannot create BarbasiAlbert-Graph: m0 <= m violated"
-    | otherwise = 
-    do
-        -- start with a fully connected graph of m0 AgentIds
-        let initGr = createCompleteGraph l m0
-        let initDegDist = buildDegreeDistr initGr
+    | otherwise = do
+      -- start with a fully connected graph of m0 AgentIds
+      let initGr = createCompleteGraph l m0
+      let initDegDist = buildDegreeDistr initGr
 
-        -- add (n - m0) AgentIds, where each AgentId is connected to m existing AgentIds where the m existing AgentIds are picked at random
-        (finalGr', _) <- foldM (createBarbasiAlbertGraphAux l) (initGr, initDegDist) [m0 .. n - 1]
-        return finalGr'
+      -- add (n - m0) AgentIds, where each AgentId is connected to m existing AgentIds where the m existing AgentIds are picked at random
+      (finalGr', _) <- foldM (createBarbasiAlbertGraphAux l) (initGr, initDegDist) [m0 .. n - 1]
+      return finalGr'
+  where
+    createBarbasiAlbertGraphAux :: RandomGen g =>
+                                  EdgeLabeler l 
+                                  -> (Gr () l, [AgentId]) 
+                                  -> AgentId 
+                                  -> Rand g (Gr () l, [AgentId])
+    createBarbasiAlbertGraphAux l (gr, degDistr) aid = do
+      randomAgentIds <- pickRandomAgentIds m aid [] degDistr
+      let randomEdges = map (\randAgentId -> createEdgeByLabeler l aid randAgentId) randomAgentIds
+      
+      let gr0 = insNode (aid, ()) gr 
+      let gr1 = insEdges randomEdges gr0
+      
+      let degDistr' = randomAgentIds ++ degDistr
+      return (gr1, degDistr')
 
-    where
-        createBarbasiAlbertGraphAux :: EdgeLabeler l 
-                                        -> (Gr () l, [AgentId]) 
-                                        -> AgentId 
-                                        -> Rand StdGen (Gr () l, [AgentId])
-        createBarbasiAlbertGraphAux l (gr, degDistr) aid = 
-            do
-                randomAgentIds <- pickRandomAgentIds m aid [] degDistr
-                let randomEdges = map (\randAgentId -> createEdgeByLabeler l aid randAgentId) randomAgentIds
-                
-                let gr0 = insNode (aid, ()) gr 
-                let gr1 = insEdges randomEdges gr0
-                
-                let degDistr' = randomAgentIds ++ degDistr
-                return (gr1, degDistr')
+    pickRandomAgentIds :: RandomGen g => 
+                          Int 
+                          -> AgentId 
+                          -> [AgentId] 
+                          -> [AgentId] 
+                          -> Rand g [AgentId]
+    pickRandomAgentIds 0 _ acc _ = return acc
+    pickRandomAgentIds n self acc dist =  do
+      randIdx <- getRandomR (0, length dist - 1)
 
-        pickRandomAgentIds :: Int -> AgentId -> [AgentId] -> [AgentId] -> Rand StdGen [AgentId]
-        pickRandomAgentIds 0 _ acc _ = return acc
-        pickRandomAgentIds n self acc dist = 
-            do
-                randIdx <- getRandomR (0, length dist - 1)
+      let randAgentId = dist !! randIdx
+      -- NOTE: prevent multi-graphs
+      let nodeAlreadyPicked = randAgentId `elem` acc
+      -- NOTE: prevent self-loops
+      let randAgentIdIsSelf = randAgentId == self
 
-                let randAgentId = dist !! randIdx
-                -- NOTE: prevent multi-graphs
-                let nodeAlreadyPicked = randAgentId `elem` acc
-                -- NOTE: prevent self-loops
-                let randAgentIdIsSelf = randAgentId == self
+      if nodeAlreadyPicked || randAgentIdIsSelf 
+        then pickRandomAgentIds n self acc dist 
+        else pickRandomAgentIds (n-1) self (randAgentId : acc) dist
 
-                if nodeAlreadyPicked || randAgentIdIsSelf then
-                    pickRandomAgentIds n self acc dist 
-                    else
-                        pickRandomAgentIds (n-1) self (randAgentId : acc) dist
-
-        buildDegreeDistr :: Gr () l -> [AgentId]
-        buildDegreeDistr gr = foldr (\(n, count) acc -> replicate count n ++ acc) [] d
-            where
-                d = degrees gr
+    buildDegreeDistr :: Gr () l -> [AgentId]
+    buildDegreeDistr gr = foldr (\(n, count) acc -> replicate count n ++ acc) [] d
+      where
+        d = degrees gr
 
 createEdgeByLabeler :: EdgeLabeler l -> AgentId -> AgentId -> LEdge l
 createEdgeByLabeler l aidFrom aidTo = (aidFrom, aidTo, label) 
-    where
-        label = l aidFrom aidTo
+  where
+    label = l aidFrom aidTo
 
 allNodes :: Int -> [(AgentId, ())]
 allNodes n = [ (aid, ()) | aid <- [0..(n-1)]]
@@ -247,7 +254,7 @@ allEdges l n = [ createEdgeByLabeler l aidFrom aidTo | aidFrom <- [0..(n-2)], ai
         
 degrees :: Gr () l -> [(AgentId, Int)]
 degrees gr = zip ns d
-    where
-        ns = nodes gr
-        d = map (deg gr) ns
+  where
+    ns = nodes gr
+    d = map (deg gr) ns
 -------------------------------------------------------------------------------

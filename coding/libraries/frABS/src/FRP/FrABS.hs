@@ -380,13 +380,17 @@ import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Agent.Monad
 import FRP.FrABS.Agent.Random
 import FRP.FrABS.Agent.Reactive
--- import FRP.FrABS.Agent.Utils
 import FRP.FrABS.Environment.Continuous
 import FRP.FrABS.Environment.Definitions
 import FRP.FrABS.Environment.Discrete
 import FRP.FrABS.Environment.Network
 import FRP.FrABS.Environment.Spatial
 import FRP.FrABS.Environment.Utils
+import FRP.FrABS.Extensions.After
+import FRP.FrABS.Extensions.SuperSampling
+import FRP.FrABS.Random.Monadic 
+import FRP.FrABS.Random.Pure
+import FRP.FrABS.Random.Reactive
 import FRP.FrABS.Rendering.Continuous2d
 import FRP.FrABS.Rendering.Discrete2d
 import FRP.FrABS.Rendering.GlossSimulator

@@ -52,13 +52,14 @@ import Control.Monad.Random
 import Data.Maybe
 
 import FRP.Yampa
-import FRP.Yampa.InternalCore
 
 import FRP.FrABS.Agent.Agent
-import FRP.FrABS.Agent.Random
 import FRP.FrABS.Environment.Discrete
 import FRP.FrABS.Environment.Network
-import FRP.FrABS.Simulation.Internal
+import FRP.FrABS.Extensions.After
+import FRP.FrABS.Extensions.SuperSampling
+import FRP.FrABS.Random.Monadic 
+import FRP.FrABS.Random.Reactive
 
 type EventSource s m e    = SF (AgentIn s m e, AgentOut s m e, e) (Event ())
 type MessageSource s m e  = SF (AgentIn s m e, AgentOut s m e, e) (AgentMessage m)
@@ -174,20 +175,17 @@ sendMessageOccasionallySrcSS :: RandomGen g => g
                                 -> Int
                                 -> MessageSource s m e 
                                 -> SF (AgentIn s m e, AgentOut s m e, e) (AgentOut s m e)
-sendMessageOccasionallySrcSS g rate ss msgSrc = proc aoe -> do
-    sendEvts <- superSampling ss (occasionally g rate ()) -< ()
-    (_, ao', _) <- foldrSF (sendMessageOccasionallySrcSSAux msgSrc) -< (aoe, sendEvts)
+sendMessageOccasionallySrcSS g rate ss msgSrc = proc aoe@(_, ao, _) -> do
+    sendEvtsSS <- superSampling ss (occasionally g rate ()) -< ()
+    msgSS <- superSampling ss msgSrc -< aoe
+    let ao' = foldr sendMessageOccasionallySrcSSAux ao (zip sendEvtsSS msgSS)
     returnA -< ao'
   where
-    sendMessageOccasionallySrcSSAux :: MessageSource s m e  
-                                     -> SF (Event (), (AgentIn s m e, AgentOut s m e, e)) (AgentIn s m e, AgentOut s m e, e)
-    sendMessageOccasionallySrcSSAux msgSrc = proc (evt, aoe@(ain, ao, e)) -> do
-      if isEvent evt
-        then (do
-          msg <- msgSrc -< aoe
-          let ao' = sendMessage msg ao
-          returnA -< (ain, ao', e))
-        else returnA -< aoe
+    sendMessageOccasionallySrcSSAux :: (Event (), AgentMessage m)
+                                      -> AgentOut s m e 
+                                      -> AgentOut s m e 
+    sendMessageOccasionallySrcSSAux (NoEvent, _) ao = ao
+    sendMessageOccasionallySrcSSAux (Event (), msg) ao = sendMessage msg ao
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -291,7 +289,6 @@ transitionWithUniProb g p from to = switch (transitionWithUniProbAux from)(const
                                 -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
     transitionWithUniProbAux from = proc aie -> do
       aie' <- from -< aie
-      --let (evtFlag, ao') = agentRandom (randomBoolM p) ao
       evtFlag <- randomSF g -< randomBoolM p
       evt <- iEdge False -< evtFlag
       returnA -< (aie', evt)
@@ -308,7 +305,6 @@ transitionWithExpProb g lambda p from to = switch (transitionWithExpProbAux from
                                 -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
     transitionWithExpProbAux from = proc aie -> do
       aie' <- from -< aie
-      -- let (r, ao') = agentRandom (randomExpM lambda) ao
       r <- randomSF g -< randomExpM lambda
       evt <- iEdge False -< (p >= r)
       returnA -< (aie', evt)
@@ -379,79 +375,4 @@ messageEventSource :: (Eq m) => m -> EventSource s m e
 messageEventSource msg = proc (ain, _, _) -> do
   evt <- iEdge False -< hasMessage msg ain
   returnA -< evt
--------------------------------------------------------------------------------
-
--------------------------------------------------------------------------------
--- ADDITIONAL SIGNAL-FUNCTIONS
--------------------------------------------------------------------------------
-foldrSF :: Foldable t => SF (a, b) b -> SF (b, t a) b
-foldrSF sf = SF { sfTF = tf0 } 
-  where
-    tf0 (acc, as) = (tfCont, acc')
-      where
-        (acc', sf') = foldr (foldAndFreeze 0) (acc, sf) as
-        tfCont = foldrSFAux sf'
-
-    foldrSFAux sf = SF' tf
-      where
-        tf dt (acc, as) = (tf', acc')
-          where
-            (acc', sf') = foldr (foldAndFreeze dt) (acc, sf) as
-            tf' = foldrSFAux sf'
-  
-    foldAndFreeze :: DTime -> a -> (b, SF (a, b) b) -> (b, SF (a, b) b)
-    foldAndFreeze dt a (b, sf) = (b', sf')
-      where
-        (sf', b') = runAndFreezeSF sf (a, b) dt
-
--- TODO: implement using exitsting after
-afterExp :: RandomGen g => g -> DTime -> b -> SF a (Event b)
-afterExp g t b = SF { sfTF = tf0 }
-  where
-    (t', _) = randomExp g (1 / t)
-
-    -- there can be no event at time of switching
-    tf0 _ = (tfCont, NoEvent)
-      where
-        tfCont = afterExpAux 0 t'
-
-    afterExpAux tCurr tEvt = SF' tf
-      where
-        tf dt _ 
-            | tCurr' >= tEvt = (tf', Event b)
-            | otherwise = (tf', NoEvent)
-          where
-            tCurr' = tCurr + dt
-            tf' = afterExpAux tCurr' tEvt
-
--- TODO: implement different samling-strategies: random noise, triangle, uniform, predefined sampledistances
-superSampling :: Int -> SF a b -> SF a [b]
-superSampling n sf0 = SF { sfTF = tf0 }
-  where
-    -- NOTE: no supersampling at time 0
-    tf0 a0 = (tfCont, [b0])
-      where
-        (sf', b0) = sfTF sf0 a0
-        tfCont = superSamplingAux sf'
-
-    superSamplingAux sf' = SF' tf
-      where
-        tf dt a = (tf', bs)
-          where
-            (sf'', bs) = superSampleRun n dt sf' a
-            tf' = superSamplingAux sf''
-
-    superSampleRun :: Int -> DTime -> SF' a b -> a -> (SF' a b, [b])
-    superSampleRun n dt sf a 
-        | n <= 1 = superSampleMulti 1 dt sf a []
-        | otherwise = (sf', reverse bs)  -- NOTE: need to reverse because need to respect order, use of accumulator reverses them initially
-      where
-        superDt = dt / fromIntegral n
-        (sf', bs) = superSampleMulti n superDt sf a []
-
-    superSampleMulti :: Int -> DTime -> SF' a b -> a -> [b] -> (SF' a b, [b])
-    superSampleMulti 0 _ sf _ acc = (sf, acc)
-    superSampleMulti n dt sf a acc = superSampleMulti (n-1) dt sf' a (b:acc) 
-      where
-        (sf', b) = sfTF' sf dt a
 -------------------------------------------------------------------------------

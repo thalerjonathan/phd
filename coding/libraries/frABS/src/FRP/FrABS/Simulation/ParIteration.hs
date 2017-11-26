@@ -1,4 +1,5 @@
-module FRP.FrABS.Simulation.ParIteration (
+module FRP.FrABS.Simulation.ParIteration 
+  (
     simulatePar
   ) where
 

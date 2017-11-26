@@ -1,21 +1,22 @@
 module FRP.FrABS.Simulation.Internal 
   ( 
-    runAndFreezeSF
-  , freeze
-  , freezeCol
+  --  runAndFreezeSF
+  --, freeze
+  --, freezeCol
 
-  , incrementAtomically
+    incrementAtomically
   , incrementAtomicallyUnsafe
   ) where
 
 import Control.Concurrent.STM
 import System.IO.Unsafe
 
-import FRP.Yampa.InternalCore
+--import FRP.Yampa.InternalCore
 
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Running a Signal-Function
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+{-
 runAndFreezeSF :: SF a b -> a -> DTime -> (SF a b, b)
 runAndFreezeSF sf0 a0 dt = (sfFrozen, b0)
     where
@@ -27,7 +28,8 @@ freeze sf dt = SF {sfTF = (sfTF' sf) dt}
 
 freezeCol :: Functor col => col (SF' a b) -> DTime -> col (SF a b)
 freezeCol sfs dt = fmap (`freeze` dt) sfs
-------------------------------------------------------------------------------------------------------------------------
+-}
+-------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- UTILS

@@ -1,4 +1,5 @@
-module FRP.FrABS.Simulation.SeqIteration (
+module FRP.FrABS.Simulation.SeqIteration 
+  (
     simulateSeq
   ) where
 

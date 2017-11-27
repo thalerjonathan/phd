@@ -43,9 +43,6 @@ module FRP.FrABS.Agent.Reactive
   , transitionOnBoolState
 
   , messageEventSource
-
-  , afterExp
-  , superSampling
   ) where
 
 import Control.Monad.Random

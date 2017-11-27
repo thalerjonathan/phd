@@ -1,3 +1,5 @@
+{-# LANGUAGE Arrows #-}
+{-# LANGUAGE Rank2Types #-}
 module FRP.FrABS.Simulation.ParIteration 
   (
     simulatePar
@@ -38,18 +40,19 @@ import FRP.FrABS.Simulation.Common
 -- within the iteration when they were created: although they are not running
 -- yet, they are known already to the system and will run in the next step).
 
+-- NOTE: it was decided that we provide our own implementation as it was not possible to implement these
+-- iterations with Yampas existing primitives
 simulatePar :: SimulationParams e
                 -> [AgentBehaviour s m e]
                 -> [AgentIn s m e]
                 -> e
-                -> SF () (SimulationStepOut s e) -- (Time, [(AgentId, AgentObservable s)], e)
+                -> SF () (SimulationStepOut s e)
 simulatePar initParams initSfs initIns initEnv = SF { sfTF = tf0 }
   where
-    tf0 _ = (tfCont, (initTime, initObs, initEnv))
+    tf0 _ = (tfCont, (initTime, [], initEnv))
       where
-        -- NOTE: there can be no observable output at time 0 => empty list
-        initObs = []
         initTime = 0
+
         tfCont = simulateParAux initParams initSfs initIns initEnv initTime
 
         simulateParAux params sfs ins e t = SF' tf
@@ -65,7 +68,6 @@ simulatePar initParams initSfs initIns initEnv = SF { sfTF = tf0 }
                 -- collapse all environments into one
                 (e', params') = foldEnvironments dt params envs e
                 -- create observable outputs
-                --obs = map (\(ai, ao) -> (aiId ai, aoState ao)) (zip ins outs)
                 obs = observableAgents (map aiId ins) outs
                 -- NOTE: shuffling may seem strange in parallel but this will ensure random message-distribution when required
                 (params'', sfsShuffled, insShuffled) = shuffleAgents params' sfs'' ins'
@@ -73,10 +75,10 @@ simulatePar initParams initSfs initIns initEnv = SF { sfTF = tf0 }
                 tf' = simulateParAux params'' sfsShuffled insShuffled e' t'
 
 foldEnvironments :: Double 
-                        -> SimulationParams e 
-                        -> [e] 
-                        -> e 
-                        -> (e, SimulationParams e)
+                    -> SimulationParams e 
+                    -> [e] 
+                    -> e 
+                    -> (e, SimulationParams e)
 foldEnvironments dt params allEnvs defaultEnv
     | isFoldingEnv = runEnv dt params foldedEnv 
     | otherwise = (defaultEnv, params)

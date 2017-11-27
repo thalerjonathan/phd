@@ -378,7 +378,6 @@ module FRP.FrABS
 
 import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Agent.Monad
-import FRP.FrABS.Agent.Random
 import FRP.FrABS.Agent.Reactive
 import FRP.FrABS.Environment.Continuous
 import FRP.FrABS.Environment.Definitions
@@ -409,7 +408,7 @@ import FRP.FrABS.Simulation.Simulation
   , e.g. a new SF implementation: agent: agentBehaviour :: s -> SF (AgentIn e s) -> SF (AgentOut e). allows to get rid of state in agentin. agentout state then simply becomes oberservable state
   , -> what happens then in the case of a conversation? the receiving agent cannot change the state? We would need to run the conversation within the original agentbehaviour 
 
-- should there be output at t=0?
+- the problem of output at t=0? PROBLEM: after first iteration, SFs have a different signature which causes a problem, need a thorough research into 
 
 - BUG: if two agents have the same id, their states will get mixed-up when using the Sequential updating
   

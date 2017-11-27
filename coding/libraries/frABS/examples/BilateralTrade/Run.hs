@@ -18,7 +18,7 @@ dt = 0.1
 t :: DTime
 t = 150
 
--- TODO: unfinished
+-- TODO: unfinished implementation
 
 runBilateralTrade :: IO ()
 runBilateralTrade = do

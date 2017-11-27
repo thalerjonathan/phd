@@ -36,6 +36,8 @@ replCfg = ReplicationConfig {
     replCfgEnvReplicator = defaultEnvReplicator
 }
 
+-- TODO: repair
+
 runFrSIRSSpatialWithRendering :: IO ()
 runFrSIRSSpatialWithRendering =
     do

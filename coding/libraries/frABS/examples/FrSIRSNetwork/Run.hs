@@ -45,6 +45,8 @@ barbasiAlbertM = 1
 
 network = Deterministic completeNetwork
 
+-- TODO: repair
+
 runFrSIRSNetworkWithRendering :: IO ()
 runFrSIRSNetworkWithRendering =
     do

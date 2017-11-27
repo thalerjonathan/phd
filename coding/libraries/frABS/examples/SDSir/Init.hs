@@ -1,12 +1,12 @@
-module SysDynSIR.Init 
-    (
-      createSysDynSIR
-    ) where
+module Init 
+  (
+    createSysDynSIR
+  ) where
 
 import FRP.FrABS
 
-import SysDynSIR.Model
-import SysDynSIR.StockFlow
+import Model
+import StockFlow
 
 createSysDynSIR :: [SDDef]
 createSysDynSIR = 

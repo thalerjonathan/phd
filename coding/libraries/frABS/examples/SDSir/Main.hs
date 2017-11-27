@@ -1,5 +1,6 @@
-module SysDynSIR.Run ( 
-    runSysDynSIRStepsAndWriteToFile
+module Main 
+  ( 
+    main
   ) where
 
 import Data.List
@@ -7,8 +8,8 @@ import Data.List
 import FRP.Yampa
 import FRP.FrABS
 
-import SysDynSIR.Init
-import SysDynSIR.Model
+import Init
+import Model
 import Utils.Sir
 
 dt :: DTime
@@ -17,15 +18,15 @@ dt = 0.01
 t :: DTime
 t = 150
 
-runSysDynSIRStepsAndWriteToFile :: IO ()
-runSysDynSIRStepsAndWriteToFile = writeSirDynamicsFile fileName dt 0 dynamics
+main :: IO ()
+main = writeSirDynamicsFile fileName dt 0 dynamics
   where
     sdDefs = createSysDynSIR
     
     sdObs = runSD sdDefs dt t         
     dynamics = map calculateDynamics sdObs
 
-    fileName = "sysDynSIRDynamics_" 
+    fileName = "sdSIRDynamics_" 
                     ++ show totalPopulation ++ "population_"
                     ++ show t ++ "time_" 
                     ++ show dt ++ "dt.m"
@@ -39,6 +40,7 @@ runSysDynSIRStepsAndWriteToFile = writeSirDynamicsFile fileName dt 0 dynamics
 --          stock id 2: Recovered
 --          the remaining items are the flows
 calculateDynamics :: (Time, [SDObservable]) -> (Time, Double, Double, Double)
+calculateDynamics (t, []) = (t, 0, 0, 0) 
 calculateDynamics (t, unsortedStocks) = (t, susceptibleCount, infectedCount, recoveredCount) 
   where
     stocks = sortBy (\s1 s2 -> compare (fst s1) (fst s2)) unsortedStocks

@@ -26,7 +26,7 @@ rngSeed = 42
 dt :: DTime
 dt = unitTime -- 0.1
 
--- TODO: unfinished
+-- TODO: unfinished implementation
 
 runSocialForce :: IO ()
 runSocialForce = do

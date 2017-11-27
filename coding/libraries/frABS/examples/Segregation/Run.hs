@@ -24,6 +24,8 @@ steps = 10
 updateStrat = Sequential
 shuffleAgents = True
 
+-- TODO: repair
+
 runSegWithRendering :: IO ()
 runSegWithRendering = 
     do

@@ -15,6 +15,8 @@ time = 1
 updateStrat = Sequential
 shuffleAgents = True
 
+-- TODO: repair, recursions not working yet
+
 runRecursiveABSSteps :: IO ()
 runRecursiveABSSteps = 
     do

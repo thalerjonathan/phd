@@ -21,6 +21,8 @@ dt = 0.2
 frequency = 0
 t = 545 * dt
 
+-- TODO: repair
+
 runPDWithRendering :: IO ()
 runPDWithRendering = 
     do

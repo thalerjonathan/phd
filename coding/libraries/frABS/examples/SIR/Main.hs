@@ -33,6 +33,8 @@ numInfected = 10
 main :: IO ()
 main = runSIRStepsAndWriteToFile
 
+-- TODO: repair
+
 runSIRStepsAndWriteToFile :: IO ()
 runSIRStepsAndWriteToFile = do
   params <- initSimulation updateStrat Nothing Nothing shuffleAgents (Just rngSeed)

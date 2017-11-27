@@ -7,7 +7,6 @@ module Environment
   ) where
 
 import Control.Monad.Random
-import Debug.Trace
 
 import FRP.FrABS
 import FRP.Yampa
@@ -107,11 +106,8 @@ randAttackCellSF g = proc cc ->
 
 agentZeroEnvironmentBehaviour :: RandomGen g => g -> AgentZeroEnvironmentBehaviour
 agentZeroEnvironmentBehaviour g = proc e -> do
-  t <- time -< ()
-
   let wp = azWorldPatches e
-  --let wp' = environmentDisc2dRandom (randomAttack wp) wp
   wp' <- randomSF g -< (randomAttack wp)
 
   let e' = e { azWorldPatches = wp' }
-  returnA -< trace ("Time = " ++ show t) e'
+  returnA -< e'

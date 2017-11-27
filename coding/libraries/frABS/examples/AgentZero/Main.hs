@@ -1,13 +1,16 @@
 module Main
   (
-    runAgentZeroWithRendering
+    main
   ) where
 
+import Control.Monad.Random
+
+import FRP.Yampa
 import FRP.FrABS
 
 import Environment
 import Init
-import Renderer 
+import Renderer
 
 winSize :: (Int, Int)
 winSize = (800, 800)
@@ -21,31 +24,32 @@ updateStrat = Sequential -- NOTE: agent-zero works BOTH for parallel and sequent
 envFolding :: Maybe AgentZeroEnvironmentFolding
 envFolding = Just agentZeroEnvironmentsFold
 
-envBeh :: Maybe AgentZeroEnvironmentBehaviour
-envBeh = Just agentZeroEnvironmentBehaviour
-
 shuffleAgents :: Bool
 shuffleAgents = True
 
 rngSeed :: Int
 rngSeed = 43
 
-dt = DTime
+dt :: DTime
 dt = 1.0
 
 frequency :: Int
 frequency = 0
 
-runAgentZeroWithRendering :: IO ()
-runAgentZeroWithRendering = do
-  params <- initSimulation updateStrat envBeh envFolding shuffleAgents (Just rngSeed)
+main :: IO ()
+main = do
+  initRng $ Just rngSeed
+  g <- getSplit
+  let envBeh = Just $ agentZeroEnvironmentBehaviour g
+
+  params <- initSimulation updateStrat envBeh envFolding shuffleAgents Nothing
   (initAdefs, initEnv) <- evalRandIO $ initAgentZeroEpstein
 
   simulateAndRender 
     initAdefs
     initEnv
     params
-    samplingTimeDelta
+    dt
     frequency
     winTitle
     winSize

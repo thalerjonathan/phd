@@ -1,14 +1,16 @@
+{-# LANGUAGE Arrows #-}
 module Agent 
   (
     agentZeroAgentBehaviour
   ) where
 
-import Control.Monad
 import Control.Monad.IfElse
+import Control.Monad.Random
 import Control.Monad.Trans.State
 import Data.Maybe
 
 import FRP.FrABS
+import FRP.Yampa
 
 import Model
 
@@ -42,39 +44,41 @@ doesTakeAction s = azAgentDispo s > 0
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
---  AGENT-BEHAVIOUR MONADIC implementation
+-- MONADIC AGENT-BEHAVIOUR 
 -------------------------------------------------------------------------------
-agentZeroAgentBehaviourFuncM :: AgentZeroEnvironment 
-                -> Double 
-                -> AgentZeroAgentIn 
-                -> State AgentZeroAgentOut AgentZeroEnvironment
-agentZeroAgentBehaviourFuncM e _ ain = do
-  randomMoveM e
-  updateEventCountM e
-  updateAffectM e
-  updateProbM e
-  updateDispoM e ain
+agentZeroAgentBehaviourFuncM :: RandomGen g => g 
+                                -> AgentZeroEnvironment 
+                                -> Double 
+                                -> AgentZeroAgentIn 
+                                -> State AgentZeroAgentOut (AgentZeroEnvironment, g)
+agentZeroAgentBehaviourFuncM g e _ ain = do
+    g' <- randomMoveM g aid e
+    updateEventCountM e
+    updateAffectM e
+    updateProbM e
+    updateDispoM e ain
 
-  ifThenElseM 
-    takeActionM 
-    (destroyPatchesM e)
-    (return e)
+    ifThenElseM 
+      takeActionM 
+      ((destroyPatchesM e) >>= \e' -> return (e', g'))
+      (return (e, g'))
+  where
+    aid = agentId ain
 
-randomMoveM :: AgentZeroEnvironment -> State AgentZeroAgentOut ()
-randomMoveM e = do
-  aid <- agentIdM
-
-  when (aid /= 0) 
-    (do
-      coord <- agentStateFieldM azAgentCoord
-      newCoord <- agentRandomM (stepRandom coord (azAgentSpace e) movementSpeed)
-      updateAgentStateM (\s -> s { azAgentCoord = newCoord }))
+randomMoveM :: RandomGen g => g -> AgentId -> AgentZeroEnvironment -> State AgentZeroAgentOut g
+randomMoveM g 0 _ = return g -- no movement for agent with id = 0
+randomMoveM g _ e = do
+  coord <- agentStateFieldM azAgentCoord
+  let (newCoord, g') = runRand (stepRandom coord (azAgentSpace e) movementSpeed) g
+  updateAgentStateM (\s -> s { azAgentCoord = newCoord })
+  return g'
 
 updateEventCountM :: AgentZeroEnvironment -> State AgentZeroAgentOut ()
 updateEventCountM e = do
   evtCount <- agentStateFieldM azAgentEventCount
-  whenM (onAttackingSiteM e)
-      (updateAgentStateM (\s -> s { azAgentEventCount = evtCount + 1} ))
+  whenM 
+    (onAttackingSiteM e)
+    (updateAgentStateM (\s -> s { azAgentEventCount = evtCount + 1} ))
 
 updateAffectM :: AgentZeroEnvironment -> State AgentZeroAgentOut ()
 updateAffectM e = do
@@ -83,9 +87,10 @@ updateAffectM e = do
   delta <- agentStateFieldM azAgentDelta
   lambda <- agentStateFieldM azAgentLambda
 
-  ifThenElseM (onAttackingSiteM e)
-          (updateAgentStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * (lambda - affect))}))
-          (updateAgentStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * extinctionRate * (0 - affect))}))
+  ifThenElseM 
+    (onAttackingSiteM e)
+    (updateAgentStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * (lambda - affect))}))
+    (updateAgentStateM (\s -> s { azAgentAffect = affect + (learningRate * (affect ** delta) * extinctionRate * (0 - affect))}))
 
 updateProbM :: AgentZeroEnvironment -> State AgentZeroAgentOut ()
 updateProbM e = do
@@ -211,28 +216,28 @@ destroyPatches coordCont e = e { azWorldPatches = wp' }
     cs = cellsAroundRadius coordDisc destructionRadius wp
     wp' = foldr (\(coord, cell) wpAcc -> changeCellAt coord (cell { azCellState = Dead }) wpAcc) wp cs
 
-randomMove :: AgentZeroEnvironment -> AgentZeroAgentOut -> AgentZeroAgentOut
-randomMove e ao 
-    | agentIdOut ao == 0 = ao 
-    | otherwise = updateAgentState (\s -> s { azAgentCoord = newCoord }) ao'
+randomMove :: RandomGen g => g -> AgentId -> AgentZeroEnvironment -> AgentZeroAgentOut -> (AgentZeroAgentOut, g)
+randomMove g 0 _ ao = (ao, g) -- no movement for agent with id = 0 
+randomMove g _ e ao = (updateAgentState (\s -> s { azAgentCoord = newCoord }) ao, g')
   where
     coord = azAgentCoord $ agentState ao
-    (newCoord, ao') = agentRandom (stepRandom coord (azAgentSpace e) movementSpeed) ao
+    (newCoord, g') = runRand (stepRandom coord (azAgentSpace e) movementSpeed) g
 
-agentZeroAgentBehaviourFunc :: AgentZeroEnvironment 
-                -> Double 
-                -> AgentZeroAgentIn 
-                -> AgentZeroAgentOut 
-                -> (AgentZeroAgentOut, AgentZeroEnvironment)
-agentZeroAgentBehaviourFunc e _ ain ao
-    | doesTakeAction s2 = (ao2, e')
-    | otherwise = (ao2, e)
+agentZeroAgentBehaviourFunc :: RandomGen g => g 
+                              -> AgentZeroEnvironment 
+                              -> Double 
+                              -> AgentZeroAgentIn 
+                              -> AgentZeroAgentOut 
+                              -> (AgentZeroAgentOut, AgentZeroEnvironment, g)
+agentZeroAgentBehaviourFunc g e _ ain ao
+    | doesTakeAction s2 = (ao2, e', g')
+    | otherwise = (ao2, e, g')
   where
-    ao0 = randomMove e ao
+    (ao0, g') = randomMove g (agentId ain) e ao
 
     s0 = updateProb e $
-        updateAffect e $
-        updateEventCount e (agentState ao0)
+          updateAffect e $
+          updateEventCount e (agentState ao0)
 
     ao1 = setAgentState s0 ao0
     ao2 = updateDispo e ain ao1
@@ -242,6 +247,16 @@ agentZeroAgentBehaviourFunc e _ ain ao
 
     e' = destroyPatches coord e 
 
-agentZeroAgentBehaviour :: AgentZeroAgentBehaviour
-agentZeroAgentBehaviour = agentMonadic agentZeroAgentBehaviourFuncM  -- agentPure agentZeroAgentBehaviourFunc
+agentZeroAgentBehaviour :: RandomGen g => g -> AgentZeroAgentState -> AgentZeroAgentBehaviour
+agentZeroAgentBehaviour gi is = proc (ain, e) -> do
+    rec
+      s' <- iPre is -< s
+      g' <- iPre gi -< g''
+      let ao = agentOutObs s'
+      t <- time -< ()
+      --let ((e', g''), ao') = runState (agentZeroAgentBehaviourFuncM g' e t ain) ao
+      let (ao', e', g'') = agentZeroAgentBehaviourFunc g' e t ain ao
+      let s = agentState ao'
+
+    returnA -< (ao', e')
 -------------------------------------------------------------------------------

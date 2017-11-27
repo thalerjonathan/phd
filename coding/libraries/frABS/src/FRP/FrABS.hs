@@ -283,6 +283,7 @@ module FRP.FrABS
   , StepCallback
   , RenderFrame
 
+  , initRng
   , initSimulation
   , initSimNoEnv
   , newAgentId

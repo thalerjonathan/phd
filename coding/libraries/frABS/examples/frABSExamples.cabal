@@ -14,9 +14,11 @@ executable AgentZero
                     Yampa,
                     parallel,
                     MonadRandom,
-                    gloss 
+                    gloss,
+                    random,
+                    fgl
                     
-  ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded
+  ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded -fno-warn-unused-top-binds
   
 executable FrSIR
   main-is:         Main.hs

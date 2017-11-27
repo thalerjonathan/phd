@@ -85,7 +85,20 @@ executable SIR
                     transformers
 
   ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded
- 
+
+executable Wildfire
+  main-is:         Main.hs
+  hs-source-dirs:  Wildfire/
+
+  build-depends:   base, 
+                    FrABS, 
+                    Yampa,
+                    parallel,
+                    IfElse,
+                    transformers
+
+  ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded
+
 --executable frABSExamples
 --  main-is:         Main.hs
   -- hs-source-dirs:  src

@@ -91,8 +91,8 @@ createCells (maxX, maxY) = mapM randomCell coords
       randShade <- getRandomR (0.0, 0.75)
 
       let c = AgentZeroEnvCell {
-          azCellState = Friendly
-        , azCellShade = randShade
+        azCellState = Friendly
+      , azCellShade = randShade
       }
 
       return (coord, c)

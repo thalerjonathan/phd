@@ -1,77 +1,69 @@
-module Wildfire.Init (
+module Init 
+  (
     initWildfire
   ) where
 
-import Wildfire.Model
-import Wildfire.Agent
-
-import FRP.FrABS
-
-import FRP.Yampa
-
 import System.Random
 
-initWildfire :: (Int, Int) -> IO ([WildfireAgentDef], WildfireEnvironment)
-initWildfire dims@(maxX, maxY) = 
-  do
-    let coords = [ (x, y) | x <- [0..maxX-1], y <- [0..maxY-1] ]
-    let agentCount = maxX * maxY
+import FRP.FrABS
+import FRP.Yampa
 
-    let aids = [0..agentCount-1]
+import Model
+import Agent
 
-    let aidCoordPairs = zip aids coords
+initWildfire :: RandomGen g => (Int, Int) -> Rand g ([WildfireAgentDef], WildfireEnvironment)
+initWildfire dims@(maxX, maxY) = do
+  let coords = [ (x, y) | x <- [0..maxX-1], y <- [0..maxY-1] ]
+  let agentCount = maxX * maxY
+  let aids = [0..agentCount-1]
+  let aidCoordPairs = zip aids coords
+  let cells = zip coords aids
+  let centerX = floor $ (fromIntegral maxX) * 0.5
+  let centerY = floor $ (fromIntegral maxY) * 0.5
 
-    let cells = zip coords aids
+  adefs <- mapM (wildfireAgent dims (centerX, centerY)) aidCoordPairs
 
-    let centerX = floor $ (fromIntegral maxX) * 0.5
-    let centerY = floor $ (fromIntegral maxY) * 0.5
+  let e = createDiscrete2d
+            dims
+            neumann
+            ClipToMax
+            cells
 
-    adefs <- mapM (runCreateWildfireIO dims (centerX, centerY)) aidCoordPairs
+  return (adefs, e)
 
-    rng <- newStdGen 
+wildfireAgent :: RandomGen g => Discrete2dDimension
+                  -> Discrete2dCoord
+                  -> (AgentId, Discrete2dCoord) 
+                  -> Rand g WildfireAgentDef
+wildfireAgent dims center aidCoord@(agentId, coord) = do
+  rng <- newStdGen
 
-    let e = createDiscrete2d
-                  dims
-                  neumann
-                  ClipToMax
-                  cells
-                  rng
+  let initIgnite = center == coord
+  let initMessages = if initIgnite then Event [(0, Ignite)] else NoEvent
 
-    return (adefs, e)
+  let sphereInitFuel = sphereFuelFunction dims center coord
+  let boxInitFuel = boxFuelFunction dims 10 10 coord
 
-runCreateWildfireIO :: Discrete2dDimension
-                      -> Discrete2dCoord
-                      -> (AgentId, Discrete2dCoord) 
-                      -> IO WildfireAgentDef
-runCreateWildfireIO dims center aidCoord@(agentId, coord) = 
-  do
-    rng <- newStdGen
+  randInitFuel <- randomRIO randomFuelInitRange
+  randFuelRate <- randomRIO randomFuelRateRange
 
-    let initIgnite = center == coord
-    let initMessages = if initIgnite then Event [(0, Ignite)] else NoEvent
+  let initFuel = boxInitFuel
 
-    let sphereInitFuel = sphereFuelFunction dims center coord
-    let boxInitFuel = boxFuelFunction dims 10 10 coord
+  let s = WildfireAgentState {
+    wfLifeState = Living
+  , wfFuelCurr = initFuel
+  , wfFuelRate = randFuelRate
+  , wfCoord = coord
+  }
 
-    randInitFuel <- randomRIO randomFuelInitRange
-    randFuelRate <- randomRIO randomFuelRateRange
-
-    let initFuel = boxInitFuel
-
-    let s = WildfireAgentState {
-      wfLifeState = Living,
-      wfFuelCurr = initFuel,
-      wfFuelRate = randFuelRate,
-      wfCoord = coord
-    }
-
-    return AgentDef {
-       adId = agentId,
-       adState = s,
-       adConversation = Nothing,
-       adInitMessages = initMessages,
-       adBeh = wildfireAgentBehaviour rng initFuel,
-       adRng = rng }
+  return AgentDef {
+    adId = agentId
+  , adState = s
+  , adConversation = Nothing
+  , adInitMessages = initMessages
+  , adBeh = wildfireAgentBehaviour rng initFuel
+  , adRng = rng 
+  }
 
 sphereFuelFunction :: Discrete2dDimension -> (Int, Int) -> Discrete2dCoord -> Double
 sphereFuelFunction (dimX, dimY) (centerX, centerY) (x, y) = 1 - (max r 0)

@@ -67,4 +67,4 @@ executable SIRYampa
   -- Base language which the package is written in.
   default-language:    Haskell2010
   
-  ghc-options:         -O3 -Wall -fwarn-tabs -fno-warn-name-shadowing
+  ghc-options:         -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing

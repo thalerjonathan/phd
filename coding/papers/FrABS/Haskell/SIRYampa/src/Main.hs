@@ -113,7 +113,7 @@ infectedAgent g = switch infectedAgentRecoveredEvent (const recoveredAgent)
       returnA -< (a, recEvt)
 
 recoveredAgent :: SIRAgentProc
-recoveredAgent = proc _ -> do returnA -< Recovered
+recoveredAgent = arr (const Recovered)
 
 initAgents :: Int -> Int -> [SIRState]
 initAgents n i = sus ++ inf

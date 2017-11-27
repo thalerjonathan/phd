@@ -16,6 +16,8 @@ envSize = (59, 59)
 samplingTimeDelta = 0.1
 frequency = 0
 
+-- TODO: repair
+
 runWildfireWithRendering :: IO ()
 runWildfireWithRendering = 
     do

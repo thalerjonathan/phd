@@ -23,6 +23,8 @@ dt = 1.0  -- NOTE: this model has no time-semantics (it does not matter if it is
 frequency = 0
 t = 200
 
+-- TODO: repair
+
 runZombiesWithRendering :: IO ()
 runZombiesWithRendering =
     do

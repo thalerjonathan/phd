@@ -6,6 +6,18 @@ cabal-version:     >= 1.2
 -------------------------------------------------------------------------------
 -- EXECUTABLES 
 -------------------------------------------------------------------------------
+executable AgentZero
+  main-is:         Main.hs
+  hs-source-dirs:  AgentZero/
+  build-depends:   base, 
+                    FrABS, 
+                    Yampa,
+                    parallel,
+                    MonadRandom,
+                    gloss 
+                    
+  ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded
+  
 executable FrSIR
   main-is:         Main.hs
   hs-source-dirs:

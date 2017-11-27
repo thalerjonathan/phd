@@ -22,4 +22,7 @@ At the moment much refactoring is going on as the current prototype is still too
 - Is there an alternative to the current agent-interaction mechanisms of messaging and conversations?
 - Agents have local state which is stored and updated using continuations. The state-handling is highly domain-specific and too cumbersome ATM and needs some refinement.
 
+Future work (3rd year)
+- reasoning, verification, reproducibility, correctness, testing: how does FrABS help with these?
+
 Jonathan Thaler, 27th November 2017

@@ -59,12 +59,20 @@ runSimulationUntil g t dt as = evalRand (runReaderT ass dt) g -- runReader (eval
   where
     steps = floor $ t / dt
     ticks = replicate steps ()
-    --msfs = map (\a -> sirAgent a) as
     msfs = map sirAgent as
     ass = embed (sirSimulation msfs as) ticks
 
-sirSimulation :: RandomGen g => [(SIRAgentMSF g)] -> [SIRState] -> MSF (ReaderT DTime (Rand g)) () [SIRState]
-sirSimulation _msfs _as = undefined
+sirSimulation :: RandomGen g => [SIRAgentMSF g] -> [SIRState] -> MSF (ReaderT DTime (Rand g)) () [SIRState]
+sirSimulation msfs _as = MSF $ \_a -> do
+    (as', msfs') <- foldM sirSimulationAux ([], []) msfs
+    return (as', sirSimulation msfs' as')
+  where
+    sirSimulationAux :: ([SIRState], [SIRAgentMSF g])
+                        -> SIRAgentMSF g 
+                        -> ReaderT DTime (Rand g) ([SIRState], [SIRAgentMSF g])
+    sirSimulationAux (accStates, accSfs) sf = do
+      (s, sf') <- unMSF sf ()
+      return (s : accStates, sf' : accSfs)
 
 sirAgent :: RandomGen g => SIRState -> SIRAgentMSF g
 sirAgent Susceptible  = susceptibleAgent
@@ -81,7 +89,7 @@ susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
         susceptibleAgentInfectedEventAux = do
           let as = []
           randContactCount <- lift $ randomExpM (1 / contactRate)
-          aInfs <- lift $ doTimes (floor randContactCount) (susceptibleAgentAux as)
+          aInfs <- lift $ doTimes (floor randContactCount) (susceptibleAgentAux as) -- TODO: replace by messaging
           let mayInf = find (Infected==) aInfs
           if isJust mayInf
             then return (Susceptible, Just ())
@@ -97,7 +105,6 @@ susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
         infect :: RandomGen g => Rand g SIRState
         infect = do
           doInfect <- randomBoolM infectionProb
-          --randIllDur <- randomExpM (1 / illnessDuration)
           if doInfect
             then return Infected
             else return Susceptible
@@ -124,9 +131,9 @@ doTimes :: (Monad m) => Int -> m a -> m [a]
 doTimes n f = forM [0..n - 1] (\_ -> f) 
 
 -- NOTE: is in spirit of the Yampa implementation
-occasionally :: Time -> b -> MSF (ReaderT DTime (Rand g)) () (Maybe b)
-occasionally _t_avg _b 
-    | t_avg > 0 = SF { sfTF = tf0 }
+occasionally :: RandomGen g => Time -> b -> MSF (ReaderT DTime (Rand g)) a (Maybe b)
+occasionally t_avg b
+    | t_avg > 0 = MSF (const tf)
     | otherwise = error "AFRP: occasionally: Non-positive average interval."
   where
     -- Generally, if events occur with an average frequency of f, the
@@ -137,10 +144,11 @@ occasionally _t_avg _b
     -- we can think of the preceding interval as being 0, implying
     -- no probability of an event occurring.
 
-    tf0 _ = (occAux (randoms g :: [Time]), Nothing)
-
-    occAux [] = undefined
-    occAux (r:rs) = SF' tf -- True
-      where
-        tf dt _ = let p = 1 - exp (-(dt/t_avg)) -- Probability for at least one event.
-                  in (occAux rs, if r < p then Just x else Nothing)
+    tf = do
+      dt <- ask
+      r <- lift $ getRandomR (0, 1)
+      let p = 1 - exp (-(dt / t_avg))
+      let evt = if r < p 
+                  then Just b 
+                  else Nothing
+      return (evt, MSF (const tf))

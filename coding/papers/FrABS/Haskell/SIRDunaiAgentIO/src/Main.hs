@@ -1,4 +1,288 @@
+{-# LANGUAGE Arrows #-}
 module Main where
 
+import System.IO
+import qualified Data.Map as Map
+
+import Control.Monad.Random
+import Control.Monad.Reader
+import Data.MonadicStreamFunction
+
+import SIR
+
+type Time = Double
+type DTime = Double
+
+type AgentId = Int
+type AgentMessage m = (AgentId, m)
+
+data AgentIn m = AgentIn
+  {
+    aiId    :: AgentId
+  , aiMsgs  :: [AgentMessage m]
+  } deriving (Show)
+
+data AgentOut s m = AgentOut
+  {
+    aoMsgs      :: [AgentMessage m]
+  , aoObsState  :: s
+  } deriving (Show)
+
+type EnvironmentFold e = [e] -> e -> e
+type AgentMSF g s m e = MSF (ReaderT DTime (Rand g)) (AgentIn m, e) (AgentOut s m, e)
+
+type SIREnv = [AgentId]
+data SIRMsg = Contact SIRState deriving (Show, Eq)
+type SIRAgentIn = AgentIn SIRMsg
+type SIRAgentOut = AgentOut SIRState SIRMsg
+type SIRAgentMSF g = AgentMSF g SIRState SIRMsg SIREnv
+
+contactRate :: Double
+contactRate = 5.0
+
+infectionProb :: Double
+infectionProb = 0.05
+
+illnessDuration :: Double
+illnessDuration = 15.0
+
+agentCount :: Int
+agentCount = 100
+
+infectedCount :: Int
+infectedCount = 10
+
+rngSeed :: Int
+rngSeed = 42
+
+dt :: DTime
+dt = 0.01
+
+t :: Time
+t = 150
+
 main :: IO ()
-main = putStrLn "Hello, Haskell!"
+main = do
+  hSetBuffering stdout NoBuffering
+
+  let g = mkStdGen rngSeed
+  
+  let as = initAgents agentCount infectedCount
+  let ass = runSimulationUntil g t dt as
+
+  let dyns = aggregateAllStates ass
+  let fileName =  "SIR_DUNAI_AGENTIO_DYNAMICS_" ++ show agentCount ++ "agents.m"
+  writeAggregatesToFile fileName dyns
+
+runSimulationUntil :: RandomGen g => g 
+                      -> Time 
+                      -> DTime
+                      -> [SIRState]
+                      -> [[SIRState]]
+runSimulationUntil g t dt as = map (\(aos, _) -> map aoObsState aos) aoss
+  where
+    steps = floor $ t / dt
+    ticks = replicate steps ()
+
+    msfs = map sirAgent as
+    
+    n = length as
+    env = [0..n-1] 
+    ains = map agentIn env
+    
+    aossM = embed (parSimulation msfs ains env sirEnvFold) ticks
+    aoss = evalRand (runReaderT aossM dt) g 
+
+    sirEnvFold :: [SIREnv] -> SIREnv -> SIREnv
+    sirEnvFold _ e = e
+
+sirAgent :: RandomGen g => SIRState -> SIRAgentMSF g
+sirAgent Susceptible  = susceptibleAgent
+sirAgent Infected     = infectedAgent
+sirAgent Recovered    = recoveredAgent
+
+susceptibleAgent :: RandomGen g => SIRAgentMSF g
+susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
+  where
+    susceptibleAgentInfectedEvent :: RandomGen g => MSF 
+                                                      (ReaderT DTime (Rand g)) 
+                                                      (SIRAgentIn, SIREnv) 
+                                                      ((SIRAgentOut, SIREnv), Maybe ())
+    susceptibleAgentInfectedEvent = proc (ain, e) -> do
+      isInfected <- arrM (\ain' -> do 
+        flag <- lift $ gotInfected ain'
+        return flag) -< ain
+      let (ao, infEvt) = if isInfected 
+                          then (agentOut Infected, Just ()) 
+                          else (agentOut Susceptible, Nothing)
+      
+      returnA -< ((ao, e), infEvt)
+      {-
+      makeContact <- occasionally (1 / contactRate) () -< ()
+      let ao = if isEvent makeContact
+                then (do 
+                  randContact <- lift $ randomElem e
+                  )
+                else agentOut Susceptible
+                      -}
+                      
+infectedAgent :: RandomGen g => SIRAgentMSF g
+infectedAgent = switch infectedAgentRecoveredEvent (const recoveredAgent)
+  where
+    infectedAgentRecoveredEvent :: RandomGen g => MSF 
+                                                    (ReaderT DTime (Rand g)) 
+                                                    (SIRAgentIn, SIREnv) 
+                                                    ((SIRAgentOut, SIREnv), Maybe ())
+    infectedAgentRecoveredEvent = proc (ain, e) -> do
+      recEvt <- occasionally illnessDuration () -< ()
+      let a = maybe Infected (const Recovered) recEvt
+      let ao = agentOut a
+      let ao' = respondToContactWith Infected ain ao
+      returnA -< ((ao', e), recEvt)
+
+recoveredAgent :: RandomGen g => SIRAgentMSF g
+recoveredAgent = first $ arr (const (agentOut Recovered))
+
+gotInfected :: RandomGen g => SIRAgentIn -> Rand g Bool
+gotInfected ain = onMessageM gotInfectedAux ain False
+  where
+    gotInfectedAux :: RandomGen g => Bool -> AgentMessage SIRMsg -> Rand g Bool
+    gotInfectedAux False (_, Contact Infected) = randomBoolM infectionProb
+    gotInfectedAux x _ = return x
+
+respondToContactWith :: SIRState -> SIRAgentIn -> SIRAgentOut -> SIRAgentOut
+respondToContactWith state ain ao = onMessage respondToContactWithAux ain ao
+  where
+    respondToContactWithAux :: AgentMessage SIRMsg -> SIRAgentOut -> SIRAgentOut
+    respondToContactWithAux (senderId, Contact _) ao = sendMessage (senderId, Contact state) ao
+
+
+parSimulation :: RandomGen g => 
+                     [AgentMSF g s m e] 
+                  -> [AgentIn m] 
+                  -> e
+                  -> EnvironmentFold e
+                  -> MSF (ReaderT DTime (Rand g)) 
+                      () 
+                      ([AgentOut s m], e)
+parSimulation msfs ains e ef = MSF $ \_ -> do
+    (aoe, msfs') <- foldM (parSimulationAux e) ([], []) (zip msfs ains)
+
+    let aos = map fst aoe
+    let es = map snd aoe
+
+    let aids = map aiId ains
+  
+    let ains' = map (\ai -> ai { aiMsgs = [] }) ains 
+    let ains'' = distributeMessages ains' (zip aids aos)
+
+    let e' = ef es e
+
+    return ((aos, e'), parSimulation msfs' ains'' e' ef)
+
+  where
+    parSimulationAux :: e
+                        -> ([(AgentOut s m, e)], [AgentMSF g s m e])
+                        -> (AgentMSF g s m e, AgentIn m)
+                        -> ReaderT DTime (Rand g) 
+                            ([(AgentOut s m, e)], [AgentMSF g s m e])
+    parSimulationAux e (accOutEnv, accSfs) (sf, ain) = do
+      (aoe, sf') <- unMSF sf (ain, e)
+      return (aoe : accOutEnv, sf' : accSfs)
+
+    distributeMessages :: [AgentIn m] -> [(AgentId, AgentOut s m)] -> [AgentIn m]
+    distributeMessages ains aouts = map (distributeMessagesAux allMsgs) ains -- NOTE: speedup by running in parallel (if +RTS -Nx)
+      where
+        allMsgs = collectAllMessages aouts
+    
+        distributeMessagesAux :: Map.Map AgentId [AgentMessage m]
+                                    -> AgentIn m
+                                    -> AgentIn m
+        distributeMessagesAux allMsgs ain = ain'
+          where
+            receiverId = aiId ain
+            msgs = aiMsgs ain -- NOTE: ain may have already messages, they would be overridden if not incorporating them
+    
+            mayReceiverMsgs = Map.lookup receiverId allMsgs
+            msgsEvt = maybe msgs (\receiverMsgs -> receiverMsgs ++ msgs) mayReceiverMsgs
+
+            ain' = ain { aiMsgs = msgsEvt }
+    
+    collectAllMessages :: [(AgentId, AgentOut s m)] -> Map.Map AgentId [AgentMessage m]
+    collectAllMessages aos = foldr collectAllMessagesAux Map.empty aos
+      where
+        collectAllMessagesAux :: (AgentId, AgentOut s m)
+                                  -> Map.Map AgentId [AgentMessage m]
+                                  -> Map.Map AgentId [AgentMessage m]
+        collectAllMessagesAux (senderId, ao) accMsgs 
+            | not $ null msgs = foldr collectAllMessagesAuxAux accMsgs msgs
+            | otherwise = accMsgs
+          where
+            msgs = aoMsgs ao
+    
+            collectAllMessagesAuxAux :: AgentMessage m
+                                        -> Map.Map AgentId [AgentMessage m]
+                                        -> Map.Map AgentId [AgentMessage m]
+            collectAllMessagesAuxAux (receiverId, m) accMsgs = accMsgs'
+              where
+                msg = (senderId, m)
+                mayReceiverMsgs = Map.lookup receiverId accMsgs
+                newMsgs = maybe [msg] (\receiverMsgs -> (msg : receiverMsgs)) mayReceiverMsgs
+    
+                -- NOTE: force evaluation of messages, will reduce memory-overhead EXTREMELY
+                accMsgs' = seq newMsgs (Map.insert receiverId newMsgs accMsgs)
+
+agentIn :: AgentId -> AgentIn m
+agentIn aid = AgentIn {
+    aiId    = aid
+  , aiMsgs  = []
+  }
+
+agentOut :: s -> AgentOut s m
+agentOut s = AgentOut {
+    aoMsgs      = []
+  , aoObsState  = s
+  }
+
+sendMessage :: AgentMessage m -> AgentOut s m -> AgentOut s m
+sendMessage msg ao = ao { aoMsgs = msg : aoMsgs ao }
+
+onMessageM :: (Monad mon) => (acc -> AgentMessage m -> mon acc) -> AgentIn m -> acc -> mon acc
+onMessageM msgHdl ai acc
+    | null msgs = return acc
+    | otherwise = foldM msgHdl acc msgs
+  where
+    msgs = aiMsgs ai
+
+onMessage :: (AgentMessage m -> acc -> acc) -> AgentIn m -> acc -> acc
+onMessage msgHdl ai a 
+    | null msgs = a
+    | otherwise = foldr (\msg acc'-> msgHdl msg acc') a msgs
+  where
+    msgs = aiMsgs ai
+    
+doTimes :: (Monad m) => Int -> m a -> m [a]
+doTimes n f = forM [0..n - 1] (\_ -> f) 
+
+-- NOTE: is in spirit of the Yampa implementation
+occasionally :: RandomGen g => Time -> b -> MSF (ReaderT DTime (Rand g)) a (Maybe b)
+occasionally t_avg b
+    | t_avg > 0 = MSF (const tf)
+    | otherwise = error "AFRP: occasionally: Non-positive average interval."
+  where
+    -- Generally, if events occur with an average frequency of f, the
+    -- probability of at least one event occurring in an interval of t
+    -- is given by (1 - exp (-f*t)). The goal in the following is to
+    -- decide whether at least one event occurred in the interval of size
+    -- dt preceding the current sample point. For the first point,
+    -- we can think of the preceding interval as being 0, implying
+    -- no probability of an event occurring.
+
+    tf = do
+      dt <- ask
+      r <- lift $ getRandomR (0, 1)
+      let p = 1 - exp (-(dt / t_avg))
+      let evt = if r < p 
+                  then Just b 
+                  else Nothing
+      return (evt, MSF (const tf))

@@ -2,6 +2,8 @@ module SIR
   (
     SIRState (..)
 
+  , initAgents
+  
   , aggregateAllStates
   , aggregateStates
   , writeAggregatesToFile
@@ -17,6 +19,12 @@ import Text.Printf
 import Control.Monad.Random
 
 data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
+
+initAgents :: Int -> Int -> [SIRState]
+initAgents n i = sus ++ inf
+  where
+    sus = replicate (n - i) Susceptible
+    inf = replicate i Infected
 
 aggregateAllStates :: [[SIRState]] -> [(Int, Int, Int)]
 aggregateAllStates = map aggregateStates

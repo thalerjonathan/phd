@@ -60,7 +60,7 @@ executable SIRDunai
   build-depends:       base >=4.9 && <4.10
                      , dunai
                      , MonadRandom
-                     , stm
+                     , mtl
 
   -- Directories containing source files.
   hs-source-dirs:      .

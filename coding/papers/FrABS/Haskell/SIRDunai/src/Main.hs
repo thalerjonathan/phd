@@ -2,15 +2,20 @@
 module Main where
 
 import System.IO
-import Debug.Trace
+import Data.List
+import Data.Maybe
 
 import Control.Monad.Random
-import Control.Monad.Trans.MSF
+import Control.Monad.Reader
+--import Control.Monad.Trans.MSF
 import Data.MonadicStreamFunction
 
 import SIR
 
-type SIRAgentMSF g = MSF (Rand g) Double SIRState
+type Time = Double
+type DTime = Double
+
+type SIRAgentMSF g = MSF (ReaderT DTime (Rand g)) () SIRState
 
 contactRate :: Double
 contactRate = 5.0
@@ -30,10 +35,10 @@ infectedCount = 10
 rngSeed :: Int
 rngSeed = 42
 
-dt :: Double
+dt :: DTime
 dt = 0.01
 
-t :: Double
+t :: Time
 t = 150
 
 main :: IO ()
@@ -45,20 +50,21 @@ main = do
   let as = initAgents agentCount infectedCount
   let ass = runSimulationUntil g t dt as
 
-  let dyns = aggregateDynamics ass
-  let fileName =  "SIR_YAMPA_DYNAMICS_" ++ show agentCount ++ "agents.m"
-  writeDynamicsToFile fileName dyns
+  let dyns = aggregateAllStates ass
+  let fileName =  "SIR_DUNAI_DYNAMICS_" ++ show agentCount ++ "agents.m"
+  writeAggregatesToFile fileName dyns
 
-runSimulationUntil :: RandomGen g => g -> Double -> Double -> [SIRState] -> [[SIRState]]
-runSimulationUntil g t dt as = evalRand ass g
+runSimulationUntil :: RandomGen g => g -> Time -> DTime -> [SIRState] -> [[SIRState]]
+runSimulationUntil g t dt as = evalRand (runReaderT ass dt) g -- runReader (evalRand ass g) dt -- evalRand (runReader ass dt) g 
   where
     steps = floor $ t / dt
-    dts = replicate steps dt
-    msfs = map (\a -> sirAgent a) as
-    ass = embed (sirSimulation msfs as) dts
+    ticks = replicate steps ()
+    --msfs = map (\a -> sirAgent a) as
+    msfs = map sirAgent as
+    ass = embed (sirSimulation msfs as) ticks
 
-sirSimulation :: RandomGen g => [(SIRAgentMSF g)] -> [SIRState] -> MSF (Rand g) Double [SIRState]
-sirSimulation msfs as = undefined
+sirSimulation :: RandomGen g => [(SIRAgentMSF g)] -> [SIRState] -> MSF (ReaderT DTime (Rand g)) () [SIRState]
+sirSimulation _msfs _as = undefined
 
 sirAgent :: RandomGen g => SIRState -> SIRAgentMSF g
 sirAgent Susceptible  = susceptibleAgent
@@ -68,26 +74,40 @@ sirAgent Recovered    = recoveredAgent
 susceptibleAgent :: RandomGen g => SIRAgentMSF g
 susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
   where
-    susceptibleAgentInfectedEvent :: RandomGen g => MSF (Rand g) Double (SIRState, Maybe ())
-    susceptibleAgentInfectedEvent = proc dt -> do
-      makeContact <- occasionally g (1 / contactRate) () -< ()
-      a <- drawRandomElemSF g -< as
-      doInfect <- randomBoolSF g infectionProb -< ()
+    susceptibleAgentInfectedEvent :: RandomGen g => MSF (ReaderT DTime (Rand g)) () (SIRState, Maybe ())
+    susceptibleAgentInfectedEvent = arrM (const susceptibleAgentInfectedEventAux)
+      where
+        susceptibleAgentInfectedEventAux :: RandomGen g => ReaderT DTime (Rand g) (SIRState, Maybe ())
+        susceptibleAgentInfectedEventAux = do
+          let as = []
+          randContactCount <- lift $ randomExpM (1 / contactRate)
+          aInfs <- lift $ doTimes (floor randContactCount) (susceptibleAgentAux as)
+          let mayInf = find (Infected==) aInfs
+          if isJust mayInf
+            then return (Susceptible, Just ())
+            else return (Infected, Nothing)
 
-      --if (trace ("makeContact = " ++ show makeContact ++ ", a = " ++ show a ++ ", doInfect = " ++ show doInfect) (isEvent makeContact))
-      --if (trace ("as = " ++ show as) (isEvent makeContact))
-      if isEvent makeContact
-          && Infected == a
-          && doInfect
-        then returnA -< (Infected, Just ())
-        else returnA -< (Susceptible, Nothing)
+        susceptibleAgentAux :: RandomGen g => [SIRState] -> Rand g SIRState
+        susceptibleAgentAux as = do
+          randContact <- randomElem as
+          if (Infected == randContact)
+            then infect
+            else return Susceptible
+    
+        infect :: RandomGen g => Rand g SIRState
+        infect = do
+          doInfect <- randomBoolM infectionProb
+          --randIllDur <- randomExpM (1 / illnessDuration)
+          if doInfect
+            then return Infected
+            else return Susceptible
 
 infectedAgent :: RandomGen g => SIRAgentMSF g
 infectedAgent = switch infectedAgentRecoveredEvent (const recoveredAgent)
   where
-    infectedAgentRecoveredEvent :: RandomGen g => MSF (Rand g) Double (SIRState, Maybe ())
-    infectedAgentRecoveredEvent = proc dt -> do
-      recEvt <- occasionally g illnessDuration () -< ()
+    infectedAgentRecoveredEvent :: RandomGen g => MSF (ReaderT DTime (Rand g)) () (SIRState, Maybe ())
+    infectedAgentRecoveredEvent = proc _ -> do
+      recEvt <- occasionally illnessDuration () -< ()
       let a = maybe Infected (const Recovered) recEvt
       returnA -< (a, recEvt)
 
@@ -100,68 +120,27 @@ initAgents n i = sus ++ inf
     sus = replicate (n - i) Susceptible
     inf = replicate i Infected
 
-{-
-randomBoolSF :: (RandomGen g) => g -> Double -> SF () Bool
-randomBoolSF g p = proc _ -> do
-  r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
-  returnA -< (r <= p)
+doTimes :: (Monad m) => Int -> m a -> m [a]
+doTimes n f = forM [0..n - 1] (\_ -> f) 
 
-drawRandomElemSF :: (RandomGen g, Show a) => g -> SF [a] a
-drawRandomElemSF g = proc as -> do
-  r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
-  let len = length as
-  let idx = (fromIntegral $ len) * r
-  let a =  as !! (floor idx)
-  returnA -< a
--}
-
-aggregateDynamics :: [[SIRState]] -> [(Int, Int, Int)]
-aggregateDynamics ass = map aggregate ass
-
-aggregate :: [SIRState] -> (Int, Int, Int)
-aggregate as = (susceptibleCount, infectedCount, recoveredCount)
+-- NOTE: is in spirit of the Yampa implementation
+occasionally :: Time -> b -> MSF (ReaderT DTime (Rand g)) () (Maybe b)
+occasionally _t_avg _b 
+    | t_avg > 0 = SF { sfTF = tf0 }
+    | otherwise = error "AFRP: occasionally: Non-positive average interval."
   where
-    susceptibleCount = length $ filter (Susceptible==) as
-    infectedCount = length $ filter (Infected==) as
-    recoveredCount = length $ filter (Recovered==) as
+    -- Generally, if events occur with an average frequency of f, the
+    -- probability of at least one event occurring in an interval of t
+    -- is given by (1 - exp (-f*t)). The goal in the following is to
+    -- decide whether at least one event occurred in the interval of size
+    -- dt preceding the current sample point. For the first point,
+    -- we can think of the preceding interval as being 0, implying
+    -- no probability of an event occurring.
 
-writeDynamicsToFile :: String -> [(Int, Int, Int)] -> IO ()
-writeDynamicsToFile fileName dynamics = do
-  fileHdl <- openFile fileName WriteMode
-  hPutStrLn fileHdl "dynamics = ["
-  mapM_ (hPutStrLn fileHdl . sirDynamicToString) dynamics
-  hPutStrLn fileHdl "];"
+    tf0 _ = (occAux (randoms g :: [Time]), Nothing)
 
-  hPutStrLn fileHdl "susceptible = dynamics (:, 1);"
-  hPutStrLn fileHdl "infected = dynamics (:, 2);"
-  hPutStrLn fileHdl "recovered = dynamics (:, 3);"
-  hPutStrLn fileHdl "totalPopulation = susceptible(1) + infected(1) + recovered(1);"
-
-  hPutStrLn fileHdl "susceptibleRatio = susceptible ./ totalPopulation;"
-  hPutStrLn fileHdl "infectedRatio = infected ./ totalPopulation;"
-  hPutStrLn fileHdl "recoveredRatio = recovered ./ totalPopulation;"
-
-  hPutStrLn fileHdl "steps = length (susceptible);"
-  hPutStrLn fileHdl "indices = 0 : steps - 1;"
-
-  hPutStrLn fileHdl "figure"
-  hPutStrLn fileHdl "plot (indices, susceptibleRatio.', 'color', 'blue', 'linewidth', 2);"
-  hPutStrLn fileHdl "hold on"
-  hPutStrLn fileHdl "plot (indices, infectedRatio.', 'color', 'red', 'linewidth', 2);"
-  hPutStrLn fileHdl "hold on"
-  hPutStrLn fileHdl "plot (indices, recoveredRatio.', 'color', 'green', 'linewidth', 2);"
-
-  hPutStrLn fileHdl "set(gca,'YTick',0:0.05:1.0);"
-
-  hPutStrLn fileHdl "xlabel ('Time');"
-  hPutStrLn fileHdl "ylabel ('Population Ratio');"
-  hPutStrLn fileHdl "legend('Susceptible','Infected', 'Recovered');"
-
-  hClose fileHdl
-
-sirDynamicToString :: (Int, Int, Int) -> String
-sirDynamicToString (susceptibleCount, infectedCount, recoveredCount) =
-  printf "%d" susceptibleCount
-  ++ "," ++ printf "%d" infectedCount
-  ++ "," ++ printf "%d" recoveredCount
-  ++ ";"
+    occAux [] = undefined
+    occAux (r:rs) = SF' tf -- True
+      where
+        tf dt _ = let p = 1 - exp (-(dt/t_avg)) -- Probability for at least one event.
+                  in (occAux rs, if r < p then Just x else Nothing)

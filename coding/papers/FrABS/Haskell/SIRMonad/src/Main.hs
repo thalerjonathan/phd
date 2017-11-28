@@ -103,7 +103,7 @@ susceptibleAgent as = do
   where
     susceptibleAgentAux :: (RandomGen g) => Agents -> Rand g SIRAgent
     susceptibleAgentAux as = do
-      randContact <- drawRandomAgent as
+      randContact <- randomElem as
       if (is Infected randContact)
         then infect
         else return susceptible
@@ -125,11 +125,6 @@ infectedAgent dt (_, t)
 
 doTimes :: (Monad m) => Int -> m a -> m [a]
 doTimes n f = forM [0..n - 1] (\_ -> f) 
-
-drawRandomAgent :: (RandomGen g) => Agents -> Rand g SIRAgent
-drawRandomAgent as = getRandomR (0, len - 1) >>= (\idx -> return $ as !! idx)
-  where
-    len = length as
 
 is :: SIRState -> SIRAgent -> Bool
 is s (s',_) = s == s'

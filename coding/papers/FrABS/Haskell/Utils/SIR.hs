@@ -8,6 +8,7 @@ module SIR
 
   , randomBoolM
   , randomExpM
+  , randomElem
   ) where
 
 import System.IO
@@ -68,10 +69,10 @@ sirAggregateToString (susceptibleCount, infectedCount, recoveredCount) =
   ++ "," ++ printf "%d" recoveredCount
   ++ ";"
   
-randomBoolM :: (RandomGen g) => Double -> Rand g Bool
+randomBoolM :: RandomGen g => Double -> Rand g Bool
 randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)
 
-randomExpM :: (RandomGen g) => Double -> Rand g Double
+randomExpM :: RandomGen g => Double -> Rand g Double
 randomExpM lambda = avoid 0 >>= (\r -> return $ ((-log r) / lambda))
   where
     avoid :: (Random a, Eq a, RandomGen g) => a -> Rand g a
@@ -80,3 +81,8 @@ randomExpM lambda = avoid 0 >>= (\r -> return $ ((-log r) / lambda))
       if r == x
         then avoid x
         else return r
+
+randomElem :: RandomGen g => [a] -> Rand g a
+randomElem as = getRandomR (0, len - 1) >>= (\idx -> return $ as !! idx)
+  where
+    len = length as

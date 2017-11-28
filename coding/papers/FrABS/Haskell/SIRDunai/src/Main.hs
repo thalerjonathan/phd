@@ -15,7 +15,7 @@ import SIR
 type Time = Double
 type DTime = Double
 
-type SIRAgentMSF g = MSF (ReaderT DTime (Rand g)) () SIRState
+type SIRAgentMSF g = MSF (ReaderT DTime (Rand g)) [SIRState] SIRState
 
 contactRate :: Double
 contactRate = 5.0
@@ -36,7 +36,7 @@ rngSeed :: Int
 rngSeed = 42
 
 dt :: DTime
-dt = 0.01
+dt = 1.0
 
 t :: Time
 t = 150
@@ -63,15 +63,16 @@ runSimulationUntil g t dt as = evalRand (runReaderT ass dt) g -- runReader (eval
     ass = embed (sirSimulation msfs as) ticks
 
 sirSimulation :: RandomGen g => [SIRAgentMSF g] -> [SIRState] -> MSF (ReaderT DTime (Rand g)) () [SIRState]
-sirSimulation msfs _as = MSF $ \_a -> do
-    (as', msfs') <- foldM sirSimulationAux ([], []) msfs
-    return (as', sirSimulation msfs' as')
+sirSimulation msfs as = MSF $ \_a -> do
+    (as', msfs') <- foldM (sirSimulationAux as) ([], []) msfs
+    return (as, sirSimulation msfs' as')
   where
-    sirSimulationAux :: ([SIRState], [SIRAgentMSF g])
+    sirSimulationAux :: [SIRState]
+                        -> ([SIRState], [SIRAgentMSF g])
                         -> SIRAgentMSF g 
                         -> ReaderT DTime (Rand g) ([SIRState], [SIRAgentMSF g])
-    sirSimulationAux (accStates, accSfs) sf = do
-      (s, sf') <- unMSF sf ()
+    sirSimulationAux as (accStates, accSfs) sf = do
+      (s, sf') <- unMSF sf as
       return (s : accStates, sf' : accSfs)
 
 sirAgent :: RandomGen g => SIRState -> SIRAgentMSF g
@@ -82,18 +83,17 @@ sirAgent Recovered    = recoveredAgent
 susceptibleAgent :: RandomGen g => SIRAgentMSF g
 susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
   where
-    susceptibleAgentInfectedEvent :: RandomGen g => MSF (ReaderT DTime (Rand g)) () (SIRState, Maybe ())
-    susceptibleAgentInfectedEvent = arrM (const susceptibleAgentInfectedEventAux)
+    susceptibleAgentInfectedEvent :: RandomGen g => MSF (ReaderT DTime (Rand g)) [SIRState] (SIRState, Maybe ())
+    susceptibleAgentInfectedEvent = arrM susceptibleAgentInfectedEventAux
       where
-        susceptibleAgentInfectedEventAux :: RandomGen g => ReaderT DTime (Rand g) (SIRState, Maybe ())
-        susceptibleAgentInfectedEventAux = do
-          let as = []
+        susceptibleAgentInfectedEventAux :: RandomGen g => [SIRState] -> ReaderT DTime (Rand g) (SIRState, Maybe ())
+        susceptibleAgentInfectedEventAux as = do
           randContactCount <- lift $ randomExpM (1 / contactRate)
-          aInfs <- lift $ doTimes (floor randContactCount) (susceptibleAgentAux as) -- TODO: replace by messaging
+          aInfs <- lift $ doTimes (floor randContactCount) (susceptibleAgentAux as)
           let mayInf = find (Infected==) aInfs
           if isJust mayInf
-            then return (Susceptible, Just ())
-            else return (Infected, Nothing)
+            then return (Infected, Just ())
+            else return (Susceptible, Nothing)
 
         susceptibleAgentAux :: RandomGen g => [SIRState] -> Rand g SIRState
         susceptibleAgentAux as = do
@@ -101,7 +101,7 @@ susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
           if (Infected == randContact)
             then infect
             else return Susceptible
-    
+
         infect :: RandomGen g => Rand g SIRState
         infect = do
           doInfect <- randomBoolM infectionProb
@@ -112,7 +112,7 @@ susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
 infectedAgent :: RandomGen g => SIRAgentMSF g
 infectedAgent = switch infectedAgentRecoveredEvent (const recoveredAgent)
   where
-    infectedAgentRecoveredEvent :: RandomGen g => MSF (ReaderT DTime (Rand g)) () (SIRState, Maybe ())
+    infectedAgentRecoveredEvent :: RandomGen g => MSF (ReaderT DTime (Rand g)) [SIRState] (SIRState, Maybe ())
     infectedAgentRecoveredEvent = proc _ -> do
       recEvt <- occasionally illnessDuration () -< ()
       let a = maybe Infected (const Recovered) recEvt

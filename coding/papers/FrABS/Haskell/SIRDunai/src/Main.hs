@@ -1,16 +1,14 @@
 {-# LANGUAGE Arrows #-}
 module Main where
 
-import Control.Monad.Random
 import System.IO
-import Text.Printf
 import Debug.Trace
 
+import Control.Monad.Random
 import Control.Monad.Trans.MSF
 import Data.MonadicStreamFunction
 
--- a SIR agent is in one of these states at any time
-data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
+import SIR
 
 type SIRAgentMSF g = MSF (Rand g) Double SIRState
 

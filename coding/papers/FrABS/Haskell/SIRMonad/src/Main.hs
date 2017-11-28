@@ -1,14 +1,12 @@
 module Main where
 
-import Control.Monad.Random
 import Data.List
 import Data.Maybe
-import System.Random
-import System.IO
-import Text.Printf
 
--- an agent is in one of these states at any time
-data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
+import Control.Monad.Random
+
+import SIR
+
 -- an agent has a state and a time this state is valid for
 type SIRAgent = (SIRState, Time)
 type Agents = [SIRAgent]
@@ -59,9 +57,9 @@ main = do
   
   putStrLn $ "All Recovered after t = " ++ show tEnd
   
-  let dyns = aggregateDynamics ass
-  let fileName =  "SIR_SIMPLE_DYNAMICS_" ++ show agentCount ++ "agents.m"
-  writeDynamicsToFile fileName dyns
+  let dyns = aggregateAllStates (map (\as' -> map fst as') ass)
+  let fileName =  "SIR_MONAD_DYNAMICS_" ++ show agentCount ++ "agents.m"
+  writeAggregatesToFile fileName dyns
 
 runSimulationUntil :: (RandomGen g) => Time -> TimeDelta -> Agents -> Rand g [Agents]
 runSimulationUntil tEnd dt as = runSimulationUntilAux tEnd 0 dt as []
@@ -141,68 +139,4 @@ initAgents n i = do
   let sus = replicate (n - i) susceptible
   expTs <- mapM randomExpM (replicate i (1 / illnessDuration))
   let inf = map infected expTs
-  return $ sus ++ inf  
-
-randomBoolM :: (RandomGen g) => Double -> Rand g Bool
-randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)
-
-randomExpM :: (RandomGen g) => Double -> Rand g Double
-randomExpM lambda = avoid 0 >>= (\r -> return $ ((-log r) / lambda))
-  where
-    avoid :: (Random a, Eq a, RandomGen g) => a -> Rand g a
-    avoid x = do
-      r <- getRandom
-      if r == x
-        then avoid x
-        else return r
-
-aggregateDynamics :: [Agents] -> [(Double, Double, Double)]
-aggregateDynamics ass = map aggregate ass
-
-aggregate :: Agents -> (Double, Double, Double)
-aggregate as = (susceptibleCount, infectedCount, recoveredCount)
-  where
-    susceptibleCount = fromIntegral $ length $ filter ((Susceptible==) . fst) as
-    infectedCount = fromIntegral $ length $ filter ((Infected==) . fst) as
-    recoveredCount = fromIntegral $ length $ filter ((Recovered==) . fst) as
-
-writeDynamicsToFile :: String -> [(Double, Double, Double)] -> IO ()
-writeDynamicsToFile fileName dynamics = do
-  fileHdl <- openFile fileName WriteMode
-  hPutStrLn fileHdl "dynamics = ["
-  mapM_ (hPutStrLn fileHdl . sirDynamicToString) dynamics
-  hPutStrLn fileHdl "];"
-
-  hPutStrLn fileHdl "susceptible = dynamics (:, 1);"
-  hPutStrLn fileHdl "infected = dynamics (:, 2);"
-  hPutStrLn fileHdl "recovered = dynamics (:, 3);"
-  hPutStrLn fileHdl "totalPopulation = susceptible(1) + infected(1) + recovered(1);"
-
-  hPutStrLn fileHdl "susceptibleRatio = susceptible ./ totalPopulation;"
-  hPutStrLn fileHdl "infectedRatio = infected ./ totalPopulation;"
-  hPutStrLn fileHdl "recoveredRatio = recovered ./ totalPopulation;"
-
-  hPutStrLn fileHdl "steps = length (susceptible);"
-  hPutStrLn fileHdl "indices = 0 : steps - 1;"
-
-  hPutStrLn fileHdl "figure"
-  hPutStrLn fileHdl "plot (indices, susceptibleRatio.', 'color', 'blue', 'linewidth', 2);"
-  hPutStrLn fileHdl "hold on"
-  hPutStrLn fileHdl "plot (indices, infectedRatio.', 'color', 'red', 'linewidth', 2);"
-  hPutStrLn fileHdl "hold on"
-  hPutStrLn fileHdl "plot (indices, recoveredRatio.', 'color', 'green', 'linewidth', 2);"
-
-  hPutStrLn fileHdl "set(gca,'YTick',0:0.05:1.0);"
-  
-  hPutStrLn fileHdl "xlabel ('Time');"
-  hPutStrLn fileHdl "ylabel ('Population Ratio');"
-  hPutStrLn fileHdl "legend('Susceptible','Infected', 'Recovered');"
-
-  hClose fileHdl
-
-sirDynamicToString :: (Double, Double, Double) -> String
-sirDynamicToString (susceptibleRatio, infectedRatio, recoveredRatio) = 
-  printf "%.3f" susceptibleRatio 
-  ++ "," ++ printf "%.3f" infectedRatio
-  ++ "," ++ printf "%.3f" recoveredRatio
-  ++ ";" 
+  return $ sus ++ inf

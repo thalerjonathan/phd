@@ -12,7 +12,7 @@ import Data.MonadicStreamFunction
 -- a SIR agent is in one of these states at any time
 data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
 
-type SIRAgentMSF g = RandomGen g => MSF (Rand g) Double SIRState
+type SIRAgentMSF g = MSF (Rand g) Double SIRState
 
 contactRate :: Double
 contactRate = 5.0
@@ -51,30 +51,26 @@ main = do
   let fileName =  "SIR_YAMPA_DYNAMICS_" ++ show agentCount ++ "agents.m"
   writeDynamicsToFile fileName dyns
 
-runSimulationUntil :: (RandomGen g) => g -> Double -> Double -> [SIRState] -> [[SIRState]]
+runSimulationUntil :: RandomGen g => g -> Double -> Double -> [SIRState] -> [[SIRState]]
 runSimulationUntil g t dt as = evalRand ass g
   where
     steps = floor $ t / dt
     dts = replicate steps dt
-    msfs = map sirAgent as
-
+    msfs = map (\a -> sirAgent a) as
     ass = embed (sirSimulation msfs as) dts
 
-sirSimulation :: [SIRAgentMSF] -> [SIRState] -> MSF Rand Double [SIRState]
-sirSimulation sfs as = undefined
+sirSimulation :: RandomGen g => [(SIRAgentMSF g)] -> [SIRState] -> MSF (Rand g) Double [SIRState]
+sirSimulation msfs as = undefined
 
-sirAgent :: SIRState -> SIRAgentMSF
-sirAgent g Susceptible = susceptibleAgent g
-sirAgent g Infected    = infectedAgent g
-sirAgent _ Recovered   = recoveredAgent
+sirAgent :: RandomGen g => SIRState -> SIRAgentMSF g
+sirAgent Susceptible  = susceptibleAgent
+sirAgent Infected     = infectedAgent
+sirAgent Recovered    = recoveredAgent
 
-
--- Monad m => MSF m a (b, Maybe c) -> (c -> MSF m a b) -> MSF m a b
-
-susceptibleAgent :: SIRAgentMSF
+susceptibleAgent :: RandomGen g => SIRAgentMSF g
 susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
   where
-    susceptibleAgentInfectedEvent :: MSF Rand Double (SIRState, Maybe ())
+    susceptibleAgentInfectedEvent :: RandomGen g => MSF (Rand g) Double (SIRState, Maybe ())
     susceptibleAgentInfectedEvent = proc dt -> do
       makeContact <- occasionally g (1 / contactRate) () -< ()
       a <- drawRandomElemSF g -< as
@@ -88,16 +84,16 @@ susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
         then returnA -< (Infected, Just ())
         else returnA -< (Susceptible, Nothing)
 
-infectedAgent :: SIRAgentMSF
+infectedAgent :: RandomGen g => SIRAgentMSF g
 infectedAgent = switch infectedAgentRecoveredEvent (const recoveredAgent)
   where
-    infectedAgentRecoveredEvent :: MSF Rand Double (SIRState, Maybe ())
+    infectedAgentRecoveredEvent :: RandomGen g => MSF (Rand g) Double (SIRState, Maybe ())
     infectedAgentRecoveredEvent = proc dt -> do
       recEvt <- occasionally g illnessDuration () -< ()
       let a = maybe Infected (const Recovered) recEvt
       returnA -< (a, recEvt)
 
-recoveredAgent :: SIRAgentMSF
+recoveredAgent :: RandomGen g => SIRAgentMSF g
 recoveredAgent = arr (const Recovered)
 
 initAgents :: Int -> Int -> [SIRState]

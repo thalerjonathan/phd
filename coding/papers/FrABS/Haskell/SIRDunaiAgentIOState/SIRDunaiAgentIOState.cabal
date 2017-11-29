@@ -58,10 +58,17 @@ executable SIRDunaiAgentIOState
   
   -- Other library packages from which modules are imported.
   build-depends:       base >=4.9 && <4.10
-  
+                     , dunai
+                     , MonadRandom
+                     , mtl
+                     , containers
+                     
   -- Directories containing source files.
-  hs-source-dirs:      src
+  hs-source-dirs:       .
+                      , src
+                      , ../Utils
   
   -- Base language which the package is written in.
   default-language:    Haskell2010
   
+  ghc-options:         -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing

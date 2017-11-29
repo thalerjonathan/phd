@@ -3,6 +3,7 @@ module Main where
 
 import System.IO
 import qualified Data.Map as Map
+import Data.Maybe
 
 import Control.Monad.Random
 import Control.Monad.Reader
@@ -47,7 +48,7 @@ illnessDuration :: Double
 illnessDuration = 15.0
 
 agentCount :: Int
-agentCount = 100
+agentCount = 1000
 
 infectedCount :: Int
 infectedCount = 10
@@ -56,7 +57,7 @@ rngSeed :: Int
 rngSeed = 42
 
 dt :: DTime
-dt = 0.01
+dt = 0.1
 
 t :: Time
 t = 150
@@ -104,10 +105,11 @@ sirAgent Recovered    = recoveredAgent
 susceptibleAgent :: RandomGen g => SIRAgentMSF g
 susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
   where
-    susceptibleAgentInfectedEvent :: RandomGen g => MSF 
-                                                      (ReaderT DTime (Rand g)) 
-                                                      (SIRAgentIn, SIREnv) 
-                                                      ((SIRAgentOut, SIREnv), Maybe ())
+    susceptibleAgentInfectedEvent :: RandomGen g => 
+                                      MSF 
+                                        (ReaderT DTime (Rand g)) 
+                                        (SIRAgentIn, SIREnv) 
+                                        ((SIRAgentOut, SIREnv), Maybe ())
     susceptibleAgentInfectedEvent = proc (ain, e) -> do
       isInfected <- arrM (\ain' -> do 
         flag <- lift $ gotInfected ain'
@@ -115,24 +117,32 @@ susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
       let (ao, infEvt) = if isInfected 
                           then (agentOut Infected, Just ()) 
                           else (agentOut Susceptible, Nothing)
-      
-      returnA -< ((ao, e), infEvt)
-      {-
-      makeContact <- occasionally (1 / contactRate) () -< ()
-      let ao = if isEvent makeContact
-                then (do 
-                  randContact <- lift $ randomElem e
-                  )
-                else agentOut Susceptible
-                      -}
-                      
+
+      ao' <- susceptibleAgentInfectedEventAux -< (ao, e)
+      returnA -< ((ao', e), infEvt)
+
+      where
+        susceptibleAgentInfectedEventAux :: RandomGen g => 
+                                              MSF 
+                                                (ReaderT DTime (Rand g)) 
+                                                (SIRAgentOut, SIREnv) 
+                                                (SIRAgentOut)
+        susceptibleAgentInfectedEventAux = proc (ao, e) -> do
+          makeContact <- occasionally (1 / contactRate) () -< ()
+          if isJust makeContact
+            then arrM (\(ao', e) -> do
+              randContact <- lift $ randomElem e
+              return (sendMessage (randContact, Contact Susceptible) ao')) -< (ao, e)
+            else returnA -< ao
+
 infectedAgent :: RandomGen g => SIRAgentMSF g
 infectedAgent = switch infectedAgentRecoveredEvent (const recoveredAgent)
   where
-    infectedAgentRecoveredEvent :: RandomGen g => MSF 
-                                                    (ReaderT DTime (Rand g)) 
-                                                    (SIRAgentIn, SIREnv) 
-                                                    ((SIRAgentOut, SIREnv), Maybe ())
+    infectedAgentRecoveredEvent :: RandomGen g => 
+                                    MSF 
+                                      (ReaderT DTime (Rand g)) 
+                                      (SIRAgentIn, SIREnv) 
+                                      ((SIRAgentOut, SIREnv), Maybe ())
     infectedAgentRecoveredEvent = proc (ain, e) -> do
       recEvt <- occasionally illnessDuration () -< ()
       let a = maybe Infected (const Recovered) recEvt

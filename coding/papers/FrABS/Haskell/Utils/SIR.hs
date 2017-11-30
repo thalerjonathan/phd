@@ -26,6 +26,9 @@ module SIR
   , onMessage
   , distributeMessages
   
+  , gotInfected
+  , respondToContactWithM
+
   , aggregateAllStates
   , aggregateStates
   , writeAggregatesToFile
@@ -111,6 +114,19 @@ onMessage msgHdl ai a
     | otherwise = foldr (\msg acc'-> msgHdl msg acc') a msgs
   where
     msgs = aiMsgs ai
+
+gotInfected :: RandomGen g => Double -> SIRAgentIn -> Rand g Bool
+gotInfected infectionProb ain = onMessageM gotInfectedAux ain False
+  where
+    gotInfectedAux :: RandomGen g => Bool -> AgentMessage SIRMsg -> Rand g Bool
+    gotInfectedAux False (_, Contact Infected) = randomBoolM infectionProb
+    gotInfectedAux x _ = return x
+
+respondToContactWithM :: Monad m => SIRState -> SIRAgentIn -> StateT SIRAgentOut m ()
+respondToContactWithM state ain = onMessageM respondToContactWithMAux ain ()
+  where
+    respondToContactWithMAux :: Monad m => () -> AgentMessage SIRMsg -> StateT SIRAgentOut m ()
+    respondToContactWithMAux _ (senderId, Contact _) = sendMessageM (senderId, Contact state) 
 
 distributeMessages :: [AgentIn m] -> [(AgentId, AgentOut s m)] -> [AgentIn m]
 distributeMessages ains aouts = map (distributeMessagesAux allMsgs) ains -- NOTE: speedup by running in parallel (if +RTS -Nx)

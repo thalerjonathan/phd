@@ -54,7 +54,7 @@ main = do
   let ass = runSimulationUntil g t dt as
 
   let dyns = aggregateAllStates ass
-  let fileName =  "SIR_DUNAI_AGENTIO_DYNAMICS_" ++ show agentCount ++ "agents.m"
+  let fileName =  "SIR_DUNAI_AGENTIOSTATE_DYNAMICS_" ++ show agentCount ++ "agents.m"
   writeAggregatesToFile fileName dyns
 
 runSimulationUntil :: RandomGen g => g 
@@ -94,7 +94,7 @@ susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
                                         (SIREnv, Maybe ())
     susceptibleAgentInfectedEvent = proc (ain, e) -> do
         isInfected <- arrM (\ain' -> do 
-          doInfect <- lift $ lift $ gotInfected ain'
+          doInfect <- lift $ lift $ gotInfected infectionProb ain'
           if doInfect 
             then lift $ put (agentOutObs Infected) >> return doInfect
             else lift $ put (agentOutObs Susceptible) >> return doInfect) -< ain
@@ -151,19 +151,6 @@ recoveredAgent :: RandomGen g => SIRAgentMSF g
 recoveredAgent = proc (_, e) -> do
   arrM (\_ -> lift $ put (agentOutObs Recovered)) -< ()
   returnA -< e
-
-gotInfected :: RandomGen g => SIRAgentIn -> Rand g Bool
-gotInfected ain = onMessageM gotInfectedAux ain False
-  where
-    gotInfectedAux :: RandomGen g => Bool -> AgentMessage SIRMsg -> Rand g Bool
-    gotInfectedAux False (_, Contact Infected) = randomBoolM infectionProb
-    gotInfectedAux x _ = return x
-
-respondToContactWithM :: Monad m => SIRState -> SIRAgentIn -> StateT SIRAgentOut m ()
-respondToContactWithM state ain = onMessageM respondToContactWithMAux ain ()
-  where
-    respondToContactWithMAux :: Monad m => () -> AgentMessage SIRMsg -> StateT SIRAgentOut m ()
-    respondToContactWithMAux _ (senderId, Contact _) = sendMessageM (senderId, Contact state) 
 
 parSimulation :: RandomGen g => 
                      [AgentMSF g s m e] 

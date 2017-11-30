@@ -27,7 +27,7 @@ illnessDuration :: Double
 illnessDuration = 15.0
 
 agentCount :: Int
-agentCount = 1000
+agentCount = 100
 
 infectedCount :: Int
 infectedCount = 10
@@ -36,7 +36,7 @@ rngSeed :: Int
 rngSeed = 42
 
 dt :: DTime
-dt = 0.01
+dt = 0.1
 
 t :: Time
 t = 150
@@ -218,9 +218,26 @@ getRandomS g0 = feedback g0 getRandomSAux
 occasionallyMSF :: RandomGen g => Time -> b -> SF (StateT (AgentOut s m) (Rand g)) a (Event b)
 occasionallyMSF t_avg b
   | t_avg > 0 = proc _ -> do
-    r <- arrM_ $ lift $ getRandomR (0, 1) -< () -- TODO: refine into general solution
+    r <- arrM_ $ getRandomR (0, 1) -< () -- TODO: refine into general solution
     let p = 1 - exp (-(dt / t_avg))
     if r < p
       then returnA -< Event b
       else returnA -< NoEvent
   | otherwise = error "AFRP: occasionally: Non-positive average interval."
+
+-- NOTE: is in spirit of MSFs
+occasionallyMSFGeneral :: (Monad m, RandomGen g) => Time -> b -> SF (RandT g m) a (Event b)
+occasionallyMSFGeneral t_avg b
+  | t_avg > 0 = proc _ -> do
+    r <- arrM_ $ getRandomR (0, 1) -< () -- TODO: refine into general solution
+    let p = 1 - exp (-(dt / t_avg))
+    if r < p
+      then returnA -< Event b
+      else returnA -< NoEvent
+  | otherwise = error "AFRP: occasionally: Non-positive average interval."
+
+runRandS :: Monad m => MSF (RandT g m) a b -> g -> MSF m a (g, b)
+runRandS = undefined
+
+evalRandS  :: Monad m => MSF (RandT g m) a b -> g -> MSF m a b
+evalRandS msf g = runRandS msf g >>> arr snd

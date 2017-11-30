@@ -31,7 +31,7 @@ data AgentOut s m = AgentOut
   } deriving (Show)
 
 type EnvironmentFold e = [e] -> e -> e
-type AgentMSF g s m e = MSF (ReaderT DTime (StateT (AgentOut s m) (Rand g))) (AgentIn m, e) (AgentOut s m, e)
+type AgentMSF g s m e = MSF (ReaderT DTime (StateT (AgentOut s m) (Rand g))) (AgentIn m, e) e
 
 type SIREnv = [AgentId]
 data SIRMsg = Contact SIRState deriving (Show, Eq)
@@ -49,7 +49,7 @@ illnessDuration :: Double
 illnessDuration = 15.0
 
 agentCount :: Int
-agentCount = 1000
+agentCount = 100
 
 infectedCount :: Int
 infectedCount = 10
@@ -93,7 +93,7 @@ runSimulationUntil g t dt as = map (\(aos, _) -> map (fromJust. aoObsState) aos)
     ains = map agentIn env
     
     aossM = embed (parSimulation msfs ains env sirEnvFold) ticks
-    aoss = evalRand (runReaderT aossM dt) g 
+    aoss = evalRand (evalStateT (runReaderT aossM dt) agentOut) g 
 
     sirEnvFold :: [SIREnv] -> SIREnv -> SIREnv
     sirEnvFold _ e = e
@@ -108,51 +108,68 @@ susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
   where
     susceptibleAgentInfectedEvent :: RandomGen g => 
                                       MSF 
-                                        (ReaderT DTime (StateT (AgentOut s m) (Rand g)))
+                                        (ReaderT DTime (StateT SIRAgentOut (Rand g)))
                                         (SIRAgentIn, SIREnv) 
-                                        ((SIRAgentOut, SIREnv), Maybe ())
+                                        (SIREnv, Maybe ())
     susceptibleAgentInfectedEvent = proc (ain, e) -> do
-      isInfected <- arrM (\ain' -> do 
-        flag <- lift $ lift $ gotInfected ain'
-        return flag) -< ain
-      let (ao, infEvt) = if isInfected 
-                          then (agentOutObs Infected, Just ()) 
-                          else (agentOutObs Susceptible, Nothing)
+        isInfected <- arrM (\ain' -> do 
+          doInfect <- lift $ lift $ gotInfected ain'
+          if doInfect 
+            then lift $ put (agentOutObs Infected) >> return doInfect
+            else lift $ put (agentOutObs Susceptible) >> return doInfect) -< ain
 
-      ao' <- susceptibleAgentInfectedEventAux -< (ao, e)
-      returnA -< ((ao', e), infEvt)
-
+        infEvt <- boolToMaybe () -< isInfected
+        _ <- susceptibleAgentInfectedEventAux -< e
+        returnA -< (e, infEvt)
       where
         susceptibleAgentInfectedEventAux :: RandomGen g => 
                                               MSF 
-                                                (ReaderT DTime (StateT (AgentOut s m) (Rand g)))
-                                                (SIRAgentOut, SIREnv) 
-                                                (SIRAgentOut)
-        susceptibleAgentInfectedEventAux = proc (ao, e) -> do
+                                                (ReaderT DTime (StateT SIRAgentOut (Rand g)))
+                                                (SIREnv) 
+                                                ()
+        susceptibleAgentInfectedEventAux = proc e -> do
           makeContact <- occasionally (1 / contactRate) () -< ()
           if isJust makeContact
-            then arrM (\(ao', e) -> do
+            then arrM blub -< e
+            else returnA -< ()
+
+          where
+            blub :: RandomGen g => 
+                      SIREnv
+                      -> ReaderT DTime (StateT SIRAgentOut (Rand g)) ()
+            blub e = do
               randContact <- lift $ lift $ randomElem e
-              return (sendMessage (randContact, Contact Susceptible) ao')) -< (ao, e)
-            else returnA -< ao
+              lift $ sendMessageM (randContact, Contact Susceptible)
+              return ()
+
+boolToMaybe :: Monad m => a -> MSF m Bool (Maybe a)
+boolToMaybe a = proc b -> do
+  if b
+    then returnA -< Just a
+    else returnA -< Nothing
 
 infectedAgent :: RandomGen g => SIRAgentMSF g
 infectedAgent = switch infectedAgentRecoveredEvent (const recoveredAgent)
   where
     infectedAgentRecoveredEvent :: RandomGen g => 
                                     MSF 
-                                      (ReaderT DTime (StateT (AgentOut s m) (Rand g)))
+                                      (ReaderT DTime (StateT SIRAgentOut (Rand g)))
                                       (SIRAgentIn, SIREnv) 
-                                      ((SIRAgentOut, SIREnv), Maybe ())
+                                      (SIREnv, Maybe ())
     infectedAgentRecoveredEvent = proc (ain, e) -> do
       recEvt <- occasionally illnessDuration () -< ()
       let a = maybe Infected (const Recovered) recEvt
-      let ao = agentOutObs a
-      let ao' = respondToContactWith Infected ain ao
-      returnA -< ((ao', e), recEvt)
+
+      arrM (\(a, ain) -> do
+        lift $ put (agentOutObs a)
+        lift $ respondToContactWithM Infected ain) -< (a, ain)
+        
+      returnA -< (e, recEvt)
 
 recoveredAgent :: RandomGen g => SIRAgentMSF g
-recoveredAgent = first $ arr (const (agentOutObs Recovered))
+recoveredAgent = proc (ain, e) -> do
+  arrM (\_ -> lift $ put (agentOutObs Recovered)) -< ()
+  returnA -< e
 
 gotInfected :: RandomGen g => SIRAgentIn -> Rand g Bool
 gotInfected ain = onMessageM gotInfectedAux ain False
@@ -161,11 +178,11 @@ gotInfected ain = onMessageM gotInfectedAux ain False
     gotInfectedAux False (_, Contact Infected) = randomBoolM infectionProb
     gotInfectedAux x _ = return x
 
-respondToContactWith :: SIRState -> SIRAgentIn -> SIRAgentOut -> SIRAgentOut
-respondToContactWith state ain ao = onMessage respondToContactWithAux ain ao
+respondToContactWithM :: Monad m => SIRState -> SIRAgentIn -> StateT SIRAgentOut m ()
+respondToContactWithM state ain = onMessageM respondToContactWithMAux ain
   where
-    respondToContactWithAux :: AgentMessage SIRMsg -> SIRAgentOut -> SIRAgentOut
-    respondToContactWithAux (senderId, Contact _) ao = sendMessage (senderId, Contact state) ao
+    respondToContactWithMAux :: Monad m => AgentMessage SIRMsg -> StateT SIRAgentOut m ()
+    respondToContactWithMAux (senderId, Contact _) = sendMessageM (senderId, Contact state) 
 
 
 parSimulation :: RandomGen g => 
@@ -173,7 +190,7 @@ parSimulation :: RandomGen g =>
                   -> [AgentIn m] 
                   -> e
                   -> EnvironmentFold e
-                  -> MSF (ReaderT DTime (Rand g))
+                  -> MSF (ReaderT DTime (StateT (AgentOut s m) (Rand g)))
                       () 
                       ([AgentOut s m], e)
 parSimulation msfs ains e ef = MSF $ \_ -> do
@@ -197,12 +214,12 @@ parSimulation msfs ains e ef = MSF $ \_ -> do
   where
     parSimulationAux :: e
                         -> (AgentIn m, AgentMSF g s m e)
-                        -> ReaderT DTime (Rand g) ((AgentOut s m, e), AgentMSF g s m e)
-                        -- -> ReaderT DTime (StateT (AgentOut s m) (Rand g)) ([(AgentOut s m, e)], [AgentMSF g s m e]) 
+                        -> ReaderT DTime (StateT (AgentOut s m) (Rand g)) ((AgentOut s m, e), AgentMSF g s m e) 
     parSimulationAux e (ain, msf) = do
-      (aoe, msf') <- unMSF msf (ain, e)
-      -- execStateT agentOut
-      return (aoe, msf')
+      _ <- lift $ put agentOut  -- NOTE: reset state
+      (e', msf') <- unMSF msf (ain, e)
+      ao <- lift $ get          -- NOTE: get state
+      return ((ao, e'), msf')
 
     distributeMessages :: [AgentIn m] -> [(AgentId, AgentOut s m)] -> [AgentIn m]
     distributeMessages ains aouts = map (distributeMessagesAux allMsgs) ains -- NOTE: speedup by running in parallel (if +RTS -Nx)
@@ -264,6 +281,8 @@ agentOutObs s = AgentOut {
   , aoObsState  = Just s
   }
 
+sendMessageM :: (Monad mo) => AgentMessage m -> StateT (AgentOut s m) mo ()
+sendMessageM msg = state (\ao -> ((), sendMessage msg ao))
 
 sendMessage :: AgentMessage m -> AgentOut s m -> AgentOut s m
 sendMessage msg ao = ao { aoMsgs = msg : aoMsgs ao }

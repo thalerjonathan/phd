@@ -61,7 +61,8 @@ executable SIRDunai
                      , dunai
                      , MonadRandom
                      , mtl
-
+                     , containers
+                     
   -- Directories containing source files.
   hs-source-dirs:      .
                       , src

@@ -113,12 +113,6 @@ infectedAgent g = switch infectedAgentRecoveredEvent (const recoveredAgent)
 recoveredAgent :: SIRAgentProc
 recoveredAgent = arr (const Recovered)
 
-initAgents :: Int -> Int -> [SIRState]
-initAgents n i = sus ++ inf
-  where
-    sus = replicate (n - i) Susceptible
-    inf = replicate i Infected
-
 randomBoolSF :: (RandomGen g) => g -> Double -> SF () Bool
 randomBoolSF g p = proc _ -> do
   r <- noiseR ((0, 1) :: (Double, Double)) g -< ()

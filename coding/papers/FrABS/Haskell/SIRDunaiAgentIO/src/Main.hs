@@ -2,7 +2,6 @@
 module Main where
 
 import System.IO
-import qualified Data.Map as Map
 import Data.Maybe
 
 import Control.Monad.Random
@@ -14,28 +13,10 @@ import SIR
 type Time = Double
 type DTime = Double
 
-type AgentId = Int
-type AgentMessage m = (AgentId, m)
-
-data AgentIn m = AgentIn
-  {
-    aiId    :: AgentId
-  , aiMsgs  :: [AgentMessage m]
-  } deriving (Show)
-
-data AgentOut s m = AgentOut
-  {
-    aoMsgs      :: [AgentMessage m]
-  , aoObsState  :: s
-  } deriving (Show)
-
 type EnvironmentFold e = [e] -> e -> e
 type AgentMSF g s m e = MSF (ReaderT DTime (Rand g)) (AgentIn m, e) (AgentOut s m, e)
 
 type SIREnv = [AgentId]
-data SIRMsg = Contact SIRState deriving (Show, Eq)
-type SIRAgentIn = AgentIn SIRMsg
-type SIRAgentOut = AgentOut SIRState SIRMsg
 type SIRAgentMSF g = AgentMSF g SIRState SIRMsg SIREnv
 
 contactRate :: Double
@@ -80,7 +61,7 @@ runSimulationUntil :: RandomGen g => g
                       -> DTime
                       -> [SIRState]
                       -> [[SIRState]]
-runSimulationUntil g t dt as = map (\(aos, _) -> map aoObsState aos) aoss
+runSimulationUntil g t dt as = map (\(aos, _) -> map (fromJust . agentObservable) aos) aoss
   where
     steps = floor $ t / dt
     ticks = replicate steps ()
@@ -115,8 +96,8 @@ susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
         flag <- lift $ gotInfected ain'
         return flag) -< ain
       let (ao, infEvt) = if isInfected 
-                          then (agentOut Infected, Just ()) 
-                          else (agentOut Susceptible, Nothing)
+                          then (agentOutObs Infected, Just ()) 
+                          else (agentOutObs Susceptible, Nothing)
 
       ao' <- susceptibleAgentInfectedEventAux -< (ao, e)
       returnA -< ((ao', e), infEvt)
@@ -146,12 +127,12 @@ infectedAgent = switch infectedAgentRecoveredEvent (const recoveredAgent)
     infectedAgentRecoveredEvent = proc (ain, e) -> do
       recEvt <- occasionally illnessDuration () -< ()
       let a = maybe Infected (const Recovered) recEvt
-      let ao = agentOut a
+      let ao = agentOutObs a
       let ao' = respondToContactWith Infected ain ao
       returnA -< ((ao', e), recEvt)
 
 recoveredAgent :: RandomGen g => SIRAgentMSF g
-recoveredAgent = first $ arr (const (agentOut Recovered))
+recoveredAgent = first $ arr (const (agentOutObs Recovered))
 
 gotInfected :: RandomGen g => SIRAgentIn -> Rand g Bool
 gotInfected ain = onMessageM gotInfectedAux ain False
@@ -181,9 +162,9 @@ parSimulation msfs ains e ef = MSF $ \_ -> do
     let aos = map fst aoe
     let es = map snd aoe
 
-    let aids = map aiId ains
+    let aids = map agentId ains
   
-    let ains' = map (\ai -> ai { aiMsgs = [] }) ains 
+    let ains' = map (agentIn . agentId) ains 
     let ains'' = distributeMessages ains' (zip aids aos)
 
     let e' = ef es e
@@ -200,63 +181,7 @@ parSimulation msfs ains e ef = MSF $ \_ -> do
       (aoe, sf') <- unMSF sf (ain, e)
       return (aoe : accOutEnv, sf' : accSfs)
 
-    distributeMessages :: [AgentIn m] -> [(AgentId, AgentOut s m)] -> [AgentIn m]
-    distributeMessages ains aouts = map (distributeMessagesAux allMsgs) ains -- NOTE: speedup by running in parallel (if +RTS -Nx)
-      where
-        allMsgs = collectAllMessages aouts
-    
-        distributeMessagesAux :: Map.Map AgentId [AgentMessage m]
-                                    -> AgentIn m
-                                    -> AgentIn m
-        distributeMessagesAux allMsgs ain = ain'
-          where
-            receiverId = aiId ain
-            msgs = aiMsgs ain -- NOTE: ain may have already messages, they would be overridden if not incorporating them
-    
-            mayReceiverMsgs = Map.lookup receiverId allMsgs
-            msgsEvt = maybe msgs (\receiverMsgs -> receiverMsgs ++ msgs) mayReceiverMsgs
-
-            ain' = ain { aiMsgs = msgsEvt }
-    
-    collectAllMessages :: [(AgentId, AgentOut s m)] -> Map.Map AgentId [AgentMessage m]
-    collectAllMessages aos = foldr collectAllMessagesAux Map.empty aos
-      where
-        collectAllMessagesAux :: (AgentId, AgentOut s m)
-                                  -> Map.Map AgentId [AgentMessage m]
-                                  -> Map.Map AgentId [AgentMessage m]
-        collectAllMessagesAux (senderId, ao) accMsgs 
-            | not $ null msgs = foldr collectAllMessagesAuxAux accMsgs msgs
-            | otherwise = accMsgs
-          where
-            msgs = aoMsgs ao
-    
-            collectAllMessagesAuxAux :: AgentMessage m
-                                        -> Map.Map AgentId [AgentMessage m]
-                                        -> Map.Map AgentId [AgentMessage m]
-            collectAllMessagesAuxAux (receiverId, m) accMsgs = accMsgs'
-              where
-                msg = (senderId, m)
-                mayReceiverMsgs = Map.lookup receiverId accMsgs
-                newMsgs = maybe [msg] (\receiverMsgs -> (msg : receiverMsgs)) mayReceiverMsgs
-    
-                -- NOTE: force evaluation of messages, will reduce memory-overhead EXTREMELY
-                accMsgs' = seq newMsgs (Map.insert receiverId newMsgs accMsgs)
-
-agentIn :: AgentId -> AgentIn m
-agentIn aid = AgentIn {
-    aiId    = aid
-  , aiMsgs  = []
-  }
-
-agentOut :: s -> AgentOut s m
-agentOut s = AgentOut {
-    aoMsgs      = []
-  , aoObsState  = s
-  }
-
-sendMessage :: AgentMessage m -> AgentOut s m -> AgentOut s m
-sendMessage msg ao = ao { aoMsgs = msg : aoMsgs ao }
-
+      {-
 onMessageM :: (Monad mon) => (acc -> AgentMessage m -> mon acc) -> AgentIn m -> acc -> mon acc
 onMessageM msgHdl ai acc
     | null msgs = return acc
@@ -270,7 +195,8 @@ onMessage msgHdl ai a
     | otherwise = foldr (\msg acc'-> msgHdl msg acc') a msgs
   where
     msgs = aiMsgs ai
-    
+    -}
+
 doTimes :: (Monad m) => Int -> m a -> m [a]
 doTimes n f = forM [0..n - 1] (\_ -> f) 
 

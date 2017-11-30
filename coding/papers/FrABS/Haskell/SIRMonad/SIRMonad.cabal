@@ -60,7 +60,9 @@ executable SIRMonad
   build-depends:        base >=4.9 && <4.10
                       , MonadRandom
                       , random
-                      
+                      , containers
+                      , mtl
+
   -- Directories containing source files.
   hs-source-dirs:       .
                       , src

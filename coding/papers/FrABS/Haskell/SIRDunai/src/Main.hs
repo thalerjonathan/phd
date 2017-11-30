@@ -7,7 +7,6 @@ import Data.Maybe
 
 import Control.Monad.Random
 import Control.Monad.Reader
---import Control.Monad.Trans.MSF
 import Data.MonadicStreamFunction
 
 import SIR
@@ -55,7 +54,7 @@ main = do
   writeAggregatesToFile fileName dyns
 
 runSimulationUntil :: RandomGen g => g -> Time -> DTime -> [SIRState] -> [[SIRState]]
-runSimulationUntil g t dt as = evalRand (runReaderT ass dt) g -- runReader (evalRand ass g) dt -- evalRand (runReader ass dt) g 
+runSimulationUntil g t dt as = evalRand (runReaderT ass dt) g
   where
     steps = floor $ t / dt
     ticks = replicate steps ()
@@ -120,12 +119,6 @@ infectedAgent = switch infectedAgentRecoveredEvent (const recoveredAgent)
 
 recoveredAgent :: RandomGen g => SIRAgentMSF g
 recoveredAgent = arr (const Recovered)
-
-initAgents :: Int -> Int -> [SIRState]
-initAgents n i = sus ++ inf
-  where
-    sus = replicate (n - i) Susceptible
-    inf = replicate i Infected
 
 doTimes :: (Monad m) => Int -> m a -> m [a]
 doTimes n f = forM [0..n - 1] (\_ -> f) 

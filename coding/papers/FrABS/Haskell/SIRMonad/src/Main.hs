@@ -7,7 +7,6 @@ import Control.Monad.Random
 
 import SIR
 
--- an agent has a state and a time this state is valid for
 type SIRAgent = (SIRState, Time)
 type Agents = [SIRAgent]
 
@@ -51,7 +50,7 @@ main :: IO ()
 main = do
   setStdGen $ mkStdGen rngSeed
 
-  as <- evalRandIO $ initAgents agentCount infectedCount
+  as <- evalRandIO $ initAgentsRand agentCount infectedCount
   -- as' <- evalRandIO $ runSimulationUntil t dt as
   (tEnd, ass) <- evalRandIO $ runSimulation dt as
   
@@ -61,20 +60,20 @@ main = do
   let fileName =  "SIR_MONAD_DYNAMICS_" ++ show agentCount ++ "agents.m"
   writeAggregatesToFile fileName dyns
 
-runSimulationUntil :: (RandomGen g) => Time -> TimeDelta -> Agents -> Rand g [Agents]
+runSimulationUntil :: RandomGen g => Time -> TimeDelta -> Agents -> Rand g [Agents]
 runSimulationUntil tEnd dt as = runSimulationUntilAux tEnd 0 dt as []
   where
-    runSimulationUntilAux :: (RandomGen g) => Time -> Time -> TimeDelta -> Agents -> [Agents] -> Rand g [Agents]
+    runSimulationUntilAux :: RandomGen g => Time -> Time -> TimeDelta -> Agents -> [Agents] -> Rand g [Agents]
     runSimulationUntilAux tEnd t dt as acc
       | t >= tEnd = return $ reverse (as : acc)
       | otherwise = do
         as' <- stepSimulation dt as 
         runSimulationUntilAux tEnd (t + dt) dt as' (as : acc)
 
-runSimulation :: (RandomGen g) => TimeDelta -> Agents -> Rand g (Time, [Agents])
+runSimulation :: RandomGen g => TimeDelta -> Agents -> Rand g (Time, [Agents])
 runSimulation dt as = runSimulationAux 0 dt as []
   where
-    runSimulationAux :: (RandomGen g) => Time -> TimeDelta -> Agents -> [Agents] -> Rand g (Time, [Agents])
+    runSimulationAux :: RandomGen g => Time -> TimeDelta -> Agents -> [Agents] -> Rand g (Time, [Agents])
     runSimulationAux t dt as acc
       | noInfected as = return $ (t, reverse $ as : acc)
       | otherwise = do
@@ -84,16 +83,16 @@ runSimulation dt as = runSimulationAux 0 dt as []
     noInfected :: Agents -> Bool
     noInfected as = not $ any (is Infected) as
 
-stepSimulation :: (RandomGen g) => TimeDelta -> Agents -> Rand g Agents
+stepSimulation :: RandomGen g => TimeDelta -> Agents -> Rand g Agents
 stepSimulation dt as = mapM (processAgent dt as) as
 
-processAgent :: (RandomGen g) => TimeDelta -> Agents -> SIRAgent -> Rand g SIRAgent
+processAgent :: RandomGen g => TimeDelta -> Agents -> SIRAgent -> Rand g SIRAgent
 processAgent _ as (Susceptible, _) = susceptibleAgent as
 processAgent dt _ a@(Infected, _) = return $ infectedAgent dt a
 processAgent _ _ a@(Recovered, _) = return a
 
 -- NOTE: does not exclude contact with itself but with a sufficiently large number of agents the probability becomes very small
-susceptibleAgent :: (RandomGen g) => Agents -> Rand g SIRAgent
+susceptibleAgent :: RandomGen g => Agents -> Rand g SIRAgent
 susceptibleAgent as = do
     randContactCount <- randomExpM (1 / contactRate)
     aInfs <- doTimes (floor randContactCount) (susceptibleAgentAux as)
@@ -101,7 +100,7 @@ susceptibleAgent as = do
     return $ fromMaybe susceptible mayInf
 
   where
-    susceptibleAgentAux :: (RandomGen g) => Agents -> Rand g SIRAgent
+    susceptibleAgentAux :: RandomGen g => Agents -> Rand g SIRAgent
     susceptibleAgentAux as = do
       randContact <- randomElem as
       if (is Infected randContact)
@@ -129,8 +128,8 @@ doTimes n f = forM [0..n - 1] (\_ -> f)
 is :: SIRState -> SIRAgent -> Bool
 is s (s',_) = s == s'
 
-initAgents :: (RandomGen g) => Int -> Int -> Rand g Agents
-initAgents n i = do
+initAgentsRand :: RandomGen g => Int -> Int -> Rand g Agents
+initAgentsRand n i = do
   let sus = replicate (n - i) susceptible
   expTs <- mapM randomExpM (replicate i (1 / illnessDuration))
   let inf = map infected expTs

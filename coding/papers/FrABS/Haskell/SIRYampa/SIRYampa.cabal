@@ -60,7 +60,9 @@ executable SIRYampa
   build-depends:        base >=4.9 && <4.10
                       , Yampa >=0.10 && <0.11
                       , MonadRandom
-                      
+                      , containers
+                      , mtl 
+
   -- Directories containing source files.
   hs-source-dirs:       .
                       , src

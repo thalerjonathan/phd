@@ -148,7 +148,7 @@ parSimulation :: RandomGen g =>
                   -> [AgentIn m] 
                   -> e
                   -> EnvironmentFold e
-                  -> MSF (ReaderT DTime (StateT (AgentOut s m) (Rand g)))
+                  -> SF (StateT (AgentOut s m) (Rand g))
                       () 
                       ([AgentOut s m], e)
 parSimulation msfs ains e ef = MSF $ \_ -> do
@@ -172,7 +172,8 @@ parSimulation msfs ains e ef = MSF $ \_ -> do
   where
     parSimulationAux :: e
                         -> (AgentIn m, AgentMSF g s m e)
-                        -> ReaderT DTime (StateT (AgentOut s m) (Rand g)) ((AgentOut s m, e), AgentMSF g s m e) 
+                        -> ReaderT DTime (StateT (AgentOut s m) (Rand g)) 
+                            ((AgentOut s m, e), AgentMSF g s m e) 
     parSimulationAux e (ain, msf) = do
       _ <- lift $ put agentOut  -- NOTE: reset state
       (e', msf') <- unMSF msf (ain, e)
@@ -216,22 +217,10 @@ getRandomS g0 = feedback g0 getRandomSAux
 -- NOTE: is in spirit of MSFs
 occasionallyMSF :: RandomGen g => Time -> b -> SF (StateT (AgentOut s m) (Rand g)) a (Event b)
 occasionallyMSF t_avg b
-    | t_avg > 0 = MSF (const tf)
-    | otherwise = error "AFRP: occasionally: Non-positive average interval."
-  where
-    -- Generally, if events occur with an average frequency of f, the
-    -- probability of at least one event occurring in an interval of t
-    -- is given by (1 - exp (-f*t)). The goal in the following is to
-    -- decide whether at least one event occurred in the interval of size
-    -- dt preceding the current sample point. For the first point,
-    -- we can think of the preceding interval as being 0, implying
-    -- no probability of an event occurring.
-
-    tf = do
-      dt <- ask
-      r <- lift $ getRandomR (0, 1)
-      let p = 1 - exp (-(dt / t_avg))
-      let evt = if r < p 
-                  then Event b 
-                  else NoEvent
-      return (evt, MSF (const tf))
+  | t_avg > 0 = proc _ -> do
+    r <- arrM_ $ lift $ getRandomR (0, 1) -< () -- TODO: refine into general solution
+    let p = 1 - exp (-(dt / t_avg))
+    if r < p
+      then returnA -< Event b
+      else returnA -< NoEvent
+  | otherwise = error "AFRP: occasionally: Non-positive average interval."

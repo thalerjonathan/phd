@@ -93,7 +93,7 @@ susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
                                         ((SIRAgentOut, SIREnv), Maybe ())
     susceptibleAgentInfectedEvent = proc (ain, e) -> do
       isInfected <- arrM (\ain' -> do 
-        flag <- lift $ gotInfected ain'
+        flag <- lift $ Main.gotInfected ain'
         return flag) -< ain
       let (ao, infEvt) = if isInfected 
                           then (agentOutObs Infected, Just ()) 

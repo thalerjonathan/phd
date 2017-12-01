@@ -17,6 +17,8 @@ rngSeed = 42
 agentCount = 500
 samplingTimeDelta = 1.0
 
+-- TODO: repair
+
 runHeroesCowardsWithRendering :: IO ()
 runHeroesCowardsWithRendering =
     do

@@ -21,6 +21,8 @@ dt = 1000
 updateStrat = Parallel -- NOTE: would not work correctly when using Sequential traversion
 shuffleAgents = False
 
+-- TODO: repair
+
 runDoubleAuctionSteps :: IO ()
 runDoubleAuctionSteps = 
     do

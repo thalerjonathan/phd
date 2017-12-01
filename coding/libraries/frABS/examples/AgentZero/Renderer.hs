@@ -1,51 +1,54 @@
-module AgentZero.Renderer (
+module Renderer 
+  (
     renderAgentZeroFrame
   ) where
 
-import           FRP.FrABS
-
-import           AgentZero.Model
-
+import FRP.FrABS
 import qualified Graphics.Gloss  as GLO
 
-type AgentZeroRenderFrame = RenderFrame AgentZeroAgentState AgentZeroEnvironment 
-type AgentZeroEnvCellColorer = EnvCellColorerDisc2d AgentZeroEnvCell
-type AgentZeroCoord = AgentCoordDisc2d AgentZeroAgentState
+import Model
 
+type AgentZeroRenderFrame     = RenderFrame AgentZeroAgentState AgentZeroEnvironment 
+type AgentZeroEnvCellColorer  = EnvCellColorerDisc2d AgentZeroEnvCell
+type AgentZeroCoord           = AgentCoordDisc2d AgentZeroAgentState
+
+agentSize :: Float
 agentSize = 15
-agentColor = GLO.makeColor (realToFrac 0.0) (realToFrac 0.3) (realToFrac 0.6) 1.0
+
+agentColor :: GLO.Color
+agentColor = GLO.makeColor 0.0 0.3 0.6 1.0
 
 renderAgentZeroFrame :: AgentZeroRenderFrame
-renderAgentZeroFrame wSize@(wx, wy) t ss e = GLO.Pictures [patchesPic, agentsPic]
-    where
-        wp = azWorldPatches e
-        as = azAgentSpace e
+renderAgentZeroFrame wSize t ss e = GLO.Pictures [patchesPic, agentsPic]
+  where
+    wp = azWorldPatches e
+    as = azAgentSpace e
 
-        patchesPic = renderFrameDisc2d 
-                        voidAgentRendererDisc2d --(defaultAgentRendererDisc2d (defaultAgentColorerDisc2d agentColor) agentZeroDiscCoord) -- voidAgentRendererDisc2d
-                        (defaultEnvRendererDisc2d agentZeroEnvCellColor)
-                        wSize
-                        t
-                        [] -- ss
-                        wp
+    patchesPic = renderFrameDisc2d 
+                    voidAgentRendererDisc2d --(defaultAgentRendererDisc2d (defaultAgentColorerDisc2d agentColor) agentZeroDiscCoord) -- voidAgentRendererDisc2d
+                    (defaultEnvRendererDisc2d agentZeroEnvCellColor)
+                    wSize
+                    t
+                    [] -- ss
+                    wp
 
-        agentsPic = renderFrameCont2d 
-                        (defaultAgentRendererCont2d agentSize (defaultAgentColorerCont2d agentColor) azAgentCoord)
-                        voidEnvRendererCont2d
-                        wSize
-                        t
-                        ss
-                        as
+    agentsPic = renderFrameCont2d 
+                    (defaultAgentRendererCont2d agentSize (defaultAgentColorerCont2d agentColor) azAgentCoord)
+                    voidEnvRendererCont2d
+                    wSize
+                    t
+                    ss
+                    as
 
-agentZeroDiscCoord :: AgentZeroCoord
-agentZeroDiscCoord AgentZeroAgentState { azAgentCoord = coordCont2d } = (xd, yd)
-    where
-        (xc, yc) = coordCont2d
-        xd = floor xc
-        yd = floor yc
+_agentZeroDiscCoord :: AgentZeroCoord
+_agentZeroDiscCoord AgentZeroAgentState { azAgentCoord = coordCont2d } = (xd, yd)
+  where
+    (xc, yc) = coordCont2d
+    xd = floor xc
+    yd = floor yc
 
 agentZeroEnvCellColor :: AgentZeroEnvCellColorer
 agentZeroEnvCellColor AgentZeroEnvCell { azCellState = state, azCellShade = shade }
-    | Friendly == state = GLO.makeColor (realToFrac 1.0) (realToFrac 1.0) (realToFrac shade) 1.0
-    | Attack == state = GLO.makeColor (realToFrac 1.0) (realToFrac 0.1) (realToFrac 0.1) 1.0
-    | Dead == state = GLO.black
+  | Friendly == state = GLO.makeColor 1.0 1.0 shade 1.0
+  | Attack == state = GLO.makeColor 1.0 0.1 0.1 1.0
+  | otherwise = GLO.black

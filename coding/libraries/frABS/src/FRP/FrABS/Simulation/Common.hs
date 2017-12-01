@@ -16,10 +16,11 @@ import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Environment.Definitions
 import FRP.FrABS.Simulation.Init
 import FRP.FrABS.Simulation.Internal
-import FRP.FrABS.Utils
+import FRP.FrABS.Random.Pure
 
 type SimulationStepOut s e            = (Time, [AgentObservable s], e)
 
+-- TODO: must become a SF
 runEnv :: DTime -> SimulationParams e -> e -> (e, SimulationParams e)
 runEnv dt params e = maybe (e, params) (runEnvAux params e) mayEnvBeh
   where

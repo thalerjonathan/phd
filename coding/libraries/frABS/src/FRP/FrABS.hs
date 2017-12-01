@@ -283,6 +283,7 @@ module FRP.FrABS
   , StepCallback
   , RenderFrame
 
+  , initRng
   , initSimulation
   , initSimNoEnv
   , newAgentId
@@ -378,15 +379,18 @@ module FRP.FrABS
 
 import FRP.FrABS.Agent.Agent
 import FRP.FrABS.Agent.Monad
-import FRP.FrABS.Agent.Random
 import FRP.FrABS.Agent.Reactive
--- import FRP.FrABS.Agent.Utils
 import FRP.FrABS.Environment.Continuous
 import FRP.FrABS.Environment.Definitions
 import FRP.FrABS.Environment.Discrete
 import FRP.FrABS.Environment.Network
 import FRP.FrABS.Environment.Spatial
 import FRP.FrABS.Environment.Utils
+import FRP.FrABS.Extensions.After
+import FRP.FrABS.Extensions.SuperSampling
+import FRP.FrABS.Random.Monadic 
+import FRP.FrABS.Random.Pure
+import FRP.FrABS.Random.Reactive
 import FRP.FrABS.Rendering.Continuous2d
 import FRP.FrABS.Rendering.Discrete2d
 import FRP.FrABS.Rendering.GlossSimulator
@@ -405,7 +409,7 @@ import FRP.FrABS.Simulation.Simulation
   , e.g. a new SF implementation: agent: agentBehaviour :: s -> SF (AgentIn e s) -> SF (AgentOut e). allows to get rid of state in agentin. agentout state then simply becomes oberservable state
   , -> what happens then in the case of a conversation? the receiving agent cannot change the state? We would need to run the conversation within the original agentbehaviour 
 
-- should there be output at t=0?
+- the problem of output at t=0? PROBLEM: after first iteration, SFs have a different signature which causes a problem, need a thorough research into 
 
 - BUG: if two agents have the same id, their states will get mixed-up when using the Sequential updating
   

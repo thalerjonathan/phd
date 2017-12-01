@@ -15,6 +15,8 @@ t = 2
 updateStrat = Sequential
 shuffleAgents = True
 
+-- TODO: repair, conversations not yet working
+
 runConversationSteps :: IO ()
 runConversationSteps = 
     do

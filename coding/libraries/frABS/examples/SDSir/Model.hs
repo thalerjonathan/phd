@@ -1,15 +1,15 @@
-module SysDynSIR.Model 
-    (
-      totalPopulation
-    , infectivity
-    , contactRate
-    , avgIllnessDuration
+module Model 
+  (
+    totalPopulation
+  , infectivity
+  , contactRate
+  , avgIllnessDuration
 
-    , susceptibleStockId
-    , infectiousStockId
-    , recoveredStockId
-    , infectionRateFlowId
-    , recoveryRateFlowId
+  , susceptibleStockId
+  , infectiousStockId
+  , recoveredStockId
+  , infectionRateFlowId
+  , recoveryRateFlowId
   ) where
 
 import FRP.FrABS

@@ -3,6 +3,7 @@ module FRP.FrABS.Simulation.Init
     SimulationParams (..)
   , UpdateStrategy (..)
 
+  , initRng
   , initSimulation
   , initSimNoEnv
   , newAgentId

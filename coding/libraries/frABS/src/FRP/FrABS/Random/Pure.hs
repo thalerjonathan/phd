@@ -1,9 +1,27 @@
-module FRP.FrABS.Utils (
+module FRP.FrABS.Random.Pure 
+  (
     fisherYatesShuffle
+  , randomBool
+  , randomExp
+  , randomShuffle
   ) where
 
-import System.Random
+import Control.Monad.Random
 import qualified Data.Map as Map
+
+import FRP.FrABS.Random.Monadic 
+
+-------------------------------------------------------------------------------
+-- PURE RANDOM
+-------------------------------------------------------------------------------
+randomBool :: RandomGen g => g -> Double -> (Bool, g)
+randomBool g p = runRand (randomBoolM p) g
+
+randomExp :: RandomGen g => g -> Double -> (Double, g)
+randomExp g lambda = runRand (randomExpM lambda) g
+
+randomShuffle :: RandomGen g => g -> [a] -> ([a], g)
+randomShuffle = fisherYatesShuffle
 
 -- Taken from https://wiki.haskell.org/Random_shuffle
 -- | Randomly shuffle a list without the IO Monad

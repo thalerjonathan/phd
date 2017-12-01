@@ -6,6 +6,20 @@ cabal-version:     >= 1.2
 -------------------------------------------------------------------------------
 -- EXECUTABLES 
 -------------------------------------------------------------------------------
+executable AgentZero
+  main-is:         Main.hs
+  hs-source-dirs:  AgentZero/
+  build-depends:   base, 
+                    FrABS, 
+                    Yampa,
+                    parallel,
+                    MonadRandom,
+                    gloss,
+                    random,
+                    fgl
+                    
+  ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded -fno-warn-unused-top-binds
+  
 executable FrSIR
   main-is:         Main.hs
   hs-source-dirs:
@@ -40,9 +54,12 @@ executable SamplingTests
 
   ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded
 
-executable SIR
+executable SDSir
   main-is:         Main.hs
-  hs-source-dirs:  SIR/
+  hs-source-dirs:
+    .,
+    SDSir/,
+    Utils
 
   build-depends:   base, 
                     FrABS, 
@@ -51,13 +68,37 @@ executable SIR
                     IfElse,
                     transformers
 
+  ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded
+  
+executable SIR
+  main-is:         Main.hs
   hs-source-dirs:
     .,
     SIR/,
     Utils
 
+  build-depends:   base, 
+                    FrABS, 
+                    Yampa,
+                    parallel,
+                    IfElse,
+                    transformers
+
   ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded
- 
+
+executable Wildfire
+  main-is:         Main.hs
+  hs-source-dirs:  Wildfire/
+
+  build-depends:   base, 
+                    FrABS, 
+                    Yampa,
+                    parallel,
+                    IfElse,
+                    transformers
+
+  ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded
+
 --executable frABSExamples
 --  main-is:         Main.hs
   -- hs-source-dirs:  src

@@ -237,7 +237,7 @@ instance (MonadTrans t, MonadRandom m) => MonadRandom (t m) where
 
 -- | Updates the generator every step
 -- Hint: Use the isomorphism 'RandT ~ StateT' and then 'Control.Monad.Trans.MSF.State'
-runRandS :: Monad m => MSF (RandT g m) a b -> g -> MSF m a (g, b)
+runRandS :: (RandomGen g, Monad m) => MSF (RandT g m) a b -> g -> MSF m a (g, b)
 runRandS msf g = runStateS_ (runRandSAux msf) g
   where
     runRandSAux :: Monad m => MSF (RandT g m) a b -> MSF (StateT g m) a b
@@ -256,11 +256,12 @@ runRandS msf g = arrM $ \a -> do
   return (b, g')
 -}
 
-evalRandS  :: Monad m => MSF (RandT g m) a b -> g -> MSF m a b
+evalRandS  :: (RandomGen g, Monad m) => MSF (RandT g m) a b -> g -> MSF m a b
 evalRandS msf g = runRandS msf g >>> arr snd
 
-occasionallyMSFGeneral :: MonadRandom m => Time -> b -> SF m a (Event b)
-occasionallyMSFGeneral t_avg b
+{-
+occasionally :: MonadRandom m => Time -> b -> SF m a (Event b)
+occasionally t_avg b
   | t_avg > 0 = proc _ -> do
     r <- arrM_ $ getRandomR (0, 1) -< () -- TODO: refine into general solution
     let p = 1 - exp (-(dt / t_avg))
@@ -268,5 +269,5 @@ occasionallyMSFGeneral t_avg b
       then returnA -< Event b
       else returnA -< NoEvent
   | otherwise = error "AFRP: occasionally: Non-positive average interval."
-
+-}
 -- occasionallyMSF = occasionallyMSFGeneral

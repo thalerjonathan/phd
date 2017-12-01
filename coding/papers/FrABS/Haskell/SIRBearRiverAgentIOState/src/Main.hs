@@ -246,15 +246,7 @@ runRandS msf g = runStateS_ (runRandSAux msf) g
       g <- get
       ((b, g'), randMsf') <- runRandT randMon g
       put g'
-      return (b, runRandSAux randMsf) -- TODO: replace by feedback?
-
-{-
-runRandS :: Monad m => MSF (RandT g m) a b -> g -> MSF m a (g, b)
-runRandS msf g = arrM $ \a -> do
-  let bla = unMSF msf a
-  (b, g') <- runRandT msf g
-  return (b, g')
--}
+      return ((g', b), runRandSAux randMsf g') -- TODO: replace by feedback?
 
 evalRandS  :: (RandomGen g, Monad m) => MSF (RandT g m) a b -> g -> MSF m a b
 evalRandS msf g = runRandS msf g >>> arr snd

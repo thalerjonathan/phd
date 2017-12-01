@@ -1,4 +1,5 @@
 {-# LANGUAGE Arrows #-}
+{-# LANGUAGE FlexibleInstances #-}
 module Main where
 
 import System.IO
@@ -6,7 +7,8 @@ import Data.Maybe
 
 import Control.Monad.Random
 import Control.Monad.Reader
-import Control.Monad.State
+--import Control.Monad.State
+import Control.Monad.Trans.MSF.State
 import FRP.BearRiver
 
 import SIR
@@ -218,15 +220,46 @@ getRandomS g0 = feedback g0 getRandomSAux
 occasionallyMSF :: RandomGen g => Time -> b -> SF (StateT (AgentOut s m) (Rand g)) a (Event b)
 occasionallyMSF t_avg b
   | t_avg > 0 = proc _ -> do
-    r <- arrM_ $ getRandomR (0, 1) -< () -- TODO: refine into general solution
+    r <- arrM_ $ getRandomR (0, 1) -< ()
     let p = 1 - exp (-(dt / t_avg))
     if r < p
       then returnA -< Event b
       else returnA -< NoEvent
   | otherwise = error "AFRP: occasionally: Non-positive average interval."
 
--- NOTE: is in spirit of MSFs
-occasionallyMSFGeneral :: (Monad m, RandomGen g) => Time -> b -> SF (RandT g m) a (Event b)
+-- Yep, an orphan instance, sadly. Eventually this should be a pull request to the MonadRandom package.
+instance (MonadTrans t, MonadRandom m) => MonadRandom (t m) where
+-- use 'lift' from transformers here
+  getRandomR  = lift . getRandomR
+  getRandom   = lift getRandom
+  getRandomRs = lift . getRandomRs
+  getRandoms  = lift getRandoms
+
+-- | Updates the generator every step
+-- Hint: Use the isomorphism 'RandT ~ StateT' and then 'Control.Monad.Trans.MSF.State'
+runRandS :: Monad m => MSF (RandT g m) a b -> g -> MSF m a (g, b)
+runRandS msf g = runStateS_ (runRandSAux msf) g
+  where
+    runRandSAux :: Monad m => MSF (RandT g m) a b -> MSF (StateT g m) a b
+    runRandSAux randMsf = MSF $ \a -> do
+      let randMon = unMSF randMsf a
+      g <- get
+      ((b, g'), randMsf') <- runRandT randMon g
+      put g'
+      return (b, runRandSAux randMsf) -- TODO: replace by feedback?
+
+{-
+runRandS :: Monad m => MSF (RandT g m) a b -> g -> MSF m a (g, b)
+runRandS msf g = arrM $ \a -> do
+  let bla = unMSF msf a
+  (b, g') <- runRandT msf g
+  return (b, g')
+-}
+
+evalRandS  :: Monad m => MSF (RandT g m) a b -> g -> MSF m a b
+evalRandS msf g = runRandS msf g >>> arr snd
+
+occasionallyMSFGeneral :: MonadRandom m => Time -> b -> SF m a (Event b)
 occasionallyMSFGeneral t_avg b
   | t_avg > 0 = proc _ -> do
     r <- arrM_ $ getRandomR (0, 1) -< () -- TODO: refine into general solution
@@ -236,8 +269,4 @@ occasionallyMSFGeneral t_avg b
       else returnA -< NoEvent
   | otherwise = error "AFRP: occasionally: Non-positive average interval."
 
-runRandS :: Monad m => MSF (RandT g m) a b -> g -> MSF m a (g, b)
-runRandS = undefined
-
-evalRandS  :: Monad m => MSF (RandT g m) a b -> g -> MSF m a b
-evalRandS msf g = runRandS msf g >>> arr snd
+-- occasionallyMSF = occasionallyMSFGeneral

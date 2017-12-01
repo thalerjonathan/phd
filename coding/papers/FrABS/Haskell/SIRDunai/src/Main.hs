@@ -2,8 +2,6 @@
 module Main where
 
 import System.IO
-import Data.List
-import Data.Maybe
 
 import Control.Monad.Random
 import Control.Monad.Reader
@@ -89,8 +87,7 @@ susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
         susceptibleAgentInfectedEventAux as = do
           randContactCount <- lift $ randomExpM (1 / contactRate)
           aInfs <- lift $ doTimes (floor randContactCount) (susceptibleAgentAux as)
-          let mayInf = find (Infected==) aInfs
-          if isJust mayInf
+          if any (Infected ==) aInfs
             then return (Infected, Just ())
             else return (Susceptible, Nothing)
 

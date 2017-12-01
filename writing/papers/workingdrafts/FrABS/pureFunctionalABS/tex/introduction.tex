@@ -1,0 +1,22 @@
+\section{Introduction}
+% Drop Cap Letter needed in case of IEEE Journal
+%\IEEEPARstart{W}{ith}
+TODO: start with simulating epidemics and then go into ABS
+
+Background: Follow the old 1st draft paper:
+1. introduce simulating epidemics with the SIR model
+2. explain the SIR model 
+3. explain agent-based approach 
+Implementation: deriving implementations step-by-step 
+1. naive implementation without Yampa using the rand-monad 
+	advantage: 	first approach, it works, having random-monad is VERY convenient
+	drawback: 	time is explicitly available and need to feedback all agent-states into every agent
+2. naive yampa implementation
+	advantage:	time is implicit
+	drawback:	still all agent-states are visible to every agent
+3. extended yampa implementation with environment and AgentIn/Out
+	advantage:	more general
+	drawback:	AgentOut is cumbersome to handle iteratively
+4. dunai / bearriver
+	advantage:	can have monads AND functional reactive 
+	drawback:	?

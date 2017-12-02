@@ -1,0 +1,147 @@
+name:              ChimeraExamples
+version:           1.0
+Build-Type:        Simple
+cabal-version:     >= 1.2
+
+-------------------------------------------------------------------------------
+-- EXECUTABLES 
+-------------------------------------------------------------------------------
+executable AgentZero
+  main-is:         Main.hs
+  hs-source-dirs:  ABS/AgentZero/
+  build-depends:   base, 
+                    chimera, 
+                    Yampa,
+                    parallel,
+                    MonadRandom,
+                    gloss,
+                    random,
+                    fgl
+                    
+  ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded -fno-warn-unused-top-binds
+  
+executable FrSIR
+  main-is:         Main.hs
+  hs-source-dirs:
+    .,
+    ABS/SIRExamples/FrSIR/,
+    ABS/SIRExamples/Utils/
+  build-depends:   base, 
+                    chimera, 
+                    Yampa,
+                    parallel,
+                    MonadRandom
+
+executable NewAgents
+  main-is:         Main.hs
+  hs-source-dirs:  ABS/NewAgents/
+
+  build-depends:   base, 
+                    chimera, 
+                    Yampa,
+                    parallel
+
+  ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded
+
+executable SDSir
+  main-is:         Main.hs
+  hs-source-dirs:
+    .,
+    SD/SDSir/,
+    ABS/SIRExamples/Utils/
+
+  build-depends:   base, 
+                    chimera, 
+                    Yampa,
+                    parallel,
+                    IfElse,
+                    transformers
+
+  ghc-options:      -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded
+
+--executable chimeraExamples
+--  main-is:         Main.hs
+  -- hs-source-dirs:  src
+--  build-depends:   base, 
+ --                   chimera, 
+  --                  Yampa, 
+   ----                 gloss,
+     --               random,
+      --              containers,
+       --             array,
+        --            MonadRandom,
+         --           split,
+          --          fgl,
+           --         mtl,
+            --        transformers,
+             --       IfElse
+
+-- install Yampa from https://github.com/ivanperez-keera/Yampa build using -fexpose-core
+
+  --ghc-options:      -O2
+   ------                 -Wall
+      --              -Werror
+       --             -threaded
+                    -- -prof
+                    -- "-with-rtsopts= -s -hy -p -i0.1 -K256M"
+                    -- -auto-all
+                    -- -caf-all
+                    -- -fforce-recomp
+                    -- -Wall
+                    -- -fwarn-tabs
+                    -- -fno-warn-tabs
+                    -- -threaded
+                    -- -eventlog
+                    -- -rtsopts
+                    -- -prof
+                    -- -auto-all
+                    -- -caf-all
+                    -- -fforce-recomp
+                    -- "-with-rtsopts=-N"
+                      -- use hc, hd or hy
+
+-------------------------------------------------------------------------------
+-- TEST-SUITES
+-------------------------------------------------------------------------------
+Test-Suite test_SugarScape
+  default-language:
+    Haskell2010
+  type:
+    exitcode-stdio-1.0
+  hs-source-dirs:
+    ., 
+    SugarScape/Tests/
+  main-is: Test.hs
+  build-depends:
+      base
+    , tasty
+    , tasty-hunit
+    , tasty-smallcheck
+    , tasty-quickcheck
+    , chimera
+    , QuickCheck
+    , HUnit
+  ghc-options:    -main-is Test 
+  -- why the F*** is main-is not working???
+
+Test-Suite test_FrSIR
+  default-language:
+    Haskell2010
+  type:
+    exitcode-stdio-1.0
+  hs-source-dirs:
+    .,
+    FrSIR/Tests/
+  main-is: Test.hs
+  build-depends:
+      base
+    , tasty
+    , tasty-hunit
+    , tasty-smallcheck
+    , tasty-quickcheck
+    , chimera
+    , QuickCheck
+    , HUnit
+    , stm
+  ghc-options:    -main-is Test 
+  -- why the F*** is main-is not working???

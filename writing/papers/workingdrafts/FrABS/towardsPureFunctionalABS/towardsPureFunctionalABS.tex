@@ -17,7 +17,7 @@
 
 \font\subtitlefont=cmr12 at 18pt
 
-\title{Towards pure functional Agent-Based Simulation \\ in Haskell}
+\title{Hybrid Agent-Based Simulation \\ {\large Towards pure functional Agent-Based Simulation in Haskell}}
 
 % IEEEtran journal authors
 %\author{Jonathan Thaler, ̃Peer-Olaf Siebers \\ School of Computer Science \\ University of Nottingham%
@@ -67,10 +67,15 @@
 \maketitle 
 
 \begin{abstract}
-TODO: use SocialForce model as application, its an excellent use-case. Also we have working implementations in AnyLogic and RePast already which allows for awesome comparability!
+TODO: the main punch is that our approach combines the best of the three simulation methodologies:
+	- SD part: 	it can represent continuous time (as well as discrete) with continuous data-flows from agents which act at the same time (parallel update), can express the formulas directly in code, there exists also a small EDSL for expressing SD in our approach, can guarantee reproducibility and no drawing of random-numbers in our approach
+		-> drawback over real SD: none known so far 
+	- DES part: it can represent discrete time with events occurring at discrete points in time which cause an instant change in the system
+		-> drawback over real DES: time does not advance discretely to the next event which results of course not in the performance of a real DES system
+	- ABS part:	the entities of the system (=agents) can be heterogenous and pro-active in time and can have arbitrary neighbourhood (2d/3d discrete/continuous, network,...)
+		-> drawback over classic ABS: none known so far 
 
-
-%TODO: also use SIR model with the main punch: FrABS can do agent-based simulation in a continuous time setting but with agents, so combining the best of both SD and ABS approaches.
+TODO: give examples of all 3 approaches: SD & ABS: SIR model, DES: simulation of a queuing system
 
 So far, the pure functional paradigm hasn't got much attention in Agent-Based Simulation (ABS) where the dominant programming paradigm is object-orientation, with Java, Python and C++ being its most prominent representatives. We claim that pure functional programming using Haskell is very well suited to implement complex, real-world agent-based models and brings with it a number of benefits. To show that we implemented the seminal Sugarscape model in Haskell in our library \textit{FrABS} which allows to do ABS the first time in the pure functional programming language Haskell. To achieve this we leverage the basic concepts of ABS with functional reactive programming using Yampa. The result is a surprisingly fresh approach to ABS as it allows to incorporate discrete time-semantics similar to Discrete Event Simulation and continuous time-flows as in System Dynamics. In this paper we will show the novel approach of functional reactive ABS through the example of the SIR model, discuss implications, benefits and best practices.
 \end{abstract}

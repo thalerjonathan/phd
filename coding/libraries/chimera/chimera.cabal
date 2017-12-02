@@ -1,0 +1,82 @@
+name:             chimera
+version:          0.1
+Build-Type:       Simple
+cabal-version:    >= 1.2
+author:           Jonathan Thaler
+maintainer:       Jonathan Thaler (thaler.jonathan@gmail.com)
+category:         Agent-Based Simulation, System-Dynamics, Discrete Event Simulation, FRP
+synopsis:         Library for programming hybrid agent-based simulation in a pure functional, reactive style using Monadic Stream Functions
+
+description:      Domain-specific language embedded in Haskell for programming hybrid agent-based simulation (mixed discrete-time and continuous-time) systems.
+                  Chimera is based on Yampa/Dunai/BearRiver as it utilises concepts of Functional Reactive Programming (FRP) 
+
+build-type:        Simple
+
+library
+  hs-source-dirs:  src
+  ghc-options :    -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded 
+  build-depends:   base, 
+                    Yampa,
+                    gloss, 
+                    random, 
+                    containers, 
+                    array, 
+                    MonadRandom, 
+                    split, 
+                    fgl, 
+                    transformers,
+                    stm,
+                    parallel,
+                    titan-yampa-debugger
+
+  -- install Yampa from https://github.com/ivanperez-keera/Yampa build using -fexpose-core
+
+  exposed-modules:
+    FRP.Chimera
+    FRP.Chimera.Agent.Agent
+    FRP.Chimera.Agent.Utils
+    FRP.Chimera.Agent.Random
+    FRP.Chimera.Agent.Monad
+    FRP.Chimera.Agent.Reactive
+    FRP.Chimera.Environment.Definitions
+    FRP.Chimera.Environment.Spatial
+    FRP.Chimera.Environment.Discrete
+    FRP.Chimera.Environment.Continuous
+    FRP.Chimera.Environment.Network
+    FRP.Chimera.Environment.Utils
+    FRP.Chimera.Extensions.After
+    FRP.Chimera.Extensions.SuperSampling
+    FRP.Chimera.Random.Monadic 
+    FRP.Chimera.Random.Pure
+    FRP.Chimera.Random.Reactive
+    FRP.Chimera.Rendering.Discrete2d
+    FRP.Chimera.Rendering.Continuous2d
+    FRP.Chimera.Rendering.Network
+    FRP.Chimera.Rendering.GlossSimulator
+    FRP.Chimera.Simulation.Simulation
+    FRP.Chimera.Simulation.Common
+    FRP.Chimera.Simulation.Init
+    FRP.Chimera.Simulation.Replication
+    FRP.Chimera.Simulation.ParIteration      
+    FRP.Chimera.Simulation.SeqIteration 
+    FRP.Chimera.Simulation.Internal
+    FRP.Chimera.SD.Definitions
+
+Test-Suite test
+  default-language:
+    Haskell2010
+  type:
+    exitcode-stdio-1.0
+  hs-source-dirs:
+    .,
+    src/tests/,
+    src/
+  main-is: Test.hs
+  build-depends:
+      base
+    , tasty
+    , tasty-hunit
+    , tasty-smallcheck
+    , tasty-quickcheck
+  ghc-options:    -main-is Test 
+  -- why the F*** is main-is not working???

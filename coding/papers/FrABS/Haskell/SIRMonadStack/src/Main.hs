@@ -14,14 +14,15 @@ initState = 100
 
 main :: IO ()
 main = do
-  let g = mkStdGen rngSeed
-  let dt = 1.0
+  -- let g = mkStdGen rngSeed
+  g <- getStdGen
+  let dt = 1.0 :: Double
  
-  let readerM = runReaderT foo dt
+  let readerM = runReaderT fooRand dt
   let stateM = runStateT readerM initState
   let (x, initState') = evalRand stateM g 
 
-  print $ "foo returns: " ++ show x
+  print $ "function returns: " ++ show x
   print $ "updated state = " ++ show initState'
   
 -- TODO: can we have a generic monad with a ReaderT AND / OR a RandT 
@@ -39,16 +40,16 @@ foo = do
   put (s + r)
   return s
 
-{-
 fooRand :: MonadRandom m => ReaderT Double (StateT FooState m) FooState
 fooRand = do
   s <- get
-  r <- lift $ getRandom ((0, 100) :: (Int, Int))
+  r <- lift $ getRandomR ((0, 100) :: (Int, Int))
   put (s + r)
   return s
--}
 
+{-
 fooRand :: MonadRandom m => m FooState
 fooRand = do
-  r <- getRandom ((0, 100) :: (Int, Int))
+  r <- getRandomR ((0, 100) :: (Int, Int))
   return r
+-}

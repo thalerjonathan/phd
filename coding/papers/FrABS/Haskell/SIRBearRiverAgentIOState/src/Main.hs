@@ -7,17 +7,16 @@ import Data.Maybe
 
 import Control.Monad.Random
 import Control.Monad.Reader
---import Control.Monad.State
-import Control.Monad.Trans.MSF.State
+import Control.Monad.State
 import FRP.BearRiver
 
 import SIR
 
-type EnvironmentFold e = [e] -> e -> e
-type AgentMSF g s m e = SF (StateT (AgentOut s m) (Rand g)) (AgentIn m, e) e
+type EnvironmentFold e  = [e] -> e -> e
+type AgentMSF g s m e   = SF (StateT (AgentOut s m) (Rand g)) (AgentIn m, e) e
 
-type SIREnv = [AgentId]
-type SIRAgentMSF g = AgentMSF g SIRState SIRMsg SIREnv
+type SIREnv         = [AgentId]
+type SIRAgentMSF g  = AgentMSF g SIRState SIRMsg SIREnv
 
 contactRate :: Double
 contactRate = 5.0
@@ -37,8 +36,8 @@ infectedCount = 10
 rngSeed :: Int
 rngSeed = 42
 
-dt :: DTime
-dt = 0.1
+globalDt :: DTime
+globalDt = 0.1
 
 t :: Time
 t = 150
@@ -50,7 +49,7 @@ main = do
   let g = mkStdGen rngSeed
   
   let as = initAgents agentCount infectedCount
-  let ass = runSimulationUntil g t dt as
+  let ass = runSimulationUntil g t globalDt as
 
   let dyns = aggregateAllStates ass
   let fileName =  "SIR_BEARRIVER_AGENTIOSTATE_DYNAMICS_" ++ show agentCount ++ "agents.m"
@@ -108,7 +107,7 @@ susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
                                                 (SIREnv) 
                                                 ()
         susceptibleAgentInfectedEventAux = proc e -> do
-          makeContact <- occasionallyMSF (1 / contactRate) () -< ()
+          makeContact <- occasionally (1 / contactRate) () -< ()
           if isEvent makeContact
             then arrM blub -< e
             else returnA -< ()
@@ -131,7 +130,7 @@ infectedAgent = switch infectedAgentRecoveredEvent (const recoveredAgent)
                                       (SIRAgentIn, SIREnv) 
                                       (SIREnv, Event ())
     infectedAgentRecoveredEvent = proc (ain, e) -> do
-      recEvt <- occasionallyMSF illnessDuration () -< ()
+      recEvt <- occasionally illnessDuration () -< ()
       let a = event Infected (const Recovered) recEvt
 
       arrM (\(a, ain) -> do
@@ -199,15 +198,20 @@ occasionallyNaive g t_avg b
                   else NoEvent
       return (evt, MSF (const $ tf g' b))
 
-occasionallyFeedback :: (RandomGen g, Monad m) => g -> Time -> b -> SF m a (Event b)
-occasionallyFeedback g t_avg b
+-- is avoiding MSF constructor
+occasionallyNaiveFeedback :: (RandomGen g, Monad m) => g -> Time -> b -> SF m a (Event b)
+occasionallyNaiveFeedback g t_avg b
     | t_avg > 0 = proc _ -> do
       r <- getRandomS g -< ()
+      dt <- timeDelta -< ()
       let p = 1 - exp (-(dt / t_avg))
       if r < p
         then returnA -< Event b
         else returnA -< NoEvent
     | otherwise = error "AFRP: occasionally: Non-positive average interval."
+
+timeDelta :: Monad m => SF m a DTime
+timeDelta = arrM_ ask
 
 getRandomS :: (RandomGen g, Random b, Monad m) => g -> SF m a b
 getRandomS g0 = feedback g0 getRandomSAux
@@ -217,49 +221,41 @@ getRandomS g0 = feedback g0 getRandomSAux
       returnA -< (r, g')
 
 -- NOTE: is in spirit of MSFs
+-- hard-coded monad-stack, not very flexible
 occasionallyMSF :: RandomGen g => Time -> b -> SF (StateT (AgentOut s m) (Rand g)) a (Event b)
 occasionallyMSF t_avg b
   | t_avg > 0 = proc _ -> do
     r <- arrM_ $ getRandomR (0, 1) -< ()
+    dt <- timeDelta -< ()
     let p = 1 - exp (-(dt / t_avg))
     if r < p
       then returnA -< Event b
       else returnA -< NoEvent
   | otherwise = error "AFRP: occasionally: Non-positive average interval."
-
--- Yep, an orphan instance, sadly. Eventually this should be a pull request to the MonadRandom package.
-instance (MonadTrans t, MonadRandom m) => MonadRandom (t m) where
--- use 'lift' from transformers here
-  getRandomR  = lift . getRandomR
-  getRandom   = lift getRandom
-  getRandomRs = lift . getRandomRs
-  getRandoms  = lift getRandoms
 
 -- | Updates the generator every step
 -- Hint: Use the isomorphism 'RandT ~ StateT' and then 'Control.Monad.Trans.MSF.State'
 runRandS :: (RandomGen g, Monad m) => MSF (RandT g m) a b -> g -> MSF m a (g, b)
-runRandS msf g = runStateS_ (runRandSAux msf) g
-  where
-    runRandSAux :: Monad m => MSF (RandT g m) a b -> MSF (StateT g m) a b
-    runRandSAux randMsf = MSF $ \a -> do
-      let randMon = unMSF randMsf a
-      g <- get
-      ((b, g'), randMsf') <- runRandT randMon g
-      put g'
-      return ((g', b), runRandSAux randMsf g') -- TODO: replace by feedback?
+runRandS msf g = MSF $ \a -> do
+  ((b, msf'), g') <- runRandT (unMSF msf a) g
+  return ((g', b), runRandS msf' g')
 
 evalRandS  :: (RandomGen g, Monad m) => MSF (RandT g m) a b -> g -> MSF m a b
 evalRandS msf g = runRandS msf g >>> arr snd
 
-{-
+-- NOTE: final version, this is what we want as it can be used in any transformer stack with a Rand in it
 occasionally :: MonadRandom m => Time -> b -> SF m a (Event b)
 occasionally t_avg b
   | t_avg > 0 = proc _ -> do
-    r <- arrM_ $ getRandomR (0, 1) -< () -- TODO: refine into general solution
+    r <- getRandomRS (0, 1) -< ()
+    dt <- timeDelta -< ()
     let p = 1 - exp (-(dt / t_avg))
     if r < p
       then returnA -< Event b
       else returnA -< NoEvent
   | otherwise = error "AFRP: occasionally: Non-positive average interval."
--}
--- occasionallyMSF = occasionallyMSFGeneral
+
+getRandomRS :: (MonadRandom m, Random b) => (b, b) -> SF m a b
+getRandomRS r = proc _ -> do
+  r <- arrM_ $ getRandomR r -< ()
+  returnA -< r 

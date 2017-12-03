@@ -1,5 +1,6 @@
 {-# LANGUAGE Arrows #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Main where
 
 import System.IO
@@ -92,7 +93,7 @@ susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
                                         (SIREnv, Event ())
     susceptibleAgentInfectedEvent = proc (ain, e) -> do
         isInfected <- arrM (\ain' -> do 
-          doInfect <- lift $ lift $ gotInfected infectionProb ain'
+          doInfect <- gotInfectedM infectionProb ain'
           if doInfect 
             then lift $ put (agentOutObs Infected) >> return doInfect
             else lift $ put (agentOutObs Susceptible) >> return doInfect) -< ain
@@ -109,16 +110,16 @@ susceptibleAgent = switch susceptibleAgentInfectedEvent (const infectedAgent)
         susceptibleAgentInfectedEventAux = proc e -> do
           makeContact <- occasionally (1 / contactRate) () -< ()
           if isEvent makeContact
-            then arrM blub -< e
+            then arrM makeRandomContact -< e
             else returnA -< ()
 
           where
-            blub :: RandomGen g => 
-                      SIREnv
-                      -> ReaderT DTime (StateT SIRAgentOut (Rand g)) ()
-            blub e = do
-              randContact <- lift $ lift $ randomElem e
-              lift $ sendMessageM (randContact, Contact Susceptible)
+            makeRandomContact :: RandomGen g => 
+                                  SIREnv
+                                  -> ReaderT DTime (StateT SIRAgentOut (Rand g)) ()
+            makeRandomContact e = do
+              randContact <- randomElemM e
+              sendMessageM' (randContact, Contact Susceptible)
               return ()
 
 infectedAgent :: RandomGen g => SIRAgentMSF g
@@ -136,7 +137,7 @@ infectedAgent = switch infectedAgentRecoveredEvent (const recoveredAgent)
       arrM (\(a, ain) -> do
         lift $ put (agentOutObs a)
         lift $ respondToContactWithM Infected ain) -< (a, ain)
-        
+
       returnA -< (e, recEvt)
 
 recoveredAgent :: RandomGen g => SIRAgentMSF g
@@ -144,7 +145,6 @@ recoveredAgent = proc (_, e) -> do
   arrM_ $ lift $ put (agentOutObs Recovered) -< ()
   returnA -< e
 
-  
 parSimulation :: RandomGen g => 
                      [AgentMSF g s m e] 
                   -> [AgentIn m] 
@@ -186,6 +186,24 @@ parSimulation msfs0 ains0 e0 ef = loopPre (msfs0, ains0, e0) (parSimulationAux e
       (e', msf') <- unMSF msf (ain, e)
       ao <- lift $ get          -- NOTE: get state
       return ((ao, e'), msf')
+
+sendMessageM' :: MonadState (AgentOut s m) mo => AgentMessage m -> mo ()
+sendMessageM' msg = state (\ao -> ((), sendMessage msg ao))
+
+randomElemM :: MonadRandom m => [a] -> m a
+randomElemM as = getRandomR (0, len - 1) >>= (\idx -> return $ as !! idx)
+  where
+    len = length as
+
+gotInfectedM :: MonadRandom m => Double -> SIRAgentIn -> m Bool
+gotInfectedM infectionProb ain = onMessageM gotInfectedMAux ain False
+  where
+    gotInfectedMAux :: MonadRandom m => Bool -> AgentMessage SIRMsg -> m Bool
+    gotInfectedMAux False (_, Contact Infected) = randomBoolM' infectionProb
+    gotInfectedMAux x _ = return x
+
+randomBoolM' :: MonadRandom m => Double -> m Bool
+randomBoolM' p = getRandomR (0, 1) >>= (\r -> return $ r <= p)
 
 -- NOTE: is in spirit of the Yampa implementation
 -- NAIVE IMPLEMENTATION

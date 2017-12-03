@@ -141,9 +141,10 @@ infectedAgent = switch infectedAgentRecoveredEvent (const recoveredAgent)
 
 recoveredAgent :: RandomGen g => SIRAgentMSF g
 recoveredAgent = proc (_, e) -> do
-  arrM (\_ -> lift $ put (agentOutObs Recovered)) -< ()
+  arrM_ $ lift $ put (agentOutObs Recovered) -< ()
   returnA -< e
 
+  
 parSimulation :: RandomGen g => 
                      [AgentMSF g s m e] 
                   -> [AgentIn m] 
@@ -152,30 +153,35 @@ parSimulation :: RandomGen g =>
                   -> SF (StateT (AgentOut s m) (Rand g))
                       () 
                       ([AgentOut s m], e)
-parSimulation msfs ains e ef = MSF $ \_ -> do
-    aosMsfs <- mapM (parSimulationAux e) (zip ains msfs)
-
-    let aoes = map fst aosMsfs
-    let msfs' = map snd aosMsfs
-    
-    let aos = map fst aoes
-    let es = map snd aoes
-
-    let aids = map agentId ains
-  
-    let ains' = map (\ai -> agentIn $ agentId ai) ains 
-    let ains'' = distributeMessages ains' (zip aids aos)
-
-    let e' = ef es e
-
-    return ((aos, e'), parSimulation msfs' ains'' e' ef)
-
+parSimulation msfs0 ains0 e0 ef = loopPre (msfs0, ains0, e0) (parSimulationAux ef)
   where
-    parSimulationAux :: e
-                        -> (AgentIn m, AgentMSF g s m e)
-                        -> ReaderT DTime (StateT (AgentOut s m) (Rand g)) 
-                            ((AgentOut s m, e), AgentMSF g s m e) 
-    parSimulationAux e (ain, msf) = do
+    parSimulationAux :: EnvironmentFold e
+                        -> SF (StateT (AgentOut s m) (Rand g)) 
+                          ((), ([AgentMSF g s m e], [AgentIn m], e))
+                          (([AgentOut s m], e), ([AgentMSF g s m e], [AgentIn m], e))
+    parSimulationAux ef = proc (_, (msfs, ains, e)) -> do
+      aosMsfs <- arrM (\(msfs, ains, e) -> mapM (runAgent e) (zip ains msfs)) -< (msfs, ains, e)
+  
+      let aoes = map fst aosMsfs
+      let msfs' = map snd aosMsfs
+      
+      let aos = map fst aoes
+      let es = map snd aoes
+  
+      let aids = map agentId ains
+    
+      let ains' = map (\ai -> agentIn $ agentId ai) ains 
+      let ains'' = distributeMessages ains' (zip aids aos)
+  
+      let e' = ef es e
+  
+      returnA -< ((aos, e'), (msfs', ains'', e'))
+
+    runAgent :: e
+              -> (AgentIn m, AgentMSF g s m e)
+              -> ReaderT DTime (StateT (AgentOut s m) (Rand g)) 
+                  ((AgentOut s m, e), AgentMSF g s m e) 
+    runAgent e (ain, msf) = do
       _ <- lift $ put agentOut  -- NOTE: reset state
       (e', msf') <- unMSF msf (ain, e)
       ao <- lift $ get          -- NOTE: get state

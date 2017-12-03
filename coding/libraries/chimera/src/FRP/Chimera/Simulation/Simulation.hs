@@ -16,9 +16,7 @@ module FRP.Chimera.Simulation.Simulation
   , simulateDebugInternal
   ) where
 
-import FRP.Titan.Debug.Core
-import FRP.Titan.Debug.CommTCP
-import FRP.Yampa
+import FRP.BearRiver
 
 import FRP.Chimera.Agent.Agent
 import FRP.Chimera.Simulation.Common
@@ -94,6 +92,7 @@ simulateAggregateTime adefs e params dt t aggrFun = seq agrs agrs -- optimizatio
     agrs = embed sf ((), sts)
 ----------------------------------------------------------------------------------------------------------------------
 
+{-
 ------------------------------------------------------------------------------------------------------------------------
 -- DEBUGGING THE SIMULATION USING HASKELL-TITAN
 ------------------------------------------------------------------------------------------------------------------------
@@ -137,6 +136,7 @@ data FooPred s e = FooPred deriving (Read, Show)
 
 instance Pred (FooPred s e) () (SimulationStepOut s e) where
     evalPred _ _ _ _ = True
+    -}
 ----------------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------------------------------------------------------------------------------------

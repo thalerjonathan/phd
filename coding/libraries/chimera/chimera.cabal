@@ -16,7 +16,8 @@ library
   hs-source-dirs:  src
   ghc-options :    -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -threaded 
   build-depends:   base, 
-                    Yampa,
+                    dunai,
+                    bearriver,
                     gloss, 
                     random, 
                     containers, 
@@ -26,11 +27,8 @@ library
                     fgl, 
                     transformers,
                     stm,
-                    parallel,
-                    titan-yampa-debugger
-
-  -- install Yampa from https://github.com/ivanperez-keera/Yampa build using -fexpose-core
-
+                    parallel
+  
   exposed-modules:
     FRP.Chimera
     FRP.Chimera.Agent.Agent
@@ -44,8 +42,6 @@ library
     FRP.Chimera.Environment.Continuous
     FRP.Chimera.Environment.Network
     FRP.Chimera.Environment.Utils
-    FRP.Chimera.Extensions.After
-    FRP.Chimera.Extensions.SuperSampling
     FRP.Chimera.Random.Monadic 
     FRP.Chimera.Random.Pure
     FRP.Chimera.Random.Reactive

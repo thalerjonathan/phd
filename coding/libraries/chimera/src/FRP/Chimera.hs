@@ -386,8 +386,6 @@ import FRP.Chimera.Environment.Discrete
 import FRP.Chimera.Environment.Network
 import FRP.Chimera.Environment.Spatial
 import FRP.Chimera.Environment.Utils
-import FRP.Chimera.Extensions.After
-import FRP.Chimera.Extensions.SuperSampling
 import FRP.Chimera.Random.Monadic 
 import FRP.Chimera.Random.Pure
 import FRP.Chimera.Random.Reactive

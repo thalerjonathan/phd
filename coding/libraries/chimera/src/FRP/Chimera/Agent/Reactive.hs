@@ -45,16 +45,14 @@ module FRP.Chimera.Agent.Reactive
   , messageEventSource
   ) where
 
-import Control.Monad.Random
 import Data.Maybe
 
-import FRP.Yampa
+import Control.Monad.Random
+import FRP.BearRiver
 
 import FRP.Chimera.Agent.Agent
 import FRP.Chimera.Environment.Discrete
 import FRP.Chimera.Environment.Network
-import FRP.Chimera.Extensions.After
-import FRP.Chimera.Extensions.SuperSampling
 import FRP.Chimera.Random.Monadic 
 import FRP.Chimera.Random.Reactive
 

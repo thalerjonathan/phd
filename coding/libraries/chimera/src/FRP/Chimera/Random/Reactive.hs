@@ -1,32 +1,22 @@
 {-# LANGUAGE Arrows #-}
 module FRP.Chimera.Random.Reactive 
   (
-    randomSF
-  , randomBoolSF
-  , drawRandomElemSF
+    randomBoolS
+  , randomElemS
   ) where
 
 import Control.Monad.Random
+import Control.Monad.Trans.MSF.Random 
 
-import FRP.Yampa
+import FRP.BearRiver
 
-randomSF :: RandomGen g => g -> SF (Rand g a) a
-randomSF initRng = proc f -> do
-  rec
-    g' <- iPre initRng -< g
-    let (a, g) = runRand f g'
+randomBoolS :: MonadRandom m => Double -> MSF m a Bool
+randomBoolS p = proc _ -> do
+  r <- getRandomRS ((0, 1) :: (Double, Double)) -< ()
+  returnA -< r <= p
 
-  returnA -< a
-
-randomBoolSF :: (RandomGen g) => g -> Double -> SF () Bool
-randomBoolSF g p = proc _ -> do
-  r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
-  returnA -< (r <= p)
-
-drawRandomElemSF :: (RandomGen g, Show a) => g -> SF [a] a
-drawRandomElemSF g = proc as -> do
-  r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
+randomElemS :: MonadRandom m => MSF m [a] a
+randomElemS = proc as -> do
   let len = length as
-  let idx = (fromIntegral $ len) * r
-  let a =  as !! (floor idx)
-  returnA -< a
+  idx <- getRandomRS_ -< (0, len - 1) 
+  returnA -< (as !! idx)

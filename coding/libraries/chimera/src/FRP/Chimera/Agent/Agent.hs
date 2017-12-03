@@ -69,14 +69,14 @@ import Control.Concurrent.STM.TVar
 import Data.List
 import Data.Maybe
 
-import FRP.Yampa
+import FRP.BearRiver
 
 import FRP.Chimera.Simulation.Internal
 
 type AgentId                = Int
 type AgentMessage m         = (AgentId, m)
-type AgentBehaviour s m e   = SF (AgentIn s m e, e) (AgentOut s m e, e)
-type MessageFilter m        = (AgentMessage m -> Bool)
+type AgentBehaviour s m e   = SF (StateT (AgentOut s m e) (Rand g)) (AgentIn s m e, e) e
+type MessageFilter m        = AgentMessage m -> Bool
 type AgentObservable s      = (AgentId, s)
 
 {--
@@ -99,7 +99,6 @@ data AgentDef s m e = AgentDef
   { adId              :: !AgentId
   , adBeh             :: AgentBehaviour s m e
   , adInitMessages    :: !(Event [AgentMessage m])     -- AgentId identifies sender
-  --, adRng             :: !StdGen
   }
 
 data AgentIn s m e = AgentIn 
@@ -107,9 +106,8 @@ data AgentIn s m e = AgentIn
   , aiMessages              :: !(Event [AgentMessage m])     -- AgentId identifies sender
   , aiConversationIncoming  :: !(Event (AgentMessage m))
   , aiStart                 :: !(Event ())
-  , aiRec                   :: !(Event [(AgentOut s m e, e)])
+  , aiRec                   :: !(Event [(AgentObservable s, e)])
   , aiRecInitAllowed        :: !Bool
-  --, aiRng                   :: !StdGen
   , aiIdGen                 :: !(TVar Int)
   }
 
@@ -122,7 +120,6 @@ data AgentOut s m e = AgentOut
   , aoState                 :: !(Maybe s) -- OPTIONAL observable state
   , aoRec                   :: !(Event ())
   , aoRecOthersAllowed      :: !Bool
-  --, aoRng                   :: !StdGen
   }
 
 -------------------------------------------------------------------------------
@@ -316,7 +313,6 @@ startingAgentInFromAgentDef idGen ad =
           , aiStart = Event ()
           , aiRec = NoEvent
           , aiRecInitAllowed = True
-          --, aiRng = adRng ad
           , aiIdGen = idGen 
           }
 
@@ -336,5 +332,4 @@ agentOutAux s =
             , aoState = s
             , aoRec = NoEvent
             , aoRecOthersAllowed = True
-            -- , aoRng = aiRng ai 
             } 

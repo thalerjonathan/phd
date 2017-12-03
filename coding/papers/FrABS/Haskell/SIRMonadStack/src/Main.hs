@@ -35,7 +35,20 @@ main = do
 foo :: RandomGen g => ReaderT Double (StateT FooState (Rand g)) FooState
 foo = do
   s <- get
-  -- r <- lift . lift $ getRandom ((0, 100) :: (Int, Int))
   let r = 10
   put (s + r)
   return s
+
+{-
+fooRand :: MonadRandom m => ReaderT Double (StateT FooState m) FooState
+fooRand = do
+  s <- get
+  r <- lift $ getRandom ((0, 100) :: (Int, Int))
+  put (s + r)
+  return s
+-}
+
+fooRand :: MonadRandom m => m FooState
+fooRand = do
+  r <- getRandom ((0, 100) :: (Int, Int))
+  return r

@@ -3,7 +3,7 @@
 module FRP.Chimera.Agent.Reactive 
   (
     EventSource
-  , MessageSource
+  , DataSource
 
   , AgentIgnoreEnv
   , AgentReadEnv
@@ -58,8 +58,8 @@ import FRP.Chimera.Environment.Network
 import FRP.Chimera.Random.Monadic 
 import FRP.Chimera.Random.Reactive
 
-type EventSource m o d e    = SF (StateT (AgentOut m o d e) m) (AgentIn o d e, e) (Event ())
-type MessageSource m o d e  = SF (StateT (AgentOut m o d e) m) (AgentIn o d e, e) (AgentData d)
+type EventSource m o d e    = SF m (AgentIn o d e, e) (Event ())
+type DataSource m o d e     = SF m (AgentIn o d e, e) (AgentData d)
 
 type AgentIgnoreEnv m o d e = SF (StateT (AgentOut m o d e) m) (AgentIn o d e) ()
 type AgentReadEnv m o d e   = SF (StateT (AgentOut m o d e) m) (AgentIn o d e, e) () 
@@ -138,67 +138,75 @@ doOccasionallyEvery g t s sf = proc (ain, e) -> do
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
--- Messaging
+-- MESSAGING / DATA-FLOWS
 -------------------------------------------------------------------------------
+dataFlowS :: MonadState (AgentOut m o d e) m
+          => SF m (AgentData d) ()
+dataFlowS = arrM dataFlowM
+
 -- TODO: sendMessageRepeatedly
 -- TODO: sendMessageAfter
 -- TODO: sendMessageOnEvent
 -- TODO: sendMessageOnMessageReceived
-sendMessageOccasionally :: RandomGen g => g 
-                          -> Double
-                          -> AgentData d
-                          -> SF (AgentIn o d e, AgentOut m o d e, e) (AgentOut m o d e)
-sendMessageOccasionally g rate msg = sendMessageOccasionallySrc g rate (constMsgSource msg)
+dataFlowOccasionally :: MonadRandom m 
+                     => Double
+                     -> AgentData d
+                     -> SF m (AgentIn o d e, e) ()
+dataFlowOccasionally rate d = dataFlowOccasionallySrc rate (constDataSource d)
 
-sendMessageOccasionallySrc :: RandomGen g => g 
-                              -> Double
-                              -> MessageSource s m e 
-                              -> SF (AgentIn o d e, AgentOut m o d e, e) (AgentOut m o d e)
-sendMessageOccasionallySrc g rate msgSrc = proc (ain, ao, e) -> do
-    sendEvt <- occasionally g rate () -< ()
-    if isEvent sendEvt 
-      then (do
-        msg <- msgSrc -< (ain, ao, e)
-        returnA -< sendMessage msg ao)
-      else returnA -< ao
+-- type EventSource m o d e    = SF m (AgentIn o d e, e) (Event ())
+-- type DataSource m o d e     = SF m (AgentIn o d e, e) (AgentData d)
 
-sendMessageOccasionallySS :: RandomGen g => g 
-                            -> Double
-                            -> Int
-                            -> AgentData d
-                            -> SF (AgentIn o d e, AgentOut m o d e, e) (AgentOut m o d e)
-sendMessageOccasionallySS g rate ss msg = sendMessageOccasionallySrcSS g rate ss (constMsgSource msg)
+dataFlowOccasionallySrc :: (MonadRandom m, MonadState (AgentOut m o d e) m)
+                        => Double
+                        -> DataSource s m e 
+                        -> SF m (AgentIn o d e, e) ()
+dataFlowOccasionallySrc rate dfSrc = proc (ain, e) -> do
+  sendEvt <- occasionally rate () -< ()
+  if isEvent sendEvt 
+    then (do
+      d <- dfSrc      -< (ain, e)
+      _ <- dataFlowS  -< d
+      returnA         -< ())
+    else returnA      -< ()
 
-sendMessageOccasionallySrcSS :: RandomGen g => g 
-                                -> Double
-                                -> Int
-                                -> MessageSource s m e 
-                                -> SF (AgentIn o d e, AgentOut m o d e, e) (AgentOut m o d e)
-sendMessageOccasionallySrcSS g rate ss msgSrc = proc aoe@(_, ao, _) -> do
-    sendEvtsSS <- superSampling ss (occasionally g rate ()) -< ()
-    msgSS <- superSampling ss msgSrc -< aoe
-    let ao' = foldr sendMessageOccasionallySrcSSAux ao (zip sendEvtsSS msgSS)
-    returnA -< ao'
+dataFlowOccasionallySS :: (MonadRandom m, MonadState (AgentOut m o d e) m)
+                       => Double
+                       -> Int
+                       -> AgentData d
+                       -> SF m (AgentIn o d e, e) ()
+dataFlowOccasionallySS rate ss d = dataFlowOccasionallySrcSS rate ss (constDataSource d)
+
+dataFlowOccasionallySrcSS :: (MonadRandom m, MonadState (AgentOut m o d e) m)
+                          => Double
+                          -> Int
+                          -> DataSource s m e 
+                          -> SF (AgentIn o d e, e) ()
+dataFlowOccasionallySrcSS rate ss dfSrc = proc aie -> do
+    sendEvtsSS <- superSamplingUniform ss (occasionally rate ())  -< ()
+    dfSS       <- superSamplingUniform ss dfSrc                   -< aie
+    _          <- arrM $ mapM dataFlowOccasionallySrcSSAux        -< (zip sendEvtsSS dfSS)
+    returnA -< ()
   where
-    sendMessageOccasionallySrcSSAux :: (Event (), AgentData d)
-                                      -> AgentOut m o d e 
-                                      -> AgentOut m o d e 
-    sendMessageOccasionallySrcSSAux (NoEvent, _) ao = ao
-    sendMessageOccasionallySrcSSAux (Event (), msg) ao = sendMessage msg ao
+    dataFlowOccasionallySrcSSAux :: MonadState (AgentOut m o d e) m
+                                 => (Event (), AgentData d)
+                                 -> m ()
+    dataFlowOccasionallySrcSSAux (NoEvent, _) = return ()
+    dataFlowOccasionallySrcSSAux (Event (), d) = dataFlowM d
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- MESSAGE-Sources
 -------------------------------------------------------------------------------
-constMsgReceiverSource :: m -> AgentId -> MessageSource s m e
-constMsgReceiverSource m receiver = arr (const (receiver, m))
+constDataReceiverSource :: d -> AgentId -> DataSource s m e
+constDataReceiverSource d receiver = constant (receiver, m)
 
-constMsgSource :: AgentData d -> MessageSource s m e
-constMsgSource msg = arr (const msg)
+constDataSource :: AgentData d -> DataSource s m e
+constDataSource d = constant d
 
 randomNeighbourNodeMsgSource :: RandomGen g => g 
                                 -> m 
-                                -> MessageSource s m (Network l)
+                                -> DataSource s m (Network l)
 randomNeighbourNodeMsgSource g m = proc (ain, _, e) -> do
     let aid = agentId ain
     randNode <- randomSF g -< randomNeighbourNode aid e

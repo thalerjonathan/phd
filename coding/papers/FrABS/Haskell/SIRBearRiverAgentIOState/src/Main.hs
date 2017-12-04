@@ -256,30 +256,3 @@ occasionallyMSF t_avg b
       then returnA -< Event b
       else returnA -< NoEvent
   | otherwise = error "AFRP: occasionally: Non-positive average interval."
-
--- | Updates the generator every step
--- Hint: Use the isomorphism 'RandT ~ StateT' and then 'Control.Monad.Trans.MSF.State'
-runRandS :: (RandomGen g, Monad m) => MSF (RandT g m) a b -> g -> MSF m a (g, b)
-runRandS msf g = MSF $ \a -> do
-  ((b, msf'), g') <- runRandT (unMSF msf a) g
-  return ((g', b), runRandS msf' g')
-
-evalRandS  :: (RandomGen g, Monad m) => MSF (RandT g m) a b -> g -> MSF m a b
-evalRandS msf g = runRandS msf g >>> arr snd
-
--- NOTE: final version, this is what we want as it can be used in any transformer stack with a Rand in it
-occasionally :: MonadRandom m => Time -> b -> SF m a (Event b)
-occasionally t_avg b
-  | t_avg > 0 = proc _ -> do
-    r <- getRandomRS (0, 1) -< ()
-    dt <- timeDelta -< ()
-    let p = 1 - exp (-(dt / t_avg))
-    if r < p
-      then returnA -< Event b
-      else returnA -< NoEvent
-  | otherwise = error "AFRP: occasionally: Non-positive average interval."
-
-getRandomRS :: (MonadRandom m, Random b) => (b, b) -> SF m a b
-getRandomRS r = proc _ -> do
-  r <- arrM_ $ getRandomR r -< ()
-  returnA -< r 

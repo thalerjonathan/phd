@@ -27,7 +27,8 @@ library
                     fgl, 
                     transformers,
                     stm,
-                    parallel
+                    parallel,
+                    mtl
   
   exposed-modules:
     FRP.Chimera

@@ -1,11 +1,12 @@
-{-# LANGUAGE Arrows #-}
+{-# LANGUAGE Arrows               #-}
+{-# LANGUAGE FlexibleContexts     #-}
 module FRP.Chimera.Agent.Reactive 
   (
     EventSource
   , MessageSource
 
-  , ReactiveBehaviourIgnoreEnv
-  , ReactiveBehaviourReadEnv
+  , AgentIgnoreEnv
+  , AgentReadEnv
 
   , ignoreEnv
   , readEnv
@@ -47,6 +48,7 @@ module FRP.Chimera.Agent.Reactive
 
 import Data.Maybe
 
+import Control.Monad.State
 import Control.Monad.Random
 import FRP.BearRiver
 
@@ -56,31 +58,33 @@ import FRP.Chimera.Environment.Network
 import FRP.Chimera.Random.Monadic 
 import FRP.Chimera.Random.Reactive
 
-type EventSource s m e    = SF (AgentIn s m e, AgentOut s m e, e) (Event ())
-type MessageSource s m e  = SF (AgentIn s m e, AgentOut s m e, e) (AgentMessage m)
+type EventSource m o d e    = SF (StateT (AgentOut m o d e) m) (AgentIn o d e, e) (Event ())
+type MessageSource m o d e  = SF (StateT (AgentOut m o d e) m) (AgentIn o d e, e) (AgentData d)
 
-type ReactiveBehaviourIgnoreEnv s m e   = SF (AgentIn s m e) (AgentOut s m e)
-type ReactiveBehaviourReadEnv s m e     = SF (AgentIn s m e, e) (AgentOut s m e)
+type AgentIgnoreEnv m o d e = SF (StateT (AgentOut m o d e) m) (AgentIn o d e) ()
+type AgentReadEnv m o d e   = SF (StateT (AgentOut m o d e) m) (AgentIn o d e, e) () 
 
 -------------------------------------------------------------------------------
 -- MISC
 -------------------------------------------------------------------------------
-ignoreEnv :: ReactiveBehaviourIgnoreEnv s m e -> AgentBehaviour s m e 
+ignoreEnv :: AgentIgnoreEnv m o d e -> Agent m o d e 
 ignoreEnv f = proc (ain, e) -> do
-  ao <- f -< ain
-  returnA -< (ao, e)
+  _ <- f -< ain
+  returnA -< e
 
-readEnv :: ReactiveBehaviourReadEnv s m e -> AgentBehaviour s m e 
+readEnv :: AgentReadEnv m o d e -> Agent m o d e
 readEnv f = proc (ain, e) -> do
-  ao <- f -< (ain, e)
-  returnA -< (ao, e)
+  _ <- f -< (ain, e)
+  returnA -< e
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- Actions
 -------------------------------------------------------------------------------
 -- TODO: this is rubbish and doesnt make sense because of agentOutObs
-doOnce :: (AgentOut s m e -> AgentOut s m e) -> SF (AgentOut s m e) (AgentOut s m e)
+doOnce :: MonadState (AgentOut m o d e) m
+       => (AgentOut m o d e -> AgentOut m o d e) 
+       -> Agent m o d e
 doOnce f = proc ao -> do
   -- TODO: is this actually evaluated EVERYTIME or due to Haskells laziness just once?
   -- TODO: why is this not firing the first time?
@@ -89,7 +93,7 @@ doOnce f = proc ao -> do
   returnA -< ao'
 
 -- TODO: this is rubbish and doesnt make sense because of agentOutObs
-doOnceR :: s -> AgentBehaviour s m e -> AgentBehaviour s m e
+doOnceR :: s -> Agent m o d e -> Agent m o d e
 doOnceR s sf = proc (ain, e) -> do
   doEvt <- once -< (Event ())
   if (isEvent doEvt) then (do
@@ -98,22 +102,22 @@ doOnceR s sf = proc (ain, e) -> do
     else 
       returnA -< (agentOutObs s, e)
 
-doNothing :: AgentBehaviour s m e
+doNothing :: Agent m o d e
 doNothing = first $ arr (const agentOut)
 
-doNothingObs :: s -> AgentBehaviour s m e
+doNothingObs :: s -> Agent m o d e
 doNothingObs s = first $ arr (const $ agentOutObs s)
 
 -- TODO: this is rubbish and doesnt make sense because of agentOutObs
-setAgentStateR :: s -> AgentBehaviour s m e
+setAgentStateR :: s -> Agent m o d e
 setAgentStateR s = first $ arr ((setAgentState s) . (const $ agentOutObs s))
 
 -- TODO: this is rubbish and doesnt make sense because of agentOutObs
-updateAgentStateR :: s -> (s -> s) -> AgentBehaviour s m e
+updateAgentStateR :: s -> (s -> s) -> Agent m o d e
 updateAgentStateR s f = first $ arr ((updateAgentState f) . (const $ agentOutObs s))
 
 -- TODO: this is rubbish and doesnt make sense because of agentOutObs
-doRepeatedlyEvery :: Time -> s -> AgentBehaviour s m e -> AgentBehaviour s m e
+doRepeatedlyEvery :: Time -> s -> Agent m o d e -> Agent m o d e
 doRepeatedlyEvery t s sf = proc (ain, e) -> do
   doEvt <- repeatedly t () -< ()
   if (isEvent doEvt) then (do
@@ -123,7 +127,7 @@ doRepeatedlyEvery t s sf = proc (ain, e) -> do
       returnA -< (agentOutObs s, e)
 
 -- TODO: this is rubbish and doesnt make sense because of agentOutObs
-doOccasionallyEvery :: RandomGen g => g -> Time -> s -> AgentBehaviour s m e -> AgentBehaviour s m e
+doOccasionallyEvery :: RandomGen g => g -> Time -> s -> Agent m o d e -> Agent m o d e
 doOccasionallyEvery g t s sf = proc (ain, e) -> do
   doEvt <- occasionally g t () -< ()
   if (isEvent doEvt) then (do
@@ -142,14 +146,14 @@ doOccasionallyEvery g t s sf = proc (ain, e) -> do
 -- TODO: sendMessageOnMessageReceived
 sendMessageOccasionally :: RandomGen g => g 
                           -> Double
-                          -> AgentMessage m
-                          -> SF (AgentIn s m e, AgentOut s m e, e) (AgentOut s m e)
+                          -> AgentData d
+                          -> SF (AgentIn o d e, AgentOut m o d e, e) (AgentOut m o d e)
 sendMessageOccasionally g rate msg = sendMessageOccasionallySrc g rate (constMsgSource msg)
 
 sendMessageOccasionallySrc :: RandomGen g => g 
                               -> Double
                               -> MessageSource s m e 
-                              -> SF (AgentIn s m e, AgentOut s m e, e) (AgentOut s m e)
+                              -> SF (AgentIn o d e, AgentOut m o d e, e) (AgentOut m o d e)
 sendMessageOccasionallySrc g rate msgSrc = proc (ain, ao, e) -> do
     sendEvt <- occasionally g rate () -< ()
     if isEvent sendEvt 
@@ -161,24 +165,24 @@ sendMessageOccasionallySrc g rate msgSrc = proc (ain, ao, e) -> do
 sendMessageOccasionallySS :: RandomGen g => g 
                             -> Double
                             -> Int
-                            -> AgentMessage m
-                            -> SF (AgentIn s m e, AgentOut s m e, e) (AgentOut s m e)
+                            -> AgentData d
+                            -> SF (AgentIn o d e, AgentOut m o d e, e) (AgentOut m o d e)
 sendMessageOccasionallySS g rate ss msg = sendMessageOccasionallySrcSS g rate ss (constMsgSource msg)
 
 sendMessageOccasionallySrcSS :: RandomGen g => g 
                                 -> Double
                                 -> Int
                                 -> MessageSource s m e 
-                                -> SF (AgentIn s m e, AgentOut s m e, e) (AgentOut s m e)
+                                -> SF (AgentIn o d e, AgentOut m o d e, e) (AgentOut m o d e)
 sendMessageOccasionallySrcSS g rate ss msgSrc = proc aoe@(_, ao, _) -> do
     sendEvtsSS <- superSampling ss (occasionally g rate ()) -< ()
     msgSS <- superSampling ss msgSrc -< aoe
     let ao' = foldr sendMessageOccasionallySrcSSAux ao (zip sendEvtsSS msgSS)
     returnA -< ao'
   where
-    sendMessageOccasionallySrcSSAux :: (Event (), AgentMessage m)
-                                      -> AgentOut s m e 
-                                      -> AgentOut s m e 
+    sendMessageOccasionallySrcSSAux :: (Event (), AgentData d)
+                                      -> AgentOut m o d e 
+                                      -> AgentOut m o d e 
     sendMessageOccasionallySrcSSAux (NoEvent, _) ao = ao
     sendMessageOccasionallySrcSSAux (Event (), msg) ao = sendMessage msg ao
 -------------------------------------------------------------------------------
@@ -189,7 +193,7 @@ sendMessageOccasionallySrcSS g rate ss msgSrc = proc aoe@(_, ao, _) -> do
 constMsgReceiverSource :: m -> AgentId -> MessageSource s m e
 constMsgReceiverSource m receiver = arr (const (receiver, m))
 
-constMsgSource :: AgentMessage m -> MessageSource s m e
+constMsgSource :: AgentData d -> MessageSource s m e
 constMsgSource msg = arr (const msg)
 
 randomNeighbourNodeMsgSource :: RandomGen g => g 
@@ -227,14 +231,14 @@ randomAgentIdMsgSource g m ignoreSelf = proc aoe@(ain, _, agentIds) -> do
 -- Transitions
 -------------------------------------------------------------------------------
 transitionAfter :: Double
-                    -> AgentBehaviour s m e
-                    -> AgentBehaviour s m e
-                    -> AgentBehaviour s m e
+                    -> Agent m o d e
+                    -> Agent m o d e
+                    -> Agent m o d e
 transitionAfter t from to = switch (transitionAfterAux t from) (const to)
   where
     transitionAfterAux :: Double 
-                            -> AgentBehaviour s m e 
-                            -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
+                            -> Agent m o d e 
+                            -> SF (AgentIn o d e, e) ((AgentOut m o d e, e), Event ())
     transitionAfterAux t from = proc aie -> do
       aoe <- from -< aie
       timeoutEvent <- after t () -< ()
@@ -243,14 +247,14 @@ transitionAfter t from to = switch (transitionAfterAux t from) (const to)
 transitionAfterExpSS :: RandomGen g => g 
                     -> Double
                     -> Int
-                    -> AgentBehaviour s m e
-                    -> AgentBehaviour s m e
-                    -> AgentBehaviour s m e
+                    -> Agent m o d e
+                    -> Agent m o d e
+                    -> Agent m o d e
 transitionAfterExpSS g t ss from to = switch (transitionAfterExpSSAux t from) (const to)
   where
     transitionAfterExpSSAux :: Double 
-                            -> AgentBehaviour s m e 
-                            -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
+                            -> Agent m o d e 
+                            -> SF (AgentIn o d e, e) ((AgentOut m o d e, e), Event ())
     transitionAfterExpSSAux t from = proc aie -> do
       aoe <- from -< aie
       timeoutEvents <- superSampling ss (afterExp g t ()) -< ()
@@ -260,14 +264,14 @@ transitionAfterExpSS g t ss from to = switch (transitionAfterExpSSAux t from) (c
 
 transitionAfterExp :: RandomGen g => g 
                     -> Double
-                    -> AgentBehaviour s m e
-                    -> AgentBehaviour s m e
-                    -> AgentBehaviour s m e
+                    -> Agent m o d e
+                    -> Agent m o d e
+                    -> Agent m o d e
 transitionAfterExp g t from to = switch (transitionAfterExpAux t from) (const to)
   where
     transitionAfterExpAux :: Double 
-                            -> AgentBehaviour s m e 
-                            -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
+                            -> Agent m o d e 
+                            -> SF (AgentIn o d e, e) ((AgentOut m o d e, e), Event ())
     transitionAfterExpAux t from = proc aie -> do
       aoe <- from -< aie
       timeoutEvent <- afterExp g t () -< ()
@@ -275,13 +279,13 @@ transitionAfterExp g t from to = switch (transitionAfterExpAux t from) (const to
 
 transitionWithUniProb :: RandomGen g => g 
                           -> Double
-                          -> AgentBehaviour s m e
-                          -> AgentBehaviour s m e
-                          -> AgentBehaviour s m e
+                          -> Agent m o d e
+                          -> Agent m o d e
+                          -> Agent m o d e
 transitionWithUniProb g p from to = switch (transitionWithUniProbAux from)(const to)
   where
-    transitionWithUniProbAux :: AgentBehaviour s m e
-                                -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
+    transitionWithUniProbAux :: Agent m o d e
+                                -> SF (AgentIn o d e, e) ((AgentOut m o d e, e), Event ())
     transitionWithUniProbAux from = proc aie -> do
       aie' <- from -< aie
       evtFlag <- randomSF g -< randomBoolM p
@@ -291,13 +295,13 @@ transitionWithUniProb g p from to = switch (transitionWithUniProbAux from)(const
 transitionWithExpProb :: RandomGen g => g 
                         -> Double
                         -> Double
-                        -> AgentBehaviour s m e
-                        -> AgentBehaviour s m e
-                        -> AgentBehaviour s m e
+                        -> Agent m o d e
+                        -> Agent m o d e
+                        -> Agent m o d e
 transitionWithExpProb g lambda p from to = switch (transitionWithExpProbAux from) (const to)
   where
-    transitionWithExpProbAux :: AgentBehaviour s m e
-                                -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
+    transitionWithExpProbAux :: Agent m o d e
+                                -> SF (AgentIn o d e, e) ((AgentOut m o d e, e), Event ())
     transitionWithExpProbAux from = proc aie -> do
       aie' <- from -< aie
       r <- randomSF g -< randomExpM lambda
@@ -305,14 +309,14 @@ transitionWithExpProb g lambda p from to = switch (transitionWithExpProbAux from
       returnA -< (aie', evt)
 
 transitionOnEvent :: EventSource s m e
-                    -> AgentBehaviour s m e
-                    -> AgentBehaviour s m e
-                    -> AgentBehaviour s m e
+                    -> Agent m o d e
+                    -> Agent m o d e
+                    -> Agent m o d e
 transitionOnEvent evtSrc from to = switch (transitionEventAux evtSrc from) (const to)
   where
     transitionEventAux :: EventSource s m e
-                            -> AgentBehaviour s m e
-                            -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
+                            -> Agent m o d e
+                            -> SF (AgentIn o d e, e) ((AgentOut m o d e, e), Event ())
     transitionEventAux evtSrc from = proc aie@(ain, _) -> do
       (ao, e) <- from -< aie
       evt <- evtSrc -< (ain, ao, e)
@@ -320,14 +324,14 @@ transitionOnEvent evtSrc from to = switch (transitionEventAux evtSrc from) (cons
 
 -- NOTE: assumes state isJust
 transitionOnBoolState :: (s -> Bool)
-                            -> AgentBehaviour s m e
-                            -> AgentBehaviour s m e
-                            -> AgentBehaviour s m e
+                            -> Agent m o d e
+                            -> Agent m o d e
+                            -> Agent m o d e
 transitionOnBoolState boolStateFunc from to = switch (transitionOnBoolStateAux boolStateFunc from) (const to)
   where
     transitionOnBoolStateAux :: (s -> Bool)
-                                -> AgentBehaviour s m e
-                                -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
+                                -> Agent m o d e
+                                -> SF (AgentIn o d e, e) ((AgentOut m o d e, e), Event ())
     transitionOnBoolStateAux boolStateFunc from = proc aie -> do
       (ao, e) <- from -< aie
       let state = fromJust $ aoState ao
@@ -336,23 +340,23 @@ transitionOnBoolState boolStateFunc from to = switch (transitionOnBoolStateAux b
       returnA -< ((ao, e), evt)
 
 transitionOnMessage :: (Eq m) => m 
-                        -> AgentBehaviour s m e
-                        -> AgentBehaviour s m e
-                        -> AgentBehaviour s m e
+                        -> Agent m o d e
+                        -> Agent m o d e
+                        -> Agent m o d e
 transitionOnMessage msg from to = transitionOnEvent (messageEventSource msg) from to
 
 transitionOnEventWithGuard :: RandomGen g => g 
                             -> EventSource s m e
                             -> Rand g Bool
-                            -> AgentBehaviour s m e
-                            -> AgentBehaviour s m e
-                            -> AgentBehaviour s m e
+                            -> Agent m o d e
+                            -> Agent m o d e
+                            -> Agent m o d e
 transitionOnEventWithGuard g evtSrc guardAction from to = 
     switch (transitionEventWithGuardAux evtSrc from) (const to)
   where
     transitionEventWithGuardAux :: EventSource s m e
-                                    -> AgentBehaviour s m e 
-                                    -> SF (AgentIn s m e, e) ((AgentOut s m e, e), Event ())
+                                    -> Agent m o d e 
+                                    -> SF (AgentIn o d e, e) ((AgentOut m o d e, e), Event ())
     transitionEventWithGuardAux evtSrc from = proc aie@(ain, _) -> do
       (ao, e) <- from -< aie
       evt <- evtSrc -< (ain, ao, e)

@@ -1,47 +1,52 @@
 module FRP.Chimera 
   (
+  -- FRP.Chimera.Agent.Agent.hs
     AgentId
-  , AgentMessage
-  , AgentBehaviour
+  , AgentData
+  , DataFilter
+  , AgentObservable
+
+  , Agent
+  , AgentRandom
 
   , AgentConversationSender
 
-  , AgentDef (..)
-  , AgentIn
-  , AgentOut
+  , AgentPureBehaviour
+  , AgentPureBehaviourReadEnv
+  , AgentPureBehaviourNoEnv
 
-  , AgentObservable
+  , AgentDef (..)
+  , AgentIn     -- only type constructor visible
+  , AgentOut    -- only type constructor visible
 
   , agentId
   , createAgent
   , kill
   , isDead
-
   , agentOut
-  , agentOutObs
-  
-  , sendMessage
-  , sendMessageTo
-  , sendMessages
-  , broadcastMessage
-  , hasMessage
-  , onMessage
-  , onFilterMessage
-  , onMessageFrom
-  , onMessageType
+  , agentOutObservable
+  , nextAgentId
+
+  , onStart
+  , onEvent
+
+  , dataFlow
+  , dataFlowTo
+  , dataFlows
+  , broadcastDataFlow
+  , hasDataFlow
+  , onDataFlow
+  , onFilterDataFlow
+  , onDataFlowFrom
+  , onDataFlowType
 
   , hasConversation
   , conversation
   , conversationEnd
 
-  , agentState
-  , updateAgentState
-  , setAgentState
-
-  , nextAgentId
-
-  , onStart
-  , onEvent
+  , agentObservable
+  , updateAgentObservable
+  , setAgentObservable
 
   , recInitAllowed
   , allowsRecOthers
@@ -53,328 +58,39 @@ module FRP.Chimera
   , agentPure
   , agentPureReadEnv
   , agentPureIgnoreEnv
-  , AgentPureBehaviour
-  , AgentPureBehaviourReadEnv
-  , AgentPureBehaviourNoEnv
+
+  -- FRP.Chimera.Agent.Monad.hs
+  , AgentMonadic
+  , AgentMonadicReadEnv
+  , AgentMonadicNoEnv
 
   , createAgentM
   , killM
   , isDeadM
 
-  , sendMessageM
-  , sendMessageToM
-  , sendMessagesM
-  , broadcastMessageM
-  , onMessageM
-  , onMessageMState
+  , dataFlowM
+  , dataFlowToM
+  , dataFlowsM
+  , broadcastDataFlowM
+  , onDataFlowMState
+  , onDataFlowM
 
   , conversationM
   , conversationEndM
-  , conversationReplyMonadicRunner
-  , conversationIgnoreEnvReplyMonadicRunner
-  , conversationIgnoreReplyMonadicRunner
-  , conversationIgnoreReplyMonadicRunner'
 
   , bypassEnvironment
 
-  , updateAgentStateM
-  , agentStateM
-  , setAgentStateM
-  , agentStateFieldM
+  , updateAgentObservableM
+  , agentObservableM
+  , setAgentObservableM
+  , agentObservableFieldM
 
   , agentMonadic
   , agentMonadicReadEnv
   , agentMonadicIgnoreEnv
-  , AgentMonadicBehaviour
-  , AgentMonadicBehaviourReadEnv
-  , AgentMonadicBehaviourNoEnv
-
-  , ignoreEnv
-  , readEnv
-
-  , EventSource
-  , MessageSource
-
-  , ReactiveBehaviourIgnoreEnv
-  , ReactiveBehaviourReadEnv
-
-  , doOnce
-  , doOnceR
-  , doNothing
-  , doNothingObs
-  , doRepeatedlyEvery
-  , doOccasionallyEvery
-
-  , setAgentStateR
-  , updateAgentStateR
-
-  , afterExp
-  , superSampling
-
-  , sendMessageOccasionallySrc
-  , sendMessageOccasionally
-  , sendMessageOccasionallySrcSS
-  , sendMessageOccasionallySS
-
-  , constMsgReceiverSource
-  , constMsgSource
-  , randomNeighbourNodeMsgSource
-  , randomNeighbourCellMsgSource
-  , randomAgentIdMsgSource
-
-  , transitionAfter
-  , transitionAfterExp
-  , transitionAfterExpSS
-  , transitionWithUniProb
-  , transitionWithExpProb
-  , transitionOnEvent
-  , transitionOnMessage
-  , transitionOnEventWithGuard
-  , transitionOnBoolState
-
-  , messageEventSource
 
   , ifThenElse
   , ifThenElseM
-
-  , randomBool
-  , randomExp
-  , randomShuffle
-
-  , randomBoolM
-  , randomExpM
-  , avoidM
-
-  , randomSF
-  , randomBoolSF
-  , drawRandomElemSF
-
-  , EnvironmentBehaviour
-  , EnvironmentMonadicBehaviour
-  , EnvironmentFolding
-
-  , EnvironmentWrapping (..)
-
-  , environmentMonadic
-
-  , NetworkType (..)
-  , DeterministicNetwork (..)
-  , RandomNetwork (..)
-  , Network
-
-  , createNetwork
-  , createDeterministicNetwork
-  , createRandomNetwork
-  , createEmptyNetwork
-  , createNetworkWithGraph
-  , constEdgeLabeler
-  , unitEdgeLabeler
-
-  , nodesOfNetwork
-  , networkDegrees
-  , neighbourNodes
-  , neighbourEdges
-  , neighbourAgentIds
-  , neighbourAgentIdsM
-  , neighbourLinks
-  , directLinkBetween
-  , directLinkBetweenM
-
-  , randomNeighbourNode
-
-  , Discrete2dDimension
-  , Discrete2dCoord
-  , Discrete2dNeighbourhood
-  , Discrete2dCell
-
-  , Discrete2d
-
-  , SingleOccupantCell
-  , SingleOccupantDiscrete2d
-  , MultiOccupantCell
-  , MultiOccupantDiscrete2d
-
-  , createDiscrete2d
-
-  , dimensionsDisc2d
-  , dimensionsDisc2dM
-
-  , allCellsWithCoords
-  , updateCells
-  , updateCellsM
-  , updateCellsWithCoords
-  , updateCellsWithCoordsM
-  , updateCellAt
-  , changeCellAt
-  , changeCellAtM
-  , cellsAroundRadius
-  , cellsAroundRadiusM
-  , cellsAroundRect
-  , cellsAt
-  , cellAt
-  , cellAtM
-  , randomCell
-  , randomCellWithinRect
-
-  , neighbours
-  , neighboursM
-  , neighbourCells
-  , neighbourCellsM
-
-  , neighboursInNeumannDistance
-  , neighboursInNeumannDistanceM
-  , neighboursCellsInNeumannDistance
-  , neighboursCellsInNeumannDistanceM
-
-  , distanceManhattanDisc2d
-  , distanceEuclideanDisc2d
-  , neighbourhoodOf
-  , neighbourhoodScale
-  , wrapCells
-  , neumann
-  , moore
-  , wrapNeighbourhood
-  , wrapDisc2d
-  , wrapDisc2dEnv
-
-  , randomNeighbourCell
-  , randomNeighbour
-
-  , occupied
-  , unoccupy
-  , occupy
-  , occupier
-  , addOccupant
-  , removeOccupant
-  , hasOccupiers
-  , occupiers
-
-  , Continuous2dDimension
-  , Continuous2dCoord
-
-  , Continuous2d
-
-  , Continuous2dEmpty
-
-  , createContinuous2d
-
-  , stepTo
-  , stepRandom
-
-  , distanceManhattanCont2d
-  , distanceEuclideanCont2d
-
-  , wrapCont2d
-  , wrapCont2dEnv
-
-  , multCoord
-  , addCoord
-  , subCoord
-  , vecFromCoords
-  , vecLen
-  , vecNorm
-  , dotCoords
-
-  , simulateAndRender
-  , simulateStepsAndRender
-
-  , debugAndRender
-
-  , StepCallback
-  , RenderFrame
-
-  , initRng
-  , initSimulation
-  , initSimNoEnv
-  , newAgentId
-
-  , AgentDefReplicator
-  , EnvironmentReplicator
-  , Replication
-
-  , ReplicationConfig (..)
-
-  , defaultEnvReplicator
-  , defaultAgentReplicator
-
-  , runReplications
-  , runReplicationsWithAggregation
-
-  , UpdateStrategy (..)
-  , SimulationParams
-
-  , simulateIOInit
-
-  , simulateTime
-  , simulateTimeDeltas
-  , simulateAggregateTime
-  , simulateAggregateTimeDeltas
-
-  , simulateDebug
-  , simulateDebugInternal
-
-  , AgentRendererDisc2d
-  , AgentCellColorerDisc2d
-  , AgentCoordDisc2d
-  , EnvRendererDisc2d
-  , EnvCellColorerDisc2d
-
-  , renderFrameDisc2d
-
-  , defaultEnvRendererDisc2d
-  , defaultEnvColorerDisc2d
-  , voidEnvRendererDisc2d
-
-  , defaultAgentRendererDisc2d
-  , defaultAgentColorerDisc2d
-  , voidAgentRendererDisc2d
-
-  , AgentRendererCont2d
-  , AgentColorerCont2d
-  , AgentCoordCont2d
-  , EnvRendererCont2d
-
-  , renderFrameCont2d
-
-  , defaultEnvRendererCont2d
-  , voidEnvRendererCont2d
-
-  , defaultAgentRendererCont2d
-  , defaultAgentColorerCont2d
-  , voidAgentRendererCont2d
-  , transformToWindow
-
-  , AgentRendererNetwork
-  , AgentColorerNetwork
-
-  , renderFrameNetwork
-
-  , defaultAgentRendererNetwork
-  , defaultAgentColorerNetwork
-
-  , cont2dToDisc2d
-  , disc2dToCont2d
-
-  , cont2dTransDisc2d
-  , disc2dTransCont2d
-
-  , StockId
-  , FlowId
-
-  , Stock
-  , Flow
-  , SDObservable
-  , SDDef
-
-  , runSD
-
-  , createStock
-  , createFlow
-
-  , flowInFrom
-  , stockInFrom
-  , flowOutTo
-  , stockOutTo
   ) where
 
 import FRP.Chimera.Agent.Agent

@@ -52,8 +52,8 @@ shuffleAgents params as bs
 newAgentIn :: AgentIn s m e -> AgentIn s m e
 newAgentIn oldIn  = 
   oldIn { 
-  aiStart = NoEvent
-  , aiMessages = NoEvent
+    aiStart = NoEvent
+  , aiData  = []
   }
 
 observableAgents :: [AgentId] 

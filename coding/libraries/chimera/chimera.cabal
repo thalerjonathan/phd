@@ -32,11 +32,12 @@ library
   
   exposed-modules:
     FRP.Chimera
-    FRP.Chimera.Agent.Agent
-    FRP.Chimera.Agent.Utils
-    FRP.Chimera.Agent.Random
+    FRP.Chimera.Agent.Interface
     FRP.Chimera.Agent.Monad
+    FRP.Chimera.Agent.Random
     FRP.Chimera.Agent.Reactive
+    FRP.Chimera.Agent.Stream
+    FRP.Chimera.Agent.Utils
     FRP.Chimera.Environment.Definitions
     FRP.Chimera.Environment.Spatial
     FRP.Chimera.Environment.Discrete
@@ -50,6 +51,8 @@ library
     FRP.Chimera.Rendering.Continuous2d
     FRP.Chimera.Rendering.Network
     FRP.Chimera.Rendering.GlossSimulator
+    FRP.Chimera.Reactive.DataFlow
+    FRP.Chimera.Reactive.Transitions
     FRP.Chimera.Simulation.Simulation
     FRP.Chimera.Simulation.Common
     FRP.Chimera.Simulation.Init

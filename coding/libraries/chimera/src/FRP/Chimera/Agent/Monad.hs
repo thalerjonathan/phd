@@ -43,7 +43,7 @@ import Control.Monad
 import Control.Monad.State
 import FRP.BearRiver
 
-import FRP.Chimera.Agent.Agent
+import FRP.Chimera.Agent.Interface
 
 type AgentMonadic m o d e          = e -> Double -> AgentIn o d e -> State (AgentOut m o d e) e
 type AgentMonadicReadEnv m o d e   = e -> Double -> AgentIn o d e -> State (AgentOut m o d e) ()

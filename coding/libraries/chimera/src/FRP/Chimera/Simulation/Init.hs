@@ -12,7 +12,7 @@ module FRP.Chimera.Simulation.Init
 import Control.Concurrent.STM.TVar
 import Control.Monad.Random
 
-import FRP.Chimera.Agent.Agent
+import FRP.Chimera.Agent.Interface
 import FRP.Chimera.Environment.Definitions
 import FRP.Chimera.Simulation.Internal
 

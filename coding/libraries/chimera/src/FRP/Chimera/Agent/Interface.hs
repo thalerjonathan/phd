@@ -1,5 +1,5 @@
 {-# LANGUAGE Arrows #-}
-module FRP.Chimera.Agent.Agent 
+module FRP.Chimera.Agent.Interface 
   (
     AgentId
   , AgentData

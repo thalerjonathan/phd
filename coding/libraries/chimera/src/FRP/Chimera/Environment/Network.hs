@@ -27,13 +27,14 @@ module FRP.Chimera.Environment.Network
   , randomNeighbourNode
   ) where
 
-import Control.Monad.Random
-import Control.Monad.Trans.State
 import Data.List
 
+import Control.Monad.Random
+import Control.Monad.Trans.State
 import Data.Graph.Inductive.Graph
 import Data.Graph.Inductive.PatriciaTree
-import FRP.Chimera.Agent.Agent
+
+import FRP.Chimera.Agent.Interface
 
 type EdgeLabeler l          = (AgentId -> AgentId -> l)
 data NetworkType            = Random RandomNetwork | Deterministic DeterministicNetwork

@@ -53,6 +53,7 @@ import Control.Monad.Random
 import FRP.BearRiver
 
 import FRP.Chimera.Agent.Agent
+import FRP.Chimera.Agent.Monad
 import FRP.Chimera.Environment.Discrete
 import FRP.Chimera.Environment.Network
 import FRP.Chimera.Random.Monadic 
@@ -67,12 +68,12 @@ type AgentReadEnv m o d e   = SF (StateT (AgentOut m o d e) m) (AgentIn o d e, e
 -------------------------------------------------------------------------------
 -- MISC
 -------------------------------------------------------------------------------
-ignoreEnv :: AgentIgnoreEnv m o d e -> Agent m o d e 
+ignoreEnv :: Monad m => AgentIgnoreEnv m o d e -> Agent m o d e 
 ignoreEnv f = proc (ain, e) -> do
   _ <- f -< ain
   returnA -< e
 
-readEnv :: AgentReadEnv m o d e -> Agent m o d e
+readEnv :: Monad m => AgentReadEnv m o d e -> Agent m o d e
 readEnv f = proc (ain, e) -> do
   _ <- f -< (ain, e)
   returnA -< e
@@ -81,6 +82,7 @@ readEnv f = proc (ain, e) -> do
 -------------------------------------------------------------------------------
 -- Actions
 -------------------------------------------------------------------------------
+{-
 -- TODO: this is rubbish and doesnt make sense because of agentOutObs
 doOnce :: MonadState (AgentOut m o d e) m
        => (AgentOut m o d e -> AgentOut m o d e) 
@@ -135,6 +137,7 @@ doOccasionallyEvery g t s sf = proc (ain, e) -> do
     returnA -< (aout', e'))
     else 
       returnA -< (agentOutObs s, e)
+      -}
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -142,24 +145,23 @@ doOccasionallyEvery g t s sf = proc (ain, e) -> do
 -------------------------------------------------------------------------------
 dataFlowS :: MonadState (AgentOut m o d e) m
           => SF m (AgentData d) ()
-dataFlowS = arrM dataFlowM
+dataFlowS = proc d -> do
+  _ <- arrM (\d -> dataFlowM d) -< d
+  returnA -< ()
 
 -- TODO: sendMessageRepeatedly
 -- TODO: sendMessageAfter
 -- TODO: sendMessageOnEvent
 -- TODO: sendMessageOnMessageReceived
-dataFlowOccasionally :: MonadRandom m 
+dataFlowOccasionally :: (MonadRandom m, MonadState (AgentOut m o d e) m)
                      => Double
                      -> AgentData d
                      -> SF m (AgentIn o d e, e) ()
 dataFlowOccasionally rate d = dataFlowOccasionallySrc rate (constDataSource d)
 
--- type EventSource m o d e    = SF m (AgentIn o d e, e) (Event ())
--- type DataSource m o d e     = SF m (AgentIn o d e, e) (AgentData d)
-
 dataFlowOccasionallySrc :: (MonadRandom m, MonadState (AgentOut m o d e) m)
                         => Double
-                        -> DataSource s m e 
+                        -> DataSource m o d e 
                         -> SF m (AgentIn o d e, e) ()
 dataFlowOccasionallySrc rate dfSrc = proc (ain, e) -> do
   sendEvt <- occasionally rate () -< ()
@@ -180,8 +182,8 @@ dataFlowOccasionallySS rate ss d = dataFlowOccasionallySrcSS rate ss (constDataS
 dataFlowOccasionallySrcSS :: (MonadRandom m, MonadState (AgentOut m o d e) m)
                           => Double
                           -> Int
-                          -> DataSource s m e 
-                          -> SF (AgentIn o d e, e) ()
+                          -> DataSource m o d e 
+                          -> SF m (AgentIn o d e, e) ()
 dataFlowOccasionallySrcSS rate ss dfSrc = proc aie -> do
     sendEvtsSS <- superSamplingUniform ss (occasionally rate ())  -< ()
     dfSS       <- superSamplingUniform ss dfSrc                   -< aie
@@ -198,41 +200,43 @@ dataFlowOccasionallySrcSS rate ss dfSrc = proc aie -> do
 -------------------------------------------------------------------------------
 -- MESSAGE-Sources
 -------------------------------------------------------------------------------
-constDataReceiverSource :: d -> AgentId -> DataSource s m e
-constDataReceiverSource d receiver = constant (receiver, m)
+constDataReceiverSource :: Monad m => d -> AgentId -> DataSource m o d e
+constDataReceiverSource d receiver = constant (receiver, d)
 
-constDataSource :: AgentData d -> DataSource s m e
-constDataSource d = constant d
+constDataSource :: Monad m => AgentData d -> DataSource m o d e
+constDataSource = constant
 
-randomNeighbourNodeMsgSource :: RandomGen g => g 
-                                -> m 
-                                -> DataSource s m (Network l)
-randomNeighbourNodeMsgSource g m = proc (ain, _, e) -> do
-    let aid = agentId ain
-    randNode <- randomSF g -< randomNeighbourNode aid e
-    returnA -< (randNode, m)
+--type DataSource m o d e     = SF m (AgentIn o d e, e) (AgentData d)
+
+randomNeighbourNodeMsgSource :: MonadRandom m
+                             => d
+                             -> DataSource m o d (Network l)
+randomNeighbourNodeMsgSource d = proc (ain, e) -> do
+  let aid = agentId ain
+  randNode <- arrM (\(aid, e) -> randomNeighbourNode aid e) -< (aid, e)
+  returnA -< (randNode, d)
 
 -- NOTE: assumes state isJust
-randomNeighbourCellMsgSource :: RandomGen g => g 
-                                -> (s -> Discrete2dCoord) 
-                                -> m 
-                                -> Bool 
-                                -> MessageSource s m (Discrete2d AgentId)
-randomNeighbourCellMsgSource g posFunc m ic = proc (_, ao, e) -> do
-    let pos = posFunc $ fromJust $ aoState ao
-    randCell <- randomSF g -< randomNeighbourCell pos ic e
-    returnA -< (randCell, m)
+randomNeighbourCellMsgSource :: MonadRandom m
+                             => (o -> Discrete2dCoord) 
+                             -> d 
+                             -> Bool 
+                             -> DataSource m o d (Discrete2d AgentId)
+randomNeighbourCellMsgSource posFunc d ic = proc (_, e) -> do
+  let pos = posFunc $ fromJust $ agentObservable
+  randCell <- arrM (\(pos, e) -> randomNeighbourCell pos ic e) -< (pos, e)
+  returnA -< (randCell, d)
 
-randomAgentIdMsgSource :: RandomGen g => g 
-                          -> m 
-                          -> Bool 
-                          -> MessageSource s m [AgentId]
-randomAgentIdMsgSource g m ignoreSelf = proc aoe@(ain, _, agentIds) -> do
-    let aid = agentId ain
-    randAid <- drawRandomElemSF g -< agentIds
-    if True == ignoreSelf && aid == randAid
-      then randomAgentIdMsgSource (snd $ split g) m ignoreSelf -< aoe
-      else returnA -< (randAid, m)
+randomAgentIdMsgSource :: MonadRandom m
+                       => d
+                       -> Bool 
+                       -> DataSource m o d [AgentId]
+randomAgentIdMsgSource d ignoreSelf = proc aie@(ain, agentIds) -> do
+  let aid = agentId ain
+  randAid <- drawRandomElemSF g -< agentIds
+  if True == ignoreSelf && aid == randAid
+    then randomAgentIdMsgSource (snd $ split g) m ignoreSelf -< aie
+    else returnA -< (randAid, d)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -316,13 +320,13 @@ transitionWithExpProb g lambda p from to = switch (transitionWithExpProbAux from
       evt <- iEdge False -< (p >= r)
       returnA -< (aie', evt)
 
-transitionOnEvent :: EventSource s m e
+transitionOnEvent :: EventSource m o d e
                     -> Agent m o d e
                     -> Agent m o d e
                     -> Agent m o d e
 transitionOnEvent evtSrc from to = switch (transitionEventAux evtSrc from) (const to)
   where
-    transitionEventAux :: EventSource s m e
+    transitionEventAux :: EventSource m o d e
                             -> Agent m o d e
                             -> SF (AgentIn o d e, e) ((AgentOut m o d e, e), Event ())
     transitionEventAux evtSrc from = proc aie@(ain, _) -> do
@@ -347,39 +351,39 @@ transitionOnBoolState boolStateFunc from to = switch (transitionOnBoolStateAux b
       evt <- iEdge False -< evtFlag
       returnA -< ((ao, e), evt)
 
-transitionOnMessage :: (Eq m) => m 
-                        -> Agent m o d e
-                        -> Agent m o d e
-                        -> Agent m o d e
-transitionOnMessage msg from to = transitionOnEvent (messageEventSource msg) from to
+transitionOnData :: Eq d => d 
+                 -> Agent m o d e
+                 -> Agent m o d e
+                 -> Agent m o d e
+transitionOnData d from to = transitionOnEvent (dataEventSource d) from to
 
-transitionOnEventWithGuard :: RandomGen g => g 
-                            -> EventSource s m e
-                            -> Rand g Bool
-                            -> Agent m o d e
-                            -> Agent m o d e
-                            -> Agent m o d e
-transitionOnEventWithGuard g evtSrc guardAction from to = 
+transitionOnEventWithGuard :: (MonadRandom m, RandomGen g)
+                           => EventSource m o d e
+                           -> Rand g Bool
+                           -> Agent m o d e
+                           -> Agent m o d e
+                           -> Agent m o d e
+transitionOnEventWithGuard evtSrc guardAction from to = 
     switch (transitionEventWithGuardAux evtSrc from) (const to)
   where
-    transitionEventWithGuardAux :: EventSource s m e
-                                    -> Agent m o d e 
-                                    -> SF (AgentIn o d e, e) ((AgentOut m o d e, e), Event ())
+    transitionEventWithGuardAux :: MonadRandom m
+                                => EventSource m o d e
+                                -> Agent m o d e 
+                                -> SF m (AgentIn o d e, e) (e, Event ())
     transitionEventWithGuardAux evtSrc from = proc aie@(ain, _) -> do
-      (ao, e) <- from -< aie
-      evt <- evtSrc -< (ain, ao, e)
-      flag <- randomSF g -< guardAction
-      if (isEvent evt && flag)
-        then returnA -< ((ao, e), Event())
-        else returnA -< ((ao, e), NoEvent)
+      e <- from -< aie
+      evt <- evtSrc -< (ain, e)
+      flag <- arrM_ (lift $ guardAction) -< ()
+      returnA -< if (isEvent evt && flag)
+                   then (e, Event())
+                   else (e, NoEvent)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- EVENT-Sources
 -------------------------------------------------------------------------------
--- TODO: how can we formulate this in point-free arrow style?
-messageEventSource :: (Eq m) => m -> EventSource s m e
-messageEventSource msg = proc (ain, _, _) -> do
-  evt <- iEdge False -< hasMessage msg ain
+dataEventSource :: (Eq d, Monad m) => d -> EventSource m o d e
+dataEventSource d = proc (ain, _) -> do
+  evt <- edgeFrom False -< hasDataFlow d ain
   returnA -< evt
 -------------------------------------------------------------------------------

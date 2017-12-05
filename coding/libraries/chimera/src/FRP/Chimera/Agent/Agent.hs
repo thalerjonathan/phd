@@ -185,7 +185,7 @@ broadcastDataFlow d receiverIds ao = dataFlows datas ao
     ds = replicate n d
     datas = zip receiverIds ds
 
-hasDataFlow :: (Eq d) => d -> AgentIn o d e -> Bool
+hasDataFlow :: Eq d => d -> AgentIn o d e -> Bool
 hasDataFlow d ai = Data.List.any ((==d) . snd) (aiData ai)
 
 onDataFlow :: (AgentData d -> acc -> acc) -> AgentIn o d e -> acc -> acc

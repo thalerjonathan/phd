@@ -1,7 +1,7 @@
 # phd
 Stuff of my PhD I want to share publicly: all code, texts of my papers, reports, research-notes &amp; research-diary
 
-In my Ph.D. in computer science at the University of Nottingham I am looking into exploring the benefits and drawbacks of using the functional programming paradigm in Haskell for implementing Agent-Based Simulations.
+In my Ph.D. in computer science at the University of Nottingham I am exploring the benefits and drawbacks of using the functional programming paradigm in Haskell for implementing Agent-Based Simulations.
 
 To give a short overview of the ideas and research directions the abstract of my Research Proposal is quoted here:
 
@@ -9,20 +9,6 @@ Agent-Based Modelling and Simulation (ABS) is still a young discipline and the d
 
 In the first year I did lots of prototyping which lead to the use of FRP using the library Yampa. This resulted in a first approach to functional ABS which I termed Functional Reactive ABS (FrABS, as opposed to OoABS). I am in the process of implementing a library for FrABS which is also in this repository which forms the tool of research for my approach. So far it only exists as an unfinished prototype which is subject to constant refactorings and refinement but at some point is is planed to give it a proper name and put it on Hackage.
 
-FrABS is a radically different approach to ABS in which agents are implemented as time-continuous signals which can exhibit both continuous and discrete behaviour. Compared to the traditional object-oriented approach FrABS differs fundamentally in the following points:
-- FrABS combines both the strength of continuous SD-like and discrete ABS-like approaches: it is continuous time but with discrete events and heterogenous entities. This allows e.g. to implement a SD model much more easier in an agent-based approach and due to continuous-time it results in the SD dynamics using only one run (provided enough agents are used and time-sampling frequency is high enough).
-- In FrABS agents are treated as time-continuous signals - if time does not advance then the agent's output stays constant (depending of course on the model, as there are obviously models in which agents do not depend on time).
-- In FrABS data-flow is can only be explicit and deterministic - this means that repeated runs are guaranteed to be ALWAYS the same as all sources of non-determinism are eliminated (random-number generators are controlled, sampling-time is fixed and the agents cannot perform any form of side-effects).
-- So far agents can only interact with each other indirectly through a shared environment or directly through immutable shared-nothing messages. This is in the spirit of the Actor model and the original idea of object-orientation as conceived by Alan Kay and requires to think agent-interaction very differently than in oo where method-calls are available.
-- In addition to messaging which is kind of asynchronous (as it takes 2 steps for a round-trip) I introduced the concept of conversations in which 2 agents can interact with each other directly without time advancing (it is only available in Sequential stepping because only in this case make the semantics sense).
-- Sequential and Parallel stepping of the simulation. Sequential means that agents are updated after another where agents updated after can see the actions of agents after. Parallel means that agents are updated virtually at the same time where actions of all agents are only visible to all in the next step. Due to the referential transparency, lack of side-effects and explicit data-flow it is very easy to implement these steppings without having an impact on how an agent must treat its data meaning we can run models with both steppings and compare their result without changing the agents (of course when we need conversations then we need to use sequential but this is then due to some mututal exclusive and synchronised data-access specified in our model and thus our model is not applicable to Parallel).
-- Recursive ABS easily possible. Although there exists basically no research and only one paper on recursive simulation () we implemented a prototype approach which allows agents to make actions and project their actions into the future by running the simulation an arbitrary number of steps. Due to the referential transparency, lack of side-effects and explicit data-flow it is very easy to implement recursive ABS as it maps so naturally on the already recursive nature of pure functional programming in Haskell.
-
-At the moment much refactoring is going on as the current prototype is still too much object-oriented and not functional reactive enough. Currently the following points are open
-- Is there an alternative to the current agent-interaction mechanisms of messaging and conversations?
-- Agents have local state which is stored and updated using continuations. The state-handling is highly domain-specific and too cumbersome ATM and needs some refinement.
-
-Future work (3rd year)
-- reasoning, verification, reproducibility, correctness, testing: how does FrABS help with these?
+Future work in the 3rd year will look into reasoning, verification, reproducibility, correctness, testing: how does FrABS help with these?
 
 Jonathan Thaler, 27th November 2017

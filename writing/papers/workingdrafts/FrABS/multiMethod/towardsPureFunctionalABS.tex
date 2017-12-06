@@ -77,6 +77,25 @@ TODO: the main punch is that our approach combines the best of the three simulat
 
 TODO: give examples of all 3 approaches: SD \& ABS: SIR model, DES: simulation of a queuing system
 
+TODO: describe the different approach which is necessary because of being functional 
+	- data-flows
+	- how state is handled
+	- update-strategies
+
+TODO: main benefits
+	- being explicit and polymorph about side-effects: can have 'pure' (no side-effects except state), 'random' (can draw random-numbers), 'IO' (all bets are off), STM (concurrency) agents
+	- hybrid between SD and ABS due to continuous time AND parallel dataFlow (parallel update-strategy)
+	- being update-strategy polymorph (TODO: this is just an asumption atm, need to prove thiis): 4 different update-strategies, one agent implementation
+	- reasoning about correctness
+	- reasoning about dynamics 
+	- testing with quickcheck much more convenient
+	
+TODO: what we need to show 
+	- can also do DES
+	- concurrent and actor update-strategies
+	- reasoning about correctness
+	- reasoning about dynamics
+	
 So far, the pure functional paradigm hasn't got much attention in Agent-Based Simulation (ABS) where the dominant programming paradigm is object-orientation, with Java, Python and C++ being its most prominent representatives. We claim that pure functional programming using Haskell is very well suited to implement complex, real-world agent-based models and brings with it a number of benefits. To show that we implemented the seminal Sugarscape model in Haskell in our library \textit{FrABS} which allows to do ABS the first time in the pure functional programming language Haskell. To achieve this we leverage the basic concepts of ABS with functional reactive programming using Yampa. The result is a surprisingly fresh approach to ABS as it allows to incorporate discrete time-semantics similar to Discrete Event Simulation and continuous time-flows as in System Dynamics. In this paper we will show the novel approach of functional reactive ABS through the example of the SIR model, discuss implications, benefits and best practices.
 \end{abstract}
 

@@ -64,6 +64,7 @@ executable ABSSTMEnvConv
                      , containers
                      , dunai
                      , stm
+                     , stm-stats
                      
   -- Directories containing source files.
   hs-source-dirs:      src

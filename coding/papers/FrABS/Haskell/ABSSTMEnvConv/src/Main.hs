@@ -30,20 +30,22 @@ data AgentOut o d = AgentOut
 type Agent m o d        = SF m (AgentIn d) (AgentOut o d)
 type AgentObservable o  = (AgentId, Maybe o)
 
-type STMTestObservable  = Double
+data STMTestObservable  = AgentWealth Double 
+                        | EnvCells [STMTestEnvCellData] deriving (Show)
+
 data STMTestMsg         = DataFlow Int deriving (Show, Eq)
 type STMTestAgentIn     = AgentIn STMTestMsg
 type STMTestAgentOut    = AgentOut STMTestObservable STMTestMsg
 type STMTestAgent g     = Agent (RandT g STM) STMTestObservable STMTestMsg
 
-type STMTestEnvCellData = (Bool, Double)
+type STMTestEnvCellData = (Maybe AgentId, Double)
 type STMTestEnv         = [TVar STMTestEnvCellData]
 
 agentCount :: Int
-agentCount = 3
+agentCount = 2
 
 cellCount :: Int
-cellCount = 15
+cellCount = 8
 
 rngSeed :: Int
 rngSeed = 42
@@ -64,8 +66,9 @@ main = do
   let g = mkStdGen rngSeed
   
   env <- atomically $ initTestEnv cellCount
+  as <- atomically $ initTestAgents agentCount env
+
   let envA = (0, testEnvironment env)
-  let as = initTestAgents agentCount env :: [(AgentId, STMTestAgent StdGen)]
 
   obss <- runSimulationUntil g t dt (envA : as)
 
@@ -74,26 +77,44 @@ main = do
 
 initTestEnv :: Int -> STM STMTestEnv
 initTestEnv n = do
-  let cellData = replicate n ((False, 0) :: STMTestEnvCellData)
+  let cellData = replicate n ((Nothing, 0) :: STMTestEnvCellData)
   cells <- mapM newTVar cellData
   return cells
 
 initTestAgents :: RandomGen g 
                => Int 
                -> STMTestEnv 
-               -> [(AgentId, STMTestAgent g)]
-initTestAgents n env = map (\ai -> (ai,(testAgent 0 env))) [1..n] -- environment has id = 0
+               -> STM [(AgentId, STMTestAgent g)]
+initTestAgents n env = mapM (\ai -> do
+  let v = env !! ai
+  modifyTVar v (\(_, a) -> (Just ai, a))
+  return (ai, (testAgent 0 v env))) [1..n] -- environment has id = 0
 
 testAgent :: RandomGen g 
           => Double
+          -> TVar STMTestEnvCellData 
           -> STMTestEnv
           -> STMTestAgent g
-testAgent _r0 env = proc _ain -> do
+testAgent w0 loc0 env = proc ain -> do
   idx <- arrM_ (getRandomR (0, length env - 1)) -< ()
-  let rc = env !! idx
-  (_occ, res) <- arrM (\v -> lift $ lift $ readTVar v) -< rc
+  let randLoc = env !! idx
+  cell <- arrM (\v -> lift $ lift $ readTVar v) -< randLoc
+  
+  rec
+    currLoc <- iPre loc0 -< newLoc
+    newLoc <- if False == isOccupied (agentId ain) cell 
+                then arrM(\(from, to, aid) -> do
+                  lift $ lift $ changeLocation aid from to
+                  return to) -< (currLoc, randLoc, agentId ain)
+                else arr id -< currLoc
 
-  returnA -< agentOutObs res
+  wInc <- arrM (\v -> lift $ lift $ harvestLocation v) -< newLoc
+
+  rec
+    w' <- iPre w0 -< w
+    let w = w' + wInc
+
+  returnA -< agentOutObs (AgentWealth w)
 
 testEnvironment :: RandomGen g 
                 => STMTestEnv
@@ -101,8 +122,33 @@ testEnvironment :: RandomGen g
 testEnvironment env = proc _ain -> do
   dt <- arrM_ ask -< ()
   _ <- arrM (\dt -> lift $ lift $
-    mapM_ (\v -> modifyTVar v (\(occ, a) -> (occ, min (a+dt) maxCellRes))) env) -< dt
-  returnA -< agentOut
+    mapM_ (\v -> increaseResources dt v) env) -< dt
+  cs <- arrM (\_ -> lift $ lift $ (mapM (\v -> readTVar v) env)) -< ()
+  returnA -< agentOutObs (EnvCells cs)
+  
+changeLocation :: AgentId 
+               -> TVar STMTestEnvCellData
+               -> TVar STMTestEnvCellData
+               -> STM ()
+changeLocation aid currLoc newLoc = do
+  modifyTVar currLoc  (\(_, a) -> (Nothing, a))
+  modifyTVar newLoc   (\(_, a) -> (Just aid, a))
+
+harvestLocation :: TVar STMTestEnvCellData -> STM Double
+harvestLocation loc = do
+  (_, res) <- readTVar loc
+  zeroResources loc
+  return res
+
+isOccupied :: AgentId -> STMTestEnvCellData -> Bool
+isOccupied self (Just aid , _) = self /= aid
+isOccupied _    (Nothing  , _) = False
+
+increaseResources :: Double -> TVar STMTestEnvCellData -> STM ()
+increaseResources res v = modifyTVar v (\(occ, a) -> (occ, min (a+res) maxCellRes))
+
+zeroResources :: TVar STMTestEnvCellData -> STM ()
+zeroResources v = modifyTVar v (\(occ, _) -> (occ, 0))
 
 -------------------------------------------------------------------------------
 runSimulationUntil :: RandomGen g

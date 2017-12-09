@@ -100,6 +100,21 @@ TODO: what we need to show / future work
 	- reasoning about correctness: implement Gintis \& Ionescous papers 
 	- reasoning about dynamics: implement Gintis \& Ionescous papers
 	
+TODO: describing how things are treated different
+	- time is represented using the FRP concept: Signal-Functions which are sampled at (fixed) time-deltas, the dt is never visible directly but only reflected in the code and read-only.
+	- no method calls => continuous data-flow instead
+	- no global shared mutable environment, having different options:
+		-> non-active read-only (SIR): no agent, as additional argument to each agent
+		-> pro-active read-only (?): environment as agent, broadcast environment updates as data-flow
+		-> non-active read/write (?): no agent, shared data as STM as additional argument to each agent
+		-> pro-active read/write (Sugarscape): environment as, shared data as STM as additional argument to each agent
+	- parallel update only, sequential is deliberately abandoned due to:
+		-> reality does not behave this way
+		-> if we need transactional behaviour, can use STM which is more explicit
+		-> it is translates directly to a map which is very easy to reason about (sequential is basically a fold which is much more difficult to reason about)
+		-> is more natural in functional programming
+	- state is handled using FRP: recursive arrows and continuations
+		
 So far, the pure functional paradigm hasn't got much attention in Agent-Based Simulation (ABS) where the dominant programming paradigm is object-orientation, with Java, Python and C++ being its most prominent representatives. We claim that pure functional programming using Haskell is very well suited to implement complex, real-world agent-based models and brings with it a number of benefits. To show that we implemented the seminal Sugarscape model in Haskell in our library \textit{FrABS} which allows to do ABS the first time in the pure functional programming language Haskell. To achieve this we leverage the basic concepts of ABS with functional reactive programming using Yampa. The result is a surprisingly fresh approach to ABS as it allows to incorporate discrete time-semantics similar to Discrete Event Simulation and continuous time-flows as in System Dynamics. In this paper we will show the novel approach of functional reactive ABS through the example of the SIR model, discuss implications, benefits and best practices.
 \end{abstract}
 

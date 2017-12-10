@@ -5,7 +5,7 @@ module Main where
 
 import Control.Concurrent
 import qualified Data.Map as Map
-import Data.Maybe
+-- import Data.Maybe
 import System.IO
 
 import Control.Monad.Random
@@ -78,42 +78,42 @@ data TradingProtocoll = Offering Double
 
 testSTM :: IO ()
 testSTM = do
-  v1 <- trackSTM $ newEmptyTMVar
-  v2 <- trackSTM $ newEmptyTMVar
+  r <- trackSTM $ newEmptyTMVar
+  s <- trackSTM $ newEmptyTMVar
 
-  _t1 <- forkIO $ conversationThread v2 v1
-  _t2 <- forkIO $ conversationThread v1 v2
+  _t1 <- forkIO $ do
+    print "Active TX starts"  
+    w <- trackSTM $ activeTransaction 200 s r
+    print $ "Active TX results in " ++ show w
+
+  _t2 <- forkIO $ do
+    print "Passive TX starts"  
+    w <- trackSTM $ passiveTransaction 100 r s
+    print $ "Passive TX results in " ++ show w
 
   threadDelay 1000000
-
-conversationThread :: TMVar TradingProtocoll
-                   -> TMVar TradingProtocoll
-                   -> IO ()
-conversationThread receive send = do
-  _ <- trackSTM $ tradingTransaction receive send
-  trackSTM $ startTransaction send
-
-  conversationThread receive send
-
-transactionHandling :: Double
-                    -> TMVar TradingProtocoll 
-                    -> TMVar TradingProtocoll
-                    -> STM Double
 
 -- pro-actively starting a transaction and wait for reception
 activeTransaction :: Double
                   -> TMVar TradingProtocoll 
                   -> TMVar TradingProtocoll
                   -> STM Double
-activeTransaction receive send = do
-  putTMVar send (Offering 42)
-  reply <- readTMVar receive
+activeTransaction w s r = do
+  putTMVar s (Offering w)
+  (Accept t) <- readTMVar r
+  return t
 
 -- passively waiting for a transaction request
-passiveTransaction :: TMVar TradingProtocoll 
+passiveTransaction :: Double
+                   -> TMVar TradingProtocoll 
                    -> TMVar TradingProtocoll
                    -> STM Double
-passiveTransaction receive send = do
+passiveTransaction w s r = do
+  (Offering t) <- readTMVar r
+  putTMVar s (Accept w)
+  return t
+
+
 
 initTestAgents :: RandomGen g 
                => Int 

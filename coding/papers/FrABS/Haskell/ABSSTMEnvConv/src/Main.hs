@@ -42,10 +42,10 @@ type STMTestEnvCellData = (Maybe AgentId, Double)
 type STMTestEnv         = [TVar STMTestEnvCellData]
 
 agentCount :: Int
-agentCount = 2
+agentCount = 1
 
 cellCount :: Int
-cellCount = 8
+cellCount = 10
 
 rngSeed :: Int
 rngSeed = 42
@@ -70,7 +70,7 @@ main = do
 
   let envA = (0, testEnvironment env)
 
-  obss <- runSimulationUntil g t dt (envA : as)
+  obss <- runSimulationUntil g t dt (as ++ [envA])
 
   mapM_ (\obs -> mapM_ (putStrLn . show) obs) obss
   dumpSTMStats

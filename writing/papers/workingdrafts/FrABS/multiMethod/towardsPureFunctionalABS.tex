@@ -115,6 +115,13 @@ TODO: describing how things are treated different
 		-> is more natural in functional programming
 	- state is handled using FRP: recursive arrows and continuations
 		
+TODO: defining agent-based simulation
+	- look into existing literature (e.g. peers paper, any logic book,...)
+
+TODO: need to find a formal definition on agent-based simulation
+	- start with wooldridge book
+	- derive a more functional approach then in my paper
+	
 So far, the pure functional paradigm hasn't got much attention in Agent-Based Simulation (ABS) where the dominant programming paradigm is object-orientation, with Java, Python and C++ being its most prominent representatives. We claim that pure functional programming using Haskell is very well suited to implement complex, real-world agent-based models and brings with it a number of benefits. To show that we implemented the seminal Sugarscape model in Haskell in our library \textit{FrABS} which allows to do ABS the first time in the pure functional programming language Haskell. To achieve this we leverage the basic concepts of ABS with functional reactive programming using Yampa. The result is a surprisingly fresh approach to ABS as it allows to incorporate discrete time-semantics similar to Discrete Event Simulation and continuous time-flows as in System Dynamics. In this paper we will show the novel approach of functional reactive ABS through the example of the SIR model, discuss implications, benefits and best practices.
 \end{abstract}
 

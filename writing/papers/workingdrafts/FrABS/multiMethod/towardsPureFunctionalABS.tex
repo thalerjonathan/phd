@@ -114,8 +114,17 @@ TODO: describing how things are treated different
 		-> it is translates directly to a map which is very easy to reason about (sequential is basically a fold which is much more difficult to reason about)
 		-> is more natural in functional programming
 	- state is handled using FRP: recursive arrows and continuations
-	- still need transactions between agents: how are they done?
-	
+	- still need transactions between two agents e.g. trading occurs over multiple steps (makeoffer, accept/refuse, finalize/abort) 
+		-> exactly define what TX means in ABS
+			-> exclusive between 2 agents
+			-> state-changes which occur over multiple steps and are only visible to the other agents after the TX has commited
+			-> no read/write access to this state is allowed to other agents while the TX is active
+			-> a TX executes in a single time-step and must not span multiple ones
+		-> it is easily possible using method-calls in OOP but in our pure functional approach it is not possible
+		-> parallel execution is being a problem here as TX between agents are very easy with sequential
+		-> an agent must be able to transact with as many other agents as it wants to in the same time-step
+		=> what we need is a 'all agents transact at the same time' which implies threads and STM
+		
 TODO: defining agent-based simulation
 	- look into existing literature (e.g. peers paper, any logic book,...)
 

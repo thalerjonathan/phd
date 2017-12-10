@@ -3,7 +3,9 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Main where
 
+import Control.Concurrent
 import qualified Data.Map as Map
+import Data.Maybe
 import System.IO
 
 import Control.Monad.Random
@@ -53,8 +55,10 @@ dt = 1.0
 
 main :: IO ()
 main = do
+  
   hSetBuffering stdout NoBuffering
 
+  {-
   let g = mkStdGen rngSeed
   
   let as = initTestAgents agentCount
@@ -62,7 +66,54 @@ main = do
   obss <- runSimulationUntil g t dt as
 
   mapM_ (\obs -> mapM_ (putStrLn . show) obs) obss
+  -}
+
+  testSTM
+
   dumpSTMStats
+
+data TradingProtocoll = Offering Double
+                      | Accept Double
+                      | Refuse deriving (Show, Eq)
+
+testSTM :: IO ()
+testSTM = do
+  v1 <- trackSTM $ newEmptyTMVar
+  v2 <- trackSTM $ newEmptyTMVar
+
+  _t1 <- forkIO $ conversationThread v2 v1
+  _t2 <- forkIO $ conversationThread v1 v2
+
+  threadDelay 1000000
+
+conversationThread :: TMVar TradingProtocoll
+                   -> TMVar TradingProtocoll
+                   -> IO ()
+conversationThread receive send = do
+  _ <- trackSTM $ tradingTransaction receive send
+  trackSTM $ startTransaction send
+
+  conversationThread receive send
+
+transactionHandling :: Double
+                    -> TMVar TradingProtocoll 
+                    -> TMVar TradingProtocoll
+                    -> STM Double
+
+-- pro-actively starting a transaction and wait for reception
+activeTransaction :: Double
+                  -> TMVar TradingProtocoll 
+                  -> TMVar TradingProtocoll
+                  -> STM Double
+activeTransaction receive send = do
+  putTMVar send (Offering 42)
+  reply <- readTMVar receive
+
+-- passively waiting for a transaction request
+passiveTransaction :: TMVar TradingProtocoll 
+                   -> TMVar TradingProtocoll
+                   -> STM Double
+passiveTransaction receive send = do
 
 initTestAgents :: RandomGen g 
                => Int 
@@ -75,7 +126,7 @@ testAgent :: RandomGen g
           => [AgentId]
           -> Double
           -> STMTestAgent g
-testAgent agents w0 = proc _ain -> do
+testAgent _agents w0 = proc _ain -> do
   rec
     w' <- iPre w0 -< w
     let w = w' + 0
@@ -84,7 +135,7 @@ testAgent agents w0 = proc _ain -> do
 
 startConversation :: STMTestMsg -> STM ()
 startConversation msg = do
-  v <- newTMVar msg
+  _v <- newTMVar msg
   return ()
 
 -------------------------------------------------------------------------------

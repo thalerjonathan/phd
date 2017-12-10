@@ -123,8 +123,10 @@ TODO: describing how things are treated different
 		-> it is easily possible using method-calls in OOP but in our pure functional approach it is not possible
 		-> parallel execution is being a problem here as TX between agents are very easy with sequential
 		-> an agent must be able to transact with as many other agents as it wants to in the same time-step
-		=> what we need is a 'all agents transact at the same time' which implies threads and STM
-		
+		-> no time passes between transactions
+		=> what we need is a 'all agents transact at the same time'
+			-> basically we can implement it by running the SFs of the agents involved in the TX repeatedly with dt=0 until there are no more active TXs
+			
 TODO: defining agent-based simulation
 	- look into existing literature (e.g. peers paper, any logic book,...)
 

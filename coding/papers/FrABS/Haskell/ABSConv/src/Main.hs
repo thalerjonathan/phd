@@ -211,7 +211,7 @@ activeTxAgentAwait :: RandomGen g
                    -> Double
                    -> ConvTestAgent g
 activeTxAgentAwait w env rask =  
-    switch  -- TODO: delay switch
+    dSwitch  -- TODO: delay switch
       checkActiveTxAgentAwait
       (\w' -> activeAgent w' env)
   where

@@ -7,7 +7,8 @@ import qualified Data.Map as Map
 import System.IO
 
 import Control.Monad.Random
-import Control.Monad.Reader
+-- import Control.Monad.Reader
+import Control.Monad.Trans.MSF.Reader
 import Control.Concurrent.STM
 import Control.Concurrent.STM.Stats
 import FRP.BearRiver
@@ -168,10 +169,8 @@ runSimulationUntil g t dt aiMsfs = do
   let aossM = embed (parSimulation msfs ains) ticks
 
   let readerM = runReaderT aossM dt
-  let randM = evalRandT readerM g
-  -- aoss <- atomically randM
-  aoss <- trackSTM randM
-
+  aoss <- evalRandT readerM g
+  
   let aobs = map (\aos -> map (\(aid, ao) -> (aid, agentObservable ao)) aos) aoss
 
   return aobs
@@ -179,73 +178,65 @@ runSimulationUntil g t dt aiMsfs = do
 parSimulation :: RandomGen g
               => [Agent (RandT g STM) o d] 
               -> [AgentIn d] 
-              -> SF (RandT g STM)
+              -> SF (RandT g IO)
                   ()
                   [(AgentId, AgentOut o d)]
 parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
   where
     parSimulationAux :: RandomGen g
-                     => SF (RandT g STM) 
+                     => SF (RandT g IO)
                           ((), ([Agent (RandT g STM) o d], [AgentIn d]))
                           ([(AgentId, AgentOut o d)], ([Agent (RandT g STM) o d], [AgentIn d]))
     parSimulationAux = proc (_, (msfs, ains)) -> do
-      aiosMsfs <- arrM (\(msfs, ains) -> mapM runAgent (zip ains msfs)) -< (msfs, ains)
-
-      let aios = map fst aiosMsfs
-      let msfs' = map snd aiosMsfs
-
+      (msfs', aos) <- runAgents -< (msfs, ains)
+      let aios = map (\(ao, ai) -> (agentId ai, ao)) (zip aos ains)
+      
       let ains' = map (\ai -> agentIn $ agentId ai) ains 
       let ains'' = distributeData ains' aios
 
       returnA -< (aios, (msfs', ains''))
 
-    runAgent :: RandomGen g
-             => (AgentIn d, Agent ((RandT g STM)) o d)
-             -> ReaderT DTime (RandT g STM)
-                  ((AgentId, AgentOut o d), Agent ((RandT g STM)) o d) 
-    runAgent (ain, msf) = do
-      let aid = agentId ain
-      (ao, msf') <- unMSF msf ain
-      return ((aid, ao), msf')
+runAgents :: RandomGen g
+          => SF (RandT g IO)
+              ([Agent (RandT g STM) o d], [AgentIn d]) 
+              ([Agent (RandT g STM) o d], [AgentOut o d])
+runAgents = readerS $ proc (dt, (sfs, ins)) -> do
+    let asIns = zipWith (\sf ain -> (dt, (ain, sf))) sfs ins
+    arets <- mapMSF (runReaderS runAgentParallelSF) -< asIns
+    let (aos, sfs') = unzip arets
+    returnA -< (sfs', aos)
 
-      {-
-runAgents :: Monad m 
-          => SF m 
-              ([Agent m o d e], [AgentIn o d e], e) 
-              ([Agent m o d e], [AgentOut m o d e], [e])
-runAgents = readerS $ proc (dt, (sfs, ins, e)) -> do
-    let asIns        = zipWith (\sf ain -> (dt, (sf, ain, e))) sfs ins
+runAgentParallelSF :: RandomGen g
+                   => SF (RandT g IO)
+                      (AgentIn d, Agent (RandT g STM) o d)
+                      (AgentOut o d, Agent (RandT g STM) o d)
+runAgentParallelSF = ?
 
-    arets <- mapMSF (runReaderS runAgent) -< asIns
+runAgentParallel :: AgentIn d 
+                 -> Agent (RandT g STM) o d
+                 -> IO (AgentOut o d, Agent (RandT g STM) o d)
+runAgentParallel aid sf = do
+  -- how to extract the STM from sf?
+  -- let stmAction = ...
+  a <- async $ atomically stmAction
+  (ao, sf') <- wait a
+  return (ao, sf')
 
-    let (aos, aEsSfs) = unzip arets
-        (es,  sfs')   = unzip aEsSfs
+runAgent :: RandomGen g
+          => SF (RandT g STM)
+              (AgentIn d, Agent (RandT g STM) o d)
+              (AgentOut o d, Agent (RandT g STM) o d)
+runAgent = arrM (\(ain, sf) -> unMSF sf ain)
 
-    returnA -< (sfs', aos, es)
+runAgentWithDt :: RandomGen g
+               => Double 
+               -> SF (RandT g STM)
+                    (AgentIn d, Agent (RandT g STM) o d)
+                    (AgentOut o d, Agent (RandT g STM) o d)
+runAgentWithDt dt = readerS $ proc (_, (ain, sf)) -> do
+  (ao, sf') <- runReaderS_ runAgent dt -< (ain, sf)
+  returnA -< (ao, sf')
 
-  where
-    runAgent :: Monad m 
-            => SF m 
-                  (Agent m o d e, AgentIn o d e, e)
-                  (AgentOut m o d e, (e, Agent m o d e))
-    runAgent = runStateSF_ runAgentAux agentOut
-      where
-        runAgentAux :: Monad m
-                    => SF (StateT (AgentOut m o d e) m) 
-                        (Agent m o d e, AgentIn o d e, e) 
-                        (e, Agent m o d e)
-        runAgentAux = arrM (\(sf, ain, e) -> unMSF sf (ain, e))
-
-runStateSF_ :: Monad m => SF (StateT s m) a b -> s -> SF m a (s, b)
-runStateSF_ sf = runStateS_ $ liftMSFPurer commute sf
-
--- deep magic going on as well...
-commute :: Monad m => ReaderT r (StateT s m) a -> StateT s (ReaderT r m) a
-commute rt = 
-  StateT (\s -> 
-    ReaderT (\r -> let st = runReaderT rt r
-                    in runStateT st s))
--}
 
 agentId :: AgentIn d -> AgentId
 agentId AgentIn { aiId = aid } = aid

@@ -68,13 +68,16 @@ dt = 1.0
 initAgentWealth :: Double
 initAgentWealth = 100
 
+-- TODO: add pro-active mutable environment with STM
+-- NOTE: with TX mechanism we can have transactional behaviour with a pro-active environment
+
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
 
   let g = mkStdGen rngSeed
-  --let as = initTestAgents agentCount
-  let as = map (\aid -> (aid, timeZeroAgent)) [0..agentCount - 1]
+  let as = initTestAgents
+  --let as = map (\aid -> (aid, timeZeroAgent)) [0..agentCount - 1]
 
   obss <- runSimulationUntil g t dt as
 
@@ -86,17 +89,23 @@ timeZeroAgent = proc _ -> do
   returnA -< agentOutObs t
 
 initTestAgents :: RandomGen g 
-               => Int 
-               -> [(AgentId, ConvTestAgent g)]
-initTestAgents n = map (\ai -> (ai, (testAgent initAgentWealth env))) env
+               => [(AgentId, ConvTestAgent g)]
+initTestAgents = [aa, pa] 
   where
-    env = [0..n-1]
+    aa = (0, activeAgent 100 [1])
+    pa = (1, passiveAgent 100 [0])
 
-testAgent :: RandomGen g 
-          => Double
-          -> ConvTestEnv
-          -> ConvTestAgent g
-testAgent w0 env = switch checkTxAgent txCont
+activeAgent :: RandomGen g 
+                => Double
+                -> ConvTestEnv
+                -> ConvTestAgent g
+activeAgent w0 env = activeTxAgentInit w0 env
+
+passiveAgent :: RandomGen g 
+                 => Double
+                 -> ConvTestEnv
+                 -> ConvTestAgent g
+passiveAgent w0 env = switch checkTxAgent txCont
   where
     checkTxAgent :: RandomGen g
                   => SF (Rand g) 
@@ -108,7 +117,7 @@ testAgent w0 env = switch checkTxAgent txCont
            => Maybe (DataFlow ConvTestData) 
            -> ConvTestAgent g
     txCont (Just df)  = passiveTxAgentInit df w0 env  -- react to incoming TX
-    txCont Nothing    = activeTxAgentInit w0 env      -- start a TX
+    txCont Nothing    = passiveAgent w0 env
 
 -------------------------------------------------------------------------------
 -- PASSIVE TX BEHAVIOUR
@@ -144,11 +153,11 @@ passiveTxAgentAwait w env Nothing =
   -- in this case nothing changes as the passive agent has not enough wealth, but still commit TX
   switch 
     (arr (\_ -> (commitTx agentOut, Event ())))
-    (\_ -> testAgent w env)
+    (\_ -> passiveAgent w env)
 passiveTxAgentAwait w env (Just rw) = 
     switch  -- TODO: delay switch
       checkPassiveTxAgentAwait
-      (\w' -> testAgent w' env)
+      (\w' -> passiveAgent w' env)
   where
     checkPassiveTxAgentAwait :: RandomGen g
                              => SF (Rand g) 
@@ -204,7 +213,7 @@ activeTxAgentAwait :: RandomGen g
 activeTxAgentAwait w env rask =  
     switch  -- TODO: delay switch
       checkActiveTxAgentAwait
-      (\w' -> testAgent w' env)
+      (\w' -> activeAgent w' env)
   where
     checkActiveTxAgentAwait :: RandomGen g
                             => SF (Rand g) 
@@ -225,7 +234,6 @@ activeTxAgentAwait w env rask =
     handleReply OfferingAccept w rask = (commitTx agentOut, Event $ w + rask)
     -- abort because wrong protocoll 
     handleReply _              _  _   = (abortTx agentOut, NoEvent) 
-
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -277,27 +285,68 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
                           ((), ([Agent (Rand g) o d], [AgentIn d]))
                           ((Time, [(AgentId, AgentOut o d)]), ([Agent (Rand g) o d], [AgentIn d]))
     parSimulationAux = proc (_, (msfs, ains)) -> do
-      --aiosMsfs <- arrM (\(msfs, ains) -> mapM runAgent (zip ains msfs)) -< (msfs, ains)
       (msfs, aos) <- runAgents -< (msfs, ains)
       t           <- time      -< ()
 
       let aios = map (\(ao, ai) -> (agentId ai, ao)) (zip aos ains)
 
-      -- TODO: do transactions before distributing data
-      --_aiosMsfs' <- runTransactions -< (aios, msfs)
+      (aios', msfs') <- runTransactions -< (aios, msfs)
 
       let ains' = map (\ai -> agentIn $ agentId ai) ains 
-      let ains'' = distributeData ains' aios
+      let ains'' = distributeData ains' aios'
 
-      returnA -< ((t, aios), (msfs, ains''))
+      returnA -< ((t, aios'), (msfs, ains''))
 
+    -- TX need to be executed sequentially...
     runTransactions :: SF (Rand g) 
-                          [((AgentId, AgentOut o d), Agent (Rand g) o d)]
-                          [((AgentId, AgentOut o d), Agent (Rand g) o d)]
-    runTransactions = proc aiosMsfs -> returnA -< aiosMsfs
+                          ([(AgentId, AgentOut o d)], [Agent (Rand g) o d])
+                          ([(AgentId, AgentOut o d)], [Agent (Rand g) o d])
+    runTransactions = proc (aios, sfs) -> do
+        let els = zip aios sfs
+        let m = foldr (\((aid, ao), sf) m' -> Map.insert aid (ao, sf) m') Map.empty els
+        m' <- runTransactionsAux -< (els, m)
+        let ml = Map.toList m'
+        let aiosMsfs = foldr (\(aid, (ao, sf)) (accAio, accSf) -> ((aid, ao) : accAio, sf : accSf)) ([], []) ml
+        returnA -< aiosMsfs
 
-    -- care must be taken if two agents want to start a TX with each other at the same time
-    -- to not to lose one 
+      where
+        runTransactionsAux :: SF (Rand g)
+                                (([((AgentId, AgentOut o d), Agent (Rand g) o d)]),
+                                  (Map.Map AgentId (AgentOut o d, Agent (Rand g) o d)))
+                                (Map.Map AgentId (AgentOut o d, Agent (Rand g) o d))
+        runTransactionsAux = proc (els, m) -> do
+          if null els
+            then returnA -< m
+            else (do 
+              let e@((aid, ao), sf) = head els
+              if (isJust $ aoTxBegin ao)
+                then (do
+                  m' <- runTxPair -< (e, m)
+                  runTransactionsAux -< (tail els, m'))
+                else runTransactionsAux -< (tail els, m))
+
+        -- care must be taken if two agents want to start a TX with each other at the same time
+        -- note that we allow agents to transact with themselves
+        runTxPair :: SF (Rand g)
+                      (((AgentId, AgentOut o d), Agent (Rand g) o d),
+                        (Map.Map AgentId (AgentOut o d, Agent (Rand g) o d)))
+                      (Map.Map AgentId (AgentOut o d, Agent (Rand g) o d))
+        runTxPair = proc (((aid, ao), sf), m) -> do
+          let (rAid, _) = fromJust $ aoTxBegin ao
+          let (rAo, rSf) = fromJust $ Map.lookup rAid m -- TODO: proper handling of Maybe
+
+          mayTx <- runTxBegin -< ((aid, ao, sf), (rAid, rAo, rSf))
+          if isNothing mayTx
+            then returnA -< m
+            else (do
+              let ((aid1, ao1, sf1), (aid2, ao2, sf2)) = fromJust mayTx
+
+              let m' = Map.insert aid1 (ao1, sf1) m
+              let m'' = Map.insert aid2 (ao2, sf2) m
+              
+              -- TODO: commit environment changes as well when we had a STM environment
+
+              returnA -< m')
 
     runTxBegin :: SF (Rand g) 
                     ((AgentId, AgentOut o d, Agent (Rand g) o d), 
@@ -343,15 +392,15 @@ runAgents = readerS $ proc (dt, (sfs, ins)) -> do
     arets <- mapMSF (runReaderS (runAgentWithDt dt)) -< asIns
     let (aos, sfs') = unzip arets
     returnA -< (sfs', aos)
-
-runAgent :: RandomGen g
-          => SF (Rand g)
-              (AgentIn d, Agent (Rand g) o d)
-              (AgentOut o d, Agent (Rand g) o d)
-runAgent = arrM (\(ain, sf) -> unMSF sf ain)
+  where
+    runAgent :: RandomGen g
+              => SF (Rand g)
+                  (AgentIn d, Agent (Rand g) o d)
+                  (AgentOut o d, Agent (Rand g) o d)
+    runAgent = arrM (\(ain, sf) -> unMSF sf ain)
 
 runAgentWithDt :: Double
-               -> SF (Rand g)
+              -> SF (Rand g)
                     (AgentIn d, Agent (Rand g) o d)
                     (AgentOut o d, Agent (Rand g) o d)
 runAgentWithDt dt = readerS $ proc (dt, (ain, sf)) -> do

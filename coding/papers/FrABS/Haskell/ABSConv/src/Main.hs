@@ -22,6 +22,7 @@ data AgentIn d = AgentIn
   , aiTxBegin   :: Maybe (DataFlow d)
   , aiTxData    :: Maybe d
   , aiTxCommit  :: Bool
+  , aiTxAbort   :: Bool
   } deriving (Show)
 
 data AgentOut o d = AgentOut
@@ -32,23 +33,35 @@ data AgentOut o d = AgentOut
   , aoTxBegin     :: Maybe (DataFlow d)
   , aoTxData      :: Maybe d
   , aoTxCommit    :: Bool
+  , aoTxAbort     :: Bool
   } deriving (Show)
+
+  {-
+data AgentTxIn = AgentTxIn
+  {
+    aiTxDataIn :: d
+  } deriving (Show)
+-}
 
 type Agent m o d          = SF m (AgentIn d) (AgentOut o d)
 type AgentObservable o    = (AgentId, Maybe o)
 
+--type AgentTxSF m d        = SF m d d
+
 data ConvTestObservable   = AgentWealth Double deriving (Show)
 
-data ConvTestMsg          = OfferingRequest Double
+data ConvTestData         = Offering Double
                           | OfferingRefuse 
-                          | OfferingAccept Double
+                          | OfferingAccept
                           deriving (Show, Eq)
 
-type ConvTestAgentIn      = AgentIn ConvTestMsg
-type ConvTestAgentOut     = AgentOut ConvTestObservable ConvTestMsg
-type ConvTestAgent g      = Agent (Rand g) ConvTestObservable ConvTestMsg
+type ConvTestAgentIn        = AgentIn ConvTestData
+type ConvTestAgentOut       = AgentOut ConvTestObservable ConvTestData
+type ConvTestAgent g        = Agent (Rand g) ConvTestObservable ConvTestData
 
-type ConvTestEnv          = [AgentId]
+--type ConvTestAgentTxSF g    = AgentTxSF (Rand g) ConvTestData
+
+type ConvTestEnv            = [AgentId]
 
 agentCount :: Int
 agentCount = 1
@@ -85,13 +98,82 @@ testAgent :: RandomGen g
           => Double
           -> ConvTestEnv
           -> ConvTestAgent g
-testAgent _w0 _env = switch checkTxAgent txCont
+-- TODO: need a time-dependend function, e.g. do every 5.0
+testAgent w0 env = switch checkTxAgent txCont
   where
-    checkTxAgent :: SF (Rand g) ConvTestAgentIn (ConvTestAgentOut, Event c)
-    checkTxAgent = undefined
+    checkTxAgent :: RandomGen g
+                  => SF (Rand g) 
+                      ConvTestAgentIn 
+                      (ConvTestAgentOut, Event (Maybe (DataFlow ConvTestData)))
+    checkTxAgent = arr (\ain -> (agentOut, Event (beginTxIn ain)))
 
-    txCont :: c -> ConvTestAgent g
-    txCont = undefined
+    txCont :: RandomGen g
+           => Maybe (DataFlow ConvTestData) 
+           -> ConvTestAgent g
+    txCont (Just df)  = passiveTxAgentInit df w0 env
+    txCont Nothing    = undefined -- start a TX
+
+-------------------------------------------------------------------------------
+-- PASSIVE TX BEHAVIOUR
+-------------------------------------------------------------------------------
+passiveTxAgentInit :: RandomGen g 
+                   => DataFlow ConvTestData
+                   -> Double
+                   -> ConvTestEnv
+                   -> ConvTestAgent g
+passiveTxAgentInit (_senderId, Offering v) w env = 
+  become 
+    (passiveTxAgentReply v w)
+    (passiveTxAgentAwait w env)
+passiveTxAgentInit (_, _) _ _ = 
+    arr (\_ -> abortTx agentOut) -- Invalid protocoll, abort TX
+
+passiveTxAgentReply :: RandomGen g 
+                    => Double
+                    -> Double
+                    -> SF (Rand g) ConvTestAgentIn (ConvTestAgentOut, Maybe Double)
+passiveTxAgentReply v w = proc _ -> do
+  rw <- arrM_ (getRandomR (0, w)) -< ()
+  if v >= w
+    then returnA -< (txDataOut OfferingRefuse agentOut, Nothing)
+    else returnA -< (txDataOut (Offering rw) agentOut, Just rw)
+
+passiveTxAgentAwait :: RandomGen g
+                    => Double
+                    -> ConvTestEnv
+                    -> Maybe Double
+                    -> ConvTestAgent g
+passiveTxAgentAwait w env Nothing =  
+  -- in this case nothing changes as the passive agent has not enough wealth, abort TX
+  switch
+    (arr (\_ -> (abortTx agentOut, Event ())))
+    (\_ -> testAgent w env)
+passiveTxAgentAwait _w _env (Just _rw) = 
+    switch
+    checkPassiveTxAgentAwait
+    checkPassiveTxAgentAwaitCont
+  where
+    checkPassiveTxAgentAwait :: RandomGen g
+                             => SF (Rand g) 
+                                  ConvTestAgentIn 
+                                  (ConvTestAgentOut, Event (Maybe (DataFlow ConvTestData)))
+    checkTxAgent = arr (\ain -> (agentOut, Event (txDataIn ain)))
+
+    checkPassiveTxAgentAwaitCont :: RandomGen g
+                                 => Maybe (DataFlow ConvTestData) 
+                                 -> ConvTestAgent g
+    checkPassiveTxAgentAwaitCont (Just OfferingRefuse)  = undefined
+    checkPassiveTxAgentAwaitCont (Just OfferingAccept)  = undefined
+    checkPassiveTxAgentAwaitCont Nothing                = undefined
+
+-------------------------------------------------------------------------------
+-- ACTIVE TX BEHAVIOUR
+-------------------------------------------------------------------------------
+activeTxAgent :: RandomGen g 
+              => Double
+              -> ConvTestEnv
+              -> ConvTestAgent g
+activeTxAgent _w = undefined
 
 requestTxAgent :: RandomGen g 
                => Double
@@ -101,7 +183,8 @@ requestTxAgent _w0 env = proc _ain -> do
   raid <- arrM_ (getRandomR (0, length env - 1)) -< ()
   rask <- arrM_ (getRandomR (50, 100)) -< ()
 
-  returnA -< beginTx (raid, OfferingRequest rask) agentOut
+  returnA -< beginTx (raid, Offering rask) agentOut
+-------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 runSimulationUntil :: RandomGen g
@@ -204,12 +287,17 @@ isBeginTx = isJust . aiTxBegin
 beginTxData :: AgentIn d -> DataFlow d
 beginTxData = fromJust . aiTxBegin
 
+beginTxIn :: AgentIn d -> Maybe (DataFlow d)
+beginTxIn = aiTxBegin
+
 txDataIn :: AgentIn d -> d
 txDataIn = fromJust . aiTxData
 
 isCommitTx :: AgentIn d -> Bool
 isCommitTx = aiTxCommit
 
+isAbortTx :: AgentIn d -> Bool
+isAbortTx = aiTxAbort
 
 beginTx :: DataFlow d -> AgentOut o d -> AgentOut o d
 beginTx df ao = ao { aoTxBegin = Just df }
@@ -220,6 +308,8 @@ txDataOut d ao = ao { aoTxData = Just d }
 commitTx :: AgentOut o d -> AgentOut o d
 commitTx ao = ao { aoTxCommit = True }
 
+abortTx :: AgentOut o d -> AgentOut o d
+abortTx ao = ao { aoTxAbort = True}
 
 agentId :: AgentIn d -> AgentId
 agentId AgentIn { aiId = aid } = aid
@@ -235,6 +325,7 @@ agentIn aid = AgentIn {
   , aiTxBegin   = Nothing
   , aiTxData    = Nothing
   , aiTxCommit  = False
+  , aiTxAbort   = False
   }
 
 agentOut :: AgentOut o d
@@ -251,6 +342,7 @@ agentOut_ o = AgentOut {
 , aoTxBegin     = Nothing
 , aoTxData      = Nothing
 , aoTxCommit    = False
+, aoTxAbort     = False
 }
 
 dataFlow :: DataFlow d -> AgentOut o d -> AgentOut o d
@@ -297,3 +389,13 @@ distributeData ains aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedu
 
                 -- NOTE: force evaluation of messages, will reduce memory-overhead EXTREMELY
                 accMsgs' = seq newMsgs (Map.insert receiverId newMsgs accMsgs)
+
+become :: Monad m => SF m a (b, c) -> (c -> SF m a b) -> SF m a b
+become sfFirst sfSecond = switch (becomeAux sfFirst) (\c -> sfSecond c)
+  where
+    becomeAux :: Monad m 
+              => SF m a (b, c) 
+              -> SF m a (b, Event c)
+    becomeAux sfFirst = proc a -> do
+      (b, c) <- sfFirst -< a
+      returnA -< (b, Event c)

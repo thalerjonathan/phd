@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Main where
 
+import Data.Maybe
 import qualified Data.Map as Map
 import System.IO
 
@@ -15,27 +16,39 @@ type DataFlow d = (AgentId, d)
 
 data AgentIn d = AgentIn
   {
-    aiId    :: AgentId
-  , aiData  :: [DataFlow d]
+    aiId        :: AgentId
+  , aiData      :: [DataFlow d]
+
+  , aiTxBegin   :: Maybe (DataFlow d)
+  , aiTxData    :: Maybe d
+  , aiTxCommit  :: Bool
   } deriving (Show)
 
 data AgentOut o d = AgentOut
   {
     aoData        :: [DataFlow d]
   , aoObservable  :: Maybe o
+
+  , aoTxBegin     :: Maybe (DataFlow d)
+  , aoTxData      :: Maybe d
+  , aoTxCommit    :: Bool
   } deriving (Show)
 
-type Agent m o d        = SF m (AgentIn d) (AgentOut o d)
-type AgentObservable o  = (AgentId, Maybe o)
+type Agent m o d          = SF m (AgentIn d) (AgentOut o d)
+type AgentObservable o    = (AgentId, Maybe o)
 
-data ConvTestObservable  = AgentWealth Double deriving (Show)
+data ConvTestObservable   = AgentWealth Double deriving (Show)
 
-data ConvTestMsg         = DataFlow Int deriving (Show, Eq)
-type ConvTestAgentIn     = AgentIn ConvTestMsg
-type ConvTestAgentOut    = AgentOut ConvTestObservable ConvTestMsg
-type ConvTestAgent g     = Agent (Rand g) ConvTestObservable ConvTestMsg
+data ConvTestMsg          = OfferingRequest Double
+                          | OfferingRefuse 
+                          | OfferingAccept Double
+                          deriving (Show, Eq)
 
-type ConvTestEnv         = [AgentId]
+type ConvTestAgentIn      = AgentIn ConvTestMsg
+type ConvTestAgentOut     = AgentOut ConvTestObservable ConvTestMsg
+type ConvTestAgent g      = Agent (Rand g) ConvTestObservable ConvTestMsg
+
+type ConvTestEnv          = [AgentId]
 
 agentCount :: Int
 agentCount = 1
@@ -48,7 +61,6 @@ t = 10
 
 dt :: DTime
 dt = 1.0
-
 
 main :: IO ()
 main = do
@@ -73,16 +85,23 @@ testAgent :: RandomGen g
           => Double
           -> ConvTestEnv
           -> ConvTestAgent g
-testAgent w0 env = proc _ain -> do
-  _randContact <- arrM_ (getRandomR (0, length env - 1)) -< ()
-  
-  let wInc = 0
+testAgent _w0 _env = switch checkTxAgent txCont
+  where
+    checkTxAgent :: SF (Rand g) ConvTestAgentIn (ConvTestAgentOut, Event c)
+    checkTxAgent = undefined
 
-  rec
-    w' <- iPre w0 -< w
-    let w = w' + wInc
+    txCont :: c -> ConvTestAgent g
+    txCont = undefined
 
-  returnA -< agentOutObs (AgentWealth w)
+requestTxAgent :: RandomGen g 
+               => Double
+               -> ConvTestEnv
+               -> ConvTestAgent g
+requestTxAgent _w0 env = proc _ain -> do
+  raid <- arrM_ (getRandomR (0, length env - 1)) -< ()
+  rask <- arrM_ (getRandomR (50, 100)) -< ()
+
+  returnA -< beginTx (raid, OfferingRequest rask) agentOut
 
 -------------------------------------------------------------------------------
 runSimulationUntil :: RandomGen g
@@ -179,6 +198,29 @@ commute rt =
                     in runStateT st s))
 -}
 
+isBeginTx :: AgentIn d -> Bool
+isBeginTx = isJust . aiTxBegin
+
+beginTxData :: AgentIn d -> DataFlow d
+beginTxData = fromJust . aiTxBegin
+
+txDataIn :: AgentIn d -> d
+txDataIn = fromJust . aiTxData
+
+isCommitTx :: AgentIn d -> Bool
+isCommitTx = aiTxCommit
+
+
+beginTx :: DataFlow d -> AgentOut o d -> AgentOut o d
+beginTx df ao = ao { aoTxBegin = Just df }
+
+txDataOut :: d -> AgentOut o d -> AgentOut o d
+txDataOut d ao = ao { aoTxData = Just d }
+
+commitTx :: AgentOut o d -> AgentOut o d
+commitTx ao = ao { aoTxCommit = True }
+
+
 agentId :: AgentIn d -> AgentId
 agentId AgentIn { aiId = aid } = aid
 
@@ -187,21 +229,32 @@ agentObservable AgentOut { aoObservable = os } = os
 
 agentIn :: AgentId -> AgentIn d
 agentIn aid = AgentIn {
-    aiId    = aid
-  , aiData  = []
+    aiId        = aid
+  , aiData      = []
+
+  , aiTxBegin   = Nothing
+  , aiTxData    = Nothing
+  , aiTxCommit  = False
   }
 
 agentOut :: AgentOut o d
-agentOut = AgentOut {
-    aoData        = []
-  , aoObservable  = Nothing
-  }
+agentOut = agentOut_ Nothing
 
 agentOutObs :: o -> AgentOut o d
-agentOutObs o = AgentOut {
-    aoData        = []
-  , aoObservable  = Just o
-  }
+agentOutObs o = agentOut_ (Just o)
+
+agentOut_ :: Maybe o -> AgentOut o d
+agentOut_ o = AgentOut {
+  aoData        = []
+, aoObservable  = o
+
+, aoTxBegin     = Nothing
+, aoTxData      = Nothing
+, aoTxCommit    = False
+}
+
+dataFlow :: DataFlow d -> AgentOut o d -> AgentOut o d
+dataFlow df ao = ao { aoData = df : aoData ao }
 
 distributeData :: [AgentIn d] -> [(AgentId, AgentOut o d)] -> [AgentIn d]
 distributeData ains aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedup by running in parallel (if +RTS -Nx)

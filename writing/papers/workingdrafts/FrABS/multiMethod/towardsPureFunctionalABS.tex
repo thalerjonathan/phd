@@ -127,6 +127,7 @@ TODO: describing how things are treated different
 		-> no time passes between transactions
 		=> what we need is a 'all agents transact at the same time'
 			-> basically we can implement it by running the SFs of the agents involved in the TX repeatedly with dt=0 until there are no more active TXs
+			-> continuations (SFs) are perfectly suited for this as we can 'rollback' easily by using the SF before the TX has started
 			
 TODO: defining agent-based simulation
 	- look into existing literature (e.g. peers paper, any logic book,...)

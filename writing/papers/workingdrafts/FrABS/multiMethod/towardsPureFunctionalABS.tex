@@ -96,7 +96,6 @@ TODO: main benefits
 	
 TODO: what we need to show / future work
 	- can we do DES? e.g. single queue with multiple servers? also specialist vs. generalist
-	- implement concurrent and actor update-strategies
 	- reasoning about correctness: implement Gintis \& Ionescous papers 
 	- reasoning about dynamics: implement Gintis \& Ionescous papers
 	
@@ -113,13 +112,15 @@ TODO: describing how things are treated different
 		-> if we need transactional behaviour, can use STM which is more explicit
 		-> it is translates directly to a map which is very easy to reason about (sequential is basically a fold which is much more difficult to reason about)
 		-> is more natural in functional programming
+		-> it exists for 'transactional' reasons where we need mutual exclusive access to environment / other agents
+			-> we provide a more explicit mechanism for this: Agent Transactions
 	- state is handled using FRP: recursive arrows and continuations
 	- still need transactions between two agents e.g. trading occurs over multiple steps (makeoffer, accept/refuse, finalize/abort) 
 		-> exactly define what TX means in ABS
 			-> exclusive between 2 agents
 			-> state-changes which occur over multiple steps and are only visible to the other agents after the TX has commited
 			-> no read/write access to this state is allowed to other agents while the TX is active
-			-> a TX executes in a single time-step and must not span multiple ones
+			-> a TX executes in a single time-step and can have an arbitrary number of tx-steps
 		-> it is easily possible using method-calls in OOP but in our pure functional approach it is not possible
 		-> parallel execution is being a problem here as TX between agents are very easy with sequential
 		-> an agent must be able to transact with as many other agents as it wants to in the same time-step

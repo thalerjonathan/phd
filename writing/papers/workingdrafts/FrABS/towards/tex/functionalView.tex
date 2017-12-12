@@ -2,41 +2,76 @@
 Due to the fundamentally different approaches of pure Functional Programming (pure FP) an ABS needs to be implemented fundamentally different as well compared to traditional object-oriented approaches (OO). We face the following challenges:
 
 \begin{enumerate}
-	\item How can we represent an Agent? In OO the obvious approach is to map an agent directly onto an object which encapsulates data and provides methods which implement the agents actions. Obviously we don't have objects in pure FP thus we need to find a different approach to represent the agents actions and to encapsulate its state.
+	\item How can we represent an Agent? \\
+	In OO the obvious approach is to map an agent directly onto an object which encapsulates data and provides methods which implement the agents actions. Obviously we don't have objects in pure FP thus we need to find a different approach to represent the agents actions and to encapsulate its state.
 	
-	\item How can we represent state in an Agent? In the classic OO approach one represents the state of an Agent explicitly in mutable member variables of the object which implements the Agent. As already mentioned we don't have objects in pure FP and state is immutable which leaves us with the very tricky question how to represent state of an Agent which can be actually updated.
+	\item How can we represent state in an Agent? \\
+	In the classic OO approach one represents the state of an Agent explicitly in mutable member variables of the object which implements the Agent. As already mentioned we don't have objects in pure FP and state is immutable which leaves us with the very tricky question how to represent state of an Agent which can be actually updated.
 	
-	\item How can we implement proactivity of an Agent? In the classic OO approach one would either expose the current time-delta in a mutable variable and implement time-dependent functions or ignore it at all and assume agents act on every step. At first this seems to be not a big deal in pure FP but when considering that it is yet unclear how to represent Agents and their state, which is directly related to time-dependent and reactive behaviour it raises the question how we can implement time-varying and reactive behaviour in a purely functional way.
+	\item How can we implement proactivity of an Agent? \\
+	In the classic OO approach one would either expose the current time-delta in a mutable variable and implement time-dependent functions or ignore it at all and assume agents act on every step. At first this seems to be not a big deal in pure FP but when considering that it is yet unclear how to represent Agents and their state, which is directly related to time-dependent and reactive behaviour it raises the question how we can implement time-varying and reactive behaviour in a purely functional way.
 	
-	\item How can we implement the agent-agent interaction? In the classic OO approach Agents can directly invoke other Agents methods which makes direct Agent interaction \textit{very} easy. Again this is obviously not possible in pure FP as we don't have objects with methods and mutable state inside.
+	\item How can we implement the agent-agent interaction? \\
+	In the classic OO approach Agents can directly invoke other Agents methods which makes direct Agent interaction \textit{very} easy. Again this is obviously not possible in pure FP as we don't have objects with methods and mutable state inside.
 		
-	\item How can we represent an environment and its various types? In the classic OO approach an environment is almost always a mutable object which can be easily made dynamic by implementing a method which changes its state and then calling it every step as well. In pure FP we struggle with this for the same reasons we face when deciding how to represent an Agent, its state and proactivity.
+	\item How can we represent an environment and its various types? \\
+	In the classic OO approach an environment is almost always a mutable object which can be easily made dynamic by implementing a method which changes its state and then calling it every step as well. In pure FP we struggle with this for the same reasons we face when deciding how to represent an Agent, its state and proactivity.
 	
-	\item How can we implement the agent-environment interaction? In the classic OO approach agents simply have access to the environment either through global mechanisms (e.g. Singleton or simply global variable) or passed as parameter to a method and call methods which change the environment. Again we don't have this in pure FP as we don't have objects and globally mutable state.
+	\item How can we implement the agent-environment interaction? \\
+	In the classic OO approach agents simply have access to the environment either through global mechanisms (e.g. Singleton or simply global variable) or passed as parameter to a method and call methods which change the environment. Again we don't have this in pure FP as we don't have objects and globally mutable state.
 	
-	\item How can we step the simulation? In the classic OO approach agents are run one after another (with being optionally shuffled before to uniformly distribute the ordering) which ensures mutual exclusive access in the agent-agent and agent-environment interactions. Obviously in pure FP we cannot iteratively mutate a global state.
+	\item How can we step the simulation? \\
+	In the classic OO approach agents are run one after another (with being optionally shuffled before to uniformly distribute the ordering) which ensures mutual exclusive access in the agent-agent and agent-environment interactions. Obviously in pure FP we cannot iteratively mutate a global state.
 \end{enumerate}
 
 \subsection{Agent representation, state and proactivity}
-Viewing agent-agent interaction as simple method calls leads to a few dangerous assumptions.
+Whereas in imperative programming (the OO which we refer to in this paper is built on the imperative paradigm) the fundamental building block is the destructive assignment, in FP the building blocks are obviously functions which can be evaluated.
+Thus we have no other choice than to represent our Agents using a function which implements their behaviour. This function must be time-aware somehow and allow us to react to time-changes and inputs. Fortunately there exists already an approach to time-aware, reactive programming which is termed Functional Reactive Programming (FRP). This paradigm has evolved over the year and current modern FRP is built around the concept of a signal-function which transforms an input-signal into an output-signal. An input-signal can be seen as a time-varying value. Signal-functions are implemented as continuations which allows to capture local state using closures. Modern FRP also provides feedback functions which provides convenient methods to capture and update local state from the previous time-step with an initial state provided at time = 0.
+
+
+- time is represented using the FRP concept: Signal-Functions which are sampled at (fixed) time-deltas, the dt is never visible directly but only reflected in the code and read-only.
+- no method calls => continuous data-flow instead
+	
+Viewing agent-agent interaction as simple method calls implies the following:
 - it takes no time
 - it has a synchronous and transactional character
 - an agent gives up control over its data / actions or at least there is always the danger that it exposes too much of its interface and implementation details. 
 - agents equals objects, which is definitely NOT true. Agents 
 
-signal functions
-in pure FP everything is a function.
-
 data-flow
 synchronous agent transactions
 
+- still need transactions between two agents e.g. trading occurs over multiple steps (makeoffer, accept/refuse, finalize/abort) 
+		-> exactly define what TX means in ABS
+			-> exclusive between 2 agents
+			-> state-changes which occur over multiple steps and are only visible to the other agents after the TX has commited
+			-> no read/write access to this state is allowed to other agents while the TX is active
+			-> a TX executes in a single time-step and can have an arbitrary number of tx-steps
+		-> it is easily possible using method-calls in OOP but in our pure functional approach it is not possible
+		-> parallel execution is being a problem here as TX between agents are very easy with sequential
+		-> an agent must be able to transact with as many other agents as it wants to in the same time-step
+		-> no time passes between transactions
+		=> what we need is a 'all agents transact at the same time'
+			-> basically we can implement it by running the SFs of the agents involved in the TX repeatedly with dt=0 until there are no more active TXs
+			-> continuations (SFs) are perfectly suited for this as we can 'rollback' easily by using the SF before the TX has started
+			
 \subsection{Environment representation and interaction}
 pro-active vs. inactive
 read-only vs. read/write
 
+no global shared mutable environment, having different options:
 - non-active read-only (SIR): no agent, as additional argument to each agent
 - pro-active read-only (?): environment as agent, broadcast environment updates as data-flow
 - non-active read/write (?): no agent, shared data as STM as additional argument to each agent
 - pro-active read/write (Sugarscape): environment as, shared data as STM as additional argument to each agent
 
 \subsection{Stepping the simulation}
+
+- parallel update only, sequential is deliberately abandoned due to:
+		-> reality does not behave this way
+		-> if we need transactional behaviour, can use STM which is more explicit
+		-> it is translates directly to a map which is very easy to reason about (sequential is basically a fold which is much more difficult to reason about)
+		-> is more natural in functional programming
+		-> it exists for 'transactional' reasons where we need mutual exclusive access to environment / other agents
+			-> we provide a more explicit mechanism for this: Agent Transactions
+			

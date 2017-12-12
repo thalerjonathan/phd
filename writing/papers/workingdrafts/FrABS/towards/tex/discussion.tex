@@ -1,0 +1,12 @@
+\section{Discussion}
+Our purely functional approach has a number of fundamental implications which change the way one has to think about agents and ABS in general as it makes a few concepts which were so far hidden or implicitly assumed, now explicit. 
+
+\subsection{Agents as Signals}
+Our approach of using signal-functions has the direct implication that we can view and implement agents as time-dependent signals. A time-dependent function should stay constant when time does not advance (when the system is stepped with time-delta of 0). For this to happen with our agents requires them to act only on time-dependent functions. TODO: further discussion using my work on agents as signals in the first draft on FrABS.
+
+TODO: it doesn't make sense for an agent to act 'always', an agents behaviour needs to have some time-dependent parameter e.g. doEvery 1.0. If this is omitted then one makes one dependent directly on the Time-Delta.
+
+\subsection{System Dynamics}
+Due to the parallel execution of the agents signal-functions, the ability to iterate the simulation with continuous time, the notion of continuous data-flow between agents and compile time guarantees of absence of non-deterministic side-effects and random-number generators allows us to directly express System Dynamic models.
+Each stock and flow becomes an agent and are connected using data-flows using hard-coded agent ids. The integrals over time which occur in a SD model are directly translated to pure functional code using the \textit{integral} primitive of FRP - our implementation is then correct by definition.
+See Appendix TODO for an example which implements the SIR model (TODO: cite mckendrick) in SD using our continuous ABS approach.

@@ -1,0 +1,13 @@
+\section{Examples}
+TODO: the main punch is that our approach combines the best of the three simulation methodologies:
+	- SD part: 	it can represent continuous time (as well as discrete) with continuous data-flows from agents which act at the same time (parallel update), can express the formulas directly in code, there exists also a small EDSL for expressing SD in our approach, can guarantee reproducibility and no drawing of random-numbers in our approach
+		-> drawback over real SD: none known so far 
+	- DES part: it can represent discrete time with events occurring at discrete points in time which cause an instant change in the system
+		-> drawback over real DES: time does not advance discretely to the next event which results of course not in the performance of a real DES system
+	- ABS part:	the entities of the system (=agents) can be heterogenous and pro-active in time and can have arbitrary neighbourhood (2d/3d discrete/continuous, network,...)
+		-> drawback over classic ABS: none known so far 
+
+TODO: give examples of all 3 approaches: SD \& ABS: SIR model, DES: simulation of a queuing system
+
+\subsection{Library}
+In the course of the research for this paper we implemented the library \textit{Chimera} \footnote{The library is freely available on GitHub: \url{https://github.com/thalerjonathan/chimera}. It is planned that it will be put on Hackage in the future.} in Haskell which implements all the concepts introduced in this paper and allows to do ABS in a pure functional way in Haskell. As use-cases to drive the research and test our concepts we implemented a number of more or less well known examples from ABS, see Appendix \ref{app:examples} for a list of all the examples and the concepts used.

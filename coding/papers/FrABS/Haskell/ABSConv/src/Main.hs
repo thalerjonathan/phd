@@ -76,12 +76,48 @@ main = do
   hSetBuffering stdout NoBuffering
 
   let g = mkStdGen rngSeed
-  let as = initTestAgents
+  --let as = initTestAgents
   --let as = map (\aid -> (aid, timeZeroAgent)) [0..agentCount - 1]
+  --obss <- runSimulationUntil g t dt as
+  -- mapM_ (\(t, obs) -> putStrLn ("\nt = " ++ show t) >> mapM_ (putStrLn . show) obs) obss
 
-  obss <- runSimulationUntil g t dt as
+  let oM = embed (switchAgentStep0 42) [0, 1]
+  o <- runReaderT oM dt
 
-  mapM_ (\(t, obs) -> putStrLn ("\nt = " ++ show t) >> mapM_ (putStrLn . show) obs) obss
+  putStrLn $ show o
+
+switchAgentStep0 :: Int -> SF IO Int Int
+switchAgentStep0 i0 = 
+    switch
+      ((switchAgentStep0Aux i0) )
+      (\i -> switchAgentStep1 i)
+  where
+    switchAgentStep0Aux :: Int -> SF IO Int (Int, Event Int)
+    switchAgentStep0Aux i0 = proc i -> do
+      _ <- arrM (\_ -> liftIO $ putStrLn $ "switchAgentStep0 = " ++ show i0) -< ()
+      returnA -< (i0, Event i0)
+
+switchAgentStep1 :: Int -> SF IO Int Int
+switchAgentStep1 i0 = 
+    switch
+      ((switchAgentStep1Aux i0))
+      (\i -> switchAgentStep2 i)
+  where
+    switchAgentStep1Aux :: Int -> SF IO Int (Int, Event Int)
+    switchAgentStep1Aux i0 = proc i -> do
+      _ <- arrM (\_ -> liftIO $ putStrLn $ "switchAgentStep1 = " ++ show i0) -< ()
+      returnA -< (i0, Event i0)
+
+switchAgentStep2 :: Int -> SF IO Int Int
+switchAgentStep2 i0 = 
+    switch
+      ((switchAgentStep2Aux i0) >>> (second notYet))
+      (\i -> switchAgentStep0 i)
+  where
+    switchAgentStep2Aux :: Int -> SF IO Int (Int, Event Int)
+    switchAgentStep2Aux i0 = proc i -> do
+      _ <- arrM (\_ -> liftIO $ putStrLn $ "switchAgentStep2 = " ++ show i0) -< ()
+      returnA -< (i0, Event $ i0 + 1)
 
 timeZeroAgent :: RandomGen g => ConvTestAgent g
 timeZeroAgent = proc _ -> do

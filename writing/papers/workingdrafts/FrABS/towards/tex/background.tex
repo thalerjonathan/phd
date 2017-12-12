@@ -1,0 +1,46 @@
+\section{Background}
+In this background section we will introduce the concepts behind functional programming and functional reactive programming as they form the very foundation of our approach to pure functional Agent-Based Simulation. Note that both fields build on each other and are vast and complex. A more in-depth handling of both subjects are out of scope of this paper and we refer the reader to additional resources where appropriate. In this paper we try to avoid too much technical details and present only the fundamental concepts behind our approach. \footnote{For interested readers, we refer to our companion paper TODO: cite / refer to existing repository. In it we introduce the functional programming community to ABS by deriving our approach step-by-step by implementing an agent-based implementation of the SIR model. In this companion paper we assume good knowledge and beyond of the fundamental concepts of FP and FRP and provide in-depth discussions of technical details.}.
+
+\subsection{Functional Programming}
+MacLennan \cite{maclennan_functional_1990} defines Functional Programming as a methodology and identifies it with the following properties (amongst others):
+
+\begin{enumerate}
+	\item It is programming without the assignment-operator.
+	\item It allows for higher levels of abstraction.
+	\item It allows to develop executable specifications and prototype implementations.
+	\item It is connected to computer science theory.
+	\item Suitable for Parallel Programming.
+	\item Algebraic reasoning.
+\end{enumerate}
+
+\cite{allen_haskell_2016} defines Functional Programming as "a computer programming paradigm that relies on functions modelled on mathematical functions." Further they explicate that it is 
+\begin{itemize}
+	\item in Functional programming programs are combinations of expressions
+	\item Functions are \textit{first-class} which means the can be treated like values, passed as arguments and returned from functions.
+\end{itemize}
+
+\cite{maclennan_functional_1990} makes the subtle distinction between \textit{applicative} and \textit{functional} programming. Applicative programming can be understood as applying values to functions where one deals with pure expressions:
+
+\begin{itemize}
+	\item Value is independent of the evaluation order.
+	\item Expressions can be evaluated in parallel.
+	\item Referential transparency.
+	\item No side effects.
+	\item Inputs to an operation are obvious from the written form.
+	\item Effects to an operation are obvious from the written form.
+\end{itemize}
+
+Note that applicative programming is not necessarily unique to the functional programming paradigm but can be emulated in an imperative language e.g. C as well. Functional programming is then defined by \cite{maclennan_functional_1990} as applicative programming with \textit{higher-order} functions. These are functions which operate themselves on functions: they can take functions as arguments, construct new functions and return them as values. This is in stark contrast to the \textit{first-order} functions as used in applicative or imperative programming which just operate on data alone. Higher-order functions allow to capture frequently recurring patterns in functional programming in the same way like imperative languages captured patterns like GOTO, while-do, if-then-else, for. Common patterns in functional programming are the map, fold, zip, operators.
+So functional programming is not really possible in this way in classic imperative languages e.g. C as you cannot construct new functions and return them as results from functions \footnote{Object-Oriented languages like Java let you to partially work around this limitation but are still far from \textit{pure} functional programming.}.
+
+The equivalence in functional programming to to the \textit{;} operator of imperative programming which allows to compose imperative statements is function composition. Function composition has no side-effects as opposed to the imperative ; operator which simply composes destructive assignment statements which are executed after another resulting in side-effects.
+At the heart of modern functional programming is monadic programming which is polymorphic function composition: one can implement a user-defined function composition by allowing to run some code in-between function composition - this code of course depends on the type of the Monad one runs in. This allows to emulate all kind of effectful programming in an imperative style within a pure functional language. Although it might seem strange wanting to have imperative style in a pure functional language, some problems are inherently imperative in the way that computations need to be executed in a given sequence with some effects. Also a pure functional language needs to have some way to deal with effects otherwise it would never be able to interact with the outside-world and would be practically useless. The real benefit of monadic programming is that it is explicit about side-effects and allows only effects which are fixed by the type of the monad - the side-effects which are possible are determined statically during compile-time by the type-system. Some general patterns can be extracted e.g. a map, zip, fold over monads which results in polymorphic behaviour - this is the meaning when one says that a language is polymorphic in its side-effects.
+
+TODO: explain closures
+TODO: explain continuations
+TODO: explain monads (explicit about side-effects), what are effects
+TODO: explain the term 'pure'
+
+\subsection{Functional Reactive Programming}
+TODO: explain streams
+TODO: Yampa, BearRiver, Dunai

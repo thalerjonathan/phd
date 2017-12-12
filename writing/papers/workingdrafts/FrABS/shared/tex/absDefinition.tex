@@ -38,15 +38,15 @@ The other important concept is the one of an environment. In MAS \cite{wooldridg
 Note that in MAS the focus is much more on the environment rather than on the agents where the environment is almost always a highly complex one and the agents may intelligently act on it. In ABS the focus is rather on the agents and their interactions where the environment plays a role but is not of central interest as it is almost always deterministic.
 
 \subsection{Deriving a formal view}
-In order to explore how we can implement an ABS in a pure functional way we need a sufficiently formal view on it. This will help us expressing the concepts in Haskell as formal, mathematical specifications translate easily into functional programming. There exists formalisations of MAS \cite{wooldridge_introduction_2009} but unfortunately they are not very helpful in our context as its formalization is tailored much more towards optimizing, intelligent and reasoning behaviour of agents within a highly complex and uncertain environment. What we need for ABS is a more agent-oriented approach.
+In order to explore how we can implement an ABS in a pure functional way we need a sufficiently formal view on it. This will help us expressing the concepts in Haskell as formal, mathematical specifications translate easily into functional programming. There exists formalisations of MAS \cite{wooldridge_introduction_2009} but unfortunately they are not very helpful in our context as its formalization is tailored much more towards optimizing, intelligent and reasoning behaviour of agents within a highly complex and uncertain environment. What we need for ABS is a more agent-oriented approach: 
 
-An ABS is a time simulation 
-Central to an ABS is the notion of time which is advanced either in discrete or continuous time-steps where discrete means advancing by a natural number time-delta and continuous by a real-valued time-delta. 
-feed back
-
-notion of time, which is also the source of proactivity
-simulation is stepped in discrete or continuous time-steps
-in each time-step the agents have to opportunity to act
-agents can read/write the environment
-agents can interact with the other agents through communication
-agents can updated themselves
+\begin{enumerate}
+	\item An ABS is a simulation over time in which time is advanced either in discrete or continuous time-steps where discrete means advancing by a natural number time-delta and continuous by a real-valued time-delta. So we have a potentially infinite stream of time-steps starting at t=0 advancing by some fixed time-delta.
+	\item At each time-step all agents are allowed to act which is the source of their proactivity because it allows them to initiate actions on their own. Of course such actions are always time-dependent - be it explicitly like executing actions \textit{after} a specific time, or be it implicit like executing actions every time-delta - but this is the only way of implementing proactivity in a computer system.
+	\item In each step an agent should be able to read/write the environment. TODO: orderings? when are changes visible?
+	\item In each step an agent should be able to interact with other agents through communication. 
+	\item In each step an agent should be able to update its internal state.
+	\item Depending on its type, the environment must also be allowed to act in each time-step.
+	\item In general we can thus see an agent to exhibit both time-dependent and reactive behaviour: it can act continuously or discretely, depending on how the time is advanced and exhibit reactive behaviour which means it can react to changing environment or agents.
+	\item The interactions between agents their update-state and environment forms a feedback as the state of time ti forms the input state on which to act at time-step ti+1
+\end{enumerate}

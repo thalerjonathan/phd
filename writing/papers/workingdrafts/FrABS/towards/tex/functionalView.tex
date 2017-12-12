@@ -1,28 +1,42 @@
 \section{A functional view}
-\subsection{Agent}
+Due to the fundamentally different approaches of pure Functional Programming (pure FP) an ABS needs to be implemented fundamentally different as well compared to traditional object-oriented approaches (OO). We face the following challenges:
 
-\subsubsection{State}
-encapsulating state with exclusive control:
-	- agent determines what others can see
-	- agent determines what others can change
+\begin{enumerate}
+	\item How can we represent an Agent? In OO the obvious approach is to map an agent directly onto an object which encapsulates data and provides methods which implement the agents actions. Obviously we don't have objects in pure FP thus we need to find a different approach to represent the agents actions and to encapsulate its state.
 	
-\subsubsection{Interactions}
+	\item How can we represent state in an Agent? In the classic OO approach one represents the state of an Agent explicitly in mutable member variables of the object which implements the Agent. As already mentioned we don't have objects in pure FP and state is immutable which leaves us with the very tricky question how to represent state of an Agent which can be actually updated.
+	
+	\item How can we implement proactivity of an Agent? In the classic OO approach one would either expose the current time-delta in a mutable variable and implement time-dependent functions or ignore it at all and assume agents act on every step. At first this seems to be not a big deal in pure FP but when considering that it is yet unclear how to represent Agents and their state, which is directly related to time-dependent and reactive behaviour it raises the question how we can implement time-varying and reactive behaviour in a purely functional way.
+	
+	\item How can we implement the agent-agent interaction? In the classic OO approach Agents can directly invoke other Agents methods which makes direct Agent interaction \textit{very} easy. Again this is obviously not possible in pure FP as we don't have objects with methods and mutable state inside.
+		
+	\item How can we represent an environment and its various types? In the classic OO approach an environment is almost always a mutable object which can be easily made dynamic by implementing a method which changes its state and then calling it every step as well. In pure FP we struggle with this for the same reasons we face when deciding how to represent an Agent, its state and proactivity.
+	
+	\item How can we implement the agent-environment interaction? In the classic OO approach agents simply have access to the environment either through global mechanisms (e.g. Singleton or simply global variable) or passed as parameter to a method and call methods which change the environment. Again we don't have this in pure FP as we don't have objects and globally mutable state.
+	
+	\item How can we step the simulation? In the classic OO approach agents are run one after another (with being optionally shuffled before to uniformly distribute the ordering) which ensures mutual exclusive access in the agent-agent and agent-environment interactions. Obviously in pure FP we cannot iteratively mutate a global state.
+\end{enumerate}
+
+\subsection{Agent representation, state and proactivity}
+Viewing agent-agent interaction as simple method calls leads to a few dangerous assumptions.
+- it takes no time
+- it has a synchronous and transactional character
+- an agent gives up control over its data / actions or at least there is always the danger that it exposes too much of its interface and implementation details. 
+- agents equals objects, which is definitely NOT true. Agents 
+
+signal functions
+in pure FP everything is a function.
+
 data-flow
-agent transactions
+synchronous agent transactions
 
-\subsubsection{Proactivity}
-time-dependent behaviour: an agent can initiate actions on itself
-
-\subsection{Environment}
+\subsection{Environment representation and interaction}
 pro-active vs. inactive
 read-only vs. read/write
 
-\subsection{Scheduling / Stepping the simulation}
+- non-active read-only (SIR): no agent, as additional argument to each agent
+- pro-active read-only (?): environment as agent, broadcast environment updates as data-flow
+- non-active read/write (?): no agent, shared data as STM as additional argument to each agent
+- pro-active read/write (Sugarscape): environment as, shared data as STM as additional argument to each agent
 
-
-\subsubsection{Agent Uniqueness}
-\subsubsection{Agent State}
-\subsubsection{Agent Interactions}
-\subsubsection{Agent proactivity}
-\subsubsection{Agent-Environment interaction}
-\subsubsection{Environment}
+\subsection{Stepping the simulation}

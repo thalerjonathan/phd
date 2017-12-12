@@ -44,3 +44,13 @@ TODO: explain the term 'pure'
 \subsection{Functional Reactive Programming}
 TODO: explain streams
 TODO: Yampa, BearRiver, Dunai
+
+Functional Reactive Programming (FRP) is a paradigm for programming hybrid systems which combine continuous and discrete components. Time is explicitly modelled: there is a continuous and synchronous time flow.  \\
+
+there have been many attempts to implement FRP in frameworks which each has its own pro and contra. all started with fran, a domain specific language for graphics and animation and at yale FAL, Frob, Fvision and Fruit were developed. The ideas of them all have then culminated in Yampa which is the reason why it was chosen as the FRP framework. Also, compared to other frameworks it does not distinguish between discrete and synchronous time but leaves that to the user of the framework how the time flow should be sampled (e.g. if the sampling is discrete or continuous - of course sampling always happens at discrete times but when we speak about discrete sampling we mean that time advances in natural numbers: 1,2,3,4,... and when speaking of continuous sampling then time advances in fractions of the natural numbers where the difference between each step is a real number in the range of [0..1]) \\
+
+\cite{Nilsson2002} give a good overview of Yampa and FRP. Quote: "The essential abstraction that our system captures is time flow". Two \textit{semantic} domains for progress of time: continuous and discrete. \\
+
+The first implementations of FRP (Fran) implemented FRP with synchronized stream processors which was also followed by \cite{Wan2000}. Yampa is but using continuations inspired by Fudgets. In the stream processors approach "signals are represented as time-stamped streams, and signal functions are just functions from streams to streams", where "the Stream type can be implemented directly as (lazy) list in Haskell...":
+
+"A major design goal for FRP is to free the programmer from 'presentation' details by providing the ability to think in terms of 'modeling'. It is common that an FRP program is concise enough to also serve as a specification for the problem it solves" \cite{Wan2000}. This quotation describes exactly one of the strengths using FRP in ACE \\

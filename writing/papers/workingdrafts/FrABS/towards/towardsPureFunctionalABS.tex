@@ -15,8 +15,8 @@
 \usepackage{marvosym}
 \usepackage{minted}
 
-\font\subtitlefont=cmr12 at 18pt
-
+%\font\subtitlefont=cmr12 at 18pt
+%
 \title{Towards pure functional agent-based simulation}
 
 % IEEEtran journal authors
@@ -25,7 +25,7 @@
 %\thanks{peer-olaf.siebers@nottingham.ac.uk}
 %}
 
-% IEEEtran conference authors
+%IEEEtran conference authors
 \author{
 	\IEEEauthorblockN{Jonathan Thaler}
 	\IEEEauthorblockA{School of Computer Science\\
@@ -135,7 +135,9 @@ TODO: defining agent-based simulation
 TODO: need to find a formal definition on agent-based simulation
 	- start with wooldridge book
 	- derive a more functional approach then in my paper
-	
+
+TODO: it doesn't make sense for an agent to act 'always', an agents behaviour needs to have some time-dependent parameter e.g. doEvery 1.0. If this is omitted then one makes one dependent directly on the Time-Delta.
+
 So far, the pure functional paradigm hasn't got much attention in Agent-Based Simulation (ABS) where the dominant programming paradigm is object-orientation, with Java, Python and C++ being its most prominent representatives. We claim that pure functional programming using Haskell is very well suited to implement complex, real-world agent-based models and brings with it a number of benefits. To show that we implemented the seminal Sugarscape model in Haskell in our library \textit{FrABS} which allows to do ABS the first time in the pure functional programming language Haskell. To achieve this we leverage the basic concepts of ABS with functional reactive programming using Yampa. The result is a surprisingly fresh approach to ABS as it allows to incorporate discrete time-semantics similar to Discrete Event Simulation and continuous time-flows as in System Dynamics. In this paper we will show the novel approach of functional reactive ABS through the example of the SIR model, discuss implications, benefits and best practices.
 \end{abstract}
 
@@ -146,6 +148,8 @@ Haskell, Functional Programming, Verification
 \input{./tex/introduction.tex}
 
 \input{./../shared/tex/absDefinition.tex}
+
+\input{./tex/functionalView.tex}
 
 \input{./../shared/tex/acknowledgments.tex}
 

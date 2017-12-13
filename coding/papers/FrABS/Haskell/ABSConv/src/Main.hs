@@ -69,6 +69,27 @@ dt = 1.0
 initAgentWealth :: Double
 initAgentWealth = 100
 
+-- FAZIT: 
+-- 1. it is f**** cumbersome to implement it using SFs and very hard to get it right
+-- 2. it does not make sense as SFs are time-aware but in TXs time halts. 
+-- 3. Also the switching would reset a potential time-accumulator (t <- time -< ()). 
+-- WHATS THE ALTERNATIVE:
+-- use normal functions and follow a callback style as implemented so far
+-- the problem is then how to react to incoming TX requests: would need to run
+--    the receivers SF with dt=0 with appropriate AgentIn. This would allow the 
+--    receiver to change its internal state and update the environment,...
+--    but how can the initiator do this, how can it update its state and environment
+--    in case of a reply?
+
+-- MAYBE ABANDON THE TX IDEA COMPLETELY AS IT IS TOO DIFFICULT IN FP?
+--  maybe it is a completely wrong idea to do in FP?
+--  can we emulate it in a different, more functional and reactive way? 
+--  the problem is that we will need to employ this kind of switching when we want to follow
+--  a protocoll which is very annoying but could be possibly become much
+--  easier when providing general solutions to it 
+--  an idea would be to halt time and continuously send messages around
+--     where agents then transactionally lock their state?
+
 -- TODO: add pro-active mutable environment with STM
 -- NOTE: with TX mechanism we can have transactional behaviour with a pro-active environment
 
@@ -153,15 +174,18 @@ passiveAgent w0 env = dSwitch checkTxAgent (\bid -> passiveTxAgentAwait w0 env b
                       ConvTestAgentIn 
                       (ConvTestAgentOut, Event Double)
     checkTxAgent = proc ain -> do
+      t <- time -< ()
+      printDebugS -< ("passiveTx: t = " ++ show t)
+
       let mayTx = beginTxIn ain
       if isJust mayTx 
         then (do
           let tx = fromJust mayTx
-          printDebugS -< ("passive agent: begin incoming TX = " ++ show tx)
+          printDebugS -< ("passiveTX: begin incoming TX = " ++ show tx)
           ret <- passiveTxAgentInit w0 env -< tx
           returnA -< ret)
         else (do
-          printDebugS -< ("passive agent: awaiting incoming TX")
+          printDebugS -< ("passiveTX: awaiting incoming TX")
           returnA -< (agentOut, NoEvent)) -- output does not matter at this point
 
 -------------------------------------------------------------------------------
@@ -177,7 +201,7 @@ passiveTxAgentInit w env = proc (_senderId, d) ->
   if isOffering d 
     then passiveTxAgentReply w -< (offering d)
     else (do
-      printDebugS -< ("passive agent: invalid protocoll, abort TX")
+      printDebugS -< ("passiveTX: invalid protocoll, abort TX")
       returnA -< (abortTx agentOut, NoEvent)) -- Invalid protocoll, abort TX
 
 isOffering :: ConvTestData -> Bool
@@ -194,17 +218,17 @@ passiveTxAgentReply :: RandomGen g
                         Double 
                         (ConvTestAgentOut, Event Double)
 passiveTxAgentReply w = proc v -> do
-  printDebugS -< ("passive agent: received Offering = " ++ show v)
+  printDebugS -< ("passiveTX: received Offering = " ++ show v)
 
-  printDebugS -< ("passive agent: checking budget constraint, ask = " ++ show v ++ ", wealth = " ++ show w)
+  printDebugS -< ("passiveTX: checking budget constraint, ask = " ++ show v ++ ", wealth = " ++ show w)
   if v >= w
     then (do
-      printDebugS -< ("passive agent: not enough budget, refusing offer")
+      printDebugS -< ("passiveTX: not enough budget, refusing offer")
       let ao = commitTx $ txDataOut OfferingRefuse (agentOutObs w)
       returnA -< (ao, NoEvent))
     else (do
       bid <- arrM_ (getRandomR (0, w)) -< ()
-      printDebugS -< ("passive agent: enough budget, accepting offering, my Offering is " ++ show bid)
+      printDebugS -< ("passiveTX: enough budget, accepting offering, my Offering is " ++ show bid)
       returnA -< (txDataOut (Offering bid) agentOut, Event bid))
 
 passiveTxAgentAwait :: RandomGen g
@@ -214,7 +238,8 @@ passiveTxAgentAwait :: RandomGen g
                     -> ConvTestAgent g
 passiveTxAgentAwait w env bid =  
     dSwitch
-      checkPassiveTxAgentAwait
+      --((agentOutObs w, noEvent) --> checkPassiveTxAgentAwait)
+      (checkPassiveTxAgentAwait)
       (\w' -> passiveAgent w' env)
   where
     checkPassiveTxAgentAwait :: RandomGen g
@@ -222,14 +247,14 @@ passiveTxAgentAwait w env bid =
                                   ConvTestAgentIn 
                                   (ConvTestAgentOut, Event Double)
     checkPassiveTxAgentAwait = proc ain -> do
-      printDebugS -< ("passive agent: waiting for reply to my offering...")
+      printDebugS -< ("passiveTX: waiting for reply to my offering...")
       if hasTxData ain 
         then (do
           let d = txDataIn ain
-          printDebugS -< ("passive agent: received reply = " ++ show d)
+          printDebugS -< ("passiveTX: received reply = " ++ show d)
           returnA -< handleReply d w bid)
         else (do
-          printDebugS -< ("passive agent: no reply yet!")
+          printDebugS -< ("passiveTX: no reply yet!")
           returnA -< (agentOut, NoEvent))
 
     handleReply :: ConvTestData
@@ -237,11 +262,11 @@ passiveTxAgentAwait w env bid =
                 -> Double
                 -> (ConvTestAgentOut, Event Double)
     -- active agent refuses, no exchange but commit TX
-    handleReply OfferingRefuse w _  = trace ("passive agent: OfferingRefuse, commit") (commitTx $ agentOutObs w, Event w) 
+    handleReply OfferingRefuse w _  = trace ("passiveTX: OfferingRefuse, commit") (commitTx $ agentOutObs w, Event w) 
     -- active agent accepts, make exchange and commit TX
-    handleReply OfferingAccept w bid = trace ("passive agent: OfferingAccept, commit") (commitTx $ agentOutObs $ w - bid, Event $ w - bid) 
+    handleReply OfferingAccept w bid = trace ("passiveTX: OfferingAccept, commit") (commitTx $ agentOutObs $ w - bid, Event $ w - bid) 
     -- abort because wrong protocoll 
-    handleReply _              _  _ = trace ("passive agent: protocoll fault, abort") (abortTx agentOut, NoEvent) 
+    handleReply _              _  _ = trace ("passiveTX: protocoll fault, abort") (abortTx agentOut, NoEvent) 
 
 -------------------------------------------------------------------------------
 -- ACTIVE TX BEHAVIOUR
@@ -252,6 +277,7 @@ activeTxAgentInit :: RandomGen g
                   -> ConvTestAgent g
 activeTxAgentInit w env = 
   dSwitch -- VERY IMPORTANT TO USE DELAY HERE OTHERWISE activeTxAgentAwait output would override!
+    --((agentOutObs w, noEvent) --> activeTxAgentBegin w env)
     (activeTxAgentBegin w env)
     (\ask -> activeTxAgentAwait w env ask)
 
@@ -264,6 +290,8 @@ activeTxAgentBegin w env = proc ain -> do
   ridx <- arrM_ (getRandomR (0, length env - 1)) -< ()
   let raid = env !! ridx
   
+  t <- time -< ()
+  printDebugS -< ("activeTX: t = " ++ show t)
   printDebugS -< ("activeTX: drawing random agentid = " ++ show raid)
   
   if aid == raid
@@ -282,6 +310,7 @@ activeTxAgentAwait :: RandomGen g
 activeTxAgentAwait w env ask = 
     dSwitch
       ((agentOutObs w, noEvent) --> checkActiveTxAgentAwait)
+      --(checkActiveTxAgentAwait)
       (\w' -> activeAgent w' env)
   where
     checkActiveTxAgentAwait :: RandomGen g
@@ -501,7 +530,7 @@ runAgentWithDt :: Double
               -> SF (RandT g IO)
                     (AgentIn d, Agent (RandT g IO) o d)
                     (AgentOut o d, Agent (RandT g IO) o d)
-runAgentWithDt dt = readerS $ proc (dt, (ain, sf)) -> do
+runAgentWithDt dt = readerS $ proc (_, (ain, sf)) -> do
     (ao, sf') <- runReaderS_ runAgentWithDtAux dt -< (ain, sf)
     returnA -< (ao, sf')
   where

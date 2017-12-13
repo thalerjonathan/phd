@@ -14,3 +14,6 @@ TODO: it doesn't make sense for an agent to act 'always', an agents behaviour ne
 Due to the parallel execution of the agents signal-functions, the ability to iterate the simulation with continuous time, the notion of continuous data-flow between agents and compile time guarantees of absence of non-deterministic side-effects and random-number generators allows us to directly express System Dynamic models.
 Each stock and flow becomes an agent and are connected using data-flows using hard-coded agent ids. The integrals over time which occur in a SD model are directly translated to pure functional code using the \textit{integral} primitive of FRP - our implementation is then correct by definition.
 See Appendix TODO for an example which implements the SIR model (TODO: cite mckendrick) in SD using our continuous ABS approach.
+
+\subsection{Transactional Behaviour}
+In OO implementations it is quite easy to achieve a multi-step transactional behaviour. Imagine 

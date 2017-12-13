@@ -49,7 +49,7 @@ data ConvTestData         = Offering Double
 
 type ConvTestAgentIn        = AgentIn ConvTestData
 type ConvTestAgentOut       = AgentOut ConvTestObservable ConvTestData
-type ConvTestAgent g        = Agent (Rand g) ConvTestObservable ConvTestData
+type ConvTestAgent g        = Agent (RandT g IO) ConvTestObservable ConvTestData
 
 type ConvTestEnv            = [AgentId]
 
@@ -76,20 +76,21 @@ main = do
   hSetBuffering stdout NoBuffering
 
   let g = mkStdGen rngSeed
-  --let as = initTestAgents
+  let as = initTestAgents
   --let as = map (\aid -> (aid, timeZeroAgent)) [0..agentCount - 1]
-  --obss <- runSimulationUntil g t dt as
-  -- mapM_ (\(t, obs) -> putStrLn ("\nt = " ++ show t) >> mapM_ (putStrLn . show) obs) obss
+  obss <- runSimulationUntil g t dt as
+  mapM_ (\(t, obs) -> putStrLn ("\nt = " ++ show t) >> mapM_ (putStrLn . show) obs) obss
 
+{--
   let oM = embed (switchAgentStep0 42) [0, 1]
   o <- runReaderT oM dt
-
   putStrLn $ show o
+-}
 
 switchAgentStep0 :: Int -> SF IO Int Int
 switchAgentStep0 i0 = 
     switch
-      ((switchAgentStep0Aux i0) )
+      ((switchAgentStep0Aux i0))
       (\i -> switchAgentStep1 i)
   where
     switchAgentStep0Aux :: Int -> SF IO Int (Int, Event Int)
@@ -131,6 +132,9 @@ initTestAgents = [aa, pa]
     aa = (0, activeAgent 100 [1])
     pa = (1, passiveAgent 100 [0])
 
+-------------------------------------------------------------------------------
+-- AGENTS
+-------------------------------------------------------------------------------
 activeAgent :: RandomGen g 
                 => Double
                 -> ConvTestEnv
@@ -141,65 +145,84 @@ passiveAgent :: RandomGen g
                  => Double
                  -> ConvTestEnv
                  -> ConvTestAgent g
-passiveAgent w0 env = switch checkTxAgent txCont
+passiveAgent w0 env = dSwitch checkTxAgent (\d -> passiveTxAgentAwait w0 env d)
   where
     checkTxAgent :: RandomGen g
-                  => SF (Rand g) 
+                  => SF (RandT g IO)
                       ConvTestAgentIn 
-                      (ConvTestAgentOut, Event (Maybe (DataFlow ConvTestData)))
-    checkTxAgent = arr (\ain -> (agentOutObs w0, Event (beginTxIn ain)))
-
-    txCont :: RandomGen g
-           => Maybe (DataFlow ConvTestData) 
-           -> ConvTestAgent g
-    txCont (Just df)  = passiveTxAgentInit df w0 env  -- react to incoming TX
-    txCont Nothing    = passiveAgent w0 env
+                      (ConvTestAgentOut, Event Double)
+    checkTxAgent = proc ain -> do
+      let mayTx = beginTxIn ain
+      if isJust mayTx 
+        then (do
+          let tx = fromJust mayTx
+          printDebugS -< ("passive agent: begin TX = " ++ show tx)
+          ret <- passiveTxAgentInit w0 env -< tx
+          returnA -< ret)
+        else (do
+          printDebugS -< ("passive agent: awaiting incoming TX")
+          returnA -< (agentOut, NoEvent)) -- output does not matter at this point
 
 -------------------------------------------------------------------------------
 -- PASSIVE TX BEHAVIOUR
 -------------------------------------------------------------------------------
 passiveTxAgentInit :: RandomGen g 
-                   => DataFlow ConvTestData
-                   -> Double
+                   => Double
                    -> ConvTestEnv
-                   -> ConvTestAgent g
-passiveTxAgentInit (_senderId, Offering v) w env = 
-  become -- TODO: we need to wait for the reply which means we cannot switch immediately but delay by 1 step 
-    (passiveTxAgentReply v w)
-    (passiveTxAgentAwait w env)
-passiveTxAgentInit (_, _) _ _ = 
-    arr (\_ -> abortTx agentOut) -- Invalid protocoll, abort TX
+                   -> SF (RandT g IO)
+                        (DataFlow ConvTestData) 
+                        (ConvTestAgentOut, Event Double)
+passiveTxAgentInit w env = proc (_senderId, d) -> 
+  if isOffering d 
+    then passiveTxAgentReply w -< (offering d)
+    else (do
+      printDebugS -< ("passive agent: invalid protocoll, abort TX")
+      returnA -< (abortTx agentOut, NoEvent)) -- Invalid protocoll, abort TX
+
+isOffering :: ConvTestData -> Bool
+isOffering (Offering _) = True
+isOffering _ = False
+
+offering :: ConvTestData -> Double
+offering (Offering o) = o
+offering _ = error "not an Offering"
 
 passiveTxAgentReply :: RandomGen g 
                     => Double
-                    -> Double
-                    -> SF (Rand g) ConvTestAgentIn (ConvTestAgentOut, Maybe Double)
-passiveTxAgentReply v w = proc _ -> do
+                    -> SF (RandT g IO)
+                        Double 
+                        (ConvTestAgentOut, Event Double)
+passiveTxAgentReply w = proc v -> do
+  printDebugS -< ("passive agent: received Offering = " ++ show v)
+
   rw <- arrM_ (getRandomR (0, w)) -< ()
+  printDebugS -< ("passive agent: checking budget constraint, ask = " ++ show v ++ ", wealth = " ++ show w)
   if v >= w
-    then returnA -< (txDataOut OfferingRefuse agentOut, Nothing)
-    else returnA -< (txDataOut (Offering rw) agentOut, Just rw)
+    then (do
+      printDebugS -< ("passive agent: Refusing offer")
+      let ao = txDataOut OfferingRefuse (agentOutObs w)
+      let ao' = commitTx ao'
+      returnA -< (ao', NoEvent))
+    else (do
+      printDebugS -< ("passive agent: accepting offering, Offering = " ++ show rw)
+      returnA -< (txDataOut (Offering rw) agentOut, Event rw))
 
 passiveTxAgentAwait :: RandomGen g
                     => Double
                     -> ConvTestEnv
-                    -> Maybe Double
+                    -> Double
                     -> ConvTestAgent g
-passiveTxAgentAwait w env Nothing =  
-  -- in this case nothing changes as the passive agent has not enough wealth, but still commit TX
-  switch 
-    (arr (\_ -> (commitTx agentOut, Event ())))
-    (\_ -> passiveAgent w env)
-passiveTxAgentAwait w env (Just rw) = 
-    switch  -- TODO: delay switch
+passiveTxAgentAwait w env rw =  
+    dSwitch
       checkPassiveTxAgentAwait
       (\w' -> passiveAgent w' env)
   where
     checkPassiveTxAgentAwait :: RandomGen g
-                             => SF (Rand g) 
+                             => SF (RandT g IO) 
                                   ConvTestAgentIn 
                                   (ConvTestAgentOut, Event Double)
     checkPassiveTxAgentAwait = proc ain -> do
+      printDebugS -< ("passive agent: waiting for reply to my offering...")
       if hasTxData ain 
         then returnA -< handleReply (txDataIn ain) w rw
         else returnA -< (abortTx agentOut, NoEvent) -- abort because expected reply by active agent
@@ -215,7 +238,6 @@ passiveTxAgentAwait w env (Just rw) =
     -- abort because wrong protocoll 
     handleReply _              _  _ = (abortTx agentOut, NoEvent) 
 
-
 -------------------------------------------------------------------------------
 -- ACTIVE TX BEHAVIOUR
 -------------------------------------------------------------------------------
@@ -224,41 +246,51 @@ activeTxAgentInit :: RandomGen g
                   -> ConvTestEnv
                   -> ConvTestAgent g
 activeTxAgentInit w env = 
-  become
+  dSwitch -- VERY IMPORTANT TO USE DELAY HERE OTHERWISE activeTxAgentAwait output would override!
     (activeTxAgentBegin w env)
-    (activeTxAgentAwait w env)
+    (\r -> activeTxAgentAwait w env r)
 
 activeTxAgentBegin :: RandomGen g 
                    => Double
                    -> ConvTestEnv
-                   -> SF (Rand g) ConvTestAgentIn (ConvTestAgentOut, Double)
+                   -> SF (RandT g IO) ConvTestAgentIn (ConvTestAgentOut, Event Double)
 activeTxAgentBegin w env = proc ain -> do
   let aid = agentId ain
-  raid <- arrM_ (getRandomR (0, length env - 1)) -< ()
+  ridx <- arrM_ (getRandomR (0, length env - 1)) -< ()
+  let raid = env !! ridx
+  
+  printDebugS -< ("activeTX: drawing random agentid = " ++ show raid)
+  
   if aid == raid
     then activeTxAgentBegin w env -< ain
     else (do
       rask <- arrM_ (getRandomR (0, w)) -< ()
-      returnA -< (beginTx (raid, Offering rask) agentOut, rask))
+      let d = (raid, Offering rask)
+      printDebugS -< ("activeTX: beginTx = " ++ show d)
+      returnA -< (beginTx d agentOut, Event rask))
 
 activeTxAgentAwait :: RandomGen g
                    => Double
                    -> ConvTestEnv
                    -> Double
                    -> ConvTestAgent g
-activeTxAgentAwait w env rask =  
-    dSwitch  -- TODO: delay switch
+activeTxAgentAwait w env rask = 
+    switch
       checkActiveTxAgentAwait
       (\w' -> activeAgent w' env)
   where
     checkActiveTxAgentAwait :: RandomGen g
-                            => SF (Rand g) 
+                            => SF (RandT g IO) 
                                   ConvTestAgentIn 
                                   (ConvTestAgentOut, Event Double)
     checkActiveTxAgentAwait = proc ain -> do
       if hasTxData ain 
-        then returnA -< handleReply (txDataIn ain) w rask
-        else returnA -< (abortTx agentOut, NoEvent) -- abort because expected reply by passive agent
+        then (do
+          printDebugS -< ("activeTX: received tx reply = " ++ show (txDataIn ain))
+          returnA -< handleReply (txDataIn ain) w rask)
+        else (do
+          printDebugS -< ("activeTX: tx reply not yet received")
+          returnA -< (agentOut, NoEvent)) -- output does not matter
 
     handleReply :: ConvTestData
                 -> Double
@@ -269,15 +301,15 @@ activeTxAgentAwait w env rask =
     -- passive agent accepts, make exchange and commit TX
     handleReply OfferingAccept w rask = (commitTx agentOut, Event $ w + rask)
     -- abort because wrong protocoll 
-    handleReply _              _  _   = (abortTx agentOut, NoEvent) 
+    handleReply (Offering bid) _  _   = (abortTx agentOut, NoEvent) 
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
-runSimulationUntil :: RandomGen g
+runSimulationUntil :: (RandomGen g, Show o, Show d)
                    => g
                    -> Time 
                    -> DTime
-                   -> [(AgentId, Agent (Rand g) o d)]
+                   -> [(AgentId, Agent (RandT g IO) o d)]
                    -> IO [(Time, [AgentObservable o])]
 runSimulationUntil g t dt aiMsfs = do
   let steps = floor $ t / dt
@@ -290,7 +322,7 @@ runSimulationUntil g t dt aiMsfs = do
   let aossM = embed (parSimulation msfs ains) ticks
 
   let readerM = runReaderT aossM dt
-  let aoss = evalRand readerM g
+  aoss <- evalRandT readerM g
 
   let aobs = map (\(t, aos) -> (t, map (\(aid, ao) -> (aid, agentObservable ao)) aos)) aoss
 
@@ -308,18 +340,18 @@ runSimulationUntil g t dt aiMsfs = do
         --       this is not correct yet, we need to clearly think about what it means
         --       to commit a TX!
 
-parSimulation :: RandomGen g
-              => [Agent (Rand g) o d] 
+parSimulation :: (RandomGen g, Show o, Show d)
+              => [Agent (RandT g IO) o d] 
               -> [AgentIn d] 
-              -> SF (Rand g)
+              -> SF (RandT g IO)
                   ()
                   (Time, [(AgentId, AgentOut o d)])
 parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
   where
-    parSimulationAux :: RandomGen g
-                     => SF (Rand g)
-                          ((), ([Agent (Rand g) o d], [AgentIn d]))
-                          ((Time, [(AgentId, AgentOut o d)]), ([Agent (Rand g) o d], [AgentIn d]))
+    parSimulationAux :: (RandomGen g, Show o, Show d)
+                     => SF (RandT g IO)
+                          ((), ([Agent (RandT g IO) o d], [AgentIn d]))
+                          ((Time, [(AgentId, AgentOut o d)]), ([Agent (RandT g IO) o d], [AgentIn d]))
     parSimulationAux = proc (_, (msfs, ains)) -> do
       (msfs, aos) <- runAgents -< (msfs, ains)
       t           <- time      -< ()
@@ -331,14 +363,16 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
       let ains' = map (\ai -> agentIn $ agentId ai) ains 
       let ains'' = distributeData ains' aios'
 
-      returnA -< ((t, aios'), (msfs, ains''))
+      returnA -< ((t, aios'), (msfs', ains''))
 
     -- TX need to be executed sequentially...
-    runTransactions :: SF (Rand g) 
-                          ([(AgentId, AgentOut o d)], [Agent (Rand g) o d])
-                          ([(AgentId, AgentOut o d)], [Agent (Rand g) o d])
+    runTransactions :: (Show o, Show d)
+                    => SF (RandT g IO) 
+                          ([(AgentId, AgentOut o d)], [Agent (RandT g IO) o d])
+                          ([(AgentId, AgentOut o d)], [Agent (RandT g IO) o d])
     runTransactions = proc (aios, sfs) -> do
         let els = zip aios sfs
+        printDebugS -< ("els = " ++ show aios)
         let m = foldr (\((aid, ao), sf) m' -> Map.insert aid (ao, sf) m') Map.empty els
         m' <- runTransactionsAux -< (els, m)
         let ml = Map.toList m'
@@ -346,10 +380,10 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
         returnA -< aiosMsfs
 
       where
-        runTransactionsAux :: SF (Rand g)
-                                (([((AgentId, AgentOut o d), Agent (Rand g) o d)]),
-                                  (Map.Map AgentId (AgentOut o d, Agent (Rand g) o d)))
-                                (Map.Map AgentId (AgentOut o d, Agent (Rand g) o d))
+        runTransactionsAux :: SF (RandT g IO)
+                                (([((AgentId, AgentOut o d), Agent (RandT g IO) o d)]),
+                                  (Map.Map AgentId (AgentOut o d, Agent (RandT g IO) o d)))
+                                (Map.Map AgentId (AgentOut o d, Agent (RandT g IO) o d))
         runTransactionsAux = proc (els, m) -> do
           if null els
             then returnA -< m
@@ -358,15 +392,16 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
               if (isJust $ aoTxBegin ao)
                 then (do
                   m' <- runTxPair -< (e, m)
+                  printDebugS -< ("found TX pair")
                   runTransactionsAux -< (tail els, m'))
                 else runTransactionsAux -< (tail els, m))
 
         -- care must be taken if two agents want to start a TX with each other at the same time
         -- note that we allow agents to transact with themselves
-        runTxPair :: SF (Rand g)
-                      (((AgentId, AgentOut o d), Agent (Rand g) o d),
-                        (Map.Map AgentId (AgentOut o d, Agent (Rand g) o d)))
-                      (Map.Map AgentId (AgentOut o d, Agent (Rand g) o d))
+        runTxPair :: SF (RandT g IO)
+                      (((AgentId, AgentOut o d), Agent (RandT g IO) o d),
+                        (Map.Map AgentId (AgentOut o d, Agent (RandT g IO) o d)))
+                      (Map.Map AgentId (AgentOut o d, Agent (RandT g IO) o d))
         runTxPair = proc (((aid, ao), sf), m) -> do
           let (rAid, _) = fromJust $ aoTxBegin ao
           let (rAo, rSf) = fromJust $ Map.lookup rAid m -- TODO: proper handling of Maybe
@@ -384,24 +419,24 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
 
               returnA -< m')
 
-    runTxBegin :: SF (Rand g) 
-                    ((AgentId, AgentOut o d, Agent (Rand g) o d), 
-                     (AgentId, AgentOut o d, Agent (Rand g) o d))
+    runTxBegin :: SF (RandT g IO) 
+                    ((AgentId, AgentOut o d, Agent (RandT g IO) o d), 
+                     (AgentId, AgentOut o d, Agent (RandT g IO) o d))
                     (Maybe 
-                      ((AgentId, AgentOut o d, Agent (Rand g) o d), 
-                       (AgentId, AgentOut o d, Agent (Rand g) o d)))
+                      ((AgentId, AgentOut o d, Agent (RandT g IO) o d), 
+                       (AgentId, AgentOut o d, Agent (RandT g IO) o d)))
     runTxBegin = proc ((sAid, sAo0, sSf0), (rAid, rAo0, rSf0)) -> do
       let rAin = (agentIn rAid) { aiTxBegin = Just (sAid, snd $ fromJust $ aoTxBegin sAo0) }
       (rAo', rSf') <- runAgentWithDt 0 -< (rAin, rSf0)
 
       runTx -< ((rAid, rAo', rSf'), (sAid, sAo0, sSf0))
 
-    runTx :: SF (Rand g)
-              ((AgentId, AgentOut o d, Agent (Rand g) o d), 
-               (AgentId, AgentOut o d, Agent (Rand g) o d))
+    runTx :: SF (RandT g IO)
+              ((AgentId, AgentOut o d, Agent (RandT g IO) o d), 
+               (AgentId, AgentOut o d, Agent (RandT g IO) o d))
               (Maybe
-                ((AgentId, AgentOut o d, Agent (Rand g) o d), 
-                 (AgentId, AgentOut o d, Agent (Rand g) o d)))
+                ((AgentId, AgentOut o d, Agent (RandT g IO) o d), 
+                 (AgentId, AgentOut o d, Agent (RandT g IO) o d)))
     runTx = proc ((sAid, sAo, sSf), (rAid, rAo, rSf)) -> do
       -- we terminate the running transaction if
       --    the sending agent wants to abort it
@@ -419,9 +454,9 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
             else runTx -< ((rAid, rAo', rSf'), (sAid, sAo, sSf)))
 
 runAgents :: RandomGen g
-          => SF (Rand g)
-              ([Agent (Rand g) o d], [AgentIn d]) 
-              ([Agent (Rand g) o d], [AgentOut o d])
+          => SF (RandT g IO)
+              ([Agent (RandT g IO) o d], [AgentIn d]) 
+              ([Agent (RandT g IO) o d], [AgentOut o d])
 runAgents = readerS $ proc (dt, (sfs, ins)) -> do
     let asIns = zipWith (\sf ain -> (dt, (ain, sf))) sfs ins
     --arets <- mapMSF (runReaderS runAgent) -< asIns
@@ -430,22 +465,22 @@ runAgents = readerS $ proc (dt, (sfs, ins)) -> do
     returnA -< (sfs', aos)
   where
     runAgent :: RandomGen g
-              => SF (Rand g)
-                  (AgentIn d, Agent (Rand g) o d)
-                  (AgentOut o d, Agent (Rand g) o d)
+              => SF (RandT g IO)
+                  (AgentIn d, Agent (RandT g IO) o d)
+                  (AgentOut o d, Agent (RandT g IO) o d)
     runAgent = arrM (\(ain, sf) -> unMSF sf ain)
 
 runAgentWithDt :: Double
-              -> SF (Rand g)
-                    (AgentIn d, Agent (Rand g) o d)
-                    (AgentOut o d, Agent (Rand g) o d)
+              -> SF (RandT g IO)
+                    (AgentIn d, Agent (RandT g IO) o d)
+                    (AgentOut o d, Agent (RandT g IO) o d)
 runAgentWithDt dt = readerS $ proc (dt, (ain, sf)) -> do
     (ao, sf') <- runReaderS_ runAgentWithDtAux dt -< (ain, sf)
     returnA -< (ao, sf')
   where
-    runAgentWithDtAux :: SF (Rand g)
-                          (AgentIn d, Agent (Rand g) o d)
-                          (AgentOut o d, Agent (Rand g) o d)
+    runAgentWithDtAux :: SF (RandT g IO)
+                          (AgentIn d, Agent (RandT g IO) o d)
+                          (AgentOut o d, Agent (RandT g IO) o d)
     runAgentWithDtAux = arrM (\(ain, sf) -> unMSF sf (ain))
 
 isBeginTx :: AgentIn d -> Bool
@@ -560,12 +595,5 @@ distributeData ains aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedu
                 -- NOTE: force evaluation of messages, will reduce memory-overhead EXTREMELY
                 accMsgs' = seq newMsgs (Map.insert receiverId newMsgs accMsgs)
 
-become :: Monad m => SF m a (b, c) -> (c -> SF m a b) -> SF m a b
-become sfFirst sfSecond = switch (becomeAux sfFirst) (\c -> sfSecond c)
-  where
-    becomeAux :: Monad m 
-              => SF m a (b, c) 
-              -> SF m a (b, Event c)
-    becomeAux sfFirst = proc a -> do
-      (b, c) <- sfFirst -< a
-      returnA -< (b, Event c)
+printDebugS :: MonadIO m => SF m String ()
+printDebugS = arrM (liftIO . putStrLn)

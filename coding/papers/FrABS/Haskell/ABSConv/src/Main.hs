@@ -6,6 +6,7 @@ module Main where
 import Data.Maybe
 import qualified Data.Map as Map
 import System.IO
+import Debug.Trace
 
 import Control.Monad.Random
 import Control.Monad.Reader
@@ -145,7 +146,7 @@ passiveAgent :: RandomGen g
                  => Double
                  -> ConvTestEnv
                  -> ConvTestAgent g
-passiveAgent w0 env = dSwitch checkTxAgent (\d -> passiveTxAgentAwait w0 env d)
+passiveAgent w0 env = dSwitch checkTxAgent (\bid -> passiveTxAgentAwait w0 env bid)
   where
     checkTxAgent :: RandomGen g
                   => SF (RandT g IO)
@@ -156,7 +157,7 @@ passiveAgent w0 env = dSwitch checkTxAgent (\d -> passiveTxAgentAwait w0 env d)
       if isJust mayTx 
         then (do
           let tx = fromJust mayTx
-          printDebugS -< ("passive agent: begin TX = " ++ show tx)
+          printDebugS -< ("passive agent: begin incoming TX = " ++ show tx)
           ret <- passiveTxAgentInit w0 env -< tx
           returnA -< ret)
         else (do
@@ -195,24 +196,23 @@ passiveTxAgentReply :: RandomGen g
 passiveTxAgentReply w = proc v -> do
   printDebugS -< ("passive agent: received Offering = " ++ show v)
 
-  rw <- arrM_ (getRandomR (0, w)) -< ()
   printDebugS -< ("passive agent: checking budget constraint, ask = " ++ show v ++ ", wealth = " ++ show w)
   if v >= w
     then (do
-      printDebugS -< ("passive agent: Refusing offer")
-      let ao = txDataOut OfferingRefuse (agentOutObs w)
-      let ao' = commitTx ao'
-      returnA -< (ao', NoEvent))
+      printDebugS -< ("passive agent: not enough budget, refusing offer")
+      let ao = commitTx $ txDataOut OfferingRefuse (agentOutObs w)
+      returnA -< (ao, NoEvent))
     else (do
-      printDebugS -< ("passive agent: accepting offering, Offering = " ++ show rw)
-      returnA -< (txDataOut (Offering rw) agentOut, Event rw))
+      bid <- arrM_ (getRandomR (0, w)) -< ()
+      printDebugS -< ("passive agent: enough budget, accepting offering, my Offering is " ++ show bid)
+      returnA -< (txDataOut (Offering bid) agentOut, Event bid))
 
 passiveTxAgentAwait :: RandomGen g
                     => Double
                     -> ConvTestEnv
                     -> Double
                     -> ConvTestAgent g
-passiveTxAgentAwait w env rw =  
+passiveTxAgentAwait w env bid =  
     dSwitch
       checkPassiveTxAgentAwait
       (\w' -> passiveAgent w' env)
@@ -224,19 +224,24 @@ passiveTxAgentAwait w env rw =
     checkPassiveTxAgentAwait = proc ain -> do
       printDebugS -< ("passive agent: waiting for reply to my offering...")
       if hasTxData ain 
-        then returnA -< handleReply (txDataIn ain) w rw
-        else returnA -< (abortTx agentOut, NoEvent) -- abort because expected reply by active agent
+        then (do
+          let d = txDataIn ain
+          printDebugS -< ("passive agent: received reply = " ++ show d)
+          returnA -< handleReply d w bid)
+        else (do
+          printDebugS -< ("passive agent: no reply yet!")
+          returnA -< (agentOut, NoEvent))
 
     handleReply :: ConvTestData
                 -> Double
                 -> Double
                 -> (ConvTestAgentOut, Event Double)
     -- active agent refuses, no exchange but commit TX
-    handleReply OfferingRefuse w _  = (commitTx agentOut, Event w) 
+    handleReply OfferingRefuse w _  = trace ("passive agent: OfferingRefuse, commit") (commitTx $ agentOutObs w, Event w) 
     -- active agent accepts, make exchange and commit TX
-    handleReply OfferingAccept w rw = (commitTx agentOut, Event $ w - rw) 
+    handleReply OfferingAccept w bid = trace ("passive agent: OfferingAccept, commit") (commitTx $ agentOutObs $ w - bid, Event $ w - bid) 
     -- abort because wrong protocoll 
-    handleReply _              _  _ = (abortTx agentOut, NoEvent) 
+    handleReply _              _  _ = trace ("passive agent: protocoll fault, abort") (abortTx agentOut, NoEvent) 
 
 -------------------------------------------------------------------------------
 -- ACTIVE TX BEHAVIOUR
@@ -248,7 +253,7 @@ activeTxAgentInit :: RandomGen g
 activeTxAgentInit w env = 
   dSwitch -- VERY IMPORTANT TO USE DELAY HERE OTHERWISE activeTxAgentAwait output would override!
     (activeTxAgentBegin w env)
-    (\r -> activeTxAgentAwait w env r)
+    (\ask -> activeTxAgentAwait w env ask)
 
 activeTxAgentBegin :: RandomGen g 
                    => Double
@@ -264,19 +269,19 @@ activeTxAgentBegin w env = proc ain -> do
   if aid == raid
     then activeTxAgentBegin w env -< ain
     else (do
-      rask <- arrM_ (getRandomR (0, w)) -< ()
-      let d = (raid, Offering rask)
+      ask <- arrM_ (getRandomR (0, w)) -< ()
+      let d = (raid, Offering ask)
       printDebugS -< ("activeTX: beginTx = " ++ show d)
-      returnA -< (beginTx d agentOut, Event rask))
+      returnA -< (beginTx d agentOut, Event ask))
 
 activeTxAgentAwait :: RandomGen g
                    => Double
                    -> ConvTestEnv
                    -> Double
                    -> ConvTestAgent g
-activeTxAgentAwait w env rask = 
-    switch
-      checkActiveTxAgentAwait
+activeTxAgentAwait w env ask = 
+    dSwitch
+      ((agentOutObs w, noEvent) --> checkActiveTxAgentAwait)
       (\w' -> activeAgent w' env)
   where
     checkActiveTxAgentAwait :: RandomGen g
@@ -287,7 +292,7 @@ activeTxAgentAwait w env rask =
       if hasTxData ain 
         then (do
           printDebugS -< ("activeTX: received tx reply = " ++ show (txDataIn ain))
-          returnA -< handleReply (txDataIn ain) w rask)
+          returnA -< handleReply (txDataIn ain) w ask)
         else (do
           printDebugS -< ("activeTX: tx reply not yet received")
           returnA -< (agentOut, NoEvent)) -- output does not matter
@@ -297,11 +302,13 @@ activeTxAgentAwait w env rask =
                 -> Double
                 -> (ConvTestAgentOut, Event Double)
     -- passive agent refuses, no exchange but commit TX
-    handleReply OfferingRefuse w _    = (commitTx agentOut, Event w) 
-    -- passive agent accepts, make exchange and commit TX
-    handleReply OfferingAccept w rask = (commitTx agentOut, Event $ w + rask)
-    -- abort because wrong protocoll 
-    handleReply (Offering bid) _  _   = (abortTx agentOut, NoEvent) 
+    handleReply OfferingRefuse w _    = (commitTx agentOut, Event w)
+    -- passive agent never replies with OfferingAccept
+    handleReply OfferingAccept w ask = (abortTx agentOut, Event w)
+    handleReply (Offering bid) w ask 
+      | bid <= ask = trace ("activeTX: crossover, commit") (commitTx $ txDataOut OfferingAccept (agentOutObs $ w + ask),  Event $ w + ask)
+      | otherwise = trace ("activeTX: no crossover, commit") (commitTx $ txDataOut OfferingRefuse (agentOutObs w), Event w)
+ 
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -372,15 +379,17 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
                           ([(AgentId, AgentOut o d)], [Agent (RandT g IO) o d])
     runTransactions = proc (aios, sfs) -> do
         let els = zip aios sfs
-        printDebugS -< ("els = " ++ show aios)
+        -- printDebugS -< ("els = " ++ show aios)
         let m = foldr (\((aid, ao), sf) m' -> Map.insert aid (ao, sf) m') Map.empty els
         m' <- runTransactionsAux -< (els, m)
         let ml = Map.toList m'
-        let aiosMsfs = foldr (\(aid, (ao, sf)) (accAio, accSf) -> ((aid, ao) : accAio, sf : accSf)) ([], []) ml
+        let aiosMsfs@(aios, _) = foldr (\(aid, (ao, sf)) (accAio, accSf) -> ((aid, ao) : accAio, sf : accSf)) ([], []) ml
+        printDebugS -< ("aios = " ++ show aios)
         returnA -< aiosMsfs
 
       where
-        runTransactionsAux :: SF (RandT g IO)
+        runTransactionsAux :: (Show o, Show d)
+                           => SF (RandT g IO)
                                 (([((AgentId, AgentOut o d), Agent (RandT g IO) o d)]),
                                   (Map.Map AgentId (AgentOut o d, Agent (RandT g IO) o d)))
                                 (Map.Map AgentId (AgentOut o d, Agent (RandT g IO) o d))
@@ -391,14 +400,15 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
               let e@((aid, ao), sf) = head els
               if (isJust $ aoTxBegin ao)
                 then (do
+                  printDebugS -< ("found TX pair, running TX...")
                   m' <- runTxPair -< (e, m)
-                  printDebugS -< ("found TX pair")
                   runTransactionsAux -< (tail els, m'))
                 else runTransactionsAux -< (tail els, m))
 
         -- care must be taken if two agents want to start a TX with each other at the same time
         -- note that we allow agents to transact with themselves
-        runTxPair :: SF (RandT g IO)
+        runTxPair :: (Show o, Show d)
+                  => SF (RandT g IO)
                       (((AgentId, AgentOut o d), Agent (RandT g IO) o d),
                         (Map.Map AgentId (AgentOut o d, Agent (RandT g IO) o d)))
                       (Map.Map AgentId (AgentOut o d, Agent (RandT g IO) o d))
@@ -408,18 +418,28 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
 
           mayTx <- runTxBegin -< ((aid, ao, sf), (rAid, rAo, rSf))
           if isNothing mayTx
-            then returnA -< m
+            then (do
+              printDebugS -< ("transaction aborted")
+              returnA -< m)
             else (do
+              printDebugS -< ("transaction finished, committing...")
               let ((aid1, ao1, sf1), (aid2, ao2, sf2)) = fromJust mayTx
 
+              printDebugS -< ("aid1 = " ++ show aid1 ++ ", ao1 = " ++ show ao1)
+              printDebugS -< ("aid2 = " ++ show aid2 ++ ", ao2 = " ++ show ao2)
+              
+              -- TODO: reset the transaction related fields?
+
               let m' = Map.insert aid1 (ao1, sf1) m
-              let m'' = Map.insert aid2 (ao2, sf2) m
+              let m'' = Map.insert aid2 (ao2, sf2) m'
               
               -- TODO: commit environment changes as well when we had a STM environment
+              printDebugS -< ("transaction committed")
 
-              returnA -< m')
+              returnA -< m'')
 
-    runTxBegin :: SF (RandT g IO) 
+    runTxBegin :: (Show o, Show d)
+               => SF (RandT g IO) 
                     ((AgentId, AgentOut o d, Agent (RandT g IO) o d), 
                      (AgentId, AgentOut o d, Agent (RandT g IO) o d))
                     (Maybe 
@@ -431,27 +451,34 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
 
       runTx -< ((rAid, rAo', rSf'), (sAid, sAo0, sSf0))
 
-    runTx :: SF (RandT g IO)
+    runTx :: (Show o, Show d)
+          => SF (RandT g IO)
               ((AgentId, AgentOut o d, Agent (RandT g IO) o d), 
                (AgentId, AgentOut o d, Agent (RandT g IO) o d))
               (Maybe
                 ((AgentId, AgentOut o d, Agent (RandT g IO) o d), 
                  (AgentId, AgentOut o d, Agent (RandT g IO) o d)))
     runTx = proc ((sAid, sAo, sSf), (rAid, rAo, rSf)) -> do
+      printDebugS -< ("runTx: sAo = " ++ show sAo)
+      printDebugS -< ("runTx: rAo = " ++ show rAo)
+      
       -- we terminate the running transaction if
       --    the sending agent wants to abort it
       --    the sending agent didn't send a tx-data
-      if aoTxAbort sAo || (isNothing $ aoTxData sAo)
+      if aoTxAbort sAo 
         then returnA -< Nothing
         else (do
-          let rAin = (agentIn rAid) { aiTxData = aoTxData sAo }
-          (rAo', rSf') <- runAgentWithDt 0 -< (rAin, rSf)
-
-          -- either both commit at this point, or we
-          -- recursively run the tx in a next step
           if aoTxCommit rAo && aoTxCommit sAo
-            then returnA -< Just ((sAid, sAo, sSf), (rAid, rAo', rSf'))
-            else runTx -< ((rAid, rAo', rSf'), (sAid, sAo, sSf)))
+            then returnA -< Just ((sAid, sAo, sSf), (rAid, rAo, rSf))
+            else (do
+              let rAin = (agentIn rAid) { aiTxData = aoTxData sAo }
+              (rAo', rSf') <- runAgentWithDt 0 -< (rAin, rSf)
+
+              -- either both commit at this point, or we
+              -- recursively run the tx in a next step
+              if aoTxCommit rAo' && aoTxCommit sAo
+                then returnA -< Just ((sAid, sAo, sSf), (rAid, rAo', rSf'))
+                else runTx -< ((rAid, rAo', rSf'), (sAid, sAo, sSf))))
 
 runAgents :: RandomGen g
           => SF (RandT g IO)

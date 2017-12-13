@@ -22,23 +22,33 @@ data AgentIn d = AgentIn
   , aiData      :: [DataFlow d]
 
   , aiTxBegin   :: Maybe (DataFlow d)
-  , aiTxData    :: Maybe d
-  , aiTxCommit  :: Bool
-  , aiTxAbort   :: Bool
   } deriving (Show)
 
-data AgentOut o d = AgentOut
+data AgentOut m o d = AgentOut
   {
     aoData        :: [DataFlow d]
   , aoObservable  :: Maybe o
 
-  , aoTxBegin     :: Maybe (DataFlow d)
-  , aoTxData      :: Maybe d
-  , aoTxCommit    :: Bool
-  , aoTxAbort     :: Bool
+  , aoTxBegin     :: Maybe (DataFlow d, AgentTX m o d)
+  }
+
+data AgentTXIn d = AgentTXIn
+  {
+    aiTxData      :: d
+  , aiTxCommit    :: Bool
+  , aiTxAbort     :: Bool
   } deriving (Show)
 
-type Agent m o d          = SF m (AgentIn d) (AgentOut o d)
+data AgentTXOut m o d = AgentTXOut
+  {
+    aoTxData      :: d
+  , aoTxCommit    :: Maybe (Agent m o d, AgentOut m o d)
+  , aoTxAbort     :: Maybe (Agent m o d)
+  }
+
+type AgentTX m o d        = SF m (AgentTXIn d) (AgentTXOut m o d)
+
+type Agent m o d          = SF m (AgentIn d) (AgentOut m o d)
 type AgentObservable o    = (AgentId, Maybe o)
 
 type ConvTestObservable   = Double
@@ -48,9 +58,12 @@ data ConvTestData         = Offering Double
                           | OfferingAccept
                           deriving (Show, Eq)
 
+type ConvTestMonadStack g   = (RandT g IO)
+
 type ConvTestAgentIn        = AgentIn ConvTestData
-type ConvTestAgentOut       = AgentOut ConvTestObservable ConvTestData
-type ConvTestAgent g        = Agent (RandT g IO) ConvTestObservable ConvTestData
+type ConvTestAgentOut  g    = AgentOut (ConvTestMonadStack g) ConvTestObservable ConvTestData
+type ConvTestAgent g        = Agent (ConvTestMonadStack g) ConvTestObservable ConvTestData
+type ConvTestAgentTX g      = AgentTX (ConvTestMonadStack g) ConvTestObservable ConvTestData
 
 type ConvTestEnv            = [AgentId]
 
@@ -63,8 +76,8 @@ rngSeed = 42
 t :: Time
 t = 10
 
-dt :: DTime
-dt = 1.0
+timeDelta :: DTime
+timeDelta = 1.0
 
 initAgentWealth :: Double
 initAgentWealth = 100
@@ -91,6 +104,7 @@ initAgentWealth = 100
 --     where agents then transactionally lock their state?
 
 -- TODO: add pro-active mutable environment with STM
+-- TODO: test roll-backs of environment as well
 -- NOTE: with TX mechanism we can have transactional behaviour with a pro-active environment
 
 main :: IO ()
@@ -99,15 +113,17 @@ main = do
 
   let g = mkStdGen rngSeed
   let as = initTestAgents
-  --let as = map (\aid -> (aid, timeZeroAgent)) [0..agentCount - 1]
+  
   obss <- runSimulationUntil g t dt as
   mapM_ (\(t, obs) -> putStrLn ("\nt = " ++ show t) >> mapM_ (putStrLn . show) obs) obss
 
 {--
+  let as = map (\aid -> (aid, timeZeroAgent)) [0..agentCount - 1]
+
   let oM = embed (switchAgentStep0 42) [0, 1]
   o <- runReaderT oM dt
   putStrLn $ show o
--}
+
 
 switchAgentStep0 :: Int -> SF IO Int Int
 switchAgentStep0 i0 = 
@@ -146,6 +162,7 @@ timeZeroAgent :: RandomGen g => ConvTestAgent g
 timeZeroAgent = proc _ -> do
   t <- time -< ()
   returnA -< agentOutObs t
+-}
 
 initTestAgents :: RandomGen g 
                => [(AgentId, ConvTestAgent g)]
@@ -186,7 +203,7 @@ passiveAgent w0 env = dSwitch checkTxAgent (\bid -> passiveTxAgentAwait w0 env b
           returnA -< ret)
         else (do
           printDebugS -< ("passiveTX: awaiting incoming TX")
-          returnA -< (agentOut, NoEvent)) -- output does not matter at this point
+          returnA -< (agentOutObs w0, NoEvent)) -- output does not matter at this point
 
 -------------------------------------------------------------------------------
 -- PASSIVE TX BEHAVIOUR
@@ -381,13 +398,13 @@ parSimulation :: (RandomGen g, Show o, Show d)
               -> [AgentIn d] 
               -> SF (RandT g IO)
                   ()
-                  (Time, [(AgentId, AgentOut o d)])
+                  (Time, [(AgentId, AgentOut m o d)])
 parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
   where
     parSimulationAux :: (RandomGen g, Show o, Show d)
                      => SF (RandT g IO)
                           ((), ([Agent (RandT g IO) o d], [AgentIn d]))
-                          ((Time, [(AgentId, AgentOut o d)]), ([Agent (RandT g IO) o d], [AgentIn d]))
+                          ((Time, [(AgentId, AgentOut m o d)]), ([Agent (RandT g IO) o d], [AgentIn d]))
     parSimulationAux = proc (_, (msfs, ains)) -> do
       (msfs, aos) <- runAgents -< (msfs, ains)
       t           <- time      -< ()
@@ -404,8 +421,8 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
     -- TX need to be executed sequentially...
     runTransactions :: (Show o, Show d)
                     => SF (RandT g IO) 
-                          ([(AgentId, AgentOut o d)], [Agent (RandT g IO) o d])
-                          ([(AgentId, AgentOut o d)], [Agent (RandT g IO) o d])
+                          ([(AgentId, AgentOut m o d)], [Agent (RandT g IO) o d])
+                          ([(AgentId, AgentOut m o d)], [Agent (RandT g IO) o d])
     runTransactions = proc (aios, sfs) -> do
         let els = zip aios sfs
         -- printDebugS -< ("els = " ++ show aios)
@@ -419,9 +436,9 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
       where
         runTransactionsAux :: (Show o, Show d)
                            => SF (RandT g IO)
-                                (([((AgentId, AgentOut o d), Agent (RandT g IO) o d)]),
-                                  (Map.Map AgentId (AgentOut o d, Agent (RandT g IO) o d)))
-                                (Map.Map AgentId (AgentOut o d, Agent (RandT g IO) o d))
+                                (([((AgentId, AgentOut m o d), Agent (RandT g IO) o d)]),
+                                  (Map.Map AgentId (AgentOut m o d, Agent (RandT g IO) o d)))
+                                (Map.Map AgentId (AgentOut m o d, Agent (RandT g IO) o d))
         runTransactionsAux = proc (els, m) -> do
           if null els
             then returnA -< m
@@ -438,9 +455,9 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
         -- note that we allow agents to transact with themselves
         runTxPair :: (Show o, Show d)
                   => SF (RandT g IO)
-                      (((AgentId, AgentOut o d), Agent (RandT g IO) o d),
-                        (Map.Map AgentId (AgentOut o d, Agent (RandT g IO) o d)))
-                      (Map.Map AgentId (AgentOut o d, Agent (RandT g IO) o d))
+                      (((AgentId, AgentOut m o d), Agent (RandT g IO) o d),
+                        (Map.Map AgentId (AgentOut m o d, Agent (RandT g IO) o d)))
+                      (Map.Map AgentId (AgentOut m o d, Agent (RandT g IO) o d))
         runTxPair = proc (((aid, ao), sf), m) -> do
           let (rAid, _) = fromJust $ aoTxBegin ao
           let (rAo, rSf) = fromJust $ Map.lookup rAid m -- TODO: proper handling of Maybe
@@ -469,11 +486,11 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
 
     runTxBegin :: (Show o, Show d)
                => SF (RandT g IO) 
-                    ((AgentId, AgentOut o d, Agent (RandT g IO) o d), 
-                     (AgentId, AgentOut o d, Agent (RandT g IO) o d))
+                    ((AgentId, AgentOut m o d, Agent (RandT g IO) o d), 
+                     (AgentId, AgentOut m o d, Agent (RandT g IO) o d))
                     (Maybe 
-                      ((AgentId, AgentOut o d, Agent (RandT g IO) o d), 
-                       (AgentId, AgentOut o d, Agent (RandT g IO) o d)))
+                      ((AgentId, AgentOut m o d, Agent (RandT g IO) o d), 
+                       (AgentId, AgentOut m o d, Agent (RandT g IO) o d)))
     runTxBegin = proc ((sAid, sAo0, sSf0), (rAid, rAo0, rSf0)) -> do
       let rAin = (agentIn rAid) { aiTxBegin = Just (sAid, snd $ fromJust $ aoTxBegin sAo0) }
       (rAo', rSf') <- runAgentWithDt 0 -< (rAin, rSf0)
@@ -482,11 +499,11 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
 
     runTx :: (Show o, Show d)
           => SF (RandT g IO)
-              ((AgentId, AgentOut o d, Agent (RandT g IO) o d), 
-               (AgentId, AgentOut o d, Agent (RandT g IO) o d))
+              ((AgentId, AgentOut m o d, Agent (RandT g IO) o d), 
+               (AgentId, AgentOut m o d, Agent (RandT g IO) o d))
               (Maybe
-                ((AgentId, AgentOut o d, Agent (RandT g IO) o d), 
-                 (AgentId, AgentOut o d, Agent (RandT g IO) o d)))
+                ((AgentId, AgentOut m o d, Agent (RandT g IO) o d), 
+                 (AgentId, AgentOut m o d, Agent (RandT g IO) o d)))
     runTx = proc ((sAid, sAo, sSf), (rAid, rAo, rSf)) -> do
       printDebugS -< ("runTx: sAo = " ++ show sAo)
       printDebugS -< ("runTx: rAo = " ++ show rAo)
@@ -512,32 +529,26 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
 runAgents :: RandomGen g
           => SF (RandT g IO)
               ([Agent (RandT g IO) o d], [AgentIn d]) 
-              ([Agent (RandT g IO) o d], [AgentOut o d])
+              ([Agent (RandT g IO) o d], [AgentOut m o d])
 runAgents = readerS $ proc (dt, (sfs, ins)) -> do
     let asIns = zipWith (\sf ain -> (dt, (ain, sf))) sfs ins
-    --arets <- mapMSF (runReaderS runAgent) -< asIns
-    arets <- mapMSF (runReaderS (runAgentWithDt dt)) -< asIns
+    arets <- mapMSF (runReaderS runAgent) -< asIns
     let (aos, sfs') = unzip arets
     returnA -< (sfs', aos)
   where
     runAgent :: RandomGen g
               => SF (RandT g IO)
                   (AgentIn d, Agent (RandT g IO) o d)
-                  (AgentOut o d, Agent (RandT g IO) o d)
+                  (AgentOut m o d, Agent (RandT g IO) o d)
     runAgent = arrM (\(ain, sf) -> unMSF sf ain)
 
 runAgentWithDt :: Double
               -> SF (RandT g IO)
                     (AgentIn d, Agent (RandT g IO) o d)
-                    (AgentOut o d, Agent (RandT g IO) o d)
+                    (AgentOut m o d, Agent (RandT g IO) o d)
 runAgentWithDt dt = readerS $ proc (_, (ain, sf)) -> do
-    (ao, sf') <- runReaderS_ runAgentWithDtAux dt -< (ain, sf)
+    (ao, sf') <- runReaderS_ runAgent dt -< (ain, sf)
     returnA -< (ao, sf')
-  where
-    runAgentWithDtAux :: SF (RandT g IO)
-                          (AgentIn d, Agent (RandT g IO) o d)
-                          (AgentOut o d, Agent (RandT g IO) o d)
-    runAgentWithDtAux = arrM (\(ain, sf) -> unMSF sf (ain))
 
 isBeginTx :: AgentIn d -> Bool
 isBeginTx = isJust . aiTxBegin
@@ -560,22 +571,22 @@ isCommitTx = aiTxCommit
 isAbortTx :: AgentIn d -> Bool
 isAbortTx = aiTxAbort
 
-beginTx :: DataFlow d -> AgentOut o d -> AgentOut o d
+beginTx :: DataFlow d -> AgentOut m o d -> AgentOut m o d
 beginTx df ao = ao { aoTxBegin = Just df }
 
-txDataOut :: d -> AgentOut o d -> AgentOut o d
+txDataOut :: d -> AgentOut m o d -> AgentOut m o d
 txDataOut d ao = ao { aoTxData = Just d }
 
-commitTx :: AgentOut o d -> AgentOut o d
+commitTx :: AgentOut m o d -> AgentOut m o d
 commitTx ao = ao { aoTxCommit = True }
 
-abortTx :: AgentOut o d -> AgentOut o d
+abortTx :: AgentOut m o d -> AgentOut m o d
 abortTx ao = ao { aoTxAbort = True}
 
 agentId :: AgentIn d -> AgentId
 agentId AgentIn { aiId = aid } = aid
 
-agentObservable :: AgentOut o d -> Maybe o
+agentObservable :: AgentOut m o d -> Maybe o
 agentObservable AgentOut { aoObservable = os } = os
 
 agentIn :: AgentId -> AgentIn d
@@ -584,32 +595,26 @@ agentIn aid = AgentIn {
   , aiData      = []
 
   , aiTxBegin   = Nothing
-  , aiTxData    = Nothing
-  , aiTxCommit  = False
-  , aiTxAbort   = False
   }
 
-agentOut :: AgentOut o d
+agentOut :: AgentOut m o d
 agentOut = agentOut_ Nothing
 
-agentOutObs :: o -> AgentOut o d
+agentOutObs :: o -> AgentOut m o d
 agentOutObs o = agentOut_ (Just o)
 
-agentOut_ :: Maybe o -> AgentOut o d
+agentOut_ :: Maybe o -> AgentOut m o d
 agentOut_ o = AgentOut {
   aoData        = []
 , aoObservable  = o
 
 , aoTxBegin     = Nothing
-, aoTxData      = Nothing
-, aoTxCommit    = False
-, aoTxAbort     = False
 }
 
-dataFlow :: DataFlow d -> AgentOut o d -> AgentOut o d
+dataFlow :: DataFlow d -> AgentOut m o d -> AgentOut m o d
 dataFlow df ao = ao { aoData = df : aoData ao }
 
-distributeData :: [AgentIn d] -> [(AgentId, AgentOut o d)] -> [AgentIn d]
+distributeData :: [AgentIn d] -> [(AgentId, AgentOut m o d)] -> [AgentIn d]
 distributeData ains aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedup by running in parallel (if +RTS -Nx)
   where
     allMsgs = collectAllData aouts
@@ -627,10 +632,10 @@ distributeData ains aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedu
 
         ain' = ain { aiData = msgsEvt }
 
-    collectAllData :: [(AgentId, AgentOut o d)] -> Map.Map AgentId [DataFlow d]
+    collectAllData :: [(AgentId, AgentOut m o d)] -> Map.Map AgentId [DataFlow d]
     collectAllData aos = foldr collectAllDataAux Map.empty aos
       where
-        collectAllDataAux :: (AgentId, AgentOut o d)
+        collectAllDataAux :: (AgentId, AgentOut m o d)
                               -> Map.Map AgentId [DataFlow d]
                               -> Map.Map AgentId [DataFlow d]
         collectAllDataAux (senderId, ao) accMsgs 

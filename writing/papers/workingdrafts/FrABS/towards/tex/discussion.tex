@@ -16,4 +16,18 @@ Each stock and flow becomes an agent and are connected using data-flows using ha
 See Appendix TODO for an example which implements the SIR model (TODO: cite mckendrick) in SD using our continuous ABS approach.
 
 \subsection{Transactional Behaviour}
-In OO implementations it is quite easy to achieve a multi-step transactional behaviour. Imagine 
+Imagine two agents A and B want to engage in a bartering process where agent A, is the seller who wants to sell an asset to agent B who is the buyer. Agent A sends Agent B a sell offer depending on how much agent A values this asset. Agent B receives this sell offer, checks if the price satisfies its utility, if it has enough wealth to buy the asset and replies with either a refusal or its own price offer. Agent A then considers agent Bs offer and if it is happy it replies to agent B with an acceptance of the offer, removes the asset from its inventory and increases its wealth. Agent B receives this acceptance offer, puts the asset in its inventory and decreases its wealth (note that this process could involve a potentially arbitrary number of steps without loss of generality).
+We can see this behaviour as a kind of multi-step transactional behaviour because agents have to respect their budget constraints which means that they cannot spend more wealth or assets than they have. This implies that they have to 'lock' the asset and the amount of cash they are bartering about during the bartering process. If both come to an agreement they will swap the asset and the cash and if they refuse their offers they have to 'unlock' them.
+In classic OO implementations it is quite easy to implement this as normally only one agent is active at a time due to sequential (discrete event scheduling approach) scheduling of the simulation. This allows then agent A which is active, to directly interact with agent B through method calls. The sequential updating ensures that no other agent will touch the asset or cash and the direct method calls ensure a synchronous updating of the mutable state of both objects with no time passing between these updates.
+
+Unfortunately this is not directly possible using our approach. The reasons for this are the following:
+- an agent cannot access another agents' state or invoke its signal-function directly
+- due to the parallel scheduling all agents act virtually at the same time 
+- each agent-agent interaction takes time 
+=> this leads to the problem that an agent could get engaged with many sell offers at the same time which it could all individually satisfy but not all of them together. Worse: each interaction requires time which could lead to changed wealth and then turning down of offers. In the end it boils down to the problem of losing the transactional behaviour as it is possible in an OO approach.
+
+A potential solution could be
+1. agents get the possibility to freeze time which means that the SFs are still evaluated as before but with a time-delta of 0
+2. when an agent wants to start a transactional behaviour it freezes time and initiates a data-flow to the receiving agent and switches into a waiting-behaviour.
+3. if the model is implemented in a way that a receiving agent could receive an arbitrary number of such data-flows it can only process them one-by-one which means it must store them in a list and transact them one-by-one.
+4. finally this requires all agents need to distinguish between transactional data-flows and time-dependent ones. This means that an agent should check for Sell Offers \textit{in every step, independent of the time-delta} but when they want to make moves they must execute their action only every 1.0 time-units. When freezing time this will ensure that they won't act.

@@ -62,6 +62,19 @@ timeDelta = 1.0
 initAgentWealth :: Double
 initAgentWealth = 100
 
+-- FAZIT SO FAR: problem is that one now needs to match the sender against the TX initiator
+--               but this could be hidden away with a proper TX EDSL.
+--               Is obviously slower
+--               Cumbersomeness of state-changes does not disappear but we need that 
+--               functionality for our agent-library anyway so if we come up with a proper 
+--               implementation of such state-machines?
+--
+--               the benefit of the other approach was that when we were engaged in a TX
+--               we wouldn't care about the receiver/sender, it would be routed automatically
+--               
+--               => this attempt is a fail, it is just even more cumbersome to use for the user
+--                  except for the easy "freezeTime" feature. Follow the ABSConv approach.
+
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering

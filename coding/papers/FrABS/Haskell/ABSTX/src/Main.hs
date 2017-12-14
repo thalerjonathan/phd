@@ -31,7 +31,7 @@ data AgentOut m o d = AgentOut
 
   , aoRequestTx   :: Maybe (DataFlow d, AgentTX m o d)
   , aoAcceptTx    :: Maybe (d, AgentTX m o d)
-  }
+  } 
 
 data AgentTXIn d = AgentTXIn
   {
@@ -90,13 +90,16 @@ rngSeed :: Int
 rngSeed = 42
 
 t :: Time
-t = 10
+t = 20
 
 timeDelta :: DTime
 timeDelta = 1.0
 
 initAgentCash :: Double
-initAgentCash = 100
+initAgentCash = 1000
+
+priceRange :: (Double, Double)
+priceRange = (10, 20)
 
 -- TODO: add pro-active mutable environment with STM
 -- TODO: test roll-backs of environment as well
@@ -144,10 +147,10 @@ activeTxAgentBegin cash env = proc ain -> do
   if aid == raid
     then activeTxAgentBegin cash env -< ain
     else (do
-      ask <- arrM_ (getRandomR (0, cash)) -< ()
+      ask <- arrM_ (getRandomR priceRange) -< ()
       let d = (raid, Offering ask)
       printDebugS -< ("activeTX: requestTx = " ++ show d)
-      returnA -< (requestTx d (activeTxAgentTx ask cash env) agentOut))
+      returnA -< (requestTx d (activeTxAgentTx ask cash env) (agentOutObs cash)))
 
 activeTxAgentTx :: RandomGen g
                 => Double
@@ -173,13 +176,13 @@ activeTxAgentTx ask cash env = proc txIn -> do
         agentTXOut)
 
     handleReply (Offering bid) ask cash env
-        | bid >= ask = trace ("activeTX: no crossover, commit") 
+        | bid >= ask = trace ("activeTX: crossover, OfferingAccept, commit") 
           (commitTxWithCont 
             (agentOutObs cash')
             (activeAgent cash' env)
             (txDataOut OfferingAccept agentTXOut))
 
-        | otherwise = trace ("activeTX: crossover, commit")
+        | otherwise = trace ("activeTX: no crossover, OfferingRefuse, commit")
           (commitTx 
             (agentOutObs cash)
             (txDataOut OfferingRefuse agentTXOut))
@@ -204,15 +207,18 @@ passiveAgent cash env = proc ain -> do
 
     if isRequestTx ain 
       then (do
-        let txReq@(senderId, d) = requestTxData ain
+        let txReq@(_senderId, d) = requestTxData ain
 
         printDebugS -< ("passiveTX: has tx request = " ++ show txReq)
 
-        -- TODO: randomly turn down the transaction by returning Nothing in beginTx
-
-        if isOffering d 
-          then handleRequest cash env -< (offering d, ain)
-          else returnA -< agentOut) -- Invalid protocoll, refuse TX by setting Nothing in aoAcceptTx
+        r <- arrM_ (getRandomR ((0, 1) :: (Double, Double))) -< ()
+        if r < 0.5 
+          -- randomly turn down the transaction by returning Nothing in beginTx
+          then returnA -< agentOutObs cash
+          else (do
+            if isOffering d 
+              then handleRequest cash env -< (offering d, ain)
+              else returnA -< agentOutObs cash)) -- Invalid protocoll, refuse TX by setting Nothing in aoAcceptTx
 
       else (do
         printDebugS -< ("passiveTX: awaiting TX request")
@@ -245,7 +251,7 @@ passiveAgent cash env = proc ain -> do
                       (passiveTxAgentTx cash ask 0 env) -- no bid => set to 0
                       (agentOutObs cash))
         else (do
-          bid <- arrM_ (getRandomR (0, cash)) -< ()
+          bid <- arrM_ (getRandomR priceRange) -< ()
           printDebugS -< ("passiveTX: enough budget, accepting TX and accepting offering, my Offering is " ++ show bid)
           returnA -< acceptTX 
                       (Offering bid)
@@ -287,13 +293,13 @@ passiveTxAgentTx cash ask bid env = proc txIn -> do
         agentTXOut)
 
     -- active agent accepts, make exchange and commit TX
-    handleReply OfferingAccept cash ask bid env = trace ("passiveTX: OfferingAccept, commit")
+    handleReply OfferingAccept cash ask _ env = trace ("passiveTX: OfferingAccept, commit")
       (commitTxWithCont 
         (agentOutObs cash')
-        (activeAgent cash' env)
+        (passiveAgent cash' env)
         (txDataOut OfferingAccept agentTXOut))
       where
-        cash' = cash - bid
+        cash' = cash - ask
 
     -- abort because wrong protocoll 
     handleReply _ _ _ _ _ = trace ("passiveTX: protocoll fault, abort") (abortTx agentTXOut)
@@ -352,8 +358,6 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
       t           <- time      -< ()
 
       let aios = map (\(ao, ai) -> (agentId ai, ao)) (zip aos ains)
-      let aios' = aios
-      let msfs' = msfs
 
       (aios', msfs') <- runTransactions -< (aios, msfs)
 
@@ -363,7 +367,7 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
       returnA -< ((t, aios'), (msfs', ains''))
 
     -- TX need to be executed sequentially...
-    runTransactions :: (Show o, Show d)
+    runTransactions :: (Show o, Show d, RandomGen g)
                     => SF (RandT g IO) 
                           ([(AgentId, AgentOut (RandT g IO) o d)], [Agent (RandT g IO) o d])
                           ([(AgentId, AgentOut (RandT g IO) o d)], [Agent (RandT g IO) o d])
@@ -373,21 +377,21 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
         let m = foldr (\((aid, ao), sf) m' -> Map.insert aid (ao, sf) m') Map.empty els
         m' <- runTransactionsAux -< (els, m)
         let ml = Map.toList m'
-        let aiosMsfs@(aios, _) = foldr (\(aid, (ao, sf)) (accAio, accSf) -> ((aid, ao) : accAio, sf : accSf)) ([], []) ml
-        printDebugS -< ("aios = " ++ show aios)
+        let aiosMsfs@(_, _) = foldr (\(aid, (ao, sf)) (accAio, accSf) -> ((aid, ao) : accAio, sf : accSf)) ([], []) ml
+        --printDebugS -< ("aios = " ++ show aios)
         returnA -< aiosMsfs
 
       where
-        runTransactionsAux :: (Show o, Show d)
+        runTransactionsAux :: (Show o, Show d, RandomGen g)
                            => SF (RandT g IO)
-                                (([((AgentId, AgentOut m o d), Agent (RandT g IO) o d)]),
+                                (([((AgentId, AgentOut (RandT g IO) o d), Agent (RandT g IO) o d)]),
                                   (Map.Map AgentId (AgentOut (RandT g IO) o d, Agent (RandT g IO) o d)))
                                 (Map.Map AgentId (AgentOut (RandT g IO) o d, Agent (RandT g IO) o d))
         runTransactionsAux = proc (els, m) -> do
           if null els
             then returnA -< m
             else (do 
-              let e@((aid, ao), sf) = head els
+              let e@((_, ao), _) = head els
               if (isJust $ aoRequestTx ao)
                 then (do
                   printDebugS -< ("found TX pair, running TX...")
@@ -397,77 +401,108 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
 
         -- care must be taken if two agents want to start a TX with each other at the same time
         -- note that we allow agents to transact with themselves
-        runTxPair :: (Show o, Show d)
+        runTxPair :: (Show o, Show d, RandomGen g)
                   => SF (RandT g IO)
-                      (((AgentId, AgentOut m o d), Agent (RandT g IO) o d),
+                      (((AgentId, AgentOut (RandT g IO) o d), Agent (RandT g IO) o d),
                         (Map.Map AgentId (AgentOut (RandT g IO) o d, Agent (RandT g IO) o d)))
                       (Map.Map AgentId (AgentOut (RandT g IO) o d, Agent (RandT g IO) o d))
         runTxPair = proc (((sAid, sAo0), sSf0), m) -> do
           let ((rAid, d), sTxSf) = fromJust $ aoRequestTx sAo0
-          let (rAo0, rSf0) = fromJust $ Map.lookup rAid m -- TODO: proper handling of Maybe
-          
-          let rAin = (agentIn rAid) { aiRequestTx = Just (sAid, d) }
+          let mayReceiver = Map.lookup rAid m
 
-          -- ignoring the sf of this run makes it as it has never happened,
-          -- but what if the agent changes the environment??
-          (rAo', _) <- runAgentWithDt 0 -< (rAin, rSf0) 
-
-          -- TODO: handle aiAcceptTx
-          let mayAcceptTx = aoAcceptTx rAo'
-
-          -- TODO proper handling of Maybe, it its nothing, then tell the requesting agent that it aborted
-          let (d, rTxSf) = fromJust mayAcceptTx
-
-          mayTx <- runTx -< ((aid, ao, sf), (rAid, rAo, rSf))
-          if isNothing mayTx
+          if isNothing mayReceiver
+            -- target of the TX request not found, ignoring TX
             then (do
-              printDebugS -< ("transaction aborted")
+              printDebugS -< ("transaction receiver not found, ignoring TX request")
               returnA -< m)
             else (do
-              printDebugS -< ("transaction finished, committing...")
-              let ((aid1, ao1, sf1), (aid2, ao2, sf2)) = fromJust mayTx
-
-              printDebugS -< ("aid1 = " ++ show aid1 ++ ", ao1 = " ++ show ao1)
-              printDebugS -< ("aid2 = " ++ show aid2 ++ ", ao2 = " ++ show ao2)
+              let (_, rSf0) = fromJust mayReceiver
               
-              -- TODO: reset the transaction related fields?
+              let rAin = (agentIn rAid) { aiRequestTx = Just (sAid, d) }
 
-              let m' = Map.insert aid1 (ao1, sf1) m
-              let m'' = Map.insert aid2 (ao2, sf2) m'
-              
-              -- TODO: commit environment changes as well when we had a STM environment
-              printDebugS -< ("transaction committed")
+              -- ignoring the sf of this run makes it as it has never happened,
+              -- TODO: but what if the agent changes the environment??
+              -- should this really be
+              (rAo', _) <- runAgentWithDt 0 -< (rAin, rSf0) 
 
-              returnA -< m'')
+              let mayAcceptTx = aoAcceptTx rAo'
+              if isNothing mayAcceptTx
+                -- the request has been turned down, no TX
+                -- TODO: what about rolling back changes to the environment?
+                then (do
+                  printDebugS -< ("transaction request turned down / ignored by receiver")
+                  returnA -< m)
+                else (do
+                  let (d, rTxSf) = fromJust mayAcceptTx
 
-    runTx :: (Show o, Show d)
+                  let rTxAo0 = AgentTXOut {
+                    aoTxData      = Just d
+                  , aoTxCommit    = Nothing
+                  , aoTxAbort     = False
+                  }
+
+                  mayTx <- runTx -< ((sTxSf, sSf0), (rTxAo0, rTxSf, rSf0))
+                  if isNothing mayTx
+                    then (do
+                      printDebugS -< ("transaction aborted")
+                      returnA -< m)
+                    else (do
+                      printDebugS -< ("transaction finished, committing...")
+                      let ((sAo', sSf'), (rAo', rSf')) = fromJust mayTx
+
+                      --printDebugS -< ("aid1 = " ++ show aid1 ++ ", ao1 = " ++ show ao1)
+                      --printDebugS -< ("aid2 = " ++ show aid2 ++ ", ao2 = " ++ show ao2)
+                      
+                      -- TODO: reset the transaction related fields?
+
+                      let m' = Map.insert sAid (sAo', sSf') m
+                      let m'' = Map.insert rAid (rAo', rSf') m'
+                      
+                      -- TODO: commit environment changes as well when we had a STM environment
+                      printDebugS -< ("transaction committed")
+
+                      returnA -< m'')))
+
+    runTx :: (Show o, Show d, RandomGen g)
           => SF (RandT g IO)
-              ((AgentId, AgentOut (RandT g IO) o d, Agent (RandT g IO) o d), 
-               (AgentId, AgentOut (RandT g IO) o d, Agent (RandT g IO) o d))
+               ((AgentTX (RandT g IO) o d, Agent (RandT g IO) o d),
+                (AgentTXOut (RandT g IO) o d, AgentTX (RandT g IO) o d, Agent (RandT g IO) o d))
               (Maybe
-                ((AgentId, AgentOut (RandT g IO) o d, Agent (RandT g IO) o d), 
-                 (AgentId, AgentOut (RandT g IO) o d, Agent (RandT g IO) o d)))
-    runTx = proc ((sAid, sAo, sSf), (rAid, rAo, rSf)) -> do
-      printDebugS -< ("runTx: sAo = " ++ show sAo)
-      printDebugS -< ("runTx: rAo = " ++ show rAo)
+                ((AgentOut (RandT g IO) o d, Agent (RandT g IO) o d), 
+                 (AgentOut (RandT g IO) o d, Agent (RandT g IO) o d)))
+    runTx = proc ((sTxSf0, sSf), (rTxAo0, rTxSf0, rSf)) -> do
+      let sTxAin = AgentTXIn {
+          aiTxData      = aoTxData rTxAo0
+        , aiTxCommit    = isJust $ aoTxCommit rTxAo0
+        , aiTxAbort     = aoTxAbort rTxAo0
+        }
+
+      (sTxAo, sTxSf') <- runAgentTx -< (sTxAin, sTxSf0)
       
-      -- we terminate the running transaction if
-      --    the sending agent wants to abort it
-      --    the sending agent didn't send a tx-data
-      if aoTxAbort sAo 
+      let rTxAin = AgentTXIn {
+        aiTxData      = aoTxData sTxAo
+      , aiTxCommit    = isJust $ aoTxCommit sTxAo
+      , aiTxAbort     = aoTxAbort sTxAo
+      }
+
+      (rTxAo', rTxSf') <- runAgentTx -< (rTxAin, rTxSf0)
+      
+      -- either one aborts the TX, abort the whole TX
+      if aoTxAbort sTxAo || aoTxAbort rTxAo'
         then returnA -< Nothing
         else (do
-          if aoTxCommit rAo && aoTxCommit sAo
-            then returnA -< Just ((sAid, sAo, sSf), (rAid, rAo, rSf))
-            else (do
-              let rAin = (agentIn rAid) { aiTxData = aoTxData sAo }
-              (rAo', rSf') <- runAgentWithDt 0 -< (rAin, rSf)
-
-              -- either both commit at this point, or we
-              -- recursively run the tx in a next step
-              if aoTxCommit rAo' && aoTxCommit sAo
-                then returnA -< Just ((sAid, sAo, sSf), (rAid, rAo', rSf'))
-                else runTx -< ((rAid, rAo', rSf'), (sAid, sAo, sSf))))
+          -- if both commit, we commit the TX as a whole
+          -- otherwise we continue with another TX step
+          if (isJust $ aoTxCommit sTxAo) && (isJust $ aoTxCommit rTxAo')
+            then (do
+              let (sAo, maySsf) = fromJust $ aoTxCommit sTxAo
+              let (rAo, mayRsf) = fromJust $ aoTxCommit rTxAo'
+              let sSf' = fromMaybe sSf maySsf
+              let rSf' = fromMaybe rSf mayRsf
+              
+              returnA -< Just ((sAo, sSf'), (rAo, rSf')))
+            -- if not both commit we assume that another TX step is required.
+            else runTx -< ((sTxSf', sSf), (rTxAo', rTxSf', rSf)))
 
 runAgents :: RandomGen g
           => SF (RandT g IO)
@@ -487,6 +522,15 @@ runAgentWithDt :: RandomGen g
 runAgentWithDt dt = readerS $ proc (_, (ain, sf)) -> do
   (ao, sf') <- runReaderS_ runAgent dt -< (ain, sf)
   returnA -< (ao, sf')
+
+-- NOTE: TXs always run with dt = 0
+runAgentTx :: RandomGen g
+           => SF (RandT g IO)
+                (AgentTXIn d, AgentTX (RandT g IO) o d)
+                (AgentTXOut (RandT g IO) o d, AgentTX (RandT g IO) o d)
+runAgentTx = readerS $ proc (_, (txIn, txSf)) -> do
+  (txOut, txSf') <- runReaderS_ (arrM (\(txIn, txSf) -> unMSF txSf txIn)) 0 -< (txIn, txSf)
+  returnA -< (txOut, txSf')
 
 runAgent :: RandomGen g
           => SF (RandT g IO)

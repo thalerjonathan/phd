@@ -81,7 +81,7 @@ type TXTestAgentTXOut g   = AgentTXOut (TXTestMonadStack g) TXTestObservable TXT
 type TXTestAgent g        = Agent (TXTestMonadStack g) TXTestObservable TXTestProtocoll
 type TXTestAgentTX g      = AgentTX (TXTestMonadStack g) TXTestObservable TXTestProtocoll
 
-type TXTestEnv            = [AgentId]
+type TXTestNeighbourhood  = [AgentId]
 
 agentCount :: Int
 agentCount = 2
@@ -101,7 +101,7 @@ initAgentCash = 1000
 priceRange :: (Double, Double)
 priceRange = (10, 20)
 
--- TODO: add pro-active mutable environment with STM
+-- TODO: add pro-active mutable environment with Transactional Monad
 -- TODO: test roll-backs of environment as well
 -- NOTE: with TX mechanism we can have transactional behaviour with a pro-active environment
 
@@ -115,25 +115,39 @@ main = do
   obss <- runSimulationUntil g t timeDelta as
   mapM_ (\(t, obs) -> putStrLn ("\nt = " ++ show t) >> mapM_ (putStrLn . show) obs) obss
 
+-- TODO BUG: it seems that if the agents are not in order of their id, the
+-- agent ids get mixed up in the simulation e.g. if env is placed on last
+-- position of the list then activAgent will see a wront agent id
 initTestAgents :: RandomGen g 
                => [(AgentId, TXTestAgent g)]
-initTestAgents = [aa, pa] 
+initTestAgents = [env, aa, pa]
   where
-    aa = (0, activeAgent initAgentCash [1])
-    pa = (1, passiveAgent initAgentCash [0])
+    aa = (1, activeAgent initAgentCash [2])
+    pa = (2, passiveAgent initAgentCash [1])
+    env = (0, environment [1, 2])
+
+-------------------------------------------------------------------------------
+-- ENVIRONMENT
+-------------------------------------------------------------------------------
+environment :: RandomGen g 
+            => TXTestNeighbourhood
+            -> TXTestAgent g
+environment _env = proc _ain -> do
+  printDebugS -< "Proactive Environment is active"
+  returnA -< agentOut
 
 -------------------------------------------------------------------------------
 -- ACTIVE TX BEHAVIOUR
 -------------------------------------------------------------------------------
 activeAgent :: RandomGen g 
                 => Double
-                -> TXTestEnv
+                -> TXTestNeighbourhood
                 -> TXTestAgent g
 activeAgent cash env = activeTxAgentBegin cash env
 
 activeTxAgentBegin :: RandomGen g 
                    => Double
-                   -> TXTestEnv
+                   -> TXTestNeighbourhood
                    -> TXTestAgent g
 activeTxAgentBegin cash env = proc ain -> do
   let aid = agentId ain
@@ -142,6 +156,7 @@ activeTxAgentBegin cash env = proc ain -> do
   
   t <- time -< ()
   printDebugS -< ("activeTX: t = " ++ show t)
+  printDebugS -< ("activeTX: my id = " ++ show aid)
   printDebugS -< ("activeTX: drawing random agentid = " ++ show raid)
   
   if aid == raid
@@ -155,7 +170,7 @@ activeTxAgentBegin cash env = proc ain -> do
 activeTxAgentTx :: RandomGen g
                 => Double
                 -> Double
-                -> TXTestEnv
+                -> TXTestNeighbourhood
                 -> TXTestAgentTX g
 activeTxAgentTx ask cash env = proc txIn -> do
     let txData = txDataIn txIn
@@ -167,7 +182,7 @@ activeTxAgentTx ask cash env = proc txIn -> do
                 => TXTestProtocoll
                 -> Double
                 -> Double
-                -> TXTestEnv
+                -> TXTestNeighbourhood
                 -> TXTestAgentTXOut g
     -- passive agent refuses, no exchange but commit TX
     handleReply OfferingRefuse _ cash _  = trace ("activeTX: passive agent refuses, commit") 
@@ -199,7 +214,7 @@ activeTxAgentTx ask cash env = proc txIn -> do
 -------------------------------------------------------------------------------
 passiveAgent :: RandomGen g 
                  => Double
-                 -> TXTestEnv
+                 -> TXTestNeighbourhood
                  -> TXTestAgent g
 passiveAgent cash env = proc ain -> do
     t <- time -< ()
@@ -235,7 +250,7 @@ passiveAgent cash env = proc ain -> do
 
     handleRequest :: RandomGen g 
                   => Double
-                  -> TXTestEnv
+                  -> TXTestNeighbourhood
                   -> SF (TXTestMonadStack g) 
                       (Double, TXTestAgentIn) 
                       (TXTestAgentOut g)
@@ -262,7 +277,7 @@ passiveTxAgentTx :: RandomGen g
                  => Double
                  -> Double
                  -> Double
-                 -> TXTestEnv
+                 -> TXTestNeighbourhood
                  -> TXTestAgentTX g
 passiveTxAgentTx cash ask bid env = proc txIn -> do
     printDebugS -< ("passiveTxAgentTx: received reply " ++ show txIn)
@@ -284,7 +299,7 @@ passiveTxAgentTx cash ask bid env = proc txIn -> do
                 -> Double
                 -> Double
                 -> Double
-                -> TXTestEnv
+                -> TXTestNeighbourhood
                 -> TXTestAgentTXOut g
     -- active agent refuses, no exchange but commit TX
     handleReply OfferingRefuse cash _ _ _ = trace ("passiveTX: OfferingRefuse, commit")

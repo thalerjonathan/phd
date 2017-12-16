@@ -56,14 +56,14 @@ synchronous agent transactions
 			-> continuations (SFs) are perfectly suited for this as we can 'rollback' easily by using the SF before the TX has started
 		
 \subsection{Environment representation and interaction}
-pro-active vs. inactive
-read-only vs. read/write
 
 no global shared mutable environment, having different options:
 - non-active read-only (SIR): no agent, as additional argument to each agent
 - pro-active read-only (?): environment as agent, broadcast environment updates as data-flow
-- non-active read/write (?): no agent, shared data as STM as additional argument to each agent
-- pro-active read/write (Sugarscape): environment as, shared data as STM as additional argument to each agent
+- non-active read/write (?): no agent, StateT in agents monad stack
+- pro-active read/write (Sugarscape): environment as agent, StateT in agents monad stack
+
+care must be taken in case of agent-transactions: when aborting/refusing all changes to the environment must be rolled back => instead of StateT use a transactional monad which allows us to revert changes to a save point at the start of the TX. if we drag the environment through all agents then we could easily revert changes but that then requires to hard-code the environment concept deep into the simulation scheduling/stepping which brings lots of inconveniences, also it would need us to fold the resulting multiple environments back into a single. If we had an environment-centric view then probably this is what we want but in ABS the focus is on the agents
 
 \subsection{Stepping the simulation}
 

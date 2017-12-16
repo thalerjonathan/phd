@@ -10,6 +10,7 @@ import Debug.Trace
 
 import Control.Monad.Random
 import Control.Monad.Reader
+import Control.Monad.State.Strict
 import Control.Monad.Trans.MSF.Reader
 import FRP.BearRiver
 
@@ -70,7 +71,7 @@ data TXTestProtocoll      = Offering Double
                           | OfferingAccept
                           deriving (Show, Eq)
 
-type TXTestMonadStack g   = (RandT g IO)
+type TXTestMonadStack g   = (StateT Int (RandT g IO))
 
 type TXTestAgentIn        = AgentIn TXTestProtocoll
 type TXTestAgentTXIn      = AgentTXIn TXTestProtocoll
@@ -109,7 +110,7 @@ main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
 
-  let g = mkStdGen rngSeed
+  let g = mkStdGen rngSeed 
   let as = initTestAgents
   
   obss <- runSimulationUntil g t timeDelta as
@@ -321,11 +322,12 @@ passiveTxAgentTx cash ask bid env = proc txIn -> do
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
-runSimulationUntil :: (RandomGen g, Show o, Show d)
+-- TODO: introduce generic Monad m instead of hard-coding the monad-stack
+runSimulationUntil :: (RandomGen g, Show o)
                    => g
                    -> Time 
                    -> DTime
-                   -> [(AgentId, Agent (RandT g IO) o d)]
+                   -> [(AgentId, TXTestAgent g)]
                    -> IO [(Time, [AgentObservable o])]
 runSimulationUntil g t dt aiMsfs = do
   let steps = floor $ t / dt
@@ -338,23 +340,12 @@ runSimulationUntil g t dt aiMsfs = do
   let aossM = embed (parSimulation msfs ains) ticks
 
   let readerM = runReaderT aossM dt
+  let stateM = runStateT readerM 0 -- this is the initial state of the environment
   aoss <- evalRandT readerM g
 
   let aobs = map (\(t, aos) -> (t, map (\(aid, ao) -> (aid, agentObservable ao)) aos)) aoss
 
   return aobs
-
--- TODO: implement TXs
---       we need to keep track of the SF before the start of the TX, if the TX is
---       aborted, we will switch back to it. If the TX is commited, then we will
---       switch into the TX continuation
---       RUN WITH DT = 0!
---       on abort we need to rollback the environment STM which means we are simply NOT calling atomically
-        -- a commited TX results in updated agentout and SF of both agents
-        -- an aborted TX leaves the agentouts and SFs of both agents as before 
-        --    TX started but resets all tx-related flags
-        --       this is not correct yet, we need to clearly think about what it means
-        --       to commit a TX!
 
 parSimulation :: (RandomGen g, Show o, Show d)
               => [Agent (RandT g IO) o d] 
@@ -391,6 +382,10 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
         -- printDebugS -< ("els = " ++ show aios)
         let m = foldr (\((aid, ao), sf) m' -> Map.insert aid (ao, sf) m') Map.empty els
         m' <- runTransactionsAux -< (els, m)
+
+        -- TODO: what if there are still new transaction requests at this point?
+        --       probably its the best to run it recursively again
+
         let ml = Map.toList m'
         let aiosMsfs@(_, _) = foldr (\(aid, (ao, sf)) (accAio, accSf) -> ((aid, ao) : accAio, sf : accSf)) ([], []) ml
         --printDebugS -< ("aios = " ++ show aios)
@@ -428,6 +423,7 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
           if isNothing mayReceiver
             -- target of the TX request not found, ignoring TX
             then (do
+              -- TODO: set tx-request in agentout to nothing
               printDebugS -< ("transaction receiver not found, ignoring TX request")
               returnA -< m)
             else (do
@@ -445,6 +441,7 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
                 -- the request has been turned down, no TX
                 -- TODO: what about rolling back changes to the environment?
                 then (do
+                  -- TODO: set tx-request in agentout to nothing
                   printDebugS -< ("transaction request turned down / ignored by receiver")
                   returnA -< m)
                 else (do
@@ -459,6 +456,7 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
                   mayTx <- runTx -< ((sTxSf, sSf0), (rTxAo0, rTxSf, rSf0))
                   if isNothing mayTx
                     then (do
+                      -- TODO: set tx-request in agentout to nothing
                       printDebugS -< ("transaction aborted")
                       returnA -< m)
                     else (do

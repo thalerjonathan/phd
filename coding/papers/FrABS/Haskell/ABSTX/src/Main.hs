@@ -108,6 +108,8 @@ priceRange = (10, 20)
 -- TODO: test roll-backs of environment as well
 -- NOTE: with TX mechanism we can have transactional behaviour with a pro-active environment
 
+-- TODO generalise TX solution to general monad stack and add transactional environment 
+
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering

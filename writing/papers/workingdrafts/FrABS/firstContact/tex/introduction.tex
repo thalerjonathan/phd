@@ -21,6 +21,16 @@ Implementation: deriving implementations step-by-step
 	advantage:	can have monads AND functional reactive 
 	drawback:	?
 	
+with occasionally we can achieve extremely fine grained stochastics as opposed to draw random number of events we create only a single event or not, this allows for a much smoother curve and is a real advantage: we are treating it as a continuous system
+
+we need deterministic behaviour under all curcumstances, thus we cannot use IO or STM. for globally mutable state we use StateT
+
+emphasise of dataflow which is necessary because connections between agents are not fixed at compile time
+
+2 main points from Henrik: 1.: try to stick to synchronous updates because this is how the real world works. 2.: get rid of globally shared mutable state as it complicates things extremely with reasoning
+
+clear conceptual formal model of what agents are and then structure my implementation around it
+
 implementing dynamic environment and transactional behaviour can be done most elegantly through STM but need monads, this could provide a perfect motivation using bearriver / dunai 
 
 idea: get rid of env in agent SF alltogether (and in agentdef,/in,/out) and use STM for read/write environment. still need some way for a proactive environment: make environment an agent itself. run all agents parallel and remove sequential updates.

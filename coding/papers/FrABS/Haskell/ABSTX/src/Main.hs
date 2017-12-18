@@ -59,6 +59,8 @@ data AgentTXOut m o d = AgentTXOut
   , aoTxAbort     :: Bool
   }
 
+-- TODO: should we prevent envrionment-modification in TX-functions? 
+-- can achieve this by replacing m by Identity monad
 type AgentTX m o d        = SF m (AgentTXIn d) (AgentTXOut m o d)
 
 type Agent m o d          = SF m (AgentIn d) (AgentOut m o d)
@@ -116,15 +118,12 @@ main = do
   obss <- runSimulationUntil g t timeDelta as
   mapM_ (\(t, obs) -> putStrLn ("\nt = " ++ show t) >> mapM_ (putStrLn . show) obs) obss
 
--- TODO BUG: it seems that if the agents are not in order of their id, the
--- agent ids get mixed up in the simulation e.g. if env is placed on last
--- position of the list then activAgent will see a wront agent id
 initTestAgents :: RandomGen g 
                => [(AgentId, TXTestAgent g)]
-initTestAgents = [env, aa, pa]
+initTestAgents = [aa, pa, env]
   where
-    aa = (1, activeAgent initAgentCash [2])
-    pa = (2, passiveAgent initAgentCash [1])
+    aa = (1, tradingAgent initAgentCash [2])
+    pa = (2, tradingAgent initAgentCash [1])
     env = (0, environment [1, 2])
 
 -------------------------------------------------------------------------------
@@ -135,22 +134,30 @@ environment :: RandomGen g
             -> TXTestAgent g
 environment _env = proc _ain -> do
   printDebugS -< "Proactive Environment is active"
+  arrM (\_ -> lift $ modify (+1)) -< ()
   returnA -< agentOut
+
 
 -------------------------------------------------------------------------------
 -- ACTIVE TX BEHAVIOUR
 -------------------------------------------------------------------------------
-activeAgent :: RandomGen g 
-                => Double
-                -> TXTestNeighbourhood
-                -> TXTestAgent g
-activeAgent cash env = activeTxAgentBegin cash env
-
-activeTxAgentBegin :: RandomGen g 
-                   => Double
-                   -> TXTestNeighbourhood
-                   -> TXTestAgent g
-activeTxAgentBegin cash env = proc ain -> do
+-- a trading agent starts a transaction on average every 2 time-units
+-- but always checks for incoming transaction
+tradingAgent :: RandomGen g 
+             => Double
+             -> TXTestNeighbourhood
+             -> TXTestAgent g
+tradingAgent cash env = proc ain -> do
+  txStartEvt <- occasionally 2.0 () -< ()
+  if isEvent txStartEvt 
+    then agentRequestTX cash env -< ain
+    else agentCheckRequestTX cash env -< ain
+    
+agentRequestTX :: RandomGen g 
+               => Double
+               -> TXTestNeighbourhood
+               -> TXTestAgent g
+agentRequestTX cash env = proc ain -> do
   let aid = agentId ain
   ridx <- arrM_ (getRandomR (0, length env - 1)) -< ()
   let raid = env !! ridx
@@ -159,21 +166,21 @@ activeTxAgentBegin cash env = proc ain -> do
   printDebugS -< ("activeTX: t = " ++ show t)
   printDebugS -< ("activeTX: my id = " ++ show aid)
   printDebugS -< ("activeTX: drawing random agentid = " ++ show raid)
-  
+
   if aid == raid
-    then activeTxAgentBegin cash env -< ain
+    then agentRequestTX cash env -< ain
     else (do
       ask <- arrM_ (getRandomR priceRange) -< ()
       let d = (raid, Offering ask)
       printDebugS -< ("activeTX: requestTx = " ++ show d)
-      returnA -< (requestTx d (activeTxAgentTx ask cash env) (agentOutObs cash)))
+      returnA -< (requestTx d (activeTx ask cash env) (agentOutObs cash)))
 
-activeTxAgentTx :: RandomGen g
-                => Double
-                -> Double
-                -> TXTestNeighbourhood
-                -> TXTestAgentTX g
-activeTxAgentTx ask cash env = proc txIn -> do
+activeTx :: RandomGen g
+         => Double
+         -> Double
+         -> TXTestNeighbourhood
+         -> TXTestAgentTX g
+activeTx ask cash env = proc txIn -> do
     let txData = txDataIn txIn
     printDebugS -< ("activeTX: received tx reply = " ++ show txData)
     returnA -< handleReply txData ask cash env
@@ -195,7 +202,7 @@ activeTxAgentTx ask cash env = proc txIn -> do
         | bid >= ask = trace ("activeTX: crossover, OfferingAccept, commit") 
           (commitTxWithCont 
             (agentOutObs cash')
-            (activeAgent cash' env)
+            (tradingAgent cash' env)
             (txDataOut OfferingAccept agentTXOut))
 
         | otherwise = trace ("activeTX: no crossover, OfferingRefuse, commit")
@@ -213,13 +220,14 @@ activeTxAgentTx ask cash env = proc txIn -> do
 -------------------------------------------------------------------------------
 -- PASSIVE TX BEHAVIOUR
 -------------------------------------------------------------------------------
-passiveAgent :: RandomGen g 
-                 => Double
-                 -> TXTestNeighbourhood
-                 -> TXTestAgent g
-passiveAgent cash env = proc ain -> do
+agentCheckRequestTX :: RandomGen g 
+                    => Double
+                    -> TXTestNeighbourhood
+                    -> TXTestAgent g
+agentCheckRequestTX cash env = proc ain -> do
     t <- time -< ()
     printDebugS -< ("passiveTx: t = " ++ show t)
+    printDebugS -< ("passiveTx: my id = " ++ show (agentId ain))
 
     if isRequestTx ain 
       then (do
@@ -264,23 +272,23 @@ passiveAgent cash env = proc ain -> do
           printDebugS -< ("passiveTX: not enough cash, accepting TX but send OfferRefuse reply")
           returnA -< acceptTX 
                       (OfferingRefuse)
-                      (passiveTxAgentTx cash ask 0 env) -- no bid => set to 0
+                      (passiveTx cash ask 0 env) -- no bid => set to 0
                       (agentOutObs cash))
         else (do
           bid <- arrM_ (getRandomR priceRange) -< ()
           printDebugS -< ("passiveTX: enough budget, accepting TX and accepting offering, my Offering is " ++ show bid)
           returnA -< acceptTX 
                       (Offering bid)
-                      (passiveTxAgentTx cash ask bid env) 
+                      (passiveTx cash ask bid env) 
                       (agentOutObs cash))
 
-passiveTxAgentTx :: RandomGen g
+passiveTx :: RandomGen g
                  => Double
                  -> Double
                  -> Double
                  -> TXTestNeighbourhood
                  -> TXTestAgentTX g
-passiveTxAgentTx cash ask bid env = proc txIn -> do
+passiveTx cash ask bid env = proc txIn -> do
     printDebugS -< ("passiveTxAgentTx: received reply " ++ show txIn)
 
     if hasTxDataIn txIn 
@@ -312,7 +320,7 @@ passiveTxAgentTx cash ask bid env = proc txIn -> do
     handleReply OfferingAccept cash ask _ env = trace ("passiveTX: OfferingAccept, commit")
       (commitTxWithCont 
         (agentOutObs cash')
-        (passiveAgent cash' env)
+        (tradingAgent cash' env)
         (txDataOut OfferingAccept agentTXOut))
       where
         cash' = cash - ask
@@ -323,12 +331,12 @@ passiveTxAgentTx cash ask bid env = proc txIn -> do
 
 -------------------------------------------------------------------------------
 -- TODO: introduce generic Monad m instead of hard-coding the monad-stack
-runSimulationUntil :: (RandomGen g, Show o)
+runSimulationUntil :: RandomGen g
                    => g
                    -> Time 
                    -> DTime
                    -> [(AgentId, TXTestAgent g)]
-                   -> IO [(Time, [AgentObservable o])]
+                   -> IO [(Time, [AgentObservable TXTestObservable])]
 runSimulationUntil g t dt aiMsfs = do
   let steps = floor $ t / dt
   let ticks = replicate steps ()
@@ -337,28 +345,32 @@ runSimulationUntil g t dt aiMsfs = do
   let msfs = map snd aiMsfs
   let ains  = map agentIn ais
 
+  let env = 0 -- this is the initial state of the environment
+    
   let aossM = embed (parSimulation msfs ains) ticks
-
   let readerM = runReaderT aossM dt
-  let stateM = runStateT readerM 0 -- this is the initial state of the environment
-  aoss <- evalRandT readerM g
+  let stateM = runStateT readerM env
+  (aoss, env') <- evalRandT stateM g
+
+  print $ "Env' = " ++ show env'
 
   let aobs = map (\(t, aos) -> (t, map (\(aid, ao) -> (aid, agentObservable ao)) aos)) aoss
 
   return aobs
 
-parSimulation :: (RandomGen g, Show o, Show d)
-              => [Agent (RandT g IO) o d] 
+parSimulation :: RandomGen g
+              => [Agent (TXTestMonadStack g) o d] 
               -> [AgentIn d] 
-              -> SF (RandT g IO)
+              -> SF (TXTestMonadStack g)
                   ()
-                  (Time, [(AgentId, AgentOut (RandT g IO) o d)])
+                  (Time, [(AgentId, AgentOut (TXTestMonadStack g) o d)])
 parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
   where
-    parSimulationAux :: (RandomGen g, Show o, Show d)
-                     => SF (RandT g IO)
-                          ((), ([Agent (RandT g IO) o d], [AgentIn d]))
-                          ((Time, [(AgentId, AgentOut (RandT g IO) o d)]), ([Agent (RandT g IO) o d], [AgentIn d]))
+    parSimulationAux :: RandomGen g
+                     => SF (TXTestMonadStack g)
+                          ((), ([Agent (TXTestMonadStack g) o d], [AgentIn d]))
+                          ((Time, [(AgentId, AgentOut (TXTestMonadStack g) o d)]), 
+                            ([Agent (TXTestMonadStack g) o d], [AgentIn d]))
     parSimulationAux = proc (_, (msfs, ains)) -> do
       (msfs, aos) <- runAgents -< (msfs, ains)
       t           <- time      -< ()
@@ -366,37 +378,35 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
       let aios = map (\(ao, ai) -> (agentId ai, ao)) (zip aos ains)
 
       (aios', msfs') <- runTransactions -< (aios, msfs)
+      let ains' = distributeData aios'
 
-      let ains' = map (\ai -> agentIn $ agentId ai) ains 
-      let ains'' = distributeData ains' aios'
-
-      returnA -< ((t, aios'), (msfs', ains''))
+      returnA -< ((t, aios'), (msfs', ains'))
 
     -- TX need to be executed sequentially...
-    runTransactions :: (Show o, Show d, RandomGen g)
-                    => SF (RandT g IO) 
-                          ([(AgentId, AgentOut (RandT g IO) o d)], [Agent (RandT g IO) o d])
-                          ([(AgentId, AgentOut (RandT g IO) o d)], [Agent (RandT g IO) o d])
+    runTransactions :: RandomGen g
+                    => SF (TXTestMonadStack g)
+                          ([(AgentId, AgentOut (TXTestMonadStack g) o d)], [Agent (TXTestMonadStack g) o d])
+                          ([(AgentId, AgentOut (TXTestMonadStack g) o d)], [Agent (TXTestMonadStack g) o d])
     runTransactions = proc (aios, sfs) -> do
         let els = zip aios sfs
         -- printDebugS -< ("els = " ++ show aios)
         let m = foldr (\((aid, ao), sf) m' -> Map.insert aid (ao, sf) m') Map.empty els
         m' <- runTransactionsAux -< (els, m)
-
-        -- TODO: what if there are still new transaction requests at this point?
-        --       probably its the best to run it recursively again
-
         let ml = Map.toList m'
         let aiosMsfs@(_, _) = foldr (\(aid, (ao, sf)) (accAio, accSf) -> ((aid, ao) : accAio, sf : accSf)) ([], []) ml
-        --printDebugS -< ("aios = " ++ show aios)
-        returnA -< aiosMsfs
+        
+        -- when there are still TX requests then run them recursively
+        let hasTx = any (\(_, (ao, _)) -> isJust $ aoRequestTx ao) ml
+        if hasTx 
+          then runTransactions -< aiosMsfs
+          else returnA -< aiosMsfs
 
       where
-        runTransactionsAux :: (Show o, Show d, RandomGen g)
-                           => SF (RandT g IO)
-                                (([((AgentId, AgentOut (RandT g IO) o d), Agent (RandT g IO) o d)]),
-                                  (Map.Map AgentId (AgentOut (RandT g IO) o d, Agent (RandT g IO) o d)))
-                                (Map.Map AgentId (AgentOut (RandT g IO) o d, Agent (RandT g IO) o d))
+        runTransactionsAux :: RandomGen g
+                           => SF (TXTestMonadStack g)
+                                (([((AgentId, AgentOut (TXTestMonadStack g) o d), Agent (TXTestMonadStack g) o d)]),
+                                  (Map.Map AgentId (AgentOut (TXTestMonadStack g) o d, Agent (TXTestMonadStack g) o d)))
+                                (Map.Map AgentId (AgentOut (TXTestMonadStack g) o d, Agent (TXTestMonadStack g) o d))
         runTransactionsAux = proc (els, m) -> do
           if null els
             then returnA -< m
@@ -411,11 +421,11 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
 
         -- care must be taken if two agents want to start a TX with each other at the same time
         -- note that we allow agents to transact with themselves
-        runTxPair :: (Show o, Show d, RandomGen g)
-                  => SF (RandT g IO)
-                      (((AgentId, AgentOut (RandT g IO) o d), Agent (RandT g IO) o d),
-                        (Map.Map AgentId (AgentOut (RandT g IO) o d, Agent (RandT g IO) o d)))
-                      (Map.Map AgentId (AgentOut (RandT g IO) o d, Agent (RandT g IO) o d))
+        runTxPair :: RandomGen g
+                  => SF (TXTestMonadStack g)
+                      (((AgentId, AgentOut (TXTestMonadStack g) o d), Agent (TXTestMonadStack g) o d),
+                        (Map.Map AgentId (AgentOut (TXTestMonadStack g) o d, Agent (TXTestMonadStack g) o d)))
+                      (Map.Map AgentId (AgentOut (TXTestMonadStack g) o d, Agent (TXTestMonadStack g) o d))
         runTxPair = proc (((sAid, sAo0), sSf0), m) -> do
           let ((rAid, d), sTxSf) = fromJust $ aoRequestTx sAo0
           let mayReceiver = Map.lookup rAid m
@@ -423,27 +433,26 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
           if isNothing mayReceiver
             -- target of the TX request not found, ignoring TX
             then (do
-              -- TODO: set tx-request in agentout to nothing
+              -- set tx-request in agentout to nothing
+              let m' = Map.insert sAid (sAo0 { aoRequestTx = Nothing }, sSf0) m
               printDebugS -< ("transaction receiver not found, ignoring TX request")
-              returnA -< m)
+              returnA -< m')
             else (do
               let (_, rSf0) = fromJust mayReceiver
               
               let rAin = (agentIn rAid) { aiRequestTx = Just (sAid, d) }
 
               -- ignoring the sf of this run makes it as it has never happened,
-              -- TODO: but what if the agent changes the environment??
-              -- should this really be
               (rAo', _) <- runAgentWithDt 0 -< (rAin, rSf0) 
 
               let mayAcceptTx = aoAcceptTx rAo'
               if isNothing mayAcceptTx
                 -- the request has been turned down, no TX
-                -- TODO: what about rolling back changes to the environment?
                 then (do
-                  -- TODO: set tx-request in agentout to nothing
+                  -- set tx-request in agentout to nothing
+                  let m' = Map.insert sAid (sAo0 { aoRequestTx = Nothing }, sSf0) m
                   printDebugS -< ("transaction request turned down / ignored by receiver")
-                  returnA -< m)
+                  returnA -< m')
                 else (do
                   let (d, rTxSf) = fromJust mayAcceptTx
 
@@ -456,9 +465,10 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
                   mayTx <- runTx -< ((sTxSf, sSf0), (rTxAo0, rTxSf, rSf0))
                   if isNothing mayTx
                     then (do
-                      -- TODO: set tx-request in agentout to nothing
+                      -- set tx-request in agentout to nothing
+                      let m' = Map.insert sAid (sAo0 { aoRequestTx = Nothing }, sSf0) m
                       printDebugS -< ("transaction aborted")
-                      returnA -< m)
+                      returnA -< m')
                     else (do
                       printDebugS -< ("transaction finished, committing...")
                       let ((sAo', sSf'), (rAo', rSf')) = fromJust mayTx
@@ -466,23 +476,19 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
                       --printDebugS -< ("aid1 = " ++ show aid1 ++ ", ao1 = " ++ show ao1)
                       --printDebugS -< ("aid2 = " ++ show aid2 ++ ", ao2 = " ++ show ao2)
                       
-                      -- TODO: reset the transaction related fields?
-
                       let m' = Map.insert sAid (sAo', sSf') m
                       let m'' = Map.insert rAid (rAo', rSf') m'
                       
-                      -- TODO: commit environment changes as well when we had a STM environment
                       printDebugS -< ("transaction committed")
-
                       returnA -< m'')))
 
-    runTx :: (Show o, Show d, RandomGen g)
-          => SF (RandT g IO)
-               ((AgentTX (RandT g IO) o d, Agent (RandT g IO) o d),
-                (AgentTXOut (RandT g IO) o d, AgentTX (RandT g IO) o d, Agent (RandT g IO) o d))
+    runTx :: RandomGen g
+          => SF (TXTestMonadStack g)
+               ((AgentTX (TXTestMonadStack g) o d, Agent (TXTestMonadStack g) o d),
+                (AgentTXOut (TXTestMonadStack g) o d, AgentTX (TXTestMonadStack g) o d, Agent (TXTestMonadStack g) o d))
               (Maybe
-                ((AgentOut (RandT g IO) o d, Agent (RandT g IO) o d), 
-                 (AgentOut (RandT g IO) o d, Agent (RandT g IO) o d)))
+                ((AgentOut (TXTestMonadStack g) o d, Agent (TXTestMonadStack g) o d), 
+                 (AgentOut (TXTestMonadStack g) o d, Agent (TXTestMonadStack g) o d)))
     runTx = proc ((sTxSf0, sSf), (rTxAo0, rTxSf0, rSf)) -> do
       let sTxAin = AgentTXIn {
           aiTxData      = aoTxData rTxAo0
@@ -518,9 +524,9 @@ parSimulation msfs0 ains0 = loopPre (msfs0, ains0) parSimulationAux
             else runTx -< ((sTxSf', sSf), (rTxAo', rTxSf', rSf)))
 
 runAgents :: RandomGen g
-          => SF (RandT g IO)
-              ([Agent (RandT g IO) o d], [AgentIn d]) 
-              ([Agent (RandT g IO) o d], [AgentOut (RandT g IO) o d])
+          => SF (TXTestMonadStack g)
+              ([Agent (TXTestMonadStack g) o d], [AgentIn d]) 
+              ([Agent (TXTestMonadStack g) o d], [AgentOut (TXTestMonadStack g) o d])
 runAgents = readerS $ proc (dt, (sfs, ins)) -> do
     let asIns = zipWith (\sf ain -> (dt, (ain, sf))) sfs ins
     arets <- mapMSF (runReaderS runAgent) -< asIns
@@ -529,26 +535,26 @@ runAgents = readerS $ proc (dt, (sfs, ins)) -> do
 
 runAgentWithDt :: RandomGen g
                => Double
-               -> SF (RandT g IO)
-                    (AgentIn d, Agent (RandT g IO) o d)
-                    (AgentOut (RandT g IO) o d, Agent (RandT g IO) o d)
+               -> SF (TXTestMonadStack g)
+                    (AgentIn d, Agent (TXTestMonadStack g) o d)
+                    (AgentOut (TXTestMonadStack g) o d, Agent (TXTestMonadStack g) o d)
 runAgentWithDt dt = readerS $ proc (_, (ain, sf)) -> do
   (ao, sf') <- runReaderS_ runAgent dt -< (ain, sf)
   returnA -< (ao, sf')
 
 -- NOTE: TXs always run with dt = 0
 runAgentTx :: RandomGen g
-           => SF (RandT g IO)
-                (AgentTXIn d, AgentTX (RandT g IO) o d)
-                (AgentTXOut (RandT g IO) o d, AgentTX (RandT g IO) o d)
+           => SF (TXTestMonadStack g)
+                (AgentTXIn d, AgentTX (TXTestMonadStack g) o d)
+                (AgentTXOut (TXTestMonadStack g) o d, AgentTX (TXTestMonadStack g) o d)
 runAgentTx = readerS $ proc (_, (txIn, txSf)) -> do
   (txOut, txSf') <- runReaderS_ (arrM (\(txIn, txSf) -> unMSF txSf txIn)) 0 -< (txIn, txSf)
   returnA -< (txOut, txSf')
 
 runAgent :: RandomGen g
-          => SF (RandT g IO)
-              (AgentIn d, Agent (RandT g IO) o d)
-              (AgentOut (RandT g IO) o d, Agent (RandT g IO) o d)
+          => SF (TXTestMonadStack g)
+              (AgentIn d, Agent (TXTestMonadStack g) o d)
+              (AgentOut (TXTestMonadStack g) o d, Agent (TXTestMonadStack g) o d)
 runAgent = arrM (\(ain, sf) -> unMSF sf ain)
 
    
@@ -647,10 +653,11 @@ agentOut_ o = AgentOut {
 dataFlow :: DataFlow d -> AgentOut m o d -> AgentOut m o d
 dataFlow df ao = ao { aoData = df : aoData ao }
 
-distributeData :: [AgentIn d] -> [(AgentId, AgentOut m o d)] -> [AgentIn d]
-distributeData ains aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedup by running in parallel (if +RTS -Nx)
+distributeData :: [(AgentId, AgentOut m o d)] -> [AgentIn d]
+distributeData aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedup by running in parallel (if +RTS -Nx)
   where
     allMsgs = collectAllData aouts
+    ains = map (\(ai, _) -> agentIn ai) aouts 
 
     distributeDataAux :: Map.Map AgentId [DataFlow d]
                       -> AgentIn d

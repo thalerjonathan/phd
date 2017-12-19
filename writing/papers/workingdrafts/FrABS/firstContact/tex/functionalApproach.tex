@@ -1,0 +1,32 @@
+\section{Deriving a functional approach}
+2 main points from Henrik: 1.: try to stick to synchronous updates because this is how the real world works. 2.: get rid of globally shared mutable state as it complicates things extremely with reasoning
+
+clear conceptual formal model of what agents are and then structure my implementation around it
+
+\subsection{Naive in the Random Monad}
+CODE in SIRMonad 
+
+- first approach, it works, having random-monad is VERY convenient
+
+problems:
+- time is explicitly available and needs to be dealt with explicitly
+- all agent-states are fed back into every agent
+- agent representation and function is not very elegant 
+
+
+TODO: show results
+
+\subsection{Adding FRP: Yampa}
+CODE in SIRYampa
+
+- time is implicit and cannot be messed with
+- agent can switch their behaviour
+- with occasionally we can achieve extremely fine grained stochastics as opposed to draw random number of events we create only a single event or not, this allows for a much smoother curve and is a real advantage: we are treating it as a continuous system
+
+\subsection{Generalisation: data-flows}
+- getting rid of feeding all agent-states back into every agent, making data-flows explicit between agents, which is necessary because connections between agents are not fixed at compile time
+
+\subsection{The final step: Monadic Stream Functions}
+- this allows us to add dynamic environments and agent transactions
+- we need deterministic behaviour under all curcumstances, thus we cannot use IO or STM. for globally mutable state we use StateT
+- also putting agentout into StateT monad composes now much better

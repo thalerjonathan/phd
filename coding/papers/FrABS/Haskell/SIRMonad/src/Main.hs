@@ -60,25 +60,43 @@ main = do
   let fileName =  "SIR_MONAD_DYNAMICS_" ++ show agentCount ++ "agents.m"
   writeAggregatesToFile fileName dyns
 
-runSimulationUntil :: RandomGen g => Time -> TimeDelta -> Agents -> Rand g [Agents]
+runSimulationUntil :: RandomGen g 
+                   => Time 
+                   -> TimeDelta 
+                   -> Agents 
+                   -> Rand g [Agents]
 runSimulationUntil tEnd dt as = runSimulationUntilAux tEnd 0 dt as []
   where
-    runSimulationUntilAux :: RandomGen g => Time -> Time -> TimeDelta -> Agents -> [Agents] -> Rand g [Agents]
+    runSimulationUntilAux :: RandomGen g 
+                          => Time 
+                          -> Time 
+                          -> TimeDelta 
+                          -> Agents 
+                          -> [Agents] 
+                          -> Rand g [Agents]
     runSimulationUntilAux tEnd t dt as acc
       | t >= tEnd = return $ reverse (as : acc)
       | otherwise = do
         as' <- stepSimulation dt as 
         runSimulationUntilAux tEnd (t + dt) dt as' (as : acc)
 
-runSimulation :: RandomGen g => TimeDelta -> Agents -> Rand g (Time, [Agents])
+runSimulation :: RandomGen g 
+              => TimeDelta 
+              -> Agents 
+              -> Rand g (Time, [Agents])
 runSimulation dt as = runSimulationAux 0 dt as []
   where
-    runSimulationAux :: RandomGen g => Time -> TimeDelta -> Agents -> [Agents] -> Rand g (Time, [Agents])
+    runSimulationAux :: RandomGen g 
+                     => Time 
+                     -> TimeDelta 
+                     -> Agents 
+                     -> [Agents] 
+                     -> Rand g (Time, [Agents])
     runSimulationAux t dt as acc
       | noInfected as = return $ (t, reverse $ as : acc)
       | otherwise = do
-        as' <- stepSimulation dt as 
-        runSimulationAux (t + dt) dt as' (as : acc)
+          as' <- stepSimulation dt as 
+          runSimulationAux (t + dt) dt as' (as : acc)
 
     noInfected :: Agents -> Bool
     noInfected as = not $ any (is Infected) as
@@ -86,7 +104,11 @@ runSimulation dt as = runSimulationAux 0 dt as []
 stepSimulation :: RandomGen g => TimeDelta -> Agents -> Rand g Agents
 stepSimulation dt as = mapM (processAgent dt as) as
 
-processAgent :: RandomGen g => TimeDelta -> Agents -> SIRAgent -> Rand g SIRAgent
+processAgent :: RandomGen g 
+             => TimeDelta 
+             -> Agents 
+             -> SIRAgent 
+             -> Rand g SIRAgent
 processAgent _ as (Susceptible, _) = susceptibleAgent as
 processAgent dt _ a@(Infected, _) = return $ infectedAgent dt a
 processAgent _ _ a@(Recovered, _) = return a

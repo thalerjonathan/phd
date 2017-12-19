@@ -1,38 +1,7 @@
 \section{Introduction}
 % Drop Cap Letter needed in case of IEEE Journal
 %\IEEEPARstart{W}{ith}
-TODO: start with simulating epidemics and then go into ABS
-
-Background: Follow the old 1st draft paper:
-1. introduce simulating epidemics with the SIR model
-2. explain the SIR model 
-3. explain agent-based approach 
-Implementation: deriving implementations step-by-step 
-1. naive implementation without Yampa using the rand-monad 
-	advantage: 	first approach, it works, having random-monad is VERY convenient
-	drawback: 	time is explicitly available and need to feedback all agent-states into every agent
-2. naive yampa implementation
-	advantage:	time is implicit
-	drawback:	still all agent-states are visible to every agent
-3. extended yampa implementation with environment and AgentIn/Out
-	advantage:	more general
-	drawback:	AgentOut is cumbersome to handle iteratively
-4. dunai / bearriver
-	advantage:	can have monads AND functional reactive 
-	drawback:	?
-	
-with occasionally we can achieve extremely fine grained stochastics as opposed to draw random number of events we create only a single event or not, this allows for a much smoother curve and is a real advantage: we are treating it as a continuous system
-
-we need deterministic behaviour under all curcumstances, thus we cannot use IO or STM. for globally mutable state we use StateT
-
-emphasise of dataflow which is necessary because connections between agents are not fixed at compile time
-
-2 main points from Henrik: 1.: try to stick to synchronous updates because this is how the real world works. 2.: get rid of globally shared mutable state as it complicates things extremely with reasoning
-
-clear conceptual formal model of what agents are and then structure my implementation around it
-
-implementing dynamic environment and transactional behaviour can be done most elegantly through STM but need monads, this could provide a perfect motivation using bearriver / dunai 
-
-idea: get rid of env in agent SF alltogether (and in agentdef,/in,/out) and use STM for read/write environment. still need some way for a proactive environment: make environment an agent itself. run all agents parallel and remove sequential updates.
+% TODO: start with simulating epidemics and then go into ABS
+In this paper we derive a pure functional approach for agent-based simulation in Haskell. We start from a very simple solution running in the Random Monad, then making the transition to Yampa 
 
 The aim of this paper is to show how ABS can be done in Haskell and what the benefits and drawbacks are. We do this by introducing the SIR model of epidemiology and derive an agent-based implementation for it based on Functional Reactive Programming. By doing this we give the reader a good understanding of what ABS is, what the challenges are when implementing it and how we solved these in our approach. We then discuss details which must be paid attention to in our approach and its benefits and drawbacks. The contribution is a novel approach to implementing ABS with powerful time-semantics and more emphasis on specification and possibilities to reason about the correctness of the simulation.

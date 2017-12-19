@@ -1,0 +1,21 @@
+\section{Defining Agent-Based Simulation}
+Agent-Based Simulation (ABS) is a methodology to model and simulate a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is of knowledge. Those parts, called agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. So the central aspect of ABS is the concept of an agent which can be understood as a metaphor for a pro-active unit, situated in an environment, able to spawn new agents and interacting with other agents in some neighbourhood by exchange of messages \cite{wooldridge_introduction_2009}. We informally assume the following about our agents TODO: need some references here, we cannot claim this without citation here (cite Peers book):
+
+\begin{itemize}
+	\item They are uniquely addressable entities with some internal state over which they have full, exclusive control.
+	\item They are pro-active which means they can initiate actions on their own e.g. change their internal state, send messages, create new agents, terminate themselves.
+	\item They are situated in an environment and can interact with it.
+	\item They can interact with other agents which are situated in the same environment by means of messaging.
+\end{itemize} 
+
+Epstein \cite{epstein_generative_2012} identifies ABS to be especially applicable for analysing \textit{"spatially distributed systems of heterogeneous autonomous actors with bounded information and computing capacity"}. Thus in the line of the simulation types \textit{Statistic} $^\dag$, \textit{Markov} $^\ddag$, \textit{System Dynamics} $^\S$, \textit{Discrete Event} $^\mp$, ABS is the most powerful one as it allows to model  the following:
+
+\begin{itemize}
+	\item Linearity \& Non-Linearity $^{\dag \ddag \S \mp}$ - the dynamics of the simulation can exhibit both linear and non-linear behaviour. 
+	\item Time $^{\dag \ddag \S \mp}$ - agents act over time, time is also the source of pro-activity.
+	\item States $^{\ddag \S \mp}$ - agents encapsulate some state which can be accessed and changed during the simulation.
+	\item Feedback-Loops $^{\S \mp}$ - because agents act continuously and their actions influence each other and themselves, feedback-loops are the norm in ABS. 
+	\item Heterogeneity $^{\mp}$ - although agents can have same properties like height, sex,... the actual values can vary arbitrarily between agents.
+	\item Interactions - agents can be modelled after interactions with an environment or other agents, making this a unique feature of ABS, not possible in the other simulation models.
+	\item Spatiality \& Networks - agents can be situated within e.g. a spatial (discrete 2d, continuous 3d,...) or network environment, making this also a unique feature of ABS, not possible in the other simulation models.
+\end{itemize}

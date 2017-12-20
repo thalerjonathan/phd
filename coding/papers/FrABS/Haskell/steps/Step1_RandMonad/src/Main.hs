@@ -92,44 +92,20 @@ processAgent _  as    (Susceptible, _) = susceptibleAgent as
 processAgent dt _   a@(Infected   , _) = return $ infectedAgent dt a
 processAgent _  _   a@(Recovered  , _) = return a
 
-{-
--- NOTE: does not exclude contact with itself but with a sufficiently 
--- large number of agents the probability becomes very small
+-- NOTE: does not exclude contact with itself but with a sufficiently large number 
+-- of agents the probability becomes very small
+-- NOTE: it is important that every contact with an other infected agent
+-- can infect the agent and not just the first contact
 susceptibleAgent :: RandomGen g => Agents -> Rand g SIRAgent
 susceptibleAgent as = do
     rc <- randomExpM (1 / contactRate)
-    cs <- doTimes (floor rc) (contact as)
-    let gotInfected = elem True cs
-    if gotInfected
-      then infect
-      else return susceptible
-
-  where
-    contact :: RandomGen g => Agents -> Rand g Bool
-    contact as = do
-      randContact <- randomElem as
-      return $ is Infected randContact
-
-    infect :: RandomGen g => Rand g SIRAgent
-    infect = do
-      doInfect    <- randomBoolM infectivity
-      randIllDur  <- randomExpM (1 / illnessDuration)
-      if doInfect
-        then return $ infected randIllDur
-        else return susceptible
--}
-
--- NOTE: does not exclude contact with itself but with a sufficiently large number of agents the probability becomes very small
-susceptibleAgent :: RandomGen g => Agents -> Rand g SIRAgent
-susceptibleAgent as = do
-    randContactCount <- randomExpM (1 / contactRate)
-    aInfs <- doTimes (floor randContactCount) (susceptibleAgentAux as)
+    cs <- doTimes (floor rc) (makeContact as)
     let mayInf = find (is Infected) aInfs
     return $ fromMaybe susceptible mayInf
 
   where
-    susceptibleAgentAux :: RandomGen g => Agents -> Rand g SIRAgent
-    susceptibleAgentAux as = do
+    makeContact :: RandomGen g => Agents -> Rand g SIRAgent
+    makeContact as = do
       randContact <- randomElem as
       if (is Infected randContact)
         then infect
@@ -137,8 +113,8 @@ susceptibleAgent as = do
 
     infect :: (RandomGen g) => Rand g SIRAgent
     infect = do
-      doInfect <- randomBoolM infectivity
-      randIllDur <- randomExpM (1 / illnessDuration)
+      doInfect    <- randomBoolM infectivity
+      randIllDur  <- randomExpM (1 / illnessDuration)
       if doInfect
         then return $ infected randIllDur
         else return susceptible

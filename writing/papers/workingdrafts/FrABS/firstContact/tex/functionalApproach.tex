@@ -68,6 +68,21 @@ stepSimulation dt as = mapM (processAgent dt as) as
 Now we can implement the behaviour of an individual agent.
 It is important to try to infect the agent for every infected contact and not for a signle one.
 
+\begin{minted}[fontsize=\footnotesize]{haskell}
+processAgent :: RandomGen g 
+             => TimeDelta 
+             -> Agents 
+             -> SIRAgent 
+             -> Rand g SIRAgent
+processAgent _  as    (Susceptible, _) = susceptibleAgent as
+processAgent dt _   a@(Infected   , _) = return $ infectedAgent dt a
+processAgent _  _   a@(Recovered  , _) = return a
+\end{minted}
+
+An agent gets fed all the agents states so it can draw random contacts. Note that this includes also the agent itself thus we would need to omit the agent itself to prevent making contact with itself. We decided against that as it complicates the solution and for larger numbers of agent population the probability for an agent to make contact with itself is so small that it can be neglected.
+
+From our implementation it becomes apparent that only the behaviour of a susceptible agent involves randomness and that a recovered agent is simply a sink: it does nothing - its state stays constant.
+
 \subsubsection{Results}
 TODO: show results
 

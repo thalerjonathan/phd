@@ -1,8 +1,7 @@
 module Main where
-  
+
 import Data.List
 import Data.Maybe
-
 import Control.Monad.Random
 
 import SIR
@@ -14,7 +13,7 @@ type SIRAgent     = (SIRState, Time)
 type Agents       = [SIRAgent]
 
 agentCount :: Int
-agentCount = 100
+agentCount = 1000
 
 infectedCount :: Int
 infectedCount = 10
@@ -46,20 +45,19 @@ runSimulationUntil :: RandomGen g
                     -> TimeDelta 
                     -> Agents 
                     -> Rand g [Agents]
-runSimulationUntil tEnd dt as = runSimulationUntilAux tEnd 0 dt as []
+runSimulationUntil tEnd dt as = runSimulationUntilAux 0 dt as []
   where
     runSimulationUntilAux :: RandomGen g 
                           => Time 
-                          -> Time 
                           -> TimeDelta 
                           -> Agents 
                           -> [Agents] 
                           -> Rand g [Agents]
-    runSimulationUntilAux tEnd t dt as acc
+    runSimulationUntilAux t dt as acc
       | t >= tEnd = return $ reverse (as : acc)
       | otherwise = do
         as' <- stepSimulation dt as 
-        runSimulationUntilAux tEnd (t + dt) dt as' (as : acc)
+        runSimulationUntilAux (t + dt) dt as' (as : acc)
 
 runSimulation :: RandomGen g 
               => TimeDelta 
@@ -93,9 +91,35 @@ processAgent :: RandomGen g
 processAgent _  as    (Susceptible, _) = susceptibleAgent as
 processAgent dt _   a@(Infected   , _) = return $ infectedAgent dt a
 processAgent _  _   a@(Recovered  , _) = return a
-        
+
+{-
 -- NOTE: does not exclude contact with itself but with a sufficiently 
 -- large number of agents the probability becomes very small
+susceptibleAgent :: RandomGen g => Agents -> Rand g SIRAgent
+susceptibleAgent as = do
+    rc <- randomExpM (1 / contactRate)
+    cs <- doTimes (floor rc) (contact as)
+    let gotInfected = elem True cs
+    if gotInfected
+      then infect
+      else return susceptible
+
+  where
+    contact :: RandomGen g => Agents -> Rand g Bool
+    contact as = do
+      randContact <- randomElem as
+      return $ is Infected randContact
+
+    infect :: RandomGen g => Rand g SIRAgent
+    infect = do
+      doInfect    <- randomBoolM infectivity
+      randIllDur  <- randomExpM (1 / illnessDuration)
+      if doInfect
+        then return $ infected randIllDur
+        else return susceptible
+-}
+
+-- NOTE: does not exclude contact with itself but with a sufficiently large number of agents the probability becomes very small
 susceptibleAgent :: RandomGen g => Agents -> Rand g SIRAgent
 susceptibleAgent as = do
     randContactCount <- randomExpM (1 / contactRate)
@@ -121,10 +145,10 @@ susceptibleAgent as = do
 
 infectedAgent :: TimeDelta -> SIRAgent -> SIRAgent
 infectedAgent dt (_, t) 
-    | t' <= 0 = recovered
+    | t' <= 0   = recovered
     | otherwise = infected t'
   where
-    t' = t - dt    
+    t' = t - dt  
 
 doTimes :: (Monad m) => Int -> m a -> m [a]
 doTimes n f = forM [0..n - 1] (\_ -> f) 

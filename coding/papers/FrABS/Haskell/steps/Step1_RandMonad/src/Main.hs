@@ -1,7 +1,5 @@
 module Main where
 
-import Data.List
-import Data.Maybe
 import Control.Monad.Random
 
 import SIR
@@ -100,24 +98,22 @@ susceptibleAgent :: RandomGen g => Agents -> Rand g SIRAgent
 susceptibleAgent as = do
     rc <- randomExpM (1 / contactRate)
     cs <- doTimes (floor rc) (makeContact as)
-    let mayInf = find (is Infected) aInfs
-    return $ fromMaybe susceptible mayInf
+    if elem True cs
+      then infect
+      else return susceptible
 
   where
-    makeContact :: RandomGen g => Agents -> Rand g SIRAgent
+    makeContact :: RandomGen g => Agents -> Rand g Bool
     makeContact as = do
       randContact <- randomElem as
       if (is Infected randContact)
-        then infect
-        else return susceptible
+        then randomBoolM infectivity
+        else return False
 
     infect :: (RandomGen g) => Rand g SIRAgent
     infect = do
-      doInfect    <- randomBoolM infectivity
       randIllDur  <- randomExpM (1 / illnessDuration)
-      if doInfect
-        then return $ infected randIllDur
-        else return susceptible
+      return $ infected randIllDur
 
 infectedAgent :: TimeDelta -> SIRAgent -> SIRAgent
 infectedAgent dt (_, t) 

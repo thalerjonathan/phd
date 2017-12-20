@@ -1,0 +1,125 @@
+\subsection*{Step I: Naive beginnings}
+In our first step we start with modelling the states of the agents for which we simply use an Algebraic Data Type (ADT):
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+data SIRState = Susceptible | Infected | Recovered
+\end{minted}
+
+Also agents are ill for some duration meaning we need to keep track when a potentially infected agent recovers. Also as previously mentioned, a simulation is stepped in discrete or continuous time-steps thus we introducing a notion of \textit{time} and $\Delta t$ by defining:
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+type Time      = Double
+type TimeDelta = Double
+\end{minted}
+
+Then we can represent every agent simply as a tuple of its state and its potential recovery time. We hold all our agents simply in a list and define helper functions:
+\begin{minted}[fontsize=\footnotesize]{haskell}
+type SIRAgent = (SIRState, Time)
+type Agents   = [SIRAgent]
+
+is :: SIRState -> SIRAgent -> Bool
+is s (s',_) = s == s'
+
+susceptible :: SIRAgent
+susceptible = (Susceptible, 0)
+
+infected :: Time -> SIRAgent
+infected t = (Infected, t)
+
+recovered :: SIRAgent
+recovered = (Recovered, 0)
+\end{minted}
+
+Next we need to think about how to actually step our simulation. For this we define a function which simply steps our simulation with a fixed $\Delta t$ until a given time $t$ where in each step the agents are processed and the output is fed back into the next step.
+TODO: need a much better explanation and maybe split up into more steps?
+As already mentioned in previous sections, the agent-based implementation of the SIR model is inherently stochastic which means we need access to a random-number generator. We decided to use the Rand Monad at this point as threading a generator through the simulation and the agents is very cumbersome. Thus our simulation stepping runs in the Rand Monad:
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+runSimulation :: RandomGen g 
+              => Time 
+              -> TimeDelta 
+              -> Agents 
+              -> Rand g [Agents]
+runSimulation tEnd dt as = runSimulationAux 0 dt as []
+  where
+    runSimulationAux :: RandomGen g 
+                     => Time 
+                     -> TimeDelta 
+                     -> Agents 
+                     -> [Agents] 
+                     -> Rand g [Agents]
+    runSimulationAux t dt as acc
+      | t >= tEnd = return $ reverse (as : acc)
+      | otherwise = do
+        as' <- stepSimulation dt as 
+        runSimulationUntilAux (t + dt) dt as' (as : acc)
+
+stepSimulation :: RandomGen g => TimeDelta -> Agents -> Rand g Agents
+stepSimulation dt as = mapM (processAgent dt as) as
+\end{minted}
+
+Now we can implement the behaviour of an individual agent.
+It is important to try to infect the agent for every infected contact and not for a signle one.
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+processAgent :: RandomGen g 
+             => TimeDelta 
+             -> Agents 
+             -> SIRAgent 
+             -> Rand g SIRAgent
+processAgent _  as    (Susceptible, _) = susceptibleAgent as
+processAgent dt _   a@(Infected   , _) = return $ infectedAgent dt a
+processAgent _  _   a@(Recovered  , _) = return a
+\end{minted}
+
+An agent gets fed all the agents states so it can draw random contacts. Note that this includes also the agent itself thus we would need to omit the agent itself to prevent making contact with itself. We decided against that as it complicates the solution and for larger numbers of agent population the probability for an agent to make contact with itself is so small that it can be neglected.
+
+From our implementation it becomes apparent that only the behaviour of a susceptible agent involves randomness and that a recovered agent is simply a sink: it does nothing - its state stays constant.
+
+Lets look how we can implement the behaviour of a susceptible agent. It simply makes contact on average with a number of other agents and gets infected with a given probability if an agent it has contact with is infected.
+When the agent gets infected it calculates also its time of recovery by drawing a random number from the exponential distribution meaning it is ill on average for illnessDuration.
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+susceptibleAgent :: RandomGen g => Agents -> Rand g SIRAgent
+susceptibleAgent as = do
+    rc <- randomExpM (1 / contactRate)
+    cs <- doTimes (floor rc) (makeContact as)
+    if elem True cs
+      then infect
+      else return susceptible
+
+  where
+    makeContact :: RandomGen g => Agents -> Rand g Bool
+    makeContact as = do
+      randContact <- randomElem as
+      if (is Infected randContact)
+        then randomBoolM infectivity
+        else return False
+
+    infect :: RandomGen g => Rand g SIRAgent
+    infect = do
+      randIllDur  <- randomExpM (1 / illnessDuration)
+      return $ infected randIllDur
+\end{minted}
+
+The infected agent is trivial. It simply recovers after the given illness duration which is implemented as follows:
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+infectedAgent :: TimeDelta -> SIRAgent -> SIRAgent
+infectedAgent dt (_, t) 
+    | t' <= 0   = recovered
+    | otherwise = infected t'
+  where
+    t' = t - dt  
+\end{minted}
+
+\subsubsection{Results}
+TODO: discuss $\Delta t = 1.0$ and until t = 150. Also cannot vary delta
+
+\subsubsection{Pros}
+first approach, it works, having random-monad is VERY convenient
+
+\subsubsection{Cons}
+- time is explicitly available and needs to be dealt with explicitly
+- all agent-states are fed back into every agent
+- agent representation and function is not very elegant 

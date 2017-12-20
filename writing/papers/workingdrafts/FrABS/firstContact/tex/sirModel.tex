@@ -50,6 +50,9 @@ Running the SD simulation over time results in the dynamics as shown in Figure \
 \subsection*{An Agent-Based approach}
 The SD approach is inherently top-down because the emergent property of the system is formalized in differential equations. The question is if such a top-down behaviour can be emulated using ABS, which is inherently bottom-up. Also the question is if there are fundamental drawbacks and benefits when doing so using ABS. Such questions were asked before and modelling the SIR model using an agent-based approach is indeed possible. It is important to note that SD can be seen as operating on averages thus treating the population completely continuous which results in non-discrete values of stocks e.g. 3.1415 infected persons. Thus the fundamental approach to map the SIR model to an ABS is to discretize the population and model each person in the population as an individual agent. The transition  between the states are no longer happening according to continuous differential equations but due to discrete events caused both by interactions amongst the agents and time-outs.
 
+TODO: this is already a too technical explanation which fixes the implementation details already on messaging / data-flow - this is too early and in deriving our approach we will implement 4 different approaches (feedback of all agent-states, data-flow, environment, transactions)
+TODO: the main point is that we are implementing a state-chart with the transitions are the main thing to consider
+
 \begin{itemize}
 	\item Every agent makes \textit{on average} contact with $\beta$ random other agents per time unit. In ABS we can only contact discrete agents thus we model this by generating a random event on average every $\beta$ time units. Note that we need to sample from an exponential CDF because the rate is proportional to the size of the population as \cite{borshchev_system_2004} pointed out.
 	

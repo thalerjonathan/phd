@@ -1,9 +1,11 @@
 \section{Deriving a functional approach}
-2 main points from Henrik: 1.: try to stick to synchronous updates because this is how the real world works. 2.: get rid of globally shared mutable state as it complicates things extremely with reasoning
+%2 main points from Henrik: 1.: try to stick to synchronous updates because this is how the real world works. 2.: get rid of globally shared mutable state as it complicates things extremely with reasoning
+%clear conceptual formal model of what agents are and then structure my implementation around it
 
-clear conceptual formal model of what agents are and then structure my implementation around it
+In this section we will derive a functional approach for implementing an agent-based simulation of the SIR model. We will start out with a very naive approach and show its limitations which can be overcome by bringing in FRP. Then in three steps we will add more concepts and generalisations, ending up at the final approach which utilises monadic stream functions (MSF) \cite{perez_functional_2016}, a generalisation of FRP.
+Although we presented a high-level agent-based approach to the SIR model in the previous section, which focused only on the states and the transitions, we haven't talked about technical implementation details on how to actually implement such a state-machine. In these steps we will ultimately present four different approaches on how to implement these states and transitions. Although all result \textit{on average} in the same dynamics, not all of them are equally expressive and testable.
 
-\subsection{Naive in the Random Monad}
+\subsection{Step I: Being naive in the Random Monad}
 CODE in SIRMonad 
 
 - first approach, it works, having random-monad is VERY convenient
@@ -13,20 +15,23 @@ problems:
 - all agent-states are fed back into every agent
 - agent representation and function is not very elegant 
 
-
 TODO: show results
 
-\subsection{Adding FRP: Yampa}
+\subsection{Step II: Adding FRP}
 CODE in SIRYampa
 
 - time is implicit and cannot be messed with
 - agent can switch their behaviour
+
+\subsection{Step III: Adding data-flow}
+- getting rid of feeding all agent-states back into every agent, making data-flows explicit between agents, which is necessary because connections between agents are not fixed at compile time
 - with occasionally we can achieve extremely fine grained stochastics as opposed to draw random number of events we create only a single event or not, this allows for a much smoother curve and is a real advantage: we are treating it as a continuous system
 
-\subsection{Generalisation: data-flows}
-- getting rid of feeding all agent-states back into every agent, making data-flows explicit between agents, which is necessary because connections between agents are not fixed at compile time
-
-\subsection{The final step: Monadic Stream Functions}
+\subsection{Step IV: Generalising to Monadic Stream Functions}
 - this allows us to add dynamic environments and agent transactions
 - we need deterministic behaviour under all curcumstances, thus we cannot use IO or STM. for globally mutable state we use StateT
 - also putting agentout into StateT monad composes now much better
+
+\subsection{Step V: Adding an environment}
+
+\subsection{Step VI: Adding agent transactions}

@@ -5,14 +5,14 @@ In our first step we start with modelling the states of the agents for which we 
 data SIRState = Susceptible | Infected | Recovered
 \end{minted}
 
-Also agents are ill for some duration meaning we need to keep track when a potentially infected agent recovers. Also as previously mentioned, a simulation is stepped in discrete or continuous time-steps thus we introducing a notion of \textit{time} and $\Delta t$ by defining:
+Also agents are ill for some duration meaning we need to keep track when a potentially infected agent recovers. Also as previously mentioned, a simulation is stepped in discrete or continuous time-steps thus we introduce a notion of \textit{time} and $\Delta t$ by defining:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 type Time      = Double
 type TimeDelta = Double
 \end{minted}
 
-Then we can represent every agent simply as a tuple of its state and its potential recovery time. We hold all our agents simply in a list and define helper functions:
+Now we can represent every agent simply as a tuple of its SIR-state and its potential recovery time. We hold all our agents simply in a list and define helper functions:
 \begin{minted}[fontsize=\footnotesize]{haskell}
 type SIRAgent = (SIRState, Time)
 type Agents   = [SIRAgent]
@@ -52,14 +52,13 @@ runSimulation tEnd dt as = runSimulationAux 0 dt as []
       | t >= tEnd = return $ reverse (as : acc)
       | otherwise = do
         as' <- stepSimulation dt as 
-        runSimulationUntilAux (t + dt) dt as' (as : acc)
+        runSimulationAux (t + dt) dt as' (as : acc)
 
 stepSimulation :: RandomGen g => TimeDelta -> Agents -> Rand g Agents
 stepSimulation dt as = mapM (processAgent dt as) as
 \end{minted}
 
-Now we can implement the behaviour of an individual agent.
-It is important to try to infect the agent for every infected contact and not for a signle one.
+Now we can implement the behaviour of an individual agent. First we need to distinguish between the agents SIR-states:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 processAgent :: RandomGen g 
@@ -114,12 +113,22 @@ infectedAgent dt (_, t)
 \end{minted}
 
 \subsubsection{Results}
-TODO: discuss $\Delta t = 1.0$ and until t = 150. Also cannot vary delta
+We run the simulation for $t = 150$ time-units with a fixed $\Delta t = 1.0$. With increasing number of agents the dynamics approach the one of the SD simulation. TODO: add pictures
 
-\subsubsection{Pros}
-first approach, it works, having random-monad is VERY convenient
+Reflecting on our first naive approach we can conclude that it already introduced the most fundamental concepts of ABS
+\begin{itemize}
+	\item Time - the simulation occurs over virtual time which is modelled explicitly divided into \textit{fixed} $\Delta t$ where at each the agents are executed.
+	\item Agents - we implement each agent as an individual behaviour which depends on the agents state.
+	\item Feedback - the output state of the agent in the current time-step $t$ is the input state for the next time-step $t+1$.
+	\item Environment - as environment we implicitly assume a fully-connected network where every agent 'knows' every other agents, including itself and thus can make contact with every other agent (including itself).
+	\item Stochasticity - its an inherently stochastic simulation, which is indicated by the Rand Monadic type.
+	\item Deterministic - repeated runs with the same initial random-number generator result in same dynamics. This may not come as a suprise but in Haskell we can guarantee that property statically already at compile time because our simulation runs in the Rand monad and NOT in the IO Monad. This guarantees that no external, uncontrollable sources of randomness can interfere with the simulation.
+	\item Dynamics - it works as expected: with increasing number of agents our solution approaches the SD dynamics 
+\end{itemize}
 
-\subsubsection{Cons}
-- time is explicitly available and needs to be dealt with explicitly
-- all agent-states are fed back into every agent
-- agent representation and function is not very elegant 
+Nonentheless our approach has also weaknesses and dangers:
+\begin{itemize}
+	\item $\Delta t$ is passed explicitly as argument to the agent and needs to be dealt with explicitly. It seems to be not very elegant and a potential source of errors - can we do better and find a more elegant solution?
+	\item The states of all agents of the current step are fed back into every agent in the next step so that an agent can pick its contacts. Although agents cannot change the states, this reveals too much information e.g. the illness durtion is of no interest to the other agents. Although we could just feed in the SIRStates without the illness duration, the problem is more of conceptual nature: it should be the agent which decides to whom it revealse which information.
+	\item The way our agents are represented is not very elegant: the state of the agent is explictly encoded in an ADT and when processing the agent the function needs always first distinguish between the states. Can we express it in a more implicit, functional way?
+\end{itemize}

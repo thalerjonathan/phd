@@ -82,35 +82,31 @@ sirAgent _ Recovered   = trace ("sirAgent:I'm Recovered") recoveredAgent
 susceptibleAgent :: (RandomGen g) => g -> SIRAgent
 susceptibleAgent g = 
     switch 
-      (susceptibleAgentInfectedEvent g) 
+      (susceptible g) 
       (const $ infectedAgent g)
   where
-    susceptibleAgentInfectedEvent :: (RandomGen g) => g -> SF [SIRState] (SIRState, Event ())
-    susceptibleAgentInfectedEvent _g = proc _as -> do
-      --makeContact <- occasionally g (1 / contactRate) () -< ()
-      --a <- drawRandomElemSF g -< as
-      --doInfect <- randomBoolSF g infectivity -< ()
+    susceptible :: (RandomGen g) => g -> SF [SIRState] (SIRState, Event ())
+    susceptible g = proc as -> do
+      makeContact <- occasionally g (1 / contactRate) () -< ()
+      a <- drawRandomElemSF g -< as
+      doInfect <- randomBoolSF g infectivity -< ()
 
-      returnA -< (Infected, Event ())
-
-      {-
-      if (trace ("makeContact = " ++ show makeContact ++ ", a = " ++ show a ++ ", doInfect = " ++ show doInfect) (isEvent makeContact))
-      if (trace ("as = " ++ show as) (isEvent makeContact))
+      --if (trace ("makeContact = " ++ show makeContact ++ ", a = " ++ show a ++ ", doInfect = " ++ show doInfect) (isEvent makeContact))
+      --if (trace ("as = " ++ show as) (isEvent makeContact))
       if isEvent makeContact
           && Infected == a
           && doInfect
         then returnA -< (trace ("Infected") (Infected, Event ()))
         else returnA -< (trace ("Susceptible") (Susceptible, NoEvent))
-        -}
 
 infectedAgent :: (RandomGen g) => g -> SIRAgent
 infectedAgent g = 
     switch 
-      infectedAgentRecoveredEvent 
+      infected 
       (const recoveredAgent)
   where
-    infectedAgentRecoveredEvent :: SF [SIRState] (SIRState, Event ())
-    infectedAgentRecoveredEvent = proc _ -> do
+    infected :: SF [SIRState] (SIRState, Event ())
+    infected = proc _ -> do
       recEvt <- occasionally g illnessDuration () -< ()
       let a = event Infected (const Recovered) recEvt
       returnA -< trace ("infectedAgent") (a, recEvt)

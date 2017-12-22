@@ -9,7 +9,7 @@ import FRP.Yampa
 
 import SIR
 
-type SIRAgentProc = SF [SIRState] SIRState
+type SIRAgent = SF [SIRState] SIRState
 
 agentCount :: Int
 agentCount = 100
@@ -59,7 +59,7 @@ runSimulation g t dt as = embed (stepSimulation sfs as) ((), dts)
       where
         (g', g'') = split g
 
-stepSimulation :: [SIRAgentProc] -> [SIRState] -> SF () [SIRState]
+stepSimulation :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
 stepSimulation sfs as =
     pSwitch
       (\_ sfs' -> map (\sf -> (as, sf)) sfs')
@@ -71,15 +71,15 @@ stepSimulation sfs as =
     switchingEvt :: SF ((), [SIRState]) (Event [SIRState])
     switchingEvt = arr (\(_, newAs) -> Event newAs)
 
-    cont :: [SIRAgentProc] -> [SIRState] -> SF () [SIRState]
+    cont :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
     cont sfs newAs = stepSimulation sfs newAs
 
-sirAgent :: (RandomGen g) => g -> SIRState -> SIRAgentProc
+sirAgent :: (RandomGen g) => g -> SIRState -> SIRAgent
 sirAgent g Susceptible = trace ("sirAgent: I'm Susceptible") susceptibleAgent g
 sirAgent g Infected    = trace ("sirAgent:I'm Infected") infectedAgent g
 sirAgent _ Recovered   = trace ("sirAgent:I'm Recovered") recoveredAgent
 
-susceptibleAgent :: (RandomGen g) => g -> SIRAgentProc
+susceptibleAgent :: (RandomGen g) => g -> SIRAgent
 susceptibleAgent g = 
     switch 
       (susceptibleAgentInfectedEvent g) 
@@ -103,7 +103,7 @@ susceptibleAgent g =
         else returnA -< (trace ("Susceptible") (Susceptible, NoEvent))
         -}
 
-infectedAgent :: (RandomGen g) => g -> SIRAgentProc
+infectedAgent :: (RandomGen g) => g -> SIRAgent
 infectedAgent g = 
     switch 
       infectedAgentRecoveredEvent 
@@ -115,7 +115,7 @@ infectedAgent g =
       let a = event Infected (const Recovered) recEvt
       returnA -< trace ("infectedAgent") (a, recEvt)
 
-recoveredAgent :: SIRAgentProc
+recoveredAgent :: SIRAgent
 recoveredAgent = trace ("recoveredAgent") (arr (const Recovered))
 
 randomBoolSF :: (RandomGen g) => g -> Double -> SF () Bool

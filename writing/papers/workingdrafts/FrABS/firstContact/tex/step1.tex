@@ -98,7 +98,7 @@ susceptibleAgent as = do
     infect :: RandomGen g => Rand g SIRAgent
     infect = do
       randIllDur  <- randomExpM (1 / illnessDuration)
-      return $ infected randIllDur
+      return  infected randIllDur
 \end{minted}
 
 The infected agent is trivial. It simply recovers after the given illness duration which is implemented as follows:
@@ -122,13 +122,15 @@ Reflecting on our first naive approach we can conclude that it already introduce
 	\item Feedback - the output state of the agent in the current time-step $t$ is the input state for the next time-step $t+1$.
 	\item Environment - as environment we implicitly assume a fully-connected network where every agent 'knows' every other agents, including itself and thus can make contact with every other agent (including itself).
 	\item Stochasticity - its an inherently stochastic simulation, which is indicated by the Rand Monadic type.
-	\item Deterministic - repeated runs with the same initial random-number generator result in same dynamics. This may not come as a suprise but in Haskell we can guarantee that property statically already at compile time because our simulation runs in the Rand monad and NOT in the IO Monad. This guarantees that no external, uncontrollable sources of randomness can interfere with the simulation.
+	\item Deterministic - repeated runs with the same initial random-number generator result in same dynamics. This may not come as a surprise but in Haskell we can guarantee that property statically already at compile time because our simulation runs in the Rand monad and NOT in the IO Monad. This guarantees that no external, uncontrollable sources of randomness can interfere with the simulation.
 	\item Dynamics - it works as expected: with increasing number of agents our solution approaches the SD dynamics 
 \end{itemize}
 
 Nonentheless our approach has also weaknesses and dangers:
-\begin{itemize}
-	\item $\Delta t$ is passed explicitly as argument to the agent and needs to be dealt with explicitly. It seems to be not very elegant and a potential source of errors - can we do better and find a more elegant solution?
-	\item The states of all agents of the current step are fed back into every agent in the next step so that an agent can pick its contacts. Although agents cannot change the states, this reveals too much information e.g. the illness durtion is of no interest to the other agents. Although we could just feed in the SIRStates without the illness duration, the problem is more of conceptual nature: it should be the agent which decides to whom it revealse which information.
-	\item The way our agents are represented is not very elegant: the state of the agent is explictly encoded in an ADT and when processing the agent the function needs always first distinguish between the states. Can we express it in a more implicit, functional way?
-\end{itemize}
+\begin{enumerate}
+	\item $\Delta t$ is passed explicitly as argument to the agent and needs to be dealt with explicitly. It seems to be not very elegant and a potential source of errors - can we do better and find a more elegant solution? 
+	\item The way our agents are represented is not very elegant: the state of the agent is explicitly encoded in an ADT and when processing the agent the function needs always first distinguish between the states. Can we express it in a more implicit, functional way?
+	\item The states of all agents of the current step are fed back into every agent in the next step so that an agent can pick its contacts. Although agents cannot change the states, this reveals too much information e.g. the illness duration is of no interest to the other agents. Although we could just feed in the SIRStates without the illness duration, the problem is more of conceptual nature: it should be the agent which decides to whom it reveals which information.
+\end{enumerate}
+
+We move now to the next step in which we will address points 1 and 2, point 3 will be solved in step 3.

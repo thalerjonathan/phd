@@ -1,4 +1,6 @@
 \subsection{Step II: Adding FRP}
-
+\item $\Delta t$ is passed explicitly as argument to the agent and needs to be dealt with explicitly. It seems to be not very elegant and a potential source of errors - can we do better and find a more elegant solution? 
+	\item The way our agents are represented is not very elegant: the state of the agent is explicitly encoded in an ADT and when processing the agent the function needs always first distinguish between the states. Can we express it in a more implicit, functional way?
+	
 - time is implicit and cannot be messed with
 - agent can switch their behaviour

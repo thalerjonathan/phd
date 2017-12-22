@@ -63,7 +63,7 @@ runSimulation :: (RandomGen g)
               => g 
               -> Time 
               -> DTime 
-              -> [SIRState] 
+              -> [(AgentId, SIRState)] 
               -> [[SIRState]]
 runSimulation g t dt as = map (\aos -> map aoObservable aos) aoss
   where
@@ -72,9 +72,11 @@ runSimulation g t dt as = map (\aos -> map aoObservable aos) aoss
     n = length as
 
     (rngs, _) = rngSplits g n []
-    sfs = map (\(g', a) -> sirAgent g' a) (zip rngs as)
-    ais = []
-    aoss = embed (stepSimulation sfs ais) ((), dts)
+    ais = map fst as
+    sfs = map (\(g', (_, s)) -> sirAgent g' ais s) (zip rngs as)
+    ains = map (\(aid, _) -> agentIn aid) as
+
+    aoss = embed (stepSimulation sfs ains) ((), dts)
 
     rngSplits :: (RandomGen g) => g -> Int -> [g] -> ([g], g)
     rngSplits g 0 acc = (acc, g)
@@ -83,64 +85,67 @@ runSimulation g t dt as = map (\aos -> map aoObservable aos) aoss
         (g', g'') = split g
 
 stepSimulation :: [SIRAgent] -> [SIRAgentIn] -> SF () [SIRAgentOut]
-stepSimulation sfs ais =
+stepSimulation sfs ains =
     pSwitch
-      (\_ sfs' -> (zip ais sfs'))
+      (\_ sfs' -> (zip ains sfs'))
       sfs
       (switchingEvt >>> notYet) -- if we switch immediately we end up in endless switching, so always wait for 'next'
       cont
 
   where
     switchingEvt :: SF ((), [SIRAgentOut]) (Event [SIRAgentIn])
-    switchingEvt = proc (_, _aos) -> do
-      let nextAis = []
-      returnA -< Event nextAis
+    switchingEvt = proc (_, aos) -> do
+      let ais = map aiId ains
+      let aios = zip ais aos
+      let nextAins = distributeData aios
+      returnA -< Event nextAins
 
     cont :: [SIRAgent] -> [SIRAgentIn] -> SF () [SIRAgentOut]
-    cont sfs nextAis = stepSimulation sfs nextAis
+    cont sfs nextAins = stepSimulation sfs nextAins
 
-sirAgent :: (RandomGen g) => g -> SIRState -> SIRAgent
-sirAgent g Susceptible = trace ("sirAgent: I'm Susceptible") susceptibleAgent g
-sirAgent g Infected    = trace ("sirAgent:I'm Infected") infectedAgent g
-sirAgent _ Recovered   = trace ("sirAgent:I'm Recovered") recoveredAgent
+sirAgent :: (RandomGen g) => g -> [AgentId] -> SIRState -> SIRAgent
+sirAgent g ais  Susceptible = trace ("sirAgent: I'm Susceptible") susceptibleAgent g ais
+sirAgent g _    Infected    = trace ("sirAgent:I'm Infected") infectedAgent g
+sirAgent _ _    Recovered   = trace ("sirAgent:I'm Recovered") recoveredAgent
 
-susceptibleAgent :: (RandomGen g) => g -> SIRAgent
-susceptibleAgent g = 
+susceptibleAgent :: (RandomGen g) => g -> [AgentId] -> SIRAgent
+susceptibleAgent g ais = 
     switch 
-      (infectedEvent g) 
+      (susceptible g) 
       (const $ infectedAgent g)
   where
-    infectedEvent :: (RandomGen g) 
+    susceptible :: (RandomGen g) 
                   => g 
                   -> SF SIRAgentIn (SIRAgentOut, Event ())
-    infectedEvent _g = proc _as -> do
-      --makeContact <- occasionally g (1 / contactRate) () -< ()
-      --a <- drawRandomElemSF g -< as
-      --doInfect <- randomBoolSF g infectivity -< ()
+    susceptible g0 = proc ain -> do
+      rec
+        g <- iPre g0 -< g'
+        let (infected, g') = runRand (gotInfected infectivity ain) g
 
-      returnA -< (agentOut Infected, Event ())
+      if infected 
+        then returnA -< (agentOut Infected, Event ())
+        else (do
+          makeContact <- occasionally g (1 / contactRate) () -< ()
+          contactId <- drawRandomElemSF g -< ais
 
-      {-
-      if (trace ("makeContact = " ++ show makeContact ++ ", a = " ++ show a ++ ", doInfect = " ++ show doInfect) (isEvent makeContact))
-      if (trace ("as = " ++ show as) (isEvent makeContact))
-      if isEvent makeContact
-          && Infected == a
-          && doInfect
-        then returnA -< (trace ("Infected") (Infected, Event ()))
-        else returnA -< (trace ("Susceptible") (Susceptible, NoEvent))
-        -}
+          if isEvent makeContact
+            then returnA -< (dataFlow (contactId, Contact Susceptible) $ agentOut Susceptible, NoEvent)
+            else returnA -< (agentOut Susceptible, NoEvent))
 
 infectedAgent :: (RandomGen g) => g -> SIRAgent
 infectedAgent g = 
     switch
-      infectedAgentRecoveredEvent 
+    infected 
       (const recoveredAgent)
   where
-    infectedAgentRecoveredEvent :: SF SIRAgentIn (SIRAgentOut, Event ())
-    infectedAgentRecoveredEvent = proc _ -> do
+    infected :: SF SIRAgentIn (SIRAgentOut, Event ())
+    infected = proc ain -> do
       recEvt <- occasionally g illnessDuration () -< ()
       let a = event Infected (const Recovered) recEvt
-      returnA -< trace ("infectedAgent") (agentOut a, recEvt)
+      -- note that at the moment of recovery the agent can still infect others
+      -- because it will still reply with Infected
+      let ao = respondToContactWith Infected ain (agentOut a)
+      returnA -< trace ("infectedAgent") (ao, recEvt)
 
 recoveredAgent :: SIRAgent
 recoveredAgent = trace ("recoveredAgent") (arr (const $ agentOut Recovered))
@@ -156,29 +161,28 @@ drawRandomElemSF g = proc as -> do
   let len = length as
   let idx = (fromIntegral $ len) * r
   let a =  as !! (floor idx)
-  --returnA -< trace ("a = " ++ show a) a
   returnA -< a
 
-initAgents :: Int -> Int -> [SIRState]
+initAgents :: Int -> Int -> [(AgentId, SIRState)]
 initAgents n i = sus ++ inf
   where
-    sus = replicate (n - i) Susceptible
-    inf = replicate i Infected
+    sus = map (\ai -> (ai, Susceptible)) [0..n-i-1]
+    inf = map (\ai -> (ai, Infected)) [n-i..n-1]
 
 dataFlow :: AgentData d -> AgentOut o d -> AgentOut o d
 dataFlow df ao = ao { aoData = df : aoData ao }
 
-onData :: (AgentData d -> acc -> acc) -> AgentIn d -> acc -> acc
-onData dHdl ai a 
-    | null ds = a
-    | otherwise = foldr (\msg acc'-> dHdl msg acc') a ds
+onDataM :: (Monad m) 
+        => (acc -> AgentData d -> m acc) 
+        -> AgentIn d 
+        -> acc 
+        -> m acc
+onDataM dHdl ai acc = foldM dHdl acc ds
   where
     ds = aiData ai
 
-onDataM :: (Monad m) => (acc -> AgentData d -> m acc) -> AgentIn d -> acc -> m acc
-onDataM dHdl ai acc
-    | null ds = return acc
-    | otherwise = foldM dHdl acc ds
+onData :: (AgentData d -> acc -> acc) -> AgentIn d -> acc -> acc
+onData dHdl ai a = foldr (\msg acc'-> dHdl msg acc') a ds
   where
     ds = aiData ai
 
@@ -252,20 +256,3 @@ agentOut o = AgentOut {
 
 randomBoolM :: RandomGen g => Double -> Rand g Bool
 randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)
-
-{-
-randomExpM :: RandomGen g => Double -> Rand g Double
-randomExpM lambda = avoid 0 >>= (\r -> return $ ((-log r) / lambda))
-  where
-    avoid :: (Random a, Eq a, RandomGen g) => a -> Rand g a
-    avoid x = do
-      r <- getRandom
-      if r == x
-        then avoid x
-        else return r
-
-randomElem :: RandomGen g => [a] -> Rand g a
-randomElem as = getRandomR (0, len - 1) >>= (\idx -> return $ as !! idx)
-  where
-    len = length as
-    -}

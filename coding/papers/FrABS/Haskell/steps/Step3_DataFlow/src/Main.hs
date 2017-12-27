@@ -87,7 +87,7 @@ runSimulation g t dt as = map (\aos -> map aoObservable aos) aoss
 stepSimulation :: [SIRAgent] -> [SIRAgentIn] -> SF () [SIRAgentOut]
 stepSimulation sfs ains =
     pSwitch
-      (\_ sfs' -> (zip ains sfs'))
+      (\_ sfs' -> trace ("fuck") (zip ains sfs'))
       sfs
       (switchingEvt >>> notYet) -- if we switch immediately we end up in endless switching, so always wait for 'next'
       cont
@@ -145,7 +145,8 @@ infectedAgent g =
       -- note that at the moment of recovery the agent can still infect others
       -- because it will still reply with Infected
       let ao = respondToContactWith Infected ain (agentOut a)
-      returnA -< trace ("infectedAgent") (ao, recEvt)
+      --returnA -< trace ("infectedAgent") (ao, recEvt)
+      returnA -< (ao, recEvt)
 
 recoveredAgent :: SIRAgent
 recoveredAgent = trace ("recoveredAgent") (arr (const $ agentOut Recovered))

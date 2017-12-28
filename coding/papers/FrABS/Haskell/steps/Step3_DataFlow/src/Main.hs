@@ -2,7 +2,6 @@
 module Main where
 
 import System.IO
-import Debug.Trace
 
 import Control.Monad.Random
 import qualified Data.Map as Map
@@ -33,10 +32,10 @@ type SIRAgentOut  = AgentOut SIRState SIRMsg
 type SIRAgent     = SF SIRAgentIn SIRAgentOut
 
 agentCount :: Int
-agentCount = 100
+agentCount = 10000
 
 infectedCount :: Int
-infectedCount = 50
+infectedCount = 10
 
 rngSeed :: Int
 rngSeed = 42
@@ -56,7 +55,7 @@ main = do
   let ass = runSimulation g t dt as
 
   let dyns = aggregateAllStates ass
-  let fileName =  "STEP_2_YAMPA_DYNAMICS_" ++ show agentCount ++ "agents.m"
+  let fileName =  "STEP_3_DATAFLOW_DYNAMICS_" ++ show agentCount ++ "agents.m"
   writeAggregatesToFile fileName dyns
 
 runSimulation :: (RandomGen g) 
@@ -87,7 +86,7 @@ runSimulation g t dt as = map (\aos -> map aoObservable aos) aoss
 stepSimulation :: [SIRAgent] -> [SIRAgentIn] -> SF () [SIRAgentOut]
 stepSimulation sfs ains =
     pSwitch
-      (\_ sfs' -> trace ("fuck") (zip ains sfs'))
+      (\_ sfs' -> (zip ains sfs'))
       sfs
       (switchingEvt >>> notYet) -- if we switch immediately we end up in endless switching, so always wait for 'next'
       cont
@@ -104,9 +103,9 @@ stepSimulation sfs ains =
     cont sfs nextAins = stepSimulation sfs nextAins
 
 sirAgent :: (RandomGen g) => g -> [AgentId] -> SIRState -> SIRAgent
-sirAgent g ais  Susceptible = trace ("sirAgent: I'm Susceptible") susceptibleAgent g ais
-sirAgent g _    Infected    = trace ("sirAgent:I'm Infected") infectedAgent g
-sirAgent _ _    Recovered   = trace ("sirAgent:I'm Recovered") recoveredAgent
+sirAgent g ais  Susceptible = susceptibleAgent g ais
+sirAgent g _    Infected    = infectedAgent g
+sirAgent _ _    Recovered   = recoveredAgent
 
 susceptibleAgent :: (RandomGen g) => g -> [AgentId] -> SIRAgent
 susceptibleAgent g ais = 
@@ -149,7 +148,7 @@ infectedAgent g =
       returnA -< (ao, recEvt)
 
 recoveredAgent :: SIRAgent
-recoveredAgent = trace ("recoveredAgent") (arr (const $ agentOut Recovered))
+recoveredAgent = arr (const $ agentOut Recovered)
 
 randomBoolSF :: (RandomGen g) => g -> Double -> SF () Bool
 randomBoolSF g p = proc _ -> do

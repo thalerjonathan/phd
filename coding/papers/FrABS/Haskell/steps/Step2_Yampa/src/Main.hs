@@ -20,7 +20,7 @@ rngSeed :: Int
 rngSeed = 42
 
 dt :: DTime
-dt = 0.01
+dt = 0.1
 
 t :: Time
 t = 150
@@ -124,7 +124,7 @@ randomBoolSF g p = proc _ -> do
   r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
   returnA -< (r <= p)
 
-drawRandomElemSF :: (RandomGen g, Show a) => g -> SF [a] a
+drawRandomElemSF :: RandomGen g => g -> SF [a] a
 drawRandomElemSF g = proc as -> do
   r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
   let len = length as

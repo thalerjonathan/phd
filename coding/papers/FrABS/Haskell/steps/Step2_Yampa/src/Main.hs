@@ -2,7 +2,6 @@
 module Main where
 
 import System.IO
-import Debug.Trace
 
 import Control.Monad.Random
 import FRP.Yampa
@@ -12,7 +11,7 @@ import SIR
 type SIRAgent = SF [SIRState] SIRState
 
 agentCount :: Int
-agentCount = 100
+agentCount = 1000
 
 infectedCount :: Int
 infectedCount = 10
@@ -21,7 +20,7 @@ rngSeed :: Int
 rngSeed = 42
 
 dt :: DTime
-dt = 0.1
+dt = 0.01
 
 t :: Time
 t = 150
@@ -44,7 +43,7 @@ runSimulation :: RandomGen g
               -> DTime 
               -> [SIRState] 
               -> [[SIRState]]
-runSimulation g t dt as = embed (stepSimulation 0 sfs as) ((), dts)
+runSimulation g t dt as = embed (stepSimulation sfs as) ((), dts)
   where
     steps = floor $ t / dt
     dts = replicate steps (dt, Nothing) -- keep input the same as initial one, will be ignored anyway
@@ -59,13 +58,13 @@ runSimulation g t dt as = embed (stepSimulation 0 sfs as) ((), dts)
       where
         (g', g'') = split g
 
-stepSimulation :: Int -> [SIRAgent] -> [SIRState] -> SF () [SIRState]
-stepSimulation i sfs as =
+stepSimulation :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
+stepSimulation sfs as =
     pSwitch
-      --(\_ sfs' -> trace ("i = " ++ show i) (map (\sf -> (as, sf)) sfs'))
       (\_ sfs' -> (map (\sf -> (as, sf)) sfs'))
       sfs
-      (switchingEvt >>> notYet) -- if we switch immediately we end up in endless switching, so always wait for 'next'
+      -- if we switch immediately we end up in endless switching, so always wait for 'next'
+      (switchingEvt >>> notYet) 
       cont
 
   where
@@ -73,7 +72,7 @@ stepSimulation i sfs as =
     switchingEvt = arr (\(_, newAs) -> Event newAs)
 
     cont :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
-    cont sfs' newAs = stepSimulation (i+1) sfs' newAs
+    cont sfs' newAs = stepSimulation sfs' newAs
 
 sirAgent :: RandomGen g => g -> SIRState -> SIRAgent
 sirAgent g Susceptible = susceptibleAgent g
@@ -90,13 +89,18 @@ susceptibleAgent g =
     susceptible g = proc as -> do
       makeContact <- occasionally g (1 / contactRate) () -< ()
 
+      -- NOTE: strangely if we are not splitting all if-then-else into
+      -- separate but only a single one, then it seems not to work,
+      -- dunno why
       if isEvent makeContact
         then (do
-          a <- drawRandomElemSF g         -< as
-          i <- randomBoolSF g 0.9 -< () -- TODO: if this 1.0 it works, all /= 1.0 seems to fuck up the whole thing, dunno why
-
-          if (Infected == a && i)
-            then returnA -< trace ("a = " ++ show a ++ " i = " ++ show i) (Infected, Event ())
+          a <- drawRandomElemSF g -< as
+          if (Infected == a)
+            then (do
+              i <- randomBoolSF g infectivity -< ()
+              if i
+                then returnA -< (Infected, Event ())
+                else returnA -< (Susceptible, NoEvent))
             else returnA -< (Susceptible, NoEvent))
         else returnA -< (Susceptible, NoEvent)
 
@@ -118,7 +122,6 @@ recoveredAgent = arr (const Recovered)
 randomBoolSF :: RandomGen g => g -> Double -> SF () Bool
 randomBoolSF g p = proc _ -> do
   r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
-  --returnA -< trace ("r = " ++ show r ++ " p = " ++ show p ++ " r <= p : " ++ show (r <= p)) (r <= p)
   returnA -< (r <= p)
 
 drawRandomElemSF :: (RandomGen g, Show a) => g -> SF [a] a
@@ -127,7 +130,6 @@ drawRandomElemSF g = proc as -> do
   let len = length as
   let idx = (fromIntegral $ len) * r
   let a =  as !! (floor idx)
-  --returnA -< trace ("a = " ++ show a) a
   returnA -< a
 
 initAgents :: Int -> Int -> [SIRState]

@@ -1,11 +1,11 @@
 {-# LANGUAGE Arrows     #-}
-module Identity ( runIdentitySIR ) where
+module Random ( runRandomSIR ) where
 
 import System.IO
 
 import Control.Monad.Random
 import Control.Monad.Reader
-import Control.Monad.Identity
+import Control.Monad.Trans.MSF.Random
 import qualified Data.Map as Map
 import FRP.BearRiver
 
@@ -28,11 +28,11 @@ data AgentOut o d = AgentOut
 
 type Agent m o d  = SF m (AgentIn d) (AgentOut o d)
 
-type SIRMonad     = Identity
+type SIRMonad g   = Rand g
 data SIRMsg       = Contact SIRState deriving (Show, Eq)
 type SIRAgentIn   = AgentIn SIRMsg
 type SIRAgentOut  = AgentOut SIRState SIRMsg
-type SIRAgent     = Agent SIRMonad SIRState SIRMsg
+type SIRAgent g   = Agent (SIRMonad g) SIRState SIRMsg
 
 agentCount :: Int
 agentCount = 100
@@ -49,8 +49,8 @@ dt = 0.1
 t :: Time
 t = 150
 
-runIdentitySIR :: IO ()
-runIdentitySIR = do
+runRandomSIR :: IO ()
+runRandomSIR = do
   hSetBuffering stdout NoBuffering
 
   let g = mkStdGen rngSeed
@@ -71,24 +71,19 @@ runSimulation g t dt as = map (\aos -> map aoObservable aos) aoss
   where
     steps = floor $ t / dt
     dts = replicate steps ()
-    n = length as
 
-    (rngs, _) = rngSplits g n []
     ais = map fst as
-    sfs = map (\(g', (_, s)) -> sirAgent g' ais s) (zip rngs as)
+    sfs = map (\(_, s) -> sirAgent ais s) as
     ains = map (\(aid, _) -> agentIn aid) as
 
     aossReader = embed (stepSimulation sfs ains) dts
-    aossIdentity = runReaderT aossReader dt
-    aoss = runIdentity aossIdentity
+    aossRand = runReaderT aossReader dt
+    aoss = evalRand aossRand g
 
-    rngSplits :: RandomGen g => g -> Int -> [g] -> ([g], g)
-    rngSplits g 0 acc = (acc, g)
-    rngSplits g n acc = rngSplits g'' (n-1) (g' : acc)
-      where
-        (g', g'') = split g
-
-stepSimulation :: [SIRAgent] -> [SIRAgentIn] -> SF SIRMonad () [SIRAgentOut]
+stepSimulation :: RandomGen g
+               => [SIRAgent g] 
+               -> [SIRAgentIn] 
+               -> SF (SIRMonad g) () [SIRAgentOut]
 stepSimulation sfs ains =
     dpSwitch
       (\_ sfs' -> (zip ains sfs'))
@@ -97,66 +92,67 @@ stepSimulation sfs ains =
       cont
 
   where
-    switchingEvt :: SF SIRMonad ((), [SIRAgentOut]) (Event [SIRAgentIn])
+    switchingEvt :: RandomGen g
+                 => SF (SIRMonad g) ((), [SIRAgentOut]) (Event [SIRAgentIn])
     switchingEvt = proc (_, aos) -> do
       let ais      = map aiId ains
           aios     = zip ais aos
           nextAins = distributeData aios
       returnA -< Event nextAins
 
-    cont :: [SIRAgent] -> [SIRAgentIn] -> SF SIRMonad () [SIRAgentOut]
+    cont :: RandomGen g 
+         => [SIRAgent g] 
+         -> [SIRAgentIn] 
+         -> SF (SIRMonad g) () [SIRAgentOut]
     cont sfs nextAins = stepSimulation sfs nextAins
 
-sirAgent :: RandomGen g => g -> [AgentId] -> SIRState -> SIRAgent
-sirAgent g ais  Susceptible = susceptibleAgent g ais
-sirAgent g _    Infected    = infectedAgent g
-sirAgent _ _    Recovered   = recoveredAgent
+sirAgent :: RandomGen g => [AgentId] -> SIRState -> SIRAgent g
+sirAgent ais  Susceptible = susceptibleAgent ais
+sirAgent _    Infected    = infectedAgent
+sirAgent _    Recovered   = recoveredAgent
 
-susceptibleAgent :: RandomGen g => g -> [AgentId] -> SIRAgent
-susceptibleAgent g ais = 
+susceptibleAgent :: RandomGen g => [AgentId] -> SIRAgent g
+susceptibleAgent ais = 
     switch 
-      (susceptible g) 
-      (const $ infectedAgent g)
+      susceptible
+      (const $ infectedAgent)
   where
     susceptible :: RandomGen g 
-                => g 
-                -> SF SIRMonad SIRAgentIn (SIRAgentOut, Event ())
-    susceptible g0 = proc ain -> do
-      rec
-        g <- iPre g0 -< g'
-        let (infected, g') = runRand (gotInfected 1.0 ain) g
+                => SF (SIRMonad g) SIRAgentIn (SIRAgentOut, Event ())
+    susceptible = proc ain -> do
+      infected <- arrM (\ain -> lift $ gotInfected infectivity ain) -< ain
 
       if infected 
         then returnA -< (agentOut Infected, Event ())
         else (do
-          makeContact <- occasionally g (1 / contactRate) () -< ()
-          contactId   <- drawRandomElemSF g                   -< ais
+          makeContact <- occasionallyM (1 / contactRate) () -< ()
+          contactId   <- drawRandomElemS                    -< ais
 
           if isEvent makeContact
             then returnA -< (dataFlow (contactId, Contact Susceptible) $ agentOut Susceptible, NoEvent)
             else returnA -< (agentOut Susceptible, NoEvent))
 
-infectedAgent :: RandomGen g => g -> SIRAgent
-infectedAgent g = 
+infectedAgent :: RandomGen g => SIRAgent g
+infectedAgent = 
     switch
     infected 
       (const recoveredAgent)
   where
-    infected :: SF SIRMonad SIRAgentIn (SIRAgentOut, Event ())
+    infected :: RandomGen g => SF (SIRMonad g) SIRAgentIn (SIRAgentOut, Event ())
     infected = proc ain -> do
-      recEvt <- occasionally g illnessDuration () -< ()
+      recEvt <- occasionallyM illnessDuration () -< ()
       let a = event Infected (const Recovered) recEvt
       -- note that at the moment of recovery the agent can still infect others
       -- because it will still reply with Infected
       let ao = respondToContactWith Infected ain (agentOut a)
       returnA -< (ao, recEvt)
 
-recoveredAgent :: SIRAgent
+recoveredAgent :: RandomGen g => SIRAgent g
 recoveredAgent = arr (const $ agentOut Recovered)
 
-drawRandomElemSF :: (RandomGen g, Monad m) => g -> SF m [a] a
-drawRandomElemSF g = proc as -> do
-  r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
+drawRandomElemS :: MonadRandom m => SF m [a] a
+drawRandomElemS = proc as -> do
+  r <- getRandomRS ((0, 1) :: (Double, Double)) -< ()
   let len = length as
   let idx = (fromIntegral $ len) * r
   let a =  as !! (floor idx)
@@ -255,48 +251,3 @@ agentOut o = AgentOut {
 
 randomBoolM :: RandomGen g => Double -> Rand g Bool
 randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)
-
-{-
-occasionally_ :: (Monad m, RandomGen g) 
-              => g 
-              -> Time 
-              -> b 
-              -> SF m a (Event b)
-occasionally_ g tAvg b 
-  | tAvg <= 0 = error "dunai: Non-positive average interval in occasionally."
-  | otherwise = proc _ -> do
-    r  <- noiseR ((0, 1) :: (Double, Double)) g -< ()
-    dt <- arrM_ ask        -< ()
-    let p = 1 - exp (-(dt / tAvg))
-    returnA -< if r < p then Event b else NoEvent
-
-noiseR :: (RandomGen g, Random b, Monad m) 
-       => (b, b) 
-       -> g 
-       -> SF m a b
-noiseR range g0 = loopPre g0 (noiseRAux range)
-  where
-    noiseRAux :: (RandomGen g, Random b, Monad m) 
-              => (b, b) 
-              -> SF m (a, g) (b, g)
-    noiseRAux range = proc (_, g) -> do
-      let (r, g') = randomR range g
-      returnA -< (r, g')
-
-dpSwitch :: (Monad m, Traversable col)
-         => (forall sf. (a -> col sf -> col (b, sf)))
-         -> col (SF m b c) 
-         -> SF m (a, col c) (Event d) 
-         -> (col (SF m b c) -> d -> SF m a (col c))
-         -> SF m a (col c)
-dpSwitch rf sfs sfF sfCs = MSF $ \a -> do
-  let bsfs = rf a sfs
-  res <- T.mapM (\(b, sf) -> unMSF sf b) bsfs
-  let cs   = fmap fst res
-      sfs' = fmap snd res
-  (e,sfF') <- unMSF sfF (a, cs)
-  let ct = case e of
-            Event d -> sfCs sfs' d
-            NoEvent -> dpSwitch rf sfs' sfF' sfCs
-  return (cs, ct)
--}

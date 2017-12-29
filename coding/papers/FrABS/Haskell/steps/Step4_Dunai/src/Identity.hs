@@ -1,6 +1,5 @@
 {-# LANGUAGE Arrows     #-}
-{-# LANGUAGE RankNTypes #-}
-module Main where
+module Identity ( runIdentitySIR ) where
 
 import System.IO
 
@@ -27,13 +26,13 @@ data AgentOut o d = AgentOut
   , aoObservable  :: !o
   } deriving (Show)
 
-type Agent o d m  = SF m (AgentIn d) (AgentOut o d)
+type Agent m o d  = SF m (AgentIn d) (AgentOut o d)
 
 type SIRMonad     = Identity
 data SIRMsg       = Contact SIRState deriving (Show, Eq)
 type SIRAgentIn   = AgentIn SIRMsg
 type SIRAgentOut  = AgentOut SIRState SIRMsg
-type SIRAgent     = SF SIRMonad SIRAgentIn SIRAgentOut
+type SIRAgent     = Agent SIRMonad SIRState SIRMsg
 
 agentCount :: Int
 agentCount = 100
@@ -50,8 +49,8 @@ dt = 0.1
 t :: Time
 t = 150
 
-main :: IO ()
-main = do
+runIdentitySIR :: IO ()
+runIdentitySIR = do
   hSetBuffering stdout NoBuffering
 
   let g = mkStdGen rngSeed
@@ -154,11 +153,6 @@ infectedAgent g =
 
 recoveredAgent :: SIRAgent
 recoveredAgent = arr (const $ agentOut Recovered)
-
-randomBoolSF :: (RandomGen g, Monad m) => g -> Double -> SF m () Bool
-randomBoolSF g p = proc _ -> do
-  r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
-  returnA -< (r <= p)
 
 drawRandomElemSF :: (RandomGen g, Monad m) => g -> SF m [a] a
 drawRandomElemSF g = proc as -> do

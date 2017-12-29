@@ -29,7 +29,7 @@ type Agent o d    = SF (AgentIn d) (AgentOut o d)
 data SIRMsg       = Contact SIRState deriving (Show, Eq)
 type SIRAgentIn   = AgentIn SIRMsg
 type SIRAgentOut  = AgentOut SIRState SIRMsg
-type SIRAgent     = SF SIRAgentIn SIRAgentOut
+type SIRAgent     = Agent SIRState SIRMsg
 
 agentCount :: Int
 agentCount = 100

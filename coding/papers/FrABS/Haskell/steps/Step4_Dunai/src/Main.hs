@@ -9,7 +9,6 @@ import Control.Monad.Reader
 import Control.Monad.Identity
 import qualified Data.Map as Map
 import FRP.BearRiver
-import           Data.Traversable                               as T
 
 import SIR
 
@@ -95,7 +94,7 @@ stepSimulation sfs ains =
     dpSwitch
       (\_ sfs' -> (zip ains sfs'))
       sfs
-      (switchingEvt) -- if we switch immediately we end up in endless switching, so always wait for 'next'
+      switchingEvt -- no need for 'notYet' in BearRiver as there is no time = 0 with dt = 0
       cont
 
   where
@@ -121,8 +120,8 @@ susceptibleAgent g ais =
       (const $ infectedAgent g)
   where
     susceptible :: RandomGen g 
-                  => g 
-                  -> SF SIRMonad SIRAgentIn (SIRAgentOut, Event ())
+                => g 
+                -> SF SIRMonad SIRAgentIn (SIRAgentOut, Event ())
     susceptible g0 = proc ain -> do
       rec
         g <- iPre g0 -< g'
@@ -131,7 +130,7 @@ susceptibleAgent g ais =
       if infected 
         then returnA -< (agentOut Infected, Event ())
         else (do
-          makeContact <- occasionally_ g (1 / contactRate) () -< ()
+          makeContact <- occasionally g (1 / contactRate) () -< ()
           contactId   <- drawRandomElemSF g                   -< ais
 
           if isEvent makeContact
@@ -146,7 +145,7 @@ infectedAgent g =
   where
     infected :: SF SIRMonad SIRAgentIn (SIRAgentOut, Event ())
     infected = proc ain -> do
-      recEvt <- occasionally_ g illnessDuration () -< ()
+      recEvt <- occasionally g illnessDuration () -< ()
       let a = event Infected (const Recovered) recEvt
       -- note that at the moment of recovery the agent can still infect others
       -- because it will still reply with Infected
@@ -263,6 +262,7 @@ agentOut o = AgentOut {
 randomBoolM :: RandomGen g => Double -> Rand g Bool
 randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)
 
+{-
 occasionally_ :: (Monad m, RandomGen g) 
               => g 
               -> Time 
@@ -305,3 +305,4 @@ dpSwitch rf sfs sfF sfCs = MSF $ \a -> do
             Event d -> sfCs sfs' d
             NoEvent -> dpSwitch rf sfs' sfF' sfCs
   return (cs, ct)
+-}

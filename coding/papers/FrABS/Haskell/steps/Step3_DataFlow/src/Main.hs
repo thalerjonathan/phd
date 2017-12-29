@@ -88,7 +88,7 @@ stepSimulation sfs ains =
     dpSwitch
       (\_ sfs' -> (zip ains sfs'))
       sfs
-      (switchingEvt >>> notYet) -- if we switch immediately we end up in endless switching, so always wait for 'next'
+      (switchingEvt >>> notYet) -- at time = 0, if we switch immediately we end up in endless switching, so always wait for 'next'
       cont
 
   where

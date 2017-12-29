@@ -149,11 +149,6 @@ infectedAgent g =
 recoveredAgent :: SIRAgent
 recoveredAgent = arr (const $ agentOut Recovered)
 
-randomBoolSF :: RandomGen g => g -> Double -> SF () Bool
-randomBoolSF g p = proc _ -> do
-  r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
-  returnA -< (r <= p)
-
 drawRandomElemSF :: (RandomGen g, Show a) => g -> SF [a] a
 drawRandomElemSF g = proc as -> do
   r <- noiseR ((0, 1) :: (Double, Double)) g -< ()

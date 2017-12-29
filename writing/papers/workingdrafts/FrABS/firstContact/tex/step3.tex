@@ -135,10 +135,10 @@ susceptibleAgent g ais =
             else returnA -< (agentOut Susceptible, NoEvent))
             
 gotInfected :: RandomGen g => Double -> SIRAgentIn -> Rand g Bool
-gotInfected infectionProb ain = onDataM gotInfectedAux ain False
+gotInfected p ain = onDataM gotInfectedAux ain False
   where
     gotInfectedAux :: RandomGen g => Bool -> AgentData SIRMsg -> Rand g Bool
-    gotInfectedAux False (_, Contact Infected) = randomBoolM infectionProb
+    gotInfectedAux False (_, Contact Infected) = randomBoolM p
     gotInfectedAux x _ = return x
     
 onDataM :: (Monad m) 
@@ -158,7 +158,7 @@ Stepping the simulation now works a little bit different as the input/output typ
 \begin{minted}[fontsize=\footnotesize]{haskell}
 stepSimulation :: [SIRAgent] -> [SIRAgentIn] -> SF () [SIRAgentOut]
 stepSimulation sfs ains =
-    pSwitch
+    dpSwitch
       (\_ sfs' -> (zip ains sfs'))
       sfs
       (switchingEvt >>> notYet)

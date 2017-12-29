@@ -1,4 +1,5 @@
-{-# LANGUAGE Arrows #-}
+{-# LANGUAGE Arrows     #-}
+{-# LANGUAGE RankNTypes #-}
 module Main where
 
 import System.IO
@@ -8,6 +9,7 @@ import Control.Monad.Reader
 import Control.Monad.Identity
 import qualified Data.Map as Map
 import FRP.BearRiver
+import           Data.Traversable                               as T
 
 import SIR
 
@@ -35,7 +37,7 @@ type SIRAgentOut  = AgentOut SIRState SIRMsg
 type SIRAgent     = SF SIRMonad SIRAgentIn SIRAgentOut
 
 agentCount :: Int
-agentCount = 10000
+agentCount = 100
 
 infectedCount :: Int
 infectedCount = 10
@@ -88,23 +90,23 @@ runSimulation g t dt as = map (\aos -> map aoObservable aos) aoss
       where
         (g', g'') = split g
 
-stepSimulation :: Monad m => [SIRAgent] -> [SIRAgentIn] -> SF m () [SIRAgentOut]
+stepSimulation :: [SIRAgent] -> [SIRAgentIn] -> SF SIRMonad () [SIRAgentOut]
 stepSimulation sfs ains =
-    pSwitch
+    dpSwitch
       (\_ sfs' -> (zip ains sfs'))
       sfs
-      (switchingEvt >>> notYet) -- if we switch immediately we end up in endless switching, so always wait for 'next'
+      (switchingEvt) -- if we switch immediately we end up in endless switching, so always wait for 'next'
       cont
 
   where
-    switchingEvt :: SF m ((), [SIRAgentOut]) (Event [SIRAgentIn])
+    switchingEvt :: SF SIRMonad ((), [SIRAgentOut]) (Event [SIRAgentIn])
     switchingEvt = proc (_, aos) -> do
       let ais      = map aiId ains
           aios     = zip ais aos
           nextAins = distributeData aios
       returnA -< Event nextAins
 
-    cont :: [SIRAgent] -> [SIRAgentIn] -> SF m () [SIRAgentOut]
+    cont :: [SIRAgent] -> [SIRAgentIn] -> SF SIRMonad () [SIRAgentOut]
     cont sfs nextAins = stepSimulation sfs nextAins
 
 sirAgent :: RandomGen g => g -> [AgentId] -> SIRState -> SIRAgent
@@ -124,12 +126,12 @@ susceptibleAgent g ais =
     susceptible g0 = proc ain -> do
       rec
         g <- iPre g0 -< g'
-        let (infected, g') = runRand (gotInfected infectivity ain) g
+        let (infected, g') = runRand (gotInfected 1.0 ain) g
 
       if infected 
         then returnA -< (agentOut Infected, Event ())
         else (do
-          makeContact <- occasionally g (1 / contactRate) ()  -< ()
+          makeContact <- occasionally_ g (1 / contactRate) () -< ()
           contactId   <- drawRandomElemSF g                   -< ais
 
           if isEvent makeContact
@@ -144,7 +146,7 @@ infectedAgent g =
   where
     infected :: SF SIRMonad SIRAgentIn (SIRAgentOut, Event ())
     infected = proc ain -> do
-      recEvt <- occasionally g illnessDuration () -< ()
+      recEvt <- occasionally_ g illnessDuration () -< ()
       let a = event Infected (const Recovered) recEvt
       -- note that at the moment of recovery the agent can still infect others
       -- because it will still reply with Infected
@@ -191,10 +193,10 @@ onData dHdl ai a = foldr (\msg acc'-> dHdl msg acc') a ds
     ds = aiData ai
 
 gotInfected :: RandomGen g => Double -> SIRAgentIn -> Rand g Bool
-gotInfected infectionProb ain = onDataM gotInfectedAux ain False
+gotInfected p ain = onDataM gotInfectedAux ain False
   where
     gotInfectedAux :: RandomGen g => Bool -> AgentData SIRMsg -> Rand g Bool
-    gotInfectedAux False (_, Contact Infected) = randomBoolM infectionProb
+    gotInfectedAux False (_, Contact Infected) = randomBoolM p
     gotInfectedAux x _ = return x
 
 respondToContactWith :: SIRState -> SIRAgentIn -> SIRAgentOut -> SIRAgentOut
@@ -260,3 +262,46 @@ agentOut o = AgentOut {
 
 randomBoolM :: RandomGen g => Double -> Rand g Bool
 randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)
+
+occasionally_ :: (Monad m, RandomGen g) 
+              => g 
+              -> Time 
+              -> b 
+              -> SF m a (Event b)
+occasionally_ g tAvg b 
+  | tAvg <= 0 = error "dunai: Non-positive average interval in occasionally."
+  | otherwise = proc _ -> do
+    r  <- noiseR ((0, 1) :: (Double, Double)) g -< ()
+    dt <- arrM_ ask        -< ()
+    let p = 1 - exp (-(dt / tAvg))
+    returnA -< if r < p then Event b else NoEvent
+
+noiseR :: (RandomGen g, Random b, Monad m) 
+       => (b, b) 
+       -> g 
+       -> SF m a b
+noiseR range g0 = loopPre g0 (noiseRAux range)
+  where
+    noiseRAux :: (RandomGen g, Random b, Monad m) 
+              => (b, b) 
+              -> SF m (a, g) (b, g)
+    noiseRAux range = proc (_, g) -> do
+      let (r, g') = randomR range g
+      returnA -< (r, g')
+
+dpSwitch :: (Monad m, Traversable col)
+         => (forall sf. (a -> col sf -> col (b, sf)))
+         -> col (SF m b c) 
+         -> SF m (a, col c) (Event d) 
+         -> (col (SF m b c) -> d -> SF m a (col c))
+         -> SF m a (col c)
+dpSwitch rf sfs sfF sfCs = MSF $ \a -> do
+  let bsfs = rf a sfs
+  res <- T.mapM (\(b, sf) -> unMSF sf b) bsfs
+  let cs   = fmap fst res
+      sfs' = fmap snd res
+  (e,sfF') <- unMSF sfF (a, cs)
+  let ct = case e of
+            Event d -> sfCs sfs' d
+            NoEvent -> dpSwitch rf sfs' sfF' sfCs
+  return (cs, ct)

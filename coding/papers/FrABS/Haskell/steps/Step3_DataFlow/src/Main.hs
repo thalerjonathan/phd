@@ -32,10 +32,10 @@ type SIRAgentOut  = AgentOut SIRState SIRMsg
 type SIRAgent     = SF SIRAgentIn SIRAgentOut
 
 agentCount :: Int
-agentCount = 10000
+agentCount = 100
 
 infectedCount :: Int
-infectedCount = 10
+infectedCount = 1
 
 rngSeed :: Int
 rngSeed = 42
@@ -85,7 +85,7 @@ runSimulation g t dt as = map (\aos -> map aoObservable aos) aoss
 
 stepSimulation :: [SIRAgent] -> [SIRAgentIn] -> SF () [SIRAgentOut]
 stepSimulation sfs ains =
-    pSwitch
+    dpSwitch
       (\_ sfs' -> (zip ains sfs'))
       sfs
       (switchingEvt >>> notYet) -- if we switch immediately we end up in endless switching, so always wait for 'next'

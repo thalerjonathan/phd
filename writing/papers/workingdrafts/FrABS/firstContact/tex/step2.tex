@@ -110,7 +110,7 @@ Yampa provides the function \textit{embed} which allows to run a signal-function
 \begin{minted}[fontsize=\footnotesize]{haskell}
 stepSimulation :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
 stepSimulation sfs as =
-    pSwitch
+    dpSwitch
       (\_ sfs' -> (map (\sf -> (as, sf)) sfs'))
       sfs
       -- if we switch immediately we end up in endless switching, so always wait for 'next'
@@ -125,7 +125,7 @@ stepSimulation sfs as =
     cont sfs' newAs = stepSimulation sfs' newAs
 \end{minted}
 
-This function takes all the signal-functions and current states of all agents and returns a signal-function which has the unit-type as input and returns a list of agent-states. What we need to do is to run all agents signal-functions in parallel where all the agent-states are passed as inputs and collect the output of all signal-functions into a list. Fortunately Yampa provides the function \textit{pSwitch} for this task. Its first argument is the pairing-function which pairs up the input to the signal-functions, the second argument is the collection of signal-functions, the third argument is a signal-function generating the switching event and the last argument is a function which generates the continuation after the switching event has occurred.
+This function takes all the signal-functions and current states of all agents and returns a signal-function which has the unit-type as input and returns a list of agent-states. What we need to do is to run all agents signal-functions in parallel where all the agent-states are passed as inputs and collect the output of all signal-functions into a list. Fortunately Yampa provides the function \textit{dpSwitch} for this task TODO: explain the d in p, and why we use it. Its first argument is the pairing-function which pairs up the input to the signal-functions, the second argument is the collection of signal-functions, the third argument is a signal-function generating the switching event and the last argument is a function which generates the continuation after the switching event has occurred.
 pSwitch then returns a new signal-function which runs all the signal-functions in parallel (thus the p) and switching into the continuation when the switching event occurs. The continuation-generation function gets passed the signal-functions after they were run in parallel and the data of the switching event which in combination allows us to recursively switch back into the stepSimulation function. In every step we generate a switching event which passes the final agent-states to the continuation-generation which in turn simply returns stepSimulation recursively but now with the new signal-functions and the new agent-states. Note that we delay the switching event always by one step because the continuations are evaluated always upon switching which would result in an infinite switching loop if not delayed using \textit{notYet}.
 
 \subsubsection{Results}

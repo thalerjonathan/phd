@@ -57,11 +57,19 @@ executable Step4-Dunai
   -- other-extensions:    
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.9 && <4.10
-  
+  build-depends:        base >=4.9 && <4.10
+                      , bearriver
+                      , dunai
+                      , MonadRandom
+                      , containers
+                      , mtl 
+
   -- Directories containing source files.
-  hs-source-dirs:      src
+  hs-source-dirs:       .
+                      , src
+                      , ../Shared
   
   -- Base language which the package is written in.
   default-language:    Haskell2010
   
+  ghc-options:         -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing

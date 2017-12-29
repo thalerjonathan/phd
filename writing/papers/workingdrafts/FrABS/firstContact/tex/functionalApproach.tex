@@ -11,13 +11,11 @@ Although we presented a high-level agent-based approach to the SIR model in the 
 
 \input{./tex/step3.tex}
 
-\subsection{Step IV: Generalising to Monadic Stream Functions}
-- this allows us to add dynamic environments and agent transactions
-- we need deterministic behaviour under all curcumstances, thus we cannot use IO or STM. for globally mutable state we use StateT
-- also putting agentout into StateT monad composes now much better
+\input{./tex/step4.tex}
 
 \subsection{Step V: Adding an environment}
+we already have one variant of possible environment scenarios: the read-only one. Now we will introduce a different approach of communication between the agents by introducing a read/write environment.
 adding Environment: when in in/out its cumbersome, end up with n copies, pro-active Environment needs to be hacked in, have additional complexities
- 
+
 \subsection{Step VI: Adding agent transactions}
 TX: running agents and with 0 dt is easy with bearriver.

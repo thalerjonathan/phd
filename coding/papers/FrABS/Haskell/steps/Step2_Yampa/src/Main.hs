@@ -11,16 +11,16 @@ import SIR
 type SIRAgent = SF [SIRState] SIRState
 
 agentCount :: Int
-agentCount = 1000
+agentCount = 100
 
 infectedCount :: Int
-infectedCount = 10
+infectedCount = 1
 
 rngSeed :: Int
 rngSeed = 42
 
 dt :: DTime
-dt = 0.1
+dt = 0.0025
 
 t :: Time
 t = 150

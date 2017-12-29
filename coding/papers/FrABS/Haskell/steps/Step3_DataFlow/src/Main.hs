@@ -58,7 +58,7 @@ main = do
   let fileName =  "STEP_3_DATAFLOW_DYNAMICS_" ++ show agentCount ++ "agents.m"
   writeAggregatesToFile fileName dyns
 
-runSimulation :: (RandomGen g) 
+runSimulation :: RandomGen g 
               => g 
               -> Time 
               -> DTime 
@@ -77,7 +77,7 @@ runSimulation g t dt as = map (\aos -> map aoObservable aos) aoss
 
     aoss = embed (stepSimulation sfs ains) ((), dts)
 
-    rngSplits :: (RandomGen g) => g -> Int -> [g] -> ([g], g)
+    rngSplits :: RandomGen g => g -> Int -> [g] -> ([g], g)
     rngSplits g 0 acc = (acc, g)
     rngSplits g n acc = rngSplits g'' (n-1) (g' : acc)
       where
@@ -94,26 +94,26 @@ stepSimulation sfs ains =
   where
     switchingEvt :: SF ((), [SIRAgentOut]) (Event [SIRAgentIn])
     switchingEvt = proc (_, aos) -> do
-      let ais = map aiId ains
-      let aios = zip ais aos
-      let nextAins = distributeData aios
+      let ais      = map aiId ains
+          aios     = zip ais aos
+          nextAins = distributeData aios
       returnA -< Event nextAins
 
     cont :: [SIRAgent] -> [SIRAgentIn] -> SF () [SIRAgentOut]
     cont sfs nextAins = stepSimulation sfs nextAins
 
-sirAgent :: (RandomGen g) => g -> [AgentId] -> SIRState -> SIRAgent
+sirAgent :: RandomGen g => g -> [AgentId] -> SIRState -> SIRAgent
 sirAgent g ais  Susceptible = susceptibleAgent g ais
 sirAgent g _    Infected    = infectedAgent g
 sirAgent _ _    Recovered   = recoveredAgent
 
-susceptibleAgent :: (RandomGen g) => g -> [AgentId] -> SIRAgent
+susceptibleAgent :: RandomGen g => g -> [AgentId] -> SIRAgent
 susceptibleAgent g ais = 
     switch 
       (susceptible g) 
       (const $ infectedAgent g)
   where
-    susceptible :: (RandomGen g) 
+    susceptible :: RandomGen g 
                   => g 
                   -> SF SIRAgentIn (SIRAgentOut, Event ())
     susceptible g0 = proc ain -> do
@@ -124,14 +124,14 @@ susceptibleAgent g ais =
       if infected 
         then returnA -< (agentOut Infected, Event ())
         else (do
-          makeContact <- occasionally g (1 / contactRate) () -< ()
-          contactId <- drawRandomElemSF g -< ais
+          makeContact <- occasionally g (1 / contactRate) ()  -< ()
+          contactId   <- drawRandomElemSF g                   -< ais
 
           if isEvent makeContact
             then returnA -< (dataFlow (contactId, Contact Susceptible) $ agentOut Susceptible, NoEvent)
             else returnA -< (agentOut Susceptible, NoEvent))
 
-infectedAgent :: (RandomGen g) => g -> SIRAgent
+infectedAgent :: RandomGen g => g -> SIRAgent
 infectedAgent g = 
     switch
     infected 
@@ -144,13 +144,12 @@ infectedAgent g =
       -- note that at the moment of recovery the agent can still infect others
       -- because it will still reply with Infected
       let ao = respondToContactWith Infected ain (agentOut a)
-      --returnA -< trace ("infectedAgent") (ao, recEvt)
       returnA -< (ao, recEvt)
 
 recoveredAgent :: SIRAgent
 recoveredAgent = arr (const $ agentOut Recovered)
 
-randomBoolSF :: (RandomGen g) => g -> Double -> SF () Bool
+randomBoolSF :: RandomGen g => g -> Double -> SF () Bool
 randomBoolSF g p = proc _ -> do
   r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
   returnA -< (r <= p)

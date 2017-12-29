@@ -1,0 +1,4 @@
+\subsection{Step IV: Generalising to Monadic Stream Functions}
+- this allows us to add dynamic environments and agent transactions
+- we need deterministic behaviour under all curcumstances, thus we cannot use IO or STM. for globally mutable state we use StateT
+- also putting agentout into StateT monad composes now much better

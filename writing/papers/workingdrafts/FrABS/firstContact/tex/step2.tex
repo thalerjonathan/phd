@@ -133,7 +133,8 @@ As already mentioned, because we are now using the occasionally function we need
 We investigated the behaviour of occasionally under varying $\Delta t$, which we added as Appendix TODO add appendix. From this it becomes apparent that we need to step our simulation with a $\Delta t <= 0.1$ to arrive at a sufficiently close approximation of the SD dynamics.
 TODO: show results
 
-TODO: ALRAM ALARM !!!! our dynamics do not approach the ones of SD yet, Step 1 solution is much better, probably because we need supersampling!
+TODO: ALARM ALARM !!!! our dynamics do not approach the ones of SD yet, Step 1 solution is much better, probably because we need supersampling! when reducing time-deltas to 0.001 we arrive at good solutions.
+TODO: compare the results to random-monad solution 100 agents. with smaller and smaller time-delta we need only 1 infected agent and arrive already at a good approximation. this is not the case in random-monad where because of 1.0 time-delta it results in too non fine-grained resolution
 
 By moving on to FRP using Yampa we made a huge improvement in clarity, expressivity and robustness of our implementation. Also by using explicit time-semantics with \textit{occasionally} we can achieve extremely fine grained stochastics: as opposed to draw random number of events we create only a single event or not. This requires then to sample the system with a much smaller $\Delta t$: we are treating it as a truly continuous system.
 Still we are not too happy about our approach as we feed back all agents states into every agent, something we want to omit in an agent-based simulation. We now move on to step 3 in which we introduce a more general and much more controlled mechanism for feeding back agent-states. 

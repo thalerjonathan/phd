@@ -107,9 +107,9 @@ stepSimulation sfs ains =
     cont sfs nextAins = stepSimulation sfs nextAins
 
 sirAgent :: RandomGen g => [AgentId] -> SIRState -> SIRAgent g
-sirAgent ais  Susceptible = susceptibleAgent ais
-sirAgent _    Infected    = infectedAgent
-sirAgent _    Recovered   = recoveredAgent
+sirAgent ais Susceptible = susceptibleAgent ais
+sirAgent _   Infected    = infectedAgent
+sirAgent _   Recovered   = recoveredAgent
 
 susceptibleAgent :: RandomGen g => [AgentId] -> SIRAgent g
 susceptibleAgent ais = 

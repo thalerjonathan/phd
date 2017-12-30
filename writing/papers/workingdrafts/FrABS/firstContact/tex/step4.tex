@@ -1,13 +1,106 @@
 \subsection{Step IV: Generalising to Monadic Stream Functions}
+TODO: write a bit introductory words for this subsection
+
+\subsubsection{Identity Monad}
+We start by making the transition to BearRiver by simply replacing Yampas signal-function by BearRivers which is the same but takes an additional type-parameter \textit{m} which indicates the monad. If we replace this type-parameter with the identity monad we should be able to keep the code exactly the same, except from a few type-declarations, because BearRiver re-implements all necessary functions we are using from Yampa \footnote{This was not quite true at the time we wrote this paper, where \textit{occasionally}, \textit{noiseR} and \textit{dpSwitch} were missing. We simply implemented these functions and created a pull request using git.}.
+We start by re-defining our general agent signal-function, introducing the monad (stack) our SIR implementation runs in and the sir-agents signal-function:
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+type Agent m o d = SF m (AgentIn d) (AgentOut o d)
+type SIRMonad    = Identity
+type SIRAgent    = Agent SIRMonad SIRState SIRMsg
+\end{minted}
+
+We also have to add the \textit{SIRMonad} to the existing \textit{stepSimulation} type-declarations and we are nearly done. The function \textit{embed} for running the simulation is not provided by BearRiver but by Dunai which has important implications. Dunai does not know and care about time in MSFs, which is exactly what BearRiver builds on top of MSFs. It does so by adding a \textit{ReaderT Double} which carries the $\Delta t$. This means that \textit{embed} returns a computation in the \textit{ReaderT Double} Monad which we need to run explicitly using \textit{runReaderT}. This then results in an identity computation which we simply peel away using \textit{runIdentity}. Here is the complete code of \textit{runSimulation}:
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+runSimulation :: RandomGen g
+              => g 
+              -> Time 
+              -> DTime 
+              -> [(AgentId, SIRState)] 
+              -> [[SIRState]]
+runSimulation g t dt as = map (\aos -> map aoObservable aos) aoss
+  where
+    steps = floor TODO DOLLAR t / dt
+    dts = replicate steps ()
+    n = length as
+
+    (rngs, _) = rngSplits g n []
+    ais = map fst as
+    sfs = map (\ (g', (_, s)) -> sirAgent g' ais s) (zip rngs as)
+    ains = map (\ (aid, _) -> agentIn aid) as
+
+    aossReader = embed (stepSimulation sfs ains) dts
+    aossIdentity = runReaderT aossReader dt
+    aoss = runIdentity aossIdentity
+\end{minted}
+
+Note that embed does not take a list of $\Delta t$ any more but simply a list of inputs for each step to the top level signal-function.
+
+\subsubsection{Random Monad}
+Using the Identity Monad does not gain us anything but it was a first step towards a more general solution. Our next step is to replace the Identity Monad by the Random Monad which will allow us to get rid of the RandomGen arguments to our functions and run the whole simulation within the RandomMonad \textit{again} just as we started but now with the full features functional reactive programming!
+We start by re-defining the SIRMonad and SIRAgent:
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+type SIRMonad g = Rand g
+type SIRAgent g = Agent (SIRMonad g) SIRState SIRMsg
+\end{minted}
+
+Note that we parametrise the Random Monad with a RandomGen g thus this requires to add the RandomGen type-class to all functions where it was not yet added. We also simply remove all RandomGen arguments to all functions except \textit{runSimulation}. The question is now how to access this random monad functionality within the MSF context.
+For the function \textit{occasionally}, there exists a monadic pendant \textit{occasionallyM} which requires a MonadRandom type-class. Because we are now running within a MonadRandom instance we simply replace \textit{occasionally} with \textit{occasionallyM}.
+Running \textit{gotInfected} is now much easier. Using the function \textit{arrM} of Dunai allows us to run a monadic action in the stack as an arrow. We then directly run gotInfected by lifting it into the random-monad.
+This can be seen in the susceptible agent running in the random monad SF:
+\begin{minted}[fontsize=\footnotesize]{haskell}
+susceptibleAgent :: RandomGen g => [AgentId] -> SIRAgent g
+susceptibleAgent ais = 
+    switch 
+      susceptible
+      (const TODO DOLLAR infectedAgent)
+  where
+    susceptible :: RandomGen g 
+                => SF (SIRMonad g) SIRAgentIn (SIRAgentOut, Event ())
+    susceptible = proc ain -> do
+      infected <- arrM (\ain -> lift TODO DOLLAR gotInfected infectivity ain) -< ain
+
+      if infected 
+        then returnA -< (agentOut Infected, Event ())
+        else (do
+          makeContact <- occasionallyM (1 / contactRate) () -< ()
+          contactId   <- drawRandomElemSF                   -< ais
+
+          if isEvent makeContact
+            then returnA -< (dataFlow (contactId, Contact Susceptible) TODO DOLLAR agentOut Susceptible, NoEvent)
+            else returnA -< (agentOut Susceptible, NoEvent))
+\end{minted}
+
+Note also that \textit{drawRandomElemSF} doesn't take a random number generator as well as it has been reimplemented to make full use of the MonadRandom in the stack:
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+drawRandomElemS :: MonadRandom m => SF m [a] a
+drawRandomElemS = proc as -> do
+  r <- getRandomRS ((0, 1) :: (Double, Double)) -< ()
+  let len = length as
+  let idx = (fromIntegral TODO DOLLAR len) * r
+  let a =  as !! (floor idx)
+  returnA -< a
+\end{minted}
+
+Instead of \textit{noiseR} which requires a RandomGen, it makes use of Dunai \textit{getRandomRS} stream function which simply runs \textit{getRandomR} in the MonadRandom.
+
+Finally because our innermost monad is now the Random Monad instead of the Identity in \textit{runSimulation} we need to replace \textit{runIdentity} by \textit{evalRand}:
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+aossReader = embed (stepSimulation sfs ains) dts
+  aossRand = runReaderT aossReader dt
+      aoss = evalRand aossRand g
+\end{minted}
+
+\subsubsection{State Monad}
+adding the state-monad for agentout
+
 - this allows us to add dynamic environments and agent transactions
 - we need deterministic behaviour under all curcumstances, thus we cannot use IO or STM. for globally mutable state we use StateT
 - also putting agentout into StateT monad composes now much better
 
-TODO problem: when using my implementation of dpSwitch without notYet, then it still terminates. In Yampa we need notYet!!
-TODO: test with dpSwitchB of both 
-
-TODO:
-Step IV a): just adding the monad to all functions, running in the identity monad
-Step IV b): running in the random-monad
-Step IV c): adding the state-monad for agentout
-
+\subsubsection{Reflections}

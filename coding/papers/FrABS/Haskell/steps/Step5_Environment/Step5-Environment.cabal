@@ -64,6 +64,7 @@ executable Step5-Environment
                       , containers
                       , mtl 
                       , gloss
+                      , array
                       
   -- Directories containing source files.
   hs-source-dirs:       .

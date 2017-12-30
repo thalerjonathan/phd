@@ -5,36 +5,28 @@ import System.IO
 
 import Control.Monad.Random
 import Control.Monad.Reader
+import Control.Monad.State
 import Control.Monad.Trans.MSF.Random
-import qualified Data.Map as Map
 import Data.Array.IArray
 import FRP.BearRiver
 
 import SIR
-
-data AgentIn = AgentIn
-  {
-    aiId    :: !AgentId
-  } deriving (Show)
 
 data AgentOut o = AgentOut
   {
     aoObservable  :: !o
   } deriving (Show)
 
-type Agent m o    = SF m (AgentIn) (AgentOut o)
+type Agent m o    = SF m () (AgentOut o)
 
-type SIREnv       = Array Discrete2dCoord SIRState
+type Disc2dCoord  = (Int, Int)
+type SIREnv       = Array Disc2dCoord SIRState
 type SIRMonad g   = StateT SIREnv (Rand g)
-type SIRAgentIn   = AgentIn
 type SIRAgentOut  = AgentOut SIRState
 type SIRAgent g   = Agent (SIRMonad g) SIRState
 
-agentCount :: Int
-agentCount = 100
-
-infectedCount :: Int
-infectedCount = 10
+agentGrid :: (Int, Int)
+agentGrid = (10, 10)
 
 rngSeed :: Int
 rngSeed = 42
@@ -49,90 +41,94 @@ main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
 
-  let g = mkStdGen rngSeed
-  let as = initAgents agentCount infectedCount
-  let ass = runSimulation g t dt as
+  let g   = mkStdGen rngSeed
+      as  = initAgents agentGrid
+      e   = initEnvironment agentGrid as
+      ass = runSimulation g t dt e as
 
-  let dyns = aggregateAllStates ass
-  let fileName =  "STEP_4_BEARRIVER_DYNAMICS_" ++ show agentCount ++ "agents.m"
+      dyns      = aggregateAllStates ass
+      fileName  =  "STEP_5_ENVIRONMENT_DYNAMICS_" ++ show agentGrid ++ "agents.m"
   writeAggregatesToFile fileName dyns
 
-initAgents :: Int -> Int -> [(AgentId, SIRState)]
-initAgents n i = sus ++ inf
+initAgents :: (Int, Int) -> [(Disc2dCoord, SIRState)]
+initAgents (xd, yd) = inf : sus
   where
-    sus = map (\ai -> (ai, Susceptible)) [0..n-i-1]
-    inf = map (\ai -> (ai, Infected)) [n-i..n-1]
+    xCenter = floor $ (fromIntegral xd) * (0.5 :: Double)
+    yCenter = floor $ (fromIntegral xd) * (0.5 :: Double)
+    
+    sus = [ ((x, y), Susceptible) | x <- [0..xd-1], 
+                                    y <- [0..yd-1], 
+                                    x /= xCenter && 
+                                    y /= yCenter ] 
+    inf = ((xCenter, yCenter), Infected)
 
+initEnvironment :: (Int, Int) -> [(Disc2dCoord, SIRState)] -> SIREnv
+initEnvironment (xd, yd) as = array ((0, 0), (xd - 1, yd - 1)) as
+ 
 runSimulation :: RandomGen g
               => g 
               -> Time 
               -> DTime 
               -> SIREnv
-              -> [(AgentId, SIRState)] 
+              -> [(Disc2dCoord, SIRState)] 
               -> [[SIRState]]
 runSimulation g t dt e as = map (\aos -> map aoObservable aos) aoss
   where
     steps = floor $ t / dt
     dts = replicate steps ()
+    sfs = map (\(c, s) -> sirAgent c s) as
 
-    ais = map fst as
-    sfs = map (\(_, s) -> sirAgent ais s) as
-    ains = map (\(aid, _) -> agentIn aid) as
-
-    aossReader = embed (stepSimulation sfs ains) dts
-    aossRand = runReaderT aossReader dt
+    aossReader = embed (stepSimulation sfs) dts
+    aossState = runReaderT aossReader dt
+    aossRand = evalStateT aossState e
     aoss = evalRand aossRand g
 
 stepSimulation :: RandomGen g
-               => [SIRAgent g] 
-               -> [SIRAgentIn] 
+               => [SIRAgent g]
                -> SF (SIRMonad g) () [SIRAgentOut]
-stepSimulation sfs ains =
-    dpSwitch
-      (\_ sfs' -> (zip ains sfs'))
+stepSimulation sfs =
+    dpSwitchB
       sfs
       switchingEvt -- no need for 'notYet' in BearRiver as there is no time = 0 with dt = 0
       cont
 
   where
     switchingEvt :: RandomGen g
-                 => SF (SIRMonad g) ((), [SIRAgentOut]) (Event [SIRAgentIn])
-    switchingEvt = proc (_, aos) -> do
-      let ais      = map aiId ains
-          aios     = zip ais aos
-          nextAins = distributeData aios
-      returnA -< Event nextAins
+                 => SF (SIRMonad g) ((), [SIRAgentOut]) (Event ())
+    switchingEvt = proc _ -> do
+      returnA -< Event ()
 
     cont :: RandomGen g 
          => [SIRAgent g] 
-         -> [SIRAgentIn] 
+         -> ()
          -> SF (SIRMonad g) () [SIRAgentOut]
-    cont sfs nextAins = stepSimulation sfs nextAins
+    cont sfs _ = stepSimulation sfs
 
-sirAgent :: RandomGen g => [AgentId] -> SIRState -> SIRAgent g
-sirAgent ais Susceptible = susceptibleAgent ais
-sirAgent _   Infected    = infectedAgent
-sirAgent _   Recovered   = recoveredAgent
+sirAgent :: RandomGen g => Disc2dCoord -> SIRState -> SIRAgent g
+sirAgent c Susceptible = susceptibleAgent c
+sirAgent _ Infected    = infectedAgent
+sirAgent _ Recovered   = recoveredAgent
 
-susceptibleAgent :: RandomGen g => [AgentId] -> SIRAgent g
-susceptibleAgent ais = 
+susceptibleAgent :: RandomGen g => Disc2dCoord -> SIRAgent g
+susceptibleAgent _ = 
     switch 
       susceptible
       (const $ infectedAgent)
   where
     susceptible :: RandomGen g 
-                => SF (SIRMonad g) SIRAgentIn (SIRAgentOut, Event ())
-    susceptible = proc ain -> do
-      infected <- arrM (\ain -> lift $ gotInfected infectivity ain) -< ain
+                => SF (SIRMonad g) () (SIRAgentOut, Event ())
+    susceptible = proc _ -> do
+      --infected <- arrM (\ain -> lift $ gotInfected infectivity ain) -< ain
+      let infected = False
 
       if infected 
         then returnA -< (agentOut Infected, Event ())
         else (do
           makeContact <- occasionallyM (1 / contactRate) () -< ()
-          contactId   <- drawRandomElemS                    -< ais
+          _contactId   <- drawRandomElemS                    -< []
 
           if isEvent makeContact
-            then returnA -< (dataFlow (contactId, Contact Susceptible) $ agentOut Susceptible, NoEvent)
+            then returnA -< (agentOut Susceptible, NoEvent)
             else returnA -< (agentOut Susceptible, NoEvent))
 
 infectedAgent :: RandomGen g => SIRAgent g
@@ -141,13 +137,11 @@ infectedAgent =
     infected 
       (const recoveredAgent)
   where
-    infected :: RandomGen g => SF (SIRMonad g) SIRAgentIn (SIRAgentOut, Event ())
-    infected = proc ain -> do
+    infected :: RandomGen g => SF (SIRMonad g) () (SIRAgentOut, Event ())
+    infected = proc _ -> do
       recEvt <- occasionallyM illnessDuration () -< ()
       let a = event Infected (const Recovered) recEvt
-      -- note that at the moment of recovery the agent can still infect others
-      -- because it will still reply with Infected
-      let ao = respondToContactWith Infected ain (agentOut a)
+      let ao = (agentOut a)
       returnA -< (ao, recEvt)
 
 recoveredAgent :: RandomGen g => SIRAgent g
@@ -164,12 +158,7 @@ drawRandomElemS = proc as -> do
 randomBoolM :: RandomGen g => Double -> Rand g Bool
 randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)
 
-agentIn :: AgentId -> AgentIn d
-agentIn aid = AgentIn {
-    aiId    = aid
-  }
-
-agentOut :: o -> AgentOut o d
+agentOut :: o -> AgentOut o
 agentOut o = AgentOut {
     aoObservable  = o
   }

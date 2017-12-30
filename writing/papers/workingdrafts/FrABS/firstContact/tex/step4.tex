@@ -96,11 +96,7 @@ aossReader = embed (stepSimulation sfs ains) dts
       aoss = evalRand aossRand g
 \end{minted}
 
-\subsubsection{State Monad}
-adding the state-monad for agentout
-
-- this allows us to add dynamic environments and agent transactions
-- we need deterministic behaviour under all curcumstances, thus we cannot use IO or STM. for globally mutable state we use StateT
-- also putting agentout into StateT monad composes now much better
-
 \subsubsection{Reflections}
+By making the transition to MSFs we can now stack arbitrary number of Monads. As an example we could add a StateT monad on the type of AgentOut which would allow to conveniently manipulate the AgentOut e.g. in case where one sends more than one message or the construction of the final AgentOut is spread across multiple functions which allows easy composition. When implementing this one needs to replace the dpSwitch with an individual implementation in which one runs the state monad isolated for each agent.
+We could even add the IO monad if our agents require arbitrary IO e.g. reading/writing from files or communicating over TCP/IP. Although one could run in the IO monad, one should not do so as we would loose all guarantees about the reproducibility of our simulation. In ABS we need deterministic behaviour under all circumstances where repeated runs with the same initial conditions, including the random-number generator, should result in the same dynamics. If we allow IO we loose the ability to guarantee the reproducibility at compile-time even if the agents never use IO facilities and just run in the IO for printing debug messages.
+So far making the transition to MSFs does not seem as compelling as making the move from the RandomMonad in step 1 to FRP in step 2. Running in the RandomMonad within FRP is convenient but we could achieve the same with passing RandomGen around as we showed in Step 3. In the next step we introduce the concept of a read/write environment which we realise using a StateT monad. This will show the real benefit of the transition to MSFs as without it, implementing a general Environment access would be quite cumbersome.

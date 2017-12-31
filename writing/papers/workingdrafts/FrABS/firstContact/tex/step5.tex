@@ -1,10 +1,148 @@
 \subsection{Step V: Adding an environment}
 In this step we will add an environment in which the agents exist and through which they interact with each other. This is a fundamental different approach to agent-agent interaction but is as valid as the interactions in the previous steps.
 In ABS agents are often situated within a discrete 2d environment TODO: cite sugarscape, schelling, agentzero, which is simply a finite nxm grid with either a moore or neumann neighbourhood. Agents are either static or can move freely around with cells allowing either single or multiple occupants. 
-We can directly transfer the SIR model to a discrete 2d environment by placing the agents on a corresponding 2d grid with a moore neighbourhood. The behaviour of the agents is the same but they select their neighbours directly from the environment using the moore neighbourhood. Also instead of using data-flow to communicate, agents now communicate through the environment by revealing their current state to their neighbours by placing it on their cell. Agents can read (actually they could write too) then the states of all their neighbours which tells them if a neighbour is infected or not. This allows us to implement the infection mechanism close to step 1 and 2.
+We can directly transfer the SIR model to a discrete 2d environment by placing the agents on a corresponding 2d grid with an unrestricted neighbourhood. The behaviour of the agents is the same but they select their neighbours directly from the environment using the provided neighbourhood. Also instead of using data-flow to communicate, agents now communicate through the environment by revealing their current state to their neighbours by placing it on their cell. Agents can read (actually they could write too) then the states of all their neighbours which tells them if a neighbour is infected or not. This allows us to implement the infection mechanism close to step 1 and 2.
 
+\subsection{Implementation}
+We start by defining our discrete 2d environment for which we use an indexed 2-dimensional array. In each cell the agents will store their current state, thus we use the \textit{SIRState} as type for our array data:
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+type Disc2dCoord = (Int, Int)
+type SIREnv      = Array Disc2dCoord SIRState
+\end{minted}
+
+Next we redefine our monad-stack and agent signal-function. We use a StateT transformer on top of our Random Monad from step 4 with the previously defined SIREnv as type for the state. Our agent signal-function now has only unit input and output type as we removed the data-flow mechanism for reasons of clarity. This also indicates through the types that the actions of the agents are only visible in side-effects through the monad stack they are running in.
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+type SIRMonad g = StateT SIREnv (Rand g)
+type SIRAgent g = SF (SIRMonad g) () ()
+\end{minted}
+
+Instead of having a unique AgentId an agent is now initialised through its Disc2dCoord and its initial state. 
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+sirAgent :: RandomGen g => Disc2dCoord -> SIRState -> SIRAgent g
+sirAgent c Susceptible = susceptibleAgent c
+sirAgent c Infected    = infectedAgent c
+sirAgent _ Recovered   = recoveredAgent
+\end{minted}
+
+Again the recovered agent behaviour is the shortest one:
+\begin{minted}[fontsize=\footnotesize]{haskell}
+recoveredAgent :: RandomGen g => SIRAgent g
+recoveredAgent = arr (const ())
+\end{minted}
+
+The implementation of a susceptible agent is now a bit different and a mix of step 1 and step 4. Instead of using data-flows the agent directly queries the environment for its neighbours and randomly selects one of them. The remaining behaviour is similar to the previous steps:
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+susceptibleAgent :: RandomGen g => Disc2dCoord -> SIRAgent g
+susceptibleAgent coord = 
+    switch 
+      susceptible
+      (const TODO DOLLAR infectedAgent coord)
+  where
+    susceptible :: RandomGen g 
+                => SF (SIRMonad g) () ((), Event ())
+    susceptible = proc _ -> do
+      makeContact <- occasionallyM (1 / contactRate) () -< ()
+
+      if not TODO DOLLAR isEvent makeContact 
+        then returnA -< ((), NoEvent)
+        else (do
+          e <- arrM (\_ -> lift get) -< ()
+          --let ns = neighbours e coord agentGrid moore
+          let ns = allNeighbours e
+          s <- drawRandomElemS       -< ns
+
+          if Infected /= s
+            then returnA -< ((), NoEvent)
+            else (do
+              infected <- arrM (\_ -> lift $ lift $ randomBoolM infectivity) -< ()
+              if infected 
+                then (do
+                  arrM (\e -> put TODO DOLLAR changeCell coord Infected e) -< e
+                  returnA -< ((), Event ()))
+                else returnA -< ((), NoEvent)))
+\end{minted}
+
+Note that the susceptible agent itself changes its state in the environment from Susceptible to Infected upon infection.
+
+The behaviour of an infected agent is nearly the same with the difference that upon recovery the infected agent updates its state in the environment from Infected to Recovered.
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+infectedAgent :: RandomGen g => Disc2dCoord -> SIRAgent g
+infectedAgent coord = 
+    switch
+    infected 
+      (const recoveredAgent)
+  where
+    infected :: RandomGen g => SF (SIRMonad g) () ((), Event ())
+    infected = proc _ -> do
+      recovered <- occasionallyM illnessDuration () -< ()
+      if isEvent recovered
+        then (do
+          e <- arrM (\_ -> lift get) -< ()
+          arrM (\e -> put TODO DOLLAR changeCell coord Recovered e) -< e
+          returnA -< ((), Event ()))
+        else returnA -< ((), NoEvent)
+\end{minted}
+
+Running the simulation is now slightly different as we have an initial environment and also need to peel away the StateT transformer:
+\begin{minted}[fontsize=\footnotesize]{haskell}
+runSimulation :: RandomGen g
+              => g 
+              -> Time 
+              -> DTime 
+              -> SIREnv
+              -> [(Disc2dCoord, SIRState)] 
+              -> [SIREnv]
+runSimulation g t dt e as = es
+  where
+    steps = floor TODO DOLLAR t / dt
+    dts = replicate steps ()
+    sfs = map (\ (c, s) -> sirAgent c s) as
+
+    esReader = embed (stepSimulation sfs) dts
+    esState = runReaderT esReader dt
+    esRand = evalStateT esState e
+    es = evalRand esRand g
+\end{minted}
+
+As initial state we use the initial environment and instead of returning agent-states we simply return a list of environments, one for each step. The agent-states can then be extracted from each environment.
+
+Due to the different approach of returning the SIREnv in every step, we implemented our own MSF:
+\begin{minted}[fontsize=\footnotesize]{haskell}
+stepSimulation :: RandomGen g
+               => [SIRAgent g]
+               -> SF (SIRMonad g) () SIREnv
+stepSimulation sfs = MSF TODO DOLLAR \_ -> do
+  res <- mapM (`unMSF` ()) sfs
+  let sfs'  = fmap snd res
+  e <- get
+  let ct = stepSimulation sfs'
+  return (e, ct) 
+\end{minted}
+
+\subsection{Results}
+In addition to plotting the dynamics we implemented rendering functionality of the environments using the gloss library. This allows us to cycle arbitrarily through the steps and inspect the spreading of the disease over time visually.
+
+When using an unrestricted neighbourhood we should arrive at the same dynamics of the SD approach.
+TODO: show dynamics AND 2d-grid renderings of unrestricted neighbourhood
+
+In agent-based simulation the neighbourhood on a discrete neighbourhood is often restricted to either a moore or von neumann neighbourhood (TODO: draw small diagrams). This should result in different dynamics as agents have now a reduced subset of agents they can infect.
+
+TODO: show dynamics AND 2d-grid renderings using a moore neighbourhood
+TODO: add analysis from the first draft paper
 
 \subsection{Reflection}
-In step 3 and 4 we already have one variant of possible environment scenarios: the non-proactive read-only one. Implementing a pro-active read-only is easy: we use an agent as environment which broadcasts updates to all agents through data-flows. Implementing non pro-active read/write environments is very easy possible using MSFs and the StateT monad as shown in this step. If we want our environment to be pro-active e.g. regrowing some resources, then we simply add an environment-agent which acts upon the environment state. The convenient thing is that although conceptually all agents act at the same time, technically by using \textit{map} they are run after another which also serialises the environment access which gives every agent exclusive read/write access while it is active.
-When attempting to introduce a non/pro-active read/write environment to the Yampa implementation it becomes quite cumbersome. A possible solution would be to add another type-parameter \textit{e} which captures the type of the environment and then pass it in through the input and allow it to be returned in the output of an agent signal-function. We would then end up with n copies of the environment - one for each agent - which we need to fold back into a single environment. When we have a pro-active environment we could also add it as another agent but this results in even more problems when folding it back - the solution would be to run a separate environment signal-function which acts on the folded environment after all agents are run. All these problems are not an issue when using MSFs with a StateT as they become obsolete.
+At first the environment approach might seem a bit overcomplicated and one might ask what we have gained over using an unrestricted neighbourhood where all agents can contact all others we arrive at the same dynamics as in SD. The real win is that we can introduce arbitrary restrictions on the neighbourhood as shown using the moore or von neumann neighbourhood. 
+Of course the environment is not restricted to a discrete 2d grid and can be anything from a continuous n-dimensional space to a complex network - one only needs to change the type of the StateT monad and provide corresponding neighbourhood querying functions. The ability to place the heterogeneous agents in a generic environment is also the fundamental advantage of an agent-based over a SD approach as it allows to simulate much more realistic scenarios.
+
+Note that for reasons of clarity we have removed the data-flow approach from this implementation which results in the unit-types of input and output. Of course in a full blown agent-based simulation library we would combine both approaches and leave the AgentIn/AgentOut types with the data-flow functionality in place as implemented in step 4.
+
+In step 3 and 4 we already have one variant of possible environment scenarios: the non-proactive read-only one. Implementing a pro-active read-only is easy: we use an agent as environment which broadcasts updates to all agents through data-flows. Implementing non pro-active read/write environments is very easy possible using MSFs and the StateT monad as shown in this step. If we want our environment to be pro-active e.g. regrowing some resources, then we simply add an environment-agent which acts upon the environment state. The convenient thing is that although conceptually all agents act at the same time, technically by using \textit{mapM} in \textit{stepSimulation} they are run after another which also serialises the environment access which gives every agent exclusive read/write access while it is active.
+
+Attempting to introduce a non/pro-active read/write environment to the Yampa implementation is quite cumbersome. A possible solution would be to add another type-parameter \textit{e} which captures the type of the environment and then pass it in through the input and allow it to be returned in the output of an agent signal-function. We would then end up with n copies of the environment - one for each agent - which we need to fold back into a single environment. When we have a pro-active environment we could also add it as another agent but this results in even more problems when folding it back - the solution would be to run a separate environment signal-function which acts on the folded environment after all agents are run. All these problems are not an issue when using MSFs with a StateT which is a compelling example for making the transition to the more general MSFs.
+
 In the last step we will introduce synchronised agent-transaction as the final agent-agent interaction mechanism. This is a quite sophisticated concept: synchronised agent-transactions which allow an arbitrary number of interactions between two agents without time lag. The use-case for this are price negotiations between multiple agents where the agents need to come to an agreement in the same time-step as described in TODO cite sugarscape.

@@ -224,7 +224,7 @@ infectedAgent coord =
         else returnA -< ((), NoEvent)
 
 recoveredAgent :: RandomGen g => SIRAgent g
-recoveredAgent = arr (const $ ())
+recoveredAgent = arr (const ())
 
 drawRandomElemS :: MonadRandom m => SF m [a] a
 drawRandomElemS = proc as -> do

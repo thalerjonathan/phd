@@ -62,6 +62,7 @@ data SIRMsg        = Contact SIRState deriving (Show, Eq)
 type SIRAgentIn    = AgentIn SIRMsg
 type SIRAgentOut g = AgentOut (SIRMonad g) SIRState SIRMsg
 type SIRAgent g    = Agent (SIRMonad g) SIRState SIRMsg
+type SIRAgentTX g  = AgentTX (SIRMonad g) SIRState SIRMsg
 
 agentCount :: Int
 agentCount = 100
@@ -121,7 +122,9 @@ stepSimulation sfs ains = MSF $ \_ -> do
       ais  = map aiId ains
       aios = zip ais aos
 
-  (aios', sfs'') <- unMSF runTransactions (aios, sfs')
+  -- this works only because runTransactions is stateless
+  -- and runs the SFs with dt = 0
+  ((aios', sfs''), _) <- unMSF runTransactions (aios, sfs')
 
   let aos'  = map snd aios'
       ains' = map agentIn ais
@@ -135,25 +138,40 @@ sirAgent _   Infected    = infectedAgent
 sirAgent _   Recovered   = recoveredAgent
 
 susceptibleAgent :: RandomGen g => [AgentId] -> SIRAgent g
-susceptibleAgent ais = 
-    switch 
-      susceptible
-      (const $ infectedAgent)
+susceptibleAgent ais = proc _ -> do
+    makeContact <- occasionallyM (1 / contactRate) () -< ()
+
+    if not $ isEvent makeContact
+      then returnA -< agentOut Susceptible
+      else (do
+        contactId <- drawRandomElemS -< ais
+        returnA -< requestTx 
+                    (contactId, Contact Susceptible) 
+                    susceptibleTx
+                    (agentOut Susceptible))
   where
-    susceptible :: RandomGen g 
-                => SF (SIRMonad g) SIRAgentIn (SIRAgentOut g, Event ())
-    susceptible = proc ain -> do
-      infected <- arrM (\ain -> lift $ randomBoolM infectivity) -< ain
-
-      if infected 
-        then returnA -< (agentOut Infected, Event ())
-        else (do
-          makeContact <- occasionallyM (1 / contactRate) () -< ()
-          contactId   <- drawRandomElemS                    -< ais
-
-          if isEvent makeContact
-            then returnA -< (agentOut Susceptible, NoEvent)
-            else returnA -< (agentOut Susceptible, NoEvent))
+    susceptibleTx :: RandomGen g => SIRAgentTX g
+    susceptibleTx = proc txIn -> do
+      -- should have always tx data
+      if hasTxDataIn txIn 
+          then (do
+            let (Contact s) = txDataIn txIn 
+            -- only infected agents reply, but make it explicit
+            if Infected /= s
+              -- don't commit with continuation, no change in behaviour
+              then returnA -< commitTx (agentOut Susceptible) agentTXOut
+              else (do
+                infected <- arrM (\_ -> lift $ randomBoolM infectivity) -< ()
+                if infected
+                  -- commit with continuation as we switch into infected behaviour
+                  then returnA -< commitTxWithCont 
+                                    (agentOut Infected) 
+                                    infectedAgent
+                                    agentTXOut
+                  -- don't commit with continuation, no change in behaviour
+                  else returnA -< commitTx 
+                                    (agentOut Susceptible) agentTXOut))
+          else returnA -< abortTx agentTXOut
 
 infectedAgent :: RandomGen g => SIRAgent g
 infectedAgent = 
@@ -168,7 +186,22 @@ infectedAgent =
       -- note that at the moment of recovery the agent can still infect others
       -- because it will still reply with Infected
       let ao = agentOut a
-      returnA -< (ao, recEvt)
+
+      if isRequestTx ain 
+        then (do
+          returnA -< (acceptTX 
+                      (Contact Infected)
+                      (infectedTx ao)
+                      ao, recEvt))
+        else returnA -< (ao, recEvt)
+
+    infectedTx :: RandomGen g => SIRAgentOut g -> SIRAgentTX g
+    infectedTx ao = proc _ -> do
+      -- it is important not to commit with continuation as it
+      -- would reset the time of the SF to 0. Still occasionally
+      -- would work as it does not accumulate time but functions
+      -- like after or integral would fail
+      returnA -< commitTx ao agentTXOut
 
 recoveredAgent :: RandomGen g => SIRAgent g
 recoveredAgent = arr (const $ agentOut Recovered)
@@ -264,7 +297,7 @@ runTransactions = proc (aios, sfs) -> do
           (rAo', _) <- runAgentWithDt 0 -< (rSf0, rAin) 
 
           let acceptTxEvt = aoAcceptTx rAo'
-          if isEvent acceptTxEvt
+          if not $ isEvent acceptTxEvt
             -- the request has been turned down, no TX
             then (do
               -- transaction request turned down / ignored by receiver
@@ -362,3 +395,65 @@ runAgentTx :: Monad m
 runAgentTx = readerS $ proc (_, (txSf, txIn)) -> do
   (txOut, txSf') <- runReaderS_ (arrM (\(txSf, txIn) -> unMSF txSf txIn)) 0 -< (txSf, txIn)
   returnA -< (txOut, txSf')
+
+  -- AgentIn TX related
+isRequestTx :: AgentIn d -> Bool
+isRequestTx = isEvent . aiRequestTx
+
+requestTxData :: AgentIn d -> AgentData d
+requestTxData = fromEvent . aiRequestTx
+
+requestTxIn :: AgentIn d -> Event (AgentData d)
+requestTxIn = aiRequestTx
+
+-- AgentOut TX related
+requestTx :: AgentData d 
+          -> AgentTX m o d
+          -> AgentOut m o d 
+          -> AgentOut m o d
+requestTx df txSf ao = ao { aoRequestTx = Event (df, txSf) }
+
+acceptTX :: d 
+         -> AgentTX m o d
+         -> AgentOut m o d 
+         -> AgentOut m o d
+acceptTX d txSf ao = ao { aoAcceptTx = Event (d, txSf) }
+
+-- AgentTXOut related
+agentTXOut :: AgentTXOut m o d
+agentTXOut = AgentTXOut
+  {
+    aoTxData    = Nothing
+  , aoTxCommit  = Nothing
+  , aoTxAbort   = False
+  }
+
+txDataOut :: d -> AgentTXOut m o d -> AgentTXOut m o d
+txDataOut d aoTx = aoTx { aoTxData = Just d }
+
+commitTx :: AgentOut m o d 
+         -> AgentTXOut m o d 
+         -> AgentTXOut m o d
+commitTx ao aoTx = aoTx { aoTxCommit = Just (ao, Nothing) }
+
+commitTxWithCont :: AgentOut m o d 
+                 -> Agent m o d
+                 -> AgentTXOut m o d 
+                 -> AgentTXOut m o d
+commitTxWithCont ao sf aoTx = aoTx { aoTxCommit = Just (ao, Just sf) }
+
+abortTx :: AgentTXOut m o d -> AgentTXOut m o d
+abortTx aoTx = aoTx { aoTxAbort = True}
+
+-- AgentTXIn related
+txDataIn :: AgentTXIn d -> d
+txDataIn = fromJust . aiTxData
+
+hasTxDataIn :: AgentTXIn d -> Bool
+hasTxDataIn = isJust . aiTxData
+
+isCommitTX :: AgentTXIn d -> Bool
+isCommitTX = aiTxCommit
+
+isAbortTX :: AgentTXIn d -> Bool
+isAbortTX = aiTxAbort

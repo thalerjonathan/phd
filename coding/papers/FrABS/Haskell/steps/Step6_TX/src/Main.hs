@@ -40,17 +40,6 @@ data AgentTXIn d = AgentTXIn
   , aiTxAbort     :: Bool
   } deriving (Show)
 
--- note that commit returns a agent-sf. this allows
--- to pass state which has changed in the TX to the agent-sf.
--- If we ommit this agent-sf and simply run the existing one 
--- then we couldn't directly pass new state but time-dependent
--- accumulator functions (e.g. time, integral) wouldnt get
--- reset. Maybe we make the function optional using a maybe
--- and if it exists then we use the new one, otherwise run
--- the old one.
--- abort is only a boolean flag and if set to true the
--- old SF and old AgentOut will be restored but with
--- TX begin set to Nothing
 data AgentTXOut m o d = AgentTXOut
   { aoTxData      :: Maybe d
   , aoTxCommit    :: Maybe (AgentOut m o d, Maybe (Agent m o d))

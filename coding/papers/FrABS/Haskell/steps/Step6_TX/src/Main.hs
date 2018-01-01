@@ -279,7 +279,6 @@ runTransactions = proc (aios, sfs) -> do
           returnA -< m')
         else (do
           let (_, rSf0) = fromJust mayReceiver
-          
           let rAin = (agentIn rAid) { aiRequestTx = Event (sAid, d) }
 
           -- ignoring the sf of this run makes it as it has never happened,
@@ -312,10 +311,6 @@ runTransactions = proc (aios, sfs) -> do
                 else (do
                   -- transaction finished, committing
                   let ((sAo', sSf'), (rAo', rSf')) = fromJust mayTx
-
-                  --printDebugS -< ("aid1 = " ++ show aid1 ++ ", ao1 = " ++ show ao1)
-                  --printDebugS -< ("aid2 = " ++ show aid2 ++ ", ao2 = " ++ show ao2)
-                  
                   let m' = Map.insert sAid (sAo', sSf') m
                   let m'' = Map.insert rAid (rAo', rSf') m'
                   

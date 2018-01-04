@@ -2,6 +2,7 @@ module Picture
 
 import Shape
 
+public export
 data Picture = Primitive Shape
              | Combine Picture Picture
              | Rotate Double Picture

@@ -24,3 +24,4 @@ cabal-sandbox/
 .cabal-sandbox/
 cabal.sandbox.config
 *_minted*
+*.ibc

@@ -1,0 +1,1 @@
+Omitting examples and exercises until 5.3, except final exercises of 5.2 becaue already familiar with IO from Haskell.

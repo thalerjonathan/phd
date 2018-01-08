@@ -34,7 +34,7 @@ main = do
   -- (tEnd, ass) <- evalRandIO $ runSimulation dt as
   -- putStrLn $ "All Recovered after t = " ++ show tEnd
   
-  let dyns = aggregateAllStates (map (\as' -> map fst as') ass)
+  let dyns = aggregateAllStates (map (map fst) ass)
   let fileName =  "STEP_1_RANDMNONAD_DYNAMICS_" ++ show agentCount ++ "agents.m"
   writeAggregatesToFile fileName dyns
 
@@ -70,7 +70,7 @@ runSimulation dt as = runSimulationAux 0 dt as []
                       -> [Agents] 
                       -> Rand g (Time, [Agents])
     runSimulationAux t dt as acc
-      | noneInfected as = return $ (t, reverse $ as : acc)
+      | noneInfected as = return (t, reverse $ as : acc)
       | otherwise = do
           as' <- stepSimulation dt as 
           runSimulationAux (t + dt) dt as' (as : acc)
@@ -98,7 +98,7 @@ susceptibleAgent :: RandomGen g => Agents -> Rand g SIRAgent
 susceptibleAgent as = do
     rc <- randomExpM (1 / contactRate)
     cs <- doTimes (floor rc) (makeContact as)
-    if elem True cs
+    if True `elem`cs
       then infect
       else return susceptible
 
@@ -106,7 +106,7 @@ susceptibleAgent as = do
     makeContact :: RandomGen g => Agents -> Rand g Bool
     makeContact as = do
       randContact <- randomElem as
-      if (is Infected randContact)
+      if is Infected randContact
         then randomBoolM infectivity
         else return False
 
@@ -123,7 +123,7 @@ infectedAgent dt (_, t)
     t' = t - dt  
 
 doTimes :: (Monad m) => Int -> m a -> m [a]
-doTimes n f = forM [0..n - 1] (\_ -> f) 
+doTimes n f = forM [0..n - 1] (const f)
 
 is :: SIRState -> SIRAgent -> Bool
 is s (s',_) = s == s'
@@ -131,7 +131,7 @@ is s (s',_) = s == s'
 initAgentsRand :: RandomGen g => Int -> Int -> Rand g Agents
 initAgentsRand n i = do
   let sus = replicate (n - i) susceptible
-  expTs <- mapM randomExpM (replicate i (1 / illnessDuration))
+  expTs <- replicateM i (randomExpM (1 / illnessDuration))
   let inf = map infected expTs
   return $ sus ++ inf
 
@@ -148,7 +148,7 @@ randomBoolM :: RandomGen g => Double -> Rand g Bool
 randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)
 
 randomExpM :: RandomGen g => Double -> Rand g Double
-randomExpM lambda = avoid 0 >>= (\r -> return $ ((-log r) / lambda))
+randomExpM lambda = avoid 0 >>= (\r -> return ((-log r) / lambda))
   where
     avoid :: (Random a, Eq a, RandomGen g) => a -> Rand g a
     avoid x = do

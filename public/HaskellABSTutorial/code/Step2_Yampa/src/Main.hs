@@ -50,7 +50,7 @@ runSimulation g t dt as = embed (stepSimulation sfs as) ((), dts)
     n = length as
 
     (rngs, _) = rngSplits g n []
-    sfs = map (\(g', a) -> sirAgent g' a) (zip rngs as)
+    sfs = zipWith sirAgent rngs as
     
     rngSplits :: RandomGen g => g -> Int -> [g] -> ([g], g)
     rngSplits g 0 acc = (acc, g)
@@ -72,7 +72,7 @@ stepSimulation sfs as =
     switchingEvt = arr (\(_, newAs) -> Event newAs)
 
     cont :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
-    cont sfs' newAs = stepSimulation sfs' newAs
+    cont = stepSimulation
 
 sirAgent :: RandomGen g => g -> SIRState -> SIRAgent
 sirAgent g Susceptible = susceptibleAgent g
@@ -95,7 +95,7 @@ susceptibleAgent g =
       if isEvent makeContact
         then (do
           a <- drawRandomElemSF g -< as
-          if (Infected == a)
+          if Infected == a
             then (do
               i <- randomBoolSF g infectivity -< ()
               if i
@@ -128,8 +128,8 @@ drawRandomElemSF :: RandomGen g => g -> SF [a] a
 drawRandomElemSF g = proc as -> do
   r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
   let len = length as
-  let idx = (fromIntegral $ len) * r
-  let a =  as !! (floor idx)
+  let idx = fromIntegral len * r
+  let a =  as !! floor idx
   returnA -< a
 
 initAgents :: Int -> Int -> [SIRState]

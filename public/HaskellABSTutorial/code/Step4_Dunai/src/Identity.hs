@@ -67,7 +67,7 @@ runSimulation :: RandomGen g
               -> DTime 
               -> [(AgentId, SIRState)] 
               -> [[SIRState]]
-runSimulation g t dt as = map (\aos -> map aoObservable aos) aoss
+runSimulation g t dt as = map (map aoObservable) aoss
   where
     steps = floor $ t / dt
     dts = replicate steps ()
@@ -94,7 +94,7 @@ stepSimulation sfs ains =
       (\_ sfs' -> (zip ains sfs'))
       sfs
       switchingEvt -- no need for 'notYet' in BearRiver as there is no time = 0 with dt = 0
-      cont
+      stepSimulation
 
   where
     switchingEvt :: SF SIRMonad ((), [SIRAgentOut]) (Event [SIRAgentIn])
@@ -103,9 +103,6 @@ stepSimulation sfs ains =
           aios     = zip ais aos
           nextAins = distributeData aios
       returnA -< Event nextAins
-
-    cont :: [SIRAgent] -> [SIRAgentIn] -> SF SIRMonad () [SIRAgentOut]
-    cont sfs nextAins = stepSimulation sfs nextAins
 
 sirAgent :: RandomGen g => g -> [AgentId] -> SIRState -> SIRAgent
 sirAgent g ais  Susceptible = susceptibleAgent g ais
@@ -158,9 +155,12 @@ drawRandomElemSF :: (RandomGen g, Monad m) => g -> SF m [a] a
 drawRandomElemSF g = proc as -> do
   r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
   let len = length as
-  let idx = (fromIntegral $ len) * r
-  let a =  as !! (floor idx)
+  let idx = fromIntegral len * r
+  let a =  as !! floor idx
   returnA -< a
+
+randomBoolM :: RandomGen g => Double -> Rand g Bool
+randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)
 
 initAgents :: Int -> Int -> [(AgentId, SIRState)]
 initAgents n i = sus ++ inf
@@ -181,7 +181,7 @@ onDataM dHdl ai acc = foldM dHdl acc ds
     ds = aiData ai
 
 onData :: (AgentData d -> acc -> acc) -> AgentIn d -> acc -> acc
-onData dHdl ai a = foldr (\msg acc'-> dHdl msg acc') a ds
+onData dHdl ai a = foldr dHdl a ds
   where
     ds = aiData ai
 
@@ -213,7 +213,7 @@ distributeData aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedup by 
         msgs = aiData ain -- NOTE: ain may have already messages, they would be overridden if not incorporating them
 
         mayReceiverMsgs = Map.lookup receiverId allMsgs
-        msgsEvt = maybe msgs (\receiverMsgs -> receiverMsgs ++ msgs) mayReceiverMsgs
+        msgsEvt = maybe msgs (++ msgs) mayReceiverMsgs
 
         ain' = ain { aiData = msgsEvt }
 
@@ -236,7 +236,7 @@ distributeData aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedup by 
               where
                 msg = (senderId, m)
                 mayReceiverMsgs = Map.lookup receiverId accMsgs
-                newMsgs = maybe [msg] (\receiverMsgs -> (msg : receiverMsgs)) mayReceiverMsgs
+                newMsgs = maybe [msg] (\receiverMsgs -> msg : receiverMsgs) mayReceiverMsgs
 
                 -- NOTE: force evaluation of messages, will reduce memory-overhead EXTREMELY
                 accMsgs' = seq newMsgs (Map.insert receiverId newMsgs accMsgs)
@@ -252,51 +252,3 @@ agentOut o = AgentOut {
     aoData        = []
   , aoObservable  = o
   }
-
-randomBoolM :: RandomGen g => Double -> Rand g Bool
-randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)
-
-{-
-occasionally_ :: (Monad m, RandomGen g) 
-              => g 
-              -> Time 
-              -> b 
-              -> SF m a (Event b)
-occasionally_ g tAvg b 
-  | tAvg <= 0 = error "dunai: Non-positive average interval in occasionally."
-  | otherwise = proc _ -> do
-    r  <- noiseR ((0, 1) :: (Double, Double)) g -< ()
-    dt <- arrM_ ask        -< ()
-    let p = 1 - exp (-(dt / tAvg))
-    returnA -< if r < p then Event b else NoEvent
-
-noiseR :: (RandomGen g, Random b, Monad m) 
-       => (b, b) 
-       -> g 
-       -> SF m a b
-noiseR range g0 = loopPre g0 (noiseRAux range)
-  where
-    noiseRAux :: (RandomGen g, Random b, Monad m) 
-              => (b, b) 
-              -> SF m (a, g) (b, g)
-    noiseRAux range = proc (_, g) -> do
-      let (r, g') = randomR range g
-      returnA -< (r, g')
-
-dpSwitch :: (Monad m, Traversable col)
-         => (forall sf. (a -> col sf -> col (b, sf)))
-         -> col (SF m b c) 
-         -> SF m (a, col c) (Event d) 
-         -> (col (SF m b c) -> d -> SF m a (col c))
-         -> SF m a (col c)
-dpSwitch rf sfs sfF sfCs = MSF $ \a -> do
-  let bsfs = rf a sfs
-  res <- T.mapM (\(b, sf) -> unMSF sf b) bsfs
-  let cs   = fmap fst res
-      sfs' = fmap snd res
-  (e,sfF') <- unMSF sfF (a, cs)
-  let ct = case e of
-            Event d -> sfCs sfs' d
-            NoEvent -> dpSwitch rf sfs' sfF' sfCs
-  return (cs, ct)
--}

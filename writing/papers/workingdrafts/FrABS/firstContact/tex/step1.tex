@@ -91,14 +91,14 @@ susceptibleAgent as = do
     makeContact :: RandomGen g => Agents -> Rand g Bool
     makeContact as = do
       randContact <- randomElem as
-      if (is Infected randContact)
+      if is Infected randContact
         then randomBoolM infectivity
         else return False
 
     infect :: RandomGen g => Rand g SIRAgent
     infect = do
-      randIllDur  <- randomExpM (1 / illnessDuration)
-      return  infected randIllDur
+      randIllDur <- randomExpM (1 / illnessDuration)
+      return infected randIllDur
 \end{minted}
 
 The infected agent is trivial. It simply recovers after the given illness duration which is implemented as follows:

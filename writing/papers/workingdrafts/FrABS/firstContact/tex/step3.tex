@@ -48,9 +48,9 @@ Obviously the existing implementation from step 2 needs to be adjusted. Lets loo
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 sirAgent :: RandomGen g => g -> [AgentId] -> SIRState -> SIRAgent
-sirAgent g ais  Susceptible = susceptibleAgent g ais
-sirAgent g _    Infected    = infectedAgent g
-sirAgent _ _    Recovered   = recoveredAgent
+sirAgent g ais Susceptible = susceptibleAgent g ais
+sirAgent g _   Infected    = infectedAgent g
+sirAgent _ _   Recovered   = recoveredAgent
 \end{minted}
 
 It still takes a random-number generator, the initial sir-state and returns the corresponding signal-function depending on the state now in addition it now takes a list of agent ids. When using data-flow we need to know the ids of the agents we are communicating with - we need to know our neighbourhood, or seen differently: we need to have access to the environment we are situated in. In our case our environment is a fully connected read-only network in which all agents know all other agents. The easiest way of representing a fully connected network is simply using a list.
@@ -117,8 +117,8 @@ susceptibleAgent g ais =
       (const TODO DOLLAR infectedAgent g)
   where
     susceptible :: RandomGen g 
-                  => g 
-                  -> SF SIRAgentIn (SIRAgentOut, Event ())
+                => g 
+                -> SF SIRAgentIn (SIRAgentOut, Event ())
     susceptible g0 = proc ain -> do
       rec
         g <- iPre g0 -< g'
@@ -162,7 +162,7 @@ stepSimulation sfs ains =
       (\_ sfs' -> (zip ains sfs'))
       sfs
       (switchingEvt >>> notYet)
-      cont
+      stepSimulation
 
   where
     switchingEvt :: SF ((), [SIRAgentOut]) (Event [SIRAgentIn])
@@ -171,9 +171,6 @@ stepSimulation sfs ains =
           aios     = zip ais aos
           nextAins = distributeData aios
       returnA -< Event nextAins
-
-    cont :: [SIRAgent] -> [SIRAgentIn] -> SF () [SIRAgentOut]
-    cont sfs nextAins = stepSimulation sfs nextAins
 \end{minted}
 
 The distribution of the data-flows happens in the \textit{switchingEvt} signal-function and is then passed on to the continuation-generation function as in step 2. The difference is that it creates now a list of AgentIn for the next step instead of a list of all the agents sir-states of the previous step. Again the continuation-generation function recursively returns the stepSimulation signal-function. The pairing function of pSwitch is now slightly more straightforward as it just pairs up the AgentIn with its corresponding signal-function.

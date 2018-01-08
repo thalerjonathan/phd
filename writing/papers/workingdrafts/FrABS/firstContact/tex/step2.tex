@@ -113,16 +113,12 @@ stepSimulation sfs as =
     dpSwitch
       (\_ sfs' -> (map (\sf -> (as, sf)) sfs'))
       sfs
-      -- if we switch immediately we end up in endless switching, so always wait for 'next'
       (switchingEvt >>> notYet) 
-      cont
+      stepSimulation
 
   where
     switchingEvt :: SF ((), [SIRState]) (Event [SIRState])
     switchingEvt = arr (\ (_, newAs) -> Event newAs)
-
-    cont :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
-    cont sfs' newAs = stepSimulation sfs' newAs
 \end{minted}
 
 This function takes all the signal-functions and current states of all agents and returns a signal-function which has the unit-type as input and returns a list of agent-states. What we need to do is to run all agents signal-functions in parallel where all the agent-states are passed as inputs and collect the output of all signal-functions into a list. Fortunately Yampa provides the function \textit{dpSwitch} for this task TODO: explain the d in p, and why we use it. Its first argument is the pairing-function which pairs up the input to the signal-functions, the second argument is the collection of signal-functions, the third argument is a signal-function generating the switching event and the last argument is a function which generates the continuation after the switching event has occurred.

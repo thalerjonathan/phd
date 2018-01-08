@@ -110,7 +110,7 @@ susceptibleAgent as = do
         then randomBoolM infectivity
         else return False
 
-    infect :: (RandomGen g) => Rand g SIRAgent
+    infect :: RandomGen g => Rand g SIRAgent
     infect = do
       randIllDur  <- randomExpM (1 / illnessDuration)
       return $ infected randIllDur
@@ -122,7 +122,7 @@ infectedAgent dt (_, t)
   where
     t' = t - dt  
 
-doTimes :: (Monad m) => Int -> m a -> m [a]
+doTimes :: Monad m => Int -> m a -> m [a]
 doTimes n f = forM [0..n - 1] (const f)
 
 is :: SIRState -> SIRAgent -> Bool

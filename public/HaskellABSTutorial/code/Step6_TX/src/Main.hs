@@ -86,7 +86,7 @@ runSimulation :: RandomGen g
               -> DTime 
               -> [(AgentId, SIRState)] 
               -> [[SIRState]]
-runSimulation g t dt as = map (\aos -> map aoObservable aos) aoss
+runSimulation g t dt as = map (map aoObservable) aoss
   where
     steps = floor $ t / dt
     dts = replicate steps ()
@@ -140,7 +140,7 @@ susceptibleAgent ais = proc _ -> do
                     (agentOut Susceptible))
   where
     susceptibleTx :: RandomGen g => SIRAgentTX g
-    susceptibleTx = proc txIn -> do
+    susceptibleTx = proc txIn -> 
       -- should have always tx data
       if hasTxDataIn txIn 
           then (do
@@ -177,15 +177,14 @@ infectedAgent =
       let ao = agentOut a
 
       if isRequestTx ain 
-        then (do
-          returnA -< (acceptTX 
-                      (Contact Infected)
-                      (infectedTx ao)
-                      ao, recEvt))
+        then (returnA -< (acceptTX 
+                          (Contact Infected)
+                          (infectedTx ao)
+                          ao, recEvt))
         else returnA -< (ao, recEvt)
 
     infectedTx :: RandomGen g => SIRAgentOut g -> SIRAgentTX g
-    infectedTx ao = proc _ -> do
+    infectedTx ao = proc _ ->
       -- it is important not to commit with continuation as it
       -- would reset the time of the SF to 0. Still occasionally
       -- would work as it does not accumulate time but functions
@@ -199,8 +198,8 @@ drawRandomElemS :: MonadRandom m => SF m [a] a
 drawRandomElemS = proc as -> do
   r <- getRandomRS ((0, 1) :: (Double, Double)) -< ()
   let len = length as
-  let idx = (fromIntegral $ len) * r
-  let a =  as !! (floor idx)
+  let idx = fromIntegral len * r
+  let a =  as !! floor idx
   returnA -< a
 
 randomBoolM :: RandomGen g => Double -> Rand g Bool
@@ -245,15 +244,15 @@ runTransactions = proc (aios, sfs) -> do
   where
     runTransactionsAux :: Monad m
                         => SF m
-                            (([((AgentId, AgentOut m o d), Agent m o d)]),
-                              (Map.Map AgentId (AgentOut m o d, Agent m o d)))
+                            ([((AgentId, AgentOut m o d), Agent m o d)],
+                             Map.Map AgentId (AgentOut m o d, Agent m o d))
                             (Map.Map AgentId (AgentOut m o d, Agent m o d))
-    runTransactionsAux = proc (els, m) -> do
+    runTransactionsAux = proc (els, m) -> 
       if null els
         then returnA -< m
         else (do 
           let e@((_, ao), _) = head els
-          if (isEvent $ aoRequestTx ao)
+          if isEvent $ aoRequestTx ao
             then (do
               m' <- runTxPair -< (e, m)
               runTransactionsAux -< (tail els, m'))
@@ -264,7 +263,7 @@ runTransactions = proc (aios, sfs) -> do
     runTxPair :: Monad m
               => SF m
                   (((AgentId, AgentOut m o d), Agent m o d),
-                    (Map.Map AgentId (AgentOut m o d, Agent m o d)))
+                   Map.Map AgentId (AgentOut m o d, Agent m o d))
                   (Map.Map AgentId (AgentOut m o d, Agent m o d))
     runTxPair = proc (((sAid, sAo0), sSf0), m) -> do
       let ((rAid, d), sTxSf) = fromEvent $ aoRequestTx sAo0
@@ -344,10 +343,10 @@ runTx = proc ((sTxSf0, sSf), (rTxAo0, rTxSf0, rSf)) -> do
   -- either one aborts the TX, abort the whole TX
   if aoTxAbort sTxAo || aoTxAbort rTxAo'
     then returnA -< Nothing
-    else (do
+    else (
       -- if both commit, we commit the TX as a whole
       -- otherwise we continue with another TX step
-      if (isJust $ aoTxCommit sTxAo) && (isJust $ aoTxCommit rTxAo')
+      if isJust (aoTxCommit sTxAo) && isJust (aoTxCommit rTxAo')
         then (do
           let (sAo, maySsf) = fromJust $ aoTxCommit sTxAo
           let (rAo, mayRsf) = fromJust $ aoTxCommit rTxAo'
@@ -377,7 +376,7 @@ runAgentTx :: Monad m
                 (AgentTX m o d, AgentTXIn d)
                 (AgentTXOut m o d, AgentTX m o d)
 runAgentTx = readerS $ proc (_, (txSf, txIn)) -> do
-  (txOut, txSf') <- runReaderS_ (arrM (\(txSf, txIn) -> unMSF txSf txIn)) 0 -< (txSf, txIn)
+  (txOut, txSf') <- runReaderS_ (arrM (uncurry unMSF)) 0 -< (txSf, txIn)
   returnA -< (txOut, txSf')
 
   -- AgentIn TX related

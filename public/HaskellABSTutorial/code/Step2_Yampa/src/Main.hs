@@ -65,14 +65,11 @@ stepSimulation sfs as =
       sfs
       -- if we switch immediately we end up in endless switching, so always wait for 'next'
       (switchingEvt >>> notYet) 
-      cont
+      stepSimulation
 
   where
     switchingEvt :: SF ((), [SIRState]) (Event [SIRState])
     switchingEvt = arr (\(_, newAs) -> Event newAs)
-
-    cont :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
-    cont = stepSimulation
 
 sirAgent :: RandomGen g => g -> SIRState -> SIRAgent
 sirAgent g Susceptible = susceptibleAgent g

@@ -64,7 +64,7 @@ runSimulation :: RandomGen g
               -> DTime 
               -> [(AgentId, SIRState)] 
               -> [[SIRState]]
-runSimulation g t dt as = map (\aos -> map aoObservable aos) aoss
+runSimulation g t dt as = map (map aoObservable) aoss
   where
     steps = floor $ t / dt
     dts = replicate steps (dt, Nothing) -- keep input the same as initial one, will be ignored anyway
@@ -89,7 +89,7 @@ stepSimulation sfs ains =
       (\_ sfs' -> (zip ains sfs'))
       sfs
       (switchingEvt >>> notYet) -- at time = 0, if we switch immediately we end up in endless switching, so always wait for 'next'
-      cont
+      stepSimulation
 
   where
     switchingEvt :: SF ((), [SIRAgentOut]) (Event [SIRAgentIn])
@@ -99,13 +99,10 @@ stepSimulation sfs ains =
           nextAins = distributeData aios
       returnA -< Event nextAins
 
-    cont :: [SIRAgent] -> [SIRAgentIn] -> SF () [SIRAgentOut]
-    cont sfs nextAins = stepSimulation sfs nextAins
-
 sirAgent :: RandomGen g => g -> [AgentId] -> SIRState -> SIRAgent
-sirAgent g ais  Susceptible = susceptibleAgent g ais
-sirAgent g _    Infected    = infectedAgent g
-sirAgent _ _    Recovered   = recoveredAgent
+sirAgent g ais Susceptible = susceptibleAgent g ais
+sirAgent g _   Infected    = infectedAgent g
+sirAgent _ _   Recovered   = recoveredAgent
 
 susceptibleAgent :: RandomGen g => g -> [AgentId] -> SIRAgent
 susceptibleAgent g ais = 
@@ -153,8 +150,8 @@ drawRandomElemSF :: (RandomGen g, Show a) => g -> SF [a] a
 drawRandomElemSF g = proc as -> do
   r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
   let len = length as
-  let idx = (fromIntegral $ len) * r
-  let a =  as !! (floor idx)
+  let idx = fromIntegral len * r
+  let a =  as !! floor idx
   returnA -< a
 
 initAgents :: Int -> Int -> [(AgentId, SIRState)]
@@ -176,7 +173,7 @@ onDataM dHdl ai acc = foldM dHdl acc ds
     ds = aiData ai
 
 onData :: (AgentData d -> acc -> acc) -> AgentIn d -> acc -> acc
-onData dHdl ai a = foldr (\msg acc'-> dHdl msg acc') a ds
+onData dHdl ai a = foldr dHdl a ds
   where
     ds = aiData ai
 
@@ -208,7 +205,7 @@ distributeData aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedup by 
         msgs = aiData ain -- NOTE: ain may have already messages, they would be overridden if not incorporating them
 
         mayReceiverMsgs = Map.lookup receiverId allMsgs
-        msgsEvt = maybe msgs (\receiverMsgs -> receiverMsgs ++ msgs) mayReceiverMsgs
+        msgsEvt = maybe msgs (++ msgs) mayReceiverMsgs
 
         ain' = ain { aiData = msgsEvt }
 
@@ -231,7 +228,7 @@ distributeData aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedup by 
               where
                 msg = (senderId, m)
                 mayReceiverMsgs = Map.lookup receiverId accMsgs
-                newMsgs = maybe [msg] (\receiverMsgs -> (msg : receiverMsgs)) mayReceiverMsgs
+                newMsgs = maybe [msg] (\receiverMsgs -> msg : receiverMsgs) mayReceiverMsgs
 
                 -- NOTE: force evaluation of messages, will reduce memory-overhead EXTREMELY
                 accMsgs' = seq newMsgs (Map.insert receiverId newMsgs accMsgs)

@@ -107,7 +107,7 @@ susceptibleAgent ais = proc _ -> do
                     (agentOut Susceptible))
   where
     susceptibleTx :: RandomGen g => SIRAgentTX g
-    susceptibleTx = proc txIn -> do
+    susceptibleTx = proc txIn ->
       -- should have always tx data
       if hasTxDataIn txIn 
           then (do
@@ -149,15 +149,14 @@ infectedAgent =
       let ao = agentOut a
 
       if isRequestTx ain 
-        then (do
-          returnA -< (acceptTX 
-                      (Contact Infected)
-                      (infectedTx ao)
-                      ao, recEvt))
+        then (returnA -< (acceptTX 
+                           (Contact Infected)
+                           (infectedTx ao)
+                           ao, recEvt))
         else returnA -< (ao, recEvt)
 
     infectedTx :: RandomGen g => SIRAgentOut g -> SIRAgentTX g
-    infectedTx ao = proc _ -> do
+    infectedTx ao = proc _ ->
       -- it is important not to commit with continuation as it
       -- would reset the time of the SF to 0. Still occasionally
       -- would work as it does not accumulate time but functions

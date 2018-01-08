@@ -20,7 +20,7 @@ runSimulation :: RandomGen g
               -> DTime 
               -> [(AgentId, SIRState)] 
               -> [[SIRState]]
-runSimulation g t dt as = map (\aos -> map aoObservable aos) aoss
+runSimulation g t dt as = map (map aoObservable) aoss
   where
     steps = floor TODO DOLLAR t / dt
     dts = replicate steps ()
@@ -61,7 +61,7 @@ susceptibleAgent ais =
     susceptible :: RandomGen g 
                 => SF (SIRMonad g) SIRAgentIn (SIRAgentOut, Event ())
     susceptible = proc ain -> do
-      infected <- arrM (\ain -> lift TODO DOLLAR gotInfected infectivity ain) -< ain
+      infected <- arrM (lift . gotInfected infectivity) -< ain
 
       if infected 
         then returnA -< (agentOut Infected, Event ())
@@ -81,8 +81,8 @@ drawRandomElemS :: MonadRandom m => SF m [a] a
 drawRandomElemS = proc as -> do
   r <- getRandomRS ((0, 1) :: (Double, Double)) -< ()
   let len = length as
-  let idx = (fromIntegral TODO DOLLAR len) * r
-  let a =  as !! (floor idx)
+  let idx = fromIntegral len * r
+  let a =  as !! floor idx
   returnA -< a
 \end{minted}
 

@@ -54,18 +54,17 @@ main = do
   render es
 
 environmentsToAgentDyns :: [SIREnv] -> [[SIRState]]
-environmentsToAgentDyns es = map (\e -> elems e) es 
+environmentsToAgentDyns = map elems
 
 render :: [SIREnv] -> IO ()
-render es = do
-    GLOGame.playIO
-      (GLO.InWindow winTitle winSize (0, 0))
-      GLO.black
-      10
-      ((length es - 1), False, False, False)
-      worldToPic
-      handleInput
-      stepWorld
+render es = GLOGame.playIO
+    (GLO.InWindow winTitle winSize (0, 0))
+    GLO.black
+    10
+    (length es - 1, False, False, False)
+    worldToPic
+    handleInput
+    stepWorld
 
   where
     (cx, cy) = agentGrid
@@ -96,7 +95,7 @@ render es = do
         (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyShiftL) GLOGame.Up _ _) -> return (i, inc, dec, False)
 
         (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyDown) GLOGame.Down _ _) -> return (0, inc, dec, boost)
-        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyUp) GLOGame.Down _ _) -> return ((length es - 1), inc, dec, boost)
+        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyUp) GLOGame.Down _ _) -> return (length es - 1, inc, dec, boost)
         _ -> return w
 
     stepWorld :: Float -> (Int, Bool, Bool, Bool) -> IO (Int, Bool, Bool, Bool)
@@ -133,8 +132,8 @@ render es = do
 initAgentsEnv :: (Int, Int) -> ([(Disc2dCoord, SIRState)], SIREnv)
 initAgentsEnv (xd, yd) = (as, e)
   where
-    xCenter = floor $ (fromIntegral xd) * (0.5 :: Double)
-    yCenter = floor $ (fromIntegral yd) * (0.5 :: Double)
+    xCenter = floor $ fromIntegral xd * (0.5 :: Double)
+    yCenter = floor $ fromIntegral yd * (0.5 :: Double)
     
     sus = [ ((x, y), Susceptible) | x <- [0..xd-1], 
                                     y <- [0..yd-1],
@@ -156,7 +155,7 @@ runSimulation g t dt e as = es
   where
     steps = floor $ t / dt
     dts = replicate steps ()
-    sfs = map (\(c, s) -> sirAgent c s) as
+    sfs = map (uncurry sirAgent) as
 
     esReader = embed (stepSimulation sfs) dts
     esState = runReaderT esReader dt
@@ -203,7 +202,7 @@ susceptibleAgent coord =
               infected <- arrM (\_ -> lift $ lift $ randomBoolM infectivity) -< ()
               if infected 
                 then (do
-                  arrM (\e -> put $ changeCell coord Infected e) -< e
+                  arrM (put . changeCell coord Infected) -< e
                   returnA -< ((), Event ()))
                 else returnA -< ((), NoEvent)))
 
@@ -219,7 +218,7 @@ infectedAgent coord =
       if isEvent recovered
         then (do
           e <- arrM (\_ -> lift get) -< ()
-          arrM (\e -> put $ changeCell coord Recovered e) -< e
+          arrM (put . changeCell coord Recovered) -< e
           returnA -< ((), Event ()))
         else returnA -< ((), NoEvent)
 
@@ -230,8 +229,8 @@ drawRandomElemS :: MonadRandom m => SF m [a] a
 drawRandomElemS = proc as -> do
   r <- getRandomRS ((0, 1) :: (Double, Double)) -< ()
   let len = length as
-  let idx = (fromIntegral $ len) * r
-  let a =  as !! (floor idx)
+  let idx = fromIntegral len * r
+  let a =  as !! floor idx
   returnA -< a
 
 randomBoolM :: RandomGen g => Double -> Rand g Bool
@@ -253,7 +252,7 @@ neighbours e (x, y) (dx, dy) n = map (e !) nCoords'
                                   x <= (dx - 1) &&
                                   y <= (dy - 1)) nCoords
 allNeighbours :: SIREnv -> [SIRState]
-allNeighbours e = elems e
+allNeighbours = elems
 
 neumann :: [Disc2dCoord]
 neumann = [ topDelta, leftDelta, rightDelta, bottomDelta ]

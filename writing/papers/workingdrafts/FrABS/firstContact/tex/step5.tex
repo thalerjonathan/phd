@@ -61,7 +61,7 @@ susceptibleAgent coord =
               infected <- arrM (\_ -> lift $ lift $ randomBoolM infectivity) -< ()
               if infected 
                 then (do
-                  arrM (\e -> put TODO DOLLAR changeCell coord Infected e) -< e
+                  arrM (put . changeCell coord Infected) -< e
                   returnA -< ((), Event ()))
                 else returnA -< ((), NoEvent)))
 \end{minted}
@@ -101,7 +101,7 @@ runSimulation g t dt e as = es
   where
     steps = floor TODO DOLLAR t / dt
     dts = replicate steps ()
-    sfs = map (\ (c, s) -> sirAgent c s) as
+    sfs = map (uncurry sirAgent) as
 
     esReader = embed (stepSimulation sfs) dts
     esState = runReaderT esReader dt

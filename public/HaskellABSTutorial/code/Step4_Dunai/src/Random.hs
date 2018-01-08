@@ -67,7 +67,7 @@ runSimulation :: RandomGen g
               -> DTime 
               -> [(AgentId, SIRState)] 
               -> [[SIRState]]
-runSimulation g t dt as = map (\aos -> map aoObservable aos) aoss
+runSimulation g t dt as = map (map aoObservable) aoss
   where
     steps = floor $ t / dt
     dts = replicate steps ()
@@ -89,7 +89,7 @@ stepSimulation sfs ains =
       (\_ sfs' -> (zip ains sfs'))
       sfs
       switchingEvt -- no need for 'notYet' in BearRiver as there is no time = 0 with dt = 0
-      cont
+      stepSimulation
 
   where
     switchingEvt :: RandomGen g
@@ -100,12 +100,6 @@ stepSimulation sfs ains =
           nextAins = distributeData aios
       returnA -< Event nextAins
 
-    cont :: RandomGen g 
-         => [SIRAgent g] 
-         -> [SIRAgentIn] 
-         -> SF (SIRMonad g) () [SIRAgentOut]
-    cont sfs nextAins = stepSimulation sfs nextAins
-
 sirAgent :: RandomGen g => [AgentId] -> SIRState -> SIRAgent g
 sirAgent ais Susceptible = susceptibleAgent ais
 sirAgent _   Infected    = infectedAgent
@@ -115,12 +109,12 @@ susceptibleAgent :: RandomGen g => [AgentId] -> SIRAgent g
 susceptibleAgent ais = 
     switch 
       susceptible
-      (const $ infectedAgent)
+      (const infectedAgent)
   where
     susceptible :: RandomGen g 
                 => SF (SIRMonad g) SIRAgentIn (SIRAgentOut, Event ())
     susceptible = proc ain -> do
-      infected <- arrM (\ain -> lift $ gotInfected infectivity ain) -< ain
+      infected <- arrM (lift . gotInfected infectivity) -< ain
 
       if infected 
         then returnA -< (agentOut Infected, Event ())
@@ -154,9 +148,12 @@ drawRandomElemS :: MonadRandom m => SF m [a] a
 drawRandomElemS = proc as -> do
   r <- getRandomRS ((0, 1) :: (Double, Double)) -< ()
   let len = length as
-  let idx = (fromIntegral $ len) * r
-  let a =  as !! (floor idx)
+  let idx = fromIntegral len * r
+  let a =  as !! floor idx
   returnA -< a
+
+randomBoolM :: RandomGen g => Double -> Rand g Bool
+randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)
 
 initAgents :: Int -> Int -> [(AgentId, SIRState)]
 initAgents n i = sus ++ inf
@@ -177,7 +174,7 @@ onDataM dHdl ai acc = foldM dHdl acc ds
     ds = aiData ai
 
 onData :: (AgentData d -> acc -> acc) -> AgentIn d -> acc -> acc
-onData dHdl ai a = foldr (\msg acc'-> dHdl msg acc') a ds
+onData dHdl ai a = foldr dHdl a ds
   where
     ds = aiData ai
 
@@ -209,7 +206,7 @@ distributeData aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedup by 
         msgs = aiData ain -- NOTE: ain may have already messages, they would be overridden if not incorporating them
 
         mayReceiverMsgs = Map.lookup receiverId allMsgs
-        msgsEvt = maybe msgs (\receiverMsgs -> receiverMsgs ++ msgs) mayReceiverMsgs
+        msgsEvt = maybe msgs (++ msgs) mayReceiverMsgs
 
         ain' = ain { aiData = msgsEvt }
 
@@ -232,7 +229,7 @@ distributeData aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedup by 
               where
                 msg = (senderId, m)
                 mayReceiverMsgs = Map.lookup receiverId accMsgs
-                newMsgs = maybe [msg] (\receiverMsgs -> (msg : receiverMsgs)) mayReceiverMsgs
+                newMsgs = maybe [msg] (\receiverMsgs -> msg : receiverMsgs) mayReceiverMsgs
 
                 -- NOTE: force evaluation of messages, will reduce memory-overhead EXTREMELY
                 accMsgs' = seq newMsgs (Map.insert receiverId newMsgs accMsgs)
@@ -248,6 +245,3 @@ agentOut o = AgentOut {
     aoData        = []
   , aoObservable  = o
   }
-
-randomBoolM :: RandomGen g => Double -> Rand g Bool
-randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)

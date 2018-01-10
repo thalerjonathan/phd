@@ -94,10 +94,9 @@ parseSchema ("Int" :: xs)
 parseSchema _ = Nothing
 
 parseCommand : (schema : Schema) -> (cmd : String) -> (args : String) -> Maybe (Command schema)
-parseCommand schema "schema" str 
-  = case parseSchema (words rest) of
-         Nothing => Nothing
-         Just ok => Just (SetSchema ok)
+parseCommand schema "schema" str = do
+  schemaOk <- parseSchema (words str)
+  Just (SetSchema schemaOk)
 parseCommand schema "add" str 
   = case parseBySchema schema str of
          Nothing    => Nothing
@@ -116,10 +115,20 @@ parse schema input
   = case span (/= ' ') input of
          (cmd, args) => parseCommand schema cmd (ltrim args)
 
+setSchema : (store : DataStore) -> Schema -> Maybe DataStore
+setSchema store schema 
+  = case size store of
+         Z     => Just (MkData schema _ [])
+         (S k) => Nothing
+
 processInput : DataStore -> String -> Maybe (String, DataStore)
 processInput store input 
   = case parse (schema store) input of
          Nothing            => Just ("Invalid command\n", store)
+         Just (SetSchema s) => 
+          case setSchema  store s of
+               Nothing      => Just ("Can only update empty schema\n", store)
+               Just store'  => Just ("OK\n", store')
          Just (Add item)    => Just ("ID " ++ show (size store) ++ "\n", addToStore store item)
          Just (Get pos)     => getEntry pos store
          Just Size          => Just ("" ++ show (size store) ++ " items\n", store)

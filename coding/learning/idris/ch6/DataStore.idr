@@ -38,7 +38,7 @@ display {schema = SChar} item               = show item
 display {schema = (x .+. y)} (iteml, itemr) = display iteml ++ ", " ++ display itemr
 
 getEntry : (pos : Integer) -> (store : DataStore) -> Maybe (String, DataStore)
-getEntry pos store 
+getEntry pos store
   = let storeItems = items store in
         case integerToFin pos (size store) of
              Nothing => Just ("out of range\n", store)
@@ -73,12 +73,10 @@ parsePrefix SChar input = getSingleQuoted (unpack input)
     getSingleQuoted (c :: xs) = Just (c, ltrim (pack xs))
     getSingleQuoted _ = Nothing
 
-parsePrefix (schemal .+. schemar) input 
-  = case parsePrefix schemal input of
-         Nothing              => Nothing
-         Just (l_val, input') => case parsePrefix schemar input' of
-                                      Nothing               => Nothing
-                                      Just (r_val, input'') => Just ((l_val, r_val), input'')
+parsePrefix (schemal .+. schemar) input = do
+  (l_val, input')   <- parsePrefix schemal input
+  (r_val, input'')  <- parsePrefix schemar input'
+  Just ((l_val, r_val), input'')
 
 parseBySchema : (schema : Schema) -> (str : String) -> Maybe (SchemaType schema)
 parseBySchema schema input = case parsePrefix schema input of
@@ -90,23 +88,17 @@ parseSchema : List String -> Maybe Schema
 parseSchema ("String" :: xs) 
   = case xs of
          [] => Just SString
-         _  => case parseSchema xs of
-                    Nothing     => Nothing
-                    Just xs_sch => Just (SString .+. xs_sch)
+         _  => parseSchema xs >>= \xs_sch => Just (SString .+. xs_sch)
 
 parseSchema ("Int" :: xs)
   = case xs of
          [] => Just SInt
-         _  => case parseSchema xs of
-                    Nothing     => Nothing
-                    Just xs_sch => Just (SInt .+. xs_sch)
+         _  => parseSchema xs >>= \xs_sch => Just (SInt .+. xs_sch)
 
 parseSchema ("Char" :: xs)
   = case xs of
          [] => Just SChar
-         _  => case parseSchema xs of
-                    Nothing     => Nothing
-                    Just xs_sch => Just (SChar .+. xs_sch)
+         _  => parseSchema xs >>= \xs_sch => Just (SChar .+. xs_sch)
 
 parseSchema _ = Nothing
 
@@ -114,10 +106,9 @@ parseCommand : (schema : Schema) -> (cmd : String) -> (args : String) -> Maybe (
 parseCommand schema "schema" str = do
   schemaOk <- parseSchema (words str)
   Just (SetSchema schemaOk)
-parseCommand schema "add" str 
-  = case parseBySchema schema str of
-         Nothing    => Nothing
-         Just item  => Just (Add item)
+parseCommand schema "add" str = do
+  item <- parseBySchema schema str
+  Just (Add item)
 parseCommand schema "get" "" = Just GetAll
 parseCommand schema "get" val
   = case all isDigit (unpack val) of

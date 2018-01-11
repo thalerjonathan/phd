@@ -1,10 +1,13 @@
 \section{The final step: Dependent Types}
-Dependent Types are the holy grail in functional programming as they allow to express even stronger guarantees about the correctness of programs and go as far where programs become constructive proofs. Thus the logical final step is to apply them to our pure functional approach to agent-based simulation.
+Dependent Types are the holy grail in functional programming as they allow to express even stronger guarantees about the correctness of programs and go as far where programs become constructive proofs \cite{altenkirch_why_2005}, \cite{altenkirch_pi_sigma:_2010}, \cite{program_homotopy_2013}. Thus the logical final step is to apply them to our pure functional approach to agent-based simulation.
 So far no research for applying dependent types to agent-based simulation exists at all and it is not clear whether dependent types do make sense in this setting.
 In this section we explore this for the first time and ask more specifically how we can add dependent types to our pure functional agent-based simulation approach, which conceptual implications this has for ABS and what we gain from doing so.
 
-\cite{brady_idris_2013}
-\cite{brady_type-driven_2017}
-\cite{altenkirch_pi_sigma:_2010}
-\cite{program_homotopy_2013}
-\cite{altenkirch_why_2005}
+TODO: talk about safety of frp neil and nilsson. FRP is sacrificing the safety of FP for sake of expressiveness e.g. welformed feedback does depend on the programmer and cannot be guaranteed at compile time through the type system. Feedback is an inherent feature of ABS where agents update their state at time t+1 depending on time t - this is only visible in step 2 where we used feedback to update the random-number generator but in more complex ABS models with a more complex state than in the SIR model, feedback is the core feature to keep and update the state of an agent. 
+
+TODO: talk about idris \cite{brady_idris_2013}, \cite{brady_type-driven_2017} as language of choice as it is very close to the real world with focus on real application and running programs as opposed to e.g. Agda and Coq which serve primarily as proof assistants.
+Totality of agent behaviour can be checked (to a certain extent). This is not unique to dependent types but is nicely supported by Idris. If all functions the agent uses are total then the agent is total which means we have even stronger guarantees about correctness. By totality of a function we understand that it produces an answer in finite time for all possible inputs.
+
+Two possible approaches:
+1. Follow FRP approach (Yampa, Dunai / BearRiver) 
+2. Develop something new in Idris specifically for 

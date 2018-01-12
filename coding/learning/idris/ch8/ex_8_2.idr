@@ -9,10 +9,10 @@ myPlusCommutes (S k) m =
       Refl
 
 reverseProof_nil : (acc : Vect n a) -> Vect (plus n 0) a
-reverseProof_nil acc = ?reverseProof_nil_rhs
+reverseProof_nil acc = ?reverseProof_nil_rhs -- TODO
 
 reverseProof_xs : Vect ((S n) + len) a -> Vect (plus n (S len)) a
-reverseProof_xs xs = ?reverseProof_xs_rhs
+reverseProof_xs xs = ?reverseProof_xs_rhs -- TODO
 
 myReverse : Vect n a -> Vect n a
 myReverse xs = reverse' [] xs

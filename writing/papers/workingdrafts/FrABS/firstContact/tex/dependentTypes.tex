@@ -6,32 +6,39 @@ In this section we explore this for the first time and ask more specifically how
 \subsection{Theoretical benefits}
 \subsubsection{Totality and Termination}
 TODO: discuss shortly
+By totality of a function we understand that it produces an answer in finite time for all possible inputs. TODO: need more precision, see Idris talk 2 or 3?
 
 \subsubsection{Types as proofs}
 TODO: discuss shortly
+\cite{wadler_propositions_2015}
 
 \subsection{Practical application}
 Can the theoretical benefits be translated to our practical approach? If yes how?
 
 TODO: talk about idris \cite{brady_idris_2013}, \cite{brady_type-driven_2017} as language of choice as it is very close to the real world with focus on real application and running programs as opposed to e.g. Agda and Coq which serve primarily as proof assistants.
 
-TODO: talk about safety of frp neil and nilsson. FRP is sacrificing the safety of FP for sake of expressiveness e.g. welformed feedback does depend on the programmer and cannot be guaranteed at compile time through the type system. Feedback is an inherent feature of ABS where agents update their state at time t+1 depending on time t - this is only visible in step 2 where we used feedback to update the random-number generator but in more complex ABS models with a more complex state than in the SIR model, feedback is the core feature to keep and update the state of an agent. 
-Also a chain of switches could result in an infinite loop - this cannot be checked at compile time and needs to be carefully designed by the programmer and results sometimes in popping up of operational details (e.g. use of >>> notYet in parallel switches).
-Two possible approaches:
-1. Follow FRP approach (Yampa, Dunai / BearRiver) 
-2. Develop something new in Idris specifically for ABS
+A weakness of our approach with FRP is that as shown by the authors of \cite{sculthorpe_safe_2009} the type-system of Yampa is not safe. The reason for that is that it does not enforce important domain-specific correctness properties. FRP is sacrificing the safety of FP for sake of expressiveness e.g. well-formed feedback does depend on the programmer and cannot be guaranteed at compile time through the type system. Feedback is an inherent feature of ABS where agents update their state at time t+1 depending on time t - this is only visible in step 2 where we used feedback to update the random-number generator but in more complex ABS models with a more complex state than in the SIR model, feedback is the core feature to keep and update the state of an agent.  rec/iPre/feedback makes the inherently feedback nature of ABS very explicit. Also a chain of switches could result in an infinite loop - this cannot be checked at compile time and needs to be carefully designed by the programmer and results sometimes in popping up of operational details (e.g. use of >>> notYet in parallel switches).
+Another weakness of the approach is that implementing a more complicated agent-transaction protocol correct can get very challenging. This might not seem directly evident from the implementation in Step 6 but the problem is that there are lots of operational details which the programmer needs to keep in mind and get right to arrive at a correctly working transaction. It would be nice if we have support from the type-system which enforces a given protocol but this is not possible with out approach so far. Note that beside failing to stick to the protocol it is also possible to implement non-total transactions.
+Note that making the transition from Yampa to the general MSF approach provided by Dunai and BearRiver does not solve this fundamental problem.
 
-\subsubsection{Totality and Termination}
-Totality and termination of agent behaviour can be checked (to a certain extent). This is not unique to dependent types but is nicely supported by Idris. If all functions the agent uses are total then the agent is total which means we have even stronger guarantees about correctness. By totality of a function we understand that it produces an answer in finite time for all possible inputs.
+Totality and termination of agent behaviour can be checked (to a certain extent). This is not unique to dependent types but is nicely supported by Idris. If all functions the agent uses are total then the agent is total which means we have even stronger guarantees about correctness. 
+An agent can be seen as a potentially infinite stream of continuations which at some point could return information to stop evaluating the next item of the stream which allows an agent to terminate.
+correspondence between temporal logics and FRP due to jeffery: is abs just another temporal logic?
 
-\subsubsection{Types as proofs}
+TODO: how can we use types as proofs
 
+Basically we have two potential directions to follow:
+\begin{enumerate}
+	\item Re-implement the FRP approach of Yampa, Dunai / BearRiver in Idris
+	\item Develop something new in Idris specifically for ABS
+\end{enumerate}
 
+\subsection{Re-implement FRP}
+Arrowised yes / no? but we don't have Ross Patersons arrow-notation which makes programming with them in point-free style very annoying and difficult for more complex models.
+TODO: implement very simple FRP in Idris?
+my intuition: don't follow this approach, maybe we find a unique way of doing ABS / FRP in dependent types? For now we don't go there as fundamental ideas have been already laid out by \cite{sculthorpe_safe_2009} \footnote{We have actually found an attempt of implementation of Yampa in Idris on github: \url{https://github.com/BartAdv/idris-yampa} but we haven't tried using it - and development of the project seems to be inactive since 2 years.}
 
 \subsection{A Fresh approach: State-Machines}
 In the SIR model an agent is in the end just a state-machine thus the model consists of communicating / interacting state-machines. In the book \cite{brady_type-driven_2017} the author discusses using dependent types for implementing type-safe state-machines, so we investigate if and how we can apply this to our model.
 TODO: implement sir with state-machine approach from Idris
-
-\subsection{Dependently typed FRP}
-Arrowised yes / no? but we don't have pattersons arrow-notation which makes programming with them in point-free style very annoying and difficult for more complex models.
-TODO: implement very simple FRP in Idris?
+A fundamental question we need to solve then is how we represent time: can we get both the time-semantics of the FRP approach of Haskell AND the type-dependent expressivity or will there be a trade-off between the two?

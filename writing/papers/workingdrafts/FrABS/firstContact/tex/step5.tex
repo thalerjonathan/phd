@@ -3,7 +3,7 @@ In this step we will add an environment in which the agents exist and through wh
 In ABS agents are often situated within a discrete 2d environment TODO: cite sugarscape, schelling, agentzero, which is simply a finite nxm grid with either a moore or neumann neighbourhood. Agents are either static or can move freely around with cells allowing either single or multiple occupants. 
 We can directly transfer the SIR model to a discrete 2d environment by placing the agents on a corresponding 2d grid with an unrestricted neighbourhood. The behaviour of the agents is the same but they select their neighbours directly from the environment using the provided neighbourhood. Also instead of using data-flow to communicate, agents now communicate through the environment by revealing their current state to their neighbours by placing it on their cell. Agents can read (actually they could write too) then the states of all their neighbours which tells them if a neighbour is infected or not. This allows us to implement the infection mechanism close to step 1 and 2.
 
-\subsection{Implementation}
+\subsubsection{Implementation}
 We start by defining our discrete 2d environment for which we use an indexed 2-dimensional array. In each cell the agents will store their current state, thus we use the \textit{SIRState} as type for our array data:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
@@ -124,7 +124,7 @@ stepSimulation sfs = MSF TODO DOLLAR \_ -> do
   return (e, ct) 
 \end{minted}
 
-\subsection{Results}
+\subsubsection{Results}
 In addition to plotting the dynamics we implemented rendering functionality of the environments using the gloss library. This allows us to cycle arbitrarily through the steps and inspect the spreading of the disease over time visually.
 
 When using an unrestricted neighbourhood we should arrive at the same dynamics of the SD approach.
@@ -135,7 +135,7 @@ In agent-based simulation the neighbourhood on a discrete neighbourhood is often
 TODO: show dynamics AND 2d-grid renderings using a moore neighbourhood
 TODO: add analysis from the first draft paper
 
-\subsection{Reflection}
+\subsubsection{Reflection}
 At first the environment approach might seem a bit overcomplicated and one might ask what we have gained over using an unrestricted neighbourhood where all agents can contact all others we arrive at the same dynamics as in SD. The real win is that we can introduce arbitrary restrictions on the neighbourhood as shown using the moore or von neumann neighbourhood. 
 Of course the environment is not restricted to a discrete 2d grid and can be anything from a continuous n-dimensional space to a complex network - one only needs to change the type of the StateT monad and provide corresponding neighbourhood querying functions. The ability to place the heterogeneous agents in a generic environment is also the fundamental advantage of an agent-based over a SD approach as it allows to simulate much more realistic scenarios.
 

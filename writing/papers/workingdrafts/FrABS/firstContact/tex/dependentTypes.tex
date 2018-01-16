@@ -3,12 +3,11 @@ Dependent Types are the holy grail in functional programming as they allow to ex
 So far no research for applying dependent types to agent-based simulation exists at all and it is not clear whether dependent types do make sense in this setting.
 In this section we explore this for the first time and ask more specifically how we can add dependent types to our pure functional agent-based simulation approach, which conceptual implications this has for ABS and what we gain from doing so.
 
-\subsection{Theoretical benefits}
-\subsubsection{Totality and Termination}
+\subsection{Totality and Termination}
 TODO: discuss shortly
 By totality of a function we understand that it produces an answer in finite time for all possible inputs. TODO: need more precision, see Idris talk 2 or 3?
 
-\subsubsection{Types as proofs}
+\subsection{Types as proofs}
 TODO: discuss shortly
 \cite{wadler_propositions_2015}
 
@@ -35,12 +34,17 @@ Basically we have two potential directions to follow:
 	\item Develop something new in Idris specifically for ABS
 \end{enumerate}
 
-\subsection{Re-implement FRP}
-Arrowised yes / no? but we don't have Ross Patersons arrow-notation which makes programming with them in point-free style very annoying and difficult for more complex models.
-TODO: implement very simple FRP in Idris?
-my intuition: don't follow this approach, maybe we find a unique way of doing ABS / FRP in dependent types? For now we don't go there as fundamental ideas have been already laid out by \cite{sculthorpe_safe_2009} \footnote{We have actually found an attempt of implementation of Yampa in Idris on github: \url{https://github.com/BartAdv/idris-yampa} but we haven't tried using it - and development of the project seems to be inactive since 2 years.}
+We could opt for a re-implementation of FRP in Idris by building on the work of \cite{sculthorpe_safe_2009} and \cite{jeffrey_causality_2013} who have laid out ideas for adopting arrowized FRP to dependent types in Agda \footnote{We have actually found an attempt of implementation of Yampa in Idris on github: \url{https://github.com/BartAdv/idris-yampa} but we haven't tried using it - and development of the project seems to be inactive since 2 years.}. Unfortunately we would lack Ross Patersons \cite{paterson_new_2001} arrow notation which would force us to program our system in a point-free style which can get quite cumbersome and unreadable if the model to implement is complicated (which is easily the case in ABS). Thus we decide not to follow this road also for the sake of a fresh start, to free us from the FRP background and to see what a fresh approach in dependent types could offer to ABS.
 
 \subsection{A Fresh approach: State-Machines}
 In the SIR model an agent is in the end just a state-machine thus the model consists of communicating / interacting state-machines. In the book \cite{brady_type-driven_2017} the author discusses using dependent types for implementing type-safe state-machines, so we investigate if and how we can apply this to our model.
 TODO: implement sir with state-machine approach from Idris
 A fundamental question we need to solve then is how we represent time: can we get both the time-semantics of the FRP approach of Haskell AND the type-dependent expressivity or will there be a trade-off between the two?
+
+Out first attempt is to implement a total version of the agent-based SIR model which does NOT restrict the time to run the simulation for but which terminates automatically if there is no more infected agent and returns the time at which it terminated. We know that a simply SIR model must always terminate as:
+\begin{enumerate}
+	\item Only infected agents can infect susceptible agents.
+	\item Eventually after a finite time every infected agent will recover.
+	\item There is no way to move from the consuming \textit{recovered} state back into the infected state.
+\end{enumerate}
+Thus a SIR model must enter a steady state after a finite amount of time. If we can formulate a total program which implements the agent-based SIR model we have a constructive proof that the agent-based SIR model terminated in finite time. This can be done using the equations of the SD approach but in an agent-based setting no such formal proofs have been done yet.

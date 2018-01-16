@@ -179,12 +179,11 @@ The distribution of the data-flows happens in the \textit{switchingEvt} signal-f
 Having data-flows at hand we can now emulate the SD approach because it allows us to express a system with parallel continuous-time flows between stocks and flows. Each stock $S(t)$, $I(t)$, $R(t)$ and each flow $infectionRate$, $recoveryRate$ is implemented as an agent with a fixed agent-id. The connections between them are implemented using the previously introduced data-flow mechanism. We start by refining the types for our SIR implementation:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-type SIRMsg       = Double
-type SIRAgentIn   = AgentIn SIRMsg
-
-type SIRObs       = Maybe Double
-type SIRAgentOut  = AgentOut SIRObs SIRMsg
-type SIRAgent     = Agent SIRObs SIRMsg
+type SIRMsg      = Double
+type SIRAgentIn  = AgentIn SIRMsg
+type SIRObs      = Maybe Double
+type SIRAgentOut = AgentOut SIRObs SIRMsg
+type SIRAgent    = Agent SIRObs SIRMsg
 
 totalPopulation :: Double
 totalPopulation = 1000
@@ -193,7 +192,7 @@ infectedCount :: Double
 infectedCount = 1
 \end{minted}
 
-The message-data is now a simple Double and the observable data has been changed to a \textit{Maybe Double}: instead of discrete agent-states we are dealing now we stocks and flows which are already aggregates and continuous values. Note that we use a Maybe type as flows only connect stocks and transform their values but don't have any observable state themselves. Note also that the population size and number of infected is specified now as doubles as we are dealing with continuous aggregates.
+The message-data is now a plain double and the observable data has been changed to a \textit{Maybe Double}: instead of discrete agent-states we are dealing now we stocks and flows which are already aggregates represented by continuous values. Note that we use a Maybe type as flows only connect stocks and transform their values but don't have any observable state themselves. Note also that the population size and number of infected is specified now as doubles as we are dealing with continuous aggregates.
 
 We give hard-coded agent-ids to our stocks and flows. This allows then for setting up hard-coded connections between them at compile time.
 \begin{minted}[fontsize=\footnotesize]{haskell}
@@ -213,7 +212,7 @@ recoveryRateFlowId :: AgentId
 recoveryRateFlowId = 4
 \end{minted}
 
-Next we give the implementation of the infectious stock (the implementations of the susceptible and recovered stock work similar and are left as a trivial exercise to the reader):
+Next we give the implementation of the infectious stock (the implementations of the susceptible and recovered stock work in a similar way and are left as a trivial exercise to the reader):
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 infectiousStock :: Double -> SIRAgent
@@ -230,7 +229,7 @@ infectiousStock initValue = proc ain -> do
   returnA -< ao''
 \end{minted}
 
-The stock receives flow from both the infection-rate and recovery-rate flow using the function \textit{flowInFrom} (see below). Then the current stock value is calculated using the \textit{integral} function of Yampa. Note that we can directly express the SD equation using Yampas DSL for continuous time-systems. The current stock value is then set as the observable value of the stock and sent to the infection-rate and recovery-rate flows. For convenience we implemented an additional function \textit{flowInFrom} which returns the value sent from the corresponding agent-id or 0.0 if none was sent.
+The stock receives flows from both the infection-rate and recovery-rate flow using the function \textit{flowInFrom} (see below). Then the current stock value is calculated using the \textit{integral} function of Yampa with an initial value added which are the initially infected people. Note that we can directly express the SD equation using Yampas DSL for continuous-time systems. The current stock value is then set as the observable value of the stock and sent to the infection-rate and recovery-rate flows. For convenience we implemented an additional function \textit{flowInFrom} which returns the value sent from the corresponding agent-id or 0.0 if none was sent.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 flowInFrom :: AgentId -> AgentIn SIRMsg -> Double
@@ -242,7 +241,7 @@ flowInFrom senderId ain = foldr filterMessageValue 0.0 dsFiltered
     filterMessageValue (_, v) _ = v
 \end{minted}
 	
-The \textit{infection rate} flow is implemented as follows (the implementations of the recovery-rate flow works similar and is left as a trivial exercise to the reader):
+The \textit{infectionRate} flow is implemented as follows (the implementations of the recovery-rate flow works in a similar way and is left as a trivial exercise to the reader):
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 infectionRateFlow :: SIRAgent
@@ -259,9 +258,9 @@ infectionRateFlow = proc ain -> do
   returnA -< ao''
 \end{minted}
 
-Instead of integrating a value over time a stock just transforms incoming values from the connected stocks - in this case the susceptible and infectious stocks. Note again the direct expression of the formula for the infection rate.
+Instead of integrating a value over time a stock just transforms incoming values from the connected stocks - in this case the susceptible and infectious stocks. Note again how directly we can express the formula for the infection rate as provided in the SD background.
 
-When running the simulation one must make sure to use a small enough $\Delta t$ as \textit{integral} of Yampa is implemented using the rectangle rule which leads to considerable numerical errors with large $\Delta t$. Figure \ref{fig:sir_sd_dynamics} was created with our SD emulation in which we used a $\Delta t = 0.01$.
+When running the simulation one must make sure to use a small enough $\Delta t$ as \textit{integral} of Yampa is implemented using the rectangle rule which leads to considerable numerical errors with large $\Delta t$. Figure \ref{fig:sir_sd_dynamics} was created with this SD emulation for which we used a $\Delta t = 0.01$.
 
 \subsubsection{Reflection}
 It seems that by introducing the data-flow mechanism we have complicated things but this is not so. Data-flows make the feedback between agents explicit and gives the agents full control over the data which is revealed to other agents. This also makes the fact even more explicit, that we cannot fix the connections between the agents already at compile time e.g. by connecting SFs which is done in many Yampa applications (TODO: cite Henrik papers) because agents interact with each other randomly. One can look at the data-flow mechanism as a kind of messaging but there are fundamental differences: messaging almost always comes up as an approach to managing concurrency and involves stateful message-boxes which can be checked an emptied by the receivers - this is not the case with the data-flow mechanism which behaves indeed as a flow where data is not stored in a messagebox but is only present in the current simulation-step and if ignored by the agent will be gone in the next step.

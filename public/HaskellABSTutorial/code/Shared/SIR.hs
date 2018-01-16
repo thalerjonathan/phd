@@ -25,17 +25,17 @@ infectivity = 0.05
 illnessDuration :: Double
 illnessDuration = 15.0
 
-aggregateAllStates :: [[SIRState]] -> [(Int, Int, Int)]
+aggregateAllStates :: [[SIRState]] -> [(Double, Double, Double)]
 aggregateAllStates = map aggregateStates
 
-aggregateStates :: [SIRState] -> (Int, Int, Int)
+aggregateStates :: [SIRState] -> (Double, Double, Double)
 aggregateStates as = (susceptibleCount, infectedCount, recoveredCount)
   where
-    susceptibleCount = length $ filter (Susceptible==) as
-    infectedCount = length $ filter (Infected==) as
-    recoveredCount = length $ filter (Recovered==) as
+    susceptibleCount = fromIntegral $ length $ filter (Susceptible==) as
+    infectedCount = fromIntegral $ length $ filter (Infected==) as
+    recoveredCount = fromIntegral $ length $ filter (Recovered==) as
 
-writeAggregatesToFile :: String -> [(Int, Int, Int)] -> IO ()
+writeAggregatesToFile :: String -> [(Double, Double, Double)] -> IO ()
 writeAggregatesToFile fileName dynamics = do
   fileHdl <- openFile fileName WriteMode
   hPutStrLn fileHdl "dynamics = ["
@@ -69,9 +69,9 @@ writeAggregatesToFile fileName dynamics = do
 
   hClose fileHdl
 
-sirAggregateToString :: (Int, Int, Int) -> String
+sirAggregateToString :: (Double, Double, Double) -> String
 sirAggregateToString (susceptibleCount, infectedCount, recoveredCount) =
-  printf "%d" susceptibleCount
-  ++ "," ++ printf "%d" infectedCount
-  ++ "," ++ printf "%d" recoveredCount
+  printf "%f" susceptibleCount
+  ++ "," ++ printf "%f" infectedCount
+  ++ "," ++ printf "%f" recoveredCount
   ++ ";"

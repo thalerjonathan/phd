@@ -1,1 +1,0 @@
-<?xml version="1.0" ?><sweep runs="1"><parameter name="numAgents" type="constant" constant_type="int" value="100"></parameter><parameter name="zoneDistance" type="constant" constant_type="double" value="1000.0"></parameter></sweep>

@@ -1,4 +1,0 @@
-<context id="GeoZombies" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://repast.org/scenario/context">
-  	 <projection id="Geography" type="geography" />	  	 
-  	 <projection id="infection network" type="network" />		
-</context>

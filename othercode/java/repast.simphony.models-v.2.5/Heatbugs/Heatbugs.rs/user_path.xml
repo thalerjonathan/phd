@@ -1,5 +1,0 @@
-<model name="Heatbugs">
-	<classpath>
-		<agents path="../bin" filter="repast.model.heatbugs.*" />
-	</classpath>
-</model>

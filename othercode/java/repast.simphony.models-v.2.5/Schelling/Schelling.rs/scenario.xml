@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<Scenario>
-<repast.simphony.dataLoader.engine.ClassNameDataLoaderAction context="Schelling Model" file="repast.simphony.dataLoader.engine.ClassNameDataLoaderAction_0.xml" />
-<repast.simphony.action.display context="Schelling Model" file="repast.simphony.action.display_1.xml" />
-<repast.simphony.action.display context="Schelling Model" file="repast.simphony.action.display_2.xml" />
-</Scenario>

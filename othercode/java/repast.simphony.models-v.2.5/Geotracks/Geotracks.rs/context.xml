@@ -1,7 +1,0 @@
-<context id="Geotracks" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://repast.org/scenario/context">
-  	 <projection id="Geography" type="geography" />	
- 
-  	 <projection id="My indexed coverage" type="coverage layer" />
-  	  	 
-  	 <projection id="Network" type="network" />		
-</context>

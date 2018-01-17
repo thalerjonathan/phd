@@ -1,1 +1,0 @@
-This is the PredatorPrey model. Please contact the developers for more information.

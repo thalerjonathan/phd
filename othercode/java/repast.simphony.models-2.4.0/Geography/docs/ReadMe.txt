@@ -1,1 +1,0 @@
-Place your model's web-based (HTML) documentation files in this directory using "index.html" as the home page.

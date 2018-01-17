@@ -1,5 +1,0 @@
-<context id="Simple Physics" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://repast.org/scenario/context">
-
-	<projection id="Physics Space" type="continuous space" />
-	
-</context>

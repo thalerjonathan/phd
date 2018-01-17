@@ -1,1 +1,0 @@
-Place your external Java library files in this directory.

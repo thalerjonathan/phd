@@ -1,1 +1,0 @@
-Place your Repast Simphony data file description files in this directory.

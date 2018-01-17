@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<Scenario>
-<repast.simphony.action.data_set context="Epidemic" file="repast.simphony.action.data_set_0.xml" />
-<repast.simphony.dataLoader.engine.ClassNameDataLoaderAction context="Epidemic" file="repast.simphony.dataLoader.engine.ClassNameDataLoaderAction_1.xml" />
-</Scenario>

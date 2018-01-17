@@ -1,7 +1,0 @@
-<context id="SugarScape" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://repast.org/scenario/context">
-	<context id="SugarSpace">
-		<projection id="Grid" type="grid" />
-		<projection id="CurrentSugar" type="value layer" />
-		<projection id="MaxSugar" type="value layer" />
-	</context>
-</context>

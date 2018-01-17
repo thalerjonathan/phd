@@ -1,6 +1,0 @@
-<model name="FlowZombies">
-	<classpath>
-		<agents path="../bin" />
-		<entry path="../lib" />
-	</classpath>
-</model>

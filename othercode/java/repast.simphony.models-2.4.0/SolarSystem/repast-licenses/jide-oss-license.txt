@@ -1,3 +1,0 @@
-GPL with classpath exception.
-
-See: http://www.gnu.org/licenses/gpl.txt, http://www.gnu.org/software/classpath/license.html

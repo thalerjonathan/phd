@@ -21,3 +21,8 @@ describeListEndWith : List Int -> String
 describeListEndWith input with (listLast input)
   describeListEndWith []          | Empty         = "Empty"
   describeListEndWith (xs ++ [x]) | NonEmpty xs x = "Non-empty, initial portion = " ++ show xs
+
+myReverse : List a -> List a
+myReverse input with (listLast input)
+  myReverse [] | Empty = []
+  myReverse (xs ++ [x]) | (NonEmpty xs x) = x :: myReverse xs

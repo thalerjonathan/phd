@@ -1,6 +1,27 @@
 import Data.Primitives.Views
+import System
 
-quiz : Stream Int -> (score : Nat) -> IO ()
+%default total
+
+data InfIO : Type where
+  Do : IO a -> (a -> Inf InfIO) -> InfIO
+
+(>>=) : IO a -> (a -> Inf InfIO) -> InfIO
+(>>=) = Do
+
+data Fuel = Dry | More (Lazy Fuel)
+
+run : Fuel -> InfIO -> IO ()
+run Dry y = putStrLn "Out of Fuel!"
+run (More f) (Do act cont) = do
+  ret <- act
+  run f (cont ret)
+
+partial
+forever : Fuel
+forever = More forever
+
+quiz : Stream Int -> (score : Nat) -> InfIO 
 quiz (num1 :: num2 :: nums) score = do
   putStrLn ("Score so far: " ++ show score)
   putStr (show num1 ++ " * " ++ show num2 ++ "? ")
@@ -23,3 +44,9 @@ arithInputs seed = map bound (randoms seed)
     bound : Int -> Int
     bound num with (divides num 12)
       bound ((12 * div) + rem) | (DivBy prf) = rem + 1
+
+partial
+main : IO ()
+main = do
+  seed <- time
+  run forever (quiz (arithInputs (fromInteger seed)) 0)

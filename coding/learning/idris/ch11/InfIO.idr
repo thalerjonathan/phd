@@ -1,3 +1,5 @@
+module InfIO
+
 data InfIO : Type where
   Do : IO a -> (a -> Inf InfIO) -> InfIO
 
@@ -12,8 +14,10 @@ runInf (Do action cont) = do
   let cont' = cont ret
   runInf cont'
 
+public export
 data Fuel = Dry | More (Lazy Fuel)
 
+export
 forever : Fuel
 forever = More forever
 

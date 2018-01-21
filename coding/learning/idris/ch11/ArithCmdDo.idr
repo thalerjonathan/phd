@@ -40,26 +40,26 @@ runCommand (PutStr str) = putStr str
 runCommand GetLine      = getLine
 
 mutual
-  correct : Stream Int -> (score : Nat) -> ConsoleIO Nat
-  correct nums score = do
+  correct : Stream Int -> Stream Int -> (score : Nat) -> ConsoleIO Nat
+  correct nums quests score = do
     PutStr "Correct!\n"
-    quiz nums (S score)
+    quiz nums quests (S score)
 
-  wrong : Stream Int -> (score : Nat) -> (ans : Int) -> ConsoleIO Nat
-  wrong nums score ans = do
+  wrong : Stream Int -> Stream Int -> (score : Nat) -> (ans : Int) -> ConsoleIO Nat
+  wrong nums quests score ans = do
     PutStr ("Wrong, the answer is " ++ show ans ++ "\n")
-    quiz nums score
+    quiz nums quests score
 
-  quiz : Stream Int -> (score : Nat) -> ConsoleIO Nat
-  quiz (num1 :: num2 :: nums) score = do
-    PutStr ("Score so far: " ++ show score ++ "\n")
+  quiz : Stream Int -> Stream Int -> (score : Nat) -> ConsoleIO Nat
+  quiz (num1 :: num2 :: nums) (quest :: quests) score = do
+    PutStr ("Score so far: " ++ show score ++ " / " ++ show quest ++ "\n")
     answer <- readInput (show num1 ++ " * " ++ show num2 ++ "? ")
     case answer of
       QuitCmd       => Quit score
       Answer answer => do
         if answer == num1 * num2
-          then correct nums score 
-          else wrong nums score (num1 * num2)
+          then correct nums quests score 
+          else wrong nums quests score (num1 * num2)
 
 data Fuel = Dry | More (Lazy Fuel)
 
@@ -88,6 +88,6 @@ partial
 main : IO ()
 main = do 
   seed <- time
-  Just score <- run forever (quiz (arithInputs (fromInteger seed)) 0)
+  Just score <- run forever (quiz (arithInputs (fromInteger seed)) (iterate (+1) 0) 0)
              | Nothing => putStrLn "Ran out of fuel"
   putStrLn ("Final score: " ++ show score)

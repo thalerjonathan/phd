@@ -25,3 +25,5 @@ cabal-sandbox/
 cabal.sandbox.config
 *_minted*
 *.ibc
+*.vscode
+octave-workspace

@@ -27,3 +27,4 @@ cabal.sandbox.config
 *.ibc
 *.vscode
 octave-workspace
+*.cut

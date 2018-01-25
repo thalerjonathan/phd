@@ -1,5 +1,5 @@
 %\documentclass[a4paper, 10pt, conference]{../../templates/IEEEconf/IEEEconf}
-\documentclass[10pt, conference, onecolumn]{../../../templates/IEEEtran/IEEEtran}
+\documentclass[10pt, conference, onecolumn]{../../papers/templates/IEEEtran/IEEEtran}
 %\documentclass[10pt, journal]{../../templates/IEEEtran/IEEEtran}
 
 \usepackage{graphicx}
@@ -70,7 +70,7 @@
 \begin{abstract}
 TODO: feedback by thorsten: its too hardcore! instead of presenting my library we need to do "how to arrive at FrABS from Haskell to Yampa to FrABS" in which we (thorsten and me) derive step-by-step an implementation of a very simple agent-based model using Haskell and Yampa. The conclusion will then be that we provide all stuff already in FrABS. 
 TODO: split the approach to FrABS into the following steps
-	1.: run in random monad without any reactive features. problem: need to drag time & state around, also need to feedback state into all agents
+	1.: run in random monad without any reactive features. problem: need to drag time \& state around, also need to feedback state into all agents
 	2.: run in Yampa with reactive features. problem: randomness is tedious, still feedback of state into all
 	3.: run in Dunai.
 	
@@ -101,7 +101,7 @@ Functional Reactive Programming, Agent-Based Simulation
 
 \input{./tex/execRepls.tex}
 
-\input{./../shared/tex/results.tex}
+\input{./shared/tex/results.tex}
 
 \input{./tex/spatiality.tex}
 
@@ -115,14 +115,14 @@ Functional Reactive Programming, Agent-Based Simulation
 
 \input{./tex/conclusion.tex}
 
-\input{./../shared/tex/acknowledgments.tex}
+\input{./shared/tex/acknowledgments.tex}
 
-\bibliographystyle{../../../templates/IEEEtran/bibtex/IEEEtran}
-\bibliography{../../../../references/phdReferences.bib}
+\bibliographystyle{../../papers/templates/IEEEtran/bibtex/IEEEtran}
+\bibliography{../../../papers/references/phdReferences.bib}
 
 \appendices
 
 \newpage
-\input{./../shared/tex/absCode.tex}
+\input{./shared/tex/absCode.tex}
 
 \end{document}

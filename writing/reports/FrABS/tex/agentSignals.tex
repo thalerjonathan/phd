@@ -7,7 +7,7 @@ The question is if the agents of our agent-based SIR implementation are true sig
 	\begin{tabular}{c c}
 		\begin{subfigure}[b]{0.5\textwidth}
 			\centering
-			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/dtzero/SIR_ABS_zeroDt_start.png}
+			\includegraphics[width=.8\textwidth, angle=0]{./shared/fig/dtzero/SIR_ABS_zeroDt_start.png}
 			\caption{$\Delta t = 0$ from step 0 to 50.}
 			\label{fig:sd_plot_10dt}
 		\end{subfigure}
@@ -16,7 +16,7 @@ The question is if the agents of our agent-based SIR implementation are true sig
 		
 		\begin{subfigure}[b]{0.5\textwidth}
 			\centering
-			\includegraphics[width=.8\textwidth, angle=0]{./../shared/fig/dtzero/SIR_ABS_zeroDt_mid.png}
+			\includegraphics[width=.8\textwidth, angle=0]{./shared/fig/dtzero/SIR_ABS_zeroDt_mid.png}
 			\caption{$\Delta t = 0$ from step 51 to 101.}
 			\label{fig:sd_plot_0.01dt}
 		\end{subfigure}
@@ -31,7 +31,7 @@ As can be seen  the dynamics are becoming constant \textit{but} with a minor del
 
 \begin{figure}
 	\centering
-	\includegraphics[width=.4\textwidth, angle=0]{./../shared/fig/dtzero/SIR_ABS_zeroDt_mid_zoom.png}
+	\includegraphics[width=.4\textwidth, angle=0]{./shared/fig/dtzero/SIR_ABS_zeroDt_mid_zoom.png}
 	\caption{Zoom-in to step 51, marked with the black line from where on $\Delta t = 0$ for the next 50 steps. The recovered ratio stays constant but a few agents get infected even \textit{after} having switched to $\Delta t = 0$ which happens due to the message delivery lag. After all messages have been delivered, the signal stays constant until non-zero $\Delta t$ are turned on again.}
 	\label{fig:sir_abs_zero_dt_zoom}
 \end{figure}

@@ -1,0 +1,53 @@
+\section{Agent-Based Simulation Defined}
+Agent-Based Simulation (ABS) is a methodology to model and simulate a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is of knowledge. Those parts, called agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. Epstein \cite{epstein_generative_2012} identifies ABS to be especially applicable for analysing \textit{"spatially distributed systems of heterogeneous autonomous actors with bounded information and computing capacity"}. Thus in the line of the simulation methods \textit{Statistic} $^\dag$, \textit{Markov} $^\ddag$, \textit{System Dynamics} $^\S$, \textit{Discrete Event} $^\mp$, ABS is the most recent development and the most powerful one as it subsumes it's predecessors features and goes beyond:
+
+\begin{itemize}
+	\item Linearity \& Non-Linearity $^{\dag \ddag \S \mp}$ - the dynamics of the simulation can exhibit both linear and non-linear behaviour. 
+	\item Time $^{\dag \ddag \S \mp}$ - agents act over time, time is also the source of pro-activity.
+	\item States $^{\ddag \S \mp}$ - agents encapsulate some state which can be accessed and changed during the simulation.
+	\item Feedback-Loops $^{\S \mp}$ - because agents act continuously and their actions influence each other and themselves, feedback-loops are the norm in ABS. 
+	\item Heterogeneity $^{\mp}$ - although agents can have same properties like height, sex,... the actual values can vary arbitrarily between agents.
+	\item Interactions - agents can be modelled after interactions with an environment or other agents, making this a unique feature of ABS, not possible in the other simulation models.
+	\item Spatiality \& Networks - agents can be situated within e.g. a spatial (discrete 2d, continuous 3d,...) or network environment, making this also a unique feature of ABS, not possible in the other simulation models.
+\end{itemize}
+
+\subsection{Deriving central concepts}
+Before we can approach a functional view on ABS, we need to identify the central concepts of ABS on a more technical level. Unfortunately there does not exist a commonly agreed technical definition of ABS but we can draw inspiration from the closely related field of Multi-Agent Systems (MAS). It is important to understand that MAS and ABS are two different fields where in MAS the focus is much more on technical details implementing a system of interacting intelligent agents within a highly complex environment with the focus primarily on solving AI problems. Still and because of its focus on technical details we can draw inspiration from MAS, how they define the concept of agents.
+
+\subsubsection{Agents}
+In MAS \cite{wooldridge_introduction_2009}, \cite{weiss_multiagent_2013} agents are informally defined as:
+
+\begin{itemize}
+	\item They are uniquely addressable entities with some internal state over which they have full, exclusive control.
+	\item They are situated in an environment which they can observe and act upon.
+	\item They can interact with other agents which are situated in the same environment.
+	\item They are pro-active which means they can initiate actions on their own e.g. change their internal state, interact with other agents, create new agents, terminate themselves, interact with the environment,...
+\end{itemize}
+
+\subsubsection{Environment}
+The other important concept is the one of an environment. In MAS \cite{wooldridge_introduction_2009}, \cite{weiss_multiagent_2013} one distinguishes between different types of environments (based on \cite{russell_artificial_2010}):
+
+\begin{itemize}
+	\item Accessible vs. inaccessible - in an accessible environment an agent can obtain complete and accurate information from the environment. In ABS environments are generally implemented as being accessible.
+	\item Deterministic vs. non-deterministic - in a deterministic environment the actions of an agent have no uncertainty and are guaranteed to have a single effect. In ABS environments are generally implemented as being deterministic.
+	%\item Episodic vs. non-episodic - in an episodic environment agents act only on the current state and do not project into the future. In ABS environments are generally episodic.
+	\item Static vs. dynamic - a static environment only changes due to the agents actions whereas a dynamic one has other processes which operate on it. In ABS both static and dynamic environments are common.
+	\item Discrete vs. continuous - a discrete environment has only a fixed, finite number of states and actions whereas a continuous is potentially unlimited. In ABS both discrete and continuous environments are common.
+\end{itemize}
+
+Note that in MAS the focus is much more on the environment rather than on the agents where the environment is almost always a highly complex one and the agents may intelligently act on it. In ABS the focus is rather on the agents and their interactions where the environment plays a role but is not of central interest as it is almost always deterministic.
+
+\subsection{Deriving a formal view}
+In order to explore how we can implement an ABS in a pure functional way we need a sufficiently formal view on it. This will help us expressing the concepts in Haskell as formal, mathematical specifications translate easily into functional programming. There exists formalisations of MAS \cite{wooldridge_introduction_2009} but unfortunately they are not very helpful in our context as its formalization is tailored much more towards optimizing, intelligent and reasoning behaviour of agents within a highly complex and uncertain environment. TODO: still look into how their definition and try to get inspiration for the ABS approach. Also give a short explanation.
+What we need for ABS is a more agent-oriented approach: 
+
+\begin{enumerate}
+	\item An ABS is a simulation over time in which time is advanced either in discrete or continuous time-steps where discrete means advancing by a natural number time-delta and continuous by a real-valued time-delta. So we have a potentially infinite stream of time-steps starting at t=0 advancing by some fixed time-delta.
+	\item At each time-step all agents are allowed to act which is the source of their proactivity because it allows them to initiate actions on their own. Of course such actions are always time-dependent - be it explicitly like executing actions \textit{after} a specific time, or be it implicit like executing actions every time-delta - but this is the only way of implementing proactivity in a computer system.
+	\item In each step an agent should be able to read/write the environment. TODO: orderings? when are changes visible?
+	\item In each step an agent should be able to interact with other agents through communication. 
+	\item In each step an agent should be able to update its internal state.
+	\item Depending on its type, the environment must also be allowed to act in each time-step.
+	\item In general we can thus see an agent to exhibit both time-dependent and reactive behaviour: it can act continuously or discretely, depending on how the time is advanced and exhibit reactive behaviour which means it can react to changing environment or agents.
+	\item The interactions between agents their update-state and environment forms a feedback as the state of time ti forms the input state on which to act at time-step ti+1
+\end{enumerate}

@@ -47,10 +47,7 @@ namespace SimulationIteration
 susceptibleAgent : Stream Int -> AgentCmd () Susceptible (const Recovered)
 susceptibleAgent (r :: rands) = do
   res <- MakeContact r
-  case res of
-       Susceptible => ?susceptibleAgent_pure_1
-       Infected    => ?susceptibleAgent_pure_2
-       Recovered   => ?susceptibleAgent_pure_3
+  ?bla
 
 randoms : Int -> Stream Int
 randoms seed = let seed' = 1664525 * seed + 1013904223 in

@@ -1,0 +1,14 @@
+\section{Introduction}
+
+Dependent Types are the holy grail in functional programming as they allow to express even stronger guarantees about the correctness of programs and go as far where programs and types become constructive proofs \cite{wadler_propositions_2015} which must be total by definition \cite{thompson_type_1991}, \cite{altenkirch_why_2005}, \cite{altenkirch_pi_sigma:_2010}, \cite{program_homotopy_2013}. Thus the next obvious step is to apply them to our pure functional approach of agent-based simulation. So far no research in applying dependent types to agent-based simulation exists at all and it is not clear whether dependent types do make sense in this setting. We explore this for the first time and ask more specifically how we can add dependent types to our pure functional approach, which conceptual implications this has for ABS and what we gain from doing so. Note that we can only scratch the surface and lay down basic ideas and leave a proper in-depth treatment of this topic for further research. We use Idris \cite{brady_idris_2013}, \cite{brady_type-driven_2017} as language of choice as it is very close to Haskell with focus on real-world application and running programs as opposed to other languages with dependent types e.g. Agda and Coq which serve primarily as proof assistants.
+
+Dependent Types promise the following:
+
+\begin{enumerate}
+	\item Types as proofs - In dependently types languages, types can depend on any values and are first-class objects themselves. TODO: make more clear
+
+	\item Totality and termination - Constructive proofs must terminate, this means a well-typed program (which is itself a proof) is always terminating which in turn means that it must consist out of total functions. A total function is defined by \cite{brady_type-driven_2017} as: it terminates with a well-typed result or produces a non-empty finite prefix of a well-typed infinite result in finite time. Idris is turing complete but is able to check the totality of a function under some circumstances but not in general as it would imply that it can solve the halting problem. Other dependently typed languages like Agda or Coq restrict recursion to ensure totality of all their functions - this makes them non turing complete.
+\end{enumerate}
+
+%An agent can be seen as a potentially infinite stream of continuations which at some point could return information to stop evaluating the next item of the stream which allows an agent to terminate.
+%correspondence between temporal logics and FRP due to jeffery: is abs just another temporal logic?

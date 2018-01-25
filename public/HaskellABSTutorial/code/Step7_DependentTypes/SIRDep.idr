@@ -40,19 +40,18 @@ data AgentCmd : (t : Type) -> SIRState -> (t -> SIRState) -> Type where
                ((res : a) -> AgentCmd b (s2_fn res) s3_fn) ->
                AgentCmd b s1 s3_fn
 
-namespace SimulationIteration
-  data SimIter : (t : Type) -> SIRState -> (t -> SIRState) -> Type where
+namespace SimulationStepping
+  data SimStep : (t : Type) -> SIRState -> (t -> SIRState) -> Type where
        (>>=) : AgentCmd a s1 s2_fn -> 
-               ((res : a) -> Inf (SimIter b (s2_fn res) s3_fn)) -> 
-               SimIter b s1 s3_fn
-        -- Terminate : SimIter () NotRunning (const NotRunning)
+               ((res : a) -> Inf (SimStep b (s2_fn res) s3_fn)) -> 
+               SimStep b s1 s3_fn
+       Terminate : SIRState -> SimStep SIRState s s_fn
 
-data SimIO : SIRState -> Type where
-  Do : AgentCmd a s1 s2_fn -> ((res : a) -> Inf (SimIO (s2_fn res))) -> SimIO s1 -- why s1 here and not s2 ???
-
+-- a recovered agent always stays recovered
 recoveredBehaviour : AgentCmd () Recovered (const Recovered)
 recoveredBehaviour = Pure ()
 
+-- an infected agent ALWAYS recovers after a finite time 
 infectedBehaviour : Nat -> AgentCmd () Infected (const Recovered)
 infectedBehaviour Z = do
   Recover Z
@@ -61,6 +60,7 @@ infectedBehaviour (S k) = do
   Recover (S k)
   infectedBehaviour k
 
+-- TODO: a susceptible agent can also stay susceptible all the time and never become infected!
 partial -- TODO: make total!
 susceptibleBehaviour : AgentCmd () Susceptible (const Recovered)
 susceptibleBehaviour = do
@@ -69,10 +69,15 @@ susceptibleBehaviour = do
       False => susceptibleBehaviour
       True  => infectedBehaviour illnessDuration -- TODO: exponential distribution
 
+-- this was taken from the book "Type-Driven Development with Idris" by Edwin Brady
 randoms : Int -> Stream Int
 randoms seed = let seed' = 1664525 * seed + 1013904223 in
                    (seed' `shiftR` 2) :: randoms seed'
 
+-- TODO: only the infected agents have influence on the system: 
+-- if there are no more infected agents, the simulation should terminate
+
+-- TODO: get rid of IO
 runAgentCmd : AgentCmd a beforeState afterState_fn -> IO a
 runAgentCmd (MakeContacts n) = pure True
 runAgentCmd (Recover time)   = pure ()
@@ -81,9 +86,23 @@ runAgentCmd (cmd >>= cont)   = do
   ret <- runAgentCmd cmd
   runAgentCmd (cont ret)
 
-partial
-run : SimIO s -> IO ()
-run (Do cmd cont) = do
-  res <- runAgentCmd cmd
-  run (cont res)
+SimulationState : Type
+SimulationState = ?simulationState
 
+simulationLoop : SimulationState ->
+                 SimStep t s s_fn ->
+                 t
+simulationLoop = ?simulationLoop_rhs
+
+-- no need to run in IO as the whole simulation does
+-- never need input from the world
+run : SimStep t s1 s2_fn -> t
+run (Terminate s) = s
+run (agentCmd >>= cont) = ?run_rhs_1
+
+-- TODO: implement export of dynamics to file
+writeToFile : IO ()
+
+partial
+main : IO ()
+main = ?main -- run (simulationLoop {pounds = 0} {chocs = 1})

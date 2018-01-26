@@ -98,7 +98,7 @@ infectedAgent dt (_, t)
 \end{minted}
 
 \subsubsection{Results}
-When running our naive implementation with increasing population sizes we arrive at the dynamics as seen in Figure \ref{fig:sir_abs_dynamics_naive}.
+When running our naive implementation with increasing population sizes we get the dynamics as seen in Figure \ref{fig:sir_abs_dynamics_naive}. With increasing number of agents \cite{macal_agent-based_2010} our solution becomes increasingly smoother and approaches the SD dynamics from Figure \ref{fig:sir_sd_dynamics}  but doesn't quite match them because we are under-sampling the contact-rate. We will will address this problem in the next section.
 
 \begin{figure}
 \begin{center}
@@ -148,7 +148,7 @@ Reflecting on our first naive approach we can conclude that it already introduce
 	\item Environment - as environment we implicitly assume a fully-connected network where every agent 'knows' every other agents, including itself and thus can make contact with every other agent (including itself).
 	\item Stochasticity - its an inherently stochastic simulation, which is indicated by the Random Monad type and the usage of \textit{randomBoolM} and \textit{randomExpM}.
 	\item Deterministic - repeated runs with the same initial random-number generator result in same dynamics. This may not come as a surprise but in Haskell we can guarantee that property statically already at compile time because our simulation runs in the Random Monad and NOT in the IO Monad. This guarantees that no external, uncontrollable sources of randomness can interfere with the simulation.
-	\item Dynamics - with increasing number of agents our solution approaches the SD dynamics \cite{macal_agent-based_2010}. Still although the dynamics are increasingly smoother they still don't match the ones from the SD in Figure \ref{fig:sir_sd_dynamics}. The reason for this is that we are under-sampling the contact-rate. We will will address this problem in the next section.
+	\item Dynamics - with increasing number of agents the dynamics smooth out \cite{macal_agent-based_2010}.
 \end{itemize}
 
 Nonetheless our approach has also weaknesses and dangers:

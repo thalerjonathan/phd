@@ -14,7 +14,7 @@ agentCount :: Int
 agentCount = 10000
 
 infectedCount :: Int
-infectedCount = 2
+infectedCount = 5
 
 rngSeed :: Int
 rngSeed = 42

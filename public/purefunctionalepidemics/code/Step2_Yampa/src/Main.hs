@@ -20,7 +20,7 @@ rngSeed :: Int
 rngSeed = 42
 
 dt :: DTime
-dt = 0.0025
+dt = 0.001 -- 0.0025
 
 t :: Time
 t = 150

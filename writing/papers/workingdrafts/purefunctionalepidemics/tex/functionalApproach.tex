@@ -2,6 +2,8 @@
 %2 main points from Henrik: 1.: try to stick to synchronous updates because this is how the real world works. 2.: get rid of globally shared mutable state as it complicates things extremely with reasoning
 %clear conceptual formal model of what agents are and then structure my implementation around it
 
+For a programming language agnostic view The authors of \cite{thaler_art_2017} give a programming language agnostic view on the fundamental concepts of implementing an agent-based simulation.
+
 In this section we will derive a functional approach for implementing an agent-based simulation of the SIR model. We will start out with a very naive approach and show its limitations which can be overcome by bringing in FRP. Then in three steps we will add more concepts and generalisations, ending up at the final approach which utilises monadic stream functions (MSF) \cite{perez_functional_2016}, a generalisation of FRP.
 Although we presented a high-level agent-based approach to the SIR model in the previous section, which focused only on the states and the transitions, we haven't talked about technical implementation details on how to actually implement such a state-machine. In these steps we will ultimately present four different approaches on how to implement these states and transitions. Although all result \textit{on average} in the same dynamics, not all of them are equally expressive and testable.
 
@@ -15,4 +17,4 @@ Although we presented a high-level agent-based approach to the SIR model in the 
 
 \input{./tex/step5.tex}
 
-\input{./tex/step6.tex}
+%\input{./tex/step6.tex}

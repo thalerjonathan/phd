@@ -1,5 +1,5 @@
 \section{The SIR Model}
-To explain the concepts of ABS and of our functional reactive approach to it, we introduce the SIR model as a motivating example. It is a very well studied and understood compartment model from epidemiology \cite{kermack_contribution_1927} which allows to simulate the dynamics of an infectious disease like influenza, tuberculosis, chicken pox, rubella and measles \cite{enns_its_2010} spreading through a population. In this model, people in a population of size $N$ can be in either one of three states \textit{Susceptible}, \textit{Infected} or \textit{Recovered} at a particular time, where it is assumed that initially there is at least one infected person in the population. People interact with each other \textit{on average} with a given rate $\beta$ per time-unit and get infected with a given probability $\gamma$ when interacting with an infected person. When infected, a person recovers \textit{on average} after $\delta$ time-units and is then immune to further infections. An interaction between infected persons does not lead to re-infection, thus these interactions are ignored in this model. This definition gives rise to three compartments with the transitions as seen in Figure \ref{fig:sir_transitions}.
+To explain the concepts of ABS and of our functional reactive approach to it, we introduce the SIR model as a motivating example and use-case for our implementation. It is a very well studied and understood compartment model from epidemiology \cite{kermack_contribution_1927} which allows to simulate the dynamics of an infectious disease like influenza, tuberculosis, chicken pox, rubella and measles \cite{enns_its_2010} spreading through a population. In this model, people in a population of size $N$ can be in either one of three states \textit{Susceptible}, \textit{Infected} or \textit{Recovered} at a particular time, where it is assumed that initially there is at least one infected person in the population. People interact \textit{on average} with a given rate of $\beta$ other people per time-unit and become infected with a given probability $\gamma$ when interacting with an infected person. When infected, a person recovers \textit{on average} after $\delta$ time-units and is then immune to further infections. An interaction between infected persons does not lead to re-infection, thus these interactions are ignored in this model. This definition gives rise to three compartments with the transitions as seen in Figure \ref{fig:sir_transitions}.
 
 \begin{figure}
 	\centering
@@ -21,7 +21,7 @@ infectionRate &= \frac{I \beta S \gamma}{N} \\
 recoveryRate &= \frac{I}{\delta} 
 \end{align}
 
-Solving these equations is then done by integrating over time. In the SD terminology, the integrals are called \textit{Stocks} and the values over which is integrated over time are called \textit{Flows}. The $1+$ in $I(t)$ amounts to the initially infected agent - if there wouldn't be a single infected one, the system would immediately reach equilibrium.
+Solving these equations is then done by integrating over time. In the SD terminology, the integrals are called \textit{Stocks} and the values over which is integrated over time are called \textit{Flows}. The $1+$ in $I(t)$ amounts to the initially infected agent because if there wouldn't be a single infected one, the system would immediately reach equilibrium - this is also the formal definition of the steady state of the system: as soon as $I(t) = 0$ the system won't change any more.
 
 \begin{align}
 S(t) &= N + \int_0^t -infectionRate\, \mathrm{d}t \\
@@ -34,7 +34,7 @@ There exist a huge number of software packages which allow to conveniently expre
 \begin{figure}
 	\centering
 	\includegraphics[width=.4\textwidth, angle=0]{./fig/diagrams/SIR_SD_STOCKFLOW_DIAGRAMM.png}
-	\caption{A visual representation of the SD stocks and flows of the SIR compartment model. Picture taken using AnyLogic Personal Learning Edition 8.1.0.}
+	\caption{A visual representation of the SD stocks and flows of the SIR compartment model.} %Picture taken using AnyLogic Personal Learning Edition 8.1.0.
 	\label{fig:sir_sd_stockflow_diagramm}
 \end{figure}
 
@@ -48,24 +48,16 @@ Running the SD simulation over time results in the dynamics as shown in Figure \
 \end{figure}
 
 \subsection*{An Agent-Based approach}
-The SD approach is inherently top-down because the emergent property of the system is formalized in differential equations. The question is if such a top-down behaviour can be emulated using ABS, which is inherently bottom-up. Also the question is if there are fundamental drawbacks and benefits when doing so using ABS. Such questions were asked before and modelling the SIR model using an agent-based approach is indeed possible. It is important to note that SD can be seen as operating on averages thus treating the population completely continuous which results in non-discrete values of stocks e.g. 3.1415 infected persons. Thus the fundamental approach to map the SIR model to an ABS is to discretize the population and model each person in the population as an individual agent. The transition  between the states are no longer happening according to continuous differential equations but due to discrete events caused both by interactions amongst the agents and time-outs.
-
-TODO: this is already a too technical explanation which fixes the implementation details already on messaging / data-flow - this is too early and in deriving our approach we will implement 4 different approaches (feedback of all agent-states, data-flow, environment, transactions)
-TODO: the main point is that we are implementing a state-chart with the transitions are the main thing to consider
+The SD approach is inherently top-down because the emergent property of the system is formalized in differential equations. The question is if such a top-down behaviour can be emulated using ABS, which is inherently bottom-up. Also the question is if there are fundamental drawbacks and benefits when doing so using ABS. Such questions were asked before and modelling the SIR model using an agent-based approach is indeed possible \cite{macal_agent-based_2010}. The fundamental difference is that SD is operating on averages, treating the population completely continuous which results in non-discrete values of stocks e.g. 3.1415 infected persons. The approach of mapping the SIR model to an ABS is to discretize the population and model each person in the population as an individual agent. The transition between the states are no longer happening according to continuous differential equations but due to discrete events caused both by interactions amongst the agents and time-outs.
+According to the model, every agent makes \textit{on average} contact with $\beta$ random other agents per time unit. In ABS we can only contact discrete agents thus we model this by generating a random event on average every $\beta$ time units. Note that we need to sample from an exponential CDF because the rate is proportional to the size of the population as \cite{borshchev_system_2004} pointed out. Note that an agent does not know the other agents' state when making contact with it, thus we need a mechanism in which agents reveal their state in which they are in \textit{at the moment of making contact}. This mechanism is an implementation detail which we will derive in our implementation steps. For now we only assume that agents can make contact with each other somehow. 
+Although in the model each agent make contact with each other, in the agent-based implementation we follow the following behaviour:
 
 \begin{itemize}
-	\item Every agent makes \textit{on average} contact with $\beta$ random other agents per time unit. In ABS we can only contact discrete agents thus we model this by generating a random event on average every $\beta$ time units. Note that we need to sample from an exponential CDF because the rate is proportional to the size of the population as \cite{borshchev_system_2004} pointed out.
-	
-	\item An agent does not know the other agents' state when making contact with it, thus we need a mechanism in which agents reveal their state in which they are in \textit{at the moment of making contact}. Obviously the already mentioned messaging which allows agents to interact is perfectly suited to do this.
-	\begin{itemize}
-		\item \textit{Susceptibles}: These agents make contact with other random agents (excluding themselves) with a "Susceptible" message. They can be seen to be the drivers of the dynamics.
-		\item \textit{Infected}: These agents only reply to incoming "Susceptible" messages with an "Infected" message to the sender. Note that they themselves do \textit{not} make contact pro-actively but only react to incoming one. 
-		\item \textit{Recovered}: These agents do not need to send messages because contacting it or being contacted by it has no influence on the state.
-	\end{itemize}
-	
-	\item Transition of susceptible to infected state - a susceptible agent needs to have made contact with an infected agent which happens when it receives an "Infected" message. If this happens an infection occurs with a probability of $\gamma$. The infection can be calculated by drawing $p$ from a uniform random-distribution between 0 and 1 - infection occurs in case of $\gamma >= p $. Note that this needs to be done for \textit{every} received "Infected" message.
-	
-	\item Transition of infected to recovered - a person recovers \textit{on average} after $\delta$ time unites. This is implemented by drawing the duration from an exponential distribution \cite{borshchev_system_2004} with $\lambda = \frac{1}{\delta}$ and making the transition after this duration.
+	\item \textit{Susceptible}: Only these agents make contact \textit{on average} with $\beta$ other random agents (excluding themselves). For every \textit{infected} agent they get into contact with, they become infected with a probability of $\gamma$. If an infection happens, they make the state-transition to being \textit{Infected}.
+
+	\item \textit{Infected}: These agents do \textit{not} contact other agents (TODO: why? what is the theory behind that?). An infected agent recovers \textit{on average} after $\delta$ time units. This is implemented by drawing the duration from an exponential distribution \cite{borshchev_system_2004} with $\lambda = \frac{1}{\delta}$ and making the transition to \textit{Recovered} after this duration.
+
+	\item \textit{Recovered}: These agents do nothing because this state is a terminating state from which there is no escape: recovered agents stay immune and can not get infected again in this model \footnote{There exists an extended SIR model, called SIRS which adds a cycle to the state-machine by introducing a transition from recovered back to susceptible but we don't consider that here.}.
 \end{itemize}
 
 For a more in-depth introduction of how to approximate an SD model by ABS see \cite{macal_agent-based_2010} who discusses a general approach and how to compare dynamics and \cite{borshchev_system_2004} which explain the need to draw the illness-duration from an exponential-distribution. For comparing the dynamics of the SD and ABS approach to real-world epidemics see \cite{ahmed_variance_2013}.

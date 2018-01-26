@@ -98,7 +98,46 @@ infectedAgent dt (_, t)
 \end{minted}
 
 \subsubsection{Results}
-We run the simulation for $t = 150$ time-units with a fixed $\Delta t = 1.0$. With increasing number of agents the dynamics approach the one of the SD simulation. TODO: add pictures
+When running our naive implementation with increasing population sizes we arrive at the dynamics as seen in Figure \ref{fig:sir_abs_dynamics_naive}.
+
+\begin{figure}
+\begin{center}
+	\begin{tabular}{c c}
+		\begin{subfigure}[b]{0.3\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./fig/step1_randmonad/SIR_100agents_150t_1dt.png}
+			\caption{100 Agents}
+			\label{fig:sir_abs_approximating_1dt_100agents}
+		\end{subfigure}
+    	&
+		\begin{subfigure}[b]{0.3\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./fig/step1_randmonad/SIR_500agents_150t_1dt.png}
+			\caption{500 Agents}
+			\label{fig:sir_abs_approximating_1dt_500agents}
+		\end{subfigure}
+    	
+    	\\
+    	
+		\begin{subfigure}[b]{0.3\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./fig/step1_randmonad/SIR_1000agents_150t_1dt.png}
+			\caption{1,000 Agents}
+			\label{fig:sir_abs_approximating_1dt_1000agents}
+		\end{subfigure}
+		& 
+		\begin{subfigure}[b]{0.3\textwidth}
+			\centering
+			\includegraphics[width=1\textwidth, angle=0]{./fig/step1_randmonad/SIR_10000agents_150t_1dt.png}
+			\caption{10,000 Agents}
+			\label{fig:sir_abs_approximating_1dt_10000agents}
+		\end{subfigure}
+	\end{tabular}
+	
+	\caption{Naive simulation of SIR using agent-based approach. Varying population size, contact rate $\beta = \frac{1}{5}$, infection probability $\gamma = 0.05$, illness duration $\delta = 15$ with initially 1 infected agent. Simulation run for 150 time-steps with various $\Delta t$.} 
+	\label{fig:sir_abs_dynamics_naive}
+\end{center}
+\end{figure}
 
 \subsubsection{Discussion}
 Reflecting on our first naive approach we can conclude that it already introduced most of the fundamental concepts of ABS
@@ -109,7 +148,7 @@ Reflecting on our first naive approach we can conclude that it already introduce
 	\item Environment - as environment we implicitly assume a fully-connected network where every agent 'knows' every other agents, including itself and thus can make contact with every other agent (including itself).
 	\item Stochasticity - its an inherently stochastic simulation, which is indicated by the Random Monad type and the usage of \textit{randomBoolM} and \textit{randomExpM}.
 	\item Deterministic - repeated runs with the same initial random-number generator result in same dynamics. This may not come as a surprise but in Haskell we can guarantee that property statically already at compile time because our simulation runs in the Random Monad and NOT in the IO Monad. This guarantees that no external, uncontrollable sources of randomness can interfere with the simulation.
-	\item Dynamics - it works as expected because with increasing number of agents our solution approaches the SD dynamics \cite{macal_agent-based_2010}.
+	\item Dynamics - with increasing number of agents our solution approaches the SD dynamics \cite{macal_agent-based_2010}. Still although the dynamics are increasingly smoother they still don't match the ones from the SD in Figure \ref{fig:sir_sd_dynamics}. The reason for this is that we are under-sampling the contact-rate. We will will address this problem in the next section.
 \end{itemize}
 
 Nonetheless our approach has also weaknesses and dangers:
@@ -119,4 +158,4 @@ Nonetheless our approach has also weaknesses and dangers:
 	\item The states of all agents of the current step are fed back into every agent in the next step so that an agent can pick its contacts. Although agents cannot change the states of others, this reveals too much information e.g. the illness duration is of no interest to the other agents. Although we could just feed in the \textit{SIRStates} without the illness duration, the problem is more of conceptual nature - it should be the agent which decides to whom it reveals which information.
 \end{enumerate}
 
-We move now to the next section in which we will address points 1 and 2. Point 3 will be addressed in section \ref{sec:step3_dataflow}.
+We move now to the next section in which we will address points 1 and 2. Points 3 and 4 will be addressed in section \ref{sec:step3_dataflow}.

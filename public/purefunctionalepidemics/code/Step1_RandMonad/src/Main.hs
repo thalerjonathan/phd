@@ -11,10 +11,10 @@ type SIRAgent     = (SIRState, Time)
 type Agents       = [SIRAgent]
 
 agentCount :: Int
-agentCount = 1000
+agentCount = 10000
 
 infectedCount :: Int
-infectedCount = 10
+infectedCount = 2
 
 rngSeed :: Int
 rngSeed = 42

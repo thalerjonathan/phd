@@ -43,19 +43,18 @@ runSimulationUntil :: RandomGen g
                     -> TimeDelta 
                     -> Agents 
                     -> Rand g [Agents]
-runSimulationUntil tEnd dt as = runSimulationUntilAux 0 dt as []
+runSimulationUntil tEnd dt as = runSimulationUntilAux 0 as []
   where
     runSimulationUntilAux :: RandomGen g 
                           => Time 
-                          -> TimeDelta 
                           -> Agents 
                           -> [Agents] 
                           -> Rand g [Agents]
-    runSimulationUntilAux t dt as acc
+    runSimulationUntilAux t as acc
       | t >= tEnd = return $ reverse (as : acc)
       | otherwise = do
         as' <- stepSimulation dt as 
-        runSimulationUntilAux (t + dt) dt as' (as : acc)
+        runSimulationUntilAux (t + dt) as' (as : acc)
 
 runSimulation :: RandomGen g 
               => TimeDelta 

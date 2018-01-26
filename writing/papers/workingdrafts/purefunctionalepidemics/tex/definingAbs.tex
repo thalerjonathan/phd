@@ -8,31 +8,32 @@ Agent-Based Simulation (ABS) is a methodology to model and simulate a system whe
 	\item They can interact with other agents which are situated in the same environment by means of messaging.
 \end{itemize} 
 
-Epstein \cite{epstein_generative_2012} identifies ABS to be especially applicable for analysing \textit{"spatially distributed systems of heterogeneous autonomous actors with bounded information and computing capacity"}. Thus in the line of the established simulation methodologies \textit{Statistic}, \textit{Markov}, \textit{System Dynamics (SD)}, \textit{Discrete Event (DE)}, ABS is the most powerful one as listed in Table \ref{tab:simulation_types}:
+Epstein \cite{epstein_generative_2012} identifies ABS to be especially applicable for analysing \textit{"spatially distributed systems of heterogeneous autonomous actors with bounded information and computing capacity"}. %Thus in the line of the established simulation methodologies (see Table \ref{tab:simulation_types}), ABS is the most powerful one as listed in :
+It exhibits the following properties:
 
 \begin{itemize}
 	\item Linearity \& Non-Linearity - actions of agents can lead to non-linear behaviour of the system.
-	\item Time - agents act over time, time is also the source of pro-activity.
+	\item Time - agents act over time and time is also the source of pro-activity.
 	\item States - agents encapsulate some state which can be accessed and changed during the simulation.
 	\item Feedback-Loops - because agents act continuously and their actions influence each other and themselves in subsequent time-steps, feedback-loops are the norm in ABS. 
 	\item Heterogeneity - although agents can have same properties like height, sex,... the actual values can vary arbitrarily between agents.
 	\item Interactions - agents can be modelled after interactions with an environment or other agents, making this a unique feature of ABS, not possible in the other simulation models.
-	\item Spatiality \& Networks - agents can be situated within e.g. a spatial (discrete 2d, continuous 3d,...) or network environment, making this also a unique feature of ABS, not possible in the other simulation models.
+	\item Spatiality \& Networks - agents can be situated within e.g. a spatial (discrete 2d, continuous 3d,...) or network environment. % making this also a unique feature of ABS, not possible in the other simulation models.
 \end{itemize}
-
-\begin{table*}[t]
-\centering
-\caption{Simulation Methodologies and what they can model}
-\label{tab:simulation_types}
-\begin{tabular}{l || l | l | l | l | l }
-	 			& \textbf{Statistic} & \textbf{Markov} & \textbf{SD} & \textbf{DE} & \textbf{ABS} \\ \hline \hline
-
-\textbf{(Non) Linearity}		& X	& X	& X	& X	& X \\  
-\textbf{Time}					& X	& X	& X	& X	& X \\  
-\textbf{States}					& 	& X	& X	& X	& X \\   
-\textbf{Feedback}				& 	& 	& X	& X	& X \\  
-\textbf{Heterogeneity}			& 	& 	& 	& X	& X \\  
-\textbf{Interactions}			& 	& 	& 	& 	& X \\  
-\textbf{Spatiality \& Networks}	& 	& 	& 	& 	& X \\  
-\end{tabular}
-\end{table*}
+%
+%\begin{table*}[t]
+%\centering
+%\caption{Simulation Methodologies and what they can model}
+%\label{tab:simulation_types}
+%\begin{tabular}{l || l | l | l | l | l }
+%	 			& \textbf{Statistic} & \textbf{Markov} & \textbf{SD} & \textbf{DE} & \textbf{ABS} \\ \hline \hline
+%
+%\textbf{(Non) Linearity}		& X	& X	& X	& X	& X \\  
+%\textbf{Time}					& X	& X	& X	& X	& X \\  
+%\textbf{States}					& 	& X	& X	& X	& X \\   
+%\textbf{Feedback}				& 	& 	& X	& X	& X \\  
+%\textbf{Heterogeneity}			& 	& 	& 	& X	& X \\  
+%\textbf{Interactions}			& 	& 	& 	& 	& X \\  
+%\textbf{Spatiality \& Networks}	& 	& 	& 	& 	& X \\  
+%\end{tabular}
+%\end{table*}

@@ -1,4 +1,5 @@
 \subsection{Step III: Adding arbitrary data-flow}
+\label{sec:step3_dataflow}
 In this step we will introduce a data-flow mechanism between agents which makes the feedback explicit. As already mentioned in the previous step, by revealing the state of every agent to all other agents makes the interactions implicit and deprives the agent of its control over which other agent sees its data. 
 As a remedy we introduce data-flows which allow an agent to send arbitrary data to other agents. The data will be collected from the sending agents and distributed to the receivers after each step, which means that we have a delay of one $\Delta t$ and a round-trip takes $2 \Delta t$ - which is exactly the behaviour we had before: feedback.
 This change requires then a different approach of how the agents interact with each other: a susceptible agent then sends to a random agent a data-flow indicating a contact. Only infected agents need to reply to such contact requests by revealing that they are infected. The susceptible agents then need to check for incoming replies which means they were in contact with an infected agent.

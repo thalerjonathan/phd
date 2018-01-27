@@ -1,22 +1,22 @@
-\subsection{Step III: Adding arbitrary data-flow}
+\subsection{Adding arbitrary data-flow}
 \label{sec:step3_dataflow}
-In this step we will introduce a data-flow mechanism between agents which makes the feedback explicit. As already mentioned in the previous step, by revealing the state of every agent to all other agents makes the interactions implicit and deprives the agent of its control over which other agent sees its data. 
-As a remedy we introduce data-flows which allow an agent to send arbitrary data to other agents. The data will be collected from the sending agents and distributed to the receivers after each step, which means that we have a delay of one $\Delta t$ and a round-trip takes $2 \Delta t$ - which is exactly the behaviour we had before: feedback.
+In this step we will introduce a data-flow mechanism between agents which makes the feedback explicit. As already mentioned in the previous step, by revealing the state of every agent to all other agents makes the interactions implicit and deprives the agent of its control over which data which other agent sees. As a remedy we introduce data-flows which allow an agent to send arbitrary data to other agents. Unfortunately we cannot express this directly with Yampa combinators as data-flow is hard-wired at compile-time so we need to implement our own mechanism. The data will be collected from the sending agents and distributed to the receivers after each step, which means that we have a delay of one $\Delta t$ and a round-trip takes $2 \Delta t$ - which is exactly the feedback behaviour we had before.
 This change requires then a different approach of how the agents interact with each other: a susceptible agent then sends to a random agent a data-flow indicating a contact. Only infected agents need to reply to such contact requests by revealing that they are infected. The susceptible agents then need to check for incoming replies which means they were in contact with an infected agent.
 
+\subsubsection{Implementation}
 First we need a way of addressing agents, which we do by introducing unique agent ids. Also we need a data-package which identifies the receiver and carries the data:
 \begin{minted}[fontsize=\footnotesize]{haskell}
 type AgentId     = Int
-type AgentData d = (AgentId, d)
+type DataFlow d = (AgentId, d)
 \end{minted}
 
-Next we need more general input and output types of our agents signal-functions. We introduce a new input type which holds both the agent-id of the agent and the incoming data-flows from other agents:
+Next we need more general input and output types of our agents signal-functions. We introduce a new input type which holds both the agent id of the agent and the incoming data-flows from other agents:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 data AgentIn d = AgentIn
   {
-    aiId    :: !AgentId
-  , aiData  :: ![AgentData d]
+    aiId   :: AgentId
+  , aiData :: [DataFlow d]
   } 
 \end{minted}
 
@@ -25,27 +25,27 @@ We also introduce a new output type which holds both the outgoing data-flows to 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 data AgentOut o d = AgentOut
   {
-    aoData        :: ![AgentData d]
-  , aoObservable  :: !o
+    aoData        :: [DataFlow d]
+  , aoObservable  :: o
   }
 \end{minted}
 
-Note that by making the observable state explicit in the types we give the agent further control of what it can reveal to the outside world which allows an even stronger separation between the agents internal state / data and what the agent wants the world to see.
+Note that by making the observable state explicit in the types we give the agent further control of what it can reveal to the outside world which allows an even stronger separation between the agents internal state and what the agent wants the world to see.
 
 Now we can then generalise the agents signal-functions to the following type:
 \begin{minted}[fontsize=\footnotesize]{haskell}
-type Agent o d    = SF (AgentIn d) (AgentOut o d)
+type Agent o d = SF (AgentIn d) (AgentOut o d)
 \end{minted}
 
-For our SIR implementation we need concrete types, so we need to define what the type parameters \textit{o} and \textit{d} are. For \textit{d} we simply define an ADT which defines a contact-message, and for \textit{o} which defines the type of the observable state, we use the existing SIR-state. Now we can define the type synonyms for our SIR implementation:
+For our SIR implementation we need concrete types, so we need to define what the type parameters \textit{o} and \textit{d} are. For \textit{d} we use an ADT as contact-message. As type of the observable state we use the existing SIR state. Now we can define the type synonyms for our SIR implementation:
 \begin{minted}[fontsize=\footnotesize]{haskell}
-data SIRMsg      = Contact SIRState deriving (Show, Eq)
+data SIRMsg      = Contact SIRState deriving Eq
 type SIRAgentIn  = AgentIn SIRMsg
 type SIRAgentOut = AgentOut SIRState SIRMsg
 type SIRAgent    = Agent SIRState SIRMsg
 \end{minted}
 
-Obviously the existing implementation from step 2 needs to be adjusted. Lets look at the initial agent-behaviour:
+Next we gonna re-implement the agent-behaviour:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 sirAgent :: RandomGen g => g -> [AgentId] -> SIRState -> SIRAgent
@@ -54,72 +54,63 @@ sirAgent g _   Infected    = infectedAgent g
 sirAgent _ _   Recovered   = recoveredAgent
 \end{minted}
 
-It still takes a random-number generator, the initial sir-state and returns the corresponding signal-function depending on the state now in addition it now takes a list of agent ids. When using data-flow we need to know the ids of the agents we are communicating with - we need to know our neighbourhood, or seen differently: we need to have access to the environment we are situated in. In our case our environment is a fully connected read-only network in which all agents know all other agents. The easiest way of representing a fully connected network is simply using a list.
-Again when we look at the functions which are returned we see that recovered agent is still the same: it is a sink which ignores the environment and the random-number generator. 
+The initial behaviour is the same as previously but it now takes a list of agent ids as additional parameter. With data-flow we need to know the ids of the agents we are communicating with - we need to know our neighbourhood, or seen differently: we need to have access to the environment we are situated in. In our case our environment is a fully connected read-only network in which all agents know all other agents. The easiest way of representing a fully connected network (complete graph) is simply using a list. 
+The implementation of the recovered agent is still the same, its just a sink which ignores the environment and the random-number generator. 
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 recoveredAgent :: SIRAgent
-recoveredAgent = arr (const TODO DOLLAR agentOut Recovered)
+recoveredAgent = arr (const (agentOut Recovered))
 \end{minted}
 
-The implementation is nearly the same as in step 2 but instead of returning only the sir-state now the output of an agents signal-function is of type \textit{AgentOut}:
+Note that instead of returning just a SIR state now the output of an agents signal-function is of type \textit{AgentOut}:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 agentOut :: o -> AgentOut o d
 agentOut o = AgentOut {
-    aoData        = []
-  , aoObservable  = o
+    aoData       = []
+  , aoObservable = o
   }
 \end{minted}
 
-The behaviour of the infected agent now explicitly ignores the environment which was not apparent in step 2 on this level:
+The behaviour of the infected agent now explicitly ignores the environment which was not apparent previously on this level:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 infectedAgent :: RandomGen g => g -> SIRAgent
-infectedAgent g = 
-    switch
-    infected 
-      (const recoveredAgent)
+infectedAgent g = switch infected (const recoveredAgent)
   where
     infected :: SF SIRAgentIn (SIRAgentOut, Event ())
     infected = proc ain -> do
       recEvt <- occasionally g illnessDuration () -< ()
-      let a = event Infected (const Recovered) recEvt
-      let ao = respondToContactWith Infected ain (agentOut a)
+      let a  = event Infected (const Recovered) recEvt
+          ao = respondToContactWith Infected ain (agentOut a)
       returnA -< (ao, recEvt)
 \end{minted}
 
-The implementation of the infected agent now basically works the same as in step 2 but it additionally needs to reply to incoming contact data-flows with an "Infected" reply. This makes the difference to step 2 very explicit: in the data-flow approach agents now make explicit contact with each other which means that the susceptible agent sends out contact data-flows to which only infected agents need to reply.
-Note that at the moment of recovery the agent can still infect others because it will still reply with Infected. The response mechanism is implemented in \textit{respondToContactWith}:
+The implementation of the infected agent is basically the same as previously but it now needs to reply to incoming contact data-flows with an "Infected" reply. This makes the difference to the previous step very explicit: in the data-flow approach agents now make explicit contact with each other which means that the susceptible agent sends out contact data-flows to which only infected agents need to reply. Note that at the moment of recovery the agent can still infect others because it will still reply with Infected. The response mechanism is implemented in \textit{respondToContactWith}:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 respondToContactWith :: SIRState -> SIRAgentIn -> SIRAgentOut -> SIRAgentOut
-respondToContactWith state ain ao = onData respondToContactWithAux ain ao
+respondToContactWith state = onData respondToContactWithAux
   where
-    respondToContactWithAux :: AgentData SIRMsg -> SIRAgentOut -> SIRAgentOut
-    respondToContactWithAux (senderId, Contact _) ao = dataFlow (senderId, Contact state) ao
+    respondToContactWithAux :: DataFlow SIRMsg -> SIRAgentOut -> SIRAgentOut
+    respondToContactWithAux (senderId, Contact _) = dataFlow (senderId, Contact state)
     
-onData :: (AgentData d -> acc -> acc) -> AgentIn d -> acc -> acc
-onData dHdl ai a = foldr (\msg acc'-> dHdl msg acc') a (aiData ai)
+onData :: (DataFlow d -> acc -> acc) -> AgentIn d -> acc -> acc
+onData df ai a = foldr df a (aiData ai)
 
-dataFlow :: AgentData d -> AgentOut o d -> AgentOut o d
+dataFlow :: DataFlow d -> AgentOut o d -> AgentOut o d
 dataFlow df ao = ao { aoData = df : aoData ao }
 \end{minted}
 
-Note that the order of data packages in a data-flow is not specified and must not matter as it happens virtually at the same time, thus we always append at the front of the outgoing data-flow list.
+Note that the order of data-packages in a data-flow is not specified and must not matter as it happens virtually at the same time, thus we always append at the front of the outgoing data-flow list.
 
 Lets look at the susceptible agent behaviour. As already mentioned before, the feedback interaction between agents works now very explicit due to the data-flow but needs a different approach in our implementation:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 susceptibleAgent :: RandomGen g => g -> [AgentId] -> SIRAgent
-susceptibleAgent g ais = 
-    switch 
-      (susceptible g) 
-      (const TODO DOLLAR infectedAgent g)
+susceptibleAgent g ais = switch (susceptible g) (const (infectedAgent g))
   where
-    susceptible :: RandomGen g 
-                => g 
-                -> SF SIRAgentIn (SIRAgentOut, Event ())
+    susceptible :: RandomGen g => g -> SF SIRAgentIn (SIRAgentOut, Event ())
     susceptible g0 = proc ain -> do
       rec
         g <- iPre g0 -< g'
@@ -128,31 +119,27 @@ susceptibleAgent g ais =
       if infected 
         then returnA -< (agentOut Infected, Event ())
         else (do
-          makeContact <- occasionally g (1 / contactRate) ()  -< ()
-          contactId   <- drawRandomElemSF g                   -< ais
-
+          makeContact <- occasionally g (1 / contactRate) () -< ()
+          contactId   <- drawRandomElemSF g                  -< ais
+          let ao = agentOut Susceptible
           if isEvent makeContact
-            then returnA -< (dataFlow (contactId, Contact Susceptible) TODO DOLLAR agentOut Susceptible, NoEvent)
-            else returnA -< (agentOut Susceptible, NoEvent))
+            then returnA -< (dataFlow (contactId, Contact Susceptible) ao, NoEvent)
+            else returnA -< (ao, NoEvent))
             
 gotInfected :: RandomGen g => Double -> SIRAgentIn -> Rand g Bool
 gotInfected p ain = onDataM gotInfectedAux ain False
   where
-    gotInfectedAux :: RandomGen g => Bool -> AgentData SIRMsg -> Rand g Bool
+    gotInfectedAux :: RandomGen g => Bool -> DataFlow SIRMsg -> Rand g Bool
     gotInfectedAux False (_, Contact Infected) = randomBoolM p
     gotInfectedAux x _ = return x
     
-onDataM :: (Monad m) 
-        => (acc -> AgentData d -> m acc) 
-        -> AgentIn d 
-        -> acc 
-        -> m acc
-onDataM dHdl ai acc = foldM dHdl acc (aiData ai)
+onDataM :: (Monad m) => (acc -> DataFlow d -> m acc) -> AgentIn d -> acc -> m acc
+onDataM df ai acc = foldM df acc (aiData ai)
 \end{minted}
 
-Again the implementation is very similar to step 2 with the fundamental difference how contacts are made and how infections occur. First the agent checks if it got infected. This happens if an infected agent replies to the susceptible agents contact AND the susceptible agent got infected with the given probability. Note that \textit{gotInfected} runs in the Random-Monad which we run using \textit{runRand} and the random-number generator. To update our random-number generator to the changed one, we use the \textit{rec} keyword of Arrows, which allows us to refer to a variable after it is defined. In combination with iPre we introduced a local state - the random-number generator - which changes in every step.
+Again the implementation is very similar to the previous step with the fundamental difference how contacts are made and how infections occur. First the agent checks if it got infected. This happens if an infected agent replies to the susceptible agents contact \textit{and} the susceptible agent got infected with the given probability. Note that \textit{gotInfected} runs in the Random Monad which we run using \textit{runRand} and the random-number generator. To update our random-number generator to the changed one, we use the \textit{rec} keyword of Arrows, which allows us to refer to a variable after it is defined. In combination with iPre we introduced a local state - the random-number generator - which changes in every step.
 If the agent got infected, it simply returns an AgentOut with Infected as observable state and a switching event which indicates the switch to infected behaviour.
-If the agent is not infected it draws from occasionally to determine if it should make contact with a random agent. In case it should make contact it simply sends a data-package with the contact susceptible data to the receiver - only an infected agent will reply.
+If the agent is not infected it draws from occasionally to determine if it should make contact with a random agent. In case it should make contact it simply sends a data-package with the contact susceptible data to the receiver - note that only an infected agent will reply.
 
 Stepping the simulation now works a little bit different as the input/output types have changed and we need to collect and distribute the data-flow amongst the agents:
 
@@ -174,10 +161,10 @@ stepSimulation sfs ains =
       returnA -< Event nextAins
 \end{minted}
 
-The distribution of the data-flows happens in the \textit{switchingEvt} signal-function and is then passed on to the continuation-generation function as in step 2. The difference is that it creates now a list of AgentIn for the next step instead of a list of all the agents sir-states of the previous step. Again the continuation-generation function recursively returns the stepSimulation signal-function. The pairing function of pSwitch is now slightly more straightforward as it just pairs up the AgentIn with its corresponding signal-function.
+The distribution of the data-flows happens in the \textit{distributeData} function of switchingEvt and is then passed on to the continuation-generation function as previously. The difference is that it now creates a list of AgentIn for the next step instead of a list of all the agents SIR states of the previous step. Again the continuation-generation function recursively returns the stepSimulation signal-function. The pairing function of dpSwitch is now slightly more straightforward as it just pairs up the AgentIn with its corresponding signal-function. Note that due to lack of space we can't give an implementation of distributeData.
 
 \subsubsection{Emulating SD}
-Having data-flows at hand we can now emulate the SD approach because it allows us to express a system with parallel continuous-time flows between stocks and flows. Each stock $S(t)$, $I(t)$, $R(t)$ and each flow $infectionRate$, $recoveryRate$ is implemented as an agent with a fixed agent-id. The connections between them are implemented using the previously introduced data-flow mechanism. We start by refining the types for our SIR implementation:
+Having data-flows at hand we can now emulate the SD approach because it allows us to express a system with parallel continuous-time flows between the stocks and flows. Each stock $S(t)$, $I(t)$, $R(t)$ and each flow $infectionRate$, $recoveryRate$ is implemented as an agent with a fixed agent id. The connections between them are implemented using the previously introduced data-flow mechanism. We start by refining the types for our SIR implementation:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 type SIRMsg      = Double
@@ -193,9 +180,9 @@ infectedCount :: Double
 infectedCount = 1
 \end{minted}
 
-The message-data is now a plain double and the observable data has been changed to a \textit{Maybe Double}: instead of discrete agent-states we are dealing now we stocks and flows which are already aggregates represented by continuous values. Note that we use a Maybe type as flows only connect stocks and transform their values but don't have any observable state themselves. Note also that the population size and number of infected is specified now as doubles as we are dealing with continuous aggregates.
+The message-data is now a plain Double and the observable data has been changed to a \textit{Maybe Double}: instead of discrete agent-states we are dealing now with stocks and flows which are already aggregates represented by continuous values. Note that we use a Maybe type as flows only connect stocks and transform their values but don't have any observable state themselves. Note also that the population size and number of infected is specified now as Double as we are dealing with continuous aggregates.
 
-We give hard-coded agent-ids to our stocks and flows. This allows then for setting up hard-coded connections between them at compile time.
+We give hard-coded agent ids to our stocks and flows. This allows then for setting up hard-coded connections between them at compile time.
 \begin{minted}[fontsize=\footnotesize]{haskell}
 susceptibleStockId :: AgentId
 susceptibleStockId = 0
@@ -230,7 +217,7 @@ infectiousStock initValue = proc ain -> do
   returnA -< ao''
 \end{minted}
 
-The stock receives flows from both the infection-rate and recovery-rate flow using the function \textit{flowInFrom} (see below). Then the current stock value is calculated using the \textit{integral} function of Yampa with an initial value added which are the initially infected people. Note that we can directly express the SD equation using Yampas DSL for continuous-time systems. The current stock value is then set as the observable value of the stock and sent to the infection-rate and recovery-rate flows. For convenience we implemented an additional function \textit{flowInFrom} which returns the value sent from the corresponding agent-id or 0.0 if none was sent.
+The stock receives flows from both the infection-rate and recovery-rate flow using the function \textit{flowInFrom} (see below). Then the current stock value is calculated using the \textit{integral} function of Yampa with an initial value added which are the initially infected people. Note that we can directly express the SD equation using Yampas DSL for continuous-time systems. The current stock value is then set as the observable value of the stock and sent to the infection- and recovery-rate flows. For convenience we implemented an additional function \textit{flowInFrom} which returns the value sent from the corresponding agent id or 0.0 if none was sent.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 flowInFrom :: AgentId -> AgentIn SIRMsg -> Double
@@ -238,7 +225,7 @@ flowInFrom senderId ain = foldr filterMessageValue 0.0 dsFiltered
   where 
     dsFiltered = filter ((==senderId) . fst) (aiData ain)
 
-    filterMessageValue :: AgentData SIRMsg -> Double -> Double
+    filterMessageValue :: DataFlow SIRMsg -> Double -> Double
     filterMessageValue (_, v) _ = v
 \end{minted}
 	
@@ -259,11 +246,11 @@ infectionRateFlow = proc ain -> do
   returnA -< ao''
 \end{minted}
 
-Instead of integrating a value over time a stock just transforms incoming values from the connected stocks - in this case the susceptible and infectious stocks. Note again how directly we can express the formula for the infection rate as provided in the SD background.
+Instead of integrating a value over time a stock just transforms incoming values from the connected stocks - in this case the susceptible and infectious stocks. Note again how directly we can express the formula for the infection rate.
 
 When running the simulation one must make sure to use a small enough $\Delta t$ as \textit{integral} of Yampa is implemented using the rectangle rule which leads to considerable numerical errors with large $\Delta t$. Figure \ref{fig:sir_sd_dynamics} was created with this SD emulation for which we used a $\Delta t = 0.01$.
 
 \subsubsection{Reflection}
-It seems that by introducing the data-flow mechanism we have complicated things but this is not so. Data-flows make the feedback between agents explicit and gives the agents full control over the data which is revealed to other agents. This also makes the fact even more explicit, that we cannot fix the connections between the agents already at compile time e.g. by connecting SFs which is done in many Yampa applications (TODO: cite Henrik papers) because agents interact with each other randomly. One can look at the data-flow mechanism as a kind of messaging but there are fundamental differences: messaging almost always comes up as an approach to managing concurrency and involves stateful message-boxes which can be checked an emptied by the receivers - this is not the case with the data-flow mechanism which behaves indeed as a flow where data is not stored in a messagebox but is only present in the current simulation-step and if ignored by the agent will be gone in the next step.
-Also by distinguishing by the internal and the observable state of the agent, we give the agent even more control of what is visible to the outside world.
-So far we have a pretty decent implementation of an agent-based SIR approach. The next three steps focus - as this 3rd one - on introducing more concepts and generalising our implementation so far. What we are lacking at the moment is a general treatment of the environment and of synchronised transactional behaviour between agents. To be able to conveniently introduce both we want to make use of monads which is not possible using Yampa. In the next step we make the transition to Monadic Stream Functions (MSF) as introduced in Dunai \cite{perez_functional_2016}. The authors of Dunai implement BearRiver which is a re-implementation of Yampa on top of MSF which should allow us to easily replace Yampa with MSFs in our implementation of Step 3.
+It seems that by introducing the data-flow mechanism we have complicated things but we have gained a lot as well. Data-flows make the feedback between agents explicit and gives the agents full control over the data which is revealed to other agents. This also makes the fact even more explicit, that we cannot fix the connections between the agents already at compile time e.g. by connecting SFs which is done in many Yampa applications \cite{nilsson_functional_2002}, \cite{courtney_yampa_2003}, \cite{nilsson_declarative_2014} because agents interact with each other randomly. One can look at the data-flow mechanism as a kind of messaging but there are fundamental differences. Messaging almost always comes up as an approach to managing concurrency and involves stateful message-boxes which can be checked an emptied by the receivers - this is not the case with the data-flow mechanism which behaves indeed as a flow where data is not stored in a messagebox but is only present in the current simulation-step and if ignored by the agent will be gone in the next step.
+Also by distinguishing between the internal and the observable state of the agent, we give the agent even more control of what is visible to the outside world.
+So far we have a pretty decent implementation of an agent-based SIR approach. The next steps focus on introducing more concepts and generalising our implementation so far. What we are lacking at the moment is a general treatment of the environment and of synchronised transactional behaviour between agents. To be able to conveniently introduce both we want to make use of monads which is not possible using Yampa. In the next step we make the transition to Monadic Stream Functions (MSF) as introduced in Dunai \cite{perez_functional_2016}. The authors of Dunai implement BearRiver which is a re-implementation of Yampa on top of MSF which should allow us to easily replace Yampa with MSFs.

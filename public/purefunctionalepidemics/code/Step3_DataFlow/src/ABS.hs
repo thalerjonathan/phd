@@ -10,17 +10,17 @@ import FRP.Yampa
 import SIR
 
 type AgentId     = Int
-type AgentData d = (AgentId, d)
+type DataFlow d = (AgentId, d)
 
 data AgentIn d = AgentIn
   {
     aiId    :: !AgentId
-  , aiData  :: ![AgentData d]
+  , aiData  :: ![DataFlow d]
   } deriving (Show)
 
 data AgentOut o d = AgentOut
   {
-    aoData        :: ![AgentData d]
+    aoData        :: ![DataFlow d]
   , aoObservable  :: !o
   } deriving (Show)
 
@@ -123,10 +123,10 @@ susceptibleAgent g ais =
         else (do
           makeContact <- occasionally g (1 / contactRate) ()  -< ()
           contactId   <- drawRandomElemSF g                   -< ais
-
+          let ao = agentOut Susceptible
           if isEvent makeContact
-            then returnA -< (dataFlow (contactId, Contact Susceptible) $ agentOut Susceptible, NoEvent)
-            else returnA -< (agentOut Susceptible, NoEvent))
+            then returnA -< (dataFlow (contactId, Contact Susceptible) ao, NoEvent)
+            else returnA -< (ao, NoEvent))
 
 infectedAgent :: RandomGen g => g -> SIRAgent
 infectedAgent g = 
@@ -160,11 +160,11 @@ initAgents n i = sus ++ inf
     sus = map (\ai -> (ai, Susceptible)) [0..n-i-1]
     inf = map (\ai -> (ai, Infected)) [n-i..n-1]
 
-dataFlow :: AgentData d -> AgentOut o d -> AgentOut o d
+dataFlow :: DataFlow d -> AgentOut o d -> AgentOut o d
 dataFlow df ao = ao { aoData = df : aoData ao }
 
 onDataM :: (Monad m) 
-        => (acc -> AgentData d -> m acc) 
+        => (acc -> DataFlow d -> m acc) 
         -> AgentIn d 
         -> acc 
         -> m acc
@@ -172,23 +172,21 @@ onDataM dHdl ai acc = foldM dHdl acc ds
   where
     ds = aiData ai
 
-onData :: (AgentData d -> acc -> acc) -> AgentIn d -> acc -> acc
-onData dHdl ai a = foldr dHdl a ds
-  where
-    ds = aiData ai
+onData :: (DataFlow d -> acc -> acc) -> AgentIn d -> acc -> acc
+onData df ai a = foldr df a (aiData ai)
 
 gotInfected :: RandomGen g => Double -> SIRAgentIn -> Rand g Bool
 gotInfected infectionProb ain = onDataM gotInfectedAux ain False
   where
-    gotInfectedAux :: RandomGen g => Bool -> AgentData SIRMsg -> Rand g Bool
+    gotInfectedAux :: RandomGen g => Bool -> DataFlow SIRMsg -> Rand g Bool
     gotInfectedAux False (_, Contact Infected) = randomBoolM infectionProb
     gotInfectedAux x _ = return x
 
 respondToContactWith :: SIRState -> SIRAgentIn -> SIRAgentOut -> SIRAgentOut
-respondToContactWith state ain ao = onData respondToContactWithAux ain ao
+respondToContactWith state = onData respondToContactWithAux
   where
-    respondToContactWithAux :: AgentData SIRMsg -> SIRAgentOut -> SIRAgentOut
-    respondToContactWithAux (senderId, Contact _) ao = dataFlow (senderId, Contact state) ao
+    respondToContactWithAux :: DataFlow SIRMsg -> SIRAgentOut -> SIRAgentOut
+    respondToContactWithAux (senderId, Contact _) = dataFlow (senderId, Contact state)
 
 distributeData :: [(AgentId, AgentOut o d)] -> [AgentIn d]
 distributeData aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedup by running in parallel (if +RTS -Nx)
@@ -196,7 +194,7 @@ distributeData aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedup by 
     allMsgs = collectAllData aouts
     ains = map (\(ai, _) -> agentIn ai) aouts 
 
-    distributeDataAux :: Map.Map AgentId [AgentData d]
+    distributeDataAux :: Map.Map AgentId [DataFlow d]
                       -> AgentIn d
                       -> AgentIn d
     distributeDataAux allMsgs ain = ain'
@@ -209,21 +207,21 @@ distributeData aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedup by 
 
         ain' = ain { aiData = msgsEvt }
 
-    collectAllData :: [(AgentId, AgentOut o d)] -> Map.Map AgentId [AgentData d]
-    collectAllData aos = foldr collectAllDataAux Map.empty aos
+    collectAllData :: [(AgentId, AgentOut o d)] -> Map.Map AgentId [DataFlow d]
+    collectAllData = foldr collectAllDataAux Map.empty
       where
         collectAllDataAux :: (AgentId, AgentOut o d)
-                              -> Map.Map AgentId [AgentData d]
-                              -> Map.Map AgentId [AgentData d]
+                              -> Map.Map AgentId [DataFlow d]
+                              -> Map.Map AgentId [DataFlow d]
         collectAllDataAux (senderId, ao) accMsgs 
             | not $ null msgs = foldr collectAllDataAuxAux accMsgs msgs
             | otherwise = accMsgs
           where
             msgs = aoData ao
 
-            collectAllDataAuxAux :: AgentData d
-                                 -> Map.Map AgentId [AgentData d]
-                                 -> Map.Map AgentId [AgentData d]
+            collectAllDataAuxAux :: DataFlow d
+                                 -> Map.Map AgentId [DataFlow d]
+                                 -> Map.Map AgentId [DataFlow d]
             collectAllDataAuxAux (receiverId, m) accMsgs = accMsgs'
               where
                 msg = (senderId, m)

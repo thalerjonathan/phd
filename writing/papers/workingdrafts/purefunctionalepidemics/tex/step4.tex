@@ -1,9 +1,9 @@
-\subsection{Step IV: Generalising to Monadic Stream Functions}
+\subsection{Generalising to Monadic Stream Functions}
 TODO: write a bit introductory words for this subsection
 
 \subsubsection{Identity Monad}
 We start by making the transition to BearRiver by simply replacing Yampas signal-function by BearRivers which is the same but takes an additional type-parameter \textit{m} which indicates the monad. If we replace this type-parameter with the identity monad we should be able to keep the code exactly the same, except from a few type-declarations, because BearRiver re-implements all necessary functions we are using from Yampa \footnote{This was not quite true at the time we wrote this paper, where \textit{occasionally}, \textit{noiseR} and \textit{dpSwitch} were missing. We simply implemented these functions and created a pull request using git.}.
-We start by re-defining our general agent signal-function, introducing the monad (stack) our SIR implementation runs in and the sir-agents signal-function:
+We start by re-defining our general agent signal-function, introducing the monad (stack) our SIR implementation runs in and the agents signal-function:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 type Agent m o d = SF m (AgentIn d) (AgentOut o d)
@@ -14,26 +14,19 @@ type SIRAgent    = Agent SIRMonad SIRState SIRMsg
 We also have to add the \textit{SIRMonad} to the existing \textit{stepSimulation} type-declarations and we are nearly done. The function \textit{embed} for running the simulation is not provided by BearRiver but by Dunai which has important implications. Dunai does not know and care about time in MSFs, which is exactly what BearRiver builds on top of MSFs. It does so by adding a \textit{ReaderT Double} which carries the $\Delta t$. This means that \textit{embed} returns a computation in the \textit{ReaderT Double} Monad which we need to run explicitly using \textit{runReaderT}. This then results in an identity computation which we simply peel away using \textit{runIdentity}. Here is the complete code of \textit{runSimulation}:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-runSimulation :: RandomGen g
-              => g 
-              -> Time 
-              -> DTime 
-              -> [(AgentId, SIRState)] 
-              -> [[SIRState]]
+runSimulation :: RandomGen g => g -> Time -> DTime -> [(AgentId, SIRState)] -> [[SIRState]]
 runSimulation g t dt as = map (map aoObservable) aoss
   where
-    steps = floor TODO DOLLAR t / dt
-    dts = replicate steps ()
-    n = length as
-
-    (rngs, _) = rngSplits g n []
-    ais = map fst as
-    sfs = map (\ (g', (_, s)) -> sirAgent g' ais s) (zip rngs as)
-    ains = map (\ (aid, _) -> agentIn aid) as
-
-    aossReader = embed (stepSimulation sfs ains) dts
+    steps        = floor (t / dt)
+    dts          = replicate steps ()
+    n            = length as
+    (rngs, _)    = rngSplits g n []
+    ais          = map fst as
+    sfs          = map (\ (g', (_, s)) -> sirAgent g' ais s) (zip rngs as)
+    ains         = map (\ (aid, _) -> agentIn aid) as
+    aossReader   = embed (stepSimulation sfs ains) dts
     aossIdentity = runReaderT aossReader dt
-    aoss = runIdentity aossIdentity
+    aoss         = runIdentity aossIdentity
 \end{minted}
 
 Note that embed does not take a list of $\Delta t$ any more but simply a list of inputs for each step to the top level signal-function.
@@ -53,25 +46,20 @@ Running \textit{gotInfected} is now much easier. Using the function \textit{arrM
 This can be seen in the susceptible agent running in the random monad SF:
 \begin{minted}[fontsize=\footnotesize]{haskell}
 susceptibleAgent :: RandomGen g => [AgentId] -> SIRAgent g
-susceptibleAgent ais = 
-    switch 
-      susceptible
-      (const TODO DOLLAR infectedAgent)
+susceptibleAgent ais = switch susceptible(const (infectedAgent))
   where
-    susceptible :: RandomGen g 
-                => SF (SIRMonad g) SIRAgentIn (SIRAgentOut, Event ())
+    susceptible :: RandomGen g => SF (SIRMonad g) SIRAgentIn (SIRAgentOut, Event ())
     susceptible = proc ain -> do
       infected <- arrM (lift . gotInfected infectivity) -< ain
-
       if infected 
         then returnA -< (agentOut Infected, Event ())
         else (do
           makeContact <- occasionallyM (1 / contactRate) () -< ()
           contactId   <- drawRandomElemSF                   -< ais
-
+          let ao = agentOut Susceptible
           if isEvent makeContact
-            then returnA -< (dataFlow (contactId, Contact Susceptible) TODO DOLLAR agentOut Susceptible, NoEvent)
-            else returnA -< (agentOut Susceptible, NoEvent))
+            then returnA -< (dataFlow (contactId, Contact Susceptible) ao, NoEvent)
+            else returnA -< (ao, NoEvent))
 \end{minted}
 
 Note also that \textit{drawRandomElemSF} doesn't take a random number generator as well as it has been reimplemented to make full use of the MonadRandom in the stack:

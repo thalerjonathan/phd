@@ -15010,7 +15010,7 @@ infectedRatio = infected ./ totalPopulation;
 recoveredRatio = recovered ./ totalPopulation;
 steps = length (susceptible);
 indices = 0 : steps - 1;
-time = 0 : (0.01) : steps - 1
+time = 0 : (0.01) : steps - 1;
 replications = 10;
 figure
 plot (indices, susceptibleRatio.', 'color', 'blue', 'linewidth', 2);
@@ -15023,3 +15023,4 @@ set(gca,'XTick', indices(1:1000:end), 'xticklabel', time(1:1000:end));
 xlabel ('Time');
 ylabel ('Population Ratio');
 legend('Susceptible','Infected', 'Recovered');
+grid on

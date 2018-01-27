@@ -19,17 +19,17 @@ type SIREnv       = Array Disc2dCoord SIRState
 type SIRMonad g   = StateT SIREnv (Rand g)
 type SIRAgent g   = SF (SIRMonad g) () ()
 
-agentGrid :: (Int, Int)
-agentGrid = (10, 10)
+agentGridSize :: (Int, Int)
+agentGridSize = (21, 21)
 
 rngSeed :: Int
-rngSeed = 42
+rngSeed = 123
 
 dt :: DTime
 dt = 0.1
 
 t :: Time
-t = 150
+t = 200
 
 winSize :: (Int, Int)
 winSize = (600, 600)
@@ -42,13 +42,13 @@ main = do
   hSetBuffering stdout NoBuffering
 
   let g         = mkStdGen rngSeed
-      (as, e)   = initAgentsEnv agentGrid
+      (as, e)   = initAgentsEnv agentGridSize
 
       es        = runSimulation g t dt e as
 
       ass       = environmentsToAgentDyns es
       dyns      = aggregateAllStates ass
-      fileName  =  "STEP_5_ENVIRONMENT_DYNAMICS_" ++ show agentGrid ++ "agents.m"
+      fileName  =  "STEP_5_ENVIRONMENT_DYNAMICS_" ++ show agentGridSize ++ "agents.m"
   
   writeAggregatesToFile fileName dyns
   render es
@@ -59,7 +59,7 @@ environmentsToAgentDyns = map elems
 render :: [SIREnv] -> IO ()
 render es = GLOGame.playIO
     (GLO.InWindow winTitle winSize (0, 0))
-    GLO.black
+    GLO.white
     10
     (length es - 1, False, False, False)
     worldToPic
@@ -67,7 +67,7 @@ render es = GLOGame.playIO
     stepWorld
 
   where
-    (cx, cy) = agentGrid
+    (cx, cy) = agentGridSize
     (wx, wy) = winSize
     cellWidth = (fromIntegral wx / fromIntegral cx) :: Double
     cellHeight = (fromIntegral wy / fromIntegral cy) :: Double
@@ -78,9 +78,9 @@ render es = GLOGame.playIO
       let as = assocs e
       let aps = map renderAgent as
 
-      let (tcx, tcy) = transformToWindow (0, 0)
+      let (tcx, tcy) = transformToWindow (0, -2)
       let timeTxt = "t = " ++ show (fromIntegral i * dt)
-      let timeStepTxt = GLO.color GLO.white $ GLO.translate tcx tcy $ GLO.scale 0.1 0.1 $ GLO.Text timeTxt
+      let timeStepTxt = GLO.color GLO.black $ GLO.translate tcx tcy $ GLO.scale 0.1 0.1 $ GLO.Text timeTxt
       
       return $ GLO.Pictures $ aps ++ [timeStepTxt]
 
@@ -191,15 +191,15 @@ susceptibleAgent coord =
       if not $ isEvent makeContact 
         then returnA -< ((), NoEvent)
         else (do
-          e <- arrM (\_ -> lift get) -< ()
-          --let ns = neighbours e coord agentGrid moore
-          let ns = allNeighbours e
+          e <- arrM_ (lift get) -< ()
+          let ns = neighbours e coord agentGridSize moore
+          --let ns = allNeighbours e
           s <- drawRandomElemS       -< ns
 
           if Infected /= s
             then returnA -< ((), NoEvent)
             else (do
-              infected <- arrM (\_ -> lift $ lift $ randomBoolM infectivity) -< ()
+              infected <- arrM_ (lift $ lift $ randomBoolM infectivity) -< ()
               if infected 
                 then (do
                   arrM (put . changeCell coord Infected) -< e

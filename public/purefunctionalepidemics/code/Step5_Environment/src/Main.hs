@@ -29,7 +29,7 @@ dt :: DTime
 dt = 0.1
 
 t :: Time
-t = 200
+t = 170
 
 winSize :: (Int, Int)
 winSize = (600, 600)
@@ -107,16 +107,19 @@ render es = GLOGame.playIO
       return (i'', inc, dec, boost)
 
     renderAgent :: (Disc2dCoord, SIRState) -> GLO.Picture
-    renderAgent (coord, s) = GLO.color color $ GLO.translate x y $ GLO.ThickCircle 0 (realToFrac cellWidth)
+    renderAgent (coord, Susceptible) 
+        = GLO.color (GLO.makeColor 0.0 0.0 0.7 1.0) $ GLO.translate x y $ GLO.Circle (realToFrac cellWidth / 2)
       where
-        color = sirColor s
+        (x, y) = transformToWindow coord
+    renderAgent (coord, Infected)    
+        = GLO.color (GLO.makeColor 0.7 0.0 0.0 1.0) $ GLO.translate x y $ GLO.ThickCircle 0 (realToFrac cellWidth)
+      where
+        (x, y) = transformToWindow coord
+    renderAgent (coord, Recovered)   
+        = GLO.color (GLO.makeColor 0.0 0.70 0.0 1.0) $ GLO.translate x y $ GLO.ThickCircle 0 (realToFrac cellWidth)
+      where
         (x, y) = transformToWindow coord
 
-    sirColor :: SIRState -> GLO.Color
-    sirColor Susceptible  = GLO.makeColor 0.0 0.0 0.7 1.0 
-    sirColor Infected     = GLO.makeColor 0.7 0.0 0.0 1.0
-    sirColor Recovered    = GLO.makeColor 0.0 0.55 0.0 1.0
-    
     transformToWindow :: Disc2dCoord -> (Float, Float)
     transformToWindow (x, y) = (x', y')
       where

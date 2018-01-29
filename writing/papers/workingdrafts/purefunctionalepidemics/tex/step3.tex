@@ -135,7 +135,7 @@ onDataM :: Monad m => (acc -> DataFlow d -> m acc) -> AgentIn d -> acc -> m acc
 onDataM df ai acc = foldM df acc (aiData ai)
 \end{minted}
 
-Again the implementation is very similar to the previous step with the fundamental difference how contacts are made and how infections occur. First the agent checks if it got infected. This happens if an infected agent replies to the susceptible agents contact \textit{and} the susceptible agent got infected with the given probability. Note that \textit{gotInfected} runs in the Random Monad which we run using \textit{runRand} and the random-number generator. To update our random-number generator to the changed one, we use the \textit{rec} keyword of Arrows, which allows us to refer to a variable after it is defined. In combination with iPre we introduced a local state - the random-number generator - which changes in every step.
+Again the implementation is very similar to the previous step with the fundamental difference how contacts are made and how infections occur. First the agent checks if it got infected. This happens if an infected agent replies to the susceptible agents contact \textit{and} the susceptible agent got infected with the given probability. Note that \textit{gotInfected} runs in the Random Monad which we run using \textit{runRand} and the random-number generator. To update our random-number generator to the changed one, we use the \textit{rec} keyword of the Arrow notation \cite{paterson_new_2001}, which allows us to refer to a variable before it is defined. In combination with iPre we introduced a local state - the random-number generator - which changes in every step.
 If the agent got infected, it simply returns an AgentOut with Infected as observable state and a switching event which indicates the switch to infected behaviour.
 If the agent is not infected it draws from occasionally to determine if it should make contact with a random agent. In case it should make contact it simply sends a data-package with the contact susceptible data to the receiver - note that only an infected agent will reply.
 
@@ -177,7 +177,7 @@ infectedCount :: Double
 infectedCount = 1
 \end{minted}
 
-The message-data is now a plain Double and the observable data has been changed to a \textit{Maybe Double}: instead of discrete agent-states we are dealing now with stocks and flows which are already aggregates represented by continuous values. Note that we use a Maybe type as flows only connect stocks and transform their values but don't have any observable state themselves. Note also that the population size and number of infected is specified now as Double as we are dealing with continuous aggregates.
+The message-data is now a plain Double and the observable data has been changed to a \textit{Maybe} Double: instead of discrete agent-states we are dealing now with stocks and flows which are aggregates represented by continuous values. Note that we use a Maybe type as flows only connect stocks and transform their values but don't have any observable state themselves. Note also that the population size and number of infected is specified now as Double as we are dealing with continuous aggregates.
 
 We give hard-coded agent ids to our stocks and flows. This allows then for setting up hard-coded connections between them at compile time.
 \begin{minted}[fontsize=\footnotesize]{haskell}
@@ -214,16 +214,17 @@ infectiousStock initValue = proc ain -> do
   returnA -< ao''
 \end{minted}
 
-The stock receives flows from both the infection-rate and recovery-rate flow using the function \textit{flowInFrom} (see below). Then the current stock value is calculated using the \textit{integral} function of Yampa with an initial value added which are the initially infected people. Note that we can directly express the SD equation using Yampas DSL for continuous-time systems. The current stock value is then set as the observable value of the stock and sent to the infection- and recovery-rate flows. For convenience we implemented an additional function \textit{flowInFrom} which returns the value sent from the corresponding agent id or 0.0 if none was sent.
+The stock receives flows from both the infection-rate and recovery-rate flow using the function \textit{flowInFrom} (see below). Then the current stock value is calculated using the \textit{integral} function of Yampa with an initial value added which are the initially infected people. Note that we can directly express the SD equation using Yampas DSL for continuous-time systems. The current stock value is then set as the observable value of the stock and sent to the infection- and recovery-rate flows. For convenience we implemented an additional function \textit{flowInFrom} which returns the first value sent from the corresponding agent id or 0.0 if none was sent.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 flowInFrom :: AgentId -> AgentIn SIRMsg -> Double
-flowInFrom senderId ain = foldr filterMessageValue 0.0 dsFiltered
+flowInFrom senderId ain = firstValue dsFiltered
   where 
     dsFiltered = filter ((==senderId) . fst) (aiData ain)
 
-    filterMessageValue :: DataFlow SIRMsg -> Double -> Double
-    filterMessageValue (_, v) _ = v
+    firstValue :: [AgentData SIRMsg] -> Double
+    firstValue [] = 0.0
+    firstValue ((_, v) : _) = v
 \end{minted}
 	
 The \textit{infectionRate} flow is implemented as follows (the implementations of the recovery-rate flow works in a similar way and is left as a trivial exercise to the reader):

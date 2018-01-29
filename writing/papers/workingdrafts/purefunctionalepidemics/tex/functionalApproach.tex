@@ -1,9 +1,10 @@
-\section{Deriving a functional approach}
+\section{Deriving a pure functional approach}
 %2 main points from Henrik: 1.: try to stick to synchronous updates because this is how the real world works. 2.: get rid of globally shared mutable state as it complicates things extremely with reasoning
 %clear conceptual formal model of what agents are and then structure my implementation around it
 
 We presented a high-level agent-based approach to the SIR model in the previous section, which focused only on the states and the transitions, but we haven't talked about technical implementation details on how to actually implement such a state-machine. The authors of \cite{thaler_art_2017} discuss two fundamental problems of implementing an agent-based simulation from a programming language agnostic view. The first problem is how agents can be pro-active and the second how interactions between agents can happen. For agents to be pro-active they must be able to perceive the passing of time, which means there must be a concept of an agent-process which executes over time. Interactions between agents can be reduced to the problem of how an agent can expose information about its internal state which can be perceived by other agents. \\
-In this section we will derive a pure functional approach for an agent-based simulation of the SIR model in which we will pose solutions to the previously mentiond problems. We will start out with a very naive approach and show its limitations which we overcome by adding FRP. Then in further steps we will add more concepts and generalisations, ending up at the final approach which utilises monadic stream functions (MSF), a generalisation of FRP.
+In this section we will derive a pure functional approach for an agent-based simulation of the SIR model in which we will pose solutions to the previously mentiond problems. We will start out with a very naive approach and show its limitations which we overcome by adding FRP. Then in further steps we will add more concepts and generalisations, ending up at the final approach which utilises monadic stream functions (MSF), a generalisation of FRP 
+\footnote{The code of all steps can be accessed freely through the following URL: \url{https://github.com/thalerjonathan/phd/tree/master/public/purefunctionalepidemics/code}}.
 
 \input{./tex/step1.tex}
 

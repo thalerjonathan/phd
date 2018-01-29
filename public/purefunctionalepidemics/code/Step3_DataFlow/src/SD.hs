@@ -208,13 +208,14 @@ onDataM dHdl ai acc = foldM dHdl acc ds
     ds = aiData ai
 
 flowInFrom :: AgentId -> AgentIn SIRMsg -> Double
-flowInFrom senderId ain = foldr filterMessageValue 0.0 dsFiltered
+flowInFrom senderId ain = firstValue dsFiltered
   where 
     ds = aiData ain
     dsFiltered = filter ((==senderId) . fst) ds
 
-    filterMessageValue :: AgentData SIRMsg -> Double -> Double
-    filterMessageValue (_, v) _ = v
+    firstValue :: [AgentData SIRMsg] -> Double
+    firstValue [] = 0.0
+    firstValue ((_, v) : _) = v
 
 onData :: (AgentData d -> acc -> acc) -> AgentIn d -> acc -> acc
 onData dHdl ai a = foldr dHdl a ds

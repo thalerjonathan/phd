@@ -31,7 +31,7 @@ is s (s', _) = s == s'
 \end{minted}
 
 Next we need to think about how to actually step our simulation. For this we define a function which advances our simulation with a fixed $\Delta t$ until a given time $t$ where in each step the agents are processed and the output is fed back into the next step. This is the source of pro-activity as agents are executed in every time step and can perceive the advancing of time.
-As already mentioned in previous sections, the agent-based implementation of the SIR model is inherently stochastic which means we need access to a random-number generator. We decided to use the Rand Monad at this point as threading a generator through the simulation and the agents is very cumbersome. Thus our simulation stepping runs in the Rand Monad:
+As already mentioned in previous sections, the agent-based implementation of the SIR model is inherently stochastic which means we need access to a random-number generator. We decided to use the Random Monad at this point as threading a generator through the simulation and the agents is very cumbersome. Thus our simulation stepping runs in the Random Monad:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 runSimulation :: RandomGen g => Time -> TimeDelta -> Agents -> Rand g [Agents]
@@ -48,7 +48,7 @@ stepSimulation :: RandomGen g => TimeDelta -> Agents -> Rand g Agents
 stepSimulation dt as = mapM (processAgent dt as) as
 \end{minted}
 
-Now we can implement the behaviour of an individual agent. First we need to distinguish between the agents SIR-states:
+Now we can implement the behaviour of an individual agent. First we need to distinguish between the agents SIR states:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 processAgent :: RandomGen g => TimeDelta -> Agents -> SIRAgent -> Rand g SIRAgent
@@ -57,7 +57,7 @@ processAgent dt _  a@(Infected   , _) = return (infectedAgent dt a)
 processAgent _  _  a@(Recovered  , _) = return a
 \end{minted}
 
-An agent gets fed the states of all agents in the system from the previous time-step so it can draw random contacts - this is one, very naive way of implementing the interactions between agents. Note that this includes also the agent itself thus we would need to omit the agent itself to prevent making contact with itself. We decided against that as it complicates the solution and for larger numbers of agent population the probability for an agent to make contact with itself is so small that it can be neglected.
+An agent gets fed the states of all agents in the system from the previous time-step so it can draw random contacts - this is one, very naive way of implementing the interactions between agents. Note that this includes also the agent itself thus we would need to omit the agent itself to prevent making contact with itself. We decided against that as it complicates the solution and for larger numbers of agent population the probability for an agent to make contact with itself is so small that it can be neglected. Also making contact with the same SIR state never leads to a state change so it really makes no big difference.
 
 From our implementation it becomes apparent that only the behaviour of a susceptible agent involves randomness and that a recovered agent is simply a sink - it does nothing and stays constant.
 
@@ -68,7 +68,7 @@ When the agent gets infected it calculates also its time of recovery by drawing 
 susceptibleAgent :: RandomGen g => Agents -> Rand g SIRAgent
 susceptibleAgent as = do
     rc <- randomExpM (1 / contactRate)
-    cs <- doTimes (floor rc) (makeContact as) -- doTimes executes a monadic action a number of times
+    cs <- doTimes (floor rc) (makeContact as) -- executes a monadic action a number of times
     if elem True cs
       then infect
       else return susceptible
@@ -77,12 +77,12 @@ susceptibleAgent as = do
     makeContact as = do
       randContact <- randomElem as
       if is Infected randContact
-        then randomBoolM infectivity -- randomBoolM returns True with a given probability between 0..1
+        then randomBoolM infectivity -- returns True with a given probability between 0..1
         else return False
 
     infect :: RandomGen g => Rand g SIRAgent
     infect = do
-      randIllDur <- randomExpM (1 / illnessDuration) -- randomExpM draws from an exponential distribution
+      randIllDur <- randomExpM (1 / illnessDuration) -- draws from an exponential distribution
       return infected randIllDur
 \end{minted}
 
@@ -134,7 +134,7 @@ When running our naive implementation with increasing population sizes we get th
 		\end{subfigure}
 	\end{tabular}
 	
-	\caption{Naive simulation of SIR using agent-based approach. Varying population size, contact rate $\beta = \frac{1}{5}$, infection probability $\gamma = 0.05$, illness duration $\delta = 15$ with initially 1 infected agent. Simulation run for 150 time-steps with various $\Delta t$.} 
+	\caption{Naive simulation of SIR using agent-based approach. Varying population size, contact rate $\beta = \frac{1}{5}$, infection probability $\gamma = 0.05$, illness duration $\delta = 15$ with initially 1 infected agent. Simulation run for 150 time-steps with fixed $\Delta t = 1.0$.} 
 	\label{fig:sir_abs_dynamics_naive}
 \end{center}
 \end{figure}
@@ -145,7 +145,7 @@ Reflecting on our first naive approach we can conclude that it already introduce
 	\item Time - the simulation occurs over virtual time which is modelled explicitly divided into \textit{fixed} $\Delta t$ where at each the agents are executed.
 	\item Agents - we implement each agent as an individual behaviour which depends on the agents state.
 	\item Feedback - the output state of the agent in the current time-step $t$ is the input state for the next time-step $t+1$.
-	\item Environment - as environment we implicitly assume a fully-connected network where every agent 'knows' every other agents, including itself and thus can make contact with every other agent (including itself).
+	\item Environment - as environment we implicitly assume a fully-connected network (complete graph) where every agent 'knows' every other agents, including itself and thus can make contact all of them.
 	\item Stochasticity - its an inherently stochastic simulation, which is indicated by the Random Monad type and the usage of \textit{randomBoolM} and \textit{randomExpM}.
 	\item Deterministic - repeated runs with the same initial random-number generator result in same dynamics. This may not come as a surprise but in Haskell we can guarantee that property statically already at compile time because our simulation runs in the Random Monad and NOT in the IO Monad. This guarantees that no external, uncontrollable sources of randomness can interfere with the simulation.
 	\item Dynamics - with increasing number of agents the dynamics smooth out \cite{macal_agent-based_2010}.
@@ -153,9 +153,9 @@ Reflecting on our first naive approach we can conclude that it already introduce
 
 Nonetheless our approach has also weaknesses and dangers:
 \begin{enumerate}
-	\item $\Delta t$ is passed explicitly as argument to the agent and needs to be dealt with explicitly. It seems to be not very elegant and a potential source of errors - can we do better and find a more elegant solution? 
-	\item The way our agents are represented is not very elegant. The state of the agent is explicitly encoded in an ADT and when processing the agent the function needs always first distinguish between the states. Can we express it in a more implicit, functional way e.g. continuations?
+	\item $\Delta t$ is passed explicitly as argument to the agent and needs to be dealt with explicitly.This is not very elegant and a potential source of errors - can we do better and find a more elegant solution? 
+	\item The way our agents are represented is not very elegant. The state of the agent is explicitly encoded in an ADT and when processing the agent, the function needs always first distinguish between the states. Can we express it in a more implicit, functional way e.g. continuations?
 	\item The states of all agents of the current step are fed back into every agent in the next step so that an agent can pick its contacts. Although agents cannot change the states of others, this reveals too much information e.g. the illness duration is of no interest to the other agents. Although we could just feed in the \textit{SIRStates} without the illness duration, the problem is more of conceptual nature - it should be the agent which decides to whom it reveals which information.
 \end{enumerate}
 
-We move now to the next section in which we will address points 1 and 2. Points 3 and 4 will be addressed in section \ref{sec:step3_dataflow}.
+We move now to the next section in which we will address points 1 and 2. Points 3 and the under-sampling issue will be addressed in section \ref{sec:step3_dataflow}.

@@ -1,4 +1,5 @@
 \subsection{Adding Functional Reactive Programming}
+\label{sec:step2_frp}
 As shown in the first step, the need to handle $\Delta t$ explicitly can be quite messy, is inelegant and a potential source of errors, also the explicit handling of the state of an agent and its behavioural function is not very functional. We can solve both these weaknesses by switching to the functional reactive programming (FRP) paradigm, because it allows to express systems with discrete and continuous time-semantics. In this step we are focusing on arrowized FRP using the library Yampa. In it, time is handled implicit and cannot be messed with and the whole system is built on the concept of signal-functions (SF). A signal-function is basically a continuation which allows then to capture state using closures. Both these fundamental features allow us to tackle the weaknesses of our first step and push our approach further towards a truly functional approach.
 
 TODO: introduce FRP / Yampa here

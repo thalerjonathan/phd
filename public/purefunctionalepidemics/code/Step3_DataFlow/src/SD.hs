@@ -14,14 +14,12 @@ type AgentId     = Int
 type AgentData d = (AgentId, d)
 
 data AgentIn d = AgentIn
-  {
-    aiId    :: !AgentId
+  { aiId    :: !AgentId
   , aiData  :: ![AgentData d]
   } deriving (Show)
 
 data AgentOut o d = AgentOut
-  {
-    aoData        :: ![AgentData d]
+  { aoData        :: ![AgentData d]
   , aoObservable  :: !o
   } deriving (Show)
 

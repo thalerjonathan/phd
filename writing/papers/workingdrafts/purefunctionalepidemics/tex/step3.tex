@@ -14,8 +14,7 @@ Next we need more general input and output types of our agents signal-functions.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 data AgentIn d = AgentIn
-  {
-    aiId   :: AgentId
+  { aiId   :: AgentId
   , aiData :: [DataFlow d]
   } 
 \end{minted}
@@ -24,8 +23,7 @@ We also introduce a new output type which holds both the outgoing data-flows to 
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 data AgentOut o d = AgentOut
-  {
-    aoData        :: [DataFlow d]
+  { aoData        :: [DataFlow d]
   , aoObservable  :: o
   }
 \end{minted}
@@ -133,7 +131,7 @@ gotInfected p ain = onDataM gotInfectedAux ain False
     gotInfectedAux False (_, Contact Infected) = randomBoolM p
     gotInfectedAux x _ = return x
     
-onDataM :: (Monad m) => (acc -> DataFlow d -> m acc) -> AgentIn d -> acc -> m acc
+onDataM :: Monad m => (acc -> DataFlow d -> m acc) -> AgentIn d -> acc -> m acc
 onDataM df ai acc = foldM df acc (aiData ai)
 \end{minted}
 
@@ -151,7 +149,6 @@ stepSimulation sfs ains =
       sfs
       (switchingEvt >>> notYet)
       stepSimulation
-
   where
     switchingEvt :: SF ((), [SIRAgentOut]) (Event [SIRAgentIn])
     switchingEvt = proc (_, aos) -> do
@@ -250,7 +247,7 @@ Instead of integrating a value over time a stock just transforms incoming values
 
 When running the simulation one must make sure to use a small enough $\Delta t$ as \textit{integral} of Yampa is implemented using the rectangle rule which leads to considerable numerical errors with large $\Delta t$. Figure \ref{fig:sir_sd_dynamics} was created with this SD emulation for which we used a $\Delta t = 0.01$.
 
-\subsubsection{Reflection}
+\subsubsection{Discussion}
 It seems that by introducing the data-flow mechanism we have complicated things but we have gained a lot as well. Data-flows make the feedback between agents explicit and gives the agents full control over the data which is revealed to other agents. This also makes the fact even more explicit, that we cannot fix the connections between the agents already at compile time e.g. by connecting SFs which is done in many Yampa applications \cite{nilsson_functional_2002}, \cite{courtney_yampa_2003}, \cite{nilsson_declarative_2014} because agents interact with each other randomly. One can look at the data-flow mechanism as a kind of messaging but there are fundamental differences. Messaging almost always comes up as an approach to managing concurrency and involves stateful message-boxes which can be checked an emptied by the receivers - this is not the case with the data-flow mechanism which behaves indeed as a flow where data is not stored in a messagebox but is only present in the current simulation-step and if ignored by the agent will be gone in the next step.
 Also by distinguishing between the internal and the observable state of the agent, we give the agent even more control of what is visible to the outside world.
-So far we have a pretty decent implementation of an agent-based SIR approach. The next steps focus on introducing more concepts and generalising our implementation so far. What we are lacking at the moment is a general treatment of the environment and of synchronised transactional behaviour between agents. To be able to conveniently introduce both we want to make use of monads which is not possible using Yampa. In the next step we make the transition to Monadic Stream Functions (MSF) as introduced in Dunai \cite{perez_functional_2016}. The authors of Dunai implement BearRiver which is a re-implementation of Yampa on top of MSF which should allow us to easily replace Yampa with MSFs.
+So far we have a pretty decent implementation of an agent-based SIR approach. The next steps focus on introducing more concepts and generalising our implementation so far. What we are lacking at the moment is a general treatment of an environment. To conveniently introduce it we want to make use of monads which is not possible using Yampa. In the next step we make the transition to Monadic Stream Functions (MSF) as introduced in Dunai \cite{perez_functional_2016}. The authors of Dunai implement BearRiver which is a re-implementation of Yampa on top of MSF which should allow us to easily replace Yampa with MSFs.

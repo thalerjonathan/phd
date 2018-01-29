@@ -1,5 +1,6 @@
 \section{Defining Agent-Based Simulation}
-Agent-Based Simulation (ABS) is a methodology to model and simulate a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is of knowledge. Those parts, called agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. So the central aspect of ABS is the concept of an agent which can be understood as a metaphor for a pro-active unit, situated in an environment, able to spawn new agents and interacting with other agents in some neighbourhood by exchange of messages. We informally assume the following about our agents \cite{siebers_introduction_2008}, \cite{wooldridge_introduction_2009}, \cite{siebers_discrete-event_2010}, \cite{dawson_opening_2014}:
+Agent-Based Simulation (ABS) is a methodology to model and simulate a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is of knowledge. Those parts, called agents, are modelled and simulated out of which then the aggregate global behaviour of the whole system emerges. So the central aspect of ABS is the concept of an agent which can be understood as a metaphor for a pro-active unit, situated in an environment, able to spawn new agents and interacting with other agents in some neighbourhood by exchange of messages. 
+We informally assume the following about our agents \cite{siebers_introduction_2008}, \cite{wooldridge_introduction_2009}, \cite{siebers_discrete-event_2010}, \cite{dawson_opening_2014}:
 
 \begin{itemize}
 	\item They are uniquely addressable entities with some internal state over which they have full, exclusive control.
@@ -20,6 +21,9 @@ It exhibits the following properties:
 	\item Interactions - agents can be modelled after interactions with an environment or other agents, making this a unique feature of ABS, not possible in the other simulation models.
 	\item Spatiality \& Networks - agents can be situated within e.g. a spatial (discrete 2d, continuous 3d,...) or network environment. % making this also a unique feature of ABS, not possible in the other simulation models.
 \end{itemize}
+
+Note that there does not exist a commonly agreed technical definition of ABS but the field draws inspiration from the closely related field of Multi-Agent Systems (MAS) \cite{wooldridge_introduction_2009}, \cite{weiss_multiagent_2013}. It is important to understand that MAS and ABS are two different fields where in MAS the focus is much more on technical details implementing a system of interacting intelligent agents within a highly complex environment with the focus primarily on solving AI problems.
+
 %
 %\begin{table*}[t]
 %\centering

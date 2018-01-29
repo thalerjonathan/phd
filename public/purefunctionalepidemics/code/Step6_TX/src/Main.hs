@@ -22,14 +22,12 @@ type Agent m o d    = SF m (AgentIn d) (AgentOut m o d)
 type AgentTX m o d  = SF m (AgentTXIn d) (AgentTXOut m o d)
 
 data AgentIn d = AgentIn
-  {
-    aiId        :: !AgentId
+  { aiId        :: !AgentId
   , aiRequestTx :: !(Event (AgentData d))
   } deriving (Show)
 
 data AgentOut m o d = AgentOut
-  {
-    aoObservable  :: !o
+  { aoObservable  :: !o
   , aoRequestTx   :: !(Event (AgentData d, AgentTX m o d))
   , aoAcceptTx    :: !(Event (d, AgentTX m o d))
   }
@@ -150,7 +148,7 @@ susceptibleAgent ais = proc _ -> do
               -- don't commit with continuation, no change in behaviour
               then returnA -< commitTx (agentOut Susceptible) agentTXOut
               else (do
-                infected <- arrM (\_ -> lift $ randomBoolM infectivity) -< ()
+                infected <- arrM_ (lift $ randomBoolM infectivity) -< ()
                 if infected
                   -- commit with continuation as we switch into infected behaviour
                   then returnA -< commitTxWithCont 

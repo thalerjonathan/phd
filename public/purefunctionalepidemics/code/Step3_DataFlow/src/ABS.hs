@@ -13,14 +13,12 @@ type AgentId     = Int
 type DataFlow d = (AgentId, d)
 
 data AgentIn d = AgentIn
-  {
-    aiId    :: !AgentId
+  { aiId    :: !AgentId
   , aiData  :: ![DataFlow d]
   } deriving (Show)
 
 data AgentOut o d = AgentOut
-  {
-    aoData        :: ![DataFlow d]
+  { aoData        :: ![DataFlow d]
   , aoObservable  :: !o
   } deriving (Show)
 

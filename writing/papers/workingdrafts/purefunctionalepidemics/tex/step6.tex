@@ -1,4 +1,4 @@
-\subsection{Step VI: Adding agent transactions}
+\subsection{Adding agent transactions}
 Imagine two agents A and B want to engage in a bartering process where agent A, is the seller who wants to sell an asset to agent B who is the buyer. Agent A sends Agent B a sell offer depending on how much agent A values this asset. Agent B receives this sell offer, checks if the price satisfies its utility, if it has enough wealth to buy the asset and replies with either a refusal or its own price offer. Agent A then considers agent Bs offer and if it is happy it replies to agent B with an acceptance of the offer, removes the asset from its inventory and increases its wealth. Agent B receives this acceptance offer, puts the asset in its inventory and decreases its wealth (note that this process could involve a potentially arbitrary number of steps without loss of generality).
 We can see this behaviour as a kind of multi-step transactional behaviour because agents have to respect their budget constraints which means that they cannot spend more wealth or assets than they have. This implies that they have to 'lock' the asset and the amount of cash they are bartering about during the bartering process. If both come to an agreement they will swap the asset and the cash and if they refuse their offers they have to 'unlock' them.
 In classic OO implementations it is quite easy to implement this as normally only one agent is active at a time due to sequential (discrete event scheduling approach) scheduling of the simulation. This allows then agent A which is active, to directly interact with agent B through method calls. The sequential updating ensures that no other agent will touch the asset or cash and the direct method calls ensure a synchronous updating of the mutable state of both objects with no time passing between these updates.
@@ -60,26 +60,21 @@ type SIRAgentTX g  = AgentTX (SIRMonad g) SIRState SIRMsg
 Stepping the simulation is now slightly more complex as in every step we need to run the transactions. Fortunately it is easy to provide customised implementations of MSFs in dunai, which is a bit more tricky in Yampa and requires to expose internals.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
-stepSimulation :: RandomGen g
-               => [SIRAgent g]
-               -> [SIRAgentIn] 
-               -> SF (SIRMonad g) () [SIRAgentOut g]
+stepSimulation :: RandomGen g => [SIRAgent g] -> [SIRAgentIn] -> SF (SIRMonad g) () [SIRAgentOut g]
 stepSimulation sfs ains = MSF TODO DOLLAR \_ -> do
   res <- mapM (\ (ai, sf) -> unMSF sf ai) (zip ains sfs)
   let aos  = fmap fst res
       sfs' = fmap snd res
-
       ais  = map aiId ains
       aios = zip ais aos
 
-  -- this works only because runTransactions is stateless
-  -- and runs the SFs with dt = 0
+  -- this works only because runTransactions is stateless and runs the SFs with dt = 0
   ((aios', sfs''), _) <- unMSF runTransactions (aios, sfs')
 
   let aos'  = map snd aios'
       ains' = map agentIn ais
       ct    = stepSimulation sfs'' ains'
-
+      
   return (aos', ct)
 \end{minted}
 
@@ -97,7 +92,7 @@ susceptibleAgent :: RandomGen g => [AgentId] -> SIRAgent g
 susceptibleAgent ais = proc _ -> do
     makeContact <- occasionallyM (1 / contactRate) () -< ()
 
-    if not TODO DLLAR isEvent makeContact
+    if not (isEvent makeContact)
       then returnA -< agentOut Susceptible
       else (do
         contactId <- drawRandomElemS -< ais
@@ -117,7 +112,7 @@ susceptibleAgent ais = proc _ -> do
               -- don't commit with continuation, no change in behaviour
               then returnA -< commitTx (agentOut Susceptible) agentTXOut
               else (do
-                infected <- arrM (\_ -> lift TODO DOLLAR randomBoolM infectivity) -< ()
+                infected <- arrM_ (lift (randomBoolM infectivity)) -< ()
                 if infected
                   -- commit with continuation as we switch into infected behaviour
                   then returnA -< commitTxWithCont 
@@ -125,8 +120,7 @@ susceptibleAgent ais = proc _ -> do
                                     infectedAgent
                                     agentTXOut
                   -- don't commit with continuation, no change in behaviour
-                  else returnA -< commitTx 
-                                    (agentOut Susceptible) agentTXOut))
+                  else returnA -< commitTx (agentOut Susceptible) agentTXOut))
           else returnA -< abortTx agentTXOut
 \end{minted}
 
@@ -135,10 +129,7 @@ Instead of using a switch the susceptible agent behaves completely time-dependen
 The infected agent is slightly less complex and still uses the switch mechanism:
 \begin{minted}[fontsize=\footnotesize]{haskell}
 infectedAgent :: RandomGen g => SIRAgent g
-infectedAgent = 
-    switch
-    infected 
-      (const recoveredAgent)
+infectedAgent = switch infected (const recoveredAgent)
   where
     infected :: RandomGen g => SF (SIRMonad g) SIRAgentIn (SIRAgentOut g, Event ())
     infected = proc ain -> do
@@ -166,7 +157,7 @@ infectedAgent =
 
 The agent acts time-dependent which in this case is the transition from infected to recovered - if occasionallyM is run with a dt of 0 then no Event can happen (todo: is this really true??). The agent checks on every function call of infected for incoming transactions and accepts them all, independent of the state - only susceptible agents request transactions anyway. The agent simply replies with a Contact Infected and immediately commits the transaction in the transaction signal-function but does not switch into a new continuation.
 
-\subsubsection{Reflection}
+\subsubsection{Discussion}
 Note that the transactions run in the same monad as the normal agent behaviour signal-function which allows to add an environment as in step 5. In this case care must be taken when one has changed the environment but aborts the transaction as a roll back of the environment won't happen automatically. A different approach would allow to run the TX in a different monad and bring in e.g. the  transactional state monad Control.Monad.Tx which supports rolling back of changes to the state.
 
 The concept of agent-transactions is not explicitly known in the agent-based community and a novel development of this paper. The reason for this is that agent-transactions are already implicitly available in traditional OO implementations in which agents can call each others methods and change their state. By implementing this necessary and important concept in a pure functional approach we arrived at agent-transactions which make these synchronous, instantaneous, one-to-one interactions explicit.

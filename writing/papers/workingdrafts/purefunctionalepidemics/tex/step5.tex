@@ -81,7 +81,32 @@ susceptibleAgent coord = switch susceptible (const (infectedAgent coord))
                 else returnA -< ((), NoEvent)))
 \end{minted}
 
-Note that the susceptible agent itself changes its state in the environment from Susceptible to Infected upon infection.
+Querying the neighbourhood is done using the \textit{neighbours} function. It takes the environment, the coordinate for which to query the neighbours for, the dimensions of the 2D grid and the neighbourhood information and returns the data of all neighbours it could find. Note that on the edge of the environment, it could be the case that fewer neighbours than provided in the neighbourhood information will be found due to clipping.
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+neighbours :: SIREnv -> Disc2dCoord -> Disc2dCoord -> [Disc2dCoord] -> [SIRState]
+neighbours e (x, y) (dx, dy) n = map (e !) nCoords'
+  where
+    nCoords  = map (\ (x', y') -> (x + x', y + y')) n
+    nCoords' = filter (\ (x, y) -> x >= 0 && 
+                                   y >= 0 && 
+                                   x <= (dx - 1) &&
+                                   y <= (dy - 1)) nCoords
+                           
+neumann :: [Disc2dCoord]
+neumann = [ topDelta, leftDelta, rightDelta, bottomDelta ]
+
+moore :: [Disc2dCoord]
+moore = [ topLeftDelta,    topDelta,    topRightDelta,
+          leftDelta,                    rightDelta,
+          bottomLeftDelta, bottomDelta, bottomRightDelta ]
+
+topLeftDelta :: Disc2dCoord
+topLeftDelta  = (-1, -1)
+topDelta      = ( 0, -1)
+topRightDelta = ( 1, -1)
+...
+\end{minted}
 
 The behaviour of an infected agent is nearly the same with the difference that upon recovery the infected agent updates its state in the environment from Infected to Recovered.
 
@@ -125,8 +150,6 @@ stepSimulation sfs = MSF (\_ -> do
   let ct = stepSimulation sfs'
   return (e, ct))
 \end{minted}
-
-TODO: if enough space, maybe show implementation of neighbours and changeCell
 
 \subsubsection{Results}
 We implemented rendering of the environments using the gloss library which allows us to cycle arbitrarily through the steps and inspect the spreading of the disease over time visually as in Figure \ref{fig:sir_env}.

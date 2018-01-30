@@ -1,9 +1,17 @@
 \subsection{Adding Functional Reactive Programming}
 \label{sec:step2_frp}
-As shown in the first step, the need to handle $\Delta t$ explicitly can be quite messy, is inelegant and a potential source of errors, also the explicit handling of the state of an agent and its behavioural function is not very functional. We can solve both these weaknesses by switching to the functional reactive programming (FRP) paradigm, because it allows to express systems with discrete and continuous time-semantics. In this step we are focusing on arrowized FRP using the library Yampa. In it, time is handled implicit and cannot be messed with and the whole system is built on the concept of signal-functions (SF). A signal-function is basically a continuation which allows then to capture state using closures. Both these fundamental features allow us to tackle the weaknesses of our first step and push our approach further towards a truly functional approach.
+As shown in the first step, the need to handle $\Delta t$ explicitly can be quite messy, is inelegant and a potential source of errors, also the explicit handling of the state of an agent and its behavioural function is not very functional. We can solve both these weaknesses by switching to the functional reactive programming paradigm, because it allows to express systems with discrete and continuous time-semantics. In this step we are focusing on arrowized FRP using the library Yampa. In it, time is handled implicit and cannot be messed with and the whole system is built on the concept of signal-functions (SF). A signal-function is basically a continuation which allows then to capture state using closures. Both these fundamental features allow us to tackle the weaknesses of our first step and push our approach further towards a truly functional approach.
 
-\subsubsection{Short introduction to Yampa}
-TODO: introduce FRP / Yampa here
+\subsubsection{Functional Reactive Programming}
+Functional Reactive Programming (FRP) is a way to implement systems with continuous and discrete time-semantics in pure functional languages. There are many different approaches and implementations but in our approach we use \textit{arrowized} FRP as implemented in the library Yampa. The central concept in arrowized FRP is the Signal Function (SF) which can be understood as a \textit{process over time} which maps an input- to an output-signal. A signal can be understood as a value which varies over time.
+
+\begin{flalign*}
+Signal \, \alpha \approx Time \rightarrow a \\
+SF \, \alpha \, \beta \approx Signal \, \alpha \rightarrow Signal \, \beta 
+\end{flalign*}
+
+Signal functions are implemented as continuations which don't take a $\Delta t$ at $t = 0$ but then change their signature into one which takes a $\Delta t$ for $t > 0$. This allows to hide $\Delta t$ completely from the types which makes them much more suitable for declarative programming. We also make use of Patersons do-notation for arrows \cite{paterson_new_2001} which makes the code much more readable as it does not force us to program in the point-free arrow combinators. 
+Yampa provides a number of primitives for expressing time-semantics, events and state-changes of the system. They allow to generate events over time, change system behaviour in case of events and run signal-functions. We shortly discuss each primitive when we first use it, but due to lack of space we can not give an in-depth discussion and refer to to the papers of \cite{hudak_arrows_2003}, \cite{courtney_yampa_2003}, \cite{nilsson_functional_2002} which give a deeper understanding of Yampa and its DSL.
 
 \subsubsection{Implementation}
 We start by defining our agents now as a signal-function which receives the states of all agents as input and outputs the state of the agent:
@@ -28,7 +36,7 @@ recoveredAgent :: SIRAgent
 recoveredAgent = arr (const Recovered)
 \end{minted}
 
-The implementation of a susceptible agent in FRP is a bit more involved but much more expressive and elegant:
+The implementation of a susceptible agent in FRP is a bit more involved but much more expressive and elegant. We are using the Yampa primitive \textit{switch} which runs a signal-function until an event (the \textit{Event} type is equivalent to \textit{Maybe}) arises from it and then switches into the other signal-function which is then run from that point in time.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 susceptibleAgent :: RandomGen g => g -> SIRAgent
@@ -50,9 +58,9 @@ susceptibleAgent g = switch (susceptible g) (const (infectedAgent g))
         else returnA -< (Susceptible, NoEvent)
 \end{minted}
 
-The agent behaves as susceptible until it becomes infected, then it behaves as an infected agent by switching into the \textit{infectedAgent} SF. Instead of randomly drawing the number of contacts to make we now follow a fundamentally different approach by using the \textit{occasionally} function. It generates on average an event after the given time, so in each time-step we generate either a single event or no event. This requires a fundamental different approach in selecting the right $\Delta t$ and sampling the system as will be shown in results. Note that we return an Event in case of an infection which indicates the switch into the new infected behaviour.
+The agent behaves as susceptible until it becomes infected, then it behaves as an infected agent by switching into the \textit{infectedAgent} SF. Instead of randomly drawing the number of contacts to make we now follow a fundamentally different approach by using Yampas \textit{occasionally} function. It generates on average an event after the given time, so in each time-step we generate either a single event or no event. This requires a fundamental different approach in selecting the right $\Delta t$ and sampling the system as will be shown in results. Note that we return an Event in case of an infection which indicates the switch into the new infected behaviour.
 
-We deal with randomness different now and implement signal-functions built on the noiseR function provided by Yampa. This function takes a range of values and the random-number generator as input and returns the next value in the range. This is another example of the stream character and statefulness of a signal-function as it needs to keep track of the changed random-number generator internally through the use of continuations and closures. Here we provide the implementation of \textit{randomBoolSF}, drawRandomElemSF works similar but takes a list as input:
+We deal with randomness different now and implement signal-functions built on the \textit{noiseR} function provided by Yampa. This function takes a range of values and the random-number generator as input and returns the next value in the range. This is another example of the stream character and statefulness of a signal-function as it needs to keep track of the changed random-number generator internally through the use of continuations and closures. Here we provide the implementation of \textit{randomBoolSF}, drawRandomElemSF works similar but takes a list as input:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 randomBoolSF :: RandomGen g => g -> Double -> SF () Bool

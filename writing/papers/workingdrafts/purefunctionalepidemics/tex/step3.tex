@@ -79,7 +79,7 @@ infectedAgent g = switch infected (const recoveredAgent)
     infected :: SF SIRAgentIn (SIRAgentOut, Event ())
     infected = proc ain -> do
       recEvt <- occasionally g illnessDuration () -< ()
-      let a  = event Infected (const Recovered) recEvt
+      let a  = event Infected (const Recovered) recEvt -- event is equivalent to maybe
           ao = respondToContactWith Infected ain (agentOut a)
       returnA -< (ao, recEvt)
 \end{minted}
@@ -214,7 +214,7 @@ infectiousStock initValue = proc ain -> do
   returnA -< ao''
 \end{minted}
 
-The stock receives flows from both the infection-rate and recovery-rate flow using the function \textit{flowInFrom} (see below). Then the current stock value is calculated using the \textit{integral} function of Yampa with an initial value added which are the initially infected people. Note that we can directly express the SD equation using Yampas DSL for continuous-time systems. The current stock value is then set as the observable value of the stock and sent to the infection- and recovery-rate flows. For convenience we implemented an additional function \textit{flowInFrom} which returns the first value sent from the corresponding agent id or 0.0 if none was sent.
+The stock receives flows from both the infection-rate and recovery-rate flow using the function \textit{flowInFrom} (see below). Then the current stock value is calculated using the \textit{integral} function of Yampa with an initial value added which are the initially infected people. The integral primitive of Yampa integrates the fed in data over time using the rectangle rule which means it simply multiplies the input values by the current $\Delta t$ and accumulates them. Note that we can directly express the SD equation using Yampas DSL for continuous-time systems. The current stock value is then set as the observable value of the stock and sent to the infection- and recovery-rate flows. For convenience we implemented an additional function \textit{flowInFrom} which returns the first value sent from the corresponding agent id or 0.0 if none was sent.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 flowInFrom :: AgentId -> AgentIn SIRMsg -> Double

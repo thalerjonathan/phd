@@ -10,7 +10,7 @@ type AgentId     = Int
 type DataFlow d = (AgentId, d)
 \end{minted}
 
-Next we need more general input and output types of our agents signal-functions. We introduce a new input type which holds both the agent id of the agent and the incoming data-flows from other agents:
+Next we need more general input and output types of our agents signal functions. We introduce a new input type which holds both the agent id of the agent and the incoming data-flows from other agents:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 data AgentIn d = AgentIn
@@ -30,7 +30,7 @@ data AgentOut o d = AgentOut
 
 Note that by making the observable state explicit in the types we give the agent further control of what it can reveal to the outside world which allows an even stronger separation between the agents internal state and what the agent wants the world to see.
 
-Now we can then generalise the agents signal-functions to the following type:
+Now we can then generalise the agents signal functions to the following type:
 \begin{minted}[fontsize=\footnotesize]{haskell}
 type Agent o d = SF (AgentIn d) (AgentOut o d)
 \end{minted}
@@ -60,7 +60,7 @@ recoveredAgent :: SIRAgent
 recoveredAgent = arr (const (agentOut Recovered))
 \end{minted}
 
-Note that instead of returning just a SIR state now the output of an agents signal-function is of type \textit{AgentOut}:
+Note that instead of returning just a SIR state now the output of an agents signal function is of type \textit{AgentOut}:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 agentOut :: o -> AgentOut o d
@@ -158,7 +158,7 @@ stepSimulation sfs ains =
       returnA -< Event nextAins
 \end{minted}
 
-The distribution of the data-flows happens in the \textit{distributeData} function of switchingEvt and is then passed on to the continuation-generation function as previously. The difference is that it now creates a list of AgentIn for the next step instead of a list of all the agents SIR states of the previous step. Again the continuation-generation function recursively returns the stepSimulation signal-function. The pairing function of dpSwitch is now slightly more straightforward as it just pairs up the AgentIn with its corresponding signal-function. Note that due to lack of space we can't give an implementation of distributeData.
+The distribution of the data-flows happens in the \textit{distributeData} function of switchingEvt and is then passed on to the continuation-generation function as previously. The difference is that it now creates a list of AgentIn for the next step instead of a list of all the agents SIR states of the previous step. Again the continuation-generation function recursively returns the stepSimulation signal function. The pairing function of dpSwitch is now slightly more straightforward as it just pairs up the AgentIn with its corresponding signal function. Note that due to lack of space we can't give an implementation of distributeData.
 
 \subsubsection{Emulating SD}
 Having data-flows at hand we can now emulate the SD approach because it allows us to express a system with parallel continuous-time flows between the stocks and flows. Each stock $S(t)$, $I(t)$, $R(t)$ and each flow $infectionRate$, $recoveryRate$ is implemented as an agent with a fixed agent id. The connections between them are implemented using the previously introduced data-flow mechanism. We start by refining the types for our SIR implementation:
@@ -251,4 +251,4 @@ When running the simulation one must make sure to use a small enough $\Delta t$ 
 \subsubsection{Discussion}
 It seems that by introducing the data-flow mechanism we have complicated things but we have gained a lot as well. Data-flows make the feedback between agents explicit and gives the agents full control over the data which is revealed to other agents. This also makes the fact even more explicit, that we cannot fix the connections between the agents already at compile time e.g. by connecting SFs which is done in many Yampa applications \cite{nilsson_functional_2002}, \cite{courtney_yampa_2003}, \cite{nilsson_declarative_2014} because agents interact with each other randomly. One can look at the data-flow mechanism as a kind of messaging but there are fundamental differences. Messaging almost always comes up as an approach to managing concurrency and involves stateful message-boxes which can be checked an emptied by the receivers - this is not the case with the data-flow mechanism which behaves indeed as a flow where data is not stored in a messagebox but is only present in the current simulation-step and if ignored by the agent will be gone in the next step.
 Also by distinguishing between the internal and the observable state of the agent, we give the agent even more control of what is visible to the outside world.
-So far we have a pretty decent implementation of an agent-based SIR approach. The next steps focus on introducing more concepts and generalising our implementation so far. What we are lacking at the moment is a general treatment of an environment. To conveniently introduce it we want to make use of monads which is not possible using Yampa. In the next step we make the transition to Monadic Stream Functions (MSF) as introduced in Dunai \cite{perez_functional_2016}. The authors of Dunai implement BearRiver which is a re-implementation of Yampa on top of MSF which should allow us to easily replace Yampa with MSFs.
+So far we have a pretty decent implementation of an agent-based SIR approach. The next steps focus on introducing more concepts and generalising our implementation so far. What we are lacking at the moment is a general treatment of an environment. To conveniently introduce it we want to make use of monads which is not possible using Yampa. In the next step we make the transition to Monadic Stream Functions (MSF) as introduced in Dunai \cite{perez_functional_2016} which allows to do FRP but with a monadic context.

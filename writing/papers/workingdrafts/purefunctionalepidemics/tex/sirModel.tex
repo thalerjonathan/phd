@@ -55,7 +55,8 @@ Although in the model each agent make contact with each other, we can reduce the
 \begin{itemize}
 	\item \textit{Susceptible}: Only these agents make contact \textit{on average} with $\beta$ other random agents (excluding themselves). For every \textit{infected} agent they get into contact with, they become infected with a probability of $\gamma$. If an infection happens, they make the transition to the \textit{Infected} state.
 
-	\item \textit{Infected}: These agents do \textit{not} contact other agents. One might think that they need to make pro-active contact with other random agents was well but this would lead to wrong dynamics (TODO: why? what is the theory behind that?). An infected agent recovers \textit{on average} after $\delta$ time units. This is implemented by drawing the duration from an exponential distribution \cite{borshchev_system_2004} with $\lambda = \frac{1}{\delta}$ and making the transition to the \textit{Recovered} state after this duration.
+	% (TODO: why? what is the theory behind that?)
+	\item \textit{Infected}: These agents do \textit{not} contact other agents. One might think that they need to make pro-active contact with other random agents was well but this would lead to wrong dynamics. An infected agent recovers \textit{on average} after $\delta$ time units. This is implemented by drawing the duration from an exponential distribution \cite{borshchev_system_2004} with $\lambda = \frac{1}{\delta}$ and making the transition to the \textit{Recovered} state after this duration.
 
 	\item \textit{Recovered}: These agents do nothing because this state is a terminating state from which there is no escape: recovered agents stay immune and can not get infected again in this model \footnote{There exists an extended SIR model, called SIRS which adds a cycle to the state transitions by introducing a transition from recovered back to susceptible but we don't consider that here.}.
 \end{itemize}

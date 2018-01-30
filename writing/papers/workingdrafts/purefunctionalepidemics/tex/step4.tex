@@ -1,5 +1,10 @@
 \subsection{Generalising to Monadic Stream Functions}
-TODO: write a bit introductory words for this subsection
+Monadic Stream Functions (MSF) are a generalisation of Yampa's signal functions with additional combinators to control and stack side effects. A MSF is a polymorphic type and an evaluation function which applies an MSF to an input and returns an output and a continuation, both in a monadic context \cite{perez_functional_2016}, \cite{perez_extensible_2017}.
+\begin{minted}[fontsize=\footnotesize]{haskell}
+newtype MSF m a b = step :: Monad m => MSF m a b -> a -> m (b, MSF m a b)
+\end{minted}
+
+MSFs are also arrows which means we can apply arrowized programming with Patersons do-notation. The authors \cite{perez_functional_2016} implement the library Dunai, which is available on Hackage. A part of the library is BearRiver, a wrapper which re-implements Yampa on top of Dunai, which should allow us to easily replace Yampa with MSFs. This will allow us to run arbitrary monadic computations in a signal function, which we will need in the next step when adding an environment.
 
 \subsubsection{Identity Monad}
 We start by making the transition to BearRiver by simply replacing Yampas signal-function by BearRivers which is the same but takes an additional type parameter \textit{m} indicating the monad. If we replace this type-parameter with the identity monad we should be able to keep the code exactly the same, except from a few type-declarations, because BearRiver re-implements all necessary functions we are using from Yampa \footnote{This was not quite true at the time we wrote this paper, where \textit{occasionally}, \textit{noiseR} and \textit{dpSwitch} were missing. We simply forked it and implemented these functions.}.
@@ -32,7 +37,7 @@ runSimulation g t dt as = map (map aoObservable) aoss
 Note that embed does not take a list of $\Delta t$ any more but simply a list of inputs for each step to the top level signal-function.
 
 \subsubsection{Random Monad}
-Using the Identity Monad does not gain us anything but it was a first step towards a more general solution. Our next step is to replace the Identity Monad by the Random Monad which will allow us to get rid of the RandomGen arguments to our functions and run the whole simulation within the RandomMonad \textit{again} just as we started but now with the full features functional reactive programming!
+Using the Identity Monad does not gain us anything but it was a first step towards a more general solution. Our next step is to replace the Identity Monad by the Random Monad which will allow us to get rid of the RandomGen arguments to our functions and run the whole simulation within the Random Monad \textit{again} just as we started but now with the full features functional reactive programming!
 We start by re-defining the SIRMonad and SIRAgent:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}

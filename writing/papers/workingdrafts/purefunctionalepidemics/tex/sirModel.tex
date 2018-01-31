@@ -21,11 +21,12 @@ infectionRate &= \frac{I \beta S \gamma}{N} \\
 recoveryRate &= \frac{I}{\delta} 
 \end{align}
 
-Solving these equations is done by integrating over time. In the SD terminology, the integrals are called \textit{Stocks} and the values over which is integrated over time are called \textit{Flows}. The $1+$ in $I(t)$ amounts to the initially infected agent because if there wouldn't be a single infected one, the system would immediately reach equilibrium - this is also the formal definition of the steady state of the system: as soon as $I(t) = 0$ the system won't change any more.
+Solving these equations is done by integrating over time. In the SD terminology, the integrals are called \textit{Stocks} and the values over which is integrated over time are called \textit{Flows}. At $t = 0$ a single agent is infected because if there wouldn't be any infected agents, the system would immediately reach equilibrium - this is also the formal definition of the steady state of the system: as soon as $I(t) = 0$ the system won't change any more.
 
 \begin{align}
-S(t) &= N + \int_0^t -infectionRate\, \mathrm{d}t \\
-I(t) &= 1 + \int_0^t infectionRate - recoveryRate\, \mathrm{d}t \\
+S(t) &= N - I(0) + \int_0^t -infectionRate\, \mathrm{d}t \\
+I(0) &= 1 \\
+I(t) &= \int_0^t infectionRate - recoveryRate\, \mathrm{d}t \\
 R(t) &= \int_0^t recoveryRate\, \mathrm{d}t
 \end{align}
 
@@ -48,9 +49,9 @@ Running the SD simulation over time results in the dynamics as shown in Figure \
 \end{figure}
 
 \subsection*{An Agent-Based approach}
-The SD approach is inherently top-down because the emergent property of the system is formalized in differential equations. The question is if such a top-down behaviour can be emulated using ABS, which is inherently bottom-up. Also the question is if there are fundamental drawbacks and benefits when doing so using ABS. Such questions were asked before and modelling the SIR model using an agent-based approach is indeed possible \cite{macal_agent-based_2010}. The fundamental difference is that SD is operating on averages, treating the population completely continuous which results in non-discrete values of stocks e.g. 3.1415 infected persons. The approach of mapping the SIR model to an ABS is to discretize the population and model each person in the population as an individual agent. The transitions between the states are no longer happening according to continuous differential equations but due to discrete events caused both by interactions amongst the agents and time-outs.
+The SD approach is inherently top-down because the behaviour of the system is formalized in differential equations. The question is if such a top-down behaviour can be emulated using ABS, which is inherently bottom-up. Also the question is if there are fundamental drawbacks and benefits when doing so using ABS. Such questions were asked before and modelling the SIR model using an agent-based approach is indeed possible \cite{macal_agent-based_2010}. The fundamental difference is that SD is operating on averages, treating the population completely continuous which results in non-discrete values of stocks e.g. 3.1415 infected persons. The approach of mapping the SIR model to an ABS is to discretize the population and model each person in the population as an individual agent. The transitions between the states are no longer happening according to continuous differential equations but due to discrete events caused both by interactions amongst the agents and time-outs.
 According to the model, every agent makes \textit{on average} contact with $\beta$ random other agents per time unit. In ABS we can only contact discrete agents thus we model this by generating a random event on average every $\beta$ time units. We need to sample from an exponential CDF because the rate is proportional to the size of the population \cite{borshchev_system_2004}. Note that an agent does not know the other agents' state when making contact with it, thus we need a mechanism in which agents reveal their state in which they are in \textit{at the moment of making contact}. This mechanism is an implementation detail which we will derive in our implementation steps. For now we only assume that agents can make contact with each other somehow. 
-Although in the model each agent make contact with each other, we can reduce the contacts to a few cases as only those influence the dynamics. Contacts agents with the same state have no influence as well as contacts with recovered agents, thus we need only to focus on contacts between susceptible and infected agents. In the agent-based approach we implement to the following behaviour:
+Although in the model all agents make contact with each other, we can reduce the contacts to a few cases which have an influence on the dynamics. Contacts between agents with the same state as well as contacts with recovered agents have no influence, thus we need only to focus on contacts between susceptible and infected agents. In the agent-based approach we implement the following behaviour:
 
 \begin{itemize}
 	\item \textit{Susceptible}: A susceptible agent makes contact \textit{on average} with $\beta$ other random agents. For every \textit{infected} agent it gets into contact with, it becomes infected with a probability of $\gamma$. If an infection happens, it makes the transition to the \textit{Infected} state.

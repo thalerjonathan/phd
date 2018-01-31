@@ -30,7 +30,7 @@ is :: SIRState -> SIRAgent -> Bool
 is s (s', _) = s == s'
 \end{minted}
 
-Next we need to think about how to actually step our simulation. For this we define a function which advances our simulation with a fixed $\Delta t$ until a given time $t$ where in each step the agents are processed and the output is fed back into the next step. This is the source of pro-activity as agents are executed in every time step and can perceive the advancing of time.
+Next we need to think about how to actually step our simulation. For this we define a function which advances our simulation with a fixed $\Delta t$ until a given time $t$ where in each step the agents are processed and the output is fed back into the next step. This is the source of pro-activity as agents are executed in every time step and can thus initiate actions based on the passing of time.
 As already mentioned in previous sections, the agent-based implementation of the SIR model is inherently stochastic which means we need access to a random-number generator. We decided to use the Random Monad at this point as threading a generator through the simulation and the agents is very cumbersome. Thus our simulation stepping runs in the Random Monad:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
@@ -62,7 +62,7 @@ An agent gets fed the states of all agents in the system from the previous time-
 From our implementation it becomes apparent that only the behaviour of a susceptible agent involves randomness and that a recovered agent is simply a sink - it does nothing and stays constant.
 
 Lets look how we can implement the behaviour of a susceptible agent. It simply makes contact on average with a number of other agents and gets infected with a given probability if an agent it has contact with is infected.
-When the agent gets infected it calculates also its time of recovery by drawing a random number from the exponential distribution meaning it is ill on average for illnessDuration.
+When the agent gets infected it calculates also its time of recovery by drawing a random number from the exponential distribution meaning it is ill on average for \textit{illnessDuration}.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 susceptibleAgent :: RandomGen g => Agents -> Rand g SIRAgent
@@ -147,7 +147,7 @@ Reflecting on our first naive approach we can conclude that it already introduce
 	\item Feedback - the output state of the agent in the current time-step $t$ is the input state for the next time-step $t+1$.
 	\item Environment - as environment we implicitly assume a fully-connected network (complete graph) where every agent 'knows' every other agents, including itself and thus can make contact all of them.
 	\item Stochasticity - its an inherently stochastic simulation, which is indicated by the Random Monad type and the usage of \textit{randomBoolM} and \textit{randomExpM}.
-	\item Deterministic - repeated runs with the same initial random-number generator result in same dynamics. This may not come as a surprise but in Haskell we can guarantee that property statically already at compile time because our simulation runs in the Random Monad and NOT in the IO Monad. This guarantees that no external, uncontrollable sources of randomness can interfere with the simulation.
+	\item Deterministic - repeated runs with the same initial random-number generator result in same dynamics. This may not come as a surprise but in Haskell we can guarantee that property statically already at compile time because our simulation runs in the Random Monad and \textit{not} in the IO Monad. This guarantees that no external, uncontrollable sources of randomness can interfere with the simulation.
 	\item Dynamics - with increasing number of agents the dynamics smooth out \cite{macal_agent-based_2010}.
 \end{itemize}
 
@@ -155,7 +155,7 @@ Nonetheless our approach has also weaknesses and dangers:
 \begin{enumerate}
 	\item $\Delta t$ is passed explicitly as argument to the agent and needs to be dealt with explicitly.This is not very elegant and a potential source of errors - can we do better and find a more elegant solution? 
 	\item The way our agents are represented is not very elegant. The state of the agent is explicitly encoded in an ADT and when processing the agent, the function needs always first distinguish between the states. Can we express it in a more implicit, functional way e.g. continuations?
-	\item The states of all agents of the current step are fed back into every agent in the next step so that an agent can pick its contacts. Although agents cannot change the states of others, this reveals too much information e.g. the illness duration is of no interest to the other agents. Although we could just feed in the \textit{SIRStates} without the illness duration, the problem is more of conceptual nature - it should be the agent which decides to whom it reveals which information.
+	\item The states of all agents of the current step are fed back into every agent in the next step so that an agent can pick its contacts. Although agents cannot change the states of others, this reveals too much information e.g. the illness duration is of no interest to the other agents. Although we could just feed in the \textit{SIRState} without the illness duration, the problem is more of conceptual nature - it should be the agent which decides to whom it reveals which information.
 \end{enumerate}
 
 We move now to the next section in which we will address points 1 and 2. Points 3 and the under-sampling issue will be addressed in section \ref{sec:step3_dataflow}.

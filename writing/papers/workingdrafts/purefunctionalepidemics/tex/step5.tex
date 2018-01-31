@@ -196,9 +196,9 @@ Note that the dynamics of the spatial SIR simulation which are seen in Figure \r
 \subsubsection{Discussion}
 At first the environment approach might seem a bit overcomplicated and one might ask what we have gained by using an unrestricted neighbourhood where all agents can contact all others. The real win is that we can introduce arbitrary restrictions on the neighbourhood as shown using the Moore neighbourhood. Of course the environment is not restricted to a discrete 2D grid and can be anything from a continuous N-dimensional space to a complex network - one only needs to change the type of the StateT monad and provide corresponding neighbourhood querying functions. The ability to place the heterogeneous agents in a generic environment is also the fundamental advantage of an agent-based over the SD approach and allows to simulate much more realistic scenarios. Note that for reasons of clarity we have removed the data-flow approach from this implementation which results in the unit-types of input and output. In a full blown agent-based simulation library we would combine both approaches.
 
-Generally, there exist four different environment scenarios in an agent-based model
+Generally, there exist four different types of environments in agent-based simulation
 \begin{enumerate}
-	\item Passive read-only - implemented in the previous steps, where the environment does never change and is passed as static information, e.g. list of neighbours, to each agent.
+	\item Passive read-only - implemented in the previous steps, where the environment never changes and is passed as static information, e.g. list of neighbours, to each agent.
 	\item Passive read/write - implemented in this step. The environment itself is not modelled as an active process but just as shared data which can be accessed and manipulated by the agents.
 	\item Active  read-only - can be implemented by adding an environment agent which broadcasts changes in the environment to all agents using the data-flow mechanism.
 	\item Active read/write - can be implemented as in this step plus adding an environment agent which reads/writes the environment e.g. regrowing some resources.

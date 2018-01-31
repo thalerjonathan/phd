@@ -2,6 +2,8 @@ import Data.Primitives.Views
 
 %default total
 
+--  add agent-step command which transports some time
+
 infectivity : Double
 infectivity = 0.05
 

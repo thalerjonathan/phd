@@ -88,23 +88,21 @@ neighbours :: SIREnv -> Disc2dCoord -> Disc2dCoord -> [Disc2dCoord] -> [SIRState
 neighbours e (x, y) (dx, dy) n = map (e !) nCoords'
   where
     nCoords  = map (\ (x', y') -> (x + x', y + y')) n
-    nCoords' = filter (\ (x, y) -> x >= 0 && 
-                                   y >= 0 && 
-                                   x <= (dx - 1) &&
-                                   y <= (dy - 1)) nCoords
+    nCoords' = filter (\ (x, y) -> x >= 0 && y >= 0 && 
+                                   x <= (dx - 1) && y <= (dy - 1)) nCoords
                            
 neumann :: [Disc2dCoord]
-neumann = [ topDelta, leftDelta, rightDelta, bottomDelta ]
+neumann = [ top, left, right, bottom ]
 
 moore :: [Disc2dCoord]
-moore = [ topLeftDelta,    topDelta,    topRightDelta,
-          leftDelta,                    rightDelta,
-          bottomLeftDelta, bottomDelta, bottomRightDelta ]
+moore = [ topLeft,    top,    topRight,
+          left,               right,
+          bottomLeft, bottom, bottomRight ]
 
-topLeftDelta :: Disc2dCoord
-topLeftDelta  = (-1, -1)
-topDelta      = ( 0, -1)
-topRightDelta = ( 1, -1)
+topLeft :: Disc2dCoord
+topLeft  = (-1, -1)
+top      = ( 0, -1)
+topRight = ( 1, -1)
 ...
 \end{minted}
 
@@ -180,7 +178,7 @@ We implemented rendering of the environments using the gloss library which allow
 			\label{fig:sir_env_t160}
 		\end{subfigure}
 		& 
-		\begin{subfigure}[b]{0.3\textwidth}
+		\begin{subfigure}[b]{0.38\textwidth}
 			\centering
 			\includegraphics[width=1\textwidth, angle=0]{./fig/step5_environment/SIR_dynamics_30x30agents_300t_01dt.png}
 			\caption{Dynamics over time}

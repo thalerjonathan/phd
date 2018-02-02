@@ -3689,3 +3689,21 @@ are used in a compiler for Haskell that is written in Haskell.},
 	pages = {201},
 	annote = {Zuletzt aktualisiert - 2013-02-24}
 }
+
+@inproceedings{brady_programming_2013,
+	address = {New York, NY, USA},
+	series = {{ICFP} '13},
+	title = {Programming and {Reasoning} with {Algebraic} {Effects} and {Dependent} {Types}},
+	isbn = {978-1-4503-2326-0},
+	url = {http://doi.acm.org/10.1145/2500365.2500581},
+	doi = {10.1145/2500365.2500581},
+	abstract = {One often cited benefit of pure functional programming is that pure code is easier to test and reason about, both formally and informally. However, real programs have side-effects including state management, exceptions and interactions with the outside world. Haskell solves this problem using monads to capture details of possibly side-effecting computations --- it provides monads for capturing state, I/O, exceptions, non-determinism, libraries for practical purposes such as CGI and parsing, and many others, as well as monad transformers for combining multiple effects. Unfortunately, useful as monads are, they do not compose very well. Monad transformers can quickly become unwieldy when there are lots of effects to manage, leading to a temptation in larger programs to combine everything into one coarse-grained state and exception monad. In this paper I describe an alternative approach based on handling algebraic effects, implemented in the IDRIS programming language. I show how to describe side effecting computations, how to write programs which compose multiple fine-grained effects, and how, using dependent types, we can use this approach to reason about states in effectful programs.},
+	urldate = {2018-02-02},
+	booktitle = {Proceedings of the 18th {ACM} {SIGPLAN} {International} {Conference} on {Functional} {Programming}},
+	publisher = {ACM},
+	author = {Brady, Edwin},
+	year = {2013},
+	keywords = {dependent types, algebraic effects},
+	pages = {133--144},
+	file = {ACM Full Text PDF:/home/io.nathan/Zotero/storage/R5HBK998/Brady - 2013 - Programming and Reasoning with Algebraic Effects a.pdf:application/pdf}
+}

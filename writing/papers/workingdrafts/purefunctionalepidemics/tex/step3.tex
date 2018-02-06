@@ -159,7 +159,13 @@ stepSimulation sfs ains =
       returnA -< Event nextAins
 \end{minted}
 
-The distribution of the data-flows happens in the \textit{distributeData} function of \textit{switchingEvt} and is then passed on to the continuation-generation function as previously. The difference is that it now creates a list of AgentIn for the next step instead of a list of all the agents SIR states of the previous step. Again the continuation-generation function recursively returns the \textit{stepSimulation} signal function. The pairing function of \textit{dpSwitch} is now slightly more straightforward as it just pairs up the AgentIn with its corresponding signal function. Note that due to lack of space we can't give an implementation of \textit{distributeData}.
+The distribution of the data-flows happens in the \textit{distributeData} function of \textit{switchingEvt} and is then passed on to the continuation-generation function as previously. Note that due to lack of space we can't give an implementation of \textit{distributeData} but we provide the type.
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+distributeData :: [(AgentId, AgentOut o d)] -> [AgentIn d]
+\end{minted}
+
+The difference is that it now creates a list of AgentIn for the next step instead of a list of all the agents SIR states of the previous step. Again the continuation-generation function recursively returns the \textit{stepSimulation} signal function. The pairing function of \textit{dpSwitch} is now slightly more straightforward as it just pairs up the AgentIn with its corresponding signal function. 
 
 \subsubsection{Emulating SD}
 Having data-flows at hand we can now emulate the SD approach because it allows us to express a system with parallel continuous-time flows between the stocks and flows. Each stock $S(t)$, $I(t)$, $R(t)$ and each flow $infectionRate$, $recoveryRate$ is implemented as an agent with a fixed agent id. The connections between them are implemented using the previously introduced data-flow mechanism. We start by refining the types for our SIR implementation:

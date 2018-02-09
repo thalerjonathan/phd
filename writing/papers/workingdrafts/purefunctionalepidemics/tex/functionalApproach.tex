@@ -18,5 +18,12 @@ In this section we will derive a pure functional approach for an agent-based sim
 
 \input{./tex/step5.tex}
 
+\subsection{Further Steps}
+\subsubsection{Agent-Transactions}
+We have implemented synchronous interactions, which we termed agent-transactions in an additional step step which we had to omit due to lack of space. Agent-transactions are necessary when an arbitrary number of interactions between two agents need to happen instantaneously without and time-lag. The use-case for this are price negotiations between multiple agents where each pair of agents need to come to an agreement in the same time-step. In object-oriented programming, the concept of synchronous communication between agents is implemented directly with method calls. We solved it pure functionally by running the signal functions of the transacting agent pair as often as their protocol requires but with $\Delta t=0$, which indicates the instantaneous character of the agent-transaction.
+
+\subsubsection{Dynamic Agent creation}
+In the SIR model, the agent population stays constant - agents don't die and no agents are created during simulation - but some simulations \cite{epstein_growing_1996} require dynamic agent destruction and creation. We can easily add and remove agents signal functions in the recursive switch after each time-step. The only problem is that creating new agents requires unique agent ids but with the transition to MSFs we can add a monadic context which allows agents to draw the next unique agent id when they create a new agent. %The id generation process should happen in the agent as the creating agent almost always needs then to communicate with this new agent. If we defer the id generation to the simulation system itself then we need a mechanism to feed it back to the creating agent, which could become quite cumbersome.
+
 % this is omited for now as it takes too much time and involves too many details but would need much more explanation still
 %\input{./tex/step6.tex}

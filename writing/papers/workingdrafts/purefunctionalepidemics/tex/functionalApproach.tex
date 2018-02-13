@@ -25,8 +25,5 @@ We have implemented synchronous interactions, which we termed agent-transactions
 \subsubsection{Dynamic Agent creation}
 In the SIR model, the agent population stays constant - agents don't die and no agents are created during simulation - but some simulations \cite{epstein_growing_1996} require dynamic agent destruction and creation. We can easily add and remove agents signal functions in the recursive switch after each time-step. The only problem is that creating new agents requires unique agent ids but with the transition to MSFs we can add a monadic context which allows agents to draw the next unique agent id when they create a new agent. %The id generation process should happen in the agent as the creating agent almost always needs then to communicate with this new agent. If we defer the id generation to the simulation system itself then we need a mechanism to feed it back to the creating agent, which could become quite cumbersome.
 
-\subsubsection{Time-Driven vs. Event-Driven}
-Our approach is inherently time-driven. TODO: cite Ruth Meyer paper
-
 % this is omited for now as it takes too much time and involves too many details but would need much more explanation still
 %\input{./tex/step6.tex}

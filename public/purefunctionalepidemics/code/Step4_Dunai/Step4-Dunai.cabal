@@ -57,9 +57,9 @@ executable Step4-Dunai
   -- other-extensions:    
   
   -- Other library packages from which modules are imported.
-  build-depends:        base >=4.9 && <4.10
-                      , bearriver
-                      , dunai
+  build-depends:        base
+                      , bearriver == 0.10.4.2
+                      , dunai == 0.4.0.0
                       , MonadRandom
                       , containers
                       , mtl 
@@ -72,4 +72,4 @@ executable Step4-Dunai
   -- Base language which the package is written in.
   default-language:    Haskell2010
   
-  ghc-options:         -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing
+  ghc-options:         -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -fno-warn-missing-home-modules

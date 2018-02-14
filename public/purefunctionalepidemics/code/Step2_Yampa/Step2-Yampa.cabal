@@ -57,7 +57,7 @@ executable Step2-Yampa
   -- other-extensions:    
   
   -- Other library packages from which modules are imported.
-  build-depends:        base >=4.9 && <4.10
+  build-depends:        base
                       , Yampa >=0.10 && <0.11
                       , MonadRandom
                       , containers
@@ -71,5 +71,5 @@ executable Step2-Yampa
   -- Base language which the package is written in.
   default-language:    Haskell2010
   
-  ghc-options:         -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing
+  ghc-options:         -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -fno-warn-missing-home-modules
   

@@ -1,0 +1,64 @@
+
+Learning Haskell fresh for a computer science PhD - an experience report
+In February 2016 I applied for a fully funded 36 months PhD programme (sept 2016 - 2019) at the School of Computer Science of the University of Nottingham and got accepted. My idea was (and still is) to research how agent-based simulation can be done in a pure functional language like Haskell and what the benefits and drawbacks are of doing so. In this report I want to share how I approached learning Haskell from zero previous knowledge just for the sake of my PhD, which progress I made, which obstacles I encountered and which IDEs I used. I hope that this report may be of interest to both Haskell beginners and experts.
+
+Background
+I have finished my masters degree in Computer Science just 6 months earlier and thought I wanted to put a PhD on top it if I can land a fully funded position. In my master studies I focused on system simulation and optimisation which included (amongst others) agent-based simulation (ABS). In ABS a system is simulated bottom-up by modelling the interactions of its constituting parts - called agents - out of which then the macro behaviour of the system emerges. The canonical examples is simulating the spreading of a disesase throughout a population. Every person in the population is modelled individually with its state and interacts with other persons over time: upon interaction, infected agents can infect other susceptible agents with a given probability where infected agents recover after a given time. The traditional and dominant approach implementing such agent-based simulations is with object-oriented languages like Java and Python either from scratch or using existing (excellent) ABS frameworks/libraries: RePast, AnyLogic, SWARM,...
+Having already worked 10 years in the industry on different projects and technologies (low level C/C++ firmware, Java EE backends, JavaScript Web frontend, Cobol maintenance,...) I was annoyed, saturated and bored by the dominant imperative and object-oriented programming paradigm and was looking for something radically different. So out of my fascination for ABS and the search for a fundamentally new challenge (being already 31 at that time) the idea to look into pure functional programming in ABS was born. I quickly found out that no one has done any serious research on this topic and the existing few papers barley scratch the surface and focus primarily on multi-agent systems (MAS - which is more an engineering discipline focusing more on AI/Robotics and how agents can solve tasks in a fast changing envrionment of which only partial information is available). People not knowing about functional programming but familiar with ABS told me that I must be crazy but this only confirmed that I was on the right track :).
+The only problem was that I didn't really know much about Haskell at the time of my application, having never written a single line of Haskell code so far and having only watched a few of Erik Meijers C9 Lectures on Functional Programming Fundamentals in which he teaches basics of Haskell (based on the amazing book of Graham Hutton) (https://channel9.msdn.com/Series/C9-Lectures-Erik-Meijer-Functional-Programming-Fundamentals/Lecture-Series-Erik-Meijer-Functional-Programming-Fundamentals-Chapter-1). After I got informed that I got accepted (March 2016) I knew I had to start learning Haskell more in-depth, which I had to balance with my part-time job as research assistant at my former university (University of Applied Sciences in Dornbirn, Vorarlberg, Austria). This meant I couldn't focus all my time 100% to learning Haskell, also I wanted to do some literature research up-front until the start of my PhD as it would save me lots of time in my first year which I can put into other things (like learning Haskell properly).
+
+First start
+So I got my hands on the 1st edition of Graham Huttons highly recommendable book "Programming in Haskell" and started working on it. I was amazed by the sheer elegance of the language and the clarity and power of the pure functional programming paradigm - at least as far as I could grasp it back then. I tried to implement the core of my master thesis which focused on continuous double-auctions amongst agents - but I failed, I didn't know enough about Haskell yet. The only thing what frustrated me was the difficulty on getting Haskell support in an IDE. I have always used big IDEs so far (Eclipse, IntelliJ, Netbeans, Visual Studio,...) so I was looking for plugins but couldn't find anything suitable. In the end I decided to give Emacs a try and get the haskell mod running: http://haskell.github.io/haskell-mode/. It was a frustrating experience as I have never used Emacs or anything like it before and I constantly felt that the whole installation process was too complicated and I was spending too much time on configuration where I only wanted to get myself programming. I worked through Graham Huttons book using Emacs which took me until summer and moved then to UK.
+
+Hard working
+The first year of a PhD is more of exploratory nature. One arrives with a rough idea and vision (there are other PhDs where you are assigned a very specific research  but that was not the case in mine) and explores what research has been already done, prototypes, tries out new ideas, backtracks from wrong directions,... - and so did I. My first step was to move to IntelliJ as IDE: the only thing I wanted and needed from an IDE was syntax highlighting a project-explorer in which I can naviagte the file tree and switching between opened fiquestionles (I know this is available in Emacs/VIM as well but I am more the visual IDE guy, I really tried but it never clicked with Emacs, I felt it was constantly in my way). So I started exploring and prototyping different directions to implement ABS in Haskell: IO, STM, concurrency, pure, ... the resulting code can be found here: https://github.com/thalerjonathan/phd/tree/master/coding/prototyping/haskell
+ In this time I was reading (more or less completely) the following books:
+- learn yourself a haskell for good (for free, sometimes the jokes are a bit too silly but it is great for beginners)
+- Programming in Haskell 2nd Edition (the 2nd edition, probably the best book for starting programming in haskell)
+- Concurrency and Parallelism in Haskell (for free, awesome how easy concurrency and parallelism is in haskell)
+
+I was coding every day in Haskell and got better and better and understood more and more what was going on, whats the philosophy behind it - and I fell more and more in love with it. I made lots of progress and got closer and closer in understanding how to do ABS in Haskell. Around March I started developing a first prototype of a library for pure functional ABS. As basic use-cases I've implemented already the famous Schelling Segregation and now I wanted to implement one of the seminal agent-based models: the highly complex Sugarscape model which was introduced in the early 90s to simulate artifical societies. It introduced all the fundamental concepts existing in ABS, so if I can implement it in my library then it can be regarded as a truly suitable library for ABS. I implemented it all pure, without using monads which made things quite complex - I knew this can't be the way to properly implement large-scale software in Haskell.
+
+Holy Monad and Category Theory
+Obviously I learned from other students of the FP group at Nottingham (which included Graham Hutton and ) that Monads are something one need to understand when doing Haskell programming. So I set out to understand what they are. The first thing I learned was that they are like burritos but that obviously didn't help. In April I then got the opportunity to go to the Midland Graduate School 2017 http://www.cs.le.ac.uk/events/mgs2017/ where I learned a lot about Type Theory, Basics of Category Theory, Lambda Calculus and had lots of discussions about using Monads in functional programming to structure a program. Still I haven't really understood monads but the final hint I got was to watch the videos of Bartosz Milewski on Category Theory for Programmers https://www.youtube.com/watch?v=I8LbkfSSR58&list=PLbgaMIhjbmEnaH_LTkxLI7FMa2HsnawM_
+I finally understood the following (with help from the famous John Backups paper https://dl.acm.org/citation.cfm?id=359579):
+1. In imperative languages one chains / composes destructive assignments, the composition operator is often the ;
+2. In (pure) functional languages one chains / composes functions, the composition operator is . or just calling of functions to calculate arguments to other functions
+3. Monads are allow to customize the composition of functions where additional code can be run in between two functions which allows arbitrary computations and concepts to be expressed.
+Probably many people will object to this definition but for me this is the status quo of my understanding (besides all the laws and category theoretic details) and in practical programming this is enough for me. It helped me to push forward implementing my library and I indeed succeeded with a full implementation of the Sugarscape model. I compared it to existing implementations in Java (http://sugarscape.sourceforge.net/) and NetLogo. My implementation was shorter by at least an order of magnitude. Also I found that although the model was highly complex, I got it right without many bugs - something I would have never dreamed of in Java. I had to think harder about how to implement a specific use-case but when I've figured it out, the implementation was almost always correct.
+With my understanding of Monads I could finally make use of them in my library implementation - obviously I made heavy use of the State-Monad for the following reasons:
+1. I was still new to functional programming and haven't yet learned how to properly think functional
+2. I was still thinking too imperative/operational, due to my training (all my very first languages were imperative) and industrial job (non functional, no I don't count JavaScript as functional) background 
+3. Still agent-based simulation is often very operational / imperative e.g. the implementation of the Sugarscape model mapped very conveniently on the State-Monad
+
+Refactoring code was such such big joy in Haskell as compared to Java and this without any support from the IDE (all big Java IDEs have built-in functionality for refactoring) due to its strong static type-system. This was especially of benefit in my case as I was constantly refactoring my library as I learned new things and realised that I was doing things not the functional way.
+At time I also made the transition to Sublime which is much more lightweight than IntelliJ and I sticked for it for quite a while and was very happy.
+
+Also I turned to more complex reading material:
+- real world haskell (for free, awesome to learn real-world code and not just the neat, nice, well-behaved examples, especially with my job experience I was highly intersted in this book and hold it in very high regard)
+- Haskell from firs principles (very extensive, covers all the topics one needs to understand to use haskell properly, nice excercieses and examples)
+- loads of papers on Haskell, Monads, Arrows and FRP (especially in a PhD you need to draw your knowledge also directly from the source which helps you for better understanding and allows you to cite them in your papers)
+
+Moving on to FRP
+I realised that I was rebuilding a kind of a time-dependent reactive system - something which already exists in the FRP paradigm. Fortunately there were very capable people working on arrowized FRP here at Nottingham (Ivan Perez, who researched FRP in Games and wrote his and Henrik Nilsson who was part of the team around Paul Hudak at Yale where Yampa was invented).
+
+additional books:
+- functional programming book by mac?
+
+Generalisation to Monadic Stream Functions
+VS Code
+monad stacks: quite complex matter
+using stack instead of just cabal
+
+Event-Driven ABS
+DES, DEVS
+could go for haskell but wanted to go further: Idris and dependent types. 
+
+Conclusion
+- wonderful language
+- refactoring 
+- vs code
+- use stack!
+- want to work in real-world Haskell jobs after my PhD
+- dont overread haskell books, focus on 1-2 books and work them through thoroughly, then look for sophisticated topics as you need them, revisit learned topics later in another or the same books to put them into your deepe knoweldege by then
+- important papers: being lazy with style, Propositions as types, the von neumann bottleneck

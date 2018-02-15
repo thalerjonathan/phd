@@ -1,7 +1,15 @@
+package des.examples.sir;
 import java.util.List;
-import java.util.Random;
 
-public class Person {
+import des.Event;
+import des.IClock;
+import des.IProcess;
+import des.RandomUtils;
+import des.examples.sir.events.ContactEvent;
+import des.examples.sir.events.MakeContacts;
+import des.examples.sir.events.RecoveryEvent;
+
+public class Person implements IProcess {
 	
 	public enum SIRState {
 		SUSCEPTIBLE,
@@ -10,7 +18,6 @@ public class Person {
 	}
 	
 	private SIRState s;
-	private Random r;
 	private List<Person> population;
 	
 	private final static double TIME_UNIT = 1.0;
@@ -19,9 +26,8 @@ public class Person {
 	private final static double CONTACT_RATE = 5.0;
 	private final static double ILLNESS_DURATION = 15.0;
 	
-	public Person(SIRState s, Random r, List<Person> population) {
+	public Person(SIRState s, List<Person> population) {
 		this.s = s;
-		this.r = r;
 		this.population = population;
 	}
 	
@@ -38,7 +44,7 @@ public class Person {
 		}
 	}
 	
-	public void onEvent(DESEvent e, IClock c) {
+	public void onEvent(Event e, IClock c) {
 		if (e instanceof RecoveryEvent) {
 			this.s = SIRState.RECOVERED;
 			
@@ -61,7 +67,7 @@ public class Person {
 			
 		} else if (SIRState.SUSCEPTIBLE == this.s) {
 			if (SIRState.INFECTED == p.getState()) {
-				if (INFECTIVITY >= r.nextDouble()) {
+				if (INFECTIVITY >= RandomUtils.nextDouble()) {
 					this.infected(c);
 				}
 			}
@@ -72,9 +78,9 @@ public class Person {
 		if (SIRState.SUSCEPTIBLE != this.s)
 			return;
 		
-		int numcontacts = (int) this.randomExp(TIME_UNIT / CONTACT_RATE);
+		int numcontacts = (int) RandomUtils.randomExp(TIME_UNIT / CONTACT_RATE);
 		for (int i = 0; i < numcontacts; i++) {
-			int randIdx = (int) (r.nextDouble() * population.size());
+			int randIdx = (int) (RandomUtils.nextDouble() * population.size());
 			Person randContact = population.get(randIdx);
 			
 			/*
@@ -86,7 +92,7 @@ public class Person {
 			}
 			*/
 			
-			double rdt = r.nextDouble();
+			double rdt = RandomUtils.nextDouble();
 			c.scheduleEvent(randContact, rdt, new ContactEvent(this));
 		}
 		
@@ -94,11 +100,7 @@ public class Person {
 	}
 	
 	private void infected(IClock c) {
-		double recoveryTime = this.randomExp(1 / ILLNESS_DURATION);
+		double recoveryTime = RandomUtils.randomExp(1 / ILLNESS_DURATION);
 		c.scheduleEvent(this, recoveryTime, new RecoveryEvent());
-	}
-	
-	private double randomExp(double lambda) {
-	    return (-Math.log(r.nextDouble())) / lambda;
 	}
 }

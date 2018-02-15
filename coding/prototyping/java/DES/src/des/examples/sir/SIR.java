@@ -1,23 +1,25 @@
+package des.examples.sir;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
-public class Main {
+import des.Clock;
 
-	private final static int POPULATION_SIZE = 5;
+public class SIR {
+
+	private final static int POPULATION_SIZE = 1000;
 	private final static int NUM_INFECTED = 1;
 	
 	public static void main(String[] args) {
 		Clock c = new Clock();
 		List<Person> population = new ArrayList<Person>();
 		
-		for (int i = 0; i < POPULATION_SIZE - NUM_INFECTED; ++i) {
-			Person p = new Person(Person.SIRState.SUSCEPTIBLE, new Random(), population);
+		for (int i = 0; i < NUM_INFECTED; ++i) {
+			Person p = new Person(Person.SIRState.INFECTED, population);
 			population.add(p);
 		}
 		
-		for (int i = 0; i < NUM_INFECTED; ++i) {
-			Person p = new Person(Person.SIRState.INFECTED, new Random(), population);
+		for (int i = 0; i < POPULATION_SIZE - NUM_INFECTED; ++i) {
+			Person p = new Person(Person.SIRState.SUSCEPTIBLE, population);
 			population.add(p);
 		}
 		
@@ -30,7 +32,7 @@ public class Main {
 		long infected = 0;
 		long recovered = 0;
 		
-		while (c.hasNext()) {
+		while (c.hasEvents()) {
 			events++;
 
 			susceptibles = population.stream()
@@ -49,7 +51,7 @@ public class Main {
 			//if (events % 1000 == 0)
 			//	System.out.println(susceptibles + "/" + infected + "/" + recovered);
 			
-			c.next();
+			c.nextEvent();
 		}
 		
 		System.out.println("Simulation finished after " + events + " events at time = " + c.getTime());

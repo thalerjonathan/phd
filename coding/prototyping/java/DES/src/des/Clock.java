@@ -1,3 +1,4 @@
+package des;
 import java.util.PriorityQueue;
 
 public class Clock implements IClock {
@@ -7,10 +8,10 @@ public class Clock implements IClock {
 	
 	private class QueueElem implements Comparable<QueueElem> {
 		double time;
-		Person p;
-		DESEvent e;
+		IProcess p;
+		Event e;
 		
-		public QueueElem(double time, Person p, DESEvent e) {
+		public QueueElem(double time, IProcess p, Event e) {
 			this.time = time;
 			this.p = p;
 			this.e = e;
@@ -39,25 +40,25 @@ public class Clock implements IClock {
 	}
 	
 	@Override
-	public void scheduleEvent(Person p, double dt, DESEvent e) {
+	public void scheduleEvent(IProcess p, double dt, Event e) {
 		double absoluteTime = this.time + dt;
 		this.queue.add(new QueueElem(absoluteTime, p, e));
 	}
 	
 	@Override
-	public void scheduleEventNow(Person p, DESEvent e) {
+	public void scheduleEventNow(IProcess p, Event e) {
 		this.queue.add(new QueueElem(this.time, p, e));
 	}
 	
-	public void next() {
+	public void nextEvent() {
 		QueueElem e = this.queue.poll();
-		System.out.println(e);
+		//System.out.println(e);
 		this.time = e.time;
 		
 		e.p.onEvent(e.e, this);
 	}
 	
-	public boolean hasNext() {
+	public boolean hasEvents() {
 		return false == this.queue.isEmpty();
 	}
 	

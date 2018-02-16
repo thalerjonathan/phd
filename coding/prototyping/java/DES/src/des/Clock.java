@@ -1,6 +1,9 @@
 package des;
 import java.util.PriorityQueue;
 
+import des.ifaces.IClock;
+import des.ifaces.IProcess;
+
 public class Clock implements IClock {
 
 	private double time;

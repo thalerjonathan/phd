@@ -1,4 +1,6 @@
-package des;
+package des.ifaces;
+
+import des.Event;
 
 public interface IProcess {
 

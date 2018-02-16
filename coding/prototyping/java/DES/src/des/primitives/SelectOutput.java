@@ -1,8 +1,8 @@
 package des.primitives;
 
-import des.IClock;
-import des.IConsumer;
-import des.RandomUtils;
+import des.ifaces.IClock;
+import des.ifaces.IConsumer;
+import des.utils.RandomUtils;
 
 public class SelectOutput<T> implements IConsumer<T> {
 

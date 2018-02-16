@@ -1,4 +1,4 @@
-package des;
+package des.ifaces;
 
 public interface IProducer<T> {
 

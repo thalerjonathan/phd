@@ -1,10 +1,10 @@
 package des.primitives;
 
 import des.Event;
-import des.IClock;
-import des.IConsumer;
-import des.IProcess;
-import des.RandomUtils;
+import des.ifaces.IClock;
+import des.ifaces.IConsumer;
+import des.ifaces.IProcess;
+import des.utils.RandomUtils;
 
 public abstract class Source<T> implements IProcess {
 

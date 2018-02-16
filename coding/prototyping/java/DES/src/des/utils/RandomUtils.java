@@ -1,4 +1,4 @@
-package des;
+package des.utils;
 
 public class RandomUtils {
 

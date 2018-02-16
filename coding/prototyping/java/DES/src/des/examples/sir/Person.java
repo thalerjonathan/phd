@@ -2,12 +2,12 @@ package des.examples.sir;
 import java.util.List;
 
 import des.Event;
-import des.IClock;
-import des.IProcess;
-import des.RandomUtils;
 import des.examples.sir.events.ContactEvent;
 import des.examples.sir.events.MakeContacts;
 import des.examples.sir.events.RecoveryEvent;
+import des.ifaces.IClock;
+import des.ifaces.IProcess;
+import des.utils.RandomUtils;
 
 public class Person implements IProcess {
 	

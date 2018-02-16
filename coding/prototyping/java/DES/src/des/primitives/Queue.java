@@ -2,9 +2,9 @@ package des.primitives;
 
 import java.util.LinkedList;
 
-import des.IClock;
-import des.IConsumer;
-import des.IProducer;
+import des.ifaces.IClock;
+import des.ifaces.IConsumer;
+import des.ifaces.IProducer;
 
 public class Queue<T> implements IConsumer<T>, IProducer<T> {
 
@@ -36,7 +36,7 @@ public class Queue<T> implements IConsumer<T>, IProducer<T> {
 
 	@Override
 	public T getNext() {
-		return this.fifo.removeLast();
+		return this.fifo.removeFirst();
 	}
 
 	@Override

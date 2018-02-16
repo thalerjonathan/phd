@@ -1,11 +1,11 @@
 package des.primitives;
 
 import des.Event;
-import des.IClock;
-import des.IConsumer;
-import des.IProcess;
-import des.IProducer;
-import des.RandomUtils;
+import des.ifaces.IClock;
+import des.ifaces.IConsumer;
+import des.ifaces.IProcess;
+import des.ifaces.IProducer;
+import des.utils.RandomUtils;
 
 public class Delay<T> implements IProcess, IConsumer<T> {
 
@@ -47,10 +47,9 @@ public class Delay<T> implements IProcess, IConsumer<T> {
 
 	@Override
 	public void inputArrival(T e, IClock c) {
-		if (false == isReady()) {
+		if (false == isReady())
 			throw new RuntimeException(); // TODO remove
-		}
-		
+
 		this.occupied = e;
 		
 		double dt = RandomUtils.randomTri(1, 2, 4); // TODO remove hardcoded

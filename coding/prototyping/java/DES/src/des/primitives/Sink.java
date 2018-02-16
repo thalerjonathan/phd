@@ -1,7 +1,7 @@
 package des.primitives;
 
-import des.IClock;
-import des.IConsumer;
+import des.ifaces.IClock;
+import des.ifaces.IConsumer;
 
 public class Sink<T> implements IConsumer<T> {
 

@@ -31,13 +31,14 @@ import Debug.Trace
 
 type ProcId = Int
 type Time = Double
-data Event = Evt Text | Input 
+data Event = Evt Text 
+           | Input deriving Show
 
 -- can we replace this by a MSF as in dunai?
 newtype DESProcessCont = Cont (Event -> State DESState DESProcessCont)
 type DESProcess = ProcId -> State DESState DESProcessCont
 
-data QueueItem = QueueItem ProcId Event Time 
+data QueueItem = QueueItem ProcId Event Time deriving Show
 type DESQueue = PQ.MinQueue QueueItem
 
 instance Eq QueueItem where
@@ -88,41 +89,40 @@ runClock n = do
 
   let mayHead = PQ.getMin q
   if isNothing mayHead 
-    then return ()
+    then trace ("no events, terminating simulation...") (return ())
     else do
-      let (QueueItem pid e dt) = fromJust mayHead
+      let qi@(QueueItem pid e dt) = fromJust mayHead
       let t' = t + dt
-      let q' = PQ.drop 1 q
-      
-      ps <- gets desProcs
-
-      let (Cont p) = fromJust $ Map.lookup pid ps
-      p' <- p e
-
-      s <- get
-
-      let ps' = Map.insert pid p' ps
-
-      put s { 
+      let q' = trace ("QueueItem: " ++ show qi) (PQ.drop 1 q)
+  
+      -- modify time and changed queue before running the process
+      -- because the process might change the queue 
+      modify (\s -> s { 
         desQueue = q' 
       , desTime  = t'
-      , desProcs = ps'
-      }
+      })
 
-      runClock (n-1)
+      ps <- gets desProcs
+      let (Cont p) = fromJust $ Map.lookup pid ps
+      p' <- p e
+      let ps' = Map.insert pid p' ps
+
+      modify (\s -> s { desProcs = ps' })
+
+      trace ("step " ++ show n ++ " t = " ++ show t') (runClock (n-1))
 
 source :: RandomGen g => g -> Double -> DESProcess
 source g0 arrivalRate pid = do
     -- on start
     g' <- scheduleNextItem g0
-    return $ sourceAux g'
+    return $ trace ("on start...") (sourceAux g')
   where
     sourceAux :: RandomGen g => g -> DESProcessCont
     sourceAux g = Cont (\case
         Evt _txt -> do
           g' <- scheduleNextItem g
-          return $ sourceAux g'
-        Input -> return $ sourceAux g)
+          return $ trace ("on Event Evt...") (sourceAux g')
+        Input -> return $ trace ("on Event Input...") (sourceAux g))
 
     scheduleNextItem :: RandomGen g => g -> State DESState g
     scheduleNextItem g = do
@@ -132,14 +132,12 @@ source g0 arrivalRate pid = do
 
 scheduleEvent :: ProcId -> Event -> Double -> State DESState ()
 scheduleEvent pid e dt = do
-  t <- gets desTime
   q <- gets desQueue
-  s <- get 
 
-  let qe = QueueItem pid e (t + dt)
+  let qe = QueueItem pid e dt
   let q' = PQ.insert qe q
 
-  put s { desQueue = q' }
+  modify (\s -> s { desQueue = q' })
 
 randomBoolM :: RandomGen g => Double -> Rand g Bool
 randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)

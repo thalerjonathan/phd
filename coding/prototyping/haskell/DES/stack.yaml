@@ -37,10 +37,15 @@ resolver: lts-9.21
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - .
+- location:
+    git: https://github.com/ivanperez-keera/dunai
+    commit: 9828b997bd3c818ca3ccc611a429dd7379596c50
+
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps:
 - dequeue-0.1.12
+- dunai-0.4.0.0
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

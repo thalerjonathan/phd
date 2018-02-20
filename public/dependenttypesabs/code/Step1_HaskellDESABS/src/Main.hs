@@ -2,16 +2,17 @@
 module Main where 
 
 -- first import: base
--- none
+import           Data.Maybe
+import           Text.Printf
+import           System.IO
 
 -- second import: 3rd party libraries
 import           Control.Monad.Random
 import           Control.Monad.State.Strict
-import           Data.Maybe
 import           Data.MonadicStreamFunction
 import qualified Data.Map as Map
 import qualified Data.PQueue.Min as PQ
-import           Debug.Trace
+-- import           Debug.Trace
 
 -- third import: project local
 -- none
@@ -28,19 +29,21 @@ instance Eq (QueueItem e) where
 instance Ord (QueueItem e) where
   compare (QueueItem _ _ t1) (QueueItem _ _ t2) = compare t1 t2
 
-data ABSState e = ABSState
-  { absEvtQueue :: EventQueue e
-  , absTime     :: Time
-  , absAgents   :: Map.Map AgentId (AgentCont e)
-  , absAgentIds :: [AgentId]
-  , absEvtCount :: Integer
+data ABSState e s = ABSState
+  { absEvtQueue    :: EventQueue e
+  , absTime        :: Time
+  , absAgents      :: Map.Map AgentId (AgentCont e s)
+  , absAgentIds    :: [AgentId]
+  , absEvtCount    :: Integer
+
+  , absDomainState :: s
   }
 
-type ABSMonad e  = State (ABSState e)
-type AgentCont e = MSF (ABSMonad e) (Event e) ()
-type Agent e     = AgentId -> State (ABSState e) (AgentCont e)
+type ABSMonad e s  = State (ABSState e s)
+type AgentCont e s = MSF (ABSMonad e s) (Event e) ()
+type Agent e s     = AgentId -> State (ABSState e s) (AgentCont e s)
 
-type ABSOut = (Time, ())
+type SIRDomainState = (Int, Int, Int)
 
 data SIRState = Susceptible
               | Infected
@@ -52,8 +55,8 @@ data SIREvent = MakeContact
               | Recover 
               deriving Show
 
-type SIRAgent     = Agent SIREvent
-type SIRAgentCont = AgentCont SIREvent
+type SIRAgent     = Agent SIREvent SIRDomainState
+type SIRAgentCont = AgentCont SIREvent SIRDomainState
 
 rngSeed :: Int
 rngSeed = 42
@@ -64,25 +67,13 @@ agentCount = 1000
 infectedCount :: Int
 infectedCount = 10
 
--- use negative number for unlimited number of steps
-maxSimulationSteps :: Integer
-maxSimulationSteps = -1
+-- use negative number for unlimited number of events
+maxEvents :: Integer
+maxEvents = -1 
 
 -- use 1 / 0 for unrestricted time
-maxSimulationTime :: Double
-maxSimulationTime = 160.0
-
-main :: IO ()
-main = do
-  let g = mkStdGen rngSeed
-  let (as, _) = runRand (initAgents agentCount infectedCount) g
-
-  let s = runABS as maxSimulationSteps maxSimulationTime
-
-  let t = absTime s
-  let ec = absEvtCount s
-
-  print $ "Finished at t = " ++ show t ++ ", after " ++ show ec ++ " events"
+maxTime :: Double
+maxTime = 160.0
 
 makeContactInterval :: Double
 makeContactInterval = 1.0
@@ -96,8 +87,28 @@ infectivity = 0.05
 illnessDuration :: Double
 illnessDuration = 15.0
 
--- maybe DEPENDENT TYPES a remedy for:
--- Recover event can never occur within a susceptible agent, still we need to check it to cover all cases
+main :: IO ()
+main = do
+  let g = mkStdGen rngSeed
+  let (as, _g') = runRand (initAgents agentCount infectedCount) g
+
+  let (t, evtCount, ss) = runABS as (0, 0, 0) maxEvents maxTime 1.0
+
+  print $ "Finished at t = " ++ show t ++ 
+          ", after " ++ show evtCount ++ 
+          " events"
+          
+  let ss' = map (\(s, i, r) -> (fromIntegral s, fromIntegral i, fromIntegral r)) ss
+  writeDynamicsToFile ("ABS_DES_" ++ show agentCount ++ "agents.m") ss'
+
+initAgents :: RandomGen g => Int -> Int -> Rand g [SIRAgent]
+initAgents n nInf = do
+    susAs <- forM [1..n - nInf] (const $ createAgent Susceptible)
+    infAs <- forM [1..nInf] (const $ createAgent Infected)
+    return $ susAs ++ infAs
+  where
+    createAgent :: RandomGen g => SIRState -> Rand g SIRAgent
+    createAgent s = getSplit >>= \g -> return $ sirAgent s g
 
 -- | A sir agent which is in one of three states
 sirAgent :: RandomGen g 
@@ -106,14 +117,16 @@ sirAgent :: RandomGen g
          -> SIRAgent    -- ^ the continuation
 sirAgent Susceptible g0 aid = do
     -- on start
+    modifyDomainState incSus
     scheduleEvent aid (Event MakeContact) makeContactInterval
     return $ susceptibleAgent aid g0
 sirAgent Infected g0 aid = do
     -- on start
-    let (dt, _) = runRand (randomExpM illnessDuration) g0
+    modifyDomainState incInf
+    let (dt, _) = runRand (randomExpM (1 / illnessDuration)) g0
     scheduleEvent aid (Event Recover) dt
     return $ infectedAgent aid
-sirAgent Recovered _ _ = return recoveredAgent
+sirAgent Recovered _ _ = modifyDomainState incRec >> return recoveredAgent
 
 susceptibleAgent :: RandomGen g => AgentId -> g -> SIRAgentCont
 susceptibleAgent aid g0 = 
@@ -122,9 +135,9 @@ susceptibleAgent aid g0 =
       (const $ infectedAgent aid)
   where
     susceptibleAgentInfected :: MSF
-                                (ABSMonad SIREvent) -- monadic context
-                                (Event SIREvent)    -- input
-                                ((), Maybe ())      -- output
+                                (ABSMonad SIREvent SIRDomainState) 
+                                (Event SIREvent)
+                                ((), Maybe ()) 
     susceptibleAgentInfected = feedback g0 (proc (e, g) ->
       case e of
         Event (Contact _ s) -> 
@@ -132,7 +145,12 @@ susceptibleAgent aid g0 =
             then do
               let (r, g') = runRand (randomBoolM infectivity) g
               if r 
-                then returnA -< (((), Just ()), g')
+                then do
+                  arrM_ $ modifyDomainState decSus -< ()
+                  arrM_ $ modifyDomainState incInf -< ()
+                  let (dt, g'') = runRand (randomExpM (1 / illnessDuration)) g'
+                  arrM (scheduleEvent aid (Event Recover)) -< dt
+                  returnA -< (((), Just ()), g'')
                 else returnA -< (((), Nothing), g')
             else returnA -< (((), Nothing), g)
 
@@ -146,7 +164,7 @@ susceptibleAgent aid g0 =
         -- this will never occur for a susceptible
         Event Recover -> returnA -< (((), Just ()), g)) 
 
-    makeContact :: AgentId -> State (ABSState SIREvent) ()
+    makeContact :: AgentId -> State (ABSState SIREvent SIRDomainState) ()
     makeContact receiver = 
       scheduleEvent 
         receiver 
@@ -160,13 +178,13 @@ infectedAgent aid =
       (const recoveredAgent)
   where
     infectedAgentRecovered :: MSF 
-                              (ABSMonad SIREvent) -- monadic context
-                              (Event SIREvent)    -- input
-                              ((), Maybe ())      -- output
+                              (ABSMonad SIREvent SIRDomainState) 
+                              (Event SIREvent) 
+                              ((), Maybe ()) 
     infectedAgentRecovered = proc e ->
       case e of
         Event (Contact sender s) ->
-          -- can we somehow replace it with a when
+          -- can we somehow replace it with 'when'?
           if Susceptible == s
             then do
               arrM replyContact -< sender
@@ -174,9 +192,12 @@ infectedAgent aid =
             else returnA -< ((), Nothing)
         -- this will never occur for an infected agent
         Event MakeContact  -> returnA -< ((), Nothing) 
-        Event Recover      -> returnA -< Debug.Trace.trace "recovered" ((), Just ())
+        Event Recover      -> do
+          arrM_ $ modifyDomainState decInf -< ()
+          arrM_ $ modifyDomainState incRec -< ()
+          returnA -< ((), Just ())
 
-    replyContact :: AgentId -> State (ABSState SIREvent) ()
+    replyContact :: AgentId -> State (ABSState SIREvent SIRDomainState) ()
     replyContact receiver =
       scheduleEvent 
         receiver 
@@ -186,90 +207,114 @@ infectedAgent aid =
 recoveredAgent :: SIRAgentCont
 recoveredAgent = proc _e -> returnA -< ()
 
-initAgents :: RandomGen g => Int -> Int -> Rand g [SIRAgent]
-initAgents n numInfected = do
-    susAs <- forM [1..n - numInfected] (const $ createAgent Susceptible)
-    infAs <- forM [1..numInfected] (const $ createAgent Susceptible)
-    return $ susAs ++ infAs
-  where
-    createAgent :: RandomGen g => SIRState -> Rand g SIRAgent
-    createAgent s = getSplit >>= \g -> return $ sirAgent s g
+incSus :: (Int, Int, Int) -> (Int, Int, Int)
+incSus (s, i, r) = (s+1, i, r)
+
+decSus :: (Int, Int, Int) -> (Int, Int, Int)
+decSus (s, i, r) = (s-1, i, r)
+
+incInf :: (Int, Int, Int) -> (Int, Int, Int)
+incInf (s, i, r) = (s, i+1, r)
+
+decInf :: (Int, Int, Int) -> (Int, Int, Int)
+decInf (s, i, r) = (s, i-1, r)
+
+incRec :: (Int, Int, Int) -> (Int, Int, Int)
+incRec (s, i, r) = (s, i, r+1)
 
 -- TODO: remove Show e after debugging
 runABS :: Show e 
-       => [Agent e] 
+       => [Agent e s] 
+       -> s
        -> Integer 
        -> Double
-       -> ABSState e -- [ABSOut]
-runABS ps steps tLimit = 
-    execState (stepClock steps tLimit) s''
+       -> Double
+       -> (Time, Integer, [s])
+runABS as0 s0 steps tLimit tSampling = (finalTime, finalEvtCnt, reverse domStateSamples)
   where
-    s = ABSState {
-      absEvtQueue = PQ.empty
-    , absTime     = 0
-    , absAgents   = Map.empty
-    , absAgentIds = []
-    , absEvtCount = 0
+    abs0 = ABSState {
+      absEvtQueue    = PQ.empty
+    , absTime        = 0
+    , absAgents      = Map.empty
+    , absAgentIds    = []
+    , absEvtCount    = 0
+    , absDomainState = s0
     }
 
-    psWIds = Prelude.zipWith (\p pid -> p pid) ps [0..]
+    asWIds = Prelude.zipWith (\a aid -> a aid) as0 [0..]
 
-    (ps', s') = runState (sequence psWIds) s
-    psMap = Prelude.foldr (\(pid, p) acc -> Map.insert pid p acc) Map.empty (Prelude.zip [0..] ps')
+    (as0', abs') = runState (sequence asWIds) abs0
+    asMap = Prelude.foldr (\(aid, a) acc -> Map.insert aid a acc) Map.empty (Prelude.zip [0..] as0')
 
-    s'' = s' { 
-      absAgents   = psMap
-    , absAgentIds = Map.keys psMap 
+    abs'' = abs' { 
+      absAgents   = asMap
+    , absAgentIds = Map.keys asMap 
     }
+
+    (domStateSamples, finalState) = runState (stepClock steps 0 []) abs''
+    finalTime   = absTime finalState
+    finalEvtCnt = absEvtCount finalState
+
+    -- TODO: remove Show e after debugging
+    stepClock :: Show e 
+              => Integer 
+              -> Double
+              -> [s]
+              -> State (ABSState e s) [s]
+    stepClock 0 _ acc = return acc
+    stepClock n ts acc = do 
+      q <- gets absEvtQueue
+
+      -- TODO: use MaybeT 
+
+      let mayHead = PQ.getMin q
+      if isNothing mayHead 
+        then return acc
+        else do
+          ec <- gets absEvtCount
+          t <- gets absTime
+
+          let _qi@(QueueItem aid e t') = fromJust mayHead
+          --let q' = Debug.Trace.trace ("QueueItem: " ++ show qi) (PQ.drop 1 q)
+          let q' = PQ.drop 1 q
+
+          -- modify time and changed queue before running the process
+          -- because the process might change the queue 
+          modify (\s -> s { 
+            absEvtQueue = q' 
+          , absTime     = t'
+          , absEvtCount = ec + 1
+          })
+
+          as <- gets absAgents
+          let a = fromJust $ Map.lookup aid as
+          (_, a') <- unMSF a e
+          let as' = Map.insert aid a' as
+
+          modify (\s -> s { absAgents = as' })
+
+          s <- gets absDomainState
+          let (acc', ts') = if ts >= tSampling
+              then (s : acc, 0)
+              else (acc, ts + (t' - t))
+
+          if t' < tLimit
+            then stepClock (n-1) ts' acc'
+            else return acc'
     
--- TODO: remove Show e after debugging
-stepClock :: Show e 
-          => Integer 
-          -> Double
-          -> State (ABSState e) ()
-stepClock 0 _ = return ()
-stepClock n tLimit = do 
-  q <- gets absEvtQueue
-
-  -- TODO: use MaybeT 
-
-  let mayHead = PQ.getMin q
-  if isNothing mayHead 
-    then Debug.Trace.trace "no events, terminating simulation..." (return ())
-    else do
-      ec <- gets absEvtCount
-
-      let _qi@(QueueItem aid e t') = fromJust mayHead
-      --let q' = Debug.Trace.trace ("QueueItem: " ++ show qi) (PQ.drop 1 q)
-      let q' = PQ.drop 1 q
-
-      -- modify time and changed queue before running the process
-      -- because the process might change the queue 
-      modify (\s -> s { 
-        absEvtQueue = q' 
-      , absTime     = t'
-      , absEvtCount = ec + 1
-      })
-
-      as <- gets absAgents
-      let a = fromJust $ Map.lookup aid as
-      (_, a') <- unMSF a e
-      let as' = Map.insert aid a' as
-
-      modify (\s -> s { absAgents = as' })
-    
-      when
-        (t' < tLimit)
-        (stepClock (n-1) tLimit)
---(Debug.Trace.trace ("step " ++ show n ++ " t = " ++ show t') (stepClock (n-1) tLimit))
-        
-allAgentIds :: State (ABSState e) [AgentId]
+    --(Debug.Trace.trace ("step " ++ show n ++ " t = " ++ show t') (stepClock (n-1) tLimit))
+            
+allAgentIds :: State (ABSState e s) [AgentId]
 allAgentIds = gets absAgentIds
+
+modifyDomainState :: (s -> s) -> State (ABSState e s) ()
+modifyDomainState f = 
+  modify (\s -> s { absDomainState = f $ absDomainState s })
 
 scheduleEvent :: AgentId 
               -> Event e
               -> Double
-              -> State (ABSState e) ()
+              -> State (ABSState e s) ()
 scheduleEvent aid e dt = do
   q <- gets absEvtQueue
   t <- gets absTime
@@ -297,3 +342,44 @@ randomExpM lambda = avoid 0 >>= (\r -> return ((-log r) / lambda))
       if r == x
         then avoid x
         else return r
+
+writeDynamicsToFile :: String -> [(Double, Double, Double)] -> IO ()
+writeDynamicsToFile fileName dynamics = do
+  fileHdl <- openFile fileName WriteMode
+  hPutStrLn fileHdl "dynamics = ["
+  mapM_ (hPutStrLn fileHdl . sirDynamicToString) dynamics
+  hPutStrLn fileHdl "];"
+
+  hPutStrLn fileHdl "susceptible = dynamics (:, 1);"
+  hPutStrLn fileHdl "infected = dynamics (:, 2);"
+  hPutStrLn fileHdl "recovered = dynamics (:, 3);"
+  hPutStrLn fileHdl "totalPopulation = susceptible(1) + infected(1) + recovered(1);"
+
+  hPutStrLn fileHdl "susceptibleRatio = susceptible ./ totalPopulation;"
+  hPutStrLn fileHdl "infectedRatio = infected ./ totalPopulation;"
+  hPutStrLn fileHdl "recoveredRatio = recovered ./ totalPopulation;"
+
+  hPutStrLn fileHdl "steps = length (susceptible);"
+  hPutStrLn fileHdl "indices = 0 : steps - 1;"
+
+  hPutStrLn fileHdl "figure"
+  hPutStrLn fileHdl "plot (indices, susceptibleRatio.', 'color', 'blue', 'linewidth', 2);"
+  hPutStrLn fileHdl "hold on"
+  hPutStrLn fileHdl "plot (indices, infectedRatio.', 'color', 'red', 'linewidth', 2);"
+  hPutStrLn fileHdl "hold on"
+  hPutStrLn fileHdl "plot (indices, recoveredRatio.', 'color', 'green', 'linewidth', 2);"
+
+  hPutStrLn fileHdl "set(gca,'YTick',0:0.05:1.0);"
+  
+  hPutStrLn fileHdl "xlabel ('Time');"
+  hPutStrLn fileHdl "ylabel ('Population Ratio');"
+  hPutStrLn fileHdl "legend('Susceptible','Infected', 'Recovered');"
+
+  hClose fileHdl
+
+sirDynamicToString :: (Double, Double, Double) -> String
+sirDynamicToString (s, i, r) =
+  printf "%f" s
+  ++ "," ++ printf "%f" i
+  ++ "," ++ printf "%f" r
+  ++ ";"

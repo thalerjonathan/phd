@@ -1,7 +1,7 @@
 module Main where
 
--- import Naive
-import Streams
+import Naive
+--import Streams
 
 main :: IO ()
-main = runStreams -- runNaive -- runStatic
+main = runNaive -- runNaive -- runStatic

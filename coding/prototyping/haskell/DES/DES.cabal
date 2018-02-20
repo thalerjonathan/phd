@@ -66,6 +66,7 @@ executable DES
                      , MonadRandom
                      , containers
                      , dunai
+                     , vector
                      
   -- Directories containing source files.
   hs-source-dirs:      src

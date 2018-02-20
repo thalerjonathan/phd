@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+{-# LANGUAGE Arrows     #-}
 
 module Naive 
   (
@@ -17,26 +18,29 @@ TupleSections
 -- none
 
 -- second import: 3rd party libraries
-import Data.Maybe
-import Data.Text
+
+import           Control.Monad.Random
+import           Control.Monad.State.Strict
+import           Data.Maybe
+import           Data.MonadicStreamFunction
 import qualified Data.Map as Map
 import qualified Data.PQueue.Min as PQ
-import Control.Monad.Random
-import Control.Monad.State.Strict
+import           Data.Text
+--import           Data.Vector
+import           Debug.Trace
 
-import Debug.Trace
 
 -- third import: project local
 -- none
+
+-- all DES primitives (source, sink, queue, service, delay,...) must have some mechanism
+-- to store some statistics about their internals e.g. throughput, time in the system
+-- => store it in the DES monad?
 
 type ProcId = Int
 type Time = Double
 data Event = Evt Text 
            | Input deriving Show
-
--- can we replace this by a MSF as in dunai?
-newtype DESProcessCont = Cont (Event -> State DESState DESProcessCont)
-type DESProcess = ProcId -> State DESState DESProcessCont
 
 data QueueItem = QueueItem ProcId Event Time deriving Show
 type DESQueue = PQ.MinQueue QueueItem
@@ -50,8 +54,13 @@ instance Ord QueueItem where
 data DESState = DESState
   { desQueue :: DESQueue
   , desTime  :: Time
-  , desProcs :: Map.Map ProcId DESProcessCont -- TODO: replace by array and index by pid: processes are never added or removed
+  , desProcs :: Map.Map ProcId DESProcessCont -- replace by mutable vector
   }
+
+--newtype DESProcessCont = Cont (Event -> State DESState DESProcessCont)
+type DESMonad = State DESState
+type DESProcessCont = MSF DESMonad Event ()
+type DESProcess = ProcId -> State DESState DESProcessCont
 
 rngSeed :: Int
 rngSeed = 42
@@ -82,18 +91,16 @@ runDES ps steps = execState (runClock steps) s' { desProcs = psMap }
 runClock :: Integer -> State DESState ()
 runClock 0 = return ()
 runClock n = do 
-  t <- gets desTime
   q <- gets desQueue
 
   -- TODO: use MaybeT 
 
   let mayHead = PQ.getMin q
   if isNothing mayHead 
-    then trace ("no events, terminating simulation...") (return ())
+    then Debug.Trace.trace "no events, terminating simulation..." (return ())
     else do
-      let qi@(QueueItem pid e dt) = fromJust mayHead
-      let t' = t + dt
-      let q' = trace ("QueueItem: " ++ show qi) (PQ.drop 1 q)
+      let qi@(QueueItem pid e t') = fromJust mayHead
+      let q' = Debug.Trace.trace ("QueueItem: " ++ show qi) (PQ.drop 1 q)
   
       -- modify time and changed queue before running the process
       -- because the process might change the queue 
@@ -103,38 +110,51 @@ runClock n = do
       })
 
       ps <- gets desProcs
-      let (Cont p) = fromJust $ Map.lookup pid ps
-      p' <- p e
+      let p = fromJust $ Map.lookup pid ps
+      (_, p') <- unMSF p e
       let ps' = Map.insert pid p' ps
 
       modify (\s -> s { desProcs = ps' })
 
-      trace ("step " ++ show n ++ " t = " ++ show t') (runClock (n-1))
+      Debug.Trace.trace ("step " ++ show n ++ " t = " ++ show t') (runClock (n-1))
 
-source :: RandomGen g => g -> Double -> DESProcess
+-- | A source emits entities of type e with a given rate
+source :: RandomGen g 
+       => g             -- ^ the random-number generator to use
+       -> Double        -- ^ the arrival rate
+       -> DESProcess    -- ^ the source is a MSF with no input and outputs e
 source g0 arrivalRate pid = do
     -- on start
     g' <- scheduleNextItem g0
-    return $ trace ("on start...") (sourceAux g')
+    return $ Debug.Trace.trace "on start..." (sourceAux g')
   where
     sourceAux :: RandomGen g => g -> DESProcessCont
-    sourceAux g = Cont (\case
+    sourceAux g = feedback g sourceFeed
+
+    sourceFeed :: RandomGen g => MSF DESMonad (Event, g) ((), g)
+    sourceFeed = proc (e, g) -> case e of
         Evt _txt -> do
-          g' <- scheduleNextItem g
-          return $ trace ("on Event Evt...") (sourceAux g')
-        Input -> return $ trace ("on Event Input...") (sourceAux g))
+          g' <- arrM scheduleNextItem -< g
+          returnA -< Debug.Trace.trace "on Event Evt..." ((), g')
+        Input -> returnA -< Debug.Trace.trace "on Event Input..." ((), g)
 
     scheduleNextItem :: RandomGen g => g -> State DESState g
     scheduleNextItem g = do
       let (dt, g') = runRand (randomExpM arrivalRate) g
-      trace ("scheduleEvent dt = " ++ show dt) (scheduleEvent pid (Evt "NextItem") dt)
+      Debug.Trace.trace ("scheduleEvent dt = " ++ show dt) (scheduleEvent pid (Evt "NextItem") dt)
       return g'
+
+-- | A sink just absorbs entities send to it
+-- It receives only the entities and has no output
+sink :: DESProcess
+sink = undefined
 
 scheduleEvent :: ProcId -> Event -> Double -> State DESState ()
 scheduleEvent pid e dt = do
   q <- gets desQueue
+  t <- gets desTime
 
-  let qe = QueueItem pid e dt
+  let qe = QueueItem pid e (t + dt)
   let q' = PQ.insert qe q
 
   modify (\s -> s { desQueue = q' })

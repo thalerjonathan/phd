@@ -1,4 +1,10 @@
-{-# LANGUAGE Arrows     #-}
+{-# LANGUAGE Arrows                #-}
+
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE AllowAmbiguousTypes   #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE FlexibleContexts      #-}
 module Main where 
 
 -- first import: base
@@ -17,6 +23,7 @@ import qualified Data.PQueue.Min as PQ
 -- third import: project local
 -- none
 
+type EventId     = Integer
 type Time        = Double
 type AgentId     = Int
 newtype Event e  = Event e deriving Show
@@ -29,6 +36,19 @@ instance Eq (QueueItem e) where
 instance Ord (QueueItem e) where
   compare (QueueItem _ _ t1) (QueueItem _ _ t2) = compare t1 t2
 
+class Monad m => MonadABS m e s where
+  agentIds          :: m [AgentId]
+  eventCount        :: m Integer
+  time              :: m Time
+
+  scheduleEvent'    :: AgentId -> Event e -> Double -> m EventId
+  cancelEvent       :: EventId -> m Bool 
+
+  getDomainState    :: m s
+  getsDomainState   :: (s -> t) -> m t
+  modifyDomainState' :: (s -> s) -> m ()
+  putDomainState    :: s -> m ()
+
 data ABSState e s = ABSState
   { absEvtQueue    :: EventQueue e
   , absTime        :: Time
@@ -38,6 +58,28 @@ data ABSState e s = ABSState
 
   , absDomainState :: s
   }
+
+instance MonadABS (State (ABSState e s)) e s where
+  agentIds = gets absAgentIds
+  eventCount = gets absEvtCount
+  time = gets absTime
+
+  scheduleEvent' aid e dt = do
+    q <- gets absEvtQueue
+    t <- gets absTime
+
+    let qe = QueueItem aid e (t + dt)
+    let q' = PQ.insert qe q
+
+    modify (\s -> s { absEvtQueue = q' })
+    return 0
+
+  cancelEvent _eid = return True
+
+  getDomainState = gets absDomainState
+  getsDomainState f = gets absDomainState >>= \s -> return $ f s
+  modifyDomainState' f = modify (\s -> s { absDomainState = f $ absDomainState s })
+  putDomainState ds = modify (\s -> s { absDomainState = ds }) 
 
 type ABSMonad e s  = State (ABSState e s)
 type AgentCont e s = MSF (ABSMonad e s) (Event e) ()
@@ -57,6 +99,12 @@ data SIREvent = MakeContact
 
 type SIRAgent     = Agent SIREvent SIRDomainState
 type SIRAgentCont = AgentCont SIREvent SIRDomainState
+
+numberOfSIRAgents :: MonadABS m SIREvent SIRDomainState => m Int
+numberOfSIRAgents = do
+  ais <- agentIds
+  return $ length ais
+
 
 rngSeed :: Int
 rngSeed = 42

@@ -23,12 +23,12 @@ import qualified Data.PQueue.Min as PQ
 -- third import: project local
 -- none
 
-type EventId     = Integer
-type Time        = Double
-type AgentId     = Int
-newtype Event e  = Event e deriving Show
-data QueueItem e = QueueItem AgentId (Event e) Time deriving Show
-type EventQueue e  = PQ.MinQueue (QueueItem e)
+type EventId      = Integer
+type Time         = Double
+type AgentId      = Int
+newtype Event e   = Event e deriving Show
+data QueueItem e  = QueueItem AgentId (Event e) Time deriving Show
+type EventQueue e = PQ.MinQueue (QueueItem e)
 
 instance Eq (QueueItem e) where
   (==) (QueueItem _ _ t1) (QueueItem _ _ t2) = t1 == t2
@@ -87,15 +87,17 @@ type Agent e s     = AgentId -> State (ABSState e s) (AgentCont e s)
 
 type SIRDomainState = (Int, Int, Int)
 
-data SIRState = Susceptible
-              | Infected
-              | Recovered
-              deriving (Show, Eq)
+data SIRState 
+  = Susceptible
+  | Infected
+  | Recovered
+  deriving (Show, Eq)
 
-data SIREvent = MakeContact
-              | Contact AgentId SIRState
-              | Recover 
-              deriving Show
+data SIREvent 
+  = MakeContact
+  | Contact AgentId SIRState
+  | Recover 
+  deriving Show
 
 type SIRAgent     = Agent SIREvent SIRDomainState
 type SIRAgentCont = AgentCont SIREvent SIRDomainState
@@ -349,9 +351,7 @@ runABS as0 s0 steps tLimit tSampling = (finalTime, finalEvtCnt, reverse domState
           if t' < tLimit
             then stepClock (n-1) ts' acc'
             else return acc'
-    
-    --(Debug.Trace.trace ("step " ++ show n ++ " t = " ++ show t') (stepClock (n-1) tLimit))
-            
+        
 allAgentIds :: State (ABSState e s) [AgentId]
 allAgentIds = gets absAgentIds
 

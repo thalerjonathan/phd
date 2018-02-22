@@ -60,13 +60,11 @@ executable DES
   build-depends:       base
                      , pqueue
                      , dequeue 
-                     , text
                      , mtl
                      , random
                      , MonadRandom
                      , containers
                      , dunai
-                     , vector
                      
   -- Directories containing source files.
   hs-source-dirs:      src

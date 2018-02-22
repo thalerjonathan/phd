@@ -1,11 +1,12 @@
 {-# LANGUAGE Arrows                #-}
 module Main where
 
+import           Data.Maybe
+
 import           Control.Monad.Random
 import           Control.Monad.State.Strict
 import           Data.MonadicStreamFunction
 import qualified Data.PQueue.Min as PQ
-import           Data.Text
 
 -- TODO:
 -- use dunai
@@ -23,6 +24,7 @@ type EventId = Integer
 data EventType e 
   = NewEntity e
   | Pull
+  deriving Show
  
 data Event e = Event EventId (EventType e) deriving Show
 
@@ -35,12 +37,14 @@ instance Eq (QueueItem e) where
 instance Ord (QueueItem e) where
   compare (QueueItem _ t1) (QueueItem _ t2) = compare t1 t2
 
-data DESState e = DESState
-  { desQueue :: DESQueue e
-  , desTime  :: Time
+data DESState e s = DESState
+  { desQueue  :: DESQueue e
+  , desTime   :: Time
+  , desEvtCnt :: Integer
+  , desState  :: s
   }
 
-type DESMonad e = State (DESState e)
+type DESMonad e s = State (DESState e s)
 
 rngSeed :: Int
 rngSeed = 42
@@ -49,25 +53,136 @@ main :: IO ()
 main = do
   let g = mkStdGen rngSeed
 
-  print ""
+  let (ec, t, avg) = runDES (bank g) 0.0 10000000.0
+
+  print $ "Final t = " ++ show t ++ ", event count = " ++ show ec
+  print $ "Average time in system: " ++ show avg
 
 newtype Client = Client Double
 
 bank :: RandomGen g 
      => g
-     -> DESMonad (MSF DESMonad Event Event)
+     -> DESMonad Client Double (MSF (DESMonad Client Double) (Event Client) ())
 bank g = do
-  src <- source g 1.0
-  
-  return (proc _ -> returnA -< Client 0)
+    src <- source g 15.0 clientCreate
+    let snk = sink clientSink
+    return (src >>> snk)
+  where
+    clientCreate :: DESMonad Client Double Client
+    clientCreate = do
+      t <- gets desTime
+      return $ Client t
+
+    clientSink :: Client -> DESMonad Client Double ()
+    clientSink (Client ct) = do
+      avg <- gets desState
+
+      t <- gets desTime
+      let dt = t - ct
+
+      modify (\s -> s { desState = (avg + dt) * 0.5 })
+
+runDES :: DESMonad e s (MSF (DESMonad e s) (Event e) ())
+       -> s
+       -> Time
+       -> (Integer, Time, s)
+runDES desM s0 tEnd = (desEvtCntFinal, desTimeFinal, desStateFinal)
+  where
+    des0 = DESState { 
+      desQueue  = PQ.empty
+    , desTime   = 0
+    , desEvtCnt = 0
+    , desState  = s0
+    }
+
+    (desMsf0, des') = runState desM des0
+    desFinal = execState (stepClock desMsf0) des'
+
+    desStateFinal  = desState desFinal
+    desTimeFinal   = desTime desFinal
+    desEvtCntFinal = desEvtCnt desFinal
+
+    stepClock :: MSF (DESMonad e s) (Event e) () 
+              -> DESMonad e s ()
+    stepClock desMsf = do
+      q <- gets desQueue
+
+      let mayHead = PQ.getMin q
+      if isNothing mayHead 
+        then return ()
+        else do
+          let (QueueItem e t') = fromJust mayHead
+          let q' = PQ.drop 1 q
+
+          -- modify time and changed queue before running the process
+          -- because the process might change the queue 
+          modify (\s -> s { 
+            desQueue  = q' 
+          , desTime   = t'
+          , desEvtCnt = desEvtCnt s + 1
+          })
+
+          (_, desMsf') <- unMSF desMsf e
+          
+          when 
+            (t' < tEnd)
+            (stepClock desMsf')
 
 -- | A source emits entities of type e with a given rate
 source :: RandomGen g 
        => g                   -- ^ the random-number generator to use
        -> Double              -- ^ the arrival rate
-       -> DESMonad (MSF DESMonad () Event)   -- ^ the source is a MSF with no input and outputs e
-source _g _arrivalRate = undefined
+       -> DESMonad e s e
+       -> DESMonad e s (MSF (DESMonad e s) (Event e) (Event e))   -- ^ the source is a MSF with no input and outputs e
+source gInit arrivalRate es0 = do
+    g <- scheduleNextArrival es0 gInit
+    return $ sourceAux g es0
+  where
+    sourceAux :: RandomGen g 
+              => g
+              -> DESMonad e s e
+              -> MSF (DESMonad e s) (Event e) (Event e)
+    sourceAux g0 es = proc evt -> do
+      rec
+        g1 <- iPre g0 -< g2
+        g2 <- arrM (scheduleNextArrival es) -< g1
+      returnA -< evt
 
+    scheduleNextArrival :: RandomGen g 
+                        => DESMonad e s e
+                        -> g
+                        -> DESMonad e s g
+    scheduleNextArrival entitySource g = do
+      let (dt, g') = runRand (randomExpM (1 / arrivalRate)) g
+      e <- entitySource
+      scheduleEvent (NewEntity e) dt
+      return g'
+
+-- | A sink just absorbs entities send to it
+-- It receives only the entities and has no output
+sink :: (e -> DESMonad e s ()) -> MSF (DESMonad e s) (Event e) ()
+sink sinkAction = proc (Event _eid et) -> 
+  case et of
+    NewEntity e -> arrM sinkAction -< e
+    _           -> returnA -< ()
+
+scheduleEvent :: EventType e
+              -> Double
+              -> DESMonad e s ()
+scheduleEvent et dt = do
+  q <- gets desQueue
+  t <- gets desTime
+
+  let evt = Event 0 et 
+
+  let qe = QueueItem evt (t + dt)
+  let q' = PQ.insert qe q
+
+  modify (\s -> s { desQueue = q' })
+
+
+
+{-
 -- | A service seizes resource units for the entity, delays it, and releases the seized units.
 -- For now it is assumed that each entity 1 ressources is required
 service :: RandomGen g
@@ -85,8 +200,17 @@ selectOutputProb _g = undefined
 -- | Stores entities in the specified order.
 queue :: MSF DESMonad Event Event
 queue = undefined
+-}
 
--- | A sink just absorbs entities send to it
--- It receives only the entities and has no output
-sink :: MSF DESMonad Event ()
-sink = undefined
+randomBoolM :: RandomGen g => Double -> Rand g Bool
+randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)
+
+randomExpM :: RandomGen g => Double -> Rand g Double
+randomExpM lambda = avoid 0 >>= (\r -> return ((-log r) / lambda))
+  where
+    avoid :: (Random a, Eq a, RandomGen g) => a -> Rand g a
+    avoid x = do
+      r <- getRandom
+      if r == x
+        then avoid x
+        else return r

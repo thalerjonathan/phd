@@ -105,7 +105,7 @@ susceptibleAgent as = do
     makeContact :: RandomGen g => Agents -> Rand g Bool
     makeContact as = do
       randContact <- randomElem as
-      if is Infected randContact
+      if Infected == fst randContact --is Infected randContact
         then randomBoolM infectivity
         else return False
 

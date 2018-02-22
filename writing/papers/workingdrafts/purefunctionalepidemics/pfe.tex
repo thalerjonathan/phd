@@ -6,16 +6,6 @@
 \usepackage{minted}
 \usepackage{subcaption}
 
-%\usepackage{caption} 
-%\usepackage{hyperref}
-%\usepackage{listings}
-%\usepackage{hhline}
-%\usepackage{amssymb}
-%\usepackage[autostyle=true]{csquotes}
-%\usepackage{amsmath}
-%\usepackage{marvosym}
-
-
 % TODO: fill in the right metainfo
 % Metadata Information
 \acmJournal{PACMPL}
@@ -68,7 +58,12 @@
 \email{peer-olaf.siebers@nottingham.ac.uk}
 
 \begin{abstract}
-Agent-Based Simulation (ABS) is a methodology in which a system is simulated in a bottom-up approach by modelling the micro interactions of its constituting parts, called agents, out of which the global macro system behaviour emerges. So far, the Haskell community hasn't been much in contact with the community of ABS due to the latter's primary focus on the object-oriented programming paradigm. This paper tries to bridge the gap between those two communities by introducing the Haskell community to the concepts of ABS. We do this by deriving an agent-based implementation for the simple SIR model from epidemiology. In our implementations we leverage the basic concepts of ABS with functional reactive programming from Yampa and Dunai which results in a surprisingly fresh, powerful and convenient approach for programming ABS in Haskell.
+TODO: write a make file for thorsten 
+TODO: find a way to deactivate pygmentize
+TODO: put non-standard packages into repository (subcaption)
+
+Agent-Based Simulation (ABS) is a methodology in which a system is simulated in a bottom-up approach by modelling the micro interactions of its constituting parts, called agents, out of which the global macro system behaviour emerges. So far mainly object-oriented techniques and languages have been used in ABS. Using the SIR model of epidemiology as an example we show how to use Functional Reactive Programming to implement ABS. We claim that this representation is conceptually cleaner and opens the way to formally reason about ABS.
+%So far, the Haskell community hasn't been much in contact with the community of ABS due to the latter's primary focus on the object-oriented programming paradigm. This paper tries to bridge the gap between those two communities by introducing the Haskell community to the concepts of ABS. We do this by deriving an agent-based implementation for the simple SIR model from epidemiology. In our implementations we leverage the basic concepts of ABS with functional reactive programming from Yampa and Dunai which results in a surprisingly fresh, powerful and convenient approach for programming ABS in Haskell.
 \end{abstract}
 
 %
@@ -117,23 +112,29 @@ Agent-Based Simulation (ABS) is a methodology in which a system is simulated in 
 
 \input{./tex/introduction.tex}
 
+\input{./tex/relatedResearch.tex}
+
+\input{./tex/background.tex}
+
 \input{./tex/definingAbs.tex}
 
 \input{./tex/sirModel.tex}
 
 \input{./tex/functionalApproach.tex}
 
-\input{./tex/relatedResearch.tex}
-
 \input{./tex/conclusion.tex}
 
 \begin{acks}
 % H. Vollbrecht
-The authors would like to thank I. Perez, H. Nilsson, J. Greensmith, S. Venkatesan, J. Hey and T. Schwarz for constructive comments and valuable discussions.
+The authors would like to thank I. Perez, H. Nilsson, J. Greensmith, S. Venkatesan and J. Hey for constructive comments and valuable discussions.
 \end{acks}
 
 % Bibliography
 \bibliographystyle{../../templates/acmart/ACM-Reference-Format}
 \bibliography{../../../references/phdReferences.bib}
+
+\begin{appendix}
+\input{./tex/emulatingSD.tex}
+\end{appendix}
 
 \end{document}

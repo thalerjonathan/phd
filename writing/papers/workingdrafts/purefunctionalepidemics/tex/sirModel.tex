@@ -1,4 +1,6 @@
 \section{The SIR Model}
+TODO: explain why analytical solution / why we need an ABS when we have an analytical solution anyway. The reason is that with the analytical solution we can validate our ABS implementation - the ABS approach is much more powerful in general as it allows to add spatiality as happening in section \ref{sec:step5_environment}, and have a heterogenous population - in SD its all averages.
+
 To explain the concepts of ABS and of our pure functional approach to it, we introduce the SIR model as a motivating example and use-case for our implementation. It is a very well studied and understood compartment model from epidemiology \cite{kermack_contribution_1927} which allows to simulate the dynamics of an infectious disease like influenza, tuberculosis, chicken pox, rubella and measles \cite{enns_its_2010} spreading through a population. In this model, people in a population of size $N$ can be in either one of three states \textit{Susceptible}, \textit{Infected} or \textit{Recovered} at a particular time, where it is assumed that initially there is at least one infected person in the population. People interact \textit{on average} with a given rate of $\beta$ other people per time-unit and become infected with a given probability $\gamma$ when interacting with an infected person. When infected, a person recovers \textit{on average} after $\delta$ time-units and is then immune to further infections. An interaction between infected persons does not lead to re-infection, thus these interactions are ignored in this model. This definition gives rise to three compartments with the transitions as seen in Figure \ref{fig:sir_transitions}.
 
 \begin{figure}
@@ -9,6 +11,8 @@ To explain the concepts of ABS and of our pure functional approach to it, we int
 \end{figure}
 
 The dynamics of this model over time can be formalized using the System Dynamics (SD) approach \cite{porter_industrial_1962} which models a system through differential equations. For the SIR model we get the following equations:
+
+TODO: there seems to be an unnerving space after the f letters, can we get rid of them?
 
 \begin{align}
 \frac{\mathrm d S}{\mathrm d t} &= -infectionRate \\ 
@@ -23,6 +27,8 @@ recoveryRate &= \frac{I}{\delta}
 
 Solving these equations is done by integrating over time. In the SD terminology, the integrals are called \textit{Stocks} and the values over which is integrated over time are called \textit{Flows}. At $t = 0$ a single agent is infected because if there wouldn't be any infected agents, the system would immediately reach equilibrium - this is also the formal definition of the steady state of the system: as soon as $I(t) = 0$ the system won't change any more.
 
+TODO: there seems to be an unnerving space after the f letters, can we get rid of them?
+
 \begin{align}
 S(t) &= N - I(0) + \int_0^t -infectionRate\, \mathrm{d}t \\
 I(0) &= 1 \\
@@ -30,14 +36,14 @@ I(t) &= \int_0^t infectionRate - recoveryRate\, \mathrm{d}t \\
 R(t) &= \int_0^t recoveryRate\, \mathrm{d}t
 \end{align}
 
-There exist a large number of software packages which allow to conveniently express SD models using a visual approach like in Figure \ref{fig:sir_sd_stockflow_diagramm}.
+%There exist a large number of software packages which allow to conveniently express SD models using a visual approach like in Figure \ref{fig:sir_sd_stockflow_diagramm}.
 
-\begin{figure}
-	\centering
-	\includegraphics[width=.4\textwidth, angle=0]{./fig/diagrams/SIR_SD_STOCKFLOW_DIAGRAMM.png}
-	\caption{A visual representation of the SD stocks and flows of the SIR compartment model.} %Picture taken using AnyLogic Personal Learning Edition 8.1.0.
-	\label{fig:sir_sd_stockflow_diagramm}
-\end{figure}
+%\begin{figure}
+%	\centering
+%	\includegraphics[width=.4\textwidth, angle=0]{./fig/diagrams/SIR_SD_STOCKFLOW_DIAGRAMM.png}
+%	\caption{A visual representation of the SD stocks and flows of the SIR compartment model.} %Picture taken using AnyLogic Personal Learning Edition 8.1.0.
+%	\label{fig:sir_sd_stockflow_diagramm}
+%\end{figure}
 
 Running the SD simulation over time results in the dynamics as shown in Figure \ref{fig:sir_sd_dynamics} with the given variables.
 
@@ -49,8 +55,10 @@ Running the SD simulation over time results in the dynamics as shown in Figure \
 \end{figure}
 
 \subsection*{An Agent-Based approach}
+TODO: we need a bit of clarification why we want to do ABS when we have an SD approach and what the differences are. SD allows for an analytical solution, but ABS can incorporate spatiality, heterogenity of population and can be applied when the global system behaviour is not known.
+
 The SD approach is inherently top-down because the behaviour of the system is formalized in differential equations. The question is if such a top-down behaviour can be emulated using ABS, which is inherently bottom-up. Also the question is if there are fundamental drawbacks and benefits when doing so using ABS. Such questions were asked before and modelling the SIR model using an agent-based approach is indeed possible \cite{macal_agent-based_2010}. The fundamental difference is that SD is operating on averages, treating the population completely continuous which results in non-discrete values of stocks e.g. 3.1415 infected persons. The approach of mapping the SIR model to an ABS is to discretize the population and model each person in the population as an individual agent. The transitions between the states are no longer happening according to continuous differential equations but due to discrete events caused both by interactions amongst the agents and time-outs.
-According to the model, every agent makes \textit{on average} contact with $\beta$ random other agents per time unit. In ABS we can only contact discrete agents thus we model this by generating a random event on average every $\beta$ time units. We need to sample from an exponential CDF because the rate is proportional to the size of the population \cite{borshchev_system_2004}. Note that an agent does not know the other agents' state when making contact with it, thus we need a mechanism in which agents reveal their state in which they are in \textit{at the moment of making contact}. This mechanism is an implementation detail which we will derive in our implementation steps. For now we only assume that agents can make contact with each other somehow. 
+According to the model, every agent makes \textit{on average} contact with $\beta$ random other agents per time unit. In ABS we can only contact discrete agents thus we model this by generating a random event on average every $\beta$ time units. We need to sample from an exponential distribution because the rate is proportional to the size of the population \cite{borshchev_system_2004}. Note that an agent does not know the other agents' state when making contact with it, thus we need a mechanism in which agents reveal their state in which they are in \textit{at the moment of making contact}. This mechanism is an implementation detail which we will derive in our implementation steps. For now we only assume that agents can make contact with each other somehow. 
 Although in the model all agents make contact with each other, we can reduce the contacts to a few cases which have an influence on the dynamics. Contacts between agents with the same state as well as contacts with recovered agents have no influence, thus we need only to focus on contacts between susceptible and infected agents. In the agent-based approach we implement the following behaviour:
 
 \begin{itemize}

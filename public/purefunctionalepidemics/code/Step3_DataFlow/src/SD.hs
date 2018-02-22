@@ -10,11 +10,11 @@ import FRP.Yampa
 
 import SIR
 
-type AgentId     = Int
-type AgentData d = (AgentId, d)
+type SDEntityId  = Int
+type AgentData d = (SDEntityId, d)
 
 data AgentIn d = AgentIn
-  { aiId    :: !AgentId
+  { aiId    :: !SDEntityId
   , aiData  :: ![AgentData d]
   } deriving (Show)
 
@@ -25,12 +25,12 @@ data AgentOut o d = AgentOut
 
 type Agent o d    = SF (AgentIn d) (AgentOut o d)
 
-type SIRMsg       = Double
-type SIRAgentIn   = AgentIn SIRMsg
+type SDMsg       = Double
+type SDEntityIn  = AgentIn SDMsg
 
-type SIRObs       = Maybe Double
-type SIRAgentOut  = AgentOut SIRObs SIRMsg
-type SIRAgent     = Agent SIRObs SIRMsg
+type SDObs       = Maybe Double
+type SDEntityOut = AgentOut SDObs SDMsg
+type SDEntity    = Agent SDObs SDMsg
 
 totalPopulation :: Double
 totalPopulation = 1000
@@ -47,19 +47,19 @@ dt = 0.01
 t :: Time
 t = 150
 
-susceptibleStockId :: AgentId
+susceptibleStockId :: SDEntityId
 susceptibleStockId = 0
 
-infectiousStockId :: AgentId
+infectiousStockId :: SDEntityId
 infectiousStockId = 1
 
-recoveredStockId :: AgentId
+recoveredStockId :: SDEntityId
 recoveredStockId = 2
 
-infectionRateFlowId :: AgentId
+infectionRateFlowId :: SDEntityId
 infectionRateFlowId = 3
 
-recoveryRateFlowId :: AgentId
+recoveryRateFlowId :: SDEntityId
 recoveryRateFlowId = 4
 
 sirSD :: IO ()
@@ -74,7 +74,7 @@ sirSD = do
 
 runSimulation :: Time 
               -> DTime 
-              -> [(AgentId, SIRAgent)] 
+              -> [(SDEntityId, SDEntity)] 
               -> [(Double, Double, Double)]
 runSimulation t dt as = dyns
   where
@@ -88,7 +88,7 @@ runSimulation t dt as = dyns
     dyns = map extractStockValues aoss
 
     -- here we are exploiting the fact that the ordering of the agents will not change during execution
-    extractStockValues :: [SIRAgentOut] -> (Double, Double, Double)
+    extractStockValues :: [SDEntityOut] -> (Double, Double, Double)
     extractStockValues (susStockAo : infStockAo : recStockAo : _) = (susValue, infValue, recValue)
       where
         susValue = fromJust $ aoObservable susStockAo
@@ -96,7 +96,7 @@ runSimulation t dt as = dyns
         recValue = fromJust $ aoObservable recStockAo
     extractStockValues _ = (0, 0, 0)
 
-stepSimulation :: [SIRAgent] -> [SIRAgentIn] -> SF () [SIRAgentOut]
+stepSimulation :: [SDEntity] -> [SDEntityIn] -> SF () [SDEntityOut]
 stepSimulation sfs ains =
     dpSwitch
       (\_ sfs' -> (zip ains sfs'))
@@ -105,7 +105,7 @@ stepSimulation sfs ains =
       stepSimulation
 
   where
-    switchingEvt :: SF ((), [SIRAgentOut]) (Event [SIRAgentIn])
+    switchingEvt :: SF ((), [SDEntityOut]) (Event [SDEntityIn])
     switchingEvt = proc (_, aos) -> do
       let ais      = map aiId ains
           aios     = zip ais aos
@@ -115,7 +115,7 @@ stepSimulation sfs ains =
 ------------------------------------------------------------------------------------------------------------------------
 -- STOCKS
 ------------------------------------------------------------------------------------------------------------------------
-susceptibleStock :: Double -> SIRAgent
+susceptibleStock :: Double -> SDEntity
 susceptibleStock initValue = proc ain -> do
   let infectionRate = flowInFrom infectionRateFlowId ain
 
@@ -126,7 +126,7 @@ susceptibleStock initValue = proc ain -> do
 
   returnA -< ao'
 
-infectiousStock :: Double -> SIRAgent
+infectiousStock :: Double -> SDEntity
 infectiousStock initValue = proc ain -> do
   let infectionRate = flowInFrom infectionRateFlowId ain
       recoveryRate  = flowInFrom recoveryRateFlowId ain
@@ -139,7 +139,7 @@ infectiousStock initValue = proc ain -> do
       
   returnA -< ao''
 
-recoveredStock :: Double -> SIRAgent
+recoveredStock :: Double -> SDEntity
 recoveredStock initValue = proc ain -> do
   let recoveryRate = flowInFrom recoveryRateFlowId ain
 
@@ -151,7 +151,7 @@ recoveredStock initValue = proc ain -> do
 ------------------------------------------------------------------------------------------------------------------------
 -- FLOWS
 ------------------------------------------------------------------------------------------------------------------------
-infectionRateFlow :: SIRAgent
+infectionRateFlow :: SDEntity
 infectionRateFlow = proc ain -> do
 
   let susceptible = flowInFrom susceptibleStockId ain 
@@ -165,7 +165,7 @@ infectionRateFlow = proc ain -> do
 
   returnA -< ao''
 
-recoveryRateFlow :: SIRAgent
+recoveryRateFlow :: SDEntity
 recoveryRateFlow = proc ain -> do
 
   let infectious = flowInFrom infectiousStockId ain
@@ -179,7 +179,7 @@ recoveryRateFlow = proc ain -> do
   returnA -< ao''
 ------------------------------------------------------------------------------------------------------------------------
 
-initAgents :: Double -> Double -> [(AgentId, SIRAgent)]
+initAgents :: Double -> Double -> [(SDEntityId, SDEntity)]
 initAgents n i = 
     [ (susceptibleStockId, susStockSf)
     , (infectiousStockId, infStockSf)
@@ -207,13 +207,13 @@ onDataM dHdl ai acc = foldM dHdl acc ds
   where
     ds = aiData ai
 
-flowInFrom :: AgentId -> AgentIn SIRMsg -> Double
+flowInFrom :: SDEntityId -> SDEntityIn -> Double
 flowInFrom senderId ain = firstValue dsFiltered
   where 
     ds = aiData ain
     dsFiltered = filter ((==senderId) . fst) ds
 
-    firstValue :: [AgentData SIRMsg] -> Double
+    firstValue :: [AgentData SDMsg] -> Double
     firstValue [] = 0.0
     firstValue ((_, v) : _) = v
 
@@ -222,13 +222,13 @@ onData dHdl ai a = foldr dHdl a ds
   where
     ds = aiData ai
 
-distributeData :: [(AgentId, AgentOut o d)] -> [AgentIn d]
+distributeData :: [(SDEntityId, AgentOut o d)] -> [AgentIn d]
 distributeData aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedup by running in parallel (if +RTS -Nx)
   where
     allMsgs = collectAllData aouts
     ains = map (\(ai, _) -> agentIn ai) aouts 
 
-    distributeDataAux :: Map.Map AgentId [AgentData d]
+    distributeDataAux :: Map.Map SDEntityId [AgentData d]
                       -> AgentIn d
                       -> AgentIn d
     distributeDataAux allMsgs ain = ain'
@@ -241,12 +241,12 @@ distributeData aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedup by 
 
         ain' = ain { aiData = msgsEvt }
 
-    collectAllData :: [(AgentId, AgentOut o d)] -> Map.Map AgentId [AgentData d]
+    collectAllData :: [(SDEntityId, AgentOut o d)] -> Map.Map SDEntityId [AgentData d]
     collectAllData = foldr collectAllDataAux Map.empty
       where
-        collectAllDataAux :: (AgentId, AgentOut o d)
-                              -> Map.Map AgentId [AgentData d]
-                              -> Map.Map AgentId [AgentData d]
+        collectAllDataAux :: (SDEntityId, AgentOut o d)
+                              -> Map.Map SDEntityId [AgentData d]
+                              -> Map.Map SDEntityId [AgentData d]
         collectAllDataAux (senderId, ao) accMsgs 
             | not $ null msgs = foldr collectAllDataAuxAux accMsgs msgs
             | otherwise = accMsgs
@@ -254,8 +254,8 @@ distributeData aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedup by 
             msgs = aoData ao
 
             collectAllDataAuxAux :: AgentData d
-                                 -> Map.Map AgentId [AgentData d]
-                                 -> Map.Map AgentId [AgentData d]
+                                 -> Map.Map SDEntityId [AgentData d]
+                                 -> Map.Map SDEntityId [AgentData d]
             collectAllDataAuxAux (receiverId, m) accMsgs = accMsgs'
               where
                 msg = (senderId, m)
@@ -265,7 +265,7 @@ distributeData aouts = map (distributeDataAux allMsgs) ains -- NOTE: speedup by 
                 -- NOTE: force evaluation of messages, will reduce memory-overhead EXTREMELY
                 accMsgs' = seq newMsgs (Map.insert receiverId newMsgs accMsgs)
 
-agentIn :: AgentId -> AgentIn d
+agentIn :: SDEntityId -> AgentIn d
 agentIn aid = AgentIn {
     aiId    = aid
   , aiData  = []

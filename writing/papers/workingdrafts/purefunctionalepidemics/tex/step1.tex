@@ -1,5 +1,5 @@
 \subsection{Naive beginnings}
-We start by modelling the states of the agents with an Algebraic Data Type:
+We start by modelling the states of the agents:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 data SIRState = Susceptible | Infected | Recovered
@@ -12,22 +12,10 @@ type Time      = Double
 type TimeDelta = Double
 \end{minted}
 
-Now we can represent every agent simply as a tuple of its SIR state and its potential recovery time. We hold all our agents in a list and define constructor and testing functions:
+Now we can represent every agent simply as a tuple of its SIR state and its potential recovery time. We hold all our agents in a list:
 \begin{minted}[fontsize=\footnotesize]{haskell}
 type SIRAgent = (SIRState, Time)
 type Agents   = [SIRAgent]
-
-susceptible :: SIRAgent
-susceptible = (Susceptible, 0)
-
-infected :: Time -> SIRAgent
-infected t = (Infected, t)
-
-recovered :: SIRAgent
-recovered = (Recovered, 0)
-
-is :: SIRState -> SIRAgent -> Bool
-is s (s', _) = s == s'
 \end{minted}
 
 Next we need to think about how to actually step our simulation. For this we define a function which advances our simulation with a fixed $\Delta t$ until a given time $t$ where in each step the agents are processed and the output is fed back into the next step. This is the source of pro-activity as agents are executed in every time step and can thus initiate actions based on the passing of time.
@@ -71,19 +59,19 @@ susceptibleAgent as = do
     cs <- doTimes (floor rc) (makeContact as) -- executes a monadic action a number of times
     if elem True cs
       then infect
-      else return susceptible
+      else return (Susceptible, 0)
   where
     makeContact :: RandomGen g => Agents -> Rand g Bool
     makeContact as = do
       randContact <- randomElem as
-      if is Infected randContact
+      if Infected == fst randContact
         then randomBoolM infectivity -- returns True with a given probability between 0..1
         else return False
 
     infect :: RandomGen g => Rand g SIRAgent
     infect = do
       randIllDur <- randomExpM (1 / illnessDuration) -- draws from an exponential distribution
-      return infected randIllDur
+      return (Infected, randIllDur)
 \end{minted}
 
 The infected agent is trivial. It simply recovers after the given illness duration which is implemented as follows:
@@ -91,8 +79,8 @@ The infected agent is trivial. It simply recovers after the given illness durati
 \begin{minted}[fontsize=\footnotesize]{haskell}
 infectedAgent :: TimeDelta -> SIRAgent -> SIRAgent
 infectedAgent dt (_, t) 
-    | t' <= 0   = recovered
-    | otherwise = infected t'
+    | t' <= 0   = (Recovered, 0)
+    | otherwise = (Infected, t')
   where
     t' = t - dt  
 \end{minted}

@@ -22,7 +22,7 @@ import qualified Data.PQueue.Min as PQ
 type Time = Double
 type EventId = Integer
 data EventType e 
-  = NewEntity e
+  = ForwardEntity e
   | Pull
   deriving Show
  
@@ -41,7 +41,7 @@ data DESState e s = DESState
   { desQueue  :: DESQueue e
   , desTime   :: Time
   , desEvtCnt :: Integer
-  , desState  :: s
+  , desData   :: s
   }
 
 type DESMonad e s = State (DESState e s)
@@ -53,52 +53,58 @@ main :: IO ()
 main = do
   let g = mkStdGen rngSeed
 
-  let (ec, t, avg) = runDES (bank g) 0.0 10000000.0
+  let (ec, t, dts) = runDES (bank g) [] 100000.0
+
+  let avg = sum dts / fromIntegral (length dts)
 
   print $ "Final t = " ++ show t ++ ", event count = " ++ show ec
   print $ "Average time in system: " ++ show avg
 
 newtype Client = Client Double
+type BankState = [Time]
 
 bank :: RandomGen g 
      => g
-     -> DESMonad Client Double (MSF (DESMonad Client Double) (Event Client) ())
+     -> DESMonad Client BankState (MSF (DESMonad Client BankState) (Event Client) ())
 bank g = do
     src <- source g 15.0 clientCreate
     let snk = sink clientSink
-    return (src >>> snk)
+    let q = queue 10
+    let del = Main.delay
+
+    return (src >>> q >>> del >>> snk)
   where
-    clientCreate :: DESMonad Client Double Client
+    clientCreate :: DESMonad Client BankState Client
     clientCreate = do
       t <- gets desTime
       return $ Client t
 
-    clientSink :: Client -> DESMonad Client Double ()
+    clientSink :: Client -> DESMonad Client BankState ()
     clientSink (Client ct) = do
-      avg <- gets desState
+      dts <- gets desData
 
       t <- gets desTime
       let dt = t - ct
 
-      modify (\s -> s { desState = (avg + dt) * 0.5 })
+      modify (\s -> s { desData = dt : dts })
 
 runDES :: DESMonad e s (MSF (DESMonad e s) (Event e) ())
        -> s
        -> Time
        -> (Integer, Time, s)
-runDES desM s0 tEnd = (desEvtCntFinal, desTimeFinal, desStateFinal)
+runDES desM s0 tEnd = (desEvtCntFinal, desTimeFinal, desDataFinal)
   where
     des0 = DESState { 
       desQueue  = PQ.empty
     , desTime   = 0
     , desEvtCnt = 0
-    , desState  = s0
+    , desData   = s0
     }
 
     (desMsf0, des') = runState desM des0
     desFinal = execState (stepClock desMsf0) des'
 
-    desStateFinal  = desState desFinal
+    desDataFinal  = desData desFinal
     desTimeFinal   = desTime desFinal
     desEvtCntFinal = desEvtCnt desFinal
 
@@ -155,16 +161,24 @@ source gInit arrivalRate es0 = do
     scheduleNextArrival entitySource g = do
       let (dt, g') = runRand (randomExpM (1 / arrivalRate)) g
       e <- entitySource
-      scheduleEvent (NewEntity e) dt
+      scheduleEvent (ForwardEntity e) dt
       return g'
+
+-- | Stores entities in the specified order.
+queue :: Integer -> MSF (DESMonad e s) (Event e) (Event e)
+queue _size = undefined
+
+delay :: MSF (DESMonad e s) (Event e) (Event e)
+delay = undefined
 
 -- | A sink just absorbs entities send to it
 -- It receives only the entities and has no output
-sink :: (e -> DESMonad e s ()) -> MSF (DESMonad e s) (Event e) ()
+sink :: (e -> DESMonad e s ()) 
+     -> MSF (DESMonad e s) (Event e) ()
 sink sinkAction = proc (Event _eid et) -> 
   case et of
-    NewEntity e -> arrM sinkAction -< e
-    _           -> returnA -< ()
+    ForwardEntity e -> arrM sinkAction -< e
+    _               -> returnA -< ()
 
 scheduleEvent :: EventType e
               -> Double
@@ -214,3 +228,17 @@ randomExpM lambda = avoid 0 >>= (\r -> return ((-log r) / lambda))
       if r == x
         then avoid x
         else return r
+
+-- taken from https://stackoverflow.com/questions/33220176/triangular-distribution-in-java
+randomTriM :: RandomGen g 
+           => Double
+           -> Double
+           -> Double
+           -> Rand g Double
+randomTriM a b c = do
+  let f = (c - a) / (b - a)
+  r <- getRandomR (0, 1)
+
+  if r < f
+    then return $ a + sqrt r * (b - a) * (c - a)
+    else return $ b - sqrt (1 - r) * (b - a) * (b - c)

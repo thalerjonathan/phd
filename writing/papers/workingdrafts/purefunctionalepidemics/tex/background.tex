@@ -1,5 +1,51 @@
 \section{Background}
-TODO: 
+\label{sec:background}
+
+\subsection{Functional Reactive Programming}
+Functional Reactive Programming (FRP) is a way to implement systems with continuous and discrete time-semantics in pure functional languages. There are many different approaches and implementations but in our approach we use \textit{arrowized} \cite{hughes_generalising_2000}, \cite{hughes_programming_2005} FRP as implemented in the library Yampa \cite{hudak_arrows_2003}, \cite{courtney_yampa_2003}, \cite{nilsson_functional_2002}. The central concept in arrowized FRP is the Signal Function (SF) which can be understood as a \textit{process over time} which maps an input- to an output-signal. A signal can be understood as a value which varies over time.
+
+\begin{flalign*}
+Signal \, \alpha \approx Time \rightarrow a \\
+SF \, \alpha \, \beta \approx Signal \, \alpha \rightarrow Signal \, \beta 
+\end{flalign*}
+
+Signal functions are implemented as continuations which don't take a $\Delta t$ at $t = 0$ but then change their signature into one which takes a $\Delta t$ for $t > 0$. This allows to hide $\Delta t$ completely from the types which makes them much more suitable for declarative programming. Yampa provides a number of combinators for expressing time-semantics, events and state-changes of the system. They allow us to change system behaviour in case of events, run signal functions and generate stochastic events and random-number streams. We shortly discuss the relevant combinators and concepts we use throughout the paper. For a more in-depth discussion we refer to the papers \cite{hudak_arrows_2003}, \cite{courtney_yampa_2003}, \cite{nilsson_functional_2002}.
+
+Yampa representation events through the \textit{Event} type which is the same as the \textit{Maybe} type.
+
+To change the behaviour of a signal function at an occurrence of an event during run-time, the combinator \textit{switch :: SF a (b, Event c) -> (c -> SF a b) -> SF a b} is provided. It takes a signal function which is run until it generates an event. When this event occurs, the function in the second argument is evaluated which receives the data of the event and has to return the new signal function which will then replace the previous one.
+
+Sometimes one needs to run a collection of signal functions in parallel and collect all of their outputs in a list. Yampa provides the combinator \textit{dpSwitch} for it. It is quite involved and has the following type-signature:
+
+\begin{minted}[fontsize=\footnotesize]{haskell}
+dpSwitch :: Functor col
+         => (forall sf. a -> col sf -> col (b, sf))  -- routing function
+         -> col (SF b c)                             -- SF collection
+         -> SF (a, col c) (Event d)                  -- SF generating switching event
+         -> (col (SF b c) -> d -> SF a (col c))      -- continuation to invoke upon event
+         -> SF a (col c)
+\end{minted}
+
+Its first argument is the pairing-function which pairs up the input to the signal functions - it has to preserve the structure of the signal function collection. The second argument is the collection of signal functions to run. The third argument is a signal function generating the switching event. The last argument is a function which generates the continuation after the switching event has occurred. \textit{dpSwitch} returns a new signal function which runs all the signal functions in parallel (thus the p) and switching into the continuation when the switching event occurs. The d in \textit{dpSwitch} stands for delayed which guarantees that we delay the switching until the next time e.g. the function into which we switch is only applied in the next step which prevents an infinite loop if we switch into a recursive continuation.
+
+In ABS we need to generate stochastic events, occurring based on an exponential distribution. Yampa provides the combinator \textit{occasionally :: RandomGen g => g -> Time -> b -> SF a (Event b)} for this. It take a random-number generator, a rate and a value the stochastic event will carry. It generates an event on average with the given rate. Note that at most one event will be generated and no 'backlog' is kept. This means that when this function is not sampled with a sufficiently high frequency, depending on the rate, it will loose events.
+
+TODO: explain noise
+This function takes a range of values and the random-number generator as input and returns the next value in the range.
+
+TODO: explain embed
+Yampa provides the function \textit{embed} which allows us to run a SF for a given number of steps where in each step one provides the $\Delta t$ and an optional input.
+
 - explain arrowized programming
-- explain FRP
-	-> explain switch, occasionally, dpSwitch
+We also make use of Patersons do-notation for arrows \cite{paterson_new_2001} which makes the code much more readable as it does not force us to program in the point-free arrow combinators. 
+
+\subsection{Monadic Stream Functions}
+Monadic Stream Functions (MSF) are a generalisation of Yampa's signal functions with additional combinators to control and stack side effects. A MSF is a polymorphic type and an evaluation function which applies an MSF to an input and returns an output and a continuation, both in a monadic context \cite{perez_functional_2016}, \cite{perez_extensible_2017}.
+\begin{minted}[fontsize=\footnotesize]{haskell}
+newtype MSF m a b = step :: Monad m => MSF m a b -> a -> m (b, MSF m a b)
+\end{minted}
+
+MSFs are also arrows which means we can apply arrowized programming with Patersons do-notation. The authors \cite{perez_functional_2016} implement the library Dunai, which is available on Hackage. A part of the library is BearRiver, a wrapper which re-implements Yampa on top of Dunai, which should allow us to easily replace Yampa with MSFs. This will allow us to run arbitrary monadic computations in a signal function, which we will need in the next step when adding an environment.
+
+TODO: explain arrM and arrM\_
+Using the function \textit{arrM} of Dunai allows us to run a monadic action in the stack as an arrow.

@@ -1,17 +1,6 @@
 \subsection{Adding Functional Reactive Programming}
 \label{sec:step2_frp}
-As shown in the first step, the need to handle $\Delta t$ explicitly can be quite messy, is inelegant and a potential source of errors, also the explicit handling of the state of an agent and its behavioural function is not very modular. We can solve both these weaknesses by switching to the functional reactive programming paradigm, because it allows to express systems with discrete and continuous time-semantics. In this step we are focusing on arrowized \cite{hughes_generalising_2000}, \cite{hughes_programming_2005} FRP using the library Yampa \cite{hudak_arrows_2003}. In it, time is handled implicit, meaning it cannot be messed with which is achieved by building the  whole system on the concept of signal functions (SF). A SF is basically a continuation which allows then to capture state using closures. Both these fundamental features allow us to tackle the weaknesses of our first step and push our approach further towards a truly functional approach.
-
-\subsubsection{Functional Reactive Programming}
-Functional Reactive Programming (FRP) is a way to implement systems with continuous and discrete time-semantics in pure functional languages. There are many different approaches and implementations but in our approach we use \textit{arrowized} FRP as implemented in the library Yampa. The central concept in arrowized FRP is the Signal Function (SF) which can be understood as a \textit{process over time} which maps an input- to an output-signal. A signal can be understood as a value which varies over time.
-
-\begin{flalign*}
-Signal \, \alpha \approx Time \rightarrow a \\
-SF \, \alpha \, \beta \approx Signal \, \alpha \rightarrow Signal \, \beta 
-\end{flalign*}
-
-Signal functions are implemented as continuations which don't take a $\Delta t$ at $t = 0$ but then change their signature into one which takes a $\Delta t$ for $t > 0$. This allows to hide $\Delta t$ completely from the types which makes them much more suitable for declarative programming. We also make use of Patersons do-notation for arrows \cite{paterson_new_2001} which makes the code much more readable as it does not force us to program in the point-free arrow combinators. 
-Yampa provides a number of primitives for expressing time-semantics, events and state-changes of the system. They allow us to generate events over time, change system behaviour in case of events and run signal functions. We shortly discuss each primitive when we first use it, but due to lack of space we can not give an in-depth discussion and refer to to the papers of \cite{hudak_arrows_2003}, \cite{courtney_yampa_2003}, \cite{nilsson_functional_2002} which give a deeper understanding of Yampa and its DSL.
+As shown in the first step, the need to handle $\Delta t$ explicitly can be quite messy, is inelegant and a potential source of errors, also the explicit handling of the state of an agent and its behavioural function is not very modular. We can solve both these weaknesses by switching to the functional reactive programming paradigm (FRP), because it allows to express systems with discrete and continuous time-semantics. In this step we are focusing on arrowized \cite{hughes_generalising_2000} FRP using the library Yampa \cite{hudak_arrows_2003}. In it, time is handled implicit, meaning it cannot be messed with, which is achieved by building the  whole system on the concept of signal functions (SF). A SF can be understood as a process over time and is technically a continuation which allows to capture state using closures. Both these fundamental features allow us to tackle the weaknesses of our first step and push our approach further towards a truly functional approach.
 
 \subsubsection{Implementation}
 We start by defining our agents now as a SF which receives the states of all agents as input and outputs the state of the agent:
@@ -36,7 +25,7 @@ recoveredAgent :: SIRAgent
 recoveredAgent = arr (const Recovered)
 \end{minted}
 
-The implementation of a susceptible agent in FRP is a bit more involved but much more expressive and elegant. We are using the Yampa primitive \textit{switch :: SF a (b, Event c) -> (c -> SF a b) -> SF a b} which runs a signal function until an event (the \textit{Event} type is equivalent to \textit{Maybe}) arises from it and then switches into the other signal function which is then run from that point in time.
+By using the Yampa combinator \textit{switch} we can change the behaviour of an agent when an event occurs which is much more elegant then the initial approach and much more expressive as it makes the change of behaviour at the occurrence of an event explicit. Thus a susceptible agent behaves as susceptible until it becomes infected. Upon infection an \textit{Event} is returned which results in switching into the \textit{infectedAgent} SF, which causes the agent to behave as an infected agent from that moment on. Instead of randomly drawing the number of contacts to make, we now follow a fundamentally different approach by using Yampas \textit{occasionally} function. It generates on average an event after the given time, so in each time-step we generate either a single event or no event. This requires a fundamental different approach in selecting the right $\Delta t$ and sampling the system as will be shown in results. 
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 susceptibleAgent :: RandomGen g => g -> SIRAgent
@@ -58,9 +47,7 @@ susceptibleAgent g = switch (susceptible g) (const (infectedAgent g))
         else returnA -< (Susceptible, NoEvent)
 \end{minted}
 
-The agent behaves as susceptible until it becomes infected, then it behaves as an infected agent by switching into the \textit{infectedAgent} SF. Instead of randomly drawing the number of contacts to make we now follow a fundamentally different approach by using Yampas \textit{occasionally} function. It generates on average an event after the given time, so in each time-step we generate either a single event or no event. This requires a fundamental different approach in selecting the right $\Delta t$ and sampling the system as will be shown in results. Note that we return an Event in case of an infection which indicates the switch into the new infected behaviour.
-
-We deal with randomness differently now and implement signal functions built on the \textit{noiseR} function provided by Yampa. This function takes a range of values and the random-number generator as input and returns the next value in the range. This is another example of the stream character and statefulness of a signal function as it needs to keep track of the changed random-number generator internally through the use of continuations and closures. Here we provide the implementation of \textit{randomBoolSF}, drawRandomElemSF works similar but takes a list as input:
+We deal with randomness differently now and implement signal functions built on the \textit{noiseR} function provided by Yampa. This is another example of the stream character and statefulness of a signal function as it needs to keep track of the changed random-number generator internally through the use of continuations and closures. Here we provide the implementation of \textit{randomBoolSF}, drawRandomElemSF works similar but takes a list as input:
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 randomBoolSF :: RandomGen g => g -> Double -> SF () Bool
@@ -69,7 +56,7 @@ randomBoolSF g p = proc _ -> do
   returnA -< (r <= p)
 \end{minted}
 
-Implementing the infected agent in FRP is also a bit more involved but much more expressive too:
+The infected agent behaves as infected until it recovers on average after the illness duration after which it behaves as a recovered agent by switching into \textit{recoveredAgent}. As in the case of the susceptible agent, we use the \textit{occasionally} function to generate the event when the agent recovers. Note that the infected agent ignores the states of the other agents as its behaviour is completely independent of them.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 infectedAgent :: RandomGen g => g -> SIRAgent
@@ -82,9 +69,7 @@ infectedAgent g = switch infected (const recoveredAgent)
       returnA -< (a, recEvt)
 \end{minted}
 
-The infected agent behaves as infected until it recovers on average after the illness duration after which it behaves as a recovered agent by switching into \textit{recoveredAgent}. As in the susceptible agent, we use the occasionally function to generate the event when the agent recovers. Note that the infected agent ignores the states of the other agents as its behaviour is completely independent of them.
-
-Running and stepping the simulation works now a bit differently:
+Running and stepping the simulation works now a bit differently. Yampa provides the function \textit{embed} which allows us to run a SF for a given number of steps where in each step one provides the $\Delta t$ and an optional input.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 runSimulation :: RandomGen g => g -> Time -> DTime -> [SIRState] -> [[SIRState]]
@@ -97,7 +82,8 @@ runSimulation g t dt as = embed (stepSimulation sfs as) ((), dts)
     sfs       = map (\ (g', a) -> sirAgent g' a) (zip rngs as)
 \end{minted}
 
-Yampa provides the function \textit{embed} which allows us to run a SF for a given number of steps where in each step one provides the $\Delta t$ and an optional input. What we now need to implement is a closed feedback-loop. Fortunately, \cite{nilsson_functional_2002}, \cite{courtney_yampa_2003} discusses implementing this in Yampa. The function \textit{stepSimulation} is an implementation of such a closed feedback-loop:
+What we now need to implement is a closed feedback-loop. Fortunately, \cite{nilsson_functional_2002}, \cite{courtney_yampa_2003} discusses implementing this in Yampa. The function \textit{stepSimulation} is an implementation of such a closed feedback-loop. It takes the current signal functions and states of all agents, runs them all in parallel and returns the new agent states of this step. Yampa provides the \textit{dpSwitch} combinator for running signal functions in parallel, which is quite involved and discussed more in-depth in section \ref{sec:background}. It allows us to recursively switch back into the \textit{stepSimulation} with the continuations and new states of all the agents after they were run in parallel.
+In every step we generate a switching event using \textit{switchingEvt} which receives the outputs of all the run signal functions. It always returns an \textit{Event} with all the outputs which causes to switch into the continuation which is \textit{stepSimulation} itself . Note the use of \textit{notYet} which is required because in Yampa switching occurs immediately at $t = 0$.
 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 stepSimulation :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
@@ -111,11 +97,6 @@ stepSimulation sfs as =
     switchingEvt :: SF ((), [SIRState]) (Event [SIRState])
     switchingEvt = arr (\ (_, newAs) -> Event newAs)
 \end{minted}
-
-TODO: put this before the code and explain dpSwitch
-This function takes all the signal functions and current states of all agents and returns a signal function which has the unit-type as input and returns a list of agent-states. What we need to do is to run all agents signal functions in parallel where all the agent-states are passed as inputs and collect the output of all signal functions into a list. Fortunately Yampa provides the function \textit{dpSwitch} for this task. Its first argument is the pairing-function which pairs up the input to the signal functions, the second argument is the collection of signal functions to run, the third argument is a signal function generating the switching event and the last argument is a function which generates the continuation after the switching event has occurred.
-\textit{dpSwitch} then returns a new signal function which runs all the signal functions in parallel (thus the p) and switching into the continuation when the switching event occurs. The continuation-generation function gets passed the signal functions after they were run in parallel and the data of the switching event which in combination allows us to recursively switch back into the stepSimulation function. In every step we generate a switching event which passes the final agent-states to the continuation-generation which in turn simply returns stepSimulation recursively but now with the new signal functions and the new agent-states. 
-The d in \textit{dpSwitch} stands for delayed which guarantees that we delay the switching until the next time e.g. the function into which we switch is only applied in the next step which prevents an infinite recursion. Note the need for \textit{notYet} which is required because in Yampa switching occurs immediately at $t = 0$.
 
 \subsubsection{Results}
 The function which drives the dynamics of our simulation is \textit{occasionally}, which randomly generates an event on average with a given rate following the exponential distribution. To arrive at the correct dynamics, this requires us to sample \textit{occasionally}, and thus the whole system, with small enough $\Delta t$ which matches the rate. If we choose a too large $\Delta t$, we loose events which will result in dynamics which do not approach the SD dynamics sufficiently enough, see Figure \ref{fig:sir_abs_dynamics_frp}.

@@ -71,15 +71,16 @@ susceptibleAgent coord = switch susceptible (const (infectedAgent coord))
           e <- arrM_ (lift get) -< ()
           let ns = neighbours e coord agentGridSize moore
           s <- drawRandomElemS -< ns
-          if Infected /= s
-            then returnA -< ((), NoEvent)
-            else (do
+          case s of
+            Infected -> do
               infected <- arrM_ (lift $ lift $ randomBoolM infectivity) -< ()
               if infected 
                 then (do
                   arrM (put . changeCell coord Infected) -< e
                   returnA -< ((), Event ()))
-                else returnA -< ((), NoEvent)))
+                else returnA -< ((), NoEvent)
+            _        -> returnA -< ((), NoEvent))
+
 \end{minted}
 
 Querying the neighbourhood is done using the \textit{neighbours} function. It takes the environment, the coordinate for which to query the neighbours for, the dimensions of the 2D grid and the neighbourhood information and returns the data of all neighbours it could find. Note that on the edge of the environment, it could be the case that fewer neighbours than provided in the neighbourhood information will be found due to clipping.

@@ -56,7 +56,7 @@ When the agent gets infected it calculates also its time of recovery by drawing 
 susceptibleAgent :: RandomGen g => Agents -> Rand g SIRAgent
 susceptibleAgent as = do
     rc <- randomExpM (1 / contactRate)
-    cs <- doTimes (floor rc) (makeContact as) -- executes a monadic action a number of times
+    cs <- forM ([0..floor rc - 1] :: [Int]) (const (makeContact as))
     if elem True cs
       then infect
       else return (Susceptible, 0)
@@ -64,9 +64,9 @@ susceptibleAgent as = do
     makeContact :: RandomGen g => Agents -> Rand g Bool
     makeContact as = do
       randContact <- randomElem as
-      if Infected == fst randContact
-        then randomBoolM infectivity -- returns True with a given probability between 0..1
-        else return False
+      case fst randContact of
+        Infected -> randomBoolM infectivity -- returns True with a given probability between 0..1
+        _        -> return False
 
     infect :: RandomGen g => Rand g SIRAgent
     infect = do

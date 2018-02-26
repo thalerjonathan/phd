@@ -16,8 +16,7 @@ Next we need more general input and output types of our agents signal functions.
 \begin{minted}[fontsize=\footnotesize]{haskell}
 data AgentIn d = AgentIn
   { aiId   :: AgentId
-  , aiData :: [DataFlow d]
-  } 
+  , aiData :: [DataFlow d] } 
 \end{minted}
 
 We also introduce a new output type which holds both the outgoing data-flows to other agents and the observable state the agent wants to reveal to the outside world:
@@ -25,8 +24,7 @@ We also introduce a new output type which holds both the outgoing data-flows to 
 \begin{minted}[fontsize=\footnotesize]{haskell}
 data AgentOut o d = AgentOut
   { aoData        :: [DataFlow d]
-  , aoObservable  :: o
-  }
+  , aoObservable  :: o }
 \end{minted}
 
 Note that by making the observable state explicit in the types we give the agent further control of what it can reveal to the outside world which allows an even stronger separation between the agents internal state and what the agent wants the world to see.
@@ -67,8 +65,7 @@ Note that instead of returning just a SIR state now the output of an agents sign
 agentOut :: o -> AgentOut o d
 agentOut o = AgentOut {
     aoData       = []
-  , aoObservable = o
-  }
+  , aoObservable = o }
 \end{minted}
 
 The behaviour of the infected agent now explicitly ignores the environment which was not apparent previously on this level:

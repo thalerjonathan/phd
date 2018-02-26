@@ -198,16 +198,15 @@ susceptibleAgent coord =
           let ns = neighbours e coord agentGridSize moore
           --let ns = allNeighbours e
           s <- drawRandomElemS       -< ns
-
-          if Infected /= s
-            then returnA -< ((), NoEvent)
-            else (do
+          case s of
+            Infected -> do
               infected <- arrM_ (lift $ lift $ randomBoolM infectivity) -< ()
               if infected 
                 then (do
                   arrM (put . changeCell coord Infected) -< e
                   returnA -< ((), Event ()))
-                else returnA -< ((), NoEvent)))
+                else returnA -< ((), NoEvent)
+            _       -> returnA -< ((), NoEvent))
 
 infectedAgent :: RandomGen g => Disc2dCoord -> SIRAgent g
 infectedAgent coord = 

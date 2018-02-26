@@ -6,71 +6,71 @@ The deeper motivation behind this data-flow mechanism is the need of an ABS to p
 
 \subsubsection{Implementation}
 First we need a way of addressing agents, which we do by introducing unique agent ids. Also we need a data-package which identifies the receiver and carries the data:
-\begin{minted}[fontsize=\footnotesize]{haskell}
+\begin{HaskellCode}
 type AgentId     = Int
 type DataFlow d = (AgentId, d)
-\end{minted}
+\end{HaskellCode}
 
 Next we need more general input and output types of our agents signal functions. We introduce a new input type which holds both the agent id of the agent and the incoming data-flows from other agents:
 
-\begin{minted}[fontsize=\footnotesize]{haskell}
+\begin{HaskellCode}
 data AgentIn d = AgentIn
   { aiId   :: AgentId
   , aiData :: [DataFlow d] } 
-\end{minted}
+\end{HaskellCode}
 
 We also introduce a new output type which holds both the outgoing data-flows to other agents and the observable state the agent wants to reveal to the outside world:
 
-\begin{minted}[fontsize=\footnotesize]{haskell}
+\begin{HaskellCode}
 data AgentOut o d = AgentOut
   { aoData        :: [DataFlow d]
   , aoObservable  :: o }
-\end{minted}
+\end{HaskellCode}
 
 Note that by making the observable state explicit in the types we give the agent further control of what it can reveal to the outside world which allows an even stronger separation between the agents internal state and what the agent wants the world to see.
 
 Now we can then generalise the agents signal functions to the following type:
-\begin{minted}[fontsize=\footnotesize]{haskell}
+\begin{HaskellCode}
 type Agent o d = SF (AgentIn d) (AgentOut o d)
-\end{minted}
+\end{HaskellCode}
 
 For our SIR implementation we need concrete types, so we need to define what the type parameters \textit{o} and \textit{d} are. For \textit{d} we use an ADT as contact-message. As type of the observable state we use the existing SIR state. Now we can define the type synonyms for our SIR implementation:
-\begin{minted}[fontsize=\footnotesize]{haskell}
+\begin{HaskellCode}
 data SIRMsg      = Contact SIRState deriving Eq
 type SIRAgentIn  = AgentIn SIRMsg
 type SIRAgentOut = AgentOut SIRState SIRMsg
 type SIRAgent    = Agent SIRState SIRMsg
-\end{minted}
+\end{HaskellCode}
 
 Next we are going to re-implement the agent-behaviour:
 
-\begin{minted}[fontsize=\footnotesize]{haskell}
+\begin{HaskellCode}
 sirAgent :: RandomGen g => g -> [AgentId] -> SIRState -> SIRAgent
 sirAgent g ais Susceptible = susceptibleAgent g ais
 sirAgent g _   Infected    = infectedAgent g
 sirAgent _ _   Recovered   = recoveredAgent
-\end{minted}
+\end{HaskellCode}
 
 The initial behaviour is the same as previously but it now takes a list of agent ids as additional parameter. With data-flow we need to know the ids of the agents we are communicating with - we need to know our neighbourhood, or seen differently: we need to have access to the environment we are situated in. In our case our environment is a fully connected read-only network in which all agents know all other agents. The easiest way of representing a fully connected network (complete graph) is simply using a list. 
 The implementation of the recovered agent is still the same, its just a sink which ignores the environment and the random-number generator. 
 
-\begin{minted}[fontsize=\footnotesize]{haskell}
+\begin{HaskellCode}
 recoveredAgent :: SIRAgent
 recoveredAgent = arr (const (agentOut Recovered))
-\end{minted}
+\end{HaskellCode}
 
 Note that instead of returning just a SIR state now the output of an agents signal function is of type \textit{AgentOut}:
 
-\begin{minted}[fontsize=\footnotesize]{haskell}
+\begin{HaskellCode}
 agentOut :: o -> AgentOut o d
 agentOut o = AgentOut {
     aoData       = []
   , aoObservable = o }
-\end{minted}
+\end{HaskellCode}
 
 The behaviour of the infected agent now explicitly ignores the environment which was not apparent previously on this level:
 
-\begin{minted}[fontsize=\footnotesize]{haskell}
+\begin{HaskellCode}
 infectedAgent :: RandomGen g => g -> SIRAgent
 infectedAgent g = switch infected (const recoveredAgent)
   where
@@ -80,11 +80,11 @@ infectedAgent g = switch infected (const recoveredAgent)
       let a  = event Infected (const Recovered) recEvt -- event is equivalent to maybe
           ao = respondToContactWith Infected ain (agentOut a)
       returnA -< (ao, recEvt)
-\end{minted}
+\end{HaskellCode}
 
 The implementation of the infected agent is essentially the same as previously but it now needs to reply to incoming contact data-flows with an "Infected" reply. This makes the difference to the previous step very explicit: in the data-flow approach agents now make explicit contact with each other which means that the susceptible agent sends out contact data-flows to which only infected agents need to reply. Note that at the moment of recovery the agent can still infect others because it will still reply with Infected. The response mechanism is implemented in \textit{respondToContactWith}:
 
-\begin{minted}[fontsize=\footnotesize]{haskell}
+\begin{HaskellCode}
 respondToContactWith :: SIRState -> SIRAgentIn -> SIRAgentOut -> SIRAgentOut
 respondToContactWith state = onData respondToContactWithAux
   where
@@ -96,13 +96,13 @@ onData df ai a = foldr df a (aiData ai)
 
 dataFlow :: DataFlow d -> AgentOut o d -> AgentOut o d
 dataFlow df ao = ao { aoData = df : aoData ao }
-\end{minted}
+\end{HaskellCode}
 
 Note that the order of data-packages in a data-flow is not specified and must not matter as it happens virtually at the same time, thus we always append at the front of the outgoing data-flow list.
 
 Lets look at the susceptible agent behaviour. As already mentioned before, the feedback interaction between agents works now very explicit due to the data-flow but needs a different approach in our implementation:
 
-\begin{minted}[fontsize=\footnotesize]{haskell}
+\begin{HaskellCode}
 susceptibleAgent :: RandomGen g => g -> [AgentId] -> SIRAgent
 susceptibleAgent g ais = switch (susceptible g) (const (infectedAgent g))
   where
@@ -131,14 +131,14 @@ gotInfected p ain = onDataM gotInfectedAux ain False
     
 onDataM :: Monad m => (acc -> DataFlow d -> m acc) -> AgentIn d -> acc -> m acc
 onDataM df ai acc = foldM df acc (aiData ai)
-\end{minted}
+\end{HaskellCode}
 
 Again the implementation is very similar to the previous step with the fundamental difference being how contacts are made and how infections occur. First the agent checks if it got infected. This happens if an infected agent replies to the susceptible agents contact \textit{and} the susceptible agent got infected with the given probability. Note that \textit{gotInfected} runs in the Random Monad which we run using \textit{runRand} and the random-number generator. To update our random-number generator to the changed one, we use the \textit{rec} keyword of the Arrow notation \cite{paterson_new_2001}, which allows us to refer to a variable before it is defined. In combination with \textit{iPre} we introduced a local state - the random-number generator - which changes in every step. The function \textit{iPre} delays the input by one time-step, returns it in the next time-step and is initialized with an initial value. If the agent got infected, it simply returns an AgentOut with Infected as observable state and a switching event which indicates the switch to infected behaviour.
 If the agent is not infected it draws from \textit{occasionally} to determine if it should make contact with a random agent. In case it should make contact it simply sends a data-package with the contact susceptible data to the receiver - note that only an infected agent will reply.
 
 Stepping the simulation now works a little bit different as the input/output types have changed and we need to collect and distribute the data-flow amongst the agents:
 
-\begin{minted}[fontsize=\footnotesize]{haskell}
+\begin{HaskellCode}
 stepSimulation :: [SIRAgent] -> [SIRAgentIn] -> SF () [SIRAgentOut]
 stepSimulation sfs ains =
     dpSwitch
@@ -153,13 +153,13 @@ stepSimulation sfs ains =
           aios     = zip ais aos
           nextAins = distributeData aios
       returnA -< Event nextAins
-\end{minted}
+\end{HaskellCode}
 
 The distribution of the data-flows happens in the \textit{distributeData} function of \textit{switchingEvt} and is then passed on to the continuation-generation function as previously. Note that due to lack of space we can't give an implementation of \textit{distributeData} but we provide the type.
 
-\begin{minted}[fontsize=\footnotesize]{haskell}
+\begin{HaskellCode}
 distributeData :: [(AgentId, AgentOut o d)] -> [AgentIn d]
-\end{minted}
+\end{HaskellCode}
 
 The difference is that it now creates a list of AgentIn for the next step instead of a list of all the agents SIR states of the previous step. Again the continuation-generation function recursively returns the \textit{stepSimulation} signal function. The pairing function of \textit{dpSwitch} is now slightly more straightforward as it just pairs up the AgentIn with its corresponding signal function. 
 

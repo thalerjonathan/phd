@@ -3,8 +3,10 @@
 
 \usepackage{float}
 \usepackage{graphicx}
-\usepackage{minted}
 \usepackage{subcaption}
+\usepackage{ifthen}
+\usepackage{minted}
+\usepackage{verbatim}
 
 % TODO: fill in the right metainfo
 % Metadata Information
@@ -39,6 +41,18 @@
 
 % Document starts
 \begin{document}
+
+% set to true to compile haskell code formated with minted package
+% requires pygmentize!
+\providecommand\haskellMinted{true}
+\ifthenelse{\equal{\haskellMinted}{true} }{
+\newminted[HaskellCode]{haskell}{fontsize=\footnotesize}
+}{
+\newenvironment{HaskellCode}
+{\begin{comment}} % seems not to work, don't know why the f***
+{\end{comment}}
+}
+
 % Title portion. Note the short title for running heads
 \title[Pure functional epidemics]{Pure functional epidemics}
 \subtitle{An Agent-Based Approach}
@@ -64,9 +78,7 @@ TODO: get DOI
 TODO: fill in paper history
 TODO: generate CCSXML
 
-TODO: write a make file for thorsten 
 TODO: find a way to deactivate pygmentize
-TODO: put non-standard packages into repository (subcaption)
 
 Agent-Based Simulation (ABS) is a methodology in which a system is simulated in a bottom-up approach by modelling the micro interactions of its constituting parts, called agents, out of which the global macro system behaviour emerges. So far mainly object-oriented techniques and languages have been used in ABS. Using the SIR model of epidemiology as an example we show how to use Functional Reactive Programming to implement ABS. We claim that this representation is conceptually cleaner and opens the way to formally reason about ABS.
 %So far, the Haskell community hasn't been much in contact with the community of ABS due to the latter's primary focus on the object-oriented programming paradigm. This paper tries to bridge the gap between those two communities by introducing the Haskell community to the concepts of ABS. We do this by deriving an agent-based implementation for the simple SIR model from epidemiology. In our implementations we leverage the basic concepts of ABS with functional reactive programming from Yampa and Dunai which results in a surprisingly fresh, powerful and convenient approach for programming ABS in Haskell.

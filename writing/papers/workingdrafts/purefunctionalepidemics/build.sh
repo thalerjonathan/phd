@@ -1,8 +1,8 @@
-pdflatex -shell-escape -synctex=1 -interaction=nonstopmode $1.tex
+pdflatex -shell-escape -synctex=1 -interaction=nonstopmode pfe.tex
 wait
-bibtex $1.aux
+bibtex pfe.aux
 wait
-pdflatex -shell-escape -synctex=1 -interaction=nonstopmode $1.tex
+pdflatex -shell-escape -synctex=1 -interaction=nonstopmode pfe.tex
 wait
-pdflatex -shell-escape -synctex=1 -interaction=nonstopmode $1.tex
+pdflatex -shell-escape -synctex=1 -interaction=nonstopmode pfe.tex
 wait

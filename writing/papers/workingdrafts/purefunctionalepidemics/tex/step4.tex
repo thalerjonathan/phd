@@ -2,7 +2,7 @@
 A part of the library Dunai is BearRiver, a wrapper which re-implements Yampa on top of Dunai, which should allow us to easily replace Yampa with MSFs. This will enable us to run arbitrary monadic computations in a signal function, which we will need in the next step when adding an environment.
 
 \subsubsection{Identity Monad}
-We start by making the transition to BearRiver by simply replacing Yampas signal function by BearRivers which is the same but takes an additional type parameter \textit{m} indicating the monad. If we replace this type-parameter with the identity monad we should be able to keep the code exactly the same, except from a few type-declarations, because BearRiver re-implements all necessary functions we are using from Yampa \footnote{This was not quite true at the time of writing this paper, where \textit{occasionally}, \textit{noiseR} and \textit{dpSwitch} were missing. We simply forked the project from GitHub and implemented these functions in our own branch.}.
+We start by making the transition to BearRiver by simply replacing Yampas signal function by BearRivers which is the same but takes an additional type parameter \textit{m} indicating the monadic context. If we replace this type-parameter with the Identity Monad we should be able to keep the code exactly the same, except from a few type-declarations, because BearRiver re-implements all necessary functions we are using from Yampa \footnote{This was not quite true at the time of writing this paper, where \textit{occasionally}, \textit{noiseR} and \textit{dpSwitch} were missing. We simply forked the project from GitHub and implemented these functions in our own repository.}.
 We start by re-defining our general agent signal function, introducing the monad (stack) our SIR implementation runs in and the agents signal function:
 
 \begin{HaskellCode}
@@ -20,13 +20,13 @@ runSimulation g t dt as = map (map aoObservable) aoss
     steps        = floor (t / dt)
     dts          = replicate steps ()
     n            = length as
-    (rngs, _)    = rngSplits g n []
+    (rngs, _)    = rngSplits g n []   -- rngs for each agent
     ais          = map fst as
-    sfs          = map (\ (g', (_, s)) -> sirAgent g' ais s) (zip rngs as)
-    ains         = map (\ (aid, _) -> agentIn aid) as
-    aossReader   = embed (stepSimulation sfs ains) dts
-    aossIdentity = runReaderT aossReader dt
-    aoss         = runIdentity aossIdentity
+    sfs          = map (\ (g', (_, s)) -> sirAgent g' ais s) (zip rngs as) -- SF for each agent
+    ains         = map (\ (aid, _) -> agentIn aid) as                      -- initial AgentIns
+    aossReader   = embed (stepSimulation sfs ains) dts                     -- running simulation
+    aossIdentity = runReaderT aossReader dt                                -- running ReaderT
+    aoss         = runIdentity aossIdentity                                -- running Identity
 \end{HaskellCode}
 
 Note that embed does not take a list of $\Delta t$ any more but simply a list of inputs for each step to the top level signal function.
@@ -40,15 +40,15 @@ type SIRMonad g = Rand g
 type SIRAgent g = Agent (SIRMonad g) SIRState SIRMsg
 \end{HaskellCode}
 
-The question is now how to access this Random Monad functionality within the MSF context. For the function \textit{occasionally}, there exists a monadic pendant \textit{occasionallyM} which requires a MonadRandom type-class. Because we are now running within a MonadRandom instance we simply replace \textit{occasionally} with \textit{occasionallyM}. Running \textit{gotInfected} is now much easier. Using the function \textit{arrM} of Dunai allows us to run a monadic action in the stack as an arrow. We then directly run \textit{gotInfected} by lifting it into the Random Monad.
-This can be seen in the susceptible agent running in the random monad SF:
+The question is now how to access this Random Monad functionality within the MSF context. For the function \textit{occasionally}, there exists a monadic pendant \textit{occasionallyM} which requires a MonadRandom type-class. Because we are now running within a MonadRandom instance we simply replace \textit{occasionally} with \textit{occasionallyM}. Running \textit{gotInfected} is now much easier by using the function \textit{arrM} of Dunai which allows us to run a monadic action in the stack as an arrow. We can then directly run \textit{gotInfected} by lifting it into the Random Monad. The implementation of the infected agent is the same as previously except we can omit the handling of the random-number generator and directly lift into the Random Monad
+
 \begin{HaskellCode}
 susceptibleAgent :: RandomGen g => [AgentId] -> SIRAgent g
 susceptibleAgent ais = switch susceptible(const (infectedAgent))
   where
     susceptible :: RandomGen g => SF (SIRMonad g) SIRAgentIn (SIRAgentOut, Event ())
     susceptible = proc ain -> do
-      infected <- arrM (lift . gotInfected infectivity) -< ain
+      infected <- arrM (lift . gotInfected infectivity) -< ain -- lift into Random Monad
       if infected 
         then returnA -< (agentOut Infected, Event ())
         else (do

@@ -111,9 +111,7 @@ susceptibleAgent as = do
         _        -> return False
       
     infect :: RandomGen g => Rand g SIRAgent
-    infect = do
-      randIllDur <- randomExpM (1 / illnessDuration)
-      return $ infected randIllDur
+    infect = randomExpM (1 / illnessDuration) >>= \randIllDur -> return (Infected, randIllDur)
 
 infectedAgent :: TimeDelta -> SIRAgent -> SIRAgent
 infectedAgent dt (_, t) 

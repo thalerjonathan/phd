@@ -219,13 +219,13 @@ infectedAgent coord =
       recovered <- occasionallyM illnessDuration () -< ()
       if isEvent recovered
         then (do
-          e <- arrM (\_ -> lift get) -< ()
+          e <- arrM_ (lift get) -< ()
           arrM (put . changeCell coord Recovered) -< e
           returnA -< ((), Event ()))
         else returnA -< ((), NoEvent)
 
 recoveredAgent :: RandomGen g => SIRAgent g
-recoveredAgent = arr (const ())
+recoveredAgent = returnA 
 
 drawRandomElemS :: MonadRandom m => SF m [a] a
 drawRandomElemS = proc as -> do

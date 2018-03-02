@@ -1,10 +1,5 @@
 {-# LANGUAGE Arrows                #-}
 
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE AllowAmbiguousTypes   #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE FlexibleContexts      #-}
 module Main where 
 
 -- first import: base
@@ -36,19 +31,6 @@ instance Eq (QueueItem e) where
 instance Ord (QueueItem e) where
   compare (QueueItem _ _ t1) (QueueItem _ _ t2) = compare t1 t2
 
-class Monad m => MonadABS m e s where
-  agentIds          :: m [AgentId]
-  eventCount        :: m Integer
-  time              :: m Time
-
-  scheduleEvent'    :: AgentId -> Event e -> Double -> m EventId
-  cancelEvent       :: EventId -> m Bool 
-
-  getDomainState    :: m s
-  getsDomainState   :: (s -> t) -> m t
-  modifyDomainState' :: (s -> s) -> m ()
-  putDomainState    :: s -> m ()
-
 data ABSState e s = ABSState
   { absEvtQueue    :: EventQueue e
   , absTime        :: Time
@@ -59,30 +41,9 @@ data ABSState e s = ABSState
   , absDomainState :: s
   }
 
-instance MonadABS (State (ABSState e s)) e s where
-  agentIds = gets absAgentIds
-  eventCount = gets absEvtCount
-  time = gets absTime
-
-  scheduleEvent' aid e dt = do
-    q <- gets absEvtQueue
-    t <- gets absTime
-
-    let qe = QueueItem aid e (t + dt)
-    let q' = PQ.insert qe q
-
-    modify (\s -> s { absEvtQueue = q' })
-    return 0
-
-  cancelEvent _eid = return True
-
-  getDomainState = gets absDomainState
-  getsDomainState f = gets absDomainState >>= \s -> return $ f s
-  modifyDomainState' f = modify (\s -> s { absDomainState = f $ absDomainState s })
-  putDomainState ds = modify (\s -> s { absDomainState = ds }) 
-
+-- TODO: use StateT
 type ABSMonad e s  = State (ABSState e s)
-type AgentCont e s = MSF (ABSMonad e s) (Event e) ()
+type AgentCont e s = MSF (ABSMonad e s) e ()
 type Agent e s     = AgentId -> State (ABSState e s) (AgentCont e s)
 
 type SIRDomainState = (Int, Int, Int)
@@ -99,14 +60,9 @@ data SIREvent
   | Recover 
   deriving Show
 
+-- TODO: add Rand Monad into stack
 type SIRAgent     = Agent SIREvent SIRDomainState
 type SIRAgentCont = AgentCont SIREvent SIRDomainState
-
-numberOfSIRAgents :: MonadABS m SIREvent SIRDomainState => m Int
-numberOfSIRAgents = do
-  ais <- agentIds
-  return $ length ais
-
 
 rngSeed :: Int
 rngSeed = 42
@@ -168,13 +124,13 @@ sirAgent :: RandomGen g
 sirAgent Susceptible g0 aid = do
     -- on start
     modifyDomainState incSus
-    scheduleEvent aid (Event MakeContact) makeContactInterval
+    scheduleEvent aid MakeContact makeContactInterval
     return $ susceptibleAgent aid g0
 sirAgent Infected g0 aid = do
     -- on start
     modifyDomainState incInf
     let (dt, _) = runRand (randomExpM (1 / illnessDuration)) g0
-    scheduleEvent aid (Event Recover) dt
+    scheduleEvent aid Recover dt
     return $ infectedAgent aid
 sirAgent Recovered _ _ = modifyDomainState incRec >> return recoveredAgent
 
@@ -186,11 +142,11 @@ susceptibleAgent aid g0 =
   where
     susceptibleAgentInfected :: MSF
                                 (ABSMonad SIREvent SIRDomainState) 
-                                (Event SIREvent)
+                                SIREvent
                                 ((), Maybe ()) 
     susceptibleAgentInfected = feedback g0 (proc (e, g) ->
       case e of
-        Event (Contact _ s) -> 
+        (Contact _ s) -> 
           if Infected == s
             then do
               let (r, g') = runRand (randomBoolM infectivity) g
@@ -199,27 +155,27 @@ susceptibleAgent aid g0 =
                   arrM_ $ modifyDomainState decSus -< ()
                   arrM_ $ modifyDomainState incInf -< ()
                   let (dt, g'') = runRand (randomExpM (1 / illnessDuration)) g'
-                  arrM (scheduleEvent aid (Event Recover)) -< dt
+                  arrM (scheduleEvent aid Recover) -< dt
                   returnA -< (((), Just ()), g'')
                 else returnA -< (((), Nothing), g')
             else returnA -< (((), Nothing), g)
 
-        Event MakeContact -> do
+        MakeContact -> do
           ais <- arrM_ allAgentIds -< ()
           let (receivers, g') = runRand (forM [1..contactRate] (const $ randomElem ais)) g
           arrM (mapM_ makeContact) -< receivers
-          arrM_ (scheduleEvent aid (Event MakeContact) makeContactInterval) -< ()
+          arrM_ (scheduleEvent aid MakeContact makeContactInterval) -< ()
           returnA -< (((), Nothing), g')
 
         -- this will never occur for a susceptible
-        Event Recover -> returnA -< (((), Just ()), g)) 
+        Recover -> returnA -< (((), Nothing), g)) 
 
     makeContact :: AgentId -> State (ABSState SIREvent SIRDomainState) ()
     makeContact receiver = 
       scheduleEvent 
         receiver 
-        (Event (Contact aid Susceptible)) 
-        0.01
+        (Contact aid Susceptible)
+        0.0 -- immediate schedule
 
 infectedAgent :: AgentId -> SIRAgentCont
 infectedAgent aid = 
@@ -229,11 +185,11 @@ infectedAgent aid =
   where
     infectedAgentRecovered :: MSF 
                               (ABSMonad SIREvent SIRDomainState) 
-                              (Event SIREvent) 
+                              SIREvent 
                               ((), Maybe ()) 
     infectedAgentRecovered = proc e ->
       case e of
-        Event (Contact sender s) ->
+        (Contact sender s) ->
           -- can we somehow replace it with 'when'?
           if Susceptible == s
             then do
@@ -241,8 +197,8 @@ infectedAgent aid =
               returnA -< ((), Nothing)
             else returnA -< ((), Nothing)
         -- this will never occur for an infected agent
-        Event MakeContact  -> returnA -< ((), Nothing) 
-        Event Recover      -> do
+        MakeContact  -> returnA -< ((), Nothing) 
+        Recover      -> do
           arrM_ $ modifyDomainState decInf -< ()
           arrM_ $ modifyDomainState incRec -< ()
           returnA -< ((), Just ())
@@ -251,8 +207,8 @@ infectedAgent aid =
     replyContact receiver =
       scheduleEvent 
         receiver 
-        (Event (Contact aid Infected)) 
-        0.01
+        (Contact aid Infected)
+        0.0 -- immediate schedule
 
 recoveredAgent :: SIRAgentCont
 recoveredAgent = proc _e -> returnA -< ()
@@ -272,9 +228,7 @@ decInf (s, i, r) = (s, i-1, r)
 incRec :: (Int, Int, Int) -> (Int, Int, Int)
 incRec (s, i, r) = (s, i, r+1)
 
--- TODO: remove Show e after debugging
-runABS :: Show e 
-       => [Agent e s] 
+runABS :: [Agent e s] 
        -> s
        -> Integer 
        -> Double
@@ -305,9 +259,7 @@ runABS as0 s0 steps tLimit tSampling = (finalTime, finalEvtCnt, reverse domState
     finalTime   = absTime finalState
     finalEvtCnt = absEvtCount finalState
 
-    -- TODO: remove Show e after debugging
-    stepClock :: Show e 
-              => Integer 
+    stepClock :: Integer 
               -> Double
               -> [s]
               -> State (ABSState e s) [s]
@@ -324,8 +276,7 @@ runABS as0 s0 steps tLimit tSampling = (finalTime, finalEvtCnt, reverse domState
           ec <- gets absEvtCount
           t <- gets absTime
 
-          let _qi@(QueueItem aid e t') = fromJust mayHead
-          --let q' = Debug.Trace.trace ("QueueItem: " ++ show qi) (PQ.drop 1 q)
+          let (QueueItem aid (Event e) t') = fromJust mayHead
           let q' = PQ.drop 1 q
 
           -- modify time and changed queue before running the process
@@ -360,14 +311,14 @@ modifyDomainState f =
   modify (\s -> s { absDomainState = f $ absDomainState s })
 
 scheduleEvent :: AgentId 
-              -> Event e
+              -> e
               -> Double
               -> State (ABSState e s) ()
 scheduleEvent aid e dt = do
   q <- gets absEvtQueue
   t <- gets absTime
 
-  let qe = QueueItem aid e (t + dt)
+  let qe = QueueItem aid (Event e) (t + dt)
   let q' = PQ.insert qe q
 
   modify (\s -> s { absEvtQueue = q' })

@@ -41,7 +41,10 @@ data ABSState e s = ABSState
   , absDomainState :: s
   }
 
+<<<<<<< HEAD:public/purefunctionalepidemics/code/Step7_EventDriven/src/Main.hs
 -- TODO: use StateT
+=======
+>>>>>>> 9a2e606ae003ee48a1900211808bac9e465c6aa2:public/dependenttypesabs/code/Step1_HaskellDESABS/src/Main.hs
 type ABSMonad e s  = State (ABSState e s)
 type AgentCont e s = MSF (ABSMonad e s) e ()
 type Agent e s     = AgentId -> State (ABSState e s) (AgentCont e s)

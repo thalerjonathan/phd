@@ -92,13 +92,13 @@ susceptibleAgent g =
       if isEvent makeContact
         then (do
           a <- drawRandomElemSF g -< as
-          if Infected == a
-            then (do
+          case a of
+            Infected -> do
               i <- randomBoolSF g infectivity -< ()
               if i
                 then returnA -< (Infected, Event ())
-                else returnA -< (Susceptible, NoEvent))
-            else returnA -< (Susceptible, NoEvent))
+                else returnA -< (Susceptible, NoEvent)
+            _       -> returnA -< (Susceptible, NoEvent))
         else returnA -< (Susceptible, NoEvent)
 
 infectedAgent :: RandomGen g => g -> SIRAgent

@@ -96,7 +96,8 @@ processAgent _  _   a@(Recovered  , _) = return a
 susceptibleAgent :: RandomGen g => Agents -> Rand g SIRAgent
 susceptibleAgent as = do
     rc <- randomExpM (1 / contactRate)
-    cs <- doTimes (floor rc) (makeContact as)
+    -- cs <- doTimes (floor rc) (makeContact as)
+    cs <- forM ([0..floor rc - 1] :: [Int]) (const (makeContact as))
     if True `elem`cs
       then infect
       else return susceptible
@@ -105,14 +106,12 @@ susceptibleAgent as = do
     makeContact :: RandomGen g => Agents -> Rand g Bool
     makeContact as = do
       randContact <- randomElem as
-      if Infected == fst randContact --is Infected randContact
-        then randomBoolM infectivity
-        else return False
-
+      case fst randContact of
+        Infected -> randomBoolM infectivity
+        _        -> return False
+      
     infect :: RandomGen g => Rand g SIRAgent
-    infect = do
-      randIllDur  <- randomExpM (1 / illnessDuration)
-      return $ infected randIllDur
+    infect = randomExpM (1 / illnessDuration) >>= \randIllDur -> return (Infected, randIllDur)
 
 infectedAgent :: TimeDelta -> SIRAgent -> SIRAgent
 infectedAgent dt (_, t) 

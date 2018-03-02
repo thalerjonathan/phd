@@ -3,7 +3,7 @@
 As shown in the first step, the need to handle $\Delta t$ explicitly can be quite messy, is inelegant and a potential source of errors, also the explicit handling of the state of an agent and its behavioural function is not very modular. We can solve both these weaknesses by switching to the functional reactive programming paradigm (FRP), because it allows to express systems with discrete and continuous time-semantics. In this step we are focusing on arrowized \cite{hughes_generalising_2000} FRP using the library Yampa \cite{hudak_arrows_2003}. In it, time is handled implicit, meaning it cannot be messed with, which is achieved by building the  whole system on the concept of signal functions (SF). A SF can be understood as a process over time and is technically a continuation which allows to capture state using closures. Both these fundamental features allow us to tackle the weaknesses of our first step and push our approach further towards a truly functional approach.
 
 \subsubsection{Implementation}
-We start by defining our agents now as a SF which receives the states of all agents as input and outputs the state of the agent:
+We start by defining our agents now as an SF which receives the states of all agents as input and outputs the state of the agent:
 
 \begin{HaskellCode}
 type SIRAgent = SF [SIRState] SIRState 
@@ -27,6 +27,7 @@ recoveredAgent = arr (const Recovered)
 
 By using the Yampa combinator \textit{switch} we can change the behaviour of an agent when an event occurs which is much more elegant then the initial approach and much more expressive as it makes the change of behaviour at the occurrence of an event explicit. Thus a susceptible agent behaves as susceptible until it becomes infected. Upon infection an \textit{Event} is returned which results in switching into the \textit{infectedAgent} SF, which causes the agent to behave as an infected agent from that moment on. Instead of randomly drawing the number of contacts to make, we now follow a fundamentally different approach by using Yampas \textit{occasionally} function. This requires a fundamental different approach in selecting the right $\Delta t$ and sampling the system as will be shown in results. 
 
+%\begin{samepage}
 \begin{HaskellCode}
 susceptibleAgent :: RandomGen g => g -> SIRAgent
 susceptibleAgent g = switch (susceptible g) (const (infectedAgent g))
@@ -46,6 +47,7 @@ susceptibleAgent g = switch (susceptible g) (const (infectedAgent g))
              _       -> returnA -< (Susceptible, NoEvent))
         else returnA -< (Susceptible, NoEvent)
 \end{HaskellCode}
+%\end{samepage}
 
 We deal with randomness differently now and implement signal functions built on the \textit{noiseR} function provided by Yampa. This is another example of the stream character and statefulness of a signal function as it needs to keep track of the changed random-number generator internally through the use of continuations and closures. Here we provide the implementation of \textit{randomBoolSF}, \textit{drawRandomElemSF} works similar but takes a list as input and returns a randomly chosen element from it:
 

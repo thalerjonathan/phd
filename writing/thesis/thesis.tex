@@ -1,0 +1,76 @@
+\documentclass[oneside]{book}
+
+\setcounter{tocdepth}{1}
+\setcounter{secnumdepth}{3}
+
+\usepackage[toc,page]{appendix}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} % Required for the inclusion of images
+\usepackage{amsmath} % Required for some math elements 
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\usepackage{listings}
+\usepackage{pdfpages}
+\usepackage{amssymb}
+\usepackage{pdflscape}
+
+\begin{document}
+
+\begin{titlepage}
+	\centering
+	\includegraphics[width=0.60\textwidth]{../logo/UoN_Primary_Logo_RGB.png}\par\vspace{1cm}
+	{\scshape\Large PhD Thesis\par}
+	\vspace{1.5cm}
+	{\huge\bfseries Foundations of Pure Functional Agent-Based Simulation\par}
+	\vspace{2cm}
+	{\Large\itshape Jonathan Thaler (4276122) \\ jonathan.thaler@nottingham.ac.uk \par}
+	\vfill
+	supervised by\par
+	Dr. Peer-Olaf \textsc{Siebers} \\
+	Dr. Thorsten \textsc{Altenkirch}
+
+	\vfill
+
+	{\large \today\par}
+\end{titlepage}
+
+\cleardoublepage
+
+\section*{Abstract}
+TODO
+
+\clearpage
+\tableofcontents
+\clearpage
+
+\section{Introduction}
+first year report,
+FpOOPAbs report,
+
+\chapter*{Part I: General Concepts}
+FpOOPAbs report,
+abs defined,
+pure functional programming defined,
+artiterating paper,
+towards pure functional paper
+
+\chapter{Part II: Pure functional ABS}
+concepts of time- and event-driven approach in haskell
+FrABS report,
+pure functional epidemics paper
+additional research on event-driven approach in haskell: unscheduling events in functional style easy: rollback to previous state is easy but memory costly. look into that in the thesis
+applicability of UML and peers Framework to pure functional ABS 
+
+\chapter{Part III: Dependent types in ABS}
+3rd paper
+
+\chapter{Conclusions}
+
+\bibliographystyle{acm}
+\bibliography{../../references/phdReferences}
+
+\end{document}

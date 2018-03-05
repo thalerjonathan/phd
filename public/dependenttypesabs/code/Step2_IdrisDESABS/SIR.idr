@@ -47,10 +47,14 @@ SIRAgent IO where
   recover agent = ?SIRAgent_rhs_4
   makeContact agent = ?SIRAgent_rhs_5
 
+-- Note that we need to give the implicit argument {m}, 
+-- so that interface resolution can see which implementation
+-- to use for each ('State Machines All The Way Down'
+-- page 10 of Edwin Bradys paper)
 susceptibleAgent : SIRAgent m 
                  => (agent : Var)
                  -> Time
-                 -> ST m () [agent ::: Agent {m} Susceptible Z] -- why do we need {m}?
+                 -> ST m () [agent ::: Agent {m} Susceptible Z] 
 susceptibleAgent a t = do
   cont <- makeContact a
   case cont of

@@ -61,26 +61,14 @@ infectedAgent (S t) = infectedAgent t
 susceptibleAgent : SIRAgent () Susceptible (const Recovered)
 susceptibleAgent = do
   c <- MakeContact
-  case c of 
+  case c of
     Susceptible => susceptibleAgent
-    Recovered   => susceptibleAgent 
+    Recovered   => susceptibleAgent
     Infected    => do
       infection <- Infect
       case infection of
         MissedOut => susceptibleAgent
         Occurred  => infectedAgent illnessDuration
-
-susceptibleAgent' : SIRAgent SIRState Susceptible id
-susceptibleAgent' = do
-  c <- MakeContact
-  case c of
-    Susceptible => susceptibleAgent'
-    Recovered   => susceptibleAgent' 
-    Infected    => do
-      infection <- Infect
-      case infection of
-        MissedOut => StaySusceptible -- susceptibleAgent'
-        Occurred  => BecomeInfected -- Infected --?susceptibleAgent' --Infected --infectedAgent illnessDuration
 
 runAgent : SIRAgent ty pre (const post) -> IO ()
 runAgent BecomeInfected = ?bla

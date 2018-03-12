@@ -1,0 +1,87 @@
+\section{Emulating System Dynamics}
+The introduction of data-flows in section \ref{sec:step3_dataflow} allows us to emulate the system dynamics (SD) approach because we can now express a system with parallel continuous-time flows between the stocks and flows. Each stock $S(t)$, $I(t)$, $R(t)$ and each flow $infectionRate$, $recoveryRate$ is implemented as an agent with a fixed agent id. The connections between them are implemented using the previously introduced data-flow mechanism. We start by refining the types for our SIR implementation:
+
+\begin{HaskellCode}
+type SDMsg      = Double
+type SDAgentIn  = AgentIn SDMsg
+type SDObs      = Maybe Double
+type SDEntity   = Agent SDObs SDMsg
+type SDEntityId = AgentId
+
+totalPopulation :: Double
+totalPopulation = 1000
+
+infectedCount :: Double
+infectedCount = 1
+\end{HaskellCode}
+
+The message-data is now a plain Double and the observable data has been changed to a \textit{Maybe} Double: instead of discrete agent-states we are dealing now with stocks and flows which are aggregates represented by continuous values. Note that we use a Maybe type as flows only connect stocks and transform their values but don't have any observable state themselves. Note also that the population size and number of infected is specified now as Double as we are dealing with continuous aggregates.
+
+We give hard-coded agent ids to our stocks and flows. This allows then for setting up hard-coded connections between them at compile time.
+\begin{HaskellCode}
+susceptibleStockId :: SDEntityId
+susceptibleStockId = 0
+
+infectiousStockId :: SDEntityId
+infectiousStockId = 1
+
+recoveredStockId :: SDEntityId
+recoveredStockId = 2
+
+infectionRateFlowId :: SDEntityId
+infectionRateFlowId = 3
+
+recoveryRateFlowId :: SDEntityId
+recoveryRateFlowId = 4
+\end{HaskellCode}
+
+Next we give the implementation of the infectious stock (the implementations of the susceptible and recovered stock work in a similar way and are left as an easy exercise to the reader):
+
+\begin{HaskellCode}
+infectiousStock :: Double -> SDEntity
+infectiousStock initValue = proc ain -> do
+  let infectionRate = flowInFrom infectionRateFlowId ain
+      recoveryRate  = flowInFrom recoveryRateFlowId ain
+
+  stockValue <- (initValue+) ^<< integral -< (infectionRate - recoveryRate)
+  
+  let ao   = agentOut (Just stockValue)
+      ao'  = dataFlow (infectionRateFlowId, stockValue) ao
+      ao'' = dataFlow (recoveryRateFlowId, stockValue) ao'
+      
+  returnA -< ao''
+\end{HaskellCode}
+
+The stock receives flows from both the infection-rate and recovery-rate flow using the function \textit{flowInFrom} (see below). Then the current stock value is calculated using the \textit{integral} function of Yampa with an initial value added which are the initially infected people. The integral primitive of Yampa integrates the fed in data over time using the rectangle rule which means it simply multiplies the input values by the current $\Delta t$ and accumulates them. Note that we can directly express the SD equation using Yampas DSL for continuous-time systems. The current stock value is then set as the observable value of the stock and sent to the infection- and recovery-rate flows. For convenience we implemented an additional function \textit{flowInFrom} which returns the first value sent from the corresponding agent id or 0.0 if none was sent.
+
+\begin{HaskellCode}
+flowInFrom :: SDEntityId -> SDAgentIn -> Double
+flowInFrom senderId ain = firstValue dsFiltered
+  where 
+    dsFiltered = filter ((==senderId) . fst) (aiData ain)
+
+    firstValue :: [AgentData SDMsg] -> Double
+    firstValue [] = 0.0
+    firstValue ((_, v) : _) = v
+\end{HaskellCode}
+	
+The \textit{infectionRate} flow is implemented as follows (the implementations of the recovery-rate flow works in a similar way and is left as an easy exercise to the reader):
+
+\begin{HaskellCode}
+infectionRateFlow :: SDEntity
+infectionRateFlow = proc ain -> do
+  let susceptible = flowInFrom susceptibleStockId ain 
+      infectious  = flowInFrom infectiousStockId ain
+
+      flowValue   = (infectious * contactRate * susceptible * infectivity) / totalPopulation
+  
+      ao          = agentOut Nothing
+      ao'         = dataFlow (susceptibleStockId, flowValue) ao
+      ao''        = dataFlow (infectiousStockId, flowValue) ao'
+      
+  returnA -< ao''
+\end{HaskellCode}
+
+Instead of integrating a value over time a stock just transforms incoming values from the connected stocks - in this case the susceptible and infectious stocks. Note again how directly we can express the formula for the infection rate.
+
+When running the simulation one must make sure to use a small enough $\Delta t$ as \textit{integral} of Yampa is implemented using the rectangle rule which leads to considerable numerical errors with large $\Delta t$. Figure \ref{fig:sir_sd_dynamics} was created with this SD emulation for which we used $\Delta t = 0.01$.

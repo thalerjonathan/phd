@@ -1,0 +1,158 @@
+\section{Agent transactions}
+Imagine two agents A and B want to engage in a bartering process where agent A, is the seller who wants to sell an asset to agent B who is the buyer. Agent A sends Agent B a sell offer depending on how much agent A values this asset. Agent B receives this sell offer, checks if the price satisfies its utility, if it has enough wealth to buy the asset and replies with either a refusal or its own price offer. Agent A then considers agent Bs offer and if it is happy it replies to agent B with an acceptance of the offer, removes the asset from its inventory and increases its wealth. Agent B receives this acceptance offer, puts the asset in its inventory and decreases its wealth (note that this process could involve a potentially arbitrary number of steps without loss of generality).
+We can see this behaviour as a kind of multi-step transactional behaviour because agents have to respect their budget constraints which means that they cannot spend more wealth or assets than they have. This implies that they have to 'lock' the asset and the amount of cash they are bartering about during the bartering process. If both come to an agreement they will swap the asset and the cash and if they refuse their offers they have to 'unlock' them.
+In classic OO implementations it is quite easy to implement this as normally only one agent is active at a time due to sequential (discrete event scheduling approach) scheduling of the simulation. This allows then agent A which is active, to directly interact with agent B through method calls. The sequential updating ensures that no other agent will touch the asset or cash and the direct method calls ensure a synchronous updating of the mutable state of both objects with no time passing between these updates.
+
+\subsection{Implementation}
+We start with the implementation of step 4 with the Random Monad and remove the data-flows from AgentIn and AgentOut. We then add a field in AgentOut which allows the agent to indicate that it wants to start a transaction with another agent with an initial data-package. Also we add a field in AgentIn which indicates an incoming transaction request from another agent with the given data-package. In addition we need another field in AgentOut which allows the agent to indicate that it accepts the incoming request:
+
+\begin{HaskellCode}
+data AgentIn d = AgentIn
+  { aiId        :: !AgentId
+  , aiRequestTx :: !(Event (AgentData d))}
+
+data AgentOut m o d = AgentOut
+  { aoObservable :: !o
+  , aoRequestTx  :: !(Event (AgentData d, AgentTX m o d))
+  , aoAcceptTx   :: !(Event (d, AgentTX m o d))}
+\end{HaskellCode}
+
+We run the transactions in the specialised agent-transaction signal-functions \textit{AgentTX} with different input and output types. This allows us to restrict the possible actions of an agent within a transaction:
+
+\begin{HaskellCode}
+type AgentTX m o d = SF m (AgentTXIn d) (AgentTXOut m o d)
+\end{HaskellCode}
+
+The input \textit{AgentTXIn} to an agent-transaction holds optional data and flags which indicate that the other agent has either committed or aborted the transaction.
+
+\begin{HaskellCode}
+data AgentTXIn d = AgentTXIn
+  { aiTxData   :: Maybe d
+  , aiTxCommit :: Bool
+  , aiTxAbort  :: Bool
+  }
+\end{HaskellCode}
+
+The output \textit{AgentTXOut} of an agent-transaction hold optional data a flag to abort the transaction and optional commit data which is Just in case the agent wants to commit. When committing the agent has to provide a potentially changed AgentOut and optionally a new agent behaviour signal-function. If the agent provides a signal-function when committing, the behaviour of the agent after the transaction will be this signal-function. If no signal-function is provided then the original one will be used.
+
+\begin{HaskellCode}
+data AgentTXOut m o d = AgentTXOut
+  { aoTxData   :: Maybe d
+  , aoTxCommit :: Maybe (AgentOut m o d, Maybe (Agent m o d))
+  , aoTxAbort  :: Bool
+  }
+\end{HaskellCode}
+
+We also provide type aliases for our SIR implementation:
+\begin{HaskellCode}
+type SIRMonad g    = Rand g
+data SIRMsg        = Contact SIRState deriving (Show, Eq)
+type SIRAgentIn    = AgentIn SIRMsg
+type SIRAgentOut g = AgentOut (SIRMonad g) SIRState SIRMsg
+type SIRAgent g    = Agent (SIRMonad g) SIRState SIRMsg
+type SIRAgentTX g  = AgentTX (SIRMonad g) SIRState SIRMsg
+\end{HaskellCode}
+
+Stepping the simulation is now slightly more complex as in every step we need to run the transactions. Fortunately it is easy to provide customised implementations of MSFs in dunai, which is a bit more tricky in Yampa and requires to expose internals.
+
+\begin{HaskellCode}
+stepSimulation :: RandomGen g => [SIRAgent g] -> [SIRAgentIn] -> SF (SIRMonad g) () [SIRAgentOut g]
+stepSimulation sfs ains = MSF (\_ -> do
+  res <- mapM (\ (ai, sf) -> unMSF sf ai) (zip ains sfs)
+  let aos  = fmap fst res
+      sfs' = fmap snd res
+      ais  = map aiId ains
+      aios = zip ais aos
+
+  -- this works only because runTransactions is stateless and runs the SFs with dt = 0
+  ((aios', sfs''), _) <- unMSF runTransactions (aios, sfs')
+
+  let aos'  = map snd aios'
+      ains' = map agentIn ais
+      ct    = stepSimulation sfs'' ains'
+      
+  return (aos', ct))
+\end{HaskellCode}
+
+The implementation of \textit{runTransactions} is quite involved and omitted here because it would require too much space, but we will give a short informal description. All agents are iterated in an unspecified sequence and if an agent requests a transaction the other agent is looked up and the transaction-pair is run. This is done recursively until there are no transaction requests any-more (note that through the AgentOut of a committed transaction, an agent can request a new transaction within the same time-step). Running a transaction-pair works as follows:
+The target agents signal-function is run again (resulting in a second, or third,... execution, depending on how many transactions have this agent as target) but now with a $\Delta t = 0$. The target agent can then accept the incoming transaction or simply ignore it. If it is ignored the transaction will never start. The fact that the target agent signal-function is run more than once within a simulation step but with a $\Delta t = 0$ requires agents to make their actions time-dependent \textit{but} they must listen to incoming transactions independent of time. The implementation of the infected agent below will make this more clear.
+When the transaction is accepted the system switches to running the transaction signal-functions after another with passing the data forward and backward between the two agents. It is most important to note that again the signal functions are run with $\Delta t = 0$ because conceptionally transactions happen \textit{instantaneously} without time advancing. This has important implications, and means that we cannot use any time-accumulating function e.g. integral or after within a transaction - simply because it makes no sense as no time passes. If \textit{both} agents commit the transaction their new AgentOuts will replace the ones for the current simulation-step. If either one agent aborts the transaction the current AgentOuts of the current simulation-step will be used.
+
+We provide a sequence diagram of data-flow in a multi-step negotiation as described in the introduction for a visual explanation of the complex protocol which is going on in a transaction.
+
+Now it is time to look at the new agent implementations which use now the agent-transaction mechanism. The recovered agent is exactly the same but the susceptible and infected agent behaviour are very different now. Lets first look at the susceptible agent:
+
+\begin{HaskellCode}
+susceptibleAgent :: RandomGen g => [AgentId] -> SIRAgent g
+susceptibleAgent ais = proc _ -> do
+    makeContact <- occasionallyM (1 / contactRate) () -< ()
+
+    if not (isEvent makeContact)
+      then returnA -< agentOut Susceptible
+      else (do
+        contactId <- drawRandomElemS -< ais
+        returnA -< requestTx 
+                    (contactId, Contact Susceptible) 
+                    susceptibleTx
+                    (agentOut Susceptible))
+  where
+    susceptibleTx :: RandomGen g => SIRAgentTX g
+    susceptibleTx = proc txIn ->
+      -- should have always tx data
+      if hasTxDataIn txIn 
+          then (do
+            let (Contact s) = txDataIn txIn 
+            -- only infected agents reply, but make it explicit
+            if Infected /= s
+              -- don't commit with continuation, no change in behaviour
+              then returnA -< commitTx (agentOut Susceptible) agentTXOut
+              else (do
+                infected <- arrM_ (lift (randomBoolM infectivity)) -< ()
+                if infected
+                  -- commit with continuation as we switch into infected behaviour
+                  then returnA -< commitTxWithCont 
+                                    (agentOut Infected) 
+                                    infectedAgent
+                                    agentTXOut
+                  -- don't commit with continuation, no change in behaviour
+                  else returnA -< commitTx (agentOut Susceptible) agentTXOut))
+          else returnA -< abortTx agentTXOut
+\end{HaskellCode}
+
+Instead of using a switch the susceptible agent behaves completely time-dependent and occasionally starts a new agent-transaction with a random agent. The function \textit{susceptibleTx} handles the reply of the other agent. Note that we only commit with a continuation in case the agent becomes infected.
+
+The infected agent is slightly less complex and still uses the switch mechanism:
+\begin{HaskellCode}
+infectedAgent :: RandomGen g => SIRAgent g
+infectedAgent = switch infected (const recoveredAgent)
+  where
+    infected :: RandomGen g => SF (SIRMonad g) SIRAgentIn (SIRAgentOut g, Event ())
+    infected = proc ain -> do
+      recEvt <- occasionallyM illnessDuration () -< ()
+      let a = event Infected (const Recovered) recEvt
+      -- note that at the moment of recovery the agent can still infect others
+      -- because it will still reply with Infected
+      let ao = agentOut a
+
+      if isRequestTx ain 
+        then (returnA -< (acceptTX 
+                           (Contact Infected)
+                           (infectedTx ao)
+                           ao, recEvt))
+        else returnA -< (ao, recEvt)
+
+    infectedTx :: RandomGen g => SIRAgentOut g -> SIRAgentTX g
+    infectedTx ao = proc _ ->
+      -- it is important not to commit with continuation as it
+      -- would reset the time of the SF to 0. Still occasionally
+      -- would work as it does not accumulate time but functions
+      -- like after or integral would fail
+      returnA -< commitTx ao agentTXOut
+\end{HaskellCode}
+
+The agent acts time-dependent which in this case is the transition from infected to recovered - if occasionallyM is run with $\Delta t = 0$ then no Event can happen. The agent checks on every function call of infected for incoming transactions and accepts them all, independent of the state - only susceptible agents request transactions anyway. The agent simply replies with a Contact Infected and immediately commits the transaction in the transaction signal-function but does not switch into a new continuation.
+
+\subsection{Discussion}
+Note that the transactions run in the same monad as the normal agent behaviour signal-function which allows to add an environment as in step 5. In this case care must be taken when one has changed the environment but aborts the transaction as a roll back of the environment won't happen automatically. A different approach would allow to run the TX in a different monad and bring in e.g. the  transactional state monad Control.Monad.Tx which supports rolling back of changes to the state.
+
+The concept of agent-transactions is not explicitly known in the agent-based community and a novel development of this paper. The reason for this is that agent-transactions are already implicitly available in traditional OO implementations in which agents can call each others methods and change their state. By implementing this necessary and important concept in a pure functional approach we arrived at agent-transactions which make these synchronous, instantaneous, one-to-one interactions explicit.

@@ -1,6 +1,5 @@
-% Formatted for ICFP 2018: ACM Small template
 %\documentclass[format=acmsmall, review=false, screen=true]{acmart}		% ICFP
-\documentclass[format=sigplan, review=false, screen=true]{acmart}		% HASKELL SYMPOSIUM 
+\documentclass[format=sigplan, review=true]{acmart}		% HASKELL SYMPOSIUM 
 
 \usepackage{float}
 \usepackage{graphicx}
@@ -9,22 +8,23 @@
 \usepackage{minted}
 \usepackage{verbatim}
 
-% TODO: fill in the right metainfo
 % Metadata Information
+%% use defaults for review submission.
 \acmJournal{PACMPL}
-\acmVolume{9}
-\acmNumber{4}
-\acmArticle{39}
+\acmVolume{1}
+\acmNumber{CONF}
+\acmArticle{1}
 \acmYear{2018}
-\acmMonth{9}
-\copyrightyear{2018}
-%\acmArticleSeq{9}
+\acmMonth{1}
+\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+\startPage{1}
 
-% TODO : select the right one
 % Copyright
+%% use 'none' for review submission.
+\setcopyright{none}
 %\setcopyright{acmcopyright}	% = copyright transfer to ACM
 %\setcopyright{acmlicensed} 		% = retaining copyright but granting ACM exclusive publication rights
-\setcopyright{rightsretained}  % = open access on payment of a fee
+%\setcopyright{rightsretained}  % = open access on payment of a fee
 %\setcopyright{usgov}
 %\setcopyright{usgovmixed}
 %\setcopyright{cagov}
@@ -32,7 +32,7 @@
 
 % TODO : get the data
 % DOI
-\acmDOI{0000001.0000001}
+% \acmDOI{0000001.0000001}
 
 % TODO: fill in
 % Paper history
@@ -59,26 +59,20 @@
 \subtitle{An Agent-Based Approach}
 
 \author{Jonathan Thaler}
-\orcid{TODO}
+%\orcid{TODO}
 \email{jonathan.thaler@nottingham.ac.uk}
 \author{Thorsten Altenkirch}
 \email{thorsten.altenkirch@nottingham.ac.uk}
 \author{Peer-Olaf Siebers}
+\email{peer-olaf.siebers@nottingham.ac.uk}
 \affiliation{%
   \institution{University of Nottingham}
   \streetaddress{7301 Wollaton Rd}
   \city{Nottingham}
   \postcode{NG8 1BB}
   \country{United Kingdom}}
-\email{peer-olaf.siebers@nottingham.ac.uk}
 
 \begin{abstract}
-TODO: fill in the right metainfo
-TODO: select the right copyright
-TODO: get DOI
-TODO: fill in paper history
-TODO: generate CCSXML
-
 Agent-Based Simulation (ABS) is a methodology in which a system is simulated in a bottom-up approach by modelling the micro interactions of its constituting parts, called agents, out of which the global macro system behaviour emerges. So far mainly object-oriented techniques and languages have been used in ABS. Using the SIR model of epidemiology as an example we show how to use Functional Reactive Programming to implement ABS. We claim that this representation is conceptually cleaner and opens the way to formally reason about ABS.
 %So far, the Haskell community hasn't been much in contact with the community of ABS due to the latter's primary focus on the object-oriented programming paradigm. This paper tries to bridge the gap between those two communities by introducing the Haskell community to the concepts of ABS. We do this by deriving an agent-based implementation for the simple SIR model from epidemiology. In our implementations we leverage the basic concepts of ABS with functional reactive programming from Yampa and Dunai which results in a surprisingly fresh, powerful and convenient approach for programming ABS in Haskell.
 \end{abstract}
@@ -123,7 +117,7 @@ Agent-Based Simulation (ABS) is a methodology in which a system is simulated in 
 % End generated code
 %
 
-\keywords{Haskell, Functional Programming, Functional Reactive Programming, Agent-Based Simulation}
+\keywords{Functional Reactive Programming, Agent-Based Simulation}
 
 \maketitle
 
@@ -148,7 +142,11 @@ The authors would like to thank I. Perez, H. Nilsson, H. Vollbrecht, J. Greensmi
 \end{acks}
 
 % Bibliography
-\bibliographystyle{../../templates/acmart/ACM-Reference-Format}
+\bibliographystyle{ACM-Reference-Format}
+%% Citation style
+%% Note: author/year citations are required for papers published as an
+%% issue of PACMPL.
+%%\citestyle{acmauthoryear}   %% For author/year citations
 \bibliography{../../../references/phdReferences.bib}
 
 %\begin{appendix}

@@ -31,11 +31,7 @@ Despite the strengths and benefits we get by leveraging on FRP, there are errors
 Also having a two layer (arrows and pure functions) language in Yampa \cite{jeffrey_causality_2013} and three a layer (arrows, monadic and pure functions) language in Dunai / BearRiver adds expressivity and power but can make things quite complex already in the simple SIR example. Fortunately with a more complex model the complexity in this context does not increase - in the end it is the price we need to pay for the high expressivity which functions like \textit{occasionally} provide.
 \end{comment}
 
-We can conclude that the main difficulty of a pure functional approach evolves around the communication and interaction between agents. This is straight-forward in object-oriented programming where it is achieved using method-calls mutating the internal state of the agent.
-\txa{Maybe straight-forward but is it good?}
-Due to the lack of mutable state and method calls this is naturally much more difficult to achieve in pure functional programming. 
-\txa{Lenses?}
-Our current approach of feeding back the states of all agents as inputs is not very general. We leave the search for a better and more flexible mechanism of agent communication in pure functional programming for further research.
+We can conclude that the main difficulty of a pure functional approach evolves around the communication and interaction between agents. This is straight-forward in object-oriented programming where it is achieved using method-calls mutating the internal state of the agent but which comes at the cost of a new class of bugs due to implicit data flow. In pure functional programming these data flows are explicit but our current approach of feeding back the states of all agents as inputs is not very general and we have added further mechanisms of agent interaction which we had to omit due to lack of space. We leave the search for a better and more flexible mechanism of agent communication in pure functional programming for further research.
 
 \begin{comment}
 Our current solution to the problem is the data-flow mechanism as implemented in section \ref{sec:step3_dataflow}. We have to admit that it is rather ad-hoc and may need some refinement and generalisation, also it is unclear if there are not better/more flexible mechanisms of agent communication and interaction in pure functional programming. We leave this for further research.

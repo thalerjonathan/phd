@@ -50,7 +50,7 @@ runAgent _  _  a@(Recovered  , _) = return a
 \end{HaskellCode}
 
 An agent gets fed the states of all agents in the system from the previous time-step so it can draw random contacts - this is one, very naive way of implementing the interactions between agents. 
-TODO: this doesnt really add, maybe get rid of it if we are desperate. Note that the list of states includes also the agent itself thus we would need to omit it to prevent making contact with itself. We decided against that as it complicates the solution and for a larger number of agents the probability for an agent to make contact with itself is so small that it can be neglected. Also making contact with the same SIR state never leads to a state change so it really makes no big difference. %Maybe omit this information, as it is too long and not very relevant
+Note that the list of states includes also the agent itself thus we would need to omit it to prevent making contact with itself. We decided against that as it complicates the solution and for a larger number of agents the probability for an agent to make contact with itself is so small that it can be neglected. Also making contact with the same SIR state never leads to a state change so it really makes no big difference. %Maybe omit this information, as it is too long and not very relevant
 
 From our implementation it becomes apparent that only the behaviour of a susceptible agent involves randomness and that a recovered agent is simply a sink - it does nothing and stays constant.
 

@@ -13,7 +13,7 @@ Before looking into how one can simulate this model in an agent-based approach w
 
 The dynamics of the SIR model can be formalized in SD with the following equations:
 
-TODO: there seems to be an unnerving space after the f letters, can we get rid of them?
+%TODO: there seems to be an unnerving space after the f letters, can we get rid of them?
 
 \begin{align}
 \frac{\mathrm d S}{\mathrm d t} &= -infectionRate \\ 
@@ -29,7 +29,7 @@ recoveryRate &= \frac{I}{\delta}
 \begin{comment}
 Solving these equations is done by integrating over time. In the SD terminology, the integrals are called \textit{Stocks} and the values over which is integrated over time are called \textit{Flows}. At $t = 0$ a single agent is infected because if there wouldn't be any infected agents, the system would immediately reach equilibrium - this is also the formal definition of the steady state of the system: as soon as $I(t) = 0$ the system won't change any more.
 
-TODO: there seems to be an unnerving space after the f letters, can we get rid of them?
+%TODO: there seems to be an unnerving space after the f letters, can we get rid of them?
 \begin{align}
 S(t) &= N - I(0) + \int_0^t -infectionRate\, \mathrm{d}t \\
 I(0) &= 1 \\

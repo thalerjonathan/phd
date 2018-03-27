@@ -2,7 +2,7 @@
 \label{sec:step5_environment}
 In this step we will add an environment in which the agents exist and through which they interact with each other. This is a fundamental different approach to agent interaction but is as valid as the approach in the previous steps.
 In ABS agents are often situated within a discrete 2D environment \cite{schelling_dynamic_1971}, \cite{epstein_growing_1996}, \cite{epstein_agent_zero:_2014} which is simply a finite $N x M$ grid with either a Moore or von Neumann neighbourhood (Figure \ref{fig:abs_neighbourhoods}). Agents are either static or can move freely around with cells allowing either single or multiple occupants. \\
-We can directly map the SIR model to a discrete 2D environment by placing the agents on a corresponding 2D grid with an unrestricted neighbourhood. The behaviour of the agents is the same but they select their interactions directly from the environment. Also instead of feeding back the states of all agents as inputs, agents now communicate through the environment by revealing their current state to their neighbours by placing it on their cell. Agents can read the states of all their neighbours which tells them if a neighbour is infected or not. This allows us to implement the infection mechanism as in the beginning. For purposes of a more interesting and real approach, we restrict the neighbourhood to Moore (Figure \ref{fig:moore_neighbourhood}).
+We can directly map the SIR model to a discrete 2D environment by placing the agents on a corresponding 2D grid with an unrestricted neighbourhood. The behaviour of the agents is the same but they select their interactions directly from the environment. Also instead of feeding back the states of all agents as inputs, agents now communicate through the environment by revealing their current state to their neighbours by placing it on their cell. Agents can read the states of all their neighbours which tells them if a neighbour is infected or not. This allows us to implement the infection mechanism as in the beginning. For purposes of a more interesting approach, we restrict the neighbourhood to Moore (Figure \ref{fig:moore_neighbourhood}).
 
 \begin{figure}
 \begin{center}
@@ -34,7 +34,7 @@ type Disc2dCoord = (Int, Int)
 type SIREnv      = Array Disc2dCoord SIRState
 \end{HaskellCode}
 
-Next we redefine our monad stack and agent signal function. We use a StateT transformer on top of our Random Monad from previous step with \textit{SIREnv} as type for the state. Our agent signal function now has unit input and output type, which indicates by the types that the actions of the agents are only visible through side-effects of the monad stack they are running in.
+Next we redefine our monad stack and agent signal function. We use a StateT transformer on top of our Random Monad from the previous step with \textit{SIREnv} as type for the state. Our agent signal function now has unit input and output type, which indicates by the types that the actions of the agents are only visible through side-effects in the monad stack they are running in.
 
 \begin{HaskellCode}
 type SIRMonad g = StateT SIREnv (Rand g)
@@ -128,7 +128,7 @@ infectedAgent coord = switch infected (const recoveredAgent)
 \end{HaskellCode}
 \end{comment}
 
-Running the simulation with MSFs works slightly different. The function \textit{embed} we used before is not provided by BearRiver but by Dunai which has important implications. Dunai does not know about time in MSFs, which is exactly what BearRiver builds on top of MSFs. It does so by adding a ReaderT Double which carries the $\Delta t$. This means that \textit{embed} returns a computation in the ReaderT Double Monad which we need to peel away using \textit{runReaderT}. This then results in a StateT computation which we evaluate by using \textit{evalStateT} and an initial environment as initial state. This then results in another monadic computation of the Random Monad type which we evaluate using \textit{evalRand} which delivers the final result. Note that instead of returning agent states we simply return a list of environments, one for each step. The agent states can then be extracted from each environment.
+Running the simulation with MSFs works slightly different. The function \textit{embed} we used before is not provided by BearRiver but by Dunai which has important implications. Dunai does not know about time in MSFs, which is exactly what BearRiver builds on top of MSFs. It does so by adding a ReaderT Double which carries the $\Delta t$. This means that \textit{embed} returns a computation in the ReaderT Double Monad which we need to peel away using \textit{runReaderT}. This then results in a StateT computation which we evaluate by using \textit{evalStateT} and an initial environment as initial state. This then results in another monadic computation of the Random Monad type which we evaluate using \textit{evalRand} which delivers the final result. This is also the reason why we need lifts e.g. in case of getting the environment. Note that instead of returning agent states we simply return a list of environments, one for each step. The agent states can then be extracted from each environment.
 
 \begin{HaskellCode}
 runSimulation :: RandomGen g => g -> Time -> DTime 
@@ -167,13 +167,6 @@ We implemented rendering of the environments using the gloss library which allow
 \begin{figure}
 \begin{center}
 	\begin{tabular}{c}
-%		\begin{subfigure}[b]{0.3\textwidth}
-%			\centering
-%			\includegraphics[width=1\textwidth, angle=0]{./fig/step5_environment/SIR_environment_30x30agents_t50_01dt.png}
-%			\caption{$t = 50$}
-%			\label{fig:sir_env_t50}
-%		\end{subfigure}
-%    	&
 		\begin{subfigure}[b]{0.3\textwidth}
 			\centering
 			\includegraphics[width=1\textwidth, angle=0]{./fig/step5_environment/SIR_environment_30x30agents_t100_01dt.png}
@@ -182,14 +175,7 @@ We implemented rendering of the environments using the gloss library which allow
 		\end{subfigure}
     	
     	\\
-    	
-%		\begin{subfigure}[b]{0.3\textwidth}
-%			\centering
-%			\includegraphics[width=1\textwidth, angle=0]{./fig/step5_environment/SIR_environment_30x30agents_t160_01dt.png}
-%			\caption{$t = 160$}
-%			\label{fig:sir_env_t160}
-%		\end{subfigure}
-%		& 
+  
 		\begin{subfigure}[b]{0.38\textwidth}
 			\centering
 			\includegraphics[width=1\textwidth, angle=0]{./fig/step5_environment/SIR_dynamics_30x30agents_300t_01dt.png}
@@ -206,20 +192,4 @@ We implemented rendering of the environments using the gloss library which allow
 Note that the dynamics of the spatial SIR simulation which are seen in Figure \ref{fig:sir_dynamics_30x30agents_300t_01dt} look quite different from the SD dynamics of Figure \ref{fig:sir_sd_dynamics}. This is due to a much more restricted neighbourhood which results in far fewer infected agents at a time and a lower number of recovered agents at the end of the epidemic, meaning that fewer agents got infected overall.
 
 \subsubsection{Discussion}
-At first the environment approach might seem a bit overcomplicated and one might ask what we have gained by using an unrestricted neighbourhood where all agents can contact all others. The real win is that we can introduce arbitrary restrictions on the neighbourhood as shown using the Moore neighbourhood. Of course an environment is not restricted to be a discrete 2D grid and can be anything from a continuous N-dimensional space to a complex network - one only needs to change the type of the StateT monad and provide corresponding neighbourhood querying functions. The ability to place the heterogeneous agents in a generic environment is also the fundamental advantage of an agent-based over the SD approach and allows to simulate much more realistic scenarios. 
-
-\begin{comment}
-Note that for reasons of clarity we have removed the data-flow approach from this implementation which results in the unit-types of input and output. In a full blown agent-based simulation library we would combine both approaches.
-
-Generally, there exist four different types of environments in agent-based simulation:
-\begin{enumerate}
-	\item Passive read-only - implemented in the previous steps, where the environment never changes and is passed as static information, e.g. list of neighbours, to each agent.
-	\item Passive read/write - implemented in this step. The environment itself is not modelled as an active process but just as shared data which can be accessed and manipulated by the agents.
-	\item Active  read-only - can be implemented by adding an environment agent which broadcasts changes in the environment to all agents using the data-flow mechanism.
-	\item Active read/write - can be implemented as in this step plus adding an environment agent which reads/writes the environment e.g. regrowing some resources.
-\end{enumerate}
-
-Attempting to introduce an active/passive read/write environment to the Yampa implementation would be quite cumbersome. A possible solution could be to add a type-parameter \textit{e} which captures the type of the environment and then pass it in through the input and allow it to be returned in the output of an agent signal function. We would then end up with $n$ copies of the environment - one for each agent - which we need to fold back into a single environment. Having an active environment complicates things even further. All these problems are not an issue when using MSFs with a StateT which is a compelling example for making the transition to the more general MSFs. The convenient thing is that although conceptually all agents act at the same time, technically by using \textit{mapM} in stepSimulation they are run after another, serialising the environment access which gives every agent exclusive read/write access while it is active.
-
-\end{comment}
-%In the last step we will introduce synchronised agent-transaction as the final agent-agent interaction mechanism. This is a quite sophisticated concept: synchronised agent-transactions which allow an arbitrary number of interactions between two agents without time lag. The use-case for this are price negotiations between multiple agents where the agents need to come to an agreement in the same time-step as described in TODO cite sugarscape.
+At first the environment approach might seem a bit overcomplicated and one might ask what we have gained by using an unrestricted neighbourhood where all agents can contact all others. The real win is that we can introduce arbitrary restrictions on the neighbourhood as shown with the Moore neighbourhood. Of course an environment is not restricted to be a discrete 2D grid and can be anything from a continuous N-dimensional space to a complex network - one only needs to change the type of the StateT monad and provide corresponding neighbourhood querying functions. The ability to place the heterogeneous agents in a generic environment is also the fundamental advantage of an agent-based over the SD approach and allows to simulate much more realistic scenarios. 

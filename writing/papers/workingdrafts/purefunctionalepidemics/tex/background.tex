@@ -2,17 +2,19 @@
 \label{sec:background}
 
 \subsection{Functional Reactive Programming}
-Functional Reactive Programming (FRP) is a way to implement systems with continuous and discrete time-semantics in pure functional languages. There are many different approaches and implementations but in our approach we use \textit{arrowized} \cite{hughes_generalising_2000}, \cite{hughes_programming_2005} FRP as implemented in the library Yampa \cite{hudak_arrows_2003}, \cite{courtney_yampa_2003}, \cite{nilsson_functional_2002}. The central concept in arrowized FRP is the Signal Function (SF) which can be understood as a \textit{process over time} which maps an input- to an output-signal. A signal can be understood as a value which varies over time.
+Functional Reactive Programming (FRP) is a way to implement systems with continuous and discrete time-semantics in pure functional languages. There are many different approaches and implementations but in our approach we use \textit{arrowized} \cite{hughes_generalising_2000}, \cite{hughes_programming_2005} FRP as implemented in the library Yampa \cite{hudak_arrows_2003}, \cite{courtney_yampa_2003}, \cite{nilsson_functional_2002}.
+
+The central concept in arrowized FRP is the Signal Function (SF) which can be understood as a \textit{process over time} which maps an input- to an output-signal. A signal can be understood as a value which varies over time. Thus, signal functions have an awareness of the passing of time by having access to $\Delta t$ which are positive time-steps with which the system is sampled. 
 
 \begin{flalign*}
-Signal \, \alpha \approx Time \rightarrow a \\
+Signal \, \alpha \approx Time \rightarrow \alpha \\
 SF \, \alpha \, \beta \approx Signal \, \alpha \rightarrow Signal \, \beta 
 \end{flalign*}
 
-Signal functions are implemented as continuations which don't take a $\Delta t$ at $t = 0$ but then change their signature into one which takes a $\Delta t$ for $t > 0$. This allows to hide $\Delta t$ completely from the types which makes them much more suitable for declarative programming. Yampa provides a number of combinators for expressing time-semantics, events and state-changes of the system. They allow to change system behaviour in case of events, run signal functions and generate stochastic events and random-number streams. We shortly discuss the relevant combinators and concepts we use throughout the paper. For a more in-depth discussion we refer to \cite{hudak_arrows_2003}, \cite{courtney_yampa_2003}, \cite{nilsson_functional_2002}.
+Yampa provides a number of combinators for expressing time-semantics, events and state-changes of the system. They allow to change system behaviour in case of events, run signal functions and generate stochastic events and random-number streams. We shortly discuss the relevant combinators and concepts we use throughout the paper. For a more in-depth discussion we refer to \cite{hudak_arrows_2003}, \cite{courtney_yampa_2003}, \cite{nilsson_functional_2002}.
 
 \paragraph{Event}
-Yampa represents events through the \textit{Event} type which is equivalent to the \textit{Maybe} type.
+An event in FRP is an occurrence at a specific point in time which has no duration e.g. the the recovery of an infected agent. Yampa represents events through the \textit{Event} type which is programmatically equivalent to the \textit{Maybe} type. 
 
 \paragraph{Dynamic behaviour}
 To change the behaviour of a signal function at an occurrence of an event during run-time, the combinator \textit{switch :: SF a (b, Event c) -> (c -> SF a b) -> SF a b} is provided. It takes a signal function which is run until it generates an event. When this event occurs, the function in the second argument is evaluated which receives the data of the event and has to return the new signal function which will then replace the previous one.
@@ -43,7 +45,11 @@ Yampa also provides the combinator \textit{noise :: (RandomGen g, Random b) => g
 To \textit{purely} run a signal function Yampa provides the function \textit{embed :: SF a b -> (a, [(DTime, Maybe a)]) -> [b]} which allows to run a SF for a given number of steps where in each step one provides the $\Delta t$ and an input \textit{a}. The function then returns the output of the signal function for each step. Note that the input is optional, indicated by \textit{Maybe}. In the first step at $t = 0$, the initial \textit{a} is applied and whenever the input is \textit{Nothing} in subsequent steps, the last \textit{a} which was not \textit{Nothing} is re-used.
 
 \subsection{Arrowized programming}
-Yampas signal functions are arrows, requiring us to program with arrows, which is a bit different than programming with monads. Arrows are a generalisation of monads which, in addition to the already familiar parameterisation over the output type, allow parameterisation over their input type as well \cite{hughes_generalising_2000}, \cite{hughes_programming_2005}. In general, arrows can be understood to be computations that represent processes, which have an input of a specific type, process it and output a new type. This is the reason why Yampa is using arrows to represent their signal functions: the concept of processes, which signal functions are, maps naturally to arrows. There exists a number of arrow combinators which allow arrowized programing in a point-free style but due to lack of space we will not discuss them here. Instead we make use of Patersons do-notation for arrows \cite{paterson_new_2001} which makes the code much more readable as it allows us to program with points instead of using only the point-free arrow combinators. To show how arrowized programming works we implement a simple signal function which calculates the acceleration of a falling mass on its vertical axis as an example \cite{perez_testing_2017}.
+Yampas signal functions are arrows, requiring us to program with arrows. Arrows are a generalisation of monads which, in addition to the already familiar parameterisation over the output type, allow parameterisation over their input type as well \cite{hughes_generalising_2000}, \cite{hughes_programming_2005}.
+
+In general, arrows can be understood to be computations that represent processes, which have an input of a specific type, process it and output a new type. This is the reason why Yampa is using arrows to represent their signal functions: the concept of processes, which signal functions are, maps naturally to arrows. There exists a number of arrow combinators which allow arrowized programing in a point-free style but due to lack of space we will not discuss them here. Instead we make use of Patersons do-notation for arrows \cite{paterson_new_2001} which makes the code much more readable as it allows us to program with points instead of using only the point-free arrow combinators.
+
+To show how arrowized programming works we implement a simple signal function which calculates the acceleration of a falling mass on its vertical axis as an example \cite{perez_testing_2017}.
 
 \begin{HaskellCode}
 fallingMass :: Double -> Double -> SF () Double
@@ -58,8 +64,8 @@ To create an arrow, we use the \textit{proc} keyword, which binds a variable aft
 \subsection{Monadic Stream Functions}
 Monadic Stream Functions (MSF) are a generalisation of Yampas signal functions with additional combinators to control and stack side effects. An MSF is a polymorphic type and an evaluation function which applies an MSF to an input and returns an output and a continuation, both in a monadic context \cite{perez_functional_2016}, \cite{perez_extensible_2017}:
 \begin{HaskellCode}
-newtype MSF m a b = 
-  unMSF :: Monad m => MSF m a b -> a -> m (b, MSF m a b)
+newtype MSF m a b =
+  MSF { unMSF :: MSF m a b -> a -> m (b, MSF m a b) }
 \end{HaskellCode}
 
 MSFs are also arrows which means we can apply arrowized programming with Patersons do-notation as well. The authors \cite{perez_functional_2016} implement the library Dunai, which is available on Hackage. It allows us to run monadic computations within a signal function by providing the combinators \textit{arrM :: Monad m => (a -> m b) -> MSF m a b} and \textit{arrM\_ :: Monad m => m b -> MSF m a b}.

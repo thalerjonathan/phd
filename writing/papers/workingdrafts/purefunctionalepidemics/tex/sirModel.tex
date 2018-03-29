@@ -1,6 +1,6 @@
 \section{The SIR Model}
 \label{sec:sir_model}
-To explain the concepts of ABS and of our pure functional approach to it, we introduce the SIR model as a motivating example and use-case for our implementation. It is a very well studied and understood compartment model from epidemiology \cite{kermack_contribution_1927} which allows to simulate the dynamics of an infectious disease like influenza, tuberculosis, chicken pox, rubella and measles \cite{enns_its_2010} spreading through a population. In this model, people in a population of size $N$ can be in either one of three states \textit{Susceptible}, \textit{Infected} or \textit{Recovered} at a particular time, where it is assumed that initially there is at least one infected person in the population. People interact \textit{on average} with a given rate of $\beta$ other people per time-unit and become infected with a given probability $\gamma$ when interacting with an infected person. When infected, a person recovers \textit{on average} after $\delta$ time-units and is then immune to further infections. An interaction between infected persons does not lead to re-infection, thus these interactions are ignored in this model. This definition gives rise to three compartments with the transitions as seen in Figure \ref{fig:sir_transitions}.
+To explain the concepts of ABS and of our pure functional approach to it, we introduce the SIR model as a motivating example and use-case for our implementation. It is a very well studied and understood compartment model from epidemiology \cite{kermack_contribution_1927} which allows to simulate the dynamics of an infectious disease like influenza, tuberculosis, chicken pox, rubella and measles spreading through a population. In this model, people in a population of size $N$ can be in either one of three states \textit{Susceptible}, \textit{Infected} or \textit{Recovered} at a particular time, where it is assumed that initially there is at least one infected person in the population. People interact \textit{on average} with a given rate of $\beta$ other people per time-unit and become infected with a given probability $\gamma$ when interacting with an infected person. When infected, a person recovers \textit{on average} after $\delta$ time-units and is then immune to further infections. An interaction between infected persons does not lead to re-infection, thus these interactions are ignored in this model. This definition gives rise to three compartments with the transitions as seen in Figure \ref{fig:sir_transitions}.
 
 \begin{figure}
 	\centering
@@ -26,20 +26,11 @@ infectionRate &= \frac{I \beta S \gamma}{N} \\
 recoveryRate &= \frac{I}{\delta} 
 \end{align}
 
-%There exist a large number of software packages which allow to conveniently express SD models using a visual approach like in Figure \ref{fig:sir_sd_stockflow_diagramm}.
-
-%\begin{figure}
-%	\centering
-%	\includegraphics[width=.4\textwidth, angle=0]{./fig/diagrams/SIR_SD_STOCKFLOW_DIAGRAMM.png}
-%	\caption{A visual representation of the SD stocks and flows of the SIR compartment model.} %Picture taken using AnyLogic Personal Learning Edition 8.1.0.
-%	\label{fig:sir_sd_stockflow_diagramm}
-%\end{figure}
-
 Solving these equations is done by numerically integrating over time which results in the dynamics as shown in Figure \ref{fig:sir_sd_dynamics} with the given variables.
 
 \begin{figure}
 	\centering
-	\includegraphics[width=.4\textwidth, angle=0]{./fig/step3_dataflow/SIR_SD_1000agents_150t_001dt.png}
+	\includegraphics[width=0.3\textwidth, angle=0]{./fig/step3_dataflow/SIR_SD_1000agents_150t_001dt.png}
 	\caption{Dynamics of the SIR compartment model using the System Dynamics approach. Population Size $N$ = 1,000, contact rate $\beta =  \frac{1}{5}$, infection probability $\gamma = 0.05$, illness duration $\delta = 15$ with initially 1 infected agent. Simulation run for 150 time-steps.}
 	\label{fig:sir_sd_dynamics}
 \end{figure}
@@ -53,7 +44,8 @@ Although in the model all agents make contact with each other, we can reduce the
 \begin{itemize}
 	\item \textit{Susceptible}: A susceptible agent makes contact \textit{on average} with $\beta$ other random agents. For every \textit{infected} agent it gets into contact with, it becomes infected with a probability of $\gamma$. If an infection happens, it makes the transition to the \textit{Infected} state.
 
-	\item \textit{Infected}: An infected agent recovers \textit{on average} after $\delta$ time units \footnote{Note that these agents do \textit{not} pro-actively contact other agents. The rationale behind it is, that according to the theory of epidemiology, $\beta$ is defined as \textit{a contact which would be sufficient to lead to infection, were it to occur between a susceptible and an infected individual} \cite{abbey_examination_1952}. In this theory it wouldn't make sense to work out the $\beta$ value for someone who is already infected - the contact structure of the infected agents is implicit. Would we add pro-active contact making to the infected agents as well we would get very different results, not matching the SD dynamics which were validated in the past against real world epidemics \cite{ahmed_variance_2013}.}. This is implemented by drawing the duration from an exponential distribution \cite{borshchev_system_2004} with $\lambda = \frac{1}{\delta}$ and making the transition to the \textit{Recovered} state after this duration.
+	\item \textit{Infected}: An infected agent recovers \textit{on average} after $\delta$ time units. This is implemented by drawing the duration from an exponential distribution \cite{borshchev_system_2004} with $\lambda = \frac{1}{\delta}$ and making the transition to the \textit{Recovered} state after this duration.
+%\footnote{Note that these agents do \textit{not} pro-actively contact other agents. The rationale behind it is, that according to the theory of epidemiology, $\beta$ is defined as \textit{a contact which would be sufficient to lead to infection, were it to occur between a susceptible and an infected individual} \cite{abbey_examination_1952}. In this theory it wouldn't make sense to work out the $\beta$ value for someone who is already infected - the contact structure of the infected agents is implicit. Would we add pro-active contact making to the infected agents as well we would get very different results, not matching the SD dynamics which were validated in the past against real world epidemics \cite{ahmed_variance_2013}.}
 
 	\item \textit{Recovered}: These agents do nothing because this state is a terminating state from which there is no escape: recovered agents stay immune and can not get infected again in this model \footnote{There exists an extended SIR model, called SIRS which adds a cycle to the state transitions by introducing a transition from recovered back to susceptible but we don't consider that here.}.
 \end{itemize}

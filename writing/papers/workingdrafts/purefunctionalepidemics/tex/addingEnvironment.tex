@@ -1,7 +1,7 @@
 \subsection{Adding an environment}
 \label{sec:step5_environment}
 In this step we will add an environment in which the agents exist and through which they interact with each other. This is a fundamental different approach to agent interaction but is as valid as the approach in the previous steps.
-In ABS agents are often situated within a discrete 2D environment \cite{schelling_dynamic_1971}, \cite{epstein_growing_1996}, \cite{epstein_agent_zero:_2014} which is simply a finite $N x M$ grid with either a Moore or von Neumann neighbourhood (Figure \ref{fig:abs_neighbourhoods}). Agents are either static or can move freely around with cells allowing either single or multiple occupants. \\
+In ABS agents are often situated within a discrete 2D environment \cite{epstein_growing_1996} which is simply a finite $N x M$ grid with either a Moore or von Neumann neighbourhood (Figure \ref{fig:abs_neighbourhoods}). Agents are either static or can move freely around with cells allowing either single or multiple occupants. \\
 We can directly map the SIR model to a discrete 2D environment by placing the agents on a corresponding 2D grid with an unrestricted neighbourhood. The behaviour of the agents is the same but they select their interactions directly from the environment. Also instead of feeding back the states of all agents as inputs, agents now communicate through the environment by revealing their current state to their neighbours by placing it on their cell. Agents can read the states of all their neighbours which tells them if a neighbour is infected or not. This allows us to implement the infection mechanism as in the beginning. For purposes of a more interesting approach, we restrict the neighbourhood to Moore (Figure \ref{fig:moore_neighbourhood}).
 
 \begin{figure}
@@ -166,17 +166,17 @@ We implemented rendering of the environments using the gloss library which allow
 
 \begin{figure}
 \begin{center}
-	\begin{tabular}{c}
-		\begin{subfigure}[b]{0.3\textwidth}
+	\begin{tabular}{c c}
+		\begin{subfigure}[b]{0.2\textwidth}
 			\centering
 			\includegraphics[width=1\textwidth, angle=0]{./fig/step5_environment/SIR_environment_30x30agents_t100_01dt.png}
 			\caption{$t = 100$}
 			\label{fig:sir_env_t100}
 		\end{subfigure}
     	
-    	\\
+    	&
   
-		\begin{subfigure}[b]{0.38\textwidth}
+		\begin{subfigure}[b]{0.25\textwidth}
 			\centering
 			\includegraphics[width=1\textwidth, angle=0]{./fig/step5_environment/SIR_dynamics_30x30agents_300t_01dt.png}
 			\caption{Dynamics over time}

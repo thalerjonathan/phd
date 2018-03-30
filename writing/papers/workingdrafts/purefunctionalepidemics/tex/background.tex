@@ -37,7 +37,7 @@ dpSwitch :: Functor col
 Its first argument is the pairing-function which pairs up the input to the signal functions - it has to preserve the structure of the signal function collection. The second argument is the collection of signal functions to run. The third argument is a signal function generating the switching event. The last argument is a function which generates the continuation after the switching event has occurred. \textit{dpSwitch} returns a new signal function which runs all the signal functions in parallel and switches into the continuation when the switching event occurs. The d in \textit{dpSwitch} stands for decoupled which guarantees that it delays the switching until the next time-step: the function into which we switch is only applied in the next step, which prevents an infinite loop if we switch into a recursive continuation.
 
 \paragraph{Randomness}
-In ABS one often needs to generate stochastic events which occur based on an exponential distribution. Yampa provides the combinator \textit{occasionally :: RandomGen g => g -> Time -> b -> SF a (Event b)} for this. It takes a random-number generator, a rate and a value the stochastic event will carry. It generates events on average with the given rate. Note that at most one event will be generated and no 'backlog' is kept. This means that when this function is not sampled with a sufficiently high frequency, depending on the rate, it will loose events.
+In ABS one often needs to generate stochastic events which occur based on e.g. an exponential distribution. Yampa provides the combinator \textit{occasionally :: RandomGen g => g -> Time -> b -> SF a (Event b)} for this. It takes a random-number generator, a rate and a value the stochastic event will carry. It generates events on average with the given rate. Note that at most one event will be generated and no 'backlog' is kept. This means that when this function is not sampled with a sufficiently high frequency, depending on the rate, it will loose events.
 
 Yampa also provides the combinator \textit{noise :: (RandomGen g, Random b) => g -> SF a b} which generates a stream of noise by returning a random number in the default range for the type \textit{b}.
 
@@ -49,9 +49,9 @@ Yampa's signal functions are arrows, requiring us to program with arrows. Arrows
 
 In general, arrows can be understood to be computations that represent processes, which have an input of a specific type, process it and output a new type. This is the reason why Yampa is using arrows to represent their signal functions: the concept of processes, which signal functions are, maps naturally to arrows.
 
-There exists a number of arrow combinators which allow arrowized programing in a point-free style but due to lack of space we will not discuss them here. Instead we make use of Paterson's do-notation for arrows \cite{paterson_new_2001} which makes code more readable as it allows us to program with points instead of using only the point-free arrow combinators.
+There exists a number of arrow combinators which allow arrowized programing in a point-free style but due to lack of space we will not discuss them here. Instead we make use of Paterson's do-notation for arrows \cite{paterson_new_2001} which makes code more readable as it allows us to program with points.
 
-To show how arrowized programming works we implement a simple signal function which calculates the acceleration of a falling mass on its vertical axis as an example \cite{perez_testing_2017}.
+To show how arrowized programming works, we implement a simple signal function, which calculates the acceleration of a falling mass on its vertical axis as an example \cite{perez_testing_2017}.
 
 \begin{HaskellCode}
 fallingMass :: Double -> Double -> SF () Double
@@ -61,13 +61,13 @@ fallingMass p0 v0 = proc _ -> do
   returnA -< p
 \end{HaskellCode}
 
-To create an arrow, we use the \textit{proc} keyword, which binds a variable after which then the \textit{do} of Patersons do-notation \cite{paterson_new_2001} follows. Using the signal function \textit{integral :: SF v v} of Yampa which integrates the input value over time using the rectangle rule, we calculate the current velocity and the position based on the initial position \textit{p0} and velocity \textit{v0}. The $<<<$ is one of the arrow combinators which composes two arrow computations and \textit{arr} simply lifts a pure function into an arrow. To pass an input to an arrow, \textit{-<} is used and \textit{<-} to bind the result of an arrow computation to a variable. Finally to return a value from an arrow, \textit{returnA} is used.
+To create an arrow, the \textit{proc} keyword is used, which binds a variable after which then the \textit{do} of Patersons do-notation \cite{paterson_new_2001} follows. Using the signal function \textit{integral :: SF v v} of Yampa which integrates the input value over time using the rectangle rule, we calculate the current velocity and the position based on the initial position \textit{p0} and velocity \textit{v0}. The $<<<$ is one of the arrow combinators which composes two arrow computations and \textit{arr} simply lifts a pure function into an arrow. To pass an input to an arrow, \textit{-<} is used and \textit{<-} to bind the result of an arrow computation to a variable. Finally to return a value from an arrow, \textit{returnA} is used.
 
 \subsection{Monadic Stream Functions}
-Monadic Stream Functions (MSF) are a generalisation of Yampas signal functions with additional combinators to control and stack side effects. An MSF is a polymorphic type and an evaluation function which applies an MSF to an input and returns an output and a continuation, both in a monadic context \cite{perez_functional_2016}, \cite{perez_extensible_2017}:
+Monadic Stream Functions (MSF) are a generalisation of Yampa's signal functions with additional combinators to control and stack side effects. An MSF is a polymorphic type and an evaluation function which applies an MSF to an input and returns an output and a continuation, both in a monadic context \cite{perez_functional_2016}, \cite{perez_extensible_2017}:
 \begin{HaskellCode}
 newtype MSF m a b =
   MSF { unMSF :: MSF m a b -> a -> m (b, MSF m a b) }
 \end{HaskellCode}
 
-MSFs are also arrows which means we can apply arrowized programming with Patersons do-notation as well. The implementation Dunai, which is available on Hackage. Dunai allows us to apply monadic transformations to every sample by means of combinators like \textit{arrM :: Monad m => (a -> m b) -> MSF m a b} and \textit{arrM\_ :: Monad m => m b -> MSF m a b}.
+MSFs are also arrows which means we can apply arrowized programming with Patersons do-notation as well. MSFs are implemented in Dunai, which is available on Hackage. Dunai allows us to apply monadic transformations to every sample by means of combinators like \textit{arrM :: Monad m => (a -> m b) -> MSF m a b} and \textit{arrM\_ :: Monad m => m b -> MSF m a b}.

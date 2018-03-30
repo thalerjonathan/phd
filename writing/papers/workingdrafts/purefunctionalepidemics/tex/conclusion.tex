@@ -1,7 +1,7 @@
 \section{Conclusions}
 \label{sec:conclusions}
 
-Our approach is radically different from traditional approaches in the ABS community. First it builds on the already quite powerful FRP paradigm. Second, due to our hybrid approach, it forces one to think properly of time-semantics of the model, how small $\Delta t$ should be, whether one needs super-sampling or not and how many samples one should take. Third it requires to think about agent-interactions in a new way instead of being just method-calls.
+Our approach is radically different from traditional approaches in the ABS community. First it builds on the already quite powerful FRP paradigm. Second, due to our hybrid approach, it forces one to think properly of time-semantics of the model and how small $\Delta t$ should be. Third it requires to think about agent interactions in a new way instead of being just method-calls.
 
 Because no part of the simulation runs in the IO Monad and we do not use unsafePerformIO we can rule out a serious class of bugs caused by implicit data-dependencies and side-effects which can occur in traditional imperative implementations.
 

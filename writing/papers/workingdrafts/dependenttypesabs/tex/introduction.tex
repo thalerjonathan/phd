@@ -31,9 +31,11 @@ https://www.pik-potsdam.de/members/ionescu/ee-tt.pdf
 Validation \& Verification in ABS
 http://www2.econ.iastate.edu/tesfatsi/VVAccreditationSimModels.OBalci1998.pdf : verification = are we building the model right? validation = are we building the right model?
 
-http://www2.econ.iastate.edu/tesfatsi/Grimm_2010_The_ODD_protocol_.pdf : ODD independent of programming paradigm
+good paper http://www2.econ.iastate.edu/tesfatsi/VVAccreditationSimModels.OBalci1998.pdf : very nice 15 guidelines and life cycles, VERY valuable for background and introduction
 
-central paper: https://link.springer.com/chapter/10.1007/978-3-642-01109-2_10
+http://www2.econ.iastate.edu/tesfatsi/VVSimulationModels.JKleijnen1995.pdf : suggests good programming practice which is extremely important for high quality code and reduces bugs but real world practice and experience shows that this alone is not enough, even the best programmers make mistakes which often can be prevented through a strong static or a dependent type system already at compile time. What we can guarantee already at compile time, doesn't need to be checked at run-time which saves substantial amount of time as at run-time there may be a huge number of execution paths through the simulation which is almost always simply not feasible to check (note that we also need to check all combinations). This paper also cites modularity as very important for verification: divide and conquer and test all modules separately. this is especially easy in functional programming as composability is much better than with traditional oop due to the lack of interdependence between data and code as in objects and the lack of global mutable state (e.g. class variables or global variables) - this makes code extremely convenient to test. The paper also discusses statistical tests (the t test) to check if the outcome of a simulation is sufficiently close to real-world dynamics. Also the paper suggests using animations to visualise the processes within the simulation for verification purposes (of course they note that animation may be misleading when one focuses on too short simulation runs).
+
+good paper: https://link.springer.com/chapter/10.1007/978-3-642-01109-2_10
 	-> verification. "This is essentially the question: does the model do what we think it is supposed to do? Whenever a model has an analytical solution, a condition which embraces almost all conventional economic theory, verification is a matter of checking the mathematics."
 	-> validation: "In an important sense, the current process of building ABMs is a discovery process, of discovering the types of behavioural rules for agents which appear to be consistent with phenomena we observe."
 		=> can we encode phenomena we observe in the types? can we use types for the discovery process as well? can dependent types guide our exploratory approach to ABS?
@@ -72,7 +74,7 @@ general requirements to ABS
 	-> can be ensured by pure functional programming
 - correct interaction protocols
 	-> can be ensured by dependent state machines
-- fixed time-delta
+- deterministic time-delta
 	-> TODO: can we ensure it through dependent-types at type-level?
 - repeated runs lead to same dynamics
 	-> can be ensured by pure functional programming

@@ -2,3 +2,18 @@
 In this paper we investigate how agent-based simulation can be approach from a pure functional direction using the programming language Haskell. So far no in-depth research has been conducted on this subject because so far agent-based simulation was always thought of as being best implemented in object-oriented languages like C++, Java and Python. 
 As will become apparent throughout this paper, a pure functional approach needs to approach various concepts of ABS very different which leads to a very different approach to ABS but makes concepts which where blurred and implicit very explicit and clear.
 This papers major contribution is that it reveals these implicit concept and provides a formal view on ABS and a pure functional implementation of these concepts.
+
+general requirements to ABS 
+- only rely on past
+	-> solved with Arrowized FRP
+- no bugs due to implicitly mutable state
+	-> can be ensured by pure functional programming
+- ruling out external sources of non-determinism / randomness
+	-> can be ensured by pure functional programming
+- correct interaction protocols between agents
+	-> can be ensured by dependent state machines
+- deterministic time-delta
+	-> TODO: can we ensure it through dependent-types at type-level?
+- repeated runs lead to same dynamics 
+	-> can be ensured by pure functional programming
+=> all these can be guaranteed at compile time with pure \& dependently typed functional programming 

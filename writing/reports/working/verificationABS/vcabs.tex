@@ -46,7 +46,7 @@
 % Document starts
 \begin{document}
 % Title portion. Note the short title for running heads
-\title[]{Dependent types in Agent-Based Simulation}
+\title[A functional approach]{Verification \& correctness of Agent-Based Simulation}
 
 \author{Jonathan Thaler}
 \orcid{TODO}
@@ -63,21 +63,7 @@
 \email{peer-olaf.siebers@nottingham.ac.uk}
 
 \begin{abstract}
-Previous research has shown that the pure functional programming paradigm as in Haskell is very suitable to implement agent-based simulations. Building on FRP and MSFs the work developed an elegant implementation of an agent-based SIR model which was pure. By statically removing all external influences of randomness already at compile time through types, this guarantees that repeated simulation runs with the same starting conditions will always result in the same dynamics - guaranteed at compile time. This previous research focused only on establishing the basic concepts of ABS in functional programming but it did not explore the inherent strength of functional programming for verification and correctness any further than guaranteeing the reproducibility of the simulation at compile time.
 
-This paper picks up where the previous research has left and wants to investigate the usefulness of pure and dependently typed functional programming for verification and correctness of agent-based simulation. We are especially interested if requirements of an ABS can be guaranteed on a stronger level by those paradigms, if a larger class of bugs can be excluded already at compile time and whether we can express model properties and invariants already at compile time on a type level. Further we are interested in how far we can reason about an agent-based model in a dependently typed implementation. Also we investigate the use of QuickCheck for code- and model-testing.
-
-%A susceptible agent can only become infected when it comes into contact with an infected agent. The probability of a susceptible agent making contact with an infected one is naturally (number of infected agents) / (total number of agents). For the infection to occur we multiply the contact with the infectivity parameter \Gamma. A susceptible agent makes on average \Beta contacts per time-unit. This results in the following formula:
-%
-%\begin{align}
-%prob &= \frac{I \beta \gamma}{N} \\
-%\end{align}
-%
-%This is for a single agent, which we then need to multiply by the number of susceptible agents because all of them make contact.
-%
-%TODO: implement sir with state-machine approach from Idris. an idea would be to let infected agents generate infection- actions: the more infected agents the more infection-actions => zero infected agents mean zero infection actions. this list can then be reduced?
-%
-%can we also emulate SD in Idris and formulate positive/negative feedback loops in types?
 \end{abstract}
 
 %
@@ -125,6 +111,8 @@ This paper picks up where the previous research has left and wants to investigat
 \maketitle
 
 \input{./tex/introduction.tex}
+
+\input{./tex/testing.tex}
 
 \input{./tex/sir.tex}
 

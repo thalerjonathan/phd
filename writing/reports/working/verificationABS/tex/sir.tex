@@ -18,3 +18,17 @@ Abandoning the FRP approach and starting fresh, the question is how we implement
 
 -- SIMULATION:  advanced in steps, time represented as Nat, as real numbers are not constructive and we want to be total
 --              terminates when there are no more INFECTED agents
+
+
+
+%A susceptible agent can only become infected when it comes into contact with an infected agent. The probability of a susceptible agent making contact with an infected one is naturally (number of infected agents) / (total number of agents). For the infection to occur we multiply the contact with the infectivity parameter \Gamma. A susceptible agent makes on average \Beta contacts per time-unit. This results in the following formula:
+%
+%\begin{align}
+%prob &= \frac{I \beta \gamma}{N} \\
+%\end{align}
+%
+%This is for a single agent, which we then need to multiply by the number of susceptible agents because all of them make contact.
+%
+%TODO: implement sir with state-machine approach from Idris. an idea would be to let infected agents generate infection- actions: the more infected agents the more infection-actions => zero infected agents mean zero infection actions. this list can then be reduced?
+%
+%can we also emulate SD in Idris and formulate positive/negative feedback loops in types?

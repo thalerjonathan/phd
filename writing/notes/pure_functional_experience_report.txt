@@ -55,6 +55,10 @@ DES, DEVS
 could go for haskell but wanted to go further: Idris and dependent types. 
 how could we implement it in a pure functional way? event-driven programming seems to go contrary to pure functional programming as opposed to modern object-oriented programming where we have method calls as mechanisms for events/communication.
 
+Gloss port of Idris
+
+Started working for Keera Studios, which gave my Haskell skills an IMMENSE boost
+
 Conclusion
 - wonderful language
 - refactoring 

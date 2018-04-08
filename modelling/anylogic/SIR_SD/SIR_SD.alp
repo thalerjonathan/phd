@@ -4,7 +4,7 @@
 	         AnyLogic Project File 
 *************************************************	         
 -->
-<AnyLogicWorkspace WorkspaceVersion="1.9" AnyLogicVersion="8.1.0.201706211703" AlpVersion="8.0.4">
+<AnyLogicWorkspace WorkspaceVersion="1.9" AnyLogicVersion="8.2.2.201711021514" AlpVersion="8.0.4">
 <Model>
 	<Id>1153899478771</Id>
 	<Name><![CDATA[SIR_SD]]></Name>
@@ -252,7 +252,7 @@
 						<UnitType><![CDATA[NONE]]></UnitType>
 						<SdArray>false</SdArray>
 						<DefaultValue Class="CodeValue">
-							<Code><![CDATA[1000]]></Code>
+							<Code><![CDATA[10000]]></Code>
 						</DefaultValue>
 						<ParameterEditor>
 							<Id>0</Id>
@@ -851,6 +851,7 @@ getEngine().getExperiment().stop();]]></ActionCode>
 					</DatasetExpression>
 					<SamplesToKeep>1000</SamplesToKeep>
 					<TimeWindowExpression><![CDATA[100]]></TimeWindowExpression>
+					<FillAreaUnderLine>false</FillAreaUnderLine>
 					<LabelFormat>MODEL_TIME_UNITS</LabelFormat>
     			</TimePlot>
 			</Charts>
@@ -1476,6 +1477,7 @@ getEngine().getPresentation().setPresentable( getEngine().getRoot() );]]></Actio
 					<Interpolation>LINEAR</Interpolation>
 					<SamplesToKeep>100</SamplesToKeep>
 					<TimeWindowExpression><![CDATA[100]]></TimeWindowExpression>
+					<FillAreaUnderLine>false</FillAreaUnderLine>
 					<LabelFormat>MODEL_TIME_UNITS</LabelFormat>
     			</TimePlot>
 			</Charts>

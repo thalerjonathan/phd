@@ -49,8 +49,8 @@ testSusceptible :: RandomGen g
                 -> Int    -- ^ number of runs
                 -> Double -- ^ epsilon 
                 -> DTime  -- ^ time-delta to use
-                -> Bool   -- ^ True in case test passes
-testSusceptible g0 n eps dt = diff <= eps
+                -> (Bool, Double)   -- ^ True in case test passes
+testSusceptible g0 n eps dt = (diff <= eps, diff)
   where
     -- we have 3 other agents, each in one of the states
     -- this means, that this susceptible agent will pick
@@ -69,8 +69,8 @@ testSusceptible g0 n eps dt = diff <= eps
     -- also multiply with ratio of infected to non-infected
     --   TODO: can we extract the formula of the SD approach
     --   here? should be possible, then we can prove that our
-    --   ABS approach is indeed a valid SD approximation (
-    --   due to averaging) 
+    --   ABS approach is indeed a valid SD approximation
+    --   (due to averaging) 
     target = infectivity * contactRate * infToNonInfRatio
     diff   = abs (target - countFract)
 

@@ -7,16 +7,11 @@ module SIR
   , populationSize
   , infectedCount
 
-  , dt
-  , t
-  
   , writeAggregatesToFile
   ) where
 
 import System.IO
 import Text.Printf
-
-import FRP.Yampa
 
 contactRate :: Double
 contactRate = 5.0
@@ -32,12 +27,6 @@ populationSize = 100
 
 infectedCount :: Double
 infectedCount = 1
-
-dt :: DTime
-dt = 0.1 -- 0.0025
-
-t :: Time
-t = 150
 
 writeAggregatesToFile :: String -> [(Double, Double, Double)] -> IO ()
 writeAggregatesToFile fileName dynamics = do

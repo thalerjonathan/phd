@@ -1,12 +1,15 @@
 {-# LANGUAGE Arrows #-}
-module SD where
+module SD 
+  (
+    runSD
+  ) where
 
 import FRP.Yampa
 
 import SIR
 
-runSD :: [(Double, Double, Double)]
-runSD = embed sir ((), steps)
+runSD :: Time -> DTime -> [(Double, Double, Double)]
+runSD t dt = embed sir ((), steps)
   where
     n     = t / dt
     steps = replicate (floor n) (dt, Nothing)

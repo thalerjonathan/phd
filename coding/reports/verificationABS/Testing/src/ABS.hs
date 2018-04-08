@@ -1,7 +1,12 @@
 {-# LANGUAGE Arrows #-}
 module ABS
   (
-    runABS
+    SIRState (..)
+
+  , runABS
+
+  , susceptibleAgent
+  , infectedAgent
   ) where
 
 import Control.Monad.Random
@@ -20,8 +25,8 @@ type SIRAgent = SF [SIRState] SIRState
 rngSeed :: Int
 rngSeed = 42
 
-runABS :: [(Double, Double, Double)]
-runABS = aggregateAllStates $ runSimulation g t dt as
+runABS :: Time -> DTime -> [(Double, Double, Double)]
+runABS t dt = aggregateAllStates $ runSimulation g t dt as
   where
     g = mkStdGen rngSeed
     as = initAgents (floor populationSize) (floor infectedCount)

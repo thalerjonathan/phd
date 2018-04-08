@@ -64,12 +64,12 @@ executable Testing
                       , MonadRandom
                       , containers
                       , mtl 
-
+                      , random
+                      
   -- Directories containing source files.
   hs-source-dirs:       src
   
   -- Base language which the package is written in.
   default-language:    Haskell2010
   
-  ghc-options:         -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing
-  
+  ghc-options:         -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -fno-warn-unused-local-binds -fno-warn-unused-matches

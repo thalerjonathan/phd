@@ -4,9 +4,6 @@ module SIR
   , infectivity
   , illnessDuration
   
-  , populationSize
-  , infectedCount
-
   , writeAggregatesToFile
   ) where
 
@@ -21,12 +18,6 @@ infectivity = 0.05
 
 illnessDuration :: Double
 illnessDuration = 15.0
-
-populationSize :: Double
-populationSize = 100
-
-infectedCount :: Double
-infectedCount = 1
 
 writeAggregatesToFile :: String -> [(Double, Double, Double)] -> IO ()
 writeAggregatesToFile fileName dynamics = do

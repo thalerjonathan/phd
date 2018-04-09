@@ -22,14 +22,17 @@ data SIRState
 
 type SIRAgent = SF [SIRState] SIRState
 
-rngSeed :: Int
-rngSeed = 42
-
-runABS :: Time -> DTime -> [(Double, Double, Double)]
-runABS t dt = aggregateAllStates $ runSimulation g t dt as
+runABS :: RandomGen g 
+       => g 
+       -> Int
+       -> Int
+       -> Time 
+       -> DTime 
+       -> [(Double, Double, Double)]
+runABS g populationSize infectedCount t dt
+    = aggregateAllStates $ runSimulation g t dt as
   where
-    g = mkStdGen rngSeed
-    as = initAgents (floor populationSize) (floor infectedCount)
+    as = initAgents populationSize infectedCount
 
 aggregateAllStates :: [[SIRState]] -> [(Double, Double, Double)]
 aggregateAllStates = map aggregateStates

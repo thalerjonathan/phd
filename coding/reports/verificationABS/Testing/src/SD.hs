@@ -8,14 +8,22 @@ import FRP.Yampa
 
 import SIR
 
-runSD :: Time -> DTime -> [(Double, Double, Double)]
-runSD t dt = embed sir ((), steps)
+runSD :: Double
+      -> Double
+      -> Time
+      -> DTime
+      -> [(Double, Double, Double)]
+runSD populationSize infectedCount t dt 
+    = embed (sir populationSize infectedCount) ((), steps)
   where
     n     = t / dt
     steps = replicate (floor n) (dt, Nothing)
 
-sir :: SF () (Double, Double, Double)
-sir = loopPre (initSus, initInf, initRec) sir'
+sir :: Double 
+    -> Double
+    -> SF () (Double, Double, Double)
+sir populationSize infectedCount 
+    = loopPre (initSus, initInf, initRec) sir'
   where
     sir' :: SF 
             ((), (Double, Double, Double))

@@ -1,6 +1,7 @@
 {-# LANGUAGE Arrows #-}
 module Main where
 
+import Control.Monad
 import Data.List
 import Data.Maybe
 import Data.Void
@@ -10,23 +11,15 @@ import System.Random
 import Debug.Trace
 
 import ABS
---import SD
+import SD
 import SIR
 
 main :: IO ()
 main = do
-  --let sdDyns  = runSD 150 0.01
-  --    absDyns = runABS 150 0.1
-  
-  --let filename = "sd_" ++ show populationSize ++ ".m"
-  --writeAggregatesToFile filename sdDyns
-
-  --print sdDyns
-  --print absDyns
   g <- getStdGen
 
   -- print $ testCaseSusceptible g 
-  print $ testCaseInfected g
+  testDynamics g
 
   return ()
 
@@ -61,6 +54,7 @@ testCaseSusceptible g0 = diff <= eps
         -- we have 3 other agents, each in one of the states
         -- this means, that this susceptible agent will pick
         -- on average an Infected with a probability of 1/3
+        -- TODO: let quickcheck do this
         otherAgents       = [Susceptible, Infected, Recovered]
         infOtherAgents    = length $ filter (Infected==) otherAgents
         nonInfOtherAgents = length $ filter (Infected/=) otherAgents
@@ -186,5 +180,73 @@ testCaseRecovered = undefined
 --   then be compared to the SD dynamics (note
 --   that we only need to calculate the SD 
 --   dynamics once, because they are not stochastic)
-testDynamics :: ()
-testDynamics = undefined
+-- TODO: let quickcheck pick number of susceptible/infected/recovered
+testDynamics :: RandomGen g 
+             => g
+             -> IO ()
+testDynamics g = do
+    let popSize = 100 :: Double
+    let infCount = 1   :: Double
+
+    let sdDyns  = runSD popSize infCount 150 0.01
+    -- TODO: need multiple runs and average them! at least 10
+    absDynss <- forM ([1..10] :: [Int]) (\_ -> do
+      g' <- newStdGen
+      return $ runABS g' (floor popSize) (floor infCount) 150 0.1)
+
+    let absDyns = averageAbsDynamics absDynss
+
+    let (sdSus, sdInf, sdRec)    = unzip3 sdDyns
+    let (absSus, absInf, absRec) = unzip3 absDyns
+
+    let nmseSus = nmse sdSus absSus
+    let nmseInf = nmse sdInf absInf
+    let nmseRec = nmse sdRec absRec
+
+    let sdfilename  = "sd_" ++ show popSize ++ ".m"
+    let absfilename = "abs_" ++ show popSize ++ ".m"
+
+    writeAggregatesToFile sdfilename sdDyns
+    writeAggregatesToFile absfilename absDyns
+
+    print (nmseSus, nmseInf, nmseRec)
+
+  where
+    -- | Normalized Mean Square Error
+    -- Assuming xs and ys are same length 
+    nmse :: [Double]  -- ^ xs
+         -> [Double]  -- ^ ys
+         -> Double    -- ^ nmse 
+    nmse xs ys = nmseSum / n
+      where
+        n = fromIntegral $ length xs
+        xsNorm = sum xs / n
+        ysNorm = sum ys / n
+
+        nmseSum = sum $ zipWith (\x y -> ((x - y) ** 2) / (xsNorm * ysNorm)) xs ys
+
+    -- | Averaging, but ignoring cases where the infected recover
+    -- without really starting the dynamics
+    averageAbsDynamics :: [[(Double, Double, Double)]]
+                       -> [(Double, Double, Double)]
+    averageAbsDynamics []         = []
+    averageAbsDynamics (ds : dss) = dsAvgs
+      where
+        -- TODO filter out "invalid dynamics"
+        n = 1 + fromIntegral (length dss)
+        dsSums = sumAbsDyns dss ds 
+        dsAvgs = map (\(ss, is, rs) -> (ss / n, is / n, rs / n)) dsSums
+
+        sumAbsDyns :: [[(Double, Double, Double)]]
+                   -> [(Double, Double, Double)]
+                   -> [(Double, Double, Double)]
+        sumAbsDyns []  acc        = acc
+        sumAbsDyns (ds : dss) acc = sumAbsDyns dss acc'
+          where
+            acc' = zipWith tripleSum ds acc
+
+            tripleSum :: (Double, Double, Double)
+                      -> (Double, Double, Double)
+                      -> (Double, Double, Double)
+            tripleSum (x1, y1, z1) (x2, y2, z2) 
+              = (x1 + x2, y1 + y2, z1 + z2)      

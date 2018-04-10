@@ -1,6 +1,7 @@
 {-# LANGUAGE Arrows #-}
 module Main where
 
+import Control.Monad
 import Data.List
 import Data.Maybe
 import Data.Void
@@ -188,7 +189,12 @@ testDynamics g = do
     let infCount = 1   :: Double
 
     let sdDyns  = runSD popSize infCount 150 0.01
-    let absDyns = runABS g (floor popSize) (floor infCount) 150 0.01
+    -- TODO: need multiple runs and average them! at least 10
+    absDynss <- forM ([1..10] :: [Int]) (\_ -> do
+      g' <- newStdGen
+      return $ runABS g' (floor popSize) (floor infCount) 150 0.1)
+
+    let absDyns = averageAbsDynamics absDynss
 
     let (sdSus, sdInf, sdRec)    = unzip3 sdDyns
     let (absSus, absInf, absRec) = unzip3 absDyns
@@ -218,3 +224,29 @@ testDynamics g = do
         ysNorm = sum ys / n
 
         nmseSum = sum $ zipWith (\x y -> ((x - y) ** 2) / (xsNorm * ysNorm)) xs ys
+
+    -- | Averaging, but ignoring cases where the infected recover
+    -- without really starting the dynamics
+    averageAbsDynamics :: [[(Double, Double, Double)]]
+                       -> [(Double, Double, Double)]
+    averageAbsDynamics []         = []
+    averageAbsDynamics (ds : dss) = dsAvgs
+      where
+        -- TODO filter out "invalid dynamics"
+        n = 1 + fromIntegral (length dss)
+        dsSums = sumAbsDyns dss ds 
+        dsAvgs = map (\(ss, is, rs) -> (ss / n, is / n, rs / n)) dsSums
+
+        sumAbsDyns :: [[(Double, Double, Double)]]
+                   -> [(Double, Double, Double)]
+                   -> [(Double, Double, Double)]
+        sumAbsDyns []  acc        = acc
+        sumAbsDyns (ds : dss) acc = sumAbsDyns dss acc'
+          where
+            acc' = zipWith tripleSum ds acc
+
+            tripleSum :: (Double, Double, Double)
+                      -> (Double, Double, Double)
+                      -> (Double, Double, Double)
+            tripleSum (x1, y1, z1) (x2, y2, z2) 
+              = (x1 + x2, y1 + y2, z1 + z2)      

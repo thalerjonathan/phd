@@ -65,11 +65,23 @@ executable Testing
                       , containers
                       , mtl 
                       , random
-                      
+                      , tasty
+                      , tasty-hunit
+                      , tasty-smallcheck
+                      , tasty-quickcheck
+
   -- Directories containing source files.
   hs-source-dirs:       src
   
   -- Base language which the package is written in.
   default-language:    Haskell2010
   
-  ghc-options:         -O3 -Wall -Werror -fwarn-tabs -fno-warn-name-shadowing -fno-warn-unused-local-binds -fno-warn-unused-matches
+  ghc-options:         -O3 
+                       -Wall 
+                       -Werror 
+                       -fwarn-tabs 
+                       -fno-warn-name-shadowing 
+                       -fno-warn-unused-local-binds 
+                       -fno-warn-unused-matches
+                       -fno-warn-missing-signatures
+                       -fno-warn-orphans

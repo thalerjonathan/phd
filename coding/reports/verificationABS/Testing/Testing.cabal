@@ -45,10 +45,9 @@ extra-source-files:  ChangeLog.md
 -- Constraint on the version of Cabal needed to build this package.
 cabal-version:       >=1.10
 
-
-executable Testing
+executable SIRABS
   -- .hs or .lhs file containing the Main module.
-  main-is:             Main.hs
+  main-is:              Main.hs
   
   -- Modules included in this executable, other than Main.
   other-modules:        ABS
@@ -85,3 +84,33 @@ executable Testing
                        -fno-warn-unused-matches
                        -fno-warn-missing-signatures
                        -fno-warn-orphans
+
+test-suite sir-abs-test
+  type:                 exitcode-stdio-1.0
+  hs-source-dirs:       src
+  main-is:              SIRAbsTests.hs
+  -- Modules included in this executable, other than Main.
+  other-modules:        ABS
+                      , SD
+                      , SIR
+  build-depends:        base
+                      , Yampa >=0.10 && <0.11
+                      , MonadRandom
+                      , containers
+                      , mtl 
+                      , random
+                      , tasty
+                      , tasty-hunit
+                      , tasty-smallcheck
+                      , tasty-quickcheck
+  ghc-options:         -O3 
+                       -Wall 
+                       -Werror 
+                       -fwarn-tabs 
+                       -fno-warn-name-shadowing 
+                       -fno-warn-unused-local-binds 
+                       -fno-warn-unused-matches
+                       -fno-warn-missing-signatures
+                       -fno-warn-orphans
+                       -main-is SIRAbsTests 
+  default-language:     Haskell2010

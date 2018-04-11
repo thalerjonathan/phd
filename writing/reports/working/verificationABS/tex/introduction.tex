@@ -75,9 +75,9 @@ we are interested here in extremely strong verification: have we built the model
 
 
 general requirements to ABS
-- modelling progress of time (steward robinson simulation book)
-- modelling variability (steward robinson simulation book)
-- fixing random number stream (steward robinson simulation book)
+- modelling progress of time (steward robinson simulation book, chapter 2)
+- modelling variability (steward robinson simulation book, chapter 2)
+- fixing random number streams to allow simulations to be repeated under same conditions (steward robinson simulation book, chapter 1.3.2 and chapter 2)
 - only rely on past
 	-> solved with Arrowized FRP
 - bugs due to implicitly mutable state
@@ -91,7 +91,53 @@ general requirements to ABS
 - repeated runs lead to same dynamics
 	-> can be ensured by pure functional programming
 
+steward robinson simulation book bulletpoints
+- chapter 8.2: speed of coding, transparency, flexibility, run-speed
+- chapter 8.3: three activities - 1 coding, 2 testing verification and white-box validating, 3 documenting
+- chapter 9.7: nature of simulation: terminating vs. non-terminating
+- chapter 9.7: nature of simulation output: transient or steady-state (steady-state cycle, shifting steady-state)
+
+steward robinson simulation book on implementation
+- meaning of implementation
+	-> 1 implementing the findings: conduct a study which defines and gathers all findings about the model and document them
+	-> 2 implementing the model
+	-> 3 implementing the learning
+
+steward robinson simulation book on verification, validation and confidence
+- Verification is the process of ensuring that the model design has been transformed into a computer model with sufficient accuracy (Davis 1992)
+- Validation is the process of ensuring that the model is sufficiently accurate for the purpose at hand (Carson 1986).
+- Verification has a narrow definition and can be seen as a subset of the wider issue of validation
+- In Verification and validation the aim is to ensure, that the model is sufficiently accurate, which always implies its purpose.
+- => the purpose / objectives mus be known BEFORE it is validated 
+- white-box validation: detailed, micro check if each part of the model represent the real world with sufficient accuracy 
+	-> intrinsic to model coding
+- black-box validation: overall, macro check whether the model provides a sufficiently accurate representation of the real world system
+	-> can only be performed once model code is complete
+- other definition of verification: it is a test of the fidelity with which the conceptual model is converted into the computer model
+- verification (and validation) is a continuous process => if it is already there in the programming language / supported by it e.g. through types,... then this is much easier to do
+- difficulties of verification and validation
+	-> there is no such thing as general validity: a model should be built for one purpose as simple as possible and not be too general, otherwise it becomes too bloated and too difficult / impossible to analyse
+	-> there may be no real world to compare against: simulations are developed for proposed systems, new production / facilities which dont exist yet. 
+	-> which real world?: the real world can be interpreted in different ways => a model valid to one person may not be valid to another
+	-> often the real world data are inaccurate
+	-> there is not enough time to verify and validate everything
+	-> confidence, not validity: it is not possible to prove that a model is valid, instead one should think of confidence in its validity. 
+		=> verification and validation is thus not the proof that a model is correct but trying to prove that the model is incorrect, the more tests/checks one carries out which show that it is NOT incorrect, the more confidence we can place on the models validity
+	- methods of verification and validation
+	-> conceptual model validation: judment based on the documentation
+	-> data validation: analysing data for inconsistencies
+	-> verification and white-box validation
+		-> both conceptually different but often treated together because both occur continuously through model coding
+		-> what should be checked: timings (cycle times, arrival times,...), control of elements (breakdown frequency, shift patterns), control flows (e.g. routing), control logic (e.g. scheduling, stock replenishment), distribution sampling (samples obtained from an empirial distribution)
+	-> verification and whilte-box validation methods
+		-> checking code: reading through code and ensure right data and logic is there. explain to others/discuss together/others should look at your code. 
+		-> Visual checks
+		-> inspecting output reports
+		
+	-> black-box testing
 dependent-types:
 -> encode model-invariants on a meta-level
 -> encode dynamics (what? feedbacks? positive/negative) on a meta-level
 -> totality equals steady-state of a simulation, can enforce totality if required through type-level programming
+-> probabilistic types can encode probability distributions in types already about which we can then reason
+-> can we encode objectives in types?

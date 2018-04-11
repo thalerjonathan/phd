@@ -83,7 +83,9 @@ sirAgent g Susceptible = susceptibleAgent g
 sirAgent g Infected    = infectedAgent g
 sirAgent _ Recovered   = recoveredAgent
 
-susceptibleAgent :: RandomGen g => g -> SIRAgent
+susceptibleAgent :: RandomGen g 
+                 => g 
+                 -> SIRAgent
 susceptibleAgent g = 
     switch 
       (susceptible g) 
@@ -100,7 +102,7 @@ susceptibleAgent g =
         then (do
           a <- drawRandomElemSF g -< as
           case a of
-            Infected -> do
+            Just Infected -> do
               i <- randomBoolSF g infectivity -< ()
               if i
                 then returnA -< (Infected, Event ())
@@ -128,13 +130,16 @@ randomBoolSF g p = proc _ -> do
   r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
   returnA -< (r <= p)
 
-drawRandomElemSF :: RandomGen g => g -> SF [a] a
-drawRandomElemSF g = proc as -> do
-  r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
-  let len = length as
-  let idx = fromIntegral len * r
-  let a =  as !! floor idx
-  returnA -< a
+drawRandomElemSF :: RandomGen g => g -> SF [a] (Maybe a)
+drawRandomElemSF g = proc as -> 
+  if null as 
+    then returnA -< Nothing
+    else do
+      r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
+      let len = length as
+      let idx = fromIntegral len * r
+      let a =  as !! floor idx
+      returnA -< Just a
 
 initAgents :: Int -> Int -> [SIRState]
 initAgents n i = sus ++ inf

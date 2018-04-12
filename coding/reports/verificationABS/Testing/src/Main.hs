@@ -26,7 +26,7 @@ main :: IO ()
 main = do
   g <- getStdGen
   testDynamics g
-  defaultMain (tests g)
+  --defaultMain (tests g)
 
 tests :: RandomGen g
       => g 
@@ -214,9 +214,6 @@ testCaseRecovered = undefined
 --   then be compared to the SD dynamics (note
 --   that we only need to calculate the SD 
 --   dynamics once, because they are not stochastic)
--- TODO: doesnt really work... comparing SD and ABS dynamics is 
---       very difficult on a quantitative level due to ABS inherent
---       stochastics and different nature
 testDynamics :: RandomGen g 
              => g
              -> IO ()
@@ -225,19 +222,16 @@ testDynamics g = do
     let infCount = 1   :: Double
 
     let sdDyns  = runSD popSize infCount 150 0.1
-    absDynss <- forM ([1..10] :: [Int]) (\_ -> do
+
+    -- TODO: dont average and compare individual ABS runs with a confidence interval
+    --       and then count the ones which have passed the confidence check and
+    --       require that e.g. 90% should pass the test (same can be done for NMSE)
+    absDynss <- forM ([1..2] :: [Int]) (\_ -> do
       g' <- newStdGen
       return $ runABS g' (floor popSize) (floor infCount) 150 0.1)
 
     let absDynssFiltered = filter okDynamics absDynss
     let absDyns = averageAbsDynamics absDynssFiltered
-
-    let (sdSus, sdInf, sdRec)    = unzip3 sdDyns
-    let (absSus, absInf, absRec) = unzip3 absDyns
-
-    let nmseSus = nmse sdSus absSus
-    let nmseInf = nmse sdInf absInf
-    let nmseRec = nmse sdRec absRec
 
     let sdfilename  = "sd_" ++ show popSize ++ ".m"
     let absfilename = "abs_" ++ show popSize ++ ".m"
@@ -245,13 +239,64 @@ testDynamics g = do
     writeAggregatesToFile sdfilename sdDyns
     writeAggregatesToFile absfilename absDyns
 
-    print (nmseSus, nmseInf, nmseRec)
+    let (nmseSus, nmseInf, nmseRec) = calcNmse sdDyns absDyns
+    let (confSus, confInf, confRec) = calcConf sdDyns absDyns
+    
+    print $ "NMSE: " ++ show (nmseSus, nmseInf, nmseRec)
+    print $ "Confidence: " ++ show (confSus, confInf, confRec)
 
   where
+           
     okDynamics :: [(Double, Double, Double)] -> Bool
     okDynamics = (>50) . third . last 
       where
         third (_, _, x) = x
+
+    calcConf :: [(Double, Double, Double)]
+             -> [(Double, Double, Double)]
+             -> (Double, Double, Double)
+    calcConf sdDyns absDyns = (susDelta, susConf, 0)
+      where
+        (sdSus, sdInf, sdRec)    = unzip3 sdDyns
+        (absSus, absInf, absRec) = unzip3 absDyns
+
+        -- assuming all are same length
+        n = fromIntegral $ length sdSus
+
+        sdSusMean = mean sdSus
+        sdSusStd = std sdSus
+
+        absSusMean = mean absSus
+        absSusStd = std absSus
+
+        -- TODO: need value of student t-distribution
+        -- with 2n - 2 degrees of freedom and a 
+        -- significance level of alpha/2
+        tDist = 0
+
+        susDelta = absSusMean - sdSusMean
+        susConf = tDist * sqrt ((sdSusStd ** 2 + absSusStd ** 2) / n)
+
+    calcNmse :: [(Double, Double, Double)]
+             -> [(Double, Double, Double)]
+             -> (Double, Double, Double)
+    calcNmse sdDyns absDyns = (nmseSus, nmseInf, nmseRec)
+      where
+        (sdSus, sdInf, sdRec)    = unzip3 sdDyns
+        (absSus, absInf, absRec) = unzip3 absDyns
+
+        nmseSus = nmse sdSus absSus
+        nmseInf = nmse sdInf absInf
+        nmseRec = nmse sdRec absRec
+
+    mean :: [Double] -> Double
+    mean xs = sum xs / fromIntegral (length xs)
+
+    std :: [Double] -> Double
+    std xs = sqrt $ sum (map (\x -> (x - x') ** 2) xs) / n
+      where
+        x' = mean xs 
+        n = fromIntegral (length xs) - 1
 
     -- | Normalized Mean Square Error
     -- Assuming xs and ys are same length 

@@ -10,6 +10,16 @@ Defined as treating the functionality to test as a black box with inputs and out
 - can we express model properties in tests e.g. quickcheck?
 - isolated tests: how easy can we test parts of an agent / simulation?
 
+\subsubsection{Comparison against SD}
+- population-size matters: different population-size results in slightly different dynamics in SD => need same population size in ABS (probably...?)
+- utilise a statistical test with H0 "ABS and comparison is not the same" and H1 "ABS and comparison is the same"
+- how many replications and how do we average?
+- which statistical test do we implement? (steward robinson simulation book, chapter 12.4.4)
+	-> Normalizsed Mean Squared Error (NMSE)
+	-> TODO: implement confidence interval 
+	-> TODO: what about chi-squared?
+	-> TODO: what about paired-t confidence interval
+	
 \subsection{White Box Verification}
 Defined as directly looking at the code and reasoning that the code does really what it has to implement.
 

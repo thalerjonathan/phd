@@ -68,7 +68,8 @@ executable SIRABS
                       , tasty-hunit
                       , tasty-smallcheck
                       , tasty-quickcheck
-
+                      , statistics
+                      
   -- Directories containing source files.
   hs-source-dirs:       src
   
@@ -84,33 +85,3 @@ executable SIRABS
                        -fno-warn-unused-matches
                        -fno-warn-missing-signatures
                        -fno-warn-orphans
-
-test-suite sir-abs-test
-  type:                 exitcode-stdio-1.0
-  hs-source-dirs:       src
-  main-is:              SIRAbsTests.hs
-  -- Modules included in this executable, other than Main.
-  other-modules:        ABS
-                      , SD
-                      , SIR
-  build-depends:        base
-                      , Yampa >=0.10 && <0.11
-                      , MonadRandom
-                      , containers
-                      , mtl 
-                      , random
-                      , tasty
-                      , tasty-hunit
-                      , tasty-smallcheck
-                      , tasty-quickcheck
-  ghc-options:         -O3 
-                       -Wall 
-                       -Werror 
-                       -fwarn-tabs 
-                       -fno-warn-name-shadowing 
-                       -fno-warn-unused-local-binds 
-                       -fno-warn-unused-matches
-                       -fno-warn-missing-signatures
-                       -fno-warn-orphans
-                       -main-is SIRAbsTests 
-  default-language:     Haskell2010

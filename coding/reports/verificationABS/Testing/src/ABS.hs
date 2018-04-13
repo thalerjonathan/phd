@@ -87,7 +87,7 @@ susceptibleAgent :: RandomGen g
                  => g 
                  -> SIRAgent
 susceptibleAgent g = 
-    switch 
+    switch
       (susceptible g) 
       (const $ infectedAgent g)
   where

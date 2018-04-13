@@ -11,6 +11,10 @@ import System.Random
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
 
+-- TODO: add statistics to cabal file
+--import Statistics.Distribution
+--import Statistics.Distribution.StudentT
+
 import ABS
 import SD
 import SIR
@@ -220,42 +224,45 @@ testDynamics :: RandomGen g
 testDynamics g = do
     let popSize = 100 :: Double
     let infCount = 1   :: Double
+    let replications = 100 :: Int
 
     let sdDyns  = runSD popSize infCount 150 0.1
 
-    -- TODO: dont average and compare individual ABS runs with a confidence interval
-    --       and then count the ones which have passed the confidence check and
-    --       require that e.g. 90% should pass the test (same can be done for NMSE)
-    absDynss <- forM ([1..2] :: [Int]) (\_ -> do
-      g' <- newStdGen
-      return $ runABS g' (floor popSize) (floor infCount) 150 0.1)
+    (sc, ic, rc) <- foldM (\(sc, ic, rc) i -> do
+        g' <- newStdGen
+        let absDyns = runABS g' (floor popSize) (floor infCount) 150 0.1
+        let (nmseSus, nmseInf, nmseRec) = calcNmse sdDyns absDyns
+        putStrLn $ "NMSE " ++ show i ++ ": " ++ show (nmseSus, nmseInf, nmseRec)
 
-    let absDynssFiltered = filter okDynamics absDynss
-    let absDyns = averageAbsDynamics absDynssFiltered
+        let sc' = if nmseSus < 0.1 then sc + 1 else sc
+        let ic' = if nmseInf < 0.1 then ic + 1 else ic
+        let rc' = if nmseRec < 0.1 then rc + 1 else rc
 
-    let sdfilename  = "sd_" ++ show popSize ++ ".m"
-    let absfilename = "abs_" ++ show popSize ++ ".m"
+        return (sc', ic', rc')
+      ) ((0,0,0) :: (Int, Int, Int)) [1..replications]
 
-    writeAggregatesToFile sdfilename sdDyns
-    writeAggregatesToFile absfilename absDyns
+    --let sdfilename  = "sd_" ++ show popSize ++ ".m"
+    --let absfilename = "abs_" ++ show popSize ++ ".m"
 
-    let (nmseSus, nmseInf, nmseRec) = calcNmse sdDyns absDyns
-    let (confSus, confInf, confRec) = calcConf sdDyns absDyns
+    --writeAggregatesToFile sdfilename sdDyns
+    --writeAggregatesToFile absfilename absDyns
+
+    --let (nmseSus, nmseInf, nmseRec) = calcNmse sdDyns absDyns
+    --let (confSus, confInf, confRec) = calcConf 0.95 sdDyns absDyns
     
-    print $ "NMSE: " ++ show (nmseSus, nmseInf, nmseRec)
-    print $ "Confidence: " ++ show (confSus, confInf, confRec)
+    print (sc, ic, rc)
+    --print $ "Confidence: " ++ show (confSus, confInf, confRec)
 
   where
-           
-    okDynamics :: [(Double, Double, Double)] -> Bool
-    okDynamics = (>50) . third . last 
-      where
-        third (_, _, x) = x
 
-    calcConf :: [(Double, Double, Double)]
+{-
+    -- TODO: do confidence intervals make sense here?
+    -- also how do we construct them?
+    calcConf :: Double
+             -> [(Double, Double, Double)]
              -> [(Double, Double, Double)]
              -> (Double, Double, Double)
-    calcConf sdDyns absDyns = (susDelta, susConf, 0)
+    calcConf alpha sdDyns absDyns = (tDistSample, tDistSample, tDistSample)
       where
         (sdSus, sdInf, sdRec)    = unzip3 sdDyns
         (absSus, absInf, absRec) = unzip3 absDyns
@@ -269,13 +276,11 @@ testDynamics g = do
         absSusMean = mean absSus
         absSusStd = std absSus
 
-        -- TODO: need value of student t-distribution
-        -- with 2n - 2 degrees of freedom and a 
-        -- significance level of alpha/2
-        tDist = 0
-
-        susDelta = absSusMean - sdSusMean
-        susConf = tDist * sqrt ((sdSusStd ** 2 + absSusStd ** 2) / n)
+        degFree = n
+        tDist = studentT degFree
+        tDistSample = density tDist ((1 - alpha) / 2)
+-}
+        
 
     calcNmse :: [(Double, Double, Double)]
              -> [(Double, Double, Double)]
@@ -318,7 +323,6 @@ testDynamics g = do
     averageAbsDynamics []         = []
     averageAbsDynamics (ds : dss) = dsAvgs
       where
-        -- TODO filter out "invalid dynamics"
         n = 1 + fromIntegral (length dss)
         dsSums = sumAbsDyns dss ds 
         dsAvgs = map (\(ss, is, rs) -> (ss / n, is / n, rs / n)) dsSums

@@ -3,17 +3,23 @@ TODO: explore ABS testing in pure functional Haskell
 - we need to distinguish between two types of testing/verification
 	-> 1. testing/verification of models for which we have real-world data or an analytical solution which can act as a ground-truth. examples for such models are the SIR model, stock-market simulations, social simulations of all kind
 	-> 2. testing/verification of models which are just exploratory and which are only be inspired by real-world phenomena. examples for such models are Epsteins Sugarscape and Agent\_Zero
-
+	
 \subsection{Black Box Verification}
 Defined as treating the functionality to test as a black box with inputs and outputs and comparing controlled inputs to expected outputs.
 
-- testing of distributions e.g. all agents recover on average after illness duration
+In Black Box Verification one generally feeds input and compares it to expected output. In the case of ABS we have two things to black-box test:
+\begin{enumerate}
+	\item Agent Behaviour - test isolated agent behaviour under given inputs using unit- and property-based testing
+	\item Simulation Dynamics - compare emergent dynamics of the ABS as a whole under given inputs to an analytical solution / real-world dynamics in case there exists some using statistical tests
+	\item Hypotheses- test whether hypotheses are valid / invalid using unit- and property-based testing. TODO: how can we formulate hypotheses in unit- and/or property-based tests?
+\end{enumerate}
+
 - testing of the final dynamics: how close do they match the analytical solution
 - can we express model properties in tests e.g. quickcheck?
+- property-testing shines here
 - isolated tests: how easy can we test parts of an agent / simulation?
 
-\subsubsection{Comparison against SD}
-- population-size matters: different population-size results in slightly different dynamics in SD => need same population size in ABS (probably...?)
+\subsubsection{Comparison of dynamics against existing data}
 - utilise a statistical test with H0 "ABS and comparison is not the same" and H1 "ABS and comparison is the same"
 - how many replications and how do we average?
 - which statistical test do we implement? (steward robinson simulation book, chapter 12.4.4)
@@ -21,8 +27,10 @@ Defined as treating the functionality to test as a black box with inputs and out
 	-> TODO: implement confidence interval 
 	-> TODO: what about chi-squared?
 	-> TODO: what about paired-t confidence interval
-	
+
+IMPORTANT: this is not what we are after here in this paper, statistical tests are a science on their own and there actually exists quite a large amount of literature for conducting statistical tests on ABS dynamics: Robinson Book (TODO: find additional literature)	
+
 \subsection{White Box Verification}
 Defined as directly looking at the code and reasoning that the code does really what it has to implement.
-
 - coverage testing
+

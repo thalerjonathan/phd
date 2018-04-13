@@ -1,0 +1,21 @@
+\section{Verification of SIR}
+In this section we verify our agent-based implementation of the SIR model. Verification of our implementation should be fairly straight-forward and easy as the model is given in differential equations which gives us a formal specification of the model which we can use directly in our verification process. We will also conduct white-box verification and for one property it will be the only way of ensuring that our model is correct as we cannot guarantee it through black-box verification.
+
+\subsection{Black Box Verification}
+\subsubsection{Agent Behaviour}
+When conducting black-box testing for the SIR model, we test if the \textit{isolated} behaviour of an agent in all three states Susceptible, Infected and Recovered, corresponds to model specifications. 
+
+\paragraph{Susceptible Behaviour}
+
+
+\subsubsection{Simulation Dynamics}
+We won't go into the details of comparing the dynamics of an ABS to an analytical solution, that has been done already by \cite{macal_agent-based_2010}. What is important is to note that population-size matters: different population-size results in slightly different dynamics in SD => need same population size in ABS (probably...?). Note that it is utterly difficult to compare the dynamics of an ABS to the one of a SD approach as ABS dynamics are stochastic which explore a much wider spectrum of dynamics e.g. it could be the case, that the infected agent recovers without having infected any other agent, which would lead to an extreme mismatch to the SD approach but is absolutely a valid dynamic in the case of an ABS. The question is then rather if and how far those two are \textit{really} comparable as it seems that the ABS is a more powerful system which presents many more paths through the dynamics.
+TODO: i really want to solve this for the SIR approac
+	-> confidence intervals?
+	-> NMSE?
+	-> does it even make sense?
+
+\subsection{White Box Verification}
+Defined as directly looking at the code and reasoning that the code does really what it has to implement.
+
+- coverage testing

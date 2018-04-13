@@ -34,6 +34,7 @@ dependent-types:
 -> totality equals steady-state of a simulation, can enforce totality if required through type-level programming
 -> probabilistic types can encode probability distributions in types already about which we can then reason
 -> can we encode objectives in types?
+-> agents as dependently typed continuations?: need a dependently typed concept of a process over time
 
 \subsection{Dependently Typed SIR}
 Intuitively, based upon our model and the equations we can argue that the SIR model enters a steady state as soon as there are no more infected agents. Thus we can informally argue that a SIR model must always terminate as:
@@ -57,6 +58,7 @@ Abandoning the FRP approach and starting fresh, the question is how we implement
 --              terminates when there are no more INFECTED agents
 
 
+show formally that abs does resemble the sd approach: need an idea of a proof and then implement it in dependent types: look at 3 agent system: 2 susceptible, 1 infected. or maybe 2 agents only
 
 %A susceptible agent can only become infected when it comes into contact with an infected agent. The probability of a susceptible agent making contact with an infected one is naturally (number of infected agents) / (total number of agents). For the infection to occur we multiply the contact with the infectivity parameter \Gamma. A susceptible agent makes on average \Beta contacts per time-unit. This results in the following formula:
 %

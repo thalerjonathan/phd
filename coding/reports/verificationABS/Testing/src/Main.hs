@@ -29,8 +29,8 @@ instance Arbitrary SIRState where
 main :: IO ()
 main = do
   g <- getStdGen
-  testDynamics g
-  --defaultMain (tests g)
+  --testDynamics g
+  defaultMain (tests g)
 
 tests :: RandomGen g
       => g 
@@ -152,8 +152,9 @@ testCaseSusceptible g0 otherAgents = diff <= eps
 -- NOTE: this is black-box verification
 testCaseInfected :: RandomGen g 
                  => g
+                 -> [SIRState]
                  -> Bool
-testCaseInfected g0 = diff <= eps
+testCaseInfected g0 otherAgents = diff <= eps
   where
     n    = 10000 -- TODO: how to select a 'correct' number of runs?
     eps  = 0.5   -- TODO: how to select a 'correct' epsilon? probably it depends on ratio between dt and illnessduration?
@@ -192,7 +193,11 @@ testCaseInfected g0 = diff <= eps
                       => g
                       -> SF () (Event Time)
         testInfectedSF g = proc _ -> do
-          ret <- infectedAgent g -< []
+          -- note that the otheragents are fed into the infected agents
+          -- but that they are ignored for checking whether the test
+          -- has failed or not. from this we can infer, that they
+          -- don't play a role in the infected agents behaviour at all
+          ret <- infectedAgent g -< otherAgents
           t <- time -< ()
           case ret of 
             Susceptible -> returnA -< NoEvent -- TODO: should never occur, can we test this? seems not so, but we can pretty easily guarantee it due to simplicity of code

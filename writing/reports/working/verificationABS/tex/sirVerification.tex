@@ -8,13 +8,31 @@ When conducting black-box testing for the SIR model, we test if the \textit{isol
 \paragraph{Susceptible Behaviour}
 A susceptible agent \textit{may} become infected, depending on the number of infected agents in relation to non-infected the susceptible agent has contact to. To make this property testable we run a susceptible agent for 1.0 time-unit (note that we are sampling the system with small $\Delta t$ e.g. 0.1) and then check if it is infected - that is it returns infected as its current state. Obviously we need to pay attention to the fact that we are dealing with a stochastic system thus we can only talk about averages and thus it does not suffice to only run a single agent but we are repeating this for e.g. $N = 10.000$ agents (all with different RNGs). We then need a formula for the required fraction of the N agents which should have become infected on average. Per 1.0 time-unit, a susceptible agent makes \textit{on average} contact with $\beta$ other agents where in the case of a contact with an infected agent the susceptible agent becomes infected with a given probability $\gamma$. In this description there is another probability hidden, which is the probability of making contact with an infected agent which is simply the ratio of number of infected agents to number not infected agents. The formula for the target fraction of agents which become infected is then: $\beta * \gamma * \frac{number of infected}{number of non-infected}$. To check whether this test has passed we compare the required amount of agents which on average should become infected to the one from our tests (simply count the agents which got infected and divide by N) and if the value lies within some small $\epsilon$ then we accept the test as passed.
 
-\paragraph{Inflected Behaviour}
+Obviously the input to the susceptible agents which we can vary is the set of agents with which the susceptible agents make contact with. To save us from constructing all possible edge-cases and combinations and testing them with unit-tests we use QuickCheck which creates them randomly for us and reduces them also to all relevant edge-cases. This is an example for how to use property-based testing in ABS where QuickCheck can be of immense help generating random test-data to cover all cases.
 
+TODO: derive the target-fraction formula from the differential equations
+TODO: can we encode this somehow on a type level using dependent types? then we don't need to test this property any more
+
+\paragraph{Infected Behaviour}
+An infected agent \textit{will always} recover after a finite time, which is \textit{on average} after $\delta$ time-units. Note that this property involves stochastics too, so to test this property we run a large number of infected agents e.g. $N = 10.000$ (all with different RNGs) until they recover, record the time of each agents recovery and then average over all recovery times. To check whether this test has passed we compare the average recovery times to $\delta$ and if they lie within some small $\epsilon$ then we accept the test as passed.
+We use QuickCheck in this case as well to generate the set of other agents as input for the infected agents. Strictly speaking this would not be necessary as an infected agent never makes contact with other agents and simply ignores them - we could as well just feed in an empty list. We opted for using QuickCheck for the following reasons:
+
+\begin{itemize}
+	\item We wanted to stick to the interface specification of the agent-implementation as close as possible which asks to pass the states of all agents as input.
+	\item We shouldn't make any assumptions about the actual implementation and if it REALLY ignores the other agents, so we strictly stick to the interface which requires us to input the states of all the other agents.
+	\item The set of other agents is ignored when determining whether the test has failed or not which indicates by construction that the behaviour of an infected agent does not depend on other agents.
+	\item We are not just running a single replication over 10.000 agents but 100 of them which should give black-box verification more strength.
+\end{itemize}
+
+TODO: derive the average formula from the differential equations
+TODO: can we encode this somehow on a type level using dependent types? then we don't need to test this property any more
 
 \paragraph{Recovered Behaviour}
-A recovered agent will stay in the recovered state \textit{forever}. Obviously we cannot write a black-box test that truly verifies that because it had to run forever. In this case we need to resort to White Box Verification (see below).
+A recovered agent will stay in the recovered state \textit{forever}. Obviously we cannot write a black-box test that truly verifies that because it had to run in fact forever. In this case we need to resort to White Box Verification (see below).
 
+Because we use multiple replications in combination with QuickCheck obviously results in longer test-runs.
 In our implementation we utilized the FRP paradigm. It seems that functional programming and FRP allow extremely easy testing of individual agent behaviour because FP and FRP compose extremely well which in turn means that there are no global dependencies as e.g. in OOP where we have to be very careful to clean up the system after each test - this is not an issue at all in our \textit{pure} approach to ABS.
+
 
 \subsubsection{Simulation Dynamics}
 We won't go into the details of comparing the dynamics of an ABS to an analytical solution, that has been done already by \cite{macal_agent-based_2010}. What is important is to note that population-size matters: different population-size results in slightly different dynamics in SD => need same population size in ABS (probably...?). Note that it is utterly difficult to compare the dynamics of an ABS to the one of a SD approach as ABS dynamics are stochastic which explore a much wider spectrum of dynamics e.g. it could be the case, that the infected agent recovers without having infected any other agent, which would lead to an extreme mismatch to the SD approach but is absolutely a valid dynamic in the case of an ABS. The question is then rather if and how far those two are \textit{really} comparable as it seems that the ABS is a more powerful system which presents many more paths through the dynamics.
@@ -24,6 +42,19 @@ TODO: i really want to solve this for the SIR approac
 	-> does it even make sense?
 
 \subsection{White Box Verification}
-Defined as directly looking at the code and reasoning that the code does really what it has to implement.
+White-Box verification is necessary when we need to reason about properties like \textit{forever}, \textit{never}, which cannot be guaranteed from black-box tests. In the case of the SIR model we have the following invariants: 
+\begin{itemize}
+	\item A susceptible agent will \textit{never} make the transition to recovered.
+	\item An infected agent will \textit{never} make the transition to susceptible.
+	\item A recovered agent will \textit{forever} stay recovered.
+\end{itemize}
 
-- coverage testing
+All these invariants can be guaranteed when reasoning about the code. An additional help will be then coverage testing with which we can show that an infected agent never returns susceptible, and a susceptible agent never returned infected given all of their functionality was covered which has to imply that it can never occur!
+
+\paragraph{Susceptible Behaviour}
+
+
+\paragraph{Infected Behaviour}
+
+
+\paragraph{Recovered Behaviour}

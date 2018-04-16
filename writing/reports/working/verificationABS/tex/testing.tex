@@ -19,6 +19,12 @@ In Black Box Verification one generally feeds input and compares it to expected 
 - property-testing shines here
 - isolated tests: how easy can we test parts of an agent / simulation?
 
+\subsubsection{Finding optimal $\Delta t$}
+The selection of the right $\Delta t$ can be quite difficult in FRP because we have to make assumptions about the system a priori. One could just play it safe with a very conservatively selected small $\Delta t <= 0.1$ but the smaller $\Delta t$, the lower the performance as it quickly multiplies the number of steps to calculate. Obviously one wants to select the \textit{optimal} $\Delta t$, which in the case of ABS is the largest possible $\Delta t$ for which we still get the correct simulation dynamics.
+To find out the \textit{optimal} $\Delta t$ one can make direct use of the Black Box tests: start with a large $\Delta t = 1.0$ and reduce it by half every time the tests fail until no more tests fail - if for $\Delta t = 1.0$ tests already pass, increasing it may be an option. It is important to note that although isolated agent behaviour tests might result in larger $\Delta t$, in the end when they are run in the aggregate system, one needs to sample the whole system with the smallest $\Delta t$ found amongst all tests. Another option would be to apply super-sampling to just the parts which need a very small $\Delta t$ but this is out of scope of this paper.
+
+\subsubsection{Agents as signals}
+Agents \textit{might} behave as signals in FRP which means that if they are a signal they should stay constant if time stays constant. This means that they should not change in case one is sampling the system with $\Delta t = 0$. Of course to test whether this will \textit{always} be the case is strictly speaking impossible with a Black Box verification but we can guarantee much more when staying pure and by white box verification we can really guarantee this property.
 
 \subsubsection{Comparison of dynamics against existing data}
 - utilise a statistical test with H0 "ABS and comparison is not the same" and H1 "ABS and comparison is the same"

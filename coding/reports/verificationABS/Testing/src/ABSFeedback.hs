@@ -1,5 +1,5 @@
 {-# LANGUAGE Arrows #-}
-module ABS
+module ABSFeedback
   (
     SIRState (..)
 
@@ -11,8 +11,6 @@ module ABS
 
 import Control.Monad.Random
 import FRP.Yampa
-
-import SIR
 
 data SIRState 
   = Susceptible 
@@ -26,11 +24,14 @@ runABS :: RandomGen g
        => g 
        -> Int
        -> Int
+       -> Double
+       -> Double
+       -> Double 
        -> Time 
        -> DTime 
        -> [(Double, Double, Double)]
-runABS g populationSize infectedCount t dt
-    = aggregateAllStates $ runSimulation g t dt as
+runABS g populationSize infectedCount contactRate infectivity illnessDuration t dt
+    = aggregateAllStates $ runSimulation g contactRate infectivity illnessDuration t dt as
   where
     as = initAgents populationSize infectedCount
 
@@ -46,11 +47,15 @@ aggregateStates as = (susceptibleCount, infectedCount, recoveredCount)
 
 runSimulation :: RandomGen g 
               => g 
+              -> Double
+              -> Double
+              -> Double 
               -> Time 
               -> DTime 
               -> [SIRState] 
               -> [[SIRState]]
-runSimulation g t dt as = embed (stepSimulation sfs as) ((), dts)
+runSimulation g contactRate infectivity illnessDuration t dt as 
+    = embed (stepSimulation sfs as) ((), dts)
   where
     steps = floor $ t / dt
     dts = replicate steps (dt, Nothing) -- keep input the same as initial one, will be ignored anyway
@@ -65,31 +70,39 @@ runSimulation g t dt as = embed (stepSimulation sfs as) ((), dts)
       where
         (g', g'') = split g
 
-stepSimulation :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
-stepSimulation sfs as =
-    pSwitch
-      (\_ sfs' -> (map (\sf -> (as, sf)) sfs'))
-      sfs
-      -- if we switch immediately we end up in endless switching, so always wait for 'next'
-      (switchingEvt >>> notYet) 
-      stepSimulation
+    stepSimulation :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
+    stepSimulation sfs as =
+        pSwitch
+          (\_ sfs' -> (map (\sf -> (as, sf)) sfs'))
+          sfs
+          -- if we switch immediately we end up in endless switching, so always wait for 'next'
+          (switchingEvt >>> notYet) 
+          stepSimulation
+      where
+        switchingEvt :: SF ((), [SIRState]) (Event [SIRState])
+        switchingEvt = arr (\(_, newAs) -> Event newAs)
 
-  where
-    switchingEvt :: SF ((), [SIRState]) (Event [SIRState])
-    switchingEvt = arr (\(_, newAs) -> Event newAs)
-
-sirAgent :: RandomGen g => g -> SIRState -> SIRAgent
-sirAgent g Susceptible = susceptibleAgent g
-sirAgent g Infected    = infectedAgent g
-sirAgent _ Recovered   = recoveredAgent
+    sirAgent :: RandomGen g 
+            => g 
+            -> SIRState
+            -> SIRAgent
+    sirAgent g Susceptible 
+      = susceptibleAgent g contactRate infectivity illnessDuration
+    sirAgent g Infected    
+      = infectedAgent g illnessDuration
+    sirAgent _ Recovered 
+      = recoveredAgent
 
 susceptibleAgent :: RandomGen g 
                  => g 
+                 -> Double
+                 -> Double
+                 -> Double 
                  -> SIRAgent
-susceptibleAgent g = 
+susceptibleAgent g contactRate infectivity illnessDuration = 
     switch
       (susceptible g) 
-      (const $ infectedAgent g)
+      (const $ infectedAgent g illnessDuration)
   where
     susceptible :: RandomGen g => g -> SF [SIRState] (SIRState, Event ())
     susceptible g = proc as -> do
@@ -110,8 +123,11 @@ susceptibleAgent g =
             _       -> returnA -< (Susceptible, NoEvent))
         else returnA -< (Susceptible, NoEvent)
 
-infectedAgent :: RandomGen g => g -> SIRAgent
-infectedAgent g = 
+infectedAgent :: RandomGen g 
+              => g 
+              -> Double
+              -> SIRAgent
+infectedAgent g illnessDuration = 
     switch 
       infected 
       (const recoveredAgent)

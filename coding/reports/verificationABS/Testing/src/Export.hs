@@ -1,26 +1,13 @@
-module SIR
-  (
-    contactRate
-  , infectivity
-  , illnessDuration
-  
-  , writeAggregatesToFile
+module Export
+  ( 
+    writeMatlabFile
   ) where
 
 import System.IO
 import Text.Printf
 
-contactRate :: Double
-contactRate = 5.0
-
-infectivity :: Double
-infectivity = 0.05
-
-illnessDuration :: Double
-illnessDuration = 15.0
-
-writeAggregatesToFile :: String -> [(Double, Double, Double)] -> IO ()
-writeAggregatesToFile fileName dynamics = do
+writeMatlabFile :: String -> [(Double, Double, Double)] -> IO ()
+writeMatlabFile fileName dynamics = do
   fileHdl <- openFile fileName WriteMode
   hPutStrLn fileHdl "dynamics = ["
   mapM_ (hPutStrLn fileHdl . sirAggregateToString) dynamics

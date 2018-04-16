@@ -60,10 +60,10 @@ TODO: i really want to solve this for the SIR approach
 Obviously the \textit{optimal} $\Delta t$ of the SIR model depends heavily on the model parameters: contact rate $\beta$ and illness duration $\delta$. We fixed them in our tests to be $\beta = 5$ and $\delta = 15$. By using the isolated behaviour tests we found an optimal $\Delta t = 0.125$ for the susceptible behaviour and $\Delta t = 0.25$ for the infected behaviour. TODO: dynamics comparison?
 
 \subsubsection{Agents as signals}
-TODO
+Our SIR agents \textit{are} signals due to the underlying continuous nature of the analytical SIR model and to some extent we can guarantee this through black box testing. For this we write tests for each individual behaviour as previously but instead of checking whether agents got infected or have recovered we assume that they stay constant: they will output always the same state when sampling the system with $\Delta t = 0$. The tests are conceptual the complementary tests of the previous behaviour tests so in conjunction with them we can assume to some extent that agents are signals. To prove it, we need to look into white box verification as we cannot make guarantees about properties which should hold \textit{forever} in a computational setting.
 
 \subsection{White Box Verification}
-White-Box verification is necessary when we need to reason about properties like \textit{forever}, \textit{never}, which cannot be guaranteed from black-box tests. In the case of the SIR model we have the following invariants: 
+In the case of the SIR model we have the following invariants: 
 \begin{itemize}
 	\item A susceptible agent will \textit{never} make the transition to recovered.
 	\item An infected agent will \textit{never} make the transition to susceptible.

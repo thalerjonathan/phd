@@ -24,7 +24,7 @@ The selection of the right $\Delta t$ can be quite difficult in FRP because we h
 To find out the \textit{optimal} $\Delta t$ one can make direct use of the Black Box tests: start with a large $\Delta t = 1.0$ and reduce it by half every time the tests fail until no more tests fail - if for $\Delta t = 1.0$ tests already pass, increasing it may be an option. It is important to note that although isolated agent behaviour tests might result in larger $\Delta t$, in the end when they are run in the aggregate system, one needs to sample the whole system with the smallest $\Delta t$ found amongst all tests. Another option would be to apply super-sampling to just the parts which need a very small $\Delta t$ but this is out of scope of this paper.
 
 \subsubsection{Agents as signals}
-Agents \textit{might} behave as signals in FRP which means that if they are a signal they should stay constant if time stays constant. This means that they should not change in case one is sampling the system with $\Delta t = 0$. Of course to test whether this will \textit{always} be the case is strictly speaking impossible with a Black Box verification but we can guarantee much more when staying pure and by white box verification we can really guarantee this property.
+Agents \textit{might} behave as signals in FRP which means that their behaviour is completely determined by the passing of time: they only change when time changes thus if they are a signal they should stay constant if time stays constant. This means that they should not change in case one is sampling the system with $\Delta t = 0$. Of course to prove whether this will \textit{always} be the case is strictly speaking impossible with a Black Box verification but we can gain a good level of confidence with them also because we are staying pure. It is only through white box verification that we can really guarantee and prove this property.
 
 \subsubsection{Comparison of dynamics against existing data}
 - utilise a statistical test with H0 "ABS and comparison is not the same" and H1 "ABS and comparison is the same"
@@ -38,6 +38,4 @@ Agents \textit{might} behave as signals in FRP which means that if they are a si
 IMPORTANT: this is not what we are after here in this paper, statistical tests are a science on their own and there actually exists quite a large amount of literature for conducting statistical tests on ABS dynamics: Robinson Book (TODO: find additional literature)	
 
 \subsection{White Box Verification}
-Defined as directly looking at the code and reasoning that the code does really what it has to implement.
-- coverage testing
-
+White-Box verification is necessary when we need to reason about properties like \textit{forever}, \textit{never}, which cannot be guaranteed from black-box tests. Additional help can be coverage tests with which we can show that all code paths have been covered in our tests.

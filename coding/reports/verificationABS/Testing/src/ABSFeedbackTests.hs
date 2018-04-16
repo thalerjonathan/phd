@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 {-# LANGUAGE Arrows #-}
 module ABSFeedbackTests 
   (
@@ -20,13 +19,7 @@ import Test.Tasty.QuickCheck as QC
 
 import ABSFeedback
 -- import SD
-
--- to generate html from coverage use hpc:
--- hpc markup --hpcdir=/home/io.nathan/phd/coding/reports/verificationABS/Testing/.stack-work/dist/x86_64-linux-tinfo6/Cabal-2.0.1.0/hpc SIRABS.tix
-
-instance Arbitrary SIRState where
-  -- arbitrary :: Gen SIRState
-  arbitrary = elements [Susceptible, Infected, Recovered]
+import SIR
 
 contactRate :: Double
 contactRate = 5.0
@@ -40,14 +33,9 @@ illnessDuration = 15.0
 absFeedbackTests :: RandomGen g
                  => g 
                  -> TestTree
-absFeedbackTests g = testGroup "SIR ABS Feedback Tests" [propTests g]
-
-propTests :: RandomGen g
-          => g 
-          -> TestTree
-propTests g = 
-  testGroup 
-    "SIR ABS Feedback property tests"
+absFeedbackTests g 
+  = testGroup 
+      "SIR ABS Feedback Tests" 
       [ test_agent_behaviour_quickgroup g
       , test_agent_signal_quickgroup g
       ]
@@ -134,9 +122,9 @@ testCaseSusceptible g0 otherAgents = diff <= eps
     testSusceptible g0 n dt 
         = abs (target - countFract)
       where
-        -- we have 3 other agents, each in one of the states
+        -- we have n other agents, each in one of the states
         -- this means, that this susceptible agent will pick
-        -- on average an Infected with a probability of 1/3
+        -- on average an Infected with a probability of 1/n
         otherAgentsCount  = length otherAgents
         infOtherAgents    = length $ filter (Infected==) otherAgents
         infToNonInfRatio

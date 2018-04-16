@@ -1,9 +1,7 @@
 {-# LANGUAGE Arrows #-}
 module ABSFeedback
   (
-    SIRState (..)
-
-  , runABS
+    runABS
 
   , susceptibleAgent
   , infectedAgent
@@ -12,11 +10,7 @@ module ABSFeedback
 import Control.Monad.Random
 import FRP.Yampa
 
-data SIRState 
-  = Susceptible 
-  | Infected 
-  | Recovered 
-  deriving (Show, Eq)
+import SIR
 
 type SIRAgent = SF [SIRState] SIRState
 
@@ -34,17 +28,7 @@ runABS g populationSize infectedCount contactRate infectivity illnessDuration t 
     = aggregateAllStates $ runSimulation g contactRate infectivity illnessDuration t dt as
   where
     as = initAgents populationSize infectedCount
-
-aggregateAllStates :: [[SIRState]] -> [(Double, Double, Double)]
-aggregateAllStates = map aggregateStates
-
-aggregateStates :: [SIRState] -> (Double, Double, Double)
-aggregateStates as = (susceptibleCount, infectedCount, recoveredCount)
-  where
-    susceptibleCount = fromIntegral $ length $ filter (Susceptible==) as
-    infectedCount = fromIntegral $ length $ filter (Infected==) as
-    recoveredCount = fromIntegral $ length $ filter (Recovered==) as
-
+    
 runSimulation :: RandomGen g 
               => g 
               -> Double

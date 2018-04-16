@@ -21,16 +21,17 @@ runSD
       infectivity
       illnessDuration
       t dt 
-    = embed (sir populationSize infectedCount) ((), steps)
+    = embed sir ((), steps)
   where
     steps = replicate (floor $ t / dt) (dt, Nothing)
 
-    sir :: Double 
-        -> Double
-        -> SF () (Double, Double, Double)
-    sir populationSize infectedCount 
-        = loopPre (initSus, initInf, initRec) sir'
+    sir :: SF () (Double, Double, Double)
+    sir = loopPre (initSus, initInf, initRec) sir'
       where
+        initSus = populationSize - infectedCount
+        initInf = infectedCount
+        initRec = 0
+
         sir' :: SF 
                 ((), (Double, Double, Double))
                 ((Double, Double, Double), (Double, Double, Double))
@@ -46,7 +47,3 @@ runSD
 
         dupe :: a -> (a, a)
         dupe a = (a, a)
-
-        initSus = populationSize - infectedCount
-        initInf = infectedCount
-        initRec = 0

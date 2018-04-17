@@ -18,10 +18,58 @@ infectivity = 0.05
 illnessDuration : Double
 illnessDuration = 15.0
 
+{-
+data SIRAgent 
+  = Susceptible (Double -> SIRAgent)
+  | Infected (Double -> SIRAgent)
+  | Recovered (Double -> SIRAgent)
+-}
+
+mutual
+  ||| A susceptible agent MAY become infected 
+  data SusceptibleAgent = SA (Double -> Inf (Either SusceptibleAgent InfectedAgent))
+  ||| An infected agent WILL recover after finite steps
+  data InfectedAgent = IA (Double -> Inf (Either InfectedAgent RecoveredAgent))
+  ||| A recovered agent will stay recovered FOREVER
+  data RecoveredAgent = RA (Double -> Inf RecoveredAgent)
+
+recovered : RecoveredAgent
+recovered = RA (\_ => recovered)
+
+infected : Double -> InfectedAgent
+infected recoveryTime 
+  = IA (\dt => if recoveryTime - dt > 0
+                then Left $ infected (recoveryTime - dt)
+                else Right recovered)
+
+susceptible : SusceptibleAgent
+susceptible = SA (\dt => Left susceptible)
+
+runAgent : Double
+         -> SusceptibleAgent 
+         -> List SIRState
+runAgent dt (SA f) = case f dt of
+                          (Delay (Left l)) => []
+                          (Delay (Right r)) => []
+
 main : IO ()
+
 
 -- | can we formulate the SIR so that we have a guranteed termination?
 -- can we program a SIR simulation which is total
+
+{-
+data SusceptibleAgent : Type -> Type where
+  SusAg : (Double -> (SIRState, Either SusceptibleAgent ))
+
+data InfectedAgent : Type -> Type where
+  InfAg : (Double -> (SIRState, Either SusceptibleAgent ))
+
+data RecoveredAgent : Type -> Type where
+  RecAg : (Double -> (SIRState, Either SusceptibleAgent ))
+-}
+
+{-
 runABS : RandomGen g 
        => g 
        -> Int
@@ -42,19 +90,10 @@ aggregateStates as = (susceptibleCount, infectedCount, recoveredCount)
     infectedCount = cast $ length $ filter (Infected==) as
     recoveredCount = cast $ length $ filter (Recovered==) as
 
-data SusceptibleAgent : Type -> Type where
-  SusAg : (Double -> (SIRState, Either SusceptibleAgent ))
-
-data InfectedAgent : Type -> Type where
-  InfAg : (Double -> (SIRState, Either SusceptibleAgent ))
-
-data RecoveredAgent : Type -> Type where
-  RecAg : (Double -> (SIRState, Either SusceptibleAgent ))
-
 sirAgent : RandomStream 
          -> (Double -> (SIRState, Either 
 
-||| A susceptible agent MAY become infected 
+
 susceptibleAgent : RandomStream 
                  -> SIRAgent
 susceptibleAgent g = 
@@ -121,3 +160,4 @@ initAgents n i = sus ++ inf
   where
     sus = replicate (n - i) Susceptible
     inf = replicate i Infected
+-}

@@ -49,28 +49,24 @@ test_agent_behaviour_quickgroup :: RandomGen g
 test_agent_behaviour_quickgroup g
   = testGroup "agent behaviour"
       [ QC.testProperty "susceptible behaviour" (testCaseSusceptible g)
-      , QC.testProperty "infected behaviour" (testCaseInfected g) ]
+      , QC.testProperty "interaction behaviour" (testCaseInteraction g) ]
 
-test_agent_signal_quickgroup :: RandomGen g
-                             => g 
-                             -> TestTree
-test_agent_signal_quickgroup g
-  = testGroup "agent signal behaviour"
-      [ QC.testProperty "susceptible signal behaviour" (testCaseSusceptibleSignal g)
-      , QC.testProperty "infected signal behaviour" (testCaseInfectedSignal g)]
-
-testCaseSusceptibleSignal :: RandomGen g
-                          => g 
-                          -> [AgentId]
-                          -> Bool
-testCaseSusceptibleSignal _g0 _otherAgents = True 
+-- | Testing the interaction between agents
+-- test the interconnection of susceptible and infected agents
+-- because the dynamics depend on the correct interplay between them
+-- this is but a normal unit-test
+-- TODO: implement
+testCaseInteraction :: RandomGen g
+                    => g 
+                    -> Bool
+testCaseInteraction g0 = True 
 
 -- | Testing the susceptible agent
 -- in this implementation, the number of infections depends solely 
 -- on the number of Contact Infected messages (randomize uisng quickcheck)
 -- also the agent should generate on average contactRate Contact Susceptible messages
--- Note that we also need to test the interconnection of susceptible and infected agents
--- because the dynamics depend on the correct interplay between them
+-- Note that we are not testing whether the susceptible agent generates 
+-- contact messages here as this is done in the interaction test
 testCaseSusceptible :: RandomGen g
                     => g 
                     -> [AgentId]
@@ -135,7 +131,6 @@ testCaseSusceptible g0 ais df = diff <= eps
         isInfectedContact (_, Contact Infected) = True
         isInfectedContact _ = False
 
-        -- TODO: count number of contact messages
         testSusceptibleAux :: RandomGen g 
                           => g 
                           -> Int
@@ -168,66 +163,3 @@ testSusceptibleSF g aid ais df = proc _ -> do
     Susceptible -> returnA -< False
     Infected    -> returnA -< True
     Recovered   -> returnA -< False -- TODO: should never occur, can we test this? seems not so, but we can pretty easily guarantee it due to simplicity of code
-
-testCaseInfectedSignal :: RandomGen g 
-                       => g
-                       -> [AgentId]
-                       -> Bool
-testCaseInfectedSignal _g0 _otherAgents = True
-
-testCaseInfected :: RandomGen g 
-                 => g
-                 -> [AgentId]
-                 -> Bool
-testCaseInfected _g0 _otherAgents = True {- diff <= eps
-  where
-    n    = 10000 -- TODO: how to select a 'correct' number of runs? conjecture: as n -> inf, so goes the error (eps) to 0
-    eps  = 0.5   -- TODO: how to select a 'correct' epsilon? conjecture: probably it depends on ratio between dt and illnessduration?
-    dt   = 0.25   -- NOTE: to find out a suitable dt use the test itself: start e.g. with 1.0 and always half when test fail until it succeeds
-    diff = testInfected g0 n dt
-
-    testInfected :: RandomGen g 
-                => g      -- ^ initial RNG
-                -> Int    -- ^ number of runs
-                -> DTime  -- ^ time-delta to use
-                -> Double   -- ^ difference to target
-    testInfected g0 n dt = abs (target - durationsAvg)
-      where
-        durations    = testInfectedAux g0 n []
-        durationsAvg = sum durations / fromIntegral (length durations)
-        
-        target = illnessDuration
-        
-        testInfectedAux :: RandomGen g 
-                        => g
-                        -> Int
-                        -> [Double]
-                        -> [Double]
-        testInfectedAux _ 0 acc = acc
-        testInfectedAux g n acc 
-            = testInfectedAux g'' (n-1) acc'
-          where
-            (g', g'')    = split g
-            steps        = repeat (dt, Nothing)
-            evts         = embed (testInfectedSF g' otherAgents) ((), steps)
-            -- there will always be an event, testInfectedSF will eventuall return an event 
-            (Event t)    = fromJust $ find isEvent evts
-            acc'         = t : acc
-
-testInfectedSF :: RandomGen g 
-              => g
-              -> [SIRState]
-              -> SF () (Event Time)
-testInfectedSF g otherAgents = proc _ -> do
-  -- note that the otheragents are fed into the infected agents
-  -- but that they are ignored for checking whether the test
-  -- has failed or not. from this we can infer, that they
-  -- don't play a role in the infected agents behaviour at all
-  ret <- infectedAgent g illnessDuration -< otherAgents
-  t <- time -< ()
-  case ret of 
-    Susceptible -> returnA -< NoEvent -- TODO: should never occur, can we test this? seems not so, but we can pretty easily guarantee it due to simplicity of code
-    Infected    -> returnA -< NoEvent
-    Recovered   -> returnA -< Event t 
-
-    -}

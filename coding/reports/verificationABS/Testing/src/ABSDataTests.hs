@@ -135,6 +135,7 @@ testCaseSusceptible g0 ais df = diff <= eps
         isInfectedContact (_, Contact Infected) = True
         isInfectedContact _ = False
 
+        -- TODO: count number of contact messages
         testSusceptibleAux :: RandomGen g 
                           => g 
                           -> Int
@@ -146,7 +147,6 @@ testCaseSusceptible g0 ais df = diff <= eps
           where
             (g', g'')   = split g
 
-            stepsCount  = floor (1.0 / dt)
             steps       = replicate 1 (dt, Nothing)
 
             ret         = embed (testSusceptibleSF g' n ais df) ((), steps)

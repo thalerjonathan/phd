@@ -1,5 +1,7 @@
 module SIR 
 
+import Data.Vect
+
 import Random
 
 %default total
@@ -18,146 +20,225 @@ infectivity = 0.05
 illnessDuration : Double
 illnessDuration = 15.0
 
-{-
-data SIRAgent 
-  = Susceptible (Double -> SIRAgent)
-  | Infected (Double -> SIRAgent)
-  | Recovered (Double -> SIRAgent)
--}
-
 mutual
   ||| A susceptible agent MAY become infected 
-  data SusceptibleAgent = SA (Double -> Inf (Either SusceptibleAgent InfectedAgent))
+  data SusceptibleAgent = S (Double -> Inf (Either SusceptibleAgent InfectedAgent))
   ||| An infected agent WILL recover after finite steps
-  data InfectedAgent = IA (Double -> Inf (Either InfectedAgent RecoveredAgent))
+  data InfectedAgent = I (Double -> Inf (Either InfectedAgent RecoveredAgent))
   ||| A recovered agent will stay recovered FOREVER
-  data RecoveredAgent = RA (Double -> Inf RecoveredAgent)
+  data RecoveredAgent = R (Double -> Inf RecoveredAgent)
 
 recovered : RecoveredAgent
-recovered = RA (\_ => recovered)
+recovered = R (\_ => recovered)
 
 infected : Double -> InfectedAgent
 infected recoveryTime 
-  = IA (\dt => if recoveryTime - dt > 0
+  = I (\dt => if recoveryTime - dt > 0
                 then Left $ infected (recoveryTime - dt)
                 else Right recovered)
 
 susceptible : SusceptibleAgent
-susceptible = SA (\dt => Left susceptible)
+susceptible = S (\dt => Left susceptible)
 
-runAgent : Double
-         -> SusceptibleAgent 
-         -> List SIRState
-runAgent dt (SA f) = case f dt of
-                          (Delay (Left l)) => []
-                          (Delay (Right r)) => []
+-------------------------------------------------------------------------------
+createAgents :  Nat 
+             -> Nat 
+             -> Nat
+             -> RandomStream
+             -> (List SusceptibleAgent, List InfectedAgent, List RecoveredAgent)
+createAgents susCount infCount recCount rs
+    = let sus = replicate susCount susceptible
+          inf = createInfs infCount rs
+          rec = replicate recCount recovered
+      in  (sus, inf, rec)
+  where
+    createInfs : Nat -> RandomStream -> List InfectedAgent
+    createInfs Z _ = []
+    createInfs (S k) rs
+      = let (dur, rs') = randomExp (1 / illnessDuration) rs 
+            infs'      = createInfs k rs' 
+        in  (infected dur) :: infs'
 
+partial
+runAgents :  Double
+          -> List SusceptibleAgent 
+          -> List InfectedAgent
+          -> List RecoveredAgent
+          -> List (Nat, Nat, Nat)
+runAgents dt sas ias ras = runAgentsAux sas ias ras []
+  where
+    runSusceptibles :  List SusceptibleAgent 
+                    -> (List SusceptibleAgent, List InfectedAgent)
+                    -> (List SusceptibleAgent, List InfectedAgent)
+    runSusceptibles [] acc = acc
+    runSusceptibles ((S f) :: sas) (sas', ias')
+      = case Force (f dt) of
+            (Left l)  => runSusceptibles sas (l :: sas', ias')
+            (Right r) => runSusceptibles sas (sas', r :: ias')
+
+    runInfected :  List InfectedAgent 
+                -> (List InfectedAgent, List RecoveredAgent)
+                -> (List InfectedAgent, List RecoveredAgent)
+    runInfected [] acc = acc
+    runInfected ((I f) :: ias) (ias', ras')
+      = case Force (f dt) of
+            (Left l)  => runInfected ias (l :: ias', ras')
+            (Right r) => runInfected ias (ias', r :: ras')
+
+    partial
+    runAgentsAux : List SusceptibleAgent 
+                 -> List InfectedAgent
+                 -> List RecoveredAgent
+                 -> List (Nat, Nat, Nat)
+                 -> List (Nat, Nat, Nat)
+    runAgentsAux sas [] ras acc = reverse acc
+    runAgentsAux sas ias ras acc 
+      = let (sas', iasNew) = runSusceptibles sas ([], [])
+            (ias', recNew) = runInfected ias ([], [])
+            
+            sasNext = sas'
+            iasNext = iasNew ++ ias'
+            recNext = recNew ++ ras
+
+            sasCount = length sasNext
+            iasCount = length iasNext
+            recCount = length recNext
+
+        in  runAgentsAux sasNext iasNext recNext ((sasCount, iasCount, recCount) :: acc)
+
+partial
+testRunAgentsList : IO ()
+testRunAgentsList = do
+  let rs = randoms 42
+  let (sus, inf, rec) = createAgents 99 1 0 rs
+  let dyns = runAgents 1.0 sus inf rec 
+  print dyns
+
+-------------------------------------------------------------------------------
+{-
+proveTripleSum :  (a : Nat)
+               -> (b : Nat)
+               -> (c : Nat)
+               -> (d : Nat)
+               -> a + b + c = d
+proveTripleSum Z b c d = ?proofSum_rhs_1
+proveTripleSum a Z c d = ?proofSum_rhs_2
+proveTripleSum a b Z d = ?proofSum_rhs_3
+proveTripleSum Z Z Z Z = Refl
+
+
+proveTupleSum :  (a : Nat)
+              -> (b : Nat)
+              -> (d : Nat)
+              -> a + b = d
+proveTupleSum a b Z = ?alk -- only satisfied when a = b = 0
+proveTupleSum Z b d = -- only satisfied when b = d
+  case decEq b d of
+      (Yes Refl) => Refl
+      (No contra) => ?bla1_3
+proveTupleSum a Z d =  -- only satisfied when a = d
+  let prf = plusZeroRightNeutral d
+      de  = decEq a d
+  in  ?bla2  -- eqSucc a d -- ?bla2 -- plusZeroRightNeutral d
+proveTupleSum (S k) (S j) (S i) = ?bla_2 -- proveTupleSum k j i -- ?bla_2
+proveTupleSum Z Z Z = Refl
+-}
+
+-- TODO: can we ensure somehow that s + i + r = n
+createAgentsV :  (s : Nat)
+              -> (i : Nat)
+              -> (r : Nat)
+              -> RandomStream
+              -> (Vect s SusceptibleAgent, Vect i InfectedAgent, Vect r RecoveredAgent)
+createAgentsV s i r rs =
+    let sus = replicate s susceptible
+        inf = createInfs i rs
+        rec = replicate r recovered
+    in  (sus, inf, rec)
+
+  where
+    createInfs : (i : Nat) -> RandomStream -> Vect i InfectedAgent
+    createInfs Z _      = []
+    createInfs (S k) rs =
+        let (dur, rs') = randomExp (1 / illnessDuration) rs 
+            infs'      = createInfs k rs' 
+        in  (infected dur) :: infs'
+
+{-
+runAgentsV :  Double
+           -> (n : Nat) -- total number of agents
+           -> Vect s SusceptibleAgent 
+           -> Vect i InfectedAgent
+           -> Vect (minus (s + i) n) RecoveredAgent 
+           -> List (Nat, Nat, Nat)
+-}
+
+runAgentsV :  Double
+           -> Vect s SusceptibleAgent 
+           -> Vect i InfectedAgent
+           -> Vect r RecoveredAgent 
+           -> List (Nat, Nat, Nat)
+runAgentsV dt sus inf rec = ?runAgentsV_rhs
+  where
+    -- TODO: encode that the length of susceptible may either
+    -- stay constant in which case infected agents dont change
+    -- OR it decreases by one in which case the infected agents increase by one
+    -- => the sum of s and i: s + i must stay the same before and after the function call
+    runSusceptibles :  Vect s SusceptibleAgent
+                    -> (Vect s' SusceptibleAgent, Vect i' InfectedAgent)
+    runSusceptibles [] = ([], []) -- ?runSusceptibles_rhs_1 -- ([], [])
+    runSusceptibles ((S f) :: sus) = ?runSusceptibles_rhs_2
+    {-
+      = let (sus', inf) = runSusceptibles sus
+        in  case Force (f dt) of
+                (Left l)  => ?runSusceptibles_rhs_2 --(l :: sus', inf)
+                (Right r) => ?runSusceptibles_rhs_3 --(sus', r :: inf)
+      -}
+
+                      {-
+    runSusceptibles [] acc = acc
+    runSusceptibles ((S f) :: sus) (sus', inf')
+      = case Force (f dt) of
+            (Left l)  => runSusceptibles sas (l :: sas', ias')
+            (Right r) => runSusceptibles sas (sas', r :: ias')
+    -}
+
+    partial
+    runAgentsAuxV : Vect s SusceptibleAgent
+                 -> Vect i InfectedAgent
+                 -> Vect r RecoveredAgent
+                 -> List (Nat, Nat, Nat) 
+                 -> List (Nat, Nat, Nat)
+                 {-
+    runAgentsAuxV sus [] rec acc = reverse acc
+    runAgentsAuxV sus inf rec acc 
+      = let (sus', infNew) = runSusceptibles sus ([], [])
+            --(inf', recNew) = runInfected ias ([], [])
+            inf' = inf
+            recNew = rec
+            
+            susNext = sus'
+            infNext = infNew ++ inf'
+            recNext = recNew ++ rec
+
+            susCount = length susNext
+            infCount = length infNext
+            recCount = length recNext
+
+        in  runAgentsAuxV susNext infNext recNext ((susCount, infCount, recCount) :: acc)
+    -}
+    
+partial
+testRunAgentsVect : IO ()
+testRunAgentsVect = do
+  let rs = randoms 42
+  let (sus, inf, rec) = createAgentsV 99 1 0 rs
+  let dyns = runAgentsV 1.0 sus inf rec 
+  ?testRunAgentsVect_rhs_1
+  --print dyns
+
+-------------------------------------------------------------------------------
+
+partial
 main : IO ()
-
-
--- | can we formulate the SIR so that we have a guranteed termination?
--- can we program a SIR simulation which is total
-
-{-
-data SusceptibleAgent : Type -> Type where
-  SusAg : (Double -> (SIRState, Either SusceptibleAgent ))
-
-data InfectedAgent : Type -> Type where
-  InfAg : (Double -> (SIRState, Either SusceptibleAgent ))
-
-data RecoveredAgent : Type -> Type where
-  RecAg : (Double -> (SIRState, Either SusceptibleAgent ))
--}
-
-{-
-runABS : RandomGen g 
-       => g 
-       -> Int
-       -> Int
-       -> List (Double, Double, Double)
-runABS g populationSize infectedCount t dt
-    = aggregateAllStates $ runSimulation g  t dt as
-  where
-    as = initAgents populationSize infectedCount
-
-aggregateAllStates : List (List SIRState) -> List (Double, Double, Double)
-aggregateAllStates = map aggregateStates
-
-aggregateStates : List SIRState -> (Double, Double, Double)
-aggregateStates as = (susceptibleCount, infectedCount, recoveredCount)
-  where
-    susceptibleCount = cast $ length $ filter (Susceptible==) as
-    infectedCount = cast $ length $ filter (Infected==) as
-    recoveredCount = cast $ length $ filter (Recovered==) as
-
-sirAgent : RandomStream 
-         -> (Double -> (SIRState, Either 
-
-
-susceptibleAgent : RandomStream 
-                 -> SIRAgent
-susceptibleAgent g = 
-    switch
-      (susceptible g) 
-      (const $ infectedAgent g)
-  where
-    susceptible : RandomGen g => g -> SF (List SIRState) (SIRState, Event ())
-    susceptible g = proc as -> do
-      makeContact <- occasionally g (1 / contactRate) () -< ()
-
-      -- NOTE: strangely if we are not splitting all if-then-else into
-      -- separate but only a single one, then it seems not to work,
-      -- dunno why
-      if isEvent makeContact
-        then (do
-          a <- drawRandomElemSF g -< as
-          case a of
-            Just Infected -> do
-              i <- randomBoolSF g infectivity -< ()
-              if i
-                then returnA -< (Infected, Event ())
-                else returnA -< (Susceptible, NoEvent)
-            _       -> returnA -< (Susceptible, NoEvent))
-        else returnA -< (Susceptible, NoEvent)
-
-||| An infected agent WILL recover after finite steps
-infectedAgent : RandomGen g 
-              => g 
-              -> SIRAgent
-infectedAgent g = 
-    switch 
-      infected 
-      (const recoveredAgent)
-  where
-    infected : SF (List SIRState) (SIRState, Event ())
-    infected = proc _ -> do
-      recEvt <- occasionally g illnessDuration () -< ()
-      let a = event Infected (const Recovered) recEvt
-      returnA -< (a, recEvt)
-
-||| A recovered agent will stay recovered FOREVER
-recoveredAgent : SIRAgent
-recoveredAgent = arr (const Recovered)
-
-randomBoolSF : RandomGen g => g -> Double -> SF () Bool
-randomBoolSF g p = proc _ -> do
-  r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
-  returnA -< (r <= p)
-
-drawRandomElemSF : RandomGen g => g -> SF (List a) (Maybe a)
-drawRandomElemSF g = proc as -> 
-  if null as 
-    then returnA -< Nothing
-    else do
-      r <- noiseR ((0, 1) :: (Double, Double)) g -< ()
-      let len = length as
-      let idx = fromIntegral len * r
-      let a =  as !! floor idx
-      returnA -< Just a
-
-initAgents : Int -> Int -> List SIRState
-initAgents n i = sus ++ inf
-  where
-    sus = replicate (n - i) Susceptible
-    inf = replicate i Infected
--}
+main = testRunAgentsVect

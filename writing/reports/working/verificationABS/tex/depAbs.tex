@@ -1,0 +1,21 @@
+\section{Dependent Types in Agent-Based Simulation}
+
+The strong static type system of Haskell allows us to guarantee a lot already at compile time:
+\begin{itemize}
+	\item Purity - no side-effects possible at all 
+	\item Monad - controlled, explicit side-effects possible
+	\item generic types allow to guarantee for all
+\end{itemize}
+
+Dependent Types in Idris bring the strong static type system of Haskell to a new level, which allows us to both guarantee more things at compile time and express things through type-level computations. This means the following at compile time
+
+\begin{itemize}
+	\item Ruling out ever larger classes of bugs
+	\item 
+\end{itemize}
+
+\subsection{Ruling out Bugs}
+\begin{enumerate}
+	\item Index out of bounds access of Lists and Vectors can be guaranteed not to happen any more when using proofs of existence of the element in the list or vector.
+	\item Size of list or vector stays constant / increases / decreases / sum of length of multiple vectors guaranteed to be of some number
+\end{enumerate}

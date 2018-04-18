@@ -20,6 +20,16 @@ infectivity = 0.05
 illnessDuration : Double
 illnessDuration = 15.0
 
+-- we are using continuations for agents where each 
+-- evaluation corresponds to one execution of the agent 
+-- at a given time-delta, thus we have a mapping of
+-- continuations to time-passing.
+-- Another oportunity would be to write some EDSL with
+-- GADTs and an interpreter but then we would need some
+-- command in our language which tells the interpreter
+-- that the agent gives its control back to the system
+-- so that then the next time-step can be computed
+
 mutual
   ||| A susceptible agent MAY become infected 
   data SusceptibleAgent = S (Double -> Inf (Either SusceptibleAgent InfectedAgent))

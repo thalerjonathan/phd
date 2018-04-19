@@ -1,7 +1,9 @@
-module SIR 
+module SIRCont
 
 import Data.Vect
+import Debug.Trace
 
+import Export
 import Random
 
 %default total
@@ -20,6 +22,12 @@ infectivity = 0.05
 illnessDuration : Double
 illnessDuration = 15.0
 
+Eq SIRState where
+  (==) Susceptible Susceptible = True
+  (==) Infected Infected = True
+  (==) Recovered Recovered = True
+  (==) _ _ = False
+
 -- we are using continuations for agents where each 
 -- evaluation corresponds to one execution of the agent 
 -- at a given time-delta, thus we have a mapping of
@@ -36,10 +44,10 @@ mutual
   ||| An infected agent WILL recover after finite steps
   data InfectedAgent = I (Double -> Inf (Either InfectedAgent RecoveredAgent))
   ||| A recovered agent will stay recovered FOREVER
-  data RecoveredAgent = R (Double -> Inf RecoveredAgent)
+  data RecoveredAgent = R (Inf RecoveredAgent)
 
 recovered : RecoveredAgent
-recovered = R (\_ => recovered)
+recovered = R recovered
 
 infected : Double -> InfectedAgent
 infected recoveryTime 
@@ -47,25 +55,49 @@ infected recoveryTime
                 then Left $ infected (recoveryTime - dt)
                 else Right recovered)
 
-susceptible : SusceptibleAgent
-susceptible = S (\dt => Left susceptible)
-
+susceptible : RandomStream -> SusceptibleAgent
+susceptible rs = S (\infFract => 
+    let (numContacts, rs') = randomExp rs (1 / contactRate)
+        (infFlag, rs'')    = makeContact (fromIntegerNat $ cast numContacts) infFract rs'
+    in  if infFlag 
+          then Right $ infected (fst $ randomExp rs'' (1 / illnessDuration))
+          else Left $ susceptible rs'')
+  where
+    makeContact :  Nat 
+                -> Double
+                -> RandomStream
+                -> (Bool, RandomStream)
+    makeContact Z _ rs = (False, rs)
+    makeContact (S n) infFract rs 
+      = let (flag, rs') = randomBool rs (infFract * infectivity)
+        in  if flag
+              then (True, rs')
+              else makeContact n infFract rs'
 -------------------------------------------------------------------------------
+partial
 createAgents :  Nat 
              -> Nat 
              -> Nat
              -> RandomStream
              -> (List SusceptibleAgent, List InfectedAgent, List RecoveredAgent)
 createAgents susCount infCount recCount rs
-    = let sus = replicate susCount susceptible
+    = let sus = createSus susCount rs
           inf = createInfs infCount rs
           rec = replicate recCount recovered
       in  (sus, inf, rec)
   where
+    partial
+    createSus : Nat -> RandomStream -> List SusceptibleAgent
+    createSus Z _ = []
+    createSus (S k) rs
+      = let (rs', rs'') = split rs
+            sus'        = createSus k rs' 
+        in  (susceptible rs'') :: sus'
+
     createInfs : Nat -> RandomStream -> List InfectedAgent
     createInfs Z _ = []
     createInfs (S k) rs
-      = let (dur, rs') = randomExp (1 / illnessDuration) rs 
+      = let (dur, rs') = randomExp rs (1 / illnessDuration) 
             infs'      = createInfs k rs' 
         in  (infected dur) :: infs'
 
@@ -77,14 +109,15 @@ runAgents :  Double
           -> List (Nat, Nat, Nat)
 runAgents dt sas ias ras = runAgentsAux sas ias ras []
   where
-    runSusceptibles :  List SusceptibleAgent 
+    runSusceptibles :  Double
+                    -> List SusceptibleAgent 
                     -> (List SusceptibleAgent, List InfectedAgent)
                     -> (List SusceptibleAgent, List InfectedAgent)
-    runSusceptibles [] acc = acc
-    runSusceptibles ((S f) :: sas) (sas', ias')
-      = case Force (f dt) of
-            (Left l)  => runSusceptibles sas (l :: sas', ias')
-            (Right r) => runSusceptibles sas (sas', r :: ias')
+    runSusceptibles _ [] acc = acc
+    runSusceptibles infFract ((S f) :: sas) (sas', ias')
+      = case Force (f infFract) of
+            (Left l)  => runSusceptibles infFract sas (l :: sas', ias')
+            (Right r) => runSusceptibles infFract sas (sas', r :: ias')
 
     runInfected :  List InfectedAgent 
                 -> (List InfectedAgent, List RecoveredAgent)
@@ -101,28 +134,34 @@ runAgents dt sas ias ras = runAgentsAux sas ias ras []
                  -> List RecoveredAgent
                  -> List (Nat, Nat, Nat)
                  -> List (Nat, Nat, Nat)
-    runAgentsAux sas [] ras acc = reverse acc
-    runAgentsAux sas ias ras acc 
-      = let (sas', iasNew) = runSusceptibles sas ([], [])
-            (ias', recNew) = runInfected ias ([], [])
-            
-            sasNext = sas'
-            iasNext = iasNew ++ ias'
-            recNext = recNew ++ ras
+    runAgentsAux _ [] _ acc = reverse acc
+    runAgentsAux sus inf rec acc 
+      = let nSus = cast {to=Double} $ length sus
+            nInf = cast {to=Double} $ length inf
+            nRec = cast {to=Double} $ length rec
+            nSum = (nSus + nRec + nInf)
 
-            sasCount = length sasNext
-            iasCount = length iasNext
+            infFract = nInf / nSum
+            (sus', infNew) = runSusceptibles infFract sus ([], [])
+            (inf', recNew) = runInfected inf ([], [])
+            
+            susNext = sus'
+            infNext = infNew ++ inf'
+            recNext = recNew ++ rec
+
+            susCount = length susNext
+            infCount = length infNext
             recCount = length recNext
 
-        in  runAgentsAux sasNext iasNext recNext ((sasCount, iasCount, recCount) :: acc)
+        in  runAgentsAux susNext infNext recNext ((susCount, infCount, recCount) :: acc)
 
 partial
 testRunAgentsList : IO ()
 testRunAgentsList = do
   let rs = randoms 42
-  let (sus, inf, rec) = createAgents 99 1 0 rs
+  let (sus, inf, rec) = createAgents 10000 1 0 rs
   let dyns = runAgents 1.0 sus inf rec 
-  print dyns
+  writeMatlabFile "sir.m" dyns
 
 -------------------------------------------------------------------------------
 {-
@@ -155,22 +194,31 @@ proveTupleSum Z Z Z = Refl
 -}
 
 -- TODO: can we ensure somehow that s + i + r = n
+partial
 createAgentsV :  (s : Nat)
               -> (i : Nat)
               -> (r : Nat)
               -> RandomStream
               -> (Vect s SusceptibleAgent, Vect i InfectedAgent, Vect r RecoveredAgent)
 createAgentsV s i r rs =
-    let sus = replicate s susceptible
+    let sus = createSus s rs
         inf = createInfs i rs
         rec = replicate r recovered
     in  (sus, inf, rec)
 
   where
+    partial
+    createSus : (s : Nat) -> RandomStream -> Vect s SusceptibleAgent
+    createSus Z _ = []
+    createSus (S k) rs
+      = let (rs', rs'') = split rs
+            sus'        = createSus k rs' 
+        in  (susceptible rs'') :: sus'
+
     createInfs : (i : Nat) -> RandomStream -> Vect i InfectedAgent
     createInfs Z _      = []
     createInfs (S k) rs =
-        let (dur, rs') = randomExp (1 / illnessDuration) rs 
+        let (dur, rs') = randomExp rs (1 / illnessDuration) 
             infs'      = createInfs k rs' 
         in  (infected dur) :: infs'
 
@@ -194,11 +242,12 @@ runAgentsV dt sus inf rec = ?runAgentsV_rhs
     -- stay constant in which case infected agents dont change
     -- OR it decreases by one in which case the infected agents increase by one
     -- => the sum of s and i: s + i must stay the same before and after the function call
+        {-
     runSusceptibles :  Vect s SusceptibleAgent
                     -> (Vect s' SusceptibleAgent, Vect i' InfectedAgent)
     runSusceptibles [] = ([], []) -- ?runSusceptibles_rhs_1 -- ([], [])
     runSusceptibles ((S f) :: sus) = ?runSusceptibles_rhs_2
-    {-
+
       = let (sus', inf) = runSusceptibles sus
         in  case Force (f dt) of
                 (Left l)  => ?runSusceptibles_rhs_2 --(l :: sus', inf)
@@ -249,6 +298,7 @@ testRunAgentsVect = do
 
 -------------------------------------------------------------------------------
 
-partial
-main : IO ()
-main = testRunAgentsVect
+namespace Main
+  partial
+  main : IO ()
+  main = testRunAgentsList

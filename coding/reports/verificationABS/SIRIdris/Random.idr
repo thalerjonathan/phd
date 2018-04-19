@@ -1,9 +1,10 @@
 module Random
 
 import Data.Vect
+import Debug.Trace
 
 precision : Int
-precision = 10000
+precision = 1013904223
 
 export
 RandomStream : Type
@@ -14,30 +15,37 @@ randoms : Int -> RandomStream
 randoms seed = let seed'  = 1664525 * seed + 1013904223 
                    r      = seed' `shiftR` 2
                    rLimit = mod r precision
-                   rNorm  = cast rLimit / cast precision
-                in rNorm :: randoms seed'
+                   rNorm  = abs $ cast rLimit / cast precision
+                in (rNorm :: randoms seed')
 
 export
 split : RandomStream -> (RandomStream, RandomStream)
 split (r1 :: r2 :: rr) 
-  = let seed1 = cast r1 * precision
-        seed2 = cast r2 * precision
+  = let seed1 = cast (r1 * cast precision)
+        seed2 = cast (r2 * cast precision)
     in  (randoms seed1, randoms seed2)
 
 export
-randomBool : Double -> RandomStream -> (Bool, RandomStream)
-randomBool p (r :: rs) = (r <= p, rs)
+randomBool : RandomStream -> Double -> (Bool, RandomStream)
+randomBool (r :: rs) p = (r <= p, rs)
+
+avoidZero : RandomStream -> Nat -> (Double, RandomStream)
+avoidZero rs Z = (0, rs)
+avoidZero (r :: rs) (S k) 
+  = if (r == 0)
+      then avoidZero rs k
+      else (r, rs)
 
 export
-randomExp : Double -> RandomStream -> (Double, RandomStream)
-randomExp lambda (r :: rs) = (((-log r) / lambda), rs)
+randomExp : RandomStream -> Double -> (Double, RandomStream)
+randomExp (r :: rs) lambda 
+    = let (r', rs') = (avoidZero rs 100)
+      in  (((-log r') / lambda), rs')
 
 namespace List
   export
-  -- TODO: proof of non-empty list to get rid of Maybe
-  randomElem : List a -> RandomStream -> (Maybe a, RandomStream)
+  randomElem : RandomStream -> List a -> (Maybe a, RandomStream)
 
 namespace Vector
   export
-  -- TODO: proof of non-empty vector to get rid of Maybe
-  randomElem : Vect n a -> RandomStream -> (Maybe a, RandomStream)
+  randomElem : RandomStream -> Vect n a -> (Maybe a, RandomStream)

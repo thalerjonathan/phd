@@ -5,27 +5,7 @@ import Data.Vect
 import Export
 import Random
 
--- The idea is to implement a total agent-based SIR simulation 
--- The dynamics of the system-dynamics SIR model are in equilibrium
--- (won't change anymore) when the infected stock is 0. This can be
--- (probably) shown formally but intuitionistic it is clear because
--- only infected agents can lead to infections of susceptible agents
--- which then make the transition to recovered after having gone
--- through the infection phase.
--- Thus an agent-based implementation of the SIR simulation has to
--- terminate if it is implemented correctly because all infected 
--- agents will recover after a finite number of steps after then 
--- the dyanimcs will be in equilibrium.
--- Thus we need to 'tell' the type-checker that the termination
--- criterion is
--- 1) no more infected agents
--- 2) all infected agents will recover after a finite number of time
--- => the simulation will eventually run out of infected agents
--- But when we look at the SIR+S model we have the same termination
--- criterion, but we cannot guarantee that it will run out of infected 
--- => we need an additional criterion
--- 3) susceptible agents are NOT INCREASING
-
+-- we want this implementation to be total!
 %default total
 
 data SIRState 
@@ -95,6 +75,7 @@ susceptible rs = S (\infFract =>
               else makeContact n infFract rs'
 
 -------------------------------------------------------------------------------
+-- TODO: can we ensure somehow that s + i + r = n
 {-
 proveTripleSum :  (a : Nat)
                -> (b : Nat)
@@ -105,7 +86,6 @@ proveTripleSum Z b c d = ?proofSum_rhs_1
 proveTripleSum a Z c d = ?proofSum_rhs_2
 proveTripleSum a b Z d = ?proofSum_rhs_3
 proveTripleSum Z Z Z Z = Refl
-
 
 proveTupleSum :  (a : Nat)
               -> (b : Nat)
@@ -124,25 +104,23 @@ proveTupleSum (S k) (S j) (S i) = ?bla_2 -- proveTupleSum k j i -- ?bla_2
 proveTupleSum Z Z Z = Refl
 -}
 
--- TODO: can we ensure somehow that s + i + r = n
-createAgentsV :  (s : Nat)
+createAgents :  (s : Nat)
               -> (i : Nat)
               -> (r : Nat)
               -> RandomStream
               -> (Vect s SusceptibleAgent, Vect i InfectedAgent, Vect r RecoveredAgent)
-createAgentsV s i r rs =
+createAgents s i r rs =
     let sus = createSus s rs
         inf = createInfs i rs
         rec = replicate r recovered
     in  (sus, inf, rec)
-
   where
     createSus : (s : Nat) -> RandomStream -> Vect s SusceptibleAgent
     createSus Z _ = []
-    createSus (S k) rs
-      = let (rs', rs'') = split rs
-            sus'        = createSus k rs' 
-        in  (susceptible rs'') :: sus'
+    createSus (S k) rs =
+      let (rs', rs'') = split rs
+          sus'        = createSus k rs' 
+      in  (susceptible rs'') :: sus'
 
     createInfs : (i : Nat) -> RandomStream -> Vect i InfectedAgent
     createInfs Z _      = []
@@ -152,31 +130,55 @@ createAgentsV s i r rs =
         in  (infected dur) :: infs'
 
 {-
-runAgentsV :  Double
-           -> (n : Nat) -- total number of agents
-           -> Vect s SusceptibleAgent 
-           -> Vect i InfectedAgent
-           -> Vect (minus (s + i) n) RecoveredAgent 
-           -> List (Nat, Nat, Nat)
+runAgents :  Double
+          -> (n : Nat) -- total number of agents
+          -> Vect s SusceptibleAgent 
+          -> Vect i InfectedAgent
+          -> Vect (minus (s + i) n) RecoveredAgent 
+          -> List (Nat, Nat, Nat)
 -}
 
-runAgentsV :  Double
+-- The idea is to implement a total agent-based SIR simulation 
+-- The dynamics of the system-dynamics SIR model are in equilibrium
+-- (won't change anymore) when the infected stock is 0. This can 
+-- (probably) be shown formally but intuitionistic it is clear because
+-- only infected agents can lead to infections of susceptible agents
+-- which then make the transition to recovered after having gone
+-- through the infection phase.
+-- Thus an agent-based implementation of the SIR simulation has to
+-- terminate if it is implemented correctly because all infected 
+-- agents will recover after a finite number of steps after then 
+-- the dyanimcs will be in equilibrium.
+-- Thus we need to 'tell' the type-checker the following:
+-- 1) no more infected agents is the termination criterion
+-- 2) all infected agents will recover after a finite number of time
+-- => the simulation will eventually run out of infected agents
+-- But when we look at the SIR+S model we have the same termination
+-- criterion, but we cannot guarantee that it will run out of infected 
+-- => we need additional criteria
+-- 4) infected agents are 'generated' by susceptible agents
+-- 5) susceptible agents are NOT INCREASING (e.g. recovered agents 
+--    do NOT turn back into susceptibles)
+-- TODO: can we adopt our solution (if we find it), into a SIRS
+-- implementation? this should then break totality. also how difficult
+-- is it?
+runAgents :   Double
            -> Vect s SusceptibleAgent 
            -> Vect i InfectedAgent
            -> Vect r RecoveredAgent 
            -> List (Nat, Nat, Nat)
-runAgentsV dt sus inf rec = ?runAgentsV_rhs
+runAgents dt sus inf rec = ?runAgents_rhs
   where
     -- TODO: encode that the length of susceptible may either
     -- stay constant in which case infected agents dont change
     -- OR it decreases by one in which case the infected agents increase by one
     -- => the sum of s and i: s + i must stay the same before and after the function call
+    {-
     runSusceptibles :  Vect s SusceptibleAgent
                     -> (Vect s' SusceptibleAgent, Vect i' InfectedAgent)
     runSusceptibles [] = ([], []) -- ?runSusceptibles_rhs_1 -- ([], [])
     runSusceptibles ((S f) :: sus) = ?runSusceptibles_rhs_2
 
-{-
       = let (sus', inf) = runSusceptibles sus
         in  case Force (f dt) of
                 (Left l)  => ?runSusceptibles_rhs_2 --(l :: sus', inf)
@@ -191,8 +193,7 @@ runAgentsV dt sus inf rec = ?runAgentsV_rhs
             (Right r) => runSusceptibles sas (sas', r :: ias')
     -}
 
-    partial
-    runAgentsAuxV : Vect s SusceptibleAgent
+    runAgentsAux : Vect s SusceptibleAgent
                  -> Vect i InfectedAgent
                  -> Vect r RecoveredAgent
                  -> List (Nat, Nat, Nat) 
@@ -216,15 +217,13 @@ runAgentsV dt sus inf rec = ?runAgentsV_rhs
         in  runAgentsAuxV susNext infNext recNext ((susCount, infCount, recCount) :: acc)
     -}
     
-partial
-testRunAgentsVect : IO ()
-testRunAgentsVect = do
+sirTotal : IO ()
+sirTotal = do
   let rs = randoms 42
-  let (sus, inf, rec) = createAgentsV 99 1 0 rs
-  let dyns = runAgentsV 1.0 sus inf rec 
-  writeMatlabFile "sirVect.m" dyns
+  let (sus, inf, rec) = createAgents 99 1 0 rs
+  let dyns = runAgents 1.0 sus inf rec 
+  writeMatlabFile "sirTotal.m" dyns
 
 namespace Main
-  partial
   main : IO ()
-  main = testRunAgentsList
+  main = sirTotal

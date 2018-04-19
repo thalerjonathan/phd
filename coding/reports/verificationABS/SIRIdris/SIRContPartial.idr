@@ -146,13 +146,13 @@ runAgents dt sas ias ras = runAgentsAux sas ias ras []
 
         in  runAgentsAux susNext infNext recNext ((susCount, infCount, recCount) :: acc)
 
-testRunAgentsList : IO ()
-testRunAgentsList = do
+sirPartial : IO ()
+sirPartial = do
   let rs = randoms 42
   let (sus, inf, rec) = createAgents 9999 1 0 rs
   let dyns = runAgents 1.0 sus inf rec 
-  writeMatlabFile "sirList.m" dyns
+  writeMatlabFile "sirPartial.m" dyns
 
 namespace Main
   main : IO ()
-  main = testRunAgentsList
+  main = sirPartial

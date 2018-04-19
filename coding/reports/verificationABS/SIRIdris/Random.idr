@@ -3,8 +3,10 @@ module Random
 import Data.Vect
 import Debug.Trace
 
-precision : Int
-precision = 1013904223
+%default total
+
+maxInt : Int
+maxInt = 2147483648 -- = 2^31
 
 export
 RandomStream : Type
@@ -14,15 +16,14 @@ export
 randoms : Int -> RandomStream
 randoms seed = let seed'  = 1664525 * seed + 1013904223 
                    r      = seed' `shiftR` 2
-                   rLimit = mod r precision
-                   rNorm  = abs $ cast rLimit / cast precision
-                in (rNorm :: randoms seed')
+                   rNorm  = abs $ cast r / cast maxInt
+                in rNorm :: randoms seed'
 
 export
 split : RandomStream -> (RandomStream, RandomStream)
 split (r1 :: r2 :: rr) 
-  = let seed1 = cast (r1 * cast precision)
-        seed2 = cast (r2 * cast precision)
+  = let seed1 = cast (r1 * cast maxInt)
+        seed2 = cast (r2 * cast maxInt)
     in  (randoms seed1, randoms seed2)
 
 export
@@ -45,7 +46,21 @@ randomExp (r :: rs) lambda
 namespace List
   export
   randomElem : RandomStream -> List a -> (Maybe a, RandomStream)
+  randomElem (r :: rs) xs 
+    = let n         = length xs
+          randIx    = r * cast n
+          randIxNat = fromIntegerNat $ cast randIx
+          inListPrf = inBounds randIxNat xs
+      in  case inListPrf of
+            (Yes prf)   => (Just $ index randIxNat xs, rs) 
+            (No contra) => (Nothing, rs)
 
 namespace Vector
   export
   randomElem : RandomStream -> Vect n a -> (Maybe a, RandomStream)
+  randomElem {n} (r :: rs) xs
+    = let randIx     = r * cast n
+          mrandIxFin = integerToFin (cast randIx) n
+      in  case mrandIxFin of
+            (Just randIxFin) => (Just $ index randIxFin xs, rs)
+            Nothing          => (Nothing, rs)

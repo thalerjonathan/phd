@@ -109,3 +109,49 @@ steward robinson simulation book on verification, validation and confidence
 		-> comparison with the real system: statistical tests
 		-> comparison with another model (e.g. mathematical equations): could compare exactly or also through statistical tests
 		-> 
+		
+peers slides:
+	- Model testing (verification and validation)
+		-> Required to place confidence in a study's results
+		-> Model testing is not a process of trying to demonstrate that the model is correct but a process of trying to prove that the model is incorrect!
+		
+	- Model verification: The process of ensuring that the model design has been transformed into a computer model with sufficient accuracy
+	- Model validation: The process of ensuring that the model is sufficiently accurate for the purpose at hand
+		-> models are not meant to be completely accurate
+		-> models are supposed to be build for a specific purpose
+		
+	- Data Validation: Determining that the contextual data and the data required for model realisation and validation are sufficiently accurate for the purpose at hand.
+
+    - white-Box Validation: Determining that the constituent parts of the computer model represent the corresponding real world elements with sufficient accuracy for the purpose at hand (micro check)
+    	-> how: Checking the code, visual checks, inspecting output reports
+    	
+    - Black-Box Validation: Determining that the overall model represents the real world with sufficient accuracy for the purpose at hand (macro check)
+    	-> comparison with the real system
+    	-> comparison with other (simpler) models
+    	
+    - Experimentation Validation: Determining that the experimental procedures adopted are providing results that are sufficiently accurate for the purpose at hand.
+    	-> How can we do this?
+    		- Graphical or statistical methods for determining warm-up period, run length and replications (to obtain accurate results)
+			- Sensitivity analysis (to improve the understanding of the model)
+	
+	- Solution Validation: Determining that the results obtained from the model of the proposed solution are sufficiently accurate for the purpose at hand
+		-> How does this differ from Black Box Validation? Solution validation compares the model of the proposed solution to the implemented solution while black-box validation compares the base model to the real world
+		-> How can we do this? Once implemented it should be possible to validate the implemented solution against the model results
+		
+	- Verification: Testing the fidelity with which the conceptual model is converted into the computer model. Verification is done to ensure that the model is programmed correctly, the algorithms have been implemented properly, and the model does not contain errors, oversights, or bugs.
+
+		-> How can we do this? Same methods as for white-box validation (checking the code, visual checks, inspecting output reports) but ... Verification compares the content of the model to the conceptual model while white-box validation compares the content of the model to the real world
+		
+	- Difficulties of verification and validation
+		-> There is no such thing as general validity: a model is only valid with respect to its purpose
+		-> There may be no real world to compare against
+		-> Which real world? Different people have different interpretations of the real world
+		->  Often real world data are inaccurate: If the data are not accurate it is difficult to determine if the model's results are correct. Even if the data is accurate, the real world data are only a sample, which in itself creates inaccuracy
+		-> There is not enough time to verify and validate every aspect of a model
+		
+	- Some final remarks:
+		-> V&V is a continuous and iterative process that is performed throughout the life cycle of a simulation study.
+			Example: If the conceptual model is revised as the project progresses it needs to be re-validated
+		-> V&V work together by removing barriers and objections to model use and hence establishing credibility.
+		
+	- Conclusion: Although, in theory, a model is either valid or not, proving this in practice is a very different matter. It is better to think in terms of confidence that can be placed in a model!

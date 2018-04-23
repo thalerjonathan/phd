@@ -67,6 +67,11 @@ applicability of UML and peers Framework to pure functional ABS
 add section on recursive ABS
 parallelise using cloud haskell?
 
+agent-interactions
+1) data-flow: for continuous ABS systems where data takes 1 dt to appear at the target agent and does not persist e.g. the target agent can check it or not but the data received in the current step will be gone in the next. Use-case: implementing continuous time-dependent ABS e.g. SIR model
+2) events: an agent can send to an arbitrary other agent an event which happens at a given time in the future: when the event happens this means the target agent is executed with the information about the receiving event. Use-Case: implementing discrete event simulation ABS e.g. a bank, very useful when the model is specified in terms of events and not in a continuous fashion
+3) transactions: method-call emulation, which takes no time at all and can involve an arbitrary but finite number of steps between agents. Use-case: trading between agents where they must to come to terms within the same time-step but where the negotiation process takes multiple steps between the agents.
+
 \chapter{Part III: Dependent types in ABS}
 3rd paper
 

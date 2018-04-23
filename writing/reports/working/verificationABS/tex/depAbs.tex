@@ -19,3 +19,19 @@ Dependent Types in Idris bring the strong static type system of Haskell to a new
 	\item Index out of bounds access of Lists and Vectors can be guaranteed not to happen any more when using proofs of existence of the element in the list or vector.
 	\item Size of list or vector stays constant / increases / decreases / sum of length of multiple vectors guaranteed to be of some number
 \end{enumerate}
+
+The question is how far we can generalise our approaches because we fear that the downside of using dependently typed abs is that every implementation needs to start from Scratch: we cant write a general library for it like chimera because the more we put into types, the more specific it is => individual implementation which reuses existing 'patterns' like state machines, messages,...
+
+\subsection{Dependent State Machines}
+dependent state machines in abs for internal state because that is very Common in ABS
+
+\subsection{Dependent Agent Interaction}
+\subsubsection{Agent Transactions}
+dependently typed message protocols in ABS because its very common, and easily done thorugh methods in OOP: sugarscape mating and trading protocol
+\subsubsection{Data Flow}
+TODO: can dependent types be used in the Data Flow Mechanism?
+\subsubsection{Event Scheduling}
+TODO: can dependent types be used in the event-scheduling mechanism?
+
+\subsection{Totality}
+totality of parts or the whole simulation

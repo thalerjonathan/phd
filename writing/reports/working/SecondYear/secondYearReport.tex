@@ -1,0 +1,76 @@
+\documentclass[oneside]{book}
+
+\setcounter{tocdepth}{1}
+\setcounter{secnumdepth}{3}
+
+\usepackage[toc,page]{appendix}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} % Required for the inclusion of images
+\usepackage{amsmath} % Required for some math elements 
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\usepackage{listings}
+\usepackage{pdfpages}
+\usepackage{amssymb}
+\usepackage{pdflscape}
+
+\begin{document}
+
+\begin{titlepage}
+	\centering
+	\includegraphics[width=0.60\textwidth]{./logo/UoN_Primary_Logo_RGB.png}\par\vspace{1cm}
+	{\scshape\Large 2nd Year Report\par}
+	\vspace{1.5cm}
+	{\huge\bfseries Pure Functional \\ Agent-Based Simulation\par}
+	\vspace{2cm}
+	{\Large\itshape Jonathan Thaler (4276122) \\ jonathan.thaler@nottingham.ac.uk \par}
+	\vfill
+	supervised by\par
+	Dr. Peer-Olaf \textsc{Siebers} \\
+	Dr. Thorsten \textsc{Altenkirch}
+
+	\vfill
+
+	{\large \today\par}
+\end{titlepage}
+
+\cleardoublepage
+
+\section*{Abstract}
+TODO: update and adopt to 2nd year
+
+This research investigates how the pure functional programming paradigm can be applied to Agent-Based Simulations (ABS). So far there existed no research of how it can be done in this paradigm and it was unclear how to use the mechanisms of the pure functional programming paradigm to ones benefit.
+
+In this 1st year we first conducted fundamental research on the general nature of update-strategies in ABS which is of direct relevance on how to implement ABS in a functional way.
+Building on these insights, we implemented a highly promising approach to pure functional ABS by building on the Functional Reactive paradigm using the library Yampa. By this we could show that ABS is indeed very possible in Haskell with important benefits. The result is a surprisingly fresh approach to ABS as it allows to incorporate discrete time-semantics similar to Discrete Event Simulation and continuous time-flows like System Dynamics. Also, due to the declarative nature of functional programming the implementations look very much like a model-specification.
+
+In the remaining two years of the PhD the research will be centred on comparing this new pure functional approach to the existing state-of-the-art, which follows the object-oriented paradigm. We will identify benefits and drawbacks and look for unique features which may be only possible using the pure functional programming paradigm.
+
+\clearpage
+\tableofcontents
+\clearpage
+
+\input{./tex/introduction.tex}
+
+\input{./tex/literatureReview.tex}
+
+\input{./tex/aimsObjectives.tex}
+
+\input{./tex/workToDate.tex}
+
+\input{./tex/futureWork.tex}
+
+\input{./tex/conclusions.tex}
+
+\renewcommand\bibname{References}
+
+\bibliographystyle{acm}
+\bibliography{../../../references/phdReferences}
+
+\input{./tex/appendix.tex}
+
+\end{document}

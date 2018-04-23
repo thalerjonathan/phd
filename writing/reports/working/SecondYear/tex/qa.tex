@@ -1,0 +1,71 @@
+\chapter{Questions \& Answers}
+\label{chap:qa}
+
+TODO: update and adopt to 2nd year
+
+In this chapter I give answers to anticipated questions and objections about my research direction and vision of doing pure functional ABS \footnote{They are not always posed in a dead-serious way but as it is a quite controversial topic - ABS should be done object-orientated after all huh? - I think it is appropriate. Also some objections were raised in exactly this way.}.
+
+\paragraph{Doesn't NetLogo provide all this?}
+Fair point, NetLogo can be seen as a functional language. Problem: side-effects, global state, dynamic, very difficult to verify. Main benefits: quick and easy to learn, for beginners.
+
+\paragraph{Why another formalism, don't we have already enough of them?}
+It is only partly another formalism - the important fact is, that it is directly built into Haskell, thus leveraging on a pure functional programming language directly than having some formal language which is then translated to machine code.
+
+\paragraph{Pure functional programming? You must be kidding! Objects are so close to Agents!}
+Exactly this is the problem: objects are in fact very close to agents but they have also very important differences which are quickly cast aside when implementing ABS in e.g. Java leading to problems like shared state.
+
+\paragraph{What about parallelism and concurrency?}
+Although very important, they are not of primary interest in this PhD. It is very well known that pure functional programming is exceptionally well suited in implementing parallel programs (no side-effects) and also concurrent ones (through STM, allowing composition of concurrency) and we have looked into this a bit in the paper on programming paradigms in ABS, so all of this can be applied to our research as well.
+
+\paragraph{You mentioned performance and space-leaks as weaknesses?}
+Yes this is probably the largest issue to date as even problems with small number of agents (10,000) are getting very slow. Although performance is not of interest here we are well aware that slow software is simply not used, thus we are looking for ways in improving the speed.
+
+\paragraph{You mentioned the difficulty of debugging in weaknesses of pure functional programming, how can you be sure your program is correct?}
+Good point but having the ability to step through a program alone does not guarantee the correctness of a program. In Haskell the static type system enforces already very much and prevents bugs which are normal in e.g. Java, also the lack of implicit side-effects makes programs much less prone to errors. In the end there is also reasoning techniques and QuickCheck. Thus we have much more power at hand in detecting bugs and ensuring correctness than classic oop languages like Java or C++.
+
+\paragraph{So you say ABS should be done in Haskell using your library and using your techniques and object-orientation sucks?}
+You're mixing things up but: it depends. If you are familiar with Haskell and like functional programming, go for it. If you are an oop-disciple, who can code the most complex ABS just don't. If you need correctness and verification in your simulation then definitely go for it. 
+
+\paragraph{Nobody has done it before? Probably for a good reason, object-oriented is the way to go for ABS!}
+At least to my knowledge, backed-up by a thorough literature-review, no one has done a proper treatment of ABS in a pure functional way. My original motivation was just one thing: curiosity! No one has done it and I want to find out how it can be done, what its benefits are, what its weaknesses are. Just to claim oo is the \textit{right} way is not a serious claim unless you haven't tried other ways and compared them. I have done both ways in-depth, have you?
+
+\paragraph{What are the benefits?}
+Simulations are more likely to be correct, better support for verification, no gap between specification and code, easier to replicate.
+
+\paragraph{What are the weaknesses?}
+Performance, steep learning curve if you don't know functional programming.
+
+\paragraph{Why not using Erlang? Its functional, it has the actor model built in?}
+Yes, Erlang would be nearly perfect but the non-determinism and asynchronous nature of the messaging is the main problem which can hardly be overcome. If you don't need determinism (as in every run may have different dynamics despite using the same RNG) in your model, then Erlang (or Scala) is definitely an interesting option.
+
+\paragraph{But why functional? Is this unique to functional? All this can be done in principle in other languages!}
+In principle you can implement an ABS in assembly, machine code, lambda calculus or even a Turing machine. The point is that the languages in which we program shape and define how we think of a problem and pure functional programming makes you think in a much more high level and abstract way which is much more suitable to validation and verification - after all in functional programming you think about \textit{what} something is instead of \textit{how} to compute it. Also it allows to draw parallels and map concepts from category theory (yes yes of course you could do that in principle in all the above cited languages. Also in principle I could drive in a wheelchair from Chile to Alaska).
+
+\paragraph{I am a very experienced programmer in language \textit{Blob}, Haskell doesn't have feature X of \textit{Blub} at all! Also you could do anything in any Turing-complete language, a good programmer would not make these serious kind of mistakes, a good programmer does not use this bad language-feature, you could also program functional \textit{Blub}, you could do that somehow also in \textit{Blub}!}
+Just let me quote Paul Graham from his book \textit{Hackers \& Painters} \cite{graham_hackers_2004}: 
+"Programmers get very attached to their favorite languages, and I don't want to hurt anyone's feelings, so to explain this point I'm going to use a hypothetical language called Blub. Blub falls right in the middle of the abstractness continuum. It is not the most powerful language, but it is more powerful than Cobol or machine language. As long as our hypothetical Blub programmer is looking down the power continuum, he knows he's looking down. Languages less powerful than Blub are obviously less powerful, because they're missing some feature he's used to. But when our hypothetical Blub programmer looks in the other direction, up the power continuum, he doesn't realize he's looking up. What he sees are merely weird languages. He probably considers them about equivalent in power to Blub, but with all this other hairy stuff thrown in as well. Blub is good enough for him, because he thinks in Blub. When we switch to the point of view of a programmer using any of the languages higher up the power continuum, however, we find that he in turn looks down upon Blub. How can you get anything done in Blub? It doesn't even have y."
+
+\paragraph{But aren't all these Languages you're talking about (Java, Haskell,...) Turing Complete? So aren't they equally powerful?}
+I've heard this line of argumentation quite often - for me it resembles half-knowledge about programming languages and the origins, concepts and limitations of computation. But ok... you really asked the question, so let me give you an answer: in theory they are equally powerful yes but in practise absolutely not.
+The Turing Machine (from which the term Turing Completeness comes) AND the Lambda Calculus were abstract concepts conceived around the same time, to describe the principles of computation and theoretically explore their limitations. Of course it is possible to "program" in both a Turing Machine and the Lambda Calculus - have you ever done it? I really doubt that, otherwise you would not ask such a question. Also I doubt you were ever confronted with real-world industry-challenging programming tasks. So... I've "programmed" a small toy example in a Turing Machine and I've programmed a few more examples in the untyped Lambda Calculus. It's just not feasible, the level is too low and complexity takes over quickly as one wants to solve more complicated problems than very simple arithmetic on natural numbers.
+Also do you know what turing completeness means? It only talks about the fundamental computational limitations of a formal language, nothing more. To say all languages are equal in principle because they are turing complete would amount to the same as saying my simple hand calculator is equal in principle to a supercomputer because both are turing complete. In very theory yes but in practice this claim is ridiculous. So... don't lets go there, lets try again with a different question.
+
+\paragraph{So you're implying is that different Languages have different power?}
+Yes. Let me give you an example: I guess you would agree that Machine Language is not as powerful as Assembly and this in turn is not as powerful as C.
+With powerful i mean: how easily the language let me express abstractions and solve problems \textit{in a specific domain}. 
+
+\paragraph{But wait... Java supports now lambda expressions, so you can do functional programming in Java now!} Well... no. Just adding lambdas to a language does not make it functional. The main criterion to classify a language as functional is whether it is based on the lambda calculus or not - this is clearly not the case in Java as it still remains an imperative language with features for object-oriented programming. Of course, by adding lambdas, programming in a functional \textit{style} is now much easier but you have to very clearly distinguish between a functional \textit{style} and actual functional programming. After all, it is possible to program in an object-oriented style in both C and Haskell but that does not make those language object-oriented!
+So coming back to your question: Java added a few features in Version 8 which support programming in the functional style: Lambdas, Method References and Aggregate Operation. All come with quite lots of ceremony - as is usual for Java - but are indeed an important step towards functional style programming.
+So having these mechanisms at hand allows one to program functionally in Java? Yes, I looked at quite a number of Blogs, Tutorials, Java Documentation, JDK,
+\footnote{
+	\begin{itemize}
+		\item Introduction to functional programmin in Java 8 Part 0 - 4: \url{https://flyingbytes.github.io/programming/java8/functional/part0/2017/01/16/Java8-Part0.html}
+		\item https://dzone.com/articles/functional-programming-java-8
+		\item Oracle Tutorial on Lambda Expressions: \url{https://docs.oracle.com/javase/tutorial/java/javaOO/lambdaexpressions.html}
+		\item Oracle Tutorial on Method Reference: \url{https://docs.oracle.com/javase/tutorial/java/javaOO/methodreferences.html}
+		\item Oracle Tutorial on Aggregate Operations: \url{https://docs.oracle.com/javase/tutorial/collections/streams/index.html}
+	\end{itemize}
+}
+
+My conclusion is the following: the Aggregate Operations in combination with the Lambdas are a real nice and powerful way to concisely operate on collections, which was always tedious in Java (and OOP in general). Apart from that, emulating a (pure) functional style in Java becomes very messy and ugly and needs still lots of ceremony (funny enough as one expects to reduce ceremony by the use of lambdas) - for obvious reasons: the language is still imperative OOP.
+So finally: use the Aggregate Operations to manipulate Collections and stick to established OO techniques otherwise or completely switch to Haskell if you really want to go functional.

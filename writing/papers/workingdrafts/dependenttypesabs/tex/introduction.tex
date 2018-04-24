@@ -1,0 +1,21 @@
+\section{Introduction}
+Previous research (TODO: cite my own paper on Pure Functional Epidemics) has shown that the pure functional programming paradigm as in Haskell is very suitable to implement agent-based simulations. Building on FRP and MSFs the work developed an elegant implementation of an agent-based SIR model which was pure. By statically removing all external influences of randomness already at compile time through types, this guarantees that repeated simulation runs with the same starting conditions will always result in the same dynamics - guaranteed at compile time. This previous research focused only on establishing the basic concepts of ABS in functional programming but it did not explore the inherent strength of functional programming for verification and correctness any further than guaranteeing the reproducibility of the simulation at compile time.
+
+This paper picks up where the previous research has left and wants to investigate the usefulness of pure and dependently typed functional programming for verification and correctness of agent-based simulation. We are especially interested if requirements of an ABS can be guaranteed on a stronger level by those paradigms, if a larger class of bugs can be excluded already at compile time and whether we can express model properties and invariants already at compile time on a type level. Further we are interested in how far we can reason about an agent-based model in a dependently typed implementation. 
+
+As use cases we introduce two well known models in ABS. First, the simple SIR model of epidemiology \cite{kermack_contribution_1927} with which one can simulate epidemics, that is the spreading of an infectious disease through a population, in a realistic way. It has the benefit that there exists an analytical solution for it against which one can validate the agent-based implementation.
+Second, the Sugarscape model \cite{epstein_growing_1996} which simulates artificial societies.
+
+We first look look into the general potential of dependent types in ABS, derive possible applications and patterns and then apply them in both use-case models.
+
+The aim of this paper is to investigate what dependent types can offer to ABS and what the benefits and drawbacks are. By doing this we give the reader a good understanding of what ABS is, what the challenges are when implementing it and how we solve these in our approach.
+
+TODO: refine
+The contributions of this paper are:
+\begin{itemize}
+	\item To the best of our knowledge, we are the first to \textit{systematically} investigate what dependent types can offer to agent-based simulation on the implementation level.
+	\item Our approach shows how one can encode agent-based model specifications directly into the types which guarantees correctness on a much stronger level, unprecedented by our previous research and not possible with traditional object-oriented approaches.
+	\item Our approach shows a total implementation of the agent-based SIR model, which is by definition a constructive proof that the agent-based SIR model will terminate after finite number of steps.
+\end{itemize}
+
+Section \ref{sec:related_work} discusses related work. In section \ref{sec:background} we introduce the concepts of agent-based simulation and both use-case models. TODO: not add other sections. Finally, we draw conclusions and discuss issues in section \ref{sec:conclusions} and point to further research in section \ref{sec:further_research}.

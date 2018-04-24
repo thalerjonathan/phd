@@ -19,7 +19,7 @@ interface SIRAgent (m : Type -> Type) where
   makeContact : (ctx : Var) -> ST m () [ctx ::: SIRContext Susceptible]
 
   -- TODO: getting infected is only possible in the susceptible state
-  -- TODO: recovering is only possible in the infected state
+  -- TODO: recovering is only possible in the infected state and occurs after a finite number of time-steps
 
 -------------------------------------------------------------------------------
 -- INTERFACE IMPLEMENTATION: IO 

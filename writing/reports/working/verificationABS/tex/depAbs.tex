@@ -11,7 +11,11 @@ Dependent Types in Idris bring the strong static type system of Haskell to a new
 
 \begin{itemize}
 	\item Ruling out ever larger classes of bugs
-	\item 
+	\item Dependent State Machines
+	\item Dependent Agent Interactions
+	\item Flow Of Time
+	\item Totality
+	\item Constructive Proofs
 \end{itemize}
 
 \subsection{Ruling out Bugs}
@@ -25,7 +29,7 @@ The question is how far we can generalise our approaches because we fear that th
 \subsection{Dependent State Machines}
 dependent state machines in abs for internal state because that is very Common in ABS
 
-\subsection{Dependent Agent Interaction}
+\subsection{Dependent Agent Interactions}
 \subsubsection{Agent Transactions}
 dependently typed message protocols in ABS because its very common, and easily done thorugh methods in OOP: sugarscape mating and trading protocol
 \subsubsection{Data Flow}
@@ -33,5 +37,12 @@ TODO: can dependent types be used in the Data Flow Mechanism?
 \subsubsection{Event Scheduling}
 TODO: can dependent types be used in the event-scheduling mechanism?
 
+\subsection{Flow Of Time}
+TODO: can dependent types be used to express the flow of time and its strongly monotonic increasing?
+
 \subsection{Totality}
 totality of parts or the whole simulation
+
+\subsection{Constructive Proofs}
+- An agent-based model and the simulated dynamics of it is itself a constructive proof which explain a real-world phenomenon sufficiently good
+- proof of the existence of an agent: holds always only for the current time-step

@@ -1,22 +1,20 @@
 \section{Related Work}
 \label{sec:related_work}
-we look for related work on applying Dependent Types to real-world problems, where there are a few, maybe we can draw inspiration from them
-
-ionescu work
-\cite{ionescu_dependently-typed_2012}
-\cite{botta_functional_2011}
+To our best knowledge there exists no work on concepts of implementing pure functional agent-based simulations with dependent types. The authors \cite{botta_functional_2011} are using functional programming as a specification for an agent-based model of bilateral trading but don't give a real implementation e.g. in Haskell but just propose dependent types as implementation in further research.
+%The authors of \cite{ionescu_dependently-typed_2012} discuss how to use dependent types to specify fundamental theorems of economics, unfortunately they are not computable and thus not constructive, thus leaving it more to a theoretical, specification side.
 %Ionesus talk on dependently typed programming in scientific computing
 %https://www.pik-potsdam.de/members/ionescu/cezar-ifl2012-slides.pdf
 %Ionescus talk on Increasingly Correct Scientific Computing
-%https://www.cicm-conference.org/2012/slides/CezarIonescu.pdf
+%%https://www.cicm-conference.org/2012/slides/CezarIonescu.pdf
 %Ionescus talk on Economic Equilibria in Type Theory
 %https://www.pik-potsdam.de/members/ionescu/cezar-types11-slides.pdf
 %Ionescus talk on Dependently-Typed Programming in Economic Modelling
 %https://www.pik-potsdam.de/members/ionescu/ee-tt.pdf
 
-real world stuff
-\cite{brady_correct-by-construction_2010} correct by construction concurrency
-\cite{brady_idris_2011} Idris - systems programming meets full dependent types
-\cite{brady_programming_2013} Programming and Reasoning with Algebraic Effects and Dependent Types 
-\cite{fowler_dependent_2014} dependent types for safe and secure web programming
-\cite{brady_state_2016} state machines all the way down
+As a remedy to having no related work to draw inspiration from, we looked into papers which apply dependent types to solve real world problems. 
+The authors of \cite{brady_correct-by-construction_2010} use depend types to implement correct-by-construction concurrency TODO:
+
+TODO \cite{brady_idris_2011} Idris - systems programming meets full dependent types
+TODO \cite{brady_programming_2013} Programming and Reasoning with Algebraic Effects and Dependent Types 
+TODO \cite{fowler_dependent_2014} dependent types for safe and secure web programming
+TODO \cite{brady_state_2016} state machines all the way down

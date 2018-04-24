@@ -34,14 +34,23 @@ SIRAgent IO where
 -------------------------------------------------------------------------------
 -- AGENT IMPLEMENTATION 
 -------------------------------------------------------------------------------
-sirAgent : (SIRAgent m) => SIRState -> ST m SIRState [ctx ::: SIRContext {m} s]
+sirAgent : (SIRAgent m) => SIRState -> ST m () []
 sirAgent Susceptible = ?sirAgent_rhs_1
 sirAgent Infected    = ?sirAgent_rhs_2
 sirAgent Recovered   = ?sirAgent_rhs_3
 
-susceptibleAgent :  (SIRAgent m) 
-                 => (ctx : Var) 
-                 -> ST m SIRState [ctx ::: SIRContext {m} Susceptible]
+susceptible :  (SIRAgent m) 
+            => (ctx : Var) 
+            -> ST m SIRState [ctx ::: SIRContext {m} Susceptible]
+susceptible ctx = pure Susceptible
+
+infected : (SIRAgent m) 
+         => (ctx : Var) 
+         -> ST m SIRState [ctx ::: SIRContext {m} Infected]
+
+recovered : (SIRAgent m) 
+          => (ctx : Var) 
+          -> ST m SIRState [ctx ::: SIRContext {m} Recovered]
 
 -------------------------------------------------------------------------------
 

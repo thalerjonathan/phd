@@ -53,12 +53,17 @@ Dependent Types in Idris bring the strong static type system of Haskell to a new
 
 The question is how far we can generalise our approaches because we fear that the downside of using dependently typed abs is that every implementation needs to start from Scratch: we cant write a general library for it like chimera because the more we put into types, the more specific it is => individual implementation which reuses existing 'patterns' like state machines, messages,...
 
+\subsection{General Agent Interface}
+using dependent types to specify the general commands available for an agent. here we can follow the approach of an DSEL as described in \cite{brady_correct-by-construction_2010} and write then an interpreter for it. It is of importance that the interpreter shall be pure itself and does not make use of any fancy IO stuff.
+
 \subsection{Dependent State Machines}
-dependent state machines in abs for internal state because that is very Common in ABS
+dependent state machines in abs for internal state because that is very Common in ABS. Here we can draw inspiration from the paper \cite{brady_state_2016} and book \cite{brady_type-driven_2017}.
 
 \subsection{Dependent Agent Interactions}
 \subsubsection{Agent Transactions}
 dependently typed message protocols in ABS because its very common, and easily done thorugh methods in OOP: sugarscape mating and trading protocol
+using a DSEL \cite{brady_correct-by-construction_2010} to restrict the available primitives in the message protocol?
+
 \subsubsection{Data Flow}
 TODO: can dependent types be used in the Data Flow Mechanism?
 \subsubsection{Event Scheduling}
@@ -68,8 +73,9 @@ TODO: can dependent types be used in the event-scheduling mechanism?
 TODO: can dependent types be used to express the flow of time and its strongly monotonic increasing?
 
 \subsection{Totality}
-totality of parts or the whole simulation
+totality of parts or the whole simulation e.g. in case of the SIR model we can informally reason that the simulation MUST reach an equilibrium (a steady state from which there is no escape: the dynamics wont't change anymore, derivations are 0) after a finite number of steps. if we can construct a total program which expresses this, we have a formal proof of that which is 1) a specification of the model 2) generates the dynamics 3) is a proof that it reaches equilibrium
 
 \subsection{Constructive Proofs}
 - An agent-based model and the simulated dynamics of it is itself a constructive proof which explain a real-world phenomenon sufficiently good
-- proof of the existence of an agent: holds always only for the current time-step
+- proof of the existence of an agent: holds always only for the current time-step or for all time, depending on the model. e.g. in the SIR model no agents are removed from / added to the system thus a proof holds for all time. In sugarscape agents are removed / added dynamically so a proof might become invalid after a time or one can construct a proof only from a given time on e.g. when one wants to prove that agent X exists but agent X is only created at time t then before time t the prove cannot be constructed and is uninhabited and only inhabited from time t on.
+- 

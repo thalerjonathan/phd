@@ -1,0 +1,12 @@
+package SIREff
+
+pkgs = effects --, gloss-idris, glfw-idris-st
+
+makefile = MakefileConfig
+
+main = SIREff
+executable = sireff
+
+-- TODO: https://www.idris-lang.org/documentation/packages/
+-- TODO: use libs 
+-- TODO: use objs

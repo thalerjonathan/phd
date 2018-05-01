@@ -18,8 +18,10 @@ data SIRState
 -- we want the dimensions in the environment, something
 -- only possible with dependent types. Also we parameterise
 -- over the type of the elements, basically its a matrix
+-- note: by using S, we make sure the env has at least 1
+-- element in each dimension
 Disc2dEnv : (w : Nat) -> (h : Nat) -> (e : Type) -> Type
-Disc2dEnv w h e = Vect w (Vect h e)
+Disc2dEnv w h e = Vect (S w) (Vect (S h) e)
 
 contactRate : Double
 contactRate = 5.0
@@ -123,6 +125,18 @@ isRec : SIRAgent -> Bool
 isRec (Recovered, _) = True
 isRec _ = False
 
+createSIREnv :  (w : Nat) 
+             -> (h : Nat)
+             -> Eff (Disc2dEnv w h SIRState, List SIRAgent) [RND]
+createSIREnv w h = do
+  let w' = S w
+  let h' = S h
+
+  let env = Data.Vect.replicate w' (Data.Vect.replicate h' Susceptible)
+  -- TODO: insert a Infected at the center
+
+  pure (env, [])
+
 runAgents :  Double
           -> List SIRAgent 
           -> Eff (List (Nat, Nat, Nat)) [RND]
@@ -164,6 +178,7 @@ runAgents dt as = runAgentsAcc as []
 
 runSIR : Eff (List (Nat, Nat, Nat)) [RND]
 runSIR = do
+  let env = createSIREnv 
   as <- createAgents 99 1 0
   runAgents 1.0 as
 

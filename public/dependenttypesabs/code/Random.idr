@@ -56,6 +56,9 @@ namespace List
             (No contra) => (Nothing, rs)
 
 namespace Vector
+  -- TODO: if we use a Vect (S n) a then it is guaranteed that it
+  -- has at least one element (it is not empty) => we can omit
+  -- Maybe
   export
   randomElem : RandomStream -> Vect n a -> (Maybe a, RandomStream)
   randomElem {n} (r :: rs) xs

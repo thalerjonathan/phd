@@ -248,7 +248,7 @@ sirAgent _ recAg                       = pure recAg
 --       => we cannot find a pair of agents whose coordinates are the same
 createSIR :  (w : Nat) 
           -> (h : Nat)
-          -> Eff (Disc2dEnv w h SIRState, Vect (w * h) (SIRAgent w h)) [RND] -- TODO: add exception
+          -> Eff (Disc2dEnv w h SIRState, List (SIRAgent w h)) [RND] -- TODO: use Vect 
 createSIR w h = do
     let cx = divNat w 2
     let cy = divNat h 2
@@ -257,15 +257,30 @@ createSIR w h = do
     
     let dprf = isWithinBounds cx cy w h
     case dprf of
-      No contra => ?bla -- pure (env, []) -- occurs when w or h = 0 => 0 cells, 0 agents
+      No contra => pure (env, []) -- occurs when w or h = 0 => 0 cells, 0 agents
       Yes prf   => do
         let env' = setCell prf Infected env
         let as   = createAgents env'
         pure (env', as)
+
   where
-    createAgents :  Disc2dEnv w h SIRState
-                 -> Vect (w * h) (SIRAgent w h)
-    createAgents env = ?createAgents
+    createAgents : Disc2dEnv w h SIRState -> List (SIRAgent w h)
+
+
+  -- TODO: use vect 
+  {-
+    createAgentRow : Vect h SIRState -> Vect h (SIRAgent w h)
+    createAgentRow as 
+      = map (\s => case s of
+                    Susceptible => ?bla_1
+                    Infected => ?bla_2
+                    Recovered => ?bla_3) as
+
+    createAgents : Disc2dEnv w h SIRState -> Vect (w * h) (SIRAgent w h)
+    createAgents env = concat $ map (\row => createAgentRow row) env
+ 
+-}
+
     {-}
       let dprf = isWithinBounds x y w h
       in  case dprf of
@@ -281,66 +296,39 @@ testCreateSIR = do
   putStrLn $ show e
   putStrLn $ show as
 
-{-
--------------------------------------------------------------------------------
-createAgents :  Nat
-             -> Nat
-             -> Nat
-             -> Eff (List (SIRAgent x y)) [RND]
-createAgents susCount infCount recCount = do
-    let sus = replicate susCount mkSusceptible
-    let rec = replicate recCount mkRecovered
-    inf <- createInfs infCount
-    pure (sus ++ inf ++ rec)
-  where
-    createInfs : Nat -> Eff (List (SIRAgent x y)) [RND]
-    createInfs Z = pure []
-    createInfs (S k) = do
-      dur <- randomExp (1 / illnessDuration) 
-      infs' <- createInfs k
-      pure $ (mkInfected dur) :: infs'
-
 isSus : SIRAgent x y -> Bool
-isSus SusceptibleAgent = True
+isSus (SusceptibleAgent _ _ _) = True
 isSus _ = False
 
-isInf : SIRAgent x y -> Bool
-isInf (InfectedAgent _) = True
+isInf : SIRAgent w h -> Bool
+isInf (InfectedAgent _ _ _ _) = True
 isInf _ = False
 
 isRec : SIRAgent x y -> Bool
-isRec RecoveredAgent = True
+isRec (RecoveredAgent _ _ _) = True
 isRec _ = False
 
 runAgents :  Double
-          -> List (SIRAgent x y)
+          -> List (SIRAgent w h)
           -> Eff (List (Nat, Nat, Nat)) [STATE (Disc2dEnv w h SIRState), RND]
 runAgents dt as = runAgentsAcc as []
   where
-    runAgent :  Double 
-             -> SIRAgent x y 
-             -> Eff (SIRAgent x y) [STATE (Disc2dEnv w h SIRState), RND]
-    runAgent infFract SusceptibleAgent = susceptible infFract
-    runAgent _ (InfectedAgent rt)      = infected rt dt
-    runAgent _ RecoveredAgent          = recovered
+    runAllAgents :  List (SIRAgent w h)
+                 -> List (SIRAgent w h)
+                 -> Eff (List (SIRAgent w h)) [STATE (Disc2dEnv w h SIRState), RND]
+    runAllAgents [] acc = pure acc 
+    runAllAgents (a :: as) acc = do
+      a' <- sirAgent dt a
+      runAllAgents as (a' :: acc)
 
-    runAllAgents :  Double
-                 -> List (SIRAgent x y)
-                 -> List (SIRAgent x y)
-                 -> Eff (List SIRAgent (x y)) [STATE (Disc2dEnv w h SIRState), RND]
-    runAllAgents _ [] acc = pure acc 
-    runAllAgents infFract (a :: as) acc = do
-      a' <- runAgent infFract a
-      runAllAgents infFract as (a' :: acc)
-
-    runAgentsAcc :  List (SIRAgent x y)
+    runAgentsAcc :  List (SIRAgent w h)
                  -> List (Nat, Nat, Nat) 
                  -> Eff (List (Nat, Nat, Nat)) [STATE (Disc2dEnv w h SIRState), RND]
     runAgentsAcc as acc = do
       let nSus = length $ filter isSus as
       let nInf = length $ filter isInf as
       let nRec = length $ filter isRec as
-      
+
       let step = (nSus, nInf, nRec)
 
       if nInf == 0
@@ -349,18 +337,18 @@ runAgents dt as = runAgentsAcc as []
           let nSum = cast {to=Double} (nSus + nRec + nInf)
           let infFract = cast {to=Double} nInf / nSum
 
-          -- TODO: why is mapE (runAgent infFract) as not working????
-          as' <- runAllAgents infFract as []
+          -- TODO: why is mapE runAgent as not working????
+          as' <- runAllAgents as []
           runAgentsAcc as' (step :: acc)
-
-runSIR : Eff (List (Nat, Nat, Nat)) [STATE (Disc2dEnv w h SIRState), RND]
+          
+runSIR : Eff (List (Nat, Nat, Nat)) [RND]
 runSIR = do
-  as <- createAgents 99 1 0
-  runAgents 1.0 as
+  (e, as) <- createSIR 2 2
+  -- TODO: instead of runPureInit, add new resource here: STATE
+  let ret = runPureInit [e, 42] (runAgents 1.0 as)
+  pure ret
 
 main : IO ()
 main = do
-  let e = createSIREnv 21 21
-  let dyns = runPureInit [e, 42] runSIR
+  let dyns = runPureInit [42] runSIR
   writeMatlabFile "sirEff.m" dyns
-  -}

@@ -10,19 +10,6 @@ import Effect.StdIO
 
 import Export
 
-data SIRState 
-  = Susceptible 
-  | Infected 
-  | Recovered
-
--- we want the dimensions in the environment, something
--- only possible with dependent types. Also we parameterise
--- over the type of the elements, basically its a matrix
--- note: by using S, we make sure the env has at least 1
--- element in each dimension
-Disc2dEnv : (w : Nat) -> (h : Nat) -> (e : Type) -> Type
-Disc2dEnv w h e = Vect (S w) (Vect (S h) e)
-
 contactRate : Double
 contactRate = 5.0
 
@@ -32,11 +19,169 @@ infectivity = 0.05
 illnessDuration : Double
 illnessDuration = 15.0
 
+data SIRState 
+  = Susceptible 
+  | Infected 
+  | Recovered
+
 Eq SIRState where
   (==) Susceptible Susceptible = True
   (==) Infected Infected = True
   (==) Recovered Recovered = True
   (==) _ _ = False
+
+Show SIRState where
+  show Susceptible = "Susceptible"
+  show Infected = "Infected"
+  show Recovered = "Recovered"
+  
+-- we want the dimensions in the environment, something
+-- only possible with dependent types. Also we parameterise
+-- over the type of the elements, basically its a matrix
+-- TODO: if using S, we make sure the env has at least 1
+-- element in each dimension
+Disc2dEnv : (w : Nat) -> (h : Nat) -> (e : Type) -> Type
+Disc2dEnv w h e = Vect w (Vect h e) -- Vect (S w) (Vect (S h) e)
+
+printLTE : LTE x y -> IO ()
+printLTE {x} {y} _ = putStrLn $ "" ++ show x ++ " LTE " ++ show y
+
+printNonLTE : (LTE x y -> Void) -> IO ()
+printNonLTE {x} {y} _ = putStrLn $ "" ++ show x ++ " NOT LTE " ++ show y
+
+testLT : IO ()
+testLT = do
+    let x = 41
+    let w = 42
+  
+    let dprf = testLEAux x w
+    case dprf of
+      Yes prf   => printLTE prf
+      No contra => printNonLTE contra
+
+  where
+    testLEAux :  (x : Nat)
+               -> (w : Nat)
+               -> Dec (LT x w)
+    testLEAux x w = isLTE (S x) w
+
+data WithinBounds : (x : Nat) -> (y : Nat) -> (w : Nat) -> (h : Nat) -> Type where
+  IsWithin : (x : Nat) -> (y : Nat) -> LT x w -> LT y h -> WithinBounds x y w h
+
+xOutOfBounds : (xNotLTwPrf : LTE (S x) w -> Void) -> WithinBounds x y w h -> Void
+xOutOfBounds xNotLTwPrf (IsWithin _ _ prf _) = xNotLTwPrf prf
+
+yOutOfBounds : (yNotLThPrf : LTE (S y) h -> Void) -> WithinBounds x y w h -> Void
+yOutOfBounds yNotLThPrf (IsWithin _ _ _ prf) = yNotLThPrf prf
+
+-- this constructs a proof that x < w AND y < h
+isWithinBounds :  (x : Nat) 
+               -> (y : Nat) 
+               -> (w : Nat) 
+               -> (h : Nat) 
+               -> Dec (WithinBounds x y w h)
+isWithinBounds x y w h =
+  case isLTE (S x) w of
+    Yes xLTwPrf   => case isLTE (S y) h of
+                       Yes yLThPrf   => Yes $ IsWithin x y xLTwPrf yLThPrf
+                       No yNotLThPrf => No (yOutOfBounds yNotLThPrf)
+    No xNotLTwPrf => No (xOutOfBounds xNotLTwPrf)
+
+-- TODO: do we really need x and n? its already in the LT type?
+lteToFin :  (x : Nat)
+         -> (n : Nat)
+         -> LTE x n
+         -> Fin (S n)
+lteToFin Z n LTEZero = FZ
+lteToFin (S k) (S right) (LTESucc y) 
+  = FS (lteToFin k right y)
+
+ltToFin :   (x : Nat)
+         -> (n : Nat)
+         -> LT x n
+         -> Fin n
+ltToFin Z (S right) (LTESucc y) = FZ
+ltToFin (S k) (S right) (LTESucc y)
+  = FS (ltToFin k right y)
+
+testLTEToFin : IO ()
+testLTEToFin = do
+  let x = 10
+  let n = 41
+  
+  let dlte = isLTE x n
+
+  case dlte of
+    No contra => print "not LTE!"
+    Yes prf   => do
+      let fin = lteToFin x n prf
+      print $ finToNat fin
+
+testLTToFin : IO ()
+testLTToFin = do
+  let x = 40
+  let n = 41
+  
+  let dlt = isLTE (S x) n
+
+  case dlt of
+    No contra => putStrLn "not LT!"
+    Yes prf   => do
+      let fin = ltToFin x n prf
+      putStrLn $ show $ finToNat fin
+
+
+setCell :  WithinBounds x y w h
+        -> (elem : e)
+        -> Disc2dEnv w h e
+        -> Disc2dEnv w h e
+setCell {w} (IsWithin x y xLTw yLTh) elem env = 
+    let colIdx = ltToFin x w xLTw 
+    in  updateAt colIdx (updateCol y yLTh) env
+  where
+    updateCol :  (y : Nat)
+              -> LT y h
+              -> Vect h e
+              -> Vect h e
+    updateCol {h} y prf col = 
+      let rowIdx = ltToFin y h prf 
+      in  updateAt rowIdx (const elem) col
+
+getCell :  WithinBounds x y w h
+        -> Disc2dEnv w h e
+        -> e
+getCell {w} (IsWithin x y xLTw yLTh) env =
+    let colIdx = ltToFin x w xLTw 
+    in  indexCol y yLTh (index colIdx env)
+  where
+    indexCol :  (y : Nat)
+             -> LT y h
+             -> Vect h e
+             -> e
+    indexCol {h} y prf col = 
+      let rowIdx = ltToFin y h prf 
+      in  index rowIdx col
+
+vec : Vect 4 Int
+vec = [1,2,3,4]
+
+testUpdateVec : IO ()
+testUpdateVec = do
+  let vec' = updateAt 3 (+1) vec
+  print vec'
+
+-- w and h are the dimensions of the environment =>
+-- using this we can guarantee that the coordinates
+-- are within bounds, given a proof
+data SIRAgent : (w : Nat) -> (h : Nat) -> Type where
+  SusceptibleAgent : (x : Nat) -> (y : Nat) -> WithinBounds x y w h -> SIRAgent w h
+  InfectedAgent    : Double -> (x : Nat) -> (y : Nat) -> WithinBounds x y w h -> SIRAgent w h
+  RecoveredAgent   : (x : Nat) -> (y : Nat) -> WithinBounds x y w h -> SIRAgent w h
+
+Show (SIRAgent w h) where
+  show (SusceptibleAgent x y prf) = "SusceptibleAgent @(" ++ show x ++ "/" ++ show y ++ ")"
+  show (InfectedAgent rt x y prf) = "InfectedAgent @(" ++ show x ++ "/" ++ show y ++ ")"
+  show (RecoveredAgent x y prf) = "RecoveredAgent @(" ++ show x ++ "/" ++ show y ++ ")"
 
 randomDouble : Eff Double [RND]
 randomDouble = do
@@ -54,37 +199,30 @@ randomBool p = do
   r <- randomDouble
   pure (p >= r)
 
--- TODO: can we express a proof that these coordinates are within the bound of our environment?
-SIRAgent : (x : Nat) -> (y : Nat) -> Type
-SIRAgent x y = (SIRState, Double, x, y)
-
-mkSusceptible : SIRAgent
-mkSusceptible = (Susceptible, 0)
-
-mkInfected : Double -> SIRAgent
-mkInfected rt = (Infected, rt)
-
-mkRecovered : SIRAgent
-mkRecovered = (Recovered, 0)
-
-recovered : Eff SIRAgent [RND]
-recovered = pure mkRecovered
-
-infected : Double -> Double -> Eff SIRAgent [STATE (Disc2dEnv w h SIRState), RND]
-infected recoveryTime dt
+infected :  Double 
+         -> Double
+         -> (x : Nat)
+         -> (y : Nat)
+         -> WithinBounds x y w h
+         -> Eff (SIRAgent w h) [STATE (Disc2dEnv w h SIRState), RND]
+infected dt recoveryTime x y prf
   = if recoveryTime - dt > 0
-      then pure $ mkInfected (recoveryTime - dt)
-      else pure mkRecovered
+      then pure $ InfectedAgent (recoveryTime - dt) x y prf
+      else pure $ RecoveredAgent x y prf
 
-susceptible : Double -> Eff SIRAgent [STATE (Disc2dEnv w h SIRState), RND]
-susceptible infFract = do
+susceptible :  Double 
+            -> (x : Nat)
+            -> (y : Nat)
+            -> WithinBounds x y w h
+            -> Eff (SIRAgent w h) [STATE (Disc2dEnv w h SIRState), RND]
+susceptible infFract x y prf = do
     numContacts <- randomExp (1 / contactRate)
     infFlag     <- makeContact (fromIntegerNat $ cast numContacts) infFract
     if infFlag
       then do
         dur <- randomExp (1 / illnessDuration)
-        pure $ mkInfected dur
-      else pure mkSusceptible
+        pure $ InfectedAgent dur x y prf
+      else pure $ SusceptibleAgent x y prf
   where
     makeContact :  Nat 
                 -> Double
@@ -96,66 +234,106 @@ susceptible infFract = do
         then pure True
         else makeContact n infFract
 
+sirAgent :  Double 
+         -> SIRAgent w h 
+         -> Eff (SIRAgent w h) [STATE (Disc2dEnv w h SIRState), RND]
+sirAgent _ (SusceptibleAgent x y prf)  = susceptible 1.0 x y prf
+sirAgent dt (InfectedAgent rt x y prf) = infected dt rt x y prf
+sirAgent _ recAg                       = pure recAg
+
+||| this will create an environment with the agents on it
+||| with a single infected at the center of the env
+-- TODO: will fail when w OR h = 0, can we enforce a w and h > 0 here?
+-- TODO: proof that each field is occupied by exactly one agent and that the fields state corresponds to the agents state
+--       => we cannot find a pair of agents whose coordinates are the same
+createSIR :  (w : Nat) 
+          -> (h : Nat)
+          -> Eff (Disc2dEnv w h SIRState, Vect (w * h) (SIRAgent w h)) [RND] -- TODO: add exception
+createSIR w h = do
+    let cx = divNat w 2
+    let cy = divNat h 2
+
+    let env = Data.Vect.replicate w (Data.Vect.replicate h Susceptible)
+    
+    let dprf = isWithinBounds cx cy w h
+    case dprf of
+      No contra => ?bla -- pure (env, []) -- occurs when w or h = 0 => 0 cells, 0 agents
+      Yes prf   => do
+        let env' = setCell prf Infected env
+        let as   = createAgents env'
+        pure (env', as)
+  where
+    createAgents :  Disc2dEnv w h SIRState
+                 -> Vect (w * h) (SIRAgent w h)
+    createAgents env = ?createAgents
+    {-}
+      let dprf = isWithinBounds x y w h
+      in  case dprf of
+            Yes prf   => SusceptibleAgent x y prf
+            No contra => ?bla -- TODO: can we somehow omit this case completely by encoding it in the types statically?
+  -}
+
+testCreateSIR : IO ()
+testCreateSIR = do
+  let ret = runPureInit [42] (createSIR 2 2)
+  let (e, as) = ret -- no idea why idris doesnt allow this directly
+
+  putStrLn $ show e
+  putStrLn $ show as
+
+{-
 -------------------------------------------------------------------------------
 createAgents :  Nat
              -> Nat
              -> Nat
-             -> Eff (List SIRAgent) [RND]
+             -> Eff (List (SIRAgent x y)) [RND]
 createAgents susCount infCount recCount = do
     let sus = replicate susCount mkSusceptible
     let rec = replicate recCount mkRecovered
     inf <- createInfs infCount
     pure (sus ++ inf ++ rec)
   where
-    createInfs : Nat -> Eff (List SIRAgent) [RND]
+    createInfs : Nat -> Eff (List (SIRAgent x y)) [RND]
     createInfs Z = pure []
     createInfs (S k) = do
       dur <- randomExp (1 / illnessDuration) 
       infs' <- createInfs k
       pure $ (mkInfected dur) :: infs'
 
-isSus : SIRAgent -> Bool
-isSus (Susceptible, _) = True
+isSus : SIRAgent x y -> Bool
+isSus SusceptibleAgent = True
 isSus _ = False
 
-isInf : SIRAgent -> Bool
-isInf (Infected, _) = True
+isInf : SIRAgent x y -> Bool
+isInf (InfectedAgent _) = True
 isInf _ = False
 
-isRec : SIRAgent -> Bool
-isRec (Recovered, _) = True
+isRec : SIRAgent x y -> Bool
+isRec RecoveredAgent = True
 isRec _ = False
 
-createSIREnv :  (w : Nat) 
-             -> (h : Nat)
-             -> Disc2dEnv w h SIRState
-createSIREnv w h = 
-  let w' = S w
-      h' = S h
-  in  Data.Vect.replicate w' (Data.Vect.replicate h' Susceptible)
-  -- TODO: insert a Infected at the center
-  --pure (env, [])
-
 runAgents :  Double
-          -> List SIRAgent 
+          -> List (SIRAgent x y)
           -> Eff (List (Nat, Nat, Nat)) [STATE (Disc2dEnv w h SIRState), RND]
 runAgents dt as = runAgentsAcc as []
   where
-    runAgent : Double -> SIRAgent -> Eff SIRAgent [STATE (Disc2dEnv w h SIRState), RND]
-    runAgent infFract (Susceptible, _) = susceptible infFract
-    runAgent _ (Infected, rt) = infected rt dt
-    runAgent _ (Recovered, _) = recovered
+    runAgent :  Double 
+             -> SIRAgent x y 
+             -> Eff (SIRAgent x y) [STATE (Disc2dEnv w h SIRState), RND]
+    runAgent infFract SusceptibleAgent = susceptible infFract
+    runAgent _ (InfectedAgent rt)      = infected rt dt
+    runAgent _ RecoveredAgent          = recovered
 
     runAllAgents :  Double
-                 -> List SIRAgent 
-                 -> List SIRAgent 
-                 -> Eff (List SIRAgent) [STATE (Disc2dEnv w h SIRState), RND]
+                 -> List (SIRAgent x y)
+                 -> List (SIRAgent x y)
+                 -> Eff (List SIRAgent (x y)) [STATE (Disc2dEnv w h SIRState), RND]
     runAllAgents _ [] acc = pure acc 
     runAllAgents infFract (a :: as) acc = do
       a' <- runAgent infFract a
       runAllAgents infFract as (a' :: acc)
 
-    runAgentsAcc :  List SIRAgent 
+    runAgentsAcc :  List (SIRAgent x y)
                  -> List (Nat, Nat, Nat) 
                  -> Eff (List (Nat, Nat, Nat)) [STATE (Disc2dEnv w h SIRState), RND]
     runAgentsAcc as acc = do
@@ -185,3 +363,4 @@ main = do
   let e = createSIREnv 21 21
   let dyns = runPureInit [e, 42] runSIR
   writeMatlabFile "sirEff.m" dyns
+  -}

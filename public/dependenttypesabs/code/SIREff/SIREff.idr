@@ -1,6 +1,5 @@
 module SIREff
 
-import Debug.Trace
 import Data.Vect
 
 import Effects
@@ -9,6 +8,7 @@ import Effect.State
 import Effect.StdIO
 
 import Export
+import RandomUtils
 
 contactRate : Double
 contactRate = 5.0
@@ -38,11 +38,20 @@ Show SIRState where
 -- we want the dimensions in the environment, something
 -- only possible with dependent types. Also we parameterise
 -- over the type of the elements, basically its a matrix
--- TODO: if using S, we make sure the env has at least 1
--- element in each dimension
 Disc2dEnv : (w : Nat) -> (h : Nat) -> (e : Type) -> Type
-Disc2dEnv w h e = Vect w (Vect h e) -- Vect (S w) (Vect (S h) e)
+Disc2dEnv w h e = Vect w (Vect h e)
 
+envToCoord : Disc2dEnv w h e -> Vect (w * h) (Nat, Nat, e)
+envToCoord env = envToCoordAux Z env
+  where
+    envToCoordAux : (x : Nat) -> Disc2dEnv w h e -> Vect (w * h) (Nat, Nat, e)
+    envToCoordAux _ [] = []
+    envToCoordAux x (col :: cs) = (colToCoord 0 col) ++ (envToCoordAux (S x) cs)
+      where
+        colToCoord : (y : Nat) -> Vect h e -> Vect h (Nat, Nat, e)
+        colToCoord _ [] = []
+        colToCoord y (elem :: es) = (x, y, elem) :: (colToCoord (S y) es)
+    
 printLTE : LTE x y -> IO ()
 printLTE {x} {y} _ = putStrLn $ "" ++ show x ++ " LTE " ++ show y
 
@@ -183,21 +192,34 @@ Show (SIRAgent w h) where
   show (InfectedAgent rt x y prf) = "InfectedAgent @(" ++ show x ++ "/" ++ show y ++ ")"
   show (RecoveredAgent x y prf) = "RecoveredAgent @(" ++ show x ++ "/" ++ show y ++ ")"
 
-randomDouble : Eff Double [RND]
-randomDouble = do
-  ri <- rndInt 1 100000
-  let r = cast ri / 100000
-  pure r
+mkSusceptible :  (x : Nat)
+              -> (y : Nat)
+              -> WithinBounds x y w h
+              -> SIRAgent w h
+mkSusceptible x y prf = SusceptibleAgent x y prf
 
-randomExp : Double -> Eff Double [RND]
-randomExp lambda = do
-  r <- randomDouble
-  pure $ ((-log r) / lambda)
+mkInfected :  (x : Nat)
+           -> (y : Nat)
+           -> WithinBounds x y w h
+           -> Eff (SIRAgent w h) [RND]
+mkInfected x y prf = do 
+  dur <- randomExp (1 / illnessDuration)
+  pure $ InfectedAgent dur x y prf
 
-randomBool : Double -> Eff Bool [RND]
-randomBool p = do
-  r <- randomDouble
-  pure (p >= r)
+mkRecovered :  (x : Nat)
+            -> (y : Nat)
+            -> WithinBounds x y w h
+            -> SIRAgent w h
+mkRecovered x y prf = RecoveredAgent x y prf
+
+mkSirAgent :  SIRState
+           -> (x : Nat)
+           -> (y : Nat)
+           -> WithinBounds x y w h
+           -> Eff (SIRAgent w h) [RND]
+mkSirAgent Susceptible x y prf = pure $ mkSusceptible x y prf
+mkSirAgent Infected x y prf = mkInfected x y prf
+mkSirAgent Recovered x y prf = pure $ mkRecovered x y prf
 
 infected :  Double 
          -> Double
@@ -208,7 +230,7 @@ infected :  Double
 infected dt recoveryTime x y prf
   = if recoveryTime - dt > 0
       then pure $ InfectedAgent (recoveryTime - dt) x y prf
-      else pure $ RecoveredAgent x y prf
+      else pure $ mkRecovered x y prf
 
 susceptible :  Double 
             -> (x : Nat)
@@ -219,10 +241,8 @@ susceptible infFract x y prf = do
     numContacts <- randomExp (1 / contactRate)
     infFlag     <- makeContact (fromIntegerNat $ cast numContacts) infFract
     if infFlag
-      then do
-        dur <- randomExp (1 / illnessDuration)
-        pure $ InfectedAgent dur x y prf
-      else pure $ SusceptibleAgent x y prf
+      then mkInfected x y prf
+      else pure $ mkSusceptible x y prf
   where
     makeContact :  Nat 
                 -> Double
@@ -250,8 +270,8 @@ createSIR :  (w : Nat)
           -> (h : Nat)
           -> Eff (Disc2dEnv w h SIRState, List (SIRAgent w h)) [RND] -- TODO: use Vect 
 createSIR w h = do
-    let cx = divNat w 2
-    let cy = divNat h 2
+    let cx = divNat w 2 
+    let cy = divNat h 2 
 
     let env = Data.Vect.replicate w (Data.Vect.replicate h Susceptible)
     
@@ -260,41 +280,33 @@ createSIR w h = do
       No contra => pure (env, []) -- occurs when w or h = 0 => 0 cells, 0 agents
       Yes prf   => do
         let env' = setCell prf Infected env
-        let as   = createAgents env'
-        pure (env', as)
+        let ec = envToCoord env'
+        -- TODO: create agents using ec
+        --let as   = createAgents env'
+        
+        pure (env', [])
 
   where
-    createAgents : Disc2dEnv w h SIRState -> List (SIRAgent w h)
-
-
-  -- TODO: use vect 
-  {-
-    createAgentRow : Vect h SIRState -> Vect h (SIRAgent w h)
-    createAgentRow as 
-      = map (\s => case s of
-                    Susceptible => ?bla_1
-                    Infected => ?bla_2
-                    Recovered => ?bla_3) as
-
-    createAgents : Disc2dEnv w h SIRState -> Vect (w * h) (SIRAgent w h)
-    createAgents env = concat $ map (\row => createAgentRow row) env
- 
--}
-
-    {-}
+    createAgents :  Vect (w * h) (Nat, Nat, SIRState) 
+                 -> Eff (List (SIRAgent w h)) [RND]
+    createAgents [] = pure []
+    createAgents ((x, y, s) :: cs) = do
       let dprf = isWithinBounds x y w h
-      in  case dprf of
-            Yes prf   => SusceptibleAgent x y prf
-            No contra => ?bla -- TODO: can we somehow omit this case completely by encoding it in the types statically?
-  -}
+      case dprf of
+        Yes prf   => (mkSirAgent s x y prf) :: createAgents cs
+        No contra => ?bla -- TODO: can we somehow omit this case completely by encoding it in the types statically?
 
 testCreateSIR : IO ()
 testCreateSIR = do
-  let ret = runPureInit [42] (createSIR 2 2)
+  let ret = runPureInit [42] (createSIR 9 9)
   let (e, as) = ret -- no idea why idris doesnt allow this directly
 
-  putStrLn $ show e
-  putStrLn $ show as
+  let ec = envToCoord e
+
+  putStrLn $ show ec
+
+  --putStrLn $ show e
+  --putStrLn $ show as
 
 isSus : SIRAgent x y -> Bool
 isSus (SusceptibleAgent _ _ _) = True
@@ -345,6 +357,7 @@ runSIR : Eff (List (Nat, Nat, Nat)) [RND]
 runSIR = do
   (e, as) <- createSIR 2 2
   -- TODO: instead of runPureInit, add new resource here: STATE
+  -- ret <- new e (runAgents 1.0 as)
   let ret = runPureInit [e, 42] (runAgents 1.0 as)
   pure ret
 

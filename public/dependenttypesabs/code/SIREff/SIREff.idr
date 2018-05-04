@@ -139,7 +139,6 @@ testLTToFin = do
       let fin = ltToFin x n prf
       putStrLn $ show $ finToNat fin
 
-
 setCell :  WithinBounds x y w h
         -> (elem : e)
         -> Disc2dEnv w h e
@@ -227,37 +226,36 @@ infected :  Double
          -> (y : Nat)
          -> WithinBounds x y w h
          -> Eff (SIRAgent w h) [STATE (Disc2dEnv w h SIRState), RND]
-infected dt recoveryTime x y prf
-  = if recoveryTime - dt > 0
-      then pure $ InfectedAgent (recoveryTime - dt) x y prf
-      else pure $ mkRecovered x y prf
+infected dt recoveryTime x y prf =
+  if recoveryTime - dt > 0
+    then pure $ InfectedAgent (recoveryTime - dt) x y prf 
+    else pure $ mkRecovered x y prf -- TODO: set recovered on environment
 
-susceptible :  Double 
-            -> (x : Nat)
+susceptible :  (x : Nat)
             -> (y : Nat)
             -> WithinBounds x y w h
             -> Eff (SIRAgent w h) [STATE (Disc2dEnv w h SIRState), RND]
-susceptible infFract x y prf = do
+susceptible x y prf = do
     numContacts <- randomExp (1 / contactRate)
-    infFlag     <- makeContact (fromIntegerNat $ cast numContacts) infFract
+    infFlag     <- makeContact (fromIntegerNat $ cast numContacts)
     if infFlag
-      then mkInfected x y prf
+      then mkInfected x y prf -- TODO: set infected on environment
       else pure $ mkSusceptible x y prf
   where
     makeContact :  Nat 
-                -> Double
                 -> Eff Bool [STATE (Disc2dEnv w h SIRState), RND] -- TODO: avoid boolean blindness, produce a proof that the agent was infected 
-    makeContact Z _ = pure False
-    makeContact (S n) infFract = do
-      flag <- randomBool (infFract * infectivity)
+    makeContact Z = pure False
+    makeContact (S n) = do
+      -- TODO: make contact with other agents through env
+      flag <- randomBool infectivity 
       if flag
         then pure True
-        else makeContact n infFract
+        else makeContact n
 
 sirAgent :  Double 
          -> SIRAgent w h 
          -> Eff (SIRAgent w h) [STATE (Disc2dEnv w h SIRState), RND]
-sirAgent _ (SusceptibleAgent x y prf)  = susceptible 1.0 x y prf
+sirAgent _ (SusceptibleAgent x y prf)  = susceptible x y prf
 sirAgent dt (InfectedAgent rt x y prf) = infected dt rt x y prf
 sirAgent _ recAg                       = pure recAg
 
@@ -266,9 +264,10 @@ sirAgent _ recAg                       = pure recAg
 -- TODO: will fail when w OR h = 0, can we enforce a w and h > 0 here?
 -- TODO: proof that each field is occupied by exactly one agent and that the fields state corresponds to the agents state
 --       => we cannot find a pair of agents whose coordinates are the same
+-- TODO: use Vect instead of List
 createSIR :  (w : Nat) 
           -> (h : Nat)
-          -> Eff (Disc2dEnv w h SIRState, List (SIRAgent w h)) [RND] -- TODO: use Vect 
+          -> Eff (Disc2dEnv w h SIRState, List (SIRAgent w h)) [RND] 
 createSIR w h = do
     let cx = divNat w 2 
     let cy = divNat h 2 
@@ -281,19 +280,21 @@ createSIR w h = do
       Yes prf   => do
         let env' = setCell prf Infected env
         let ec = envToCoord env'
-        -- TODO: create agents using ec
-        --let as   = createAgents env'
-        
-        pure (env', [])
-
+        as <- createAgents w h ec
+        pure (env', as)
   where
-    createAgents :  Vect (w * h) (Nat, Nat, SIRState) 
-                 -> Eff (List (SIRAgent w h)) [RND]
-    createAgents [] = pure []
-    createAgents ((x, y, s) :: cs) = do
+    createAgents :   (w : Nat)
+                  -> (h : Nat)
+                  -> Vect len (Nat, Nat, SIRState) 
+                  -> Eff (List (SIRAgent w h)) [RND]
+    createAgents _ _ [] = pure []
+    createAgents w h ((x, y, s) :: cs) = do
       let dprf = isWithinBounds x y w h
       case dprf of
-        Yes prf   => (mkSirAgent s x y prf) :: createAgents cs
+        Yes prf   => do
+          a <- mkSirAgent s x y prf
+          as <- createAgents w h cs
+          pure (a :: as)
         No contra => ?bla -- TODO: can we somehow omit this case completely by encoding it in the types statically?
 
 testCreateSIR : IO ()
@@ -320,6 +321,7 @@ isRec : SIRAgent x y -> Bool
 isRec (RecoveredAgent _ _ _) = True
 isRec _ = False
 
+-- TODO: use Vect instead of List for agents
 runAgents :  Double
           -> List (SIRAgent w h)
           -> Eff (List (Nat, Nat, Nat)) [STATE (Disc2dEnv w h SIRState), RND]

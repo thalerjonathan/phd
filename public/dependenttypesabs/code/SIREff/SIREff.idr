@@ -231,6 +231,10 @@ infected dt recoveryTime x y prf =
     then pure $ InfectedAgent (recoveryTime - dt) x y prf 
     else pure $ mkRecovered x y prf -- TODO: set recovered on environment
 
+-- TODO: implement a MakeContactWithInfected proof which can be only
+-- inhabited if there are infected in the environment => we 
+-- need a proof that there is an infected in the environment
+
 susceptible :  (x : Nat)
             -> (y : Nat)
             -> WithinBounds x y w h
@@ -264,10 +268,9 @@ sirAgent _ recAg                       = pure recAg
 -- TODO: will fail when w OR h = 0, can we enforce a w and h > 0 here?
 -- TODO: proof that each field is occupied by exactly one agent and that the fields state corresponds to the agents state
 --       => we cannot find a pair of agents whose coordinates are the same
--- TODO: use Vect instead of List
 createSIR :  (w : Nat) 
           -> (h : Nat)
-          -> Eff (Disc2dEnv w h SIRState, List (SIRAgent w h)) [RND] 
+          -> Eff (Disc2dEnv w h SIRState, Vect (w * h) (SIRAgent w h)) [RND] 
 createSIR w h = do
     let cx = divNat w 2 
     let cy = divNat h 2 
@@ -276,7 +279,14 @@ createSIR w h = do
     
     let dprf = isWithinBounds cx cy w h
     case dprf of
-      No contra => pure (env, []) -- occurs when w or h = 0 => 0 cells, 0 agents
+      -- this case should only occur when w and h = 0, this can't 
+      -- be inferred by the compiler, thus we need to satisfy it,
+      -- which means we have to construct the agents instead of 
+      -- just returning an [] empty vector
+      No contra => do 
+        let ec = envToCoord env
+        as <- createAgents w h ec
+        pure (env, as)
       Yes prf   => do
         let env' = setCell prf Infected env
         let ec = envToCoord env'
@@ -286,7 +296,7 @@ createSIR w h = do
     createAgents :   (w : Nat)
                   -> (h : Nat)
                   -> Vect len (Nat, Nat, SIRState) 
-                  -> Eff (List (SIRAgent w h)) [RND]
+                  -> Eff (Vect len (SIRAgent w h)) [RND]
     createAgents _ _ [] = pure []
     createAgents w h ((x, y, s) :: cs) = do
       let dprf = isWithinBounds x y w h
@@ -295,7 +305,7 @@ createSIR w h = do
           a <- mkSirAgent s x y prf
           as <- createAgents w h cs
           pure (a :: as)
-        No contra => ?bla -- TODO: can we somehow omit this case completely by encoding it in the types statically?
+        No contra => ?willnotoccur -- TODO: can we somehow omit this case completely by encoding it in the types statically?
 
 testCreateSIR : IO ()
 testCreateSIR = do
@@ -323,25 +333,25 @@ isRec _ = False
 
 -- TODO: use Vect instead of List for agents
 runAgents :  Double
-          -> List (SIRAgent w h)
+          -> Vect len (SIRAgent w h)
           -> Eff (List (Nat, Nat, Nat)) [STATE (Disc2dEnv w h SIRState), RND]
 runAgents dt as = runAgentsAcc as []
   where
-    runAllAgents :  List (SIRAgent w h)
-                 -> List (SIRAgent w h)
-                 -> Eff (List (SIRAgent w h)) [STATE (Disc2dEnv w h SIRState), RND]
-    runAllAgents [] acc = pure acc 
-    runAllAgents (a :: as) acc = do
+    runAllAgents :  Vect len (SIRAgent w h)
+                 -> Eff (Vect len (SIRAgent w h)) [STATE (Disc2dEnv w h SIRState), RND]
+    runAllAgents [] = pure []
+    runAllAgents (a :: as) = do
       a' <- sirAgent dt a
-      runAllAgents as (a' :: acc)
+      as' <- runAllAgents as
+      pure (a' :: as')
 
-    runAgentsAcc :  List (SIRAgent w h)
+    runAgentsAcc :  Vect len (SIRAgent w h)
                  -> List (Nat, Nat, Nat) 
                  -> Eff (List (Nat, Nat, Nat)) [STATE (Disc2dEnv w h SIRState), RND]
     runAgentsAcc as acc = do
-      let nSus = length $ filter isSus as
-      let nInf = length $ filter isInf as
-      let nRec = length $ filter isRec as
+      let (nSus ** _) = filter isSus as
+      let (nInf ** _) = filter isInf as
+      let (nRec ** _) = filter isRec as
 
       let step = (nSus, nInf, nRec)
 
@@ -352,12 +362,12 @@ runAgents dt as = runAgentsAcc as []
           let infFract = cast {to=Double} nInf / nSum
 
           -- TODO: why is mapE runAgent as not working????
-          as' <- runAllAgents as []
+          as' <- runAllAgents as
           runAgentsAcc as' (step :: acc)
           
 runSIR : Eff (List (Nat, Nat, Nat)) [RND]
 runSIR = do
-  (e, as) <- createSIR 2 2
+  (e, as) <- createSIR 21 21
   -- TODO: instead of runPureInit, add new resource here: STATE
   -- ret <- new e (runAgents 1.0 as)
   let ret = runPureInit [e, 42] (runAgents 1.0 as)

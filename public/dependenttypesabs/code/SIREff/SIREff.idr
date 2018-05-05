@@ -139,6 +139,12 @@ testLTToFin = do
       let fin = ltToFin x n prf
       putStrLn $ show $ finToNat fin
 
+-- TODO: implement, it should be possible
+-- to generate a random bound
+-- but only in case w and h > 0
+randomBounds :  Disc2dEnv w h e
+             -> Eff (WithinBounds x y w h) [RND]
+
 setCell :  WithinBounds x y w h
         -> (elem : e)
         -> Disc2dEnv w h e
@@ -191,6 +197,16 @@ Show (SIRAgent w h) where
   show (InfectedAgent rt x y prf) = "InfectedAgent @(" ++ show x ++ "/" ++ show y ++ ")"
   show (RecoveredAgent x y prf) = "RecoveredAgent @(" ++ show x ++ "/" ++ show y ++ ")"
 
+data MakeContact : (w : Nat) -> (h : Nat) -> Type where
+  ContactWith : SIRState -> WithinBounds x y w h -> MakeContact w h
+
+makeRandomContact :  Disc2dEnv w h SIRState
+                  -> Eff (MakeContact w h) [RND]
+makeRandomContact env = do
+  prfRnd <- randomBounds env
+  let c = getCell prfRnd env
+  pure $ ContactWith c prfRnd
+
 mkSusceptible :  (x : Nat)
               -> (y : Nat)
               -> WithinBounds x y w h
@@ -229,11 +245,11 @@ infected :  Double
 infected dt recoveryTime x y prf =
   if recoveryTime - dt > 0
     then pure $ InfectedAgent (recoveryTime - dt) x y prf 
-    else pure $ mkRecovered x y prf -- TODO: set recovered on environment
-
--- TODO: implement a MakeContactWithInfected proof which can be only
--- inhabited if there are infected in the environment => we 
--- need a proof that there is an infected in the environment
+    else do
+      -- TODO: can we specify that we must set the cell to Recovered?
+      update (setCell prf Recovered)
+      -- TODO: can only go to recovered or stay Infected, can we encode this in types?
+      pure $ mkRecovered x y prf
 
 susceptible :  (x : Nat)
             -> (y : Nat)
@@ -243,17 +259,26 @@ susceptible x y prf = do
     numContacts <- randomExp (1 / contactRate)
     infFlag     <- makeContact (fromIntegerNat $ cast numContacts)
     if infFlag
-      then mkInfected x y prf -- TODO: set infected on environment
+      then do
+        -- TODO: can we specify that we must set the cell to Infected when becoming infected?
+        update (setCell prf Infected)
+        -- TODO: can only go to Infected or stay Susceptible, can we encode this in types?
+        mkInfected x y prf 
       else pure $ mkSusceptible x y prf
   where
     makeContact :  Nat 
-                -> Eff Bool [STATE (Disc2dEnv w h SIRState), RND] -- TODO: avoid boolean blindness, produce a proof that the agent was infected 
+                -> Eff Bool [STATE (Disc2dEnv w h SIRState), RND] 
     makeContact Z = pure False
     makeContact (S n) = do
-      -- TODO: make contact with other agents through env
-      flag <- randomBool infectivity 
-      if flag
-        then pure True
+      env <- get
+      
+      (ContactWith s _) <- makeRandomContact env
+      if Infected == s
+        then do
+          flag <- randomBool infectivity 
+          if flag
+            then pure True
+            else makeContact n
         else makeContact n
 
 sirAgent :  Double 
@@ -331,7 +356,6 @@ isRec : SIRAgent x y -> Bool
 isRec (RecoveredAgent _ _ _) = True
 isRec _ = False
 
--- TODO: use Vect instead of List for agents
 runAgents :  Double
           -> Vect len (SIRAgent w h)
           -> Eff (List (Nat, Nat, Nat)) [STATE (Disc2dEnv w h SIRState), RND]
@@ -364,7 +388,7 @@ runAgents dt as = runAgentsAcc as []
           -- TODO: why is mapE runAgent as not working????
           as' <- runAllAgents as
           runAgentsAcc as' (step :: acc)
-          
+
 runSIR : Eff (List (Nat, Nat, Nat)) [RND]
 runSIR = do
   (e, as) <- createSIR 21 21

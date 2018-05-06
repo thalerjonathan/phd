@@ -44,43 +44,43 @@ Disc2dEnv w h e = Vect (S w) (Vect (S h) e)
 Disc2dEnvVect : (w : Nat) -> (h : Nat) -> (e : Type) -> Type
 Disc2dEnvVect w h e = Vect (S w * S h) e
 
---envToCoord : Disc2dEnv w h e -> Disc2dEnvVect w h (Nat, Nat, e)
---envToCoord env = envToCoordAux Z env
+testPosVect_rhs : (x : Nat) -> (xs : Vect n Nat) -> Vect (S n) Nat
+testPosVect_rhs x [] = [x]
+testPosVect_rhs x (y :: xs) = (x * x) :: (testPosVect_rhs y xs)
 
-colToCoord : (x : Nat) -> (y : Nat) -> Vect (S colSize) e -> Vect (S colSize) (Nat, Nat, e)
-colToCoord x y (elem :: es) = 
-  let c = (x, y, elem) 
-  --    ret = (colToCoord (S y) es)
-  in  ?colToCoord_rhs -- ((x, y, elem) :: ret)
+testPosVect : Vect (S n) Nat -> Vect (S n) Nat
+testPosVect (x :: xs) = testPosVect_rhs x xs
 
-mutual
-  colToCoordAux :  (x : Nat) 
-                -> (col : Vect (S h) e) 
-                -> (cs : Vect w (Vect (S h) e)) 
-                -> Vect (S (plus h (mult w (S h)))) (Nat, Nat, e)
-  colToCoordAux x col cs = (colToCoord x Z col) ++ (envToCoordAux (S x) cs)
+-- TODO: clean up, put into where clauses
+colToCoordAux :  (x : Nat) 
+              -> (y : Nat) 
+              -> (elem : e) 
+              -> (es : Vect colSize e) 
+              -> Vect (S colSize) (Nat, Nat, e)
+colToCoordAux x y elem [] = [(x, y, elem)]
+colToCoordAux x y elem (elem' :: es) = (x, y, elem) :: colToCoordAux x (S y) elem' es
 
-  envToCoordAux : (x : Nat) ->  Disc2dEnv w h e -> Disc2dEnvVect w h (Nat, Nat, e)
-  envToCoordAux x (col :: cs) = colToCoordAux x col cs -- (colToCoord Z col) ++ (envToCoordAux (S x) cs)
-  {-}
+colToCoord : (x : Nat) -> Vect (S colSize) e -> Vect (S colSize) (Nat, Nat, e)
+colToCoord x (elem :: es) = colToCoordAux x Z elem es
+
+
+envToCoord : Disc2dEnv w h e -> Disc2dEnvVect w h (Nat, Nat, e)
+envToCoord env = envToCoordAux env
   where
-    colToCoord : (y : Nat) -> Vect (S colSize) e -> Vect (S colSize) (Nat, Nat, e)
-    colToCoord y (elem :: es) = 
-      let c = (x, y, elem) 
-      --    ret = (colToCoord (S y) es)
-      in  ?colToCoord_rhs -- ((x, y, elem) :: ret)
+    envToCoordAuxAux :  (x : Nat) 
+                    -> (col : Vect (S h) e) 
+                    -> (cs : Vect w (Vect (S h) e)) 
+                    -> Vect (S (plus h (mult w (S h)))) (Nat, Nat, e)
+    envToCoordAuxAux x col [] = 
+      let col' = colToCoord x col
+      in  ?envToCoordAuxAux_todo_proof_hplus0 -- col' -- TODO: need to prove that h + 0 = h (h = plus h 0)
+    envToCoordAuxAux x col (colNext :: cs) =
+      let col' = colToCoord x col
+          ret  = envToCoordAuxAux (S x) colNext cs
+      in  col' ++ ret
 
-        --colToCoord _ [] = []
-        --colToCoord y (elem :: es) = (x, y, elem) :: (colToCoord (S y) es)
-    
-
-    envToCoordAux _ [] = []
-    envToCoordAux x (col :: cs) = (colToCoord 0 col) ++ (envToCoordAux (S x) cs)
-      where
-        colToCoord : (y : Nat) -> Vect h e -> Vect h (Nat, Nat, e)
-        colToCoord _ [] = []
-        colToCoord y (elem :: es) = (x, y, elem) :: (colToCoord (S y) es)
-        -}
+    envToCoordAux : Disc2dEnv w h e -> Disc2dEnvVect w h (Nat, Nat, e)
+    envToCoordAux (col :: cs) = envToCoordAuxAux Z col cs 
 
 {-
 printLTE : LTE x y -> IO ()

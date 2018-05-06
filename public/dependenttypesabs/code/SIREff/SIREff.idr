@@ -33,25 +33,56 @@ Eq SIRState where
 Show SIRState where
   show Susceptible = "Susceptible"
   show Infected = "Infected"
-  show Recovered = "Recovered"
+  show ecovered = "Recovered"
   
 -- we want the dimensions in the environment, something
 -- only possible with dependent types. Also we parameterise
 -- over the type of the elements, basically its a matrix
 Disc2dEnv : (w : Nat) -> (h : Nat) -> (e : Type) -> Type
-Disc2dEnv w h e = Vect w (Vect h e)
+Disc2dEnv w h e = Vect (S w) (Vect (S h) e)
 
-envToCoord : Disc2dEnv w h e -> Vect (w * h) (Nat, Nat, e)
-envToCoord env = envToCoordAux Z env
+Disc2dEnvVect : (w : Nat) -> (h : Nat) -> (e : Type) -> Type
+Disc2dEnvVect w h e = Vect (S w * S h) e
+
+--envToCoord : Disc2dEnv w h e -> Disc2dEnvVect w h (Nat, Nat, e)
+--envToCoord env = envToCoordAux Z env
+
+colToCoord : (x : Nat) -> (y : Nat) -> Vect (S colSize) e -> Vect (S colSize) (Nat, Nat, e)
+colToCoord x y (elem :: es) = 
+  let c = (x, y, elem) 
+  --    ret = (colToCoord (S y) es)
+  in  ?colToCoord_rhs -- ((x, y, elem) :: ret)
+
+mutual
+  colToCoordAux :  (x : Nat) 
+                -> (col : Vect (S h) e) 
+                -> (cs : Vect w (Vect (S h) e)) 
+                -> Vect (S (plus h (mult w (S h)))) (Nat, Nat, e)
+  colToCoordAux x col cs = (colToCoord x Z col) ++ (envToCoordAux (S x) cs)
+
+  envToCoordAux : (x : Nat) ->  Disc2dEnv w h e -> Disc2dEnvVect w h (Nat, Nat, e)
+  envToCoordAux x (col :: cs) = colToCoordAux x col cs -- (colToCoord Z col) ++ (envToCoordAux (S x) cs)
+  {-}
   where
-    envToCoordAux : (x : Nat) -> Disc2dEnv w h e -> Vect (w * h) (Nat, Nat, e)
+    colToCoord : (y : Nat) -> Vect (S colSize) e -> Vect (S colSize) (Nat, Nat, e)
+    colToCoord y (elem :: es) = 
+      let c = (x, y, elem) 
+      --    ret = (colToCoord (S y) es)
+      in  ?colToCoord_rhs -- ((x, y, elem) :: ret)
+
+        --colToCoord _ [] = []
+        --colToCoord y (elem :: es) = (x, y, elem) :: (colToCoord (S y) es)
+    
+
     envToCoordAux _ [] = []
     envToCoordAux x (col :: cs) = (colToCoord 0 col) ++ (envToCoordAux (S x) cs)
       where
         colToCoord : (y : Nat) -> Vect h e -> Vect h (Nat, Nat, e)
         colToCoord _ [] = []
         colToCoord y (elem :: es) = (x, y, elem) :: (colToCoord (S y) es)
-    
+        -}
+
+{-
 printLTE : LTE x y -> IO ()
 printLTE {x} {y} _ = putStrLn $ "" ++ show x ++ " LTE " ++ show y
 
@@ -401,3 +432,5 @@ main : IO ()
 main = do
   let dyns = runPureInit [42] runSIR
   writeMatlabFile "sirEff.m" dyns
+
+  -}

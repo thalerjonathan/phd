@@ -34,7 +34,7 @@ Show SIRState where
   show Susceptible = "Susceptible"
   show Infected = "Infected"
   show ecovered = "Recovered"
-  
+
 -- we want the dimensions in the environment, something
 -- only possible with dependent types. Also we parameterise
 -- over the type of the elements, basically its a matrix
@@ -51,36 +51,34 @@ testPosVect_rhs x (y :: xs) = (x * x) :: (testPosVect_rhs y xs)
 testPosVect : Vect (S n) Nat -> Vect (S n) Nat
 testPosVect (x :: xs) = testPosVect_rhs x xs
 
--- TODO: clean up, put into where clauses
-colToCoordAux :  (x : Nat) 
-              -> (y : Nat) 
-              -> (elem : e) 
-              -> (es : Vect colSize e) 
-              -> Vect (S colSize) (Nat, Nat, e)
-colToCoordAux x y elem [] = [(x, y, elem)]
-colToCoordAux x y elem (elem' :: es) = (x, y, elem) :: colToCoordAux x (S y) elem' es
-
-colToCoord : (x : Nat) -> Vect (S colSize) e -> Vect (S colSize) (Nat, Nat, e)
-colToCoord x (elem :: es) = colToCoordAux x Z elem es
-
-
 envToCoord : Disc2dEnv w h e -> Disc2dEnvVect w h (Nat, Nat, e)
-envToCoord env = envToCoordAux env
+envToCoord (col0 :: cs0) = envToCoordAux Z col0 cs0
   where
-    envToCoordAuxAux :  (x : Nat) 
-                    -> (col : Vect (S h) e) 
-                    -> (cs : Vect w (Vect (S h) e)) 
-                    -> Vect (S (plus h (mult w (S h)))) (Nat, Nat, e)
-    envToCoordAuxAux x col [] = 
-      let col' = colToCoord x col
-      in  ?envToCoordAuxAux_todo_proof_hplus0 -- col' -- TODO: need to prove that h + 0 = h (h = plus h 0)
-    envToCoordAuxAux x col (colNext :: cs) =
-      let col' = colToCoord x col
-          ret  = envToCoordAuxAux (S x) colNext cs
-      in  col' ++ ret
+    colToCoord : (x : Nat) -> Vect (S colSize) e -> Vect (S colSize) (Nat, Nat, e)
+    colToCoord x (elem0 :: es0) = colToCoordAux Z elem0 es0
+      where
+        colToCoordAux :  (y : Nat) 
+                      -> (elem : e) 
+                      -> (es : Vect colSize e) 
+                      -> Vect (S colSize) (Nat, Nat, e)
+        colToCoordAux y elem [] = [(x, y, elem)]
+        colToCoordAux y elem (elem' :: es) = (x, y, elem) :: (colToCoordAux (S y) elem' es)
+        
+    proofLastCol :  (col : Vect (S h) (Nat, Nat, e)) 
+                 -> Vect (S (plus h 0)) (Nat, Nat, e)
+    proofLastCol {h} col = rewrite plusZeroRightNeutral h in col
 
-    envToCoordAux : Disc2dEnv w h e -> Disc2dEnvVect w h (Nat, Nat, e)
-    envToCoordAux (col :: cs) = envToCoordAuxAux Z col cs 
+    envToCoordAux :  (x : Nat) 
+                  -> (col : Vect (S h) e) 
+                  -> (cs : Vect w (Vect (S h) e)) 
+                  -> Vect (S (plus h (mult w (S h)))) (Nat, Nat, e)
+    envToCoordAux {h} x col [] = 
+      let col' = colToCoord x col
+      in  proofLastCol col' -- need to prove that h + 0 = h (h = plus h 0)
+    envToCoordAux x col (colNext :: cs) =
+      let col' = colToCoord x col
+          ret  = envToCoordAux (S x) colNext cs
+      in  col' ++ ret
 
 {-
 printLTE : LTE x y -> IO ()
@@ -215,6 +213,10 @@ testUpdateVec = do
   let vec' = updateAt 3 (+1) vec
   print vec'
 
+-- because we have now (S w) and (S h), we can immediately use 
+-- x : Fin w and y : Fin h which guarantees strictly LT, 
+-- thus we shouldnt need any LT proofs anymore
+
 -- w and h are the dimensions of the environment =>
 -- using this we can guarantee that the coordinates
 -- are within bounds, given a proof
@@ -228,9 +230,10 @@ Show (SIRAgent w h) where
   show (InfectedAgent rt x y prf) = "InfectedAgent @(" ++ show x ++ "/" ++ show y ++ ")"
   show (RecoveredAgent x y prf) = "RecoveredAgent @(" ++ show x ++ "/" ++ show y ++ ")"
 
+
 data MakeContact : (w : Nat) -> (h : Nat) -> Type where
   ContactWith : SIRState -> WithinBounds x y w h -> MakeContact w h
-
+  
 makeRandomContact :  Disc2dEnv w h SIRState
                   -> Eff (MakeContact w h) [RND]
 makeRandomContact env = do

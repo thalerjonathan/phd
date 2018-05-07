@@ -168,12 +168,6 @@ testLTToFin = do
       let fin = ltToFin x n prf
       putStrLn $ show $ finToNat fin
 
--- TODO: implement, it should be possible
--- to generate a random bound
--- but only in case w and h > 0
-randomBounds :  Disc2dEnv w h e
-             -> Eff (WithinBounds x y w h) [RND]
-
 setCell :  WithinBounds x y w h
         -> (elem : e)
         -> Disc2dEnv w h e
@@ -212,35 +206,53 @@ testUpdateVec : IO ()
 testUpdateVec = do
   let vec' = updateAt 3 (+1) vec
   print vec'
+-}
 
--- because we have now (S w) and (S h), we can immediately use 
--- x : Fin w and y : Fin h which guarantees strictly LT, 
--- thus we shouldnt need any LT proofs anymore
+setCell :  Fin (S w)
+        -> Fin (S h)
+        -> (elem : e)
+        -> Disc2dEnv w h e
+        -> Disc2dEnv w h e
+setCell colIdx rowIdx elem env 
+    = updateAt colIdx (\col => updateAt rowIdx (const elem) col) env
+ 
+getCell :  Fin (S w)
+        -> Fin (S h)
+        -> Disc2dEnv w h e
+        -> e
+getCell colIdx rowIdx env
+    = index rowIdx (index colIdx env)
+
+
+-- because we have now (S w) and (S h) in the envirnoment
+-- we can immediately use x : Fin w and y : Fin h which 
+-- guarantees strictly LT, thus we shouldnt need any LT proofs anymore
 
 -- w and h are the dimensions of the environment =>
 -- using this we can guarantee that the coordinates
 -- are within bounds, given a proof
 data SIRAgent : (w : Nat) -> (h : Nat) -> Type where
-  SusceptibleAgent : (x : Nat) -> (y : Nat) -> WithinBounds x y w h -> SIRAgent w h
-  InfectedAgent    : Double -> (x : Nat) -> (y : Nat) -> WithinBounds x y w h -> SIRAgent w h
-  RecoveredAgent   : (x : Nat) -> (y : Nat) -> WithinBounds x y w h -> SIRAgent w h
+  SusceptibleAgent : Fin w -> Fin h -> SIRAgent w h
+  InfectedAgent    : Double -> Fin w -> Fin h -> SIRAgent w h
+  RecoveredAgent   : Fin w -> Fin h -> SIRAgent w h
 
 Show (SIRAgent w h) where
-  show (SusceptibleAgent x y prf) = "SusceptibleAgent @(" ++ show x ++ "/" ++ show y ++ ")"
-  show (InfectedAgent rt x y prf) = "InfectedAgent @(" ++ show x ++ "/" ++ show y ++ ")"
-  show (RecoveredAgent x y prf) = "RecoveredAgent @(" ++ show x ++ "/" ++ show y ++ ")"
-
+  show (SusceptibleAgent x y) = "SusceptibleAgent @(" ++ (show $ finToNat x) ++ "/" ++ (show $ finToNat y) ++ ")"
+  show (InfectedAgent rt x y) = "InfectedAgent @(" ++ (show $ finToNat x) ++ "/" ++ (show $ finToNat y) ++ ")"
+  show (RecoveredAgent x y) = "RecoveredAgent @(" ++ (show $ finToNat x) ++ "/" ++ (show $ finToNat y) ++ ")"
 
 data MakeContact : (w : Nat) -> (h : Nat) -> Type where
-  ContactWith : SIRState -> WithinBounds x y w h -> MakeContact w h
-  
-makeRandomContact :  Disc2dEnv w h SIRState
-                  -> Eff (MakeContact w h) [RND]
-makeRandomContact env = do
-  prfRnd <- randomBounds env
-  let c = getCell prfRnd env
-  pure $ ContactWith c prfRnd
+  ContactWith : SIRState -> Fin w -> Fin h -> MakeContact w h
 
+makeRandomContact :  Disc2dEnv w h SIRState
+                  -> Eff (MakeContact (S w) (S h)) [RND]
+makeRandomContact {w} {h} env = do
+  x <- rndFin w
+  y <- rndFin h
+  let c = getCell x y env
+  pure $ ContactWith c x y
+
+{-
 mkSusceptible :  (x : Nat)
               -> (y : Nat)
               -> WithinBounds x y w h

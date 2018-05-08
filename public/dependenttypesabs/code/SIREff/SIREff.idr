@@ -11,6 +11,8 @@ import Disc2dEnv
 import Export
 import RandomUtils
 
+%default total
+
 contactRate : Double
 contactRate = 5.0
 
@@ -36,135 +38,6 @@ Show SIRState where
   show Infected = "Infected"
   show ecovered = "Recovered"
 
-
-{-
-printLTE : LTE x y -> IO ()
-printLTE {x} {y} _ = putStrLn $ "" ++ show x ++ " LTE " ++ show y
-
-printNonLTE : (LTE x y -> Void) -> IO ()
-printNonLTE {x} {y} _ = putStrLn $ "" ++ show x ++ " NOT LTE " ++ show y
-
-testLT : IO ()
-testLT = do
-    let x = 41
-    let w = 42
-  
-    let dprf = testLEAux x w
-    case dprf of
-      Yes prf   => printLTE prf
-      No contra => printNonLTE contra
-
-  where
-    testLEAux :  (x : Nat)
-               -> (w : Nat)
-               -> Dec (LT x w)
-    testLEAux x w = isLTE (S x) w
-
-data WithinBounds : (x : Nat) -> (y : Nat) -> (w : Nat) -> (h : Nat) -> Type where
-  IsWithin : (x : Nat) -> (y : Nat) -> LT x w -> LT y h -> WithinBounds x y w h
-
-xOutOfBounds : (xNotLTwPrf : LTE (S x) w -> Void) -> WithinBounds x y w h -> Void
-xOutOfBounds xNotLTwPrf (IsWithin _ _ prf _) = xNotLTwPrf prf
-
-yOutOfBounds : (yNotLThPrf : LTE (S y) h -> Void) -> WithinBounds x y w h -> Void
-yOutOfBounds yNotLThPrf (IsWithin _ _ _ prf) = yNotLThPrf prf
-
--- this constructs a proof that x < w AND y < h
-isWithinBounds :  (x : Nat) 
-               -> (y : Nat) 
-               -> (w : Nat) 
-               -> (h : Nat) 
-               -> Dec (WithinBounds x y w h)
-isWithinBounds x y w h =
-  case isLTE (S x) w of
-    Yes xLTwPrf   => case isLTE (S y) h of
-                       Yes yLThPrf   => Yes $ IsWithin x y xLTwPrf yLThPrf
-                       No yNotLThPrf => No (yOutOfBounds yNotLThPrf)
-    No xNotLTwPrf => No (xOutOfBounds xNotLTwPrf)
-
--- TODO: do we really need x and n? its already in the LT type?
-lteToFin :  (x : Nat)
-         -> (n : Nat)
-         -> LTE x n
-         -> Fin (S n)
-lteToFin Z n LTEZero = FZ
-lteToFin (S k) (S right) (LTESucc y) 
-  = FS (lteToFin k right y)
-
-ltToFin :   (x : Nat)
-         -> (n : Nat)
-         -> LT x n
-         -> Fin n
-ltToFin Z (S right) (LTESucc y) = FZ
-ltToFin (S k) (S right) (LTESucc y)
-  = FS (ltToFin k right y)
-
-testLTEToFin : IO ()
-testLTEToFin = do
-  let x = 10
-  let n = 41
-  
-  let dlte = isLTE x n
-
-  case dlte of
-    No contra => print "not LTE!"
-    Yes prf   => do
-      let fin = lteToFin x n prf
-      print $ finToNat fin
-
-testLTToFin : IO ()
-testLTToFin = do
-  let x = 40
-  let n = 41
-  
-  let dlt = isLTE (S x) n
-
-  case dlt of
-    No contra => putStrLn "not LT!"
-    Yes prf   => do
-      let fin = ltToFin x n prf
-      putStrLn $ show $ finToNat fin
-
-setCell :  WithinBounds x y w h
-        -> (elem : e)
-        -> Disc2dEnv w h e
-        -> Disc2dEnv w h e
-setCell {w} (IsWithin x y xLTw yLTh) elem env = 
-    let colIdx = ltToFin x w xLTw 
-    in  updateAt colIdx (updateCol y yLTh) env
-  where
-    updateCol :  (y : Nat)
-              -> LT y h
-              -> Vect h e
-              -> Vect h e
-    updateCol {h} y prf col = 
-      let rowIdx = ltToFin y h prf 
-      in  updateAt rowIdx (const elem) col
-
-getCell :  WithinBounds x y w h
-        -> Disc2dEnv w h e
-        -> e
-getCell {w} (IsWithin x y xLTw yLTh) env =
-    let colIdx = ltToFin x w xLTw 
-    in  indexCol y yLTh (index colIdx env)
-  where
-    indexCol :  (y : Nat)
-             -> LT y h
-             -> Vect h e
-             -> e
-    indexCol {h} y prf col = 
-      let rowIdx = ltToFin y h prf 
-      in  index rowIdx col
-
-vec : Vect 4 Int
-vec = [1,2,3,4]
-
-testUpdateVec : IO ()
-testUpdateVec = do
-  let vec' = updateAt 3 (+1) vec
-  print vec'
--}
-
 -- because we have now (S w) and (S h) in the envirnoment
 -- we can immediately use x : Fin w and y : Fin h which 
 -- guarantees strictly LT, thus we shouldnt need any LT proofs anymore
@@ -185,14 +58,28 @@ Show (SIRAgent w h) where
 data MakeContact : (w : Nat) -> (h : Nat) -> Type where
   ContactWith : SIRState -> Disc2dCoords w h -> MakeContact w h
 
-makeRandomContact :  Disc2dEnv w h SIRState
-                  -> Eff (MakeContact w h) [RND]
-makeRandomContact {w} {h} env = do
-  x <- rndFin w
-  y <- rndFin h
+makeRandomGlobalContact :  Disc2dEnv w h SIRState
+                        -> Eff (MakeContact w h) [RND]
+makeRandomGlobalContact {w} {h} env = do
+  x <- assert_total $ rndFin w -- TODO: why is rndFin not total???
+  y <- assert_total $ rndFin h -- TODO: why is rndFin not total???
   let c = mkDisc2dCoords x y
   let s = getCell c env
   pure $ ContactWith s c
+
+makeRandomNeighbourContact :  Disc2dCoords w h
+                           -> Disc2dEnv w h SIRState
+                           -> Eff (Maybe (MakeContact w h)) [RND]
+makeRandomNeighbourContact ref env = do 
+  let (n ** ns) = filterNeighbourhood ref neumann env
+  ri <- assert_total $ rndInt 0 (cast n) -- TODO: why is rndFin not total???
+  let mi = integerToFin ri n
+  
+  case mi of 
+    Nothing  => pure Nothing
+    Just idx => do
+      let (coord, s) = index idx ns
+      pure $ Just $ ContactWith s coord
 
 mkSusceptible :  Disc2dCoords w h
               -> SIRAgent w h
@@ -230,31 +117,52 @@ infected dt recoveryTime c@(MkDisc2dCoords x y) =
 
 susceptible :  Disc2dCoords w h
             -> Eff (SIRAgent w h) [STATE (Disc2dEnv w h SIRState), RND]
-susceptible c@(MkDisc2dCoords x y) = do
+susceptible coord = do
     numContacts <- randomExp (1 / contactRate)
-    infFlag     <- makeContact (fromIntegerNat $ cast numContacts)
+    --infFlag     <- contactsWithNeighbourInfected (fromIntegerNat $ cast numContacts) coord
+    infFlag     <- contactsWithGlobalInfected (fromIntegerNat $ cast numContacts)
     if infFlag
       then do
         -- TODO: can we specify that we must set the cell to Infected when becoming infected?
-        update (setCell c Infected)
+        update (setCell coord Infected)
         -- TODO: can only go to Infected or stay Susceptible, can we encode this in types?
-        mkInfected c
-      else pure $ mkSusceptible c
+        mkInfected coord
+      else pure $ mkSusceptible coord
   where
-    makeContact :  Nat 
-                -> Eff Bool [STATE (Disc2dEnv w h SIRState), RND] 
-    makeContact Z = pure False
-    makeContact (S n) = do
+    contactsWithGlobalInfected :  Nat 
+                               -> Eff Bool [STATE (Disc2dEnv w h SIRState), RND] 
+    contactsWithGlobalInfected Z = pure False
+    contactsWithGlobalInfected (S n) = do
       env <- get
       
-      (ContactWith s _) <- makeRandomContact env
+      (ContactWith s _) <- makeRandomGlobalContact env
+      
       if Infected == s
         then do
           flag <- randomBool infectivity 
           if flag
             then pure True
-            else makeContact n
-        else makeContact n
+            else contactsWithGlobalInfected n
+        else contactsWithGlobalInfected n
+        
+    contactsWithNeighbourInfected :  Nat 
+                                  -> Disc2dCoords w h
+                                  -> Eff Bool [STATE (Disc2dEnv w h SIRState), RND] 
+    contactsWithNeighbourInfected Z _ = pure False
+    contactsWithNeighbourInfected (S n) coord = do
+      env <- get
+
+      mayContact <- makeRandomNeighbourContact coord env
+      case mayContact of
+        Nothing => contactsWithNeighbourInfected n coord
+        Just (ContactWith s _) => 
+          if Infected == s
+            then do
+              flag <- randomBool infectivity 
+              if flag
+                then pure True
+                else contactsWithNeighbourInfected n coord
+            else contactsWithNeighbourInfected n coord
 
 sirAgent :  Double 
          -> SIRAgent w h 
@@ -329,6 +237,7 @@ isRec : SIRAgent w h -> Bool
 isRec (RecoveredAgent _) = True
 isRec _ = False
 
+partial
 runAgents :  Double
           -> Vect len (SIRAgent w h)
           -> Eff (List (Nat, Nat, Nat)) [STATE (Disc2dEnv w h SIRState), RND]
@@ -342,6 +251,7 @@ runAgents dt as = runAgentsAcc as []
       as' <- runAllAgents as
       pure (a' :: as')
 
+    partial
     runAgentsAcc :  Vect len (SIRAgent w h)
                  -> List (Nat, Nat, Nat) 
                  -> Eff (List (Nat, Nat, Nat)) [STATE (Disc2dEnv w h SIRState), RND]
@@ -362,14 +272,16 @@ runAgents dt as = runAgentsAcc as []
           as' <- runAllAgents as
           runAgentsAcc as' (step :: acc)
 
+partial
 runSIR : Eff (List (Nat, Nat, Nat)) [RND]
 runSIR = do
-  (e, as) <- createSIR 21 21
+  (e, as) <- createSIR 50 50
   -- TODO: instead of runPureInit, add new resource here: STATE
   -- ret <- new e (runAgents 1.0 as)
   let ret = runPureInit [e, 42] (runAgents 1.0 as)
   pure ret
 
+partial
 main : IO ()
 main = do
   let dyns = runPureInit [42] runSIR

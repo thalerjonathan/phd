@@ -47,6 +47,59 @@ testPosVect_rhs x (y :: xs) = (x * x) :: (testPosVect_rhs y xs)
 testPosVect : Vect (S n) Nat -> Vect (S n) Nat
 testPosVect (x :: xs) = testPosVect_rhs x xs
 
+setCell :  Disc2dCoords w h
+        -> (elem : e)
+        -> Disc2dEnv w h e
+        -> Disc2dEnv w h e
+setCell (MkDisc2dCoords colIdx rowIdx) elem env 
+    = updateAt colIdx (\col => updateAt rowIdx (const elem) col) env
+ 
+getCell :  Disc2dCoords w h
+        -> Disc2dEnv w h e
+        -> e
+getCell (MkDisc2dCoords colIdx rowIdx) env
+    = index rowIdx (index colIdx env)
+
+neumann : Vect 4 (Integer, Integer)
+neumann = [         (0,  1), 
+           (-1,  0),         (1,  0),
+                    (0, -1)]
+
+moore : Vect 8 (Integer, Integer)
+moore = [(-1,  1), (0,  1), (1,  1),
+         (-1,  0),          (1,  0),
+         (-1, -1), (0, -1), (1, -1)]
+
+-- TODO: can we express that n <= len?
+filterNeighbourhood :  Disc2dCoords w h
+                    -> Vect len (Integer, Integer)
+                    -> Disc2dEnv w h e 
+                    -> (n ** Vect n (Disc2dCoords w h, e))
+filterNeighbourhood {w} {h} (MkDisc2dCoords x y) ns env =
+    let xi = finToInteger x
+        yi = finToInteger y
+    in  filterNeighbourhood' xi yi ns env
+  where
+    filterNeighbourhood' :  (xi : Integer)
+                         -> (yi : Integer)
+                         -> Vect len (Integer, Integer)
+                         -> Disc2dEnv w h e 
+                         -> (n ** Vect n (Disc2dCoords w h, e))
+    filterNeighbourhood' _ _ [] env = (0 ** [])
+    filterNeighbourhood' xi yi ((xDelta, yDelta) :: cs) env 
+      = let xd = xi - xDelta
+            yd = yi - yDelta
+            mx = integerToFin xd (S w)
+            my = integerToFin yd (S h)
+        in case mx of
+            Nothing => filterNeighbourhood' xi yi cs env 
+            Just x  => (case my of 
+                        Nothing => filterNeighbourhood' xi yi cs env 
+                        Just y  => let coord      = MkDisc2dCoords x y
+                                       c          = getCell coord env
+                                       (_ ** ret) = filterNeighbourhood' xi yi cs env
+                                   in  (_ ** ((coord, c) :: ret)))
+
 envToCoord : Disc2dEnv w h e -> Disc2dEnvVect w h (Nat, Nat, e)
 envToCoord (col0 :: cs0) = envToCoordAux Z col0 cs0
   where
@@ -77,6 +130,7 @@ envToCoord (col0 :: cs0) = envToCoordAux Z col0 cs0
       in  col' ++ ret
 
 {-
+-- TODO: make this work, but its extremely complex
 envToCoord : Disc2dEnv w h e -> Disc2dEnvVect w h (Disc2dCoords w h, e)
 envToCoord (col0 :: cs0) = envToCoordAux Z col0 cs0
   where
@@ -122,16 +176,3 @@ envToCoord (col0 :: cs0) = envToCoordAux Z col0 cs0
           ret  = envToCoordAux (S x) colNext cols
       in  envToCoordAux_rhs col' ret -- col' ++ ret
 -}
-
-setCell :  Disc2dCoords w h
-        -> (elem : e)
-        -> Disc2dEnv w h e
-        -> Disc2dEnv w h e
-setCell (MkDisc2dCoords colIdx rowIdx) elem env 
-    = updateAt colIdx (\col => updateAt rowIdx (const elem) col) env
- 
-getCell :  Disc2dCoords w h
-        -> Disc2dEnv w h e
-        -> e
-getCell (MkDisc2dCoords colIdx rowIdx) env
-    = index rowIdx (index colIdx env)

@@ -7,6 +7,7 @@ import Effect.Random
 import Effect.State
 import Effect.StdIO
 
+import Disc2dEnv
 import Export
 import RandomUtils
 
@@ -35,50 +36,6 @@ Show SIRState where
   show Infected = "Infected"
   show ecovered = "Recovered"
 
--- we want the dimensions in the environment, something
--- only possible with dependent types. Also we parameterise
--- over the type of the elements, basically its a matrix
-Disc2dEnv : (w : Nat) -> (h : Nat) -> (e : Type) -> Type
-Disc2dEnv w h e = Vect (S w) (Vect (S h) e)
-
-Disc2dEnvVect : (w : Nat) -> (h : Nat) -> (e : Type) -> Type
-Disc2dEnvVect w h e = Vect (S w * S h) e
-
-testPosVect_rhs : (x : Nat) -> (xs : Vect n Nat) -> Vect (S n) Nat
-testPosVect_rhs x [] = [x]
-testPosVect_rhs x (y :: xs) = (x * x) :: (testPosVect_rhs y xs)
-
-testPosVect : Vect (S n) Nat -> Vect (S n) Nat
-testPosVect (x :: xs) = testPosVect_rhs x xs
-
-envToCoord : Disc2dEnv w h e -> Disc2dEnvVect w h (Nat, Nat, e)
-envToCoord (col0 :: cs0) = envToCoordAux Z col0 cs0
-  where
-    colToCoord : (x : Nat) -> Vect (S colSize) e -> Vect (S colSize) (Nat, Nat, e)
-    colToCoord x (elem0 :: es0) = colToCoordAux Z elem0 es0
-      where
-        colToCoordAux :  (y : Nat) 
-                      -> (elem : e) 
-                      -> (es : Vect colSize e) 
-                      -> Vect (S colSize) (Nat, Nat, e)
-        colToCoordAux y elem [] = [(x, y, elem)]
-        colToCoordAux y elem (elem' :: es) = (x, y, elem) :: (colToCoordAux (S y) elem' es)
-        
-    proofLastCol :  (col : Vect (S h) (Nat, Nat, e)) 
-                 -> Vect (S (plus h 0)) (Nat, Nat, e)
-    proofLastCol {h} col = rewrite plusZeroRightNeutral h in col
-
-    envToCoordAux :  (x : Nat) 
-                  -> (col : Vect (S h) e) 
-                  -> (cs : Vect w (Vect (S h) e)) 
-                  -> Vect (S (plus h (mult w (S h)))) (Nat, Nat, e)
-    envToCoordAux {h} x col [] = 
-      let col' = colToCoord x col
-      in  proofLastCol col' -- need to prove that h + 0 = h (h = plus h 0)
-    envToCoordAux x col (colNext :: cs) =
-      let col' = colToCoord x col
-          ret  = envToCoordAux (S x) colNext cs
-      in  col' ++ ret
 
 {-
 printLTE : LTE x y -> IO ()
@@ -208,22 +165,6 @@ testUpdateVec = do
   print vec'
 -}
 
-setCell :  Fin (S w)
-        -> Fin (S h)
-        -> (elem : e)
-        -> Disc2dEnv w h e
-        -> Disc2dEnv w h e
-setCell colIdx rowIdx elem env 
-    = updateAt colIdx (\col => updateAt rowIdx (const elem) col) env
- 
-getCell :  Fin (S w)
-        -> Fin (S h)
-        -> Disc2dEnv w h e
-        -> e
-getCell colIdx rowIdx env
-    = index rowIdx (index colIdx env)
-
-
 -- because we have now (S w) and (S h) in the envirnoment
 -- we can immediately use x : Fin w and y : Fin h which 
 -- guarantees strictly LT, thus we shouldnt need any LT proofs anymore
@@ -232,85 +173,73 @@ getCell colIdx rowIdx env
 -- using this we can guarantee that the coordinates
 -- are within bounds, given a proof
 data SIRAgent : (w : Nat) -> (h : Nat) -> Type where
-  SusceptibleAgent : Fin w -> Fin h -> SIRAgent w h
-  InfectedAgent    : Double -> Fin w -> Fin h -> SIRAgent w h
-  RecoveredAgent   : Fin w -> Fin h -> SIRAgent w h
+  SusceptibleAgent : Disc2dCoords w h -> SIRAgent w h
+  InfectedAgent    : Double -> Disc2dCoords w h -> SIRAgent w h
+  RecoveredAgent   : Disc2dCoords w h -> SIRAgent w h
 
 Show (SIRAgent w h) where
-  show (SusceptibleAgent x y) = "SusceptibleAgent @(" ++ (show $ finToNat x) ++ "/" ++ (show $ finToNat y) ++ ")"
-  show (InfectedAgent rt x y) = "InfectedAgent @(" ++ (show $ finToNat x) ++ "/" ++ (show $ finToNat y) ++ ")"
-  show (RecoveredAgent x y) = "RecoveredAgent @(" ++ (show $ finToNat x) ++ "/" ++ (show $ finToNat y) ++ ")"
+  show (SusceptibleAgent c) = "SusceptibleAgent @" ++ show c
+  show (InfectedAgent rt c) = "InfectedAgent @" ++ show c
+  show (RecoveredAgent c) = "RecoveredAgent @" ++ show c
 
 data MakeContact : (w : Nat) -> (h : Nat) -> Type where
-  ContactWith : SIRState -> Fin w -> Fin h -> MakeContact w h
+  ContactWith : SIRState -> Disc2dCoords w h -> MakeContact w h
 
 makeRandomContact :  Disc2dEnv w h SIRState
-                  -> Eff (MakeContact (S w) (S h)) [RND]
+                  -> Eff (MakeContact w h) [RND]
 makeRandomContact {w} {h} env = do
   x <- rndFin w
   y <- rndFin h
-  let c = getCell x y env
-  pure $ ContactWith c x y
+  let c = mkDisc2dCoords x y
+  let s = getCell c env
+  pure $ ContactWith s c
 
-{-
-mkSusceptible :  (x : Nat)
-              -> (y : Nat)
-              -> WithinBounds x y w h
+mkSusceptible :  Disc2dCoords w h
               -> SIRAgent w h
-mkSusceptible x y prf = SusceptibleAgent x y prf
+mkSusceptible c = SusceptibleAgent c
 
-mkInfected :  (x : Nat)
-           -> (y : Nat)
-           -> WithinBounds x y w h
+mkInfected :  Disc2dCoords w h
            -> Eff (SIRAgent w h) [RND]
-mkInfected x y prf = do 
+mkInfected c = do 
   dur <- randomExp (1 / illnessDuration)
-  pure $ InfectedAgent dur x y prf
+  pure $ InfectedAgent dur c
 
-mkRecovered :  (x : Nat)
-            -> (y : Nat)
-            -> WithinBounds x y w h
+mkRecovered :  Disc2dCoords w h
             -> SIRAgent w h
-mkRecovered x y prf = RecoveredAgent x y prf
+mkRecovered c = RecoveredAgent c
 
 mkSirAgent :  SIRState
-           -> (x : Nat)
-           -> (y : Nat)
-           -> WithinBounds x y w h
+           -> Disc2dCoords w h
            -> Eff (SIRAgent w h) [RND]
-mkSirAgent Susceptible x y prf = pure $ mkSusceptible x y prf
-mkSirAgent Infected x y prf = mkInfected x y prf
-mkSirAgent Recovered x y prf = pure $ mkRecovered x y prf
+mkSirAgent Susceptible c = pure $ mkSusceptible c
+mkSirAgent Infected c = mkInfected c
+mkSirAgent Recovered c = pure $ mkRecovered c
 
 infected :  Double 
          -> Double
-         -> (x : Nat)
-         -> (y : Nat)
-         -> WithinBounds x y w h
-         -> Eff (SIRAgent w h) [STATE (Disc2dEnv w h SIRState), RND]
-infected dt recoveryTime x y prf =
+         -> Disc2dCoords w h
+         -> Eff (SIRAgent w h) [STATE (Disc2dEnv w h SIRState)] -- , RND]
+infected dt recoveryTime c@(MkDisc2dCoords x y) =
   if recoveryTime - dt > 0
-    then pure $ InfectedAgent (recoveryTime - dt) x y prf 
+    then pure $ InfectedAgent (recoveryTime - dt) c
     else do
       -- TODO: can we specify that we must set the cell to Recovered?
-      update (setCell prf Recovered)
+      update (setCell c Recovered)
       -- TODO: can only go to recovered or stay Infected, can we encode this in types?
-      pure $ mkRecovered x y prf
+      pure $ mkRecovered c
 
-susceptible :  (x : Nat)
-            -> (y : Nat)
-            -> WithinBounds x y w h
+susceptible :  Disc2dCoords w h
             -> Eff (SIRAgent w h) [STATE (Disc2dEnv w h SIRState), RND]
-susceptible x y prf = do
+susceptible c@(MkDisc2dCoords x y) = do
     numContacts <- randomExp (1 / contactRate)
     infFlag     <- makeContact (fromIntegerNat $ cast numContacts)
     if infFlag
       then do
         -- TODO: can we specify that we must set the cell to Infected when becoming infected?
-        update (setCell prf Infected)
+        update (setCell c Infected)
         -- TODO: can only go to Infected or stay Susceptible, can we encode this in types?
-        mkInfected x y prf 
-      else pure $ mkSusceptible x y prf
+        mkInfected c
+      else pure $ mkSusceptible c
   where
     makeContact :  Nat 
                 -> Eff Bool [STATE (Disc2dEnv w h SIRState), RND] 
@@ -330,39 +259,26 @@ susceptible x y prf = do
 sirAgent :  Double 
          -> SIRAgent w h 
          -> Eff (SIRAgent w h) [STATE (Disc2dEnv w h SIRState), RND]
-sirAgent _ (SusceptibleAgent x y prf)  = susceptible x y prf
-sirAgent dt (InfectedAgent rt x y prf) = infected dt rt x y prf
-sirAgent _ recAg                       = pure recAg
+sirAgent _ (SusceptibleAgent c)  = susceptible c
+sirAgent dt (InfectedAgent rt c) = infected dt rt c
+sirAgent _ recAg                 = pure recAg
 
 ||| this will create an environment with the agents on it
 ||| with a single infected at the center of the env
--- TODO: will fail when w OR h = 0, can we enforce a w and h > 0 here?
 -- TODO: proof that each field is occupied by exactly one agent and that the fields state corresponds to the agents state
 --       => we cannot find a pair of agents whose coordinates are the same
 createSIR :  (w : Nat) 
           -> (h : Nat)
-          -> Eff (Disc2dEnv w h SIRState, Vect (w * h) (SIRAgent w h)) [RND] 
+          -> Eff (Disc2dEnv w h SIRState, Vect (S w * S h) (SIRAgent w h)) [RND] 
 createSIR w h = do
-    let cx = divNat w 2 
-    let cy = divNat h 2 
+    let env0 = initDisc2dEnv w h Susceptible
+    let c    = centreCoords env0
+    let env  = setCell c Infected env0
+    let ec   = envToCoord env
 
-    let env = Data.Vect.replicate w (Data.Vect.replicate h Susceptible)
-    
-    let dprf = isWithinBounds cx cy w h
-    case dprf of
-      -- this case should only occur when w and h = 0, this can't 
-      -- be inferred by the compiler, thus we need to satisfy it,
-      -- which means we have to construct the agents instead of 
-      -- just returning an [] empty vector
-      No contra => do 
-        let ec = envToCoord env
-        as <- createAgents w h ec
-        pure (env, as)
-      Yes prf   => do
-        let env' = setCell prf Infected env
-        let ec = envToCoord env'
-        as <- createAgents w h ec
-        pure (env', as)
+    as <- createAgents w h ec
+
+    pure (env, as)
   where
     createAgents :   (w : Nat)
                   -> (h : Nat)
@@ -370,13 +286,24 @@ createSIR w h = do
                   -> Eff (Vect len (SIRAgent w h)) [RND]
     createAgents _ _ [] = pure []
     createAgents w h ((x, y, s) :: cs) = do
-      let dprf = isWithinBounds x y w h
-      case dprf of
-        Yes prf   => do
-          a <- mkSirAgent s x y prf
-          as <- createAgents w h cs
-          pure (a :: as)
-        No contra => ?willnotoccur -- TODO: can we somehow omit this case completely by encoding it in the types statically?
+      let xf = fromMaybe FZ (natToFin x (S w))
+      let yf = fromMaybe FZ (natToFin y (S h))
+      let c = mkDisc2dCoords xf yf
+
+      a <- mkSirAgent s c
+      as <- createAgents w h cs
+      pure (a :: as)
+  {-
+    createAgents :   (w : Nat)
+                  -> (h : Nat)
+                  -> Vect len (Disc2dCoords w h, SIRState) 
+                  -> Eff (Vect len (SIRAgent w h)) [RND]
+    createAgents _ _ [] = pure []
+    createAgents w h ((c, s) :: cs) = do
+      a <- mkSirAgent s c
+      as <- createAgents w h cs
+      pure (a :: as)
+      -}
 
 testCreateSIR : IO ()
 testCreateSIR = do
@@ -390,16 +317,16 @@ testCreateSIR = do
   --putStrLn $ show e
   --putStrLn $ show as
 
-isSus : SIRAgent x y -> Bool
-isSus (SusceptibleAgent _ _ _) = True
+isSus : SIRAgent w h -> Bool
+isSus (SusceptibleAgent _) = True
 isSus _ = False
 
 isInf : SIRAgent w h -> Bool
-isInf (InfectedAgent _ _ _ _) = True
+isInf (InfectedAgent _ _) = True
 isInf _ = False
 
-isRec : SIRAgent x y -> Bool
-isRec (RecoveredAgent _ _ _) = True
+isRec : SIRAgent w h -> Bool
+isRec (RecoveredAgent _) = True
 isRec _ = False
 
 runAgents :  Double
@@ -428,8 +355,8 @@ runAgents dt as = runAgentsAcc as []
       if nInf == 0
         then pure (reverse (step :: acc))
         else do
-          let nSum = cast {to=Double} (nSus + nRec + nInf)
-          let infFract = cast {to=Double} nInf / nSum
+          --let nSum = cast {to=Double} (nSus + nRec + nInf)
+          --let infFract = cast {to=Double} nInf / nSum
 
           -- TODO: why is mapE runAgent as not working????
           as' <- runAllAgents as
@@ -447,5 +374,3 @@ main : IO ()
 main = do
   let dyns = runPureInit [42] runSIR
   writeMatlabFile "sirEff.m" dyns
-
-  -}

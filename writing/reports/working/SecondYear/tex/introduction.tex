@@ -1,7 +1,10 @@
 \chapter{Introduction}
 \label{chap:intro}
 
-TODO
+In the first half of the phd I have investigated \textit{how} to do agent-based simulation in pure functional programming. The remainder of the Phd will be to research \textit{why} this approach is of benefit. In general it is well established, that pure functional programming as in Haskell, allows to express much stronger guarantees about the correctness of a program \textit{already at compile-time}. This is in fundamental contrast to imperative object-oriented languages like Java or Python where only primitive guarantees about types - mostly relationships between type-hierarchies - can be expressed at compile time which directly implies that one needs to perform much more testing (user testing or unit testing) at \textit{run-time} to check whether the model is sufficiently correct. Thus guaranteeing properties already at compile-time frees us from writing unit tests which cover these cases or test them at run time because they are \textit{guaranteed to be correct under all circumstances, for all inputs}. In this regards we see pure functional programming as truly superior to the traditional object oriented approaches: they lead to implementations of models which are more likely correct because we can express more guarantees already at compile time which directly leads to less bugs which directly increases the probability of the software being a correct implementation of the model.
+The ultimate level of this is reached when using dependent types in which types are first class citizens and can be computed at compile time. 
+
+Feedback from the recently submitted conference paper will come soon and then we should organise a joint supervision meeting with Thorsten and discuss the comments from the referees.
 
 \section{Motivation}
 The observations of the problems presented in the previous section leads us to posing fundamental directions and questions which are the basis of the motivation of our thesis.

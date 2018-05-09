@@ -1,7 +1,6 @@
 module SIREff
 
 import Data.Vect
-
 import Effects
 import Effect.Random
 import Effect.State
@@ -10,6 +9,7 @@ import Effect.StdIO
 import Disc2dEnv
 import Export
 import RandomUtils
+import SIRState
 
 %default total
 
@@ -21,22 +21,6 @@ infectivity = 0.05
 
 illnessDuration : Double
 illnessDuration = 15.0
-
-data SIRState 
-  = Susceptible 
-  | Infected 
-  | Recovered
-
-Eq SIRState where
-  (==) Susceptible Susceptible = True
-  (==) Infected Infected = True
-  (==) Recovered Recovered = True
-  (==) _ _ = False
-
-Show SIRState where
-  show Susceptible = "Susceptible"
-  show Infected = "Infected"
-  show ecovered = "Recovered"
 
 -- because we have now (S w) and (S h) in the envirnoment
 -- we can immediately use x : Fin w and y : Fin h which 
@@ -194,6 +178,8 @@ createSIR w h = do
                   -> Eff (Vect len (SIRAgent w h)) [RND]
     createAgents _ _ [] = pure []
     createAgents w h ((x, y, s) :: cs) = do
+      -- TODO: this is unsatisfactory, we should get Fin w / Fin h
+      -- already instead of Nat, Nat
       let xf = fromMaybe FZ (natToFin x (S w))
       let yf = fromMaybe FZ (natToFin y (S h))
       let c = mkDisc2dCoords xf yf

@@ -47,8 +47,8 @@ data Sir : Effect where
   -- TODO: implement: passing a continuation as argument
   -- this will give the control back to the system for the next time-step
   -- NOTE: this won't work, continuations do not work with Eff
-  Step : ((t : Nat) -> Sir () (SIRAgent s) (const $ SIRAgent s)) 
-         -> Sir () (SIRAgent s) (const $ SIRAgent s)
+  --Step : ((t : Nat) -> Sir () (SIRAgent s) (const $ SIRAgent s)) 
+  --       -> Sir () (SIRAgent s) (const $ SIRAgent s)
 
 SIR : Type -> EFFECT
 SIR t = MkEff t Sir
@@ -112,9 +112,9 @@ Handler Sir (Control.Monad.State.StateT SimulationState Identity) where
     --k True MkSIRAgent
   handle r Kill k = do
     k () ()
-  handle r (Step cont) k = do
-    -- TODO: implement - put continuation into map of agents
-    ?handle_rhs
+  --handle r (Step cont) k = do
+  --  -- TODO: implement - put continuation into map of agents
+  --  ?handle_rhs
 
 ----------------------------------------------------------------------------
 -- Model implementation

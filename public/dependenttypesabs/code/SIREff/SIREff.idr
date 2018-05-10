@@ -60,7 +60,7 @@ makeRandomNeighbourContact ref env = do
   let mi = integerToFin ri n
   
   case mi of 
-    Nothing  => pure Nothing
+    Nothing  => pure Nothing -- only when filterNeighbourhood returned 0 elements
     Just idx => do
       let (coord, s) = index idx ns
       pure $ Just $ ContactWith s coord
@@ -138,7 +138,7 @@ susceptible coord = do
 
       mayContact <- makeRandomNeighbourContact coord env
       case mayContact of
-        Nothing => contactsWithNeighbourInfected n coord
+        Nothing => pure False -- no neighbours found (should normally never happen)
         Just (ContactWith s _) => 
           if Infected == s
             then do

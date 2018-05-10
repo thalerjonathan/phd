@@ -14,8 +14,8 @@ AgentId = Nat
 
 ||| The data of an initialised SIR agent
 -- TODO: put other data here e.g. coordinates
-data InitSIRAgent : SIRState -> Type where
-  MkInitSIRAgent : InitSIRAgent s
+data SIRAgent : SIRState -> Type where
+  MkSIRAgent : SIRAgent s
 
 ||| An evidence of having made contact with another agent
 -- TODO: this should be only valid for the current time-step
@@ -24,58 +24,59 @@ data MakeContact : Type where
   ContactWith : SIRState -> MakeContact
 
 calcInfectType : Bool -> Type
-calcInfectType True  = InitSIRAgent Infected
-calcInfectType False = InitSIRAgent Susceptible
+calcInfectType True  = SIRAgent Infected
+calcInfectType False = SIRAgent Susceptible
 
 calcRecoverType : Bool -> Type
-calcRecoverType True  = InitSIRAgent Recovered
-calcRecoverType False = InitSIRAgent Infected
+calcRecoverType True  = SIRAgent Recovered
+calcRecoverType False = SIRAgent Infected
 
-data SIRAgent : Effect where
-  Init : (s : SIRState) -> SIRAgent AgentId () (const $ InitSIRAgent s)
-  MakeRandomContact : SIRAgent MakeContact (InitSIRAgent Susceptible) (const $ InitSIRAgent Susceptible)
-  Infect : MakeContact -> SIRAgent Bool 
-                          (InitSIRAgent Susceptible) 
+data Sir : Effect where
+  Init : (s : SIRState) -> Sir AgentId () (const $ SIRAgent s)
+  MakeRandomContact : Sir MakeContact (SIRAgent Susceptible) (const $ SIRAgent Susceptible)
+  Infect : MakeContact -> Sir Bool 
+                          (SIRAgent Susceptible) 
                           (\res => calcInfectType res) -- TODO: why cant we simply use calcInfectType ?
   -- TODO: can we encode recovery over time?
-  Recover : SIRAgent Bool 
-            (InitSIRAgent Infected) 
+  Recover : Sir Bool 
+            (SIRAgent Infected) 
             (\res => calcRecoverType res) -- TODO: why cant we simply use calcRecoverType ?
   -- TODO: remove this, SIR agents never die
-  Kill : SIRAgent () (InitSIRAgent s) (\res => ())
+  Kill : Sir () (SIRAgent s) (\res => ())
 
   -- TODO: implement: passing a continuation as argument
   -- this will give the control back to the system for the next time-step
-  Step : ((t : Nat) -> SIRAgent () (InitSIRAgent s) (const $ InitSIRAgent s)) 
-         -> SIRAgent () (InitSIRAgent s) (const $ InitSIRAgent s)
+  -- NOTE: this won't work, continuations do not work with Eff
+  Step : ((t : Nat) -> Sir () (SIRAgent s) (const $ SIRAgent s)) 
+         -> Sir () (SIRAgent s) (const $ SIRAgent s)
 
-SIRAGENT : Type -> EFFECT
-SIRAGENT t = MkEff t SIRAgent
+SIR : Type -> EFFECT
+SIR t = MkEff t Sir
 
 init :  (s : SIRState) 
      -> Eff AgentId
-        [SIRAGENT ()] 
-        [SIRAGENT (InitSIRAgent s)]
+        [SIR ()] 
+        [SIR (SIRAgent s)]
 init s = call $ Init s
 
 makeRandomContact : Eff MakeContact 
-                    [SIRAGENT (InitSIRAgent Susceptible)]
+                    [SIR (SIRAgent Susceptible)]
 makeRandomContact = call MakeRandomContact
 
 infect :  MakeContact
        -> Eff (Bool) 
-          [SIRAGENT (InitSIRAgent Susceptible)] 
-          (\res => [SIRAGENT (calcInfectType res)])
+          [SIR (SIRAgent Susceptible)] 
+          (\res => [SIR (calcInfectType res)])
 infect c = call $ Infect c
 
 recover : Eff (Bool) 
-          [SIRAGENT (InitSIRAgent Infected)] 
-          (\res => [SIRAGENT (calcRecoverType res)])
+          [SIR (SIRAgent Infected)] 
+          (\res => [SIR (calcRecoverType res)])
 recover = call Recover 
 
 kill : Eff () 
-       [SIRAGENT (InitSIRAgent s)]
-       [SIRAGENT ()]
+       [SIR (SIRAgent s)]
+       [SIR ()]
 kill = call Kill
 
 -------------------------------------------------------------------------------
@@ -92,9 +93,9 @@ Show SimulationState where
 mkSimulationState : SimulationState
 mkSimulationState = MkSimulationState Z Z
 
-Handler SIRAgent (Control.Monad.State.StateT SimulationState Identity) where
+Handler Sir (Control.Monad.State.StateT SimulationState Identity) where
   handle () (Init s) k = do
-    k Z MkInitSIRAgent
+    k Z MkSIRAgent
   handle r MakeRandomContact k = do
     let con = ContactWith Infected
     k con r
@@ -103,12 +104,12 @@ Handler SIRAgent (Control.Monad.State.StateT SimulationState Identity) where
       Susceptible => do
         k False r
       Infected    => do
-        k True MkInitSIRAgent
+        k True MkSIRAgent
       Recovered   => do
         k False r
   handle r Recover k = do
     k False r
-    --k True MkInitSIRAgent
+    --k True MkSIRAgent
   handle r Kill k = do
     k () ()
   handle r (Step cont) k = do
@@ -119,7 +120,9 @@ Handler SIRAgent (Control.Monad.State.StateT SimulationState Identity) where
 -- Model implementation
 -----------------------------------------------------------------------------
 -- TODO: bring in RND effect
-sirAgent : Eff SIRState [SIRAGENT ()] --[SIRAGENT (InitSIRAgent s)]
+-- TODO: not yet acting over time
+-- TODO: where is the population?
+sirAgent : Eff SIRState [SIR ()] --[SIRAGENT (InitSIRAgent s)]
 sirAgent = do
     init Susceptible
     -- TODO: do a exp number of times
@@ -142,8 +145,8 @@ sirAgent = do
   where
     susceptible :  Nat
                 -> Eff (Bool)
-                   [SIRAGENT (InitSIRAgent Susceptible)] 
-                   (\res => [SIRAGENT (calcInfectType res)])
+                   [SIR (SIRAgent Susceptible)] 
+                   (\res => [SIR (calcInfectType res)])
     susceptible Z = pureM False
     susceptible (S k) = do
       c <- makeRandomContact
@@ -153,8 +156,8 @@ sirAgent = do
         False => susceptible k
 
     infected : Eff (Bool)
-               [SIRAGENT (InitSIRAgent Infected)] 
-               (\res => [SIRAGENT (calcRecoverType res)])
+               [SIR (SIRAgent Infected)] 
+               (\res => [SIR (calcRecoverType res)])
 -----------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------

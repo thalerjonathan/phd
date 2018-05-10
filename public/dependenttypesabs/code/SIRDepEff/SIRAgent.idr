@@ -9,13 +9,22 @@ import SIRState
 
 %default total
 
+contactRate : Double
+contactRate = 5.0
+
+infectivity : Double
+infectivity = 0.05
+
+illnessDuration : Double
+illnessDuration = 15.0
+
 AgentId : Type
 AgentId = Nat
 
 ||| The data of an initialised SIR agent
 -- TODO: put other data here e.g. coordinates
 data SIRAgent : SIRState -> Type where
-  MkSIRAgent : SIRAgent s
+  MkSIRAgent : Nat -> SIRAgent s
 
 ||| An evidence of having made contact with another agent
 -- TODO: this should be only valid for the current time-step
@@ -95,8 +104,15 @@ mkSimulationState = MkSimulationState Z Z
 
 Handler Sir (Control.Monad.State.StateT SimulationState Identity) where
   handle () (Init s) k = do
-    k Z MkSIRAgent
+    case s of 
+      Susceptible => do
+        k Z (MkSIRAgent Z)
+      Infected    => do
+        k Z (MkSIRAgent (fromIntegerNat $ cast illnessDuration)) -- TODO: randomExp (1 / illnessDuration)
+      Recovered   => do
+        k Z (MkSIRAgent Z)
   handle r MakeRandomContact k = do
+    -- TODO: pick random other agent
     let con = ContactWith Infected
     k con r
   handle r (Infect (ContactWith s)) k = 
@@ -104,12 +120,13 @@ Handler Sir (Control.Monad.State.StateT SimulationState Identity) where
       Susceptible => do
         k False r
       Infected    => do
-        k True MkSIRAgent
+        k True (MkSIRAgent (fromIntegerNat $ cast illnessDuration)) -- TODO: randomExp (1 / illnessDuration)
       Recovered   => do
         k False r
-  handle r Recover k = do
-    k False r
-    --k True MkSIRAgent
+  handle (MkSIRAgent dur) Recover k = do
+    case minus dur 1 of
+      Z        => k True (MkSIRAgent Z)
+      (S dur') => k False (MkSIRAgent dur')
   handle r Kill k = do
     k () ()
   --handle r (Step cont) k = do
@@ -119,6 +136,11 @@ Handler Sir (Control.Monad.State.StateT SimulationState Identity) where
 ----------------------------------------------------------------------------
 -- Model implementation
 -----------------------------------------------------------------------------
+sirAgent' : Eff () [SIR (SIRAgent s)] [SIR (SIRAgent s')]
+sirAgent' {s = Susceptible} = ?sirAgent_rhs1
+sirAgent' {s = Infected}    = ?sirAgent_rhs2
+sirAgent' {s = Recovered}   = ?sirAgent_rhs3
+
 -- TODO: bring in RND effect
 -- TODO: not yet acting over time
 -- TODO: where is the population?
@@ -158,23 +180,34 @@ sirAgent = do
     infected : Eff (Bool)
                [SIR (SIRAgent Infected)] 
                (\res => [SIR (calcRecoverType res)])
+
 -----------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------
 -- running the Simulation
 -----------------------------------------------------------------------------
-runSIR : SimulationState
-runSIR = 
-  let s0       = mkSimulationState
-      (ret, s) = runState (run sirAgent) s0
-  in  s
-  --where
-  --  runSIRState : Control.Monad.State.StateT SimulationState Identity SIRState
-  --  runSIRState = runInit [42] sirAgent
+runSIR : (sc : Nat) ->
+         (i : Nat) ->
+         (r : Nat) ->
+         SimulationState
+runSIR s i r = 
+    let simState0 = mkSimulationState
+        sus = createAs s Susceptible
+        inf = createAs i Infected
+        rec = createAs r Recovered
+        (ret, simStateEnd) = runState (run sirAgent) simState0
+    in  simStateEnd
+  where
+    -- runSIRState : Control.Monad.State.StateT SimulationState Identity SIRState
+    --  runSIRState = runInit [42] sirAgent
+
+    createAs : (n : Nat) -> (s : SIRState) -> Vect n (SIRAgent s)
+    createAs Z s = []
+    createAs (S k) s = MkSIRAgent Z :: createAs k s
 
 namespace Main
   main : IO ()
   main = do
-    let ss = runSIR
+    let ss = runSIR 99 1 0
     putStrLn $ show ss
 -----------------------------------------------------------------------------

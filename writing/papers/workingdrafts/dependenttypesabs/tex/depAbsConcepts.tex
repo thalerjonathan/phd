@@ -59,6 +59,82 @@ using dependent types to specify the general commands available for an agent. he
 \subsection{Dependent State Machines}
 dependent state machines in abs for internal state because that is very Common in ABS. Here we can draw inspiration from the paper \cite{brady_state_2016} and book \cite{brady_type-driven_2017}.
 
+\subsection{Environment}
+One of the main advantages of Agent-Based Simulation over other simulation methods e.g. System Dynamics is that agents can live within an environment. Many agent-based models place their agents within a 2D discrete NxM environment where agents either stay always on the same cell or can move freely within the environment where a cell has 0, 1 or many occupants. Ultimately this boils down to accessing a NxM matrix represented by arrays or a similar data structure. In imperative languages accessing memory always implies the danger of out-of-bounds exceptions \textit{at run-time}. With dependent types we can represent such a 2d environment using vectors which carry their length in the type (TODO: discuss them in background) thus fixing the dimensions of such a 2D discrete environment in the types. This means that there is no need to drag those bounds around explicitly as data. Also by using dependent types like Fin which depend on the dimensions we can enforce at compile time that we can only access the data structure within bounds. If we want to we can also enforce in the types that the environment will never be an empty one where N, M > 0.
+
+\begin{minted}{haskell}
+Disc2dEnv : (w : Nat) -> (h : Nat) -> (e : Type) -> Type
+Disc2dEnv w h e = Vect (S w) (Vect (S h) e)
+
+data Disc2dCoords : (w : Nat) -> (h : Nat) -> Type where
+  MkDisc2dCoords : Fin (S w) -> Fin (S h) -> Disc2dCoords w h
+  
+centreCoords : Disc2dEnv w h e -> Disc2dCoords w h
+centreCoords {w} {h} _ =
+    let x = halfNatToFin w
+        y = halfNatToFin h
+    in  mkDisc2dCoords x y
+  where
+    halfNatToFin : (x : Nat) -> Fin (S x)
+    halfNatToFin x = 
+      let xh   = divNatNZ x 2 SIsNotZ 
+          mfin = natToFin xh (S x)
+      in  fromMaybe FZ mfin
+      
+setCell :  Disc2dCoords w h
+        -> (elem : e)
+        -> Disc2dEnv w h e
+        -> Disc2dEnv w h e
+setCell (MkDisc2dCoords colIdx rowIdx) elem env 
+    = updateAt colIdx (\col => updateAt rowIdx (const elem) col) env
+ 
+getCell :  Disc2dCoords w h
+        -> Disc2dEnv w h e
+        -> e
+getCell (MkDisc2dCoords colIdx rowIdx) env
+    = index rowIdx (index colIdx env)
+    
+neumann : Vect 4 (Integer, Integer)
+neumann = [         (0,  1), 
+           (-1,  0),         (1,  0),
+                    (0, -1)]
+
+moore : Vect 8 (Integer, Integer)
+moore = [(-1,  1), (0,  1), (1,  1),
+         (-1,  0),          (1,  0),
+         (-1, -1), (0, -1), (1, -1)]
+
+-- TODO: can we express that n <= len?
+filterNeighbourhood :  Disc2dCoords w h
+                    -> Vect len (Integer, Integer)
+                    -> Disc2dEnv w h e 
+                    -> (n ** Vect n (Disc2dCoords w h, e))
+filterNeighbourhood {w} {h} (MkDisc2dCoords x y) ns env =
+    let xi = finToInteger x
+        yi = finToInteger y
+    in  filterNeighbourhood' xi yi ns env
+  where
+    filterNeighbourhood' :  (xi : Integer)
+                         -> (yi : Integer)
+                         -> Vect len (Integer, Integer)
+                         -> Disc2dEnv w h e 
+                         -> (n ** Vect n (Disc2dCoords w h, e))
+    filterNeighbourhood' _ _ [] env = (0 ** [])
+    filterNeighbourhood' xi yi ((xDelta, yDelta) :: cs) env 
+      = let xd = xi - xDelta
+            yd = yi - yDelta
+            mx = integerToFin xd (S w)
+            my = integerToFin yd (S h)
+        in case mx of
+            Nothing => filterNeighbourhood' xi yi cs env 
+            Just x  => (case my of 
+                        Nothing => filterNeighbourhood' xi yi cs env 
+                        Just y  => let coord      = MkDisc2dCoords x y
+                                       c          = getCell coord env
+                                       (_ ** ret) = filterNeighbourhood' xi yi cs env
+                                   in  (_ ** ((coord, c) :: ret)))
+\end{minted}
+
 \subsection{Dependent Agent Interactions}
 \subsubsection{Agent Transactions}
 dependently typed message protocols in ABS because its very common, and easily done thorugh methods in OOP: sugarscape mating and trading protocol

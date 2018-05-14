@@ -1,0 +1,41 @@
+\section{An indexed agent monad}
+Drawing inspiration from the papers on real-world application of dependent types using Idris we came to the conclusion that the best starting point to implement agents is to define an indexed agent monad using GADTs. 
+
+\begin{minted}{haskell}
+data Agent : (m : Type -> Type) -> 
+             (ty : Type) ->
+             (sa_pre : Type) -> 
+             (sa_post : ty -> Type) ->
+             (evt : Type) ->
+             (w : Nat) -> 
+             (h : Nat) -> 
+             (t : Nat) -> Type 
+\end{minted}
+
+The agent monads' indices are:
+\begin{enumerate}
+	\item \textit{m} - an underlying computation (monadic) context
+	\item \textit{ty} - the result type of the respective agent command
+	\item \textit{sa\_pre} - some internal agent state previous to running the agent command
+	\item \textit{sa\_post} - some internal agent state after running the agent command, depending on the result type of the command
+	\item \textit{evt} - an event / agent-interaction protocol
+	\item \textit{w,h} - 2d environment boundary parameters
+	\item \textit{t} - current simulation time-step
+\end{enumerate}
+
+The agent monad supports a number of low level commands acting on the monad, including the mandatory Pure and Bind (>>=) operations which make them a monad.
+
+TODO: define low level agent-commands
+
+The commands the agent monad supports are on a very low level and for implementations of concrete agent-models it is convenient to provide higher level abstractions. We follow the same approach as in \cite{brady_state_2016} and implement an interface which describes the high level operations an agent of a specific model supports where the types of the operations of such an interface all build on the indexed agent monad. The interface itself is then used to implement the agent behaviour of the specific model. Finally an instance of the interface class must be provided which interprets the commands in a given computational context - this gives us incredible freedom e.g. we can provide implementations running in a mock-up state monad or a debugging IO monad which allows to print to the console.
+
+\begin{minted}{haskell}
+instance SIRAgent (m : Type -> Type) where
+	TODO: give interface operations
+	
+-- this is the debugging IO implementation
+SIRAgent IO where
+	
+-- this is the mockup test implementation
+SIRAgent (StateT MockupData Identity) where
+\end{minted}

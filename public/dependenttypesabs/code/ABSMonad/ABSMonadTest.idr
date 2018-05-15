@@ -37,9 +37,14 @@ reactAfterAgent : (TestAgent m, ConsoleIO m) =>
                   Agent m Nat t
 reactAfterAgent t = ?reactAfterAgent_rhs
 
-namespace Main
-  partial
-  main : IO ()
-  main = do
-    ret <- runAgent (timeInfAgent Z) Z
-    putStrLn $ show ret
+partial
+runSingleAgent : IO ()
+runSingleAgent = do
+  ret <- runAgent 0 (timeInfAgent Z) Z
+  putStrLn $ show ret
+
+partial
+runTwoAgents : IO ()
+runTwoAgents = do
+  ret <- runAgents 0 (timeInfAgent Z) Z
+  putStrLn $ show ret

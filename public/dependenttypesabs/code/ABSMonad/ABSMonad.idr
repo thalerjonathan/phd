@@ -27,10 +27,11 @@ data Agent : (m : Type -> Type) ->
   --After : (td : Nat) -> Agent m a (t + td)
   --Occasionally : (td : Nat) -> Agent m a (t + td)
 
-export
+public export
 AgentId : Type 
 AgentId = Nat
 
+{-
 export
 runAgentsUntil : Monad m =>
                  (tLimit : Nat) ->
@@ -49,8 +50,55 @@ runAgentsUntil tLimit as =
       let aml = toList am
 
       in  ?runAgentsUntilAux_rhs_2
+-}
+
+runAgents : Monad m =>
+            (t : Nat) ->
+            Vect n (AgentId, Agent m ty t) ->
+            Vect n (AgentId, Agent m ty t)
+runAgents t [] = []
+runAgents t ((aid, a) :: as) = 
+  case a of 
+    (Pure result) => (aid, a) :: runAgents t as
+    (Bind act cont) => (aid, a) :: runAgents t as
+    (Lift act) => (aid, a) :: runAgents t as -- do
+      --res <- act
+      --pure $ (aid, a) :: runAgents as
+    (Step f) => 
+      let a' = f t 
+      in  (aid, a') :: runAgents t as
+
+export
+runAgentsUntilAux : Monad m =>
+                    (tLimit : Nat) -> 
+                    (t : Nat) ->
+                    Vect n (AgentId, Agent m ty t) -> 
+                    Vect n (AgentId, Agent m ty t')-- (tLimit + t))
+runAgentsUntilAux Z t as = as
+runAgentsUntilAux (S k) t as = 
+  let as' = runAgents t as
+--      as'' = runAgentsUntilAux k t as'
+  in  ?runAgentsUntilAux_rhs
+{-
+runAgentsUntil : Monad m =>
+                (tLimit : Nat) -> 
+                Vect n (AgentId, Agent m ty t) -> 
+                Vect n (AgentId, Agent m ty (tLimit + t))
+runAgentsUntil tLimit as = runAgentsUntilAux tLimit Z as
+    --let as' = runAgents t as
+    --in  ?runAgentsUntil_rhs -- runAgentsUntil k (S t) as'
+  where
+    runAgentsUntilAux : Monad m =>
+                       (tLimit : Nat) -> 
+                       (t : Nat) ->
+                       Vect n (AgentId, Agent m ty t) -> 
+                       Vect n (AgentId, Agent m ty (tLimit + t))
+    runAgentsUntilAux Z t as = as
+    runAgentsUntilAux (S k) t as = ?runAgentsUntil_rhs
+-}
 
 -- TODO: do we really need Monad m here?
+export
 runAgent : Monad m =>
            AgentId ->
            Agent m a t -> 

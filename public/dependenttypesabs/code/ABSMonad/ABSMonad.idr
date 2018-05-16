@@ -8,133 +8,174 @@ import Data.SortedMap
 %default total
 
 export
+-- TODO: add AgentId somehow
 data Agent : (m : Type -> Type) -> 
-             (ty : Type) ->
-             (t : Nat) -> Type where
+             (ty : Type) -> Type where
+             --(t : Nat) -> Type where
   ||| the monadic operations Pure and Bind for sequencing operations
-  Pure : (result : ty) -> Agent m ty t
-  Bind : Agent m a t -> 
-         ((result : a) -> Agent m b t) ->
-         Agent m b t
+  Pure : (result : ty) -> Agent m ty
+  Bind : Agent m a -> 
+         ((result : a) -> Agent m b) ->
+         Agent m b
 
   ||| Lifting an action of the underlying computational contex into the agent monad
-  Lift : Monad m => m ty -> Agent m ty t
+  Lift : Monad m => m ty -> Agent m ty
 
-  ||| Stepping operation: for every time-step run this function
-  Step : ((t : Nat) -> Agent m a t) -> Agent m a t
+  ||| Stepping operation: for every time-step run this function, need an a for returning observable data for current step
+  Step : a -> ((t : Nat) -> Agent m a) -> Agent m a
 
+  ||| Terminate the agent, need an a for returning observable data for current step
+  Terminate : a -> Agent m a
+  ||| Terminate the agent, need an a for returning observable data for current step
+  Spawn : a -> Agent m a -> Agent m a
+
+  OperationA : a -> Agent m a
+  OperationB : a -> Agent m a
+  
   -- ||| Reactive operations 
   --After : (td : Nat) -> Agent m a (t + td)
   --Occasionally : (td : Nat) -> Agent m a (t + td)
+
+export
+Show (Agent m a) where
+  show (Pure result) = "Pure"
+  show (Bind x f) = "Bind"
+  show (Lift x) = "Lift"
+  show (Step x f) = "Step"
+  show (Terminate a) = "Terminate"
+  show (Spawn a ag) = "Spawn"
+  show (OperationA) = "OperationA"
+  show (OperationB) = "OperationB"
 
 public export
 AgentId : Type 
 AgentId = Nat
 
-{-
-export
-runAgentsUntil : Monad m =>
-                 (tLimit : Nat) ->
-                 Vect n (AgentId, Agent m ty t) -> 
-                 Vect tLimit ty
-runAgentsUntil tLimit as = 
-    let am = insertFrom as empty
-    in  runAgentsUntilAux tLimit am
-  where
-    runAgentsUntilAux : Monad m =>
-                        (tLimit : Nat) ->
-                        SortedMap AgentId (Agent m ty t) -> 
-                        Vect tLimit ty
-    runAgentsUntilAux Z am = []
-    runAgentsUntilAux (S k) am = 
-      let aml = toList am
-
-      in  ?runAgentsUntilAux_rhs_2
--}
-
-runAgents : Monad m =>
-            (t : Nat) ->
-            Vect n (AgentId, Agent m ty t) ->
-            Vect n (AgentId, Agent m ty t)
-runAgents t [] = []
-runAgents t ((aid, a) :: as) = 
-  case a of 
-    (Pure result) => (aid, a) :: runAgents t as
-    (Bind act cont) => (aid, a) :: runAgents t as
-    (Lift act) => (aid, a) :: runAgents t as -- do
-      --res <- act
-      --pure $ (aid, a) :: runAgents as
-    (Step f) => 
-      let a' = f t 
-      in  (aid, a') :: runAgents t as
-
-export
-runAgentsUntilAux : Monad m =>
-                    (tLimit : Nat) -> 
-                    (t : Nat) ->
-                    Vect n (AgentId, Agent m ty t) -> 
-                    Vect n (AgentId, Agent m ty t')-- (tLimit + t))
-runAgentsUntilAux Z t as = as
-runAgentsUntilAux (S k) t as = 
-  let as' = runAgents t as
---      as'' = runAgentsUntilAux k t as'
-  in  ?runAgentsUntilAux_rhs
-{-
-runAgentsUntil : Monad m =>
-                (tLimit : Nat) -> 
-                Vect n (AgentId, Agent m ty t) -> 
-                Vect n (AgentId, Agent m ty (tLimit + t))
-runAgentsUntil tLimit as = runAgentsUntilAux tLimit Z as
-    --let as' = runAgents t as
-    --in  ?runAgentsUntil_rhs -- runAgentsUntil k (S t) as'
-  where
-    runAgentsUntilAux : Monad m =>
-                       (tLimit : Nat) -> 
-                       (t : Nat) ->
-                       Vect n (AgentId, Agent m ty t) -> 
-                       Vect n (AgentId, Agent m ty (tLimit + t))
-    runAgentsUntilAux Z t as = as
-    runAgentsUntilAux (S k) t as = ?runAgentsUntil_rhs
--}
-
 -- TODO: do we really need Monad m here?
 export
 runAgent : Monad m =>
            AgentId ->
-           Agent m a t -> 
+           Agent m a -> 
            (t : Nat) ->
-           m a
-runAgent aid (Pure res) t = pure res
+           m (a, Agent m a)
+runAgent aid ag@(Pure res) t = pure (res, ag)
 runAgent aid (Bind act cont) t = do
-  ret <- runAgent aid act t
+  (ret, _) <- runAgent aid act t
   runAgent aid (cont ret) t
-runAgent aid (Lift act) t = do
+runAgent aid ag@(Lift act) t = do
   res <- act
-  pure res
-runAgent aid (Step f) t = do
+  pure (res, ag)
+runAgent aid (Step ret f) t = do
   let t' = (S t)
-  let ret = f t'
-  runAgent aid ret t'
+  let ag = f t'
+  pure (ret, ag)
+runAgent aid (OperationA a) t = do
+  pure (a, (OperationA a))
+runAgent aid (OperationB a) t = do
+  pure (a, (OperationB a))
+runAgent aid ag@(Spawn a newAg) t = do 
+  -- TODO: add new agent
+  pure (a, ag)
+runAgent aid ag@(Terminate a) t = do 
+  -- TODO: terminate agent
+  pure (a, ag)
+
+export
+runAgents : Monad m =>
+            (t : Nat) ->
+            Vect n (AgentId, Agent m ty) ->
+            m (Vect n (AgentId, Agent m ty))
+runAgents t [] = pure []
+runAgents t ((aid, ag) :: as) = do
+  (ret, ag') <- runAgent aid ag t
+  as' <- runAgents t as
+  pure $ (aid, ag') :: as'
+
+{-
+  case ag of 
+    (Pure result) => do
+      as' <- runAgents t as
+      pure $ (aid, ag) :: as'
+    (Bind act cont) => do
+      (ret, ag') <- runAgent aid ag t
+      as' <- runAgents t as
+      pure $ (aid, ag') :: as'
+    (Lift act) => do
+      res <- act
+      as' <- runAgents t as
+      pure $ (aid, ag) :: as'
+    (Step ret f) => do
+      let ag' = f (S t) 
+      as' <- runAgents t as
+      pure $ (aid, ag') :: as'
+    (OperationA a) => do
+      as' <- runAgents t as
+      pure $ (aid, ag) :: as'
+    (OperationB a) => do
+      as' <- runAgents t as
+      pure $ (aid, ag) :: as'
+    (Spawn a newAgent) => do
+      -- TODO: add new agent
+      as' <- runAgents t as
+      pure $ (aid, ag) :: as'
+    (Terminate a) => do
+      -- TODO: remove agent
+      as' <- runAgents t as
+      pure $ (aid, ag) :: as'
+-}
+export
+runAgentsUntil : Monad m =>
+                 (tLimit : Nat) ->
+                 Vect n (AgentId, Agent m ty) ->
+                 m (Vect n (AgentId, Agent m ty))
+runAgentsUntil tLimit as = runAgentsUntilAux tLimit Z as
+  where
+    runAgentsUntilAux : Monad m =>
+                        (tLimit : Nat) ->
+                        (t : Nat) ->
+                        Vect n (AgentId, Agent m ty) ->
+                        m (Vect n (AgentId, Agent m ty))
+    runAgentsUntilAux Z _ as = pure as
+    runAgentsUntilAux (S tLimit) t as = do
+      as' <- runAgents t as
+      runAgentsUntilAux tLimit (S t) as' -- ?runAgentsUntil_rhs
 
 export
 pure : (result : ty) -> 
-       Agent m ty t
+       Agent m ty
 pure = Pure
 
 export
-(>>=) : Agent m a t -> 
-        ((result : a) -> Agent m b t) ->
-        Agent m b t
+(>>=) : Agent m a -> 
+        ((result : a) -> Agent m b) ->
+        Agent m b
 (>>=) = Bind
 
 export
-lift : Monad m => m ty -> Agent m ty t
+lift : Monad m => m ty -> Agent m ty
 lift = Lift
 
 export
-step : ((t : Nat) -> Agent m a t) -> 
-       Agent m a t
+step : a -> ((t : Nat) -> Agent m a) -> 
+       Agent m a
 step = Step
+
+export
+opA : a -> Agent m a
+opA = OperationA
+
+export
+opB : a -> Agent m a
+opB = OperationB
+
+export
+spawn : a -> Agent m a -> Agent m a
+spawn = Spawn
+
+export
+terminate : a -> Agent m a
+terminate = Terminate
+
 
 --export
 --after : (td : Nat) -> Agent m a (t + td)
@@ -146,14 +187,14 @@ step = Step
 -------------------------------------------------------------------------------
 public export
 interface ConsoleIO (m : Type -> Type) where
-  putStr : String -> Agent m () t
+  putStr : String -> Agent m ()
 
 export
 ConsoleIO IO where
   putStr str = lift $ putStrLn str
 
 export
-putStrLn : ConsoleIO m => String -> Agent m () t
+putStrLn : ConsoleIO m => String -> Agent m ()
 putStrLn str = putStr (str ++ "\n")
 -------------------------------------------------------------------------------
 

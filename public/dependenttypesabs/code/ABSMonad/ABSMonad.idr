@@ -9,6 +9,7 @@ import Data.SortedMap
 
 export
 -- TODO: add AgentId somehow
+-- TODO: add time
 data Agent : (m : Type -> Type) -> 
              (ty : Type) -> Type where
              --(t : Nat) -> Type where
@@ -51,93 +52,71 @@ public export
 AgentId : Type 
 AgentId = Nat
 
--- TODO: do we really need Monad m here?
 export
 runAgent : Monad m =>
            AgentId ->
            Agent m a -> 
            (t : Nat) ->
-           m (a, Agent m a)
-runAgent aid ag@(Pure res) t = pure (res, ag)
-runAgent aid (Bind act cont) t = do
-  (ret, _) <- runAgent aid act t
-  runAgent aid (cont ret) t
-runAgent aid ag@(Lift act) t = do
+           (term : Bool) ->
+           m (a, Agent m a, Bool)
+runAgent aid ag@(Pure res) t term = pure (res, ag, term)
+runAgent aid ag@(Bind act cont) t term = do
+  (ret, ag', term') <- runAgent aid act t term
+  runAgent aid (cont ret) t (term || term')
+runAgent aid ag@(Lift act) t term = do
   res <- act
-  pure (res, ag)
-runAgent aid (Step ret f) t = do
+  pure (res, ag, term)
+runAgent aid (Step ret f) t term = do
+  -- TODO should we really execute this in this time-step? seems to be wrong
   let t' = (S t)
   let ag = f t'
-  pure (ret, ag)
-runAgent aid (OperationA a) t = do
-  pure (a, (OperationA a))
-runAgent aid (OperationB a) t = do
-  pure (a, (OperationB a))
-runAgent aid ag@(Spawn a newAg) t = do 
+  pure (ret, ag, term)
+runAgent aid (OperationA a) t term = do
+  pure (a, (OperationA a), term)
+runAgent aid (OperationB a) t term = do
+  pure (a, (OperationB a), term)
+runAgent aid ag@(Spawn a newAg) t term = do 
   -- TODO: add new agent
-  pure (a, ag)
-runAgent aid ag@(Terminate a) t = do 
+  pure (a, ag, term)
+runAgent aid ag@(Terminate a) t term = do 
   -- TODO: terminate agent
-  pure (a, ag)
+  pure (a, ag, True)
 
 export
 runAgents : Monad m =>
             (t : Nat) ->
             Vect n (AgentId, Agent m ty) ->
-            m (Vect n (AgentId, Agent m ty))
-runAgents t [] = pure []
+            m (n' ** Vect n' (AgentId, Agent m ty))
+runAgents t [] = pure (_ ** [])
 runAgents t ((aid, ag) :: as) = do
-  (ret, ag') <- runAgent aid ag t
-  as' <- runAgents t as
-  pure $ (aid, ag') :: as'
-
 {-
-  case ag of 
-    (Pure result) => do
-      as' <- runAgents t as
-      pure $ (aid, ag) :: as'
-    (Bind act cont) => do
-      (ret, ag') <- runAgent aid ag t
-      as' <- runAgents t as
-      pure $ (aid, ag') :: as'
-    (Lift act) => do
-      res <- act
-      as' <- runAgents t as
-      pure $ (aid, ag) :: as'
-    (Step ret f) => do
-      let ag' = f (S t) 
-      as' <- runAgents t as
-      pure $ (aid, ag') :: as'
-    (OperationA a) => do
-      as' <- runAgents t as
-      pure $ (aid, ag) :: as'
-    (OperationB a) => do
-      as' <- runAgents t as
-      pure $ (aid, ag) :: as'
-    (Spawn a newAgent) => do
-      -- TODO: add new agent
-      as' <- runAgents t as
-      pure $ (aid, ag) :: as'
-    (Terminate a) => do
-      -- TODO: remove agent
-      as' <- runAgents t as
-      pure $ (aid, ag) :: as'
+  (ret, mag', newAs) <- runAgent aid ag t []
+  (n' ** as') <- runAgents t as
+  case mag' of
+    Just ag' => pure $ (_ ** (aid, ag') :: as')
+    Nothing  => pure $ (_ ** as')
 -}
+  (ret, ag', term) <- runAgent aid ag t False
+  (n' ** as') <- runAgents t as
+  case term of
+    False => pure $ (_ ** (aid, ag') :: as')
+    True  => pure $ (_ ** as')
+
 export
 runAgentsUntil : Monad m =>
                  (tLimit : Nat) ->
                  Vect n (AgentId, Agent m ty) ->
-                 m (Vect n (AgentId, Agent m ty))
+                 m (n' ** Vect n' (AgentId, Agent m ty))
 runAgentsUntil tLimit as = runAgentsUntilAux tLimit Z as
   where
     runAgentsUntilAux : Monad m =>
                         (tLimit : Nat) ->
                         (t : Nat) ->
                         Vect n (AgentId, Agent m ty) ->
-                        m (Vect n (AgentId, Agent m ty))
-    runAgentsUntilAux Z _ as = pure as
+                        m (n' ** Vect n' (AgentId, Agent m ty))
+    runAgentsUntilAux Z _ as = pure (_ ** as)
     runAgentsUntilAux (S tLimit) t as = do
-      as' <- runAgents t as
+      (n' ** as') <- runAgents t as
       runAgentsUntilAux tLimit (S t) as' -- ?runAgentsUntil_rhs
 
 export

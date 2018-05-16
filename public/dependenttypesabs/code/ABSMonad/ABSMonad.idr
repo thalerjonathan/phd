@@ -2,14 +2,14 @@ module ABSMonad
 
 -- base
 import Data.Vect 
--- contrib
-import Data.SortedMap
+import Debug.Trace
 
 %default total
 
 export
 -- TODO: add AgentId somehow
 -- TODO: add time
+-- TODO: its annoying that we need an 'a' for all operations, can we get rid of this?
 data Agent : (m : Type -> Type) -> 
              (ty : Type) -> Type where
              --(t : Nat) -> Type where
@@ -30,8 +30,7 @@ data Agent : (m : Type -> Type) ->
   ||| Terminate the agent, need an a for returning observable data for current step
   Spawn : a -> Agent m a -> Agent m a
 
-  OperationA : a -> Agent m a
-  OperationB : a -> Agent m a
+  NoOp : a -> Agent m a
   
   -- ||| Reactive operations 
   --After : (td : Nat) -> Agent m a (t + td)
@@ -45,8 +44,7 @@ Show (Agent m a) where
   show (Step x f) = "Step"
   show (Terminate a) = "Terminate"
   show (Spawn a ag) = "Spawn"
-  show (OperationA) = "OperationA"
-  show (OperationB) = "OperationB"
+  show (NoOp a) = "NoOp"
 
 public export
 AgentId : Type 
@@ -71,10 +69,8 @@ runAgent aid (Step ret f) t term = do
   let t' = (S t)
   let ag = f t'
   pure (ret, ag, term)
-runAgent aid (OperationA a) t term = do
-  pure (a, (OperationA a), term)
-runAgent aid (OperationB a) t term = do
-  pure (a, (OperationB a), term)
+runAgent aid (NoOp a) t term = do
+  pure (a, (NoOp a), term)
 runAgent aid ag@(Spawn a newAg) t term = do 
   -- TODO: add new agent
   pure (a, ag, term)
@@ -89,13 +85,6 @@ runAgents : Monad m =>
             m (n' ** Vect n' (AgentId, Agent m ty))
 runAgents t [] = pure (_ ** [])
 runAgents t ((aid, ag) :: as) = do
-{-
-  (ret, mag', newAs) <- runAgent aid ag t []
-  (n' ** as') <- runAgents t as
-  case mag' of
-    Just ag' => pure $ (_ ** (aid, ag') :: as')
-    Nothing  => pure $ (_ ** as')
--}
   (ret, ag', term) <- runAgent aid ag t False
   (n' ** as') <- runAgents t as
   case term of
@@ -117,7 +106,10 @@ runAgentsUntil tLimit as = runAgentsUntilAux tLimit Z as
     runAgentsUntilAux Z _ as = pure (_ ** as)
     runAgentsUntilAux (S tLimit) t as = do
       (n' ** as') <- runAgents t as
-      runAgentsUntilAux tLimit (S t) as' -- ?runAgentsUntil_rhs
+      -- no more agents left, simulation is over
+      if n' == 0
+        then pure (_ ** as')
+        else runAgentsUntilAux tLimit (S t) as'
 
 export
 pure : (result : ty) -> 
@@ -140,12 +132,8 @@ step : a -> ((t : Nat) -> Agent m a) ->
 step = Step
 
 export
-opA : a -> Agent m a
-opA = OperationA
-
-export
-opB : a -> Agent m a
-opB = OperationB
+noOp : a -> Agent m a
+noOp = NoOp
 
 export
 spawn : a -> Agent m a -> Agent m a
@@ -154,7 +142,6 @@ spawn = Spawn
 export
 terminate : a -> Agent m a
 terminate = Terminate
-
 
 --export
 --after : (td : Nat) -> Agent m a (t + td)

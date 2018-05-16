@@ -20,10 +20,10 @@ timeInfAgent : (TestAgent m, ConsoleIO m) =>
                (t : Nat) ->
                Agent m Nat
 timeInfAgent t = do
-  putStrLn $ "timeInfAgent: before opA, t = " ++ show t
-  opA 0
-  putStrLn $ "timeInfAgent: before opB"
-  opB Z
+  putStrLn $ "timeInfAgent: before noOp, t = " ++ show t
+  noOp 0
+  putStrLn $ "timeInfAgent: before noOp"
+  noOp Z
   putStrLn $ "timeInfAgent: before step"
 
   step t timeInfAgent
@@ -35,10 +35,10 @@ timeLimitAgent : (TestAgent m, ConsoleIO m) =>
                  (t : Nat) ->
                  Agent m Nat
 timeLimitAgent tLimit t = do
-  putStrLn $ "timeLimitAgent: before opA, t = " ++ show t
-  opA 0
-  putStrLn $ "timeLimitAgent: before opB"
-  opB Z
+  putStrLn $ "timeLimitAgent: before noOp, t = " ++ show t
+  noOp 0
+  putStrLn $ "timeLimitAgent: before noOp"
+  noOp Z
   putStrLn $ "timeLimitAgent: before step"
 
   case compare t tLimit of
@@ -67,8 +67,12 @@ terminatingAfterAgent : (TestAgent m, ConsoleIO m) =>
 terminatingAfterAgent aid tLimit t = do
   putStrLn $ "terminatingAfterAgent " ++ show aid ++ ": before check, t = " ++ show t
   case compare t tLimit of
-      LT => step () (terminatingAfterAgent aid tLimit)
-      _  => terminate ()
+      LT => do
+        putStrLn $ "terminatingAfterAgent " ++ show aid ++ ": not yet time to terminate..."
+        step () (terminatingAfterAgent aid tLimit)
+      _  => do
+        putStrLn $ "terminatingAfterAgent " ++ show aid ++ ": its time to terminate!"
+        terminate ()
 
 partial
 runTimeAgents : IO ()

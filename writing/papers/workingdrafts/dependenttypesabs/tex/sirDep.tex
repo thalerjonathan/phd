@@ -33,3 +33,14 @@ show formally that abs does resemble the sd approach: need an idea of a proof an
 %TODO: implement sir with state-machine approach from Idris. an idea would be to let infected agents generate infection- actions: the more infected agents the more infection-actions => zero infected agents mean zero infection actions. this list can then be reduced?
 %
 %can we also emulate SD in Idris and formulate positive/negative feedback loops in types?
+
+\subsection{A constructive proof of totality}
+The idea is to implement a total agent-based SIR simulation, where the termination does NOT depend on time (is not terminated after a finite number of time-steps, which would be trivial). The dynamics of the system-dynamics SIR model are in equilibrium (won't change anymore) when the infected stock is 0. This can (probably) be shown formally but intuitionistic it is clear because only infected agents can lead to infections of susceptible agents which then make the transition to recovered after having gone through the infection phase. Thus an agent-based implementation of the SIR simulation has to terminate if it is implemented correctly because all infected agents will recover after a finite number of steps after then the dynamics will be in equilibrium.
+Thus we need to 'tell' the type-checker the following:
+1) no more infected agents is the termination criterion
+2) all infected agents will recover after a finite number of time => the simulation will eventually run out of infected agents But when we look at the SIR+S model we have the same termination criterion, but we cannot guarantee that it will run out of infected => we need additional criteria
+3) infected agents are 'generated' by susceptible agents
+4) susceptible agents are NOT INCREASING (e.g. recovered agents do NOT turn back into susceptibles)
+Interesting: can we adopt our solution (if we find it), into a SIRS	implementation? this should then break totality. also how difficult is it?
+
+The HOTT book states that lists, trees,... are inductive types/inductively defined structures where each of them is characterized by a corresponding "induction principle". For a proof of totality of SIR we need to find the "induction principle" of the SIR model and implement it. What is the inductive, defining structure of the SIR model? is it a tree where a path through the tree is one simulation dynamics? or is it something else? it seems that such a tree would grow and then shrink again e.g. infected agents. Can we then apply this further to (agent-based) simulation in general?

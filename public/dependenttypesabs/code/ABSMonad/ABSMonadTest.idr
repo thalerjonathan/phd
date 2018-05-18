@@ -15,18 +15,21 @@ interface TestAgent (m : Type -> Type) where
 TestAgent IO where
   foo x = 42
 
+data TestEvents
+  = EventA
+  | EventB
+
 partial
 timeInfAgent : (TestAgent m, ConsoleIO m) => 
                (t : Nat) ->
-               Agent m Nat
+               Agent m Nat TestEvents
 timeInfAgent t = do
   putStrLn $ "timeInfAgent: before noOp, t = " ++ show t
   noOp
-  putStrLn $ "timeInfAgent: before noOp"
-  noOp
-  putStrLn $ "timeInfAgent: before step"
+  tSys <- time
+  putStrLn $ "timeInfAgent: time from system = " ++ show tSys
 
-  step t timeInfAgent
+  putStrLn $ "timeInfAgent: before step"
   step t timeInfAgent
 
 -- TODO: make total, by pattern matching?
@@ -34,7 +37,7 @@ partial
 timeLimitAgent : (TestAgent m, ConsoleIO m) => 
                  (tLimit : Nat) ->
                  (t : Nat) ->
-                 Agent m Nat
+                 Agent m Nat TestEvents
 timeLimitAgent tLimit t = do
   putStrLn $ "timeLimitAgent: before noOp, t = " ++ show t
   noOp
@@ -49,7 +52,7 @@ timeLimitAgent tLimit t = do
 spawningNumberAgent : (TestAgent m, ConsoleIO m) => 
                       (n : Nat) ->
                       (t : Nat) ->
-                      Agent m ()
+                      Agent m () TestEvents
 spawningNumberAgent Z t = do
   putStrLn $ "spawningNumberAgent: finished spawning, t = " ++ show t
   pure ()
@@ -64,7 +67,7 @@ terminatingAfterAgent : (TestAgent m, ConsoleIO m) =>
                         AgentId ->
                         (tLimit : Nat) ->
                         (t : Nat) ->
-                        Agent m ()
+                        Agent m () TestEvents
 terminatingAfterAgent aid tLimit t = do
   putStrLn $ "terminatingAfterAgent " ++ show aid ++ ": before check, t = " ++ show t
   case compare t tLimit of

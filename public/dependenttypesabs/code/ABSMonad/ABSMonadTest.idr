@@ -21,11 +21,12 @@ timeInfAgent : (TestAgent m, ConsoleIO m) =>
                Agent m Nat
 timeInfAgent t = do
   putStrLn $ "timeInfAgent: before noOp, t = " ++ show t
-  noOp 0
+  noOp
   putStrLn $ "timeInfAgent: before noOp"
-  noOp Z
+  noOp
   putStrLn $ "timeInfAgent: before step"
 
+  step t timeInfAgent
   step t timeInfAgent
 
 -- TODO: make total, by pattern matching?
@@ -36,9 +37,9 @@ timeLimitAgent : (TestAgent m, ConsoleIO m) =>
                  Agent m Nat
 timeLimitAgent tLimit t = do
   putStrLn $ "timeLimitAgent: before noOp, t = " ++ show t
-  noOp 0
+  noOp
   putStrLn $ "timeLimitAgent: before noOp"
-  noOp Z
+  noOp
   putStrLn $ "timeLimitAgent: before step"
 
   case compare t tLimit of
@@ -54,7 +55,7 @@ spawningNumberAgent Z t = do
   pure ()
 spawningNumberAgent (S n) t = do
   putStrLn $ "spawningNumberAgent: before spawn, t = " ++ show t
-  spawn () (spawningNumberAgent n t)
+  spawn (spawningNumberAgent n t)
   putStrLn $ "spawningNumberAgent: after spawn, " ++ show n ++ " spawns left"
   step () (spawningNumberAgent n)
 
@@ -72,12 +73,12 @@ terminatingAfterAgent aid tLimit t = do
         step () (terminatingAfterAgent aid tLimit)
       _  => do
         putStrLn $ "terminatingAfterAgent " ++ show aid ++ ": its time to terminate!"
-        terminate ()
+        terminate
 
 partial
 runTimeAgents : IO ()
 runTimeAgents = do
-  let as = [(0, timeLimitAgent 5 Z), (1, timeInfAgent Z)]
+  let as = [(1, timeInfAgent Z)]
   as' <- runAgentsUntil 100 as
   putStrLn $ show as'
 

@@ -298,5 +298,4 @@ evidence, it is clear. BUT again, we need to present this much more explicit as 
 [ ] idea: scrape section on Environment as well and try a formal proof of correctness of the yampa only approach: can we formally boil it down to the SD formulas?
 [ ] consider informal property testing with quickcheck, encodes the sd formula im it, also allows to find the dt
 [ ] rework paper structure: instead of splitting too much up into separate sections explain it as introduced and used. related work to the very end (as i have wanted it)! implement agent-based sir (no Environment) with yampa, then verify it with quickcheck and then formally reasoning
-[ ] functional pearl about agent-based SIR model with 2d discrete Environment with Dunais MSFs
 

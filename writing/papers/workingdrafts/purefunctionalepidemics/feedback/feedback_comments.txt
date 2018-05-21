@@ -1,0 +1,302 @@
+My comments to a text-section are added in a new line following a =>
+
+----------------------- REVIEW 1 ---------------------
+PAPER: 1
+TITLE: Pure functional epidemics - An Agent-Based Approach
+AUTHORS: Jonathan Thaler, Thorsten Altenkirch and Peer-Olaf Siebers
+
+Overall evaluation: -2 (reject)
+
+----------- Overall evaluation -----------
+This paper describes how to implement an agent-based simulation, namely the SIR model, in Haskell. It develops increasingly sophisticated implementations, from a direct one in pure Haskell, over one using the functional reactive programming library Yampa, to finally one based on functional reactive programming over monadic stream functions.
+	=> Good, the referee understood very well what we wanted to do in this paper, so it is understandable!
+
+I did enjoy reading the paper and it did make me think about how to implement an agent-based simulation. Furthermore, it does provide another use case for functional reactive programming. 
+	=> we are not on the completely wrong track, it is actually interesting to read and (at least one) people liked it
+
+However, I am not convinced that it makes substantial scientific contributions. Considering the three contributions listed in the introduction, the first statement, about being the first paper on the topic, is not yet a contribution. Sorry, it reminds me of how to get an entry into the Guiness book of world records. The statement about better reproducibility compared to imperative solutions is wrong. As long as you don’t use non-deterministic concurrency, the initial seed of the random number generator also determines the whole simulation. Finally there is the third statement that the functional approach is conceptually much cleaner. Maybe, but then the paper needs to make this point much clearer. All functional implementations suffer from having to choose the right time step deltat; you definitely do not have the illusion of continuous time.
+	=> obviously the scientific contribution of the "purity" aspect, conceptually cleaner and reproducibility is not clear enough
+	=> the referee seems not to get the point of reproducibility: yes it is true that "as long as you dont use non-deterministic concurrency...", but in our approach we can actually guarantee that statically at compile time by being pure - this is DEFINITELY NOT possible in traditional imperative OOP. Any non-determinism could break reproducibility e.g. reading from file, user-input,... which we also can exclude at compile time with our approach. Obviously this seems to be not clear enough yet, we need to make this much much clearer and also make the point clear that an ABS as we implement it is a pure computation in the end.
+	=> being the first one seems to be not a contriubtion? hmm this is probably true, i guess i had to learn this lesson
+	=> functional approach conceptually cleaner: how can we back this up?
+	=> "All functional implementations suffer from having to choose the right time step deltat you definitely do not have the illusion of continuous time.": this is just wrong by the referee: actually quite the opposite is true: our implementation allows the illusion of continuous time in the way it is implemented and time-semantic functions are used (occasionally). Selecting the right dT is ALWAYS an issue in EVERY simulation, be it OOP or functional, but the way we represent our continous time-system is definitely not as elegant possible in OOP. Still I cannot really substantiate this claim as i havent looked into FRP in OOP.
+
+"I like the development of the implementation in several steps; thus the final version does not just “fall from the sky”. However, a good understanding of the implementations requires a good understanding of FRP, arrows and even monadic stream functions. I fear that it is impossible in the given page limit to explain all these to a reader unfamiliar with these."
+	=> may indicate that we still want to do too much in the paper
+
+"The paper claims that a functional implementation is superior to a classical object-oriented implementation. Without saying more about what an OO implementation looks like, such a statement is hard to justify. I have in my mind the rabbits & foxes simulation of the Objects First book by Barnes & Koelling (It is a hunter & prey simulation, not a SIR, but I don’t think that makes a big difference). Actually I think that implementation is also clean, compositional and similarly declarative. Both model time and time steps explicitly, both reasonably separate the environment from the rest. Both OO and functional implementation have the disadvantage that in a single step they process all agents in some rather arbitrary order. This order should not matter for the emerging behaviour, but it does already wrt the random number generator. The one essential difference that I see is that in the OO implementation every agent is an object whose state changes over time. This entails that the order in which agents are processed in a single time step does matter. In contrast, the functional implementation just models the value of each agent at each time step; thus agents from different time steps can be used in a computation, but the concept of identity of an agent is a bit lost."
+	=> true, maybe we should omit these claims of superiority over OOP alltogether - except the reproducibility guarantees at compile time through purity.
+	=> have a look at the rabbits & foxes simulation of the Objects First book by Barnes & Koelling 
+	=> "but the concept of identity of an agent is a bit lost." this is definitely true in our functional approach, especially in our SIR implementation because the SIR agent has no explicit internal state appart from the current continuation which determines the Susceptible/Infected/Recovered state: but I claim that this alone is enough for the agents identity. When we look at e.g. the sugarscape model, agent-identity becomes much more explicit e.g. when we add agent-ids and messaging and much more complex internal state.
+
+I am looking forward to see how dependent types can help implementing simulations correctly. With arbitrary side-effects it is indeed easy to introduce defects. Interestingly in an OO implementation it would be rather hard to wrongly make an agent depend on the state of an agent many time steps in the past; in contrast, in a functional implementation such a defect seems to be far more likely.
+	=> Yampa was built on arrowized programming to prevent depending on the past, thus this shouldnt be an issue. True OO implementations are much less likely to depend on the past but again the way how data is handled is completely different and if one uses OO FRP then probably one might run into similar problems of depending on the past
+	=> dependent types is work in progress, will be next paper
+
+Details:
+Some entries in the references lack details for finding them without a search engine, e.g. 26, 27, 28. Is reference 2 still in preparation, since 2005?
+In an English text citations should not be nouns (the authors of [x]), they are parenthesised additions. Removing them should leave a readable text. Also citations such as [6], [9], [12] should be combined into [6, 9, 12].
+
+----------------------- REVIEW 2 ---------------------
+PAPER: 1
+TITLE: Pure functional epidemics - An Agent-Based Approach
+AUTHORS: Jonathan Thaler, Thorsten Altenkirch and Peer-Olaf Siebers
+
+Overall evaluation: -2 (reject)
+
+----------- Overall evaluation -----------
+The paper describes the application of Yampa-style FRP and Monadic Stream Functions to Agent-based simulation, on the example of the SIR model. Overall, this is a good introduction to Agent-based simulation
+and illustration how FRP can be applied and what its disadvantages are.
+	=> Good, the referee understood very well what we wanted to do in this paper, so it is understandable! Also it is a good introduction and illustration of FRP
+
+However, the paper is filled with poorly worded and unsupported claims. Mainly, the fact that the approach has proven so far to be a failure is mentioned only at the very end.
+``We started with high hopes for the pure functional ap-
+  proach and hypothesized that it will be truly superior to
+  existing traditional object-oriented approaches but we come
+  to the conclusion that this is not so.''
+Why this is mentioned only at the very end, on p11? Neither abstract nor the introduction give any hint that the attempt has not been successful. (Given that the performance is so much worse than the traditional approach, it is the outright failure. If the approach cannot scale to the large population sizes that are often needed in simulations, it is useless.) I'm very upset at such paper construction, because it seriously misleads the reader. The reader has to go through 10 pages only to find out it is all have been in vain and the paper has not solved anything. It's acceptable (and should be encouraged, in my opinion) if the paper reports a failure and poses challenges -- provided the paper is honest and open about it and states at the beginning what it does and what the results are.
+	=> True, we should make this performance problem clear in the very beginning
+	=> Maybe add a short section on Cloud Haskell which 'theoretically' would allow us to solve this problem and also maps nicely to ABS but leads in a completely different direction than what we want to do in our research: explicit message passing which is what we do in the end in abs, not pure anymore thus not guaranteed repeatability at compile time, time stepping needs to be synchronised across all agents which becomes a bottle neck, could we  implement it as a distributed event-driven approach? generally: it would allow massive parallel simulations but results in a completely different approach, vastly different to ours. although Performance is important, our primary concern is about ensuring/verifying/proofing general correctness of the implementation of a model
+
+In addition, I find what seems to be a grave bug in the code, which is very difficult to debug. It demonstrates the *drawback* of using the functional approach. 
+	=> I will deal with this below
+Finally, the paper is very skimpy on related work. Simulation is a hugely vast area, with many approaches, some of which are declarative. 
+	=> ok I really might have missed some approaches
+
+All in all, I recommend *major* revision.
+
+The abstract already indicates the problem with the paper:
+  ``With our approach we can guarantee the reproducibility of the sim-
+    ulation already at compile time, which is not possible with
+    traditional object-oriented languages. Also, we claim that
+    this representation is conceptually cleaner and opens the
+    way to formally reason about ABS.''
+Why is reproducibility at compiler time is not possible in traditional OO languages? This is a very strong claim, for which the paper shows no evidence nor does it cite any. 
+	=> the referee is wrong here and may have misunderstood something, the reproducibility at compile time follows directly from purity! this is not possible in traditional OO languages! There is no need for evidence, it is clear. BUT again, we need to present this much more explicit as it seems to confuse people (or am I confused here=
+
+Second, in ``this representation is conceptually cleaner'', what conceptually cleaner means, exactly? And how to evaluate this claim? 
+	=> True, maybe we should omit this claim or substantiate, the question is how?
+``Opens the way to formally reason about ABS'': what exactly does that mean? The paper presented no example of formal reasoning about ABS (it doesn't even define what formal reasoning means, exactly.)
+	=> true, maybe we should add a formal reasoning section which proves that our implementation is a match of the SD formulas
+
+The paper uses the word ``pure'' all throughout, never defining what pure actually means. Lines 131-132 give an intimation: ``It is not pure, as it uses the IO Monad under the hood''. I hope the authors are aware that GHC and GHC runtime use the IO monad under the hood. Thus by this criterion there is no pure Haskell program at all. 
+	=> this comment is irreleveant, just because GHC and GHC runtime runs IO under the hood does not mean our agents / simulation runs in it, which is an EXTREMELY important difference.
+Purity may mean the absence of side-effects, and the explicit state/environment passing. Yet the authors themselves resort to implicit g passing by introducing Random Monad, and write on p9 ``which indicates that the actions of the agents are only visible through side-effects in the monad stack they are running in.'' Thus the agents are just as imperative as they are in OO-based simulations, aren't they?
+	=> yes the agents are imperative which in our opinion lies in the nature of ABS in general. And if we are going down to the technical level: we are still being functional although we are "emulating" imperativeness in a monad / arrows!
+
+It has crossed my mind that the submission is actually an elaborated sarcasm. 
+	=> thank you, that made me laugh
+After introducing the Yampa implementation and saying that one has to use the (unexplained) `notYet' combinator for some magic reason (to understand which, one has to know Yampa's implementation, breaking its abstraction) and that one has to use ``small enough'' deltat (otherwise, events will be missing and the results are wrong), they authors nevertheless write ``By moving on to FRP using Yampa we  made a huge improvement in clarity, expressivity and robustness of our imple- mentation.'' Does the introduction of new source of subtle errors qualifies as ``huge improvement in robustness''?
+	=> i understand why the referee is so upset but sorry, the Yampa implementation is still much more robust and clearer than the Random Monad one even if there are things like notyet.
+	=> the deltat thing is a problem in all simulations, not unique to our approach
+
+Most worrisome, there seems to be a serious error in Yampa's susceptibleAgent implementation: it looks like (occasionally g),  (drawRandomElemSF g) and (randomBoolSF g) receive all the same g. That is, the three streams are highly correlated! The random boolean produced by randomBoolSF g will be correlated to the random agent picked by (drawRandomElemSF g). That is a very serious and a very subtle error. One can also see this as the illustration that functional approach *facilitates* errors. 
+	=> that is absolutely true, thanks for this sharp and deep insight. I have to test how much influence this has on the dynamics. I followed the approach of Yampa papers (e.g. space invaders) where the same RNG is passed to different random functions - in a game this shouldnt be too much a problem but in a simulation this could be a severe issue. I suggest implementing running replications and exporting the maximum number of infected and last infected recovered and look at the distributions (as suggested by the statistical lady of the FH)
+	=> i will incorporate this as an example that functional approach facilitates errors
+
+As to related work, I'm stunned that no mentioning has been made of SIMULA 67 (yes, 67 means 1967). It was the first OO language, and it was explicitly built for simulation. Thus historically OO has emerged from simulation.
+	=> fair enough, never looked into it, and although i am very interested in it, i am afraid i don't have enough time for it
+
+Second, there is no mentioning of Lustre (http://www.it.uu.se/edu/course/homepage/pins/vt11/lustre) or other such declarative dataflow language. It seems Lustre does everything that the authors wanted to do but could not. It scales, it has static reasoning tools. An impartial observer may get a strong impression that the authors are trying to solve the problem that has already been solved.
+	=> true, i guess i have to look into this a bit more in detail although not enough time to fully explore it
+
+
+----------------------- REVIEW 3 ---------------------
+PAPER: 1
+TITLE: Pure functional epidemics - An Agent-Based Approach
+AUTHORS: Jonathan Thaler, Thorsten Altenkirch and Peer-Olaf Siebers
+
+Overall evaluation: -2 (reject)
+
+----------- Overall evaluation -----------
+The paper shows by example how an agent-based simulation can be implemented in Haskell, among other things, with the help of the functional reactive programming library Yampa.
+	=> good, the referee understood what i wanted to do
+
+The example being used is that of the SIR (Susceptible, Infected, Recovered) model of epidemiology, which simulates how a disease spreads in a population. The paper actually shows three different implementations of SIR using agents in Haskell: one in "plain" Haskell, one using Yampa, and one using a reimplementation of Yampa that allows so-called monadic stream functions.
+	=> good, it is also clear what we did
+
+The paper unfortunately suffers from a number of problems, that mostly boil down to the rather strange structure the paper has, but also point to a diluted message and somewhat unclear purpose.
+	=> ok this is probably the most valuable comment: the structure of the paper is not good, what we try to get accross is not clear and WHY we are doing it is also unclear. These are the main things also mentioned by the guys above. At least we are not lacking scientific contribution!
+
+The abstract and the introduction provide a high-level overview of the contents of the paper, but to someone with a Haskell background who has never seen the SIR model or agent-based simulation before, it remains very vague and does little to actually provide a good idea of what will be done and achieved.
+	=> hmm, difficult, I don't know how to explain it different...
+
+There is then a (short) section on Related Work that distracts at this point.
+	=> ok, i will put the related work section to the end of the paper as i have originally intended to do so, but was urged by my supervisors to move it to the front. this is my paper, i will do it my way.
+
+The third section is on background on FRP, Arrowized FRP and Monadic Stream Functions. One can see this perhaps as an extension of Related Work to some extent, and also as providing some preliminaries of the Haskell code development needed much later, but it all feels arbitrary and disconnected at this point, because neither is it a systematic introduction to these topics, nor is it clear yet for what this will all be needed. It's only at the end of page 3, in the very short Section 4 and then Section 5, that the actual meat of the paper begins.
+	=> true, maybe we should directly incorporate it into the implementation section instead of presenting it disconnected at this point
+
+I'd strongly advise to restructure the paper so that already the introduction has a concrete example of what agent-based modelling is and perhaps even explain the SIR model in somewhat more detail. I'd then move Section 2 to the end of the paper, and explain the background on FRP at a point where it is actually needed (in / before Section 6.2). It makes little to no sense to talk about a function like dpSwitch without having a concrete example close by. There is a use on page 8, so you might as well explain it at that point. Similarly for arrow notation, which is introduced on page 3 but then not used again until page 7.
+	=> true!
+
+The development in Section 6 with the three (or four, if you count 6.3 as a separate version) versions of the code is also quite unclear. This is because it remains a bit vague what your goals are exactly. In the Introduction, you claim "The result of using Arrowized FRP is a conceptually much cleaner approach to ABS than traditional imperative object-oriented approaches. It allows expressing continuous time-semantics in a much clearer, compositional and declarative way, without having to deal with low-level details related to the progress of time."
+	=> maybe consider removing Random Monad approach
+
+This may all be true, but it is difficult to see. Except for the abstraction of time itself, you do not make it very concrete in which way your code is "cleaner", "clearer", or "compositional" more than any other. From my admittedly subjective viewpoint, for a Haskell program, the code presented does not strike me as particularly elegant, and it does not look particularly modular or reusable, given that most aspects seem entirely specific to the implementation of the SIR model.
+	=> hmm, what should we do with this?
+
+The addition of an environment in Section 6.4 comes out of nowhere. It's unclear how the switch from plain Yampa to MSFs is connected exactly, and why the intermediate step in Section 6.2 yields additional insight if the MSF version is needed in the end.
+	=> ok this guy hasnt probably understood the SIR model at all, also not the environment concept. I might conder removing this bit
+
+You also mention some problems yourself in terms of performance and remaining uncaught classes of errors in Section 7 which cast some doubt on the contributions you list in Section 1. I think it would be a much more compelling argument for a supposedly high-level and clear solution to a problem if it would also run in acceptable performance. At this point, it is unclear to me from reading the paper whether the performance problems are inherent to the approach, or could be fixed by refactoring the solution (perhaps even leading to more elegant, rather than less elegant, code).
+	=> true, discussed performance problems already in other reviews
+
+Other remarks:
+
+- You often say "The authors of [XY] discuss/present ...". This is bad for two reasons. First of all, numeric references should not be used as a part of the sentence, because the "[XY]" form typographically is an annotation, and also because there's no info conveyed by a number and flipping back and forth is not very nice. Furthermore, it is semantically not what I think you mean. The authors of a given paper may have done a lot of things in their lives, but I think you actually mean that the paper you refer to discusses/presents these things. If you simply name the authors and say "A and B discuss/present ... [XY]", then
+you avoid both problems.
+
+- Does Section 4 really need to be its own section?
+	=> true, probably not
+
+- The formulas on page 4 look really ugly. More importantly, you don't explain \beta, \gamma and \delta except in the description of Figure 2. These are important parameters, they should be explained in the main text!
+	=> ok agree about the formulas but i actually explain the parameters... it seems that this referee hasn't really read section 5 and thus complains that the SIR model is not explained very well. In any way i should shortly describe the parameters in Figure 2 as well
+
+- In Section 6.1, despite the "Naive beginnings" header, I see no reason to model SIRAgents in the way you do. First, the Time associated with the agent is stated to be the "potential recovery time" and in the end turns out to be a duration. One paragraph earlier, you have introduced two type synonyms, one for absolute points in time (Time), and one for durations (TimeDelta), yet you incorrectly use Time and not TimeDelta for the recovery duration.
+	=> wrong, the referee misunderstood my code: recoverytime is actually a duration not an absolute point in time, maybe i shouldnt use recovery time but illness duration
+
+More importantly though, the recovery time is only relevant for the "Infected" state. So why model it like this? The correct way is
+> data SIRState
+>   = Susceptible
+>   | Infected TimeDelta
+>   | Recovered
+As a result, the code in this variant would already become much
+cleaner.
+	=> thank you! i dont know why this hasnt crossed my mind!
+
+For some reason, while runAgent is parameterised by a TimeDelta, you choose not to pass that parameter to the susceptibleAgent function, and do not take it into account when computing how many contacts the agent has in line 572. This is almost certainly wrong, and I think you're saved only by the fact that in Figure 3 you indicate you've only been running this program with dt values of 1.0.
+	=> true, in Random Monad we implicitly step with a dt = 1.0 and it is not possible to change this
+
+- The code
+
+> forM [1..floor rc] (const (makeContact as))
+
+is more idiomatically written as
+
+> replicateM (floor rc) (makeContact as)
+
+- The code
+
+> elem True cs
+
+is more idiomatically written as
+
+> or cs
+
+- In Section 6.1.1 you talk about undersampling the contact-rate. You should highlight here what exactly the problem is, and why it cannot be fixed without switching to a different implementation.
+	=> ok add more details on here
+
+- In Section 6.2, I feel quite uncomfortable with the statements about "occasionally" and the dependence on a particular sampling rate. What happens if the sampling rate is chosen incorrectly? Is there no other way to do this that is less sensitive? You say the primary advantage of using FRP is that one does not have to worry about time, but is that true if one has to be careful about sampling rates not just for precision but even for correctness?
+	=> maybe i explained it wrong: in FRP one DOES have to worry about time and sampling but it is handled implicitly behind the scenes, there is no explicit delta-t draged thorugh all functions which it is conceptually much cleaner
+
+- The discussion of Dependent Types in Section 8 comes somewhat surprisingly. Sure, you hint at problems at the end of Section 7 that do not seem covered by the type system, but they're not a prominent part of the paper. From the presentation in the paper, I cannot immediately see where you're missing more precise types. The efficiency problems would seem like a greater concern.
+	=> true but still... i have to make clearer that correctness is our primary concern here and that this approach although a nice try in the right direction is not as far as we can go, which is why we need to bring in dependent types.
+
+----------------------- MY CONCLUSIONS ---------------------
+Go into a hardcore crunch for 3 weeks and make the following changes:
+
+1. Instead of implementing the model in 3 different ways (Random Monad, Classic Yampa, MSFs) I will only leave in the Classic Yampa version: this frees up space for other stuff (below), focuses on the central concept (it seemed that the step to MSFs with the environment was not clear enough) and I don't need to explain MSFs. Also Henrik mentioned that the Random Monad approach is a detour, so it feels right to throw it out.
+2. Put the MSF implementation with the environment into a small functional pearl which shows step-by-step how to implement an agent-based SIR model within a Discrete 2D environment in a pure functional way using Dunai. I guess in such a functional pearl I can discuss more implementation details, develop it slower and am not under the pressure of a unique, strong scientific contribution. The code, lots of text and figures are already there, so I think it is really feasible.
+3. Add a section on verification in which first I will use QuickCheck to test properties and verify the correctness (also for selecting the right delta t) through property testing (which I have already implemented, so I 'just' need to bring it in shape and write it up). Second I want to try to 'somehow' (in)formally reason about the correctness in the code - which I have never done so far and I don't know how to do it. I mean, there are some examples in Grahams Book and papers, but I don't know how to formally do this with code which is based on Yampa, maybe informally would work in combination with QuickCheck. This last bit is the most unpredictable one, I might get it done or I might fail completely.
+4. Incorporate the referees feedback as far as applicable in the new version.
+	From Review 1:
+	=> obviously the scientific contribution of the "purity" aspect, conceptually cleaner and reproducibility is not clear enough
+	=> the referee seems not to get the point of reproducibility: yes it is true that "as long as you dont use non-deterministic concurrency...", but in our approach we can actually guarantee that statically at compile time by being pure - this is DEFINITELY NOT possible in traditional imperative OOP. Any non-determinism could break reproducibility e.g. reading from file, user-input,... which we also can exclude at compile time with our approach. Obviously this seems to be not clear enough yet, we need to make this much much clearer and also make the point clear that an ABS as we implement it is a pure computation in the end.
+	=> being the first one seems to be not a contriubtion? hmm this is probably true, i guess i had to learn this lesson
+	=> functional approach conceptually cleaner: how can we back this up?
+	=> "All functional implementations suffer from having to choose the right time step deltat you definitely do not have the illusion of continuous time.": this is just wrong by the referee: actually quite the opposite is true: our implementation allows the illusion of continuous time in the way it is implemented and time-semantic functions are used (occasionally). Selecting the right dT is ALWAYS an issue in EVERY simulation, be it OOP or functional, but the way we represent our continous time-system is definitely not as elegant possible in OOP. Still I cannot really substantiate this claim as i havent looked into FRP in OOP.
+	=> may indicate that we still want to do too much in the paper, get rid of Random Monad and Environment
+	=> true, maybe we should omit these claims of superiority over OOP alltogether - except the reproducibility guarantees at compile time through purity.
+	=> have a look at the rabbits & foxes simulation of the Objects First book by Barnes & Koelling 
+	=> "but the concept of identity of an agent is a bit lost." this is definitely true in our functional approach, especially in our SIR implementation because the SIR agent has no explicit internal state appart from the current continuation which determines the Susceptible/Infected/Recovered state: but I claim that this alone is enough for the agents identity. When we look at e.g. the sugarscape model, agent-identity becomes much more explicit e.g. when we add agent-ids and messaging and much more complex internal state.
+	=> Yampa was built on arrowized programming to prevent depending on the past, thus this shouldnt be an issue. True OO implementations are much less likely to depend on the past but again the way how data is handled is completely different and if one uses OO FRP then probably one might run into similar problems of depending on the past
+	=> dependent types is work in progress, will be next paper
+	- Some entries in the references lack details for finding them without a search engine, e.g. 26, 27, 28. Is reference 2 still in preparation, since 2005?
+	- In an English text citations should not be nouns (the authors of [x]), they are parenthesised additions. Removing them should leave a readable text. Also citations such as [6], [9], [12] should be combined into [6, 9, 12].
+
+	From Review 2:
+	=> True, we should make this performance problem clear in the very beginning
+	=> Maybe add a short section on Cloud Haskell which 'theoretically' would allow us to solve this problem and also maps nicely to ABS but leads in a completely different direction than what we want to do in our research: explicit message passing which is what we do in the end in abs, not pure anymore thus not guaranteed repeatability at compile time, time stepping needs to be synchronised across all agents which becomes a bottle neck, could we  implement it as a distributed event-driven approach? generally: it would allow massive parallel simulations but results in a completely different approach, vastly different to ours. although Performance is important, our primary concern is about ensuring/verifying/proofing general correctness of the implementation of a model
+	=> ok I really might have missed some approaches, add simula 67 and lustre
+	=> the referee is wrong here and may have misunderstood something, the reproducibility at compile time follows directly from purity! this is not possible in traditional OO languages! There is no need for
+evidence, it is clear. BUT again, we need to present this much more explicit as it seems to confuse people (or am I confused here)
+	=> True, maybe we should omit the claim that it is conceptually cleaner than oop or can we substantiate it some how?
+	=> true, maybe we should add a formal reasoning section which proves that our implementation is a match of the SD formulas
+	=> yes the agents are imperative which in our opinion lies in the nature of ABS in general. And if we are going down to the technical level: we are still being functional although we are "emulating" imperativeness in a monad / arrows!
+	=> i understand why the referee is so upset but sorry, the Yampa implementation is still much more robust and clearer than the Random Monad one even if there are things like notyet. Get rid of the Random Monad step
+	=> the deltat thing is a problem in all simulations, not unique to our approach
+	=> Most worrisome, there seems to be a serious error in Yampa's susceptibleAgent implementation: it looks like (occasionally g),  (drawRandomElemSF g) and (randomBoolSF g) receive all the same g. That is, the three streams are highly correlated! The random boolean produced by randomBoolSF g will be correlated to the random agent picked by (drawRandomElemSF g). That is a very serious and a very subtle error. One can also see this as the illustration that functional approach *facilitates* errors. : that is absolutely true, thanks for this sharp and deep insight. I have to test how much influence this has on the dynamics. I followed the approach of Yampa papers (e.g. space invaders) where the same RNG is passed to different random functions - in a game this shouldnt be too much a problem but in a simulation this could be a severe issue. I suggest implementing running replications and exporting the maximum number of infected and last infected recovered and look at the distributions (as suggested by the statistical lady of the FH)
+	=> i will incorporate this as an example that functional approach facilitates errors
+
+	From Review 3:
+		=> ok this is probably the most valuable comment: the structure of the paper is not good, what we try to get accross is not clear and WHY we are doing it is also unclear. These are the main things also mentioned by the guys above. At least we are not lacking scientific contribution!
+	=> ok, i will put the related work section to the end of the paper as i have originally intended to do so, but was urged by my supervisors to move it to the front. this is my paper, i will do it my way.
+	=> true, maybe we should directly incorporate the background stuff it into the implementation section instead of presenting it disconnected at this point
+	=> I'd strongly advise to restructure the paper so that already the introduction has a concrete example of what agent-based modelling is and perhaps even explain the SIR model in somewhat more detail. I'd then move Section 2 to the end of the paper, and explain the background on FRP at a point where it is actually needed (in / before Section 6.2). It makes little to no sense to talk about a function like dpSwitch without having a concrete example close by. There is a use on page 8, so you might as well explain it at that point. Similarly for arrow notation, which is introduced on page 3 but then not used again until page 7. => true!
+	=> maybe consider removing Random Monad approach
+	=> his may all be true, but it is difficult to see. Except for the abstraction of time itself, you do not make it very concrete in which way your code is "cleaner", "clearer", or "compositional" more than any other. From my admittedly subjective viewpoint, for a Haskell program, the code presented does not strike me as particularly elegant, and it does not look particularly modular or reusable, given that most aspects seem entirely specific to the implementation of the SIR model. => hmm, what should we do with this?
+	=> ok this guy hasnt probably understood the SIR model at all, also not the environment concept. I might conder removing this bit
+	- You often say "The authors of [XY] discuss/present ...". This is bad for two reasons. First of all, numeric references should not be used as a part of the sentence, because the "[XY]" form typographically is an annotation, and also because there's no info conveyed by a number and flipping back and forth is not very nice. Furthermore, it is semantically not what I think you mean. The authors of a given paper may have done a lot of things in their lives, but I think you actually mean that the paper you refer to discusses/presents these things. If you simply name the authors and say "A and B discuss/present ... [XY]", then
+	you avoid both problems.
+
+	- Does Section 4 really need to be its own section?
+		=> true, probably not
+
+	- The formulas on page 4 look really ugly. More importantly, you don't explain \beta, \gamma and \delta except in the description of Figure 2. These are important parameters, they should be explained in the main text!
+		=> ok agree about the formulas but i actually explain the parameters... it seems that this referee hasn't really read section 5 and thus complains that the SIR model is not explained very well. In any way i should shortly describe the parameters in Figure 2 as well
+
+	- In Section 6.1, despite the "Naive beginnings" header, I see no reason to model SIRAgents in the way you do. First, the Time associated with the agent is stated to be the "potential recovery time" and in the end turns out to be a duration. One paragraph earlier, you have introduced two type synonyms, one for absolute points in time (Time), and one for durations (TimeDelta), yet you incorrectly use Time and not TimeDelta for the recovery duration.
+		=> wrong, the referee misunderstood my code: recoverytime is actually a duration not an absolute point in time, maybe i shouldnt use recovery time but illness duration
+
+	More importantly though, the recovery time is only relevant for the "Infected" state. So why model it like this? The correct way is
+	> data SIRState
+	>   = Susceptible
+	>   | Infected TimeDelta
+	>   | Recovered
+	As a result, the code in this variant would already become much
+	cleaner.
+		=> thank you! i dont know why this hasnt crossed my mind!
+
+	For some reason, while runAgent is parameterised by a TimeDelta, you choose not to pass that parameter to the susceptibleAgent function, and do not take it into account when computing how many contacts the agent has in line 572. This is almost certainly wrong, and I think you're saved only by the fact that in Figure 3 you indicate you've only been running this program with dt values of 1.0.
+		=> true, in Random Monad we implicitly step with a dt = 1.0 and it is not possible to change this
+
+	- The code
+
+	> forM [1..floor rc] (const (makeContact as))
+
+	is more idiomatically written as
+
+	> replicateM (floor rc) (makeContact as)
+
+	- The code
+
+	> elem True cs
+
+	is more idiomatically written as
+
+	> or cs
+
+	- In Section 6.1.1 you talk about undersampling the contact-rate. You should highlight here what exactly the problem is, and why it cannot be fixed without switching to a different implementation.
+		=> ok add more details on here
+
+	- In Section 6.2, I feel quite uncomfortable with the statements about "occasionally" and the dependence on a particular sampling rate. What happens if the sampling rate is chosen incorrectly? Is there no other way to do this that is less sensitive? You say the primary advantage of using FRP is that one does not have to worry about time, but is that true if one has to be careful about sampling rates not just for precision but even for correctness?
+		=> maybe i explained it wrong: in FRP one DOES have to worry about time and sampling but it is handled implicitly behind the scenes, there is no explicit delta-t draged thorugh all functions which it is conceptually much cleaner
+
+	- The discussion of Dependent Types in Section 8 comes somewhat surprisingly. Sure, you hint at problems at the end of Section 7 that do not seem covered by the type system, but they're not a prominent part of the paper. From the presentation in the paper, I cannot immediately see where you're missing more precise types. The efficiency problems would seem like a greater concern.
+		=> true but still... i have to make clearer that correctness is our primary concern here and that this approach although a nice try in the right direction is not as far as we can go, which is why we need to bring in dependent types.
+
+[ ] Performance: look into cloud Haskell
+[ ] cloud Haskell: explicit message passing which is what we do in the end in abs, not pure anymore thus not guaranteed repeatability at compile time, time stepping needs to be synchronised across all agents which becomes a bottle neck, could we  implement it as a distributed event-driven approach? generally: it would allow massive parallel simulations but results in a completely different approach, vastly different to ours. although Performance is important, our primary concern is about ensuring/verifying/proofing general correctness of the implementation of a model
+[ ] Performance: pure functional haskell allows running parallel replicatiins for free without worrying of intereference
+[ ] look into lustre
+[ ] look into simula 68
+[ ] consider scraping 6.1 naive beginnings to free up space for more theoretical work
+[ ] make purity aspect much clearer and its implications for compile time: it is really not possible to guarantee that in traditional oo languages
+[ ] conceptually cleaner: can we substantiate it? no dt, more declarative? compare to lustre and simula 68
+[ ] formally reason about: probably not really possible? can i formally proof the correctness of the implementation? 
+[ ] idea: scrape section on Environment as well and try a formal proof of correctness of the yampa only approach: can we formally boil it down to the SD formulas?
+[ ] consider informal property testing with quickcheck, encodes the sd formula im it, also allows to find the dt
+[ ] rework paper structure: instead of splitting too much up into separate sections explain it as introduced and used. related work to the very end (as i have wanted it)! implement agent-based sir (no Environment) with yampa, then verify it with quickcheck and then formally reasoning
+[ ] functional pearl about agent-based SIR model with 2d discrete Environment with Dunais MSFs
+

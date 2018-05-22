@@ -110,9 +110,8 @@ processAgent _  _  Recovered      = return Recovered
 susceptibleAgent :: RandomGen g => Agents -> Rand g SIRAgent
 susceptibleAgent as = do
     rc <- randomExpM (1 / contactRate)
-    -- cs <- doTimes (floor rc) (makeContact as)
-    cs <- forM ([0..floor rc - 1] :: [Int]) (const (makeContact as))
-    if True `elem`cs
+    cs <- replicateM (floor rc) (makeContact as)
+    if or cs
       then infect
       else return Susceptible
 

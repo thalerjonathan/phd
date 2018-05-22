@@ -2,7 +2,7 @@
 We start by modelling the states of the agents:
 
 \begin{HaskellCode}
-data SIRState = Susceptible | Infected | Recovered
+data SIRState = Susceptible | Infected TimeDelta | Recovered
 \end{HaskellCode}
 
 Agents are ill for some duration, meaning we need to keep track when a potentially infected agent recovers. Also a simulation is stepped in discrete or continuous time-steps thus we introduce a notion of \textit{time} and $\Delta t$ by defining:
@@ -12,9 +12,9 @@ type Time      = Double
 type TimeDelta = Double
 \end{HaskellCode}
 
-Now we can represent every agent simply as a tuple of its SIR state and its potential recovery time. We hold all our agents in a list:
+Now we can represent every agent simply as the SIR state which includes its potential recovery time. We hold all our agents in a list:
 \begin{HaskellCode}
-type SIRAgent = (SIRState, Time)
+type SIRAgent = SIRState
 type Agents   = [SIRAgent]
 \end{HaskellCode}
 
@@ -42,11 +42,11 @@ stepSimulation dt as = mapM (runAgent dt as) as
 Now we can implement the behaviour of an individual agent. First we need to distinguish between the agents SIR states:
 
 \begin{HaskellCode}
-runAgent :: RandomGen g 
+processAgent :: RandomGen g 
   => TimeDelta -> Agents -> SIRAgent -> Rand g SIRAgent
-runAgent _  as   (Susceptible, _) = susceptibleAgent as
-runAgent dt _  a@(Infected   , _) = return (infectedAgent dt a)
-runAgent _  _  a@(Recovered  , _) = return a
+processAgent _  as Susceptible    = susceptibleAgent as
+processAgent dt _  (Infected dur) = return (infectedAgent dt dur)
+processAgent _  _  Recovered      = return Recovered
 \end{HaskellCode}
 
 An agent gets fed the states of all agents in the system from the previous time-step so it can draw random contacts - this is one, very naive way of implementing the interactions between agents.
@@ -61,33 +61,33 @@ susceptibleAgent :: RandomGen g => Agents -> Rand g SIRAgent
 susceptibleAgent as = do
     -- draws from exponential distribution
     rc <- randomExpM (1 / contactRate) 
-    cs <- forM [1..floor rc] (const (makeContact as))
-    if elem True cs
+    cs <- replicateM (floor rc) (makeContact as)
+    if or cs
       then infect
-      else return (Susceptible, 0)
+      else return Susceptible
   where
     makeContact :: RandomGen g => Agents -> Rand g Bool
     makeContact as = do
       randContact <- randomElem as
-      case fst randContact of
+      case randContact of
         -- returns True with given probability 
-        Infected -> randomBoolM infectivity 
-        _        -> return False
+        (Infected _) -> randomBoolM infectivity 
+        _            -> return False
 
     infect :: RandomGen g => Rand g SIRAgent
     infect = randomExpM (1 / illnessDuration) 
-               >>= \rd -> return (Infected, rd)
+               >>= \rd -> return (Infected rd)
 \end{HaskellCode}
 
 The infected agent is trivial. It simply recovers after the given illness duration which is implemented as follows:
 
 \begin{HaskellCode}
-infectedAgent :: TimeDelta -> SIRAgent -> SIRAgent
-infectedAgent dt (_, t) 
-    | t' <= 0   = (Recovered, 0)
-    | otherwise = (Infected, t')
+infectedAgent :: TimeDelta -> TimeDelta -> SIRAgent
+infectedAgent dt dur
+    | dur' <= 0 = Recovered
+    | otherwise = Infected dur'
   where
-    t' = t - dt  
+    dur' = dur - dt  
 \end{HaskellCode}
 
 \subsubsection{Results}

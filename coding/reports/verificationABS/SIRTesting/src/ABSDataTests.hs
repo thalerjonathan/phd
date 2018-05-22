@@ -40,7 +40,7 @@ absDataTests g
   = testGroup 
       "SIR ABS Data Tests" 
       [ test_agent_behaviour_quickgroup g
-      , test_agent_signal_quickgroup g
+      --, test_agent_signal_quickgroup g
       ]
 
 test_agent_behaviour_quickgroup :: RandomGen g
@@ -59,7 +59,7 @@ test_agent_behaviour_quickgroup g
 testCaseInteraction :: RandomGen g
                     => g 
                     -> Bool
-testCaseInteraction g0 = True 
+testCaseInteraction _g0 = True 
 
 -- | Testing the susceptible agent
 -- in this implementation, the number of infections depends solely 

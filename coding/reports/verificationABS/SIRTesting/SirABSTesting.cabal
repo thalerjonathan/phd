@@ -45,6 +45,45 @@ extra-source-files:  ChangeLog.md
 -- Constraint on the version of Cabal needed to build this package.
 cabal-version:       >=1.10
 
+executable sir-distributions
+  -- .hs or .lhs file containing the Main module.
+  main-is:              GenerateSIRDistributions.hs
+  
+  -- Modules included in this executable, other than Main.
+  other-modules:        ABSFeedback
+                      , SIR
+                      , SD
+                      , Export      
+  
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:    
+  
+  -- Other library packages from which modules are imported.
+  build-depends:        base
+                      , Yampa >=0.10 && <0.11
+                      , MonadRandom
+                      , containers
+                      , mtl 
+                      , random
+                      , tasty
+                      , tasty-hunit
+                      , tasty-smallcheck
+                      , tasty-quickcheck
+
+  -- Directories containing source files.
+  hs-source-dirs:       src
+  
+  -- Base language which the package is written in.
+  default-language:    Haskell2010
+  
+  ghc-options:         -O3 
+                       -Wall 
+                       -Werror 
+                       -fwarn-tabs 
+                       -fno-warn-name-shadowing
+                       -fno-warn-unused-imports
+                       -fno-warn-orphans
+
 executable sir-abs-testing
   -- .hs or .lhs file containing the Main module.
   main-is:              Main.hs

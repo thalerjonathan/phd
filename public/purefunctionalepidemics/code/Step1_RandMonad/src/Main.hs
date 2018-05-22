@@ -1,20 +1,34 @@
 module Main where
 
 import Control.Monad.Random
-
-import SIR
+import System.IO
+import Text.Printf
 
 type Time         = Double
 type TimeDelta    = Double
 
-type SIRAgent     = (SIRState, Time)
+data SIRState 
+  = Susceptible 
+  | Infected TimeDelta
+  | Recovered deriving (Show, Eq)
+
+type SIRAgent     = SIRState
 type Agents       = [SIRAgent]
 
 agentCount :: Int
-agentCount = 10000
+agentCount = 1000
 
 infectedCount :: Int
 infectedCount = 5
+
+contactRate :: Double
+contactRate = 5.0
+
+infectivity :: Double
+infectivity = 0.05
+
+illnessDuration :: Double
+illnessDuration = 15.0
 
 rngSeed :: Int
 rngSeed = 42
@@ -34,7 +48,7 @@ main = do
   -- (tEnd, ass) <- evalRandIO $ runSimulation dt as
   -- putStrLn $ "All Recovered after t = " ++ show tEnd
   
-  let dyns = aggregateAllStates (map (map fst) ass)
+  let dyns = aggregateAllStates ass
   let fileName =  "STEP_1_RANDMNONAD_DYNAMICS_" ++ show agentCount ++ "agents.m"
   writeAggregatesToFile fileName dyns
 
@@ -75,7 +89,7 @@ runSimulation dt as = runSimulationAux 0 dt as []
           runSimulationAux (t + dt) dt as' (as : acc)
 
     noneInfected :: Agents -> Bool
-    noneInfected as = not $ any (is Infected) as
+    noneInfected as = not $ any isInfected as
 
 stepSimulation :: RandomGen g => TimeDelta -> Agents -> Rand g Agents
 stepSimulation dt as = mapM (processAgent dt as) as
@@ -85,9 +99,9 @@ processAgent :: RandomGen g
               -> Agents 
               -> SIRAgent 
               -> Rand g SIRAgent
-processAgent _  as    (Susceptible, _) = susceptibleAgent as
-processAgent dt _   a@(Infected   , _) = return $ infectedAgent dt a
-processAgent _  _   a@(Recovered  , _) = return a
+processAgent _  as Susceptible    = susceptibleAgent as
+processAgent dt _  (Infected dur) = return $ infectedAgent dt dur 
+processAgent _  _  Recovered      = return Recovered
 
 -- NOTE: does not exclude contact with itself but with a sufficiently large number 
 -- of agents the probability becomes very small
@@ -100,47 +114,47 @@ susceptibleAgent as = do
     cs <- forM ([0..floor rc - 1] :: [Int]) (const (makeContact as))
     if True `elem`cs
       then infect
-      else return susceptible
+      else return Susceptible
 
   where
     makeContact :: RandomGen g => Agents -> Rand g Bool
     makeContact as = do
       randContact <- randomElem as
-      case fst randContact of
-        Infected -> randomBoolM infectivity
-        _        -> return False
+      case randContact of
+        (Infected _) -> randomBoolM infectivity
+        _            -> return False
       
     infect :: RandomGen g => Rand g SIRAgent
-    infect = randomExpM (1 / illnessDuration) >>= \randIllDur -> return (Infected, randIllDur)
+    infect = randomExpM (1 / illnessDuration) >>= \randIllDur -> return (Infected randIllDur)
 
-infectedAgent :: TimeDelta -> SIRAgent -> SIRAgent
-infectedAgent dt (_, t) 
-    | t' <= 0   = recovered
-    | otherwise = infected t'
+infectedAgent :: TimeDelta -> TimeDelta -> SIRAgent
+infectedAgent dt dur
+    | dur' <= 0 = Recovered
+    | otherwise = Infected dur'
   where
-    t' = t - dt  
+    dur' = dur - dt  
 
 doTimes :: Monad m => Int -> m a -> m [a]
 doTimes n f = forM [0..n - 1] (const f)
 
-is :: SIRState -> SIRAgent -> Bool
-is s (s',_) = s == s'
+isSusceptible :: SIRAgent -> Bool
+isSusceptible Susceptible = True
+isSusceptible _           = False
+
+isInfected :: SIRAgent -> Bool
+isInfected (Infected _) = True
+isInfected _            = False
+
+isRecovered :: SIRAgent -> Bool
+isRecovered Recovered = True
+isRecovered _         = False
 
 initAgentsRand :: RandomGen g => Int -> Int -> Rand g Agents
 initAgentsRand n i = do
-  let sus = replicate (n - i) susceptible
+  let sus = replicate (n - i) Susceptible
   expTs <- replicateM i (randomExpM (1 / illnessDuration))
-  let inf = map infected expTs
+  let inf = map Infected expTs
   return $ sus ++ inf
-
-susceptible :: SIRAgent
-susceptible = (Susceptible, 0)
-
-infected :: Time -> SIRAgent
-infected t = (Infected, t)
-
-recovered :: SIRAgent
-recovered = (Recovered, 0)
 
 randomBoolM :: RandomGen g => Double -> Rand g Bool
 randomBoolM p = getRandomR (0, 1) >>= (\r -> return $ r <= p)
@@ -159,3 +173,54 @@ randomElem :: RandomGen g => [a] -> Rand g a
 randomElem as = getRandomR (0, len - 1) >>= (\idx -> return $ as !! idx)
   where
     len = length as
+
+aggregateAllStates :: [[SIRState]] -> [(Double, Double, Double)]
+aggregateAllStates = map aggregateStates
+
+aggregateStates :: [SIRState] -> (Double, Double, Double)
+aggregateStates as = (susceptibleCount, infectedCount, recoveredCount)
+  where
+    susceptibleCount = fromIntegral $ length $ filter isSusceptible as
+    infectedCount = fromIntegral $ length $ filter isInfected as
+    recoveredCount = fromIntegral $ length $ filter isRecovered as
+
+writeAggregatesToFile :: String -> [(Double, Double, Double)] -> IO ()
+writeAggregatesToFile fileName dynamics = do
+  fileHdl <- openFile fileName WriteMode
+  hPutStrLn fileHdl "dynamics = ["
+  mapM_ (hPutStrLn fileHdl . sirAggregateToString) dynamics
+  hPutStrLn fileHdl "];"
+
+  hPutStrLn fileHdl "susceptible = dynamics (:, 1);"
+  hPutStrLn fileHdl "infected = dynamics (:, 2);"
+  hPutStrLn fileHdl "recovered = dynamics (:, 3);"
+  hPutStrLn fileHdl "totalPopulation = susceptible(1) + infected(1) + recovered(1);"
+
+  hPutStrLn fileHdl "susceptibleRatio = susceptible ./ totalPopulation;"
+  hPutStrLn fileHdl "infectedRatio = infected ./ totalPopulation;"
+  hPutStrLn fileHdl "recoveredRatio = recovered ./ totalPopulation;"
+
+  hPutStrLn fileHdl "steps = length (susceptible);"
+  hPutStrLn fileHdl "indices = 0 : steps - 1;"
+
+  hPutStrLn fileHdl "figure"
+  hPutStrLn fileHdl "plot (indices, susceptibleRatio.', 'color', 'blue', 'linewidth', 2);"
+  hPutStrLn fileHdl "hold on"
+  hPutStrLn fileHdl "plot (indices, infectedRatio.', 'color', 'red', 'linewidth', 2);"
+  hPutStrLn fileHdl "hold on"
+  hPutStrLn fileHdl "plot (indices, recoveredRatio.', 'color', 'green', 'linewidth', 2);"
+
+  hPutStrLn fileHdl "set(gca,'YTick',0:0.05:1.0);"
+  
+  hPutStrLn fileHdl "xlabel ('Time');"
+  hPutStrLn fileHdl "ylabel ('Population Ratio');"
+  hPutStrLn fileHdl "legend('Susceptible','Infected', 'Recovered');"
+
+  hClose fileHdl
+
+sirAggregateToString :: (Double, Double, Double) -> String
+sirAggregateToString (susceptibleCount, infectedCount, recoveredCount) =
+  printf "%f" susceptibleCount
+  ++ "," ++ printf "%f" infectedCount
+  ++ "," ++ printf "%f" recoveredCount
+  ++ ";"

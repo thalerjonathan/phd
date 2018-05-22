@@ -71,36 +71,44 @@ runSimulation g contactRate infectivity illnessDuration t dt as
             -> SIRState
             -> SIRAgent
     sirAgent g Susceptible 
-      = susceptibleAgent g contactRate infectivity illnessDuration
+        = susceptibleAgent g0 g1 g2 g3 contactRate infectivity illnessDuration
+      where
+        (g', g0) = split g
+        (g'', g1) = split g'
+        (g2, g3) = split g''
+
     sirAgent g Infected    
       = infectedAgent g illnessDuration
     sirAgent _ Recovered 
       = recoveredAgent
 
 susceptibleAgent :: RandomGen g 
-                 => g 
+                 => g
+                 -> g
+                 -> g
+                 -> g
                  -> Double
                  -> Double
                  -> Double 
                  -> SIRAgent
-susceptibleAgent g contactRate infectivity illnessDuration = 
+susceptibleAgent g0 g1 g2 g3 contactRate infectivity illnessDuration = 
     switch
-      (susceptible g) 
-      (const $ infectedAgent g illnessDuration)
+      (susceptible g0 g1 g2) 
+      (const $ infectedAgent g3 illnessDuration)
   where
-    susceptible :: RandomGen g => g -> SF [SIRState] (SIRState, Event ())
-    susceptible g = proc as -> do
-      makeContact <- occasionally g (1 / contactRate) () -< ()
+    susceptible :: RandomGen g => g -> g -> g -> SF [SIRState] (SIRState, Event ())
+    susceptible g0 g1 g2 = proc as -> do
+      makeContact <- occasionally g0 (1 / contactRate) () -< ()
 
       -- NOTE: strangely if we are not splitting all if-then-else into
       -- separate but only a single one, then it seems not to work,
       -- dunno why
       if isEvent makeContact
         then (do
-          a <- drawRandomElemSF g -< as
+          a <- drawRandomElemSF g1 -< as
           case a of
             Just Infected -> do
-              i <- randomBoolSF g infectivity -< ()
+              i <- randomBoolSF g2 infectivity -< ()
               if i
                 then returnA -< (Infected, Event ())
                 else returnA -< (Susceptible, NoEvent)

@@ -39,11 +39,13 @@ maxInfLastRec dyns = maxInfLastRecAux dyns 0 (-1, 0) (-1)
 
 main :: IO ()
 main = do
+  setStdGen $ mkStdGen rngSeed
+
   let popSize      = 100 :: Double
       infCount     = 1 :: Double
       replications = 1000 :: Int
-      t            = 250 :: Double
-      dt           = 0.01 :: Double
+      t            = 150 :: Double
+      dt           = 0.1 :: Double
       stepsUnit    = 1 / dt 
 
   let sdDyns  = runSD popSize infCount contactRate infectivity illnessDuration t dt
@@ -67,7 +69,7 @@ main = do
       return ((maxInfTime, maxInfValue) : maxInfAcc, lastRecTime : lastRecAcc)
     ) (([],[]) :: ([(Double, Double)], [Double])) [1..replications]
 
-  let absfilename = "abs_" ++ show popSize ++ "_" ++ show dt ++ ".m"
+  let absfilename = "abs_" ++ show popSize ++ "_" ++ show dt ++ "_uncorrelated.m"
   writeMatlabFile absfilename (maxInfTime, maxInfValue, lastRecTime) maxInf lastRec
 
 writeMatlabFile :: String 

@@ -171,7 +171,7 @@ testSusceptibleSF :: RandomGen g
                   -> g
                   -> SF () Bool
 testSusceptibleSF otherAgents g = proc _ -> do
-  ret <- susceptibleAgent g contactRate infectivity illnessDuration -< otherAgents
+  ret <- susceptibleAgent g g g g contactRate infectivity illnessDuration -< otherAgents
   case ret of 
     Susceptible -> returnA -< False
     Infected    -> returnA -< True

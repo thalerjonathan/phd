@@ -75,11 +75,12 @@
 \begin{abstract}
 TODO: work external to the paper
 	TODO fix RNG correlation bug and compare dynamics
+		-> it seems that fixing this results in quite different dynamics. Compare dynamics of Random Monad as well: if it comes closer then maybe there is really something wrong with the correlation between the RNGs
 	TODO look into lustre
 	TODO look into simula 67
 
 TODO: work internal to the paper
-	TODO correlation in Yampa version: A) fix it or B) mention that this is actually a problem and simply wrong in Simulation (but not in a game), the next step solves that problem
+	TODO correlation in Yampa version: A) fix it or B) mention that this is actually a problem and simply wrong in Simulation (but not in a game), the next step solves that problem, and leave the bug in as an educational example where functional programming can encourage bugs if not carefully thinking about it
 	TODO SD SIR raus, nur kurz erwähnen, erklären dass ABS hier von vorteil ist
 	TODO agent identity a bit lost: in FP the agent-identity is not as clear as in OOP where an agent can be hidden behind a polymorphic interface which is much more abstract in OOP than in FP. Also the identity of an agent is much clearer in OOP due to object-identity. Still we reach some level of identity through messages and explicit agent-interactions which we have omitted here due to lack of space and leave it for further research.
 	TODO reproducibility: in purely FP we can control the side-effects, we are side-effect polymorph which becomes very clear in the last step, the use of the word pure was probably not completely clear: use 'pure (without side-effects)'

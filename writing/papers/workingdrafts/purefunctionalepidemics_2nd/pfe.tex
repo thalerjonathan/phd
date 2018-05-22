@@ -73,18 +73,28 @@
   \country{United Kingdom}}
 
 \begin{abstract}
-TODO: referee feedback 
+TODO: work external to the paper
+- fix RNG correlation bug and compare dynamics
+- look into lustre
+- look into simula 67
+
+TODO: work internal to the paper
 - agent identity a bit lost: in FP the agent-identity is not as clear as in OOP where an agent can be hidden behind a polymorphic interface which is much more abstract in OOP than in FP. Also the identity of an agent is much clearer in OOP due to object-identity. Still we reach some level of identity through messages and explicit agent-interactions which we have omitted here due to lack of space and leave it for further research.
 - we started with high hopes: remove completely
 - performance: ignore as far as possible and only mention in further work
 - reproducibility: in purely FP we can control the side-effects, we are side-effect polymorph which becomes very clear in the last step, the use of the word pure was probably not completely clear: use 'pure (without side-effects)'
 - notYet genauer erklären
 - correlation in Yampa version: A) fix it or B) mention that this is actually a problem and simply wrong in Simulation (but not in a game), the next step solves that problem
+- add more details on under-sampling, can bring back in super-sampling idea.
 - simula 67 OOP and simulation have a history as oop emereged out of simula 67 which was created for simulation purposes, but in our research we look into different approaches
+- section 4: put into background
+- fix referee comment "You often say "The authors of [XY] discuss/present ...". This is bad for two reasons. First of all, numeric references should
+not be used as a part of the sentence, because the "[XY]" form typographically is an annotation, and also because there's no info conveyed by a number and flipping back and forth is not very nice. Furthermore, it is semantically not what I think you mean. The authors of a given paper may have done a lot of things in their lives, but I think you actually mean that the paper you refer to discusses/presents these things. If you simply name the authors and say "A and B discuss/present ... [XY]", then you avoid both problems.
 - related work vorne lassen
 - SD SIR raus, nur kurz erwähnen, erklären dass ABS hier von vorteil ist
 - signposting: we do this because...
 - dependent types: klarer machen was wir dort wollen (agent-interaction, internal state transitions, safe environment access, totality checking)
+- we have much more space now: can we bring in sections from the first, too long version?
 
 Agent-Based Simulation (ABS) is a methodology in which a system is simulated in a bottom-up approach by modelling the micro interactions of its constituting parts, called agents, out of which the global system behaviour emerges.
 

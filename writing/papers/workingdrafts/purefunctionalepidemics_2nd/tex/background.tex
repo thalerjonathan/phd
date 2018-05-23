@@ -15,6 +15,21 @@ We informally assume the following about our agents \cite{siebers_introduction_2
 	\item They can interact with other agents situated in the same environment by means of messaging.
 \end{itemize} 
 
+Epstein \cite{epstein_generative_2012} identifies ABS to be especially applicable for analysing \textit{"spatially distributed systems of heterogeneous autonomous actors with bounded information and computing capacity"}. %Thus in the line of the established simulation methodologies (see Table \ref{tab:simulation_types}), ABS is the most powerful one as listed in :
+It exhibits the following properties:
+
+\begin{itemize}
+	\item Linearity \& Non-Linearity - actions of agents can lead to non-linear behaviour of the system.
+	\item Time - agents act over time which is also the source of their pro-activity.
+	\item States - agents encapsulate some state which can be accessed and changed during the simulation.
+	\item Feedback-Loops - because agents act continuously and their actions influence each other and themselves in subsequent time-steps, feedback-loops are the norm in ABS. 
+	\item Heterogeneity - although agents can have same properties like height, sex,... the actual values can vary arbitrarily between agents.
+	\item Interactions - agents can be modelled after interactions with an environment or other agents. %, making this a unique feature of ABS, not possible in the other simulation models.
+	\item Spatiality \& Networks - agents can be situated within e.g. a spatial (discrete 2D, continuous 3D,...) or complex network environment. % making this also a unique feature of ABS, not possible in the other simulation models.
+\end{itemize}
+
+Note that there doesn't exist a commonly agreed technical definition of ABS but the field draws inspiration from the closely related field of Multi-Agent Systems (MAS) \cite{wooldridge_introduction_2009}, \cite{weiss_multiagent_2013}. It is important to understand that MAS and ABS are two different fields where in MAS the focus is much more on technical details, implementing a system of interacting intelligent agents within a highly complex environment with the focus primarily on solving AI problems.
+
 \subsection{Functional Reactive Programming}
 Functional Reactive Programming (FRP) is a way to implement systems with continuous and discrete time-semantics in pure functional languages. There are many different approaches and implementations but in our approach we use \textit{Arrowized} FRP \cite{hughes_generalising_2000, hughes_programming_2005} as implemented in the library Yampa \cite{hudak_arrows_2003, courtney_yampa_2003, nilsson_functional_2002}.
 

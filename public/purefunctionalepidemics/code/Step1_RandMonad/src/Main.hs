@@ -33,9 +33,6 @@ illnessDuration = 15.0
 rngSeed :: Int
 rngSeed = 42
 
-dt :: TimeDelta
-dt = 1.0
-
 t :: Time
 t = 150.0
 
@@ -44,8 +41,8 @@ main = do
   setStdGen $ mkStdGen rngSeed
 
   as <- evalRandIO $ initAgentsRand agentCount infectedCount
-  ass <- evalRandIO $ runSimulationUntil t dt as
-  -- (tEnd, ass) <- evalRandIO $ runSimulation dt as
+  ass <- evalRandIO $ runSimulationUntil t as
+  -- (tEnd, ass) <- evalRandIO $ runSimulation as
   -- putStrLn $ "All Recovered after t = " ++ show tEnd
   
   let dyns = aggregateAllStates ass
@@ -54,10 +51,9 @@ main = do
 
 runSimulationUntil :: RandomGen g 
                     => Time 
-                    -> TimeDelta 
                     -> Agents 
                     -> Rand g [Agents]
-runSimulationUntil tEnd dt as = runSimulationUntilAux 0 as []
+runSimulationUntil tEnd as = runSimulationUntilAux 0 as []
   where
     runSimulationUntilAux :: RandomGen g 
                           => Time 
@@ -67,41 +63,38 @@ runSimulationUntil tEnd dt as = runSimulationUntilAux 0 as []
     runSimulationUntilAux t as acc
       | t >= tEnd = return $ reverse (as : acc)
       | otherwise = do
-        as' <- stepSimulation dt as 
-        runSimulationUntilAux (t + dt) as' (as : acc)
+        as' <- stepSimulation as 
+        runSimulationUntilAux (t + 1.0) as' (as : acc)
 
 runSimulation :: RandomGen g 
-              => TimeDelta 
-              -> Agents 
+              => Agents 
               -> Rand g (Time, [Agents])
-runSimulation dt as = runSimulationAux 0 dt as []
+runSimulation as = runSimulationAux 0 as []
   where
     runSimulationAux :: RandomGen g 
                       => Time 
-                      -> TimeDelta 
                       -> Agents 
                       -> [Agents] 
                       -> Rand g (Time, [Agents])
-    runSimulationAux t dt as acc
+    runSimulationAux t as acc
       | noneInfected as = return (t, reverse $ as : acc)
       | otherwise = do
-          as' <- stepSimulation dt as 
-          runSimulationAux (t + dt) dt as' (as : acc)
+          as' <- stepSimulation as 
+          runSimulationAux (t + 1.0) as' (as : acc)
 
     noneInfected :: Agents -> Bool
     noneInfected as = not $ any isInfected as
 
-stepSimulation :: RandomGen g => TimeDelta -> Agents -> Rand g Agents
-stepSimulation dt as = mapM (processAgent dt as) as
+stepSimulation :: RandomGen g => Agents -> Rand g Agents
+stepSimulation as = mapM (processAgent as) as
 
 processAgent :: RandomGen g 
-              => TimeDelta 
-              -> Agents 
+              => Agents 
               -> SIRAgent 
               -> Rand g SIRAgent
-processAgent _  as Susceptible    = susceptibleAgent as
-processAgent dt _  (Infected dur) = return $ infectedAgent dt dur 
-processAgent _  _  Recovered      = return Recovered
+processAgent as Susceptible    = susceptibleAgent as
+processAgent _  (Infected dur) = return $ infectedAgent dur 
+processAgent _  Recovered      = return Recovered
 
 -- NOTE: does not exclude contact with itself but with a sufficiently large number 
 -- of agents the probability becomes very small
@@ -126,12 +119,12 @@ susceptibleAgent as = do
     infect :: RandomGen g => Rand g SIRAgent
     infect = randomExpM (1 / illnessDuration) >>= \randIllDur -> return (Infected randIllDur)
 
-infectedAgent :: TimeDelta -> TimeDelta -> SIRAgent
-infectedAgent dt dur
+infectedAgent :: TimeDelta -> SIRAgent
+infectedAgent dur
     | dur' <= 0 = Recovered
     | otherwise = Infected dur'
   where
-    dur' = dur - dt  
+    dur' = dur - 1.0  
 
 doTimes :: Monad m => Int -> m a -> m [a]
 doTimes n f = forM [0..n - 1] (const f)

@@ -131,6 +131,8 @@ Reflecting on our first naive approach we can conclude that it already introduce
 	\item Dynamics - with increasing number of agents the dynamics smooth out \cite{macal_agent-based_2010}.
 \end{itemize}
 
+TODO: problem is that we implicitly assume that TimeDelta is always 1.0, still it is not ensured in all agents
+
 Nonetheless our approach has also weaknesses and dangers:
 \begin{enumerate}
 	\item $\Delta t$ is passed explicitly as argument to the agent and needs to be dealt with explicitly. This is not very elegant and a potential source of errors - can we do better and find a more elegant solution? 

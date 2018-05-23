@@ -90,7 +90,24 @@ runSimulation g t dt as
     sfs       = map (\ (g', a) -> sirAgent g' a) (zip rngs as)
 \end{HaskellCode}
 
-What we need to implement next is a closed feedback-loop. Fortunately, \cite{nilsson_functional_2002, courtney_yampa_2003} discusses implementing this in Yampa. The function \textit{stepSimulation} is an implementation of such a closed feedback-loop. It takes the current signal functions and states of all agents, runs them all in parallel and returns the new agent states of this step. Yampa provides the \textit{dpSwitch} combinator for running signal functions in parallel, which is quite involved and discussed more in-depth in section \ref{sec:background}. It allows us to recursively switch back into the \textit{stepSimulation} with the continuations and new states of all the agents after they were run in parallel. Note the use of \textit{notYet} which is required because in Yampa switching occurs immediately at $t = 0$.
+What we need to implement next is a closed feedback-loop. Fortunately, \cite{nilsson_functional_2002, courtney_yampa_2003} discusses implementing this in Yampa. The function \textit{stepSimulation} is an implementation of such a closed feedback-loop. It takes the current signal functions and states of all agents, runs them all in parallel and returns the new agent states of this step. Yampa provides the \textit{dpSwitch} combinator for running signal functions in parallel, which is quite involved and discussed more in-depth in section \ref{sec:background}. It allows us to recursively switch back into the \textit{stepSimulation} with the continuations and new states of all the agents after they were run in parallel. Note the use of \textit{notYet} which is required because in Yampa switching occurs immediately at $t = 0$. TODO notYet genauer erklären
+
+Sometimes one needs to run a collection of signal functions in parallel and collect all of their outputs in a list. Yampa provides the combinator \textit{dpSwitch} for it. It is quite involved and has the following type-signature:
+
+\begin{HaskellCode}
+dpSwitch :: Functor col
+         -- routing function
+         => (forall sf. a -> col sf -> col (b, sf))
+         -- SF collection
+         -> col (SF b c)
+         -- SF generating switching event     
+         -> SF (a, col c) (Event d)
+         -- continuation to invoke upon event           
+         -> (col (SF b c) -> d -> SF a (col c))
+         -> SF a (col c)
+\end{HaskellCode}
+
+Its first argument is the pairing-function which pairs up the input to the signal functions - it has to preserve the structure of the signal function collection. The second argument is the collection of signal functions to run. The third argument is a signal function generating the switching event. The last argument is a function which generates the continuation after the switching event has occurred. \textit{dpSwitch} returns a new signal function which runs all the signal functions in parallel and switches into the continuation when the switching event occurs. The d in \textit{dpSwitch} stands for decoupled which guarantees that it delays the switching until the next time-step: the function into which we switch is only applied in the next step, which prevents an infinite loop if we switch into a recursive continuation.
 
 \begin{HaskellCode}
 stepSimulation :: [SIRAgent] -> [SIRState] -> SF () [SIRState]

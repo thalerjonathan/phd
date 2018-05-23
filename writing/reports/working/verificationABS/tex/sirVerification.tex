@@ -63,6 +63,8 @@ Obviously the \textit{optimal} $\Delta t$ of the SIR model depends heavily on th
 Our SIR agents \textit{are} signals due to the underlying continuous nature of the analytical SIR model and to some extent we can guarantee this through black box testing. For this we write tests for each individual behaviour as previously but instead of checking whether agents got infected or have recovered we assume that they stay constant: they will output always the same state when sampling the system with $\Delta t = 0$. The tests are conceptual the complementary tests of the previous behaviour tests so in conjunction with them we can assume to some extent that agents are signals. To prove it, we need to look into white box verification as we cannot make guarantees about properties which should hold \textit{forever} in a computational setting.
 
 \subsection{White Box Verification}
+TODO: the implementation below has a SEVERE bug, all stochastic functions are correlated because they use the same RNG. this leads to different distributions of the dynamics, which can be shown using the test-code which generates the dynamics. The random monad version seems to perform much better where the mean is very close to the SD solution.
+
 In the case of the SIR model we have the following invariants: 
 \begin{itemize}
 	\item A susceptible agent will \textit{never} make the transition to recovered.

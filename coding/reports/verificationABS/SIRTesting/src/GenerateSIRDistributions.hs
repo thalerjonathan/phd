@@ -6,6 +6,7 @@ import System.IO
 import Text.Printf
 
 import ABSFeedback
+import SIRRandMonad
 import SD
 import SIR
 
@@ -43,33 +44,34 @@ main = do
 
   let popSize      = 100 :: Double
       infCount     = 1 :: Double
-      replications = 1000 :: Int
+      replications = 10000 :: Int
       t            = 150 :: Double
-      dt           = 0.1 :: Double
-      stepsUnit    = 1 / dt 
+      absDt        = 1.0 :: Double
+      sdDt         = 0.1 :: Double
 
-  let sdDyns  = runSD popSize infCount contactRate infectivity illnessDuration t dt
+  let sdDyns  = runSD popSize infCount contactRate infectivity illnessDuration t sdDt
   let ((maxInfIdx, maxInfValue), lastRecIdx) = maxInfLastRec sdDyns
 
-  let maxInfTime = fromIntegral maxInfIdx / stepsUnit
-  let lastRecTime = fromIntegral lastRecIdx / stepsUnit
+  let maxInfTime = fromIntegral maxInfIdx * sdDt
+  let lastRecTime = fromIntegral lastRecIdx * sdDt
 
   putStrLn $ "SD maxInf: " ++ show (maxInfTime, maxInfValue)
   putStrLn $ "SD lastRec: " ++ show lastRecTime
 
   (maxInf, lastRec) <- foldM (\(maxInfAcc, lastRecAcc) _i -> do
       g' <- newStdGen
-      let absDyns = runABS g' (floor popSize) (floor infCount) contactRate infectivity illnessDuration t dt
+      --let absDyns = runFeedbackABS g' (floor popSize) (floor infCount) contactRate infectivity illnessDuration t absDt
+      let absDyns = runSirRandMonad g' (floor popSize) (floor infCount) contactRate infectivity illnessDuration t
       
       let ((maxInfIdx, maxInfValue), lastRecIdx) = maxInfLastRec absDyns
 
-      let maxInfTime = fromIntegral maxInfIdx / stepsUnit
-      let lastRecTime = fromIntegral lastRecIdx / stepsUnit
+      let maxInfTime = fromIntegral maxInfIdx * absDt
+      let lastRecTime = fromIntegral lastRecIdx * absDt
 
       return ((maxInfTime, maxInfValue) : maxInfAcc, lastRecTime : lastRecAcc)
     ) (([],[]) :: ([(Double, Double)], [Double])) [1..replications]
 
-  let absfilename = "abs_" ++ show popSize ++ "_" ++ show dt ++ "_uncorrelated.m"
+  let absfilename = "sir_randmonad_" ++ show popSize ++ "pop_" ++ show replications ++ "repls_" ++ show absDt ++ "dt.m"
   writeMatlabFile absfilename (maxInfTime, maxInfValue, lastRecTime) maxInf lastRec
 
 writeMatlabFile :: String 

@@ -48,13 +48,13 @@ cabal-version:       >=1.10
 executable sir-distributions
   -- .hs or .lhs file containing the Main module.
   main-is:              GenerateSIRDistributions.hs
-  
+
   -- Modules included in this executable, other than Main.
   other-modules:        ABSFeedback
                       , SIR
                       , SD
-                      , Export      
-  
+                      , SIRRandMonad
+
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:    
   

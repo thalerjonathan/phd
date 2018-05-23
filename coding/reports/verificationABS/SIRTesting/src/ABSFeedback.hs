@@ -1,7 +1,7 @@
 {-# LANGUAGE Arrows #-}
 module ABSFeedback
   (
-    runABS
+    runFeedbackABS
 
   , susceptibleAgent
   , infectedAgent
@@ -14,17 +14,17 @@ import SIR
 
 type SIRAgent = SF [SIRState] SIRState
 
-runABS :: RandomGen g 
-       => g 
-       -> Int
-       -> Int
-       -> Double
-       -> Double
-       -> Double 
-       -> Time 
-       -> DTime 
-       -> [(Double, Double, Double)]
-runABS g populationSize infectedCount contactRate infectivity illnessDuration t dt
+runFeedbackABS :: RandomGen g 
+                => g 
+                -> Int
+                -> Int
+                -> Double
+                -> Double
+                -> Double 
+                -> Time 
+                -> DTime 
+                -> [(Double, Double, Double)]
+runFeedbackABS g populationSize infectedCount contactRate infectivity illnessDuration t dt
     = aggregateAllStates $ runSimulation g contactRate infectivity illnessDuration t dt as
   where
     as = initAgents populationSize infectedCount

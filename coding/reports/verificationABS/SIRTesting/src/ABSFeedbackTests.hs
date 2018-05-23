@@ -300,7 +300,7 @@ _testDynamics _ = do
 
     (sc, ic, rc) <- foldM (\(sc, ic, rc) i -> do
         g' <- newStdGen
-        let absDyns = runABS g' (floor popSize) (floor infCount) contactRate infectivity illnessDuration 150 0.1
+        let absDyns = runFeedbackABS g' (floor popSize) (floor infCount) contactRate infectivity illnessDuration 150 0.1
         let (nmseSus, nmseInf, nmseRec) = calcNmse sdDyns absDyns
         let (confSus, confInf, confRec) = calcConf 0.95 sdDyns absDyns
         putStrLn $ "NMSE " ++ show i ++ ": " ++ show (nmseSus, nmseInf, nmseRec)

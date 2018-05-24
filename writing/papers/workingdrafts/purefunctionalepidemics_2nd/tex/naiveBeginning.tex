@@ -93,7 +93,7 @@ infectedAgent dur
 Again note the hard-coded $\Delta t = 1.0$.
 
 \subsubsection{Results}
-When running our naive implementation with a population size of 1,000 we get the dynamics as seen in Figure \ref{fig:sir_abs_dynamics_naive}. When comparing it to the dynamics of the analytical solution in Figure \ref{fig:sir_sd_dynamics}, the agent-based dynamics are not as smooth which stems from the fact that the agent-based approach is inherently discrete and stochastic \cite{macal_agent-based_2010}. Also we are using a hard-coded $\Delta t = 1.0$ which means that we are under-sampling the contact-rate. We will will address this problem in the next section.
+When running our naive implementation with a population size of 1,000 we get the dynamics as seen in Figure \ref{fig:sir_abs_dynamics_naive}. When comparing it to the dynamics of the analytical solution in Figure \ref{fig:sir_sd_dynamics}, the agent-based dynamics are not as smooth which stems from the fact that the agent-based approach is inherently discrete and stochastic \cite{macal_agent-based_2010}.
 
 \begin{figure}
 	\centering
@@ -140,9 +140,9 @@ Reflecting on our first naive approach we can conclude that it already introduce
 
 Nonetheless our approach has also weaknesses and dangers:
 \begin{enumerate}
-	\item We are using a hard-coded $\Delta t = 1.0$ because of the way our susceptible behaviour is implemented. This is not very general and leads to undersampling problems when the contact rate is too small.
-	\item $\Delta t$ is passed explicitly as argument to the agent and needs to be dealt with explicitly. This is not very elegant and a potential source of errors - can we do better and find a more elegant solution? 
+	\item We are using a hard-coded $\Delta t = 1.0$ because of the way our susceptible behaviour is implemented which is not very elegant and general.
+	\item $\Delta t$ is passed explicitly as argument to the agent and needs to be dealt with explicitly in infected behaviour. This is not very elegant and a potential source of errors - can we do better and find a more elegant solution? 
 	\item The way our agents are represented is not very modular. The state of the agent is explicitly encoded in an ADT and when processing the agent, the behavioural function always needs to distinguish between the states. Can we express it in a more modular way e.g. continuations?
 \end{enumerate}
 
-We now move on to the next section in which we will address these points and the under-sampling issue.
+We now move on to the next section in which we will address these points.

@@ -54,6 +54,7 @@ An agent gets fed the states of all agents in the system from the previous time-
 From our implementation it becomes apparent that only the behaviour of a susceptible agent involves randomness and that a recovered agent is simply a sink - it does nothing and stays constant.
 
 Lets look how we can implement the behaviour of a susceptible agent. It simply makes contact on average with a number of other agents and gets infected with a given probability if an agent it has contact with is infected. Here it becomes apparent that we implicitly assume that the simulation is stepped with a $\Delta t = 1.0$. If we would use a different $\Delta t$ then we need to adjust the contact rate accordingly because it is defined \textit{per time-unit}. This would amount to multiplying with the $\Delta t$ which in combination with the discretisation using \textit{floor} would lead to too few contacts being made, ultimately resulting in completely wrong dynamics.
+
 When the agent gets infected, it calculates also its time of recovery by drawing a random number from the exponential distribution, meaning it is ill on average for \textit{illnessDuration}.
 
 \begin{HaskellCode}
@@ -93,7 +94,7 @@ infectedAgent dur
 Again note the hard-coded $\Delta t = 1.0$.
 
 \subsubsection{Results}
-When running our naive implementation with a population size of 1,000 we get the dynamics as seen in Figure \ref{fig:sir_abs_dynamics_naive}. When comparing it to the dynamics of the analytical solution in Figure \ref{fig:sir_sd_dynamics}, the agent-based dynamics are not as smooth which stems from the fact that the agent-based approach is inherently discrete and stochastic \cite{macal_agent-based_2010}.
+When running our naive implementation with a population size of 1,000 we get the dynamics as seen in Figure \ref{fig:sir_abs_dynamics_naive}. When comparing it to the dynamics of the reference solution in Figure \ref{fig:sir_sd_dynamics}, the agent-based dynamics are not as smooth which stems from the fact that the agent-based approach is inherently discrete and stochastic \cite{macal_agent-based_2010}.
 
 \begin{figure}
 	\centering
@@ -134,14 +135,12 @@ Reflecting on our first naive approach we can conclude that it already introduce
 	\item Feedback - the output state of the agent in the current time-step $t$ is the input state for the next time-step $t + \Delta t$.
 	\item Environment - as environment we implicitly assume a fully-connected network (complete graph) where every agent 'knows' every other agent, including itself and thus can make contact with all of them.
 	\item Stochasticity - it is an inherently stochastic simulation, which is indicated by the Random Monad type and the usage of \textit{randomBoolM} and \textit{randomExpM}.
-	\item Deterministic - repeated runs with the same initial random-number generator result in same dynamics. This may not come as a surprise but in Haskell we can guarantee that property statically already at compile time because our simulation runs in the Random Monad and \textit{not} in the IO Monad. This guarantees that no external, uncontrollable sources of randomness can interfere with the simulation.
-	\item Dynamics - with increasing number of agents the dynamics smooth out \cite{macal_agent-based_2010}.
+	\item Deterministic - repeated runs with the same initial random-number generator result in same dynamics. This may not come as a surprise but in Haskell we can guarantee that property statically already at compile time because our simulation runs in the Random Monad and \textit{not} in the IO Monad. This guarantees that no external, uncontrollable sources of non-determinism can interfere with the simulation.
 \end{itemize}
 
 Nonetheless our approach has also weaknesses and dangers:
 \begin{enumerate}
-	\item We are using a hard-coded $\Delta t = 1.0$ because of the way our susceptible behaviour is implemented which is not very elegant and general.
-	\item $\Delta t$ is passed explicitly as argument to the agent and needs to be dealt with explicitly in infected behaviour. This is not very elegant and a potential source of errors - can we do better and find a more elegant solution? 
+	\item We are using a hard-coded $\Delta t = 1.0$ because of the way our susceptible behaviour is implemented. Also $\Delta t$ is dealt with explicitly in infected behaviour where it is hard-coded to $\Delta t = 1.0$. This is not very modular and elegant and a potential source of errors - can we do better and find a more elegant solution? 
 	\item The way our agents are represented is not very modular. The state of the agent is explicitly encoded in an ADT and when processing the agent, the behavioural function always needs to distinguish between the states. Can we express it in a more modular way e.g. continuations?
 \end{enumerate}
 

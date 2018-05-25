@@ -21,5 +21,9 @@ type SIRAgent g = SF (SIRMonad g) [SIRState] SIRState
 
 The question is now how to access this Random Monad functionality within the MSF context. For the function \textit{occasionally}, there exists a monadic pendant \textit{occasionallyM} which requires a MonadRandom type-class. Because we are now running within a MonadRandom instance we simply replace \textit{occasionally} with \textit{occasionallyM}. 
 
+\begin{HaskellCode}
+occasionallyM :: MonadRandom m => Time -> b -> SF m a (Event b)
+\end{HaskellCode}
+
 \subsubsection{Discussion}
-So far making the transition to MSFs does not seem as compelling as making the move from the Random Monad to FRP in the beginning. Running in the Random Monad within FRP is convenient but we could achieve the same with passing RandomGen around as we already demonstrated. Still it guarantees us that we won't have correlated stochastics as discussed in the previous section. In the next step we introduce the concept of a read/write environment which we realise using a StateT monad. This will show the real benefit of the transition to MSFs as without it, implementing a general environment access would be quite cumbersome.
+So far making the transition to MSFs does not seem as compelling as making the move from the Random Monad to FRP in the beginning. Running in the Random Monad within FRP is convenient but we could achieve the same with passing RandomGen around as we already demonstrated. Still it guarantees us that we won't have correlated stochastics as discussed in the previous section. In the next step we introduce the concept of a read/write environment which we realise using a StateT monad. This will show the real benefit of the transition to MSFs.

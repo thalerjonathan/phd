@@ -2,7 +2,7 @@
 \label{sec:background}
 
 \subsection{Agent-Based Simulation}
-Agent-Based Simulation (ABS) is a methodology to model and simulate a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is known. Those parts, called agents, are modelled and simulated, out of which then the aggregate global behaviour of the whole system emerges.
+Agent-Based Simulation is a methodology to model and simulate a system where the global behaviour may be unknown but the behaviour and interactions of the parts making up the system is known. Those parts, called agents, are modelled and simulated, out of which then the aggregate global behaviour of the whole system emerges.
 
 So, the central aspect of ABS is the concept of an agent which can be understood as a metaphor for a pro-active unit, situated in an environment, able to spawn new agents and interacting with other agents in some neighbourhood by exchange of messages. 
 
@@ -29,7 +29,7 @@ It exhibits the following properties:
 \end{itemize}
 
 \subsection{Functional Reactive Programming}
-Functional Reactive Programming (FRP) is a way to implement systems with continuous and discrete time-semantics in pure functional languages. There are many different approaches and implementations but in our approach we use \textit{Arrowized} FRP \cite{hughes_generalising_2000, hughes_programming_2005} as implemented in the library Yampa \cite{hudak_arrows_2003, courtney_yampa_2003, nilsson_functional_2002}.
+Functional Reactive Programming is a way to implement systems with continuous and discrete time-semantics in pure functional languages. There are many different approaches and implementations but in our approach we use \textit{Arrowized} FRP \cite{hughes_generalising_2000, hughes_programming_2005} as implemented in the library Yampa \cite{hudak_arrows_2003, courtney_yampa_2003, nilsson_functional_2002}.
 
 The central concept in Arrowized FRP is the Signal Function (SF) which can be understood as a \textit{process over time} which maps an input- to an output-signal. A signal can be understood as a value which varies over time. Thus, signal functions have an awareness of the passing of time by having access to $\Delta t$ which are positive time-steps with which the system is sampled. 
 
@@ -41,18 +41,18 @@ SF \, \alpha \, \beta \approx Signal \, \alpha \rightarrow Signal \, \beta
 Yampa provides a number of combinators for expressing time-semantics, events and state-changes of the system. They allow to change system behaviour in case of events, run signal functions and generate stochastic events and random-number streams. We shortly discuss the relevant combinators and concepts we use throughout the paper. For a more in-depth discussion we refer to \cite{hudak_arrows_2003, courtney_yampa_2003, nilsson_functional_2002}.
 
 \paragraph{Event}
-An event in FRP is an occurrence at a specific point in time which has no duration e.g. the the recovery of an infected agent. Yampa represents events through the \textit{Event} type which is programmatically equivalent to the \textit{Maybe} type. 
+An event in FRP is an occurrence at a specific point in time which has no duration e.g. the recovery of an infected agent. Yampa represents events through the \textit{Event} type which is programmatically equivalent to the \textit{Maybe} type. 
 
 \paragraph{Dynamic behaviour}
 To change the behaviour of a signal function at an occurrence of an event during run-time, the combinator \textit{switch :: SF a (b, Event c) -> (c -> SF a b) -> SF a b} is provided. It takes a signal function which is run until it generates an event. When this event occurs, the function in the second argument is evaluated, which receives the data of the event and has to return the new signal function which will then replace the previous one.
 
 \paragraph{Randomness}
-In ABS one often needs to generate stochastic events which occur based on e.g. an exponential distribution. Yampa provides the combinator \textit{occasionally :: RandomGen g => g -> Time -> b -> SF a (Event b)} for this. It takes a random-number generator, a rate and a value the stochastic event will carry. It generates events on average with the given rate. Note that at most one event will be generated and no 'backlog' is kept. This means that when this function is not sampled with a sufficiently high frequency, depending on the rate, it will loose events.
+In ABS one often needs to generate stochastic events which occur based on e.g. an exponential distribution. Yampa provides the combinator \textit{occasionally :: RandomGen g => g -> Time -> b -> SF a (Event b)} for this. It takes a random-number generator, a rate and a value the stochastic event will carry. It generates events on average with the given rate. Note that at most one event will be generated and no 'backlog' is kept. This means that when this function is not sampled with a sufficiently high frequency, depending on the rate, it will lose events.
 
 Yampa also provides the combinator \textit{noise :: (RandomGen g, Random b) => g -> SF a b} which generates a stream of noise by returning a random number in the default range for the type \textit{b}.
 
 \paragraph{Running signal functions}
-To \textit{purely} run a signal function Yampa provides the function \textit{embed :: SF a b -> (a, [(DTime, Maybe a)]) -> [b]} which allows to run a SF for a given number of steps where in each step one provides the $\Delta t$ and an input \textit{a}. The function then returns the output of the signal function for each step. Note that the input is optional, indicated by \textit{Maybe}. In the first step at $t = 0$, the initial \textit{a} is applied and whenever the input is \textit{Nothing} in subsequent steps, the last \textit{a} which was not \textit{Nothing} is re-used.
+To \textit{purely} run a signal function Yampa provides the function \textit{embed :: SF a b -> (a, [(DTime, Maybe a)]) -> [b]} which allows to run an SF for a given number of steps where in each step one provides the $\Delta t$ and an input \textit{a}. The function then returns the output of the signal function for each step. Note that the input is optional, indicated by \textit{Maybe}. In the first step at $t = 0$, the initial \textit{a} is applied and whenever the input is \textit{Nothing} in subsequent steps, the last \textit{a} which was not \textit{Nothing} is re-used.
 
 \subsection{Arrowized programming}
 Yampa's signal functions are arrows, requiring us to program with arrows. Arrows are a generalisation of monads which, in addition to the already familiar parameterisation over the output type, allow parameterisation over their input type as well \cite{hughes_generalising_2000, hughes_programming_2005}.

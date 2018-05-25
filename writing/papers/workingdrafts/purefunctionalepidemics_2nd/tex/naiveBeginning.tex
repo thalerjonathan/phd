@@ -1,26 +1,22 @@
 \subsection{Naive beginnings}
 \label{sec:naive_beginnigs}
-We start by modelling the states of the agents:
-
-\begin{HaskellCode}
-data SIRState = Susceptible | Infected TimeDelta | Recovered
-\end{HaskellCode}
-
-Agents are ill for some duration, meaning we need to keep track when a potentially infected agent recovers. Also a simulation is stepped in discrete or continuous time-steps thus we introduce a notion of \textit{time} and $\Delta t$ by defining:
+We start by modelling the states of the agents. Infected agents are ill for some duration, meaning we need to keep track when an infected agent recovers. Also a simulation is stepped in discrete or continuous time-steps thus we introduce a notion of \textit{time} and $\Delta t$ by defining:
 
 \begin{HaskellCode}
 type Time      = Double
 type TimeDelta = Double
+
+data SIRState = Susceptible | Infected TimeDelta | Recovered
 \end{HaskellCode}
 
-Now we can represent every agent simply as the SIR state which includes its potential recovery time. We hold all our agents in a list:
+Now we can represent every agent simply as its SIR state. We hold all our agents in a list:
 \begin{HaskellCode}
 type SIRAgent = SIRState
 type Agents   = [SIRAgent]
 \end{HaskellCode}
 
-Next we need to think about how to actually step our simulation. For this we define a function which advances our simulation with a fixed $\Delta t$ until a given time $t$ where in each step the agents are processed and the output is fed back into the next step. This is the source of pro-activity as agents are executed in every time step and can thus initiate actions based on the passing of time. Note that we step the simulation with a hard-coded $\Delta t = 1.0$ for reasons which become apparent below when implementing the \textit{susceptible} behaviour.
-As already mentioned, the agent-based implementation of the SIR model is inherently stochastic which means we need access to a random-number generator. We decided to use the Random Monad at this point as threading a generator through the simulation and the agents could become very cumbersome. Thus our simulation stepping runs in the Random Monad:
+Next we need to think about how to actually step our simulation. For this we define a function which advances our simulation with a fixed $\Delta t$ until a given time $t$ where in each step the agents are processed and the output is fed back into the next step. This is the source of pro-activity as agents are executed in every time step and can thus initiate actions based on the passing of time. Note that we step the simulation with a hard-coded $\Delta t = 1.0$ for reasons which become apparent when implementing the \textit{susceptible} behaviour.
+As already mentioned, the agent-based implementation of the SIR model is inherently stochastic which means we need access to a random-number generator. We decided to use the Random Monad at this point as threading a generator through the simulation and the agents would be very cumbersome. Thus our simulation stepping runs in the Random Monad:
 
 \begin{HaskellCode}
 runSimulation :: RandomGen g 
@@ -94,7 +90,7 @@ infectedAgent dur
 Again note the hard-coded $\Delta t = 1.0$.
 
 \subsubsection{Results}
-When running our naive implementation with a population size of 1,000 we get the dynamics as seen in Figure \ref{fig:sir_abs_dynamics_naive}. When comparing it to the dynamics of the reference solution in Figure \ref{fig:sir_sd_dynamics}, the agent-based dynamics are not as smooth which stems from the fact that the agent-based approach is inherently discrete and stochastic \cite{macal_agent-based_2010}.
+When running our naive implementation with a population size of 1,000 we get the dynamics as seen in Figure \ref{fig:sir_abs_dynamics_naive}. When comparing it to the dynamics of the reference in Figure \ref{fig:sir_sd_dynamics}, the agent-based dynamics are not as smooth which stems from the fact that the agent-based approach is inherently discrete and stochastic \cite{macal_agent-based_2010}.
 
 \begin{figure}
 	\centering
@@ -140,7 +136,7 @@ Reflecting on our first naive approach we can conclude that it already introduce
 
 Nonetheless our approach has also weaknesses and dangers:
 \begin{enumerate}
-	\item We are using a hard-coded $\Delta t = 1.0$ because of the way our susceptible behaviour is implemented. Also $\Delta t$ is dealt with explicitly in infected behaviour where it is hard-coded to $\Delta t = 1.0$. This is not very modular and elegant and a potential source of errors - can we do better and find a more elegant solution? 
+	\item We are using a hard-coded $\Delta t = 1.0$ because of the way our susceptible behaviour is implemented. Also $\Delta t$ is dealt with explicitly in the infected behaviour where it is hard-coded to $\Delta t = 1.0$. This is not very modular and elegant and a potential source of errors - can we do better and find a more elegant solution? 
 	\item The way our agents are represented is not very modular. The state of the agent is explicitly encoded in an ADT and when processing the agent, the behavioural function always needs to distinguish between the states. Can we express it in a more modular way e.g. continuations?
 \end{enumerate}
 

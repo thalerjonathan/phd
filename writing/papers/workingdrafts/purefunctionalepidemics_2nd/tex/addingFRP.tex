@@ -1,13 +1,15 @@
 \subsection{Adding Functional Reactive Programming}
 \label{sec:step2_frp}
-As shown in the first step, the need to handle $\Delta t$ explicitly can be quite messy, is inelegant and a potential source of errors, also the explicit handling of the state of an agent and its behavioural function is not very modular. We can solve both these weaknesses by switching to the Functional Reactive Programming paradigm (FRP), because it allows to express systems with discrete and continuous time-semantics.
+As shown in the first step, the need to handle $\Delta t$ explicitly can be quite messy, is inelegant and a potential source of errors, also the explicit handling of the state of an agent and its behavioural function is not very modular. We can solve both these weaknesses by switching to the Functional Reactive Programming paradigm, because it allows to express systems with discrete and continuous time-semantics.
 
-In this step we are focusing on Arrowized FRP \cite{hughes_generalising_2000} using the library Yampa \cite{hudak_arrows_2003}. In it, time is handled implicitly, meaning it cannot be messed with, which is achieved by building the  whole system on the concept of signal functions (SF). An SF can be understood as a process over time and is technically a continuation which allows to capture state using closures. Both these fundamental features allow us to tackle the weaknesses of our first step and push our approach further towards a truly elegant functional approach.
+In this step we are focusing on Arrowized FRP \cite{hughes_generalising_2000} using the library Yampa \cite{hudak_arrows_2003}. In it, time is handled implicitly, meaning it cannot be messed with, which is achieved by building the whole system on the concept of signal functions (SF). An SF can be understood as a process over time and is technically a continuation which allows to capture state using closures. Both these fundamental features allow us to tackle the weaknesses of our first step and push our approach further towards a truly elegant functional approach.
 
 \subsubsection{Implementation}
-We start by defining an agent now as an SF which receives the states of all agents as input and outputs the state of the agent:
+We start by re-defining the SIR states, whereas now the illness duration is not needed any more. Also we re-define an agent to be an SF which receives the SIR states of all agents as input and outputs the SIR state of the agent:
 
 \begin{HaskellCode}
+data SIRState = Susceptible | Infected | Recovered
+
 type SIRAgent = SF [SIRState] SIRState 
 \end{HaskellCode}
 
@@ -53,7 +55,7 @@ susceptibleAgent g =
 \end{HaskellCode}
 %\end{samepage}
 
-We deal with randomness different now and implement signal functions built on the \textit{noiseR} function provided by Yampa. This is an example for the stream character and statefulness of a signal function as it needs to keep track of the changed random-number generator internally through the use of continuations and closures. Here we provide the implementation of \textit{randomBoolSF}, \textit{drawRandomElemSF} works similar but takes a list as input and returns a randomly chosen element from it:
+We deal with randomness different now and implement signal functions built on the \textit{noiseR} function provided by Yampa. This is an example for the stream character and statefulness of a signal function as it needs to keep track of the changed random-number generator internally through the use of continuations and closures. Here we provide the implementation of \textit{randomBoolSF}. \textit{drawRandomElemSF} works similar but takes a list as input and returns a randomly chosen element from it:
 
 \begin{HaskellCode}
 randomBoolSF :: RandomGen g => g -> Double -> SF () Bool
@@ -90,24 +92,7 @@ runSimulation g t dt as
     sfs       = zipWith sirAgent rngs as
 \end{HaskellCode}
 
-What we need to implement next is a closed feedback-loop - the heart of every agent-based simulation. Fortunately, \cite{nilsson_functional_2002, courtney_yampa_2003} discusses implementing this in Yampa. The function \textit{stepSimulation} is an implementation of such a closed feedback-loop. It takes the current signal functions and states of all agents, runs them all in parallel and returns the new agent states of this step. Yampa provides the \textit{dpSwitch} combinator for running signal functions in parallel, which is quite involved and has the following type-signature:
-
-\begin{HaskellCode}
-dpSwitch :: Functor col
-         -- routing function
-         => (forall sf. a -> col sf -> col (b, sf))
-         -- SF collection
-         -> col (SF b c)
-         -- SF generating switching event     
-         -> SF (a, col c) (Event d)
-         -- continuation to invoke upon event           
-         -> (col (SF b c) -> d -> SF a (col c))
-         -> SF a (col c)
-\end{HaskellCode}
-
-Its first argument is the pairing-function which pairs up the input to the signal functions - it has to preserve the structure of the signal function collection. The second argument is the collection of signal functions to run. The third argument is a signal function generating the switching event. The last argument is a function which generates the continuation after the switching event has occurred. \textit{dpSwitch} returns a new signal function which runs all the signal functions in parallel and switches into the continuation when the switching event occurs. The d in \textit{dpSwitch} stands for decoupled which guarantees that it delays the switching until the next time-step: the function into which we switch is only applied in the next step, which prevents an infinite loop if we switch into a recursive continuation.
-
-Conceptually, \textit{dpSwitch} allows us to recursively switch back into the \textit{stepSimulation} with the continuations and new states of all the agents after they were run in parallel. Note the use of \textit{notYet} which is required because in Yampa switching occurs immediately at $t = 0$. If we don't delay the switching at $t = 0$ until the next step, we would enter an infinite switching loop - \textit{notYet} simply delays the first switching until the next time-step.
+What we need to implement next is a closed feedback-loop - the heart of every agent-based simulation. Fortunately, \cite{nilsson_functional_2002, courtney_yampa_2003} discusses implementing this in Yampa. The function \textit{stepSimulation} is an implementation of such a closed feedback-loop. It takes the current signal functions and states of all agents, runs them all in parallel and returns the new agent states of this step. Note the use of \textit{notYet} which is required because in Yampa switching occurs immediately at $t = 0$. If we don't delay the switching at $t = 0$ until the next step, we would enter an infinite switching loop - \textit{notYet} simply delays the first switching until the next time-step.
 
 \begin{HaskellCode}
 stepSimulation :: [SIRAgent] -> [SIRState] -> SF () [SIRState]
@@ -125,6 +110,25 @@ stepSimulation sfs as =
     switchingEvt :: SF ((), [SIRState]) (Event [SIRState])
     switchingEvt = arr (\ (_, newAs) -> Event newAs)
 \end{HaskellCode}
+
+Yampa provides the \textit{dpSwitch} combinator for running signal functions in parallel, which has the following type-signature:
+
+\begin{HaskellCode}
+dpSwitch :: Functor col
+         -- routing function
+         => (forall sf. a -> col sf -> col (b, sf))
+         -- SF collection
+         -> col (SF b c)
+         -- SF generating switching event     
+         -> SF (a, col c) (Event d)
+         -- continuation to invoke upon event           
+         -> (col (SF b c) -> d -> SF a (col c))
+         -> SF a (col c)
+\end{HaskellCode}
+
+Its first argument is the pairing-function which pairs up the input to the signal functions - it has to preserve the structure of the signal function collection. The second argument is the collection of signal functions to run. The third argument is a signal function generating the switching event. The last argument is a function which generates the continuation after the switching event has occurred. \textit{dpSwitch} returns a new signal function which runs all the signal functions in parallel and switches into the continuation when the switching event occurs. The d in \textit{dpSwitch} stands for decoupled which guarantees that it delays the switching until the next time-step: the function into which we switch is only applied in the next step, which prevents an infinite loop if we switch into a recursive continuation.
+
+Conceptually, \textit{dpSwitch} allows us to recursively switch back into the \textit{stepSimulation} with the continuations and new states of all the agents after they were run in parallel. 
 
 \subsubsection{Results}
 The dynamics generated by this step can be seen in Figure \ref{fig:sir_abs_dynamics_frp}. 
@@ -181,7 +185,7 @@ In this step we followed the FRP approach which is fundamentally different from 
 \end{center}
 \end{figure}
 
-Tackling this issue we have two options. The first option is to use a smaller $\Delta t$ as can be seen \ref{fig:sir_abs_approximating_001dt_1000agents}, which results in the whole system being sampled more often, thus reducing performance. The other option is to implement super-sampling and apply it to \textit{occasionally} which would allow us to run the whole simulation with $\Delta t = 1.0$ and only sample the \textit{occasionally} function with a much higher frequency.
+For tackling this issue we have two options. The first one is to use a smaller $\Delta t$ as can be seen \ref{fig:sir_abs_approximating_001dt_1000agents}, which results in the whole system being sampled more often, thus reducing performance. The other option is to implement super-sampling and apply it to \textit{occasionally} which would allow us to run the whole simulation with $\Delta t = 1.0$ and only sample the \textit{occasionally} function with a much higher frequency.
 
 An approach to super-sampling would be to introduce a new combinator to Yampa which allows to super-sample other signal functions. 
 
@@ -194,6 +198,6 @@ It evaluates the \textit{SF} argument for \textit{n} times, each with $\Delta t 
 \subsubsection{Discussion}
 By moving on to FRP using Yampa we made a huge improvement in clarity, expressivity and robustness of our implementation. State is now implicitly encoded, depending on which signal function is active. Also by using explicit time-semantics with \textit{occasionally} we can achieve extremely fine grained stochastics. Compared to drawing a random number of events we create only a single event or none at all. This requires to sample the system with a much smaller $\Delta t$ than in the previous step: we are treating it as a truly continuous agent-based system.
 
-A very severe problem, nearly impossible to find with testing and only detectable with in-depth validation analysis, is the fact that in the \textit{susceptible} agent the same random-number generator is used in \textit{occasionally}, \textit{drawRandomElemSF} and \textit{randomBoolSF}. This means that all three stochastic functions, which should be independent from each other, are inherently correlated. This is something one wants to prevent under all circumstances in a simulation, as it can invalidate the dynamics on a very subtle level, and indeed we have tested the influence of the correlation in this example and it has an impact. We left this severe bug in for explanatory reason, as it shows an example where functional programming actually encourages very subtle bugs if one is not careful. A possible solution would be to simply split the initial random-number generator in \textit{sirAgent} three times (using one of the splited generators for the next split) and pass three random-number generators to \textit{susceptible}. Note that this is not an issue in Sections \ref{sec:naive_beginnigs} and \ref{sec:generalising_msfs} as we are using the Random Monad, which never uses the same random-number generator twice thus resulting in guaranteed uncorrelated stochastics.
+A very severe problem, very hard to find with testing but detectable with in-depth validation analysis, is the fact that in the \textit{susceptible} agent the same random-number generator is used in \textit{occasionally}, \textit{drawRandomElemSF} and \textit{randomBoolSF}. This means that all three stochastic functions, which should be independent from each other, are inherently correlated. This is something one wants to prevent under all circumstances in a simulation, as it can invalidate the dynamics on a very subtle level, and indeed we have tested the influence of the correlation in this example and it has an impact. We left this severe bug in for explanatory reason, as it shows an example where functional programming actually encourages very subtle bugs if one is not careful. A possible solution would be to simply split the initial random-number generator in \textit{sirAgent} three times (using one of the splited generators for the next split) and pass three random-number generators to \textit{susceptible}. Note that this is not an issue in Sections \ref{sec:naive_beginnigs} and \ref{sec:generalising_msfs} as we are using the Random Monad, which never uses the same random-number generator twice thus resulting in guaranteed uncorrelated stochastics.
 
-So far we have an acceptable implementation of an agent-based SIR approach. What we are lacking at the moment is a general treatment of an environment. To conveniently introduce it we want to make use of monads which is not possible using Yampa. In the next step we make the transition to Monadic Stream Functions (MSF) as introduced in Dunai \cite{perez_functional_2016} which allows FRP within a monadic context.
+So far we have an acceptable implementation of an agent-based SIR approach. What we are lacking at the moment is a general treatment of an environment. To conveniently introduce it we want to make use of monads which is not possible using Yampa. In the next step we make the transition to Monadic Stream Functions as introduced in Dunai \cite{perez_functional_2016} which allows FRP within a monadic context.

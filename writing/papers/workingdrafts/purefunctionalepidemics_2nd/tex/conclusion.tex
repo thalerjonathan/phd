@@ -1,7 +1,7 @@
 \section{Conclusions}
 \label{sec:conclusions}
 
-Our approach is radically different from traditional approaches in the ABS community. First it builds on the already quite powerful FRP paradigm. Second, due to our continuous time approach, it forces one to think properly of time-semantics of the model and how small $\Delta t$ should be. Third it requires to think about agent interactions in a new way instead of being just method-calls.
+Our approach is radically different from traditional approaches in the ABS community. First it builds on the already quite powerful FRP paradigm. Second, due to our continuous time approach, it forces one to think properly of time-semantics of the model and how small $\Delta t$ should be. Third it requires one to think about agent interactions in a new way instead of being just method-calls.
 
 Because no part of the simulation runs in the IO Monad and we do not use unsafePerformIO we can rule out a serious class of bugs caused by implicit data-dependencies and side-effects which can occur in traditional imperative implementations.
 
@@ -16,4 +16,4 @@ Despite the strengths and benefits we get by leveraging on FRP, there are errors
 
 In our pure functional approach, agent identity is not as clear as in traditional object-oriented programming, where an agent can be hidden behind a polymorphic interface which is much more abstract than in our approach. Also the identity of an agent is much clearer in object-oriented programming due to the concept of object-identity and the encapsulation of data and methods.
 
-We can conclude that the main difficulty of a pure functional approach evolves around the communication and interaction between agents, which is a direct consequence of the issue with agent identity. Agent interaction is straight-forward in object-oriented programming, where it is achieved using method-calls mutating the internal state of the agent, but that comes at the cost of a new class of bugs due to implicit data flow. In pure functional programming these data flows are explicit but our current approach of feeding back the states of all agents as inputs is not very general and we have added further mechanisms of agent interaction which we had to omit due to lack of space.
+We can conclude that the main difficulty of a pure functional approach evolves around the communication and interaction between agents, which is a direct consequence of the issue with agent identity. Agent interaction is straight-forward in object-oriented programming, where it is achieved using method-calls mutating the internal state of the agent, but that comes at the cost of a new class of bugs due to implicit data flow. In pure functional programming these data flows are explicit but our current approach of feeding back the states of all agents as inputs is not very general. We have added further mechanisms of agent interaction which we had to omit due to lack of space.

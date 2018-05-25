@@ -4,7 +4,7 @@ We see this paper as an intermediary and necessary step towards dependent types 
 
 So far no research using dependent types in agent-based simulation exists at all. In our next paper we want to explore this for the first time and ask more specifically how we can add dependent types to our pure functional approach, which conceptual implications this has for ABS and what we gain from doing so. We plan on using Idris \cite{brady_idris_2013} as the language of choice as it is very close to Haskell with focus on real-world application and running programs as opposed to other languages with dependent types e.g. Agda and Coq which serve primarily as proof assistants.
 
-We hypothesize that dependent types could help ruling out even more classes of bugs already at compile time and encode invariants and model specifications on the type level, which implies that we don't need to test them using e.g. property-testing with QuickCheck. This would allow the ABS community to reason about a model directly in code:
+We hypothesize that dependent types could help ruling out even more classes of bugs at compile time and encode invariants and model specifications on the type level, which implies that we don't need to test them using e.g. property-testing with QuickCheck. This would allow the ABS community to reason about a model directly in code:
 
 \begin{itemize}
 	\item Accessing the environment in section \ref{sec:step5_environment} involves indexed array access which is always potentially dangerous as the indices have to be checked at run-time. 

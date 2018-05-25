@@ -19,8 +19,7 @@ Next we need to think about how to actually step our simulation. For this we def
 As already mentioned, the agent-based implementation of the SIR model is inherently stochastic which means we need access to a random-number generator. We decided to use the Random Monad at this point as threading a generator through the simulation and the agents would be very cumbersome. Thus our simulation stepping runs in the Random Monad:
 
 \begin{HaskellCode}
-runSimulation :: RandomGen g 
-  => Time -> Agents -> Rand g [Agents]
+runSimulation :: RandomGen g => Time -> Agents -> Rand g [Agents]
 runSimulation tEnd as = runSimulationAux 0 as []
   where
     runSimulationAux :: RandomGen g 
@@ -38,8 +37,7 @@ stepSimulation as = mapM (runAgent as) as
 Now we can implement the behaviour of an individual agent. First we need to distinguish between the agents SIR states:
 
 \begin{HaskellCode}
-processAgent :: RandomGen g 
-  => Agents -> SIRAgent -> Rand g SIRAgent
+processAgent :: RandomGen g => Agents -> SIRAgent -> Rand g SIRAgent
 processAgent as Susceptible    = susceptibleAgent as
 processAgent _  (Infected dur) = return (infectedAgent dur)
 processAgent _  Recovered      = return Recovered

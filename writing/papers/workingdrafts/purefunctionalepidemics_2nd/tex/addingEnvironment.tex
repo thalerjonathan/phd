@@ -4,7 +4,7 @@ In this step we will add an environment in which the agents exist and through wh
 
 In ABS agents are often situated within a discrete 2D environment \cite{epstein_growing_1996} which is simply a finite $N x M$ grid with either a Moore or von Neumann neighbourhood (Figure \ref{fig:abs_neighbourhoods}). Agents are either static or can move freely around with cells allowing either single or multiple occupants.
 
-We can directly map the SIR model to a discrete 2D environment by placing the agents on a corresponding 2D grid with an unrestricted neighbourhood. The behaviour of the agents is the same but they select their interactions directly from the environment. Also instead of feeding back the states of all agents as inputs, agents now communicate through the environment by revealing their current state to their neighbours by placing it on their cell. Agents can read the states of all their neighbours which tells them if a neighbour is infected or not. This allows us to implement the infection mechanism as in the beginning. For purposes of a more interesting approach, we restrict the neighbourhood to Moore (Figure \ref{fig:moore_neighbourhood}).
+We can directly map the SIR model to a discrete 2D environment by placing the agents on a corresponding 2D grid with an unrestricted neighbourhood. The behaviour of the agents is the same but they select their interactions directly from the environment. Also instead of feeding back the states of all agents as inputs, agents now communicate through the environment by revealing their current state to their neighbours by placing it on their cell. Agents can read the states of all their neighbours which tells them if a neighbour is infected or not. For purposes of a more interesting approach, we restrict the neighbourhood to Moore (Figure \ref{fig:moore_neighbourhood}).
 
 \begin{figure}
 \begin{center}
@@ -43,7 +43,7 @@ type SIRMonad g = StateT SIREnv (Rand g)
 type SIRAgent g = SF (SIRMonad g) () ()
 \end{HaskellCode}
 
-The implementation of a susceptible agent is now a bit different and a mix between previous steps. The agent directly queries the environment for its neighbours and randomly selects one of them. The remaining behaviour is similar:
+The implementation of a susceptible agent is now a bit different. The agent directly queries the environment for its neighbours and randomly selects one of them. The remaining behaviour is similar:
 
 \begin{HaskellCode}
 susceptibleAgent :: RandomGen g => Disc2dCoord -> SIRAgent g
@@ -71,8 +71,21 @@ susceptibleAgent coord
                 else returnA -< ((), NoEvent)
             _        -> returnA -< ((), NoEvent))
 
+neighbours :: SIREnv -> Disc2dCoord -> Disc2dCoord 
+           -> [Disc2dCoord] -> [SIRState]
+           
+moore :: [Disc2dCoord]
+moore = [ topLeftDelta,    topDelta,     topRightDelta,
+          leftDelta,                     rightDelta,
+          bottomLeftDelta, bottomDelta,  bottomRightDelta ]
+
+topLeftDelta :: Disc2dCoord
+topLeftDelta      = (-1, -1)
+topDelta :: Disc2dCoord
+topDelta          = ( 0, -1)
+...
 \end{HaskellCode}
-Querying the neighbourhood is done using the \textit{neighbours :: SIREnv -> Disc2dCoord -> Disc2dCoord -> [Disc2dCoord] -> [SIRState]} function. It takes the environment, the coordinate for which to query the neighbours for, the dimensions of the 2D grid and the neighbourhood information and returns the data of all neighbours it could find. Note that on the edge of the environment, it could be the case that fewer neighbours than provided in the neighbourhood information will be found due to clipping.
+Querying the neighbourhood is done using the \textit{neighbours} function. It takes the environment, the coordinate for which to query the neighbours for, the dimensions of the 2D grid and the neighbourhood information and returns the data of all neighbours it could find. Note that on the edge of the environment, it could be the case that fewer neighbours than provided in the neighbourhood information will be found due to clipping.
 
 The behaviour of an infected agent is nearly the same as in the previous step, with the difference that upon recovery the infected agent updates its state in the environment from Infected to Recovered.
 
@@ -124,7 +137,7 @@ We implemented rendering of the environments using the gloss library which allow
     	
     	&
   
-		\begin{subfigure}[b]{0.25\textwidth}
+		\begin{subfigure}[b]{0.23\textwidth}
 			\centering
 			\includegraphics[width=1\textwidth, angle=0]{./fig/step5_environment/SIR_dynamics_30x30agents_300t_01dt.png}
 			\caption{Dynamics over time}

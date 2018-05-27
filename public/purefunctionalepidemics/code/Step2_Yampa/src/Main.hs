@@ -20,14 +20,39 @@ rngSeed :: Int
 rngSeed = 42
 
 dt :: DTime
-dt = 0.1 -- 0.0025
+dt = 0.01 -- 0.0025
 
 t :: Time
 t = 150
 
+sirTest :: SIRAgent
+sirTest = dSwitch  
+            susceptible
+            (const infected)
+  where
+    susceptible :: SF [SIRState] (SIRState, Event ())
+    susceptible = proc _ -> returnA -< (Infected, Event ())
+
+    infected :: SIRAgent
+    infected = switch 
+            infectedAux
+            (const recovered)
+      where
+        infectedAux :: SF [SIRState] (SIRState, Event ())
+        infectedAux = proc _ -> returnA -< (Recovered, Event ())
+
+    recovered :: SIRAgent
+    recovered = arr (const Recovered)
+
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
+{-
+  let steps = replicate 1 (1.0, Nothing) 
+  let ret = embed sirTest ([], steps)
+
+  print ret
+-}
 
   let g = mkStdGen rngSeed
   let as = initAgents agentCount infectedCount
@@ -78,7 +103,15 @@ sirAgent _ Recovered   = recoveredAgent
 
 susceptibleAgent :: RandomGen g => g -> SIRAgent
 susceptibleAgent g = 
-    switch 
+    -- NOTE: we need to use a delayed (d)Switch here because
+    -- according to the SIR model only a single state-transition 
+    -- should occur during one step. If we are not using a delay
+    -- we could go from susceptible directly to recovered 
+    -- if infected immediately generates a receovery event -
+    -- which probability is not very high but still possible
+    -- NOTE: we tested it with delay and without, it has no influence
+    -- it seems that the probability is way too low for it to happen?
+    dSwitch 
       (susceptible g) 
       (const $ infectedAgent g)
   where

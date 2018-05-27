@@ -44,9 +44,9 @@ main = do
 
   let popSize      = 100 :: Double
       infCount     = 1 :: Double
-      replications = 10000 :: Int
+      replications = 1000 :: Int
       t            = 150 :: Double
-      absDt        = 1.0 :: Double
+      absDt        = 0.1 :: Double
       sdDt         = 0.1 :: Double
 
   let sdDyns  = runSD popSize infCount contactRate infectivity illnessDuration t sdDt
@@ -60,8 +60,8 @@ main = do
 
   (maxInf, lastRec) <- foldM (\(maxInfAcc, lastRecAcc) _i -> do
       g' <- newStdGen
-      --let absDyns = runFeedbackABS g' (floor popSize) (floor infCount) contactRate infectivity illnessDuration t absDt
-      let absDyns = runSirRandMonad g' (floor popSize) (floor infCount) contactRate infectivity illnessDuration t
+      let absDyns = runFeedbackABS g' (floor popSize) (floor infCount) contactRate infectivity illnessDuration t absDt
+      --let absDyns = runSirRandMonad g' (floor popSize) (floor infCount) contactRate infectivity illnessDuration t
       
       let ((maxInfIdx, maxInfValue), lastRecIdx) = maxInfLastRec absDyns
 
@@ -71,7 +71,8 @@ main = do
       return ((maxInfTime, maxInfValue) : maxInfAcc, lastRecTime : lastRecAcc)
     ) (([],[]) :: ([(Double, Double)], [Double])) [1..replications]
 
-  let absfilename = "sir_randmonad_" ++ show popSize ++ "pop_" ++ show replications ++ "repls_" ++ show absDt ++ "dt.m"
+  --let absfilename = "sir_randmonad_" ++ show popSize ++ "pop_" ++ show replications ++ "repls_" ++ show absDt ++ "dt.m"
+  let absfilename = "sir_yampa_" ++ show popSize ++ "pop_" ++ show replications ++ "repls_" ++ show absDt ++ "dt.m"
   writeMatlabFile absfilename (maxInfTime, maxInfValue, lastRecTime) maxInf lastRec
 
 writeMatlabFile :: String 

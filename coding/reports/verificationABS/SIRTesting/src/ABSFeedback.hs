@@ -92,6 +92,16 @@ susceptibleAgent :: RandomGen g
                  -> Double 
                  -> SIRAgent
 susceptibleAgent g0 g1 g2 g3 contactRate infectivity illnessDuration = 
+    -- NOTE: we need to use a delayed (d)Switch here because
+    -- according to the SIR model only a single state-transition 
+    -- should occur during one step. If we are not using a delay
+    -- we could go from susceptible directly to recovered 
+    -- if infected immediately generates a receovery event -
+    -- which probability is not very high but still possible
+    -- NOTE: we tested it with delay and without, it has no influence
+    -- it seems that the probability is way too low for it to happen?
+    -- We compared two SIR DISTRIBUTIONS with 100 population and 1000
+    -- replications (0.1 dt), one with delay, one without. 
     switch
       (susceptible g0 g1 g2) 
       (const $ infectedAgent g3 illnessDuration)

@@ -155,6 +155,12 @@ runAgentsUntil tLimit as = runAgentsUntilAux tLimit Z empty as
         else runAgentsUntilAux tLimit (S t) events as' 
 -}
 
+-- TODO: when the size / type of a return-type is unsure, depends on the input
+-- e.g. it is unknown how many new events the agent will schedule, then use
+-- a dependent pair which holds the new size / type upon the return value 
+-- depends: can use this in EventQueue when we are using a SortedQueueVectMap
+-- QUESTION: can we extend this to general types as well? e.g. can we solve
+-- this for Agentfunc ty'' and ty'?
 runAgentWithEvent : Monad m =>
                     Agent m ty evt -> 
                     (aid : AgentId) ->

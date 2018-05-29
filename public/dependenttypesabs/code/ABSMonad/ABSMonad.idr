@@ -40,7 +40,7 @@ mutual
     -- TODO: the existence of an AgentId is not guaranteed and depends on time as agents
     -- can be created and terminated 
     ||| Schedules an event to be received by the receiver after t steps
-    Schedule : (event : evt) -> (receiver : AgentId) -> (td : Nat) -> Agent m ty evt
+    Schedule : (event : evt) -> (receiver : AgentId) -> (td : Nat) -> Agent m () evt
 
     -- NOTE: doesnt work like this, nothing protects us from using Step multiple times within an agent, when the first one is happening,
     -- it will ignore all other step calls after
@@ -170,12 +170,10 @@ runAgentWithEvent a aid t = runAgentWithEventAux a empty False Nothing []
                            (newAs : List (AgentFunc m ty'' evt)) ->
                            m (ty, EventQueue evt, Bool, Maybe (AgentFunc m ty' evt), List (AgentFunc m ty'' evt))
     runAgentWithEventAux (Pure result) events term newBeh newAs
-      -- TODO: need to proof that no events generated => n = n'?
       = pure (result, events, term, newBeh, newAs)
     runAgentWithEventAux (Bind act cont) events term newBeh newAs = do
-      --(ret, events', term', newBeh', newAs') <- runAgentWithEventAux act events term newBeh newAs
-      --runAgentWithEventAux (cont ret) (merge events events') (term || term') (newBeh <+> newBeh') (newAs ++ newAs')
-      ?runAgentWithEventAux_rhs_1
+      (ret, events', term', newBeh', newAs') <- runAgentWithEventAux act events term newBeh newAs
+      runAgentWithEventAux (cont ret) (merge events events') (term || term') (newBeh <+> newBeh') (newAs ++ newAs')
     runAgentWithEventAux (Lift act) events term newBeh newAs = do
       ret <- act
       pure (ret, events, term, newBeh, newAs)
@@ -184,16 +182,20 @@ runAgentWithEvent a aid t = runAgentWithEventAux a empty False Nothing []
     runAgentWithEventAux MyId events term newBeh newAs
       = pure (aid, events, term, newBeh, newAs)
     runAgentWithEventAux (Schedule event receiver td) events term newBeh newAs = do
-      ?runAgentWithEventAux_rhs_6
+      let events' = insert (t + td) (receiver, event) events
+      pure ((), events', term, newBeh, newAs)
     runAgentWithEventAux Terminate events term newBeh newAs
       = pure ((), events, True, newBeh, newAs)
-    runAgentWithEventAux (Spawn af) events term newBeh newAs 
-      = ?runAgentWithEventAux_rhs_7 -- pure ((), events, term, newBeh, (af :: newAs))
+    runAgentWithEventAux (Spawn af) events term newBeh newAs = do
+      --let newAs' = af :: newAs
+      --pure ((), events, term, newBeh, newAs')
+      ?runAgentWithEventAux_rhs_10
     runAgentWithEventAux NoOp events term newBeh newAs
       = pure ((), events, term, newBeh, newAs)
     runAgentWithEventAux (Behaviour af) events term newBeh newAs
-      = ?runAgentWithEventAux_rhs_11 -- pure ((), Just af, term) -- ?runAgentWithEventAux_rhs_11
-
+      --= pure ((), events, term, Just af, newAs)
+      = ?runAgentWithEventAux_rhs_11
+      
 Event : (evt : Type) -> Type
 Event evt = (AgentId, evt)
 
@@ -207,9 +209,9 @@ simulateUntil : Monad m =>
                 Vect n (AgentId, AgentFunc m ty evt) ->
                 Vect k (Nat, Event evt) -> 
                 m SimulationResult
-simulateUntil tLimit as initEvents = 
+simulateUntil tLimit as0 initEvents = 
     let evtQueue = fromVect initEvents
-        asMap    = fromList $ toList as
+        asMap    = fromList $ toList as0
     in  simulateUntilAux evtQueue Z asMap
   where
     simulateUntilAux : Monad m =>
@@ -223,13 +225,13 @@ simulateUntil tLimit as initEvents =
             Just (evtTime, (evtReceiver, evt)) => do
               case lookup evtReceiver as of
                    Nothing => do -- receiver not found, ignore event
-                     -- TODO: remove element
-                     --simulateUntilAux events evtTime as
-                     ?simulateUntilAux_rhs1
+                    let events' = dropFirst events
+                    --simulateUntilAux events' evtTime as
+                    ?simulateUntilAux_rhs1
                    Just af => do
                      let a = af evt -- to get the agent-monad apply the event to the agent-behaviour function
-                     --(ret, maf, term) <- runAgentWithEvent a evtReceiver evtTime
-                     ?simulateUntilAux_rhs1_3
+                     --(ret, newEvents, term, maf, newAs) <- runAgentWithEvent a evtReceiver evtTime
+                     ?simulateUntilAux_rhs2
 
 export
 pure : (result : ty) -> 
@@ -272,7 +274,7 @@ export
 schedule : (event : evt) -> 
            (receiver : AgentId) -> 
            (t : Nat) -> 
-           Agent m ty evt
+           Agent m () evt
 schedule = Schedule
 
 export

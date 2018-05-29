@@ -35,10 +35,6 @@ insert key value elem@(Elem key' value' tail)
          LT => Elem key value elem
          _  => Elem key' value' (insert key value tail)
 
-
-merge_rhs : (q'' : SortedQueue (n + (S m)) k v) -> SortedQueue (S (plus n m)) k v
-merge_rhs {m} {n} q'' = rewrite plusCommutative m n in rewrite plusSuccRightSucc m n in q''
-
 export
 merge : Ord k => 
         SortedQueue n k v -> 
@@ -46,9 +42,13 @@ merge : Ord k =>
         SortedQueue (n + m) k v
 merge Empty q = q
 merge (Elem key value tail) q = 
-  let q' = insert key value q
-      q'' = merge tail q'
-  in  merge_rhs q''
+    let q'  = insert key value q
+        q'' = merge tail q'
+    in  proveMergeTailSucc q''
+  where
+    -- NOTE: we don't need a 'sym' here, because: ?
+    proveMergeTailSucc : SortedQueue (n + (S m)) k v -> SortedQueue (S (plus n m)) k v
+    proveMergeTailSucc {n} {m} q = rewrite plusSuccRightSucc n m in q
 
 export
 first : SortedQueue n k v -> Maybe (k, v)
@@ -73,6 +73,9 @@ fromVect ((key, value) :: xs) =
 testVect1 : Vect 4 (Nat, String)
 testVect1 = [(10, "Jonathan"), (2, "Dominik"), (1, "Rafael"), (7, "Wolfgang")]
 
+testVect1' : Vect 4 (Nat, String)
+testVect1' = [(42, "Irmi"), (32, "Ilse"), (1, "Josef"), (3, "Barbara")]
+
 testVect2 : Vect 4 (Nat, (Nat, String))
 testVect2 = [(10, (0, "Jonathan")), (2, (1, "Dominik")), (1, (2, "Rafael")), (7, (3, "Wolfgang"))]
 
@@ -88,3 +91,8 @@ testQueue = do
   let firstElem' = first' q'
   putStrLn $ show firstElem'
   putStrLn $ show q'
+
+  let q1 = fromVect testVect1
+  let q2 = fromVect testVect1'
+  let q3 = merge q1 q2
+  putStrLn $ show q3

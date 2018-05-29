@@ -1,25 +1,31 @@
-module SortedQueue
+module SortedQueueVectMap
 
 import Data.Vect
 
 %default total
 
-export
-data SortedQueue : (n : Nat) -> (k : Type) -> (v : Type) -> Type where
-  Empty : SortedQueue Z k v
-  Elem  : (key : k) -> (value : v) -> (tail : SortedQueue n k v) -> SortedQueue (S n) k v
+-- A sorted queue, with a map concept which maps the
+-- key (k) to a value (v) where the queue is sorted 
+-- according to the keys.
+-- Has the length of the queue in the type, as the
+-- Vect has its length in the type => VectMap
 
 export
-(Show k, Show v) => Show (SortedQueue n k v) where
+data SortedQueueVectMap : (n : Nat) -> (k : Type) -> (v : Type) -> Type where
+  Empty : SortedQueueVectMap Z k v
+  Elem  : (key : k) -> (value : v) -> (tail : SortedQueueVectMap n k v) -> SortedQueueVectMap (S n) k v
+
+export
+(Show k, Show v) => Show (SortedQueueVectMap n k v) where
   show Empty = ""
   show (Elem key value tail) = "(" ++ show key ++ ", " ++ show value ++ ") " ++ show tail
 
 export
-empty : SortedQueue Z k v
+empty : SortedQueueVectMap Z k v
 empty = Empty
 
 export
-singleton : (key : k) -> (value : v) -> SortedQueue 1 k v 
+singleton : (key : k) -> (value : v) -> SortedQueueVectMap 1 k v 
 singleton key value = Elem key value empty
 
 ||| Inserts the value descending according to key
@@ -27,8 +33,8 @@ export
 insert : Ord k => 
          (key : k) ->
          (value : v) -> 
-         SortedQueue n k v -> 
-         SortedQueue (S n) k v 
+         SortedQueueVectMap n k v -> 
+         SortedQueueVectMap (S n) k v 
 insert key value Empty = Elem key value Empty
 insert key value elem@(Elem key' value' tail) 
   = case compare key key' of
@@ -37,9 +43,9 @@ insert key value elem@(Elem key' value' tail)
 
 export
 merge : Ord k => 
-        SortedQueue n k v -> 
-        SortedQueue m k v -> 
-        SortedQueue (n + m) k v
+        SortedQueueVectMap n k v -> 
+        SortedQueueVectMap m k v -> 
+        SortedQueueVectMap (n + m) k v
 merge Empty q = q
 merge (Elem key value tail) q = 
     let q'  = insert key value q
@@ -47,24 +53,24 @@ merge (Elem key value tail) q =
     in  proveMergeTailSucc q''
   where
     -- NOTE: we don't need a 'sym' here, because: ?
-    proveMergeTailSucc : SortedQueue (n + (S m)) k v -> SortedQueue (S (plus n m)) k v
+    proveMergeTailSucc : SortedQueueVectMap (n + (S m)) k v -> SortedQueueVectMap (S (plus n m)) k v
     proveMergeTailSucc {n} {m} q = rewrite plusSuccRightSucc n m in q
 
 export
-first : SortedQueue n k v -> Maybe (k, v)
+first : SortedQueueVectMap n k v -> Maybe (k, v)
 first Empty = Nothing
 first (Elem key value tail) = Just (key, value)
 
 export
-first' : SortedQueue (S n) k v -> (k, v)
+first' : SortedQueueVectMap (S n) k v -> (k, v)
 first' (Elem key value tail) = (key, value)
 
 export
-dropFirst : SortedQueue (S n) k v -> SortedQueue n k v
+dropFirst : SortedQueueVectMap (S n) k v -> SortedQueueVectMap n k v
 dropFirst (Elem key value tail) = tail
 
 export
-fromVect : Ord k => Vect n (k, v) -> SortedQueue n k v
+fromVect : Ord k => Vect n (k, v) -> SortedQueueVectMap n k v
 fromVect [] = Empty
 fromVect ((key, value) :: xs) =
   let q = fromVect xs 

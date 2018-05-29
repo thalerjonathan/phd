@@ -6,7 +6,7 @@ import Debug.Trace
 -- contrib
 import Data.SortedMap
 -- project-local
-import SortedQueue
+import SortedQueueMap
 
 %default total
 
@@ -82,8 +82,8 @@ Show (Agent m a evt) where
   show (Behaviour _) = "Behaviour"
   show MyId = "MyId"
 
-EventQueue : Nat -> (evt : Type) -> Type
-EventQueue n evt = SortedQueue n Nat (AgentId, evt)
+EventQueue : (evt : Type) -> Type
+EventQueue evt = SortedQueueMap Nat (AgentId, evt)
 
 {-
 runAgent : Monad m =>
@@ -159,17 +159,18 @@ runAgentWithEvent : Monad m =>
                     Agent m ty evt -> 
                     (aid : AgentId) ->
                     (t : Nat) ->
-                    m (ty, EventQueue n evt, Bool, Maybe (AgentFunc m ty' evt), List (AgentFunc m ty'' evt))
+                    m (ty, EventQueue evt, Bool, Maybe (AgentFunc m ty' evt), List (AgentFunc m ty'' evt))
 runAgentWithEvent a aid t = runAgentWithEventAux a empty False Nothing []
   where
     runAgentWithEventAux : Monad m =>
                            Agent m ty evt -> 
-                           (events : EventQueue n evt) ->
+                           (events : EventQueue evt) ->
                            (term : Bool) ->
                            (newBeh : Maybe (AgentFunc m ty' evt)) ->
                            (newAs : List (AgentFunc m ty'' evt)) ->
-                           m (ty, EventQueue n evt, Bool, Maybe (AgentFunc m ty' evt), List (AgentFunc m ty'' evt))
+                           m (ty, EventQueue evt, Bool, Maybe (AgentFunc m ty' evt), List (AgentFunc m ty'' evt))
     runAgentWithEventAux (Pure result) events term newBeh newAs
+      -- TODO: need to proof that no events generated => n = n'?
       = pure (result, events, term, newBeh, newAs)
     runAgentWithEventAux (Bind act cont) events term newBeh newAs = do
       --(ret, events', term', newBeh', newAs') <- runAgentWithEventAux act events term newBeh newAs
@@ -212,7 +213,7 @@ simulateUntil tLimit as initEvents =
     in  simulateUntilAux evtQueue Z asMap
   where
     simulateUntilAux : Monad m =>
-                       (events : EventQueue k evt) -> 
+                       (events : EventQueue evt) -> 
                        (t : Nat) ->
                        (SortedMap AgentId (AgentFunc m ty evt)) -> 
                        m SimulationResult 

@@ -6,6 +6,7 @@ import ABSMonad
 
 %default total
 
+{-
 data TestState
   = StateA
   | StateB
@@ -20,7 +21,6 @@ data TestEvents
   = EventA
   | EventB
 
-{-
 partial
 timeInfAgent : (TestAgent m, ConsoleIO m) => 
                (t : Nat) ->
@@ -102,28 +102,60 @@ runTerminatingAgents = do
   putStrLn $ show as'
   -}
 
---testAgentBehaviourA : AgentFunc m () TestEvents
---testAgentBehaviourA evt = ?testAgentBehaviourA_rhs
+-------------------------------------------------------------------------------
+-- PING PONG
+-------------------------------------------------------------------------------
+data PingPongEvents
+  = Ping
+  | Pong
 
-testAgent : (TestAgent m, ConsoleIO m) => 
-            --AgentFunc m () TestEvents
-            TestEvents -> Agent m () TestEvents
-testAgent EventA = do
+ping : ConsoleIO m => 
+       AgentFunc m () PingPongEvents
+ping (sender, Ping) = do
   t <- time
   aid <- myId
-  putStrLn $ "TestAgent " ++ show aid ++ " Handle EventA: t = " ++ show t
-  pure ()
-testAgent EventB = do
+  putStrLn $ "ping " ++ show aid ++ " handle Ping from " ++ show sender ++ ": t = " ++ show t
+  schedule Pong sender 0
+ping _ = pure ()
+
+pong : ConsoleIO m => 
+       AgentFunc m () PingPongEvents
+pong (sender, Pong) = do
   t <- time
   aid <- myId
-  putStrLn $ "TestAgent " ++ show aid ++ " Handle EventB: t = " ++ show t
-  pure ()
+  putStrLn $ "pong " ++ show aid ++ " handle Pong from " ++ show sender ++ ": t = " ++ show t
+  schedule Ping sender 0
+pong _ = pure ()
 
-{-
 partial
-runTestAgent : IO ()
-runTestAgent = do
-  let as = [(0, testAgent)]
-  ret <- simulateUntil 100 as []
+runPingPong : IO ()
+runPingPong = do
+  ret <- simulateUntil 100 100 [(Z, ping), (1, pong)] [(10, (1, 0, Ping))]
   putStrLn $ show ret
--}
+
+-------------------------------------------------------------------------------
+-- SINGLE
+-------------------------------------------------------------------------------
+data SingleAgentEvents
+  = EventA
+  | EventB
+
+singleAgent : ConsoleIO m => 
+              AgentFunc m () SingleAgentEvents
+singleAgent (sender, EventA) = do
+  t <- time
+  aid <- myId
+  putStrLn $ "singleAgent " ++ show aid ++ " handle EventA from " ++ show sender ++ ": t = " ++ show t
+  schedule EventB aid 10
+
+singleAgent (sender, EventB) = do
+  t <- time
+  aid <- myId
+  putStrLn $ "singleAgent " ++ show aid ++ " handle EventB from " ++ show sender ++ ": t = " ++ show t
+  schedule EventA aid 0
+
+partial
+runSingleAgent : IO ()
+runSingleAgent = do
+  ret <- simulateUntil 100 100 [(Z, singleAgent)] [(Z, (0, 0, EventA))]
+  putStrLn $ show ret

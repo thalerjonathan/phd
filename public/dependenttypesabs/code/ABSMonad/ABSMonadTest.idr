@@ -16,91 +16,91 @@ interface TestAgent (m : Type -> Type) where
 
 TestAgent IO where
   foo x = 42
+-}
 
-data TestEvents
-  = EventA
-  | EventB
-
-partial
-timeInfAgent : (TestAgent m, ConsoleIO m) => 
-               (t : Nat) ->
-               Agent m Nat TestEvents
-timeInfAgent t = do
-  putStrLn $ "timeInfAgent: before noOp, t = " ++ show t
-  noOp
-  tSys <- time
-  putStrLn $ "timeInfAgent: time from system = " ++ show tSys
-
-  putStrLn $ "timeInfAgent: before step"
-  step t timeInfAgent
-
--- TODO: make total, by pattern matching?
-partial
-timeLimitAgent : (TestAgent m, ConsoleIO m) => 
-                 (tLimit : Nat) ->
-                 (t : Nat) ->
-                 Agent m Nat TestEvents
-timeLimitAgent tLimit t = do
-  putStrLn $ "timeLimitAgent: before noOp, t = " ++ show t
-  noOp
-  putStrLn $ "timeLimitAgent: before noOp"
-  noOp
-  putStrLn $ "timeLimitAgent: before step"
-
-  case compare t tLimit of
-      LT => step t (timeLimitAgent tLimit)
-      _  => pure t
-
-spawningNumberAgent : (TestAgent m, ConsoleIO m) => 
-                      (n : Nat) ->
-                      (t : Nat) ->
-                      Agent m () TestEvents
-spawningNumberAgent Z t = do
-  putStrLn $ "spawningNumberAgent: finished spawning, t = " ++ show t
-  pure ()
-spawningNumberAgent (S n) t = do
-  putStrLn $ "spawningNumberAgent: before spawn, t = " ++ show t
-  spawn (spawningNumberAgent n t)
-  putStrLn $ "spawningNumberAgent: after spawn, " ++ show n ++ " spawns left"
-  step () (spawningNumberAgent n)
-
-partial
-terminatingAfterAgent : (TestAgent m, ConsoleIO m) => 
-                        AgentId ->
-                        (tLimit : Nat) ->
-                        (t : Nat) ->
-                        Agent m () TestEvents
-terminatingAfterAgent aid tLimit t = do
-  putStrLn $ "terminatingAfterAgent " ++ show aid ++ ": before check, t = " ++ show t
-  case compare t tLimit of
-      LT => do
-        putStrLn $ "terminatingAfterAgent " ++ show aid ++ ": not yet time to terminate..."
-        step () (terminatingAfterAgent aid tLimit)
-      _  => do
-        putStrLn $ "terminatingAfterAgent " ++ show aid ++ ": its time to terminate!"
-        terminate
-
-partial
-runTimeAgents : IO ()
-runTimeAgents = do
-  let as = [(1, timeInfAgent Z)]
-  as' <- simulateUntil 100 as []
-  putStrLn $ show as'
+-------------------------------------------------------------------------------
+-- SPAWNING AGENTS
+-------------------------------------------------------------------------------
+spawning : ConsoleIO m => Nat -> AgentFunc m () ()
+spawning Z (_, ()) = do
+  t <- time
+  aid <- myId
+  putStrLn $ "spawning " ++ show aid ++ ": finished spawning will terminate, t = " ++ show t
+  terminate
+spawning (S n) (_, ()) = do
+  t <- time
+  aid <- myId
+  putStrLn $ "spawning " ++ show aid ++ ": before spawn, t = " ++ show t
+  newAid <- spawn (spawning n)
+  schedule () newAid 1
+  putStrLn $ "spawning " ++ show aid ++ ": after spawn newAid = " ++ show newAid ++ ", " ++ show n ++ " spawns left"
+  behaviour (spawning n)
+  schedule () aid 1
 
 partial
 runSpawningAgents : IO ()
 runSpawningAgents = do
-  let as = [(0, spawningNumberAgent 2 Z)]
-  as' <- simulateUntil 100 as []
-  putStrLn $ show as'
+  ret <- simulateUntil 100 100 [(Z, spawning 2)] [(10, (0, 0, ()))]
+  putStrLn $ show ret
+  
+-------------------------------------------------------------------------------
+-- CHANGING BEHAVIOUR
+-------------------------------------------------------------------------------
+mutual
+  partial
+  behaviourA : ConsoleIO m => AgentFunc m () ()
+  behaviourA (_, ()) = do
+    t <- time
+    aid <- myId
+    putStrLn $ "behaviourA: t = " ++ show t
+    behaviour behaviourB
+    schedule () aid 1
+
+  partial
+  behaviourB : ConsoleIO m => AgentFunc m () ()
+  behaviourB (_, ()) = do
+    t <- time
+    aid <- myId
+    putStrLn $ "behaviourB: t = " ++ show t
+    behaviour behaviourA
+    schedule () aid 10
 
 partial
-runTerminatingAgents : IO ()
-runTerminatingAgents = do
-  let as = [(0, terminatingAfterAgent 0 5 Z), (0, terminatingAfterAgent 1 50 Z)]
-  as' <- simulateUntil 100 as []
-  putStrLn $ show as'
-  -}
+runChangingBehaviour : IO ()
+runChangingBehaviour = do
+  ret <- simulateUntil 100 100 [(Z, behaviourA)] [(10, (0, 0, ()))]
+  putStrLn $ show ret
+
+-------------------------------------------------------------------------------
+-- TERMINATING
+-------------------------------------------------------------------------------
+foreverAgent : ConsoleIO m => 
+               AgentFunc m () ()
+foreverAgent (_, ()) = do
+  t <- time
+  aid <- myId
+  putStrLn $ "foreverAgent: t = " ++ show t
+  schedule () aid 1
+
+terminatingAgent : ConsoleIO m => 
+                   AgentFunc m () ()
+terminatingAgent (_, ()) = do
+  t <- time
+  aid <- myId
+  putStrLn $ "terminatingAgent: t = " ++ show t
+
+  case t > 42 of
+    False => schedule () aid 10
+    True  => do
+      putStrLn $ "terminatingAgent terminate"
+      terminate
+
+partial
+runTerminatingAgent : IO ()
+runTerminatingAgent = do
+  --ret <- simulateUntil 100 100 [(Z, terminatingAgent), (1, foreverAgent)] [(Z, (0, 0, ())), (Z, (1, 1, ()))]
+  ret <- simulateUntil 100 100 [(Z, terminatingAgent)] [(Z, (0, 0, ()))]
+  putStrLn $ show ret
 
 -------------------------------------------------------------------------------
 -- PING PONG
@@ -115,7 +115,7 @@ ping (sender, Ping) = do
   t <- time
   aid <- myId
   putStrLn $ "ping " ++ show aid ++ " handle Ping from " ++ show sender ++ ": t = " ++ show t
-  schedule Pong sender 0
+  schedule Pong sender 0 -- NOTE: can have a time-delay or none
 ping _ = pure ()
 
 pong : ConsoleIO m => 
@@ -124,7 +124,7 @@ pong (sender, Pong) = do
   t <- time
   aid <- myId
   putStrLn $ "pong " ++ show aid ++ " handle Pong from " ++ show sender ++ ": t = " ++ show t
-  schedule Ping sender 0
+  schedule Ping sender 0 -- NOTE: can have a time-delay or none
 pong _ = pure ()
 
 partial

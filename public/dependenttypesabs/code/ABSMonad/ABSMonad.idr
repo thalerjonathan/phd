@@ -16,7 +16,6 @@ AgentId = Nat
 
 mutual
   export
-  -- TODO: enforce that Event has to be the first call
   -- TODO: add time
   data Agent : (m : Type -> Type) -> 
                (ty : Type) ->
@@ -42,21 +41,16 @@ mutual
     ||| Schedules an event to be received by the receiver after t steps
     Schedule : (event : evt) -> (receiver : AgentId) -> (td : Nat) -> Agent m () evt
 
-    -- NOTE: doesnt work like this, nothing protects us from using Step multiple times within an agent, when the first one is happening,
-    -- it will ignore all other step calls after
-    -- ||| Stepping operation: for every time-step run this function, need an a for returning observable data for current step
-    --Step : a -> ((t : Nat) -> Agent m a evt) -> Agent m a evt
-
     ||| Terminate the agent, need an a for returning observable data for current step
     Terminate : Agent m () evt
     ||| Terminate the agent, need an a for returning observable data for current step
-    Spawn : AgentFunc m tyBeh evt -> Agent m () evt
+    Spawn : AgentFunc m tyBeh evt -> Agent m AgentId evt
 
     ||| Just an empty operation, for testing purposes, will be removed in final version
     NoOp : Agent m () evt
 
     ||| behave from now on like the new agent func
-    Behaviour : (af : AgentFunc m tyBeh evt) -> Agent m AgentId evt
+    Behaviour : (af : AgentFunc m tyBeh evt) -> Agent m () evt
 
   -- TODO: define reactive operations, build them on Schedule primitive
   --After : (td : Nat) -> Agent m a (t + td)
@@ -94,37 +88,37 @@ runAgentWithEventAux : Monad m =>
                       (t : Nat) ->
                       (events : EventQueue evt) ->
                       (term : Bool) ->
+                      (nextAid : AgentId) ->
                       (newBeh : Maybe (AgentFunc m tyBeh evt)) ->
                       (newAs : List (AgentId, AgentFunc m tyNew evt)) ->
-                      m (ty, EventQueue evt, Bool, Maybe (AgentFunc m tyBeh evt), List (AgentId, AgentFunc m tyNew evt))
-runAgentWithEventAux (Pure result) aid t events term newBeh newAs
-  = pure (result, events, term, newBeh, newAs)
-runAgentWithEventAux (Bind act cont) aid t events term newBeh newAs = do
-  (ret, events', term', newBeh', newAs') <- runAgentWithEventAux act aid t events term newBeh newAs
-  runAgentWithEventAux (cont ret) aid t (merge events events') (term || term') (newBeh <+> newBeh') (newAs ++ newAs')
-runAgentWithEventAux (Lift act) aid t events term newBeh newAs = do
+                      m (ty, EventQueue evt, Bool, Maybe (AgentFunc m tyBeh evt), List (AgentId, AgentFunc m tyNew evt), AgentId)
+runAgentWithEventAux (Pure result) aid t events term nextAid newBeh newAs
+  = pure (result, events, term, newBeh, newAs, nextAid)
+runAgentWithEventAux (Bind act cont) aid t events term nextAid newBeh newAs = do
+  (ret, events', term', newBeh', newAs', nextAid') <- runAgentWithEventAux act aid t events term nextAid newBeh newAs
+  runAgentWithEventAux (cont ret) aid t (merge events events') (term || term') nextAid' (newBeh <+> newBeh') (newAs ++ newAs')
+runAgentWithEventAux (Lift act) aid t events term nextAid newBeh newAs = do
   ret <- act
-  pure (ret, events, term, newBeh, newAs)
-runAgentWithEventAux Time aid t events term newBeh newAs
-  = pure (t, events, term, newBeh, newAs)
-runAgentWithEventAux MyId aid t events term newBeh newAs
-  = pure (aid, events, term, newBeh, newAs)
-runAgentWithEventAux (Schedule event receiver td) aid t events term newBeh newAs = do
+  pure (ret, events, term, newBeh, newAs, nextAid)
+runAgentWithEventAux Time aid t events term nextAid newBeh newAs
+  = pure (t, events, term, newBeh, newAs, nextAid)
+runAgentWithEventAux MyId aid t events term nextAid newBeh newAs
+  = pure (aid, events, term, newBeh, newAs, nextAid)
+runAgentWithEventAux (Schedule event receiver td) aid t events term nextAid newBeh newAs = do
   let events' = insert (t + td) (aid, receiver, event) events
-  pure ((), events', term, newBeh, newAs)
-runAgentWithEventAux Terminate aid t events term newBeh newAs
-  = pure ((), events, True, newBeh, newAs)
-runAgentWithEventAux (Spawn af) aid t events term newBeh newAs = do
+  pure ((), events', term, newBeh, newAs, nextAid)
+runAgentWithEventAux Terminate aid t events term nextAid newBeh newAs
+  = pure ((), events, True, newBeh, newAs, nextAid)
+runAgentWithEventAux (Spawn af) aid t events term nextAid newBeh newAs = do
   -- TODO: we are cheating here... can we solve it properly?
-  let newAs' = (believe_me af) :: newAs
-  pure ((), events, term, newBeh, newAs')
+  let newAs' = ((nextAid, believe_me af)) :: newAs
+  pure (nextAid, events, term, newBeh, newAs', (S nextAid))
   --?runAgentWithEventAux_rhs_10
-runAgentWithEventAux NoOp aid t events term newBeh newAs
-  = pure ((), events, term, newBeh, newAs)
-runAgentWithEventAux (Behaviour af) aid t events term newBeh newAs
+runAgentWithEventAux NoOp aid t events term nextAid newBeh newAs
+  = pure ((), events, term, newBeh, newAs, nextAid)
+runAgentWithEventAux (Behaviour af) aid t events term nextAid newBeh newAs
   -- TODO: we are cheating here... can we solve it properly?
-  -- TODO: return a new agent-id
-  = pure (aid, events, term, Just (believe_me af), newAs)
+  = pure ((), events, term, Just (believe_me af), newAs, nextAid)
   --= ?runAgentWithEventAux_rhs_11
 
 -- TODO: when the size / type of a return-type is unsure, depends on the input
@@ -137,8 +131,9 @@ runAgentWithEvent : Monad m =>
                     Agent m ty evt -> 
                     (aid : AgentId) ->
                     (t : Nat) ->
-                    m (ty, EventQueue evt, Bool, Maybe (AgentFunc m ty evt), List (AgentId, AgentFunc m ty evt))
-runAgentWithEvent a aid t = runAgentWithEventAux a aid t empty False Nothing []
+                    (nextAid : AgentId) ->
+                    m (ty, EventQueue evt, Bool, Maybe (AgentFunc m ty evt), List (AgentId, AgentFunc m ty evt), AgentId)
+runAgentWithEvent a aid t nextAid = runAgentWithEventAux a aid t empty False nextAid Nothing []
 
 public export
 data SimTermReason 
@@ -185,8 +180,9 @@ simulateUntilAux : Monad m =>
                   (evtCnt : Nat) ->
                   (events : EventQueue evt) -> 
                   (SortedMap AgentId (AgentFunc m ty evt)) -> 
+                  (nextAid : AgentId) ->
                   m SimulationResult
-simulateUntilAux tLimit evtLimit t evtCnt events as = do
+simulateUntilAux tLimit evtLimit t evtCnt events as nextAid = do
   if t >= tLimit
     then pure $ MkSimulationResult t evtCnt TimeLimit
     else if evtCnt >= evtLimit
@@ -197,10 +193,10 @@ simulateUntilAux tLimit evtLimit t evtCnt events as = do
           case lookup evtReceiver as of
             Nothing => do -- receiver not found, ignore event
               let events' = dropFirst events
-              simulateUntilAux tLimit evtLimit evtTime (S evtCnt) events' as
+              simulateUntilAux tLimit evtLimit evtTime (S evtCnt) events' as nextAid
             Just af => do
               let a = af (sender, evt) -- to get the agent-monad apply the event to the agent-behaviour function
-              (ret, newEvents, term, maf, newAs) <- runAgentWithEvent a evtReceiver evtTime
+              (ret, newEvents, term, maf, newAs, nextAid') <- runAgentWithEvent a evtReceiver evtTime nextAid
               let events' = merge (dropFirst events) newEvents
 
               -- TODO: handle observable value of the agent
@@ -210,12 +206,12 @@ simulateUntilAux tLimit evtLimit t evtCnt events as = do
                 True => do
                   let as' = delete evtReceiver as
                   if null as'
-                    then pure $ MkSimulationResult t evtCnt NoAgents -- (_ ** as) -- no agents => simulation terminates
-                    else simulateUntilAux tLimit evtLimit evtTime (S evtCnt) events' as'
+                    then pure $ MkSimulationResult evtTime evtCnt NoAgents -- (_ ** as) -- no agents => simulation terminates
+                    else simulateUntilAux tLimit evtLimit evtTime (S evtCnt) events' as' nextAid'
                 False => do
                   let as' = maybe as (\af => insert evtReceiver af as) maf
                   let as'' = insertFrom newAs as'
-                  simulateUntilAux tLimit evtLimit evtTime (S evtCnt) events' as'
+                  simulateUntilAux tLimit evtLimit evtTime (S evtCnt) events' as'' nextAid'
 
 export partial
 simulateUntil : Monad m =>
@@ -227,7 +223,10 @@ simulateUntil : Monad m =>
 simulateUntil tLimit evtLimit as0 initEvents = 
   let evtQueue = fromVect initEvents
       asMap    = fromList $ toList as0
-  in  simulateUntilAux tLimit evtLimit Z Z evtQueue asMap
+      ks        = sortBy (\x, y => compare y x) $ keys asMap
+  in  case head' ks of
+        Nothing     => pure $ MkSimulationResult Z Z NoAgents
+        Just maxAid => simulateUntilAux tLimit evtLimit Z Z evtQueue asMap (S maxAid)
 
 export
 pure : (result : ty) -> 
@@ -249,7 +248,7 @@ noOp : Agent m () evt
 noOp = NoOp
 
 export
-spawn : AgentFunc m ty evt -> Agent m () evt
+spawn : AgentFunc m ty evt -> Agent m AgentId evt
 spawn = Spawn
 
 export
@@ -270,6 +269,11 @@ schedule = Schedule
 export
 myId : Agent m AgentId evt
 myId = MyId
+
+export
+behaviour : (af : AgentFunc m tyBeh evt) -> 
+            Agent m () evt
+behaviour = Behaviour
 
 --export
 --after : (td : Nat) -> Agent m a (t + td)

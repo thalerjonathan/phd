@@ -11,6 +11,14 @@ import SortedQueueMap
 %default total
 
 public export
+Time : Type
+Time = Nat
+
+public export
+DTime : Type
+DTime = Nat
+
+public export
 AgentId : Type 
 AgentId = Nat
 
@@ -31,7 +39,7 @@ mutual
     Lift : Monad m => m ty -> Agent m ty evt
 
     ||| gets current simulation time
-    Time : Agent m Nat evt
+    Now : Agent m Time evt
 
     ||| gets the agents id
     MyId : Agent m AgentId evt
@@ -39,7 +47,7 @@ mutual
     -- TODO: the existence of an AgentId is not guaranteed and depends on time as agents
     -- can be created and terminated 
     ||| Schedules an event to be received by the receiver after t steps
-    Schedule : (event : evt) -> (receiver : AgentId) -> (td : Nat) -> Agent m () evt
+    Schedule : (event : evt) -> (receiver : AgentId) -> (dt : DTime) -> Agent m () evt
 
     ||| Terminate the agent, need an a for returning observable data for current step
     Terminate : Agent m () evt
@@ -74,18 +82,18 @@ Show (Agent m a evt) where
   show Terminate = "Terminate"
   show (Spawn ag) = "Spawn"
   show NoOp = "NoOp"
-  show Time = "Time"
+  show Now = "Now"
   show (Schedule _ _ _) = "Schedule"
   show (Behaviour _) = "Behaviour"
   show MyId = "MyId"
 
 EventQueue : (evt : Type) -> Type
-EventQueue evt = SortedQueueMap Nat (Event evt)
+EventQueue evt = SortedQueueMap Time (Event evt)
 
 runAgentWithEventAux : Monad m =>
                       Agent m ty evt -> 
                       (aid : AgentId) ->
-                      (t : Nat) ->
+                      (t : Time) ->
                       (events : EventQueue evt) ->
                       (term : Bool) ->
                       (nextAid : AgentId) ->
@@ -100,12 +108,12 @@ runAgentWithEventAux (Bind act cont) aid t events term nextAid newBeh newAs = do
 runAgentWithEventAux (Lift act) aid t events term nextAid newBeh newAs = do
   ret <- act
   pure (ret, events, term, newBeh, newAs, nextAid)
-runAgentWithEventAux Time aid t events term nextAid newBeh newAs
+runAgentWithEventAux Now aid t events term nextAid newBeh newAs
   = pure (t, events, term, newBeh, newAs, nextAid)
 runAgentWithEventAux MyId aid t events term nextAid newBeh newAs
   = pure (aid, events, term, newBeh, newAs, nextAid)
-runAgentWithEventAux (Schedule event receiver td) aid t events term nextAid newBeh newAs = do
-  let events' = insert (t + td) (aid, receiver, event) events
+runAgentWithEventAux (Schedule event receiver dt) aid t events term nextAid newBeh newAs = do
+  let events' = insert (t + dt) (aid, receiver, event) events
   pure ((), events', term, newBeh, newAs, nextAid)
 runAgentWithEventAux Terminate aid t events term nextAid newBeh newAs
   = pure ((), events, True, newBeh, newAs, nextAid)
@@ -130,7 +138,7 @@ runAgentWithEventAux (Behaviour af) aid t events term nextAid newBeh newAs
 runAgentWithEvent : Monad m =>
                     Agent m ty evt -> 
                     (aid : AgentId) ->
-                    (t : Nat) ->
+                    (t : Time) ->
                     (nextAid : AgentId) ->
                     m (ty, EventQueue evt, Bool, Maybe (AgentFunc m ty evt), List (AgentId, AgentFunc m ty evt), AgentId)
 runAgentWithEvent a aid t nextAid = runAgentWithEventAux a aid t empty False nextAid Nothing []
@@ -142,13 +150,14 @@ data SimTermReason
   | NoEvents
   | NoAgents
 
-export
+public export
 record SimulationResult where
   constructor MkSimulationResult
   --agents : (n' ** Vect n' (AgentId, AgentFunc m ty evt))
   termTime     : Nat
   termEvtCount : Nat
   termReason   : SimTermReason
+  agentOuts    : List (Time, AgentId, ty)
 
 export
 Show SimTermReason where
@@ -159,7 +168,7 @@ Show SimTermReason where
 
 export
 Show SimulationResult where
-  show (MkSimulationResult termTime termEvtCount termReason)
+  show (MkSimulationResult termTime termEvtCount termReason agentOuts)
     = "Simulation terminated: " ++ show termReason ++ 
       "\n   termTime = " ++ show termTime ++ 
       "\n   termEvtCount = " ++ show termEvtCount
@@ -174,59 +183,68 @@ Show SimulationResult where
 -- time will never advance.
 partial
 simulateUntilAux : Monad m =>
-                  (tLimit : Nat) ->
+                  (tLimit : Time) ->
                   (evtLimit : Nat) ->
-                  (t : Nat) ->
+                  (t : Time) ->
                   (evtCnt : Nat) ->
                   (events : EventQueue evt) -> 
-                  (SortedMap AgentId (AgentFunc m ty evt)) -> 
+                  (as : SortedMap AgentId (AgentFunc m ty evt)) -> 
                   (nextAid : AgentId) ->
+                  (aos : List (Time, AgentId, ty)) ->
                   m SimulationResult
-simulateUntilAux tLimit evtLimit t evtCnt events as nextAid = do
+simulateUntilAux tLimit evtLimit t evtCnt events as nextAid aos = do
   if t >= tLimit
-    then pure $ MkSimulationResult t evtCnt TimeLimit
+    then pure $ MkSimulationResult t evtCnt TimeLimit aos
     else if evtCnt >= evtLimit
-      then pure $ MkSimulationResult t evtCnt EventLimit
+      then pure $ MkSimulationResult t evtCnt EventLimit aos
       else case first events of
-        Nothing => pure $ MkSimulationResult t evtCnt NoEvents -- (_ ** as) -- no events => simulation terminates
+        Nothing => pure $ MkSimulationResult t evtCnt NoEvents aos -- (_ ** as) -- no events => simulation terminates
         Just (evtTime, (sender, evtReceiver, evt)) => do
+          let t' = evtTime
           case lookup evtReceiver as of
             Nothing => do -- receiver not found, ignore event
               let events' = dropFirst events
-              simulateUntilAux tLimit evtLimit evtTime (S evtCnt) events' as nextAid
+              simulateUntilAux tLimit evtLimit t' (S evtCnt) events' as nextAid aos
             Just af => do
               let a = af (sender, evt) -- to get the agent-monad apply the event to the agent-behaviour function
-              (ret, newEvents, term, maf, newAs, nextAid') <- runAgentWithEvent a evtReceiver evtTime nextAid
+              (ret, newEvents, term, maf, newAs, nextAid') <- runAgentWithEvent a evtReceiver t' nextAid
               let events' = merge (dropFirst events) newEvents
-
-              -- TODO: handle observable value of the agent
+              let aos' = (t', evtReceiver, ret) :: aos
 
               case term of 
                 -- terminate agent and ignore new behaviour
                 True => do
                   let as' = delete evtReceiver as
                   if null as'
-                    then pure $ MkSimulationResult evtTime evtCnt NoAgents -- (_ ** as) -- no agents => simulation terminates
-                    else simulateUntilAux tLimit evtLimit evtTime (S evtCnt) events' as' nextAid'
+                    then pure $ MkSimulationResult t' evtCnt NoAgents aos -- (_ ** as) -- no agents => simulation terminates
+                    else simulateUntilAux tLimit evtLimit t' (S evtCnt) events' as' nextAid' aos'
                 False => do
                   let as' = maybe as (\af => insert evtReceiver af as) maf
                   let as'' = insertFrom newAs as'
-                  simulateUntilAux tLimit evtLimit evtTime (S evtCnt) events' as'' nextAid'
+                  simulateUntilAux tLimit evtLimit t' (S evtCnt) events' as'' nextAid' aos'
+
+emptyObs : List (AgentId, ty)
+emptyObs = []
 
 export partial
 simulateUntil : Monad m =>
-                (tLimit : Nat) ->
+                (tLimit : Time) ->
                 (evtLimit : Nat) -> 
-                Vect n (AgentId, AgentFunc m tyBeh evt) ->
-                Vect k (Nat, Event evt) -> 
+                (initAgents : Vect n (AgentId, AgentFunc m ty evt)) ->
+                (initEvents : Vect k (Time, Event evt)) -> 
                 m SimulationResult
-simulateUntil tLimit evtLimit as0 initEvents = 
-  let evtQueue = fromVect initEvents
-      asMap    = fromList $ toList as0
-      ks        = sortBy (\x, y => compare y x) $ keys asMap
-  in  case head' ks of
-        Nothing     => pure $ MkSimulationResult Z Z NoAgents
-        Just maxAid => simulateUntilAux tLimit evtLimit Z Z evtQueue asMap (S maxAid)
+simulateUntil {ty} tLimit evtLimit initAgents initEvents = do
+    let events0 = fromVect initEvents
+    let as0     = fromList $ toList initAgents
+    let ks      = sortBy (\x, y => compare y x) $ keys as0
+    case head' ks of
+      Nothing     => do
+        -- let aos = the (List (AgentId, ty)) (cast emptyObs)
+        --pure $ MkSimulationResult Z Z NoAgents aos --(believe_me emptyObs)
+        -- TODO: fix this hole! I am desperate, I have no clue why the above
+        -- cast is not working, also passing an empty list does not work as well
+        ?should_never_happen_but_needs_to_be_fixed
+      Just maxAid => simulateUntilAux tLimit evtLimit Z Z events0 as0 (S maxAid) []
 
 export
 pure : (result : ty) -> 
@@ -256,13 +274,13 @@ terminate : Agent m () evt
 terminate = Terminate
 
 export
-time : Agent m Nat evt
-time = Time
+now : Agent m Time evt
+now = Now
 
 export
 schedule : (event : evt) -> 
            (receiver : AgentId) -> 
-           (t : Nat) -> 
+           (dt : DTime) -> 
            Agent m () evt
 schedule = Schedule
 

@@ -18,17 +18,19 @@ TestAgent IO where
   foo x = 42
 -}
 
+
+
 -------------------------------------------------------------------------------
 -- SPAWNING AGENTS
 -------------------------------------------------------------------------------
 spawning : ConsoleIO m => Nat -> AgentFunc m () ()
 spawning Z (_, ()) = do
-  t <- time
+  t <- now
   aid <- myId
   putStrLn $ "spawning " ++ show aid ++ ": finished spawning will terminate, t = " ++ show t
   terminate
 spawning (S n) (_, ()) = do
-  t <- time
+  t <- now
   aid <- myId
   putStrLn $ "spawning " ++ show aid ++ ": before spawn, t = " ++ show t
   newAid <- spawn (spawning n)
@@ -48,28 +50,39 @@ runSpawningAgents = do
 -------------------------------------------------------------------------------
 mutual
   partial
-  behaviourA : ConsoleIO m => AgentFunc m () ()
-  behaviourA (_, ()) = do
-    t <- time
+  behaviourA : ConsoleIO m => Nat -> AgentFunc m Nat ()
+  behaviourA count (_, ()) = do
+    t <- now
     aid <- myId
     putStrLn $ "behaviourA: t = " ++ show t
-    behaviour behaviourB
+    behaviour (behaviourB count)
     schedule () aid 1
+    pure count
 
   partial
-  behaviourB : ConsoleIO m => AgentFunc m () ()
-  behaviourB (_, ()) = do
-    t <- time
+  behaviourB : ConsoleIO m => Nat -> AgentFunc m Nat ()
+  behaviourB count (_, ()) = do
+    t <- now
     aid <- myId
     putStrLn $ "behaviourB: t = " ++ show t
-    behaviour behaviourA
+    behaviour (behaviourA (S count))
     schedule () aid 10
+    pure count
+
+printAgentOuts : List (Time, AgentId, Nat) -> IO ()
+printAgentOuts [] = pure ()
+printAgentOuts ((t, aid, v) :: aos) = do
+  putStrLn $ show t ++ "," ++ show aid ++ "," ++ show v
+  printAgentOuts aos
 
 partial
 runChangingBehaviour : IO ()
 runChangingBehaviour = do
-  ret <- simulateUntil 100 100 [(Z, behaviourA)] [(10, (0, 0, ()))]
+  ret <- simulateUntil 100 100 [(Z, behaviourA 42)] [(10, (0, 0, ()))]
   putStrLn $ show ret
+  let aos = agentOuts ret
+  -- TODO: how can we get rid of believe_me ?
+  printAgentOuts (believe_me $ reverse $ agentOuts ret)
 
 -------------------------------------------------------------------------------
 -- TERMINATING
@@ -77,7 +90,7 @@ runChangingBehaviour = do
 foreverAgent : ConsoleIO m => 
                AgentFunc m () ()
 foreverAgent (_, ()) = do
-  t <- time
+  t <- now
   aid <- myId
   putStrLn $ "foreverAgent: t = " ++ show t
   schedule () aid 1
@@ -85,7 +98,7 @@ foreverAgent (_, ()) = do
 terminatingAgent : ConsoleIO m => 
                    AgentFunc m () ()
 terminatingAgent (_, ()) = do
-  t <- time
+  t <- now
   aid <- myId
   putStrLn $ "terminatingAgent: t = " ++ show t
 
@@ -112,19 +125,19 @@ data PingPongEvents
 ping : ConsoleIO m => 
        AgentFunc m () PingPongEvents
 ping (sender, Ping) = do
-  t <- time
+  t <- now
   aid <- myId
   putStrLn $ "ping " ++ show aid ++ " handle Ping from " ++ show sender ++ ": t = " ++ show t
-  schedule Pong sender 0 -- NOTE: can have a time-delay or none
+  schedule Pong sender 0 -- NOTE: can have a now-delay or none
 ping _ = pure ()
 
 pong : ConsoleIO m => 
        AgentFunc m () PingPongEvents
 pong (sender, Pong) = do
-  t <- time
+  t <- now
   aid <- myId
   putStrLn $ "pong " ++ show aid ++ " handle Pong from " ++ show sender ++ ": t = " ++ show t
-  schedule Ping sender 0 -- NOTE: can have a time-delay or none
+  schedule Ping sender 0 -- NOTE: can have a now-delay or none
 pong _ = pure ()
 
 partial
@@ -143,13 +156,13 @@ data SingleAgentEvents
 singleAgent : ConsoleIO m => 
               AgentFunc m () SingleAgentEvents
 singleAgent (sender, EventA) = do
-  t <- time
+  t <- now
   aid <- myId
   putStrLn $ "singleAgent " ++ show aid ++ " handle EventA from " ++ show sender ++ ": t = " ++ show t
   schedule EventB aid 10
 
 singleAgent (sender, EventB) = do
-  t <- time
+  t <- now
   aid <- myId
   putStrLn $ "singleAgent " ++ show aid ++ " handle EventB from " ++ show sender ++ ": t = " ++ show t
   schedule EventA aid 0

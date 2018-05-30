@@ -12,6 +12,7 @@ data TestState
 
 interface TestAgent (m : Type -> Type) where
   foo : Int -> Int
+
 TestAgent IO where
   foo x = 42
 
@@ -19,6 +20,7 @@ data TestEvents
   = EventA
   | EventB
 
+{-
 partial
 timeInfAgent : (TestAgent m, ConsoleIO m) => 
                (t : Nat) ->
@@ -82,19 +84,46 @@ partial
 runTimeAgents : IO ()
 runTimeAgents = do
   let as = [(1, timeInfAgent Z)]
-  as' <- runAgentsUntil 100 as
+  as' <- simulateUntil 100 as []
   putStrLn $ show as'
 
 partial
 runSpawningAgents : IO ()
 runSpawningAgents = do
   let as = [(0, spawningNumberAgent 2 Z)]
-  as' <- runAgentsUntil 100 as
+  as' <- simulateUntil 100 as []
   putStrLn $ show as'
 
 partial
 runTerminatingAgents : IO ()
 runTerminatingAgents = do
   let as = [(0, terminatingAfterAgent 0 5 Z), (0, terminatingAfterAgent 1 50 Z)]
-  as' <- runAgentsUntil 100 as
+  as' <- simulateUntil 100 as []
   putStrLn $ show as'
+  -}
+
+--testAgentBehaviourA : AgentFunc m () TestEvents
+--testAgentBehaviourA evt = ?testAgentBehaviourA_rhs
+
+testAgent : (TestAgent m, ConsoleIO m) => 
+            --AgentFunc m () TestEvents
+            TestEvents -> Agent m () TestEvents
+testAgent EventA = do
+  t <- time
+  aid <- myId
+  putStrLn $ "TestAgent " ++ show aid ++ " Handle EventA: t = " ++ show t
+  pure ()
+testAgent EventB = do
+  t <- time
+  aid <- myId
+  putStrLn $ "TestAgent " ++ show aid ++ " Handle EventB: t = " ++ show t
+  pure ()
+
+{-
+partial
+runTestAgent : IO ()
+runTestAgent = do
+  let as = [(0, testAgent)]
+  ret <- simulateUntil 100 as []
+  putStrLn $ show ret
+-}

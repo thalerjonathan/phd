@@ -66,6 +66,10 @@ fromVect ((key, value) :: xs) =
   let q = fromVect xs 
   in  insert key value q
 
+export
+insertFrom : (Foldable f, Ord k) => f (k, v) -> SortedQueueMap k v -> SortedQueueMap k v
+insertFrom = flip $ foldl $ flip $ uncurry insert -- taken from SortedMap
+
 testVect1 : Vect 4 (Nat, String)
 testVect1 = [(10, "Jonathan"), (2, "Dominik"), (1, "Rafael"), (7, "Wolfgang")]
 

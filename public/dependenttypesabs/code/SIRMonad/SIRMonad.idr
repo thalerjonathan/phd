@@ -7,35 +7,63 @@ import Random
 
 %default total
 
-Time : Type
-Time = Nat
+infectivity : Double
+infectivity = 0.05
 
-DTime : Type
-DTime = Nat
+contactRate : Double
+contactRate = 5.0
+
+illnessDuration : Double
+illnessDuration = 15.0
 
 data SIRState
   = Susceptible
   | Infected
   | Recovered
 
+Show SIRState where
+  show Susceptible = "Susceptible"
+  show Infected    = "Infected"
+  show Recovered   = "Recovered"
+
+||| An evidence of having made contact with another agent
+-- TODO: this should be only valid for the current time-step
+-- is opaque, so not possible to create
+data SIRContact : Type where
+  ContactWith : SIRState -> SIRContact
+
+Show SIRContact where
+  show (ContactWith s) = "ContactWith " ++ show s
+
+-- TODO: add time to type and encode recovery after time
+-- TODO: add environment boundaries to type and encode coordinates
 data SIRAgent : (m : Type -> Type) -> 
                 (ty : Type) ->
                 SIRState -> 
                 (ty -> SIRState) -> Type where
 
-  Pure : (ret : ty) -> SIRAgent m ty pre (const post)
+  -- BOILERPLATE operations
+  ||| Monadic operations Pure and Bind for sequencing operations 
+  Pure : (ret : ty) -> SIRAgent m ty (postFn ret) postFn
   Bind : SIRAgent m a pre postFn1 -> 
           ((ret : a) -> SIRAgent m b (postFn1 ret) postFn2) ->
           SIRAgent m b pre postFn2
+  ||| Lifting an action of the underlying computational contex into the agent monad
+  Lift : Monad m => m ty -> SIRAgent m ty pre (const pre)
 
+  -- RANDOM operations
   ||| Draws a random boolean from uniform distribution
-  RandomBool : (p : Double) -> SIRAgent m Bool pre (const post)
+  RandomBool : (p : Double) -> SIRAgent m Bool pre (const pre)
   ||| Draws a random from exponential distribution
-  RandomExp : (lambda : Double) -> SIRAgent m Double pre (const post)
+  RandomExp : (lambda : Double) -> SIRAgent m Double pre (const pre)
   ||| Draws a random element from a non-empty vector
-  RandomElem : Vect (S n) elem -> SIRAgent m elem pre (const post)
+  RandomElem : Vect (S n) elem -> SIRAgent m elem pre (const pre)
 
-pure : (ret : ty) -> SIRAgent m ty pre (const post)
+  -- DOMAIN SPECIFIC operations
+  ||| Making contact with another agent. Note there will be always another agent, because there is always at least one agent: self
+  MakeContact : SIRAgent m SIRContact Susceptible (const Susceptible)
+
+pure : (ret : ty) -> SIRAgent m ty (postFn ret) postFn
 pure = Pure
 
 (>>=) : SIRAgent m a pre postFn1 -> 
@@ -43,14 +71,20 @@ pure = Pure
         SIRAgent m b pre postFn2
 (>>=) = Bind
 
-randomBool : (p : Double) -> SIRAgent m Bool pre (const post)
+lift : Monad m => m ty -> SIRAgent m ty pre (const pre)
+lift = Lift
+
+randomBool : (p : Double) -> SIRAgent m Bool pre (const pre)
 randomBool = RandomBool
 
-randomExp : (lambda : Double) -> SIRAgent m Double pre (const post)
+randomExp : (lambda : Double) -> SIRAgent m Double pre (const pre)
 randomExp = RandomExp
 
-randomElem : Vect (S n) elem -> SIRAgent m elem pre (const post)
+randomElem : Vect (S n) elem -> SIRAgent m elem pre (const pre)
 randomElem = RandomElem
+
+makeContact : SIRAgent m SIRContact Susceptible (const Susceptible)
+makeContact = MakeContact
 
 runSIRAgent : Monad m => 
               SIRAgent m ty pre postFn -> 
@@ -61,6 +95,9 @@ runSIRAgent (Pure ret) rs
 runSIRAgent (Bind act cont) rs = do
   (ret', rs') <- runSIRAgent act rs
   runSIRAgent (cont ret') rs'
+runSIRAgent (Lift act) rs = do
+  ret <- act
+  pure (ret, rs)
 runSIRAgent (RandomBool p) rs = do
   let (r, rs') = randomBool rs p
   pure (r, rs')
@@ -70,13 +107,79 @@ runSIRAgent (RandomExp lambda) rs = do
 runSIRAgent (RandomElem xs) rs = do
   let (r, rs') = randomElem rs xs
   pure (r, rs')
+runSIRAgent MakeContact rs = do
+  -- TODO: pick randomly from all agents
+  pure (ContactWith Infected, rs)
 
-susceptible : SIRAgent m Bool Susceptible (\inf => case inf of 
+-------------------------------------------------------------------------------
+-- The obligatory ConsoleIO interface for easy debugging
+--   only supports printing of strings, no input!
+-------------------------------------------------------------------------------
+interface ConsoleIO (m : Type -> Type) where
+  putStr : String -> SIRAgent m () pre (const pre)
+
+ConsoleIO IO where
+  putStr str = lift $ putStrLn str
+
+putStrLn : ConsoleIO m => String -> SIRAgent m () pre (const pre)
+putStrLn str = putStr (str ++ "\n")
+-------------------------------------------------------------------------------
+
+susceptible : ConsoleIO m =>
+              SIRAgent m Bool Susceptible (\inf => case inf of 
                                                       True  => Infected
                                                       False => Susceptible)
 susceptible = do
-  pure True
-  ?susceptible_rhs
+    r <- randomExp (1 / contactRate)
+    putStrLn $ "r = " ++ show r
+
+    let numCont = fromIntegerNat $ cast r
+    putStrLn $ "numCont = " ++ show numCont
+    
+    --ret <- contact numCont
+
+    c <- makeContact
+    putStrLn $ show c
+
+    case c of
+      ContactWith Infected => do
+        inf <- randomBool infectivity
+        putStrLn $ show "infected: " ++ show inf
+      
+        case inf of
+          True  => pure True
+          False => pure False -- contact k
+      ContactWith _ => pure False -- contact k
+
+    ?susceptible_rhs
+    --pure False
+
+  where
+    contact : ConsoleIO m =>
+              Nat -> 
+              SIRAgent m Bool Susceptible (\inf => case inf of 
+                                                      True  => Infected
+                                                      False => Susceptible)
+    contact Z     = pure False
+    contact (S k) = do
+      c <- makeContact
+      putStrLn $ show c
+
+      case c of
+        ContactWith Infected => do
+          inf <- randomBool infectivity
+          putStrLn $ show "infected: " ++ show inf
+        
+          case inf of
+            True  => pure False
+            False => pure False -- contact k
+        ContactWith _ => pure False -- contact k
+
+runSIR : IO ()
+runSIR = do
+  let rs = randoms 42
+  (ret, rs') <- runSIRAgent (susceptible) rs
+  putStrLn $ show ret
 
 {-
 runAgentWithEventAux : Monad m =>

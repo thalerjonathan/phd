@@ -1,8 +1,8 @@
-module ABSMonadTest
+module ABSMonadTestEventDriven
 
 import Data.Vect 
 
-import ABSMonad
+import ABSMonadEventDriven
 
 %default total
 
@@ -18,12 +18,10 @@ TestAgent IO where
   foo x = 42
 -}
 
-
-
 -------------------------------------------------------------------------------
 -- SPAWNING AGENTS
 -------------------------------------------------------------------------------
-spawning : ConsoleIO m => Nat -> AgentFunc m () ()
+spawning : ConsoleIO m => Nat -> AgentBehaviour m () ()
 spawning Z (_, ()) = do
   t <- now
   aid <- myId
@@ -50,7 +48,7 @@ runSpawningAgents = do
 -------------------------------------------------------------------------------
 mutual
   partial
-  behaviourA : ConsoleIO m => Nat -> AgentFunc m Nat ()
+  behaviourA : ConsoleIO m => Nat -> AgentBehaviour m Nat ()
   behaviourA count (_, ()) = do
     t <- now
     aid <- myId
@@ -60,7 +58,7 @@ mutual
     pure count
 
   partial
-  behaviourB : ConsoleIO m => Nat -> AgentFunc m Nat ()
+  behaviourB : ConsoleIO m => Nat -> AgentBehaviour m Nat ()
   behaviourB count (_, ()) = do
     t <- now
     aid <- myId
@@ -88,7 +86,7 @@ runChangingBehaviour = do
 -- TERMINATING
 -------------------------------------------------------------------------------
 foreverAgent : ConsoleIO m => 
-               AgentFunc m () ()
+               AgentBehaviour m () ()
 foreverAgent (_, ()) = do
   t <- now
   aid <- myId
@@ -96,7 +94,7 @@ foreverAgent (_, ()) = do
   schedule () aid 1
 
 terminatingAgent : ConsoleIO m => 
-                   AgentFunc m () ()
+                   AgentBehaviour m () ()
 terminatingAgent (_, ()) = do
   t <- now
   aid <- myId
@@ -123,7 +121,7 @@ data PingPongEvents
   | Pong
 
 ping : ConsoleIO m => 
-       AgentFunc m () PingPongEvents
+       AgentBehaviour m () PingPongEvents
 ping (sender, Ping) = do
   t <- now
   aid <- myId
@@ -132,7 +130,7 @@ ping (sender, Ping) = do
 ping _ = pure ()
 
 pong : ConsoleIO m => 
-       AgentFunc m () PingPongEvents
+       AgentBehaviour m () PingPongEvents
 pong (sender, Pong) = do
   t <- now
   aid <- myId
@@ -154,7 +152,7 @@ data SingleAgentEvents
   | EventB
 
 singleAgent : ConsoleIO m => 
-              AgentFunc m () SingleAgentEvents
+              AgentBehaviour m () SingleAgentEvents
 singleAgent (sender, EventA) = do
   t <- now
   aid <- myId

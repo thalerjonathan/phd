@@ -34,7 +34,36 @@ show formally that abs does resemble the sd approach: need an idea of a proof an
 %
 %can we also emulate SD in Idris and formulate positive/negative feedback loops in types?
 
-\subsection{A constructive proof of totality}
+\subsection{Environment Access}
+OK: we have solved this basically in our prototyping
+
+Accessing the environment in section \ref{sec:step5_environment} involves indexed array access which is always potentially dangerous as the indices have to be checked at run-time. 
+
+\subsection{State Transitions}
+TODO: is currently under research in our prototyping
+
+In the SIR implementation one could make wrong state-transitions e.g. when an infected agent should recover, nothing prevents one from making the transition back to susceptible. 
+	
+\subsection{Time-Dependent Behaviour}
+TODO: is currently under research in our prototyping
+
+An infected agent recovers after a given time - the transition of infected to recovered is a timed transition. Nothing prevents us from \textit{never} doing the transition at all. 
+	
+\subsection{Safe Agent-Interaction}
+TODO: is currently under research in our prototyping
+
+In more sophisticated models agents interact in more complex ways with each other e.g. through message exchange using agent IDs to identify target agents. The existence of an agent is not guaranteed and depends on the simulation time because agents can be created or terminated at any point during simulation. 
+
+\subsection{Interaction Protocolls}
+TODO: is currently under research in our prototyping
+
+TODO: does this occur in SIR?
+	
+\subsection{Totality}
+TODO: is currently under research in our prototyping
+
+In our implementation, we terminate the SIR model always after a fixed number of time-steps. We can informally reason that restricting the simulation to a fixed number of time-steps is not necessary because the SIR model \textit{has to} reach a steady state after a finite number of steps. This means that at that point the dynamics won't change any more, thus one can safely terminate the simulation. Informally speaking, the reason for that is that eventually the system will run out of infected agents, which are the drivers of the dynamic. We know that all infected agents will recover after a finite number of time-steps \textit{and} that there is only a finite source for infected agents which is monotonously decreasing. 
+
 The idea is to implement a total agent-based SIR simulation, where the termination does NOT depend on time (is not terminated after a finite number of time-steps, which would be trivial). The dynamics of the system-dynamics SIR model are in equilibrium (won't change anymore) when the infected stock is 0. This can (probably) be shown formally but intuitionistic it is clear because only infected agents can lead to infections of susceptible agents which then make the transition to recovered after having gone through the infection phase. Thus an agent-based implementation of the SIR simulation has to terminate if it is implemented correctly because all infected agents will recover after a finite number of steps after then the dynamics will be in equilibrium.
 Thus we need to 'tell' the type-checker the following:
 1) no more infected agents is the termination criterion

@@ -60,6 +60,35 @@ using dependent types to specify the general commands available for an agent. he
 dependent state machines in abs for internal state because that is very Common in ABS. Here we can draw inspiration from the paper \cite{brady_state_2016} and book \cite{brady_type-driven_2017}.
 
 \subsection{Environment}
+
+\subsection{Dependent Agent Interactions}
+\subsubsection{Agent Transactions}
+dependently typed message protocols in ABS because its very common, and easily done thorugh methods in OOP: sugarscape mating and trading protocol
+using a DSEL \cite{brady_correct-by-construction_2010} to restrict the available primitives in the message protocol?
+
+\subsubsection{Data Flow}
+TODO: can dependent types be used in the Data Flow Mechanism?
+\subsubsection{Event Scheduling}
+TODO: can dependent types be used in the event-scheduling mechanism?
+
+\subsection{Flow Of Time}
+TODO: can dependent types be used to express the flow of time and its strongly monotonic increasing?
+
+\subsection{Totality}
+totality of parts or the whole simulation e.g. in case of the SIR model we can informally reason that the simulation MUST reach an equilibrium (a steady state from which there is no escape: the dynamics wont't change anymore, derivations are 0) after a finite number of steps. if we can construct a total program which expresses this, we have a formal proof of that which is 1) a specification of the model 2) generates the dynamics 3) is a proof that it reaches equilibrium
+
+\subsection{Constructive Proofs}
+- An agent-based model and the simulated dynamics of it is itself a constructive proof which explain a real-world phenomenon sufficiently good
+- proof of the existence of an agent: holds always only for the current time-step or for all time, depending on the model. e.g. in the SIR model no agents are removed from / added to the system thus a proof holds for all time. In sugarscape agents are removed / added dynamically so a proof might become invalid after a time or one can construct a proof only from a given time on e.g. when one wants to prove that agent X exists but agent X is only created at time t then before time t the prove cannot be constructed and is uninhabited and only inhabited from time t on.
+- 
+
+\subsection{Environment Access}
+OK: we have solved this basically in our prototyping
+
+Accessing the environment in section \ref{sec:step5_environment} involves indexed array access which is always potentially dangerous as the indices have to be checked at run-time. 
+
+Using dependent types it should be possible to encode the environment dimensions into the types. In combination with suitable data types for coordinates one should be able to ensure already at compile time that access happens only within the bounds of the environment.
+
 One of the main advantages of Agent-Based Simulation over other simulation methods e.g. System Dynamics is that agents can live within an environment. Many agent-based models place their agents within a 2D discrete NxM environment where agents either stay always on the same cell or can move freely within the environment where a cell has 0, 1 or many occupants. Ultimately this boils down to accessing a NxM matrix represented by arrays or a similar data structure. In imperative languages accessing memory always implies the danger of out-of-bounds exceptions \textit{at run-time}. With dependent types we can represent such a 2d environment using vectors which carry their length in the type (TODO: discuss them in background) thus fixing the dimensions of such a 2D discrete environment in the types. This means that there is no need to drag those bounds around explicitly as data. Also by using dependent types like Fin which depend on the dimensions we can enforce at compile time that we can only access the data structure within bounds. If we want to we can also enforce in the types that the environment will never be an empty one where N, M > 0.
 
 \begin{minted}{haskell}
@@ -135,23 +164,36 @@ filterNeighbourhood {w} {h} (MkDisc2dCoords x y) ns env =
                                    in  (_ ** ((coord, c) :: ret)))
 \end{minted}
 
-\subsection{Dependent Agent Interactions}
-\subsubsection{Agent Transactions}
-dependently typed message protocols in ABS because its very common, and easily done thorugh methods in OOP: sugarscape mating and trading protocol
-using a DSEL \cite{brady_correct-by-construction_2010} to restrict the available primitives in the message protocol?
 
-\subsubsection{Data Flow}
-TODO: can dependent types be used in the Data Flow Mechanism?
-\subsubsection{Event Scheduling}
-TODO: can dependent types be used in the event-scheduling mechanism?
+\subsection{State Transitions}
+TODO: is currently under research in our prototyping
 
-\subsection{Flow Of Time}
-TODO: can dependent types be used to express the flow of time and its strongly monotonic increasing?
+In the SIR implementation one could make wrong state-transitions e.g. when an infected agent should recover, nothing prevents one from making the transition back to susceptible. 
+	
+Using dependent types it might be possible to encode invariants and state-machines on the type level which can prevent such invalid transitions already at compile time. This would be a huge benefit for ABS because many agent-based models define their agents in terms of state-machines.
+	
+\subsection{Time-Dependent Behaviour}
+TODO: is currently under research in our prototyping
 
+An infected agent recovers after a given time - the transition of infected to recovered is a timed transition. Nothing prevents us from \textit{never} doing the transition at all. 
+	
+With dependent types we might be able to encode the passing of time in the types and guarantee on a type level that an infected agent has to recover after a finite number of time steps.
+	
+\subsection{Safe Agent-Interaction}
+TODO: is currently under research in our prototyping
+
+In more sophisticated models agents interact in more complex ways with each other e.g. through message exchange using agent IDs to identify target agents. The existence of an agent is not guaranteed and depends on the simulation time because agents can be created or terminated at any point during simulation. 
+	
+Dependent types could be used to implement agent IDs as a proof that an agent with the given id exists \textit{at the current time-step}. This also implies that such a proof cannot be used in the future, which is prevented by the type system as it is not safe to assume that the agent will still exist in the next step.
+
+\subsection{Interaction Protocolls}
+TODO: is currently under research in our prototyping
+
+Using dependent types we should be able to encode a protocol for agent-interactions which e.g. ensures on the type-level that an agent has to reply to a request or that a more specific protocol has to be followed e.g. in auction- or trading-simulations.
+	
 \subsection{Totality}
-totality of parts or the whole simulation e.g. in case of the SIR model we can informally reason that the simulation MUST reach an equilibrium (a steady state from which there is no escape: the dynamics wont't change anymore, derivations are 0) after a finite number of steps. if we can construct a total program which expresses this, we have a formal proof of that which is 1) a specification of the model 2) generates the dynamics 3) is a proof that it reaches equilibrium
+TODO: is currently under research in our prototyping
 
-\subsection{Constructive Proofs}
-- An agent-based model and the simulated dynamics of it is itself a constructive proof which explain a real-world phenomenon sufficiently good
-- proof of the existence of an agent: holds always only for the current time-step or for all time, depending on the model. e.g. in the SIR model no agents are removed from / added to the system thus a proof holds for all time. In sugarscape agents are removed / added dynamically so a proof might become invalid after a time or one can construct a proof only from a given time on e.g. when one wants to prove that agent X exists but agent X is only created at time t then before time t the prove cannot be constructed and is uninhabited and only inhabited from time t on.
-- 
+In our implementation, we terminate the SIR model always after a fixed number of time-steps. We can informally reason that restricting the simulation to a fixed number of time-steps is not necessary because the SIR model \textit{has to} reach a steady state after a finite number of steps. This means that at that point the dynamics won't change any more, thus one can safely terminate the simulation. Informally speaking, the reason for that is that eventually the system will run out of infected agents, which are the drivers of the dynamic. We know that all infected agents will recover after a finite number of time-steps \textit{and} that there is only a finite source for infected agents which is monotonously decreasing. 
+	
+Using dependent types it might be possible to encode this in the types, resulting in a total simulation, creating a correspondence between the equilibrium of a simulation and the totality of its implementation. Of course this is only possible for models in which we know about their equilibria a priori or in which we can reason somehow that an equilibrium exists.

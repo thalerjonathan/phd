@@ -251,7 +251,7 @@ export partial
 simulateUntil : Monad m =>
                 (tLimit : Time) ->
                 (evtLimit : Nat) -> 
-                (rngSeed : Int) ->
+                (rngSeed : Integer) ->
                 (initAgents : Vect n (AgentId, AgentBehaviour m ty evt)) ->
                 (initEvents : Vect k (Time, Event evt)) -> 
                 m SimulationResult

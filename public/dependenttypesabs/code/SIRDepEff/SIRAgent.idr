@@ -104,7 +104,7 @@ record SimulationState where
 Show SimulationState where
   show (MkSimulationState time s i r _) = "SimulationState t = " ++ show time ++ " s = " ++ show s ++ " i = " ++ show i ++ " r = " ++ show r
 
-mkSimulationState : Int -> SimulationState
+mkSimulationState : Integer -> SimulationState
 mkSimulationState seed = 
   let rng = randoms seed
   in  MkSimulationState Z Z Z Z rng

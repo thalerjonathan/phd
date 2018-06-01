@@ -125,6 +125,26 @@ putStrLn : ConsoleIO m => String -> SIRAgent m () pre (const pre)
 putStrLn str = putStr (str ++ "\n")
 -------------------------------------------------------------------------------
 
+contact : ConsoleIO m =>
+          Nat -> 
+          SIRAgent m Bool Susceptible (\inf => case inf of 
+                                                  True  => Infected
+                                                  False => Susceptible)
+contact Z     = pure False
+contact (S k) = do
+  c <- makeContact
+  putStrLn $ show c
+
+  case c of
+    ContactWith Infected => do
+      inf <- randomBool infectivity
+      putStrLn $ show "infected: " ++ show inf
+    
+      case inf of
+        True  => pure False
+        False => pure False -- contact k
+    ContactWith _ => pure False -- contact k
+
 susceptible : ConsoleIO m =>
               SIRAgent m Bool Susceptible (\inf => case inf of 
                                                       True  => Infected
@@ -147,33 +167,13 @@ susceptible = do
         putStrLn $ show "infected: " ++ show inf
       
         case inf of
-          True  => pure True
+          True  => pure True -- TODO: doesn't work, pre and post are ill defined somewhere
           False => pure False -- contact k
       ContactWith _ => pure False -- contact k
 
     ?susceptible_rhs
     --pure False
 
-  where
-    contact : ConsoleIO m =>
-              Nat -> 
-              SIRAgent m Bool Susceptible (\inf => case inf of 
-                                                      True  => Infected
-                                                      False => Susceptible)
-    contact Z     = pure False
-    contact (S k) = do
-      c <- makeContact
-      putStrLn $ show c
-
-      case c of
-        ContactWith Infected => do
-          inf <- randomBool infectivity
-          putStrLn $ show "infected: " ++ show inf
-        
-          case inf of
-            True  => pure False
-            False => pure False -- contact k
-        ContactWith _ => pure False -- contact k
 
 runSIR : IO ()
 runSIR = do

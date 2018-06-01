@@ -290,7 +290,9 @@ TODO: checkout my notes in 1st annual review on constructivism / popper
 Law of excluded middle does not hold anymore because it would require us to be able to effectively compute / decide whether a proposition is true or false - which amounts to solving the halting problem, which is not possible in the general case.
 
 An important concept of this constructive approach is that the (proposition of) equality between two elements of the same type are is itself a type, called equality or identity types. This is much more expressive than a boolean proposition which evaluates to True in case they are the same and False if not as an equality type encodes much richer information which can be used by the type system. With the boolean approach, also known as boolean blindness, although one has compare two elements on equality and this check has returned true, the compiler has still no way of knowing \textit{after} the check that both elements are indeed the same - with equality types we can provide this information which can be used by the compiler (TODO: discuss further how this can be of use).
-If there is an element 
+If we have an element of this type (speak a witness / the type is inhibited) then we know the two elements are equal.
+
+\cite{thompson_type_1991} discusses constructive vs. classic mathematics in chapter 3. In general there are two conflicting philosophical views of the foundations of mathematics: the constructive and the classic one. The constructive view has been identified with realism, empirical computational content where the classical one with idealism and pragmatic. TODO: work through chapter 3
 
 \section{Foundations}
 TODO: shortly discuss that dependent types are based on martin-löf intuitions type theory.

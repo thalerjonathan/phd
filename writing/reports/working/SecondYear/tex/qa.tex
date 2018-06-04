@@ -1,8 +1,6 @@
 \chapter{Questions \& Answers}
 \label{chap:qa}
 
-TODO: update and adopt to 2nd year
-
 In this chapter I give answers to anticipated questions and objections about my research direction and vision of doing pure functional ABS \footnote{They are not always posed in a dead-serious way but as it is a quite controversial topic - ABS should be done object-orientated after all huh? - I think it is appropriate. Also some objections were raised in exactly this way.}.
 
 \paragraph{So you had this hypothesis, that pure functional programming and dependent types lead to simulation software which is more likely correct and is easier to verify and validate, right from the beginning?}
@@ -19,3 +17,8 @@ In general, Types guide us in program construction by restricting the operations
 Dependent types allow to push these guarantees to a new extreme where we can express nearly arbitrary complex guarantees at compile time because we can \textit{compute types at compile time}. The main requirement here is, that the computation is total. So dependent types go as far as seen as equivalent to mathematical proofs, which in the end allows to guarantee so much properties at compile time so as to make it unnecessary to run the program because the compilation already shows its correctness.
 
 So short answer: types allow us to guarantee things at compile time which reduces the amount of testing considerably.
+
+\paragraph{You said by implementing a few different models with your functional approach showed you that it is very possible. You didn't say how hard or weird it was to achieve this - have you compared it to the object-oriented approach?}
+No I haven't compared it and I won't because there are hardly objective measures of how hard something is to implement in a paradigm. One could use the length of the program (Lines Of Code LoC) as a measure but then clearly the functional approach would win as functional code tends to be much shorter than object-oriented one with up to an order of magnitude.
+
+Also I can pose a fundamentally challenging view: why should the object-oriented be regarded as the easier/better one? Just because oo is the established method doesn't make it the easier one, it hasn't really proved itself on an objective level that it is easier / less weird. Also I claim that some object-oriented constructs are VERY weird and VERY hard to get right (patterns, data-dependencies, inheritance, is-a vs. has-a, composition) without lots of experience.

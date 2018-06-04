@@ -1,4 +1,36 @@
 \chapter{Dependent Types}
+\label{chap:dependent_types}
+
+\subsection{Dependent Types}
+We see this paper as an intermediary and necessary step towards dependent types for which we first needed to understand the potential and limitations of a non-dependently typed pure functional approach in Haskell. Dependent types are extremely promising in functional programming as they allow us to express stronger guarantees about the correctness of programs and go as far as allowing to formulate programs and types as constructive proofs which must be total by definition \cite{thompson_type_1991, mckinna_why_2006, altenkirch_pi_2010}.
+
+So far no research using dependent types in agent-based simulation exists at all. In our next paper we want to explore this for the first time and ask more specifically how we can add dependent types to our pure functional approach, which conceptual implications this has for ABS and what we gain from doing so. We plan on using Idris \cite{brady_idris_2013} as the language of choice as it is very close to Haskell with focus on real-world application and running programs as opposed to other languages with dependent types e.g. Agda and Coq which serve primarily as proof assistants.
+
+We hypothesize that dependent types could help ruling out even more classes of bugs at compile time and encode invariants and model specifications on the type level, which implies that we don't need to test them using e.g. property-testing with QuickCheck. This would allow the ABS community to reason about a model directly in code:
+
+\begin{itemize}
+	\item Accessing the environment in section \ref{sec:step5_environment} involves indexed array access which is always potentially dangerous as the indices have to be checked at run-time. 
+	
+	Using dependent types it should be possible to encode the environment dimensions into the types. In combination with suitable data types for coordinates one should be able to ensure already at compile time that access happens only within the bounds of the environment.
+	
+	\item In the SIR implementation one could make wrong state-transitions e.g. when an infected agent should recover, nothing prevents one from making the transition back to susceptible. 
+	
+	Using dependent types it might be possible to encode invariants and state-machines on the type level which can prevent such invalid transitions already at compile time. This would be a huge benefit for ABS because many agent-based models define their agents in terms of state-machines.
+	
+	\item An infected agent recovers after a given time - the transition of infected to recovered is a timed transition. Nothing prevents us from \textit{never} doing the transition at all. 
+	
+	With dependent types we might be able to encode the passing of time in the types and guarantee on a type level that an infected agent has to recover after a finite number of time steps.
+	
+	\item In more sophisticated models agents interact in more complex ways with each other e.g. through message exchange using agent IDs to identify target agents. The existence of an agent is not guaranteed and depends on the simulation time because agents can be created or terminated at any point during simulation. 
+	
+	Dependent types could be used to implement agent IDs as a proof that an agent with the given id exists \textit{at the current time-step}. This also implies that such a proof cannot be used in the future, which is prevented by the type system as it is not safe to assume that the agent will still exist in the next step.
+	%\item Using dependent types we should be able to encode a protocol for agent-interactions which e.g. ensures on the type-level that an agent has to reply to a request or that a more specific protocol has to be followed e.g. in auction- or trading-simulations.
+	
+	\item In our implementation, we terminate the SIR model always after a fixed number of time-steps. We can informally reason that restricting the simulation to a fixed number of time-steps is not necessary because the SIR model \textit{has to} reach a steady state after a finite number of steps. This means that at that point the dynamics won't change any more, thus one can safely terminate the simulation. Informally speaking, the reason for that is that eventually the system will run out of infected agents, which are the drivers of the dynamic. We know that all infected agents will recover after a finite number of time-steps \textit{and} that there is only a finite source for infected agents which is monotonously decreasing. 
+	
+	Using dependent types it might be possible to encode this in the types, resulting in a total simulation, creating a correspondence between the equilibrium of a simulation and the totality of its implementation. Of course this is only possible for models in which we know about their equilibria a priori or in which we can reason somehow that an equilibrium exists.
+\end{itemize}
+
 TODO: give a more in-depth explanation of dependent types:
 
 - dependently typed functions (pi types)
@@ -6,6 +38,8 @@ TODO: give a more in-depth explanation of dependent types:
 - equality types
 - type-level computations
 - totality
+
+dependent types: model- vs. agent-centric. model-centric means one looks at the model and its specifications as a whole and encodes them e.g. totality of SIR. agent-centric means one looks only at the agent level and encodes that as dependently typed as possible and hopes that model guarantees emerge: emergence on a metalevel - put otherwise: does the totality of SIR emerge when we follow an agent-centric approach?\\
 
 Independent of the programming paradigm, there exist fundamentally two approaches implementing agent-based simulation: time- and event-driven. In the time-driven approach, the simulation is stepped in fixed $\Delta t$ and all agents are executed at each time-step - they act virtually in lock-step at the same time. The approach is inspired by the theory of continuous system dynamics (TODO: cite).
 In the event-driven approach, the system is advanced through events, generated by the agents, and the global system state changes by jumping from event to event, where the state is held constant in between. The approach is inspired by discrete event simulation (DES) (TODO: citation) which is formalized in the DEVS formalism \cite{zeigler_theory_2000}.
@@ -294,6 +328,8 @@ If we have an element of this type (speak a witness / the type is inhibited) the
 
 \cite{thompson_type_1991} discusses constructive vs. classic mathematics in chapter 3. In general there are two conflicting philosophical views of the foundations of mathematics: the constructive and the classic one. The constructive view has been identified with realism, empirical computational content where the classical one with idealism and pragmatic. TODO: work through chapter 3
 
+dependent types as a perfect match and correspondence to the constructive nature of ABS, which is a 3rd way after induction and deduction
+
 \section{Foundations}
 TODO: shortly discuss that dependent types are based on martin-löf intuitions type theory.
 
@@ -302,6 +338,6 @@ HOTT book, NOTES on chapter 1: "Extensional theory makes no distinction between 
 
 Propositional equality allows to assume that a variable x of type p is equal to y: p : x = y.
 
-Judgemental equality (or definitional equality) means "equal by definition" e.g. if we have a function f : N -> N by f(x) = x^2 then f(3) is equal to 3^2 by definition. Whether or not two expressions are equal by definition is just a matter of expanding out the definitions, in particula it is algorithmically decidable.
+Judgemental equality (or definitional equality) means "equal by definition" e.g. if we have a function $f : N -> N by f(x) = x^2$ then f(3) is equal to $3^2$ by definition. Whether or not two expressions are equal by definition is just a matter of expanding out the definitions, in particula it is algorithmically decidable.
 
 Fact: Idris, Agda and Coq are intensional

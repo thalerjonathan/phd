@@ -1,6 +1,26 @@
 \chapter{Introduction}
 \label{chap:intro}
 
+After having established how to do agent-based simulation with functional programming we found out that the unique benefits over traditional approaches in Java and Python are the following:
+1. Run-Time robustness: restrict the classes of bugs which occur at run-time (we can have run-time bugs in haskell when we are partial!)
+2. Compile-Time guarantees: express stronger guarantees already at compile time (TODO: need examples) maybe this is true for Scala as well? but then again, scala is not the traditional approach,
+3. Purity: explicit in the types about side-effects and can handle side-effects explicitly in a controlled way
+4. Explicit Data-Flow: no implicit data-dependencies (if we are using i
+5. Declarative: describing WHAT a system is, instead of HOW (imperative) it works
+These properties can help in building simulation (and software in general) which is more likely to be correct and needs less unit- and property-testing because we can express guarantees already at compile time and can reason about correctness in the code. This is in general is the unique benefit over traditional approaches (pure functional code is also easier parallelisable which we look into later, but in this thesis we are mainly interested in the conceptual differences / benefits / drawbacks and not performance). The use of dependent types (TODO: need to introduce it slower: which can be understood for now as an even stronger and more powerful type-system) will allow us to push this even further, which is why we commited our 2nd year and part of the 3rd year to research this.
+
+Main Drawback: Agent-interactions are more complex to implement and depends which approach one uses (time- vs. event-driven):
+1. data-flow (time-driven)
+2. events (event-driven)
+3. agent-transactions in event-driven
+4. agent-transactions in time-driven
+
+
+[ ] introduction: short reflection over the last 1.5 yrs and what our goals were and where they got adjusted and introduce the two parts: 1) how and 2) why
+[ ] part 1 how to do functional agent-based simulation: frp, monad stream functions, discuss agent-interactions and 4 Environment types
+[ ] part 2 why: explain purity, compile-time vs run-time, strong static type syst vs weak dynamic, dependent types
+[ ] and then the usual chapters follow
+
 In the first half of the phd I have investigated \textit{how} to do agent-based simulation in pure functional programming. The remainder of the Phd will be to research \textit{why} this approach is of benefit. In general it is well established, that pure functional programming as in Haskell, allows to express much stronger guarantees about the correctness of a program \textit{already at compile-time}. This is in fundamental contrast to imperative object-oriented languages like Java or Python where only primitive guarantees about types - mostly relationships between type-hierarchies - can be expressed at compile time which directly implies that one needs to perform much more testing (user testing or unit testing) at \textit{run-time} to check whether the model is sufficiently correct. Thus guaranteeing properties already at compile-time frees us from writing unit tests which cover these cases or test them at run time because they are \textit{guaranteed to be correct under all circumstances, for all inputs}. In this regards we see pure functional programming as truly superior to the traditional object oriented approaches: they lead to implementations of models which are more likely correct because we can express more guarantees already at compile time which directly leads to less bugs which directly increases the probability of the software being a correct implementation of the model.
 The ultimate level of this is reached when using dependent types in which types are first class citizens and can be computed at compile time. 
 Dependent Types allow us to express even more guarantees at compile time making even more run-time tests obsolete (note: this doesn't make testing in its entirety obsolete!). Generally one can say: what can guaranteed at compile-time doesn't need a test and saves one from a potentially infinite amount (TODO: make more clear) of tests as dijkstra points out: "Testing shows the presence, not the absence of bugs".

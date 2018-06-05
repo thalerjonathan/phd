@@ -156,9 +156,9 @@ noRec : (contra : (k = j) -> Void) -> (S k = S j) -> Void
 noRec contra Refl = contra Refl
 \end{HaskellCode}  
                             
-TODO: explain cong and Refl
+%TODO: explain cong and Refl
 
-The important thing to understand here is that our Dec property holds much more information than just a boolean flag which indicates whether Yes/No that two elements of a type are equal: in case of Yes we have a type which says that num1 is equal to num2, which can be directly used by the compiler, both elements are treated as the same. Refl stands for reflexive and is built into Idris syntax, meaning that a value is equal to itself 'Refl : x = x'.
+The important thing to understand here is that our Dec property holds much more information than just a boolean flag which indicates whether Yes/No that two elements of a type are equal: in case of Yes we have a type which says that num1 is equal to num2, which can be directly used by the compiler, both elements are treated as the same. Refl stands for reflexive and is built into Idris syntax, meaning that a value is equal to itself 'Refl : x = x'. %Further, we need to use 'cong' 
 
 Finally we can implement a correct version of our initial \textit{exactLength} function by computing a proof of equality between both lengths at run-time using \textit{checkEqNat}. This proof can then be used by the compiler to infer that the lengths are indeed equal or not.
 

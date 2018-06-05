@@ -131,11 +131,13 @@ runAgentWithEventAux Terminate aid t events term nextAid newBeh newAs rs
   = pure ((), events, True, newBeh, newAs, nextAid, rs)
 runAgentWithEventAux (Spawn af) aid t events term nextAid newBeh newAs rs = do
   -- TODO: we are cheating here... can we solve it properly?
+  -- TODO: would cong help here?
   let newAs' = ((nextAid, believe_me af)) :: newAs
   pure (nextAid, events, term, newBeh, newAs', (S nextAid), rs)
   --?runAgentWithEventAux_rhs_10
 runAgentWithEventAux (Behaviour af) aid t events term nextAid newBeh newAs rs
   -- TODO: we are cheating here... can we solve it properly?
+  -- TODO: would cong help here?
   = pure ((), events, term, Just (believe_me af), newAs, nextAid, rs)
   --= ?runAgentWithEventAux_rhs_11
 runAgentWithEventAux (RandomBool p) aid t events term nextAid newBeh newAs rs = do
@@ -266,6 +268,7 @@ simulateUntil {ty} tLimit evtLimit rngSeed initAgents initEvents = do
         --pure $ MkSimulationResult Z Z NoAgents aos --(believe_me emptyObs)
         -- TODO: fix this hole! I am desperate, I have no clue why the above
         -- cast is not working, also passing an empty list does not work as well
+        -- TODO: would cong help here?
         ?should_never_happen_but_needs_to_be_fixed
       Just maxAid => simulateUntilAux tLimit evtLimit Z Z events0 as0 (S maxAid) [] rs
 

@@ -1,7 +1,9 @@
-\section{Background}
+\section{Introduction}
 \label{sec:dep_background}
 
-In this section we give an overview of the concepts behind dependent types and what they can do. Generally dependent types add the following concepts to existing pure functional programming:
+In this section we give an introduction of the concepts behind dependent types and what they can do. Further we give a very brief overview of the theoretical, foundational and deep philosophical concepts behind dependent types.
+
+Generally, dependent types add the following concepts to existing pure functional programming:
 
 \begin{enumerate}
 	\item Types are first-class citizen - In dependently types languages, types can depend on any \textit{values}, and can be \textit{computed} at compile time which makes them first-class citizen.
@@ -105,9 +107,21 @@ reverse (elem :: xs) = append (reverse xs) [elem]
     reverseProof {k} result = rewrite plusCommutative 1 k in result
 \end{HaskellCode}
 
-On of the most powerful aspects of dependent types is that they allow us to express equality on an unprecedented level. Non-dependently typed languages have only very basic ways of expressing the equality of two elements of same type. Either we use a boolean or another data-structure which can indicate equality or not. Idris supports this type of equality as well through \textit{(==) : Eq ty $\Rightarrow$ ty $\rightarrow$ ty $\rightarrow$ Bool}. The drawback of using a boolean is that in the end we don't have a real evidence of equality: even though the elements might be equal, the compiler has no means of inferring this and we can still make programming mistakes after the equality check because of this lack of compiler support.
+\subsection{Constructivity: Equality as a type}
+On of the most powerful aspects of dependent types is that they allow us to express equality on an unprecedented level. Non-dependently typed languages have only very basic ways of expressing the equality of two elements of same type. Either we use a boolean or another data-structure which can indicate equality or not. Idris supports this type of equality as well through \textit{(==) : Eq ty $\Rightarrow$ ty $\rightarrow$ ty $\rightarrow$ Bool}. The drawback of using a boolean is that in the end we don't have a real evidence of equality: it doesn't tell you anything about the relationship between the inputs and the output. Even though the elements might be equal, the compiler has no means of inferring this and we can still make programming mistakes after the equality check because of this lack of compiler support. Even worse, always returning False / True or whether the inputs are \textit{not} equal is a valid implementation of (==), at least as far as the type is concerned.
 
-This is different in dependent types which allow us to define \textit{decidable} equality through a type (see more on decidable / non-decidable equality below \ref{sub:dep_foundations}). Idris defines a decidable property as the following:
+As an illustrating example we want to write a function which checks if a Vector has a given length. 
+
+\begin{HaskellCode}
+exactLength : (len : Nat) -> (input : Vect n k) -> Maybe (Vect len k)
+exactLength {n} len input = case n == len of
+                                 True  => Just input 
+                                 False => Nothing 
+\end{HaskellCode}
+
+Unfortunately this doesn't type-check ('type mismatch between n and len') because the compiler has no way of determining that len is equals n at compile time. Fortunately we can solve this problem using dependent types themselves by defining \textit{decidable} equality as a type (see more on decidable / non-decidable equality below \ref{sub:dep_foundations}).
+
+First we need a decidable property, meaning it either holds given with some \textit{proof} or it does not hold given some proof that it does \textit{not} hold, resulting in a contradiction. Idris defines such a decidable property already as the following:
 
 \begin{HaskellCode}
 -- Decidability. A decidable property either holds or is a contradiction.
@@ -140,19 +154,29 @@ sucNotZero Refl impossible
 
 noRec : (contra : (k = j) -> Void) -> (S k = S j) -> Void
 noRec contra Refl = contra Refl
-\end{HaskellCode}                              
+\end{HaskellCode}  
+                            
+TODO: explain cong and Refl
 
-The important thing to understand here is that our Dec property holds much more information than just a boolean flag which indicates whether Yes/No that two elements of a type are equal: in case of Yes we have a type which says that num1 is equal to num2, which can be directly used by the compiler, both elements are treated as the same.
+The important thing to understand here is that our Dec property holds much more information than just a boolean flag which indicates whether Yes/No that two elements of a type are equal: in case of Yes we have a type which says that num1 is equal to num2, which can be directly used by the compiler, both elements are treated as the same. Refl stands for reflexive and is built into Idris syntax, meaning that a value is equal to itself 'Refl : x = x'.
 
-\subsection{Foundations}
+Finally we can implement a correct version of our initial \textit{exactLength} function by computing a proof of equality between both lengths at run-time using \textit{checkEqNat}. This proof can then be used by the compiler to infer that the lengths are indeed equal or not.
+
+\begin{HaskellCode}
+exactLength : (len : Nat) -> (input : Vect n k) -> Maybe (Vect len k)
+exactLength {n} len input = case checkEqNat n len of
+                                 -- len vanishes as compiler can unify len to n
+                                 Yes Refl  => Just input 
+                                 No contra => Nothing
+\end{HaskellCode} 
+
+\subsection{Theoretical Foundations}
 \label{sub:dep_foundations}
-
-
 - dependently typed functions (pi types)
 - dependent pairs (sigma types)
 - decidable equality
 
-\subsection{Constructivism}
+\subsubsection{Constructivism}
 TODO: ABS is constructive: "if you can't grow it, you can't explain it" (epstein)
 TODO: Dependent Types are constructive
 => there are no excluded middle in both approaches
@@ -171,7 +195,7 @@ dependent types as a perfect match and correspondence to the constructive nature
 
 TODO: shortly discuss that dependent types are based on martin-löf intuitions type theory.
 
-\subsection{Intensionality vs. Extensionality}
+\subsubsection{Intensionality vs. Extensionality}
 HOTT book, NOTES on chapter 1: "Extensional theory makes no distinction between judgmental and propositional equality, the intensional theory regards judgmental equality as purely definitional, and admits a much broader proof-relevant interpretation of the identity type that is central to the homotopy interpretation."
 
 Propositional equality allows to assume that a variable x of type p is equal to y: p : x = y.

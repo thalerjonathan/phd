@@ -1,0 +1,162 @@
+\section{Concepts of Dependent Types in Agent-Based Simulation}
+\label{sec:dep_absconcepts}
+
+dependent types: model- vs. agent-centric. model-centric means one looks at the model and its specifications as a whole and encodes them e.g. totality of SIR. agent-centric means one looks only at the agent level and encodes that as dependently typed as possible and hopes that model guarantees emerge: emergence on a metalevel - put otherwise: does the totality of SIR emerge when we follow an agent-centric approach?
+
+If we can construct a dependently typed program of the SIR ABM which is total, then we have a proof-by-construction that the SIR model reaches a steady-state after finite time
+
+dependent-types:
+-> encode dynamics (what? feedbacks? positive/negative) on a meta-level
+-> probabilistic types can encode probability distributions in types already about which we can then reason
+-> agents as dependently typed continuations?: need a dependently typed concept of a process over time
+
+\subsection{General Agent Interface}
+using dependent types to specify the general commands available for an agent. here we can follow the approach of an DSEL as described in \cite{brady_correct-by-construction_2010} and write then an interpreter for it. It is of importance that the interpreter shall be pure itself and does not make use of any fancy IO stuff.
+
+\subsection{Dependent State Machines}
+dependent state machines in abs for internal state because that is very Common in ABS. Here we can draw inspiration from the paper \cite{brady_state_2016} and book \cite{brady_type-driven_2017}.
+
+\subsection{Environment}
+One of the main advantages of Agent-Based Simulation over other simulation methods e.g. System Dynamics is that agents can live within an environment. Many agent-based models place their agents within a 2D discrete NxM environment where agents either stay always on the same cell or can move freely within the environment where a cell has 0, 1 or many occupants. Ultimately this boils down to accessing a NxM matrix represented by arrays or a similar data structure. In imperative languages accessing memory always implies the danger of out-of-bounds exceptions \textit{at run-time}. With dependent types we can represent such a 2d environment using vectors which carry their length in the type (TODO: discuss them in background) thus fixing the dimensions of such a 2D discrete environment in the types. This means that there is no need to drag those bounds around explicitly as data. Also by using dependent types like Fin which depend on the dimensions we can enforce at compile time that we can only access the data structure within bounds. If we want to we can also enforce in the types that the environment will never be an empty one where N, M > 0.
+
+\begin{HaskellCode}
+Disc2dEnv : (w : Nat) -> (h : Nat) -> (e : Type) -> Type
+Disc2dEnv w h e = Vect (S w) (Vect (S h) e)
+
+data Disc2dCoords : (w : Nat) -> (h : Nat) -> Type where
+  MkDisc2dCoords : Fin (S w) -> Fin (S h) -> Disc2dCoords w h
+  
+centreCoords : Disc2dEnv w h e -> Disc2dCoords w h
+centreCoords {w} {h} _ =
+    let x = halfNatToFin w
+        y = halfNatToFin h
+    in  mkDisc2dCoords x y
+  where
+    halfNatToFin : (x : Nat) -> Fin (S x)
+    halfNatToFin x = 
+      let xh   = divNatNZ x 2 SIsNotZ 
+          mfin = natToFin xh (S x)
+      in  fromMaybe FZ mfin
+      
+setCell :  Disc2dCoords w h
+        -> (elem : e)
+        -> Disc2dEnv w h e
+        -> Disc2dEnv w h e
+setCell (MkDisc2dCoords colIdx rowIdx) elem env 
+    = updateAt colIdx (\col => updateAt rowIdx (const elem) col) env
+ 
+getCell :  Disc2dCoords w h
+        -> Disc2dEnv w h e
+        -> e
+getCell (MkDisc2dCoords colIdx rowIdx) env
+    = index rowIdx (index colIdx env)
+    
+neumann : Vect 4 (Integer, Integer)
+neumann = [         (0,  1), 
+           (-1,  0),         (1,  0),
+                    (0, -1)]
+
+moore : Vect 8 (Integer, Integer)
+moore = [(-1,  1), (0,  1), (1,  1),
+         (-1,  0),          (1,  0),
+         (-1, -1), (0, -1), (1, -1)]
+
+-- TODO: can we express that n <= len?
+filterNeighbourhood :  Disc2dCoords w h
+                    -> Vect len (Integer, Integer)
+                    -> Disc2dEnv w h e 
+                    -> (n ** Vect n (Disc2dCoords w h, e))
+filterNeighbourhood {w} {h} (MkDisc2dCoords x y) ns env =
+    let xi = finToInteger x
+        yi = finToInteger y
+    in  filterNeighbourhood' xi yi ns env
+  where
+    filterNeighbourhood' :  (xi : Integer)
+                         -> (yi : Integer)
+                         -> Vect len (Integer, Integer)
+                         -> Disc2dEnv w h e 
+                         -> (n ** Vect n (Disc2dCoords w h, e))
+    filterNeighbourhood' _ _ [] env = (0 ** [])
+    filterNeighbourhood' xi yi ((xDelta, yDelta) :: cs) env 
+      = let xd = xi - xDelta
+            yd = yi - yDelta
+            mx = integerToFin xd (S w)
+            my = integerToFin yd (S h)
+        in case mx of
+            Nothing => filterNeighbourhood' xi yi cs env 
+            Just x  => (case my of 
+                        Nothing => filterNeighbourhood' xi yi cs env 
+                        Just y  => let coord      = MkDisc2dCoords x y
+                                       c          = getCell coord env
+                                       (_ ** ret) = filterNeighbourhood' xi yi cs env
+                                   in  (_ ** ((coord, c) :: ret)))
+\end{HaskellCode}
+
+\subsection{Dependent Agent Interactions}
+\paragraph{Agent Transactions}
+dependently typed message protocols in ABS because its very common, and easily done thorugh methods in OOP: sugarscape mating and trading protocol
+using a DSEL \cite{brady_correct-by-construction_2010} to restrict the available primitives in the message protocol?
+
+\paragraph{Data Flow}
+TODO: can dependent types be used in the Data Flow Mechanism?
+\paragraph{Event Scheduling}
+TODO: can dependent types be used in the event-scheduling mechanism?
+
+\paragraph{Flow Of Time}
+TODO: can dependent types be used to express the flow of time and its strongly monotonic increasing?
+
+\subsection{Totality}
+totality of parts or the whole simulation e.g. in case of the SIR model we can informally reason that the simulation MUST reach an equilibrium (a steady state from which there is no escape: the dynamics wont't change anymore, derivations are 0) after a finite number of steps. if we can construct a total program which expresses this, we have a formal proof of that which is 1) a specification of the model 2) generates the dynamics 3) is a proof that it reaches equilibrium
+
+\subsection{Constructive Proofs}
+- An agent-based model and the simulated dynamics of it is itself a constructive proof which explain a real-world phenomenon sufficiently good
+- proof of the existence of an agent: holds always only for the current time-step or for all time, depending on the model. e.g. in the SIR model no agents are removed from / added to the system thus a proof holds for all time. In sugarscape agents are removed / added dynamically so a proof might become invalid after a time or one can construct a proof only from a given time on e.g. when one wants to prove that agent X exists but agent X is only created at time t then before time t the prove cannot be constructed and is uninhabited and only inhabited from time t on.
+
+\section{Dependently Typed SIR}
+Intuitively, based upon our model and the equations we can argue that the SIR model enters a steady state as soon as there are no more infected agents. Thus we can informally argue that a SIR model must always terminate as:
+\begin{enumerate}
+	\item Only infected agents can infect susceptible agents.
+	\item Eventually after a finite time every infected agent will recover.
+	\item There is no way to move from the consuming \textit{recovered} state back into the \textit{infected} or \textit{susceptible} state \footnote{There exists an extended SIR model, called SIRS which adds a cycle to the state-machine by introducing a transition from recovered to susceptible but we don't consider that here.}.
+\end{enumerate}
+
+Thus a SIR model must enter a steady state after finite steps / in finite time. 
+
+This result gives us the confidence, that the agent-based approach will terminate, given it is really a correct implementation of the SD model. Still this does not proof that the agent-based approach itself will terminate and so far no proof of the totality of it was given. Dependent Types and Idris ability for totality and termination checking should theoretically allow us to proof that an agent-based SIR implementation terminates after finite time: if an implementation of the agent-based SIR model in Idris is total it is a proof by construction. Note that such an implementation should not run for a limited virtual time but run unrestricted of the time and the simulation should terminate as soon as there are no more infected agents. We hypothesize that it should be possible due to the nature of the state transitions where there are no cycles and that all infected agents will eventually reach the recovered state. 
+Abandoning the FRP approach and starting fresh, the question is how we implement a \textit{total} agent-based SIR model in Idris. Note that in the SIR model an agent is in the end just a state-machine thus the model consists of communicating / interacting state-machines. In the book \cite{brady_type-driven_2017} the author discusses using dependent types for implementing type-safe state-machines, so we investigate if and how we can apply this to our model. We face the following questions: how can we be total? can we even be total when drawing random-numbers? Also a fundamental question we need to solve then is how we represent time: can we get both the time-semantics of the FRP approach of Haskell AND the type-dependent expressivity or will there be a trade-off between the two?
+
+-- TODO: express in the types
+-- SUSCEPTIBLE: MAY become infected when making contact with another agent
+-- INFECTED:    WILL recover after a finite number of time-steps
+-- RECOVERED:   STAYS recovered all the time
+
+-- SIMULATION:  advanced in steps, time represented as Nat, as real numbers are not constructive and we want to be total
+--              terminates when there are no more INFECTED agents
+
+
+show formally that abs does resemble the sd approach: need an idea of a proof and then implement it in dependent types: look at 3 agent system: 2 susceptible, 1 infected. or maybe 2 agents only
+
+%A susceptible agent can only become infected when it comes into contact with an infected agent. The probability of a susceptible agent making contact with an infected one is naturally (number of infected agents) / (total number of agents). For the infection to occur we multiply the contact with the infectivity parameter \Gamma. A susceptible agent makes on average \Beta contacts per time-unit. This results in the following formula:
+%
+%\begin{align}
+%prob &= \frac{I \beta \gamma}{N} \\
+%\end{align}
+%
+%This is for a single agent, which we then need to multiply by the number of susceptible agents because all of them make contact.
+%
+%TODO: implement sir with state-machine approach from Idris. an idea would be to let infected agents generate infection- actions: the more infected agents the more infection-actions => zero infected agents mean zero infection actions. this list can then be reduced?
+%
+%can we also emulate SD in Idris and formulate positive/negative feedback loops in types?
+
+\subsection{A constructive proof of totality}
+The idea is to implement a total agent-based SIR simulation, where the termination does NOT depend on time (is not terminated after a finite number of time-steps, which would be trivial). The dynamics of the system-dynamics SIR model are in equilibrium (won't change anymore) when the infected stock is 0. This can (probably) be shown formally but intuitionistic it is clear because only infected agents can lead to infections of susceptible agents which then make the transition to recovered after having gone through the infection phase. Thus an agent-based implementation of the SIR simulation has to terminate if it is implemented correctly because all infected agents will recover after a finite number of steps after then the dynamics will be in equilibrium.
+Thus we need to 'tell' the type-checker the following:
+1) no more infected agents is the termination criterion
+2) all infected agents will recover after a finite number of time => the simulation will eventually run out of infected agents But when we look at the SIR+S model we have the same termination criterion, but we cannot guarantee that it will run out of infected => we need additional criteria
+3) infected agents are 'generated' by susceptible agents
+4) susceptible agents are NOT INCREASING (e.g. recovered agents do NOT turn back into susceptibles)
+Interesting: can we adopt our solution (if we find it), into a SIRS	implementation? this should then break totality. also how difficult is it?
+
+The HOTT book states that lists, trees,... are inductive types/inductively defined structures where each of them is characterized by a corresponding "induction principle". For a proof of totality of SIR we need to find the "induction principle" of the SIR model and implement it. What is the inductive, defining structure of the SIR model? is it a tree where a path through the tree is one simulation dynamics? or is it something else? it seems that such a tree would grow and then shrink again e.g. infected agents. Can we then apply this further to (agent-based) simulation in general?
+
+TODO: \url{https://stackoverflow.com/questions/19642921/assisting-agdas-termination-checker/39591118}

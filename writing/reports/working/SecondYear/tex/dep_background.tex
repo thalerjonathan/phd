@@ -1,0 +1,181 @@
+\section{Background}
+\label{sec:dep_background}
+
+In this section we give an overview of the concepts behind dependent types and what they can do. Generally dependent types add the following concepts to existing pure functional programming:
+
+\begin{enumerate}
+	\item Types are first-class citizen - In dependently types languages, types can depend on any \textit{values}, and can be \textit{computed} at compile time which makes them first-class citizen.
+
+	\item Totality and termination - A total function is defined in \cite{brady_type-driven_2017}: it terminates with a well-typed result or produces a non-empty finite prefix of a well-typed infinite result in finite time. Idris is turing-complete but is able to check the totality of a function under some circumstances but not in general as it would imply that it can solve the halting problem. Other dependently typed languages like Agda or Coq restrict recursion to ensure totality of all their functions - this makes them non turing-complete.
+
+	\item Types as proofs - Because types can depend on any values and can be computed at compile time, they can be used as constructive proofs (see \ref{sub:dep_foundations}) which must terminate, this means a well-typed program (which is itself a proof) is always terminating which in turn means that it must consist out of total functions. Note that Idris does not restrict us to total functions but we can enforce it through compiler flags.
+\end{enumerate}
+
+\subsection{An example: Vector}
+To give a concrete example of dependent types and their concepts, we introduce the canonical example used in all tutorials on dependent types: the Vector.
+
+In Haskell (or in Java) there exists the List data-structure which holds a finite number of homogeneous elements, where the type of the elements can be fixed at compile-time. Using dependent types we can implement the same but adding the length of the list to the type - we call this data-structure a vector.
+
+We define the vector as a Generalised Algebraic Data Type (GADT). A vector has a \textit{Nil} element which marks the end of a vector and a \textit{(::)} which is a recursive (inductive) definition of a linked List. We defined some vectors and we see that the length of the vector is directly encoded in its first type-variable of type Nat, natural numbers. Note that the compiler will refuse to accept \textit{testVectFail} because the type specifies that it holds 2 elements but the constructed vector only has 1 element.
+
+\begin{HaskellCode}
+data Vect : Nat -> Type -> Type where
+	Nil  : Vect Z e
+	(::) : (elem : e) -> (xs : Vect n e) -> Vect (S n) e
+	
+testVect : Vect 3 String
+testVect = "Jonathan" :: "Andreas" :: "Thaler" :: Nil
+
+testVectFail : Vect 2 Nat
+testVectFail = 42 :: Nil
+\end{HaskellCode}
+
+We can now go on and implement a function \textit{append} which simply appends two vectors. Here we directly see \textit{type-level computations} as we compute the length of the resulting vector. Also this function is \textit{total}, as it covers all input cases and the recursion happens on a \textit{structurally smaller argument}:
+
+\begin{HaskellCode}
+append : Vect n e -> Vect m e -> Vect (n + m) e
+append Nil ys = ys
+append (x :: xs) ys = x :: append xs ys
+
+append testVect testVect
+["Jonathan", "Andreas", "Thaler", "Jonathan", "Andreas", "Thaler"] : Vect 8 String
+\end{HaskellCode}
+
+What if we want to implement a \textit{filter} function, which, depending on a given predicate, returns a new vector which holds only the elements for which the predicates returns true? How can we compute the length of the vector at compile-time? In short: we can't, but we can make us of \textit{dependent pairs} where the \textit{type} of the second element depends on the \textit{value} of the first (dependent pairs are also known as $\Sigma$ types, see \ref{sub:dep_foundations} below).
+
+The function is total as well and works very similar to \textit{append} but uses dependent types as return, which are indicated by \textit{**}:
+
+\begin{HaskellCode}
+filter : Vect n e -> (e -> Bool) -> (k ** Vect k e)
+filter [] f = (Z ** Nil)
+filter (elem :: xs) f =
+  case f elem of
+    False => filter xs f
+    True  => let (_ ** xs') = filter xs f
+             in  (_ ** elem :: xs')
+             
+filter testVect (=="Jonathan")
+(1 ** ["Jonathan"]) : (k : Nat ** Vect k String)
+\end{HaskellCode}
+
+It might seem that writing a \textit{reverse} function for a Vector is very easy, and we might give it a go by writing:
+\begin{HaskellCode}
+reverse : Vect n e -> Vect n e
+reverse [] = []
+reverse (elem :: xs) = append (reverse xs) [elem]
+\end{HaskellCode}
+
+Unfortunately the compiler complains because it cannot unify 'Vect (n + 1) e' and 'Vect (S n) e'. In the end, the compiler tells us that it cannot determine that (n + 1) is the same as (1 + n). The compiler does not know anything about the commutativity of addition which is due to how natural numbers and their addition are defined.
+
+Lets take a detour. The natural numbers can be inductively defined by their initial element zero Z and the successor. The number 3 is then defined as the successor of successor of successor of zero:
+
+\begin{HaskellCode}
+data Nat = Z | S Nat
+
+three : Nat 
+three = S (S (S Z))
+\end{HaskellCode}
+
+Defining addition over the natural numbers is quite easy by pattern-matching over the first argument: 
+
+\begin{HaskellCode}
+plus : (n, m : Nat) -> Nat
+plus Z right        = right
+plus (S left) right = S (plus left right)
+\end{HaskellCode}
+
+Now we can see why the compiler cannot infer that (n + 1) is the same as (1 + n). The expression (n + 1) is translated to (plus n 1), where we pattern-match over the first argument, so we cannot reach a case in which (plus n 1) = S n. To do that we would need to define a different plus function which pattern-matches over the second argument - which is clearly the wrong way to go.
+
+To solve this problem we can exploit the fact that dependent types allow us to perform type-level computations. This should allow us to express commutativity of addition over the natural numbers as a type. For that we define a function which takes in two natural numbers and returns a proof that addition commutes. 
+
+\begin{HaskellCode}
+plusCommutative : (left : Nat) -> (right : Nat) -> left + right = right + left
+\end{HaskellCode}
+
+We now begin to understand what it means when we speak of \textit{types as proofs}: we can actually express e.g. laws of the natural numbers in types and proof them by implementing a program which inhibits the type - we speak then of a constructive proof (see more on that below \ref{sub:dep_foundations}). Note that \textit{plusCommutative} is already implemented in Idris and we omit the actual implementation as it is beyond the scope of this introduction
+
+Having our proof of commutativity of natural numbers, we can now implement a working (speak: correct) version of \textit{reverse}. The function \textit{rewrite} is provided by Idris: if we have a proof for x = y, the 'rewrite expr in' syntax will search for x in the required type of expr and replace it with y:
+
+\begin{HaskellCode}
+reverse : Vect n e -> Vect n e
+reverse [] = []
+reverse (elem :: xs) = append (reverse xs) [elem]
+  where
+    reverseProof : Vect (k + 1) a -> Vect (S k) a
+    reverseProof {k} result = rewrite plusCommutative 1 k in result
+\end{HaskellCode}
+
+On of the most powerful aspects of dependent types is that they allow us to express equality on an unprecedented level. Non-dependently typed languages have only very basic ways of expressing the equality of two elements of same type. Either we use a boolean or another data-structure which can indicate equality or not. Idris supports this type of equality as well through \textit{(==) : Eq ty $\Rightarrow$ ty $\rightarrow$ ty $\rightarrow$ Bool}. The drawback of using a boolean is that in the end we don't have a real evidence of equality: even though the elements might be equal, the compiler has no means of inferring this and we can still make programming mistakes after the equality check because of this lack of compiler support.
+
+This is different in dependent types which allow us to define \textit{decidable} equality through a type (see more on decidable / non-decidable equality below \ref{sub:dep_foundations}). Idris defines a decidable property as the following:
+
+\begin{HaskellCode}
+-- Decidability. A decidable property either holds or is a contradiction.
+data Dec : Type -> Type where
+  -- The case where the property holds
+  -- @ prf the proof
+  Yes : (prf : prop) -> Dec prop
+
+  -- The case where the property holding would be a contradiction
+  -- @ contra a demonstration that prop would be a contradiction
+  No  : (contra : prop -> Void) -> Dec prop
+\end{HaskellCode}
+
+With that we can implement a function which constructs a proof that two natural numbers are equal, or not. We do this simply by pattern matching over both numbers with corresponding base cases and inductions. In case they are not equal we need to construct a proof that they are actually not equal which is done by showing that given some property results in a contradiction - indicated by the type \textit{Void}. In case of \textit{zeroNotSuc} the first number is zero (Z) whereas the other one is non-zero (a successor of some k), which can never be equal, thus we return a \textit{No} instance of the decidable property for which we need to provide the contradiction. In case of \textit{sucNotZero} its just the other way around. \textit{noRec} works very similar but here we are in the induction case which says that if k equals j leads to a contradiction, (k + 1) and (j + 1) can't be equal as well (induction hypothesis).
+
+\begin{HaskellCode}
+checkEqNat : (num1 : Nat) -> (num2 : Nat) -> Dec (num1 = num2)
+checkEqNat Z Z         = Yes Refl
+checkEqNat Z (S k)     = No zeroNotSuc
+checkEqNat (S k) Z     = No sucNotZero
+checkEqNat (S k) (S j) = case checkEqNat k j of
+                              Yes prf   => Yes (cong prf)
+                              No contra => No (noRec contra)
+                              
+zeroNotSuc : (0 = S k) -> Void
+zeroNotSuc Refl impossible
+
+sucNotZero : (S k = 0) -> Void
+sucNotZero Refl impossible
+
+noRec : (contra : (k = j) -> Void) -> (S k = S j) -> Void
+noRec contra Refl = contra Refl
+\end{HaskellCode}                              
+
+The important thing to understand here is that our Dec property holds much more information than just a boolean flag which indicates whether Yes/No that two elements of a type are equal: in case of Yes we have a type which says that num1 is equal to num2, which can be directly used by the compiler, both elements are treated as the same.
+
+\subsection{Foundations}
+\label{sub:dep_foundations}
+
+
+- dependently typed functions (pi types)
+- dependent pairs (sigma types)
+- decidable equality
+
+\subsection{Constructivism}
+TODO: ABS is constructive: "if you can't grow it, you can't explain it" (epstein)
+TODO: Dependent Types are constructive
+=> there are no excluded middle in both approaches
+=> are there deeper, philosophical connections going on? does it have even deeper implications?
+TODO: shortly discuss Propositions as types from HOTT 1.11. In the end a dependently typed ABS is then a constructive proof of WHAT? the model? if we have a total SIR implementation its a constructive proof that the agent-based implementation is total / will reach an equilibrium after a finite number of steps. Still it is not entirely clear WHAT WE ARE PROVING when we are constructing dependently typed agent-based simulations. I need to think about this more carefully
+TODO: checkout my notes in 1st annual review on constructivism / popper 
+
+Law of excluded middle does not hold anymore because it would require us to be able to effectively compute / decide whether a proposition is true or false - which amounts to solving the halting problem, which is not possible in the general case.
+
+An important concept of this constructive approach is that the (proposition of) equality between two elements of the same type are is itself a type, called equality or identity types. This is much more expressive than a boolean proposition which evaluates to True in case they are the same and False if not as an equality type encodes much richer information which can be used by the type system. With the boolean approach, also known as boolean blindness, although one has compare two elements on equality and this check has returned true, the compiler has still no way of knowing \textit{after} the check that both elements are indeed the same - with equality types we can provide this information which can be used by the compiler (TODO: discuss further how this can be of use).
+If we have an element of this type (speak a witness / the type is inhibited) then we know the two elements are equal.
+
+\cite{thompson_type_1991} discusses constructive vs. classic mathematics in chapter 3. In general there are two conflicting philosophical views of the foundations of mathematics: the constructive and the classic one. The constructive view has been identified with realism, empirical computational content where the classical one with idealism and pragmatic. TODO: work through chapter 3
+
+dependent types as a perfect match and correspondence to the constructive nature of ABS, which is a 3rd way after induction and deduction
+
+TODO: shortly discuss that dependent types are based on martin-löf intuitions type theory.
+
+\subsection{Intensionality vs. Extensionality}
+HOTT book, NOTES on chapter 1: "Extensional theory makes no distinction between judgmental and propositional equality, the intensional theory regards judgmental equality as purely definitional, and admits a much broader proof-relevant interpretation of the identity type that is central to the homotopy interpretation."
+
+Propositional equality allows to assume that a variable x of type p is equal to y: p : x = y.
+
+Judgemental equality (or definitional equality) means "equal by definition" e.g. if we have a function $f : N -> N by f(x) = x^2$ then f(3) is equal to $3^2$ by definition. Whether or not two expressions are equal by definition is just a matter of expanding out the definitions, in particula it is algorithmically decidable.
+
+Fact: Idris, Agda and Coq are intensional

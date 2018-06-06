@@ -6,37 +6,7 @@ We hypothesise, that  dependent types will allow us to push the correctness of a
 
 So far no research using dependent types in agent-based simulation exists at all. We have already started to explore this for the first time and ask more specifically how we can add dependent types to our functional approach, which conceptual implications this has for ABS and what we gain from doing so. We plan on using Idris \cite{brady_idris_2013} as the language of choice as it is very close to Haskell with focus on real-world application and running programs as opposed to other languages with dependent types e.g. Agda and Coq which serve primarily as proof assistants.
 
-We hypothesize that dependent types could help ruling out even more classes of bugs at compile time and even encode invariants and model specifications on the type level which would allow the ABS community to reason about a model directly in code. 
-
-Dependent types could be made of use in ABS in the following ways:
-
-\begin{itemize}
-	\item Accessing e.g. discrete 2D environments involves (almost always) indexed array access which is always potentially dangerous as the indices have to be checked at run-time.
-	
-	Using dependent types it should be possible to encode the environment dimensions into the types. In combination with suitable data types (finite sets) for coordinates one should be able to ensure already at compile time that access happens only within the bounds of the environment.
-	
-	\item Often, Agent-Based Models define their agents in terms of state-machines. It is easy to make wrong state-transitions e.g. in the SIR model when an infected agent should recover, nothing prevents one from making the transition back to susceptible. 
-	
-	Using dependent types it might be possible to encode invariants and state-machines on the type level which can prevent such invalid transitions already at compile time. This would be a huge benefit for ABS because of the popularity of state-machines in agent-based models.
-	
-	\item State-Machines often have timed transitions e.g. in the SIR model, an infected agent recovers after a given time. Nothing prevents us from introducing a bug and \textit{never} doing the transition at all.
-	
-	With dependent types we might be able to encode the passing of time in the types and guarantee on a type level that an infected agent has to recover after a finite number of time steps.
-	
-	\item In more sophisticated models agents interact in more complex ways with each other e.g. through message exchange using agent IDs to identify target agents. The existence of an agent is not guaranteed and depends on the simulation time because agents can be created or terminated at any point during simulation. 
-	
-	Dependent types could be used to implement agent IDs as a proof that an agent with the given id exists \textit{at the current time-step}. This also implies that such a proof cannot be used in the future, which is prevented by the type system as it is not safe to assume that the agent will still exist in the next step.
-	
-	\item Using dependent types we might be able to encode a protocol for agent-agent interactions which e.g. ensures on the type-level that an agent has to reply to a request or that a more specific protocol has to be followed e.g. in auction- or trading-simulations.
-	
-	%\item Randomness is of central importance in agent-based simulation but nothing enforces from which distribution to draw. 
-	
-	%With dependent types we might to implement probabilistic types which can encode probability distributions in types already about which we can then reason and guarantee at compile-time that we draw from the correct distribution.
-	
-	\item For some agent-based simulations there exists equilibria, which means that from that point the dynamics won't change any more e.g. when a given type of agents vanishes from the simulation or resources are consumed. This means that at that point the dynamics won't change any more, thus one can safely terminate the simulation. But still such simulations are stepped for a fixed number of time-steps or events or the termination criterion is checked at run-time in the feedback-loop. 
-	
-	Using dependent types it might be possible to encode equilibria properties in the types in a way that the simulation automatically terminates when they are reached. This results then in a \textit{total} simulation, creating a correspondence between the equilibrium of a simulation and the totality of its implementation. Of course this is only possible for models in which we know about their equilibria a priori or in which we can reason somehow that an equilibrium exists.
-\end{itemize}
+In the following section \ref{sec:dep_background}, we give an introduction of the concepts behind dependent types and what they can do. Further we give a very brief overview of the foundational and philosophical concepts behind dependent types. In Section \ref{sec:dep_absconcepts} we briefly discuss ideas of how the concepts of dependent types could be applied to agent-based simulation.
 
 \input{./tex/dep_background.tex}
 

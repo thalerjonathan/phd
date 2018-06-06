@@ -1,8 +1,6 @@
 \section{Introduction}
 \label{sec:dep_background}
 
-In this section we give an introduction of the concepts behind dependent types and what they can do. Further we give a very brief overview of the theoretical, foundational and deep philosophical concepts behind dependent types.
-
 Generally, dependent types add the following concepts to existing pure functional programming:
 
 \begin{enumerate}
@@ -10,7 +8,7 @@ Generally, dependent types add the following concepts to existing pure functiona
 
 	\item Totality and termination - A total function is defined in \cite{brady_type-driven_2017}: it terminates with a well-typed result or produces a non-empty finite prefix of a well-typed infinite result in finite time. Idris is turing-complete but is able to check the totality of a function under some circumstances but not in general as it would imply that it can solve the halting problem. Other dependently typed languages like Agda or Coq restrict recursion to ensure totality of all their functions - this makes them non turing-complete.
 
-	\item Types as proofs - Because types can depend on any values and can be computed at compile time, they can be used as constructive proofs (see \ref{sub:dep_foundations}) which must terminate, this means a well-typed program (which is itself a proof) is always terminating which in turn means that it must consist out of total functions. Note that Idris does not restrict us to total functions but we can enforce it through compiler flags.
+	\item Types as \textit{constructive} proofs - Because types can depend on any values and can be computed at compile time, they can be used as constructive proofs (see \ref{sub:dep_foundations}) which must terminate, this means a well-typed program (which is itself a proof) is always terminating which in turn means that it must consist out of total functions. Note that Idris does not restrict us to total functions but we can enforce it through compiler flags.
 \end{enumerate}
 
 \subsection{An example: Vector}
@@ -170,36 +168,26 @@ exactLength {n} len input = case checkEqNat n len of
                                  No contra => Nothing
 \end{HaskellCode} 
 
-\subsection{Theoretical Foundations}
+\subsection{Philosophical Foundations: Constructivism}
 \label{sub:dep_foundations}
-- dependently typed functions (pi types)
-- dependent pairs (sigma types)
-- decidable equality
 
-\subsubsection{Constructivism}
-TODO: ABS is constructive: "if you can't grow it, you can't explain it" (epstein)
-TODO: Dependent Types are constructive
-=> there are no excluded middle in both approaches
-=> are there deeper, philosophical connections going on? does it have even deeper implications?
-TODO: shortly discuss Propositions as types from HOTT 1.11. In the end a dependently typed ABS is then a constructive proof of WHAT? the model? if we have a total SIR implementation its a constructive proof that the agent-based implementation is total / will reach an equilibrium after a finite number of steps. Still it is not entirely clear WHAT WE ARE PROVING when we are constructing dependently typed agent-based simulations. I need to think about this more carefully
-TODO: checkout my notes in 1st annual review on constructivism / popper 
+The main theoretical and philosophical underpinnings of dependent types as in Idris are the works of Martin-Löf intuitionistic type theory (TODO: cite). The view of dependently typed programs to be proofs is rooted in a deep philosophical discussion on the foundations of mathematics, which revolve around the existence of mathematical objects, with two conflicting positions known as classic vs. constructive \footnote{We follow the excellent introduction on constructive mathematics \cite{thompson_type_1991}, chapter 3.}. In general, the constructive position has been identified with realism and empirical computational content where the classical one with idealism and pragmatism.
 
-Law of excluded middle does not hold anymore because it would require us to be able to effectively compute / decide whether a proposition is true or false - which amounts to solving the halting problem, which is not possible in the general case.
+In the classical view, the position is that to prove $\exists x. P(x)$ it is sufficient to prove that $\forall x. \neg P(x)$ leads to a contradiction. The constructive view would claim that only the contradiction is established but that a proof of existence has to supply an evidence of an $x$ and show that $P(x)$ is provable. In the end this boils down whether to use proof by contradiction or not, which is sanctioned by the law of the excluded middle which says that $A \lor \neg A$ must hold. The classic position accepts that it does and such proofs of existential statements as above, which follow directly out of the law of the excluded middle, abound in mathematics \footnote{Polynomial of degree n has n complex roots; continuous functions which change sign over a compact real interval have a zero in that interval,...}. The constructive view rejects the law of the excluded middle and thus the position that every statement is seen as true or false, independently of any evidence either way. \cite{thompson_type_1991} (p. 61): \textit{The constructive view of logic concentrates on what it means to prove or to demonstrate convincingly the validity of a statement, rather than concentrating on the abstract truth conditions which constitute the semantic foundation of classical logic}.
 
-An important concept of this constructive approach is that the (proposition of) equality between two elements of the same type are is itself a type, called equality or identity types. This is much more expressive than a boolean proposition which evaluates to True in case they are the same and False if not as an equality type encodes much richer information which can be used by the type system. With the boolean approach, also known as boolean blindness, although one has compare two elements on equality and this check has returned true, the compiler has still no way of knowing \textit{after} the check that both elements are indeed the same - with equality types we can provide this information which can be used by the compiler (TODO: discuss further how this can be of use).
-If we have an element of this type (speak a witness / the type is inhibited) then we know the two elements are equal.
+To prove a conjunction $A \land B$ we need prove both $A$ and $B$, to prove $A \lor B$ we need to prove one of $A, B$ and know which we have proved. This shows that the law of the excluded middle can not hold in a constructive approach because we have no means of going from a proof to its negation. Implication $A \Rightarrow B$ in constructive position is a transformation of a proof $A$ into a proof $B$: it is a function which transforms proofs of $A$ into proofs of $B$. The constructive approach also forces us to rethink negation, which is now an implication from some proof to an absurd proposition (bottom): $A \Rightarrow \perp$. Thus a negated formula has no computational context and the classical tautology $\neg \neg A \Rightarrow A$ is then obviously no longer valid.  Constructively solving this would require us to be able to effectively compute / decide whether a proposition is true or false - which amounts to solving the halting problem, which is not possible in the general case.
 
-\cite{thompson_type_1991} discusses constructive vs. classic mathematics in chapter 3. In general there are two conflicting philosophical views of the foundations of mathematics: the constructive and the classic one. The constructive view has been identified with realism, empirical computational content where the classical one with idealism and pragmatic. TODO: work through chapter 3
+A very important concept in constructivism is that of finitary representation / description. Objects which are infinite e.g. infinite sets as in classic mathematics, fail to have computational computation, they are not computable. This leads to a fundamental tenet in constructive mathematics: \cite{thompson_type_1991} (p. 62): \textit{Every object in constructive mathematics is either finite [..] or has a finitary description}
 
-dependent types as a perfect match and correspondence to the constructive nature of ABS, which is a 3rd way after induction and deduction
+%TODO: intensionality vs extensionality
+%HOTT book, NOTES on chapter 1: "Extensional theory makes no distinction between judgmental and propositional equality, the intensional theory regards judgmental equality as purely definitional, and admits a much broader proof-relevant interpretation of the identity type that is central to the homotopy interpretation."
+%Propositional equality allows to assume that a variable x of type p is equal to y: p : x = y.
+%Judgemental equality (or definitional equality) means "equal by definition" e.g. if we have a function $f : N -> N by f(x) = x^2$ then f(3) is equal to $3^2$ by definition. Whether or not two expressions are equal by definition is just a matter of expanding out the definitions, in particular it is algorithmically decidable.
 
-TODO: shortly discuss that dependent types are based on martin-löf intuitions type theory.
+Concluding we can say that constructive mathematics is based on principles quite different from classical mathematics, with the idealistic aspects of the latter replaced by a finitary system with computational content. Objects like functions are given by rules, and the validity of an assertion is guaranteed by a proof from which we can extract relevant computational information, rather than on idealist semantic principles. 
 
-\subsubsection{Intensionality vs. Extensionality}
-HOTT book, NOTES on chapter 1: "Extensional theory makes no distinction between judgmental and propositional equality, the intensional theory regards judgmental equality as purely definitional, and admits a much broader proof-relevant interpretation of the identity type that is central to the homotopy interpretation."
+All this is directly reflected in dependently typed programs as we introduced above: functions need to be total (finitary) and produce proofs like in \textit{checkEqNat} which allows the compiler to extract additional relevant computational information. Also the way we described the (infinite) natural numbers was in an finitary way. In the case of decidable equality, the case where it is not equal, we need to provide an actual proof of contradiction, with the type of Void which is Idris representation of $\perp$. 
 
-Propositional equality allows to assume that a variable x of type p is equal to y: p : x = y.
-
-Judgemental equality (or definitional equality) means "equal by definition" e.g. if we have a function $f : N -> N by f(x) = x^2$ then f(3) is equal to $3^2$ by definition. Whether or not two expressions are equal by definition is just a matter of expanding out the definitions, in particula it is algorithmically decidable.
-
-Fact: Idris, Agda and Coq are intensional
+%TODO: connect intensionality to above examples
+%Fact: Idris, Agda and Coq are intensional
+%extensionality can also be seen as: two functions are equal if they give the same results on every input (extensional equality on the function space)

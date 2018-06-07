@@ -17,4 +17,7 @@ When we talk about dependently typed programs to be proofs, then we also must at
 
 	A central question in tackling this is whether to follow a model- or an agent-centric approach. The former one looks at the model and its specifications as a whole and encodes them e.g. one tries to directly find a total implementation of an agent-based model. The latter one looks only at the agent level and encodes that as dependently typed as possible and hopes that model guarantees emerge on a meta-level put otherwise: does the totality of an implementation emerge when we follow an agent-centric approach?
 
+- Dependent Types as Hypotheses
+	Models which are exploratory in nature don't have a formal ground truth where one could derive equilibria or dynamics from and validate with. In such models the researchers work with informal hypotheses which they express before running the model and then compare them informally against the resulting dynamics.
 
+	It would be of interest if dependent types could be made of use in encoding hypotheses on a more constructive and formal level directly into the implementation code. So far we have no idea how this could be done but it might be a very promising approach as it allows for a more formal and automatic testable approach to hypothesis checking.

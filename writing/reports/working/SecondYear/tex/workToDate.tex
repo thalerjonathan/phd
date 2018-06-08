@@ -1,89 +1,75 @@
 \chapter{Work To Date}
 \label{chap:work_to_date}
 
-From a very general perspective I am researching a novel implementation approach to ABS. The hypothesis is that due to its underlying foundations of pure functional programming, this approach leads to simulation software which is easier to verify and validate and thus more likely to be correct, less sources of bugs and is conceptually cleaner.
-In the first half of my PhD (October 2016 - March 2018) I have learned the underlying foundations of pure functional programming, did lots of prototyping and ultimately developed a way of implementing ABS in this approach. This resulted in a paper, submitted in March 2018 to the Haskell Symposium 2018, which discusses \textit{how} to do agent-based simulation with pure functional programming as foundation and how to solve the fundamental problems of encapsulating agent-state, doing agent-interactions and bringing in environments in this setting.
-We found out that we immediately benefit from this approach in various ways, supporting our initial hypothesis but didn't investigate it in scientific details, which we leave for the next 12 months, conducted between April 2018 and April 2019. Thus we will be researching the \textit{why} of our approach, which we claim is an easier and stronger approach to verification and validation (V \& V). We need to clarify the meaning of V \& V in both areas we trying to gap, pure functional programming and agent-based simulation, and how they related to each other and how we can connect them. Further we need to quantify our claims of less sources of bugs through other research and comparing it to imperative OO approaches.
-In this time we will investigate the use of dependent types in our pure functional approach to agent-based simulation which we hypothesise should allow an unprecedented level of verification and validation, not possible (even not on a theoretical level) with imperative, traditional object-oriented approaches. There exists literally no research on this topic thus it will form the unique and sufficiently advanced, novel contribution of our PhD to the field. We will also write an additional paper which will investigate how dependent types can be made of use in ABS.
-Around December 2018 I will start writing another paper which is targeted for an agent-based simulation journal and is written as a conceptual paper, describing the approach and benefits of purely and dependently typed agent-based simulation. While writing this paper I will start constructing the main argument structure of my thesis so I have structure already when I start writing the thesis in April 2019. The last 6 months of the PhD (April 2019 - September 2019) will be dedicated to writing up the thesis and conducting additional research if still necessary.
+%From a very general perspective I am researching a novel implementation approach to ABS. The hypothesis is that due to its underlying foundations of pure functional programming, this approach leads to simulation software which is easier to verify and validate and thus more likely to be correct, less sources of bugs and is conceptually cleaner.
 
-So roughly the PhD can be split into 3 phases:
-Researching the HOW: September 2016 - March 2018
-Researching the WHY: April 2018 - March 2019
-Writing the Thesis: April 2019 - September 2019
+In the first half of my PhD (October 2016 - March 2018) I have learned the underlying foundations of pure functional programming, did lots of prototyping and ultimately developed a way of implementing ABS in this approach. This resulted in a paper (see Appendix \ref{app:pfe}) which discusses \textit{how} to do agent-based simulation with pure functional programming as foundation and how to solve the fundamental problems of encapsulating agent-state, doing agent-interactions and bringing in environments in this setting.
 
-2016
-October - December
-	proper learning haskell programming
-	experiments with scala \& akka (actor model)
-	
-2017
-January - March
-	writing 1st paper: Art Of Iteration
-	MGS2017
-	deepening haskell programming skills
-
-April - July
-	getting into functional reactive programming
-	literature research \& 1st year report and review
-	prototyping concepts of purely functional ABS
-	presentation to FP group at FP lunch
-
-August
-	holiday
-	reading book and papers on functional programming
-
-September
-	preparation for social simulation conference 2017 (SSC2017)
-
-October - December
-	working on 2nd paper (pure functional epidemics): first draft
-	generalising the functional reactive programming approach to monadic stream functions 
-
-2018
-January - February
-	prototyping event-scheduling concepts in pure functional ABS
-	completely reworking 2nd paper: 2nd draft
-	learning Idris language (pure functional, dependently typed programming)
-
-March
-	finalising 2nd paper and submission to Haskell Symposium 2018
-	deepening Idris knowledge and experience 
-
-April
-	bit of work on verification and validation of the purely functional SIR abs implementation using quickcheck. this is not original research but will then be useful for the final thesis as a small separate section
-	started 3rd paper on dependent types in purely functional ABS
-
-May
-	feedback on 2nd paper on 18 May	
-	researching concepts of dependent types in purely functional ABS
-	research \& writing 3rd paper
-
-June - July
-	2nd year report \& review
-	research \& writing 3rd paper
-
+%2016
+%October - December
+%	proper learning haskell programming
+%	experiments with scala \& akka (actor model)
+%	
+%2017
+%January - March
+%	writing 1st paper: Art Of Iteration
+%	MGS2017
+%	deepening haskell programming skills
+%
+%April - July
+%	getting into functional reactive programming
+%	literature research \& 1st year report and review
+%	prototyping concepts of purely functional ABS
+%	presentation to FP group at FP lunch
+%
+%August
+%	holiday
+%	reading book and papers on functional programming
+%
+%September
+%	preparation for social simulation conference 2017 (SSC2017)
+%
+%October - December
+%	working on 2nd paper (pure functional epidemics): first draft
+%	generalising the functional reactive programming approach to monadic stream functions 
+%
+%2018
+%January - February
+%	prototyping event-scheduling concepts in pure functional ABS
+%	completely reworking 2nd paper: 2nd draft
+%	learning Idris language (pure functional, dependently typed programming)
+%
+%March
+%	finalising 2nd paper and submission to Haskell Symposium 2018
+%	deepening Idris knowledge and experience 
+%
+%April
+%	bit of work on verification and validation of the purely functional SIR abs implementation using quickcheck. this is not original research but will then be useful for the final thesis as a small separate section
+%	started 3rd paper on dependent types in purely functional ABS
+%
+%May
+%	feedback on 2nd paper on 18 May	
+%	researching concepts of dependent types in purely functional ABS
+%	research \& writing 3rd paper
+%
+%June - July
+%	2nd year report \& review
+%	research \& writing 3rd paper
 
 Here we give a concise overview over the activities performed in the 2nd year.
 
-\section{Social Simulation Conference 2017}
+\paragraph{Social Simulation Conference 2017}
+I participated
+The paper \cite{thaler_art_2017} which we wrote in the first year got selected to be published in the Conference Proceedings of the Social Simulation Conference 2017.
 
+\paragraph{Papers Submitted: Pure Functional Epidemics}
+The paper as attached in Appendix \ref{app:pfe}.
 
-\section{Paper Published}
-TODO: Art of Iteration was published in SSC2017 proceedings
+\paragraph{Haskell Communities and Activities Report (HCAR) May 2018}
+We wrote a new entry for the HCAR May 2018, which tries to compile and publish novel and on-going ideas in the Haskell community. It is freely available under \url{https://www.haskell.org/communities/05-2018/html/report.html}. We hope that our idea and the work of our PhD gets a bit more attention and may start some discussions with people interested in this work.
 
-\section{Papers Submitted}
-\subsection{Pure Functional Epidemics}
-This paper, which is attached in Appendix \ref{app:pfe}
-
-\section{Reports}
-\subsection{Haskell Communities and Activities Report (HCAR) May 2017}
-We wrote a new entry for the HCAR May 2017, which tries to compile and publish novel and on-going ideas in the Haskell community. It is freely available under \url{https://www.haskell.org/communities/05-2017/html/report.html}. We hope that our idea and the work of our PhD gets a bit more attention and may start some discussions with people interested in this work.
-
-\subsection{2nd Year Report}
+\paragraph{2nd Year Report}
 This document.
 
-
-\section{Talks}
-So far only two talks were given. The first one was a presentation of the ideas underlying the update-strategies paper at the IMA - seminar day. The second was presenting my ideas about functional reactive ABS to the FP-Lab Group at the FPLunch.
-
+\paragraph{Talks}
+So far three talks were given. The first one was the talk about my first paper at the Social Simulation Conference 2016 in Dublin. The second one was a presentation of the ideas to Master Students of my 1st Supervisor. The third was presenting my ideas about dependent types in Agent-Based Simulation at the FP Away Day end of June.

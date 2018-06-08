@@ -1,12 +1,10 @@
 \chapter{Aims and Objectives}
 \label{chap:aimsObj}
 
-TODO: refine and adapt to 2nd year
-
 This chapter gives a compact and concise overview of the aims and objectives. Chapter \ref{chap:future} gives a more in-depth plan and details in how we will approach the aim in general and the objectives in particular.
 
 \section{Aim}
-The aim of this Ph.D. is to investigate how the pure functional programming paradigm can be used to increase the robustness and gain insights into dynamics of Agent-Based Simulations.
+The aim of this Ph.D. is to investigate how the pure functional programming paradigm with and without dependent types can be used to increase the robustness and confidence in correctness of Agent-Based Simulations.
 
 \subsection{Hypothesis}
 We claim that using pure functional programming and dependent types in agent-based simulation leads to simulation software which is more likely to be correct, has less sources of bugs and is easier to verify and validate.
@@ -15,13 +13,15 @@ We claim that using pure functional programming and dependent types in agent-bas
 \begin{enumerate}
 	\item Develop a library for general-purpose Agent-Based Simulation in Haskell to have a tool in the pure functional programming paradigm to be used for conducting the research.
 
-	\item Compare the general approach of pure functional programming in the instance of Haskell and object-oriented programming in the instance of Java to implement ABS. Look into differences and similarities and identify benefits and drawbacks.
+	% NOTE: no! this is a dead-end we won't anything there, also its boring and technical and by far too subjective
+	%\item Compare the general approach of pure functional programming in the instance of Haskell and object-oriented programming in the instance of Java to implement ABS. Look into differences and similarities and identify benefits and drawbacks.
 
 	\item Explore how pure functional programming can increase testability, verification and correctness of Agent-Based Simulations.
 
-	\item Investigate to which extent one can use reasoning-techniques of the pure functional paradigm to reason about dynamics in ABS.
+	\item Explore how pure functional programming with dependent types can increase the correctness of Agent-Based Simulations.
+
+	% NOTE: no! too vague, too difficult, this is already 2 steps ahead
+	%\item Investigate to which extent one can use reasoning-techniques of the pure functional paradigm to reason about dynamics in ABS.
 	
-	\item Investigate the correspondence between the constructive nature of ABS and the one of dependent types.
-	
-	\item Investigate the applicability of my research on correctness applies to simulation in general and can be generalised e.g. applied to distributed search algorithms (Julie Greensmith).
+	\item Investigate the correspondence between the constructive nature of ABS and dependent types.
 \end{enumerate}

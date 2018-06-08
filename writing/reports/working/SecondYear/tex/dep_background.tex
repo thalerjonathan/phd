@@ -179,15 +179,15 @@ To prove a conjunction $A \land B$ we need prove both $A$ and $B$, to prove $A \
 
 A very important concept in constructivism is that of finitary representation / description. Objects which are infinite e.g. infinite sets as in classic mathematics, fail to have computational computation, they are not computable. This leads to a fundamental tenet in constructive mathematics: \cite{thompson_type_1991} (p. 62): \textit{Every object in constructive mathematics is either finite [..] or has a finitary description}
 
-%TODO: intensionality vs extensionality
-%HOTT book, NOTES on chapter 1: "Extensional theory makes no distinction between judgmental and propositional equality, the intensional theory regards judgmental equality as purely definitional, and admits a much broader proof-relevant interpretation of the identity type that is central to the homotopy interpretation."
-%Propositional equality allows to assume that a variable x of type p is equal to y: p : x = y.
-%Judgemental equality (or definitional equality) means "equal by definition" e.g. if we have a function $f : N -> N by f(x) = x^2$ then f(3) is equal to $3^2$ by definition. Whether or not two expressions are equal by definition is just a matter of expanding out the definitions, in particular it is algorithmically decidable.
+TODO: discuss intensionality vs extensionality with Thorsten
+HOTT book, NOTES on chapter 1: "Extensional theory makes no distinction between judgmental and propositional equality, the intensional theory regards judgmental equality as purely definitional, and admits a much broader proof-relevant interpretation of the identity type that is central to the homotopy interpretation."
+Propositional equality allows to assume that a variable x of type p is equal to y: p : x = y.
+Judgemental equality (or definitional equality) means "equal by definition" e.g. if we have a function $f : N -> N by f(x) = x^2$ then f(3) is equal to $3^2$ by definition. Whether or not two expressions are equal by definition is just a matter of expanding out the definitions, in particular it is algorithmically decidable.
 
 Concluding we can say that constructive mathematics is based on principles quite different from classical mathematics, with the idealistic aspects of the latter replaced by a finitary system with computational content. Objects like functions are given by rules, and the validity of an assertion is guaranteed by a proof from which we can extract relevant computational information, rather than on idealist semantic principles. 
 
 All this is directly reflected in dependently typed programs as we introduced above: functions need to be total (finitary) and produce proofs like in \textit{checkEqNat} which allows the compiler to extract additional relevant computational information. Also the way we described the (infinite) natural numbers was in an finitary way. In the case of decidable equality, the case where it is not equal, we need to provide an actual proof of contradiction, with the type of Void which is Idris representation of $\perp$. 
 
-%TODO: connect intensionality to above examples
-%Fact: Idris, Agda and Coq are intensional
-%extensionality can also be seen as: two functions are equal if they give the same results on every input (extensional equality on the function space)
+TODO: connect intensionality to above examples, discuss with Thorsten
+Fact: Idris, Agda and Coq are intensional
+extensionality can also be seen as: two functions are equal if they give the same results on every input (extensional equality on the function space)

@@ -10,7 +10,7 @@ In the next section of this chapter we will briefly discuss our approach of \tex
 
 In the following chapters we will give an in-depth introduction to the concepts used in the research of the following year, namely Verification \& Validation in Chapter \ref{chap:v_and_v} and Dependent Types in Chapter \ref{chap:dependent_types}. We also believe that although our research is conducted in the field of ABS, part of it is transferable to simulation in general and possibly other fields, closely related to ABS. We discuss this shortly in Chapter \ref{chap:generalising}. We also have included updated chapters on Aims \& Objectives \ref{chap:aimsObj}, Work to Date \ref{chap:work_to_date} and Future Work Plan \ref{chap:future}.
 
-\section{The How}
+\section{How}
 The essence of \textit{how} to do agent-based simulation using the functional programming paradigm, as in the language Haskell, is described in the paper found in Appendix \ref{app:pfe}. The approach we developed is based on Functional Reactive Programming which allows to express discrete- and continuous-time systems in functional programming. Following the conclusions of the paper, we got the following benefits, which support directly our initial hypothesis:
 \begin{enumerate}
 	\item Run-Time robustness - we can restrict the classes of bugs which occur at run-time by a substantial amount due to Haskells strong and static type system. Note that we can still have run-time bugs in Haskell when our functions are partial.
@@ -24,7 +24,7 @@ Following the conclusions of the paper, we also found drawbacks. The most fundam
 
 Another drawback is performance. So far, performance is not comparable to object-oriented approaches, but that was not the main focus of the research. Also functional programming in general can exploit parallelism nearly for free which should allow speeding up of simulations very easily, and if it is just running multiple replications in parallel. We leave this for further research as investigating this is worth a Ph.D. on its own.
 
-\section{The Why}
+\section{Why}
 %line of argument
 %1. established methods need extensive unit-testing for establishing correctness of software, which only increases the likelihood of correctness and doesnt guarantee it because they are inherent dynamic, testing run-time behaviour, because of the different type system.
 %2. functional programming as in haskell has a strong static type system which allows to shift much much more guarantees towards static, compile-time, making many run-time tests obsolete and can guarantee a few things already at compile-time which makes tests to cover that completely obsolete
@@ -48,10 +48,15 @@ In general it is well established, that pure functional programming as in Haskel
 
 Having established this was only the first step in our paper in Appendix \ref{app:pfe}. The next step which follows directly, is to move towards dependent types using the language Idris. Generally speaking, dependent types allow to push compile-time guarantees to a new level where we can express nearly arbitrary complex guarantees at compile-time because we can \textit{compute types at compile time}. This means that types are first-class citizen of the language and go as far as being formal proofs of the correctness of an implementation. We hypothesise that the use of dependent types allows us to push the judgement of the correctness of a simulation to new, unprecedented level, not possible with the established object-oriented approaches so far.
 
-\section{The Not}
+\section{What Not}
 Because our research focuses on new implementation techniques and paradigms in agent-based simulation, there is always the question of "Why would you do that, what is wrong with the established way?". Thus new techniques and paradigms always have to justify themselves in terms of benefits and drawbacks and our research is no exception to that. The way we approach this is not on a low technical level but on very broad conceptual levels which have been already established for object-oriented and functional programming paradigms in general. Thus we will \textit{not} compare object-oriented to functional implementations of a same model and go into lengthy debates over Lines Of Code, maintainability, extensibility, readability,... because many of those properties are highly subjective and depend very much on experience. In short: we want to avoid discussions over "which programming language is better" under all circumstances because they lead to nowhere (just take a look in any technical forum / reddit / youtube and you will see the emotions going high like in religious debates).
 
 We have the position that one has to pick the \textit{right} programming language for the \textit{right} task e.g. for web-development one would probably never pick Assembly and for embedded systems programming probably not Haskell. Our research is to find out what the \textit{right} task for functional programming and dependent types is in agent-based simulation - we believe it is correctness. So despite challenging the metaphor that \textit{agents map naturally to objects}, we still think object-oriented programming is great for implementing ABS because we think it is the \textit{easiest} way to go for teaching and low-impact models, not used in far reaching policy decisions because for those, correctness is not the primary objective.
 
-\section{The Contributions}
-Although I am just half-way through the Ph.D. I can anticipate and project the contributions of it, with a few of them already made.
+\section{Contributions}
+Although I am just half-way through the Ph.D. I anticipate and project the contributions of it:
+
+\begin{enumerate}
+	\item This research is the first to \textit{systematically} investigate the application of functional programming paradigm, as in Haskell, to Agent-Based Simulation, identifying its benefits and drawbacks.
+	\item This research is the first to apply \textit{dependent types} to Agent-Based Simulation to investigate its usefulness for increasing the correctness of a simulation.
+\end{enumerate}

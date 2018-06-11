@@ -6,11 +6,11 @@ There exist a number of excellent introduction to dependent types which we use a
 Generally, dependent types add the following concepts to existing pure functional programming:
 
 \begin{enumerate}
-	\item Types are first-class citizen - In dependently types languages, types can depend on any \textit{values}, and can be \textit{computed} at compile time which makes them first-class citizen.
+	\item Types are first-class citizen - In dependently types languages, types can depend on any \textit{values}, and can be \textit{computed} at compile-time which makes them first-class citizen.
 
 	\item Totality and termination - A total function is defined in \cite{brady_type-driven_2017}: it terminates with a well-typed result or produces a non-empty finite prefix of a well-typed infinite result in finite time. Idris is turing-complete but is able to check the totality of a function under some circumstances but not in general as it would imply that it can solve the halting problem. Other dependently typed languages like Agda or Coq restrict recursion to ensure totality of all their functions - this makes them non turing-complete.
 
-	\item Types as \textit{constructive} proofs - Because types can depend on any values and can be computed at compile time, they can be used as constructive proofs (see \ref{sub:dep_foundations}) which must terminate, this means a well-typed program (which is itself a proof) is always terminating which in turn means that it must consist out of total functions. Note that Idris does not restrict us to total functions but we can enforce it through compiler flags.
+	\item Types as \textit{constructive} proofs - Because types can depend on any values and can be computed at compile-time, they can be used as constructive proofs (see \ref{sub:dep_foundations}) which must terminate, this means a well-typed program (which is itself a proof) is always terminating which in turn means that it must consist out of total functions. Note that Idris does not restrict us to total functions but we can enforce it through compiler flags.
 \end{enumerate}
 
 \subsection{An example: Vector}
@@ -119,7 +119,7 @@ exactLength {n} len input = case n == len of
                                  False => Nothing 
 \end{HaskellCode}
 
-Unfortunately this doesn't type-check ('type mismatch between n and len') because the compiler has no way of determining that len is equals n at compile time. Fortunately we can solve this problem using dependent types themselves by defining \textit{decidable} equality as a type (see more on decidable / non-decidable equality below \ref{sub:dep_foundations}).
+Unfortunately this doesn't type-check ('type mismatch between n and len') because the compiler has no way of determining that len is equals n at compile-time. Fortunately we can solve this problem using dependent types themselves by defining \textit{decidable} equality as a type (see more on decidable / non-decidable equality below \ref{sub:dep_foundations}).
 
 First we need a decidable property, meaning it either holds given with some \textit{proof} or it does not hold given some proof that it does \textit{not} hold, resulting in a contradiction. Idris defines such a decidable property already as the following:
 

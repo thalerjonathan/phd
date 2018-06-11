@@ -3,7 +3,7 @@
 
 In this chapter we will have a closer look on the topic of Verification \& Validation. It is of most importance to understand the ideas and concepts behind it, when we are referring to the \textit{correctness of a simulation}, as in our initial hypothesis. 
 
-We first will give a short and concise introduction \ref{sec:vav_introduction} on the topic \footnote{In this short introduction we closely follow the book \cite{robinson_simulation:_2014}} and then briefly discuss verification \& validation in the context of agent-based simulation \ref{sec:vav_abs}.
+We first will give a short and concise introduction (\ref{sec:vav_introduction}) on the topic \footnote{In this short introduction we closely follow the book \cite{robinson_simulation:_2014}} and then briefly discuss verification \& validation in the context of agent-based simulation (\ref{sec:vav_abs}).
 
 %TODO: we need to distinguish between various meanings of 'correct'
 %1. correctness of software: the implementation is correct up to a model specification
@@ -34,18 +34,22 @@ We first will give a short and concise introduction \ref{sec:vav_introduction} o
 %	-> 2 implementing the model
 %	-> 3 implementing the learning
 
-\textbf{\textit{Validation}} is the process of ensuring that the model is sufficiently accurate for the purpose at hand. \textbf{\textit{Verification}} is the process of ensuring that the model design has been transformed into a computer model with sufficient accuracy. \cite{balci_verification_1998} define verification as "are we building the model right?" and validation as "are we building the right model?".
+\textbf{\textit{Validation}} is the process of ensuring that a model or specification is sufficiently accurate for the purpose at hand.
 
-In this research we will primarily focus on verification, because its there where one ensures that the model is programmed correctly, the algorithms have been implemented properly, and the model does not contain errors, oversights, or bugs. Note that verification has a narrow definition and can be seen as a subset of the wider issue of validation. 
+\textbf{\textit{Verification}} is the process of ensuring that the model design has been transformed into a computer model with sufficient accuracy.
 
-In verification and validation the aim is to ensure, that the model is sufficiently accurate, which always implies its purpose. Therefore the purpose and objectives must be known before it is validated. One distinguishes between:
+\cite{balci_verification_1998} define validation as "are we building the right model?" and verification as "are we building the model right?" and.
+
+In verification and validation the aim is to ensure, that the model is sufficiently accurate, which always implies its purpose. Therefore the purpose and objectives must be known before it is validated. 
+
+In this research we will primarily focus on verification, because its there where one ensures that the model is programmed correctly, the algorithms have been implemented properly, and the model does not contain errors, oversights, or bugs. Note that verification has a narrow definition and can be seen as a subset of the wider issue of validation. One distinguishes between:
 
 \begin{itemize}
 	\item White-box Validation: detailed, micro check if each part of the model represent the real world with sufficient accuracy. It is therefore intrinsic to model coding. The ways to do it is checking the code, visual checks, inspecting output reports. 
-	\item Black-box Validation: overall, macro check whether the model provides a sufficiently accurate representation of the real world system. It can only be performed once model code is complete. Ways to do this is comparison with the real system or with other (simpler) models.
+	\item Black-box Validation: overall macro check whether the model provides a sufficiently accurate representation of the real world system. It can only be performed once model code is complete. Ways to do this is comparison with the real system or with other (simpler) models.
 
 	\item White-box Verification: compares the content of the model to the \textit{conceptual} model. This is different to white-box validation which compares the content of the model to the \textit{real world}
-	\item Black-box Verification: treating the functionality to test as a black box with inputs and outputs and comparing controlled inputs to expected outputs.
+	\item Black-box Verification: treating the functionality to test as a black-box with inputs and outputs and comparing controlled inputs to expected outputs.
 
 	%\item Data Validation: determining that the contextual data and the data required for model realisation and validation are sufficiently accurate for the purpose at hand.
 \end{itemize}
@@ -54,9 +58,9 @@ In verification and validation the aim is to ensure, that the model is sufficien
 
 So in general one can see verification as a test of the fidelity with which the conceptual model is converted into the computer model. Verification (and validation) is a continuous process and if it is already there in the programming language / supported by then this is much easier to do. This is the fundamental basis of our hypothesis where we claim that by choosing a programming language which supports this continuous verification and validation process, then the result is an implementation of a model which is more likely to be correct.
 
-Unfortunately, there is no such thing as general validity: a model should be built for one purpose as simple as possible and not be too general, otherwise it becomes too bloated and too difficult / impossible to analyse. Also, there may be no real world to compare against: simulations are developed for proposed systems, new production / facilities which don't exist yet. Further, it is questionable which real world one is speaking of: the real world can be interpreted in different ways, therefore a model valid to one person might not be valid to another. Sometimes validation struggles because the real world data are inaccurate or there is not enough time to verify and validate everything.
+Unfortunately, there is no such thing as general validity: a model should be built for one purpose as simple as possible and not be too general, otherwise it becomes too bloated and too difficult or impossible to analyse. Also, there may be no real world to compare against: simulations are developed for proposed systems, new production or facilities which don't exist yet. Further, it is questionable which real world one is speaking of: the real world can be interpreted in different ways, therefore a model valid to one person might not be valid to another. Sometimes validation struggles because the real world data are inaccurate or there is not enough time to verify and validate everything.
 
-In general this implies that we can only \textit{raise the confidence} in the correctness of the simulation, not validity: it is not possible to prove that a model is valid, instead one should think of confidence in its validity. Therefore, the process of verification and validation is not the proof that a model is correct but trying to prove that the model is incorrect! The more tests/checks one carries out which show that it is not incorrect, the more confidence we can place on the models validity.
+In general this implies that we can only \textit{raise the confidence} in the correctness of the simulation: it is not possible to prove that a model is valid, instead one should think of confidence in its validity. Therefore, the process of verification and validation is not the proof that a model is correct but trying to prove that the model is incorrect! The more tests/checks one carries out which show that it is not incorrect, the more confidence we can place on the models validity.
 
 %	- methods of verification and validation
 %	-> conceptual model validation: judment based on the documentation
@@ -106,14 +110,16 @@ In general this implies that we can only \textit{raise the confidence} in the co
 \section{Verification \& Validation in Agent-Based Simulation}
 \label{sec:vav_abs}
 In our research we focus primarily on the \textit{Verification} aspect of agent-based simulation: ensuring that the implementation reflects the specifications of the \textit{conceptual} model - have we built the model right? Thus we are not interested in our research into making connections to the real world and always see the model specifications as our "last resort", our ground truth beyond nothing else exists. When there are hypotheses formulated, we always treat and interpret them in respect of the conceptual model.
+
 In \cite{ormerod_validation_2006} the authors clarify on verification in ABS. Verification "... is essentially the question: does the model do what we think it is supposed to do? Whenever a model has an analytical solution, a condition which embraces almost all conventional economic theory, verification is a matter of checking the mathematics.". They say about validation that "In an important sense, the current process of building ABMs is a discovery process, of discovering the types of behavioural rules for agents which appear to be consistent with phenomena we observe.". Further they claim that "Because such models are based on simulation, the lack of an analytical solution (in general) means that verification is harder, since there is no single result the model must match. Moreover, testing the range of model outcomes provides a test only in respect to a prior judgment on the plausibility of the potential range of outcomes. In this sense, verification blends into validation."
+
 So the baseline is that either one has an analytical model as the basis of an agent-based model or one does not. In the former case, e.g. the SIR model, one can very easily validate the dynamics generated by the simulation to the one generated by the analytical solution (e.g. through System Dynamics). In the latter case one has basically no idea or description of the emergent behaviour of the system prior to its execution e.g. SugarScape. It is important to have some hypothesis about the emergent property / dynamics. The question is how verification / validation works in this setting as there is no formal description of the expected behaviour: we don't have a ground-truth against which we can compare our simulation dynamics. %(eventuell hilft hier hans vollbrecht weiter: Simulation hat hier den Sinn, die Controller anhand der Roboteraufgabe zu validieren, Bei solchen Simulationen ist man interessiert an allen möglichen Sequenzen, und da das meist zu viele sind, an einer möglichst gut verteilten Stichprobenmenge. Hier geht es weniger um richtige Zeitmodellierung, sondern um den Test aller möglichen Ereignissequenzen.)
 
-General there are the following simulation requirements to ABS \cite{robinson_simulation:_2014}, which all can be addressed in our \textit{pure} functional approach as described in the paper in Appendix \ref{app:pfe}:
+General there are the following basic verification \& validation requirements to ABS \cite{robinson_simulation:_2014}, which all can be addressed in our \textit{pure} functional approach as described in the paper in Appendix \ref{app:pfe}:
 
 \begin{itemize}
-	\item Modelling progress of time - achieved using functional reactive programming (FRP)
-	\item Modelling variability - achieved using FRP
+	%\item Modelling progress of time - achieved using functional reactive programming (FRP)
+	%\item Modelling variability - achieved using FRP
 	\item Fixing random number streams to allow simulations to be repeated under same conditions - ensured by \textit{pure} functional programming and Random Monads
 	\item Rely only on past - guaranteed with \textit{Arrowized} FRP
 	\item Bugs due to implicitly mutable state - reduced using pure functional programming
@@ -122,7 +128,8 @@ General there are the following simulation requirements to ABS \cite{robinson_si
 	\item Repeated runs lead to same dynamics - ensured by \textit{pure} functional programming
 \end{itemize}
 
-\cite{kleijnen_verification_1995} suggests good programming practice which is extremely important for high quality code and reduces bugs but real world practice and experience shows that this alone is not enough, even the best programmers make mistakes which often can be prevented through a strong static or a dependent type system already at compile time. What we can guarantee already at compile time, doesn't need to be checked at run-time which saves substantial amount of time as at run-time there may be a large number of execution paths through the simulation which is almost always simply not feasible to check (note that we also need to check all combinations). This paper also cites modularity as very important for verification: divide and conquer and test all modules separately. We claim that this is especially easy in functional programming as code composes better than in traditional object-oriented programming due to the lack of interdependence between data and code as in objects and the lack of global mutable state (e.g. class variables or global variables) - this makes code extremely convenient to test. The paper also discusses statistical tests (the t test) to check if the outcome of a simulation is sufficiently close to real-world dynamics - we explicitly omit this as it part of validation and not the focus of this research. % Also the paper suggests using animations to visualise the processes within the simulation for verification purposes (of course they note that animation may be misleading when one focuses on too short simulation runs).
+\subsection{Related Work}
+The work of \cite{kleijnen_verification_1995} suggests good programming practice which is extremely important for high quality code and reduces bugs but real world practice and experience shows that this alone is not enough, even the best programmers make mistakes which often can be prevented through a strong static or a dependent type system already at compile-time. What we can guarantee already at compile-time, doesn't need to be checked at run-time which saves substantial amount of time as at run-time there may be a large number of execution paths through the simulation which is almost always simply not feasible to check (note that we also need to check all combinations). This paper also cites modularity as very important for verification: divide and conquer and test all modules separately. We claim that this is especially easy in functional programming as code composes better than in traditional object-oriented programming due to the lack of interdependence between data and code as in objects and the lack of global mutable state (e.g. class variables or global variables) - this makes code extremely convenient to test. The paper also discusses statistical tests (the t test) to check if the outcome of a simulation is sufficiently close to real-world dynamics - we explicitly omit this as it part of validation and not the focus of this research. % Also the paper suggests using animations to visualise the processes within the simulation for verification purposes (of course they note that animation may be misleading when one focuses on too short simulation runs).
 
 %So we ask whether we can encode phenomena we observe in the types? can we use types for the discovery process as well? can dependent types guide our exploratory approach to ABS?
 
@@ -133,12 +140,11 @@ General there are the following simulation requirements to ABS \cite{robinson_si
 \subsection{Testing}
 Although (pure) functional programming allows us to have stronger guarantees about the behaviour and absence of bugs of the simulation already at compile-time, we still need to test all the properties of our simulation which we cannot guarantee at compile-time.
 
-We found property-based testing particularly well suited for ABS. Although it is now available in a wide range of programming languages and paradigms, propert-based testing has its origins in Haskell \cite{claessen_quickcheck:_2000, claessen_testing_2002} and we argue that for that reason it really shines in pure functional programming.
-Property-based testing allows to formulate \textit{functional specifications} in code which then the property-testing library (e.g. QuickCheck \cite{claessen_quickcheck:_2000}) tries to falsify by automatically generating random test-data covering as much cases as possible. When an input is found for which the property fails, the library then reduces it to the most simple one. It is clear to see that this kind of testing is especially suited to ABS, because we can formulate specifications, meaning we describe \textit{what} to test instead of \textit{how} to test (again the declarative nature of functional programming shines through).
+We found property-based testing particularly well suited for ABS. Although it is now available in a wide range of programming languages and paradigms, propert-based testing has its origins in Haskell \cite{claessen_quickcheck:_2000, claessen_testing_2002} and we argue that for that reason it really shines in pure functional programming. Property-based testing allows to formulate \textit{functional specifications} in code which then the property-testing library (e.g. QuickCheck \cite{claessen_quickcheck:_2000}) tries to falsify by automatically generating random test-data covering as much cases as possible. When an input is found for which the property fails, the library then reduces it to the most simple one. It is clear to see that this kind of testing is especially suited to ABS, because we can formulate specifications, meaning we describe \textit{what} to test instead of \textit{how} to test (again the declarative nature of functional programming shines through). Also the deductive nature of falsification in property-based testing suits very well the constructive nature of ABS.
 
-Generally we need to distinguish between two types of testing/verification: 1. testing/verification of models for which we have real-world data or an analytical solution which can act as a ground-truth. examples for such models are the SIR model, stock-market simulations, social simulations of all kind and 2. testing/verification of models which are just exploratory and which are only be inspired by real-world phenomena. examples for such models are Epsteins Sugarscape and Agent\_Zero.
+Generally we need to distinguish between two types of testing/verification: 1. testing/verification of models for which we have real-world data or an analytical solution which can act as a ground-truth - examples for such models are the SIR model, stock-market simulations, social simulations of all kind and 2. testing/verification of models which are just exploratory and which are only be inspired by real-world phenomena - examples for such models are Epsteins Sugarscape and Agent\_Zero.
 
-In both cases this leaves us with Black-Box and White-Box Verification:
+In both cases this leaves us with black-box and white-box Verification:
 
 %\subsection{Comparison of dynamics against existing data}
 %- utilise a statistical test with H0 "ABS and comparison is not the same" and H1 "ABS and comparison is the same"
@@ -151,13 +157,13 @@ In both cases this leaves us with Black-Box and White-Box Verification:
 %
 %IMPORTANT: this is not what we are after here in this paper, statistical tests are a science on their own and there actually exists quite a large amount of literature for conducting statistical tests on ABS dynamics: Robinson Book (TODO: find additional literature)	
 
-\subsubsection{Black Box Verification}
-In Black Box Verification one generally feeds input and compares it to expected output. In the case of ABS we have the following examples of black-box test:
+\subsubsection{Black-Box Verification}
+In black-box Verification one generally feeds input and compares it to expected output. In the case of ABS we have the following examples of black-box test:
 \begin{enumerate}
-	\item Isolated Agent Behaviour - test isolated agent behaviour under given inputs using unit- and property-based testing
-	\item Interacting Agent Behaviour - test if interaction between agents are correct 
-	\item Simulation Dynamics - compare emergent dynamics of the ABS as a whole under given inputs to an analytical solution / real-world dynamics in case there exists some using statistical tests
-	\item Hypotheses- test whether hypotheses are valid / invalid using unit- and property-based testing. % TODO: how can we formulate hypotheses in unit- and/or property-based tests?
+	\item Isolated Agent Behaviour - test isolated agent behaviour under given inputs using and property-based testing.
+	\item Interacting Agent Behaviour - test if interaction between agents are correct .
+	\item Simulation Dynamics - compare emergent dynamics of the ABS as a whole under given inputs to an analytical solution or real-world dynamics in case there exists some using statistical tests.
+	\item Hypotheses- test whether hypotheses are valid or invalid using and property-based testing. % TODO: how can we formulate hypotheses in unit- and/or property-based tests?
 \end{enumerate}
 
 %- testing of the final dynamics: how close do they match the analytical solution
@@ -168,11 +174,11 @@ In Black Box Verification one generally feeds input and compares it to expected 
 Using black-box verification and property-based testing we can apply for the following use cases for testing ABS in FRP:
 
 \paragraph{Finding optimal $\Delta t$}
-The selection of the right $\Delta t$ can be quite difficult in FRP because we have to make assumptions about the system a priori. One could just play it safe with a very conservatively selected small $\Delta t < 0.1$ but the smaller $\Delta t$, the lower the performance as it quickly multiplies the number of steps to calculate. Obviously one wants to select the \textit{optimal} $\Delta t$, which in the case of ABS is the largest possible $\Delta t$ for which we still get the correct simulation dynamics.
-To find out the \textit{optimal} $\Delta t$ one can make direct use of the Black Box tests: start with a large $\Delta t = 1.0$ and reduce it by half every time the tests fail until no more tests fail - if for $\Delta t = 1.0$ tests already pass, increasing it may be an option. It is important to note that although isolated agent behaviour tests might result in larger $\Delta t$, in the end when they are run in the aggregate system, one needs to sample the whole system with the smallest $\Delta t$ found amongst all tests. Another option would be to apply super-sampling to just the parts which need a very small $\Delta t$ but this is out of scope of this paper.
+The selection of the right $\Delta t$ can be quite difficult in FRP because we have to make assumptions about the system a priori. One could just play it safe with a very conservative, small $\Delta t < 0.1$ but the smaller $\Delta t$, the lower the performance as it multiplies the number of steps to calculate. Obviously one wants to select the \textit{optimal} $\Delta t$, which in the case of ABS is the largest possible $\Delta t$ for which we still get the correct simulation dynamics.
+To find out the \textit{optimal} $\Delta t$ one can make direct use of the black-box tests: start with a large $\Delta t = 1.0$ and reduce it by half every time the tests fail until no more tests fail - if for $\Delta t = 1.0$ tests already pass, increasing it may be an option. It is important to note that although isolated agent behaviour tests might result in larger $\Delta t$, in the end when they are run in the aggregate system, one needs to sample the whole system with the smallest $\Delta t$ found amongst all tests. Another option would be to apply super-sampling to just the parts which need a very small $\Delta t$ but this is out of scope of this paper.
 
 \paragraph{Agents as signals}
-Agents \textit{might} behave as signals in FRP which means that their behaviour is completely determined by the passing of time: they only change when time changes thus if they are a signal they should stay constant if time stays constant. This means that they should not change in case one is sampling the system with $\Delta t = 0$. Of course to prove whether this will \textit{always} be the case is strictly speaking impossible with a Black Box verification but we can gain a good level of confidence with them also because we are staying pure. It is only through white box verification that we can really guarantee and prove this property.
+Agents \textit{might} behave as signals in FRP which means that their behaviour is completely determined by the passing of time: they only change when time changes thus if they are a signal they should stay constant if time stays constant. This means that they should not change in case one is sampling the system with $\Delta t = 0$. Of course to prove whether this will \textit{always} be the case is strictly speaking impossible with a black-box verification but we can gain a good level of confidence with them also because we are staying pure. It is only through white-box verification that we can really guarantee and prove this property.
 
 \subsubsection{White-Box Verification}
 White-Box verification is necessary when we need to reason about properties like \textit{forever}, \textit{never}, which cannot be guaranteed from black-box tests. Additional help can be coverage tests with which we can show that all code paths have been covered in our tests.
@@ -222,7 +228,7 @@ We use property-testing with QuickCheck in this case as well to generate the set
 %TODO: can we encode this somehow on a type level using dependent types? then we don't need to test this property any more
 
 \paragraph{Recovered Behaviour}
-A recovered agent will stay in the recovered state \textit{forever}. Obviously we cannot write a black-box test that truly verifies that because it had to run in fact forever. In this case we need to resort to White-Box Verification (see below).
+A recovered agent will stay in the recovered state \textit{forever}. Obviously we cannot write a black-box test that truly verifies that because it had to run in fact forever. In this case we need to resort to white-box verification (see below).
 
 Because we use multiple replications in combination with QuickCheck obviously results in longer test-runs (about 5 minutes on my machine)
 In our implementation we utilized the FRP paradigm. It seems that functional programming and FRP allow extremely easy testing of individual agent behaviour because FP and FRP compose extremely well which in turn means that there are no global dependencies as e.g. in OOP where we have to be very careful to clean up the system after each test - this is not an issue at all in our \textit{pure} approach to ABS.
@@ -238,7 +244,7 @@ We won't go into the details of comparing the dynamics of an ABS to an analytica
 Obviously the \textit{optimal} $\Delta t$ of the SIR model depends heavily on the model parameters: contact rate $\beta$ and illness duration $\delta$. We fixed them in our tests to be $\beta = 5$ and $\delta = 15$. By using the isolated behaviour tests we found an optimal $\Delta t = 0.125$ for the susceptible behaviour and $\Delta t = 0.25$ for the infected behaviour. %TODO: dynamics comparison?
 
 \paragraph{Agents as signals}
-Our SIR agents \textit{are} signals due to the underlying continuous nature of the analytical SIR model and to some extent we can guarantee this through black box testing. For this we write tests for each individual behaviour as previously but instead of checking whether agents got infected or have recovered we assume that they stay constant: they will output always the same state when sampling the system with $\Delta t = 0$. The tests are conceptual the complementary tests of the previous behaviour tests so in conjunction with them we can assume to some extent that agents are signals. To prove it, we need to look into white box verification as we cannot make guarantees about properties which should hold \textit{forever} in a computational setting.
+Our SIR agents \textit{are} signals due to the underlying continuous nature of the analytical SIR model and to some extent we can guarantee this through black-box testing. For this we write tests for each individual behaviour as previously but instead of checking whether agents got infected or have recovered we assume that they stay constant: they will output always the same state when sampling the system with $\Delta t = 0$. The tests are conceptual the complementary tests of the previous behaviour tests so in conjunction with them we can assume to some extent that agents are signals. To prove it, we need to look into white-box verification as we cannot make guarantees about properties which should hold \textit{forever} in a computational setting.
 
 \subsubsection{White-Box Verification}
 %TODO: the implementation below has a SEVERE bug, all stochastic functions are correlated because they use the same RNG. this leads to different distributions of the dynamics, which can be shown using the test-code which generates the dynamics. The random monad version seems to perform much better where the mean is very close to the SD solution.

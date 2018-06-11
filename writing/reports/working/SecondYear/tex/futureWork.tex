@@ -40,7 +40,23 @@ Around December 2018 I will start writing another paper which is targeted for an
 In this chapter we discuss in more detail how we plan to approach the aim and objectives stated in Chapter \ref{chap:aimsObj}. Further we give a short overview of planned papers and present a Gantt-Chart \ref{fig:gantt} reflecting the most important activities and relevant milestones.
 
 \section{Approaching the Objectives: Dependent Types}
-We have already begun working on dependent types and the plan is to do an in-depth research and examination of the ideas outlined in the chapter \ref{sec:dep_absconcepts} on the concepts of dependent types in Agent-Based Simulation.
+We have already begun working on dependent types and the plan is to do an in-depth research and examination of the ideas outlined in the section \ref{sec:dep_absconcepts} on the concepts of dependent types in Agent-Based Simulation.
+
+Although there exists research on bringing dependent types to FRP \cite{sculthorpe_safe_2009}, we follow a fundamentally different approach in implementing ABS with dependent types. Instead of using FRP as described in section \ref{sect:how}, we follow the approach taken in the papers described in related work on dependent types \ref{sub:dep_abs_relwork}. The approach there is to implement a Monad, \textit{indexed} over additional parameters - in our case pre \& post state, time, environment boundaries,... - and write an interpreter for the operations the Monad supports.
+
+The reason why we chose to follow a different approach was that we came to the conclusion that we would have to invest very much additional work to make dependently typed FRP work and that it would not allow us to encode the properties we want in types. Also it allows us to explore the other fundamental approach to program design in functional programming: implementing a \textit{shallow} encoded EDSL. Although it might seem that we are throwing a way a lot of work on \textit{how} to do ABS in pure functional programming, this is not so: the work described in section \ref{sect:how} was a very important step, getting us familiar with the concepts and approaches which will allow us to transfer a lot of insights. %The main difference will be that the system will most likely not be a continuous time-driven but an event-driven one, which allows us to explore even another route of implementation technique to ABS.
+
+\paragraph{Implement SIR}
+We implement an agent-based SIR model with an indexed monad, to explore the concepts described in section \ref{sec:dep_absconcepts} in the context of an explanatory model, which has an analytical background.
+
+\paragraph{Implement SugarScape}
+We implement the SugarScape model with an indexed monad, to explore the concepts described in section \ref{sec:dep_absconcepts} in the context of an exploratory model, which has no analytical background but follows hypotheses.
+
+\paragraph{Extract Indexed Agent Monad}
+After having implemented the dependently typed SIR and SugarScape we try to derive the common concepts into an indexed Agent Monad.
+
+\paragraph{Total SIR}
+The research on equilibrium and totality in the agent-based SIR model is a separate activity as we think that using indexed monads will probably not work for that approach and that we rather need to express relations in types from which the implementation will follow  .
 
 \section{Planned Papers}
 For the remainder of the Ph.D. we planned for two more papers.

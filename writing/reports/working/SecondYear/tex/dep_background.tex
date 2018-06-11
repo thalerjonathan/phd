@@ -1,14 +1,14 @@
 \section{Introduction}
 \label{sec:dep_background}
 
-There exist a number of excellent introduction to dependent types which we use as main ressources for this section: \cite{thompson_type_1991, brady_type-driven_2017} TODO: add verified functional programming, HOTT introduction chapter, software foundations
+There exist a number of excellent introduction to dependent types which we use as main ressources for this section: \cite{thompson_type_1991, brady_type-driven_2017} TODO: add verified functional programming, HOTT introduction chapter, software foundations.
 
-Generally, dependent types add the following concepts to existing pure functional programming:
+Generally, dependent types add the following concepts to pure functional programming:
 
 \begin{enumerate}
 	\item Types are first-class citizen - In dependently types languages, types can depend on any \textit{values}, and can be \textit{computed} at compile-time which makes them first-class citizen.
 
-	\item Totality and termination - A total function is defined in \cite{brady_type-driven_2017}: it terminates with a well-typed result or produces a non-empty finite prefix of a well-typed infinite result in finite time. Idris is turing-complete but is able to check the totality of a function under some circumstances but not in general as it would imply that it can solve the halting problem. Other dependently typed languages like Agda or Coq restrict recursion to ensure totality of all their functions - this makes them non turing-complete.
+	\item Totality and termination - A total function is defined in \cite{brady_type-driven_2017} as: it terminates with a well-typed result or produces a non-empty finite prefix of a well-typed infinite result in finite time. Idris is turing-complete but is able to check the totality of a function under some circumstances but not in general as it would imply that it can solve the halting problem. Other dependently typed languages like Agda or Coq restrict recursion to ensure totality of all their functions - this makes them non turing-complete.
 
 	\item Types as \textit{constructive} proofs - Because types can depend on any values and can be computed at compile-time, they can be used as constructive proofs (see \ref{sub:dep_foundations}) which must terminate, this means a well-typed program (which is itself a proof) is always terminating which in turn means that it must consist out of total functions. Note that Idris does not restrict us to total functions but we can enforce it through compiler flags.
 \end{enumerate}
@@ -16,14 +16,14 @@ Generally, dependent types add the following concepts to existing pure functiona
 \subsection{An example: Vector}
 To give a concrete example of dependent types and their concepts, we introduce the canonical example used in all tutorials on dependent types: the Vector.
 
-In Haskell (or in Java) there exists the List data-structure which holds a finite number of homogeneous elements, where the type of the elements can be fixed at compile-time. Using dependent types we can implement the same but adding the length of the list to the type - we call this data-structure a vector.
+In all programming languages like Haskell or in Java, there exists a List data-structure which holds a finite number of homogeneous elements, where the type of the elements can be fixed at compile-time. Using dependent types we can implement the same but adding the length of the list to the type - we call this data-structure a vector.
 
 We define the vector as a Generalised Algebraic Data Type (GADT). A vector has a \textit{Nil} element which marks the end of a vector and a \textit{(::)} which is a recursive (inductive) definition of a linked List. We defined some vectors and we see that the length of the vector is directly encoded in its first type-variable of type Nat, natural numbers. Note that the compiler will refuse to accept \textit{testVectFail} because the type specifies that it holds 2 elements but the constructed vector only has 1 element.
 
 \begin{HaskellCode}
 data Vect : Nat -> Type -> Type where
-	Nil  : Vect Z e
-	(::) : (elem : e) -> (xs : Vect n e) -> Vect (S n) e
+     Nil  : Vect Z e
+     (::) : (elem : e) -> (xs : Vect n e) -> Vect (S n) e
 	
 testVect : Vect 3 String
 testVect = "Jonathan" :: "Andreas" :: "Thaler" :: Nil
@@ -32,7 +32,7 @@ testVectFail : Vect 2 Nat
 testVectFail = 42 :: Nil
 \end{HaskellCode}
 
-We can now go on and implement a function \textit{append} which simply appends two vectors. Here we directly see \textit{type-level computations} as we compute the length of the resulting vector. Also this function is \textit{total}, as it covers all input cases and the recursion happens on a \textit{structurally smaller argument}:
+We can now go on and implement a function \textit{append} which simply appends two vectors. Here we directly see \textit{type-level computations} as we compute the length of the resulting vector. Also this function is \textit{total}, as it covers all input cases and recurs on a \textit{structurally smaller argument}:
 
 \begin{HaskellCode}
 append : Vect n e -> Vect m e -> Vect (n + m) e
@@ -43,7 +43,7 @@ append testVect testVect
 ["Jonathan", "Andreas", "Thaler", "Jonathan", "Andreas", "Thaler"] : Vect 8 String
 \end{HaskellCode}
 
-What if we want to implement a \textit{filter} function, which, depending on a given predicate, returns a new vector which holds only the elements for which the predicates returns true? How can we compute the length of the vector at compile-time? In short: we can't, but we can make us of \textit{dependent pairs} where the \textit{type} of the second element depends on the \textit{value} of the first (dependent pairs are also known as $\Sigma$ types, see \ref{sub:dep_foundations} below).
+What if we want to implement a \textit{filter} function, which, depending on a given predicate, returns a new vector which holds only the elements for which the predicates returns true? How can we compute the length of the vector at compile-time? In short: we can't, but we can make us of \textit{dependent pairs} where the \textit{type} of the second element depends on the \textit{value} of the first (dependent pairs are also known as $\Sigma$ types).
 
 The function is total as well and works very similar to \textit{append} but uses dependent types as return, which are indicated by \textit{**}:
 
@@ -101,14 +101,14 @@ Having our proof of commutativity of natural numbers, we can now implement a wor
 \begin{HaskellCode}
 reverse : Vect n e -> Vect n e
 reverse [] = []
-reverse (elem :: xs) = append (reverse xs) [elem]
+reverse (elem :: xs) = reverseProof (append (reverse xs) [elem])
   where
     reverseProof : Vect (k + 1) a -> Vect (S k) a
     reverseProof {k} result = rewrite plusCommutative 1 k in result
 \end{HaskellCode}
 
 \subsection{Constructivity: Equality as a type}
-On of the most powerful aspects of dependent types is that they allow us to express equality on an unprecedented level. Non-dependently typed languages have only very basic ways of expressing the equality of two elements of same type. Either we use a boolean or another data-structure which can indicate equality or not. Idris supports this type of equality as well through \textit{(==) : Eq ty $\Rightarrow$ ty $\rightarrow$ ty $\rightarrow$ Bool}. The drawback of using a boolean is that in the end we don't have a real evidence of equality: it doesn't tell you anything about the relationship between the inputs and the output. Even though the elements might be equal, the compiler has no means of inferring this and we can still make programming mistakes after the equality check because of this lack of compiler support. Even worse, always returning False / True or whether the inputs are \textit{not} equal is a valid implementation of (==), at least as far as the type is concerned.
+On of the most powerful aspects of dependent types is that they allow us to express equality on an unprecedented level. Non-dependently typed languages have only very basic ways of expressing the equality of two elements of same type. Either we use a boolean or another data-structure which can indicate equality or not. Idris supports this type of equality as well through \textit{(==) : Eq ty $\Rightarrow$ ty $\rightarrow$ ty $\rightarrow$ Bool}. The drawback of using a boolean is that, in the end, we don't have a real evidence of equality: it doesn't tell you anything about the relationship between the inputs and the output. Even though the elements might be equal, the compiler has no means of inferring this and we can still make programming mistakes after the equality check because of this lack of compiler support. Even worse, always returning False / True or whether the inputs are \textit{not} equal is a valid implementation of (==), at least as far as the type is concerned.
 
 As an illustrating example we want to write a function which checks if a Vector has a given length. 
 
@@ -186,7 +186,7 @@ HOTT book, NOTES on chapter 1: "Extensional theory makes no distinction between 
 Propositional equality allows to assume that a variable x of type p is equal to y: p : x = y.
 Judgemental equality (or definitional equality) means "equal by definition" e.g. if we have a function $f : N -> N by f(x) = x^2$ then f(3) is equal to $3^2$ by definition. Whether or not two expressions are equal by definition is just a matter of expanding out the definitions, in particular it is algorithmically decidable.
 
-Concluding we can say that constructive mathematics is based on principles quite different from classical mathematics, with the idealistic aspects of the latter replaced by a finitary system with computational content. Objects like functions are given by rules, and the validity of an assertion is guaranteed by a proof from which we can extract relevant computational information, rather than on idealist semantic principles. 
+Concluding, we can say that constructive mathematics is based on principles quite different from classical mathematics, with the idealistic aspects of the latter replaced by a finitary system with computational content. Objects like functions are given by rules, and the validity of an assertion is guaranteed by a proof from which we can extract relevant computational information, rather than on idealist semantic principles. 
 
 All this is directly reflected in dependently typed programs as we introduced above: functions need to be total (finitary) and produce proofs like in \textit{checkEqNat} which allows the compiler to extract additional relevant computational information. Also the way we described the (infinite) natural numbers was in an finitary way. In the case of decidable equality, the case where it is not equal, we need to provide an actual proof of contradiction, with the type of Void which is Idris representation of $\perp$. 
 

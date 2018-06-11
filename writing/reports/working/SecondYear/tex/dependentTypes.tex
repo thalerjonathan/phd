@@ -2,17 +2,18 @@
 \label{chap:dependent_types}
 Dependent types are a very powerful addition to functional programming as they allow us to express even stronger guarantees about the correctness of programs \textit{already at compile-time}. They go as far as allowing to formulate programs and types as constructive proofs which must be \textit{total} by definition \cite{thompson_type_1991, mckinna_why_2006, altenkirch_pi_2010}. 
 
-We hypothesise, that  dependent types will allow us to push the correctness of agent-based simulations to a new, unprecedented level. The investigation of dependent types in ABS will be the main unique contribution to knowledge of my Ph.D.
+So far no research using dependent types in agent-based simulation exists at all. We have already started to explore this for the first time and ask more specifically how we can add dependent types to our functional approach, which conceptual implications this has for ABS and what we gain from doing so. We are using Idris \cite{brady_idris_2013} as the language of choice as it is very close to Haskell with focus on real-world application and running programs as opposed to other languages with dependent types e.g. Agda and Coq which serve primarily as proof assistants.
 
-So far no research using dependent types in agent-based simulation exists at all. We have already started to explore this for the first time and ask more specifically how we can add dependent types to our functional approach, which conceptual implications this has for ABS and what we gain from doing so. We plan on using Idris \cite{brady_idris_2013} as the language of choice as it is very close to Haskell with focus on real-world application and running programs as opposed to other languages with dependent types e.g. Agda and Coq which serve primarily as proof assistants.
+We hypothesise, that  dependent types will allow us to push the correctness of agent-based simulations to a new, unprecedented level by narrowing the gap between model specification and implementation. The investigation of dependent types in ABS will be the main unique contribution to knowledge of my Ph.D.
 
-In the following section \ref{sec:dep_background}, we give an introduction of the concepts behind dependent types and what they can do. Further we give a very brief overview of the foundational and philosophical concepts behind dependent types. In Section \ref{sec:dep_absconcepts} we briefly discuss ideas of how the concepts of dependent types could be applied to agent-based simulation.
+In the following section \ref{sec:dep_background}, we give an introduction of the concepts behind dependent types and what they can do. Further we give a very brief overview of the foundational and philosophical concepts behind dependent types. In Section \ref{sec:dep_absconcepts} we briefly discuss ideas of how the concepts of dependent types could be applied to agent-based simulation and in Section \ref{sec:dep_vav_deptypes} we very shortly discuss the connection between Verification \& Validation and dependent types.
 
 \input{./tex/dep_background.tex}
 
 \input{./tex/dep_absconcepts.tex}
 
 \section{Testing, Verification and Dependent Types}
+\label{sec:dep_vav_deptypes}
 Dependent types allow to encode specifications on an unprecedented level, narrowing the gap between specification and implementation - ideally the code becomes the specification, making it correct by construction. The question is ultimately how far we can formulate model specifications in types, how far we can close the gap in the domain of ABS. Unless we cannot close that gap completely, this means that dependent Types do not mean that tests are obsolete, we still need to test all things at run-time using property-tests which we cannot encode in types.
 
 %todo: connection between black-box verification and dependent types

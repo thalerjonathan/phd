@@ -13,11 +13,11 @@ In the following subsections we will discuss related work in this field (\ref{su
 \label{sub:dep_abs_relwork}
 In \cite{botta_functional_2011} the authors are using functional programming as a specification for an agent-based model of exchange markets but leave the implementation for further research where they claim that it requires dependent types. This paper is the closest usage of dependent types in agent-based simulation we could find in the existing literature and to our best knowledge there exists no work on general concepts of implementing pure functional agent-based simulations with dependent types. As a remedy to having no related work to build on, we looked into works which apply dependent types to solve real world problems from which we then can draw inspiration from. 
 
-The paper \cite{brady_correct-by-construction_2010} discusses depend types to implement correct-by-construction concurrency in the Idris language \cite{brady_idris_2013}. The authors introduce the concept of a Embedded Domain Specific Language (EDSL) for concurrently locking/unlocking and reading/writing of resources and show that an implementation and formalisation are the same thing when using dependent types. We can draw inspiration from it by taking into consideration that we might develop a EDSL in a similar fashion for specifying general commands which agents can execute. The interpreter of such a EDSL can be pure itself and doesn't have to run in the IO Monad as our previous research (TODO: cite my PFE paper) has shown that ABS can be implemented pure.
+The paper \cite{brady_correct-by-construction_2010} discusses depend types to implement correct-by-construction concurrency in the Idris language \cite{brady_idris_2013}. The authors introduce the concept of a Embedded Domain Specific Language (EDSL) for concurrently locking/unlocking and reading/writing of resources and show that an implementation and formalisation are the same thing when using dependent types. We can draw inspiration from it by taking into consideration that we might develop an EDSL in a similar fashion for specifying general commands which agents can execute. The interpreter of such a EDSL can be pure itself and doesn't have to run in the IO Monad as our previous research (see Appendix \ref{app:pfe}) has shown that ABS can be implemented pure.
 
-In \cite{brady_idris_2011} the authors discuss systems programming with focus on network packet parsing with full dependent types in the Idris language \cite{brady_idris_2013}. Although they use an older version of it where a few features are now deprecated, they follow the same approach as in the previous paper of constructing an EDSL and and writing an interpreter for the EDSL. In a longer introduction of Idris the authors discus its ability for termination checking in case that recursive calls have an argument which is structurally smaller than the input argument in the same position and that these arguments belong to a strictly positive data type. We are particularly interested in whether we can implement an agent-based simulation which termination can be checked at compile-time - it is total.
+In \cite{brady_idris_2011} the authors discuss systems programming with focus on network packet parsing with full dependent types in the Idris language \cite{brady_idris_2013}. Although they use an older version of it where a few features are now deprecated, they follow the same approach as in the previous paper of constructing an EDSL and writing an interpreter for the EDSL. In a longer introduction of Idris the authors discuss its ability for termination checking in case that recursive calls have an argument which is structurally smaller than the input argument in the same position and that these arguments belong to a strictly positive data type. We are particularly interested in whether we can implement an agent-based simulation which termination can be checked at compile-time - it is total.
 
-In \cite{brady_programming_2013} the author discusses programming and reasoning with algebraic effects and dependent types in the Idris language \cite{brady_idris_2013}. They claim that monads do not compose very well as monad transformer can quickly become unwieldy when there are lots of effects to manage. As a remedy they propose algebraic effects and implement them in Idris and show how dependent types can be used to reason about states in effectful programs. In our previous research (TODO: cite my PFE paper) we relied heavily on Monads and transformer stacks and we indeed also experienced the difficulty when using them. Algebraic effects might be a promising alternative for handling state as the global environment in which the agents live or threading of random-numbers through the simulation which is of fundamental importance in ABS. Unfortunately algebraic effects cannot express continuations (according to the authors of the paper) which is but of fundamental importance for pure functional ABS as agents are on the lowest level built on continuations - synchronous agent interactions and time-stepping builds directly on continuations. Thus we need to find a different representation of agents - GADTs seem to be a natural choice as all examples build heavily on them and they are very flexible.
+In \cite{brady_programming_2013} the author discusses programming and reasoning with algebraic effects and dependent types in the Idris language \cite{brady_idris_2013}. They claim that monads do not compose very well as monad transformer can quickly become unwieldy when there are lots of effects to manage. As a remedy they propose algebraic effects \cite{bauer_programming_2015} and implement them in Idris and show how dependent types can be used to reason about states in effectful programs. In our previous research (see Appendix \ref{app:pfe}) we relied heavily on Monads and transformer stacks and we indeed also experienced the difficulty when using them. Algebraic effects might be a promising alternative for handling state as the global environment in which the agents live or threading of random-numbers through the simulation which is of fundamental importance in ABS. According to the authors of the paper, unfortunately, algebraic effects cannot express continuations which is but of fundamental importance for pure functional ABS as agents are on the lowest level built on continuations - synchronous agent interactions and time-stepping builds directly on continuations. Thus we need to find a different representation of agents - GADTs seem to be a natural choice as all examples build heavily on them and they are very flexible.
 
 In \cite{fowler_dependent_2014} the authors apply dependent types to achieve safe and secure web programming. This paper shows how to implement dependent effects, which we might draw inspiration from of how to implement agent-interactions which, depending on their kind, are effectful e.g. agent-transactions or events.
 
@@ -25,9 +25,9 @@ In \cite{brady_state_2016} the author introduces the ST library in Idris, which 
 
 The book \cite{brady_type-driven_2017} is a great source to learn pure functional dependently typed programming and in the advanced chapters introduces the fundamental concepts of dependent state machine and dependently typed concurrent programming on a simpler level than the papers above. One chapter discusses on how to implement a messaging protocol for concurrent programming, something we can draw inspiration from for implementing our synchronous agent interaction protocols.
 
-In \cite{sculthorpe_safe_2009} the authors apply dependent types to FRP to avoid some run-time errors and implement a dependently typed version of the Yampa library in Agda. FRP was the underlying concept of implementing agent-based model we took on in our previous approach (TODO: cite). We could have taken the same route and lift FRP into dependent types but we chose explicitly to not go into this direction and look into complementing approaches on how to implement agent-based models.
+In \cite{sculthorpe_safe_2009} the authors apply dependent types to FRP to avoid some run-time errors and implement a dependently typed version of the Yampa library in Agda.
 
-The fundamental difference to all these real-world examples is that in our approach, the system evolves over time and agents act over time. A fundamental question will be how we encode the monotonous increasing flow of time in types and how we can reflect in the types that agents act over time.
+The fundamental difference to all these real-world examples is that in our approach, the system evolves over time and agents act over time in a feedback loop. A fundamental question will be how we encode the monotonous increasing flow of time in types and how we can reflect in the types that agents act over time.
 
 %An agent can be seen as a potentially infinite stream of continuations which at some point could return information to stop evaluating the next item of the stream which allows an agent to terminate.
 %correspondence between temporal logics and FRP due to jeffery: is abs just another temporal logic?
@@ -54,35 +54,32 @@ We came up with the following ideas of how and where to apply dependent types in
 \paragraph{Environment Access}
 Accessing e.g. discrete 2D environments involves (almost always) indexed array access which is always potentially dangerous as the indices have to be checked at run-time.
 
-Using dependent types it should be possible to encode the environment dimensions into the types. In combination with suitable data types (finite sets) for coordinates one should be able to ensure already at compile-time that access happens only within the bounds of the environment. We have implemented this in detail already and describe it in the section \ref{sub:dep_abs_2denv} below.
+Using dependent types it should be possible to encode the environment dimensions into the types. In combination with suitable data types (finite sets) for coordinates one should be able to ensure already at compile-time that access happens only within the bounds of the environment. We have implemented this already and describe it in detail in the section \ref{sub:dep_abs_2denv}.
 
 \paragraph{State-Machines}
 Often, Agent-Based Models define their agents in terms of state-machines. It is easy to make wrong state-transitions e.g. in the SIR model when an infected agent should recover, nothing prevents one from making the transition back to susceptible. 
 
-Using dependent types it might be possible to encode invariants and state-machines on the type level which can prevent such invalid transitions already at compile-time. This would be a huge benefit for ABS because of the popularity of state-machines in agent-based models. Here we can draw inspiration from the paper \cite{brady_state_2016} and book \cite{brady_type-driven_2017}.
+Using dependent types it might be possible to encode invariants and state-machines on the type level which can prevent such invalid transitions already at compile-time. This would be a huge benefit for ABS because of the popularity of state-machines in agent-based models.
 
 \paragraph{Flow Of Time}
 State-Machines often have timed transitions e.g. in the SIR model, an infected agent recovers after a given time. Nothing prevents us from introducing a bug and \textit{never} doing the transition at all.
 
-With dependent types we might be able to encode the passing of time in the types and guarantee on a type level that an infected agent has to recover after a finite number of time steps. Also can dependent types be used to express the flow of time and its strongly monotonic increasing?
+With dependent types we might be able to encode the passing of time in the types and guarantee on a type level that an infected agent has to recover after a finite number of time steps. Also can dependent types be used to express the flow of time and that it is strongly monotonic increasing?
 	
 \paragraph{Existence Of Agents}
 In more sophisticated models agents interact in more complex ways with each other e.g. through message exchange using agent IDs to identify target agents. The existence of an agent is not guaranteed and depends on the simulation time because agents can be created or terminated at any point during simulation. 
 
-Dependent types could be used to implement agent IDs as a proof that an agent with the given id exists \textit{at the current time-step}. This also implies that such a proof cannot be used in the future, which is prevented by the type system as it is not safe to assume that the agent will still exist in the next step. So proof of the existence of an agent: holds always only for the current time-step or for all time, depending on the model. e.g. in the SIR model no agents are removed from / added to the system thus a proof holds for all time. 
+Dependent types could be used to implement agent IDs as a proof that an agent with the given id exists \textit{at the current time-step}. This also implies that such a proof cannot be used in the future, which is prevented by the type system as it is not safe to assume that the agent will still exist in the next step. %So it is a proof of the existence of an agent: holds always only for the current time-step or for all time, depending on the model. e.g. in the SIR model no agents are removed from / added to the system thus a proof holds for all time. 
 
 \paragraph{Agent-Agent Interactions}
-dependently typed message protocols in ABS because its very common, and easily done thorugh methods in OOP: sugarscape mating and trading protocol
-using a DSEL \cite{brady_correct-by-construction_2010} to restrict the available primitives in the message protocol?
-Data Flow: can dependent types be used in the Data Flow Mechanism?
-Event Scheduling: ependent types be used in the event-scheduling mechanism?
+Because we are lacking method-calls as in object-oriented programming, we need to come up with different mechanics for agent-agent interaction, which are basically based upon continuations. The main use-case are multi-step interactions which happen without a time-delay e.g trading or resource exchange protocols as described in SugarScape. In these two agents interact over multiple steps, following a given protocol, which is a source of bugs when not following the required steps.
 
 Using dependent types we might be able to encode a protocol for agent-agent interactions which e.g. ensures on the type-level that an agent has to reply to a request or that a more specific protocol has to be followed e.g. in auction- or trading-simulations.
 
 \paragraph{Equilibrium and Totality}
-For some agent-based simulations there exists equilibria, which means that from that point the dynamics won't change any more e.g. when a given type of agents vanishes from the simulation or resources are consumed. This means that at that point the dynamics won't change any more, thus one can safely terminate the simulation. But still such simulations are stepped for a fixed number of time-steps or events or the termination criterion is checked at run-time in the feedback-loop. 
+For some agent-based simulations there exists equilibria, which means that from that point the dynamics won't change any more e.g. when a given type of agents vanishes from the simulation or resources are consumed. This means that at that point the dynamics won't change any more, thus one can safely terminate the simulation. Very often, despite such a global termination criterion exists, such simulations are stepped for a fixed number of time-steps or events or the termination criterion is checked at run-time in the feedback-loop. 
 	
-Using dependent types it might be possible to encode equilibria properties in the types in a way that the simulation automatically terminates when they are reached. This results then in a \textit{total} simulation, creating a correspondence between the equilibrium of a simulation and the totality of its implementation. Of course this is only possible for models in which we know about their equilibria a priori or in which we can reason somehow that an equilibrium exists.
+Using dependent types it might be possible to encode equilibria properties in the types in a way that the simulation automatically terminates when they are reached. This results then in a \textit{total} simulation, creating a \textit{correspondence between the equilibrium of a simulation and the totality of its implementation}. Of course this is only possible for models in which we know about their equilibria a priori or in which we can reason somehow that an equilibrium exists.
 
 A central question in tackling this is whether to follow a model- or an agent-centric approach. The former one looks at the model and its specifications as a whole and encodes them e.g. one tries to directly find a total implementation of an agent-based model. The latter one looks only at the agent level and encodes that as dependently typed as possible and hopes that model guarantees emerge on a meta-level - put otherwise: does the totality of an implementation emerge when we follow an agent-centric approach?
 
@@ -92,16 +89,21 @@ Using dependent types it is possible to encode model specifications and properti
 \paragraph{Hypotheses}
 Models which are exploratory in nature don't have a formal ground truth where one could derive equilibria or dynamics from and validate with. In such models the researchers work with informal hypotheses which they express before running the model and then compare them informally against the resulting dynamics.
 
-It would be of interest if dependent types could be made of use in encoding hypotheses on a more constructive and formal level directly into the implementation code. So far we have no idea how this could be done but it might be a very promising approach as it allows for a more formal and automatic testable approach to hypothesis checking.
+It would be of interest if dependent types could be made of use in encoding hypotheses on a more constructive and formal level directly into the implementation code. So far we have no idea how this could be done but it might be a very interesting application as it allows for a more formal and automatic testable approach to hypothesis checking.
 
 \subsection{Dependently Typed Discrete 2D Environment}
 \label{sub:dep_abs_2denv}
-One of the main advantages of Agent-Based Simulation over other simulation methods e.g. System Dynamics is that agents can live within an environment. Many agent-based models place their agents within a 2D discrete NxM environment where agents either stay always on the same cell or can move freely within the environment where a cell has 0, 1 or many occupants. Ultimately this boils down to accessing a NxM matrix represented by arrays or a similar data structure. In imperative languages accessing memory always implies the danger of out-of-bounds exceptions \textit{at run-time}. With dependent types we can represent such a 2d environment using vectors which carry their length in the type (TODO: discuss them in background) thus fixing the dimensions of such a 2D discrete environment in the types. This means that there is no need to drag those bounds around explicitly as data. Also by using dependent types like Fin which depend on the dimensions we can enforce at compile-time that we can only access the data structure within bounds. If we want to we can also enforce in the types that the environment will never be an empty one where $N, M > 0$.
+One of the main advantages of Agent-Based Simulation over other simulation methods e.g. System Dynamics is that agents can live within an environment. Many agent-based models place their agents within a 2D discrete NxM environment where agents either stay always on the same cell or can move freely within the environment where a cell has 0, 1 or many occupants. Ultimately this boils down to accessing a NxM matrix represented by arrays or a similar data structure. In imperative languages accessing memory always implies the danger of out-of-bounds exceptions \textit{at run-time}. With dependent types we can represent such a 2D environment using vectors which carry their length in the type (see \ref{sec:dep_background}) thus fixing the dimensions of such a 2D discrete environment in the types. This means that there is no need to drag those bounds around explicitly as data. Also by using dependent types like a finite set Fin, which depend on the dimensions we can enforce at compile-time that we can only access the data structure within bounds. If we want to we can also enforce in the types that the environment will never be an empty one where $N, M > 0$.
 
 \begin{HaskellCode}
+-- an environment has width w and height h and cells e and is never empty
+-- adding Successor S to each dimension ensures that the environment is not empty
 Disc2dEnv : (w : Nat) -> (h : Nat) -> (e : Type) -> Type
-Disc2dEnv w h e = Vect (S w) (Vect (S h) e)
+Disc2dEnv w h e = Vect (S w) (Vect (S h) e) 
 
+-- the coordinates for an environment are respresented by the (Fin k) datatype
+-- which represents the natural numbers as a finite set from  0..k
+-- need an additional S for ensuring that our bounds are strictly less than
 data Disc2dCoords : (w : Nat) -> (h : Nat) -> Type where
   MkDisc2dCoords : Fin (S w) -> Fin (S h) -> Disc2dCoords w h
   
@@ -117,6 +119,7 @@ centreCoords {w} {h} _ =
           mfin = natToFin xh (S x)
       in  fromMaybe FZ mfin
       
+-- overriding the content of a cell: no boundary checks necessary
 setCell :  Disc2dCoords w h
         -> (elem : e)
         -> Disc2dEnv w h e
@@ -124,6 +127,7 @@ setCell :  Disc2dCoords w h
 setCell (MkDisc2dCoords colIdx rowIdx) elem env 
     = updateAt colIdx (\col => updateAt rowIdx (const elem) col) env
  
+-- reading the content of a cell: no boundary checks necessary
 getCell :  Disc2dCoords w h
         -> Disc2dEnv w h e
         -> e
@@ -172,39 +176,39 @@ filterNeighbourhood {w} {h} (MkDisc2dCoords x y) ns env =
 
 \subsection{Dependently Typed SIR}
 \label{sub:dep_abs_sir}
-We plan to prototype the concepts of section \ref{sub:dep_abs_generalconcepts} in a dependently typed SIR implementation. One can object that the SIR model \cite{kermack_contribution_1927} is a very simple model but it has a number of advantages. There is a theory behind it with a formal ground-truth for the dynamics which can be generated by differential equations, which allows validation of the simulation. It has already many concepts of ABS in it without making it too complex: agent-behaviour as a state-machine, local agent-state (current SIR state and duration of illness), feedback, very rudimentary interaction with other agents, 2D environment if required and behaviour over time. We will also look into the SugarScape model below \ref{sub:dep_abs_sugarscape}, which is of quite a different type and adds more complexity.
-The general approach of using dependent types is to specify the general commands available for an agent, where we can follow the approach of an DSEL as described in \cite{brady_correct-by-construction_2010} and write then an interpreter for it. It is of importance that the interpreter shall be pure itself and does not make use of any IO.
+We plan to prototype the concepts of section \ref{sub:dep_abs_generalconcepts} in a dependently typed SIR implementation. One can object that the SIR model \cite{kermack_contribution_1927} is a very simple model but despite its simplicity it has a number of advantages. There is a theory behind it with a formal ground-truth for the dynamics which can be generated by differential equations, which allows validation of the simulation. Also, it has already many concepts of ABS in it without making it too complex: agent-behaviour as a state-machine, local agent-state (current SIR state and duration of illness), feedback, very rudimentary interaction with other agents, 2D environment if required and behaviour over time. We will also look into the SugarScape model (see \ref{sub:dep_abs_sugarscape}), which is of quite a different type and adds more complexity.
 
-Applying dependent types to the SIR model, we came up with the following use-cases:
+The general approach of using dependent types is to specify the general commands available for an agent, where we can follow the approach of an EDSL as described in \cite{brady_correct-by-construction_2010} and write then an interpreter for it. It is of importance that the interpreter shall be pure itself and does not make use of any IO. Applying dependent types to the SIR model, we came up with the following use-cases:
 
 \paragraph{Environment access}
 We have already introduced an implementation for a dependently typed 2D environment in section \ref{sub:dep_abs_2denv}. This can be directly used to implement a SIR on a 2D environment as we have done in the paper in Appendix \ref{app:pfe}.
 
 \paragraph{State-Machine and Flow Of Time}
-The transition through the Susceptible, Infected and Recovered states are a state-machine, thus we want to apply dependent types to restrict the valid transitions and that they are enforced under the given circumstances. The transitions are restricted to Susceptibles can only transition to Infected, Infected only to Recover and Recover stay in that state forever. The transitions obviously depend on the model and should be enforced. A transition from Susceptible to Infected happens with a given probability in case the Susceptible makes contact with an Infected. The transition from Infected to Recover happens after a given number of time-steps.
+The transition through the Susceptible, Infected and Recovered states are a state-machine, thus we want to apply dependent types to restrict the valid transitions and ensure that they are enforced under the given circumstances. The transitions are restricted to: Susceptibles can only transition to Infected, Infected only to Recovered and Recovered stay in that state forever. A transition from Susceptible to Infected happens with a given probability in case the Susceptible makes contact with an Infected. The transition from Infected to Recover happens after a given number of time-steps.
+
 The tricky thing is that all these transitions ultimately depend on stochastic events: Susceptible pick their contacts at random, uniformly distributed from all agents in the simulation, they get infected with a probability when the contact is Infected and the duration an Infected agent is ill is picked from an exponential distribution.
 
 \paragraph{Equilibrium and totality}
 The idea is to implement a total agent-based SIR simulation, where the termination does NOT depend on time (is not terminated after a finite number of time-steps, which would be trivial).  We argue that the underlying SIR model actually has a steady state.
 
-The dynamics of the system-dynamics SIR model are in equilibrium (won't change any more) when the infected stock is 0. This can (probably) be shown formally but intuitively it is clear because only infected agents can lead to infections of susceptible agents which then make the transition to recovered after having gone through the infection phase. 
+The dynamics of the System Dynamics SIR model are in equilibrium (won't change any more) when the infected stock is 0. This might be shown formally but intuitively it is clear because only infected agents can lead to infections of susceptible agents which then make the transition to recovered after having gone through the infection phase. 
 
 Thus an agent-based implementation of the SIR simulation has to terminate if it is implemented correctly because all infected agents will recover after a finite number of steps after then the dynamics will be in equilibrium. Thus we have the following conditions for totality:
 \begin{enumerate}
 	\item The simulation shall terminated when there are no more infected agents.
 	\item All infected agents will recover after a finite number of time, which means that the simulation will eventually run out of infected agents. 
 	
-	Unfortunately this criterion alone does not suffice because when we look at the SIR+S (which adds a cycle from Recovered back to Susceptible) model we have the same termination criterion, but we cannot guarantee that it will run out of infected. We need an additional criteria.
+	Unfortunately this criterion alone does not suffice because when we look at the SIR+S model, which adds a cycle from Recovered back to Susceptible, we have the same termination criterion, but we cannot guarantee that it will run out of infected. We need an additional criteria.
 	\item The source of infected agents is the pool of susceptible agents which is monotonous decreasing (not strictly though!) because recovered agents do NOT turn back into susceptibles.
 \end{enumerate}
 
-Thus we can conclude that a SIR model must enter a steady state after finite steps / in finite time \footnote{Note that there exists a SIR+S model, which adds a cycle back from Recovered to Susceptible - if we find a total implementation of the SIR model and add this transition then the simulation should become non-total, checked by the compiler.}.
+Thus we can conclude that a SIR model must enter a steady state after finite steps / in finite time. %\footnote{Note that there exists a SIR+S model, which adds a cycle back from Recovered to Susceptible - if we find a total implementation of the SIR model and add this transition then the simulation should become non-total, checked by the compiler.}.
 
-By this reasoning, a non-total, correctly implemented agent-based simulations of the SIR model will eventually terminate (note that this is independent of which environment is used and which parameters are selected). Still this does not proof that the agent-based approach itself will terminate and so far no proof of the totality of it was given.
+By this reasoning, a non-total, correctly implemented agent-based simulations of the SIR model will eventually terminate (note that this is independent of which environment is used and which parameters are selected). Still this does not formally proof that the agent-based approach itself will terminate and so far no formal proof of the totality of it was given.
 
-Dependent Types and Idris ability for totality and termination checking should theoretically allow us to proof that an agent-based SIR implementation terminates after finite time: if an implementation of the agent-based SIR model in Idris is total it is a proof by construction. Note that such an implementation should not run for a limited virtual time but run unrestricted of the time and the simulation should terminate as soon as there are no more infected agents. 
+Dependent Types and Idris' ability for totality- and termination-checking should theoretically allow us to proof that an agent-based SIR implementation terminates after finite time: if an implementation of the agent-based SIR model in Idris is total it is a formal proof by construction. Note that such an implementation should not run for a limited virtual time but run unrestricted of the time and the simulation should terminate as soon as there are no more infected agents, returning the termination time as an output. Also if we find a total implementation of the SIR model and extend it to the SIR+S model, which adds a cycle from Recovered back to Susceptible, then the simulation should become again non-total as reasoned above.
 
-The HOTT book \cite{program_homotopy_2013} states that lists, trees,... are inductive types/inductively defined structures where each of them is characterized by a corresponding "induction principle". For a proof of totality of SIR we need to find the "induction principle" of the SIR model and implement it. What is the inductive, defining structure of the SIR model? is it a tree where a path through the tree is one simulation dynamics? or is it something else? it seems that such a tree would grow and then shrink again e.g. infected agents. Can we then apply this further to (agent-based) simulation in general?
+The HOTT book \cite{program_homotopy_2013} states that lists, trees,... are inductive types/inductively defined structures where each of them is characterized by a corresponding \textit{induction principle}. Thus, for a constructive proof of the totality of the agent-based SIR model we need to find the induction principle of it. This leaves us with the question of what the inductive, defining structure of the agent-based SIR model is? Is it a tree where a path through the tree is one way through the simulation or is it something else? It seems that such a tree would grow and then shrink again e.g. infected agents. Can we then apply this further to (agent-based) simulation in general?
 
 %TODO: \url{https://stackoverflow.com/questions/19642921/assisting-agdas-termination-checker/39591118}
 
@@ -218,10 +222,10 @@ The HOTT book \cite{program_homotopy_2013} states that lists, trees,... are indu
 %-- SIMULATION:  advanced in steps, time represented as Nat, as real numbers are not constructive and we want to be total
 %--              terminates when there are no more INFECTED agents
 
-So far we have no clear idea and understanding how to implement such a total implementation - this will be subject to quite substantial research. One might object to that undertaking and ask what we got from it. We argue that investigating the correspondence between the equilibrium of an agent-based model and the totality of its implementation for the first time is reason enough and we hope to gain a few unique and deep insights from this undertaking.
+So far we have no clear idea and understanding how to implement such a total implementation - this will be subject to quite substantial research. One might object to that undertaking and ask what we gain from it. We argue that investigating the correspondence between the equilibrium of an agent-based model and the totality of its implementation for the first time is reason enough because we expect to gain new insights from this undertaking.
 
 \paragraph{Specifications}
-The number of agents stays constant in SIR, this means no agents are created / destroyed during simulation, they only might change their state:
+The number of agents stays constant in SIR, this means no agents are created / destroyed during simulation, they only might change their state. We could conceptually specify that in the types as:
 \begin{HaskellCode}
 sirAgentNumberConstant : Vect s (SIRAgent Susceptible) -> 
                          Vect i (SIRAgent Infected) ->
@@ -229,7 +233,7 @@ sirAgentNumberConstant : Vect s (SIRAgent Susceptible) ->
                          Vect (s + i + r) (SIRAgent st)
 \end{HaskellCode}
 
-Another property of the SIR model is, that the number of susceptibles, infected and recovered might change in each step but the sum will be the same as before:
+Another property of the SIR model is, that the number of susceptibles, infected and recovered might change in each step but the sum will be the same as before. We could conceptually specify that in the types as:
 \begin{HaskellCode}
 sirStep : Vect s (SIRAgent Susceptible) -> 
           Vect i (SIRAgent Infected) ->
@@ -238,20 +242,19 @@ sirStep : Vect s (SIRAgent Susceptible) ->
            Vect i' (SIRAgent Infected), 
            Vect r' (SIRAgent Recovered), (s'+i'+r') = (s+i+r))
 \end{HaskellCode}
-          
+
 \subsection{Dependently Typed Sugarscape}
 \label{sub:dep_abs_sugarscape}
-The other model we will employ as a use-case for the concepts of section \ref{sub:dep_abs_generalconcepts} is the SugarScape model \cite{epstein_growing_1996}. It is an exploratory model by which social scientists tried to explain phenomena found in societies in the real world. The main complexity of this model lies in the much more complex local state of the agents, complex agent-agent interactions e.g. in case of trade and mating and a pro-active environment. Opposed to the SIR model agents behaviour is not modelled as a state-machine and time-semantics is not of that much importance: the simulation is stepped in unit-steps of $\delta t = 1.0$ and in every time-step, all agents act in random order. Although there are equilibria e.g. in case all agents die out or the carrying capacity of an environment, trading prices, this model is too complex for a total implementation in the cases.
+The other model we will employ as a use-case for the concepts of section \ref{sub:dep_abs_generalconcepts} is the SugarScape model \cite{epstein_growing_1996}. It is an exploratory model by which social scientists tried to explain phenomena found in societies in the real world. The main complexity of this model lies in the much more complex local state of the agents and the agent-agent interactions e.g. in case of trade and mating and a pro-active environment. Opposed to the SIR model agents behaviour is not modelled as a state-machine and time-semantics is not of that much importance: the simulation is stepped in unit-steps of $\Delta t = 1.0$ and in every time-step, all agents act in random order. Although there are equilibria e.g. in case all agents die out or the carrying capacity of an environment, trading prices, we think that this model is too complex for a total implementation in the cases.
 
 \paragraph{Environment}
 We have already introduced an implementation for a dependently typed 2D environment in section \ref{sub:dep_abs_2denv}. This can be directly used to implement the pro-active environment of SugarScape.
 
 \paragraph{Existence Of Agents}
-TODO: existence of an agent
 In SugarScape agents can die and be born thus on a technical level agents are added and removed dynamically during the simulation. This means we can employ proofs of existence of an agent for establishing interactions with another one. Also a proof might become invalid after a time. Also one can construct a proof only from a given time on e.g. when one wants to prove that agent X exists but agent X is only created at time t then before time t the prove cannot be constructed and is uninhabited and only inhabited from time t on.
 
 \paragraph{Agent-Agent interactions}
-In SugarScape agents interact with each other on a much more complex way than in SIR due to the complex behaviour. The two main complex use-cases are mating and trading between agents where both require multiple interaction-steps happening instantaneous without delay (within 1.0 time-step). Both use-cases implement a protocol which we might be able to enforce using dependent types.
+In SugarScape agents interact with each other on a much more complex way than in SIR due to the complex behaviour. The two main complex use-cases are mating and trading between agents where both require multiple interaction-steps happening instantaneous without delay (that is, within 1 time-step). Both use-cases implement a protocol which we might be able to enforce using dependent types.
 
 \paragraph{Hypotheses}
-SugarScape is an exploratory model and it has strictly speaking no analytical or theoretical ground truth. Thus there are no means to validate this model and the researcher works by formulating hypotheses about the emergent properties of the model. So the approach the creators of SugarScape took in \cite{epstein_growing_1996} was that they started from real world phenomenon and modelled the agent-interactions for them and hypothesized that out of this the real-world phenomenon will emerge. An example is the carrying capacity of an environment, as described in the first chapter: they hypothesized that the size of the population will reach a state where it will fluctuate around some mean because the environment cannot sustain more than a given number so agents not finding enough resources will simply die. Maybe we can encode such hypotheses using dependent types.
+SugarScape is an exploratory model and although it is based on theoretical concepts from sociology, economics and epidemiology, it has strictly speaking no analytical or theoretical ground truth. Thus there are no means to validate this model and the researcher works by formulating hypotheses about the emergent properties of the model. So the approach the creators of SugarScape took in \cite{epstein_growing_1996} was that they started from real world phenomenon and modelled the agent-interactions for them and hypothesized that out of this the real-world phenomenon will emerge. An example is the carrying capacity of an environment, as described in the first chapter: they hypothesized that the size of the population will reach a state where it will fluctuate around some mean because the environment cannot sustain more than a given number so agents not finding enough resources will simply die. Maybe we can encode such hypotheses using dependent types.

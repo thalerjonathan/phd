@@ -44,7 +44,7 @@ data SIRAgent : (m : Type -> Type) ->
 
   -- BOILERPLATE operations
   ||| Monadic operations Pure and Bind for sequencing operations 
-  Pure : (ret : ty) -> SIRAgent m ty (postFn ret) postFn
+  Pure : (ret : ty) -> SIRAgent m ty pre postFn -- (postFn ret) postFn
   Bind : SIRAgent m a pre postFn1 -> 
           ((ret : a) -> SIRAgent m b (postFn1 ret) postFn2) ->
           SIRAgent m b pre postFn2
@@ -63,7 +63,7 @@ data SIRAgent : (m : Type -> Type) ->
   ||| Making contact with another agent. Note there will be always another agent, because there is always at least one agent: self
   MakeContact : SIRAgent m SIRContact Susceptible (const Susceptible)
 
-pure : (ret : ty) -> SIRAgent m ty (postFn ret) postFn
+pure : (ret : ty) -> SIRAgent m ty pre postFn --(postFn ret) postFn
 pure = Pure
 
 (>>=) : SIRAgent m a pre postFn1 -> 
@@ -109,7 +109,11 @@ runSIRAgent (RandomElem xs) rs = do
   pure (r, rs')
 runSIRAgent MakeContact rs = do
   -- TODO: pick randomly from all agents
-  pure (ContactWith Infected, rs)
+  -- NOTE: for now 20% chance
+  let (r, rs') = randomBool rs 0.2
+  case r of
+    True  => pure (ContactWith Infected, rs')
+    False => pure (ContactWith Susceptible, rs')
 
 -------------------------------------------------------------------------------
 -- The obligatory ConsoleIO interface for easy debugging
@@ -138,28 +142,44 @@ contact (S k) = do
   case c of
     ContactWith Infected => do
       inf <- randomBool infectivity
-      putStrLn $ show "infected: " ++ show inf
+      putStrLn $ "infected: " ++ show inf
     
       case inf of
-        True  => pure False
-        False => pure False -- contact k
-    ContactWith _ => pure False -- contact k
+        True  => pure True
+        False => do
+          ret <- contact k
+          pure ret
+    ContactWith _ => do
+      ret <- contact k
+      pure ret
 
 susceptible : ConsoleIO m =>
               SIRAgent m Bool Susceptible (\inf => case inf of 
                                                       True  => Infected
                                                       False => Susceptible)
 susceptible = do
-    r <- randomExp (1 / contactRate)
-    putStrLn $ "r = " ++ show r
+  r <- randomExp (1 / contactRate)
+  putStrLn $ "r = " ++ show r
 
-    let numCont = fromIntegerNat $ cast r
-    putStrLn $ "numCont = " ++ show numCont
-    
-    --ret <- contact numCont
-
+  let numCont = fromIntegerNat $ cast r
+  putStrLn $ "numCont = " ++ show numCont
+  
+  contact numCont
+  
+  {-
+  ret <- contact numCont
+  case ret of
+    True => do
+      putStrLn $ "got infected"
+      pure False -- this is certainly wrong??
+    False => do
+      putStrLn $ "stay susceptible"
+      pure True -- this is certainly wrong??
+ 
+{-
     c <- makeContact
     putStrLn $ show c
+
 
     case c of
       ContactWith Infected => do
@@ -167,19 +187,20 @@ susceptible = do
         putStrLn $ show "infected: " ++ show inf
       
         case inf of
-          True  => pure True -- TODO: doesn't work, pre and post are ill defined somewhere
+          True  => pure False -- TODO: doesn't work, pre and post are ill defined somewhere
           False => pure False -- contact k
       ContactWith _ => pure False -- contact k
 
+
     ?susceptible_rhs
     --pure False
-
+-}
 
 runSIR : IO ()
 runSIR = do
-  let rs = randoms 42
+  let rs = randoms 1
   (ret, rs') <- runSIRAgent (susceptible) rs
-  putStrLn $ show ret
+  putStrLn $ "terminated with return value " ++ show ret
 
 {-
 runAgentWithEventAux : Monad m =>

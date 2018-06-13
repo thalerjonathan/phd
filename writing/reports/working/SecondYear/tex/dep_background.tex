@@ -1,7 +1,7 @@
 \section{Introduction}
 \label{sec:dep_background}
 
-There exist a number of excellent introduction to dependent types which we use as main ressources for this section: \cite{thompson_type_1991, brady_type-driven_2017} TODO: add verified functional programming, HOTT introduction chapter, software foundations.
+There exist a number of excellent introduction to dependent types which we use as main ressources for this section: \cite{thompson_type_1991, program_homotopy_2013, stump_verified_2016, brady_type-driven_2017, pierce_programming_2018}.
 
 Generally, dependent types add the following concepts to pure functional programming:
 
@@ -173,7 +173,7 @@ exactLength {n} len input = case checkEqNat n len of
 \subsection{Philosophical Foundations: Constructivism}
 \label{sub:dep_foundations}
 
-The main theoretical and philosophical underpinnings of dependent types as in Idris are the works of Martin-Löf intuitionistic type theory (TODO: cite). The view of dependently typed programs to be proofs is rooted in a deep philosophical discussion on the foundations of mathematics, which revolve around the existence of mathematical objects, with two conflicting positions known as classic vs. constructive \footnote{We follow the excellent introduction on constructive mathematics \cite{thompson_type_1991}, chapter 3.}. In general, the constructive position has been identified with realism and empirical computational content where the classical one with idealism and pragmatism.
+The main theoretical and philosophical underpinnings of dependent types as in Idris are the works of Martin-L\"of intuitionistic type theory. The view of dependently typed programs to be proofs is rooted in a deep philosophical discussion on the foundations of mathematics, which revolve around the existence of mathematical objects, with two conflicting positions known as classic vs. constructive \footnote{We follow the excellent introduction on constructive mathematics \cite{thompson_type_1991}, chapter 3.}. In general, the constructive position has been identified with realism and empirical computational content where the classical one with idealism and pragmatism.
 
 In the classical view, the position is that to prove $\exists x. P(x)$ it is sufficient to prove that $\forall x. \neg P(x)$ leads to a contradiction. The constructive view would claim that only the contradiction is established but that a proof of existence has to supply an evidence of an $x$ and show that $P(x)$ is provable. In the end this boils down whether to use proof by contradiction or not, which is sanctioned by the law of the excluded middle which says that $A \lor \neg A$ must hold. The classic position accepts that it does and such proofs of existential statements as above, which follow directly out of the law of the excluded middle, abound in mathematics \footnote{Polynomial of degree n has n complex roots; continuous functions which change sign over a compact real interval have a zero in that interval,...}. The constructive view rejects the law of the excluded middle and thus the position that every statement is seen as true or false, independently of any evidence either way. \cite{thompson_type_1991} (p. 61): \textit{The constructive view of logic concentrates on what it means to prove or to demonstrate convincingly the validity of a statement, rather than concentrating on the abstract truth conditions which constitute the semantic foundation of classical logic}.
 
@@ -181,15 +181,15 @@ To prove a conjunction $A \land B$ we need prove both $A$ and $B$, to prove $A \
 
 A very important concept in constructivism is that of finitary representation / description. Objects which are infinite e.g. infinite sets as in classic mathematics, fail to have computational computation, they are not computable. This leads to a fundamental tenet in constructive mathematics: \cite{thompson_type_1991} (p. 62): \textit{Every object in constructive mathematics is either finite [..] or has a finitary description}
 
-TODO: discuss intensionality vs extensionality with Thorsten
-HOTT book, NOTES on chapter 1: "Extensional theory makes no distinction between judgmental and propositional equality, the intensional theory regards judgmental equality as purely definitional, and admits a much broader proof-relevant interpretation of the identity type that is central to the homotopy interpretation."
-Propositional equality allows to assume that a variable x of type p is equal to y: p : x = y.
-Judgemental equality (or definitional equality) means "equal by definition" e.g. if we have a function $f : N -> N by f(x) = x^2$ then f(3) is equal to $3^2$ by definition. Whether or not two expressions are equal by definition is just a matter of expanding out the definitions, in particular it is algorithmically decidable.
+%TODO: discuss intensionality vs extensionality with Thorsten
+%HOTT book, NOTES on chapter 1: "Extensional theory makes no distinction between judgmental and propositional equality, the intensional theory regards judgmental equality as purely definitional, and admits a much broader proof-relevant interpretation of the identity type that is central to the homotopy interpretation."
+%Propositional equality allows to assume that a variable x of type p is equal to y: p : x = y.
+%Judgemental equality (or definitional equality) means "equal by definition" e.g. if we have a function $f : N -> N by f(x) = x^2$ then f(3) is equal to $3^2$ by definition. Whether or not two expressions are equal by definition is just a matter of expanding out the definitions, in particular it is algorithmically decidable.
 
 Concluding, we can say that constructive mathematics is based on principles quite different from classical mathematics, with the idealistic aspects of the latter replaced by a finitary system with computational content. Objects like functions are given by rules, and the validity of an assertion is guaranteed by a proof from which we can extract relevant computational information, rather than on idealist semantic principles. 
 
 All this is directly reflected in dependently typed programs as we introduced above: functions need to be total (finitary) and produce proofs like in \textit{checkEqNat} which allows the compiler to extract additional relevant computational information. Also the way we described the (infinite) natural numbers was in an finitary way. In the case of decidable equality, the case where it is not equal, we need to provide an actual proof of contradiction, with the type of Void which is Idris representation of $\perp$. 
 
-TODO: connect intensionality to above examples, discuss with Thorsten
-Fact: Idris, Agda and Coq are intensional
-extensionality can also be seen as: two functions are equal if they give the same results on every input (extensional equality on the function space)
+%TODO: connect intensionality to above examples, discuss with Thorsten
+%Fact: Idris, Agda and Coq are intensional
+%extensionality can also be seen as: two functions are equal if they give the same results on every input (extensional equality on the function space)

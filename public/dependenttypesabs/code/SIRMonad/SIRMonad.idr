@@ -16,6 +16,9 @@ contactRate = 5.0
 illnessDuration : Double
 illnessDuration = 15.0
 
+Time : Type
+Time = Nat
+
 data SIRState
   = Susceptible
   | Infected
@@ -59,6 +62,9 @@ data SIRAgent : (m : Type -> Type) ->
   ||| Draws a random element from a non-empty vector
   RandomElem : Vect (S n) elem -> SIRAgent m elem pre (const pre)
 
+  -- TIME operations
+  Now : SIRAgent m Time pre (const pre)
+
   -- DOMAIN SPECIFIC operations
   ||| Making contact with another agent. Note there will be always another agent, because there is always at least one agent: self
   MakeContact : SIRAgent m SIRContact Susceptible (const Susceptible)
@@ -83,37 +89,73 @@ randomExp = RandomExp
 randomElem : Vect (S n) elem -> SIRAgent m elem pre (const pre)
 randomElem = RandomElem
 
+now : SIRAgent m Time pre (const pre)
+now = Now
+
 makeContact : SIRAgent m SIRContact Susceptible (const Susceptible)
 makeContact = MakeContact
 
 runSIRAgent : Monad m => 
               SIRAgent m ty pre postFn -> 
+              (t : Time) ->
               (rs : RandomStream) ->
               m (ty, RandomStream)
-runSIRAgent (Pure ret) rs
+runSIRAgent (Pure ret) t rs
   = pure (ret, rs)
-runSIRAgent (Bind act cont) rs = do
-  (ret', rs') <- runSIRAgent act rs
-  runSIRAgent (cont ret') rs'
-runSIRAgent (Lift act) rs = do
+runSIRAgent (Bind act cont) t rs = do
+  (ret', rs') <- runSIRAgent act t rs
+  runSIRAgent (cont ret') t rs'
+runSIRAgent (Lift act) t rs = do
   ret <- act
   pure (ret, rs)
-runSIRAgent (RandomBool p) rs = do
+runSIRAgent (RandomBool p) t rs = do
   let (r, rs') = randomBool rs p
   pure (r, rs')
-runSIRAgent (RandomExp lambda) rs = do
+runSIRAgent (RandomExp lambda) t rs = do
   let (r, rs') = randomExp rs lambda
   pure (r, rs')
-runSIRAgent (RandomElem xs) rs = do
+runSIRAgent (RandomElem xs) t rs = do
   let (r, rs') = randomElem rs xs
   pure (r, rs')
-runSIRAgent MakeContact rs = do
+runSIRAgent MakeContact t rs = do
   -- TODO: pick randomly from all agents
   -- NOTE: for now 20% chance
   let (r, rs') = randomBool rs 0.2
   case r of
     True  => pure (ContactWith Infected, rs')
     False => pure (ContactWith Susceptible, rs')
+runSIRAgent Now t rs
+  = pure (t, rs)
+
+runAgents : Monad m => 
+            List (SIRAgent m ty pre postFn) -> 
+            (t : Time) ->
+            (rs : RandomStream) ->
+            m (List (SIRAgent m ty pre postFn), RandomStream)
+runAgents [] t rs = pure ([], rs)
+runAgents (a :: as) t rs = do
+  (ret, rs') <- runSIRAgent a t rs
+
+  (as', rs') <- runAgents as t rs
+  pure (a :: as', rs')
+
+runSimulationAux : Monad m => 
+                   (steps : Nat) ->
+                   (t : Nat) ->
+                   List (SIRAgent m ty pre postFn) -> 
+                   (rs : RandomStream) ->
+                   m ()
+runSimulationAux Z t as rs = pure ()
+runSimulationAux (S k) t as rs = do
+  (as', rs') <- runAgents as t rs
+  runSimulationAux k (S t) as' rs'
+
+runSimulation : Monad m => 
+                (steps : Nat) ->
+                List (SIRAgent m ty pre postFn) -> 
+                (rs : RandomStream) ->
+                m ()
+runSimulation steps as rs = runSimulationAux steps Z as rs
 
 -------------------------------------------------------------------------------
 -- The obligatory ConsoleIO interface for easy debugging
@@ -128,6 +170,31 @@ ConsoleIO IO where
 putStrLn : ConsoleIO m => String -> SIRAgent m () pre (const pre)
 putStrLn str = putStr (str ++ "\n")
 -------------------------------------------------------------------------------
+
+recovered : ConsoleIO m =>
+            SIRAgent m Bool Recovered (const Recovered)
+recovered = do
+  putStrLn "I stay recovered"
+  pure True
+
+infected : ConsoleIO m =>
+           (recTime : Nat) ->
+           SIRAgent m Bool Infected (\rec => case rec of 
+                                                  True  => Recovered
+                                                  False => Infected)
+infected recTime = do
+  t <- now
+  putStrLn $ "t = " ++ show t
+  putStrLn $ "will recover at " ++ show recTime
+  -- pure (recTime >= t)
+  case (recTime > t) of
+    True  => do
+      putStrLn "still infected..."
+      pure True
+    False => do
+      putStrLn "recovered!"
+      pure True
+  
 
 contact : ConsoleIO m =>
           Nat -> 
@@ -164,43 +231,27 @@ susceptible = do
   let numCont = fromIntegerNat $ cast r
   putStrLn $ "numCont = " ++ show numCont
   
-  contact numCont
-  
-  {-
   ret <- contact numCont
   case ret of
     True => do
       putStrLn $ "got infected"
-      pure False -- this is certainly wrong??
+      pure True
     False => do
       putStrLn $ "stay susceptible"
-      pure True -- this is certainly wrong??
- 
-{-
-    c <- makeContact
-    putStrLn $ show c
-
-
-    case c of
-      ContactWith Infected => do
-        inf <- randomBool infectivity
-        putStrLn $ show "infected: " ++ show inf
-      
-        case inf of
-          True  => pure False -- TODO: doesn't work, pre and post are ill defined somewhere
-          False => pure False -- contact k
-      ContactWith _ => pure False -- contact k
-
-
-    ?susceptible_rhs
-    --pure False
--}
+      pure False -- this is certainly wrong?
 
 runSIR : IO ()
 runSIR = do
   let rs = randoms 1
-  (ret, rs') <- runSIRAgent (susceptible) rs
-  putStrLn $ "terminated with return value " ++ show ret
+  
+  --(ret, rs') <- runSIRAgent (susceptible) Z rs
+  --putStrLn $ "terminated with return value " ++ show ret
+
+  --runAgents [infected 5] 10 rs
+
+  runSimulation 10 [infected 5] rs
+
+  
 
 {-
 runAgentWithEventAux : Monad m =>

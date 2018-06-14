@@ -107,7 +107,7 @@ reverse (elem :: xs) = reverseProof (append (reverse xs) [elem])
     reverseProof {k} result = rewrite plusCommutative 1 k in result
 \end{HaskellCode}
 
-\subsection{Constructivity: Equality as a type}
+\subsection{Equality as type}
 On of the most powerful aspects of dependent types is that they allow us to express equality on an unprecedented level. Non-dependently typed languages have only very basic ways of expressing the equality of two elements of same type. Either we use a boolean or another data-structure which can indicate equality or not. Idris supports this type of equality as well through \textit{(==) : Eq ty $\Rightarrow$ ty $\rightarrow$ ty $\rightarrow$ Bool}. The drawback of using a boolean is that, in the end, we don't have a real evidence of equality: it doesn't tell you anything about the relationship between the inputs and the output. Even though the elements might be equal, the compiler has no means of inferring this and we can still make programming mistakes after the equality check because of this lack of compiler support. Even worse, always returning False / True or whether the inputs are \textit{not} equal is a valid implementation of (==), at least as far as the type is concerned.
 
 As an illustrating example we want to write a function which checks if a Vector has a given length. 
@@ -170,6 +170,29 @@ exactLength {n} len input = case checkEqNat n len of
                                  No contra => Nothing
 \end{HaskellCode} 
 
+\subsubsection{Kinds of Equality}
+In type theory there are different kinds of equality \footnote{We follow in these definitions mainly \url{https://ncatlab.org/nlab/show/equality}, \url{https://ncatlab.org/nlab/show/intensional+type+theory} and \url{https://ncatlab.org/nlab/show/extensional+type+theory}.}, which in turn depend on the flavour of type theory which can be either \textit{intensional} or \textit{extensional}:
+
+\begin{enumerate}
+	\item Definitional or intensional equality: the symbols "2" and "S(S(Z))" are said to be definitional / intensionally equal terms, because their \textit{intended meaning} is the same.
+	\item Computational or judgmental equality: two terms "2 + 2" and "4" are said to be computationally equal because when the result of the addition is computed by a program then they will reduce to the same term S(S(Z)) + S(S(Z)) = S(S(S(S(Z)))). Very often this kind of equality is treated under definitional equality.
+	\item Propositional equality: when one wants to define general rules that e.g. "a+b" and "b+a" are equal, we are talking about a theorem, not a definition. Computational / definitional equality does not work here as to compute it one needs to substitute a and b for concrete natural numbers. In this case we are talking about extensional equality, which is a judgement, not a proposition and thus \textit{not} internal to the formal system itself. It can be internalized through \textit{propositional} equality
+\end{enumerate}
+
+Now it becomes more clear what a \textit{intensional} type theory means: TODO. An \textit{extensional} type theory on the other hand: TODO.
+
+Applied to our examples this means the following: We have definitional/intensional equality AND 
+Propositional equality is exactly what we got when we introduced the identity type above in the checkEqNat function with Dec (num1 = num2). (the Dec type indicates that it is decidable and may or may not be inhabited)
+
+%TODO: discuss intensionality vs extensionality with Thorsten
+%HOTT book, NOTES on chapter 1: "Extensional theory makes no distinction between judgmental and propositional equality, the intensional theory regards judgmental equality as purely definitional, and admits a much broader proof-relevant interpretation of the identity type that is central to the homotopy interpretation."
+%Propositional equality allows to assume that a variable x of type p is equal to y: p : x = y.
+%Judgemental equality (or definitional equality) means "equal by definition" e.g. if we have a function $f : N -> N by f(x) = x^2$ then f(3) is equal to $3^2$ by definition. Whether or not two expressions are equal by definition is just a matter of expanding out the definitions, in particular it is algorithmically decidable.
+
+%TODO: connect intensionality to above examples, discuss with Thorsten
+%Fact: Idris, Agda and Coq are intensional
+%extensionality can also be seen as: two functions are equal if they give the same results on every input (extensional equality on the function space)
+
 \subsection{Philosophical Foundations: Constructivism}
 \label{sub:dep_foundations}
 
@@ -181,15 +204,7 @@ To prove a conjunction $A \land B$ we need prove both $A$ and $B$, to prove $A \
 
 A very important concept in constructivism is that of finitary representation / description. Objects which are infinite e.g. infinite sets as in classic mathematics, fail to have computational computation, they are not computable. This leads to a fundamental tenet in constructive mathematics: \cite{thompson_type_1991} (p. 62): \textit{Every object in constructive mathematics is either finite [..] or has a finitary description}
 
-%TODO: discuss intensionality vs extensionality with Thorsten
-%HOTT book, NOTES on chapter 1: "Extensional theory makes no distinction between judgmental and propositional equality, the intensional theory regards judgmental equality as purely definitional, and admits a much broader proof-relevant interpretation of the identity type that is central to the homotopy interpretation."
-%Propositional equality allows to assume that a variable x of type p is equal to y: p : x = y.
-%Judgemental equality (or definitional equality) means "equal by definition" e.g. if we have a function $f : N -> N by f(x) = x^2$ then f(3) is equal to $3^2$ by definition. Whether or not two expressions are equal by definition is just a matter of expanding out the definitions, in particular it is algorithmically decidable.
 
 Concluding, we can say that constructive mathematics is based on principles quite different from classical mathematics, with the idealistic aspects of the latter replaced by a finitary system with computational content. Objects like functions are given by rules, and the validity of an assertion is guaranteed by a proof from which we can extract relevant computational information, rather than on idealist semantic principles. 
 
 All this is directly reflected in dependently typed programs as we introduced above: functions need to be total (finitary) and produce proofs like in \textit{checkEqNat} which allows the compiler to extract additional relevant computational information. Also the way we described the (infinite) natural numbers was in an finitary way. In the case of decidable equality, the case where it is not equal, we need to provide an actual proof of contradiction, with the type of Void which is Idris representation of $\perp$. 
-
-%TODO: connect intensionality to above examples, discuss with Thorsten
-%Fact: Idris, Agda and Coq are intensional
-%extensionality can also be seen as: two functions are equal if they give the same results on every input (extensional equality on the function space)

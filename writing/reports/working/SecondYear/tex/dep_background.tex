@@ -119,7 +119,7 @@ exactLength {n} len input = case n == len of
                                  False => Nothing 
 \end{HaskellCode}
 
-Unfortunately this doesn't type-check ('type mismatch between n and len') because the compiler has no way of determining that len is equals n at compile-time. Fortunately we can solve this problem using dependent types themselves by defining \textit{decidable} equality as a type (see more on decidable / non-decidable equality below \ref{sub:dep_foundations}).
+Unfortunately this doesn't type-check ('type mismatch between n and len') because the compiler has no way of determining that $len$ is equals $n$ at compile-time. Fortunately we can solve this problem using dependent types themselves by defining \textit{decidable} equality as a type.
 
 First we need a decidable property, meaning it either holds given with some \textit{proof} or it does not hold given some proof that it does \textit{not} hold, resulting in a contradiction. Idris defines such a decidable property already as the following:
 
@@ -174,24 +174,17 @@ exactLength {n} len input = case checkEqNat n len of
 In type theory there are different kinds of equality \footnote{We follow in these definitions mainly \url{https://ncatlab.org/nlab/show/equality}, \url{https://ncatlab.org/nlab/show/intensional+type+theory} and \url{https://ncatlab.org/nlab/show/extensional+type+theory}.}, which in turn depend on the flavour of type theory which can be either \textit{intensional} or \textit{extensional}:
 
 \begin{enumerate}
-	\item Definitional or intensional equality: the symbols "2" and "S(S(Z))" are said to be definitional / intensionally equal terms, because their \textit{intended meaning} is the same.
-	\item Computational or judgmental equality: two terms "2 + 2" and "4" are said to be computationally equal because when the result of the addition is computed by a program then they will reduce to the same term S(S(Z)) + S(S(Z)) = S(S(S(S(Z)))). Very often this kind of equality is treated under definitional equality.
-	\item Propositional equality: when one wants to define general rules that e.g. "a+b" and "b+a" are equal, we are talking about a theorem, not a definition. Computational / definitional equality does not work here as to compute it one needs to substitute a and b for concrete natural numbers. In this case we are talking about extensional equality, which is a judgement, not a proposition and thus \textit{not} internal to the formal system itself. It can be internalized through \textit{propositional} equality
+	\item Definitional or intensional equality: the symbols '2' and 'S(S(Z))' are said to be definitional / intensionally equal terms, because their \textit{intended meaning} is the same.
+	\item Computational or judgmental equality: two terms '2 + 2' and '4' are said to be computationally equal because when the result of the addition is computed by a program then they will reduce to the same term 'S(S(Z)) + S(S(Z))' to 'S(S(S(S(Z))))'. In intensional type theory this kind of equality is treated as definitional equality, thus '2 + 2' and '4' are equal by definition.
+	\item Propositional equality: when one wants to define general rules that e.g. 'a+b' and 'b+a' are equal, we are talking about a theorem, not a definition. Computational / definitional equality does not work here as to compute it one needs to substitute a and b for concrete natural numbers. In this case we are talking about extensional equality, which is a judgement, not a proposition and thus \textit{not} internal to the formal system itself. It can be internalized through \textit{propositional} equality by adding an identity type which allows to express '2+2 = 4' as a \textit{type}. If such an expression (speak: proof) holds, then this type is inhabited, if not e.g. in the case of '2+2 = 5', this type holds no element and thus no proof exists for it (see section \ref{sub:dep_foundations}).
 \end{enumerate}
 
-Now it becomes more clear what a \textit{intensional} type theory means: TODO. An \textit{extensional} type theory on the other hand: TODO.
+Still it is not very clear what \textit{intensional} and \textit{extensional} type theory means. The HOTT Book \cite{program_homotopy_2013} says the following in Chapter 1: "Extensional theory makes no distinction between judgmental and propositional equality, the intensional theory regards judgmental equality as purely definitional, and admits a much broader proof-relevant interpretation of the identity type...". This means, that extensional type theory treats objects to be equal if they have the same external properties. In this type of theory, two functions are equal if they give the same results on every input (extensional equality on the function space). Intensional type theory on the other hand allows to distinguish between internal definitions of objects. In this type of theory, two functions are equal if their (internal) definitions are the same.
 
-Applied to our examples this means the following: We have definitional/intensional equality AND 
-Propositional equality is exactly what we got when we introduced the identity type above in the checkEqNat function with Dec (num1 = num2). (the Dec type indicates that it is decidable and may or may not be inhabited)
-
-%TODO: discuss intensionality vs extensionality with Thorsten
-%HOTT book, NOTES on chapter 1: "Extensional theory makes no distinction between judgmental and propositional equality, the intensional theory regards judgmental equality as purely definitional, and admits a much broader proof-relevant interpretation of the identity type that is central to the homotopy interpretation."
 %Propositional equality allows to assume that a variable x of type p is equal to y: p : x = y.
 %Judgemental equality (or definitional equality) means "equal by definition" e.g. if we have a function $f : N -> N by f(x) = x^2$ then f(3) is equal to $3^2$ by definition. Whether or not two expressions are equal by definition is just a matter of expanding out the definitions, in particular it is algorithmically decidable.
 
-%TODO: connect intensionality to above examples, discuss with Thorsten
-%Fact: Idris, Agda and Coq are intensional
-%extensionality can also be seen as: two functions are equal if they give the same results on every input (extensional equality on the function space)
+Applied to our examples this means the following: We have definitional equality through $(==)$ and $Eq$. Propositional equality is exactly what we got when we introduced the identity type above in the \textit{checkEqNat} function with \textit{Dec (num1 = num2)}. The (=) in the type is built-in into Idris and defines the propositional equality. Dhe Dec type is required to indicate that the proposition may or may not be inhabited. Thus we can also follow that Idris is intensional (and so is Agda and Coq).
 
 \subsection{Philosophical Foundations: Constructivism}
 \label{sub:dep_foundations}

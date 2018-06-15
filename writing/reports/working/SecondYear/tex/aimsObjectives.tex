@@ -4,10 +4,12 @@
 This chapter gives a compact and concise overview of the aims and objectives. Chapter \ref{chap:future} gives a more in-depth plan and details in how we will approach the aim in general and the objectives in particular.
 
 \section{Aim}
-The aim of this Ph.D. is to investigate how the pure functional programming paradigm with and without dependent types can be used to increase the robustness and confidence in the correctness of Agent-Based Simulations.
+The aim of this Ph.D. is to investigate how the pure functional programming paradigm without dependent types, as in Haskell, and with dependent types, as in Idris, can be used to implement Agent-Based Simulation and what the benefits are in doing so.
 
-\subsection{Hypothesis}
-We hypothesise that using pure functional programming and dependent types in Agent-Based Simulation narrows the gap between model specification and its implementation substantially, which by definition, leads to a simulation which is more likely to be correct, has less sources of bugs and is easier to verify. %TODO: again we are having a problematic measure: how do we measure 'more likely', 'less sources' and 'easier'?
+\subsection{Hypotheses}
+\paragraph{Hypothesis 1: Using pure functional programming without dependent types to implement Agent-Based Simulations leads to simulation software which has less sources of bugs and is easier to verify.} %TODO: again we are having a problematic measure: how do we measure 'more likely', 'less sources' and 'easier'?}
+
+\paragraph{Hypothesis 2: Using pure functional programming with dependent types to implement Agent-Based Simulations allows a substantially more constructive approach, which reduces the impedance mismatch between the test-driven approach of established object-oriented approaches and the constructive and generative nature of Agent-Based Simulation itself. This should narrow the gap between model-specification and its implementation substantially, which by definition, leads to a simulation which is more likely to be correct.}
 
 \section{Objectives}
 \begin{enumerate}
@@ -25,5 +27,5 @@ We hypothesise that using pure functional programming and dependent types in Age
 	% TODO: how can we quantify that?
 	%\item Explore how pure functional programming with dependent types can increase the correctness of Agent-Based Simulations.
 
-	\item Investigate how far we can close the gap between model specification and implementation using dependent types in Agent-Based Simulation. %, exploring the correspondence between the constructive nature of ABS and dependent types.
+	\item Investigate how far we can narrow the gap between model-specification and implementation using dependent types in Agent-Based Simulation. %, exploring the correspondence between the constructive nature of ABS and dependent types.
 \end{enumerate}

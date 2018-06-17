@@ -32,6 +32,17 @@ Another drawback is performance. So far, performance is not comparable to object
 \label{sect:why}
 TODO: need to develop argument more carefully and more structure: add subsections!
 
+established properties of FP as in Haskell
+- declarative: describing what a system does instead of how it does it. is more natural to reason about the behaviour of a system instead of thinking of operational details => easier to verify.
+- purity: explicit, polymorph and in full control of side-effects => reproducibility by guaranteeing same initial conditions and excluding non-deterministic side-effects => less sources of bugs => easier to verify and test => 
+- strong static type system: much more and stronger compile-time guarantees => less tests are required and less sources of bugs 
+- immutable data: explicit data flow, parallelism, easier to reason
+
+established properties of OO as in Python / Java
+- classes & objects: data & behaviour encapsulated
+- inheritance: 
+- mutable
+
 TODO: pure functional ABS as in Haskell allows us to leverage on the concepts of FP and its benefits (and drawbacks) but although we dont need to test as much and we can utilise property-based testing it is still a quite test oriented approach (although not as much as established oop methods, which rely completely on it), with dependent types this focus on test-driven development is shifted towards a type-driven, correct-by-concstruction development process which makes many tests obsolete.
 
 TODO: distinguish between technical differences/Advantages like purity, declarity, immutable state and strong static type system. and what the implications are: purity-guaranteed reproducubiliry, declarity-conceputally easier to reason (what vs how), immutable state-less sources of bugs, easily parallelisable, static type system-less tests necessary. again we need an additional higher level: it all subsumes under: more likely to be correct

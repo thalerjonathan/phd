@@ -1,64 +1,156 @@
 \chapter{Thesis Structure}
 \label{app:thesis_struct}
 
-This chapter tries to develop a first draft of the structure outline and the main argument of the thesis which i plan on start writing in April 2019.
+This appendix gives a first draft of the structure outline of the thesis which I plan on start writing in April 2019.
 
-line of argument
-1. established methods need extensive unit-testing for establishing correctness of software, which only increases the likelihood of correctness and doesnt guarantee it because they are inherent dynamic, testing run-time behaviour, because of the different type system.
-2. functional programming as in haskell has a strong static type system which allows to shift much much more guarantees towards static, compile-time, making many run-time tests obsolete and can guarantee a few things already at compile-time which makes tests to cover that completely obsolete
-3. dependent types can push these guarantees even further and theoretically should allow to express guarantees at compile-time to an arbitrary complex level which in theory should allow us to abandon run-time testing of bugs altogether. This does not mean that we don't need any tests anymore, as will be outlined in the chapter on Verification \& Validation \ref{chap:v_and_v}.
-4. with shifting more towards compile-time guarantees we automatically gain more confidence into the correctness of our simulation and reduce the implementation overhead of writing tests for those cases. Also some properties are simply not testable with run-time tests e.g. that some property holds forever - this is only possible to guarantee by looking at the code directly (where functional programming shines) or expressing it through compile-time guarantees. 
-5. correct by construction: narrowing the gap between model specification and implementation 
-6. Impedance Mismatch: ABS is constructive / generative in nature but the nature of the test-driven development process is deductive. is this a problem? Think of it more deeply
+%
+%line of argument
+%1. established methods need extensive unit-testing for establishing correctness of software, which only increases the likelihood of correctness and doesnt guarantee it because they are inherent dynamic, testing run-time behaviour, because of the different type system.
+%2. functional programming as in haskell has a strong static type system which allows to shift much much more guarantees towards static, compile-time, making many run-time tests obsolete and can guarantee a few things already at compile-time which makes tests to cover that completely obsolete
+%3. dependent types can push these guarantees even further and theoretically should allow to express guarantees at compile-time to an arbitrary complex level which in theory should allow us to abandon run-time testing of bugs altogether. This does not mean that we don't need any tests anymore, as will be outlined in the chapter on Verification \& Validation \ref{chap:v_and_v}.
+%4. with shifting more towards compile-time guarantees we automatically gain more confidence into the correctness of our simulation and reduce the implementation overhead of writing tests for those cases. Also some properties are simply not testable with run-time tests e.g. that some property holds forever - this is only possible to guarantee by looking at the code directly (where functional programming shines) or expressing it through compile-time guarantees. 
+%5. correct by construction: narrowing the gap between model specification and implementation 
+%6. Impedance Mismatch: ABS is constructive / generative in nature but the nature of the test-driven development process is deductive. is this a problem? Think of it more deeply
 
 \section{Introduction}
-defining the scope
-contributions
+This chapter is the introduction to the thesis and motivates it, describes the aim and scope of the Ph.D. Further it states the hypotheses and contributions.
+\begin{itemize}
+	\item Main Argument: Defining the problem, motivation, aim and scope of the Ph.D.
+	\item Hypotheses: Precisely stating the hypotheses which will form the points of reference for the whole research.
+	\item Contributions: Precisely list the contribution to knowledge this Ph.D. makes and list all papers which were written (and published) during this Ph.D.
+	\item Structure of the Thesis: describe the thesis structure.
+\end{itemize}
 
 \section{Part I: General Concepts}
-- abs defined
-- define established ABS implementation techniques: object-oriented \& test-driven
+In this part the general concepts for the Ph.D. are presented: they define the domain, context and background required to understand the central research of the Ph.D. in the following parts.
 
-- event vs time-driven
-Independent of the programming paradigm, there exist fundamentally two approaches implementing agent-based simulation: time- and event-driven. In the time-driven approach, the simulation is stepped in fixed $\Delta t$ and all agents are executed at each time-step - they act virtually in lock-step at the same time. The approach is inspired by the theory of continuous system dynamics (TODO: cite).
-In the event-driven approach, the system is advanced through events, generated by the agents, and the global system state changes by jumping from event to event, where the state is held constant in between. The approach is inspired by discrete event simulation (DES) (TODO: citation) which is formalized in the DEVS formalism \cite{zeigler_theory_2000}.
+\subsection{Introduction to Agent-Based Simulation}
+This chapter gives an introduction to ABS and gives a precise definition of the understanding of ABS within this ABS.
+\begin{itemize}
+	\item History
+	\item ABS vs. MAS
+	\item ABS defined
+	\item ABS examples e.g. SIR \& SugarScape
+	\item Event- vs. Time-Driven
+\end{itemize}
 
+%- event vs time-driven
+%Independent of the programming paradigm, there exist fundamentally two approaches implementing agent-based simulation: time- and event-driven. In the time-driven approach, the simulation is stepped in fixed $\Delta t$ and all agents are executed at each time-step - they act virtually in lock-step at the same time. The approach is inspired by the theory of continuous system dynamics (TODO: cite).
+%In the event-driven approach, the system is advanced through events, generated by the agents, and the global system state changes by jumping from event to event, where the state is held constant in between. The approach is inspired by discrete event simulation (DES) (TODO: citation) which is formalized in the DEVS formalism \cite{zeigler_theory_2000}.
+%concepts of time- and event-driven approach in haskell (see robinson book and pidd book)
+
+\subsection{Established Implementation Techniques}
+This chapter discusses the most widely used, established techniques to implement ABS and their approach to ensuring the correctness of a simulation.
+\begin{itemize}
+	\item Frameworks: NetLogo, Anylogic
+	\item Libraries: RePast, DesmoJ
+	\item Programming: Java, Python
+	\item Correctness: ad-hoc, manual testing, test-driven development
+\end{itemize}
+
+\subsection{Validation \& Verification}
+This chapter introduces the important concepts of validation \& verification - follows mostly the introduction given in the 2nd annual report.
+\begin{itemize}
+	\item Validation
+	\item Verification
+	\item V \& V in the context of ABS.
+	\item Verification is the central interest in this Ph.D.
+\end{itemize}
 
 \section{Part II: Pure functional ABS}
-effects and purity defined
-short overview of impure functional programming in IO like avika: in the end the same as imperative programming, not what we want here
-artiterating paper,
+This part shows \textit{how} agent-based simulation can be done with pure functional programming as in Haskell. It is based on the paper of Appendix \ref{app:app:pfe} with much more detail and in-depth added from notes and reports written so far. Due to the different programming paradigm testing and verification works a bit different, which is described as well. Also modelling within a pure functional paradigm is discussed by putting it into a context of Peers framework. It shows that by just using pure functional programming we arrive at a number of benefits, which are discussed together with the drawbacks.
 
-concepts of time- and event-driven approach in haskell (see robinson book and pidd book)
+\subsection{Introduction to Pure Functional Programming}
+This chapter shortly introduces to the functional programming paradigm as in Haskell. It further describes the concepts of side-effects and purity.
+\begin{itemize}
+	\item Introduce basic concepts of functional programming in Haskell: functions, types, recursion, algebraic data-types, higher-order functions, continuations
+	\item Define and explain side-effects and purity: monads, different types of effects, explain IO and that it is of fundamental importance to avoid it in our research.
+\end{itemize}
 
-pure functional epidemics paper
-additional research on event-driven approach in haskell: unscheduling events in functional style easy: rollback to previous state is easy but memory costly. look into that in the thesis. clarify easy rolling back of system: can capture the whole state at a given point which allows reverting the system to a state in case of cancelling of an event
-applicability of UML and peers Framework to pure functional ABS 
-add section on recursive ABS
-parallelise using cloud haskell?
+%additional research on event-driven approach in haskell: unscheduling events in functional style easy: rollback to previous state is easy but memory costly. look into that in the thesis. clarify easy rolling back of system: can capture the whole state at a given point which allows reverting the system to a state in case of cancelling of an event
 
-agent-interactions
-this is the central problem of the FP approach: basically the agent-interactions define the level of abstractions over the agents. unfortunately we have to say that this is easier and more elegant in OOP. Still by using a strong type system we can have advantages which the OOP doesnt have.
-1) data-flow: for continuous ABS systems where data takes 1 dt to appear at the target agent and does not persist e.g. the target agent can check it or not but the data received in the current step will be gone in the next. Use-case: implementing continuous time-dependent ABS e.g. SIR model
-2) events: an agent can send to an arbitrary other agent an event which happens at a given time in the future: when the event happens this means the target agent is executed with the information about the receiving event. Use-Case: implementing discrete event simulation ABS e.g. a bank, very useful when the model is specified in terms of events and not in a continuous fashion
-3) transactions: method-call emulation, which takes no time at all and can involve an arbitrary but finite number of steps between agents. Use-case: trading between agents where they must to come to terms within the same time-step but where the negotiation process takes multiple steps between the agents. exist in both event-driven and time-driven
+\subsection{Concepts of Functional ABS}
+This chapter derives the concepts of doing ABS in pure functional programming. It does that step-by-step by introducing it through functional reactive programming.
 
-Verification:
-have written about it already in the report on SIR verification: incorporate QuickCheck. need to do a lot more work there. maybe can get it done in context of the 4th paper (towards pure functional ABS)
+\begin{itemize}
+	\item Introduce Functional Reactive Programming
+	\item Agent representation.
+	\item Environment representation.
+	\item Agent-Interactions - This is the central problem of the FP approach as basically the agent-interactions define the level of abstractions over the agents. Unfortunately this is easier and more elegant in object-oriented programming. Still, by using a strong static type system we are more explicit about agent-interactions and we can have advantages which OOP doesn't have. Also we show that there are multiple different kinds of agent-interactions, depending on whether it is a time- or event-driven ABS.
+	\item Agent-Environment interaction.
+\end{itemize}
+
+%1) data-flow: for continuous ABS systems where data takes 1 dt to appear at the target agent and does not persist e.g. the target agent can check it or not but the data received in the current step will be gone in the next. Use-case: implementing continuous time-dependent ABS e.g. SIR model
+%2) events: an agent can send to an arbitrary other agent an event which happens at a given time in the future: when the event happens this means the target agent is executed with the information about the receiving event. Use-Case: implementing discrete event simulation ABS e.g. a bank, very useful when the model is specified in terms of events and not in a continuous fashion
+%3) transactions: method-call emulation, which takes no time at all and can involve an arbitrary but finite number of steps between agents. Use-case: trading between agents where they must to come to terms within the same time-step but where the negotiation process takes multiple steps between the agents. exist in both event-driven and time-driven
+
+\subsection{Testing \& Verification}
+This chapter Describes how testing \& verification works in pure functional programming by looking on what and how to test in functional programming.
+\begin{itemize}
+	\item Testing in functional programming
+	\item Strong Static Types rule out some classes of bugs and make some tests obsolete.
+	\item Property-Based testing: QuickCheck.
+	\item Using Property-Based testing in ABS for specification testing.
+	\item Reasoning about code
+\end{itemize}
+
+%\subsection{Functional ABS Modelling}
+%This chapter describes if and to which extent, Peers modelling framework is applicable to pure functional agent-based simulation. NOTE: this might be out of scope of this Ph.D. maybe drop it as it would quite some amount of work.
+
+\subsection{Discussion}
+This chapter gives an in-depth discussion of the pure functional approach to ABS, its benefits and drawbacks and outlines further research.
+\begin{itemize}
+	\item Benefits - guaranteed reproducibility, less sources of run-time bugs, easier verification
+	\item Drawbacks - performance, higher initial complexity
+	\item Further Research - parallelise using Cloud-Haskell, recursive ABS
+\end{itemize}
 
 \section{Part III: Dependent types in ABS}
-3rd paper
+This part describes how dependent types can be applied to pure functional ABS and what we gain from doing so.
 
-Test-Driven (deductive) vs. Type-Driven (constructive) approach: in established oo (and to an extent, pure functional ABS because cannot make as strong guarantees) the approach is test-driven, in dependent types it is type-driven
+\subsection{Introduction to Dependent Types}
+A brief introduction to dependent types inspired by my 2nd annual report introduction.
+\begin{itemize}
+	\item Example
+	\item Equality as Type
+	\item Philosophical Foundations: Constructive mathematics
+\end{itemize}
 
-\section{Part IV: Philosophical Aspects}
-ABS as a constructive / generative science, follows poperian approach of falsification: we try to construct a model which explains a real-world (empirical) phenomenon - if validation shows that the generated dynamics match the ones of the real-world sufficiently enough, we say that we have found \textit{a} hypothesis (the model) which emergent properties explains the real-world phenomenon sufficiently enough. This is not a proof but only one possible explanation which holds for now and might be falsified in the future.
+\subsection{Concepts of Dependently Typed ABS}
+This chapter gives an in-depth discussion on how dependent types can be made of use in pure functional ABS.
+\begin{itemize}
+	\item Environment Access
+	\item State-Machines
+	\item Flow Of Time
+	\item Existence Of Agents
+	\item Agent-Agent Interactions
+	\item Specification and properties
+	\item Hypotheses
+	\item Equlibrium-Totality correspondence
+\end{itemize}
 
-Note that we must speak of falsification and constructiveness on two different levels:
-- validation level: do the results of the conceptual model match the real-world phenomenon? the conceptual model is the hypothesis which says that its mechanics are sufficient to generate / construct the real-world phenomenon. At this level we are not interested in the implementation level anymore - the implemented model \textit{is} (seen as) the conceptual model, and one only compares its output to the real-world. If the dynamics match, then we got a valid hypothesis which works for now. If the dynamics do NOT match, then the hypothesis (the model) is falsified and one needs to adjust / change the hypothesis (model). The validation will happen by tests, there is no other way, we have no formal specification of the real-world, we can only observe empirically the phenomena, so we run tests which try to falsify the outputs of the model: assuming it will generate phenomena of the real-world and test if it does.
-- implementation \& verficiation level: in this step we are matching the code to the conceptual model. Here we are not only restricted to a test-driven approach because we have a more or less formal description of the conceptual model which we directly encode in our programming language. If the language allows to express model specifications already at compile-time then this means that the implementation narrows the gap between model specification and implementation which means it does not need to be tested at run-time because it is guaranteed for all inputs for all time. 
+\subsection{Testing \& Verificatoin}
+This chapter discusses the fundamentally different approach to implementation using dependent types in ABS which now follows a much more constructive, type-driven approach.
+\begin{itemize}
+	\item Test-Driven (deductive) vs. Type-Driven (constructive) approach: in established oo (and to an extent, pure functional ABS because cannot make as strong guarantees) the approach is test-driven, in dependent types it is type-driven
+	\item Correct-By-Construction
+\end{itemize}
 
+\subsection{Discussion}
+This chapter gives an in-depth discussion of using dependent types in ABS and its benefits and drawbacks and shortly presents further research.
+\begin{itemize}
+	\item Benefits: correct-by-construction
+	\item Drawbacks: ?
+	\item Further Research: ?
+\end{itemize}
 
-The constructiveness of ABS and impendance mismatch: ABS methodology is constructive but the established implementation approach not too much, creating an impedance mismatch. this is especially visible in the test-driven development dependent types constructive nature could close this mismatch.
+\section{Part IV: Conclusions}
+An in-depth discussion of the whole thesis in the light of the initial hypotheses, scope and aims.
+\begin{itemize}
+	\item Hypotheses revisited
+	\item Generalising Research: Simulation in general, Multi Agent System, Distributed Search Algorithms
+	\item Further Research
+\end{itemize}
 
-\section{Conclusions}
+\section{Appendix A: Philosophical Aspects}
+This appendix investigates the connection between the constructiveness of ABS and dependent types (and the impedance mismatch between test-driven development and ABS).

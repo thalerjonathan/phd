@@ -20,7 +20,7 @@ type SIRMonad g   = StateT SIREnv (Rand g)
 type SIRAgent g   = SF (SIRMonad g) () ()
 
 agentGridSize :: (Int, Int)
-agentGridSize = (21, 21)
+agentGridSize = (41, 41)
 
 rngSeed :: Int
 rngSeed = 123
@@ -29,7 +29,7 @@ dt :: DTime
 dt = 0.1
 
 t :: Time
-t = 170
+t = 100
 
 winSize :: (Int, Int)
 winSize = (600, 600)
@@ -51,7 +51,7 @@ main = do
       fileName  =  "STEP_5_ENVIRONMENT_DYNAMICS_" ++ show agentGridSize ++ "agents.m"
   
   writeAggregatesToFile fileName dyns
-  render es
+  --render es
 
 environmentsToAgentDyns :: [SIREnv] -> [[SIRState]]
 environmentsToAgentDyns = map elems
@@ -189,7 +189,7 @@ susceptibleAgent coord =
     susceptible :: RandomGen g 
                 => SF (SIRMonad g) () ((), Event ())
     susceptible = proc _ -> do
-      makeContact <- occasionallyM (1 / contactRate) () -< ()
+      makeContact <- occasionally (1 / contactRate) () -< ()
 
       if not $ isEvent makeContact 
         then returnA -< ((), NoEvent)
@@ -216,7 +216,7 @@ infectedAgent coord =
   where
     infected :: RandomGen g => SF (SIRMonad g) () ((), Event ())
     infected = proc _ -> do
-      recovered <- occasionallyM illnessDuration () -< ()
+      recovered <- occasionally illnessDuration () -< ()
       if isEvent recovered
         then (do
           e <- arrM_ (lift get) -< ()

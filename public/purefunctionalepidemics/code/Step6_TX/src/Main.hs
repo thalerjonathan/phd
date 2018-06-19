@@ -126,7 +126,7 @@ sirAgent _   Recovered   = recoveredAgent
 
 susceptibleAgent :: RandomGen g => [AgentId] -> SIRAgent g
 susceptibleAgent ais = proc _ -> do
-    makeContact <- occasionallyM (1 / contactRate) () -< ()
+    makeContact <- occasionally (1 / contactRate) () -< ()
 
     if not $ isEvent makeContact
       then returnA -< agentOut Susceptible
@@ -168,7 +168,7 @@ infectedAgent =
   where
     infected :: RandomGen g => SF (SIRMonad g) SIRAgentIn (SIRAgentOut g, Event ())
     infected = proc ain -> do
-      recEvt <- occasionallyM illnessDuration () -< ()
+      recEvt <- occasionally illnessDuration () -< ()
       let a = event Infected (const Recovered) recEvt
       -- note that at the moment of recovery the agent can still infect others
       -- because it will still reply with Infected

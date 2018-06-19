@@ -1,13 +1,15 @@
 {-# LANGUAGE Arrows     #-}
+{-# LANGUAGE RankNTypes #-}
 module Random ( runRandomSIR ) where
 
 import System.IO
 
-import Control.Monad.Random
-import Control.Monad.Reader
-import Control.Monad.Trans.MSF.Random
+import           Control.Monad.Random
+import           Control.Monad.Reader
+import           Control.Monad.Trans.MSF.Random
 import qualified Data.Map as Map
-import FRP.BearRiver
+import           Data.Traversable                as T
+import           FRP.BearRiver
 
 import SIR
 
@@ -117,7 +119,7 @@ susceptibleAgent ais =
       if infected 
         then returnA -< (agentOut Infected, Event ())
         else (do
-          makeContact <- occasionallyM (1 / contactRate) () -< ()
+          makeContact <- occasionally (1 / contactRate) () -< ()
           contactId   <- drawRandomElemS                    -< ais
 
           if isEvent makeContact
@@ -132,7 +134,7 @@ infectedAgent =
   where
     infected :: RandomGen g => SF (SIRMonad g) SIRAgentIn (SIRAgentOut, Event ())
     infected = proc ain -> do
-      recEvt <- occasionallyM illnessDuration () -< ()
+      recEvt <- occasionally illnessDuration () -< ()
       let a = event Infected (const Recovered) recEvt
       -- note that at the moment of recovery the agent can still infect others
       -- because it will still reply with Infected
@@ -243,3 +245,21 @@ agentOut o = AgentOut {
     aoData        = []
   , aoObservable  = o
   }
+
+-- NOTE: implemented by myself, not present in Duani/BearRiver so far
+dpSwitch :: (Monad m, Traversable col)
+         => (forall sf. (a -> col sf -> col (b, sf)))
+         -> col (SF m b c) 
+         -> SF m (a, col c) (Event d) 
+         -> (col (SF m b c) -> d -> SF m a (col c))
+         -> SF m a (col c)
+dpSwitch rf sfs sfF sfCs = MSF $ \a -> do
+  let bsfs = rf a sfs
+  res <- T.mapM (\(b, sf) -> unMSF sf b) bsfs
+  let cs   = fmap fst res
+      sfs' = fmap snd res
+  (e,sfF') <- unMSF sfF (a, cs)
+  let ct = case e of
+            Event d -> sfCs sfs' d
+            NoEvent -> dpSwitch rf sfs' sfF' sfCs
+  return (cs, ct)

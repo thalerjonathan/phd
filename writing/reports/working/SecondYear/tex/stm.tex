@@ -1,9 +1,24 @@
-\chapter{Going Large-Scale with Softare Transactional Memory}
+\chapter{Going Large-Scale with Software Transactional Memory}
+\label{chap:stm}
 
+In this chapter we present a technique which allows to scale the approach of functional ABS as presented in the paper in Appendix \ref{app:pfe} to massively large-scale simulations. This is a very recent development which didn't make it into the paper but will make an appearance in the final thesis in the form of this chapter. Due to the increasing need for massively large-scale ABS in recent years (todo: cite), making this possible with our functional approach as well, gives our research a much larger impact.
+
+The whole concept of our approach is built on the usage of Software Transactional Memory (STM), which we will introduce in Section \ref{sect:stm_intro}. In Section \ref{sect:stm_impl} we give a short overview of our implementation, presenting and discussing code. In Section \ref{sect:stm_perf} we present performance comparisons and discuss the implications more in-depth in Section \ref{sect:stm_discussion}. Finally we will give a short outline over further research in \ref{sect:stm_further}.
+
+\section{Introduction}
+\label{sect:stm_intro}
+TODO: short introduction to the concepts of STM and what it is capable of.
+
+\section{Implementation}
+\label{sect:stm_impl}
+TODO: brief overview of the implementation of the SIR model with code.
+
+\section{Performance Comparison}
+\label{sect:stm_perf}
 experiment: SIR on a 51x51 grid with dt=0.1 until t=100, exporting the dynamics to a matlab file in the end which is the exact same, non-parallel implementation for all implementations 
 
-----------------------------------------------------------------------------------
-State on single core (as in Paper in Appendix \ref{app:pfe})
+\paragraph{State Monad, single core (as in Paper in Appendix \ref{app:pfe})}
+\begin{minted}[fontsize=\footnotesize]{console}
 ----------------------------------------------------------------------------------
  159,168,992,488 bytes allocated in the heap
   50,355,058,208 bytes copied during GC
@@ -12,7 +27,7 @@ State on single core (as in Paper in Appendix \ref{app:pfe})
               47 MB total memory in use (0 MB lost due to fragmentation)
 
                                      Tot time (elapsed)  Avg pause  Max pause
-  Gen  0     140816 colls,     0 par   48.832s  49.114s     0.0003s    0.0135s
+  Gen  0    140816 colls,     0 par   48.832s  49.114s     0.0003s    0.0135s
   Gen  1      2257 colls,     0 par    0.761s   0.765s     0.0003s    0.0006s
 
   INIT    time    0.000s  (  0.000s elapsed)
@@ -26,7 +41,9 @@ State on single core (as in Paper in Appendix \ref{app:pfe})
   Alloc rate    3,109,032,896 bytes per MUT second
 
   Productivity  50.8% of total user, 50.8% of total elapsed
-  
+----------------------------------------------------------------------------------
+\end{minted}
+
 Averaging total time elapsed of 4 runs 
 1. 101.348
 2. 101.581
@@ -35,10 +52,9 @@ Averaging total time elapsed of 4 runs
 Mean = 101.15
 Standard Deviation = 0.395
 
-----------------------------------------------------------------------------------
 
-----------------------------------------------------------------------------------
-STM on single core
+\paragraph{STM, single core}
+\begin{minted}[fontsize=\footnotesize]{console}
 ----------------------------------------------------------------------------------
 STM transaction statistics (2018-06-19 13:19:24.91854557 UTC):
 Transaction     Commits    Retries      Ratio
@@ -66,6 +82,8 @@ _anonymous_     2601000          0       0.00
   Alloc rate    2,917,692,852 bytes per MUT second
 
   Productivity  62.0% of total user, 62.0% of total elapsed
+----------------------------------------------------------------------------------
+\end{minted}
   
 Averaging total time elapsed of 4 runs 
 1. 57.040
@@ -74,11 +92,9 @@ Averaging total time elapsed of 4 runs
 4. 57.400
 mean = 57.13
 standard deviation = 0.591
-----------------------------------------------------------------------------------
 
-
-----------------------------------------------------------------------------------
-STM on 4 cores
+\paragraph{STM, 4 cores}
+\begin{minted}[fontsize=\footnotesize]{console}
 ----------------------------------------------------------------------------------
 STM transaction statistics (2018-06-19 13:26:47.93096533 UTC):
 Transaction     Commits    Retries      Ratio
@@ -108,7 +124,8 @@ _anonymous_     2601000        904       0.00
   Alloc rate    3,054,145,607 bytes per MUT second
 
   Productivity  39.6% of total user, 60.0% of total elapsed
-
+----------------------------------------------------------------------------------
+\end{minted}
   
 Averaging total time elapsed of 4 runs 
 1. 25.120
@@ -125,7 +142,6 @@ Averaging transaction retries of 4 runs
 4. 1266
 mean = 1224.5
 standard deviation = 219.97
-----------------------------------------------------------------------------------
 
 TODO: visual outputs and dynamics look qualitatively the same, so it should be ok
 
@@ -136,9 +152,16 @@ Interpretation of the data leads to the following conclusions:
 	\item Running STM on multiple cores concurrently leads to a significant performance improvement.
 \end{enumerate}
 
+\section{Discussion}
+\label{sect:stm_discussion}
+In-depth discussion of the STM concept for ABS.
+
 TODO: downside we lose reproducibility due to concurrency (non-deterministic elements: race-conditions), but we still can guarantee that the agents don't do random IO stuff as it is restricted to STM operations only
 
-TODO: discuss TArray vs TVar: fine-grained data
+TODO: central problem is to keep the retries low, which is directly influenced by the read/writes on the concurrent data-structures. By choosing more fine-grained / suitable data-structures e.g. using a TArray instead of an Array within a TVar, one can reduce retries significantly.
+
 TODO: TChan is a perfect match for PERISTENT agent-message queues
 
-TODO: can we apply STM to an even-driven approach as well?
+\section{Further Research}
+\label{sect:stm_further}
+TODO: future research can we apply STM to an even-driven approach as well?

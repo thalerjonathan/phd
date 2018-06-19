@@ -32,10 +32,10 @@ illnessDuration :: Double
 illnessDuration = 15.0
 
 agentGridSize :: (Int, Int)
-agentGridSize = (41, 41)
+agentGridSize = (51, 51)
 
 rngSeed :: Int
-rngSeed = 123
+rngSeed = 42
 
 winSize :: (Int, Int)
 winSize = (600, 600)
@@ -63,7 +63,7 @@ main = do
       fileName  =  "Step8_STM_" ++ show agentGridSize ++ "agents.m"
   
   writeAggregatesToFile fileName dyns
-  --render dt es
+  -- render dt es
 
 runSimulation :: RandomGen g
               => g 
@@ -73,8 +73,8 @@ runSimulation :: RandomGen g
               -> [(Disc2dCoord, SIRState)] 
               -> IO [SIREnv]
 runSimulation g0 t dt e as = do
-    -- TODO: replace by TArray, otherwise every access to the environment will result in a retry of the transaction
-    -- NOTE: using a single environment seems to fast enough for now
+    -- NOTE: initially I was thinking about using a TArray to reduce the transaction retries
+    -- but using a single environment seems to fast enough for now
     env <- newTVarIO e
 
     let n         = length as

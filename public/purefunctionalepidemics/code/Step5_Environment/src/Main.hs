@@ -20,7 +20,7 @@ type SIRMonad g   = StateT SIREnv (Rand g)
 type SIRAgent g   = SF (SIRMonad g) () ()
 
 agentGridSize :: (Int, Int)
-agentGridSize = (41, 41)
+agentGridSize = (51, 51)
 
 rngSeed :: Int
 rngSeed = 123
@@ -51,7 +51,7 @@ main = do
       fileName  =  "STEP_5_ENVIRONMENT_DYNAMICS_" ++ show agentGridSize ++ "agents.m"
   
   writeAggregatesToFile fileName dyns
-  --render es
+  render es
 
 environmentsToAgentDyns :: [SIREnv] -> [[SIRState]]
 environmentsToAgentDyns = map elems

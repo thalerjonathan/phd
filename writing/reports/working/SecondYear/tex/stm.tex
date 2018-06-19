@@ -1,1 +1,144 @@
 \chapter{Going Large-Scale with Softare Transactional Memory}
+
+experiment: SIR on a 51x51 grid with dt=0.1 until t=100, exporting the dynamics to a matlab file in the end which is the exact same, non-parallel implementation for all implementations 
+
+----------------------------------------------------------------------------------
+State on single core (as in Paper in Appendix \ref{app:pfe})
+----------------------------------------------------------------------------------
+ 159,168,992,488 bytes allocated in the heap
+  50,355,058,208 bytes copied during GC
+      18,184,960 bytes maximum residency (2257 sample(s))
+          97,928 bytes maximum slop
+              47 MB total memory in use (0 MB lost due to fragmentation)
+
+                                     Tot time (elapsed)  Avg pause  Max pause
+  Gen  0     140816 colls,     0 par   48.832s  49.114s     0.0003s    0.0135s
+  Gen  1      2257 colls,     0 par    0.761s   0.765s     0.0003s    0.0006s
+
+  INIT    time    0.000s  (  0.000s elapsed)
+  MUT     time   51.196s  ( 51.468s elapsed)
+  GC      time   49.593s  ( 49.879s elapsed)
+  EXIT    time    0.002s  (  0.002s elapsed)
+  Total   time  100.790s  (101.348s elapsed)
+
+  %GC     time      49.2%  (49.2% elapsed)
+
+  Alloc rate    3,109,032,896 bytes per MUT second
+
+  Productivity  50.8% of total user, 50.8% of total elapsed
+  
+Averaging total time elapsed of 4 runs 
+1. 101.348
+2. 101.581
+3. 100.991
+4. 100.681
+Mean = 101.15
+Standard Deviation = 0.395
+
+----------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------
+STM on single core
+----------------------------------------------------------------------------------
+STM transaction statistics (2018-06-19 13:19:24.91854557 UTC):
+Transaction     Commits    Retries      Ratio
+_anonymous_     2601000          0       0.00
+ 102,717,693,696 bytes allocated in the heap
+  20,745,342,864 bytes copied during GC
+      94,053,808 bytes maximum residency (162 sample(s))
+         611,032 bytes maximum slop
+             192 MB total memory in use (0 MB lost due to fragmentation)
+
+                                     Tot time (elapsed)  Avg pause  Max pause
+  Gen  0     98484 colls,     0 par   21.545s  21.641s     0.0002s    0.0131s
+  Gen  1       162 colls,     0 par    0.035s   0.035s     0.0002s    0.0008s
+
+  TASKS: 4 (1 bound, 3 peak workers (3 total), using -N1)
+
+  SPARKS: 0 (0 converted, 0 overflowed, 0 dud, 0 GC'd, 0 fizzled)
+
+  INIT    time    0.000s  (  0.000s elapsed)
+  MUT     time   35.205s  ( 35.352s elapsed)
+  GC      time   21.580s  ( 21.676s elapsed)
+  EXIT    time    0.006s  (  0.012s elapsed)
+  Total   time   56.791s  ( 57.040s elapsed)
+
+  Alloc rate    2,917,692,852 bytes per MUT second
+
+  Productivity  62.0% of total user, 62.0% of total elapsed
+  
+Averaging total time elapsed of 4 runs 
+1. 57.040
+2. 57.730
+3. 56.350
+4. 57.400
+mean = 57.13
+standard deviation = 0.591
+----------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------
+STM on 4 cores
+----------------------------------------------------------------------------------
+STM transaction statistics (2018-06-19 13:26:47.93096533 UTC):
+Transaction     Commits    Retries      Ratio
+_anonymous_     2601000        904       0.00
+ 102,895,260,960 bytes allocated in the heap
+  21,246,390,048 bytes copied during GC
+      94,723,024 bytes maximum residency (165 sample(s))
+         872,104 bytes maximum slop
+             197 MB total memory in use (0 MB lost due to fragmentation)
+
+                                     Tot time (elapsed)  Avg pause  Max pause
+  Gen  0     27897 colls, 27897 par   51.039s   9.988s     0.0004s    0.0126s
+  Gen  1       165 colls,   164 par    0.296s   0.055s     0.0003s    0.0009s
+
+  Parallel GC work balance: 86.63% (serial 0%, perfect 100%)
+
+  TASKS: 10 (1 bound, 9 peak workers (9 total), using -N4)
+
+  SPARKS: 0 (0 converted, 0 overflowed, 0 dud, 0 GC'd, 0 fizzled)
+
+  INIT    time    0.001s  (  0.001s elapsed)
+  MUT     time   33.690s  ( 15.063s elapsed)
+  GC      time   51.335s  ( 10.043s elapsed)
+  EXIT    time    0.006s  (  0.014s elapsed)
+  Total   time   85.033s  ( 25.120s elapsed)
+
+  Alloc rate    3,054,145,607 bytes per MUT second
+
+  Productivity  39.6% of total user, 60.0% of total elapsed
+
+  
+Averaging total time elapsed of 4 runs 
+1. 25.120
+2. 25.230
+3. 25.090
+4. 24.420
+mean = 24.96
+standard deviation = 0.368
+
+Averaging transaction retries of 4 runs
+1. 904
+2. 1334
+3. 1394
+4. 1266
+mean = 1224.5
+standard deviation = 219.97
+----------------------------------------------------------------------------------
+
+TODO: visual outputs and dynamics look qualitatively the same, so it should be ok
+
+Interpretation of the data leads to the following conclusions:
+\begin{enumerate}
+	\item On a single core, no transaction retries should happen, the results support that assumption.
+	\item Sharing state using an STM variable is much more efficient than using the State Monad.
+	\item Running STM on multiple cores concurrently leads to a significant performance improvement.
+\end{enumerate}
+
+TODO: downside we lose reproducibility due to concurrency (non-deterministic elements: race-conditions), but we still can guarantee that the agents don't do random IO stuff as it is restricted to STM operations only
+
+TODO: discuss TArray vs TVar: fine-grained data
+TODO: TChan is a perfect match for PERISTENT agent-message queues
+
+TODO: can we apply STM to an even-driven approach as well?

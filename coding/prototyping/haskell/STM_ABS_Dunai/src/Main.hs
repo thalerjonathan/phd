@@ -2,18 +2,18 @@
 module Main where
 
 import System.IO
-import Text.Printf
 
-import Control.Monad.Random
-import Control.Monad.Reader
-import Control.Monad.Trans.MSF.Random
-import Data.Array.IArray
-import FRP.BearRiver
+import           Control.Concurrent
+import           Control.Concurrent.STM
+import           Control.Concurrent.STM.Stats
+import           Control.Monad.Random
+import           Control.Monad.Reader
+import           Control.Monad.Trans.MSF.Random
+import           Data.Array.IArray
+import           FRP.BearRiver
 import qualified Graphics.Gloss as GLO
 import qualified Graphics.Gloss.Interface.IO.Game as GLOGame
-
-import Control.Concurrent.Async
-import Control.Concurrent.STM
+import           Text.Printf
 
 data SIRState = Susceptible | Infected | Recovered deriving (Show, Eq)
 
@@ -28,20 +28,14 @@ illnessDuration = 15.0
 
 type Disc2dCoord  = (Int, Int)
 type SIREnv       = Array Disc2dCoord SIRState
-type SIRMonad g   = RandT g STM --StateT SIREnv (Rand g)
+type SIRMonad g   = RandT g STM
 type SIRAgent g   = SF (SIRMonad g) () ()
 
 agentGridSize :: (Int, Int)
-agentGridSize = (21, 21)
+agentGridSize = (41, 41)
 
 rngSeed :: Int
 rngSeed = 123
-
-dt :: DTime
-dt = 0.1
-
-t :: Time
-t = 10
 
 winSize :: (Int, Int)
 winSize = (600, 600)
@@ -49,115 +43,27 @@ winSize = (600, 600)
 winTitle :: String
 winTitle = "Concurrent (STM) Agent-Based SIR on 2D Grid"
 
+-- TO RUN: clear & stack exec -- STMABSDunai +RTS -N1 -s
+
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
 
-  let g         = mkStdGen rngSeed
-      (as, e)   = initAgentsEnv agentGridSize
+  let dt      = 0.1
+      t       = 100
+      g       = mkStdGen rngSeed
+      (as, e) = initAgentsEnv agentGridSize
 
   es <- runSimulation g t dt e as
+
+  dumpSTMStats
 
   let ass       = environmentsToAgentDyns es
       dyns      = aggregateAllStates ass
       fileName  =  "STMABSDunai_DYNAMICS_" ++ show agentGridSize ++ "agents.m"
   
   writeAggregatesToFile fileName dyns
-  render es
-
-environmentsToAgentDyns :: [SIREnv] -> [[SIRState]]
-environmentsToAgentDyns = map elems
-
-render :: [SIREnv] -> IO ()
-render es = GLOGame.playIO
-    (GLO.InWindow winTitle winSize (0, 0))
-    GLO.white
-    10
-    (length es - 1, False, False, False)
-    worldToPic
-    handleInput
-    stepWorld
-
-  where
-    (cx, cy) = agentGridSize
-    (wx, wy) = winSize
-    cellWidth = (fromIntegral wx / fromIntegral cx) :: Double
-    cellHeight = (fromIntegral wy / fromIntegral cy) :: Double
-
-    worldToPic :: (Int, Bool, Bool, Bool) -> IO GLO.Picture
-    worldToPic (i, _, _, _) = do
-      let e = es !! i
-      let as = assocs e
-      let aps = map renderAgent as
-
-      let (tcx, tcy) = transformToWindow (0, -2)
-      let timeTxt = "t = " ++ show (fromIntegral i * dt)
-      let timeStepTxt = GLO.color GLO.black $ GLO.translate tcx tcy $ GLO.scale 0.1 0.1 $ GLO.Text timeTxt
-      
-      return $ GLO.Pictures $ aps ++ [timeStepTxt]
-
-    handleInput :: GLOGame.Event -> (Int, Bool, Bool, Bool) -> IO (Int, Bool, Bool, Bool)
-    handleInput evt w@(i, inc, dec, boost) = 
-      case evt of
-        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyLeft) GLOGame.Down _ _) -> return (i, inc, True, boost)
-        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyRight) GLOGame.Down _ _) -> return (i, True, dec, boost)
-        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyShiftL) GLOGame.Down _ _) -> return (i, inc, dec, True)
-        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyLeft) GLOGame.Up _ _) -> return (i, inc, False, boost)
-        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyRight) GLOGame.Up _ _) -> return (i, False, dec, boost)
-        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyShiftL) GLOGame.Up _ _) -> return (i, inc, dec, False)
-
-        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyDown) GLOGame.Down _ _) -> return (0, inc, dec, boost)
-        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyUp) GLOGame.Down _ _) -> return (length es - 1, inc, dec, boost)
-        _ -> return w
-
-    stepWorld :: Float -> (Int, Bool, Bool, Bool) -> IO (Int, Bool, Bool, Bool)
-    stepWorld _ (i, inc, dec, boost) = do
-      let delta = if boost then 10 else 1
-
-      let i' = if inc then min (length es - 1) (i+delta) else i
-      let i'' = if dec then max 0 (i'-delta) else i'
-      return (i'', inc, dec, boost)
-
-    renderAgent :: (Disc2dCoord, SIRState) -> GLO.Picture
-    renderAgent (coord, Susceptible) 
-        = GLO.color (GLO.makeColor 0.0 0.0 0.7 1.0) $ GLO.translate x y $ GLO.Circle (realToFrac cellWidth / 2)
-      where
-        (x, y) = transformToWindow coord
-    renderAgent (coord, Infected)    
-        = GLO.color (GLO.makeColor 0.7 0.0 0.0 1.0) $ GLO.translate x y $ GLO.ThickCircle 0 (realToFrac cellWidth)
-      where
-        (x, y) = transformToWindow coord
-    renderAgent (coord, Recovered)   
-        = GLO.color (GLO.makeColor 0.0 0.70 0.0 1.0) $ GLO.translate x y $ GLO.ThickCircle 0 (realToFrac cellWidth)
-      where
-        (x, y) = transformToWindow coord
-
-    transformToWindow :: Disc2dCoord -> (Float, Float)
-    transformToWindow (x, y) = (x', y')
-      where
-        rw = cellWidth
-        rh = cellHeight
-
-        halfXSize = fromRational (toRational wx / 2.0)
-        halfYSize = fromRational (toRational wy / 2.0)
-
-        x' = fromRational (toRational (fromIntegral x * rw)) - halfXSize
-        y' = fromRational (toRational (fromIntegral y * rh)) - halfYSize
-
-initAgentsEnv :: (Int, Int) -> ([(Disc2dCoord, SIRState)], SIREnv)
-initAgentsEnv (xd, yd) = (as, e)
-  where
-    xCenter = floor $ fromIntegral xd * (0.5 :: Double)
-    yCenter = floor $ fromIntegral yd * (0.5 :: Double)
-    
-    sus = [ ((x, y), Susceptible) | x <- [0..xd-1], 
-                                    y <- [0..yd-1],
-                                    x /= xCenter ||
-                                    y /= yCenter ] 
-    inf = ((xCenter, yCenter), Infected)
-    as = inf : sus
-
-    e = array ((0, 0), (xd - 1, yd - 1)) as
+  --render dt es
 
 runSimulation :: RandomGen g
               => g 
@@ -166,38 +72,87 @@ runSimulation :: RandomGen g
               -> SIREnv
               -> [(Disc2dCoord, SIRState)] 
               -> IO [SIREnv]
-runSimulation g t dt e as = do
-  -- TODO: replace by TArray, otherwise every access to the environment will result in a retry of the transaction
-  env <- newTVarIO e
+runSimulation g0 t dt e as = do
+    -- TODO: replace by TArray, otherwise every access to the environment will result in a retry of the transaction
+    -- TODO: measure TX retries
+    env <- newTVarIO e
 
-  let steps = floor $ t / dt
-      dts = replicate steps ()
-      sfs = map (uncurry $ sirAgent env) as
+    let n         = length as
+        (rngs, _) = rngSplits g0 n []
+        steps     = floor $ t / dt
 
-      esReader = embed (stepSimulation sfs env) dts
-      esRand = runReaderT esReader dt
-  
-  evalRandT esRand g
+    vars <- zipWithM (\g' a -> do
+      dtVar <- newEmptyMVar 
+      retVar <- sirAgentThread steps env dtVar g' a
+      return (dtVar, retVar)) rngs as
 
--- type SIRMonad g   = RandT g STM --StateT SIREnv (Rand g)
--- type SIRAgent g   = SF (SIRMonad g) () ()
+    let (dtVars, retVars) = unzip vars
 
-stepSimulation :: RandomGen g
-               => [SIRAgent g]
-               -> TVar SIREnv 
-               -> SF (RandT g IO) () SIREnv
-stepSimulation sfs env = MSF $ \_ -> do
-  -- TODO: this doesnt work like this, need to lift into IO to get rid of STM
-  ret <- mapM (\sf -> async $ atomically (unMSF () sf)) sfs
-  _
+    forM [0..steps-1] (simulationStep env dtVars retVars)
 
-  -- NOTE: waiting for agents to finish
-  res <- mapM wait ret
+  where
+    rngSplits :: RandomGen g => g -> Int -> [g] -> ([g], g)
+    rngSplits g 0 acc = (acc, g)
+    rngSplits g n acc = rngSplits g'' (n-1) (g' : acc)
+      where
+        (g', g'') = split g
 
-  let sfs'  = fmap snd res
-  e <- readTVarIO env
-  let cont = stepSimulation sfs' env
-  return (e, cont)
+    simulationStep :: TVar SIREnv
+                   -> [MVar DTime]
+                   -> [MVar ()]
+                   -> Int
+                   -> IO SIREnv
+    simulationStep env dtVars retVars i = do
+      -- threadDelay 1000000
+      putStrLn $ "Step " ++ show i
+
+      -- tell all threads to continue with the corresponding DTime
+      --putStrLn "Next step all agents..."
+      mapM_ (`putMVar` dt) dtVars
+      -- wait for results
+      --putStrLn "Waiting for all agents to finish..."
+      mapM_ takeMVar retVars
+      --putStrLn "All agents have finished"
+      -- read last version of environment
+      readTVarIO env
+
+sirAgentThread :: RandomGen g 
+               => Int 
+               -> TVar SIREnv
+               -> MVar DTime
+               -> g
+               -> (Disc2dCoord, SIRState)
+               -> IO (MVar ())
+sirAgentThread steps env dtVar rng0 a = do
+    let sf = uncurry (sirAgent env) a
+    retVar <- newEmptyMVar
+    _ <- forkIO $ sirAgentThreadAux steps sf rng0 retVar
+    return retVar
+  where
+    sirAgentThreadAux :: RandomGen g 
+                      => Int
+                      -> SIRAgent g
+                      -> g
+                      -> MVar ()
+                      -> IO ()
+    sirAgentThreadAux 0 _ _ _ = return () --putStrLn "Agent finished!"
+    sirAgentThreadAux n sf rng retVar = do
+      --putStrLn "Waiting for next dt..."
+      dt <- takeMVar dtVar
+      --putStrLn $ "Next dt = " ++ show dt
+
+      --putStrLn "Running agent..."
+      let sfReader = unMSF sf ()
+          sfRand   = runReaderT sfReader dt
+          sfSTM    = runRandT sfRand rng
+      ((_, sf'), rng') <- trackSTM sfSTM
+      --putStrLn "Running agent finished"
+
+      --putStrLn "Posting result..."
+      putMVar retVar ()
+      --putStrLn "Posting result finished"
+
+      sirAgentThreadAux (n - 1) sf' rng' retVar
 
 sirAgent :: RandomGen g 
          => TVar SIREnv
@@ -292,10 +247,10 @@ neighbours :: SIREnv
 neighbours e (x, y) (dx, dy) n = map (e !) nCoords'
   where
     nCoords = map (\(x', y') -> (x + x', y + y')) n
-    nCoords' = filter (\(x, y) -> x >= 0 && 
-                                  y >= 0 && 
-                                  x <= (dx - 1) &&
-                                  y <= (dy - 1)) nCoords
+    nCoords' = filter (\(xn, yn) -> xn >= 0 && 
+                                    yn >= 0 && 
+                                    xn <= (dx - 1) &&
+                                    yn <= (dy - 1)) nCoords
 allNeighbours :: SIREnv -> [SIRState]
 allNeighbours = elems
 
@@ -323,6 +278,100 @@ bottomDelta :: Disc2dCoord
 bottomDelta       = ( 0,  1)
 bottomRightDelta :: Disc2dCoord
 bottomRightDelta  = ( 1,  1)
+
+environmentsToAgentDyns :: [SIREnv] -> [[SIRState]]
+environmentsToAgentDyns = map elems
+
+render :: DTime -> [SIREnv] -> IO ()
+render dt es = GLOGame.playIO
+    (GLO.InWindow winTitle winSize (0, 0))
+    GLO.white
+    10
+    (length es - 1, False, False, False)
+    worldToPic
+    handleInput
+    stepWorld
+
+  where
+    (cx, cy) = agentGridSize
+    (wx, wy) = winSize
+    cellWidth = (fromIntegral wx / fromIntegral cx) :: Double
+    cellHeight = (fromIntegral wy / fromIntegral cy) :: Double
+
+    worldToPic :: (Int, Bool, Bool, Bool) -> IO GLO.Picture
+    worldToPic (i, _, _, _) = do
+      let e = es !! i
+      let as = assocs e
+      let aps = map renderAgent as
+
+      let (tcx, tcy) = transformToWindow (0, -2)
+      let timeTxt = "t = " ++ show (fromIntegral i * dt)
+      let timeStepTxt = GLO.color GLO.black $ GLO.translate tcx tcy $ GLO.scale 0.1 0.1 $ GLO.Text timeTxt
+      
+      return $ GLO.Pictures $ aps ++ [timeStepTxt]
+
+    handleInput :: GLOGame.Event -> (Int, Bool, Bool, Bool) -> IO (Int, Bool, Bool, Bool)
+    handleInput evt w@(i, inc, dec, boost) = 
+      case evt of
+        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyLeft) GLOGame.Down _ _) -> return (i, inc, True, boost)
+        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyRight) GLOGame.Down _ _) -> return (i, True, dec, boost)
+        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyShiftL) GLOGame.Down _ _) -> return (i, inc, dec, True)
+        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyLeft) GLOGame.Up _ _) -> return (i, inc, False, boost)
+        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyRight) GLOGame.Up _ _) -> return (i, False, dec, boost)
+        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyShiftL) GLOGame.Up _ _) -> return (i, inc, dec, False)
+
+        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyDown) GLOGame.Down _ _) -> return (0, inc, dec, boost)
+        (GLOGame.EventKey (GLOGame.SpecialKey GLOGame.KeyUp) GLOGame.Down _ _) -> return (length es - 1, inc, dec, boost)
+        _ -> return w
+
+    stepWorld :: Float -> (Int, Bool, Bool, Bool) -> IO (Int, Bool, Bool, Bool)
+    stepWorld _ (i, inc, dec, boost) = do
+      let delta = if boost then 10 else 1
+
+      let i' = if inc then min (length es - 1) (i+delta) else i
+      let i'' = if dec then max 0 (i'-delta) else i'
+      return (i'', inc, dec, boost)
+
+    renderAgent :: (Disc2dCoord, SIRState) -> GLO.Picture
+    renderAgent (coord, Susceptible) 
+        = GLO.color (GLO.makeColor 0.0 0.0 0.7 1.0) $ GLO.translate x y $ GLO.Circle (realToFrac cellWidth / 2)
+      where
+        (x, y) = transformToWindow coord
+    renderAgent (coord, Infected)    
+        = GLO.color (GLO.makeColor 0.7 0.0 0.0 1.0) $ GLO.translate x y $ GLO.ThickCircle 0 (realToFrac cellWidth)
+      where
+        (x, y) = transformToWindow coord
+    renderAgent (coord, Recovered)   
+        = GLO.color (GLO.makeColor 0.0 0.70 0.0 1.0) $ GLO.translate x y $ GLO.ThickCircle 0 (realToFrac cellWidth)
+      where
+        (x, y) = transformToWindow coord
+
+    transformToWindow :: Disc2dCoord -> (Float, Float)
+    transformToWindow (x, y) = (x', y')
+      where
+        rw = cellWidth
+        rh = cellHeight
+
+        halfXSize = fromRational (toRational wx / 2.0)
+        halfYSize = fromRational (toRational wy / 2.0)
+
+        x' = fromRational (toRational (fromIntegral x * rw)) - halfXSize
+        y' = fromRational (toRational (fromIntegral y * rh)) - halfYSize
+
+initAgentsEnv :: (Int, Int) -> ([(Disc2dCoord, SIRState)], SIREnv)
+initAgentsEnv (xd, yd) = (as, e)
+  where
+    xCenter = floor $ fromIntegral xd * (0.5 :: Double)
+    yCenter = floor $ fromIntegral yd * (0.5 :: Double)
+    
+    sus = [ ((x, y), Susceptible) | x <- [0..xd-1], 
+                                    y <- [0..yd-1],
+                                    x /= xCenter ||
+                                    y /= yCenter ] 
+    inf = ((xCenter, yCenter), Infected)
+    as = inf : sus
+
+    e = array ((0, 0), (xd - 1, yd - 1)) as
 
 aggregateAllStates :: [[SIRState]] -> [(Double, Double, Double)]
 aggregateAllStates = map aggregateStates
@@ -374,3 +423,43 @@ sirAggregateToString (susceptibleCount, infectedCount, recoveredCount) =
   ++ "," ++ printf "%f" infectedCount
   ++ "," ++ printf "%f" recoveredCount
   ++ ";"
+
+{-
+runSimulation :: RandomGen g
+              => g 
+              -> Time 
+              -> DTime 
+              -> SIREnv
+              -> [(Disc2dCoord, SIRState)] 
+              -> IO [SIREnv]
+runSimulation g t dt e as = do
+  -- TODO: replace by TArray, otherwise every access to the environment will result in a retry of the transaction
+  env <- newTVarIO e
+
+  let steps = floor $ t / dt
+      dts = replicate steps ()
+      sfs = map (uncurry $ sirAgent env) as
+
+      esReader = embed (stepSimulation sfs env) dts
+      esRand = runReaderT esReader dt
+  
+  evalRandT esRand g
+
+stepSimulation :: RandomGen g
+               => [SIRAgent g]
+               -> TVar SIREnv 
+               -> SF (RandT g IO) () SIREnv -- SF (RandT g STM) 
+stepSimulation sfs env = MSF $ \_ -> do
+  -- run each STM sf atomically within its own thread
+  ret <- mapM ((\sf -> do
+    r <- liftMSFPurer atomically sf
+    r)) sfs
+
+  -- NOTE: waiting for threads to finish
+  res <- mapM wait ret
+
+  let sfs' = fmap snd res
+  e <- readTVarIO env
+  let cont = stepSimulation sfs' env
+  return (e, cont)
+-}

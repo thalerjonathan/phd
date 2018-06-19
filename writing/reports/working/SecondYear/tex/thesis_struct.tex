@@ -97,6 +97,16 @@ This chapter Describes how testing \& verification works in pure functional prog
 %\subsection{Functional ABS Modelling}
 %This chapter describes if and to which extent, Peers modelling framework is applicable to pure functional agent-based simulation. NOTE: this might be out of scope of this Ph.D. maybe drop it as it would quite some amount of work.
 
+\subsection{Going Large-Scale}
+Using Software Transactional Memory (STM) within Monadic Stream Functions it is possible to scale the pure functional ABS approach of FRP up, potentially running hundreds of thousands of agents.
+
+\begin{itemize}
+	\item STM explained
+	\item Shared Environment: TVars
+	\item Messaging: TQueues
+	\item Performance comparison
+\end{itemize}
+
 \subsection{Discussion}
 This chapter gives an in-depth discussion of the pure functional approach to ABS, its benefits and drawbacks and outlines further research.
 \begin{itemize}
@@ -149,7 +159,7 @@ An in-depth discussion of the whole thesis in the light of the initial hypothese
 \begin{itemize}
 	\item Hypotheses revisited
 	\item Generalising Research: Simulation in general, Multi Agent System, Distributed Search Algorithms
-	\item Further Research: Software Transactional Memory (STM) for massively parallel ABS
+	\item Further Research
 \end{itemize}
 
 \section{Appendix A: Philosophical Aspects}

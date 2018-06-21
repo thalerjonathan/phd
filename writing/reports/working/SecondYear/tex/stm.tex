@@ -89,8 +89,8 @@ The model we use in the experiments is the agent-based SIR model on a 51 x 51 gr
 
 \begin{enumerate}
 	\item State Monad: the reference implementation of the paper in Appendix \ref{app:pfe} using a State Monad to share the grid across all agents.
-	\item STM single-core: the implementation of Section \ref{sect:stm_impl}, running on a single core.
-	\item STM 4-core: the implementation of Section \ref{sect:stm_impl}, running concurrently on 4 cores.
+	\item STM Single-Core: the implementation of Section \ref{sect:stm_impl}, running on a single core.
+	\item STM 4-Core: the implementation of Section \ref{sect:stm_impl}, running concurrently on 4 cores.
 \end{enumerate}
 
 Below are example outputs of each experiment. Additionally we averaged 4 runs of each experiment to arrive at a statistically more robust duration.
@@ -124,7 +124,7 @@ Below are example outputs of each experiment. Additionally we averaged 4 runs of
 
 Averaging the total time elapsed of 4 runs (101.348, 101.581, 100.991, 100.681) results in a mean of 101.15 and a standard deviation of 0.395.
 
-\paragraph{2. STM single core}
+\paragraph{2. STM Single-Core}
 \begin{minted}[fontsize=\footnotesize]{console}
 ----------------------------------------------------------------------------------
   98,857,350,264 bytes allocated in the heap
@@ -155,7 +155,7 @@ Averaging the total time elapsed of 4 runs (101.348, 101.581, 100.991, 100.681) 
 
 Averaging the total time elapsed of 4 runs (52.300, 52.27, 52.720, 53.740) results in a mean of 52.752 and a standard deviation of 0.676.
 
-\paragraph{3. STM 4-core}
+\paragraph{3. STM 4-Core}
 \begin{minted}[fontsize=\footnotesize]{console}
 ----------------------------------------------------------------------------------
   98,956,602,152 bytes allocated in the heap
@@ -188,10 +188,22 @@ Averaging the total time elapsed of 4 runs (52.300, 52.27, 52.720, 53.740) resul
  
 Averaging the total time elapsed of 4 runs (19.910, 20.290, 20.420, 21.690) results in a mean of 20.578 with standard deviation of 0.772.
 
+\subsection{Performance Discussion}
+Summarizing the performances is done in the table:
+
+\begin{center}
+  \begin{tabular}{ l || c }
+    Implementation & Avg. Duration \\ \hline \hline 
+    State Monad & 101.15 sec \\ \hline
+   	STM Single-Core & 52.75 sec \\ \hline
+   	STM 4-Core & 20.57 sec \\ \hline
+  \end{tabular}
+\end{center}
+
 When we scale up the grid-size for the 4-core version we get the following results:
 
 \begin{center}
-  \begin{tabular}{ c || c | c | c }
+  \begin{tabular}{ c || c }
     Grid-Size & Duration \\ \hline \hline 
     51 x 51 & 21 sec \\ \hline
     101 x 101 & 92 sec \\ \hline
@@ -201,7 +213,6 @@ When we scale up the grid-size for the 4-core version we get the following resul
   \end{tabular}
 \end{center}
 
-\subsection{Performance Interpretation}
 TODO: does the duration grow linearly with increasing agents?
 
 TODO: visual outputs and dynamics look qualitatively the same, so it should be ok

@@ -166,7 +166,7 @@ TODO: downside we lose reproducibility due to concurrency (non-deterministic ele
 
 TODO: talk about retries of transactions which could become a bottle neck, central problem is to keep the retries low, which is directly influenced by the read/writes on the concurrent data-structures. By choosing more fine-grained / suitable data-structures e.g. using a TArray instead of an Array within a TVar, one can reduce retries significantly. We tracked the retries in the above example and arrived at a ratio of 0.0\%, note that there were some retries but they were so low that they didn't significant.
 
-TODO: TChan is a perfect match for PERISTENT agent-message queues
+TODO: TChan is a perfect match for PERISTENT agent-message queues. we have broadcast chan functionality which allows convenient environment behaviour
 
 \section{Further Research}
 \label{sect:stm_further}

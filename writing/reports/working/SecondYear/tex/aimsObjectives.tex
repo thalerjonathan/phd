@@ -7,9 +7,11 @@ This chapter gives a compact and concise overview of the aims and objectives. Ch
 The aim of this Ph.D. is to investigate how the pure functional programming paradigm without dependent types, as in Haskell, and with dependent types, as in Idris, can be used to implement Agent-Based Simulation and what the benefits are in doing so.
 
 \subsection{Hypotheses}
-\paragraph{Hypothesis 1: Using pure functional programming without dependent types to implement Agent-Based Simulations leads to simulation software which is easier to verify and more likely to be correct.}
+\paragraph{Hypothesis 1: Using pure functional programming in Haskell to implement Agent-Based Simulations leads to simulation software which is easier to verify and more likely to be correct.}
 
-\paragraph{Hypothesis 2: Using pure functional programming with dependent types to implement Agent-Based Simulations allows to narrow the gap between model-specification and its implementation substantially up to a correct-by-construction level. By definition, this leads to a simulation which is even more likely to be correct.}
+\paragraph{Hypothesis 2: By applying Software Transactional Memory to pure functional Agent-Based Simulations in Haskell we can implement massively large-scale simulations without the drawbacks of low level concurrent programming.}
+
+\paragraph{Hypothesis 3: Using pure functional programming with dependent types to implement Agent-Based Simulations allows to narrow the gap between model-specification and its implementation substantially up to a correct-by-construction level. By definition, this leads to a simulation which is even more likely to be correct.}
 
 \section{Objectives}
 \begin{enumerate}
@@ -18,6 +20,8 @@ The aim of this Ph.D. is to investigate how the pure functional programming para
 
 	% NOTE: we have done that in our 2nd paper: Pure Functional Epidemics
 	\item Explore the benefits and drawbacks of using \textit{pure} functional programming (without dependent types) in Agent-Based Simulations.
+
+	\item Explore the use of Software Transactional Memory for scaling up \textit{pure} functional Agent-Based Simulations.
 
 	\item Implement a dependently typed agent-based simulation of the SIR and SugarScape model. This will allow us to develop the fundamental concepts of dependent types in Agent-Based Simulation in general.
 

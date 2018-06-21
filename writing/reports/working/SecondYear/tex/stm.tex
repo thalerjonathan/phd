@@ -1,17 +1,52 @@
-\chapter{Going Large-Scale with Software Transactional Memory}
+\chapter{Going Large-Scale}
 \label{chap:stm}
 
 In this chapter we present a technique which allows to scale the approach of functional ABS as presented in the paper in Appendix \ref{app:pfe} to massively large-scale simulations. This is a very recent development which didn't make it into the paper but will make an appearance in the final thesis in the form inspired by this chapter. Due to the increasing need for massively large-scale ABS in recent years (todo: cite), making this possible with our functional approach as well, gives our research a much larger impact.
 
-The whole concept of our approach is built on the usage of Software Transactional Memory (STM), which we will introduce in Section \ref{sect:stm_intro}. In Section \ref{sect:stm_impl} we give a short overview of our implementation, presenting and discussing code. In Section \ref{sect:stm_perf} we present performance comparisons and discuss the implications more in-depth in Section \ref{sect:stm_discussion}. Finally we will give a short outline over further research in \ref{sect:stm_further}.
+The whole concept of our approach is built on the usage of Software Transactional Memory (STM), which we will introduce in Section \ref{sect:stm_intro}, where we follow the main paper \cite{harris_composable_2005} on STM \footnote{We also make use of the excellent tutorial \url{http://book.realworldhaskell.org/read/software-transactional-memory.html}.}. In Section \ref{sect:stm_impl} we give a short overview of our implementation, presenting and discussing code. In Section \ref{sect:stm_perf} we present performance comparisons and discuss the implications more in-depth in Section \ref{sect:stm_discussion}. Finally we will give a short outline over further research in \ref{sect:stm_further}.
 
 \section{Introduction}
 \label{sect:stm_intro}
-TODO: short introduction to the concepts of STM and what it is capable of.
+Concurrent programming is notoriously difficult to get right, the difficulty of reasoning about the interactions of multiple concurrently running threads and low level operational details of synchronisation primitives and locks. The main problems are:
 
-The main benefits are:
 \begin{itemize}
-	\item \textit{composable} concurrency!
+	\item Race conditions due to forgotten locks.
+	\item Deadlocks resulting from inconsistent lock ordering.
+	\item Corruption caused by uncaught exceptions.
+	\item Lost wakeups induced by omitted notifications.
+\end{itemize}
+
+Worse, concurrency does not compose. It is utterly difficult to write two functions (or methods in an object) which act on concurrent data, one can compose into a larger concurrent function because one has to know about their internal details of locking, which breaks encapsulation and makes composition depend on knowledge about their implementation. Also it is impossible to compose two functions e.g. where one withdraws some amount of money from an account and the other deposits this amount of money into a different account: one ends up with a temporary state where the money is in none of either accounts, creating an inconsistency - a potential source for errors because threads can be rescheduled at any time.
+
+STM promises to solve all these problems for a very low cost. In STM one executes actions atomically where modifications made in such an action are invisible to other threads until the action is performed. Also the thread in which this action is run, doesn't see changes made by other threads - thus execution of STM actions are isolated. When a transaction exists one of the following things will occur:
+
+\begin{enumerate}
+	\item If no other thread concurrently modified the same data as us, all of our modifications will simultaneously become visible to other threads.
+	\item Otherwise, our modifications are discarded without being performed, and our block of actions is automatically restarted.
+\end{enumerate}
+
+Note that the ability to \textit{restart} a block of actions without any visible effects is only possible due to the nature of Haskells type-system which allows being explicit about side-effects: by restricting the effects to STM only ensures that no uncontrolled effects, which cannot be rolled-back, occur.
+
+STM is implemented using optimistic synchronisation. This means that instead of locking access to shared data, each thread keeps a transaction log for each read and write to shared data it makes. When the transaction exists, this log is checked whether other threads have written to memory it has read - it checks whether it has a consistent view to the shared data or not. This might look like a serious overhead but the implementations are very mature by now, being very performant and the benefits outweigh its costs by far.
+
+Applying this to our agents is very simple: because we already use Dunai / BearRiver as our FRP library, we can run in arbitrary Monadic contexts. This allows us to simply run agents within an STM Monad and execute each agent in their own thread. This allows then the agents to communicate concurrently with each other using the STM primitives without problems of explicit concurrency, making the concurrent nature of an implementation very transparent. Further through optimistic synchronisation we should arrive at a much better performance than with low level locking.
+
+\subsection{STM primitives}
+STM comes with a number of primitives to share transactional data. Amongst others the most important ones are:
+
+\begin{itemize}
+	\item TVar - A transactional variable which can be read and written arbitrarily. 
+	\item TArray - A transactional array where each cell is an individual shared data, allowing much finer-grained transactions instead of e.g. having the whole array in a TVar.
+	\item TChan - A transactional channel, representing an unbounded FIFO channel.
+	\item TMVar - A transactional \textit{synchronising} variable which is either empty of full. To read from an empty or write to a full TMVar will cause the current thread to retry its transaction.
+\end{itemize}
+
+Additionally, the following functions are provided:
+
+\begin{itemize}
+	\item atomically :: STM a $\to$ IO a - Performs a series of STM actions atomically. Note that we need to run this in the IO Monad, which is obviously required when running an agent in a thread.
+	\item retry :: STM a - Allows to retry a transaction immediately.
+	\item orElse :: STM a $\to$ STM a $\to$ STM a - Tries the first STM action and if it retries it will try the second one. If the second one retries as well, orElse as a whole retries.
 \end{itemize}
 
 \section{Implementation}

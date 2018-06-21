@@ -1,6 +1,7 @@
 package sir;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import repast.simphony.context.Context;
@@ -8,6 +9,8 @@ import repast.simphony.context.space.grid.GridFactoryFinder;
 import repast.simphony.dataLoader.ContextBuilder;
 import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.parameter.Parameters;
+import repast.simphony.query.space.grid.MooreQuery;
+import repast.simphony.space.grid.Grid;
 import repast.simphony.space.grid.GridBuilderParameters;
 import repast.simphony.space.grid.RandomGridAdder;
 import repast.simphony.space.grid.StrictBorders;
@@ -22,42 +25,52 @@ public class SIRBuilder implements ContextBuilder<ISIRAgent> {
 		context.setId(CONTEXT_ID);
 		
 		Parameters params = RunEnvironment.getInstance().getParameters();
-		boolean stateChartAgents = (Boolean) params.getValue("statechart_agents");
-		int agentCount = (Integer) params.getValue("agents");
-		int infectedCount = (Integer) params.getValue("infected_agents");
+		int gridWidth = (Integer) params.getValue("gridWidth");
+		int gridHeight = (Integer) params.getValue("gridHeight");
 		double illnessDuration = (Double) params.getValue("illness_duration");
 		int contacts = (Integer) params.getValue("contacts");
 		double infectionProb = (Double) params.getValue("infection_probability");
 		
 		List<ISIRAgent> agents = new ArrayList<ISIRAgent>();
 		
-		for (int i = 0; i < agentCount; ++i) {
-			boolean infected = false;
-			ISIRAgent a = null;
-			
-			if (i < infectedCount)
-				infected = true;
-		
-			if (stateChartAgents) 
+		Grid<ISIRAgent> grid = GridFactoryFinder.createGridFactory(null).createGrid("Grid",
+			context, GridBuilderParameters.singleOccupancy2D(new RandomGridAdder<ISIRAgent>(),
+							new StrictBorders(), gridWidth, gridHeight));
+
+		for (int x = 0; x < gridWidth; ++x) {
+			for (int y = 0; y < gridHeight; ++y) {
+				boolean infected = false;
+				ISIRAgent a = null;
+				
+				if (x == gridWidth / 2 && y == gridHeight / 2)
+					infected = true;
+				
 				a = new SIRStateChartAgent(infected, contacts, infectionProb, illnessDuration);
-			else
-				a = new SIRSimpleAgent(infected, contacts, infectionProb, illnessDuration);
-			
-			context.add( a );
-			agents.add( a );
+				
+				context.add( a );
+				agents.add( a );
+				
+				grid.moveTo(a, x, y);
+			}
 		}
 
 		return context;
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static ISIRAgent getRandomAgent(ISIRAgent self) {
+	public static ISIRAgent getRandomNeighbour(ISIRAgent self) {
 		Context<ISIRAgent> context = (Context<ISIRAgent>) ContextUtils.getContext(self);
+		Grid<ISIRAgent> grid = (Grid<ISIRAgent>)context.getProjection("Grid");
+		MooreQuery<ISIRAgent> moore = new MooreQuery<ISIRAgent>(grid, self, 1, 1);
 		
-		while(true) {
-			ISIRAgent a = context.getRandomObject();
-			if (a != self)
-				return a;
+		List<ISIRAgent> neighbours = new ArrayList<ISIRAgent>();
+		Iterator<ISIRAgent> iter = moore.query().iterator();
+		
+		while (iter.hasNext()) {
+			neighbours.add(iter.next());
 		}
+		
+		int randIdx = (int) (Math.random() * neighbours.size());
+		return neighbours.get(randIdx);
 	}
 }

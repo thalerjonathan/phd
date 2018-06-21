@@ -32,7 +32,7 @@ illnessDuration :: Double
 illnessDuration = 15.0
 
 agentGridSize :: (Int, Int)
-agentGridSize = (101, 101)
+agentGridSize = (201, 201)
 
 rngSeed :: Int
 rngSeed = 42

@@ -20,7 +20,7 @@ TODO: brief overview of the implementation of the SIR model with code.
 
 \section{Performance Comparison}
 \label{sect:stm_perf}
-experiment: SIR on a 51x51 grid with dt=0.1 until t=100, exporting the dynamics to a matlab file in the end which is the exact same, non-parallel implementation for all implementations 
+experiment: SIR on a 51x51 grid (single infected at center) with dt=0.1 until t=100, exporting the dynamics to a matlab file in the end which is the exact same, non-parallel implementation for all implementations 
 
 \paragraph{State Monad, single core (as in Paper in Appendix \ref{app:pfe})}
 \begin{minted}[fontsize=\footnotesize]{console}
@@ -148,7 +148,7 @@ Averaging transaction retries of 4 runs
 mean = 1224.5
 standard deviation = 219.97
 
-TODO: check how many agents are possible with 100seconds: 91x91 about 100s, 101x101 about 103s => in the SIR model we can compute 4 times as many agents within the same time-constraints
+TODO: check how many agents are possible with 100seconds: 91x91 about 100s, 101x101 about 103s, 201x201 about 504s => in the SIR model we can compute 4 times as many agents within the same time-constraints
 
 TODO: visual outputs and dynamics look qualitatively the same, so it should be ok
 
@@ -159,9 +159,26 @@ Interpretation of the data leads to the following conclusions:
 	\item Running STM on multiple cores concurrently leads to a significant performance improvement.
 \end{enumerate}
 
+\subsection{Comparison to Java RePast single core}
+We conducted a performance comparison with a single core Java implementation using RePast with Statecharts to model the Agents. All parameters were the same and the simulation was run until virtual time t=100 was reached, on various grid-sizes. Due to the lack of proper timing facilities in RePast we measured the time by hand using a stopwatch. Although this is not very precise it gives a rough estimate and allows a very basic comparison, being precise enough if the difference is larger than 1 second. We measured the following:
+
+\begin{center}
+  \begin{tabular}{ l || c | r }
+    Grid-Size & Java Repast & 4-Core Haskell \\ \hline \hline 
+    51 x 51 & 10 sec & 25 sec \\ \hline
+    101 x 101 & 110 sec & 103 sec \\ \hline
+    201 x 201 & 1260 sec & 504 sec \\ \hline
+  \end{tabular}
+\end{center}
+
+While on a 51x51 grid the single core Java RePast version outperforms the 4-core Haskell STM version by 250\%, the figure is inverted on a 201x201 grid where the 4-core Haskell STM version outperforms the single core Java Repast version by the same 250\%. We can conclude that the single core Java RePast version clearly outperforms the Haskell STM 4-core version on small grid-sizes that the Haskell STM version scales up with increasing grid-sizes and clearly outperforms the RePast version.
+
 \section{Discussion}
 \label{sect:stm_discussion}
 In-depth discussion of the STM concept for ABS.
+
+TODO: implement message-boxed STM (TChan) SIR model: based on data-flow implementation
+TODO: can we make synchronous Interactions work with STM? e.g. wormholes in STM
 
 TODO: downside we lose reproducibility due to concurrency (non-deterministic elements: race-conditions), but we still can guarantee that the agents don't do random IO stuff as it is restricted to STM operations only
 
@@ -172,3 +189,4 @@ TODO: TChan is a perfect match for PERISTENT agent-message queues
 \section{Further Research}
 \label{sect:stm_further}
 TODO: future research can we apply STM to an even-driven approach as well?
+TODO: synchronous agent-interactions with STM

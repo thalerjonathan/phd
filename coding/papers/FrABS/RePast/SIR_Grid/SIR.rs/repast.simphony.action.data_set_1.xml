@@ -1,0 +1,49 @@
+<repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.5.0">
+  <name>SIRDynamicsData</name>
+  <type>AGGREGATE</type>
+  <inclTick>true</inclTick>
+  <inclBatchRun>false</inclBatchRun>
+  <inclRandomSeed>false</inclRandomSeed>
+  <scheduleParams>
+    <start>1.0</start>
+    <interval>1.0</interval>
+    <priority>-Infinity</priority>
+    <pType>LAST</pType>
+    <duration>-1.0</duration>
+    <frequency>REPEAT</frequency>
+    <hashCode>-1861161080</hashCode>
+  </scheduleParams>
+  <atEnd>false</atEnd>
+  <methodDataSources class="linked-hash-map">
+    <entry>
+      <string>Susceptible</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>Susceptible</id>
+        <className>sir.ISIRAgent</className>
+        <methodName>isSusceptible</methodName>
+        <aggType>SUM</aggType>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>Infected</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>Infected</id>
+        <className>sir.ISIRAgent</className>
+        <methodName>isInfected</methodName>
+        <aggType>SUM</aggType>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>Recovered</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>Recovered</id>
+        <className>sir.ISIRAgent</className>
+        <methodName>isRecovered</methodName>
+        <aggType>SUM</aggType>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+  </methodDataSources>
+  <countSources class="linked-hash-map"/>
+  <customNADataSources class="linked-hash-map"/>
+  <customAggDataSources class="linked-hash-map"/>
+</repast.simphony.data2.engine.DataSetDescriptor>

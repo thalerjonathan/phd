@@ -76,9 +76,19 @@ This chapter derives the concepts of doing ABS in pure functional programming. I
 	\item Introduce Functional Reactive Programming
 	\item Agent representation.
 	\item Environment representation.
-	\item Agent-Interactions - This is the central problem of the FP approach as basically the agent-interactions define the level of abstractions over the agents. Unfortunately this is easier and more elegant in object-oriented programming. Still, by using a strong static type system we are more explicit about agent-interactions and we can have advantages which OOP doesn't have. Also we show that there are multiple different kinds of agent-interactions, depending on whether it is a time- or event-driven ABS.
+	\item Agent-Agent Interactions.
 	\item Agent-Environment interaction.
 \end{itemize}
+
+\subsubsection{Agent-Agent Interactions}
+This is the central problem of the FP approach as basically the agent-interactions define the level of abstractions over the agents. Unfortunately this is easier and more elegant in object-oriented programming. Still, by using a strong static type system we are more explicit about agent-interactions and we can have advantages which OOP doesn't have. Also we show that there are multiple different kinds of agent-interactions, depending on whether it is a time- or event-driven ABS.
+There is still much work to be done for this thesis chapter, we need to distinguish between:
+
+\begin{itemize}
+	\item Asynchronous Interaction: the flow is one-directional and does not need a listener on the other side and not a synchronous reply. Examples are the feedback Yampa SIR implementation), Pure Data-Flow, STM message-boxes, Pure Events.
+	\item Synchronous Interactions: the flow is bi-directional and needs a listener on the other side to engage in a synchronous interaction. We have only touched on prototyping this but need to go deeper for the final thesis looking into Pure Protocols, STM Wormholes.
+\end{itemize}
+
 
 %1) data-flow: for continuous ABS systems where data takes 1 dt to appear at the target agent and does not persist e.g. the target agent can check it or not but the data received in the current step will be gone in the next. Use-case: implementing continuous time-dependent ABS e.g. SIR model
 %2) events: an agent can send to an arbitrary other agent an event which happens at a given time in the future: when the event happens this means the target agent is executed with the information about the receiving event. Use-Case: implementing discrete event simulation ABS e.g. a bank, very useful when the model is specified in terms of events and not in a continuous fashion

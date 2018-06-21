@@ -1,0 +1,17 @@
+<simphony.settings.SettingsRegistry serialization="custom">
+  <unserializable-parents/>
+  <hashtable>
+    <default>
+      <loadFactor>0.75</loadFactor>
+      <threshold>3</threshold>
+    </default>
+    <int>5</int>
+    <int>3</int>
+    <string>SettingsFileName</string>
+    <string>Repast.settings</string>
+    <string>SettingsRegistryId</string>
+    <string>Repast.registry</string>
+    <string>LastLoadedScenario</string>
+    <string>/home/io.nathan/eclipse-workspace/SIR/SIR.rs</string>
+  </hashtable>
+</simphony.settings.SettingsRegistry>

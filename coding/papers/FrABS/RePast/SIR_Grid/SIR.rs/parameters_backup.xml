@@ -6,25 +6,8 @@
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
-				<parameter name="statechart_agents" displayName="Use StateChart Agents" type="boolean" 
-						defaultValue="true" 
-						isReadOnly="false" 
-						converter="repast.simphony.parameter.StringConverterFactory$BooleanConverter"
-									
-		/>
-				<parameter name="grid_environment" displayName="Restrict to Grid Environment (moore)" type="boolean" 
-						defaultValue="true" 
-						isReadOnly="false" 
-						converter="repast.simphony.parameter.StringConverterFactory$BooleanConverter"
-									
-		/>
-		
-				<parameter name="infected_agents" displayName="Infected Agents" type="int" 
-						defaultValue="1" 
-						isReadOnly="false" 
-						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
-									
-		/>
+				
+				
 				<parameter name="contacts" displayName="Average Contacts / Time" type="int" 
 						defaultValue="5" 
 						isReadOnly="false" 
@@ -37,12 +20,19 @@
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
 		/>
-				<parameter name="agents" displayName="Agent Count" type="int" 
-						defaultValue="10000" 
+				<parameter name="gridHeight" displayName="Grid Height" type="int" 
+						defaultValue="51" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
+				<parameter name="gridWidth" displayName="Grid Width" type="int" 
+						defaultValue="51" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+									
+		/>
+		
 				<parameter name="illness_duration" displayName="Average Illnes Duration" type="double" 
 						defaultValue="15.0" 
 						isReadOnly="false" 

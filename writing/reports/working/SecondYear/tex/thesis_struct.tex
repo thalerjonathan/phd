@@ -85,10 +85,9 @@ This is the central problem of the FP approach as basically the agent-interactio
 There is still much work to be done for this thesis chapter, we need to distinguish between:
 
 \begin{itemize}
-	\item Asynchronous Interaction: the flow is one-directional and does not need a listener on the other side and not a synchronous reply. Examples are the feedback Yampa SIR implementation), Pure Data-Flow, STM message-boxes, Pure Events.
-	\item Synchronous Interactions: the flow is bi-directional and needs a listener on the other side to engage in a synchronous interaction. We have only touched on prototyping this but need to go deeper for the final thesis looking into Pure Protocols, STM Wormholes. In Haskell we can build this using a State or STM monad (see my chimera approach), in Idris we implement a language interpreter.
+	\item Asynchronous Interaction: the flow is one-directional and does not need a listener on the other side and not a synchronous reply. The mechanism depends strongly on the type of ABS: time- or event-driven and pure or concurrent. Examples are the pure feedback in the Yampa SIR implementation, pure Data-Flow in the Yampa implementation, pure agent transactions, pure events, STM Event, STM message-boxes.
+	\item Synchronous Interactions: the flow is bi-directional and needs a listener on the other side to engage in a synchronous interaction without time-delay. We have only touched on prototyping this but need to go deeper for the final thesis. In Haskell we could build on the pure event driven approach we have implemented already in Step7_EventDriven but we need to extend it towards an explicit synchronous mechanism. Also we need to show how we can do this in STM but there its gonna be very tricky because all agents act conceptually at the same time.
 \end{itemize}
-
 
 %1) data-flow: for continuous ABS systems where data takes 1 dt to appear at the target agent and does not persist e.g. the target agent can check it or not but the data received in the current step will be gone in the next. Use-case: implementing continuous time-dependent ABS e.g. SIR model
 %2) events: an agent can send to an arbitrary other agent an event which happens at a given time in the future: when the event happens this means the target agent is executed with the information about the receiving event. Use-Case: implementing discrete event simulation ABS e.g. a bank, very useful when the model is specified in terms of events and not in a continuous fashion

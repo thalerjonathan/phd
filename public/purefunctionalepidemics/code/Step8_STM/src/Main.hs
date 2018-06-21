@@ -84,7 +84,7 @@ runSimulation g0 t dt e as = do
 
     vars <- zipWithM (\g' a -> do
       dtVar <- newEmptyMVar 
-      retVar <- sirAgentThread steps env dtVar g' a
+      retVar <- createAgentThread steps env dtVar g' a
       return (dtVar, retVar)) rngs as
 
     let (dtVars, retVars) = unzip vars
@@ -113,28 +113,28 @@ runSimulation g0 t dt e as = do
       -- read last version of environment
       readTVarIO env
 
-sirAgentThread :: RandomGen g 
-               => Int 
-               -> TVar SIREnv
-               -> MVar DTime
-               -> g
-               -> (Disc2dCoord, SIRState)
-               -> IO (MVar ())
-sirAgentThread steps env dtVar rng0 a = do
+createAgentThread :: RandomGen g 
+                  => Int 
+                  -> TVar SIREnv
+                  -> MVar DTime
+                  -> g
+                  -> (Disc2dCoord, SIRState)
+                  -> IO (MVar ())
+createAgentThread steps env dtVar rng0 a = do
     let sf = uncurry (sirAgent env) a
     -- create the var where the result will be posted to
     retVar <- newEmptyMVar
-    _ <- forkIO $ sirAgentThreadAux steps sf rng0 retVar
+    _ <- forkIO $ agentThread steps sf rng0 retVar
     return retVar
   where
-    sirAgentThreadAux :: RandomGen g 
-                      => Int
-                      -> SIRAgent g
-                      -> g
-                      -> MVar ()
-                      -> IO ()
-    sirAgentThreadAux 0 _ _ _ = return ()
-    sirAgentThreadAux n sf rng retVar = do
+    agentThread :: RandomGen g 
+                => Int
+                -> SIRAgent g
+                -> g
+                -> MVar ()
+                -> IO ()
+    agentThread 0 _ _ _ = return ()
+    agentThread n sf rng retVar = do
       -- wait for next dt to compute next step
       dt <- takeMVar dtVar
 
@@ -148,7 +148,7 @@ sirAgentThread steps env dtVar rng0 a = do
       -- post result to main thread
       putMVar retVar ()
       
-      sirAgentThreadAux (n - 1) sf' rng' retVar
+      agentThread (n - 1) sf' rng' retVar
 
 sirAgent :: RandomGen g 
          => TVar SIREnv

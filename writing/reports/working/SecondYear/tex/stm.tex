@@ -1,7 +1,7 @@
 \chapter{Going Large-Scale with Software Transactional Memory}
 \label{chap:stm}
 
-In this chapter we present a technique which allows to scale the approach of functional ABS as presented in the paper in Appendix \ref{app:pfe} to massively large-scale simulations. This is a very recent development which didn't make it into the paper but will make an appearance in the final thesis in the form of this chapter. Due to the increasing need for massively large-scale ABS in recent years (todo: cite), making this possible with our functional approach as well, gives our research a much larger impact.
+In this chapter we present a technique which allows to scale the approach of functional ABS as presented in the paper in Appendix \ref{app:pfe} to massively large-scale simulations. This is a very recent development which didn't make it into the paper but will make an appearance in the final thesis in the form inspired by this chapter. Due to the increasing need for massively large-scale ABS in recent years (todo: cite), making this possible with our functional approach as well, gives our research a much larger impact.
 
 The whole concept of our approach is built on the usage of Software Transactional Memory (STM), which we will introduce in Section \ref{sect:stm_intro}. In Section \ref{sect:stm_impl} we give a short overview of our implementation, presenting and discussing code. In Section \ref{sect:stm_perf} we present performance comparisons and discuss the implications more in-depth in Section \ref{sect:stm_discussion}. Finally we will give a short outline over further research in \ref{sect:stm_further}.
 
@@ -16,13 +16,86 @@ The main benefits are:
 
 \section{Implementation}
 \label{sect:stm_impl}
-TODO: brief overview of the implementation of the SIR model with code.
+For a proof-of-concept we changed the reference implementation of the agent-based SIR model on a 2D-grid as described in the paper in Appendix \ref{app:pfe}. In it, a State Monad is used to share the grid across all agents where all agents are run after each other to guarantee exclusive access to the state. We replaced the State Monad by the STM Monad, share the grid through a \textit{TVar} and run every agent within its own thread. All agents are run at the same time but synchronise after each time-step which is done through the main-thread.
+
+We make STM the innermost Monad within a RandT transformer:
+\begin{HaskellCode}
+type SIRMonad g   = RandT g STM
+type SIRAgent g   = SF (SIRMonad g) () ()
+\end{HaskellCode}
+
+In each step we use an \textit{MVar} to let the agents block on the next $\Delta t$ and let the main-thread block for all results. After each step we output the environment by reading it from the \textit{TVar}:
+\begin{HaskellCode}
+-- this is run in the main-thread
+simulationStep :: TVar SIREnv
+               -> [MVar DTime]
+               -> [MVar ()]
+               -> Int
+               -> IO SIREnv
+simulationStep env dtVars retVars _i = do
+  -- tell all threads to continue with the corresponding DTime
+  mapM_ (`putMVar` dt) dtVars
+  -- wait for results, ignoring them, only [()]
+  mapM_ takeMVar retVars
+  -- read last version of environment
+  readTVarIO env
+\end{HaskellCode}
+
+Each agent runs within its own thread. It will block for the posting of the next $\Delta t$ where it then will run the MSF stack with the given $\Delta t$ and atomically transacting the STM action. It will then post the result of the computation to the main-thread to signal it has finished. Note that the number of steps the agent will run is hard-coded and comes from the main-thread so that no infinite blocking occurs and the thread shuts down gracefully.
+
+\begin{HaskellCode}
+createAgentThread :: RandomGen g 
+                  => Int 
+                  -> TVar SIREnv
+                  -> MVar DTime
+                  -> g
+                  -> (Disc2dCoord, SIRState)
+                  -> IO (MVar ())
+createAgentThread steps env dtVar rng0 a = do
+    let sf = uncurry (sirAgent env) a
+    -- create the var where the result will be posted to
+    retVar <- newEmptyMVar
+    _ <- forkIO (sirAgentThreadAux steps sf rng0 retVar)
+    return retVar
+  where
+    agentThread :: RandomGen g 
+                => Int
+                -> SIRAgent g
+                -> g
+                -> MVar ()
+                -> IO ()
+    agentThread 0 _ _ _ = return ()
+    agentThread n sf rng retVar = do
+      -- wait for next dt to compute next step
+      dt <- takeMVar dtVar
+
+      -- compute next step
+      let sfReader = unMSF sf ()
+          sfRand   = runReaderT sfReader dt
+          sfSTM    = runRandT sfRand rng
+      ((_, sf'), rng') <- atomically sfSTM 
+      
+      -- post result to main thread
+      putMVar retVar ()
+      
+      agentThread (n - 1) sf' rng' retVar
+\end{HaskellCode}
+
+The implementation of the susceptible, infected and recovered agents are the same except that instead of accessing the environment through \textit{get} and \textit{put}, we use \textit{readTVar}, \textit{writeTVar} and \textit{modifyTVar}.
 
 \section{Performance Comparison}
 \label{sect:stm_perf}
-experiment: SIR on a 51x51 grid (single infected at center) with dt=0.1 until t=100, exporting the dynamics to a matlab file in the end which is the exact same, non-parallel implementation for all implementations 
+The model we use in the experiments is the agent-based SIR model on a 51 x 51 grid (single infected at center), stepped with $\Delta t = 0.1$ until virtual simulation time $t=100$. We compared three different experiments:
 
-\paragraph{State Monad, single core (as in Paper in Appendix \ref{app:pfe})}
+\begin{enumerate}
+	\item State Monad: the reference implementation of the paper in Appendix \ref{app:pfe} using a State Monad to share the grid across all agents.
+	\item STM single-core: the implementation of Section \ref{sect:stm_impl}, running on a single core.
+	\item STM 4-core: the implementation of Section \ref{sect:stm_impl}, running concurrently on 4 cores.
+\end{enumerate}
+
+Below are example outputs of each experiment. Additionally we averaged 4 runs of each experiment to arrive at a statistically more robust duration.
+
+\paragraph{1. State Monad}
 \begin{minted}[fontsize=\footnotesize]{console}
 ----------------------------------------------------------------------------------
  159,168,992,488 bytes allocated in the heap
@@ -51,7 +124,7 @@ experiment: SIR on a 51x51 grid (single infected at center) with dt=0.1 until t=
 
 Averaging the total time elapsed of 4 runs (101.348, 101.581, 100.991, 100.681) results in a mean of 101.15 and a standard deviation of 0.395.
 
-\paragraph{STM, single core}
+\paragraph{2. STM single core}
 \begin{minted}[fontsize=\footnotesize]{console}
 ----------------------------------------------------------------------------------
   98,857,350,264 bytes allocated in the heap
@@ -82,7 +155,7 @@ Averaging the total time elapsed of 4 runs (101.348, 101.581, 100.991, 100.681) 
 
 Averaging the total time elapsed of 4 runs (52.300, 52.27, 52.720, 53.740) results in a mean of 52.752 and a standard deviation of 0.676.
 
-\paragraph{STM, 4 cores}
+\paragraph{3. STM 4-core}
 \begin{minted}[fontsize=\footnotesize]{console}
 ----------------------------------------------------------------------------------
   98,956,602,152 bytes allocated in the heap

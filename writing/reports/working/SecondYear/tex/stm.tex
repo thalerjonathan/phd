@@ -49,106 +49,87 @@ experiment: SIR on a 51x51 grid (single infected at center) with dt=0.1 until t=
 ----------------------------------------------------------------------------------
 \end{minted}
 
-Averaging total time elapsed of 4 runs 
-1. 101.348
-2. 101.581
-3. 100.991
-4. 100.681
-Mean = 101.15
-Standard Deviation = 0.395
-
+Averaging the total time elapsed of 4 runs (101.348, 101.581, 100.991, 100.681) results in a mean of 101.15 and a standard deviation of 0.395.
 
 \paragraph{STM, single core}
 \begin{minted}[fontsize=\footnotesize]{console}
 ----------------------------------------------------------------------------------
-STM transaction statistics (2018-06-19 13:19:24.91854557 UTC):
-Transaction     Commits    Retries      Ratio
-_anonymous_     2601000          0       0.00
- 102,717,693,696 bytes allocated in the heap
-  20,745,342,864 bytes copied during GC
-      94,053,808 bytes maximum residency (162 sample(s))
-         611,032 bytes maximum slop
-             192 MB total memory in use (0 MB lost due to fragmentation)
+  98,857,350,264 bytes allocated in the heap
+  20,265,438,776 bytes copied during GC
+      98,908,552 bytes maximum residency (156 sample(s))
+         996,984 bytes maximum slop
+             203 MB total memory in use (0 MB lost due to fragmentation)
 
                                      Tot time (elapsed)  Avg pause  Max pause
-  Gen  0     98484 colls,     0 par   21.545s  21.641s     0.0002s    0.0131s
-  Gen  1       162 colls,     0 par    0.035s   0.035s     0.0002s    0.0008s
+  Gen  0     94776 colls,     0 par   20.305s  20.382s     0.0002s    0.0138s
+  Gen  1       156 colls,     0 par    0.032s   0.032s     0.0002s    0.0008s
 
   TASKS: 4 (1 bound, 3 peak workers (3 total), using -N1)
 
   SPARKS: 0 (0 converted, 0 overflowed, 0 dud, 0 GC'd, 0 fizzled)
 
   INIT    time    0.000s  (  0.000s elapsed)
-  MUT     time   35.205s  ( 35.352s elapsed)
-  GC      time   21.580s  ( 21.676s elapsed)
-  EXIT    time    0.006s  (  0.012s elapsed)
-  Total   time   56.791s  ( 57.040s elapsed)
+  MUT     time   31.757s  ( 31.878s elapsed)
+  GC      time   20.337s  ( 20.414s elapsed)
+  EXIT    time    0.006s  (  0.008s elapsed)
+  Total   time   52.101s  ( 52.300s elapsed)
 
-  Alloc rate    2,917,692,852 bytes per MUT second
+  Alloc rate    3,112,910,665 bytes per MUT second
 
-  Productivity  62.0% of total user, 62.0% of total elapsed
+  Productivity  61.0% of total user, 61.0% of total elapsed
 ----------------------------------------------------------------------------------
 \end{minted}
-  
-Averaging total time elapsed of 4 runs 
-1. 57.040
-2. 57.730
-3. 56.350
-4. 57.400
-mean = 57.13
-standard deviation = 0.591
+
+Averaging the total time elapsed of 4 runs (52.300, 52.27, 52.720, 53.740) results in a mean of 52.752 and a standard deviation of 0.676.
 
 \paragraph{STM, 4 cores}
 \begin{minted}[fontsize=\footnotesize]{console}
 ----------------------------------------------------------------------------------
-STM transaction statistics (2018-06-19 13:26:47.93096533 UTC):
-Transaction     Commits    Retries      Ratio
-_anonymous_     2601000        904       0.00
- 102,895,260,960 bytes allocated in the heap
-  21,246,390,048 bytes copied during GC
-      94,723,024 bytes maximum residency (165 sample(s))
-         872,104 bytes maximum slop
-             197 MB total memory in use (0 MB lost due to fragmentation)
+  98,956,602,152 bytes allocated in the heap
+  20,182,157,176 bytes copied during GC
+      99,043,872 bytes maximum residency (155 sample(s))
+       1,135,272 bytes maximum slop
+             207 MB total memory in use (0 MB lost due to fragmentation)
 
                                      Tot time (elapsed)  Avg pause  Max pause
-  Gen  0     27897 colls, 27897 par   51.039s   9.988s     0.0004s    0.0126s
-  Gen  1       165 colls,   164 par    0.296s   0.055s     0.0003s    0.0009s
+  Gen  0     26564 colls, 26564 par   47.795s   9.277s     0.0003s    0.0157s
+  Gen  1       155 colls,   154 par    0.253s   0.047s     0.0003s    0.0009s
 
-  Parallel GC work balance: 86.63% (serial 0%, perfect 100%)
+  Parallel GC work balance: 87.47% (serial 0%, perfect 100%)
 
   TASKS: 10 (1 bound, 9 peak workers (9 total), using -N4)
 
   SPARKS: 0 (0 converted, 0 overflowed, 0 dud, 0 GC'd, 0 fizzled)
 
   INIT    time    0.001s  (  0.001s elapsed)
-  MUT     time   33.690s  ( 15.063s elapsed)
-  GC      time   51.335s  ( 10.043s elapsed)
+  MUT     time   25.821s  ( 10.571s elapsed)
+  GC      time   48.048s  (  9.324s elapsed)
   EXIT    time    0.006s  (  0.014s elapsed)
-  Total   time   85.033s  ( 25.120s elapsed)
+  Total   time   73.877s  ( 19.910s elapsed)
 
-  Alloc rate    3,054,145,607 bytes per MUT second
+  Alloc rate    3,832,340,955 bytes per MUT second
 
-  Productivity  39.6% of total user, 60.0% of total elapsed
+  Productivity  35.0% of total user, 53.2% of total elapsed
 ----------------------------------------------------------------------------------
 \end{minted}
-  
-Averaging total time elapsed of 4 runs 
-1. 25.120
-2. 25.230
-3. 25.090
-4. 24.420
-mean = 24.96
-standard deviation = 0.368
+ 
+Averaging the total time elapsed of 4 runs (19.910, 20.290, 20.420, 21.690) results in a mean of 20.578 with standard deviation of 0.772.
 
-Averaging transaction retries of 4 runs
-1. 904
-2. 1334
-3. 1394
-4. 1266
-mean = 1224.5
-standard deviation = 219.97
+When we scale up the grid-size for the 4-core version we get the following results:
 
-TODO: check how many agents are possible with 100seconds: 91x91 about 100s, 101x101 about 103s, 201x201 about 504s => in the SIR model we can compute 4 times as many agents within the same time-constraints
+\begin{center}
+  \begin{tabular}{ c || c | c | c }
+    Grid-Size & Duration \\ \hline \hline 
+    51 x 51 & 21 sec \\ \hline
+    101 x 101 & 92 sec \\ \hline
+    151 x 151 & 188 sec \\ \hline
+    201 x 201 & 305 sec \\ \hline
+    251 x 251 & 530 sec \\ \hline
+  \end{tabular}
+\end{center}
+
+\subsection{Performance Interpretation}
+TODO: does the duration grow linearly with increasing agents?
 
 TODO: visual outputs and dynamics look qualitatively the same, so it should be ok
 
@@ -156,33 +137,34 @@ Interpretation of the data leads to the following conclusions:
 \begin{enumerate}
 	\item On a single core, no transaction retries should happen, the results support that assumption.
 	\item Sharing state using an STM variable is much more efficient than using the State Monad.
-	\item Running STM on multiple cores concurrently leads to a significant performance improvement.
+	\item Running STM on multiple cores concurrently leads to a significant performance improvement. TODO: does the duration grow linearly with increasing agents?
 \end{enumerate}
 
 \subsection{Comparison to Java RePast single core}
-We conducted a performance comparison with a single core Java implementation using RePast with Statecharts to model the Agents. All parameters were the same and the simulation was run until virtual time t=100 was reached, on various grid-sizes. Due to the lack of proper timing facilities in RePast we measured the time by hand using a stopwatch. Although this is not very precise it gives a rough estimate and allows a very basic comparison, being precise enough if the difference is larger than 1 second. We measured the following:
+To have an idea where the functional implementation is performance-wise compared to the established object-oriented methods, we conducted a performance comparison with a Java implementation using RePast, running on a single-core. All parameters were the same and the simulation was run until virtual time t=100 was reached, on various grid-sizes. Due to the lack of proper timing facilities in RePast we measured the time by hand using a stopwatch. Although this is not very precise it gives a rough estimate and allows a very basic comparison, being precise enough if the difference is larger than 1 second. We measured the following:
 
 \begin{center}
   \begin{tabular}{ l || c | r }
     Grid-Size & Java Repast & 4-Core Haskell \\ \hline \hline 
-    51 x 51 & 10 sec & 25 sec \\ \hline
+    51 x 51 & 10 sec & 20 sec \\ \hline
     101 x 101 & 110 sec & 103 sec \\ \hline
-    201 x 201 & 1260 sec & 504 sec \\ \hline
+    201 x 201 & 1260 sec & 305 sec \\ \hline
   \end{tabular}
 \end{center}
 
-While on a 51x51 grid the single core Java RePast version outperforms the 4-core Haskell STM version by 250\%, the figure is inverted on a 201x201 grid where the 4-core Haskell STM version outperforms the single core Java Repast version by the same 250\%. We can conclude that the single core Java RePast version clearly outperforms the Haskell STM 4-core version on small grid-sizes that the Haskell STM version scales up with increasing grid-sizes and clearly outperforms the RePast version.
+While on a 51x51 grid the single-core Java RePast version outperforms the 4-core Haskell STM version by about 200\%, the figure is inverted on a 201x201 grid where the 4-core Haskell STM version outperforms the single core Java Repast version by 400\%. We can conclude that the single-core Java RePast version clearly outperforms the Haskell STM 4-core version on small grid-sizes but that the Haskell STM version scales up with increasing grid-sizes and clearly outperforms the RePast version with increasing number of agents.
 
 \section{Discussion}
 \label{sect:stm_discussion}
 In-depth discussion of the STM concept for ABS.
+
 
 TODO: implement message-boxed STM (TChan) SIR model: based on data-flow implementation
 TODO: can we make synchronous Interactions work with STM? e.g. wormholes in STM
 
 TODO: downside we lose reproducibility due to concurrency (non-deterministic elements: race-conditions), but we still can guarantee that the agents don't do random IO stuff as it is restricted to STM operations only
 
-TODO: central problem is to keep the retries low, which is directly influenced by the read/writes on the concurrent data-structures. By choosing more fine-grained / suitable data-structures e.g. using a TArray instead of an Array within a TVar, one can reduce retries significantly.
+TODO: talk about retries of transactions which could become a bottle neck, central problem is to keep the retries low, which is directly influenced by the read/writes on the concurrent data-structures. By choosing more fine-grained / suitable data-structures e.g. using a TArray instead of an Array within a TVar, one can reduce retries significantly. We tracked the retries in the above example and arrived at a ratio of 0.0\%, note that there were some retries but they were so low that they didn't significant.
 
 TODO: TChan is a perfect match for PERISTENT agent-message queues
 

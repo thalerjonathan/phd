@@ -7,7 +7,7 @@ The whole concept of our approach is built on the usage of Software Transactiona
 
 \section{Introduction}
 \label{sect:stm_intro}
-Concurrent programming is notoriously difficult to get right, the difficulty of reasoning about the interactions of multiple concurrently running threads and low level operational details of synchronisation primitives and locks. The main problems are:
+Concurrent programming is notoriously difficult to get right because reasoning about the interactions of multiple concurrently running threads and low level operational details of synchronisation primitives and locks is \textit{very hard}. The main problems are:
 
 \begin{itemize}
 	\item Race conditions due to forgotten locks.
@@ -16,7 +16,7 @@ Concurrent programming is notoriously difficult to get right, the difficulty of 
 	\item Lost wakeups induced by omitted notifications.
 \end{itemize}
 
-Worse, concurrency does not compose. It is utterly difficult to write two functions (or methods in an object) which act on concurrent data, one can compose into a larger concurrent function because one has to know about their internal details of locking, which breaks encapsulation and makes composition depend on knowledge about their implementation. Also it is impossible to compose two functions e.g. where one withdraws some amount of money from an account and the other deposits this amount of money into a different account: one ends up with a temporary state where the money is in none of either accounts, creating an inconsistency - a potential source for errors because threads can be rescheduled at any time.
+Worse, concurrency does not compose. It is utterly difficult to write two functions (or methods in an object) acting on concurrent data which can be composed into a larger concurrent behaviour. The reason for it is that one has to know about internal details of locking, which breaks encapsulation and makes composition depend on knowledge about their implementation. Also it is impossible to compose two functions e.g. where one withdraws some amount of money from an account and the other deposits this amount of money into a different account: one ends up with a temporary state where the money is in none of either accounts, creating an inconsistency - a potential source for errors because threads can be rescheduled at any time.
 
 STM promises to solve all these problems for a very low cost. In STM one executes actions atomically where modifications made in such an action are invisible to other threads until the action is performed. Also the thread in which this action is run, doesn't see changes made by other threads - thus execution of STM actions are isolated. When a transaction exists one of the following things will occur:
 

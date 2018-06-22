@@ -1,0 +1,72 @@
+\chapter{Thesis Structure}
+\label{app:thesis_struct}
+
+This appendix gives a first draft of the structure outline of the thesis which I plan on start writing in April 2019. I aim for a flat structure which emphasises a strong narrative. The order of writing will be: Methodology, Proof-Of-Concept chapters, Literature Review, Discussion, Conclusions, Introduction, Abstract.
+%
+%line of argument
+%1. established methods need extensive unit-testing for establishing correctness of software, which only increases the likelihood of correctness and doesnt guarantee it because they are inherent dynamic, testing run-time behaviour, because of the different type system.
+%2. functional programming as in haskell has a strong static type system which allows to shift much much more guarantees towards static, compile-time, making many run-time tests obsolete and can guarantee a few things already at compile-time which makes tests to cover that completely obsolete
+%3. dependent types can push these guarantees even further and theoretically should allow to express guarantees at compile-time to an arbitrary complex level which in theory should allow us to abandon run-time testing of bugs altogether. This does not mean that we don't need any tests anymore, as will be outlined in the chapter on Verification \& Validation \ref{chap:v_and_v}.
+%4. with shifting more towards compile-time guarantees we automatically gain more confidence into the correctness of our simulation and reduce the implementation overhead of writing tests for those cases. Also some properties are simply not testable with run-time tests e.g. that some property holds forever - this is only possible to guarantee by looking at the code directly (where functional programming shines) or expressing it through compile-time guarantees. 
+%5. correct by construction: narrowing the gap between model specification and implementation 
+%6. Impedance Mismatch: ABS is constructive / generative in nature but the nature of the test-driven development process is deductive. is this a problem? Think of it more deeply
+
+
+\section{Introduction}
+This chapter is the introduction to the thesis and motivates it and describes the aim and scope of the Ph.D. Further it states the hypotheses and contributions.
+\begin{itemize}
+	\item Main Argument: Defining the problem, motivation, aim and scope of the Ph.D.
+	\item Hypotheses: Precisely stating the hypotheses which will form the points of reference for the whole research.
+	\item Contributions: Precisely list the contribution to knowledge this Ph.D. makes and list all papers which were written (and published) during this Ph.D.
+\end{itemize}
+
+\section{Literature Review}
+This chapter discusses background and related work by presenting the relevant literature 
+
+\section{Methodology}
+This chapter introduces the methodology, used in the experimental chapters:
+
+\begin{itemize}
+	\item Defining and introducing Agent-Based Simulation (ABS) (History, ABS vs. MAS, examples, event- vs. time-driven).
+	\item Introduce established implementation approaches to ABS (Frameworks: NetLogo, Anylogic, Libraries: RePast, DesmoJ, Programming: Java, Python, Correctness: ad-hoc, manual testing, test-driven development)
+	\item Introduction Verification \& Validation (V \& V in the context of ABS).
+	\item Introduction to functional Programming in Haskell (functions, types, recursion, algebraic data-types, higher-order functions, continuations, Define and explain side-effects and purity: monads, different types of effects, explain IO and that it is of fundamental importance to avoid it in our research).
+	\item Introduction to dependent types (Example, Equality as Type, Philosophical Foundations: Constructive mathematics)
+\end{itemize}
+
+\section{Proof-Of-Concepts}
+Presents experiments which are the main contribution of this Ph.D. and support our hypothesis. Each section is structured by Intro, Methods, Experiment, Analysis.
+
+\subsection{Proof-Of-Concept 1: Testing and Verification}
+This chapter describes how testing \& verification works in pure functional ABS.
+%\begin{itemize}
+%	\item Testing in functional programming
+%	\item Strong Static Types rule out some classes of bugs and make some tests obsolete.
+%	\item Property-Based testing: QuickCheck.
+%	\item Using Property-Based testing in ABS for specification testing.
+%	\item Reasoning about code
+%\end{itemize}
+
+\subsection{Proof-Of-Concept 2: Going Large-Scale}
+This chapter discusses how pure functional ABS can go large-scale using STM. Further it is the central chapter, discussing various types of agent-agent and agent-environment interactions
+
+%\subsubsection{Agent-Agent Interactions}
+%This is the central problem of the FP approach as basically the agent-interactions define the level of abstractions over the agents. Unfortunately this is easier and more elegant in object-oriented programming. Still, by using a strong static type system we are more explicit about agent-interactions and we can have advantages which OOP doesn't have. Also we show that there are multiple different kinds of agent-interactions, depending on whether it is a time- or event-driven ABS.
+%There is still much work to be done for this thesis chapter, we need to distinguish between:
+%
+%\begin{itemize}
+%	\item Asynchronous Interaction: the flow is one-directional and does not need a listener on the other side and not a synchronous reply. The mechanism depends strongly on the type of ABS: time- or event-driven and pure or concurrent. Examples are the pure feedback in the Yampa SIR implementation, pure Data-Flow in the Yampa implementation, pure agent transactions, pure events, STM Event, STM message-boxes.
+%	\item Synchronous Interactions: the flow is bi-directional and needs a listener on the other side to engage in a synchronous interaction without time-delay. We have only touched on prototyping this but need to go deeper for the final thesis. In Haskell we could build on the pure event driven approach we have implemented already in Step7\_EventDriven but we need to extend it towards an explicit synchronous mechanism. Also we need to show how we can do this in STM but there its gonna be very tricky because all agents act conceptually at the same time.
+%\end{itemize}
+
+\subsection{Proof-Of-Concept 3: Dependent Types}
+This chapter gives an in-depth discussion on how dependent types can be made of use in pure functional ABS.
+
+\section{Discussion}
+This chapter re-visits the hypotheses and puts them into perspective of the contributions.
+
+\section{Conclusions}
+This chapter draws conclusions to the main hypothesis and outlines future research.
+
+\section{Appendices}
+Datasets, lengthy code, additional proofs.

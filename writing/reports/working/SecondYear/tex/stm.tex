@@ -1,7 +1,7 @@
 \chapter{Going Large-Scale}
 \label{chap:stm}
 
-In this chapter we present a technique which allows to scale the approach of functional ABS as presented in the paper in Appendix \ref{app:pfe} to massively large-scale simulations. This is a very recent development which didn't make it into the paper but will make an appearance in the final thesis in the form inspired by this chapter. Due to the increasing need for massively large-scale ABS in recent years (todo: cite), making this possible with our functional approach as well, gives our research a much larger impact.
+In this chapter we present a technique which allows to scale the approach of functional ABS as presented in the paper in Appendix \ref{app:pfe} to massively large-scale simulations. This is a very recent development which didn't make it into the paper but will make an appearance in the final thesis in the form inspired by this chapter. Due to the increasing need for massively large-scale ABS in recent years \cite{lysenko_framework_2008}, making this possible with our functional approach as well, gives our research a much larger impact.
 
 The whole concept of our approach is built on the usage of Software Transactional Memory (STM), which we will introduce in Section \ref{sect:stm_intro}, where we follow the main paper \cite{harris_composable_2005} on STM \footnote{We also make use of the excellent tutorial \url{http://book.realworldhaskell.org/read/software-transactional-memory.html}.}. In Section \ref{sect:stm_impl} we give a short overview of our implementation, presenting and discussing code. In Section \ref{sect:stm_perf} we present performance comparisons and discuss the implications more in-depth in Section \ref{sect:stm_discussion}. Finally we will give a short outline over further research in \ref{sect:stm_further}.
 
@@ -224,19 +224,17 @@ Averaging the total time elapsed of 4 runs (52.300, 52.27, 52.720, 53.740) resul
 Averaging the total time elapsed of 4 runs (19.910, 20.290, 20.420, 21.690) results in a mean of 20.578 with standard deviation of 0.772.
 
 \subsection{Performance Discussion}
-Summarizing the performances is done in the table:
-
+We checked the visual outputs and the dynamics and they look qualitatively the same to the reference implementation. Summarizing the performances:
 \begin{center}
   \begin{tabular}{ l || c }
     Implementation & Avg. Duration \\ \hline \hline 
     State Monad & 101.15 sec \\ \hline
    	STM Single-Core & 52.75 sec \\ \hline
-   	STM 4-Core & 20.57 sec \\ \hline
+   	STM 4-Core & 20.57 sec 
   \end{tabular}
 \end{center}
 
-When we scale up the grid-size for the 4-core version we get the following results:
-
+When we scale up the grid-size for the 4-core version we get the following results, exhibiting a linear performance-scaling as can be seen in Figure \ref{fig:agent_by_duration}:
 \begin{center}
   \begin{tabular}{ c || c }
     Grid-Size & Duration \\ \hline \hline 
@@ -244,19 +242,26 @@ When we scale up the grid-size for the 4-core version we get the following resul
     101 x 101 & 92 sec \\ \hline
     151 x 151 & 188 sec \\ \hline
     201 x 201 & 305 sec \\ \hline
-    251 x 251 & 530 sec \\ \hline
+    251 x 251 & 530 sec 
+    
+    \label{tab:agent_by_duration}
   \end{tabular}
 \end{center}
 
-TODO: does the duration grow linearly with increasing agents?
+\begin{figure}
+	\centering
+	\includegraphics[width=0.6\textwidth, angle=0]{./fig/agents_duration_stm.png}
+	\caption{Plot of Table \ref{tab:agent_by_duration}: agents by duration, exhibiting a clear linear trend in performance scaling.}
+	\label{fig:agent_by_duration}
+\end{figure}
 
-TODO: visual outputs and dynamics look qualitatively the same, so it should be ok
 
 Interpretation of the data leads to the following conclusions:
 \begin{enumerate}
-	\item On a single core, no transaction retries should happen, the results support that assumption.
-	\item Sharing state using an STM variable is much more efficient than using the State Monad.
-	\item Running STM on multiple cores concurrently leads to a significant performance improvement. TODO: does the duration grow linearly with increasing agents?
+	%\item On a single core, no transaction retries should happen, the results support that assumption.
+	\item Sharing state using an STM variable is much more time- and memory-efficient than using the State Monad.
+	\item Running STM on multiple cores concurrently leads to a significant performance improvement.
+	\item We get a linear performance scaling when using STM, which is remarkable because concurrent problems rarely scale linearly.
 \end{enumerate}
 
 \subsection{Comparison to Java RePast single core}
@@ -275,19 +280,19 @@ While on a 51x51 grid the single-core Java RePast version outperforms the 4-core
 
 \section{Discussion}
 \label{sect:stm_discussion}
-In-depth discussion of the STM concept for ABS.
+Using STM for concurrent, large-scale ABS seems to be a very promising approach as our proof-of-concept has shown. The concurrency abstractions of STM are very powerful, yet simple enough to allow convenient implementation of concurrent agents without the nastiness of low level concurrent locks. Also we have shown by experiments, that we indeed get a very substantial speed-up and that we even got linear performance scaling for our model. 
 
+Interestingly, STM primitives map nicely to ABS concepts: using a share environment through a \textit{TVar} is very easy, also we implemented in an additional proof-of-concept the use of \textit{TChan} which can be seen as persistent message boxes for agents, underlining the message-oriented approach found in many agent-based models. Also \textit{TChan} offers a broadcast transactional channel, which supports broadcasting to listeners which maps nicely to a pro-active environment or a central auctioneer upon which agents need to synchronize.
 
-TODO: implement message-boxed STM (TChan) SIR model: based on data-flow implementation
-TODO: can we make synchronous Interactions work with STM? e.g. wormholes in STM
+Running in STM instead of IO also makes the concurrent nature more explicit and at the same time restricts it to purely STM behaviour. So despite obviously losing the reproducibility property due to concurrency, we still can guarantee that the agents can't do arbitrary IO as they are restricted to STM operations only.
 
-TODO: downside we lose reproducibility due to concurrency (non-deterministic elements: race-conditions), but we still can guarantee that the agents don't do random IO stuff as it is restricted to STM operations only
-
-TODO: talk about retries of transactions which could become a bottle neck, central problem is to keep the retries low, which is directly influenced by the read/writes on the concurrent data-structures. By choosing more fine-grained / suitable data-structures e.g. using a TArray instead of an Array within a TVar, one can reduce retries significantly. We tracked the retries in the above example and arrived at a ratio of 0.0\%, note that there were some retries but they were so low that they didn't significant.
-
-TODO: TChan is a perfect match for PERISTENT agent-message queues. we have broadcast chan functionality which allows convenient environment behaviour
+Depending on the nature of the transactions, retries could become a bottle neck. The central problem of STM is to keep the retries low, which is directly influenced by the read/writes on the STM primitives. By choosing more fine-grained / suitable data-structures e.g. using a TArray instead of an Array within a TVar, one can reduce retries significantly. We tracked the retries in our proof-of-concept using the stm-stats library and arrived at a ratio of 0.0\% retries - note that there were some retries but they were so low that they weren't significant.
 
 \section{Further Research}
 \label{sect:stm_further}
-TODO: future research can we apply STM to an even-driven approach as well?
-TODO: synchronous agent-interactions with STM
+Our work on STM for ABS is only a proof-of-concept with promising results. Still there is more work needed:
+
+\begin{itemize}
+	\item So far we only looked at a time-driven model. It would be of fundamental interest whether we can somehow apply STM and concurrency to an event-driven approach as well. We hypothesise that it is not as striking and easy due to the fundamental sequential approach to even-processing. Generally one could run agents concurrently and undo actions when there are inconsistencies - something which STM supports out of the box.
+	\item So far we only looked at asynchronous agent-interactions through TVar and TChan: agents modify the data or send a message but don't synchronise on a reply. Also a receiving agent doesn't do synchronised waiting for messages or data-changes. Still, in some models we need this synchronous way of agent-interactions where agents interact over multiple steps within the same global time-step. We yet have to come up with an easy-to-use solution for this problem using STM.
+\end{itemize}

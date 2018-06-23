@@ -264,6 +264,9 @@ Interpretation of the data leads to the following conclusions:
 	\item We get a linear performance scaling when using STM, which is remarkable because concurrent problems rarely scale linearly.
 \end{enumerate}
 
+\subsection{Comparison to Haskell IO implementation}
+TODO: need to use MVars for locking the access to IORef environment, expect not a linear scaling and lower performance
+
 \subsection{Comparison to Java RePast single core}
 To have an idea where the functional implementation is performance-wise compared to the established object-oriented methods, we conducted a performance comparison with a Java implementation using RePast, running on a single-core. All parameters were the same and the simulation was run until virtual time t=100 was reached, on various grid-sizes. Due to the lack of proper timing facilities in RePast we measured the time by hand using a stopwatch. Although this is not very precise it gives a rough estimate and allows a very basic comparison, being precise enough if the difference is larger than 1 second. We measured the following:
 

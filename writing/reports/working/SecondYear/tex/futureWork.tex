@@ -40,9 +40,9 @@ In this chapter we discuss in more detail how we plan to approach the aim and ob
 \section{Approaching the Objectives: Dependent Types}
 We have already begun working on dependent types and the plan is to do an in-depth research and examination of the ideas outlined in the section \ref{sec:dep_absconcepts} on the concepts of dependent types in Agent-Based Simulation.
 
-Although there exists research on bringing dependent types to FRP \cite{sculthorpe_safe_2009}, we follow a fundamentally different approach in implementing ABS with dependent types. Instead of using FRP as described in section \ref{sect:how}, we follow the approach taken in the papers described in related work on dependent types \ref{sub:dep_abs_relwork}. The approach there is to implement a Monad, \textit{indexed} over additional parameters - in our case pre \& post state, time, environment boundaries,... - and write an interpreter for the operations the Monad supports.
+Although there exists research on bringing dependent types to FRP \cite{sculthorpe_safe_2009}, we follow a fundamentally different approach in implementing ABS with dependent types. Instead of using FRP we follow the approach taken in the papers described in related work on dependent types \ref{sub:dep_abs_relwork}. The approach there is to implement a Monad, \textit{indexed} over additional parameters - in our case pre \& post state, time, environment boundaries,... - and write an interpreter for the operations the Monad supports.
 
-The reason why we chose to follow a different approach was that we came to the conclusion that we would have to invest very much additional work to make dependently typed FRP work and that it would not allow us to encode the properties we want in types. Also it allows us to explore the other fundamental approach to program design in functional programming: implementing a \textit{shallow} encoded EDSL. Although it might seem that we are throwing away a lot of work on \textit{how} to do ABS in pure functional programming, this is not so: the work described in section \ref{sect:how} was a very important step, getting us familiar with the concepts and approaches which will allow us to transfer a lot of insights. %The main difference will be that the system will most likely not be a continuous time-driven but an event-driven one, which allows us to explore even another route of implementation technique to ABS.
+The reason why we chose to follow a different approach was that we came to the conclusion that we would have to invest very much additional work to make dependently typed FRP work and that it would not allow us to encode the properties we want in types. Also it allows us to explore the other fundamental approach to program design in functional programming: implementing a \textit{shallow} encoded EDSL. Although it might seem that we are throwing away a lot of work on \textit{how} to do ABS in pure functional programming, this is not so: the work described in the paper was a very important step, getting us familiar with the concepts and approaches which will allow us to transfer a lot of insights. %The main difference will be that the system will most likely not be a continuous time-driven but an event-driven one, which allows us to explore even another route of implementation technique to ABS.
 
 \paragraph{Implement SIR}
 We implement an agent-based SIR model with an indexed monad, to explore the concepts described in section \ref{sec:dep_absconcepts} in the context of an explanatory model, which has an analytical background.
@@ -70,7 +70,6 @@ I plan on start writing the thesis in April 2019 and hope to finish it at the en
 \clearpage
 
 \begin{landscape}
-	\label{fig:gantt}
 	\centering
 	
 	\begin{figure}

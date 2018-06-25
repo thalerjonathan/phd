@@ -118,7 +118,7 @@ createAgentThread steps env dtVar rng0 a = do
 
 The implementation of the susceptible, infected and recovered agents are the same except that instead of accessing the environment through \textit{get} and \textit{put}, we use \textit{readTVar}, \textit{writeTVar} and \textit{modifyTVar}.
 
-\section{Performance Comparison}
+\section{Performance}
 \label{sect:stm_perf}
 The model we use in the experiments is the agent-based SIR model on a 51 x 51 grid (single infected at center), stepped with $\Delta t = 0.1$ until virtual simulation time $t=100$. We compared three different experiments:
 
@@ -223,7 +223,7 @@ Averaging the total time elapsed of 4 runs (52.300, 52.27, 52.720, 53.740) resul
  
 Averaging the total time elapsed of 4 runs (19.910, 20.290, 20.420, 21.690) results in a mean of 20.578 with standard deviation of 0.772.
 
-\subsection{Performance Discussion}
+\subsection{Discussion}
 We checked the visual outputs and the dynamics and they look qualitatively the same to the reference implementation. Summarizing the performances:
 \begin{center}
   \begin{tabular}{ l || c }
@@ -234,7 +234,7 @@ We checked the visual outputs and the dynamics and they look qualitatively the s
   \end{tabular}
 \end{center}
 
-When we scale up the grid-size for the 4-core version we get the following results, exhibiting a linear performance-scaling as can be seen in Figure \ref{fig:agent_by_duration}:
+When we scale up the grid-size for the 4-core version we get the following results (single run in each case, gives only a rough estimate): 
 \begin{center}
   \begin{tabular}{ c || c }
     Grid-Size & Duration \\ \hline \hline 
@@ -244,42 +244,94 @@ When we scale up the grid-size for the 4-core version we get the following resul
     201 x 201 & 305 sec \\ \hline
     251 x 251 & 530 sec 
     
-    \label{tab:agent_by_duration}
+    \label{tab:agent_by_duration_stm}
   \end{tabular}
 \end{center}
 
+Further we investigated how well STM scales to multiple cores by running the 51 x 51 on 1-4 cores:
+\begin{center}
+  \begin{tabular}{ c || c }
+    Cores & Duration \\ \hline \hline 
+    1 & 52 sec \\ \hline
+    2 & 28 sec \\ \hline
+    3 & 22 sec \\ \hline
+    4 & 21 sec \\ \hline
+    
+    \label{tab:cores_by_duration_stm}
+  \end{tabular}
+\end{center}
+
+\subsubsection{Comparison to IO implementation}
+We also implemented the same model running in the IO Monad and doing the synchronisation all 'manually' aquiring and releasing the locks explicitly. In this case, the environment is shared using an IOVar and the access is synchronised using an MVar. We get the following performance (single run in each case, gives only a rough estimate):
+\ref{fig:agent_by_duration}:
+\begin{center}
+  \begin{tabular}{ c || c }
+    Grid-Size & Duration \\ \hline \hline 
+    51 x 51 & 38 sec \\ \hline
+    101 x 101 & 158 sec \\ \hline
+    151 x 151 & 370 sec \\ \hline
+    201 x 201 & 661 sec \\ \hline
+    251 x 251 & 1154 sec 
+    
+    \label{tab:agent_by_duration_io}
+  \end{tabular}
+\end{center}
+
+The Figure \ref{fig:agent_by_duration} clearly indicates that STM outperforms the low level IO implementation by a substantial factor and scales much smoother.
 \begin{figure}
 	\centering
-	\includegraphics[width=0.6\textwidth, angle=0]{./fig/agents_duration_stm.png}
-	\caption{Plot of Table \ref{tab:agent_by_duration}: agents by duration, exhibiting a clear linear trend in performance scaling.}
+	\includegraphics[width=0.6\textwidth, angle=0]{./fig/agents_duration_stm_io.png}
+	\caption{Comparison of STM performance (Table \ref{tab:agent_by_duration_stm}) and IO performance (Table \ref{tab:agent_by_duration_io})}
 	\label{fig:agent_by_duration}
 \end{figure}
 
+Further we investigated how well IO scales to multiple cores by running the 51 x 51 on 1-4 cores (single run in each case, gives only a rough estimate):
+\begin{center}
+  \begin{tabular}{ c || c }
+    Cores & Duration \\ \hline \hline 
+    1 & 61 sec \\ \hline
+    2 & 45 sec \\ \hline
+    3 & 40 sec \\ \hline
+    4 & 38 sec \\ \hline
+    
+    \label{tab:cores_by_duration_io}
+  \end{tabular}
+\end{center}
 
-Interpretation of the data leads to the following conclusions:
-\begin{enumerate}
-	%\item On a single core, no transaction retries should happen, the results support that assumption.
-	\item Sharing state using an STM variable is much more time- and memory-efficient than using the State Monad.
-	\item Running STM on multiple cores concurrently leads to a significant performance improvement.
-	\item We get a linear performance scaling when using STM, which is remarkable because concurrent problems rarely scale linearly.
-\end{enumerate}
+Comparing the scaling to multiple cores between the IO (Table \ref{tab:cores_by_duration_io}) and STM implementation (Table \ref{tab:cores_by_duration_stm}) shows that STM scales slightly better to multiple cores as can be seen in Figure \ref{core_duration_stm_io}.
 
-\subsection{Comparison to Haskell IO implementation}
-TODO: need to use MVars for locking the access to IORef environment, expect not a linear scaling and lower performance
+The Figure \ref{fig:agent_by_duration} clearly indicates that STM outperforms the low level IO implementation by a substantial factor and scales much smoother.
+\begin{figure}
+	\centering
+	\includegraphics[width=0.6\textwidth, angle=0]{./fig/core_duration_stm_io.png}
+	\caption{Comparison of scaling IO (Table \ref{tab:agent_by_duration_stm}) and STM  (Table \ref{tab:agent_by_duration_stm}) to multiple cores.}
+	\label{fig:core_duration_stm_io}
+\end{figure}
 
-\subsection{Comparison to Java RePast single core}
+
+\subsubsection{Comparison to Java RePast single core}
 To have an idea where the functional implementation is performance-wise compared to the established object-oriented methods, we conducted a performance comparison with a Java implementation using RePast, running on a single-core. All parameters were the same and the simulation was run until virtual time t=100 was reached, on various grid-sizes. Due to the lack of proper timing facilities in RePast we measured the time by hand using a stopwatch. Although this is not very precise it gives a rough estimate and allows a very basic comparison, being precise enough if the difference is larger than 1 second. We measured the following:
 
 \begin{center}
   \begin{tabular}{ l || c | r }
     Grid-Size & Java Repast & 4-Core Haskell \\ \hline \hline 
     51 x 51 & 10 sec & 20 sec \\ \hline
-    101 x 101 & 110 sec & 103 sec \\ \hline
+    101 x 101 & 110 sec & 92 sec \\ \hline
     201 x 201 & 1260 sec & 305 sec \\ \hline
   \end{tabular}
 \end{center}
 
 While on a 51x51 grid the single-core Java RePast version outperforms the 4-core Haskell STM version by about 200\%, the figure is inverted on a 201x201 grid where the 4-core Haskell STM version outperforms the single core Java Repast version by 400\%. We can conclude that the single-core Java RePast version clearly outperforms the Haskell STM 4-core version on small grid-sizes but that the Haskell STM version scales up with increasing grid-sizes and clearly outperforms the RePast version with increasing number of agents.
+
+\subsection{Conclusions}
+Interpretation of the performance data leads to the following conclusions:
+\begin{enumerate}
+	%\item On a single core, no transaction retries should happen, the results support that assumption.
+	\item Sharing state using an STM variable is much more time- and memory-efficient than using the State Monad.
+	\item Running STM on multiple cores concurrently leads to a significant performance improvement.
+	\item STM outperforms low level locking in the IO Monad substantially and scales much smoother.
+	\item We get a linear performance scaling when using STM, which is remarkable because concurrent problems rarely scale linearly.
+\end{enumerate}
 
 \section{Discussion}
 \label{sect:stm_discussion}

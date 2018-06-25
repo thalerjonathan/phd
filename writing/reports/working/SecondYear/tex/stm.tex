@@ -255,7 +255,7 @@ Further we investigated how well STM scales to multiple cores by running the 51 
     1 & 52 sec \\ \hline
     2 & 28 sec \\ \hline
     3 & 22 sec \\ \hline
-    4 & 21 sec \\ \hline
+    4 & 21 sec
     
     \label{tab:cores_by_duration_stm}
   \end{tabular}
@@ -263,7 +263,6 @@ Further we investigated how well STM scales to multiple cores by running the 51 
 
 \subsubsection{Comparison to IO implementation}
 We also implemented the same model running in the IO Monad and doing the synchronisation all 'manually' aquiring and releasing the locks explicitly. In this case, the environment is shared using an IOVar and the access is synchronised using an MVar. We get the following performance (single run in each case, gives only a rough estimate):
-\ref{fig:agent_by_duration}:
 \begin{center}
   \begin{tabular}{ c || c }
     Grid-Size & Duration \\ \hline \hline 
@@ -281,7 +280,7 @@ The Figure \ref{fig:agent_by_duration} clearly indicates that STM outperforms th
 \begin{figure}
 	\centering
 	\includegraphics[width=0.6\textwidth, angle=0]{./fig/agents_duration_stm_io.png}
-	\caption{Comparison of STM performance (Table \ref{tab:agent_by_duration_stm}) and IO performance (Table \ref{tab:agent_by_duration_io})}
+	\caption{Comparison of STM (Table \ref{tab:agent_by_duration_stm}) and IO performance (Table \ref{tab:agent_by_duration_io})}
 	\label{fig:agent_by_duration}
 \end{figure}
 
@@ -292,22 +291,20 @@ Further we investigated how well IO scales to multiple cores by running the 51 x
     1 & 61 sec \\ \hline
     2 & 45 sec \\ \hline
     3 & 40 sec \\ \hline
-    4 & 38 sec \\ \hline
+    4 & 38 sec
     
     \label{tab:cores_by_duration_io}
   \end{tabular}
 \end{center}
 
-Comparing the scaling to multiple cores between the IO (Table \ref{tab:cores_by_duration_io}) and STM implementation (Table \ref{tab:cores_by_duration_stm}) shows that STM scales slightly better to multiple cores as can be seen in Figure \ref{core_duration_stm_io}.
+Comparing the scaling to multiple cores of the IO (Table \ref{tab:cores_by_duration_io}) and STM implementation (Table \ref{tab:cores_by_duration_stm}) shows no significant difference between STM and IO as can be seen in Figure \ref{fig:core_duration_stm_io}.
 
-The Figure \ref{fig:agent_by_duration} clearly indicates that STM outperforms the low level IO implementation by a substantial factor and scales much smoother.
 \begin{figure}
 	\centering
 	\includegraphics[width=0.6\textwidth, angle=0]{./fig/core_duration_stm_io.png}
 	\caption{Comparison of scaling IO (Table \ref{tab:agent_by_duration_stm}) and STM  (Table \ref{tab:agent_by_duration_stm}) to multiple cores.}
 	\label{fig:core_duration_stm_io}
 \end{figure}
-
 
 \subsubsection{Comparison to Java RePast single core}
 To have an idea where the functional implementation is performance-wise compared to the established object-oriented methods, we conducted a performance comparison with a Java implementation using RePast, running on a single-core. All parameters were the same and the simulation was run until virtual time t=100 was reached, on various grid-sizes. Due to the lack of proper timing facilities in RePast we measured the time by hand using a stopwatch. Although this is not very precise it gives a rough estimate and allows a very basic comparison, being precise enough if the difference is larger than 1 second. We measured the following:
@@ -327,10 +324,12 @@ While on a 51x51 grid the single-core Java RePast version outperforms the 4-core
 Interpretation of the performance data leads to the following conclusions:
 \begin{enumerate}
 	%\item On a single core, no transaction retries should happen, the results support that assumption.
-	\item Sharing state using an STM variable is much more time- and memory-efficient than using the State Monad.
-	\item Running STM on multiple cores concurrently leads to a significant performance improvement.
-	\item STM outperforms low level locking in the IO Monad substantially and scales much smoother.
-	\item We get a linear performance scaling when using STM, which is remarkable because concurrent problems rarely scale linearly.
+	\item Running in STM and sharing state using a TVar is much more time- and memory-efficient than running in the State Monad.
+	\item Running STM on multiple cores concurrently leads to a significant performance improvement (for that model).
+	\item STM outperforms the low level locking implementation, running in the IO Monad, substantially and scales much smoother.
+	\item Both STM and IO show same scaling performance on multiple cores, with the most significant improvement when scaling from a single to 2 cores.
+	\item STM on single core is still slower than an object-oriented Java implementation on a single core.
+	\item STM on multiple cores dramatically outperforms the single-core object-oriented Java implementation on a single core on instances with large agent numbers.
 \end{enumerate}
 
 \section{Discussion}

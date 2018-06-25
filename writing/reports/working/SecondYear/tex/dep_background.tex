@@ -10,7 +10,7 @@ Generally, dependent types add the following concepts to pure functional program
 
 	\item Totality and termination - A total function is defined in \cite{brady_type-driven_2017} as: it terminates with a well-typed result or produces a non-empty finite prefix of a well-typed infinite result in finite time. Idris is turing-complete but is able to check the totality of a function under some circumstances but not in general as it would imply that it can solve the halting problem. Other dependently typed languages like Agda or Coq restrict recursion to ensure totality of all their functions - this makes them non turing-complete. All functions in Section \ref{sub:dep_vector} are total, they terminate under all inputs in finite steps.
 
-	\item Types as \textit{constructive} proofs - Because types can depend on any values and can be computed at compile-time, they can be used as constructive proofs (see \ref{sub:dep_foundations}) which must terminate, this means a well-typed program (which is itself a proof) is always terminating which in turn means that it must consist out of total functions. Note that Idris does not restrict us to total functions but we can enforce it through compiler flags. We implement a constructive proof of showing whether two natural numbers are decidable equal in the Section \ref{sub:sub:dep_equalit}.
+	\item Types as \textit{constructive} proofs - Because types can depend on any values and can be computed at compile-time, they can be used as constructive proofs (see \ref{sub:dep_foundations}) which must terminate, this means a well-typed program (which is itself a proof) is always terminating which in turn means that it must consist out of total functions. Note that Idris does not restrict us to total functions but we can enforce it through compiler flags. We implement a constructive proof of showing whether two natural numbers are decidable equal in the Section \ref{sub:dep_equality}.
 \end{enumerate}
 
 \subsection{An example: Vector}
@@ -109,7 +109,7 @@ reverse (elem :: xs) = reverseProof (append (reverse xs) [elem])
 \end{HaskellCode}
 
 \subsection{Equality as type}
-\label{sub:dep_equalit}
+\label{sub:dep_equality}
 On of the most powerful aspects of dependent types is that they allow us to express equality on an unprecedented level. Non-dependently typed languages have only very basic ways of expressing the equality of two elements of same type. Either we use a boolean or another data-structure which can indicate equality or not. Idris supports this type of equality as well through \textit{(==) : Eq ty $\Rightarrow$ ty $\rightarrow$ ty $\rightarrow$ Bool}. The drawback of using a boolean is that, in the end, we don't have a real evidence of equality: it doesn't tell you anything about the relationship between the inputs and the output. Even though the elements might be equal, the compiler has no means of inferring this and we can still make programming mistakes after the equality check because of this lack of compiler support. Even worse, always returning False / True or whether the inputs are \textit{not} equal is a valid implementation of (==), at least as far as the type is concerned.
 
 As an illustrating example we want to write a function which checks if a Vector has a given length. 

@@ -1,21 +1,19 @@
 \section{Introduction}
-In this paper we investigate how agent-based simulation can be approach from a pure functional direction using the programming language Haskell. So far no in-depth research has been conducted on this subject because so far agent-based simulation was always thought of as being best implemented in object-oriented languages like C++, Java and Python. 
-As will become apparent throughout this paper, a pure functional approach needs to approach various concepts of ABS very different which leads to a very different approach to ABS but makes concepts which where blurred and implicit very explicit and clear.
-This papers major contribution is that it reveals these implicit concept and provides a formal view on ABS and a pure functional implementation of these concepts.
+The traditional approach to Agent-Based Simulation (ABS) has so far always been object-oriented techniques, due to the influence of the seminal work of Epstein et al \cite{epstein_growing_1996} in which the authors claim "[..] object-oriented programming to be a particularly natural development environment for Sugarscape specifically and artificial societies generally [..]" (p. 179). This work established the metaphor in the ABS community, that \textit{agents map naturally to objects} \cite{north_managing_2007} which still holds up today.
 
-TODO: paper by James Odell "Objects and Agents Compared"
+In this paper we challenge this metaphor and explore ways of approaching ABS using the functional programming paradigm with the language Haskell. By doing this we expect to leverage the benefits of it % \cite{hudak_history_2007}: %TODO: this is already by far too technical here, we are writing for people who have basically no understanding of FP. higher expressivity through declarative code, being polymorph and explicit about side-effects through monads, more robust and less susceptible to bugs due to explicit data flow and lack of implicit side-effects.
 
-general requirements to ABS 
-- only rely on past
-	-> solved with Arrowized FRP
-- no bugs due to implicitly mutable state
-	-> can be ensured by pure functional programming
-- ruling out external sources of non-determinism / randomness
-	-> can be ensured by pure functional programming
-- correct interaction protocols between agents
-	-> can be ensured by dependent state machines
-- deterministic time-delta
-	-> TODO: can we ensure it through dependent-types at type-level?
-- repeated runs lead to same dynamics 
-	-> can be ensured by pure functional programming
-=> all these can be guaranteed at compile time with pure \& dependently typed functional programming 
+As use-case we employ the famous SugarScape model \cite{epstein_growing_1996} because it can be seen as one of the most famous models in ABS which also laid the foundations of using object-oriented programming.
+
+TODO: shortly describe what we are doing e.g. we introduce pure functional programming concepts and more advanced stuff for implementing ABS
+
+The aim of this paper is to show \textit{how} to implement ABS in functional programming as in Haskell and \textit{why} it is of benefit of doing so. By doing this we give the reader a good understanding of what functional programming is, what the challenges are in applying it to ABS and how we solve these in our approach. 
+
+The paper makes the following contributions:
+
+\begin{itemize}
+	\item first to systematically introduce functional programming concepts to agent-based simulation
+	\item applied property-based testing to ABS
+	\item applied STM to ABS
+	\item effect-polymor implementation: allows to run concurrently or not
+\end{itemize}

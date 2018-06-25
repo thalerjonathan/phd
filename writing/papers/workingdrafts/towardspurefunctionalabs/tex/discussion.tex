@@ -1,6 +1,22 @@
 \section{Discussion}
 Our purely functional approach has a number of fundamental implications which change the way one has to think about agents and ABS in general as it makes a few concepts which were so far hidden or implicitly assumed, now explicit. 
 
+general requirements to ABS 
+- only rely on past
+	-> solved with Arrowized FRP
+- no bugs due to implicitly mutable state
+	-> can be ensured by pure functional programming
+- ruling out external sources of non-determinism / randomness
+	-> can be ensured by pure functional programming
+- correct interaction protocols between agents
+	-> can be ensured by dependent state machines
+- deterministic time-delta
+	-> TODO: can we ensure it through dependent-types at type-level?
+- repeated runs lead to same dynamics 
+	-> can be ensured by pure functional programming
+=> all these can be guaranteed at compile time with pure \& dependently typed functional programming 
+
+
 \subsection{Event-Driven vs. Time-Driven}
 TODO: two different approaches possible: event and time. Our initial FRP implementation (chimera and the Pure functional epidemics paper) follows a strictly time-driven approach. We also investigated an event-driven approach in another paper: 
 

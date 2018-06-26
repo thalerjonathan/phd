@@ -5,10 +5,9 @@ module AgentMonad
 
   , MonadAgent (..)
 
-  , Agent
-  , AgentCont
-  , AgentTX
-
+  --, Agent
+  --, AgentCont
+  
   , AgentDef (..)
   , AgentIn (..)
   , AgentOut (..)
@@ -54,12 +53,12 @@ mkAbsState = ABSState
 -- we would burden the API with details (type of the state in StateT, type of the RandomNumber generator 
 -- in RandT) they may not need e.g. there are models which do not need a global read/write environment
 -- or event don't use randonmness (e.g. SD emulation)
-type AgentCont m o = SF (MonadAgent m) AgentIn (AgentOut m o)
-type Agent m o     = AgentId -> (MonadAgent m) (AgentCont m o)
+type AgentCont m o = SF (StateT ABSState m) AgentIn (AgentOut m o)
+--type Agent m o     = AgentId -> (MonadAgent m) (AgentCont m o)
 
 data AgentDef m o = AgentDef
   { adId       :: !AgentId
-  , adBeh      :: Agent m o
+  --, adBeh      :: Agent m o
   }
 
 data AgentIn = AgentIn { }

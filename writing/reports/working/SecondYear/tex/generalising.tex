@@ -10,7 +10,11 @@ We already showed in the paper found in Appendix \ref{app:pfe}, that purity in a
 The fields of Multi Agent Systems (MAS) and ABS are closely related where ABS has drawn much inspiration from MAS \cite{wooldridge_introduction_2009}, \cite{weiss_multiagent_2013}. It is important to understand that MAS and ABS are two different fields where in MAS the focus is more on technical details, implementing a system of interacting intelligent agents within a highly complex environment with the focus on solving AI problems.
 
 Because in both fields, the concept of interacting agents is of fundamental importance, we expect our research also to be applicable in parts to the field of MAS. Especially the work on dependent types should be very useful there because MAS is very interested in correctness, verification and formally reasoning about a system and their agents, to show that a system follows a formal specifications.
+
 % also distributed MAS systems can make use of dependent typed message passing (but this is really a different topic)
 
 %\section{Distributed Search Algorithms}
-T%ODO: Julie Greensmith mentioned distributed search algorithms as an example where localized entities (speak: agents) are interacting with each other.
+%TODO: Julie Greensmith mentioned distributed search algorithms as an example where localized entities (speak: agents) are interacting with each other.
+
+\section{Going Large-Scale}
+As shown in Chapter \ref{chap:stm}, Software Transactional Memory (STM) is a highly promising approach to implement Agent-Based Simulations on a massively large-scale. Although STM really shines in a type-system which makes effects explicit as Haskell does, it is not exclusive to Haskell and there exist STM implementations in various other languages, including Java and Python. We argue that our research is applicable to the established object-oriented approach to ABS as well. We hope that it might spark a new interest to investigate the use of STM in Java and Python to implement massively large-scale Agent-Based Simulation.

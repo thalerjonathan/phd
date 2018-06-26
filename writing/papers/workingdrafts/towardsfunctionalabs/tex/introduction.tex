@@ -1,9 +1,9 @@
 \section{Introduction}
-The traditional approach to Agent-Based Simulation (ABS) has so far always been object-oriented techniques, due to the influence of the seminal work of Epstein et al \cite{epstein_growing_1996} in which the authors claim "[..] object-oriented programming to be a particularly natural development environment for Sugarscape specifically and artificial societies generally [..]" (p. 179). This work established the metaphor in the ABS community, that \textit{agents map naturally to objects} \cite{north_managing_2007} which still holds up today.
+The traditional approach to Agent-Based Simulation (ABS) has so far always been object-oriented techniques, due to the influence of the seminal work of Epstein et al \cite{epstein_growing_1996} in which the authors claim "[..] object-oriented programming to be a particularly natural development environment for Sugarscape specifically and artificial societies generally [..]" (p. 179). This work established the metaphor in the ABS community, that \textit{agents map naturally to objects} \citep{north_managing_2007} which still holds up today.
 
-In this paper we challenge this metaphor and explore ways of approaching ABS using the functional programming paradigm with the language Haskell. By doing this we expect to leverage the benefits of it % \cite{hudak_history_2007}: %TODO: this is already by far too technical here, we are writing for people who have basically no understanding of FP. higher expressivity through declarative code, being polymorph and explicit about side-effects through monads, more robust and less susceptible to bugs due to explicit data flow and lack of implicit side-effects.
+In this paper we challenge this metaphor and explore ways of approaching ABS using the functional programming paradigm with the language Haskell. By doing this we expect to leverage the benefits of it % \citep{hudak_history_2007}: %TODO: this is already by far too technical here, we are writing for people who have basically no understanding of FP. higher expressivity through declarative code, being polymorph and explicit about side-effects through monads, more robust and less susceptible to bugs due to explicit data flow and lack of implicit side-effects.
 
-As use-case we employ the famous SugarScape model \cite{epstein_growing_1996} because it can be seen as one of the most famous models in ABS which also laid the foundations of using object-oriented programming.
+As use-case we employ the famous SugarScape model \citep{epstein_growing_1996} because it can be seen as one of the most famous models in ABS which also laid the foundations of using object-oriented programming.
 
 TODO: shortly describe what we are doing e.g. we introduce pure functional programming concepts and more advanced stuff for implementing ABS
 
@@ -11,9 +11,8 @@ The aim of this paper is to show \textit{how} to implement ABS in functional pro
 
 The paper makes the following contributions:
 
-\begin{itemize}
-	\item first to systematically introduce functional programming concepts to agent-based simulation
-	\item applied property-based testing to ABS
-	\item applied STM to ABS
-	\item effect-polymor implementation: allows to run concurrently or not
-\end{itemize}
+\begin{itemize*}
+	\item This paper is the first to \textit{systematically} introduce the functional programming paradigm, as in Haskell, to Agent-Based Simulation, identifying its benefits, difficulties and drawbacks. The introduced concepts allow to implement simulations which are guaranteed to be reproducible, have less sources of bugs, are easier to verify and thus more likely to be correct which is of paramount importance in high-impact scientific computing. 
+	\item We show how functional ABS can be scaled up to massively large-scale without the problems of low level concurrent programming using Software Transactional Memory (STM). Although there exist STM implementations in non-functional languages like Java and Python, due to the nature of Haskells type-system, the use of STM has unique benefits in this setting.
+	\item Further we introduce a powerful and very expressive approach to testing ABS implementations using property-based testing. This allows a much more powerful way of expressing tests, shifting from unit-testing towards specification-based testing. Although property-based testing has been brought to non-functional languages like Java and Python as well, it has its origins in Haskell and it is here where it truly shines.
+\end{itemize*}

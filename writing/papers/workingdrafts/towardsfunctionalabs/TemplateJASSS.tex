@@ -30,15 +30,13 @@
 
 % title, authors and affiliations	
 
-\title{The Agent's new Cloths \\ Towards functional Agent-Based Simulation}
+\title{Article title here}
 
 %All authors should be included in the submission. To anonymise the submission, set to 'true' the \reviewcopy command below. However, before submitting  you can check that all the informations you entered are correct by temporarily setting it to 'false'. Please remember to set it back to 'true' before the submission.
 \reviewcopy{true} 
 
-\author[1]{Jonathan Thaler}
-\author[1]{Peer-Olaf Siebers}
-\author[1]{Thorsten Altenkirch}
-\affil[1]{University of Nottingham, 7301 Wollaton Rd, Nottingham, NG8 1BB, United Kingdom}
+\author[1]{First author here}
+\affil[1]{Affiliation of the first author here}
 
 % Subsequent author should be included using the following template. You can add more in case of need, just remember to appropriately set the corresponding number.  Please check the the authblk package documentation  in case of doubts
 
@@ -64,7 +62,7 @@
 %\affil[1]{Affiliation}
 
 % email for the corresponding author
-\email{jonathan.thaler@nottingham.ac.uk}
+\email{Corresponding author email here}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -80,16 +78,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
 
 % EXTRA PACKAGES. Please place here any extra package you need along with your own command definitions
-%\usepackage{graphicx}
-%\usepackage{xcolor}
-%\usepackage{booktabs}
-%\usepackage{amsmath}
-%\usepackage{ifthen}
-%\usepackage{geometry}
-%\usepackage{authblk}
-%\usepackage{natbib}
-%\usepackage{endnotes}
-%\usepackage{minted}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -102,18 +90,11 @@
 % Abstract and keywords
 
 \begin{abstract}
-TODO: implement MSF SugarScape
-TODO: implement STM Sugarscape
-
-TODO: parallelism for free because all isolated e.g. running multiple replications or parameter-variations
-
-TODO: it is paramount not to write against the established approach but for the functional approach. not to try to come up with arguments AGAINST the object-oriented approach but IN FAVOUR for the functional approach. In the end: dont tell the people that what they do sucks and that i am the saviour with my new method but: that i have a new method which might be of interest as it has a few nice advantages.
-
-So far, the pure functional paradigm hasn't got much attention in Agent-Based Simulation (ABS) where the dominant programming paradigm is object-orientation, with Java, Python and C++ being its most prominent representatives. We claim that pure functional programming using Haskell is very well suited to implement complex, real-world agent-based models and brings with it a number of benefits. To show that we implemented the seminal Sugarscape model in Haskell in our library \textit{FrABS} which allows to do ABS the first time in the pure functional programming language Haskell. To achieve this we leverage the basic concepts of ABS with functional reactive programming using Yampa. The result is a surprisingly fresh approach to ABS as it allows to incorporate discrete time-semantics similar to Discrete Event Simulation and continuous time-flows as in System Dynamics. In this paper we will show the novel approach of functional reactive ABS through the example of the SIR model, discuss implications, benefits and best practices.
+Add your abstract here
 \end{abstract}
 
 \begin{keywords}
-Agent-Based Simulation, Functional Programming, Haskell
+Add your keywords here separated by commas
 \end{keywords}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -124,19 +105,11 @@ Agent-Based Simulation, Functional Programming, Haskell
 
 % MAIN TEXT
 
-\input{./tex/introduction.tex}
+\section{Test Section 1}
+This is a test section.
 
-%\input{./tex/background.tex}
-
-%\input{./tex/absDefinition.tex}
-
-%\input{./tex/functionalView.tex}
-
-%\input{./tex/examples.tex}
-
-%\input{./tex/discussion.tex}
-
-%\input{./tex/conclusions.tex}
+\section{Test Section 2}
+This is a test section.
 
 % Place the main text here. Please use only \section, \subsection, and \subsubsection sectioning commands to structure your text. Do NOT use lower sectioning commands, including \paragraph and \subparagraph
 
@@ -207,8 +180,7 @@ Agent-Based Simulation, Functional Programming, Haskell
 % Please upload the bib file (not just the bbl one) when submitting.
  
 \bibliographystyle{jasss}
-%\bibliography{} % Please set the right name for your bib file
-\bibliography{../../../references/phdReferences.bib}
+\bibliography{} % Please set the right name for your bib file
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

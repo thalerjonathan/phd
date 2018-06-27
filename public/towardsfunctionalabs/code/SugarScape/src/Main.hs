@@ -1,5 +1,6 @@
 module Main where
 
+import            Data.Maybe
 import            Data.IORef
 import            System.Random
 
@@ -10,10 +11,10 @@ import            FRP.BearRiver
 import qualified  Graphics.Gloss as GLO
 import            Graphics.Gloss.Interface.IO.Simulate
 
-import AgentMonad
-import Init
-import Model
-import Renderer
+import            AgentMonad
+import            Init
+import            Model
+import            Renderer
 
 type SimStepOut = (Time, SugEnvironment, [AgentObservable SugAgentObservable])
 
@@ -34,23 +35,26 @@ main = do
       agentCount = 400
       envSize    = (50, 50)
 
+      -- initial RNG
       g0 = mkStdGen rngSeed
-  
+      -- initial agents and environment
       ((initAs, initEnv), g) = runRand (createSugarScape agentCount envSize) g0
-
+      -- initial model for Gloss = output of each simulation step to be rendered
       initOut = (0, initEnv, [])
-
+      -- initial simulation state
       initSimState = mkSimState (simStepSF initAs) mkAbsState initEnv g
 
+  -- intiialize IORef which holds last simulation state
   outRef <- newIORef initSimState
 
+  -- run stimulation, driven by Gloss
   simulateIO 
-    (displayGlossWindow winTitle winSize)
-    black
-    frequency
-    initOut
-    (modelToPicture winSize)
-    (renderStep dt outRef)
+    (displayGlossWindow winTitle winSize) -- window title and size
+    black                     -- background
+    frequency                 -- how many steps of the simulation to calculate per second (roughly, depends on rendering performance)
+    initOut                   -- initial model = output of each simulation step to be rendered
+    (modelToPicture winSize)  -- model-to-picture function
+    (renderStep dt outRef)    -- 
 
   return ()
 
@@ -71,7 +75,6 @@ renderStep :: RandomGen g
            -> SimStepOut
            -> IO SimStepOut
 renderStep dt ssRef _ _ _ = do
-  putStrLn "renderStep"
   ss <- readIORef ssRef
   (ss', out) <- simulationStep dt ss
   writeIORef ssRef ss'
@@ -104,11 +107,16 @@ simStepSF :: RandomGen g
           => [SugAgent g]
           -> SF (SugAgentMonadT g) () [AgentObservable SugAgentObservable]
 simStepSF sfs = MSF $ \_ -> do
+  -- TODO: shuffle agent sfs
+  -- TODO: keep track of agent-ids
+  
   res <- mapM (`unMSF` AgentIn) sfs
 
   -- TODO: agent creation / destruction goes in here
 
-  let obs = fmap (\(ao, _) -> (0, aoObservable ao)) res
+  let mobs = fmap (\(ao, _) -> aoObservable ao) res
+      ais  = replicate (length sfs) 0 
+      obs  = zip ais (catMaybes mobs) 
       sfs' = fmap snd res
       ct   = simStepSF sfs'
 

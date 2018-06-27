@@ -1,3 +1,4 @@
+{-# LANGUAGE Arrows #-}
 module Environment 
   (
     cellUnoccupied
@@ -8,14 +9,17 @@ module Environment
 
   , diffusePolution
 
-  -- , SugEnvironmentBehaviour
+  , sugEnvironment
   ) where
-
-import Control.Monad
-import Control.Monad.Trans.State
 
 import Data.Maybe
 
+import Control.Monad
+import Control.Monad.Random
+import Control.Monad.State.Strict
+import FRP.BearRiver
+
+import AgentMonad
 import Discrete
 import Model
 import Utils
@@ -29,19 +33,24 @@ cellOccupied cell = isJust $ sugEnvOccupier cell
 cellUnoccupied :: SugEnvCell -> Bool
 cellUnoccupied = not . cellOccupied
 
-diffusePolution :: Double -> State SugEnvironment ()
+diffusePolution :: RandomGen g
+                => Double 
+                -> StateT SugEnvironment (Rand g) ()
 diffusePolution t 
     | timeReached && _enablePolution_ = updateCellsM (\c -> c { sugEnvPolutionLevel = 0.0 })
     | otherwise = return ()
   where
     timeReached = mod (floor t) diffusePolutionTime == 0
 
-regrowSugar :: Double -> State SugEnvironment ()
+regrowSugar :: RandomGen g
+            => Double 
+            -> StateT SugEnvironment (Rand g) ()
 regrowSugar rate
     | rate < 0 = regrowSugarToMax
     | otherwise = regrowSugarByRate
   where
-    regrowSugarByRate :: State SugEnvironment ()
+    regrowSugarByRate :: RandomGen g
+                      => StateT SugEnvironment (Rand g) ()
     regrowSugarByRate  
       = updateCellsM (\c -> 
         c { sugEnvSugarLevel = 
@@ -49,15 +58,18 @@ regrowSugar rate
                   (sugEnvSugarCapacity c)
                   (sugEnvSugarLevel c) + rate})
 
-    regrowSugarToMax :: State SugEnvironment ()
+    regrowSugarToMax :: StateT SugEnvironment (Rand g) ()
     regrowSugarToMax = updateCellsM (\c -> c { sugEnvSugarLevel = sugEnvSugarCapacity c})
 
-regrowSpice :: Double -> State SugEnvironment ()
+regrowSpice :: RandomGen g
+            => Double
+            -> StateT SugEnvironment (Rand g) ()
 regrowSpice rate
     | rate < 0 = regrowSpiceToMax
     | otherwise = regrowSpiceByRate
   where
-    regrowSpiceByRate :: State SugEnvironment ()
+    regrowSpiceByRate :: RandomGen g 
+                      => StateT SugEnvironment (Rand g) ()
     regrowSpiceByRate 
       = updateCellsM (\c -> 
         c { sugEnvSpiceLevel = 
@@ -65,13 +77,21 @@ regrowSpice rate
                   (sugEnvSpiceCapacity c)
                   (sugEnvSpiceLevel c) + rate})
 
-    regrowSpiceToMax ::  State SugEnvironment ()
-    regrowSpiceToMax = updateCellsM (\c -> c { sugEnvSpiceLevel = sugEnvSpiceCapacity c })
+    regrowSpiceToMax :: RandomGen g
+                     => StateT SugEnvironment (Rand g) ()
+    regrowSpiceToMax 
+      = updateCellsM (\c -> c { sugEnvSpiceLevel = sugEnvSpiceCapacity c })
 
-regrowSugarByRateAndRegion :: Discrete2dDimension -> Double -> State SugEnvironment ()
-regrowSugarByRateAndRegion range rate = updateCellsWithCoordsM (regrowCell range)                        
+regrowSugarByRateAndRegion :: RandomGen g
+                           => Discrete2dDimension 
+                           -> Double 
+                           -> StateT SugEnvironment (Rand g) ()
+regrowSugarByRateAndRegion range rate 
+    = updateCellsWithCoordsM (regrowCell range)                        
   where
-    regrowCell :: Discrete2dDimension -> (Discrete2dCoord, SugEnvCell) -> SugEnvCell
+    regrowCell :: Discrete2dDimension 
+               -> (Discrete2dCoord, SugEnvCell) 
+               -> SugEnvCell
     regrowCell (fromY, toY) ((_, y), c)
       | y >= fromY && y <= toY = c {
                                       sugEnvSugarLevel = 
@@ -80,10 +100,16 @@ regrowSugarByRateAndRegion range rate = updateCellsWithCoordsM (regrowCell range
                                               (sugEnvSugarLevel c) + rate}
       | otherwise = c
 
-regrowSpiceByRateAndRegion :: Discrete2dDimension -> Double -> State SugEnvironment ()
-regrowSpiceByRateAndRegion range rate = updateCellsWithCoordsM (regrowCell range)
+regrowSpiceByRateAndRegion :: RandomGen g 
+                           => Discrete2dDimension 
+                           -> Double 
+                           -> StateT SugEnvironment (Rand g) ()
+regrowSpiceByRateAndRegion range rate 
+    = updateCellsWithCoordsM (regrowCell range)
   where
-    regrowCell :: Discrete2dDimension -> (Discrete2dCoord, SugEnvCell) -> SugEnvCell
+    regrowCell :: Discrete2dDimension
+               -> (Discrete2dCoord, SugEnvCell) 
+               -> SugEnvCell
     regrowCell (fromY, toY) ((_, y), c)
       | y >= fromY && y <= toY = c {
                                       sugEnvSpiceLevel = 
@@ -92,7 +118,9 @@ regrowSpiceByRateAndRegion range rate = updateCellsWithCoordsM (regrowCell range
                                               (sugEnvSpiceLevel c) + rate}
       | otherwise = c
 
-regrowSeasons :: Double -> State SugEnvironment ()
+regrowSeasons :: RandomGen g 
+              => Double 
+              -> StateT SugEnvironment (Rand g) ()
 regrowSeasons t = do
     (_, maxY) <- dimensionsDisc2dM
     
@@ -116,20 +144,19 @@ regrowSeasons t = do
     spiceSummerRate = spiceGrowbackUnits / summerSeasonSpiceGrowbackRatio
     spiceWinterRate = spiceGrowbackUnits / winterSeasonSpiceGrowbackRatio 
 
-regrowRates :: State SugEnvironment ()
+regrowRates :: RandomGen g 
+            => StateT SugEnvironment (Rand g) ()
 regrowRates = regrowSugar sugarGrowbackUnits >> when _enableSpice_ (regrowSpice spiceGrowbackUnits)
 
-regrow :: Double -> State SugEnvironment ()
+regrow :: RandomGen g 
+       => Double 
+       -> StateT SugEnvironment (Rand g) ()
 regrow t = ifThenElse _enableSeasons_ (regrowSeasons t) regrowRates
 
-{-
-behaviourM :: SugEnvironmentMonadicBehaviour
-behaviourM time = 
-    do
-        diffusePolution time
-        regrow time
-        return $ trace ("Time = " ++ show time) ()
-
-SugEnvironmentBehaviour :: SugEnvironmentBehaviour
-SugEnvironmentBehaviour = environmentMonadic behaviourM
--}
+sugEnvironment :: RandomGen g 
+               => SugAgent g
+sugEnvironment = proc _ -> do
+  t <- time -< ()
+  arrM (lift . lift . diffusePolution) -< t
+  arrM (lift . lift . regrow) -< t
+  returnA -< agentOutObservable Nothing

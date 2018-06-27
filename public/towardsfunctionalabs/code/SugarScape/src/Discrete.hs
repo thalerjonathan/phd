@@ -75,7 +75,7 @@ import Data.Array.IArray
 import Data.List
 import Data.Maybe
 import Control.Monad.Random
-import Control.Monad.Trans.State
+import Control.Monad.State.Strict
 
 type Discrete2dDimension        = (Int, Int)
 type Discrete2dCoord            = Discrete2dDimension
@@ -120,13 +120,15 @@ createDiscrete2d d@(xLimit, yLimit) n w cs =
 dimensionsDisc2d :: Discrete2d c -> Discrete2dDimension
 dimensionsDisc2d = envDisc2dDims
 
-dimensionsDisc2dM :: State (Discrete2d c) Discrete2dDimension
+dimensionsDisc2dM :: Monad m
+                  => StateT (Discrete2d c) m Discrete2dDimension
 dimensionsDisc2dM = state (\e -> (envDisc2dDims e, e))
 
 allCellsWithCoords :: Discrete2d c -> [Discrete2dCell c]
 allCellsWithCoords e = assocs $ envDisc2dCells e
 
-updateCellsM :: (c -> c) -> State (Discrete2d c) ()
+updateCellsM :: Monad m
+             => (c -> c) -> StateT (Discrete2d c) m ()
 updateCellsM f = state (\e -> ((), updateCells f e))
 
 updateCells :: (c -> c) -> Discrete2d c -> Discrete2d c
@@ -135,8 +137,9 @@ updateCells f e = e { envDisc2dCells = ec' }
     ec = envDisc2dCells e
     ec' = amap f ec
 
-updateCellsWithCoordsM :: (Discrete2dCell c -> c) 
-                       -> State (Discrete2d c) ()
+updateCellsWithCoordsM :: Monad m
+                       => (Discrete2dCell c -> c) 
+                       -> StateT (Discrete2d c) m ()
 updateCellsWithCoordsM f = state (\e -> ((), updateCellsWithCoords f e))
 
 updateCellsWithCoords :: (Discrete2dCell c -> c) 

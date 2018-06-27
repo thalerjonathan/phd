@@ -11,6 +11,7 @@ import Agent
 import AgentMonad
 import Common
 import Discrete
+import Environment
 import Model
 
 -- TODO: init and add an environment agent
@@ -39,7 +40,9 @@ createSugarScape agentCount dims@(_dx, _dy) = do
               WrapBoth
               cells'
 
-  return (as, e)
+  let eb = sugEnvironment
+
+  return (eb : as, e)
 
 addSugar :: [(Discrete2dCoord, SugEnvCell)] 
          -> [(Discrete2dCoord, SugEnvCell)]

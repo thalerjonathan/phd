@@ -68,10 +68,10 @@ data AgentIn = AgentIn { }
 data AgentOut m o = AgentOut 
   { aoKill       :: !(Event ())
   , aoCreate     :: ![AgentDef m o]
-  , aoObservable :: !o
+  , aoObservable :: !(Maybe o)
   }
 
-agentOutObservable :: o -> AgentOut m o
+agentOutObservable :: Maybe o -> AgentOut m o
 agentOutObservable o = AgentOut 
   { aoKill       = NoEvent
   , aoCreate     = []

@@ -51,7 +51,25 @@ chapterII _aid _ain _age = do
   -- 3 lifts: drawing RNG
   _re <- lift $ lift $ lift $ randomExpM 1
 
-  return $ agentOutObservable $ sugObservableFromState s 
+  return $ agentOutObservable $ Just $ sugObservableFromState s 
+
+{-
+chapterII :: SugEnvironment 
+          -> Double 
+          -> SugarScapeAgentIn 
+          -> State SugAgentOut SugEnvironment
+chapterII e age ain = do     
+  e0 <- agentAgeingM age e
+  ifThenElseM 
+    isDeadM
+    (return e0)
+    $ do
+      e1 <- agentMetabolismM e0
+      ifThenElseM 
+        isDeadM
+        (return e1)
+        (agentMoveM e1)
+-}
 
 {-
 agentCellOnCoordM :: SugEnvironment -> State SugAgentOut (Discrete2dCoord, SugEnvCell)

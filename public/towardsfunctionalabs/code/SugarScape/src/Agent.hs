@@ -17,7 +17,7 @@ import AgentMonad
 import Common
 --import Environment
 import Model
-import Random
+-- import Random
 
 ------------------------------------------------------------------------------------------------------------------------
 sugAgent :: RandomGen g 
@@ -29,15 +29,13 @@ sugAgent aid s0 = feedback s0 (proc (ain, s) -> do
   (ao, s') <- arrM (\(age, ain, s) -> lift $ runStateT (chapterII aid ain age) s) -< (age, ain, s)
   returnA -< (ao, s'))
 
-------------------------------------------------------------------------------------------------------------------------
--- Chapter II: Life And Death On The Sugarscape
-------------------------------------------------------------------------------------------------------------------------
-chapterII :: RandomGen g
-          => AgentId
-          -> SugAgentIn
-          -> Double
-          -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
-chapterII _aid _ain _age = do
+{- HOW TO ACCESS THE STACK
+howTo :: RandomGen g
+      => AgentId
+      -> SugAgentIn
+      -> Double
+      -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
+howTo _aid _ain _age = do
   -- no lift: getting SugAgentState
   s <- get
 
@@ -52,23 +50,47 @@ chapterII _aid _ain _age = do
   _re <- lift $ lift $ lift $ randomExpM 1
 
   return $ agentOutObservable $ Just $ sugObservableFromState s 
+-}
+
+returnObservable :: RandomGen g
+                 => StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
+returnObservable 
+  = get >>= \s -> return $ agentOutObservable $ Just $ sugObservableFromState s 
+
+------------------------------------------------------------------------------------------------------------------------
+-- Chapter II: Life And Death On The Sugarscape
+------------------------------------------------------------------------------------------------------------------------
+chapterII :: RandomGen g 
+          => AgentId
+          -> SugAgentIn
+          -> Time
+          -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
+chapterII _aid _ain _age = returnObservable
 
 {-
-chapterII :: SugEnvironment 
-          -> Double 
-          -> SugarScapeAgentIn 
-          -> State SugAgentOut SugEnvironment
-chapterII e age ain = do     
-  e0 <- agentAgeingM age e
-  ifThenElseM 
-    isDeadM
-    (return e0)
+  agentAgeing age
+  ifThenElse
+    isDead
+    returnObservable
     $ do
       e1 <- agentMetabolismM e0
       ifThenElseM 
         isDeadM
-        (return e1)
+        returnObservable
         (agentMoveM e1)
+
+agentAgeing :: Time 
+            -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
+agentAgeing newAge = do
+  updateAgentStateM (\s -> s { sugAgAge = newAge })
+
+  ifThenElseM
+      dieFromAgeM
+      (do
+          birthNewAgentM e
+          passWealthOnM
+          agentDiesM e)
+      (return e)
 -}
 
 {-
@@ -200,17 +222,7 @@ agentHarvestCellM cellCoord e = do
   -- NOTE: at the moment harvesting SPICE does not influence the polution
   return $ poluteCell (sugarLevelCell * polutionHarvestFactor ) cellCoord e'
 
-agentAgeingM :: Double -> SugEnvironment -> State SugAgentOut SugEnvironment
-agentAgeingM newAge e = do
-  updateAgentStateM (\s -> s { sugAgAge = newAge })
 
-  ifThenElseM
-      dieFromAgeM
-      (do
-          birthNewAgentM e
-          passWealthOnM
-          agentDiesM e)
-      (return e)
 
 birthNewAgentM :: SugEnvironment -> State SugAgentOut ()
 birthNewAgentM e

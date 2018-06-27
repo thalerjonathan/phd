@@ -17,6 +17,7 @@ module AgentMonad
   , mkAbsState
 
   , agentOutObservable
+  , isDead
   ) where
 
 import Control.Monad.State.Strict
@@ -77,3 +78,6 @@ agentOutObservable o = AgentOut
   , aoCreate     = []
   , aoObservable = o
   }
+
+isDead :: AgentOut m o -> Bool
+isDead ao = isEvent $ aoKill ao

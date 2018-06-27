@@ -18,6 +18,7 @@ import Common
 --import Environment
 import Model
 -- import Random
+import Utils
 
 ------------------------------------------------------------------------------------------------------------------------
 sugAgent :: RandomGen g 
@@ -52,10 +53,15 @@ howTo _aid _ain _age = do
   return $ agentOutObservable $ Just $ sugObservableFromState s 
 -}
 
+updateAgentState :: RandomGen g
+                 => (SugAgentState -> SugAgentState)
+                 -> StateT SugAgentState (SugAgentMonadT g) ()
+updateAgentState = modify
+
 returnObservable :: RandomGen g
                  => StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
 returnObservable 
-  = get >>= \s -> return $ agentOutObservable $ Just $ sugObservableFromState s 
+  = get >>= \s -> return $ agentOutObservable $ sugObservableFromState s 
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Chapter II: Life And Death On The Sugarscape
@@ -65,33 +71,45 @@ chapterII :: RandomGen g
           -> SugAgentIn
           -> Time
           -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
-chapterII _aid _ain _age = returnObservable
+chapterII _aid _ain age = do
+  ao <- agentAgeing age
 
-{-
-  agentAgeing age
   ifThenElse
-    isDead
+    (isDead ao)
+    (return ao)
     returnObservable
+    {-
     $ do
       e1 <- agentMetabolismM e0
       ifThenElseM 
         isDeadM
         returnObservable
         (agentMoveM e1)
+-}
 
-agentAgeing :: Time 
+agentAgeing :: RandomGen g 
+            => Time 
             -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
 agentAgeing newAge = do
-  updateAgentStateM (\s -> s { sugAgAge = newAge })
+  updateAgentState (\s -> s { sugAgAge = newAge })
 
   ifThenElseM
-      dieFromAgeM
-      (do
-          birthNewAgentM e
-          passWealthOnM
-          agentDiesM e)
-      (return e)
+    dieFromAge
+    (return $ kill agentOut)
+    returnObservable
+    {-
+    (do
+        birthNewAgentM e
+        passWealthOnM
+        agentDiesM e)
 -}
+
+dieFromAge :: Monad m
+           => StateT SugAgentState m Bool
+dieFromAge = do
+  age <- gets sugAgAge
+  maxAge <- gets sugAgMaxAge
+  return $ age > maxAge
 
 {-
 agentCellOnCoordM :: SugEnvironment -> State SugAgentOut (Discrete2dCoord, SugEnvCell)
@@ -240,12 +258,6 @@ birthNewAgentM e
           (cellOccupied c) 
           findUnoccpiedRandomPositionM 
           (return coord)
-
-dieFromAgeM :: State SugAgentOut Bool
-dieFromAgeM = do
-  age <- agentStateFieldM sugAgAge
-  maxAge <- agentStateFieldM sugAgMaxAge
-  return $ age > maxAge
 
 ------------------------------------------------------------------------------------------------------------------------
 -- CHAPTER III: Sex, Culture, And Conflict: The Emergence Of History

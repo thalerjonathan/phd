@@ -159,4 +159,4 @@ sugEnvironment = proc _ -> do
   t <- time -< ()
   arrM (lift . lift . diffusePolution) -< t
   arrM (lift . lift . regrow) -< t
-  returnA -< agentOutObservable Nothing
+  returnA -< agentOut

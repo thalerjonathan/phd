@@ -4,7 +4,7 @@ module AgentMonad
   (
     AgentId
 
-  , MonadAgent (..)
+  --, MonadAgent (..)
   , ABSState (..)
   
   , Agent
@@ -16,8 +16,11 @@ module AgentMonad
 
   , mkAbsState
 
+  , agentOut
   , agentOutObservable
+
   , isDead
+  , kill
   ) where
 
 import Control.Monad.State.Strict
@@ -25,14 +28,10 @@ import FRP.BearRiver
 
 type AgentId = Int
 
+{-
 class (Monad m) => MonadAgent m where
   nextAgentId :: m AgentId
   now :: m Time
-
-data ABSState = ABSState
-  { absNextId   :: AgentId
-  , absTime     :: Time
-  }
 
 instance (MonadAgent m) => MonadAgent (StateT ABSState m) where
   -- nextAgentId :: m AgentId
@@ -43,19 +42,13 @@ instance (MonadAgent m) => MonadAgent (StateT ABSState m) where
 
   -- now :: m Time
   now = gets absTime
+-}
 
-mkAbsState :: ABSState
-mkAbsState = ABSState 
-  { absNextId = 0
-  , absTime   = 0
+data ABSState = ABSState
+  { absNextId   :: AgentId
+  , absTime     :: Time
   }
 
--- an agent is simply a SF with a generic computational context, which depends on the model
--- note that it is important that we do not fix m e.g. to StateT to allow an environment
--- or adding a RandT for allowing randomness but we leave this to the model implementer, otherwise
--- we would burden the API with details (type of the state in StateT, type of the RandomNumber generator 
--- in RandT) they may not need e.g. there are models which do not need a global read/write environment
--- or event don't use randonmness (e.g. SD emulation)
 type AgentT m  = (StateT ABSState m)
 type Agent m o = SF (AgentT m) AgentIn (AgentOut m o)
 
@@ -72,12 +65,27 @@ data AgentOut m o = AgentOut
   , aoObservable :: !(Maybe o)
   }
 
-agentOutObservable :: Maybe o -> AgentOut m o
-agentOutObservable o = AgentOut 
+mkAbsState :: ABSState
+mkAbsState = ABSState 
+  { absNextId = 0
+  , absTime   = 0
+  }
+
+agentOut :: AgentOut m o
+agentOut = agentOutAux Nothing
+
+agentOutObservable :: o -> AgentOut m o
+agentOutObservable o = agentOutAux $ Just o
+
+agentOutAux :: Maybe o -> AgentOut m o
+agentOutAux mo = AgentOut 
   { aoKill       = NoEvent
   , aoCreate     = []
-  , aoObservable = o
+  , aoObservable = mo
   }
 
 isDead :: AgentOut m o -> Bool
 isDead ao = isEvent $ aoKill ao
+
+kill :: AgentOut m o -> AgentOut m o
+kill ao = ao { aoKill = Event () }

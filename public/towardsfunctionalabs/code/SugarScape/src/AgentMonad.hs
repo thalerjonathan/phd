@@ -1,18 +1,22 @@
 {-# LANGUAGE FlexibleInstances #-}
+
 module AgentMonad
   (
     AgentId
 
   , MonadAgent (..)
-
-  --, Agent
-  --, AgentCont
+  , ABSState (..)
+  
+  , Agent
+  , AgentT
   
   , AgentDef (..)
   , AgentIn (..)
   , AgentOut (..)
 
   , mkAbsState
+
+  , agentOutObservable
   ) where
 
 import Control.Monad.State.Strict
@@ -39,8 +43,6 @@ instance (MonadAgent m) => MonadAgent (StateT ABSState m) where
   -- now :: m Time
   now = gets absTime
 
--- type AgentMonadState m e = StateT (ABSState e) m
-
 mkAbsState :: ABSState
 mkAbsState = ABSState 
   { absNextId = 0
@@ -53,12 +55,12 @@ mkAbsState = ABSState
 -- we would burden the API with details (type of the state in StateT, type of the RandomNumber generator 
 -- in RandT) they may not need e.g. there are models which do not need a global read/write environment
 -- or event don't use randonmness (e.g. SD emulation)
-type AgentCont m o = SF (StateT ABSState m) AgentIn (AgentOut m o)
---type Agent m o     = AgentId -> (MonadAgent m) (AgentCont m o)
+type AgentT m  = (StateT ABSState m)
+type Agent m o = SF (AgentT m) AgentIn (AgentOut m o)
 
 data AgentDef m o = AgentDef
   { adId       :: !AgentId
-  --, adBeh      :: Agent m o
+  , adBeh      :: Agent m o
   }
 
 data AgentIn = AgentIn { }
@@ -66,5 +68,12 @@ data AgentIn = AgentIn { }
 data AgentOut m o = AgentOut 
   { aoKill       :: !(Event ())
   , aoCreate     :: ![AgentDef m o]
-  , aoObservable :: !(Maybe o)             -- OPTIONAL observable state
+  , aoObservable :: !o
+  }
+
+agentOutObservable :: o -> AgentOut m o
+agentOutObservable o = AgentOut 
+  { aoKill       = NoEvent
+  , aoCreate     = []
+  , aoObservable = o
   }

@@ -4,20 +4,20 @@ module Init
   ) where
 
 import Control.Monad.Random
-import FRP.Chimera
 
 import Data.List
 
 import Agent
+import AgentMonad
 import Common
+import Discrete
 import Model
-
 
 -- TODO: init and add an environment agent
 createSugarScape :: RandomGen g
                  => Int 
                  -> Discrete2dDimension 
-                 -> Rand g ([SugAgentDef g], SugEnvironment)
+                 -> Rand g ([SugAgent g], SugEnvironment)
 createSugarScape agentCount dims@(_dx, _dy) = do
   -- let hdx = floor $ fromIntegral dx * 0.5
   -- let hdy = floor $ fromIntegral dy * 0.5
@@ -26,7 +26,7 @@ createSugarScape agentCount dims@(_dx, _dy) = do
   --randCoords <- randomCoords (0,0) (hdx, hdy) agentCount
 
   ras <- mapM (\(aid, coord) -> randomAgent (aid, coord) sugAgent id) (zip [1..agentCount] randCoords)
-  let (adefs, _) = unzip ras
+  let as = map (\(adef, _) -> adBeh adef ) ras
   let occupations = map (\(ad, s) -> (sugAgCoord s, (adId ad, s))) ras
 
   initRandomCells <- createCells dims occupations
@@ -39,7 +39,7 @@ createSugarScape agentCount dims@(_dx, _dy) = do
               WrapBoth
               cells'
 
-  return (adefs, e)
+  return (as, e)
 
 addSugar :: [(Discrete2dCoord, SugEnvCell)] 
          -> [(Discrete2dCoord, SugEnvCell)]
@@ -64,12 +64,11 @@ addSpice cells
 initSugar :: [(Discrete2dCoord, SugEnvCell)]
           -> ((Discrete2dCoord, SugEnvCell) -> Double)
           -> [(Discrete2dCoord, SugEnvCell)]
-initSugar cs sugarFunc = map (initSugarAux sugarFunc) cs
+initSugar cs sugarFunc = map initSugarAux cs
   where
-    initSugarAux :: ((Discrete2dCoord, SugEnvCell) -> Double)
+    initSugarAux :: (Discrete2dCoord, SugEnvCell)
                  -> (Discrete2dCoord, SugEnvCell)
-                 -> (Discrete2dCoord, SugEnvCell)
-    initSugarAux sugarFunc cp@(coord, cell) = (coord, cell')
+    initSugarAux cp@(coord, cell) = (coord, cell')
       where
         sugar = sugarFunc cp
         cell' = cell { sugEnvSugarLevel = sugar
@@ -78,12 +77,11 @@ initSugar cs sugarFunc = map (initSugarAux sugarFunc) cs
 initSpice :: [(Discrete2dCoord, SugEnvCell)]
           -> ((Discrete2dCoord, SugEnvCell) -> Double)
           -> [(Discrete2dCoord, SugEnvCell)]
-initSpice cs spiceFunc = map (initSpiceAux spiceFunc) cs
+initSpice cs spiceFunc = map initSpiceAux cs
   where
-    initSpiceAux :: ((Discrete2dCoord, SugEnvCell) -> Double)
+    initSpiceAux :: (Discrete2dCoord, SugEnvCell)
                  -> (Discrete2dCoord, SugEnvCell)
-                 -> (Discrete2dCoord, SugEnvCell)
-    initSpiceAux spiceFunc cp@(coord, cell) = (coord, cell')
+    initSpiceAux cp@(coord, cell) = (coord, cell')
       where
         spice = spiceFunc cp
         cell' = cell { sugEnvSpiceLevel = spice
@@ -107,7 +105,7 @@ initRandomCell os coord = do
   -- randSpiceCap <- getRandomR spiceCapacityRange
 
   let mayOccupier = Data.List.find ((==coord) . fst) os
-      occupier    = maybe Nothing (\(_, (aid, s)) -> (Just (cellOccupier aid s))) mayOccupier
+      occ         = maybe Nothing (\(_, (aid, s)) -> (Just (cellOccupier aid s))) mayOccupier
 
   let c = SugEnvCell {
     sugEnvSugarCapacity = 0
@@ -115,7 +113,7 @@ initRandomCell os coord = do
   , sugEnvSpiceCapacity = 0
   , sugEnvSpiceLevel    = 0
   , sugEnvPolutionLevel = 0.0
-  , sugEnvOccupier      = occupier
+  , sugEnvOccupier      = occ
   }
 
   return (coord, c)
@@ -126,27 +124,25 @@ randomCoords :: RandomGen g
              -> Discrete2dDimension 
              -> Int 
              -> Rand g [Discrete2dCoord]
-randomCoords lower@(minX, minY) upper@(maxX, maxY) n
-    | n > totalCoords = error "Logical error: can't draw more elements from a finite set than there are elements in the set"
-    | otherwise = drawRandomCoordsAux lower upper n []
+randomCoords (minX, minY) (maxX, maxY) n0
+    | n0 > totalCoords = error "Logical error: can't draw more elements from a finite set than there are elements in the set"
+    | otherwise = drawRandomCoordsAux n0 []
   where
     totalCoords = (maxX - minX) * (maxY - minY)
 
     drawRandomCoordsAux :: RandomGen g
-                        => Discrete2dDimension 
-                        -> Discrete2dDimension 
-                        -> Int 
+                        => Int 
                         -> [Discrete2dCoord] 
                         -> Rand g [Discrete2dCoord]
-    drawRandomCoordsAux _ _ 0 acc = return acc
-    drawRandomCoordsAux lower@(minX, minY) upper@(maxX, maxY) n acc = do
+    drawRandomCoordsAux 0 acc = return acc
+    drawRandomCoordsAux n acc = do
       randX <- getRandomR (minX, maxX - 1)
       randY <- getRandomR (minY, maxY - 1)
 
       let c = (randX, randY)
       if c `elem` acc
-        then drawRandomCoordsAux lower upper n acc
-        else drawRandomCoordsAux lower upper (n-1) (c : acc)
+        then drawRandomCoordsAux n acc
+        else drawRandomCoordsAux (n-1) (c : acc)
 
 _allZeroSugar :: (Discrete2dCoord, SugEnvCell) -> Double
 _allZeroSugar _ = 0.0

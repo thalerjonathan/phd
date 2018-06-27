@@ -12,6 +12,8 @@ module Discrete
   , MultiOccupantCell
   , MultiOccupantDiscrete2d
 
+  , EnvironmentWrapping (..)
+  
   , createDiscrete2d
 
   , dimensionsDisc2d
@@ -68,7 +70,7 @@ module Discrete
   , hasOccupiers
   , occupiers
   ) where
-    
+
 import Data.Array.IArray
 import Data.List
 import Data.Maybe

@@ -61,11 +61,12 @@ module Common
 
 import Control.Monad.Random
 import Data.List.Split
-import FRP.Chimera
 
 import Data.Maybe
 import Data.List
 
+import AgentMonad
+import Discrete
 import Model
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -73,9 +74,11 @@ import Model
 ------------------------------------------------------------------------------------------------------------------------
 sugObservableFromState :: SugAgentState -> SugAgentObservable
 sugObservableFromState s = SugAgentObservable
-  {
-    sugObsCoord  = sugAgCoord s 
-  , sugObsGender = sugAgGender s
+  { sugObsCoord    = sugAgCoord s 
+  , sugObsGender   = sugAgGender s
+  , sugObsVision   = sugAgVision s
+  , sugObsDiseases = sugAgDiseases s
+  , sugObsTribe    = sugAgTribe s
   }
 
 type BestCellMeasureFunc = (SugEnvCell -> Double) 
@@ -113,9 +116,9 @@ unoccupiedNeighbourhoodOfNeighbours :: Discrete2dCoord -> SugEnvironment -> [(Di
 unoccupiedNeighbourhoodOfNeighbours coord e 
     = filter (isNothing . sugEnvOccupier . snd) nncsUnique
   where
-    neighbourCells = neighbours coord False e
+    ncs = neighbours coord False e
     -- NOTE: this calculates the cells which are in the initial neighbourhood and in the neighbourhood of all the neighbours
-    nncsDupl = foldr (\(coord, _) acc -> neighbours coord False e ++ acc) neighbourCells neighbourCells
+    nncsDupl = foldr (\(coord', _) acc -> neighbours coord' False e ++ acc) ncs ncs
     -- NOTE: the nncs are not unique, remove duplicates
     nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
 
@@ -211,7 +214,7 @@ createNewBorn :: RandomGen g
               => (AgentId, Discrete2dCoord)
               -> (Double, Double, Double, Int, SugCulturalTag, SugImmuneSystem)
               -> (Double, Double, Double, Int, SugCulturalTag, SugImmuneSystem)
-              -> (SugAgentState -> SugAgent g)
+              -> (AgentId -> SugAgentState -> SugAgent g)
               -> Rand g (SugAgentDef g, SugAgentState)
 createNewBorn idCoord
                 (sugEndowFather, sugarMetabFather, spiceMetabFather, visionFather, cultureFather, immuneSysBornFather)
@@ -253,10 +256,10 @@ occupierCombatable :: Double
                    -> SugTribe 
                    -> SugEnvCellOccupier
                    -> Bool
-occupierCombatable myWealth myTribe occupier = differentTribe && lessWealthy
+occupierCombatable myWealth myTribe occ = differentTribe && lessWealthy
   where
-    otherTribe = sugEnvOccTribe occupier
-    otherWealth = sugEnvOccWealth occupier
+    otherTribe = sugEnvOccTribe occ
+    otherWealth = sugEnvOccWealth occ
     differentTribe = otherTribe /= myTribe
     lessWealthy = otherWealth < myWealth 
 
@@ -264,10 +267,10 @@ occupierRetaliator :: Double
                    -> SugTribe 
                    -> SugEnvCellOccupier
                    -> Bool
-occupierRetaliator referenceWealth myTribe occupier = differentTribe && moreWealthy
+occupierRetaliator referenceWealth myTribe occ = differentTribe && moreWealthy
   where
-    otherTribe = sugEnvOccTribe occupier
-    otherWealth = sugEnvOccWealth occupier
+    otherTribe = sugEnvOccTribe occ
+    otherWealth = sugEnvOccWealth occ
     differentTribe = otherTribe /= myTribe
     moreWealthy = otherWealth > referenceWealth 
 
@@ -276,7 +279,7 @@ cellPayoff (c, cell) = ((c, cell), payoff)
   where
     mayOccupier = sugEnvOccupier cell
     sugarLevel = sugEnvSugarLevel cell
-    payoff = maybe sugarLevel (\occupier -> sugarLevel + (min combatReward (sugEnvOccWealth occupier))) mayOccupier
+    payoff = maybe sugarLevel (\occ -> sugarLevel + min combatReward (sugEnvOccWealth occ)) mayOccupier
 
 poluteCell :: Double -> Discrete2dCoord -> SugEnvironment -> SugEnvironment
 poluteCell polutionIncrease coord e 
@@ -346,11 +349,11 @@ agentWelfare s = agentWelfareChange s (0, 0)
 potentialLender :: SugAgentState -> Maybe Double
 potentialLender s
     | tooOldForChildren s = Just $ half (sugAgSugarLevel s)
-    | isFertile s = fertileLending s
+    | isFertile s = fertileLending
     | otherwise = Nothing
   where
-    fertileLending :: SugAgentState -> Maybe Double
-    fertileLending s 
+    fertileLending :: Maybe Double
+    fertileLending
         | excessAmount > 0 = Just excessAmount
         | otherwise = Nothing
       where
@@ -491,7 +494,7 @@ hammingDistance as bs = length $ filter (==False) equals
 
 randomAgent :: RandomGen g  
             => (AgentId, Discrete2dCoord)
-            -> (SugAgentState -> SugAgent g)
+            -> (AgentId -> SugAgentState -> SugAgent g)
             -> (SugAgentState -> SugAgentState)
             -> Rand g (SugAgentDef g, SugAgentState)
 randomAgent (agentId, coord) beh sup = do
@@ -554,8 +557,8 @@ randomAgent (agentId, coord) beh sup = do
   let s'   = sup s
   let adef = AgentDef {
     adId       = agentId
-  , adBeh      = beh s'
-  , adInitData = [] 
+  , adBeh      = beh agentId s'
+  --, adInitData = [] 
   }
 
   return (adef, s')

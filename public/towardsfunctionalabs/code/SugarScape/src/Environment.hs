@@ -13,11 +13,12 @@ module Environment
 
 import Control.Monad
 import Control.Monad.Trans.State
-import FRP.Chimera
 
 import Data.Maybe
 
+import Discrete
 import Model
+import Utils
 
 ------------------------------------------------------------------------------------------------------------------------
 -- ENVIRONMENT-BEHAVIOUR
@@ -29,25 +30,24 @@ cellUnoccupied :: SugEnvCell -> Bool
 cellUnoccupied = not . cellOccupied
 
 diffusePolution :: Double -> State SugEnvironment ()
-diffusePolution time 
+diffusePolution t 
     | timeReached && _enablePolution_ = updateCellsM (\c -> c { sugEnvPolutionLevel = 0.0 })
     | otherwise = return ()
   where
-    timeReached = mod (floor time) diffusePolutionTime == 0
+    timeReached = mod (floor t) diffusePolutionTime == 0
 
 regrowSugar :: Double -> State SugEnvironment ()
 regrowSugar rate
     | rate < 0 = regrowSugarToMax
-    | otherwise = regrowSugarByRate rate
+    | otherwise = regrowSugarByRate
   where
-    regrowSugarByRate :: Double -> State SugEnvironment ()
-    regrowSugarByRate rate 
+    regrowSugarByRate :: State SugEnvironment ()
+    regrowSugarByRate  
       = updateCellsM (\c -> 
-        c { sugEnvSugarLevel = (
+        c { sugEnvSugarLevel = 
               min
                   (sugEnvSugarCapacity c)
-                  ((sugEnvSugarLevel c) + rate)
-                  )})
+                  (sugEnvSugarLevel c) + rate})
 
     regrowSugarToMax :: State SugEnvironment ()
     regrowSugarToMax = updateCellsM (\c -> c { sugEnvSugarLevel = sugEnvSugarCapacity c})
@@ -55,16 +55,15 @@ regrowSugar rate
 regrowSpice :: Double -> State SugEnvironment ()
 regrowSpice rate
     | rate < 0 = regrowSpiceToMax
-    | otherwise = regrowSpiceByRate rate
+    | otherwise = regrowSpiceByRate
   where
-    regrowSpiceByRate :: Double -> State SugEnvironment ()
-    regrowSpiceByRate rate 
+    regrowSpiceByRate :: State SugEnvironment ()
+    regrowSpiceByRate 
       = updateCellsM (\c -> 
-        c { sugEnvSpiceLevel = (
+        c { sugEnvSpiceLevel = 
               min
                   (sugEnvSpiceCapacity c)
-                  ((sugEnvSpiceLevel c) + rate))
-                  })
+                  (sugEnvSpiceLevel c) + rate})
 
     regrowSpiceToMax ::  State SugEnvironment ()
     regrowSpiceToMax = updateCellsM (\c -> c { sugEnvSpiceLevel = sugEnvSpiceCapacity c })
@@ -75,11 +74,10 @@ regrowSugarByRateAndRegion range rate = updateCellsWithCoordsM (regrowCell range
     regrowCell :: Discrete2dDimension -> (Discrete2dCoord, SugEnvCell) -> SugEnvCell
     regrowCell (fromY, toY) ((_, y), c)
       | y >= fromY && y <= toY = c {
-                                      sugEnvSugarLevel = (
+                                      sugEnvSugarLevel = 
                                           min
                                               (sugEnvSugarCapacity c)
-                                              ((sugEnvSugarLevel c) + rate))
-                                              }
+                                              (sugEnvSugarLevel c) + rate}
       | otherwise = c
 
 regrowSpiceByRateAndRegion :: Discrete2dDimension -> Double -> State SugEnvironment ()
@@ -88,15 +86,14 @@ regrowSpiceByRateAndRegion range rate = updateCellsWithCoordsM (regrowCell range
     regrowCell :: Discrete2dDimension -> (Discrete2dCoord, SugEnvCell) -> SugEnvCell
     regrowCell (fromY, toY) ((_, y), c)
       | y >= fromY && y <= toY = c {
-                                      sugEnvSpiceLevel = (
+                                      sugEnvSpiceLevel = 
                                           min
                                               (sugEnvSpiceCapacity c)
-                                              ((sugEnvSpiceLevel c) + rate))
-                                              }
+                                              (sugEnvSpiceLevel c) + rate}
       | otherwise = c
 
 regrowSeasons :: Double -> State SugEnvironment ()
-regrowSeasons time = do
+regrowSeasons t = do
     (_, maxY) <- dimensionsDisc2dM
     
     let halfY = floor (toRational (fromIntegral maxY :: Int) / 2.0 )
@@ -109,7 +106,7 @@ regrowSeasons time = do
     when _enableSpice_ (regrowSpiceByRateAndRegion summerRange spiceSummerRate)
     when _enableSpice_ (regrowSpiceByRateAndRegion winterRange spiceWinterRate)
   where
-    r = floor (time / seasonDuration) :: Int
+    r = floor (t / seasonDuration) :: Int
     summerOnTop = even r
     winterOnTop = not summerOnTop
 
@@ -123,7 +120,7 @@ regrowRates :: State SugEnvironment ()
 regrowRates = regrowSugar sugarGrowbackUnits >> when _enableSpice_ (regrowSpice spiceGrowbackUnits)
 
 regrow :: Double -> State SugEnvironment ()
-regrow time = ifThenElse _enableSeasons_ (regrowSeasons time) regrowRates
+regrow t = ifThenElse _enableSeasons_ (regrowSeasons t) regrowRates
 
 {-
 behaviourM :: SugEnvironmentMonadicBehaviour

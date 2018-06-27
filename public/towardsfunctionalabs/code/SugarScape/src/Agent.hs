@@ -8,28 +8,26 @@ module Agent
 -- import Control.Monad.IfElse
 import Control.Monad.Random
 import Control.Monad.State.Strict
-import FRP.Chimera
 import FRP.BearRiver
 
 --import Data.Maybe
 --import Data.List
 
+import AgentMonad
 import Common
 --import Environment
 import Model
+import Random
 
 ------------------------------------------------------------------------------------------------------------------------
 sugAgent :: RandomGen g 
-         => SugAgentState
+         => AgentId
+         -> SugAgentState
          -> SugAgent g
-sugAgent s0 aid = return sugAgentCont
-  where
-    sugAgentCont :: RandomGen g 
-                 => SugAgentCont g
-    sugAgentCont = feedback s0 (proc (ain, s) -> do
-      age      <- time -< ()
-      (ao, s') <- arrM (\(age, ain, s) -> lift $ runStateT (chapterII aid ain age) s) -< (age, ain, s)
-      returnA -< (ao, s'))
+sugAgent aid s0 = feedback s0 (proc (ain, s) -> do
+  age      <- time -< ()
+  (ao, s') <- arrM (\(age, ain, s) -> lift $ runStateT (chapterII aid ain age) s) -< (age, ain, s)
+  returnA -< (ao, s'))
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Chapter II: Life And Death On The Sugarscape
@@ -45,7 +43,7 @@ chapterII _aid _ain _age = do
 
   -- 1 lift: inside ABSMonad
   _x <- lift get
-  _f <- lift $ unscheduleEventM 0
+  --_f <- lift $ unscheduleEventM 0
  
   -- 2 lifts: inside SugEnvironment
   _env <- lift $ lift get

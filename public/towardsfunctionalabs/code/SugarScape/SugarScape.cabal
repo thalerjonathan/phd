@@ -59,7 +59,9 @@ executable SugarScape
                 , Exporter
                 , Init
                 , Model
+                , Random
                 , Renderer
+                , Utils
   
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:    
@@ -67,6 +69,7 @@ executable SugarScape
   -- Other library packages from which modules are imported.
   build-depends:        base
                       , array
+                      , containers
                       , dunai
                       , bearriver
                       , parallel

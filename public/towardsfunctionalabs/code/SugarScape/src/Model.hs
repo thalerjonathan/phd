@@ -1,3 +1,6 @@
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+
 module Model 
   (
     SugAgentGender (..)
@@ -16,14 +19,13 @@ module Model
   , SugEnvCellOccupier (..)
   , SugEnvCell (..)
 
-  , SugData
+  --, SugData
   , SugAgentMonad
   , SugAgentMonadT
 
   , SugEnvironment
 
   , SugAgent
-  , SugAgentCont
   , SugAgentDef
   , SugAgentIn
   , SugAgentOut
@@ -81,7 +83,7 @@ module Model
 
 import Control.Monad.Random
 import Control.Monad.State.Strict
-import FRP.BearRiver
+--import FRP.BearRiver
 
 import AgentMonad
 import Discrete
@@ -161,9 +163,11 @@ data SugAgentState = SugAgentState
 
 data SugAgentObservable = SugAgentObservable
   {
-    sugObsCoord   :: Discrete2dCoord
-  , sugObsGender  :: SugAgentGender
-    -- TODO: add all relevant fields
+    sugObsCoord    :: Discrete2dCoord
+  , sugObsGender   :: SugAgentGender
+  , sugObsVision   :: Int
+  , sugObsDiseases :: [SugDisease] 
+  , sugObsTribe    :: SugTribe
   } deriving (Show)
 
 data SugEnvCellOccupier = SugEnvCellOccupier 
@@ -183,15 +187,14 @@ data SugEnvCell = SugEnvCell
 
 type SugEnvironment = Discrete2d SugEnvCell
 
-type SugData = ()
+--type SugData = ()
 type SugAgentMonad g  = StateT SugEnvironment (Rand g)
-type SugAgentMonadT g = MonadAgent (SugAgentMonad g) SugEvt
+type SugAgentMonadT g = AgentT (SugAgentMonad g)
 
-type SugAgent g     = Agent     (SugAgentMonad g) SugAgentObservable SugData SugEvt
-type SugAgentCont g = AgentCont (SugAgentMonad g) SugAgentObservable SugData SugEvt
-type SugAgentDef g  = AgentDef  (SugAgentMonad g) SugAgentObservable SugData SugEvt
-type SugAgentIn     = AgentIn                     SugAgentObservable SugData SugEvt
-type SugAgentOut g  = AgentOut  (SugAgentMonad g) SugAgentObservable SugData SugEvt
+type SugAgent g     = Agent    (SugAgentMonad g) SugAgentObservable
+type SugAgentDef g  = AgentDef (SugAgentMonad g) SugAgentObservable
+type SugAgentIn     = AgentIn 
+type SugAgentOut g  = AgentOut (SugAgentMonad g) SugAgentObservable
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -169,7 +169,10 @@ changeCellAt coord c e = e { envDisc2dCells = arr' }
     arr = envDisc2dCells e
     arr' = arr // [(coord, c)]
 
-changeCellAtM :: Discrete2dCoord -> c -> State (Discrete2d c) ()
+changeCellAtM :: Monad m
+              => Discrete2dCoord 
+              -> c 
+              -> StateT (Discrete2d c) m ()
 changeCellAtM coord c = state (\e -> ((), changeCellAt coord c e))
 
 cellsAroundRadius :: Discrete2dCoord 
@@ -206,7 +209,9 @@ cellAt coord e = arr ! coord
   where
     arr = envDisc2dCells e
 
-cellAtM :: Discrete2dCoord -> State (Discrete2d c) c
+cellAtM :: Monad m
+        => Discrete2dCoord 
+        -> StateT (Discrete2d c) m c
 cellAtM coord = state (\e -> (cellAt coord e, e))
 
 randomCell :: MonadRandom m => Discrete2d c -> m (c, Discrete2dCoord)
@@ -253,10 +258,11 @@ neighboursInNeumannDistance coord dist ic e = zip wrappedNs cells
     wrappedNs = wrapNeighbourhood l w ns
     cells = cellsAt wrappedNs e
 
-neighboursInNeumannDistanceM :: Discrete2dCoord 
+neighboursInNeumannDistanceM :: Monad m
+                             => Discrete2dCoord 
                              -> Int 
                              -> Bool 
-                             -> State (Discrete2d c) [Discrete2dCell c]
+                             -> StateT (Discrete2d c) m [Discrete2dCell c]
 neighboursInNeumannDistanceM coord dist ic = 
   state (\e -> (neighboursInNeumannDistance coord dist ic e, e))
 

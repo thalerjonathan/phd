@@ -18,10 +18,13 @@ module AgentMonad
 
   , agentOut
   , agentOutObservable
-
+  , isObservable
   , isDead
   , kill
+  , createAgent
   ) where
+
+import Data.Maybe
 
 import Control.Monad.State.Strict
 import FRP.BearRiver
@@ -65,9 +68,9 @@ data AgentOut m o = AgentOut
   , aoObservable :: !(Maybe o)
   }
 
-mkAbsState :: ABSState
-mkAbsState = ABSState 
-  { absNextId = 0
+mkAbsState :: AgentId -> ABSState
+mkAbsState initId = ABSState 
+  { absNextId = initId + 1
   , absTime   = 0
   }
 
@@ -89,3 +92,12 @@ isDead ao = isEvent $ aoKill ao
 
 kill :: AgentOut m o -> AgentOut m o
 kill ao = ao { aoKill = Event () }
+
+createAgent :: AgentDef m o
+            -> AgentOut m o 
+            -> AgentOut m o
+createAgent adef ao 
+  = ao { aoCreate = adef : aoCreate ao }
+
+isObservable :: AgentOut m o -> Bool
+isObservable ao = isJust $ aoObservable ao

@@ -221,7 +221,7 @@ _enableInheritance_ :: Bool
 _enableInheritance_ = False
 
 _enableSeasons_ :: Bool
-_enableSeasons_ = False
+_enableSeasons_ = True
 
 _enableSex_ :: Bool
 _enableSex_ = False
@@ -287,7 +287,7 @@ visionRangeSeasons :: (Int, Int)
 visionRangeSeasons = (1, 10)
 
 ageRange :: (Double, Double)
-ageRange = ageRangeInf
+ageRange = ageRangeStandard
 ageRangeStandard :: (Double, Double)
 ageRangeStandard = (60, 100)
 ageRangeInf :: (Double, Double)

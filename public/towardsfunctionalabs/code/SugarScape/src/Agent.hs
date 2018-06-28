@@ -15,9 +15,10 @@ import FRP.BearRiver
 
 import AgentMonad
 import Common
---import Environment
+import Environment
+import Discrete
 import Model
--- import Random
+import Random
 import Utils
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -71,21 +72,20 @@ chapterII :: RandomGen g
           -> SugAgentIn
           -> Time
           -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
-chapterII _aid _ain age = do
+chapterII aid _ain age = do
   ao <- agentAgeing age
 
   ifThenElse
     (isDead ao)
     (return ao)
-    returnObservable
-    {-
-    $ do
-      e1 <- agentMetabolismM e0
-      ifThenElseM 
-        isDeadM
-        returnObservable
-        (agentMoveM e1)
--}
+    (do
+      ao' <- agentMetabolism
+      ifThenElse
+        (isDead ao')
+        (return ao)
+        (do
+          agentNonCombatMove aid
+          returnObservable))
 
 agentAgeing :: RandomGen g 
             => Time 
@@ -95,136 +95,182 @@ agentAgeing newAge = do
 
   ifThenElseM
     dieFromAge
-    (return $ kill agentOut)
-    returnObservable
-    {-
     (do
-        birthNewAgentM e
-        passWealthOnM
-        agentDiesM e)
--}
+        adef <- birthNewAgent
+        passWealthOn
+        ao <- agentDies
+        return $ createAgent adef ao)
+    (return agentOut)
 
 dieFromAge :: Monad m
            => StateT SugAgentState m Bool
 dieFromAge = do
-  age <- gets sugAgAge
+  age    <- gets sugAgAge
   maxAge <- gets sugAgMaxAge
   return $ age > maxAge
 
-{-
-agentCellOnCoordM :: SugEnvironment -> State SugAgentOut (Discrete2dCoord, SugEnvCell)
-agentCellOnCoordM e = do
-  coord <- agentStateFieldM sugAgCoord
-  let cell = cellAt coord e
+agentDies :: RandomGen g
+          => StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
+agentDies = do
+  unoccupyPosition
+  return $ kill agentOut
+
+unoccupyPosition :: RandomGen g
+                 => StateT SugAgentState (SugAgentMonadT g) ()
+unoccupyPosition = do
+  (coord, cell) <- agentCellOnCoord
+  let cell' = cell { sugEnvOccupier = Nothing }
+  lift $ lift $ changeCellAtM coord cell'
+
+agentCellOnCoord :: RandomGen g
+                 => StateT SugAgentState (SugAgentMonadT g) (Discrete2dCoord, SugEnvCell)
+agentCellOnCoord = do
+  coord <- gets sugAgCoord
+  cell  <- lift $ lift $ cellAtM coord
   return (coord, cell)
 
-agentDiesM :: SugEnvironment -> State SugAgentOut SugEnvironment
-agentDiesM e = unoccupyPositionM e >>= (\e' -> killM >> return e')
+nextAgentId :: RandomGen g
+            => StateT SugAgentState (SugAgentMonadT g) AgentId
+nextAgentId = do
+  aid <- lift $ gets absNextId
+  lift $ modify (\s -> s { absNextId = aid + 1 })
+  return aid
 
-unoccupyPositionM :: SugEnvironment -> State SugAgentOut SugEnvironment
-unoccupyPositionM e = do
-  (coord, cell) <- agentCellOnCoordM e
-  let cellUnoccupied = cell { sugEnvOccupier = Nothing }
-  return $ changeCellAt coord cellUnoccupied e
+birthNewAgent :: RandomGen g
+              => StateT SugAgentState (SugAgentMonadT g) (SugAgentDef g)
+birthNewAgent = do
+    -- -| not _enableBirthAgentOnAgeDeath_ = return ()
+    -- | otherwise = do
+      newAgentId    <- nextAgentId
+      newAgentCoord <- findUnoccpiedRandomPosition   -- NOTE: why not take the same position?
+      (adef, _) <- lift $ lift $ lift $ randomAgent (newAgentId, newAgentCoord) sugAgent id
+      return adef
+  where
+    findUnoccpiedRandomPosition :: RandomGen g
+                                => StateT SugAgentState (SugAgentMonadT g) Discrete2dCoord
+    findUnoccpiedRandomPosition = do
+      e <- lift $ lift get
+      (c, coord) <- lift $ lift $ lift $ randomCell e
+      ifThenElse
+        (cellOccupied c) 
+        findUnoccpiedRandomPosition
+        (return coord)
 
-passWealthOnM :: State SugAgentOut ()
-passWealthOnM
+passWealthOn :: RandomGen g
+             => StateT SugAgentState (SugAgentMonadT g) ()
+passWealthOn
     | _enableInheritance_ = do
-      sugarLevel <- agentStateFieldM sugAgSugarLevel
-      childrenIds <- agentStateFieldM sugAgChildren
+      sugarLevel  <- gets sugAgSugarLevel
+      childrenIds <- gets sugAgChildren
 
       let hasChildren = (not . null) childrenIds
 
       when hasChildren $ do 
         let childrenCount = length childrenIds
-        let childrenSugarShare = sugarLevel / fromIntegral childrenCount
-        broadcastMessageM (InheritSugar childrenSugarShare) childrenIds
+        let _childrenSugarShare = sugarLevel / fromIntegral childrenCount
+        -- TODO: implement
+        -- broadcastMessageM (InheritSugar childrenSugarShare) childrenIds
+        return ()
     | otherwise = return ()
 
-starvedToDeathM :: State SugAgentOut Bool
-starvedToDeathM = do
-  sugar <- agentStateFieldM sugAgSugarLevel
-  spice <- agentStateFieldM sugAgSpiceLevel
+agentMetabolism :: RandomGen g
+                => StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
+agentMetabolism = do
+  s <- get
+  let (sugarMetab, spiceMetab) = metabolismAmount s
+
+  sugarLevel <- gets sugAgSugarLevel
+  spiceLevel <- gets sugAgSpiceLevel
+
+  let newSugarLevel = max 0 (sugarLevel - sugarMetab)
+  let newSpiceLevel = max 0 (spiceLevel - spiceMetab)
+
+  updateAgentState (\s' -> s' { sugAgSugarLevel = newSugarLevel, sugAgSpiceLevel = newSpiceLevel })
+
+  -- NOTE: for now the metabolism (and harvest) of spice does not cause any polution
+  coord <- gets sugAgCoord
+  lift $ lift $ modify $ poluteCell (sugarMetab * polutionMetabolismFactor) coord
+
+  ifThenElseM
+    starvedToDeath
+    agentDies
+    (return agentOut)
+
+starvedToDeath :: RandomGen g
+               => StateT SugAgentState (SugAgentMonadT g) Bool
+starvedToDeath = do
+  sugar <- gets sugAgSugarLevel
+  spice <- gets sugAgSpiceLevel
 
   if _enableSpice_ 
     then return $ (sugar <= 0) || (spice <= 0)
     else return $ sugar <= 0
 
-agentMetabolismM :: SugEnvironment -> State SugAgentOut SugEnvironment
-agentMetabolismM e = do
-  s <- agentStateM
-  aid <- agentIdM
-  let (sugarMetab, spiceMetab) = metabolismAmount s
-
-  sugarLevel <- agentStateFieldM sugAgSugarLevel
-  spiceLevel <- agentStateFieldM sugAgSpiceLevel
-
-  let newSugarLevel = max 0 (sugarLevel - sugarMetab)
-  let newSpiceLevel = max 0 (spiceLevel - spiceMetab)
-
-  updateAgentStateM (\s -> s { sugAgSugarLevel = newSugarLevel, sugAgSpiceLevel = newSpiceLevel })
-
-  -- NOTE: for now the metabolism (and harvest) of spice does not cause any polution
-  coord <- agentStateFieldM sugAgCoord
-  let e' = poluteCell (sugarMetab * polutionMetabolismFactor) coord e
-
-  ifThenElseM
-      starvedToDeathM
-      (agentDiesM e')
-      (return e')
-
-agentNonCombatMoveM :: SugEnvironment -> State SugAgentOut SugEnvironment
-agentNonCombatMoveM e = do
-  cellsInSight <- agentLookoutM e
-  coord <- agentStateFieldM sugAgCoord
+agentNonCombatMove :: RandomGen g
+                   => AgentId
+                   -> StateT SugAgentState (SugAgentMonadT g) ()
+agentNonCombatMove aid = do
+  cellsInSight <- agentLookout
+  coord <- gets sugAgCoord
 
   let unoccupiedCells = filter (cellUnoccupied . snd) cellsInSight
 
   ifThenElse 
-      (null unoccupiedCells)
-      (agentStayAndHarvestM e)
-      (do
-          -- NOTE included self but this will be always kicked out because self is occupied by self, need to somehow add this
-          --       what we want is that in case of same sugar on all fields (including self), the agent does not move because staying is the lowest distance (=0)
-          let selfCell = cellAt coord e
-          let unoccupiedCells' = (coord, selfCell) : unoccupiedCells
+    (null unoccupiedCells)
+    agentStayAndHarvest
+    (do
+        -- NOTE included self but this will be always kicked out because self is occupied by self, need to somehow add this
+        --       what we want is that in case of same sugar on all fields (including self), the agent does not move because staying is the lowest distance (=0)
+        selfCell <- lift $ lift $ cellAtM coord
+        let unoccupiedCells' = (coord, selfCell) : unoccupiedCells
 
-          let bf = bestCellFunc
-          let bestCells = selectBestCells bf coord unoccupiedCells'
-          (cellCoord, _) <- agentRandomPickM bestCells
-          agentMoveAndHarvestCellM cellCoord e)
+        let bf = bestCellFunc
+        let bestCells = selectBestCells bf coord unoccupiedCells'
+        (cellCoord, _) <- lift $ lift $ lift $ randomElemM bestCells
+        agentMoveAndHarvestCell aid cellCoord)
 
-agentLookoutM :: SugEnvironment -> State SugAgentOut [(Discrete2dCoord, SugEnvCell)]
-agentLookoutM e = do
-  vis <- agentStateFieldM sugAgVision
-  coord <- agentStateFieldM sugAgCoord
-  return $ neighboursInNeumannDistance coord vis False e
+agentLookout :: RandomGen g
+             => StateT SugAgentState (SugAgentMonadT g) [(Discrete2dCoord, SugEnvCell)]
+agentLookout = do
+  vis <- gets sugAgVision
+  coord <- gets sugAgCoord
+  lift $ lift $ neighboursInNeumannDistanceM coord vis False
 
-agentStayAndHarvestM :: SugEnvironment -> State SugAgentOut SugEnvironment
-agentStayAndHarvestM e = agentStateFieldM sugAgCoord >>= (\coord -> agentHarvestCellM coord e)
+agentStayAndHarvest :: RandomGen g
+                    => StateT SugAgentState (SugAgentMonadT g) ()
+agentStayAndHarvest = gets sugAgCoord >>= agentHarvestCell
 
-agentMoveAndHarvestCellM :: Discrete2dCoord -> SugEnvironment -> State SugAgentOut SugEnvironment
-agentMoveAndHarvestCellM cellCoord e = agentHarvestCellM cellCoord e >>= (\e' -> agentMoveToM cellCoord e')
+agentMoveAndHarvestCell :: RandomGen g
+                        => AgentId
+                        -> Discrete2dCoord 
+                        -> StateT SugAgentState (SugAgentMonadT g) ()
+agentMoveAndHarvestCell aid cellCoord = do
+  agentHarvestCell cellCoord 
+  agentMoveTo aid cellCoord
 
-agentMoveToM :: Discrete2dCoord -> SugEnvironment -> State SugAgentOut SugEnvironment
-agentMoveToM cellCoord e = do
-  e' <- unoccupyPositionM e
+agentMoveTo :: RandomGen g
+             => AgentId
+             -> Discrete2dCoord 
+             -> StateT SugAgentState (SugAgentMonadT g) ()
+agentMoveTo aid cellCoord = do
+  unoccupyPosition
 
-  updateAgentStateM (\s -> s { sugAgCoord = cellCoord })
+  updateAgentState (\s -> s { sugAgCoord = cellCoord })
 
-  s <- agentStateM
-  aid <- agentIdM
+  s <- get
 
-  let cell = cellAt cellCoord e'
-  let cellOccupied = cell { sugEnvOccupier = Just (cellOccupier aid s) }
-  return $ changeCellAt cellCoord cellOccupied e'
+  cell <- lift $ lift $ cellAtM cellCoord
+  let co = cell { sugEnvOccupier = Just (cellOccupier aid s) }
+  lift $ lift $ changeCellAtM cellCoord co 
 
-agentHarvestCellM :: Discrete2dCoord -> SugEnvironment -> State SugAgentOut SugEnvironment
-agentHarvestCellM cellCoord e = do
-  let cell = cellAt cellCoord e
+agentHarvestCell :: RandomGen g
+                 => Discrete2dCoord 
+                 -> StateT SugAgentState (SugAgentMonadT g) ()
+agentHarvestCell cellCoord = do
+  cell <- lift $ lift $ cellAtM cellCoord
 
-  sugarLevelAgent <- agentStateFieldM sugAgSugarLevel
-  spiceLevelAgent <- agentStateFieldM sugAgSpiceLevel
+  sugarLevelAgent <- gets sugAgSugarLevel
+  spiceLevelAgent <- gets sugAgSpiceLevel
 
   let sugarLevelCell = sugEnvSugarLevel cell
   let spiceLevelCell = sugEnvSpiceLevel cell
@@ -232,33 +278,17 @@ agentHarvestCellM cellCoord e = do
   let newSugarLevelAgent = sugarLevelCell + sugarLevelAgent
   let newSpiceLevelAgent = spiceLevelCell + spiceLevelAgent
 
-  updateAgentStateM (\s -> s { sugAgSugarLevel = newSugarLevelAgent, sugAgSpiceLevel = newSpiceLevelAgent })
+  updateAgentState (\s -> s { sugAgSugarLevel = newSugarLevelAgent, sugAgSpiceLevel = newSpiceLevelAgent })
 
   let cellHarvested = cell { sugEnvSugarLevel = 0.0, sugEnvSpiceLevel = 0.0 }
-  let e' = changeCellAt cellCoord cellHarvested e
+  lift $ lift $ changeCellAtM cellCoord cellHarvested
   
   -- NOTE: at the moment harvesting SPICE does not influence the polution
-  return $ poluteCell (sugarLevelCell * polutionHarvestFactor ) cellCoord e'
+  lift $ lift $ modify $ poluteCell (sugarLevelCell * polutionHarvestFactor ) cellCoord
 
 
 
-birthNewAgentM :: SugEnvironment -> State SugAgentOut ()
-birthNewAgentM e
-    | not _enableBirthAgentOnAgeDeath_ = return ()
-    | otherwise = do
-      newAgentId <- agentIdM -- NOTE: in this case we keep the old id
-      newAgentCoord <- findUnoccpiedRandomPositionM   -- NOTE: why not take the same position?
-      newAgentDef <- agentRandomM $ randomAgent (newAgentId, newAgentCoord) sugarScapeAgentBehaviour sugarScapeAgentConversationM
-      createAgentM newAgentDef
-  where
-    findUnoccpiedRandomPositionM :: State SugAgentOut Discrete2dCoord
-    findUnoccpiedRandomPositionM = do
-      (c, coord) <- agentRandomM $ randomCell e
-      ifThenElse
-          (cellOccupied c) 
-          findUnoccpiedRandomPositionM 
-          (return coord)
-
+{-
 ------------------------------------------------------------------------------------------------------------------------
 -- CHAPTER III: Sex, Culture, And Conflict: The Emergence Of History
 ------------------------------------------------------------------------------------------------------------------------

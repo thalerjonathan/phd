@@ -83,7 +83,7 @@ sugarscapeAgentRenderer r@(rw, rh) w _t (aid, s)
     (x, y) = transformToWindow r w coord 
 
     circle = GLO.color color $ GLO.translate x y $ GLO.ThickCircle 0 rw
-    txt = GLO.color GLO.white $ GLO.translate (x - (rw * 0.3)) (y - (rh * 0.1)) $ GLO.scale 0.05 0.05 $ GLO.Text (show aid)
+    txt = GLO.color GLO.white $ GLO.translate (x - (rw * 0.4)) (y - (rh * 0.1)) $ GLO.scale 0.04 0.04 $ GLO.Text (show aid)
 
 agentColoring :: AgentColoring -> AgentId -> SugarScapeAgentColorer
 agentColoring Undefined _    = defaultAgentColorerDisc2d GLO.blue

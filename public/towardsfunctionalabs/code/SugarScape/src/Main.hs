@@ -29,7 +29,7 @@ main :: IO ()
 main = do
   let rngSeed    = 42
       dt         = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
-      frequency  = 10
+      frequency  = 1
       winSize    = (800, 800)
       winTitle   = "SugarScape"
       agentCount = 400
@@ -42,7 +42,8 @@ main = do
       -- initial model for Gloss = output of each simulation step to be rendered
       initOut = (0, initEnv, [])
       -- initial simulation state
-      initSimState = mkSimState (simStepSF initAs) mkAbsState initEnv g
+      (initAis, initSfs) = unzip initAs
+      initSimState = mkSimState (simStepSF initAis initSfs) (mkAbsState $ maximum initAis) initEnv g
 
   -- intiialize IORef which holds last simulation state
   outRef <- newIORef initSimState
@@ -104,21 +105,29 @@ simulationStep dt ss = do
   return (ss', (t, env',out))
 
 simStepSF :: RandomGen g
-          => [SugAgent g]
+          => [AgentId]
+          -> [SugAgent g]
           -> SF (SugAgentMonadT g) () [AgentObservable SugAgentObservable]
-simStepSF sfs = MSF $ \_ -> do
+simStepSF ais sfs = MSF $ \_ -> do
   -- TODO: shuffle agent sfs
-  -- TODO: keep track of agent-ids
   
   res <- mapM (`unMSF` AgentIn) sfs
 
-  -- TODO: agent creation / destruction goes in here
+  let adefs = concatMap (\(ao, _) -> aoCreate ao) res
+      newSfs = map adBeh adefs
+      newAis = map adId adefs
 
-  let mobs = fmap (\(ao, _) -> aoObservable ao) res
-      ais  = replicate (length sfs) 0 
-      obs  = zip ais (catMaybes mobs) 
-      sfs' = fmap snd res
-      ct   = simStepSF sfs'
+      obs   = foldr (\((ao, _), aid) acc -> 
+        if isObservable ao 
+          then (aid, fromJust $ aoObservable ao) : acc  
+          else acc)  [] (zip res ais)
+
+      (sfs', ais') = foldr (\((ao, sf), aid) acc@(accSf, accAid) -> 
+        if isDead ao 
+          then acc 
+          else (sf : accSf, aid : accAid)) ([], []) (zip res ais)
+
+      ct    = simStepSF (newAis ++ ais') (newSfs ++ sfs')
 
   return (obs, ct)
 

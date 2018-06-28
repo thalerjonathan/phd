@@ -1,4 +1,4 @@
-# Revision history for SugarScape
+# Revision history for SugarScapePure
 
 ## 0.1.0.0  -- YYYY-mm-dd
 

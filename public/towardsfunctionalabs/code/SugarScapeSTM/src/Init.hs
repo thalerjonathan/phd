@@ -8,13 +8,11 @@ import Control.Monad.Random
 import Data.List
 
 import Agent
-import AgentMonad
 import Common
 import Discrete
 import Environment
 import Model
 
--- TODO: init and add an environment agent
 createSugarScape :: RandomGen g
                  => Int 
                  -> Discrete2dDimension 
@@ -28,8 +26,8 @@ createSugarScape agentCount dims@(_dx, _dy) = do
 
   let ais = [1..agentCount]
   ras <- mapM (\(aid, coord) -> randomAgent (aid, coord) sugAgent id) (zip ais randCoords)
-  let as = map (\(aid, (adef, _)) -> (aid, adBeh adef)) (zip ais ras)
-  let occupations = map (\(ad, s) -> (sugAgCoord s, (adId ad, s))) ras
+  let as = map (\(aid, (a, _)) -> (aid, a)) (zip ais ras)
+  let occupations = map (\(aid, (_, s)) -> (sugAgCoord s, (aid, s))) (zip ais ras)
 
   initRandomCells <- createCells dims occupations
 

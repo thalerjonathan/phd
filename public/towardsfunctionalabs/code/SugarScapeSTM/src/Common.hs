@@ -538,11 +538,11 @@ hammingDistance as bs = length $ filter (==False) equals
     equals = map (\(a, b) -> a == b) (zip as bs)
 ------------------------------------------------------------------------------------------------------------------------
 
-randomAgent :: RandomGen g  
+randomAgent :: (MonadRandom m, MonadSplit g m, RandomGen g)
             => (AgentId, Discrete2dCoord)
             -> (AgentId -> SugAgentState -> SugAgent g)
             -> (SugAgentState -> SugAgentState)
-            -> Rand g (SugAgent g, SugAgentState)
+            -> m (SugAgent g, SugAgentState)
 randomAgent (agentId, coord) beh sup = do
   -- NOTE: need to split here otherwise agents would end up with the same random-values when not already splitting in the calling function
   _rng <- getSplit

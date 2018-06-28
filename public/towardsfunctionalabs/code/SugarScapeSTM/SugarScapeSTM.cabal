@@ -79,6 +79,7 @@ executable SugarScapeSTM
                       , random
                       , split
                       , stm
+                      , stm-stats
                       , transformers
 
   -- Directories containing source files.

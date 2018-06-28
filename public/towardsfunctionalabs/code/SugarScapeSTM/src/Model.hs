@@ -30,6 +30,10 @@ module Model
   , SugAgentIn (..)
   , SugAgentOut (..)
 
+  , nextAgentId
+  , readEnvironment
+  , writeEnvironment
+
   , AgentColoring (..)
   , _enablePolution_
   , _enableSpice_
@@ -198,13 +202,38 @@ data SugAgentOut g = SugAgentOut
   }
 
 data SugContext = SugContext 
-  {
-    sugCtxEnv     :: TVar SugEnvironment
+  { sugCtxEnv     :: TVar SugEnvironment
   , sugCtxNextAid :: TVar AgentId
   }
 
 type SugAgentMonad g = ReaderT SugContext (RandT g STM)
 type SugAgent g      = SF (SugAgentMonad g) SugAgentIn (SugAgentOut g)
+
+nextAgentId :: RandomGen g
+            => (SugAgentMonad g) AgentId
+nextAgentId = do
+  ctx <- ask
+  let aidVar = sugCtxNextAid ctx
+
+  aid <- lift $ lift $ readTVar aidVar
+  _   <- lift $ lift $ writeTVar aidVar (aid + 1)
+
+  return aid
+  
+readEnvironment :: RandomGen g 
+                => (SugAgentMonad g) SugEnvironment
+readEnvironment = do
+  ctx <- ask
+  let envVar = sugCtxEnv ctx
+  lift $ lift $ readTVar envVar
+
+writeEnvironment :: RandomGen g 
+                => SugEnvironment
+                -> (SugAgentMonad g) ()
+writeEnvironment e = do
+  ctx <- ask
+  let envVar = sugCtxEnv ctx
+  lift $ lift $ writeTVar envVar e
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------

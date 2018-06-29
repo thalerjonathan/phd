@@ -26,88 +26,33 @@ When looking at this function we can already see the central concepts of functio
 
 It may seem that one runs into efficiency-problems in Haskell when using algorithms which are implemented in imperative languages through mutable data which allows in-place update of memory. The seminal work of \citep{okasaki_purely_1999} showed that when approaching this problem from a functional mind-set this does not necessarily be the case. The author presents functional data structures which are asymptotically as efficient as the best imperative implementations and discusses the estimation of the complexity of lazy programs.
 
+We refer to the following works for a more in-depth introduction to functional programming: \citep{hughes_why_1989}.
+
 \subsection{Side-Effects}
 One of the fundamental strengths of functional programming and Haskell is their way of dealing with side-effects in functions. A function with side-effects has observable interactions with some state outside of its explicit scope. This means that the behaviour it depends on history and that it loses its referential transparency character, which makes understanding and debugging much harder. Examples for side-effects are (amongst others): modifying a global variable, await an input from the keyboard, read or write to a file, open a connection to a server, drawing random-numbers,...
 
 Obviously, to write real-world programs which interact with the outside-world we need side-effects. Haskell allows to indicate in the \textit{type} of a function that it does or does \textit{not} have side-effects. Further there are a broad range of different effect types available, to restrict the possible effects a function can have to only the required type. This is then ensured by the compiler which means that a program in which one tries to e.g. read a file in a function which only allows drawing random-numbers will fail to compile. Haskell also provides mechanisms to combine multiple effects e.g. one can define a function which can draw random-numbers and modify some global data. The most common side-effect types are:
 \begin{itemize*}
-	\item IO - Allows all kind of I/O related side-effects: reading/writing a file, creating threads, write to the standard output, read from the keyboard, opening network-connections,... All programs start within the main function which is of type IO, so all
+	\item IO - Allows all kind of I/O related side-effects: reading/writing a file, creating threads, write to the standard output, read from the keyboard, opening network-connections,... 
 	\item Rand - Allows to draw random-numbers.
 	\item Reader - Allows to read from an environment.
 	\item Writer - Allows to write to an environment.
 	\item State - Allows to read and write an environment.
 \end{itemize*}
 
-A function with side-effects has to indicate this in their type e.g. if we want to give our factorial function the ability to write to the standard output we add IO to its type: factorial :: Integer -> IO Integer. A function without any side-effect type is called \textit{pure}.
+A function with side-effects has to indicate this in their type e.g. if we want to give our factorial function for debugging purposes the ability to write to the standard output, we add IO to its type: factorial :: Integer -> IO Integer. A function without any side-effect type is called \textit{pure}. A function with a given effect-type needs to be executed with a given effect-runner which takes all necessary parameters depending on the effect and runs a given effectful function returning its return value and depending on the effect also an effect-related result. For example when running a function with a State-effect one needs to specify the initial environment which can be read and written. After running such a function with a State-effect the effect-runner returns the changed environment in addition with the return value of the function itself. Note that we cannot call functions of different effect-types from a function with another effect-type, which would violate the guarantees. Calling a \textit{pure} function though is always allowed because it has by definition no side-effects. An effect-runner itself is a \textit{pure} function. The exception to this is the IO effect type which does not have a runner but originates from the \textit{main} function which is always of type IO.
 
-Although it might seem very restrictive at first, we get a number of benefits from making the type of effects we can use explicit. 
+Although it might seem very restrictive at first, we get a number of benefits from making the type of effects we can use explicit. First we can restrict the side-effects a function can have to a very specific type which is guaranteed at compile time. This means we can have much stronger guarantees about our program and the absence of potential errors already at compile-time which implies that we don't need test them with e.g. unit-tests. Second, because effect-runners are themselves \textit{pure}, we can execute effectful functions in a very controlled way by making the effect-context explicit in the parameters to the effect-runner. This allows a much easier approach to isolated testing because the history of the system is made explicit.
 
+We refer to the following papers for a much more technical in-depth discussion of the concept of side-effects and how they are implemented in Haskell: \citep{moggi_computational_1989, wadler_essence_1992, wadler_monads_1995, wadler_how_1997, jones_tackling_2002}.
 
 \subsection{Functional Reactive Programming}
-Functional Reactive Programming (FRP) is a way to implement systems with continuous and discrete time-semantics in pure functional languages. The central concept in FRP is the Signal Function (SF) which can be understood as a process over time which maps an input- to an output-signal. A signal can be understood as a value
-which varies over time. Thus, signal functions have an awareness of the passing of time by having access to $\Delta t$ which are positive time-steps with which the system is sampled. In general, arrows can be understood to be computations that represent processes, which have an input of a specific type, process it and output a new type. This is the reason why Yampa is using arrows to represent their signal functions: the concept of processes, which signal functions are, maps naturally to arrows.
+Functional Reactive Programming (FRP) is a way to implement systems with continuous and discrete time-semantics in functional programming. The central concept in FRP is the Signal Function which can be understood as a process over time which maps an input- to an output-signal. A signal in turn, can be understood as a value
+which varies over time. Thus, signal functions have an awareness of the passing of time by having access to a $\Delta t$ which are positive time-steps with which the system is sampled. In general, signal functions can be understood to be computations that represent processes, which have an input of a specific type, process it and output a new type. Note that this is an important building block to represent agents in functional programming: by implementing agents as signal functions allows us to implement them as processes which act continuously over time, which implies a time-driven approach to ABS. We have also applied the concept of FRP to event-driven ABS \citep{meyer_event-driven_2014}.
 
-%MacLennan \citep{maclennan_functional_1990} defines Functional Programming as a methodology and identifies it with the following properties (amongst others):
-%
-%\begin{enumerate}
-%	\item It is programming without the assignment-operator.
-%	\item It allows for higher levels of abstraction.
-%	\item It allows to develop executable specifications and prototype implementations.
-%	\item It is connected to computer science theory.
-%	\item Suitable for Parallel Programming.
-%	\item Algebraic reasoning.
-%\end{enumerate}
-%
-%\citep{allen_haskell_2016} defines Functional Programming as "a computer programming paradigm that relies on functions modelled on mathematical functions." Further they explicate that it is 
-%\begin{itemize}
-%	\item in Functional programming programs are combinations of expressions
-%	\item Functions are \textit{first-class} which means the can be treated like values, passed as arguments and returned from functions.
-%\end{itemize}
-%
-%\citep{maclennan_functional_1990} makes the subtle distinction between \textit{applicative} and \textit{functional} programming. Applicative programming can be understood as applying values to functions where one deals with pure expressions:
-%
-%\begin{itemize}
-%	\item Value is independent of the evaluation order.
-%	\item Expressions can be evaluated in parallel.
-%	\item Referential transparency.
-%	\item No side effects.
-%	\item Inputs to an operation are obvious from the written form.
-%	\item Effects to an operation are obvious from the written form.
-%\end{itemize}
-%
-%Note that applicative programming is not necessarily unique to the functional programming paradigm but can be emulated in an imperative language e.g. C as well. Functional programming is then defined by \citep{maclennan_functional_1990} as applicative programming with \textit{higher-order} functions. These are functions which operate themselves on functions: they can take functions as arguments, construct new functions and return them as values. This is in stark contrast to the \textit{first-order} functions as used in applicative or imperative programming which just operate on data alone. Higher-order functions allow to capture frequently recurring patterns in functional programming in the same way like imperative languages captured patterns like GOTO, while-do, if-then-else, for. Common patterns in functional programming are the map, fold, zip, operators.
-%So functional programming is not really possible in this way in classic imperative languages e.g. C as you cannot construct new functions and return them as results from functions \footnote{Object-Oriented languages like Java let you to partially work around this limitation but are still far from \textit{pure} functional programming.}.
-%
-%The equivalence in functional programming to to the \textit{;} operator of imperative programming which allows to compose imperative statements is function composition. Function composition has no side-effects as opposed to the imperative ; operator which simply composes destructive assignment statements which are executed after another resulting in side-effects.
-%At the heart of modern functional programming is monadic programming which is polymorphic function composition: one can implement a user-defined function composition by allowing to run some code in-between function composition - this code of course depends on the type of the Monad one runs in. This allows to emulate all kind of effectful programming in an imperative style within a pure functional language. Although it might seem strange wanting to have imperative style in a pure functional language, some problems are inherently imperative in the way that computations need to be executed in a given sequence with some effects. Also a pure functional language needs to have some way to deal with effects otherwise it would never be able to interact with the outside-world and would be practically useless. The real benefit of monadic programming is that it is explicit about side-effects and allows only effects which are fixed by the type of the monad - the side-effects which are possible are determined statically during compile-time by the type-system. Some general patterns can be extracted e.g. a map, zip, fold over monads which results in polymorphic behaviour - this is the meaning when one says that a language is polymorphic in its side-effects.
-%
-%TODO: explain closures
-%TODO: explain continuations
-%TODO: explain monads (explicit about side-effects), what are effects
-%TODO: explain the term 'pure'
-%
-%
-%The main conclusion of the classical paper \citep{hughes_why_1989} is that \textit{modularity} is the key to successful programming and can be achieved best using higher-order functions and lazy evaluation provided in functional languages like Haskell. The author argues that the ability to divide problems into sub-problems depends on the ability to glue the sub-problems together which depends strongly on the programming-language. He shows that laziness and higher-order functions are in combination a highly powerful glue and identifies this as the reason why functional languages are superior to structure programming. Another property of lazy evaluation is that it allows to describe infinite data-structures, which are computed as currently needed. This makes functions possible which produce an infinite stream which is consumed by another function - the decision of \textit{how many} is decoupled from \textit{how to}.
-%
-%In the paper \citep{wadler_essence_1992} Wadler describes Monads as the essence of functional programming (in Haskell). Originally inspired by monads from category-theory (see below) through the paper of Moggi \citep{moggi_computational_1989}, Wadler realized that monads can be used to structure functional programs \citep{wadler_comprehending_1990}. A pure functional language like Haskell needs some way to perform impure (side-effects) computations otherwise it has no relevance for solving real-world problems like GUI-programming, graphics, concurrency,... . This is where monads come in, because ultimately they can be seen as a way to make effectful computations explicit \footnote{This is seen as one of the main impacts of Haskell had on the mainstream programming \citep{hudak_history_2007}}. 
-%In \citep{wadler_essence_1992} Wadler shows how to factor out the error handling in a parser into monads which prevents code to be cluttered by cross-cutting concerns not relevant to the original problem. Other examples Wadler gives are the propagating of mutable state, (debugging) text-output during execution, non-deterministic choice. Further applications of monads are given in \citep{wadler_essence_1992}, \citep{wadler_monads_1995}, \citep{wadler_how_1997} where they are used for array updating, interpreting of a language formed by expressions in algebraic data-types, filters, parsers, exceptions, IO, emulating an imperative-style of programming. This seems to be exactly the way to go, tackling the problems mentioned in the introduction: making data-flow explicit, allowing to factor out cross-cutting concerns and encapsulate side-effects in types thus making them explicit.
-%It may seem that one runs into efficiency-problems in a pure functional programming language when using algorithms which are implemented in imperative languages through mutable data which allows in-place update of memory. The seminal work of \citep{okasaki_purely_1999} showed that when approaching this problem from a functional mind-set this does not necessarily be the case. The author presents functional data structures which are asymptotically as efficient as the best imperative implementations and discusses the estimation of the complexity of lazy programs.
-%
-%The concept of monads was further generalized by Hughes in the concept of arrows \citep{hughes_generalising_2000}. The main difference between Monads and Arrows are that where monadic computations are parameterized only over their output-type, Arrows computations are parametrised both over their input- and output-type thus making Arrows more general. In \citep{hughes_programming_2005} Hughes gives an example for the usage for Arrows in the field of circuit simulation. Streams are used to advance the simulation in discrete steps to calculate values of circuits thus the implementation is a form of \textit{discrete event simulation} - which is in the direction we are heading already with ABS. As will be shown below, the concept of arrows is essential for Functional Reactive Programming a potential way to do ABS in pure functional programming.
-%
-%\subsection{Functional Reactive Programming}
-%TODO: explain streams
-%TODO: Yampa, BearRiver, Dunai
-%
-%Functional Reactive Programming (FRP) is a paradigm for programming hybrid systems which combine continuous and discrete components. Time is explicitly modelled: there is a continuous and synchronous time flow.  \\
-%
-%there have been many attempts to implement FRP in frameworks which each has its own pro and contra. all started with fran, a domain specific language for graphics and animation and at yale FAL, Frob, Fvision and Fruit were developed. The ideas of them all have then culminated in Yampa which is the reason why it was chosen as the FRP framework. Also, compared to other frameworks it does not distinguish between discrete and synchronous time but leaves that to the user of the framework how the time flow should be sampled (e.g. if the sampling is discrete or continuous - of course sampling always happens at discrete times but when we speak about discrete sampling we mean that time advances in natural numbers: 1,2,3,4,... and when speaking of continuous sampling then time advances in fractions of the natural numbers where the difference between each step is a real number in the range of [0..1]) \\
-%
-%\citep{Nilsson2002} give a good overview of Yampa and FRP. Quote: "The essential abstraction that our system captures is time flow". Two \textit{semantic} domains for progress of time: continuous and discrete. \\
-%
-%The first implementations of FRP (Fran) implemented FRP with synchronized stream processors which was also followed by \citep{Wan2000}. Yampa is but using continuations inspired by Fudgets. In the stream processors approach "signals are represented as time-stamped streams, and signal functions are just functions from streams to streams", where "the Stream type can be implemented directly as (lazy) list in Haskell...":
-%
-%"A major design goal for FRP is to free the programmer from 'presentation' details by providing the ability to think in terms of 'modeling'. It is common that an FRP program is concise enough to also serve as a specification for the problem it solves" \citep{Wan2000}. This quotation describes exactly one of the strengths using FRP in ACE \\
+TODO: explain that there are events and dynamical switching of behaviour
+
+We refer to the following papers for a technical, in-depth discussion on FRP in Haskell: \citep{wan_functional_2000, hughes_generalising_2000, hughes_programming_2005, hudak_arrows_2003, courtney_yampa_2003, nilsson_functional_2002, perez_functional_2016, perez_extensible_2017}
 
 \subsection{Related Research}
 TODO: paper by James Odell "Objects and Agents Compared"

@@ -14,23 +14,24 @@ factorial :: Integer -> Integer
 factorial 0 = 1
 factorial n = n * factorial (n-1)
 
-When looking at this function we can already see a few things: 
+When looking at this function we can already see the central concepts of functional programming: 
 \begin{enumerate*}
 	\item Declarative - we describe \textit{what} the factorial function is rather than how to compute it. This is supported by \textit{pattern matching} which allows to give multiple equations for the same function, matching on its input. 
 	\item Immutable data - in functional programming we don't have mutable variables - after a variable is assigned, it cannot change its contents. This also means that there is no destructive assignment operator which can re-assign values to a variable. To change values, we employ recursion.
 	\item Recursion - the function calls itself with a smaller argument and will eventually reach the case of 0. Recursion is the very meat of functional programming because they are the only way to implement loops in this paradigm due to immutable data.
 	\item Static Types - the first line indicates the name and the types of the function. In this case the function takes one Integer as input and returns an Integer as output. Types are static in Haskell which means that there can be no type-errors at run-time e.g. when one tries to cast one type into another because this is not supported by this kind of type-system.
 	\item Explicit input and output - all data which are required and produced by the function have to be explicitly passed in and out of it. There exists no global mutable data whatsoever and data-flow is always explicit.
-	\item Purity - this function is pure, indicated by its type, which means that it can have no side-effects whatsoever. Calling this function with the same argument will \textit{always} lead to the same result - this concept is called \textit{referential transparency}. This means that when implementing this function one can not read from a file or open a connection to a server. In Haskell this is indicated in the types and ensured by the compiler.
+	\item Referential transparency - calling this function with the same argument will \textit{always} lead to the same result. This means that when implementing this function one can not read from a file or open a connection to a server. This is also known as \textit{purity} and is indicated in Haskell in the types which means that it is also guaranteed by the compiler.
 \end{enumerate*}
 
-It may seem that one runs into efficiency-problems in a pure functional programming language when using algorithms which are implemented in imperative languages through mutable data which allows in-place update of memory. The seminal work of \citep{okasaki_purely_1999} showed that when approaching this problem from a functional mind-set this does not necessarily be the case. The author presents functional data structures which are asymptotically as efficient as the best imperative implementations and discusses the estimation of the complexity of lazy programs.
+It may seem that one runs into efficiency-problems in Haskell when using algorithms which are implemented in imperative languages through mutable data which allows in-place update of memory. The seminal work of \citep{okasaki_purely_1999} showed that when approaching this problem from a functional mind-set this does not necessarily be the case. The author presents functional data structures which are asymptotically as efficient as the best imperative implementations and discusses the estimation of the complexity of lazy programs.
 
 \subsection{Side-Effects}
 
 
 \subsection{Functional Reactive Programming}
-
+Functional Reactive Programming (FRP) is a way to implement systems with continuous and discrete time-semantics in pure functional languages. The central concept in FRP is the Signal Function (SF) which can be understood as a process over time which maps an input- to an output-signal. A signal can be understood as a value
+which varies over time. Thus, signal functions have an awareness of the passing of time by having access to $\Delta t$ which are positive time-steps with which the system is sampled. In general, arrows can be understood to be computations that represent processes, which have an input of a specific type, process it and output a new type. This is the reason why Yampa is using arrows to represent their signal functions: the concept of processes, which signal functions are, maps naturally to arrows.
 
 %MacLennan \citep{maclennan_functional_1990} defines Functional Programming as a methodology and identifies it with the following properties (amongst others):
 %

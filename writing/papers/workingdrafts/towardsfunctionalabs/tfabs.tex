@@ -30,7 +30,7 @@
 
 % title, authors and affiliations	
 
-\title{The Agent's new Cloths \\ Towards functional Agent-Based Simulation}
+\title{The Agent's new Cloths \\ {\large Towards functional programming in Agent-Based Simulation}}
 
 %All authors should be included in the submission. To anonymise the submission, set to 'true' the \reviewcopy command below. However, before submitting  you can check that all the informations you entered are correct by temporarily setting it to 'false'. Please remember to set it back to 'true' before the submission.
 \reviewcopy{true} 
@@ -90,7 +90,7 @@
 %\usepackage{natbib}
 %\usepackage{endnotes}
 %\usepackage{minted}
-
+\usepackage{hyperref}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -102,14 +102,11 @@
 % Abstract and keywords
 
 \begin{abstract}
-TODO: implement MSF SugarScape
-TODO: implement STM Sugarscape
-
 TODO: parallelism for free because all isolated e.g. running multiple replications or parameter-variations
 
 TODO: it is paramount not to write against the established approach but for the functional approach. not to try to come up with arguments AGAINST the object-oriented approach but IN FAVOUR for the functional approach. In the end: dont tell the people that what they do sucks and that i am the saviour with my new method but: that i have a new method which might be of interest as it has a few nice advantages.
 
-So far, the pure functional paradigm hasn't got much attention in Agent-Based Simulation (ABS) where the dominant programming paradigm is object-orientation, with Java, Python and C++ being its most prominent representatives. We claim that pure functional programming using Haskell is very well suited to implement complex, real-world agent-based models and brings with it a number of benefits. To show that we implemented the seminal Sugarscape model in Haskell in our library \textit{FrABS} which allows to do ABS the first time in the pure functional programming language Haskell. To achieve this we leverage the basic concepts of ABS with functional reactive programming using Yampa. The result is a surprisingly fresh approach to ABS as it allows to incorporate discrete time-semantics similar to Discrete Event Simulation and continuous time-flows as in System Dynamics. In this paper we will show the novel approach of functional reactive ABS through the example of the SIR model, discuss implications, benefits and best practices.
+So far, the pure functional paradigm hasn't got much attention in Agent-Based Simulation (ABS) where the dominant programming paradigm is object-orientation, with Java, Python and C++ being its most prominent representatives. We claim that functional programming using Haskell is very well suited to implement complex, real-world agent-based models and brings with it a number of benefits. In this paper we will introduce the reader to the functional programming paradigm and explain how it can be applied to implementing ABS. Further we discuss benefits and advantages. As use-case we implemented the seminal Sugarscape model in Haskell.
 \end{abstract}
 
 \begin{keywords}
@@ -126,17 +123,9 @@ Agent-Based Simulation, Functional Programming, Haskell
 
 \input{./tex/introduction.tex}
 
-%\input{./tex/background.tex}
+\input{./tex/background.tex}
 
-%\input{./tex/absDefinition.tex}
-
-%\input{./tex/functionalView.tex}
-
-%\input{./tex/examples.tex}
-
-%\input{./tex/discussion.tex}
-
-%\input{./tex/conclusions.tex}
+\input{./tex/functionalView.tex}
 
 % Place the main text here. Please use only \section, \subsection, and \subsubsection sectioning commands to structure your text. Do NOT use lower sectioning commands, including \paragraph and \subparagraph
 

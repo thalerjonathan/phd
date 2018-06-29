@@ -1,0 +1,187 @@
+% This file provides a template to format JASSS articles v.0.5, 2015-03-24
+
+% In order to be compiled, the following packages should be installed in your system:
+% graphicx,xcolor, booktabs,amsmath, ifthen, geometry, authblk, natbib, endnotes
+ 
+ % Please use pdflatex
+
+% The font used is Source Sans Pro, normally included in Tex Live and other  major LaTeX distributions
+% Location at CTAN: http://www.ctan.org/tex-archive/fonts/sourcesanspro/
+% See also: http://www.tug.dk/FontCatalogue/sourcesanspro/
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass{JASSS}
+	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Editorial fields (to be set in case of publication)	
+% Please leave this section untouched
+%\doinum{10.18564/jasss.xxxx}
+%\volume{xx}
+%\issue{x}
+%\article{x}
+%\pubyear{20xx}
+%\received{dd-mmm-yyyy}
+%\accepted{dd-mmm-yyyy}
+%\published{dd-mmm-yyyy}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
+% title, authors and affiliations	
+
+\title{Article title here}
+
+%All authors should be included in the submission. To anonymise the submission, set to 'true' the \reviewcopy command below. However, before submitting  you can check that all the informations you entered are correct by temporarily setting it to 'false'. Please remember to set it back to 'true' before the submission.
+\reviewcopy{true} 
+
+\author[1]{First author here}
+\affil[1]{Affiliation of the first author here}
+
+% Subsequent author should be included using the following template. You can add more in case of need, just remember to appropriately set the corresponding number.  Please check the the authblk package documentation  in case of doubts
+
+%\author[2]{Second author here}
+%\affil[2]{Affiliation of the second author here}
+
+%\author[3]{Third author here}
+%\affil[3]{Affiliation of the third author here}
+
+%\author[4]{fourth author here}
+%\affil[4]{fourth of the third author here}
+
+% In case of multiple affiliation for the same author:
+
+%\author[1,2]{Author name here}
+%\affil[1]{First affiliation}
+%\affil[2]{Second affiliation}
+
+%  In case of several authors sharing the same affiliation:
+
+%\author[1]{First author name}
+%\author[1]{Second author name}
+%\affil[1]{Affiliation}
+
+% email for the corresponding author
+\email{Corresponding author email here}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% NOTES. Please use endnotes. Notes should be placed after the main text and appendices and before the references. Also remember to uncomment the \theendnotes commands at the end of the document (just before the references)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% REFERENCES should be included using the \citep, \citet, etc. commands provided by the natbib package
+
+\usepackage{natbib}
+	\setcitestyle{authoryear,round,aysep={}}
+	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+
+% EXTRA PACKAGES. Please place here any extra package you need along with your own command definitions
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\maketitle 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Abstract and keywords
+
+\begin{abstract}
+Add your abstract here
+\end{abstract}
+
+\begin{keywords}
+Add your keywords here separated by commas
+\end{keywords}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Start of  paragraph numbering. Please leave this untouched
+\parano{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% MAIN TEXT
+
+\section{Test Section 1}
+This is a test section.
+
+\section{Test Section 2}
+This is a test section.
+
+% Place the main text here. Please use only \section, \subsection, and \subsubsection sectioning commands to structure your text. Do NOT use lower sectioning commands, including \paragraph and \subparagraph
+
+%For bulleted, numbered and description lists the class provides three asterisked environments to replace the standard LaTeX ones: itemize*, enumerate*, and description*. Please use these ones as the standard environment may cause issues with the paragraph numbering system.
+
+%\begin{itemize*}
+%     \item 
+%     \item
+%     \item
+% \end{itemize*} 
+
+% hyperlinks (to models, videos, etc.) can be included via the \href command (remember to put \usepackage{hyperref} in the preamble). Check the hyperref documentation for details
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% FIGURES AND TABLES
+
+% Figures should be placed in the desired position within the text. Please follow the template below.
+% Figure widths can be set using absolute dimensions (e.g., [width = 12cm]) or relative ones (e.g., [width = 0.8/textwidth]). We strongly suggest to use the latter option, as this allows automatic adaptation to different paper widths
+
+%\begin{figure}[!t]
+%\centering
+%\includegraphics[width=????\textwidth]{????}
+%\caption{}
+%\label{fig:????}
+%\end{figure}
+
+% Tables should be placed in the desired position within the text. Please follow the template below
+
+%\begin{table}[!t]
+%	\centering
+%	\begin{tabular}{????}
+%	\toprule
+% 	% first line
+%	\midrule
+%	% tale body	
+%	\bottomrule			
+%	\end{tabular}
+%	\caption{}
+%	\label{tab:????}	
+%\end{table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% End of  paragraph numbering. Please leave this untouched
+\endparano
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% APPENDICES
+% Put your appendices here. Please use the normal sectioning command, e.g.,
+% \section{Appendix A: <title of the appendix>}
+% \section{Appendix B: <title of the appendix>}
+% ...
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% ENDNOTES. Please uncomment the line below in case of notes.
+% \theendnotes
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% REFERENCES.
+% The JASSS bibliographic style file (jasss.bst) is included in the bundle. Please use BibTeX, not BibLaTeX.
+% Use natbib commands for references (\citep{}, \citet{}, etc.), not standard LaTeX ones (\cite{}).
+% Remember to include the doi and url fields in your bib database. The address field should be included for books.
+% Please upload the bib file (not just the bbl one) when submitting.
+ 
+\bibliographystyle{jasss}
+\bibliography{} % Please set the right name for your bib file
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}

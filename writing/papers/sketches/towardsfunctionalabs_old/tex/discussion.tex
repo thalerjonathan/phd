@@ -1,0 +1,61 @@
+\section{Discussion}
+Our purely functional approach has a number of fundamental implications which change the way one has to think about agents and ABS in general as it makes a few concepts which were so far hidden or implicitly assumed, now explicit. 
+
+general requirements to ABS 
+- only rely on past
+	-> solved with Arrowized FRP
+- no bugs due to implicitly mutable state
+	-> can be ensured by pure functional programming
+- ruling out external sources of non-determinism / randomness
+	-> can be ensured by pure functional programming
+- correct interaction protocols between agents
+	-> can be ensured by dependent state machines
+- deterministic time-delta
+	-> TODO: can we ensure it through dependent-types at type-level?
+- repeated runs lead to same dynamics 
+	-> can be ensured by pure functional programming
+=> all these can be guaranteed at compile time with pure \& dependently typed functional programming 
+
+
+\subsection{Event-Driven vs. Time-Driven}
+TODO: two different approaches possible: event and time. Our initial FRP implementation (chimera and the Pure functional epidemics paper) follows a strictly time-driven approach. We also investigated an event-driven approach in another paper: 
+
+\subsection{Suitability}
+TODO: discuss that our approaches can cover all the four cases of ABS as defined in \cite{macal_everything_2016}
+
+\subsection{Agent Modeling framework}
+TODO: how far does peers framework, which uses UML and objects, apply to a pure functional approach?  \url{https://stackoverflow.com/questions/1364237/is-there-a-visual-modeling-language-or-style-for-the-functional-programming-para}
+
+\subsection{Dependently Typed pure functional}
+Totality is the key!
+
+\subsection{Hybrid ABS / Multi-method Approach}
+TODO: if we can do DES then its clearly a mult-method approach
+TODO: it is already a hybrid ABS as we can directly express SD as well
+
+\subsection{Agents as Signals}
+Our approach of using signal-functions has the direct implication that we can view and implement agents as time-dependent signals. A time-dependent function should stay constant when time does not advance (when the system is stepped with time-delta of 0). For this to happen with our agents requires them to act only on time-dependent functions. TODO: further discussion using my work on agents as signals in the first draft on FrABS.
+
+TODO: it doesn't make sense for an agent to act 'always', an agents behaviour needs to have some time-dependent parameter e.g. doEvery 1.0. If this is omitted then one makes one dependent directly on the Time-Delta.
+
+\subsection{System Dynamics}
+Due to the parallel execution of the agents signal-functions, the ability to iterate the simulation with continuous time, the notion of continuous data-flow between agents and compile time guarantees of absence of non-deterministic side-effects and random-number generators allows us to directly express System Dynamic models.
+Each stock and flow becomes an agent and are connected using data-flows using hard-coded agent ids. The integrals over time which occur in a SD model are directly translated to pure functional code using the \textit{integral} primitive of FRP - our implementation is then correct by definition.
+See Appendix TODO for an example which implements the SIR model (TODO: cite mckendrick) in SD using our continuous ABS approach.
+
+\subsection{Transactional Behaviour}
+Imagine two agents A and B want to engage in a bartering process where agent A, is the seller who wants to sell an asset to agent B who is the buyer. Agent A sends Agent B a sell offer depending on how much agent A values this asset. Agent B receives this sell offer, checks if the price satisfies its utility, if it has enough wealth to buy the asset and replies with either a refusal or its own price offer. Agent A then considers agent Bs offer and if it is happy it replies to agent B with an acceptance of the offer, removes the asset from its inventory and increases its wealth. Agent B receives this acceptance offer, puts the asset in its inventory and decreases its wealth (note that this process could involve a potentially arbitrary number of steps without loss of generality).
+We can see this behaviour as a kind of multi-step transactional behaviour because agents have to respect their budget constraints which means that they cannot spend more wealth or assets than they have. This implies that they have to 'lock' the asset and the amount of cash they are bartering about during the bartering process. If both come to an agreement they will swap the asset and the cash and if they refuse their offers they have to 'unlock' them.
+In classic OO implementations it is quite easy to implement this as normally only one agent is active at a time due to sequential (discrete event scheduling approach) scheduling of the simulation. This allows then agent A which is active, to directly interact with agent B through method calls. The sequential updating ensures that no other agent will touch the asset or cash and the direct method calls ensure a synchronous updating of the mutable state of both objects with no time passing between these updates.
+
+Unfortunately this is not directly possible using our approach. The reasons for this are the following:
+- an agent cannot access another agents' state or invoke its signal-function directly
+- due to the parallel scheduling all agents act virtually at the same time 
+- each agent-agent interaction takes time 
+=> this leads to the problem that an agent could get engaged with many sell offers at the same time which it could all individually satisfy but not all of them together. Worse: each interaction requires time which could lead to changed wealth and then turning down of offers. In the end it boils down to the problem of losing the transactional behaviour as it is possible in an OO approach.
+
+A potential solution could be
+1. agents get the possibility to freeze time which means that the SFs are still evaluated as before but with a time-delta of 0
+2. when an agent wants to start a transactional behaviour it freezes time and initiates a data-flow to the receiving agent and switches into a waiting-behaviour.
+3. if the model is implemented in a way that a receiving agent could receive an arbitrary number of such data-flows it can only process them one-by-one which means it must store them in a list and transact them one-by-one.
+4. finally this requires all agents need to distinguish between transactional data-flows and time-dependent ones. This means that an agent should check for Sell Offers \textit{in every step, independent of the time-delta} but when they want to make moves they must execute their action only every 1.0 time-units. When freezing time this will ensure that they won't act.

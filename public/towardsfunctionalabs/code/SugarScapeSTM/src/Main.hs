@@ -125,6 +125,8 @@ simulationStep dt sugCtx simCtx = do
       t      = simCtxTime simCtx
       g      = simCtxRng simCtx
 
+  -- TODO: to reduce STM Retries: schedule Environment in main thread
+
   -- tell all threads to continue with the corresponding DTime
   mapM_ (`putMVar` dt) dtVars
   -- wait for results

@@ -191,6 +191,7 @@ data SugEnvCell = SugEnvCell
   , sugEnvOccupier      :: Maybe SugEnvCellOccupier
   } deriving (Show)
 
+-- TODO: to reduce STM retries use TArray for Environment
 type SugEnvironment = Discrete2d SugEnvCell
 
 data SugAgentIn = SugAgentIn { }

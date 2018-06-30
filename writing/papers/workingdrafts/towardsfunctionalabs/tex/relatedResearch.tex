@@ -1,0 +1,12 @@
+\section{Related Research}
+The amount of research on using pure functional programming with Haskell in the field of ABS has been moderate so far. Most of the papers are related to the field of Multi Agent Systems and look into how agents can be specified using the belief-desire-intention paradigm \citep{de_jong_suitability_2014, sulzmann_specifying_2007, jankovic_functional_2007}.
+
+A library for Discrete Event Simulation (DES) and System Dynamics in Haskell called \textit{Aivika 3} is described in the technical report \citep{sorokin_aivika_2015}. It is not pure, as it uses the IO under the hood and comes only with very basic features for event-driven ABS, which allows to specify simple state-based agents with timed transitions.
+
+Using functional programming for DES was discussed in \citep{jankovic_functional_2007} where the authors explicitly mention the paradigm of FRP to be very suitable to DES.
+
+A domain-specific language for developing functional reactive agent-based simulations was presented in \citep{vendrov_frabjous:_2014}. This language called FRABJOUS is human readable and easily understandable by domain-experts. It is not directly implemented in FRP/Haskell but is compiled to Haskell code which they claim is also readable. This supports that FRP is a suitable approach to implement ABS in Haskell. Unfortunately, the authors do not discuss their mapping of ABS to FRP on a technical level, which would be of most interest to functional programmers.
+
+Object-oriented programming and simulation have a long history together as the former one emerged out of Simula 67 \citep{dahl_birth_2002} which was created for simulation purposes. Simula 67 already supported Discrete Event Simulation and was highly influential for today's object-oriented languages. Although the language was important and influential, in our research we look into different approaches, orthogonal to the existing object-oriented concepts.
+
+%TODO: paper by James Odell "Objects and Agents Compared" \citep{odell_objects_2002}: doesn't really fit in here

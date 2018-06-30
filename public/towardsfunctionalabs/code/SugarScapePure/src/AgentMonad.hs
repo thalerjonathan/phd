@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module AgentMonad
   (
@@ -14,6 +15,9 @@ module AgentMonad
   , AgentIn (..)
   , AgentOut (..)
 
+  , nextAgentId
+  , sendMessage
+
   , mkAbsState
 
   , agentOut
@@ -24,17 +28,19 @@ module AgentMonad
   , createAgent
   ) where
 
-import Data.Maybe
+import           Data.Maybe
 
-import Control.Monad.State.Strict
-import FRP.BearRiver
-
-type AgentId = Int
+import           Control.Monad.State.Strict
+--import qualified Data.Map as Map
+import           FRP.BearRiver
 
 {-
 class (Monad m) => MonadAgent m where
   nextAgentId :: m AgentId
   now :: m Time
+  myId :: m AgentId
+  sendMessage :: AgentId -> e -> m ()
+  conversation :: AgentId -> e -> 
 
 instance (MonadAgent m) => MonadAgent (StateT ABSState m) where
   -- nextAgentId :: m AgentId
@@ -47,9 +53,18 @@ instance (MonadAgent m) => MonadAgent (StateT ABSState m) where
   now = gets absTime
 -}
 
+type AgentId = Int
+
+{-
+data Msg e
+  = TimeStep 
+  | Event e
+-}
+
 data ABSState = ABSState
-  { absNextId   :: AgentId
-  , absTime     :: Time
+  { absNextId :: AgentId
+  , absTime   :: Time
+  --, absMsg    :: Map.Map AgentId (AgentId, e)
   }
 
 type AgentT m  = (StateT ABSState m)
@@ -60,13 +75,30 @@ data AgentDef m o = AgentDef
   , adBeh      :: Agent m o
   }
 
-data AgentIn = AgentIn { }
+data AgentIn = AgentIn 
+  {
+
+  }
 
 data AgentOut m o = AgentOut 
   { aoKill       :: !(Event ())
   , aoCreate     :: ![AgentDef m o]
   , aoObservable :: !(Maybe o)
   }
+
+nextAgentId :: MonadState ABSState m
+            => m AgentId
+nextAgentId = do
+  aid <- gets absNextId
+  modify (\s -> s { absNextId = aid + 1 })
+  return aid
+
+sendMessage :: MonadState ABSState m
+            => AgentId 
+            -> AgentId
+            -> e
+            -> m ()
+sendMessage _from _to _msg = undefined
 
 mkAbsState :: AgentId -> ABSState
 mkAbsState initId = ABSState 

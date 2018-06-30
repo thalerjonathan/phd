@@ -117,17 +117,17 @@ simStepSF ais sfs = MSF $ \_ -> do
       newSfs = map adBeh adefs
       newAis = map adId adefs
 
-      obs   = foldr (\((ao, _), aid) acc -> 
+      obs = foldr (\((ao, _), aid) acc -> 
         if isObservable ao 
           then (aid, fromJust $ aoObservable ao) : acc  
-          else acc)  [] (zip res ais)
+          else acc) [] (zip res ais)
 
       (sfs', ais') = foldr (\((ao, sf), aid) acc@(accSf, accAid) -> 
         if isDead ao 
           then acc 
           else (sf : accSf, aid : accAid)) ([], []) (zip res ais)
 
-      ct    = simStepSF (newAis ++ ais') (newSfs ++ sfs')
+      ct = simStepSF (newAis ++ ais') (newSfs ++ sfs')
 
   return (obs, ct)
 

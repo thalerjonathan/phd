@@ -83,7 +83,6 @@ module Model
 
 import Control.Monad.Random
 import Control.Monad.State.Strict
---import FRP.BearRiver
 
 import AgentMonad
 import Discrete

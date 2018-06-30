@@ -82,7 +82,7 @@ chapterII aid _ain age = do
       ao' <- agentMetabolism
       ifThenElse
         (isDead ao')
-        (return ao)
+        (return ao')
         (do
           agentNonCombatMove aid
           returnObservable))
@@ -129,19 +129,12 @@ agentCellOnCoord = do
   cell  <- lift $ lift $ cellAtM coord
   return (coord, cell)
 
-nextAgentId :: RandomGen g
-            => StateT SugAgentState (SugAgentMonadT g) AgentId
-nextAgentId = do
-  aid <- lift $ gets absNextId
-  lift $ modify (\s -> s { absNextId = aid + 1 })
-  return aid
-
 birthNewAgent :: RandomGen g
               => StateT SugAgentState (SugAgentMonadT g) (SugAgentDef g)
 birthNewAgent = do
     -- -| not _enableBirthAgentOnAgeDeath_ = return ()
     -- | otherwise = do
-      newAgentId    <- nextAgentId
+      newAgentId    <- lift nextAgentId
       newAgentCoord <- findUnoccpiedRandomPosition   -- NOTE: why not take the same position?
       (adef, _) <- lift $ lift $ lift $ randomAgent (newAgentId, newAgentCoord) sugAgent id
       return adef
@@ -789,21 +782,6 @@ sugarScapeAgentConversationM _ _ _ = Nothing
 -- BEHAVIOUR-CONTROL
 -- NOTE: although we could configure each chapter separately we also provide separate chapter-functions which never call given functions
 ------------------------------------------------------------------------------------------------------------------------
-chapterII :: SugEnvironment 
-          -> Double 
-          -> SugarScapeAgentIn 
-          -> State SugAgentOut SugEnvironment
-chapterII e age ain = do     
-  e0 <- agentAgeingM age e
-  ifThenElseM 
-    isDeadM
-    (return e0)
-    $ do
-      e1 <- agentMetabolismM e0
-      ifThenElseM 
-        isDeadM
-        (return e1)
-        (agentMoveM e1)
 
 chapterIII :: SugEnvironment 
            -> Double 

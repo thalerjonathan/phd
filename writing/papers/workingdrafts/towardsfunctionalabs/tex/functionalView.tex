@@ -22,6 +22,9 @@ Due to the fundamentally different approaches of pure Functional Programming (pu
 	
 	\item How can we step the simulation? \\
 	In the classic OO approach agents are run one after another (with being optionally shuffled before to uniformly distribute the ordering) which ensures mutual exclusive access in the agent-agent and agent-environment interactions. Obviously in pure FP we cannot iteratively mutate a global state.
+
+	\item An Agent-Interface \\
+	How can we interface with the agent: how does the agent reveal information about itself? We will see that functional programming supports very strong encapsulation of local state which is not accessible and mutable from outside. This makes testing in some respekt easier, in some harder. 
 \end{enumerate}
 
 \subsection{Agent representation, state and proactivity}

@@ -1,5 +1,5 @@
 \section{Concepts of Functional Programming}
-In our research we are using the functional programming language Haskell. The paper of \citep{hudak_history_2007} gives a comprehensive overview over the history of the language, how it developed and its features and is very interesting to read and get accustomed to the background of the language. A widely used introduction to programming in Haskell is \citep{hutton_programming_2016}, a more conceptual introduction to functional programming can be found in \citep{maclennan_functional_1990}. The main points why we decided to go for Haskell are:
+In our research we are using the functional programming language Haskell. The paper of \citep{hudak_history_2007} gives a comprehensive overview over the history of the language, how it developed and its features and is very interesting to read and get accustomed to the background of the language. The main points why we decided to go for Haskell are:
 
 \begin{itemize*}
 	\item Rich Feature-Set - it has all fundamental concepts of the pure functional programming paradigm of which we explain the most important below.
@@ -26,7 +26,7 @@ When looking at this function we can already see the central concepts of functio
 
 It may seem that one runs into efficiency-problems in Haskell when using algorithms which are implemented in imperative languages through mutable data which allows in-place update of memory. The seminal work of \citep{okasaki_purely_1999} showed that when approaching this problem from a functional mind-set this does not necessarily be the case. The author presents functional data structures which are asymptotically as efficient as the best imperative implementations and discusses the estimation of the complexity of lazy programs.
 
-We refer to the following works for a more in-depth introduction to functional programming: \citep{hughes_why_1989}.
+For an excellent and widely used introduction to programming in Haskell we refer to \citep{hutton_programming_2016}. For more in-depth discussion of functional programming we refer to: \citep{hughes_why_1989, maclennan_functional_1990, hudak_history_2007}.
 
 \subsection{Side-Effects}
 One of the fundamental strengths of functional programming and Haskell is their way of dealing with side-effects in functions. A function with side-effects has observable interactions with some state outside of its explicit scope. This means that the behaviour it depends on history and that it loses its referential transparency character, which makes understanding and debugging much harder. Examples for side-effects are (amongst others): modifying a global variable, await an input from the keyboard, read or write to a file, open a connection to a server, drawing random-numbers,...
@@ -44,15 +44,15 @@ A function with side-effects has to indicate this in their type e.g. if we want 
 
 Although it might seem very restrictive at first, we get a number of benefits from making the type of effects we can use explicit. First we can restrict the side-effects a function can have to a very specific type which is guaranteed at compile time. This means we can have much stronger guarantees about our program and the absence of potential errors already at compile-time which implies that we don't need test them with e.g. unit-tests. Second, because effect-runners are themselves \textit{pure}, we can execute effectful functions in a very controlled way by making the effect-context explicit in the parameters to the effect-runner. This allows a much easier approach to isolated testing because the history of the system is made explicit.
 
-We refer to the following papers for a much more technical in-depth discussion of the concept of side-effects and how they are implemented in Haskell: \citep{moggi_computational_1989, wadler_essence_1992, wadler_monads_1995, wadler_how_1997, jones_tackling_2002}.
+For a technical, in-depth discussion of the concept of side-effects and how they are implemented in Haskell we refer to the following papers: \citep{moggi_computational_1989, wadler_essence_1992, wadler_monads_1995, wadler_how_1997, jones_tackling_2002}.
 
 \subsection{Functional Reactive Programming}
 Functional Reactive Programming (FRP) is a way to implement systems with continuous and discrete time-semantics in functional programming. The central concept in FRP is the Signal Function which can be understood as a process over time which maps an input- to an output-signal. A signal in turn, can be understood as a value
 which varies over time. Thus, signal functions have an awareness of the passing of time by having access to a $\Delta t$ which are positive time-steps with which the system is sampled. In general, signal functions can be understood to be computations that represent processes, which have an input of a specific type, process it and output a new type. Note that this is an important building block to represent agents in functional programming: by implementing agents as signal functions allows us to implement them as processes which act continuously over time, which implies a time-driven approach to ABS. We have also applied the concept of FRP to event-driven ABS \citep{meyer_event-driven_2014}.
 
-TODO: explain that there are events and dynamical switching of behaviour
+FRP provides a number of functions for expressing time-semantics, generating events and making state-changes of the system. They allow to change system behaviour in case of events, run signal functions, generate deterministic (after fixed time) and stochastic (exponential arrival rate) events and provide random-number streams. 
 
-We refer to the following papers for a technical, in-depth discussion on FRP in Haskell: \citep{wan_functional_2000, hughes_generalising_2000, hughes_programming_2005, hudak_arrows_2003, courtney_yampa_2003, nilsson_functional_2002, perez_functional_2016, perez_extensible_2017}
+For a technical, in-depth discussion on FRP in Haskell we refer to the following papers: \citep{wan_functional_2000, hughes_generalising_2000, hughes_programming_2005, nilsson_functional_2002, hudak_arrows_2003, courtney_yampa_2003, perez_functional_2016, perez_extensible_2017}
 
 \subsection{Related Research}
 TODO: paper by James Odell "Objects and Agents Compared"

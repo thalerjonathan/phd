@@ -3,7 +3,7 @@ In our research we are using the functional programming language Haskell. The pa
 
 \begin{itemize*}
 	\item Rich Feature-Set - it has all fundamental concepts of the pure functional programming paradigm of which we explain the most important below.
-	\item Real-World applications - the strength of Haskell has been proven through a vast amount of highly diverse real-world applications \footnote{\url{https://wiki.haskell.org/Applications_and_libraries}} \cite{hudak_history_2007}, is applicable to a number of real-world problems \cite{osullivan_real_2008} and has a large number of libraries available.
+	\item Real-World applications - the strength of Haskell has been proven through a vast amount of highly diverse real-world applications \citep{hudak_history_2007}, is applicable to a number of real-world problems \citep{osullivan_real_2008} and has a large number of libraries available \footnote{\url{https://wiki.haskell.org/Applications_and_libraries}}.
 	\item Modern - Haskell is constantly evolving through its community and adapting to keep up with the fast changing field of computer science. Further, the community is the main source of high-quality libraries.
 \end{itemize*}
 
@@ -54,5 +54,20 @@ FRP provides a number of functions for expressing time-semantics, generating eve
 
 For a technical, in-depth discussion on FRP in Haskell we refer to the following papers: \citep{wan_functional_2000, hughes_generalising_2000, hughes_programming_2005, nilsson_functional_2002, hudak_arrows_2003, courtney_yampa_2003, perez_functional_2016, perez_extensible_2017}
 
+\subsection{Property-Based Testing}
+TODO: write this section
+
 \subsection{Related Research}
+The amount of research on using pure functional programming with Haskell in the field of ABS has been moderate so far. Most of the papers are related to the field of Multi Agent Systems and look into how agents can be specified using the belief-desire-intention paradigm \citep{de_jong_suitability_2014, sulzmann_specifying_2007, jankovic_functional_2007}.
+
+A library for Discrete Event Simulation (DES) and System Dynamics in Haskell called \textit{Aivika 3} is described in the technical report \citep{sorokin_aivika_2015}. It is not pure, as it uses the IO under the hood and comes only with very basic features for event-driven ABS, which allows to specify simple state-based agents with timed transitions.
+
+Using functional programming for DES was discussed in \citep{jankovic_functional_2007} where the authors explicitly mention the paradigm of FRP to be very suitable to DES.
+
+A domain-specific language for developing functional reactive agent-based simulations was presented in \citep{vendrov_frabjous:_2014}. This language called FRABJOUS is human readable and easily understandable by domain-experts. It is not directly implemented in FRP/Haskell but is compiled to Haskell code which they claim is also readable. This supports that FRP is a suitable approach to implement ABS in Haskell. Unfortunately, the authors do not discuss their mapping of ABS to FRP on a technical level, which would be of most interest to functional programmers.
+
+Object-oriented programming and simulation have a long history together as the former one emerged out of Simula 67 \citep{dahl_birth_2002} which was created for simulation purposes. Simula 67 already supported Discrete Event Simulation and was highly influential for today's object-oriented languages. Although the language was important and influential, in our research we look into different approaches, orthogonal to the existing object-oriented concepts.
+
 TODO: paper by James Odell "Objects and Agents Compared"
+\citep{odell_objects_2002}
+

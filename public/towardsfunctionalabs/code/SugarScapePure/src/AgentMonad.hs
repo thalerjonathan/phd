@@ -34,13 +34,15 @@ import           Control.Monad.State.Strict
 --import qualified Data.Map as Map
 import           FRP.BearRiver
 
+-- newtype AgentInteraction e = Maybe e -> AgentInteraction e
+
 {-
 class (Monad m) => MonadAgent m where
   nextAgentId :: m AgentId
   now :: m Time
   myId :: m AgentId
   sendMessage :: AgentId -> e -> m ()
-  conversation :: AgentId -> e -> 
+  conversation :: AgentId -> e -> (Maybe e -> )
 
 instance (MonadAgent m) => MonadAgent (StateT ABSState m) where
   -- nextAgentId :: m AgentId

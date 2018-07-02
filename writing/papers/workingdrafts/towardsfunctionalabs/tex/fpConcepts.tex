@@ -33,7 +33,7 @@ One of the fundamental strengths of functional programming and Haskell is their 
 
 Obviously, to write real-world programs which interact with the outside-world we need side-effects. Haskell allows to indicate in the \textit{type} of a function that it does or does \textit{not} have side-effects. Further there are a broad range of different effect types available, to restrict the possible effects a function can have to only the required type. This is then ensured by the compiler which means that a program in which one tries to e.g. read a file in a function which only allows drawing random-numbers will fail to compile. Haskell also provides mechanisms to combine multiple effects e.g. one can define a function which can draw random-numbers and modify some global data. The most common side-effect types are:
 \begin{itemize*}
-	\item IO - Allows all kind of I/O related side-effects: reading/writing a file, creating threads, write to the standard output, read from the keyboard, opening network-connections,... 
+	\item IO - Allows all kind of I/O related side-effects: reading/writing a file, creating threads, write to the standard output, read from the keyboard, opening network-connections, mutable references,... 
 	\item Rand - Allows to draw random-numbers.
 	\item Reader - Allows to read from an environment.
 	\item Writer - Allows to write to an environment.
@@ -45,44 +45,3 @@ A function with side-effects has to indicate this in their type e.g. if we want 
 Although it might seem very restrictive at first, we get a number of benefits from making the type of effects we can use explicit. First we can restrict the side-effects a function can have to a very specific type which is guaranteed at compile time. This means we can have much stronger guarantees about our program and the absence of potential errors already at compile-time which implies that we don't need test them with e.g. unit-tests. Second, because effect-runners are themselves \textit{pure}, we can execute effectful functions in a very controlled way by making the effect-context explicit in the parameters to the effect-runner. This allows a much easier approach to isolated testing because the history of the system is made explicit.
 
 For a technical, in-depth discussion of the concept of side-effects and how they are implemented in Haskell we refer to the following papers: \citep{moggi_computational_1989, wadler_essence_1992, wadler_monads_1995, wadler_how_1997, jones_tackling_2002}.
-
-\subsection{Functional Reactive Programming}
-Functional Reactive Programming (FRP) is a way to implement systems with continuous and discrete time-semantics in functional programming. The central concept in FRP is the Signal Function which can be understood as a process over time which maps an input- to an output-signal. A signal in turn, can be understood as a value
-which varies over time. Thus, signal functions have an awareness of the passing of time by having access to a $\Delta t$ which are positive time-steps with which the system is sampled. In general, signal functions can be understood to be computations that represent processes, which have an input of a specific type, process it and output a new type. Note that this is an important building block to represent agents in functional programming: by implementing agents as signal functions allows us to implement them as processes which act continuously over time, which implies a time-driven approach to ABS. We have also applied the concept of FRP to event-driven ABS \citep{meyer_event-driven_2014}.
-
-FRP provides a number of functions for expressing time-semantics, generating events and making state-changes of the system. They allow to change system behaviour in case of events, run signal functions, generate deterministic (after fixed time) and stochastic (exponential arrival rate) events and provide random-number streams. 
-
-For a technical, in-depth discussion on FRP in Haskell we refer to the following papers: \citep{wan_functional_2000, hughes_generalising_2000, hughes_programming_2005, nilsson_functional_2002, hudak_arrows_2003, courtney_yampa_2003, perez_functional_2016, perez_extensible_2017}
-
-\subsection{Property-Based Testing}
-TODO: write this section
-
-We found property-based testing particularly well suited for ABS. Although it is now available in a wide range of programming languages and paradigms, propert-based testing has its origins in Haskell \citep{claessen_quickcheck:_2000, claessen_testing_2002} and we argue that for that reason it really shines in pure functional programming. Property-based testing allows to formulate \textit{functional specifications} in code which then the property-testing library (e.g. QuickCheck \citep{claessen_quickcheck:_2000}) tries to falsify by automatically generating random test-data covering as much cases as possible. When an input is found for which the property fails, the library then reduces it to the most simple one. It is clear to see that this kind of testing is especially suited to ABS, because we can formulate specifications, meaning we describe \textit{what} to test instead of \textit{how} to test (again the declarative nature of functional programming shines through). Also the deductive nature of falsification in property-based testing suits very well the constructive nature of ABS.
-
-\subsection{Software Transactional Memory}
-TODO: refine this section
-\citep{harris_composable_2005} on STM \footnote{We also make use of the excellent tutorial \url{http://book.realworldhaskell.org/read/software-transactional-memory.html}.}
-
-Concurrent programming is notoriously difficult to get right because reasoning about the interactions of multiple concurrently running threads and low level operational details of synchronisation primitives and locks is \textit{very hard}. The main problems are:
-
-\begin{itemize}
-	\item Race conditions due to forgotten locks.
-	\item Deadlocks resulting from inconsistent lock ordering.
-	\item Corruption caused by uncaught exceptions.
-	\item Lost wakeups induced by omitted notifications.
-\end{itemize}
-
-Worse, concurrency does not compose. It is utterly difficult to write two functions (or methods in an object) acting on concurrent data which can be composed into a larger concurrent behaviour. The reason for it is that one has to know about internal details of locking, which breaks encapsulation and makes composition depend on knowledge about their implementation. Also it is impossible to compose two functions e.g. where one withdraws some amount of money from an account and the other deposits this amount of money into a different account: one ends up with a temporary state where the money is in none of either accounts, creating an inconsistency - a potential source for errors because threads can be rescheduled at any time.
-
-STM promises to solve all these problems for a very low cost. In STM one executes actions atomically where modifications made in such an action are invisible to other threads until the action is performed. Also the thread in which this action is run, doesn't see changes made by other threads - thus execution of STM actions are isolated. When a transaction exists one of the following things will occur:
-
-\begin{enumerate}
-	\item If no other thread concurrently modified the same data as us, all of our modifications will simultaneously become visible to other threads.
-	\item Otherwise, our modifications are discarded without being performed, and our block of actions is automatically restarted.
-\end{enumerate}
-
-Note that the ability to \textit{restart} a block of actions without any visible effects is only possible due to the nature of Haskells type-system which allows being explicit about side-effects: by restricting the effects to STM only ensures that no uncontrolled effects, which cannot be rolled-back, occur.
-
-STM is implemented using optimistic synchronisation. This means that instead of locking access to shared data, each thread keeps a transaction log for each read and write to shared data it makes. When the transaction exists, this log is checked whether other threads have written to memory it has read - it checks whether it has a consistent view to the shared data or not. This might look like a serious overhead but the implementations are very mature by now, being very performant and the benefits outweigh its costs by far.
-
-Applying this to our agents is very simple: because we already use Dunai / BearRiver as our FRP library, we can run in arbitrary Monadic contexts. This allows us to simply run agents within an STM Monad and execute each agent in their own thread. This allows then the agents to communicate concurrently with each other using the STM primitives without problems of explicit concurrency, making the concurrent nature of an implementation very transparent. Further through optimistic synchronisation we should arrive at a much better performance than with low level locking.

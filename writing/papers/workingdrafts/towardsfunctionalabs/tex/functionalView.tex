@@ -23,24 +23,24 @@ Due to the fundamentally different approaches of functional programming (FP) an 
 
 The fundamental building blocks to solve these problems are \textit{recursion} and \textit{continuations}. In recursion a function is defined in terms of itself: in the process of computing the output it \textit{might} call itself with changed input data. Continuations in turn allow to encapsulate the execution state of a program including local variables and pick up computation from that point later on. We present an example for continuations and recursions:
 
-%\begin{HaskellCode}
-%newtype Cont a = Cont (a -> (a, Cont a))
-%
-%adder :: Int -> Cont Int
-%adder x = Cont (\x' -> (x + x', adder (x + x')))
-%
-%runCont :: Int
-%        -> Cont Int
-%        -> IO ()
-%runCont 0 _ = return ()
-%runCont n (Cont cont) = do
-%  let (x, cont') = cont 1
-%  print x
-%  runCont (n-1) cont'
-%
-%test :: IO ()
-%test = runCont 100 (adder 0)
-%\end{HaskellCode}
+\begin{HaskellCode}
+newtype Cont a = Cont (a -> (a, Cont a))
+
+adder :: Int -> Cont Int
+adder x = Cont (\x' -> (x + x', adder (x + x')))
+
+runCont :: Int
+        -> Cont Int
+        -> IO ()
+runCont 0 _ = return ()
+runCont n (Cont cont) = do
+  let (x, cont') = cont 1
+  print x
+  runCont (n-1) cont'
+
+test :: IO ()
+test = runCont 100 (adder 0)
+\end{HaskellCode}
 
 Fortunately FRP (see Section \ref{sec:frp}) provides us already with a suitable abstraction, the signal function, which are built on \textit{recursion} and \textit{continuations}. Using signal functions and FRP allows us to solve the presented problems.
 

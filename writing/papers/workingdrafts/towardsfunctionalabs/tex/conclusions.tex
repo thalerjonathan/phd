@@ -12,6 +12,8 @@ Also we can statically guarantee the reproducibility of the simulation, which me
 Determinism is also ensured by fixing the $\Delta t$ and not making it dependent on the performance of e.g. a rendering-loop or other system-dependent sources of non-determinism as described by \cite{perez_testing_2017}. Also by using FRP we gain all the benefits from it and can use research on testing, debugging and exploring FRP systems \cite{perez_testing_2017, perez_back_2017}.
 
 \subsection*{Issues}
+Reasoning about space-leaks due to lazyness.
+
 Currently, the performance of the system is not comparable to imperative implementations but our research was not focusing on this aspect. We leave the investigation and optimization of the performance aspect of our approach for further research.
 
 In our pure functional approach, agent identity is not as clear as in traditional object-oriented programming, where an agent can be hidden behind a polymorphic interface which is much more abstract than in our approach. Also the identity of an agent is much clearer in object-oriented programming due to the concept of object-identity and the encapsulation of data and methods.

@@ -1,6 +1,7 @@
 module Main where
 
 import PureRunner
+import VisualRunner
 
 main :: IO ()
 main = do
@@ -14,5 +15,6 @@ main = do
       dt              = 0.001
 
   let ret = runSDPure populationSize infectedCount contactRate infectivity illnessDuration t dt
+  runSDVisual populationSize infectedCount contactRate infectivity illnessDuration t dt
 
   print ret

@@ -1,17 +1,21 @@
 {-# LANGUAGE Arrows #-}
 module SIR
   (
-    sir
+    SIRStep
+    
+  , sir
   ) where
 
 import FRP.Yampa
+
+type SIRStep = (Double, Double, Double) 
 
 sir :: Double
     -> Double
     -> Double
     -> Double
     -> Double
-    -> SF () (Double, Double, Double)
+    -> SF () SIRStep
 sir populationSize infectedCount contactRate infectivity illnessDuration
     = loopPre (initSus, initInf, initRec) sir'
   where
@@ -20,8 +24,8 @@ sir populationSize infectedCount contactRate infectivity illnessDuration
     initRec = 0
 
     sir' :: SF 
-            ((), (Double, Double, Double))
-            ((Double, Double, Double), (Double, Double, Double))
+            ((), SIRStep)
+            (SIRStep, SIRStep)
     sir' = proc (_, (s, i, _r)) -> do
       let infectionRate  = (i * contactRate * s * infectivity) / populationSize
       let recoveryRate  = i / illnessDuration

@@ -59,6 +59,7 @@ executable SIR
   
   -- Other library packages from which modules are imported.
   build-depends:        base
+                      , gloss
                       , Yampa >=0.10 && <0.11
 
   -- Directories containing source files.
@@ -71,3 +72,4 @@ executable SIR
                        -Wall 
                        -Werror 
                        -fwarn-tabs 
+                       -- -fno-warn-unused-top-binds

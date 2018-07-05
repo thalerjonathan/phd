@@ -11,8 +11,8 @@ main = do
       infectivity     = 0.05
       illnessDuration = 15
 
-      t               = 200
-      dt              = 0.001
+      t               = 150
+      dt              = 0.01
 
   let ret = runSDPure populationSize infectedCount contactRate infectivity illnessDuration t dt
   runSDVisual populationSize infectedCount contactRate infectivity illnessDuration t dt

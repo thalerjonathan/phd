@@ -1,0 +1,66 @@
+\section{STM and ABS}
+
+For a proof-of-concept we changed the reference implementation of the agent-based SIR model on a 2D-grid as described in the paper in Appendix \ref{app:pfe}. In it, a State Monad is used to share the grid across all agents where all agents are run after each other to guarantee exclusive access to the state. We replaced the State Monad by the STM Monad, share the grid through a \textit{TVar} and run every agent within its own thread. All agents are run at the same time but synchronise after each time-step which is done through the main-thread.
+
+We make STM the innermost Monad within a RandT transformer:
+\begin{HaskellCode}
+type SIRMonad g   = RandT g STM
+type SIRAgent g   = SF (SIRMonad g) () ()
+\end{HaskellCode}
+
+In each step we use an \textit{MVar} to let the agents block on the next $\Delta t$ and let the main-thread block for all results. After each step we output the environment by reading it from the \textit{TVar}:
+\begin{HaskellCode}
+-- this is run in the main-thread
+simulationStep :: TVar SIREnv
+               -> [MVar DTime]
+               -> [MVar ()]
+               -> Int
+               -> IO SIREnv
+simulationStep env dtVars retVars _i = do
+  -- tell all threads to continue with the corresponding DTime
+  mapM_ (`putMVar` dt) dtVars
+  -- wait for results, ignoring them, only [()]
+  mapM_ takeMVar retVars
+  -- read last version of environment
+  readTVarIO env
+\end{HaskellCode}
+
+Each agent runs within its own thread. It will block for the posting of the next $\Delta t$ where it then will run the MSF stack with the given $\Delta t$ and atomically transacting the STM action. It will then post the result of the computation to the main-thread to signal it has finished. Note that the number of steps the agent will run is hard-coded and comes from the main-thread so that no infinite blocking occurs and the thread shuts down gracefully.
+
+\begin{HaskellCode}
+createAgentThread :: RandomGen g 
+                  => Int 
+                  -> TVar SIREnv
+                  -> MVar DTime
+                  -> g
+                  -> (Disc2dCoord, SIRState)
+                  -> IO (MVar ())
+createAgentThread steps env dtVar rng0 a = do
+    let sf = uncurry (sirAgent env) a
+    -- create the var where the result will be posted to
+    retVar <- newEmptyMVar
+    _ <- forkIO (sirAgentThreadAux steps sf rng0 retVar)
+    return retVar
+  where
+    agentThread :: RandomGen g 
+                => Int
+                -> SIRAgent g
+                -> g
+                -> MVar ()
+                -> IO ()
+    agentThread 0 _ _ _ = return ()
+    agentThread n sf rng retVar = do
+      -- wait for next dt to compute next step
+      dt <- takeMVar dtVar
+
+      -- compute next step
+      let sfReader = unMSF sf ()
+          sfRand   = runReaderT sfReader dt
+          sfSTM    = runRandT sfRand rng
+      ((_, sf'), rng') <- atomically sfSTM 
+      
+      -- post result to main thread
+      putMVar retVar ()
+      
+      agentThread (n - 1) sf' rng' retVar
+\end{HaskellCode}

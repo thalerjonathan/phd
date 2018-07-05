@@ -4,10 +4,14 @@ In this section we give a brief overview over advanced concepts found in functio
 \subsection{Parallelism and Concurrency}
 TODO: write this section
 
+Also Haskell makes a very clear distinction between parallelism and concurrency. Parallelism is always deterministic and thus pure without side-effects because although parallel code runs concurrently, it does by definition not interact with data of other threads. This can be indicated through types: we can run pure functions in parallel because for them it doesn't matter in which order they are executed, the result will always be the same due to the concept of referential transparency. Concurrency is potentially non-deterministic because of non-deterministic interactions of concurrently running threads through shared data. Although data in functional programming is immutable, Haskell provides primitives which allow to share immutable data between threads. Accessing these primitives is but only possible from within an IO or STM context which means that when we are using concurrency in our program, the types of our functions change from pure to either IO or STM effect context.
+
+Spawning thousands of threads in Haskell is no problem and has very low memory footprint because they are lightweight threads, managed by the Haskell Runtime System which maps them to physical threads. 
+
 TODO: in haskell we can distinguish between parallelism and concurrency in the types: parallelism is pure, concurrency is impure
 TODO: parallelism for free because all isolated e.g. running multiple replications or parameter-variations
 
-TODO: explain STM, Problem: live locks, For a technical, in-depth discussion on Software Transactional Memory in Haskell we refer to the following papers: \citep{harris_composable_2005, osullivan_real_2008}.
+TODO: explain STM, Problem: live locks, For a technical, in-depth discussion on Software Transactional Memory in Haskell we refer to the following papers: \citep{harris_composable_2005, osullivan_real_2008}. TODO: need much more papers on STM, parallelism and concurrency
 
 \subsection{Functional Reactive Programming}
 \label{sec:frp}
@@ -15,6 +19,8 @@ Functional Reactive Programming (FRP) is a way to implement systems with continu
 which varies over time. Thus, signal functions have an awareness of the passing of time by having access to a $\Delta t$ which are positive time-steps with which the system is sampled. In general, signal functions can be understood to be computations that represent processes, which have an input of a specific type, process it and output a new type. Note that this is an important building block to represent agents in functional programming: by implementing agents as signal functions allows us to implement them as processes which act continuously over time, which implies a time-driven approach to ABS. We have also applied the concept of FRP to event-driven ABS \citep{meyer_event-driven_2014}.
 
 FRP provides a number of functions for expressing time-semantics, generating events and making state-changes of the system. They allow to change system behaviour in case of events, run signal functions, generate deterministic (after fixed time) and stochastic (exponential arrival rate) events and provide random-number streams. 
+
+TODO: libraries Yampa and Dunai
 
 For a technical, in-depth discussion on FRP in Haskell we refer to the following papers: \citep{wan_functional_2000, hughes_generalising_2000, hughes_programming_2005, nilsson_functional_2002, hudak_arrows_2003, courtney_yampa_2003, perez_functional_2016, perez_extensible_2017}
 

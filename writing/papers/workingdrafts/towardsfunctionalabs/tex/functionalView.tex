@@ -102,12 +102,9 @@ Depending on which kind of environment we are using we have different approaches
 \end{enumerate}
 
 \subsection{Stepping the simulation}
-An FRP implementation generally provides functions to either run signal functions with or without any effectful context. Further they might also provide a looping function which runs within the IO context to e.g. continuously render outputs to a window. All of it is built on the concept of recursion and continuations as we have introduced earlier which allows to feed the output of the current step into the next one, generating a closed feedback-loop.
+An FRP library generally provides functions to either run signal functions with or without any effectful context. Further they might also provide a looping function which runs within the IO context to e.g. continuously render outputs to a window. All of it is built on the concept of recursion and continuations as we have introduced earlier which allows to feed the output of the current step into the next one, generating a closed feedback-loop.
 
-Depending on which 
+% Also depending on whether one is following a time- or event-driven approach one needs
 
-TODO: time-driven vs. event-driven 
-
-TODO: depending on the time-semantics of the model we approach it different. 
-TODO: SIR maps nicely to continuous time-semantics and state-transitions provided by FRP, property-testing can be used to directly express parts of the SD specification
-TODO: Sugarscape: no need for continuous time-semantics as agents act in all time-step, main difficulty: synchronous agent-interactions, property-based testing: can we express hypotheses?
+%TODO: SIR maps nicely to continuous time-semantics and state-transitions provided by FRP, property-testing can be used to directly express parts of the SD specification
+%TODO: Sugarscape: no need for continuous time-semantics as agents act in all time-step, main difficulty: synchronous agent-interactions, property-based testing: can we express hypotheses?

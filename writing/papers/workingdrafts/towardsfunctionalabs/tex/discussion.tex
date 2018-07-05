@@ -1,24 +1,44 @@
 \section{Why: Discussion}
-After having presented \textit{how} to implement ABS in the functional programming, we now discuss \textit{why} it is of benefit of doing so. We re-visit the claims made in the introduction and discuss each of them and show why they hold.
+After having presented \textit{how} to implement ABS in the functional programming, we now discuss \textit{why} it is of benefit of doing so. We re-visit the claims made in the introduction, discuss each of them, show why they hold and connect them to ABS.
 
 \subsection{Easy to add parallelism and concurrency}
+The main problems of parallelism and concurrency in imperative programming languages stem from mutable data which require locks to avoid race-conditions. Further in imperative languages the distinction between a parallel (no interactions between threads) and a concurrent (interaction between threads explicitly happening) program is not always clear as it is difficult to guarantee that threads don't mutate shared data. As already pointed out, in functional programming data is immutable and it makes a very clear distinction between parallelism and concurrency. This means that we can easily apply parallelism and concurrency in our ABS approach.
 
-\subsection{Hard to make mistakes}
+An example of parallelism is running multiple replications of a pure simulation because they can each be run in isolation from each other without guaranteed no interference between each of them. Another example of parallelism is running a collection of pure signal functions in parallel.
+
+Scaling up of ABS to massively large-scale is possible using Software Transactional Memory (STM). In this case each agent runs in its own thread and the signal function is executed within an STM effect context which makes transactional variables and transactional persistent message-boxes available.  If additional effect context are needed on top of STM e.g. Random Number Streams, they can be added as well but they are always local to the respective thread, guaranteeing isolation of effects between the agents. Of course, this isolation does not apply to the STM effect context where we share mutable data through STM variables or queues - the building blocks for concurrency. 
+
+Unfortunately when using concurrency one loses the compile-time guarantee of reproducibility of the simulation: same initial conditions don't lead to the same results any more because of non-deterministic influence of concurrency. Still, by restricting the possible effects to STM and not to the unrestricted IO, we can still guarantee that the non-deterministic influence will only stem from STM and no other IO actions e.g. we can guarantee that the agents wont create additional threads, communicate through shared mutable variables, read/write files,...
+
+We have prototyped the use of STM for massively scaling-up concurrent ABS for the agent-based SIR \cite{macal_agent-based_2010} and Sugarscape \cite{epstein_growing_1996} model. Both show good results and demonstrate that mapping ABS to STM for concurrency is a highly promising approach to be researched more in-depth in future research.
 
 \subsection{Easy to test and verify}
-\cite{perez_testing_2017, perez_back_2017}
+One of the main strengths of functional programming is its composability. Pure functions can be easily composed if their input/output types match, further effectful functions can be easily composed as well due to the explicit way side-effects are handled. Also the ability to run effectful functions isolated with given initial parameters makes effectful functions highly composable. All this allows a much straight-forward and easier approach to testing because we can isolate tests extremely well.
+
+Also this make verification easier. TODO: why?
+
+By utilizing property-based testing we can even leverage this further. TODO:
+
+For a more in-depth and technical discussion of testing of FRP applications, we refer to \cite{perez_testing_2017, perez_back_2017}.
 
 \subsection{Guaranteed to be reproducible}
+When we restrict the agents to operate either purely or in deterministic effect contexts (ruling out IO or STM) we can guarantee that the simulation will always result in the same dynamics given same initial starting conditions - already at compile-time. This is a very strong and powerful guarantee  one can make as it is highly important for scientific computing in general and simulations in particular. One can argue that one would never make the mistake of implementing non-deterministic agents (e.g. reading/writing a file) when wants deterministic behaviour but in Haskell we can ensure this through the compiler.
 
-\subsection{Few potential sources of bugs}
+Determinism is also ensured by fixing the $\Delta t$ and not making it dependent on the performance of e.g. a rendering-loop or other system-dependent sources of non-determinism as described by \cite{perez_testing_2017}.
 
-\subsection{Very likely to be correct}
+\subsection{Hard to make mistakes, Few potential sources of bugs, Very likely to be correct}
+The type system of Haskell and the nature of functional programming removes many pr
+- immutable data: no hidden data-dependencies
+- static type system: much less run-time errors because no dynamic types
+TODO: refer to bugs in ABS
 
 \subsection{Problems}
-Reasoning about space-leaks due to lazyness, space leaks biggest issue in fp approach, but also big strength as it allows to separate consumption from production
+Despite the dramatic reduction of potential sources of bugs, in Haskell we potentially can have run-time errors if we us partial functions. A partial function is a function which is not defined for all input-cases and should be avoided under all circumstances. Still parts of the Haskell basic library builds on partial functions. Calling a partial function with an argument for which the function is not defined results in a run-time error. Haskell provides many compile-time options to avoid such partial functions but in the end it is up to the programmer to follow this more or less strictly. The functional language Idris, which has a more sophisticated type-system allows to enforce this property by the compiler - we leave this for further research.
 
-Currently, the performance of the system is not comparable to imperative implementations but our research was not focusing on this aspect. We leave the investigation and optimization of the performance aspect of our approach for further research.
+Although lazy evaluation can be seen as a major strength of Haskell, because it allows to separate consumption from production, it is also a serious weakness as it makes reasoning about space-leaks very hard even for experienced programmers. This can be alleviated by forcing strictness of some parts and by the excellent profiling tools freely available but the problem is still there and especially difficult for beginners.
 
-In our pure functional approach, agent identity is not as clear as in traditional object-oriented programming, where an agent can be hidden behind a polymorphic interface which is much more abstract than in our approach. Also the identity of an agent is much clearer in object-oriented programming due to the concept of object-identity and the encapsulation of data and methods.
+Performance is another issue. Although we haven't conducted proper performance measurements it is clear that the performance of functional ABS is currently not comparable to imperative implementations. We don't see this as a serious problem for now because of the benefits we get from functional programming, including its convenient abilities to parallelise and go concurrent. Also performance can be potentially improved with future research.
 
-We can conclude that the main difficulty of a pure functional approach evolves around the communication and interaction between agents, which is a direct consequence of the issue with agent identity. Agent interaction is straight-forward in object-oriented programming, where it is achieved using method-calls mutating the internal state of the agent, but that comes at the cost of a new class of bugs due to implicit data flow. In pure functional programming these data flows are explicit but our current approach of feeding back the states of all agents as inputs is not very general. We have added further mechanisms of agent interaction which we had to omit due to lack of space.
+Agent identity is not as clear as in established object-oriented approaches, where an agent can be hidden behind a polymorphic interface which is much more abstract than in our approach. Also the identity of an agent is much clearer in object-oriented programming due to the concept of object-identity and the encapsulation of data and methods.
+
+We can conclude that the main difficulty of a functional approach evolves around the communication and interaction between agents, which is a direct consequence of the issue with agent identity. Agent interaction is straight-forward in object-oriented programming, where it is achieved using method-calls mutating the internal state of the agent, but that comes at the cost of a new class of bugs due to implicit data flow. In functional programming these data flows are explicit but our current approach of feeding back the states of all agents as inputs is not very general.

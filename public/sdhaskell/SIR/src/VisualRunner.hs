@@ -9,11 +9,12 @@ import           Text.Printf
 import           FRP.Yampa
 import qualified Graphics.Gloss as GLO
 import           Graphics.Gloss.Interface.IO.Animate
---import           Graphics.Gloss.Interface.IO.Simulate
+import           Graphics.Gloss.Interface.IO.Simulate
 
 import           SIR
 
-runSDVisual :: Double
+runSDVisual :: Int
+            -> Double
             -> Double
             -> Double
             -> Double
@@ -21,7 +22,7 @@ runSDVisual :: Double
             -> Time
             -> DTime
             -> IO ()
-runSDVisual populationSize infectedCount contactRate infectivity illnessDuration tLimit dt = do 
+runSDVisual freq populationSize infectedCount contactRate infectivity illnessDuration tLimit dt = do 
     ref <- newIORef initSir
 
     hdl <- reactInit 
@@ -30,27 +31,28 @@ runSDVisual populationSize infectedCount contactRate infectivity illnessDuration
             (sir populationSize infectedCount contactRate infectivity illnessDuration)
 
     pathRef <- newIORef ([], [], [])
-{-
-    simulateIO
-      (GLO.InWindow "SIR System Dynamics" winSize (0, 0))
-      white                                 -- background
-      10000                -- how many steps of the simulation to calculate per second (roughly, depends on rendering performance)
-      (initSir, 0)                   -- initial model = output of each simulation step to be rendered
-      (modelToPicture tLimit populationSize pathRef)  -- model-to-picture function
-      (renderStepSimulate tLimit dt hdl ref)    -- 
--}
 
-    modelRef <- newIORef (0, GLO.Blank)
+    if freq > 0
+      then
+        simulateIO
+          (GLO.InWindow "SIR System Dynamics" winSize (0, 0))
+          white                                 -- background
+          freq                -- how many steps of the simulation to calculate per second (roughly, depends on rendering performance)
+          initSir                   -- initial model = output of each simulation step to be rendered
+          (modelToPicture tLimit populationSize pathRef)  -- model-to-picture function
+          (renderStepSimulate tLimit dt hdl ref)    -- 
+      else do
+        modelRef <- newIORef (0, GLO.Blank)
 
-    animateIO
-        (GLO.InWindow "SIR System Dynamics" winSize (0, 0))
-        white
-        (renderStepAnimate populationSize tLimit dt hdl ref modelRef pathRef)
-        (const $ return ())
+        animateIO
+            (GLO.InWindow "SIR System Dynamics" winSize (0, 0))
+            white
+            (renderStepAnimate populationSize tLimit dt hdl ref modelRef pathRef)
+            (const $ return ())
 
   where
     winSize = (800, 800) 
-    initSir = (populationSize - infectedCount, infectedCount, 0)
+    initSir = (0, populationSize - infectedCount, infectedCount, 0)
 
 stepSIR :: IORef SIRStep
         -> ReactHandle () SIRStep
@@ -61,25 +63,22 @@ stepSIR ref _ _ out = do
   writeIORef ref out
   return True
 
-{-
 renderStepSimulate :: Time
                    -> DTime
                    -> ReactHandle () SIRStep
                    -> IORef SIRStep
                    -> ViewPort
                    -> Float
-                   -> (SIRStep, Time)
-                   -> IO (SIRStep, Time)
-renderStepSimulate tLimit dt hdl ref _ _ (out, t) = do
+                   -> SIRStep
+                   -> IO SIRStep
+renderStepSimulate tLimit dt hdl ref _ _ out@(t, _, _, _) = do
   let t' = t + dt
 
   if t' >= tLimit
-    then return (out, t)
+    then return out
     else do
       _    <- react hdl (dt, Nothing)
-      out' <- readIORef ref
-      return (out', t')
--}
+      readIORef ref
 
 renderStepAnimate :: Double
                   -> Time
@@ -100,7 +99,7 @@ renderStepAnimate populationSize tLimit dt hdl sirOutRef modelRef pathRef _ = do
     else do
       _    <- react hdl (dt, Nothing)
       out  <- readIORef sirOutRef
-      pic' <- modelToPicture tLimit populationSize pathRef (out, t')
+      pic' <- modelToPicture tLimit populationSize pathRef out
       _    <- writeIORef modelRef (t', pic')
 
       return pic'
@@ -108,9 +107,9 @@ renderStepAnimate populationSize tLimit dt hdl sirOutRef modelRef pathRef _ = do
 modelToPicture :: Time
                -> Double
                -> IORef (GLO.Path, GLO.Path, GLO.Path)
-               -> (SIRStep, Time)
+               -> SIRStep
                -> IO GLO.Picture
-modelToPicture tLimit populationSize pathRef out@((sus, inf, reco), t) = do
+modelToPicture tLimit populationSize pathRef out@(t, s, i, r) = do
     linesPic <- renderLines tLimit populationSize out pathRef
 
     let (xTxt, yTxt) = (-50, 100)
@@ -120,7 +119,7 @@ modelToPicture tLimit populationSize pathRef out@((sus, inf, reco), t) = do
                        GLO.Text $ printf "t = %.2f" t
 
         (xSus, ySus)  = (-100, 0)
-        susStockScale = GLO.scale 1 $ realToFrac (sus / populationSize)
+        susStockScale = GLO.scale 1 $ realToFrac (s / populationSize)
         susStock      = GLO.color GLO.blue $ 
                         GLO.translate xSus ySus $ 
                         susStockScale $
@@ -133,10 +132,10 @@ modelToPicture tLimit populationSize pathRef out@((sus, inf, reco), t) = do
         susStockTxt = GLO.color GLO.black $ 
                       GLO.translate xSus (ySus - 15) $ 
                       GLO.scale 0.1 0.1 $ 
-                      GLO.Text $ printf "%.2f" sus
+                      GLO.Text $ printf "%.2f" s
 
         (xInf, yInf)  = (0, 0)
-        infStockScale = GLO.scale 1 $ realToFrac (inf / populationSize)
+        infStockScale = GLO.scale 1 $ realToFrac (i / populationSize)
         infStock      = GLO.color GLO.red $ 
                         GLO.translate xInf yInf $ 
                         infStockScale $
@@ -149,10 +148,10 @@ modelToPicture tLimit populationSize pathRef out@((sus, inf, reco), t) = do
         infStockTxt = GLO.color GLO.black $ 
                       GLO.translate xInf (yInf - 15) $ 
                       GLO.scale 0.1 0.1 $ 
-                      GLO.Text $ printf "%.2f" inf
+                      GLO.Text $ printf "%.2f" i
 
         (xRec, yRec)  = (100, 0)
-        recStockScale = GLO.scale 1 $ realToFrac (reco / populationSize)
+        recStockScale = GLO.scale 1 $ realToFrac (r / populationSize)
         recStock      = GLO.color GLO.green $ 
                         GLO.translate xRec yRec $ 
                         recStockScale $
@@ -165,7 +164,7 @@ modelToPicture tLimit populationSize pathRef out@((sus, inf, reco), t) = do
         recStockTxt = GLO.color GLO.black $ 
                       GLO.translate xRec (yRec - 15) $ 
                       GLO.scale 0.1 0.1 $ 
-                      GLO.Text $ printf "%.2f" reco
+                      GLO.Text $ printf "%.2f" r
 
     return $ GLO.Pictures [timeTxt, 
                            susStock, susStockTxt, susLine,
@@ -180,16 +179,16 @@ modelToPicture tLimit populationSize pathRef out@((sus, inf, reco), t) = do
 
 renderLines :: Time
             -> Double
-            -> (SIRStep, Time)
+            -> SIRStep
             -> IORef (GLO.Path, GLO.Path, GLO.Path)
             -> IO GLO.Picture
-renderLines tLimit populationSize ((sus, inf, reco), t) pathRef = do
+renderLines tLimit populationSize (t, s, i, r) pathRef = do
     (susPath, infPath, recPath) <- readIORef pathRef
 
     let tFract   = realToFrac $ t / tLimit
-        susPoint = (tFract, realToFrac (sus / populationSize))
-        infPoint = (tFract, realToFrac (inf / populationSize))
-        recPoint = (tFract, realToFrac (reco / populationSize))
+        susPoint = (tFract, realToFrac (s / populationSize))
+        infPoint = (tFract, realToFrac (i / populationSize))
+        recPoint = (tFract, realToFrac (r / populationSize))
 
         -- could exploit 
         susPath' = susPoint : susPath

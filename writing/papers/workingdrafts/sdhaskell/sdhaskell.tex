@@ -1,6 +1,6 @@
-%\documentclass[format=acmsmall, review=false, screen=true]{acmart}		% ICFP
+\documentclass[format=acmsmall, review=true, screen=true]{acmart}		% ICFP
 %\documentclass[format=sigplan, review=true]{acmart}		% HASKELL SYMPOSIUM 
-\documentclass[format=sigconf, review=true]{acmart}		% IFL
+%\documentclass[format=sigconf, review=true]{acmart}		% IFL
 
 \usepackage{float}
 \usepackage{graphicx}
@@ -46,14 +46,16 @@
 \newminted[HaskellCode]{haskell}{fontsize=\footnotesize}
 
 % Title portion. Note the short title for running heads
-\title[Implementing System Dynamics in Haskell]{Implementing System Dynamics in Haskell}
-\subtitle{A functional approach}
+\title[Implementing System Dynamics]{Implementing System Dynamics}
+\subtitle{A pure functional correct-by-construction approach in Haskell}
 
 \author{Jonathan Thaler}
 %\orcid{TODO}
 \email{jonathan.thaler@nottingham.ac.uk}
-\author{Thorsten Altenkirch}
-\email{thorsten.altenkirch@nottingham.ac.uk}
+%\author{Peer-Olaf Siebers}
+%\email{peer-olaf.siebers@nottingham.ac.uk}
+%\author{Thorsten Altenkirch}
+%\email{thorsten.altenkirch@nottingham.ac.uk}
 \affiliation{%
   \institution{University of Nottingham}
   \streetaddress{7301 Wollaton Rd}
@@ -66,9 +68,7 @@ TODO: select journals
 - ACM Transactions on Modeling and Computer Simulation (TOMACS): https://tomacs.acm.org/
 - ?
 
-TODO: set-up structure and re-use lots of the early PFE draft which had the equations of SD in it.
-
-main message: FRP using Yampa is an awesome fit for implementing SD and gives us lots of benefits: correct-by-construction, guaranteed reproducibility at compile-time, no side-effects, deterministic
+In this short paper we investigate how to implement System Dynamics in the functional programming language Haskell. We use the concept of Functional Reactive Programming which allows to express continuous- and discrete-time systems in a functional way. We show that System Dynamics map very natural to Functional Reactive Programming. Together with Haskell's strong static type system, we arrive at a correct-by-construction implementation which deterministic reproducibility we can guarantee at compile-time.
 \end{abstract}
 
 %
@@ -114,6 +114,18 @@ main message: FRP using Yampa is an awesome fit for implementing SD and gives us
 \keywords{System Dynamics, Functional Reactive Programming, Haskell}
 
 \maketitle
+
+\input{./tex/introduction.tex}
+
+\input{./tex/related.tex}
+
+\input{./tex/sir.tex}
+
+\input{./tex/implementation.tex}
+
+\input{./tex/discussion.tex}
+
+\input{./tex/conclusions.tex}
 
 \begin{acks}
 The authors would like to thank

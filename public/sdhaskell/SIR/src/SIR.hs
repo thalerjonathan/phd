@@ -8,7 +8,7 @@ module SIR
 
 import FRP.Yampa
 
-type SIRStep = (Double, Double, Double) 
+type SIRStep     = (Time, Double, Double, Double) 
 
 sir :: Double
     -> Double
@@ -17,7 +17,7 @@ sir :: Double
     -> Double
     -> SF () SIRStep
 sir populationSize infectedCount contactRate infectivity illnessDuration
-    = loopPre (initSus, initInf, initRec) sir'
+    = loopPre (0, initSus, initInf, initRec) sir'
   where
     initSus = populationSize - infectedCount
     initInf = infectedCount
@@ -26,15 +26,17 @@ sir populationSize infectedCount contactRate infectivity illnessDuration
     sir' :: SF 
             ((), SIRStep)
             (SIRStep, SIRStep)
-    sir' = proc (_, (s, i, _r)) -> do
+    sir' = proc (_, (_, s, i, _r)) -> do
       let infectionRate  = (i * contactRate * s * infectivity) / populationSize
       let recoveryRate  = i / illnessDuration
+
+      t <- time -< ()
 
       s' <- (initSus+) ^<< integral -< (-infectionRate)
       i' <- (initInf+) ^<< integral -< (infectionRate - recoveryRate)
       r' <- (initRec+) ^<< integral -< recoveryRate
 
-      returnA -< dupe (s', i', r')
+      returnA -< dupe (t, s', i', r')
 
     dupe :: a -> (a, a)
     dupe a = (a, a)

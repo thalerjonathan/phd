@@ -14,7 +14,7 @@ runSDPure :: Double
           -> Double
           -> Time
           -> DTime
-          -> [(Double, Double, Double)]
+          -> [SIRStep]
 runSDPure populationSize infectedCount contactRate infectivity illnessDuration t dt 
     = embed (sir populationSize infectedCount contactRate infectivity illnessDuration) ((), steps)
   where

@@ -1,8 +1,24 @@
-\section{Discussion}
-TODO: show why the claim of the introduction holds up
+\section{Why: Discussion}
+After having presented \textit{how} to implement ABS in the functional programming, we now discuss \textit{why} it is of benefit of doing so. We re-visit the claims made in the introduction and discuss each of them and show why they hold.
 
-The restrictions functional programming imposes, directly removes serious sources of bugs which leads to simulation which is more likely to be correct. These restrictions force us to solve the fundamental concepts in ABS implementation differently. Note that we could fall back to using IO throughout all the simulation in which case we have access to mutable references but then we lose important compile-time guarantees and introduce those serious sources of bugs we want to get rid of - also testing becomes more complicated and not as strong any more because we cannot guarantee at compile time that no random IO stuff is happening within the agents. Also note that obviously no one would do random IO stuff in an agent (e.g. read from a file, open connection to server...) but one must not understimate the value of guaranteeing its absence at compile-time.
+\subsection{Easy to add parallelism and concurrency}
 
-space leaks biggest issue in fp approach, but also big strength as it allows to separate consumption from production
+\subsection{Hard to make mistakes}
 
-emphasis that aivika is multi-method, gis, distributed. 
+\subsection{Easy to test and verify}
+\cite{perez_testing_2017, perez_back_2017}
+
+\subsection{Guaranteed to be reproducible}
+
+\subsection{Few potential sources of bugs}
+
+\subsection{Very likely to be correct}
+
+\subsection{Problems}
+Reasoning about space-leaks due to lazyness, space leaks biggest issue in fp approach, but also big strength as it allows to separate consumption from production
+
+Currently, the performance of the system is not comparable to imperative implementations but our research was not focusing on this aspect. We leave the investigation and optimization of the performance aspect of our approach for further research.
+
+In our pure functional approach, agent identity is not as clear as in traditional object-oriented programming, where an agent can be hidden behind a polymorphic interface which is much more abstract than in our approach. Also the identity of an agent is much clearer in object-oriented programming due to the concept of object-identity and the encapsulation of data and methods.
+
+We can conclude that the main difficulty of a pure functional approach evolves around the communication and interaction between agents, which is a direct consequence of the issue with agent identity. Agent interaction is straight-forward in object-oriented programming, where it is achieved using method-calls mutating the internal state of the agent, but that comes at the cost of a new class of bugs due to implicit data flow. In pure functional programming these data flows are explicit but our current approach of feeding back the states of all agents as inputs is not very general. We have added further mechanisms of agent interaction which we had to omit due to lack of space.

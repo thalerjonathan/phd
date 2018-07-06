@@ -1,0 +1,68 @@
+\chapter{Thesis Structure}
+\label{app:thesis_struct}
+
+This appendix gives the structure outline of the thesis which I plan on start writing around April 2019. I aim for a flat structure which emphasises a strong narrative. The order of writing will be: Methodology, Proof-Of-Concept chapters, Literature Review, Discussion, Conclusions, Introduction, Abstract.
+
+\section{The Story of the PhD}
+We claim that we need functional programming in ABS because of its \textit{scientific computing} nature where results need to be reproducible and correct while simulations should be able to massively scale-up as well. The established object-oriented approach needs considerably high effort and might even fail to deliver these objectives due to its conceptually different approach to computing. In contrast, we claim that by using functional programming for implementing ABS it is easy to add parallelism and concurrency, the resulting simulations are easy to test and verify, guaranteed to be reproducible already at compile-time, have few potential sources of bugs and are ultimately very likely to be correct. Additionally by using dependent types we should be able to narrow the gap between model specification and implementation even further, resulting in software which is even more likely to be correct. 
+
+\section{Thesis Structure}
+Title: "The Functional Programming Paradigm in Agent-Based Simulation"
+
+\subsection{Introduction}
+"why do we need functional programming in ABS?" following the conceptual paper, the SD paper might add a little
+
+This chapter is the introduction to the thesis and motivates it and describes the aim and scope of the Ph.D. Further it states the hypotheses and contributions.
+\begin{itemize}
+	\item Main Argument: Defining the problem, motivation, aim and scope of the Ph.D.
+	\item Hypotheses: Precisely stating the hypotheses which will form the points of reference for the whole research.
+	\item Contributions: Precisely list the contribution to knowledge this Ph.D. makes and list all papers which were written (and published) during this Ph.D.
+\end{itemize}
+
+50\%
+
+\subsection{Literature Review}
+This chapter discusses background and related work by presenting the relevant literature
+following 1st \& 2nd annual report, and all papers
+75\%
+
+\subsection{Methodology}
+This chapter introduces the methodology, used in the following chapters:
+
+\begin{itemize}
+	\item Defining and introducing Agent-Based Simulation (ABS) (History, ABS vs. MAS, examples, event- vs. time-driven).
+	\item Introduce established implementation approaches to ABS (Frameworks: NetLogo, Anylogic, Libraries: RePast, DesmoJ, Programming: Java, Python, Correctness: ad-hoc, manual testing, test-driven development)
+	\item Introduction Verification \& Validation (V \& V in the context of ABS).
+	\item Introduction to functional Programming in Haskell (functions, types, recursion, algebraic data-types, higher-order functions, continuations, Define and explain side-effects and purity: monads, different types of effects, explain IO and that it is of fundamental importance to avoid it in our research).
+	\item Introduction to dependent types (Example, Equality as Type, Philosophical Foundations: Constructive mathematics)
+\end{itemize}
+50\%
+
+\subsection{Functional ABS}
+"how can we do ABS in functional programming?" art of iterating paper for basic foundations, conceptual paper for a high level description, pure functional epidemics for more details, sync communication in FRP for the trickiest part
+50\%
+
+\subsection{Going Large Scale}
+STM paper
+50\%
+
+\subsection{Testing and Verification}
+Testing of functional ABS paper
+10\%
+
+\subsection{Dependent Type}
+20\%
+dependent types in ABS paper, totality paper
+
+\subsection{Discussion}
+This chapter re-visits the hypotheses and puts them into perspective of the contributions.
+re-use arguments from all papers
+20\%
+
+\subsection{Conclusions}
+This chapter draws conclusions to the main hypothesis and outlines future research.
+re-use conclusions and further research from all papers
+20\%
+
+\subsection{Appendices}
+Datasets, lengthy code, additional proofs.

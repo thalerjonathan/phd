@@ -4,8 +4,8 @@ import System.IO
 import Text.Printf
 
 import SIR
-import PureRunner
---import VisualRunner
+--import PureRunner
+import VisualRunner
 
 main :: IO ()
 main = do
@@ -15,14 +15,13 @@ main = do
       infectivity     = 0.05
       illnessDuration = 15
 
-      t               = 150
+      t               = 50
       dt              = 0.01
 
-  let ret      = runSDPure populationSize infectedCount contactRate infectivity illnessDuration t dt
-  --runSDVisual populationSize infectedCount contactRate infectivity illnessDuration t dt
-      fileName = "sir_sd_" ++ show populationSize ++ "_" ++ show dt ++ "dt.m"
-
-  writeSIRStepsToFile fileName ret
+  --let ret      = runSDPure populationSize infectedCount contactRate infectivity illnessDuration t dt
+  runSDVisual 10000 populationSize infectedCount contactRate infectivity illnessDuration t dt
+  --    fileName = "sir_sd_" ++ show populationSize ++ "_" ++ show dt ++ "dt.m"
+  -- writeSIRStepsToFile fileName ret
 
 writeSIRStepsToFile :: String -> [SIRStep] -> IO ()
 writeSIRStepsToFile fileName dynamics = do

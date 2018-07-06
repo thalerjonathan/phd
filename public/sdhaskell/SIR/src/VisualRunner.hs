@@ -213,5 +213,5 @@ renderLines tLimit populationSize (t, s, i, r) pathRef = do
     return $ GLO.Pictures [susLine, infLine, recLine] 
   where
     lineScale   = GLO.scale 300 200
-    lineOriginX = -150
+    lineOriginX = -125
     lineOriginY = -250

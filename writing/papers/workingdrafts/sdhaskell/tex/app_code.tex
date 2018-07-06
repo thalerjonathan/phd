@@ -1,0 +1,50 @@
+\section{Complete Code}
+\label{app:code}
+This appendix presents the complete code \footnote{The complete project, including visualisation and exporter to Matlab, is freely available on the Git Repository \url{https://github.com/thalerjonathan/phd/tree/master/public/sdhaskell/SIR}} which was introduced step-by-step in Section \ref{sec:impl}.
+
+\begin{HaskellCode}
+populationSize :: Double
+populationSize = 1000
+
+infectedCount :: Double
+infectedCount = 1
+
+contactRate :: Double
+contactRate = 5
+
+infectivity :: Double
+infectivity = 0.05
+
+illnessDuration :: Double
+illnessDuration = 15
+
+type SIRStep = (Time, Double, Double, Double)
+
+sir :: SF () SIRStep
+sir = loopPre (0, initSus, initInf, initRec) sirFeedback
+  where
+    initSus = populationSize - infectedCount
+    initInf = infectedCount
+    initRec = 0
+
+    sirFeedback :: SF ((), SIRStep) (SIRStep, SIRStep)
+    sirFeedback = proc (_, (_, s, i, _)) -> do
+      let infectionRate = (i * contactRate * s * infectivity) / populationSize
+          recoveryRate  = i / illnessDuration
+
+      t <- time -< ()
+
+      s' <- (initSus+) ^<< integral -< (-infectionRate)
+      i' <- (initInf+) ^<< integral -< (infectionRate - recoveryRate)
+      r' <- (initRec+) ^<< integral -< recoveryRate
+
+      returnA -< dupe (t, s', i', r')
+
+    dupe :: a -> (a, a)
+    dupe a = (a, a)
+
+runSD :: Time -> DTime -> [SIRStep]
+runSD t dt = embed sir ((), steps)
+  where
+    steps = replicate (floor (t / dt)) (dt, Nothing)
+\end{HaskellCode}

@@ -56,12 +56,14 @@ TODO: write this section
 
 Also Haskell makes a very clear distinction between parallelism and concurrency. Parallelism is always deterministic and thus pure without side-effects because although parallel code runs concurrently, it does by definition not interact with data of other threads. This can be indicated through types: we can run pure functions in parallel because for them it doesn't matter in which order they are executed, the result will always be the same due to the concept of referential transparency. Concurrency is potentially non-deterministic because of non-deterministic interactions of concurrently running threads through shared data. Although data in functional programming is immutable, Haskell provides primitives which allow to share immutable data between threads. Accessing these primitives is but only possible from within an IO or STM context which means that when we are using concurrency in our program, the types of our functions change from pure to either IO or STM effect context.
 
-Spawning thousands of threads in Haskell is no problem and has very low memory footprint because they are lightweight threads, managed by the Haskell Runtime System which maps them to physical threads. 
+Spawning thousands of threads in Haskell is no problem and has very low memory footprint because they are lightweight user-space threads, managed by the Haskell Runtime System which maps them to physical operating-system threads. 
 
 TODO: in haskell we can distinguish between parallelism and concurrency in the types: parallelism is pure, concurrency is impure
 TODO: parallelism for free because all isolated e.g. running multiple replications or parameter-variations
 
-TODO: explain STM, Problem: live locks, For a technical, in-depth discussion on Software Transactional Memory in Haskell we refer to the following papers: \citep{harris_composable_2005, osullivan_real_2008}. TODO: need much more papers on STM, parallelism and concurrency
+TODO: For a technical, in-depth discussion on parallelism and concurrency in Haskell we refer to the excellent book \cite{marlow_parallel_2013}.
+
+TODO: explain STM, Problem: live locks, For a technical, in-depth discussion on Software Transactional Memory in Haskell we refer to the following papers: \citep{harris_composable_2005, discolo_lock_2006, osullivan_real_2008, perfumo_limits_2008}. TODO: need much more papers on STM, parallelism and concurrency
 
 \subsection{Functional Reactive Programming}
 \label{sec:frp}

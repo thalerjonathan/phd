@@ -1,19 +1,9 @@
 \section{Introduction}
-%TODO: it seems that the scope of this paper might not only be applicable to ABS but to simulation implementations in general. this would allow us to target a much broader audience and submit to a more advanced journal e.g. some IEEE or ACM with high impact factor.
-%- DES no problem
-%- SD no problem
-%- ABS bit more complex when synchronous communication is needed
-
-
 The traditional approach to Agent-Based Simulation (ABS) has so far always been object-oriented techniques, due to the influence of the seminal work of Epstein et al \cite{epstein_growing_1996} in which the authors claim "[..] object-oriented programming to be a particularly natural development environment for Sugarscape specifically and artificial societies generally [..]" (p. 179). This work established the metaphor in the ABS community, that \textit{agents map naturally to objects} \cite{north_managing_2007} which still holds up today.
 
-In this paper we challenge this metaphor and explore ways of approaching ABS using the functional programming paradigm with the language Haskell. We present fundamental concepts and advanced features of functional programming and we show how to leverage the benefits of it \cite{hudak_history_2007} to become available when implementing ABS functionally. 
+In this paper we challenge this metaphor and explore ways of approaching ABS using the functional programming paradigm with the language Haskell. We present fundamental concepts and advanced features of functional programming and we show how to leverage the benefits of it \cite{hudak_haskell_1994, hudak_history_2007} to become available when implementing ABS functionally. 
 
 We claim that the community needs functional programming in ABS because of its \textit{scientific computing} nature where results need to be reproducible and correct while simulations should be able to massively scale-up as well. The established object-oriented approaches need considerably high effort and might even fail to deliver these objectives due to its conceptually different approach to computing. In contrast, we claim that by using functional programming for implementing ABS it is easy to add parallelism and concurrency, the resulting simulations are easy to test and verify, guaranteed to be reproducible already at compile-time, have few potential sources of bugs and are ultimately very likely to be correct.
-
-%Still we need solid testing to verify and validate our software for which we will introduce property-based testing.
-
-%Also we show that the concepts can be also applied to Discrete Event Simulation (DES) and System Dynamics (SD), making functional programming an attractive alternative for multi-method implementations.
 
 The aim of this paper is to conceptually show \textit{how} to implement ABS in functional programming using Haskell and \textit{why} it is of benefit of doing so. Further, we give the reader a good understanding of what functional programming is, what the challenges are in applying it to ABS and how we solve these in our approach. 
 
@@ -21,11 +11,7 @@ Although functional programming is a highly technical subject, we avoid technica
 
 The paper makes the following contributions:
 
-%TODO: need more precisions / it is simply wrong
 \begin{itemize}
 	\item To the best of our knowledge, we are the first to introduce the functional programming paradigm using Haskell to ABS on a \textit{conceptual} level, identifying benefits, difficulties and drawbacks. Also this paper can be seen as a mini review paper on this new topic as we cite the relevant literature to get into it.
 	\item We show that functional programming concepts can be used to create simulation software which is easier to parallelise and add concurrency, has less sources of bugs, is more likely to be correct and guaranteed to be reproducible already at compile-time.
-	%\item We show how functional programming concepts can be used to scale ABS up to massively large-scale without the problems of low level concurrent programming.
-	%\item We show that functional programming concepts can be used to test ABS implementations using property-based testing, which allows a very expressive way of testing, shifting from unit- towards specification-based testing.
-	%\item We show that the functional programming concepts can be applied to implement DES and SD simulations as well, making it an attractive multi-method implementation approach.
 \end{itemize}

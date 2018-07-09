@@ -34,6 +34,8 @@ The type system of Haskell and the nature of functional programming removes many
 - static type system: much less run-time errors because no dynamic types
 TODO: refer to bugs in ABS
 
+- programs are shorter and can sometimes even look like specifications which makes sharing and maintaining them much easier \cite{hudak_haskell_1994, schneider_towards_2012, vendrov_frabjous:_2014}, 
+
 \subsection{Problems}
 Despite the dramatic reduction of potential sources of bugs, in Haskell we potentially can have run-time errors if we us partial functions. A partial function is a function which is not defined for all input-cases and should be avoided under all circumstances. Still parts of the Haskell basic library builds on partial functions. Calling a partial function with an argument for which the function is not defined results in a run-time error. Haskell provides many compile-time options to avoid such partial functions but in the end it is up to the programmer to follow this more or less strictly. The functional language Idris, which has a more sophisticated type-system allows to enforce this property by the compiler - we leave this for further research.
 

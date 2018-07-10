@@ -1,5 +1,5 @@
 \section{Discussion}
-We claim that our implementation is correct-by-construction because it is obviously correct because the code \textit{is} the model specification - we have closed the gap between the specification and its implementation. Still we need to verify the dynamics and test the system for its numerical behaviour under varying $\Delta t$.
+We claim that our implementation is correct-by-construction because the code \textit{is} the model specification - we have closed the gap between the specification and its implementation. Also we can guarantee that no non-deterministic influences can happening, neither in our nor Yampas library code due to the strong static type system of Haskell. This guarantees that repeated runs of the simulation will always result in the exact same dynamics given the same initial parameters, something of fundamental importance in System Dynamics. See Figure \ref{fig:sir_sd_visualisation} for a real-time visualisation of the SIR simulation of our Haskell implementation.
 
 \begin{figure}
 	\centering
@@ -8,11 +8,9 @@ We claim that our implementation is correct-by-construction because it is obviou
 	\label{fig:sir_sd_visualisation}
 \end{figure}
 
-TODO: argue why it is correct-by-construction, why reproducible guaranteed at compile-time,... support our initial hypothesis and claims from introduction
+Although we have translated our model specifications directly into code we still we need to validate the dynamics and test the system for its numerical behaviour under varying $\Delta t$. This is necessary because numerical integration, which happens in the \textit{integral} function, can be susceptible to instability and errors. Yampa implements the simple rectangle-rule of numerical integration which requires very small $\Delta t$ to keep the errors minimal and arrive at sufficiently good results. 
 
-TODO: integral is the fundamental function
-- need to show that it indeed implements the rectangle rule. 
-- show that with too large dt we arrive at slightly different results after same time-steps
+We have run the simulation with varying $\Delta t$ to show what difference varying $\Delta t$ can have on the simulation dynamics. We ran the simulations until $t = 100$ with a population Size $N$ = 1,000, contact rate $\beta = \frac{1}{5}$, infection probability $\gamma = 0.05$, illness duration $\delta = 15$ and initially 1 infected agent. For comparison we looked at the final values at $t = 100$ of the susceptible, infected and recovered stocks. Also we compare the time and the value when the infected stock reaches its maximum. The values are reported in the Table \ref{tab:delta_influence}.
 
 \begin{center}
   \begin{tabular}{ c || c | c | c | c }
@@ -27,6 +25,8 @@ TODO: integral is the fundamental function
     \label{tab:delta_influence}
   \end{tabular}
 \end{center}
+
+As additional validation we added the results of a System Dynamics simulation in AnyLogic Personal Learning Edition 8.3.1, which is reported in the last row in the Table \ref{tab:delta_influence}. Also we provided a visualisation of the AnyLogics simulation dynamics in Figure \ref{fig:sir_sd_anylogic}. By comparing the results in Table \ref{tab:delta_influence} and the dynamics in Figure \ref{fig:sir_sd_anylogic} to \ref{fig:sir_sd_dynamics} we can conclude that we arrive at the same dynamics, validating the correctness of our simulation also against an existing, well-known and established System Dynamics software package.
 
 \begin{figure}
 	\centering

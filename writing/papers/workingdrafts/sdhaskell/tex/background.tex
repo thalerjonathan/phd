@@ -1,10 +1,17 @@
 \section{Background}
 In this section we give a short overview of the concepts used throughout the paper.
 
-\subsection{System Dynamics}
-In System Dynamics (SD) one models a system through differential equations, allowing to conveniently express continuous systems which change over time \cite{porter_industrial_1962}.  TODO: go more into length
+%\subsection{System Dynamics}
+%In System Dynamics (SD) one models a system through differential equations, allowing to conveniently express continuous systems which change over time \cite{porter_industrial_1962}.  TODO: go more into length
 
 \subsection{Haskell}
+We are using the functional programming language Haskell. The paper of \citep{hudak_history_2007} gives a comprehensive overview over the history of the language, how it developed and its features and is very interesting to read and get accustomed to the background of the language. The main points why we decided to go for Haskell are:
+
+\begin{itemize}
+	\item Rich Feature-Set - it has all fundamental concepts of the pure functional programming paradigm of which we explain the most important below.
+	\item Real-World applications - the strength of Haskell has been proven through a vast amount of highly diverse real-world applications \cite{hudak_history_2007}, is applicable to a number of real-world problems \cite{osullivan_real_2008} and has a large number of libraries available \footnote{\url{https://wiki.haskell.org/Applications_and_libraries}}.
+	\item Modern - Haskell is constantly evolving through its community and adapting to keep up with the fast changing field of computer science. Further, the community is the main source of high-quality libraries.
+\end{itemize}
 
 \subsection{Functional Reactive Programming}
 Functional Reactive Programming is a way to implement systems with continuous and discrete time-semantics in pure functional languages. There are many different approaches and implementations but in our approach we use \textit{Arrowized} FRP \cite{hughes_generalising_2000, hughes_programming_2005} as implemented in the library Yampa \cite{hudak_arrows_2003, courtney_yampa_2003, nilsson_functional_2002}.
@@ -37,4 +44,4 @@ fallingMass p0 v0 = proc _ -> do
 
 To create an arrow, the \textit{proc} keyword is used, which binds a variable after which the \textit{do} of Patersons do-notation \cite{paterson_new_2001} follows. Using the signal function \textit{integral :: SF v v} of Yampa which integrates the input value over time using the rectangle rule, we calculate the current velocity and the position based on the initial position \textit{p0} and velocity \textit{v0}. The $<<<$ is one of the arrow combinators which composes two arrow computations and \textit{arr} simply lifts a pure function into an arrow. To pass an input to an arrow, \textit{-<} is used and \textit{<-} to bind the result of an arrow computation to a variable. Finally to return a value from an arrow, \textit{returnA} is used.
 
-TODO: explain that SF are defined for t=0 and then switch into SF' with t Parameter is added
+To hide the $\Delta t$ from the type-signature of a signal function Yampa uses a clever trick. All signal functions SF are defined for t = 0 and then change their signature into SF' which actually gets passed $\Delta t$ as its first parameter. This happens transparently to the user of the library and is supported by not publicly exporting SF'.

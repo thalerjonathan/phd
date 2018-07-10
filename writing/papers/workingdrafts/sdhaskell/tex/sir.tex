@@ -12,7 +12,7 @@ In this model, people in a population of size $N$ can be in either one of three 
 
 The dynamics of the SIR model can be formalized in SD with the following equations:
 
-TODO: there seems to be an unnerving space after the f letters, can we get rid of them?
+% TODO: there seems to be an unnerving space after the f letters, can we get rid of them?
 
 \begin{align}
 \frac{\mathrm d S}{\mathrm d t} &= -infectionRate \\ 
@@ -27,7 +27,7 @@ recoveryRate &= \frac{I}{\delta}
 
 Solving these equations is done by integrating over time. In the SD terminology, the integrals are called \textit{Stocks} and the values over which is integrated over time are called \textit{Flows}. At $t = 0$ a single agent is infected because if there wouldn't be any infected agents, the system would immediately reach equilibrium - this is also the formal definition of the steady state of the system: as soon as $I(t) = 0$ the system won't change any more.
 
-TODO: there seems to be an unnerving space after the f letters, can we get rid of them?
+% TODO: there seems to be an unnerving space after the f letters, can we get rid of them?
 
 \begin{align}
 S(t) &= N - I(0) + \int_0^t -infectionRate\, \mathrm{d}t \\
@@ -36,20 +36,11 @@ I(t) &= \int_0^t infectionRate - recoveryRate\, \mathrm{d}t \\
 R(t) &= \int_0^t recoveryRate\, \mathrm{d}t
 \end{align}
 
-%There exist a large number of software packages which allow to conveniently express SD models using a visual approach like in Figure \ref{fig:sir_sd_stockflow_diagramm}.
-
-%\begin{figure}
-%	\centering
-%	\includegraphics[width=.4\textwidth, angle=0]{./fig/diagrams/SIR_SD_STOCKFLOW_DIAGRAMM.png}
-%	\caption{A visual representation of the SD stocks and flows of the SIR compartment model.} %Picture taken using AnyLogic Personal Learning Edition 8.1.0.
-%	\label{fig:sir_sd_stockflow_diagramm}
-%\end{figure}
-
 Running the SD simulation over time results in the dynamics as shown in Figure \ref{fig:sir_sd_dynamics} with the given variables.
 
 \begin{figure}
 	\centering
-	\includegraphics[width=.5\textwidth, angle=0]{./fig/SIR_SD_1000agents_150t_001dt.png}
+	\includegraphics[width=.5\textwidth, angle=0]{./fig/SIR_SD_1000agents_100t_0001dt.png}
 	\caption{Dynamics of the SIR compartment model. Population Size $N$ = 1,000, contact rate $\beta =  \frac{1}{5}$, infection probability $\gamma = 0.05$, illness duration $\delta = 15$ with initially 1 infected agent. Simulation run until $t = 150$. TODO: run for 100 and generate plot with matlab. Plot generated from data by this Haskell implementation using Octave.}
 	\label{fig:sir_sd_dynamics}
 \end{figure}

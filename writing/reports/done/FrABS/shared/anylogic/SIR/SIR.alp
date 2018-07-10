@@ -4,7 +4,7 @@
 	         AnyLogic Project File 
 *************************************************	         
 -->
-<AnyLogicWorkspace WorkspaceVersion="1.9" AnyLogicVersion="8.1.0.201706211703" AlpVersion="8.0.4">
+<AnyLogicWorkspace WorkspaceVersion="1.9" AnyLogicVersion="8.2.2.201711021514" AlpVersion="8.0.4">
 <Model>
 	<Id>1153899478771</Id>
 	<Name><![CDATA[SIR]]></Name>
@@ -923,8 +923,9 @@ getEngine().getExperiment().stop();]]></ActionCode>
 						<PointStyle>NONE</PointStyle>
 						<LineWidth>3.0</LineWidth>
 					</DatasetExpression>
-					<SamplesToKeep>150</SamplesToKeep>
+					<SamplesToKeep>120</SamplesToKeep>
 					<TimeWindowExpression><![CDATA[150]]></TimeWindowExpression>
+					<FillAreaUnderLine>false</FillAreaUnderLine>
 					<LabelFormat>MODEL_TIME_UNITS</LabelFormat>
     			</TimePlot>
 			</Charts>
@@ -1559,6 +1560,7 @@ getEngine().getPresentation().setPresentable( getEngine().getRoot() );]]></Actio
 					<Interpolation>LINEAR</Interpolation>
 					<SamplesToKeep>100</SamplesToKeep>
 					<TimeWindowExpression><![CDATA[100]]></TimeWindowExpression>
+					<FillAreaUnderLine>false</FillAreaUnderLine>
 					<LabelFormat>MODEL_TIME_UNITS</LabelFormat>
     			</TimePlot>
 			</Charts>
@@ -1622,8 +1624,8 @@ getEngine().getPresentation().setPresentable( getEngine().getRoot() );]]></Actio
 				<StopOption><![CDATA[Stop at specified time]]></StopOption>
 				<InitialDate><![CDATA[1153899478771]]></InitialDate>	
 				<InitialTime><![CDATA[0.0]]></InitialTime>	
-				<FinalDate><![CDATA[1166859478000]]></FinalDate>	
-				<FinalTime><![CDATA[150.0]]></FinalTime>	
+				<FinalDate><![CDATA[1162539478000]]></FinalDate>	
+				<FinalTime><![CDATA[100.0]]></FinalTime>	
 			</ModelTimeProperties>
 		</SimulationExperiment>	
 	</Experiments>

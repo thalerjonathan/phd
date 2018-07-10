@@ -1,4 +1,11 @@
 \section{Introduction}
-main message: PDES needs rollback of events which is particularly easily achieved in Haskell because: 1. it has persistent immutable data-structure resulting in a new version after an update where one still can hold the old version, 2. one can restrict side-effects to one which are guaranteed to be able to rollback and not having an effect on the real-world e.g. IO
+main message: optimistic PDES needs rollback of events which is particularly easily achieved in Haskell because: 1. it has persistent immutable data-structure resulting in a new version after an update where one still can hold the old version, 2. one can restrict side-effects to one which are guaranteed to be able to rollback and not having an effect on the real-world e.g. IO
+
+because DES can be the foundation for an event-driven ABS we benefit from looking at PDES as well to get inspiration for parallelisation of ABS
+
+rollback should be easy with SFs as well. with MSFs more delicate because of side-effects
 
 Contribution: first ones to describe haskells immutable data properties and STM to implement PDES
+
+TODO: implement DES in Haskell
+TODO: implement an optimistic PDES in Haskell

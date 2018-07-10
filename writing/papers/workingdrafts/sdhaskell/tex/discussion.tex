@@ -14,3 +14,19 @@ TODO: integral is the fundamental function
 - need to show that it indeed implements the rectangle rule. 
 - show that with too large dt we arrive at slightly different results after same time-steps
 - implement a better integral function using better behaved numerical integration
+
+TODO: compare with an AnyLogic solution
+
+\begin{center}
+  \begin{tabular}{ c || c | c | c  }
+    $\Delta t$ & Susceptibles & Infected & Recovered \\ \hline \hline 
+    1.0 & 17.52 & 26.87 & 955.61 \\ \hline
+    0.5 & 23.24 & 25.63 & 951.12 \\ \hline
+    0.1 & 27.56 & 24.27 & 948.17 \\ \hline
+    $1e-2$ & 28.52 & 24.11 & 947.36 \\ \hline
+    $1e-3$ & 28.62 & 24.08 & 947.30 \\ \hline
+    $1e-4$ & 28.63 & 24.08 & 947.29
+    
+    \label{tab:delta_influence}
+  \end{tabular}
+\end{center}

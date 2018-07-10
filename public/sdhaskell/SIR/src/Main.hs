@@ -15,11 +15,12 @@ main = do
       infectivity     = 0.05
       illnessDuration = 15
 
-      t               = 50
-      dt              = 0.01
+      freq            = 10000
+      t               = 100
+      dt              = 0.0001
 
   --let ret      = runSDPure populationSize infectedCount contactRate infectivity illnessDuration t dt
-  runSDVisual 10000 populationSize infectedCount contactRate infectivity illnessDuration t dt
+  runSDVisual freq populationSize infectedCount contactRate infectivity illnessDuration t dt
   --    fileName = "sir_sd_" ++ show populationSize ++ "_" ++ show dt ++ "dt.m"
   -- writeSIRStepsToFile fileName ret
 

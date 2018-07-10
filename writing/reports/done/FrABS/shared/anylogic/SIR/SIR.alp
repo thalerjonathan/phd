@@ -45,6 +45,7 @@
 					<Code><![CDATA[10]]></Code>
 					<Unit Class="SpeedUnits"><![CDATA[MPS]]></Unit>
 				</VelocityCode>
+				<AfterStepCode><![CDATA[System.out.println("Step");]]></AfterStepCode>
 			</AgentProperties>
 			<EnvironmentProperties>
 					<EnableSteps>false</EnableSteps>
@@ -99,6 +100,36 @@
 			</ScaleRuler>
 			<ConnectionsId>1412006426077</ConnectionsId>
 			<Variables>
+				<Variable Class="PlainVariable">
+					<Id>1531226492373</Id>
+					<Name><![CDATA[maxInf]]></Name>
+					<X>500</X><Y>630</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[double]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[1]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1531227338465</Id>
+					<Name><![CDATA[maxTime]]></Name>
+					<X>500</X><Y>650</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[double]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[0]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
 				<Variable Class="StockVariable">
 					<Id>1153899497197</Id>
 					<Name><![CDATA[Susceptible]]></Name>
@@ -414,6 +445,42 @@
 					<Delay>false</Delay>
 				</Link>
 			</Dependences>
+			<Events>
+				<Event>
+					<Id>1531226865657</Id>
+					<Name><![CDATA[trackMaxInf]]></Name>
+					<X>390</X><Y>630</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties TriggerType="timeout" Mode="cyclic">
+						<Timeout Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[DAY]]></Unit>
+						</Timeout>
+						<Rate Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="RateUnits"><![CDATA[PER_DAY]]></Unit>
+						</Rate>
+						<OccurrenceAtTime>true</OccurrenceAtTime>
+						<OccurrenceDate>1531296000000</OccurrenceDate>
+						<OccurrenceTime Class="CodeUnitValue">
+							<Code><![CDATA[0]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[DAY]]></Unit>
+						</OccurrenceTime>
+						<RecurrenceCode Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[DAY]]></Unit>
+						</RecurrenceCode>
+						<Condition><![CDATA[Infectious > maxInf]]></Condition>
+					</Properties>
+					<Action><![CDATA[if (maxInf < Infectious) {
+	maxInf = Infectious;
+	maxTime = time(TimeUnits.MINUTE);
+}]]></Action>
+				</Event>
+			</Events>
 			<AnalysisData>
     			<DataSet>
 					<Id>1235469989224</Id>

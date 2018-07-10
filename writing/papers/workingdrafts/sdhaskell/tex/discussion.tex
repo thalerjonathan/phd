@@ -15,17 +15,14 @@ TODO: integral is the fundamental function
 - show that with too large dt we arrive at slightly different results after same time-steps
 - implement a better integral function using better behaved numerical integration
 
-TODO: add max infected to table
-
 \begin{center}
   \begin{tabular}{ c || c | c | c  }
     $\Delta t$ & Susceptibles & Infected & Recovered \\ \hline \hline 
-    1.0 & 17.52 & 26.87 & 955.61 \\ \hline
-    0.5 & 23.24 & 25.63 & 951.12 \\ \hline
-    0.1 & 27.56 & 24.27 & 948.17 \\ \hline
-    $1e-2$ & 28.52 & 24.11 & 947.36 \\ \hline
-    $1e-3$ & 28.62 & 24.08 & 947.30 \\ \hline
-    $1e-4$ & 28.63 & 24.08 & 947.29
+    1.0 & 17.52 & 26.87 & 955.61 & 419.07 at t = 51 \\ \hline
+    0.5 & 23.24 & 25.63 & 951.12 & 399.53 at t = 47.5 \\ \hline
+    0.1 & 27.56 & 24.27 & 948.17 & 384.71 at t = 44.7 \\ \hline
+    $1e-2$ & 28.52 & 24.11 & 947.36 & 381.48 at t = 43.97 \\ \hline
+    $1e-3$ & 28.62 & 24.08 & 947.30 & 381.16 at t = 43.9 
     
     \label{tab:delta_influence}
   \end{tabular}
@@ -33,4 +30,4 @@ TODO: add max infected to table
 
 TODO: compare with an AnyLogic solution
 - show picture and compare it with the initial one
-- compare to anylogic run after t = 100 sus = 28.625, inf = 24.081, rec = 947.294, max inf ~ around t = 45)
+- compare to anylogic run after t = 100 sus = 28.625, inf = 24.081, rec = 947.294, max inf = 381.132 at t = 44)

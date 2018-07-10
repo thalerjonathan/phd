@@ -4336,7 +4336,7 @@ sockets, asynchronous programming with threads, and a high level network applica
 	author = {Mann, M. and Miranda, R. and Alavarado, A.},
 	month = nov,
 	year = {2003},
-	keywords = {bulk-synchronous model, Computational modeling, Concurrent computing, Costs, discrete event simulation, Discrete event simulation, Parallel algorithms, parallel computing, parallel discrete-event simulation, Parallel processing, parallel programming, Predictive models, protocols, Protocols, sequential discrete-event simulation, simulation program, Software algorithms, software environment, Software performance, synchronization protocol, systems software},
+	keywords = {discrete event simulation, Computational modeling, Protocols, bulk-synchronous model, Concurrent computing, Costs, Discrete event simulation, Parallel algorithms, parallel computing, parallel discrete-event simulation, Parallel processing, parallel programming, Predictive models, protocols, sequential discrete-event simulation, simulation program, Software algorithms, software environment, Software performance, synchronization protocol, systems software},
 	pages = {41--48},
 	file = {IEEE Xplore Abstract Record:/home/io.nathan/Zotero/storage/69V67JLH/1245444.html:text/html;IEEE Xplore Full Text PDF:/home/io.nathan/Zotero/storage/DQ2E3EQU/Mann et al. - 2003 - Parallel discrete-event simulation framework.pdf:application/pdf}
 }
@@ -4402,5 +4402,40 @@ sockets, asynchronous programming with threads, and a high level network applica
 	author = {Liu, Jason},
 	year = {2011},
 	doi = {10.1002/9780470400531.eorms0639},
-	keywords = {conservative synchronization, network simulation, optimistic synchronization, parallel simulation, PDES}
+	keywords = {PDES, parallel simulation, conservative synchronization, network simulation, optimistic synchronization}
+}
+
+@inproceedings{castor_software_2011,
+	address = {New York, NY, USA},
+	series = {{SPLASH} '11 {Workshops}},
+	title = {Software {Transactional} {Memory} vs. {Locking} in a {Functional} {Language}: {A} {Controlled} {Experiment}},
+	isbn = {978-1-4503-1183-0},
+	shorttitle = {Software {Transactional} {Memory} vs. {Locking} in a {Functional} {Language}},
+	url = {http://doi.acm.org/10.1145/2095050.2095071},
+	doi = {10.1145/2095050.2095071},
+	abstract = {Many researchers believe that software transactional memory (STM) will play an important role in the transition to multicore systems. However, little effort has been placed on assessing whether STM delivers on its promises of avoiding common concurrent/parallel programming pitfalls. In this paper, we describe a controlled experiment aiming to evaluate the ease of using STM. The study targets Haskell, a purely functional programming language that includes a mature implementation of STM. It compares the use of STM and Haskell's lock-based concurrency control mechanism to develop a program with (coarse-grained) mutual exclusion and synchronization requirements. We organized the 51 subjects in two groups, one for each technique. We found out that the two techniques did not differ significantly in terms of concurrency errors, number of LoC and time to develop the resulting programs. However, for programs where developers made only non-concurrency-related mistakes, STM programmers finished their assignments quicker.},
+	urldate = {2018-07-10},
+	booktitle = {Proceedings of the {Compilation} of the {Co}-located {Workshops} on {DSM}'11, {TMC}'11, {AGERE}! 2011, {AOOPES}'11, {NEAT}'11, \& {VMIL}'11},
+	publisher = {ACM},
+	author = {Castor, Fernando and Oliveira, João Paulo and Santos, André L.M.},
+	year = {2011},
+	keywords = {haskell, locks, software transactional memory},
+	pages = {117--122},
+	file = {ACM Full Text PDF:/home/io.nathan/Zotero/storage/KQRZL7MB/Castor et al. - 2011 - Software Transactional Memory vs. Locking in a Fun.pdf:application/pdf}
+}
+
+@article{rousset_survey_2016,
+	title = {A survey on parallel and distributed multi-agent systems for high performance computing simulations},
+	volume = {22},
+	issn = {1574-0137},
+	url = {http://www.sciencedirect.com/science/article/pii/S1574013715300435},
+	doi = {10.1016/j.cosrev.2016.08.001},
+	abstract = {Simulation has become an indispensable tool for researchers to explore systems without having recourse to real experiments. Depending on the characteristics of the modeled system, methods used to represent the system may vary. Multi-agent systems are often used to model and simulate complex systems. In any cases, increasing the size and the precision of the model increases the amount of computation, requiring the use of parallel systems when it becomes too large. In this paper, we focus on parallel platforms that support multi-agent simulations and their execution on high performance resources as parallel clusters. Our contribution is a survey on existing platforms and their evaluation in the context of high performance computing. We present a qualitative analysis of several multi-agent platforms, their tests in high performance computing execution environments, and the performance results for the only two platforms that fulfill the high performance computing constraints.},
+	urldate = {2018-07-10},
+	journal = {Computer Science Review},
+	author = {Rousset, Alban and Herrmann, Bénédicte and Lang, Christophe and Philippe, Laurent},
+	month = nov,
+	year = {2016},
+	keywords = {High performance computing, MAS, Multi-agent simulation, Parallelism},
+	pages = {27--46}
 }

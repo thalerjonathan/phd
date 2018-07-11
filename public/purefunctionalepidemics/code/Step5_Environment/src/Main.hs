@@ -51,7 +51,7 @@ main = do
       fileName  =  "STEP_5_ENVIRONMENT_DYNAMICS_" ++ show agentGridSize ++ "agents.m"
   
   writeAggregatesToFile fileName dyns
-  render es
+  --render es
 
 environmentsToAgentDyns :: [SIREnv] -> [[SIRState]]
 environmentsToAgentDyns = map elems

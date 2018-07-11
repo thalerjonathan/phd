@@ -37,23 +37,24 @@ Each experiment was run until $t = 100$ and stepped using $\Delta t = 0.1$ excep
 \subsection{Constant Grid Size, Varying Cores}
 In this experiment we held the grid size constant to 51 x 51 (2601 agents) and varied the cores where possible. The results are reported in Table \ref{tab:constgrid_varyingcores}.
 
-State Monad
-1.
+%-- TO RUN: clear & stack exec -- Step8-STM +RTS -N -s
+
+
 
 \begin{table}
 	\centering
-  	\begin{tabular}{ c || c | c | c | c }
-                	& Cores & Avg. Duration & $\sigma$ Duration & Retries Ratio \\ \hline \hline 
-    	State Monad & 1     & TODO sec & TODO sec & N/A  \\ \hline \hline
-   		STM Monad   & 1     & TODO sec & TODO sec & TODO \\ \hline
-   		STM Monad   & 2     & TODO sec & TODO sec & TODO \\ \hline
-   		STM Monad   & 3     & TODO sec & TODO sec & TODO \\ \hline
-   		STM Monad   & 4     & TODO sec & TODO sec & TODO \\ \hline \hline
-   		IO Monad    & 1     & TODO sec & TODO sec & N/A  \\ \hline 
-   		IO Monad    & 2     & TODO sec & TODO sec & N/A  \\ \hline 
-   		IO Monad    & 3     & TODO sec & TODO sec & N/A  \\ \hline 
-   		IO Monad    & 4     & TODO sec & TODO sec & N/A  \\ \hline \hline
-   		RePast      & 1     & TODO sec & TODO sec & N/A  \\ \hline 
+  	\begin{tabular}{ c || c | c | c }
+                	& Cores & $\mu$ Duration (sec) & $\sigma$ Duration (sec) \\ \hline \hline 
+    	State Monad & 1     & 100.33 & 0.434 \\ \hline \hline
+   		STM Monad   & 1     & 53.182 & 0.393 \\ \hline
+   		STM Monad   & 2     & 27.817 & 0.555 \\ \hline
+   		STM Monad   & 3     & 21.776 & 0.388 \\ \hline
+   		STM Monad   & 4     & 20.201 & 0.789 \\ \hline \hline
+   		IO Monad    & 1     & 60.564 & 0.265 \\ \hline 
+   		IO Monad    & 2     & 42.779 & 0.421    \\ \hline 
+   		IO Monad    & 3     & TODO & TODO    \\ \hline 
+   		IO Monad    & 4     & TODO & TODO    \\ \hline \hline
+   		RePast      & 1     & TODO & TODO    \\ \hline 
   	\end{tabular}
   	
   	\caption{Experiments on constant 51x51 (2601 agents) grid with varying number of cores.}
@@ -74,13 +75,13 @@ In this experiment we varied the grid size and used constantly 4 cores. The resu
 
 \begin{table}
 	\centering
-  	\begin{tabular}{ c || c | c | c }
-        Grid-Size & Avg. Duration & $\sigma$ Duration & Retries Ratio \\ \hline \hline 
-   		51 x 51   & TODO sec & TODO sec & TODO \\ \hline
-   		101 x 101 & TODO sec & TODO sec & TODO \\ \hline
-   		151 x 151 & TODO sec & TODO sec & TODO \\ \hline
-   		201 x 201 & TODO sec & TODO sec & TODO \\ \hline 
-   		251 x 251 & TODO sec & TODO sec & TODO \\ \hline
+  	\begin{tabular}{ c || c | c }
+        Grid-Size & Avg. Duration & $\sigma$ Duration \\ \hline \hline 
+   		51 x 51   & TODO sec & TODO sec \\ \hline
+   		101 x 101 & TODO sec & TODO sec \\ \hline
+   		151 x 151 & TODO sec & TODO sec \\ \hline
+   		201 x 201 & TODO sec & TODO sec \\ \hline 
+   		251 x 251 & TODO sec & TODO sec \\ \hline
   	\end{tabular}
   	
   	\caption{STM Monad experiments on varying grid sizes on 4 cores.}
@@ -133,6 +134,26 @@ As can be seen in Figure \ref{agent_by_duration_repast}, while on a 51x51 grid t
 	\caption{Comparison of 4-Core STM and single core Repast (Table \ref{tab:agent_by_duration_repast}).}
 	\label{fig:agent_by_duration_repast}
 \end{figure}
+
+\subsection{Retries}
+TODO
+4 cores
+
+\begin{table}
+	\centering
+  	\begin{tabular}{ c || c  }
+        Grid-Size & Retries Ratio \\ \hline \hline 
+   		51 x 51   & TODO \\ \hline
+   		101 x 101 & TODO \\ \hline
+   		151 x 151 & TODO \\ \hline
+   		201 x 201 & TODO \\ \hline 
+   		251 x 251 & TODO \\ \hline
+  	\end{tabular}
+  	
+  	\caption{Retries Ratio of STM Monad experiments on varying grid sizes on 4 cores.}
+	\label{tab:retries_stm}
+\end{table}
+
 
 \subsection{Conclusions}
 Interpretation of the performance data leads to the following conclusions:

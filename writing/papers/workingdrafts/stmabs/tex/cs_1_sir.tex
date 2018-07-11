@@ -40,29 +40,33 @@ In this experiment we held the grid size constant to 51 x 51 (2601 agents) and v
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
-                	& Cores & $\mu$ Duration (sec) & $\sigma$ Duration (sec) \\ \hline \hline 
-    	State Monad & 1     & 100.33 & 0.434 \\ \hline \hline
-   		STM Monad   & 1     & 53.182 & 0.393 \\ \hline
-   		STM Monad   & 2     & 27.817 & 0.555 \\ \hline
-   		STM Monad   & 3     & 21.776 & 0.388 \\ \hline
-   		STM Monad   & 4     & 20.201 & 0.789 \\ \hline \hline
-   		IO Monad    & 1     & 60.564 & 0.265 \\ \hline 
-   		IO Monad    & 2     & 42.779 & 0.421 \\ \hline 
-   		IO Monad    & 3     & 38.614 & 0.397 \\ \hline 
-   		IO Monad    & 4     & 41.914 & 1.073 \\ \hline \hline
-   		RePast      & 1     & 10.822 & 0.377 \\ \hline 
+               & Cores & $\mu$ Duration (sec) & $\sigma$ Duration (sec) \\ \hline \hline 
+    	State  & 1     & 100.33 & 0.434 \\ \hline \hline
+   		STM    & 1     & 53.182 & 0.393 \\ \hline
+   		STM    & 2     & 27.817 & 0.555 \\ \hline
+   		STM    & 3     & 21.776 & 0.388 \\ \hline
+   		STM    & 4     & 20.201 & 0.789 \\ \hline \hline
+   		IO     & 1     & 60.564 & 0.265 \\ \hline 
+   		IO     & 2     & 42.779 & 0.421 \\ \hline 
+   		IO     & 3     & 38.614 & 0.397 \\ \hline 
+   		IO     & 4     & 41.914 & 1.073 \\ \hline \hline
+   		RePast & 1     & 10.822 & 0.377 \\ \hline 
   	\end{tabular}
   	
   	\caption{Experiments on constant 51x51 (2601 agents) grid with varying number of cores.}
 	\label{tab:constgrid_varyingcores}
 \end{table}
 
-Comparing the scaling to multiple cores of the IO and STM implementation shows no significant difference between STM and IO as can be seen in Figure \ref{fig:core_duration_stm_io}.
+Comparing the performance and scaling on multiple cores of the STM and IO implementations shows that the STM implementation significantly outperforms the IO one and scales better to multiple cores. The IO implementation performs best with 3 cores and shows slightly worse performance on 4 cores as can be seen in Figure \ref{fig:core_duration_stm_io}. This is no surprise because the more cores are running at the same time, the more contention for the lock, thus the more likely synchronisation happening, resulting in more potential for reduced performance. This is not an issue in STM because no locks are taken in advance. 
+
+Comparing the reference \textit{State} implementation shows that it is the slowest by far - even the single core STM and IO implementations outperform it by far. Also our profiling results reported about 30\% increased memory footprint for the State implementation. This shows that the State Monad is a rather slow and memory intense approach sharing data but guarantees purity and excludes any non-deterministic side-effects which is not the case in STM and IO.
+
+What comes a bit as a surprise is that the single core RePast implementation significantly outperforms \textit{all} other implementations, even when they run on multiple cores and even with RePast doing complex visualisation in addition (something the functional implementations don't do). We attribute this to the conceptually slower approach of functional programming, and maybe we could have optimised parts of the code but we leave this for further research.
 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.6\textwidth, angle=0]{./fig/core_duration_stm_io.png}
-	\caption{Comparison of scaling IO and STM  to multiple cores. TODO: re-do this figure after we have collected 8 runs of the same}
+	\caption{Comparison of performance and scaling on multiple cores of STM vs. IO. Note that the IO implementation performs worse on 4 cores than on 3.}
 	\label{fig:core_duration_stm_io}
 \end{figure}
 
@@ -134,6 +138,7 @@ As can be seen in Figure \ref{agent_by_duration_repast}, while on a 51x51 grid t
 \subsection{Retries}
 TODO
 4 cores
+Averaging 8 runs again
 
 \begin{table}
 	\centering

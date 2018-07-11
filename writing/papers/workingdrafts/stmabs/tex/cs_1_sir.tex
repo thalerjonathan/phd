@@ -37,10 +37,6 @@ Each experiment was run until $t = 100$ and stepped using $\Delta t = 0.1$ excep
 \subsection{Constant Grid Size, Varying Cores}
 In this experiment we held the grid size constant to 51 x 51 (2601 agents) and varied the cores where possible. The results are reported in Table \ref{tab:constgrid_varyingcores}.
 
-%-- TO RUN: clear & stack exec -- Step8-STM +RTS -N -s
-
-
-
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
@@ -51,10 +47,10 @@ In this experiment we held the grid size constant to 51 x 51 (2601 agents) and v
    		STM Monad   & 3     & 21.776 & 0.388 \\ \hline
    		STM Monad   & 4     & 20.201 & 0.789 \\ \hline \hline
    		IO Monad    & 1     & 60.564 & 0.265 \\ \hline 
-   		IO Monad    & 2     & 42.779 & 0.421    \\ \hline 
-   		IO Monad    & 3     & TODO & TODO    \\ \hline 
-   		IO Monad    & 4     & TODO & TODO    \\ \hline \hline
-   		RePast      & 1     & TODO & TODO    \\ \hline 
+   		IO Monad    & 2     & 42.779 & 0.421 \\ \hline 
+   		IO Monad    & 3     & 38.614 & 0.397 \\ \hline 
+   		IO Monad    & 4     & 41.914 & 1.073 \\ \hline \hline
+   		RePast      & 1     & 10.822 & 0.377 \\ \hline 
   	\end{tabular}
   	
   	\caption{Experiments on constant 51x51 (2601 agents) grid with varying number of cores.}

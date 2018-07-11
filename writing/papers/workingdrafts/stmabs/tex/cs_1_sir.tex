@@ -41,16 +41,16 @@ In this experiment we held the grid size constant to 51 x 51 (2601 agents) and v
 	\centering
   	\begin{tabular}{ c || c | c | c }
                & Cores & $\mu$ Duration (sec) & $\sigma$ Duration (sec) \\ \hline \hline 
-    	State  & 1     & 100.33 & 0.434 \\ \hline \hline
-   		STM    & 1     & 53.182 & 0.393 \\ \hline
-   		STM    & 2     & 27.817 & 0.555 \\ \hline
-   		STM    & 3     & 21.776 & 0.388 \\ \hline
-   		STM    & 4     & 20.201 & 0.789 \\ \hline \hline
-   		IO     & 1     & 60.564 & 0.265 \\ \hline 
-   		IO     & 2     & 42.779 & 0.421 \\ \hline 
-   		IO     & 3     & 38.614 & 0.397 \\ \hline 
-   		IO     & 4     & 41.914 & 1.073 \\ \hline \hline
-   		RePast & 1     & 10.822 & 0.377 \\ \hline 
+    	State  & 1     & 100.33               & 0.434 \\ \hline \hline
+   		STM    & 1     & 53.182               & 0.393 \\ \hline
+   		STM    & 2     & 27.817               & 0.555 \\ \hline
+   		STM    & 3     & 21.776               & 0.388 \\ \hline
+   		STM    & 4     & 20.201               & 0.789 \\ \hline \hline
+   		IO     & 1     & 60.564               & 0.265 \\ \hline 
+   		IO     & 2     & 42.779               & 0.421 \\ \hline 
+   		IO     & 3     & 38.614               & 0.397 \\ \hline 
+   		IO     & 4     & 41.914               & 1.073 \\ \hline \hline
+   		RePast & 1     & 10.822               & 0.377 \\ \hline 
   	\end{tabular}
   	
   	\caption{Experiments on constant 51x51 (2601 agents) grid with varying number of cores.}
@@ -76,12 +76,12 @@ In this experiment we varied the grid size and used constantly 4 cores. The resu
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c }
-        Grid-Size & Avg. Duration & $\sigma$ Duration \\ \hline \hline 
-   		51 x 51   & TODO sec & TODO sec \\ \hline
-   		101 x 101 & TODO sec & TODO sec \\ \hline
-   		151 x 151 & TODO sec & TODO sec \\ \hline
-   		201 x 201 & TODO sec & TODO sec \\ \hline 
-   		251 x 251 & TODO sec & TODO sec \\ \hline
+        Grid-Size         & $\mu$ Duration (sec) & $\sigma$ Duration (sec) \\ \hline \hline 
+   		51 x 51 (2601)    & 20.201               & 0.789 \\ \hline
+   		101 x 101 (10201) & 74.493               & 0.524 \\ \hline
+   		151 x 151 (22801) & 168.47               & 1.783 \\ \hline
+   		201 x 201 (40401) & TODO                 & TODO \\ \hline 
+   		251 x 251 (63001) & TODO                 & TODO \\ \hline
   	\end{tabular}
   	
   	\caption{STM Monad experiments on varying grid sizes on 4 cores.}
@@ -91,12 +91,12 @@ In this experiment we varied the grid size and used constantly 4 cores. The resu
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c }
-        Grid-Size & Avg. Duration & $\sigma$ Duration \\ \hline \hline 
-   		51 x 51   & TODO sec & TODO sec \\ \hline
-   		101 x 101 & TODO sec & TODO sec \\ \hline
-   		151 x 151 & TODO sec & TODO sec \\ \hline
-   		201 x 201 & TODO sec & TODO sec \\ \hline 
-   		251 x 251 & TODO sec & TODO sec \\ \hline 
+        Grid-Size         & Avg. Duration & $\sigma$ Duration \\ \hline \hline 
+   		51 x 51   (2601)  & TODO sec & TODO sec \\ \hline
+   		101 x 101 (10201) & TODO sec & TODO sec \\ \hline
+   		151 x 151 (22801) & TODO sec & TODO sec \\ \hline
+   		201 x 201 (40401) & TODO sec & TODO sec \\ \hline 
+   		251 x 251 (63001) & TODO sec & TODO sec \\ \hline 
   	\end{tabular}
   	
   	\caption{IO Monad experiments on varying grid sizes on 4 cores.}
@@ -107,11 +107,11 @@ In this experiment we varied the grid size and used constantly 4 cores. The resu
 	\centering
   	\begin{tabular}{ c || c | c }
         Grid-Size & Avg. Duration & $\sigma$ Duration \\ \hline \hline 
-   		51 x 51   & TODO sec & TODO sec \\ \hline
-   		101 x 101 & TODO sec & TODO sec \\ \hline
-   		151 x 151 & TODO sec & TODO sec \\ \hline
-   		201 x 201 & TODO sec & TODO sec \\ \hline 
-   		251 x 251 & TODO sec & TODO sec \\ \hline 
+   		51 x 51   (2601)  & TODO sec & TODO sec \\ \hline
+   		101 x 101 (10201) & TODO sec & TODO sec \\ \hline
+   		151 x 151 (22801) & TODO sec & TODO sec \\ \hline
+   		201 x 201 (40401) & TODO sec & TODO sec \\ \hline 
+   		251 x 251 (63001) & TODO sec & TODO sec \\ \hline 
   	\end{tabular}
   	
   	\caption{Repast experiments on varying grid sizes on a single (1) core.}

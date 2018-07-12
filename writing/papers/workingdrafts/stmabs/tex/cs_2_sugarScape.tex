@@ -1,3 +1,5 @@
 \section{Case Study 2: Sugarscape}
+the model specification requires to shuffle agents before every step. this happens automatically due to race-conditions in concurrency we arrive at an effectively shuffled processing of agents: we can assume that the order of the agents is \textit{effectively} random in every step - with the important difference, that we dont have control over this randomness as we would have when shuffling.
+
 - main difficulty: synchronous agent-interactions
 - STM: not clear yet but retry factor of ~5

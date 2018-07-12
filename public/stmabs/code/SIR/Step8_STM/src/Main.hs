@@ -5,7 +5,7 @@ import           System.IO
 
 import           Control.Concurrent
 import           Control.Concurrent.STM
---import           Control.Concurrent.STM.Stats
+import           Control.Concurrent.STM.Stats
 import           Control.Monad.Random
 import           Control.Monad.Reader
 import           Control.Monad.Trans.MSF.Random
@@ -57,7 +57,7 @@ main = do
   es <- runSimulation g t dt e as
 
   -- NOTE: running STM with stats results in considerable lower performance the more STM actions are run concurrently
-  -- dumpSTMStats
+  dumpSTMStats
 
   let ass       = environmentsToAgentDyns es
       dyns      = aggregateAllStates ass
@@ -142,7 +142,7 @@ createAgentThread steps env dtVar rng0 a = do
       let sfReader = unMSF sf ()
           sfRand   = runReaderT sfReader dt
           sfSTM    = runRandT sfRand rng
-      ((_, sf'), rng') <- atomically sfSTM --trackSTM sfSTM
+      ((_, sf'), rng') <- trackSTM sfSTM -- atomically sfSTM -- trackSTM sfSTM
       -- NOTE: running STM with stats results in considerable lower performance the more STM actions are run concurrently
 
       -- post result to main thread

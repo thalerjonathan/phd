@@ -66,7 +66,7 @@ What comes a bit as a surprise is that the single core RePast implementation sig
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.6\textwidth, angle=0]{./fig/core_duration_stm_io.png}
+	\includegraphics[width=0.6\textwidth, angle=0]{./fig/sir/core_duration_stm_io.png}
 	\caption{Comparison of performance and scaling on multiple cores of STM vs. IO. Note that the IO implementation performs worse on 4 cores than on 3.}
 	\label{fig:core_duration_stm_io}
 \end{figure}
@@ -79,12 +79,12 @@ TODO: runs where STD ($\sigma$ Duration) is 0 had no full 8 runs yet
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c }
-        Grid-Size         & $\mu$ Duration (sec) & $\sigma$ Duration (sec) \\ \hline \hline 
-   		51 x 51 (2601)    & 20.201               & 0.789 \\ \hline
-   		101 x 101 (10201) & 74.493               & 0.524 \\ \hline
-   		151 x 151 (22801) & 168.47               & 1.783 \\ \hline
-   		201 x 201 (40401) & 302.43               & 3.931 \\ \hline 
-   		251 x 251 (63001) & 495.73               & 0 \\ \hline
+        Grid-Size          & $\mu$ Duration (sec) & $\sigma$ Duration (sec) \\ \hline \hline 
+   		51 x 51 (2,601)    & 20.201               & 0.789 \\ \hline
+   		101 x 101 (1,0201) & 74.493               & 0.524 \\ \hline
+   		151 x 151 (22,801) & 168.47               & 1.783 \\ \hline
+   		201 x 201 (40,401) & 302.43               & 3.931 \\ \hline 
+   		251 x 251 (63,001) & 495.73               & 0 \\ \hline
   	\end{tabular}
 
   	\caption{STM Monad experiments on varying grid sizes on 4 cores.}
@@ -95,12 +95,12 @@ TODO: runs where STD ($\sigma$ Duration) is 0 had no full 8 runs yet
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c }
-        Grid-Size         & $\mu$ Duration (sec) & $\sigma$ Duration (sec) \\ \hline \hline 
-   		51 x 51   (2601)  & 41.914 				 & 1.073 \\ \hline
-   		101 x 101 (10201) & 170.55 				 & 1.115 \\ \hline
-   		151 x 151 (22801) & 376.89 				 & 0 \\ \hline
-   		201 x 201 (40401) & 672.01 				 & 0 \\ \hline 
-   		251 x 251 (63001) & 1027.27				 & 0 \\ \hline 
+        Grid-Size          & $\mu$ Duration (sec) & $\sigma$ Duration (sec) \\ \hline \hline 
+   		51 x 51 (2,601)    & 41.914 			 & 1.073 \\ \hline
+   		101 x 101 (10,201) & 170.55 			 & 1.115 \\ \hline
+   		151 x 151 (22,801) & 376.89 			 & 0 \\ \hline
+   		201 x 201 (40,401) & 672.01 			 & 0 \\ \hline 
+   		251 x 251 (63,001) & 1,027.27			 & 0 \\ \hline 
   	\end{tabular}
   	
   	\caption{IO Monad experiments on varying grid sizes on 4 cores.}
@@ -111,11 +111,11 @@ TODO: runs where STD ($\sigma$ Duration) is 0 had no full 8 runs yet
 	\centering
   	\begin{tabular}{ c || c | c }
         Grid-Size         & $\mu$ Duration (sec) & $\sigma$ Duration (sec) \\ \hline \hline 
-   		51 x 51   (2601)  & 38.614 				 & 0.397 \\ \hline
-   		101 x 101 (10201) & 171.61 				 & 3.016 \\ \hline
-   		151 x 151 (22801) & 404.11				 & 0 \\ \hline
-   		201 x 201 (40401) & 720.65 				 & 0 \\ \hline 
-   		251 x 251 (63001) & 1117.27 			 & 0 \\ \hline 
+   		51 x 51   (2,601)  & 38.614 			 & 0.397 \\ \hline
+   		101 x 101 (1,0201) & 171.61 			 & 3.016 \\ \hline
+   		151 x 151 (22,801) & 404.11				 & 0 \\ \hline
+   		201 x 201 (40,401) & 720.65 			 & 0 \\ \hline 
+   		251 x 251 (63,001) & 1,117.27 			 & 0 \\ \hline 
   	\end{tabular}
   	
   	\caption{IO Monad experiments on varying grid sizes on 3 cores.}
@@ -125,12 +125,12 @@ TODO: runs where STD ($\sigma$ Duration) is 0 had no full 8 runs yet
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c }
-        Grid-Size         & $\mu$ Duration (sec) & $\sigma$ Duration (sec) \\ \hline \hline 
-   		51 x 51   (2601)  & 10.822 				 & 0.377 \\ \hline
-   		101 x 101 (10201) & 107.40 				 & 1.306 \\ \hline
-   		151 x 151 (22801) & 464.017      		 & 0 \\ \hline
-   		201 x 201 (40401) & 1227.68 			 & 0 \\ \hline 
-   		251 x 251 (63001) & 3283.63				 & 0 \\ \hline 
+        Grid-Size          & $\mu$ Duration (sec) & $\sigma$ Duration (sec) \\ \hline \hline 
+   		51 x 51 (2,601)    & 10.822 		     & 0.377 \\ \hline
+   		101 x 101 (10,201) & 107.40 		     & 1.306 \\ \hline
+   		151 x 151 (22,801) & 464.017      		 & 0 \\ \hline
+   		201 x 201 (40,401) & 1,227.68 			 & 0 \\ \hline 
+   		251 x 251 (63,001) & 3,283.63			 & 0 \\ \hline 
   	\end{tabular}
   	
   	\caption{Repast experiments on varying grid sizes on a single (1) core.}
@@ -145,13 +145,13 @@ The Figure \ref{fig:stm_io_repast_varyinggrid_performance} clearly indicates tha
 	\begin{tabular}{c c}
 		\begin{subfigure}[b]{0.5\textwidth}
 			\centering
-			\includegraphics[width=1\textwidth, angle=0]{./fig/stm_io_repast_varyinggrid_performance.png}
+			\includegraphics[width=1\textwidth, angle=0]{./fig/sir/stm_io_repast_varyinggrid_performance.png}
 			\caption{Normal Scale}
 		\end{subfigure}
     	&
 		\begin{subfigure}[b]{0.5\textwidth}
 			\centering
-			\includegraphics[width=1\textwidth, angle=0]{./fig/stm_io_repast_varyinggrid_performance_loglog.png}
+			\includegraphics[width=1\textwidth, angle=0]{./fig/sir/stm_io_repast_varyinggrid_performance_loglog.png}
 			\caption{Logarithmic scale on both axes}
 		\end{subfigure}
     \end{tabular}
@@ -162,31 +162,38 @@ The Figure \ref{fig:stm_io_repast_varyinggrid_performance} clearly indicates tha
 
 %\begin{figure}
 %	\centering
-%	\includegraphics[width=0.6\textwidth, angle=0]{./fig/stm_io_repast_varyinggrid_performance.png}
+%	\includegraphics[width=0.6\textwidth, angle=0]{./fig/sir/stm_io_repast_varyinggrid_performance.png}
 %	\caption{Comparison of STM (Table \ref{tab:varyinggrid_constcores_stm}), IO (Table \ref{tab:tab:varyinggrid_constcores4_IO}, Table \ref{tab:varyinggrid_constcores3_IO}) and RePast (single core) (Table \ref{tab:varyinggrid_constcores_repast}) performance. TODO: re-create the figure when all experiments had 8 runs.}
 %	\label{fig:stm_io_repast_varyinggrid_performance}
 %\end{figure}
 
 \subsection{Retries}
-TODO
-4 cores
-Averaging 8 runs again
+In these experiments we only averaged over 4 runs because they all arrived at a ratio of 0.0. We also conducted runs on lower number of cores which resulted in fewer retries as expected. 
+
+TODO: need a proper discussion of these metrics
+TODO: need 4 runs of Std (0)
 
 \begin{table}
 	\centering
-  	\begin{tabular}{ c || c  }
-        Grid-Size & Retries Ratio \\ \hline \hline 
-   		51 x 51   & TODO \\ \hline
-   		101 x 101 & TODO \\ \hline
-   		151 x 151 & TODO \\ \hline
-   		201 x 201 & TODO \\ \hline 
-   		251 x 251 & TODO \\ \hline
+  	\begin{tabular}{ c || c | c | c  }
+        Grid-Size 		   & Commits    & Retries Avg (Std) & Ratio \\ \hline \hline 
+   		51 x 51 (2,601)    & 2,601,000  & 1306.5 (83.9)     & 0.0 \\ \hline
+   		101 x 101 (10,201) & 10,201,000 & 3712.5 (308.42)   & 0.0 \\ \hline
+   		151 x 151 (22,801) & 22,801,000 & 8189.5 (342.12)   & 0.0 \\ \hline
+   		201 x 201 (40,401) & 40,401,000 & 13285 (0.0)       & 0.0 \\ \hline 
+   		251 x 251 (63,001) & 63,001,000 & 21217 (0.0)       & 0.0 \\ \hline
   	\end{tabular}
   	
   	\caption{Retries Ratio of STM Monad experiments on varying grid sizes on 4 cores.}
 	\label{tab:retries_stm}
 \end{table}
 
+\begin{figure}
+	\centering
+	\includegraphics[width=0.6\textwidth, angle=0]{./fig/sir/retries_stm.png}
+	\caption{Scaling of retries by agent count. TODO: re-create the figure when all experiments had 4 runs.}
+	\label{fig:retries_stm}
+\end{figure}
 
 \subsection{Conclusions}
 Interpretation of the performance data leads to the following conclusions:

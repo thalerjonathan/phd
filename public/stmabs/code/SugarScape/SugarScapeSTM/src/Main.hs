@@ -28,6 +28,8 @@ data SimContext g = SimContext
   , simCtxRng    :: g
   }
 
+-- NOTE run with: clear & stack exec -- SugarScapeSTM +RTS -N4 -s
+
 main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
@@ -37,8 +39,8 @@ main = do
       frequency  = 1
       winSize    = (800, 800)
       winTitle   = "SugarScape"
-      agentCount = 1000
-      envSize    = (70, 70)
+      agentCount = 500
+      envSize    = (50, 50)
 
       -- initial RNG
       g0                     = mkStdGen rngSeed

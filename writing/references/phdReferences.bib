@@ -2691,19 +2691,6 @@ Associated with the functional style of programming is an algebra of programs wh
 	file = {ScienceDirect Full Text PDF:/home/io.nathan/Zotero/storage/XBR8T9WN/Botta et al. - 2011 - A functional framework for agent-based models of e.pdf:application/pdf;ScienceDirect Full Text PDF:/home/io.nathan/Zotero/storage/DAB4AVMK/Botta et al. - 2011 - A functional framework for agent-based models of e.pdf:application/pdf;ScienceDirect Snapshot:/home/io.nathan/Zotero/storage/K4DQT3U4/S0096300311010915.html:text/html;ScienceDirect Snapshot:/home/io.nathan/Zotero/storage/G5IGQAKV/S0096300311010915.html:text/html}
 }
 
-@book{lysenko_framework_2008,
-	title = {A {Framework} for {Megascale} {Agent} {Based} {Model} {Simulations} on the {GPU}},
-	author = {Lysenko, Mikola and D’souza, Roshan and Rahmani, Keyvan},
-	year = {2008}
-}
-
-@book{a_framework_nodate,
-	title = {A {Framework} for {Megascale} {Agent} {Based} {Model} {Simulations} on the {GPU}},
-	abstract = {This paper presents a series of efficient, data parallel algorithms for simulating agent based models. These include methods for handling environment updates, agent interactions and replication. One of the most important techniques presented in this work is a novel stochastic allocator which enables parallel agent replication in O(1) average time. These techniques can be easily implemented on a modern day graphics processing unit (GPU) resulting in a substantial performance increase. We believe that our system is the first ever completely GPU based agent simulation framework.},
-	author = {A, Mikola Lysenko and B, Roshan D’souza and B, Keyvan Rahmani},
-	file = {Citeseer - Full Text PDF:/home/io.nathan/Zotero/storage/DASXIQNT/A et al. - A Framework for Megascale Agent Based Model Simula.pdf:application/pdf;Citeseer - Snapshot:/home/io.nathan/Zotero/storage/JXAV765D/summary.html:text/html}
-}
-
 @article{agha_foundation_1997,
 	title = {A {Foundation} for {Actor} {Computation}},
 	volume = {7},
@@ -2827,13 +2814,6 @@ Associated with the functional style of programming is an algebra of programs wh
 	author = {Railsback, Steve and Lytinen, Steve and Grimm, Volker},
 	month = dec,
 	year = {2005}
-}
-
-@book{a_framework_nodate-1,
-	title = {A {Framework} for {Megascale} {Agent} {Based} {Simulations} on the {GPU}},
-	abstract = {This paper presents a series of efficient, data parallel algorithms for simulating agent based models on a graphics processing unit (GPU). These include methods for handling environment updates, agent interactions, and replication. One of the most important techniques presented in this work is a novel stochastic allocator which enables parallel agent replication in O(1) average time. We believe that our system is the first ever completely GPU based agent simulation framework. Due to a combination of algorithmic and architectural advancements, our prototype system achieves a speed up of several orders of magnitude over conventional CPU based approaches.},
-	author = {A, Mikola Lysenko and B, Roshan D’souza and B, Keyvan Rahmani},
-	file = {Citeseer - Full Text PDF:/home/io.nathan/Zotero/storage/M47BA6FQ/A et al. - A Framework for Megascale Agent Based Simulations .pdf:application/pdf;Citeseer - Snapshot:/home/io.nathan/Zotero/storage/S6JVBTC4/summary.html:text/html}
 }
 
 @book{botta_issn:_2010,
@@ -4516,7 +4496,21 @@ sockets, asynchronous programming with threads, and a high level network applica
 	month = jul,
 	year = {2018},
 	note = {arXiv: 1807.01014},
-	keywords = {Computer Science - Distributed, Parallel, and Cluster Computing, Computer Science - Multiagent Systems, Computer Science - Performance},
+	keywords = {Computer Science - Multiagent Systems, Computer Science - Distributed, Parallel, and Cluster Computing, Computer Science - Performance},
 	annote = {Comment: Submitted for review to ACM Computing Surveys on 24/05/2018},
 	file = {arXiv\:1807.01014 PDF:/home/io.nathan/Zotero/storage/CUNZN4LZ/Xiao et al. - 2018 - A Survey on Agent-based Simulation using Hardware .pdf:application/pdf;arXiv.org Snapshot:/home/io.nathan/Zotero/storage/Q9IILYPT/1807.html:text/html}
+}
+
+@article{lysenko_framework_2008,
+	title = {A {Framework} for {Megascale} {Agent} {Based} {Model} {Simulations} on {Graphics} {Processing} {Units}},
+	volume = {11},
+	issn = {1460-7425},
+	url = {http://jasss.soc.surrey.ac.uk/11/4/10.html},
+	abstract = {Agent-based modeling is a technique for modeling dynamic systems from the bottom up. Individual elements of the system are represented computationally as agents. The system-level behaviors emerge from the micro-level interactions of the agents. Contemporary state-of-the-art agent-based modeling toolkits are essentially discrete-event simulators designed to execute serially on the Central Processing Unit (CPU). They simulate Agent-Based Models (ABMs) by executing agent actions one at a time. In addition to imposing an un-natural execution order, these toolkits have limited scalability. In this article, we investigate data-parallel computer architectures such as Graphics Processing Units (GPUs) to simulate large scale ABMs. We have developed a series of efficient, data parallel algorithms for handling environment updates, various agent interactions, agent death and replication, and gathering statistics. We present three fundamental innovations that provide unprecedented scalability. The first is a novel stochastic memory allocator which enables parallel agent replication in O(1) average time. The second is a technique for resolving precedence constraints for agent actions in parallel. The third is a method that uses specialized graphics hardware, to gather and process statistical measures. These techniques have been implemented on a modern day GPU resulting in a substantial performance increase. We believe that our system is the first ever completely GPU based agent simulation framework. Although GPUs are the focus of our current implementations, our techniques can easily be adapted to other data-parallel architectures. We have benchmarked our framework against contemporary toolkits using two popular ABMs, namely, SugarScape and StupidModel.},
+	number = {4},
+	journal = {Journal of Artificial Societies and Social Simulation},
+	author = {Lysenko, Mikola and D'Souza, Roshan M.},
+	year = {2008},
+	keywords = {Agent Based Modeling, Data Parallel Algorithms, GPGPU, Stochastic},
+	pages = {10}
 }

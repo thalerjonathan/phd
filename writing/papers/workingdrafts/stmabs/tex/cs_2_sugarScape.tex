@@ -1,10 +1,49 @@
 \section{Case Study 2: Sugarscape}
-the model specification requires to shuffle agents before every step. this happens automatically due to race-conditions in concurrency we arrive at an effectively shuffled processing of agents: we can assume that the order of the agents is \textit{effectively} random in every step - with the important difference, that we dont have control over this randomness as we would have when shuffling.
+One of the first  Agent-Based Simulation model which rose to some prominence was the Sugarscape model developed by Epstein and Axtell in 1996 \cite{epstein_growing_1996}. Their aim was to \textit{grow} an artificial society by simulation and connect observations in their simulation to phenomenon of real-world societies. The main features of this model are:
 
-- main difficulty: synchronous agent-interactions
-- STM: not clear yet but retry factor of ~5
+\begin{itemize}
+	\item Searching, harvesting and consuming of resources.
+	\item Wealth and age distributions.
+	\item Seasons in the environment and migration of agents.
+	\item Pollution of the environment.
+	\item Population dynamics under sexual reproduction.
+	\item Cultural processes and transmission.
+	\item Combat and assimilation.
+	\item Bilateral decentralized trading (bartering) between agents with endogenous demand and supply.
+	\item Emergent Credit-Networks.
+	\item Disease Processes, Transmission and immunology.
+\end{itemize}
+
+Because of its essential importance to this field, its complexity, number of features and allowing us to bridge the gap to ACE, we select it as the first of two central models, which will serve as use-case to develop our methods. The idea is to formally specify and then verify the process of bilateral decentralized trading because it is the most complex of the features and connects directly to ACE.
+
+We implemented Chapter II of the book. TODO: shortly explain how agents behave
+
+The model specification requires to shuffle agents before every step. This happens automatically due to race-conditions in concurrency we arrive at an effectively shuffled processing of agents: we can assume that the order of the agents is \textit{effectively} random in every step - with the important difference, that we do not have control over this randomness as we would have when shuffling.
+
+TODO: we compete with \cite{lysenko_framework_2008}
 
 TODO: implement Data-Flow between Agents: pure in State and using TChan in STM / IO
 TODO: implement Sugarscape IO
 TODO: implement Sugarscape TArray
 TODO: compare RePast or other Java Sugarscape Performance
+
+\begin{itemize}
+	\item State - 
+	\item IO - lock-based
+	\item STM TVar -
+	\item STM TArray -
+	\item STM TArray Environment non-concurrent -
+\end{itemize}
+
+\subsection{Experiment Design}
+We follow \cite{lysenko_framework_2008} and measure the average updates per second of the simulation with a 128x128 environment and an intiial population for 500, running for 60 seconds. For each experiment we conducted 8 runs on our machine (see Table \ref{tab:machine_specs}) under no additional work-load and report both the average and standard deviation. In the experiments we varied the number of agents and the number of cores when running concurrently - the numbers are always indicated clearly. For varying the number of cores we compiled the executable using \textit{stack} and the \textit{threaded} option and executed it with \textit{stack} using the \textit{+RTS -Nx} option where x is the number of cores between 1 and 4. 
+
+TODO main measure: up/sec and retry-ratio
+
+\subsection{Naive Approach}
+
+\subsection{From TVar to TArray}
+
+\subsection{Running Environment non-concurrently}
+
+\subsection{Conclusions}

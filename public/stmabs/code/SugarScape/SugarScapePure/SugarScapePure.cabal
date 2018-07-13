@@ -57,10 +57,12 @@ executable SugarScapePure
                 , Discrete
                 , Environment
                 , Exporter
+                , GlossRunner
                 , Init
                 , Model
                 , Random
                 , Renderer
+                , Simulation
                 , Utils
   
   -- LANGUAGE extensions used by modules in this package.
@@ -88,4 +90,4 @@ executable SugarScapePure
   -- Base language which the package is written in.
   default-language:    Haskell2010
   
-  ghc-options:         -O3 -Wall -Werror -fwarn-tabs
+  ghc-options:         -O3 -Wall -Werror -fwarn-tabs -fno-warn-unused-matches

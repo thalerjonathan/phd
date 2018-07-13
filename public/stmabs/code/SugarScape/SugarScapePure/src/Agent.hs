@@ -9,6 +9,7 @@ module Agent
 import Control.Monad.Random
 import Control.Monad.State.Strict
 import FRP.BearRiver
+--import Debug.Trace
 
 --import Data.Maybe
 --import Data.List
@@ -74,6 +75,8 @@ chapterII :: RandomGen g
           -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
 chapterII aid _ain age = do
   ao <- agentAgeing age
+
+  --let ao = trace "fuu" ao0
 
   ifThenElse
     (isDead ao)

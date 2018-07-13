@@ -1,22 +1,22 @@
-\section{Case Study 1: SIR} 
+\section{Case Study 1 - SIR} 
 Our first case study is the SIR model which is a very well studied and understood compartment model from epidemiology \cite{kermack_contribution_1927} which allows to simulate the dynamics of an infectious disease like influenza, tuberculosis, chicken pox, rubella and measles spreading through a population \cite{enns_its_2010}.
 
 In it, people in a population of size $N$ can be in either one of three states \textit{Susceptible}, \textit{Infected} or \textit{Recovered} at a particular time, where it is assumed that initially there is at least one infected person in the population. People interact \textit{on average} with a given rate of $\beta$ other people per time-unit and become infected with a given probability $\gamma$ when interacting with an infected person. When infected, a person recovers \textit{on average} after $\delta$ time-units and is then immune to further infections. An interaction between infected persons does not lead to re-infection, thus these interactions are ignored in this model. 
 
-We followed in our agent-based implementation of the SIR model the work \cite{macal_agent-based_2010} but extended the  by placing the agents on a discrete 2D grid using a Moore (8) neighbourhood TODO: cite my own PFE paper. In this case agents interact with each other indirectly through the shared discrete 2D grid by writing their current state on their cell which neighbours can read.
+We followed in our agent-based implementation of the SIR model the work \cite{macal_agent-based_2010} but extended it by placing the agents on a discrete 2D grid using a Moore (8) neighbourhood TODO: cite my own PFE paper. In this case agents interact with each other indirectly through the shared discrete 2D grid by writing their current state on their cell which neighbours can read.
 
 It is important to note that due to the continuous-time nature of the SIR model, our implementation follows the time-driven \cite{meyer_event-driven_2014} approach and maps naturally to the continuous time-semantics and state-transitions provided by FRP. By sampling the system with very small $\Delta t$ this means that we have comparatively very few writes to the shared environment which will become important when discussing the performance results.
 
-In this case study we compare the performance of the following implementations under varying numbers of CPU cores:
+In this case study we compare the performance of the following implementations under varying numbers of CPU cores and agent numbers:
 
 \begin{enumerate}
-	\item State Monad - This is the original implementation we also discuss in TODO: cite my own PFE paper. In it the discrete 2D grid is shared amongst all agents using the State Monad. Agents are run sequentially after another thus ensuring exclusive read/write access to it. Because we are neither running in the STM or IO Monad there is no way we can run this implementation concurrently.
-	\item STM Monad - This is the same implementation like the State Monad but instead of sharing the discrete 2D grid in a State Monad, agents run in the STM Monad and have access to the discrete 2D grid through a \textit{TVar}. This means that the reads and writes of the discrete 2D grid are exactly the same but happen always through the \textit{TVar}. Also each agent is run within its own thread, thus enabling true concurrency when the simulation is actually run on multiple cores (which can be configured by the Haskell Runtime System).
-	\item IO Monad - This is exactly the same implementation like the STM Monad but instead of running in STM, the agents now run in IO. They share the discrete 2D grid using an \textit{IORef} and have access to an \textit{MVar} to synchronise access to the it. Also each agent is run within its own thread.
+	\item State - This is the original implementation we also discuss in TODO: cite my own PFE paper. In it the discrete 2D grid is shared amongst all agents using the State Monad. Agents are run sequentially after another thus ensuring exclusive read/write access to it. Because we are neither running in the STM or IO Monad there is no way we can run this implementation concurrently.
+	\item STM - This is the same implementation like the State Monad but instead of sharing the discrete 2D grid in a State Monad, agents run in the STM Monad and have access to the discrete 2D grid through a transactional variable \textit{TVar}. This means that the reads and writes of the discrete 2D grid are exactly the same but happen always through the \textit{TVar}. Also each agent is run within its own thread, thus enabling true concurrency when the simulation is actually run on multiple cores (which can be configured by the Haskell Runtime System).
+	\item IO - This is exactly the same implementation like the STM Monad but instead of running in STM, the agents now run in IO. They share the discrete 2D grid using an \textit{IORef} and have access to an \textit{MVar} to synchronise access to the it. Also each agent is run within its own thread.
 	\item RePast - To have an idea where the functional implementation is performance-wise compared to the established object-oriented methods, we implemented a Java version of the SIR model using RePast with the State-Chart feature. This implementation cannot run on multiple cores concurrently but gives a good estimate of the single core performance of imperative approaches. Also there exists a RePast High Performance Computing library for implementing large-scale distributed simulations in C++ - we leave this for further research as an implementation and comparison is out of scope of this paper.
 \end{enumerate}
 
-Each experiment was run until $t = 100$ and stepped using $\Delta t = 0.1$ except in RePast for which we don't have access to the underlying implementation of the state-chart and left it as it is. For each experiment we conducted 8 runs on our machine under no additional work-load (see Table \ref{tab:machine_specs}) and report both the average and standard deviation. Further, we checked the visual outputs and the dynamics and they look qualitatively the same to the reference implementation of the State Monad TODO: cite my own PFE paper. In the experiments we varied the number of agents (grid size) and the number of cores when running concurrently - the numbers are always indicated clearly. For varying the number of cores we compiled the executable using \textit{stack} and the threaded option and executed it with \textit{stack} using the +RTS -Nx option where x is the number of cores between 1 and 4. 
+Each experiment was run until $t = 100$ and stepped using $\Delta t = 0.1$ except in RePast for which we don't have access to the underlying implementation of the state-chart and left it as it is. For each experiment we conducted 8 runs on our machine under no additional work-load (see Table \ref{tab:machine_specs}) and report both the average and standard deviation. Further, we checked the visual outputs and the dynamics and they look qualitatively the same to the reference implementation of the State Monad TODO: cite my own PFE paper. In the experiments we varied the number of agents (grid size) and the number of cores when running concurrently - the numbers are always indicated clearly. For varying the number of cores we compiled the executable using \textit{stack} and the \textit{threaded} option and executed it with \textit{stack} using the +RTS -Nx option where x is the number of cores between 1 and 4. 
 
 \begin{table}
 	\centering
@@ -35,7 +35,7 @@ Each experiment was run until $t = 100$ and stepped using $\Delta t = 0.1$ excep
 \end{table}
 
 \subsection{Constant Grid Size, Varying Cores}
-In this experiment we held the grid size constant to 51 x 51 (2601 agents) and varied the cores where possible. The results are reported in Table \ref{tab:constgrid_varyingcores}.
+In this experiment we held the grid size constant to 51 x 51 (2,601 agents) and varied the cores where possible. The results are reported in Table \ref{tab:constgrid_varyingcores}.
 
 \begin{table}
 	\centering
@@ -50,19 +50,19 @@ In this experiment we held the grid size constant to 51 x 51 (2601 agents) and v
    		IO     & 2     & 42.779               & 0.421 \\ \hline 
    		IO     & 3     & 38.586               & 0.451 \\ \hline 
    		IO     & 4     & 41.555               & 0.445 \\ \hline \hline
-   		RePast & 1     & 10.822               & 0.377 \\ \hline 
+   		RePast & 1     & \textbf{10.822}      & 0.377 \\ \hline 
   	\end{tabular}
   	
-  	\caption{Experiments on constant 51x51 (2601 agents) grid with varying number of cores.}
+  	\caption{Experiments on constant 51x51 (2,601 agents) grid with varying number of cores.}
 	\label{tab:constgrid_varyingcores}
 \end{table}
 
-TODO: re-run the 3-core and 4-core versions of IO, i don't understand why on larger grid-sizes 4-core is faster. do 16 runs each
-Comparing the performance and scaling on multiple cores of the STM and IO implementations shows that the STM implementation significantly outperforms the IO one and scales better to multiple cores. The IO implementation performs best with 3 cores and shows slightly worse performance on 4 cores as can be seen in Figure \ref{fig:core_duration_stm_io}. This is no surprise because the more cores are running at the same time, the more contention for the lock, thus the more likely synchronisation happening, resulting in more potential for reduced performance. This is not an issue in STM because no locks are taken in advance. 
+%TODO: re-run the 3-core and 4-core versions of IO, i don't understand why on larger grid-sizes 4-core is faster. do 16 runs each
+Comparing the performance and scaling on multiple cores of the STM and IO implementations shows that the lock-free STM implementation significantly outperforms the lock-based IO one and scales better to multiple cores. The IO implementation performs best with 3 cores and shows slightly worse performance on 4 cores as can be seen in Figure \ref{fig:core_duration_stm_io}. This is no surprise because the more cores are running at the same time, the more contention for the lock, thus the more likely synchronisation happening, resulting in more potential for reduced performance. This is not an issue in STM because no locks are taken in advance. 
 
 Comparing the reference \textit{State} implementation shows that it is the slowest by far - even the single core STM and IO implementations outperform it by far. Also our profiling results reported about 30\% increased memory footprint for the State implementation. This shows that the State Monad is a rather slow and memory intense approach sharing data but guarantees purity and excludes any non-deterministic side-effects which is not the case in STM and IO.
 
-What comes a bit as a surprise is that the single core RePast implementation significantly outperforms \textit{all} other implementations, even when they run on multiple cores and even with RePast doing complex visualisation in addition (something the functional implementations don't do). We attribute this to the conceptually slower approach of functional programming, and maybe we could have optimised parts of the code but we leave this for further research.
+What comes a bit as a surprise is that the single core RePast implementation significantly outperforms \textit{all} other implementations, even when they run on multiple cores and even with RePast doing complex visualisation in addition (something the functional implementations don't do). We attribute this to the conceptually slower approach of functional programming. We might could have optimised parts of the code but leave this for further research.
 
 \begin{figure}
 	\centering
@@ -72,19 +72,17 @@ What comes a bit as a surprise is that the single core RePast implementation sig
 \end{figure}
 
 \subsection{Varying Grid Size, Constant Cores}
-In this experiment we varied the grid size and used constantly 4 cores. TODO: what about IO on 3 cores? it performed better than on 4 on constant grid-size? The results for STM are reported in Table \ref{tab:varyinggrid_constcores_stm}. The results for IO are reported in Table \ref{tab:varyinggrid_constcores_stm}. The results for Repast are reported in Table \ref{tab:varyinggrid_constcores_repast} - note that these experiments all ran on a single (1) core and were conducted to have a rough estimate where the functional approach is in comparison to the imperative. 
-
-TODO: runs where STD ($\sigma$ Duration) is 0 had no full 8 runs yet
+In this experiment we varied the grid size and used constantly 4 cores. Because in the previous experiment, IO performed best on 3 cores, we additionally ran IO on 3 cores as well. The results for STM are reported in Table \ref{tab:varyinggrid_constcores_stm}, for IO in Tables \ref{tab:varyinggrid_constcores4_IO}, \ref{tab:varyinggrid_constcores3_IO} and Repast in Table \ref{tab:varyinggrid_constcores_repast}. Again, note that the RePast experiments all ran on a single (1) core and were conducted to have a rough estimate where the functional approach is in comparison to the imperative.
 
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c }
         Grid-Size          & $\mu$ Duration (sec) & $\sigma$ Duration (sec) \\ \hline \hline 
    		51 x 51 (2,601)    & 20.201               & 0.789 \\ \hline
-   		101 x 101 (1,0201) & 74.493               & 0.524 \\ \hline
-   		151 x 151 (22,801) & 168.47               & 1.783 \\ \hline
-   		201 x 201 (40,401) & 302.43               & 3.931 \\ \hline 
-   		251 x 251 (63,001) & 495.73               & 0 \\ \hline
+   		101 x 101 (1,0201) & \textbf{74.493}      & 0.524 \\ \hline
+   		151 x 151 (22,801) & \textbf{168.47}      & 1.783 \\ \hline
+   		201 x 201 (40,401) & \textbf{302.43}      & 3.931 \\ \hline 
+   		251 x 251 (63,001) & \textbf{495.73}      & 0 \\ \hline
   	\end{tabular}
 
   	\caption{STM Monad experiments on varying grid sizes on 4 cores.}
@@ -126,7 +124,7 @@ TODO: runs where STD ($\sigma$ Duration) is 0 had no full 8 runs yet
 	\centering
   	\begin{tabular}{ c || c | c }
         Grid-Size          & $\mu$ Duration (sec) & $\sigma$ Duration (sec) \\ \hline \hline 
-   		51 x 51 (2,601)    & 10.822 		     & 0.377 \\ \hline
+   		51 x 51 (2,601)    & \textbf{10.822}     & 0.377 \\ \hline
    		101 x 101 (10,201) & 107.40 		     & 1.306 \\ \hline
    		151 x 151 (22,801) & 464.017      		 & 0 \\ \hline
    		201 x 201 (40,401) & 1,227.68 			 & 0 \\ \hline 
@@ -137,8 +135,7 @@ TODO: runs where STD ($\sigma$ Duration) is 0 had no full 8 runs yet
 	\label{tab:varyinggrid_constcores_repast}
 \end{table}
 
-TODO: re-write analysis
-The Figure \ref{fig:stm_io_repast_varyinggrid_performance} clearly indicates that STM outperforms the low level IO implementation by a substantial factor and scales much smoother. As can be seen in Figure \ref{agent_by_duration_repast}, while on a 51x51 grid the single-core Java RePast version outperforms the 4-core Haskell STM version by about 200\%, the figure is inverted on a 201x201 grid where the 4-core Haskell STM version outperforms the single core Java Repast version by 400\%. We can conclude that the single-core Java RePast version clearly outperforms the Haskell STM 4-core version on small grid-sizes but that the Haskell STM version scales up with increasing grid-sizes and clearly outperforms the RePast version with increasing number of agents.
+We plotted the results in Figure \ref{fig:stm_io_repast_varyinggrid_performance}. It is clear that the lock-free STM implementation outperforms the lock-based IO implementation by a substantial factor. Surprisingly, the IO implementation on 4 core scales just slightly better with increasing agents number than on 3 cores, something we wouldn't have anticipated based on the results seen in Table \ref{tab:constgrid_varyingcores}. Also  while on a 51x51 grid the single (1) core Java RePast version outperforms the 4 core Haskell STM version by about 200\%. The figure is inverted on a 251x251 grid where the 4 core Haskell STM version outperforms the single core Java Repast version by over 600\%. This might not be entirely surprising because we compare single (1) core against multi-core performance - still the scaling is indeed impressive and we would never have anticipated an increase of over 600\%.
 
 \begin{figure}
 \begin{center}
@@ -155,7 +152,7 @@ The Figure \ref{fig:stm_io_repast_varyinggrid_performance} clearly indicates tha
 			\caption{Logarithmic scale on both axes}
 		\end{subfigure}
     \end{tabular}
-	\caption{Comparison of STM (Table \ref{tab:varyinggrid_constcores_stm}), IO (Table \ref{tab:tab:varyinggrid_constcores4_IO}, Table 					\ref{tab:varyinggrid_constcores3_IO}) and RePast (single core) (Table \ref{tab:varyinggrid_constcores_repast}) performance. TODO: re-create the figure when all experiments had 8 runs.}
+	\caption{Comparison of STM (Table \ref{tab:varyinggrid_constcores_stm}), IO (Table \ref{tab:varyinggrid_constcores4_IO}, Table 					\ref{tab:varyinggrid_constcores3_IO}) and RePast (single core) (Table \ref{tab:varyinggrid_constcores_repast}) performance. TODO: re-create the figure when all experiments had 8 runs.}
 	\label{fig:stm_io_repast_varyinggrid_performance}
 \end{center}
 \end{figure}
@@ -168,10 +165,7 @@ The Figure \ref{fig:stm_io_repast_varyinggrid_performance} clearly indicates tha
 %\end{figure}
 
 \subsection{Retries}
-In these experiments we only averaged over 4 runs because they all arrived at a ratio of 0.0. We also conducted runs on lower number of cores which resulted in fewer retries as expected. 
-
-TODO: need a proper discussion of these metrics
-TODO: need 4 runs of Std (0)
+Of very much interest when using STM is the retry-ratio, which obviously depends highly on the read-write patterns of the respective model. We used the stm-stats library to record statistics of commits, retries and the ratio. In these experiments we only averaged over 4 runs because they all arrived at a ratio of 0.0. The results are reported in Table \ref{tab:retries_stm}.
 
 \begin{table}
 	\centering
@@ -188,21 +182,22 @@ TODO: need 4 runs of Std (0)
 	\label{tab:retries_stm}
 \end{table}
 
-\begin{figure}
-	\centering
-	\includegraphics[width=0.6\textwidth, angle=0]{./fig/sir/retries_stm.png}
-	\caption{Scaling of retries by agent count. TODO: re-create the figure when all experiments had 4 runs.}
-	\label{fig:retries_stm}
-\end{figure}
+Independent of the number of agents we always have a retry-ratio of 0.0. This indicates that this model is \textit{very} well suited to STM, which is also directly reflected in the substantial better performance over the lock-based IO implementation. Obviously this ratio stems from the fact, that in our implementation we have \textit{very} few writes (only when an agent changes e.g. from Susceptible to Infected or from Infected to Recovered) and mostly reads. Also we conducted runs on lower number of cores which resulted in fewer retries, which was what we expected.
+
+%\begin{figure}
+%	\centering
+%	\includegraphics[width=0.6\textwidth, angle=0]{./fig/sir/retries_stm.png}
+%	\caption{Scaling of retries by agent count. TODO: re-create the figure when all experiments had 4 runs.}
+%	\label{fig:retries_stm}
+%\end{figure}
 
 \subsection{Conclusions}
 Interpretation of the performance data leads to the following conclusions:
 \begin{enumerate}
 	%\item On a single core, no transaction retries should happen, the results support that assumption.
-	\item Running in STM and sharing state using a TVar is much more time- and memory-efficient than running in the State Monad.
-	\item Running STM on multiple cores concurrently leads to a significant performance improvement (for that model).
-	\item STM outperforms the low level locking implementation, running in the IO Monad, substantially and scales much smoother.
-	\item Both STM and IO show same scaling performance on multiple cores, with the most significant improvement when scaling from a single to 2 cores.
-	\item STM on single core is still slower than an object-oriented Java implementation on a single core.
-	\item STM on multiple cores dramatically outperforms the single-core object-oriented Java implementation on a single core on instances with large agent numbers.
+	\item Running in STM and sharing state using a transactional variable is much more time- and memory-efficient than running in the State Monad but potentially sacrifices determinism: repeated runs might not lead to same dynamics despite same initial conditions.
+	\item Running STM on multiple cores concurrently \textit{does} lead to a significant performance improvement \textit{for that model}.
+	\item STM outperforms the lock-based IO implementation, substantially and scales much better to multiple cores.
+	\item STM on single (1) core is still about twice as slow than an object-oriented Java RePast implementation on a single (1) core.
+	\item STM on multiple cores dramatically outperforms the single (1) core object-oriented Java RePast implementation on a single (1) core on instances with large agent numbers and scales much better to increasing number of agents.
 \end{enumerate}

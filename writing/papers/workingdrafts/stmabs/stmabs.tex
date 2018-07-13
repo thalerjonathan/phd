@@ -46,8 +46,10 @@
 \newminted[HaskellCode]{haskell}{fontsize=\footnotesize}
 
 % Title portion. Note the short title for running heads
-\title[Concurrent ABS with STM]{Concurrent ABS with STM}
-\subtitle{A functional approach}
+\title[A Tale Of Lock-Free Agents]{A Tale Of Lock-Free Agents}
+\subtitle{The potential of Software Transactional Memory in concurrent Agent-Based Simulation}
+
+%Lock-Free Concurrent Agent-Based Simulation
 
 \author{Jonathan Thaler}
 %\orcid{TODO}
@@ -66,12 +68,9 @@ TODO: select journals
 - ACM Transactions on Modeling and Computer Simulation (TOMACS): https://tomacs.acm.org/
 - ?
 
-TODO: do 8 runs for all SIR experiments, some are lacking 
+TODO: do 8 runs for all SIR experiments, some are lacking: runs where STD ($\sigma$ Duration) is 0 had no full 8 runs yet
 
-TODO: implement Data-Flow between Agents: pure in State and using TChan in STM / IO
-TODO: implement Sugarscape IO
-TODO: implement Sugarscape TArray
-TODO: compare RePast or other Java Sugarscape Performance
+TODO: sugarscape case-study
 
 %TODO: implement remaining Sugarscape chapters Pure
 %TODO: implement remaining Sugarscape chapters STM
@@ -152,7 +151,7 @@ TODO: what about box-blots? we have standard-deviation for each data-point so we
 \input{./tex/furtherResearch.tex}
 
 \begin{acks}
-The authors would like to thank
+The authors would like to thank J. Hey for constructive feedback, comments and valuable discussions.
 \end{acks}
 
 % Bibliography

@@ -20,10 +20,11 @@ We implemented Chapter II of the book. TODO: shortly explain how agents behave
 
 The model specification requires to shuffle agents before every step. This happens automatically due to race-conditions in concurrency we arrive at an effectively shuffled processing of agents: we can assume that the order of the agents is \textit{effectively} random in every step - with the important difference, that we do not have control over this randomness as we would have when shuffling.
 
+Note that in contrast to the SIR case-study we don't provide an IO implementation because we focus on different thing here. 
+
 TODO: we compete with \cite{lysenko_framework_2008}
 
 TODO: implement Data-Flow between Agents: pure in State and using TChan in STM / IO
-TODO: implement Sugarscape IO
 TODO: implement Sugarscape TArray
 TODO: compare RePast or other Java Sugarscape Performance
 
@@ -40,16 +41,14 @@ We follow \cite{lysenko_framework_2008} and measure the average updates per seco
 TODO main measure: up/sec and retry-ratio
 
 \subsection{Naive Approach}
-
-State approach: 0.2 retries
-In this experiment we held the grid size constant to 51 x 51 (2,601 agents) and varied the cores where possible. The results are reported in Table \ref{tab:constgrid_varyingcores}.
+Experiments with varying number of cores. The results are reported in Table \ref{tab:naive_stm_results}.
 
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
                & Cores & Steps in 60 sec & Ratio per sec \\ \hline \hline 
     	State  & 1     & 12              & 0.2   \\ \hline \hline
-   		STM    & 1     & TODO            &       \\ \hline
+   		STM    & 1     & 11              & 0.18  \\ \hline
    		STM    & 2     & TODO            &       \\ \hline
    		STM    & 3     & TODO            &       \\ \hline
    		STM    & 4     & TODO            &       \\ \hline \hline
@@ -57,10 +56,25 @@ In this experiment we held the grid size constant to 51 x 51 (2,601 agents) and 
    		GPU    & N/A   & N/A             & 2000  \\ \hline \hline
    	\end{tabular}
   	
+  	\caption{Experiments with varying number of cores.}
+	\label{tab:naive_stm_results}
+\end{table}
+
+We also compared the retry-ratio on varying number of cores.
+
+\begin{table}
+	\centering
+  	\begin{tabular}{ c || c | c | c }
+        Cores & Commits & Retries & Ratio \\ \hline \hline 
+    	1     & TODO              & 0.2   \\ \hline \hline
+   		2     & TODO              & 0.18  \\ \hline
+   		3     & TODO              &       \\ \hline
+   		4     & TODO              &       \\ \hline
+   	\end{tabular}
+  	
   	\caption{Experiments on constant 51x51 (2,601 agents) grid with varying number of cores.}
 	\label{tab:constgrid_varyingcores}
 \end{table}
-
 
 \subsection{From TVar to TArray}
 

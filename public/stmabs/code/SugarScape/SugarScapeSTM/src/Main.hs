@@ -66,5 +66,5 @@ simulate dt simCtx sugCtx = do
 
   ret <- checkTime durationSecs simCtx' 
   if ret 
-    then return ()
+    then putStrLn "goodbye" 
     else simulate dt simCtx' sugCtx

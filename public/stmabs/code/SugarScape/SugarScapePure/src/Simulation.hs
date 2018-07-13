@@ -11,12 +11,12 @@ module Simulation
   ) where
 
 import            Data.Maybe
-import            System.CPUTime
 import            System.Random
 
 import            Control.Monad.Random
 import            Control.Monad.Reader
 import            Control.Monad.State.Strict
+import            Data.Time.Clock
 import            FRP.BearRiver
 
 import            AgentMonad
@@ -30,7 +30,7 @@ data SimulationState g = SimulationState
   , simAbsState :: ABSState 
   , simEnv      :: SugEnvironment
   , simRng      :: g
-  , simStart    :: Integer
+  , simStart    :: UTCTime
   , simSteps    :: Int
   }
 
@@ -91,7 +91,7 @@ mkSimState :: RandomGen g
            -> ABSState
            -> SugEnvironment
            -> g
-           -> Integer
+           -> UTCTime
            -> Int
            -> SimulationState g
 mkSimState sf absState env g start steps = SimulationState 
@@ -103,30 +103,25 @@ mkSimState sf absState env g start steps = SimulationState
   , simSteps    = steps
   }
 
-pico :: Integer
-pico = 1000000000000
-
 checkTime :: RandomGen g
-          => Integer
+          => Double
           -> SimulationState g
           -> IO Bool
 checkTime durSecs ss = do
-  nowT <- getCPUTime
- 
+  nowT <- getCurrentTime
+
   let start = simStart ss
-  let dtStart = nowT - start
-  
-  if dtStart > (durSecs * pico)
+  let dtStart = realToFrac $ diffUTCTime nowT start
+
+  if dtStart > durSecs
     then (do 
-      --print out
       let steps      = simSteps ss
-          stepsRatio = (fromIntegral steps / fromIntegral durSecs) :: Double
+          stepsRatio = (fromIntegral steps / durSecs) :: Double
 
       putStrLn $ show steps ++ " steps after " ++ show durSecs ++ " sec. is a ratio of " ++ show stepsRatio
       return True)
     else (do
-      let picsecsLeft = (durSecs * pico) - dtStart
-          secsLeft    = (fromIntegral picsecsLeft / fromIntegral pico) :: Double
+      let secsLeft = durSecs - dtStart
 
       putStrLn $ show secsLeft ++ " secs left..."
       return False)

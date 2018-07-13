@@ -82,7 +82,8 @@ executable SugarScapePure
                       , random
                       , mtl
                       , gloss
-
+                      , time
+                      
   -- Directories containing source files.
   hs-source-dirs:       .
                       , src

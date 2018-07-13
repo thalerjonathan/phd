@@ -11,7 +11,6 @@ module Simulation
   ) where
 
 import           Data.Maybe
-import           System.CPUTime
 import           System.Random
 
 import           Control.Concurrent
@@ -19,6 +18,7 @@ import           Control.Concurrent.STM
 import           Control.Concurrent.STM.Stats
 import           Control.Monad.Random
 import           Control.Monad.Reader
+import           Data.Time.Clock
 import           FRP.BearRiver
 
 import           Common
@@ -32,7 +32,7 @@ data SimContext g = SimContext
   , simCtxAoVars :: [MVar (AgentId, SugAgentOut g)]
   , simCtxTime   :: Time
   , simCtxRng    :: g
-  , simCtxStart  :: Integer
+  , simCtxStart  :: UTCTime
   , simCtxSteps  :: Int
   }
 
@@ -139,7 +139,7 @@ mkSimContex :: [MVar DTime]
             -> [MVar (AgentId, SugAgentOut g)]
             -> Time
             -> g
-            -> Integer
+            -> UTCTime
             -> Int
             -> SimContext g
 mkSimContex dtVars aoVars t g start steps = SimContext { 
@@ -158,21 +158,24 @@ stmConf = defaultTrackSTMConf {
   }
 
 checkTime :: RandomGen g
-          => Integer
+          => Double
           -> SimContext g
           -> IO Bool
 checkTime durSecs simCtx = do
-  nowT <- getCPUTime
- 
-  let start = simCtxStart simCtx
-  let dtStart = nowT - start
+  nowT <- getCurrentTime
 
-  if dtStart > (durSecs * 1000 * 1000 * 1000 * 1000)
+  let start = simCtxStart simCtx
+  let dtStart = realToFrac $ diffUTCTime nowT start
+
+  if dtStart > durSecs
     then (do 
-      --print out
       let steps      = simCtxSteps simCtx
-          stepsRatio = (fromIntegral steps / fromIntegral durSecs) :: Double
+          stepsRatio = (fromIntegral steps / durSecs) :: Double
 
       putStrLn $ show steps ++ " steps after " ++ show durSecs ++ " sec. is a ratio of " ++ show stepsRatio
       return True)
-    else return False
+    else (do
+      let secsLeft = durSecs - dtStart
+
+      putStrLn $ show secsLeft ++ " secs left..."
+      return False)

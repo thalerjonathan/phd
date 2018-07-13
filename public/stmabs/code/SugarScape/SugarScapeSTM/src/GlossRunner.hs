@@ -16,7 +16,7 @@ import           Model
 import           Simulation
 
 runWithGloss :: RandomGen g
-             => Integer
+             => Double
              -> DTime
              -> SimContext g
              -> SugContext
@@ -57,7 +57,7 @@ modelToPicture _winSize _out --(t, env, as)
   = return GLO.Blank -- $ renderSugarScapeFrame winSize t env as
 
 renderStep :: RandomGen g
-           => Integer
+           => Double
            -> DTime
            -> SugContext
            -> IORef (SimContext g)
@@ -76,7 +76,7 @@ renderStep durSecs dt sugCtx ssRef _ _ _ = do
    
 renderStepAnimate :: RandomGen g
                   => (Int, Int)
-                  -> Integer
+                  -> Double
                   -> DTime
                   -> SugContext
                   -> IORef (SimContext g)

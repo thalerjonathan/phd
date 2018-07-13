@@ -83,7 +83,8 @@ executable SugarScapeSTM
                       , stm
                       , stm-stats
                       , transformers
-
+                      , time
+                      
   -- Directories containing source files.
   hs-source-dirs:       .
                       , src

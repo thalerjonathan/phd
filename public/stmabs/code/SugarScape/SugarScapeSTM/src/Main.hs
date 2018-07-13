@@ -1,20 +1,20 @@
 module Main where
 
-import           System.CPUTime
 import           System.IO
 import           System.Random
 
 import           Control.Concurrent.STM
 import           Control.Monad.Random
+import           Data.Time.Clock
 import           FRP.BearRiver
 
-import           GlossRunner
+--import           GlossRunner
 import           Init
 import           Model
 import           Simulation
 
-durationSecs :: Integer
-durationSecs = 10
+durationSecs :: Double
+durationSecs = 60
 
 -- NOTE run with: clear & stack exec -- SugarScapeSTM +RTS -N4 -s
 
@@ -32,7 +32,7 @@ main = do
       -- initial agents and environment
       ((initAs, initEnv), g) = runRand (createSugarScape agentCount envSize) g0
       -- initial model for Gloss = output of each simulation step to be rendered
-      initOut                = (0, initEnv, [])
+      --initOut                = (0, initEnv, [])
       -- initial simulation state
       (initAis, _)           = unzip initAs
 
@@ -46,13 +46,13 @@ main = do
 
   (dtVars, aoVars, g') <- spawnAgents initAs g sugCtx
   
-  start <- getCPUTime
+  start <- getCurrentTime
 
   -- initial simulation context
   let initSimCtx = mkSimContex dtVars aoVars 0 g' start 0
 
-  runWithGloss durationSecs dt initSimCtx sugCtx initOut
-  --simulate dt initSimCtx sugCtx
+  --runWithGloss durationSecs dt initSimCtx sugCtx initOut
+  simulate dt initSimCtx sugCtx
 
 simulate :: RandomGen g
          => DTime
@@ -60,9 +60,9 @@ simulate :: RandomGen g
          -> SugContext
          -> IO ()
 simulate dt simCtx sugCtx = do
-  (simCtx', out) <- simulationStep dt sugCtx simCtx
+  (simCtx', (t, _, _)) <- simulationStep dt sugCtx simCtx
 
-  print out
+  print t
 
   ret <- checkTime durationSecs simCtx' 
   if ret 

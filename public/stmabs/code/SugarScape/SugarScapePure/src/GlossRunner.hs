@@ -15,7 +15,7 @@ import            Graphics.Gloss.Interface.IO.Simulate
 import            Simulation
 
 runWithGloss :: RandomGen g
-             => Integer
+             => Double
              -> DTime
              -> SimulationState g
              -> SimStepOut
@@ -60,7 +60,7 @@ modelToPicture _ _
   -- = return $ renderSugarScapeFrame winSize t env as
 
 renderStep :: RandomGen g
-           => Integer
+           => Double
            -> DTime
            -> IORef (SimulationState g)
            -> ViewPort
@@ -78,7 +78,7 @@ renderStep durSecs dt ssRef _ _ _ = do
 
 renderStepAnimate :: RandomGen g
                   => (Int, Int)
-                  -> Integer
+                  -> Double
                   -> DTime
                   -> IORef (SimulationState g)
                   -> Float

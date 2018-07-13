@@ -1,10 +1,10 @@
 module Main where
 
 import            System.IO
-import            System.CPUTime
 import            System.Random
 
 import            Control.Monad.Random
+import            Data.Time.Clock
 import            FRP.BearRiver
 
 import            AgentMonad
@@ -12,7 +12,7 @@ import            AgentMonad
 import            Init
 import            Simulation
 
-durationSecs :: Integer
+durationSecs :: Double
 durationSecs = 60
 
 -- NOTE run with clear & stack exec -- SugarScapePure +RTS -s
@@ -33,7 +33,7 @@ main = do
       -- initial simulation state
       (initAis, initSfs) = unzip initAs
 
-  start <- getCPUTime
+  start <- getCurrentTime
 
   let initSimState = mkSimState (simStepSF initAis initSfs) (mkAbsState $ maximum initAis) initEnv g start 0
 

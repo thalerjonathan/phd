@@ -56,10 +56,12 @@ executable SugarScapeSTM
                 , Discrete
                 , Environment
                 , Exporter
+                , GlossRunner
                 , Init
                 , Model
                 , Random
                 , Renderer
+                , Simulation
                 , Utils
   
   -- LANGUAGE extensions used by modules in this package.
@@ -89,4 +91,4 @@ executable SugarScapeSTM
   -- Base language which the package is written in.
   default-language:    Haskell2010
   
-  ghc-options:         -O3 -Wall -Werror -fwarn-tabs -rtsopts -threaded -with-rtsopts=-N
+  ghc-options:         -O3 -Wall -Werror -fwarn-tabs -rtsopts -threaded -with-rtsopts=-N -fno-warn-unused-top-binds

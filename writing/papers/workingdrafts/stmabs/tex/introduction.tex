@@ -1,5 +1,4 @@
-\section{Introduction}
-
+\section{Introduction (once upon a time...)}
 In the paper \cite{heindl_modeling_2009} the authors used a model of STM to simulate optimistic and pessimistic STM behaviour under various scenarios using the AnyLogic simulation package. They concluded that optimistic STM may lead to 25\% less retries of transactions.
 
 why FP? because concurrency and parallelism in general more easier in FP due to controlled side-effects and immutable data. also strong benefit is that STM is built into the language based on leightweight thread system. unique benefit is that we can rule out any persistent side-effects in STM transactions which allows unproblematic retries of transactions - guaranteed at compile-time

@@ -1,5 +1,6 @@
 module Main where
 
+import            System.IO
 import            System.CPUTime
 import            System.Random
 
@@ -21,12 +22,14 @@ durationPico = durationSecs * 1000 * 1000 * 1000 * 1000
 
 main :: IO ()
 main = do
+  hSetBuffering stdout LineBuffering
+
   start <- getCPUTime
 
   let rngSeed    = 42
       dt         = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
       agentCount = 500
-      envSize    = (50, 50)
+      envSize    = (128, 128)
 
       -- initial RNG
       g0 = mkStdGen rngSeed

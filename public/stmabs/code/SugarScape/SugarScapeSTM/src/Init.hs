@@ -10,7 +10,6 @@ import Data.List
 import Agent
 import Common
 import Discrete
-import Environment
 import Model
 
 createSugarScape :: RandomGen g
@@ -38,8 +37,6 @@ createSugarScape agentCount dims@(_dx, _dy) = do
               neumann
               WrapBoth
               cells'
-
-  let eb = sugEnvironment
 
   return ((0, eb) : as, e)
 

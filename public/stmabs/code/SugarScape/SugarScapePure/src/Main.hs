@@ -8,23 +8,18 @@ import            Control.Monad.Random
 import            FRP.BearRiver
 
 import            AgentMonad
+-- import            GlossRunner
 import            Init
---import            GlossRunner
 import            Simulation
 
 durationSecs :: Integer
-durationSecs = 10
-
-durationPico :: Integer
-durationPico = durationSecs * 1000 * 1000 * 1000 * 1000
+durationSecs = 60
 
 -- NOTE run with clear & stack exec -- SugarScapePure +RTS -s
 
 main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
-
-  start <- getCPUTime
 
   let rngSeed    = 42
       dt         = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
@@ -37,29 +32,27 @@ main = do
       ((initAs, initEnv), g) = runRand (createSugarScape agentCount envSize) g0
       -- initial simulation state
       (initAis, initSfs) = unzip initAs
-      initSimState = mkSimState (simStepSF initAis initSfs) (mkAbsState $ maximum initAis) initEnv g start 0
+
+  start <- getCPUTime
+
+  let initSimState = mkSimState (simStepSF initAis initSfs) (mkAbsState $ maximum initAis) initEnv g start 0
 
   simulate dt initSimState
+  --runWithGloss durationSecs dt initSimState (0, initEnv, [])
 
 simulate :: RandomGen g
          => DTime
          -> SimulationState g
          -> IO ()
 simulate dt ss = do
-  (ss', out) <- simulationStep dt ss
+  (ss', (t, _, _)) <- simulationStep dt ss
 
-  t <- getCPUTime
- 
-  let start = simStart ss
-  let dtStart = seq out (t - start)
+  --let (t, _env, _as) = seq out out
 
-  print out
+  -- NOTE: need to print t otherwise lazy evaluation would omit all computation
+  print t
 
-  if dtStart > durationPico
-    then (do 
-      --print out
-      let steps      = simSteps ss'
-          stepsRatio = (fromIntegral steps / fromIntegral durationSecs) :: Double
-
-      putStrLn $ "Calculated " ++ show steps ++ " steps with a ratio of " ++ show stepsRatio)
-    else simulate dt ss' 
+  ret <- checkTime durationSecs ss' 
+  if ret 
+    then return ()
+    else simulate dt ss'

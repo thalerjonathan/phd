@@ -7,9 +7,11 @@ module Simulation
   , simStepSF
 
   , mkSimState
+  , checkTime
   ) where
 
 import            Data.Maybe
+import            System.CPUTime
 import            System.Random
 
 import            Control.Monad.Random
@@ -92,11 +94,39 @@ mkSimState :: RandomGen g
            -> Integer
            -> Int
            -> SimulationState g
-mkSimState sf absState env g t s = SimulationState 
+mkSimState sf absState env g start steps = SimulationState 
   { simSf       = sf
   , simAbsState = absState 
   , simEnv      = env
   , simRng      = g
-  , simStart    = t
-  , simSteps    = s
+  , simStart    = start
+  , simSteps    = steps
   }
+
+pico :: Integer
+pico = 1000000000000
+
+checkTime :: RandomGen g
+          => Integer
+          -> SimulationState g
+          -> IO Bool
+checkTime durSecs ss = do
+  nowT <- getCPUTime
+ 
+  let start = simStart ss
+  let dtStart = nowT - start
+  
+  if dtStart > (durSecs * pico)
+    then (do 
+      --print out
+      let steps      = simSteps ss
+          stepsRatio = (fromIntegral steps / fromIntegral durSecs) :: Double
+
+      putStrLn $ show steps ++ " steps after " ++ show durSecs ++ " sec. is a ratio of " ++ show stepsRatio
+      return True)
+    else (do
+      let picsecsLeft = (durSecs * pico) - dtStart
+          secsLeft    = (fromIntegral picsecsLeft / fromIntegral pico) :: Double
+
+      putStrLn $ show secsLeft ++ " secs left..."
+      return False)

@@ -29,18 +29,38 @@ TODO: compare RePast or other Java Sugarscape Performance
 
 \begin{itemize}
 	\item State - 
-	\item IO - lock-based
 	\item STM TVar -
 	\item STM TArray -
 	\item STM TArray Environment non-concurrent -
 \end{itemize}
 
 \subsection{Experiment Design}
-We follow \cite{lysenko_framework_2008} and measure the average updates per second of the simulation with a 128x128 environment and an intiial population for 500, running for 60 seconds. For each experiment we conducted 8 runs on our machine (see Table \ref{tab:machine_specs}) under no additional work-load and report both the average and standard deviation. In the experiments we varied the number of agents and the number of cores when running concurrently - the numbers are always indicated clearly. For varying the number of cores we compiled the executable using \textit{stack} and the \textit{threaded} option and executed it with \textit{stack} using the \textit{+RTS -Nx} option where x is the number of cores between 1 and 4. 
+We follow \cite{lysenko_framework_2008} and measure the average updates per second of the simulation with a 128x128 environment and an initial population for 500, over 60 seconds. For each experiment we conducted 8 runs on our machine (see Table \ref{tab:machine_specs}) under no additional work-load and report both the average and standard deviation. In the experiments we varied the number of agents and the number of cores when running concurrently - the numbers are always indicated clearly. For varying the number of cores we compiled the executable using \textit{stack} and the \textit{threaded} option and executed it with \textit{stack} using the \textit{+RTS -Nx} option where x is the number of cores between 1 and 4. 
 
 TODO main measure: up/sec and retry-ratio
 
 \subsection{Naive Approach}
+
+State approach: 0.2 retries
+In this experiment we held the grid size constant to 51 x 51 (2,601 agents) and varied the cores where possible. The results are reported in Table \ref{tab:constgrid_varyingcores}.
+
+\begin{table}
+	\centering
+  	\begin{tabular}{ c || c | c | c }
+               & Cores & Steps in 60 sec & Ratio per sec \\ \hline \hline 
+    	State  & 1     & 12              & 0.2   \\ \hline \hline
+   		STM    & 1     & TODO            &       \\ \hline
+   		STM    & 2     & TODO            &       \\ \hline
+   		STM    & 3     & TODO            &       \\ \hline
+   		STM    & 4     & TODO            &       \\ \hline \hline
+   		RePast & 1     & N/A             & 17    \\ \hline \hline
+   		GPU    & N/A   & N/A             & 2000  \\ \hline \hline
+   	\end{tabular}
+  	
+  	\caption{Experiments on constant 51x51 (2,601 agents) grid with varying number of cores.}
+	\label{tab:constgrid_varyingcores}
+\end{table}
+
 
 \subsection{From TVar to TArray}
 

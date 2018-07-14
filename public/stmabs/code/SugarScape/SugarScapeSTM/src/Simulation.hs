@@ -34,6 +34,7 @@ data SimContext g = SimContext
   , simCtxRng    :: g
   , simCtxStart  :: UTCTime
   , simCtxSteps  :: Int
+  , simCtxEnvAg  :: Maybe (SugAgent g)
   }
 
 simulationStep :: RandomGen g
@@ -48,8 +49,7 @@ simulationStep dt sugCtx simCtx = do
       g      = simCtxRng simCtx
       start  = simCtxStart simCtx
       steps  = simCtxSteps simCtx
-
-  -- TODO: to reduce STM Retries: schedule Environment in main thread
+      envAg  = simCtxEnvAg simCtx
 
   -- tell all threads to continue with the corresponding DTime
   mapM_ (`putMVar` dt) dtVars
@@ -74,11 +74,17 @@ simulationStep dt sugCtx simCtx = do
   let dtVars'' = dtVars' ++ newDtVars
       aoVars'' = aoVars' ++ newAoVars
       t'      = t + dt
-      simCtx' = mkSimContex dtVars'' aoVars'' t' g' start (steps + 1)
+
+  simCtx' <- if isJust envAg
+              then do
+                putStrLn "Running Environment non-concurrently"
+                (_, envAg', g'') <- runAgentStep (fromJust envAg) dt g' sugCtx 
+                return $ mkSimContex dtVars'' aoVars'' t' g'' start (steps + 1) (Just envAg')
+              else return $ mkSimContex dtVars'' aoVars'' t' g' start (steps + 1) envAg
 
   --let mt = mod (floor t') 10 :: Integer
   --when (mt == 0) dumpSTMStats
-  --dumpSTMStats
+  dumpSTMStats
   
   return (simCtx', (t, env, obs))
 
@@ -91,12 +97,28 @@ spawnAgents [] g0 _ = return ([], [], g0)
 spawnAgents ((aid, a) : as) g0 sugCtx = do
   let (g', g'') = split g0
 
-  dtVar  <- newEmptyMVar 
+  dtVar <- newEmptyMVar 
   aoVar <- createAgentThread dtVar g' sugCtx aid a
 
   (dtVars, aoVars, g) <- spawnAgents as g'' sugCtx
 
   return (dtVar : dtVars, aoVar : aoVars, g)
+
+runAgentStep :: RandomGen g 
+             => SugAgent g
+             ->  DTime
+             -> g
+             -> SugContext
+             -> IO (SugAgentOut g, SugAgent g, g)
+runAgentStep sf dt rng sugCtx = do
+  -- compute next step
+  let sfDtReader  = unMSF sf SugAgentIn
+      sfCtxReader = runReaderT sfDtReader dt
+      sfRand      = runReaderT sfCtxReader sugCtx
+      sfSTM       = runRandT sfRand rng
+  ((ao, sf'), rng') <- trackSTMConf stmConf "SugarScape" sfSTM -- atomically sfSTM 
+  -- NOTE: running STM with stats results in considerable lower performance the more STM actions are run concurrently
+  return (ao, sf', rng')
 
 createAgentThread :: RandomGen g 
                   => MVar DTime
@@ -120,14 +142,8 @@ createAgentThread dtVar rng0 sugCtx aid a = do
       -- wait for next dt to compute next step
       dt <- takeMVar dtVar
 
-      -- compute next step
-      let sfDtReader  = unMSF sf SugAgentIn
-          sfCtxReader = runReaderT sfDtReader dt
-          sfRand      = runReaderT sfCtxReader sugCtx
-          sfSTM       = runRandT sfRand rng
-      ((ao, sf'), rng') <- atomically sfSTM -- trackSTMConf stmConf "SugarScape" sfSTM -- atomically sfSTM 
-      -- NOTE: running STM with stats results in considerable lower performance the more STM actions are run concurrently
-
+      (ao, sf', rng') <- runAgentStep sf dt rng sugCtx 
+      
       -- post result to main thread
       putMVar retVar (aid, ao)
 
@@ -141,14 +157,16 @@ mkSimContex :: [MVar DTime]
             -> g
             -> UTCTime
             -> Int
+            -> Maybe (SugAgent g)
             -> SimContext g
-mkSimContex dtVars aoVars t g start steps = SimContext { 
+mkSimContex dtVars aoVars t g start steps envAg = SimContext { 
     simCtxDtVars = dtVars
   , simCtxAoVars = aoVars
   , simCtxTime   = t
   , simCtxRng    = g
   , simCtxStart  = start
   , simCtxSteps  = steps
+  , simCtxEnvAg  = envAg
   }
 
 stmConf :: TrackSTMConf

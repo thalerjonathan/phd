@@ -12,7 +12,7 @@ import           Graphics.Gloss.Interface.IO.Animate
 import           Graphics.Gloss.Interface.IO.Simulate
 
 import           Model
---import           Renderer
+import           Renderer
 import           Simulation
 
 runWithGloss :: RandomGen g
@@ -53,8 +53,10 @@ displayGlossWindow winTitle winSize = GLO.InWindow winTitle winSize (0, 0)
 modelToPicture :: (Int, Int)
                -> SimStepOut
                -> IO GLO.Picture
-modelToPicture _winSize _out --(t, env, as) 
-  = return GLO.Blank -- $ renderSugarScapeFrame winSize t env as
+-- modelToPicture _ _ 
+--  = return GLO.Blank 
+modelToPicture winSize (t, env, as) 
+  = return $ renderSugarScapeFrame winSize t env as
 
 renderStep :: RandomGen g
            => Double

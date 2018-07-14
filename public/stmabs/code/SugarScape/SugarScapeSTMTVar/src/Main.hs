@@ -17,7 +17,7 @@ import           Simulation
 durationSecs :: Double
 durationSecs = 60
 
--- NOTE run with: clear & stack exec -- SugarScapeSTM +RTS -N4 -s
+-- NOTE run with: clear & stack exec -- SugarScapeSTMTVar +RTS -N4 -s
 
 main :: IO ()
 main = do

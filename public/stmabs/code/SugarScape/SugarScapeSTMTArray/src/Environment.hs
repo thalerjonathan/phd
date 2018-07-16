@@ -18,8 +18,6 @@ import Data.Maybe
 import Control.Concurrent.STM
 import Control.Monad
 import Control.Monad.Random
-import Control.Monad.Reader
-import Control.Monad.State.Strict
 import FRP.BearRiver
 
 import Common
@@ -36,61 +34,58 @@ cellOccupied cell = isJust $ sugEnvOccupier cell
 cellUnoccupied :: SugEnvCell -> Bool
 cellUnoccupied = not . cellOccupied
 
-diffusePolution :: (MonadState SugEnvironment m)
-                => Double 
-                -> m ()
-diffusePolution t 
-    | timeReached && _enablePolution_ = updateCellsM (\c -> c { sugEnvPolutionLevel = 0.0 })
+diffusePolution :: Double 
+                -> SugEnvironment
+                -> STM ()
+diffusePolution t env
+    | timeReached && _enablePolution_ = updateAllCells (\c -> c { sugEnvPolutionLevel = 0.0 }) env
     | otherwise = return ()
   where
     timeReached = mod (floor t) diffusePolutionTime == 0
 
-regrowSugar :: (MonadState SugEnvironment m)
-            => Double 
-            -> m ()
-regrowSugar rate
-    | rate < 0 = regrowSugarToMax
+regrowSugar :: Double 
+            -> SugEnvironment
+            -> STM ()
+regrowSugar rate env
+    | rate < 0  = regrowSugarToMax
     | otherwise = regrowSugarByRate
   where
-    regrowSugarByRate :: (MonadState SugEnvironment m)
-                      => m ()
+    regrowSugarByRate :: STM ()
     regrowSugarByRate  
-      = updateCellsM (\c -> 
+      = updateAllCells (\c -> 
         c { sugEnvSugarLevel = 
               min
                   (sugEnvSugarCapacity c)
-                  (sugEnvSugarLevel c) + rate})
+                  (sugEnvSugarLevel c) + rate}) env
 
-    regrowSugarToMax :: (MonadState SugEnvironment m) => m ()
-    regrowSugarToMax = updateCellsM (\c -> c { sugEnvSugarLevel = sugEnvSugarCapacity c})
+    regrowSugarToMax :: STM ()
+    regrowSugarToMax = updateAllCells (\c -> c { sugEnvSugarLevel = sugEnvSugarCapacity c}) env
 
-regrowSpice :: (MonadState SugEnvironment m)
-            => Double
-            -> m ()
-regrowSpice rate
-    | rate < 0 = regrowSpiceToMax
+regrowSpice :: Double 
+            -> SugEnvironment
+            -> STM ()
+regrowSpice rate env
+    | rate < 0  = regrowSpiceToMax
     | otherwise = regrowSpiceByRate
   where
-    regrowSpiceByRate :: (MonadState SugEnvironment m)
-                      => m ()
+    regrowSpiceByRate :: STM ()
     regrowSpiceByRate 
-      = updateCellsM (\c -> 
+      = updateAllCells (\c -> 
         c { sugEnvSpiceLevel = 
               min
                   (sugEnvSpiceCapacity c)
-                  (sugEnvSpiceLevel c) + rate})
+                  (sugEnvSpiceLevel c) + rate}) env
 
-    regrowSpiceToMax :: (MonadState SugEnvironment m)
-                     => m ()
+    regrowSpiceToMax :: STM ()
     regrowSpiceToMax 
-      = updateCellsM (\c -> c { sugEnvSpiceLevel = sugEnvSpiceCapacity c })
+      = updateAllCells (\c -> c { sugEnvSpiceLevel = sugEnvSpiceCapacity c }) env
 
-regrowSugarByRateAndRegion :: (MonadState SugEnvironment m)
-                           => Discrete2dDimension 
+regrowSugarByRateAndRegion :: Discrete2dDimension 
                            -> Double 
-                           -> m ()
-regrowSugarByRateAndRegion range rate 
-    = updateCellsWithCoordsM (regrowCell range)                        
+                           -> SugEnvironment
+                           -> STM ()
+regrowSugarByRateAndRegion range rate env
+    = updateAllCellsWithCoords (regrowCell range) env
   where
     regrowCell :: Discrete2dDimension 
                -> (Discrete2dCoord, SugEnvCell) 
@@ -103,12 +98,12 @@ regrowSugarByRateAndRegion range rate
                                               (sugEnvSugarLevel c) + rate}
       | otherwise = c
 
-regrowSpiceByRateAndRegion :: (MonadState SugEnvironment m)
-                           => Discrete2dDimension 
+regrowSpiceByRateAndRegion :: Discrete2dDimension 
                            -> Double 
-                           -> m ()
-regrowSpiceByRateAndRegion range rate 
-    = updateCellsWithCoordsM (regrowCell range)
+                           -> SugEnvironment
+                           -> STM ()
+regrowSpiceByRateAndRegion range rate env
+    = updateAllCellsWithCoords (regrowCell range) env
   where
     regrowCell :: Discrete2dDimension
                -> (Discrete2dCoord, SugEnvCell) 
@@ -121,21 +116,20 @@ regrowSpiceByRateAndRegion range rate
                                               (sugEnvSpiceLevel c) + rate}
       | otherwise = c
 
-regrowSeasons :: (MonadState SugEnvironment m)
-              => Double 
-              -> m ()
-regrowSeasons t = do
-    (_, maxY) <- dimensionsDisc2dM
-    
-    let halfY = floor (toRational (fromIntegral maxY :: Int) / 2.0 )
-    let summerRange = if summerOnTop then (1, halfY) else (halfY + 1, maxY)
-    let winterRange = if winterOnTop then (1, halfY) else (halfY + 1, maxY)
+regrowSeasons :: Double 
+              -> SugEnvironment
+              -> STM ()
+regrowSeasons t env = do
+    let (_, maxY)   = dimensionsDisc2d env
+        halfY       = floor (toRational (fromIntegral maxY :: Int) / 2.0 )
+        summerRange = if summerOnTop then (1, halfY) else (halfY + 1, maxY)
+        winterRange = if winterOnTop then (1, halfY) else (halfY + 1, maxY)
 
-    regrowSugarByRateAndRegion summerRange sugarSummerRate
-    regrowSugarByRateAndRegion winterRange sugarWinterRate
+    regrowSugarByRateAndRegion summerRange sugarSummerRate env
+    regrowSugarByRateAndRegion winterRange sugarWinterRate env
 
-    when _enableSpice_ (regrowSpiceByRateAndRegion summerRange spiceSummerRate)
-    when _enableSpice_ (regrowSpiceByRateAndRegion winterRange spiceWinterRate)
+    when _enableSpice_ (regrowSpiceByRateAndRegion summerRange spiceSummerRate env)
+    when _enableSpice_ (regrowSpiceByRateAndRegion winterRange spiceWinterRate env)
   where
     r = floor (t / seasonDuration) :: Int
     summerOnTop = even r
@@ -147,27 +141,34 @@ regrowSeasons t = do
     spiceSummerRate = spiceGrowbackUnits / summerSeasonSpiceGrowbackRatio
     spiceWinterRate = spiceGrowbackUnits / winterSeasonSpiceGrowbackRatio 
 
-regrowRates :: (MonadState SugEnvironment m)
-            => m ()
-regrowRates = regrowSugar sugarGrowbackUnits >> when _enableSpice_ (regrowSpice spiceGrowbackUnits)
+regrowRates :: SugEnvironment
+            -> STM ()
+regrowRates env = do
+  regrowSugar sugarGrowbackUnits env
+  when _enableSpice_ 
+    (regrowSpice spiceGrowbackUnits env)
 
-regrow :: (MonadState SugEnvironment m)
-       => Double 
-       -> m ()
-regrow t = ifThenElse _enableSeasons_ (regrowSeasons t) regrowRates
+regrow :: Double 
+       -> SugEnvironment
+       -> STM ()
+regrow t env 
+  = ifThenElse _enableSeasons_ 
+    (regrowSeasons t env) 
+    (regrowRates env)
+
+runEnv :: Double 
+       -> SugEnvironment
+       -> STM ()
+runEnv t env = do
+  diffusePolution t env
+  regrow t env
 
 sugEnvironment :: RandomGen g 
                => SugAgent g
 sugEnvironment = proc _ -> do
   t <- time -< ()
-  ctx <- arrM_ (lift ask) -< ()
-  let envVar = sugCtxEnv ctx
-  env <- arrM (lift . lift . lift . readTVar) -< envVar
+  env <- arrM_ (lift getEnvironment) -< ()
 
-  (_, env') <- arrM (\(t, env) -> lift $ runStateT (do
-    diffusePolution t
-    regrow t) env) -< (t, env)
-
-  arrM (\(envVar, env') -> lift $ lift $ lift $ writeTVar envVar env') -< (envVar, env')
+  arrM (\(t, env) -> lift $ lift $ lift $ runEnv t env) -< (t, env)
 
   returnA -< agentOut

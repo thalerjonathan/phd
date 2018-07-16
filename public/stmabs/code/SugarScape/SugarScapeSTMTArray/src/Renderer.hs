@@ -17,26 +17,26 @@ type SugarScapeAgentRenderer = AgentRendererDisc2d SugAgentObservable
 
 renderSugarScapeFrame :: (Int, Int) 
                       -> Time 
-                      -> SugEnvironment
+                      -> Discrete2dDimension
+                      -> [Discrete2dCell SugEnvCell]
                       -> [AgentObservable SugAgentObservable]
                       -> GLO.Picture
-renderSugarScapeFrame wSize@(wx, wy) t e ss
+renderSugarScapeFrame wSize@(wx, wy) t (dx, dy) cs ss
     = GLO.Pictures (envPics ++ agentPics ++ [timeStepTxt])
   where
-    (dx, dy) = dimensionsDisc2d e
+    --(dx, dy) = dimensionsDisc2d e
     cellWidth = fromIntegral wx / fromIntegral dx
     cellHeight = fromIntegral wy / fromIntegral dy
 
-    cells = allCellsWithCoords e
+    --cs = allCellsWithCoords e
 
-    maxPolLevel = foldr (\(_, cell) maxLvl -> if sugEnvPolutionLevel cell > maxLvl then
-                                                sugEnvPolutionLevel cell
-                                                else
-                                                    maxLvl ) 0.0 cells
+    maxPolLevel = foldr (\(_, c) maxLvl -> if sugEnvPolutionLevel c > maxLvl 
+                                              then sugEnvPolutionLevel c
+                                              else maxLvl) 0.0 cs
 
     -- agentPics = map (defaultAgentRendererDisc2d agentColorDiseased sugAgCoord (cellWidth, cellHeight) wSize) ss
     agentPics = map (sugarscapeAgentRenderer (cellWidth, cellHeight) wSize t) ss
-    envPics = map (renderEnvCell maxPolLevel (cellWidth, cellHeight) wSize t) cells
+    envPics = map (renderEnvCell maxPolLevel (cellWidth, cellHeight) wSize t) cs
 
     timeStepTxt = GLO.color GLO.black $ GLO.translate (-halfWSizeX) (halfWSizeY - 20) $ GLO.scale 0.1 0.1 $ GLO.Text (show t)
 

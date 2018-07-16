@@ -20,52 +20,19 @@ module Common
   , bestMeasureSugarAndSpiceLevel
   , bestMeasureSugarPolutionRatio
   , bestMeasureSugarAndSpicePolutionRatio
-  , bestMeasureSugarAndSpiceLevelWelfareChange
 
   , unoccupiedNeighbourhoodOfNeighbours
 
-  , excessAmountToChildBearing
-  , satisfiesWealthForChildBearing
-  --, satisfiesWealthForChildBearingM
-  , isFertile
-  --, isFertileM
-  , tooOldForChildren
   , withinRange
   , neighbourIds
-  --, neighbourIdsM
   , createNewBorn
 
-  , filterOccupiers
-  , occupierCombatable
-  , occupierRetaliator
-  , cellPayoff
   , poluteCell
-  , agentTradeIncreaseWelfare
-  , agentTradeExchange
-  , agentMRS
-  , sugarSpiceExchange
-  , tradingPrice
-  , agentWelfare
-  , potentialLender
-  , isPotentialBorrower
-  , agentWelfareChange
-  , agentImmunizeAux
-
-  , cellOccupier
-  , calculateTribe
-  , cultureContact
-  , flipCulturalTag
-  , crossoverBools
-  , crossover
-  , flipBoolAtIdx
-  , findFirstDiffIdx
-  , findMinWithIdx
-  , calculateHammingDistances
-  , hammingDistance
 
   , randomAgent
   ) where
 
+import           Control.Concurrent.STM
 import           Control.Monad.Random
 import           Data.List.Split
 import qualified FRP.BearRiver as BR
@@ -79,14 +46,6 @@ import           Model
 ------------------------------------------------------------------------------------------------------------------------
 -- GENERAL FUNCTIONS, independent of monadic / non-monadic implementation
 ------------------------------------------------------------------------------------------------------------------------
-{-
-mkAbsState :: AgentId -> ABSState
-mkAbsState initId = ABSState 
-  { absNextId = initId + 1
-  , absTime   = 0
-  }
--}
-
 agentOut :: SugAgentOut g
 agentOut = agentOutAux Nothing
 
@@ -158,15 +117,18 @@ selectBestCells measureFunc refCoord cs = bestShortestdistanceManhattanCells
     shortestdistanceManhattan = distanceManhattanDisc2d refCoord (fst $ head shortestdistanceManhattanBestCells)
     bestShortestdistanceManhattanCells = filter ((==shortestdistanceManhattan) . (distanceManhattanDisc2d refCoord) . fst) shortestdistanceManhattanBestCells
 
-unoccupiedNeighbourhoodOfNeighbours :: Discrete2dCoord -> SugEnvironment -> [(Discrete2dCoord, SugEnvCell)]
-unoccupiedNeighbourhoodOfNeighbours coord e 
-    = filter (isNothing . sugEnvOccupier . snd) nncsUnique
-  where
-    ncs = neighbours coord False e
-    -- NOTE: this calculates the cells which are in the initial neighbourhood and in the neighbourhood of all the neighbours
-    nncsDupl = foldr (\(coord', _) acc -> neighbours coord' False e ++ acc) ncs ncs
-    -- NOTE: the nncs are not unique, remove duplicates
-    nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
+unoccupiedNeighbourhoodOfNeighbours :: Discrete2dCoord 
+                                    -> SugEnvironment 
+                                    -> STM [(Discrete2dCoord, SugEnvCell)]
+unoccupiedNeighbourhoodOfNeighbours coord e = do
+  ncs <- neighbours coord False e
+  -- NOTE: this calculates the cells which are in the initial neighbourhood and in the neighbourhood of all the neighbours
+  nncsDupl <- foldM (\acc (coord', _) -> do
+                        ncs' <- neighbours coord' False e
+                        return $ ncs' ++ acc) ncs ncs
+  -- NOTE: the nncs are not unique, remove duplicates
+  let nncsUnique = nubBy (\(coord1, _) (coord2, _) -> (coord1 == coord2)) nncsDupl
+  return $ filter (isNothing . sugEnvOccupier . snd) nncsUnique
 
 bestMeasureSugarLevel :: BestCellMeasureFunc
 bestMeasureSugarLevel = sugEnvSugarLevel
@@ -195,66 +157,18 @@ bestMeasureSugarAndSpicePolutionRatio c
     spiLvl = sugEnvSugarLevel c
     polLvl = sugEnvPolutionLevel c
 
-bestMeasureSugarAndSpiceLevelWelfareChange :: SugAgentState -> BestCellMeasureFunc
-bestMeasureSugarAndSpiceLevelWelfareChange s c 
-    = agentWelfareChange s (sg, sp) -- TODO: why is there welfarechange included? need to give a different name
-  where
-    sg = sugEnvSugarLevel c
-    sp = sugEnvSpiceLevel c
-
-excessAmountToChildBearing :: SugAgentState -> Double
-excessAmountToChildBearing s = currSugar - initSugar
-  where
-    currSugar = sugAgSugarLevel s
-    initSugar = sugAgSugarInit s
-
-satisfiesWealthForChildBearing :: SugAgentState -> Bool
-satisfiesWealthForChildBearing s = excessAmount >= 0
-  where
-    excessAmount = excessAmountToChildBearing s
-
-{-
-satisfiesWealthForChildBearingM :: Random g => State (SugAgentOut g) Bool
-satisfiesWealthForChildBearingM 
-  = state (\ao -> (satisfiesWealthForChildBearing $ agentState ao, ao))
--}
-
-isFertile :: SugAgentState -> Bool
-isFertile s = withinRange age fertilityAgeRange
-  where
-    age = sugAgAge s
-    fertilityAgeRange = sugAgFertAgeRange s
-
-{-
-isFertileM :: Random g => State (SugAgentOut g) Bool
-isFertileM = state (\ao -> (isFertile $ agentState ao, ao))
--}
-
-tooOldForChildren :: SugAgentState -> Bool
-tooOldForChildren s = age > fertilityAgeMax 
-  where
-    age = sugAgAge s
-    (_, fertilityAgeMax) = sugAgFertAgeRange s
-
 withinRange :: (Ord a) => a -> (a, a) -> Bool
 withinRange a (l, u) = a >= l && a <= u
 
 neighbourIds :: SugEnvironment
              -> SugAgentState
-             -> [AgentId]
-neighbourIds e s 
-    = map (sugEnvOccId . fromJust . sugEnvOccupier) occupiedCells
+             -> STM [AgentId]
+neighbourIds e s = do
+    ncs <- neighbourCells coord False e -- NOTE: this includes only neighbours, never self, never required in this function
+    let occupiedCells = filter (isJust . sugEnvOccupier) ncs
+    return $ map (sugEnvOccId . fromJust . sugEnvOccupier) occupiedCells
   where
-    coord = sugAgCoord s
-    ncs = neighbourCells coord False e -- NOTE: this includes only neighbours, never self, never required in this function
-    occupiedCells = filter (isJust . sugEnvOccupier) ncs
-
-{-
-neighbourIdsM :: Random g
-              => SugEnvironment 
-              -> State (SugAgentOut g) [AgentId]
-neighbourIdsM e = state (\ao -> (neighbourIds e ao, ao))
--}
+    coord = sugAgCoord s  
 
 createNewBorn :: RandomGen g
               => (AgentId, Discrete2dCoord)
@@ -289,163 +203,18 @@ createNewBorn idCoord
               , sugAgDiseases = [] 
               })
 
-------------------------------------------------------------------------------------------------------------------------
--- CHAPTER III
-------------------------------------------------------------------------------------------------------------------------
-filterOccupiers :: (SugEnvCellOccupier -> Bool) -> [(Discrete2dCoord, SugEnvCell)] -> [(Discrete2dCoord, SugEnvCell)] 
-filterOccupiers f cs = filter filterOccupiersAux cs
-  where
-    filterOccupiersAux :: (Discrete2dCoord, SugEnvCell) -> Bool
-    filterOccupiersAux (_, cell) = maybe True f (sugEnvOccupier cell)
-
-occupierCombatable :: Double
-                   -> SugTribe 
-                   -> SugEnvCellOccupier
-                   -> Bool
-occupierCombatable myWealth myTribe occ = differentTribe && lessWealthy
-  where
-    otherTribe = sugEnvOccTribe occ
-    otherWealth = sugEnvOccWealth occ
-    differentTribe = otherTribe /= myTribe
-    lessWealthy = otherWealth < myWealth 
-
-occupierRetaliator :: Double 
-                   -> SugTribe 
-                   -> SugEnvCellOccupier
-                   -> Bool
-occupierRetaliator referenceWealth myTribe occ = differentTribe && moreWealthy
-  where
-    otherTribe = sugEnvOccTribe occ
-    otherWealth = sugEnvOccWealth occ
-    differentTribe = otherTribe /= myTribe
-    moreWealthy = otherWealth > referenceWealth 
-
-cellPayoff :: (Discrete2dCoord, SugEnvCell) -> ((Discrete2dCoord, SugEnvCell), Double)
-cellPayoff (c, cell) = ((c, cell), payoff)
-  where
-    mayOccupier = sugEnvOccupier cell
-    sugarLevel = sugEnvSugarLevel cell
-    payoff = maybe sugarLevel (\occ -> sugarLevel + min combatReward (sugEnvOccWealth occ)) mayOccupier
-
-poluteCell :: Double -> Discrete2dCoord -> SugEnvironment -> SugEnvironment
+poluteCell :: Double 
+           -> Discrete2dCoord 
+           -> SugEnvironment 
+           -> STM ()
 poluteCell polutionIncrease coord e 
-    | _enablePolution_ = changeCellAt coord cellAfterPolution e
-    | otherwise = e
-  where
-      cell = cellAt coord e
-      cellAfterPolution = cell { sugEnvPolutionLevel = polutionIncrease + sugEnvPolutionLevel cell }
+    | _enablePolution_ = do
+      c <- cellAt coord e
+      let c' = c { sugEnvPolutionLevel = polutionIncrease + sugEnvPolutionLevel c }
+      changeCellAt coord c' e
+    | otherwise = return ()
+      
 ------------------------------------------------------------------------------------------------------------------------
-
-------------------------------------------------------------------------------------------------------------------------
--- CHAPTER IV
-------------------------------------------------------------------------------------------------------------------------
-agentTradeIncreaseWelfare :: SugAgentState -> Double -> Bool
-agentTradeIncreaseWelfare s mrsOther = newWelfare > currentWelfare
-  where
-    mrsSelf = agentMRS s
-    exchangeTup = sugarSpiceExchange mrsOther mrsSelf
-    currentWelfare = agentWelfare s
-    newWelfare = agentWelfareChange s exchangeTup
-
-agentTradeExchange :: SugAgentState -> Double -> SugAgentState
-agentTradeExchange s mrsOther = sAfterTrade -- trace ("Trade: mrsSelf = " ++ (show mrsSelf) ++ " mrsOther = " ++ (show mrsOther) ++ ", sugarChange = " ++ (show sugarChange) ++ " spiceChange = " ++ (show spiceChange) ) 
-  where
-    mrsSelf = agentMRS s
-    (sugarChange, spiceChange) = sugarSpiceExchange mrsOther mrsSelf
-
-    sugarLevel = sugAgSugarLevel s
-    spiceLevel = sugAgSpiceLevel s
-
-    sAfterTrade  = s { sugAgSugarLevel = sugarLevel + sugarChange, sugAgSpiceLevel = spiceLevel + spiceChange }
- 
-agentMRS :: SugAgentState -> Double
-agentMRS s = (w2 * m1) / (w1 * m2)
-  where
-    m1 = sugAgSugarMetab s
-    m2 = sugAgSpiceMetab s
-
-    w1 = sugAgSugarLevel s
-    w2 = sugAgSpiceLevel s
-
--- NOTE: this returns the sugar-to-spice exchanges from the view-point of self
-sugarSpiceExchange :: Double -> Double -> (Double, Double)
-sugarSpiceExchange mrsOther mrsSelf 
-    -- NOTE: if mrsOther is larger than mrsSelf then Other values sugar more and is willing to exchange it for spice
-        -- Other takes (+) sugar and gives spice
-        -- Self takes (+) spice and gives (-) sugar
-    | (mrsOther > mrsSelf) && (price > 1) = (-1.0, price)
-    | (mrsOther > mrsSelf) && (price <= 1) = (-invPrice, 1.0)
-
-    -- NOTE: if mrsSelf is larger than mrsOther then Self values sugar more and is willing to exchange it for spice
-        -- Self takes sugar and gives spice
-        -- Other takes spice and gives sugar
-    | (mrsOther <= mrsSelf) && (price > 1) = (1.0, -price) 
-    | (mrsOther <= mrsSelf) && (price <= 1) = (invPrice, -1.0)
-    | otherwise = error "sugarSpiceExchange"
-  where
-    price = tradingPrice mrsOther mrsSelf
-    invPrice = 1 / price
-
-tradingPrice :: Double -> Double -> Double
-tradingPrice mrsA mrsB = sqrt $ mrsA * mrsB
-
-agentWelfare :: SugAgentState -> Double
-agentWelfare s = agentWelfareChange s (0, 0)
-
-potentialLender :: SugAgentState -> Maybe Double
-potentialLender s
-    | tooOldForChildren s = Just $ half (sugAgSugarLevel s)
-    | isFertile s = fertileLending
-    | otherwise = Nothing
-  where
-    fertileLending :: Maybe Double
-    fertileLending
-        | excessAmount > 0 = Just excessAmount
-        | otherwise = Nothing
-      where
-          excessAmount = excessAmountToChildBearing s
-
-    half :: Double -> Double
-    half x = x * 0.5
-
-isPotentialBorrower :: SugAgentState -> Bool
-isPotentialBorrower s 
-  | isFertile s && (not $ satisfiesWealthForChildBearing s) = True
-  | otherwise = False
-
-agentWelfareChange :: SugAgentState -> (Double, Double) -> Double
-agentWelfareChange s (sugarChange, spiceChange) = ((w1 + sugarChange)**(m1/mT)) * ((w2 + spiceChange)**(m2/mT))
-  where
-    m1 = sugAgSugarMetab s
-    m2 = sugAgSpiceMetab s
-    mT = m1 + m2
-
-    w1 = sugAgSugarLevel s
-    w2 = sugAgSpiceLevel s
-------------------------------------------------------------------------------------------------------------------------
-
-------------------------------------------------------------------------------------------------------------------------
--- CHAPTER V
-------------------------------------------------------------------------------------------------------------------------
-agentImmunizeAux :: SugDisease 
-                 -> (SugImmuneSystem, [SugDisease]) 
-                 -> (SugImmuneSystem, [SugDisease])
-agentImmunizeAux disease (imSys, accDis) 
-    | minHam == 0 = (imSys, accDis)
-    | otherwise = (imSys', disease : accDis)
-  where
-    dLen = length disease
-
-    hd = calculateHammingDistances imSys disease
-    _mi@(minHam, minHamIdx) = findMinWithIdx hd
-
-    minSubImmSys = take dLen (drop minHamIdx imSys)
-
-    tagIdx = findFirstDiffIdx minSubImmSys disease
-    globalIdx = minHamIdx + tagIdx
-    imSys' = flipBoolAtIdx imSys globalIdx
-------------------------------------------------------------------------------------------------------------------------
-
 
 ------------------------------------------------------------------------------------------------------------------------
 -- UTILS

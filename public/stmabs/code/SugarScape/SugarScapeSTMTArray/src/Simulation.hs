@@ -22,10 +22,11 @@ import           Data.Time.Clock
 import           FRP.BearRiver
 
 import           Common
+import           Discrete
 import           Model
 import           Renderer
 
-type SimStepOut = (Time, SugEnvironment, [AgentObservable SugAgentObservable])
+type SimStepOut = (Time, [Discrete2dCell SugEnvCell], [AgentObservable SugAgentObservable])
 
 data SimContext g = SimContext
   { simCtxDtVars :: [MVar DTime]
@@ -55,8 +56,8 @@ simulationStep dt sugCtx simCtx = do
   mapM_ (`putMVar` dt) dtVars
   -- wait for results
   aos <- mapM takeMVar aoVars
-  -- read the latest environment
-  env <- readTVarIO $ sugCtxEnv sugCtx
+  -- read the latest environment cells
+  envCells <- atomically $ allCellsWithCoords $ sugCtxEnv sugCtx
 
   let newAs = concatMap (\(_, ao) -> sugAoNew ao) aos
       obs   = foldr (\(aid, ao) acc -> 
@@ -86,7 +87,7 @@ simulationStep dt sugCtx simCtx = do
   --when (mt == 0) dumpSTMStats
   dumpSTMStats
   
-  return (simCtx', (t, env, obs))
+  return (simCtx', (t, envCells, obs))
 
 spawnAgents :: RandomGen g
             => [(AgentId, SugAgent g)]

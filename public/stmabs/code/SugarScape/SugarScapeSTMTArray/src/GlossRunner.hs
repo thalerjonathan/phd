@@ -11,6 +11,7 @@ import qualified Graphics.Gloss as GLO
 import           Graphics.Gloss.Interface.IO.Animate
 import           Graphics.Gloss.Interface.IO.Simulate
 
+import           Discrete
 import           Model
 import           Renderer
 import           Simulation
@@ -36,7 +37,7 @@ runWithGloss durSecs dt initSimCtx sugCtx initOut = do
         black                     -- background
         freq                      -- how many steps of the simulation to calculate per second (roughly, depends on rendering performance)
         initOut                   -- initial model = output of each simulation step to be rendered
-        (modelToPicture winSize)  -- model-to-picture function
+        (modelToPicture winSize sugCtx)  -- model-to-picture function
         (renderStep durSecs dt sugCtx outRef)    -- 
     else 
       animateIO
@@ -51,12 +52,15 @@ displayGlossWindow :: String -> (Int, Int) -> GLO.Display
 displayGlossWindow winTitle winSize = GLO.InWindow winTitle winSize (0, 0)
 
 modelToPicture :: (Int, Int)
+               -> SugContext
                -> SimStepOut
                -> IO GLO.Picture
 -- modelToPicture _ _ 
 --  = return GLO.Blank 
-modelToPicture winSize (t, env, as) 
-  = return $ renderSugarScapeFrame winSize t env as
+modelToPicture winSize sugCtx (t, envCells, as) = do
+  let env  = sugCtxEnv sugCtx
+      dims = dimensionsDisc2d env
+  return $ renderSugarScapeFrame winSize t dims envCells as
 
 renderStep :: RandomGen g
            => Double
@@ -91,4 +95,4 @@ renderStepAnimate winSize durSecs dt sugCtx ssRef _ = do
 
   _ <- checkTime durSecs simCtx'
 
-  modelToPicture winSize out 
+  modelToPicture winSize sugCtx out 

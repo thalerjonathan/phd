@@ -18,35 +18,22 @@ module Discrete
   , createDiscrete2d
 
   , dimensionsDisc2d
-  , dimensionsDisc2dM
 
   , allCellsWithCoords
-  , updateCells
-  , updateCellsM
-  , updateCellsWithCoords
-  , updateCellsWithCoordsM
+  , updateAllCells
+  , updateAllCellsWithCoords
   , updateCellAt
   , changeCellAt
-  , changeCellAtM
   , cellsAroundRadius
-  , cellsAroundRadiusM
   , cellsAroundRect
   , cellsAt
   , cellAt
-  , cellAtM
-  , randomCell
-  , randomCellWithinRect
-  --, environmentDisc2dRandom
 
   , neighbours
-  , neighboursM
   , neighbourCells
-  , neighbourCellsM
 
   , neighboursInNeumannDistance
-  , neighboursInNeumannDistanceM
   , neighboursCellsInNeumannDistance
-  , neighboursCellsInNeumannDistanceM
 
   , distanceManhattanDisc2d
   , distanceEuclideanDisc2d
@@ -58,26 +45,10 @@ module Discrete
   , wrapNeighbourhood
   , wrapDisc2d
   , wrapDisc2dEnv
-
-  , randomNeighbourCell
-  , randomNeighbour
-  
-  , occupied
-  , unoccupy
-  , occupy
-  , occupier
-  , addOccupant
-  , removeOccupant
-  , hasOccupiers
-  , occupiers
   ) where
 
 import Data.Array.MArray
-import Data.List
-import Data.Maybe
 import Control.Concurrent.STM
-import Control.Concurrent.STM.TArray
-import Control.Monad.Random
 import Control.Monad.State.Strict
 
 type Discrete2dDimension        = (Int, Int)
@@ -131,17 +102,32 @@ dimensionsDisc2dM = state (\e -> (envDisc2dDims e, e))
 allCellsWithCoords :: Discrete2d c -> STM [Discrete2dCell c]
 allCellsWithCoords e = getAssocs $ envDisc2dCells e
 
-updateCells :: (c -> c) -> Discrete2d c -> STM (Discrete2d c)
+{- this doesn't work because mapArray creates a new array
+updateCells :: (c -> c) 
+            -> Discrete2d c 
+            -> STM (Discrete2d c)
 updateCells f e = do
     ec' <- mapArray f ec
     return $ e { envDisc2dCells = ec' }
   where
     ec = envDisc2dCells e
+-}
+updateAllCells :: (c -> c) 
+               -> Discrete2d c 
+               -> STM ()
+updateAllCells f e = do
+    cs <- allCellsWithCoords e
+  
+    mapM_ (\(coord, c) -> do
+      let c' = f c
+      writeArray arr coord c') cs
+  where
+    arr = envDisc2dCells e
 
-updateCellsWithCoords :: (Discrete2dCell c -> c) 
-                      -> Discrete2d c 
-                      -> STM ()
-updateCellsWithCoords f e = do
+updateAllCellsWithCoords :: (Discrete2dCell c -> c) 
+                           -> Discrete2d c 
+                           -> STM ()
+updateAllCellsWithCoords f e = do
   ecs <- allCellsWithCoords e
   
   let cs       = map f ecs
@@ -203,6 +189,7 @@ cellAt coord e = do
   let arr = envDisc2dCells e
   readArray arr coord
 
+{-
 randomCell :: MonadRandom m 
            => Discrete2d c 
            -> m (c, Discrete2dCoord)
@@ -231,6 +218,7 @@ randomCellWithinRect (x, y) r e =  do
   let randCell = cellAt randCoordWrapped e
 
   return (randCell, randCoordWrapped)
+-}
 
 -- NOTE: this function does only work for neumann-neighbourhood, it ignores
 --       the environments neighbourhood. also it does not include the coord itself
@@ -369,6 +357,7 @@ bottomRightDelta  = ( 1,  1)
 -------------------------------------------------------------------------------
 -- UTILITIES
 -------------------------------------------------------------------------------
+{-}
 randomNeighbourCell :: MonadRandom m
                     => Discrete2dCoord 
                     -> Bool 
@@ -391,4 +380,5 @@ randomElemM as = do
   let len = length as
   idx <- getRandomR (0, len - 1) 
   return (as !! idx)
+  -}
 -------------------------------------------------------------------------------

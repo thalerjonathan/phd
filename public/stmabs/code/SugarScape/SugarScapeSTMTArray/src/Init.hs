@@ -3,9 +3,10 @@ module Init
     createSugarScape
   ) where
 
-import Control.Monad.Random
-
 import Data.List
+
+import Control.Concurrent.STM
+import Control.Monad.Random
 
 import Agent
 import Common
@@ -15,7 +16,7 @@ import Model
 createSugarScape :: RandomGen g
                  => Int 
                  -> Discrete2dDimension 
-                 -> Rand g ([(AgentId, SugAgent g)], SugEnvironment)
+                 -> RandT g STM ([(AgentId, SugAgent g)], SugEnvironment)
 createSugarScape agentCount dims@(_dx, _dy) = do
   -- let hdx = floor $ fromIntegral dx * 0.5
   -- let hdy = floor $ fromIntegral dy * 0.5
@@ -32,12 +33,12 @@ createSugarScape agentCount dims@(_dx, _dy) = do
 
   let cells' = addSpice $ addSugar initRandomCells
   
-  let e = createDiscrete2d
-              dims
-              neumann
-              WrapBoth
-              cells'
-              
+  e <- lift $ createDiscrete2d
+                dims
+                neumann
+                WrapBoth
+                cells'
+                
   return (as, e)
 
 addSugar :: [(Discrete2dCoord, SugEnvCell)] 
@@ -86,19 +87,19 @@ initSpice cs spiceFunc = map initSpiceAux cs
         cell' = cell { sugEnvSpiceLevel = spice
                       , sugEnvSpiceCapacity = spice }
 
-createCells :: RandomGen g
+createCells :: MonadRandom m
             => Discrete2dDimension
             -> [(Discrete2dCoord, (AgentId, SugAgentState))]
-            -> Rand g [(Discrete2dCoord, SugEnvCell)]
+            -> m [(Discrete2dCoord, SugEnvCell)]
 createCells (maxX, maxY) occupations 
     = mapM (initRandomCell occupations) coords
   where
     coords = [ (x, y) | x <- [0..maxX-1], y <- [0..maxY-1] ]
 
-initRandomCell :: RandomGen g
+initRandomCell :: MonadRandom m
                => [(Discrete2dCoord, (AgentId, SugAgentState))] 
                -> Discrete2dCoord 
-               -> Rand g (Discrete2dCoord, SugEnvCell)
+               -> m (Discrete2dCoord, SugEnvCell)
 initRandomCell os coord = do
   -- randSugarCap <- getRandomR sugarCapacityRange
   -- randSpiceCap <- getRandomR spiceCapacityRange
@@ -118,21 +119,21 @@ initRandomCell os coord = do
   return (coord, c)
 
 -- NOTE: will draw random-coords within (0,0) and limits WITHOUT repeating any coordinate
-randomCoords :: RandomGen g
+randomCoords :: MonadRandom m
              => Discrete2dDimension 
              -> Discrete2dDimension 
              -> Int 
-             -> Rand g [Discrete2dCoord]
+             -> m [Discrete2dCoord]
 randomCoords (minX, minY) (maxX, maxY) n0
     | n0 > totalCoords = error "Logical error: can't draw more elements from a finite set than there are elements in the set"
     | otherwise = drawRandomCoordsAux n0 []
   where
     totalCoords = (maxX - minX) * (maxY - minY)
 
-    drawRandomCoordsAux :: RandomGen g
+    drawRandomCoordsAux :: MonadRandom m
                         => Int 
                         -> [Discrete2dCoord] 
-                        -> Rand g [Discrete2dCoord]
+                        -> m [Discrete2dCoord]
     drawRandomCoordsAux 0 acc = return acc
     drawRandomCoordsAux n acc = do
       randX <- getRandomR (minX, maxX - 1)

@@ -30,6 +30,8 @@ module Common
   , poluteCell
 
   , randomAgent
+
+  , cellOccupier
   ) where
 
 import           Control.Concurrent.STM

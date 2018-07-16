@@ -8,8 +8,9 @@ import           Control.Monad.Random
 import           Data.Time.Clock
 import           FRP.BearRiver
 
-import           GlossRunner
+import           Discrete
 import           Environment
+import           GlossRunner
 import           Init
 import           Model
 import           Simulation
@@ -17,7 +18,7 @@ import           Simulation
 durationSecs :: Double
 durationSecs = 60
 
--- NOTE run with: clear & stack exec -- SugarScapeSTMTVar +RTS -N4 -s
+-- NOTE run with: clear & stack exec -- SugarScapeSTMTArray +RTS -N4 -s
 
 main :: IO ()
 main = do
@@ -28,21 +29,23 @@ main = do
       dt         = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
       agentCount = 500
       envSize    = (50, 50)
-
       -- initial RNG
       g0                     = mkStdGen rngSeed
-      -- initial agents and environment
-      ((initAs, initEnv), g) = runRand (createSugarScape agentCount envSize) g0
-      -- initial model for Gloss = output of each simulation step to be rendered
-      initOut                = (0, initEnv, [])
+      
+  -- initial agents and environment
+  let ret                = runRandT (createSugarScape agentCount envSize) g0
+  ((initAs, initEnv), g) <- atomically ret
+  envCells               <- atomically $ allCellsWithCoords initEnv
+
+  -- initial model for Gloss = output of each simulation step to be rendered
+  let initOut                = (0, envCells, [])
       -- initial simulation state
       (initAis, _)           = unzip initAs
-
-  envVar <- newTVarIO initEnv
+ 
   aidVar <- newTVarIO $ maximum initAis
 
   let sugCtx = SugContext {
-      sugCtxEnv     = envVar
+      sugCtxEnv     = initEnv
     , sugCtxNextAid = aidVar
     }
 

@@ -119,18 +119,17 @@ agentDies = do
 unoccupyPosition :: RandomGen g
                  => StateT SugAgentState (SugAgentMonad g) ()
 unoccupyPosition = do
-  env           <- lift readEnvironment
-  (coord, cell) <- agentCellOnCoord env
-  let cell' = cell { sugEnvOccupier = Nothing }
-      env'  = changeCellAt coord cell' env
-  lift $ writeEnvironment env'
+  env           <- lift getEnvironment
+  (coord, c) <- agentCellOnCoord env
+  let c' = c { sugEnvOccupier = Nothing }
+  lift $ lift $ lift $ changeCellAt coord c' env
 
 agentCellOnCoord :: RandomGen g 
                  => SugEnvironment
                  -> StateT SugAgentState (SugAgentMonad g) (Discrete2dCoord, SugEnvCell)
 agentCellOnCoord env = do
   coord <- gets sugAgCoord
-  let cell = cellAt coord env
+  cell  <- lift $ lift $ lift $ cellAt coord env
   return (coord, cell)
 
 birthNewAgent :: RandomGen g
@@ -138,7 +137,7 @@ birthNewAgent :: RandomGen g
 birthNewAgent = do
     -- -| not _enableBirthAgentOnAgeDeath_ = return ()
     -- | otherwise = do
-      env           <- lift readEnvironment
+      env           <- lift getEnvironment
       newAgentId    <- lift nextAgentId
       newAgentCoord <- findUnoccpiedRandomPosition env   -- NOTE: why not take the same position?
       (newa, _) <- lift $ lift $ randomAgent (newAgentId, newAgentCoord) sugAgent id
@@ -148,11 +147,18 @@ birthNewAgent = do
                                 => SugEnvironment
                                 -> StateT SugAgentState (SugAgentMonad g) Discrete2dCoord
     findUnoccpiedRandomPosition env = do
-      (c, coord) <- lift $ lift $ randomCell env
+      let (maxX, maxY) = envDisc2dDims env
+
+      randX <- lift $ lift $ getRandomR (0, maxX - 1) 
+      randY <- lift $ lift $ getRandomR (0, maxY - 1)
+
+      let randCoord = (randX, randY)
+      c <- lift $ lift $ lift $ cellAt randCoord env
+
       ifThenElse
         (cellOccupied c) 
         (findUnoccpiedRandomPosition env)
-        (return coord)
+        (return randCoord)
 
 passWealthOn :: RandomGen g
              => StateT SugAgentState (SugAgentMonad g) ()
@@ -187,9 +193,8 @@ agentMetabolism = do
 
   -- NOTE: for now the metabolism (and harvest) of spice does not cause any polution
   coord <- gets sugAgCoord
-  env   <- lift readEnvironment
-  let env' = poluteCell (sugarMetab * polutionMetabolismFactor) coord env
-  lift $ writeEnvironment env'
+  env   <- lift getEnvironment
+  lift $ lift $ lift $ poluteCell (sugarMetab * polutionMetabolismFactor) coord env
 
   ifThenElseM
     starvedToDeath
@@ -212,7 +217,7 @@ agentNonCombatMove :: RandomGen g
 agentNonCombatMove aid = do
   cellsInSight <- agentLookout
   coord        <- gets sugAgCoord
-  env          <- lift readEnvironment
+  env          <- lift getEnvironment
 
   let unoccupiedCells = filter (cellUnoccupied . snd) cellsInSight
 
@@ -222,7 +227,8 @@ agentNonCombatMove aid = do
     (do
         -- NOTE included self but this will be always kicked out because self is occupied by self, need to somehow add this
         --       what we want is that in case of same sugar on all fields (including self), the agent does not move because staying is the lowest distance (=0)
-        let selfCell         = cellAt coord env
+        selfCell <- lift $ lift $ lift $ cellAt coord env
+
         let unoccupiedCells' = (coord, selfCell) : unoccupiedCells
         let bf               = bestCellFunc
         let bestCells        = selectBestCells bf coord unoccupiedCells'
@@ -234,8 +240,9 @@ agentLookout :: RandomGen g
 agentLookout = do
   vis   <- gets sugAgVision
   coord <- gets sugAgCoord
-  env   <- lift readEnvironment
-  return $ neighboursInNeumannDistance coord vis False env
+  env   <- lift getEnvironment
+  ns    <- lift $ lift $ lift $ neighboursInNeumannDistance coord vis False env
+  return ns
 
 agentStayAndHarvest :: RandomGen g
                     => StateT SugAgentState (SugAgentMonad g) ()
@@ -259,21 +266,18 @@ agentMoveTo aid cellCoord = do
   updateAgentState (\s -> s { sugAgCoord = cellCoord })
 
   s   <- get
-  env <- lift readEnvironment
+  env <- lift getEnvironment
 
-  let cell = cellAt cellCoord env
-      co   = cell { sugEnvOccupier = Just (cellOccupier aid s) }
-      env' = changeCellAt cellCoord co env
-
-  lift $ writeEnvironment env'
+  c <- lift $ lift $ lift $ cellAt cellCoord env
+  let c' = c { sugEnvOccupier = Just (cellOccupier aid s) }
+  lift $ lift $ lift $ changeCellAt cellCoord c' env
 
 agentHarvestCell :: RandomGen g
                  => Discrete2dCoord 
                  -> StateT SugAgentState (SugAgentMonad g) ()
 agentHarvestCell cellCoord = do
-  env <- lift readEnvironment
-
-  let cell = cellAt cellCoord env
+  env  <- lift getEnvironment
+  cell <- lift $ lift $ lift $ cellAt cellCoord env
 
   sugarLevelAgent <- gets sugAgSugarLevel
   spiceLevelAgent <- gets sugAgSpiceLevel
@@ -287,8 +291,7 @@ agentHarvestCell cellCoord = do
   updateAgentState (\s -> s { sugAgSugarLevel = newSugarLevelAgent, sugAgSpiceLevel = newSpiceLevelAgent })
 
   let cellHarvested = cell { sugEnvSugarLevel = 0.0, sugEnvSpiceLevel = 0.0 }
-      env'          = changeCellAt cellCoord cellHarvested env
-      -- NOTE: at the moment harvesting SPICE does not influence the polution
-      env''         = poluteCell (sugarLevelCell * polutionHarvestFactor) cellCoord env'
-
-  lift $ writeEnvironment env''
+      
+  lift $ lift $ lift $ changeCellAt cellCoord cellHarvested env
+  -- NOTE: at the moment harvesting SPICE does not influence the polution
+  lift $ lift $ lift $ poluteCell (sugarLevelCell * polutionHarvestFactor) cellCoord env

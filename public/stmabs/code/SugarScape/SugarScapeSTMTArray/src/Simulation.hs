@@ -78,14 +78,14 @@ simulationStep dt sugCtx simCtx = do
 
   simCtx' <- if isJust envAg
               then do
-                putStrLn "Running Environment non-concurrently"
+                -- putStrLn "Running Environment non-concurrently"
                 (_, envAg', g'') <- runAgentStep (fromJust envAg) dt g' sugCtx 
                 return $ mkSimContex dtVars'' aoVars'' t' g'' start (steps + 1) (Just envAg')
               else return $ mkSimContex dtVars'' aoVars'' t' g' start (steps + 1) envAg
 
   --let mt = mod (floor t') 10 :: Integer
   --when (mt == 0) dumpSTMStats
-  dumpSTMStats
+  --dumpSTMStats
   
   return (simCtx', (t, envCells, obs))
 
@@ -183,8 +183,8 @@ checkTime :: RandomGen g
 checkTime durSecs simCtx = do
   nowT <- getCurrentTime
 
-  let start = simCtxStart simCtx
-  let dtStart = realToFrac $ diffUTCTime nowT start
+  let start   = simCtxStart simCtx
+      dtStart = realToFrac $ diffUTCTime nowT start
 
   if dtStart > durSecs
     then (do 
@@ -194,7 +194,6 @@ checkTime durSecs simCtx = do
       putStrLn $ show steps ++ " steps after " ++ show durSecs ++ " sec. is a ratio of " ++ show stepsRatio
       return True)
     else (do
-      let secsLeft = durSecs - dtStart
-
-      putStrLn $ show secsLeft ++ " secs left..."
+      --let secsLeft = durSecs - dtStart
+      -- putStrLn $ show secsLeft ++ " secs left..."
       return False)

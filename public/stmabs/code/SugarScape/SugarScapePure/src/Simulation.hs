@@ -65,7 +65,6 @@ simStepSF :: RandomGen g
           -> SF (SugAgentMonadT g) () [AgentObservable SugAgentObservable]
 simStepSF ais sfs = MSF $ \_ -> do
   -- TODO: shuffle agent sfs
-  
   res <- mapM (`unMSF` AgentIn) sfs
 
   let adefs = concatMap (\(ao, _) -> aoCreate ao) res
@@ -121,7 +120,5 @@ checkTime durSecs ss = do
       putStrLn $ show steps ++ " steps after " ++ show durSecs ++ " sec. is a ratio of " ++ show stepsRatio
       return True)
     else (do
-      let secsLeft = durSecs - dtStart
-
-      putStrLn $ show secsLeft ++ " secs left..."
+      --putStrLn $ show (durSecs - dtStart) ++ " secs left..."
       return False)

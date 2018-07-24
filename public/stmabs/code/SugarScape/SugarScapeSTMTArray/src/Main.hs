@@ -4,13 +4,14 @@ import           System.IO
 import           System.Random
 
 import           Control.Concurrent.STM
+import           Control.Concurrent.STM.Stats
 import           Control.Monad.Random
 import           Data.Time.Clock
 import           FRP.BearRiver
 
 import           Discrete
 import           Environment
-import           GlossRunner
+--import           GlossRunner
 import           Init
 import           Model
 import           Simulation
@@ -28,19 +29,19 @@ main = do
       rngSeed    = 42
       dt         = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
       agentCount = 500
-      envSize    = (50, 50)
+      envSize    = (51, 51)
       -- initial RNG
       g0                     = mkStdGen rngSeed
-      
+
   -- initial agents and environment
   let ret                = runRandT (createSugarScape agentCount envSize) g0
   ((initAs, initEnv), g) <- atomically ret
-  envCells               <- atomically $ allCellsWithCoords initEnv
+  _envCells               <- atomically $ allCellsWithCoords initEnv
 
   -- initial model for Gloss = output of each simulation step to be rendered
-  let initOut                = (0, envCells, [])
+  --let initOut                = (0, envCells, [])
       -- initial simulation state
-      (initAis, _)           = unzip initAs
+  let (initAis, _)           = unzip initAs
  
   aidVar <- newTVarIO $ maximum initAis
 
@@ -52,12 +53,12 @@ main = do
   start <- getCurrentTime
 
   let initAs' = if envConc then (0, sugEnvironment) : initAs else initAs
-      envAg   = if envConc then Nothing else (Just sugEnvironment)
+      envAg   = if envConc then Nothing else Just sugEnvironment
 
   (dtVars, aoVars, g') <- spawnAgents initAs' g sugCtx
   -- initial simulation context
   let initSimCtx = mkSimContex dtVars aoVars 0 g' start 0 envAg
-  runWithGloss durationSecs dt initSimCtx sugCtx initOut
+  --runWithGloss durationSecs dt initSimCtx sugCtx initOut
   simulate dt initSimCtx sugCtx
 
 simulate :: RandomGen g
@@ -66,11 +67,14 @@ simulate :: RandomGen g
          -> SugContext
          -> IO ()
 simulate dt simCtx sugCtx = do
-  (simCtx', (t, _, _)) <- simulationStep dt sugCtx simCtx
+  (simCtx', (t, _, aos)) <- simulationStep dt sugCtx simCtx
 
-  print t
-
+  -- NOTE: need to print t otherwise lazy evaluation would omit all computation
+  putStrLn $ "t = " ++ show t ++ " agents = " ++ show (length aos)
+  
   ret <- checkTime durationSecs simCtx' 
   if ret 
-    then putStrLn "goodbye" 
+    then do
+      dumpSTMStats
+      putStrLn "goodbye" 
     else simulate dt simCtx' sugCtx

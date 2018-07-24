@@ -24,7 +24,7 @@ main = do
   let rngSeed    = 42
       dt         = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
       agentCount = 500
-      envSize    = (128, 128)
+      envSize    = (51, 51)
 
       -- initial RNG
       g0 = mkStdGen rngSeed
@@ -45,13 +45,11 @@ simulate :: RandomGen g
          -> SimulationState g
          -> IO ()
 simulate dt ss = do
-  (ss', (t, _, _)) <- simulationStep dt ss
-
-  --let (t, _env, _as) = seq out out
+  (ss', (t, _, aos)) <- simulationStep dt ss
 
   -- NOTE: need to print t otherwise lazy evaluation would omit all computation
-  print t
-
+  putStrLn $ "t = " ++ show t ++ " agents = " ++ show (length aos)
+  
   ret <- checkTime durationSecs ss' 
   if ret 
     then return ()

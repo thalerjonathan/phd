@@ -160,7 +160,7 @@ runEnv :: Double
        -> SugEnvironment
        -> STM ()
 runEnv t env = do
-  diffusePolution t env
+  -- diffusePolution t env
   regrow t env
 
 sugEnvironment :: RandomGen g 

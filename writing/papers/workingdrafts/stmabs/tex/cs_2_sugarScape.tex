@@ -20,13 +20,11 @@ We implemented Chapter II of the book. TODO: shortly explain how agents behave
 
 The model specification requires to shuffle agents before every step. This happens automatically due to race-conditions in concurrency we arrive at an effectively shuffled processing of agents: we can assume that the order of the agents is \textit{effectively} random in every step - with the important difference, that we do not have control over this randomness as we would have when shuffling.
 
-Note that in contrast to the SIR case-study we don't provide an IO implementation because we focus on different thing here. 
+Note that in contrast to the SIR case-study we don't provide an IO implementation because we focus on different thing here. The focus here is on how different data-structures can make a huge impact on the performance.
 
-TODO: we compete with \cite{lysenko_framework_2008}
-
-TODO: implement Data-Flow between Agents: pure in State and using TChan in STM / IO
-TODO: implement Sugarscape TArray
-TODO: compare RePast or other Java Sugarscape Performance
+%TODO: we compete with \cite{lysenko_framework_2008}
+%TODO: implement Data-Flow between Agents: pure in State and using TChan in STM / IO
+%TODO: compare RePast or other Java Sugarscape Performance
 
 \begin{itemize}
 	\item State - 
@@ -36,28 +34,29 @@ TODO: compare RePast or other Java Sugarscape Performance
 \end{itemize}
 
 \subsection{Experiment Design}
-We follow \cite{lysenko_framework_2008} and measure the average updates per second of the simulation with a 128x128 environment and an initial population for 500, over 60 seconds. For each experiment we conducted 8 runs on our machine (see Table \ref{tab:machine_specs}) under no additional work-load and report both the average and standard deviation. In the experiments we varied the number of agents and the number of cores when running concurrently - the numbers are always indicated clearly. For varying the number of cores we compiled the executable using \textit{stack} and the \textit{threaded} option and executed it with \textit{stack} using the \textit{+RTS -Nx} option where x is the number of cores between 1 and 4. 
+We follow \cite{lysenko_framework_2008} and measure the average updates per second of the simulation with a 51x51 environment and an initial population of 500 over 60 seconds. For each experiment we conducted 8 runs on our machine (see Table \ref{tab:machine_specs}) under no additional work-load and report both the average and standard deviation. In the experiments we varied the number of cores when running concurrently - the numbers are always indicated clearly. For varying the number of cores we compiled the executable using \textit{stack} and the \textit{threaded} option and executed it with \textit{stack} using the \textit{+RTS -Nx} option where x is the number of cores between 1 and 4.
+Note that the number of agents fluctuates during the simulation because of the nature of the model specifications of Chapter II - thus starting with 500 agents doesn't mean that there are 500 active agents all the time - on the contrary, the number of agents fluctuates between 500 and 250 and seems to stabilize around 350. This shows the highly dynamic nature of the model and the ability of our implementation to quickly spawn and terminate threads. The dynamics of the agent numbers of a typical run are shown in Figure TODO. This  
 
-TODO main measure: up/sec and retry-ratio
+Note that we omit the graphical rendering in the functional approach because it is a serious bottleneck taking up substantial amount of the simulation time. Although visual output is crucial in ABS, it is not what what we are interested here thus we completely omit it and only output the number of agents in the simulation at each step. Note that we need to produce \textit{some} output because of Haskells laziness - if we wouldn't output anything from the simulation then the expressions would actually never be fully evaluated thus resulting in ridiculous high number of steps per second but which obviously don't really reflect the true computations done.
 
-\subsection{Naive Approach}
+TODO main measure: steps/sec and retry-ratio
+
+\subsection{Naive Approach using TVar}
 Experiments with varying number of cores. The results are reported in Table \ref{tab:naive_stm_results}.
 
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
                & Cores & Steps in 60 sec & Ratio per sec \\ \hline \hline 
-    	State  & 1     & 12              & 0.2   \\ \hline \hline
-   		STM    & 1     & 11              & 0.18  \\ \hline
+    	State  & 1     & 315.25 (2.71)   & 5.25 (0.04)   \\ \hline \hline
+   		STM    & 1     & TODO            & TODO  \\ \hline
    		STM    & 2     & TODO            &       \\ \hline
    		STM    & 3     & TODO            &       \\ \hline
    		STM    & 4     & TODO            &       \\ \hline \hline
-   		RePast & 1     & N/A             & 17    \\ \hline \hline
-   		GPU    & N/A   & N/A             & 2000  \\ \hline \hline
    	\end{tabular}
   	
-  	\caption{Experiments with varying number of cores.}
-	\label{tab:naive_stm_results}
+  	\caption{Experiments on 51x51 grid and 500 initial agents with varying number of cores.}
+	\label{tab:naive_results_time}
 \end{table}
 
 We also compared the retry-ratio on varying number of cores.
@@ -66,18 +65,26 @@ We also compared the retry-ratio on varying number of cores.
 	\centering
   	\begin{tabular}{ c || c | c | c }
         Cores & Commits & Retries & Ratio \\ \hline \hline 
-    	1     & TODO              & 0.2   \\ \hline \hline
-   		2     & TODO              & 0.18  \\ \hline
+    	1     & TODO              & TODO  \\ \hline \hline
+   		2     & TODO              & TODO  \\ \hline
    		3     & TODO              &       \\ \hline
    		4     & TODO              &       \\ \hline
    	\end{tabular}
   	
-  	\caption{Experiments on constant 51x51 (2,601 agents) grid with varying number of cores.}
-	\label{tab:constgrid_varyingcores}
+  	\caption{Experiments on 51x51 grid and 500 initial agents with varying number of cores.}
+	\label{tab:naive_results_retries}
 \end{table}
+
+\subsection{Running Environment non-concurrently}
 
 \subsection{From TVar to TArray}
 
-\subsection{Running Environment non-concurrently}
+\subsection{Concurrent Environment cell threads}
+So far we kept the grid-size constant because we implemented the environment as a single agent which works sequentially on the cells to regrow the sugar. Obviously this doesn't really scale up on parallel hardware thus having made the transition to TArray it should be no problem to run each cell within its own thread.
+
+\subsection{Comparison with imperative approaches}
+128x128
+% RePast & 1     & N/A             & 17    \\ \hline \hline
+% GPU    & N/A   & N/A             & 2000  \\ \hline \hline
 
 \subsection{Conclusions}

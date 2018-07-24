@@ -9,3 +9,19 @@ Contribution: first ones to describe haskells immutable data properties and STM 
 
 TODO: implement DES in Haskell
 TODO: implement an optimistic PDES in Haskell
+
+logical processes (e.g. source, sink, delay,...) which are MSFs sending messages with a time-stamp to each other never process messages with time-stamp lower than previous one.
+
+implement a DSL for specifying DES which gets then translated to MSFs for internal execution
+
+rolling back in Haskell: keep the MSFs (continations) allows to revert encapsulated data AND behaviour (something quite important if used in ABS), further the lack of side effects guarantees that we can re-compute events
+
+primary rolling back in Haskell can be achieved without anti-messages
+
+global controller runs in STM
+
+contribution: employing FRP, focus on Rollback and lack of side-effects, lock-free STM allows concurrency/parallelism but guarantees rollback. if we need IO, we can write IO actions to the global Controller (but how to roll them back?)
+
+bezirgianis thesis: Testing of HDES lazy Evaluation is a joke because it doesnt relate it to the computations actually required for the simulation which would be much more interesting
+
+what we are not doing: distributed PDES e.g. using cloud haskell, also this has been solved in aivika

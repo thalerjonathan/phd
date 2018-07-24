@@ -36,7 +36,7 @@ Note that in contrast to the SIR case-study we don't provide an IO implementatio
 \subsection{Experiment Design}
 We follow \cite{lysenko_framework_2008} and measure the average updates per second of the simulation with a 51x51 environment and an initial population of 500 over 60 seconds. For each experiment we conducted 8 runs on our machine (see Table \ref{tab:machine_specs}) under no additional work-load and report both the average and standard deviation. In the experiments we varied the number of cores when running concurrently - the numbers are always indicated clearly. For varying the number of cores we compiled the executable using \textit{stack} and the \textit{threaded} option and executed it with \textit{stack} using the \textit{+RTS -Nx} option where x is the number of cores between 1 and 4.
 
-Chapter II of the book: movement, harvest, regrow, no seasons, no polution, no inheritance
+Chapter II of the book: movement, harvest, regrow, not dying of age, no seasons, no pollution, no inheritance. give the exact parameters
 
 Note that the number of agents fluctuates during the simulation because of the nature of the model specifications of Chapter II - thus starting with 500 agents doesn't mean that there are 500 active agents all the time - on the contrary, the number of agents fluctuates between 500 and 250 and seems to stabilize around 350, depending on the random number seed. This behaviour guarantees that we don't run out of agents and it shows the highly dynamic nature of the model and the ability of our implementation to quickly spawn and terminate threads. The dynamics of the agent numbers of a typical run are shown in Figure TODO.  
 

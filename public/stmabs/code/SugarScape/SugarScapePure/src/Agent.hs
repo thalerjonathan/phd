@@ -51,42 +51,14 @@ chapterII :: RandomGen g
           -> Time
           -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
 chapterII aid _ain age = do
-  ao <- agentAgeing age
-
+  ao <- agentMetabolism
   ifThenElse
     (isDead ao)
     (return ao)
     (do
-      ao' <- agentMetabolism
-      ifThenElse
-        (isDead ao')
-        (return $ ao <°> ao')
-        (do
-          agentNonCombatMove aid
-          ao'' <- observable 
-          return $ ao <°> ao' <°> ao''))
-
-agentAgeing :: RandomGen g 
-            => Time 
-            -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
-agentAgeing newAge = do
-  updateAgentState (\s -> s { sugAgAge = newAge })
-
-  ifThenElseM
-    dieFromAge
-    (do
-        adef <- birthNewAgent
-        passWealthOn
-        ao <- agentDies
-        return $ createAgent adef ao)
-    (return agentOut)
-
-dieFromAge :: Monad m
-           => StateT SugAgentState m Bool
-dieFromAge = do
-  age    <- gets sugAgAge
-  maxAge <- gets sugAgMaxAge
-  return $ age > maxAge
+      agentMove aid
+      ao' <- observable 
+      return $ ao <°> ao')
 
 agentDies :: RandomGen g
           => StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
@@ -107,43 +79,6 @@ agentCellOnCoord = do
   coord <- gets sugAgCoord
   cell  <- lift $ lift $ cellAtM coord
   return (coord, cell)
-
-birthNewAgent :: RandomGen g
-              => StateT SugAgentState (SugAgentMonadT g) (SugAgentDef g)
-birthNewAgent = do
-    -- -| not _enableBirthAgentOnAgeDeath_ = return ()
-    -- | otherwise = do
-      newAgentId    <- lift nextAgentId
-      newAgentCoord <- findUnoccpiedRandomPosition   -- NOTE: why not take the same position?
-      (adef, _) <- lift $ lift $ lift $ randomAgent (newAgentId, newAgentCoord) sugAgent id
-      return adef
-  where
-    findUnoccpiedRandomPosition :: RandomGen g
-                                => StateT SugAgentState (SugAgentMonadT g) Discrete2dCoord
-    findUnoccpiedRandomPosition = do
-      e <- lift $ lift get
-      (c, coord) <- lift $ lift $ lift $ randomCell e
-      ifThenElse
-        (cellOccupied c) 
-        findUnoccpiedRandomPosition
-        (return coord)
-
-passWealthOn :: RandomGen g
-             => StateT SugAgentState (SugAgentMonadT g) ()
-passWealthOn
-    | _enableInheritance_ = do
-      sugarLevel  <- gets sugAgSugarLevel
-      childrenIds <- gets sugAgChildren
-
-      let hasChildren = (not . null) childrenIds
-
-      when hasChildren $ do 
-        let childrenCount = length childrenIds
-        let _childrenSugarShare = sugarLevel / fromIntegral childrenCount
-        -- TODO: implement
-        -- broadcastMessageM (InheritSugar childrenSugarShare) childrenIds
-        return ()
-    | otherwise = return ()
 
 agentMetabolism :: RandomGen g
                 => StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
@@ -178,10 +113,10 @@ starvedToDeath = do
     then return $ (sugar <= 0) || (spice <= 0)
     else return $ sugar <= 0
 
-agentNonCombatMove :: RandomGen g
-                   => AgentId
-                   -> StateT SugAgentState (SugAgentMonadT g) ()
-agentNonCombatMove aid = do
+agentMove :: RandomGen g
+          => AgentId
+          -> StateT SugAgentState (SugAgentMonadT g) ()
+agentMove aid = do
   cellsInSight <- agentLookout
   coord <- gets sugAgCoord
 

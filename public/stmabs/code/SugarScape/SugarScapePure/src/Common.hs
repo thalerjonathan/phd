@@ -558,7 +558,6 @@ randomAgent (agentId, coord) beh sup = do
   let adef = AgentDef {
     adId       = agentId
   , adBeh      = beh agentId s'
-  --, adInitData = [] 
   }
 
   return (adef, s')

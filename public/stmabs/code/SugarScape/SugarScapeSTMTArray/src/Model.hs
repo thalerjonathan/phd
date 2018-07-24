@@ -335,7 +335,7 @@ visionRangeSeasons :: (Int, Int)
 visionRangeSeasons = (1, 10)
 
 ageRange :: (Double, Double)
-ageRange = ageRangeStandard
+ageRange = ageRangeInf
 ageRangeStandard :: (Double, Double)
 ageRangeStandard = (60, 100)
 ageRangeInf :: (Double, Double)

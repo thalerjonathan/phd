@@ -85,6 +85,8 @@ We also compared the retry-ratio on varying number of cores.
 \subsection{Concurrent Environment cell threads}
 So far we kept the grid-size constant because we implemented the environment as a single agent which works sequentially on the cells to regrow the sugar. Obviously this doesn't really scale up on parallel hardware thus having made the transition to TArray it should be no problem to run each cell within its own thread.
 
+TODO: increasing grid-size with and without multithreaded enviornment
+
 \subsection{Comparison with imperative approaches}
 128x128
 % RePast & 1     & N/A             & 17    \\ \hline \hline

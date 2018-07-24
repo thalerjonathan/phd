@@ -35,7 +35,7 @@ runWithGloss durSecs dt initSimCtx sugCtx initOut stmStatsFlag = do
     then
       simulateIO 
         (displayGlossWindow winTitle winSize) -- window title and size
-        black                     -- background
+        white                     -- background
         freq                      -- how many steps of the simulation to calculate per second (roughly, depends on rendering performance)
         initOut                   -- initial model = output of each simulation step to be rendered
         (modelToPicture winSize sugCtx)  -- model-to-picture function
@@ -43,7 +43,7 @@ runWithGloss durSecs dt initSimCtx sugCtx initOut stmStatsFlag = do
     else 
       animateIO
         (displayGlossWindow winTitle winSize)
-        black
+        white
         (renderStepAnimate winSize durSecs dt sugCtx outRef stmStatsFlag)
         (const $ return ())
 

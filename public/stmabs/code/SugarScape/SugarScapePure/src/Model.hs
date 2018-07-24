@@ -20,14 +20,9 @@ module Model
   , sugarCapacityRange
   , sugarEndowmentRange
   , sugarEndowmentRangeStandard
-  , sugarEndowmentRangeBirthing
   , sugarMetabolismRange
   , visionRange
   , visionRangeStandard
-  , visionRangeSeasons
-  , ageRange
-  , ageRangeStandard
-  , ageRangeInf
   ) where
 
 import Control.Monad.Random
@@ -86,13 +81,10 @@ sugarCapacityRange :: (Double, Double)
 sugarCapacityRange = (0.0, 4.0)
 
 sugarEndowmentRange :: (Double, Double)
-sugarEndowmentRange = sugarEndowmentRangeBirthing
+sugarEndowmentRange = sugarEndowmentRangeStandard
 -- NOTE: this is specified in book page 33 where the initial endowments are set to 5-25
 sugarEndowmentRangeStandard :: (Double, Double)
 sugarEndowmentRangeStandard = (5.0, 25.0)
--- NOTE: this is specified in book on page 57
-sugarEndowmentRangeBirthing :: (Double, Double)
-sugarEndowmentRangeBirthing = (50.0, 100.0)
 
 sugarMetabolismRange :: (Double, Double)
 sugarMetabolismRange = (1.0, 5.0)
@@ -102,13 +94,3 @@ visionRange = visionRangeStandard
 -- NOTE: set to 1-6 on page 24
 visionRangeStandard :: (Int, Int)
 visionRangeStandard = (1, 6)
--- NOTE: for Migration set to 1-10 on page 44
-visionRangeSeasons :: (Int, Int)
-visionRangeSeasons = (1, 10)
-
-ageRange :: (Double, Double)
-ageRange = ageRangeStandard
-ageRangeStandard :: (Double, Double)
-ageRangeStandard = (60, 100)
-ageRangeInf :: (Double, Double)
-ageRangeInf = (1/0, 1/0)

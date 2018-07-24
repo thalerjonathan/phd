@@ -55,7 +55,6 @@ executable SugarScapeSTMTArray
                 , Common
                 , Discrete
                 , Environment
-                , Exporter
                 , GlossRunner
                 , Init
                 , Model

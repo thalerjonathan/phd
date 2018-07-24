@@ -31,7 +31,7 @@ createSugarScape agentCount dims@(_dx, _dy) = do
 
   initRandomCells <- createCells dims occupations
 
-  let cells' = addSpice $ addSugar initRandomCells
+  let cells' = addSugar initRandomCells
   
   e <- lift $ createDiscrete2d
                 dims
@@ -50,17 +50,6 @@ addSugar cells = cellsWithSugarLevel4
     cellsWithSugarLevel3 = initSugar cellsWithSugarLevel2 (circlesSugar 3 [((35, 35), 10.0), ((15, 15), 10.0)])
     cellsWithSugarLevel4 = initSugar cellsWithSugarLevel3 (circlesSugar 4 [((35, 35), 5.0), ((15, 15), 5.0)])
 
-addSpice :: [(Discrete2dCoord, SugEnvCell)] 
-         -> [(Discrete2dCoord, SugEnvCell)]
-addSpice cells 
-    | _enableSpice_ = cellsWithSpiceLevel4
-    | otherwise = cells
-  where
-    cellsWithSpiceLevel1 = initSpice cells (circlesSpice 1 [((15, 35), 20.0), ((35, 15), 20.0)])
-    cellsWithSpiceLevel2 = initSpice cellsWithSpiceLevel1 (circlesSpice 2 [((15, 35), 15.0), ((35, 15), 15.0)])
-    cellsWithSpiceLevel3 = initSpice cellsWithSpiceLevel2 (circlesSpice 3 [((15, 35), 10.0), ((35, 15), 10.0)])
-    cellsWithSpiceLevel4 = initSpice cellsWithSpiceLevel3 (circlesSpice 4 [((15, 35), 5.0), ((35, 15), 5.0)])
-
 initSugar :: [(Discrete2dCoord, SugEnvCell)]
           -> ((Discrete2dCoord, SugEnvCell) -> Double)
           -> [(Discrete2dCoord, SugEnvCell)]
@@ -73,19 +62,6 @@ initSugar cs sugarFunc = map initSugarAux cs
         sugar = sugarFunc cp
         cell' = cell { sugEnvSugarLevel = sugar
                      , sugEnvSugarCapacity = sugar }
-
-initSpice :: [(Discrete2dCoord, SugEnvCell)]
-          -> ((Discrete2dCoord, SugEnvCell) -> Double)
-          -> [(Discrete2dCoord, SugEnvCell)]
-initSpice cs spiceFunc = map initSpiceAux cs
-  where
-    initSpiceAux :: (Discrete2dCoord, SugEnvCell)
-                 -> (Discrete2dCoord, SugEnvCell)
-    initSpiceAux cp@(coord, cell) = (coord, cell')
-      where
-        spice = spiceFunc cp
-        cell' = cell { sugEnvSpiceLevel = spice
-                      , sugEnvSpiceCapacity = spice }
 
 createCells :: MonadRandom m
             => Discrete2dDimension
@@ -110,9 +86,6 @@ initRandomCell os coord = do
   let c = SugEnvCell {
     sugEnvSugarCapacity = 0
   , sugEnvSugarLevel    = 0
-  , sugEnvSpiceCapacity = 0
-  , sugEnvSpiceLevel    = 0
-  , sugEnvPolutionLevel = 0.0
   , sugEnvOccupier      = occ
   }
 
@@ -156,13 +129,3 @@ circlesSugar sugarLevel circles (coord, cell)
     | otherwise = sugEnvSugarLevel cell -- NOTE: keep the level of before
   where
     withinRadius = any (\(p, r) -> distanceEuclideanDisc2d p coord <= r) circles
-
-circlesSpice :: Double 
-             -> [(Discrete2dCoord, Double)] 
-             -> (Discrete2dCoord, SugEnvCell) 
-             -> Double
-circlesSpice spiceLevel circles (coord, cell)
-    | withinRadius = spiceLevel
-    | otherwise = sugEnvSpiceLevel cell -- NOTE: keep the level of before
-  where
-      withinRadius = any (\(p, r) -> distanceEuclideanDisc2d p coord <= r) circles

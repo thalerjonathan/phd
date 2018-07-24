@@ -26,47 +26,20 @@ module AgentMonad
   , isDead
   , kill
   , createAgent
+
+  , (<°>)
   ) where
 
 import           Data.Maybe
 
 import           Control.Monad.State.Strict
---import qualified Data.Map as Map
 import           FRP.BearRiver
 
--- newtype AgentInteraction e = Maybe e -> AgentInteraction e
-
-{-
-class (Monad m) => MonadAgent m where
-  nextAgentId :: m AgentId
-  now :: m Time
-  myId :: m AgentId
-  sendMessage :: AgentId -> e -> m ()
-  conversation :: AgentId -> e -> (Maybe e -> )
-
-instance (MonadAgent m) => MonadAgent (StateT ABSState m) where
-  -- nextAgentId :: m AgentId
-  nextAgentId = do
-    aid <- gets absNextId
-    modify (\s -> s { absNextId = aid + 1 })
-    return aid
-
-  -- now :: m Time
-  now = gets absTime
--}
-
 type AgentId = Int
-
-{-
-data Msg e
-  = TimeStep 
-  | Event e
--}
 
 data ABSState = ABSState
   { absNextId :: AgentId
   , absTime   :: Time
-  --, absMsg    :: Map.Map AgentId (AgentId, e)
   }
 
 type AgentT m  = (StateT ABSState m)
@@ -77,10 +50,7 @@ data AgentDef m o = AgentDef
   , adBeh      :: Agent m o
   }
 
-data AgentIn = AgentIn 
-  {
-
-  }
+data AgentIn = AgentIn
 
 data AgentOut m o = AgentOut 
   { aoKill       :: !(Event ())
@@ -135,3 +105,20 @@ createAgent adef ao
 
 isObservable :: AgentOut m o -> Bool
 isObservable ao = isJust $ aoObservable ao
+
+(<°>) :: AgentOut m o 
+      -> AgentOut m o 
+      -> AgentOut m o
+(<°>) ao1 ao2 = AgentOut 
+    { aoKill       = mergeBy (\_ _ -> ()) (aoKill ao1) (aoKill ao2)
+    , aoCreate     = aoCreate ao1 ++ aoCreate ao2
+    , aoObservable = decideMaybe (aoObservable ao1) (aoObservable ao2)
+    }
+  where
+    decideMaybe :: Maybe a 
+                -> Maybe a 
+                -> Maybe a
+    decideMaybe Nothing Nothing  = Nothing
+    decideMaybe (Just a) Nothing = Just a
+    decideMaybe Nothing (Just a) = Just a
+    decideMaybe _       _        = error "Can't decide between two Maybes"

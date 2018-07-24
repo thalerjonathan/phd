@@ -11,7 +11,7 @@ import qualified  Graphics.Gloss as GLO
 import            Graphics.Gloss.Interface.IO.Animate
 import            Graphics.Gloss.Interface.IO.Simulate
 
--- import            Renderer
+import            Renderer
 import            Simulation
 
 runWithGloss :: RandomGen g
@@ -21,12 +21,9 @@ runWithGloss :: RandomGen g
              -> SimStepOut
              -> IO ()
 runWithGloss durSecs dt initSimState initOut = do
-  let freq     = 100
+  let freq     = 4
       winSize  = (800, 800)
       winTitle = "SugarScape"
-
-      -- initial model for Gloss = output of each simulation step to be rendered
-      -- initOut = (0, initEnv, [])
       
   -- intiialize IORef which holds last simulation state
   ssRef <- newIORef initSimState
@@ -54,10 +51,10 @@ displayGlossWindow winTitle winSize = GLO.InWindow winTitle winSize (0, 0)
 modelToPicture :: (Int, Int)
                -> SimStepOut
                -> IO GLO.Picture
-modelToPicture _ _ 
-  = return GLO.Blank
---modelToPicture winSize (t, env, as) 
-  -- = return $ renderSugarScapeFrame winSize t env as
+--modelToPicture _ _ 
+--  = return GLO.Blank
+modelToPicture winSize (t, env, as) 
+  = return $ renderSugarScapeFrame winSize t env as
 
 renderStep :: RandomGen g
            => Double

@@ -51,7 +51,7 @@ main = do
   start <- getCurrentTime
 
   let initAs' = if envConc then (0, sugEnvironment) : initAs else initAs
-      envAg   = if envConc then Nothing else (Just sugEnvironment)
+      envAg   = if envConc then Nothing else Just sugEnvironment
 
   (dtVars, aoVars, g') <- spawnAgents initAs' g sugCtx stmStatsFlag
   -- initial simulation context

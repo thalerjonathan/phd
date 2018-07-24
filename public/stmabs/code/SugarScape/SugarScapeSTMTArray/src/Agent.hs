@@ -4,16 +4,9 @@ module Agent
     sugAgent
   ) where
 
--- import Control.Monad
--- import Control.Monad.IfElse
--- import Control.Concurrent.STM
 import Control.Monad.Random
--- import Control.Monad.Reader
 import Control.Monad.State.Strict
 import FRP.BearRiver
-
---import Data.Maybe
---import Data.List
 
 import Common
 import Environment
@@ -32,37 +25,14 @@ sugAgent aid s0 = feedback s0 (proc (ain, s) -> do
   (ao, s') <- arrM (\(age, ain, s) -> lift $ runStateT (chapterII aid ain age) s) -< (age, ain, s)
   returnA -< (ao, s'))
 
-{- HOW TO ACCESS THE STACK
-howTo :: RandomGen g
-      => AgentId
-      -> SugAgentIn
-      -> Double
-      -> StateT SugAgentState (SugAgentMonad g) (SugAgentOut g)
-howTo _aid _ain _age = do
-  -- no lift: getting SugAgentState
-  s <- get
-
-  -- 1 lift: inside ABSMonad
-  _x <- lift get
-  --_f <- lift $ unscheduleEventM 0
- 
-  -- 2 lifts: inside SugEnvironment
-  _env <- lift $ lift get
-
-  -- 3 lifts: drawing RNG
-  _re <- lift $ lift $ lift $ randomExpM 1
-
-  return $ agentOutObservable $ Just $ sugObservableFromState s 
--}
-
 updateAgentState :: RandomGen g
                  => (SugAgentState -> SugAgentState)
                  -> StateT SugAgentState (SugAgentMonad g) ()
 updateAgentState = modify
 
-returnObservable :: RandomGen g
-                 => StateT SugAgentState (SugAgentMonad g) (SugAgentOut g)
-returnObservable 
+observable :: RandomGen g
+           => StateT SugAgentState (SugAgentMonad g) (SugAgentOut g)
+observable 
   = get >>= \s -> return $ agentOutObservable $ sugObservableFromState s 
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -83,10 +53,11 @@ chapterII aid _ain age = do
       ao' <- agentMetabolism
       ifThenElse
         (isDead ao')
-        (return ao)
+        (return $ ao <°> ao')
         (do
           agentNonCombatMove aid
-          returnObservable))
+          ao'' <- observable 
+          return $ ao <°> ao' <°> ao''))
 
 agentAgeing :: RandomGen g 
             => Time 

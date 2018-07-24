@@ -25,17 +25,20 @@ Note that in contrast to the SIR case-study we don't provide an IO implementatio
 %TODO: we compete with \cite{lysenko_framework_2008}
 %TODO: implement Data-Flow between Agents: pure in State and using TChan in STM / IO
 %TODO: compare RePast or other Java Sugarscape Performance
-
-\begin{itemize}
-	\item State - 
-	\item STM TVar -
-	\item STM TArray -
-	\item STM TArray Environment non-concurrent -
-\end{itemize}
+%
+%\begin{itemize}
+%	\item State - 
+%	\item STM TVar -
+%	\item STM TArray -
+%	\item STM TArray Environment non-concurrent -
+%\end{itemize}
 
 \subsection{Experiment Design}
 We follow \cite{lysenko_framework_2008} and measure the average updates per second of the simulation with a 51x51 environment and an initial population of 500 over 60 seconds. For each experiment we conducted 8 runs on our machine (see Table \ref{tab:machine_specs}) under no additional work-load and report both the average and standard deviation. In the experiments we varied the number of cores when running concurrently - the numbers are always indicated clearly. For varying the number of cores we compiled the executable using \textit{stack} and the \textit{threaded} option and executed it with \textit{stack} using the \textit{+RTS -Nx} option where x is the number of cores between 1 and 4.
-Note that the number of agents fluctuates during the simulation because of the nature of the model specifications of Chapter II - thus starting with 500 agents doesn't mean that there are 500 active agents all the time - on the contrary, the number of agents fluctuates between 500 and 250 and seems to stabilize around 350. This shows the highly dynamic nature of the model and the ability of our implementation to quickly spawn and terminate threads. The dynamics of the agent numbers of a typical run are shown in Figure TODO. This  
+
+Chapter II of the book: movement, harvest, regrow, no seasons, no polution, no inheritance
+
+Note that the number of agents fluctuates during the simulation because of the nature of the model specifications of Chapter II - thus starting with 500 agents doesn't mean that there are 500 active agents all the time - on the contrary, the number of agents fluctuates between 500 and 250 and seems to stabilize around 350, depending on the random number seed. This behaviour guarantees that we don't run out of agents and it shows the highly dynamic nature of the model and the ability of our implementation to quickly spawn and terminate threads. The dynamics of the agent numbers of a typical run are shown in Figure TODO.  
 
 Note that we omit the graphical rendering in the functional approach because it is a serious bottleneck taking up substantial amount of the simulation time. Although visual output is crucial in ABS, it is not what what we are interested here thus we completely omit it and only output the number of agents in the simulation at each step. Note that we need to produce \textit{some} output because of Haskells laziness - if we wouldn't output anything from the simulation then the expressions would actually never be fully evaluated thus resulting in ridiculous high number of steps per second but which obviously don't really reflect the true computations done.
 
@@ -48,11 +51,11 @@ Experiments with varying number of cores. The results are reported in Table \ref
 	\centering
   	\begin{tabular}{ c || c | c | c }
                & Cores & Steps in 60 sec & Ratio per sec \\ \hline \hline 
-    	State  & 1     & 315.25 (2.71)   & 5.25 (0.04)   \\ \hline \hline
-   		STM    & 1     & 301.75 (2.18)   & 5.02 (0.03)   \\ \hline
-   		STM    & 2     & TODO            &       \\ \hline
-   		STM    & 3     & TODO            &       \\ \hline
-   		STM    & 4     & TODO            &       \\ \hline \hline
+    	State  & 1     & TODO   & TODO   \\ \hline \hline
+   		STM    & 1     & TODO   & TODO   \\ \hline
+   		STM    & 2     & TODO            & TODO      \\ \hline
+   		STM    & 3     & TODO            & TODO      \\ \hline
+   		STM    & 4     & TODO            & TODO      \\ \hline \hline
    	\end{tabular}
   	
   	\caption{Experiments on 51x51 grid and 500 initial agents with varying number of cores.}
@@ -67,8 +70,8 @@ We also compared the retry-ratio on varying number of cores.
         Cores & Commits & Retries & Ratio \\ \hline \hline 
     	1     & TODO              & TODO  \\ \hline \hline
    		2     & TODO              & TODO  \\ \hline
-   		3     & TODO              &       \\ \hline
-   		4     & TODO              &       \\ \hline
+   		3     & TODO              & TODO      \\ \hline
+   		4     & TODO              & TODO      \\ \hline
    	\end{tabular}
   	
   	\caption{Experiments on 51x51 grid and 500 initial agents with varying number of cores.}

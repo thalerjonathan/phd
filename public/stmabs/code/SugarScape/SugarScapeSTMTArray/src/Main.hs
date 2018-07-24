@@ -25,11 +25,12 @@ main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
 
-  let envConc    = False  -- runs the environment agent concurrently
-      rngSeed    = 42
-      dt         = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
-      agentCount = 500
-      envSize    = (51, 51)
+  let stmStatsFlag = False
+      envConc      = True  -- runs the environment agent concurrently
+      rngSeed      = 42
+      dt           = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
+      agentCount   = 500
+      envSize      = (51, 51)
       -- initial RNG
       g0                     = mkStdGen rngSeed
 
@@ -55,19 +56,20 @@ main = do
   let initAs' = if envConc then (0, sugEnvironment) : initAs else initAs
       envAg   = if envConc then Nothing else Just sugEnvironment
 
-  (dtVars, aoVars, g') <- spawnAgents initAs' g sugCtx
+  (dtVars, aoVars, g') <- spawnAgents initAs' g sugCtx stmStatsFlag
   -- initial simulation context
   let initSimCtx = mkSimContex dtVars aoVars 0 g' start 0 envAg
-  --runWithGloss durationSecs dt initSimCtx sugCtx initOut
-  simulate dt initSimCtx sugCtx
+  --runWithGloss durationSecs dt initSimCtx sugCtx initOut stmStatsFlag
+  simulate dt initSimCtx sugCtx stmStatsFlag
 
 simulate :: RandomGen g
          => DTime
          -> SimContext g
          -> SugContext
+         -> Bool
          -> IO ()
-simulate dt simCtx sugCtx = do
-  (simCtx', (t, _, aos)) <- simulationStep dt sugCtx simCtx
+simulate dt simCtx sugCtx stmStatsFlag = do
+  (simCtx', (t, _, aos)) <- simulationStep dt sugCtx simCtx stmStatsFlag
 
   -- NOTE: need to print t otherwise lazy evaluation would omit all computation
   putStrLn $ "t = " ++ show t ++ " agents = " ++ show (length aos)
@@ -77,4 +79,4 @@ simulate dt simCtx sugCtx = do
     then do
       dumpSTMStats
       putStrLn "goodbye" 
-    else simulate dt simCtx' sugCtx
+    else simulate dt simCtx' sugCtx stmStatsFlag

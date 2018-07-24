@@ -220,7 +220,7 @@ _enableInheritance_ :: Bool
 _enableInheritance_ = False
 
 _enableSeasons_ :: Bool
-_enableSeasons_ = True
+_enableSeasons_ = False
 
 _enableSex_ :: Bool
 _enableSex_ = False

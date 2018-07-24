@@ -33,7 +33,8 @@ module Model
   , nextAgentId
   , readEnvironment
   , writeEnvironment
-
+  , (<°>)
+  
   , AgentColoring (..)
   , _enablePolution_
   , _enableSpice_
@@ -194,7 +195,7 @@ data SugEnvCell = SugEnvCell
 -- TODO: to reduce STM retries use TArray for Environment
 type SugEnvironment = Discrete2d SugEnvCell
 
-data SugAgentIn = SugAgentIn { }
+data SugAgentIn = SugAgentIn 
 
 data SugAgentOut g = SugAgentOut 
   { sugAoKill       :: !(Event ())
@@ -235,6 +236,23 @@ writeEnvironment e = do
   ctx <- ask
   let envVar = sugCtxEnv ctx
   lift $ lift $ writeTVar envVar e
+
+(<°>) :: SugAgentOut g
+      -> SugAgentOut g
+      -> SugAgentOut g
+(<°>) ao1 ao2 = SugAgentOut 
+    { sugAoKill       = mergeBy (\_ _ -> ()) (sugAoKill ao1) (sugAoKill ao2)
+    , sugAoNew        = sugAoNew ao1 ++ sugAoNew ao2
+    , sugAoObservable = decideMaybe (sugAoObservable ao1) (sugAoObservable ao2)
+    }
+  where
+    decideMaybe :: Maybe a 
+                -> Maybe a 
+                -> Maybe a
+    decideMaybe Nothing Nothing  = Nothing
+    decideMaybe (Just a) Nothing = Just a
+    decideMaybe Nothing (Just a) = Just a
+    decideMaybe _       _        = error "Can't decide between two Maybes"
 ------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -261,7 +279,7 @@ _enableInheritance_ :: Bool
 _enableInheritance_ = False
 
 _enableSeasons_ :: Bool
-_enableSeasons_ = True
+_enableSeasons_ = False
 
 _enableSex_ :: Bool
 _enableSex_ = False

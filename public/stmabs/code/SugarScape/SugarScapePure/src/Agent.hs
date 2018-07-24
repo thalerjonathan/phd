@@ -84,19 +84,13 @@ agentMetabolism :: RandomGen g
                 => StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
 agentMetabolism = do
   s <- get
-  let (sugarMetab, spiceMetab) = metabolismAmount s
+  let sugarMetab = sugAgSugarMetab s
 
   sugarLevel <- gets sugAgSugarLevel
-  spiceLevel <- gets sugAgSpiceLevel
 
   let newSugarLevel = max 0 (sugarLevel - sugarMetab)
-  let newSpiceLevel = max 0 (spiceLevel - spiceMetab)
-
-  updateAgentState (\s' -> s' { sugAgSugarLevel = newSugarLevel, sugAgSpiceLevel = newSpiceLevel })
-
-  -- NOTE: for now the metabolism (and harvest) of spice does not cause any polution
-  coord <- gets sugAgCoord
-  lift $ lift $ modify $ poluteCell (sugarMetab * polutionMetabolismFactor) coord
+  
+  updateAgentState (\s' -> s' { sugAgSugarLevel = newSugarLevel })
 
   ifThenElseM
     starvedToDeath
@@ -107,11 +101,7 @@ starvedToDeath :: RandomGen g
                => StateT SugAgentState (SugAgentMonadT g) Bool
 starvedToDeath = do
   sugar <- gets sugAgSugarLevel
-  spice <- gets sugAgSpiceLevel
-
-  if _enableSpice_ 
-    then return $ (sugar <= 0) || (spice <= 0)
-    else return $ sugar <= 0
+  return $ sugar <= 0
 
 agentMove :: RandomGen g
           => AgentId
@@ -177,18 +167,11 @@ agentHarvestCell cellCoord = do
   cell <- lift $ lift $ cellAtM cellCoord
 
   sugarLevelAgent <- gets sugAgSugarLevel
-  spiceLevelAgent <- gets sugAgSpiceLevel
 
-  let sugarLevelCell = sugEnvSugarLevel cell
-  let spiceLevelCell = sugEnvSpiceLevel cell
-
+  let sugarLevelCell     = sugEnvSugarLevel cell
   let newSugarLevelAgent = sugarLevelCell + sugarLevelAgent
-  let newSpiceLevelAgent = spiceLevelCell + spiceLevelAgent
 
-  updateAgentState (\s -> s { sugAgSugarLevel = newSugarLevelAgent, sugAgSpiceLevel = newSpiceLevelAgent })
+  updateAgentState (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
 
-  let cellHarvested = cell { sugEnvSugarLevel = 0.0, sugEnvSpiceLevel = 0.0 }
+  let cellHarvested = cell { sugEnvSugarLevel = 0.0 }
   lift $ lift $ changeCellAtM cellCoord cellHarvested
-  
-  -- NOTE: at the moment harvesting SPICE does not influence the polution
-  lift $ lift $ modify $ poluteCell (sugarLevelCell * polutionHarvestFactor ) cellCoord

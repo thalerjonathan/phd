@@ -33,7 +33,7 @@ runWithGloss durSecs dt initSimState initOut = do
       -- run stimulation, driven by Gloss
       simulateIO 
         (displayGlossWindow winTitle winSize) -- window title and size
-        black                     -- background
+        white                     -- background
         freq                      -- how many steps of the simulation to calculate per second (roughly, depends on rendering performance)
         initOut                   -- initial model = output of each simulation step to be rendered
         (modelToPicture winSize)  -- model-to-picture function
@@ -41,7 +41,7 @@ runWithGloss durSecs dt initSimState initOut = do
     else
       animateIO
         (displayGlossWindow winTitle winSize)
-        black
+        white
         (renderStepAnimate winSize durSecs dt ssRef)
         (const $ return ())
 

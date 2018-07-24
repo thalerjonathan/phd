@@ -56,11 +56,3 @@ fisherYatesShuffle gen0 l = toElems $ foldl fisherYatesStep (initial (head l) ge
     fisherYatesStep (m, gen) (i, x) = ((Map.insert j x . Map.insert i (m Map.! j)) m, gen')
       where
         (j, gen') = randomR (0, i) gen
-
-{-
-randomShuffleM :: (RandomGen g) => [a] -> Rand g [a]
-randomShuffleM _as = do
-  g <- get
-  let (as', g') = fisherYatesShuffle g as
-  put g'
-  return as'-}

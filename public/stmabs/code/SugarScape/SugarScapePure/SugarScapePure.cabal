@@ -56,7 +56,6 @@ executable SugarScapePure
                 , Common
                 , Discrete
                 , Environment
-                , Exporter
                 , GlossRunner
                 , Init
                 , Model

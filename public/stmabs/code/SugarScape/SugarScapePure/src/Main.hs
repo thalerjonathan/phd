@@ -8,7 +8,7 @@ import            Data.Time.Clock
 import            FRP.BearRiver
 
 import            AgentMonad
--- import            GlossRunner
+import            GlossRunner
 import            Init
 import            Simulation
 
@@ -21,10 +21,11 @@ main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
 
-  let rngSeed    = 42
+  let glossOut   = False
+      rngSeed    = 42
       dt         = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
       agentCount = 500
-      envSize    = (51, 51)
+      envSize    = (50, 50)
 
       -- initial RNG
       g0 = mkStdGen rngSeed
@@ -37,8 +38,9 @@ main = do
 
   let initSimState = mkSimState (simStepSF initAis initSfs) (mkAbsState $ maximum initAis) initEnv g start 0
 
-  simulate dt initSimState
-  --runWithGloss durationSecs dt initSimState (0, initEnv, [])
+  if glossOut
+    then runWithGloss durationSecs dt initSimState (0, initEnv, [])
+    else simulate dt initSimState
 
 simulate :: RandomGen g
          => DTime

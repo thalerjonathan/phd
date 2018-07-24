@@ -9,7 +9,7 @@ import           Control.Monad.Random
 import           Data.Time.Clock
 import           FRP.BearRiver
 
---import           GlossRunner
+import           GlossRunner
 import           Environment
 import           Init
 import           Model
@@ -26,17 +26,18 @@ main = do
 
   let stmStatsFlag = False   -- collects STM statistics. WARNING: reduces performance!
       envConc      = True    -- runs the environment agent concurrently
+      glossOut     = False
       rngSeed      = 42
       dt           = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
       agentCount   = 500
-      envSize      = (51, 51)
+      envSize      = (50, 50)
 
       -- initial RNG
       g0                     = mkStdGen rngSeed
       -- initial agents and environment
       ((initAs, initEnv), g) = runRand (createSugarScape agentCount envSize) g0
       -- initial model for Gloss = output of each simulation step to be rendered
-      --initOut                = (0, initEnv, [])
+      initOut                = (0, initEnv, [])
       -- initial simulation state
       (initAis, _)           = unzip initAs
 
@@ -56,8 +57,10 @@ main = do
   (dtVars, aoVars, g') <- spawnAgents initAs' g sugCtx stmStatsFlag
   -- initial simulation context
   let initSimCtx = mkSimContex dtVars aoVars 0 g' start 0 envAg
-  --runWithGloss durationSecs dt initSimCtx sugCtx initOut
-  simulate dt initSimCtx sugCtx stmStatsFlag
+
+  if glossOut
+    then runWithGloss durationSecs dt initSimCtx sugCtx initOut stmStatsFlag
+    else simulate dt initSimCtx sugCtx stmStatsFlag
 
 simulate :: RandomGen g
          => DTime

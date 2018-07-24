@@ -4,16 +4,9 @@ module Agent
     sugAgent
   ) where
 
--- import Control.Monad
--- import Control.Monad.IfElse
--- import Control.Concurrent.STM
 import Control.Monad.Random
--- import Control.Monad.Reader
 import Control.Monad.State.Strict
 import FRP.BearRiver
-
---import Data.Maybe
---import Data.List
 
 import Common
 import Environment
@@ -50,43 +43,15 @@ chapterII :: RandomGen g
           -> SugAgentIn
           -> Time
           -> StateT SugAgentState (SugAgentMonad g) (SugAgentOut g)
-chapterII aid _ain age = do
-  ao <- agentAgeing age
-
+chapterII aid _ain _age = do
+  ao <- agentMetabolism
   ifThenElse
     (isDead ao)
     (return ao)
     (do
-      ao' <- agentMetabolism
-      ifThenElse
-        (isDead ao')
-        (return $ ao <°> ao')
-        (do
-          agentNonCombatMove aid
-          ao'' <- observable 
-          return $ ao <°> ao' <°> ao''))
-
-agentAgeing :: RandomGen g 
-            => Time 
-            -> StateT SugAgentState (SugAgentMonad g) (SugAgentOut g)
-agentAgeing newAge = do
-  updateAgentState (\s -> s { sugAgAge = newAge })
-
-  ifThenElseM
-    dieFromAge
-    (do
-        (aid, a) <- birthNewAgent
-        passWealthOn
-        ao <- agentDies
-        return $ newAgent aid a ao)
-    (return agentOut)
-
-dieFromAge :: Monad m
-           => StateT SugAgentState m Bool
-dieFromAge = do
-  age    <- gets sugAgAge
-  maxAge <- gets sugAgMaxAge
-  return $ age > maxAge
+      agentMove aid
+      ao' <- observable 
+      return $ ao <°> ao')
 
 agentDies :: RandomGen g
           => StateT SugAgentState (SugAgentMonad g) (SugAgentOut g)
@@ -111,63 +76,15 @@ agentCellOnCoord env = do
   let cell = cellAt coord env
   return (coord, cell)
 
-birthNewAgent :: RandomGen g
-              => StateT SugAgentState (SugAgentMonad g) (AgentId, SugAgent g)
-birthNewAgent = do
-    -- -| not _enableBirthAgentOnAgeDeath_ = return ()
-    -- | otherwise = do
-      env           <- lift readEnvironment
-      newAgentId    <- lift nextAgentId
-      newAgentCoord <- findUnoccpiedRandomPosition env   -- NOTE: why not take the same position?
-      (newa, _) <- lift $ lift $ randomAgent (newAgentId, newAgentCoord) sugAgent id
-      return (newAgentId, newa)
-  where
-    findUnoccpiedRandomPosition :: RandomGen g
-                                => SugEnvironment
-                                -> StateT SugAgentState (SugAgentMonad g) Discrete2dCoord
-    findUnoccpiedRandomPosition env = do
-      (c, coord) <- lift $ lift $ randomCell env
-      ifThenElse
-        (cellOccupied c) 
-        (findUnoccpiedRandomPosition env)
-        (return coord)
-
-passWealthOn :: RandomGen g
-             => StateT SugAgentState (SugAgentMonad g) ()
-passWealthOn
-    | _enableInheritance_ = do
-      sugarLevel  <- gets sugAgSugarLevel
-      childrenIds <- gets sugAgChildren
-
-      let hasChildren = (not . null) childrenIds
-
-      when hasChildren $ do 
-        let childrenCount = length childrenIds
-        let _childrenSugarShare = sugarLevel / fromIntegral childrenCount
-        -- TODO: implement
-        -- broadcastMessageM (InheritSugar childrenSugarShare) childrenIds
-        return ()
-    | otherwise = return ()
-
 agentMetabolism :: RandomGen g
                 => StateT SugAgentState (SugAgentMonad g) (SugAgentOut g)
 agentMetabolism = do
-  s <- get
-  let (sugarMetab, spiceMetab) = metabolismAmount s
-
+  sugarMetab <- gets sugAgSugarMetab
   sugarLevel <- gets sugAgSugarLevel
-  spiceLevel <- gets sugAgSpiceLevel
 
   let newSugarLevel = max 0 (sugarLevel - sugarMetab)
-  let newSpiceLevel = max 0 (spiceLevel - spiceMetab)
 
-  updateAgentState (\s' -> s' { sugAgSugarLevel = newSugarLevel, sugAgSpiceLevel = newSpiceLevel })
-
-  -- NOTE: for now the metabolism (and harvest) of spice does not cause any polution
-  coord <- gets sugAgCoord
-  env   <- lift readEnvironment
-  let env' = poluteCell (sugarMetab * polutionMetabolismFactor) coord env
-  lift $ writeEnvironment env'
+  updateAgentState (\s' -> s' { sugAgSugarLevel = newSugarLevel })
 
   ifThenElseM
     starvedToDeath
@@ -178,16 +95,12 @@ starvedToDeath :: RandomGen g
                => StateT SugAgentState (SugAgentMonad g) Bool
 starvedToDeath = do
   sugar <- gets sugAgSugarLevel
-  spice <- gets sugAgSpiceLevel
+  return $ sugar <= 0
 
-  if _enableSpice_ 
-    then return $ (sugar <= 0) || (spice <= 0)
-    else return $ sugar <= 0
-
-agentNonCombatMove :: RandomGen g
-                   => AgentId
-                   -> StateT SugAgentState (SugAgentMonad g) ()
-agentNonCombatMove aid = do
+agentMove :: RandomGen g
+          => AgentId
+          -> StateT SugAgentState (SugAgentMonad g) ()
+agentMove aid = do
   cellsInSight <- agentLookout
   coord        <- gets sugAgCoord
   env          <- lift readEnvironment
@@ -254,19 +167,14 @@ agentHarvestCell cellCoord = do
   let cell = cellAt cellCoord env
 
   sugarLevelAgent <- gets sugAgSugarLevel
-  spiceLevelAgent <- gets sugAgSpiceLevel
 
   let sugarLevelCell = sugEnvSugarLevel cell
-  let spiceLevelCell = sugEnvSpiceLevel cell
 
   let newSugarLevelAgent = sugarLevelCell + sugarLevelAgent
-  let newSpiceLevelAgent = spiceLevelCell + spiceLevelAgent
 
-  updateAgentState (\s -> s { sugAgSugarLevel = newSugarLevelAgent, sugAgSpiceLevel = newSpiceLevelAgent })
+  updateAgentState (\s -> s { sugAgSugarLevel = newSugarLevelAgent })
 
-  let cellHarvested = cell { sugEnvSugarLevel = 0.0, sugEnvSpiceLevel = 0.0 }
+  let cellHarvested = cell { sugEnvSugarLevel = 0.0 }
       env'          = changeCellAt cellCoord cellHarvested env
-      -- NOTE: at the moment harvesting SPICE does not influence the polution
-      env''         = poluteCell (sugarLevelCell * polutionHarvestFactor) cellCoord env'
 
-  lift $ writeEnvironment env''
+  lift $ writeEnvironment env'

@@ -55,7 +55,6 @@ executable SugarScapeSTMTVar
                 , Common
                 , Discrete
                 , Environment
-                , Exporter
                 , GlossRunner
                 , Init
                 , Model

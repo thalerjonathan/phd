@@ -4,11 +4,12 @@ import           System.IO
 import           System.Random
 
 import           Control.Concurrent.STM
+import           Control.Concurrent.STM.Stats
 import           Control.Monad.Random
 import           Data.Time.Clock
 import           FRP.BearRiver
 
-import           GlossRunner
+--import           GlossRunner
 import           Environment
 import           Init
 import           Model
@@ -23,18 +24,19 @@ main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
 
-  let envConc    = False  -- runs the environment agent concurrently
-      rngSeed    = 42
-      dt         = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
-      agentCount = 500
-      envSize    = (50, 50)
+  let stmStatsFlag = False   -- collects STM statistics. WARNING: reduces performance!
+      envConc      = True    -- runs the environment agent concurrently
+      rngSeed      = 42
+      dt           = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
+      agentCount   = 500
+      envSize      = (51, 51)
 
       -- initial RNG
       g0                     = mkStdGen rngSeed
       -- initial agents and environment
       ((initAs, initEnv), g) = runRand (createSugarScape agentCount envSize) g0
       -- initial model for Gloss = output of each simulation step to be rendered
-      initOut                = (0, initEnv, [])
+      --initOut                = (0, initEnv, [])
       -- initial simulation state
       (initAis, _)           = unzip initAs
 
@@ -51,23 +53,27 @@ main = do
   let initAs' = if envConc then (0, sugEnvironment) : initAs else initAs
       envAg   = if envConc then Nothing else (Just sugEnvironment)
 
-  (dtVars, aoVars, g') <- spawnAgents initAs' g sugCtx
+  (dtVars, aoVars, g') <- spawnAgents initAs' g sugCtx stmStatsFlag
   -- initial simulation context
   let initSimCtx = mkSimContex dtVars aoVars 0 g' start 0 envAg
-  runWithGloss durationSecs dt initSimCtx sugCtx initOut
-  simulate dt initSimCtx sugCtx
+  --runWithGloss durationSecs dt initSimCtx sugCtx initOut
+  simulate dt initSimCtx sugCtx stmStatsFlag
 
 simulate :: RandomGen g
          => DTime
          -> SimContext g
          -> SugContext
+         -> Bool
          -> IO ()
-simulate dt simCtx sugCtx = do
-  (simCtx', (t, _, _)) <- simulationStep dt sugCtx simCtx
+simulate dt simCtx sugCtx stmStatsFlag = do
+  (simCtx', (t, _, aos)) <- simulationStep dt sugCtx simCtx stmStatsFlag
 
-  print t
-
+  -- NOTE: need to print t otherwise lazy evaluation would omit all computation
+  putStrLn $ "t = " ++ show t ++ " agents = " ++ show (length aos)
+  
   ret <- checkTime durationSecs simCtx' 
   if ret 
-    then putStrLn "goodbye" 
-    else simulate dt simCtx' sugCtx
+    then do
+      when stmStatsFlag dumpSTMStats
+      putStrLn "goodbye" 
+    else simulate dt simCtx' sugCtx stmStatsFlag

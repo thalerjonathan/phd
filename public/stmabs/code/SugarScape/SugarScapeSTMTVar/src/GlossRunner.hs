@@ -21,8 +21,9 @@ runWithGloss :: RandomGen g
              -> SimContext g
              -> SugContext
              -> SimStepOut
+             -> Bool
              -> IO ()
-runWithGloss durSecs dt initSimCtx sugCtx initOut = do
+runWithGloss durSecs dt initSimCtx sugCtx initOut stmStatsFlag = do
   let freq     = 0
       winSize  = (800, 800)
       winTitle = "SugarScape"
@@ -37,12 +38,12 @@ runWithGloss durSecs dt initSimCtx sugCtx initOut = do
         freq                      -- how many steps of the simulation to calculate per second (roughly, depends on rendering performance)
         initOut                   -- initial model = output of each simulation step to be rendered
         (modelToPicture winSize)  -- model-to-picture function
-        (renderStep durSecs dt sugCtx outRef)    -- 
+        (renderStep durSecs dt sugCtx outRef stmStatsFlag)    -- 
     else 
       animateIO
         (displayGlossWindow winTitle winSize)
         black
-        (renderStepAnimate winSize durSecs dt sugCtx outRef)
+        (renderStepAnimate winSize durSecs dt sugCtx outRef stmStatsFlag)
         (const $ return ())
 
   return ()
@@ -63,13 +64,14 @@ renderStep :: RandomGen g
            -> DTime
            -> SugContext
            -> IORef (SimContext g)
+           -> Bool
            -> ViewPort
            -> Float
            -> SimStepOut
            -> IO SimStepOut
-renderStep durSecs dt sugCtx ssRef _ _ _ = do
+renderStep durSecs dt sugCtx ssRef stmStatsFlag _ _ _ = do
   simCtx <- readIORef ssRef
-  (simCtx', out) <- simulationStep dt sugCtx simCtx
+  (simCtx', out) <- simulationStep dt sugCtx simCtx stmStatsFlag
   writeIORef ssRef simCtx'
 
   _ <- checkTime durSecs simCtx' 
@@ -82,11 +84,12 @@ renderStepAnimate :: RandomGen g
                   -> DTime
                   -> SugContext
                   -> IORef (SimContext g)
+                  -> Bool
                   -> Float
                   -> IO GLO.Picture
-renderStepAnimate winSize durSecs dt sugCtx ssRef _ = do
+renderStepAnimate winSize durSecs dt sugCtx ssRef stmStatsFlag _ = do
   simCtx <- readIORef ssRef
-  (simCtx', out) <- simulationStep dt sugCtx simCtx
+  (simCtx', out) <- simulationStep dt sugCtx simCtx stmStatsFlag
   writeIORef ssRef simCtx'
 
   _ <- checkTime durSecs simCtx'

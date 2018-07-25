@@ -1,0 +1,18 @@
+3043 steps after 60.0 sec. is a ratio of 50.71666666666667
+3064 steps after 60.0 sec. is a ratio of 51.06666666666667
+3065 steps after 60.0 sec. is a ratio of 51.083333333333336
+3040 steps after 60.0 sec. is a ratio of 50.666666666666664
+3034 steps after 60.0 sec. is a ratio of 50.56666666666667
+3046 steps after 60.0 sec. is a ratio of 50.766666666666666
+3038 steps after 60.0 sec. is a ratio of 50.63333333333333
+3044 steps after 60.0 sec. is a ratio of 50.733333333333334
+
+steps = [3043, 3064, 3065, 3040, 3034, 3046, 3046, 3044];
+ratios = steps ./ 60;
+
+mean (steps) = 3047.8
+std (steps)  = 11.042
+
+mean (ratios) = 50.796
+std (ratios)  = 0.184
+

@@ -24,9 +24,9 @@ main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
 
-  let stmStatsFlag = False   -- collects STM statistics. WARNING: reduces performance!
+  let stmStatsFlag = True   -- collects STM statistics. WARNING: reduces performance!
       envConc      = True    -- runs the environment agent concurrently
-      perfFile     = "50x50_500_4_core_concEnv.txt"
+      perfFile     = "50x50_500_1_core_concEnv.txt"
       glossOut     = False
       rngSeed      = 42
       dt           = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents

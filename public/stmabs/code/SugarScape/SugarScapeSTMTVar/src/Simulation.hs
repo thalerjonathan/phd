@@ -197,5 +197,6 @@ checkTime durSecs simCtx fileName = do
 
       appendFile fileName $ show steps ++ " steps after " ++ show durSecs ++ " sec. is a ratio of " ++ show stepsRatio ++ "\n"
       -- putStrLn $ show steps ++ " steps after " ++ show durSecs ++ " sec. is a ratio of " ++ show stepsRatio
+    
       return True)
     else return False

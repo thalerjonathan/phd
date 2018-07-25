@@ -50,45 +50,54 @@ environment in STM is run as concurrent agent
 	\centering
   	\begin{tabular}{ c || c | c | c }
                & Cores & Steps in 60 sec & Ratio per sec  \\ \hline \hline 
-    	State  & 1     & 1693.1 (8.305)  & 28.219 (0.138) \\ \hline \hline
-   		STM    & 1     & 1854.2 (29.519) & 30.904 (0.491) \\ \hline
-   		STM    & 2     & 2129.5 (61.414) & 35.492 (1.023) \\ \hline
-   		STM    & 3     & 2312.5 (71.658) & 38.542 (1.194) \\ \hline
-   		STM    & 4     & 2238.8 (36.307) & 37.312 (0.605) \\ \hline \hline
+    	State  & 1     & 1,693.1 (8.305)  & 28.219 (0.138) \\ \hline \hline
+   		STM    & 1     & 1,854.2 (29.519) & 30.904 (0.491) \\ \hline
+   		STM    & 2     & 2,129.5 (61.414) & 35.492 (1.023) \\ \hline
+   		STM    & 3     & 2,312.5 (71.658) & 38.542 (1.194) \\ \hline
+   		STM    & 4     & 2,238.8 (36.307) & 37.312 (0.605) \\ \hline \hline
    	\end{tabular}
   	
-  	\caption{Experiments on 50x50 grid and 500 initial agents with varying number of cores.}
+  	\caption{Performance on 50x50 grid and 500 initial agents with varying number of cores.}
 	\label{tab:naive_results_time}
 \end{table}
 
-We also compared the retry-ratio on varying number of cores.
+We also compared the average retry-ratio on varying number of cores.
+
+mean (commits) = 486850
+std (commits)  = 7927.9
+
+mean (retries) = 1646800
+std (retries)  = 29939
+
+mean (retries) / mean (commits) = 3.3825
 
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
-        Cores & Commits & Retries & Ratio \\ \hline \hline 
-    	1     & TODO              & TODO  \\ \hline \hline
-   		2     & TODO              & TODO  \\ \hline
-   		3     & TODO              & TODO  \\ \hline
-   		4     & TODO              & TODO  \\ \hline
+        Cores & Commits           & Retries            & Ratio \\ \hline \hline 
+    	1     & 498,881 (3,042.4) & 2,407.8 (248.56)   & 0.004 \\ \hline \hline
+   		2     & 557,800 (7,503.3) & 592,890 (8,827.9)  & 1.062 \\ \hline
+   		3     & 540,700 (7,530.2) & 1,189,100 (19,771) & 2.199 \\ \hline
+   		4     & 486,850 (7,927.9) & 1,646,800 (29,939) & 3.382 \\ \hline
    	\end{tabular}
   	
-  	\caption{Experiments on 51x51 grid and 500 initial agents with varying number of cores.}
+  	\caption{Retries on 50x50 grid and 500 initial agents with varying number of cores.}
 	\label{tab:naive_results_retries}
 \end{table}
 
 \subsection{Running Environment non-concurrently}
+Running concurrently is basically wrong because could lead to runs where the regrowth happens after the agent harvests which violates the model specifications. 
 
 \subsection{From TVar to TArray}
 
-\subsection{Concurrent Environment cell threads}
+\subsection{Scaling up Environment}
 So far we kept the grid-size constant because we implemented the environment as a single agent which works sequentially on the cells to regrow the sugar. Obviously this doesn't really scale up on parallel hardware thus having made the transition to TArray it should be no problem to run each cell within its own thread.
 At this point we are dominated by Amdahls law
 
 TODO: increasing grid-size with and without multithreaded enviornment
 
 \subsection{Comparison with imperative approaches}
-they are running it on 128x128 and on 10 year old single-core machines 
+they are running it on 128x128 and on 10 year old single-core machines  \cite{lysenko_framework_2008}
 
 % RePast & 1     & N/A             & 17    \\ \hline \hline
 % GPU    & N/A   & N/A             & 2000  \\ \hline \hline

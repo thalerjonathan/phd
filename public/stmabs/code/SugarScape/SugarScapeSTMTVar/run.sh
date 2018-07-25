@@ -3,6 +3,6 @@ COUNT=1
 # bash until loop
 until [ $COUNT -gt 8 ]; do
 	echo $COUNT
-        echo `stack exec -- SugarScapeSTMTVar +RTS -N4 > dump.txt`
+        echo `stack exec -- SugarScapeSTMTVar +RTS -N1 > dump.txt`
         let COUNT=COUNT+1
 done 

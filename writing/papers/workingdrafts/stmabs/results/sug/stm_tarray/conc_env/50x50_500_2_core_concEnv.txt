@@ -1,0 +1,18 @@
+3127 steps after 60.0 sec. is a ratio of 52.11666666666667
+3185 steps after 60.0 sec. is a ratio of 53.083333333333336
+3170 steps after 60.0 sec. is a ratio of 52.833333333333336
+3178 steps after 60.0 sec. is a ratio of 52.96666666666667
+3265 steps after 60.0 sec. is a ratio of 54.416666666666664
+3053 steps after 60.0 sec. is a ratio of 50.88333333333333
+3174 steps after 60.0 sec. is a ratio of 52.9
+3196 steps after 60.0 sec. is a ratio of 53.266666666666666
+
+steps = [3127, 3185, 3170, 3178, 3265, 3053, 3174, 3196];
+ratios = steps ./ 60;
+
+mean (steps) = 3168.5
+std (steps)  = 60.387
+
+mean (ratios) = 52.808
+std (ratios)  = 1.0064
+

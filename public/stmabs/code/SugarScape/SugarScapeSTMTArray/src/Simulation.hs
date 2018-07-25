@@ -183,21 +183,21 @@ stmConf = defaultTrackSTMConf {
 checkTime :: RandomGen g
           => Double
           -> SimContext g
+          -> String
           -> IO Bool
-checkTime durSecs simCtx = do
+checkTime durSecs simCtx fileName = do
   nowT <- getCurrentTime
 
-  let start   = simCtxStart simCtx
-      dtStart = realToFrac $ diffUTCTime nowT start
+  let start = simCtxStart simCtx
+  let dtStart = realToFrac $ diffUTCTime nowT start
 
   if dtStart > durSecs
     then (do 
       let steps      = simCtxSteps simCtx
           stepsRatio = (fromIntegral steps / durSecs) :: Double
 
-      putStrLn $ show steps ++ " steps after " ++ show durSecs ++ " sec. is a ratio of " ++ show stepsRatio
+      appendFile fileName $ show steps ++ " steps after " ++ show durSecs ++ " sec. is a ratio of " ++ show stepsRatio ++ "\n"
+      -- putStrLn $ show steps ++ " steps after " ++ show durSecs ++ " sec. is a ratio of " ++ show stepsRatio
+    
       return True)
-    else (do
-      --let secsLeft = durSecs - dtStart
-      -- putStrLn $ show secsLeft ++ " secs left..."
-      return False)
+    else return False

@@ -63,14 +63,6 @@ environment in STM is run as concurrent agent
 
 We also compared the average retry-ratio on varying number of cores.
 
-mean (commits) = 486850
-std (commits)  = 7927.9
-
-mean (retries) = 1646800
-std (retries)  = 29939
-
-mean (retries) / mean (commits) = 3.3825
-
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
@@ -88,7 +80,56 @@ mean (retries) / mean (commits) = 3.3825
 \subsection{Running Environment non-concurrently}
 Running concurrently is basically wrong because could lead to runs where the regrowth happens after the agent harvests which violates the model specifications. 
 
+\begin{table}
+	\centering
+  	\begin{tabular}{ c || c | c | c }
+        Cores & Steps & Ratio \\ \hline \hline 
+    	1     &  &  \\ \hline \hline
+   		1     &  &  \\ \hline
+   		2     &  &  \\ \hline
+   		3     &  &  \\ \hline
+   		4     &  &  \\ \hline \hline
+   	\end{tabular}
+  	
+  	\caption{Performance on 50x50 grid and 500 initial agents with varying number of cores.}
+	\label{tab:naive_results_time}
+\end{table}
+
+We also compared the average retry-ratio on varying number of cores.
+
+\begin{table}
+	\centering
+  	\begin{tabular}{ c || c | c | c }
+        Cores & Commits           & Retries            & Ratio \\ \hline \hline 
+    	1     &                   &                    & 0.004 \\ \hline \hline
+   		2     &                   &                    & 1.062 \\ \hline
+   		3     &                   &                    & 2.199 \\ \hline
+   		4     &                   &                    & 3.382 \\ \hline
+   	\end{tabular}
+  	
+  	\caption{Retries on 50x50 grid and 500 initial agents with varying number of cores.}
+	\label{tab:naive_results_retries}
+\end{table}
+
 \subsection{From TVar to TArray}
+Environment runs after all agents
+
+\begin{table}
+	\centering
+  	\begin{tabular}{ c || c | c | c }
+        Cores & Steps & Ratio \\ \hline \hline 
+    	1     &  &  \\ \hline \hline
+   		1     &  &  \\ \hline
+   		2     &  &  \\ \hline
+   		3     &  &  \\ \hline
+   		4     &  &  \\ \hline \hline
+   	\end{tabular}
+  	
+  	\caption{Performance on 50x50 grid and 500 initial agents with varying number of cores.}
+	\label{tab:naive_results_time}
+\end{table}
+
+\subsection{Scaling up Agents}
 
 \subsection{Scaling up Environment}
 So far we kept the grid-size constant because we implemented the environment as a single agent which works sequentially on the cells to regrow the sugar. Obviously this doesn't really scale up on parallel hardware thus having made the transition to TArray it should be no problem to run each cell within its own thread.

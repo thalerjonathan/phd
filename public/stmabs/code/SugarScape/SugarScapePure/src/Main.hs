@@ -22,13 +22,14 @@ main = do
   hSetBuffering stdout LineBuffering
 
   let glossOut   = False
+      perfFile   = "50x50_500.txt"
       rngSeed    = 42
-      dt         = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
+      dt         = 1.0
       agentCount = 500
       envSize    = (50, 50)
 
       -- initial RNG
-      g0 = mkStdGen rngSeed
+      (g0, shuffleRng) = split $ mkStdGen rngSeed
       -- initial agents and environment
       ((initAs, initEnv), g) = runRand (createSugarScape agentCount envSize) g0
       -- initial simulation state
@@ -36,23 +37,25 @@ main = do
 
   start <- getCurrentTime
 
-  let initSimState = mkSimState (simStepSF initAis initSfs) (mkAbsState $ maximum initAis) initEnv g start 0
+  let initSimState = mkSimState (simStepSF initAis initSfs shuffleRng) (mkAbsState $ maximum initAis) initEnv g start 0
 
   if glossOut
-    then runWithGloss durationSecs dt initSimState (0, initEnv, [])
-    else simulate dt initSimState
+    then runWithGloss durationSecs dt initSimState (0, initEnv, []) perfFile
+    else simulate dt initSimState perfFile
 
 simulate :: RandomGen g
          => DTime
          -> SimulationState g
+         -> String 
          -> IO ()
-simulate dt ss = do
+simulate dt ss perfFile = do
   (ss', (t, _, aos)) <- simulationStep dt ss
 
   -- NOTE: need to print t otherwise lazy evaluation would omit all computation
-  putStrLn $ "t = " ++ show t ++ " agents = " ++ show (length aos)
+  --putStrLn $ "t = " ++ show t ++ " agents = " ++ show (length aos)
+  print $ length aos
   
-  ret <- checkTime durationSecs ss' 
+  ret <- checkTime durationSecs ss' perfFile
   if ret 
     then return ()
-    else simulate dt ss'
+    else simulate dt ss' perfFile

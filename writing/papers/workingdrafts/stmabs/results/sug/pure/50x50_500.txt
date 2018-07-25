@@ -1,0 +1,17 @@
+1711 steps after 60.0 sec. is a ratio of 28.516666666666666
+1687 steps after 60.0 sec. is a ratio of 28.116666666666667
+1688 steps after 60.0 sec. is a ratio of 28.133333333333333
+1699 steps after 60.0 sec. is a ratio of 28.316666666666666
+1687 steps after 60.0 sec. is a ratio of 28.116666666666667
+1692 steps after 60.0 sec. is a ratio of 28.2
+1688 steps after 60.0 sec. is a ratio of 28.133333333333333
+1693 steps after 60.0 sec. is a ratio of 28.216666666666665
+
+steps = [1711, 1687, 1688, 1699, 1687, 1692, 1688, 1693];
+ratios = steps ./ 60;
+
+mean (steps) = 1693.1
+std (steps)  = 8.305
+
+mean (ratios) = 28.219
+std (ratios)  = 0.138

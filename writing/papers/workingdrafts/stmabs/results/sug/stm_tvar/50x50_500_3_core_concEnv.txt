@@ -1,0 +1,17 @@
+2180 steps after 60.0 sec. is a ratio of 36.333333333333336
+2224 steps after 60.0 sec. is a ratio of 37.06666666666667
+2326 steps after 60.0 sec. is a ratio of 38.766666666666666
+2334 steps after 60.0 sec. is a ratio of 38.9
+2385 steps after 60.0 sec. is a ratio of 39.75
+2360 steps after 60.0 sec. is a ratio of 39.333333333333336
+2335 steps after 60.0 sec. is a ratio of 38.916666666666664
+2356 steps after 60.0 sec. is a ratio of 39.266666666666666
+
+steps = [2180, 2224, 2326, 2334, 2385, 2360, 2335, 2356];
+ratios = steps ./ 60;
+
+mean (steps) = 2312.5
+std (steps)  = 71.658
+
+mean (ratios) = 38.542
+std (ratios)  = 1.194

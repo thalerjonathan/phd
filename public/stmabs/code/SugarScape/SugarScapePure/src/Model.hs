@@ -60,7 +60,6 @@ data SugEnvCell = SugEnvCell
 
 type SugEnvironment = Discrete2d SugEnvCell
 
---type SugData = ()
 type SugAgentMonad g  = StateT SugEnvironment (Rand g)
 type SugAgentMonadT g = AgentT (SugAgentMonad g)
 

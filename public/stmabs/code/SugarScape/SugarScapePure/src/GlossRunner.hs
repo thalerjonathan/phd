@@ -19,8 +19,9 @@ runWithGloss :: RandomGen g
              -> DTime
              -> SimulationState g
              -> SimStepOut
+             -> String
              -> IO ()
-runWithGloss durSecs dt initSimState initOut = do
+runWithGloss durSecs dt initSimState initOut perfFile = do
   let freq     = 4
       winSize  = (800, 800)
       winTitle = "SugarScape"
@@ -37,12 +38,12 @@ runWithGloss durSecs dt initSimState initOut = do
         freq                      -- how many steps of the simulation to calculate per second (roughly, depends on rendering performance)
         initOut                   -- initial model = output of each simulation step to be rendered
         (modelToPicture winSize)  -- model-to-picture function
-        (renderStep durSecs dt ssRef)    -- 
+        (renderStep durSecs dt ssRef perfFile)    -- 
     else
       animateIO
         (displayGlossWindow winTitle winSize)
         white
-        (renderStepAnimate winSize durSecs dt ssRef)
+        (renderStepAnimate winSize durSecs dt ssRef perfFile)
         (const $ return ())
 
 displayGlossWindow :: String -> (Int, Int) -> GLO.Display
@@ -60,16 +61,17 @@ renderStep :: RandomGen g
            => Double
            -> DTime
            -> IORef (SimulationState g)
+           -> String
            -> ViewPort
            -> Float
            -> SimStepOut
            -> IO SimStepOut
-renderStep durSecs dt ssRef _ _ _ = do
+renderStep durSecs dt ssRef perfFile _ _ _ = do
   ss <- readIORef ssRef
   (ss', out) <- simulationStep dt ss
   writeIORef ssRef ss'
   
-  _ <- checkTime durSecs ss'
+  _ <- checkTime durSecs ss' perfFile
 
   return out
 
@@ -78,13 +80,14 @@ renderStepAnimate :: RandomGen g
                   -> Double
                   -> DTime
                   -> IORef (SimulationState g)
+                  -> String
                   -> Float
                   -> IO GLO.Picture
-renderStepAnimate winSize durSecs dt ssRef _ = do
+renderStepAnimate winSize durSecs dt ssRef perfFile _ = do
   ss <- readIORef ssRef
   (ss', out) <- simulationStep dt ss
   writeIORef ssRef ss'
 
-  _ <- checkTime durSecs ss'
+  _ <- checkTime durSecs ss' perfFile
 
   modelToPicture winSize out 

@@ -21,6 +21,7 @@ import            FRP.BearRiver
 
 import            AgentMonad
 import            Model
+import            Random
 import            Renderer
 
 type SimStepOut = (Time, SugEnvironment, [AgentObservable SugAgentObservable])
@@ -62,9 +63,12 @@ simulationStep dt ss = do
 simStepSF :: RandomGen g
           => [AgentId]
           -> [SugAgent g]
+          -> g
           -> SF (SugAgentMonadT g) () [AgentObservable SugAgentObservable]
-simStepSF ais sfs = MSF $ \_ -> do
-  -- TODO: shuffle agent sfs
+simStepSF ais0 sfs0 shuffleRng = MSF $ \_ -> do
+  let (sfsAis, shuffleRng') = fisherYatesShuffle shuffleRng (zip sfs0 ais0)
+      (sfs, ais)            = unzip sfsAis
+
   res <- mapM (`unMSF` AgentIn) sfs
 
   let adefs = concatMap (\(ao, _) -> aoCreate ao) res
@@ -81,7 +85,7 @@ simStepSF ais sfs = MSF $ \_ -> do
           then acc 
           else (sf : accSf, aid : accAid)) ([], []) (zip res ais)
 
-      ct = simStepSF (newAis ++ ais') (newSfs ++ sfs')
+      ct = simStepSF (newAis ++ ais') (newSfs ++ sfs') shuffleRng'
 
   return (obs, ct)
 
@@ -105,8 +109,9 @@ mkSimState sf absState env g start steps = SimulationState
 checkTime :: RandomGen g
           => Double
           -> SimulationState g
+          -> String
           -> IO Bool
-checkTime durSecs ss = do
+checkTime durSecs ss fileName = do
   nowT <- getCurrentTime
 
   let start = simStart ss
@@ -117,8 +122,7 @@ checkTime durSecs ss = do
       let steps      = simSteps ss
           stepsRatio = (fromIntegral steps / durSecs) :: Double
 
-      putStrLn $ show steps ++ " steps after " ++ show durSecs ++ " sec. is a ratio of " ++ show stepsRatio
+      appendFile fileName $ show steps ++ " steps after " ++ show durSecs ++ " sec. is a ratio of " ++ show stepsRatio ++ "\n"
+      -- putStrLn $ show steps ++ " steps after " ++ show durSecs ++ " sec. is a ratio of " ++ show stepsRatio
       return True)
-    else (do
-      --putStrLn $ show (durSecs - dtStart) ++ " secs left..."
-      return False)
+    else return False

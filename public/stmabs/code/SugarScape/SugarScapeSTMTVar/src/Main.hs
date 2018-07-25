@@ -26,6 +26,7 @@ main = do
 
   let stmStatsFlag = False   -- collects STM statistics. WARNING: reduces performance!
       envConc      = True    -- runs the environment agent concurrently
+      perfFile     = "50x50_500_4_core_concEnv.txt"
       glossOut     = False
       rngSeed      = 42
       dt           = 1.0     -- this model has discrete time-semantics with a step-with of 1.0 which is relevant for the aging of the agents
@@ -59,24 +60,23 @@ main = do
   let initSimCtx = mkSimContex dtVars aoVars 0 g' start 0 envAg
 
   if glossOut
-    then runWithGloss durationSecs dt initSimCtx sugCtx initOut stmStatsFlag
-    else simulate dt initSimCtx sugCtx stmStatsFlag
+    then runWithGloss durationSecs dt initSimCtx sugCtx initOut stmStatsFlag perfFile
+    else simulate dt initSimCtx sugCtx stmStatsFlag perfFile
 
 simulate :: RandomGen g
          => DTime
          -> SimContext g
          -> SugContext
          -> Bool
+         -> String
          -> IO ()
-simulate dt simCtx sugCtx stmStatsFlag = do
+simulate dt simCtx sugCtx stmStatsFlag perfFile = do
   (simCtx', (t, _, aos)) <- simulationStep dt sugCtx simCtx stmStatsFlag
 
   -- NOTE: need to print t otherwise lazy evaluation would omit all computation
   putStrLn $ "t = " ++ show t ++ " agents = " ++ show (length aos)
   
-  ret <- checkTime durationSecs simCtx' 
+  ret <- checkTime durationSecs simCtx' perfFile
   if ret 
-    then do
-      when stmStatsFlag dumpSTMStats
-      putStrLn "goodbye" 
-    else simulate dt simCtx' sugCtx stmStatsFlag
+    then when stmStatsFlag dumpSTMStats
+    else simulate dt simCtx' sugCtx stmStatsFlag perfFile

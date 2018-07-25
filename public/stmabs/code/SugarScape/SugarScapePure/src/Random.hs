@@ -4,6 +4,7 @@ module Random
   , randomExpM
   , randomElemM
   , randomShuffleM
+  , fisherYatesShuffle
   , avoidM
   ) where
 

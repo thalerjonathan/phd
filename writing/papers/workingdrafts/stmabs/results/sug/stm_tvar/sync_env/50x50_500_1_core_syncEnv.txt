@@ -1,0 +1,17 @@
+1873 steps after 60.0 sec. is a ratio of 31.216666666666665
+1890 steps after 60.0 sec. is a ratio of 31.5
+1887 steps after 60.0 sec. is a ratio of 31.45
+1866 steps after 60.0 sec. is a ratio of 31.1
+1878 steps after 60.0 sec. is a ratio of 31.3
+1834 steps after 60.0 sec. is a ratio of 30.566666666666666
+1848 steps after 60.0 sec. is a ratio of 30.8
+1874 steps after 60.0 sec. is a ratio of 31.233333333333334
+
+steps = [1873, 1890, 1887, 1866, 1878, 1834, 1848, 1874];
+ratios = steps ./ 60;
+
+mean (steps) = 1868.8
+std (steps)  = 19.129
+
+mean (ratios) = 31.146
+std (ratios)  = 0.31882

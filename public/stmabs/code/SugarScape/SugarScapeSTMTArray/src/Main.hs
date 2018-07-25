@@ -26,8 +26,8 @@ main = do
   hSetBuffering stdout LineBuffering
 
   let stmStatsFlag = False
-      envConc      = True  -- runs the environment agent concurrently
-      perfFile     = "50x50_500_1_core_concEnv.txt"
+      envConc      = False  -- runs the environment agent concurrently
+      perfFile     = "50x50_500_1_core_syncEnv.txt"
       glossOut     = False
       rngSeed      = 42
       dt           = 1.0 

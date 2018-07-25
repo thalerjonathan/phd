@@ -49,12 +49,12 @@ environment in STM is run as concurrent agent
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
-               & Cores & Steps in 60 sec & Ratio per sec  \\ \hline \hline 
+               & Cores & Steps            & Ratio          \\ \hline \hline 
     	State  & 1     & 1,693.1 (8.305)  & 28.219 (0.138) \\ \hline \hline
    		STM    & 1     & 1,854.2 (29.519) & 30.904 (0.491) \\ \hline
    		STM    & 2     & 2,129.5 (61.414) & 35.492 (1.023) \\ \hline
    		STM    & 3     & 2,312.5 (71.658) & 38.542 (1.194) \\ \hline
-   		STM    & 4     & 2,238.8 (36.307) & 37.312 (0.605) \\ \hline \hline
+   		STM    & 4     & 2,238.8 (36.307) & 37.312 (0.605) \\ \hline
    	\end{tabular}
   	
   	\caption{Performance on 50x50 grid and 500 initial agents with varying number of cores.}
@@ -67,7 +67,7 @@ We also compared the average retry-ratio on varying number of cores.
 	\centering
   	\begin{tabular}{ c || c | c | c }
         Cores & Commits           & Retries            & Ratio \\ \hline \hline 
-    	1     & 498,881 (3,042.4) & 2,407.8 (248.56)   & 0.004 \\ \hline \hline
+    	1     & 498,881 (3,042.4) & 2,407.8 (248.56)   & 0.004 \\ \hline
    		2     & 557,800 (7,503.3) & 592,890 (8,827.9)  & 1.062 \\ \hline
    		3     & 540,700 (7,530.2) & 1,189,100 (19,771) & 2.199 \\ \hline
    		4     & 486,850 (7,927.9) & 1,646,800 (29,939) & 3.382 \\ \hline
@@ -78,17 +78,16 @@ We also compared the average retry-ratio on varying number of cores.
 \end{table}
 
 \subsection{Running Environment non-concurrently}
-Running concurrently is basically wrong because could lead to runs where the regrowth happens after the agent harvests which violates the model specifications. 
+Running concurrently is strictly speaking wrong because could lead to runs where the regrowth happens after the agent harvests which violates the model specifications. 
 
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
-        Cores & Steps & Ratio \\ \hline \hline 
-    	1     &  &  \\ \hline \hline
-   		1     &  &  \\ \hline
-   		2     &  &  \\ \hline
-   		3     &  &  \\ \hline
-   		4     &  &  \\ \hline \hline
+        Cores & Steps           & Ratio           \\ \hline \hline 
+    	1     & 1,868.8 (19.129) & 31.146 (0.318) \\ \hline
+   		2     & 2,121.1 (36.294) & 35.352 (0.604) \\ \hline
+   		3     & 2,325 (53.570)   & 38.750 (0.892) \\ \hline
+   		4     & 2,245 (40.175)   & 37.417 (0.669) \\ \hline \hline
    	\end{tabular}
   	
   	\caption{Performance on 50x50 grid and 500 initial agents with varying number of cores.}
@@ -101,7 +100,7 @@ We also compared the average retry-ratio on varying number of cores.
 	\centering
   	\begin{tabular}{ c || c | c | c }
         Cores & Commits           & Retries            & Ratio \\ \hline \hline 
-    	1     &                   &                    & 0.004 \\ \hline \hline
+    	1     &                   &                    & 0.004 \\ \hline
    		2     &                   &                    & 1.062 \\ \hline
    		3     &                   &                    & 2.199 \\ \hline
    		4     &                   &                    & 3.382 \\ \hline
@@ -112,14 +111,13 @@ We also compared the average retry-ratio on varying number of cores.
 \end{table}
 
 \subsection{From TVar to TArray}
-Environment runs after all agents
+Environment runs after all agents.
 
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
         Cores & Steps & Ratio \\ \hline \hline 
-    	1     &  &  \\ \hline \hline
-   		1     &  &  \\ \hline
+    	1     &  &  \\ \hline
    		2     &  &  \\ \hline
    		3     &  &  \\ \hline
    		4     &  &  \\ \hline \hline
@@ -129,18 +127,16 @@ Environment runs after all agents
 	\label{tab:naive_results_time}
 \end{table}
 
+TODO: informally (no result table for all cores) test performance with concurrent environment
+
 \subsection{Scaling up Agents}
-
-\subsection{Scaling up Environment}
-So far we kept the grid-size constant because we implemented the environment as a single agent which works sequentially on the cells to regrow the sugar. Obviously this doesn't really scale up on parallel hardware thus having made the transition to TArray it should be no problem to run each cell within its own thread.
-At this point we are dominated by Amdahls law
-
-TODO: increasing grid-size with and without multithreaded enviornment
-
-\subsection{Comparison with imperative approaches}
-they are running it on 128x128 and on 10 year old single-core machines  \cite{lysenko_framework_2008}
-
-% RePast & 1     & N/A             & 17    \\ \hline \hline
-% GPU    & N/A   & N/A             & 2000  \\ \hline \hline
+TODO: using TArray, environment with every cell full ressources so agents don't starve to death, 500, 1000, 1500, 2000, on 4 cores
 
 \subsection{Conclusions}
+Note that we kept the grid-size constant because we implemented the environment as a single agent which works sequentially on the cells to regrow the sugar. Obviously this doesn't really scale up on parallel hardware and indeed, the performance goes down dramatically as reported in table TODO when we increase the environment to 128x128 with same number of agents. Obviously this is the result of Amdahls law where the environment becomes the limiting factor of the simulation.
+Depending on the underlying data-structure used for the environment we have to options. In the case of the State and TVar implementation we build on an indexed array which we can updated in parallel using the existing data-parallel support in Haskell (TODO: explain). In the case of the TArray approach we have no option but to run the update of every cell within its own thread. We leave both for further research as it is out of scope of this paper.
+
+
+Comparison with imperative approaches: they are running it on 128x128 and on 10 year old single-core machines  \cite{lysenko_framework_2008}
+% RePast & 1     & N/A             & 17    \\ \hline \hline
+% GPU    & N/A   & N/A             & 2000  \\ \hline \hline

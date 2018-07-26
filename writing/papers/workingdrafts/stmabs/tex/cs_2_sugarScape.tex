@@ -168,12 +168,45 @@ We also compared the average retry-ratio on varying number of cores.
 \end{table}
 
 \subsection{Scaling up Agents}
-TODO: using TArray, environment with every cell full resources so agents don't starve to death, 500, 1000, 1500, 2000, on 4 cores
+So far we always kept the initial number of agents at 500 and due to the model specification the number drops quickly to around 250-270 and stabelises around there due to the carrying capacity of the environment as described in the Book on page TODO. We now want to see the scaling property of our approaches when increasing the number of agents. For this we slightly change the implementation: always when an agent dies it spawns a new one. This ensures that we keep the number of agents always constant (fluctuactes slightly between 500 and 497) over the whole duration. This ensures a constant load of concurrent processes interacting with each other and demonstrates also the ability to terminate and fork threads dynamically during the simulation.
+Except for the State approach we run all experiments with 4 cores. Also in this case the environment is run after all agents are run. We look into the performance of 500, 1,000, 1,500, 2,000 and 2,500 (maximum possible capacity of the 50x50 environment).
 
-\subsection{Conclusions}
+\begin{table}
+	\centering
+  	\begin{tabular}{ c || c | c | c }
+        Agents  & Steps           & Ratio          \\ \hline \hline 
+    	500     & 847.25 (5.775)  & 14.121 (0.096) \\ \hline
+   		1,000   & 410.5 (5.529)   & 6.841 (0.092)  \\ \hline
+   		1,500   & 270.0 (6.989)   & 4.5 (0.116)    \\ \hline
+   		2,000   & 198.12 (4.223)  & 3.302 (0.07)   \\ \hline \hline
+   		2,500   & 158.50 (7.764)  & 2.641 (0.129)  \\ \hline \hline
+   	\end{tabular}
+  	
+  	\caption{Performance on 50x50 grid and varying number of agents using the State approach.}
+	\label{tab:state_results_agentsscale_time}
+\end{table}
+
+\begin{table}
+	\centering
+  	\begin{tabular}{ c || c | c | c }
+        Agents  & Steps           & Ratio          \\ \hline \hline 
+    	500     &   &  \\ \hline
+   		1,000   &   &   \\ \hline
+   		1,500   &    &     \\ \hline
+   		2,000   &   &    \\ \hline \hline
+   		2,500   &   &   \\ \hline \hline
+   	\end{tabular}
+  	
+  	\caption{Performance on 50x50 grid and varying number of agents using the TVar approach.}
+	\label{tab:state_results_agentsscale_time}
+\end{table}
+
+\subsection{Insights}
 Note that we kept the grid-size constant because we implemented the environment as a single agent which works sequentially on the cells to regrow the sugar. Obviously this doesn't really scale up on parallel hardware and indeed, the performance goes down dramatically as reported in table TODO when we increase the environment to 128x128 with same number of agents. Obviously this is the result of Amdahls law where the environment becomes the limiting factor of the simulation.
 Depending on the underlying data-structure used for the environment we have to options. In the case of the State and TVar implementation we build on an indexed array which we can updated in parallel using the existing data-parallel support in Haskell (TODO: explain). In the case of the TArray approach we have no option but to run the update of every cell within its own thread. We leave both for further research as it is out of scope of this paper.
 
 Comparison with imperative approaches: they are running it on 128x128 and on 10 year old single-core machines  \cite{lysenko_framework_2008}
 % RePast & 1     & N/A             & 17    \\ \hline \hline
 % GPU    & N/A   & N/A             & 2000  \\ \hline \hline
+
+Interpretation of the performance data leads to the following insights:

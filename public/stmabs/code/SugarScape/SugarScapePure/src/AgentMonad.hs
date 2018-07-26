@@ -5,7 +5,6 @@ module AgentMonad
   (
     AgentId
 
-  --, MonadAgent (..)
   , ABSState (..)
   
   , Agent
@@ -16,7 +15,6 @@ module AgentMonad
   , AgentOut (..)
 
   , nextAgentId
-  , sendMessage
 
   , mkAbsState
 
@@ -25,7 +23,7 @@ module AgentMonad
   , isObservable
   , isDead
   , kill
-  , createAgent
+  , newAgent
 
   , (<°>)
   ) where
@@ -65,13 +63,6 @@ nextAgentId = do
   modify (\s -> s { absNextId = aid + 1 })
   return aid
 
-sendMessage :: MonadState ABSState m
-            => AgentId 
-            -> AgentId
-            -> e
-            -> m ()
-sendMessage _from _to _msg = undefined
-
 mkAbsState :: AgentId -> ABSState
 mkAbsState initId = ABSState 
   { absNextId = initId + 1
@@ -97,10 +88,10 @@ isDead ao = isEvent $ aoKill ao
 kill :: AgentOut m o -> AgentOut m o
 kill ao = ao { aoKill = Event () }
 
-createAgent :: AgentDef m o
-            -> AgentOut m o 
-            -> AgentOut m o
-createAgent adef ao 
+newAgent :: AgentDef m o
+         -> AgentOut m o 
+         -> AgentOut m o
+newAgent adef ao 
   = ao { aoCreate = adef : aoCreate ao }
 
 isObservable :: AgentOut m o -> Bool

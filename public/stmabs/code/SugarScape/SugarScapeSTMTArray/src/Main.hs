@@ -26,7 +26,8 @@ main = do
   hSetBuffering stdout LineBuffering
 
   let stmStatsFlag = False
-      envConc      = True  -- runs the environment agent concurrently
+      envConc      = False  -- runs the environment agent concurrently
+      rebirthFlag  = True
       perfFile     = "50x50_500_4_core_concEnv.txt"
       glossOut     = False
       rngSeed      = 42
@@ -34,10 +35,10 @@ main = do
       agentCount   = 500
       envSize      = (50, 50)
       -- initial RNG
-      g0                     = mkStdGen rngSeed
+      g0           = mkStdGen rngSeed
 
   -- initial agents and environment
-  let ret                = runRandT (createSugarScape agentCount envSize) g0
+  let ret                = runRandT (createSugarScape agentCount envSize rebirthFlag) g0
   ((initAs, initEnv), g) <- atomically ret
   envCells               <- atomically $ allCellsWithCoords initEnv
 

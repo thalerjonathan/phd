@@ -192,8 +192,8 @@ Independent of the number of agents we always have a retry-ratio of 0.0. This in
 %	\label{fig:retries_stm}
 %\end{figure}
 
-\subsection{Conclusions}
-Interpretation of the performance data leads to the following conclusions:
+\subsection{Insights}
+Interpretation of the performance data leads to the following insights:
 \begin{enumerate}
 	%\item On a single core, no transaction retries should happen, the results support that assumption.
 	\item Running in STM and sharing state using a transactional variable is much more time- and memory-efficient than running in the State Monad but potentially sacrifices determinism: repeated runs might not lead to same dynamics despite same initial conditions.

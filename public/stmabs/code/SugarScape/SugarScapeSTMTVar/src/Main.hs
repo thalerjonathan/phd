@@ -26,6 +26,7 @@ main = do
 
   let stmStatsFlag = False -- collects STM statistics. WARNING: reduces performance!
       envConc      = True -- runs the environment agent concurrently
+      rebirthFlag  = True
       perfFile     = "50x50_500_3_core_syncEnv.txt"
       glossOut     = False
       rngSeed      = 42
@@ -34,9 +35,9 @@ main = do
       envSize      = (50, 50)
 
       -- initial RNG
-      g0                     = mkStdGen rngSeed
+      g0           = mkStdGen rngSeed
       -- initial agents and environment
-      ((initAs, initEnv), g) = runRand (createSugarScape agentCount envSize) g0
+      ((initAs, initEnv), g) = runRand (createSugarScape agentCount envSize rebirthFlag) g0
       -- initial model for Gloss = output of each simulation step to be rendered
       initOut                = (0, initEnv, [])
       -- initial simulation state

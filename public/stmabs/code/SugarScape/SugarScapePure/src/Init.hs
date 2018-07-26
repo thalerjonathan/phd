@@ -14,20 +14,16 @@ import Discrete
 import Environment
 import Model
 
--- TODO: init and add an environment agent
 createSugarScape :: RandomGen g
                  => Int 
                  -> Discrete2dDimension 
+                 -> Bool
                  -> Rand g ([(AgentId, SugAgent g)], SugEnvironment)
-createSugarScape agentCount dims@(_dx, _dy) = do
-  -- let hdx = floor $ fromIntegral dx * 0.5
-  -- let hdy = floor $ fromIntegral dy * 0.5
-
+createSugarScape agentCount dims@(_dx, _dy) rebirthFlag = do
   randCoords <- randomCoords (0,0) dims agentCount
-  --randCoords <- randomCoords (0,0) (hdx, hdy) agentCount
 
   let ais = [1..agentCount]
-  ras <- mapM (\(aid, coord) -> randomAgent (aid, coord) sugAgent id) (zip ais randCoords)
+  ras <- mapM (\(aid, coord) -> randomAgent (aid, coord) (sugAgent rebirthFlag) id) (zip ais randCoords)
   let as = map (\(aid, (adef, _)) -> (aid, adBeh adef)) (zip ais ras)
   let occupations = map (\(ad, s) -> (sugAgCoord s, (adId ad, s))) ras
 
@@ -81,9 +77,6 @@ initRandomCell :: RandomGen g
                -> Discrete2dCoord 
                -> Rand g (Discrete2dCoord, SugEnvCell)
 initRandomCell os coord = do
-  -- randSugarCap <- getRandomR sugarCapacityRange
-  -- randSpiceCap <- getRandomR spiceCapacityRange
-
   let mayOccupier = Data.List.find ((==coord) . fst) os
       occ         = maybe Nothing (\(_, (aid, s)) -> (Just (cellOccupier aid s))) mayOccupier
 

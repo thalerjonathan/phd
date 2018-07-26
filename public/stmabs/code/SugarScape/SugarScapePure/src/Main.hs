@@ -21,17 +21,18 @@ main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
 
-  let glossOut   = False
-      perfFile   = "50x50_500.txt"
-      rngSeed    = 42
-      dt         = 1.0
-      agentCount = 500
-      envSize    = (50, 50)
+  let glossOut    = False
+      rebirthFlag = True
+      perfFile    = "50x50_2500rebirth.txt"
+      rngSeed     = 42
+      dt          = 1.0
+      agentCount  = 2500
+      envSize     = (50, 50)
 
       -- initial RNG
       (g0, shuffleRng) = split $ mkStdGen rngSeed
       -- initial agents and environment
-      ((initAs, initEnv), g) = runRand (createSugarScape agentCount envSize) g0
+      ((initAs, initEnv), g) = runRand (createSugarScape agentCount envSize rebirthFlag) g0
       -- initial simulation state
       (initAis, initSfs) = unzip initAs
 

@@ -1,0 +1,18 @@
+845 steps after 60.0 sec. is a ratio of 14.083333333333334
+853 steps after 60.0 sec. is a ratio of 14.216666666666667
+843 steps after 60.0 sec. is a ratio of 14.05
+843 steps after 60.0 sec. is a ratio of 14.05
+858 steps after 60.0 sec. is a ratio of 14.3
+843 steps after 60.0 sec. is a ratio of 14.05
+850 steps after 60.0 sec. is a ratio of 14.166666666666666
+843 steps after 60.0 sec. is a ratio of 14.05
+
+steps = [845, 853, 843, 843, 858, 843, 850, 843];
+ratios = steps ./ 60;
+
+mean (steps) = 847.25
+std (steps)  = 5.775
+
+mean (ratios) = 14.121
+std (ratios)  = 0.096
+

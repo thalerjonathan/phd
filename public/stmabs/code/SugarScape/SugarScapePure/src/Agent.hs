@@ -4,15 +4,9 @@ module Agent
     sugAgent
   ) where
 
--- import Control.Monad
--- import Control.Monad.IfElse
 import Control.Monad.Random
 import Control.Monad.State.Strict
 import FRP.BearRiver
---import Debug.Trace
-
---import Data.Maybe
---import Data.List
 
 import AgentMonad
 import Common
@@ -24,12 +18,13 @@ import Utils
 
 ------------------------------------------------------------------------------------------------------------------------
 sugAgent :: RandomGen g 
-         => AgentId
+         => Bool
+         -> AgentId
          -> SugAgentState
          -> SugAgent g
-sugAgent aid s0 = feedback s0 (proc (ain, s) -> do
+sugAgent rebirthFlag aid s0 = feedback s0 (proc (ain, s) -> do
   age      <- time -< ()
-  (ao, s') <- arrM (\(age, ain, s) -> lift $ runStateT (chapterII aid ain age) s) -< (age, ain, s)
+  (ao, s') <- arrM (\(age, ain, s) -> lift $ runStateT (chapterII rebirthFlag aid ain age) s) -< (age, ain, s)
   returnA -< (ao, s'))
 
 updateAgentState :: RandomGen g
@@ -46,19 +41,43 @@ observable
 -- Chapter II: Life And Death On The Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
 chapterII :: RandomGen g 
-          => AgentId
+          => Bool
+          -> AgentId
           -> SugAgentIn
           -> Time
           -> StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)
-chapterII aid _ain age = do
+chapterII rebirthFlag aid _ain age = do
   ao <- agentMetabolism
   ifThenElse
     (isDead ao)
-    (return ao)
+    (if rebirthFlag
+      then do
+        (_, newA) <- birthNewAgent rebirthFlag
+        return $ newAgent newA ao
+      else return ao)
     (do
       agentMove aid
       ao' <- observable 
       return $ ao <°> ao')
+
+birthNewAgent :: RandomGen g
+              => Bool
+              -> StateT SugAgentState (SugAgentMonadT g) (AgentId, SugAgentDef g)
+birthNewAgent rebirthFlag = do
+      newAid    <- lift nextAgentId
+      newCoord  <- findUnoccpiedRandomPosition
+      (newA, _) <- lift $ lift $ lift $ randomAgent (newAid, newCoord) (sugAgent rebirthFlag) id
+      return (newAid, newA)
+  where
+    findUnoccpiedRandomPosition :: RandomGen g
+                                => StateT SugAgentState (SugAgentMonadT g) Discrete2dCoord
+    findUnoccpiedRandomPosition = do
+      e <- lift $ lift get
+      (c, coord) <- lift $ lift $ lift $ randomCell e
+      ifThenElse
+        (cellOccupied c) 
+        findUnoccpiedRandomPosition
+        (return coord)
 
 agentDies :: RandomGen g
           => StateT SugAgentState (SugAgentMonadT g) (SugAgentOut g)

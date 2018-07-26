@@ -17,12 +17,13 @@ import Utils
 
 ------------------------------------------------------------------------------------------------------------------------
 sugAgent :: RandomGen g 
-         => AgentId
+         => Bool
+         -> AgentId
          -> SugAgentState
          -> SugAgent g
-sugAgent aid s0 = feedback s0 (proc (ain, s) -> do
+sugAgent rebirthFlag aid s0 = feedback s0 (proc (ain, s) -> do
   age      <- time -< ()
-  (ao, s') <- arrM (\(age, ain, s) -> lift $ runStateT (chapterII aid ain age) s) -< (age, ain, s)
+  (ao, s') <- arrM (\(age, ain, s) -> lift $ runStateT (chapterII rebirthFlag aid ain age) s) -< (age, ain, s)
   returnA -< (ao, s'))
 
 updateAgentState :: RandomGen g
@@ -39,19 +40,51 @@ observable
 -- Chapter II: Life And Death On The Sugarscape
 ------------------------------------------------------------------------------------------------------------------------
 chapterII :: RandomGen g 
-          => AgentId
+          => Bool
+          -> AgentId
           -> SugAgentIn
           -> Time
           -> StateT SugAgentState (SugAgentMonad g) (SugAgentOut g)
-chapterII aid _ain _age = do
+chapterII rebirthFlag aid _ain _age = do
   ao <- agentMetabolism
   ifThenElse
     (isDead ao)
-    (return ao)
+    (if rebirthFlag
+      then do
+        (newAid, newA) <- birthNewAgent rebirthFlag
+        return $ newAgent newAid newA ao
+      else return ao)
     (do
       agentMove aid
       ao' <- observable 
       return $ ao <°> ao')
+
+birthNewAgent :: RandomGen g
+              => Bool
+              -> StateT SugAgentState (SugAgentMonad g) (AgentId, SugAgent g)
+birthNewAgent rebirthFlag = do
+      env       <- lift readEnvironment
+      newAid    <- lift nextAgentId
+      newCoord  <- findUnoccpiedRandomPosition env
+      (newA, _) <- lift $ lift $ randomAgent (newAid, newCoord) (sugAgent rebirthFlag) id
+      return (newAid, newA)
+  where
+    findUnoccpiedRandomPosition :: RandomGen g
+                                => SugEnvironment
+                                -> StateT SugAgentState (SugAgentMonad g) Discrete2dCoord
+    findUnoccpiedRandomPosition env = do
+      let (maxX, maxY) = envDisc2dDims env
+
+      randX <- lift $ lift $ getRandomR (0, maxX - 1) 
+      randY <- lift $ lift $ getRandomR (0, maxY - 1)
+
+      let randCoord = (randX, randY)
+          c         = cellAt randCoord env
+
+      ifThenElse
+        (cellOccupied c) 
+        (findUnoccpiedRandomPosition env)
+        (return randCoord)
 
 agentDies :: RandomGen g
           => StateT SugAgentState (SugAgentMonad g) (SugAgentOut g)

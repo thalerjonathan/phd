@@ -29,7 +29,7 @@ dt :: DTime
 dt = 0.1
 
 t :: Time
-t = 100
+t = 400
 
 winSize :: (Int, Int)
 winSize = (600, 600)
@@ -51,7 +51,7 @@ main = do
       fileName  =  "STEP_5_ENVIRONMENT_DYNAMICS_" ++ show agentGridSize ++ "agents.m"
   
   writeAggregatesToFile fileName dyns
-  --render es
+  render es
 
 environmentsToAgentDyns :: [SIREnv] -> [[SIRState]]
 environmentsToAgentDyns = map elems

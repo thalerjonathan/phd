@@ -25,9 +25,9 @@ main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
 
-  let stmStatsFlag = False  -- collects STM statistics. WARNING: reduces performance!
-      envConc      = False  -- runs the environment agent concurrently
-      rebirthFlag  = True   -- an agent who dies will schedule to create a new random agent => keeps population (more or less) constant 
+  let stmStatsFlag = True  -- collects STM statistics. WARNING: reduces performance!
+      envConc      = False -- runs the environment agent concurrently
+      rebirthFlag  = True  -- an agent who dies will schedule to create a new random agent => keeps population (more or less) constant 
       perfFile     = "50x50_2500_4_core_rebirth.txt"
       glossOut     = False
       rngSeed      = 42

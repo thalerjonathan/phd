@@ -92,9 +92,9 @@ We also compared the average retry-ratio on varying number of cores.
   	\begin{tabular}{ c || c | c | c }
         Cores & Commits           & Retries            & Ratio \\ \hline \hline 
     	1     & 482,790 (23,061)  & 2,397.9 (263.88)   & 0.004 \\ \hline
-   		2     & 500,300 (20,063)  & 526,000 (21,586)   & 1.0514 \\ \hline
-   		3     & 500,230 (22,588)  & 1,065,700 (67,492) & 2.1304 \\ \hline
-   		4     &                   &                    &  \\ \hline
+   		2     & 500,300 (20,063)  & 526,000 (21,586)   & 1.051 \\ \hline
+   		3     & 500,230 (22,588)  & 1,065,700 (67,492) & 2.130 \\ \hline
+   		4     & 524,593 (2,733.7) & 1,779,600 (10,131) & 3.392 \\ \hline
    	\end{tabular}
   	
   	\caption{Retries on 50x50 grid and 500 initial agents with varying number of cores with a synchronous environment.}
@@ -122,14 +122,15 @@ Sync Environment: runs after all agents.
 
 We also compared the average retry-ratio on varying number of cores.
 
+
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
-        Cores & Commits           & Retries            & Ratio \\ \hline \hline 
-    	1     &                   &                    &  \\ \hline
-   		2     &                   &                    &  \\ \hline
-   		3     &                   &                    &  \\ \hline
-   		4     &                   &                    &  \\ \hline
+        Cores & Commits            & Retries         & Ratio \\ \hline \hline 
+    	1     & 563,920 (5,154.9)  & 876.50 (24.716) & 0.001 \\ \hline
+   		2     & 830,650 (9,477.8)  & 10,447 (344.75) & 0.012 \\ \hline
+   		3     & 972,140 (14,752)   & 22,363 (468.52) & 0.023 \\ \hline
+   		4     & 1,081,600 (25,923) & 31,550 (826.17) & 0.029 \\ \hline
    	\end{tabular}
   	
   	\caption{Retries on 50x50 grid and 500 initial agents with varying number of cores using a \textit{TArray} for a synchronous environment.}
@@ -139,6 +140,7 @@ We also compared the average retry-ratio on varying number of cores.
 --------------------------------------
 Concurrent Environment
 
+TODO: re-run this, it seems dubious
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
@@ -158,11 +160,11 @@ We also compared the average retry-ratio on varying number of cores.
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
-        Cores & Commits           & Retries            & Ratio \\ \hline \hline 
-    	1     &                   &                    &  \\ \hline
-   		2     &                   &                    &  \\ \hline
-   		3     &                   &                    &  \\ \hline
-   		4     &                   &                    &  \\ \hline
+        Cores & Commits           & Retries          & Ratio \\ \hline \hline 
+   		1     & 629,560 (2,305.4) & 1,532.4 (29.364) & 0.002 \\ \hline
+    	2     & 599,710 (13,168)  & 30,562 (388.31)  & 0.051 \\ \hline
+   		3     & 754,550 (6,270.2) & 29,972 (229.26)  & 0.039 \\ \hline
+   		4     & 789,870 (9,210.6) & 32,961 (402.55)  & 0.041 \\ \hline
    	\end{tabular}
   	
   	\caption{Retries on 50x50 grid and 500 initial agents with varying number of cores using a \textit{TArray} for a concurrent environment.}
@@ -217,6 +219,19 @@ Except for the State approach we run all experiments with 4 cores. Also in this 
   	\caption{Performance on 50x50 grid and varying number of agents using the TArray approach.}
 	\label{tab:tarray_results_agentsscale_time}
 \end{table}
+
+\begin{table}
+	\centering
+  	\begin{tabular}{ c || c | c | c }
+               & Commits            & Retries              & Ratio \\ \hline \hline 
+		TVar   & 550,530 (4,521.1)  & 1,810,100 (15,043) & 3.2880 \\ \hline   		
+   		TArray & 3,151,600 (37,727) & 46,283 (735.93)      & 0.014 \\ \hline
+   	\end{tabular}
+  	
+  	\caption{Retries on 50x50 grid and 2,500 constant agents using \textit{TVar} and \textit{TArray} in a synchronous environment.}
+	\label{tab:tvartarray_results_agentsscale_retries}
+\end{table}
+
 
 \subsection{Insights}
 Note that we kept the grid-size constant because we implemented the environment as a single agent which works sequentially on the cells to regrow the sugar. Obviously this doesn't really scale up on parallel hardware and indeed, the performance goes down dramatically as reported in table TODO when we increase the environment to 128x128 with same number of agents. Obviously this is the result of Amdahls law where the environment becomes the limiting factor of the simulation.

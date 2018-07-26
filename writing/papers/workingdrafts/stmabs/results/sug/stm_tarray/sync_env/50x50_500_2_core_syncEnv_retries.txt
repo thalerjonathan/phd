@@ -1,0 +1,36 @@
+STM transaction statistics (2018-07-26 16:11:03.570020769 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       829763      10917       0.01
+STM transaction statistics (2018-07-26 16:12:04.168541132 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       829877      10260       0.01
+STM transaction statistics (2018-07-26 16:13:04.75184455 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       843209      10956       0.01
+STM transaction statistics (2018-07-26 16:14:05.319123288 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       823699      10171       0.01
+STM transaction statistics (2018-07-26 16:15:05.916182075 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       844150      10448       0.01
+STM transaction statistics (2018-07-26 16:16:06.515534636 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       815296      10052       0.01
+STM transaction statistics (2018-07-26 16:17:07.110900311 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       828832      10584       0.01
+STM transaction statistics (2018-07-26 16:18:07.785050512 UTC):
+Transaction     Commits    Retries      Ratio
+SugarScape       830393      10190       0.01
+
+commits = [829763, 829877, 843209, 823699, 844150, 815296, 828832, 830393];
+retries = [10917, 10260, 10956, 10171, 10448, 10052, 10584, 10190]
+
+mean (commits) = 830650
+std (commits)  = 9477.8
+
+mean (retries) = 10447
+std (retries)  = 344.75
+
+mean (retries) / mean (commits) = 0.012577
+

@@ -22,7 +22,7 @@ main = do
   hSetBuffering stdout LineBuffering
 
   let glossOut    = False
-      rebirthFlag = True
+      rebirthFlag = True -- an agent who dies will schedule to create a new random agent => keeps population (more or less) constant 
       perfFile    = "50x50_2500rebirth.txt"
       rngSeed     = 42
       dt          = 1.0

@@ -178,8 +178,8 @@ Except for the State approach we run all experiments with 4 cores. Also in this 
     	500     & 847.25 (5.775)  & 14.121 (0.096) \\ \hline
    		1,000   & 410.5 (5.529)   & 6.841 (0.092)  \\ \hline
    		1,500   & 270.0 (6.989)   & 4.5 (0.116)    \\ \hline
-   		2,000   & 198.12 (4.223)  & 3.302 (0.07)   \\ \hline \hline
-   		2,500   & 158.50 (7.764)  & 2.641 (0.129)  \\ \hline \hline
+   		2,000   & 198.12 (4.223)  & 3.302 (0.07)   \\ \hline 
+   		2,500   & 158.50 (7.764)  & 2.641 (0.129)  \\ \hline 
    	\end{tabular}
   	
   	\caption{Performance on 50x50 grid and varying number of agents using the State approach.}
@@ -189,16 +189,31 @@ Except for the State approach we run all experiments with 4 cores. Also in this 
 \begin{table}
 	\centering
   	\begin{tabular}{ c || c | c | c }
-        Agents  & Steps           & Ratio          \\ \hline \hline 
-    	500     &   &  \\ \hline
-   		1,000   &   &   \\ \hline
-   		1,500   &    &     \\ \hline
-   		2,000   &   &    \\ \hline \hline
-   		2,500   &   &   \\ \hline \hline
+        Agents  & Steps            & Ratio          \\ \hline \hline 
+    	500     & 1,270.9 (14.337) & 21.181 (0.238) \\ \hline
+   		1,000   & 679.50 (18.142)  & 11.325 (0.302) \\ \hline
+   		1,500   & 490.62 (2.133)   & 8.177 (0.035)  \\ \hline
+   		2,000   & 377.12 (0.640)   & 6.285 (0.010)  \\ \hline 
+   		2,500   & 316.38 (1.060)   & 5.272 (0.017)  \\ \hline 
    	\end{tabular}
   	
   	\caption{Performance on 50x50 grid and varying number of agents using the TVar approach.}
-	\label{tab:state_results_agentsscale_time}
+	\label{tab:tvar_results_agentsscale_time}
+\end{table}
+
+\begin{table}
+	\centering
+  	\begin{tabular}{ c || c | c | c }
+        Agents  & Steps            & Ratio          \\ \hline \hline 
+    	500     & 4,468.2 (67.753) & 74.471 (1.129) \\ \hline
+   		1,000   & 3,410.5 (16.449) & 56.842 (0.274) \\ \hline
+   		1,500   & 2,717.9 (12.955) & 45.298 (0.215) \\ \hline
+   		2,000   & 2,221.2 (13.446) & 37.021 (0.224) \\ \hline 
+   		2,500   & 1,904 (19.346)   & 31.733 (0.322) \\ \hline 
+   	\end{tabular}
+  	
+  	\caption{Performance on 50x50 grid and varying number of agents using the TArray approach.}
+	\label{tab:tarray_results_agentsscale_time}
 \end{table}
 
 \subsection{Insights}

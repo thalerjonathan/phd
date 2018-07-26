@@ -1,0 +1,18 @@
+2727 steps after 60.0 sec. is a ratio of 45.45
+2713 steps after 60.0 sec. is a ratio of 45.21666666666667
+2722 steps after 60.0 sec. is a ratio of 45.36666666666667
+2727 steps after 60.0 sec. is a ratio of 45.45
+2728 steps after 60.0 sec. is a ratio of 45.46666666666667
+2704 steps after 60.0 sec. is a ratio of 45.06666666666667
+2728 steps after 60.0 sec. is a ratio of 45.46666666666667
+2694 steps after 60.0 sec. is a ratio of 44.9
+
+steps = [2727, 2713, 2722, 2727, 2728, 2704, 2728, 2694];
+ratios = steps ./ 60;
+
+mean (steps) = 2717.9
+std (steps)  = 12.955
+
+mean (ratios) = 45.298
+std (ratios)  = 0.215
+

@@ -51,3 +51,5 @@ pure = [500
 ];
 
 plot (pure);
+xlabel ("Time");
+ylabel ("Population Size");

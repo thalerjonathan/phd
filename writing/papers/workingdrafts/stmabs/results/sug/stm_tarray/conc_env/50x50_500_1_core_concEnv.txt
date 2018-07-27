@@ -1,18 +1,18 @@
-3274 steps after 60.0 sec. is a ratio of 54.56666666666667
-3330 steps after 60.0 sec. is a ratio of 55.5
-3349 steps after 60.0 sec. is a ratio of 55.81666666666667
-3383 steps after 60.0 sec. is a ratio of 56.38333333333333
-3370 steps after 60.0 sec. is a ratio of 56.166666666666664
-3347 steps after 60.0 sec. is a ratio of 55.78333333333333
-3340 steps after 60.0 sec. is a ratio of 55.666666666666664
-3346 steps after 60.0 sec. is a ratio of 55.766666666666666
+3086 steps after 60.0 sec. is a ratio of 51.43333333333333
+3106 steps after 60.0 sec. is a ratio of 51.766666666666666
+3168 steps after 60.0 sec. is a ratio of 52.8
+3235 steps after 60.0 sec. is a ratio of 53.916666666666664
+3186 steps after 60.0 sec. is a ratio of 53.1
+3196 steps after 60.0 sec. is a ratio of 53.266666666666666
+3221 steps after 60.0 sec. is a ratio of 53.68333333333333
+3182 steps after 60.0 sec. is a ratio of 53.03333333333333
 
-steps = [3274, 3330, 3349, 3383, 3370, 3347, 3340, 3346];
+steps = [3086, 3106, 3168, 3235, 3186, 3196, 3221, 3182];
 ratios = steps ./ 60;
 
-mean (steps) = 3342.4
-std (steps)  = 32.350
+mean (steps) =  3172.5
+std (steps)  =  52.110
 
-mean (ratios) = 55.706
-std (ratios)  = 0.539
+mean (ratios) =  52.875
+std (ratios)  =  0.86850
 

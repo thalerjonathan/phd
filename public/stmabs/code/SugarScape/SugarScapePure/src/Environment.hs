@@ -41,7 +41,7 @@ regrowSugar rate
         c { sugEnvSugarLevel = 
               min
                   (sugEnvSugarCapacity c)
-                  (sugEnvSugarLevel c) + rate}) -- need the brackets here
+                  (sugEnvSugarLevel c) + rate})
 
     regrowSugarToMax :: StateT SugEnvironment (Rand g) ()
     regrowSugarToMax = updateCellsM (\c -> c { sugEnvSugarLevel = sugEnvSugarCapacity c})

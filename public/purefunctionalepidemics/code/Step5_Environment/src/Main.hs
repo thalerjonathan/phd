@@ -29,7 +29,7 @@ dt :: DTime
 dt = 0.1
 
 t :: Time
-t = 400
+t = 100
 
 winSize :: (Int, Int)
 winSize = (600, 600)

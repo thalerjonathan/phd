@@ -45,7 +45,7 @@ regrowSugar rate
         c { sugEnvSugarLevel = 
               min
                   (sugEnvSugarCapacity c)
-                  (sugEnvSugarLevel c) + rate})
+                  ((sugEnvSugarLevel c) + rate)})
 
     regrowSugarToMax :: (MonadState SugEnvironment m) => m ()
     regrowSugarToMax = updateCellsM (\c -> c { sugEnvSugarLevel = sugEnvSugarCapacity c})

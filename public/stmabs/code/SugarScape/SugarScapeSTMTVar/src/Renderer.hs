@@ -29,7 +29,6 @@ renderSugarScapeFrame wSize@(wx, wy) t e ss
 
     cells = allCellsWithCoords e
 
-    -- agentPics = map (defaultAgentRendererDisc2d agentColorDiseased sugAgCoord (cellWidth, cellHeight) wSize) ss
     agentPics = map (sugarscapeAgentRenderer (cellWidth, cellHeight) wSize t) ss
     envPics = map (renderEnvCell (cellWidth, cellHeight) wSize t) cells
 
@@ -40,7 +39,8 @@ renderSugarScapeFrame wSize@(wx, wy) t e ss
 
 renderEnvCell :: SugEnvironmentRenderer
 renderEnvCell r@(rw, _rh) w _t (coord, cell)
-    = sugarLevelCircle
+    | sugarRatio <= 0.01 = GLO.blank
+    | otherwise          = sugarLevelCircle
   where
     sugarColor = GLO.makeColor 0.9 0.9 0.0 1.0
     
@@ -51,7 +51,6 @@ renderEnvCell r@(rw, _rh) w _t (coord, cell)
 
     sugarRadius = rw * realToFrac sugarRatio
     sugarLevelCircle = GLO.color sugarColor $ GLO.translate x y $ GLO.ThickCircle 0 sugarRadius
-
  
 sugarscapeAgentRenderer :: SugarScapeAgentRenderer
 sugarscapeAgentRenderer r@(rw, rh) w _t (aid, s) 

@@ -24,13 +24,9 @@ renderSugarScapeFrame :: (Int, Int)
 renderSugarScapeFrame wSize@(wx, wy) t (dx, dy) cs ss
     = GLO.Pictures (envPics ++ agentPics ++ [timeStepTxt])
   where
-    --(dx, dy) = dimensionsDisc2d e
     cellWidth = fromIntegral wx / fromIntegral dx
     cellHeight = fromIntegral wy / fromIntegral dy
 
-    --cs = allCellsWithCoords e
-
-    -- agentPics = map (defaultAgentRendererDisc2d agentColorDiseased sugAgCoord (cellWidth, cellHeight) wSize) ss
     agentPics = map (sugarscapeAgentRenderer (cellWidth, cellHeight) wSize t) ss
     envPics = map (renderEnvCell (cellWidth, cellHeight) wSize t) cs
 
@@ -41,7 +37,8 @@ renderSugarScapeFrame wSize@(wx, wy) t (dx, dy) cs ss
 
 renderEnvCell :: SugEnvironmentRenderer
 renderEnvCell r@(rw, _rh) w _t (coord, cell)
-    = sugarLevelCircle
+    | sugarRatio <= 0.01 = GLO.blank
+    | otherwise          = sugarLevelCircle
   where
     sugarColor = GLO.makeColor 0.9 0.9 0.0 1.0
 

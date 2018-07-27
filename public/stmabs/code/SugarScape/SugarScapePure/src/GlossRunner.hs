@@ -22,7 +22,7 @@ runWithGloss :: RandomGen g
              -> String
              -> IO ()
 runWithGloss durSecs dt initSimState initOut perfFile = do
-  let freq     = 4
+  let freq     = 2
       winSize  = (800, 800)
       winTitle = "SugarScape"
       
@@ -68,10 +68,11 @@ renderStep :: RandomGen g
            -> IO SimStepOut
 renderStep durSecs dt ssRef perfFile _ _ _ = do
   ss <- readIORef ssRef
-  (ss', out) <- simulationStep dt ss
+  (ss', out@(_, _, as)) <- simulationStep dt ss
   writeIORef ssRef ss'
   
   _ <- checkTime durSecs ss' perfFile
+  print $ length as
 
   return out
 

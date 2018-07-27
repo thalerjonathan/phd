@@ -41,7 +41,7 @@ regrowSugar rate env
         c { sugEnvSugarLevel = 
               min
                   (sugEnvSugarCapacity c)
-                  (sugEnvSugarLevel c) + rate}) env
+                  ((sugEnvSugarLevel c) + rate)}) env
 
     regrowSugarToMax :: STM ()
     regrowSugarToMax = updateAllCells (\c -> c { sugEnvSugarLevel = sugEnvSugarCapacity c}) env

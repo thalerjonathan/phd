@@ -21,12 +21,12 @@ main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
 
-  let glossOut    = False
-      rebirthFlag = True -- an agent who dies will schedule to create a new random agent => keeps population (more or less) constant 
-      perfFile    = "50x50_2500rebirth.txt"
+  let glossOut    = True
+      rebirthFlag = False -- an agent who dies will schedule to create a new random agent => keeps population (more or less) constant 
+      perfFile    = "50x50_500rebirth.txt"
       rngSeed     = 42
       dt          = 1.0
-      agentCount  = 2500
+      agentCount  = 500
       envSize     = (50, 50)
 
       -- initial RNG

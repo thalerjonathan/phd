@@ -143,6 +143,3 @@ visionRange = visionRangeStandard
 -- NOTE: set to 1-6 on page 24
 visionRangeStandard :: (Int, Int)
 visionRangeStandard = (1, 6)
--- NOTE: for Migration set to 1-10 on page 44
-visionRangeSeasons :: (Int, Int)
-visionRangeSeasons = (1, 10)

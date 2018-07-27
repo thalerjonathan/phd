@@ -114,15 +114,12 @@ randomCoords (minX, minY) (maxX, maxY) n0
         then drawRandomCoordsAux n acc
         else drawRandomCoordsAux (n-1) (c : acc)
 
-_allZeroSugar :: (Discrete2dCoord, SugEnvCell) -> Double
-_allZeroSugar _ = 0.0
-
 circlesSugar :: Double 
              -> [(Discrete2dCoord, Double)] 
              -> (Discrete2dCoord, SugEnvCell) 
              -> Double
 circlesSugar sugarLevel circles (coord, cell)
     | withinRadius = sugarLevel
-    | otherwise = sugEnvSugarLevel cell -- NOTE: keep the level of before
+    | otherwise    = sugEnvSugarLevel cell -- NOTE: keep the level of before
   where
     withinRadius = any (\(p, r) -> distanceEuclideanDisc2d p coord <= r) circles
